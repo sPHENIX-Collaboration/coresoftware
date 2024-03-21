@@ -1,5 +1,7 @@
 #include "MbdSig.h"
 
+#include <phool/phool.h>
+
 #include <TF1.h>
 #include <TFile.h>
 #include <TGraphErrors.h>
@@ -89,7 +91,8 @@ void MbdSig::Init()
   hpulse = hRawPulse;  // hpulse,gpulse point to raw by default
   gpulse = gRawPulse;  // we switch to sub for default if ped is applied
 
-  // ped0stats = new RunningStats();
+  //ped0stats = std::make_unique<MbdRunningStats>(100);  // use the last 100 events for running pedestal
+  ped0stats = new MbdRunningStats(100);  // use the last 100 events for running pedestal
   name = "hPed0_";
   name += ch;
   hPed0 = new TH1F(name, name, 16384, -0.5, 16383.5);
@@ -97,6 +100,10 @@ void MbdSig::Init()
 
   SetTemplateSize(900, 1000, -10., 20.);
   // SetTemplateSize(300,300,0.,15.);
+
+  // Set pedestal function
+  ped_fcn = new TF1("ped_fcn","[0]",0,2);
+  ped_fcn->SetLineColor(3);
 }
 
 void MbdSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_t begt, const Double_t endt)
@@ -151,8 +158,8 @@ MbdSig::~MbdSig()
   delete hSubPulse;
   delete gRawPulse;
   delete gSubPulse;
-  // delete ped0stats;
   delete hPed0;
+  delete ped0stats;
   // h2Template->Write();
   delete h2Template;
   delete h2Residuals;
@@ -209,6 +216,7 @@ void MbdSig::SetY(const Float_t* y, const int invert)
 
 void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
 {
+  //verbose = 100;
   if (hRawPulse == nullptr)
   {
     Init();
@@ -229,6 +237,14 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
     // cout << "aaa\t" << isamp << "\t" << x[isamp] << "\t" << y[isamp] << endl;
     hRawPulse->SetBinContent(isamp + 1, y[isamp]);
     gRawPulse->SetPoint(isamp, x[isamp], y[isamp]);
+    gRawPulse->SetPointError(isamp, 0, 4.0);
+  }
+  if ( verbose && ch==9 )
+  {
+    gRawPulse->Draw("ap");
+    gRawPulse->GetHistogram()->SetTitle(gRawPulse->GetName());
+    gPad->SetGridy(1);
+    PadUpdate();
   }
 
   if (use_ped0 != 0 || minped0samp >= 0 || minped0x != maxped0x || ped_presamp != 0)
@@ -250,13 +266,23 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
     {
       // How do we handle data which is not in samples, but is in time,
       // such as DRS4 data
-      // if ( isamp==(nsamples-1) ) cout << "bbb\t" << isamp << "\t" << x[isamp] << "\t" << invert*(y[isamp]-ped0) << endl;
+      if ( verbose && isamp==(nsamples-1) )
+      {
+        cout << "bbb ch " << ch << "\t" << isamp << "\t" << x[isamp] << "\t" << invert*(y[isamp]-ped0) << endl;
+      }
       hSubPulse->SetBinContent(isamp + 1, invert * (y[isamp] - ped0));
       hSubPulse->SetBinError(isamp + 1, ped0rms);
       gSubPulse->SetPoint(isamp, x[isamp], invert * (y[isamp] - ped0));
       gSubPulse->SetPointError(isamp, 0., ped0rms);
     }
+    if ( verbose && ch==9 )
+    {
+      cout << "SetXY: ch " << ch << endl;
+      gSubPulse->Print("ALL");
+    }
   }
+
+  verbose = 0;
 }
 
 Double_t MbdSig::GetSplineAmpl()
@@ -407,16 +433,23 @@ void MbdSig::CalcEventPed0(const Double_t minpedx, const Double_t maxpedx)
 // presample is number of samples before peak, nsamps is how many samples
 void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 {
+  //verbose = 100;
   hPed0->Reset();
-  // ped0stats->Clear();
+  //ped0stats->Clear();
 
   Double_t x, y;
   // Int_t n = gRawPulse->GetN();
   // Int_t max = gRawPulse->GetHistogram()->GetMaximumBin();
-  Long64_t max = TMath::LocMax(gRawPulse->GetN(), gRawPulse->GetY());
+  Long64_t max = ped_presamp_maxsamp;
+
+  // if there is no maxsamp set, use the max found in this event
+  if ( ped_presamp_maxsamp == -1 )
+  {
+    max = TMath::LocMax(gRawPulse->GetN(), gRawPulse->GetY());
+  }
   Int_t minsamp = max - presample - nsamps + 1;
   Int_t maxsamp = max - presample;
-  // cout << "CalcEventPed0_PreSamp: " << max << endl;
+  //std::cout << "CalcEventPed0_PreSamp: ch ctr max " << ch << "\t" << _evt_counter << "\t" << max << std::endl;
 
   if (minsamp < 0)
   {
@@ -429,27 +462,85 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
     _status = 1;
   }
 
-  for (int isamp = minsamp; isamp <= maxsamp; isamp++)
+  if ( verbose )
   {
-    gRawPulse->GetPoint(isamp, x, y);
-
-    hPed0->Fill(y);
-    // ped0stats->Push( y );
+    std::cout << "hPed0 presamp ch " << ch << std::endl;
   }
 
-  // use straight mean for pedestal
-  // Could consider using fit to hPed0 to remove outliers
-  // Double_t mean = ped0stats->Mean();
-  // Double_t rms = ped0stats->RMS();
-  Double_t mean = hPed0->GetMean();
-  Double_t rms = hPed0->GetRMS();
+  double mean = ped0stats->Mean();
+  //double rms = ped0stats->RMS();
+  double rms = 4.0;
+
+  ped_fcn->SetRange(minsamp-0.1,maxsamp+0.1);
+  ped_fcn->SetParameter(0,1500.);
+  if ( verbose )
+  {
+    gRawPulse->Fit( ped_fcn, "R" );
+    gRawPulse->Draw("ap");
+    ped_fcn->Draw("same");
+    PadUpdate();
+  }
+  else
+  {
+    //std::cout << PHWHERE << std::endl;
+    gRawPulse->Fit( ped_fcn, "RNQ" );
+  }
+
+  double chi2 = ped_fcn->GetChisquare();
+  double ndf = ped_fcn->GetNDF();
+
+  //int nstats = ped0stats->NumDataValues();
+
+  if ( chi2/ndf < 4.0 )
+  {
+    mean = ped_fcn->GetParameter(0);
+
+    for (int isamp = minsamp; isamp <= maxsamp; isamp++)
+    {
+      gRawPulse->GetPoint(isamp, x, y);
+
+      // exclude outliers
+      if ( fabs(y-mean) < 5.0*rms )
+      {
+        hPed0->Fill(y);
+        ped0stats->Push( y );
+      }
+
+      if ( verbose )
+      {
+        std::cout << "CalcEventPed0_PreSamp: ped0stats " << ch << "\t" << _evt_counter << "\t" 
+          << "isamp " << isamp << "\t" << x << "\t" << y << std::endl;
+      }
+    }
+  }
+  else
+  {
+    if ( verbose )
+    {
+      if ( _evt_counter<128*100 )
+      {
+        std::cout << "ccc ch " << ch << "\t" << chi2/ndf << "\t" << mean << std::endl;
+      }
+      std::string junk;
+      cin >> junk;
+    }
+    // use straight mean for pedestal
+    // Could consider using fit to hPed0 to remove outliers
+    mean = ped0stats->Mean();
+    //rms = ped0stats->RMS();
+    //Double_t mean = hPed0->GetMean();
+    //Double_t rms = hPed0->GetRMS();
+  }
+
   SetPed0(mean, rms);
-  static int counter = 0;
-  if (verbose > 0 && counter < 10)
+  if (verbose > 0 && _evt_counter < 128*10)
   {
-    cout << "CalcEventPed0_PreSamp: ped0stats " << mean << "\t" << rms << endl;
-    counter++;
+    std::cout << "CalcEventPed0_PreSamp: ped0stats " << ch << "\t" << _evt_counter << "\t" << mean << "\t" << rms << std::endl;
+    cout << "CalcEventPed0_PreSamp: ped0stats " << ped0stats->RMS() << std::endl;
   }
+  _evt_counter++;
+
+  verbose = 0;
 }
 
 Double_t MbdSig::LeadingEdge(const Double_t threshold)
@@ -534,9 +625,10 @@ Double_t MbdSig::dCFD(const Double_t fraction_threshold)
   return t0;
 }
 
-Double_t MbdSig::MBD(const Int_t max_samp)
+Double_t MbdSig::MBDTDC(const Int_t max_samp)
 {
-  // Get the amplitude of the sample number to get time
+  // Get the amplitude of a fixed sample (max_samp) to get time
+  // Used in MBD Time Channels
   Double_t* y = gSubPulse->GetY();
 
   if (y == nullptr)
@@ -545,16 +637,15 @@ Double_t MbdSig::MBD(const Int_t max_samp)
     return NAN;
   }
 
-  // SHOULD INCLUDE TIME CALIBRATION HERE
   f_time = y[max_samp];
 
-  // Get max amplitude, and set it if it hasn't already been set
-  int n = gSubPulse->GetN();
-  Double_t ymax = TMath::MaxElement(n, y);
-  if (f_ampl == -9999.)
+  /*
+  if ( ch==128 )
   {
-    f_ampl = ymax;
+    std::cout << "msig\t" << ch << "\t" << f_time << "\t" << f_ampl << std::endl;
+    gSubPulse->Print("ALL");
   }
+  */
 
   return f_time;
 }
@@ -669,18 +760,24 @@ void MbdSig::Print()
 void MbdSig::PadUpdate()
 {
   // Make sure TCanvas is created externally!
-  gPad->Modified();
-  gPad->Update();
-  cout << ch << " ? ";
-  TString junk;
-  cin >> junk;
-
-  if (junk[0] == 'w' || junk[0] == 's')
+  if ( verbose>5 )
   {
-    TString name = "ch";
-    name += ch;
-    name += ".png";
-    gPad->SaveAs(name);
+    gPad->Modified();
+    gPad->Update();
+    cout << ch << " ? ";
+    if ( verbose>10 )
+    {
+      std::string junk;
+      cin >> junk;
+
+      if (junk[0] == 'w' || junk[0] == 's')
+      {
+        TString name = "ch";
+        name += ch;
+        name += ".png";
+        gPad->SaveAs(name);
+      }
+    }
   }
 }
 
@@ -692,7 +789,7 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
   Double_t xx = x[0] - par[1];
   Double_t f = 0.;
 
-  // verbose = 100;
+  //verbose = 100;
 
   // When fit is out of limits of good part of spline, ignore fit
   if (xx < template_begintime || xx > template_endtime)
@@ -776,9 +873,10 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
   return f;
 }
 
-int MbdSig::FitTemplate()
+// sampmax>0 means fit to the peak near sampmax
+int MbdSig::FitTemplate( const Int_t sampmax )
 {
-  // verbose = 100;	// uncomment to see fits
+  verbose = 0;	// uncomment to see fits
   if (verbose > 0)
   {
     cout << "Fitting ch " << ch << endl;
@@ -787,18 +885,41 @@ int MbdSig::FitTemplate()
   // Check if channel is empty
   if (gSubPulse->GetN() == 0)
   {
-    f_ampl = -9999.;
-    f_time = -9999.;
-    // cout << "gSubPulse empty" << endl;
+    f_ampl = 0.;
+    f_time = std::numeric_limits<Float_t>::quiet_NaN();
+    cout << "ERROR, gSubPulse empty" << endl;
     return 1;
   }
 
-  // Get x-position of maximum
-  Double_t x_at_max, ymax;
-  // LocMax(x_at_max, ymax);
+  // Get x and y of maximum
+  Double_t x_at_max{-1.};
+  Double_t ymax{0.};
+  if ( sampmax>=0 )
+  {
+    gSubPulse->GetPoint(sampmax, x_at_max, ymax);
+    x_at_max -= 2.0;
+  }
+  else
+  {
+    ymax = TMath::MaxElement( gSubPulse->GetN(), gSubPulse->GetY() );
+    x_at_max = TMath::LocMax( gSubPulse->GetN(), gSubPulse->GetY() );
+  }
 
-  Int_t xsamp = (fit_min_time + fit_max_time) / 2 + 2;  // use max samp
-  gSubPulse->GetPoint(xsamp, x_at_max, ymax);
+  // Threshold cut
+  if ( ymax < 10. )
+  {
+    f_ampl = 0.;
+    f_time = std::numeric_limits<Float_t>::quiet_NaN();
+    if ( verbose>10 )
+    {
+      std::cout << "skipping, ymax < 10" << std::endl;
+      gSubPulse->Draw("ap");
+      gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
+      gPad->SetGridy(1);
+      PadUpdate();
+    }
+    return 1;
+  }
 
   template_fcn->SetParameters(ymax, x_at_max);
   // template_fcn->SetParLimits(1, fit_min_time, fit_max_time);
@@ -808,27 +929,78 @@ int MbdSig::FitTemplate()
 
   if (verbose == 0)
   {
+    //std::cout << PHWHERE << std::endl;
     gSubPulse->Fit(template_fcn, "RNQ");
   }
   else
   {
+    std::cout << "doing fit" << std::endl;
     gSubPulse->Fit(template_fcn, "R");
+    gSubPulse->Draw("ap");
+    gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
+    gPad->SetGridy(1);
+    PadUpdate();
+    //gSubPulse->Print("ALL");
   }
 
   // Get fit parameters
   f_ampl = template_fcn->GetParameter(0);
   f_time = template_fcn->GetParameter(1);
+  if ( f_time<0. || f_time>nsamples )
+  {
+    f_time = nsamples*0.5;  // bad fit last time
+  }
 
+  // refit with new range to exclude after-pulses
+  template_fcn->SetParameters( f_ampl, f_time );
+  template_fcn->SetRange( 0., f_time+4.0 );
+
+  if (verbose == 0)
+  {
+    //std::cout << PHWHERE << std::endl;
+    int fit_status = gSubPulse->Fit(template_fcn, "RNQ");
+    if ( fit_status<0 && verbose )
+    {
+      std::cout << PHWHERE << "\t" << fit_status << std::endl;
+      gSubPulse->Print("ALL");
+      gSubPulse->Draw("ap");
+      gSubPulse->Fit(template_fcn, "R");
+      std::cout << "ampl time before refit " << f_ampl << "\t" << f_time << std::endl;
+      f_ampl = template_fcn->GetParameter(0);
+      f_time = template_fcn->GetParameter(1);
+      std::cout << "ampl time after  refit " << f_ampl << "\t" << f_time << std::endl;
+      PadUpdate();
+      std::string junk;
+      std::cin >> junk;
+    }
+  }
+  else
+  {
+    gSubPulse->Fit(template_fcn, "R");
+    //gSubPulse->Print("ALL");
+    std::cout << "ampl time before refit " << f_ampl << "\t" << f_time << std::endl;
+    f_ampl = template_fcn->GetParameter(0);
+    f_time = template_fcn->GetParameter(1);
+    std::cout << "ampl time after  refit " << f_ampl << "\t" << f_time << std::endl;
+  }
+
+  f_ampl = template_fcn->GetParameter(0);
+  f_time = template_fcn->GetParameter(1);
+
+  //std::cout << "FitTemplate " << ch << "\t" << f_ampl << "\t" << f_time << endl;
   if (verbose > 0 && fabs(f_ampl) > 0.)
+  //if ( f_time<0 || f_time>30 )
   {
     cout << "FitTemplate " << ch << "\t" << f_ampl << "\t" << f_time << endl;
     gSubPulse->Draw("ap");
+    gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
+    gPad->SetGridy(1);
     template_fcn->SetLineColor(4);
     template_fcn->Draw("same");
     PadUpdate();
   }
 
-  // verbose = 0;
+  verbose = 0;
   return 1;
 }
 
@@ -859,6 +1031,8 @@ int MbdSig::SetTemplate(const std::vector<float>& shape, const std::vector<float
     // template_fcn = new TF1(name,this,&MbdSig::TemplateFcn,-10,20,2,"MbdSig","TemplateFcn");
     template_fcn = new TF1(name, this, &MbdSig::TemplateFcn, 0, nsamples, 2, "MbdSig", "TemplateFcn");
     template_fcn->SetParameters(1, 10);
+    template_fcn->SetParName(0, "ampl");
+    template_fcn->SetParName(1, "time");
     SetTemplateSize(900, 1000, -10., 20.);
 
     if (verbose)

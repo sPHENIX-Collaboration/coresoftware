@@ -33,6 +33,7 @@ pkginclude_HEADERS = \
 
 else
 pkginclude_HEADERS = \
+  MbdRunningStats.h \
   BbcDefs.h \
   MbdDefs.h \
   BbcOut.h \
@@ -179,6 +180,7 @@ libmbd_io_la_SOURCES = \
   BbcVertexMapv1.cc
 
 libmbd_la_SOURCES = \
+  MbdRunningStats.cc \
   MbdSig.cc \
   MbdEvent.cc \
   MbdCalib.cc \
