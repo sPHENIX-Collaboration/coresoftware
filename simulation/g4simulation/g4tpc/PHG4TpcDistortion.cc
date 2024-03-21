@@ -138,7 +138,8 @@ void PHG4TpcDistortion::load_event(int event_num)
   if (TimeTree)
   {
     int nentries = TimeTree->GetEntries();
-    if (event_num > nentries) event_num = event_num % nentries;
+    if (event_num > nentries) { event_num = event_num % nentries;
+}
     if (event_num % nentries == 0 && event_num != 0)
     {
       std::cout << "Distortion map sequence repeating as of event number " << event_num << std::endl;
@@ -204,8 +205,9 @@ double PHG4TpcDistortion::get_r_distortion(double r, double phi, double z) const
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_rphi_distortion(double r, double phi, double z) const
 {
-  if (m_phi_hist_in_radians) //if the hist is in radians, multiply by r to get the rphi distortion
+  if (m_phi_hist_in_radians) { //if the hist is in radians, multiply by r to get the rphi distortion
     return r*get_distortion('p', r, phi, z);
+}
 
   return get_distortion('p', r, phi, z);
 }
@@ -227,7 +229,8 @@ double PHG4TpcDistortion::get_reaches_readout(double r, double phi, double z) co
 
 double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double z) const
 {
-  if (phi < 0) phi += 2 * M_PI;
+  if (phi < 0) { phi += 2 * M_PI;
+}
   const int zpart = (z > 0 ? 1 : 0);  //z<0 corresponds to the negative side, which is element 0.
 
   TH3* hdistortion = nullptr;
