@@ -31,19 +31,19 @@
 #include <boost/format.hpp>
 
 //________________________________
-emcNoisyTowerFinder::emcNoisyTowerFinder(const std::string &name, const std::string &outputName, const std::string &cdbtreename, float adccut_sg, float adccut_k, float sigmas_lo, float sigmas_hi, float SG_f, float Kur_f, float region_f)
+emcNoisyTowerFinder::emcNoisyTowerFinder(const std::string &name, const std::string &outputName, const std::string &cdbtreename_in, float adccut_sg_in, float adccut_k_in, float sigmas_lo_in, float sigmas_hi_in, float SG_f_in, float Kur_f_in, float region_f_in)
   : SubsysReco(name)
   , T(nullptr)
   , out(nullptr)
   , Outfile(outputName)
-  , cdbtreename(cdbtreename)
-  , adccut_sg(adccut_sg)  // The minimum ADC required for a tower with Saint Gobain fibers to register a hit
-  , adccut_k(adccut_k)    // Minimum ADC for Kurary fibers to register a hit
-  , sigmas_lo(sigmas_lo)  // # of standard deviations from the mode for a cold tower
-  , sigmas_hi(sigmas_hi)  // # of standard deviations from the mode for a hot tower
-  , SG_f(SG_f)            // Fiducial cut (artificial maximum) for Saint Gobain towers
-  , Kur_f(Kur_f)          // Fiducial cut for Kurary
-  , region_f(region_f)    // Fiducial cut for Sectors and IBs
+  , cdbtreename(cdbtreename_in)
+  , adccut_sg(adccut_sg_in)  // The minimum ADC required for a tower with Saint Gobain fibers to register a hit
+  , adccut_k(adccut_k_in)    // Minimum ADC for Kurary fibers to register a hit
+  , sigmas_lo(sigmas_lo_in)  // # of standard deviations from the mode for a cold tower
+  , sigmas_hi(sigmas_hi_in)  // # of standard deviations from the mode for a hot tower
+  , SG_f(SG_f_in)            // Fiducial cut (artificial maximum) for Saint Gobain towers
+  , Kur_f(Kur_f_in)          // Fiducial cut for Kurary
+  , region_f(region_f_in)    // Fiducial cut for Sectors and IBs
 {
   // initialize tree with SG vs Kurary fiber information
   fchannels = TFile::Open("channels.root", "read");

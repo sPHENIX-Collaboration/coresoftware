@@ -1,13 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 
-CINTINCLUDES = -pthread -I$(includedir) -I$(OFFLINE_MAIN)/lib -I$(OFFLINE_MAIN)/include -I$(ROOTSYS)/include -I$(ROOTSYS)/lib/include -I$(OPT_SPHENIX)/include
-
-INCLUDES = $(CINTINCLUDES)
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -52,7 +48,6 @@ testexternals.cc:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-#rootcint -f $@ -c $(DEFAULT_INCLUDES) $(CINTINCLUDES) $^ emcNoisyTowerFinder.cc -c 
 
 clean-local:
 	rm -f *Dict*  $(BUILT_SOURCES) *.pcm

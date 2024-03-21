@@ -1,23 +1,22 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef TOWERID_H
-#define TOWERID_H
+#ifndef CALOEMCNOISYTOWER_TOWERID_H
+#define CALOEMCNOISYTOWER_TOWERID_H
 
 #include <fun4all/SubsysReco.h>
 //#include <cdbobjects/CDBTTree.h>
 
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TTree.h>
+#include <array>
 #include <string>
 #include <vector>
 
-class TTree;
-class PHCompositeNode;
 class Fun4AllHistoManager;
-class TFile;
+class PHCompositeNode;
 class RawCluster;
+class TFile;
+class TH2;
 class TowerInfoContainer;
+class TTree;
 
 const int nTowers = 24576;
 const int nIB = 384;
@@ -28,7 +27,7 @@ const int nTowersSec = 384;
 class emcNoisyTowerFinder : public SubsysReco
 {
  public:
-  explicit emcNoisyTowerFinder(const std::string& name = "emcNoisyTowerFinder", const std::string& outputName = "emcNoisyTowerFinder.root", const std::string& cdbtreename = "test.root", float adccut_sg = 250, float adccut_k = 500, float sigmas_lo = 1, float sigmas_hi = 4.5, float SG_f = 0.55, float Kur_f = 0.55, float region_f = 0.55);
+  explicit emcNoisyTowerFinder(const std::string& name = "emcNoisyTowerFinder", const std::string& outputName = "emcNoisyTowerFinder.root", const std::string& cdbtreename_in = "test.root", float adccut_sg_in = 250, float adccut_k_in = 500, float sigmas_lo_in = 1, float sigmas_hi_in = 4.5, float SG_f_in = 0.55, float Kur_f_in = 0.55, float region_f_in = 0.55);
 
   ~emcNoisyTowerFinder() override;
 
@@ -73,38 +72,38 @@ class emcNoisyTowerFinder : public SubsysReco
   void WriteCDBTree(const int runnumber);
 
  private:
-  TTree* T = NULL;
-  TFile* out = NULL;
+  TTree* T {nullptr};
+  TFile* out {nullptr};
 
-  //  CDBTTree *cdbttree;
+  //  CDBTTree *cdbttree{nullptr};
 
-  TFile* fchannels;
-  TTree* channels;
+  TFile* fchannels{nullptr};
+  TTree* channels{nullptr};
 
-  int fiber_type = 0;
+  int fiber_type {0};
 
-  // Fun4AllHistoManager *hm = nullptr;
-  std::string Outfile = "commissioning.root";
+  // Fun4AllHistoManager *hm {nullptr};
+  std::string Outfile {"commissioning.root"};
 
-  //  TH1F* hEventCounter = NULL;
+  //  TH1F* hEventCounter {nullptr};
 
-  TH2F* Fspec = NULL;
-  TH2F* Fspec_SG = NULL;
-  TH2F* Fspec_K = NULL;
-  TH2F* Fspec_sector = NULL;
-  TH2F* Fspec_IB = NULL;
+  TH2* Fspec {nullptr};
+  TH2* Fspec_SG {nullptr};
+  TH2* Fspec_K {nullptr};
+  TH2* Fspec_sector {nullptr};
+  TH2* Fspec_IB {nullptr};
 
-  TH2F* Fspeci = NULL;
-  TH2F* Fspeci_SG = NULL;
-  TH2F* Fspeci_K = NULL;
-  TH2F* Fspeci_sector = NULL;
-  TH2F* Fspeci_IB = NULL;
+  TH2* Fspeci {nullptr};
+  TH2* Fspeci_SG {nullptr};
+  TH2* Fspeci_K {nullptr};
+  TH2* Fspeci_sector {nullptr};
+  TH2* Fspeci_IB {nullptr};
 
-  TH2F* Espec = NULL;
-  TH2F* Espec_SG = NULL;
-  TH2F* Espec_K = NULL;
-  TH2F* Espec_sector = NULL;
-  TH2F* Espec_IB = NULL;
+  TH2* Espec {nullptr};
+  TH2* Espec_SG {nullptr};
+  TH2* Espec_K {nullptr};
+  TH2* Espec_sector {nullptr};
+  TH2* Espec_IB {nullptr};
 
   const std::string cdbtreename;
 
@@ -116,29 +115,29 @@ class emcNoisyTowerFinder : public SubsysReco
   float Kur_f;
   float region_f;
 
-  int m_hot_channels = 0;
-  float towerF[nTowers] = {0};
-  float sectorF[nSectors] = {0};
-  float ibF[nIB] = {0};
+  int m_hot_channels {0};
+  std::array<float, nTowers> towerF {0};
+  std::array<float, nSectors> sectorF {0};
+  std::array<float, nIB> ibF {0};
 
-  float towerE[nTowers] = {0};
-  float sectorE[nSectors] = {0};
-  float ibE[nIB] = {0};
+  std::array<float, nTowers> towerE {0};
+  std::array<float, nSectors> sectorE {0};
+  std::array<float, nIB> ibE{0};
 
-  int hottowers[nTowers] = {0};
-  int hotIB[nIB] = {0};
-  //  int hotsectors[nSectors] = {0};
-  int deadtowers[nTowers] = {0};
+  std::array<int, nTowers>hottowers {0};
+  std::array<int, nIB>hotIB {0};
+  //  std::array<int, nSectors> hotsectors {0};
+  std::array<int, nTowers> deadtowers{0};
 
-  int coldtowers[nTowers] = {0};
-  //  int coldIB[nIB] = {0};
-  //  int coldsectors[nSectors] = {0};
-  int hot_regions = 0;
-  int cold_regions = 0;
+  std::array<int, nTowers> coldtowers{0};
+  //  std::array<int, nIB> coldIB{0};
+  //  std::array<int, nSectors> coldsectors{0};
+  int hot_regions {0};
+  int cold_regions {0};
 
-  int goodevents[nTowers] = {0};
-  int goodeventsIB[nIB] = {0};
-  int goodeventsSec[nSectors] = {0};
+  std::array<int, nTowers> goodevents{0};
+  std::array<int, nIB>goodeventsIB {0};
+  std::array<int, nSectors>goodeventsSec {0};
 };
 
 #endif
