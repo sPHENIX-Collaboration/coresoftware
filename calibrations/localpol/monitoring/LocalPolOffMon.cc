@@ -81,28 +81,28 @@ LocalPolOffMon::~LocalPolOffMon()
 }
 
 //____________________________________________________________________________..
-int LocalPolOffMon::Init(PHCompositeNode *topNode)
+int LocalPolOffMon::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << "LocalPolOffMon::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int LocalPolOffMon::InitRun(PHCompositeNode *topNode)
+int LocalPolOffMon::InitRun(PHCompositeNode * /*topNode*/)
 {
   std::cout << "LocalPolOffMon::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int LocalPolOffMon::process_event(PHCompositeNode *topNode)
+int LocalPolOffMon::process_event(PHCompositeNode * /*topNode*/)
 {
   std::cout << "LocalPolOffMon::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int LocalPolOffMon::ResetEvent(PHCompositeNode *topNode)
+int LocalPolOffMon::ResetEvent(PHCompositeNode * /*topNode*/)
 {
   std::cout << "LocalPolOffMon::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -116,14 +116,14 @@ int LocalPolOffMon::EndRun(const int runnumber)
 }
 
 //____________________________________________________________________________..
-int LocalPolOffMon::End(PHCompositeNode *topNode)
+int LocalPolOffMon::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "LocalPolOffMon::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int LocalPolOffMon::Reset(PHCompositeNode *topNode)
+int LocalPolOffMon::Reset(PHCompositeNode * /*topNode*/)
 {
  std::cout << "LocalPolOffMon::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
