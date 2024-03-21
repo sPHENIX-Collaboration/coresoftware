@@ -39,7 +39,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
 
-  void MapToPadPlane(TpcClusterBuilder& tpc_clustbuilder, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
+  void MapToPadPlane(TpcClusterBuilder &tpc_clustbuilder, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
@@ -67,7 +67,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 2> sigmaL{};
   std::array<double, 3> PhiBinWidth{};
   double drift_velocity = 8.0e-03;  // default value, override from macro
-  float extended_readout_time = 0; //ns
+  float extended_readout_time = 0;  // ns
   int NTBins = std::numeric_limits<int>::max();
   int m_NHits = 0;
   // Using Gain maps is turned off by default
@@ -77,15 +77,14 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double averageGEMGain = std::numeric_limits<double>::signaling_NaN();
 
-  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
-  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
+  std::array<std::array<std::vector<double>, NRSectors>, NSides> sector_min_Phi_sectors;
+  std::array<std::array<std::vector<double>, NRSectors>, NSides> sector_max_Phi_sectors;
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator = nullptr;
 
-  std::array<TH2 *,2>h_gain {nullptr};
-  
+  std::array<TH2 *, 2> h_gain{nullptr};
 };
 
 #endif
