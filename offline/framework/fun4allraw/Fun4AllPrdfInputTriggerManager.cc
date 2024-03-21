@@ -24,11 +24,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <Event/A_Event.h>
-#include <Event/Event.h>
-#include <Event/oEvent.h>
-#include <Event/packet.h>
-
 #include <TSystem.h>
 
 #include <cassert>
@@ -74,7 +69,7 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     iret += FillGl1();
   }
-  if (m_mbd_registered_flag)  // Mbd first to get the reference
+  if (m_mbd_registered_flag)  // Mbd next to get the reference if Gl1 is missing
   {
     iret += FillMbd();
   }
@@ -86,6 +81,10 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     iret += FillCemc();
   }
+  MoveGl1ToNodeTree();
+  MoveMbdToNodeTree();
+  MoveCemcToNodeTree();
+  MoveHcalToNodeTree();
   return iret;
   // readagain:
   //   if (!IsOpen())
@@ -598,9 +597,19 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
     std::cout << "we are done" << std::endl;
     return -1;
   }
-  //    std::cout << "stashed gl1 BCOs: " << m_Gl1PacketMap.size() << std::endl;
+  return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::MoveGl1ToNodeTree()
+{
+    std::cout << "stashed gl1 Events: " << m_Gl1PacketMap.size() << std::endl;
   Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(m_topNode, "GL1Packet");
   //  std::cout << "before filling m_Gl1PacketMap size: " <<  m_Gl1PacketMap.size() << std::endl;
+  if (! gl1packet)
+  {
+    return 0;
+  }
+
   for (auto gl1hititer : m_Gl1PacketMap.begin()->second.Gl1PacketVector)
   {
     if (Verbosity() > 1)
@@ -651,8 +660,17 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
     std::cout << "we are done" << std::endl;
     return -1;
   }
+  return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::MoveMbdToNodeTree()
+{
   //std::cout << "stashed mbd Events: " << m_MbdPacketMap.size() << std::endl;
   CaloPacketContainer *mbd = findNode::getClass<CaloPacketContainer>(m_topNode, "MBDPackets");
+  if (! mbd)
+  {
+    return 0;
+  }
   //  std::cout << "before filling m_MbdPacketMap size: " <<  m_MbdPacketMap.size() << std::endl;
   for (auto mbdhititer : m_MbdPacketMap.begin()->second.MbdPacketVector)
   {
@@ -702,8 +720,17 @@ int Fun4AllPrdfInputTriggerManager::FillHcal()
     std::cout << "we are done" << std::endl;
     return -1;
   }
-  //    std::cout << "stashed hcal Eventss: " << m_HcalPacketMap.size() << std::endl;
+  return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::MoveHcalToNodeTree()
+{
+  std::cout << "stashed hcal Events: " << m_HcalPacketMap.size() << std::endl;
   CaloPacketContainer *hcal = findNode::getClass<CaloPacketContainer>(m_topNode, "HCALPackets");
+  if (!hcal)
+  {
+    return 0;
+  }
   //  std::cout << "before filling m_HcalPacketMap size: " <<  m_HcalPacketMap.size() << std::endl;
   for (auto hcalhititer : m_HcalPacketMap.begin()->second.HcalPacketVector)
   {
@@ -753,8 +780,17 @@ int Fun4AllPrdfInputTriggerManager::FillCemc()
     std::cout << "we are done" << std::endl;
     return -1;
   }
-  //    std::cout << "stashed cemc BCOs: " << m_CemcPacketMap.size() << std::endl;
+  return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::MoveCemcToNodeTree()
+{
+  std::cout << "stashed cemc Events: " << m_CemcPacketMap.size() << std::endl;
   CaloPacketContainer *cemc = findNode::getClass<CaloPacketContainer>(m_topNode, "CEMCPackets");
+  if (! cemc)
+  {
+    return 0;
+  }
   //  std::cout << "before filling m_CemcPacketMap size: " <<  m_CemcPacketMap.size() << std::endl;
   for (auto cemchititer : m_CemcPacketMap.begin()->second.CemcPacketVector)
   {

@@ -55,13 +55,18 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void ClearAllEvents();
   void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
   int FillCemc();
+  int MoveCemcToNodeTree();
   void AddCemcPacket(int eventno, CaloPacket *pkt);
   int FillGl1();
+  int MoveGl1ToNodeTree();
   void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
   int FillMbd();
+  int  MoveMbdToNodeTree();
   void AddMbdPacket(int eventno, CaloPacket *mbdpkt);
   int FillHcal();
+  int MoveHcalToNodeTree();
   void AddHcalPacket(int eventno, CaloPacket *pkt);
+
  private:
 
   struct SinglePrdfInputInfo
