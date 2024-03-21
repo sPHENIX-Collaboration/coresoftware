@@ -66,6 +66,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillHcal();
   int MoveHcalToNodeTree();
   void AddHcalPacket(int eventno, CaloPacket *pkt);
+  void DetermineReferenceEventNumber();
 
  private:
 
@@ -99,6 +100,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   };
 
   int m_RunNumber{0};
+  int m_RefEventNo {std::numeric_limits<int>::min()};
   bool m_gl1_registered_flag{false};
   bool m_mbd_registered_flag{false};
   bool m_hcal_registered_flag{false};

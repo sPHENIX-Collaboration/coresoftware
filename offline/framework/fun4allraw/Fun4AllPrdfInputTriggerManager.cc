@@ -81,6 +81,8 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     iret += FillCemc();
   }
+  DetermineReferenceEventNumber();
+  std::cout << "new ref event: " <<  m_RefEventNo << std::endl;
   MoveGl1ToNodeTree();
   MoveMbdToNodeTree();
   MoveCemcToNodeTree();
@@ -191,6 +193,7 @@ void Fun4AllPrdfInputTriggerManager::Print(const std::string &what) const
 
 int Fun4AllPrdfInputTriggerManager::ResetEvent()
 {
+  m_RefEventNo = std::numeric_limits<int>::min();
   return 0;
 }
 
@@ -528,7 +531,7 @@ void Fun4AllPrdfInputTriggerManager::Resynchronize()
   {
     DitchEvent(ievent);
   }
-  int minoffset = INT_MAX;
+  int minoffset = std::numeric_limits<int>::max();
   for (auto matches : matchevent)
   {
     if (Verbosity() > 1)
@@ -820,4 +823,25 @@ void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
   }
   m_CemcPacketMap[eventno].CemcPacketVector.push_back(pkt);
   return;
+}
+
+void Fun4AllPrdfInputTriggerManager::DetermineReferenceEventNumber()
+{
+  if (!m_Gl1PacketMap.empty())
+  {
+    m_RefEventNo = m_Gl1PacketMap.begin()->first;
+  }
+  else if (!m_MbdPacketMap.empty())
+  {
+    m_RefEventNo = m_MbdPacketMap.begin()->first;
+  }
+  else if (!m_HcalPacketMap.empty())
+  {
+    m_RefEventNo = m_HcalPacketMap.begin()->first;
+  }
+  else if (!m_CemcPacketMap.empty())
+  {
+    m_RefEventNo = m_CemcPacketMap.begin()->first;
+  }
+    return;
 }
