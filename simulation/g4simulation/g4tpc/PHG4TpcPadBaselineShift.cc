@@ -52,21 +52,33 @@ int findRBin(float R)
 {
   // Finding pad number from the center (bin) for hits
   int binR = -1;
-  //Realistic binning
-  //double r_bins[r_bins_N+1] = {217.83,
-  //                            311.05,317.92,323.31,329.27,334.63,340.59,345.95,351.91,357.27,363.23,368.59,374.55,379.91,385.87,391.23,397.19,402.49,
-  //                            411.53,421.70,431.90,442.11,452.32,462.52,472.73,482.94,493.14,503.35,513.56,523.76,533.97,544.18,554.39,564.59,574.76,
-  //                            583.67,594.59,605.57,616.54,627.51,638.48,649.45,660.42,671.39,682.36,693.33,704.30,715.27,726.24,737.21,748.18,759.11};
+  // Realistic binning
+  // double r_bins[r_bins_N+1] = {217.83,
+  //                             311.05,317.92,323.31,329.27,334.63,340.59,345.95,351.91,357.27,363.23,368.59,374.55,379.91,385.87,391.23,397.19,402.49,
+  //                             411.53,421.70,431.90,442.11,452.32,462.52,472.73,482.94,493.14,503.35,513.56,523.76,533.97,544.18,554.39,564.59,574.76,
+  //                             583.67,594.59,605.57,616.54,627.51,638.48,649.45,660.42,671.39,682.36,693.33,704.30,715.27,726.24,737.21,748.18,759.11};
   const int r_bins_N = 53;
   double r_bins[r_bins_N + 1];
   r_bins[0] = 30.3125;
   double bin_width = 0.625;
   for (int i = 1; i < r_bins_N; i++)
   {
-    if (i == 16) bin_width = 0.9375;
-    if (i > 16) bin_width = 1.25;
-    if (i == 31) bin_width = 1.1562;
-    if (i > 31) bin_width = 1.0624;
+    if (i == 16)
+    {
+      bin_width = 0.9375;
+    }
+    if (i > 16)
+    {
+      bin_width = 1.25;
+    }
+    if (i == 31)
+    {
+      bin_width = 1.1562;
+    }
+    if (i > 31)
+    {
+      bin_width = 1.0624;
+    }
 
     r_bins[i] = r_bins[i - 1] + bin_width;
   }
@@ -120,7 +132,7 @@ PHG4TpcPadBaselineShift::~PHG4TpcPadBaselineShift()
 //____________________________________________________________________________..
 int PHG4TpcPadBaselineShift::Init(PHCompositeNode * /*topNode*/)
 {
-  //outfile = new TFile(_filename.c_str(), "RECREATE");
+  // outfile = new TFile(_filename.c_str(), "RECREATE");
   _hit_z = 0;
   _hit_r = 0;
   _hit_phi = 0;
@@ -143,8 +155,8 @@ int PHG4TpcPadBaselineShift::Init(PHCompositeNode * /*topNode*/)
     _rawHits->Branch("_hit_sector", &_hit_sector);
   }
   return 0;
-  //std::cout << "PHG4TpcPadBaselineShift::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  //return Fun4AllReturnCodes::EVENT_OK;
+  // std::cout << "PHG4TpcPadBaselineShift::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  // return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
@@ -239,9 +251,9 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
 
   // loop over the TPC HitSet objects
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
-  //const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
+  // const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
 
-  //Loop over R positions & sectors
+  // Loop over R positions & sectors
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
@@ -255,7 +267,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     _hit_sector = sector;
     _hit_layer = layer;
 
-    double radius = layergeom->get_radius();  //in cm
+    double radius = layergeom->get_radius();  // in cm
 
     _hit_r = radius;
 
@@ -277,7 +289,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
       NZBinsMax = NZBins;
     }
     unsigned short ZOffset = NZBinsMin;
-    //Gives per pad ADC for particular R and sector in event
+    // Gives per pad ADC for particular R and sector in event
     int perPadADC = 0;
     unsigned short phibins = NPhiBinsSector;
     unsigned short phioffset = PhiOffset;
@@ -285,12 +297,12 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     unsigned short zoffset = ZOffset;
     float sumADC = perPadADC;  // 14 lines later just set to zero
 
-    //phibins - number of pads in the sector
-    //The Sampa clock time is 18.8 MHz, so the sampling time is 53.2 ns = 1 Z bin.
-    //The Z bin range for one side of the TPC is 0-248.
-    //Check: 249 bins x 53.2 ns = 13.2 microseconds.
-    //The maximum drift time in the TPC is 13.2 microseconds.
-    //So, 53.2 ns / Z bin.
+    // phibins - number of pads in the sector
+    // The Sampa clock time is 18.8 MHz, so the sampling time is 53.2 ns = 1 Z bin.
+    // The Z bin range for one side of the TPC is 0-248.
+    // Check: 249 bins x 53.2 ns = 13.2 microseconds.
+    // The maximum drift time in the TPC is 13.2 microseconds.
+    // So, 53.2 ns / Z bin.
 
     TF1 *f1 = new TF1("f1", "[0]*exp(-(x-[1])/[2])", 0, 1000);
     f1->SetParameter(0, 0.005);
@@ -314,14 +326,20 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
       {
         adc = (unsigned short) fadc;
       }
-      if (phibin >= phibins) continue;
-      if (zbin >= zbins) continue;  // zbin is unsigned int, <0 cannot happen
+      if (phibin >= phibins)
+      {
+        continue;
+      }
+      if (zbin >= zbins)
+      {
+        continue;  // zbin is unsigned int, <0 cannot happen
+      }
       adcval[zbin] = (unsigned short) adc;
       sumADC += adc;
     }
-    //Define ion-induced charge
+    // Define ion-induced charge
     sumADC /= phibins;
-    float ind_charge = -0.5 * sumADC * _CScale;  //CScale is the coefficient related to the capacitance of the bottom layer of the bottom GEM
+    float ind_charge = -0.5 * sumADC * _CScale;  // CScale is the coefficient related to the capacitance of the bottom layer of the bottom GEM
     double pi = M_PI;
 
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
@@ -336,12 +354,21 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
       tbin = TpcDefs::getTBin(hitr->first);
       phibin = TpcDefs::getPad(hitr->first);
       double phi_center = layergeom->get_phicenter(phibin);
-      if (phi_center < 0) phi_center += 2 * pi;
+      if (phi_center < 0)
+      {
+        phi_center += 2 * pi;
+      }
       _hit_phi = phi_center;
       _hit_z = AdcClockPeriod * MaxTBins * _drift_velocity / 2.0 - layergeom->get_zcenter(tbin) * _drift_velocity;
-      if(side == 0) _hit_z *= -1.0;
+      if (side == 0)
+      {
+        _hit_z *= -1.0;
+      }
 
-      if (hit) _hit_e = hit->getEnergy();
+      if (hit)
+      {
+        _hit_e = hit->getEnergy();
+      }
       _hit_adc = 0;
       _hit_adc_bls = 0;
 
@@ -351,7 +378,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
 
       if (hit && _hit_adc > 0)
       {
-        //Trkr hit has only one value m_adc which is energy and ADC at the same time
+        // Trkr hit has only one value m_adc which is energy and ADC at the same time
         if (_hit_adc_bls > 0)
         {
           hit->setAdc(_hit_adc_bls);
@@ -361,16 +388,19 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
           hit->setAdc(0);
         }
       }
-      if (_writeTree == 1) _rawHits->Fill();
+      if (_writeTree == 1)
+      {
+        _rawHits->Fill();
+      }
     }
 
-    //hitsetitr++;
+    // hitsetitr++;
   }
 
-  //pthread_attr_destroy(&attr);
+  // pthread_attr_destroy(&attr);
 
   // wait for completion of all threads
-  //for( const auto& thread_pair:threads )
+  // for( const auto& thread_pair:threads )
   //{
   //  int rc2 = pthread_join(thread_pair.thread, nullptr);
   //  if (rc2)
@@ -378,20 +408,22 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
   //}
 
   if (Verbosity() > 0)
+  {
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters " << std::endl;
+  }
   std::cout << "PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-//int PHG4TpcPadBaselineShift::ResetEvent(PHCompositeNode *topNode)
+// int PHG4TpcPadBaselineShift::ResetEvent(PHCompositeNode *topNode)
 //{
 //  std::cout << "PHG4TpcPadBaselineShift::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
 //  return Fun4AllReturnCodes::EVENT_OK;
 //}
 
 //____________________________________________________________________________..
-//int PHG4TpcPadBaselineShift::EndRun(const int runnumber)
+// int PHG4TpcPadBaselineShift::EndRun(const int runnumber)
 //{
 //  std::cout << "PHG4TpcPadBaselineShift::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
 //  return Fun4AllReturnCodes::EVENT_OK;
@@ -407,19 +439,19 @@ int PHG4TpcPadBaselineShift::End(PHCompositeNode * /*topNode*/)
     outfile->Close();
     std::cout << "PHG4TpcPadBaselineShift::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   }
-  //return 0;
+  // return 0;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-//int PHG4TpcPadBaselineShift::Reset(PHCompositeNode *topNode)
+// int PHG4TpcPadBaselineShift::Reset(PHCompositeNode *topNode)
 //{
 // std::cout << "PHG4TpcPadBaselineShift::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
 //  return Fun4AllReturnCodes::EVENT_OK;
 //}
 
 //____________________________________________________________________________..
-//void PHG4TpcPadBaselineShift::Print(const std::string &what) const
+// void PHG4TpcPadBaselineShift::Print(const std::string &what) const
 //{
 //  std::cout << "PHG4TpcPadBaselineShift::Print(const std::string &what) const Printing info for " << what << std::endl;
 //}
