@@ -141,7 +141,7 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
   G4Material *temp = GetDetectorMaterial("GEMeffective", false);
   if (temp == nullptr)
   {
-    CreateCompositeMaterial("GEMeffective", material, thickness);  //see new function below
+    CreateCompositeMaterial("GEMeffective", material, thickness);  // see new function below
   }
   double totalThickness = 0;
   for (double thicknes : thickness)
@@ -151,9 +151,9 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
 
   const int n_GEM_layers = m_Params->get_int_param("n_GEM_layers");
 
-  //instead of building this layer-by-layer, we build a single block corresponding to all the gems that were previously handled in this fashion:
+  // instead of building this layer-by-layer, we build a single block corresponding to all the gems that were previously handled in this fashion:
   totalThickness *= n_GEM_layers;
-  AddLayer(assemblyvol, starting_z, G4String("GEMAllParts"), "GEMeffective", totalThickness, 64);  //note this slightly undercounts the gas because the gas fill should be 100%, and slightly mispositions the inner edge of the material because the way it is made <100% in AddLayer is by making it thinner than nominally requested but centering it in the region it would have occupied.
+  AddLayer(assemblyvol, starting_z, G4String("GEMAllParts"), "GEMeffective", totalThickness, 64);  // note this slightly undercounts the gas because the gas fill should be 100%, and slightly mispositions the inner edge of the material because the way it is made <100% in AddLayer is by making it thinner than nominally requested but centering it in the region it would have occupied.
 
   // 16 layer readout plane by TTM
   // https://indico.bnl.gov/event/8307/contributions/36744/attachments/27646/42337/R3-Review.pptx
@@ -170,13 +170,13 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
 }
 
 void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
-    const std::string& compositeName,
+    const std::string &compositeName,
     std::vector<std::string> materialName,
     std::vector<double> thickness)
 {
-  //takes in a list of material names known to Geant already, and thicknesses, and creates a new material called compositeName.
+  // takes in a list of material names known to Geant already, and thicknesses, and creates a new material called compositeName.
 
-  //check that desired material name doesn't already exist
+  // check that desired material name doesn't already exist
   G4Material *tempmat = GetDetectorMaterial(compositeName, false);
 
   if (tempmat != nullptr)
@@ -185,10 +185,10 @@ void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
     assert(!tempmat);
   }
 
-  //check that both arrays have the same depth
+  // check that both arrays have the same depth
   assert(materialName.size() == thickness.size());
 
-  //sum up the areal density and total thickness so we can divvy it out
+  // sum up the areal density and total thickness so we can divvy it out
   double totalArealDensity = 0, totalThickness = 0;
   for (std::vector<double>::size_type i = 0; i < thickness.size(); i++)
   {
@@ -203,28 +203,28 @@ void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
     totalThickness += thickness[i];
   }
 
-  //register a new material with the average density of the whole:
+  // register a new material with the average density of the whole:
   double compositeDensity = totalArealDensity / totalThickness;
   G4Material *composite = new G4Material(compositeName, compositeDensity, thickness.size());
 
-  //now calculate the fraction due to each material, and register those
+  // now calculate the fraction due to each material, and register those
   for (std::vector<double>::size_type i = 0; i < thickness.size(); i++)
   {
-    tempmat = GetDetectorMaterial(materialName[i]);  //don't need to check this, since we did in the previous loop.
+    tempmat = GetDetectorMaterial(materialName[i]);  // don't need to check this, since we did in the previous loop.
     composite->AddMaterial(tempmat, thickness[i] * tempmat->GetDensity() / totalArealDensity);
   }
 
-  //how to register our finished material?
+  // how to register our finished material?
   return;
 }
 
 void PHG4TpcEndCapDetector ::AddLayer(  //
     G4AssemblyVolume *assemblyvol,
     G4double &z_start,
-    const std::string &_name,  //! name base for this layer
-    const std::string& _material,     //! material name in G4
-    G4double _depth,           //! depth in G4 units
-    double _percentage_filled  //! percentage filled//
+    const std::string &_name,      //! name base for this layer
+    const std::string &_material,  //! material name in G4
+    G4double _depth,               //! depth in G4 units
+    double _percentage_filled      //! percentage filled//
 )
 {
   z_start += _depth / 2.;
