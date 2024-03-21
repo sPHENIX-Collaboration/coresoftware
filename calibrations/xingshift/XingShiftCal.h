@@ -31,11 +31,10 @@ class XingShiftCal : public SubsysReco
   void Print(const std::string &what = "ALL") const override;
 
  private:
-  Packet *p;
-  Packet *pBlueSpin;
-  Packet *pYellSpin;
+  Packet *p = nullptr;
+  Packet *pBlueSpin = nullptr;
+  Packet *pYellSpin = nullptr;
   int nevt = 0;
-  //int threshold = 5000;
   int threshold = 1000;
   int evtcap = 50000;
   int done = 0;

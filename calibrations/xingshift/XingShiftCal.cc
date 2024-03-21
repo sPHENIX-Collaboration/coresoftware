@@ -39,7 +39,7 @@ XingShiftCal::~XingShiftCal()
 }
 
 
-int XingShiftCal::Init(PHCompositeNode *topNode)
+int XingShiftCal::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << "XingShiftCal::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -64,7 +64,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
   //std::cout << "XingShiftCal::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   Event *evt = findNode::getClass<Event>(topNode,"PRDF");
   
-  /*
+  
   if (evt->getEvtType() == BEGRUNEVENT){
     pBlueSpin = evt->getPacket(packet_BLUESPIN);
     pYellSpin = evt->getPacket(packet_YELLSPIN);
@@ -75,9 +75,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     delete pBlueSpin;
     delete pYellSpin;
     
-  } else if 
-  */
-  if (evt->getEvtType() == DATAEVENT){
+  } else if (evt->getEvtType() == DATAEVENT){
     p = evt->getPacket(packet_GL1);
     int bunchnr = p->lValue(0,"BunchNumber");
     for (int i = 0; i < NTRIG; i++){
@@ -109,7 +107,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
 }
 
 
-int XingShiftCal::ResetEvent(PHCompositeNode *topNode)
+int XingShiftCal::ResetEvent(PHCompositeNode * /*topNode*/)
 {
   //std::cout << "XingShiftCal::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -123,7 +121,7 @@ int XingShiftCal::EndRun(const int runnumber)
 }
 
 
-int XingShiftCal::End(PHCompositeNode *topNode)
+int XingShiftCal::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "XingShiftCal::End(PHCompositeNode *topNode) This is the End..." << std::endl;
 
@@ -171,12 +169,14 @@ int XingShiftCal::Calibrate(const int final)
   return 0;
 }
 
-int XingShiftCal::CalculateCrossingShift(int& xingshift, long long counts[NTRIG][NBUNCHES], bool& success){
+int XingShiftCal::CalculateCrossingShift(int& xing, long long counts[NTRIG][NBUNCHES], bool& succ){
   
-  success = false;
+  succ = false;
   int shift_array[NTRIG] = {0};
 
   int trig_inactive_array[NTRIG] = {0};
+
+  int last_active_index = 0;
   
   int _temp;
   for(int itrig = 0; itrig < NTRIG; itrig++){
@@ -187,6 +187,7 @@ int XingShiftCal::CalculateCrossingShift(int& xingshift, long long counts[NTRIG]
     }
     
     if (_counts < 10000){trig_inactive_array[itrig] = 1;}
+    else{last_active_index = itrig;}
 
     long long abort_sum_prev = _counts;
 
@@ -203,26 +204,44 @@ int XingShiftCal::CalculateCrossingShift(int& xingshift, long long counts[NTRIG]
     }
   
     shift_array[itrig] = _temp;
-
-    if ( itrig > 0) { //if not matching for all trigger selections used, fails
-      if ( shift_array[itrig]!= shift_array[itrig-1] && !trig_inactive_array[itrig] && !trig_inactive_array[itrig-1]) { 
-	xingshift = 0;
-	success = false;
-	return 0;
-      } else if (!trig_inactive_array[itrig]){
-	xingshift = shift_array[itrig];
-      }
-    }
   }
 
-  success = true;
+  for(int itrig = 0; itrig < NTRIG; itrig++){
+    //if not matching for all trigger selections used, fails
+    if (!trig_inactive_array[itrig]){
+      if (shift_array[itrig] == shift_array[last_active_index]){
+	xing = shift_array[itrig];
+	succ = true;
+      } else {
+	xing = 0;
+	succ = false;
+	return 0;
+      }
+    }
+    
+    
+    /*
+    if ( itrig > 0) { //if not matching for all trigger selections used, fails
+      if ( shift_array[itrig]!= shift_array[itrig-1] && !trig_inactive_array[itrig] && !trig_inactive_array[itrig-1]) { 
+	xing = 0;
+	succ = false;
+	return 0;
+      } else if (!trig_inactive_array[itrig]){
+	xing = shift_array[itrig];
+      }
+    }
+
+    */
+  }
+
+  //succ = true;
   return 0;
 }
 
 
 
 //____________________________________________________________________________..
-int XingShiftCal::Reset(PHCompositeNode *topNode)
+int XingShiftCal::Reset(PHCompositeNode * /*topNode*/)
 {
   //std::cout << "XingShiftCal::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
