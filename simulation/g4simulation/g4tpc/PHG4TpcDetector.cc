@@ -445,6 +445,9 @@ void PHG4TpcDetector ::CreateCompositeMaterial(
 
   // register a new material with the average density of the whole:
   double compositeDensity = totalArealDensity / totalThickness;
+#ifdef __clang__
+  [[clang::suppress]]
+#endif
   G4Material *composite = new G4Material(compositeName, compositeDensity, thickness.size());
 
   // now calculate the fraction due to each material, and register those
