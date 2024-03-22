@@ -24,9 +24,9 @@ XingShiftCal::XingShiftCal(const std::string &name):
 {
 
   nevt = 0;
-  for (int i = 0; i < NTRIG; i++){
-    for (int j = 0; j < NBUNCHES; j++){
-      scalercounts[i][j] = 0;
+  for (auto & scalercount : scalercounts){
+    for (unsigned long & j : scalercount){
+      j = 0;
     }
   }
   std::cout << "XingShiftCal::XingShiftCal(const std::string &name) Calling ctor" << std::endl;
@@ -46,7 +46,7 @@ int XingShiftCal::Init(PHCompositeNode * /*topNode*/)
 }
 
 
-int XingShiftCal::InitRun(PHCompositeNode *topNode)
+int XingShiftCal::InitRun(PHCompositeNode * /*topNode*/)
 {
 
   //std::cout << "XingShiftCal::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
@@ -132,7 +132,7 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
     //CommitConstantsToFile();
   } 
   else {
-    success = 0;
+    success = false;
     std::cout << "Not enough statistics. Did not calibrate." << std::endl;
   }
   
@@ -169,7 +169,7 @@ int XingShiftCal::Calibrate(const int final)
   return 0;
 }
 
-int XingShiftCal::CalculateCrossingShift(int& xing, long long counts[NTRIG][NBUNCHES], bool& succ){
+int XingShiftCal::CalculateCrossingShift(int& xing, uint64_t counts[NTRIG][NBUNCHES], bool& succ){
   
   succ = false;
   int shift_array[NTRIG] = {0};

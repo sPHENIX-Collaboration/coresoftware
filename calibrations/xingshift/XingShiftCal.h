@@ -13,6 +13,9 @@ class Packet;
 
 class XingShiftCal : public SubsysReco
 {
+  static const int NTRIG = 16;
+  static const int NBUNCHES = 120;
+
  public:
 
   XingShiftCal(const std::string &name = "XingShiftCal");
@@ -30,7 +33,12 @@ class XingShiftCal : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
+  int Calibrate(const int final=0);
+  int CalculateCrossingShift(int& xingshift, uint64_t counts[NTRIG][NBUNCHES], bool& success);
+
+
  private:
+
   Packet *p = nullptr;
   Packet *pBlueSpin = nullptr;
   Packet *pYellSpin = nullptr;
@@ -41,9 +49,6 @@ class XingShiftCal : public SubsysReco
 
 
   
-
-  static const int NTRIG = 16;
-  static const int NBUNCHES = 120;
 
   const int packet_BLUESPIN = 14902;
   const int packet_YELLSPIN = 14903;
@@ -58,12 +63,7 @@ class XingShiftCal : public SubsysReco
   int blueSpinPattern[NBUNCHES] = {0};
   int yellSpinPattern[NBUNCHES] = {0};
 
-  long long scalercounts[NTRIG][NBUNCHES];
-
- public:
-  int Calibrate(const int final=0);
-  int CalculateCrossingShift(int& xingshift, long long counts[NTRIG][NBUNCHES], bool& success);
-
+  uint64_t scalercounts[NTRIG][NBUNCHES]{};
 
 };
 
