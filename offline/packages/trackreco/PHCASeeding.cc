@@ -224,11 +224,21 @@ Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster*
 
 void PHCASeeding::QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const
 {
-  double phimin_2pi = phimin;
-  double phimax_2pi = phimax;
-  if (phimin < 0) phimin_2pi = 2*M_PI+phimin;
-  if (phimax > 2*M_PI) phimax_2pi = phimax-2*M_PI;
-  rtree.query(bgi::intersects(box(point(phimin_2pi, etamin, lmin), point(phimax_2pi, etamax, lmax))), std::back_inserter(returned_values));
+  bool query_both_ends = false;
+  if (phimin<0) {
+    query_both_ends = true;
+    phimin += 2*M_PI;
+  }
+  if (phimax>2*M_PI) {
+    query_both_ends = true;
+    phimax -= 2*M_PI;
+  }
+  if (query_both_ends) {
+    rtree.query(bgi::intersects(box(point(phimin, etamin, lmin), point(2*M_PI, etamax, lmax))), std::back_inserter(returned_values));
+    rtree.query(bgi::intersects(box(point(    0., etamin, lmin), point(phimax, etamax, lmax))), std::back_inserter(returned_values));
+  } else {
+    rtree.query(bgi::intersects(box(point(phimin, etamin, lmin), point(phimax, etamax, lmax))), std::back_inserter(returned_values));
+  }
 }
 
 PositionMap PHCASeeding::FillTree()
