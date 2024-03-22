@@ -106,7 +106,7 @@ void PHG4TpcEndCapSubsystem::Print(const std::string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4TpcEndCapSubsystem::GetDetector(void) const
+PHG4Detector *PHG4TpcEndCapSubsystem::GetDetector() const
 {
   return m_Detector;
 }
@@ -118,7 +118,7 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
   // sizes are in cm
   // angles are in deg
   // units should be converted to G4 units when used
-  //implement your own here//
+  // implement your own here//
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
