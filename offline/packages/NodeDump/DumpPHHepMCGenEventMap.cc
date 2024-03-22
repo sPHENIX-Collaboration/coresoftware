@@ -40,14 +40,21 @@ int DumpPHHepMCGenEventMap::process_Node(PHNode *myNode)
     {
       *fout << "map entry: " << iter->first << std::endl;
       PHHepMCGenEvent *genevt = iter->second;
-      HepMC::GenEvent *evt = genevt->getEvent();
       *fout << "Embedding id " << genevt->get_embedding_id() << std::endl;
       *fout << "is simulated " << genevt->is_simulated() << std::endl;
       *fout << "Collision vertex x: " << genevt->get_collision_vertex().x() << std::endl;
       *fout << "Collision vertex y: " << genevt->get_collision_vertex().y() << std::endl;
       *fout << "Collision vertex z: " << genevt->get_collision_vertex().z() << std::endl;
       *fout << "Collision vertex t: " << genevt->get_collision_vertex().t() << std::endl;
-      evt->print(*fout);
+      HepMC::GenEvent *evt = genevt->getEvent();
+      if (!evt)
+      {
+	*fout << "GenEvent is nullptr" << std::endl;
+      }
+      else
+      {
+        evt->print(*fout);
+      }
     }
   }
   return 0;

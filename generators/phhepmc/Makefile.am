@@ -22,6 +22,7 @@ pkginclude_HEADERS = \
   HepMCFlowAfterBurner.h \
   PHGenIntegral.h \
   PHGenIntegralv1.h \
+  PHHepMCDefs.h \
   PHHepMCGenEvent.h \
   PHHepMCGenEventv1.h \
   PHHepMCGenEventMap.h \
