@@ -343,7 +343,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       double tpc_eta = _tracklet_tpc->get_eta();
       double tpc_pt = fabs(1./_tracklet_tpc->get_qOverR()) *( 0.3/100. ) * std::stod(m_fieldMap);
       if(Verbosity() > 8)
-	std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " pt " << tpc_pt << " tpc z " << _tracklet_tpc->get_z() << std::endl; 
+	std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " phi " << tpc_phi << " pt " << tpc_pt << " tpc z " << _tracklet_tpc->get_z() << std::endl; 
 
       // this factor will increase the window size at low pT
       // otherwise the matching efficiency drops off at low pT
