@@ -268,20 +268,24 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     }
     ++it2;
   }
+
   //Inner HCal support ring (only the part in Outer HCal volume)
   // it only exists in the new gdml file, this check keeps the old file
-// without the inner hcal support readable
-  std::list<std::string> volumelist = {"RingSupport_steel_1", "RingSupport_steel_2","RingSupport_alum_1","RingSupport_alum_2","HCalRing_alum_1","HCalRing_alum_2"};
-  for (auto const &volumename: volumelist)
+  // without the inner hcal support readable
+  G4AssemblyVolume *m_iHCalRing = reader->GetAssembly("iHCalRing");  // ihcal ring
+  if (m_iHCalRing)
   {
-    G4LogicalVolume *logvolptr = G4LogicalVolumeStore::GetInstance()->GetVolume(volumename,false);
-    if (logvolptr)
+    std::vector<G4VPhysicalVolume *>::iterator itr = m_iHCalRing->GetVolumesIterator();
+    for (unsigned int iring = 0; iring < m_iHCalRing->TotalImprintedVolumes(); iring++)
     {
-      m_DisplayAction->AddSupportRingVolume(logvolptr);
-      m_SteelAbsorberLogVolSet.insert(logvolptr);
-      hcalenvelope->AddDaughter(reader->GetWorldVolume(volumename));
+      m_DisplayAction->AddSupportRingVolume((*itr)->GetLogicalVolume());
+      m_SteelAbsorberLogVolSet.insert((*itr)->GetLogicalVolume());
+      hcalenvelope->AddDaughter((*itr));
+      //std::cout<<(*itr)->GetName()<<std::endl;
+      itr++;
     }
   }
+
   for (auto &logical_vol : m_SteelAbsorberLogVolSet)
   {
     if (m_FieldSetup)  // only if we have a field defined for the steel absorber
