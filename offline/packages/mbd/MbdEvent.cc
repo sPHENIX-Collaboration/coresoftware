@@ -17,17 +17,21 @@
 #include <TF1.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TGraphErrors.h>
+#include <TSystem.h>
+#include <TDirectory.h>
 
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 
-MbdEvent::MbdEvent()
-  : _tres(0.05)
+MbdEvent::MbdEvent(const int cal_pass) :
+  _tres(0.05),
+  _calpass(cal_pass)
 {
   // set default values
 
-  int nsamples = 31;  /// NEED TO MAKE THIS FLEXIBLE
+  _nsamples = 31;  /// NEED TO MAKE THIS FLEXIBLE
   recoConsts *rc = recoConsts::instance();
   if (rc->FlagExist("MBD_TEMPLATEFIT"))
   {
@@ -41,11 +45,7 @@ MbdEvent::MbdEvent()
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
     // std::cout << PHWHERE << "Creating _mbdsig " << ifeech << std::endl;
-    _mbdsig.emplace_back(ifeech, nsamples);
-
-    // Do evt-by-evt pedestal using sample range below
-    //_mbdsig[ifeech].SetEventPed0Range(0,1);
-    _mbdsig[ifeech].SetEventPed0PreSamp(6, 2);
+    _mbdsig.emplace_back(ifeech, _nsamples);
   }
 
   std::string name;
@@ -72,6 +72,7 @@ MbdEvent::MbdEvent()
     iboard = -1;
   }
 
+  // Maybe this is used in the online monitor???
   // BBCCALIB is used in offline to read in our calibrations
   const char *bbccaldir = getenv("BBCCALIB");
   if (bbccaldir)
@@ -100,8 +101,8 @@ MbdEvent::MbdEvent()
   }
 
   // Debug stuff
-  // debugintt = 1;
-  if (debugintt)
+  _debugintt = 0;
+  if (_debugintt )
   {
     ReadSyncFile();
   }
@@ -158,15 +159,17 @@ int MbdEvent::InitRun()
     _mbdcal->Download_All();
   }
 
-  // Read in template if specified
-  if (do_templatefit)
+  // Init parameters of the signal processing
+  for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
-    for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
+    // Do evt-by-evt pedestal using sample range below
+    //_mbdsig[ifeech].SetEventPed0Range(0,1);
+    //_mbdsig[ifeech].SetEventPed0PreSamp(6, 2, _mbdcal->get_sampmax(ifeech));
+    _mbdsig[ifeech].SetEventPed0PreSamp(5, 4, _mbdcal->get_sampmax(ifeech));
+
+    // Read in template if specified
+    if ( do_templatefit && _mbdgeom->get_type(ifeech)==1 )
     {
-      if (_mbdgeom->get_type(ifeech) == 0)
-      {
-        continue;
-      }
       // std::cout << PHWHERE << "Reading template " << ifeech << std::endl;
       // std::cout << "SIZES0 " << _mbdcal->get_shape(ifeech).size() << std::endl;
       //  Should set template size automatically here
@@ -176,15 +179,84 @@ int MbdEvent::InitRun()
     }
   }
 
+  if ( _calpass > 0 )
+  {
+    _caldir = "results/"; _caldir += _runnum; _caldir += "/";
+    TString cmd = "mkdir -p " + _caldir;
+    gSystem->Exec( cmd );
+    std::cout << "OUTPUT CALDIR = " << _caldir << std::endl;
+  }
+
+  if ( _calpass == 1 )
+  {
+    std::cout << "MBD Cal Pass 1" << std::endl;
+    TDirectory *orig_dir = gDirectory;
+
+    TString savefname = _caldir; savefname += "calpass1.root";
+    std::cout << "Saving calpass 1 results to " << savefname << std::endl;
+    _smax_tfile = std::make_unique<TFile>(savefname,"RECREATE");
+
+    std::string name;
+
+    for (int ich=0; ich<MbdDefs::MBD_N_FEECH; ich++)
+    {
+      name = "h_tmax"; name += std::to_string(ich);
+      h_tmax[ich] = new TH1F(name.c_str(),name.c_str(),_nsamples,-0.5,_nsamples-0.5);
+      h_tmax[ich]->SetXTitle("sample");
+      h_tmax[ich]->SetYTitle("ch");
+    }
+    h2_tmax[0] = new TH2F("h2_ttmax","time beam_seb18-00020869-0000.prdftmax vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
+    h2_tmax[1] = new TH2F("h2_qtmax","chg tmax vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
+    h2_wave[0] = new TH2F("h2_twave","time adc vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
+    h2_wave[1] = new TH2F("h2_qwave","chg adc vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
+
+    h2_trange_raw = new TH2F("h2_trange_raw","tadc (raw) at trig samp vs ch",1600,0,16384,128,0,128);
+    h2_trange = new TH2F("h2_trange","tadc at trig samp vs ch",1638,-100,16280,128,0,128);
+
+    for (int itype=0; itype<2; itype++)
+    {
+      h2_tmax[itype]->SetXTitle("sample");
+      h2_tmax[itype]->SetYTitle("ch");
+
+      h2_wave[itype]->SetXTitle("sample");
+      h2_wave[itype]->SetYTitle("ch");
+    }
+
+    orig_dir->cd();
+  }
+  else if ( _calpass == 2 )
+  {
+    // zero out the tt_t0, tq_t0, and gains to produce uncalibrated time and charge
+    std::cout << "MBD Cal Pass 2" << std::endl;
+    _mbdcal->Reset_TTT0();
+    _mbdcal->Reset_TQT0();
+    _mbdcal->Reset_Gains();
+  }
+
   return 0;
+}
+
+int MbdEvent::End()
+{
+  if ( _calpass == 1 )
+  {
+    CalcSampMaxCalib();
+
+    std::string fname = _caldir.Data(); fname += "mbd_sampmax.calib";
+    _mbdcal->Write_SampMax( fname );
+
+    _smax_tfile->Write();
+  }
+
+  return 1;
 }
 
 ///
 void MbdEvent::Clear()
 {
   // Reset BBC/MBD raw data
-  std::fill_n(m_pmttt, 128, 1e12);
-  std::fill_n(m_pmttq, 128, 1e12);
+  std::fill_n(m_pmttt, 128, std::numeric_limits<Float_t>::quiet_NaN());
+  std::fill_n(m_pmttq, 128, std::numeric_limits<Float_t>::quiet_NaN());
   std::fill_n(m_pmtq, 128, 0.);
 
   // Reset BBC/MBD Arm Data
@@ -192,9 +264,9 @@ void MbdEvent::Clear()
   {
     m_bbcn[iarm] = 0;
     m_bbcq[iarm] = 0.;
-    m_bbct[iarm] = -9999.;
-    m_bbcte[iarm] = -9999.;
-    m_bbctl[iarm] = -9999.;
+    m_bbct[iarm] = std::numeric_limits<Float_t>::quiet_NaN();
+    m_bbcte[iarm] = std::numeric_limits<Float_t>::quiet_NaN();
+    m_bbctl[iarm] = std::numeric_limits<Float_t>::quiet_NaN();
     hevt_bbct[iarm]->Reset();
     hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-50, 50);
   }
@@ -284,7 +356,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
   }
 
   // Do a quick sanity check that all fem counters agree
-  if (xmitclocks[0] != xmitclocks[1])
+   if (xmitclocks[0] != xmitclocks[1])
   {
     std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << std::endl;
   }
@@ -303,28 +375,45 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
   m_clk = xmitclocks[0];
   m_femclk = femclocks[0][0];
 
+  // We get SAMPMAX on this pass
+  if ( _calpass == 1 )
+  {
+    FillSampMaxCalib();
+    m_evt++;
+    return -1001; // stop processing event (negative return values end event processing)
+  }
+
+  std::array<Double_t,MbdDefs::MBD_N_FEECH> tdc{0.};
+  tdc.fill( 0. );
+
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
 
+    // time channel
     if (type == 0)
     {
-      Double_t tdc = _mbdsig[ifeech].MBD(_mbdcal->get_sampmax(ifeech));
+      tdc[pmtch] = _mbdsig[ifeech].MBDTDC(_mbdcal->get_sampmax(ifeech));
 
-      if (tdc < 40)
+      if ( tdc[pmtch] < 40. || isnan(tdc[pmtch]) )
       {
-        m_pmttt[pmtch] = NAN;  // no hit
+        m_pmttt[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();  // no hit
       }
       else
       {
-        m_pmttt[pmtch] = 26.5 - tdc * 0.00189;  // simple linear correction
-      }
-    }
+        m_pmttt[pmtch] = _mbdcal->get_tcorr(ifeech,tdc[pmtch]);
 
-    if (type == 1)
+        // at calpass 2, we use tcorr (uncal_mbd pass). make sure tt_t0 = 0.
+        m_pmttt[pmtch] -= _mbdcal->get_tt0(pmtch);
+      }
+
+    }
+    //else if ( type == 1 && !isnan(m_pmttt[pmtch]) ) // process charge channels which have good time hit
+    else if ( type == 1 ) // process charge channels which have good time hit
     {
-      // Use dCFD method to get time for now in charge channels
+
+      // Use dCFD method to seed time in charge channels (or as primary if not fitting template)
       // std::cout << "getspline " << ifeech << std::endl;
       _mbdsig[ifeech].GetSplineAmpl();
       Double_t threshold = 0.5;
@@ -332,12 +421,19 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl();
       if (do_templatefit)
       {
-        _mbdsig[ifeech].FitTemplate();
+        //std::cout << "fittemplate" << std::endl;
+        _mbdsig[ifeech].FitTemplate( _mbdcal->get_sampmax(ifeech) );
 
-        // m_pmttq[pmtch] = _mbdsig[ifeech].GetTime();
+        if ( _verbose )
+        {
+          std::cout << "tt " << ifeech << " " << pmtch << " " << m_pmttt[pmtch] << std::endl;
+        }
+        m_pmttq[pmtch] = _mbdsig[ifeech].GetTime(); // in units of sample number
         m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl();
       }
 
+      // calpass 2, uncal_mbd. template fit. make sure qgain = 1, tq_t0 = 0
+ 
       if (m_ampl[ifeech] < _mbdcal->get_qgain(pmtch) * 0.25)
       {
         // m_t0[ifeech] = -9999.;
@@ -367,6 +463,11 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       }
       */
     }
+    else
+    {
+      m_pmtq[pmtch] = 0.;
+      m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
+    }
   }
 
   // bbcpmts->Reset();
@@ -380,17 +481,25 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
   bbcpmts->set_npmt(MbdDefs::BBC_N_PMT);
 
   m_evt++;
+
+  // Have uncalibrated charge and time at this pass
+  if ( _calpass == 2 )
+  {
+    return -1002;
+  }
+
   return m_evt;
 }
 
 ///
 int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 {
-  if (debugintt)
+  if ( _debugintt )
   {
     _verbose = 100;
   }
   //_verbose = 100;
+ 
   if (_verbose >= 10)
   {
     std::cout << "In MbdEvent::Calculate() " << m_evt << std::endl;
@@ -402,7 +511,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   }
 
   // Debug stuff
-  if (debugintt && (bbevt[_syncevt] != (m_evt - 1)))
+  if ( _debugintt && (bbevt[_syncevt] != (m_evt - 1)))
   {
     _verbose = 0;
     return 1;
@@ -535,7 +644,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
         double zearly = (tepmt[0] - tepmt[1]) * MbdDefs::C / 2.0;
         double znew = (m_bbct[0] - m_bbct[1]) * MbdDefs::C / 2.0;
 
-        if (debugintt)
+        if (_debugintt)
         {
           double intzdiff = intz[_syncevt] / 10. - mybbz[_syncevt];
           double intzediff = intz[_syncevt] / 10. - zearly;
@@ -554,7 +663,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
           std::cout << m_evt << " bz intz " << mybbz[_syncevt] << "\t" << intz[_syncevt] / 10. << "\t" << intzdiff << "\t" << intzdiff * 2.0 / MbdDefs::C << std::endl;
           std::cout << m_evt << " bze " << zearly << "\t" << intzediff << std::endl;
           std::cout << "? ";
-          std::cin >> junk;
+          //std::cin >> junk;
         }
       }
     }
@@ -596,7 +705,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       std::cout << "bbcz " << m_bbcz << std::endl;
       std::string junk;
       std::cout << "? ";
-      std::cin >> junk;
+      //std::cin >> junk;
     }
   }
 
@@ -617,15 +726,21 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     {
       bbcout->set_t0(get_bbct0(), get_bbct0err());
       bbcout->set_zvtx(get_bbcz(), get_bbczerr());
+      
+      if ( _debugintt )
+      {
+        bbcout->set_t0(intz[_syncevt]/10.);
+      }
+
     }
   }
 
-  if (debugintt)
+  if ( _debugintt )
   {
     _syncevt++;
     _verbose = 0;
   }
-  _verbose = 0;
+
   return 1;
 }
 
@@ -661,6 +776,97 @@ int MbdEvent::DoQuickClockOffsetCalib()
       std::cout << "TRIG_SAMP" << iboard << "\t" << TRIG_SAMP[iboard] << std::endl;
     }
   }
+
+  return 1;
+}
+
+// Store data for sampmax calibration (to correct ADC sample offsets by channel)
+// This will replace DoQuickClockOffsetCalib() for 2024
+// We might have to set this so it stops the sampmax calibration after N events
+int MbdEvent::FillSampMaxCalib()
+{
+  for (int ifeech = 0; ifeech<MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    // determine the trig_samp board by board
+    int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
+    int pmtch = _mbdgeom->get_pmt(ifeech);
+                                                                                  
+    _mbdsig[ifeech].SetXY(m_samp[ifeech], m_adc[ifeech]);
+
+    for (int isamp=0; isamp<_nsamples; isamp++)
+    {
+      // sanity check
+      if ( m_samp[ifeech][isamp] != isamp )
+      {
+        std::cerr << PHWHERE << ", ch" << ifeech << ", msamp != isamp, " << m_samp[ifeech][isamp] << " " << isamp << std::endl;
+      }
+      h2_wave[type]->Fill( isamp , pmtch, m_adc[ifeech][isamp] );
+    }
+
+    double maxsamp, maxadc;
+    _mbdsig[ifeech].LocMax( maxsamp, maxadc );
+
+    h_tmax[ifeech]->Fill( maxsamp );
+    h2_tmax[type]->Fill( maxsamp, pmtch );
+
+    if ( type==0 && h2_tmax[0]->GetEntries() > (128*1000) )
+    {
+      int samp_max = _mbdcal->get_sampmax( ifeech );
+
+      h2_trange_raw->Fill( m_adc[ifeech][samp_max] , pmtch );
+
+      TGraphErrors *gsubpulse = _mbdsig[ifeech].GetGraph();
+      Double_t *y = gsubpulse->GetY();
+      Double_t tdc = y[samp_max];
+      h2_trange->Fill( tdc , pmtch );
+    }
+
+  }
+
+  // At 1000 events, get the tmax for the time channels
+  // so we can fill the h2_trange histograms
+  if ( h2_tmax[0]->GetEntries() == (128*1000) )
+  {
+    CalcSampMaxCalib();
+  }
+
+  return 1;
+}
+
+int MbdEvent::CalcSampMaxCalib()
+{
+  TDirectory *orig_dir = gDirectory;
+  _smax_tfile->cd();
+
+  // sampmax for each channel
+  for (int ifeech=0; ifeech<MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    int maxbin = h_tmax[ifeech]->GetMaximumBin();
+    int samp_max = h_tmax[ifeech]->GetBinCenter( maxbin );
+    _mbdcal->set_sampmax( ifeech, samp_max );
+
+    // correct bad t-channels in year 1
+    if ( _runnum<25000 )
+    {
+      if ( ifeech==102 )
+      {
+        _mbdcal->set_sampmax( ifeech, _mbdcal->get_sampmax(101) );
+      }
+      else if ( ifeech==112 )
+      {
+        _mbdcal->set_sampmax( ifeech, _mbdcal->get_sampmax(113) );
+      }
+      else if ( ifeech==240 )
+      {
+        _mbdcal->set_sampmax( ifeech, _mbdcal->get_sampmax(241) );
+      }
+    }
+
+    //sampmax_calfile << ifeech << "\t" << samp_max << endl;
+    //cout << ifeech << "\t" << samp_max << endl;
+  }
+
+  orig_dir->cd();
 
   return 1;
 }
