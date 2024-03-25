@@ -118,8 +118,8 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
       }
 
-      int m_nWaveormInFrame = packet->iValue(0, "NR_WF");
-      for (int wf = 0; wf < m_nWaveormInFrame; wf++)
+      int m_nWaveFormInFrame = packet->iValue(0, "NR_WF");
+      for (int wf = 0; wf < m_nWaveFormInFrame; wf++)
       {
         TpcRawHit *newhit = new TpcRawHitv1();
         int FEE = packet->iValue(wf, "FEE");
@@ -154,17 +154,20 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         {
           std::cout << "evtno: " << EventSequence
                     << ", hits: " << wf
-                    << ", num waveforms: " << m_nWaveormInFrame
+                    << ", num waveforms: " << m_nWaveFormInFrame
                     << ", bco: 0x" << std::hex << gtm_bco << std::dec
                     << ", FEE: " << FEE << std::endl;
         }
         //          packet->convert();
+        // if (m_TpcRawHitMap[gtm_bco].size() < 50000)
+        // {
         if (StreamingInputManager())
         {
           StreamingInputManager()->AddTpcRawHit(gtm_bco, newhit);
         }
         m_TpcRawHitMap[gtm_bco].push_back(newhit);
         m_BclkStack.insert(gtm_bco);
+        //	}
       }
       delete packet;
     }
