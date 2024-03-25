@@ -24,6 +24,8 @@
 #include <g4tracking/TrkrTruthTrackContainer.h>
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
 
+//#include "tpc/TpcFullMap.h"
+
 #include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
@@ -127,6 +129,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     const double x_gem, const double y_gem, const double t_gem, const unsigned int side, 
     PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
 {
+  //TpcFullMap M;
+  //M.setMapNames("AutoPad-R1-RevA.sch.ChannelMapping.csv", "AutoPad-R2-RevA-Pads.sch.ChannelMapping.csv", "AutoPad-R3-RevA.sch.ChannelMapping.csv");
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
   // The t_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
@@ -303,6 +307,9 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       // The only information written to the cell other than neffelectrons is tbin and pad number, so get those from geometry
       double tcenter   = LayerGeom->get_zcenter(tbin_num);
       double phicenter = LayerGeom->get_phicenter(pad_num);
+      //unsigned int MapKey = layernum*10000 + pad_num;
+      //double map_phi_center = M.getPhi(MapKey);
+      //std::cout << " pad_num " << pad_num << " phicenter " << phicenter << " Map phi  "<< map_phi_center << std::endl;
       phi_integral += phicenter * neffelectrons;
       t_integral   += tcenter   * neffelectrons;
       weight += neffelectrons;
@@ -723,6 +730,10 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_sector_phi_mid",   0.5087);//2 * M_PI / 12 );//sector size in phi for R2 sector
   set_default_double_param("tpc_sector_phi_outer", 0.5097);//2 * M_PI / 12 );//sector size in phi for R3 sector
 
+  set_default_double_param("tpc_sector_phi_bias_inner", 0.0041);//sector bias in phi for R1 sector
+  set_default_double_param("tpc_sector_phi_bias_mid",   0.0029);//sector bias in phi for R2 sector
+  set_default_double_param("tpc_sector_phi_bias_outer", 0.0);   //sector bias in phi for R3 sector
+
   set_default_int_param("ntpc_phibins_inner", 1128); //94 * 12
   set_default_int_param("ntpc_phibins_mid", 1536);   //128 * 12
   set_default_int_param("ntpc_phibins_outer", 2304); //192 * 12
@@ -774,6 +785,11 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
         get_double_param("tpc_sector_phi_mid"),
         get_double_param("tpc_sector_phi_outer")}};
 
+  const std::array<double, 3> SectorPhiBias =
+      {{get_double_param("tpc_sector_phi_bias_inner"),
+        get_double_param("tpc_sector_phi_bias_mid"),
+        get_double_param("tpc_sector_phi_bias_outer")}};
+
   const std::array<int,3> NPhiBins = 
   {{
     get_int_param("ntpc_phibins_inner"),
@@ -799,7 +815,7 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
       for (int isector = 0; isector < NSectors; ++isector)
       {        
         double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
-        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector;// * (isector+1) ;
+        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector + pow(-1,zside) * SectorPhiBias[iregion];// * (isector+1) ;
         double sec_min_phi = sec_max_phi - SectorPhi[iregion];
         sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
         sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);

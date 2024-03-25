@@ -549,6 +549,13 @@ void PHG4TpcDetector::add_geometry_node()
     m_Params->get_int_param("ntpc_phibins_outer")
   }};
 
+  const std::array<double, 3> SectorPhiBias =   {{
+    m_Params->get_double_param("tpc_sector_phi_bias_inner"),
+    m_Params->get_double_param("tpc_sector_phi_bias_mid"),
+    m_Params->get_double_param("tpc_sector_phi_bias_outer")
+  }};
+
+
   const std::array<double, 3> PhiBinWidth =
   {{
     SectorPhi[0] * 12 / (double) NPhiBins[0],
@@ -585,7 +592,7 @@ void PHG4TpcDetector::add_geometry_node()
         sector_Phi_bias[zside].push_back(0);
         
         double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
-        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector;// * (isector+1) ;
+        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector + pow(-1,zside) * SectorPhiBias[iregion];
         double sec_min_phi = sec_max_phi - SectorPhi[iregion];
         sector_min_Phi[zside].push_back(sec_min_phi);
         sector_max_Phi[zside].push_back(sec_max_phi);

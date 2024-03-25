@@ -56,6 +56,7 @@ class PHG4TpcDetector : public PHG4Detector
   double m_OuterCageRadius = NAN;
   std::set<G4VPhysicalVolume *> m_AbsorberVolumeSet;
   std::set<G4VPhysicalVolume *> m_ActiveVolumeSet;
+  //double phi_bias [3] = {0.0041, 0.0029, 0.0};
 
   std::string m_SuperDetectorName;
 };
