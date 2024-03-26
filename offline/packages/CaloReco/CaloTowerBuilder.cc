@@ -150,14 +150,8 @@ int CaloTowerBuilder::process_sim()
 }
 
 
-//____________________________________________________________________________..
-int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
+int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode,  std::vector<std::vector<float>> &waveforms)
 {
-  if (!m_isdata)
-  {
-    return process_sim();
-  }
-  std::vector<std::vector<float>> waveforms;
   // if we are going from prdf
     Event *_event = findNode::getClass<Event>(topNode, "PRDF");
     if (_event == nullptr)
@@ -265,7 +259,17 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
         }
       }
     }
-  
+return Fun4AllReturnCodes::EVENT_OK;
+}
+//____________________________________________________________________________..
+int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
+{
+  if (!m_isdata)
+  {
+    return process_sim();
+  }
+  std::vector<std::vector<float>> waveforms;
+  process_rawdata(topNode, waveforms);
   // waveform vector is filled here, now fill our output. methods from the base class make sure
   // we only fill what the chosen container version supports
   std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
