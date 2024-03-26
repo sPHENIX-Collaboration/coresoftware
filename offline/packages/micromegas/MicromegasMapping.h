@@ -18,8 +18,7 @@
 /// micromegas mapping
 class MicromegasMapping
 {
-  public:
-
+ public:
   /// constructor
   MicromegasMapping();
 
@@ -27,15 +26,15 @@ class MicromegasMapping
   std::vector<int> get_fee_id_list() const;
 
   /// get hitsetkey from fiber_id (fee_id)
-  TrkrDefs::hitsetkey get_hitsetkey( int /*fee_id*/ ) const;
+  TrkrDefs::hitsetkey get_hitsetkey(int /*fee_id*/) const;
 
   /// get detector name (saclay) from fiber_id (fee_id)
   /** saclay detector name are of type MxxP and MxxZ, with xx the module number */
-  std::string get_detname_saclay( int /*fee_id*/) const;
+  std::string get_detname_saclay(int /*fee_id*/) const;
 
   /// get detector name (sphenix) from fiber_id (fee_id)
   /** sphenix detector name are of type SWP, SWZ, etc. */
-  std::string get_detname_sphenix( int /*fee_id*/) const;
+  std::string get_detname_sphenix(int /*fee_id*/) const;
 
   /// get physical strip number from channel_id
   /**
@@ -43,19 +42,18 @@ class MicromegasMapping
    * detector's geant implementation, with increasing number corresponding to strips further away from the detector's edge,
    * as defined in CylinderGeomMicromegas
    */
-  int get_physical_strip( int /*fee_id*/, int /*channel_id*/) const;
+  int get_physical_strip(int /*fee_id*/, int /*channel_id*/) const;
 
   /// get detector name (sphenix) from hitset key
-  std::string get_detname_saclay_from_hitsetkey( TrkrDefs::hitsetkey ) const;
+  std::string get_detname_saclay_from_hitsetkey(TrkrDefs::hitsetkey) const;
 
   /// get detector name (saclay) from hitset key
-  std::string get_detname_sphenix_from_hitsetkey( TrkrDefs::hitsetkey ) const;
+  std::string get_detname_sphenix_from_hitsetkey(TrkrDefs::hitsetkey) const;
 
   /// get fee id from hitset key
-  int get_fee_id_from_hitsetkey( TrkrDefs::hitsetkey ) const;
+  int get_fee_id_from_hitsetkey(TrkrDefs::hitsetkey) const;
 
-  private:
-
+ private:
   /// construct fee channel id to physical strip mapping
   void construct_channel_mapping();
 
@@ -65,20 +63,20 @@ class MicromegasMapping
    */
   class DetectorId
   {
-    public:
-
+   public:
     /// constructor
     DetectorId(
-      int fee_id, TrkrDefs::hitsetkey hitsetkey,
-      const std::string &fibername, const std::string &breakoutname,
-      const std::string& detname_saclay, const std::string& detname_sphenix ):
-      m_fee_id( fee_id ),
-      m_hitsetkey( hitsetkey ),
-      m_fibername( fibername ),
-      m_breakoutname( breakoutname ),
-      m_detname_saclay( detname_saclay ),
-      m_detname_sphenix( detname_sphenix )
-    {}
+        int fee_id, TrkrDefs::hitsetkey hitsetkey,
+        const std::string& fibername, const std::string& breakoutname,
+        const std::string& detname_saclay, const std::string& detname_sphenix)
+      : m_fee_id(fee_id)
+      , m_hitsetkey(hitsetkey)
+      , m_fibername(fibername)
+      , m_breakoutname(breakoutname)
+      , m_detname_saclay(detname_saclay)
+      , m_detname_sphenix(detname_sphenix)
+    {
+    }
 
     /// fee_id
     int m_fee_id = 0;
@@ -110,7 +108,6 @@ class MicromegasMapping
 
   /// map FEE channel id to physical strip id (phi view)
   std::array<int, MicromegasDefs::m_nchannels_fee> m_fee_to_strip_mapping_phi = {{0}};
-
 };
 
 #endif
