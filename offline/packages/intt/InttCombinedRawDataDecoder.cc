@@ -30,7 +30,7 @@
 
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
-  , m_calibinfoDAC({"Default", CDB})
+  , m_calibinfoDAC({"INTT_DACMAP", CDB})
 {
   // Do nothing
   // Consider calling LoadHotChannelMapRemote()
