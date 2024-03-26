@@ -20,6 +20,7 @@ namespace
     * 0 or 1, corresponding to cable1 and cable 2 as defined by Takao in
     * https://indico.bnl.gov/event/18458/contributions/73400/attachments/46043/77969/FEE_to_MEC_map_Feb17_2023.xlsx
     */
+// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     int m_cable_id = 0;
 
     /*
@@ -29,6 +30,7 @@ namespace
     * and as defined by Takao in
     * https://indico.bnl.gov/event/18458/contributions/73400/attachments/46043/77969/FEE_to_MEC_map_Feb17_2023.xlsx
     */
+// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     int m_connector_id = 0;
 
     /*
@@ -36,6 +38,7 @@ namespace
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225938-XX.PNG.png
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225940-XX.PNG.png
     */
+// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     int m_channel_id = 0;
 
     // constructor
@@ -50,8 +53,10 @@ namespace
   // less than operator
   inline bool operator < (const mec8_channel_id& lhs, const mec8_channel_id& rhs )
   {
-    if( lhs.m_cable_id != rhs.m_cable_id ) return lhs.m_cable_id < rhs.m_cable_id;
-    if( lhs.m_connector_id != rhs.m_connector_id ) return lhs.m_connector_id < rhs.m_connector_id;
+    if( lhs.m_cable_id != rhs.m_cable_id ) { return lhs.m_cable_id < rhs.m_cable_id;
+}
+    if( lhs.m_connector_id != rhs.m_connector_id ) { return lhs.m_connector_id < rhs.m_connector_id;
+}
     return lhs.m_channel_id < rhs.m_channel_id;
   }
 
@@ -62,7 +67,8 @@ namespace
     std::cout << "int " << name << "[" << array.size() << "] = {" << std::endl << "  ";
     for( size_t i =0; i < array.size(); ++i )
     {
-      if( i > 0 ) std::cout << ", ";
+      if( i > 0 ) { std::cout << ", ";
+}
       if( count == 32 )
       {
         std::cout << std::endl << "  ";
@@ -110,8 +116,9 @@ m_detectors( {
   // sort vector based on layer/tile
   std::sort( m_detectors.begin(), m_detectors.end(), []( const DetectorId& lhs, const DetectorId& rhs )
   {
-    if(TrkrDefs::getLayer( lhs.m_hitsetkey ) != TrkrDefs::getLayer( rhs.m_hitsetkey ) ) return TrkrDefs::getLayer( lhs.m_hitsetkey ) < TrkrDefs::getLayer( rhs.m_hitsetkey );
-    else return MicromegasDefs::getTileId( lhs.m_hitsetkey ) < MicromegasDefs::getTileId( rhs.m_hitsetkey );
+    if(TrkrDefs::getLayer( lhs.m_hitsetkey ) != TrkrDefs::getLayer( rhs.m_hitsetkey ) ) { return TrkrDefs::getLayer( lhs.m_hitsetkey ) < TrkrDefs::getLayer( rhs.m_hitsetkey );
+    } else { return MicromegasDefs::getTileId( lhs.m_hitsetkey ) < MicromegasDefs::getTileId( rhs.m_hitsetkey );
+}
   } );
 
   // fill detector map from vector
@@ -138,7 +145,8 @@ TrkrDefs::hitsetkey MicromegasMapping::get_hitsetkey( int fee_id ) const
   {
     std::cout << "MicromegasMapping::get_hitsetkey - invalid fee_id: " << fee_id << std::endl;
     return 0;
-  } else return iter->second.m_hitsetkey;
+  } else { return iter->second.m_hitsetkey;
+}
 }
 
 //____________________________________________________________________________________________________
@@ -149,7 +157,8 @@ std::string MicromegasMapping::get_detname_saclay( int fee_id ) const
   {
     std::cout << "MicromegasMapping::get_detname_saclay - invalid fee_id: " << fee_id << std::endl;
     return std::string();
-  } else return iter->second.m_detname_saclay;
+  } else { return iter->second.m_detname_saclay;
+}
 }
 
 //____________________________________________________________________________________________________
@@ -160,7 +169,8 @@ std::string MicromegasMapping::get_detname_sphenix( int fee_id ) const
   {
     std::cout << "MicromegasMapping::get_detname_sphenix - invalid fee_id: " << fee_id << std::endl;
     return std::string();
-  } else return iter->second.m_detname_sphenix;
+  } else { return iter->second.m_detname_sphenix;
+}
 }
 
 //____________________________________________________________________________________________________
@@ -197,7 +207,8 @@ std::string MicromegasMapping::get_detname_saclay_from_hitsetkey( TrkrDefs::hits
   {
     std::cout << "MicromegasMapping::get_detname_saclay_from_hitsetkey - invalid key: " << key << std::endl;
     return std::string();
-  } else return iter->m_detname_saclay;
+  } else { return iter->m_detname_saclay;
+}
 }
 
 //____________________________________________________________________________________________________
@@ -208,7 +219,8 @@ std::string MicromegasMapping::get_detname_sphenix_from_hitsetkey( TrkrDefs::hit
   {
     std::cout << "MicromegasMapping::get_detname_sphenix_from_hitsetkey - invalid key: " << key << std::endl;
     return std::string();
-  } else return iter->m_detname_sphenix;
+  } else { return iter->m_detname_sphenix;
+}
 }
 
 //____________________________________________________________________________________________________
@@ -219,7 +231,8 @@ int MicromegasMapping::get_fee_id_from_hitsetkey( TrkrDefs::hitsetkey key ) cons
   {
     std::cout << "MicromegasMapping::get_fee_id_from_hitsetkey - invalid key: " << key << std::endl;
     return -1;
-  } else return iter->m_fee_id;
+  } else { return iter->m_fee_id;
+}
 }
 
 //____________________________________________________________________________________________________
@@ -314,7 +327,8 @@ void MicromegasMapping::construct_channel_mapping()
   {
 
     // ignore ground channels
-    if( signal_id == -1 ) continue;
+    if( signal_id == -1 ) { continue;
+}
 
     // cable 0, connector 0 corresponds to signal ids 1 to 64
     mec8_to_signal_mapping_z_all.insert(std::pair<mec8_channel_id,int>({0,0,mec8_channel}, signal_id));
@@ -444,7 +458,8 @@ void MicromegasMapping::construct_channel_mapping()
   {
 
     // ignore ground channels
-    if( signal_id == -1 ) continue;
+    if( signal_id == -1 ) { continue;
+}
 
     // cable 0, connector 0 corresponds to signal ids 193 to 256
     mec8_to_signal_mapping_phi_all.insert(std::pair<mec8_channel_id,int>({0,0,mec8_channel}, signal_id+192));
