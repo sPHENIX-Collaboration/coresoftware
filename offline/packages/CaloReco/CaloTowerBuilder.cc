@@ -7,6 +7,9 @@
 #include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfoContainerv3.h>
 
+#include <ffarawobjects/CaloPacket.h>
+#include <ffarawobjects/CaloPacketContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -28,6 +31,10 @@
 #include <memory>    // for allocator_traits<>::val...
 #include <vector>    // for vector
 
+static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap {
+{CaloTowerDefs::CEMC, "CEMCPackets"},
+{CaloTowerDefs::HCALIN, "HCALPackets"},
+{CaloTowerDefs::HCALOUT, "HCALPackets"}};
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
@@ -260,6 +267,113 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode,  std::vector<std
       }
     }
 return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int CaloTowerBuilder::process_offline(PHCompositeNode *topNode,  std::vector<std::vector<float>> &waveforms)
+{
+  // if we are going from prdf
+  CaloPacketContainer *hcalcont = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(m_dettype)->second);
+  if (! hcalcont)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+  for (int pid = m_packet_low; pid <= m_packet_high; pid++)
+  {
+    CaloPacket *packet = hcalcont->getPacket(pid);
+    if (packet)
+    {
+      int nchannels = packet->iValue(0, "CHANNELS");
+      if (m_dettype == CaloTowerDefs::ZDC)
+      {  // special condition during zdc commisioning
+	if (nchannels < m_nchannels)
+	{
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+	nchannels = m_nchannels;
+      }
+      if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
+      {
+	return Fun4AllReturnCodes::ABORTEVENT;
+      }
+      // int sector = 0;
+
+      for (int channel = 0; channel < nchannels; channel++)
+      {
+	// mask empty channels
+
+	if (m_dettype == CaloTowerDefs::SEPD)
+	{
+	  int sector = ((channel + 1) / 32);
+	  if (channel == (14 + 32 * sector))
+	  {
+	    continue;
+	  }
+	}
+	std::vector<float> waveform;
+	waveform.reserve(m_nsamples);
+	if (packet->iValue(channel,"SUPPRESSED")){
+	  waveform.push_back(packet->iValue(channel,"PRE"));
+	  waveform.push_back(packet->iValue(channel,"POST"));
+	}
+	else {
+	  for (int samp = 0; samp < m_nsamples; samp++)
+	  {
+	    waveform.push_back(packet->iValue(samp, channel));
+	  }
+	}
+	waveforms.push_back(waveform);
+	waveform.clear();
+      }
+      if (nchannels < m_nchannels)
+      {
+	for (int channel = 0; channel < m_nchannels - nchannels; channel++)
+	{
+	  if (m_dettype == CaloTowerDefs::SEPD)
+	  {
+	    int sector = ((channel + 1) / 32);
+
+	    if (channel == (14 + 32 * sector))
+	    {
+	      continue;
+	    }
+	  }
+	  std::vector<float> waveform;
+	  waveform.reserve(m_nsamples);
+
+	  for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+	  {
+	    waveform.push_back(0);
+	  }
+	  waveforms.push_back(waveform);
+	  waveform.clear();
+	}
+      }
+      delete packet;
+    }
+    else  // if the packet is missing treat constitutent channels as zero suppressed
+    {
+      for (int channel = 0; channel < m_nchannels; channel++)
+      {
+	if (m_dettype == CaloTowerDefs::SEPD)
+	{
+	  int sector = ((channel + 1) / 32);
+	  if (channel == (14 + 32 * sector))
+	  {
+	    continue;
+	  }
+	}
+	std::vector<float> waveform;
+	waveform.reserve(2);
+	for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+	{
+	  waveform.push_back(0);
+	}
+	waveforms.push_back(waveform);
+	waveform.clear();
+      }
+    }
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
 int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
