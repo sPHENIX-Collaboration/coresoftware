@@ -55,7 +55,7 @@ RawTowerCalibration::RawTowerCalibration(const std::string &name)
 
 RawTowerCalibration::~RawTowerCalibration()
 {
-  delete  m_CDBTTree;
+  delete m_CDBTTree;
 }
 
 int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
@@ -85,9 +85,9 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
 
   if (_calib_algorithm == kDbfile_tbt_gain_corr)
   {
-      std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-                << "kDbfile_tbt_gain_corr  chosen but not implemented"
-                << std::endl;
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << "kDbfile_tbt_gain_corr  chosen but not implemented"
+              << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -198,30 +198,30 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
       // else if  // eventally this will be done exclusively of tow_by_tow
       else if (_calib_algorithm == kDbfile_tbt_gain_corr)
       {
-	if (m_Detector.c_str()[0] == 'H')
-	{
-	  std::string url = CDBInterface::instance()->getUrl("HCALTBYTCORR");
-	  if (url.empty())
-	  {
-	    std::cout << PHWHERE << " Could not get Hcal Calibration for domain HCALTBYTCORR" << std::endl;
-	    gSystem->Exit(1);
-	    exit(1);
-	  }
+        if (m_Detector.c_str()[0] == 'H')
+        {
+          std::string url = CDBInterface::instance()->getUrl("HCALTBYTCORR");
+          if (url.empty())
+          {
+            std::cout << PHWHERE << " Could not get Hcal Calibration for domain HCALTBYTCORR" << std::endl;
+            gSystem->Exit(1);
+            exit(1);
+          }
 
-	  m_CDBTTree = new CDBTTree(url);
-	}
-	else if (m_Detector.c_str()[0] == 'C')
-	{
-	  std::string url = CDBInterface::instance()->getUrl("CEMCTBYTCORR");
-	  if (url.empty())
-	  {
-	    std::cout << PHWHERE << " Could not get Cemc Calibration for domain CEMCTBYTCORR" << std::endl;
-	    gSystem->Exit(1);
-	    exit(1);
-	  }
+          m_CDBTTree = new CDBTTree(url);
+        }
+        else if (m_Detector.c_str()[0] == 'C')
+        {
+          std::string url = CDBInterface::instance()->getUrl("CEMCTBYTCORR");
+          if (url.empty())
+          {
+            std::cout << PHWHERE << " Could not get Cemc Calibration for domain CEMCTBYTCORR" << std::endl;
+            gSystem->Exit(1);
+            exit(1);
+          }
 
-	  m_CDBTTree = new CDBTTree(url);
-	}
+          m_CDBTTree = new CDBTTree(url);
+        }
         if (!m_CDBTTree)
         {
           std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
@@ -234,10 +234,10 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 
         const int eta = raw_tower->get_bineta();
         const int phi = raw_tower->get_binphi();
-	unsigned int etaphikey = phi;
-	etaphikey = (etaphikey << 16U) + eta;
+        unsigned int etaphikey = phi;
+        etaphikey = (etaphikey << 16U) + eta;
 
-        gain_factor = m_CDBTTree->GetFloatValue(etaphikey,"etaphi");
+        gain_factor = m_CDBTTree->GetFloatValue(etaphikey, "etaphi");
 
         const double raw_energy = raw_tower->get_energy();
         RawTower *calib_tower = new RawTowerv2(*raw_tower);
@@ -319,10 +319,10 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
         float gain_factor = -888;
         const int eta = _raw_towerinfos->getTowerEtaBin(key);
         const int phi = _raw_towerinfos->getTowerPhiBin(key);
-	unsigned int etaphikey = phi;
-	etaphikey = (etaphikey << 16U) + eta;
+        unsigned int etaphikey = phi;
+        etaphikey = (etaphikey << 16U) + eta;
 
-        gain_factor = m_CDBTTree->GetFloatValue(etaphikey,"etaphi");
+        gain_factor = m_CDBTTree->GetFloatValue(etaphikey, "etaphi");
         const double raw_energy = raw_tower->get_energy();
         float corr_energy = raw_energy * gain_factor * _calib_const_GeV_ADC;
         calib_tower->set_energy(corr_energy);
@@ -437,10 +437,10 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
     }
   }
   if (m_UseTowerInfo > 0)
-    {
-      RawTowerInfoNodeName = "TOWERINFO_" + _raw_tower_node_prefix + "_" + m_Detector;
-      _raw_towerinfos = findNode::getClass<TowerInfoContainerv1>(dstNode, RawTowerInfoNodeName);
- 
+  {
+    RawTowerInfoNodeName = "TOWERINFO_" + _raw_tower_node_prefix + "_" + m_Detector;
+    _raw_towerinfos = findNode::getClass<TowerInfoContainerv1>(dstNode, RawTowerInfoNodeName);
+
     if (!_raw_towerinfos)
     {
       std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
@@ -477,8 +477,14 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
   if (m_UseTowerInfo > 0)
   {
     CaliTowerInfoNodeName = "TOWERINFO_" + _calib_tower_node_prefix + "_" + m_Detector;
-    if(!m_UseTowerInfoV2)_calib_towerinfos = findNode::getClass<TowerInfoContainerv1>(DetNode, CaliTowerInfoNodeName);
-    else _calib_towerinfos = findNode::getClass<TowerInfoContainerv2>(DetNode, CaliTowerInfoNodeName);
+    if (!m_UseTowerInfoV2)
+    {
+      _calib_towerinfos = findNode::getClass<TowerInfoContainerv1>(DetNode, CaliTowerInfoNodeName);
+    }
+    else
+    {
+      _calib_towerinfos = findNode::getClass<TowerInfoContainerv2>(DetNode, CaliTowerInfoNodeName);
+    }
     if (!_calib_towerinfos)
     {
       TowerInfoContainerv1::DETECTOR detec;
@@ -495,8 +501,14 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
         std::cout << PHWHERE << "Detector not implemented into the TowerInfoContainer object, defaulting to HCal implementation." << std::endl;
         detec = TowerInfoContainer::DETECTOR::HCAL;
       }
-      if(!m_UseTowerInfoV2)_calib_towerinfos = new TowerInfoContainerv1(detec);
-      else _calib_towerinfos = new TowerInfoContainerv2(detec);
+      if (!m_UseTowerInfoV2)
+      {
+        _calib_towerinfos = new TowerInfoContainerv1(detec);
+      }
+      else
+      {
+        _calib_towerinfos = new TowerInfoContainerv2(detec);
+      }
 
       PHIODataNode<PHObject> *towerinfoNode = new PHIODataNode<PHObject>(_calib_towerinfos, CaliTowerInfoNodeName, "PHObject");
       DetNode->addNode(towerinfoNode);

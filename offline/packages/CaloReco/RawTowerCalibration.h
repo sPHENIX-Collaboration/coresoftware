@@ -5,14 +5,13 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <cmath>
 #include <iostream>
+#include <limits>
 #include <string>
 
 class CDBTTree;
 class PHCompositeNode;
 class RawTowerContainer;
-class TowerInfoContainerv1;
 class TowerInfoContainer;
 class RawTowerGeomContainer;
 
@@ -154,14 +153,13 @@ class RawTowerCalibration : public SubsysReco
  protected:
   void CreateNodes(PHCompositeNode *topNode);
 
+  RawTowerContainer *_calib_towers{nullptr};
+  RawTowerContainer *_raw_towers{nullptr};
 
-  RawTowerContainer *_calib_towers = nullptr;
-  RawTowerContainer *_raw_towers = nullptr;
+  TowerInfoContainer *_calib_towerinfos{nullptr};
+  TowerInfoContainer *_raw_towerinfos{nullptr};
 
-  TowerInfoContainer *_calib_towerinfos = nullptr;
-  TowerInfoContainer *_raw_towerinfos = nullptr;
-
-  RawTowerGeomContainer *rawtowergeom = nullptr;
+  RawTowerGeomContainer *rawtowergeom{nullptr};
 
   enu_calib_algorithm _calib_algorithm;
 
@@ -176,29 +174,29 @@ class RawTowerCalibration : public SubsysReco
   std::string _raw_tower_node_prefix;
 
   //! pedstal in unit of ADC
-  double _pedstal_ADC = NAN;
+  double _pedstal_ADC{std::numeric_limits<double>::quiet_NaN()};
 
   //! pedestal from file
-  bool _pedestal_file = false;
+  bool _pedestal_file{false};
 
   //! calibration constant in unit of GeV per ADC
-  double _calib_const_GeV_ADC = NAN;
+  double _calib_const_GeV_ADC{std::numeric_limits<double>::quiet_NaN()};
 
   //! GeV per ADC from file
-  bool _GeV_ADC_file = false;
+  bool _GeV_ADC_file{false};
 
   //! tower type to act on
-  int _tower_type = -1;
+  int _tower_type{-1};
 
   //! Tower by tower calibration parameters
   PHParameters _tower_calib_params;
 
   std::string m_CalibrationFileName;
-  bool m_UseConditionsDB = false;
-  bool m_UseTowerInfoV2 = false;
-  
-  CDBTTree *m_CDBTTree = nullptr;
-  RawTowerCalibration::ProcessTowerType m_UseTowerInfo = RawTowerCalibration::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
+  bool m_UseConditionsDB{false};
+  bool m_UseTowerInfoV2{false};
+
+  CDBTTree *m_CDBTTree{nullptr};
+  RawTowerCalibration::ProcessTowerType m_UseTowerInfo{RawTowerCalibration::ProcessTowerType::kBothTowers};  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
 };
 
 #endif
