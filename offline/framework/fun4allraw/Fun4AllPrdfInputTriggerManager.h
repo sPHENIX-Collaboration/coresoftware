@@ -72,31 +72,31 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct SinglePrdfInputInfo
   {
-    uint64_t bclkoffset = 0;
+    uint64_t bclkoffset {0};
   };
 
   struct Gl1PacketInfo
   {
     std::vector<Gl1Packet *> Gl1PacketVector;
-    unsigned int EventFoundCounter = 0;
+    unsigned int EventFoundCounter {0};
   };
 
   struct MbdPacketInfo
   {
     std::vector<CaloPacket *> MbdPacketVector;
-    unsigned int EventFoundCounter = 0;
+    unsigned int EventFoundCounter {0};
   };
 
   struct HcalPacketInfo
   {
     std::vector<CaloPacket *> HcalPacketVector;
-    unsigned int EventFoundCounter = 0;
+    unsigned int EventFoundCounter {0};
   };
 
   struct CemcPacketInfo
   {
     std::vector<CaloPacket *> CemcPacketVector;
-    unsigned int EventFoundCounter = 0;
+    unsigned int EventFoundCounter {0};
   };
 
   int m_RunNumber{0};
