@@ -71,6 +71,8 @@ class emcNoisyTowerFinder : public SubsysReco
 
   void WriteCDBTree(const int runnumber);
 
+  void set_Normalization(int norm)  {do_VariableNormalization = norm;}
+
  private:
   TTree* T {nullptr};
   TFile* out {nullptr};
@@ -107,15 +109,17 @@ class emcNoisyTowerFinder : public SubsysReco
 
   const std::string cdbtreename;
 
-  float adccut_sg;
-  float adccut_k;
-  float sigmas_lo;
-  float sigmas_hi;
-  float SG_f;
-  float Kur_f;
-  float region_f;
+  float adccut_sg {0};
+  float adccut_k {0};
+  float sigmas_lo {0};
+  float sigmas_hi {0};
+  float SG_f {0};
+  float Kur_f {0};
+  float region_f {0};
 
   int m_hot_channels {0};
+  int eventCounter {1};
+  int do_VariableNormalization {0};
   std::array<float, nTowers> towerF {0};
   std::array<float, nSectors> sectorF {0};
   std::array<float, nIB> ibF {0};
