@@ -11,38 +11,15 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  CemcCheck.h \
-  ClockDiffCheck.h \
-  DumpPacket.h \
-  EventCombiner.h \
-  EventNumberCheck.h \
-  Gl1Check.h \
-  HcalCheck.h \
-  InttCheck.h \
-  MbdCheck.h \
-  StreamingCheck.h \
-  TpcCheck.h
+  XingShiftCal.h
 
 lib_LTLIBRARIES = \
-  libffarawmodules.la
+  libXingShiftCal.la
 
-libffarawmodules_la_SOURCES = \
-  CemcCheck.cc \
-  ClockDiffCheck.cc \
-  DumpPacket.cc \
-  EventCombiner.cc \
-  EventNumberCheck.cc \
-  Gl1Check.cc \
-  HcalCheck.cc \
-  InttCheck.cc \
-  MbdCheck.cc \
-  StreamingCheck.cc \
-  TpcCheck.cc
+libXingShiftCal_la_SOURCES = \
+  XingShiftCal.cc
 
-libffarawmodules_la_LIBADD = \
-  -lEvent \
-  -lffarawobjects \
-  -lfun4allraw \
+libXingShiftCal_la_LIBADD = \
   -lphool \
   -lSubsysReco
 
@@ -52,7 +29,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libffarawmodules.la
+testexternals_LDADD   = libXingShiftCal.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

@@ -14,15 +14,15 @@ class PHG4SteppingAction;
 class PHG4DisplayAction;
 
 /**
-   * \brief Detector Subsystem module
-   *
-   * The detector is constructed and registered via PHG4TpcEndCapDetector
-   *
-   *
-   * \see PHG4TpcEndCapDetector
-   * \see PHG4TpcEndCapSubsystem
-   *
-   */
+ * \brief Detector Subsystem module
+ *
+ * The detector is constructed and registered via PHG4TpcEndCapDetector
+ *
+ *
+ * \see PHG4TpcEndCapDetector
+ * \see PHG4TpcEndCapSubsystem
+ *
+ */
 class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
 {
  public:
