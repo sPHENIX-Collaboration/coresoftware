@@ -137,7 +137,7 @@ private:
   std::vector<TowerRho::Method> _rho_methods; 
   Jet::ALGO _algo{Jet::ALGO::KT};
 
-  int m_verbosity { 0 };
+  // int m_verbosity { 0 };
 
   // settings for the background jet calculation
   Jet::ALGO m_bkgd_jet_algo { Jet::ALGO::KT }; // default is KT
