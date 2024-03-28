@@ -1,10 +1,10 @@
 #include "InttBCOMap.h"
 
-#include <ffamodules/CDBInterface.h>
 #include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
 
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 
 int InttBCOMap::LoadFromCDB(std::string const &calibname)
 {
@@ -79,26 +79,31 @@ bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, uint64
   //////////////////////////////////////////////////////////////////////////////
   int bco_peak = m_bco[felix_server][felix_channel];
   int bco_minus = bco_peak - 1;
-  if (bco_minus == -1) {
+  if (bco_minus == -1)
+  {
     bco_minus = 127;
-}
+  }
   int bco_plus = bco_peak + 1;
-  if (bco_plus == 128) { 
+  if (bco_plus == 128)
+  {
     bco_plus = 0;
-}
+  }
 
-  if (bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus) {
+  if (bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus)
+  {
     return false;
-  } else {
+  }
+  else
+  {
     return true;
+  }
 }
-}
-bool InttBCOMap::IsBad(InttNameSpace::RawData_s const& raw, uint64_t const &bco_full, const int &bco)
+bool InttBCOMap::IsBad(InttNameSpace::RawData_s const &raw, uint64_t const &bco_full, const int &bco)
 {
-  return IsBad(raw.felix_server,raw.felix_channel,bco_full,bco);
+  return IsBad(raw.felix_server, raw.felix_channel, bco_full, bco);
 }
 
-bool InttBCOMap::IsBad(InttNameSpace::Offline_s const & off, uint64_t const& bco_full, const int &bco)
+bool InttBCOMap::IsBad(InttNameSpace::Offline_s const &off, uint64_t const &bco_full, const int &bco)
 {
-  return IsBad(InttNameSpace::ToRawData(off),bco_full,bco);
+  return IsBad(InttNameSpace::ToRawData(off), bco_full, bco);
 }
