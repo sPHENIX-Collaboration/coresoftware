@@ -33,9 +33,6 @@
 
 SubtractTowersCS::SubtractTowersCS(const std::string &name)
   : SubsysReco(name)
-  , _use_flow_modulation(false)
-  , _alpha(1)
-  , _DeltaRmax(0.3)
 {
 }
 
@@ -419,16 +416,16 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     float EM_old_E = 0;
     float EM_new_E = 0;
     {
-      RawTowerContainer::ConstRange begin_end_EM = towersEM3->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_1 = towersEM3->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_1.first; rtiter != begin_end_EM_1.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         EM_old_E += tower->get_energy();
       }
     }
     {
-      RawTowerContainer::ConstRange begin_end_EM = emcal_towers->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_2 = emcal_towers->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_2.first; rtiter != begin_end_EM_2.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         EM_new_E += tower->get_energy();
@@ -441,16 +438,16 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     float IH_old_E = 0;
     float IH_new_E = 0;
     {
-      RawTowerContainer::ConstRange begin_end_EM = towersIH3->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_3 = towersIH3->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_3.first; rtiter != begin_end_EM_3.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         IH_old_E += tower->get_energy();
       }
     }
     {
-      RawTowerContainer::ConstRange begin_end_EM = ihcal_towers->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_4 = ihcal_towers->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_4.first; rtiter != begin_end_EM_4.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         IH_new_E += tower->get_energy();
@@ -463,16 +460,16 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     float OH_old_E = 0;
     float OH_new_E = 0;
     {
-      RawTowerContainer::ConstRange begin_end_EM = towersOH3->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_5 = towersOH3->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_5.first; rtiter != begin_end_EM_5.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         OH_old_E += tower->get_energy();
       }
     }
     {
-      RawTowerContainer::ConstRange begin_end_EM = ohcal_towers->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_6 = ohcal_towers->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_6.first; rtiter != begin_end_EM_6.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         OH_new_E += tower->get_energy();
