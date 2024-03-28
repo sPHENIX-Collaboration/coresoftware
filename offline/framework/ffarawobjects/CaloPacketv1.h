@@ -13,7 +13,7 @@ static const int MAX_NUM_SAMPLES = 31;
 class CaloPacketv1 : public CaloPacket
 {
  public:
-  CaloPacketv1() = default;
+  CaloPacketv1();
   ~CaloPacketv1() override = default;
 
   void Reset() override;
@@ -48,6 +48,12 @@ class CaloPacketv1 : public CaloPacket
   int getModuleAddress() const override { return module_address; }
   void setDetId(int i) override { detid = i; }
   int getDetId() const override { return detid; }
+  bool getSuppressed(int channel) const override {return isZeroSuppressed.at(channel);}
+  void setSuppressed(int channel, bool bb) override {isZeroSuppressed.at(channel) = bb;}
+  void setPre(int channel, uint32_t ival) override {pre.at(channel) = ival;}
+  uint32_t getPre(int channel) const override {return pre.at(channel);}
+  void setPost(int channel, uint32_t ival) override {post.at(channel) = ival;}
+  uint32_t getPost(int channel) const override {return post.at(channel);}
 
   void setSample(int ipmt, int isamp, uint32_t val) override { samples.at(isamp).at(ipmt) = val; }
   uint32_t getSample(int ipmt, int isamp) const override { return samples.at(isamp).at(ipmt); }
@@ -69,11 +75,14 @@ class CaloPacketv1 : public CaloPacket
   int module_address{0};
   int detid{0};
 
-  std::array<uint32_t, MAX_NUM_MODULES> femclock{std::numeric_limits<uint32_t>::max()};
-  std::array<uint32_t, MAX_NUM_MODULES> femevt{std::numeric_limits<uint32_t>::max()};
-  std::array<uint32_t, MAX_NUM_MODULES> femslot{std::numeric_limits<uint32_t>::max()};
+  std::array<uint32_t, MAX_NUM_MODULES> femclock{};
+  std::array<uint32_t, MAX_NUM_MODULES> femevt {};
+  std::array<uint32_t, MAX_NUM_MODULES> femslot {};
 
-  std::array<std::array<uint32_t, MAX_NUM_CHANNELS>, MAX_NUM_SAMPLES> samples{{{std::numeric_limits<uint32_t>::max()}}};
+  std::array<std::array<uint32_t, MAX_NUM_CHANNELS>, MAX_NUM_SAMPLES> samples {};
+  std::array<bool,MAX_NUM_CHANNELS> isZeroSuppressed {};
+  std::array<uint32_t, MAX_NUM_CHANNELS> pre {};
+  std::array<uint32_t, MAX_NUM_CHANNELS> post {};
 
  private:
   ClassDefOverride(CaloPacketv1, 1)

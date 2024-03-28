@@ -33,8 +33,6 @@
 //________________________________
 emcNoisyTowerFinder::emcNoisyTowerFinder(const std::string &name, const std::string &outputName, const std::string &cdbtreename_in, float adccut_sg_in, float adccut_k_in, float sigmas_lo_in, float sigmas_hi_in, float SG_f_in, float Kur_f_in, float region_f_in)
   : SubsysReco(name)
-  , T(nullptr)
-  , out(nullptr)
   , Outfile(outputName)
   , cdbtreename(cdbtreename_in)
   , adccut_sg(adccut_sg_in)  // The minimum ADC required for a tower with Saint Gobain fibers to register a hit
@@ -83,7 +81,7 @@ int emcNoisyTowerFinder::process_event(PHCompositeNode *topNode)
   }
   // iterate through all towers, incrementing their Frequency arrays if they record a hit
 
-  // bool goodevent = false;
+  bool goodevent = false;
   int tower_range = emcTowerContainer->size();
   for (int j = 0; j < tower_range; j++)
   {
@@ -102,7 +100,7 @@ int emcNoisyTowerFinder::process_event(PHCompositeNode *topNode)
         ((fiber_type == 1) && (energy > adccut_k)))
     {
       towerF[j]++;
-      // goodevent = true; //counter of events with nonzero EMCal energy
+      goodevent = true;  // counter of events with nonzero EMCal energy
       sectorF[j / nTowersSec]++;
       ibF[j / nTowersIB]++;
     }
@@ -111,6 +109,12 @@ int emcNoisyTowerFinder::process_event(PHCompositeNode *topNode)
     sectorE[j / nSectors] += energy;
     ibE[j / nTowersIB] += energy;
   }
+
+  if (goodevent)
+  {
+    eventCounter++;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //__________________________
@@ -168,15 +172,33 @@ void emcNoisyTowerFinder::FillHistograms(const int /*runnumber*/, const int /*se
     channels->GetEntry(i);
     if (fiber_type == 0)
     {
-      Fspec_SG->Fill(i, towerF[i] / goodevents[i]);
-      Espec_SG->Fill(i, towerE[i] / goodevents[i]);
-      Fspeci_SG->Fill(i, towerF[i] / goodevents[i]);
+      if (do_VariableNormalization)
+      {
+        Fspec_SG->Fill(i, towerF[i] / goodevents[i]);
+        Espec_SG->Fill(i, towerE[i] / goodevents[i]);
+        Fspeci_SG->Fill(i, towerF[i] / goodevents[i]);
+      }
+      else
+      {
+        Fspec_SG->Fill(i, towerF[i] / eventCounter);
+        Espec_SG->Fill(i, towerE[i] / eventCounter);
+        Fspeci_SG->Fill(i, towerF[i] / eventCounter);
+      }
     }
     else
     {
-      Fspec_K->Fill(i, towerF[i] / goodevents[i]);
-      Espec_K->Fill(i, towerE[i] / goodevents[i]);
-      Fspeci_K->Fill(i, towerF[i] / goodevents[i]);
+      if (do_VariableNormalization)
+      {
+        Fspec_K->Fill(i, towerF[i] / goodevents[i]);
+        Espec_K->Fill(i, towerE[i] / goodevents[i]);
+        Fspeci_K->Fill(i, towerF[i] / goodevents[i]);
+      }
+      else
+      {
+        Fspec_K->Fill(i, towerF[i] / eventCounter);
+        Espec_K->Fill(i, towerE[i] / eventCounter);
+        Fspeci_K->Fill(i, towerF[i] / eventCounter);
+      }
     }
   }
   for (int j = 0; j < nIB; j++)
@@ -186,12 +208,24 @@ void emcNoisyTowerFinder::FillHistograms(const int /*runnumber*/, const int /*se
     //  Fspec_IB->Fill(j,1.0*ibF[j]/nTowersIB/(goodeventsIB[j]/nTowerEvents));
     //  Espec_IB->Fill(j,1.0*ibE[j]/nTowersIB/(goodeventsIB[j]/nTowerEvents));
     //  Fspeci_IB->Fill(j,1.0*ibF[j]/nTowersIB/(goodeventsIB[j]/nTowerEvents));
-    // NOLINTNEXTLINE(bugprone-integer-division)
-    Fspec_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / (goodeventsIB[j] / nTowersIB));
-    // NOLINTNEXTLINE(bugprone-integer-division)
-    Espec_IB->Fill(j, 1.0 * ibE[j] / nTowersIB / (goodeventsIB[j] / nTowersIB));
-    // NOLINTNEXTLINE(bugprone-integer-division)
-    Fspeci_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / (goodeventsIB[j] / nTowersIB));
+    if (do_VariableNormalization)
+    {
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Fspec_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / (goodeventsIB[j] / nTowersIB));
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Espec_IB->Fill(j, 1.0 * ibE[j] / nTowersIB / (goodeventsIB[j] / nTowersIB));
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Fspeci_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / (goodeventsIB[j] / nTowersIB));
+    }
+    else
+    {
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Fspec_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / eventCounter);
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Espec_IB->Fill(j, 1.0 * ibE[j] / nTowersIB / eventCounter);
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Fspeci_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / eventCounter);
+    }
   }
   for (int k = 0; k < nSectors; k++)
   {
@@ -200,12 +234,24 @@ void emcNoisyTowerFinder::FillHistograms(const int /*runnumber*/, const int /*se
     //  Fspec_sector->Fill(k,1.0*sectorF[k]/nTowersSec/(goodeventsSec[k]/nTowerEvents));
     //  Espec_sector->Fill(k,1.0*sectorE[k]/nTowersSec/(goodeventsSec[k]/nTowerEvents));
     //  Fspeci_sector->Fill(k,1.0*sectorF[k]/nTowersSec/(goodeventsSec[k]/nTowerEvents));
-    // NOLINTNEXTLINE(bugprone-integer-division)
-    Fspec_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / (goodeventsSec[k] / nTowersSec));
-    // NOLINTNEXTLINE(bugprone-integer-division)
-    Espec_sector->Fill(k, 1.0 * sectorE[k] / nTowersSec / (goodeventsSec[k] / nTowersSec));
-    // NOLINTNEXTLINE(bugprone-integer-division)
-    Fspeci_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / (goodeventsSec[k] / nTowersSec));
+    if (do_VariableNormalization)
+    {
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Fspec_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / (goodeventsSec[k] / nTowersSec));
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Espec_sector->Fill(k, 1.0 * sectorE[k] / nTowersSec / (goodeventsSec[k] / nTowersSec));
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Fspeci_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / (goodeventsSec[k] / nTowersSec));
+    }
+    else
+    {
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Fspec_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / eventCounter);
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Espec_sector->Fill(k, 1.0 * sectorE[k] / nTowersSec / eventCounter);
+      // NOLINTNEXTLINE(bugprone-integer-division)
+      Fspeci_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / eventCounter);
+    }
   }
 
   // kill zeros:
@@ -611,7 +657,7 @@ void emcNoisyTowerFinder::CalculateCutOffs(const int runnumber)
 
       if (fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) < cutoffFreq_IB_lo)
       {
-        hot_regions = 1;
+        cold_regions = 1;
         std::cout << "IB " << j << " is cold with ADC rate " << fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) << " < " << cutoffFreq_IB_lo << std::endl;
         hotIB[j]++;
 
@@ -681,7 +727,6 @@ void emcNoisyTowerFinder::CalculateCutOffs(const int runnumber)
 //____________________________________________________________________________..
 void emcNoisyTowerFinder::WriteCDBTree(const int runnumber)
 {
-  // TFile *cdbOut = new TFile(Form("cdbMaps/%d/DST_CALOR-%08d_badTowerMapCDBTTree.root",runnumber,runnumber),"RECREATE");
   TFile *cdbOut = new TFile(boost::str(boost::format("cdbMaps/%d/CEMC_%08d_badTowerMapCDBTTree.root") % runnumber % runnumber).c_str(), "RECREATE");
 
   T = new TTree("T", "T");

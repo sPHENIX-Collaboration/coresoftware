@@ -9,7 +9,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <cassert>
 #include <iostream>
 #include <string>
 
@@ -78,7 +77,7 @@ class CaloTowerStatus : public SubsysReco
 
   float badChi2_treshold = 1e4;
   float fraction_badChi2_threshold = 0.01;
-  float time_cut = 2; // number of samples from the mean time for the channel in the run
+  float time_cut = 2;  // number of samples from the mean time for the channel in the run
 };
 
 #endif  // CALOTOWERBUILDER_H
