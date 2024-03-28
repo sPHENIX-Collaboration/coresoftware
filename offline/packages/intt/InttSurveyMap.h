@@ -5,7 +5,6 @@
 
 #include <phool/PHObject.h>
 
-#include <Eigen/Core>
 #include <Eigen/Geometry>
 
 #include <cstddef>  // for size_t
