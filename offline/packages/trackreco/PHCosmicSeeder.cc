@@ -16,7 +16,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
@@ -152,7 +152,7 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
           longestseed.rzslope};
       m_tup->Fill(seed_data);
     }
-    auto svtxseed = std::make_unique<TrackSeed_v1>();
+    auto svtxseed = std::make_unique<TrackSeed_v2>();
     for (auto& key : seed.ckeys)
     {
       svtxseed->insert_cluster_key(key);

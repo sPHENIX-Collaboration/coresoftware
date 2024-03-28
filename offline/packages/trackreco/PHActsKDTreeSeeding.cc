@@ -15,7 +15,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -142,7 +142,7 @@ void PHActsKDTreeSeeding::fillTrackSeedContainer(SeedContainer& seeds)
 {
   for (auto& seed : seeds)
   {
-    auto siseed = std::make_unique<TrackSeed_v1>();
+    auto siseed = std::make_unique<TrackSeed_v2>();
     std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 
     for (auto& spptr : seed.sp())

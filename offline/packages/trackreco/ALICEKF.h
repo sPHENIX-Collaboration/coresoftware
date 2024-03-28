@@ -3,7 +3,7 @@
 
 #include "GPUTPCTrackParam.h"
 #include <trackbase/ClusterErrorPara.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
@@ -21,7 +21,7 @@
 #include <utility>
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
-using TrackSeedAliceSeedMap = std::pair<std::vector<TrackSeed_v1>, std::vector<Eigen::Matrix<double,6,6>>>;
+using TrackSeedAliceSeedMap = std::pair<std::vector<TrackSeed_v2>, std::vector<Eigen::Matrix<double,6,6>>>;
 
 class ALICEKF
 {

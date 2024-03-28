@@ -197,7 +197,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         << ": crossing: " << crossing
         << ": nhits: " << tracklet_tpc-> size_cluster_keys()
         << ": Total TPC tracks: " << _tpc_track_map->size()
-        << ": phi: " << tracklet_tpc->get_phi(_cluster_map,_tGeometry)
+        << ": phi: " << tracklet_tpc->get_phi()
         << std::endl;
     }
 

@@ -31,7 +31,7 @@ class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 class SvtxTrackMap;
 class TrackSeedContainer;
-class TrackSeed;
+class TrackSeed_v2;
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
@@ -141,8 +141,8 @@ class PrelimDistortionCorrection : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap &positions);
-  void publishSeeds(const std::vector<TrackSeed_v1>&);
+  void publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap &positions);
+  void publishSeeds(const std::vector<TrackSeed_v2>&);
 //   void MoveToVertex();
 
   bool _use_const_field = false;

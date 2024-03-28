@@ -28,7 +28,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overread"
@@ -271,7 +271,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       std::vector<Acts::Vector3> globalPositions;
 
       std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
-      auto trackSeed = std::make_unique<TrackSeed_v1>();
+      auto trackSeed = std::make_unique<TrackSeed_v2>();
 
       for (auto& spacePoint : seed.sp())
       {

@@ -55,7 +55,8 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
       TrackSeed* track1 = m_trackMap->get(trid1);
       if(!track1) 
 	{ continue; }
-      float track1phi = track1->get_phi(m_positions); 
+      // float track1phi = track1->get_phi(m_positions); 
+      float track1phi = track1->get_phi(); 
       float track1x = track1->get_x();
       float track1y = track1->get_y();
       float track1z = track1->get_z();
@@ -69,7 +70,8 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
 	  TrackSeed* track2 = m_trackMap->get(trid2);
 	  if(!track2)
 	    { continue; }
-	  if(fabs( track1phi - track2->get_phi(m_positions)) < _phi_cut &&
+	  //if(fabs( track1phi - track2->get_phi(m_positions)) < _phi_cut &&
+	  if(fabs( track1phi - track2->get_phi()) < _phi_cut &&
 	     fabs( track1eta - track2->get_eta() ) < _eta_cut &&
 	     fabs( track1x - track2->get_x() ) < _x_cut &&
 	     fabs( track1y - track2->get_y() ) < _y_cut &&
@@ -118,9 +120,9 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
 	  if(m_verbosity > 1)
 	    {
 	      std::cout << "       Compare: best quality " << best_qual << " track 2 quality " << tr2_qual << std::endl;
-	      std::cout << "       tr1: phi " << tr1->get_phi(m_positions) << " eta " << tr1->get_eta() 
+	      std::cout << "       tr1: phi " << tr1->get_phi() << " eta " << tr1->get_eta() 
 			<<  " x " << tr1->get_x() << " y " << tr1->get_y() << " z " << tr1->get_z() << std::endl;
-	      std::cout << "       tr2: phi " << tr2->get_phi(m_positions) << " eta " << tr2->get_eta() 
+	      std::cout << "       tr2: phi " << tr2->get_phi() << " eta " << tr2->get_eta() 
 			<<  " x " << tr2->get_x() << " y " << tr2->get_y() << " z " << tr2->get_z() << std::endl;
 	    }
 
