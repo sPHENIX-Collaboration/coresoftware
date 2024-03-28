@@ -33,7 +33,7 @@ class InttRawDataConverter : public SubsysReco
 
   Int_t n_evt = -1;
   Int_t num_hits = 0;
-  Long64_t gtm_bco = 0;
+  uint64_t gtm_bco = 0;
   Int_t flx_svr = 0;
 
   InttNameSpace::RawData_s raw;
