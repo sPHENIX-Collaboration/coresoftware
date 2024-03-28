@@ -105,7 +105,7 @@ int InttCombinedRawDataConverter::Init(PHCompositeNode* /*topNode*/)
 
   branches_l =
       {
-          {"gtm_bco", new std::vector<Long64_t>()},
+          {"gtm_bco", new std::vector<uint64_t>()},
       };
 
   branches_d =

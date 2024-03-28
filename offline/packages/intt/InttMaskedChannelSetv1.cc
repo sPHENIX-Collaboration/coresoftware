@@ -33,8 +33,8 @@ int InttMaskedChannelSetv1::v_LoadFromCDBTTree(
   m_HotChannelSet = new Set_t;
 
   m_HotChannelSet->clear();
-  Long64_t N = cdbttree.GetSingleIntValue("size");
-  for (Long64_t n = 0; n < N; ++n)
+  uint64_t N = cdbttree.GetSingleIntValue("size");
+  for (uint64_t n = 0; n < N; ++n)
   {
     m_HotChannelSet->insert((struct InttMap::Offline_s){
         .layer = cdbttree.GetIntValue(n, "layer"),

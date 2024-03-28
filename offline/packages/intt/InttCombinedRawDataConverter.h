@@ -37,7 +37,7 @@ class InttCombinedRawDataConverter : public SubsysReco
   Int_t num_hits = 0;
 
   typedef std::map<std::string, std::vector<Int_t>*> Branches_i_t;
-  typedef std::map<std::string, std::vector<Long64_t>*> Branches_l_t;
+  typedef std::map<std::string, std::vector<uint64_t>*> Branches_l_t;
   typedef std::map<std::string, std::vector<Double_t>*> Branches_d_t;
   Branches_i_t branches_i;
   Branches_l_t branches_l;
