@@ -33,6 +33,7 @@ lib_LTLIBRARIES = \
   libintt.la 
 
 pkginclude_HEADERS = \
+  InttBCOMap.h \
   InttClusterizer.h \
   InttClusterQA.h \
   InttCombinedRawDataConverter.h \
@@ -86,6 +87,7 @@ nobase_dist_pcm_DATA = \
 
 # sources for intt library
 libintt_la_SOURCES = \
+  InttBCOMap.cc \
   InttClusterizer.cc \
   InttClusterQA.cc \
   InttCombinedRawDataConverter.cc \
