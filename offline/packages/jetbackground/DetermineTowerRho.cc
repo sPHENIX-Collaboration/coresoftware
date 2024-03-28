@@ -52,7 +52,10 @@ DetermineTowerRho::~DetermineTowerRho()
 
 int DetermineTowerRho::InitRun(PHCompositeNode *topNode)
 {
-  if(Verbosity() > 0) print_settings(std::cout);
+  if(Verbosity() > 0)
+  {
+     print_settings(std::cout);
+  }
   m_fj_algo_name = get_fj_algo_name();
   return CreateNode(topNode);
 }
@@ -60,7 +63,10 @@ int DetermineTowerRho::InitRun(PHCompositeNode *topNode)
 int DetermineTowerRho::process_event(PHCompositeNode *topNode)
 {
 
-    if (Verbosity() > 1) std::cout << "DetermineTowerRho::process_event -- entered" << std::endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "DetermineTowerRho::process_event -- entered" << std::endl;
+    } 
 
     if(m_abs_jet_eta_range == 5.0)
     {
@@ -122,7 +128,7 @@ int DetermineTowerRho::process_event(PHCompositeNode *topNode)
             int nfj_jets = 0;
             int n_empty_jets = 0;
             float total_constituents = 0;
-            for (auto jet : jets) 
+            for (auto &jet : jets) 
             {
               float jet_pt = jet.pt();
 
@@ -142,11 +148,15 @@ int DetermineTowerRho::process_event(PHCompositeNode *topNode)
 
             int total_jets = nfj_jets + n_empty_jets;
             float mean_N = total_constituents/total_jets;
-            if (mean_N < 0) mean_N = 0;
+            if (mean_N < 0)
+            {
+              std::cout << "WARNING: mean_N = " << mean_N << " is negative, setting to 0" << std::endl;
+              mean_N = 0;
+            } 
 
             float med_tmp, std_tmp;
             _median_stddev(pt_over_nConstituents, n_empty_jets, med_tmp, std_tmp);
-            sigma = std_tmp*sqrt(mean_N);
+            sigma = float(std_tmp*sqrt(mean_N));
             rho = med_tmp;
 
       }
@@ -168,14 +178,23 @@ std::vector<fastjet::PseudoJet> DetermineTowerRho::get_pseudojets(PHCompositeNod
     for (auto & _input : _inputs)
     {
       std::vector<Jet *> parts = _input->get_input(topNode);
-      for (unsigned int i = 0; i < parts.size(); ++i)
+      // for (unsigned int i = 0; i < parts.size(); ++i)
+      // {
+      for( auto & part : parts)
       {
-        auto& part = parts[i];
+        // auto& part = parts[i];
         float this_e = part->get_e();
-        if (this_e == 0.) continue;
-        float this_px = parts[i]->get_px();
-        float this_py = parts[i]->get_py();
-        float this_pz = parts[i]->get_pz();
+        if (this_e == 0.)
+        {
+           continue;
+        }
+        float this_px = part->get_px();
+        float this_py = part->get_py();
+        float this_pz = part->get_pz();
+
+        // float this_px = parts[i]->get_px();
+        // float this_py = parts[i]->get_py();
+        // float this_pz = parts[i]->get_pz();
 
 
         // if(m_do_tower_cut)
@@ -190,15 +209,25 @@ std::vector<fastjet::PseudoJet> DetermineTowerRho::get_pseudojets(PHCompositeNod
             this_py = this_py * e_ratio;
             this_pz = this_pz * e_ratio;
           }
+
         // }
         fastjet::PseudoJet pseudojet(this_px, this_py, this_pz, this_e);
 
-        if(pseudojet.perp() < m_tower_min_pT) continue;
-        if(fabs(pseudojet.eta()) > m_abs_tower_eta_range) continue;
+        if(pseudojet.perp() < m_tower_min_pT) 
+        {
+          continue;
+        }
+        if(fabs(pseudojet.eta()) > m_abs_tower_eta_range)
+        {
+          continue;
+        } 
 
         calo_pseudojets.push_back(pseudojet);
       }
-      for (auto &p : parts) delete p;
+      for (auto &p : parts)
+      {
+         delete p;
+      }
       parts.clear();
 
     }
@@ -254,7 +283,7 @@ void DetermineTowerRho::FillNode(PHCompositeNode *topNode, unsigned int ipos, co
   }
   else
   {
-    if(Verbosity() > 0) std::cout << "DetermineTowerRho::FillNode - Filling node " << _node_name << " with rho = " << rho << " and sigma = " << sigma << std::endl;
+    if(Verbosity() > 0){ std::cout << "DetermineTowerRho::FillNode - Filling node " << _node_name << " with rho = " << rho << " and sigma = " << sigma << std::endl; }
     towerbackground->set_rho(rho);
     towerbackground->set_sigma(sigma);
     towerbackground->set_method(rho_method);
@@ -270,7 +299,7 @@ float DetermineTowerRho::_percentile(const std::vector<float> & sorted_vec,
   assert(percentile >= 0. && percentile <= 1.);
 
   int njets = sorted_vec.size();
-  if(njets == 0) return 0;
+  if(njets == 0) {return 0;}
 
   float total_njets = njets + nempty;
   float perc_pos = (total_njets)*percentile - nempty - 0.5;
@@ -380,9 +409,9 @@ void DetermineTowerRho::print_settings(std::ostream& os) const
   }
   os << std::endl;
   os << "Inputs:";
-  for (auto & _input : _inputs) _input->identify();
+  for (auto & _input : _inputs){ _input->identify();}
   os << "Outputs: ";
-  for (auto & _output : _outputs) os << _output << ", ";
+  for (auto & _output : _outputs){ os << _output << ", ";}
   os << std::endl;
   os << "Using jet algo: " << m_fj_algo_name << " with R = " << m_par << std::endl;
   os << "Tower eta range: " << m_abs_tower_eta_range << std::endl;
