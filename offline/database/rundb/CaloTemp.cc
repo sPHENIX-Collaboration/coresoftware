@@ -17,6 +17,8 @@
 #include <TH2.h>
 #include <TTree.h>
 #include <TProfile2D.h>
+#include <TRandom3.h>
+#include <TString.h>
 
 #include <Event/Event.h>
 #include <Event/packet.h>
@@ -44,6 +46,7 @@ CaloTemp::CaloTemp(const std::string& name, const std::string& filename)
   : SubsysReco(name)
   , detector("HCALIN")
   , outfilename(filename)
+  , temphist(true)
 {
 }
 
@@ -51,8 +54,6 @@ CaloTemp::~CaloTemp()
 {
   delete hm;
 }
-
-
 
 int CaloTemp::Init(PHCompositeNode* /*topNode*/)
 {
@@ -64,18 +65,28 @@ int CaloTemp::Init(PHCompositeNode* /*topNode*/)
   }
 
   outfile = new TFile(outfilename.c_str(), "UPDATE");
-
-  if (detector == "CEMC") {
-    h_calo_temp = new TProfile2D("h_cemc_sipm_temp", ";eta;phi", 96, 0, 96, 256, 0, 256);
-    h_calo_temp2 = new TProfile2D("h_cemc_pa_temp", ";eta;phi", 96, 0, 96, 256, 0, 256);
-  } else if (detector == "HCALIN") {
-    h_calo_temp = new TProfile2D("h_ihcal_temp", ";eta;phi", 24, 0, 24, 64, 0, 64);
-  } else if (detector == "HCALOUT") {
-    h_calo_temp = new TProfile2D("h_ohcal_temp", ";eta;phi", 24, 0, 24, 64, 0, 64);
-  } else {
-    std::cout << "Unknown detector type " << detector << ". Options are CEMC, HCALIN and HCALOUT." << std::endl;
-    return 1;
+  if (temphist) {
+    if (detector == "CEMC") {
+      h_calo_temp = new TProfile2D("h_cemc_sipm_temp", ";eta;phi", 96, 0, 96, 256, 0, 256);
+      h_calo_temp2 = new TProfile2D("h_cemc_pa_temp", ";eta;phi", 96, 0, 96, 256, 0, 256);
+    } else if (detector == "HCALIN") {
+      h_calo_temp = new TProfile2D("h_ihcal_temp", ";eta;phi", 24, 0, 24, 64, 0, 64);
+    } else if (detector == "HCALOUT") {
+      h_calo_temp = new TProfile2D("h_ohcal_temp", ";eta;phi", 24, 0, 24, 64, 0, 64);
+    } else {
+      std::cout << "Unknown detector type " << detector << ". Options are CEMC, HCALIN and HCALOUT." << std::endl;
+      return 1;
+    }
   }
+
+  tree = new TTree("runtime", "");
+  tree->Branch("runnumber", &runnumber, "runnumber/I");
+  tree->Branch("year", &year, "year/I");
+  tree->Branch("month", &month, "month/I");
+  tree->Branch("day", &day, "day/I");
+  tree->Branch("hour", &hour, "hour/I");
+  tree->Branch("minute", &minute, "minute/I");
+  tree->Branch("second", &second, "second/I");
 
   return 0;
 }
@@ -96,22 +107,28 @@ int CaloTemp::InitRun(PHCompositeNode* topNode)
   if (Verbosity()) {
     std::cout << "run number " << runnumber << std::endl;
   }
-  
-  int result = getRunTime();
-  if (result == 1) {
-    std::cout << "Unable to connect to database. Exiting now." << std::endl;
-    return 1;
-  }
-  
-  result = getTempHist();
-  if (result == 1) {
-    std::cout << "Unable to fill calorimeter temperature from database. Exiting now." << std::endl;
-    return 1;
+
+  int result;
+  if (temphist) {
+    result = getTempHist();
+    if (result == 1) {
+      std::cout << "Unable to fill calorimeter temperature from database. Exiting now." << std::endl;
+      return 1;
+    }
+  } else {
+    result = getRunTime();
+    if (result == 1) {
+      std::cout << "Unable to connect to database. Exiting now." << std::endl;
+      return 1;
+    }
   }
 
   if (Verbosity()) {
     std::cout << "runtime " << runtime << std::endl;
   }
+
+  sscanf(runtime.c_str(), "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+  tree->Fill();
 
   return 0;
 }
@@ -119,6 +136,7 @@ int CaloTemp::InitRun(PHCompositeNode* topNode)
 int CaloTemp::getRunTime() {
   odbc::Connection *m_OdbcConnection = nullptr;
   int icount = 0;
+  TRandom3 rnd = TRandom3();
   do {
     try {
       m_OdbcConnection = odbc::DriverManager::getConnection("daq","","");
@@ -127,9 +145,51 @@ int CaloTemp::getRunTime() {
       std::cout << "Message: " << e.getMessage() << std::endl;
     }
     icount++;
-    if (!m_OdbcConnection) { std::this_thread::sleep_for(std::chrono::seconds(30)); }  // sleep 30 seconds before retry
-  } while (!m_OdbcConnection && icount < 3);
-  if (icount == 3) { return 1; }
+    int wait = (int) 20 + rnd.Uniform()*300;
+    if (!m_OdbcConnection) { std::this_thread::sleep_for(std::chrono::seconds(wait)); }  // sleep 30 seconds before retry
+  } while (!m_OdbcConnection && icount < 10);
+  if (icount == 10) { return 1; }
+
+  std::string sql = "SELECT brtimestamp FROM run WHERE runnumber = " + std::to_string(runnumber) + ";";
+  
+  if (Verbosity() > 1) {
+    std::cout << sql << std::endl;
+  }
+  odbc::Statement* stmt = m_OdbcConnection->createStatement();
+  odbc::ResultSet* resultSet = stmt->executeQuery(sql);
+
+  if (resultSet && resultSet->next()) {
+    odbc::Timestamp brtimestamp = resultSet->getTimestamp("brtimestamp");
+    runtime = brtimestamp.toString(); // brtimestamp is in 'America/New_York' time zone
+  }
+
+  std::cout << "Runtime for Run " << runnumber << ": " << runtime << std::endl;
+
+  delete resultSet; 
+  delete stmt; 
+  delete m_OdbcConnection;
+  return 0;
+
+}
+
+
+int CaloTemp::getTempHist() {
+  
+  odbc::Connection *m_OdbcConnection = nullptr;
+  int icount = 0;
+  TRandom3 rnd = TRandom3();
+  do {
+    try {
+      m_OdbcConnection = odbc::DriverManager::getConnection("daq","","");
+    } catch (odbc::SQLException &e) {
+      std::cout << " Exception caught during DriverManager::getConnection" << std::endl;
+      std::cout << "Message: " << e.getMessage() << std::endl;
+    }
+    icount++;
+    int wait = (int) 20 + rnd.Uniform()*300;
+    if (!m_OdbcConnection) { std::this_thread::sleep_for(std::chrono::seconds(wait)); }  // sleep 30 seconds before retry
+  } while (!m_OdbcConnection && icount < 10);
+  if (icount == 10) { return 1; }
 
   std::string sql = "SELECT brtimestamp FROM run WHERE runnumber = " + std::to_string(runnumber) + ";";
   
@@ -150,27 +210,6 @@ int CaloTemp::getRunTime() {
 
   delete resultSet; 
   delete stmt; 
-  delete m_OdbcConnection;
-  return 0;
-
-}
-
-
-int CaloTemp::getTempHist() {
-  
-  odbc::Connection *m_OdbcConnection = nullptr;
-  int icount = 0;
-  do {
-    try {
-      m_OdbcConnection = odbc::DriverManager::getConnection("daq","","");
-    } catch (odbc::SQLException &e) {
-      std::cout << " Exception caught during DriverManager::getConnection" << std::endl;
-      std::cout << "Message: " << e.getMessage() << std::endl;
-    }
-    icount++;
-    if (!m_OdbcConnection) { std::this_thread::sleep_for(std::chrono::seconds(30)); }  // sleep 30 seconds before retry
-  } while (!m_OdbcConnection && icount < 3);
-  if (icount == 3) { return 1; }
 
   int det = 0;
   std::string tablename;
@@ -189,8 +228,8 @@ int CaloTemp::getTempHist() {
     return 1;
   }
 
-  // first get the closest time for the database 
-  std::string sql = "SELECT time FROM " + tablename + " ORDER BY ABS(EXTRACT(epoch FROM time) - EXTRACT(epoch FROM '" + runtime + "'::timestamp)) LIMIT 1;";
+  // get the closest time for the database 
+  sql = "SELECT time FROM " + tablename + " ORDER BY ABS(EXTRACT(epoch FROM time) - EXTRACT(epoch FROM '" + runtime + "'::timestamp)) LIMIT 1;";
   if (Verbosity() > 1) {
     std::cout << sql << std::endl;
   }
