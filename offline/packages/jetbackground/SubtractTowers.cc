@@ -11,9 +11,7 @@
 #include <calobase/RawTowerv1.h>
 
 #include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -28,6 +26,7 @@
 
 // standard includes
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <utility>

@@ -5,6 +5,7 @@
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
@@ -31,6 +32,7 @@
 #include <TLorentzVector.h>
 
 // standard includes
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iomanip>

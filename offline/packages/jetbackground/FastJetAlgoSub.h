@@ -7,6 +7,8 @@
 #include <iostream>
 #include <vector>
 
+class JetContainer;
+
 class FastJetAlgoSub : public JetAlgo
 {
  public:

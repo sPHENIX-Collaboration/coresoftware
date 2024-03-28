@@ -3,7 +3,6 @@
 
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
-#include <jetbase/Jetv2.h>
 
 // fastjet includes
 #include <fastjet/ClusterSequence.hh>
@@ -11,11 +10,10 @@
 #include <fastjet/PseudoJet.hh>
 
 // standard includes
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
-#include <map>
 #include <memory>
-#include <utility>
 #include <vector>
 
 FastJetAlgoSub::FastJetAlgoSub(Jet::ALGO algo, float par, int verbosity)

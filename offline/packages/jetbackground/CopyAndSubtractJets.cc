@@ -4,6 +4,7 @@
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
@@ -12,7 +13,6 @@
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
 #include <jetbase/JetContainerv1.h>
-#include <jetbase/Jetv2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -28,7 +28,6 @@
 // standard includes
 #include <cmath>
 #include <iostream>
-#include <map>
 #include <utility>
 #include <vector>
 
