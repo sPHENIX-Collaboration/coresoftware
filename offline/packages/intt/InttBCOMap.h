@@ -1,10 +1,10 @@
 #ifndef INTTBCOMAP_H
 #define INTTBCOMAP_H
 
+#include "InttMapping.h"
+
 #include <array>
 #include <string>
-#include <TROOT.h>
-#include "InttMapping.h"
 
 class CDBTTree;
 
@@ -19,11 +19,11 @@ public:
 
   virtual bool IsBad(int const &felix_server,
                      int const &fexlix_channel,
-                     Long64_t const &bco_full,
+                     uint64_t const &bco_full,
                      const int &bco); 
 
-  virtual bool IsBad(InttNameSpace::RawData_s const &rawdata, Long64_t const &bco_full, const int &bco);
-  virtual bool IsBad(InttNameSpace::Offline_s const &offline, Long64_t const &bco_full, const int &bco);
+  virtual bool IsBad(InttNameSpace::RawData_s const &rawdata, uint64_t const &bco_full, const int &bco);
+  virtual bool IsBad(InttNameSpace::Offline_s const &offline, uint64_t const &bco_full, const int &bco);
 
 
 protected:
@@ -32,4 +32,5 @@ private:
   typedef std::array<std::array<int, 14>, 8> BCOArray;
   BCOArray m_bco; //[Felix server][Felix channel]
 };
+
 #endif

@@ -1,7 +1,8 @@
-#include <InttBCOMap.h>
+#include "InttBCOMap.h"
 
 #include <ffamodules/CDBInterface.h>
 #include <cdbobjects/CDBTTree.h>
+
 #include <iostream>
 #include <filesystem>
 
@@ -52,8 +53,8 @@ int InttBCOMap::LoadFromCDBTTree(CDBTTree &cdbttree)
   ///////////////
   std::cout << "LoadFromCDBTTree::LoadFromCDBTTree" << std::endl;
 
-  Long64_t N = cdbttree.GetSingleIntValue("size");
-  for (Long64_t n = 0; n < N; ++n)
+  uint64_t N = cdbttree.GetSingleIntValue("size");
+  for (uint64_t n = 0; n < N; ++n)
   {
     int felix_server = cdbttree.GetIntValue(n, "felix_server");
     int felix_channel = cdbttree.GetIntValue(n, "felix_channel");
@@ -66,9 +67,9 @@ int InttBCOMap::LoadFromCDBTTree(CDBTTree &cdbttree)
   }
   return 0;
 }
-bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, Long64_t const &bco_full, const int &bco)
+bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, uint64_t const &bco_full, const int &bco)
 {
-  int bco_diff = (bco_full & 0x7F) - bco;
+  int bco_diff = (bco_full & 0x7FU) - bco;
   if (bco_diff < 0)
   {
     bco_diff += 128;
@@ -78,23 +79,26 @@ bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, Long64
   //////////////////////////////////////////////////////////////////////////////
   int bco_peak = m_bco[felix_server][felix_channel];
   int bco_minus = bco_peak - 1;
-  if (bco_minus == -1)
+  if (bco_minus == -1) {
     bco_minus = 127;
+}
   int bco_plus = bco_peak + 1;
-  if (bco_plus == 128) 
+  if (bco_plus == 128) { 
     bco_plus = 0;
+}
 
-  if (bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus)
+  if (bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus) {
     return false;
-  else
+  } else {
     return true;
 }
-bool InttBCOMap::IsBad(InttNameSpace::RawData_s const& raw, Long64_t const &bco_full, const int &bco)
+}
+bool InttBCOMap::IsBad(InttNameSpace::RawData_s const& raw, uint64_t const &bco_full, const int &bco)
 {
   return IsBad(raw.felix_server,raw.felix_channel,bco_full,bco);
 }
 
-bool InttBCOMap::IsBad(InttNameSpace::Offline_s const & off, Long64_t const& bco_full, const int &bco)
+bool InttBCOMap::IsBad(InttNameSpace::Offline_s const & off, uint64_t const& bco_full, const int &bco)
 {
   return IsBad(InttNameSpace::ToRawData(off),bco_full,bco);
 }
