@@ -100,6 +100,14 @@ int CaloWaveformSim::Init(PHCompositeNode *topNode)
     decode_tower = TowerInfoDefs::decode_emcal;
     m_sampling_fraction = 2e-02;
     m_nchannels = 24576;
+    if(m_highgain)
+    {
+      m_gain = 16;
+    }
+    else
+    {
+      m_gain = 1;
+    }
 
     if (!m_overrideCalibName)
     {
@@ -127,6 +135,14 @@ int CaloWaveformSim::Init(PHCompositeNode *topNode)
     decode_tower = TowerInfoDefs::decode_hcal;
     m_sampling_fraction = 0.162166;
     m_nchannels = 1536;
+    if(m_highgain)
+    {
+      m_gain = 32;
+    }
+    else
+    {
+      m_gain = 1;
+    }
 
     if (!m_overrideCalibName)
     {
@@ -154,6 +170,14 @@ int CaloWaveformSim::Init(PHCompositeNode *topNode)
     decode_tower = TowerInfoDefs::decode_hcal;
     m_sampling_fraction = 3.38021e-02;
     m_nchannels = 1536;
+    if(m_highgain)
+    {
+      m_gain = 32;
+    }
+    else
+    {
+      m_gain = 1;
+    }
 
     if (!m_overrideCalibName)
     {
@@ -269,6 +293,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     e_vis *= correction;
     float e_dep = e_vis / m_sampling_fraction;
     float ADC = (calibconst != 0) ? e_dep / calibconst : 0.;
+    ADC *= m_gain;
 
     float t0 = hit->get_t(0) / m_sampletime;
     unsigned int tower_index = decode_tower(key);

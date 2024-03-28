@@ -11,9 +11,13 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  CemcCheck.h \
+  ClockDiffCheck.h \
+  DumpPacket.h \
   EventCombiner.h \
   EventNumberCheck.h \
   Gl1Check.h \
+  HcalCheck.h \
   InttCheck.h \
   MbdCheck.h \
   StreamingCheck.h \
@@ -23,9 +27,13 @@ lib_LTLIBRARIES = \
   libffarawmodules.la
 
 libffarawmodules_la_SOURCES = \
+  CemcCheck.cc \
+  ClockDiffCheck.cc \
+  DumpPacket.cc \
   EventCombiner.cc \
   EventNumberCheck.cc \
   Gl1Check.cc \
+  HcalCheck.cc \
   InttCheck.cc \
   MbdCheck.cc \
   StreamingCheck.cc \

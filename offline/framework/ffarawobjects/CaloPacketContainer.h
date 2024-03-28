@@ -5,19 +5,19 @@
 
 class CaloPacket;
 
-class  CaloPacketContainer: public PHObject
+class CaloPacketContainer : public PHObject
 {
-public:
+ public:
   CaloPacketContainer() = default;
   virtual ~CaloPacketContainer() = default;
 
-  virtual CaloPacket *AddPacket() {return nullptr;}
-  virtual CaloPacket *AddPacket(CaloPacket *) {return nullptr;}
-  virtual unsigned int get_npackets() {return 0;}
-  virtual CaloPacket *getPacket(unsigned int) {return nullptr;}
+  virtual CaloPacket *AddPacket() { return nullptr; }
+  virtual CaloPacket *AddPacket(CaloPacket *) { return nullptr; }
+  virtual unsigned int get_npackets() { return 0; }
+  virtual CaloPacket *getPacket(unsigned int) { return nullptr; }
 
-private:
-  ClassDefOverride(CaloPacketContainer,1)
+ private:
+  ClassDefOverride(CaloPacketContainer, 1)
 };
 
 #endif

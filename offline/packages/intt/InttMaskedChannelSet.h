@@ -4,7 +4,6 @@
 #include "InttMap.h"
 
 #include <phool/PHObject.h>
-
 #include <iostream>
 #include <string>
 
@@ -16,11 +15,11 @@ class InttMaskedChannelSet : public PHObject
   InttMaskedChannelSet() = default;
   ~InttMaskedChannelSet() override = default;
 
-  virtual void identify(std::ostream& = std::cout) const override;
-  virtual std::size_t size() const;
-
   int LoadFromFile(std::string const& = "InttMaskedChannelSet.root");
   int LoadFromCDB(std::string const& = "InttMaskedChannelSet");
+
+  virtual void identify(std::ostream& = std::cout) const override;
+  virtual std::size_t size() const;
 
   bool IsDeadChannel(int const&, int const&, int const&, int const&, int const&) const;
   virtual bool IsDeadChannel(InttMap::Offline_s const&) const;
