@@ -28,6 +28,8 @@ class InttDacMap {
     virtual unsigned short GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc); 
 
 
+    virtual void Verbosity(int verbosity) { m_verbosity = verbosity; };
+
     virtual void SetDefault(const uint& Adc0= 15, 
                             const uint& Adc1= 30, 
                             const uint& Adc2= 60, 
@@ -46,6 +48,8 @@ class InttDacMap {
     typedef std::array< std::array< std::array< std::array<int, 8>, 26>, 14>, 8> DacArray;
 
     DacArray m_dac; // [FELIX_SERVER:8][FELIX_CHANNEL:14][CHIP:26][DAC:8]
+
+    int    m_verbosity;
 };
 
 

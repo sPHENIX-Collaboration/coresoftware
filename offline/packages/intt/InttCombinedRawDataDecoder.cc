@@ -113,6 +113,7 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
 
   ///////////////////////////////////////
   std::cout<<"calibinfo DAC : "<<m_calibinfoDAC.first<<" "<<(m_calibinfoDAC.second==CDB?"CDB":"FILE")<<std::endl;
+  m_dacmap.Verbosity(Verbosity());
   if(m_calibinfoDAC.second == CDB){
      m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
   } else {
@@ -212,7 +213,6 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     }
 
     int dac = m_dacmap.GetDAC(raw, adc);
-    std::cout<<"adc : "<<adc<<" "<<dac<<std::endl;
 
     hit = new TrkrHitv2;
     //--hit->setAdc(adc);

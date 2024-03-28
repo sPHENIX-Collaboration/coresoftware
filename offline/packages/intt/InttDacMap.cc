@@ -7,7 +7,7 @@
 #include <filesystem>
 
 
-InttDacMap::InttDacMap()
+InttDacMap::InttDacMap() : m_verbosity(0)
 {
   SetDefault();
 }
@@ -28,6 +28,8 @@ int InttDacMap::LoadFromCDB(std::string const& calibname)
     std::cout << "\tArgument 'database' is empty string. calibname invalid :" << calibname <<std::endl;
     return -1;
   }
+
+  std::cout<<"CDBFile: "<<database<<std::endl;
   
   return LoadFromFile(database);
 }
@@ -84,11 +86,14 @@ int InttDacMap::LoadFromCDBTTree(CDBTTree& cdbttree)
     int dac           = cdbttree.GetIntValue(n, "dac");
     m_dac[felix_server][felix_channel][chip][adc] = dac;
 
-    std::cout<<"felix_server"<<  felix_server<< " ";
-    std::cout<<"felix_channel"<< felix_channel<< " ";
-    std::cout<<"chip"<<          chip<< " ";
-    std::cout<<"adc"<<           adc<< " ";
-    std::cout<<"dac"<<           dac<< std::endl;
+
+    if(m_verbosity>0){
+      std::cout<<"felix_server"<<  felix_server<< " ";
+      std::cout<<"felix_channel"<< felix_channel<< " ";
+      std::cout<<"chip"<<          chip<< " ";
+      std::cout<<"adc"<<           adc<< " ";
+      std::cout<<"dac"<<           dac<< std::endl;
+    }
   }
 
   return 0;
