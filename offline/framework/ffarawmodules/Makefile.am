@@ -21,7 +21,8 @@ pkginclude_HEADERS = \
   InttCheck.h \
   MbdCheck.h \
   StreamingCheck.h \
-  TpcCheck.h
+  TpcCheck.h \
+  ZdcCheck.h
 
 lib_LTLIBRARIES = \
   libffarawmodules.la
@@ -37,7 +38,8 @@ libffarawmodules_la_SOURCES = \
   InttCheck.cc \
   MbdCheck.cc \
   StreamingCheck.cc \
-  TpcCheck.cc
+  TpcCheck.cc \
+  ZdcCheck.cc
 
 libffarawmodules_la_LIBADD = \
   -lEvent \
