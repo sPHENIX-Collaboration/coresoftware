@@ -1,8 +1,8 @@
 #ifndef JETBACKGROUND_FASTJETALGOSUB_H
 #define JETBACKGROUND_FASTJETALGOSUB_H
 
-#include <jetbase/JetAlgo.h>
 #include <jetbase/Jet.h>
+#include <jetbase/JetAlgo.h>
 
 #include <iostream>
 #include <vector>
@@ -10,7 +10,7 @@
 class FastJetAlgoSub : public JetAlgo
 {
  public:
-  FastJetAlgoSub(Jet::ALGO algo, float par, float verbosity = 0);
+  FastJetAlgoSub(Jet::ALGO algo, float par, int verbosity = 0);
   ~FastJetAlgoSub() override {}
 
   void identify(std::ostream& os = std::cout) override;
