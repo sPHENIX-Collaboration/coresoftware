@@ -6,6 +6,7 @@
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/Fun4AllSyncManager.h>
 
 #include <ffaobjects/SyncObject.h>    // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>  // for SyncObject
@@ -85,6 +86,7 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   MoveMbdToNodeTree();
   MoveCemcToNodeTree();
   MoveHcalToNodeTree();
+  MySyncManager()->CurrentEvent(m_RefEventNo);
   return iret;
   // readagain:
   //   if (!IsOpen())
