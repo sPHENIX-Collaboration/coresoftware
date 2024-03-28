@@ -10,9 +10,9 @@
 #include <fun4all/SubsysReco.h>
 
 // system includes
+#include <jetbase/Jet.h>
 #include <string>
 #include <vector>
-#include <jetbase/Jet.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -44,19 +44,20 @@ class DetermineTowerBackground : public SubsysReco
   {
     m_use_towerinfo = use_towerinfo;
   }
+
  private:
   int CreateNode(PHCompositeNode *topNode);
   void FillNode(PHCompositeNode *topNode);
 
-  int _do_flow;
-  float _v2;
-  float _Psi2;
+  int _do_flow{0};
+  float _v2{0};
+  float _Psi2{0};
   std::vector<std::vector<float> > _UE;
-  int _nStrips;
-  int _nTowers;
+  int _nStrips{0};
+  int _nTowers{0};
 
-  int _HCAL_NETA;
-  int _HCAL_NPHI;
+  int _HCAL_NETA{-1};
+  int _HCAL_NPHI{-1};
 
   std::vector<std::vector<float> > _EMCAL_E;
   std::vector<std::vector<float> > _IHCAL_E;
@@ -71,20 +72,19 @@ class DetermineTowerBackground : public SubsysReco
   std::vector<float> _FULLCALOFLOW_PHI_E;
   std::vector<float> _FULLCALOFLOW_PHI_VAL;
 
-  std::string _backgroundName;
+  std::string _backgroundName{"TestTowerBackground"};
 
-  int _seed_type;
-  float _seed_jet_D;
-  float _seed_jet_pt;
+  int _seed_type{0};
+  float _seed_jet_D{3.0};
+  float _seed_jet_pt{7.0};
 
   std::vector<float> _seed_eta;
   std::vector<float> _seed_phi;
 
-  Jet::PROPERTY _index_SeedD;
-  Jet::PROPERTY _index_SeedItr;
+  Jet::PROPERTY _index_SeedD{};
+  Jet::PROPERTY _index_SeedItr{};
 
-  bool m_use_towerinfo = false;
-
+  bool m_use_towerinfo{false};
 };
 
 #endif

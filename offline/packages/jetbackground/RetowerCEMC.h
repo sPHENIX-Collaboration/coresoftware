@@ -36,12 +36,13 @@ class RetowerCEMC : public SubsysReco
   {
     m_use_towerinfo = use_towerinfo;
   }
+
  private:
   int CreateNode(PHCompositeNode *topNode);
-  int _WEIGHTED_ENERGY_DISTRIBUTION;
-  int _NETA;
-  int _NPHI;
-  bool m_use_towerinfo = false;
+  int _WEIGHTED_ENERGY_DISTRIBUTION{1};
+  int _NETA{-1};
+  int _NPHI{-1};
+  bool m_use_towerinfo{false};
   std::vector<std::vector<float> > _EMCAL_RETOWER_E;
   std::vector<std::vector<int> > _EMCAL_RETOWER_T;
 };

@@ -2,7 +2,6 @@
 #include "FastJetAlgoSub.h"
 
 #include <jetbase/Jet.h>
-#include <jetbase/Jetv2.h>
 #include <jetbase/JetContainer.h>
 
 // fastjet includes
@@ -11,16 +10,13 @@
 #include <fastjet/PseudoJet.hh>
 
 // standard includes
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
-#include <map>
 #include <memory>
-#include <utility>
 #include <vector>
 
-using namespace std;
-
-FastJetAlgoSub::FastJetAlgoSub(Jet::ALGO algo, float par, float verbosity)
+FastJetAlgoSub::FastJetAlgoSub(Jet::ALGO algo, float par, int verbosity)
   : _verbosity(verbosity)
   , _algo(algo)
   , _par(par)
@@ -32,10 +28,10 @@ FastJetAlgoSub::FastJetAlgoSub(Jet::ALGO algo, float par, float verbosity)
   }
   else
   {
-    ostringstream nullstream;
+    std::ostringstream nullstream;
     clusseq.set_fastjet_banner_stream(&nullstream);
     clusseq.print_banner();
-    clusseq.set_fastjet_banner_stream(&cout);
+    clusseq.set_fastjet_banner_stream(&std::cout);
   }
 }
 
@@ -43,21 +39,30 @@ void FastJetAlgoSub::identify(std::ostream& os)
 {
   os << "   FastJetAlgoSub: ";
   if (_algo == Jet::ANTIKT)
+  {
     os << "ANTIKT r=" << _par;
+  }
   else if (_algo == Jet::KT)
+  {
     os << "KT r=" << _par;
+  }
   else if (_algo == Jet::CAMBRIDGE)
+  {
     os << "CAMBRIDGE r=" << _par;
-  os << endl;
+  }
+  os << std::endl;
 }
 
 /* std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles) */
 /* { }; //  deprecated by iterating from JetMap; now is JetContainer and most code moved into */
-        //  into cluster_and_fill
+//  into cluster_and_fill
 
-void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont) 
+void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont)
 {
-  if (_verbosity > 1) cout << "FastJetAlgoSub::process_event -- entered" << endl;
+  if (_verbosity > 1)
+  {
+    std::cout << "FastJetAlgoSub::process_event -- entered" << std::endl;
+  }
 
   // translate to fastjet
   std::vector<fastjet::PseudoJet> pseudojets;
@@ -65,7 +70,10 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
   {
     float this_e = particles[ipart]->get_e();
 
-    if (this_e == 0.) continue;
+    if (this_e == 0.)
+    {
+      continue;
+    }
 
     float this_px = particles[ipart]->get_px();
     float this_py = particles[ipart]->get_py();
@@ -96,15 +104,23 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
   }
 
   // run fast jet
-  fastjet::JetDefinition* jetdef = NULL;
+  fastjet::JetDefinition* jetdef = nullptr;
   if (_algo == Jet::ANTIKT)
+  {
     jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm, _par, fastjet::E_scheme, fastjet::Best);
+  }
   else if (_algo == Jet::KT)
+  {
     jetdef = new fastjet::JetDefinition(fastjet::kt_algorithm, _par, fastjet::E_scheme, fastjet::Best);
+  }
   else if (_algo == Jet::CAMBRIDGE)
+  {
     jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm, _par, fastjet::E_scheme, fastjet::Best);
+  }
   else
+  {
     return;
+  }
 
   fastjet::ClusterSequence jetFinder(pseudojets, *jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
@@ -129,9 +145,9 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
 
     // copy components into output jet
     std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
-    for (unsigned int icomp = 0; icomp < comps.size(); ++icomp)
+    for (auto& comp : comps)
     {
-      Jet* particle = particles[comps[icomp].user_index()];
+      Jet* particle = particles[comp.user_index()];
 
       total_px += particle->get_px();
       total_py += particle->get_py();
@@ -140,9 +156,9 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
       jet->insert_comp(particle->get_comp_vec(), true);
     }
 
-    jet->set_comp_sort_flag(); // make sure jet know comps might not be sorted
-                               // alternatively can just ommit the `true` 
-                               // in insert_comp call above
+    jet->set_comp_sort_flag();  // make sure jet know comps might not be sorted
+                                // alternatively can just ommit the `true`
+                                // in insert_comp call above
     jet->set_px(total_px);
     jet->set_py(total_py);
     jet->set_pz(total_pz);
@@ -156,6 +172,9 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
     }
   }
 
-  if (_verbosity > 1) cout << "FastJetAlgoSub::process_event -- exited" << endl;
+  if (_verbosity > 1)
+  {
+    std::cout << "FastJetAlgoSub::process_event -- exited" << std::endl;
+  }
   return;
 }
