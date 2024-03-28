@@ -54,6 +54,7 @@ pkginclude_HEADERS = \
   InttVertexMapv1.h \
   InttVertex.h \
   InttVertexv1.h \
+  InttDacMap.h \
   CylinderGeomIntt.h
 
 ROOTDICTS = \
@@ -103,7 +104,8 @@ libintt_la_SOURCES = \
   InttRawDataDecoder.cc \
   InttSurveyMap.cc \
   InttSurveyMapv1.cc \
-  InttVertexFinder.cc
+  InttVertexFinder.cc \
+  InttDacMap.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \

@@ -30,6 +30,7 @@
 
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
+  , m_calibinfoDAC({"INTT_DACMAP", CDB})
 {
   // Do nothing
   // Consider calling LoadHotChannelMapRemote()
@@ -107,6 +108,16 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
       auto newHeader = new PHIODataNode<PHObject>(intt_event_header, "INTTEVENTHEADER", "PHObject");
       inttNode->addNode(newHeader);
     }
+  }
+
+
+  ///////////////////////////////////////
+  std::cout<<"calibinfo DAC : "<<m_calibinfoDAC.first<<" "<<(m_calibinfoDAC.second==CDB?"CDB":"FILE")<<std::endl;
+  m_dacmap.Verbosity(Verbosity());
+  if(m_calibinfoDAC.second == CDB){
+     m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
+  } else {
+     m_dacmap.LoadFromFile(m_calibinfoDAC.first);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -201,8 +212,11 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
       continue;
     }
 
+    int dac = m_dacmap.GetDAC(raw, adc);
+
     hit = new TrkrHitv2;
-    hit->setAdc(adc);
+    //--hit->setAdc(adc);
+    hit->setAdc(dac);
     hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
   }
 
