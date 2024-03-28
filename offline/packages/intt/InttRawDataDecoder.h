@@ -26,7 +26,7 @@ class InttRawDataDecoder : public SubsysReco
   int End(PHCompositeNode*) override;
 
  private:
-  int64_t full_bco = 0;
+  uint64_t full_bco = 0;
 };
 
 #endif  // INTT_RAW_DATA_DECODER_H

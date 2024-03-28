@@ -1,10 +1,10 @@
 #ifndef INTT_INTTDACMAP_H
 #define INTT_INTTDACMAP_H
 
+#include "InttMapping.h"
+
 #include <array>
 #include <string>
-
-#include "InttMapping.h"
 
 class CDBTTree;
 
@@ -47,9 +47,9 @@ class InttDacMap {
   private:
     typedef std::array< std::array< std::array< std::array<int, 8>, 26>, 14>, 8> DacArray;
 
-    DacArray m_dac; // [FELIX_SERVER:8][FELIX_CHANNEL:14][CHIP:26][DAC:8]
+    DacArray m_dac {}; // [FELIX_SERVER:8][FELIX_CHANNEL:14][CHIP:26][DAC:8]
 
-    int    m_verbosity;
+    int    m_verbosity {0};
 };
 
 
