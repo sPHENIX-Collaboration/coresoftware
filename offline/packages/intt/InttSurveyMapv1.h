@@ -22,14 +22,12 @@ class InttSurveyMapv1 : public InttSurveyMap
   std::size_t size() const override;
 
   val_t const* GetAbsoluteTransform(key_t const&) const override;
-  val_t const* GetRelativeTransform(key_t const&) const override;
 
  protected:
   int v_LoadFromCDBTTree(CDBTTree&) override;
 
  private:
   map_t* m_absolute_transforms = nullptr;
-  map_t* m_relative_transforms = nullptr;
 
   ClassDefOverride(InttSurveyMapv1, 1)
 };
