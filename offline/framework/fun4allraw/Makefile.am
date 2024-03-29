@@ -33,7 +33,8 @@ pkginclude_HEADERS = \
   SingleStreamingInput.h \
   SingleTpcPoolInput.h \
   SingleTriggerInput.h \
-  SingleZdcInput.h
+  SingleZdcInput.h \
+  SingleZdcTriggerInput.h
 
 decoderincludedir = $(includedir)/mvtx_decoder
 decoderinclude_HEADERS = \
@@ -84,7 +85,8 @@ libfun4allraw_la_SOURCES = \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \
   SingleTriggerInput.cc \
-  SingleZdcInput.cc
+  SingleZdcInput.cc \
+  SingleZdcTriggerInput.cc
 
 libfun4allraw_la_LIBADD = \
   libmvtx_decoder.la \

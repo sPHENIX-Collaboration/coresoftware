@@ -3,7 +3,7 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/Gl1RawHitv1.h>
+#include <ffarawobjects/Gl1RawHitv2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -88,9 +88,10 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
     }
 
     // by default use previous bco clock for gtm bco
-    Gl1RawHit *newhit = new Gl1RawHitv1();
+    Gl1RawHit *newhit = new Gl1RawHitv2();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     newhit->set_bco(packet->lValue(0, "BCO"));
+    newhit->setEvtSequence(EventSequence);
 
     m_BeamClockFEE.insert(gtm_bco);
     m_FEEBclkMap.insert(gtm_bco);
@@ -264,7 +265,7 @@ void SingleGl1PoolInput::CreateDSTNode(PHCompositeNode *topNode)
   Gl1RawHit *gl1hitcont = findNode::getClass<Gl1RawHit>(detNode, "GL1RAWHIT");
   if (!gl1hitcont)
   {
-    gl1hitcont = new Gl1RawHitv1();
+    gl1hitcont = new Gl1RawHitv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, "GL1RAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
