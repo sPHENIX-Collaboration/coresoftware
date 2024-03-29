@@ -88,13 +88,59 @@ int InttSurveyMap::GetStripTransform(
   return 0;
 }
 
+int InttSurveyMap::GetSensorTransform(
+    key_t const& k,
+	val_t& v) const
+{
+  val_t const* transform_ptr = nullptr;
+  key_t ofl{
+    k.layer,
+    k.ladder_phi,
+    k.ladder_z,
+	InttMap::Wildcard,
+	InttMap::Wildcard
+  };
+
+  transform_ptr = GetAbsoluteTransform(ofl);
+  if(!transform_ptr)
+  {
+    return 1;
+  }
+
+  v = *transform_ptr;
+
+  return 0;
+}
+
+int InttSurveyMap::GetLadderTransform(
+    key_t const& k,
+	val_t& v) const
+{
+  val_t const* transform_ptr = nullptr;
+  key_t ofl{
+    k.layer,
+    k.ladder_phi,
+	InttMap::Wildcard,
+	InttMap::Wildcard,
+	InttMap::Wildcard
+  };
+
+  transform_ptr = GetAbsoluteTransform(ofl);
+  if(!transform_ptr)
+  {
+    return 1;
+  }
+
+  v = *transform_ptr;
+
+  return 0;
+}
+
 void InttSurveyMap::identify(
     std::ostream& out) const
 {
-  out << "InttSurveyMap"
-      << "\n"
-      << "\tBase Version"
-      << "\n"
+  out << "InttSurveyMap\n"
+      << "\tBase Version\n"
       << "\tUnimplemented" << std::endl;
 }
 
@@ -104,12 +150,6 @@ std::size_t InttSurveyMap::size() const
 }
 
 InttSurveyMap::val_t const* InttSurveyMap::GetAbsoluteTransform(
-    key_t const& /*unused*/) const
-{
-	return nullptr;
-}
-
-InttSurveyMap::val_t const* InttSurveyMap::GetRelativeTransform(
     key_t const& /*unused*/) const
 {
 	return nullptr;

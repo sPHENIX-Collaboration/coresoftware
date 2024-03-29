@@ -195,5 +195,5 @@ int InttFeeMapv1::v_LoadFromCDBTTree(
 	  m_raw_to_onl->insert({raw, onl});
   }
 
-  return 1;
+  return 0;
 }
