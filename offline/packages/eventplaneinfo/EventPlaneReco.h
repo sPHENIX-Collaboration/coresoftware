@@ -22,7 +22,6 @@ class EventPlaneReco : public SubsysReco
  public:
   EventPlaneReco(const std::string &name = "EventPlaneReco");
   ~EventPlaneReco() override = default;
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End (PHCompositeNode * /*topNode*/) override;
@@ -52,10 +51,6 @@ class EventPlaneReco : public SubsysReco
   {
     m_MaxOrder = n;
   }
-  void set_run_number(const unsigned int &r)
-  {
-    m_runNo = r;
-  }
  
   private:
     
@@ -63,8 +58,8 @@ class EventPlaneReco : public SubsysReco
    
   unsigned int m_MaxOrder = 3;
 
-  unsigned  int m_runNo = 21813;
- 
+  int m_runNo = 0;
+    
   std::string OutFileName;
   
   CDBHistos *cdbhistosOut = nullptr;
