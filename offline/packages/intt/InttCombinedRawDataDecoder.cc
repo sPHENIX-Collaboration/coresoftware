@@ -31,6 +31,7 @@
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
   , m_calibinfoDAC({"INTT_DACMAP", CDB})
+  , m_calibinfoBCO({"INTT_BCOMAP", CDB})
 {
   // Do nothing
   // Consider calling LoadHotChannelMapRemote()
@@ -119,7 +120,23 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   } else {
      m_dacmap.LoadFromFile(m_calibinfoDAC.first);
   }
+  
+  ///////////////////////////////////////
+  std::cout<<"calibinfo BCO : "<<m_calibinfoBCO.first<<" "<<(m_calibinfoBCO.second==CDB?"CDB":"FILE")<<std::endl;
+  m_bcomap.Verbosity(Verbosity());
+  if(m_calibinfoBCO.second == CDB){
+     m_bcomap.LoadFromCDB(m_calibinfoBCO.first);
+  } else {
+     m_bcomap.LoadFromFile(m_calibinfoBCO.first);
+  }
 
+
+  ///////////////////////////////////////
+  //
+  std::cout<<"Intt BadChannelMap : size = "<<m_HotChannelSet.size()<<"  ";
+  std::cout<<(( m_HotChannelSet.size() >0 ) ? "hotchannel loaded " : "emtpy. hotchannel is not loaded");
+  std::cout<<std::endl;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -183,7 +200,6 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
     InttRawHit* intthit = inttcont->get_hit(i);
-    // uint64_t gtm_bco = intthit->get_bco();
 
     InttNameSpace::RawFromHit(raw, intthit);
     // raw.felix_server = InttNameSpace::FelixFromPacket(intthit->get_packetid());
@@ -193,10 +209,20 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
     int adc = intthit->get_adc();
     // amp = intthit->get_amplitude();
-    // int bco = intthit->get_FPHX_BCO();
+    uint64_t bco_full = intthit->get_bco();
+    int      bco      = intthit->get_FPHX_BCO();
 
     if (m_HotChannelSet.find(raw) != m_HotChannelSet.end())
     {
+      //std::cout<<"hotchan removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
+      continue;
+    }
+    
+    ////////////////////////
+    // bco filter
+    if (m_bcomap.IsBad(raw, bco_full, bco))
+    {
+      //std::cout<<"bad bco removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
       continue;
     }
 
@@ -212,6 +238,8 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
       continue;
     }
 
+    ////////////////////////
+    // dac conversion
     int dac = m_dacmap.GetDAC(raw, adc);
 
     hit = new TrkrHitv2;

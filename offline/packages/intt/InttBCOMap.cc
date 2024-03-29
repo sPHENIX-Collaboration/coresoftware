@@ -61,9 +61,11 @@ int InttBCOMap::LoadFromCDBTTree(CDBTTree &cdbttree)
     int bco_diff = cdbttree.GetIntValue(n, "bco_diff");
     m_bco[felix_server][felix_channel] = bco_diff;
 
-    std::cout << "felix_server " << felix_server << " ";
-    std::cout << "felix_channel " << felix_channel << " ";
-    std::cout << "bco_diff " << bco_diff << std::endl;
+    if(m_verbosity>0){
+      std::cout << "felix_server " << felix_server << " ";
+      std::cout << "felix_channel " << felix_channel << " ";
+      std::cout << "bco_diff " << bco_diff << std::endl;
+    }
   }
   return 0;
 }

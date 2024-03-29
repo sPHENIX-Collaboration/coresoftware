@@ -3,6 +3,7 @@
 
 #include "InttMapping.h"
 #include "InttDacMap.h"
+#include "InttBCOMap.h"
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
@@ -31,8 +32,12 @@ class InttCombinedRawDataDecoder : public SubsysReco
   int LoadHotChannelMapLocal(std::string const& = "INTT_HotChannelMap.root");
   int LoadHotChannelMapRemote(std::string const& = "INTT_HotChannelMap");
 
-  void SetCalibDAC(std::string const& calibname= "INTT_DacMap", const CalibRef& calibref=CDB) 
+  void SetCalibDAC(std::string const& calibname= "INTT_DACMAP", const CalibRef& calibref=CDB) 
                { m_calibinfoDAC = std::pair< std::string, CalibRef>(calibname, calibref); }
+
+  void SetCalibBCO(std::string const& calibname= "INTT_BCOMAP", const CalibRef& calibref=CDB) 
+               { m_calibinfoBCO = std::pair< std::string, CalibRef>(calibname, calibref); }
+
 
   void runInttStandalone(bool runAlone) { m_runStandAlone = runAlone; }
 
@@ -47,8 +52,10 @@ class InttCombinedRawDataDecoder : public SubsysReco
   bool m_writeInttEventHeader = false;
 
   std::pair<std::string, CalibRef> m_calibinfoDAC;
+  std::pair<std::string, CalibRef> m_calibinfoBCO;
 
-  InttDacMap m_dacmap;
+  InttDacMap          m_dacmap;
+  InttBCOMap          m_bcomap;
 };
 
 #endif  // INTT_COMBINEDRAWDATADECODER_H
