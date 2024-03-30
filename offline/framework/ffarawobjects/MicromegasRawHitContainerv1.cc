@@ -12,12 +12,13 @@ MicromegasRawHitContainerv1::MicromegasRawHitContainerv1()
 
 MicromegasRawHitContainerv1::~MicromegasRawHitContainerv1()
 {
+  MicromegasRawHitsTCArray->Clear("C");
   delete MicromegasRawHitsTCArray;
 }
 
 void MicromegasRawHitContainerv1::Reset()
 {
-  MicromegasRawHitsTCArray->Clear();
+  MicromegasRawHitsTCArray->Clear("C");
   MicromegasRawHitsTCArray->Expand(NHITS);
 }
 
