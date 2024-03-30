@@ -6,6 +6,17 @@
 #include <filesystem>
 #include <iostream>
 
+InttBCOMap::InttBCOMap()
+{
+  for(int felix_server = 0; felix_server<8;felix_server++)
+  {
+    for(int felix_channel = 0;felix_channel<14;felix_channel++)
+    {
+      m_bco[felix_server][felix_channel] = -1;
+    }
+  }
+}
+
 int InttBCOMap::LoadFromCDB(std::string const &calibname)
 {
   if (calibname.empty())
@@ -41,6 +52,8 @@ int InttBCOMap::LoadFromFile(std::string const &filename)
     std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
     return 1;
   }
+
+  std::cout << "CDBFile: " << filename << std::endl;
 
   CDBTTree cdbttree = CDBTTree(filename);
   cdbttree.LoadCalibrations();
@@ -91,7 +104,12 @@ bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, uint64
     bco_plus = 0;
   }
 
-  if (bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus)
+  if( bco_peak == -1) // m_bco is initial value, not load the parameter. accept all bco
+  { 
+    //std::cout<<"m_bco is initial value, not load the parameter. accept all bco "<<felix_server<<" "<<felix_channel<<std::endl;
+    return false;
+  }
+  else if (bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus)
   {
     return false;
   }

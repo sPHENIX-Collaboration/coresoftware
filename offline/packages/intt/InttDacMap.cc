@@ -29,8 +29,6 @@ int InttDacMap::LoadFromCDB(std::string const& calibname)
     return -1;
   }
 
-  std::cout << "CDBFile: " << database << std::endl;
-
   return LoadFromFile(database);
 }
 
@@ -49,6 +47,8 @@ int InttDacMap::LoadFromFile(std::string const& filename)
     std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
     return -1;
   }
+
+  std::cout << "CDBFile: " << filename << std::endl;
 
   CDBTTree cdbttree = CDBTTree(filename);
   cdbttree.LoadCalibrations();

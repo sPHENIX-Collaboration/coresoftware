@@ -25,6 +25,7 @@
 #include <TSystem.h>
 
 #include <cstdlib>   // for exit
+#include <filesystem>// for filesystem::exist
 #include <iostream>  // for operator<<, endl, bas...
 #include <map>       // for _Rb_tree_iterator
 
@@ -212,6 +213,8 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     uint64_t bco_full = intthit->get_bco();
     int      bco      = intthit->get_FPHX_BCO();
 
+    ////////////////////////
+    // bad channel filter
     if (m_HotChannelSet.find(raw) != m_HotChannelSet.end())
     {
       //std::cout<<"hotchan removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
@@ -259,6 +262,15 @@ int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filena
     std::cout << "\tArgument 'filename' is empty string" << std::endl;
     return 1;
   }
+
+  if (!std::filesystem::exists(filename))
+  {
+    std::cout << "int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filename)" << std::endl;
+    std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
+    return 1;
+  }
+
+
   CDBTTree cdbttree(filename);
   // need to checkt for error exception
   cdbttree.LoadCalibrations();
@@ -295,7 +307,16 @@ int InttCombinedRawDataDecoder::LoadHotChannelMapRemote(std::string const& name)
     std::cout << "\tArgument 'name' is empty string" << std::endl;
     return 1;
   }
+
   std::string database = CDBInterface::instance()->getUrl(name);
+
+  if (!std::filesystem::exists(database))
+  {
+    std::cout << "int InttCombinedRawDataDecoder::LoadHotChannelMapRemote(std::string const& filename)" << std::endl;
+    std::cout << "\tFile '" << database << "' does not exist" << std::endl;
+    return 1;
+  }
+
   CDBTTree cdbttree(database);
   cdbttree.LoadCalibrations();
 
