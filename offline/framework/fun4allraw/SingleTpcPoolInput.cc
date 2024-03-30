@@ -250,6 +250,11 @@ void SingleTpcPoolInput::Print(const std::string &what) const
 
 void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
+  if (Verbosity() > 2)
+  {
+    std::cout << "cleaning up bcos < 0x" << std::hex
+	      << bclk << std::dec << std::endl;
+  }
   std::vector<uint64_t> toclearbclk;
   for (const auto &iter : m_TpcRawHitMap)
   {
@@ -345,12 +350,13 @@ bool SingleTpcPoolInput::GetSomeMoreEvents()
       }
       else
       {
-       std::cout << PHWHERE "ignoring FEE " << bcliter.first
+       std::cout << PHWHERE "erasing FEE " << bcliter.first
 		 << " with stuck bclk: " << std::hex << bcliter.second
                  << " current bco range: 0x" <<  m_TpcRawHitMap.begin()->first
                  << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                  << (highest_bclk-m_TpcRawHitMap.begin()->first)
 		 << std::dec << std::endl;
+       m_FEEBclkMap.erase(bcliter.first);
       }
     }
   }
