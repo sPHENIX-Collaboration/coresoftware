@@ -1,4 +1,4 @@
-#include "SingleCemcTriggerInput.h"
+#include "SingleZdcTriggerInput.h"
 
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
@@ -29,22 +29,26 @@
 #include <set>
 #include <utility>  // for pair
 
-static const int NCEMCPACKETS = 17;
+// we have so far 2 packets in the "zdc" file (zdc + sepd), 
+// this number needs to be npackets+1
+// so it doesn't trigger the warning and exit. Setting it to 3
 
-SingleCemcTriggerInput::SingleCemcTriggerInput(const std::string &name)
+static const int NZDCPACKETS = 3;
+
+SingleZdcTriggerInput::SingleZdcTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
-  SubsystemEnum(InputManagerType::CEMC);
-  plist = new Packet *[NCEMCPACKETS];  // 16 packets for the cemc in each file
+  SubsystemEnum(InputManagerType::ZDC);
+  plist = new Packet *[NZDCPACKETS];  // two packets for the zdc file
 }
 
-SingleCemcTriggerInput::~SingleCemcTriggerInput()
+SingleZdcTriggerInput::~SingleZdcTriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
   delete[] plist;
 }
 
-void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
+void SingleZdcTriggerInput::FillPool(const unsigned int keep)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -58,7 +62,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
       return;
     }
   }
-  while (GetSomeMoreEvents())
+  while (GetSomeMoreEvents(keep))
   {
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
@@ -86,13 +90,12 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, NCEMCPACKETS); // just in case we have more packets, they will not vanish silently
-    if (npackets >= NCEMCPACKETS)
+    int npackets = evt->getPacketList(plist, NZDCPACKETS);
+    if (npackets >= NZDCPACKETS)
     {
-      std::cout << PHWHERE << " Packets array size " << NCEMCPACKETS
+      std::cout << PHWHERE << " Packets array size " << NZDCPACKETS
 		<< " too small for " << Name()
-<< ", increase NCEMCPACKETS and rebuild" << std::endl;
-      exit(1);
+		<< ", increase NZDCPACKETS and rebuild" << std::endl;
       exit(1);
     }
 
@@ -105,29 +108,15 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
 
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
+      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
-      if (nr_modules > newhit->getMaxNumModules() )
+      if (nr_modules > 3)
       {
-	std::cout << PHWHERE << " too many modules " <<  nr_modules << ", max is " 
-                  <<  newhit->getMaxNumModules() << ", need to adjust arrays" << std::endl;
+	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
 	gSystem->Exit(1);
       }
-      if (nr_channels > newhit->getMaxNumChannels())
-      {
-	std::cout << PHWHERE << " too many channels " <<  nr_channels << ", max is " 
-                  <<  newhit->getMaxNumChannels() << ", need to adjust arrays" << std::endl;
-	gSystem->Exit(1);
-      }
-      if (nr_samples > newhit->getMaxNumSamples())
-      {
-	std::cout << PHWHERE << " too many samples " <<  nr_samples << ", max is " 
-                  <<  newhit->getMaxNumSamples() << ", need to adjust arrays" << std::endl;
-	gSystem->Exit(1);
-      }
-
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);
@@ -154,6 +143,24 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
           newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
         }
       }
+ /*
+      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
+      newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
+      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
+      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setEvtSequence(EventSequence);
+      for (int ifem = 0; ifem < 2; ifem++)
+      {
+        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
+      }
+      for (int ipmt = 0; ipmt < 128; ipmt++)
+      {
+        for (int isamp = 0; isamp < 31; isamp++)
+        {
+          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+        }
+      }
+*/
       if (Verbosity() > 2)
       {
         std::cout << PHWHERE << "evtno: " << EventSequence
@@ -162,9 +169,9 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
       }
       if (TriggerInputManager())
       {
-        TriggerInputManager()->AddCemcPacket(EventSequence, newhit);
+        TriggerInputManager()->AddZdcPacket(EventSequence, newhit);
       }
-      m_CemcPacketMap[EventSequence].push_back(newhit);
+      m_ZdcPacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
       if (ddump_enabled())
       {
@@ -175,11 +182,11 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
   }
 }
 
-void SingleCemcTriggerInput::Print(const std::string &what) const
+void SingleZdcTriggerInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_CemcPacketMap)
+    for (const auto &bcliter : m_ZdcPacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
     }
@@ -193,10 +200,10 @@ void SingleCemcTriggerInput::Print(const std::string &what) const
   }
 }
 
-void SingleCemcTriggerInput::CleanupUsedPackets(const int eventno)
+void SingleZdcTriggerInput::CleanupUsedPackets(const int eventno)
 {
   std::vector<int> toclearevents;
-  for (const auto &iter : m_CemcPacketMap)
+  for (const auto &iter : m_ZdcPacketMap)
   {
     if (iter.first <= eventno)
     {
@@ -215,11 +222,11 @@ void SingleCemcTriggerInput::CleanupUsedPackets(const int eventno)
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-    m_CemcPacketMap.erase(iter);
+    m_ZdcPacketMap.erase(iter);
   }
 }
 
-void SingleCemcTriggerInput::ClearCurrentEvent()
+void SingleZdcTriggerInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
   int currentevent = *m_EventStack.begin();
@@ -228,24 +235,29 @@ void SingleCemcTriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleCemcTriggerInput::GetSomeMoreEvents()
+bool SingleZdcTriggerInput::GetSomeMoreEvents(const unsigned int keep)
 {
   if (AllDone())
   {
     return false;
   }
-  if (m_CemcPacketMap.empty())
+  if (m_ZdcPacketMap.empty())
   {
     return true;
   }
 
-  int first_event = m_CemcPacketMap.begin()->first;
-  int last_event = m_CemcPacketMap.rbegin()->first;
+  int first_event = m_ZdcPacketMap.begin()->first;
+  int last_event = m_ZdcPacketMap.rbegin()->first;
+  std::cout << "number of zdc events: " << m_ZdcPacketMap.size() << std::endl;
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
+  }
+  if (keep > 2 && m_ZdcPacketMap.size() < keep)
+  {
+    return true;
   }
   if (first_event >= last_event)
   {
@@ -254,7 +266,7 @@ bool SingleCemcTriggerInput::GetSomeMoreEvents()
   return false;
 }
 
-void SingleCemcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
+void SingleZdcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -264,17 +276,26 @@ void SingleCemcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "CEMC"));
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "ZDC"));
   if (!detNode)
   {
-    detNode = new PHCompositeNode("CEMC");
+    detNode = new PHCompositeNode("ZDC");
     dstNode->addNode(detNode);
   }
-  CaloPacketContainer *cemcpacketcont = findNode::getClass<CaloPacketContainer>(detNode, "CEMCPackets");
-  if (!cemcpacketcont)
+  CaloPacketContainer *zdcpacketcont = findNode::getClass<CaloPacketContainer>(detNode, "ZDCPackets");
+  if (!zdcpacketcont)
   {
-    cemcpacketcont = new CaloPacketContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cemcpacketcont, "CEMCPackets", "PHObject");
+    zdcpacketcont = new CaloPacketContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(zdcpacketcont, "ZDCPackets", "PHObject");
     detNode->addNode(newNode);
   }
 }
+
+// void SingleZdcTriggerInput::ConfigureStreamingInputManager()
+// {
+//   if (StreamingInputManager())
+//   {
+//     StreamingInputManager()->SetZdcBcoRange(m_BcoRange);
+//   }
+//   return;
+// }

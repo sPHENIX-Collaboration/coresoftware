@@ -37,7 +37,7 @@ SingleHcalTriggerInput::SingleHcalTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
   SubsystemEnum(InputManagerType::HCAL);
-  plist = new Packet *[NHCALPACKETS];  // four packets for the hcal in each file
+  plist = new Packet *[NHCALPACKETS];  // eight packets for the hcal in each file
 }
 
 SingleHcalTriggerInput::~SingleHcalTriggerInput()
