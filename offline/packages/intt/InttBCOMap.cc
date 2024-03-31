@@ -1,6 +1,7 @@
 #include "InttBCOMap.h"
 
 #include <cdbobjects/CDBTTree.h>
+
 #include <ffamodules/CDBInterface.h>
 
 #include <filesystem>
@@ -104,13 +105,10 @@ bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, uint64
     bco_plus = 0;
   }
 
-  if( bco_peak == -1) // m_bco is initial value, not load the parameter. accept all bco
+// -1: m_bco is initial value, not load the parameter. accept all bco
+  if( bco_peak == -1 || bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus)
   { 
     //std::cout<<"m_bco is initial value, not load the parameter. accept all bco "<<felix_server<<" "<<felix_channel<<std::endl;
-    return false;
-  }
-  else if (bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus)
-  {
     return false;
   }
   else
