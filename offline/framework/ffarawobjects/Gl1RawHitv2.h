@@ -17,7 +17,9 @@ class Gl1RawHitv2 : public Gl1RawHitv1
       @param os Output Stream
    */
   void identify(std::ostream &os = std::cout) const override;
+  // cppcheck-suppress virtualCallInConstructor
   int getEvtSequence() const override { return evtseq; }
+  // cppcheck-suppress virtualCallInConstructor
   void setEvtSequence(const int i) override { evtseq = i; }
 
  protected:
