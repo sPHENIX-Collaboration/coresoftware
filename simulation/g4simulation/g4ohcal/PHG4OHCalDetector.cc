@@ -282,7 +282,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
       m_SteelAbsorberLogVolSet.insert((*itr)->GetLogicalVolume());
       hcalenvelope->AddDaughter((*itr));
       //std::cout<<(*itr)->GetName()<<std::endl;
-      itr++;
+      ++itr;
     }
   }
 
