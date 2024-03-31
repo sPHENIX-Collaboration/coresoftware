@@ -29,11 +29,11 @@
 #include <set>
 #include <utility>  // for pair
 
-// we have so far 2 packets in the "zdc" file (zdc + sepd), 
+// we have so far 7 packets in the "zdc" file (zdc + smd),
 // this number needs to be npackets+1
 // so it doesn't trigger the warning and exit. Setting it to 3
 
-static const int NZDCPACKETS = 3;
+static const int NZDCPACKETS = 8;
 
 SingleZdcTriggerInput::SingleZdcTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
@@ -123,6 +123,7 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setEvtSequence(EventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));

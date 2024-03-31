@@ -6,6 +6,7 @@
 #include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
+#include <ffarawobjects/MicromegasRawHit.h>
 #include <ffarawobjects/MicromegasRawHitContainer.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/MvtxRawHit.h>
@@ -52,7 +53,16 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
     fileclose();
   }
   delete m_SyncObject;
-  // clear leftover event maps
+  // clear leftover raw event maps and vectors with poolreaders
+  // GL1
+  for (auto iter : m_Gl1InputVector)
+  {
+    delete iter;
+  }
+
+  m_Gl1InputVector.clear();
+
+// MVTX
   for (auto const &mapiter : m_MvtxRawHitMap)
   {
     for (auto mvtxhititer : mapiter.second.MvtxRawHitVector)
@@ -62,15 +72,13 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
   m_MvtxRawHitMap.clear();
 
-  for (auto const &mapiter : m_TpcRawHitMap)
+  for (auto iter : m_MvtxInputVector)
   {
-    for (auto tpchititer : mapiter.second.TpcRawHitVector)
-    {
-      delete tpchititer;
-    }
+    delete iter;
   }
-  m_TpcRawHitMap.clear();
+  m_MvtxInputVector.clear();
 
+// INTT
   for (auto const &mapiter : m_InttRawHitMap)
   {
     for (auto intthititer : mapiter.second.InttRawHitVector)
@@ -86,29 +94,39 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
   m_InttInputVector.clear();
 
-  for (auto iter : m_Gl1InputVector)
-  {
-    delete iter;
-  }
-  m_Gl1InputVector.clear();
 
-  for (auto iter : m_MicromegasInputVector)
+// TPC
+  for (auto const &mapiter : m_TpcRawHitMap)
   {
-    delete iter;
+    for (auto tpchititer : mapiter.second.TpcRawHitVector)
+    {
+      delete tpchititer;
+    }
   }
-  m_MicromegasInputVector.clear();
 
-  for (auto iter : m_MvtxInputVector)
-  {
-    delete iter;
-  }
-  m_MvtxInputVector.clear();
-
+  m_TpcRawHitMap.clear();
   for (auto iter : m_TpcInputVector)
   {
     delete iter;
   }
   m_TpcInputVector.clear();
+
+// Micromegas
+
+  for (auto const &mapiter : m_MicromegasRawHitMap)
+  {
+    for (auto micromegashititer : mapiter.second.MicromegasRawHitVector)
+    {
+      delete micromegashititer;
+    }
+  }
+  for (auto iter : m_MicromegasInputVector)
+  {
+    delete iter;
+  }
+
+  m_MicromegasInputVector.clear();
+
 }
 
 int Fun4AllStreamingInputManager::run(const int /*nevents*/)
