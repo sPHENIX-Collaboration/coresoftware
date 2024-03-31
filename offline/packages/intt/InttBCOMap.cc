@@ -1,10 +1,22 @@
 #include "InttBCOMap.h"
 
 #include <cdbobjects/CDBTTree.h>
+
 #include <ffamodules/CDBInterface.h>
 
 #include <filesystem>
 #include <iostream>
+
+InttBCOMap::InttBCOMap()
+{
+  for(int felix_server = 0; felix_server<8;felix_server++)
+  {
+    for(int felix_channel = 0;felix_channel<14;felix_channel++)
+    {
+      m_bco[felix_server][felix_channel] = -1;
+    }
+  }
+}
 
 int InttBCOMap::LoadFromCDB(std::string const &calibname)
 {
@@ -42,6 +54,8 @@ int InttBCOMap::LoadFromFile(std::string const &filename)
     return 1;
   }
 
+  std::cout << "CDBFile: " << filename << std::endl;
+
   CDBTTree cdbttree = CDBTTree(filename);
   cdbttree.LoadCalibrations();
 
@@ -61,9 +75,11 @@ int InttBCOMap::LoadFromCDBTTree(CDBTTree &cdbttree)
     int bco_diff = cdbttree.GetIntValue(n, "bco_diff");
     m_bco[felix_server][felix_channel] = bco_diff;
 
-    std::cout << "felix_server " << felix_server << " ";
-    std::cout << "felix_channel " << felix_channel << " ";
-    std::cout << "bco_diff " << bco_diff << std::endl;
+    if(m_verbosity>0){
+      std::cout << "felix_server " << felix_server << " ";
+      std::cout << "felix_channel " << felix_channel << " ";
+      std::cout << "bco_diff " << bco_diff << std::endl;
+    }
   }
   return 0;
 }
@@ -89,8 +105,10 @@ bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, uint64
     bco_plus = 0;
   }
 
-  if (bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus)
-  {
+// -1: m_bco is initial value, not load the parameter. accept all bco
+  if( bco_peak == -1 || bco_diff == bco_peak || bco_diff == bco_minus || bco_diff == bco_plus)
+  { 
+    //std::cout<<"m_bco is initial value, not load the parameter. accept all bco "<<felix_server<<" "<<felix_channel<<std::endl;
     return false;
   }
   else
