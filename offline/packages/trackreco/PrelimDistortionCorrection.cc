@@ -37,7 +37,7 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
@@ -228,6 +228,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 		  << " Y0 " << track->get_y()
 		  << " Z0 " << track->get_z()
 		  << " eta " << track->get_eta()
+		  << " phi " << track->get_phi()
 		  << std::endl;
       }
 
@@ -398,7 +399,7 @@ PositionMap PrelimDistortionCorrection::PrepareKDTrees()
 }
 
 
-void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& positions)
+void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap& positions)
 {
   int seed_index = 0;
   for(auto& seed: seeds )
@@ -409,6 +410,8 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, 
     seed.lineFit(positions, 7, 55);
     
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+    float phi = seed.get_phi(positions);
+    seed.set_phi(phi);  // stores the preliminary distortion corrected phi permanently
     _track_map->insert(&seed); 
 
     if(Verbosity() > 0)
@@ -416,18 +419,25 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, 
 	std::cout << "Publishing seed " << seed_index
 		  << " q " << q
 		  << " qOverR " << fabs(seed.get_qOverR()) * q 
-		  << " X0 " << seed.get_x()
-		  << " Y0 " << seed.get_y()
-		  << " Z0 " << seed.get_z()
+		  << " x " << seed.get_x()
+		  << " y " << seed.get_y()
+		  << " z " << seed.get_z()
+		  << " pT " << seed.get_pt()
 		  << " eta " << seed.get_eta()
+		  << " phi " << seed.get_phi()
 		  << std::endl;
+      }
+    if(Verbosity() > 5)
+      {
+	TrackSeed* readseed = _track_map->get(seed_index);
+	readseed->identify();
       }
 
     seed_index++;
   }
 }
 
-void PrelimDistortionCorrection::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
+void PrelimDistortionCorrection::publishSeeds(const std::vector<TrackSeed_v2>& seeds)
 {
   for( const auto& seed:seeds )
   { _track_map->insert(&seed); }

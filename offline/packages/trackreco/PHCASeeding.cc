@@ -30,7 +30,7 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 //ROOT includes for debugging
 #include <TFile.h>
@@ -366,7 +366,7 @@ int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
   std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters), globalPositions);
   std::vector<std::vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
   std::vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,globalPositions);
-  std::vector<TrackSeed_v1> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
+  std::vector<TrackSeed_v2> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
    
   publishSeeds(seeds);
   return seeds.size();
@@ -866,10 +866,10 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   return trackSeedKeyLists;
 }
 
-std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
+std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
 {
   if(Verbosity()>0) std::cout << "removing bad clusters" << std::endl;
-  std::vector<TrackSeed_v1> clean_chains;
+  std::vector<TrackSeed_v2> clean_chains;
 
   for(const auto& chain : chains)
   {
@@ -893,7 +893,7 @@ std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keyli
     const std::vector<double> xy_resid = TrackFitUtils::getCircleClusterResiduals(xy_pts,R,X0,Y0);
     
     // assign clusters to seed
-    TrackSeed_v1 trackseed;
+    TrackSeed_v2 trackseed;
     for(size_t i=0;i<chain.size();i++)
     {
       //if(xy_resid[i]>_xy_outlier_threshold) continue;
@@ -908,12 +908,12 @@ std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keyli
 }
 
 
-void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
+void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v2>& seeds)
 {
  
   for( const auto&  seed:seeds )
   {
-    auto pseed = std::make_unique<TrackSeed_v1>(seed);
+    auto pseed = std::make_unique<TrackSeed_v2>(seed);
     if(Verbosity() > 4)
       { pseed->identify(); }
     _track_map->insert(pseed.get());
