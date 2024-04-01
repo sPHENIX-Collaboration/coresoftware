@@ -37,7 +37,7 @@ SingleHcalTriggerInput::SingleHcalTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
   SubsystemEnum(InputManagerType::HCAL);
-  plist = new Packet *[NHCALPACKETS];  // four packets for the hcal in each file
+  plist = new Packet *[NHCALPACKETS];  // eight packets for the hcal in each file
 }
 
 SingleHcalTriggerInput::~SingleHcalTriggerInput()
@@ -121,6 +121,7 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setEvtSequence(EventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));

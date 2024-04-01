@@ -66,6 +66,9 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillHcal();
   int MoveHcalToNodeTree();
   void AddHcalPacket(int eventno, CaloPacket *pkt);
+  int FillZdc();
+  int MoveZdcToNodeTree();
+  void AddZdcPacket(int eventno, CaloPacket *pkt);
   void DetermineReferenceEventNumber();
 
  private:
@@ -87,15 +90,21 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     unsigned int EventFoundCounter {0};
   };
 
+  struct CemcPacketInfo
+  {
+    std::vector<CaloPacket *> CemcPacketVector;
+    unsigned int EventFoundCounter {0};
+  };
+
   struct HcalPacketInfo
   {
     std::vector<CaloPacket *> HcalPacketVector;
     unsigned int EventFoundCounter {0};
   };
 
-  struct CemcPacketInfo
+  struct ZdcPacketInfo
   {
-    std::vector<CaloPacket *> CemcPacketVector;
+    std::vector<CaloPacket *> ZdcPacketVector;
     unsigned int EventFoundCounter {0};
   };
 
@@ -103,22 +112,25 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int m_RefEventNo {std::numeric_limits<int>::min()};
   bool m_gl1_registered_flag{false};
   bool m_mbd_registered_flag{false};
-  bool m_hcal_registered_flag{false};
   bool m_cemc_registered_flag{false};
+  bool m_hcal_registered_flag{false};
+  bool m_zdc_registered_flag{false};
   unsigned int m_PoolDepth = 100;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
   std::vector<SingleTriggerInput *> m_MbdInputVector;
-  std::vector<SingleTriggerInput *> m_HcalInputVector;
   std::vector<SingleTriggerInput *> m_CemcInputVector;
+  std::vector<SingleTriggerInput *> m_HcalInputVector;
+  std::vector<SingleTriggerInput *> m_ZdcInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
   SinglePrdfInput *m_RefPrdfInput = nullptr;
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, MbdPacketInfo> m_MbdPacketMap;
-  std::map<int, HcalPacketInfo> m_HcalPacketMap;
   std::map<int, CemcPacketInfo> m_CemcPacketMap;
+  std::map<int, HcalPacketInfo> m_HcalPacketMap;
+  std::map<int, ZdcPacketInfo> m_ZdcPacketMap;
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;

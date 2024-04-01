@@ -8,7 +8,7 @@
 class Gl1RawHitv1 : public Gl1RawHit
 {
  public:
-  Gl1RawHitv1() {}
+  Gl1RawHitv1() = default;
   Gl1RawHitv1(Gl1RawHit *gl1hit);
   ~Gl1RawHitv1() override{};
 
