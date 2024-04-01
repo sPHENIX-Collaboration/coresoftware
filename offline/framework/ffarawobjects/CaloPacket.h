@@ -26,6 +26,10 @@ virtual int getMaxNumModules() const {return 0;}
   virtual int getFemEvtSequence(int /*i*/) const { return std::numeric_limits<int>::max(); }
   virtual void setFemSlot(int /*i*/, int /*j*/) { return; }
   virtual int getFemSlot(int /*i*/) const { return std::numeric_limits<int>::max(); }
+  virtual void setChecksumLsb(int, int) {return; }
+  virtual int getChecksumLsb(int) const {return 0; }
+  virtual void setChecksumMsb(int, int)  {return; }
+  virtual int getChecksumMsb(int) const  {return 0; }
 
   virtual void setSample(int /*ipmt*/, int /*ichan*/, uint32_t /*val*/) { return; }
   virtual uint32_t getSample(int /*ipmt*/, int /*ichan*/) const { return std::numeric_limits<uint32_t>::max(); }

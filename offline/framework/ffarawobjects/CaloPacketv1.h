@@ -29,6 +29,10 @@ class CaloPacketv1 : public CaloPacket
   int getFemEvtSequence(int i) const override { return femevt.at(i); }
   void setFemSlot(int i, int islot) override { femslot.at(i) = islot; }
   int getFemSlot(int i) const override { return femslot.at(i); }
+  void setChecksumLsb(int i, int ival) override {checksumlsb.at(i) = ival; }
+  int getChecksumLsb(int i) const override {return checksumlsb.at(i); }
+  void setChecksumMsb(int i, int ival) override {checksummsb.at(i) = ival; }
+  int getChecksumMsb(int i) const override {return checksummsb.at(i); }
 
   void setNrChannels(int i) override { NrChannels = i; }
   int getNrChannels() const override { return NrChannels; }
@@ -62,6 +66,8 @@ class CaloPacketv1 : public CaloPacket
   int iValue(const int i, const std::string &what) const override;
   int iValue(const int channel, const int sample) const override;
   void dump(std::ostream &os = std::cout) const override;
+  void dump93(std::ostream &os = std::cout) const;
+  void dump172(std::ostream &os = std::cout) const;
 
  protected:
   int PacketEvtSequence{0};
@@ -78,6 +84,8 @@ class CaloPacketv1 : public CaloPacket
   std::array<uint32_t, MAX_NUM_MODULES> femclock{};
   std::array<uint32_t, MAX_NUM_MODULES> femevt {};
   std::array<uint32_t, MAX_NUM_MODULES> femslot {};
+  std::array<uint32_t, MAX_NUM_MODULES> checksumlsb {};
+  std::array<uint32_t, MAX_NUM_MODULES> checksummsb {};
 
   std::array<std::array<uint32_t, MAX_NUM_CHANNELS>, MAX_NUM_SAMPLES> samples {};
   std::array<bool,MAX_NUM_CHANNELS> isZeroSuppressed {};
