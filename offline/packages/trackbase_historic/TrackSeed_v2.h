@@ -57,9 +57,8 @@ class TrackSeed_v2 : public TrackSeed
   float get_Y0() const override { return m_Y0; }
   float get_slope() const override { return m_slope; }
   float get_Z0() const override { return m_Z0; }
-  float get_phi() const override { return m_phi; };  // returns the stored phi
-  short int get_crossing() const override { return m_crossing; }
-
+  float get_phi() const override  { return m_phi; }  // returns the stored phi
+  short int get_crossing() const override { return m_crossing; }  
   void set_crossing(const short int crossing) override { m_crossing = crossing; }
   void set_qOverR(const float qOverR) override { m_qOverR = qOverR; }
   void set_X0(const float X0) override { m_X0 = X0; }

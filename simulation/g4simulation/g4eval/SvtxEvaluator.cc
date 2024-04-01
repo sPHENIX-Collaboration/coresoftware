@@ -3139,7 +3139,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             if (silseed)
             {
 	      siqr = silseed->get_qOverR();
-	      siphi = silseed->get_phi(clustermap,tgeometry);
+	      siphi = silseed->get_phi();
 	      sithe = silseed->get_theta();
 	      six0 = silseed->get_X0();
 	      siy0 = silseed->get_Y0();
@@ -3683,7 +3683,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         if (silseed)
         {
 	  siqr = silseed->get_qOverR();
-	  siphi = silseed->get_phi(clustermap,tgeometry);
+	  siphi = silseed->get_phi();
 	  sithe = silseed->get_theta();
 	  six0 = silseed->get_X0();
 	  siy0 = silseed->get_Y0();

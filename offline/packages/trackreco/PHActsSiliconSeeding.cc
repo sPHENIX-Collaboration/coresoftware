@@ -360,6 +360,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       //! Circle fit again to take advantage of INTT lever arm
       trackSeed->circleFitByTaubin(positions, 0, 8);
+      float phi = trackSeed->get_phi(m_clusterMap, m_tGeometry);
+      trackSeed->set_phi(phi);  // make phi persistent
 
       if (Verbosity() > 0)
       {
@@ -375,7 +377,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       {
         std::cout << "Silicon seed id " << m_seedContainer->size() << std::endl;
         std::cout << "seed phi, theta, eta : "
-                  << trackSeed->get_phi(m_clusterMap, m_tGeometry) << ", " << trackSeed->get_theta()
+		  << trackSeed->get_phi() << ", " << trackSeed->get_theta()
                   << ", " << trackSeed->get_eta() << std::endl;
         trackSeed->identify();
       }

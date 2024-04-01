@@ -405,7 +405,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    { continue; }
 
 	  bool phi_match = false;
-	  double si_phi = _tracklet_si->get_phi(_cluster_map,_tGeometry);
+	  double si_phi = _tracklet_si->get_phi();
 	  if(  fabs(tpc_phi - si_phi)  < _phi_search_win * mag) phi_match = true;
 	  if(  fabs( fabs(tpc_phi - si_phi)  - 2.0 * M_PI)  < _phi_search_win * mag ) phi_match = true;
 	  if(!phi_match) continue;
