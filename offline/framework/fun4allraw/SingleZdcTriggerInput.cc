@@ -136,9 +136,14 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
         newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
         newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
         newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
+        newhit->setChecksumLsb(ifem, plist[i]->iValue(ifem, "CHECKSUMLSB"));
+        newhit->setChecksumMsb(ifem, plist[i]->iValue(ifem, "CHECKSUMMSB"));
       }
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
+        newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
+        newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
+        newhit->setSuppressed(ipmt,plist[i]->iValue(ipmt,"SUPPRESSED"));
         for (int isamp = 0; isamp < nr_samples; isamp++)
         {
           newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
