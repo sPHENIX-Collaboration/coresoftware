@@ -1,15 +1,19 @@
 #include "CaloPacketv1.h"
 
+#include <TSystem.h>
+
 #include <iomanip>
 
 CaloPacketv1::CaloPacketv1()
 {
-  femclock.fill(std::numeric_limits<uint32_t>::max());
-  femevt.fill(std::numeric_limits<uint32_t>::max());
-  femslot.fill(std::numeric_limits<uint32_t>::max());
+  femclock.fill(0);
+  femevt.fill(0);
+  femslot.fill(0);
+  checksumlsb.fill(0);
+  checksummsb.fill(0);
   isZeroSuppressed.fill(false);
-  pre.fill(std::numeric_limits<uint32_t>::max());
-  post.fill(std::numeric_limits<uint32_t>::max());
+  pre.fill(0);
+  post.fill(0);
   for (auto &row : samples)
   {
     row.fill(0);
@@ -31,11 +35,14 @@ void CaloPacketv1::Reset()
   detid = 0;
 
   isZeroSuppressed.fill(false);
-  pre.fill(std::numeric_limits<uint32_t>::max());
-  post.fill(std::numeric_limits<uint32_t>::max());
-  femclock.fill(std::numeric_limits<uint32_t>::max());
-  femevt.fill(std::numeric_limits<uint32_t>::max());
-  femslot.fill(std::numeric_limits<uint32_t>::max());
+  pre.fill(0);
+  post.fill(0);
+
+  femclock.fill(0);
+  femevt.fill(0);
+  femslot.fill(0);
+  checksumlsb.fill(0);
+  checksummsb.fill(0);
 
   for (auto &row : samples)
   {
@@ -143,6 +150,24 @@ int CaloPacketv1::iValue(const int n, const std::string &what) const
     return getCalcOddChecksum();
   }
 
+  if (what == "CHECKSUMLSB")
+  {
+    if (n < 0 || n >= getNrModules())
+    {
+      return 0;
+    }
+    return getChecksumLsb(n);
+  }
+
+  if (what == "CHECKSUMMSB")
+  {
+    if (n < 0 || n >= getNrModules())
+    {
+      return 0;
+    }
+    return getChecksumMsb(n);
+  }
+
   if (what == "EVENCHECKSUMOK")
   {
     if (getCalcEvenChecksum() < 0)
@@ -222,6 +247,25 @@ void CaloPacketv1::identify(std::ostream &os) const
 
 void CaloPacketv1::dump(std::ostream &os) const
 {
+  switch (getHitFormat())
+  {
+  case 93:
+    dump93(os);
+    break;
+  case 172:
+    dump172(os);
+    break;
+  default:
+    std::cout << "unknown hit format: "
+	      << getHitFormat() << std::endl;
+    gSystem->Exit(1);
+  }
+  return;
+}
+
+
+void CaloPacketv1::dump93(std::ostream &os) const
+{
   int _nchannels = iValue(0, "CHANNELS");
   int _nsamples = iValue(0, "SAMPLES");
   os << "Evt Nr:      " << iValue(0, "EVTNR") << std::endl;
@@ -282,6 +326,80 @@ void CaloPacketv1::dump(std::ostream &os) const
     for (int s = 0; s < _nsamples; s++)
     {
       os << std::setw(6) << iValue(s, c);
+    }
+    os << std::dec << std::endl;
+  }
+}
+//  Packet_iddigitizerv3
+void CaloPacketv1::dump172(std::ostream &os) const
+{
+  int _nchannels = iValue(0, "CHANNELS");
+  int _nsamples = iValue(0, "SAMPLES");
+  os << "Evt Nr:      " << iValue(0, "EVTNR") << std::endl;
+  os << "Clock:       " << iValue(0, "CLOCK") << std::endl;
+  os << "Nr Modules:  " << iValue(0, "NRMODULES") << std::endl;
+  os << "Channels:    " << iValue(0, "CHANNELS") << std::endl;
+  os << "Samples:     " << iValue(0, "SAMPLES") << std::endl;
+  os << "Det. ID:     " << std::hex << "0x" << iValue(0, "DETID") << std::dec << std::endl;
+  os << "Mod. Addr:   " << std::hex << "0x" << iValue(0, "MODULEADDRESS") << std::dec << std::endl;
+
+  os << "FEM Slot:    ";
+  for (int i = 0; i < iValue(0, "NRMODULES"); i++)
+  {
+    os << std::setw(8) << iValue(i, "FEMSLOT");
+  }
+  os << std::endl;
+
+  os << "FEM Evt nr:  ";
+  for (int i = 0; i < iValue(0, "NRMODULES"); i++)
+  {
+    os << std::setw(8) << iValue(i, "FEMEVTNR");
+  }
+  os << std::endl;
+
+  os << "FEM Clock:   ";
+  for (int i = 0; i < iValue(0, "NRMODULES"); i++)
+  {
+    os << std::setw(8) << iValue(i, "FEMCLOCK");
+  }
+  os << std::endl;
+
+  os << "FEM Checksum LSB:   ";
+  for ( int i = 0; i < iValue(0,"NRMODULES"); i++)
+    {
+      os <<  "0x" << std::hex <<  std::setw(4) << iValue(i,"CHECKSUMLSB") << "  "  << std::dec;
+    }
+  os << std::endl;
+
+  os << "FEM Checksum MSB:   ";
+  for ( int i = 0; i < iValue(0,"NRMODULES"); i++)
+    {
+      os <<  "0x" << std::hex << std::setw(4) << iValue(i,"CHECKSUMMSB")  << "  "<< std::dec;
+    }
+  os << std::endl;
+
+  for ( int c = 0; c < _nchannels; c++)
+  {
+    if (  iValue(c,"SUPPRESSED") )
+    {
+      os << std::setw(4) << c << " |-";
+    }
+    else
+    {
+      os << std::setw(4) << c << " | ";
+    }
+
+    os << std::hex;
+
+    os << std::setw(6) << iValue(c, "PRE");
+    os << std::setw(6) << iValue(c, "POST") << " | " ;
+
+    if ( ! iValue(c,"SUPPRESSED") )
+    {
+      for ( int s = 0; s < _nsamples; s++)
+      {
+	os << std::setw(6) << iValue(s,c);
+      }
     }
     os << std::dec << std::endl;
   }
