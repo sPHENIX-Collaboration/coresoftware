@@ -116,8 +116,13 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 	      
 	      //Find the remaining track with the best chisq/ndf
 
+	      unsigned int si_index = UINT_MAX;      
+	      auto si_seed =  _track->get_silicon_seed();
+	      if (si_seed)
+		si_index = _silicon_seed_map->find(si_seed);      
+
 	      if(Verbosity() > 1)	      
-		std::cout << "        track ID " << track_id << " crossing " << _track->get_crossing() 
+		std::cout << "        track ID " << track_id << " tpc index " << tpc_id << " si index " << si_index << " crossing " << _track->get_crossing() 
 			  << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq_df " << min_chisq_df << std::endl;
 
 	      // only accept tracks with ndf > min_ndf - very small ndf means something went wrong, as does ndf undefined
@@ -197,6 +202,13 @@ int  PHTrackCleaner::GetNodes(PHCompositeNode* topNode)
   if (!_tpc_seed_map)
   {
     std::cout << PHWHERE << " ERROR: Can't find TpcTrackSeedContainer: " << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _silicon_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  if (!_silicon_seed_map)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   

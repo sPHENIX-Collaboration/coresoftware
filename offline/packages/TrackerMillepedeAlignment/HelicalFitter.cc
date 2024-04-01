@@ -13,7 +13,7 @@
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
 #include <trackbase/alignmentTransformationContainer.h>
 
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -213,7 +213,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  ntpc = cluskey_vec.size();
 	  nsilicon = TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec,0,6);
 	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
-	  auto trackseed = std::make_unique<TrackSeed_v1>();
+	  auto trackseed = std::make_unique<TrackSeed_v2>();
 	  for(auto& ckey : cluskey_vec)
 	    {
 	      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId or
@@ -253,10 +253,11 @@ int HelicalFitter::process_event(PHCompositeNode*)
       /// use the track seed functions to help get the track trajectory values
       /// in the usual coordinates
   
-      TrackSeed_v1 someseed;
+      TrackSeed_v2 someseed;
       for(auto& ckey : cluskey_vec)
 	{ someseed.insert_cluster_key(ckey); }
       someseed.set_qOverR(tracklet->get_charge() / fitpars[0]);
+      someseed.set_phi(tracklet->get_phi());
  
       someseed.set_X0(fitpars[1]);
       someseed.set_Y0(fitpars[2]);
@@ -266,8 +267,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
       newTrack.set_x(someseed.get_x());
       newTrack.set_y(someseed.get_y());
       newTrack.set_z(someseed.get_z());
-      newTrack.set_px(someseed.get_px(_cluster_map,_tGeometry));
-      newTrack.set_py(someseed.get_py(_cluster_map,_tGeometry));
+      newTrack.set_px(someseed.get_px());
+      newTrack.set_py(someseed.get_py());
       newTrack.set_pz(someseed.get_pz());  
       newTrack.set_charge(tracklet->get_charge());
 

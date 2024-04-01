@@ -10,7 +10,7 @@ class DumpPacket
 {
 public:
   DumpPacket() = default;
-  virtual ~DumpPacket() = default;
+  virtual ~DumpPacket();
   virtual void ddumppacket(OfflinePacket *pkt);
   virtual void enable_ddump(int b = 1) {m_ddump_flag = b;}
   virtual bool ddump_enabled() const {return m_ddump_flag;}
