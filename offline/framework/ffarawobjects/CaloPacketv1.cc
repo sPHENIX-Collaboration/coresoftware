@@ -2,6 +2,20 @@
 
 #include <iomanip>
 
+CaloPacketv1::CaloPacketv1()
+{
+  femclock.fill(std::numeric_limits<uint32_t>::max());
+  femevt.fill(std::numeric_limits<uint32_t>::max());
+  femslot.fill(std::numeric_limits<uint32_t>::max());
+  isZeroSuppressed.fill(false);
+  pre.fill(std::numeric_limits<uint32_t>::max());
+  post.fill(std::numeric_limits<uint32_t>::max());
+  for (auto &row : samples)
+  {
+    row.fill(0);
+  }
+}
+
 void CaloPacketv1::Reset()
 {
   OfflinePacketv1::Reset();
@@ -16,13 +30,16 @@ void CaloPacketv1::Reset()
   module_address = 0;
   detid = 0;
 
+  isZeroSuppressed.fill(false);
+  pre.fill(std::numeric_limits<uint32_t>::max());
+  post.fill(std::numeric_limits<uint32_t>::max());
   femclock.fill(std::numeric_limits<uint32_t>::max());
   femevt.fill(std::numeric_limits<uint32_t>::max());
   femslot.fill(std::numeric_limits<uint32_t>::max());
 
   for (auto &row : samples)
   {
-    row.fill(std::numeric_limits<uint32_t>::max());
+    row.fill(0);
   }
   return;
 }
@@ -57,6 +74,21 @@ int CaloPacketv1::iValue(const int n, const std::string &what) const
   if (what == "DETID")
   {
     return getDetId();
+  }
+
+  if (what == "PRE")
+  {
+    return getPre(n);
+  }
+
+  if (what == "POST")
+  {
+    return getPost(n);
+  }
+
+  if (what == "SUPPRESSED")
+  {
+    return getSuppressed(n);
   }
 
   if (what == "MODULEADDRESS")

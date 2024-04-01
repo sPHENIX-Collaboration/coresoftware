@@ -23,6 +23,7 @@ libcalo_reco_la_LIBADD = \
   -lcdbobjects \
   -lCLHEP \
   -lffamodules \
+  -lffarawobjects \
   -lgsl \
   -lgslcblas \
   -lglobalvertex_io \

@@ -9,7 +9,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <cassert>
 #include <iostream>
 #include <string>
 
@@ -56,12 +55,13 @@ class CaloTowerCalib : public SubsysReco
     return;
   }
 
-  void set_directURL(const std::string &url){
+  void set_directURL(const std::string &url)
+  {
     m_giveDirectURL = true;
     m_directURL = url;
   }
 
-  void set_use_TowerInfov2(bool use) {m_use_TowerInfov2=use;}
+  void set_use_TowerInfov2(bool use) { m_use_TowerInfov2 = use; }
 
  private:
   CaloTowerDefs::DetectorSystem m_dettype;
@@ -70,10 +70,10 @@ class CaloTowerCalib : public SubsysReco
   TowerInfoContainer::DETECTOR m_DETECTOR;
   std::string m_fieldname;
   std::string m_calibName;
-  bool m_overrideCalibName {false};
-  bool m_overrideFieldName {false};
-  std::string m_inputNodePrefix {"TOWERS_"};
-  std::string m_outputNodePrefix {"TOWERINFO_CALIB_"};
+  bool m_overrideCalibName{false};
+  bool m_overrideFieldName{false};
+  std::string m_inputNodePrefix{"TOWERS_"};
+  std::string m_outputNodePrefix{"TOWERINFO_CALIB_"};
   std::string RawTowerNodeName;
   std::string CalibTowerNodeName;
 

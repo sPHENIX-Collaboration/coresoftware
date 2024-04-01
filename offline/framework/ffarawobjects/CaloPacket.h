@@ -49,6 +49,12 @@ virtual int getMaxNumModules() const {return 0;}
   virtual int getModuleAddress() const { return std::numeric_limits<int>::max(); }
   virtual void setDetId(int /*i*/) { return; }
   virtual int getDetId() const { return std::numeric_limits<int>::max(); }
+  virtual void setSuppressed(int /*channel*/, bool /*bb*/) {return;}
+  virtual bool getSuppressed(int /*channel*/) const {return false;}
+  virtual void setPre(int /*channel*/, uint32_t /*ival*/) {return;}
+  virtual uint32_t getPre(int /*channel*/) const {return  std::numeric_limits<uint32_t>::max();}
+  virtual void setPost(int /*channel*/, uint32_t /*ival*/) {return;}
+  virtual uint32_t getPost(int /*channel*/) const {return  std::numeric_limits<uint32_t>::max();}
 
  private:
   ClassDefOverride(CaloPacket, 1)

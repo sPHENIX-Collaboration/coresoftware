@@ -468,8 +468,7 @@ int OnCalServer::End()
       }
       // update the first run which was used in the calibration
       // with the real status
-      updateDB(successTable.c_str(), CalibratorName.c_str(),
-               databasecommitstatus);
+      updateDB(successTable, CalibratorName, databasecommitstatus);
 
       stringarg.str("");
       stringarg << databasecommitstatus;
@@ -2098,7 +2097,7 @@ int OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const
         updateDB(successTable.c_str(), calibrator->Name(), newstatus);
         insertRunNumInDB(table, runNum);
         updateDB(table, "comment", comment.str(), runNum, true);
-        updateDB(table.c_str(), "committed", true);
+        updateDB(table, "committed", true);
       }
     }
   }
