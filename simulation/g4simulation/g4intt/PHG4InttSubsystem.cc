@@ -68,7 +68,7 @@ int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(m_DetectorType);
   m_Detector->OverlapCheck(CheckOverlap());
-  m_Detector->useSurveyGeometry(true);
+  m_Detector->useSurveyGeometry(m_UseSurveyGeometry);
 
   int active = 0;
   // initialize with support active flag (if support is active we need the absorber hit node)

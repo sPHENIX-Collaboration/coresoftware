@@ -858,13 +858,12 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 }
 
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
-{
-
-  // TODO: find the proper place to set this switch
-  bool useSurvey = true;
-  
+{ 
   if(Verbosity() > 10)
-  { std::cout << "MakeActsGeometry::makeInttMapPairs - inttVolume: " << inttVolume->volumeName() << std::endl; }
+  { 
+    std::cout << "MakeActsGeometry::makeInttMapPairs - inttVolume: " << inttVolume->volumeName() << std::endl; 
+    std::cout << "Use Intt survey geometry? m_inttSurvey =" << m_inttSurvey << std::endl;
+  }
 
   auto inttLayerArray = inttVolume->confinedLayers();
 
@@ -886,7 +885,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       auto vec3d = surf->center(m_geoCtxt);
 
       double ref_rad[4] = {-1., -1., -1., -1.};
-      if (useSurvey) 
+      if (m_inttSurvey) 
       {
         ref_rad[0] = 7.453;
         ref_rad[1] = 8.046;
@@ -901,27 +900,23 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
         ref_rad[3] = 10.262;
       }
 
-      const double tolerance = (useSurvey) ? 0.15 : 0.1;
+      const double tolerance = (m_inttSurvey) ? 0.15 : 0.1;
 
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       
       /// The Acts geometry builder combines layers 4 and 5 together, 
       /// and layers 6 and 7 together. We need to use the radius to figure
       /// out which layer to use to get the layergeom
-      double layer_rad = (useSurvey) ? sqrt(pow(world_center[0]-m_inttbarrelcenter_survey_x, 2) + pow(world_center[1]-m_inttbarrelcenter_survey_y, 2)) : sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
+      double layer_rad = (m_inttSurvey) ? sqrt(pow(world_center[0]-m_inttbarrelcenter_survey_x, 2) + pow(world_center[1]-m_inttbarrelcenter_survey_y, 2)) : sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
 
       unsigned int layer = 0;
       for (unsigned int i = 0; i < 4; ++i)
       {
-        // std::cout << layer_rad << " " << ref_rad[i] << std::endl;
         if (fabs(layer_rad - ref_rad[i]) < tolerance)
           layer = i + 3;
       }
 
-      std::cout << "Before getInttHitSetKeyFromCoords: layer=" << layer << std::endl;
-
       TrkrDefs::hitsetkey hitsetkey = getInttHitSetKeyFromCoords(layer, world_center);
-      std::cout << "hitsetkey=" << hitsetkey << " InttDefs::getLadderPhiId(hitsetkey)=" << unsigned(InttDefs::getLadderPhiId(hitsetkey)) << " InttDefs::getLadderZId(hitsetkey)=" << unsigned(InttDefs::getLadderZId(hitsetkey)) << std::endl;
 
       // Add this surface to the map
       std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
@@ -955,9 +950,6 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       }
     }
   }
-
-  std::cout << __LINE__ << std::endl;
-
 }
 
 void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)

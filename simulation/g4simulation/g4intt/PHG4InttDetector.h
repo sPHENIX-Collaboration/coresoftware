@@ -84,7 +84,7 @@ class PHG4InttDetector : public PHG4Detector
   std::map<G4VPhysicalVolume *, std::tuple<int, int, int, int>> m_ActiveVolumeTuple;
   std::map<G4LogicalVolume *, std::tuple<int, int>> m_PassiveVolumeTuple;
 
-  bool useSurvey;
+  bool useSurvey = true;
 };
 
 #endif

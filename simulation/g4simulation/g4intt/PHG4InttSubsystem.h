@@ -49,6 +49,8 @@ class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
 
   PHG4DisplayAction *GetDisplayAction() const override { return m_DisplayAction; }
 
+  void SetSurveyGeometry (bool b) { m_UseSurveyGeometry = b; }
+
   void Print(const std::string &what = "ALL") const override;
 
  private:
@@ -71,6 +73,9 @@ class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
 
   std::string m_HitNodeName;
   std::string m_AbsorberNodeName;
+
+  //! whether to use the survey geometry
+  bool m_UseSurveyGeometry = false;
 };
 
 #endif

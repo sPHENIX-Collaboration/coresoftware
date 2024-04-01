@@ -74,6 +74,7 @@ class MakeActsGeometry : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+  // void useInttSurveyGeom(const bool useSurveyGeom) { m_useInttSurveyGeom = useSurveyGeom; }
 
   void setMvtxDev(double array[6])
   {
@@ -209,7 +210,8 @@ class MakeActsGeometry : public SubsysReco
   PHG4TpcCylinderGeomContainer* m_geomContainerTpc = nullptr;
   TGeoManager* m_geoManager = nullptr;
 
-  bool m_inttSurvey = false;
+  // Switch to use or not use the INTT survey geometry
+  bool m_inttSurvey = true;
   const float m_inttbarrelcenter_survey_x = 0.4026857142857132 / 10.;
   const float m_inttbarrelcenter_survey_y = -2.886627321428573 / 10.;
 

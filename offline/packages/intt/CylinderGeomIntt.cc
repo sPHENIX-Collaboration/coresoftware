@@ -81,7 +81,10 @@ void CylinderGeomIntt::find_indices_from_world_location(int& segment_z_bin, int&
 {
   double signz = (location[2] > 0) ? 1. : -1;
   double phi = atan2(location[1], location[0]);
-  if (fabs(phi - m_OffsetPhi) > 0.01 && phi < 0)
+  double tolerance_phi = 0.05;
+  double tolerance_z = 0.5;
+
+  if (fabs(phi - m_OffsetPhi) > tolerance_phi && phi < 0)
   {
     phi += 2.0 * M_PI;
   }
@@ -92,7 +95,8 @@ void CylinderGeomIntt::find_indices_from_world_location(int& segment_z_bin, int&
 
   // decide if this is a type A (0) or type B (1) sensor
   int itype;
-  if (fabs((z_tmp / m_LadderZ[0])) < 1.0)
+  // if (fabs((z_tmp / m_LadderZ[0])) < 1.0)
+  if (fabs((1.0 - z_tmp / m_LadderZ[0])) < tolerance_z)
   {
     itype = 0;
   }
@@ -115,7 +119,7 @@ void CylinderGeomIntt::find_indices_from_segment_center(int& segment_z_bin, int&
 {
   double signz = (location[2] > 0) ? 1. : -1;
   double phi = atan2(location[1], location[0]);
-  std::cout << "phi before 2pi shift=" << phi << " offset " << m_OffsetPhi << " fabs(phi - m_OffsetPhi)=" << fabs(phi - m_OffsetPhi) << std::endl;
+  // std::cout << "phi before 2pi shift=" << phi << " offset " << m_OffsetPhi << " fabs(phi - m_OffsetPhi)=" << fabs(phi - m_OffsetPhi) << std::endl;
   double tolerance_phi = 0.05;
   double tolerance_z = 0.5;
   if (fabs(phi - m_OffsetPhi) > tolerance_phi && phi < 0)
@@ -125,7 +129,7 @@ void CylinderGeomIntt::find_indices_from_segment_center(int& segment_z_bin, int&
   double segment_phi_bin_tmp = (phi - m_OffsetPhi) / m_dPhi;
   segment_phi_bin = lround(segment_phi_bin_tmp);
 
-  std::cout << "     phi " <<phi << " segment_phi_bin_tmp " <<  segment_phi_bin_tmp << " segment_phi_bin " << segment_phi_bin << " location " << location[0] << "  " << location[1] << "  " << location[2] << std::endl;
+  // std::cout << "     phi " <<phi << " segment_phi_bin_tmp " <<  segment_phi_bin_tmp << " segment_phi_bin " << segment_phi_bin << " location " << location[0] << "  " << location[1] << "  " << location[2] << std::endl;
 
   double z_tmp = location[2] / signz;
 
@@ -149,8 +153,8 @@ void CylinderGeomIntt::find_indices_from_segment_center(int& segment_z_bin, int&
     segment_z_bin = itype + 2;
   }
 
-  std::cout << " world coords: " <<  location[0] << " " << location[1] << " " << location[2] <<  " signz " << signz << " itype " << itype << " z_tmp " << z_tmp <<  " m_LadderZ " << m_LadderZ[itype] << std::endl;
-  std::cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << std::endl;
+  // std::cout << " world coords: " <<  location[0] << " " << location[1] << " " << location[2] <<  " signz " << signz << " itype " << itype << " z_tmp " << z_tmp <<  " m_LadderZ " << m_LadderZ[itype] << std::endl;
+  // std::cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << std::endl;
 }
 
 void CylinderGeomIntt::find_strip_center(const Surface& surface, ActsGeometry* tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
