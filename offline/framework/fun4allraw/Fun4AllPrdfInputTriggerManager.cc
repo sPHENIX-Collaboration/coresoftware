@@ -193,6 +193,45 @@ void Fun4AllPrdfInputTriggerManager::Print(const std::string &what) const
       std::cout << "Packet " << iter.first << " was dropped " << iter.second << " times" << std::endl;
     }
   }
+  if (what == "ALL" || what == "INPUTFILES")
+  {
+    std::cout << "-----------------------------" << std::endl;
+    for (const auto &iter : m_Gl1InputVector)
+    {
+      std::cout << "Single Prdf Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+		<< " from file " << iter->FileName()
+		<< std::endl;
+    }
+    for (const auto &iter : m_MbdInputVector)
+    { 
+      std::cout << "Single Prdf Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+		<< " from file " << iter->FileName()
+		<< std::endl;
+    }
+    for (const auto &iter : m_ZdcInputVector)
+    {
+      std::cout << "Single Prdf Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+		<< " from file " << iter->FileName()
+		<< std::endl;
+    }
+    for (const auto &iter : m_CemcInputVector)
+    {
+      std::cout << "Single Prdf Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+		<< " from file " << iter->FileName()
+		<< std::endl;
+    }
+    for (const auto &iter : m_HcalInputVector)
+    {
+      std::cout << "Single Prdf Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+		<< " from file " << iter->FileName()
+		<< std::endl;
+    }
+  }
   return;
 }
 
@@ -601,8 +640,24 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
       std::cout << "Fun4AllTriggerInputManager::FillGl1 - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+	std::cout << PHWHERE << " Run Number mismatch, run is "
+		  << m_RunNumber << ", " << iter->Name() << " reads "
+		  << iter->RunNumber() << std::endl;
+	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+	Print("INPUTFILES");
+	gSystem->Exit(1);
+	exit(1);
+      }
+    }
   }
   if (m_Gl1PacketMap.empty())
   {
@@ -664,8 +719,24 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
       std::cout << "Fun4AllTriggerInputManager::FillMbd - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+	std::cout << PHWHERE << " Run Number mismatch, run is "
+		 << m_RunNumber << ", " << iter->Name() << " reads "
+		  << iter->RunNumber() << std::endl;
+	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+	Print("INPUTFILES");
+	gSystem->Exit(1);
+	exit(1);
+      }
+    }
   }
   if (m_MbdPacketMap.empty())
   {
@@ -724,8 +795,24 @@ int Fun4AllPrdfInputTriggerManager::FillHcal()
       std::cout << "Fun4AllTriggerInputManager::FillHcal - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+	std::cout << PHWHERE << " Run Number mismatch, run is "
+		 << m_RunNumber << ", " << iter->Name() << " reads "
+		  << iter->RunNumber() << std::endl;
+	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+	Print("INPUTFILES");
+	gSystem->Exit(1);
+	exit(1);
+      }
+    }
   }
   if (m_HcalPacketMap.empty())
   {
@@ -784,8 +871,24 @@ int Fun4AllPrdfInputTriggerManager::FillCemc()
       std::cout << "Fun4AllTriggerInputManager::FillCemc - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+	std::cout << PHWHERE << " Run Number mismatch, run is "
+		 << m_RunNumber << ", " << iter->Name() << " reads "
+		  << iter->RunNumber() << std::endl;
+	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+	Print("INPUTFILES");
+	gSystem->Exit(1);
+	exit(1);
+      }
+    }
   }
   if (m_CemcPacketMap.empty())
   {
@@ -844,8 +947,24 @@ int Fun4AllPrdfInputTriggerManager::FillZdc()
       std::cout << "Fun4AllTriggerInputManager::FillZdc - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+	std::cout << PHWHERE << " Run Number mismatch, run is "
+		 << m_RunNumber << ", " << iter->Name() << " reads "
+		  << iter->RunNumber() << std::endl;
+	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+	Print("INPUTFILES");
+	gSystem->Exit(1);
+	exit(1);
+      }
+    }
   }
   if (m_ZdcPacketMap.empty())
   {
