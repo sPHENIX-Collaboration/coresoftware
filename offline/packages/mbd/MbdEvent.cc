@@ -165,7 +165,14 @@ int MbdEvent::InitRun()
     // Do evt-by-evt pedestal using sample range below
     //_mbdsig[ifeech].SetEventPed0Range(0,1);
     //_mbdsig[ifeech].SetEventPed0PreSamp(6, 2, _mbdcal->get_sampmax(ifeech));
-    _mbdsig[ifeech].SetEventPed0PreSamp(5, 4, _mbdcal->get_sampmax(ifeech));
+    if ( _calpass!=1 )
+    {
+      _mbdsig[ifeech].SetEventPed0PreSamp(5, 4, _mbdcal->get_sampmax(ifeech));
+    }
+    else
+    {
+      _mbdsig[ifeech].SetEventPed0Range(0,1);
+    }
 
     // Read in template if specified
     if ( do_templatefit && _mbdgeom->get_type(ifeech)==1 )
@@ -205,7 +212,7 @@ int MbdEvent::InitRun()
       h_tmax[ich]->SetXTitle("sample");
       h_tmax[ich]->SetYTitle("ch");
     }
-    h2_tmax[0] = new TH2F("h2_ttmax","time beam_seb18-00020869-0000.prdftmax vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
+    h2_tmax[0] = new TH2F("h2_ttmax","time tmax vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
     h2_tmax[1] = new TH2F("h2_qtmax","chg tmax vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
     h2_wave[0] = new TH2F("h2_twave","time adc vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
     h2_wave[1] = new TH2F("h2_qwave","chg adc vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
@@ -342,6 +349,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
         }
 
         _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
+        //_mbdsig[feech].Print();
       }
 
       delete p[ipkt];
@@ -356,7 +364,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
   }
 
   // Do a quick sanity check that all fem counters agree
-   if (xmitclocks[0] != xmitclocks[1])
+  if (xmitclocks[0] != xmitclocks[1])
   {
     std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << std::endl;
   }
@@ -396,7 +404,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     {
       tdc[pmtch] = _mbdsig[ifeech].MBDTDC(_mbdcal->get_sampmax(ifeech));
 
-      if ( tdc[pmtch] < 40. || isnan(tdc[pmtch]) )
+      if ( tdc[pmtch] < 40. || isnan(tdc[pmtch]) || fabs(_mbdcal->get_tt0(pmtch))>100. )
       {
         m_pmttt[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();  // no hit
       }
@@ -418,7 +426,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       _mbdsig[ifeech].GetSplineAmpl();
       Double_t threshold = 0.5;
       m_pmttq[pmtch] = _mbdsig[ifeech].dCFD(threshold);
-      m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl();
+      m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl(); // in adc units
       if (do_templatefit)
       {
         //std::cout << "fittemplate" << std::endl;
@@ -429,7 +437,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
           std::cout << "tt " << ifeech << " " << pmtch << " " << m_pmttt[pmtch] << std::endl;
         }
         m_pmttq[pmtch] = _mbdsig[ifeech].GetTime(); // in units of sample number
-        m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl();
+        m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl(); // in units of adc
       }
 
       // calpass 2, uncal_mbd. template fit. make sure qgain = 1, tq_t0 = 0
@@ -446,6 +454,21 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
         m_pmttq[pmtch] -= (_mbdcal->get_sampmax(ifeech) - 2);
         m_pmttq[pmtch] *= 17.7623;  // convert from sample to ns (1 sample = 1/56.299 MHz)
         m_pmttq[pmtch] = m_pmttq[pmtch] - _mbdcal->get_tq0(pmtch);
+
+        // if tt is bad, use tq
+        if ( fabs(_mbdcal->get_tt0(pmtch))>100. )
+        {
+          m_pmttt[pmtch] = m_pmttq[pmtch];
+        }
+        else
+        {
+          // we have a good tt ch. correct for slew if there is a hit
+          //if ( ifeech==0 ) std::cout << "applying scorr" << std::endl;
+          if ( !isnan(m_pmttt[pmtch]) )
+          {
+            m_pmttt[pmtch] -= _mbdcal->get_scorr(ifeech-8,m_ampl[ifeech]);
+          }
+        }
       }
 
       m_pmtq[pmtch] = m_ampl[ifeech] / _mbdcal->get_qgain(pmtch);
@@ -469,6 +492,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
     }
   }
+
 
   // bbcpmts->Reset();
   // std::cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << std::endl;
@@ -808,6 +832,8 @@ int MbdEvent::FillSampMaxCalib()
 
     h_tmax[ifeech]->Fill( maxsamp );
     h2_tmax[type]->Fill( maxsamp, pmtch );
+    //std::cout << "fillint h2_tmax " << pmtch << "\t" << maxsamp << std::endl;
+    //_mbdsig[ifeech].Print();
 
     if ( type==0 && h2_tmax[0]->GetEntries() > (128*1000) )
     {
@@ -838,32 +864,36 @@ int MbdEvent::CalcSampMaxCalib()
   TDirectory *orig_dir = gDirectory;
   _smax_tfile->cd();
 
-  // sampmax for each channel
-  for (int ifeech=0; ifeech<MbdDefs::MBD_N_FEECH; ifeech++)
+  // sampmax for each board, for time and ch channels
+  int feech = 0;
+  for (int iboard=0; iboard<16; iboard++)
   {
-    int maxbin = h_tmax[ifeech]->GetMaximumBin();
-    int samp_max = h_tmax[ifeech]->GetBinCenter( maxbin );
-    _mbdcal->set_sampmax( ifeech, samp_max );
+    int min_ybin = iboard*8 + 1;
+    int max_ybin = iboard*8 + 8;
 
-    // correct bad t-channels in year 1
-    if ( _runnum<25000 )
+    // sampmax for time channels
+    TString name = "t_sampmax_bd"; name += iboard;
+    TH1 *h_projx = h2_tmax[0]->ProjectionX(name,min_ybin,max_ybin);
+    int maxbin = h_projx->GetMaximumBin();
+    int samp_max = h_projx->GetBinCenter( maxbin );
+    for (int ich=0; ich<8; ich++)
     {
-      if ( ifeech==102 )
-      {
-        _mbdcal->set_sampmax( ifeech, _mbdcal->get_sampmax(101) );
-      }
-      else if ( ifeech==112 )
-      {
-        _mbdcal->set_sampmax( ifeech, _mbdcal->get_sampmax(113) );
-      }
-      else if ( ifeech==240 )
-      {
-        _mbdcal->set_sampmax( ifeech, _mbdcal->get_sampmax(241) );
-      }
+      _mbdcal->set_sampmax( feech, samp_max );
+      feech++;
     }
+    delete h_projx;
 
-    //sampmax_calfile << ifeech << "\t" << samp_max << endl;
-    //cout << ifeech << "\t" << samp_max << endl;
+    // sampmax for charge channels
+    name = "t_sampmax_bd"; name += iboard;
+    h_projx = h2_tmax[1]->ProjectionX(name,min_ybin,max_ybin);
+    maxbin = h_projx->GetMaximumBin();
+    samp_max = h_projx->GetBinCenter( maxbin );
+    for (int ich=0; ich<8; ich++)
+    {
+      _mbdcal->set_sampmax( feech, samp_max );
+      feech++;
+    }
+    delete h_projx;
   }
 
   orig_dir->cd();

@@ -304,6 +304,7 @@ int MbdCalib::Download_TTT0(const std::string& dbase_location)
       _ttfit_t0meanerr[ipmt] = cdbttree->GetFloatValue(ipmt, "ttfit_t0meanerr");
       _ttfit_t0sigma[ipmt] = cdbttree->GetFloatValue(ipmt, "ttfit_t0sigma");
       _ttfit_t0sigmaerr[ipmt] = cdbttree->GetFloatValue(ipmt, "ttfit_t0sigmaerr");
+
       if (Verbosity() > 0)
       {
         if (ipmt < 5 || ipmt >= MbdDefs::MBD_N_PMT - 5)
@@ -405,133 +406,6 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
     return _status;  // file not found
   }
 
-  return 1;
-}
-
-int MbdCalib::Download_Slew(const std::string& dbase_location)
-{
-  // Verbosity(100);
-  if (Verbosity())
-  {
-    std::cout << "In MbdCalib::Download_Slew" << std::endl;
-  }
-  // Reset All Values
-  for (auto& slew : _slew_y)
-  {
-    slew.clear();
-  }
-
-  std::filesystem::path dbase_file = dbase_location;
-  if (dbase_file.extension() == ".root")  // read from database
-  {
-    if (Verbosity())
-    {
-      std::cout << "Reading from CDB " << dbase_location << std::endl;
-    }
-    CDBTTree* cdbttree = new CDBTTree(dbase_location);
-    cdbttree->LoadCalibrations();
-
-    for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
-    {
-      if (_mbdgeom->get_type(ifeech) == 0)
-      {
-        continue;  // skip t-channels
-      }
-
-      _slew_npts[ifeech] = cdbttree->GetIntValue(ifeech, "slew_npts");
-      _slew_minrange[ifeech] = cdbttree->GetFloatValue(ifeech, "slew_min");
-      _slew_maxrange[ifeech] = cdbttree->GetFloatValue(ifeech, "slew_max");
-
-      _sherr_npts[ifeech] = cdbttree->GetIntValue(ifeech, "sherr_npts");
-      _sherr_minrange[ifeech] = cdbttree->GetFloatValue(ifeech, "sherr_min");
-      _sherr_maxrange[ifeech] = cdbttree->GetFloatValue(ifeech, "sherr_max");
-
-      for (int ipt = 0; ipt < _slew_npts[ifeech]; ipt++)
-      {
-        int chtemp = 1000 * ipt + ifeech;
-
-        float val = cdbttree->GetFloatValue(chtemp, "slew_val");
-        _slew_y[ifeech].push_back(val);
-
-        val = cdbttree->GetFloatValue(chtemp, "sherr_val");
-        _sherr_yerr[ifeech].push_back(val);
-      }
-
-      if (Verbosity() > 0)
-      {
-        if (ifeech < 5 || ifeech >= MbdDefs::MBD_N_FEECH - 5)
-        {
-          std::cout << ifeech << "\t" << _slew_y[ifeech][0] << std::endl;
-        }
-      }
-    }
-    delete cdbttree;
-  }
-  else if (dbase_file.extension() == ".calib")  // read from text file
-  {
-    if (Verbosity())
-    {
-      std::cout << "Reading from " << dbase_location << std::endl;
-    }
-    std::ifstream infile(dbase_location);
-    if (!infile.is_open())
-    {
-      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
-      _status = -3;
-      return _status;
-    }
-
-    int temp_feech = -1;
-    int temp_npoints = -1;
-    float temp_begintime = -1;
-    float temp_endtime = -1;
-    while (infile >> temp_feech >> temp_npoints >> temp_begintime >> temp_endtime)
-    {
-      if (Verbosity())
-      {
-        std::cout << "slew " << temp_feech << "\t" << temp_npoints << "\t" << temp_begintime << "\t" << temp_endtime << std::endl;
-      }
-      if (temp_feech < 0 || temp_feech > 255)
-      {
-        std::cout << "ERROR, invalid FEECH " << temp_feech << " in MBD waveforms calibration" << std::endl;
-        _status = -2;
-        return _status;
-      }
-
-      _slew_npts[temp_feech] = temp_npoints;
-      _slew_minrange[temp_feech] = temp_begintime;
-      _slew_maxrange[temp_feech] = temp_endtime;
-
-      float temp_val{0.};
-      for (int isamp = 0; isamp < temp_npoints; isamp++)
-      {
-        infile >> temp_val;
-        _slew_y[temp_feech].push_back(temp_val);
-        if (Verbosity() && (temp_feech == 8 || temp_feech == 255))
-        {
-          std::cout << _slew_y[temp_feech][isamp] << " ";
-          if (isamp % 10 == 9)
-          {
-            std::cout << std::endl;
-          }
-        }
-      }
-      if (Verbosity())
-      {
-        std::cout << std::endl;
-      }
-    }
-
-    infile.close();
-  }
-  else
-  {
-    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
-    _status = -1;
-    return _status;  // file not found
-  }
-
-  // Verbosity(0);
   return 1;
 }
 
@@ -887,7 +761,8 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
   for(auto& scorr : _scorr_y) {
     scorr.clear();
   }
-
+  std::fill(_scorr_npts.begin(), _scorr_npts.end(), 0);
+  
   std::filesystem::path dbase_file = dbase_location;
   if (dbase_file.extension() == ".root")  // read from CDB database file
   {
@@ -943,7 +818,7 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
     }
 
     int temp_feech = -1;
-    int temp_npoints = -1;
+    int temp_npoints = 0;
     float temp_beginadc = -1;
     float temp_endadc = -1;
     while ( infile >> temp_feech >> temp_npoints >> temp_beginadc >> temp_endadc )
@@ -1000,6 +875,12 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
     {
       continue;  // skip q-channels
     }
+    // skip bad t-channels
+    if ( _scorr_npts[ifeech] == 0 )
+    {
+      //std::cout << "skipping " << ifeech << std::endl;
+      continue;
+    }
 
     int step = static_cast<int>( (_scorr_maxrange[ifeech] - _scorr_minrange[ifeech]) / (_scorr_npts[ifeech]-1) );
     //std::cout << ifeech << " step = " << step << std::endl;
@@ -1016,13 +897,19 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
       _scorr_y_interp[ifeech].push_back( scorr_interp );
 
 
-      /*
-      if ( ifeech==0 && iadc<2*step )
+      if ( ifeech==4 && iadc<12 && Verbosity() )
       {
+        if ( iadc==0 )
+        {
+          std::cout << "slewcorr " << ifeech << "\t" << _scorr_npts[ifeech] << "\t"
+            << _scorr_minrange[ifeech] << "\t" << _scorr_maxrange[ifeech] << std::endl;
+        }
         std::cout << _scorr_y_interp[ifeech][iadc] << " ";
-        if ( iadc%step==(step-1) ) std::cout << std::endl;
+        if ( iadc%step==(step-1) )
+        {
+          std::cout << std::endl;
+        }
       }
-      */
     }
 
   }
@@ -1075,6 +962,40 @@ int MbdCalib::Write_SampMax(const std::string& dbfile)
   return 1;
 }
 
+int MbdCalib::Write_CDB_TTT0(const std::string& dbfile)
+{
+  CDBTTree* cdbttree{ nullptr };
+
+  std::cout << "Creating " << dbfile << std::endl;
+  cdbttree = new CDBTTree( dbfile );
+  cdbttree->SetSingleIntValue("version", 1);
+  cdbttree->CommitSingle();
+
+  std::cout << "TTT0" << std::endl;
+  for (size_t ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
+  {
+    // store in a CDBTree
+    cdbttree->SetFloatValue(ipmt, "ttfit_t0mean", _ttfit_t0mean[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "ttfit_t0meanerr", _ttfit_t0meanerr[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "ttfit_t0sigma", _ttfit_t0sigma[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "ttfit_t0sigmaerr", _ttfit_t0sigmaerr[ipmt]);
+
+    if (ipmt < 5 || ipmt >= MbdDefs::MBD_N_PMT - 5)
+    {
+      std::cout << ipmt << "\t" << cdbttree->GetFloatValue(ipmt, "ttfit_t0mean") << std::endl;
+    }
+  }
+
+  cdbttree->Commit();
+  // cdbttree->Print();
+
+  // for now we create the tree after reading it
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+
+  return 1;
+}
+
 int MbdCalib::Write_TTT0(const std::string& dbfile)
 {
   std::ofstream cal_t0_file;
@@ -1085,6 +1006,40 @@ int MbdCalib::Write_TTT0(const std::string& dbfile)
       << "\t" << _ttfit_t0sigma[ipmt] << "\t" << _ttfit_t0sigmaerr[ipmt] << std::endl;
   }
   cal_t0_file.close();
+
+  return 1;
+}
+
+int MbdCalib::Write_CDB_TQT0(const std::string& dbfile)
+{
+  CDBTTree* cdbttree{ nullptr };
+
+  std::cout << "Creating " << dbfile << std::endl;
+  cdbttree = new CDBTTree( dbfile );
+  cdbttree->SetSingleIntValue("version", 1);
+  cdbttree->CommitSingle();
+
+  std::cout << "TQT0" << std::endl;
+  for (size_t ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
+  {
+    // store in a CDBTree
+    cdbttree->SetFloatValue(ipmt, "tqfit_t0mean", _tqfit_t0mean[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "tqfit_t0meanerr", _tqfit_t0meanerr[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "tqfit_t0sigma", _tqfit_t0sigma[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "tqfit_t0sigmaerr", _tqfit_t0sigmaerr[ipmt]);
+
+    if (ipmt < 5 || ipmt >= MbdDefs::MBD_N_PMT - 5)
+    {
+      std::cout << ipmt << "\t" << cdbttree->GetFloatValue(ipmt, "tqfit_t0mean") << std::endl;
+    }
+  }
+
+  cdbttree->Commit();
+  // cdbttree->Print();
+
+  // for now we create the tree after reading it
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
 
   return 1;
 }
@@ -1210,7 +1165,7 @@ int MbdCalib::Write_CDB_TimeCorr(const std::string& dbfile)
       continue;  // skip q-channels
     }
 
-    if ( ifeech<5 || ifeech>=MbdDefs::MBD_N_FEECH-5 )
+    if ( ifeech<5 || ifeech>=MbdDefs::MBD_N_FEECH-5-8 )
     {
       std::cout << ifeech << "\t" <<  cdbttree->GetIntValue(ifeech,"tcorr_npts") << std::endl;
       for (int ipt=0; ipt<10; ipt++)
@@ -1269,7 +1224,7 @@ int MbdCalib::Write_CDB_SlewCorr(const std::string& dbfile)
       continue;  // skip q-channels
     }
 
-    if ( ifeech<5 || ifeech>=MbdDefs::MBD_N_FEECH-5 )
+    if ( ifeech<5 || ifeech>=MbdDefs::MBD_N_FEECH-8-5 )
     {
       std::cout << ifeech << "\t" <<  cdbttree->GetIntValue(ifeech,"scorr_npts") << std::endl;
       for (int ipt=0; ipt<10; ipt++)
@@ -1280,6 +1235,43 @@ int MbdCalib::Write_CDB_SlewCorr(const std::string& dbfile)
       std::cout << std::endl;
     }
   }
+
+  // for now we create the tree after reading it
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+
+  return 1;
+}
+
+int MbdCalib::Write_CDB_Gains(const std::string& dbfile)
+{
+  CDBTTree* cdbttree{ nullptr };
+
+  std::cout << "Creating " << dbfile << std::endl;
+  cdbttree = new CDBTTree( dbfile );
+  cdbttree->SetSingleIntValue("version", 1);
+  cdbttree->CommitSingle();
+
+  std::cout << "MBD_QFIT" << std::endl;
+  for (size_t ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
+  {
+    // store in a CDBTree
+    cdbttree->SetFloatValue(ipmt, "qfit_integ", _qfit_integ[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "qfit_mpv", _qfit_mpv[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "qfit_sigma", _qfit_sigma[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "qfit_integerr", _qfit_integerr[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "qfit_mpverr", _qfit_mpverr[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "qfit_sigmaerr", _qfit_sigmaerr[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "qfit_chi2ndf", _qfit_chi2ndf[ipmt]);
+
+    if (ipmt < 5 || ipmt >= MbdDefs::MBD_N_PMT - 5)
+    {
+      std::cout << ipmt << "\t" << cdbttree->GetFloatValue(ipmt, "qfit_mpv") << std::endl;
+    }
+  }
+
+  cdbttree->Commit();
+  // cdbttree->Print();
 
   // for now we create the tree after reading it
   cdbttree->WriteCDBTTree();
