@@ -3,18 +3,20 @@
 
 #include "DumpBbcPmtInfoContainer.h"
 #include "DumpBbcVertexMap.h"
+#include "DumpCaloPacketContainer.h"
 #include "DumpCaloTriggerInfo.h"
 #include "DumpCdbUrlSave.h"
 #include "DumpCentralityInfo.h"
 #include "DumpEpdGeom.h"
 #include "DumpEventHeader.h"
 #include "DumpFlagSave.h"
+#include "DumpGl1Packet.h"
 #include "DumpGl1RawHit.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpInttDeadMap.h"
 #include "DumpInttRawHitContainer.h"
-#include "DumpJetMap.h"
 #include "DumpJetContainer.h"
+#include "DumpJetMap.h"
 #include "DumpMbdGeom.h"
 #include "DumpMbdOut.h"
 #include "DumpMbdPmtContainer.h"
@@ -201,6 +203,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpBbcVertexMap(NodeName);
       }
+      else if (tmp->InheritsFrom("CaloPacketContainer"))
+      {
+        newdump = new DumpCaloPacketContainer(NodeName);
+      }
       else if (tmp->InheritsFrom("CaloTriggerInfo"))
       {
         newdump = new DumpCaloTriggerInfo(NodeName);
@@ -224,6 +230,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("FlagSave"))
       {
         newdump = new DumpFlagSave(NodeName);
+      }
+      else if (tmp->InheritsFrom("Gl1Packet"))
+      {
+        newdump = new DumpGl1Packet(NodeName);
       }
       else if (tmp->InheritsFrom("Gl1RawHit"))
       {

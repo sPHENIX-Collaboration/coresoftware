@@ -25,13 +25,13 @@ int DumpMvtxRawEvtHeader::process_Node(PHNode *myNode)
   }
   if (mvtxRawEvtHeader)
   {
-    for (auto iter: mvtxRawEvtHeader->getMvtxFeeIdSet())
+    for (auto iter : mvtxRawEvtHeader->getMvtxFeeIdSet())
     {
-      *fout << "FeeIdSet: " << iter  << std::endl;
+      *fout << "FeeIdSet: " << iter << std::endl;
     }
-    for (auto iter: mvtxRawEvtHeader->getMvtxLvL1BCO())
+    for (auto iter : mvtxRawEvtHeader->getMvtxLvL1BCO())
     {
-      *fout << "LvL1BCO: " << iter  << std::endl;
+      *fout << "LvL1BCO: " << iter << std::endl;
     }
   }
   return 0;
