@@ -90,6 +90,7 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     Gl1Packet *newhit = new Gl1Packetv1();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     newhit->setBCO(packet->lValue(0, "BCO"));
+    newhit->setHitFormat(packet->getHitFormat());
     newhit->setIdentifier(packet->getIdentifier());
     newhit->setEvtSequence(EventSequence);
     newhit->setPacketNumber(packet->iValue(0));

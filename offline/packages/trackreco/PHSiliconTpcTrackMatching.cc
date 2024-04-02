@@ -8,9 +8,8 @@
 #include <trackbase/TrkrClusterContainer.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
 
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-//#include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/SvtxTrackSeed_v2.h>
 
 #include <globalvertex/SvtxVertex.h>     // for SvtxVertex
@@ -336,15 +335,15 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    << ": Processing seed itrack: " << tpcid
 	    << ": nhits: " << _tracklet_tpc-> size_cluster_keys()
 	    << ": Total tracks: " << _track_map->size()
-	    << ": phi: " << _tracklet_tpc->get_phi(_cluster_map,_tGeometry)
+	    << ": phi: " << _tracklet_tpc->get_phi()
 	    << endl;
 	}
 
-      double tpc_phi = _tracklet_tpc->get_phi(_cluster_map,_tGeometry);
+      double tpc_phi = _tracklet_tpc->get_phi();
       double tpc_eta = _tracklet_tpc->get_eta();
       double tpc_pt = fabs(1./_tracklet_tpc->get_qOverR()) *( 0.3/100. ) * std::stod(m_fieldMap);
       if(Verbosity() > 8)
-	std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " pt " << tpc_pt << " tpc z " << _tracklet_tpc->get_z() << std::endl; 
+	std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " phi " << tpc_phi << " pt " << tpc_pt << " tpc z " << _tracklet_tpc->get_z() << std::endl; 
 
       // this factor will increase the window size at low pT
       // otherwise the matching efficiency drops off at low pT
@@ -406,7 +405,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    { continue; }
 
 	  bool phi_match = false;
-	  double si_phi = _tracklet_si->get_phi(_cluster_map,_tGeometry);
+	  double si_phi = _tracklet_si->get_phi();
 	  if(  fabs(tpc_phi - si_phi)  < _phi_search_win * mag) phi_match = true;
 	  if(  fabs( fabs(tpc_phi - si_phi)  - 2.0 * M_PI)  < _phi_search_win * mag ) phi_match = true;
 	  if(!phi_match) continue;

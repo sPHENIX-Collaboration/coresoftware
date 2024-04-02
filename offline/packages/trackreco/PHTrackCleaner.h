@@ -42,9 +42,10 @@ class PHTrackCleaner : public SubsysReco
   int GetNodes(PHCompositeNode* topNode);
   void findGhostTracks();
 
-SvtxTrackMap *_track_map{nullptr};
-SvtxTrack *_track{nullptr};
- TrackSeedContainer *_tpc_seed_map{nullptr};
+  SvtxTrackMap *_track_map{nullptr};
+  SvtxTrack *_track{nullptr};
+  TrackSeedContainer *_tpc_seed_map{nullptr};
+  TrackSeedContainer *_silicon_seed_map{nullptr};
 
  double min_ndf = 25;
  float quality_cut = 15.0;
