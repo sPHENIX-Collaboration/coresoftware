@@ -25,6 +25,7 @@ int DumpGl1RawHit::process_Node(PHNode *myNode)
   }
   if (gl1rawhit)
   {
+    *fout << "getEvtSequence: " << gl1rawhit->getEvtSequence() << std::endl;
     *fout << "get_bco: " << gl1rawhit->get_bco() << std::endl;
   }
   return 0;

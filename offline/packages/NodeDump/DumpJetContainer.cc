@@ -48,16 +48,18 @@ int DumpJetContainer::process_Node(PHNode *myNode)
       *fout << "mass: " << jet->get_mass() << std::endl;
       // print out the jet properties
 
-      for (auto prop : jets->property_indices()) {
-          *fout << "prop id: " << static_cast<unsigned int>(prop.first)
-                << " value: " << jet->get_property(prop.second)
-                << std::endl;
+      for (auto prop : jets->property_indices())
+      {
+        *fout << "prop id: " << static_cast<unsigned int>(prop.first)
+              << " value: " << jet->get_property(prop.second)
+              << std::endl;
       }
       /* Jet::ConstIter jetbegin = jiter->second->begin_comp(); */
       /* Jet::ConstIter jetend = jiter->second->end_comp(); */
       /* for (Jet::ConstIter jetiter = jetbegin; jetiter != jetend; ++jetiter) */
       /* { */
-      for (const auto& comp : jet->get_comp_vec()) {
+      for (const auto &comp : jet->get_comp_vec())
+      {
         *fout << "src: " << comp.first << " value: " << comp.second << std::endl;
       }
     }
