@@ -166,6 +166,7 @@ MbdSig::~MbdSig()
   delete hAmpl;
   delete hTime;
   delete template_fcn;
+  delete ped_fcn;
 }
 
 // This sets y, and x to sample number (starts at 0)
