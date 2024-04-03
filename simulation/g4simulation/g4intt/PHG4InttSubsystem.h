@@ -75,7 +75,7 @@ class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
   std::string m_AbsorberNodeName;
 
   //! whether to use the survey geometry
-  bool m_UseSurveyGeometry = false;
+  bool m_UseSurveyGeometry = true;
 };
 
 #endif
