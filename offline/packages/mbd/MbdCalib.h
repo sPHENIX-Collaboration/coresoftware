@@ -113,12 +113,6 @@ class MbdCalib : public Fun4AllBase
   std::array<float, MbdDefs::MBD_N_PMT> _tqfit_t0sigma{};
   std::array<float, MbdDefs::MBD_N_PMT> _tqfit_t0sigmaerr{};
 
-  // Slew Correction
-  std::array<int, MbdDefs::MBD_N_FEECH>   _slew_npts{};      // num points in template
-  std::array<float, MbdDefs::MBD_N_FEECH> _slew_minrange{};  // in template units (samples)
-  std::array<float, MbdDefs::MBD_N_FEECH> _slew_maxrange{};  // in template units (samples)
-  std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _slew_y{};
-
   // Peak of waveform
   std::array<int, MbdDefs::MBD_N_FEECH> _sampmax{};
 
