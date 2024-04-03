@@ -202,11 +202,24 @@ std::vector<double> PHTpcCentralMembraneMatcher::getRPeaks(TH2F *r_phi){
   std::vector<double> finalRHeights;
   std::vector<std::vector<int>> groupR;
   
+  proj->GetXaxis()->SetRangeUser(0,41);
+  double maxR1 = proj->GetMaximum();
+
+  proj->GetXaxis()->SetRangeUser(41,58);
+  double maxR2 = proj->GetMaximum();
+
+  proj->GetXaxis()->SetRangeUser(58,100);
+  double maxR3 = proj->GetMaximum();
+
+  proj->GetXaxis()->SetRange(0,0);
+
+
 
   for(int i=2; i<proj->GetNbinsX(); i++){
     //peak is when content is higher than 0.15* maximum value and content is greater than or equal to both adjacent bins
     //if(proj->GetBinContent(i) > 0.15*proj->GetMaximum() && proj->GetBinContent(i) >= proj->GetBinContent(i-1) && proj->GetBinContent(i) >= proj->GetBinContent(i+1)){
-    if(proj->GetBinContent(i) > 0.15*proj->GetMaximum()){
+    if((proj->GetBinCenter(i) < 41.0 && proj->GetBinContent(i) > 0.15*maxR1) || (proj->GetBinCenter(i) >= 41.0 && proj->GetBinCenter(i) < 58.0 && proj->GetBinContent(i) > 0.15*maxR2) || (proj->GetBinCenter(i) >= 58.0 && proj->GetBinContent(i) > 0.15*maxR3)){
+    //    if(proj->GetBinContent(i) > 0.15*proj->GetMaximum()){
       rPeaks.push_back(proj->GetBinCenter(i));
       rHeights.push_back(proj->GetBinContent(i));
     }
@@ -446,6 +459,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   std::vector<unsigned int> adc2;
   std::vector<unsigned int> layer1;
   std::vector<unsigned int> layer2;
+
+
 
   // reset output distortion correction container histograms
   for( const auto& harray:{m_dcc_out->m_hDRint, m_dcc_out->m_hDPint, m_dcc_out->m_hDZint, m_dcc_out->m_hentries} )
@@ -900,6 +915,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     cmdiff->setRecoR(reco_pos[p.second].Perp());
     cmdiff->setRecoZ(reco_pos[p.second].Z());
     cmdiff->setNclusters(reco_nhits[p.second]);
+
+    if( Verbosity() > 1) std::cout << "adding cmdiff to container with key " << key << " in event " << m_event_index << std::endl;
     
     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
     
@@ -1070,6 +1087,14 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   
   PHNodeIterator iter(topNode);
 
+  // Looking for the DST node
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+    {
+      std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
   // Looking for the RUN node
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
@@ -1078,11 +1103,35 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }      
   PHNodeIterator runiter(runNode);
-  m_cm_flash_diffs = new CMFlashDifferenceContainerv1;
-  PHIODataNode<PHObject> *CMFlashDifferenceNode =
-    new PHIODataNode<PHObject>(m_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
-  runNode->addNode(CMFlashDifferenceNode);
+  //auto flashDiffContainer = findNode::getClass<CMFlashDifferenceContainerv1>(runNode, "CM_FLASH_DIFFERENCES");
+  auto flashDiffContainer = findNode::getClass<CMFlashDifferenceContainerv1>(topNode, "CM_FLASH_DIFFERENCES");
+  if (!flashDiffContainer)
+    {
+
+      PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+      dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+      {
+	DetNode = new PHCompositeNode("TRKR");
+	dstNode->addNode(DetNode);
+      }
+
+      flashDiffContainer = new CMFlashDifferenceContainerv1;
+      PHIODataNode<PHObject> *CMFlashDifferenceNode =
+	new PHIODataNode<PHObject>(flashDiffContainer, "CM_FLASH_DIFFERENCES", "PHObject");
+      //runNode->addNode(CMFlashDifferenceNode);
+      DetNode->addNode(CMFlashDifferenceNode);
+    }
   
+  
+  //m_cm_flash_diffs = findNode::getClass<CMFlashDifferenceContainerv1>(runNode, "CM_FLASH_DIFFERENCES");
+  m_cm_flash_diffs = findNode::getClass<CMFlashDifferenceContainerv1>(topNode, "CM_FLASH_DIFFERENCES");
+  if (!m_cm_flash_diffs)
+    {
+      std::cout << PHWHERE << " ERROR: Can't find CM_FLASH_DIFFERENCES." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
 
   /*

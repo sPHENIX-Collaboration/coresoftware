@@ -65,16 +65,25 @@ class LaserClusterv1 : public LaserCluster
   unsigned int getAdc() const override { return m_adc; }
   void setAdc(unsigned int adc) override { m_adc = adc; }
 
-  void addHit() override {m_hitVec.push_back({0.0,0.0,0.0,0.0}); }
+  void addHit() override {m_hitVec.push_back({0.0,0.0,0.0,0.0}); m_hitVecHardware.push_back({0.0,0.0,0.0}); }
 
-  void setHitLayer(int i, float layer) override {m_hitVec[i][0] = layer; }
-  float getHitLayer(int i) const override { return m_hitVec[i][0]; }
+  void setHitLayer(int i, float layer) override {m_hitVecHardware[i][0] = layer; }
+  float getHitLayer(int i) const override { return m_hitVecHardware[i][0]; }
 
-  void setHitIPhi(int i, float iphi) override {m_hitVec[i][1] = iphi; }
-  float getHitIPhi(int i) const override { return m_hitVec[i][1]; }
+  void setHitIPhi(int i, float iphi) override {m_hitVecHardware[i][1] = iphi; }
+  float getHitIPhi(int i) const override { return m_hitVecHardware[i][1]; }
 
-  void setHitIT(int i, float it) override {m_hitVec[i][2] = it; }
-  float getHitIT(int i) const override { return m_hitVec[i][2]; }
+  void setHitIT(int i, float it) override {m_hitVecHardware[i][2] = it; }
+  float getHitIT(int i) const override { return m_hitVecHardware[i][2]; }
+
+  void setHitX(int i, float x) override {m_hitVec[i][0] = x; }
+  float getHitX(int i) const override { return m_hitVec[i][0]; }
+
+  void setHitY(int i, float y) override {m_hitVec[i][1] = y; }
+  float getHitY(int i) const override { return m_hitVec[i][1]; }
+
+  void setHitZ(int i, float z) override {m_hitVec[i][2] = z; }
+  float getHitZ(int i) const override { return m_hitVec[i][2]; }
 
   void setHitAdc(int i, float adc) override {m_hitVec[i][3] = adc; }
   float getHitAdc(int i) const override { return m_hitVec[i][3]; }
@@ -87,6 +96,7 @@ class LaserClusterv1 : public LaserCluster
   float m_posHardware[3] = {NAN, NAN, NAN};
 
   std::vector<std::vector<float>> m_hitVec;
+  std::vector<std::vector<float>> m_hitVecHardware;
 
   /// cluster sum adc
   unsigned int m_adc = 0xFFFFFFFF;

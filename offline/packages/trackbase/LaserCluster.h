@@ -71,8 +71,7 @@ class LaserCluster : public PHObject
   virtual void setNhits( unsigned int) {}
 
   virtual void addHit() {}
-  virtual unsigned int getHitCount() const { return UINT_MAX; }
-
+ 
   virtual void setHitLayer(int, float) {}
   virtual float getHitLayer(int) const { return NAN; }
 
@@ -82,6 +81,15 @@ class LaserCluster : public PHObject
   virtual void setHitIT(int, float) {}
   virtual float getHitIT(int) const { return NAN; }
 
+  virtual void setHitX(int, float) {}
+  virtual float getHitX(int) const { return NAN; }
+
+  virtual void setHitY(int, float) {}
+  virtual float getHitY(int) const { return NAN; }
+
+  virtual void setHitZ(int, float) {}
+  virtual float getHitZ(int) const { return NAN; }
+ 
   virtual void setHitAdc(int, float) {}
   virtual float getHitAdc(int) const { return NAN; }
 
