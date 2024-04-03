@@ -8,18 +8,12 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 
 #include <Acts/Definitions/Algebra.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wunused-value"
-#include <Acts/Propagator/Propagator.hpp>
-#pragma GCC diagnostic pop
 
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
@@ -78,10 +72,6 @@ class KshortReconstruction : public SubsysReco
 
   bool projectTrackToCylinder(SvtxTrack* track, double Radius, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
   bool projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
-
-  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const SurfacePtr& targetSurf);
-
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
 
   Acts::Vector3 getVertex(SvtxTrack* track);
 

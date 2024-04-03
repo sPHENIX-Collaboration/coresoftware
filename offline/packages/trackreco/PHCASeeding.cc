@@ -20,6 +20,8 @@
 // tpc distortion correction
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
+#include <phfield/PHFieldConfigv2.h>
+
 // trackbase_historic includes
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
@@ -28,7 +30,7 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 //ROOT includes for debugging
 #include <TFile.h>
@@ -215,18 +217,28 @@ Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster*
   auto globalpos = tGeometry->getGlobalPosition(key, cluster);
 
   // check if TPC distortion correction are in place and apply
-  if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
+  if( m_dcc && !(_pp_mode)) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
 
   return globalpos;
 }
 
 void PHCASeeding::QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const
 {
-  double phimin_2pi = phimin;
-  double phimax_2pi = phimax;
-  if (phimin < 0) phimin_2pi = 2*M_PI+phimin;
-  if (phimax > 2*M_PI) phimax_2pi = phimax-2*M_PI;
-  rtree.query(bgi::intersects(box(point(phimin_2pi, etamin, lmin), point(phimax_2pi, etamax, lmax))), std::back_inserter(returned_values));
+  bool query_both_ends = false;
+  if (phimin<0) {
+    query_both_ends = true;
+    phimin += 2*M_PI;
+  }
+  if (phimax>2*M_PI) {
+    query_both_ends = true;
+    phimax -= 2*M_PI;
+  }
+  if (query_both_ends) {
+    rtree.query(bgi::intersects(box(point(phimin, etamin, lmin), point(2*M_PI, etamax, lmax))), std::back_inserter(returned_values));
+    rtree.query(bgi::intersects(box(point(    0., etamin, lmin), point(phimax, etamax, lmax))), std::back_inserter(returned_values));
+  } else {
+    rtree.query(bgi::intersects(box(point(phimin, etamin, lmin), point(phimax, etamax, lmax))), std::back_inserter(returned_values));
+  }
 }
 
 PositionMap PHCASeeding::FillTree()
@@ -354,7 +366,7 @@ int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
   std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters), globalPositions);
   std::vector<std::vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
   std::vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,globalPositions);
-  std::vector<TrackSeed_v1> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
+  std::vector<TrackSeed_v2> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
    
   publishSeeds(seeds);
   return seeds.size();
@@ -854,10 +866,10 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   return trackSeedKeyLists;
 }
 
-std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
+std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
 {
   if(Verbosity()>0) std::cout << "removing bad clusters" << std::endl;
-  std::vector<TrackSeed_v1> clean_chains;
+  std::vector<TrackSeed_v2> clean_chains;
 
   for(const auto& chain : chains)
   {
@@ -878,10 +890,10 @@ std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keyli
     if( std::isnan( R ) ) continue;
 
     // calculate residuals
-    const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+    const std::vector<double> xy_resid = TrackFitUtils::getCircleClusterResiduals(xy_pts,R,X0,Y0);
     
     // assign clusters to seed
-    TrackSeed_v1 trackseed;
+    TrackSeed_v2 trackseed;
     for(size_t i=0;i<chain.size();i++)
     {
       //if(xy_resid[i]>_xy_outlier_threshold) continue;
@@ -896,12 +908,12 @@ std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keyli
 }
 
 
-void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
+void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v2>& seeds)
 {
  
   for( const auto&  seed:seeds )
   {
-    auto pseed = std::make_unique<TrackSeed_v1>(seed);
+    auto pseed = std::make_unique<TrackSeed_v2>(seed);
     if(Verbosity() > 4)
       { pseed->identify(); }
     _track_map->insert(pseed.get());
@@ -929,18 +941,30 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   t_seed = std::make_unique<PHTimer>("t_seed");
   t_fill->stop();
   t_seed->stop();
-  PHFieldConfigv1 fcfg;
-  fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-  char *calibrationsroot = getenv("CALIBRATIONROOT");
-  assert(calibrationsroot);
-  auto magField = std::string(calibrationsroot) +
-    std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
-  fcfg.set_filename(magField);
+
   //  fcfg.set_rescale(1);
-  std::unique_ptr<PHField> field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
+  std::unique_ptr<PHField> field_map;
+  if(_use_const_field)
+    {
+      PHFieldConfigv2 fcfg(0,0,_const_field);
+      field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg)); 
+    }
+  else
+    {
+      
+      PHFieldConfigv1 fcfg;
+      fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+      char *calibrationsroot = getenv("CALIBRATIONROOT");
+      assert(calibrationsroot);
+      auto magField = std::string(calibrationsroot) +
+	std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+      fcfg.set_filename(magField);
+      field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
+    }
 
   fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,field_map.get(),_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
+  fitter->setConstBField(_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));

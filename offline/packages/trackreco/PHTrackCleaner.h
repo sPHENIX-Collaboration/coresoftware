@@ -35,17 +35,20 @@ class PHTrackCleaner : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
  void set_pp_mode(const bool flag){_pp_mode = flag ;}
+ void set_quality_cut(const float cut) {quality_cut = cut;}
 
  private:
 
   int GetNodes(PHCompositeNode* topNode);
   void findGhostTracks();
 
-SvtxTrackMap *_track_map{nullptr};
-SvtxTrack *_track{nullptr};
- TrackSeedContainer *_tpc_seed_map{nullptr};
+  SvtxTrackMap *_track_map{nullptr};
+  SvtxTrack *_track{nullptr};
+  TrackSeedContainer *_tpc_seed_map{nullptr};
+  TrackSeedContainer *_silicon_seed_map{nullptr};
 
  double min_ndf = 25;
+ float quality_cut = 15.0;
  bool _pp_mode = false;
 
 };

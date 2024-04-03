@@ -6,9 +6,11 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
+#include "MicromegasCalibrationData.h"
+
 #include <fun4all/SubsysReco.h>
 
-#include <string>        
+#include <string>
 
 class PHCompositeNode;
 
@@ -20,23 +22,47 @@ class MicromegasClusterizer : public SubsysReco
   //! constructor
   MicromegasClusterizer( const std::string &name = "MicromegasClusterizer" );
 
+  /// global initialization
+  int Init(PHCompositeNode*) override;
+
   //! run initialization
   int InitRun(PHCompositeNode*) override;
 
   //! event processing
   int process_event(PHCompositeNode*) override;
 
-  //! cluster version
-  void set_cluster_version(int value) { m_cluster_version = value; }
+  /// set default pedestal
+  void set_default_pedestal( double value )
+  { m_default_pedestal = value; }
 
-  //! read raw data 
-  /** not implemented for now */
-  void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
+  /// set whether default pedestal is used or not
+  void set_use_default_pedestal( bool value )
+  { m_use_default_pedestal = value; }
+
+  /// calibration file
+  void set_calibration_file( const std::string& value )
+  { m_calibration_filename = value; }
 
   private:
 
-  bool do_read_raw = false;
-  int m_cluster_version = 4;
+  //!@name calibration filename
+  //@{
+
+  /// if true, use default pedestal to get hit charge. Relies on calibration data otherwise
+  bool m_use_default_pedestal = true;
+
+  /// default pedestal
+  double m_default_pedestal = 74.6;
+
+  /// calibration filename
+  std::string m_calibration_filename;
+
+  /// calibration data
+  MicromegasCalibrationData m_calibration_data;
+
+  //@}
+
+
 };
 
 #endif

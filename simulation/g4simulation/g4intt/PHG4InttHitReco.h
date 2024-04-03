@@ -15,6 +15,7 @@
 
 class PHCompositeNode;
 
+class ClusHitsVerbosev1;
 class PHG4Hit;
 class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
@@ -74,9 +75,14 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 
   double m_pixel_thresholdrat { 0.01 };
   float  max_g4hitstep        { 2.0  };
+  bool  record_ClusHitsVerbose { false };
+
   public:
   void set_pixel_thresholdrat (double val) { m_pixel_thresholdrat =   val; };
   void set_max_g4hitstep      (float  _)   { max_g4hitstep        =_; };
+
+  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
+  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
 
 };
 

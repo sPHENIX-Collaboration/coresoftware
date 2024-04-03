@@ -10,10 +10,8 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>    // for SvtxTrackState
-#include <trackbase_historic/SvtxVertexMap.h>     // for SvtxVertexMap
-#include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxVertex.h>        // for SvtxVertex
-#include <trackbase_historic/SvtxVertex_v1.h>
+#include <globalvertex/SvtxVertexMap_v1.h>
+#include <globalvertex/SvtxVertex_v1.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 
@@ -114,6 +112,12 @@ int PHRaveVertexing::InitRun(PHCompositeNode* topNode)
   _fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
                                           field, "DafRef",
                                           "RKTrackRep", false);
+  if (!_fitter)
+  {
+    std::cout << PHWHERE << " PHGenFit::Fitter::getInstance returned nullptr" 
+	      << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   _fitter->set_verbosity(Verbosity());
 
   if (!_fitter)
@@ -123,14 +127,14 @@ int PHRaveVertexing::InitRun(PHCompositeNode* topNode)
   }
 
   _vertex_finder = new genfit::GFRaveVertexFactory(Verbosity());
+  if (!_vertex_finder)
+  {
+    std::cout << PHWHERE << " genfit::GFRaveVertexFactory returned null ptr" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   _vertex_finder->setMethod(_vertexing_method.data());
   //_vertex_finder->setBeamspot();
 
-  if (!_vertex_finder)
-  {
-    cerr << PHWHERE << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
 
   _t_translate = new PHTimer("_t_translate");
   _t_translate->stop();

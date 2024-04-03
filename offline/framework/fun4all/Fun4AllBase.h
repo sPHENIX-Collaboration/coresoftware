@@ -3,7 +3,7 @@
 #ifndef FUN4ALL_FUN4ALLBASE_H
 #define FUN4ALL_FUN4ALLBASE_H
 
-#include <climits>  // std::numeric_limits
+#include <limits>  // std::numeric_limits
 #include <string>
 
 /** Base class for all Fun4All Classes
@@ -51,7 +51,7 @@ class Fun4AllBase
     // ... use your imagination ...
 
     //! Show all messages. Useful for step-by-step debugging
-    VERBOSITY_MAX = INT_MAX - 10
+    VERBOSITY_MAX = std::numeric_limits<int>::max() - 10
 
   };
 

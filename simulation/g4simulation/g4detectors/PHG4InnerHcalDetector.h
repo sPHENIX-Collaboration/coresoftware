@@ -11,7 +11,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <CGAL/Cartesian.h>  // for Cartesian_base_ref_count::...
 #include <CGAL/Exact_circular_kernel_2.h>
-#include <CGAL/Point_2.h>    // for Point_2
+#include <CGAL/Point_2.h>  // for Point_2
 #pragma GCC diagnostic pop
 
 #include <map>

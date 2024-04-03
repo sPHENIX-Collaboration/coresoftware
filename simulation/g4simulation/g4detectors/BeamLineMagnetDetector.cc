@@ -143,8 +143,8 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     G4double fieldGradient = m_Params->get_double_param("fieldgradient") * tesla / meter;
 
     /* G4MagneticField::GetFieldValue( pos*, B* ) uses GLOBAL coordinates, not local.
-       * Therefore, place magnetic field center at the correct location and angle for the
-       * magnet AND do the same transformations for the logical volume (see below). */
+     * Therefore, place magnetic field center at the correct location and angle for the
+     * magnet AND do the same transformations for the logical volume (see below). */
     m_magField = new G4QuadrupoleMagField(fieldGradient, field_origin, field_rotm);
 
     if (Verbosity() > 0)

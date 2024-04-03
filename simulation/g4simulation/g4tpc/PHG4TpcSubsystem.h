@@ -24,8 +24,8 @@ class PHG4TpcSubsystem : public PHG4DetectorSubsystem
 
   /*!
   called during InitRun (the original InitRun does common setup and calls this one)
-  creates the detector object 
-  ceates the stepping action 
+  creates the detector object
+  ceates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode *) override;
@@ -52,15 +52,15 @@ class PHG4TpcSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4TpcDetector *m_Detector = nullptr;
+  PHG4TpcDetector *m_Detector{nullptr};
 
   //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
-  PHG4SteppingAction *m_SteppingAction = nullptr;
+  PHG4SteppingAction *m_SteppingAction{nullptr};
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction = nullptr;
+  PHG4DisplayAction *m_DisplayAction{nullptr};
 
   std::string m_HitNodeName;
   std::string m_AbsorberNodeName;

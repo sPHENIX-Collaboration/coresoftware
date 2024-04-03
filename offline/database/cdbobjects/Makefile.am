@@ -14,15 +14,7 @@ libcdbobjects_la_SOURCES = \
   CDBTTree.cc
 
 libcdbobjects_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
-
-libcdbobjects_la_LIBADD = \
-  -lboost_system \
-  -lffamodules \
-  -lphool
-
+  `root-config --libs`
 
 ##############################################
 # please add new classes in alphabetical order

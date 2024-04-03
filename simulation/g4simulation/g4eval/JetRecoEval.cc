@@ -12,8 +12,8 @@
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 
-#include <g4jets/Jet.h>
-#include <g4jets/JetMap.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetContainer.h>
 
 #include <g4main/PHG4Particle.h>
 
@@ -32,42 +32,12 @@
 #include <set>
 #include <string>
 
-using namespace std;
-
 JetRecoEval::JetRecoEval(PHCompositeNode* topNode,
                          const std::string& recojetname,
                          const std::string& truthjetname)
   : _jettrutheval(topNode, truthjetname)
   , _recojetname(recojetname)
   , _truthjetname(truthjetname)
-  , _recojets(nullptr)
-  , _truthjets(nullptr)
-  , _trackmap(nullptr)
-  , _cemctowers(nullptr)
-  , _cemcclusters(nullptr)
-  , _hcalintowers(nullptr)
-  , _hcalinclusters(nullptr)
-  , _hcalouttowers(nullptr)
-  , _hcaloutclusters(nullptr)
-  , _femctowers(nullptr)
-  , _femcclusters(nullptr)
-  , _fhcaltowers(nullptr)
-  , _fhcalclusters(nullptr)
-  , _eemctowers(nullptr)
-  , _eemcclusters(nullptr)
-  , _strict(false)
-  , _verbosity(1)
-  , _errors(0)
-  , _do_cache(true)
-  , _cache_all_truth_showers()
-  , _cache_all_truth_particles()
-  , _cache_all_truth_jets()
-  , _cache_max_truth_jet_by_energy()
-  , _cache_all_jets_from()
-  , _cache_best_jet_from()
-  , _cache_get_energy_contribution()
-  , _cache_get_energy_contribution_src()
-  , _cache_all_truth_hits()
 {
   get_node_pointers(topNode);
 }
@@ -78,7 +48,7 @@ JetRecoEval::~JetRecoEval()
   {
     if ((_errors > 0) || (_verbosity > 1))
     {
-      cout << "JetRecoEval::~JetRecoEval() - Error Count: " << _errors << endl;
+      std::cout << "JetRecoEval::~JetRecoEval() - Error Count: " << _errors << std::endl;
     }
   }
 }
@@ -100,10 +70,10 @@ void JetRecoEval::next_event(PHCompositeNode* topNode)
   get_node_pointers(topNode);
 }
 
-void JetRecoEval:: set_track_nodename (const string & name) 
+void JetRecoEval::set_track_nodename(const std::string& name)
 {
   m_TrackNodeName = name;
-  _jettrutheval.set_track_nodename (name);
+  _jettrutheval.set_track_nodename(name);
 }
 
 std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
@@ -132,13 +102,10 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
 
   // loop over all the jet constituents, backtrack each reco object to the
   // truth hits and combine with other consituents
-
-  for (Jet::ConstIter iter = recojet->begin_comp();
-       iter != recojet->end_comp();
-       ++iter)
+  for (auto jter : recojet->get_comp_vec())
   {
-    Jet::SRC source = iter->first;
-    unsigned int index = iter->second;
+      Jet::SRC source = jter.first;
+      unsigned int index = jter.second;
 
     std::set<PHG4Shower*> new_showers;
 
@@ -146,7 +113,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_trackmap)
       {
-        cout << PHWHERE << "ERROR: can't find SvtxTrackMap" << endl;
+        std::cout << PHWHERE << "ERROR: can't find SvtxTrackMap" << std::endl;
         exit(-1);
       }
 
@@ -162,7 +129,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_cemctowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_CEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_CEMC" << std::endl;
         exit(-1);
       }
 
@@ -184,7 +151,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_cemcclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_CEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_CEMC" << std::endl;
         exit(-1);
       }
 
@@ -206,7 +173,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_eemctowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_EEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_EEMC" << std::endl;
         exit(-1);
       }
 
@@ -228,7 +195,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_eemcclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_EEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_EEMC" << std::endl;
         exit(-1);
       }
 
@@ -250,7 +217,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_hcalintowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_HCALIN" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_HCALIN" << std::endl;
         exit(-1);
       }
 
@@ -272,7 +239,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_hcalinclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_HCALIN" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_HCALIN" << std::endl;
         exit(-1);
       }
 
@@ -294,7 +261,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_hcalouttowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_HCALOUT" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_HCALOUT" << std::endl;
         exit(-1);
       }
 
@@ -316,7 +283,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_hcaloutclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_HCALOUT" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_HCALOUT" << std::endl;
         exit(-1);
       }
 
@@ -338,7 +305,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_femctowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_FEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_FEMC" << std::endl;
         exit(-1);
       }
 
@@ -360,7 +327,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_femcclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_FEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_FEMC" << std::endl;
         exit(-1);
       }
 
@@ -382,7 +349,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_fhcaltowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_FHCAL" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_FHCAL" << std::endl;
         exit(-1);
       }
 
@@ -404,7 +371,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
     {
       if (!_fhcalclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_FHCAL" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_FHCAL" << std::endl;
         exit(-1);
       }
 
@@ -423,15 +390,16 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
       new_showers = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_primary_showers(cluster);
     }
 
-    for (std::set<PHG4Shower*>::iterator jter = new_showers.begin();
-         jter != new_showers.end();
-         ++jter)
+    for (auto new_shower : new_showers)
     {
-      truth_showers.insert(*jter);
+      truth_showers.insert(new_shower);
     }
   }
 
-  if (_do_cache) _cache_all_truth_showers.insert(make_pair(recojet, truth_showers));
+  if (_do_cache)
+  {
+    _cache_all_truth_showers.insert(std::make_pair(recojet, truth_showers));
+  }
 
   return truth_showers;
 }
@@ -462,13 +430,10 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
 
   // loop over all the jet constituents, backtrack each reco object to the
   // truth hits and combine with other consituents
-
-  for (Jet::ConstIter iter = recojet->begin_comp();
-       iter != recojet->end_comp();
-       ++iter)
+  for (auto jter : recojet->get_comp_vec())
   {
-    Jet::SRC source = iter->first;
-    unsigned int index = iter->second;
+      Jet::SRC source = jter.first;
+      unsigned int index = jter.second;
 
     std::set<PHG4Particle*> new_particles;
 
@@ -476,7 +441,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_trackmap)
       {
-        cout << PHWHERE << "ERROR: can't find TrackMap" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TrackMap" << std::endl;
         exit(-1);
       }
 
@@ -498,7 +463,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_cemctowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_CEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_CEMC" << std::endl;
         exit(-1);
       }
 
@@ -520,7 +485,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_cemcclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_CEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_CEMC" << std::endl;
         exit(-1);
       }
 
@@ -542,7 +507,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_eemctowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_EEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_EEMC" << std::endl;
         exit(-1);
       }
 
@@ -564,7 +529,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_eemcclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_EEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_EEMC" << std::endl;
         exit(-1);
       }
 
@@ -586,7 +551,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_hcalintowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_HCALIN" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_HCALIN" << std::endl;
         exit(-1);
       }
 
@@ -608,7 +573,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_hcalinclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_HCALIN" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_HCALIN" << std::endl;
         exit(-1);
       }
 
@@ -630,7 +595,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_hcalouttowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_HCALOUT" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_HCALOUT" << std::endl;
         exit(-1);
       }
 
@@ -652,7 +617,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_hcaloutclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_HCALOUT" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_HCALOUT" << std::endl;
         exit(-1);
       }
 
@@ -674,7 +639,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_femctowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_FEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_FEMC" << std::endl;
         exit(-1);
       }
 
@@ -696,7 +661,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_femcclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_FEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_FEMC" << std::endl;
         exit(-1);
       }
 
@@ -718,7 +683,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_fhcaltowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_FHCAL" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_FHCAL" << std::endl;
         exit(-1);
       }
 
@@ -740,7 +705,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
     {
       if (!_fhcalclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_FHCAL" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_FHCAL" << std::endl;
         exit(-1);
       }
 
@@ -759,15 +724,16 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
       new_particles = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_primary_particles(cluster);
     }
 
-    for (std::set<PHG4Particle*>::iterator jter = new_particles.begin();
-         jter != new_particles.end();
-         ++jter)
+    for (auto new_particle : new_particles)
     {
-      truth_particles.insert(*jter);
+      truth_particles.insert(new_particle);
     }
   }
 
-  if (_do_cache) _cache_all_truth_particles.insert(make_pair(recojet, truth_particles));
+  if (_do_cache)
+  {
+    _cache_all_truth_particles.insert(std::make_pair(recojet, truth_particles));
+  }
 
   return truth_particles;
 }
@@ -800,12 +766,8 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet)
   std::set<PHG4Particle*> particles = all_truth_particles(recojet);
 
   // backtrack from the truth particles to the truth jets...
-  for (std::set<PHG4Particle*>::iterator iter = particles.begin();
-       iter != particles.end();
-       ++iter)
+  for (auto particle : particles)
   {
-    PHG4Particle* particle = *iter;
-
     if (_strict)
     {
       assert(particle);
@@ -817,12 +779,18 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet)
     }
 
     Jet* truth_jet = _jettrutheval.get_truth_jet(particle);
-    if (!truth_jet) continue;
+    if (!truth_jet)
+    {
+      continue;
+    }
 
     truth_jets.insert(truth_jet);
   }
 
-  if (_do_cache) _cache_all_truth_jets.insert(make_pair(recojet, truth_jets));
+  if (_do_cache)
+  {
+    _cache_all_truth_jets.insert(std::make_pair(recojet, truth_jets));
+  }
 
   return truth_jets;
 }
@@ -853,12 +821,8 @@ Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet)
   float max_energy = FLT_MAX * -1.0;
 
   std::set<Jet*> truthjets = all_truth_jets(recojet);
-  for (std::set<Jet*>::iterator iter = truthjets.begin();
-       iter != truthjets.end();
-       ++iter)
+  for (auto candidate : truthjets)
   {
-    Jet* candidate = *iter;
-
     if (_strict)
     {
       assert(candidate);
@@ -877,7 +841,10 @@ Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet)
     }
   }
 
-  if (_do_cache) _cache_max_truth_jet_by_energy.insert(make_pair(recojet, truthjet));
+  if (_do_cache)
+  {
+    _cache_max_truth_jet_by_energy.insert(std::make_pair(recojet, truthjet));
+  }
 
   return truthjet;
 }
@@ -907,20 +874,14 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet)
   std::set<Jet*> recojets;
 
   // loop over all reco jets
-  for (JetMap::Iter iter = _recojets->begin();
-       iter != _recojets->end();
-       ++iter)
+  for (auto recojet : *_recojets)
   {
-    Jet* recojet = iter->second;
+    /* Jet* recojet = _recojet.second; */
 
     // if this jet back tracks to the truth jet
     std::set<Jet*> truthcandidates = all_truth_jets(recojet);
-    for (std::set<Jet*>::iterator jter = truthcandidates.begin();
-         jter != truthcandidates.end();
-         ++jter)
+    for (auto truthcandidate : truthcandidates)
     {
-      Jet* truthcandidate = *jter;
-
       if (_strict)
       {
         assert(truthcandidate);
@@ -938,13 +899,17 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet)
     }
   }
 
-  if (_do_cache) _cache_all_jets_from.insert(make_pair(truthjet, recojets));
+  if (_do_cache)
+  {
+    _cache_all_jets_from.insert(std::make_pair(truthjet, recojets));
+  }
 
   return recojets;
 }
 
 Jet* JetRecoEval::best_jet_from(Jet* truthjet)
 {
+
   if (_strict)
   {
     assert(truthjet);
@@ -969,12 +934,8 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet)
   float max_energy = FLT_MAX * -1.0;
 
   std::set<Jet*> recojets = all_jets_from(truthjet);
-  for (std::set<Jet*>::iterator iter = recojets.begin();
-       iter != recojets.end();
-       ++iter)
+  for (auto recojet : recojets)
   {
-    Jet* recojet = *iter;
-
     if (_strict)
     {
       assert(recojet);
@@ -993,8 +954,10 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet)
     }
   }
 
-  if (_do_cache) _cache_best_jet_from.insert(make_pair(truthjet, bestrecojet));
-
+  if (_do_cache)
+  {
+    _cache_best_jet_from.insert(std::make_pair(truthjet, bestrecojet));
+  }
   return bestrecojet;
 }
 
@@ -1017,12 +980,18 @@ Jet* JetRecoEval::unique_reco_jet_from_truth(Jet* truthjet)
     Jet* back_matching = max_truth_jet_by_energy(recojet);
 
     if (back_matching->get_id() == truthjet->get_id())
+    {
       return recojet;  // uniquely matched
+    }
     else
+    {
       return nullptr;
+    }
   }
   else
+  {
     return nullptr;
+  }
 }
 
 Jet* JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
@@ -1044,12 +1013,18 @@ Jet* JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
     Jet* back_matching = best_jet_from(truthjet);
 
     if (back_matching->get_id() == recojet->get_id())
+    {
       return truthjet;  // uniquely matched
+    }
     else
+    {
       return nullptr;
+    }
   }
   else
+  {
     return nullptr;
+  }
 }
 
 // overlap calculations
@@ -1069,7 +1044,7 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
   if (_do_cache)
   {
     std::map<std::pair<Jet*, Jet*>, float>::iterator iter =
-        _cache_get_energy_contribution.find(make_pair(recojet, truthjet));
+        _cache_get_energy_contribution.find(std::make_pair(recojet, truthjet));
     if (iter != _cache_get_energy_contribution.end())
     {
       return iter->second;
@@ -1080,12 +1055,8 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
 
   std::set<PHG4Particle*> truthjetcomp = get_truth_eval()->all_truth_particles(truthjet);
   // loop over all truthjet constituents
-  for (std::set<PHG4Particle*>::iterator iter = truthjetcomp.begin();
-       iter != truthjetcomp.end();
-       ++iter)
+  for (auto truthparticle : truthjetcomp)
   {
-    PHG4Particle* truthparticle = *iter;
-
     if (_strict)
     {
       assert(truthparticle);
@@ -1096,13 +1067,10 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
       continue;
     }
 
-    // loop over all recojet constituents
-    for (Jet::ConstIter jter = recojet->begin_comp();
-         jter != recojet->end_comp();
-         ++jter)
+    for (auto jter : recojet->get_comp_vec())
     {
-      Jet::SRC source = jter->first;
-      unsigned int index = jter->second;
+      Jet::SRC source = jter.first;
+      unsigned int index = jter.second;
 
       float energy = 0.0;
 
@@ -1329,7 +1297,10 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
     }
   }
 
-  if (_do_cache) _cache_get_energy_contribution.insert(make_pair(make_pair(recojet, truthjet), energy_contribution));
+  if (_do_cache)
+  {
+    _cache_get_energy_contribution.insert(std::make_pair(std::make_pair(recojet, truthjet), energy_contribution));
+  }
 
   return energy_contribution;
 }
@@ -1350,18 +1321,18 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet::SRC src)
   if (_do_cache)
   {
     std::map<std::pair<Jet*, Jet::SRC>, float>::iterator iter =
-        _cache_get_energy_contribution_src.find(make_pair(recojet, src));
+        _cache_get_energy_contribution_src.find(std::make_pair(recojet, src));
     if (iter != _cache_get_energy_contribution_src.end())
     {
       return iter->second;
     }
   }
-
+  
   float energy = 0.0;
 
   // loop over all recojet constituents
-  for (Jet::ConstIter jter = recojet->lower_bound_comp(src);
-       jter != recojet->upper_bound_comp(src);
+  for (Jet::ITER_comp_vec jter = recojet->comp_begin(src);
+       jter != recojet->comp_end(src);
        ++jter)
   {
     Jet::SRC source = jter->first;
@@ -1568,7 +1539,10 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet::SRC src)
 
   }  // for (Jet::ConstIter jter = recojet->lower_bound_comp(src);
 
-  if (_do_cache) _cache_get_energy_contribution_src.insert(make_pair(make_pair(recojet, src), energy));
+  if (_do_cache)
+  {
+    _cache_get_energy_contribution_src.insert(std::make_pair(std::make_pair(recojet, src), energy));
+  }
 
   return energy;
 }
@@ -1600,12 +1574,10 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
   // loop over all the jet constituents, backtrack each reco object to the
   // truth hits and combine with other consituents
 
-  for (Jet::ConstIter iter = recojet->begin_comp();
-       iter != recojet->end_comp();
-       ++iter)
+  for (auto jter : recojet->get_comp_vec())
   {
-    Jet::SRC source = iter->first;
-    unsigned int index = iter->second;
+      Jet::SRC source = jter.first;
+      unsigned int index = jter.second;
 
     std::set<PHG4Hit*> new_hits;
 
@@ -1613,7 +1585,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_trackmap)
       {
-        cout << PHWHERE << "ERROR: can't find SvtxTrackMap" << endl;
+        std::cout << PHWHERE << "ERROR: can't find SvtxTrackMap" << std::endl;
         exit(-1);
       }
 
@@ -1635,7 +1607,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_cemctowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_CEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_CEMC" << std::endl;
         exit(-1);
       }
 
@@ -1657,7 +1629,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_cemcclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_CEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_CEMC" << std::endl;
         exit(-1);
       }
 
@@ -1679,7 +1651,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_eemctowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_EEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_EEMC" << std::endl;
         exit(-1);
       }
 
@@ -1701,7 +1673,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_eemcclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_EEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_EEMC" << std::endl;
         exit(-1);
       }
 
@@ -1723,7 +1695,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_hcalintowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_HCALIN" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_HCALIN" << std::endl;
         exit(-1);
       }
 
@@ -1745,7 +1717,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_hcalinclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_HCALIN" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_HCALIN" << std::endl;
         exit(-1);
       }
 
@@ -1767,7 +1739,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_hcalouttowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_HCALOUT" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_HCALOUT" << std::endl;
         exit(-1);
       }
 
@@ -1789,7 +1761,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_hcaloutclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_HCALOUT" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_HCALOUT" << std::endl;
         exit(-1);
       }
 
@@ -1811,7 +1783,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_femctowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_FEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_FEMC" << std::endl;
         exit(-1);
       }
 
@@ -1833,7 +1805,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_femcclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_FEMC" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_FEMC" << std::endl;
         exit(-1);
       }
 
@@ -1855,7 +1827,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_fhcaltowers)
       {
-        cout << PHWHERE << "ERROR: can't find TOWER_FHCAL" << endl;
+        std::cout << PHWHERE << "ERROR: can't find TOWER_FHCAL" << std::endl;
         exit(-1);
       }
 
@@ -1877,7 +1849,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
     {
       if (!_fhcalclusters)
       {
-        cout << PHWHERE << "ERROR: can't find CLUSTER_FHCAL" << endl;
+        std::cout << PHWHERE << "ERROR: can't find CLUSTER_FHCAL" << std::endl;
         exit(-1);
       }
 
@@ -1896,15 +1868,16 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
       new_hits = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster);
     }
 
-    for (std::set<PHG4Hit*>::iterator jter = new_hits.begin();
-         jter != new_hits.end();
-         ++jter)
+    for (auto new_hit : new_hits)
     {
-      truth_hits.insert(*jter);
+      truth_hits.insert(new_hit);
     }
   }
 
-  if (_do_cache) _cache_all_truth_hits.insert(make_pair(recojet, truth_hits));
+  if (_do_cache)
+  {
+    _cache_all_truth_hits.insert(std::make_pair(recojet, truth_hits));
+  }
 
   return truth_hits;
 }
@@ -1912,17 +1885,17 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
 void JetRecoEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
-  _recojets = findNode::getClass<JetMap>(topNode, _recojetname.c_str());
+  _recojets = findNode::getClass<JetContainer>(topNode, _recojetname.c_str());
   if (!_recojets)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _recojetname << endl;
+    std::cout << PHWHERE << " ERROR: Can't find " << _recojetname << std::endl;
     exit(-1);
   }
 
-  _truthjets = findNode::getClass<JetMap>(topNode, _truthjetname.c_str());
+  _truthjets = findNode::getClass<JetContainer>(topNode, _truthjetname.c_str());
   if (!_truthjets)
   {
-    cerr << PHWHERE << " ERROR: Can't find " << _truthjetname << endl;
+    std::cout << PHWHERE << " ERROR: Can't find " << _truthjetname << std::endl;
     exit(-1);
   }
 

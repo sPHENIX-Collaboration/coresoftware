@@ -22,7 +22,7 @@ int PHG4DisplayAction::FindVolumes(G4VPhysicalVolume* physvol)
     for (int i = 0; i < nDaughters; ++i)
     {
       G4VPhysicalVolume* daughtervol = logvol->GetDaughter(i);
-      //G4LogicalVolume* logicdaughter = daughtervol->GetLogicalVolume();
+      // G4LogicalVolume* logicdaughter = daughtervol->GetLogicalVolume();
 
       if (FindVolumes(daughtervol))
       {

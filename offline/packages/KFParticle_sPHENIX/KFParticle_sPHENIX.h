@@ -55,15 +55,15 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   explicit KFParticle_sPHENIX(const std::string &name);
 
-  virtual ~KFParticle_sPHENIX() {}
+  ~KFParticle_sPHENIX() override = default;
 
-  int Init(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
 
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
   /**
    * If verbosity is > 0, this will print out all candidate information:
@@ -127,7 +127,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_get_charge_conjugate = get_charge_conjugate;
   }
 
-  void setDaughters(std::vector<std::pair<std::string, int>> daughter_list)
+  void setDaughters(std::vector<std::pair<std::string, int> /*unused*/> daughter_list)
   {
     for (unsigned int i = 0; i < daughter_list.size(); ++i)
     {
@@ -136,7 +136,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     }
   }
 
-  void setIntermediateStates(std::vector<std::pair<std::string, int>> intermediate_list)
+  void setIntermediateStates(std::vector<std::pair<std::string, int> /*unused*/> intermediate_list)
   {
     for (unsigned int i = 0; i < intermediate_list.size(); ++i)
     {
@@ -190,6 +190,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMotherIPchi2(float mother_ipchi2) { m_mother_ipchi2 = mother_ipchi2; }
 
+  void setMaximumMotherVertexVolume(float vertexvol) { m_mother_vertex_volume = vertexvol; }
+
   void constrainToPrimaryVertex(bool constrain_to_vertex)
   {
     m_constrain_to_vertex = constrain_to_vertex;
@@ -209,7 +211,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void constrainIntermediateMasses(bool constrain_int_mass) { m_constrain_int_mass = constrain_int_mass; }
 
-  void setIntermediateMassRange(std::vector<std::pair<float, float>> intermediate_mass_range)
+  void setIntermediateMassRange(std::vector<std::pair<float, float> /*unused*/> intermediate_mass_range)
   {
     for (unsigned int i = 0; i < intermediate_mass_range.size(); ++i) m_intermediate_mass_range.push_back(intermediate_mass_range[i]);
   }
@@ -224,7 +226,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (unsigned int i = 0; i < intermediate_min_IP.size(); ++i) m_intermediate_min_ip.push_back(intermediate_min_IP[i]);
   }
 
-  void setIntermediateIPRange(const std::vector<std::pair<float, float>> &intermediate_IP_range)
+  void setIntermediateIPRange(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IP_range)
   {
     for (unsigned int i = 0; i < intermediate_IP_range.size(); ++i)
     {
@@ -238,7 +240,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (unsigned int i = 0; i < intermediate_min_IPchi2.size(); ++i) m_intermediate_min_ipchi2.push_back(intermediate_min_IPchi2[i]);
   }
 
-  void setIntermediateIPchi2Range(const std::vector<std::pair<float, float>> &intermediate_IPchi2_range)
+  void setIntermediateIPchi2Range(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IPchi2_range)
   {
     for (unsigned int i = 0; i < intermediate_IPchi2_range.size(); ++i)
     {
@@ -255,6 +257,11 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void setIntermediateMinFDchi2(const std::vector<float> &intermediate_min_FDchi2)
   {
     for (unsigned int i = 0; i < intermediate_min_FDchi2.size(); ++i) m_intermediate_min_fdchi2.push_back(intermediate_min_FDchi2[i]);
+  }
+
+  void setIntermediateMaxVertexVolume(const std::vector<float> &intermediate_max_vertexvol)
+  {
+    for (unsigned int i = 0; i < intermediate_max_vertexvol.size(); ++i) m_intermediate_vertex_volume.push_back(intermediate_max_vertexvol[i]);
   }
 
   void useMVA(bool require_mva) { m_require_mva = require_mva; }
@@ -304,7 +311,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   bool m_require_mva;
   bool m_save_dst;
   bool m_save_output;
-  float m_Bz = 0;
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;

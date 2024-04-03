@@ -7,9 +7,9 @@
 #ifndef TRACKBASE_TRKRCLUSTERV2_H
 #define TRACKBASE_TRKRCLUSTERV2_H
 
+#include <iostream>
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
-#include <iostream>
 
 class PHObject;
 
@@ -22,27 +22,27 @@ class PHObject;
 class TrkrClusterv2 : public TrkrCluster
 {
  public:
- 
   //! ctor
   TrkrClusterv2();
 
-  //!dtor
+  //! dtor
   ~TrkrClusterv2() override = default;
-  
+
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override {}
   int isValid() const override;
   PHObject* CloneMe() const override { return new TrkrClusterv2(*this); }
-  
-  //! copy content from base class
-  void CopyFrom( const TrkrCluster& ) override;
 
   //! copy content from base class
-  void CopyFrom( TrkrCluster* source ) override
-  { CopyFrom( *source ); }
+  void CopyFrom(const TrkrCluster&) override;
 
-  
+  //! copy content from base class
+  void CopyFrom(TrkrCluster* source) override
+  {
+    CopyFrom(*source);
+  }
+
   //
   // cluster position
   //
@@ -79,7 +79,7 @@ class TrkrClusterv2 : public TrkrCluster
 
   float getError(unsigned int i, unsigned int j) const override;        //< get cluster error covar
   void setError(unsigned int i, unsigned int j, float value) override;  //< set cluster error covar
-  
+
   //
   // convenience interface
   //
@@ -91,19 +91,18 @@ class TrkrClusterv2 : public TrkrCluster
   float getZError() const override;
 
  protected:
+  TrkrDefs::cluskey m_cluskey;        //< unique identifier within container
+  TrkrDefs::subsurfkey m_subsurfkey;  //< unique identifier for hitsetkey-surface maps
+  float m_pos[3]{};                   //< mean position x,y,z
+  bool m_isGlobal;                    //< flag for coord sys (true = global)
+  unsigned int m_adc;                 //< cluster sum adc (D. McGlinchey - Do we need this?)
+  float m_size[6]{};                  //< size covariance matrix (packed storage) (+/- cm^2)
+  float m_err[6]{};                   //< covariance matrix: rad, arc and z
 
-  TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
-  TrkrDefs::subsurfkey m_subsurfkey; //< unique identifier for hitsetkey-surface maps
-  float m_pos[3];               //< mean position x,y,z
-  bool m_isGlobal;             //< flag for coord sys (true = global)
-  unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
-  float m_size[6];              //< size covariance matrix (packed storage) (+/- cm^2)
-  float m_err[6];               //< covariance matrix: rad, arc and z
-
-  float m_local[2];             //< 2D local position [cm]
-  float m_actsLocalErr[2][2];   //< 2D local error for Acts [cm]
+  float m_local[2]{};            //< 2D local position [cm]
+  float m_actsLocalErr[2][2]{};  //< 2D local error for Acts [cm]
 
   ClassDefOverride(TrkrClusterv2, 2)
 };
 
-#endif //TRACKBASE_TRKRCLUSTERV2_H
+#endif  // TRACKBASE_TRKRCLUSTERV2_H

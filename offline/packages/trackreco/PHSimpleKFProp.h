@@ -53,20 +53,19 @@ class PHSimpleKFProp : public SubsysReco
   }
   void set_max_window(double s){_max_dist = s;}
   void useConstBField(bool opt){_use_const_field = opt;}
+  void setConstBField(float b) { _const_field = b; }
   void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
   void SetIteration(int iter){_n_iteration = iter;}
-  void set_cluster_version(int value) { m_cluster_version = value; }
+  void set_pp_mode(bool mode) {_pp_mode = mode;}
 
  private:
 
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection m_distortionCorrection;
 
   bool _use_truth_clusters = false;
-  
+
   /// fetch node pointers
   int get_nodes(PHCompositeNode *topNode);
   std::vector<double> radii;
@@ -83,20 +82,22 @@ class PHSimpleKFProp : public SubsysReco
   size_t _min_clusters_per_track = 3;
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
-  double _rz_outlier_threshold = .1;
-  double _xy_outlier_threshold = .1;
+  bool _pp_mode = false;
 
   TrkrClusterContainer *_cluster_map = nullptr;
 
   TrackSeedContainer *_track_map = nullptr;
 
   std::unique_ptr<PHField> _field_map = nullptr;
-  
+
   /// acts geometry
   ActsGeometry *_tgeometry = nullptr;
 
   /// distortion correction container
-  TpcDistortionCorrectionContainer* m_dcc = nullptr;
+  TpcDistortionCorrection m_distortionCorrection;
+  TpcDistortionCorrectionContainer* m_dcc_static{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_average{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation{nullptr};
 
   /// get global position for a given cluster
   /**
@@ -144,17 +145,17 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap &positions);
-  void publishSeeds(const std::vector<TrackSeed_v1>&);
+  void publishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap &positions);
+  void publishSeeds(const std::vector<TrackSeed_v2>&);
 //   void MoveToVertex();
 
   bool _use_const_field = false;
+  float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
 
-  int m_cluster_version = 4;
 };
 
 #endif

@@ -41,7 +41,7 @@ int PHTrackCleaner::InitRun(PHCompositeNode *topNode)
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  return ret;
+   return ret;
 }
 
 //____________________________________________________________________________..
@@ -116,8 +116,13 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 	      
 	      //Find the remaining track with the best chisq/ndf
 
+	      unsigned int si_index = UINT_MAX;      
+	      auto si_seed =  _track->get_silicon_seed();
+	      if (si_seed)
+		si_index = _silicon_seed_map->find(si_seed);      
+
 	      if(Verbosity() > 1)	      
-		std::cout << "        track ID " << track_id << " crossing " << _track->get_crossing() 
+		std::cout << "        track ID " << track_id << " tpc index " << tpc_id << " si index " << si_index << " crossing " << _track->get_crossing() 
 			  << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq_df " << min_chisq_df << std::endl;
 
 	      // only accept tracks with ndf > min_ndf - very small ndf means something went wrong, as does ndf undefined
@@ -137,11 +142,11 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 	  if(Verbosity() > 1)
 	    std::cout << "        best track for tpc_id " << tpc_id << " has track_id " << best_id << " best_ndf " << best_ndf << " chisq/ndf " << qual << std::endl;
 
-	  if(qual < 30)
+	  if(qual < quality_cut * 2)
 	    {
 	      track_keep_list.insert(best_id);
 	      ok_track++;
-	      if(qual < 10.0)
+	      if(qual < quality_cut)
 		good_track++;
 	    }
 	}
@@ -153,7 +158,7 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
     }
 
   if(Verbosity() > 0)
-    std::cout << " Number of good tracks with qual < 10  is " << good_track << " OK tracks " << ok_track << std::endl; 
+    std::cout << " Number of good tracks with qual < " << quality_cut << "  is " << good_track << " OK tracks " << ok_track << std::endl; 
 
   // make a list of tracks that did not make the keep list
   for(auto track_it = _track_map->begin(); track_it != _track_map->end(); ++track_it)
@@ -197,6 +202,13 @@ int  PHTrackCleaner::GetNodes(PHCompositeNode* topNode)
   if (!_tpc_seed_map)
   {
     std::cout << PHWHERE << " ERROR: Can't find TpcTrackSeedContainer: " << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _silicon_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  if (!_silicon_seed_map)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   

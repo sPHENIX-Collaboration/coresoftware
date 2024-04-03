@@ -5,7 +5,7 @@
 
 #include "Fun4AllBase.h"
 
-#include <cstddef>  // for size_t
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -15,9 +15,7 @@ class Fun4AllOutputManager : public Fun4AllBase
 {
  public:
   //! destructor
-  ~Fun4AllOutputManager() override
-  {
-  }
+  ~Fun4AllOutputManager() override;
 
   //! print method (dump event selector)
   void Print(const std::string &what = "ALL") const override;
@@ -93,12 +91,21 @@ class Fun4AllOutputManager : public Fun4AllBase
   virtual int DoNotWriteEvent(std::vector<int> *retcodes) const;
 
   //! get number of Events
-  virtual size_t EventsWritten() const { return m_NEvents; }
+  virtual unsigned int EventsWritten() const { return m_NEvents; }
   //! increment number of events
   virtual void IncrementEvents(const unsigned int i) { m_NEvents += i; }
+  //! set number of events
+  virtual void SetEventsWritten(const unsigned int i) { m_NEvents = i; }
   //! get output file name
   virtual std::string OutFileName() const { return m_OutFileName; }
   void OutFileName(const std::string &name) { m_OutFileName = name; }
+  void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
+  void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }
+  int RunAfterClosing();
+  void UseFileRule() { m_UseFileRuleFlag = true; }
+  bool ApplyFileRule() const { return m_UseFileRuleFlag; }
+  void SetNEvents(const unsigned int nevt);
+  unsigned int GetNEvents() const { return m_MaxEvents; }
 
  protected:
   /*!
@@ -109,11 +116,26 @@ class Fun4AllOutputManager : public Fun4AllBase
   Fun4AllOutputManager(const std::string &myname, const std::string &outfname);
 
  private:
+  //! add file rule to filename (runnumber-segment)
+  bool m_UseFileRuleFlag{false};
+
   //! Number of Events
-  unsigned int m_NEvents = 0;
+  unsigned int m_NEvents{0};
+
+  //! Number of Events to write before roll over
+  unsigned int m_MaxEvents{std::numeric_limits<unsigned int>::max()};
+
+  //! Script to run after closing of file
+  std::string m_RunAfterClosingScript;
+
+  //! string with arguments for closing script
+  std::string m_ClosingArgs;
 
   //! output file name
   std::string m_OutFileName;
+
+  //! last output file name which was closed
+  std::string m_LastClosedFileName;
 
   //! vector of event selectors modules
   std::vector<std::string> m_EventSelectorsVector;

@@ -3,7 +3,7 @@
 
 #include "GPUTPCTrackParam.h"
 #include <trackbase/ClusterErrorPara.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
@@ -21,7 +21,7 @@
 #include <utility>
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
-using TrackSeedAliceSeedMap = std::pair<std::vector<TrackSeed_v1>, std::vector<Eigen::Matrix<double,6,6>>>;
+using TrackSeedAliceSeedMap = std::pair<std::vector<TrackSeed_v2>, std::vector<Eigen::Matrix<double,6,6>>>;
 
 class ALICEKF
 {
@@ -56,13 +56,14 @@ class ALICEKF
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
   void useConstBField(bool opt) {_use_const_field = opt;}
+  void setConstBField(float b) {_const_field = b; }
   void useFixedClusterError(bool opt) {_use_fixed_clus_error = opt;}
   void setFixedClusterError(int i,double val) {_fixed_clus_error.at(i)=val;}
   double getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vector3 global, int i, int j) const;
   std::vector<double> GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& pts, double R, double X0, double Y0) const;
   std::vector<double> GetLineClusterResiduals(const std::vector<std::pair<double,double>>& pts, double A, double B) const; 
   double get_Bzconst() const { return _Bzconst; }
-  void set_cluster_version(int value) { m_cluster_version = value; }
+  
   ClusterErrorPara *_ClusErrPara;
   private:
   PHField* _B = nullptr;
@@ -76,10 +77,10 @@ class ALICEKF
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
   bool _use_const_field = false;
+  float _const_field = 1.4;
   bool _use_fixed_clus_error = true;
   std::array<double,3> _fixed_clus_error = {.1,.1,.1};
 
-  int m_cluster_version = 4;
 };
 
 #endif

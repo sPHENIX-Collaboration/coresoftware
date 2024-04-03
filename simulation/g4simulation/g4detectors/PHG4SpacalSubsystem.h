@@ -12,6 +12,7 @@
 #define G4DETECTORS_PHG4SPACALSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
+#include "PHG4SpacalSteppingAction.h"
 
 #include <string>  // for string
 
@@ -19,7 +20,7 @@ class PHCompositeNode;
 class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4SpacalDetector;
-class PHG4SteppingAction;
+class PHG4SpacalSteppingAction;
 
 class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
 {
@@ -34,8 +35,8 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
   //! init
   /*!
   called during InitRun (the original InitRun does common setup and calls this one)
-  creates the detector object 
-  ceates the stepping action 
+  creates the detector object
+  ceates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
    */
   int InitRunSubsystem(PHCompositeNode *) override;
@@ -69,7 +70,7 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction *steppingAction_ = nullptr;
+  PHG4SpacalSteppingAction *steppingAction_ = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */

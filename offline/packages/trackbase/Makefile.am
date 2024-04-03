@@ -49,9 +49,16 @@ pkginclude_HEADERS = \
   CMFlashDifferenceContainerv1.h \
   CMFlashDifferencev1.h \
   Calibrator.h \
+  ClusHitsVerbose.h \
+  ClusHitsVerbosev1.h \
   ClusterErrorPara.h \
   InttDefs.h \
+  InttEventInfo.h \
+  InttEventInfov1.h \
   MvtxDefs.h \
+  MvtxEventInfo.h \
+  MvtxEventInfov1.h \
+  MvtxEventInfov2.h \
   RawHit.h \
   RawHitSet.h \
   RawHitSetContainer.h \
@@ -65,6 +72,8 @@ pkginclude_HEADERS = \
   TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
+  TpcTpotEventInfo.h \
+  TpcTpotEventInfov1.h \
   TrackFitUtils.h \
   TrkrCluster.h \
   TrkrClusterContainer.h \
@@ -90,7 +99,10 @@ pkginclude_HEADERS = \
   TrkrHitSet.h \
   TrkrHitSetContainer.h \
   TrkrHitSetContainerv1.h \
+  TrkrHitSetContainerv2.h \
   TrkrHitSetv1.h \
+  TrkrHitSetTpc.h \
+  TrkrHitSetTpcv1.h \
   TrkrHitTruthAssoc.h \
   TrkrHitTruthAssocv1.h \
   TrkrHitv1.h \
@@ -109,6 +121,13 @@ ROOTDICTS = \
   CMFlashDifferenceContainerv1_Dict.cc \
   CMFlashDifference_Dict.cc \
   CMFlashDifferencev1_Dict.cc \
+  ClusHitsVerbose_Dict.cc \
+  ClusHitsVerbosev1_Dict.cc \
+  InttEventInfo_Dict.cc \
+  InttEventInfov1_Dict.cc \
+  MvtxEventInfo_Dict.cc \
+  MvtxEventInfov1_Dict.cc \
+  MvtxEventInfov2_Dict.cc \
   RawHitSetContainer_Dict.cc \
   RawHitSetContainerv1_Dict.cc \
   RawHitSet_Dict.cc \
@@ -118,6 +137,8 @@ ROOTDICTS = \
   RawHitv1_Dict.cc \
   TpcSeedTrackMap_Dict.cc \
   TpcSeedTrackMapv1_Dict.cc \
+  TpcTpotEventInfo_Dict.cc \
+  TpcTpotEventInfov1_Dict.cc \
   TrkrClusterContainer_Dict.cc \
   TrkrClusterContainerv1_Dict.cc \
   TrkrClusterContainerv2_Dict.cc \
@@ -139,8 +160,11 @@ ROOTDICTS = \
   TrkrClusterv5_Dict.cc \
   TrkrHitSetContainer_Dict.cc \
   TrkrHitSetContainerv1_Dict.cc \
+  TrkrHitSetContainerv2_Dict.cc \
   TrkrHitSet_Dict.cc \
   TrkrHitSetv1_Dict.cc \
+  TrkrHitSetTpc_Dict.cc \
+  TrkrHitSetTpcv1_Dict.cc \
   TrkrHitTruthAssoc_Dict.cc \
   TrkrHitTruthAssocv1_Dict.cc \
   TrkrHit_Dict.cc \
@@ -161,6 +185,13 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferenceContainerv1_Dict_rdict.pcm \
   CMFlashDifference_Dict_rdict.pcm \
   CMFlashDifferencev1_Dict_rdict.pcm \
+  ClusHitsVerbose_Dict_rdict.pcm \
+  ClusHitsVerbosev1_Dict_rdict.pcm \
+  InttEventInfo_Dict_rdict.pcm \
+  InttEventInfov1_Dict_rdict.pcm \
+  MvtxEventInfo_Dict_rdict.pcm \
+  MvtxEventInfov1_Dict_rdict.pcm \
+  MvtxEventInfov2_Dict_rdict.pcm \
   RawHitSetContainer_Dict_rdict.pcm \
   RawHitSetContainerv1_Dict_rdict.pcm \
   RawHitSet_Dict_rdict.pcm \
@@ -170,6 +201,8 @@ nobase_dist_pcm_DATA = \
   RawHitv1_Dict_rdict.pcm \
   TpcSeedTrackMap_Dict_rdict.pcm \
   TpcSeedTrackMapv1_Dict_rdict.pcm \
+  TpcTpotEventInfo_Dict_rdict.pcm \
+  TpcTpotEventInfov1_Dict_rdict.pcm \
   TrkrClusterContainer_Dict_rdict.pcm \
   TrkrClusterContainerv1_Dict_rdict.pcm \
   TrkrClusterContainerv2_Dict_rdict.pcm \
@@ -191,8 +224,11 @@ nobase_dist_pcm_DATA = \
   TrkrClusterv5_Dict_rdict.pcm \
   TrkrHitSetContainer_Dict_rdict.pcm \
   TrkrHitSetContainerv1_Dict_rdict.pcm \
+  TrkrHitSetContainerv2_Dict_rdict.pcm \
   TrkrHitSet_Dict_rdict.pcm \
   TrkrHitSetv1_Dict_rdict.pcm \
+  TrkrHitSetTpc_Dict_rdict.pcm \
+  TrkrHitSetTpcv1_Dict_rdict.pcm \
   TrkrHitTruthAssoc_Dict_rdict.pcm \
   TrkrHitTruthAssocv1_Dict_rdict.pcm \
   TrkrHit_Dict_rdict.pcm \
@@ -206,6 +242,7 @@ libtrack_io_la_SOURCES = \
   ActsSurfaceMaps.cc \
   alignmentTransformationContainer.cc \
   AlignmentTransformation.cc \
+  Calibrator.cc \
   CMFlashClusterContainerv1.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterv2.cc \
@@ -213,8 +250,15 @@ libtrack_io_la_SOURCES = \
   CMFlashDifferenceContainerv1.cc \
   CMFlashDifferencev1.cc \
   ClusterErrorPara.cc \
+  ClusHitsVerbose.cc \
+  ClusHitsVerbosev1.cc \
   InttDefs.cc \
+  InttEventInfo.cc \
+  InttEventInfov1.cc \
   MvtxDefs.cc \
+  MvtxEventInfo.cc \
+  MvtxEventInfov1.cc \
+  MvtxEventInfov2.cc \
   RawHitSet.cc \
   RawHitSetContainer.cc \
   RawHitSetContainerv1.cc \
@@ -225,6 +269,7 @@ libtrack_io_la_SOURCES = \
   TpcDefs.cc \
   TpcSeedTrackMap.cc \
   TpcSeedTrackMapv1.cc \
+  TpcTpotEventInfov1.cc \
   TrackFitUtils.cc \
   TrackFittingAlgorithmFunctionsGsf.cc \
   TrackFittingAlgorithmFunctionsKalman.cc \
@@ -250,7 +295,10 @@ libtrack_io_la_SOURCES = \
   TrkrHitSet.cc \
   TrkrHitSetContainer.cc \
   TrkrHitSetContainerv1.cc \
+  TrkrHitSetContainerv2.cc \
   TrkrHitSetv1.cc \
+  TrkrHitSetTpc.cc \
+  TrkrHitSetTpcv1.cc \
   TrkrHitTruthAssocv1.cc \
   TrkrHitv1.cc \
   TrkrHitv2.cc

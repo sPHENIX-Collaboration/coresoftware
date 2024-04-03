@@ -35,13 +35,15 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   void set_test_windows_printout(const bool test){_test_windows = test ;}
   void set_pp_mode(const bool flag){_pp_mode = flag ;}
-  void set_use_intt_time(const bool flag){_use_intt_time = flag ;}
+  void set_use_intt_crossing(const bool flag){_use_intt_crossing = flag ;}
 
   int InitRun(PHCompositeNode* topNode) override;
 
   int process_event(PHCompositeNode*) override;
 
   int End(PHCompositeNode*) override;
+
+  void fieldMap(std::string& fieldmap) { m_fieldMap = fieldmap; }
 
   void set_silicon_track_map_name(const std::string &map_name) { _silicon_track_map_name = map_name; }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
@@ -56,9 +58,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   std::vector<short int> getInttCrossings(TrackSeed *si_track);
    void checkCrossingMatches( std::multimap<unsigned int, unsigned int> &tpc_matches);
    short int getCrossingIntt(TrackSeed *_tracklet_si);
+   //void findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches);
+   short int findCrossingGeometrically(unsigned int tpc_id, unsigned int si_id);
+   double getBunchCrossing(unsigned int trid, double z_mismatch);
 
    //   void checkCrossingMatches( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,  std::map<unsigned int, short int> &tpc_crossing_map );
-  //double getBunchCrossing(unsigned int trid, double z_mismatch);
   //double getMedian(std::vector<double> &v);
   //void addSiliconClusters( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches);
   //void addSiliconClusters(  std::multimap<unsigned int, unsigned int> &tpc_matches);
@@ -117,11 +121,12 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   bool _test_windows = false;
   bool _pp_mode = false;
-  bool _use_intt_time = false;
+  bool _use_intt_crossing = true;  // should always be true except for testing
 
   int _n_iteration = 0;
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
+  std::string m_fieldMap = "1.4";
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H

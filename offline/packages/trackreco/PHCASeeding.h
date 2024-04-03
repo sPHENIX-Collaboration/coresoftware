@@ -90,8 +90,10 @@ class PHCASeeding : public PHTrackSeeding
   }
 
   void useConstBField(bool opt){_use_const_field = opt;}
+  void constBField(float b){_const_field = b;}
   void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
+  void set_pp_mode(bool mode) {_pp_mode = mode;}
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -120,10 +122,10 @@ class PHCASeeding : public PHTrackSeeding
   std::vector<std::vector<keylink>> FindBiLinks(const std::vector<std::unordered_set<keylink>>& belowLinks, const std::vector<std::unordered_set<keylink>>& aboveLinks) const;
   std::vector<keylist> FollowBiLinks(const std::vector<std::vector<keylink>>& bidirectionalLinks, const PositionMap& globalPositions) const;
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const;
-  std::vector<TrackSeed_v1> RemoveBadClusters(const std::vector<keylist>& seeds, const PositionMap& globalPositions) const;
+  std::vector<TrackSeed_v2> RemoveBadClusters(const std::vector<keylist>& seeds, const PositionMap& globalPositions) const;
   double getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b, TrkrDefs::cluskey c, const PositionMap& globalPositions) const;
   
-  void publishSeeds(const std::vector<TrackSeed_v1>& seeds);
+  void publishSeeds(const std::vector<TrackSeed_v2>& seeds);
 
   //int _nlayers_all;
   //unsigned int _nlayers_seeding;
@@ -146,7 +148,9 @@ class PHCASeeding : public PHTrackSeeding
   double _xy_outlier_threshold = 0.1;
   double _fieldDir = -1;
   bool _use_const_field = false;
+  float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
+  bool _pp_mode = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
 
   /// acts geometry

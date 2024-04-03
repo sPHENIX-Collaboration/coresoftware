@@ -110,14 +110,17 @@ int Fun4AllSyncManager::run(const int nevnts)
         if (iter->HasSyncObject())  // if zero (no syncing) no need to go further
         {
           if (hassync != iter->HasSyncObject())  // we have sync and no sync mixed
+          // NOLINTNEXTLINE(bugprone-branch-clone)
           {
             PrintSyncProblem();
             gSystem->Exit(1);
+            exit(1);
           }
           else if (hassync < 0)  // we have more than one nosync input
           {
             PrintSyncProblem();
             gSystem->Exit(1);
+            exit(1);
           }
         }
       }
@@ -207,6 +210,7 @@ int Fun4AllSyncManager::run(const int nevnts)
           }
           ++InIter;
         }
+        // NOLINTNEXTLINE(hicpp-avoid-goto)
         goto readerror;
       }
       else
@@ -254,7 +258,7 @@ readerror:
           }
           else
           {
-            if (m_CurrentRun != runno)
+            if (m_CurrentRun != runno && !m_MixRunsOkFlag)
             {
               std::cout << PHWHERE << "Mixing run numbers (except runnumber=0 which means no valid runnumber) is not supported" << std::endl;
               std::cout << "Here are the list of input managers and runnumbers:" << std::endl;

@@ -10,8 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -isystem$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -23,7 +22,9 @@ pkginclude_HEADERS = \
   ActsTransformations.h \
   TrackSeed.h \
   TrackSeed_v1.h \
+  TrackSeed_v2.h \
   SvtxTrackSeed_v1.h \
+  SvtxTrackSeed_v2.h \
   TrackSeed_FastSim_v1.h \
   TrackSeedContainer.h \
   TrackSeedContainer_v1.h \
@@ -51,16 +52,25 @@ pkginclude_HEADERS = \
   SvtxAlignmentState_v1.h \
   SvtxTrackState.h \
   SvtxTrackState_v1.h \
-  SvtxVertex.h \
-  SvtxVertex_v1.h \
-  SvtxVertexMap.h \
-  SvtxVertexMap_v1.h \
-  TrackAnalysisUtils.h 
+  SvtxTrackState_v2.h \
+  TrackAnalysisUtils.h \
+  SvtxTrackInfo.h \
+  SvtxTrackInfo_v1.h \
+  SvtxTrackInfo_v2.h \
+  SvtxTrackInfo_v3.h \
+  TrackInfoContainer.h \
+  TrackInfoContainer_v1.h \
+  TrackInfoContainer_v2.h \
+  TrackInfoContainer_v3.h \
+  TrackStateInfo.h \
+  TrackStateInfo_v1.h
 
 ROOTDICTS = \
   TrackSeed_Dict.cc \
   TrackSeed_v1_Dict.cc \
+  TrackSeed_v2_Dict.cc \
   SvtxTrackSeed_v1_Dict.cc \
+  SvtxTrackSeed_v2_Dict.cc \
   TrackSeed_FastSim_v1_Dict.cc \
   TrackSeedContainer_Dict.cc \
   TrackSeedContainer_v1_Dict.cc \
@@ -73,6 +83,7 @@ ROOTDICTS = \
   SvtxTrack_Dict.cc \
   SvtxTrackState_Dict.cc \
   SvtxTrackState_v1_Dict.cc \
+  SvtxTrackState_v2_Dict.cc \
   SvtxTrack_v1_Dict.cc \
   SvtxTrack_v2_Dict.cc \
   SvtxTrack_v3_Dict.cc \
@@ -88,16 +99,24 @@ ROOTDICTS = \
   SvtxTrackMap_v2_Dict.cc \
   SvtxTrackCaloClusterMap_Dict.cc \
   SvtxTrackCaloClusterMap_v1_Dict.cc \
-  SvtxVertex_Dict.cc \
-  SvtxVertex_v1_Dict.cc \
-  SvtxVertexMap_Dict.cc \
-  SvtxVertexMap_v1_Dict.cc 
+  SvtxTrackInfo_Dict.cc \
+  SvtxTrackInfo_v1_Dict.cc \
+  SvtxTrackInfo_v2_Dict.cc \
+  SvtxTrackInfo_v3_Dict.cc \
+  TrackInfoContainer_Dict.cc \
+  TrackInfoContainer_v1_Dict.cc \
+  TrackInfoContainer_v2_Dict.cc \
+  TrackInfoContainer_v3_Dict.cc \
+  TrackStateInfo_Dict.cc \
+  TrackStateInfo_v1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TrackSeed_Dict_rdict.pcm \
   TrackSeed_v1_Dict_rdict.pcm \
+  TrackSeed_v2_Dict_rdict.pcm \
   SvtxTrackSeed_v1_Dict_rdict.pcm \
+  SvtxTrackSeed_v2_Dict_rdict.pcm \
   TrackSeed_FastSim_v1_Dict_rdict.pcm \
   TrackSeedContainer_Dict_rdict.pcm \
   TrackSeedContainer_v1_Dict_rdict.pcm \
@@ -110,6 +129,7 @@ nobase_dist_pcm_DATA = \
   SvtxTrack_Dict_rdict.pcm \
   SvtxTrackState_Dict_rdict.pcm \
   SvtxTrackState_v1_Dict_rdict.pcm \
+  SvtxTrackState_v2_Dict_rdict.pcm \
   SvtxTrack_v1_Dict_rdict.pcm \
   SvtxTrack_v2_Dict_rdict.pcm \
   SvtxTrack_v3_Dict_rdict.pcm \
@@ -125,10 +145,16 @@ nobase_dist_pcm_DATA = \
   SvtxTrackMap_v2_Dict_rdict.pcm \
   SvtxTrackCaloClusterMap_Dict_rdict.pcm \
   SvtxTrackCaloClusterMap_v1_Dict_rdict.pcm \
-  SvtxVertex_Dict_rdict.pcm \
-  SvtxVertex_v1_Dict_rdict.pcm \
-  SvtxVertexMap_Dict_rdict.pcm \
-  SvtxVertexMap_v1_Dict_rdict.pcm 
+  SvtxTrackInfo_Dict_rdict.pcm \
+  SvtxTrackInfo_v1_Dict_rdict.pcm \
+  SvtxTrackInfo_v2_Dict_rdict.pcm \
+  SvtxTrackInfo_v3_Dict_rdict.pcm \
+  TrackInfoContainer_Dict_rdict.pcm \
+  TrackInfoContainer_v1_Dict_rdict.pcm \
+  TrackInfoContainer_v2_Dict_rdict.pcm \
+  TrackInfoContainer_v3_Dict_rdict.pcm \
+  TrackStateInfo_Dict_rdict.pcm \
+  TrackStateInfo_v1_Dict_rdict.pcm
 
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \
@@ -136,7 +162,9 @@ libtrackbase_historic_io_la_SOURCES = \
   ActsTransformations.cc \
   TrackSeed.cc \
   TrackSeed_v1.cc \
+  TrackSeed_v2.cc \
   SvtxTrackSeed_v1.cc \
+  SvtxTrackSeed_v2.cc \
   TrackSeed_FastSim_v1.cc \
   TrackSeedContainer.cc \
   TrackSeedContainer_v1.cc \
@@ -147,6 +175,7 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxAlignmentState.cc \
   SvtxAlignmentState_v1.cc \
   SvtxTrackState_v1.cc \
+  SvtxTrackState_v2.cc \
   SvtxTrack.cc \
   SvtxTrack_v1.cc \
   SvtxTrack_v2.cc \
@@ -163,11 +192,14 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrackMap_v2.cc \
   SvtxTrackCaloClusterMap.cc \
   SvtxTrackCaloClusterMap_v1.cc \
-  SvtxVertex.cc \
-  SvtxVertex_v1.cc \
-  SvtxVertexMap.cc \
-  SvtxVertexMap_v1.cc \
-  TrackAnalysisUtils.cc
+  TrackAnalysisUtils.cc \
+  SvtxTrackInfo_v1.cc \
+  SvtxTrackInfo_v2.cc \
+  SvtxTrackInfo_v3.cc \
+  TrackInfoContainer_v1.cc \
+  TrackInfoContainer_v2.cc \
+  TrackInfoContainer_v3.cc \
+  TrackStateInfo_v1.cc
 
 libtrackbase_historic_io_la_LDFLAGS = \
   -L$(libdir) \

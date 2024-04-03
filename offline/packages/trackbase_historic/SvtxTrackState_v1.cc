@@ -1,8 +1,7 @@
 #include "SvtxTrackState_v1.h"
 
 #include <iostream>
-#include <utility>   // for swap
-
+#include <utility>  // for swap
 
 using namespace std;
 
@@ -10,22 +9,35 @@ namespace
 {
 
   // square convenience function
-  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+  template <class T>
+  inline constexpr T square(const T& x)
+  {
+    return x * x;
+  }
 
   // get unique index in cov. matrix array from i and j
   inline unsigned int covar_index(unsigned int i, unsigned int j)
   {
-    if (i > j) std::swap(i, j);
+    if (i > j)
+    {
+      std::swap(i, j);
+    }
     return i + 1 + (j + 1) * (j) / 2 - 1;
   }
 
-}
+}  // namespace
 
 SvtxTrackState_v1::SvtxTrackState_v1(float pathlength)
   : _pathlength(pathlength)
 {
-  for (int i = 0; i < 3; ++i) _pos[i] = 0.0;
-  for (int i = 0; i < 3; ++i) _mom[i] = NAN;
+  for (float& _po : _pos)
+  {
+    _po = 0.0;
+  }
+  for (float& i : _mom)
+  {
+    i = NAN;
+  }
   for (int i = 0; i < 6; ++i)
   {
     for (int j = i; j < 6; ++j)
@@ -36,7 +48,7 @@ SvtxTrackState_v1::SvtxTrackState_v1(float pathlength)
   state_name = "UNKNOWN";
 }
 
-void SvtxTrackState_v1::identify(std::ostream &os) const
+void SvtxTrackState_v1::identify(std::ostream& os) const
 {
   os << "---SvtxTrackState_v1-------------" << endl;
   os << "pathlength: " << get_pathlength() << endl;
@@ -62,21 +74,26 @@ void SvtxTrackState_v1::set_error(unsigned int i, unsigned int j, float value)
 
 float SvtxTrackState_v1::get_phi_error() const
 {
-  const float r = std::sqrt( square(_pos[0]) + square(_pos[1]));
-  if (r > 0) return get_rphi_error() / r;
+  const float r = std::sqrt(square(_pos[0]) + square(_pos[1]));
+  if (r > 0)
+  {
+    return get_rphi_error() / r;
+  }
   return 0;
 }
 
 float SvtxTrackState_v1::get_rphi_error() const
 {
-  const auto phi = -std::atan2(_pos[1], _pos[0] );
+  const auto phi = -std::atan2(_pos[1], _pos[0]);
   const auto cosphi = std::cos(phi);
   const auto sinphi = std::sin(phi);
   return std::sqrt(
-    square(sinphi)*get_error(0,0) +
-    square(cosphi)*get_error(1,1) +
-    2.*cosphi*sinphi*get_error(0,1));
+      square(sinphi) * get_error(0, 0) +
+      square(cosphi) * get_error(1, 1) +
+      2. * cosphi * sinphi * get_error(0, 1));
 }
 
 float SvtxTrackState_v1::get_z_error() const
-{ return std::sqrt(get_error(2, 2)); }
+{
+  return std::sqrt(get_error(2, 2));
+}

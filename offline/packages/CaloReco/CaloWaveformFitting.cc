@@ -19,6 +19,8 @@
 #include <iostream>
 #include <string>
 
+
+ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);
 double CaloWaveformFitting::template_function(double *x, double *par)
 {
   Double_t v1 = par[0] * h_template->Interpolate(x[0] - par[1]) + par[2];
@@ -31,6 +33,8 @@ void CaloWaveformFitting::initialize_processing(const std::string &templatefile)
   assert(fin);
   assert(fin->IsOpen());
   h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
+  m_peakTimeTemp = h_template->GetBinCenter(h_template->GetMaximumBin());
+  t = new ROOT::TThreadExecutor(_nthreads);
 }
 
 std::vector<std::vector<float>> CaloWaveformFitting::process_waveform(std::vector<std::vector<float>> waveformvector)
@@ -47,25 +51,22 @@ std::vector<std::vector<float>> CaloWaveformFitting::process_waveform(std::vecto
 
 std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit(std::vector<std::vector<float>> chnlvector)
 {
-  ROOT::TThreadExecutor t(_nthreads);
   auto func = [&](std::vector<float> &v)
   {
     int size1 = v.size() - 1;
-    
     if (size1 == _nzerosuppresssamples)
       {
-	v.push_back(v.at(0) - v.at(1)); //returns peak sample - pedestal sample
+	v.push_back(v.at(1) - v.at(0)); //returns peak sample - pedestal sample
 	v.push_back(-1); // set time to -1 to indicate zero suppressed 
-	v.push_back(v.at(1));    
+	v.push_back(v.at(0)); 
+	v.push_back(0);
       }
     else
       {
-	auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, 0, size1);
 	float maxheight = 0;
 	int maxbin = 0;
 	for (int i = 0; i < size1; i++)
 	  {
-	    h->SetBinContent(i + 1, v.at(i));
 	    if (v.at(i) > maxheight)
 	      {
 		maxheight = v.at(i);
@@ -89,27 +90,39 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
 	if (_bdosoftwarezerosuppression && maxheight - pedestal < _nsoftwarezerosuppression)
 	  {
 	    // std::cout << "software zero suppression happened " << std::endl;
-	    h->Delete();
-	    v.push_back(v.at(6) - pedestal);
+	    v.push_back(v.at(6) - v.at(0));
 	    v.push_back(-1);
-	    v.push_back(pedestal);		
+	    v.push_back(v.at(0));
+	    v.push_back(0);
 	  }
 	else
 	  {
-	    auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), this,&CaloWaveformFitting::template_function, 0, 31, 3,"CaloWaveformFitting","template_function");
+	auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, -0.5, size1 - 0.5);
+	for (int i = 0; i < size1; i++)
+	  {
+	    h->SetBinContent(i + 1, v.at(i));
+	    h->SetBinError(i + 1, 1);
+         }
+      auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), this,&CaloWaveformFitting::template_function, 0, 31, 3,"CaloWaveformFitting","template_function");
 	    ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
 	    ROOT::Fit::BinData data(v.size() - 1, 1);
 	    ROOT::Fit::FillData(data, h);
 	    ROOT::Fit::Chi2Function *EPChi2 = new ROOT::Fit::Chi2Function(data, *fitFunction);
 	    ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
 	    fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
-	    double params[] = {static_cast<double>(maxheight), static_cast<double>(maxbin - 5), static_cast<double>(pedestal)};
+	    double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
 	    fitter->Config().SetParamsSettings(3, params);
+	    fitter->Config().ParSettings(1).SetLimits(-1*m_peakTimeTemp, size1-m_peakTimeTemp);// set lim on time par 
 	    fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
+            ROOT::Fit::FitResult fitres = fitter->Result();
+            double chi2min = fitres.MinFcnValue();
+            chi2min /= size1-3; // divide by the number of dof
 	    for (int i = 0; i < 3; i++)
-	      {
-		v.push_back(f->GetParameter(i));
-	      }
+	    {
+		    v.push_back(f->GetParameter(i));
+	    }
+
+            v.push_back(chi2min);
 	    h->Delete();
 	    f->Delete();
 	    delete fitFunction;
@@ -119,8 +132,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       }
   };
 
-  t.Foreach(func, chnlvector);
-
+  t->Foreach(func, chnlvector);
   int size3 = chnlvector.size();
   std::vector<std::vector<float>> fit_params;
   std::vector<float> fit_params_tmp;
@@ -128,7 +140,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
   {
     std::vector<float> tv = chnlvector.at(i);
     int size2 = tv.size();
-    for (int q = 3; q > 0; q--)
+    for (int q = 4; q > 0; q--)
     {
       fit_params_tmp.push_back(tv.at(size2 - q));
     }
@@ -247,7 +259,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
       }
     }
     amp -= ped;
-    std::vector<float> val = {amp, time, ped};
+    std::vector<float> val = {amp, time, ped, 0};
     fit_values.push_back(val);
     val.clear();
   }

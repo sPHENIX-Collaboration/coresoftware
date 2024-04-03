@@ -1,5 +1,10 @@
 #include "Fun4AllOutputManager.h"
 
+#include <phool/phool.h>
+
+#include <TSystem.h>
+
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -7,6 +12,13 @@
 Fun4AllOutputManager::Fun4AllOutputManager(const std::string &name)
   : Fun4AllBase(name)
 {
+}
+
+Fun4AllOutputManager::~Fun4AllOutputManager()
+{
+  // the last file is closed by deleting the output manager, if we want to execute a script at the end
+  // we have to run it here
+  RunAfterClosing();
 }
 
 Fun4AllOutputManager::Fun4AllOutputManager(const std::string &name, const std::string &outfname)
@@ -69,4 +81,55 @@ int Fun4AllOutputManager::DoNotWriteEvent(std::vector<int> *retcodes) const
     iret += (*retcodes)[index];
   }
   return iret;
+}
+
+int Fun4AllOutputManager::RunAfterClosing()
+{
+  unsigned int iret = 0;
+  if (m_OutFileName == m_LastClosedFileName)
+  {
+    if (Verbosity() > 1)
+    {
+    std::cout << PHWHERE << " Output file name has not changed, not closing "
+	      << m_OutFileName << " again" << std::endl;
+    }
+    return iret;
+  }
+  m_LastClosedFileName = m_OutFileName;
+  if (!m_RunAfterClosingScript.empty())
+  {
+    if (!std::filesystem::exists(m_RunAfterClosingScript))
+    {
+      std::cout << PHWHERE << "RunAfterClosing() closing script " << m_RunAfterClosingScript << " not found" << std::endl;
+      return -1;
+    }
+    if (!((std::filesystem::status(m_RunAfterClosingScript).permissions() & std::filesystem::perms::owner_exec) == std::filesystem::perms::owner_exec))
+    {
+      std::cout << PHWHERE << "RunAfterClosing() closing script " << m_RunAfterClosingScript << " is not owner executable" << std::endl;
+      return -1;
+    }
+
+    std::string fullcmd = m_RunAfterClosingScript + " " + m_OutFileName + " " + m_ClosingArgs;
+    if (Verbosity() > 1)
+    {
+      std::cout << PHWHERE << " running " << fullcmd << std::endl;
+    }
+    iret = gSystem->Exec(fullcmd.c_str());
+  }
+  if (iret)
+  {
+    iret = iret >> 8U;
+  }
+  return iret;
+}
+void Fun4AllOutputManager::SetNEvents(const unsigned int nevt)
+{
+  if (nevt == 0)
+  {
+    std::cout << PHWHERE << " Number of Events has to be > 0" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  m_MaxEvents = nevt;
+  return;
 }

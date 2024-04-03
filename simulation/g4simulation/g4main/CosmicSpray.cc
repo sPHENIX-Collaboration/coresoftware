@@ -1,9 +1,9 @@
-//CosmicSpray class
-// Author: Daniel Lis
-// Brief: Particel generator Class that sources a muon with a vertex and momentum that should mimic real life
-// modified by Shuhang on 03/2022: now this class serves as a wrapper class that drives "EcoMug"
+// CosmicSpray class
+//  Author: Daniel Lis
+//  Brief: Particel generator Class that sources a muon with a vertex and momentum that should mimic real life
+//  modified by Shuhang on 03/2022: now this class serves as a wrapper class that drives "EcoMug"
 
-//For the muon rate calculation, if using the default setting: time(second) = nevents * 1.434e-4, then scale the histogram by 1/time to get the rate.
+// For the muon rate calculation, if using the default setting: time(second) = nevents * 1.434e-4, then scale the histogram by 1/time to get the rate.
 
 #include "CosmicSpray.h"
 #include "EcoMug.h"
@@ -20,9 +20,8 @@
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
-#include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
-
+#include <phool/getClass.h>
 
 #include <array>  // for array
 #include <cmath>
@@ -31,12 +30,30 @@
 bool CosmicSpray::InDetector(double x, double y, double z)
 {
   double gap = 5;
-  if (x > _x_max) return false;
-  if (x < -_x_max) return false;
-  if (z > _z_max + gap) return false;
-  if (z < -_z_max - gap) return false;
-  if (y > _y_fix + gap) return false;
-  if (y < -_y_fix - gap) return false;
+  if (x > _x_max)
+  {
+    return false;
+  }
+  if (x < -_x_max)
+  {
+    return false;
+  }
+  if (z > _z_max + gap)
+  {
+    return false;
+  }
+  if (z < -_z_max - gap)
+  {
+    return false;
+  }
+  if (y > _y_fix + gap)
+  {
+    return false;
+  }
+  if (y < -_y_fix - gap)
+  {
+    return false;
+  }
   return true;
 }
 
@@ -78,7 +95,10 @@ int CosmicSpray::InitRun(PHCompositeNode *topNode)
 int CosmicSpray::process_event(PHCompositeNode *topNode)
 {
   // set_vertex
-  if (Verbosity() > 0) std::cout << "Processing Event" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "Processing Event" << std::endl;
+  }
   std::string pdgname = "mu-";
   int pdgcode = 13;
   int trackid = 0;
@@ -110,7 +130,7 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
     gun_y = muon_position[2] * 100;
     gun_z = muon_position[0] * 100;
 
-    //unit vectors of muon momentum
+    // unit vectors of muon momentum
     double upx = gun_px / muon_p;
     double upy = gun_py / muon_p;
     double upz = gun_pz / muon_p;
@@ -122,7 +142,6 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
     double z1 = gun_z;
 
     double L = 0;
-    
 
     while (y1 > -_y_fix && L < _R)
     {
@@ -141,7 +160,7 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
 
   PHG4InEvent *inevent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   int vtxindex = inevent->AddVtx(gun_x, gun_y, gun_z, gun_t);
-  
+
   PHG4Particle *particle = new PHG4Particlev2();
   particle->set_track_id(trackid);
   particle->set_vtx_id(vtxindex);

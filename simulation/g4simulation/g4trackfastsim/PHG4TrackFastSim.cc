@@ -20,10 +20,8 @@
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_FastSim_v1.h>
-#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>  // for SvtxVertexMap
-#include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
+#include <globalvertex/SvtxVertexMap_v1.h>
+#include <globalvertex/SvtxVertex_v1.h>
 
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
@@ -218,16 +216,16 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
   {
     m_RaveVertexFactory = new genfit::GFRaveVertexFactory(Verbosity(), true);
     //m_RaveVertexFactory->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
-    m_RaveVertexFactory->setMethod(m_VertexingMethod);
-    //m_RaveVertexFactory->setBeamspot();
-
-    //m_RaveVertexFactory = new PHRaveVertexFactory(Verbosity());
-
     if (!m_RaveVertexFactory)
     {
       cout << PHWHERE << " no Vertex Finder" << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
+    m_RaveVertexFactory->setMethod(m_VertexingMethod);
+    //m_RaveVertexFactory->setBeamspot();
+
+    //m_RaveVertexFactory = new PHRaveVertexFactory(Verbosity());
+
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

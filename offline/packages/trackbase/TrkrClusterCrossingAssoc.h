@@ -11,10 +11,10 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
-#include <map>
-#include <utility>           // for pair
 #include <climits>
+#include <iostream>  // for cout, ostream
+#include <map>
+#include <utility>  // for pair
 
 /**
  * @brief Base class for associating clusters to the hits that went into them
@@ -23,12 +23,11 @@
  */
 class TrkrClusterCrossingAssoc : public PHObject
 {
-public:
-
+ public:
   using Map = std::multimap<TrkrDefs::cluskey, short int>;
   using ConstIterator = Map::const_iterator;
   using ConstRange = std::pair<Map::const_iterator, Map::const_iterator>;
-  
+
   void Reset() override;
 
   /**
@@ -42,14 +41,13 @@ public:
 
   virtual ConstRange getAll() const = 0;
 
-  virtual unsigned int size() const {return 0;}
+  virtual unsigned int size() const { return 0; }
 
-protected:
+ protected:
   TrkrClusterCrossingAssoc() = default;
 
-private:
-
+ private:
   ClassDefOverride(TrkrClusterCrossingAssoc, 1);
 };
 
-#endif // TRACKBASE_TRKRCLUSTERCROSSINGASSOC_H
+#endif  // TRACKBASE_TRKRCLUSTERCROSSINGASSOC_H

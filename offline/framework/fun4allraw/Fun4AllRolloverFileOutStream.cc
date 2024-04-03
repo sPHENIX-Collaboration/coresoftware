@@ -4,7 +4,7 @@
 
 #include <Event/Event.h>
 #include <Event/oBuffer.h>  // for oBuffer
-#include <Event/ospBuffer.h>
+#include <Event/ophBuffer.h>
 
 #include <phool/phool.h>
 
@@ -16,6 +16,7 @@
 #include <iostream>
 
 Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &frule,
+                                                           const unsigned int nEvents,
                                                            const unsigned int sizeInMB,
                                                            const int offset,
                                                            const int increment,
@@ -25,13 +26,14 @@ Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &fr
 {
   m_Offset = offset;
   m_CurrentSequence = offset;
+  m_MaxNEvents = nEvents;
   m_MaxFileFize = sizeInMB;
   m_MaxFileFize = m_MaxFileFize * 1024 * 1024;
   if (m_MaxFileFize == 0 || m_MaxFileFize > MaxSize())
   {
     if (m_MaxFileFize > MaxSize())
     {
-      unsigned long long maxmb = MaxSize() / (1024 * 1024);
+      uint64_t maxmb = MaxSize() / (1024ULL * 1024ULL);
       std::cout << "setting maximum size to current max (in MB): " << maxmb << std::endl;
     }
     m_MaxFileFize = MaxSize();
@@ -39,7 +41,7 @@ Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &fr
   m_Increment = increment;
   if (m_Increment <= 0)
   {
-    m_Increment = 1;  //safety belt against overwriting files
+    m_Increment = 1;  // safety belt against overwriting files
   }
 }
 
@@ -52,6 +54,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
 
     char *outfilename = new char[filenamesize];
     iSeq(m_CurrentSequence);
+    // NOLINTNEXTLINE(hicpp-vararg)
     int snprintfbytes = snprintf(outfilename, filenamesize, FileRule().c_str(), irun, iSeq());
     if (static_cast<unsigned>(snprintfbytes) > filenamesize)
     {
@@ -62,6 +65,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
       exit(1);
     }
     m_CurrentSequence += m_Increment;
+    // NOLINTNEXTLINE(hicpp-vararg)
     OutFileDescriptor(open(outfilename, O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE,
                            S_IRWXU | S_IROTH | S_IRGRP));
     if (OutFileDescriptor() == -1)  // failure to open
@@ -74,7 +78,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
       std::cout << "Fun4AllRolloverFileOutStream: opening new file " << outfilename << std::endl;
     }
     MyManager()->SetOutfileName(outfilename);
-    SetoBuffer(new ospBuffer(OutFileDescriptor(), xb(), LENGTH, irun, iSeq()));
+    SetoBuffer(new ophBuffer(OutFileDescriptor(), xb(), LENGTH, irun, iSeq()));
     delete[] outfilename;
   }
 
@@ -85,20 +89,32 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
               << evt->getEvtSequence() << " FOR RUN "
               << evt->getRunNumber() << " Status: " << status << std::endl;
   }
+  SetNEvents(GetNEvents() + 1);
   BytesWritten(GetoBuffer()->getBytesWritten());
+
+  if (m_MaxNEvents > 0 && GetNEvents() >= m_MaxNEvents)
+  {
+    open_new_file();
+  }
   if (BytesWritten() >= m_MaxFileFize)
   {
-    DeleteoBuffer();
-    BytesWritten(0);
-    close(OutFileDescriptor());
-    OutFileDescriptor(-1);
+    open_new_file();
   }
   return 0;
 }
-
 void Fun4AllRolloverFileOutStream::identify(std::ostream &os) const
 {
   os << "Fun4AllRolloverFileOutStream writing to " << FileRule()
      << " current sequence " << m_CurrentSequence << std::endl;
   return;
+}
+
+void Fun4AllRolloverFileOutStream::open_new_file()
+{
+  DeleteoBuffer();
+  BytesWritten(0);
+  SetNEvents(0);
+  close(OutFileDescriptor());
+  OutFileDescriptor(-1);
+  MyManager()->RunAfterClosing();
 }

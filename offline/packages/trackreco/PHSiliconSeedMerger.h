@@ -27,6 +27,8 @@ class PHSiliconSeedMerger : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void trackMapName(const std::string& name) { m_trackMapName = name; }
+  void clusterOverlap(const int nclusters) { m_clusterOverlap = nclusters; }
+  void searchIntt() { m_mvtxOnly = false; }
 
  private:
 
@@ -34,7 +36,8 @@ class PHSiliconSeedMerger : public SubsysReco
 
   TrackSeedContainer *m_siliconTracks = nullptr;
   std::string m_trackMapName = "SiliconTrackSeedContainer";
-
+  int m_clusterOverlap = 1;
+  bool m_mvtxOnly = true;
 };
 
 #endif // PHSILICONSEEDMERGER_H

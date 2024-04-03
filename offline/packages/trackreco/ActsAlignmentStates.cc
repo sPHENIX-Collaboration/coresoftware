@@ -34,18 +34,28 @@ namespace
   {
     return x * x;
   }
+  template <class T>
+  inline constexpr T get_r(const T& x, const T& y)
+  {
+    return std::sqrt(square(x) + square(y));
+  }
 }  // namespace
 
-void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
+void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+                                                const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
                                                 SvtxTrack* track,
                                                 const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
-  const auto mj = traj.multiTrajectory();
-  const auto& tips = traj.tips();
+  const auto& mj = tracks.trackStateContainer();
   const auto& trackTip = tips.front();
   const auto crossing = track->get_silicon_seed()->get_crossing();
 
   ActsPropagator propagator(m_tGeometry);
+  if (m_fieldMap.find(".root") == std::string::npos)
+  {
+    propagator.constField();
+    propagator.setConstFieldValue(std::stod(m_fieldMap));
+  }
 
   SvtxAlignmentStateMap::StateVec statevec;
   if (m_verbosity > 2)
@@ -55,6 +65,37 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
   }
 
   std::vector<Acts::BoundIndices> indices{Acts::eBoundLoc0, Acts::eBoundLoc1, Acts::eBoundPhi, Acts::eBoundTheta, Acts::eBoundQOverP, Acts::eBoundTime};
+
+  auto silseed = track->get_silicon_seed();
+  int nmaps = 0;
+  int nintt = 0;
+  for (auto iter = silseed->begin_cluster_keys();
+       iter != silseed->end_cluster_keys();
+       ++iter)
+  {
+    TrkrDefs::cluskey ckey = *iter;
+    if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
+    {
+      nmaps++;
+    }
+    if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
+    {
+      nintt++;
+    }
+  }
+
+  if (nmaps < 2 or nintt < 2)
+  {
+    return;
+  }
+
+  //! make sure the track was fully fit through the mvtx
+  SvtxTrackState* firststate = (*std::next(track->begin_states(), 1)).second;
+  if (get_r(firststate->get_x(), firststate->get_y()) > 5.)
+  {
+    return;
+  }
+
   mj.visitBackwards(trackTip, [&](const auto& state)
                     {
     /// Collect only track states which were used in smoothing of KF and are measurements
@@ -65,7 +106,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     }
       
     const auto& surface = state.referenceSurface();
-    const auto& sl = static_cast<const ActsSourceLink&>(state.uncalibrated());
+    auto sl = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
     auto ckey = sl.cluskey();
     Acts::Vector2 localMeas = Acts::Vector2::Zero();
     /// get the local measurement that acts used
@@ -102,24 +143,10 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
 
     Acts::Vector3 clus_sigma(0, 0, 0);
 
-    if (m_clusterVersion != 4)
-      {
-        clus_sigma(2) = clus->getZError() * Acts::UnitConstants::cm;
-        clus_sigma(0) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
-        clus_sigma(1) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
-      }
-    else 
-      {
-        double clusRadius = sqrt(clusGlobal(0) * clusGlobal(0) + clusGlobal(1) * clusGlobal(1)) / Acts::UnitConstants::cm;
-        auto para_errors = m_clusErrPara.get_simple_cluster_error(clus, clusRadius, ckey);
-        float exy2 = para_errors.first * Acts::UnitConstants::cm2;
-        float ez2 = para_errors.second * Acts::UnitConstants::cm2;
-        clus_sigma(2) = sqrt(ez2);
-        clus_sigma(0) = sqrt(exy2 / 2.0);
-        clus_sigma(1) = sqrt(exy2 / 2.0);
-      }
-  
- 
+    clus_sigma(2) = clus->getZError() * Acts::UnitConstants::cm;
+    clus_sigma(0) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+    clus_sigma(1) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+           
     if (m_verbosity > 2)
     {
       std::cout << "clus global is " << clusGlobal.transpose() << std::endl
@@ -135,7 +162,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(const Trajectory& traj,
     double phi = state.smoothed()[Acts::eBoundPhi];
     double theta = state.smoothed()[Acts::eBoundTheta];
 
-    Acts::Vector3 tangent = Acts::makeDirectionUnitFromPhiTheta(phi,theta);
+    Acts::Vector3 tangent = Acts::makeDirectionFromPhiTheta(phi,theta);
     //! opposite convention for coordinates in Acts
     tangent *= -1;
 
@@ -197,7 +224,7 @@ ActsAlignmentStates::makeGlobalDerivatives(const Acts::Vector3& OM,
                                            const std::pair<Acts::Vector3, Acts::Vector3>& projxy)
 {
   SvtxAlignmentState::GlobalMatrix globalder = SvtxAlignmentState::GlobalMatrix::Zero();
-  Acts::SymMatrix3 unit = Acts::SymMatrix3::Identity();
+  Acts::SquareMatrix3 unit = Acts::SquareMatrix3::Identity();
 
   //! x residual rotations
   globalder(0, 0) = ((unit.col(0)).cross(OM)).dot(projxy.first);
@@ -243,7 +270,7 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
 
   projx = X - (tangent.dot(X) / tangent.dot(Z)) * Z;
   projy = Y - (tangent.dot(Y) / tangent.dot(Z)) * Z;
-  if(m_verbosity > 2)
+  if (m_verbosity > 2)
     std::cout << "projxy " << projx.transpose() << ", " << projy.transpose() << std::endl;
   return std::make_pair(projx, projy);
 }
