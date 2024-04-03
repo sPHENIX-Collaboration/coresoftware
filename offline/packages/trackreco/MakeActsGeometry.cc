@@ -862,8 +862,9 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
   if(Verbosity() > 10)
   { 
     std::cout << "MakeActsGeometry::makeInttMapPairs - inttVolume: " << inttVolume->volumeName() << std::endl; 
-    std::cout << "Use Intt survey geometry? m_inttSurvey =" << m_inttSurvey << std::endl;
   }
+
+  std::cout << "Use Intt survey geometry? m_inttSurvey =" << m_inttSurvey << std::endl;
 
   auto inttLayerArray = inttVolume->confinedLayers();
 
