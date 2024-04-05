@@ -61,7 +61,8 @@ MakeMilleFiles::MakeMilleFiles(const std::string& name)
 int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
 {
   int ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  if (ret != Fun4AllReturnCodes::EVENT_OK) { return ret;
+}
 
   // Instantiate Mille and open output data file
   //  _mille = new Mille(data_outfilename.c_str(), false);   // write text in data files, rather than binary, for debugging only
@@ -76,10 +77,10 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
   m_constraintFile.open(m_constraintFileName);
   if(m_useEventVertex)
     {
-      for(int i=0; i<AlignmentDefs::NGLVTX; i++)
+      for(int i : AlignmentDefs::glbl_vtx_label)
 	{
 	  m_constraintFile << " Constraint   0.0" << std::endl;
-	  m_constraintFile << "       " << AlignmentDefs::glbl_vtx_label[i] << "   1" << std::endl;
+	  m_constraintFile << "       " << i << "   1" << std::endl;
 	}
     }
   // print grouping setup to log file:
@@ -177,9 +178,9 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 	    std::cout << "vertex residuals " << vtx_residual.transpose() 
 		      << std::endl;
 	    std::cout << "global vtx derivatives " << std::endl;
-	    for(int i=0; i<2;i++) {
-	      for(int j=0; j<3; j++) {
-		std::cout << glblvtx_derivative[i][j] << ", ";
+	    for(auto & i : glblvtx_derivative) {
+	      for(float j : i) {
+		std::cout << j << ", ";
 	      }
 	      std::cout << std::endl;
 	    }
@@ -211,7 +212,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int MakeMilleFiles::End(PHCompositeNode*)
+int MakeMilleFiles::End(PHCompositeNode* /*unused*/)
 {
   delete _mille;
   m_constraintFile.close();
@@ -545,17 +546,18 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         std::cout << "coordinate " << i << " has residual " << residual(i) << " and clus_sigma " << clus_sigma(i) << std::endl
                   << "global deriv " << std::endl;
 
-        for (int k = 0; k < SvtxAlignmentState::NGL; k++)
+        for (float k : glbl_derivative)
         {
-          if (glbl_derivative[k] > 0 || glbl_derivative[k] < 0)
+          if (k > 0 || k < 0) {
             std::cout << "NONZERO GLOBAL DERIVATIVE" << std::endl;
-          std::cout << glbl_derivative[k] << ", ";
+}
+          std::cout << k << ", ";
         }
         std::cout << std::endl
                   << "local deriv " << std::endl;
-        for (int k = 0; k < SvtxAlignmentState::NLOC; k++)
+        for (float k : lcl_derivative)
         {
-          std::cout << lcl_derivative[k] << ", ";
+          std::cout << k << ", ";
         }
         std::cout << std::endl;
       }
@@ -586,8 +588,9 @@ bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
 {
   bool ret = false;
   auto it = fixed_layers.find(layer);
-  if (it != fixed_layers.end())
+  if (it != fixed_layers.end()) {
     ret = true;
+}
 
   return ret;
 }
@@ -610,8 +613,9 @@ bool MakeMilleFiles::is_mvtx_layer_fixed(unsigned int layer, unsigned int clamsh
 
   std::pair pair = std::make_pair(layer,clamshell);
   auto it = fixed_mvtx_layers.find(pair);
-  if(it != fixed_mvtx_layers.end()) 
+  if(it != fixed_mvtx_layers.end()) { 
     ret = true;
+}
 
   return ret;
 }
@@ -624,8 +628,9 @@ bool MakeMilleFiles::is_layer_param_fixed(unsigned int layer, unsigned int param
   bool ret = false;
   std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
   auto it = param_fixed.find(pair);
-  if (it != param_fixed.end())
+  if (it != param_fixed.end()) {
     ret = true;
+}
 
   return ret;
 }
@@ -644,8 +649,9 @@ bool MakeMilleFiles::is_tpc_sector_fixed(unsigned int layer, unsigned int sector
    unsigned int region = AlignmentDefs::getTpcRegion(layer);
    unsigned int subsector = region * 24 + side * 12 + sector;
    auto it = fixed_sectors.find(subsector);
-   if(it != fixed_sectors.end()) 
+   if(it != fixed_sectors.end()) { 
      ret = true;
+}
 
    return ret;
  }

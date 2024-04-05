@@ -23,9 +23,9 @@
  *  675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <fstream>
 #include <climits>
-
+#include <fstream>
+#include <limits>
 /**
  * \class Mille
  *
@@ -74,6 +74,6 @@ class Mille
   int   myBufferPos; ///< position in buffer
   bool  myHasSpecial; ///< if true, special(..) already called for this record
   /// largest label allowed
-   enum {myMaxLabel = INT_MAX - 1};
+  enum {myMaxLabel = std::numeric_limits<int>::max() - 1};
 };
 #endif
