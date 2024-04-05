@@ -47,7 +47,7 @@ class PHGhostRejection
   double _x_cut = 0.3;
   double _y_cut = 0.3;
   double _z_cut = 0.4;
-  int _n_iteration = 0;
+//  int _n_iteration = 0;
   unsigned int m_verbosity = 0;
   
   TrackSeedContainer *m_trackMap = nullptr;
