@@ -62,7 +62,7 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
 
   m_Gl1InputVector.clear();
 
-// MVTX
+  // MVTX
   for (auto const &mapiter : m_MvtxRawHitMap)
   {
     for (auto mvtxhititer : mapiter.second.MvtxRawHitVector)
@@ -78,7 +78,7 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
   m_MvtxInputVector.clear();
 
-// INTT
+  // INTT
   for (auto const &mapiter : m_InttRawHitMap)
   {
     for (auto intthititer : mapiter.second.InttRawHitVector)
@@ -94,8 +94,7 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
   m_InttInputVector.clear();
 
-
-// TPC
+  // TPC
   for (auto const &mapiter : m_TpcRawHitMap)
   {
     for (auto tpchititer : mapiter.second.TpcRawHitVector)
@@ -111,7 +110,7 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
   m_TpcInputVector.clear();
 
-// Micromegas
+  // Micromegas
 
   for (auto const &mapiter : m_MicromegasRawHitMap)
   {
@@ -126,7 +125,6 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
 
   m_MicromegasInputVector.clear();
-
 }
 
 int Fun4AllStreamingInputManager::run(const int /*nevents*/)
@@ -261,36 +259,36 @@ void Fun4AllStreamingInputManager::Print(const std::string &what) const
     {
       std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
                 << iter->RunNumber()
-		<< " from file " << iter->FileName()
-		<< std::endl;
+                << " from file " << iter->FileName()
+                << std::endl;
     }
     for (const auto &iter : m_MvtxInputVector)
     {
-      std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run " 
-                << iter->RunNumber()
-		<< " from file " << iter->FileName()
-		<< std::endl;
-    }
-    for (const auto &iter : m_InttInputVector)
-    { 
       std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
                 << iter->RunNumber()
-		<< " from file " << iter->FileName()
-		<< std::endl;
+                << " from file " << iter->FileName()
+                << std::endl;
+    }
+    for (const auto &iter : m_InttInputVector)
+    {
+      std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+                << " from file " << iter->FileName()
+                << std::endl;
     }
     for (const auto &iter : m_TpcInputVector)
     {
       std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
                 << iter->RunNumber()
-		<< " from file " << iter->FileName()
-		<< std::endl;
+                << " from file " << iter->FileName()
+                << std::endl;
     }
     for (const auto &iter : m_MicromegasInputVector)
     {
       std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
                 << iter->RunNumber()
-		<< " from file " << iter->FileName()
-		<< std::endl;
+                << " from file " << iter->FileName()
+                << std::endl;
     }
   }
   Fun4AllInputManager::Print(what);
@@ -541,13 +539,13 @@ int Fun4AllStreamingInputManager::FillGl1()
     {
       if (m_RunNumber != iter->RunNumber())
       {
-	std::cout << PHWHERE << " Run Number mismatch, run is "
-		  << m_RunNumber << ", " << iter->Name() << " reads "
-		  << iter->RunNumber() << std::endl;
-	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
-	Print("INPUTFILES");
-	gSystem->Exit(1);
-	exit(1);
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
       }
     }
   }
@@ -892,8 +890,8 @@ int Fun4AllStreamingInputManager::FillTpc()
   if (Verbosity() > 0)
   {
     std::cout << "tpc container size: " << tpccont->get_nhits();
-    std::cout << ", size  m_TpcRawHitMap: " <<  m_TpcRawHitMap.size()
-	      << std::endl;
+    std::cout << ", size  m_TpcRawHitMap: " << m_TpcRawHitMap.size()
+              << std::endl;
   }
   if (tpccont->get_nhits() > 500000)
   {
@@ -961,13 +959,13 @@ int Fun4AllStreamingInputManager::FillInttPool()
     {
       if (m_RunNumber != iter->RunNumber())
       {
-	std::cout << PHWHERE << " Run Number mismatch, run is "
-		  << m_RunNumber << ", " << iter->Name() << " reads "
-		  << iter->RunNumber() << std::endl;
-	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
-	Print("INPUTFILES");
-	gSystem->Exit(1);
-	exit(1);
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
       }
     }
   }
@@ -997,13 +995,13 @@ int Fun4AllStreamingInputManager::FillTpcPool()
     {
       if (m_RunNumber != iter->RunNumber())
       {
-	std::cout << PHWHERE << " Run Number mismatch, run is "
-		  << m_RunNumber << ", " << iter->Name() << " reads "
-		  << iter->RunNumber() << std::endl;
-	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
-	Print("INPUTFILES");
-	gSystem->Exit(1);
-	exit(1);
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
       }
     }
   }
@@ -1033,13 +1031,13 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
     {
       if (m_RunNumber != iter->RunNumber())
       {
-	std::cout << PHWHERE << " Run Number mismatch, run is "
-		  << m_RunNumber << ", " << iter->Name() << " reads "
-		  << iter->RunNumber() << std::endl;
-	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
-	Print("INPUTFILES");
-	gSystem->Exit(1);
-	exit(1);
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
       }
     }
   }
@@ -1069,13 +1067,13 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
     {
       if (m_RunNumber != iter->RunNumber())
       {
-	std::cout << PHWHERE << " Run Number mismatch, run is "
-		  << m_RunNumber << ", " << iter->Name() << " reads "
-		  << iter->RunNumber() << std::endl;
-	std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
-	Print("INPUTFILES");
-	gSystem->Exit(1);
-	exit(1);
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
       }
     }
   }
