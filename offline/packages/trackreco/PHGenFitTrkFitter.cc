@@ -726,16 +726,16 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     // count clusters
     switch (TrkrDefs::getTrkrId(cluster_key))
     {
-    case TrkrDefs::mvtxId:
-    case TrkrDefs::inttId:
+      case TrkrDefs::mvtxId:
+      case TrkrDefs::inttId:
       ++n_silicon_clusters;
       break;
 
-    case TrkrDefs::micromegasId:
+      case TrkrDefs::micromegasId:
       ++n_micromegas_clusters;
       break;
 
-    default:
+      default:
       break;
     }
 
