@@ -1,7 +1,7 @@
 #include "AlignmentDefs.h"
 #include <trackbase/TpcDefs.h>
 
-void AlignmentDefs::getMvtxGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::mvtxGrp grp)
+void AlignmentDefs::getMvtxGlobalLabels(const Surface& surf, int glbl_label[], AlignmentDefs::mvtxGrp grp)
 {
   Acts::GeometryIdentifier id = surf->geometryId();
   int group = 0;
@@ -29,7 +29,7 @@ void AlignmentDefs::getMvtxGlobalLabels(Surface surf, int glbl_label[], Alignmen
   }
 }
 
-void AlignmentDefs::getInttGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::inttGrp grp)
+void AlignmentDefs::getInttGlobalLabels(const Surface& surf, int glbl_label[], AlignmentDefs::inttGrp grp)
 {
   Acts::GeometryIdentifier id = surf->geometryId();
   int group = 0;
@@ -56,7 +56,7 @@ void AlignmentDefs::getInttGlobalLabels(Surface surf, int glbl_label[], Alignmen
   }
 }
 
-void AlignmentDefs::getTpcGlobalLabels(Surface surf, TrkrDefs::cluskey cluskey, int glbl_label[], AlignmentDefs::tpcGrp grp)
+void AlignmentDefs::getTpcGlobalLabels(const Surface& surf, TrkrDefs::cluskey cluskey, int glbl_label[], AlignmentDefs::tpcGrp grp)
 {
   Acts::GeometryIdentifier id = surf->geometryId();
   int group = 0;
@@ -79,7 +79,7 @@ void AlignmentDefs::getTpcGlobalLabels(Surface surf, TrkrDefs::cluskey cluskey, 
     glbl_label[i] = label_base + i;
   }
 }
-void AlignmentDefs::getMMGlobalLabels(Surface surf, int glbl_label[], AlignmentDefs::mmsGrp grp)
+void AlignmentDefs::getMMGlobalLabels(const Surface& surf, int glbl_label[], AlignmentDefs::mmsGrp grp)
 {
   Acts::GeometryIdentifier id = surf->geometryId();
   int group = 0;
@@ -103,10 +103,12 @@ void AlignmentDefs::getMMGlobalLabels(Surface surf, int glbl_label[], AlignmentD
 int AlignmentDefs::getTpcRegion(int layer)
 {
   int region = 0;
-  if (layer > 22 && layer < 39)
+  if (layer > 22 && layer < 39) {
     region = 1;
-  if (layer > 38 && layer < 55)
+}
+  if (layer > 38 && layer < 55) {
     region = 2;
+}
 
   return region;
 }
@@ -118,8 +120,9 @@ int AlignmentDefs::getMvtxClamshell(int layer, int stave)
       for(int ishell = 0; ishell < 2; ++ishell)
 	{
 	  int stave_ref = clamshell_stave_list[layer][ishell][istave];
-	  if(stave == stave_ref)
+	  if(stave == stave_ref) {
 	    return ishell;
+}
 	}
     }
 
@@ -410,11 +413,11 @@ std::vector<int> AlignmentDefs::getAllTpcGlobalLabels(int grp)
 std::vector<int> AlignmentDefs::makeLabelsFromBase(std::vector<int>& label_base)
 {
   std::vector<int> labels;
-  for(unsigned int ilbl = 0; ilbl < label_base.size(); ++ilbl)
+  for(int ilbl : label_base)
     {
       for(int ipar=0; ipar < 6; ++ipar)
 	{
-	  int label_plus = label_base[ilbl] + ipar;
+	  int label_plus = ilbl + ipar;
 	  labels.push_back(label_plus);
 	}
     }
@@ -429,13 +432,15 @@ void AlignmentDefs::printBuffers(int index, Acts::Vector2 residual, Acts::Vector
             << "  " << residual(index);
   for (int il = 0; il < NLC; ++il)
   {
-    if (lcl_derivative[il] != 0) std::cout << " lcl_deriv[" << il << "] " << lcl_derivative[il] << "  ";
+    if (lcl_derivative[il] != 0) { std::cout << " lcl_deriv[" << il << "] " << lcl_derivative[il] << "  ";
+}
   }
   std::cout << " sigma "
             << "  " << clus_sigma(index) << "  ";
   for (int ig = 0; ig < NGL; ++ig)
   {
-    if (glbl_derivative[ig] != 0) std::cout << " glbl_deriv[" << ig << "] " << glbl_derivative[ig] << "  ";
+    if (glbl_derivative[ig] != 0) { std::cout << " glbl_deriv[" << ig << "] " << glbl_derivative[ig] << "  ";
+}
   }
   std::cout << " int buffer: "
             << " 0 "
@@ -443,13 +448,15 @@ void AlignmentDefs::printBuffers(int index, Acts::Vector2 residual, Acts::Vector
             << " ";  // spacer, rmeas placeholder
   for (int il = 0; il < NLC; ++il)
   {
-    if (lcl_derivative[il] != 0) std::cout << " lcl_label[" << il << "] " << il + 1 << "  ";
+    if (lcl_derivative[il] != 0) { std::cout << " lcl_label[" << il << "] " << il + 1 << "  ";
+}
   }
   std::cout << " 0 "
             << "  ";
   for (int ig = 0; ig < NGL; ++ig)
   {
-    if (glbl_derivative[ig] != 0) std::cout << " glbl_label[" << ig << "] " << glbl_label[ig] << "  ";
+    if (glbl_derivative[ig] != 0) { std::cout << " glbl_label[" << ig << "] " << glbl_label[ig] << "  ";
+}
   }
   std::cout << " end of meas " << std::endl;
 }

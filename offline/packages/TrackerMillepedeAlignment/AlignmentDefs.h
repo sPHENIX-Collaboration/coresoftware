@@ -55,10 +55,10 @@ namespace AlignmentDefs
   static constexpr int glbl_vtx_label[NGLVTX] = {60000000,60000001,60000002};
 
   int getTpcRegion(int layer);
-  void getMvtxGlobalLabels(Surface surf, int glbl_label[], mvtxGrp grp);
-  void getInttGlobalLabels(Surface surf, int glbl_label[], inttGrp grp);
-  void getTpcGlobalLabels(Surface surf, TrkrDefs::cluskey cluskey, int glbl_label[], tpcGrp grp);
-  void getMMGlobalLabels(Surface surf, int glbl_label[], mmsGrp grp);
+  void getMvtxGlobalLabels(const Surface& surf, int glbl_label[], mvtxGrp grp);
+  void getInttGlobalLabels(const Surface& surf, int glbl_label[], inttGrp grp);
+  void getTpcGlobalLabels(const Surface& surf, TrkrDefs::cluskey cluskey, int glbl_label[], tpcGrp grp);
+  void getMMGlobalLabels(const Surface& surf, int glbl_label[], mmsGrp grp);
   int getMvtxClamshell(int layer, int stave);
 
   std::vector<int> getAllMvtxGlobalLabels(int grp);

@@ -95,7 +95,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   // utility functions for analysis modules
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
   void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
-  Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
+  Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global);
   void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec,  std::vector<TrkrDefs::cluskey> cluskey_vec);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
@@ -109,12 +109,12 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   int CreateNodes(PHCompositeNode* topNode);
   void getTrackletClusterList(TrackSeed *tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
-  Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
-  Acts::Vector3 get_line_plane_intersection(Acts::Vector3 PCA, Acts::Vector3 tangent, 
-					    Acts::Vector3 sensor_center, Acts::Vector3 sensor_normal);
+  Acts::Vector3 getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref);
+  Acts::Vector3 get_line_plane_intersection(const Acts::Vector3& PCA, const Acts::Vector3& tangent, 
+					    const Acts::Vector3& sensor_center, const Acts::Vector3& sensor_normal);
   std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
-  Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global);
-  Acts::Vector3 get_helix_surface_intersection(Surface surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
+  Acts::Vector3 get_helix_surface_intersection(const Surface& surf, std::vector<float>& fitpars, Acts::Vector3 global);
+  Acts::Vector3 get_helix_surface_intersection(const Surface& surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
 
   Acts::Vector3 get_helix_vtx(Acts::Vector3 event_vtx, const std::vector<float>& fitpars);
 
@@ -128,23 +128,23 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool is_intt_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
 
-  void getLocalDerivativesXY(Surface surf, Acts::Vector3 global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
+  void getLocalDerivativesXY(const Surface& surf, const Acts::Vector3& global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
 
-  void getLocalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 track_vtx, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5]);
+  void getLocalVtxDerivativesXY(SvtxTrack& track, const Acts::Vector3& track_vtx, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5]);
 
-  void getGlobalDerivativesXY(Surface surf, Acts::Vector3 global, Acts::Vector3 fitpoint, const std::vector<float>& fitpars, float glb_derivativeX[6], float glbl_derivativeY[6], unsigned int layer);
+  void getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 global, const Acts::Vector3& fitpoint, const std::vector<float>& fitpars, float glb_derivativeX[6], float glbl_derivativeY[6], unsigned int layer);
 
-  void getGlobalVtxDerivativesXY(SvtxTrack& track, Acts::Vector3 track_vtx, float glbl_derivativeX[3], float glbl_derivativeY[3]);
+  void getGlobalVtxDerivativesXY(SvtxTrack& track, const Acts::Vector3& track_vtx, float glbl_derivativeX[3], float glbl_derivativeY[3]);
 
-  void get_projectionXY(Surface surf, std::pair<Acts::Vector3, Acts::Vector3> tangent, Acts::Vector3& projX, Acts::Vector3& projY);  
-  void get_projectionVtxXY(SvtxTrack& track, Acts::Vector3 event_vtx, Acts::Vector3& projX, Acts::Vector3& projY);
+  void get_projectionXY(const Surface& surf, const std::pair<Acts::Vector3, Acts::Vector3>& tangent, Acts::Vector3& projX, Acts::Vector3& projY);  
+  void get_projectionVtxXY(SvtxTrack& track, const Acts::Vector3& event_vtx, Acts::Vector3& projX, Acts::Vector3& projY);
 
   float getVertexResidual(Acts::Vector3 vtx);
   
-  void get_dca(SvtxTrack& track,  float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, Acts::Vector3 vertex);
-  Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, Acts::Vector3 event_vertex);
-  Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, Acts::Vector3 event_vertex, Acts::Vector3 PCA);
-  Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, Acts::Vector3 event_vtx, Acts::Vector3 PCA);
+  void get_dca(SvtxTrack& track,  float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, const Acts::Vector3& vertex);
+  Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, const Acts::Vector3& event_vertex);
+  Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, const Acts::Vector3& event_vertex, Acts::Vector3 PCA);
+  Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, const Acts::Vector3& event_vtx, const Acts::Vector3& PCA);
 
 
 
