@@ -14,7 +14,7 @@
 
 class PHCompositeNode;
 class CDBHistos;
-class TProfile;
+class TProfile2D;
 class TH1;
 
 class EventPlaneReco : public SubsysReco
@@ -93,27 +93,27 @@ class EventPlaneReco : public SubsysReco
   TH1 *hvertex{nullptr};
 
   // recentering histograms
-  TProfile *tprof_mean_cos_north_mbd[6]{};
-  TProfile *tprof_mean_sin_north_mbd[6]{};
-  TProfile *tprof_mean_cos_south_mbd[6]{};
-  TProfile *tprof_mean_sin_south_mbd[6]{};
+  TProfile2D *tprof_mean_cos_north_mbd[6]{};
+  TProfile2D *tprof_mean_sin_north_mbd[6]{};
+  TProfile2D *tprof_mean_cos_south_mbd[6]{};
+  TProfile2D *tprof_mean_sin_south_mbd[6]{};
 
-  TProfile *tprof_mean_cos_north_mbd_input[6]{};
-  TProfile *tprof_mean_sin_north_mbd_input[6]{};
-  TProfile *tprof_mean_cos_south_mbd_input[6]{};
-  TProfile *tprof_mean_sin_south_mbd_input[6]{};
+  TProfile2D *tprof_mean_cos_north_mbd_input[6]{};
+  TProfile2D *tprof_mean_sin_north_mbd_input[6]{};
+  TProfile2D *tprof_mean_cos_south_mbd_input[6]{};
+  TProfile2D *tprof_mean_sin_south_mbd_input[6]{};
 
   // shifting histograms
   const int _imax{6};
-  TProfile *tprof_cos_north_mbd_shift[6][6]{};
-  TProfile *tprof_sin_north_mbd_shift[6][6]{};
-  TProfile *tprof_cos_south_mbd_shift[6][6]{};
-  TProfile *tprof_sin_south_mbd_shift[6][6]{};
+  TProfile2D *tprof_cos_north_mbd_shift[6][6]{};
+  TProfile2D *tprof_sin_north_mbd_shift[6][6]{};
+  TProfile2D *tprof_cos_south_mbd_shift[6][6]{};
+  TProfile2D *tprof_sin_south_mbd_shift[6][6]{};
 
-  TProfile *tprof_cos_north_mbd_shift_input[6][6]{};
-  TProfile *tprof_sin_north_mbd_shift_input[6][6]{};
-  TProfile *tprof_cos_south_mbd_shift_input[6][6]{};
-  TProfile *tprof_sin_south_mbd_shift_input[6][6]{};
+  TProfile2D *tprof_cos_north_mbd_shift_input[6][6]{};
+  TProfile2D *tprof_sin_north_mbd_shift_input[6][6]{};
+  TProfile2D *tprof_cos_south_mbd_shift_input[6][6]{};
+  TProfile2D *tprof_sin_south_mbd_shift_input[6][6]{};
 };
 
 #endif  // EVENTPLANERECO_H
