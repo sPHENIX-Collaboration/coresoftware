@@ -31,15 +31,14 @@ PHTrackCleaner::PHTrackCleaner(const std::string &name)
 
 //____________________________________________________________________________..
 PHTrackCleaner::~PHTrackCleaner()
-{
-
-}
+= default;
 
 //____________________________________________________________________________..
 int PHTrackCleaner::InitRun(PHCompositeNode *topNode)
 {
   int ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  if (ret != Fun4AllReturnCodes::EVENT_OK) { return ret;
+}
 
    return ret;
 }
@@ -48,8 +47,9 @@ int PHTrackCleaner::InitRun(PHCompositeNode *topNode)
 int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 {
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 0) {
     std::cout << PHWHERE << " track map size " << _track_map->size()  << std::endl;
+}
 
   std::set<unsigned int> track_keep_list;
   std::set<unsigned int> track_delete_list;
@@ -60,11 +60,12 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
   std::multimap<unsigned int, unsigned int> tpcid_track_mmap;
   std::set<unsigned int> tpc_id_set;
   // loop over the fitted tracks
-  for (auto it = _track_map->begin(); it != _track_map->end(); ++it)
+  for (auto & it : *_track_map)
     {
-      auto track_id = (*it).first;
-      auto track = (*it).second;
-      if(!track) continue;
+      auto track_id = it.first;
+      auto track = it.second;
+      if(!track) { continue;
+}
       
       auto tpc_seed =  track->get_tpc_seed();
       unsigned int tpc_index = _tpc_seed_map->find(tpc_seed);      
@@ -75,17 +76,17 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
       tpcid_track_mmap.insert(tpc_track_pair);
     }
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 0) {
     std::cout << " tpcid_track_mmap  size " << tpcid_track_mmap.size() << std::endl;
+}
 
   // loop over the TPC seed ID's
 
-  for(auto seed_iter = tpc_id_set.begin(); seed_iter != tpc_id_set.end(); ++seed_iter)
+  for(unsigned int tpc_id : tpc_id_set)
     {
-      unsigned int tpc_id = *seed_iter;
-
-      if(Verbosity() > 1)
+      if(Verbosity() > 1) {
 	std::cout << " TPC ID " << tpc_id << std::endl;
+}
 
       auto tpc_range = tpcid_track_mmap.equal_range(tpc_id);
 
@@ -106,9 +107,10 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 		  // skip tracks with no assigned crossing number in pp mode
 		  if(_track->get_crossing() == SHRT_MAX)
 		    {
-		      if(Verbosity() > 0) 
+		      if(Verbosity() > 0) { 
 			std::cout << "     skip  track ID " << track_id << " crossing " << _track->get_crossing() <<  " chisq " << _track->get_chisq() 
 				  << " ndf " << _track->get_ndf() << std::endl;
+}
 		      
 		      continue;
 		    }
@@ -118,12 +120,14 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 
 	      unsigned int si_index = UINT_MAX;      
 	      auto si_seed =  _track->get_silicon_seed();
-	      if (si_seed)
+	      if (si_seed) {
 		si_index = _silicon_seed_map->find(si_seed);      
+}
 
-	      if(Verbosity() > 1)	      
+	      if(Verbosity() > 1) {	      
 		std::cout << "        track ID " << track_id << " tpc index " << tpc_id << " si index " << si_index << " crossing " << _track->get_crossing() 
 			  << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq_df " << min_chisq_df << std::endl;
+}
 
 	      // only accept tracks with ndf > min_ndf - very small ndf means something went wrong, as does ndf undefined
 	      if(_track->get_chisq()/_track->get_ndf() < min_chisq_df && _track->get_ndf() > min_ndf && _track->get_ndf() != UINT_MAX)
@@ -139,54 +143,62 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 	{
 	  double qual = min_chisq_df;
 
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 1) {
 	    std::cout << "        best track for tpc_id " << tpc_id << " has track_id " << best_id << " best_ndf " << best_ndf << " chisq/ndf " << qual << std::endl;
+}
 
 	  if(qual < quality_cut * 2)
 	    {
 	      track_keep_list.insert(best_id);
 	      ok_track++;
-	      if(qual < quality_cut)
+	      if(qual < quality_cut) {
 		good_track++;
+}
 	    }
 	}
       else
 	{
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 1) {
 	    std::cout << "        no track exists  for tpc_id " << tpc_id << std::endl;
+}
 	}
     }
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 0) {
     std::cout << " Number of good tracks with qual < " << quality_cut << "  is " << good_track << " OK tracks " << ok_track << std::endl; 
+}
 
   // make a list of tracks that did not make the keep list
-  for(auto track_it = _track_map->begin(); track_it != _track_map->end(); ++track_it)
+  for(auto & track_it : *_track_map)
     {
-      auto id = track_it->first;
+      auto id = track_it.first;
 
       auto set_it = track_keep_list.find(id);
       if(set_it == track_keep_list.end())
 	{
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 1) {
 	    std::cout << "    add id " << id << " to track_delete_list " << std::endl;
+}
 	  track_delete_list.insert(id);
 	}
     }
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 0) {
     std::cout << " track_delete_list size " << track_delete_list.size() << std::endl;
+}
 
   // delete failed tracks
-  for(auto it = track_delete_list.begin(); it != track_delete_list.end(); ++it)
+  for(unsigned int it : track_delete_list)
     {
-      if(Verbosity() > 1)
-	std::cout << " erasing track ID " << *it << std::endl;
-      _track_map->erase(*it);
+      if(Verbosity() > 1) {
+	std::cout << " erasing track ID " << it << std::endl;
+}
+      _track_map->erase(it);
     }
 
-  if(Verbosity() > 0)
+  if(Verbosity() > 0) {
     std::cout << "Track map size after choosing best silicon match: " << _track_map->size() << std::endl;
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
