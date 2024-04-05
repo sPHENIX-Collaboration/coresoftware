@@ -1,5 +1,5 @@
 /*!
- *  \file PrelimDistortionCorrection.cc
+ *  \File PrelimDistortionCorrection.cc
  *  \brief	Makes preliminary TPC distortion corrections in pp running and replaces TPC seed parameters with new fits
  *  \author Tony Frawley
  */
@@ -206,10 +206,10 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 
   // These accumulate trackseeds as we loop over tracks, keylist is a vector of vectors of seed cluskeys
   // The seeds are all given to the fitter at once
-    std::vector<std::vector<TrkrDefs::cluskey>> keylist;
+    std::vector<std::vector<TrkrDefs::cluskey>> keylist_A;
     PositionMap correctedOffsetTrackClusPositions;   //  this is an std::map<TrkrDefs::cluskey, Acts::Vector3>
 
-  for(int track_it = 0; track_it != _track_map->size(); ++track_it )
+  for(unsigned int track_it = 0; track_it != _track_map->size(); ++track_it )
   {
     if(Verbosity()>0) { std::cout << "TPC seed " << track_it << std::endl; }
     // if not a TPC track, ignore
@@ -285,11 +285,11 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       /// Can't circle fit a seed with less than 3 clusters, skip it
       if(dumvec.size() < 3)
 	{ continue; }
-      keylist.push_back(dumvec);
+      keylist_A.push_back(dumvec);
 
       if(Verbosity() > 0)
 	{
-	  std::cout << "Added  input seed " << track_it << "  becomes output seed " << keylist.size() - 1 << std::endl;
+	  std::cout << "Added  input seed " << track_it << "  becomes output seed " << keylist_A.size() - 1 << std::endl;
 	}
 
     } // end if TPC seed
@@ -301,7 +301,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       
   // refit the corrected clusters 
   std::vector<float> trackChi2;
-  auto seeds = fitter->ALICEKalmanFilter(keylist, true, correctedOffsetTrackClusPositions,
+  auto seeds = fitter->ALICEKalmanFilter(keylist_A, true, correctedOffsetTrackClusPositions,
 					 trackChi2);
   
   // update the seed parameters on the node tree

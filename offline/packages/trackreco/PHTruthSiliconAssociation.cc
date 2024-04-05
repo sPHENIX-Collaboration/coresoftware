@@ -434,17 +434,17 @@ std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromPar
 	{
 	  TrkrDefs::hitkey hitkey = clushititer->second;
 	  // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
-	  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);	  
+	  TrkrDefs::hitsetkey hitsetkey_A = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);	  
 	  
 	  // get all of the g4hits for this hitkey
 	  std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
-	  _hit_truth_map->getG4Hits(hitsetkey, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+	  _hit_truth_map->getG4Hits(hitsetkey_A, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
 	  for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); htiter != temp_map.end(); ++htiter) 
 	    {
 	      // extract the g4 hit key 
 	      PHG4HitDefs::keytype g4hitkey = htiter->second.second;
 	      PHG4Hit * g4hit = nullptr;
-	      unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
+	      unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey_A);
 	      switch( trkrid )
 		{
 		case TrkrDefs::mvtxId: g4hit = _g4hits_mvtx->findHit(g4hitkey); break;
@@ -489,9 +489,9 @@ std::set<short int> PHTruthSiliconAssociation::getInttCrossings(TrackSeed *si_tr
 	  
 	  // get the bunch crossings for all hits in this cluster
 	  auto crossings = _cluster_crossing_map->getCrossings(cluster_key);
-	  for(auto iter = crossings.first; iter != crossings.second; ++iter)
+	  for(auto iter_A = crossings.first; iter_A != crossings.second; ++iter_A)
 	    {
-        const auto& [key, crossing] = *iter;
+        const auto& [key, crossing] = *iter_A;
         if( Verbosity() )
         { std::cout << "PHTruthSiliconAssociation::getInttCrossings - si Track cluster " << key << " layer " << layer << " crossing " << crossing  << std::endl; }
 	      intt_crossings.insert(crossing);

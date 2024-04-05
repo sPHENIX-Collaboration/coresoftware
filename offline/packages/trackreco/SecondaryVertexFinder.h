@@ -104,7 +104,7 @@ bool passConversionElectronCuts(TLorentzVector tsum,
 
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrackMap *_track_map_electrons{nullptr};
-  SvtxTrack *_track{nullptr};  
+//  SvtxTrack *_track{nullptr};  
   SvtxVertexMap *_svtx_vertex_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
 

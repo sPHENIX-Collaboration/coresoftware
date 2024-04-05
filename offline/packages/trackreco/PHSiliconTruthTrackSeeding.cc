@@ -118,16 +118,16 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
   {
     TrkrDefs::hitkey hitkey = clushititer->second;
     // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
-    TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+    TrkrDefs::hitsetkey hitsetkey_A = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
     
       if (Verbosity() >= 3)
 	{
-	  cout << PHWHERE <<"      --- process hit with hitkey  " << hitkey << "  hitsetkey " << hitsetkey  << std::endl;
+	  cout << PHWHERE <<"      --- process hit with hitkey  " << hitkey << "  hitsetkey " << hitsetkey_A  << std::endl;
 	}
 
       // get all of the g4hits for this hitkey
       std::multimap<TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;
-      hittruthassoc->getG4Hits(hitsetkey, hitkey, temp_map);  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+      hittruthassoc->getG4Hits(hitsetkey_A, hitkey, temp_map);  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
       for( auto htiter = temp_map.begin(); htiter != temp_map.end(); ++htiter)
       {
         // extract the g4 hit key here and add the hits to the set
@@ -349,13 +349,13 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
       id++;
 
       //Print associated clusters;
-      for (TrackSeed::ConstClusterKeyIter iter =
+      for (TrackSeed::ConstClusterKeyIter iter_A =
                svtx_track->begin_cluster_keys();
-           iter != svtx_track->end_cluster_keys(); ++iter)
+           iter_A != svtx_track->end_cluster_keys(); ++iter_A)
       {
-        TrkrDefs::cluskey cluster_key = *iter;
+        TrkrDefs::cluskey cluster_key = *iter_A;
         TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
-        float radius = sqrt(
+        float radius = std::sqrt(
             cluster->getX() * cluster->getX() + cluster->getY() * cluster->getY());
         cout << "       cluster ID: "
              << cluster_key << ", cluster radius: " << radius

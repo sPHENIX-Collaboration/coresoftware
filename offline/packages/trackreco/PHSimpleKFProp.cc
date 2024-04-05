@@ -226,7 +226,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
-  for(int track_it = 0; track_it != _track_map->size(); ++track_it )
+  for(unsigned int track_it = 0; track_it != _track_map->size(); ++track_it )
   {
     if (Verbosity())
     {
@@ -242,7 +242,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
     if (is_tpc)
     {
-      std::vector<std::vector<TrkrDefs::cluskey>> keylist;
+      std::vector<std::vector<TrkrDefs::cluskey>> keylist_A;
       std::vector<TrkrDefs::cluskey> dumvec;
       std::map<TrkrDefs::cluskey, Acts::Vector3> trackClusPositions;
       for (TrackSeed::ConstClusterKeyIter iter = track->begin_cluster_keys();
@@ -260,7 +260,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         continue;
       }
 
-      keylist.push_back(dumvec);
+      keylist_A.push_back(dumvec);
 
       /// This will by definition return a single pair with each vector
       /// in the pair length 1 corresponding to the seed info
@@ -268,7 +268,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       timer.stop();
       timer.restart();
 
-      auto seedpair = fitter->ALICEKalmanFilter(keylist, false,
+      auto seedpair = fitter->ALICEKalmanFilter(keylist_A, false,
                                                 trackClusPositions, trackChi2);
 
       timer.stop();
@@ -1094,7 +1094,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   {
     std::cout << "\nlayers after outward propagation:" << std::endl;
   }
-  for (int i = 0; i < propagated_track.size(); i++)
+  for (unsigned int i = 0; i < propagated_track.size(); i++)
   {
     layers.push_back(TrkrDefs::getLayer(propagated_track[i]));
     if (Verbosity()) std::cout << layers[i] << std::endl;

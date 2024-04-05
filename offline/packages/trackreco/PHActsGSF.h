@@ -83,7 +83,7 @@ class PHActsGSF : public SubsysReco
   SvtxVertexMap* m_vertexMap = nullptr;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
-  alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
+//  alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
   alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
   std::set< Acts::GeometryIdentifier> m_transient_id_set;
   Acts::GeometryContext m_transient_geocontext;
@@ -91,10 +91,10 @@ class PHActsGSF : public SubsysReco
   TpcDistortionCorrectionContainer* m_dccStatic = nullptr;
   TpcDistortionCorrectionContainer* m_dccAverage = nullptr;
   TpcDistortionCorrectionContainer* m_dccFluctuation{nullptr};
-  TpcDistortionCorrection m_distortionCorrection;
+//  TpcDistortionCorrection m_distortionCorrection;
 
   std::string m_trackMapName = "SvtxTrackMap";
-  unsigned int m_pHypothesis = 11;
+//  unsigned int m_pHypothesis = 11;
 
   bool m_pp_mode = false;
 

@@ -148,7 +148,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   /// TrackMap containing SvtxTracks
   SvtxTrackMap* m_trackMap = nullptr;
-  SvtxTrackMap* m_directedTrackMap = nullptr;
+//  SvtxTrackMap* m_directedTrackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
   TrackSeedContainer* m_seedMap = nullptr;
   TrackSeedContainer* m_tpcSeeds = nullptr;
@@ -188,7 +188,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
   /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
+//  TpcDistortionCorrection _distortionCorrection;
 
   // cluster mover utility class
   //  TpcClusterMover _clusterMover;
