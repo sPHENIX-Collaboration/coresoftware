@@ -5,14 +5,16 @@
 
 #include "AlignmentDefs.h"
 
-#include <fun4all/SubsysReco.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcDistortionCorrection.h>
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/ClusterErrorPara.h>
+
 #include <phparameter/PHParameterInterface.h>
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
+#include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <map>
@@ -45,7 +47,9 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   {
     _fieldDir = -1;
     if(rescale > 0)
+    {
       _fieldDir = 1;     
+    }
   }
   void set_field(const std::string &field) { _field = field;}
 
@@ -177,34 +181,34 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   TrkrClusterContainer *_cluster_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
 
-  std::string data_outfilename = ("mille_helical_output_data_file.bin");  
-  std::string steering_outfilename = ("steer_helical.txt");  
-  std::string ntuple_outfilename = ("HF_ntuple.root"); 
+  std::string data_outfilename {"mille_helical_output_data_file.bin"};
+  std::string steering_outfilename {"steer_helical.txt"};
+  std::string ntuple_outfilename {"HF_ntuple.root"};
 
-  bool fitsilicon = true;
-  bool fittpc = false;
-  bool fitfulltrack = false;
+  bool fitsilicon {true};
+  bool fittpc {false};
+  bool fitfulltrack {false};
 
-  float dca_cut = 0.19;  // cm
+  float dca_cut {0.19};  // cm
 
-  SvtxTrackMap* m_trackmap = nullptr;
-  SvtxAlignmentStateMap* m_alignmentmap = nullptr;
+  SvtxTrackMap* m_trackmap {nullptr};
+  SvtxAlignmentStateMap* m_alignmentmap {nullptr};
 
   std::string _field;
-  int _fieldDir = -1;
+  int _fieldDir {-1};
   std::map<unsigned int, float> _layerMisalignment;
 
-  std::string _track_map_name = "TpcTrackSeedContainer";
-  std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
+  std::string _track_map_name {"TpcTrackSeedContainer"};
+  std::string _silicon_track_map_name {"SiliconTrackSeedContainer"};
 
-  bool make_ntuple = true;
+  bool make_ntuple {true};
   TNtuple *ntp{nullptr};
   TNtuple *track_ntp{nullptr};
   TFile *fout{nullptr};
 
-  bool use_event_vertex = false;
+  bool use_event_vertex {false};
 
-  int event = 0;
+  int event {0};
 
   Acts::Vector3 vertexPosition;
   Acts::Vector3 vertexPosUncertainty;
