@@ -9,8 +9,8 @@
  */
 
 #include <fun4all/SubsysReco.h>
-#include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcDistortionCorrection.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase_historic/ActsTransformations.h>
 
@@ -25,11 +25,11 @@ namespace PHGenFit
 } /* namespace PHGenFit */
 #endif
 
-#include <TMatrixFfwd.h>         // for TMatrixF
-#include <TVector3.h>            // for TVector3
+#include <TMatrixFfwd.h>  // for TMatrixF
+#include <TVector3.h>     // for TVector3
 
 #include <map>
-#include <memory>                // for shared_ptr
+#include <memory>  // for shared_ptr
 #include <set>
 #include <string>
 #include <vector>
@@ -38,15 +38,15 @@ class TClonesArray;
 
 namespace genfit
 {
-class GFRaveVertex;
-class GFRaveVertexFactory;
-class Track;
+  class GFRaveVertex;
+  class GFRaveVertexFactory;
+  class Track;
 } /* namespace genfit */
 
 class SvtxTrack;
 namespace PHGenFit
 {
-class Fitter;
+  class Fitter;
 } /* namespace PHGenFit */
 
 class ActsGeometry;
@@ -91,16 +91,16 @@ class PHGenFitTrkFitter : public SubsysReco
   //! Default constructor
   PHGenFitTrkFitter(const std::string& name = "PHGenFitTrkFitter");
 
-  //!Initialization, called for initialization
+  //! Initialization, called for initialization
   int Init(PHCompositeNode*) override;
 
-  //!Initialization Run, called for initialization of a run
+  //! Initialization Run, called for initialization of a run
   int InitRun(PHCompositeNode*) override;
 
-  //!Process Event, called for each event
+  //! Process Event, called for each event
   int process_event(PHCompositeNode*) override;
 
-  //!End, write and close files
+  //! End, write and close files
   int End(PHCompositeNode*) override;
 
   //! For evalution
@@ -236,10 +236,10 @@ class PHGenFitTrkFitter : public SubsysReco
   //@{
 
   //! mark layer as disbled
-  void disable_layer( int layer, bool disabled = true );
+  void disable_layer(int layer, bool disabled = true);
 
   //! set disabled layers
-  void set_disabled_layers( const std::set<int>& );
+  void set_disabled_layers(const std::set<int>&);
 
   //! clear disabled layers
   void clear_disabled_layers();
@@ -250,20 +250,22 @@ class PHGenFitTrkFitter : public SubsysReco
   //@}
 
   /// fit only tracks with silicon+MM hits
-  void set_fit_silicon_mms( bool );
+  void set_fit_silicon_mms(bool);
 
   /// require micromegas in SiliconMM fits
-  void set_use_micromegas( bool value )
-  { m_use_micromegas = value; }
+  void set_use_micromegas(bool value)
+  {
+    m_use_micromegas = value;
+  }
 
-  private:
+ private:
   //! Event counter
   int _event = 0;
 
   //! Get all the nodes
   int GetNodes(PHCompositeNode*);
 
-  //!Create New nodes
+  //! Create New nodes
   int CreateNodes(PHCompositeNode*);
 
   /// get global position for a given cluster
@@ -294,7 +296,7 @@ class PHGenFitTrkFitter : public SubsysReco
       TMatrixF& pos_out,
       TMatrixF& cov_out) const;
 
-  //bool _make_separate_nodes;
+  // bool _make_separate_nodes;
   OutPutMode _output_mode = PHGenFitTrkFitter::MakeNewNode;
 
   bool _over_write_svtxtrackmap = true;
@@ -307,14 +309,14 @@ class PHGenFitTrkFitter : public SubsysReco
   //! disabled layers
   /** clusters belonging to disabled layers are not included in track fit */
   std::set<int> _disabled_layers;
-  
+
   /// Boolean to use normal tracking geometry navigator or the
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fit_silicon_mms = false;
 
   /// requires micromegas present when fitting silicon-MM surfaces
   bool m_use_micromegas = true;
-  
+
   //! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
   std::string _track_fitting_alg_name = "DafRef";
 
@@ -333,16 +335,16 @@ class PHGenFitTrkFitter : public SubsysReco
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";
 
   /// acts geometry
-  ActsGeometry *m_tgeometry = nullptr;
-  
+  ActsGeometry* m_tgeometry = nullptr;
+
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container = nullptr;
   TrkrClusterContainer* m_clustermap = nullptr;
-  
+
   // track seeds
-  TrackSeedContainer *m_seedMap = nullptr;
-  TrackSeedContainer *m_tpcSeeds = nullptr;
-  TrackSeedContainer *m_siliconSeeds = nullptr;
+  TrackSeedContainer* m_seedMap = nullptr;
+  TrackSeedContainer* m_tpcSeeds = nullptr;
+  TrackSeedContainer* m_siliconSeeds = nullptr;
 
   SvtxVertexMap* _vertexmap = nullptr;
 
@@ -354,7 +356,7 @@ class PHGenFitTrkFitter : public SubsysReco
 
   // crossing z correction
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-  
+
   // distortion corrections
   TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
   TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
@@ -362,7 +364,7 @@ class PHGenFitTrkFitter : public SubsysReco
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
- 
+
   /// cluster error parametrisation
   ClusterErrorPara m_cluster_error_parametrization;
 
@@ -393,7 +395,6 @@ class PHGenFitTrkFitter : public SubsysReco
   bool _do_evt_display = false;
 
   std::map<unsigned int, unsigned int> _rave_vertex_gf_track_map;
-
 };
 
 #endif
