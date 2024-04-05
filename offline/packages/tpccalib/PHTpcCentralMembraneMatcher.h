@@ -231,6 +231,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   /// store centers of all central membrane pads
   std::vector<TVector3> m_truth_pos;
 
+  std::vector<double> m_truth_RPeaks = { 22.709, 23.841, 24.973, 26.1049, 27.2369, 28.3689, 29.5009, 30.6328, 31.7648, 32.8968, 34.0288, 35.1607, 36.2927, 37.4247, 38.5566, 39.6886, 42.1706, 44.2119, 46.2533, 48.2947, 50.3361, 52.3774, 54.4188, 56.4602, 59.4605, 61.6546, 63.8487, 66.0428, 68.2369, 70.431, 72.6251, 74.8192};
+
   //@}
 
   bool m_useOnly_nClus2 = false;
@@ -240,9 +242,14 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   double m_clustRotation_pos[3];
   double m_clustRotation_neg[3];
 
+  std::vector<double> m_clust_RPeaks_pos;
+  std::vector<double> m_clust_RPeaks_neg;
+
   double getPhiRotation_smoothed( TH1D *hitHist, TH1D *clustHist );
 
   std::vector<double> getRPeaks(TH2F *r_phi);
+
+  std::vector<int> doGlobalRMatching(TH2F *r_phi, bool pos);
 
   int getClusterRMatch( std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR);
 };

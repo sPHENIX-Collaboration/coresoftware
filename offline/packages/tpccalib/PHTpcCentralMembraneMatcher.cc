@@ -291,6 +291,181 @@ std::vector<double> PHTpcCentralMembraneMatcher::getRPeaks(TH2F *r_phi){
   return finalRPeaks;
 }
 
+
+std::vector<int> PHTpcCentralMembraneMatcher::doGlobalRMatching(TH2F *r_phi, bool pos){
+
+  TH1D *proj = r_phi->ProjectionY("R_proj");
+
+
+  std::vector<double> rPeaks;
+  std::vector<double> rHeights;
+  std::vector<double> finalRPeaks;
+  std::vector<double> finalRHeights;
+  std::vector<std::vector<int>> groupR;
+
+  double totalHeight = 0.0;
+  
+  proj->GetXaxis()->SetRangeUser(0,41);
+  double maxR1 = proj->GetMaximum();
+
+  proj->GetXaxis()->SetRangeUser(41,58);
+  double maxR2 = proj->GetMaximum();
+
+  proj->GetXaxis()->SetRangeUser(58,100);
+  double maxR3 = proj->GetMaximum();
+
+  proj->GetXaxis()->SetRange(0,0);
+
+
+
+  for(int i=2; i<proj->GetNbinsX(); i++){
+    //peak is when content is higher than 0.15* maximum value and content is greater than or equal to both adjacent bins
+    if((proj->GetBinCenter(i) < 41.0 && proj->GetBinContent(i) > 0.15*maxR1) || (proj->GetBinCenter(i) >= 41.0 && proj->GetBinCenter(i) < 58.0 && proj->GetBinContent(i) > 0.15*maxR2) || (proj->GetBinCenter(i) >= 58.0 && proj->GetBinContent(i) > 0.15*maxR3)){
+      rPeaks.push_back(proj->GetBinCenter(i));
+      rHeights.push_back(proj->GetBinContent(i));
+    }
+  }
+
+
+
+  double threshold = 0.75;
+
+  for(int i=0; i<(int)rPeaks.size(); i++){
+    std::vector<int> tmpR;
+    tmpR.push_back(i);
+
+    bool closePeak = false;
+    int currentPeak = -1;
+
+    if(rPeaks[i] > 41.0) threshold = 1.0;
+
+    for(int j=0; j<(int)finalRPeaks.size(); j++){
+      for(int k=0; k<(int)groupR[j].size(); k++){
+	if(fabs(rPeaks[i] - rPeaks[groupR[j][k]]) <= threshold || fabs(rPeaks[i] - finalRPeaks[j]) <= threshold){
+	  closePeak = true;
+	  currentPeak = j;
+	  break;
+	}
+      }
+      if(closePeak) break;
+    }
+
+    if(!closePeak){
+      finalRPeaks.push_back(rPeaks[i]);
+      finalRHeights.push_back(rHeights[i]);
+      groupR.push_back(tmpR);
+      tmpR.clear();
+      continue;
+    }
+  
+    groupR[currentPeak].push_back(i);
+    double num = 0.0;
+    double den = 0.0;
+    for(int j=0; j<(int)groupR[currentPeak].size(); j++){
+      double rHeight = proj->GetBinContent(proj->FindBin(rPeaks[groupR[currentPeak][j]]));
+      num += rPeaks[groupR[currentPeak][j]] * rHeight;
+      den += rHeight;
+    }
+    
+    finalRPeaks[currentPeak] = num/den;
+    finalRHeights[currentPeak] = den;
+    totalHeight += den;
+  }
+
+  if(pos)
+    {
+      for(int i=0; i<(int)finalRPeaks.size(); i++){
+	m_clust_RPeaks_pos.push_back(finalRPeaks[i]);
+      }
+    }
+  else
+    {
+      for(int i=0; i<(int)finalRPeaks.size(); i++){
+	m_clust_RPeaks_neg.push_back(finalRPeaks[i]);
+      }
+    }
+
+  if(Verbosity())
+    {
+
+      std::cout << "rPeaks: {";
+      for(int i=0; i<(int)finalRPeaks.size(); i++){
+        if(i < (int)finalRPeaks.size()-1) std::cout << finalRPeaks[i] << ", ";
+      }
+      std::cout<< finalRPeaks[finalRPeaks.size()-1] << "}" << std::endl;
+
+      std::cout << "rHeights: {";
+      for(int i=0; i<(int)finalRHeights.size(); i++){
+        if(i < (int)finalRHeights.size()-1) std::cout << finalRHeights[i] << ", ";
+      }
+      std::cout<< finalRHeights[finalRHeights.size()-1] << "}" << std::endl;
+
+    }
+
+  int startOffset = -999;
+  double startDiff = 1000000.;
+  for(int i=0; i<(int)m_truth_RPeaks.size(); i++){
+    double diff = fabs(finalRPeaks[0]-m_truth_RPeaks[i]);
+    if(diff<startDiff){
+      startDiff = diff;
+      startOffset = i;
+    }
+  }
+
+  double bestSum = 10000.0;
+  int shift = 0;
+
+  std::vector<double> shifts;
+
+  for(int i=startOffset-2; i<=startOffset+2; i++){
+    double sum = 0.0;
+    for(int j=0; j<(int)finalRPeaks.size(); j++){
+      sum += fabs(finalRPeaks[j] - m_truth_RPeaks[j+i])*totalHeight/finalRHeights[j];
+    }
+    shifts.push_back(sum);
+    if(sum < bestSum){
+      bestSum = sum;
+      shift = i;
+    }
+  }
+
+  if(Verbosity())
+    {
+      for(int i=0; i<(int)shifts.size(); i++){
+	std::cout << "total Residual shift=" << i << "   : " << shifts[i] << std::endl;
+      }
+    }
+
+  std::vector<int> hitMatches;
+  std::vector<int> hitMatchesShift;
+
+  for(int i=0; i<(int)finalRPeaks.size(); i++){
+    hitMatches.push_back(i+shift);
+
+    hitMatchesShift.push_back(i+shift);
+    if(m_truth_RPeaks[hitMatches[i]] - finalRPeaks[i] > 0.75){
+      hitMatchesShift[i] -= 1;
+
+    }else if(m_truth_RPeaks[hitMatches[i]] - finalRPeaks[i] < -0.75){
+      hitMatchesShift[i] += 1;
+    }
+  }
+
+  double shiftSum = 0.0;
+
+  for(int i=0; i<(int)hitMatchesShift.size(); i++){
+    shiftSum += fabs(finalRPeaks[i] - m_truth_RPeaks[hitMatchesShift[i]])*totalHeight/finalRHeights[i];
+  }
+
+  if(shiftSum < bestSum){
+    return hitMatchesShift;
+  }else{
+    return hitMatches;
+  }
+
+}
+
+
 int PHTpcCentralMembraneMatcher::getClusterRMatch( std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR){
 
   double closestDist = 100.;
@@ -566,7 +741,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 
 
   //get hit and cluster peaks
-
+  /*
+  
   if(Verbosity()) std::cout << "hit R Peaks:" << std::endl;
   std::vector<double> hit_RPeaks = getRPeaks(hit_r_phi);
   if(Verbosity()) std::cout << "cluster R Peaks pos:" << std::endl;
@@ -677,26 +853,6 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       hitMatches_pos.push_back(23+1 + i - (R23Gap_pos+1));
     }
   }
-  //match cluster peaks to hit peaks using gap positions
-  /*
-  for(int i=0; i<(int)clust_RPeaks_pos.size(); i++){
-
-    //Module 1
-    if(i < (R12Gap_pos+1)){
-      //module 1-2 gap is between 15 & 16 in hitPeaks
-      hitMatches_pos.push_back(15 + i - R12Gap_pos );
-      //if multiple rows missing, offset for each one
-      if(clust_RGaps_pos[R12Gap_pos] > 3.6) hitMatches_pos[i] -= 1;
-      if(clust_RGaps_pos[R12Gap_pos] > 4.6) hitMatches_pos[i] -= 1;
-      if(clust_RGaps_pos[R12Gap_pos] > 5.8) hitMatches_pos[i] -= 1;      
-      if(hitMatches_pos[i] < min_match_pos) min_match_pos = hitMatches_pos[i];
-    }
-    //module 1-2 gap is between 15 & 16
-    else if(i < (R23Gap_pos+1) && i >= (R12Gap_pos+1)) hitMatches_pos.push_back(15+1 + i - (R12Gap_pos+1));
-    //module 2-3 gap is between 22 & 23
-    else if(i >= R23Gap_pos+1) hitMatches_pos.push_back(23+1 + i - (R23Gap_pos+1));
-  }
-  */
 
   std::vector<int> hitMatches_neg;
   for(int i=0; i<(int)clust_RPeaks_neg.size(); i++){
@@ -712,35 +868,25 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       hitMatches_neg.push_back(23+1 + i - (R23Gap_neg+1));
     }
   }
-  /*
-  for(int i=0; i<(int)clust_RPeaks_neg.size(); i++){
-
-    if(i < (R12Gap_neg+1)){
-
-      hitMatches_neg.push_back(15 + i - R12Gap_neg );
-      if(clust_RGaps_neg[R12Gap_neg] > 3.6) hitMatches_neg[i] -= 1;
-      if(clust_RGaps_neg[R12Gap_neg] > 4.6) hitMatches_neg[i] -= 1;
-      if(clust_RGaps_neg[R12Gap_neg] > 5.8) hitMatches_neg[i] -= 1;
-      if(hitMatches_neg[i] < min_match_neg) min_match_neg = hitMatches_neg[i];
-    }
-    else if(i < (R23Gap_neg+1) && i >= (R12Gap_neg+1)) hitMatches_neg.push_back(15+1 + i - (R12Gap_neg+1));
-    else if(i >= R23Gap_neg+1) hitMatches_neg.push_back(23+1 + i - (R23Gap_neg+1));
-  }
   */
+
+  std::vector<int> hitMatches_pos = doGlobalRMatching(clust_r_phi_pos,true);
+  std::vector<int> hitMatches_neg = doGlobalRMatching(clust_r_phi_neg,false);
+
   if(Verbosity())
     {
 
-      std::cout << "PHTpcCentralMembraneMatcher::process_event - R12Gap_pos= " << R12Gap_pos << "   value=" << R12Gap_pos_value << std::endl;
-      std::cout << "PHTpcCentralMembraneMatcher::process_event - R23Gap_pos= " << R23Gap_pos << "   value=" << R23Gap_pos_value << std::endl;
+      //std::cout << "PHTpcCentralMembraneMatcher::process_event - R12Gap_pos= " << R12Gap_pos << "   value=" << R12Gap_pos_value << std::endl;
+      //std::cout << "PHTpcCentralMembraneMatcher::process_event - R23Gap_pos= " << R23Gap_pos << "   value=" << R23Gap_pos_value << std::endl;
       for(int i=0; i<(int)hitMatches_pos.size(); i++){
-	std::cout << "positive cluster index " << i << "   hit match " << hitMatches_pos[i] << "   recoPeak=" << clust_RPeaks_pos[i] << "   truthPeak=" << hit_RPeaks[hitMatches_pos[i]] << "   residual=" << hit_RPeaks[hitMatches_pos[i]] - clust_RPeaks_pos[i] << std::endl;
+	std::cout << "positive cluster index " << i << "   hit match " << hitMatches_pos[i] << "   recoPeak=" << m_clust_RPeaks_pos[i] << "   truthPeak=" << m_truth_RPeaks[hitMatches_pos[i]] << "   residual=" << m_truth_RPeaks[hitMatches_pos[i]] - m_clust_RPeaks_pos[i] << std::endl;
       }
 
 
-      std::cout << "PHTpcCentralMembraneMatcher::process_event - R12Gap_neg= " << R12Gap_neg << "   value=" << R12Gap_neg_value << std::endl;
-      std::cout << "PHTpcCentralMembraneMatcher::process_event - R23Gap_neg= " << R23Gap_neg << "   value=" << R23Gap_neg_value << std::endl;
+      //std::cout << "PHTpcCentralMembraneMatcher::process_event - R12Gap_neg= " << R12Gap_neg << "   value=" << R12Gap_neg_value << std::endl;
+      //std::cout << "PHTpcCentralMembraneMatcher::process_event - R23Gap_neg= " << R23Gap_neg << "   value=" << R23Gap_neg_value << std::endl;
       for(int i=0; i<(int)hitMatches_neg.size(); i++){
-	std::cout << "negative cluster index " << i << "   hit match " << hitMatches_neg[i] << "   recoPeak=" << clust_RPeaks_neg[i] << "   truthPeak=" << hit_RPeaks[hitMatches_neg[i]] << "   residual=" << hit_RPeaks[hitMatches_neg[i]] - clust_RPeaks_neg[i] << std::endl;
+	std::cout << "negative cluster index " << i << "   hit match " << hitMatches_neg[i] << "   recoPeak=" << m_clust_RPeaks_neg[i] << "   truthPeak=" << m_truth_RPeaks[hitMatches_neg[i]] << "   residual=" << m_truth_RPeaks[hitMatches_neg[i]] - m_clust_RPeaks_neg[i] << std::endl;
       }
 
     }
@@ -769,8 +915,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       int hitRadIndex = -1;
 
       //get which hit radial index this it
-      for(int k=0; k<(int)hit_RPeaks.size(); k++){
-	if(std::abs(rad1 - hit_RPeaks[k]) < 0.5){
+      for(int k=0; k<(int)m_truth_RPeaks.size(); k++){
+	if(std::abs(rad1 - m_truth_RPeaks[k]) < 0.5){
 	  hitRadIndex = k;
 	  break;
 	}
@@ -803,8 +949,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 
 
 	  int clustRMatchIndex = -1;
-	  if(z2 > 0) clustRMatchIndex = getClusterRMatch(hitMatches_pos, clust_RPeaks_pos, rad2);
-	  else clustRMatchIndex = getClusterRMatch(hitMatches_neg, clust_RPeaks_neg, rad2);
+	  if(z2 > 0) clustRMatchIndex = getClusterRMatch(hitMatches_pos, m_clust_RPeaks_pos, rad2);
+	  else clustRMatchIndex = getClusterRMatch(hitMatches_neg, m_clust_RPeaks_neg, rad2);
 
 
 	  if(clustRMatchIndex == -1) continue;
@@ -884,6 +1030,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     std::cout << "PHTpcCentralMembraneMatcher::process_event - m_truth_pos size, r>30cm: " << n_valid_truth << std::endl;
     int pos_stripes_add = 0;
     int neg_stripes_add = 0;
+    /*
     int nStr[8] = {3,4,4,4,4,5,4,5};
     for(int str=min_match_pos; str <= 7; str++){
       pos_stripes_add += nStr[str]*18;
@@ -891,6 +1038,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     for(int str=min_match_neg; str <= 7; str++){
       neg_stripes_add += nStr[str]*18;
     } 
+    */
     std::cout << "PHTpcCentralMembraneMatcher::process_event - m_truth_pos size, r>30cm + rows below with match: " << n_valid_truth + pos_stripes_add + neg_stripes_add<< std::endl;
     std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size: " << reco_pos.size() << std::endl;
     //std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size (nclus==1): " << n_reco_size1 << std::endl;
