@@ -70,7 +70,6 @@ class caloTowerEmbed : public SubsysReco
   std::string m_detector;
   std::string m_inputNodePrefix{"TOWERINFO_CALIB_"};
 
-  int m_runNumber{0};
   int m_eventNumber{-1};
 };
 

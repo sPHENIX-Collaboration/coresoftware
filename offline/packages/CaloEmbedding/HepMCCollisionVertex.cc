@@ -47,7 +47,7 @@ int HepMCCollisionVertex::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
-  /*
+  
   Fun4AllServer *se = Fun4AllServer::instance();
   PHCompositeNode *dataTopNode = se->topNode("TOPData");
   if (!dataTopNode)
@@ -55,11 +55,8 @@ int HepMCCollisionVertex::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "no TOPData node" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  */
-  PHNodeIterator iter(topNode);
-  PHCompositeNode *dstNodeEmbed = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DSTEMBED"));
-
-  GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(dstNodeEmbed, "GlobalVertexMap");
+  
+  GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(dataTopNode, "GlobalVertexMap");
   if (!vertexmap)
   {
     std::cout << PHWHERE << " Fatal Error - GlobalVertexMap node is missing" << std::endl;

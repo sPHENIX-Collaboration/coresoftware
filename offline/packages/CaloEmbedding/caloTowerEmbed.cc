@@ -45,8 +45,6 @@ caloTowerEmbed::~caloTowerEmbed()
 //____________________________________________________________________________..
 int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
 {
-  //Fun4AllServer *se = Fun4AllServer::instance();
-
   if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
@@ -68,28 +66,6 @@ int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
     m_detector = "SEPD";
   }
 
-  //PHCompositeNode *dataTopNode = se->topNode("TOPData");
-  PHNodeIterator iter(topNode);
-  PHCompositeNode *dataDSTNode = dynamic_cast<PHCompositeNode *>(iter.findFirst(
-										"PHCompositeNode", "DSTEMBED"));
-
-
-  //EventHeader *evtHeader = findNode::getClass<EventHeader>(dataTopNode, "EventHeader");
-  EventHeader *evtHeader = findNode::getClass<EventHeader>(dataDSTNode, "EventHeader");
-
-  if (evtHeader)
-  {
-    m_runNumber = evtHeader->get_RunNumber();
-  }
-  else
-  {
-    m_runNumber = 0;
-  }
-  if (Verbosity())
-  {
-    std::cout << "at run" << m_runNumber << std::endl;
-  }
-
   try
   {
     CreateNodeTree(topNode);
@@ -99,9 +75,6 @@ int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  topNode->print();
-  //dataTopNode->print();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -217,8 +190,8 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
     GeomNodeName = "TOWERGEOM_HCALIN";
   }
 
-  //  Fun4AllServer *se = Fun4AllServer::instance();
-  //  PHCompositeNode *dataTopNode = se->topNode("TOPData");
+  Fun4AllServer *se = Fun4AllServer::instance();
+  PHCompositeNode *dataTopNode = se->topNode("TOPData");
   
   tower_geom = findNode::getClass<RawTowerGeomContainer>(topNode, GeomNodeName);
   if (!tower_geom)
@@ -228,17 +201,14 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
     throw std::runtime_error("Failed to find " + GeomNodeName + " node");
   }
 
-  PHNodeIterator iter(topNode);
-
-  //  PHNodeIterator simIter(topNode);
-  //  PHNodeIterator dataIter(dataTopNode);
+  PHNodeIterator simIter(topNode);
+  PHNodeIterator dataIter(dataTopNode);
   
 
   // data top node first
 
-  //  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(dataIter.findFirst(
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst(
-      "PHCompositeNode", "DSTEMBED"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(dataIter.findFirst(
+										"PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
@@ -247,9 +217,8 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
         "Failed to find DST node in RawTowerCalibration::CreateNodes");
   }
 
-  //  PHCompositeNode *dstNodeSim = dynamic_cast<PHCompositeNode *>(simIter.findFirst(
-  PHCompositeNode *dstNodeSim = dynamic_cast<PHCompositeNode *>(iter.findFirst(
-      "PHCompositeNode", "DST"));
+  PHCompositeNode *dstNodeSim = dynamic_cast<PHCompositeNode *>(simIter.findFirst(
+										  "PHCompositeNode", "DST"));
   if (!dstNodeSim)
   {
     std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
@@ -278,13 +247,13 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
         "Failed to find " + TowerNodeName + " Sim node in caloTowerEmbed::CreateNodes");
   }
 
-  PHNodeIterator dstIter(dstNode);
-  PHCompositeNode *caloNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", m_detector));
+  PHNodeIterator dstIterSim(dstNodeSim);
+  PHCompositeNode *caloNode = dynamic_cast<PHCompositeNode *>(dstIterSim.findFirst("PHCompositeNode", m_detector));
 
   if (!caloNode)
   {
     caloNode = new PHCompositeNode(m_detector);
-    dstNode->addNode(caloNode);
+    dstNodeSim->addNode(caloNode);
   }
 
   return;
