@@ -48,7 +48,7 @@ class PHCosmicSeeder : public SubsysReco
   void recalculateSeedLineParameters(seed &seed, PositionMap &clusters, bool isXY);
 
   float m_xyTolerance = 2.;  //! cm
-  float m_rzTolerance = 2.;  //! cm
+//  float m_rzTolerance = 2.;  //! cm
   std::string m_trackMapName = "TpcTrackSeedContainer";
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;

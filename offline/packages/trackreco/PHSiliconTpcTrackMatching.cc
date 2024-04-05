@@ -530,11 +530,11 @@ std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(TrackSeed *si
 	  
 	  // get the bunch crossings for all hits in this cluster
 	  auto crossings = _cluster_crossing_map->getCrossings(cluster_key);
-	  for(auto iter = crossings.first; iter != crossings.second; ++iter)
+	  for(auto iter1 = crossings.first; iter1 != crossings.second; ++iter1)
 	    {
 	      if(Verbosity() > 1) 
-		std::cout << "                si Track " << _track_map_silicon->find(si_track) << " cluster " << iter->first << " layer " << layer << " crossing " << iter->second  << std::endl;
-	      intt_crossings.push_back(iter->second);
+		std::cout << "                si Track " << _track_map_silicon->find(si_track) << " cluster " << iter1->first << " layer " << layer << " crossing " << iter1->second  << std::endl;
+	      intt_crossings.push_back(iter1->second);
 	    }
 	}
     }

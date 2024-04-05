@@ -114,9 +114,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   std::map<unsigned int, double> _z_mismatch_map;
 
-  double _collision_rate = 50e3;  // input rate for phi correction
-  double _reference_collision_rate = 50e3;  // reference rate for phi correction
-  double _si_vertex_dzmax = 0.25;  // mm
+//  double _collision_rate = 50e3;  // input rate for phi correction
+//  double _reference_collision_rate = 50e3;  // reference rate for phi correction
+//  double _si_vertex_dzmax = 0.25;  // mm
   double crossing_period = 106.0;  // ns
 
   bool _test_windows = false;
