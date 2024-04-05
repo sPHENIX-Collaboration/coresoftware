@@ -50,15 +50,10 @@ namespace PHGenFit
 
 class ActsGeometry;
 class PHCompositeNode;
-class PHG4TruthInfoContainer;
 class SvtxTrackMap;
-class SvtxVertexMap;
-class SvtxVertex;
 class TpcDistortionCorrectionContainer;
 class TrkrClusterContainer;
 class TrackSeedContainer;
-
-class TTree;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHGenFitTrkFitter : public SubsysReco
@@ -79,32 +74,6 @@ class PHGenFitTrkFitter : public SubsysReco
 
   //! End, write and close files
   int End(PHCompositeNode*) override;
-
-  //! For evalution
-  //! Change eval output filename
-  void set_eval_filename(const char* file)
-  {
-    if (file)
-      _eval_outname = file;
-  }
-  std::string get_eval_filename() const
-  {
-    return _eval_outname;
-  }
-
-  void fill_eval_tree(PHCompositeNode*);
-  void init_eval_tree();
-  void reset_eval_variables();
-
-  bool is_do_eval() const
-  {
-    return _do_eval;
-  }
-
-  void set_do_eval(bool doEval)
-  {
-    _do_eval = doEval;
-  }
 
   const std::string& get_track_fitting_alg_name() const
   {
@@ -254,25 +223,6 @@ class PHGenFitTrkFitter : public SubsysReco
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
 
-  //! Evaluation
-  //! switch eval out
-  bool _do_eval = false;
-
-  //! eval output filename
-  std::string _eval_outname = "PHGenFitTrkFitter_eval.root";
-
-  TTree* _eval_tree = nullptr;
-  TClonesArray* _tca_trackmap = nullptr;
-
-  TTree* _cluster_eval_tree = nullptr;
-  float _cluster_eval_tree_x = 0;
-  float _cluster_eval_tree_y = 0;
-  float _cluster_eval_tree_z = 0;
-  float _cluster_eval_tree_gx = 0;
-  float _cluster_eval_tree_gy = 0;
-  float _cluster_eval_tree_gz = 0;
-
-  std::map<unsigned int, unsigned int> _rave_vertex_gf_track_map;
 };
 
 #endif

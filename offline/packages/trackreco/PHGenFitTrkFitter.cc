@@ -14,12 +14,6 @@
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Particlev2.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>  // for PHG4VtxPoint
-#include <g4main/PHG4VtxPointv1.h>
-
 #include <intt/CylinderGeomIntt.h>
 
 #include <micromegas/CylinderGeomMicromegas.h>
@@ -72,8 +66,6 @@
 #include <GenFit/Track.h>
 #include <GenFit/TrackPoint.h>  // for TrackPoint
 
-#include <TClonesArray.h>
-#include <TMath.h>           // for ATan2
 #include <TMatrixDSymfwd.h>  // for TMatrixDSym
 #include <TMatrixFfwd.h>     // for TMatrixF
 #include <TMatrixT.h>        // for TMatrixT, operator*
@@ -107,8 +99,6 @@ static constexpr float WILD_FLOAT = -9999;
 
 #define _DEBUG_MODE_ 0
 
-//#define _DEBUG_
-
 using namespace std;
 
 //______________________________________________________
@@ -117,7 +107,7 @@ namespace
 
   // square
   template <class T>
-  T square(T x)
+  inline static constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -172,15 +162,7 @@ namespace
  */
 PHGenFitTrkFitter::PHGenFitTrkFitter(const string& name)
   : SubsysReco(name)
-{
-  Verbosity(0);
-  _cluster_eval_tree_x = WILD_FLOAT;
-  _cluster_eval_tree_y = WILD_FLOAT;
-  _cluster_eval_tree_z = WILD_FLOAT;
-  _cluster_eval_tree_gx = WILD_FLOAT;
-  _cluster_eval_tree_gy = WILD_FLOAT;
-  _cluster_eval_tree_gz = WILD_FLOAT;
-}
+{}
 
 /*
  * Init
@@ -202,14 +184,6 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
 
   _fitter.reset(PHGenFit::Fitter::getInstance( tgeo_manager, field, _track_fitting_alg_name, "RKTrackRep", false));
   _fitter->set_verbosity(Verbosity());
-
-  if (_do_eval)
-  {
-    if (Verbosity() > 1)
-      cout << PHWHERE << " Openning file: " << _eval_outname << endl;
-    PHTFileServer::get().open(_eval_outname, "RECREATE");
-    init_eval_tree();
-  }
 
   std::cout << "PHGenFitTrkFitter::InitRun - m_fit_silicon_mms: " << m_fit_silicon_mms << std::endl;
   std::cout << "PHGenFitTrkFitter::InitRun - m_use_micromegas: " << m_use_micromegas << std::endl;
@@ -377,25 +351,8 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     ++iter;
   }
 
-#ifdef _DEBUG_
-  cout << __LINE__ << endl;
-#endif
-
   // clear genfit tracks
   rf_phgf_tracks.clear();
-
-#ifdef _DEBUG_
-  cout << __LINE__ << endl;
-#endif
-
-
-  if (_do_eval)
-  {
-    fill_eval_tree(topNode);
-  }
-#ifdef _DEBUG_
-  cout << __LINE__ << endl;
-#endif
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -405,76 +362,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
  */
 int PHGenFitTrkFitter::End(PHCompositeNode* /*topNode*/)
 {
-  if (_do_eval)
-  {
-    if (Verbosity() > 1)
-      cout << PHWHERE << " Writing to file: " << _eval_outname << endl;
-    PHTFileServer::get().cd(_eval_outname);
-    _eval_tree->Write();
-    _cluster_eval_tree->Write();
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-/*
- * fill_eval_tree():
- */
-void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* /*topNode*/)
-{
-  // Make sure to reset all the TTree variables before trying to set them.
-  reset_eval_variables();
-
-  if (m_trackMap)
-  {
-    int i = 0;
-    for (const auto& pair : *m_trackMap)
-    {
-      new ((*_tca_trackmap)[i++])(SvtxTrack_v4)(*pair.second);
-    }
-  }
-
-  _eval_tree->Fill();
-
-  return;
-}
-
-/*
- * init_eval_tree
- */
-void PHGenFitTrkFitter::init_eval_tree()
-{
-  if (!_tca_trackmap)
-    _tca_trackmap = new TClonesArray("SvtxTrack_v4");
-
-  // create TTree
-  _eval_tree = new TTree("T", "PHGenFitTrkFitter Evaluation");
-  _eval_tree->Branch("SvtxTrack", _tca_trackmap);
-
-  _cluster_eval_tree = new TTree("cluster_eval", "cluster eval tree");
-  _cluster_eval_tree->Branch("x", &_cluster_eval_tree_x, "x/F");
-  _cluster_eval_tree->Branch("y", &_cluster_eval_tree_y, "y/F");
-  _cluster_eval_tree->Branch("z", &_cluster_eval_tree_z, "z/F");
-  _cluster_eval_tree->Branch("gx", &_cluster_eval_tree_gx, "gx/F");
-  _cluster_eval_tree->Branch("gy", &_cluster_eval_tree_gy, "gy/F");
-  _cluster_eval_tree->Branch("gz", &_cluster_eval_tree_gz, "gz/F");
-}
-
-/*
- * reset_eval_variables():
- *  Reset all the tree variables to their default values.
- *  Needs to be called at the start of every event
- */
-void PHGenFitTrkFitter::reset_eval_variables()
-{
-  _tca_trackmap->Clear();
-
-  _cluster_eval_tree_x = WILD_FLOAT;
-  _cluster_eval_tree_y = WILD_FLOAT;
-  _cluster_eval_tree_z = WILD_FLOAT;
-  _cluster_eval_tree_gx = WILD_FLOAT;
-  _cluster_eval_tree_gy = WILD_FLOAT;
-  _cluster_eval_tree_gz = WILD_FLOAT;
 }
 
 int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
