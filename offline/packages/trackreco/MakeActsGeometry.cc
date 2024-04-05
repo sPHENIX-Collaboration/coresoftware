@@ -173,7 +173,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
-  alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
+  // alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
    if(Verbosity() > 1)
     {
       alignment_transformation.verbosity();
