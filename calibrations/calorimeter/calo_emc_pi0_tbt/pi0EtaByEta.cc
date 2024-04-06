@@ -29,6 +29,7 @@
 #include <TH3.h>
 #include <TLorentzVector.h>
 #include <TNtuple.h>
+#include <TRandom3.h>
 #include <TTree.h>
 #include <iostream>
 #include <sstream>
@@ -42,7 +43,6 @@ pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
 {
   h_mass_eta_lt.fill(nullptr);
   clusMix = new std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>();
-
 }
 
 pi0EtaByEta::~pi0EtaByEta()
@@ -71,7 +71,7 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   h_cemc_etaphi_noCalib = new TH2F("h_cemc_etaphi_noCalib", "", 96, 0, 96, 256, 0, 256);
 
   // 1D distributions
-  h_InvMass = new TH1F("h_InvMass", "Invariant Mass", 120, 0, 1.2);
+  h_InvMass = new TH1F("h_InvMass", "Invariant Mass", 140, 0, 1.4);
   h_InvMassMix = new TH1F("h_InvMassMix", "Invariant Mass", 120, 0, 1.2);
 
   // cluster QA
@@ -95,14 +95,21 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   h_event = new TH1F("h_event", "", 1, 0, 1);
 
-  h_pipT_Nclus_mass = new TH3F("h_pipT_Nclus_mass", "", 20, 0, 10, 20, 0, 400, 25, 0, 0.5);
+  h_pipT_Nclus_mass = new TH3F("h_pipT_Nclus_mass", "", 40, 0, 20, 20, 0, 400, 100, 0, 1);
+  h_pipT_Nclus_mass_mix = new TH3F("h_pipT_Nclus_mass_mix", "", 40, 0, 20, 20, 0, 400, 100, 0, 1);
+
+  rnd = new TRandom3();
 
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
   std::vector<CLHEP::Hep3Vector> temp = std::vector<CLHEP::Hep3Vector>();
   for (int i = 0; i < NBinsVtx; i++)
+  {
     temp2.push_back(temp);
+  }
   for (int i = 0; i < NBinsClus; i++)
+  {
     clusMix->push_back(temp2);
+  }
 
   return 0;
 }
@@ -132,7 +139,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   float maxAlpha = 0.6;
   float clus_chisq_cut = 4;
   float nClus_ptCut = 0.5;
-  int max_nClusCount = 300;
+  int max_nClusCount = 30;
 
   //----------------------------------get vertex------------------------------------------------------//
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
@@ -176,7 +183,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   }
 
   std::string cluster_node_name = "CLUSTERINFO_CEMC2";
-  if (use_pdc) cluster_node_name = "CLUSTERINFO_POS_COR_CEMC";
+  if (use_pdc)
+  {
+    cluster_node_name = "CLUSTERINFO_POS_COR_CEMC";
+  }
   RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, cluster_node_name);
   if (!clusterContainer)
   {
@@ -309,7 +319,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
     for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; clusterIter2++)
     {
-      if (clusterIter2 == clusterIter) continue;
+      if (clusterIter2 == clusterIter)
+      {
+        continue;
+      }
 
       RawCluster* recoCluster2 = clusterIter2->second;
 
@@ -338,12 +351,22 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
         continue;
       }
 
-      if (photon1.DeltaR(photon2) > maxDr)
-      {
-        continue;
-      }
+      // if (photon1.DeltaR(photon2) > maxDr)
+      //{
+      //   continue;
+      // }
 
       TLorentzVector pi0 = photon1 + photon2;
+
+      TLorentzVector photon2_mix;
+      float clus2_phi_mix = clus2_phi + 3.1415;
+      if (clus2_phi_mix > TMath::Pi())
+      {
+        clus2_phi_mix -= 2 * TMath::Pi();
+      }
+      photon2_mix.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi_mix, clus2E);
+      TLorentzVector pi0mix = photon1 + photon2_mix;
+
       if (pi0.Pt() < pi0ptcut)
       {
         continue;
@@ -353,8 +376,12 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       h_pt2->Fill(photon2.Pt());
 
       h_InvMass->Fill(pi0.M());
-      if (clus2_pt < pt1ClusCut) h_InvMass->Fill(pi0.M());
+      if (clus2_pt < pt1ClusCut)
+      {
+        h_InvMass->Fill(pi0.M());
+      }
       h_pipT_Nclus_mass->Fill(pi0.Pt(), nClusCount, pi0.M());
+      h_pipT_Nclus_mass_mix->Fill(pi0mix.Pt(), nClusCount, pi0mix.M());
       if (lt_eta > 95)
       {
         continue;
@@ -447,33 +474,96 @@ TF1* pi0EtaByEta::fitHistogram(TH1* h)
   f_sig_initial->SetParLimits(2, 0.007, 0.04);
   f_sig_initial->SetParameter(0, 0.1);
   f_sig_initial->SetParameter(1, 0.15);
-  f_sig_initial->SetParameter(2, 0.015);
+  f_sig_initial->SetParameter(2, 0.02);
 
-  h->Fit(f_sig_initial, "N");
+  h->Fit(f_sig_initial, "QN");
 
   TF1* fitFunc = new TF1("fitFunc", "[0]/[2]/2.5*exp(-0.5*((x-[1])/[2])^2) + [3] + [4]*x + [5]*x^2 + [6]*x^3", h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax());
 
   fitFunc->SetParameter(0, f_sig_initial->GetParameter(0));
   fitFunc->SetParameter(1, f_sig_initial->GetParameter(1));
   fitFunc->SetParameter(2, f_sig_initial->GetParameter(2));
-  fitFunc->SetParameter(3, 0.0);
-  fitFunc->SetParameter(4, 0.0);
+  fitFunc->SetParameter(3, -5.80501e-04);
+  fitFunc->SetParameter(4, 5.51935e-02);
   fitFunc->SetParameter(5, 0.0);
   fitFunc->SetParameter(6, 0);
 
   fitFunc->SetParLimits(0, 0, 10);
-  fitFunc->SetParLimits(1, 0.113, 0.25);
-  fitFunc->SetParLimits(2, 0.007, 0.06);
+  fitFunc->SetParLimits(1, 0.125, 0.19);
+  fitFunc->SetParLimits(2, 0.008, 0.028);
   fitFunc->SetParLimits(3, -2, 1);
-  fitFunc->SetParLimits(4, -1, 40);
-  fitFunc->SetParLimits(5, -150, 50);
-  // fitFunc->SetParLimits(6, -1,200 );
-  fitFunc->SetParLimits(6, -1, 1);
+  fitFunc->SetParLimits(4, -1, 30);
+  fitFunc->SetParLimits(5, -50, 50);
+  // fitFunc->SetParLimits(6, -1,1 );
+  fitFunc->SetParLimits(6, -1e-5, 1e-5);
 
-  fitFunc->SetRange(0.05, 0.7);
+  fitFunc->SetParName(0, "Norm");
+  fitFunc->SetParName(1, "mass");
+  fitFunc->SetParName(2, "width");
+  fitFunc->SetParName(3, "bkg0");
+  fitFunc->SetParName(4, "bkg1");
+  fitFunc->SetParName(5, "bkg2");
+  fitFunc->SetParName(6, "bkg3");
+  fitFunc->SetParName(6, "bkg4");
+
+  fitFunc->SetRange(0.05, 0.5);
 
   // Perform the fit
-  h->Fit("fitFunc", "QN");
+  h->Fit("fitFunc", "N");
+
+  return fitFunc;
+}
+
+TF1* pi0EtaByEta::fitHistogramCB(TH1* h)
+{
+  TF1* f_sig_initial = new TF1("f_sig_initial", "[0]/[2]/2.5*exp(-0.5*((x-[1])/[2])^2)", 0.05, 0.25);
+
+  f_sig_initial->SetParLimits(0, 0, 10);
+  f_sig_initial->SetParLimits(1, 0.113, 0.2);
+  f_sig_initial->SetParLimits(2, 0.007, 0.04);
+  f_sig_initial->SetParameter(0, 0.1);
+  f_sig_initial->SetParameter(1, 0.15);
+  f_sig_initial->SetParameter(2, 0.02);
+
+  h->Fit(f_sig_initial, "QN");
+
+  TF1* f_gaus_bkg = fitHistogram(h);
+
+  TF1* fitFunc = new TF1("fitFunc", singleSidedCrystalBallBkg, h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax(), 8);
+
+  fitFunc->SetParameter(7, f_gaus_bkg->GetParameter(0));
+  fitFunc->SetParameter(0, f_gaus_bkg->GetParameter(1));
+  fitFunc->SetParameter(1, f_gaus_bkg->GetParameter(2));
+  fitFunc->SetParameter(2, -1);
+  fitFunc->SetParameter(3, 2);
+  fitFunc->SetParameter(4, f_gaus_bkg->GetParameter(3));
+  fitFunc->SetParameter(5, f_gaus_bkg->GetParameter(4));
+  fitFunc->SetParameter(6, f_gaus_bkg->GetParameter(5));
+
+  // herer
+  fitFunc->SetParLimits(0, 0.12, 0.2);
+  fitFunc->SetParLimits(1, 0.008, 0.02);
+  fitFunc->SetParLimits(2, -9.99, -0.5);
+  fitFunc->SetParLimits(3, 0, 10);
+  fitFunc->SetParLimits(4, -2, 1);
+  fitFunc->SetParLimits(5, -1, 1);
+  fitFunc->SetParLimits(6, -1, 1);
+  fitFunc->SetParLimits(7, 0, 10);
+
+  fitFunc->SetParName(0, "mass");
+  fitFunc->SetParName(1, "width");
+  fitFunc->SetParName(2, "alpha");
+  fitFunc->SetParName(3, "N");
+  fitFunc->SetParName(4, "bkg0");
+  fitFunc->SetParName(5, "bkg1");
+  fitFunc->SetParName(6, "bkg2");
+  fitFunc->SetParName(6, "bkg3");
+  fitFunc->SetParName(7, "Norm");
+
+  fitFunc->SetRange(0.08, 0.35);
+
+  // Perform the fit
+  h->Fit("fitFunc", "N");
 
   return fitFunc;
 }
@@ -489,6 +579,8 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   TH1F* h_p5_eta = new TH1F("h_p5_eta", "", 96, 0, 96);
   TH1F* h_p6_eta = new TH1F("h_p6_eta", "", 96, 0, 96);
   TH1F* h_p0_eta = new TH1F("h_p0_eta", "", 96, 0, 96);
+  TH2F* h_calib_result = new TH2F("h_calib_result", "", 96, 0, 96, 256, 0, 256);
+
   if (!fin)
   {
     std::cout << "pi0EtaByEta::fitEtaSlices null fin" << std::endl;
@@ -545,11 +637,16 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   {
     for (int j = 0; j < 256; j++)
     {
-      if (use_h_target_mass) final_mass_target = h_target_mass->GetBinContent(i + 1);
+      if (use_h_target_mass)
+      {
+        final_mass_target = h_target_mass->GetBinContent(i + 1);
+        final_mass_target *= scaleAdjFac;
+      }
       float correction = final_mass_target / h_peak_eta->GetBinContent(i + 1);
       unsigned int key = TowerInfoDefs::encode_emcal(i, j);
       float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
       cdbttree2->SetFloatValue(key, m_fieldname, val1 * correction);
+      h_calib_result->SetBinContent(i + 1, j + 1, val1 * correction);
     }
   }
 
@@ -577,7 +674,9 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   h_p6_eta->Write();
   h_p0_eta->Write();
   h_sigma_eta->Write();
+  h_calib_result->Write();
   h_peak_eta->Write();
+
   fin->Close();
 
   std::cout << "finish fitting suc" << std::endl;
@@ -607,4 +706,38 @@ void pi0EtaByEta::set_massTargetHistFile(const std::string& file)
     std::cout << "pi0EtaByEta::set_massTargetHistFile  No mass hist found" << std::endl;
   }
   return;
+}
+
+Double_t pi0EtaByEta::singleSidedCrystalBall(Double_t* x, Double_t* par)
+{
+  Double_t xVal = x[0];
+  Double_t mean = par[0];
+  Double_t sigma = par[1];
+  Double_t alpha = par[2];
+  Double_t n = par[3];
+
+  Double_t z = (xVal - mean) / sigma;
+  if (z > -alpha)
+  {
+    return exp(-0.5 * z * z);
+  }
+  else
+  {
+    Double_t A = pow(n / fabs(alpha), n) * exp(-0.5 * alpha * alpha);
+    Double_t B = n / fabs(alpha) - fabs(alpha);
+    return A / pow(B - z, n);
+  }
+}
+
+// herer
+
+Double_t pi0EtaByEta::singleSidedCrystalBallBkg(Double_t* x, Double_t* par)
+{
+  Double_t cbVal = singleSidedCrystalBall(x, par);
+  Double_t xVal = x[0];
+
+  Double_t val_bkg = par[4] + xVal * par[5] + xVal * xVal * par[6];
+
+  Double_t finVal = par[7] / par[1] * cbVal + val_bkg;
+  return finVal;
 }

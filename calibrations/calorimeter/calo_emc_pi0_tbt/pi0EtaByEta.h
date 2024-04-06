@@ -20,6 +20,7 @@ class TH1;
 class TF1;
 class TProfile2D;
 class TH3;
+class TRandom3;
 
 class pi0EtaByEta : public SubsysReco
 {
@@ -49,6 +50,10 @@ class pi0EtaByEta : public SubsysReco
   void set_vertex_cut(const float v) { _vz = v; }
   void apply_vertex_cut(bool Vtx_cut) { m_vtxCut = Vtx_cut; }
 
+  static double_t singleSidedCrystalBall(double_t* x, double_t* par);
+  static double_t singleSidedCrystalBallBkg(double_t* x, double_t* par);
+  TF1* fitHistogramCB(TH1*);
+
   TF1* fitHistogram(TH1* h);
   void fitEtaSlices(const std::string& infile, const std::string& outfile, const std::string& cdbFile);
   void set_use_pdc(bool state)
@@ -77,6 +82,11 @@ class pi0EtaByEta : public SubsysReco
     doMix = state;
     return;
   }
+  void set_scaleAdjFac(float fac)
+  {
+    scaleAdjFac = fac;
+    return;
+  }
 
   void set_massTargetHistFile(const std::string& file);
 
@@ -88,6 +98,8 @@ class pi0EtaByEta : public SubsysReco
   float pt1BaseClusCut = 1.3;
   float pt2BaseClusCut = 0.7;
   float NclusDeptFac = 1.4;
+
+  TRandom3* rnd;
 
   std::vector<float> m_energy;
   std::vector<int> m_etabin;
@@ -139,7 +151,7 @@ class pi0EtaByEta : public SubsysReco
   TH2* h_ihcal_mbd_correlation{nullptr};
   TH2* h_emcal_hcal_correlation{nullptr};
   TH2* h_emcal_zdc_correlation{nullptr};
-  std::array<TH1*, 100> h_InvMass_Nclus{};
+  std::array<TH1*, 100> h_InvMass_Nclus{nullptr};
 
   TH1* h_InvMass{nullptr};
   TH1* h_InvMassMix{nullptr};
@@ -155,6 +167,7 @@ class pi0EtaByEta : public SubsysReco
   TH2* h_hcalout_etaphi_wQA{nullptr};
   TH1* h_totalzdc_e{nullptr};
   TH3* h_pipT_Nclus_mass{nullptr};
+  TH3* h_pipT_Nclus_mass_mix{nullptr};
 
   TProfile2D* h_cemc_etaphi_time{nullptr};
   TProfile2D* h_hcalin_etaphi_time{nullptr};
@@ -197,6 +210,8 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_pt2{nullptr};
   TH1* h_nclusters{nullptr};
   TH1* h_emcal_e_eta{nullptr};
+
+  float scaleAdjFac = 1;
 };
 
 #endif
