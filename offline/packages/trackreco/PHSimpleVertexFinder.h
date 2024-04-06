@@ -61,7 +61,7 @@ class PHSimpleVertexFinder : public SubsysReco
  double getAverage(std::vector<double> &v);
 
   SvtxTrackMap *_track_map{nullptr};
-  SvtxTrack *_track{nullptr};  
+//  SvtxTrack *_track{nullptr};  
   SvtxVertexMap *_svtx_vertex_map{nullptr};
   
   double _base_dcacut = 0.0080;  // 80 microns 

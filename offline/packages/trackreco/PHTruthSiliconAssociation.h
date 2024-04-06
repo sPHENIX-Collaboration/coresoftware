@@ -69,14 +69,14 @@ class PHTruthSiliconAssociation : public SubsysReco
   PHG4HitContainer *_g4hits_intt{nullptr};
   
   TrkrClusterContainer *_cluster_map{nullptr};
-  TrkrClusterContainer *_corrected_cluster_map{nullptr};
+//  TrkrClusterContainer *_corrected_cluster_map{nullptr};
   TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
   TrkrHitTruthAssoc *_hit_truth_map{nullptr};
   TrackSeedContainer *_tpc_track_map{nullptr};
   TrackSeedContainer *_silicon_track_map{nullptr};
   TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeed *_tracklet{nullptr};
-  SvtxVertexMap * _vertex_map{nullptr};
+//  SvtxVertexMap * _vertex_map{nullptr};
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
   ActsGeometry *_tgeometry{nullptr};
 

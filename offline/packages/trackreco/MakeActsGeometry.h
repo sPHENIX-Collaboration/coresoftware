@@ -242,7 +242,7 @@ class MakeActsGeometry : public SubsysReco
   double m_modulePhiStart = 0;
 
   /// Debugger for printing out tpc active volumes
-  int nprint_tpc = 0;
+//  int nprint_tpc = 0;
 
   /// TPC TGeoManager editing box surfaces subdivisions
   const static int m_nTpcSectors = 3;
@@ -268,7 +268,7 @@ class MakeActsGeometry : public SubsysReco
   ActsGeometry *m_actsGeometry = nullptr;
 
   /// Verbosity value handed from PHActsSourceLinks
-  int m_verbosity = 11;
+//  int m_verbosity = 0;
 
   double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
 
