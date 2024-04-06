@@ -74,8 +74,6 @@ Surface ActsSurfaceMaps::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
   unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
   TrkrDefs::hitsetkey tmpkey = hitsetkey;
 
-  std::cout << "trkrid = " << trkrid << ", TrkrDefs::inttId = " << TrkrDefs::inttId << ", TrkrDefs::mvtxId = " << TrkrDefs::mvtxId << std::endl;
-
   if (trkrid == TrkrDefs::inttId)
   {
     // Set the hitsetkey crossing to zero
