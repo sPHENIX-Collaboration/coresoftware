@@ -24,7 +24,7 @@
 #include <phfield/PHFieldUtility.h>
 
 #include <phgenfit/Fitter.h>
-#include <phgenfit/Measurement.h>                   // for Measurement
+#include <phgenfit/Measurement.h>  // for Measurement
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
@@ -158,7 +158,8 @@ namespace
  */
 PHGenFitTrkFitter::PHGenFitTrkFitter(const string& name)
   : SubsysReco(name)
-{}
+{
+}
 
 /*
  * Init
@@ -178,7 +179,7 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
   auto tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
   auto field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
-  _fitter.reset(PHGenFit::Fitter::getInstance( tgeo_manager, field, _track_fitting_alg_name, "RKTrackRep", false));
+  _fitter.reset(PHGenFit::Fitter::getInstance(tgeo_manager, field, _track_fitting_alg_name, "RKTrackRep", false));
   _fitter->set_verbosity(Verbosity());
 
   std::cout << "PHGenFitTrkFitter::InitRun - m_fit_silicon_mms: " << m_fit_silicon_mms << std::endl;
@@ -218,7 +219,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   m_trackMap->Reset();
 
   unsigned int trackid = 0;
-  for (const auto &track: *m_seedMap )
+  for (const auto& track : *m_seedMap)
   {
     if (!track) continue;
 
@@ -265,7 +266,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
   map<unsigned int, unsigned int> svtxtrack_genfittrack_map;
 
-  for (const auto& [key, svtx_track]:*m_trackMap)
+  for (const auto& [key, svtx_track] : *m_trackMap)
   {
     if (!svtx_track) continue;
 
@@ -285,14 +286,15 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
       svtxtrack_genfittrack_map[svtx_track->get_id()] = rf_phgf_tracks.size();
       rf_phgf_tracks.push_back(rf_phgf_track);
       if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
-      { rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack()); }
+      {
+        rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+      }
 
       if (Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " << rf_phgf_tracks.size() << endl;
-
-    } else if (Verbosity() >= 1) {
-
+    }
+    else if (Verbosity() >= 1)
+    {
       cout << "failed refitting input track# " << key << endl;
-
     }
   }
 
@@ -315,31 +317,28 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
     if (rf_phgf_track)
     {
-
       const auto rf_track = MakeSvtxTrack(iter->second, rf_phgf_track);
       if (rf_track)
       {
-
         // replace track in map
         iter->second->CopyFrom(rf_track.get());
-
-      } else {
-
+      }
+      else
+      {
         // converting track failed. erase track from map
         auto key = iter->first;
         ++iter;
         m_trackMap->erase(key);
         continue;
       }
-
-    } else {
-
+    }
+    else
+    {
       // genfit track is invalid. erase track from map
       auto key = iter->first;
       ++iter;
       m_trackMap->erase(key);
       continue;
-
     }
 
     ++iter;
@@ -379,7 +378,9 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
     svtx_node = new PHCompositeNode("SVTX");
     dstNode->addNode(svtx_node);
     if (Verbosity())
+    {
       cout << "SVTX node added" << endl;
+    }
   }
 
   // default track map
@@ -597,7 +598,10 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   std::vector<PHGenFit::Measurement*> measurements;
 
   // sort clusters with radius before fitting
-  if (Verbosity() > 10) intrack->identify();
+  if (Verbosity() > 10)
+  {
+    intrack->identify();
+  }
   std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
 
   unsigned int n_silicon_clusters = 0;
@@ -608,16 +612,16 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     // count clusters
     switch (TrkrDefs::getTrkrId(cluster_key))
     {
-      case TrkrDefs::mvtxId:
-      case TrkrDefs::inttId:
+    case TrkrDefs::mvtxId:
+    case TrkrDefs::inttId:
       ++n_silicon_clusters;
       break;
 
-      case TrkrDefs::micromegasId:
+    case TrkrDefs::micromegasId:
       ++n_micromegas_clusters;
       break;
 
-      default:
+    default:
       break;
     }
 
@@ -636,11 +640,17 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   // discard track if not enough clusters when fitting with silicon + mm only
   if (m_fit_silicon_mms)
   {
-    if (n_silicon_clusters == 0) return nullptr;
-    if (m_use_micromegas && n_micromegas_clusters == 0) return nullptr;
+    if (n_silicon_clusters == 0)
+    {
+      return nullptr;
+    }
+    if (m_use_micromegas && n_micromegas_clusters == 0)
+    {
+      return nullptr;
+    }
   }
 
-  for (const auto& [r, cluster_key]:m_r_cluster_id)
+  for (const auto& [r, cluster_key] : m_r_cluster_id)
   {
     const int layer = TrkrDefs::getLayer(cluster_key);
 
@@ -669,51 +679,51 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     // replace normal by proper vector for specified subsystems
     switch (TrkrDefs::getTrkrId(cluster_key))
     {
-      case TrkrDefs::mvtxId:
-      {
-        double ladder_location[3] = {0.0, 0.0, 0.0};
-        auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
-        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-        auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
-        // returns the center of the sensor in world coordinates - used to get the ladder phi location
-        geom->find_sensor_center(surf, m_tgeometry, ladder_location);
+    case TrkrDefs::mvtxId:
+    {
+      double ladder_location[3] = {0.0, 0.0, 0.0};
+      auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
+      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+      auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+      // returns the center of the sensor in world coordinates - used to get the ladder phi location
+      geom->find_sensor_center(surf, m_tgeometry, ladder_location);
 
-        // cout << " MVTX stave phi tilt = " <<  geom->get_stave_phi_tilt()
-        //    << " seg.X " << ladder_location[0] << " seg.Y " << ladder_location[1] << " seg.Z " << ladder_location[2] << endl;
-        n.SetXYZ(ladder_location[0], ladder_location[1], 0);
-        n.RotateZ(geom->get_stave_phi_tilt());
-        break;
-      }
+      // cout << " MVTX stave phi tilt = " <<  geom->get_stave_phi_tilt()
+      //    << " seg.X " << ladder_location[0] << " seg.Y " << ladder_location[1] << " seg.Z " << ladder_location[2] << endl;
+      n.SetXYZ(ladder_location[0], ladder_location[1], 0);
+      n.RotateZ(geom->get_stave_phi_tilt());
+      break;
+    }
 
-      case TrkrDefs::inttId:
-      {
-        auto geom = static_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
-        double hit_location[3] = {0.0, 0.0, 0.0};
-        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-        auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
-        geom->find_segment_center(surf, m_tgeometry, hit_location);
+    case TrkrDefs::inttId:
+    {
+      auto geom = static_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
+      double hit_location[3] = {0.0, 0.0, 0.0};
+      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+      auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+      geom->find_segment_center(surf, m_tgeometry, hit_location);
 
-        // cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
-        //    << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
-        n.SetXYZ(hit_location[0], hit_location[1], 0);
-        n.RotateZ(geom->get_strip_phi_tilt());
-        break;
-      }
+      // cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
+      //    << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
+      n.SetXYZ(hit_location[0], hit_location[1], 0);
+      n.RotateZ(geom->get_strip_phi_tilt());
+      break;
+    }
 
-      case TrkrDefs::micromegasId:
-      {
-        // get geometry
-        /* a situation where micromegas clusters are found, but not the geometry, should not happen */
-        assert(geom_container_micromegas);
-        auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
-        const auto tileid = MicromegasDefs::getTileId(cluster_key);
+    case TrkrDefs::micromegasId:
+    {
+      // get geometry
+      /* a situation where micromegas clusters are found, but not the geometry, should not happen */
+      assert(geom_container_micromegas);
+      auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
+      const auto tileid = MicromegasDefs::getTileId(cluster_key);
 
-        // in local coordinate, n is along z axis
-        // convert to global coordinates
-        n = geom->get_world_from_local_vect(tileid, m_tgeometry, TVector3(0, 0, 1));
-      }
+      // in local coordinate, n is along z axis
+      // convert to global coordinates
+      n = geom->get_world_from_local_vect(tileid, m_tgeometry, TVector3(0, 0, 1));
+    }
 
-      default:
+    default:
       break;
     }
 
@@ -736,7 +746,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     }
     measurements.push_back(meas);
   }
-
 
   /*!
    * mu+:	-13
@@ -801,9 +810,14 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   catch (...)
   {
     if (Verbosity() >= 2)
+    {
       LogWarning("extrapolateToLine failed!");
+    }
   }
-  if (!gf_state_beam_line_ca) return nullptr;
+  if (!gf_state_beam_line_ca)
+  {
+    return nullptr;
+  }
 
   /*!
    *  1/p, u'/z', v'/z', u, v
@@ -846,7 +860,9 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   catch (...)
   {
     if (Verbosity() >= 2)
+    {
       LogWarning("extrapolateToPoint failed!");
+    }
   }
   if (!gf_state_vertex_ca)
   {
@@ -868,7 +884,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   du2 = gf_state_vertex_ca->getCov()[3][3];
   dv2 = gf_state_vertex_ca->getCov()[4][4];
 
-  double dca3d = sqrt( square(u) + square(v));
+  double dca3d = sqrt(square(u) + square(v));
   double dca3d_error = sqrt(du2 + dv2 + dvr2 + dvz2);
 
   out_track->set_dca(dca3d);
@@ -949,7 +965,9 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   catch (...)
   {
     if (Verbosity())
+    {
       LogWarning("DCA calculationfailed!");
+    }
   }
 
   out_track->set_dca3d_xy(dca3d_xy);
@@ -1174,13 +1192,19 @@ bool PHGenFitTrkFitter::pos_cov_XYZ_to_RZ(
 {
   if (pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3)
   {
-    if (Verbosity()) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
+    if (Verbosity())
+    {
+      LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
+    }
     return false;
   }
 
   if (cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3)
   {
-    if (Verbosity()) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
+    if (Verbosity())
+    {
+      LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
+    }
     return false;
   }
 
@@ -1189,7 +1213,10 @@ bool PHGenFitTrkFitter::pos_cov_XYZ_to_RZ(
   TVector3 r = n.Cross(TVector3(0., 0., 1.));
   if (r.Mag() < 0.00001)
   {
-    if (Verbosity()) LogWarning("n is parallel to z");
+    if (Verbosity())
+    {
+      LogWarning("n is parallel to z");
+    }
     return false;
   }
 
@@ -1216,7 +1243,9 @@ bool PHGenFitTrkFitter::pos_cov_XYZ_to_RZ(
   catch (...)
   {
     if (Verbosity())
+    {
       LogWarning("Can't get rotation matrix");
+    }
 
     return false;
   }
