@@ -334,8 +334,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   auto trackParams = makeTrackParams(track);
 
   // store crossing. It is used in calculating cluster's global position
-  m_crossing = track->get_crossing();
-  assert(m_crossing != SHRT_MAX);
+  const auto crossing = track->get_crossing();
+  assert(crossing != SHRT_MAX);
 
   for (const auto& cluskey : get_cluster_keys(track))
   {
@@ -389,7 +389,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // calculate residuals with respect to cluster
     // Get all the relevant information for residual calculation
-    const auto globClusPos = getGlobalPosition(cluskey, cluster, m_crossing);
+    const auto globClusPos = getGlobalPosition(cluskey, cluster, crossing);
     const double clusR = get_r(globClusPos(0), globClusPos(1));
     const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));
     const double clusZ = globClusPos(2);
