@@ -218,9 +218,8 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   m_trackMap->Reset();
 
   unsigned int trackid = 0;
-  for (auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end(); ++trackiter)
+  for (const auto &track: *m_seedMap )
   {
-    TrackSeed* track = *trackiter;
     if (!track) continue;
 
     // get silicon seed and check
@@ -266,14 +265,13 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
   map<unsigned int, unsigned int> svtxtrack_genfittrack_map;
 
-  for (auto iter = m_trackMap->begin(); iter != m_trackMap->end(); ++iter)
+  for (const auto& [key, svtx_track]:*m_trackMap)
   {
-    auto svtx_track = iter->second;
     if (!svtx_track) continue;
 
     if (Verbosity() > 10)
     {
-      cout << "   process SVTXTrack " << iter->first << endl;
+      cout << "   process SVTXTrack " << key << endl;
       svtx_track->identify();
     }
 
@@ -293,7 +291,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
     } else if (Verbosity() >= 1) {
 
-      cout << "failed refitting input track# " << iter->first << endl;
+      cout << "failed refitting input track# " << key << endl;
 
     }
   }
@@ -626,10 +624,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     const auto cluster = m_clustermap->findCluster(cluster_key);
     const auto globalPosition = getGlobalPosition(cluster_key, cluster, crossing);
 
-    float r = sqrt(square(globalPosition.x()) + square(globalPosition.y()));
-    m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
-    int layer_out = TrkrDefs::getLayer(cluster_key);
-    if (Verbosity() > 10) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
+    const float r = sqrt(square(globalPosition.x()) + square(globalPosition.y()));
+    m_r_cluster_id.emplace(r, cluster_key);
+    if (Verbosity() > 10)
+    {
+      const int layer_out = TrkrDefs::getLayer(cluster_key);
+      cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
+    }
   }
 
   // discard track if not enough clusters when fitting with silicon + mm only
@@ -639,11 +640,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     if (m_use_micromegas && n_micromegas_clusters == 0) return nullptr;
   }
 
-  for (auto iter = m_r_cluster_id.begin();
-       iter != m_r_cluster_id.end();
-       ++iter)
+  for (const auto& [r, cluster_key]:m_r_cluster_id)
   {
-    TrkrDefs::cluskey cluster_key = iter->second;
     const int layer = TrkrDefs::getLayer(cluster_key);
 
     // skip disabled layers
@@ -652,7 +650,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       continue;
     }
 
-    TrkrCluster* cluster = m_clustermap->findCluster(cluster_key);
+    auto cluster = m_clustermap->findCluster(cluster_key);
     if (!cluster)
     {
       LogError("No cluster Found!");
