@@ -21,13 +21,13 @@
 #include <memory>
 #include <set>
 
-const int NPACKETS = 2;
+const int NTPCPACKETS = 3;
 
 SingleTpcPoolInput::SingleTpcPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
   SubsystemEnum(InputManagerType::TPC);
-  plist = new Packet *[NPACKETS];
+  plist = new Packet *[NTPCPACKETS];
 }
 
 SingleTpcPoolInput::~SingleTpcPoolInput()
@@ -78,10 +78,13 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, NPACKETS);
+    int npackets = evt->getPacketList(plist, NTPCPACKETS);
 
-    if (npackets > NPACKETS)
+    if (npackets >= NTPCPACKETS)
     {
+      std::cout << PHWHERE << " Packets array size " << NTPCPACKETS
+                << " too small for " << Name()
+                << ", increase NTPCPACKETS and rebuild" << std::endl;
       exit(1);
     }
     for (int i = 0; i < npackets; i++)
@@ -119,8 +122,26 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
       }
 
       int m_nWaveFormInFrame = packet->iValue(0, "NR_WF");
+      static int once = 0;
       for (int wf = 0; wf < m_nWaveFormInFrame; wf++)
       {
+        if (m_TpcRawHitMap[gtm_bco].size() > 20000)
+        {
+          if (!once)
+          {
+            std::cout << "too many hits" << std::endl;
+          }
+          once++;
+          continue;
+        }
+        else
+        {
+          if (once)
+          {
+            std::cout << "many more hits: " << once << std::endl;
+          }
+          once = 0;
+        }
         TpcRawHit *newhit = new TpcRawHitv1();
         int FEE = packet->iValue(wf, "FEE");
         newhit->set_bco(packet->iValue(wf, "BCO"));
@@ -172,6 +193,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
       delete packet;
     }
   }
+  //    Print("HITS");
   //  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
 }
 
@@ -194,6 +216,15 @@ void SingleTpcPoolInput::Print(const std::string &what) const
     {
       std::cout << "FEE" << bcliter.first << " bclk: 0x"
                 << std::hex << bcliter.second << std::dec << std::endl;
+    }
+  }
+  if (what == "ALL" || what == "HITS")
+  {
+    const auto bcliter = m_TpcRawHitMap.begin();
+    {
+      std::cout << Name() << ": Beam clock 0x" << std::hex << bcliter->first
+                << std::dec << ", Number of hits: " << bcliter->second.size()
+                << std::endl;
     }
   }
   if (what == "ALL" || what == "STORAGE")
@@ -219,6 +250,11 @@ void SingleTpcPoolInput::Print(const std::string &what) const
 
 void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
+  if (Verbosity() > 2)
+  {
+    std::cout << "cleaning up bcos < 0x" << std::hex
+              << bclk << std::dec << std::endl;
+  }
   std::vector<uint64_t> toclearbclk;
   for (const auto &iter : m_TpcRawHitMap)
   {
@@ -303,10 +339,25 @@ bool SingleTpcPoolInput::GetSomeMoreEvents()
   {
     if (bcliter.second <= lowest_bclk)
     {
-      // std::cout << "FEE " << bcliter.first << " bclk: "
-      // 		<< std::hex << bcliter.second << ", req: " << localbclk
-      // 		<< std::dec << std::endl;
-      return true;
+      uint64_t highest_bclk = m_TpcRawHitMap.rbegin()->first;
+      if ((highest_bclk - m_TpcRawHitMap.begin()->first) < MaxBclkDiff())
+      {
+        // std::cout << "FEE " << bcliter.first << " bclk: "
+        // 		<< std::hex << bcliter.second << ", req: " << lowest_bclk
+        // 		 << " low: 0x" <<  m_TpcRawHitMap.begin()->first << ", high: " << highest_bclk << ", delta: " << std::dec << (highest_bclk-m_TpcRawHitMap.begin()->first)
+        // 		<< std::dec << std::endl;
+        return true;
+      }
+      else
+      {
+        std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
+                  << " with stuck bclk: " << std::hex << bcliter.second
+                  << " current bco range: 0x" << m_TpcRawHitMap.begin()->first
+                  << ", to: 0x" << highest_bclk << ", delta: " << std::dec
+                  << (highest_bclk - m_TpcRawHitMap.begin()->first)
+                  << std::dec << std::endl;
+        m_FEEBclkMap.erase(bcliter.first);
+      }
     }
   }
   return false;

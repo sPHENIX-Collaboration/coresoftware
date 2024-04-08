@@ -86,6 +86,16 @@ int Fun4AllOutputManager::DoNotWriteEvent(std::vector<int> *retcodes) const
 int Fun4AllOutputManager::RunAfterClosing()
 {
   unsigned int iret = 0;
+  if (m_OutFileName == m_LastClosedFileName)
+  {
+    if (Verbosity() > 1)
+    {
+    std::cout << PHWHERE << " Output file name has not changed, not closing "
+	      << m_OutFileName << " again" << std::endl;
+    }
+    return iret;
+  }
+  m_LastClosedFileName = m_OutFileName;
   if (!m_RunAfterClosingScript.empty())
   {
     if (!std::filesystem::exists(m_RunAfterClosingScript))

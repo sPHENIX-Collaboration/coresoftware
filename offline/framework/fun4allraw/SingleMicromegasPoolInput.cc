@@ -401,7 +401,25 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
   {
     if (bcliter.second <= lowest_bclk)
     {
-      return true;
+      uint64_t highest_bclk = m_MicromegasRawHitMap.rbegin()->first;
+      if ((highest_bclk - m_MicromegasRawHitMap.begin()->first) < MaxBclkDiff())
+      {
+        // std::cout << "FEE " << bcliter.first << " bclk: "
+        // 		<< std::hex << bcliter.second << ", req: " << lowest_bclk
+        // 		 << " low: 0x" <<  m_MicromegasRawHitMap.begin()->first << ", high: " << highest_bclk << ", delta: " << std::dec << (highest_bclk-m_MicromegasRawHitMap.begin()->first)
+        // 		<< std::dec << std::endl;
+        return true;
+      }
+      else
+      {
+        std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
+                  << " with stuck bclk: " << std::hex << bcliter.second
+                  << " current bco range: 0x" << m_MicromegasRawHitMap.begin()->first
+                  << ", to: 0x" << highest_bclk << ", delta: " << std::dec
+                  << (highest_bclk - m_MicromegasRawHitMap.begin()->first)
+                  << std::dec << std::endl;
+        m_FEEBclkMap.erase(bcliter.first);
+      }
     }
   }
 

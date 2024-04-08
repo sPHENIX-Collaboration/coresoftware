@@ -33,9 +33,6 @@
 
 SubtractTowersCS::SubtractTowersCS(const std::string &name)
   : SubsysReco(name)
-  , _use_flow_modulation(false)
-  , _alpha(1)
-  , _DeltaRmax(0.3)
 {
 }
 
@@ -49,7 +46,9 @@ int SubtractTowersCS::InitRun(PHCompositeNode *topNode)
 int SubtractTowersCS::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
+  {
     std::cout << "SubtractTowersCS::process_event: entering, with _use_flow_modulation = " << _use_flow_modulation << std::endl;
+  }
 
   // pull out the tower containers and geometry objects at the start
   RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
@@ -167,7 +166,9 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     backgroundProxies_EM.push_back(this_pj);
 
     if (Verbosity() > 5)
+    {
       std::cout << " SubtractTowersCS::process_event : background tower EM estimate for eta / phi = " << tower->get_bineta() << " / " << tower->get_binphi() << ", UE = " << UE << std::endl;
+    }
   }
 
   // constituent subtraction
@@ -179,21 +180,33 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
 
     double E_0 = 0, E_1 = 0, E_2 = 0, E_3 = 0;
 
-    for (unsigned int n = 0; n < fullEvent_EM.size(); n++) E_0 += fullEvent_EM.at(n).E();
-    for (unsigned int n = 0; n < backgroundProxies_EM.size(); n++) E_1 += backgroundProxies_EM.at(n).E();
-    for (unsigned int n = 0; n < correctedEvent_EM.size(); n++) E_2 += correctedEvent_EM.at(n).E();
-    for (unsigned int n = 0; n < backgroundProxies_EM_remaining->size(); n++) E_3 += backgroundProxies_EM_remaining->at(n).E();
+    for (auto &n : fullEvent_EM)
+    {
+      E_0 += n.E();
+    }
+    for (auto &n : backgroundProxies_EM)
+    {
+      E_1 += n.E();
+    }
+    for (auto &n : correctedEvent_EM)
+    {
+      E_2 += n.E();
+    }
+    for (auto &n : *backgroundProxies_EM_remaining)
+    {
+      E_3 += n.E();
+    }
 
     std::cout << "SubtractTowersCS::process_event EM : full event E - background E = " << E_0 << " - " << E_1 << " = " << E_0 - E_1 << ", subtracted E - remaining bkg E = " << E_2 << " - " << E_3 << " = " << E_2 - E_3 << std::endl;
   }
 
   // load subtracted towers into grid
 
-  for (unsigned int n = 0; n < correctedEvent_EM.size(); n++)
+  for (auto &n : correctedEvent_EM)
   {
-    float this_eta = correctedEvent_EM.at(n).eta();
-    float this_phi = correctedEvent_EM.at(n).phi();
-    float this_E = correctedEvent_EM.at(n).E();
+    float this_eta = n.eta();
+    float this_phi = n.phi();
+    float this_E = n.E();
 
     // look up tower by eta / phi...
 
@@ -203,7 +216,9 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     tower->set_energy(this_E);
 
     if (Verbosity() > 5 || this_E < 0)
+    {
       std::cout << " SubtractTowersCS::process_event : creating subtracted EM tower for eta / phi = " << this_eta << " / " << this_phi << " ( " << tower->get_binphi() << " , " << this_phibin << " ) , sub. E  = " << this_E << (this_E < 0 ? " -- WARNING: negative E" : "") << std::endl;
+    }
   }
 
   // IHCal layer
@@ -267,7 +282,9 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     backgroundProxies_IH.push_back(this_pj);
 
     if (Verbosity() > 5)
+    {
       std::cout << " SubtractTowersCS::process_event : background tower IH estimate for eta / phi = " << tower->get_bineta() << " / " << tower->get_binphi() << ", UE = " << UE << std::endl;
+    }
   }
 
   // constituent subtraction
@@ -279,21 +296,33 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
 
     double E_0 = 0, E_1 = 0, E_2 = 0, E_3 = 0;
 
-    for (unsigned int n = 0; n < fullEvent_IH.size(); n++) E_0 += fullEvent_IH.at(n).E();
-    for (unsigned int n = 0; n < backgroundProxies_IH.size(); n++) E_1 += backgroundProxies_IH.at(n).E();
-    for (unsigned int n = 0; n < correctedEvent_IH.size(); n++) E_2 += correctedEvent_IH.at(n).E();
-    for (unsigned int n = 0; n < backgroundProxies_IH_remaining->size(); n++) E_3 += backgroundProxies_IH_remaining->at(n).E();
+    for (auto &n : fullEvent_IH)
+    {
+      E_0 += n.E();
+    }
+    for (auto &n : backgroundProxies_IH)
+    {
+      E_1 += n.E();
+    }
+    for (auto &n : correctedEvent_IH)
+    {
+      E_2 += n.E();
+    }
+    for (auto &n : *backgroundProxies_IH_remaining)
+    {
+      E_3 += n.E();
+    }
 
     std::cout << "SubtractTowersCS::process_event IH : full event E - background E = " << E_0 << " - " << E_1 << " = " << E_0 - E_1 << ", subtracted E - remaining bkg E = " << E_2 << " - " << E_3 << " = " << E_2 - E_3 << std::endl;
   }
 
   // load subtracted towers into grid
 
-  for (unsigned int n = 0; n < correctedEvent_IH.size(); n++)
+  for (auto &n : correctedEvent_IH)
   {
-    float this_eta = correctedEvent_IH.at(n).eta();
-    float this_phi = correctedEvent_IH.at(n).phi();
-    float this_E = correctedEvent_IH.at(n).E();
+    float this_eta = n.eta();
+    float this_phi = n.phi();
+    float this_E = n.E();
 
     // look up tower by eta / phi...
 
@@ -303,7 +332,9 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     tower->set_energy(this_E);
 
     if (Verbosity() > 5 || this_E < 0)
+    {
       std::cout << " SubtractTowersCS::process_event : creating subtracted IH tower for eta / phi = " << this_eta << " / " << this_phi << " ( " << tower->get_binphi() << " , " << this_phibin << " ) , sub. E  = " << this_E << (this_E < 0 ? " -- WARNING: negative E" : "") << std::endl;
+    }
   }
 
   // OHCal layer
@@ -367,7 +398,9 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     backgroundProxies_OH.push_back(this_pj);
 
     if (Verbosity() > 5)
+    {
       std::cout << " SubtractTowersCS::process_event : background tower OH estimate for eta / phi = " << tower->get_bineta() << " / " << tower->get_binphi() << ", UE = " << UE << std::endl;
+    }
   }
 
   // constituent subtraction
@@ -379,21 +412,33 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
 
     double E_0 = 0, E_1 = 0, E_2 = 0, E_3 = 0;
 
-    for (unsigned int n = 0; n < fullEvent_OH.size(); n++) E_0 += fullEvent_OH.at(n).E();
-    for (unsigned int n = 0; n < backgroundProxies_OH.size(); n++) E_1 += backgroundProxies_OH.at(n).E();
-    for (unsigned int n = 0; n < correctedEvent_OH.size(); n++) E_2 += correctedEvent_OH.at(n).E();
-    for (unsigned int n = 0; n < backgroundProxies_OH_remaining->size(); n++) E_3 += backgroundProxies_OH_remaining->at(n).E();
+    for (auto &n : fullEvent_OH)
+    {
+      E_0 += n.E();
+    }
+    for (auto &n : backgroundProxies_OH)
+    {
+      E_1 += n.E();
+    }
+    for (auto &n : correctedEvent_OH)
+    {
+      E_2 += n.E();
+    }
+    for (auto &n : *backgroundProxies_OH_remaining)
+    {
+      E_3 += n.E();
+    }
 
     std::cout << "SubtractTowersCS::process_event OH : full event E - background E = " << E_0 << " - " << E_1 << " = " << E_0 - E_1 << ", subtracted E - remaining bkg E = " << E_2 << " - " << E_3 << " = " << E_2 - E_3 << std::endl;
   }
 
   // load subtracted towers into grid
 
-  for (unsigned int n = 0; n < correctedEvent_OH.size(); n++)
+  for (auto &n : correctedEvent_OH)
   {
-    float this_eta = correctedEvent_OH.at(n).eta();
-    float this_phi = correctedEvent_OH.at(n).phi();
-    float this_E = correctedEvent_OH.at(n).E();
+    float this_eta = n.eta();
+    float this_phi = n.phi();
+    float this_E = n.E();
 
     // look up tower by eta / phi...
 
@@ -403,7 +448,9 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     tower->set_energy(this_E);
 
     if (Verbosity() > 5 || this_E < 0)
+    {
       std::cout << " SubtractTowersCS::process_event : creating subtracted OH tower for eta / phi = " << this_eta << " / " << this_phi << " ( " << tower->get_binphi() << " , " << this_phibin << " ) , sub. E  = " << this_E << (this_E < 0 ? " -- WARNING: negative E" : "") << std::endl;
+    }
   }
 
   // cleanup
@@ -419,16 +466,16 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     float EM_old_E = 0;
     float EM_new_E = 0;
     {
-      RawTowerContainer::ConstRange begin_end_EM = towersEM3->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_1 = towersEM3->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_1.first; rtiter != begin_end_EM_1.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         EM_old_E += tower->get_energy();
       }
     }
     {
-      RawTowerContainer::ConstRange begin_end_EM = emcal_towers->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_2 = emcal_towers->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_2.first; rtiter != begin_end_EM_2.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         EM_new_E += tower->get_energy();
@@ -441,16 +488,16 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     float IH_old_E = 0;
     float IH_new_E = 0;
     {
-      RawTowerContainer::ConstRange begin_end_EM = towersIH3->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_3 = towersIH3->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_3.first; rtiter != begin_end_EM_3.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         IH_old_E += tower->get_energy();
       }
     }
     {
-      RawTowerContainer::ConstRange begin_end_EM = ihcal_towers->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_4 = ihcal_towers->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_4.first; rtiter != begin_end_EM_4.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         IH_new_E += tower->get_energy();
@@ -463,16 +510,16 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     float OH_old_E = 0;
     float OH_new_E = 0;
     {
-      RawTowerContainer::ConstRange begin_end_EM = towersOH3->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_5 = towersOH3->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_5.first; rtiter != begin_end_EM_5.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         OH_old_E += tower->get_energy();
       }
     }
     {
-      RawTowerContainer::ConstRange begin_end_EM = ohcal_towers->getTowers();
-      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      RawTowerContainer::ConstRange begin_end_EM_6 = ohcal_towers->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_EM_6.first; rtiter != begin_end_EM_6.second; ++rtiter)
       {
         RawTower *tower = rtiter->second;
         OH_new_E += tower->get_energy();
@@ -481,7 +528,10 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
     std::cout << "SubtractTowersCS::process_event: old / new total E in OH layer = " << OH_old_E << " / " << OH_new_E << std::endl;
   }
 
-  if (Verbosity() > 0) std::cout << "SubtractTowersCS::process_event: exiting" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "SubtractTowersCS::process_event: exiting" << std::endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -508,7 +558,10 @@ int SubtractTowersCS::CreateNode(PHCompositeNode *topNode)
   RawTowerContainer *test_emcal_tower = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1CS");
   if (!test_emcal_tower)
   {
-    if (Verbosity() > 0) std::cout << "SubtractTowersCS::CreateNode : creating TOWER_CALIB_CEMC_RETOWER_SUB1CS node " << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << "SubtractTowersCS::CreateNode : creating TOWER_CALIB_CEMC_RETOWER_SUB1CS node " << std::endl;
+    }
 
     RawTowerContainer *emcal_towers = new RawTowerContainer(RawTowerDefs::CalorimeterId::HCALIN);
     PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_towers, "TOWER_CALIB_CEMC_RETOWER_SUB1CS", "PHObject");
@@ -529,7 +582,10 @@ int SubtractTowersCS::CreateNode(PHCompositeNode *topNode)
   RawTowerContainer *test_ihcal_tower = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN_SUB1CS");
   if (!test_ihcal_tower)
   {
-    if (Verbosity() > 0) std::cout << "SubtractTowersCS::CreateNode : creating TOWER_CALIB_HCALIN_SUB1CS node " << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << "SubtractTowersCS::CreateNode : creating TOWER_CALIB_HCALIN_SUB1CS node " << std::endl;
+    }
 
     RawTowerContainer *ihcal_towers = new RawTowerContainer(RawTowerDefs::CalorimeterId::HCALIN);
     PHIODataNode<PHObject> *ihcalTowerNode = new PHIODataNode<PHObject>(ihcal_towers, "TOWER_CALIB_HCALIN_SUB1CS", "PHObject");
@@ -550,7 +606,10 @@ int SubtractTowersCS::CreateNode(PHCompositeNode *topNode)
   RawTowerContainer *test_ohcal_tower = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT_SUB1CS");
   if (!test_ohcal_tower)
   {
-    if (Verbosity() > 0) std::cout << "SubtractTowersCS::CreateNode : creating TOWER_CALIB_HCALOUT_SUB1CS node " << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << "SubtractTowersCS::CreateNode : creating TOWER_CALIB_HCALOUT_SUB1CS node " << std::endl;
+    }
 
     RawTowerContainer *ohcal_towers = new RawTowerContainer(RawTowerDefs::CalorimeterId::HCALOUT);
     PHIODataNode<PHObject> *ohcalTowerNode = new PHIODataNode<PHObject>(ohcal_towers, "TOWER_CALIB_HCALOUT_SUB1CS", "PHObject");

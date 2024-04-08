@@ -28,10 +28,13 @@ class MbdReco : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void SetCalPass(const int calpass) { _calpass = calpass; }
+
  private:
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
   int _simflag{0};
+  int _calpass{0};
 
   float m_tres = 0.05;
   std::unique_ptr<TF1> m_gaussian = nullptr;

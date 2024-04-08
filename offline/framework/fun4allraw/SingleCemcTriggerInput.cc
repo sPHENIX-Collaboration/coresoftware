@@ -29,13 +29,13 @@
 #include <set>
 #include <utility>  // for pair
 
-static const int NPackets = 16;
+static const int NCEMCPACKETS = 17;
 
 SingleCemcTriggerInput::SingleCemcTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
   SubsystemEnum(InputManagerType::CEMC);
-  plist = new Packet *[NPackets];  // 16 packets for the cemc in each file
+  plist = new Packet *[NCEMCPACKETS];  // 16 packets for the cemc in each file
 }
 
 SingleCemcTriggerInput::~SingleCemcTriggerInput()
@@ -86,11 +86,13 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, (NPackets+1)); // just in case we have more packets, they will not vanish silently
-    if (npackets > NPackets)
+    int npackets = evt->getPacketList(plist, NCEMCPACKETS); // just in case we have more packets, they will not vanish silently
+    if (npackets >= NCEMCPACKETS)
     {
-      std::cout << PHWHERE << " Number of packets in array (" << NPackets << ") too small for "
-                << npackets << std::endl;
+      std::cout << PHWHERE << " Packets array size " << NCEMCPACKETS
+		<< " too small for " << Name()
+<< ", increase NCEMCPACKETS and rebuild" << std::endl;
+      exit(1);
       exit(1);
     }
 
@@ -132,6 +134,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setEvtSequence(EventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));

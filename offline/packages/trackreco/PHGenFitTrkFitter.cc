@@ -1541,7 +1541,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
       // get position
       const auto globalPosition = getGlobalPosition( cluster_key, cluster, crossing );
-      const TVector3 pos(globalPosition.x(), globalPosition.y(), globalPosition.z() );
+      const TVector3 pos_A(globalPosition.x(), globalPosition.y(), globalPosition.z() );
       const float r_cluster = std::sqrt( square(globalPosition.x()) + square(globalPosition.y()) );
 
       // loop over states
@@ -1591,7 +1591,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
         auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
         gf_state = *kfi->getForwardUpdate();
-        pathlength = gf_state.extrapolateToPoint( pos );
+        pathlength = gf_state.extrapolateToPoint( pos_A );
         auto tmp = *kfi->getBackwardUpdate();
         pathlength -= tmp.extrapolateToPoint( vertex_position );
       } catch (...) {

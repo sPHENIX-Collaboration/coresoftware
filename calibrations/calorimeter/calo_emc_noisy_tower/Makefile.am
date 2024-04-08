@@ -17,8 +17,6 @@ AM_LDFLAGS = \
   -lcalotrigger \
   -lcentrality
 
-pcmdir = $(libdir)
-
 pkginclude_HEADERS = \
   emcNoisyTowerFinder.h
 
@@ -40,8 +38,6 @@ noinst_PROGRAMS = \
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD   = libemcNoisyTowerFinder.la
 
-TOWERIDOBJS=emcNoisyTowerFinder.o derp.o
-
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
@@ -50,4 +46,4 @@ testexternals.cc:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*  $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)

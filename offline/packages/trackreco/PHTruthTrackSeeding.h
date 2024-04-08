@@ -111,7 +111,7 @@ class PHTruthTrackSeeding : public PHTrackSeeding
 
   ActsGeometry *tgeometry = nullptr;
 
-  bool _circle_fit_seed = false;
+//  bool _circle_fit_seed = false;
 
   //! rng de-allocator
   class Deleter
