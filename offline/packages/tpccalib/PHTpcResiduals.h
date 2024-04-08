@@ -172,9 +172,6 @@ class PHTpcResiduals : public SubsysReco
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
-  /// running track crossing id
-  short int m_crossing = 0;
-
   ///@name counters
   //@{
   int m_total_tracks = 0;
