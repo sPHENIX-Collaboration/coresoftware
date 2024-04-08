@@ -5,13 +5,15 @@
 //#include <TH2.h>
 #include <fstream>
 #include <vector>
+#include <queue>
+
+#include "MbdRunningStats.h"
 
 class TFile;
 class TTree;
 class TGraphErrors;
 class TH2;
 // class THnSparse;
-// class RunningStats;
 
 /**
 
@@ -62,10 +64,11 @@ class MbdSig
     minped0x = minx;
     maxped0x = maxx;
   }
-  void SetEventPed0PreSamp(const Int_t presample, const Int_t nsamps = 1)
+  void SetEventPed0PreSamp(const Int_t presample, const Int_t nsamps = 1, const int max_samp = -1)
   {
     ped_presamp = presample;
     ped_presamp_nsamps = nsamps;
+    ped_presamp_maxsamp = max_samp;
   }
   void CalcEventPed0(const Int_t minsamp, const Int_t maxsamp);
   void CalcEventPed0(const Double_t minx, const Double_t maxx);
@@ -78,7 +81,7 @@ class MbdSig
   Double_t dCFD(const Double_t fraction_threshold);
 
   /** MBD method to get time, max_samp is the sample to use */
-  Double_t MBD(const Int_t max_samp);
+  Double_t MBDTDC(const Int_t max_samp);
 
   /** Get pulse amplitude with spline fit */
   Double_t GetSplineAmpl();
@@ -93,7 +96,7 @@ class MbdSig
   void LocMin(Double_t &x_at_min, Double_t &ymin, Double_t minxrange = 0., Double_t maxxrange = 0.);
 
   /** Use template fit to get ampl and time */
-  Int_t FitTemplate();
+  Int_t FitTemplate(const Int_t sampmax = -1);
   // Double_t Ampl() { return f_ampl; }
   // Double_t Time() { return f_time; }
 
@@ -118,6 +121,8 @@ class MbdSig
   int nsamples;
   int _status{0};
 
+  int _evt_counter{0};
+
   /** fit values*/
   // should make an array for the different methods
   Double_t f_ampl; /** best guess (from fit of spline or template, or max adc) */
@@ -135,8 +140,10 @@ class MbdSig
   TGraphErrors *gpulse;     //!
 
   /** for CalcPed0 */
-  // RunningStats *ped0stats;    //!
+  //std::unique_ptr<MbdRunningStats> ped0stats{nullptr};    //!
+  MbdRunningStats *ped0stats{nullptr};    //!
   TH1 *hPed0;                     //!
+  TF1 *ped_fcn{nullptr};
   Double_t ped0;                  //!
   Double_t ped0rms;               //!
   Int_t use_ped0;                 //! whether to apply ped0
@@ -146,6 +153,7 @@ class MbdSig
   Double_t maxped0x;              //! max x for event-by-event ped, inclusive
   Double_t ped_presamp{};         //! presamples for ped calculation
   Double_t ped_presamp_nsamps{};  //! num of presamples for ped calculation
+  Double_t ped_presamp_maxsamp{-1}; //! a peak sample for ped calc (-1 = use max)
 
   /** for time calibration */
   // Double_t time_calib;

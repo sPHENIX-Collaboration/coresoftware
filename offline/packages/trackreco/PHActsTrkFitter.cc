@@ -803,7 +803,7 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
 
 void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
 {
-  for (int i = 0; i < surfaces.size() - 1; i++)
+  for (unsigned int i = 0; i < surfaces.size() - 1; i++)
   {
     const auto& surface = surfaces.at(i);
     const auto thisVolume = surface->geometryId().volume();

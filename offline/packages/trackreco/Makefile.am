@@ -11,14 +11,13 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -DRAVE -DRaveDllExport= \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I${G4_MAIN}/include \
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem${G4_MAIN}/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(MYINSTALL)/lib64 \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \

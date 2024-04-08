@@ -363,8 +363,8 @@ std::vector<const SpacePoint*> PHActsKDTreeSeeding::getMvtxSpacePoints()
         }
       }
 
-      const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-      const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey);
+      const auto hitsetkey_A = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+      const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey_A);
       if (!surface)
       {
         continue;

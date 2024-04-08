@@ -58,19 +58,19 @@ class MakeMilleFiles : public SubsysReco
   void set_mvtx_layer_fixed(unsigned int layer, unsigned int clamshell);
   void set_layer_gparam_fixed(unsigned int layer, unsigned int param);
   void set_layer_lparam_fixed(unsigned int layer, unsigned int param);
-  
+
   void set_layers_fixed(unsigned int minlayer, unsigned int maxlayer);
   void set_error_inflation_factor(unsigned int layer, float factor)
   {
     m_layerMisalignment.insert(std::make_pair(layer, factor));
   }
-  void set_tpc_sector_fixed(unsigned int region, unsigned int sector, 
-			    unsigned int side)
- {
-   // make a combined subsector index
-   unsigned int subsector = region * 24 + side * 12 + sector;
-   fixed_sectors.insert(subsector);
- }
+  void set_tpc_sector_fixed(unsigned int region, unsigned int sector,
+                            unsigned int side)
+  {
+    // make a combined subsector index
+    unsigned int subsector = region * 24 + side * 12 + sector;
+    fixed_sectors.insert(subsector);
+  }
   void set_vtx_sigma(float xysig, float zsig)
   {
     m_vtxSigma(0) = xysig;
@@ -91,17 +91,17 @@ class MakeMilleFiles : public SubsysReco
   bool is_mvtx_layer_fixed(unsigned int layer, unsigned int clamshell);
   void addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statevec);
   void getGlobalVtxDerivativesXY(SvtxTrack* track,
-				 const Acts::Vector3& vertex,
-				 float glblvtx_derivative[SvtxAlignmentState::NRES][3]);
+                                 const Acts::Vector3& vertex,
+                                 float glblvtx_derivative[SvtxAlignmentState::NRES][3]);
   bool getLocalVtxDerivativesXY(SvtxTrack* track,
-				ActsPropagator& propagator,
-				const Acts::Vector3& vertex,
-				float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]);
+                                ActsPropagator& propagator,
+                                const Acts::Vector3& vertex,
+                                float lclvtx_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]);
   Acts::Vector3 localToGlobalVertex(SvtxTrack* track,
-				    const Acts::Vector3& vertex,
-				    const Acts::Vector3& localx) const;
+                                    const Acts::Vector3& vertex,
+                                    const Acts::Vector3& localx) const;
   void getProjectionVtxXY(SvtxTrack* track, const Acts::Vector3& vertex,
-			  Acts::Vector3& projx, Acts::Vector3& projy);
+                          Acts::Vector3& projx, Acts::Vector3& projy);
 
   std::string data_outfilename = ("mille_output_data_file.bin");
   std::string steering_outfilename = ("steer.txt");
@@ -120,7 +120,7 @@ class MakeMilleFiles : public SubsysReco
   AlignmentDefs::mmsGrp mms_group = AlignmentDefs::mmsGrp::tl;
 
   std::set<unsigned int> fixed_layers;
-  std::set<std::pair<unsigned int,unsigned int>> fixed_mvtx_layers;
+  std::set<std::pair<unsigned int, unsigned int>> fixed_mvtx_layers;
   std::set<std::pair<unsigned int, unsigned int>> fixed_layer_gparams, fixed_layer_lparams;
 
   std::string m_constraintFileName = "mp2con.txt";
