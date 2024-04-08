@@ -30,10 +30,14 @@
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
 
+#ifndef __clang__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overread"
+#endif
 #include <Acts/Seeding/BinnedSPGroup.hpp>
+#ifndef __clang__
 #pragma GCC diagnostic pop
+#endif
 #include <Acts/Seeding/InternalSeed.hpp>
 #include <Acts/Seeding/InternalSpacePoint.hpp>
 #include <Acts/Seeding/Seed.hpp>
@@ -343,7 +347,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       /// Add possible matches to cluster list to be parsed when
       /// Svtx tracks are made
-      for (int newkey = 0; newkey < additionalClusters.size(); newkey++)
+      for (unsigned int newkey = 0; newkey < additionalClusters.size(); newkey++)
       {
         trackSeed->insert_cluster_key(additionalClusters[newkey]);
         positions.insert(std::make_pair(additionalClusters[newkey], globalPositions[mvtxsize + newkey]));
@@ -448,7 +452,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
   }
 
   /// Project the seed to the INTT to find matches
-  for (int layer = 0; layer < m_nInttLayers; ++layer)
+  for (unsigned int layer = 0; layer < m_nInttLayers; ++layer)
   {
     auto cci = TrackFitUtils::circle_circle_intersection(
         m_nInttLayerRadii[layer],
@@ -546,7 +550,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
     }
   }
 
-  for (int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
+  for (unsigned int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
   {
     if(m_searchInIntt)
     {
@@ -782,8 +786,8 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
       }
 
       const auto cluster = clusIter->second;
-      const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-      const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey);
+      const auto hitsetkey_A = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+      const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey_A);
       if (!surface)
       {
         continue;

@@ -34,7 +34,7 @@
 #include <phool/recoConsts.h>
 
 #include <TH1.h>
-#include <TProfile.h>
+#include <TProfile2D.h>
 
 #include <boost/format.hpp>
 
@@ -101,10 +101,10 @@ int EventPlaneReco::InitRun(PHCompositeNode *topNode)
   // Get recentering histograms
   for (unsigned int order = 0; order < m_MaxOrder; order++)
   {
-    tprof_mean_cos_south_mbd_input[order] = dynamic_cast<TProfile *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_cos_south_mbd_order_%d") % order).c_str(), false));
-    tprof_mean_sin_south_mbd_input[order] = dynamic_cast<TProfile *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_sin_south_mbd_order_%d") % order).c_str(), false));
-    tprof_mean_cos_north_mbd_input[order] = dynamic_cast<TProfile *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_cos_north_mbd_order_%d") % order).c_str(), false));
-    tprof_mean_sin_north_mbd_input[order] = dynamic_cast<TProfile *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_sin_north_mbd_order_%d") % order).c_str(), false));
+    tprof_mean_cos_south_mbd_input[order] = dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_cos_south_mbd_order_%d") % order).c_str(), false));
+    tprof_mean_sin_south_mbd_input[order] = dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_sin_south_mbd_order_%d") % order).c_str(), false));
+    tprof_mean_cos_north_mbd_input[order] = dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_cos_north_mbd_order_%d") % order).c_str(), false));
+    tprof_mean_sin_north_mbd_input[order] = dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_mean_sin_north_mbd_order_%d") % order).c_str(), false));
   }
 
   // Get shifting histograms
@@ -112,10 +112,10 @@ int EventPlaneReco::InitRun(PHCompositeNode *topNode)
   {
     for (int p = 0; p < _imax; p++)
     {
-      tprof_cos_north_mbd_shift_input[order][p] = dynamic_cast<TProfile *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_cos_north_mbd_shift_order_%d_%d") % order % p).c_str(), false));
-      tprof_sin_north_mbd_shift_input[order][p] = dynamic_cast<TProfile *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_sin_north_mbd_shift_order_%d_%d") % order % p).c_str(), false));
-      tprof_cos_south_mbd_shift_input[order][p] = dynamic_cast<TProfile *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_cos_south_mbd_shift_order_%d_%d") % order % p).c_str(), false));
-      tprof_sin_south_mbd_shift_input[order][p] = dynamic_cast<TProfile *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_sin_south_mbd_shift_order_%d_%d") % order % p).c_str(), false));
+      tprof_cos_north_mbd_shift_input[order][p] = dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_cos_north_mbd_shift_order_%d_%d") % order % p).c_str(), false));
+      tprof_sin_north_mbd_shift_input[order][p] = dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_sin_north_mbd_shift_order_%d_%d") % order % p).c_str(), false));
+      tprof_cos_south_mbd_shift_input[order][p] = dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_cos_south_mbd_shift_order_%d_%d") % order % p).c_str(), false));
+      tprof_sin_south_mbd_shift_input[order][p] = dynamic_cast<TProfile2D *>(cdbhistosIn->getHisto(boost::str(boost::format("tprof_sin_south_mbd_shift_order_%d_%d") % order % p).c_str(), false));
     }
   }
 
@@ -128,10 +128,10 @@ int EventPlaneReco::InitRun(PHCompositeNode *topNode)
   for (unsigned int order = 0; order < m_MaxOrder; order++)
   {
     // total charge in MBD in data max out ~2500, sim ~ factor 100
-    tprof_mean_cos_south_mbd[order] = new TProfile(boost::str(boost::format("tprof_mean_cos_south_mbd_order_%d") % order).c_str(), "", 125 * 400, 0, 250000, -1e10, 1e10);
-    tprof_mean_sin_south_mbd[order] = new TProfile(boost::str(boost::format("tprof_mean_sin_south_mbd_order_%d") % order).c_str(), "", 125 * 400, 0, 250000, -1e10, 1e10);
-    tprof_mean_cos_north_mbd[order] = new TProfile(boost::str(boost::format("tprof_mean_cos_north_mbd_order_%d") % order).c_str(), "", 125 * 400, 0, 250000, -1e10, 1e10);
-    tprof_mean_sin_north_mbd[order] = new TProfile(boost::str(boost::format("tprof_mean_sin_north_mbd_order_%d") % order).c_str(), "", 125 * 400, 0, 250000, -1e10, 1e10);
+    tprof_mean_cos_south_mbd[order] = new TProfile2D(boost::str(boost::format("tprof_mean_cos_south_mbd_order_%d") % order).c_str(), "", 125 * 400, 0, 250000, 20, -100, 100, -1e10, 1e10);
+    tprof_mean_sin_south_mbd[order] = new TProfile2D(boost::str(boost::format("tprof_mean_sin_south_mbd_order_%d") % order).c_str(), "", 125 * 400, 0, 250000, 20, -100, 100, -1e10, 1e10);
+    tprof_mean_cos_north_mbd[order] = new TProfile2D(boost::str(boost::format("tprof_mean_cos_north_mbd_order_%d") % order).c_str(), "", 125 * 400, 0, 250000, 20, -100, 100, -1e10, 1e10);
+    tprof_mean_sin_north_mbd[order] = new TProfile2D(boost::str(boost::format("tprof_mean_sin_north_mbd_order_%d") % order).c_str(), "", 125 * 400, 0, 250000, 20, -100, 100, -1e10, 1e10);
 
     cdbhistosOut->registerHisto(tprof_mean_cos_south_mbd[order]);
     cdbhistosOut->registerHisto(tprof_mean_sin_south_mbd[order]);
@@ -147,10 +147,10 @@ int EventPlaneReco::InitRun(PHCompositeNode *topNode)
     {
       for (int p = 0; p < _imax; p++)
       {
-        tprof_cos_north_mbd_shift[order][p] = new TProfile(boost::str(boost::format("tprof_cos_north_mbd_shift_order_%d_%d") % order % p).c_str(), "", 125 * 400, 0, 250000, -1e10, 1e10);
-        tprof_sin_north_mbd_shift[order][p] = new TProfile(boost::str(boost::format("tprof_sin_north_mbd_shift_order_%d_%d") % order % p).c_str(), "", 125 * 400, 0, 250000, -1e10, 1e10);
-        tprof_cos_south_mbd_shift[order][p] = new TProfile(boost::str(boost::format("tprof_cos_south_mbd_shift_order_%d_%d") % order % p).c_str(), "", 125 * 400, 0, 250000, -1e10, 1e10);
-        tprof_sin_south_mbd_shift[order][p] = new TProfile(boost::str(boost::format("tprof_sin_south_mbd_shift_order_%d_%d") % order % p).c_str(), "", 125 * 400, 0, 250000, -1e10, 1e10);
+        tprof_cos_north_mbd_shift[order][p] = new TProfile2D(boost::str(boost::format("tprof_cos_north_mbd_shift_order_%d_%d") % order % p).c_str(), "", 125 * 400, 0, 250000, 20, -100, 100, -1e10, 1e10);
+        tprof_sin_north_mbd_shift[order][p] = new TProfile2D(boost::str(boost::format("tprof_sin_north_mbd_shift_order_%d_%d") % order % p).c_str(), "", 125 * 400, 0, 250000, 20, -100, 100, -1e10, 1e10);
+        tprof_cos_south_mbd_shift[order][p] = new TProfile2D(boost::str(boost::format("tprof_cos_south_mbd_shift_order_%d_%d") % order % p).c_str(), "", 125 * 400, 0, 250000, 20, -100, 100, -1e10, 1e10);
+        tprof_sin_south_mbd_shift[order][p] = new TProfile2D(boost::str(boost::format("tprof_sin_south_mbd_shift_order_%d_%d") % order % p).c_str(), "", 125 * 400, 0, 250000, 20, -100, 100, -1e10, 1e10);
 
         cdbhistosOut->registerHisto(tprof_cos_north_mbd_shift[order][p]);
         cdbhistosOut->registerHisto(tprof_sin_north_mbd_shift[order][p]);
@@ -366,10 +366,10 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
     for (unsigned int order = 0; order < m_MaxOrder; order++)
     {
       // Fill recentering histograms by order
-      tprof_mean_cos_south_mbd[order]->Fill(mbd_e_south, south_q[order][0] / mbd_e_south);
-      tprof_mean_sin_south_mbd[order]->Fill(mbd_e_south, south_q[order][1] / mbd_e_south);
-      tprof_mean_cos_north_mbd[order]->Fill(mbd_e_north, north_q[order][0] / mbd_e_north);
-      tprof_mean_sin_north_mbd[order]->Fill(mbd_e_north, north_q[order][1] / mbd_e_north);
+      tprof_mean_cos_south_mbd[order]->Fill(mbd_e_south, _mbd_vertex, south_q[order][0] / mbd_e_south);
+      tprof_mean_sin_south_mbd[order]->Fill(mbd_e_south, _mbd_vertex, south_q[order][1] / mbd_e_south);
+      tprof_mean_cos_north_mbd[order]->Fill(mbd_e_north, _mbd_vertex, north_q[order][0] / mbd_e_north);
+      tprof_mean_sin_north_mbd[order]->Fill(mbd_e_north, _mbd_vertex, north_q[order][1] / mbd_e_north);
     }
 
     // Get recentering histograms and do recentering
@@ -379,19 +379,28 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
     {
       if (tprof_mean_cos_south_mbd_input[order])  // check if recentering histograms exist
       {
+          
         // south
-        int bin_south = tprof_mean_cos_south_mbd_input[order]->FindBin(mbd_e_south);
-        double event_ave_cos_south = tprof_mean_cos_south_mbd_input[order]->GetBinContent(bin_south);
-        double event_ave_sin_south = tprof_mean_sin_south_mbd_input[order]->GetBinContent(bin_south);
+        TAxis *south_xaxis = tprof_mean_cos_south_mbd_input[order]->GetXaxis();
+        TAxis *south_yaxis = tprof_mean_cos_south_mbd_input[order]->GetYaxis();
+        int xbin_south = south_xaxis->FindBin(mbd_e_south);
+        int ybin_south = south_yaxis->FindBin(_mbd_vertex);
+
+        double event_ave_cos_south = tprof_mean_cos_south_mbd_input[order]->GetBinContent(xbin_south, ybin_south);
+        double event_ave_sin_south = tprof_mean_sin_south_mbd_input[order]->GetBinContent(xbin_south, ybin_south);
         south_q_subtract[order][0] = mbd_e_south * event_ave_cos_south;
         south_q_subtract[order][1] = mbd_e_south * event_ave_sin_south;
         south_q[order][0] -= south_q_subtract[order][0];
         south_q[order][1] -= south_q_subtract[order][1];
 
         // north
-        int bin_north = tprof_mean_cos_north_mbd_input[order]->FindBin(mbd_e_north);
-        double event_ave_cos_north = tprof_mean_cos_north_mbd_input[order]->GetBinContent(bin_north);
-        double event_ave_sin_north = tprof_mean_sin_north_mbd_input[order]->GetBinContent(bin_north);
+        TAxis *north_xaxis = tprof_mean_cos_north_mbd_input[order]->GetXaxis();
+        TAxis *north_yaxis = tprof_mean_cos_north_mbd_input[order]->GetYaxis();
+        int xbin_north = north_xaxis->FindBin(mbd_e_north);
+        int ybin_north = north_yaxis->FindBin(_mbd_vertex);
+
+        double event_ave_cos_north = tprof_mean_cos_north_mbd_input[order]->GetBinContent(xbin_north, ybin_north);
+        double event_ave_sin_north = tprof_mean_sin_north_mbd_input[order]->GetBinContent(xbin_north, ybin_north);
         north_q_subtract[order][0] = mbd_e_north * event_ave_cos_north;
         north_q_subtract[order][1] = mbd_e_north * event_ave_sin_north;
         north_q[order][0] -= north_q_subtract[order][0];
@@ -429,14 +438,14 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
           double n = order + 1.0;
           double tmp = (double) (n * terms);
 
-          tprof_cos_south_mbd_shift[order][p]->Fill(mbd_e_south, cos(tmp * tmp_south_psi[order]));  // south <cos(i*n*psi_n)>
-          tprof_sin_south_mbd_shift[order][p]->Fill(mbd_e_south, sin(tmp * tmp_south_psi[order]));  // south <sin(i*n*psi_n)>
-          tprof_cos_north_mbd_shift[order][p]->Fill(mbd_e_north, cos(tmp * tmp_north_psi[order]));  // north <cos(i*n*psi_n)>
-          tprof_sin_north_mbd_shift[order][p]->Fill(mbd_e_north, sin(tmp * tmp_north_psi[order]));  // north <sin(i*n*psi_n)>
+          tprof_cos_south_mbd_shift[order][p]->Fill(mbd_e_south, _mbd_vertex, cos(tmp * tmp_south_psi[order]));  // south <cos(i*n*psi_n)>
+          tprof_sin_south_mbd_shift[order][p]->Fill(mbd_e_south, _mbd_vertex, sin(tmp * tmp_south_psi[order]));  // south <sin(i*n*psi_n)>
+          tprof_cos_north_mbd_shift[order][p]->Fill(mbd_e_north, _mbd_vertex, cos(tmp * tmp_north_psi[order]));  // north <cos(i*n*psi_n)>
+          tprof_sin_north_mbd_shift[order][p]->Fill(mbd_e_north, _mbd_vertex, sin(tmp * tmp_north_psi[order]));  // north <sin(i*n*psi_n)>
         }
       }
     }
-
+    
     // Get shifting histograms and calculate shift
     // This was filled at the end of the second run
     // In third run, shifting histograms should be available
@@ -450,22 +459,34 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode)
           double n = order + 1.0;
           double tmp = (double) (n * terms);
           double prefactor = 2.0 / terms;
+            
+          // south
+          TAxis *south_xaxis = tprof_cos_south_mbd_shift_input[order][p]->GetXaxis();
+          TAxis *south_yaxis = tprof_cos_south_mbd_shift_input[order][p]->GetYaxis();
+          int xbin_south = south_xaxis->FindBin(mbd_e_south);
+          int ybin_south = south_yaxis->FindBin(_mbd_vertex);
 
-          int bin_north = tprof_cos_north_mbd_shift_input[order][p]->FindBin(mbd_e_north);
-          int bin_south = tprof_cos_south_mbd_shift_input[order][p]->FindBin(mbd_e_south);
+          // north
+          TAxis *north_xaxis = tprof_cos_north_mbd_shift_input[order][p]->GetXaxis();
+          TAxis *north_yaxis = tprof_cos_north_mbd_shift_input[order][p]->GetYaxis();
+          int xbin_north = north_xaxis->FindBin(mbd_e_north);
+          int ybin_north = north_yaxis->FindBin(_mbd_vertex);
+            
+                     
 
           // Equation (6) of arxiv:nucl-ex/9805001
           // i = terms; n = order; i*n = tmp
           // (2 / i ) * <cos(i*n*psi_n)> * sin(i*n*psi_n) - <sin(i*n*psi_n)> * cos(i*n*psi_n)
 
           // north
-          shift_north[order] += prefactor * (tprof_cos_north_mbd_shift_input[order][p]->GetBinContent(bin_north) * sin(tmp * tmp_north_psi[order]) - tprof_sin_north_mbd_shift_input[order][p]->GetBinContent(bin_north) * cos(tmp * tmp_north_psi[order]));
+          shift_north[order] += prefactor * (tprof_cos_north_mbd_shift_input[order][p]->GetBinContent(xbin_north, ybin_north) * sin(tmp * tmp_north_psi[order]) - tprof_sin_north_mbd_shift_input[order][p]->GetBinContent(xbin_north, ybin_north) * cos(tmp * tmp_north_psi[order]));
 
           // south
-          shift_south[order] += prefactor * (tprof_cos_south_mbd_shift_input[order][p]->GetBinContent(bin_south) * sin(tmp * tmp_south_psi[order]) - tprof_sin_south_mbd_shift_input[order][p]->GetBinContent(bin_south) * cos(tmp * tmp_south_psi[order]));
+          shift_south[order] += prefactor * (tprof_cos_south_mbd_shift_input[order][p]->GetBinContent(xbin_south, ybin_south) * sin(tmp * tmp_south_psi[order]) - tprof_sin_south_mbd_shift_input[order][p]->GetBinContent(xbin_south, ybin_south) * cos(tmp * tmp_south_psi[order]));
         }
       }
     }
+     
 
     // n * deltapsi_n = (2 / i ) * <cos(i*n*psi_n)> * sin(i*n*psi_n) - <sin(i*n*psi_n)> * cos(i*n*psi_n)
     // Divide out n
