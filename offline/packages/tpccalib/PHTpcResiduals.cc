@@ -194,7 +194,7 @@ int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
 
   for(const auto &[trackKey, track] : *m_trackMap)
   {
-    // if(Verbosity() > 1)
+    if(Verbosity() > 1)
     { std::cout << "PHTpcResiduals::processTracks - Processing track key " << trackKey << std::endl; }
 
     ++m_total_tracks;
@@ -285,7 +285,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   if(Verbosity() > 1)
   {
     std::cout << "PHTpcResiduals::processTrack -"
-      << " track momentum: " << Acts::Vector3( track->get_px(),  track->get_py(), track->get_pz() )
+      << " track momentum: " << track->get_p()
       << " position: " << Acts::Vector3( track->get_x(), track->get_y(), track->get_z() )
       << std::endl;
   }
@@ -418,10 +418,9 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
 
     const double erp = square(clusRPhiErr) + square(trackRPhiErr);
-    const double ez = square(clusZErr) + square(trackZErr);
-
-    // sanity check
     if( std::isnan( erp ) ) continue;
+
+    const double ez = square(clusZErr) + square(trackZErr);
     if( std::isnan( ez ) ) continue;
 
     // Calculate residuals
