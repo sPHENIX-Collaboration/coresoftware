@@ -527,8 +527,8 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 
   hit_r_phi = new TH2F("hit_r_phi","hit r vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
 
-  clust_r_phi_pos = new TH2F("clust_r_phi_pos","clust R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
-  clust_r_phi_neg = new TH2F("clust_r_phi_neg","clust R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
+  clust_r_phi_pos = new TH2F("clust_r_phi_pos","clust R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,350,20,90);
+  clust_r_phi_neg = new TH2F("clust_r_phi_neg","clust R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,350,20,90);
 
 
   // Get truth cluster positions
@@ -651,6 +651,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 
   for( const auto& h:harray ) { h->Reset(); } }
 
+  int nClus_gt5 = 0;
+
   // read the reconstructed CM clusters
   auto clusrange = m_corrected_CMcluster_map->getClusters();
   for (auto cmitr = clusrange.first;
@@ -667,6 +669,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       //if(m_useOnly_nClus2 && nclus != 2) continue;
 
       if(nhits <= 5) continue;
+
+      nClus_gt5++;
 
       //const bool isRGap = cmclus->getIsRGap();
             
@@ -710,8 +714,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       //layer1.push_back(cmclus->getLayer1());
       //layer2.push_back(cmclus->getLayer2());
 
-      if(tmp_pos.Z() < 0) clust_r_phi_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp(),adc);
-      else clust_r_phi_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp(),adc);
+      if(tmp_pos.Z() < 0) clust_r_phi_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp());
+      else clust_r_phi_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp());
 
 
 
@@ -729,6 +733,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	}
     }
 
+  if(nClus_gt5 < 50){
+    m_event_index++;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   //get global phi rotation for each module
   m_clustRotation_pos[0] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR1",151,206),clust_r_phi_pos->ProjectionX("cR1_pos",151,206));
