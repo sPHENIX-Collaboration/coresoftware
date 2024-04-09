@@ -4,7 +4,6 @@
 #include "InttLoadable.h"
 #include "InttMap.h"
 
-#include <iostream>
 #include <set>
 #include <string>
 
@@ -20,11 +19,8 @@ class InttBadMap : public InttLoadable
   bool IsBad(InttMap::Offline_s const&) const;
   bool IsBad(InttMap::RawData_s const&) const;
 
-  using InttLoadable::LoadFromFile;
-  using InttLoadable::LoadFromCDB;
-
-  int LoadFromFile() override { return LoadFromFile("InttBadMap.root"); }
-  int LoadFromCDB() override { return LoadFromCDB("InttBadMap"); }
+  std::string DefaultFileName() const override { return "InttBadMap.root"; }
+  std::string DefaultCDBName() const override { return "InttBadMap"; }
 
  protected:
   int LoadFromCDBTTree(CDBTTree&) override;

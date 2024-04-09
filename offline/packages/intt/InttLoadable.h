@@ -10,15 +10,20 @@ class InttLoadable
  public:
   virtual ~InttLoadable() = default;
 
-  int LoadFromFile(std::string const&);
-  int LoadFromCDB(std::string const&);
+  int LoadFromFile(std::string = "");
+  int LoadFromCDB(std::string = "");
+  int Loaded() const;
 
-  virtual int LoadFromFile();
-  virtual int LoadFromCDB();
+  virtual std::string DefaultFileName() const {return "";}
+  virtual std::string DefaultCDBName() const {return "";}
 
  protected:
   InttLoadable() = default;
+
   virtual int LoadFromCDBTTree(CDBTTree&);
+
+ private:
+  int m_loaded{0};
 };
 
 #endif  // INTT_LOADABLE_H

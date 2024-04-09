@@ -32,10 +32,20 @@ InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
 {
   m_calibs = {
-    {"INTT_BADMAP", (struct calib_load_s){.ptr = &m_badmap}},
-    {"INTT_BCOMAP", (struct calib_load_s){.ptr = &m_bcomap}},
-    {"INTT_DACMAP", (struct calib_load_s){.ptr = &m_dacmap}},
-    {"INTT_FEEMAP", (struct calib_load_s){.ptr = &m_feemap}},
+    {m_badmap.DefaultCDBName(), (struct calib_load_s){
+      .ptr =      &m_badmap
+    }},
+    {m_bcomap.DefaultCDBName(), (struct calib_load_s){
+      .ptr =      &m_bcomap
+    }},
+    {m_dacmap.DefaultCDBName(), (struct calib_load_s){
+      .ptr =      &m_dacmap
+    }},
+    {m_feemap.DefaultCDBName(), (struct calib_load_s){
+      .method =   FROM_CDB,
+	  .ptr =      &m_feemap,
+      .required = true
+    }},
   };
 }
 
@@ -106,16 +116,14 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
     }
   }
 
-  LoadCalibs();
-  // std::cout << "Starting Takashi's code:" << std::endl;
-  // std::cout<<"calibinfo DAC : "<<m_calibinfoDAC.first<<" "<<(m_calibinfoDAC.second==CDB?"CDB":"FILE")<<std::endl;
-  // m_dacmap.Verbosity(Verbosity());
-  // if(m_calibinfoDAC.second == CDB){
-  //    m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
-  // } else {
-  //    m_dacmap.LoadFromFile(m_calibinfoDAC.first);
-  // }
-  // std::cout << "Finished Takashi's code:" << std::endl;
+  if(LoadCalibs() != 0)
+  {
+    std::cerr << PHWHERE << "\n"
+              << "\tFailed to load all calibrations\n"
+              << "\tExiting" << std::endl;
+	gSystem->Exit(1);
+	exit(1);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -198,11 +206,6 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     raw.chp = (intthit->get_chip_id() + 25) % 26;
     raw.chn = intthit->get_channel_id();
 
-    int adc = intthit->get_adc();
-    // amp = intthit->get_amplitude();
-    uint64_t bco_full = intthit->get_bco();
-    int      bco      = intthit->get_FPHX_BCO();
-
     if (m_badmap.IsBad(raw))
     {
       continue;
@@ -215,14 +218,44 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
           std::cerr << PHWHERE << "\n"
                     << "\tconversion failed with\n"
                     << "\t" << raw << "\n"
-                    << "\tContinuing\n";
+                    << "\tContinuing" << std::endl;
       }
       continue;
     }
 
-    // col, row <trackbase/InttDefs.h>
-    // hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);
-    hit_key = InttDefs::genHitKey(ofl.strip_z, ofl.strip_phi);
+    int adc = intthit->get_adc();
+	int dac = m_dacmap.GetDAC (
+      raw.pid - 3001,
+      raw.fee,
+      raw.chp,
+      raw.chn,
+      adc
+    );
+	if(dac == 0xFFFFU)
+	{
+	  if(Verbosity())
+      {
+          std::cerr << PHWHERE << "\n"
+                    << "\tDAC conversion lookup failed\n"
+                    << "\tContinuing" << std::endl;;
+      }
+      continue;
+    }
+
+    // amp = intthit->get_amplitude();
+    uint64_t bco_full = intthit->get_bco();
+    int      bco      = intthit->get_FPHX_BCO();
+	if (m_bcomap.IsBad (
+      raw.pid - 3001,
+	  raw.fee,
+	  bco_full,
+	  bco))
+	{
+      continue;
+	}
+
+    // hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x); // col, row <trackbase/InttDefs.h>
+    hit_key = InttDefs::genHitKey(ofl.strip_z, ofl.strip_phi); // col, row <trackbase/InttDefs.h>
     int time_bucket = intthit->get_bco() - gl1bco;
     hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, time_bucket);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
@@ -234,13 +267,6 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     }
 
     hit = new TrkrHitv2;
-    int dac = m_dacmap.GetDAC (
-      raw.pid - 3001,
-      raw.fee,
-      raw.chp,
-      raw.chn,
-      adc
-    );
 
     hit->setAdc(dac); // adc
     hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
@@ -266,10 +292,7 @@ InttCombinedRawDataDecoder::SetCalib (
     std::cerr << PHWHERE << "\n"
               << "\tDomain \"" << str << "\" is not settable\n"
               << "\tAvailable domains are:\n";
-    for(auto const& p : m_calibs)
-    {
-      std::cerr << "\t\t" << p.first << std::endl;
-    }
+    ShowCalibs(std::cerr);
     std::cerr << "\t(case insensitive)" << std::endl;
     return 1;
   }
@@ -299,6 +322,16 @@ InttCombinedRawDataDecoder::ClearCalibs (
   return 0;
 }
 
+void
+InttCombinedRawDataDecoder::ShowCalibs (
+  std::ostream& str)
+{
+  for(auto const& p : m_calibs)
+  {
+    str << "\t" << p.first << std::endl;
+  }
+}
+
 int
 InttCombinedRawDataDecoder::LoadCalibs (
 )
@@ -316,33 +349,31 @@ InttCombinedRawDataDecoder::LoadCalibs (
       i = p.second.ptr->LoadFromCDB(p.second.filename);
       break;
     case SKIP:
-      if(!Verbosity())
-      {
+	  if(!Verbosity())
+	  {
         break;
-      }
+	  }
       std::cout << PHWHERE << "\n"
                 << "\tSkipping calibration \"" << p.first << "\"" << std::endl;
     default:
-      continue;
+	  break;
     }
 
-	if(i)
+	if(i != 0)
 	{
       std::cerr << PHWHERE << "\n"
                 << "\tLoading calibration \"" << p.first << "\" failed" << std::endl;
-      rval = i;
+      rval = 1;
+	}
+
+	if(p.second.required && !p.second.ptr->Loaded())
+	{
+      std::cerr << PHWHERE << "\n"
+                << "\tCalibration \"" << p.first << "\" required\n"
+	            << "\tbut was not loaded" << std::endl;
+      rval = 1;
 	}
   }
 
   return rval;
-}
-
-int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filename)
-{
-  return m_badmap.LoadFromFile(filename);
-}
-
-int InttCombinedRawDataDecoder::LoadHotChannelMapRemote(std::string const& name)
-{
-  return m_badmap.LoadFromCDB(name);
 }

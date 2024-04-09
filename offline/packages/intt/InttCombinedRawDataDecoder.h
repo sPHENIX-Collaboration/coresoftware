@@ -11,7 +11,7 @@
 #include <ffamodules/CDBInterface.h>
 #include <fun4all/SubsysReco.h>
 
-#include <set>
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -27,25 +27,19 @@ class InttCombinedRawDataDecoder : public SubsysReco
     FROM_CDB = 'C',
     FROM_FILE = 'F',
   };
-  static constexpr auto SKIP =      calib_load_e::SKIP;
-  static constexpr auto FROM_CDB =  calib_load_e::FROM_CDB;
-  static constexpr auto FROM_FILE = calib_load_e::FROM_FILE;
+  auto static constexpr SKIP =      calib_load_e::SKIP;
+  auto static constexpr FROM_CDB =  calib_load_e::FROM_CDB;
+  auto static constexpr FROM_FILE = calib_load_e::FROM_FILE;
 
   InttCombinedRawDataDecoder(std::string const& name = "InttCombinedRawDataDecoder");
 
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
 
-  int LoadHotChannelMapLocal(std::string const& = "INTT_HotChannelMap.root");
-  int LoadHotChannelMapRemote(std::string const& = "INTT_HotChannelMap");
-
   int SetCalib(std::string const&, calib_load_e const&, std::string const& = "");
   int ClearCalib(std::string const&);
   int ClearCalibs();
-
-  void SetCalibBCO(std::string const& calibname= "INTT_BCOMAP", const CalibRef& calibref=CDB) 
-               { m_calibinfoBCO = std::pair< std::string, CalibRef>(calibname, calibref); }
-
+  void ShowCalibs(std::ostream& = std::cout);
 
   void runInttStandalone(bool runAlone) { m_runStandAlone = runAlone; }
   void writeInttEventHeader(bool write) { m_writeInttEventHeader = write; }
@@ -60,6 +54,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
     calib_load_e method = SKIP;
     std::string filename = "";
 	InttLoadable* const ptr = nullptr;
+	bool const required = false;
   };
   typedef std::map<std::string, struct calib_load_s> calib_map_t;
   calib_map_t m_calibs;

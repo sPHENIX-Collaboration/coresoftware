@@ -7,61 +7,48 @@
 #include <filesystem>
 
 int InttLoadable::LoadFromFile(
-    std::string const& filename)
+    std::string filename)
 {
+  m_loaded = 0;
   if (filename.empty())
   {
-    return LoadFromFile();
+	  filename = DefaultFileName();
   }
 
   if (!std::filesystem::exists(filename))
   {
     std::cerr << __PRETTY_FUNCTION__ << std::endl;
-    std::cerr << "\tFile '" << filename << "' does not exist" << std::endl;
+    std::cerr << "\tFile \"" << filename << "\" does not exist" << std::endl;
     return 1;
   }
 
   CDBTTree cdbttree(filename);
   cdbttree.LoadCalibrations();
 
-  return LoadFromCDBTTree(cdbttree);
+  m_loaded = (LoadFromCDBTTree(cdbttree) == 0);
+  return m_loaded ? 0 : 1;
 }
 
 int InttLoadable::LoadFromCDB(
-    std::string const& name)
+    std::string name)
 {
+  m_loaded = 0;
   if (name.empty())
   {
-    return LoadFromCDB();
+	  name = DefaultCDBName();
   }
 
-  std::string database = CDBInterface::instance()->getUrl(name);
-  CDBTTree cdbttree(database);
+  name = CDBInterface::instance()->getUrl(name);
+  CDBTTree cdbttree(name);
   cdbttree.LoadCalibrations();
 
-  return LoadFromCDBTTree(cdbttree);
+  m_loaded = (LoadFromCDBTTree(cdbttree) == 0);
+  return m_loaded ? 0 : 1;
 }
 
-int InttLoadable::LoadFromFile()
+int InttLoadable::Loaded() const
 {
-  std::cerr << __PRETTY_FUNCTION__ << "\n"
-            << "\tDynamic function call was to an instance of base class\n"
-            << "\tThis virtual function should be overridden by children\n"
-            << "\tto call InttLoadable::LoadFromFile(std::string const&)\n"
-            << "\twith a befitting default argument, creating the effect\n"
-            << "\tof an having an overloaded method with a default value" << std::endl;
-  return 1;
-}
-
-int InttLoadable::LoadFromCDB()
-{
-  std::cerr << __PRETTY_FUNCTION__ << "\n"
-            << "\tDynamic function call was to an instance of base class\n"
-            << "\tThis virtual function should be overridden by children\n"
-            << "\tto call InttLoadable::LoadFromFile(std::string const&)\n"
-            << "\twith a befitting default argument, creating the effect\n"
-            << "\tof an having an overloaded method with a default value" << std::endl;
-  return 1;
+  return m_loaded;
 }
 
 int InttLoadable::LoadFromCDBTTree(

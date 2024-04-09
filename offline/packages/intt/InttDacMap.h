@@ -27,7 +27,7 @@ class InttDacMap : public InttLoadable
   virtual unsigned short GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc);
   virtual unsigned short GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc);
 
-  virtual void Verbosity(const int& verbosity) { m_verbosity = verbosity; };
+  virtual void Verbosity(int const& verbosity) { m_verbosity = verbosity; };
 
   virtual void SetDefault(const uint& Adc0 = 15,
                           const uint& Adc1 = 30,
@@ -38,14 +38,12 @@ class InttDacMap : public InttLoadable
                           const uint& Adc6 = 180,
                           const uint& Adc7 = 210);
 
-  using InttLoadable::LoadFromFile;
-  using InttLoadable::LoadFromCDB;
-
-  int LoadFromFile() override { return LoadFromFile("InttDacMap.root"); }
-  int LoadFromCDB() override { return LoadFromCDB("InttDacMap"); }
+  std::string DefaultFileName() const override { return "InttDacMap.root"; }
+  std::string DefaultCDBName() const override { return "InttDacMap"; }
 
  protected:
   int LoadFromCDBTTree(CDBTTree& cdbttree) override;
+
   void FillToCDBTTree(CDBTTree& cdbttree);
 
  private:

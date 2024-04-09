@@ -14,14 +14,8 @@ class InttBcoMap : public InttLoadable
  public:
   static int const WIDTH = 1;
 
-  InttBcoMap() = default;
-  virtual ~InttBcoMap() override;
-
-  using InttLoadable::LoadFromCDB;
-  using InttLoadable::LoadFromFile;
-
-  int LoadFromFile() override { return LoadFromFile("InttBcoMap.root"); }
-  int LoadFromCDB() override { return LoadFromCDB("InttBcoMap"); }
+  InttBcoMap();
+  virtual ~InttBcoMap() override = default;
 
   virtual bool IsBad(int const&,
                      int const&,
@@ -31,12 +25,15 @@ class InttBcoMap : public InttLoadable
   virtual bool IsBad(InttNameSpace::RawData_s const&, uint64_t const&, const int&);
   virtual bool IsBad(InttNameSpace::Offline_s const&, uint64_t const&, const int&);
 
+  std::string DefaultFileName() const override { return "InttBcoMap.root"; }
+  std::string DefaultCDBName() const override { return "InttBcoMap"; }
+
  protected:
   int LoadFromCDBTTree(CDBTTree&) override;
 
  private:
   typedef std::array<std::array<int, 14>, 8> bco_array_t;
-  bco_array_t* m_bco{nullptr};  // [Felix server][Felix channel]
+  bco_array_t m_bco;  // [Felix server][Felix channel]
 };
 
 #endif  // INTTBCOMAP_H

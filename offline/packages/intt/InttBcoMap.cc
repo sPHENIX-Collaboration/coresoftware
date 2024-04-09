@@ -7,15 +7,19 @@
 #include <iostream>
 #include <map>
 
-InttBcoMap::~InttBcoMap()
+InttBcoMap::InttBcoMap()
 {
-  delete m_bco;
+  for(auto& felix_server : m_bco)
+  {
+    for(auto& felix_channel : felix_server)
+	{
+      felix_channel = -1;
+	}
+  }
 }
 
 int InttBcoMap::LoadFromCDBTTree(CDBTTree &cdbttree)
 {
-  delete m_bco;
-  m_bco = new bco_array_t;
   int felix_server = 0;
   int felix_channel = 0;
   int bco_diff = 0;
@@ -43,7 +47,7 @@ int InttBcoMap::LoadFromCDBTTree(CDBTTree &cdbttree)
 
 	try
 	{
-      m_bco->at(felix_server).at(felix_channel) = bco_diff;
+      m_bco.at(felix_server).at(felix_channel) = bco_diff;
 	}
 	catch (std::out_of_range const& e)
 	{
@@ -62,16 +66,10 @@ bool InttBcoMap::IsBad(
   uint64_t const& bco_full,
   int const& bco)
 {
-  if(!m_bco)
-  {
-    return false;
-  }
-
-  int bco_diff = ((bco_full & 0x7fU) - (bco % 128) + 128) % 128;
   int bco_peak = 0;
   try
   {
-    bco_peak = m_bco->at(felix_server).at(felix_channel);
+    bco_peak = m_bco.at(felix_server).at(felix_channel);
   }
   catch (std::out_of_range const& e)
   {
@@ -79,18 +77,21 @@ bool InttBcoMap::IsBad(
               << "\t" << e.what() << std::endl;
 	return false;
   }
+  if(bco_peak == -1)
+  {
+    return false;
+  }
 
   int lower = (bco_peak - WIDTH + 128) % 128;
   int upper = (bco_peak + WIDTH + 128) % 128;
+  int bco_diff = ((bco_full & 0x7fU) - (bco % 128) + 128) % 128;
 
   if(lower < upper)
   {
   	return lower <= bco_diff && bco_diff <= upper;
   }
-  else
-  {
-  	return lower <= bco_diff || bco_diff <= upper;
-  }
+
+  return lower <= bco_diff || bco_diff <= upper;
 }
 
 bool InttBcoMap::IsBad(InttNameSpace::RawData_s const &raw, uint64_t const &bco_full, const int &bco)

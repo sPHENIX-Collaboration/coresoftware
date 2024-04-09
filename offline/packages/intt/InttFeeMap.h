@@ -13,7 +13,7 @@ class InttFeeMap : public InttLoadable
 {
  public:
   InttFeeMap() = default;
-  ~InttFeeMap() override;
+  virtual ~InttFeeMap() override;
 
   int Convert(InttMap::Online_s&, InttMap::Offline_s const&) const;
   int Convert(InttMap::Offline_s&, InttMap::Online_s const&) const;
@@ -33,11 +33,8 @@ class InttFeeMap : public InttLoadable
   InttMap::Offline_s ToOffline(InttMap::Online_s const&) const;
   InttMap::Offline_s ToOffline(InttMap::RawData_s const&) const;
 
-  using InttLoadable::LoadFromFile;
-  using InttLoadable::LoadFromCDB;
-
-  int LoadFromFile() override { return LoadFromFile("InttBadChannelMap.root"); }
-  int LoadFromCDB() override { return LoadFromCDB("InttBadChannelMap"); }
+  std::string DefaultFileName() const override { return "InttFeeMap.root"; }
+  std::string DefaultCDBName() const override { return "InttFeeMap"; }
 
  protected:
   int LoadFromCDBTTree(CDBTTree&) override;
