@@ -22,3 +22,8 @@ void MicromegasRawHitv1::identify(std::ostream &os) const
   os << "BCO: 0x" << std::hex << bco << std::dec << std::endl;
   os << "packet id: " << packetid << std::endl;
 }
+
+void MicromegasRawHitv1::Clear(Option_t * /*unused*/)
+{
+  adc = std::vector<uint16_t>();
+}

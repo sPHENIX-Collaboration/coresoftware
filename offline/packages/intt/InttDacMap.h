@@ -27,7 +27,7 @@ class InttDacMap : public InttLoadable
   virtual unsigned short GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc);
   virtual unsigned short GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc);
 
-  virtual void Verbosity(int verbosity) { m_verbosity = verbosity; };
+  virtual void Verbosity(const int& verbosity) { m_verbosity = verbosity; };
 
   virtual void SetDefault(const uint& Adc0 = 15,
                           const uint& Adc1 = 30,

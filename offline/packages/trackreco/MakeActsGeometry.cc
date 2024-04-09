@@ -892,10 +892,10 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
 
       unsigned int layer = 0;
-      for (unsigned int i = 0; i < 4; ++i)
+      for (unsigned int i2 = 0; i2 < 4; ++i2)
       {
-        if (fabs(layer_rad - ref_rad[i]) < 0.1)
-          layer = i + 3;
+        if (fabs(layer_rad - ref_rad[i2]) < 0.1)
+	{layer = i2 + 3;}
       }
 
       TrkrDefs::hitsetkey hitsetkey = getInttHitSetKeyFromCoords(layer, world_center);
@@ -968,10 +968,10 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
       unsigned int layer = 0;
-      for (unsigned int i = 0; i < 3; ++i)
+      for (unsigned int i2 = 0; i2 < 3; ++i2)
       {
-        if (fabs(layer_rad - ref_rad[i]) < 0.1)
-          layer = i;
+        if (fabs(layer_rad - ref_rad[i2]) < 0.1)
+	{layer = i2;}
       }
 
       TrkrDefs::hitsetkey hitsetkey = getMvtxHitSetKeyFromCoords(layer, world_center);

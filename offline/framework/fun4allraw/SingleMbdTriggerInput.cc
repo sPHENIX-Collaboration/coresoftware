@@ -29,11 +29,13 @@
 #include <set>
 #include <utility>  // for pair
 
+static const int NMBDPACKETS = 3;
+
 SingleMbdTriggerInput::SingleMbdTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
   SubsystemEnum(InputManagerType::MBD);
-  plist = new Packet *[2];  // two packets for the mbd in each file
+  plist = new Packet *[NMBDPACKETS];  // two packets for the mbd in each file
 }
 
 SingleMbdTriggerInput::~SingleMbdTriggerInput()
@@ -84,11 +86,12 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 2);
-    if (npackets > 2)
+    int npackets = evt->getPacketList(plist, NMBDPACKETS);
+    if (npackets >= NMBDPACKETS)
     {
-      std::cout << PHWHERE << " Number of packets in array (2) too small for "
-                << npackets << std::endl;
+      std::cout << PHWHERE << " Packets array size " << NMBDPACKETS
+		<< " too small for " << Name()
+		<< ", increase NMBDPACKETS and rebuild" << std::endl;
       exit(1);
     }
 
@@ -116,6 +119,7 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setEvtSequence(EventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));

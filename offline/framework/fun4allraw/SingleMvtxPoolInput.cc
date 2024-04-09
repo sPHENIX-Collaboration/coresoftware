@@ -32,7 +32,7 @@ SingleMvtxPoolInput::SingleMvtxPoolInput(const std::string &name)
 SingleMvtxPoolInput::~SingleMvtxPoolInput()
 {
   delete[] plist;
-  for ( auto& iter : poolmap)
+  for (auto &iter : poolmap)
   {
     if (Verbosity() > 2)
     {
@@ -112,9 +112,9 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
       delete plist[i];
     }
 
-    for (auto& iter : poolmap)
+    for (auto &iter : poolmap)
     {
-      mvtx_pool* pool = iter.second;
+      mvtx_pool *pool = iter.second;
       int num_feeId = pool->iValue(-1, "NR_LINKS");
       if (Verbosity() > 1)
       {
@@ -350,10 +350,25 @@ bool SingleMvtxPoolInput::GetSomeMoreEvents()
   {
     if (bcliter.second <= lowest_bclk)
     {
-      // std::cout << "FEE " << bcliter.first << " bclk: "
-      // 		<< std::hex << bcliter.second << ", req: " << localbclk
-      // 		<< std::dec << std::endl;
-      return true;
+      uint64_t highest_bclk = m_MvtxRawHitMap.rbegin()->first;
+      if ((highest_bclk - m_MvtxRawHitMap.begin()->first) < MaxBclkDiff())
+      {
+        // std::cout << "FEE " << bcliter.first << " bclk: "
+        // 		<< std::hex << bcliter.second << ", req: " << lowest_bclk
+        // 		 << " low: 0x" <<  m_MvtxRawHitMap.begin()->first << ", high: " << highest_bclk << ", delta: " << std::dec << (highest_bclk-m_MvtxRawHitMap.begin()->first)
+        // 		<< std::dec << std::endl;
+        return true;
+      }
+      else
+      {
+        std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
+                  << " with stuck bclk: " << std::hex << bcliter.second
+                  << " current bco range: 0x" << m_MvtxRawHitMap.begin()->first
+                  << ", to: 0x" << highest_bclk << ", delta: " << std::dec
+                  << (highest_bclk - m_MvtxRawHitMap.begin()->first)
+                  << std::dec << std::endl;
+        m_FEEBclkMap.erase(bcliter.first);
+      }
     }
   }
   return false;

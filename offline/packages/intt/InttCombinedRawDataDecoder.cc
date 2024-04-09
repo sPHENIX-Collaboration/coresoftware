@@ -24,6 +24,7 @@
 #include <TSystem.h>
 
 #include <cstdlib>   // for exit
+#include <filesystem>// for filesystem::exist
 #include <iostream>  // for operator<<, endl, bas...
 #include <map>       // for _Rb_tree_iterator
 
@@ -191,7 +192,6 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
     InttRawHit* intthit = inttcont->get_hit(i);
-    // uint64_t gtm_bco = intthit->get_bco();
 
     raw.pid = intthit->get_packetid();
     raw.fee = intthit->get_fee();
@@ -200,7 +200,8 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
     int adc = intthit->get_adc();
     // amp = intthit->get_amplitude();
-    // int bco = intthit->get_FPHX_BCO();
+    uint64_t bco_full = intthit->get_bco();
+    int      bco      = intthit->get_FPHX_BCO();
 
     if (m_badmap.IsBad(raw))
     {

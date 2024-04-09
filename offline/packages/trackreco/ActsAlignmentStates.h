@@ -61,7 +61,7 @@ class ActsAlignmentStates
 
   int m_verbosity = 0;
 
-  float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
+//  float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
 
   ClusterErrorPara m_clusErrPara;
   TpcDistortionCorrection m_distortionCorrection;

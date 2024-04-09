@@ -43,6 +43,10 @@ class InttCombinedRawDataDecoder : public SubsysReco
   int ClearCalib(std::string const&);
   int ClearCalibs();
 
+  void SetCalibBCO(std::string const& calibname= "INTT_BCOMAP", const CalibRef& calibref=CDB) 
+               { m_calibinfoBCO = std::pair< std::string, CalibRef>(calibname, calibref); }
+
+
   void runInttStandalone(bool runAlone) { m_runStandAlone = runAlone; }
   void writeInttEventHeader(bool write) { m_writeInttEventHeader = write; }
 

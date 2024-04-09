@@ -2,6 +2,15 @@
 
 #include <ffarawobjects/OfflinePacket.h>
 
+DumpPacket::~DumpPacket()
+{
+  for (auto &iter: m_PacketDumpFile)
+  {
+    iter.second->close();
+  }
+  return;
+}
+
 void DumpPacket::ddumppacket(OfflinePacket *pkt)
 {
   int packetid = pkt->getIdentifier();

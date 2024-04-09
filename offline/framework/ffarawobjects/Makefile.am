@@ -24,6 +24,7 @@ ROOTDICTS = \
   Gl1Packetv1_Dict.cc \
   Gl1RawHit_Dict.cc \
   Gl1RawHitv1_Dict.cc \
+  Gl1RawHitv2_Dict.cc \
   InttRawHit_Dict.cc \
   InttRawHitContainer_Dict.cc \
   InttRawHitContainerv1_Dict.cc \
@@ -55,6 +56,7 @@ nobase_dist_pcm_DATA = \
   Gl1Packetv1_Dict_rdict.pcm \
   Gl1RawHit_Dict_rdict.pcm \
   Gl1RawHitv1_Dict_rdict.pcm \
+  Gl1RawHitv2_Dict_rdict.pcm \
   InttRawHit_Dict_rdict.pcm \
   InttRawHitContainer_Dict_rdict.pcm \
   InttRawHitContainerv1_Dict_rdict.pcm \
@@ -85,6 +87,7 @@ pkginclude_HEADERS = \
   Gl1Packetv1.h \
   Gl1RawHit.h \
   Gl1RawHitv1.h \
+  Gl1RawHitv2.h \
   InttRawHit.h \
   InttRawHitContainer.h \
   InttRawHitContainerv1.h \
@@ -111,7 +114,9 @@ libffarawobjects_la_SOURCES = \
   CaloPacketv1.cc \
   CaloPacketContainerv1.cc \
   Gl1Packetv1.cc \
+  Gl1RawHit.cc \
   Gl1RawHitv1.cc \
+  Gl1RawHitv2.cc \
   InttRawHitContainerv1.cc \
   InttRawHitv1.cc \
   MicromegasRawHitContainerv1.cc \
