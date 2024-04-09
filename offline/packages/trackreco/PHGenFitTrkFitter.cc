@@ -252,8 +252,10 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
     // track momentum comes from tpc seed
     svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
-    svtxtrack->set_px(tpcseed->get_px(m_clustermap, m_tgeometry));
-    svtxtrack->set_py(tpcseed->get_py(m_clustermap, m_tgeometry));
+    svtxtrack->set_px(tpcseed->get_px());
+    svtxtrack->set_py(tpcseed->get_py());
+//     svtxtrack->set_px(tpcseed->get_px(m_clustermap, m_tgeometry));
+//     svtxtrack->set_py(tpcseed->get_py(m_clustermap, m_tgeometry));
     svtxtrack->set_pz(tpcseed->get_pz());
 
     // insert in map
