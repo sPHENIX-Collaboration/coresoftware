@@ -55,14 +55,9 @@
 #include <vector>  // for vector
 #include <set>  // for vector
 
-/////////// Dead Hits /////////////////////////
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
 #include <ffarawobjects/MvtxRawEvtHeader.h>
-////// JSON ///////////
-//#include </sphenix/user/pnietomar/coresoftware/simulation/g4simulation/g4mvtx/json.hpp>
-/////////////////////////////////////////////////
-
 
 // New headers I added
 
@@ -207,9 +202,8 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-////////////////////// Dead hits ////////////////////////////////////////////////////  
 
-  std::string filename = "/sphenix/user/pnietomar/coresoftware/simulation/g4simulation/g4mvtx/json/dead_pixel_mask.root";
+  std::string filename = "/sphenix/user/pnietomar/mvtx/dead_pixel_mask.root";
   CDBTTree *cdbttree = new CDBTTree(filename);
   cdbttree->LoadCalibrations();
   int NPixel = -1;
@@ -230,30 +224,6 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     TrkrDefs::hitkey DeadHitKey = MvtxDefs::genHitKey(Col, Row);
     m_deadPixelMap.push_back({std::make_pair(DeadPixelHitKey, DeadHitKey)});
   }
-
-
-///////// JSON /////////////////////////////////////////////////////
-/*
-  std::ifstream jsonFile("/sphenix/user/pnietomar/coresoftware/simulation/g4simulation/g4mvtx/L2_09.json");
-  if (!jsonFile.is_open()) {
-        std::cerr << "Error opening file." << std::endl;
-        return 1;
-  }
-  nlohmann::json jsonData;
-  jsonFile >> jsonData;
-  for(const auto& entry : jsonData[0]){
-    int Chip = entry[0];
-    int Row = entry[1];
-    int Col = entry[2];
-    std::cout << "Chip: " << Chip << ", Row: " << Row << ", Col: " << Col << std::endl;
-    TrkrDefs::hitsetkey DeadPixelHitKey = MvtxDefs::genHitSetKey(2, 9, Chip, 0);        
-    TrkrDefs::hitkey DeadHitKey = MvtxDefs::genHitKey(Col, Row);
-    m_deadPixelMap.push_back({std::make_pair(DeadPixelHitKey, DeadHitKey)});
-  }
-*/
-
-////////// End Dead Hits /////////////////////////////////////////////////////////////
-
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -699,50 +669,40 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
           // See if this hit already exists
 	  TrkrHit* hit = nullptr;
           hit = hitsetit->second->getHit(hitkey);
-         
-          if (Verbosity() == 0){
-            std::cout << "Layer: "<< layer <<", Stave: "<< stave_number << ", Chip: " << chip_number << ", Strobe: " << strobe << ", before the masking." << std::endl;
-            std::cout << "Layer: "<< layer <<", Stave: "<< (uint16_t)MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t)MvtxDefs::getChipId(hitsetkey) << ", Strobe: " << (int)MvtxDefs::getStrobeId(hitsetkey) << ", Col: "<< (uint16_t)MvtxDefs::getCol(hitkey) << ", Row: "<< (uint16_t)MvtxDefs::getRow(hitkey) <<", added hit " << hitkey << " to hitset " << hitsetkey << ", extracted from hitsetkey."<<std::endl;
-          }
           
-          ///////////////////////////////// Dead hits ///////////////////////////////////////////////////////////////////////////////////
-          const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, 0);
-          if (Verbosity() == 0){
-            std::cout << "Layer: "<< layer <<", Stave: "<< (uint16_t)MvtxDefs::getStaveId(hitsetkeymask) << ", Chip: " << (uint16_t)MvtxDefs::getChipId(hitsetkeymask) << ", Strobe: " << (int)MvtxDefs::getStrobeId(hitsetkeymask) << ", generated hitsetkeymask: " << hitsetkeymask << ", extracted from hitsetkeymask."<<std::endl;
+          if (hit){
+            std::cout << PHWHERE << "::" << __func__
+                << " - duplicated hit, hitsetkey: " << hitsetkey
+                << " hitkey: " << hitkey << std::endl;
+            continue;
           }
+          const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, 0);
+        
           if (std::find(m_deadPixelMap.begin(), m_deadPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_deadPixelMap.end())
           {
             // create hit and insert in hitset
             
-            if (Verbosity() == 0){
-              std::cout << "Layer: "<< layer <<", Stave: "<< stave_number << ", Chip: " << chip_number << ", Strobe: " << strobe << ", hit is not associated with a dead pixel, it proceeds to create a new hit." << std::endl;
+            if (Verbosity() > 0){
+              std::cout << "Layer: "<< layer <<", Stave: "<< (uint16_t)MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t)MvtxDefs::getChipId(hitsetkey) << ", Row: "<< (uint16_t)MvtxDefs::getRow(hitkey) << ", Col: "<< (uint16_t)MvtxDefs::getCol(hitkey) << ", Strobe: " << (int)MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << ", hit is not associated with a dead pixel, it proceeds to create a new hit." << std::endl;
             }
             
             hit = new TrkrHitv2();
             hitsetit->second->addHitSpecificKey(hitkey, hit);
           }
           else{
-            if (Verbosity() == 0){
-              std::cout << "Layer: "<< layer <<", Stave: "<< stave_number << ", Chip: " << chip_number << ", Strobe: " << strobe << ", hit is associated with a dead pixel, it proceeds to continue." << std::endl;
+            if (Verbosity() > 0){
+              std::cout << "Layer: "<< layer <<", Stave: "<< (uint16_t)MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t)MvtxDefs::getChipId(hitsetkey) << ", Row: "<< (uint16_t)MvtxDefs::getRow(hitkey) << ", Col: "<< (uint16_t)MvtxDefs::getCol(hitkey) << ", Strobe: " << (int)MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << ", hit is not associated with a dead pixel, it proceeds to continue." << std::endl;
             }
             continue;
           }
-          ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
           // Either way, add the energy to it
           double hitenergy = venergy[i1].first * TrkrDefs::MvtxEnergyScaleup;
           hit->addEnergy(hitenergy);
           
-          if (Verbosity() == 0){
-            std::cout << "Layer: "<< layer <<", Stave: "<< stave_number << ", Chip: " << chip_number << ", Strobe: " << strobe << ", added hit " << hitkey << " to hitset " << hitsetkey << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << std::endl;
-            std::cout << "Layer: "<< layer <<", Stave: "<< (uint16_t)MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t)MvtxDefs::getChipId(hitsetkey) << ", Strobe: " << (int)MvtxDefs::getStrobeId(hitsetkey) << ", Col: "<< (uint16_t)MvtxDefs::getCol(hitkey) << ", Row: "<< (uint16_t)MvtxDefs::getRow(hitkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << ", extracted from hitsetkey."<<std::endl;
-          }
-          assert(hitsetkey);
-          assert(hitkey);
-          assert(hitenergy);
           addtruthhitset(hitsetkey, hitkey, hitenergy);
-          
-          if (Verbosity() == 0){
-            std::cout << "Layer: "<< layer <<", Stave: "<< stave_number << ", Chip: " << chip_number << ", Strobe: " << strobe << ", added hit " << hitkey << " to hitset " << hitsetkey << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << " and everything worked. " <<std::endl;
+  
+          if (Verbosity() > 0){
+            std::cout << "Layer: "<< layer <<", Stave: "<< (uint16_t)MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t)MvtxDefs::getChipId(hitsetkey) << ", Row: "<< (uint16_t)MvtxDefs::getRow(hitkey) << ", Col: "<< (uint16_t)MvtxDefs::getCol(hitkey) << ", Strobe: " << (int)MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup <<std::endl;
           }
 
           // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
@@ -932,52 +892,19 @@ void PHG4MvtxHitReco::addtruthhitset(
     TrkrDefs::hitkey hitkey, 
     float neffelectrons) 
 {
-  if (Verbosity() == 0){
-            std::cout << " 1  " <<std::endl;
-  }
   if (!m_is_emb) return;
-  if (Verbosity() == 0){
-            std::cout << " 2  " <<std::endl;
-  }
-  assert(hitsetkey);
-  assert(hitkey);
-  assert(m_truth_hits);
   TrkrHitSetContainer::Iterator hitsetit = m_truth_hits->findOrAddHitSet(hitsetkey);
-  if (Verbosity() == 0){
-            std::cout << " 3, hitsetkey:  " << hitsetkey << ", hitkey: "<< hitkey <<", m_truth_hits: "<< m_truth_hits <<std::endl;
-  }
   // See if this hit already exists
   TrkrHit *hit = nullptr;
-  if (Verbosity() == 0){
-            std::cout << " 4  " <<std::endl;
-  }
   hit = hitsetit->second->getHit(hitkey);
-  if (Verbosity() == 0){
-            std::cout << " 5  " <<std::endl;
-  }
   if (!hit)
   {
     // create a new one
-    if (Verbosity() == 0){
-            std::cout << " 6  " <<std::endl;
-    }
     hit = new TrkrHitv2();
-    if (Verbosity() == 0){
-            std::cout << " 7  " <<std::endl;
-    }
     hitsetit->second->addHitSpecificKey(hitkey, hit);
-    if (Verbosity() == 0){
-            std::cout << " 8  " <<std::endl;
-    }
-  }
-  if (Verbosity() == 0){
-            std::cout << " 9  " <<std::endl;
   }
   // Either way, add the energy to it  -- adc values will be added at digitization
   hit->addEnergy(neffelectrons);
-  if (Verbosity() == 0){
-            std::cout << " 10  " <<std::endl;
-  }
 }
 
 void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {

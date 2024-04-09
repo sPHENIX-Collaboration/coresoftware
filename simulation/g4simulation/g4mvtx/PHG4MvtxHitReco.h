@@ -51,9 +51,8 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   //! parameters
   void SetDefaultParameters() override;
 
-  ////////////////////// Dead Pixels /////////////////////////////////////////////////
   void useRawEvtHeaderNodeName(const std::string& name) { m_MvtxRawEvtHeaderNodeName = name; }
-  ////////////////////////////////////////////////////////////////////////////////////////
+
  private:
   std::pair<double, double> generate_alpide_pulse(const double energy_deposited);
 
@@ -94,11 +93,10 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   const int                m_cluster_version { 4 };
   TrkrHitSetContainer*     m_truth_hits; // generate and delete a container for each truth track
   std::map<TrkrDefs::hitsetkey,unsigned int> m_hitsetkey_cnt {}; // counter for making ckeys form hitsetkeys
-  ////////////////////////// Dead Pixels ///////////////////////
+
   MvtxRawEvtHeader* mvtx_raw_event_header = nullptr;
   std::string m_MvtxRawEvtHeaderNodeName = "MVTXRAWEVTHEADER";
   std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> m_deadPixelMap;
-  /////////////////////////////////////////////////////////////
 
   PHG4Hit* prior_g4hit { nullptr }; // used to check for jumps in g4hits for loopers;
   void addtruthhitset ( TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons );
