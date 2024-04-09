@@ -1,6 +1,7 @@
 #ifndef INTT_INTTDACMAP_H
 #define INTT_INTTDACMAP_H
 
+#include "InttLoadable.h"
 #include "InttMapping.h"
 
 #include <array>
@@ -8,14 +9,13 @@
 
 class CDBTTree;
 
-class InttDacMap
+class InttDacMap : public InttLoadable
 {
  public:
   InttDacMap();
-  virtual ~InttDacMap() {}
+  virtual ~InttDacMap() override = default;
 
-  virtual int LoadFromCDB(std::string const& calibname);
-  virtual int LoadFromFile(std::string const& filename);
+
   virtual int WriteToFile(std::string const& filename);
 
   // Access by OnlineChannel
@@ -38,13 +38,18 @@ class InttDacMap
                           const uint& Adc6 = 180,
                           const uint& Adc7 = 210);
 
+  using InttLoadable::LoadFromFile;
+  using InttLoadable::LoadFromCDB;
+
+  int LoadFromFile() override { return LoadFromFile("InttDacMap.root"); }
+  int LoadFromCDB() override { return LoadFromCDB("InttDacMap"); }
+
  protected:
-  int LoadFromCDBTTree(CDBTTree& cdbttree);
+  int LoadFromCDBTTree(CDBTTree& cdbttree) override;
   void FillToCDBTTree(CDBTTree& cdbttree);
 
  private:
   typedef std::array<std::array<std::array<std::array<int, 8>, 26>, 14>, 8> DacArray;
-
   DacArray m_dac{};  // [FELIX_SERVER:8][FELIX_CHANNEL:14][CHIP:26][DAC:8]
 
   int m_verbosity{0};

@@ -2,19 +2,16 @@
 #define INTT_SURVEY_MAP_H
 
 #include "InttMap.h"
-
-#include <phool/PHObject.h>
+#include "InttLoadable.h"
 
 #include <Eigen/Geometry>
 
-#include <cstddef>  // for size_t
-#include <iostream>
 #include <map>
 #include <string>
 
 class CDBTTree;
 
-class InttSurveyMap : public PHObject
+class InttSurveyMap : public InttLoadable
 {
  public:
   typedef std::map<InttMap::Offline_s, Eigen::Affine3d, InttMap::OfflineComparator> map_t;
@@ -22,25 +19,25 @@ class InttSurveyMap : public PHObject
   typedef Eigen::Affine3d val_t;
 
   InttSurveyMap() = default;
-  ~InttSurveyMap() override = default;
+  virtual ~InttSurveyMap() override;
 
-  int LoadFromFile(std::string const& = "InttSurveyMap.root");
-  int LoadFromCDB(std::string const& = "InttSurveyMap");
+  int GetStripTransform(key_t, val_t&) const;
+  int GetSensorTransform(key_t, val_t&) const;
+  int GetLadderTransform(key_t, val_t&) const;
 
-  int GetStripTransform(key_t const&, val_t&) const;
-  int GetSensorTransform(key_t const&, val_t&) const;
-  int GetLadderTransform(key_t const&, val_t&) const;
+  val_t const* GetTransform(key_t const&) const;
 
-  virtual void identify(std::ostream& = std::cout) const override;
-  virtual std::size_t size() const;
+  using InttLoadable::LoadFromFile;
+  using InttLoadable::LoadFromCDB;
 
-  virtual val_t const* GetAbsoluteTransform(key_t const&) const;
+  int LoadFromFile() override { return LoadFromFile("InttSurveyMap.root"); }
+  int LoadFromCDB() override { return LoadFromCDB("InttSurveyMap"); }
 
  protected:
-  virtual int v_LoadFromCDBTTree(CDBTTree&);
+  int LoadFromCDBTTree(CDBTTree&) override;
 
  private:
-  ClassDefOverride(InttSurveyMap, 1)
+  map_t* m_transforms = nullptr;
 };
 
 #endif  // INTT_SURVEY_MAP_H

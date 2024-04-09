@@ -1,5 +1,4 @@
 #include "InttCombinedRawDataDecoder.h"
-#include "InttMapping.h"
 
 #include <trackbase/InttDefs.h>
 #include <trackbase/InttEventInfov1.h>
@@ -30,18 +29,22 @@
 
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
-  , m_calibinfoDAC({"INTT_DACMAP", CDB})
 {
-  // Do nothing
-  // Consider calling LoadHotChannelMapRemote()
+  m_calibs = {
+    {"INTT_BADMAP", (struct calib_load_s){.ptr = &m_badmap}},
+    {"INTT_BCOMAP", (struct calib_load_s){.ptr = &m_bcomap}},
+    {"INTT_DACMAP", (struct calib_load_s){.ptr = &m_dacmap}},
+    {"INTT_FEEMAP", (struct calib_load_s){.ptr = &m_feemap}},
+  };
 }
 
 int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
 {
   if (!topNode)
   {
-    std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-    std::cout << "\tCould not retrieve topNode; doing nothing" << std::endl;
+    std::cerr << PHWHERE << "\n"
+              << "\tCould not retrieve topNode\n"
+              << "\tExiting" << std::endl;
     exit(1);
     gSystem->Exit(1);
 
@@ -52,14 +55,9 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   PHCompositeNode* dst_node = dynamic_cast<PHCompositeNode*>(dst_itr.findFirst("PHCompositeNode", "DST"));
   if (!dst_node)
   {
-    if (Verbosity())
-    {
-      std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-    }
-    if (Verbosity())
-    {
-      std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
-    }
+    std::cerr << PHWHERE << "\n"
+              << "\tCould not retrieve dst_node\n"
+              << "\tExiting" << std::endl;
     exit(1);
     gSystem->Exit(1);
 
@@ -79,11 +77,8 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   {
     if (Verbosity())
     {
-      std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-    }
-    if (Verbosity())
-    {
-      std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+      std::cout << PHWHERE << "\n"
+                << "\tMaking TrkrHitSetContainer" << std::endl;
     }
 
     trkr_hit_set_container = new TrkrHitSetContainerv1;
@@ -101,7 +96,7 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
       dst_node->addNode(inttNode);
     }
 
-    intt_event_header = findNode::getClass<InttEventInfo>(inttNode, "INTTEVENTHEADER");
+    InttEventInfo* intt_event_header = findNode::getClass<InttEventInfo>(inttNode, "INTTEVENTHEADER");
     if (!intt_event_header)
     {
       intt_event_header = new InttEventInfov1();
@@ -110,15 +105,16 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
     }
   }
 
-
-  ///////////////////////////////////////
-  std::cout<<"calibinfo DAC : "<<m_calibinfoDAC.first<<" "<<(m_calibinfoDAC.second==CDB?"CDB":"FILE")<<std::endl;
-  m_dacmap.Verbosity(Verbosity());
-  if(m_calibinfoDAC.second == CDB){
-     m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
-  } else {
-     m_dacmap.LoadFromFile(m_calibinfoDAC.first);
-  }
+  LoadCalibs();
+  // std::cout << "Starting Takashi's code:" << std::endl;
+  // std::cout<<"calibinfo DAC : "<<m_calibinfoDAC.first<<" "<<(m_calibinfoDAC.second==CDB?"CDB":"FILE")<<std::endl;
+  // m_dacmap.Verbosity(Verbosity());
+  // if(m_calibinfoDAC.second == CDB){
+  //    m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
+  // } else {
+  //    m_dacmap.LoadFromFile(m_calibinfoDAC.first);
+  // }
+  // std::cout << "Finished Takashi's code:" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -128,49 +124,61 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!trkr_hit_set_container)
   {
-    std::cout << PHWHERE << std::endl;
-    std::cout << "InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)" << std::endl;
-    std::cout << "Could not get \"TRKR_HITSET\" from Node Tree" << std::endl;
-    std::cout << "Exiting" << std::endl;
+    std::cerr << PHWHERE << "\n"
+              << "\tCould not get node \"TRKR_HITSET\"\n"
+              << "\tAborting" << std::endl;
     gSystem->Exit(1);
     exit(1);
-
-    return Fun4AllReturnCodes::DISCARDEVENT;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   InttRawHitContainer* inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
   if (!inttcont)
   {
-    std::cout << PHWHERE << std::endl;
-    std::cout << "InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)" << std::endl;
-    std::cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << std::endl;
-    std::cout << "Exiting" << std::endl;
-
+    std::cerr << PHWHERE << "\n"
+              << "\tCould not get node \"" << m_InttRawNodeName << "\"\n"
+              << "\tAborting" << std::endl;
     gSystem->Exit(1);
     exit(1);
-  }
-  Gl1RawHit* gl1 = nullptr;
-  if (!m_runStandAlone)
-  {
-    gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
-    if (!gl1)
-    {
-      std::cout << PHWHERE << " no gl1 container, exiting" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  uint64_t gl1rawhitbco = m_runStandAlone ? 0 : gl1->get_bco();
+  uint64_t gl1bco = 0U;
+  if (!m_runStandAlone)
+  {
+    Gl1RawHit* gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+    if (!gl1)
+    {
+      std::cerr << PHWHERE << "\n"
+                << "\tCould not get node \"GL1RAWHIT\", but not running standalone\n"
+                << "\tAborting\n";
+      gSystem->Exit(1);
+      exit(1);
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    gl1bco = gl1->get_bco();
+  }
+  else
+  {
+    gl1bco = inttcont->get_hit(0)->get_bco();
+  }
   // get the last 40 bits by bit shifting left then right to match
-  // to the mvtx bco
-  auto lbshift = gl1rawhitbco << 24U; // clang-tidy: mark as unsigned
-  auto gl1bco = lbshift >> 24U; // clang-tidy: mark as unsigned
+  gl1bco <<= 24U; // clang-tidy: mark as unsigned
+  gl1bco >>= 24U; // clang-tidy: mark as unsigned
 
   if (m_writeInttEventHeader)
   {
-    intt_event_header = findNode::getClass<InttEventInfo>(topNode, "INTTEVENTHEADER");
-    assert(intt_event_header);
-    intt_event_header->set_bco_full(inttcont->get_hit(0)->get_bco());
+    InttEventInfo* intt_event_header = findNode::getClass<InttEventInfo>(topNode, "INTTEVENTHEADER");
+    if (!intt_event_header)
+    {
+      std::cerr << PHWHERE << "\n"
+                << "\tCould not get node \"INTTEVENTHEADER\", but are writing event header\n"
+                << "\tAborting\n";
+      gSystem->Exit(1);
+      exit(1);
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    intt_event_header->set_bco_full(gl1bco);
   }
 
   TrkrDefs::hitsetkey hit_set_key = 0;
@@ -178,31 +186,43 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   TrkrHitSetContainer::Iterator hit_set_container_itr;
   TrkrHit* hit = nullptr;
 
-  InttNameSpace::RawData_s raw;
-  InttNameSpace::Offline_s ofl;
+  InttMap::RawData_s raw;
+  InttMap::Offline_s ofl;
   for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
     InttRawHit* intthit = inttcont->get_hit(i);
     // uint64_t gtm_bco = intthit->get_bco();
 
-    InttNameSpace::RawFromHit(raw, intthit);
-    // raw.felix_server = InttNameSpace::FelixFromPacket(intthit->get_packetid());
-    // raw.felix_channel = intthit->get_fee();
-    // raw.chip = (intthit->get_chip_id() + 25) % 26;
-    // raw.channel = intthit->get_channel_id();
+    raw.pid = intthit->get_packetid();
+    raw.fee = intthit->get_fee();
+    raw.chp = (intthit->get_chip_id() + 25) % 26;
+    raw.chn = intthit->get_channel_id();
 
     int adc = intthit->get_adc();
     // amp = intthit->get_amplitude();
     // int bco = intthit->get_FPHX_BCO();
 
-    if (m_HotChannelSet.find(raw) != m_HotChannelSet.end())
+    if (m_badmap.IsBad(raw))
     {
       continue;
     }
 
-    ofl = InttNameSpace::ToOffline(raw);
-    hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);  // col, row <trackbase/InttDefs.h>
-    int time_bucket = m_runStandAlone ? 0 : intthit->get_bco() - gl1bco;
+    if (m_feemap.Convert(ofl, raw))
+    {
+      if(Verbosity())
+      {
+          std::cerr << PHWHERE << "\n"
+                    << "\tconversion failed with\n"
+                    << "\t" << raw << "\n"
+                    << "\tContinuing\n";
+      }
+      continue;
+    }
+
+    // col, row <trackbase/InttDefs.h>
+    // hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);
+    hit_key = InttDefs::genHitKey(ofl.strip_z, ofl.strip_phi);
+    int time_bucket = intthit->get_bco() - gl1bco;
     hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, time_bucket);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);
@@ -212,118 +232,116 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    int dac = m_dacmap.GetDAC(raw, adc);
-
     hit = new TrkrHitv2;
-    //--hit->setAdc(adc);
-    hit->setAdc(dac);
+    int dac = m_dacmap.GetDAC (
+      raw.pid - 3001,
+      raw.fee,
+      raw.chp,
+      raw.chn,
+      adc
+    );
+
+    hit->setAdc(dac); // adc
     hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filename)
+int
+InttCombinedRawDataDecoder::SetCalib (
+  std::string const& domain,
+  calib_load_e const& method,
+  std::string const& filename)
 {
-  if (filename.empty())
+  std::string str = domain;
+  for(auto& c : str)
   {
-    std::cout << "int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filename)" << std::endl;
-    std::cout << "\tArgument 'filename' is empty string" << std::endl;
+    c = toupper(c);
+  }
+  calib_map_t::iterator itr = m_calibs.end();
+  if((itr = m_calibs.find(str)) == m_calibs.end())
+  {
+    std::cerr << PHWHERE << "\n"
+              << "\tDomain \"" << str << "\" is not settable\n"
+              << "\tAvailable domains are:\n";
+    for(auto const& p : m_calibs)
+    {
+      std::cerr << "\t\t" << p.first << std::endl;
+    }
+    std::cerr << "\t(case insensitive)" << std::endl;
     return 1;
   }
-  CDBTTree cdbttree(filename);
-  // need to checkt for error exception
-  cdbttree.LoadCalibrations();
 
-  m_HotChannelSet.clear();
-  uint64_t N = cdbttree.GetSingleIntValue("size");
-  for (uint64_t n = 0; n < N; ++n)
-  {
-    m_HotChannelSet.insert((struct InttNameSpace::RawData_s){
-        .felix_server = cdbttree.GetIntValue(n, "felix_server"),
-        .felix_channel = cdbttree.GetIntValue(n, "felix_channel"),
-        .chip = cdbttree.GetIntValue(n, "chip"),
-        .channel = cdbttree.GetIntValue(n, "channel")});
-
-    // if(Verbosity() < 1)
-    // {
-    //    continue;
-    // }
-    // std::cout << "Masking channel:\n" << std::endl;
-    // std::cout << "\t" << cdbttree.GetIntValue(n, "felix_server")
-    //           << "\t" << cdbttree.GetIntValue(n, "felix_channel")
-    //           << "\t" << cdbttree.GetIntValue(n, "chip")
-    //           << "\t" << cdbttree.GetIntValue(n, "channel") << std::endl;
-  }
+  itr->second.method = method;
+  itr->second.filename = filename;
 
   return 0;
+}
+
+int
+InttCombinedRawDataDecoder::ClearCalib (
+  std::string const& domain)
+{
+  return SetCalib(domain, SKIP, "");
+}
+
+int
+InttCombinedRawDataDecoder::ClearCalibs (
+)
+{
+  for(auto& p : m_calibs)
+  {
+    p.second.method = SKIP;
+    p.second.filename = "";
+  }
+  return 0;
+}
+
+int
+InttCombinedRawDataDecoder::LoadCalibs (
+)
+{
+  int rval = 0;
+  for(auto& p : m_calibs)
+  {
+    int i = 0;
+    switch(p.second.method)
+    {
+    case FROM_FILE:
+      i = p.second.ptr->LoadFromFile(p.second.filename);
+      break;
+    case FROM_CDB:
+      i = p.second.ptr->LoadFromCDB(p.second.filename);
+      break;
+    case SKIP:
+      if(!Verbosity())
+      {
+        break;
+      }
+      std::cout << PHWHERE << "\n"
+                << "\tSkipping calibration \"" << p.first << "\"" << std::endl;
+    default:
+      continue;
+    }
+
+	if(i)
+	{
+      std::cerr << PHWHERE << "\n"
+                << "\tLoading calibration \"" << p.first << "\" failed" << std::endl;
+      rval = i;
+	}
+  }
+
+  return rval;
+}
+
+int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filename)
+{
+  return m_badmap.LoadFromFile(filename);
 }
 
 int InttCombinedRawDataDecoder::LoadHotChannelMapRemote(std::string const& name)
 {
-  if (name.empty())
-  {
-    std::cout << "int InttCombinedRawDataDecoder::LoadHotChannelMapRemote(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'name' is empty string" << std::endl;
-    return 1;
-  }
-  std::string database = CDBInterface::instance()->getUrl(name);
-  CDBTTree cdbttree(database);
-  cdbttree.LoadCalibrations();
-
-  m_HotChannelSet.clear();
-  uint64_t N = cdbttree.GetSingleIntValue("size");
-  for (uint64_t n = 0; n < N; ++n)
-  {
-    m_HotChannelSet.insert((struct InttNameSpace::RawData_s){
-        .felix_server = cdbttree.GetIntValue(n, "felix_server"),
-        .felix_channel = cdbttree.GetIntValue(n, "felix_channel"),
-        .chip = cdbttree.GetIntValue(n, "chip"),
-        .channel = cdbttree.GetIntValue(n, "channel")});
-  }
-
-  return 0;
+  return m_badmap.LoadFromCDB(name);
 }
-
-/*
-        Packet* p = evt->getPacket(itr->first);
-        if(!p)continue;
-
-        int N = p->iValue(0, "NR_HITS");
-        full_bco = p->lValue(0, "BCO");
-
-        if(Verbosity() > 20)std::cout << N << std::endl;
-
-        for(int n = 0; n < N; ++n)
-        {
-        rawdata = InttNameSpace::RawFromPacket(itr->second, n, p);
-
-        adc = p->iValue(n, "ADC");
-        //amp = p->iValue(n, "AMPLITUE");
-        bco = p->iValue(n, "FPHX_BCO");
-
-        offline = InttNameSpace::ToOffline(rawdata);
-
-        hit_key = InttDefs::genHitKey(offline.strip_y, offline.strip_x); //col, row <trackbase/InttDefs.h>
-        hit_set_key = InttNameSpace::genHitSetKey(offline.layer, offline.ladder_z, offline.ladder_phi, bco);
-
-        hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
-        hit = hit_set_container_itr->second->getHit(hit_key);
-        if(hit)continue;
-
-        hit = new TrkrHitv2;
-        hit->setAdc(adc);
-        hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
-        }
-
-        delete p;
-        }
-        }
-        if(Verbosity() > 20)
-        {
-        std::cout << std::endl;
-        std::cout << "Identify():" << std::endl;
-        trkr_hit_set_container->identify();
-        std::cout << std::endl;
-        }
-*/

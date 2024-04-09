@@ -2,65 +2,27 @@
 
 #include <cdbobjects/CDBTTree.h>
 
-#include <ffamodules/CDBInterface.h>
+#include <boost/format.hpp>
 
-#include <filesystem>  // for exists
-#include <utility>     // for pair
-
-int InttSurveyMap::LoadFromFile(
-    std::string const& filename)
+InttSurveyMap::~InttSurveyMap()
 {
-  if (filename.empty())
-  {
-    std::cout << "int InttSurveyMap::LoadFromFile(std::string const& filename)" << std::endl;
-    std::cout << "\tArgument 'filename' is empty string" << std::endl;
-    return 1;
-  }
-
-  if (!std::filesystem::exists(filename))
-  {
-    std::cout << "int InttSurveyMap::LoadFromFile(std::string const& filename)" << std::endl;
-    std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
-    return 1;
-  }
-
-  CDBTTree cdbttree(filename);
-  cdbttree.LoadCalibrations();
-
-  return v_LoadFromCDBTTree(cdbttree);
-}
-
-int InttSurveyMap::LoadFromCDB(
-    std::string const& name)
-{
-  if (name.empty())
-  {
-    std::cout << "int InttSurveyMap::LoadFromCDB(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'name' is empty string" << std::endl;
-    return 1;
-  }
-
-  std::string database = CDBInterface::instance()->getUrl(name);
-  CDBTTree cdbttree(database);
-  cdbttree.LoadCalibrations();
-
-  return v_LoadFromCDBTTree(cdbttree);
+  delete m_transforms;
 }
 
 int InttSurveyMap::GetStripTransform(
-    key_t const& k,
-	val_t& v) const
+  key_t k,
+  val_t& v) const
 {
   val_t const* transform_ptr = nullptr;
   key_t ofl{
     k.layer,
     k.ladder_phi,
     k.ladder_z,
-	InttMap::Wildcard,
-	InttMap::Wildcard
+    InttMap::Wildcard,
+    InttMap::Wildcard
   };
 
-  transform_ptr = GetAbsoluteTransform(ofl);
+  transform_ptr = GetTransform(ofl);
   if(!transform_ptr)
   {
     return 1;
@@ -89,19 +51,19 @@ int InttSurveyMap::GetStripTransform(
 }
 
 int InttSurveyMap::GetSensorTransform(
-    key_t const& k,
-	val_t& v) const
+  key_t k,
+  val_t& v) const
 {
   val_t const* transform_ptr = nullptr;
   key_t ofl{
     k.layer,
     k.ladder_phi,
     k.ladder_z,
-	InttMap::Wildcard,
-	InttMap::Wildcard
+    InttMap::Wildcard,
+    InttMap::Wildcard
   };
 
-  transform_ptr = GetAbsoluteTransform(ofl);
+  transform_ptr = GetTransform(ofl);
   if(!transform_ptr)
   {
     return 1;
@@ -113,19 +75,15 @@ int InttSurveyMap::GetSensorTransform(
 }
 
 int InttSurveyMap::GetLadderTransform(
-    key_t const& k,
-	val_t& v) const
+  key_t k,
+  val_t& v) const
 {
   val_t const* transform_ptr = nullptr;
-  key_t ofl{
-    k.layer,
-    k.ladder_phi,
-	InttMap::Wildcard,
-	InttMap::Wildcard,
-	InttMap::Wildcard
-  };
+  k.ladder_z  = InttMap::Wildcard;
+  k.strip_z   = InttMap::Wildcard;
+  k.strip_phi = InttMap::Wildcard;
 
-  transform_ptr = GetAbsoluteTransform(ofl);
+  transform_ptr = GetTransform(k);
   if(!transform_ptr)
   {
     return 1;
@@ -136,27 +94,64 @@ int InttSurveyMap::GetLadderTransform(
   return 0;
 }
 
-void InttSurveyMap::identify(
-    std::ostream& out) const
+InttSurveyMap::val_t const* InttSurveyMap::GetTransform(
+    key_t const& k) const
 {
-  out << "InttSurveyMap\n"
-      << "\tBase Version\n"
-      << "\tUnimplemented" << std::endl;
+  if (!m_transforms)
+  {
+    return nullptr;
+  }
+  map_t::const_iterator itr = m_transforms->find(k);
+  return itr != m_transforms->end() ? &itr->second : nullptr;
 }
 
-std::size_t InttSurveyMap::size() const
+int InttSurveyMap::LoadFromCDBTTree(
+    CDBTTree& cdbttree)
 {
-  return 0;
-}
+  delete m_transforms;
+  m_transforms = new map_t;
 
-InttSurveyMap::val_t const* InttSurveyMap::GetAbsoluteTransform(
-    key_t const& /*unused*/) const
-{
-	return nullptr;
-}
+  Eigen::Affine3d aff;
+  InttMap::Offline_s ofl;
+  std::map<std::string, InttMap::field_t*> ofl_fields = {
+    {"layer",      &ofl.layer},
+    {"ladder_phi", &ofl.ladder_phi},
+    {"ladder_z",   &ofl.ladder_z},
+    {"strip_z",    &ofl.strip_z},
+    {"strip_phi",  &ofl.strip_phi},
+  };
 
-int InttSurveyMap::v_LoadFromCDBTTree(
-    CDBTTree& /*unused*/)
-{
+  for (int n = 0, N = cdbttree.GetSingleIntValue("size"); n < N; ++n)
+  {
+    for(auto& p : ofl_fields)
+    {
+      if((*p.second = cdbttree.GetIntValue(n, p.first)) != std::numeric_limits<int>::min())
+      {
+        continue;
+      }
+
+      std::cerr << __PRETTY_FUNCTION__ << "\n"
+                << "\tCDBTTree::GetIntValue returned std::numeric_limits<int>::min()\n"
+                << "\tname, channel combination does not exist in \"cdbttree\"\n" << std::endl;
+      return 1;
+    }
+
+    for (int i = 0; i < 16; ++i)
+    {
+      std::string boost_formatted = boost::str(boost::format("m_abs_%01d_%01d") %  (i/4) % (i%4));
+      if((aff.matrix()(i / 4, i % 4) = cdbttree.GetDoubleValue(n, boost_formatted)) != std::numeric_limits<int>::min())
+	  {
+		  continue;
+	  }
+
+	  std::cerr << __PRETTY_FUNCTION__ << "\n"
+                << "\tCDBTTree::GetIntValue returned std::numeric_limits<int>::min()\n"
+                << "\tname, channel combination does not exist in \"cdbttree\"\n" << std::endl;
+	  return 1;
+    }
+
+    m_transforms->insert({ofl, aff});
+  }
+
   return 0;
 }
