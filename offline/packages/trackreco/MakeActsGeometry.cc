@@ -914,7 +914,9 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       for (unsigned int i2 = 0; i2 < 4; ++i2)
       {
         if (fabs(layer_rad - ref_rad[i2]) < tolerance)
+        {
           layer = i2 + 3;
+        }
       }
 
       TrkrDefs::hitsetkey hitsetkey = getInttHitSetKeyFromCoords(layer, world_center);
@@ -989,7 +991,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       for (unsigned int i2 = 0; i2 < 3; ++i2)
       {
         if (fabs(layer_rad - ref_rad[i2]) < 0.1)
-          layer = i2;
+	{layer = i2;}
       }
 
       TrkrDefs::hitsetkey hitsetkey = getMvtxHitSetKeyFromCoords(layer, world_center);

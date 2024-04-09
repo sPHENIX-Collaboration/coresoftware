@@ -1097,7 +1097,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   for (unsigned int i = 0; i < propagated_track.size(); i++)
   {
     layers.push_back(TrkrDefs::getLayer(propagated_track[i]));
-    if (Verbosity()) std::cout << layers[i] << std::endl;
+    if (Verbosity()) {std::cout << layers[i] << std::endl;}
   }
   // then, propagate upward
   for (unsigned int l = old_layer - 1; l >= 7; l--)
