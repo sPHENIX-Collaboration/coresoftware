@@ -203,7 +203,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
   }
 
 
-  std::string filename = "/sphenix/user/pnietomar/mvtx/json/dead_pixel_mask.root";
+  std::string filename = "/sphenix/user/pnietomar/mvtx/dead_pixel_mask.root";
   CDBTTree *cdbttree = new CDBTTree(filename);
   cdbttree->LoadCalibrations();
   int NPixel = -1;
