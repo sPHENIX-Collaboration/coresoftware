@@ -229,7 +229,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
-
+    std::cout << "analyzing track " << key << std::endl;
     m_trackid = key;
     m_crossing = track->get_crossing();
     m_px = track->get_px();
@@ -425,6 +425,8 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   m_xyslope = std::get<0>(xyparams);
   m_rzint = std::get<1>(rzparams);
   m_rzslope = std::get<0>(rzparams);
+  std::cout << "xy slope and int " << m_xyslope << ", " << m_xyint << std::endl;
+  std::cout << "rz slope and int " << m_rzslope << ", " << m_rzint << std::endl;
 }
 
 void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,

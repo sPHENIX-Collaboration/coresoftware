@@ -76,6 +76,7 @@ Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey
 
   auto surf = geometry->maps().getSurface(key, cluster);
 
+  
   //! The slope/intercept params for x-y and r-z are already filled. Take
   //! two random x points and calculate y and z on the line to find 2
   //! 3D points with which to calculate the 3D line
@@ -88,6 +89,10 @@ Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey
   //! so swap them around
   float r1 = r(x1, y1);
   float r2 = r(x2, y2);
+  std::cout << "Global " << geometry->getGlobalPosition(key, cluster).transpose() << std::endl;
+  std::cout << "r1 r2 " << r1 << ", " << r2 << std::endl;
+  r1 = 3;
+  r2 = 5;
   if (y1 < 0)
   {
     r1 *= -1;
@@ -98,11 +103,12 @@ Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey
   }
   float z1 = (r1 - rzint) / rzslope;
   float z2 = (r2 - rzint) / rzslope;
-  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
 
+  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
+  std::cout << "vector points " << v1.transpose() << ", " << v2.transpose() << std::endl;
   Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
   Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
-
+  std::cout << "surf center is " << surfcenter.transpose() << std::endl;
   Acts::Vector3 u = v2 - v1;
   float dot = surfnorm.dot(u);
 
@@ -114,6 +120,30 @@ Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey
     u *= fac;
     intersection = v1 + u;
   }
+
+  //! the equation of the plane is given by normal\cdot(r-surf_center)=0
+  //! find two points on the plane to get the r-z line
+  float y = 90;
+  float x = (y - xyint) / xyslope;
+  float r = std::sqrt(square(x) + square(y));
+  float z = (r - rzint) / rzslope;
+  std::cout << "new xyrz is " << x << ", " << y << ", " << r << ", " <<  z << std::endl;
+  float phi = std::atan(xyslope);
+  float theta = std::atan(rzslope);
+  std::cout << "phi theta are " << phi << ", " << theta << std::endl;
+
+  Acts::Vector3 dir(std::cos(phi) * std::sin(theta),
+                    std::sin(phi) * std::sin(theta), std::cos(theta) *-1);
+  std::cout << "direction is " << dir.transpose() << std::endl;
+  auto actsIntersect = surf->intersect(geometry->geometry().getGeoContext(),
+                                       Acts::Vector3(x,y,z) * Acts::UnitConstants::cm, dir, false);
+  std::cout << "intersection size " << actsIntersect.size() << std::endl;
+  auto posit = actsIntersect.closest().position() / Acts::UnitConstants::cm;
+  auto positio = actsIntersect[1].position() / Acts::UnitConstants::cm;
+  auto posit2 = actsIntersect[0].position() / Acts::UnitConstants::cm;
+  std::cout
+      << "intersection is " << intersection.transpose() << std::endl;
+  std::cout << "Acts intersection is " << posit.transpose() << " and "  << positio.transpose() << " and " << posit2.transpose() << std::endl;
   return intersection;
 }
 //_________________________________________________________________________________
