@@ -1,8 +1,8 @@
 #include "PHSiliconTruthTrackSeeding.h"
 
-#include <trackbase_historic/TrackSeed.h>     
-#include <trackbase_historic/TrackSeedContainer.h>  
-#include <trackbase_historic/TrackSeed_FastSim_v1.h>
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeed_FastSim_v2.h>
 
 #include <globalvertex/SvtxVertexMap.h>
 
@@ -83,7 +83,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
   // Make an SvtxTrack in silicon from g4particle
   // get momentum from truth
   // get position from vertex
-  // add clusters to it 
+  // add clusters to it
  // Add the track to SvtxSiliconTrackMap
 
   using TrkrClusterSet = std::set<TrkrDefs::cluskey>;
@@ -119,7 +119,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
     TrkrDefs::hitkey hitkey = clushititer->second;
     // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
     TrkrDefs::hitsetkey hitsetkey_A = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-    
+
       if (Verbosity() >= 3)
 	{
 	  cout << PHWHERE <<"      --- process hit with hitkey  " << hitkey << "  hitsetkey " << hitsetkey_A  << std::endl;
@@ -149,13 +149,13 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
           if (phg4hits_intt) phg4hit = phg4hits_intt->findHit( g4hitkey );
           break;
         }
-   
+
         if( !phg4hit )
         {
           std::cout<<PHWHERE<<" unable to find g4hit from key " << g4hitkey << std::endl;
           continue;
         }
-     
+
         int particle_id = phg4hit->get_trkid();
 
         // momentum cut-off
@@ -252,7 +252,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
     if (layers.size() >=  _min_clusters_per_track)
     {
 
-      auto svtx_track = std::make_unique<TrackSeed_FastSim_v1>();
+      auto svtx_track = std::make_unique<TrackSeed_FastSim_v2>();
       svtx_track->set_truth_track_id(id);
 
       // assign truth particle vertex ID to this silicon track stub
@@ -270,14 +270,14 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
 	      if(vert_embed == track_embed)
 		vertexId = point_id - 1;  // Geant starts counting vertices at 1
 	      if(Verbosity() > 3)
-		std::cout << " track_embed " << track_embed << " vert_embed " << vert_embed << " G4 point id " << point_id << " SvtxMap vertexId " << vertexId << std::endl; 
+		std::cout << " track_embed " << track_embed << " vert_embed " << vert_embed << " G4 point id " << point_id << " SvtxMap vertexId " << vertexId << std::endl;
 	    }
 	}
       if(vertexId < 0)  // should not be possible
 	vertexId = 0;
 
       if(Verbosity() > 0)
-	std::cout << " truth track G4 point id " <<  particle->get_vtx_id() << " becomes SvtxMap id " << vertexId 
+	std::cout << " truth track G4 point id " <<  particle->get_vtx_id() << " becomes SvtxMap id " << vertexId
 		  << " gembed is " <<  _g4truth_container->isEmbeded(id) << " for truth particle " << id << std::endl;
 
       // set the track position to the vertex position
@@ -287,15 +287,15 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
 	  std::cout << PHWHERE << "Failed to get vertex with ID " << vertexId << " from _vertex_map, cannot proceed - skipping this silicon track" << std::endl;
 	  continue;
 	}
-      
+
       svtx_track->set_X0(svtxVertex->get_x());
       svtx_track->set_Y0(svtxVertex->get_y());
-      svtx_track->set_Z0(svtxVertex->get_z()); 
+      svtx_track->set_Z0(svtxVertex->get_z());
 
       if(Verbosity() > 0)
 	{
 	  std::cout << " truth track SvtxMap vertexid is " << vertexId << " for truth particle " << id << std::endl;
-	  std::cout << "    track position x,y,z = " << svtxVertex->get_x() << ", " << svtxVertex->get_y() << ", " << svtxVertex->get_z() << std::endl;	  
+	  std::cout << "    track position x,y,z = " << svtxVertex->get_x() << ", " << svtxVertex->get_y() << ", " << svtxVertex->get_z() << std::endl;
 	}
 
       // set momentum to the truth value
@@ -312,7 +312,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
 
       if(Verbosity() > 0)
 	std::cout << PHWHERE << "Truth track ID is " << svtx_track->get_truth_track_id() << " particle ID is " << particle->get_pid() <<  std::endl;
-    
+
       // add the silicon clusters
       for(const auto& key:cluster_keyset)
       {
@@ -412,7 +412,7 @@ int PHSiliconTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
     { "G4HIT_MVTX", phg4hits_mvtx },
     { "G4HIT_MICROMEGAS", phg4hits_micromegas }
   };
-  
+
   for( auto&& node: nodes )
   {
     if( !( node.second = findNode::getClass<PHG4HitContainer>( topNode, node.first ) ) )
