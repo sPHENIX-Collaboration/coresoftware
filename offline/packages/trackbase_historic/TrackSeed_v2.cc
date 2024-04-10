@@ -325,14 +325,12 @@ void TrackSeed_v2::lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& pos
 float TrackSeed_v2::get_px(TrkrClusterContainer* clusters,
                            ActsGeometry* tGeometry) const
 {
-  std::cout << "Call to old get_px" << std::endl;
   return get_pt() * std::cos(get_phi(clusters, tGeometry));
 }
 
 float TrackSeed_v2::get_py(TrkrClusterContainer* clusters,
                            ActsGeometry* tGeometry) const
 {
-  std::cout << "Call to old get_py" << std::endl;
   return get_pt() * std::sin(get_phi(clusters, tGeometry));
 
 }
@@ -364,7 +362,6 @@ void TrackSeed_v2::circleFitByTaubin(TrkrClusterContainer* clusters,
                                      uint8_t startLayer,
                                      uint8_t endLayer)
 {
-  std::cout << "Call to old circle fit" << std::endl;
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 
   for (const auto& key : m_cluster_keys)
@@ -399,7 +396,6 @@ void TrackSeed_v2::lineFit(TrkrClusterContainer* clusters,
                            uint8_t startLayer,
                            uint8_t endLayer)
 {
-  std::cout << "Call to old line fit" << std::endl;
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 
   for (const auto& key : m_cluster_keys)
