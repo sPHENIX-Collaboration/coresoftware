@@ -272,82 +272,93 @@ void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters
   track->set_Z0(z);
 
   if(tpc)
-    {
-      // if this is the TPC, the track Z0 depends on the crossing
-      // we must determine Z0 from the clusters instead of the truth for the TPC
-      // this method calculates the Z0 and z slope from a fit to the clusters and overwrites them
-      unsigned int start_layer = 7;
-      unsigned int end_layer = 54;
-      track->lineFit(m_clusterMap, tgeometry, start_layer, end_layer);
-    }
+  {
+    // if this is the TPC, the track Z0 depends on the crossing
+    // we must determine Z0 from the clusters instead of the truth for the TPC
+    // this method calculates the Z0 and z slope from a fit to the clusters and overwrites them
+    const unsigned int start_layer = 7;
+    const unsigned int end_layer = 55;
 
-  /// Need to find the right one for the bend angle
+    // create local position array
+    std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
+    std::transform( track->begin_cluster_keys(), track->end_cluster_keys(), std::inserter( positions, positions.end() ),
+      [this](const auto& key){ return std::make_pair( key, tgeometry->getGlobalPosition(key, m_clusterMap->findCluster(key))); } );
 
+    track->lineFit(positions, start_layer, end_layer);
+  }
+
+  // Need to find the right one for the bend angle
+  // TODO: this should account from distortion corrections, as done, e.g. in PHSimpleKFProp
   float newphi = track->get_phi(m_clusterMap, tgeometry);
-  /// We have to pick the right one based on the bend angle, so iterate
-  /// through until you find the closest phi match
+  // We have to pick the right one based on the bend angle, so iterate
+  // through until you find the closest phi match
   if( fabs(newphi-phi) > 0.03)
+  {
+    track->set_X0(X0_2);
+    newphi = track->get_phi(m_clusterMap, tgeometry);
+
+    if( fabs(newphi-phi) > 0.03)
     {
-      track->set_X0(X0_2);
+      track->set_Y0(Y0_2);
       newphi = track->get_phi(m_clusterMap, tgeometry);
 
       if( fabs(newphi-phi) > 0.03)
-	{
-	  track->set_Y0(Y0_2);
-	  newphi = track->get_phi(m_clusterMap, tgeometry);
-
-	  if( fabs(newphi-phi) > 0.03)
-	    {
-	      track->set_X0(X0_1);
-	      newphi = track->get_phi(m_clusterMap, tgeometry);
+      {
+        track->set_X0(X0_1);
+        newphi = track->get_phi(m_clusterMap, tgeometry);
 	    }
-	}
     }
+  }
+
+  // make phi persistent
+  track->set_phi(newphi);
 
   if(Verbosity() > 2)
-    {
-      std::cout << "Charge is " << charge << std::endl;
-      std::cout << "truth/reco px " << px << ", " << track->get_px(m_clusterMap, tgeometry) << std::endl;
-      std::cout << "truth/reco py " << py << ", " << track->get_py(m_clusterMap, tgeometry) << std::endl;
-      std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
-      std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
-      std::cout << "truth/reco phi " << phi << ", " << track->get_phi(m_clusterMap, tgeometry) << std::endl;
-      std::cout << "truth/reco eta " << eta << ", " << track->get_eta() << std::endl;
-      std::cout << "truth/reco x " << x << ", " << track->get_x() << std::endl;
-      std::cout << "truth/reco y " << y << ", " << track->get_y() << std::endl;
-      std::cout << "truth/reco z " << z << ", " << track->get_z() << std::endl;
-
-    }
+  {
+    std::cout << "Charge is " << charge << std::endl;
+    std::cout << "truth/reco px " << px << ", " << track->get_px(m_clusterMap, tgeometry) << std::endl;
+    std::cout << "truth/reco py " << py << ", " << track->get_py(m_clusterMap, tgeometry) << std::endl;
+    std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
+    std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
+    std::cout << "truth/reco phi " << phi << ", " << track->get_phi(m_clusterMap, tgeometry) << std::endl;
+    std::cout << "truth/reco eta " << eta << ", " << track->get_eta() << std::endl;
+    std::cout << "truth/reco x " << x << ", " << track->get_x() << std::endl;
+    std::cout << "truth/reco y " << y << ", " << track->get_y() << std::endl;
+    std::cout << "truth/reco z " << z << ", " << track->get_z() << std::endl;
+  }
 
   // set intt crossing
   if(silicon)
+  {
+    // silicon tracklet
+    /* inspired from PHtruthSiliconAssociation */
+    const auto intt_crossings = getInttCrossings(track.get());
+    if(intt_crossings.empty())
     {
-      // silicon tracklet
-      /* inspired from PHtruthSiliconAssociation */
-      const auto intt_crossings = getInttCrossings(track.get());
-      if(intt_crossings.empty())
-	{
-	  if(Verbosity() > 1)  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << container->size() - 1 << " has no INTT clusters" << std::endl;
-	  return ;
-	} else if( intt_crossings.size() > 1 ) {
-	if(Verbosity() > 1)
-	  { std::cout << "PHTruthTrackSeeding::Process - INTT crossings not all the same for track " << container->size() - 1 << " crossing_keep - dropping this match " << std::endl; }
+      if(Verbosity() > 1)  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << container->size() - 1 << " has no INTT clusters" << std::endl;
+      return ;
+    } else if( intt_crossings.size() > 1 ) {
+      if(Verbosity() > 1)
+      { std::cout << "PHTruthTrackSeeding::Process - INTT crossings not all the same for track " << container->size() - 1 << " crossing_keep - dropping this match " << std::endl; }
 
-      } else {
-	const auto& crossing = *intt_crossings.begin();
-	track->set_crossing(crossing);
-	if(Verbosity() > 1)
-	  std::cout << "PHTruthTrackSeeding::Process - Combined track " << container->size() - 1  << " bunch crossing " << crossing << std::endl;
+    } else {
+      const auto& crossing = *intt_crossings.begin();
+      track->set_crossing(crossing);
+      if(Verbosity() > 1)
+      {
+        std::cout << "PHTruthTrackSeeding::Process - Combined track " << container->size() - 1  << " bunch crossing " << crossing << std::endl;
       }
-    }  // end if _min_layer
-  else
-    {
-      // no INTT layers, crossing is unknown
-      track->set_crossing(SHRT_MAX);
     }
+  }  // end if _min_layer
+  else
+  {
+    // no INTT layers, crossing is unknown
+    track->set_crossing(SHRT_MAX);
+  }
 
   container->insert(track.get());
 }
+
 int PHTruthTrackSeeding::CreateNodes(PHCompositeNode* topNode)
 {
    // create nodes...
