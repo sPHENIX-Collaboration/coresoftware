@@ -38,8 +38,8 @@ class InttDacMap : public InttLoadable
                           const uint& Adc6 = 180,
                           const uint& Adc7 = 210);
 
-  std::string DefaultFileName() const override { return "InttDacMap.root"; }
-  std::string DefaultCDBName() const override { return "InttDacMap"; }
+  std::string DefaultFileName() const override { return "INTT_DACMAP.root"; }
+  std::string DefaultCDBName() const override { return "INTT_DACMAP"; }
 
  protected:
   int LoadFromCDBTTree(CDBTTree& cdbttree) override;

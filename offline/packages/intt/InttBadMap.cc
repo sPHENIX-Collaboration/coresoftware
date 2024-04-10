@@ -31,10 +31,10 @@ int InttBadMap::LoadFromCDBTTree(
 
   struct InttMap::RawData_s raw;
   std::map<std::string, InttMap::field_t*> raw_fields = {
-    {"pid", &raw.pid},
-    {"fee", &raw.fee},
-    {"chp", &raw.chp},
-    {"chn", &raw.chn},
+    {"felix_server",  &raw.pid},
+    {"felix_channel", &raw.fee},
+    {"chip",          &raw.chp},
+    {"channel",       &raw.chn},
   };
 
   for(int n = 0, N = cdbttree.GetSingleIntValue("size"); n < N; ++n)
@@ -48,10 +48,11 @@ int InttBadMap::LoadFromCDBTTree(
 
       std::cerr << __PRETTY_FUNCTION__ << "\n"
                 << "\tCDBTTree::GetIntValue returned std::numeric_limits<int>::min()\n"
-                << "\tname, channel combination does not exist in \"cdbttree\"\n" << std::endl;
+                << "\t" << p.first << "[" << n << "] combination does not exist in \"cdbttree\"\n" << std::endl;
       return 1;
     }
 
+	raw.pid += 3001;
     m_bad_channel_set->insert(raw);
   }
 

@@ -33,12 +33,15 @@ InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
 {
   m_calibs = {
     {m_badmap.DefaultCDBName(), (struct calib_load_s){
+      .method =   FROM_CDB,
       .ptr =      &m_badmap
     }},
     {m_bcomap.DefaultCDBName(), (struct calib_load_s){
+      .method =   FROM_CDB,
       .ptr =      &m_bcomap
     }},
     {m_dacmap.DefaultCDBName(), (struct calib_load_s){
+      .method =   FROM_CDB,
       .ptr =      &m_dacmap
     }},
     {m_feemap.DefaultCDBName(), (struct calib_load_s){

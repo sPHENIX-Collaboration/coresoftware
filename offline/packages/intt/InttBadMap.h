@@ -19,8 +19,8 @@ class InttBadMap : public InttLoadable
   bool IsBad(InttMap::Offline_s const&) const;
   bool IsBad(InttMap::RawData_s const&) const;
 
-  std::string DefaultFileName() const override { return "InttBadMap.root"; }
-  std::string DefaultCDBName() const override { return "InttBadMap"; }
+  std::string DefaultFileName() const override { return "INTT_HotMap.root"; }
+  std::string DefaultCDBName() const override { return "INTT_HotMap"; }
 
  protected:
   int LoadFromCDBTTree(CDBTTree&) override;

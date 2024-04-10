@@ -25,8 +25,8 @@ class InttBcoMap : public InttLoadable
   virtual bool IsBad(InttNameSpace::RawData_s const&, uint64_t const&, const int&);
   virtual bool IsBad(InttNameSpace::Offline_s const&, uint64_t const&, const int&);
 
-  std::string DefaultFileName() const override { return "InttBcoMap.root"; }
-  std::string DefaultCDBName() const override { return "InttBcoMap"; }
+  std::string DefaultFileName() const override { return "INTT_BCOMAP.root"; }
+  std::string DefaultCDBName() const override { return "INTT_BCOMAP"; }
 
  protected:
   int LoadFromCDBTTree(CDBTTree&) override;
