@@ -248,6 +248,11 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
         }
       }
       ped /= 3;
+      //if maxx <=5 nsample >=10 use the last two sample for pedestal(for HCal TP)
+      if (maxx <= 5 && nsamples >= 10)
+      {
+        ped = 0.5 * (v.at(nsamples - 2) + v.at(nsamples - 1));
+      }
       if (maxx == 0 || maxx == nsamples - 1)
       {
         amp = maxy;
