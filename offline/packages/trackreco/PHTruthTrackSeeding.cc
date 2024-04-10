@@ -41,7 +41,7 @@
 #include <trackbase/TrkrClusterCrossingAssoc.h> 
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 
@@ -489,9 +489,9 @@ std::set<short int> PHTruthTrackSeeding::getInttCrossings(TrackSeed *si_track) c
       
       // get the bunch crossings for all hits in this cluster
       const auto crossings = m_cluster_crossing_map->getCrossings(cluster_key);
-      for(auto iter = crossings.first; iter != crossings.second; ++iter)
+      for(auto iter_A = crossings.first; iter_A != crossings.second; ++iter_A)
       {
-        const auto& [key, crossing] = *iter;
+        const auto& [key, crossing] = *iter_A;
         if( Verbosity() )
 	  { std::cout << "    PHTruthTrackSeeding::getInttCrossings - si Track cluster " << key << " layer " << layer << " crossing " << crossing  << std::endl; }
         intt_crossings.insert(crossing);

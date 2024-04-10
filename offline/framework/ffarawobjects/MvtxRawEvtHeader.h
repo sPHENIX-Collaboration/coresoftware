@@ -4,13 +4,12 @@
 #include <phool/PHObject.h>
 
 #include <cstdint>
-#include <set>
 #include <limits>
+#include <set>
 
-class  MvtxRawEvtHeader: public PHObject
+class MvtxRawEvtHeader : public PHObject
 {
-
-public:
+ public:
   MvtxRawEvtHeader() = default;
   virtual ~MvtxRawEvtHeader() = default;
 
@@ -23,7 +22,7 @@ public:
   virtual std::set<uint16_t>& getMvtxFeeIdSet() { return dummySet16; };
   virtual std::set<uint64_t>& getMvtxLvL1BCO() { return dummySet64; };
 
-private:
+ private:
   std::set<uint16_t> dummySet16;
   std::set<uint64_t> dummySet64;
 

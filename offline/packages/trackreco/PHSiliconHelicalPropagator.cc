@@ -2,7 +2,7 @@
 
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -136,10 +136,10 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     if (nSiClusters > 0)
     {
       
-      std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+      std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
       std::map<short, int> crossing_frequency;
 
-      Acts::Vector3 layer0global;
+      Acts::Vector3 layer0global(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN());
 
       for (auto clusterkey : si_clusterKeys)
       {

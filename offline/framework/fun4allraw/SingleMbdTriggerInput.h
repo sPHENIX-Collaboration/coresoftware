@@ -22,7 +22,7 @@ class SingleMbdTriggerInput : public SingleTriggerInput
   void FillPool(const unsigned int) override;
   void CleanupUsedPackets(const int eventno) override;
   void ClearCurrentEvent() override;
-  bool GetSomeMoreEvents();
+  bool GetSomeMoreEvents(const unsigned int keep);
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
   //  void ConfigureStreamingInputManager() override;

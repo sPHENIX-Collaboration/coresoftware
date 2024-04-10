@@ -70,11 +70,9 @@ void PHG4Showerv1::identify(ostream &os) const
   os << "G4Hit IDs" << endl;
   for (const auto &_g4hit_id : _g4hit_ids)
   {
-    for (std::set<PHG4HitDefs::keytype>::const_iterator jter =
-             _g4hit_id.second.begin();
-         jter != _g4hit_id.second.end(); ++jter)
+    for (unsigned long long jter : _g4hit_id.second)
     {
-      os << *jter << " ";
+      os << jter << " ";
     }
   }
   os << endl;

@@ -1024,11 +1024,11 @@ void PHCosmicsTrkFitter::getCharge(
     global_vec.push_back(glob);
   }
 
-  Acts::Vector3 globalMostOuter;
+  Acts::Vector3 globalMostOuter(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN());
   Acts::Vector3 globalSecondMostOuter(0, 999999, 0);
   float largestR = 0;
   // loop over global positions
-  for (int i = 0; i < global_vec.size(); ++i)
+  for (unsigned int i = 0; i < global_vec.size(); ++i)
   {
     Acts::Vector3 global = global_vec[i];
     // float r = std::sqrt(square(global.x()) + square(global.y()));
@@ -1044,7 +1044,7 @@ void PHCosmicsTrkFitter::getCharge(
 
   //! find the closest cluster to the outermost cluster
   float maxdr = std::numeric_limits<float>::max();
-  for (int i = 0; i < global_vec.size(); i++)
+  for (unsigned int i = 0; i < global_vec.size(); i++)
   {
     if (global_vec[i].y() < 0) continue;
 

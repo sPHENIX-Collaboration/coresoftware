@@ -12,7 +12,7 @@
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 namespace
 {
@@ -228,7 +228,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
     //! only keep long seeds
     if ((tpcClusKeys.size() + newClusKeys.size() > 25))
     {
-      std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+      std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
       for (auto& key : newClusKeys)
       {
         bool isTpcKey = false;

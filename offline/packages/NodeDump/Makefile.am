@@ -16,6 +16,7 @@ libphnodedump_la_SOURCES = \
   Dumper.cc \
   DumpBbcPmtInfoContainer.cc \
   DumpBbcVertexMap.cc \
+  DumpCaloPacketContainer.cc \
   DumpCaloTriggerInfo.cc \
   DumpCdbUrlSave.cc \
   DumpCentralityInfo.cc \
@@ -23,6 +24,7 @@ libphnodedump_la_SOURCES = \
   DumpEpdGeom.cc \
   DumpEventHeader.cc \
   DumpFlagSave.cc \
+  DumpGl1Packet.cc \
   DumpGl1RawHit.cc \
   DumpGlobalVertexMap.cc \
   DumpInttDeadMap.cc \

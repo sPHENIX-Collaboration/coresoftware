@@ -222,7 +222,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     std::string varname = "layer";
     int layer = m_cdbttree->GetIntValue(key, varname);
     // antenna pads will be in 0 layer
-    if (layer == 0)
+    if (layer <= 0)
     {
       continue;
     }

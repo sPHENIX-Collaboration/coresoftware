@@ -5,6 +5,7 @@
 #include <TSystem.h>
 
 #include <Geant4/G4Colour.hh>  // for G4Colour
+#include <Geant4/G4Element.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4NistManager.hh>
@@ -17,6 +18,8 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
 #pragma GCC diagnostic pop
+
+#include <cstdlib>
 
 PHG4Detector::PHG4Detector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &nam)
   : m_topNode(Node)

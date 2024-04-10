@@ -125,6 +125,11 @@ class CaloWaveformSim : public SubsysReco
     m_peakpos = _peakpos;
     return;
   }
+  void set_highgain(bool _highgain = true)
+  {
+    m_highgain = _highgain;
+    return;
+  }
   // for CEMC light yield correction
   LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
@@ -145,12 +150,14 @@ class CaloWaveformSim : public SubsysReco
   int m_runNumber{0};
   int m_nsamples{31};
   int m_nchannels{24576};
-  int m_pedestalsamples{12};
+  int m_pedestalsamples{31};
   float m_sampletime{50. / 3.};
   int m_fixpedestal{1500};
   int m_gaussian_noise{3};
   float m_deltaT{100.};
   float m_timeshiftwidth{0.};
+  bool m_highgain{false};
+  int m_gain{1};
   float m_peakpos{6.};
   gsl_rng *m_RandomGenerator{nullptr};
 

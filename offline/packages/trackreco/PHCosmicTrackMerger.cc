@@ -1,15 +1,19 @@
 
 #include "PHCosmicTrackMerger.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <trackbase_historic/TrackSeedContainer.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <limits>
+
 namespace
 {
   template <class T>
@@ -110,7 +114,7 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
         tr1_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
       }
 
-      float tr1xyslope = NAN;
+      float tr1xyslope = std::numeric_limits<float>::quiet_NaN();
       if (m_zeroField)
       {
         auto xyTr1Params = TrackFitUtils::line_fit(tr1_xy_pts);
@@ -159,7 +163,7 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
         tr2_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
       }
 
-      float tr2xyslope = NAN;
+      float tr2xyslope = std::numeric_limits<float>::quiet_NaN();
       if (m_zeroField)
       {
         auto xyTr2Params = TrackFitUtils::line_fit(tr2_xy_pts);
@@ -297,7 +301,7 @@ void PHCosmicTrackMerger::getBestClustersPerLayer(TrackSeed *seed)
   }
 
   std::vector<TrkrDefs::cluskey> tpotClus;
-  for (int i = 0; i < glob.first.size(); i++)
+  for (unsigned int i = 0; i < glob.first.size(); i++)
   {
     auto &pos = glob.second[i];
     float clusr = r(pos.x(), pos.y());
@@ -418,7 +422,7 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
   auto xyParams = TrackFitUtils::line_fit(tr_xy_pts);
   auto rzParams = TrackFitUtils::line_fit(tr_rz_pts);
 
-  for (int i = 0; i < glob.first.size(); i++)
+  for (unsigned int i = 0; i < glob.first.size(); i++)
   {
     auto &pos = glob.second[i];
     float clusr = r(pos.x(), pos.y());

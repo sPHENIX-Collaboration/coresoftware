@@ -15,7 +15,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -142,7 +142,7 @@ void PHActsKDTreeSeeding::fillTrackSeedContainer(SeedContainer& seeds)
 {
   for (auto& seed : seeds)
   {
-    auto siseed = std::make_unique<TrackSeed_v1>();
+    auto siseed = std::make_unique<TrackSeed_v2>();
     std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 
     for (auto& spptr : seed.sp())
@@ -363,8 +363,8 @@ std::vector<const SpacePoint*> PHActsKDTreeSeeding::getMvtxSpacePoints()
         }
       }
 
-      const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-      const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey);
+      const auto hitsetkey_A = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+      const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey_A);
       if (!surface)
       {
         continue;

@@ -1,7 +1,6 @@
 #include "PHG4ParticleGeneratorVectorMeson.h"
 
 #include "PHG4InEvent.h"
-#include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4Particlev1.h"
 
 #include <phool/PHCompositeNode.h>
@@ -27,6 +26,8 @@
 #include <iostream>  // for operator<<, basic_ostream, basic_...
 #include <utility>   // for pair
 #include <vector>    // for vector, vector<>::const_iterator
+
+class PHG4Particle;
 
 PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const std::string &name)
   : PHG4ParticleGeneratorBase(name)

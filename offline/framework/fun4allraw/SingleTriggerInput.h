@@ -6,12 +6,14 @@
 
 #include <cstdint>  // for uint64_t
 #include <map>
+#include <fstream>
 #include <set>
 #include <string>
 
 class Eventiterator;
 class Fun4AllStreamingInputManager;
 class Fun4AllPrdfInputTriggerManager;
+class Packet;
 class PHCompositeNode;
 
 class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
@@ -20,7 +22,6 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   explicit SingleTriggerInput(const std::string &name);
   ~SingleTriggerInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
-  virtual void FillPool(const uint64_t) { return; }
   virtual void FillPool(const unsigned int = 1) { return; }
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
@@ -42,11 +43,15 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual void ConfigureStreamingInputManager() { return; }
   virtual void SubsystemEnum(const int id) { m_SubsystemEnum = id; }
   virtual int SubsystemEnum() const { return m_SubsystemEnum; }
+  virtual void ddumppacket(Packet *pkt);
+  virtual void enable_ddump(int i = 1) {m_ddump_flag = i;}
+  virtual bool ddump_enabled() const {return m_ddump_flag;}
 
  private:
-  Eventiterator *m_EventIterator = nullptr;
-  Fun4AllStreamingInputManager *m_StreamingInputMgr = nullptr;
+  Eventiterator *m_EventIterator {nullptr};
+  Fun4AllStreamingInputManager *m_StreamingInputMgr {nullptr};
   Fun4AllPrdfInputTriggerManager *m_TriggerInputMgr{nullptr};
+  int m_ddump_flag {0};
   unsigned int m_EventNumberOffset = 1;  // packet event counters start at 0 but we start with event number 1
   int m_RunNumber = 0;
   int m_EventsThisFile = 0;
@@ -55,6 +60,8 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
+  std::map<int, std::ofstream *> m_PacketDumpFile;
+  std::map<int, int> m_PacketDumpCounter;
 };
 
 #endif

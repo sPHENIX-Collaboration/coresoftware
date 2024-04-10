@@ -6,6 +6,7 @@
 #include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
+#include <ffarawobjects/MicromegasRawHit.h>
 #include <ffarawobjects/MicromegasRawHitContainer.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/MvtxRawHit.h>
@@ -52,7 +53,16 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
     fileclose();
   }
   delete m_SyncObject;
-  // clear leftover event maps
+  // clear leftover raw event maps and vectors with poolreaders
+  // GL1
+  for (auto iter : m_Gl1InputVector)
+  {
+    delete iter;
+  }
+
+  m_Gl1InputVector.clear();
+
+  // MVTX
   for (auto const &mapiter : m_MvtxRawHitMap)
   {
     for (auto mvtxhititer : mapiter.second.MvtxRawHitVector)
@@ -62,15 +72,13 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
   m_MvtxRawHitMap.clear();
 
-  for (auto const &mapiter : m_TpcRawHitMap)
+  for (auto iter : m_MvtxInputVector)
   {
-    for (auto tpchititer : mapiter.second.TpcRawHitVector)
-    {
-      delete tpchititer;
-    }
+    delete iter;
   }
-  m_TpcRawHitMap.clear();
+  m_MvtxInputVector.clear();
 
+  // INTT
   for (auto const &mapiter : m_InttRawHitMap)
   {
     for (auto intthititer : mapiter.second.InttRawHitVector)
@@ -86,29 +94,37 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
   }
   m_InttInputVector.clear();
 
-  for (auto iter : m_Gl1InputVector)
+  // TPC
+  for (auto const &mapiter : m_TpcRawHitMap)
   {
-    delete iter;
+    for (auto tpchititer : mapiter.second.TpcRawHitVector)
+    {
+      delete tpchititer;
+    }
   }
-  m_Gl1InputVector.clear();
 
-  for (auto iter : m_MicromegasInputVector)
-  {
-    delete iter;
-  }
-  m_MicromegasInputVector.clear();
-
-  for (auto iter : m_MvtxInputVector)
-  {
-    delete iter;
-  }
-  m_MvtxInputVector.clear();
-
+  m_TpcRawHitMap.clear();
   for (auto iter : m_TpcInputVector)
   {
     delete iter;
   }
   m_TpcInputVector.clear();
+
+  // Micromegas
+
+  for (auto const &mapiter : m_MicromegasRawHitMap)
+  {
+    for (auto micromegashititer : mapiter.second.MicromegasRawHitVector)
+    {
+      delete micromegashititer;
+    }
+  }
+  for (auto iter : m_MicromegasInputVector)
+  {
+    delete iter;
+  }
+
+  m_MicromegasInputVector.clear();
 }
 
 int Fun4AllStreamingInputManager::run(const int /*nevents*/)
@@ -234,6 +250,45 @@ void Fun4AllStreamingInputManager::Print(const std::string &what) const
         std::cout << "hit: " << std::hex << itervec << std::dec << std::endl;
         itervec->identify();
       }
+    }
+  }
+  if (what == "ALL" || what == "INPUTFILES")
+  {
+    std::cout << "-----------------------------" << std::endl;
+    for (const auto &iter : m_Gl1InputVector)
+    {
+      std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+                << " from file " << iter->FileName()
+                << std::endl;
+    }
+    for (const auto &iter : m_MvtxInputVector)
+    {
+      std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+                << " from file " << iter->FileName()
+                << std::endl;
+    }
+    for (const auto &iter : m_InttInputVector)
+    {
+      std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+                << " from file " << iter->FileName()
+                << std::endl;
+    }
+    for (const auto &iter : m_TpcInputVector)
+    {
+      std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+                << " from file " << iter->FileName()
+                << std::endl;
+    }
+    for (const auto &iter : m_MicromegasInputVector)
+    {
+      std::cout << "Single Streaming Input Manager " << iter->Name() << " reads run "
+                << iter->RunNumber()
+                << " from file " << iter->FileName()
+                << std::endl;
     }
   }
   Fun4AllInputManager::Print(what);
@@ -475,8 +530,24 @@ int Fun4AllStreamingInputManager::FillGl1()
       std::cout << "Fun4AllStreamingInputManager::FillGl1 - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
+      }
+    }
   }
   if (m_Gl1RawHitMap.empty())
   {
@@ -492,8 +563,9 @@ int Fun4AllStreamingInputManager::FillGl1()
     {
       gl1hititer->identify();
     }
+    gl1rawhit->CopyFrom(gl1hititer);
+    MySyncManager()->CurrentEvent(gl1rawhit->getEvtSequence());
     m_RefBCO = gl1hititer->get_bco();
-    gl1rawhit->set_bco(m_RefBCO);
     m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)
   }
   for (auto iter : m_Gl1InputVector)
@@ -815,8 +887,17 @@ int Fun4AllStreamingInputManager::FillTpc()
       break;
     }
   }
-  // std::cout << "size  m_TpcRawHitMap: " <<  m_TpcRawHitMap.size()
-  // 	    << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "tpc container size: " << tpccont->get_nhits();
+    std::cout << ", size  m_TpcRawHitMap: " << m_TpcRawHitMap.size()
+              << std::endl;
+  }
+  if (tpccont->get_nhits() > 500000)
+  {
+    std::cout << "Resetting TPC Container with number of entries " << tpccont->get_nhits() << std::endl;
+    tpccont->Reset();
+  }
   return 0;
 }
 
@@ -869,8 +950,24 @@ int Fun4AllStreamingInputManager::FillInttPool()
       std::cout << "Fun4AllStreamingInputManager::FillInttPool - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
+      }
+    }
   }
   if (m_InttRawHitMap.empty())
   {
@@ -889,8 +986,24 @@ int Fun4AllStreamingInputManager::FillTpcPool()
       std::cout << "Fun4AllStreamingInputManager::FillTpcPool - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
+      }
+    }
   }
   if (m_TpcRawHitMap.empty())
   {
@@ -909,8 +1022,24 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
       std::cout << "Fun4AllStreamingInputManager::FillMicromegasPool - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
+      }
+    }
   }
   if (m_MicromegasRawHitMap.empty())
   {
@@ -929,8 +1058,24 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
       std::cout << "Fun4AllStreamingInputManager::FillMvtxPool - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool();
-    m_RunNumber = iter->RunNumber();
-    SetRunNumber(m_RunNumber);
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
+      }
+    }
   }
   if (m_MvtxRawHitMap.empty())
   {
