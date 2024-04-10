@@ -310,8 +310,20 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
       svtx_track->set_qOverR(charge * 0.3*1.4/(100*pt));
       svtx_track->set_slope(1./tan(theta));
 
+      // make phi persistent
+      {
+        /*
+         * this is misleading: get_phi is expected to calculate the seed azimuth using acts geometry and the cluster map (none of which is actually loaded here)
+         * however for fastsim seed, these arguments are not used, and stored truth information is used instead
+         * it is therefore safe to pass nullptr for both
+         */
+        TrkrClusterContainer* container = nullptr;
+        ActsGeometry* tgeometry = nullptr;
+        svtx_track->set_phi( svtx_track->get_phi(container, tgeometry) );
+      }
+
       if(Verbosity() > 0)
-	std::cout << PHWHERE << "Truth track ID is " << svtx_track->get_truth_track_id() << " particle ID is " << particle->get_pid() <<  std::endl;
+      { std::cout << PHWHERE << "Truth track ID is " << svtx_track->get_truth_track_id() << " particle ID is " << particle->get_pid() <<  std::endl; }
 
       // add the silicon clusters
       for(const auto& key:cluster_keyset)
