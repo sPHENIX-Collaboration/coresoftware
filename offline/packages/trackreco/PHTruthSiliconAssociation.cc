@@ -567,22 +567,25 @@ unsigned int PHTruthSiliconAssociation::buildTrackSeed(std::set<TrkrDefs::cluske
   /// We have to pick the right one based on the bend angle, so iterate
   /// through until you find the closest phi match
   if( fabs(newphi-phi) > 0.03)
+  {
+    track->set_X0(X0_2);
+    newphi = track->get_phi(_cluster_map, _tgeometry);
+
+    if( fabs(newphi-phi) > 0.03)
     {
-      track->set_X0(X0_2);
+      track->set_Y0(Y0_2);
       newphi = track->get_phi(_cluster_map, _tgeometry);
 
       if( fabs(newphi-phi) > 0.03)
-	{
-	  track->set_Y0(Y0_2);
-	  newphi = track->get_phi(_cluster_map, _tgeometry);
-
-	  if( fabs(newphi-phi) > 0.03)
-	    {
-	      track->set_X0(X0_1);
-	      newphi = track->get_phi(_cluster_map, _tgeometry);
-	    }
-	}
+      {
+        track->set_X0(X0_1);
+        newphi = track->get_phi(_cluster_map, _tgeometry);
+      }
     }
+  }
+
+  // make phi persistent
+  track->set_phi( newphi );
 
   if(Verbosity() > 2)
     {
