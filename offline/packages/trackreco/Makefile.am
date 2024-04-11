@@ -59,7 +59,6 @@ pkginclude_HEADERS = \
   PHRaveVertexing.h \
   PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
-  PHSiliconTruthTrackSeeding.h \
   PHSimpleKFProp.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
@@ -141,7 +140,6 @@ libtrack_reco_la_SOURCES = \
   PHSiliconHelicalPropagator.cc \
   PHSiliconSeedMerger.cc \
   PHSiliconTpcTrackMatching.cc \
-  PHSiliconTruthTrackSeeding.cc \
   PHSimpleKFProp.cc \
   PHSimpleVertexFinder.cc \
   PHTpcClusterMover.cc \
