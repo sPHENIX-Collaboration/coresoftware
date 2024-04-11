@@ -68,7 +68,7 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   return line;
 }
 Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey& key,
-                                                         TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& rzslope, float& rzint)
+                                                         TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& yzslope, float& yzint)
 {
   Acts::Vector3 intersection(std::numeric_limits<float>::quiet_NaN(),
                              std::numeric_limits<float>::quiet_NaN(),
@@ -76,33 +76,20 @@ Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey
 
   auto surf = geometry->maps().getSurface(key, cluster);
 
-  //! The slope/intercept params for x-y and r-z are already filled. Take
-  //! two random x points and calculate y and z on the line to find 2
+  
+  //! Take two random x points and calculate y and z on the line to find 2
   //! 3D points with which to calculate the 3D line
   float x1 = -1;
   float x2 = 5;
   float y1 = xyslope * x1 + xyint;
   float y2 = xyslope * x2 + xyint;
 
-  //! slope/int for r-z is calculated with z as "x" variable, r as "y" variable
-  //! so swap them around
-  float r1 = r(x1, y1);
-  float r2 = r(x2, y2);
-  if (y1 < 0)
-  {
-    r1 *= -1;
-  }
-  if (y2 < 0)
-  {
-    r2 *= -1;
-  }
-  float z1 = (r1 - rzint) / rzslope;
-  float z2 = (r2 - rzint) / rzslope;
-  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
+  float z1 = (y1 - yzint) / yzslope;
+  float z2 = (y2 - yzint) / yzslope;
 
+  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
   Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
   Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
-
   Acts::Vector3 u = v2 - v1;
   float dot = surfnorm.dot(u);
 
@@ -114,6 +101,7 @@ Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey
     u *= fac;
     intersection = v1 + u;
   }
+
   return intersection;
 }
 //_________________________________________________________________________________
