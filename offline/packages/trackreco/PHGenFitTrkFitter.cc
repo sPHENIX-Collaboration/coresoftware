@@ -668,15 +668,15 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     }
 
     const auto globalPosition_acts = getGlobalPosition(cluster_key, cluster, crossing);
-
     const TVector3 pos(globalPosition_acts.x(), globalPosition_acts.y(), globalPosition_acts.z());
+
+    const double cluster_rphi_error = cluster->getRPhiError();
+    const double cluster_z_error = cluster->getZError();
+
     seed_mom.SetPhi(pos.Phi());
     seed_mom.SetTheta(pos.Theta());
 
-    // by default assume normal to local surface is along cluster azimuthal position
-    TVector3 n(globalPosition_acts.x(), globalPosition_acts.y(), 0);
-
-    // replace normal by proper vector for specified subsystems
+    std::unique_ptr<PHGenFit::PlanarMeasurement> meas;
     switch (TrkrDefs::getTrkrId(cluster_key))
     {
     case TrkrDefs::mvtxId:
@@ -685,13 +685,12 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
       auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
       auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
-      // returns the center of the sensor in world coordinates - used to get the ladder phi location
       geom->find_sensor_center(surf, m_tgeometry, ladder_location);
 
-      // cout << " MVTX stave phi tilt = " <<  geom->get_stave_phi_tilt()
-      //    << " seg.X " << ladder_location[0] << " seg.Y " << ladder_location[1] << " seg.Z " << ladder_location[2] << endl;
-      n.SetXYZ(ladder_location[0], ladder_location[1], 0);
+      TVector3 n(ladder_location[0], ladder_location[1], 0);
       n.RotateZ(geom->get_stave_phi_tilt());
+      meas.reset( new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error) );
+
       break;
     }
 
@@ -703,48 +702,38 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
       geom->find_segment_center(surf, m_tgeometry, hit_location);
 
-      // cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
-      //    << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
-      n.SetXYZ(hit_location[0], hit_location[1], 0);
+      TVector3 n(hit_location[0], hit_location[1], 0);
       n.RotateZ(geom->get_strip_phi_tilt());
+      meas.reset( new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error) );
+
       break;
     }
 
     case TrkrDefs::micromegasId:
     {
+
       // get geometry
       /* a situation where micromegas clusters are found, but not the geometry, should not happen */
       assert(geom_container_micromegas);
       auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
       const auto tileid = MicromegasDefs::getTileId(cluster_key);
-
-      // in local coordinate, n is along z axis
-      // convert to global coordinates
-      n = geom->get_world_from_local_vect(tileid, m_tgeometry, TVector3(0, 0, 1));
-    }
-
-    default:
+      const auto u = geom->get_world_from_local_vect(tileid, m_tgeometry, TVector3(1, 0, 0));
+      const auto v = geom->get_world_from_local_vect(tileid, m_tgeometry, TVector3(0, 1, 0));
+      meas.reset( new PHGenFit::PlanarMeasurement(pos, u, v, cluster_rphi_error, cluster_z_error) );
       break;
     }
 
-    // get cluster errors
-    const double cluster_rphi_error = cluster->getRPhiError();
-    const double cluster_z_error = cluster->getZError();
-
-    // create measurement
-    const auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error);
-
-    if (Verbosity() > 10)
+    default:
     {
-      cout << "Add meas layer " << layer << " cluskey " << cluster_key
-           << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
-           << " r: " << std::sqrt(square(pos.x()) + square(pos.y()))
-           << " n.X " << n.X() << " n.Y " << n.Y()
-           << " RPhiErr " << cluster->getRPhiError()
-           << " ZErr " << cluster->getZError()
-           << endl;
+      // create measurement
+      const TVector3 n(globalPosition_acts.x(), globalPosition_acts.y(), 0);
+      meas.reset( new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error) );
+      break;
     }
-    measurements.push_back(meas);
+
+    }
+
+    measurements.push_back(meas.release());
   }
 
   /*!
