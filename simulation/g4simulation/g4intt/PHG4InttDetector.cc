@@ -16,6 +16,8 @@
 #include <g4main/PHG4DisplayAction.h> // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>     // for PHG4Subsystem
 
+#include <ffamodules/CDBInterface.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>         // for PHNode
@@ -54,6 +56,7 @@
 #include <cmath>
 #include <cstdlib>  // for exit, NULL
 #include <iostream> // for operator<<, basic...
+#include <filesystem>
 
 class G4VPVParameterisation;
 class G4VSolid;
@@ -133,18 +136,26 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     InttSurveyMap *survey = new InttSurveyMapv1();
     if (useSurvey)
     {
-        std::cout << "Use the survey geometry. Get the survey map from CDB/file" << std::endl;
-        if (survey->LoadFromFile("/sphenix/u/jbertaux/sphnx_software/INTT/general_codes/josephb/codes/intt_alignment/dat/intt_survey_cdbttree.root"))
-        {
-            std::cout << "Failed to load from the CDB" << std::endl;
-            return 0;
-        }
-        if (Verbosity() > 0)
-            survey->identify();
+      std::string url = CDBInterface::instance()->getUrl("InttSurveyMap");
+      if (!std::filesystem::exists(url))
+      {
+	std::cout << PHWHERE << " Could not locate INTT survey geometry " << url << std::endl;
+	gSystem->Exit(1);
+      }
+      std::cout << PHWHERE << "Use the INTT survey geometry. Get the survey map from " << url << std::endl;
+      if (survey->LoadFromFile(url))
+      {
+	std::cout << PHWHERE << "Failed to load INTT survey geometry from the CDB" << std::endl;
+	gSystem->Exit(1);
+      }
+      if (Verbosity() > 0)
+      {
+	survey->identify();
+      }
     }
     else
     {
-        std::cout << "Use the default ideal geometry." << std::endl;
+      std::cout << PHWHERE << "Use the default INTT ideal geometry." << std::endl;
     }
 
     for (auto layeriter = m_LayerBeginEndIteratorPair.first; layeriter != m_LayerBeginEndIteratorPair.second; ++layeriter)
