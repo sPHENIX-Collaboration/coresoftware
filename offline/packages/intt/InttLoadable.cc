@@ -12,7 +12,7 @@ int InttLoadable::LoadFromFile(
   m_loaded = 0;
   if (filename.empty())
   {
-	  filename = DefaultFileName();
+	filename = DefaultFileName();
   }
 
   if (!std::filesystem::exists(filename))
@@ -35,7 +35,7 @@ int InttLoadable::LoadFromCDB(
   m_loaded = 0;
   if (name.empty())
   {
-	  name = DefaultCDBName();
+    name = DefaultCDBName();
   }
 
   name = CDBInterface::instance()->getUrl(name);
