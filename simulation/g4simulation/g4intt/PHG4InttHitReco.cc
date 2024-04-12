@@ -264,7 +264,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   }
   // loop over all of the layers in the hit container
   // we need the geometry object for this layer
-  if (Verbosity() > 2) std::cout << " PHG4InttHitReco: Loop over hits" << std::endl;
+  if (Verbosity() > 2) { std::cout << " PHG4InttHitReco: Loop over hits" << std::endl;
+}
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
 
 
@@ -277,8 +278,10 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     // checking ADC timing integration window cut
     // uses default values for now
     // these should depend on layer radius
-    if (hiter->second->get_t(0) > m_Tmax) continue;
-    if (hiter->second->get_t(1) < m_Tmin) continue;
+    if (hiter->second->get_t(0) > m_Tmax) { continue;
+}
+    if (hiter->second->get_t(1) < m_Tmin) { continue;
+}
 
     truthcheck_g4hit(hiter->second, topNode);
 
@@ -329,11 +332,13 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     // Now we find how many strips were crossed by this track, and divide the energy between them
     int minstrip_z = strip_z_index_in;
     int maxstrip_z = strip_z_index_out;
-    if (minstrip_z > maxstrip_z) std::swap(minstrip_z, maxstrip_z);
+    if (minstrip_z > maxstrip_z) { std::swap(minstrip_z, maxstrip_z);
+}
 
     int minstrip_y = strip_y_index_in;
     int maxstrip_y = strip_y_index_out;
-    if (minstrip_y > maxstrip_y) std::swap(minstrip_y, maxstrip_y);
+    if (minstrip_y > maxstrip_y) { std::swap(minstrip_y, maxstrip_y);
+}
 
     // Use an algorithm similar to the one for the MVTX pixels, since it facilitates adding charge diffusion
     // for now we assume small charge diffusion
@@ -386,7 +391,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       // increases from diffusion width_min to diffusion_width_max
       double diffusion_radius = diffusion_width;
 
-      if (Verbosity() > 5)
+      if (Verbosity() > 5) {
         std::cout << " segment " << i
                   << " interval " << interval
                   << " frac " << frac
@@ -401,6 +406,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
                   << " segvec.Y " << gsl_vector_get(m_SegmentVec, 1) << std::endl
                   << " diffusion_radius " << diffusion_radius
                   << std::endl;
+}
 
       // Now find the area of overlap of the diffusion circle with each pixel and apportion the energy
       for (int iz = minstrip_z; iz <= maxstrip_z; iz++)
@@ -465,8 +471,10 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       // Get the hit crossing
       int crossing = (int) (round( time / m_crossingPeriod) );
       // crossing has to fit into 5 bits
-      if(crossing < -512) crossing = -512;
-      if(crossing > 511) crossing = 511;
+      if(crossing < -512) { crossing = -512;
+}
+      if(crossing > 511) { crossing = 511;
+}
       // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a sensor for the Intt ?
       // The hitset key includes the layer, the ladder_z_index (sensors numbered 0-3) and  ladder_phi_index (azimuthal location of ladder) for this hit
       TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index, crossing);
@@ -536,11 +544,13 @@ void PHG4InttHitReco::SetDefaultParameters()
 }
 
 void PHG4InttHitReco::truthcheck_g4hit(PHG4Hit* g4hit, PHCompositeNode* topNode) {
-  if (g4hit==nullptr) return;
+  if (g4hit==nullptr) { return;
+}
   int new_trkid = g4hit->get_trkid();
 
   bool is_new_track = (new_trkid != m_trkid);
-  if (Verbosity()>5) std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
+  if (Verbosity()>5) { std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
+}
   if (!is_new_track) {
     // check to see if it is an embedded track that meets the looper condition:
     if (m_is_emb) {
@@ -558,7 +568,8 @@ void PHG4InttHitReco::truthcheck_g4hit(PHG4Hit* g4hit, PHCompositeNode* topNode)
     return;
   }
   // <- STATUS: this is a new track
-  if (Verbosity()>2) std::cout << PHWHERE << std::endl << " -> Found new embedded track with id: " << new_trkid << std::endl;
+  if (Verbosity()>2) { std::cout << PHWHERE << std::endl << " -> Found new embedded track with id: " << new_trkid << std::endl;
+}
   if (m_is_emb) {
     //cluster the old track
     cluster_truthhits(topNode); // cluster m_truth_hits and add m_current_track
@@ -588,7 +599,8 @@ void PHG4InttHitReco::addtruthhitset(
     TrkrDefs::hitkey hitkey, 
     float neffelectrons) 
 {
-  if (!m_is_emb) return;
+  if (!m_is_emb) { return;
+}
   TrkrHitSetContainer::Iterator hitsetit = m_truth_hits->findOrAddHitSet(hitsetkey);
   // See if this hit already exists
   TrkrHit *hit = nullptr;
@@ -685,14 +697,16 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
   // -----------------------------------------------
   // Cluster, adapted from intt/InttClusterizer
   // -----------------------------------------------
-  if (Verbosity() > 1) std::cout << "Clustering truth clusters" << std::endl;
+  if (Verbosity() > 1) { std::cout << "Clustering truth clusters" << std::endl;
+}
 
   //-----------
   // Clustering
   //-----------
   // get the geometry node
   PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  if (!geom_container) return;
+  if (!geom_container) { return;
+}
 
 
   // loop over the InttHitSet objects
@@ -708,13 +722,16 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
 
     // cluster this hitset; all pixels in it are, by definition, part of the same clusters
 
-    if ( Verbosity() > 1 ) std::cout << "InttClusterizer found hitsetkey " << hitsetitr->first << std::endl;
-    if ( Verbosity() > 2 ) hitset->identify();
+    if ( Verbosity() > 1 ) { std::cout << "InttClusterizer found hitsetkey " << hitsetitr->first << std::endl;
+}
+    if ( Verbosity() > 2 ) { hitset->identify();
+}
 
     // we have a single hitset, get the info that identifies the sensor
 
-    if (Verbosity() > 2)
+    if (Verbosity() > 2) {
       std::cout << "Filling cluster with hitsetkey " << ((int)hitsetkey) << std::endl;
+}
 
     // get the bunch crossing number from the hitsetkey
     /* short int crossing = InttDefs::getTimeBucketId(hitset->getHitSetKey()); */
@@ -759,12 +776,15 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
         std::map<int,unsigned int>& m_z   = (adc<threshold) ? m_itCut   : m_it;
 
         auto pnew = m_phi.try_emplace(row,adc);
-        if (!pnew.second) pnew.first->second += adc;
+        if (!pnew.second) { pnew.first->second += adc;
+}
 
         pnew = m_z.try_emplace(col,adc);
-        if (!pnew.second) pnew.first->second += adc;
+        if (!pnew.second) { pnew.first->second += adc;
+}
       }
-      if (adc<threshold) continue;
+      if (adc<threshold) { continue;
+}
 
       clus_adc += adc;
       zbins   .insert(col);
@@ -809,15 +829,20 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
           std::cout << " m_phi(" << hit.first <<" : " << hit.second<<") " << std::endl;
         }
       }
-      for (auto& hit : m_iphi)    mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
-      for (auto& hit : m_it)      mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
-      for (auto& hit : m_iphiCut) mClusHitsVerbose->addPhiCutHit (hit.first, (float)hit.second);
-      for (auto& hit : m_itCut)   mClusHitsVerbose->addZCutHit   (hit.first, (float)hit.second);
+      for (auto& hit : m_iphi) {    mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
+}
+      for (auto& hit : m_it) {      mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
+}
+      for (auto& hit : m_iphiCut) { mClusHitsVerbose->addPhiCutHit (hit.first, (float)hit.second);
+}
+      for (auto& hit : m_itCut) {   mClusHitsVerbose->addZCutHit   (hit.first, (float)hit.second);
+}
     }
 
 
     // add this cluster-hit association to the association map of (clusterkey,hitkey)
-    if (Verbosity() > 2) std::cout << "  nhits = " << nhits << std::endl;
+    if (Verbosity() > 2) { std::cout << "  nhits = " << nhits << std::endl;
+}
 
     /* static const float invsqrt12 = 1./sqrt(12); */
     // scale factors (phi direction)
@@ -835,7 +860,8 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
     /* else if( phibins.size() == 2 && layer > 4) phierror*=scalefactors_phi[2]; */ 
     /* // z error. All clusters have a z-size of 1. */
     /* const float zerror = length * invsqrt12; */
-    if (nhits == 0) continue;
+    if (nhits == 0) { continue;
+}
 
     double cluslocaly = ylocalsum / nhits;
     double cluslocalz = zlocalsum / nhits;
@@ -854,7 +880,8 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
       clus->setPhiSize(phibins.size());
       clus->setZSize(1);
 
-      if(Verbosity() > 10) clus->identify();
+      if(Verbosity() > 10) { clus->identify();
+}
 
       clus->setLocalX(cluslocaly);
       clus->setLocalY(cluslocalz);
@@ -868,8 +895,9 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode* topNode) {
       m_current_track->addCluster(ckey);
       if (mClusHitsVerbose) {
         mClusHitsVerbose->push_hits(ckey);
-        if (Verbosity()>10) std::cout << " ClusHitsVerbose.size (in INTT): " 
+        if (Verbosity()>10) { std::cout << " ClusHitsVerbose.size (in INTT): " 
           << mClusHitsVerbose->getMap().size() << std::endl;
+}
       }
       ++cnt;
     }  // end loop over hitsets

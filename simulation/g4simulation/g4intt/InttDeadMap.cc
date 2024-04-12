@@ -9,14 +9,14 @@
 int InttDeadMap::s_wildCardID = -1;
 
 const InttDeadMap::Map&
-InttDeadMap::getDeadChannels(void) const
+InttDeadMap::getDeadChannels() const
 {
   static Map tmp_map;
   return tmp_map;
 }
 
 InttDeadMap::Map&
-InttDeadMap::getDeadChannels(void)
+InttDeadMap::getDeadChannels()
 {
   static Map tmp_map;
   return tmp_map;
@@ -90,23 +90,33 @@ PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
 
   bool wildcard = false;
 
-  if (layer == s_wildCardID) wildcard = true;
-  if (wildcard) layer = (1 << layer_bit) - 1;
+  if (layer == s_wildCardID) { wildcard = true;
+}
+  if (wildcard) { layer = (1 << layer_bit) - 1;
+}
 
-  if (ladder_phi == s_wildCardID) wildcard = true;
-  if (wildcard) ladder_phi = (1 << ladder_phi_bit) - 1;
+  if (ladder_phi == s_wildCardID) { wildcard = true;
+}
+  if (wildcard) { ladder_phi = (1 << ladder_phi_bit) - 1;
+}
 
-  if (ladder_z == s_wildCardID) wildcard = true;
-  if (wildcard) ladder_z = (1 << ladder_z_bit) - 1;
+  if (ladder_z == s_wildCardID) { wildcard = true;
+}
+  if (wildcard) { ladder_z = (1 << ladder_z_bit) - 1;
+}
 
-  if (strip_z == s_wildCardID) wildcard = true;
-  if (wildcard) strip_z = (1 << strip_z_bit) - 1;
+  if (strip_z == s_wildCardID) { wildcard = true;
+}
+  if (wildcard) { strip_z = (1 << strip_z_bit) - 1;
+}
 
-  if (strip_phi == s_wildCardID) wildcard = true;
-  if (wildcard) strip_phi = (1 << strip_phi_bit) - 1;
+  if (strip_phi == s_wildCardID) { wildcard = true;
+}
+  if (wildcard) { strip_phi = (1 << strip_phi_bit) - 1;
+}
 
   //  bit sum check
-  assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == std::numeric_limits<PHG4CellDefs::keytype>::digits);
+  static_assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == std::numeric_limits<PHG4CellDefs::keytype>::digits);
 
   //max range check
   assert(layer < (1 << layer_bit));

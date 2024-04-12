@@ -58,13 +58,13 @@ PHG4InttSteppingAction::PHG4InttSteppingAction(PHG4InttDetector* detector, const
   }
 
   // Get the parameters for each laddertype
-  for (auto iter = PHG4InttDefs::m_SensorSegmentationSet.begin(); iter != PHG4InttDefs::m_SensorSegmentationSet.end(); ++iter)
+  for (int iter : PHG4InttDefs::m_SensorSegmentationSet)
   {
-    const PHParameters* par = m_ParamsContainer->GetParameters(*iter);
-    m_StripYMap.insert(std::make_pair(*iter, par->get_double_param("strip_y") * cm));
-    m_StripZMap.insert(std::make_pair(*iter, std::make_pair(par->get_double_param("strip_z_0") * cm, par->get_double_param("strip_z_1") * cm)));
-    m_nStripsPhiCell.insert(std::make_pair(*iter, par->get_int_param("nstrips_phi_cell")));
-    m_nStripsZSensor.insert(std::make_pair(*iter, std::make_pair(par->get_int_param("nstrips_z_sensor_0"), par->get_int_param("nstrips_z_sensor_1"))));
+    const PHParameters* par = m_ParamsContainer->GetParameters(iter);
+    m_StripYMap.insert(std::make_pair(iter, par->get_double_param("strip_y") * cm));
+    m_StripZMap.insert(std::make_pair(iter, std::make_pair(par->get_double_param("strip_z_0") * cm, par->get_double_param("strip_z_1") * cm)));
+    m_nStripsPhiCell.insert(std::make_pair(iter, par->get_int_param("nstrips_phi_cell")));
+    m_nStripsZSensor.insert(std::make_pair(iter, std::make_pair(par->get_int_param("nstrips_z_sensor_0"), par->get_int_param("nstrips_z_sensor_1"))));
   }
 }
 
@@ -78,7 +78,7 @@ PHG4InttSteppingAction::~PHG4InttSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step
@@ -195,7 +195,8 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     }
-    if (Verbosity() > 0) std::cout << "     ladderz = " << ladderz << std::endl;
+    if (Verbosity() > 0) { std::cout << "     ladderz = " << ladderz << std::endl;
+}
 
     m_Hit->set_ladder_z_index(ladderz);
 

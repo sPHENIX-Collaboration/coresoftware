@@ -114,17 +114,13 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     std::cout << "====================== PHG4InttDigitizer::InitRun() =====================" << std::endl;
-    for (std::map<int, unsigned int>::iterator iter1 = _max_adc.begin();
-         iter1 != _max_adc.end();
-         ++iter1)
+    for (auto & iter1 : _max_adc)
     {
-      std::cout << " Max ADC in Layer #" << iter1->first << " = " << iter1->second << std::endl;
+      std::cout << " Max ADC in Layer #" << iter1.first << " = " << iter1.second << std::endl;
     }
-    for (std::map<int, float>::iterator iter2 = _energy_scale.begin();
-         iter2 != _energy_scale.end();
-         ++iter2)
+    for (auto & iter2 : _energy_scale)
     {
-      std::cout << " Energy per ADC in Layer #" << iter2->first << " = " << 1.0e6 * iter2->second << " keV" << std::endl;
+      std::cout << " Energy per ADC in Layer #" << iter2.first << " = " << 1.0e6 * iter2.second << " keV" << std::endl;
     }
     std::cout << "===========================================================================" << std::endl;
   }
@@ -147,7 +143,8 @@ void PHG4InttDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
   //if (!geom_container || !cells) return;
-  if (!geom_container) return;
+  if (!geom_container) { return;
+}
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for (PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -283,14 +280,15 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       double e_vol=(E*pow(10,3)*1.6*pow(10,-19)*pow(10,15)*gain/3.6)+offset;
       double v_dac=para*(e_vol-210.0)/4.0;
 
-      if(v_dac<30) v_dac = 15;
-      else if(v_dac<60) v_dac=30;
-      else if(v_dac<90) v_dac=60;
-      else if(v_dac<120) v_dac=90;
-      else if(v_dac<150) v_dac=120;
-      else if(v_dac<180) v_dac=150;
-      else if(v_dac<210) v_dac=180;
-      else v_dac =210;
+      if(v_dac<30) { v_dac = 15;
+      } else if(v_dac<60) { v_dac=30;
+      } else if(v_dac<90) { v_dac=60;
+      } else if(v_dac<120) { v_dac=90;
+      } else if(v_dac<150) { v_dac=120;
+      } else if(v_dac<180) { v_dac=150;
+      } else if(v_dac<210) { v_dac=180;
+      } else { v_dac =210;
+}
 
       hit->setAdc(v_dac);
 /*
@@ -325,7 +323,8 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       }
       hitset->removeHit(key);
 
-      if (hittruthassoc) hittruthassoc->removeAssoc(hitsetkey, key);
+      if (hittruthassoc) { hittruthassoc->removeAssoc(hitsetkey, key);
+}
     }
   }  // end loop over hitsets
 

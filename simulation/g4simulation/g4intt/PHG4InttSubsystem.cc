@@ -31,9 +31,9 @@ PHG4InttSubsystem::PHG4InttSubsystem(const std::string &detectorname, const vpai
   , m_LayerConfigVector(layerconfig)
   , m_DetectorType(detectorname)
 {
-  for (std::vector<std::pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
+  for (const auto & piter : layerconfig)
   {
-    AddDetId((*piter).second);
+    AddDetId(piter.second);
   }
 
   InitializeParameters();
@@ -117,7 +117,7 @@ int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename : nodes)
+    for (const auto& nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -157,7 +157,7 @@ int PHG4InttSubsystem::process_event(PHCompositeNode *topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4InttSubsystem::GetDetector(void) const
+PHG4Detector *PHG4InttSubsystem::GetDetector() const
 {
   return m_Detector;
 }
