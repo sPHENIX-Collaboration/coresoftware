@@ -6,7 +6,7 @@
 
 #include <intt/CylinderGeomIntt.h>
 #include <intt/InttMap.h>
-#include <intt/InttSurveyMapv1.h>
+#include <intt/InttSurveyMap.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -133,7 +133,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   // we loop over layers. All layers have only one laddertype
 
   // INTT survey map to get the survey information
-  InttSurveyMap *survey = new InttSurveyMapv1();
+  InttSurveyMap *survey = new InttSurveyMap();
   if (useSurvey)
   {
     std::string url = CDBInterface::instance()->getUrl("InttSurveyMap");
@@ -147,10 +147,6 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     {
       std::cout << PHWHERE << "Failed to load INTT survey geometry from the CDB" << std::endl;
       gSystem->Exit(1);
-    }
-    if (Verbosity() > 0)
-    {
-      survey->identify();
     }
   }
   else
@@ -1030,7 +1026,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           k_ladder.strip_phi = InttMap::Wildcard;
           k_ladder.strip_z = InttMap::Wildcard;
 
-          abs_transform_ladder = survey->GetAbsoluteTransform(k_ladder);
+          abs_transform_ladder = survey->GetTransform(k_ladder);
           if (!abs_transform_ladder)
           {
             std::cout << "Eigen::Affine3d absolute transform for (layer,ladder_phi,ladder_z,strip_phi,strip_z) = (" << k_ladder.layer << "," << k_ladder.ladder_phi << ","
@@ -1157,7 +1153,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         //               << "Ideal case, fRotate (radian) around the Z axis = " << fRotate << std::endl
         //               << "G4RotationMatrix ladderrotation (default,ideal)" << std::endl
         //               << ladderrotation << std::endl
-        //               << "Eigen::Affine3D transform matrix (from InttSurveyMapv1)" << std::endl
+        //               << "Eigen::Affine3D transform matrix (from InttSurveyMap)" << std::endl
         //               << abs_transform_ladder->matrix() << std::endl
         //               << "Translation vector (absolute)" << std::endl
         //               << translation_ladder << std::endl
