@@ -281,19 +281,13 @@ InttCombinedRawDataDecoder::SetCalib (
   calib_load_e const& method,
   std::string const& filename)
 {
-  std::string str = domain;
-  for(auto& c : str)
-  {
-    c = toupper(c);
-  }
-  calib_map_t::iterator itr = m_calibs.end();
-  if((itr = m_calibs.find(str)) == m_calibs.end())
+  auto itr = m_calibs.end();
+  if((itr = m_calibs.find(domain)) == m_calibs.end())
   {
     std::cerr << PHWHERE << "\n"
-              << "\tDomain \"" << str << "\" is not settable\n"
+              << "\tDomain \"" << domain << "\" is not settable\n"
               << "\tAvailable domains are:\n";
     ShowCalibs(std::cerr);
-    std::cerr << "\t(case insensitive)" << std::endl;
     return 1;
   }
 
@@ -349,16 +343,12 @@ InttCombinedRawDataDecoder::LoadCalibs (
       i = p.second.ptr->LoadFromCDB(p.second.filename);
       break;
     case SKIP:
-	  if(!Verbosity())
-	  {
-        break;
+	  if(Verbosity()) {
+        std::cout << PHWHERE << "\n"
+                  << "\tSkipping calibration \"" << p.first << "\"\n"
+                  << "\t(it will be used but is default-initialized)" << std::endl;
 	  }
-      std::cout << PHWHERE << "\n"
-                << "\tSkipping calibration \"" << p.first << "\""
-                << "\t(it will be used but is default-initialized)" << std::endl;
-	  break;
-    default:
-	  break;
+      break;
     }
 
 	if(i != 0)
