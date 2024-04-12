@@ -35,33 +35,11 @@ bool InttDeadMap::isDeadChannelIntt(const int layer,
                                     const int ladder_phi, const int ladder_z,
                                     const int strip_z, const int strip_phi) const
 {
-  if (isDeadChannel(getInttKey(layer,
-                               ladder_phi, ladder_z,
-                               strip_z, strip_phi)))
-  {
-    return true;
-  }
-  else if (isDeadChannel(getInttKey(layer,
-                                    ladder_phi, ladder_z,
-                                    strip_z, s_wildCardID)))
-  {
-    return true;
-  }
-  else if (isDeadChannel(getInttKey(layer,
-                                    ladder_phi, ladder_z,
-                                    s_wildCardID, s_wildCardID)))
-  {
-    return true;
-  }
-  else if (isDeadChannel(getInttKey(layer,
-                                    ladder_phi, s_wildCardID,
-                                    s_wildCardID, s_wildCardID)))
-  {
-    return true;
-  }
-  else if (isDeadChannel(getInttKey(layer,
-                                    s_wildCardID, s_wildCardID,
-                                    s_wildCardID, s_wildCardID)))
+  if (isDeadChannel(getInttKey(layer,ladder_phi, ladder_z, strip_z, strip_phi)) ||
+      isDeadChannel(getInttKey(layer,ladder_phi, ladder_z,strip_z, s_wildCardID)) ||
+      isDeadChannel(getInttKey(layer,ladder_phi, ladder_z,s_wildCardID, s_wildCardID)) ||
+      isDeadChannel(getInttKey(layer,ladder_phi, s_wildCardID,s_wildCardID, s_wildCardID)) ||
+      isDeadChannel(getInttKey(layer,s_wildCardID, s_wildCardID,s_wildCardID, s_wildCardID)))
   {
     return true;
   }
@@ -90,42 +68,62 @@ PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
 
   bool wildcard = false;
 
-  if (layer == s_wildCardID) { wildcard = true;
-}
-  if (wildcard) { layer = (1 << layer_bit) - 1;
-}
+  if (layer == s_wildCardID)
+  {
+    wildcard = true;
+  }
+  if (wildcard)
+  {
+    layer = (1 << layer_bit) - 1;
+  }
 
-  if (ladder_phi == s_wildCardID) { wildcard = true;
-}
-  if (wildcard) { ladder_phi = (1 << ladder_phi_bit) - 1;
-}
+  if (ladder_phi == s_wildCardID)
+  {
+    wildcard = true;
+  }
+  if (wildcard)
+  {
+    ladder_phi = (1 << ladder_phi_bit) - 1;
+  }
 
-  if (ladder_z == s_wildCardID) { wildcard = true;
-}
-  if (wildcard) { ladder_z = (1 << ladder_z_bit) - 1;
-}
+  if (ladder_z == s_wildCardID)
+  {
+    wildcard = true;
+  }
+  if (wildcard)
+  {
+    ladder_z = (1 << ladder_z_bit) - 1;
+  }
 
-  if (strip_z == s_wildCardID) { wildcard = true;
-}
-  if (wildcard) { strip_z = (1 << strip_z_bit) - 1;
-}
+  if (strip_z == s_wildCardID)
+  {
+    wildcard = true;
+  }
+  if (wildcard)
+  {
+    strip_z = (1 << strip_z_bit) - 1;
+  }
 
-  if (strip_phi == s_wildCardID) { wildcard = true;
-}
-  if (wildcard) { strip_phi = (1 << strip_phi_bit) - 1;
-}
+  if (strip_phi == s_wildCardID)
+  {
+    wildcard = true;
+  }
+  if (wildcard)
+  {
+    strip_phi = (1 << strip_phi_bit) - 1;
+  }
 
   //  bit sum check
   static_assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == std::numeric_limits<PHG4CellDefs::keytype>::digits);
 
-  //max range check
+  // max range check
   assert(layer < (1 << layer_bit));
   assert(ladder_phi < (1 << ladder_phi_bit));
   assert(ladder_z < (1 << ladder_z_bit));
   assert(strip_z < (1 << strip_z_bit));
   assert(strip_phi < (1 << strip_phi_bit));
 
-  //min range check
+  // min range check
   assert(layer >= 0);
   assert(ladder_phi >= 0);
   assert(ladder_z >= 0);
