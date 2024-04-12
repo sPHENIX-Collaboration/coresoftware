@@ -12,7 +12,7 @@ int InttLoadable::LoadFromFile(
   m_loaded = 0;
   if (filename.empty())
   {
-	filename = DefaultFileName();
+    filename = DefaultFileName();
   }
 
   if (!std::filesystem::exists(filename))
@@ -33,12 +33,19 @@ int InttLoadable::LoadFromCDB(
     std::string name)
 {
   m_loaded = 0;
+
   if (name.empty())
   {
     name = DefaultCDBName();
   }
-
   name = CDBInterface::instance()->getUrl(name);
+  if (name.empty())
+  {
+    std::cerr << __PRETTY_FUNCTION__ << std::endl;
+    std::cerr << "\tPayload type \"" << DefaultCDBName() << "\" not found in CDB" << std::endl;
+    return 1;
+  }
+
   CDBTTree cdbttree(name);
   cdbttree.LoadCalibrations();
 
