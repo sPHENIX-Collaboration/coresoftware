@@ -354,7 +354,7 @@ InttCombinedRawDataDecoder::LoadCalibs (
         break;
 	  }
       std::cout << PHWHERE << "\n"
-                << "\tSkipping calibration \"" << p.first << "\"" << std::endl;
+                << "\tSkipping calibration \"" << p.first << "\""
                 << "\t(it will be used but is default-initialized)" << std::endl;
 	  break;
     default:
