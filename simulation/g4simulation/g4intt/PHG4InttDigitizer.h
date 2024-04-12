@@ -9,7 +9,6 @@
 
 #include <map>
 #include <string>   // for string
-#include <utility>  // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -54,7 +53,7 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
   std::map<int, float> _energy_scale;
 
   // storage
-  //SvtxHitMap *_hitmap;
+  // SvtxHitMap *_hitmap;
 
   const unsigned int nadcbins = 8;
   std::map<int, std::vector<double>> _max_fphx_adc;
