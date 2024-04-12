@@ -141,7 +141,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_
   {
     auto iter = m_Detector->get_PassiveVolumeTuple(touch->GetVolume(0)->GetLogicalVolume());
     std::tie(inttlayer, ladderz) = iter->second;
-    sphxlayer = inttlayer;  //for absorber we use the Intt layer, not the tracking layer in sPHENIX
+    sphxlayer = inttlayer;  // for absorber we use the Intt layer, not the tracking layer in sPHENIX
   }                         // end of si inactive area block
 
   // collect energy and track length step by step
@@ -195,8 +195,10 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_
     {
       ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     }
-    if (Verbosity() > 0) { std::cout << "     ladderz = " << ladderz << std::endl;
-}
+    if (Verbosity() > 0)
+    {
+      std::cout << "     ladderz = " << ladderz << std::endl;
+    }
 
     m_Hit->set_ladder_z_index(ladderz);
 
@@ -210,7 +212,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_
       m_Hit->set_eion(0);
     }
 
-    //here we set the entrance values in cm
+    // here we set the entrance values in cm
     m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
     m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
     m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
@@ -228,10 +230,10 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_
     // time in ns
     m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
-    //set the track ID
+    // set the track ID
     m_Hit->set_trkid(aTrack->GetTrackID());
 
-    //set the initial energy deposit
+    // set the initial energy deposit
     m_Hit->set_edep(0);
 
     if (whichactive > 0)  // return of IsInIntt, > 0 hit in si-strip, < 0 hit in absorber
@@ -259,7 +261,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_
     break;
   }
 
-  //std::cout << "  Update exit values for prePoint->GetStepStatus = " << prePoint->GetStepStatus() << " and postPoint->GetStepStatus = " << postPoint->GetStepStatus() << std::endl;
+  // std::cout << "  Update exit values for prePoint->GetStepStatus = " << prePoint->GetStepStatus() << " and postPoint->GetStepStatus = " << postPoint->GetStepStatus() << std::endl;
 
   // here we just update the exit values, it will be overwritten
   // for every step until we leave the volume or the particle
@@ -280,7 +282,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_
 
   m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
-  //sum up the energy to get total deposited
+  // sum up the energy to get total deposited
   m_Hit->set_edep(m_Hit->get_edep() + edep);
 
   if (geantino)

@@ -5,6 +5,7 @@
 #include "PHG4InttFPHXParameterisation.h"
 
 #include <intt/CylinderGeomIntt.h>
+#include <intt/InttMap.h>
 #include <intt/InttSurveyMapv1.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -52,7 +53,6 @@
 
 #include <algorithm>  // for fill_n
 #include <array>
-#include <cassert>  // for assert
 #include <cmath>
 #include <cstdlib>  // for exit, NULL
 #include <filesystem>
