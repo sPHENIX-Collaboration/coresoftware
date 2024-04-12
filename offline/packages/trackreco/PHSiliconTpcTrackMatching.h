@@ -60,40 +60,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   // void findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches);
   short int findCrossingGeometrically(unsigned int tpc_id, unsigned int si_id);
   double getBunchCrossing(unsigned int trid, double z_mismatch);
-
-  //   void checkCrossingMatches( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,  std::map<unsigned int, short int> &tpc_crossing_map );
-  // double getMedian(std::vector<double> &v);
-  // void addSiliconClusters( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches);
-  // void addSiliconClusters(  std::multimap<unsigned int, unsigned int> &tpc_matches);
-  // void tagInTimeTracks(  std::multimap<unsigned int, unsigned int> &tpc_matches,
-  //			 std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
-  //			 std::map<unsigned int, int> &tpc_crossing_map );
-  // void tagMatchCrossing( std::multimap<unsigned int, unsigned int> &tpc_matches,
-  //			 std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
-  //			 std::map<unsigned int, short int> &tpc_crossing_map );
-  //    void copySiliconClustersToCorrectedMap( );
-  // void correctTpcClusterZIntt(  std::map<unsigned int, short int> &tpc_crossing_map );
-  // void getMatchCrossingIntt(
-  //			       std::multimap<unsigned int, unsigned int> &tpc_matches,
-  //			       std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
-  //			       std::map<unsigned int, short int> &tpc_crossing_map );
-  //   void addTrackBunchCrossing(std::multimap<unsigned int, unsigned int> &tpc_matches);
-  //   void addTrackBunchCrossing( std::map<unsigned int, short int> &tpc_crossing_map);
-  //  void addTrackBunchCrossing(
-  //						   std::map<unsigned int, short int> &vertex_crossings_map,
-  //						   std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);
-  //  void cleanVertexMap( std::map<unsigned int, short int> &vertex_crossings_map,
-  //		       std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map,
-  //		       std::map<unsigned int, short int> &tpc_crossing_map );
-  // void getCrossingNumber( std::vector<double> &vertex_list,
-  //			    std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map,
-  //			    std::map<unsigned int, short int> &vertex_crossings_map);
-  // void getSiVertexList( std::multimap<double, std::pair<unsigned int, unsigned int>> &si_sorted_map,
-  //			  std::vector<double> &vertex_list,
-  //			  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);
-  //  void addSiliconClusters(  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>> &vertex_map);
-  //  void correctTpcClusterZ( std::map<unsigned int, double> &vertex_crossings_map,
-  //			     std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map );
+  double getMatchingInflationFactor(double tpc_pt);
 
   // default values, can be replaced from the macro
   double _phi_search_win = 0.01;
@@ -101,6 +68,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   double _x_search_win = 0.3;
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
+
+  double match_function_a = 1.0;
+  double match_function_b = 5.0;
 
   TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer *_track_map{nullptr};
