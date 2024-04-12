@@ -125,3 +125,10 @@ PHG4Detector *PHG4MicromegasSubsystem::GetDetector() const
 {
   return m_Detector;
 }
+
+//_______________________________________________________________________
+void PHG4MicromegasSubsystem::SetDefaultParameters()
+{
+  set_default_int_param("apply_survey", 1);
+}
+

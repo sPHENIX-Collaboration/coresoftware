@@ -29,8 +29,8 @@ class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
   //! init
   /*!
   called during InitRun (the original InitRun does common setup and calls this one)
-  creates the detector object 
-  ceates the stepping action 
+  creates the detector object
+  ceates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode *) override;
@@ -48,6 +48,8 @@ class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
   PHG4SteppingAction *GetSteppingAction(void) const override { return m_SteppingAction; }
 
   PHG4DisplayAction *GetDisplayAction() const override { return m_DisplayAction; }
+
+  void SetSurveyGeometry(bool b) { m_UseSurveyGeometry = b; }
 
   void Print(const std::string &what = "ALL") const override;
 
@@ -71,6 +73,9 @@ class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
 
   std::string m_HitNodeName;
   std::string m_AbsorberNodeName;
+
+  //! whether to use the survey geometry
+  bool m_UseSurveyGeometry = true;
 };
 
 #endif

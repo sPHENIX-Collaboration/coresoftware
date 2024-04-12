@@ -102,7 +102,6 @@ class TrackSeed_v1 : public TrackSeed
   float m_Y0 = NAN;
   float m_slope = NAN;
   float m_Z0 = NAN;
-  float m_phi = NAN;
 
   short int m_crossing = std::numeric_limits<short int>::max();
 

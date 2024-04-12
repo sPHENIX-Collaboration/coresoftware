@@ -48,7 +48,6 @@ pkginclude_HEADERS = \
   PHCosmicTrackMerger.h \
   PHCosmicSeedCombiner.h \
   PHCosmicSiliconPropagator.h \
-  PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHGhostRejection.h \
   PHInitVertexing.h \
@@ -60,7 +59,6 @@ pkginclude_HEADERS = \
   PHRaveVertexing.h \
   PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
-  PHSiliconTruthTrackSeeding.h \
   PHSimpleKFProp.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
@@ -134,7 +132,6 @@ libtrack_reco_la_SOURCES = \
   PHCosmicSeeder.cc \
   PHCosmicTrackMerger.cc \
   PHCosmicSiliconPropagator.cc \
-  PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
   PHGhostRejection.cc \
   PHInitVertexing.cc \
@@ -143,7 +140,6 @@ libtrack_reco_la_SOURCES = \
   PHSiliconHelicalPropagator.cc \
   PHSiliconSeedMerger.cc \
   PHSiliconTpcTrackMatching.cc \
-  PHSiliconTruthTrackSeeding.cc \
   PHSimpleKFProp.cc \
   PHSimpleVertexFinder.cc \
   PHTpcClusterMover.cc \

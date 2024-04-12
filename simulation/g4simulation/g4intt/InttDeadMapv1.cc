@@ -6,13 +6,13 @@
 #include <map>  // for _Rb_tree_const_iterator
 
 const InttDeadMapv1::Map&
-InttDeadMapv1::getDeadChannels(void) const
+InttDeadMapv1::getDeadChannels() const
 {
   return m_DeadChannels;
 }
 
 InttDeadMapv1::Map&
-InttDeadMapv1::getDeadChannels(void)
+InttDeadMapv1::getDeadChannels()
 {
   return m_DeadChannels;
 }
