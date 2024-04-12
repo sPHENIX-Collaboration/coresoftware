@@ -60,11 +60,11 @@ PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
                                               int ladder_phi, int ladder_z,
                                               int strip_z, int strip_phi)
 {
-  static const int layer_bit = 8;
-  static const int ladder_phi_bit = 16;
-  static const int ladder_z_bit = 8;
-  static const int strip_z_bit = 16;
-  static const int strip_phi_bit = 16;
+  static const unsigned int layer_bit {8};
+  static const  unsigned int ladder_phi_bit {16};
+  static const  unsigned int ladder_z_bit {8};
+  static const  unsigned int strip_z_bit {16};
+  static const  unsigned int strip_phi_bit {16};
 
   bool wildcard = false;
 
@@ -74,7 +74,7 @@ PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
   }
   if (wildcard)
   {
-    layer = (1 << layer_bit) - 1;
+    layer = (1U << layer_bit) - 1;
   }
 
   if (ladder_phi == s_wildCardID)
@@ -83,7 +83,7 @@ PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
   }
   if (wildcard)
   {
-    ladder_phi = (1 << ladder_phi_bit) - 1;
+    ladder_phi = (1U << ladder_phi_bit) - 1;
   }
 
   if (ladder_z == s_wildCardID)
@@ -92,7 +92,7 @@ PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
   }
   if (wildcard)
   {
-    ladder_z = (1 << ladder_z_bit) - 1;
+    ladder_z = (1U << ladder_z_bit) - 1;
   }
 
   if (strip_z == s_wildCardID)
@@ -101,7 +101,7 @@ PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
   }
   if (wildcard)
   {
-    strip_z = (1 << strip_z_bit) - 1;
+    strip_z = (1U << strip_z_bit) - 1;
   }
 
   if (strip_phi == s_wildCardID)
@@ -110,18 +110,18 @@ PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
   }
   if (wildcard)
   {
-    strip_phi = (1 << strip_phi_bit) - 1;
+    strip_phi = (1U << strip_phi_bit) - 1;
   }
 
   //  bit sum check
   static_assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == std::numeric_limits<PHG4CellDefs::keytype>::digits);
 
   // max range check
-  assert(layer < (1 << layer_bit));
-  assert(ladder_phi < (1 << ladder_phi_bit));
-  assert(ladder_z < (1 << ladder_z_bit));
-  assert(strip_z < (1 << strip_z_bit));
-  assert(strip_phi < (1 << strip_phi_bit));
+  assert(layer < (int)(1U << layer_bit));
+  assert(ladder_phi < (int)(1U << ladder_phi_bit));
+  assert(ladder_z < (int)(1U << ladder_z_bit));
+  assert(strip_z < (int)(1U << strip_z_bit));
+  assert(strip_phi < (int)(1U << strip_phi_bit));
 
   // min range check
   assert(layer >= 0);
