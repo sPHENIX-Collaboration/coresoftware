@@ -21,7 +21,7 @@ public:
 	~InttArborist();
 
 	typedef Short_t small_t; // for branches that store many values per event
-	typedef Long64_t large_t; // for branches that store one value per event
+	typedef uint64_t large_t; // for branches that store one value per event
 
 	int InitRun(PHCompositeNode*) override;
 	int process_event(PHCompositeNode*) override;

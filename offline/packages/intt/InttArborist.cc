@@ -150,7 +150,7 @@ InttArborist::process_event (
 			top_node, m_gl1_raw_node_name);
 
 	m_large_branches["gtm"] = gl1 ? gl1->get_bco() : 0;
-	m_large_branches["gtm"] &= (large_t{1} << 40) - 1;
+	m_large_branches["gtm"] &= (large_t{1} << 40U) - 1;
 
 	m_clone_map.clear();
 	for(auto& itr: m_small_branches) {
@@ -162,7 +162,7 @@ InttArborist::process_event (
 
 		if(!m_large_branches["gtm"]) {
 			m_large_branches["gtm"] = intt_hit->get_bco();
-			m_large_branches["gtm"] &= (large_t{1} << 40) - 1;
+			m_large_branches["gtm"] &= (large_t{1} << 40U) - 1;
 		}
 
 		InttMap::RawData_s raw {
