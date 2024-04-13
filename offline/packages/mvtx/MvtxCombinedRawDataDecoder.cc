@@ -137,7 +137,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 {
   mvtx_raw_event_header =
       findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
-  if (Verbosity() >= VERBOSITY_MORE)
+  if (Verbosity() >= 3)
   {
     mvtx_raw_event_header->identify();
   }
@@ -156,25 +156,20 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  Gl1RawHit* gl1 = nullptr;
-  if (!m_runStandAlone)
+  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+  if (!gl1 && (Verbosity() >= 4))
   {
-    gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
-    if (!gl1)
-    {
-      std::cout << PHWHERE << "Could not get gl1 raw hit" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+    std::cout << PHWHERE << "Could not get gl1 raw hit" << std::endl;
   }
   //Could we just get the first strobe BCO instead of setting this to 0?
   //Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
-  uint64_t gl1rawhitbco = m_runStandAlone ? 0 : gl1->get_bco();
+  uint64_t gl1rawhitbco = gl1 ? gl1->get_bco() : 0;
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
   auto lbshift = gl1rawhitbco << 24U;
   auto gl1bco = lbshift >> 24U;
 
-  if (Verbosity() >= VERBOSITY_MORE)
+  if (Verbosity() >= 3)
   {
     mvtx_hit_container->identify();
   }
@@ -188,9 +183,9 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   std::vector<std::pair<uint64_t, uint32_t> > strobe_bc_pairs;
   std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
   auto mvtxbco = *l1BCOs.begin();
-  if (Verbosity() > 0)
+  if (gl1 && (Verbosity() > 2))
   {
-    std::cout << "mvtx header bco " << mvtxbco << " and gl1 bco " << gl1bco
+    std::cout << "MVTX header BCO " << mvtxbco << " and GL1 BCO " << gl1bco
               << std::endl;
   }
 
@@ -211,11 +206,11 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
 
-    uint64_t bcodiff = m_runStandAlone ? 0 : gl1bco - strobe;
+    uint64_t bcodiff = gl1 ? gl1bco - strobe : 0;
     double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
     int index = std::floor(timeElapsed / m_strobeWidth);
 
-    if (Verbosity() >= VERBOSITY_A_LOT)
+    if (Verbosity() >= 10)
     {
       mvtx_hit->identify();
     }
@@ -263,7 +258,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     {
       mvtx_event_header->set_strobe_BCO_L1_BCO(strobe, iter);
     }
-    if (Verbosity() >= VERBOSITY_EVEN_MORE)
+    if (Verbosity() >= 2)
     {
       mvtx_event_header->identify();
     }

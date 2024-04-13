@@ -46,8 +46,6 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
 
   void useRawEvtHeaderNodeName(const std::string& name) { m_MvtxRawEvtHeaderNodeName = name; }
 
-  void runMvtxStandalone(bool runAlone) { m_runStandAlone = runAlone; }
-
   void writeMvtxEventHeader(bool write) { m_writeMvtxEventHeader = write; }
 
  private:
@@ -61,7 +59,6 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
   std::string m_MvtxRawHitNodeName = "MVTXRAWHIT";
   std::string m_MvtxRawEvtHeaderNodeName = "MVTXRAWEVTHEADER";
   float m_strobeWidth = 89.;  //! microseconds
-  bool m_runStandAlone = false;
   bool m_writeMvtxEventHeader = true;
   std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> m_hotPixelMap;
 };
