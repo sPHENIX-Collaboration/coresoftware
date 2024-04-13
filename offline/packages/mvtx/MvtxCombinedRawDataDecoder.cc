@@ -169,14 +169,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   //Could we just get the first strobe BCO instead of setting this to 0?
   //Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
   uint64_t gl1rawhitbco = m_runStandAlone ? 0 : gl1->get_bco();
-
-  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
-  if (!gl1)
-  {
-    std::cout << PHWHERE << "Could not get gl1 raw hit" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  uint64_t gl1rawhitbco = gl1->get_bco();
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
   auto lbshift = gl1rawhitbco << 24U;
