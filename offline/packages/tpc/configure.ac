@@ -12,12 +12,6 @@ if test $ac_cv_prog_gxx = yes; then
    CXXFLAGS="$CXXFLAGS -Wall -Wextra -Werror -Wshadow"
 fi
 
-case $CXX in
- clang++)
-   CXXFLAGS="$CXXFLAGS -Wno-deprecated-copy"
- ;;
-esac
-
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
 

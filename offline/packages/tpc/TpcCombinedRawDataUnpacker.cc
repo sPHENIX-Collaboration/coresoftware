@@ -25,6 +25,7 @@
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
@@ -40,6 +41,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TNtuple.h>
+
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl, bas...
 #include <map>       // for _Rb_tree_iterator
@@ -61,7 +63,7 @@ int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
   if (calibdir[0] == '/')
   {
     // use generic CDBTree to load
-    m_cdbttree = new CDBTTree(calibdir.c_str());
+    m_cdbttree = new CDBTTree(calibdir);
     m_cdbttree->LoadCalibrations();
   }
   else
@@ -133,7 +135,8 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     m_ntup = new TNtuple("NT", "NT", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:nsamples");
   }
 
-  if (Verbosity() >= 1){
+  if (Verbosity() >= 1)
+  {
     std::cout << "TpcCombinedRawDataUnpacker:: _do_zerosup = " << m_do_zerosup << std::endl;
     std::cout << "TpcCombinedRawDataUnpacker:: _do_noise_rejection = " << m_do_noise_rejection << std::endl;
     std::cout << "TpcCombinedRawDataUnpacker:: _ped_sig_cut = " << m_ped_sig_cut << std::endl;
@@ -145,8 +148,10 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
 
 int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 {
-  if(_ievent<startevt || _ievent>endevt){
-    if (Verbosity() > 1){
+  if (_ievent < startevt || _ievent > endevt)
+  {
+    if (Verbosity() > 1)
+    {
       std::cout << " Skip event " << _ievent << std::endl;
     }
     _ievent++;
@@ -273,16 +278,18 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 
-    if(!m_do_zerosup){
-      if (Verbosity() > 2){
+    if (!m_do_zerosup)
+    {
+      if (Verbosity() > 2)
+      {
         std::cout << "TpcCombinedRawDataUnpacker:: no zero suppression" << std::endl;
       }
-      for(uint16_t s = 0; s<sam;s++)
+      for (uint16_t s = 0; s < sam; s++)
       {
         uint16_t adc = tpchit->get_adc(s);
         int t = s;
 
-        hit_key = TpcDefs::genHitKey( phibin, (unsigned int) t);
+        hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
         // find existing hit, or create new one
         hit = hit_set_container_itr->second->getHit(hit_key);
         if (!hit)
@@ -294,8 +301,10 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
         }
       }
     }
-    else{
-      if (Verbosity() > 2){
+    else
+    {
+      if (Verbosity() > 2)
+      {
         std::cout << "TpcCombinedRawDataUnpacker:: do zero suppression" << std::endl;
       }
       float hpedestal = 0;
@@ -321,10 +330,13 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
       // calculate pedestal mean and sigma
 
-      if(pedhist.GetStdDev()==0 || pedhist.GetEntries()==0){
+      if (pedhist.GetStdDev() == 0 || pedhist.GetEntries() == 0)
+      {
         hpedestal = pedhist.GetBinCenter(pedhist.GetMaximumBin());
         hpedwidth = 999;
-      } else{
+      }
+      else
+      {
         // calc peak position
         double adc_sum = 0.0;
         double ibin_sum = 0.0;
@@ -344,8 +356,10 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       }
 
       ntotalchannels++;
-      if(m_do_noise_rejection){
-        if (hpedwidth<0.5 || hpedestal<10 || hpedwidth==999){ 
+      if (m_do_noise_rejection)
+      {
+        if (hpedwidth < 0.5 || hpedestal < 10 || hpedwidth == 999)
+        {
           n_noisychannels++;
           continue;
         }
@@ -373,8 +387,10 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     }
   }
 
-  if(m_do_noise_rejection && Verbosity() >= 2)
-    std::cout << " noisy / total channels = " << n_noisychannels << "/" << ntotalchannels << " = " << n_noisychannels/(double)ntotalchannels << std::endl;
+  if (m_do_noise_rejection && Verbosity() >= 2)
+  {
+    std::cout << " noisy / total channels = " << n_noisychannels << "/" << ntotalchannels << " = " << n_noisychannels / (double) ntotalchannels << std::endl;
+  }
 
   if (Verbosity())
   {
