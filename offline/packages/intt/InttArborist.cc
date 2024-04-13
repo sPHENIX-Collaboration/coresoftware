@@ -8,7 +8,7 @@
 #include <ffarawobjects/InttRawHitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include "fun4all/SubsysReco.h"  // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
@@ -21,20 +21,16 @@
 #include <iostream>
 
 InttArborist::InttArborist (
-) {
-	m_small_branches = {
-		{"adc", new std::vector<small_t>},
+  ) :
+m_small_branches  {{"adc", new std::vector<small_t>},
 		{"amp", new std::vector<small_t>},
 		{"bco", new std::vector<small_t>},
 		{"chn", new std::vector<small_t>},
 		{"chp", new std::vector<small_t>},
 		{"fee", new std::vector<small_t>},
-		{"pid", new std::vector<small_t>},
-	};
-	
-	m_large_branches = {
-		{"gtm", 0},
-	};
+		{"pid", new std::vector<small_t>}}
+, m_large_branches {{"gtm", 0}}
+{
 }
 
 
@@ -52,7 +48,7 @@ InttArborist::CreateOutputFile (
 	std::string const& file_name
 ) {
 	if(file_name.empty()) {
-		std::cerr << "InttArborist::CreateOutputFile\n"
+		std::cout << "InttArborist::CreateOutputFile\n"
 		          << "\targument \"file_name\" is empty string" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -60,7 +56,7 @@ InttArborist::CreateOutputFile (
 	if(m_file)m_file->Close();
 	m_file = TFile::Open(file_name.c_str(), "RECREATE");
 	if(!m_file) {
-		std::cerr << "InttArborist::CreateOutputFile\n"
+		std::cout << "InttArborist::CreateOutputFile\n"
 		          << "\tfailed to (re)create file " << file_name << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -87,13 +83,13 @@ int
 InttArborist::WriteOutputFile (
 ) {
 	if(!m_file) {
-		std::cerr << "InttArborist::WriteOutputFile\n"
+		std::cout << "InttArborist::WriteOutputFile\n"
 		          << "\tmember \"m_file\" nullptr at call" << std::endl;
 		return EXIT_FAILURE;
 	}
 
 	if(!m_tree) {
-		std::cerr << "InttArborist::WriteOutputFile\n"
+		std::cout << "InttArborist::WriteOutputFile\n"
 		          << "\tmember \"m_tree\" nullptr at call" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -111,19 +107,19 @@ InttArborist::InitRun (
 	PHCompositeNode* top_node
 ) {
 	if(!m_file) {
-		std::cerr << "InttArborist::process_event\n"
+		std::cout << "InttArborist::process_event\n"
 		          << "\tmember \"m_file\" nullptr at call" << std::endl;
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
 	if(!m_tree) {
-		std::cerr << "InttArborist::process_event\n"
+		std::cout << "InttArborist::process_event\n"
 		          << "\tmember \"m_tree\" nullptr at call" << std::endl;
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
 	if(!top_node) {
-		std::cerr << "InttArborist::process_event\n"
+		std::cout << "InttArborist::process_event\n"
 		          << "\targument \"top_node\" nullptr at call" << std::endl;
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
@@ -136,7 +132,7 @@ InttArborist::process_event (
 	PHCompositeNode* top_node
 ) {
 	if(!top_node) {
-		std::cerr << "InttArborist::process_event\n"
+		std::cout << "InttArborist::process_event\n"
 		          << "\targument \"top_node\" nullptr at call" << std::endl;
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
@@ -145,7 +141,7 @@ InttArborist::process_event (
 			top_node, m_intt_raw_node_name);
 
 	if(!intt_cont) {
-		std::cerr << "InttArborist::process_event\n"
+		std::cout << "InttArborist::process_event\n"
 		          << "\targument \"top_node\" nullptr at call" << std::endl;
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
