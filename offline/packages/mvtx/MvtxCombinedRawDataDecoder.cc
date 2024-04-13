@@ -155,6 +155,21 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     std::cout << "Have you built this yet?" << std::endl;
     exit(1);
   }
+
+  Gl1RawHit* gl1 = nullptr;
+  if (!m_runStandAlone)
+  {
+    gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+    if (!gl1)
+    {
+      std::cout << PHWHERE << "Could not get gl1 raw hit" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+  //Could we just get the first strobe BCO instead of setting this to 0?
+  //Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
+  uint64_t gl1rawhitbco = m_runStandAlone ? 0 : gl1->get_bco();
+
   auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
   if (!gl1)
   {
@@ -194,8 +209,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     assert(mvtx_event_header);
   }
 
-  //  int NMasked = 0;
-
   for (unsigned int i = 0; i < mvtx_hit_container->get_nhits(); i++)
   {
     mvtx_hit = mvtx_hit_container->get_hit(i);
@@ -206,7 +219,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
 
-    uint64_t bcodiff = gl1bco - strobe;
+    uint64_t bcodiff = m_runStandAlone ? 0 : gl1bco - strobe;
     double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
     int index = std::floor(timeElapsed / m_strobeWidth);
 
