@@ -68,8 +68,9 @@ int PHTruthSiliconAssociation::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 {
-  if (Verbosity() >= 1)
+  if (Verbosity() >= 1) {
     cout << "PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode) Processing Event" << endl;
+}
 
   // Reset the silicon seed node
   _silicon_track_map->Reset();
@@ -83,8 +84,9 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
     {
       _tracklet = _tpc_track_map->get(phtrk_iter);
 
-      if(!_tracklet)
+      if(!_tracklet) {
 	continue;
+}
 
       if (Verbosity() >= 1)
 	{
@@ -98,9 +100,11 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 
       // identify the best truth track match(es) for this seed track
       std::vector<PHG4Particle*> g4particle_vec = getG4PrimaryParticle(_tracklet);
-      if(Verbosity() > 0)  std::cout << " g4particle_vec.size() " << g4particle_vec.size() << std::endl;
+      if(Verbosity() > 0) {  std::cout << " g4particle_vec.size() " << g4particle_vec.size() << std::endl;
+}
 
-      if(g4particle_vec.size() < 1) continue;
+      if(g4particle_vec.size() < 1) { continue;
+}
 
       if (Verbosity() >= 1)
 	{
@@ -108,12 +112,12 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	  _tracklet->identify();
 	}
 
-      for(unsigned int ig4=0;ig4 < g4particle_vec.size(); ++ig4)
+      for(auto g4particle : g4particle_vec)
 	{
 	  // identify the clusters that are associated with this g4particle
-	  PHG4Particle* g4particle = g4particle_vec[ig4];
 	  std::set<TrkrDefs::cluskey> clusters = getSiliconClustersFromParticle(g4particle);
-	  if(clusters.size() < 3) continue;
+	  if(clusters.size() < 3) { continue;
+}
 
 	  // Make a silicon track seed
 	  unsigned int silicon_seed_index = buildTrackSeed(clusters, g4particle, _silicon_track_map);
@@ -145,7 +149,8 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	   ++phtrk_iter)
 	{
 	  auto seed = _svtx_seed_map->get(phtrk_iter);
-	  if(!seed) continue;
+	  if(!seed) { continue;
+}
 
 	  auto tpc_index =  seed->get_tpc_seed_index();
 	  auto silicon_index =  seed->get_silicon_seed_index();
@@ -157,18 +162,21 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 
 	  std::cout << " ----------  silicon tracklet " << silicon_index << std::endl;
 	  auto silicon_tracklet = _silicon_track_map->get(silicon_index);
-	  if(!silicon_tracklet) continue;
+	  if(!silicon_tracklet) { continue;
+}
 	  silicon_tracklet->identify();
 
 	  std::cout << " ---------- tpc tracklet " << tpc_index << std::endl;
 	  auto tpc_tracklet = _tpc_track_map->get(tpc_index);
-	  if(!tpc_tracklet) continue;
+	  if(!tpc_tracklet) { continue;
+}
 	  tpc_tracklet->identify();
 	}
     }
 
-  if (Verbosity() >= 1)
+  if (Verbosity() >= 1) {
     cout << "PHTruthSiliconAssociation::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;
+}
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -359,10 +367,10 @@ std::vector<PHG4Particle*> PHTruthSiliconAssociation::getG4PrimaryParticle(Track
 	  // get all of the g4hits for this hitkey
 	  std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;
 	  _hit_truth_map->getG4Hits(hitsetkey, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
-	  for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); htiter != temp_map.end(); ++htiter)
+	  for(auto & htiter : temp_map)
 	    {
 	      // extract the g4 hit key
-	      PHG4HitDefs::keytype g4hitkey = htiter->second.second;
+	      PHG4HitDefs::keytype g4hitkey = htiter.second.second;
 	      PHG4Hit * g4hit = nullptr;
 	      unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
 	      switch( trkrid )
@@ -386,21 +394,23 @@ std::vector<PHG4Particle*> PHTruthSiliconAssociation::getG4PrimaryParticle(Track
 
 
   // loop over the particle id's, and count the number for each one
-  for( auto it = pid.begin(); it != pid.end(); ++it)
+  for(int it : pid)
     {
-      if(*it < 0) continue;   // ignore secondary particles
+      if(it < 0) { continue;   // ignore secondary particles
+}
 
       int nfound = 0;
-      std::pair<std::multimap<int, int>::iterator, std::multimap<int,int>::iterator> this_pid = pid_count.equal_range(*it);
+      std::pair<std::multimap<int, int>::iterator, std::multimap<int,int>::iterator> this_pid = pid_count.equal_range(it);
       for(auto cnt_it = this_pid.first; cnt_it != this_pid.second; ++cnt_it)
 	{
 	  nfound++;
 	}
 
-      if(Verbosity() >= 1) std::cout << "    pid: " << *it << "  nfound " << nfound << std::endl;
+      if(Verbosity() >= 1) { std::cout << "    pid: " << it << "  nfound " << nfound << std::endl;
+}
       if(nfound > minfound)
 	{
-	  g4part_vec.push_back(_g4truth_container->GetParticle(*it));
+	  g4part_vec.push_back(_g4truth_container->GetParticle(it));
 	}
     }
 
@@ -418,7 +428,8 @@ std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromPar
   for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
   {
     const auto layer = TrkrDefs::getLayer(hitsetkey);
-    if(layer > 6) continue;  // we need the silicon layers only
+    if(layer > 6) { continue;  // we need the silicon layers only
+}
 
     auto range = _cluster_map->getClusters(hitsetkey);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
@@ -439,10 +450,10 @@ std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromPar
 	  // get all of the g4hits for this hitkey
 	  std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;
 	  _hit_truth_map->getG4Hits(hitsetkey_A, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
-	  for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); htiter != temp_map.end(); ++htiter)
+	  for(auto & htiter : temp_map)
 	    {
 	      // extract the g4 hit key
-	      PHG4HitDefs::keytype g4hitkey = htiter->second.second;
+	      PHG4HitDefs::keytype g4hitkey = htiter.second.second;
 	      PHG4Hit * g4hit = nullptr;
 	      unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey_A);
 	      switch( trkrid )
@@ -503,7 +514,7 @@ std::set<short int> PHTruthSiliconAssociation::getInttCrossings(TrackSeed *si_tr
   return intt_crossings;
 }
 
-unsigned int PHTruthSiliconAssociation::buildTrackSeed(std::set<TrkrDefs::cluskey> clusters, PHG4Particle *g4particle, TrackSeedContainer* container)
+unsigned int PHTruthSiliconAssociation::buildTrackSeed(const std::set<TrkrDefs::cluskey>& clusters, PHG4Particle *g4particle, TrackSeedContainer* container)
 {
   auto track = std::make_unique<TrackSeed_FastSim_v2>();
   bool silicon = false;
@@ -610,7 +621,8 @@ unsigned int PHTruthSiliconAssociation::buildTrackSeed(std::set<TrkrDefs::cluske
       const auto intt_crossings = getInttCrossings(track.get());
       if(intt_crossings.empty())
 	{
-	  if(Verbosity() > 1)  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << container->size() - 1 << " has no INTT clusters" << std::endl;
+	  if(Verbosity() > 1) {  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << container->size() - 1 << " has no INTT clusters" << std::endl;
+}
 	  return (container->size() -1);
 	} else if( intt_crossings.size() > 1 ) {
 	if(Verbosity() > 1)
@@ -619,8 +631,9 @@ unsigned int PHTruthSiliconAssociation::buildTrackSeed(std::set<TrkrDefs::cluske
       } else {
 	const auto& crossing = *intt_crossings.begin();
 	track->set_crossing(crossing);
-	if(Verbosity() > 1)
+	if(Verbosity() > 1) {
 	  std::cout << "PHTruthTrackSeeding::Process - Combined track " << container->size() - 1  << " bunch crossing " << crossing << std::endl;
+}
       }
     }  // end if _min_layer
   else

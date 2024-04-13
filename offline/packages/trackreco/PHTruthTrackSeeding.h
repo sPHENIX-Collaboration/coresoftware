@@ -81,7 +81,7 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   int GetNodes(PHCompositeNode* topNode);
   int CreateNodes(PHCompositeNode* topNode);
 
-  void buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters, 
+  void buildTrackSeed(const std::vector<TrkrDefs::cluskey>& clusters, 
 		      PHG4Particle *g4particle, TrackSeedContainer* container);
   PHG4TruthInfoContainer* m_g4truth_container = nullptr;
 

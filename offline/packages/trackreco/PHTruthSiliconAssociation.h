@@ -57,7 +57,7 @@ class PHTruthSiliconAssociation : public SubsysReco
   //  void copySiliconClustersToCorrectedMap( );
   //void makeSvtxSeedMap();
 
-  unsigned int buildTrackSeed(std::set<TrkrDefs::cluskey> clusters, PHG4Particle *g4particle, TrackSeedContainer* container);
+  unsigned int buildTrackSeed(const std::set<TrkrDefs::cluskey>& clusters, PHG4Particle *g4particle, TrackSeedContainer* container);
 
   std::vector<PHG4Particle*> getG4PrimaryParticle(TrackSeed *track);
   std::set<TrkrDefs::cluskey> getSiliconClustersFromParticle(PHG4Particle* g4particle);
