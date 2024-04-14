@@ -28,13 +28,6 @@ class LL1PacketGetter : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int CreateNodeTree(PHCompositeNode *topNode);
 
-  void SetVerbosity(int v){_verbose = v;}
-  void set_nsamples(int _nsamples)
-  {
-    m_nsamples = _nsamples;
-    return;
-  }
-
   void setTriggerType(const std::string &name);
 
   void set_dataflag(bool flag)
@@ -47,13 +40,21 @@ class LL1PacketGetter : public SubsysReco
   std::string m_trigger = "NONE";
   std::string m_ll1 = "NONE";
 
+  std::string m_triggerprimitive_nodename = "NONE";
+  std::string m_triggerprimitive_ll1_nodename = "NONE";
+  std::string m_ll1_nodename = "NONE";
+
   LL1Out *m_ll1out = nullptr;
   TriggerPrimitiveContainer *m_trigger_primitives = nullptr;
+  TriggerPrimitiveContainer *m_trigger_primitives_ll1 = nullptr;
   TriggerPrimitive *_trigger_primitive = nullptr;
   std::map<unsigned int, std::vector<unsigned int>> *_trigger_words = nullptr;
 
-  std::map<TriggerDefs::DetectorId, int> m_prim_map;
+  std::map<unsigned int, std::pair<int,int>> m_prim_sum_map;
+  std::map<unsigned int, std::pair<int,int>> m_packet_map;
+  std::map<unsigned int, int> m_word_map;
   TriggerDefs::TriggerId m_triggerid;
+  unsigned int m_triggerkey;
   TriggerDefs::DetectorId m_detectorid;
   TriggerDefs::PrimitiveId m_primitiveid;
   std::vector<unsigned int> *_sum = nullptr;
@@ -61,13 +62,12 @@ class LL1PacketGetter : public SubsysReco
   int m_packet_low{0};
   int m_packet_high{0};
 
-  int m_nsamples{16};
   int m_nchannels{256};
   int m_nchannels_per_primitive{0};
   int m_nprimitives{0};
   int m_ntriggerwords{0};
-  int _verbose{0};
   bool m_isdata{0};
+  bool m_no_ll1out{0};
 };
 
 #endif  // LL1TOWERBUILDER_H

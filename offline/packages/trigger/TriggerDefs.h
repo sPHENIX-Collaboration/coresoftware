@@ -38,6 +38,7 @@ namespace TriggerDefs
     hcaloutDId = 3,
     hcalDId = 4,
     emcalDId = 5,
+    calDId = 6,
   };
 
   enum PrimitiveId
@@ -46,7 +47,7 @@ namespace TriggerDefs
     mbdPId = 1,
     calPId = 2,
     jetPId = 3,
-    photonPId = 4,
+    pairPId = 4,
   };
 
   TriggerId GetTriggerId(const std::string& trigger);
@@ -57,6 +58,7 @@ namespace TriggerDefs
   static const unsigned int kBitShiftSumLocId __attribute__((unused)) = 0;
 
   uint32_t getTriggerKey(const TriggerDefs::TriggerId triggerId);
+  uint32_t getTriggerKey(const TriggerDefs::TriggerId triggerId, const TriggerDefs::DetectorId detectorId);
   uint32_t getTriggerPrimKey(const TriggerDefs::TriggerId triggerId, const TriggerDefs::DetectorId detectorId, const TriggerDefs::PrimitiveId primitiveId, const uint16_t primlocid);
   uint32_t getTriggerSumKey(const TriggerDefs::TriggerId triggerId, const TriggerDefs::DetectorId detectorId, const TriggerDefs::PrimitiveId primitiveId, const uint16_t primlocid, const uint16_t sumlocid);
 

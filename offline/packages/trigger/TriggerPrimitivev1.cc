@@ -49,7 +49,11 @@ TriggerPrimitivev1::Range TriggerPrimitivev1::getSums()
 //______________________________________
 void TriggerPrimitivev1::identify(std::ostream& out) const
 {
-  out << __FILE__<<__FUNCTION__<<":: primitive key : "<< m_triggerprimkey << std::endl;
+  out << __FILE__<<__FUNCTION__<<":: primitive key : "<< std::hex <<m_triggerprimkey << std::endl;
+  out << " TriggerId: " << TriggerDefs::getTriggerId_from_TriggerPrimKey(m_triggerprimkey)<<std::endl;
+  out << " DetectorId: " << TriggerDefs::getDetectorId_from_TriggerPrimKey(m_triggerprimkey)<<std::endl;
+  out << " PrimitiveId: " << TriggerDefs::getPrimitiveId_from_TriggerPrimKey(m_triggerprimkey)<<std::endl;
+
   ConstRange range = getSums();
   for (auto iter = range.first; iter != range.second ; ++iter )
     {

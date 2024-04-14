@@ -21,27 +21,54 @@
 
 //____________________________________________________________________________..
 LL1PacketGetter::LL1PacketGetter(const std::string &name, const std::string &trigger, const std::string &ll1)
-  : SubsysReco(name)
-  , m_trigger(trigger)
+: SubsysReco(name)
+, m_trigger(trigger)
   , m_ll1(ll1)
   , m_ll1out(nullptr)
   , m_packet_low(INT_MIN)
-  , m_packet_high(INT_MIN)
-  , m_nsamples(20)
-  , m_nchannels(60)
-  , m_isdata(true)
+, m_packet_high(INT_MIN)
+, m_nchannels(60)
+, m_isdata(true)
+, m_no_ll1out(false)
 {
   m_triggerid = TriggerDefs::TriggerId::noneTId;
   m_primitiveid = TriggerDefs::PrimitiveId::nonePId;
   m_detectorid = TriggerDefs::DetectorId::noneDId;
 
-  m_prim_map[TriggerDefs::DetectorId::noneDId] = 0;
-  m_prim_map[TriggerDefs::DetectorId::emcalDId] = 384;
-  m_prim_map[TriggerDefs::DetectorId::hcalinDId] = 24;
-  m_prim_map[TriggerDefs::DetectorId::hcaloutDId] = 24;
-  m_prim_map[TriggerDefs::DetectorId::mbdDId] = 4;
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::noneTId, TriggerDefs::DetectorId::noneDId)] = std::make_pair(0,0);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::noneDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::hcalDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::hcalinDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::hcaloutDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::emcalDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::noneDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::emcalDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::hcalDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::hcalinDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::hcaloutDId)] = std::make_pair(13002, 13002);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::noneTId, TriggerDefs::DetectorId::emcalDId)] = std::make_pair(13010, 13025);
+  m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::mbdTId, TriggerDefs::DetectorId::mbdDId)] = std::make_pair(13002, 13002);
 
-  _verbose = 0;
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::noneTId, TriggerDefs::DetectorId::noneDId)] = std::make_pair(0,0);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::noneDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::hcalDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::hcalinDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::hcaloutDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::emcalDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::noneDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::emcalDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::hcalDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::hcalinDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::hcaloutDId)] = std::make_pair(16, 24);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::noneTId, TriggerDefs::DetectorId::emcalDId)] = std::make_pair(24, 16);
+  m_prim_sum_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::mbdTId, TriggerDefs::DetectorId::mbdDId)] = std::make_pair(4, 13);
+
+  m_word_map[TriggerDefs::TriggerId::noneTId] = 0;
+  m_word_map[TriggerDefs::TriggerId::jetTId] = 12*32;
+  m_word_map[TriggerDefs::TriggerId::mbdTId] = 8;
+  m_word_map[TriggerDefs::TriggerId::pairTId] = 0;
+  m_word_map[TriggerDefs::TriggerId::photonTId] = 12*32;
+
 }
 
 //____________________________________________________________________________..
@@ -55,40 +82,34 @@ int LL1PacketGetter::InitRun(PHCompositeNode *topNode)
 
   m_triggerid = TriggerDefs::GetTriggerId(m_trigger);
   m_detectorid = TriggerDefs::GetDetectorId(m_ll1);
+  m_triggerkey = TriggerDefs::getTriggerKey(m_triggerid, m_detectorid);
   m_primitiveid = TriggerDefs::GetPrimitiveId(m_ll1);
 
-  m_nprimitives = m_prim_map[m_detectorid];
-  
-  switch (m_detectorid) {
-  case TriggerDefs::DetectorId::hcalDId:
-  case TriggerDefs::DetectorId::hcalinDId:
-  case TriggerDefs::DetectorId::hcaloutDId:
-      std::cout <<"HCAL Packet Getter."<<std::endl;
-      m_packet_low = 14003;
-      m_packet_high = 14003;
-      m_nchannels_per_primitive = 16;
-      m_ntriggerwords = 1;
-      break;
-  case TriggerDefs::DetectorId::mbdDId:
-      std::cout <<"MBD Packet Getter"<<std::endl;
-      m_packet_low = 14002;
-      m_packet_high = 14002;
-      m_nchannels_per_primitive = 13;
-      m_ntriggerwords = 8;
-      break;
-
-  default:
-      std::cout <<"This Packet Getter not implemented yet."<<std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-
-      break;
-
+  if (strcmp(m_trigger.c_str(), "NONE") == 0)
+    { 
+      m_triggerprimitive_nodename = "TRIGGERPRIMITIVES_RAW_" + m_ll1;
+      m_triggerprimitive_ll1_nodename = "TRIGGERPRIMITIVES_RAW_" + m_ll1 + "_LL1";      
+      m_no_ll1out = true;
     }
+  else
+    {
+      m_ll1_nodename = "LL1OUT_RAW_" + m_trigger;
+      m_triggerprimitive_nodename = "TRIGGERPRIMITIVES_RAW_" + m_trigger;      
+    }
+
+
+  m_packet_low = m_packet_map[m_triggerkey].first;
+  m_packet_high = m_packet_map[m_triggerkey].second;
+  m_nprimitives = m_prim_sum_map[m_triggerkey].first;
+  m_nchannels_per_primitive = m_prim_sum_map[m_triggerkey].second;
+  m_ntriggerwords = m_word_map[m_triggerid];
+
+
   m_nchannels = m_nchannels_per_primitive*m_nprimitives + m_ntriggerwords;
   
   if (CreateNodeTree(topNode)) { return Fun4AllReturnCodes::ABORTRUN;
-}
-
+  }
+  
   topNode->print();
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -96,141 +117,230 @@ int LL1PacketGetter::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 {
-  //  std::cout << m_detector_type <<std::endl;
-  switch(m_detectorid){
-  case TriggerDefs::DetectorId::hcalinDId :
-  case TriggerDefs::DetectorId::hcaloutDId :
-  case TriggerDefs::DetectorId::hcalDId :
+
+
+
+
+  m_trigger_primitives  = findNode::getClass<TriggerPrimitiveContainer>(topNode, m_triggerprimitive_nodename.c_str());
+  if (!m_trigger_primitives)
     {
-      
-      m_ll1out = findNode::getClass<LL1Out>(topNode, "LL1OUT_RAW_HCAL");
+      std::cout << m_triggerprimitive_nodename << " not found - Fatal Error" << std::endl;
+      exit(1);	  
+    }
+  if (!m_no_ll1out)
+    {  
+      m_trigger_primitives->setTriggerType(m_triggerid);
+
+      m_ll1out = findNode::getClass<LL1Out>(topNode, m_ll1_nodename.c_str());
       if (!m_ll1out)
 	{
-	  std::cout << "HCAL LL1 data not found - Fatal Error" << std::endl;
+	  std::cout << m_ll1_nodename << " not found - Fatal Error" << std::endl;
 	  exit(1);
 	}
-      m_trigger_primitives  = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_RAW_HCAL");
-      if (!m_trigger_primitives)
+    }
+  else
+    {
+      m_trigger_primitives->setTriggerType(m_triggerid);
+      m_trigger_primitives_ll1  = findNode::getClass<TriggerPrimitiveContainer>(topNode, m_triggerprimitive_ll1_nodename.c_str());
+      if (!m_trigger_primitives_ll1)
 	{
-	  std::cout << "HCAL LL1 data not found - Fatal Error" << std::endl;
+	  std::cout << m_triggerprimitive_ll1_nodename << " not found - Fatal Error" << std::endl;
 	  exit(1);	  
 	}
-      
-      break;
     }
-  case TriggerDefs::DetectorId::mbdDId :
-    {
-      
-      m_ll1out = findNode::getClass<LL1Out>(topNode, "LL1OUT_RAW_MBD");
-      if (!m_ll1out)
-	{
-	  std::cout << "MBD LL1 data not found - Fatal Error" << std::endl;
-	  exit(1);
-	}
-      m_trigger_primitives  = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_RAW_MBD");
-      if (!m_trigger_primitives)
-	{
-	  std::cout << "MBD LL1 data not found - Fatal Error" << std::endl;
-	  exit(1);
-	}
-
-      break;
-    }
-  default:
-      std::cout <<"This Packet Getter not implemented yet."<<std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-
-      break;
-
-  }
   TriggerDefs::TriggerSumKey sumkey = 0;
   TriggerDefs::TriggerPrimKey primkey;
+
   if (m_isdata)
-  {
-    Event *_event = findNode::getClass<Event>(topNode, "PRDF");
-    if (_event == nullptr)
     {
-      std::cout << "LL1UnpackPRDF::Process_Event - Event not found" << std::endl;
-      return -1;
-    }
-    if (_event->getEvtType() >= 8)  /// special event where we do not read out the calorimeters
-    {
-      return Fun4AllReturnCodes::DISCARDEVENT;
-    }
-    unsigned int clk;
-    unsigned int evt;
-    
-    for (int pid = m_packet_low; pid <= m_packet_high; pid++)
-    {
-      Packet *packet = _event->getPacket(pid);
-      if (packet)
+      Event *_event = findNode::getClass<Event>(topNode, "PRDF");
+      if (_event == nullptr)
 	{
-	  evt = packet->iValue(0, "EVTNR");
-	  clk = packet->iValue(0, "CLOCK");
-	  m_ll1out->set_event_number(evt);
-	  m_ll1out->set_clock_number(clk);
+	  std::cout << "LL1UnpackPRDF::Process_Event - Event not found" << std::endl;
+	  return -1;
+	}
+      if (_event->getEvtType() >= 8)  /// special event where we do not read out the calorimeters
+	{
+	  return Fun4AllReturnCodes::DISCARDEVENT;
+	}
+      unsigned int clk;
+      unsigned int evt;
+      int nsamples;
+      int monitor;
+      for (int pid = m_packet_low; pid <= m_packet_high; pid++)
+	{
+	  Packet *packet = _event->getPacket(pid);
 
-	  int nchannels = packet->iValue(0, "CHANNELS");
-	  if (nchannels > m_nchannels) // packet is corrupted and reports too many channels
+	  if (packet)
 	    {
-	      return Fun4AllReturnCodes::DISCARDEVENT;
-	    }
+	      evt = packet->iValue(0, "EVTNR");
+	      clk = packet->iValue(0, "CLOCK");
+	      nsamples = packet->iValue(0, "SAMPLES");
+	      monitor = packet->iValue(0, "MONITOR");
 
-	  for (int iprim = 0; iprim <m_nprimitives ; iprim++)
-	    {
-
-	      if (m_detectorid == TriggerDefs::DetectorId::hcalDId)
-		{
-		  primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId((iprim < 12 ? "HCALOUT": "HCALIN")), TriggerDefs::GetPrimitiveId(m_ll1), iprim);
+	      if (!m_no_ll1out)
+		{	      
+		  m_ll1out->set_event_number(evt);
+		  m_ll1out->set_clock_number(clk);
 		}
-	      else 
+
+	      int nchannels = packet->iValue(0, "CHANNELS");
+	      int ntriggerwords =  packet->iValue(0, "TRIGGERWORDS");	    
+	      
+	      if (nchannels > m_nchannels) // packet is corrupted and reports too many channels
+		{	      
+		  return Fun4AllReturnCodes::DISCARDEVENT;
+		}
+
+	      
+	      for (int iprim = 0; iprim < m_nprimitives; iprim++)
 		{
-		  primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), iprim);
-		}	
-	      _trigger_primitive = new TriggerPrimitivev1(primkey);
-	      for (int channel = 0; channel < m_nchannels_per_primitive; channel++)
+
+		  primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), m_nprimitives*(pid - m_packet_low) + iprim);		  
+
+		  _trigger_primitive = new TriggerPrimitivev1(primkey);
+
+		  for (int channel = 0; channel < m_nchannels_per_primitive; channel++)
 		    {
-		      sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), iprim, channel);
+		      sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), m_nprimitives*(pid - m_packet_low) + iprim, channel);
 		      _sum = new std::vector<unsigned int>();
-		      _sum->reserve(m_nsamples);
-		      for (int samp = 0; samp < m_nsamples; samp++)
+		      _sum->reserve(nsamples);
+		      for (int samp = 0; samp < nsamples; samp++)
 			{
 			  _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim*m_nchannels_per_primitive+channel)));
 			}
-
+		      
 		      _trigger_primitive->add_sum(sumkey, _sum);
 		    }
-	      m_trigger_primitives->add_primitive(primkey, _trigger_primitive);
-	    }
-	  for (int channel = 0; channel < m_ntriggerwords;channel++)
-	    {
-	      _sum = new std::vector<unsigned int>();
-	      _sum->reserve(m_nsamples);
-	      for (int samp = 0; samp < m_nsamples; samp++)
-		{
-		  _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives*m_nchannels_per_primitive+channel)));
+		  m_trigger_primitives->add_primitive(primkey, _trigger_primitive);
 		}
 
-	      m_ll1out->add_word(channel, _sum);
+	      if (!m_no_ll1out)
+		{
+		  for (int channel = 0; channel < ntriggerwords;channel++)
+		    {
+		      _sum = new std::vector<unsigned int>();
+		      _sum->reserve(nsamples);
+		      for (int samp = 0; samp < nsamples; samp++)
+			{
+			  _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives*m_nchannels_per_primitive+channel)));
+			  
+			}
+		      
+		      m_ll1out->add_word( (channel%32 & 0xff) + ((((channel/32) + monitor*2) & 0xff) << 8), _sum);
+		    }
+
+
+		}
+	      else
+		{
+		  TriggerDefs::TriggerId tid = TriggerDefs::TriggerId::noneTId;
+		  TriggerDefs::PrimitiveId prid = TriggerDefs::PrimitiveId::nonePId;
+
+		  switch (monitor)
+		    {
+		    case 0:
+		    case 1:
+		    case 2:
+		      tid = TriggerDefs::TriggerId::pairTId;
+		      prid = TriggerDefs::PrimitiveId::pairPId;
+
+		      break;
+		    case 3:
+
+		      tid = TriggerDefs::TriggerId::jetTId;
+		      prid = TriggerDefs::PrimitiveId::jetPId;
+		      break;
+		    }
+
+		  m_trigger_primitives_ll1->setTriggerType(tid);
+		  primkey = TriggerDefs::getTriggerPrimKey(tid, TriggerDefs::GetDetectorId(m_ll1), prid, pid - m_packet_low);		  
+
+		  _trigger_primitive = new TriggerPrimitivev1(primkey);
+
+		  for (int channel = 0; channel < ntriggerwords; channel++)
+		    {
+		      sumkey = TriggerDefs::getTriggerSumKey(tid, TriggerDefs::GetDetectorId(m_ll1), prid, pid - m_packet_low, channel);
+		      _sum = new std::vector<unsigned int>();
+		      _sum->reserve(nsamples);
+		      
+		      for (int samp = 0; samp < nsamples; samp++)
+			{
+			  _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives*m_nchannels_per_primitive+channel)));
+			}
+		      _trigger_primitive->add_sum(sumkey, _sum);
+		    }
+		  m_trigger_primitives_ll1->add_primitive(primkey, _trigger_primitive);
+
+		}
 	      
+	      delete packet;
 	    }
-	
-	  delete packet;
-	}
-      else // if the packet is missing treat constitutent channels as zero suppressed 
-	{
-	  return Fun4AllReturnCodes::ABORTEVENT;
+	  // else // if the packet is missing treat constitutent channels as zero suppressed 
+	  //   {
+	  //     for (int iprim = 0; iprim < m_nprimitives; iprim++)
+	  // 	{
+	  // 	  if (m_detectorid == TriggerDefs::DetectorId::hcalDId)
+	  // 	    {
+	  // 	      primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId((iprim < 12 ? "HCALOUT": "HCALIN")), TriggerDefs::GetPrimitiveId(m_ll1), m_nprimitives*(pid - m_packet_low) + iprim);
+	  // 	    }
+	  // 	  else 
+	  // 	    {
+	  // 	      primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), m_nprimitives*(pid - m_packet_low) + iprim);
+	  // 	    }	
+
+	  // 	  _trigger_primitive = new TriggerPrimitivev1(primkey);
+
+	  // 	  for (int channel = 0; channel < m_nchannels_per_primitive; channel++)
+	  // 	    {
+	  // 	      sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), m_nprimitives*(pid - m_packet_low) + iprim, channel);
+	  // 	      _sum = new std::vector<unsigned int>();
+	  // 	      _sum->reserve(nsamples);
+	  // 	      for (int samp = 0; samp < nsamples; samp++)
+	  // 		{
+	  // 		  _sum->push_back(0); //static_cast<unsigned int>(packet->iValue(samp, iprim*m_nchannels_per_primitive+channel)));
+	  // 		}
+
+	  // 	      _trigger_primitive->add_sum(sumkey, _sum);
+	  // 	    }
+	  // 	  m_trigger_primitives->add_primitive(primkey, _trigger_primitive);
+	  // 	}
+
+	  //     for (int channel = 0; channel < m_ntriggerwords;channel++)
+	  // 	{
+	  // 	  _sum = new std::vector<unsigned int>();
+	  // 	  _sum->reserve(nsamples);
+	  // 	  for (int samp = 0; samp < nsamples; samp++)
+	  // 	    {
+	  // 	      _sum->push_back(0);
+	  // 	    }
+
+	  // 	  m_ll1out->add_word(channel, _sum);
+		  
+	  // 	}
+	      
+	  //   }
 	}
     }
-  }
-  else  // placeholder for adding simulation
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
 
-  if (_verbose) { m_ll1out->identify();
-}
-
+  if (Verbosity()) 
+    { 
+    if (m_no_ll1out)
+      {
+	std::cout << " PRIMITIVES LL1: " << std::endl;
+	m_trigger_primitives_ll1->identify();
+      }
+    else
+      {
+	std::cout << " LL1 OUT: " << std::endl;
+	m_ll1out->identify();
+      }
+  }
+  if (Verbosity()) { 
+    std::cout << "PRIMITIVES: " << std::endl;
+    m_trigger_primitives->identify();
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -239,13 +349,13 @@ int LL1PacketGetter::CreateNodeTree(PHCompositeNode *topNode)
   PHNodeIterator nodeItr(topNode);
   // DST node
   PHCompositeNode *dst_node = dynamic_cast<PHCompositeNode *>(
-      nodeItr.findFirst("PHCompositeNode", "DST"));
+							      nodeItr.findFirst("PHCompositeNode", "DST"));
   if (!dst_node)
-  {
-    std::cout << "PHComposite node created: DST" << std::endl;
-    dst_node = new PHCompositeNode("DST");
-    topNode->addNode(dst_node);
-  }
+    {
+      std::cout << "PHComposite node created: DST" << std::endl;
+      dst_node = new PHCompositeNode("DST");
+      topNode->addNode(dst_node);
+    }
   // towers
   PHNodeIterator dstIter(dst_node);
 
@@ -256,54 +366,35 @@ int LL1PacketGetter::CreateNodeTree(PHCompositeNode *topNode)
       ll1Node = new PHCompositeNode("LL1");
       dst_node->addNode(ll1Node);
     }
-  switch (m_detectorid) 
+
+  if (!m_no_ll1out)
+    {  
+      LL1Out *ll1out = findNode::getClass<LL1Out>(ll1Node, m_ll1_nodename.c_str());
+      if (!ll1out)
+	{
+	  ll1out = new LL1Outv1(m_trigger, m_ll1);
+	  PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, m_ll1_nodename.c_str(), "PHObject");
+	  ll1Node->addNode(LL1OutNode);
+	}
+    }
+  else
     {
-    case TriggerDefs::DetectorId::mbdDId :
-      {
-	LL1Out *ll1out = findNode::getClass<LL1Out>(ll1Node, "LL1OUT_RAW_MBD");
-	if (!ll1out)
-	  {
-	    ll1out = new LL1Outv1(m_trigger, m_ll1);
-	    PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, "LL1OUT_RAW_MBD", "PHObject");
-	    ll1Node->addNode(LL1OutNode);
-	  }
-	TriggerPrimitiveContainer *primout = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, "TRIGGERPRIMITIVES_RAW_MBD");
-	if (!primout)
-	  {
-	    primout = new TriggerPrimitiveContainerv1();
-	    PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(primout, "TRIGGERPRIMITIVES_RAW_MBD", "PHObject");
-	    ll1Node->addNode(LL1OutNode);
-	  }
-
-	break;
-      }
-    case TriggerDefs::DetectorId::hcalDId :
-    case TriggerDefs::DetectorId::hcalinDId :
-    case TriggerDefs::DetectorId::hcaloutDId :
-      {
-	LL1Out *ll1out = findNode::getClass<LL1Out>(ll1Node, "LL1OUT_RAW_HCAL");
-	if (!ll1out)
-	  {
-	    ll1out = new LL1Outv1(m_trigger, m_ll1);
-	    PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, "LL1OUT_RAW_HCAL", "PHObject");
-	    ll1Node->addNode(LL1OutNode);
-	  }
-	TriggerPrimitiveContainer *primout = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, "TRIGGERPRIMITIVES_RAW_HCAL");
-	if (!primout)
-	  {
-	    primout = new TriggerPrimitiveContainerv1();
-	    PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(primout, "TRIGGERPRIMITIVES_RAW_HCAL", "PHObject");
-	    ll1Node->addNode(LL1OutNode);
-	  }
-
-	break;
-      }
-    default:
-      std::cout <<"This Packet Getter not implemented yet."<<std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-      
-      break;
+      TriggerPrimitiveContainer *primoutll1 = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, m_triggerprimitive_ll1_nodename.c_str());
+      if (!primoutll1)
+	{
+	  primoutll1 = new TriggerPrimitiveContainerv1();
+	  PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(primoutll1, m_triggerprimitive_ll1_nodename, "PHObject");
+	  ll1Node->addNode(LL1OutNode);
+	}
 
     }
+  TriggerPrimitiveContainer *primout = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, m_triggerprimitive_nodename.c_str());
+  if (!primout)
+    {
+      primout = new TriggerPrimitiveContainerv1();
+      PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(primout, m_triggerprimitive_nodename, "PHObject");
+      ll1Node->addNode(LL1OutNode);
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }

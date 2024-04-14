@@ -35,7 +35,10 @@ void TriggerPrimitiveContainerv1::Reset()
 //______________________________________
 void TriggerPrimitiveContainerv1::identify(std::ostream& out) const
 {
-  out << __FILE__ << __FUNCTION__ << "Trigger key: "<<m_triggerkey<<std::endl;
+  out << " I am a Trigger Primitive Container :: Trigger key: "<< std::hex << m_triggerkey<<std::endl;
+
+  out << " TriggerId: " << TriggerDefs::getTriggerId_from_TriggerKey(m_triggerkey)<<std::endl;
+
   ConstRange range = getTriggerPrimitives();
   for (auto iter = range.first; iter != range.second; ++iter)
     {

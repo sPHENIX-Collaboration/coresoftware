@@ -46,6 +46,7 @@ class LL1Outv1 : public LL1Out
   void setTriggerKey(TriggerDefs::TriggerKey key) override {_trigger_key = key;}
 
   std::vector<unsigned int>* GetTriggerBits() override {return _trigger_bits;}
+  bool passesTrigger() override;
 
   void add_word(int key, std::vector<unsigned int>* trigger_words) override { _trigger_words[key] = trigger_words;}
   

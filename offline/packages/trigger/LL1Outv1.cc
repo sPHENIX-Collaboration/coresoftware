@@ -86,3 +86,15 @@ int LL1Outv1::isValid() const
   return 0;
 }
 
+bool LL1Outv1::passesTrigger()
+{
+
+  for (std::vector<unsigned int>::iterator it = _trigger_bits->begin(); it != _trigger_bits->end(); it++)
+    {
+      if ( (*it) )
+	{
+	  return true;
+	}
+    }
+  return false;
+}

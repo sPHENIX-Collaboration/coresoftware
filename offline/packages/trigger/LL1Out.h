@@ -23,7 +23,6 @@ class LL1Out : public PHObject
   LL1Out();
   ///
   virtual ~LL1Out();
-  
   /// Clear Event from memory
   virtual void Reset() override;
 
@@ -39,6 +38,8 @@ class LL1Out : public PHObject
   virtual void setTriggerKey(TriggerDefs::TriggerKey /*key*/) { }
 
   virtual std::vector<unsigned int>* GetTriggerBits() {return nullptr;}
+
+  virtual bool passesTrigger() {return 0;}
 
   virtual void add_word(int /*key*/, std::vector<unsigned int>* /*trigger_words*/) {}
   

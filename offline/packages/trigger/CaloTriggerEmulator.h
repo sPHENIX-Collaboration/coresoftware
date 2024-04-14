@@ -66,7 +66,11 @@ class CaloTriggerEmulator : public SubsysReco
   //! MakeTriggerOutput
   int process_primitives();
 
+  int process_organizer();
+
   int process_trigger();
+
+  unsigned int getBits(unsigned int sum);
 
   int Download_Calibrations();
 
@@ -77,12 +81,22 @@ class CaloTriggerEmulator : public SubsysReco
   void setEmcalOffset(float off){m_emcal_lut_offset = off;}
   void setEmcalFloor(float floor){m_emcal_lut_floor = floor;}
 
+  void setTriggerSample(int s){_m_trig_sample = s;}
+  void setTriggerDelay(int d){_m_trig_sub_delay = d + 1;}
+
   void useHCALIN(bool use);
   void useHCALOUT(bool use);
   void useEMCAL(bool use);
 
   void setNSamples(int nsamples) { m_nsamples = nsamples; }
   void setThreshold(int threshold) { _m_threshold = threshold; }
+  void setThreshold(int t1, int t2, int t3, int t4) 
+  { 
+    m_threshold_calo[0] = t1; 
+    m_threshold_calo[1] = t2;
+    m_threshold_calo[2] = t3;
+    m_threshold_calo[3] = t4;
+  }
 
   bool CheckFiberMasks(TriggerDefs::TriggerPrimKey key);
   bool CheckChannelMasks(TriggerDefs::TriggerSumKey key);
@@ -128,6 +142,10 @@ class CaloTriggerEmulator : public SubsysReco
 
   TriggerPrimitiveContainer *_primitives_emcal = nullptr;
 
+  TriggerPrimitiveContainer *_primitives_hcal_ll1 = nullptr;
+
+  TriggerPrimitiveContainer *_primitives_emcal_ll1 = nullptr;
+
   TriggerPrimitive *_primitive = nullptr;
 
   std::vector<unsigned int> *_sum  = nullptr;
@@ -136,6 +154,7 @@ class CaloTriggerEmulator : public SubsysReco
   TProfile *avg_primitive  = nullptr;
   TH2D *peak_primitive = nullptr;
   TH2D *primitives = nullptr;
+  TH2D *cosmic_peak_primitive = nullptr;
   TH2D *jet_trigger_fire_map = nullptr;
   TH2D *trigger_fire_map = nullptr;
   TH2D *h2_line_up = nullptr;
@@ -218,17 +237,21 @@ class CaloTriggerEmulator : public SubsysReco
   float m_emcal_GeV_per_lut{0.0};
   float m_emcal_lut_offset{1.0};
   float m_emcal_lut_floor{4};
-  std::map<unsigned int, std::vector<int>*> m_peak_sub_ped_emcal;
-  std::map<unsigned int, std::vector<int>*> m_peak_sub_ped_mbd;
-  std::map<unsigned int, std::vector<int>*> m_peak_sub_ped_hcalin;
-  std::map<unsigned int, std::vector<int>*> m_peak_sub_ped_hcalout;
+  std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_emcal;
+  std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_mbd;
+  std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_hcalin;
+  std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_hcalout;
+
   //! Verbosity.
   int _nevent;
   int _npassed;
   int _n_sums;
   int _n_primitives;
   int _m_trig_sub_delay;
+  int _m_trig_sample{-1};
+
   unsigned int _m_threshold;
+  unsigned int m_threshold_calo[4];;
   int m_isdata;
   int m_nsamples = 31;
   int _idx;
