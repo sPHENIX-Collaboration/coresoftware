@@ -178,30 +178,26 @@ std::vector<TrkrDefs::cluskey> TrackQA::get_cluster_keys(SvtxTrack* track)
 std::tuple<float, float, float, float>
 TrackQA::lineFitClusters(std::vector<Acts::Vector3>& positions) const
 {
-  TrackFitUtils::position_vector_t xypoints, rzpoints;
+  TrackFitUtils::position_vector_t xypoints, yzpoints;
   for (auto& pos : positions)
   {
     float clusr = std::sqrt(QAG4Util::square(pos.x()) + QAG4Util::square(pos.y()));
-    if (pos.y() < 0)
-    {
-      clusr *= -1;
-    }
     // exclude silicon and tpot clusters for now
     if (std::fabs(clusr) > 80 || std::fabs(clusr) < 30)
     {
       continue;
     }
-    rzpoints.push_back(std::make_pair(pos.z(), clusr));
+    yzpoints.push_back(std::make_pair(pos.z(), pos.y()));
     xypoints.push_back(std::make_pair(pos.x(), pos.y()));
   }
 
   auto xyparams = TrackFitUtils::line_fit(xypoints);
-  auto rzparams = TrackFitUtils::line_fit(rzpoints);
+  auto yzparams = TrackFitUtils::line_fit(yzpoints);
 
   return std::make_tuple(std::get<0>(xyparams),
                          std::get<1>(xyparams),
-                         std::get<0>(rzparams),
-                         std::get<1>(rzparams));
+                         std::get<0>(yzparams),
+                         std::get<1>(yzparams));
 }
 //____________________________________________________________________________..
 int TrackQA::EndRun(const int runnumber)
