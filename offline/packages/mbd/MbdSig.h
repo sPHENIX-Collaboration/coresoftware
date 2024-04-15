@@ -30,6 +30,7 @@ class MbdSig
 
   // MbdSig& operator= (const MbdSig& obj) = delete; // never used
 
+  void SetNSamples( const int s ) { _nsamples = s; }
   void SetY(const Float_t *y, const int invert = 1);
   void SetXY(const Float_t *x, const Float_t *y, const int invert = 1);
 
@@ -112,13 +113,13 @@ class MbdSig
 
   void PadUpdate();
   void Print();
-  void Verbose(const int v) { verbose = v; }
+  void Verbose(const int v) { _verbose = v; }
 
  private:
   void Init();
 
-  int ch;
-  int nsamples;
+  int _ch;
+  int _nsamples;
   int _status{0};
 
   int _evt_counter{0};
@@ -178,7 +179,7 @@ class MbdSig
   Double_t fit_min_time{};  //! min time for fit, in original units of waveform data
   Double_t fit_max_time{};  //! max time for fit, in original units of waveform data
 
-  int verbose;
+  int _verbose;
 };
 
 #endif  // __MBDSIG_H__
