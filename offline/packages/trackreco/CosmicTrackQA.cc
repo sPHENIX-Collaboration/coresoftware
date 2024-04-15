@@ -56,6 +56,12 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
   auto h_gyresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "gylineresiduals").c_str()));
   auto h_gxresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "gxlineresiduals").c_str()));
 
+  auto h_lxfitresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "lxfitresiduals").c_str()));
+  auto h_lzfitresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "lzfitresiduals").c_str()));
+  auto h_gzfitresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "gzfitresiduals").c_str()));
+  auto h_gyfitresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "gyfitresiduals").c_str()));
+  auto h_gxfitresid = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "gxfitresiduals").c_str()));
+
   m_tracks += trackmap->size();
   for (const auto& [key, track] : *trackmap)
   {
@@ -81,7 +87,6 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
     float pt = std::sqrt(QAG4Util::square(px) + QAG4Util::square(py));
     float eta = std::atanh(pz / std::sqrt(QAG4Util::square(pt) + QAG4Util::square(pz)));
     float phi = std::atan2(py, px);
-    h_ntrack->Fill(phi, eta);
 
     int nmaps = 0;
     int nintt = 0;
@@ -108,8 +113,11 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
     }
     if (nmaps == 0)
     {
-      continue;
+      //continue;
     }
+
+    h_ntrack->Fill(phi, eta);
+
     int i = 0;
     for (auto& ckey : ckeys)
     {
@@ -153,6 +161,41 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
       h_gyresid->Fill(layer, glob.y() - intersection.y());
       h_gzresid->Fill(layer, glob.z() - intersection.z());
     }
+
+    for (auto it = track->begin_states(); it != track->end_states(); it++)
+    {
+      auto state = *it->second;
+      Acts::Vector3 stateglob(state.get_x(), state.get_y(), state.get_z());
+      auto cluskey = state.get_cluskey();
+      auto cluster = clustermap->findCluster(cluskey);
+      auto clusglob = geometry->getGlobalPosition(cluskey, cluster);
+      auto clusloc = geometry->getLocalCoords(cluskey, cluster);
+      auto surf = geometry->maps().getSurface(cluskey, cluster);
+      auto stateloc = surf->globalToLocal(geometry->geometry().getGeoContext(),
+                                     stateglob * Acts::UnitConstants::cm,
+                                     surf->normal(geometry->geometry().getGeoContext()));
+      float statelx = NAN;
+      float statelz = NAN;
+      if (stateloc.ok())
+      {
+        Acts::Vector2 loc = stateloc.value() / Acts::UnitConstants::cm;
+        statelx = loc(0);
+        statelz = loc(1);
+      }
+      else
+      {
+        Acts::Vector3 loc = surf->transform(geometry->geometry().getGeoContext()).inverse() * (stateglob * Acts::UnitConstants::cm);
+        loc /= Acts::UnitConstants::cm;
+        statelx = loc(0);
+        statelz = loc(1);
+      }
+      h_lxfitresid->Fill(TrkrDefs::getLayer(cluskey), clusloc.x() - statelx);
+      h_lzfitresid->Fill(TrkrDefs::getLayer(cluskey), clusloc.y() - statelz);
+      h_gxfitresid->Fill(TrkrDefs::getLayer(cluskey), clusglob.x() - stateglob.x());
+      h_gyfitresid->Fill(TrkrDefs::getLayer(cluskey), clusglob.y() - stateglob.y());
+      h_gzfitresid->Fill(TrkrDefs::getLayer(cluskey), clusglob.z() - stateglob.z());
+    }
+
     h_nmaps->Fill(nmaps);
     h_nintt->Fill(nintt);
     h_ntpc->Fill(ntpc);
@@ -250,35 +293,35 @@ void CosmicTrackQA::createHistos()
   }
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "lxlineresiduals").c_str(),
-                      "Local x residuals", 57, 0, 57, 1000, -10, 10);
+                      "Local x HF fit residuals", 57, 0, 57, 1000, -10, 10);
     h->GetXaxis()->SetTitle("Layer");
     h->GetYaxis()->SetTitle("l_{x}^{clus}-l_{x}^{state} [cm]");
     hm->registerHisto(h);
   }
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "lzlineresiduals").c_str(),
-                      "Local z residuals", 57, 0, 57, 1000, -10, 10);
+                      "Local z HF fit residuals", 57, 0, 57, 1000, -10, 10);
     h->GetXaxis()->SetTitle("Layer");
     h->GetYaxis()->SetTitle("l_{z}^{clus}-l_{z}^{state} [cm]");
     hm->registerHisto(h);
   }
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "gzlineresiduals").c_str(),
-                      "Global z residuals", 57, 0, 57, 1000, -10, 10);
+                      "Global z HF fit residuals", 57, 0, 57, 1000, -10, 10);
     h->GetXaxis()->SetTitle("Layer");
     h->GetYaxis()->SetTitle("g_{z}^{clus}-g_{z}^{state} [cm]");
     hm->registerHisto(h);
   }
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "gylineresiduals").c_str(),
-                      "Global y residuals", 57, 0, 57, 1000, -10, 10);
+                      "Global y HF fit residuals", 57, 0, 57, 1000, -10, 10);
     h->GetXaxis()->SetTitle("Layer");
     h->GetYaxis()->SetTitle("g_{y}^{clus}-g_{y}^{state} [cm]");
     hm->registerHisto(h);
   }
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "gxlineresiduals").c_str(),
-                      "Global x residuals", 57, 0, 57, 1000, -10, 10);
+                      "Global x HF fit residuals", 57, 0, 57, 1000, -10, 10);
     h->GetXaxis()->SetTitle("Layer");
     h->GetYaxis()->SetTitle("g_{x}^{clus}-g_{x}^{state} [cm]");
     hm->registerHisto(h);
@@ -296,6 +339,42 @@ void CosmicTrackQA::createHistos()
                       "Num reconstructed tracks per run", m_runbins, m_beginRun, m_endRun, 100, 0, 1);
     h->GetYaxis()->SetTitle("N_{tracks}/event");
     h->GetXaxis()->SetTitle("Run number");
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "lxfitresiduals").c_str(),
+                      "Local x KF fit residuals", 57, 0, 57, 1000, -10, 10);
+    h->GetXaxis()->SetTitle("Layer");
+    h->GetYaxis()->SetTitle("l_{x}^{clus}-l_{x}^{state} [cm]");
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "lzfitresiduals").c_str(),
+                      "Local z KF fit residuals", 57, 0, 57, 1000, -10, 10);
+    h->GetXaxis()->SetTitle("Layer");
+    h->GetYaxis()->SetTitle("l_{z}^{clus}-l_{z}^{state} [cm]");
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "gzfitresiduals").c_str(),
+                      "Global z KF fit residuals", 57, 0, 57, 1000, -10, 10);
+    h->GetXaxis()->SetTitle("Layer");
+    h->GetYaxis()->SetTitle("g_{z}^{clus}-g_{z}^{state} [cm]");
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "gyfitresiduals").c_str(),
+                      "Global y KF fit residuals", 57, 0, 57, 1000, -10, 10);
+    h->GetXaxis()->SetTitle("Layer");
+    h->GetYaxis()->SetTitle("g_{y}^{clus}-g_{y}^{state} [cm]");
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "gxfitresiduals").c_str(),
+                      "Global x KF fit residuals", 57, 0, 57, 1000, -10, 10);
+    h->GetXaxis()->SetTitle("Layer");
+    h->GetYaxis()->SetTitle("g_{x}^{clus}-g_{x}^{state} [cm]");
     hm->registerHisto(h);
   }
 }
