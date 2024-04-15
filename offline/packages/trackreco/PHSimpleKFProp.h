@@ -51,6 +51,7 @@ class PHSimpleKFProp : public SubsysReco
     if(rescale > 0)
       { _fieldDir = -1; }
   }
+  void magFieldFile(const std::string &fname) { m_magField = fname; }
   void set_max_window(double s){_max_dist = s;}
   void useConstBField(bool opt){_use_const_field = opt;}
   void setConstBField(float b) { _const_field = b; }
@@ -149,6 +150,7 @@ class PHSimpleKFProp : public SubsysReco
   void publishSeeds(const std::vector<TrackSeed_v2>&);
 //   void MoveToVertex();
 
+  std::string m_magField = "";
   bool _use_const_field = false;
   float _const_field = 1.4;
   bool _use_fixed_clus_err = false;

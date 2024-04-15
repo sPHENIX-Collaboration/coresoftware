@@ -89,6 +89,7 @@ class PHCASeeding : public PHTrackSeeding
       _fieldDir = -1;     
   }
 
+  void magFieldFile(const std::string& fname) { m_magField = fname; }
   void useConstBField(bool opt){_use_const_field = opt;}
   void constBField(float b){_const_field = b;}
   void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
@@ -152,6 +153,8 @@ class PHCASeeding : public PHTrackSeeding
   bool _use_fixed_clus_err = false;
   bool _pp_mode = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
+
+  std::string m_magField = "";
 
   /// acts geometry
   ActsGeometry *tGeometry{nullptr};

@@ -22,6 +22,8 @@
 
 #include <phfield/PHFieldConfigv2.h>
 
+#include <ffamodules/CDBInterface.h>
+
 // trackbase_historic includes
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
@@ -955,9 +957,15 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
       PHFieldConfigv1 fcfg;
       fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
       char *calibrationsroot = getenv("CALIBRATIONROOT");
-      assert(calibrationsroot);
-      auto magField = std::string(calibrationsroot) +
+      std::string magField;
+      if (calibrationsroot != nullptr)
+      {
+       magField = std::string(calibrationsroot) +
 	std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+      }
+
+      magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);
+
       fcfg.set_filename(magField);
       field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
     }
