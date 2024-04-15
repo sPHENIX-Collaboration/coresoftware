@@ -101,7 +101,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
 {
 //  TFile* f = new TFile("/sphenix/u/mjpeters/macros_hybrid/detectors/sPHENIX/pull.root", "RECREATE");
 //  TNtuple* ntp = new TNtuple("pull","pull","cx:cy:cz:xerr:yerr:zerr:tx:ty:tz:layer:xsize:ysize:phisize:phierr:zsize");
-  std::vector<TrackSeed_v1> seeds_vector;
+  std::vector<TrackSeed_v2> seeds_vector;
   std::vector<Eigen::Matrix<double,6,6>> alice_seeds_vector;
   int nseeds = 0;
   int ncandidates = -1;
@@ -409,7 +409,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     if(checknan(track_curvature,"curvature",nseeds)) continue;
     double track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bzconst*get_Bz(track_x,track_y,track_z);
     if(checknan(track_curverr,"curvature error",nseeds)) continue;
-    TrackSeed_v1 track;
+    TrackSeed_v2 track;
 //    track.set_vertex_id(_vertex_ids[best_vtx]);
     for (unsigned int j = 0; j < trackKeyChain.size(); ++j)
     {
@@ -420,7 +420,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     if(trackSeed.GetQPt()<0) track_charge = -1 * _fieldDir;
     else track_charge = 1 * _fieldDir;
     
-    double s = sin(track_phi);
+    double sinphi = sin(track_phi); // who had the idea to use s here?????
     double c = cos(track_phi);
     double p = trackSeed.GetSinPhi();
     
@@ -489,7 +489,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     // py = pX*sin(track_phi) + pY*cos(track_phi)
     // pz = pt*(dz/ds)
     Eigen::Matrix<double,6,5> J;
-    J(0,0) = -s; // dx/dY
+    J(0,0) = -sinphi; // dx/dY
     J(0,1) = 0.; // dx/dZ
     J(0,2) = 0.; // dx/d(sinphi)
     J(0,3) = 0.; // dx/d(dz/ds)
@@ -509,15 +509,15 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
 
     J(3,0) = 0.; // dpx/dY
     J(3,1) = 0.; // dpx/dZ
-    J(3,2) = -track_pt*(p*c/sqrt(1-p*p)+s); // dpx/d(sinphi)
+    J(3,2) = -track_pt*(p*c/sqrt(1-p*p)+sinphi); // dpx/d(sinphi)
     J(3,3) = 0.; // dpx/d(dz/ds)
-    J(3,4) = track_pt*track_pt*track_charge*(p*s-c*sqrt(1-p*p)); // dpx/d(Q/pt)
+    J(3,4) = track_pt*track_pt*track_charge*(p*sinphi-c*sqrt(1-p*p)); // dpx/d(Q/pt)
 
     J(4,0) = 0.; // dpy/dY
     J(4,1) = 0.; // dpy/dZ
-    J(4,2) = track_pt*(c-p*s/sqrt(1-p*p)); // dpy/d(sinphi)
+    J(4,2) = track_pt*(c-p*sinphi/sqrt(1-p*p)); // dpy/d(sinphi)
     J(4,3) = 0.; // dpy/d(dz/ds)
-    J(4,4) = -track_pt*track_pt*track_charge*(p*c+s*sqrt(1-p*p)); // dpy/d(Q/pt)
+    J(4,4) = -track_pt*track_pt*track_charge*(p*c+sinphi*sqrt(1-p*p)); // dpy/d(Q/pt)
 
     J(5,0) = 0.; // dpz/dY
     J(5,1) = 0.; // dpz/dZ

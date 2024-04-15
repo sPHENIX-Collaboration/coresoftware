@@ -25,7 +25,7 @@ int DumpMbdGeom::process_Node(PHNode *myNode)
   }
   if (mbdgeom)
   {
-    for (int i=0; i<128; i++)
+    for (int i = 0; i < 128; i++)
     {
       *fout << "get_x(" << i << "): " << mbdgeom->get_x(i) << std::endl;
       *fout << "get_y(" << i << "): " << mbdgeom->get_y(i) << std::endl;

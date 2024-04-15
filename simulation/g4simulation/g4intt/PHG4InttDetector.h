@@ -51,6 +51,10 @@ class PHG4InttDetector : public PHG4Detector
   {
     return m_DetectorType;
   }
+  void useSurveyGeometry(bool b)
+  {
+    useSurvey = b;
+  }
 
   std::map<G4VPhysicalVolume *, std::tuple<int, int, int, int>>::const_iterator get_ActiveVolumeTuple(G4VPhysicalVolume *physvol) const;
   std::map<G4LogicalVolume *, std::tuple<int, int>>::const_iterator get_PassiveVolumeTuple(G4LogicalVolume *logvol) const;
@@ -59,18 +63,20 @@ class PHG4InttDetector : public PHG4Detector
   void AddGeometryNode();
   int ConstructIntt(G4LogicalVolume *sandwich);
 
-  PHG4InttDisplayAction *m_DisplayAction = nullptr;
-  PHParametersContainer *m_ParamsContainer = nullptr;
+  PHG4InttDisplayAction *m_DisplayAction{nullptr};
+  PHParametersContainer *m_ParamsContainer{nullptr};
+
+  double m_PosZ[8][2]{};
+  double m_SensorRadius[8]{};
+  double m_StripOffsetX[8]{};
+
+  int m_IsSupportActive{0};
+  int m_IsEndcapActive{0};
+
+  bool useSurvey{true};
 
   std::string m_DetectorType;
   std::string m_SuperDetector;
-
-  int m_IsSupportActive = 0;
-  int m_IsEndcapActive = 0;
-
-  double m_PosZ[8][2];
-  double m_SensorRadius[8];
-  double m_StripOffsetX[8];
 
   std::set<G4LogicalVolume *> m_ActiveLogVols;
   std::map<int, int> m_IsActiveMap;

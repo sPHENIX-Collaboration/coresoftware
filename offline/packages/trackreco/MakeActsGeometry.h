@@ -74,6 +74,7 @@ class MakeActsGeometry : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+  // void useInttSurveyGeom(const bool useSurveyGeom) { m_useInttSurveyGeom = useSurveyGeom; }
 
   void setMvtxDev(double array[6])
   {
@@ -209,7 +210,10 @@ class MakeActsGeometry : public SubsysReco
   PHG4TpcCylinderGeomContainer* m_geomContainerTpc = nullptr;
   TGeoManager* m_geoManager = nullptr;
 
-  bool m_inttSurvey = false;
+  // Switch to use or not use the INTT survey geometry
+  bool m_inttSurvey = true;
+  const float m_inttbarrelcenter_survey_x = 0.4026857142857132 / 10.;
+  const float m_inttbarrelcenter_survey_y = -2.886627321428573 / 10.;
 
   bool m_useField = true;
   std::map<uint8_t, double> m_misalignmentFactor;
@@ -238,7 +242,7 @@ class MakeActsGeometry : public SubsysReco
   double m_modulePhiStart = 0;
 
   /// Debugger for printing out tpc active volumes
-  int nprint_tpc = 0;
+//  int nprint_tpc = 0;
 
   /// TPC TGeoManager editing box surfaces subdivisions
   const static int m_nTpcSectors = 3;
@@ -264,7 +268,7 @@ class MakeActsGeometry : public SubsysReco
   ActsGeometry *m_actsGeometry = nullptr;
 
   /// Verbosity value handed from PHActsSourceLinks
-  int m_verbosity = 0;
+//  int m_verbosity = 0;
 
   double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
 

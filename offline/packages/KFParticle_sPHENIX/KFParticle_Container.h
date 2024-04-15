@@ -5,7 +5,6 @@
 
 #include <cstddef>   // for size_t
 #include <iostream>  // for cout, ostream
-#include <iterator>
 #include <map>
 
 class KFParticle;

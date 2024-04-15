@@ -122,6 +122,8 @@ class TrackResiduals : public SubsysReco
   float m_rzint = std::numeric_limits<float>::quiet_NaN();
   float m_xyslope = std::numeric_limits<float>::quiet_NaN();
   float m_xyint = std::numeric_limits<float>::quiet_NaN();
+  float m_yzslope = std::numeric_limits<float>::quiet_NaN();
+  float m_yzint = std::numeric_limits<float>::quiet_NaN();
   float m_R = std::numeric_limits<float>::quiet_NaN();
   float m_X0 = std::numeric_limits<float>::quiet_NaN();
   float m_Y0 = std::numeric_limits<float>::quiet_NaN();

@@ -27,6 +27,7 @@ class EventplaneinfoMap : public PHObject
   ~EventplaneinfoMap() override {}
 
   void identify(std::ostream& os = std::cout) const override { os << "EventplaneinfoMap base class" << std::endl; }
+  virtual bool empty() const {return true;}
   virtual void clear() {}
 
   virtual const Eventplaneinfo* get(unsigned int /*idkey*/) const { return nullptr; }

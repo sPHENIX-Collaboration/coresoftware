@@ -3,25 +3,21 @@
 #include <memory>
 #include <ostream>
 
-using namespace std;
-
 TowerBackgroundv1::TowerBackgroundv1()
-  : _v2(0)
-  , _Psi2(0)
-  , _nStrips(0)
-  , _nTowers(0)
 {
   _UE.resize(3, std::vector<float>(1, 0));
 }
 
-void TowerBackgroundv1::identify(ostream& os) const
+void TowerBackgroundv1::identify(std::ostream& os) const
 {
   os << "TowerBackground: " << std::endl;
   for (int n = 0; n < 3; n++)
   {
     os << " layer " << n << " : UE in " << _UE[n].size() << " eta bins: ";
-    for (unsigned int eta = 0; eta < _UE[n].size(); eta++)
-      os << _UE[n].at(eta) << " ";
+    for (float eta : _UE[n])
+    {
+      os << eta << " ";
+    }
     os << std::endl;
   }
 

@@ -3,14 +3,12 @@
 #ifndef G4MAIN_PHG4STACKINGACTION_H
 #define G4MAIN_PHG4STACKINGACTION_H
 
-#include <Geant4/G4UserStackingAction.hh>
+#include <Geant4/G4ClassificationOfNewTrack.hh>
 
-#include <set>
 #include <string>
 
 class G4Track;
 class PHCompositeNode;
-class PHG4Hit;
 
 class PHG4StackingAction
 {

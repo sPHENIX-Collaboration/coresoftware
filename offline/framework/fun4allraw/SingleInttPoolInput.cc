@@ -309,10 +309,24 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   {
     if (bcliter.second <= localbclk)
     {
-      // std::cout << "FEE " << bcliter.first << " bclk: "
-      // 		<< std::hex << bcliter.second << ", req: " << localbclk
-      // 		<< std::dec << std::endl;
-      return true;
+      uint64_t highest_bclk = m_InttRawHitMap.rbegin()->first;
+      if ((highest_bclk - m_InttRawHitMap.begin()->first) < MaxBclkDiff())
+      {
+        // std::cout << "FEE " << bcliter.first << " bclk: "
+        // 		<< std::hex << bcliter.second << ", req: " << localbclk
+        // 		<< std::dec << std::endl;
+        return true;
+      }
+      else
+      {
+        std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
+                  << " with stuck bclk: " << std::hex << bcliter.second
+                  << " current bco range: 0x" << m_InttRawHitMap.begin()->first
+                  << ", to: 0x" << highest_bclk << ", delta: " << std::dec
+                  << (highest_bclk - m_InttRawHitMap.begin()->first)
+                  << std::dec << std::endl;
+        m_FEEBclkMap.erase(bcliter.first);
+      }
     }
   }
   return false;

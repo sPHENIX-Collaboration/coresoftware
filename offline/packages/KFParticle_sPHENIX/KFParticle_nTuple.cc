@@ -17,7 +17,6 @@
 #include <cmath>
 #include <cstdlib>  // for abs, size_t
 #include <map>      // for map, _Rb_tree_iterator, map<>:...
-#include <utility>  // for pair
 
 class PHCompositeNode;
 class PHNode;
@@ -34,7 +33,7 @@ KFParticle_nTuple::KFParticle_nTuple()
   , m_detector_info(false)
   , m_calo_info(true)
   , m_use_intermediate_name(true)
-  , m_get_charge_conjugate_nTuple(true)
+  , m_get_charge_conjugate_nTuple(false)
   , m_tree(nullptr)
 {
 }  // Constructor

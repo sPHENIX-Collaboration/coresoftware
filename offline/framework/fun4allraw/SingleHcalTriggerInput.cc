@@ -29,11 +29,15 @@
 #include <set>
 #include <utility>  // for pair
 
+// it is 8 packets for the hcal, this number needs to be npackets+1
+// so it doesn't trigger the warning and exit. Setting it to 10
+static const int NHCALPACKETS = 10;
+
 SingleHcalTriggerInput::SingleHcalTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
   SubsystemEnum(InputManagerType::HCAL);
-  plist = new Packet *[2];  // two packets for the hcal in each file
+  plist = new Packet *[NHCALPACKETS];  // eight packets for the hcal in each file
 }
 
 SingleHcalTriggerInput::~SingleHcalTriggerInput()
@@ -84,11 +88,12 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 2);
-    if (npackets > 2)
+    int npackets = evt->getPacketList(plist, NHCALPACKETS);
+    if (npackets >= NHCALPACKETS)
     {
-      std::cout << PHWHERE << " Number of packets in array (2) too small for "
-                << npackets << std::endl;
+      std::cout << PHWHERE << " Packets array size " << NHCALPACKETS
+		<< " too small for " << Name()
+<< ", increase NHCALPACKETS and rebuild" << std::endl;
       exit(1);
     }
 
@@ -102,23 +107,40 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
+      int nr_channels = plist[i]->iValue(0, "CHANNELS");
+      int nr_samples = plist[i]->iValue(0, "SAMPLES");
       if (nr_modules > 3)
       {
 	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
 	gSystem->Exit(1);
       }
       uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
-      newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
+      newhit->setNrModules(nr_modules);
+      newhit->setNrSamples(nr_samples);
+      newhit->setNrChannels(nr_channels);
+      newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setEvtSequence(EventSequence);
+      newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
+      newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
+      newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
+      newhit->setCalcOddChecksum(plist[i]->iValue(0, "CALCODDCHECKSUM"));
+      newhit->setModuleAddress(plist[i]->iValue(0,"MODULEADDRESS"));
+      newhit->setDetId(plist[i]->iValue(0,"DETID"));
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
         newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
+        newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
+        newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
       }
-      for (int ipmt = 0; ipmt < 192; ipmt++)
+      for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
-        for (int isamp = 0; isamp < 31; isamp++)
+        newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
+        newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
+        newhit->setSuppressed(ipmt,plist[i]->iValue(ipmt,"SUPPRESSED"));
+        for (int isamp = 0; isamp < nr_samples; isamp++)
         {
           newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
         }
@@ -135,7 +157,10 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       }
       m_HcalPacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
-
+      if (ddump_enabled())
+      {
+	ddumppacket(plist[i]);
+      }
       delete plist[i];
     }
   }
