@@ -161,12 +161,16 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
       h_gyresid->Fill(layer, glob.y() - intersection.y());
       h_gzresid->Fill(layer, glob.z() - intersection.z());
     }
-
-    for (auto it = track->begin_states(); it != track->end_states(); it++)
+    std::cout << "state size " <<  track->size_states() << std::endl;
+    if(track->size_states() >1)
     {
-      auto state = *it->second;
-      Acts::Vector3 stateglob(state.get_x(), state.get_y(), state.get_z());
-      auto cluskey = state.get_cluskey();
+     
+    for (auto&& iter = track->begin_states(); iter != track->end_states(); ++iter)
+    {
+      const auto& [pathlength, state] = *iter;
+      std::cout << "are we in here " << std::endl;
+      Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
+      auto cluskey = state->get_cluskey();
       auto cluster = clustermap->findCluster(cluskey);
       auto clusglob = geometry->getGlobalPosition(cluskey, cluster);
       auto clusloc = geometry->getLocalCoords(cluskey, cluster);
@@ -176,6 +180,7 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
                                      surf->normal(geometry->geometry().getGeoContext()));
       float statelx = NAN;
       float statelz = NAN;
+      std::cout << "transform" << std::endl;
       if (stateloc.ok())
       {
         Acts::Vector2 loc = stateloc.value() / Acts::UnitConstants::cm;
@@ -189,13 +194,14 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
         statelx = loc(0);
         statelz = loc(1);
       }
+      std::cout << "fill" << std::endl;
       h_lxfitresid->Fill(TrkrDefs::getLayer(cluskey), clusloc.x() - statelx);
       h_lzfitresid->Fill(TrkrDefs::getLayer(cluskey), clusloc.y() - statelz);
       h_gxfitresid->Fill(TrkrDefs::getLayer(cluskey), clusglob.x() - stateglob.x());
       h_gyfitresid->Fill(TrkrDefs::getLayer(cluskey), clusglob.y() - stateglob.y());
       h_gzfitresid->Fill(TrkrDefs::getLayer(cluskey), clusglob.z() - stateglob.z());
     }
-
+    }
     h_nmaps->Fill(nmaps);
     h_nintt->Fill(nintt);
     h_ntpc->Fill(ntpc);
