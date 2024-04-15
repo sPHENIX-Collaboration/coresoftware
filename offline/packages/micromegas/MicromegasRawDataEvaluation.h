@@ -51,7 +51,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /// set number of RMS sigma used to defined static threshold on a given channel
   void set_n_sigma( double value ) { m_n_sigma = value; }
 
-  /// set minimum ADC value, disregarding pedestal and RMS. 
+  /// set minimum ADC value, disregarding pedestal and RMS.
   /** This removes faulty channels for which calibration has failed */
   void set_min_adc( double value ) { m_min_adc = value; }
 
@@ -97,7 +97,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
     unsigned short sample = 0;
     unsigned short adc = 0;
-    
+
     double pedestal = 0;
     double rms = 0;
 
@@ -141,7 +141,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
     unsigned short sample_max = 0;
     unsigned short adc_max = 0;
-    
+
     double pedestal = 0;
     double rms = 0;
 
@@ -160,31 +160,59 @@ class MicromegasRawDataEvaluation : public SubsysReco
     using List = std::vector<Waveform>;
   };
 
+  class TaggerInformation
+  {
+    public:
+
+    /// packet
+    unsigned int packet_id = 0;
+
+    /// tagger ttpe
+    int tagger_type = 0;
+    bool is_endat = false;
+    bool is_lvl1 = false;
+
+    /// ll1 bco
+    uint64_t bco = 0;
+
+    /// ll1 bco
+    uint64_t last_bco = 0;
+
+    /// counters
+    uint32_t lvl1_count = 0;
+    uint32_t endat_count = 0;
+
+    using List = std::vector<TaggerInformation>;
+
+  };
 
   class Container: public PHObject
   {
     public:
     void Reset();
-    
-    // number of taggers for each packet
-    std::vector<int> n_tagger;
-    
-    // number of waveform for each packet
-    std::vector<int> n_waveform;
 
+    TaggerInformation::List taggers;
     Waveform::List waveforms;
     Sample::List samples;
-    
-    // bco for this event
-    std::vector<uint64_t> lvl1_bco_list;
-    
-    // lvl1 count for this event
-    std::vector<uint32_t> lvl1_count_list;
-    
+
     ClassDef(Container,1)
   };
 
+  enum Flags
+  {
+    EvalSample = 1<<0,
+    EvalWaveform = 1<<1,
+    EvalTagger = 1<<2,
+  };
+
+  //! set flags. Should be a bitwise or of Flags enum
+  void set_flags( int flags )
+  { m_flags = flags; }
+
   private:
+
+  //! flags
+  int m_flags = EvalSample | EvalWaveform | EvalTagger;
 
   //! calibration filename
   std::string m_calibration_filename = "TPOT_Pedestal_000.root";
@@ -198,10 +226,10 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /// number of RMS sigma used to define threshold
   double m_n_sigma = 5;
 
-  //! minimum ADC value, disregarding pedestal and RMS. 
+  //! minimum ADC value, disregarding pedestal and RMS.
   /* This removes faulty channels for which calibration has failed */
   double m_min_adc = 50;
-  
+
   /// min sample for signal
   int m_sample_min = 0;
 
@@ -217,14 +245,14 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
   //! main branch
   Container* m_container = nullptr;
-  
+
   //! match fee bco to lvl1 bco
   using bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
 
   //! map fee_id to bco maps
   using fee_bco_matching_map_t = std::map<unsigned short, bco_matching_pair_t>;
   fee_bco_matching_map_t m_fee_bco_matching_map;
-  
+
   /// map waveforms to bco
   /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t,unsigned int>;
