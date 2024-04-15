@@ -84,9 +84,9 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   PHFieldConfigv1 fcfg;
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
   char* calibrationsroot = getenv("CALIBRATIONROOT");
- 
+
   std::string magField;
-  if(calibrationsroot != nullptr)
+  if (calibrationsroot != nullptr)
   {
     magField = std::string(calibrationsroot) +
                std::string("/Field/Map/sphenix3dtrackingmapxyz.root");
@@ -234,7 +234,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
-  for(unsigned int track_it = 0; track_it != _track_map->size(); ++track_it )
+  for (unsigned int track_it = 0; track_it != _track_map->size(); ++track_it)
   {
     if (Verbosity())
     {
@@ -290,7 +290,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       track->circleFitByTaubin(trackClusPositions, 7, 55);
       track->lineFit(trackClusPositions, 7, 55);
       float trackphi = track->get_phi(trackClusPositions);
-      track->set_phi(trackphi);    // make phi persistent
+      track->set_phi(trackphi);  // make phi persistent
       timer.stop();
       if (Verbosity() > 3)
       {
@@ -352,7 +352,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       pretrack.circleFitByTaubin(pretrackClusPositions, 7, 55);
       pretrack.lineFit(pretrackClusPositions, 7, 55);
       float pretrackphi = pretrack.get_phi(pretrackClusPositions);
-      pretrack.set_phi(pretrackphi);    // make phi persistent
+      pretrack.set_phi(pretrackphi);  // make phi persistent
 
       new_chains.push_back(PropagateTrack(&pretrack, prepair.second.at(0),
                                           globalPositions));
@@ -1105,7 +1105,10 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   for (unsigned int i = 0; i < propagated_track.size(); i++)
   {
     layers.push_back(TrkrDefs::getLayer(propagated_track[i]));
-    if (Verbosity()) {std::cout << layers[i] << std::endl;}
+    if (Verbosity())
+    {
+      std::cout << layers[i] << std::endl;
+    }
   }
   // then, propagate upward
   for (unsigned int l = old_layer - 1; l >= 7; l--)
@@ -1485,36 +1488,37 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, const Positi
 {
   int seed_index = 0;
 
-  for(auto& seed: seeds )
-  {     
+  for (auto& seed : seeds)
+  {
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
 
     PositionMap local;
-    std::transform( seed.begin_cluster_keys(), seed.end_cluster_keys(), std::inserter( local, local.end() ),
-      [positions](const auto& key){ return std::make_pair( key, positions.at(key) ); } );
+    std::transform(seed.begin_cluster_keys(), seed.end_cluster_keys(), std::inserter(local, local.end()),
+                   [positions](const auto& key)
+                   { return std::make_pair(key, positions.at(key)); });
 
     seed.circleFitByTaubin(local, 7, 55);
     seed.lineFit(local, 7, 55);
     float phi = seed.get_phi(local);
-    seed.set_phi(phi);    // make phi persistent
+    seed.set_phi(phi);  // make phi persistent
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
 
-    _track_map->insert(&seed); 
+    _track_map->insert(&seed);
 
-    if(Verbosity() > 0)
-      {     
-	std::cout << "Publishing seed " << seed_index
-		  << " q " << q
-		  << " qOverR " << fabs(seed.get_qOverR()) * q 
-		  << " x " << seed.get_x()
-		  << " y " << seed.get_y()
-		  << " z " << seed.get_z()
-		  << " pT " << seed.get_pt()
-		  << " eta " << seed.get_eta()
-		  << " phi " << seed.get_phi()
-		  << std::endl;
-      }
+    if (Verbosity() > 0)
+    {
+      std::cout << "Publishing seed " << seed_index
+                << " q " << q
+                << " qOverR " << fabs(seed.get_qOverR()) * q
+                << " x " << seed.get_x()
+                << " y " << seed.get_y()
+                << " z " << seed.get_z()
+                << " pT " << seed.get_pt()
+                << " eta " << seed.get_eta()
+                << " phi " << seed.get_phi()
+                << std::endl;
+    }
     seed_index++;
   }
 }
