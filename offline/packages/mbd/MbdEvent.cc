@@ -327,7 +327,10 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       _nsamples = p[ipkt]->iValue(0, "SAMPLES");
       {
         static int counter = 0;
-        if ( counter<4 ) std::cout << "NSAMPLES = " << _nsamples << std::endl;
+        if ( counter<2 )
+        {
+          std::cout << "NSAMPLES = " << _nsamples << std::endl;
+        }
         counter++;
       }
 
