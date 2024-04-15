@@ -31,7 +31,7 @@ MbdEvent::MbdEvent(const int cal_pass) :
 {
   // set default values
 
-  _nsamples = 31;  /// NEED TO MAKE THIS FLEXIBLE
+  _nsamples = MbdDefs::MAX_SAMPLES;  // Set to maximum initially, reset when we get a packet
   recoConsts *rc = recoConsts::instance();
   if (rc->FlagExist("MBD_TEMPLATEFIT"))
   {
@@ -324,6 +324,16 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     }
     if (p[ipkt])
     {
+      _nsamples = p[ipkt]->iValue(0, "SAMPLES");
+      {
+        static int counter = 0;
+        if ( counter<2 )
+        {
+          std::cout << "NSAMPLES = " << _nsamples << std::endl;
+        }
+        counter++;
+      }
+
       xmitclocks[ipkt] = static_cast<UShort_t>(p[ipkt]->iValue(0, "CLOCK"));
 
       femclocks[ipkt][0] = static_cast<UShort_t>(p[ipkt]->iValue(0, "FEMCLOCK"));
@@ -333,7 +343,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       {
         int feech = ipkt * NCHPERPKT + ich;
         // std::cout << "feech " << feech << std::endl;
-        for (int isamp = 0; isamp < MbdDefs::MAX_SAMPLES; isamp++)
+        for (int isamp = 0; isamp < _nsamples; isamp++)
         {
           m_adc[feech][isamp] = p[ipkt]->iValue(isamp, ich);
           m_samp[feech][isamp] = isamp;
@@ -348,6 +358,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
           */
         }
 
+        _mbdsig[feech].SetNSamples( _nsamples );
         _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
         //_mbdsig[feech].Print();
       }
