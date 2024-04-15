@@ -6,6 +6,7 @@
 #include "CaloWaveformProcessing.h"
 #include "CaloTowerDefs.h"
 
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
 #include <fun4all/SubsysReco.h>
 
 #include <limits>
@@ -87,6 +88,13 @@ class CaloTowerBuilder : public SubsysReco
   std::string m_inputNodePrefix {"WAVEFORM_"};
   std::string m_outputNodePrefix {"TOWERS_"};
   std::string TowerNodeName;
+
+  std::string m_fieldname;
+  std::string m_calibName;
+  std::string m_directURL = "";
+
+  CDBTTree *cdbttree = nullptr;
+
 };
 
 #endif  // CALOTOWERBUILDER_H
