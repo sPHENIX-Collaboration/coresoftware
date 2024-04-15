@@ -43,14 +43,20 @@ CaloTowerCalib::CaloTowerCalib(const std::string &name)
   , m_fieldname("")
   , m_runNumber(-1)
 {
-  if (Verbosity() > 0) std::cout << "CaloTowerCalib::CaloTowerCalib(const std::string &name) Calling ctor" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "CaloTowerCalib::CaloTowerCalib(const std::string &name) Calling ctor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
 CaloTowerCalib::~CaloTowerCalib()
 {
   delete cdbttree;
-  if (Verbosity() > 0) std::cout << "CaloTowerCalib::~CaloTowerCalib() Calling dtor" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "CaloTowerCalib::~CaloTowerCalib() Calling dtor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
@@ -223,7 +229,10 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  if (Verbosity() > 0) topNode->print();
+  if (Verbosity() > 0)
+  {
+    topNode->print();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -242,7 +251,7 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     float raw_amplitude = caloinfo_raw->get_energy();
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
-    if (calibconst==0)
+    if (calibconst == 0)
     {
       _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
     }

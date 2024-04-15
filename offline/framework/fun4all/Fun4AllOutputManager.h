@@ -134,6 +134,9 @@ class Fun4AllOutputManager : public Fun4AllBase
   //! output file name
   std::string m_OutFileName;
 
+  //! last output file name which was closed
+  std::string m_LastClosedFileName;
+
   //! vector of event selectors modules
   std::vector<std::string> m_EventSelectorsVector;
 

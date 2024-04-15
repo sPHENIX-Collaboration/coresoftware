@@ -34,11 +34,9 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>  // for begin, distance, end
-#include <map>
 #include <memory>   // for allocator_traits<>::value_type
 #include <string>   // for string
 #include <tuple>    // for tie, tuple
-#include <utility>  // for pair
 
 /// Create necessary objects
 KFParticle_Tools kfp_Tools_evtReco;
@@ -182,6 +180,26 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
           {
             finalTracks.insert(finalTracks.end(), potentialDaughters[j][matchIterators[j]].begin(), potentialDaughters[j][matchIterators[j]].end());
           }
+
+          bool have_duplicate_track = false;
+
+          for (size_t i = 0; i < finalTracks.size(); ++i)
+          {
+            for (size_t j = i + 1; j < finalTracks.size(); ++j)
+            {
+              if (finalTracks[i].Id() == finalTracks[j].Id())
+              {
+                have_duplicate_track = true;
+                break;
+              }
+            }
+            if (have_duplicate_track)
+            {
+              break;
+            }
+          }
+
+          if (have_duplicate_track) continue;
 
           // If there are daughter tracks coming from the mother not an intermediate, need to ensure that the intermeditate decay tracks aren't used again
           std::vector<int> goodTrackIndexAdv_withoutIntermediates = goodTrackIndexAdv;

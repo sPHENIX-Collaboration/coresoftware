@@ -25,16 +25,6 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
  public:
   Fun4AllStreamingInputManager(const std::string &name = "DUMMY", const std::string &dstnodename = "DST", const std::string &topnodename = "TOP");
   ~Fun4AllStreamingInputManager() override;
-  /*
-    enum enu_subsystem
-    {
-      MVTX = 1,
-      INTT = 2,
-      TPC = 3,
-      MICROMEGAS = 4,
-      GL1 = 5
-    };
-  */
   int fileopen(const std::string & /*filenam*/) override { return 0; }
   // cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
@@ -79,39 +69,39 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
     std::set<uint16_t> MvtxFeeIds;
     std::set<uint64_t> MvtxL1TrgBco;
     std::vector<MvtxRawHit *> MvtxRawHitVector;
-    unsigned int EventFoundCounter = 0;
+    unsigned int EventFoundCounter{0};
   };
 
   struct Gl1RawHitInfo
   {
     std::vector<Gl1RawHit *> Gl1RawHitVector;
-    unsigned int EventFoundCounter = 0;
+    unsigned int EventFoundCounter{0};
   };
 
   struct InttRawHitInfo
   {
     std::vector<InttRawHit *> InttRawHitVector;
-    unsigned int EventFoundCounter = 0;
+    unsigned int EventFoundCounter{0};
   };
 
   struct MicromegasRawHitInfo
   {
     std::vector<MicromegasRawHit *> MicromegasRawHitVector;
-    unsigned int EventFoundCounter = 0;
+    unsigned int EventFoundCounter{0};
   };
 
   struct TpcRawHitInfo
   {
     std::vector<TpcRawHit *> TpcRawHitVector;
-    unsigned int EventFoundCounter = 0;
+    unsigned int EventFoundCounter{0};
   };
 
-  int m_RunNumber = 0;
-  bool m_gl1_registered_flag{false};
-  bool m_intt_registered_flag{false};
-  bool m_micromegas_registered_flag{false};
-  bool m_mvtx_registered_flag{false};
-  bool m_tpc_registered_flag{false};
+  SyncObject *m_SyncObject{nullptr};
+  PHCompositeNode *m_topNode{nullptr};
+
+  uint64_t m_RefBCO{0};
+
+  int m_RunNumber{0};
   unsigned int m_intt_bco_range{0};
   unsigned int m_intt_negative_bco{0};
   unsigned int m_micromegas_bco_range{0};
@@ -120,15 +110,18 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   unsigned int m_mvtx_negative_bco{0};
   unsigned int m_tpc_bco_range{0};
   unsigned int m_tpc_negative_bco{0};
-  uint64_t m_RefBCO{0};
+
+  bool m_gl1_registered_flag{false};
+  bool m_intt_registered_flag{false};
+  bool m_micromegas_registered_flag{false};
+  bool m_mvtx_registered_flag{false};
+  bool m_tpc_registered_flag{false};
 
   std::vector<SingleStreamingInput *> m_Gl1InputVector;
   std::vector<SingleStreamingInput *> m_InttInputVector;
   std::vector<SingleStreamingInput *> m_MicromegasInputVector;
   std::vector<SingleStreamingInput *> m_MvtxInputVector;
   std::vector<SingleStreamingInput *> m_TpcInputVector;
-  SyncObject *m_SyncObject = nullptr;
-  PHCompositeNode *m_topNode = nullptr;
   std::map<uint64_t, Gl1RawHitInfo> m_Gl1RawHitMap;
   std::map<uint64_t, InttRawHitInfo> m_InttRawHitMap;
   std::map<uint64_t, MicromegasRawHitInfo> m_MicromegasRawHitMap;

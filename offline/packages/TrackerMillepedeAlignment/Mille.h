@@ -23,9 +23,9 @@
  *  675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <fstream>
 #include <climits>
-
+#include <fstream>
+#include <limits>
 /**
  * \class Mille
  *
@@ -48,14 +48,14 @@
  */
 
 /// Class to write C binary file.
-class Mille 
+class Mille
 {
  public:
   Mille(const char *outFileName, bool asBinary = true, bool writeZero = false);
   ~Mille();
 
   void mille(int NLC, const float *derLc, int NGL, const float *derGl,
-	     const int *label, float rMeas, float sigma);
+             const int *label, float rMeas, float sigma);
   void special(int nSpecial, const float *floatings, const int *integers);
   void kill();
   void end();
@@ -64,16 +64,22 @@ class Mille
   void newSet();
   bool checkBufferSize(int nLocal, int nGlobal);
 
-  std::ofstream myOutFile; ///< C-binary for output
-  bool myAsBinary;         ///< if false output as text
-  bool myWriteZero;        ///< if true also write out derivatives/labels ==0
+  std::ofstream myOutFile;  ///< C-binary for output
+  bool myAsBinary;          ///< if false output as text
+  bool myWriteZero;         ///< if true also write out derivatives/labels ==0
   /// buffer size for ints and floats
-  enum {myBufferSize = 10000};  ///< buffer size for ints and floats
-  int   myBufferInt[myBufferSize];   ///< to collect labels etc.
-  float myBufferFloat[myBufferSize]; ///< to collect derivatives etc.
-  int   myBufferPos; ///< position in buffer
-  bool  myHasSpecial; ///< if true, special(..) already called for this record
+  enum
+  {
+    myBufferSize = 10000
+  };                                    ///< buffer size for ints and floats
+  int myBufferInt[myBufferSize]{};      ///< to collect labels etc.
+  float myBufferFloat[myBufferSize]{};  ///< to collect derivatives etc.
+  int myBufferPos;                      ///< position in buffer
+  bool myHasSpecial;                    ///< if true, special(..) already called for this record
   /// largest label allowed
-   enum {myMaxLabel = INT_MAX - 1};
+  enum
+  {
+    myMaxLabel = std::numeric_limits<int>::max() - 1
+  };
 };
 #endif

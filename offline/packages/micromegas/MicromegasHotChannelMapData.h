@@ -27,6 +27,10 @@ class MicromegasHotChannelMapData
   /// read calibration from file
   void read( const std::string& /*filename*/ );
 
+  /// clear hot channels
+  void clear()
+  { m_hot_channel_map.clear(); }
+
   /// add hot channel
   void add_hot_channel( int /*layer*/, int /*tile*/, int /*strip*/ );
 

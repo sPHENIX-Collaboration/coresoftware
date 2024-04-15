@@ -16,13 +16,11 @@ class InttClusterQA : public SubsysReco
  public:
   InttClusterQA(const std::string &name = "InttClusterQA");
 
-  ~InttClusterQA() override;
+  ~InttClusterQA() override = default;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
-  int End(PHCompositeNode *topNode) override;
 
   void beginRun(const int run) { m_beginRun = run; }
   void endRun(const int run) { m_endRun = run; }

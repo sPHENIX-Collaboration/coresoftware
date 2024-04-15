@@ -111,7 +111,7 @@ int MicromegasCombinedDataEvaluation::InitRun(PHCompositeNode* /*topNode*/)
 int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
 {
 
-  // load raw hits container  
+  // load raw hits container
   auto rawhitcontainer = findNode::getClass<MicromegasRawHitContainer>(topNode, m_rawhitnodename);
   assert( rawhitcontainer );
 
@@ -124,15 +124,15 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
 
   // map number of waveforms per packet
   std::map<unsigned int, size_t> packet_waveforms;
-  
+
   // loop over raw hits
   if( Verbosity() )
   { std::cout << "MicromegasCombinedDataEvaluation::process_event - hits: " << rawhitcontainer->get_nhits() << std::endl; }
-  
+
   bool first = true;
   uint64_t first_lvl1_bco = 0;
-  
-  
+
+
   for( unsigned int ihit = 0; ihit < rawhitcontainer->get_nhits(); ++ihit )
   {
     const auto rawhit = rawhitcontainer->get_hit(ihit);
@@ -144,7 +144,7 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
       std::cout << "MicromegasCombinedDataEvaluation::process_event - invalid packet: " << packet_id << std::endl;
       continue;
     }
-    
+
     ++packet_waveforms[packet_id];
 
     // create running sample, assign packet, fee, layer and tile id
@@ -163,9 +163,9 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
     if( first )
     {
       first = false;
-      first_lvl1_bco = rawhit->get_gtm_bco(); 
+      first_lvl1_bco = rawhit->get_gtm_bco();
     }
-    
+
     // increment bco map
     // ++m_bco_map[sample.lvl1_bco];
 
@@ -186,7 +186,7 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
     const double rms = m_calibration_data.get_rms( sample.fee_id, sample.channel );
     sample.pedestal = pedestal;
     sample.rms = rms;
-    
+
     // get number of samples and loop
     const auto samples = rawhit->get_samples();
     if( Verbosity() > 1 )
@@ -206,17 +206,17 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
     }
 
     Sample sample_max;
-    for( unsigned short is = 0; is < std::min<unsigned short>( samples, 100 ); ++is )
+    for( unsigned short is = 0; is < std::min<unsigned short>( samples, 1024 ); ++is )
     {
       // assign sample id and corresponding adc, save copy in container
       auto adc = rawhit->get_adc(is);
       sample.sample = is;
       sample.adc = adc;
       sample_map.emplace( sample.lvl1_bco, sample );
-      
+
       if( sample.adc > sample_max.adc )
       { sample_max = sample; }
-      
+
     }
 
     // create waveform
@@ -227,7 +227,7 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
       waveform.sample_max >= m_sample_min &&
       waveform.sample_max < m_sample_max &&
       waveform.adc_max > pedestal+m_n_sigma * rms;
-    
+
     waveform_map.emplace( waveform.lvl1_bco, waveform );
   }
 
@@ -239,9 +239,9 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
   { m_container->waveforms.push_back(std::move(waveform)); }
 
   // store number of waveforms
-  for( const auto& [packet_id, n_waveforms]:packet_waveforms ) 
+  for( const auto& [packet_id, n_waveforms]:packet_waveforms )
   { m_container->n_waveform.push_back(n_waveforms); }
-  
+
   // fill evaluation tree
   m_evaluation_tree->Fill();
 

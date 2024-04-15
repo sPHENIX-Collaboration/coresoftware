@@ -6,9 +6,9 @@
 
 #include "TpcClusterZCrossingCorrection.h"
 
-#include <climits>
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 float TpcClusterZCrossingCorrection::_vdrift = 8.0e-03;  // default value, override from macro
 
@@ -16,9 +16,9 @@ TpcClusterZCrossingCorrection::TpcClusterZCrossingCorrection() = default;
 
 float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, short int crossing) const
 {
-  if (crossing == SHRT_MAX)
+  if (crossing == std::numeric_limits<short>::max())
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   float z_bunch_separation = _time_between_crossings * _vdrift;

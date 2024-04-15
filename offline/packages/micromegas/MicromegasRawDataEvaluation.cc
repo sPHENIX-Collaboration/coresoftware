@@ -286,7 +286,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
       }
 
       Sample sample_max;
-      for( unsigned short is = 0; is < std::min<unsigned short>( samples, 100 ); ++is )
+      for( unsigned short is = 0; is < std::min<unsigned short>( samples, 1024 ); ++is )
       {
         // assign sample id and corresponding adc, save copy in container
         unsigned short adc = packet->iValue(iwf,is);

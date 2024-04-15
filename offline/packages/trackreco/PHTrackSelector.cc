@@ -74,9 +74,9 @@ int PHTrackSelector::process_event(PHCompositeNode */*topNode*/)
       _track = track_it->second;
       bool delete_track = false;
       double chi2_ndf = _track->get_chisq() / _track->get_ndf();
-      int ntpc = 0;
-      int nintt = 0;
-      int nmvtx = 0;
+      unsigned int ntpc = 0;
+      unsigned int nintt = 0;
+      unsigned int nmvtx = 0;
 
       for (SvtxTrack::ConstClusterKeyIter iter = _track->begin_cluster_keys();
 	   iter != _track->end_cluster_keys();

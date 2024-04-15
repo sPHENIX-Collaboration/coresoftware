@@ -26,7 +26,7 @@
 
 #include <KFParticle.h>
 
-#include <cfloat>
+#include <limits>
 #include <string>   // for string
 #include <tuple>    // for tuple
 #include <utility>  // for pair
@@ -104,11 +104,11 @@ class KFParticle_Tools : protected KFParticle_MVA
 
  protected:
   std::string m_mother_name_Tools;
-  int m_num_intermediate_states = -1;
+  int m_num_intermediate_states {-1};
   std::vector<int> m_num_tracks_from_intermediate;
   std::vector<std::string> m_daughter_name;
   std::vector<int> m_daughter_charge;
-  int m_num_tracks = -1;
+  int m_num_tracks {-1};
 
   bool m_has_intermediates;
   std::vector<std::string> m_intermediate_name;
@@ -123,62 +123,62 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<float> m_intermediate_max_ipchi2;
   std::vector<float> m_intermediate_vertex_volume;
 
-  float m_min_mass = -1;
+  float m_min_mass {-1};
 
-  float m_max_mass = -1;
+  float m_max_mass {-1};
 
-  float m_min_decayTime = -1;
+  float m_min_decayTime {-1};
 
-  float m_max_decayTime = FLT_MAX;
+  float m_max_decayTime {std::numeric_limits<float>::max()};
 
-  float m_min_decayLength = -1;
+  float m_min_decayLength {-1};
 
-  float m_max_decayLength = FLT_MAX;
+  float m_max_decayLength {std::numeric_limits<float>::max()};
 
-  float m_track_pt = -1;
+  float m_track_pt {-1};
 
-  float m_track_ptchi2 = FLT_MAX;
+  float m_track_ptchi2 {std::numeric_limits<float>::max()};
 
-  float m_track_ip = -1;
+  float m_track_ip {-1};
 
-  float m_track_ipchi2 = -1;
+  float m_track_ipchi2 {-1};
 
-  float m_track_chi2ndof = FLT_MAX;
+  float m_track_chi2ndof {std::numeric_limits<float>::max()};
 
-  int m_nMVTXHits = 3;
+  int m_nMVTXHits {3};
 
-  int m_nTPCHits = 20;
+  int m_nTPCHits {20};
 
-  float m_comb_DCA = FLT_MAX;
+  float m_comb_DCA {std::numeric_limits<float>::max()};
 
-  float m_vertex_chi2ndof = FLT_MAX;
+  float m_vertex_chi2ndof {std::numeric_limits<float>::max()};
 
-  float m_fdchi2 = -1;
+  float m_fdchi2 {-1};
 
-  float m_dira_min = -1;
+  float m_dira_min {-1};
 
-  float m_dira_max = 1;
+  float m_dira_max {1};
 
-  float m_mother_pt = -1;
+  float m_mother_pt {-1};
 
-  float m_mother_ipchi2 = FLT_MAX;
+  float m_mother_ipchi2 {std::numeric_limits<float>::max()};
 
-  float m_mother_vertex_volume = FLT_MAX;
+  float m_mother_vertex_volume {std::numeric_limits<float>::max()};
 
-  float m_mva_cut_value = -1;
+  float m_mva_cut_value {-1};
 
-  bool m_get_charge_conjugate = true;
+  bool m_get_charge_conjugate {false};
 
-  bool m_extrapolateTracksToSV = true;
+  bool m_extrapolateTracksToSV {true};
 
-  bool m_allowZeroMassTracks = false;
+  bool m_allowZeroMassTracks {false};
 
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
-  SvtxVertexMap *m_dst_vertexmap = nullptr;
-  SvtxTrackMap *m_dst_trackmap = nullptr;
-  SvtxVertex *m_dst_vertex = nullptr;
-  SvtxTrack *m_dst_track = nullptr;
+  SvtxVertexMap *m_dst_vertexmap {nullptr};
+  SvtxTrackMap *m_dst_trackmap {nullptr};
+  SvtxVertex *m_dst_vertex {nullptr};
+  SvtxTrack *m_dst_track {nullptr};
 
  private:
   void removeDuplicates(std::vector<double> &v);

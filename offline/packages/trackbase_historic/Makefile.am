@@ -22,9 +22,11 @@ pkginclude_HEADERS = \
   ActsTransformations.h \
   TrackSeed.h \
   TrackSeed_v1.h \
+  TrackSeed_v2.h \
   SvtxTrackSeed_v1.h \
   SvtxTrackSeed_v2.h \
   TrackSeed_FastSim_v1.h \
+  TrackSeed_FastSim_v2.h \
   TrackSeedContainer.h \
   TrackSeedContainer_v1.h \
   PHG4ParticleSvtxMap.h \
@@ -67,9 +69,11 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   TrackSeed_Dict.cc \
   TrackSeed_v1_Dict.cc \
+  TrackSeed_v2_Dict.cc \
   SvtxTrackSeed_v1_Dict.cc \
   SvtxTrackSeed_v2_Dict.cc \
   TrackSeed_FastSim_v1_Dict.cc \
+  TrackSeed_FastSim_v2_Dict.cc \
   TrackSeedContainer_Dict.cc \
   TrackSeedContainer_v1_Dict.cc \
   PHG4ParticleSvtxMap_Dict.cc \
@@ -112,9 +116,11 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TrackSeed_Dict_rdict.pcm \
   TrackSeed_v1_Dict_rdict.pcm \
+  TrackSeed_v2_Dict_rdict.pcm \
   SvtxTrackSeed_v1_Dict_rdict.pcm \
   SvtxTrackSeed_v2_Dict_rdict.pcm \
   TrackSeed_FastSim_v1_Dict_rdict.pcm \
+ 	TrackSeed_FastSim_v2_Dict_rdict.pcm \
   TrackSeedContainer_Dict_rdict.pcm \
   TrackSeedContainer_v1_Dict_rdict.pcm \
   PHG4ParticleSvtxMap_Dict_rdict.pcm \
@@ -159,9 +165,11 @@ libtrackbase_historic_io_la_SOURCES = \
   ActsTransformations.cc \
   TrackSeed.cc \
   TrackSeed_v1.cc \
+  TrackSeed_v2.cc \
   SvtxTrackSeed_v1.cc \
   SvtxTrackSeed_v2.cc \
   TrackSeed_FastSim_v1.cc \
+  TrackSeed_FastSim_v2.cc \
   TrackSeedContainer.cc \
   TrackSeedContainer_v1.cc \
   PHG4ParticleSvtxMap.cc \
