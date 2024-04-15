@@ -31,9 +31,9 @@ class TpcLoadDistortionCorrection : public SubsysReco
   // convenient enumeration for distortion type
   enum DistortionType:int
   {
-    DistortionType_Static,
-    DistortionType_Average,
-    DistortionType_Fluctuation
+    DistortionType_Static = 0,
+    DistortionType_Average = 1,
+    DistortionType_Fluctuation = 2
   };
 
   //! correction filename
