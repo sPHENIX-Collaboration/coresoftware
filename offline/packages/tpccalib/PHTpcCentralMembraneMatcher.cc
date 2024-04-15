@@ -239,13 +239,13 @@ std::vector<double> PHTpcCentralMembraneMatcher::getRPeaks(TH2F *r_phi){
     if(rPeaks[i] > 41.0) threshold = 1.0;
 
     for(int j=0; j<(int)finalRPeaks.size(); j++){
-      for(int k=0; k<(int)groupR[j].size(); k++){
-	if(fabs(rPeaks[i] - rPeaks[groupR[j][k]]) <= threshold || fabs(rPeaks[i] - finalRPeaks[j]) <= threshold){
+      //for(int k=0; k<(int)groupR[j].size(); k++){
+	if(fabs(rPeaks[i] - rPeaks[groupR[j][0]]) <= threshold || fabs(rPeaks[i] - finalRPeaks[j]) <= threshold){
 	  closePeak = true;
 	  currentPeak = j;
 	  break;
 	}
-      }
+	//}
       if(closePeak) break;
     }
 
@@ -374,12 +374,18 @@ std::vector<int> PHTpcCentralMembraneMatcher::doGlobalRMatching(TH2F *r_phi, boo
 
   if(pos)
     {
+      
+      m_clust_RPeaks_pos.clear();
+
       for(int i=0; i<(int)finalRPeaks.size(); i++){
 	m_clust_RPeaks_pos.push_back(finalRPeaks[i]);
       }
     }
   else
     {
+
+      m_clust_RPeaks_neg.clear();
+
       for(int i=0; i<(int)finalRPeaks.size(); i++){
 	m_clust_RPeaks_neg.push_back(finalRPeaks[i]);
       }
@@ -388,19 +394,64 @@ std::vector<int> PHTpcCentralMembraneMatcher::doGlobalRMatching(TH2F *r_phi, boo
   if(Verbosity())
     {
 
-      std::cout << "rPeaks: {";
-      for(int i=0; i<(int)finalRPeaks.size(); i++){
-        if(i < (int)finalRPeaks.size()-1) std::cout << finalRPeaks[i] << ", ";
+      std::cout << "finalRPeaks: {";
+      for(int i=0; i<(int)finalRPeaks.size()-1; i++){
+        std::cout << finalRPeaks[i] << ", ";
       }
       std::cout<< finalRPeaks[finalRPeaks.size()-1] << "}" << std::endl;
 
+      if(pos){
+      std::cout << "m_clust_RPeaks_pos: {";
+      for(int i=0; i<(int)m_clust_RPeaks_pos.size()-1; i++){
+        std::cout << m_clust_RPeaks_pos[i] << ", ";
+      }
+      std::cout<< m_clust_RPeaks_pos[m_clust_RPeaks_pos.size()-1] << "}" << std::endl;
+      }
+
+
+      if(!pos){
+      std::cout << "m_clust_RPeaks_neg: {";
+      for(int i=0; i<(int)m_clust_RPeaks_neg.size()-1; i++){
+        std::cout << m_clust_RPeaks_neg[i] << ", ";
+      }
+      std::cout<< m_clust_RPeaks_neg[m_clust_RPeaks_neg.size()-1] << "}" << std::endl;
+      }
+
       std::cout << "rHeights: {";
-      for(int i=0; i<(int)finalRHeights.size(); i++){
-        if(i < (int)finalRHeights.size()-1) std::cout << finalRHeights[i] << ", ";
+      for(int i=0; i<(int)finalRHeights.size()-1; i++){
+        std::cout << finalRHeights[i] << ", ";
       }
       std::cout<< finalRHeights[finalRHeights.size()-1] << "}" << std::endl;
 
     }
+
+
+  std::vector<int> skips;
+  skips.push_back(0);
+
+  double R1_gaps = 1.132;
+  double R2_gaps = 2.0414;
+  double R3_gaps = 2.1941;
+
+  int skip = 0;
+  for(int i=1; i<(int)finalRHeights.size(); i++){
+    skips.push_back(0);
+    double gap = finalRPeaks[i] - finalRPeaks[i-1];
+    if(finalRPeaks[i] > 31 && finalRPeaks[i] < 41){
+      int nGaps = (int)round(gap/R1_gaps);
+      skip += nGaps-1;
+    }
+    if(finalRPeaks[i] > 41 && finalRPeaks[i] < 58){
+      int nGaps = (int)round(gap/R2_gaps);
+      skip += nGaps-1;
+    }
+    if(finalRPeaks[i] > 58){
+      int nGaps = (int)round(gap/R3_gaps);
+      skip += nGaps-1;
+    }
+    skips[i]=skip;
+  }
+
 
   int startOffset = -999;
   double startDiff = 1000000.;
@@ -412,15 +463,16 @@ std::vector<int> PHTpcCentralMembraneMatcher::doGlobalRMatching(TH2F *r_phi, boo
     }
   }
 
-  double bestSum = 10000.0;
+  double bestSum = 100000000.0;
   int shift = 0;
 
   std::vector<double> shifts;
 
   for(int i=startOffset-2; i<=startOffset+2; i++){
     double sum = 0.0;
+    double move = m_truth_RPeaks[i] - finalRPeaks[0];
     for(int j=0; j<(int)finalRPeaks.size(); j++){
-      sum += fabs(finalRPeaks[j] - m_truth_RPeaks[j+i])*totalHeight/finalRHeights[j];
+      sum += fabs(finalRPeaks[j] + move - m_truth_RPeaks[j+i+skips[j]]);//*totalHeight/finalRHeights[j];
     }
     shifts.push_back(sum);
     if(sum < bestSum){
@@ -431,37 +483,19 @@ std::vector<int> PHTpcCentralMembraneMatcher::doGlobalRMatching(TH2F *r_phi, boo
 
   if(Verbosity())
     {
+      std::cout << "best total residual = " << bestSum << "   at shift " << shift << std::endl;
       for(int i=0; i<(int)shifts.size(); i++){
-	std::cout << "total Residual shift=" << i << "   : " << shifts[i] << std::endl;
+	std::cout << "total Residual shift=" << startOffset - 2 + i << "   : " << shifts[i] << std::endl;
       }
     }
 
   std::vector<int> hitMatches;
-  std::vector<int> hitMatchesShift;
 
   for(int i=0; i<(int)finalRPeaks.size(); i++){
-    hitMatches.push_back(i+shift);
-
-    hitMatchesShift.push_back(i+shift);
-    if(m_truth_RPeaks[hitMatches[i]] - finalRPeaks[i] > 0.75){
-      hitMatchesShift[i] -= 1;
-
-    }else if(m_truth_RPeaks[hitMatches[i]] - finalRPeaks[i] < -0.75){
-      hitMatchesShift[i] += 1;
-    }
+    hitMatches.push_back(i+shift+skips[i]);
   }
 
-  double shiftSum = 0.0;
-
-  for(int i=0; i<(int)hitMatchesShift.size(); i++){
-    shiftSum += fabs(finalRPeaks[i] - m_truth_RPeaks[hitMatchesShift[i]])*totalHeight/finalRHeights[i];
-  }
-
-  if(shiftSum < bestSum){
-    return hitMatchesShift;
-  }else{
-    return hitMatches;
-  }
+  return hitMatches;
 
 }
 

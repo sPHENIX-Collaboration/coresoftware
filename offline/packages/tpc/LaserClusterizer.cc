@@ -121,6 +121,12 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   m_clusterTree->Branch("clusters",&m_eventClusters);
   m_clusterTree->Branch("itHist_0",&m_itHist_0);
   m_clusterTree->Branch("itHist_1",&m_itHist_1);
+  m_clusterTree->Branch("nClusters",&m_nClus);
+  m_clusterTree->Branch("time_search",&t_search);
+  m_clusterTree->Branch("time_clus",&t_clus);
+  m_clusterTree->Branch("time_erase",&t_erase);
+  m_clusterTree->Branch("time_all",&t_all);
+  
   //m_clusterTree->Branch("clusters",&m_clusterlist);
 
   /*
@@ -437,6 +443,8 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     clusHits.clear();
 
   }
+
+  m_nClus = (int)m_eventClusters.size();
 
   //std::cout << "filling tree" << std::endl;
   m_clusterTree->Fill();

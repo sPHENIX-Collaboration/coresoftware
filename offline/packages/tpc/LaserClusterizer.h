@@ -95,6 +95,7 @@ class LaserClusterizer : public SubsysReco
   //TTree *m_hitTree = nullptr;
   TH1I *m_itHist_0 = nullptr;
   TH1I *m_itHist_1 = nullptr;
+  int m_nClus = 0;
 
   LaserClusterv1 *m_currentCluster = nullptr;
   std::vector<LaserClusterv1 *> m_eventClusters;
