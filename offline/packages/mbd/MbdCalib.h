@@ -39,6 +39,7 @@ class MbdCalib : public Fun4AllBase
   }
   float get_scorr(const int ifeech, const int adc) const {
     if (adc<0||adc>=16000) return std::numeric_limits<float>::quiet_NaN();
+    if ( _scorr_y_interp[ifeech].size() == 0 ) return 0.; // return 0 if calib doesn't exist
     return _scorr_y_interp[ifeech][adc];
   }
 
