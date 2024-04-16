@@ -643,13 +643,28 @@ unsigned int PHTruthSiliconAssociation::buildTrackSeed(const std::set<TrkrDefs::
   }
 
   // make phi persistent
+  track->set_phi( newphi );
+
+  if(Verbosity() > 2)
+    {
+      std::cout << "Charge is " << charge << std::endl;
+      std::cout << "truth/reco px " << px << ", " << track->get_px() << std::endl;
+      std::cout << "truth/reco py " << py << ", " << track->get_py() << std::endl;
+      std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
+      std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
+      std::cout << "truth/reco phi " << phi << ", " << track->get_phi(_cluster_map, _tgeometry) << std::endl;
+      std::cout << "truth/reco eta " << eta << ", " << track->get_eta() << std::endl;
+      std::cout << "truth/reco x " << x << ", " << track->get_x() << std::endl;
+      std::cout << "truth/reco y " << y << ", " << track->get_y() << std::endl;
+      std::cout << "truth/reco z " << z << ", " << track->get_z() << std::endl;
+    }
   track->set_phi(newphi);
 
   if (Verbosity() > 2)
   {
     std::cout << "Charge is " << charge << std::endl;
-    std::cout << "truth/reco px " << px << ", " << track->get_px(_cluster_map, _tgeometry) << std::endl;
-    std::cout << "truth/reco py " << py << ", " << track->get_py(_cluster_map, _tgeometry) << std::endl;
+    std::cout << "truth/reco px " << px << ", " << track->get_px() << std::endl;
+    std::cout << "truth/reco py " << py << ", " << track->get_py() << std::endl;
     std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
     std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
     std::cout << "truth/reco phi " << phi << ", " << track->get_phi(_cluster_map, _tgeometry) << std::endl;
