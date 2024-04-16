@@ -8,17 +8,17 @@
 class PHSiliconHelicalPropagator : public SubsysReco
 {
  public:
-  PHSiliconHelicalPropagator(const std::string &name = "PHSiliconHelicalPropagator");
+  PHSiliconHelicalPropagator(const std::string& name = "PHSiliconHelicalPropagator");
   ~PHSiliconHelicalPropagator();
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int End(PHCompositeNode* topNode) override;
 
-  void set_track_map_name(const std::string &name) { _track_map_name = name; }
+  void set_track_map_name(const std::string& name) { _track_map_name = name; }
 
  private:
-  int createSeedContainer(TrackSeedContainer*& container, const std::string &container_name, PHCompositeNode* topNode);
+  int createSeedContainer(TrackSeedContainer*& container, const std::string& container_name, PHCompositeNode* topNode);
 
   ActsGeometry* _tgeometry = nullptr;
   TrackSeedContainer* _si_seeds = nullptr;

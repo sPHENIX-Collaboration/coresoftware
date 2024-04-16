@@ -685,16 +685,19 @@ int Fun4AllStreamingInputManager::FillMvtx()
   {
     select_crossings += m_MvtxRawHitMap.begin()->first;
   }
+
+  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_bco_range ? 0 : m_RefBCO - m_mvtx_bco_range;
   if (Verbosity() > 2)
   {
     std::cout << "select MVTX crossings"
-              << " from 0x" << std::hex << m_RefBCO - m_mvtx_bco_range
+              << " from 0x" << std::hex << ref_bco_minus_range
               << " to 0x" << select_crossings - m_mvtx_bco_range
               << std::dec << std::endl;
   }
   // m_MvtxRawHitMap.empty() does not need to be checked here, FillMvtxPool returns non zero
   // if this map is empty which is handled above
-  while (m_MvtxRawHitMap.begin()->first < m_RefBCO - m_mvtx_bco_range)
+  //All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
+  while (m_MvtxRawHitMap.begin()->first < ref_bco_minus_range)
   {
     if (Verbosity() > 2)
     {

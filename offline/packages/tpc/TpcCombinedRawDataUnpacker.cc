@@ -25,6 +25,7 @@
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
@@ -40,6 +41,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TNtuple.h>
+
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl, bas...
 #include <map>       // for _Rb_tree_iterator
@@ -53,7 +55,7 @@ TpcCombinedRawDataUnpacker::TpcCombinedRawDataUnpacker(std::string const& name, 
 
 int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "TpcRawDataDecoder::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  std::cout << "TpcCombinedRawDataUnpacker::Init(PHCompositeNode *topNode) Initializing" << std::endl;
 
   m_cdb = CDBInterface::instance();
   std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
@@ -61,7 +63,7 @@ int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
   if (calibdir[0] == '/')
   {
     // use generic CDBTree to load
-    m_cdbttree = new CDBTTree(calibdir.c_str());
+    m_cdbttree = new CDBTTree(calibdir);
     m_cdbttree->LoadCalibrations();
   }
   else
@@ -132,11 +134,29 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     m_file = new TFile(outfile_name.c_str(), "RECREATE");
     m_ntup = new TNtuple("NT", "NT", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:nsamples");
   }
+
+  if (Verbosity() >= 1)
+  {
+    std::cout << "TpcCombinedRawDataUnpacker:: _do_zerosup = " << m_do_zerosup << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker:: _do_noise_rejection = " << m_do_noise_rejection << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker:: _ped_sig_cut = " << m_ped_sig_cut << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker:: startevt = " << startevt << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker:: endevt = " << endevt << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 {
+  if (_ievent < startevt || _ievent > endevt)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << " Skip event " << _ievent << std::endl;
+    }
+    _ievent++;
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
   _ievent++;
   TH1F pedhist("pedhist", "pedhist", 251, -0.5, 1000.5);
 
@@ -183,6 +203,8 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
   const auto nhits = tpccont->get_nhits();
 
+  int ntotalchannels = 0;
+  int n_noisychannels = 0;
   for (unsigned int i = 0; i < nhits; i++)
   {
     TpcRawHit* tpchit = tpccont->get_hit(i);
@@ -234,7 +256,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     varname = "phi";  // + std::to_string(key);
     double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
-    unsigned int phibin = layergeom->find_phibin(phi);
+    unsigned int phibin = layergeom->get_phibin(phi);
     if (m_writeTree)
     {
       float fX[12];
@@ -256,63 +278,118 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 
-    float hpedestal = 0;
-    float hpedwidth = 0;
-    pedhist.Reset();
-
-    for (uint16_t sampleNum = 0; sampleNum < sam; sampleNum++)
+    if (!m_do_zerosup)
     {
-      uint16_t adc = tpchit->get_adc(sampleNum);
-      pedhist.Fill(adc);
-    }
-    int hmax = 0;
-    int hmaxbin = 0;
-    for (int nbin = 1; nbin <= pedhist.GetNbinsX(); nbin++)
-    {
-      float val = pedhist.GetBinContent(nbin);
-      if (val > hmax)
+      if (Verbosity() > 2)
       {
-        hmaxbin = nbin;
-        hmax = val;
+        std::cout << "TpcCombinedRawDataUnpacker:: no zero suppression" << std::endl;
       }
-    }
-
-    // calc peak position
-    double adc_sum = 0.0;
-    double ibin_sum = 0.0;
-    double ibin2_sum = 0.0;
-
-    for (int isum = -3; isum <= 3; isum++)
-    {
-      float val = pedhist.GetBinContent(hmaxbin + isum);
-      float center = pedhist.GetBinCenter(hmaxbin + isum);
-      ibin_sum += center * val;
-      ibin2_sum += center * center * val;
-      adc_sum += val;
-    }
-
-    hpedestal = ibin_sum / adc_sum;
-    hpedwidth = sqrt(ibin2_sum / adc_sum - (hpedestal * hpedestal));
-
-    for (uint16_t s = 0; s < sam; s++)
-    {
-      uint16_t adc = tpchit->get_adc(s);
-      int t = s;
-
-      if ((float(adc) - hpedestal) > (hpedwidth * 4))
+      for (uint16_t s = 0; s < sam; s++)
       {
+        uint16_t adc = tpchit->get_adc(s);
+        int t = s;
+
         hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
         // find existing hit, or create new one
         hit = hit_set_container_itr->second->getHit(hit_key);
         if (!hit)
         {
           hit = new TrkrHitv2();
-          hit->setAdc(float(adc) - hpedestal);
+          hit->setAdc(float(adc));
 
           hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
         }
       }
     }
+    else
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << "TpcCombinedRawDataUnpacker:: do zero suppression" << std::endl;
+      }
+      float hpedestal = 0;
+      float hpedwidth = 0;
+      pedhist.Reset();
+
+      for (uint16_t sampleNum = 0; sampleNum < sam; sampleNum++)
+      {
+        uint16_t adc = tpchit->get_adc(sampleNum);
+        pedhist.Fill(adc);
+      }
+      int hmax = 0;
+      int hmaxbin = 0;
+      for (int nbin = 1; nbin <= pedhist.GetNbinsX(); nbin++)
+      {
+        float val = pedhist.GetBinContent(nbin);
+        if (val > hmax)
+        {
+          hmaxbin = nbin;
+          hmax = val;
+        }
+      }
+
+      // calculate pedestal mean and sigma
+
+      if (pedhist.GetStdDev() == 0 || pedhist.GetEntries() == 0)
+      {
+        hpedestal = pedhist.GetBinCenter(pedhist.GetMaximumBin());
+        hpedwidth = 999;
+      }
+      else
+      {
+        // calc peak position
+        double adc_sum = 0.0;
+        double ibin_sum = 0.0;
+        double ibin2_sum = 0.0;
+
+        for (int isum = -3; isum <= 3; isum++)
+        {
+          float val = pedhist.GetBinContent(hmaxbin + isum);
+          float center = pedhist.GetBinCenter(hmaxbin + isum);
+          ibin_sum += center * val;
+          ibin2_sum += center * center * val;
+          adc_sum += val;
+        }
+
+        hpedestal = ibin_sum / adc_sum;
+        hpedwidth = sqrt(ibin2_sum / adc_sum - (hpedestal * hpedestal));
+      }
+
+      ntotalchannels++;
+      if (m_do_noise_rejection)
+      {
+        if (hpedwidth < 0.5 || hpedestal < 10 || hpedwidth == 999)
+        {
+          n_noisychannels++;
+          continue;
+        }
+      }
+
+      for (uint16_t s = 0; s < sam; s++)
+      {
+        uint16_t adc = tpchit->get_adc(s);
+        int t = s;
+
+        if ((float(adc) - hpedestal) > (hpedwidth * m_ped_sig_cut))
+        {
+          hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
+          // find existing hit, or create new one
+          hit = hit_set_container_itr->second->getHit(hit_key);
+          if (!hit)
+          {
+            hit = new TrkrHitv2();
+            hit->setAdc(float(adc) - hpedestal);
+
+            hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
+          }
+        }
+      }
+    }
+  }
+
+  if (m_do_noise_rejection && Verbosity() >= 2)
+  {
+    std::cout << " noisy / total channels = " << n_noisychannels << "/" << ntotalchannels << " = " << n_noisychannels / (double) ntotalchannels << std::endl;
   }
 
   if (Verbosity())
