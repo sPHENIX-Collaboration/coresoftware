@@ -58,8 +58,3 @@ int InttLoadable::Loaded() const
   return m_loaded;
 }
 
-int InttLoadable::LoadFromCDBTTree(
-    CDBTTree& /*unused*/)
-{
-  return 0;
-}

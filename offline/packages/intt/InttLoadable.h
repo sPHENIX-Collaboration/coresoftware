@@ -20,7 +20,7 @@ class InttLoadable
  protected:
   InttLoadable() = default;
 
-  virtual int LoadFromCDBTTree(CDBTTree&);
+  virtual int LoadFromCDBTTree(CDBTTree&) = 0; // pure virtual
 
  private:
   int m_loaded{0};
