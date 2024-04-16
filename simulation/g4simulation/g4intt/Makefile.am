@@ -55,6 +55,7 @@ libg4intt_la_LIBADD = \
   libg4intt_io.la \
   -lg4detectors \
   -lg4tracking_io \
+  -lintt \
   -lintt_io
 
 # sources for io library
@@ -64,8 +65,9 @@ libg4intt_io_la_SOURCES = \
   InttDeadMapv1.cc
 
 libg4intt_io_la_LIBADD = \
-  -lphool \
-  -lg4detectors_io 
+  -lg4detectors_io \
+  -lintt \
+  -lphool
 
 
 # Rule for generating table CINT dictionaries.
