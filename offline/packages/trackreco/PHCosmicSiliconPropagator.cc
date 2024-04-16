@@ -229,9 +229,12 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
     if ((tpcClusKeys.size() + newClusKeys.size() > 25))
     {
       std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
+      std::map<TrkrDefs::cluskey, Acts::Vector3> silposmap, tpcposmap;
       for (auto& key : newClusKeys)
       {
         bool isTpcKey = false;
+        auto cluster = _cluster_map->findCluster(key);
+        auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
         if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId ||
             TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
         {
@@ -240,17 +243,19 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         if (!isTpcKey)
         {
           si_seed->insert_cluster_key(key);
+          silposmap.emplace(key, clusglob);
         }
         else
         {
           tpcseed->insert_cluster_key(key);
+          tpcposmap.emplace(key, clusglob);
         }
       }
 
-      si_seed->circleFitByTaubin(_cluster_map, _tgeometry, 0, 8);
-      si_seed->lineFit(_cluster_map, _tgeometry, 0, 8);
-      tpcseed->circleFitByTaubin(_cluster_map, _tgeometry, 0, 57);
-      tpcseed->lineFit(_cluster_map, _tgeometry, 0, 57);
+      si_seed->circleFitByTaubin(silposmap,0,8);
+      si_seed->lineFit(silposmap);
+      tpcseed->circleFitByTaubin(tpcposmap,7,57);
+      tpcseed->lineFit(tpcposmap,7,57);
       TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
       std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
       int tpcind = _tpc_seeds->find(tpcseed);
