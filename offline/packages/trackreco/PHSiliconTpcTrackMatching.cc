@@ -702,10 +702,9 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
 
 double PHSiliconTpcTrackMatching::getMatchingInflationFactor(double tpc_pt)
 {
+  double  mag = match_function_a + match_function_b/pow(tpc_pt, 1);
 
-  double  mag = match_function_a + match_function_b/pow(tpc_pt+0.1, 1.75);
-
-  //std::cout << " tpc_pt = " << tpc_pt << " mag " << mag << " a " << a << " b " << b << std::endl;
+  //  std::cout << " tpc_pt = " << tpc_pt << " mag " << mag << " a " << match_function_a << " b " << match_function_b << std::endl;
 
   return mag;
 }
