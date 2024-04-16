@@ -1826,7 +1826,7 @@ int CaloTriggerEmulator::process_trigger()
 	{
 	  for (int ijeta = 0; ijeta < 9; ijeta++)
 	    {
-	      _ll1out->add_word((ijphi & 0xff) + ((ijeta & 0xff) << 8), jet_map[ijphi][ijeta]);
+	      _ll1out->add_word((ijphi & 0xffffU) + ((ijeta & 0xffffU) << 16U), jet_map[ijphi][ijeta]);
 	      for (int is = 0; is < nsample; is++)
 		{
 		  bits.at(is) |= getBits(jet_map[ijphi][ijeta]->at(is));

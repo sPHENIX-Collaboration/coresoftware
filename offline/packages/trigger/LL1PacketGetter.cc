@@ -223,11 +223,10 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 		      _sum->reserve(nsamples);
 		      for (int samp = 0; samp < nsamples; samp++)
 			{
-			  _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives*m_nchannels_per_primitive+channel)));
-			  
+			  _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives*m_nchannels_per_primitive+channel)));			  
 			}
 		      
-		      m_ll1out->add_word( (channel%32 & 0xff) + ((((channel/32) + monitor*2) & 0xff) << 8), _sum);
+		      m_ll1out->add_word( (channel%32 & 0xffff) + (((channel/32) & 0xffff) << 16U), _sum);
 		    }
 
 
