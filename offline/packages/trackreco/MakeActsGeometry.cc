@@ -1141,7 +1141,6 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   }
 
   double location[3] = {world[0], world[1], world[2]};
-  std::cout << "In getInttHitSetKeyFromCoords: layer=" << layer << " location[0]=" << location[0] << " location[1]=" << location[1] << " location[2]=" << location[2] << std::endl;
   int segment_z_bin = 0;
   int segment_phi_bin = 0;
   layergeom->find_indices_from_segment_center(segment_z_bin, 

@@ -232,6 +232,11 @@ void TrackSeed_v2::circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vec
                                      uint8_t endLayer)
 {
   TrackFitUtils::position_vector_t positions_2d;
+  //! Can only fit 3 points or more
+  if(m_cluster_keys.size() < 3)
+  {
+    return;
+  }
   for (const auto& key : m_cluster_keys)
   {
     const auto layer = TrkrDefs::getLayer(key);
@@ -287,6 +292,11 @@ void TrackSeed_v2::lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& pos
                            uint8_t endLayer)
 {
   TrackFitUtils::position_vector_t positions_2d;
+  //! need at least 2 to fit
+  if(m_cluster_keys.size() < 2)
+  {
+    return;
+  }
   for (const auto& key : m_cluster_keys)
   {
     const auto layer = TrkrDefs::getLayer(key);
@@ -314,109 +324,6 @@ void TrackSeed_v2::lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& pos
   // assign
   m_slope = slope;
   m_Z0 = intercept;
-}
-
-//=====================================
-// methods using fits to cluster nominal positions
-// No distortion corrections are applied
-// alternative methods are suggested - see above
-//=====================================
-
-float TrackSeed_v2::get_px(TrkrClusterContainer* clusters,
-                           ActsGeometry* tGeometry) const
-{
-  std::cout << "Call to old get_px" << std::endl;
-  return get_pt() * std::cos(get_phi(clusters, tGeometry));
-}
-
-float TrackSeed_v2::get_py(TrkrClusterContainer* clusters,
-                           ActsGeometry* tGeometry) const
-{
-  std::cout << "Call to old get_py" << std::endl;
-  return get_pt() * std::sin(get_phi(clusters, tGeometry));
-
-}
-
-float TrackSeed_v2::get_phi(TrkrClusterContainer* clusters,
-                            ActsGeometry* tGeometry) const
-{
-  auto clus1 = clusters->findCluster(*(m_cluster_keys.begin()));
-  auto key = *std::next(m_cluster_keys.begin(), 1);
-  auto clus2 = clusters->findCluster(key);
-  if (!clus1 or !clus2)
-  {
-    return NAN;
-  }
-
-  Acts::Vector3 pos0 = tGeometry->getGlobalPosition(
-      *(m_cluster_keys.begin()),
-      clus1);
-
-  Acts::Vector3 pos1 = tGeometry->getGlobalPosition(key, clus2);
-  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
-  positions.insert(std::make_pair(*(m_cluster_keys.begin()), pos0));
-  positions.insert(std::make_pair(key, pos1));
-  return get_phi(positions);
-}
-
-void TrackSeed_v2::circleFitByTaubin(TrkrClusterContainer* clusters,
-                                     ActsGeometry* tGeometry,
-                                     uint8_t startLayer,
-                                     uint8_t endLayer)
-{
-  std::cout << "Call to old circle fit" << std::endl;
-  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
-
-  for (const auto& key : m_cluster_keys)
-  {
-    auto layer = TrkrDefs::getLayer(key);
-    if (layer < startLayer or layer > endLayer)
-    {
-      continue;
-    }
-
-    auto clus = clusters->findCluster(key);
-
-    if (clus->getEdge() > 0)
-    {
-      continue;
-    }
-    Acts::Vector3 pos = tGeometry->getGlobalPosition(
-        key, clus);
-
-    positions.insert(std::make_pair(key, pos));
-  }
-  if (positions.size() < 3)
-  {
-    return;
-  }
-
-  circleFitByTaubin(positions, startLayer, endLayer);
-}
-
-void TrackSeed_v2::lineFit(TrkrClusterContainer* clusters,
-                           ActsGeometry* tGeometry,
-                           uint8_t startLayer,
-                           uint8_t endLayer)
-{
-  std::cout << "Call to old line fit" << std::endl;
-  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
-
-  for (const auto& key : m_cluster_keys)
-  {
-    auto layer = TrkrDefs::getLayer(key);
-    if (layer < startLayer or layer > endLayer)
-    {
-      continue;
-    }
-
-    Acts::Vector3 pos = tGeometry->getGlobalPosition(
-        key, clusters->findCluster(key));
-
-    positions.insert(std::make_pair(key, pos));
-  }
-
-  lineFit(positions, startLayer, endLayer);
 }
 
 
