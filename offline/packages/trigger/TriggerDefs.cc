@@ -14,7 +14,7 @@ uint32_t
 TriggerDefs::getTriggerKey(const TriggerDefs::TriggerId triggerId, const TriggerDefs::DetectorId detectorId)
 {
   uint32_t tmp = triggerId << kBitShiftTriggerId;
-  tmp |= detectorId << kBitShiftDetectorId;
+  tmp |= (unsigned int) detectorId << kBitShiftDetectorId;
   return tmp;
 }
 
@@ -72,42 +72,42 @@ TriggerDefs::getTriggerId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey tr
 uint32_t
 TriggerDefs::getDetectorId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey)
 {
-  uint32_t tmp =  (triggerprimkey >> kBitShiftDetectorId) & 0xf;
+  uint32_t tmp =  (triggerprimkey >> kBitShiftDetectorId) & 0xfU;
   return tmp;
 }
 
 uint32_t 
 TriggerDefs::getDetectorId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey)
 {
-  uint32_t tmp =  (triggersumkey >> kBitShiftDetectorId) & 0xf;
+  uint32_t tmp =  (triggersumkey >> kBitShiftDetectorId) & 0xfU;
   return tmp;
 }
 
 uint32_t 
 TriggerDefs::getPrimitiveId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey)
 {
-  uint32_t tmp =  (triggerprimkey >> kBitShiftPrimitiveId) & 0xf;
+  uint32_t tmp =  (triggerprimkey >> kBitShiftPrimitiveId) & 0xfU;
   return tmp;
 }
 
 uint32_t 
 TriggerDefs::getPrimitiveId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey)
 {
-  uint32_t tmp =  (triggersumkey >> kBitShiftPrimitiveId) & 0xf;
+  uint32_t tmp =  (triggersumkey >> kBitShiftPrimitiveId) & 0xfU;
   return tmp;
 }
 
 uint16_t 
 TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey)
 {
-  uint16_t tmp =  (triggerprimkey >> kBitShiftPrimitiveLocId) & 0x1ff;
+  uint16_t tmp =  (triggerprimkey >> kBitShiftPrimitiveLocId) & 0x1ffU;
   return tmp;
 }
 
 uint16_t 
 TriggerDefs::getPrimitiveLocId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey)
 {
-  uint16_t tmp =  (triggersumkey >> kBitShiftPrimitiveLocId) & 0x1ff;
+  uint16_t tmp =  (triggersumkey >> kBitShiftPrimitiveLocId) & 0x1ffU;
   return tmp;
 }
 
@@ -116,44 +116,33 @@ TriggerDefs::getPrimitivePhiId_from_TriggerPrimKey(const TriggerDefs::TriggerPri
 {
   uint32_t detId= getDetectorId_from_TriggerPrimKey(triggerprimkey);
   uint32_t primId= getPrimitiveId_from_TriggerPrimKey(triggerprimkey);
-  uint16_t tmp = (triggerprimkey >> kBitShiftPrimitiveLocId) & 0x1ff;
+  uint16_t tmp = (triggerprimkey >> kBitShiftPrimitiveLocId) & 0x1ffU;
   
-  switch (detId)
+  if(detId ==TriggerDefs::DetectorId::hcalinDId ||
+     detId == TriggerDefs::DetectorId::hcaloutDId ||
+     detId == TriggerDefs::DetectorId::hcalDId )
     {
-    case TriggerDefs::DetectorId::mbdDId :
-      return UINT16_MAX;
-      break;
-
-    case TriggerDefs::DetectorId::hcalinDId :
-    case TriggerDefs::DetectorId::hcaloutDId :
-    case TriggerDefs::DetectorId::hcalDId :
       return tmp/3;
-      break;
-    case TriggerDefs::DetectorId::emcalDId :
+    }
+  else if(detId == TriggerDefs::DetectorId::emcalDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::calPId)
 	{
 	  return tmp/12;
-	  break;
 	}
       else if (primId == TriggerDefs::PrimitiveId::jetPId)
 	{
 	  return tmp;
-	  break;
 	}
-      return UINT16_MAX;
-      break;
-    case TriggerDefs::DetectorId::calDId :
+    }
+  else if (detId == TriggerDefs::DetectorId::calDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::jetPId)
 	{
 	  return tmp;
-	  break;
 	}
-      return UINT16_MAX;
-      break;
-    default :
-      return UINT16_MAX;
-      break;
     }
+
   return UINT16_MAX;
 }
 
@@ -161,43 +150,32 @@ uint16_t
 TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey)
 {
   uint32_t detId= getDetectorId_from_TriggerSumKey(triggersumkey);
-  uint32_t primId= getPrimitiveId_from_TriggerPrimKey(triggersumkey);
-  uint16_t tmp = (triggersumkey >> kBitShiftPrimitiveLocId) & 0x1ff;
-  
-  switch (detId)
+  uint32_t primId= getPrimitiveId_from_TriggerSumKey(triggersumkey);
+  uint16_t tmp = (triggersumkey >> kBitShiftPrimitiveLocId) & 0x1ffU;
+ 
+  if(detId ==TriggerDefs::DetectorId::hcalinDId ||
+     detId == TriggerDefs::DetectorId::hcaloutDId ||
+     detId == TriggerDefs::DetectorId::hcalDId )
     {
-    case TriggerDefs::DetectorId::mbdDId :
-      return UINT16_MAX;
-      break;
-
-    case TriggerDefs::DetectorId::hcalinDId :
-    case TriggerDefs::DetectorId::hcaloutDId :
-    case TriggerDefs::DetectorId::hcalDId :
       return tmp/3;
-      break;
-
-    case TriggerDefs::DetectorId::emcalDId :
+    }
+  else if(detId == TriggerDefs::DetectorId::emcalDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::calPId)
 	{
 	  return tmp/12;
-	  break;
 	}
+      else if (primId == TriggerDefs::PrimitiveId::jetPId)
+	{
+	  return tmp;
+	}
+    }
+  else if (detId == TriggerDefs::DetectorId::calDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::jetPId)
 	{
 	  return tmp;
-	  break;
 	}
-
-      break;
-    case TriggerDefs::DetectorId::calDId :
-      if (primId == TriggerDefs::PrimitiveId::jetPId)
-	{
-	  return tmp;
-	  break;
-	}
-      return UINT16_MAX;
-      break;
-
     }
   return UINT16_MAX;
 }
@@ -208,44 +186,30 @@ TriggerDefs::getPrimitiveEtaId_from_TriggerPrimKey(const TriggerDefs::TriggerPri
   uint32_t detId= getDetectorId_from_TriggerPrimKey(triggerprimkey);
   uint32_t primId= getPrimitiveId_from_TriggerPrimKey(triggerprimkey);
 
-  uint16_t tmp = (triggerprimkey >> kBitShiftPrimitiveLocId) & 0x1ff;
-  switch (detId)
+  uint16_t tmp = (triggerprimkey >> kBitShiftPrimitiveLocId) & 0x1ffU;
+  if(detId ==TriggerDefs::DetectorId::hcalinDId ||
+     detId == TriggerDefs::DetectorId::hcaloutDId ||
+     detId == TriggerDefs::DetectorId::hcalDId )
     {
-    case TriggerDefs::DetectorId::mbdDId :
-      return UINT16_MAX;
-      break;
-
-    case TriggerDefs::DetectorId::hcalinDId :
-    case TriggerDefs::DetectorId::hcaloutDId :
-    case TriggerDefs::DetectorId::hcalDId :
       return tmp%3;
-      break;
-    case TriggerDefs::DetectorId::emcalDId :
-
+    }
+  else if(detId == TriggerDefs::DetectorId::emcalDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::calPId)
 	{
 	  return tmp%12;
-	  break;
 	}
       else if (primId == TriggerDefs::PrimitiveId::jetPId)
 	{
 	  return 0;
-	  break;
 	}
-      return UINT16_MAX;
-      break;
-    case TriggerDefs::DetectorId::calDId :
+    }
+  else if (detId == TriggerDefs::DetectorId::calDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::jetPId)
 	{
 	  return 0;
-	  break;
 	}
-      return UINT16_MAX;
-      break;
-      
-    default :
-      return UINT16_MAX;
-      break;
     }
 
   return UINT16_MAX;
@@ -256,53 +220,40 @@ TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(const TriggerDefs::TriggerSumK
 {
   uint32_t detId= getDetectorId_from_TriggerSumKey(triggersumkey);
   uint32_t primId= getPrimitiveId_from_TriggerSumKey(triggersumkey);
-  uint16_t tmp = (triggersumkey >> kBitShiftPrimitiveLocId) & 0x1ff;
+  uint16_t tmp = (triggersumkey >> kBitShiftPrimitiveLocId) & 0x1ffU;
   
-  switch (detId)
+  if(detId ==TriggerDefs::DetectorId::hcalinDId ||
+     detId == TriggerDefs::DetectorId::hcaloutDId ||
+     detId == TriggerDefs::DetectorId::hcalDId )
     {
-    case TriggerDefs::DetectorId::mbdDId :
-      return UINT16_MAX;
-      break;
-
-    case TriggerDefs::DetectorId::hcalinDId :
-    case TriggerDefs::DetectorId::hcaloutDId :
-    case TriggerDefs::DetectorId::hcalDId :
       return tmp%3;
-      break;
-
-    case TriggerDefs::DetectorId::emcalDId :
+    }
+  else if(detId == TriggerDefs::DetectorId::emcalDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::calPId)
 	{
 	  return tmp%12;
-	  break;
 	}
-      if (primId == TriggerDefs::PrimitiveId::jetPId)
+      else if (primId == TriggerDefs::PrimitiveId::jetPId)
 	{
 	  return 0;
-	  break;
 	}
-      return UINT16_MAX;
-      break;
-    case TriggerDefs::DetectorId::calDId :
-      if (primId == TriggerDefs::PrimitiveId::jetPId)
-	{
-	  return 0;
-	  break;
-	}
-      return UINT16_MAX;
-      break;
-
-    default :
-      return UINT16_MAX;
-      break;
     }
+  else if (detId == TriggerDefs::DetectorId::calDId)
+    {
+      if (primId == TriggerDefs::PrimitiveId::jetPId)
+	{
+	  return 0;
+	}
+    }
+
   return UINT16_MAX;
 }
 
 uint16_t 
 TriggerDefs::getSumLocId(const TriggerDefs::TriggerSumKey triggersumkey)
 {
-  uint16_t tmp = (triggersumkey >> kBitShiftSumLocId) & 0x1f;
+  uint16_t tmp = (triggersumkey >> kBitShiftSumLocId) & 0x1fU;
   return tmp;
 }
 uint16_t 
@@ -311,47 +262,32 @@ TriggerDefs::getSumPhiId(const TriggerDefs::TriggerSumKey triggersumkey)
   uint32_t detId= getDetectorId_from_TriggerSumKey(triggersumkey);
   uint32_t primId= getPrimitiveId_from_TriggerSumKey(triggersumkey);
   uint16_t tmp = TriggerDefs::getSumLocId(triggersumkey);
-  
-  switch (detId)
+
+  if(detId ==TriggerDefs::DetectorId::hcalinDId ||
+     detId == TriggerDefs::DetectorId::hcaloutDId ||
+     detId == TriggerDefs::DetectorId::hcalDId )
     {
-    case TriggerDefs::DetectorId::mbdDId :
-      return UINT16_MAX;
-      break;
-
-
       return tmp/4;
-      break;
-    case TriggerDefs::DetectorId::hcalinDId :
-    case TriggerDefs::DetectorId::hcaloutDId :
-    case TriggerDefs::DetectorId::hcalDId :
-      return tmp/4;
-      break;
-    case TriggerDefs::DetectorId::emcalDId :
+    }
+  else if(detId == TriggerDefs::DetectorId::emcalDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::calPId)
 	{
 	  return tmp/4;
-	  break;
 	}
       else if (primId == TriggerDefs::PrimitiveId::jetPId)
 	{
 	  return tmp/12;
-	  break;
 	}
-      return UINT16_MAX;
-      break;
-    case TriggerDefs::DetectorId::calDId :
+    }
+  else if (detId == TriggerDefs::DetectorId::calDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::jetPId)
 	{
 	  return tmp/12;
-	  break;
 	}
-      return UINT16_MAX;
-      break;
-
-    default :
-      return UINT16_MAX;
-      break;
     }
+
   return UINT16_MAX;
 }
 uint16_t 
@@ -360,34 +296,31 @@ TriggerDefs::getSumEtaId(const TriggerDefs::TriggerSumKey triggersumkey)
   uint32_t detId= getDetectorId_from_TriggerSumKey(triggersumkey);
   uint32_t primId= getPrimitiveId_from_TriggerSumKey(triggersumkey);
   uint16_t tmp = TriggerDefs::getSumLocId(triggersumkey);
-  
-  switch (detId)
+  if(detId ==TriggerDefs::DetectorId::hcalinDId ||
+     detId == TriggerDefs::DetectorId::hcaloutDId ||
+     detId == TriggerDefs::DetectorId::hcalDId )
     {
-    case TriggerDefs::DetectorId::mbdDId :
-      return UINT16_MAX;
-      break;
-
-    case TriggerDefs::DetectorId::hcalinDId :
-    case TriggerDefs::DetectorId::hcaloutDId :
-    case TriggerDefs::DetectorId::hcalDId :
       return tmp%4;
-      break;
-    case TriggerDefs::DetectorId::emcalDId :
-      return tmp%4;
-      break;
-    case TriggerDefs::DetectorId::calDId :
+    }
+  else if(detId == TriggerDefs::DetectorId::emcalDId)
+    {
+      if (primId == TriggerDefs::PrimitiveId::calPId)
+	{
+	  return tmp%4;
+	}
+      else if (primId == TriggerDefs::PrimitiveId::jetPId)
+	{
+	  return tmp%12;
+	}
+    }
+  else if (detId == TriggerDefs::DetectorId::calDId)
+    {
       if (primId == TriggerDefs::PrimitiveId::jetPId)
 	{
 	  return tmp%12;
-	  break;
 	}
-      return UINT16_MAX;
-      break;
-
-    default :
-      return UINT16_MAX;
-      break;
     }
+
   return UINT16_MAX;
 }
 
@@ -396,17 +329,19 @@ TriggerDefs::GetTowerInfoKey( const TriggerDefs::DetectorId detId, const uint16_
 {
   unsigned int phibin = 0;
   unsigned int etabin = 0;
-  switch (detId)
+  if (detId == TriggerDefs::DetectorId::emcalDId)
     {
-    case TriggerDefs::DetectorId::emcalDId:
       phibin = 8*(iprim/12) + 2*(isum/4) + (itower/2);
       etabin = 8*(iprim%12) + 2*(isum%4) + (itower%2);
       return TowerInfoDefs::encode_emcal(etabin, phibin);	  ;
-      break;
-
-    default :
-      return UINT16_MAX; 
-      break;
+    }
+  else if(detId ==TriggerDefs::DetectorId::hcalinDId ||
+	  detId == TriggerDefs::DetectorId::hcaloutDId ||
+	  detId == TriggerDefs::DetectorId::hcalDId )
+    {
+      etabin = (iprim%3)*8 + (isum%4)*2 + itower%2;
+      phibin = (iprim/3)*8 + (isum/4)*2 + itower/2;
+      return TowerInfoDefs::encode_hcal(etabin, phibin);
     }
 
   return UINT16_MAX;
@@ -449,10 +384,10 @@ TriggerDefs::PrimitiveId TriggerDefs::GetPrimitiveId(const std::string& primitiv
 
     if (strcmp(primitive.c_str(), "NONE") == 0) { return TriggerDefs::PrimitiveId::nonePId;
     } else if (strcmp(primitive.c_str(), "MBD") == 0) { return TriggerDefs::PrimitiveId::mbdPId;
-    } else if (strcmp(primitive.c_str(), "HCALIN") == 0) { return TriggerDefs::PrimitiveId::calPId;
-    } else if (strcmp(primitive.c_str(), "HCALOUT") == 0) { return TriggerDefs::PrimitiveId::calPId;
-    } else if (strcmp(primitive.c_str(), "HCAL") == 0) { return TriggerDefs::PrimitiveId::calPId;
-    } else if (strcmp(primitive.c_str(), "EMCAL") == 0) { return TriggerDefs::PrimitiveId::calPId;
+    } else if (strcmp(primitive.c_str(), "HCALIN") == 0  || 
+	       strcmp(primitive.c_str(), "HCALOUT") == 0 ||
+	       strcmp(primitive.c_str(), "HCAL") == 0 ||
+	       strcmp(primitive.c_str(), "EMCAL") == 0) { return TriggerDefs::PrimitiveId::calPId;
     } else if (strcmp(primitive.c_str(), "JET") == 0) { return TriggerDefs::PrimitiveId::jetPId;
     } else if (strcmp(primitive.c_str(), "PAIR") == 0) { return TriggerDefs::PrimitiveId::pairPId;
     }

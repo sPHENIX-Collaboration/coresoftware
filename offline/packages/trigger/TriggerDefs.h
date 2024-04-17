@@ -19,7 +19,7 @@ namespace TriggerDefs
   static const unsigned int kBitShiftDetectorId __attribute__((unused)) = 20;
   static const unsigned int kBitShiftPrimitiveId __attribute__((unused)) = 16;
 
-  enum TriggerId
+  typedef enum
   {
     noneTId = 0,
     mbdTId = 1,
@@ -28,9 +28,9 @@ namespace TriggerDefs
     cosmicTId = 4,
     cosmic_coinTId = 5,
     photonTId = 6
-  };
+  }  TriggerId;
 
-  enum DetectorId
+  typedef enum
   {
     noneDId = 0,
     mbdDId = 1,
@@ -39,16 +39,16 @@ namespace TriggerDefs
     hcalDId = 4,
     emcalDId = 5,
     calDId = 6,
-  };
+  } DetectorId;
 
-  enum PrimitiveId
+  typedef enum
   {
     nonePId = 0,
     mbdPId = 1,
     calPId = 2,
     jetPId = 3,
     pairPId = 4,
-  };
+  } PrimitiveId;
 
   TriggerId GetTriggerId(const std::string& trigger);
   DetectorId GetDetectorId(const std::string& detector);

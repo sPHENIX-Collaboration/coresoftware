@@ -74,7 +74,7 @@ void LL1Outv1::identify(std::ostream& out) const
   
   for (auto _trigger_word : _trigger_words) 
     {
-      for (auto j = _trigger_word.second->begin(); j != _trigger_word.second->end(); ++j) {cout <<" "<< (*j);
+      for (unsigned int & j : *_trigger_word.second) {cout <<" "<< j;
 }
       
       out << " " <<std::endl;
@@ -89,9 +89,9 @@ int LL1Outv1::isValid() const
 bool LL1Outv1::passesTrigger()
 {
 
-  for (std::vector<unsigned int>::iterator it = _trigger_bits->begin(); it != _trigger_bits->end(); it++)
+  for (unsigned int & _trigger_bit : *_trigger_bits)
     {
-      if ( (*it) )
+      if ( _trigger_bit )
 	{
 	  return true;
 	}

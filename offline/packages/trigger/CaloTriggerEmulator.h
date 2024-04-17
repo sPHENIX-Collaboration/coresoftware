@@ -151,47 +151,6 @@ class CaloTriggerEmulator : public SubsysReco
   std::vector<unsigned int> *_sum  = nullptr;
   std::vector<unsigned int> *_bits = nullptr;
 
-  TProfile *avg_primitive  = nullptr;
-  TH2D *peak_primitive = nullptr;
-  TH2D *primitives = nullptr;
-  TH2D *cosmic_peak_primitive = nullptr;
-  TH2D *jet_trigger_fire_map = nullptr;
-  TH2D *trigger_fire_map = nullptr;
-  TH2D *h2_line_up = nullptr;
-  TH1D *h_nhit = nullptr;
-  TH1D *h_mbd_time = nullptr;
-  TH1D *h_mbd_charge = nullptr;
-
-  std::vector<TProfile*> v_avg_primitive_photon;
-  std::vector<TH2D*> v_peak_primitive_photon;
-  std::vector<TH2D*> v_primitives_photon;
-  std::vector<TH2D*> v_trigger_fire_map_photon;
-
-  std::vector<TProfile*> v_avg_primitive_jet;
-  std::vector<TH2D*> v_peak_primitive_jet;
-  std::vector<TH2D*> v_primitives_jet;
-  std::vector<TH2D*> v_trigger_fire_map_jet;
-
-  std::vector<TProfile*> v_avg_primitive_emcal;
-  std::vector<TH2D*> v_peak_primitive_emcal;
-  std::vector<TH2D*> v_primitives_emcal;
-  std::vector<TH2D*> v_trigger_fire_map_emcal;
-
-  std::vector<TProfile*> v_avg_primitive_hcalin;
-  std::vector<TH2D*> v_peak_primitive_hcalin;
-  std::vector<TH2D*> v_primitives_hcalin;
-  std::vector<TH2D*> v_trigger_fire_map_hcalin;
-
-  std::vector<TProfile*> v_avg_primitive_hcalout;
-  std::vector<TH2D*> v_peak_primitive_hcalout;
-  std::vector<TH2D*> v_primitives_hcalout;
-  std::vector<TH2D*> v_trigger_fire_map_hcalout;
-
-  std::vector<TH1D*> v_nhit;
-  std::vector<TH2D*> v_line_up;
-  std::map<std::string, TH1D*> v_mbd_charge;
-  std::map<std::string, TH1D*> v_mbd_time;
-
   //! Lookup tables
   unsigned int m_l1_adc_table[1024]{};
   unsigned int m_l1_adc_table_time[1024]{};
@@ -250,11 +209,11 @@ class CaloTriggerEmulator : public SubsysReco
   int _m_trig_sub_delay;
   int _m_trig_sample{-1};
 
-  unsigned int _m_threshold;
-  unsigned int m_threshold_calo[4];;
-  int m_isdata;
+  unsigned int _m_threshold{1};
+  unsigned int m_threshold_calo[4] = {0};
+  int m_isdata{1};
   int m_nsamples = 31;
-  int _idx;
+  int _idx{3};
 
   std::vector<unsigned int> _masks_fiber;
   std::vector<unsigned int> _masks_channel;

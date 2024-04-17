@@ -226,7 +226,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 			  _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives*m_nchannels_per_primitive+channel)));			  
 			}
 		      
-		      m_ll1out->add_word( (channel%32 & 0xffff) + (((channel/32) & 0xffff) << 16U), _sum);
+		      m_ll1out->add_word( ((unsigned int)(channel%32) & 0xffffU) + (((unsigned int)(channel/32) & 0xffffU) << 16U), _sum);
 		    }
 
 
@@ -236,20 +236,16 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 		  TriggerDefs::TriggerId tid = TriggerDefs::TriggerId::noneTId;
 		  TriggerDefs::PrimitiveId prid = TriggerDefs::PrimitiveId::nonePId;
 
-		  switch (monitor)
+		  if (monitor < 3)
 		    {
-		    case 0:
-		    case 1:
-		    case 2:
 		      tid = TriggerDefs::TriggerId::pairTId;
 		      prid = TriggerDefs::PrimitiveId::pairPId;
-
-		      break;
-		    case 3:
-
+		    }
+		  else
+		    {
 		      tid = TriggerDefs::TriggerId::jetTId;
 		      prid = TriggerDefs::PrimitiveId::jetPId;
-		      break;
+		     
 		    }
 
 		  m_trigger_primitives_ll1->setTriggerType(tid);
@@ -314,7 +310,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 	  // 	      _sum->push_back(0);
 	  // 	    }
 
-	  // 	  m_ll1out->add_word(channel, _sum);
+	  // 	  m_ll1out->add_word(unsigned int)(channel), _sum);
 		  
 	  // 	}
 	      
