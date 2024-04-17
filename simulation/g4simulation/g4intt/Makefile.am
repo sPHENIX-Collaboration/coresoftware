@@ -66,7 +66,6 @@ libg4intt_io_la_SOURCES = \
 
 libg4intt_io_la_LIBADD = \
   -lg4detectors_io \
-  -lintt \
   -lphool
 
 
