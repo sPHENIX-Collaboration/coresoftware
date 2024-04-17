@@ -98,6 +98,7 @@ enum n_hit  { nhitID,
 	      nhitphibin,
 	      nhittbin,
 	      nhitphi,
+	      nhitr,
 	      nhitx,
 	      nhity,
 	      nhitz,
@@ -108,9 +109,14 @@ enum n_seed  {nseedtrackID,
 	      nseedpt,
 	      nseedeta,
 	      nseedphi,
+	      nseedsyxint,
+	      nseedsrzint,
+	      nseedsxyslope,
+	      nseedsrzslope,
 	      nseedX0,
 	      nseedY0,
 	      nseedZ0,
+	      nseedR0,
 	      nseedcharge,
 	      nseednhits,
 	      seedsize = nseednhits+1};
@@ -161,7 +167,7 @@ enum n_track  {ntrktrackID,
 	       ntrkhlxY0,
 	       ntrkhlxZ0,
 	       ntrkhlxcharge,
-	       trksize = ntrkpcaz+1};
+	       trksize = ntrkhlxcharge+1};
 
 enum n_cluster  {nclulocx,
 		 nclulocy,
@@ -246,11 +252,11 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
   _tfile->SetCompressionLevel(7);
   string str_vertex = {"vertexID:vx:vy:vz:ntracks:chi2:ndof"};
   string str_event = {"event:seed"};
-  string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:tbin:phi:x:y:z"};
+  string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:tbin:phi:r:x:y:z"};
   string str_cluster = {"locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:pedge:redge:ovlp:trackID:niter"};
-  string str_seed = {"seedID:siter:spt:seta:sphi:sX0:sY0:sdZ0:scharge:snhits"};
+  string str_seed = {"seedID:siter:spt:seta:sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0:scharge:snhits"};
   string str_residual = {"resphi:resz"};
-  string str_track = {"trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz"};
+  string str_track = {"trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:hlxpt:hlxeta:hlxphi:hlxX0:hlxY0:hlxZ0:hlxcharge"};
   string str_info = {"occ11:occ116:occ21:occ216:occ31:occ316:ntrk:nhitmvtx:nhitintt:nhittpot:nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms"};
   
   if (_do_info_eval){
@@ -920,6 +926,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           fx_hit[n_hit::nhitphibin] = NAN;
           fx_hit[n_hit::nhittbin] = NAN;
           fx_hit[n_hit::nhitphi] = NAN;
+          fx_hit[n_hit::nhitr] = NAN;
           fx_hit[n_hit::nhitx] = NAN;
           fx_hit[n_hit::nhity] = NAN;
           fx_hit[n_hit::nhitz] = NAN;
@@ -943,6 +950,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
               clusz = -clusz;
             }
             fx_hit[n_hit::nhitz] = clusz;
+            fx_hit[n_hit::nhitr] = radius;
 	    float phi_center = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
 	    fx_hit[n_hit::nhitx] = radius * cos(phi_center);
 	    fx_hit[n_hit::nhity] = radius * sin(phi_center);
@@ -1056,6 +1064,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	TrackSeed* siseed = track->get_silicon_seed();
 	std::vector<Acts::Vector3> clusterPositions;
 	std::vector<TrkrDefs::cluskey> clusterKeys;
+	TrackFitUtils::position_vector_t xypoints, rzpoints;
+
 	clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
 			   tpcseed->end_cluster_keys());
 	/*if(siseed!=nullptr)
@@ -1064,11 +1074,24 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	*/
 	TrackFitUtils::getTrackletClusters(_tgeometry, _cluster_map, 
 					   clusterPositions, clusterKeys);
+	for (auto& pos : clusterPositions){
+	  float clusr = sqrt(pos.x()*pos.x()+ pos.y()*pos.y());
+	  if (pos.y() < 0) clusr *= -1;
+	  
+	  // exclude silicon and tpot clusters for now
+	  if (fabs(clusr) > 80 || fabs(clusr) < 30)
+	    {
+	      continue;
+	    }
+	  rzpoints.push_back(std::make_pair(pos.z(), clusr));
+	  xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+	}
 	std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions, clusterKeys);
 	if(fitparams.size()==0){
 	  cout << "fit failed bailing...." << endl;
 	  continue;
 	}
+
        	float charge = NAN;
 	if(tpcseed->get_qOverR()>0)
 	  { charge = 1; }
@@ -1079,9 +1102,17 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	float tpt = tpcseed->get_pt();
 	float teta = tpcseed->get_eta();
 	float tphi = tpcseed->get_phi(_cluster_map,_tgeometry);
+	auto xyparams = TrackFitUtils::line_fit(xypoints);
+	auto rzparams = TrackFitUtils::line_fit(rzpoints);
+	float xyint = std::get<1>(xyparams);
+	float xyslope = std::get<0>(xyparams);
+	float rzint = std::get<1>(rzparams);
+	float rzslope = std::get<0>(rzparams);
+        float R0 = abs(-1*xyint)/sqrt((xyslope*xyslope)+1);
 	float tX0 = tpcseed->get_X0();
 	float tY0 = tpcseed->get_Y0();
 	float tZ0 = tpcseed->get_Z0();
+
 	float nhits_local = clusterPositions.size();
         if (Verbosity() > 1){
 	  cout << " tpc: " << tpcseed->size_cluster_keys() << endl;
@@ -1090,7 +1121,17 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	  cout << "done seedsize" << endl;
 	}
 	//      nhits_local += tpcseed->size_cluster_keys();
-
+	// fill the Gseed NTuple
+	//---------------------
+	float fx_seed[n_seed::seedsize] = {(float) track->get_id(),0,tpt,teta,tphi,xyint,rzint,xyslope,rzslope,tX0,tY0,tZ0,R0,charge,nhits_local};
+	
+	if (_ntp_tpcseed){
+	  float *tpcseed_data = new float[n_info::infosize+n_cluster::clusize+n_residual::ressize+n_seed::seedsize+n_event::evsize];
+	  std::copy(fx_event,  fx_event  +n_event::evsize,    tpcseed_data);
+	  std::copy(fx_seed,   fx_seed   +n_seed::seedsize,   tpcseed_data+n_event::evsize);
+	  std::copy(fx_info,   fx_info   +n_info::infosize,   tpcseed_data+n_event::evsize+n_seed::seedsize);
+	  _ntp_tpcseed->Fill(tpcseed_data);
+	}
 	for (unsigned int i = 0; i < clusterPositions.size(); i++){
 	  TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
 	  Acts::Vector3 position = clusterPositions[i];
@@ -1108,7 +1149,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	    }
 	  float dz = position(2) - pca(2);
 	  float fx_res[n_residual::ressize] = {dphi,dz};
-	  float fx_seed[n_seed::seedsize] = {(float) track->get_id(),0,tpt,teta,tphi,tX0,tY0,tZ0,charge,nhits_local};
+	  //sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0
+
 	  float fx_cluster[n_cluster::clusize];
 	  //
 	  FillCluster(&fx_cluster[0], cluster_key);
@@ -1156,24 +1198,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     }
   }
 
-  //---------------------
-  // fill the Gseed NTuple
-  //---------------------
 
-  if (_ntp_tpcseed)
-  {
-    if (Verbosity() > 1)
-    {
-      cout << "Filling ntp_tpcseed " << endl;
-      _timer->restart();
-    }
-
-    if (Verbosity() > 1)
-    {
-      _timer->stop();
-      cout << "tpcseed time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
-    }
-  }
 
   if (_ntp_siseed)
   {
