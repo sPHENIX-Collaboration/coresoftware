@@ -8,6 +8,7 @@ class CDBTTree;
 class InttLoadable
 {
  public:
+  InttLoadable() = default;
   virtual ~InttLoadable() = default;
 
   int LoadFromFile(std::string = "");
@@ -18,9 +19,7 @@ class InttLoadable
   virtual std::string DefaultCDBName() const {return "";}
 
  protected:
-  InttLoadable() = default;
-
-  virtual int LoadFromCDBTTree(CDBTTree&) = 0; // pure virtual
+  virtual int LoadFromCDBTTree(CDBTTree&);
 
  private:
   int m_loaded{0};
