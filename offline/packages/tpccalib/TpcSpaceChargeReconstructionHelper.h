@@ -9,6 +9,7 @@
 #include <array>
 
 // forward declarations
+class TH2;
 class TH3;
 class TString;
 
@@ -17,27 +18,31 @@ class TpcSpaceChargeReconstructionHelper
 
   public:
 
+  /// create TPOT acceptance mask, using provided binning
+  /**
+   * this histogram contains 1 in cells that match the TPOT acceptance
+   * only Micromegas in the central sector (TPC sectors 9 and 21) are considered
+   */
+  static void create_tpot_mask( TH3* /*source*/ );
+
   /// z extrapolation
   /**
    * interpolate between micromegas in the fully equiped sector
    */
-  static void extrapolate_z( TH3* hin );
-
-  /// get reference z range used for phi extrapolation normalization at a given radius
-  static std::tuple<double, double> get_zref_range( double r );
+  static void extrapolate_z( TH3* /*source*/, TH3* /*mask*/ );
 
   /// first phi extrapolation
   /**
    * copy the full z dependence of reference sector to all other sectors, separately for positive and negative z,
    * normalized by the measurement from provided micromegas, at the appropriate z
    */
-  static void extrapolate_phi1( TH3* hin );
+  static void extrapolate_phi1( TH3* /*source*/, TH2* /*source_cm*/, TH3* /*mask*/ );
 
   /// second phi extrapolation
   /**
    * for each r, z and phi bin, linearly extrapolate between neighbor phi sector measurements
    */
-  static void extrapolate_phi2( TH3* hin );
+  static void extrapolate_phi2(  TH3* /*source*/, TH3* /*mask*/ );
 
   /// separate positive and negative z histograms
   /**

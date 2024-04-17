@@ -186,17 +186,17 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
   std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
   outputfile->cd();
 
-  if( m_do_extrapolation )
-  {
-    // extrapolate from micromegas to full acceptance
-    for( const auto& h: {hentries, hphi, hr, hz} )
-    {
-      if( !h ) continue;
-      TpcSpaceChargeReconstructionHelper::extrapolate_z(h);
-      TpcSpaceChargeReconstructionHelper::extrapolate_phi1(h);
-      TpcSpaceChargeReconstructionHelper::extrapolate_phi2(h);
-    }
-  }
+//   if( m_do_extrapolation )
+//   {
+//     // extrapolate from micromegas to full acceptance
+//     for( const auto& h: {hentries, hphi, hr, hz} )
+//     {
+//       if( !h ) continue;
+//       TpcSpaceChargeReconstructionHelper::extrapolate_z(h);
+//       TpcSpaceChargeReconstructionHelper::extrapolate_phi1(h);
+//       TpcSpaceChargeReconstructionHelper::extrapolate_phi2(h);
+//     }
+//   }
 
   // write source histograms
   for( const auto& h: { hentries, hphi, hr, hz } ) { h->Write(); }
