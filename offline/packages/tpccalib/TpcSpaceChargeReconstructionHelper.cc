@@ -83,6 +83,8 @@ namespace
 //____________________________________________________________________________________
 void TpcSpaceChargeReconstructionHelper::create_tpot_mask( TH3* hmask )
 {
+  hmask->Reset();
+
   // loop over bins
   for( int ip = 0; ip < hmask->GetNbinsX(); ++ip )
     for( int ir = 0; ir < hmask->GetNbinsY(); ++ir )
@@ -189,6 +191,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* source, TH2* sou
     if( in_range ) continue;
 
     // phi not in TPOT range, rotate by steps of 2pi/12 (= one TPC sector) until found in range
+    const double r = source->GetYaxis()->GetBinCenter(ir+1);
     const double phi = source->GetXaxis()->GetBinCenter(ip+1);
     static constexpr int n_sectors = 12;
     for( int sector = 1; sector < n_sectors; ++sector )
@@ -205,8 +208,8 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* source, TH2* sou
       double scale = 1;
       if( source_cm )
       {
-        const double distortion_local = source_cm->GetBinContent( ip+1, ir+1 );
-        const double distortion_ref = source_cm->GetBinContent( ip_ref+1, ir+1 );
+        const double  distortion_local = source_cm->Interpolate( phi, r );
+        const double distortion_ref = source_cm->Interpolate( phi_ref, r );
         scale = distortion_local/distortion_ref;
       }
 
