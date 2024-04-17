@@ -7,7 +7,6 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrackFitUtils.h>
-
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 
 #include <trackbase/MvtxDefs.h>
