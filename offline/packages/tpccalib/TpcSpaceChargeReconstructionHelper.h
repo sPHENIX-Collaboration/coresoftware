@@ -57,10 +57,8 @@ class TpcSpaceChargeReconstructionHelper
    * each axis, with identical content and error as the first and last bin of the original histogram
    * this is necessary for being able to call TH3->Interpolate() when using these histograms
    * to correct for the space charge distortions.
-   * TODO: is this really necessary ? Possibly one could just use the bin content for the correction rather than using TH3->Interpolate,
-   * in which case the "guarding bins" would be unnecessary. Should check if it leads to a significant deterioration of the momentum resolution
    */
-  static TH3* copy_histogram( TH3* hin, const TString& name );
+  static TH3* add_guarding_bins( TH3* hin, const TString& name );
 
 };
 
