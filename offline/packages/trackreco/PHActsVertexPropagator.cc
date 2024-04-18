@@ -28,7 +28,7 @@ PHActsVertexPropagator::PHActsVertexPropagator(const std::string& name)
 {
 }
 
-int PHActsVertexPropagator::Init(PHCompositeNode*)
+int PHActsVertexPropagator::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -38,7 +38,7 @@ int PHActsVertexPropagator::InitRun(PHCompositeNode* topNode)
   int returnval = getNodes(topNode);
   return returnval;
 }
-int PHActsVertexPropagator::process_event(PHCompositeNode*)
+int PHActsVertexPropagator::process_event(PHCompositeNode* /*unused*/)
 {
   std::vector<unsigned int> deletedKeys;
   for (const auto& [trackKey, trajectory] : *m_trajectories)
@@ -215,7 +215,7 @@ Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)
   return Acts::Vector3::Zero();
 }
 
-int PHActsVertexPropagator::End(PHCompositeNode*)
+int PHActsVertexPropagator::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

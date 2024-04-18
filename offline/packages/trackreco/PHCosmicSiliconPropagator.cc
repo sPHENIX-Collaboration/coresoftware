@@ -14,6 +14,8 @@
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
 
+#include <cmath>
+
 namespace
 {
   template <class T>
@@ -36,11 +38,10 @@ PHCosmicSiliconPropagator::PHCosmicSiliconPropagator(const std::string& name)
 
 //____________________________________________________________________________..
 PHCosmicSiliconPropagator::~PHCosmicSiliconPropagator()
-{
-}
+= default;
 
 //____________________________________________________________________________..
-int PHCosmicSiliconPropagator::Init(PHCompositeNode*)
+int PHCosmicSiliconPropagator::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -92,7 +93,7 @@ int PHCosmicSiliconPropagator::InitRun(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________..
-int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
+int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
 {
   if (m_resetContainer)
   {
@@ -130,7 +131,8 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       {
         xypoints.push_back(std::make_pair(globPos.x(), globPos.y()));
         float clusr = r(globPos.x(), globPos.y());
-        if (globPos.y() < 0) clusr *= -1;
+        if (globPos.y() < 0) { clusr *= -1;
+}
         rzpoints.push_back(std::make_pair(globPos.z(), clusr));
       }
 
@@ -218,7 +220,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         auto pca = TrackFitUtils::get_helix_pca(fitparams, clusglob);
         float dcaz = (pca - clusglob).z();
 
-        if (fabs(dcaz) < _dca_z_cut)
+        if (std::fabs(dcaz) < _dca_z_cut)
         {
           newClusKeys.push_back(key);
         }
@@ -294,7 +296,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
 }
 
 //____________________________________________________________________________..
-int PHCosmicSiliconPropagator::End(PHCompositeNode*)
+int PHCosmicSiliconPropagator::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

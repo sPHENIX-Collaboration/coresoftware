@@ -73,7 +73,7 @@ PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
 {
 }
 
-int PHSimpleKFProp::End(PHCompositeNode*)
+int PHSimpleKFProp::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -337,7 +337,8 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       std::vector<std::vector<TrkrDefs::cluskey>> kl;
       kl.push_back(preseed);
 
-      if (Verbosity()) std::cout << "kl size " << kl.size() << std::endl;
+      if (Verbosity()) { std::cout << "kl size " << kl.size() << std::endl;
+}
       std::vector<float> pretrackChi2;
       auto prepair = fitter->ALICEKalmanFilter(kl, false, globalPositions, pretrackChi2);
       if (prepair.first.size() == 0 || prepair.second.size() == 0)
@@ -472,7 +473,8 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
     {
       TrkrDefs::cluskey cluskey = it->first;
       TrkrCluster* cluster = it->second;
-      if (!cluster) continue;
+      if (!cluster) { continue;
+}
 
       // skip hits used in a previous iteration
       if (_n_iteration && _iteration_map && _iteration_map->getIteration(cluskey) > 0)
@@ -504,10 +506,12 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
   _kdtrees.resize(kdhits.size());
   for (size_t l = 0; l < kdhits.size(); ++l)
   {
-    if (Verbosity()) std::cout << "l: " << l << std::endl;
+    if (Verbosity()) { std::cout << "l: " << l << std::endl;
+}
     _ptclouds[l] = std::make_shared<KDPointCloud<double>>();
     _ptclouds[l]->pts.resize(kdhits[l].size());
-    if (Verbosity()) std::cout << "resized to " << kdhits[l].size() << std::endl;
+    if (Verbosity()) { std::cout << "resized to " << kdhits[l].size() << std::endl;
+}
     for (size_t i = 0; i < kdhits[l].size(); ++i)
     {
       _ptclouds[l]->pts[i] = kdhits[l][i];
@@ -639,7 +643,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   }
 
   // get track parameters
-  GPUTPCTrackParam kftrack;
+  GPUTPCTrackParam kftrack{};
   kftrack.InitParam();
   float track_phi = atan2(track_y, track_x);
   if (Verbosity())
@@ -753,7 +757,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   propagated_track.push_back(ckeys[0]);
 
   GPUTPCTrackLinearisation kfline(kftrack);
-  GPUTPCTrackParam::GPUTPCTrackFitParam fp;
+  GPUTPCTrackParam::GPUTPCTrackFitParam fp{};
   kftrack.CalculateFitParameters(fp);
 
   // first, propagate downward
@@ -854,7 +858,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       {
         std::cout << "distance: " << sqrt(square(kftrack.GetX() * cos(cphi) - kftrack.GetY() * sin(cphi) - cx) + square(kftrack.GetX() * sin(cphi) + kftrack.GetY() * cos(cphi) - cy) + square(kftrack.GetZ() - cz)) << std::endl;
       }
-      if (1)  // fabs(tx-cx)<_max_dist*sqrt(txerr*txerr+cxerr*cxerr) &&
+      if (true)  // fabs(tx-cx)<_max_dist*sqrt(txerr*txerr+cxerr*cxerr) &&
               // fabs(ty-cy)<_max_dist*sqrt(tyerr*tyerr+cyerr*cyerr) &&
               // fabs(tz-cz)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {

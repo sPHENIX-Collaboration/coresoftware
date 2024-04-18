@@ -125,9 +125,10 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
   eventTimer->stop();
   eventTimer->restart();
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 0) {
     std::cout << "Processing PHActsSiliconSeeding event "
               << m_event << std::endl;
+}
 
   std::vector<const SpacePoint*> spVec;
   auto seedVector = runSeeder(spVec);
@@ -147,9 +148,10 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
   }
   spVec.clear();
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 0) {
     std::cout << "Finished PHActsSiliconSeeding process_event"
               << std::endl;
+}
 
   if (Verbosity() > 0)
   {
@@ -605,7 +607,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
         const auto cluskey = clusIter->first;
-        if (_iteration_map != NULL && m_nIteration > 0)
+        if (_iteration_map != nullptr && m_nIteration > 0)
         {
           if (_iteration_map->getIteration(cluskey) < m_nIteration)
           {
@@ -744,7 +746,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
    */
   SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r, surf->geometryId(), var[0] * m_uncfactor, var[1] * m_uncfactor});
 
-  if (Verbosity() > 2)
+  if (Verbosity() > 2) {
     std::cout << "Space point has "
               << x << ", " << y << ", " << z << " with local coords "
               << localPos.transpose()
@@ -754,6 +756,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
               << " and cluster key "
               << key << " and geo id "
               << surf->geometryId() << std::endl;
+}
 
   return spPtr;
 }
@@ -777,7 +780,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
     {
       const auto cluskey = clusIter->first;
       totNumSiliconHits++;
-      if (_iteration_map != NULL && m_nIteration > 0)
+      if (_iteration_map != nullptr && m_nIteration > 0)
       {
         if (_iteration_map->getIteration(cluskey) < m_nIteration)
         {
@@ -904,12 +907,13 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  if (m_useTruthClusters)
+  if (m_useTruthClusters) {
     m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode,
                                                             "TRKR_CLUSTER_TRUTH");
-  else
+  } else {
     m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode,
                                                             "TRKR_CLUSTER");
+}
 
   if (!m_clusterMap)
   {
@@ -1008,8 +1012,9 @@ void PHActsSiliconSeeding::createHistograms()
 double PHActsSiliconSeeding::normPhi2Pi(const double phi)
 {
   double returnPhi = phi;
-  if (returnPhi < 0)
+  if (returnPhi < 0) {
     returnPhi += 2 * M_PI;
+}
   return returnPhi;
 }
 

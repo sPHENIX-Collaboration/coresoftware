@@ -77,12 +77,12 @@
 
 // end
 
-typedef bg::model::point<float, 3, bg::cs::cartesian> point;
-typedef bg::model::box<point> box;
-typedef std::pair<point, TrkrDefs::cluskey> pointKey;
-typedef std::pair<std::array<float, 3>, TrkrDefs::cluskey> coordKey;
-typedef std::array<coordKey, 2> keylink;
-typedef std::vector<TrkrDefs::cluskey> keylist;
+using point = bg::model::point<float, 3, bg::cs::cartesian>;
+using box = bg::model::box<point>;
+using pointKey = std::pair<point, TrkrDefs::cluskey>;
+using coordKey = std::pair<std::array<float, 3>, TrkrDefs::cluskey>;
+using keylink = std::array<coordKey, 2>;
+using keylist = std::vector<TrkrDefs::cluskey>;
 
 // apparently there is no builtin STL hash function for a std::array
 // so to use std::unordered_set (essentially a hash table), we have to make our own hasher
@@ -92,8 +92,8 @@ namespace std
   template <typename T, size_t N>
   struct hash<std::array<T, N>>
   {
-    typedef std::array<T, N> argument_type;
-    typedef size_t result_type;
+    using argument_type = std::array<T, N>;
+    using result_type = size_t;
 
     result_type operator()(const argument_type& a) const
     {
@@ -109,8 +109,8 @@ namespace std
   template <typename A, typename B>
   struct hash<pair<A, B>>
   {
-    typedef pair<A, B> argument_type;
-    typedef size_t result_type;
+    using argument_type = pair<A, B>;
+    using result_type = size_t;
 
     result_type operator()(const argument_type& a) const
     {
@@ -135,7 +135,8 @@ namespace
   inline double get_phi(const Acts::Vector3& position)
   {
     double phi = std::atan2(position.y(), position.x());
-    if (phi < 0) phi += 2. * M_PI;
+    if (phi < 0) { phi += 2. * M_PI;
+}
     return phi;
   }
 
@@ -180,7 +181,6 @@ namespace
 }  // namespace
 
 // using namespace ROOT::Minuit2;
-namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
 PHCASeeding::PHCASeeding(
@@ -273,7 +273,8 @@ PositionMap PHCASeeding::FillTree()
 
   PositionMap cachedPositions;
 
-  for (int j = 0; j < 60; ++j) nlayer[j] = 0;
+  for (int & j : nlayer) { j = 0;
+}
   for (const auto& hitsetkey : _cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
     auto range = _cluster_map->getClusters(hitsetkey);
@@ -284,13 +285,15 @@ PositionMap PHCASeeding::FillTree()
       unsigned int layer = TrkrDefs::getLayer(ckey);
       if (layer < _start_layer || layer >= _end_layer)
       {
-        if (Verbosity() > 0) std::cout << "layer: " << layer << std::endl;
+        if (Verbosity() > 0) { std::cout << "layer: " << layer << std::endl;
+}
         continue;
       }
-      if (_iteration_map != NULL && _n_iteration > 0)
+      if (_iteration_map != nullptr && _n_iteration > 0)
       {
-        if (_iteration_map->getIteration(ckey) > 0)
+        if (_iteration_map->getIteration(ckey) > 0) {
           continue;  // skip hits used in a previous iteration
+}
       }
 
       // get global position, convert to Acts::Vector3 and store in map
@@ -311,8 +314,9 @@ PositionMap PHCASeeding::FillTree()
       const double clus_eta = get_eta(globalpos);
       const double clus_l = layer;
 
-      if (Verbosity() > 0)
+      if (Verbosity() > 0) {
         std::cout << "Found cluster " << ckey << " in layer " << layer << std::endl;
+}
 
       std::vector<pointKey> testduplicate;
       QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);
@@ -327,10 +331,14 @@ PositionMap PHCASeeding::FillTree()
       t_fill->stop();
     }
   }
-  if (Verbosity() > 1)
-    for (int j = 0; j < 60; ++j) std::cout << "nhits in layer " << j << ":  " << nlayer[j] << std::endl;
-  if (Verbosity() > 0) std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
-  if (Verbosity() > 0) std::cout << "number of duplicates : " << n_dupli << std::endl;
+  if (Verbosity() > 1) {
+    for (int j = 0; j < 60; ++j) { std::cout << "nhits in layer " << j << ":  " << nlayer[j] << std::endl;
+}
+}
+  if (Verbosity() > 0) { std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
+}
+  if (Verbosity() > 0) { std::cout << "number of duplicates : " << n_dupli << std::endl;
+}
   return cachedPositions;
 }
 
@@ -355,13 +363,16 @@ int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
   _rtree.clear();
   PositionMap globalClusPositions = FillTree();
   t_seed->stop();
-  if (Verbosity() > 0) std::cout << "Initial RTree fill time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+  if (Verbosity() > 0) { std::cout << "Initial RTree fill time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+}
   t_seed->restart();
   int numberofseeds = 0;
   numberofseeds += FindSeedsWithMerger(globalClusPositions);
   t_seed->stop();
-  if (Verbosity() > 0) std::cout << "number of seeds " << numberofseeds << std::endl;
-  if (Verbosity() > 0) std::cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+  if (Verbosity() > 0) { std::cout << "number of seeds " << numberofseeds << std::endl;
+}
+  if (Verbosity() > 0) { std::cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+}
   //  fpara.cd();
   //  fpara.Close();
   //  if(Verbosity()>0) std::cout << "fpara OK\n";
@@ -384,7 +395,8 @@ int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
             _end_layer + 0.5,    // layer
             allClusters);
   t_seed->stop();
-  if (Verbosity() > 0) std::cout << "allClusters search time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+  if (Verbosity() > 0) { std::cout << "allClusters search time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+}
   LogDebug(" number of clusters: " << allClusters.size() << std::endl);
   t_seed->restart();
 
@@ -412,16 +424,18 @@ std::pair<std::vector<std::unordered_set<keylink>>, std::vector<std::unordered_s
   belowLinks.resize(_nlayers_tpc);
   aboveLinks.resize(_nlayers_tpc);
 
-  for (auto StartCluster = clusters.begin(); StartCluster != clusters.end(); ++StartCluster)
+  for (const auto & StartCluster : clusters)
   {
     nclusters++;
     // get clusters near this one in adjacent layers
-    double StartPhi = StartCluster->first[0];
+    double StartPhi = StartCluster.first[0];
     // double StartEta = StartCluster->first[1];
-    unsigned int StartLayer = StartCluster->first[2];
-    if (StartLayer < _start_layer) continue;
-    if (StartLayer > _end_layer) continue;
-    const auto& globalpos = globalPositions.at(StartCluster->second);
+    unsigned int StartLayer = StartCluster.first[2];
+    if (StartLayer < _start_layer) { continue;
+}
+    if (StartLayer > _end_layer) { continue;
+}
+    const auto& globalpos = globalPositions.at(StartCluster.second);
     double StartX = globalpos(0);
     double StartY = globalpos(1);
     double StartZ = globalpos(2);
@@ -602,8 +616,10 @@ std::pair<std::vector<std::unordered_set<keylink>>, std::vector<std::unordered_s
     int layer_index = StartLayer - (_nlayers_intt + _nlayers_maps);
     // if(bestBelowCluster.second != 0) belowLinks[layer_index].insert(keylink{{*StartCluster,bestBelowCluster}});
     // if(bestAboveCluster.second != 0) aboveLinks[layer_index].insert(keylink{{*StartCluster,bestAboveCluster}});
-    for (auto cluster : bestBelowClusters) belowLinks[layer_index].insert(keylink{{*StartCluster, cluster}});
-    for (auto cluster : bestAboveClusters) aboveLinks[layer_index].insert(keylink{{*StartCluster, cluster}});
+    for (auto cluster : bestBelowClusters) { belowLinks[layer_index].insert(keylink{{StartCluster, cluster}});
+}
+    for (auto cluster : bestAboveClusters) { aboveLinks[layer_index].insert(keylink{{StartCluster, cluster}});
+}
     t_seed->stop();
     set_insert_time += t_seed->elapsed();
     t_seed->restart();
@@ -633,7 +649,8 @@ std::vector<std::vector<keylink>> PHCASeeding::FindBiLinks(const std::vector<std
   {
     for (auto belowLink = belowLinks[layer].begin(); belowLink != belowLinks[layer].end(); ++belowLink)
     {
-      if ((*belowLink)[1].second == 0) continue;
+      if ((*belowLink)[1].second == 0) { continue;
+}
       unsigned int end_layer_index = TrkrDefs::getLayer((*belowLink)[1].second) - (_nlayers_intt + _nlayers_maps);
       keylink reversed = {(*belowLink)[1], (*belowLink)[0]};
       auto sameAboveLinkExists = aboveLinks[end_layer_index].find(reversed);
@@ -644,7 +661,8 @@ std::vector<std::vector<keylink>> PHCASeeding::FindBiLinks(const std::vector<std
     }
   }
   t_seed->stop();
-  if (Verbosity() > 0) std::cout << "bidirectional link forming time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+  if (Verbosity() > 0) { std::cout << "bidirectional link forming time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+}
   t_seed->restart();
 
   return bidirectionalLinks;
@@ -681,7 +699,8 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
     {
       bool has_above_link = false;
       unsigned int imax = 1;
-      if (layer == _nlayers_tpc - 2) imax = 1;
+      if (layer == _nlayers_tpc - 2) { imax = 1;
+}
       for (unsigned int i = 1; i <= imax; i++)
       {
         has_above_link = has_above_link || std::any_of(bidirectionalLinks[layer + i].begin(), bidirectionalLinks[layer + i].end(), [&](keylink k)
@@ -719,7 +738,8 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   }
 
   t_seed->stop();
-  if (Verbosity() > 0) std::cout << "starting cluster finding time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+  if (Verbosity() > 0) { std::cout << "starting cluster finding time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+}
   t_seed->restart();
   // assemble track cluster chains from starting cluster keys (ordered from outside in)
 
@@ -731,8 +751,10 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
 
   while (tempSeedKeyLists.size() > 0)
   {
-    if (Verbosity() > 0) std::cout << "temp size: " << tempSeedKeyLists.size() << std::endl;
-    if (Verbosity() > 0) std::cout << "final size: " << trackSeedKeyLists.size() << std::endl;
+    if (Verbosity() > 0) { std::cout << "temp size: " << tempSeedKeyLists.size() << std::endl;
+}
+    if (Verbosity() > 0) { std::cout << "final size: " << trackSeedKeyLists.size() << std::endl;
+}
     std::vector<keylist> newtempSeedKeyLists;
     for (auto& seed : tempSeedKeyLists)
     {
@@ -741,7 +763,8 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
       // bool no_next_link = true;
       for (auto& link : bidirectionalLinks[trackHead_layer])
       {
-        if (link[0].second != trackHead) continue;
+        if (link[0].second != trackHead) { continue;
+}
         auto& head_pos = globalPositions.at(trackHead);
         auto& prev_pos = globalPositions.at(seed.rbegin()[1]);
         float x1 = head_pos.x();
@@ -757,7 +780,8 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
         float yt = test_pos.y();
         float zt = test_pos.z();
         float new_dr = sqrt(xt * xt + yt * yt) - sqrt(x1 * x1 + y1 * y1);
-        if (fabs((z1 - z2) / dr_12 - (zt - z1) / new_dr) > 0.5) continue;
+        if (fabs((z1 - z2) / dr_12 - (zt - z1) / new_dr) > 0.5) { continue;
+}
         auto& third_pos = globalPositions.at(seed.rbegin()[2]);
         float x3 = third_pos.x();
         float y3 = third_pos.y();
@@ -783,7 +807,8 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
         trackSeedKeyLists.push_back(seed);
       }
     }
-    if (Verbosity() > 0) std::cout << "new temp size: " << newtempSeedKeyLists.size() << std::endl;
+    if (Verbosity() > 0) { std::cout << "new temp size: " << newtempSeedKeyLists.size() << std::endl;
+}
     tempSeedKeyLists = newtempSeedKeyLists;
   }
 
@@ -842,7 +867,8 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
     }
   */
   t_seed->stop();
-  if (Verbosity() > 0) std::cout << "keychain assembly time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+  if (Verbosity() > 0) { std::cout << "keychain assembly time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+}
   t_seed->restart();
   LogDebug(" track key chains assembled: " << trackSeedKeyLists.size() << std::endl);
   LogDebug(" track key chain lengths: " << std::endl);
@@ -852,15 +878,15 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   }
   int jumpcount = 0;
   LogDebug(" track key associations:" << std::endl);
-  for (size_t i = 0; i < trackSeedKeyLists.size(); ++i)
+  for (auto & trackSeedKeyList : trackSeedKeyLists)
   {
     LogDebug(" seed " << i << ":" << std::endl);
 
     double lasteta = -100;
     double lastphi = -100;
-    for (size_t j = 0; j < trackSeedKeyLists[i].size(); ++j)
+    for (unsigned long & j : trackSeedKeyList)
     {
-      const auto& globalpos = globalPositions.at(trackSeedKeyLists[i][j]);
+      const auto& globalpos = globalPositions.at(j);
       const double clus_phi = get_phi(globalpos);
       const double clus_eta = get_eta(globalpos);
       const double etajump = clus_eta - lasteta;
@@ -878,7 +904,7 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
 
       if (Verbosity() > 0)
       {
-        unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j]);
+        unsigned int lay = TrkrDefs::getLayer(j);
         std::cout << "  eta, phi, layer = (" << clus_eta << "," << clus_phi << "," << lay << ") "
                   << " (x,y,z) = (" << globalpos(0) << "," << globalpos(1) << "," << globalpos(2) << ")" << std::endl;
       }
@@ -888,20 +914,24 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   }
   LogDebug(" Total large jumps: " << jumpcount << std::endl);
   t_seed->stop();
-  if (Verbosity() > 0) std::cout << "eta-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+  if (Verbosity() > 0) { std::cout << "eta-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+}
   t_seed->restart();
   return trackSeedKeyLists;
 }
 
 std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
 {
-  if (Verbosity() > 0) std::cout << "removing bad clusters" << std::endl;
+  if (Verbosity() > 0) { std::cout << "removing bad clusters" << std::endl;
+}
   std::vector<TrackSeed_v2> clean_chains;
 
   for (const auto& chain : chains)
   {
-    if (chain.size() < 3) continue;
-    if (Verbosity() > 0) std::cout << "chain size: " << chain.size() << std::endl;
+    if (chain.size() < 3) { continue;
+}
+    if (Verbosity() > 0) { std::cout << "chain size: " << chain.size() << std::endl;
+}
 
     TrackFitUtils::position_vector_t xy_pts;
     for (const auto& ckey : chain)
@@ -914,21 +944,23 @@ std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const std::vector<keyli
     const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin(xy_pts);
 
     // skip chain entirely if fit fails
-    if (std::isnan(R)) continue;
+    if (std::isnan(R)) { continue;
+}
 
     // calculate residuals
     const std::vector<double> xy_resid = TrackFitUtils::getCircleClusterResiduals(xy_pts, R, X0, Y0);
 
     // assign clusters to seed
     TrackSeed_v2 trackseed;
-    for (size_t i = 0; i < chain.size(); i++)
+    for (unsigned long i : chain)
     {
       // if(xy_resid[i]>_xy_outlier_threshold) continue;
-      trackseed.insert_cluster_key(chain.at(i));
+      trackseed.insert_cluster_key(i);
     }
 
     clean_chains.push_back(trackseed);
-    if (Verbosity() > 0) std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
+    if (Verbosity() > 0) { std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
+}
   }
 
   return clean_chains;
@@ -951,7 +983,8 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)
 {
   //  if(Verbosity()>0)
   std::cout << "Called Setup" << std::endl;
-  if (Verbosity() > 0) std::cout << "topNode:" << topNode << std::endl;
+  if (Verbosity() > 0) { std::cout << "topNode:" << topNode << std::endl;
+}
   PHTrackSeeding::Setup(topNode);
 
   // geometry initialization
@@ -1004,6 +1037,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)
 
 int PHCASeeding::End()
 {
-  if (Verbosity() > 0) std::cout << "Called End " << std::endl;
+  if (Verbosity() > 0) { std::cout << "Called End " << std::endl;
+}
   return Fun4AllReturnCodes::EVENT_OK;
 }

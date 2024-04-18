@@ -91,16 +91,19 @@
 namespace
 {
   /// navigate Acts volumes to find one matching a given name (recursive)
+// NOLINTNEXTLINE(misc-no-recursion)
   TrackingVolumePtr find_volume_by_name( const Acts::TrackingVolume* master, const std::string& name )
   {
     // skip if name is not composite
-    if( master->volumeName().empty() || master->volumeName()[0] != '{' ) return nullptr;
+    if( master->volumeName().empty() || master->volumeName()[0] != '{' ) { return nullptr;
+}
 
     // loop over children
     for( const auto& child:master->confinedVolumes()->arrayObjects() )
     {
-      if( child->volumeName() == name ) return child;
-      else if( auto found = find_volume_by_name( child.get(), name ) ) return found;
+      if( child->volumeName() == name ) { return child;
+      } else if( auto found = find_volume_by_name( child.get(), name ) ) { return found;
+}
     }
 
     // not found
@@ -143,8 +146,9 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   if(tpcParam){alignment_transformation.setTPCParams(m_tpcDevs);}
   if(mmParam){alignment_transformation.setMMParams(m_mmDevs);}
 
-  if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
+  if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK) {
     return Fun4AllReturnCodes::ABORTEVENT;
+}
 
   /// Set the actsGeometry struct to be put on the node tree
   ActsTrackingGeometry trackingGeometry;
@@ -162,9 +166,10 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   surfMaps.m_tGeoNodeMap = m_clusterNodeMap;
 
   // fill TPC volume ids
-  for( const auto& [hitsetid, surfaceVector]:m_clusterSurfaceMapTpcEdit )
+  for( const auto& [hitsetid, surfaceVector]:m_clusterSurfaceMapTpcEdit ) {
     for( const auto& surface:surfaceVector )
       { surfMaps.m_tpcVolumeIds.insert( surface->geometryId().volume() ); }
+}
   
   // fill Micromegas volume ids
   for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
@@ -205,8 +210,9 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   // this also adds the micromegas surfaces
   // Do this before anything else, so that the geometry is finalized
   
-  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) {
     return Fun4AllReturnCodes::ABORTEVENT;  
+}
 
   setPlanarSurfaceDivisions();//eshulga
   // This should be done only on the first tracking pass, to avoid adding surfaces twice. 
@@ -220,8 +226,9 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
       PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
     }
 
-  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK) {
     return Fun4AllReturnCodes::ABORTEVENT;
+}
 
   /// Run Acts layer builder
   buildActsSurfaces();
@@ -282,8 +289,9 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
     TString node_name = World_vol->GetNode(i)->GetName();
     if (node_name.BeginsWith("tpc_envelope"))
     {
-      if (Verbosity())
+      if (Verbosity()) {
         std::cout << "EditTPCGeometry - found " << node_name << std::endl;
+}
 
       tpc_envelope_node = World_vol->GetNode(i);
       break;
@@ -307,8 +315,9 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
       
       if (node_name.BeginsWith("tpc_gas_north"))
 	{
-	  if (Verbosity())
+	  if (Verbosity()) {
 	    std::cout << "EditTPCGeometry - found " << node_name << std::endl;
+}
 	  
 	  tpc_gas_north_node = tpc_envelope_vol->GetNode(i);
 	  break;
@@ -364,16 +373,14 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
   for(unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
     {
       // make a box for this layer
-      char bname[500];
-      sprintf(bname,"tpc_gas_measurement_%u",ilayer);
-
+      std::string bname = "tpc_gas_measurement_" + std::to_string(ilayer);
       // Because we use a box, not a section of a cylinder, we need this to prevent overlaps
       // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
       double box_r_phi = 2.0 * tan_half_phi * 
 	(m_layerRadius[ilayer] - m_layerThickness[ilayer] / 2.0);
 
   
-      tpc_gas_measurement_vol[ilayer] = geoManager->MakeBox(bname, tpc_gas_medium, 
+      tpc_gas_measurement_vol[ilayer] = geoManager->MakeBox(bname.c_str(), tpc_gas_medium, 
 							    m_layerThickness[ilayer]*half_width_clearance_thick, 
 							    box_r_phi*half_width_clearance_phi, 
 							    m_surfStepZ*half_width_clearance_z);
@@ -414,11 +421,10 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 		  double x_center = m_layerRadius[ilayer] * cos(phi_center);
 		  double y_center = m_layerRadius[ilayer] * sin(phi_center);
 		  
-		  char rot_name[500];
-		  sprintf(rot_name,"tpc_gas_rotation_%i", copy);
+		  std::string rot_name = "tpc_gas_rotation_" + std::to_string(copy);
 		  TGeoCombiTrans *tpc_gas_measurement_location 
 		    = new TGeoCombiTrans(x_center, y_center, z_center,
-					 new TGeoRotation(rot_name,
+					 new TGeoRotation(rot_name.c_str(),
 							  phi_center_degrees, 
 							  0, 0));
 		 
@@ -504,8 +510,9 @@ void MakeActsGeometry::buildActsSurfaces()
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
     {
-      if(Verbosity() > 1)
+      if(Verbosity() > 1) {
 	std::cout << argstr[i] << ", ";
+}
       // need a copy, since .c_str() returns a const char * and process geometry will not take a const
       arg[i] = strdup(argstr[i].c_str());
     }
@@ -516,8 +523,10 @@ void MakeActsGeometry::buildActsSurfaces()
   
   makeGeometry(argc, arg, m_detector);
 
-  for(int i=0; i<argc; i++)
-    free(arg[i]);
+  for(auto & i : arg) {
+// NOLINTNEXTLINE(hicpp-no-malloc)
+    free(i);
+}
 
 }
 void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
@@ -727,18 +736,18 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
   auto tpcLayerVector = tpcLayerArray->arrayObjects();
 
   /// Need to unfold each layer that Acts builds
-  for(unsigned int i = 0; i < tpcLayerVector.size(); i++)
+  for(auto & i : tpcLayerVector)
     {
-      auto surfaceArray = tpcLayerVector.at(i)->surfaceArray();
-      if(surfaceArray == NULL){
+      auto surfaceArray = i->surfaceArray();
+      if(surfaceArray == nullptr){
 	continue;
       }
       /// surfaceVector is a vector of surfaces corresponding to the tpc layer
       /// that acts builds
       auto surfaceVector = surfaceArray->surfaces();
-      for( unsigned int j = 0; j < surfaceVector.size(); j++)
+      for(auto & j : surfaceVector)
 	{
-	  auto surf = surfaceVector.at(j)->getSharedPtr();
+	  auto surf = j->getSharedPtr();
 	  auto vec3d = surf->center(m_geoCtxt);
 
 	  /// convert to cm
@@ -784,18 +793,19 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
   const auto mmLayerVector = mmLayerArray->arrayObjects();
   
   /// Need to unfold each layer that Acts builds
-  for(unsigned int i = 0; i < mmLayerVector.size(); i++)
+  for(const auto & i : mmLayerVector)
   {
-    auto surfaceArray = mmLayerVector.at(i)->surfaceArray();
-    if(!surfaceArray) continue;
+    auto surfaceArray = i->surfaceArray();
+    if(!surfaceArray) { continue;
+}
     
     /// surfaceVector is a vector of surfaces corresponding to the micromegas layer
     /// that acts builds
     const auto surfaceVector = surfaceArray->surfaces();
 
-    for( unsigned int j = 0; j < surfaceVector.size(); j++)
+    for(auto j : surfaceVector)
     {
-      auto surface = surfaceVector.at(j)->getSharedPtr();
+      auto surface = j->getSharedPtr();
       auto vec3d = surface->center(m_geoCtxt);
       
       /// convert to cm
@@ -863,19 +873,20 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 
   auto inttLayerVector = inttLayerArray->arrayObjects();
   // inttLayerVector is a std::vector<LayerPtr>
-  for (unsigned int i = 0; i < inttLayerVector.size(); i++)
+  for (auto & i : inttLayerVector)
   {
     // Get the ACTS::SurfaceArray from each INTT LayerPtr being iterated over
-    auto surfaceArray = inttLayerVector.at(i)->surfaceArray();
-    if (surfaceArray == NULL)
+    auto surfaceArray = i->surfaceArray();
+    if (surfaceArray == nullptr) {
       continue;
+}
 
     // surfaceVector is an Acts::SurfaceVector, vector of surfaces
     auto surfaceVector = surfaceArray->surfaces();
 
-    for (unsigned int j = 0; j < surfaceVector.size(); j++)
+    for (auto & j : surfaceVector)
     {
-      auto surf = surfaceVector.at(j)->getSharedPtr();
+      auto surf = j->getSharedPtr();
       auto vec3d = surf->center(m_geoCtxt);
 
       double ref_rad[4] = {-1., -1., -1., -1.};
@@ -940,9 +951,10 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
                     << " Associated detElement found, thickness = " 
 		    << assoc_det_element->thickness() << std::endl;
         }
-        else
+        else {
           std::cout << std::endl
                     << " Associated detElement is nullptr " << std::endl;
+}
       }
     }
   }
@@ -962,21 +974,22 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 
   // mvtxLayerVector has size 3, but only index 1 has any surfaces since the clayersplits option was removed
   // the layer number has to be deduced from the radius
-  for (unsigned int i = 0; i < mvtxLayerVector1.size(); ++i)
+  for (auto & i : mvtxLayerVector1)
   {
     // Get the Acts::SurfaceArray from each MVTX LayerPtr being iterated over
-    auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
-    if (surfaceArray == NULL)
+    auto surfaceArray = i->surfaceArray();
+    if (surfaceArray == nullptr) {
       continue;
+}
 
     double ref_rad[3] = {2.556, 3.359, 4.134};
 
     // surfaceVector is an Acts::SurfaceVector, vector of surfaces
     //std::vector<const Surface*>
     auto surfaceVector = surfaceArray->surfaces();
-    for (unsigned int j = 0; j < surfaceVector.size(); j++)
+    for (auto & j : surfaceVector)
     {
-      auto surf = surfaceVector.at(j)->getSharedPtr();
+      auto surf = j->getSharedPtr();
       auto vec3d = surf->center(m_geoCtxt);
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
@@ -1021,9 +1034,10 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
                     << " Associated detElement found, thickness = " 
 		    << assoc_det_element->thickness() << std::endl;
         }
-        else
+        else {
           std::cout << std::endl
                     << " Associated detElement is nullptr " << std::endl;
+}
       }
     }
   }
@@ -1061,10 +1075,11 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
 
   // side -  from world z sign 
   unsigned int side;
-  if(world[2] < 0)
+  if(world[2] < 0) {
     side = 0;
-  else
+  } else {
     side = 1;
+}
 
   // readout module 
   unsigned int readout_mod = 999;
@@ -1088,13 +1103,15 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
     }
 
   TrkrDefs::hitsetkey hitset_key = TpcDefs::genHitSetKey(layer, readout_mod, side);
-  if(Verbosity() > 3)
-    if(layer == 30)
+  if(Verbosity() > 3) {
+    if(layer == 30) {
       std::cout << "   world = " << world[0] << "  " << world[1] 
 		<< "  " << world[2] << " phi_world " 
 		<< phi_world*180/M_PI << " layer " << layer
 		<< " readout_mod " << readout_mod << " side " << side 
 		<< " hitsetkey " << hitset_key<< std::endl;
+}
+}
   
   return hitset_key;
 }
@@ -1256,15 +1273,19 @@ void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
     token = s.substr(0, pos);
  
     s.erase(0, pos + delimiter.length());
-    if (counter == 1)
+    if (counter == 1) {
       layer = std::atoi(token.c_str()) + 3;
-    if (counter == 2)
+}
+    if (counter == 2) {
       itype = std::atoi(token.c_str());
+}
     if (counter == 3)
     {
       ladder_phi = std::atoi(token.c_str());
-      if (s.compare(0, negz.length(), negz) == 0) zposneg = 0;
-      if (s.compare(0, posz.length(), posz) == 0) zposneg = 1;
+      if (s.compare(0, negz.length(), negz) == 0) { zposneg = 0;
+}
+      if (s.compare(0, posz.length(), posz) == 0) { zposneg = 1;
+}
     }
     counter++;
   }
@@ -1281,7 +1302,7 @@ void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
   }
 
   std::string intt_refactive("siactive");
-  TGeoNode *sensor_node = 0;
+  TGeoNode *sensor_node = nullptr;
   for (int i = 0; i < ndaught; ++i)
   {
     std::string node_str = gnode->GetDaughter(i)->GetName();
@@ -1301,11 +1322,12 @@ void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
 					         node_key, sensor_node);
   m_clusterNodeMap.insert(tmp);
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 1) {
     std::cout << " INTT layer " << layer << " ladder_phi " << ladder_phi 
 	      << " itype " << itype << " zposneg " << zposneg 
 	      << " ladder_z " << ladder_z << " name " 
 	      << sensor_node->GetName() << std::endl;
+}
 
   return;
 }
@@ -1332,8 +1354,9 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
     token = s.substr(0, pos);
     //std::cout << token << std::endl;
     s.erase(0, pos + delimiter.length());
-    if (counter == 3)
+    if (counter == 3) {
       impr = std::atoi(token.c_str());
+}
 
     counter++;
   }
@@ -1368,10 +1391,11 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
     std::string dstr = module_node->GetDaughter(i)->GetName();
     if (dstr.compare(0, mvtx_chip.length(), mvtx_chip) == 0)
     {
-      if (Verbosity() > 3)
+      if (Verbosity() > 3) {
         std::cout << "Found MVTX layer " << layer << " stave " << stave 
 		  << " chip  " << i << " with node name " 
 		  << module_node->GetDaughter(i)->GetName() << std::endl;
+}
 
       // Make key for this chip
       unsigned int strobe = 0;
@@ -1384,10 +1408,11 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
 						       node_key, sensor_node);
       m_clusterNodeMap.insert(tmp);
 
-      if (Verbosity() > 3)
+      if (Verbosity() > 3) {
         std::cout << " MVTX layer " << layer << " stave " << stave 
 		  << " chip " << chip << " name " 
 		  << sensor_node->GetName() << std::endl;
+}
     }
   }
 

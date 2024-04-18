@@ -65,7 +65,7 @@
 namespace
 {
   // check vector validity
-  inline bool is_valid(const Acts::Vector3 vec)
+  inline bool is_valid(const Acts::Vector3& vec)
   {
     return !(std::isnan(vec.x()) || std::isnan(vec.y()) || std::isnan(vec.z()));
   }
@@ -127,7 +127,8 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 
   m_alignStates.fieldMap(m_fieldMap);
   auto level = Acts::Logging::FATAL;
-  if (Verbosity() > 5) level = Acts::Logging::VERBOSE;
+  if (Verbosity() > 5) { level = Acts::Logging::VERBOSE;
+}
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
       m_tGeometry->geometry().tGeometry,
@@ -203,8 +204,9 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
-    if (Verbosity() > 4)
+    if (Verbosity() > 4) {
       logLevel = Acts::Logging::VERBOSE;
+}
   }
 
   /// Fill an additional track map if using the acts evaluator
@@ -225,16 +227,19 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
   eventTimer.stop();
   auto eventTime = eventTimer.get_accumulated_time();
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 1) {
     std::cout << "PHActsTrkFitter total event time "
               << eventTime << std::endl;
+}
 
-  if (m_timeAnalysis)
+  if (m_timeAnalysis) {
     h_eventTime->Fill(eventTime);
+}
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 1) {
     std::cout << "PHActsTrkFitter::process_event finished"
               << std::endl;
+}
 
   // put this in the output file
   if (Verbosity() > 0)
@@ -296,10 +301,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     std::cout << " seed map size " << m_seedMap->size() << std::endl;
   }
 
-  for (auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end();
-       ++trackiter)
+  for (auto track : *m_seedMap)
   {
-    TrackSeed* track = *trackiter;
     if (!track)
     {
       continue;
@@ -314,23 +317,26 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     /// has a silicon match, we skip those cases completely in pp running
     if (m_pp_mode && siid == std::numeric_limits<unsigned int>::max())
     {
-      if (Verbosity() > 3) std::cout << " tpcid " << tpcid << " siid " << siid << " running in pp mode and SvtxSeedTrack has no silicon match, skip it" << std::endl;
+      if (Verbosity() > 3) { std::cout << " tpcid " << tpcid << " siid " << siid << " running in pp mode and SvtxSeedTrack has no silicon match, skip it" << std::endl;
+}
       continue;
     }
 
     // get the INTT crossing number
     auto siseed = m_siliconSeeds->get(siid);
     short crossing = SHRT_MAX;
-    if (siseed)
+    if (siseed) {
       crossing = siseed->get_crossing();
-    else if (!m_pp_mode)
+    } else if (!m_pp_mode) {
       crossing = 0;
+}
 
     // if the crossing was not determined at all in pp running, skip this case completely
     if (m_pp_mode && crossing == SHRT_MAX && crossing_estimate == SHRT_MAX)
     {
       // Skip this in the pp case.
-      if (Verbosity() > 3) std::cout << "tpcid " << tpcid << " siid " << siid << " crossing and crossing_estimate not determined, skipping track" << std::endl;
+      if (Verbosity() > 3) { std::cout << "tpcid " << tpcid << " siid " << siid << " crossing and crossing_estimate not determined, skipping track" << std::endl;
+}
       continue;
     }
 
@@ -340,7 +346,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
 
     // Can't do SC case without INTT crossing
-    if( m_fitSiliconMMs && (crossing == SHRT_MAX) ) continue;
+    if( m_fitSiliconMMs && (crossing == SHRT_MAX) ) { continue;
+}
 
     auto tpcseed = m_tpcSeeds->get(tpcid);
 
@@ -353,7 +360,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     if (Verbosity() > 0)
     {
-      if (siseed) std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
+      if (siseed) { std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
+}
       std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
     }
 
@@ -475,7 +483,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	    position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
 	    position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
 	  }
-	if (!is_valid(position)) continue;
+	if (!is_valid(position)) { continue;
+}
 	
 	if (sourceLinks.empty())
 	  {
@@ -489,7 +498,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	    sourceLinks = getSurfaceVector(sourceLinks, surfaces);
 	    
 	    // skip if there is no surfaces
-	    if (surfaces.empty()) continue;
+	    if (surfaces.empty()) { continue;
+}
 	    
 	    // make sure micromegas are in the tracks, if required
 	    if (m_useMicromegas &&
@@ -524,7 +534,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	//   }
 
 	Acts::Vector3 momentum(px, py, pz);
-	if (!is_valid(momentum)) continue;
+	if (!is_valid(momentum)) { continue;
+}
 
 	auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 									position);
@@ -736,9 +747,10 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult& fitOutput,
     updateTrackTimer.stop();
     auto updateTime = updateTrackTimer.get_accumulated_time();
 
-    if (Verbosity() > 1)
+    if (Verbosity() > 1) {
       std::cout << "PHActsTrkFitter update SvtxTrack time "
                 << updateTime << std::endl;
+}
 
     if (m_timeAnalysis)
     {
@@ -800,10 +812,12 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
 
     const auto surf = m_tGeometry->geometry().tGeometry->findSurface(asl.geometryId());
     // skip TPC surfaces
-    if (m_tGeometry->maps().isTpcSurface(surf)) continue;
+    if (m_tGeometry->maps().isTpcSurface(surf)) { continue;
+}
 
     // also skip micromegas surfaces if not used
-    if (m_tGeometry->maps().isMicromegasSurface(surf) && !m_useMicromegas) continue;
+    if (m_tGeometry->maps().isMicromegasSurface(surf) && !m_useMicromegas) { continue;
+}
 
     // update vectors
     siliconMMSls.push_back(sl);
@@ -956,9 +970,10 @@ void PHActsTrkFitter::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::I
   trackStateTimer.stop();
   auto stateTime = trackStateTimer.get_accumulated_time();
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 1) {
     std::cout << "PHActsTrkFitter update SvtxTrackStates time "
               << stateTime << std::endl;
+}
 
   if (m_timeAnalysis)
   {
