@@ -390,7 +390,7 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(TH3* hin)
 }
 
 //___________________________________________________________________________
-TH3* TpcSpaceChargeReconstructionHelper::copy_histogram(TH3* hin, const TString& name)
+TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(TH3* hin, const TString& name)
 {
   std::array<int, 3> bins;
   std::array<double, 3> x_min;
