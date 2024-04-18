@@ -100,13 +100,13 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
   m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
 
   // create output histograms
-  auto hentries( new TH3F( "hentries_rec", "hentries_rec", phibins, m_phimin, m_phimax, rbins, m_rmin, m_rmax, zbins, m_zmin, m_zmax ) );
-  auto hphi( new TH3F( "hDistortionP_rec", "hDistortionP_rec", phibins, m_phimin, m_phimax, rbins, m_rmin, m_rmax, zbins, m_zmin, m_zmax ) );
-  auto hz( new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", phibins, m_phimin, m_phimax, rbins, m_rmin, m_rmax, zbins, m_zmin, m_zmax ) );
-  auto hr( new TH3F( "hDistortionR_rec", "hDistortionR_rec", phibins, m_phimin, m_phimax, rbins, m_rmin, m_rmax, zbins, m_zmin, m_zmax ) );
+  std::unique_ptr<TH3> hentries( new TH3F( "hentries_rec", "hentries_rec", phibins, m_phimin, m_phimax, rbins, m_rmin, m_rmax, zbins, m_zmin, m_zmax ) );
+  std::unique_ptr<TH3> hphi( new TH3F( "hDistortionP_rec", "hDistortionP_rec", phibins, m_phimin, m_phimax, rbins, m_rmin, m_rmax, zbins, m_zmin, m_zmax ) );
+  std::unique_ptr<TH3> hz( new TH3F( "hDistortionZ_rec", "hDistortionZ_rec", phibins, m_phimin, m_phimax, rbins, m_rmin, m_rmax, zbins, m_zmin, m_zmax ) );
+  std::unique_ptr<TH3> hr( new TH3F( "hDistortionR_rec", "hDistortionR_rec", phibins, m_phimin, m_phimax, rbins, m_rmin, m_rmax, zbins, m_zmin, m_zmax ) );
 
   // set axis labels
-  for( const auto& h:{ hentries, hphi, hz, hr } )
+  for( const auto& h:{ hentries.get(), hphi.get(), hz.get(), hr.get() } )
   {
     h->GetXaxis()->SetTitle( "#phi (rad)" );
     h->GetYaxis()->SetTitle( "r (cm)" );
@@ -195,9 +195,9 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
   // apply finishing transformations to histograms and save in container
   if( !m_dcc_average ) { m_dcc_average.reset(new TpcDistortionCorrectionContainer); }
 
-  std::tie( m_dcc_average->m_hentries[0], m_dcc_average->m_hentries[1] ) = process_histogram( hentries, "hentries" );
-  std::tie( m_dcc_average->m_hDRint[0], m_dcc_average->m_hDRint[1] ) = process_histogram( hr, "hIntDistortionR" );
-  std::tie( m_dcc_average->m_hDPint[0], m_dcc_average->m_hDPint[1] ) = process_histogram( hphi, "hIntDistortionP" );
-  std::tie( m_dcc_average->m_hDZint[0], m_dcc_average->m_hDZint[1] ) = process_histogram( hz, "hIntDistortionZ" );
+  std::tie( m_dcc_average->m_hentries[0], m_dcc_average->m_hentries[1] ) = process_histogram( hentries.get(), "hentries" );
+  std::tie( m_dcc_average->m_hDRint[0], m_dcc_average->m_hDRint[1] ) = process_histogram( hr.get(), "hIntDistortionR" );
+  std::tie( m_dcc_average->m_hDPint[0], m_dcc_average->m_hDPint[1] ) = process_histogram( hphi.get(), "hIntDistortionP" );
+  std::tie( m_dcc_average->m_hDZint[0], m_dcc_average->m_hDZint[1] ) = process_histogram( hz.get(), "hIntDistortionZ" );
 
 }
