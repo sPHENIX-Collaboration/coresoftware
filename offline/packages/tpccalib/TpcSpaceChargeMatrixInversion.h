@@ -5,13 +5,13 @@
  * \brief aggregate space charge reconstruction matrices from several jobs and perform the inversion
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
+
+#include "TpcSpaceChargeMatrixContainer.h"
+
 #include <fun4all/Fun4AllBase.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <memory>
-
-// forward declaration
-class TpcSpaceChargeMatrixContainer;
-class TpcDistortionCorrectionContainer;
 
 /**
  * \class TpcSpaceChargeMatrixInversion
