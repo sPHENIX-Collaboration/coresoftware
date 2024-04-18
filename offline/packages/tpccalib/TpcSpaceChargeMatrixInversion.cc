@@ -201,3 +201,28 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
   std::tie( m_dcc_average->m_hDZint[0], m_dcc_average->m_hDZint[1] ) = process_histogram( hz.get(), "hIntDistortionZ" );
 
 }
+
+
+//_____________________________________________________________________
+void TpcSpaceChargeMatrixInversion::save_distortions(const std::string& filename)
+{
+  if( !m_dcc_average )
+  {
+    std::cout << "TpcSpaceChargeMatrixInversion::save_distortions - invalid histograms." << std::endl;
+    return;
+  }
+
+  // save everything to root file
+  std::cout << "TpcSpaceChargeMatrixInversion::save_distortions - writing histograms to " << filename << std::endl;
+  std::unique_ptr<TFile> outputfile( TFile::Open( filename.c_str(), "RECREATE" ) );
+  outputfile->cd();
+
+  for( const auto& h: {m_dcc_average->m_hentries, m_dcc_average->m_hDRint, m_dcc_average->m_hDPint, m_dcc_average->m_hDZint } )
+  {
+    if( h[0] ) h[0]->Write();
+    if( h[1] ) h[1]->Write();
+  }
+
+  // close TFile
+  outputfile->Close();
+}
