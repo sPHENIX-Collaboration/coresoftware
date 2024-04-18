@@ -48,25 +48,25 @@ bool TpcSpaceChargeMatrixInversion::add_from_file( const std::string& shortfilen
 {
   // get filename from frog
   FROG frog;
-  const auto filename = frog.location( shortfilename );  
-  
+  const auto filename = frog.location( shortfilename );
+
   // open TFile
   std::unique_ptr<TFile> inputfile( TFile::Open( filename ) );
   if( !inputfile )
-  { 
-    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not open file " << filename << std::endl; 
+  {
+    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not open file " << filename << std::endl;
     return false;
   }
-  
+
   // load object from input file
   std::unique_ptr<TpcSpaceChargeMatrixContainer> source( dynamic_cast<TpcSpaceChargeMatrixContainer*>( inputfile->Get( objectname.c_str() ) ) );
   if( !source )
   {
-    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not find object name " << objectname << " in file " << filename << std::endl; 
+    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not find object name " << objectname << " in file " << filename << std::endl;
     return false;
   }
-  
-  // add object 
+
+  // add object
   return add( *source.get() );
 }
 

@@ -232,6 +232,11 @@ void TrackSeed_v2::circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vec
                                      uint8_t endLayer)
 {
   TrackFitUtils::position_vector_t positions_2d;
+  //! Can only fit 3 points or more
+  if(m_cluster_keys.size() < 3)
+  {
+    return;
+  }
   for (const auto& key : m_cluster_keys)
   {
     const auto layer = TrkrDefs::getLayer(key);
@@ -287,6 +292,11 @@ void TrackSeed_v2::lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& pos
                            uint8_t endLayer)
 {
   TrackFitUtils::position_vector_t positions_2d;
+  //! need at least 2 to fit
+  if(m_cluster_keys.size() < 2)
+  {
+    return;
+  }
   for (const auto& key : m_cluster_keys)
   {
     const auto layer = TrkrDefs::getLayer(key);
