@@ -12,7 +12,6 @@
 #include "nanoflann.hpp"
 
 #include <ffamodules/CDBInterface.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
@@ -21,10 +20,6 @@
 #include <phfield/PHFieldConfig.h>
 #include <phfield/PHFieldConfigv1.h>
 #include <phfield/PHFieldUtility.h>
-
-#include <phool/PHTimer.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>  // for PHWHERE
 
 // tpc distortion correction
 #include <tpc/TpcDistortionCorrectionContainer.h>
@@ -40,14 +35,24 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeed_v2.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHTimer.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
+
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
+
+#include <TSystem.h>
+
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
 #include <iostream>  // for operator<<, basic_ostream
+#include <filesystem>
 #include <vector>
 
 // anonymous namespace for local functions
@@ -83,18 +88,21 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 
   PHFieldConfigv1 fcfg;
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-  char* calibrationsroot = getenv("CALIBRATIONROOT");
-
-  std::string magField;
-  if (calibrationsroot != nullptr)
+  if (std::filesystem::path(m_magField).extension() != ".root")
   {
-    magField = std::string(calibrationsroot) +
-               std::string("/Field/Map/sphenix3dtrackingmapxyz.root");
+    m_magField = CDBInterface::instance()->getUrl(m_magField);
   }
-
-  magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);
-
-  fcfg.set_filename(magField);
+  if (! std::filesystem::exists(m_magField))
+  {
+    if (m_magField.empty())
+    {
+      m_magField = "empty string";
+    }
+    std::cout << PHWHERE << "Fieldmap " << m_magField
+	      << " does not exist" << std::endl;
+    gSystem->Exit(1);
+  }
+  fcfg.set_filename(m_magField);
   //  fcfg.set_rescale(1);
   _field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
 

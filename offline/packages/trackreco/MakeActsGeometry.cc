@@ -81,12 +81,12 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <utility>
 #include <vector>
-#include <filesystem>
 
 namespace
 {
@@ -480,19 +480,12 @@ void MakeActsGeometry::buildActsSurfaces()
      
 
   /// Alter args if using field map
-  if(m_magField.find(".root") != std::string::npos)
+  if (std::filesystem::path(m_magField).extension() != ".root")
+  {
+    m_magField = CDBInterface::instance()->getUrl(m_magField);
+  }
+  if (std::filesystem::exists(m_magField))
     {
-
-      char *calibrationsroot = getenv("CALIBRATIONROOT");
-      m_magField = "sphenix3dtrackingmapxyz.root";
-      
-      if (calibrationsroot != nullptr)
-	{
-	  m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
-	}
-      
-      m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);
-
       argstr[7] = "--bf-map-file";
       argstr[8] = m_magField;
       argstr[9]= "--bf-map-tree";

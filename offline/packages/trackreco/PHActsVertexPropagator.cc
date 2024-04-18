@@ -189,10 +189,13 @@ PHActsVertexPropagator::propagateTrack(
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
   propagator.setOverstepLimit(1 * Acts::UnitConstants::cm);
-  if (m_fieldMap.find(".root") == std::string::npos)
+  std::istringstream stringline(m_fieldMap);
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  stringline >> fieldstrength;
+  if (! stringline.fail())
   {
     propagator.constField();
-    propagator.setConstFieldValue(std::stod(m_fieldMap));
+    propagator.setConstFieldValue(fieldstrength);
   }
 
   return propagator.propagateTrack(params, perigee);

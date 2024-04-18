@@ -225,7 +225,7 @@ class PHActsTrkFitter : public SubsysReco
   std::set<int> m_ignoreLayer;
   bool m_use_clustermover = true;
 
-  std::string m_fieldMap = "";
+  std::string m_fieldMap;
 
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";

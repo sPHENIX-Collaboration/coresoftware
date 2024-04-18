@@ -51,6 +51,7 @@
 #include <algorithm>
 #include <algorithm>  // for find
 #include <cmath>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <numeric>
@@ -983,17 +984,11 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)
   {
     PHFieldConfigv1 fcfg;
     fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-    char* calibrationsroot = getenv("CALIBRATIONROOT");
-    std::string magField;
-    if (calibrationsroot != nullptr)
+    if (std::filesystem::path(m_magField).extension() != ".root")
     {
-      magField = std::string(calibrationsroot) +
-                 std::string("/Field/Map/sphenix3dtrackingmapxyz.root");
+      m_magField = CDBInterface::instance()->getUrl(m_magField);
     }
-
-    magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);
-
-    fcfg.set_filename(magField);
+    fcfg.set_filename(m_magField);
     field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
   }
 

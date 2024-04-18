@@ -8,6 +8,8 @@
 #include "PHActsTrkFitter.h"
 #include "MakeSourceLinks.h"
 
+#include <tpc/TpcDistortionCorrectionContainer.h>
+
 /// Tracking includes
 #include <trackbase/Calibrator.h>
 #include <trackbase/ClusterErrorPara.h>
@@ -29,7 +31,10 @@
 
 #include <micromegas/MicromegasDefs.h>
 
+#include <ffamodules/CDBInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>
@@ -39,7 +44,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
@@ -51,8 +55,10 @@
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
 #include <TDatabasePDG.h>
+#include <TSystem.h>
 
 #include <cmath>
+#include <filesystem>
 #include <iostream>
 #include <vector>
 
@@ -102,6 +108,23 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
   m_alignStates.verbosity(Verbosity());
+  m_fieldMap = "FIELDMAP_TRACKING";
+  if (std::filesystem::path(m_fieldMap).extension() != ".root")
+  {
+    m_fieldMap = CDBInterface::instance()->getUrl(m_fieldMap);
+  }
+  if (! std::filesystem::exists(m_fieldMap))
+  {
+    if (m_fieldMap.empty())
+    {
+      m_fieldMap = "empty string";
+    }
+    std::cout << PHWHERE << "Fieldmap " << m_fieldMap
+	      << " does not exist" << std::endl;
+    gSystem->Exit(1);
+  }
+
+
   m_alignStates.fieldMap(m_fieldMap);
   auto level = Acts::Logging::FATAL;
   if (Verbosity() > 5) level = Acts::Logging::VERBOSE;
@@ -480,20 +503,25 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	float px = NAN;
 	float py = NAN;
 	float pz = NAN;
-	if (m_fieldMap.find(".root") != std::string::npos)
-	  {
+// Chris: This check does not make any sense - the m_fieldMap string is given to
+// ActsAlignmentStates as field, this assumes that it may be a float (for a constant solenoidal field)
+// which would crash upstream. If this functionality is desired, this needs to be set somewhere else
+// e.g. in the macro where we can extract the strength if the field is constant
+// Also doing this string operations for every single track are expensive
+	// if (m_fieldMap.find(".root") != std::string::npos)
+	//   {
 	    px = tpcseed->get_px();
 	    py = tpcseed->get_py();
 	    pz = tpcseed->get_pz();
-	  }
-	else
-	  {
-	    float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
-	    float phi = tpcseed->get_phi();
-	    px = pt * std::cos(phi);
-	    py = pt * std::sin(phi);
-	    pz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
-	  }
+	//   }
+	// else
+	//   {
+	//     float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+	//     float phi = tpcseed->get_phi();
+	//     px = pt * std::cos(phi);
+	//     py = pt * std::sin(phi);
+	//     pz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
+	//   }
 
 	Acts::Vector3 momentum(px, py, pz);
 	if (!is_valid(momentum)) continue;
