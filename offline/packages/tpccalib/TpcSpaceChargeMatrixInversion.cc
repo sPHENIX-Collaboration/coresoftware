@@ -355,14 +355,11 @@ void TpcSpaceChargeMatrixInversion::save_distortion_corrections(const std::strin
   std::unique_ptr<TFile> outputfile(TFile::Open(filename.c_str(), "RECREATE"));
   outputfile->cd();
 
-  for( const auto& h_list: {m_dcc_average->m_hentries, m_dcc_average->m_hDRint, m_dcc_average->m_hDPint, m_dcc_average->m_hDZint } )
+  for (const auto& h_list : {m_dcc_average->m_hentries, m_dcc_average->m_hDRint, m_dcc_average->m_hDPint, m_dcc_average->m_hDZint})
   {
-    for( const auto& h:h_list )
+    for (const auto& h : h_list)
     {
-      if( h )
-      {
-        h->Write( h->GetName() );
-      }
+      if (h) h->Write(h->GetName());
     }
   }
 
