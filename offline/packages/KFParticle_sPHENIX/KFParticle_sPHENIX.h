@@ -305,7 +305,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   /// Use alternate vertex and track fitters
   void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = trk_map_node_name; }
 
-  void magFieldFile(const std::string& fname) { m_magField = fname; }
+  void magFieldFile(const std::string &fname) { m_magField = fname; }
 
  private:
   bool m_has_intermediates_sPHENIX;
@@ -316,7 +316,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;
-  std::string  m_magField;
+  std::string m_magField;
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLESPHENIX_H

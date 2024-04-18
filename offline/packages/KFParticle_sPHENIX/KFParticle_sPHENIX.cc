@@ -29,7 +29,7 @@
 #include <phool/getClass.h>
 
 #include <TFile.h>
-#include <TH1.h>    // for obtaining the B field value
+#include <TH1.h>  // for obtaining the B field value
 #include <TSystem.h>
 #include <TTree.h>  // for getting the TTree from the file
 
@@ -42,10 +42,10 @@
 #include <cctype>                     // for toupper
 #include <cmath>                      // for sqrt
 #include <cstdlib>                    // for size_t, exit
-#include <iostream>                   // for operator<<, endl, basi...
 #include <filesystem>
-#include <map>                        // for map
-#include <tuple>                      // for tie, tuple
+#include <iostream>  // for operator<<, endl, basi...
+#include <map>       // for map
+#include <tuple>     // for tie, tuple
 
 class PHCompositeNode;
 
@@ -119,17 +119,17 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
     m_magField = CDBInterface::instance()->getUrl(m_magField);
   }
   // Joe's New Implementation to get the field map file name on 05/10/2023
-  if (! std::filesystem::exists(m_magField))
+  if (!std::filesystem::exists(m_magField))
   {
     if (m_magField.empty())
     {
       m_magField = "empty string";
     }
     std::cout << PHWHERE << "Fieldmap " << m_magField
-	      << " does not exist" << std::endl;
+              << " does not exist" << std::endl;
     gSystem->Exit(1);
   }
-  std::cout << "KFPARTICLE: using fieldmap : " <<  m_magField << std::endl;
+  std::cout << "KFPARTICLE: using fieldmap : " << m_magField << std::endl;
   TFile *fin = new TFile(m_magField.c_str());
   fin->cd();
 
@@ -473,6 +473,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     intermediate_list.emplace_back(intermediates_name[i], intermediates_charge[i]);
   }
 
+  daughter_list.reserve(nTracks);
   for (int i = 0; i < nTracks; ++i)
   {
     daughter_list.emplace_back(daughters_name[i], daughters_charge[i]);
