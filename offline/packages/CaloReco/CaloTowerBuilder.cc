@@ -210,7 +210,6 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
       {  // special condition during zdc commisioning
         if (nchannels < m_nchannels)
 	  {
-	    delete packet;
 	    return Fun4AllReturnCodes::ABORTEVENT;
 	  }
         nchannels = m_nchannels;
@@ -273,7 +272,6 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
         waveforms.push_back(waveform);
         waveform.clear();
 
-	delete packet;
       }
       // if nchannels < set number and it is the EMCAL but with the skip already accounted for, we need to skip this part. otherwise it assumes the last board was taken out
       
@@ -303,6 +301,8 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
 	      waveform.clear();
 	    }
 	}
+
+	delete packet;
     }
     else  // if the packet is missing treat constitutent channels as zero suppressed
     {
