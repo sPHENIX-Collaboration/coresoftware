@@ -3,8 +3,8 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
@@ -17,17 +17,16 @@
 #include <phool/phool.h>
 
 //____________________________________________________________________________..
-TrackContainerCombiner::TrackContainerCombiner(const std::string &name):
- SubsysReco(name)
+TrackContainerCombiner::TrackContainerCombiner(const std::string& name)
+  : SubsysReco(name)
 {
 }
 
 //____________________________________________________________________________..
-TrackContainerCombiner::~TrackContainerCombiner()
-= default;
+TrackContainerCombiner::~TrackContainerCombiner() = default;
 
 //____________________________________________________________________________..
-int TrackContainerCombiner::InitRun(PHCompositeNode *topNode)
+int TrackContainerCombiner::InitRun(PHCompositeNode* topNode)
 {
   int ret = getNodes(topNode);
   return ret;
@@ -36,9 +35,9 @@ int TrackContainerCombiner::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TrackContainerCombiner::process_event(PHCompositeNode* /*unused*/)
 {
-  if(m_seedContainer)
+  if (m_seedContainer)
   {
-    if(Verbosity() > 1)
+    if (Verbosity() > 1)
     {
       std::cout << "Seed container size to start " << m_newSeedContainer->size()
                 << std::endl;
@@ -58,10 +57,10 @@ void TrackContainerCombiner::mergeSeeds()
 {
   for (const auto& seed : *m_oldSeedContainer)
   {
-      if(!seed)
-      {
-        continue;
-      }
+    if (!seed)
+    {
+      continue;
+    }
     m_newSeedContainer->insert(seed);
   }
 }
@@ -74,7 +73,7 @@ int TrackContainerCombiner::End(PHCompositeNode* /*unused*/)
 int TrackContainerCombiner::getNodes(PHCompositeNode* topNode)
 {
   m_newSeedContainer = findNode::getClass<TrackSeedContainer>(topNode, m_newContainerName);
-  if(!m_newSeedContainer)
+  if (!m_newSeedContainer)
   {
     std::cout << PHWHERE << "No new track seed container, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;

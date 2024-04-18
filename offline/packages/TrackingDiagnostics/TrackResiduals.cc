@@ -78,8 +78,7 @@ TrackResiduals::TrackResiduals(const std::string& name)
 }
 
 //____________________________________________________________________________..
-TrackResiduals::~TrackResiduals()
-= default;
+TrackResiduals::~TrackResiduals() = default;
 
 //____________________________________________________________________________..
 int TrackResiduals::Init(PHCompositeNode* /*unused*/)
@@ -359,7 +358,10 @@ float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey c
   double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
   double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
   unsigned int side = TpcDefs::getSide(cluster_key);
-  if (side == 0) { zloc = -zloc; }
+  if (side == 0)
+  {
+    zloc = -zloc;
+  }
   float z = zloc;  // in cm
 
   return z;
@@ -375,8 +377,10 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   for (auto& pos : clusPos)
   {
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) { clusr *= -1;
-}
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
 
     // exclude silicon and tpot clusters for now
     if (fabs(clusr) > 80 || fabs(clusr) < 30)
@@ -408,8 +412,10 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   for (auto& pos : clusPos)
   {
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) { clusr *= -1;
-}
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
 
     // exclude silicon and tpot clusters for now
     if (fabs(clusr) > 80 || fabs(clusr) < 30)
@@ -591,7 +597,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
       m_ladderzid = InttDefs::getLadderZId(m_hitsetkey);
       m_ladderphiid = InttDefs::getLadderPhiId(m_hitsetkey);
       m_timebucket = InttDefs::getTimeBucketId(m_hitsetkey);
-      
+
       m_staveid = std::numeric_limits<int>::quiet_NaN();
       m_chipid = std::numeric_limits<int>::quiet_NaN();
       m_strobeid = std::numeric_limits<int>::quiet_NaN();
@@ -713,8 +719,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
 
         float AdcClockPeriod = geoLayer->get_zstep();
         m_zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
-	double NZBinsSide = 249;  // physical z bins per TPC side
-	double tdriftmax = AdcClockPeriod * NZBinsSide;
+        double NZBinsSide = 249;  // physical z bins per TPC side
+        double tdriftmax = AdcClockPeriod * NZBinsSide;
         m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - m_zdriftlength;
         if (m_side == 0)
         {
@@ -802,11 +808,11 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
   {
     float rawclusz = convertTimeToZ(geometry, ckey, cluster);
-    
+
     int crossing = track->get_crossing();
     unsigned int side = TpcDefs::getSide(ckey);
     clusz = m_clusterCrossingCorrection.correctZ(rawclusz, side, crossing);
-    if(!m_ppmode)
+    if (!m_ppmode)
     {
       clusz = rawclusz;
     }
@@ -998,14 +1004,14 @@ void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
 }
 void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
                                            TrkrCluster* cluster, ActsGeometry* geometry)
-{ 
+{
   auto intersection = TrackFitUtils::surface_3Dline_intersection(key, cluster, geometry, m_xyslope,
-  m_xyint, m_yzslope, m_yzint);
-  
+                                                                 m_xyint, m_yzslope, m_yzint);
+
   auto surf = geometry->maps().getSurface(key, cluster);
   Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
 
-  if(!std::isnan(intersection.x()))
+  if (!std::isnan(intersection.x()))
   {
     auto locstateres = surf->globalToLocal(geometry->geometry().getGeoContext(),
                                            intersection * Acts::UnitConstants::cm,
@@ -1153,8 +1159,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgz", &m_clusgz);
   m_tree->Branch("cluslayer", &m_cluslayer);
   m_tree->Branch("clussize", &m_clussize);
-  m_tree->Branch("clusphisize",&m_clusphisize);
-  m_tree->Branch("cluszsize",&m_cluszsize);
+  m_tree->Branch("clusphisize", &m_clusphisize);
+  m_tree->Branch("cluszsize", &m_cluszsize);
   m_tree->Branch("clushitsetkey", &m_clushitsetkey);
   m_tree->Branch("idealsurfcenterx", &m_idealsurfcenterx);
   m_tree->Branch("idealsurfcentery", &m_idealsurfcentery);

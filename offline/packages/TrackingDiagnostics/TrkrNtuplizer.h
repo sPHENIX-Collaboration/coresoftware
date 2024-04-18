@@ -8,15 +8,15 @@
 //===============================================
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <TMatrixFfwd.h>
 #include <TMatrixT.h>
 #include <TMatrixTUtils.h>
-#include <string>
 #include <map>
 #include <set>
+#include <string>
 
 class PHCompositeNode;
 class PHTimer;
@@ -31,7 +31,7 @@ class ActsGeometry;
 class PHG4TpcCylinderGeomContainer;
 class GlobalVertexMap;
 
-//class ClusterErrorPara;
+// class ClusterErrorPara;
 
 /// \class SvtxEvaluator
 ///
@@ -41,7 +41,6 @@ class GlobalVertexMap;
 /// the greatest contributor Monte Carlo particle and then
 /// test one against the other.
 ///
-
 
 class TrkrNtuplizer : public SubsysReco
 {
@@ -70,12 +69,14 @@ class TrkrNtuplizer : public SubsysReco
   void do_tpcseed_eval(bool b) { _do_tpcseed_eval = b; }
   void do_siseed_eval(bool b) { _do_siseed_eval = b; }
   void set_first_event(int value) { _ievent = value; }
-  void set_trkclus_seed_container(const std::string& name)
-  { _clustrackseedcontainer = name; }
-  SvtxTrack* best_track_from(TrkrDefs::cluskey cluster_key);
-  std::set<SvtxTrack*> all_tracks_from(TrkrDefs::cluskey cluster_key);
+  void set_trkclus_seed_container(const std::string &name)
+  {
+    _clustrackseedcontainer = name;
+  }
+  SvtxTrack *best_track_from(TrkrDefs::cluskey cluster_key);
+  std::set<SvtxTrack *> all_tracks_from(TrkrDefs::cluskey cluster_key);
   void create_cache_track_from_cluster();
-  std::vector<TrkrDefs::cluskey> get_track_ckeys(SvtxTrack* track);
+  std::vector<TrkrDefs::cluskey> get_track_ckeys(SvtxTrack *track);
 
  private:
   unsigned int _ievent;
@@ -90,7 +91,7 @@ class TrkrNtuplizer : public SubsysReco
   // TrkrClusterContainer *cluster_map{nullptr};
 
   void FillCluster(Float_t fXcluster[30], TrkrDefs::cluskey cluster_key);
-  void FillTrack(Float_t fXcluster[30], SvtxTrack *track, GlobalVertexMap* vertexmap );
+  void FillTrack(Float_t fXcluster[30], SvtxTrack *track, GlobalVertexMap *vertexmap);
   //----------------------------------
   // evaluator output ntuples
 
@@ -122,10 +123,10 @@ class TrkrNtuplizer : public SubsysReco
   // Track map name
   std::string _trackmapname;
   ClusterErrorPara _ClusErrPara;
-  TrkrClusterContainer* _cluster_map = nullptr;
-  SvtxTrackMap* _trackmap = nullptr;
-  ActsGeometry* _tgeometry = nullptr;
-  PHG4TpcCylinderGeomContainer* _geom_container = nullptr;
+  TrkrClusterContainer *_cluster_map = nullptr;
+  SvtxTrackMap *_trackmap = nullptr;
+  ActsGeometry *_tgeometry = nullptr;
+  PHG4TpcCylinderGeomContainer *_geom_container = nullptr;
 
   std::string _clustrackseedcontainer = "TpcTrackSeedContainer";
 
@@ -137,10 +138,10 @@ class TrkrNtuplizer : public SubsysReco
   void printInputInfo(PHCompositeNode *topNode);     ///< print out the input object information (debugging upstream components)
   void printOutputInfo(PHCompositeNode *topNode);    ///< print out the ancestry information for detailed diagnosis
   double AdcClockPeriod = 53.0;                      // ns
- 
+
   bool _cache_track_from_cluster_exists = false;
-  std::map<TrkrDefs::cluskey, std::set<SvtxTrack*> > _cache_all_tracks_from_cluster;
-  std::map<TrkrDefs::cluskey, SvtxTrack*> _cache_best_track_from_cluster;
+  std::map<TrkrDefs::cluskey, std::set<SvtxTrack *> > _cache_all_tracks_from_cluster;
+  std::map<TrkrDefs::cluskey, SvtxTrack *> _cache_best_track_from_cluster;
 };
 
 #endif  // G4EVAL_SVTXEVALUATOR_H

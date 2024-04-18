@@ -117,7 +117,7 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
       if (abs(pair_dca) < pair_dca_cut)
       {
         // Pair pca and dca were calculated with nominal track parameters and are approximate
-	// Project tracks to this rough pca
+        // Project tracks to this rough pca
         Eigen::Vector3d projected_pos1;
         Eigen::Vector3d projected_mom1;
         Eigen::Vector3d projected_pos2;
@@ -137,10 +137,10 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
         Acts::Vector3 pca_rel2_proj;
         findPcaTwoTracks(projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj);
 
-	//if(pair_dca_proj > pair_dca_cut) continue;
+        // if(pair_dca_proj > pair_dca_cut) continue;
 
-	// invariant mass is calculated in this method
-        fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, rapidity, pseudorapidity);  
+        // invariant mass is calculated in this method
+        fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, rapidity, pseudorapidity);
         fillNtp(tr1, tr2, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj);
 
         if (Verbosity() > 2)
@@ -151,12 +151,13 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
           std::cout << " dca3dxy1,dca3dz1,phi1: " << dcaVals1 << std::endl;
           std::cout << " dca3dxy2,dca3dz2,phi2: " << dcaVals2 << std::endl;
           std::cout << "Initial:  pca_rel1: " << pca_rel1 << " pca_rel2: " << pca_rel2 << std::endl;
-	  std::cout << " Initial: mom1: " << mom1 << " mom2: " << mom2 << std::endl;
+          std::cout << " Initial: mom1: " << mom1 << " mom2: " << mom2 << std::endl;
           std::cout << "Proj_pca_rel:  proj_pos1: " << projected_pos1 << " proj_pos2: " << projected_pos2 << " proj_mom1: " << projected_mom1 << " proj_mom2: " << projected_mom2 << std::endl;
           std::cout << " Relative PCA = " << abs(pair_dca) << " pca_cut = " << pair_dca_cut << std::endl;
           std::cout << " charge 1: " << tr1->get_charge() << " charge2: " << tr2->get_charge() << std::endl;
           std::cout << "found viable projection" << std::endl;
-          std::cout << "Final: pca_rel1_proj: " << pca_rel1_proj << " pca_rel2_proj: " << pca_rel2_proj << " mom1: " << projected_mom1 << " mom2: " << projected_mom2 << std::endl << std::endl;
+          std::cout << "Final: pca_rel1_proj: " << pca_rel1_proj << " pca_rel2_proj: " << pca_rel2_proj << " mom1: " << projected_mom1 << " mom2: " << projected_mom2 << std::endl
+                    << std::endl;
         }
       }
     }
@@ -242,10 +243,10 @@ bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d
   ActsPropagator actsPropagator(_tGeometry);
   auto perigee = actsPropagator.makeVertexSurface(PCA);  // PCA is in cm here
   auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
-  if(!params.ok())
-    {
-      return false;
-    }
+  if (!params.ok())
+  {
+    return false;
+  }
   auto result = actsPropagator.propagateTrack(params.value(), perigee);
 
   if (result.ok())
@@ -256,10 +257,10 @@ bool KshortReconstruction::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d
     pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
     pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
 
-    if(Verbosity() > 2)
-      {
-	std::cout << "                 Input PCA " << PCA  << "  projection out " << pos << std::endl; 
-      }
+    if (Verbosity() > 2)
+    {
+      std::cout << "                 Input PCA " << PCA << "  projection out " << pos << std::endl;
+    }
 
     mom(0) = momentum.x();
     mom(1) = momentum.y();
@@ -295,10 +296,10 @@ bool KshortReconstruction::projectTrackToCylinder(SvtxTrack* track, double Radiu
                                                        halfZ);
   ActsPropagator actsPropagator(_tGeometry);
   auto params = actsPropagator.makeTrackParams(track, m_vertexMap);
-  if(!params.ok())
-    {
-      return false;
-    }
+  if (!params.ok())
+  {
+    return false;
+  }
 
   auto result = actsPropagator.propagateTrack(params.value(), cylSurf);
   if (result.ok())
