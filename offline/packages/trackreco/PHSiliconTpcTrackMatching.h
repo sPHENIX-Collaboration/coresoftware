@@ -38,6 +38,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
     _match_function_b = b;
     _match_function_ptmin = ptmin;
   }
+  void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
 
   void set_test_windows_printout(const bool test) { _test_windows = test; }
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
@@ -80,7 +81,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   double _match_function_b = 5.0;
   double _match_function_pow = 1.0;
   double _match_function_ptmin = 0.15;
-  bool _use_old_matching = true;  // normally false
+  bool _use_old_matching = false;  // normally false
 
   TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer *_track_map{nullptr};
