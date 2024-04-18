@@ -71,11 +71,11 @@ namespace
   };
 
   /// returns true if given value is in provided range
-  bool in_range( const double& value, const range_t range )
+  bool in_range( const double& value, const range_t& range )
   { return range_ftor_t(value)(range); }
 
   /// returns true if given value is in any of the provided range
-  bool in_range( const double& value, const range_list_t range_list )
+  bool in_range( const double& value, const range_list_t& range_list )
   { return std::any_of( range_list.begin(), range_list.end(), range_ftor_t(value)); }
 
 }
