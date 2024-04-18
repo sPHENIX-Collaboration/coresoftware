@@ -852,31 +852,31 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     //! skip filling the state information if a state is not there
     //! or we just ran the seeding. Fill with Nans to maintain the
     //! 1-to-1 mapping between cluster/state vectors
-    m_idealsurfalpha.push_back(NAN);
-    m_idealsurfbeta.push_back(NAN);
-    m_idealsurfgamma.push_back(NAN);
-    m_missurfalpha.push_back(NAN);
-    m_missurfbeta.push_back(NAN);
-    m_missurfgamma.push_back(NAN);
-    m_idealsurfcenterx.push_back(NAN);
-    m_idealsurfcentery.push_back(NAN);
-    m_idealsurfcenterz.push_back(NAN);
-    m_idealsurfnormx.push_back(NAN);
-    m_idealsurfnormy.push_back(NAN);
-    m_idealsurfnormz.push_back(NAN);
-    m_missurfcenterx.push_back(NAN);
-    m_missurfcentery.push_back(NAN);
-    m_missurfcenterz.push_back(NAN);
-    m_missurfnormx.push_back(NAN);
-    m_missurfnormy.push_back(NAN);
-    m_missurfnormz.push_back(NAN);
-    m_clusgxideal.push_back(NAN);
-    m_clusgyideal.push_back(NAN);
-    m_clusgzideal.push_back(NAN);
-    m_statepx.push_back(NAN);
-    m_statepy.push_back(NAN);
-    m_statepz.push_back(NAN);
-    m_statepl.push_back(NAN);
+    m_idealsurfalpha.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfbeta.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfgamma.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfalpha.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfbeta.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfgamma.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfcenterx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfcentery.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfcenterz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfnormx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfnormy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfnormz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfcenterx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfcentery.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfcenterz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfnormx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfnormy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfnormz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_clusgxideal.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_clusgyideal.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_clusgzideal.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepl.push_back(std::numeric_limits<float>::quiet_NaN());
     return;
   }
 
@@ -1037,11 +1037,11 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
   {
     //! otherwise the line is parallel to the surface, should not happen if
     //! we have a cluster on the surface but just fill the state vecs with nan
-    m_statelx.push_back(NAN);
-    m_statelz.push_back(NAN);
-    m_stategx.push_back(NAN);
-    m_stategy.push_back(NAN);
-    m_stategz.push_back(NAN);
+    m_statelx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statelz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_stategx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_stategy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_stategz.push_back(std::numeric_limits<float>::quiet_NaN());
   }
 }
 void TrackResiduals::createBranches()

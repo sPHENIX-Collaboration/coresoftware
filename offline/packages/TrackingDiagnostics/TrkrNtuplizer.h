@@ -14,6 +14,8 @@
 #include <TMatrixFfwd.h>
 #include <TMatrixT.h>
 #include <TMatrixTUtils.h>
+
+#include <limits>
 #include <map>
 #include <set>
 #include <string>
@@ -79,9 +81,9 @@ class TrkrNtuplizer : public SubsysReco
   std::vector<TrkrDefs::cluskey> get_track_ckeys(SvtxTrack *track);
 
  private:
-  unsigned int _ievent;
-  unsigned int _iseed;
-  float m_fSeed;
+  unsigned int _ievent{0};
+  unsigned int _iseed{0};
+  float m_fSeed{std::numeric_limits<float>::quiet_NaN()};
   // eval stack
 
   TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi);
@@ -95,43 +97,43 @@ class TrkrNtuplizer : public SubsysReco
   //----------------------------------
   // evaluator output ntuples
 
-  bool _do_info_eval;
-  bool _do_vertex_eval;
-  bool _do_hit_eval;
-  bool _do_cluster_eval;
-  bool _do_clus_trk_eval;
-  bool _do_track_eval;
-  bool _do_tpcseed_eval;
-  bool _do_siseed_eval;
+  bool _do_info_eval{true};
+  bool _do_vertex_eval{true};
+  bool _do_hit_eval{true};
+  bool _do_cluster_eval{true};
+  bool _do_clus_trk_eval{true};
+  bool _do_track_eval{true};
+  bool _do_tpcseed_eval{false};
+  bool _do_siseed_eval{false};
 
-  unsigned int _nlayers_maps = 3;
-  unsigned int _nlayers_intt = 4;
-  unsigned int _nlayers_tpc = 48;
-  unsigned int _nlayers_mms = 2;
+  unsigned int _nlayers_maps{3};
+  unsigned int _nlayers_intt{4};
+  unsigned int _nlayers_tpc{48};
+  unsigned int _nlayers_mms{2};
 
-  TNtuple *_ntp_info;
-  TNtuple *_ntp_vertex;
-  TNtuple *_ntp_hit;
-  TNtuple *_ntp_cluster;
-  TNtuple *_ntp_clus_trk;
-  TNtuple *_ntp_track;
-  TNtuple *_ntp_tpcseed;
-  TNtuple *_ntp_siseed;
+  TNtuple *_ntp_info{nullptr};
+  TNtuple *_ntp_vertex{nullptr};
+  TNtuple *_ntp_hit{nullptr};
+  TNtuple *_ntp_cluster{nullptr};
+  TNtuple *_ntp_clus_trk{nullptr};
+  TNtuple *_ntp_track{nullptr};
+  TNtuple *_ntp_tpcseed{nullptr};
+  TNtuple *_ntp_siseed{nullptr};
 
   // evaluator output file
   std::string _filename;
   // Track map name
   std::string _trackmapname;
   ClusterErrorPara _ClusErrPara;
-  TrkrClusterContainer *_cluster_map = nullptr;
-  SvtxTrackMap *_trackmap = nullptr;
-  ActsGeometry *_tgeometry = nullptr;
-  PHG4TpcCylinderGeomContainer *_geom_container = nullptr;
+  TrkrClusterContainer *_cluster_map{nullptr};
+  SvtxTrackMap *_trackmap{nullptr};
+  ActsGeometry *_tgeometry{nullptr};
+  PHG4TpcCylinderGeomContainer *_geom_container{nullptr};
 
   std::string _clustrackseedcontainer = "TpcTrackSeedContainer";
 
-  TFile *_tfile;
-  PHTimer *_timer;
+  TFile *_tfile{nullptr};
+  PHTimer *_timer{nullptr};
 
   // output subroutines
   void fillOutputNtuples(PHCompositeNode *topNode);  ///< dump the evaluator information into ntuple for external analysis

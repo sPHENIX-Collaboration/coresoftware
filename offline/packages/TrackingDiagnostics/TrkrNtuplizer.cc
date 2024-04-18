@@ -240,33 +240,12 @@ TrkrNtuplizer::TrkrNtuplizer(const string& /*name*/, const string& filename, con
                              unsigned int nlayers_tpc,
                              unsigned int nlayers_mms)
   : SubsysReco("TrkrNtuplizer")
-  , _ievent(0)
-  , _iseed(0)
-  , m_fSeed(NAN)
-  , _do_info_eval(true)
-  , _do_vertex_eval(true)
-  , _do_hit_eval(true)
-  , _do_cluster_eval(true)
-  , _do_clus_trk_eval(true)
-  , _do_track_eval(true)
-  , _do_tpcseed_eval(false)
-  , _do_siseed_eval(false)
   , _nlayers_maps(nlayers_maps)
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
   , _nlayers_mms(nlayers_mms)
-  , _ntp_info(nullptr)
-  , _ntp_vertex(nullptr)
-  , _ntp_hit(nullptr)
-  , _ntp_cluster(nullptr)
-  , _ntp_clus_trk(nullptr)
-  , _ntp_track(nullptr)
-  , _ntp_tpcseed(nullptr)
-  , _ntp_siseed(nullptr)
   , _filename(filename)
   , _trackmapname(trackmapname)
-  , _tfile(nullptr)
-  , _timer(nullptr)
 {
 }
 
@@ -362,7 +341,7 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
   else
   {
     _iseed = 0;
-    m_fSeed = NAN;
+    m_fSeed = std::numeric_limits<float>::quiet_NaN();
   }
   if (_trackmap == nullptr)
   {
@@ -560,9 +539,9 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
     cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
     cout << endl;
 
-    float vx = NAN;
-    float vy = NAN;
-    float vz = NAN;
+    float vx = std::numeric_limits<float>::quiet_NaN();
+    float vy = std::numeric_limits<float>::quiet_NaN();
+    float vz = std::numeric_limits<float>::quiet_NaN();
 
     SvtxVertexMap* vertexmap = nullptr;
 
@@ -885,10 +864,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
     //    vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
 
-    float vx = NAN;
-    float vy = NAN;
-    float vz = NAN;
-    float ntracks = NAN;
+    float vx = std::numeric_limits<float>::quiet_NaN();
+    float vy = std::numeric_limits<float>::quiet_NaN();
+    float vz = std::numeric_limits<float>::quiet_NaN();
+    float ntracks = std::numeric_limits<float>::quiet_NaN();
     fx_vertex[vtxnvx] = vx;
     fx_vertex[vtxnvy] = vy;
     fx_vertex[vtxnvz] = vz;
@@ -977,13 +956,13 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           fx_hit[n_hit::nhitzelem] = TpcDefs::getSide(hitset_key);
           fx_hit[n_hit::nhitcellID] = 0;
           fx_hit[n_hit::nhitecell] = hit->getAdc();
-          fx_hit[n_hit::nhitphibin] = NAN;
-          fx_hit[n_hit::nhittbin] = NAN;
-          fx_hit[n_hit::nhitphi] = NAN;
-          fx_hit[n_hit::nhitr] = NAN;
-          fx_hit[n_hit::nhitx] = NAN;
-          fx_hit[n_hit::nhity] = NAN;
-          fx_hit[n_hit::nhitz] = NAN;
+          fx_hit[n_hit::nhitphibin] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhittbin] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhitphi] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhitr] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhitx] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhity] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhitz] = std::numeric_limits<float>::quiet_NaN();
 
           if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
           {
@@ -1158,7 +1137,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           continue;
         }
 
-        float charge = NAN;
+        float charge = std::numeric_limits<float>::quiet_NaN();
         if (tpcseed->get_qOverR() > 0)
         {
           charge = 1;
@@ -1299,10 +1278,10 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   TrackSeed* silseed = track->get_silicon_seed();
   short int crossing_int = track->get_crossing();
   fX[n_track::ntrktrackID] = trackID;
-  fX[n_track::ntrkcrossing] = NAN;
+  fX[n_track::ntrkcrossing] = std::numeric_limits<float>::quiet_NaN();
   if (crossing_int == SHRT_MAX)
   {
-    fX[n_track::ntrkcrossing] = NAN;
+    fX[n_track::ntrkcrossing] = std::numeric_limits<float>::quiet_NaN();
   }
   else
   {
@@ -1416,15 +1395,15 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
       }
     }
   }
-  fX[n_track::ntrkdca3dxy] = NAN;
-  fX[n_track::ntrkdca3dz] = NAN;
-  fX[n_track::ntrkdca3dxysigma] = NAN;
-  fX[n_track::ntrkdca3dzsigma] = NAN;
-  fX[n_track::ntrkdca2d] = NAN;
-  fX[n_track::ntrkdca2dsigma] = NAN;
-  fX[n_track::ntrkvx] = NAN;
-  fX[n_track::ntrkvy] = NAN;
-  fX[n_track::ntrkvz] = NAN;
+  fX[n_track::ntrkdca3dxy] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca3dz] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca3dxysigma] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca3dzsigma] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca2d] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca2dsigma] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkvx] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkvy] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkvz] = std::numeric_limits<float>::quiet_NaN();
 
   int vertexID = track->get_vertex_id();
   fX[n_track::ntrkvertexID] = vertexID;
@@ -1484,8 +1463,8 @@ void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_k
   float r = pos.Perp();
   float phi = pos.Phi();
   auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
-  float phibin = NAN;
-  float tbin = NAN;
+  float phibin = std::numeric_limits<float>::quiet_NaN();
+  float tbin = std::numeric_limits<float>::quiet_NaN();
   float locx = cluster->getLocalX();
   float locy = cluster->getLocalY();
   if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
@@ -1513,12 +1492,12 @@ void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_k
   fXcluster[n_cluster::ncluphibin] = phibin;
   fXcluster[n_cluster::nclutbin] = tbin;
 
-  fXcluster[n_cluster::ncluex] = NAN;
-  fXcluster[n_cluster::ncluey] = NAN;
+  fXcluster[n_cluster::ncluex] = std::numeric_limits<float>::quiet_NaN();
+  fXcluster[n_cluster::ncluey] = std::numeric_limits<float>::quiet_NaN();
   fXcluster[n_cluster::ncluez] = sqrt(para_errors.second);
   fXcluster[n_cluster::ncluephi] = sqrt(para_errors.first);
-  fXcluster[n_cluster::nclupez] = NAN;
-  fXcluster[n_cluster::nclupephi] = NAN;
+  fXcluster[n_cluster::nclupez] = std::numeric_limits<float>::quiet_NaN();
+  fXcluster[n_cluster::nclupephi] = std::numeric_limits<float>::quiet_NaN();
   fXcluster[n_cluster::nclue] = cluster->getAdc();
   fXcluster[n_cluster::ncluadc] = cluster->getAdc();
   fXcluster[n_cluster::nclumaxadc] = cluster->getMaxAdc();
@@ -1561,7 +1540,7 @@ void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_k
   }
 
   fXcluster[n_cluster::ncluovlp] = 3;  // cluster->getOvlp();
-  fXcluster[n_cluster::nclutrackID] = NAN;
+  fXcluster[n_cluster::nclutrackID] = std::numeric_limits<float>::quiet_NaN();
   fXcluster[n_cluster::ncluniter] = 0;
 
   return;
