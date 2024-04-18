@@ -9,6 +9,7 @@
 #include "TpcSpaceChargeMatrixContainerv1.h"
 
 #include <frog/FROG.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <TFile.h>
 #include <TH3.h>
@@ -40,33 +41,29 @@ TpcSpaceChargeMatrixInversion::TpcSpaceChargeMatrixInversion( const std::string&
 {}
 
 //_____________________________________________________________________
-void TpcSpaceChargeMatrixInversion::set_outputfile( const std::string& filename )
-{ m_outputfile = filename; }
-
-//_____________________________________________________________________
 bool TpcSpaceChargeMatrixInversion::add_from_file( const std::string& shortfilename, const std::string& objectname )
 {
   // get filename from frog
   FROG frog;
-  const auto filename = frog.location( shortfilename );  
-  
+  const auto filename = frog.location( shortfilename );
+
   // open TFile
   std::unique_ptr<TFile> inputfile( TFile::Open( filename ) );
   if( !inputfile )
-  { 
-    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not open file " << filename << std::endl; 
+  {
+    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not open file " << filename << std::endl;
     return false;
   }
-  
+
   // load object from input file
   std::unique_ptr<TpcSpaceChargeMatrixContainer> source( dynamic_cast<TpcSpaceChargeMatrixContainer*>( inputfile->Get( objectname.c_str() ) ) );
   if( !source )
   {
-    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not find object name " << objectname << " in file " << filename << std::endl; 
+    std::cout << "TpcSpaceChargeMatrixInversion::add_from_file - could not find object name " << objectname << " in file " << filename << std::endl;
     return false;
   }
-  
-  // add object 
+
+  // add object
   return add( *source.get() );
 }
 
@@ -181,46 +178,26 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
     }
   }
 
-  // save everything to root file
-  std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortions - writing histograms to " << m_outputfile << std::endl;
-  std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
-  outputfile->cd();
-
-//   // when using migromegas, one needs to extrapolate to the rest of the acceptance
-//   if( m_use_micromegas )
-//   {
-//     for( const auto& h: {hentries, hphi, hr, hz} )
-//     {
-//       if( !h ) continue;
-//       TpcSpaceChargeReconstructionHelper::extrapolate_z(h);
-//       TpcSpaceChargeReconstructionHelper::extrapolate_phi1(h);
-//       TpcSpaceChargeReconstructionHelper::extrapolate_phi2(h);
-//     }
-//   }
-
-  // write source histograms
-  for( const auto& h: { hentries, hphi, hr, hz } ) { h->Write(); }
-
   // split histograms in two along z axis and write
   // also write histograms suitable for space charge reconstruction
   auto process_histogram = []( TH3* h, const TString& name )
   {
-    TH3* hneg;
-    TH3* hpos;
-    std::tie( hneg, hpos ) = TpcSpaceChargeReconstructionHelper::split( h );
-    hneg->Write();
-    hpos->Write();
-    TpcSpaceChargeReconstructionHelper::copy_histogram( h, name )->Write();
-    TpcSpaceChargeReconstructionHelper::copy_histogram( hneg, Form( "%s_negz", name.Data() ) )->Write();
-    TpcSpaceChargeReconstructionHelper::copy_histogram( hpos, Form( "%s_posz", name.Data() ) )->Write();
+    const auto& result = TpcSpaceChargeReconstructionHelper::split( h );
+    std::unique_ptr<TH3> hneg( std::get<0>(result) );
+    std::unique_ptr<TH3> hpos( std::get<1>(result) );
+
+    return std::make_tuple(
+      TpcSpaceChargeReconstructionHelper::add_guarding_bins( hneg.get(), Form( "%s_negz", name.Data() ) ),
+      TpcSpaceChargeReconstructionHelper::add_guarding_bins( hpos.get(), Form( "%s_posz", name.Data() ) ));
   };
 
-  process_histogram( hentries, "hentries" );
-  process_histogram( hphi, "hIntDistortionP" );
-  process_histogram( hr, "hIntDistortionR" );
-  process_histogram( hz, "hIntDistortionZ" );
 
-  // close output file
-  outputfile->Close();
+  // apply finishing transformations to histograms and save in container
+  if( !m_dcc_average ) { m_dcc_average.reset(new TpcDistortionCorrectionContainer); }
+
+  std::tie( m_dcc_average->m_hentries[0], m_dcc_average->m_hentries[1] ) = process_histogram( hentries, "hentries" );
+  std::tie( m_dcc_average->m_hDRint[0], m_dcc_average->m_hDRint[1] ) = process_histogram( hr, "hIntDistortionR" );
+  std::tie( m_dcc_average->m_hDPint[0], m_dcc_average->m_hDPint[1] ) = process_histogram( hphi, "hIntDistortionP" );
+  std::tie( m_dcc_average->m_hDZint[0], m_dcc_average->m_hDZint[1] ) = process_histogram( hz, "hIntDistortionZ" );
 
 }
