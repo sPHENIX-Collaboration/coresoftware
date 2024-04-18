@@ -45,6 +45,8 @@ TpcSpaceChargeMatrixInversion::TpcSpaceChargeMatrixInversion(const std::string& 
 //_____________________________________________________________________
 void TpcSpaceChargeMatrixInversion::load_cm_distortion_corrections(const std::string& filename)
 {
+  std::cout << "TpcSpaceChargeMatrixInversion::load_cm_distortion_corrections - loading " << filename << std::endl;
+
   // open TFile
   auto distortion_tfile = TFile::Open(filename.c_str());
   if (!distortion_tfile)
@@ -78,6 +80,8 @@ void TpcSpaceChargeMatrixInversion::load_cm_distortion_corrections(const std::st
 //_____________________________________________________________________
 void TpcSpaceChargeMatrixInversion::load_average_distortion_corrections(const std::string& filename)
 {
+  std::cout << "TpcSpaceChargeMatrixInversion::load_average_distortion_corrections - loading " << filename << std::endl;
+
   // open TFile
   auto distortion_tfile = TFile::Open(filename.c_str());
   if (!distortion_tfile)
@@ -351,10 +355,12 @@ void TpcSpaceChargeMatrixInversion::save_distortion_corrections(const std::strin
   std::unique_ptr<TFile> outputfile(TFile::Open(filename.c_str(), "RECREATE"));
   outputfile->cd();
 
-  for (const auto& h : {m_dcc_average->m_hentries, m_dcc_average->m_hDRint, m_dcc_average->m_hDPint, m_dcc_average->m_hDZint})
+  for (const auto& h_list : {m_dcc_average->m_hentries, m_dcc_average->m_hDRint, m_dcc_average->m_hDPint, m_dcc_average->m_hDZint})
   {
-    if (h[0]) h[0]->Write();
-    if (h[1]) h[1]->Write();
+    for (const auto& h : h_list)
+    {
+      if (h) h->Write(h->GetName());
+    }
   }
 
   // close TFile
