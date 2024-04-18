@@ -12,6 +12,7 @@
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <TFile.h>
+#include <TH2.h>
 #include <TH3.h>
 
 #include <Eigen/Core>
@@ -39,6 +40,66 @@ namespace
 TpcSpaceChargeMatrixInversion::TpcSpaceChargeMatrixInversion( const std::string& name ):
   Fun4AllBase( name)
 {}
+
+//_____________________________________________________________________
+void TpcSpaceChargeMatrixInversion::load_cm_distortion_corrections( const std::string& filename )
+{
+  // open TFile
+  auto distortion_tfile = TFile::Open(filename.c_str());
+  if( !distortion_tfile )
+  {
+    std::cout << "TpcSpaceChargeMatrixInversion::load_cm_distortion_corrections - cannot open " << filename << std::endl;
+    exit(1);
+  }
+
+  // make sure container exists
+  if( !m_dcc_cm ) { m_dcc_cm.reset(new TpcDistortionCorrectionContainer); }
+
+  const std::array<const std::string, 2> extension = {{"_negz", "_posz"}};
+  for (int j = 0; j < 2; ++j)
+  {
+    m_dcc_cm->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionP")+extension[j]).c_str()));
+    assert(m_dcc_cm->m_hDPint[j]);
+    m_dcc_cm->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionR")+extension[j]).c_str()));
+    assert(m_dcc_cm->m_hDRint[j]);
+    m_dcc_cm->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionZ")+extension[j]).c_str()));
+    assert(m_dcc_cm->m_hDZint[j]);
+  }
+
+  // check histogram dimension. We expect 2D histograms
+  m_dcc_cm->m_dimensions = m_dcc_cm->m_hDPint[0]->GetDimension();
+  assert( m_dcc_cm->m_dimensions == 2 );
+}
+
+//_____________________________________________________________________
+void TpcSpaceChargeMatrixInversion::load_average_distortion_corrections( const std::string& filename )
+{
+  // open TFile
+  auto distortion_tfile = TFile::Open(filename.c_str());
+  if( !distortion_tfile )
+  {
+    std::cout << "TpcSpaceChargeMatrixInversion::load_average_distortion_corrections - cannot open " << filename << std::endl;
+    exit(1);
+  }
+
+  // make sure container exists
+  if( !m_dcc_average ) { m_dcc_average.reset(new TpcDistortionCorrectionContainer); }
+
+  const std::array<const std::string, 2> extension = {{"_negz", "_posz"}};
+  for (int j = 0; j < 2; ++j)
+  {
+    m_dcc_average->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionP")+extension[j]).c_str()));
+    assert(m_dcc_average->m_hDPint[j]);
+    m_dcc_average->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionR")+extension[j]).c_str()));
+    assert(m_dcc_average->m_hDRint[j]);
+    m_dcc_average->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionZ")+extension[j]).c_str()));
+    assert(m_dcc_average->m_hDZint[j]);
+  }
+
+  // check histogram dimension. We expect 2D histograms
+  m_dcc_average->m_dimensions = m_dcc_average->m_hDPint[0]->GetDimension();
+  assert( m_dcc_average->m_dimensions == 3 );
+}
 
 //_____________________________________________________________________
 bool TpcSpaceChargeMatrixInversion::add_from_file( const std::string& shortfilename, const std::string& objectname )
@@ -90,7 +151,7 @@ bool TpcSpaceChargeMatrixInversion::add( const TpcSpaceChargeMatrixContainer& so
 }
 
 //_____________________________________________________________________
-void TpcSpaceChargeMatrixInversion::calculate_distortions()
+void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections()
 {
 
   // get grid dimensions from matrix container
@@ -146,10 +207,10 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
     if (Verbosity())
     {
       // print matrices and entries
-      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortions - inverting bin " << iz << ", " << ir << ", " << iphi << std::endl;
-      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortions - entries: " << cell_entries << std::endl;
-      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortions - lhs: \n" << lhs << std::endl;
-      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortions - rhs: \n" << rhs << std::endl;
+      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - inverting bin " << iz << ", " << ir << ", " << iphi << std::endl;
+      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - entries: " << cell_entries << std::endl;
+      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - lhs: \n" << lhs << std::endl;
+      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - rhs: \n" << rhs << std::endl;
     }
 
     // calculate result using linear solving
@@ -171,9 +232,9 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
 
     if (Verbosity())
     {
-      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortions - drphi: " << result(0) << " +/- " << std::sqrt( cov(0,0) ) << std::endl;
-      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortions - dz: " << result(1) << " +/- " << std::sqrt( cov(1,1) ) << std::endl;
-      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortions - dr: " << result(2) << " +/- " << std::sqrt( cov(2,2) ) << std::endl;
+      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - drphi: " << result(0) << " +/- " << std::sqrt( cov(0,0) ) << std::endl;
+      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dz: " << result(1) << " +/- " << std::sqrt( cov(1,1) ) << std::endl;
+      std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dr: " << result(2) << " +/- " << std::sqrt( cov(2,2) ) << std::endl;
       std::cout << std::endl;
     }
   }
@@ -203,41 +264,66 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
 }
 
 //_____________________________________________________________________
-void TpcSpaceChargeMatrixInversion::load_cm_distortion_correction( const std::string& filename )
-{
-  // open TFile
-  auto distortion_tfile = TFile::Open(filename.c_str());
-  if( !distortion_tfile )
-  {
-    std::cout << "TpcSpaceChargeMatrixInversion::load_cm_distortion_correction - cannot open " << filename << std::endl;
-    exit(1);
-  }
-
-  // make sure container exists
-  if( !m_dcc_cm ) { m_dcc_cm.reset(new TpcDistortionCorrectionContainer); }
-
-  const std::array<const std::string, 2> extension = {{"_negz", "_posz"}};
-  for (int j = 0; j < 2; ++j)
-  {
-    m_dcc_cm->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionP")+extension[j]).c_str()));
-    assert(m_dcc_cm->m_hDPint[j]);
-    m_dcc_cm->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionR")+extension[j]).c_str()));
-    assert(m_dcc_cm->m_hDRint[j]);
-    m_dcc_cm->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionZ")+extension[j]).c_str()));
-    assert(m_dcc_cm->m_hDZint[j]);
-  }
-
-  // check histogram dimension. We expect 2D histograms
-  m_dcc_cm->m_dimensions = m_dcc_cm->m_hDPint[0]->GetDimension();
-  assert( m_dcc_cm->m_dimensions == 2 );
-}
-
-//_____________________________________________________________________
-void TpcSpaceChargeMatrixInversion::save_distortions(const std::string& filename)
+void TpcSpaceChargeMatrixInversion::extrapolate_distortion_corrections()
 {
   if( !m_dcc_average )
   {
-    std::cout << "TpcSpaceChargeMatrixInversion::save_distortions - invalid histograms." << std::endl;
+    std::cout << "TpcSpaceChargeMatrixInversion::extrapolate_distortion_corrections - invalid distortion correction container." << std::endl;
+    return;
+  }
+
+  // handle sides independently
+  for( int i = 0; i < 2; ++i )
+  {
+    if( !m_dcc_average->m_hDRint[i] )
+    {
+      std::cout << "TpcSpaceChargeMatrixInversion::extrapolate_distortion_corrections - invalid histograms m_hDRint" << std::endl;
+      continue;
+    }
+
+    // create relevant masks. They are used to define the cells in which distortion correction interpolation must be performed
+    // this is a mask matching TPOT acceptance
+    std::unique_ptr<TH3> hmask( static_cast<TH3*>(m_dcc_average->m_hDRint[i]->Clone("hmask")));
+    TpcSpaceChargeReconstructionHelper::create_tpot_mask( hmask.get() );
+
+    // this is a mask matching TPOT acceptance, with small z interpolation between Micromegas modules
+    std::unique_ptr<TH3> hmask_extrap_z(static_cast<TH3*>(hmask->Clone( "hmask_extrap_z" )));
+    TpcSpaceChargeReconstructionHelper::extrapolate_z( hmask_extrap_z.get(), hmask.get() );
+
+    /*
+     * this is a mask matching TPOT acceptance, with small z interpolation between Micromegas modules,
+     * copied from sector to sector (no scaling)
+     */
+    std::unique_ptr<TH3> hmask_extrap_p(static_cast<TH3*>(hmask_extrap_z->Clone("hmask_extrap_p")));
+    TpcSpaceChargeReconstructionHelper::extrapolate_phi1( hmask_extrap_p.get(), nullptr, hmask_extrap_z.get() );
+
+    // labmda function to process a given histogram, and return the updated one
+    auto process_histogram = [this, &hmask, &hmask_extrap_z, &hmask_extrap_p]( TH3* h, TH2* h_cm )
+    {
+      // perform z extrapolation
+      TpcSpaceChargeReconstructionHelper::extrapolate_z( h, hmask.get() );
+
+      // perform first phi extrapolation, sector to sector, with normalization from central membrane
+      TpcSpaceChargeReconstructionHelper::extrapolate_phi1( h, h_cm, hmask_extrap_z.get() );
+
+      // perform second phi extrapolation, between sectors, using masks
+      TpcSpaceChargeReconstructionHelper::extrapolate_phi2( h, hmask_extrap_p.get() );
+    };
+
+    process_histogram( static_cast<TH3*>(m_dcc_average->m_hDRint[i]), static_cast<TH2*>(m_dcc_cm->m_hDRint[i]));
+    process_histogram( static_cast<TH3*>(m_dcc_average->m_hDPint[i]), static_cast<TH2*>(m_dcc_cm->m_hDPint[i]));
+    process_histogram( static_cast<TH3*>(m_dcc_average->m_hDZint[i]), static_cast<TH2*>(m_dcc_cm->m_hDZint[i]));
+
+  }
+
+}
+
+//_____________________________________________________________________
+void TpcSpaceChargeMatrixInversion::save_distortion_corrections(const std::string& filename)
+{
+  if( !m_dcc_average )
+  {
+    std::cout << "TpcSpaceChargeMatrixInversion::save_distortion_corrections - invalid distortion correction container." << std::endl;
     return;
   }
 

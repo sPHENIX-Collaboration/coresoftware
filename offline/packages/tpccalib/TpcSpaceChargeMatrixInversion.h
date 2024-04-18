@@ -29,7 +29,10 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
   //@{
 
   /// load central membrane distortion correction
-  void load_cm_distortion_correction( const std::string& /*filename*/ );
+  void load_cm_distortion_corrections( const std::string& /*filename*/ );
+
+  /// load average distortion correction
+  void load_average_distortion_corrections( const std::string& /*filename*/ );
 
   /// add space charge correction matrix to current. Returns true on success
   bool add( const TpcSpaceChargeMatrixContainer& );
@@ -38,13 +41,13 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
   bool add_from_file( const std::string& /*filename*/, const std::string& /*objectname*/ = "TpcSpaceChargeMatrixContainer" );
 
   /// calculate distortions by inverting stored matrices, and save relevant histograms
-  void calculate_distortions();
+  void calculate_distortion_corrections();
 
   /// extrapolate distortions
-  void extrapolate_distortions();
+  void extrapolate_distortion_corrections();
 
   /// save distortions
-  void save_distortions(const std::string& /*filename*/ = "DistortionCorrections.root");
+  void save_distortion_corrections(const std::string& /*filename*/ = "DistortionCorrections.root");
 
   //@}
 
