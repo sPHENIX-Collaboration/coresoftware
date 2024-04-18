@@ -27,14 +27,6 @@ class TrackSeed_v2 : public TrackSeed
   void CopyFrom(TrackSeed* seed) override { CopyFrom(*seed); }
   PHObject* CloneMe() const override { return new TrackSeed_v2(*this); }
 
-  // methods that return values from fits to the nominal cluster positions
-  float get_px(TrkrClusterContainer* clusters,
-               ActsGeometry* tGeometry) const override;
-  float get_py(TrkrClusterContainer* clusters,
-               ActsGeometry* tGeometry) const override;
-  float get_phi(TrkrClusterContainer* clusters,      
-                ActsGeometry* tGeometry) const override;    // returns phi calculated from cluster nominal positions
-
   // method to return phi from a given set of global positions
   float get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;   // returns phi calculated from supplied cluster positions
 
@@ -81,20 +73,11 @@ class TrackSeed_v2 : public TrackSeed
   ClusterKeyIter end_cluster_keys() override { return m_cluster_keys.end(); }
 
   /// Updates R, X0, Y0
-  void circleFitByTaubin(TrkrClusterContainer* clusters,
-                         ActsGeometry* tGeometry,
-                         uint8_t startLayer = 0,
-                         uint8_t endLayer = 58) override;
-  /// Updates r-z slope and intercept B
-  void lineFit(TrkrClusterContainer* clusters,
-               ActsGeometry* tGeometry,
-               uint8_t startLayer = 0,
-               uint8_t endLayer = 58) override;
-
   void circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                          uint8_t startLayer = 0,
                          uint8_t endLayer = 58) override;
 
+  /// Updates r-z slope and intercept B
   void lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                uint8_t startLayer = 0,
                uint8_t endLayer = 58) override;
