@@ -32,6 +32,13 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_y_search_window(const double win) { _y_search_win = win; }
   void set_z_search_window(const double win) { _z_search_win = win; }
 
+  void set_match_window_function_pars(const double a, const double b, const double ptmin) 
+  { 
+    _match_function_a = a;
+    _match_function_b = b;
+    _match_function_ptmin = ptmin;
+  }
+
   void set_test_windows_printout(const bool test) { _test_windows = test; }
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
   void set_use_intt_crossing(const bool flag) { _use_intt_crossing = flag; }
@@ -69,8 +76,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
 
-  double match_function_a = 1.0;
-  double match_function_b = 5.0;
+  double _match_function_a = 1.0;
+  double _match_function_b = 5.0;
+  double _match_function_pow = 1.0;
+  double _match_function_ptmin = 0.15;
+  bool _use_old_matching = true;  // normally false
 
   TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer *_track_map{nullptr};
@@ -98,4 +108,4 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   std::string m_fieldMap = "1.4";
 };
 
-#endif  // PHTRUTHSILICONASSOCIATION_H
+#endif  //  PHSILICONTPCTRACKMATCHING_H

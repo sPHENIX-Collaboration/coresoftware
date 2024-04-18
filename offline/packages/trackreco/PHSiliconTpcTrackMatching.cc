@@ -377,15 +377,12 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
     // this factor will increase the window size at low pT
     // otherwise the matching efficiency drops off at low pT
-    double mag = 1.0;
-    bool use_mag_function = true;
-    if(use_mag_function)
+
+    double mag = getMatchingInflationFactor(tpc_pt);
+
+    if(_use_old_matching)   // for testing only
       {
-	mag = getMatchingInflationFactor(tpc_pt);
-      }
-    else
-      {
-	// it would be better if this was a smooth function
+	mag = 1.0;
 	if (tpc_pt < 6.0)
 	  {
 	    mag = 2;
@@ -702,7 +699,12 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
 
 double PHSiliconTpcTrackMatching::getMatchingInflationFactor(double tpc_pt)
 {
-  double  mag = match_function_a + match_function_b/pow(tpc_pt, 1);
+  double  mag = 1.0;
+
+  if(tpc_pt > _match_function_ptmin)
+    {
+      mag = _match_function_a + _match_function_b/pow(tpc_pt, _match_function_pow);
+    }
 
   //  std::cout << " tpc_pt = " << tpc_pt << " mag " << mag << " a " << match_function_a << " b " << match_function_b << std::endl;
 
