@@ -165,7 +165,7 @@ class PHCASeeding : public PHTrackSeeding
   bool _pp_mode = false;
   std::array<double, 3> _fixed_clus_err = {.1, .1, .1};
 
-  std::string m_magField {"FIELDMAP_TRACKING"};
+  std::string m_magField{"FIELDMAP_TRACKING"};
 
   /// acts geometry
   ActsGeometry* tGeometry{nullptr};

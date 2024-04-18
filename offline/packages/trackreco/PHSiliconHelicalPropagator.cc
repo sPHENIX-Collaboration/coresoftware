@@ -13,11 +13,14 @@ namespace
   template <typename T>
   int sgn(const T& x)
   {
-    if (x > 0) {
+    if (x > 0)
+    {
       return 1;
-    } else {
+    }
+    else
+    {
       return -1;
-}
+    }
   }
 }  // namespace
 
@@ -26,8 +29,7 @@ PHSiliconHelicalPropagator::PHSiliconHelicalPropagator(const std::string& name)
 {
 }
 
-PHSiliconHelicalPropagator::~PHSiliconHelicalPropagator()
-= default;
+PHSiliconHelicalPropagator::~PHSiliconHelicalPropagator() = default;
 
 int PHSiliconHelicalPropagator::InitRun(PHCompositeNode* topNode)
 {
@@ -115,8 +117,10 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
   for (unsigned int seedID = 0; seedID < _tpc_seeds->size(); ++seedID)
   {
     TrackSeed* tpcseed = _tpc_seeds->get(seedID);
-    if (!tpcseed) { continue;
-}
+    if (!tpcseed)
+    {
+      continue;
+    }
 
     std::vector<Acts::Vector3> clusterPositions;
     std::vector<TrkrDefs::cluskey> clusterKeys;
@@ -164,11 +168,14 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
           for (auto iter = hit_crossings.first; iter != hit_crossings.second; ++iter)
           {
             short crossing = iter->second;
-            if (crossing_frequency.count(crossing) == 0) {
+            if (crossing_frequency.count(crossing) == 0)
+            {
               crossing_frequency.insert({crossing, 1});
-            } else {
+            }
+            else
+            {
               crossing_frequency[crossing]++;
-}
+            }
           }
 
           //! Check that the INTT clusters are in the same quadrant
@@ -215,9 +222,10 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
       _svtx_seeds->insert(partial_seed.get());
     }
   }
-  if (Verbosity() > 2) {
+  if (Verbosity() > 2)
+  {
     std::cout << "svtx seed map size is " << _svtx_seeds->size() << std::endl;
-}
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

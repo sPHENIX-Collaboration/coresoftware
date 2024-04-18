@@ -37,8 +37,7 @@ PHCosmicSiliconPropagator::PHCosmicSiliconPropagator(const std::string& name)
 }
 
 //____________________________________________________________________________..
-PHCosmicSiliconPropagator::~PHCosmicSiliconPropagator()
-= default;
+PHCosmicSiliconPropagator::~PHCosmicSiliconPropagator() = default;
 
 //____________________________________________________________________________..
 int PHCosmicSiliconPropagator::Init(PHCompositeNode* /*unused*/)
@@ -131,8 +130,10 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
       {
         xypoints.push_back(std::make_pair(globPos.x(), globPos.y()));
         float clusr = r(globPos.x(), globPos.y());
-        if (globPos.y() < 0) { clusr *= -1;
-}
+        if (globPos.y() < 0)
+        {
+          clusr *= -1;
+        }
         rzpoints.push_back(std::make_pair(globPos.z(), clusr));
       }
 
@@ -254,10 +255,10 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
         }
       }
 
-      si_seed->circleFitByTaubin(silposmap,0,8);
+      si_seed->circleFitByTaubin(silposmap, 0, 8);
       si_seed->lineFit(silposmap);
-      tpcseed->circleFitByTaubin(tpcposmap,7,57);
-      tpcseed->lineFit(tpcposmap,7,57);
+      tpcseed->circleFitByTaubin(tpcposmap, 7, 57);
+      tpcseed->lineFit(tpcposmap, 7, 57);
       TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
       std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
       int tpcind = _tpc_seeds->find(tpcseed);

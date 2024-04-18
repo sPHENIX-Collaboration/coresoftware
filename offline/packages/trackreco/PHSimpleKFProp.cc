@@ -51,8 +51,8 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include <iostream>  // for operator<<, basic_ostream
 #include <filesystem>
+#include <iostream>  // for operator<<, basic_ostream
 #include <vector>
 
 // anonymous namespace for local functions
@@ -92,14 +92,14 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   {
     m_magField = CDBInterface::instance()->getUrl(m_magField);
   }
-  if (! std::filesystem::exists(m_magField))
+  if (!std::filesystem::exists(m_magField))
   {
     if (m_magField.empty())
     {
       m_magField = "empty string";
     }
     std::cout << PHWHERE << "Fieldmap " << m_magField
-	      << " does not exist" << std::endl;
+              << " does not exist" << std::endl;
     gSystem->Exit(1);
   }
   fcfg.set_filename(m_magField);
@@ -337,8 +337,10 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       std::vector<std::vector<TrkrDefs::cluskey>> kl;
       kl.push_back(preseed);
 
-      if (Verbosity()) { std::cout << "kl size " << kl.size() << std::endl;
-}
+      if (Verbosity())
+      {
+        std::cout << "kl size " << kl.size() << std::endl;
+      }
       std::vector<float> pretrackChi2;
       auto prepair = fitter->ALICEKalmanFilter(kl, false, globalPositions, pretrackChi2);
       if (prepair.first.size() == 0 || prepair.second.size() == 0)
@@ -473,8 +475,10 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
     {
       TrkrDefs::cluskey cluskey = it->first;
       TrkrCluster* cluster = it->second;
-      if (!cluster) { continue;
-}
+      if (!cluster)
+      {
+        continue;
+      }
 
       // skip hits used in a previous iteration
       if (_n_iteration && _iteration_map && _iteration_map->getIteration(cluskey) > 0)
@@ -506,12 +510,16 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
   _kdtrees.resize(kdhits.size());
   for (size_t l = 0; l < kdhits.size(); ++l)
   {
-    if (Verbosity()) { std::cout << "l: " << l << std::endl;
-}
+    if (Verbosity())
+    {
+      std::cout << "l: " << l << std::endl;
+    }
     _ptclouds[l] = std::make_shared<KDPointCloud<double>>();
     _ptclouds[l]->pts.resize(kdhits[l].size());
-    if (Verbosity()) { std::cout << "resized to " << kdhits[l].size() << std::endl;
-}
+    if (Verbosity())
+    {
+      std::cout << "resized to " << kdhits[l].size() << std::endl;
+    }
     for (size_t i = 0; i < kdhits[l].size(); ++i)
     {
       _ptclouds[l]->pts[i] = kdhits[l][i];
@@ -859,8 +867,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
         std::cout << "distance: " << sqrt(square(kftrack.GetX() * cos(cphi) - kftrack.GetY() * sin(cphi) - cx) + square(kftrack.GetX() * sin(cphi) + kftrack.GetY() * cos(cphi) - cy) + square(kftrack.GetZ() - cz)) << std::endl;
       }
       if (true)  // fabs(tx-cx)<_max_dist*sqrt(txerr*txerr+cxerr*cxerr) &&
-              // fabs(ty-cy)<_max_dist*sqrt(tyerr*tyerr+cyerr*cyerr) &&
-              // fabs(tz-cz)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
+                 // fabs(ty-cy)<_max_dist*sqrt(tyerr*tyerr+cyerr*cyerr) &&
+                 // fabs(tz-cz)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {
         if (Verbosity())
         {

@@ -15,8 +15,8 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <globalvertex/SvtxVertexMap.h>
 #include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
@@ -192,7 +192,7 @@ PHActsVertexPropagator::propagateTrack(
   std::istringstream stringline(m_fieldMap);
   double fieldstrength = std::numeric_limits<double>::quiet_NaN();
   stringline >> fieldstrength;
-  if (! stringline.fail())
+  if (!stringline.fail())
   {
     propagator.constField();
     propagator.setConstFieldValue(fieldstrength);
