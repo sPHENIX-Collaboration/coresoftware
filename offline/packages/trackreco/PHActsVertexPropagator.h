@@ -34,7 +34,7 @@ class PHActsVertexPropagator : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void fieldMap(std::string& fieldmap){m_fieldMap = fieldmap;}
+  void fieldMap(std::string &fieldmap) { m_fieldMap = fieldmap; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
