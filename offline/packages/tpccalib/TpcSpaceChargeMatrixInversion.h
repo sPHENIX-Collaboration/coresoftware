@@ -11,6 +11,7 @@
 
 // forward declaration
 class TpcSpaceChargeMatrixContainer;
+class TpcDistortionCorrectionContainer;
 
 /**
  * \class TpcSpaceChargeMatrixInversion
@@ -27,38 +28,36 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
   ///@name modifiers
   //@{
 
-  /// set whether to extrapolate corrections from Micromegas to full acceptance
-  void set_do_extrapolation( bool value )
-  { m_do_extrapolation = value; }
+  /// set central membrane distortion file
+  void set_central_membrane_correction_filename( const std::string& );
 
-  /// output file
-  /**
-   * this is the file where space charge correction 3D histograms are stored
-   * they are suitable for being read by TpcClusterizer
-   */
-  void set_outputfile( const std::string& filename );
-  
   /// add space charge correction matrix to current. Returns true on success
   bool add( const TpcSpaceChargeMatrixContainer& );
 
   /// add space charge correction matrix, loaded from file, to current. Returns true on success
-  bool add_from_file( const std::string& filename, const std::string& objectname = "TpcSpaceChargeMatrixContainer" );
-  
+  bool add_from_file( const std::string& /*filename*/, const std::string& /*objectname*/ = "TpcSpaceChargeMatrixContainer" );
+
   /// calculate distortions by inverting stored matrices, and save relevant histograms
   void calculate_distortions();
+
+  /// extrapolate distortions
+  void extrapolate_distortions();
+
+  /// save distortions
+  void save_distortions(const std::string& /*filename*/ = "DistortionCorrections.root");
 
   //@}
 
   private:
 
-  /// output file
-  std::string m_outputfile = "DistortionCorrections.root";
-
-  /// true if only tracks with micromegas must be used
-  bool m_do_extrapolation = false;
-
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
+
+  /// output distortion container
+  std::unique_ptr<TpcDistortionCorrectionContainer> m_dcc_average;
+
+  /// central membrane distortion container
+  std::unique_ptr<TpcDistortionCorrectionContainer> m_dcc_cm;
 
 };
 
