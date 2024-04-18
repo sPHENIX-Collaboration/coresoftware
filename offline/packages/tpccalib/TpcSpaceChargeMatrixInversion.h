@@ -28,8 +28,8 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
   ///@name modifiers
   //@{
 
-  /// set central membrane distortion file
-  void set_central_membrane_correction_filename( const std::string& );
+  /// load central membrane distortion correction
+  void load_cm_distortion_correction( const std::string& /*filename*/ );
 
   /// add space charge correction matrix to current. Returns true on success
   bool add( const TpcSpaceChargeMatrixContainer& );

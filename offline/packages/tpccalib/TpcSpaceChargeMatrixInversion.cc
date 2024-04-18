@@ -202,6 +202,35 @@ void TpcSpaceChargeMatrixInversion::calculate_distortions()
 
 }
 
+//_____________________________________________________________________
+void TpcSpaceChargeMatrixInversion::load_cm_distortion_correction( const std::string& filename )
+{
+  // open TFile
+  auto distortion_tfile = TFile::Open(filename.c_str());
+  if( !distortion_tfile )
+  {
+    std::cout << "TpcSpaceChargeMatrixInversion::load_cm_distortion_correction - cannot open " << filename << std::endl;
+    exit(1);
+  }
+
+  // make sure container exists
+  if( !m_dcc_cm ) { m_dcc_cm.reset(new TpcDistortionCorrectionContainer); }
+
+  const std::array<const std::string, 2> extension = {{"_negz", "_posz"}};
+  for (int j = 0; j < 2; ++j)
+  {
+    m_dcc_cm->m_hDPint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionP")+extension[j]).c_str()));
+    assert(m_dcc_cm->m_hDPint[j]);
+    m_dcc_cm->m_hDRint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionR")+extension[j]).c_str()));
+    assert(m_dcc_cm->m_hDRint[j]);
+    m_dcc_cm->m_hDZint[j] = dynamic_cast<TH1*>(distortion_tfile->Get((std::string("hIntDistortionZ")+extension[j]).c_str()));
+    assert(m_dcc_cm->m_hDZint[j]);
+  }
+
+  // check histogram dimension. We expect 2D histograms
+  m_dcc_cm->m_dimensions = m_dcc_cm->m_hDPint[0]->GetDimension();
+  assert( m_dcc_cm->m_dimensions == 2 );
+}
 
 //_____________________________________________________________________
 void TpcSpaceChargeMatrixInversion::save_distortions(const std::string& filename)
