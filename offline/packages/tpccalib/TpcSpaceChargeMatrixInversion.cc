@@ -302,7 +302,7 @@ void TpcSpaceChargeMatrixInversion::extrapolate_distortion_corrections()
     TpcSpaceChargeReconstructionHelper::extrapolate_phi1( hmask_extrap_p.get(), nullptr, hmask_extrap_z.get() );
 
     // labmda function to process a given histogram, and return the updated one
-    auto process_histogram = [this, &hmask, &hmask_extrap_z, &hmask_extrap_p]( TH3* h, TH2* h_cm )
+    auto process_histogram = [&hmask, &hmask_extrap_z, &hmask_extrap_p]( TH3* h, TH2* h_cm )
     {
       // perform z extrapolation
       TpcSpaceChargeReconstructionHelper::extrapolate_z( h, hmask.get() );
