@@ -67,7 +67,7 @@ namespace
   class range_ftor_t
   {
    public:
-    range_ftor_t(double value)
+    explicit range_ftor_t(double value)
       : m_value(value){};
     bool operator()(const range_t& range)
     {
