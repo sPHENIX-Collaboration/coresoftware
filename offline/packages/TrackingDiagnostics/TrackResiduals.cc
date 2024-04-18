@@ -79,17 +79,16 @@ TrackResiduals::TrackResiduals(const std::string& name)
 
 //____________________________________________________________________________..
 TrackResiduals::~TrackResiduals()
-{
-}
+= default;
 
 //____________________________________________________________________________..
-int TrackResiduals::Init(PHCompositeNode*)
+int TrackResiduals::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int TrackResiduals::InitRun(PHCompositeNode*)
+int TrackResiduals::InitRun(PHCompositeNode* /*unused*/)
 {
   m_outfile = new TFile(m_outfileName.c_str(), "RECREATE");
   createBranches();
@@ -200,8 +199,8 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   if (gl1)
   {
     m_bco = gl1->get_bco();
-    auto lbshift = m_bco << 24;
-    m_bcotr = lbshift >> 24;
+    auto lbshift = m_bco << 24U;
+    m_bcotr = lbshift >> 24U;
   }
   else
   {
@@ -376,7 +375,8 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   for (auto& pos : clusPos)
   {
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) clusr *= -1;
+    if (pos.y() < 0) { clusr *= -1;
+}
 
     // exclude silicon and tpot clusters for now
     if (fabs(clusr) > 80 || fabs(clusr) < 30)
@@ -408,7 +408,8 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   for (auto& pos : clusPos)
   {
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) clusr *= -1;
+    if (pos.y() < 0) { clusr *= -1;
+}
 
     // exclude silicon and tpot clusters for now
     if (fabs(clusr) > 80 || fabs(clusr) < 30)
@@ -528,7 +529,7 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
 }
 
 //____________________________________________________________________________..
-int TrackResiduals::End(PHCompositeNode*)
+int TrackResiduals::End(PHCompositeNode* /*unused*/)
 {
   m_outfile->cd();
   m_tree->Write();

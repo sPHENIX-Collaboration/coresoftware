@@ -302,7 +302,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
   
-int TrkrNtuplizer::InitRun(PHCompositeNode*)
+int TrkrNtuplizer::InitRun(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -325,8 +325,9 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
     _iseed = 0;
     m_fSeed = NAN;
   }
-  if(_trackmap == nullptr)
+  if(_trackmap == nullptr) {
     _trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+}
 
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
   if (!_cluster_map){
@@ -467,12 +468,10 @@ void TrkrNtuplizer::printInputInfo(PHCompositeNode* topNode)
     if (_trackmap)
     {
       unsigned int itrack = 0;
-      for (SvtxTrackMap::Iter iter = _trackmap->begin();
-           iter != _trackmap->end();
-           ++iter)
+      for (auto & iter : *_trackmap)
       {
         cout << itrack << " of " << _trackmap->size();
-        SvtxTrack* track = iter->second;
+        SvtxTrack* track = iter.second;
         cout << " : SvtxTrack:" << endl;
         track->identify();
         cout << endl;
@@ -632,7 +631,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   float fx_info[n_info::infosize] = {0};
 
   float nhit[100];
-  for (float& i : nhit) i = 0;
+  for (float& i : nhit) { i = 0;
+}
 
   TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (hitmap_in)
@@ -659,10 +659,12 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	    fx_info[n_info::infonhitintt]++;
 	  }
 	  if ((float) layer >= _nlayers_maps + _nlayers_intt &&
-	      (float) layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+	      (float) layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc) {
 	    fx_info[n_info::infonhittpcall]++;
-	  if((float) layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+}
+	  if((float) layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc) {
 	    fx_info[n_info::infonhittpot]++;
+}
           if ((float) layer == _nlayers_maps + _nlayers_intt)
 	    {
 	      fx_info[n_info::infonhittpcin]++;
@@ -671,6 +673,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	    {
 	      fx_info[n_info::infonhittpcout]++;
 	    }
+// NOLINTNEXTLINE(misc-no-recursion)
           if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
 	    {
 	      fx_info[n_info::infonhittpcmid]++;
@@ -827,8 +830,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       _timer->restart();
     }
     float fx_vertex[n_vertex::vtxsize];
-    for(int i = 0;i<n_vertex::vtxsize;i++)
-      fx_vertex[i] = 0;
+    for(float & i : fx_vertex) {
+      i = 0;
+}
 
     //    SvtxVertexMap* vertexmap = nullptr;
 
@@ -1046,8 +1050,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     if (Verbosity() > 1)
     {
       cout << "Filling ntp_clus_trk " << endl;
-      if (_cluster_map != nullptr) cout << "got clustermap" << endl;
-      else cout << "no clustermap" << endl;
+      if (_cluster_map != nullptr) { cout << "got clustermap" << endl;
+      } else { cout << "no clustermap" << endl;
+}
     }
 
     TrackSeedContainer *_tpc_seeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
@@ -1076,7 +1081,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 					   clusterPositions, clusterKeys);
 	for (auto& pos : clusterPositions){
 	  float clusr = sqrt(pos.x()*pos.x()+ pos.y()*pos.y());
-	  if (pos.y() < 0) clusr *= -1;
+	  if (pos.y() < 0) { clusr *= -1;
+}
 	  
 	  // exclude silicon and tpot clusters for now
 	  if (fabs(clusr) > 80 || fabs(clusr) < 30)
@@ -1116,8 +1122,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	float nhits_local = clusterPositions.size();
         if (Verbosity() > 1){
 	  cout << " tpc: " << tpcseed->size_cluster_keys() << endl;
-	  if(siseed)
+	  if(siseed) {
 	    cout << " si " << siseed->size_cluster_keys() << endl;
+}
 	  cout << "done seedsize" << endl;
 	}
 	//      nhits_local += tpcseed->size_cluster_keys();
@@ -1456,8 +1463,9 @@ void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_k
   fXcluster[n_cluster::nclupedge] = cluster->getEdge();
   if(layer_local==7||layer_local==22||
      layer_local==23||layer_local==28||
-     layer_local==39||layer_local==54)
+     layer_local==39||layer_local==54) {
     fXcluster[n_cluster::ncluredge] = 1;
+}
 
   fXcluster[n_cluster::ncluovlp] = 3;//cluster->getOvlp();
   fXcluster[n_cluster::nclutrackID] = NAN;
@@ -1503,11 +1511,8 @@ SvtxTrack* TrkrNtuplizer::best_track_from(TrkrDefs::cluskey cluster_key)
 
   std::set<SvtxTrack*> tracks = all_tracks_from(cluster_key);
   // loop over all SvtxTracks
-  for (std::set<SvtxTrack*>::iterator iter = tracks.begin();
-       iter != tracks.end();
-       ++iter)
+  for (auto candidate : tracks)
   {
-    SvtxTrack* candidate = *iter;
     if (candidate->get_quality() < best_quality)
     {
       best_quality = candidate->get_quality();
@@ -1523,7 +1528,8 @@ std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_ke
 {
   std::set<SvtxTrack*> tracks;
 
-  if (_cache_track_from_cluster_exists == false) create_cache_track_from_cluster();
+  if (_cache_track_from_cluster_exists == false) { create_cache_track_from_cluster();
+}
   std::map<TrkrDefs::cluskey, std::set<SvtxTrack*> >::iterator find_iter =
     _cache_all_tracks_from_cluster.find(cluster_key);
   if (find_iter != _cache_all_tracks_from_cluster.end())
@@ -1536,11 +1542,9 @@ std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_ke
     }
 
   // loop over all SvtxTracks
-  for (SvtxTrackMap::Iter iter = _trackmap->begin();
-       iter != _trackmap->end();
-       ++iter)
+  for (auto & iter : *_trackmap)
   {
-    SvtxTrack* track = iter->second;
+    SvtxTrack* track = iter.second;
     std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
 
     // loop over all clusters
@@ -1572,14 +1576,13 @@ std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_ke
 void TrkrNtuplizer::create_cache_track_from_cluster()
 {
 
-  if(!_trackmap) return;
+  if(!_trackmap) { return;
+}
 
   // loop over all SvtxTracks
-  for (SvtxTrackMap::Iter iter = _trackmap->begin();
-       iter != _trackmap->end();
-       ++iter)
+  for (auto & iter : *_trackmap)
   {
-    SvtxTrack* track = iter->second;
+    SvtxTrack* track = iter.second;
     std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
 
     // loop over all clusters

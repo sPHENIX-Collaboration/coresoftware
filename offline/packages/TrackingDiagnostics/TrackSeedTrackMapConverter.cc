@@ -20,6 +20,8 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+#include <cmath>
 namespace
 {
   template <class T>
@@ -212,7 +214,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         }
         else
         {
-          p = cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+          p = std::cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
         }
 
         tan *= p;
@@ -224,12 +226,14 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         svtxtrack->set_z(svtxtrack->get_pz() > 0 ? (slope < 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()));
         svtxtrack->set_charge(charge);
         addKeys(svtxtrack, tpcseed);
-        if (silseed) addKeys(svtxtrack, silseed);
+        if (silseed) { addKeys(svtxtrack, silseed);
+}
 
         svtxtrack->set_tpc_seed(tpcseed);
         svtxtrack->set_silicon_seed(silseed);
-        if (Verbosity() > 5)
+        if (Verbosity() > 5) {
           svtxtrack->identify();
+}
       }
       addKeys(svtxtrack, tpcseed);
       svtxtrack->set_tpc_seed(tpcseed);
@@ -475,7 +479,8 @@ std::pair<int, float> TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* see
   float maxdr = std::numeric_limits<float>::max();
   for (auto& glob : globpos)
   {
-    if (glob.y() > 0) continue;
+    if (glob.y() > 0) { continue;
+}
     float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(glob.x()) + square(glob.y()));
     if (dr < maxdr && dr > 10)
     {
@@ -492,8 +497,10 @@ std::pair<int, float> TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* see
   const auto secondphi = atan2(globalSecondMostOuter.y(),
                                globalSecondMostOuter.x());
   auto dphi = secondphi - firstphi;
-  if (dphi > M_PI) dphi = 2. * M_PI - dphi;
-  if (dphi < -M_PI) dphi = 2. * M_PI + dphi;
+  if (dphi > M_PI) { dphi = 2. * M_PI - dphi;
+}
+  if (dphi < -M_PI) { dphi = 2. * M_PI + dphi;
+}
 
   float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
   float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));

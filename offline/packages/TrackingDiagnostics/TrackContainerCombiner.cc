@@ -24,9 +24,7 @@ TrackContainerCombiner::TrackContainerCombiner(const std::string &name):
 
 //____________________________________________________________________________..
 TrackContainerCombiner::~TrackContainerCombiner()
-{
-  
-}
+= default;
 
 //____________________________________________________________________________..
 int TrackContainerCombiner::InitRun(PHCompositeNode *topNode)
@@ -36,7 +34,7 @@ int TrackContainerCombiner::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int TrackContainerCombiner::process_event(PHCompositeNode*)
+int TrackContainerCombiner::process_event(PHCompositeNode* /*unused*/)
 {
   if(m_seedContainer)
   {
@@ -68,7 +66,7 @@ void TrackContainerCombiner::mergeSeeds()
   }
 }
 //____________________________________________________________________________..
-int TrackContainerCombiner::End(PHCompositeNode*)
+int TrackContainerCombiner::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

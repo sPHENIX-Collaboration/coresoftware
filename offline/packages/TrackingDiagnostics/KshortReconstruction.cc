@@ -336,7 +336,7 @@ Acts::Vector3 KshortReconstruction::getVertex(SvtxTrack* track)
   return vertex;
 }
 
-void KshortReconstruction::findPcaTwoTracks(Acts::Vector3 pos1, Acts::Vector3 pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca)
+void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Acts::Vector3& pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca)
 {
   TLorentzVector v1;
   TLorentzVector v2;
@@ -355,8 +355,8 @@ void KshortReconstruction::findPcaTwoTracks(Acts::Vector3 pos1, Acts::Vector3 po
   v2.SetPxPyPzE(px2, py2, pz2, E2);
 
   // calculate lorentz vector
-  const Eigen::Vector3d& a1 = std::move(pos1);
-  const Eigen::Vector3d& a2 = std::move(pos2);
+  const Eigen::Vector3d& a1 = pos1;
+  const Eigen::Vector3d& a2 = pos2;
 
   Eigen::Vector3d b1(v1.Px(), v1.Py(), v1.Pz());
   Eigen::Vector3d b2(v2.Px(), v2.Py(), v2.Pz());
@@ -464,9 +464,7 @@ int KshortReconstruction::InitRun(PHCompositeNode* topNode)
 
   getNodes(topNode);
 
-  char name[500];
-  sprintf(name, "recomass");
-  recomass = new TH1D(name, name, 1000, 0.0, 1);  // root histogram arguments: name,title,bins,minvalx,maxvalx
+  recomass = new TH1D("recomass", "recomass", 1000, 0.0, 1);  // root histogram arguments: name,title,bins,minvalx,maxvalx
 
   return 0;
 }
