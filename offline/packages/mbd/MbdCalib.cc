@@ -4,25 +4,28 @@
 #include "MbdGeomV1.h"
 
 // Database Includes
+#ifndef ONLINE
 #include <ffamodules/CDBInterface.h>
-
 #include <cdbobjects/CDBTTree.h>
+#endif
 
 #include <phool/phool.h>
 
 #include <cmath>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <string>
 
+#include <TString.h>
+
 MbdCalib::MbdCalib()
 {
   Reset();
-  _rc = recoConsts::instance();
   _mbdgeom = std::make_unique<MbdGeomV1>();
 
+#ifndef ONLINE
+  _rc = recoConsts::instance();
   if ( _rc->FlagExist("MBD_TEMPLATEFIT") )
   {
     do_templatefit = _rc->get_IntFlag("MBD_TEMPLATEFIT");
@@ -31,6 +34,10 @@ MbdCalib::MbdCalib()
   {
     do_templatefit = 1;
   }
+#else
+  do_templatefit = 0;
+#endif
+
 }
 
 int MbdCalib::Download_All()
@@ -38,11 +45,28 @@ int MbdCalib::Download_All()
   //std::cout << PHWHERE << " In MbdCalib::Download_All()" << std::endl;
   _status = 0;
 
+  std::string bbc_caldir;
+
+#ifdef ONLINE
+  bbc_caldir = getenv("BBCCALIB");
+  if (bbc_caldir.size()==0)
+  {
+    std::cout << "BBCCALIB environment variable not set" << std::endl;
+    exit(1);
+  }
+#else
   if (Verbosity() > 0)
   {
     std::cout << "MBD CDB " << _rc->get_StringFlag("CDB_GLOBALTAG") << "\t" << _rc->get_uint64Flag("TIMESTAMP") << std::endl;
   }
   _cdb = CDBInterface::instance();
+
+  if (_rc->FlagExist("MBD_CALDIR"))
+  {
+    bbc_caldir = _rc->get_StringFlag("MBD_CALDIR");
+    std::cout << "Reading MBD Calibrations from " << bbc_caldir << std::endl;
+  }
+
   // if rc flag MBD_CALDIR does not exist, we create it and set it to an empty string
   if (!_rc->FlagExist("MBD_CALDIR"))
   {
@@ -100,12 +124,10 @@ int MbdCalib::Download_All()
     }
     Verbosity(0);
   }
-  else
-  {
-    Verbosity(0);
-    std::string bbc_caldir = _rc->get_StringFlag("MBD_CALDIR");
-    std::cout << "Reading MBD Calibrations from " << bbc_caldir << std::endl;
+#endif
 
+  if ( bbc_caldir.size() > 0 )
+  {
     std::string sampmax_file = bbc_caldir + "/mbd_sampmax.calib";
     Download_SampMax(sampmax_file);
 
@@ -129,7 +151,6 @@ int MbdCalib::Download_All()
       std::string shape_file = bbc_caldir + "/mbd_shape.calib";
       Download_Shapes(shape_file);
     }
-    Verbosity(0);
   }
 
   return _status;
@@ -150,8 +171,10 @@ int MbdCalib::Download_Gains(const std::string& dbase_location)
   {
     std::cout << "Opening " << dbase_location << std::endl;
   }
-  std::filesystem::path dbase_file = dbase_location;
-  if (dbase_file.extension() == ".root")  // read from database
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
   {
     CDBTTree* cdbttree = new CDBTTree(dbase_location);
     cdbttree->LoadCalibrations();
@@ -175,7 +198,9 @@ int MbdCalib::Download_Gains(const std::string& dbase_location)
     }
     delete cdbttree;
   }
-  else if (dbase_file.extension() == ".calib")  // read from text file
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
   {
     std::ifstream infile(dbase_location);
     if (!infile.is_open())
@@ -222,8 +247,10 @@ int MbdCalib::Download_TQT0(const std::string& dbase_location)
   {
     std::cout << "Opening " << dbase_location << std::endl;
   }
-  std::filesystem::path dbase_file = dbase_location;
-  if (dbase_file.extension() == ".root")  // read from database
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndWith(".root"))  // read from database
   {
     CDBTTree* cdbttree = new CDBTTree(dbase_location);
     cdbttree->LoadCalibrations();
@@ -244,7 +271,9 @@ int MbdCalib::Download_TQT0(const std::string& dbase_location)
     }
     delete cdbttree;
   }
-  else if (dbase_file.extension() == ".calib")  // read from text file
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
   {
     std::ifstream infile(dbase_location);
     if (!infile.is_open())
@@ -292,8 +321,10 @@ int MbdCalib::Download_TTT0(const std::string& dbase_location)
   {
     std::cout << "Opening " << dbase_location << std::endl;
   }
-  std::filesystem::path dbase_file = dbase_location;
-  if (dbase_file.extension() == ".root")  // read from database
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
   {
     CDBTTree* cdbttree = new CDBTTree(dbase_location);
     cdbttree->LoadCalibrations();
@@ -315,7 +346,9 @@ int MbdCalib::Download_TTT0(const std::string& dbase_location)
     }
     delete cdbttree;
   }
-  else if (dbase_file.extension() == ".calib")  // read from text file
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
   {
     std::ifstream infile(dbase_location);
     if (!infile.is_open())
@@ -356,8 +389,10 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
   // Reset All Values
   _sampmax.fill(-1);
 
-  std::filesystem::path dbase_file = dbase_location;
-  if (dbase_file.extension() == ".root")  // read from database
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
   {
     CDBTTree* cdbttree = new CDBTTree(dbase_location);
     cdbttree->LoadCalibrations();
@@ -375,7 +410,9 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
     }
     delete cdbttree;
   }
-  else if (dbase_file.extension() == ".calib")  // read from text file
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
   {
     std::ifstream infile(dbase_location);
     if (!infile.is_open())
@@ -426,8 +463,10 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
     sherr.clear();
   }
 
-  std::filesystem::path dbase_file = dbase_location;
-  if (dbase_file.extension() == ".root")  // read from database
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
   {
     if (Verbosity())
     {
@@ -472,7 +511,9 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
     }
     delete cdbttree;
   }
-  else if (dbase_file.extension() == ".calib")  // read from text file
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
   {
     if (Verbosity())
     {
@@ -610,8 +651,10 @@ int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
     tcorr.clear();
   }
 
-  std::filesystem::path dbase_file = dbase_location;
-  if (dbase_file.extension() == ".root")  // read from CDB database file
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from CDB database file
   {
     if ( Verbosity() )
     {
@@ -649,7 +692,9 @@ int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
     }
     delete cdbttree;
   }
-  else if (dbase_file.extension() == ".calib")  // read from text file
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
   {
     if ( Verbosity() )
     {
@@ -763,8 +808,10 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
   }
   std::fill(_scorr_npts.begin(), _scorr_npts.end(), 0);
   
-  std::filesystem::path dbase_file = dbase_location;
-  if (dbase_file.extension() == ".root")  // read from CDB database file
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from CDB database file
   {
     if ( Verbosity() )
     {
@@ -802,7 +849,9 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
     }
     delete cdbttree;
   }
-  else if (dbase_file.extension() == ".calib")  // read from text file
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
   {
     if ( Verbosity() )
     {
@@ -918,6 +967,7 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
   return 1;
 }
 
+#ifndef ONLINE
 int MbdCalib::Write_CDB_SampMax(const std::string& dbfile)
 {
   CDBTTree* cdbttree{ nullptr };
@@ -948,6 +998,7 @@ int MbdCalib::Write_CDB_SampMax(const std::string& dbfile)
 
   return 1;
 }
+#endif
 
 int MbdCalib::Write_SampMax(const std::string& dbfile)
 {
@@ -962,6 +1013,7 @@ int MbdCalib::Write_SampMax(const std::string& dbfile)
   return 1;
 }
 
+#ifndef ONLINE
 int MbdCalib::Write_CDB_TTT0(const std::string& dbfile)
 {
   CDBTTree* cdbttree{ nullptr };
@@ -995,6 +1047,7 @@ int MbdCalib::Write_CDB_TTT0(const std::string& dbfile)
 
   return 1;
 }
+#endif
 
 int MbdCalib::Write_TTT0(const std::string& dbfile)
 {
@@ -1010,6 +1063,7 @@ int MbdCalib::Write_TTT0(const std::string& dbfile)
   return 1;
 }
 
+#ifndef ONLINE
 int MbdCalib::Write_CDB_TQT0(const std::string& dbfile)
 {
   CDBTTree* cdbttree{ nullptr };
@@ -1043,6 +1097,7 @@ int MbdCalib::Write_CDB_TQT0(const std::string& dbfile)
 
   return 1;
 }
+#endif
 
 int MbdCalib::Write_TQT0(const std::string& dbfile)
 {
@@ -1058,6 +1113,7 @@ int MbdCalib::Write_TQT0(const std::string& dbfile)
   return 1;
 }
 
+#ifndef ONLINE
 int MbdCalib::Write_CDB_Shapes(const std::string& dbfile)
 {
   // store in a CDBTree
@@ -1125,7 +1181,9 @@ int MbdCalib::Write_CDB_Shapes(const std::string& dbfile)
 
   return 1;
 }
+#endif
 
+#ifndef ONLINE
 int MbdCalib::Write_CDB_TimeCorr(const std::string& dbfile)
 {
   // store in a CDBTree
@@ -1183,7 +1241,9 @@ int MbdCalib::Write_CDB_TimeCorr(const std::string& dbfile)
 
   return 1;
 }
+#endif
 
+#ifndef ONLINE
 int MbdCalib::Write_CDB_SlewCorr(const std::string& dbfile)
 {
   // store in a CDBTree
@@ -1242,7 +1302,9 @@ int MbdCalib::Write_CDB_SlewCorr(const std::string& dbfile)
 
   return 1;
 }
+#endif
 
+#ifndef ONLINE
 int MbdCalib::Write_CDB_Gains(const std::string& dbfile)
 {
   CDBTTree* cdbttree{ nullptr };
@@ -1279,11 +1341,14 @@ int MbdCalib::Write_CDB_Gains(const std::string& dbfile)
 
   return 1;
 }
+#endif
 
+#ifndef ONLINE
 int MbdCalib::Write_CDB_All()
 {
   return 1;
 }
+#endif
 
 void MbdCalib::Update_TQT0(const float dz)
 {

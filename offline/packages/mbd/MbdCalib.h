@@ -2,12 +2,13 @@
 #define MBD_MBDCALIB_H
 
 #include "MbdDefs.h"
-
 #include <mbd/MbdGeom.h>
 
+#ifndef ONLINE
 #include <fun4all/Fun4AllBase.h>
-
 #include <phool/recoConsts.h>
+#endif
+
 
 #include <array>
 #include <vector>
@@ -17,7 +18,11 @@
 class TTree;
 class CDBInterface;
 
+#ifdef ONLINE
+class MbdCalib 
+#else
 class MbdCalib : public Fun4AllBase
+#endif
 {
  public:
   MbdCalib();
@@ -54,6 +59,7 @@ class MbdCalib : public Fun4AllBase
   int Download_SlewCorr(const std::string& dbfile);
   int Download_All();
 
+#ifndef ONLINE
   int Write_CDB_SampMax(const std::string& dbfile);
   int Write_CDB_TTT0(const std::string& dbfile);
   int Write_CDB_TQT0(const std::string& dbfile);
@@ -62,6 +68,7 @@ class MbdCalib : public Fun4AllBase
   int Write_CDB_SlewCorr(const std::string& dbfile);
   int Write_CDB_Gains(const std::string& dbfile);
   int Write_CDB_All();
+#endif
 
   int Write_SampMax(const std::string& dbfile);
   int Write_TQT0(const std::string& dbfile);
@@ -79,13 +86,21 @@ class MbdCalib : public Fun4AllBase
   void Reset();
   // void Print(Option_t* option) const;
 
+#ifdef ONLINE
+  int Verbosity() { return _verbose; }
+  void Verbosity(const int v) { _verbose = v; }
+#endif
+
  private:
+#ifndef ONLINE
   CDBInterface* _cdb{nullptr};
   recoConsts* _rc{nullptr};
+#endif
 
   std::unique_ptr<MbdGeom> _mbdgeom{nullptr};
 
   int _status{0};
+  int _verbose{0};
   // int          _run_number {0};
   // uint64_t     _timestamp {0};
   std::string _dbfilename;
@@ -127,18 +142,18 @@ class MbdCalib : public Fun4AllBase
   std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _sherr_yerr{};
 
   // Fine Timing Corrections
-  std::array<int, MbdDefs::MBD_N_FEECH>   _tcorr_npts{};      // num points in template
-  std::array<float, MbdDefs::MBD_N_FEECH> _tcorr_minrange{};  // in template units (delta-TDC)
-  std::array<float, MbdDefs::MBD_N_FEECH> _tcorr_maxrange{};  // in template units (detta-TDC)
+  std::array<int, MbdDefs::MBD_N_FEECH>   _tcorr_npts{};      // num points in timing corr
+  std::array<float, MbdDefs::MBD_N_FEECH> _tcorr_minrange{};  // in units (delta-TDC)
+  std::array<float, MbdDefs::MBD_N_FEECH> _tcorr_maxrange{};  // in units (detta-TDC)
   std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _tcorr_y{};
   std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _tcorr_y_interp{}; // interpolated tcorr
 
   // Slew Correction
-  std::array<int, MbdDefs::MBD_N_FEECH>   _scorr_npts{};      // num points in template
-  std::array<float, MbdDefs::MBD_N_FEECH> _scorr_minrange{};  // in template units (delta-TDC)
-  std::array<float, MbdDefs::MBD_N_FEECH> _scorr_maxrange{};  // in template units (detta-TDC)
+  std::array<int, MbdDefs::MBD_N_FEECH>   _scorr_npts{};      // num points in slew corr
+  std::array<float, MbdDefs::MBD_N_FEECH> _scorr_minrange{};  // in units (delta-TDC)
+  std::array<float, MbdDefs::MBD_N_FEECH> _scorr_maxrange{};  // in units (detta-TDC)
   std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _scorr_y{};
-  std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _scorr_y_interp{}; // interpolated tcorr
+  std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _scorr_y_interp{}; // interpolated scorr
 
 };
 

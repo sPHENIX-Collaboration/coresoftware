@@ -6,7 +6,9 @@
 
 #include <TFile.h>
 #include <TTree.h>
+#ifndef ONLINE
 #include <fun4all/Fun4AllBase.h>
+#endif
 #include <vector>
 
 class PHCompositeNode;
@@ -20,7 +22,11 @@ class CDBUtils;
 class TF1;
 class TCanvas;
 
+#ifdef ONLINE
+class MbdEvent
+#else
 class MbdEvent : public Fun4AllBase
+#endif
 {
  public:
   MbdEvent(const int cal_pass = 0);
@@ -54,6 +60,14 @@ class MbdEvent : public Fun4AllBase
 
   MbdSig *GetSig(const int ipmt) { return &_mbdsig[ipmt]; }
 
+  int FillSampMaxCalib();
+
+#ifdef ONLINE
+  int  calib_is_done() { return _calib_done; }
+  int  Verbosity() { return _verbose; }
+  void Verbosity(const int v) { _verbose = v; }
+#endif
+
  private:
   static const int NCHPERPKT = 128;
 
@@ -80,6 +94,8 @@ class MbdEvent : public Fun4AllBase
   int _runnum{0};
   int _simflag{0};
   int _nsamples{31};
+  int _calib_done{0};
+  int _is_online{0};
   Packet *p[2]{nullptr, nullptr};
 
   // alignment data
@@ -123,7 +139,6 @@ class MbdEvent : public Fun4AllBase
   //std::string _caldir;
 
   // sampmax
-  int FillSampMaxCalib();
   int CalcSampMaxCalib();
   std::unique_ptr<TFile> _smax_tfile{nullptr};
   TH1 *h_tmax[256]{};     // [feech], max sample in event
