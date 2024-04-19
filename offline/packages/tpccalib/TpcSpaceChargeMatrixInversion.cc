@@ -272,8 +272,8 @@ void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections()
     std::unique_ptr<TH3> hpos(std::get<1>(result));
 
     return std::make_tuple(
-        TpcSpaceChargeReconstructionHelper::add_guarding_bins(hneg.get(), Form("%s_negz", name.Data())),
-        TpcSpaceChargeReconstructionHelper::add_guarding_bins(hpos.get(), Form("%s_posz", name.Data())));
+        TpcSpaceChargeReconstructionHelper::add_guarding_bins(hneg.get(), name+"_negz" ),
+        TpcSpaceChargeReconstructionHelper::add_guarding_bins(hpos.get(), name+"_posz" ) );
   };
 
   // apply finishing transformations to histograms and save in container
