@@ -118,7 +118,7 @@ void TpcSpaceChargeReconstructionHelper::create_tpot_mask(TH3* hmask)
 }
 
 //____________________________________________________________________________________
-void TpcSpaceChargeReconstructionHelper::extrapolate_z(TH3* source, TH3* mask)
+void TpcSpaceChargeReconstructionHelper::extrapolate_z(TH3* source, const TH3* mask)
 {
   if (!source)
   {
@@ -192,7 +192,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z(TH3* source, TH3* mask)
 }
 
 //____________________________________________________________________________________
-void TpcSpaceChargeReconstructionHelper::extrapolate_phi1(TH3* source, TH2* source_cm, TH3* mask)
+void TpcSpaceChargeReconstructionHelper::extrapolate_phi1(TH3* source, const TH2* source_cm, const TH3* mask)
 {
   if (!source)
   {
@@ -261,7 +261,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1(TH3* source, TH2* sour
 }
 
 //_______________________________________________
-void TpcSpaceChargeReconstructionHelper::extrapolate_phi2(TH3* source, TH3* mask)
+void TpcSpaceChargeReconstructionHelper::extrapolate_phi2(TH3* source, const TH3* mask)
 {
   if (!source)
   {
@@ -336,17 +336,17 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi2(TH3* source, TH3* mask
 }
 
 //_______________________________________________
-std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(TH3* hin)
+std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(const TH3* source)
 {
-  if (!hin) return std::make_tuple<TH3*, TH3*>(nullptr, nullptr);
+  if (!source) return std::make_tuple<TH3*, TH3*>(nullptr, nullptr);
 
-  auto xaxis = hin->GetXaxis();
-  auto yaxis = hin->GetYaxis();
-  auto zaxis = hin->GetZaxis();
+  auto xaxis = source->GetXaxis();
+  auto yaxis = source->GetYaxis();
+  auto zaxis = source->GetZaxis();
   auto ibin = zaxis->FindBin((double) 0);
 
   // create histograms
-  const TString name( hin->GetName() );
+  const TString name( source->GetName() );
   auto hneg = new TH3F(
       name+"_negz", name+"_negz",
       xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
@@ -364,8 +364,8 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(TH3* hin)
     for (int iy = 0; iy < yaxis->GetNbins(); ++iy)
       for (int iz = 0; iz < zaxis->GetNbins(); ++iz)
       {
-        const auto content = hin->GetBinContent(ix + 1, iy + 1, iz + 1);
-        const auto error = hin->GetBinError(ix + 1, iy + 1, iz + 1);
+        const auto content = source->GetBinContent(ix + 1, iy + 1, iz + 1);
+        const auto error = source->GetBinError(ix + 1, iy + 1, iz + 1);
 
         if (iz < ibin - 1)
         {
@@ -382,23 +382,23 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(TH3* hin)
   // also copy axis titles
   for (const auto h : {hneg, hpos})
   {
-    h->GetXaxis()->SetTitle(hin->GetXaxis()->GetTitle());
-    h->GetYaxis()->SetTitle(hin->GetYaxis()->GetTitle());
-    h->GetZaxis()->SetTitle(hin->GetZaxis()->GetTitle());
+    h->GetXaxis()->SetTitle(source->GetXaxis()->GetTitle());
+    h->GetYaxis()->SetTitle(source->GetYaxis()->GetTitle());
+    h->GetZaxis()->SetTitle(source->GetZaxis()->GetTitle());
   }
 
   return std::make_tuple(hneg, hpos);
 }
 
 //___________________________________________________________________________
-TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(TH3* hin, const TString& name)
+TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, const TString& name)
 {
   std::array<int, 3> bins{};
   std::array<double, 3> x_min{};
   std::array<double, 3> x_max{};
 
   int index = 0;
-  for (const auto axis : {hin->GetXaxis(), hin->GetYaxis(), hin->GetZaxis()})
+  for (const auto axis : {source->GetXaxis(), source->GetYaxis(), source->GetZaxis()})
   {
     // calculate bin width
     const auto bin_width = (axis->GetXmax() - axis->GetXmin()) / axis->GetNbins();
@@ -419,22 +419,22 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(TH3* hin, const TStri
                        bins[2], x_min[2], x_max[2]);
 
   // update axis legend
-  hout->GetXaxis()->SetTitle(hin->GetXaxis()->GetTitle());
-  hout->GetYaxis()->SetTitle(hin->GetYaxis()->GetTitle());
-  hout->GetZaxis()->SetTitle(hin->GetZaxis()->GetTitle());
+  hout->GetXaxis()->SetTitle(source->GetXaxis()->GetTitle());
+  hout->GetYaxis()->SetTitle(source->GetYaxis()->GetTitle());
+  hout->GetZaxis()->SetTitle(source->GetZaxis()->GetTitle());
 
   // copy content
-  const auto phibins = hin->GetXaxis()->GetNbins();
-  const auto rbins = hin->GetYaxis()->GetNbins();
-  const auto zbins = hin->GetZaxis()->GetNbins();
+  const auto phibins = source->GetXaxis()->GetNbins();
+  const auto rbins = source->GetYaxis()->GetNbins();
+  const auto zbins = source->GetZaxis()->GetNbins();
 
   // fill center
   for (int iphi = 0; iphi < phibins; ++iphi)
     for (int ir = 0; ir < rbins; ++ir)
       for (int iz = 0; iz < zbins; ++iz)
       {
-        hout->SetBinContent(iphi + 2, ir + 2, iz + 2, hin->GetBinContent(iphi + 1, ir + 1, iz + 1));
-        hout->SetBinError(iphi + 2, ir + 2, iz + 2, hin->GetBinError(iphi + 1, ir + 1, iz + 1));
+        hout->SetBinContent(iphi + 2, ir + 2, iz + 2, source->GetBinContent(iphi + 1, ir + 1, iz + 1));
+        hout->SetBinError(iphi + 2, ir + 2, iz + 2, source->GetBinError(iphi + 1, ir + 1, iz + 1));
       }
 
   // fill guarding phi bins
