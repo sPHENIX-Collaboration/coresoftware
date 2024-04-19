@@ -50,6 +50,7 @@ CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
 //____________________________________________________________________________..
 CaloTowerBuilder::~CaloTowerBuilder()
 {
+  delete cdbttree;
   delete WaveformProcessing;
 }
 
