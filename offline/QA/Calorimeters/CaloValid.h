@@ -49,12 +49,10 @@ class CaloValid : public SubsysReco
 
  private:
   int Getpeaktime(TH1* h);
-
+  void createHistos();
   bool m_debug{0};
   std::string detector;
-  std::string outfilename;
   Fun4AllHistoManager* hm{nullptr};
-  TFile* outfile{nullptr};
   TH2F* h_emcal_mbd_correlation{nullptr};
   TH2F* h_ohcal_mbd_correlation{nullptr};
   TH2F* h_ihcal_mbd_correlation{nullptr};
