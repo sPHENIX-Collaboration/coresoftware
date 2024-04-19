@@ -346,14 +346,15 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(TH3* hin)
   auto ibin = zaxis->FindBin((double) 0);
 
   // create histograms
+  const TString name( hin->GetName() );
   auto hneg = new TH3F(
-      Form("%s_negz", hin->GetName()), Form("%s_negz", hin->GetTitle()),
+      name+"_negz", name+"_negz",
       xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
       yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
       ibin - 1, zaxis->GetXmin(), zaxis->GetBinUpEdge(ibin - 1));
 
   auto hpos = new TH3F(
-      Form("%s_posz", hin->GetName()), Form("%s_posz", hin->GetTitle()),
+      name+"_posz", name+"_posz",
       xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
       yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
       zaxis->GetNbins() - (ibin - 1), zaxis->GetBinLowEdge(ibin), zaxis->GetXmax());
@@ -392,9 +393,9 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(TH3* hin)
 //___________________________________________________________________________
 TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(TH3* hin, const TString& name)
 {
-  std::array<int, 3> bins;
-  std::array<double, 3> x_min;
-  std::array<double, 3> x_max;
+  std::array<int, 3> bins{};
+  std::array<double, 3> x_min{};
+  std::array<double, 3> x_max{};
 
   int index = 0;
   for (const auto axis : {hin->GetXaxis(), hin->GetYaxis(), hin->GetZaxis()})
