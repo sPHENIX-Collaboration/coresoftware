@@ -1605,7 +1605,7 @@ int CaloTriggerEmulator::process_trigger()
 	    }
 	}
 
-      
+      int pass = 0;
       for (int ijphi = 0; ijphi < 32; ijphi++)
 	{
 	  for (int ijeta = 0; ijeta < 9; ijeta++)
@@ -1614,13 +1614,20 @@ int CaloTriggerEmulator::process_trigger()
 	      for (int is = 0; is < nsample; is++)
 		{
 		  bits.at(is) |= getBits(jet_map[ijphi][ijeta]->at(is));
+		  if (bits.at(is) == 1) { pass = 1;
+		  }
+		  
 		}
 	    }
 	}
       _bits->clear();
       for (int is = 0; is < nsample; is++)
 	{
-	  _bits->push_back(bits.at(is));
+	  _bits->push_back(bits.at(is));	
+	}
+      if (pass)
+	{
+	  _npassed++;
 	}
     }
   // pair
@@ -1720,7 +1727,7 @@ int CaloTriggerEmulator::process_trigger()
       for (int is = 0; is < nsample; is++)
 	{
 	  _bits->push_back(bits.at(is));
-	  if (bits.at(is) == 1) { pass = 1;
+	  if (_bits->at(is) == 1) { pass = 1;
 	  }
 	}
       _npassed += pass;

@@ -66,7 +66,7 @@ void LL1Outv1::identify(std::ostream& out) const
 {
   out << __FILE__ << __FUNCTION__ <<" LL1Out: Triggertype = " << _trigger_type << " LL1 type = " << _ll1_type << std::endl;
   out << __FILE__ << __FUNCTION__ <<" Event number: "<< _event_number <<"    Clock: "<< _clock_number << std::endl;
-  out << __FILE__ << __FUNCTION__ <<" Trigger bits    "<<_trigger_bits->size()<<"         : ";
+  out << __FILE__ << __FUNCTION__ <<" Trigger bits    "<<_trigger_bits->size()<<" : "; 
   for (unsigned int _trigger_bit : *_trigger_bits) { cout <<" "<< _trigger_bit;
 }
   out << " " <<std::endl;
@@ -74,10 +74,12 @@ void LL1Outv1::identify(std::ostream& out) const
   
   for (auto _trigger_word : _trigger_words) 
     {
-      for (unsigned int & j : *_trigger_word.second) {cout <<" "<< j;
-}
+      for (unsigned int & j : *_trigger_word.second) 
+	{
+	  std::cout <<" "<< j;
+	}
       
-      out << " " <<std::endl;
+      std::cout << " " <<std::endl;
     }
 }
 
