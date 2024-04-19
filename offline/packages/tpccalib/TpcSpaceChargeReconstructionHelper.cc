@@ -191,6 +191,119 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z(TH3* source, const TH3* m
   }
 }
 
+
+//____________________________________________________________________________________
+void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* mask)
+{
+  if (!source)
+  {
+    std::cout << "TpcSpaceChargeReconstructionHelper::extrapolate_z - invalid source histogram" << std::endl;
+    return;
+  }
+
+  if (!mask)
+  {
+    std::cout << "TpcSpaceChargeReconstructionHelper::extrapolate_z - invalid mask histogram" << std::endl;
+    return;
+  }
+
+  // decide if extrapolation must be done with increasing or decreasing bin numbers
+  /*
+   * this is broken when there are guarding bins
+   * this will also break if we want to extrapolate from both sides
+   */
+  const bool extrapolate_forward = source->GetZaxis()->GetXmax() > 0;
+
+  // loop over phi bins
+  for (int ir = 0; ir < source->GetNbinsY(); ++ir)
+  {
+    for (int ip = 0; ip < source->GetNbinsX(); ++ip)
+    {
+
+      if( extrapolate_forward )
+      {
+
+        // find first non empty bin, starting from last zaxis bin
+        int iz_min = -1;
+        for( int iz = source->GetNbinsZ()-1; iz >= 0; --iz )
+        {
+          const bool in_range = mask->GetBinContent(ip + 1, ir + 1, iz + 1) > 0;
+          if( in_range )
+          {
+            iz_min = iz;
+            break;
+          }
+        }
+
+        // check bin validity
+        if( iz_min<0 ) { continue; }
+
+        // loop over empty bins and do the interpolation
+        for( int iz = iz_min+1; iz < source->GetNbinsZ(); ++iz )
+        {
+          const double z_min = source->GetZaxis()->GetBinCenter(iz_min + 1);
+          const double z_max = source->GetZaxis()->GetXmax();
+          const double z = source->GetZaxis()->GetBinCenter(iz + 1);
+          const double alpha_min = (z_max - z) / (z_max - z_min);
+          const double alpha_max = (z - z_min) / (z_max - z_min);
+
+          const double distortion_min = source->GetBinContent(ip + 1, ir + 1, iz_min + 1);
+          const double distortion_max = 0;
+          const double distortion = alpha_min * distortion_min + alpha_max * distortion_max;
+
+          const double error_min = source->GetBinError(ip + 1, ir + 1, iz_min + 1);
+          const double error_max = 0;
+          const double error = std::sqrt(square(alpha_min * error_min) + square(alpha_max * error_max));
+
+          source->SetBinContent(ip + 1, ir + 1, iz + 1, distortion);
+          source->SetBinError(ip + 1, ir + 1, iz + 1, error);
+        }
+
+      } else {
+
+        // find first non empty bin, starting from first zaxis bin
+        int iz_max = -1;
+        for( int iz = 0; iz < source->GetNbinsZ(); ++iz )
+        {
+          const bool in_range = mask->GetBinContent(ip + 1, ir + 1, iz + 1) > 0;
+          if( in_range )
+          {
+            iz_max = iz;
+            break;
+          }
+        }
+
+        // check bin validity
+        if( iz_max<0 ) { continue; }
+
+        // loop over empty bins and do the interpolation
+        for( int iz = 0; iz < iz_max; ++iz )
+        {
+
+          const double z_min = source->GetZaxis()->GetXmin();
+          const double z_max = source->GetZaxis()->GetBinCenter( iz_max+1 );
+          const double z = source->GetZaxis()->GetBinCenter(iz + 1);
+          const double alpha_min = (z_max - z) / (z_max - z_min);
+          const double alpha_max = (z - z_min) / (z_max - z_min);
+
+          const double distortion_min = 0;
+          const double distortion_max = source->GetBinContent(ip + 1, ir + 1, iz_max + 1);
+          const double distortion = alpha_min * distortion_min + alpha_max * distortion_max;
+
+          const double error_min = 0;
+          const double error_max = source->GetBinError(ip + 1, ir + 1, iz_max + 1);
+          const double error = std::sqrt(square(alpha_min * error_min) + square(alpha_max * error_max));
+
+          source->SetBinContent(ip + 1, ir + 1, iz + 1, distortion);
+          source->SetBinError(ip + 1, ir + 1, iz + 1, error);
+
+        }
+
+      }
+    }
+  }
+}
+
 //____________________________________________________________________________________
 void TpcSpaceChargeReconstructionHelper::extrapolate_phi1(TH3* source, const TH2* source_cm, const TH3* mask)
 {

@@ -32,12 +32,12 @@ class TpcSpaceChargeReconstructionHelper
    */
   static void extrapolate_z( TH3* /*source*/, const TH3* /*mask*/ );
 
-//   /// second z extrapolation
-//   /**
-//    * interpolate along z between the readoutplane (at which location the distortion is zero) and the first micromegas module
-//    * the mask is used to decide in which bins the extrapolation must be performed
-//    */
-//   static void extrapolate_z2( TH3* /*source*/, const TH3* /*mask*/ );
+  /// second z extrapolation
+  /**
+   * interpolate along z between the readoutplane (at which location the distortion is zero) and the first micromegas module
+   * the mask is used to decide in which bins the extrapolation must be performed
+   */
+  static void extrapolate_z2( TH3* /*source*/, const TH3* /*mask*/ );
 
   /// first phi extrapolation
   /**
