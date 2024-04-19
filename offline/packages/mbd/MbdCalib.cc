@@ -250,7 +250,7 @@ int MbdCalib::Download_TQT0(const std::string& dbase_location)
   TString dbase_file = dbase_location;
 
 #ifndef ONLINE
-  if (dbase_file.EndWith(".root"))  // read from database
+  if (dbase_file.EndsWith(".root"))  // read from database
   {
     CDBTTree* cdbttree = new CDBTTree(dbase_location);
     cdbttree->LoadCalibrations();

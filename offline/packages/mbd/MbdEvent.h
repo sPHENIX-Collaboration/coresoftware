@@ -22,11 +22,7 @@ class CDBUtils;
 class TF1;
 class TCanvas;
 
-#ifdef ONLINE
 class MbdEvent
-#else
-class MbdEvent : public Fun4AllBase
-#endif
 {
  public:
   MbdEvent(const int cal_pass = 0);
@@ -62,11 +58,9 @@ class MbdEvent : public Fun4AllBase
 
   int FillSampMaxCalib();
 
-#ifdef ONLINE
   int  calib_is_done() { return _calib_done; }
   int  Verbosity() { return _verbose; }
   void Verbosity(const int v) { _verbose = v; }
-#endif
 
  private:
   static const int NCHPERPKT = 128;

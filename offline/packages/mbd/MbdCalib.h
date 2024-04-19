@@ -18,11 +18,7 @@
 class TTree;
 class CDBInterface;
 
-#ifdef ONLINE
 class MbdCalib 
-#else
-class MbdCalib : public Fun4AllBase
-#endif
 {
  public:
   MbdCalib();
@@ -86,10 +82,8 @@ class MbdCalib : public Fun4AllBase
   void Reset();
   // void Print(Option_t* option) const;
 
-#ifdef ONLINE
   int Verbosity() { return _verbose; }
   void Verbosity(const int v) { _verbose = v; }
-#endif
 
  private:
 #ifndef ONLINE
