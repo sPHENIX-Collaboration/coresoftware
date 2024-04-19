@@ -7,6 +7,7 @@
  */
 
 #include <array>
+#include <cstdint>
 
 // forward declarations
 class TH2;
@@ -34,10 +35,18 @@ class TpcSpaceChargeReconstructionHelper
 
   /// second z extrapolation
   /**
-   * interpolate along z between the readoutplane (at which location the distortion is zero) and the first micromegas module
+   * interpolate along z between the readout plane (at which location the distortion is zero) and the outermost micromegas module
    * the mask is used to decide in which bins the extrapolation must be performed
+   * the side is a bit mask to tell on which side of the histograms the pad-planes are
    */
-  static void extrapolate_z2( TH3* /*source*/, const TH3* /*mask*/ );
+  enum Side:uint8_t
+  {
+    Side_negative = 1<<0,
+    Side_positive = 1<<1,
+    Side_both = Side_negative|Side_positive
+  };
+
+  static void extrapolate_z2( TH3* /*source*/, const TH3* /*mask*/, uint8_t /* side */ );
 
   /// first phi extrapolation
   /**

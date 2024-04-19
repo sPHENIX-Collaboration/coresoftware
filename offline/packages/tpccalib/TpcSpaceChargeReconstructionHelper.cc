@@ -193,7 +193,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z(TH3* source, const TH3* m
 
 
 //____________________________________________________________________________________
-void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* mask)
+void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* mask, uint8_t side)
 {
   if (!source)
   {
@@ -207,20 +207,14 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* 
     return;
   }
 
-  // decide if extrapolation must be done with increasing or decreasing bin numbers
-  /*
-   * this is broken when there are guarding bins
-   * this will also break if we want to extrapolate from both sides
-   */
-  const bool extrapolate_forward = source->GetZaxis()->GetXmax() > 0;
-
   // loop over phi bins
   for (int ir = 0; ir < source->GetNbinsY(); ++ir)
   {
     for (int ip = 0; ip < source->GetNbinsX(); ++ip)
     {
 
-      if( extrapolate_forward )
+      // handle pad plane on the positive side (zmax)
+      if( side&Side_positive )
       {
 
         // find first non empty bin, starting from last zaxis bin
@@ -259,7 +253,12 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* 
           source->SetBinError(ip + 1, ir + 1, iz + 1, error);
         }
 
-      } else {
+      }
+
+
+      // handle pad plane on the negative side (zmin
+      if( side&Side_negative )
+      {
 
         // find first non empty bin, starting from first zaxis bin
         int iz_max = -1;
