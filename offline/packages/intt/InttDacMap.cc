@@ -6,59 +6,15 @@
 
 #include <filesystem>
 #include <iostream>
+#include <map>
 
 InttDacMap::InttDacMap()
 {
   InttDacMap::SetDefault();
 }
 
-int InttDacMap::LoadFromCDB(std::string const& calibname)
-{
-  if (calibname.empty())
-  {
-    std::cout << "InttDacMap::LoadFromCDB(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'name' is empty string" << std::endl;
-    return -1;
-  }
-
-  std::string database = CDBInterface::instance()->getUrl(calibname);
-  if (database.empty())
-  {
-    std::cout << "InttDacMap::LoadFromCDB(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'database' is empty string. calibname invalid :" << calibname << std::endl;
-    return -1;
-  }
-
-  return LoadFromFile(database);
-}
-
-int InttDacMap::LoadFromFile(std::string const& filename)
-{
-  if (filename.empty())
-  {
-    std::cout << "InttDacMap::LoadFromFile(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'filename' is empty string" << std::endl;
-    return -1;
-  }
-
-  if (!std::filesystem::exists(filename))
-  {
-    std::cout << "int InttDacMap::LoadFromFile(std::string const& filename)" << std::endl;
-    std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
-    return -1;
-  }
-
-  std::cout << "CDBFile: " << filename << std::endl;
-
-  CDBTTree cdbttree = CDBTTree(filename);
-  cdbttree.LoadCalibrations();
-
-  return LoadFromCDBTTree(cdbttree);
-}
-
 int InttDacMap::WriteToFile(std::string const& filename)
 {
-  // std::cout<<"WriteMapToFile"<<std::endl;
   CDBTTree cdbttree = CDBTTree(filename);
 
   FillToCDBTTree(cdbttree);
@@ -67,26 +23,50 @@ int InttDacMap::WriteToFile(std::string const& filename)
   cdbttree.CommitSingle();
   cdbttree.WriteCDBTTree();
 
-  // std::cout<<"WriteMapToFile completed"<<std::endl;
   return 0;
 }
 
 int InttDacMap::LoadFromCDBTTree(CDBTTree& cdbttree)
 {
-  ///////////////
-  std::cout << "LoadFromCDBTTree::LoadFromCDBTTree" << std::endl;
-
-  uint64_t N = cdbttree.GetSingleIntValue("size");
-  for (uint64_t n = 0; n < N; ++n)
+  int felix_server;
+  int felix_channel;
+  int chip;
+  int adc;
+  int dac;
+  std::map<std::string, int*> fields = {
+    {"felix_server",  &felix_server},
+    {"felix_channel", &felix_channel},
+    {"chip",          &chip},
+    {"adc",           &adc},
+    {"dac",           &dac},
+  };
+  for (int n = 0, N = cdbttree.GetSingleIntValue("size"); n < N; ++n)
   {
-    int felix_server = cdbttree.GetIntValue(n, "felix_server");
-    int felix_channel = cdbttree.GetIntValue(n, "felix_channel");
-    int chip = cdbttree.GetIntValue(n, "chip");
-    int adc = cdbttree.GetIntValue(n, "adc");
-    int dac = cdbttree.GetIntValue(n, "dac");
-    m_dac[felix_server][felix_channel][chip][adc] = dac;
+    for(auto& p : fields)
+    {
+      if((*p.second = cdbttree.GetIntValue(n, p.first)) != std::numeric_limits<int>::min())
+      {
+        continue;
+      }
 
-    if (m_verbosity > 0)
+      std::cerr << __PRETTY_FUNCTION__ << "\n"
+                << "\tCDBTTree::GetIntValue returned std::numeric_limits<int>::min()\n"
+                << "\tname, channel combination does not exist in \"cdbttree\"\n" << std::endl;
+      return 1;
+    }
+
+	try
+	{
+      m_dac.at(felix_server).at(felix_channel).at(chip).at(adc) = dac;
+	}
+	catch (std::out_of_range const& e)
+	{
+      std::cerr << __PRETTY_FUNCTION__ << "\n"
+                << "\t" << e.what() << std::endl;
+	  return 1;
+	}
+
+	if (m_verbosity > 0)
     {
       std::cout << "felix_server" << felix_server << " ";
       std::cout << "felix_channel" << felix_channel << " ";
@@ -105,38 +85,25 @@ unsigned short InttDacMap::GetDAC(const uint& felix_server,
                                   const uint& /*channel*/,
                                   const uint& adc)
 {
-  if (felix_server < m_dac.size() &&
-      felix_channel < m_dac[felix_server].size() &&
-      chip < m_dac[felix_server][chip].size() &&
-      adc < m_dac[felix_server][chip][adc].size())
+  try
   {
-    return m_dac[felix_server][felix_channel][chip][adc];
+    return m_dac.at(felix_server).at(felix_channel).at(chip).at(adc);
   }
-  else
+  catch (std::out_of_range const& e)
   {
-    std::cout << "Range Invalid :"
-              << " " << felix_server
-              << " " << felix_channel
-              << " " << chip
-              << " " << adc
-              << ", return -1" << std::endl;
-
-    return -1;
+    std::cerr << __PRETTY_FUNCTION__ << "\n"
+              << "\t" << e.what() << std::endl;
+    return 0xFFFFU;
   }
 }
 
-unsigned short InttDacMap::GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc)
+unsigned short InttDacMap::GetDAC(InttMap::RawData_s const& rawdata, const uint& adc)
 {
-  return GetDAC(rawdata.felix_server,
-                rawdata.felix_channel,
-                rawdata.chip,
-                rawdata.channel,
+  return GetDAC(rawdata.pid - 3001,
+                rawdata.fee,
+                rawdata.chp,
+                rawdata.chn,
                 adc);
-}
-
-unsigned short InttDacMap::GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc)
-{
-  return GetDAC(InttNameSpace::ToRawData(offline), adc);
 }
 
 void InttDacMap::SetDefault(const uint& Adc0,

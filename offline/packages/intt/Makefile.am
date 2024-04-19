@@ -19,12 +19,20 @@ lib_LTLIBRARIES = \
   libintt.la 
 
 pkginclude_HEADERS = \
+  InttFeeMap.h \
   InttFelixMap.h \
-  InttMapping.h
+  InttLoadable.h \
+  InttMap.h \
+  InttMapping.h \
+  InttSurveyMap.h
 
 libintt_la_SOURCES = \
+  InttFeeMap.cc \
   InttFelixMap.cc \
-  InttMapping.cc
+  InttLoadable.cc \
+  InttMap.cc \
+  InttMapping.cc \
+  InttSurveyMap.h
 
 else
 
@@ -35,20 +43,18 @@ lib_LTLIBRARIES = \
 pkginclude_HEADERS = \
   CylinderGeomIntt.h \
   InttArborist.h \
-  InttBadChannelMap.h \
-  InttBadChannelMapv1.h \
-  InttBCOMap.h \
+  InttBadMap.h \
+  InttBcoMap.h \
   InttClusterizer.h \
   InttClusterQA.h \
   InttCombinedRawDataDecoder.h \
   InttDacMap.h \
   InttFeeMap.h \
-  InttFeeMapv1.h \
   InttFelixMap.h \
+  InttLoadable.h \
   InttMap.h \
   InttMapping.h \
   InttSurveyMap.h \
-  InttSurveyMapv1.h \
   InttVertexFinder.h \
   InttVertexMap.h \
   InttVertexMapv1.h \
@@ -57,13 +63,7 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
-  InttBadChannelMap_Dict.cc \
-  InttBadChannelMapv1_Dict.cc \
-  InttFeeMap_Dict.cc \
-  InttFeeMapv1_Dict.cc \
   InttMap_Dict.cc \
-  InttSurveyMap_Dict.cc \
-  InttSurveyMapv1_Dict.cc \
   InttVertexMap_Dict.cc \
   InttVertexMapv1_Dict.cc \
   InttVertex_Dict.cc \
@@ -72,13 +72,7 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomIntt_Dict_rdict.pcm \
-  InttBadChannelMap_Dict_rdict.pcm \
-  InttBadChannelMapv1_Dict_rdict.pcm \
-  InttFeeMap_Dict_rdict.pcm \
-  InttFeeMapv1_Dict_rdict.pcm \
   InttMap_Dict_rdict.pcm \
-  InttSurveyMap_Dict_rdict.pcm \
-  InttSurveyMapv1_Dict_rdict.pcm \
   InttVertexMap_Dict_rdict.pcm \
   InttVertexMapv1_Dict_rdict.pcm \
   InttVertex_Dict_rdict.pcm \
@@ -87,20 +81,18 @@ nobase_dist_pcm_DATA = \
 # sources for intt library
 libintt_la_SOURCES = \
   InttArborist.cc \
-  InttBCOMap.cc \
-  InttBadChannelMap.cc \
-  InttBadChannelMapv1.cc \
+  InttBcoMap.cc \
+  InttBadMap.cc \
   InttClusterizer.cc \
   InttClusterQA.cc \
   InttCombinedRawDataDecoder.cc \
   InttDacMap.cc \
   InttFeeMap.cc \
-  InttFeeMapv1.cc \
   InttFelixMap.cc \
+  InttLoadable.cc \
   InttMapping.cc \
   InttMap.cc \
   InttSurveyMap.cc \
-  InttSurveyMapv1.cc \
   InttVertexFinder.cc
 
 libintt_la_LIBADD = \
@@ -115,13 +107,7 @@ libintt_la_LIBADD = \
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomIntt.cc \
-  InttBadChannelMap.cc \
-  InttBadChannelMapv1.cc \
-  InttFeeMap.cc \
-  InttFeeMapv1.cc \
   InttMap.cc \
-  InttSurveyMap.cc \
-  InttSurveyMapv1.cc \
   InttVertexMap.cc \
   InttVertexMapv1.cc \
   InttVertexv1.cc

@@ -1,9 +1,11 @@
 #ifndef INTT_COMBINEDRAWDATADECODER_H
 #define INTT_COMBINEDRAWDATADECODER_H
 
-#include "InttMapping.h"
+#include "InttBadMap.h"
+#include "InttBcoMap.h"
 #include "InttDacMap.h"
-#include "InttBCOMap.h"
+#include "InttFeeMap.h"
+#include "InttMapping.h"
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
@@ -54,8 +56,10 @@ class InttCombinedRawDataDecoder : public SubsysReco
   std::pair<std::string, CalibRef> m_calibinfoDAC;
   std::pair<std::string, CalibRef> m_calibinfoBCO;
 
+  InttBadMap          m_badmap;
+  InttBcoMap          m_bcomap;
   InttDacMap          m_dacmap;
-  InttBCOMap          m_bcomap;
+  InttFeeMap          m_feemap;
 };
 
 #endif  // INTT_COMBINEDRAWDATADECODER_H
