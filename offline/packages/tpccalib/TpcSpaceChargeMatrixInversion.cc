@@ -322,8 +322,21 @@ void TpcSpaceChargeMatrixInversion::extrapolate_distortion_corrections()
     std::unique_ptr<TH3> hmask_extrap_p(static_cast<TH3*>(hmask_extrap_z->Clone("hmask_extrap_p")));
     TpcSpaceChargeReconstructionHelper::extrapolate_phi1(hmask_extrap_p.get(), nullptr, hmask_extrap_z.get());
 
+    /*
+     * this is a mask matching TPOT acceptance along z, extrapolated over phi over 2pi.
+     * Still empty are the bins from readout plane to the outermost micromegas module
+     */
+    std::unique_ptr<TH3> hmask_extrap_p2(static_cast<TH3*>(hmask_extrap_p->Clone("hmask_extrap_p2")));
+    TpcSpaceChargeReconstructionHelper::extrapolate_phi2(hmask_extrap_p2.get(), hmask_extrap_p.get());
+
+    /*
+     * decide on which side of the histograms the pad plane is set.
+     * this is used to guide the last z interpolation from readout plane to the outermost micromegas module
+     */
+    const uint8_t side = (i==0) ? TpcSpaceChargeReconstructionHelper::Side_negative : TpcSpaceChargeReconstructionHelper::Side_positive;
+
     // labmda function to process a given histogram, and return the updated one
-    auto process_histogram = [&hmask, &hmask_extrap_z, &hmask_extrap_p](TH3* h, TH2* h_cm)
+    auto process_histogram = [&hmask, &hmask_extrap_z, &hmask_extrap_p, &hmask_extrap_p2, side](TH3* h, TH2* h_cm )
     {
       // perform z extrapolation
       TpcSpaceChargeReconstructionHelper::extrapolate_z(h, hmask.get());
@@ -333,6 +346,9 @@ void TpcSpaceChargeMatrixInversion::extrapolate_distortion_corrections()
 
       // perform second phi extrapolation, between sectors, using masks
       TpcSpaceChargeReconstructionHelper::extrapolate_phi2(h, hmask_extrap_p.get());
+
+      // perform second z interpolation from readout plane to outermost micromegas module using masks
+      TpcSpaceChargeReconstructionHelper::extrapolate_z2(h, hmask_extrap_p2.get(), side);
     };
 
     process_histogram(static_cast<TH3*>(m_dcc_average->m_hDRint[i]), static_cast<TH2*>(m_dcc_cm->m_hDRint[i]));
