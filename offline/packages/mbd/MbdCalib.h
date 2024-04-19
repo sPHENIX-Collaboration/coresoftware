@@ -3,19 +3,16 @@
 
 #include "MbdDefs.h"
 
+#include <mbd/MbdGeom.h>
+
 #include <fun4all/Fun4AllBase.h>
 
 #include <phool/recoConsts.h>
 
 #include <array>
 #include <vector>
-//#include <math>
-//#include <stdint>
 #include <string>
-//#include <string_view>
 #include <memory>
-
-#include <mbd/MbdGeom.h>
 
 class TTree;
 class CDBInterface;
