@@ -15,7 +15,7 @@
 #include "LL1Outv1.h"
 
 // Forward declarations
-class CDBTTree;
+class CDBHistos;
 class TriggerPrimitive;
 class TriggerPrimitiveContainer;
 class LL1Out;
@@ -34,7 +34,7 @@ class CaloTriggerEmulator : public SubsysReco
 {
  public:
   //! constructor
-  explicit CaloTriggerEmulator(const std::string& name, const std::string& filename);
+  explicit CaloTriggerEmulator(const std::string& name);
 
   //! destructor
   ~CaloTriggerEmulator();
@@ -77,9 +77,13 @@ class CaloTriggerEmulator : public SubsysReco
   //! Set TriggerType
   void setTriggerType(const std::string &name);
   void setTriggerType(TriggerDefs::TriggerId triggerid);
-  void setEmcalScale(float calib){m_emcal_GeV_per_lut = calib;}
-  void setEmcalOffset(float off){m_emcal_lut_offset = off;}
-  void setEmcalFloor(float floor){m_emcal_lut_floor = floor;}
+  void setEmcalLUTFile(std::string filename) { _emcal_lutname = filename; }
+  void setHcalinLUTFile(std::string filename) { _hcalin_lutname = filename; }
+  void setHcaloutLUTFile(std::string filename) { _hcalout_lutname = filename; }
+
+  void useEMCALDefaultLUT(bool def) { _default_lut_emcal = def;}
+  void useHCALINDefaultLUT(bool def) { _default_lut_hcalin = def;}
+  void useHCALOUTDefaultLUT(bool def) { _default_lut_hcalout = def;}
 
   void setTriggerSample(int s){_m_trig_sample = s;}
   void setTriggerDelay(int d){_m_trig_sub_delay = d + 1;}
@@ -96,6 +100,8 @@ class CaloTriggerEmulator : public SubsysReco
     m_threshold_calo[1] = t2;
     m_threshold_calo[2] = t3;
     m_threshold_calo[3] = t4;
+    _single_threshold = false;
+    return;
   }
 
   bool CheckFiberMasks(TriggerDefs::TriggerPrimKey key);
@@ -103,13 +109,13 @@ class CaloTriggerEmulator : public SubsysReco
 
   void identify();
  protected:
-  std::string outfilename;
   std::string _ll1_nodename;
   std::string _prim_nodename;
   std::string _waveform_nodename;
 
-  Fun4AllHistoManager *hm = nullptr;
-  TFile *outfile = nullptr;
+  std::string _emcal_lutname;
+  std::string _hcalin_lutname;
+  std::string _hcalout_lutname;
 
   //!Trigger Type
   std::string _trigger{"NONE"};
@@ -120,6 +126,12 @@ class CaloTriggerEmulator : public SubsysReco
   bool _do_hcalout{false};
   bool _do_emcal{false};
   bool _do_mbd{false};
+
+  bool _default_lut_hcalin{false};
+  bool _default_lut_hcalout{false};
+  bool _default_lut_emcal{false};
+  bool _default_lut_mbd{false};
+
 
   bool _force_hcalin{false};
   bool _force_hcalout{false};
@@ -156,9 +168,10 @@ class CaloTriggerEmulator : public SubsysReco
   unsigned int m_l1_adc_table_time[1024]{};
   unsigned int m_l1_slewing_table[4096]{};
   unsigned int m_l1_hcal_table[4096]{};
-  CDBTTree *cdbttree_emcal = nullptr;
-  CDBTTree *cdbttree_hcalin = nullptr;
-  CDBTTree *cdbttree_hcalout = nullptr;
+
+  CDBHistos *cdbttree_emcal = nullptr;
+  CDBHistos *cdbttree_hcalin = nullptr;
+  CDBHistos *cdbttree_hcalout = nullptr;
 
   std::string m_fieldname_emcal;
   std::string m_calibName_emcal;
@@ -193,9 +206,6 @@ class CaloTriggerEmulator : public SubsysReco
 
   unsigned int m_nhit1, m_nhit2, m_timediff1, m_timediff2, m_timediff3;
 
-  float m_emcal_GeV_per_lut{0.0};
-  float m_emcal_lut_offset{1.0};
-  float m_emcal_lut_floor{4};
   std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_emcal;
   std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_mbd;
   std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_hcalin;
@@ -209,6 +219,7 @@ class CaloTriggerEmulator : public SubsysReco
   int _m_trig_sub_delay;
   int _m_trig_sample{-1};
 
+  bool _single_threshold{true};
   unsigned int _m_threshold{1};
   unsigned int m_threshold_calo[4] = {0};
   int m_isdata{1};

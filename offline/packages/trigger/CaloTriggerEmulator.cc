@@ -7,7 +7,7 @@
 #include <calobase/TowerInfov3.h>
 #include <phool/getClass.h>
 
-#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+#include <cdbobjects/CDBHistos.h>  // for CDBHistos
 #include <ffamodules/CDBInterface.h>
 #include <TFile.h>
 #include <cassert>
@@ -32,20 +32,14 @@ using namespace std;
 
 
 // constructor
-CaloTriggerEmulator::CaloTriggerEmulator(const std::string& name, const std::string& filename)
+CaloTriggerEmulator::CaloTriggerEmulator(const std::string& name)
   : SubsysReco(name)
-  , outfilename(filename)
-  , hm(nullptr)
-  , outfile(nullptr)
   , _trigger("NONE")
 {
   // initialize all important parameters
  
   _nevent = 0;
   _npassed = 0;
-  m_emcal_GeV_per_lut = 0.1;
-  m_emcal_lut_offset = 0.0;
-  m_emcal_lut_floor = 0.0;
   m_isdata = false;
   // default nsamples is 31;
   m_nsamples = 31;
@@ -184,11 +178,6 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string& name, const std::str
   m_timediff2 = 20;
   m_timediff3 = 30;
 
-  m_threshold_calo[0] = 1;
-  m_threshold_calo[1] = 2;
-  m_threshold_calo[2] = 3;
-  m_threshold_calo[3] = 4;
-
   // define a detector map for detectors included in a trigger
   _m_det_map[TriggerDefs::TriggerId::noneTId] = {}; 
   _m_det_map[TriggerDefs::TriggerId::jetTId] = {"EMCAL","HCALIN","HCALOUT"};
@@ -224,7 +213,7 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string& name, const std::str
 // destructr
 CaloTriggerEmulator::~CaloTriggerEmulator()
 {
-  delete hm;
+
 }
 
 
@@ -268,8 +257,6 @@ void CaloTriggerEmulator::setTriggerType(TriggerDefs::TriggerId triggerid)
 // make file and histomanager (but nothing goes in the file at the moment)
 int CaloTriggerEmulator::Init(PHCompositeNode* /*topNode*/)
 {
-  hm = new Fun4AllHistoManager(Name());
-  outfile = new TFile(outfilename.c_str(), "RECREATE");
 
   return 0;
 }
@@ -385,84 +372,70 @@ int CaloTriggerEmulator::InitRun(PHCompositeNode* topNode)
 int CaloTriggerEmulator::Download_Calibrations()
 {
 
-  bool m_overrideCalibName = false;
-  bool m_overrideFieldName = false;
 
-  if (_do_emcal)
+  if (_do_emcal && !_default_lut_emcal)
     {
-      std::string default_time_independent_calib = "cemc_pi0_twrSlope_v1_default";
 
-      if (!m_overrideCalibName)
+      if (!_emcal_lutname.empty())
 	{
-	  m_calibName_emcal = "cemc_pi0_twrSlope_v1";
-	}
-      if (!m_overrideFieldName)
-	{
-	  m_fieldname_emcal = "Femc_datadriven_qm1_correction";
-	}
-      std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_emcal);
-      if (!calibdir.empty())
-	{
-	  cdbttree_emcal = new CDBTTree(calibdir);
+	  cdbttree_emcal = new CDBHistos(_emcal_lutname);
 	}
       else
 	{
-	  calibdir = CDBInterface::instance()->getUrl(default_time_independent_calib);
-
+	  std::string calibdir = CDBInterface::instance()->getUrl("emcal_trigger_lut");
 	  if (calibdir.empty())
 	    {
-	      std::cout << "CaloTriggerEmulator::::InitRun No EMCal Calibration NOT even a default" << std::endl;
-	      exit(1);
+	      _default_lut_emcal = true;
+	      std::cout << "Could not find and load histograms for EMCAL LUTs! defaulting to the identity table!" <<std::endl;
 	    }
-	  cdbttree_emcal = new CDBTTree(calibdir);
-	  std::cout << "CaloTriggerEmulator::::InitRun No specific file for " << m_calibName_emcal << " found, using default calib " << default_time_independent_calib << std::endl;
+	  else
+	    {
+	      cdbttree_emcal = new CDBHistos(calibdir);
+	    }
 	}
     }
-  else if (_do_hcalin)
+  if (_do_hcalin && !_default_lut_hcalin)
     {
 
-      if (!m_overrideCalibName)
+      if (!_hcalin_lutname.empty())
 	{
-	  m_calibName_hcalin = "ihcal_abscalib_cosmic";
-	}
-      if (!m_overrideFieldName)
-	{
-	  m_fieldname_hcalin = "ihcal_abscalib_mip";
-	}
-      std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_hcalin);
-      if (!calibdir.empty())
-	{
-	  cdbttree_hcalin = new CDBTTree(calibdir);
+	  cdbttree_hcalin = new CDBHistos(_hcalin_lutname);
 	}
       else
 	{
-	  std::cout << "CaloTowerCalib::::InitRun No calibration file for domain " << m_calibName_hcalin << " found" << std::endl;
-	  exit(1);
+	  std::string calibdir = CDBInterface::instance()->getUrl("hcalin_trigger_lut");
+	  if (calibdir.empty())
+	    {
+	      _default_lut_hcalin = true;
+	      std::cout << "Could not find and load histograms for HCALIN LUTs! defaulting to the identity table!" <<std::endl;
+	    }
+	  else
+	    {
+	      cdbttree_hcalin = new CDBHistos(calibdir);
+	    }
 	}
     }
-  else if (_do_hcalout)
+  if (_do_hcalout && !_default_lut_hcalout)
     {
 
-      if (!m_overrideCalibName)
+      if (!_hcalout_lutname.empty())
 	{
-	  m_calibName_hcalout = "ohcal_abscalib_cosmic";
-	}
-      if (!m_overrideFieldName)
-	{
-	  m_fieldname_hcalout = "ohcal_abscalib_mip";
-	}
-      std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_hcalout);
-      if (!calibdir.empty())
-	{
-	  cdbttree_hcalout = new CDBTTree(calibdir);
+	  cdbttree_hcalout = new CDBHistos(_hcalout_lutname);
 	}
       else
 	{
-	  std::cout << "CaloTowerCalib::::InitRun No calibration file for domain " << m_calibName_hcalout << " found" << std::endl;
-	  exit(1);
+	  std::string calibdir = CDBInterface::instance()->getUrl("hcalout_trigger_lut");
+	  if (calibdir.empty())
+	    {
+	      _default_lut_hcalout = true;
+	      std::cout << "Could not find and load histograms for HCALOUT LUTs! defaulting to the identity table!" <<std::endl;
+	    }
+	  else
+	    {
+	      cdbttree_hcalout = new CDBHistos(calibdir);
+	    }
 	}
     }
-
   return 0;
 }
 // process event procedure
@@ -783,7 +756,17 @@ int CaloTriggerEmulator::process_primitives()
 
 			  //unsigned int iwave = 64*ip + isum*4 + j;
 			  unsigned int key = TriggerDefs::GetTowerInfoKey( TriggerDefs::GetDetectorId("EMCAL"), ip, isum, j );
-			  tmp = (m_l1_adc_table[(m_peak_sub_ped_emcal[key]->at(is) >> 4U) & 0x3ffU] >> 2U);
+			  unsigned int lut_input  = (m_peak_sub_ped_emcal[key]->at(is) >> 4U) & 0x3ffU;
+			  if (_default_lut_emcal)
+			    {
+			      tmp = (m_l1_adc_table[lut_input] >> 2U);
+			    }
+			  else
+			    {
+			      std::string histoname = "h_emcal_lut_" + to_string(TowerInfoDefs::decode_emcal(key));
+			      unsigned int lut_output = ((unsigned int) cdbttree_emcal->getHisto(histoname.c_str())->GetBinContent(lut_input + 1)) & 0x3ffU;
+			      tmp = (lut_output >> 2U);
+			    }
 			  temp_sum += (tmp & 0xffU);
 			}
 		      sum = ((temp_sum & 0xfffU) >> 2U) & 0xffU;
@@ -833,7 +816,18 @@ int CaloTriggerEmulator::process_primitives()
 			  unsigned int phibin = (ip/3)*8 + (isum/4)*2 + j/2;
 
 			  unsigned int key = TowerInfoDefs::encode_hcal(etabin, phibin);
-			  tmp =(m_l1_adc_table[( m_peak_sub_ped_hcalout[key]->at(is) >> 4U) & 0x3ffU] >> 2U);
+			  unsigned int lut_input  = (m_peak_sub_ped_hcalout[key]->at(is) >> 4U) & 0x3ffU;
+			  if (_default_lut_hcalout)
+			    {
+			      tmp = (m_l1_adc_table[lut_input] >> 2U);
+			    }
+			  else
+			    {
+			      std::string histoname = "h_hcalout_lut_" + to_string(TowerInfoDefs::decode_hcal(key));
+			      unsigned int lut_output = ((unsigned int) cdbttree_hcalout->getHisto(histoname.c_str())->GetBinContent(lut_input + 1)) & 0x3ffU;
+			      tmp = (lut_output >> 2U);
+			    }
+			  //			  tmp =(m_l1_adc_table[( m_peak_sub_ped_hcalout[key]->at(is) >> 4U) & 0x3ffU] >> 2U);
 			  temp_sum += (tmp & 0xffU);
 			}
 		      sum = ((temp_sum & 0xfffU) >> 2U) & 0xffU;
@@ -879,6 +873,18 @@ int CaloTriggerEmulator::process_primitives()
 			  unsigned int etabin = (ip%3)*8 + (isum%4)*2 + j%2;
 			  unsigned int phibin = (ip/3)*8 + (isum/4)*2 + j/2;
 			  unsigned int key = TowerInfoDefs::encode_hcal(etabin, phibin);
+			  unsigned int lut_input  = (m_peak_sub_ped_hcalin[key]->at(is) >> 4U) & 0x3ffU;
+			  if (_default_lut_hcalin)
+			    {
+			      tmp = (m_l1_adc_table[lut_input] >> 2U);
+			    }
+			  else
+			    {
+			      std::string histoname = "h_hcalin_lut_" + to_string(TowerInfoDefs::decode_hcal(key));
+			      unsigned int lut_output = ((unsigned int) cdbttree_hcalin->getHisto(histoname.c_str())->GetBinContent(lut_input + 1)) & 0x3ffU;
+			      tmp = (lut_output >> 2U);
+			    }
+
 			  tmp = (m_l1_adc_table[(m_peak_sub_ped_hcalin[key]->at(is) >> 4U) & 0x3ffU]) >> 2U;
 			  temp_sum += (tmp & 0x3ffU);
 			}
@@ -2288,12 +2294,7 @@ int CaloTriggerEmulator::End(PHCompositeNode* /*topNode*/)
   std::cout << "------------------------" <<std::endl;
   std::cout << "Total passed: " <<_npassed<<"/"<<_nevent <<std::endl;
   std::cout << "------------------------" <<std::endl;
-
-  outfile->cd();
-  outfile->Write();
-  outfile->Close();
-  delete outfile;
-  hm->dumpHistos(outfilename, "UPDATE");
+  
   return 0;
 }
 
@@ -2348,6 +2349,11 @@ unsigned int CaloTriggerEmulator::getBits(unsigned int sum)
 {
 
   unsigned int bit = 0;
+  if (_single_threshold)
+    {
+      bit |= (sum > _m_threshold ? 0x1U : 0);
+      return bit;
+    }
   for (unsigned int i = 0; i < 4; i++)
     {
       bit |= (sum > m_threshold_calo[i] ? 0x1U << (i) : 0); 
