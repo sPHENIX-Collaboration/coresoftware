@@ -1,19 +1,17 @@
-#ifndef _CALOTRIGGEREMULATOR_H__
-#define _CALOTRIGGEREMULATOR_H__
+#ifndef TRIGGER_CALOTRIGGEREMULATOR_H
+#define TRIGGER_CALOTRIGGEREMULATOR_H
 
-
-#include "TriggerPrimitivev1.h"
-#include "TriggerPrimitiveContainerv1.h"
-#include "TriggerDefs.h"
 #include "LL1Outv1.h"
-
+#include "TriggerDefs.h"
+#include "TriggerPrimitiveContainerv1.h"
+#include "TriggerPrimitivev1.h"
 
 #include <fun4all/SubsysReco.h>
 
-#include <TTree.h>
-#include <TProfile.h>
 #include <TEfficiency.h>
 #include <TH2.h>
+#include <TProfile.h>
+#include <TTree.h>
 
 #include <cstdint>
 
@@ -37,7 +35,7 @@ class CaloTriggerEmulator : public SubsysReco
 {
  public:
   //! constructor
-  explicit CaloTriggerEmulator(const std::string& name);
+  explicit CaloTriggerEmulator(const std::string &name);
 
   //! destructor
   ~CaloTriggerEmulator() override = default;
@@ -55,7 +53,7 @@ class CaloTriggerEmulator : public SubsysReco
   int End(PHCompositeNode *) override;
 
   //! reset variables
-  int  ResetEvent(PHCompositeNode *) override ;
+  int ResetEvent(PHCompositeNode *) override;
 
   //! Get Nodes
   void GetNodes(PHCompositeNode *);
@@ -80,16 +78,16 @@ class CaloTriggerEmulator : public SubsysReco
   //! Set TriggerType
   void setTriggerType(const std::string &name);
   void setTriggerType(TriggerDefs::TriggerId triggerid);
-  void setEmcalLUTFile(std::string filename) { _emcal_lutname = filename; }
-  void setHcalinLUTFile(std::string filename) { _hcalin_lutname = filename; }
-  void setHcaloutLUTFile(std::string filename) { _hcalout_lutname = filename; }
+  void setEmcalLUTFile(std::string &filename) { _emcal_lutname = filename; }
+  void setHcalinLUTFile(std::string &filename) { _hcalin_lutname = filename; }
+  void setHcaloutLUTFile(std::string &filename) { _hcalout_lutname = filename; }
 
-  void useEMCALDefaultLUT(bool def) { _default_lut_emcal = def;}
-  void useHCALINDefaultLUT(bool def) { _default_lut_hcalin = def;}
-  void useHCALOUTDefaultLUT(bool def) { _default_lut_hcalout = def;}
+  void useEMCALDefaultLUT(bool def) { _default_lut_emcal = def; }
+  void useHCALINDefaultLUT(bool def) { _default_lut_hcalin = def; }
+  void useHCALOUTDefaultLUT(bool def) { _default_lut_hcalout = def; }
 
-  void setTriggerSample(int s){_m_trig_sample = s;}
-  void setTriggerDelay(int d){_m_trig_sub_delay = d + 1;}
+  void setTriggerSample(int s) { _m_trig_sample = s; }
+  void setTriggerDelay(int d) { _m_trig_sub_delay = d + 1; }
 
   void useHCALIN(bool use);
   void useHCALOUT(bool use);
@@ -97,9 +95,9 @@ class CaloTriggerEmulator : public SubsysReco
 
   void setNSamples(int nsamples) { m_nsamples = nsamples; }
   void setThreshold(int threshold) { _m_threshold = threshold; }
-  void setThreshold(int t1, int t2, int t3, int t4) 
-  { 
-    m_threshold_calo[0] = t1; 
+  void setThreshold(int t1, int t2, int t3, int t4)
+  {
+    m_threshold_calo[0] = t1;
     m_threshold_calo[1] = t2;
     m_threshold_calo[2] = t3;
     m_threshold_calo[3] = t4;
@@ -111,6 +109,7 @@ class CaloTriggerEmulator : public SubsysReco
   bool CheckChannelMasks(TriggerDefs::TriggerSumKey key);
 
   void identify();
+
  protected:
   std::string _ll1_nodename;
   std::string _prim_nodename;
@@ -120,7 +119,7 @@ class CaloTriggerEmulator : public SubsysReco
   std::string _hcalin_lutname;
   std::string _hcalout_lutname;
 
-  //!Trigger Type
+  //! Trigger Type
   std::string _trigger{"NONE"};
 
   TriggerDefs::TriggerId _triggerid = TriggerDefs::TriggerId::noneTId;
@@ -135,36 +134,35 @@ class CaloTriggerEmulator : public SubsysReco
   bool _default_lut_emcal{false};
   bool _default_lut_mbd{false};
 
-
   bool _force_hcalin{false};
   bool _force_hcalout{false};
   bool _force_emcal{false};
   bool _force_mbd{false};
 
   //! Waveform conatiner
-  TowerInfoContainer *_waveforms_hcalin = nullptr;
-  TowerInfoContainer *_waveforms_hcalout = nullptr;
-  TowerInfoContainer *_waveforms_emcal = nullptr;
-  TowerInfoContainer *_waveforms_mbd = nullptr;
+  TowerInfoContainer *_waveforms_hcalin{nullptr};
+  TowerInfoContainer *_waveforms_hcalout{nullptr};
+  TowerInfoContainer *_waveforms_emcal{nullptr};
+  TowerInfoContainer *_waveforms_mbd{nullptr};
 
   //! LL1 Out
-  LL1Out *_ll1out = nullptr;
-  TriggerPrimitiveContainer *_primitives = nullptr;
+  LL1Out *_ll1out{nullptr};
+  TriggerPrimitiveContainer *_primitives{nullptr};
 
-  TriggerPrimitiveContainer *_primitives_hcalin = nullptr;
+  TriggerPrimitiveContainer *_primitives_hcalin{nullptr};
 
-  TriggerPrimitiveContainer *_primitives_hcalout = nullptr;
+  TriggerPrimitiveContainer *_primitives_hcalout{nullptr};
 
-  TriggerPrimitiveContainer *_primitives_emcal = nullptr;
+  TriggerPrimitiveContainer *_primitives_emcal{nullptr};
 
-  TriggerPrimitiveContainer *_primitives_hcal_ll1 = nullptr;
+  TriggerPrimitiveContainer *_primitives_hcal_ll1{nullptr};
 
-  TriggerPrimitiveContainer *_primitives_emcal_ll1 = nullptr;
+  TriggerPrimitiveContainer *_primitives_emcal_ll1{nullptr};
 
-  TriggerPrimitive *_primitive = nullptr;
+  TriggerPrimitive *_primitive{nullptr};
 
-  std::vector<unsigned int> *_sum  = nullptr;
-  std::vector<unsigned int> *_bits = nullptr;
+  std::vector<unsigned int> *_sum{nullptr};
+  std::vector<unsigned int> *_bits{nullptr};
 
   //! Lookup tables
   unsigned int m_l1_adc_table[1024]{};
@@ -172,9 +170,9 @@ class CaloTriggerEmulator : public SubsysReco
   unsigned int m_l1_slewing_table[4096]{};
   unsigned int m_l1_hcal_table[4096]{};
 
-  CDBHistos *cdbttree_emcal = nullptr;
-  CDBHistos *cdbttree_hcalin = nullptr;
-  CDBHistos *cdbttree_hcalout = nullptr;
+  CDBHistos *cdbttree_emcal{nullptr};
+  CDBHistos *cdbttree_hcalin{nullptr};
+  CDBHistos *cdbttree_hcalout{nullptr};
 
   std::string m_fieldname_emcal;
   std::string m_calibName_emcal;
@@ -190,16 +188,15 @@ class CaloTriggerEmulator : public SubsysReco
   unsigned int m_trig_nhit;
   unsigned int m_trig_time[4]{};
 
-
   //! Trigger primitives
   unsigned int m2_trig_charge[4][8]{};
   unsigned int m2_trig_nhit[4]{};
   unsigned int m2_trig_time[4][4]{};
 
-  std::vector<std::vector<unsigned int>*> _sum_mbd;
+  std::vector<std::vector<unsigned int> *> _sum_mbd;
 
   //! Trigger ouputs
-  std::vector<std::vector<unsigned int>*> _word_mbd;
+  std::vector<std::vector<unsigned int> *> _word_mbd;
   unsigned int m_out_tsum[2]{};
   unsigned int m_out_tavg[2]{};
   unsigned int m_out_trem[2]{};
@@ -209,10 +206,10 @@ class CaloTriggerEmulator : public SubsysReco
 
   unsigned int m_nhit1, m_nhit2, m_timediff1, m_timediff2, m_timediff3;
 
-  std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_emcal;
-  std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_mbd;
-  std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_hcalin;
-  std::map<unsigned int, std::vector<unsigned int>*> m_peak_sub_ped_hcalout;
+  std::map<unsigned int, std::vector<unsigned int> *> m_peak_sub_ped_emcal;
+  std::map<unsigned int, std::vector<unsigned int> *> m_peak_sub_ped_mbd;
+  std::map<unsigned int, std::vector<unsigned int> *> m_peak_sub_ped_hcalin;
+  std::map<unsigned int, std::vector<unsigned int> *> m_peak_sub_ped_hcalout;
 
   //! Verbosity.
   int _nevent;

@@ -1,15 +1,14 @@
-#ifndef __TRIGGERPRIMITIVECONTAINER_H
-#define __TRIGGERPRIMITIVECONTAINER_H
+#ifndef TRIGGER_TRIGGERPRIMITIVECONTAINER_H
+#define TRIGGER_TRIGGERPRIMITIVECONTAINER_H
 
-#include <stdio.h>
-#include <iostream>
-#include <string.h>
-#include <ostream>
-#include <phool/PHObject.h>
-#include <map>
-#include <climits>
-#include "TriggerPrimitive.h"
 #include "TriggerDefs.h"
+#include "TriggerPrimitive.h"
+
+#include <phool/PHObject.h>
+
+#include <iostream>
+#include <map>
+#include <ostream>
 
 ///
 class TriggerPrimitiveContainer : public PHObject
@@ -21,26 +20,25 @@ class TriggerPrimitiveContainer : public PHObject
   typedef std::pair<Iter, Iter> Range;
   typedef std::pair<ConstIter, ConstIter> ConstRange;
 
-  TriggerPrimitiveContainer();
-  virtual ~TriggerPrimitiveContainer();
-  
+  TriggerPrimitiveContainer() = default;
+  virtual ~TriggerPrimitiveContainer() override = default;
+
   /// Clear Event from memory
-  virtual void Reset() override;
+  virtual void Reset() override { return; };
   void identify(std::ostream& os = std::cout) const override;
-  int isValid() const override;
-  virtual   void setTriggerType(TriggerDefs::TriggerId /*triggerid*/) {}
+  int isValid() const override { return 1; }
+  virtual void setTriggerType(TriggerDefs::TriggerId /*triggerid*/) { return; }
   virtual TriggerPrimitive* get_primitive_at_key(TriggerDefs::TriggerPrimKey) { return nullptr; }
 
-  virtual void add_primitive(TriggerDefs::TriggerPrimKey , TriggerPrimitive* ) {}
+  virtual void add_primitive(TriggerDefs::TriggerPrimKey, TriggerPrimitive*) { return; }
 
-  virtual size_t size() {return 0;}
+  virtual size_t size() { return 0; }
 
-  virtual ConstRange getTriggerPrimitives() const;  
+  virtual ConstRange getTriggerPrimitives() const;
   virtual Range getTriggerPrimitives();
 
-
- private: // so the ClassDef does not show up with doc++
-  ClassDefOverride(TriggerPrimitiveContainer,1);
+ private:  // so the ClassDef does not show up with doc++
+  ClassDefOverride(TriggerPrimitiveContainer, 1);
 };
 
 #endif
