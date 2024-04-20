@@ -94,7 +94,6 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   TrkrHitSetContainer*     m_truth_hits; // generate and delete a container for each truth track
   std::map<TrkrDefs::hitsetkey,unsigned int> m_hitsetkey_cnt {}; // counter for making ckeys form hitsetkeys
 
-  MvtxRawEvtHeader* mvtx_raw_event_header = nullptr;
   std::string m_MvtxRawEvtHeaderNodeName = "MVTXRAWEVTHEADER";
   std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> m_deadPixelMap;
 
