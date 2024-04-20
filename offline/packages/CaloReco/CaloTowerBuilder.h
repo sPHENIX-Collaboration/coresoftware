@@ -62,8 +62,8 @@ class CaloTowerBuilder : public SubsysReco
 
   void set_softwarezerosuppression(bool usezerosuppression, int softwarezerosuppression)
   {
-    _nsoftwarezerosuppression = softwarezerosuppression;
-    _bdosoftwarezerosuppression = usezerosuppression;
+    m_nsoftwarezerosuppression = softwarezerosuppression;
+    m_bdosoftwarezerosuppression = usezerosuppression;
   }
 
   void set_outputNodePrefix(const std::string &name)
@@ -85,14 +85,14 @@ class CaloTowerBuilder : public SubsysReco
   CDBTTree *cdbttree = nullptr;
 
   bool m_isdata{true};
-  bool _bdosoftwarezerosuppression{false};
+  bool m_bdosoftwarezerosuppression{false};
   bool m_UseOfflinePacketFlag{false};
   int m_packet_low{std::numeric_limits<int>::min()};
   int m_packet_high{std::numeric_limits<int>::min()};
   int m_nsamples{16};
   int m_nchannels{192};
   int m_nzerosuppsamples{2};
-  int _nsoftwarezerosuppression{40};
+  int m_nsoftwarezerosuppression{40};
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::CEMC};
   CaloTowerDefs::BuilderType m_buildertype{CaloTowerDefs::kPRDFTowerv1};
   CaloWaveformProcessing::process _processingtype{CaloWaveformProcessing::NONE};

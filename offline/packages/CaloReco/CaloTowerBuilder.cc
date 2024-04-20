@@ -58,7 +58,7 @@ CaloTowerBuilder::~CaloTowerBuilder()
 int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
   WaveformProcessing->set_processing_type(_processingtype);
-  WaveformProcessing->set_softwarezerosuppression(_bdosoftwarezerosuppression, _nsoftwarezerosuppression);
+  WaveformProcessing->set_softwarezerosuppression(m_bdosoftwarezerosuppression, m_nsoftwarezerosuppression);
 
   if (m_dettype == CaloTowerDefs::CEMC)
   {
