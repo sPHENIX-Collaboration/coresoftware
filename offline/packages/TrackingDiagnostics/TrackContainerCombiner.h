@@ -14,14 +14,13 @@ class PHCompositeNode;
 class TrackContainerCombiner : public SubsysReco
 {
  public:
-
   TrackContainerCombiner(const std::string &name = "TrackContainerCombiner");
 
   ~TrackContainerCombiner() override;
 
   int InitRun(PHCompositeNode *topNode) override;
-  int process_event(PHCompositeNode*) override;
-  int End(PHCompositeNode*) override;
+  int process_event(PHCompositeNode *) override;
+  int End(PHCompositeNode *) override;
 
   void newContainerName(const std::string &name) { m_newContainerName = name; }
   void oldContainerName(const std::string &name) { m_oldContainerName = name; }
@@ -36,4 +35,4 @@ class TrackContainerCombiner : public SubsysReco
   TrackSeedContainer *m_oldSeedContainer = nullptr;
 };
 
-#endif // TRACKCONTAINERCOMBINER_H
+#endif  // TRACKCONTAINERCOMBINER_H

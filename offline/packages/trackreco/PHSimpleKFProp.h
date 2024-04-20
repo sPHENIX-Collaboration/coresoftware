@@ -11,9 +11,12 @@
 #include "nanoflann.hpp"
 
 // PHENIX includes
-#include <fun4all/SubsysReco.h>
 #include <tpc/TpcDistortionCorrection.h>
+
 #include <trackbase/TrkrDefs.h>
+
+#include <fun4all/SubsysReco.h>
+
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <Eigen/Core>
@@ -152,7 +155,7 @@ class PHSimpleKFProp : public SubsysReco
   void publishSeeds(const std::vector<TrackSeed_v2>&);
   //   void MoveToVertex();
 
-  std::string m_magField = "";
+  std::string m_magField;
   bool _use_const_field = false;
   float _const_field = 1.4;
   bool _use_fixed_clus_err = false;

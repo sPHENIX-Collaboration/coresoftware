@@ -91,7 +91,7 @@ class PHCASeeding : public PHTrackSeeding
 
   void set_field_dir(const double rescale)
   {
-    std::cout << "rescale: " << rescale << std::endl;
+    std::cout << "PHCASeeding::set_field_dir rescale: " << rescale << std::endl;
     _fieldDir = 1;
     if (rescale > 0)
       _fieldDir = -1;
@@ -165,7 +165,7 @@ class PHCASeeding : public PHTrackSeeding
   bool _pp_mode = false;
   std::array<double, 3> _fixed_clus_err = {.1, .1, .1};
 
-  std::string m_magField = "";
+  std::string m_magField;
 
   /// acts geometry
   ActsGeometry* tGeometry{nullptr};
