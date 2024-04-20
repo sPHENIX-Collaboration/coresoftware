@@ -5,14 +5,17 @@
 #include "TriggerPrimitivev1.h"
 #include "TriggerPrimitiveContainerv1.h"
 #include "TriggerDefs.h"
-#include <cstdint>
+#include "LL1Outv1.h"
+
 
 #include <fun4all/SubsysReco.h>
+
 #include <TTree.h>
 #include <TProfile.h>
 #include <TEfficiency.h>
 #include <TH2.h>
-#include "LL1Outv1.h"
+
+#include <cstdint>
 
 // Forward declarations
 class CDBHistos;
@@ -37,7 +40,7 @@ class CaloTriggerEmulator : public SubsysReco
   explicit CaloTriggerEmulator(const std::string& name);
 
   //! destructor
-  ~CaloTriggerEmulator();
+  ~CaloTriggerEmulator() override = default;
 
   //! full initialization
   int Init(PHCompositeNode *) override;

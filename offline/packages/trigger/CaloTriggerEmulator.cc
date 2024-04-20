@@ -1,20 +1,22 @@
 #include "CaloTriggerEmulator.h"
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
+
+#include "LL1Defs.h"
+#include "LL1Outv1.h"
+#include "TriggerPrimitivev1.h"
+#include "TriggerPrimitiveContainerv1.h"
+
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 #include <calobase/TowerInfoContainerv3.h>
 #include <calobase/TowerInfov3.h>
-#include <phool/getClass.h>
+
+#include <ffamodules/CDBInterface.h>
 
 #include <cdbobjects/CDBHistos.h>  // for CDBHistos
-#include <ffamodules/CDBInterface.h>
-#include <TFile.h>
-#include <cassert>
-#include <sstream>
-#include <string>
-#include <cstdint>
-#include <bitset>
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
@@ -23,10 +25,14 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include "LL1Defs.h"
-#include "LL1Outv1.h"
-#include "TriggerPrimitivev1.h"
-#include "TriggerPrimitiveContainerv1.h"
+
+#include <TFile.h>
+
+#include <cassert>
+#include <sstream>
+#include <string>
+#include <cstdint>
+#include <bitset>
 
 using namespace std;
 
@@ -207,13 +213,6 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string& name)
   
   _masks_channel = {};//, 70385703};
   _masks_fiber = {};//, 70385696};
-}
-
-
-// destructr
-CaloTriggerEmulator::~CaloTriggerEmulator()
-{
-
 }
 
 
