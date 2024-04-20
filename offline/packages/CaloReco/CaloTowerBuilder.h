@@ -7,6 +7,7 @@
 #include "CaloWaveformProcessing.h"
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
 #include <fun4all/SubsysReco.h>
 
 #include <limits>
@@ -81,6 +82,8 @@ class CaloTowerBuilder : public SubsysReco
   CaloWaveformProcessing *WaveformProcessing{nullptr};
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
+  CDBTTree *cdbttree = nullptr;
+
   bool m_isdata{true};
   bool _bdosoftwarezerosuppression{false};
   bool m_UseOfflinePacketFlag{false};
@@ -100,9 +103,7 @@ class CaloTowerBuilder : public SubsysReco
 
   std::string m_fieldname;
   std::string m_calibName;
-  std::string m_directURL = "";
-
-  CDBTTree *cdbttree = nullptr;
+  std::string m_directURL;
 
 };
 

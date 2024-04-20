@@ -77,9 +77,8 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     //===============
 
     m_calibName = "cemc_adcskipmask";
-    
-    m_fieldname = "adcskipmask";
 
+    m_fieldname = "adcskipmask";
 
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (calibdir.empty())
@@ -200,19 +199,19 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
     Packet *packet = _event->getPacket(pid);
     if (packet)
     {
-      int adc_skip_mask = 0;
+      unsigned int adc_skip_mask = 0;
       int nchannels = packet->iValue(0, "CHANNELS");
       if (m_dettype == CaloTowerDefs::CEMC)
       {  // special condition during zdc commisioning
-	adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);	  
+        adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
       }
-      
+
       if (m_dettype == CaloTowerDefs::ZDC)
       {  // special condition during zdc commisioning
         if (nchannels < m_nchannels)
-	  {
-	    return Fun4AllReturnCodes::ABORTEVENT;
-	  }
+        {
+          return Fun4AllReturnCodes::ABORTEVENT;
+        }
         nchannels = m_nchannels;
       }
       if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
@@ -232,29 +231,28 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
           }
         }
 
-	if (m_dettype == CaloTowerDefs::CEMC)
-	  {
+        if (m_dettype == CaloTowerDefs::CEMC)
+        {
+          if (channel % 64 == 0)
+          {
+            unsigned int adcboard = (unsigned int) channel / 64;
+            if ((adc_skip_mask >> adcboard) & 0x1U)
+            {
+              for (int iskip = 0; iskip < 64; iskip++)
+              {
+                std::vector<float> waveform;
+                waveform.reserve(m_nsamples);
 
-	    if (channel%64 == 0)
-	      {
-		unsigned int adcboard = (unsigned int) channel/64;
-		if ((adc_skip_mask >> adcboard) & 0x1U)
-		  {
-		    for (int iskip = 0; iskip < 64; iskip++)
-		      {
-			std::vector<float> waveform;
-			waveform.reserve(m_nsamples);
-		  
-			for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-			  {
-			    waveform.push_back(0);
-			  }
-			waveforms.push_back(waveform);
-			waveform.clear();
-		      }
-		  }
-	      }
-	  }
+                for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+                {
+                  waveform.push_back(0);
+                }
+                waveforms.push_back(waveform);
+                waveform.clear();
+              }
+            }
+          }
+        }
 
         std::vector<float> waveform;
         waveform.reserve(m_nsamples);
@@ -272,38 +270,35 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
         }
         waveforms.push_back(waveform);
         waveform.clear();
-
       }
       // if nchannels < set number and it is the EMCAL but with the skip already accounted for, we need to skip this part. otherwise it assumes the last board was taken out
-      
+
       if (nchannels < m_nchannels && !(m_dettype == CaloTowerDefs::CEMC && adc_skip_mask < 4))
+      {
+        for (int channel = 0; channel < m_nchannels - nchannels; channel++)
         {
-	  
-          for (int channel = 0; channel < m_nchannels - nchannels; channel++)
-	    {
+          if (m_dettype == CaloTowerDefs::SEPD)
+          {
+            int sector = ((channel + 1) / 32);
 
-	      if (m_dettype == CaloTowerDefs::SEPD)
-		{
-		  int sector = ((channel + 1) / 32);
+            if (channel == (14 + 32 * sector))
+            {
+              continue;
+            }
+          }
 
-		  if (channel == (14 + 32 * sector))
-		    {
-		      continue;
-		    }
-		}
+          std::vector<float> waveform;
+          waveform.reserve(2);
+          for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+          {
+            waveform.push_back(0);
+          }
+          waveforms.push_back(waveform);
+          waveform.clear();
+        }
+      }
 
-	      std::vector<float> waveform;
-	      waveform.reserve(2);
-	      for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-		{
-		  waveform.push_back(0);
-		}
-	      waveforms.push_back(waveform);
-	      waveform.clear();
-	    }
-	}
-
-	delete packet;
+      delete packet;
     }
     else  // if the packet is missing treat constitutent channels as zero suppressed
     {
@@ -327,7 +322,6 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
         waveform.clear();
       }
     }
-
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -346,11 +340,11 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
     if (packet)
     {
       int nchannels = packet->iValue(0, "CHANNELS");
-      int adc_skip_mask = 0;
+      unsigned int adc_skip_mask = 0;
 
       if (m_dettype == CaloTowerDefs::CEMC)
       {  // special condition during zdc commisioning
-	adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);	  
+        adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
       }
 
       if (m_dettype == CaloTowerDefs::ZDC)
@@ -379,29 +373,28 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
             continue;
           }
         }
-	if (m_dettype == CaloTowerDefs::CEMC)
-	  {
+        if (m_dettype == CaloTowerDefs::CEMC)
+        {
+          if (channel % 64 == 0)
+          {
+            unsigned int adcboard = (unsigned int) channel / 64;
+            if ((adc_skip_mask >> adcboard) & 0x1U)
+            {
+              for (int iskip = 0; iskip < 64; iskip++)
+              {
+                std::vector<float> waveform;
+                waveform.reserve(m_nsamples);
 
-	    if (channel%64 == 0)
-	      {
-		unsigned int adcboard = (unsigned int) channel/64;
-		if ((adc_skip_mask >> adcboard) & 0x1U)
-		  {
-		    for (int iskip = 0; iskip < 64; iskip++)
-		      {
-			std::vector<float> waveform;
-			waveform.reserve(m_nsamples);
-		  
-			for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-			  {
-			    waveform.push_back(0);
-			  }
-			waveforms.push_back(waveform);
-			waveform.clear();
-		      }
-		  }
-	      }
-	  }
+                for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+                {
+                  waveform.push_back(0);
+                }
+                waveforms.push_back(waveform);
+                waveform.clear();
+              }
+            }
+          }
+        }
 
         std::vector<float> waveform;
         waveform.reserve(m_nsamples);
