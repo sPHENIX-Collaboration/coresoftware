@@ -698,7 +698,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         {
           fx_info[n_info::infonhittpcout]++;
         }
-        // NOLINTNEXTLINE(misc-no-recursion)
+        // NOLINTNEXTLINE(bugprone-integer-division)
         if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
         {
           fx_info[n_info::infonhittpcmid]++;
