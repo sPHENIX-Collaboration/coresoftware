@@ -196,7 +196,7 @@ int LiteCaloEval::process_event(PHCompositeNode *topNode)
   RawTowerContainer *towers = nullptr;
   RawTowerGeomContainer *towergeom = nullptr;
 
-  // get tower energy for towerslope method only
+  //for tower energy 
   RawTowerContainer::ConstRange begin_end;
   RawTowerContainer::ConstIterator rtiter;
 
@@ -324,6 +324,7 @@ int LiteCaloEval::process_event(PHCompositeNode *topNode)
       if (calotype == LiteCaloEval::CEMC)
 	{
 
+	  //mode variable is used for simulations only. Creates a decalibration in energy
 	  if (mode)
 	    {
 	      int ket = ieta / 8;
@@ -555,7 +556,6 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
 void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 {
 
-
   bool onlyEta = false;
 
   if (fitmin < 0.001)
@@ -567,10 +567,10 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       fitmax = 1.3;
     }
 
-  float par_value[96] = {0};
-  float par_err[96] = {0};
-  float eta_value[96] = {0};
-  float eta_err[96] = {0};
+  float par_value[96] = {0}; //gain value used only in the outer for loop
+  float par_err[96] = {0};   //error on the gain
+  float eta_value[96] = {0}; //ieta
+  float eta_err[96] = {0};   //ieta err. just will be zero. 
 
 
   if (f_temp)
@@ -578,11 +578,11 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       f_temp->cd();
     }
 
-  /// fitting - calls the LCE function
+  /// fitting - calls the LCE_fitf function at beginning of module
   TF1 *f1 = new TF1("myexpo", LCE_fitf, 0.1, 10, 2);
   f1->SetParameters(1.0, 1.0);
 
-  /// looks at 1's palce of mFS parameter, if onlyEta = false will run phi loop below
+  /// looks at 1's palce of mFS parameter, if onlyEta = false will run phi loop (individual towers) below
   if (modeFitShifts % 10 == 1)
     {
       onlyEta = true;
@@ -592,7 +592,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   /// nsmooth is an automatic smoothing of histos
   int nsmooth = 1;
 
-  /// if want more smoothing, look at mFS. If mFS=10, then addSmooth=1, and then there will be 2 total smoothings
+  /// if want more smoothing, look at tens place in mFS. If mFS=10, then addSmooth=1, and then there will be 2 total smoothings
   int addSmooth = modeFitShifts % 100 / 10;
   if (addSmooth)
     {
@@ -602,7 +602,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   /// flag that will run fits at tower level to get shifts, or will run at ring level and fit towers to eta slice histo
   bool flag_fit_rings = false;
 
-  //look at 100's place of mFS
+  //look at 100's place of mFS. Runs the eta slice flattening mode. If false, runs gain tracing mode
   if (modeFitShifts % 1000 / 100 == 1)
     {
       flag_fit_rings = true;
@@ -631,7 +631,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   gainvals->SetYTitle("Counts");
 
   //1d histo for gain shift error
-  TH1F *h_gainErr = new TH1F("h_gainErr","Towerslope Corrections Errors",1000, 0, 0.1);
+  TH1F *h_gainErr = new TH1F("h_gainErr","Towerslope Corrections Errors",1000, 0, 1);
   h_gainErr->SetXTitle("error");
   h_gainErr->SetYTitle("Counts");
 
@@ -657,9 +657,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       std::cout << "===============================" << std::endl;
       std::cout << "Fitting towers in eta slice " << i << std::endl;
 
-      /// a1f, b1f hold the parameter value, parameter error, respectively from the fit
-      double a1f;
-      double b1f;
+      /// hold the gain value, gain error, respectively from the fit
+      double ieta_gain;
+      double ieta_gain_err;
 
       /// names for eta slice histo 
       std::string myClnm = "newhc_eta" + std::to_string(i);
@@ -793,14 +793,14 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 	}
 
 
-      a1f = f2f->GetParameter(1);
+      ieta_gain = f2f->GetParameter(1);
 
-      b1f = f2f->GetParError(1);
+      ieta_gain_err = f2f->GetParError(1);
 
-      par_value[i] = a1f;
-      par_err[i] = b1f;
+      par_value[i] = ieta_gain;
+      par_err[i]   = ieta_gain_err;
       eta_value[i] = i;
-      eta_err[i] = 0.01;
+      eta_err[i]   = 0.0;
 
       /// This if statement enables the tower fits to run
       if (onlyEta == true)
@@ -814,7 +814,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
       for (int j = 0; j < max_iphi; j++)
 	{
-	  /// names of tower histo for cloning
+	  /// names of tower histo for cloning. used in gain trace mode
 	  std::string myClnmp = "newhc_eta" + std::to_string(1000 * (i + 2) + j);
 
 	  /// histo to hold tower clone
@@ -826,7 +826,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 	      //skip tower if there are no entries
 	      if(! (cemc_hist_eta_phi[i][j]->GetEntries()) )
 		{
-		  std::cout << "Skipped fitting of tower (" << i << "," << j << ")" << std::endl;
+		  std::cout << "No entries in EMCAL tower histogram (" << i << "," << j << "). Skipping fitting." << std::endl;
 		  continue;
 		}
 
@@ -848,7 +848,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 	      //skip tower if there are no entries
 	      if(! (hcal_out_eta_phi[i][j]->GetEntries()) )
 		{
-		  std::cout << "Skipped fitting of tower (" << i << "," << j << ")" << std::endl;
+		  std::cout << "No entries in OHCAL tower histogram (" << i << "," << j << "). Skipping fitting." << std::endl;
 		  continue;
 		}
 
@@ -869,7 +869,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 	      //skip tower if there are no entries
 	      if(! (hcal_in_eta_phi[i][j]->GetEntries()) )
 		{
-		  std::cout << "Skipped fitting of tower (" << i << "," << j << ")" << std::endl;
+		  std::cout << "No entries in IHCAL tower histogram(" << i << "," << j << "). Skipping fitting." << std::endl;
 		  continue;
 		}
 
@@ -901,11 +901,11 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 	      LCE_grff = new TGraph(cleanEtaRef);
 	    }
 
-	  /// make tf1 that will hold the resulting fit from myexpo on towers
+	  /// make tf1 that will hold the resulting fit of towers
 	  TF1 *f2f2 = nullptr;
 
 
-	  //need to scale the fit histogram to allow it to start at an amplitude similar/at histo that is to be fit
+	  //need to scale the reference histogram to allow it to start at an amplitude similar/at tower that is to be fit
 	  if (calotype == LiteCaloEval::CEMC)
 	    {
 	      double scaleP0 = cemc_hist_eta_phi[i][j]->Integral(cemc_hist_eta_phi[i][j]->FindBin(fitmin), cemc_hist_eta_phi[i][j]->FindBin(fitmax));
@@ -921,7 +921,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
 	      f1->SetParameters(scaleP0, 1.0);
 
-	      if (j < 2)
+	      if (j < 1)
 		{
 		  cemc_hist_eta_phi[i][j]->Fit("myexpo", "L", "", fitmin, fitmax);
 		}
@@ -933,6 +933,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
 	      f2f2 = (TF1 *) cemc_hist_eta_phi[i][j]->GetFunction("myexpo");
 
+	      //add back the just fitted tower to the eta slice reference 
 	      if (flag_fit_rings == true)
 		{
 		  cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], 1.0);
@@ -954,7 +955,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
 	      f1->SetParameters(scaleP0, 1.0);
 
-	      if (j < 2)
+	      if (j < 1)
 		{
 		  hcal_out_eta_phi[i][j]->Fit("myexpo", "L", "", fitmin, fitmax);
 		}
@@ -988,7 +989,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
 	      f1->SetParameters(scaleP0, 1.0);
 
-	      if (j < 2)
+	      if (j < 1)
 		{
 		  hcal_in_eta_phi[i][j]->Fit("myexpo", "L", "", fitmin, fitmax);
 		}
@@ -999,7 +1000,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
 	      f2f2 = (TF1 *) hcal_in_eta_phi[i][j]->GetFunction("myexpo");
 
-	      //add back tower that was just fit  to the eta slice reference 
+	      
 	      if (flag_fit_rings == true)
 		{
 		  cleanEtaRef->Add((TH1F *) hcal_in_eta_phi[i][j], 1.0);
@@ -1009,9 +1010,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
 	  float correction = f2f2->GetParameter(1);
 
-	  float fitErr = f2f2->GetParError(1);
+	  float corrErr = f2f2->GetParError(1);
 
-	  double gainErr = fitErr / (correction * correction);
+	  double errProp = corrErr / (correction * correction);
 
 	  /// fill corrpat, which has returned fit values from towers
 	  /// e.x. if you want to view the histo that is, say, eta=12, phi = 1,
@@ -1019,11 +1020,11 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
 	  corrPat->SetBinContent( i+1, j+1, 1 / correction);
 
-	  corrPat->SetBinError( i+1, j+1, gainErr);
+	  corrPat->SetBinError( i+1, j+1, errProp);
 
-	  gainvals->Fill(correction);
+	  gainvals->Fill(1/correction);
 
-	  h_gainErr->Fill(gainErr);
+	  h_gainErr->Fill(errProp);
 
 	}  // end of inner forloop (phi)
 

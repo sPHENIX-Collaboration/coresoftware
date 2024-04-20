@@ -118,7 +118,7 @@ class LiteCaloEval : public SubsysReco
   float fitmin{0.};
   float fitmax{0.};
 
-  float binwidth{0.001};
+  double binwidth{0.001};
 
   std::string _caloname;
   std::string _filename;
