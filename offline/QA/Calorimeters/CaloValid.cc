@@ -20,10 +20,9 @@
 
 #include <qautils/QAHistManagerDef.h>
 
-// MBD
-#include <mbd/MbdPmtContainer.h>
-#include <mbd/MbdPmtHit.h>
+#include <boost/format.hpp>
 
+// MBD
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -32,6 +31,10 @@
 #include <TProfile2D.h>
 #include <TSystem.h>
 #include <TTree.h>
+#include <mbd/MbdPmtContainer.h>
+#include <mbd/MbdPmtHit.h>
+
+#include <format>
 
 #include <cmath>     // for log10, pow, sqrt, abs, M_PI
 #include <iostream>  // for operator<<, endl, basic_...
@@ -601,200 +604,198 @@ TH2F* CaloValid::LogYHist2D(const std::string& name, const std::string& title, i
 
   return h;
 }
+std::string CaloValid::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }
+
 void CaloValid::createHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
 
   // create and register your histos (all types) here
   {
-    auto h = new TH2F("h_emcal_mbd_correlation", ";emcal;mbd", 100, 0, 1, 100, 0, 1);
+    auto h = new TH2F(boost::str(boost::format("%semcal_mbd_correlation")%getHistoPrefix()).c_str(), ";emcal;mbd", 100, 0, 1, 100, 0, 1);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_ohcal_mbd_correlation", ";ohcal;mbd", 100, 0, 1, 100, 0, 1);
+    auto h = new TH2F(boost::str(boost::format("%sohcal_mbd_correlation")%getHistoPrefix()).c_str(), ";ohcal;mbd", 100, 0, 1, 100, 0, 1);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_ohcal_mbd_correlation", ";ohcal;mbd", 100, 0, 1, 100, 0, 1);
+    auto h = new TH2F(boost::str(boost::format("%sihcal_mbd_correlation")%getHistoPrefix()).c_str(), ";ihcal;mbd", 100, 0, 1, 100, 0, 1);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_ihcal_mbd_correlation", ";ihcal;mbd", 100, 0, 1, 100, 0, 1);
+    auto h = new TH2F(boost::str(boost::format("%semcal_hcal_correlation")%getHistoPrefix()).c_str(), ";emcal;hcal", 100, 0, 1, 100, 0, 1);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_emcal_hcal_correlation", ";emcal;hcal", 100, 0, 1, 100, 0, 1);
+    auto h = new TH2F(boost::str(boost::format("%scemc_etaphi")%getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_cemc_etaphi", ";eta;phi", 96, 0, 96, 256, 0, 256);
+    auto h = new TH2F(boost::str(boost::format("%sihcal_etaphi")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_ihcal_etaphi", ";eta;phi", 24, 0, 24, 64, 0, 64);
+    auto h = new TH2F(boost::str(boost::format("%sohcal_etaphi")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_ohcal_etaphi", ";eta;phi", 24, 0, 24, 64, 0, 64);
+    auto h = new TH2F(boost::str(boost::format("%scemc_etaphi_wQA")%getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_cemc_etaphi_wQA", ";eta;phi", 96, 0, 96, 256, 0, 256);
+    auto h = new TH2F(boost::str(boost::format("%sihcal_etaphi_wQA")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_ihcal_etaphi_wQA", ";eta;phi", 24, 0, 24, 64, 0, 64);
+    auto h = new TH2F(boost::str(boost::format("%sohcal_etaphi_wQA")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_ohcal_etaphi_wQA", ";eta;phi", 24, 0, 24, 64, 0, 64);
+    auto h = new TH1F(boost::str(boost::format("%sihcal_status")%getHistoPrefix()).c_str(), "", 256, 0, 256);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1F("h_ihcal_status", "", 256, 0, 256);
+    auto h = new TH1F(boost::str(boost::format("%sohcal_status")%getHistoPrefix()).c_str(), "", 256, 0, 256);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1F("h_ohcal_status", "", 256, 0, 256);
-    hm->registerHisto(h);
-  }
-  {
-    auto h = new TH1F("h_cemc_status", "", 256, 0, 256);
+    auto h = new TH1F(boost::str(boost:format("%scemc_status")%getHistoPrefix()).c_str(), "", 256, 0, 256);
     hm->registerHisto(h);
   }
 
   {
-    auto h = LogYHist2D("h_cemc_e_chi2", "", 500, -2, 30, 1000, 0.5, 5e6);
+    auto h = LogYHist2D(boost::str(boost::format("%scemc_e_chi2")%getHistoPrefix()).c_str(), "", 500, -2, 30, 1000, 0.5, 5e6);
     hm->registerHisto(h);
   }
   {
-    auto h = LogYHist2D("h_ihcal_e_chi2", "", 500, -2, 30, 1000, 0.5, 5e6);
+    auto h = LogYHist2D(boost::str(boost::format("%sihcal_e_chi2")%getHistoPrefix()).c_str(), "", 500, -2, 30, 1000, 0.5, 5e6);
     hm->registerHisto(h);
   }
   {
-    auto h = LogYHist2D("h_ohcal_e_chi2", "", 500, -2, 30, 1000, 0.5, 5e6);
+    auto h = LogYHist2D(boost::str(boost::format("%sohcal_e_chi2")%getHistoPrefix()).c_str(), "", 500, -2, 30, 1000, 0.5, 5e6);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TProfile2D("h_cemc_etaphi_time", ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+    auto h = new TProfile2D(boost::str(boost::format("%scemc_etaphi_time")%getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
     hm->registerHisto(h);
   }
   {
-    auto h = new TProfile2D("h_ihcal_etaphi_time", ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+    auto h = new TProfile2D(boost::str(boost::format("%sihcal_etaphi_time")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
     hm->registerHisto(h);
   }
   {
-    auto h = new TProfile2D("h_ohcal_etaphi_time", ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+    auto h = new TProfile2D(boost::str(boost::format("%sohcal_etaphi_time")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
     hm->registerHisto(h);
   }
   {
-    auto h = new TProfile2D("h_cemc_etaphi_fracHitADC", ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+    auto h = new TProfile2D(boost::str(boost::format("%scemc_etaphi_fracHitADC")%getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
     hm->registerHisto(h);
   }
   {
-    auto h = new TProfile2D("h_ihcal_etaphi_fracHitADC", ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+    auto h = new TProfile2D(boost::str(boost::format("%sihcal_etaphi_fracHitADC")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
     hm->registerHisto(h);
   }
   {
-    auto h = new TProfile2D("h_ohcal_etaphi_fracHitADC", ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+    auto h = new TProfile2D(boost::str(boost::format("%sohcal_etaphi_fracHitADC")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
     hm->registerHisto(h);
   }
   {
-    auto h = new TProfile2D("h_cemc_etaphi_badChi2", ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+    auto h = new TProfile2D(boost::str(boost::format("%scemc_etaphi_badChi2")%getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
     hm->registerHisto(h);
   }
   {
-    auto h = new TProfile2D("h_ihcal_etaphi_badChi2", ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+    auto h = new TProfile2D(boost::str(boost::format("%sihcal_etaphi_badChi2")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
     hm->registerHisto(h);
   }
   {
-    auto h = new TProfile2D("h_ohcal_etaphi_badChi2", ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+    auto h = new TProfile2D(boost::str(boost::format("%sohcal_etaphi_badChi2")%getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
     hm->registerHisto(h);
   }
   // 1D distributions
   {
-    auto h = new TH1F("h_InvMass", "Invariant Mass", 120, 0, 1.2);
+    auto h = new TH1F(boost::str(boost::format("%sInvMass")%getHistoPrefix()).c_str(), "Invariant Mass", 120, 0, 1.2);
     hm->registerHisto(h);
   }
   // ZDC QA plots
   {
-    auto h = new TH1D("hzdcSouthraw", "hzdcSouthraw", 1500, 0, 15000);
+    auto h = new TH1D(boost::str(boost::format("%shzdcSouthraw")%getHistoPrefix()).c_str(), "hzdcSouthraw", 1500, 0, 15000);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hzdcNorthraw", "hzdcNorthraw", 1500, 0, 15000);
+    auto h = new TH1D(boost::str(boost::format("%shzdcNorthraw")%getHistoPrefix()).c_str(), "hzdcNorthraw", 1500, 0, 15000);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hzdcSouthcalib", "hzdcSouthcalib", 1500, 0, 15000);
+    auto h = new TH1D(boost::str(boost::format("%shzdcSouthcalib")%getHistoPrefix()).c_str(), "hzdcSouthcalib", 1500, 0, 15000);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hzdcNorthcalib", "hzdcNorthcalib", 1500, 0, 15000);
+    auto h = new TH1D(boost::str(boost::format("%shzdcNorthcalib")%getHistoPrefix()).c_str(), "hzdcNorthcalib", 1500, 0, 15000);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("h_totalzdc_e", "", 200, 0, 2e4);
+    auto h = new TH1D(boost::str(boost::format("%stotalzdc_e")%getHistoPrefix()).c_str(), "", 200, 0, 2e4);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F("h_zdc_emcal_correlation", ";emcal;zdc", 100, 0, 1, 100, 0, 1);
+    auto h = new TH2F(boost::str(boost::format("%szdc_emcal_correlation")%getHistoPrefix()).c_str(), ";emcal;zdc", 100, 0, 1, 100, 0, 1);
     hm->registerHisto(h);
   }
   // vertex distributions
   {
-    auto h = new TH1D("hvtx_z_raw", "hvtx_z_raw", 201, -100.5, 100.5);
+    auto h = new TH1D(boost::str(boost::format("%svtx_z_raw")%getHistoPrefix()).c_str(), "hvtx_z_raw", 201, -100.5, 100.5);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hvtx_z_cut", "hvtx_z_cut", 201, -100.5, 100.5);
+    auto h = new TH1D(boost::str(boost::format("%svtx_z_cut")%getHistoPrefix()).c_str(), "hvtx_z_cut", 201, -100.5, 100.5);
     hm->registerHisto(h);
   }
 
   // raw timing information
   {
-    auto h = new TH1D("hzdctime_cut", "hzdctime_cut", 50, -17.5, 32.5);
+    auto h = new TH1D(boost::str(boost::format("%szdctime_cut")%getHistoPrefix()).c_str(), "hzdctime_cut", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hemcaltime_cut", "hemcaltime_cut", 50, -17.5, 32.5);
+    auto h = new TH1D(boost::str(boost::format("%semcaltime_cut")%getHistoPrefix()).c_str(), "hemcaltime_cut", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hihcaltime_cut", "hihcaltime_cut", 50, -17.5, 32.5);
+    auto h = new TH1D(boost::str(boost::format("%sihcaltime_cut")%getHistoPrefix()).c_str(), "hihcaltime_cut", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hohcaltime_cut", "hohcaltime_cut", 50, -17.5, 32.5);
+    auto h = new TH1D(boost::str(boost::format("%sohcaltime_cut")%getHistoPrefix()).c_str(), "hohcaltime_cut", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
 
   // extracted timing information
   {
-    auto h = new TH1D("hzdctime", "hzdctime", 50, -17.5, 32.5);
+    auto h = new TH1D(boost::str(boost::format("%szdctime")%getHistoPrefix()).c_str(), "hzdctime", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hemcaltime", "hemcaltime", 50, -17.5, 32.5);
+    auto h = new TH1D(boost::str(boost::format("%semcaltime")%getHistoPrefix()).c_str(), "hemcaltime", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hihcaltime", "hihcaltime", 50, -17.5, 32.5);
+    auto h = new TH1D(boost::str(boost::format("%sihcaltime")%getHistoPrefix()).c_str(), "hihcaltime", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("hohcaltime", "hohcaltime", 50, -17.5, 32.5);
+    auto h = new TH1D(boost::str(boost::format("%sohcaltime")%getHistoPrefix()).c_str()), "hohcaltime", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
 
   // cluster QA
   {
-    auto h = new TH2F("h_etaphi_clus", "", 140, -1.2, 1.2, 64, -1 * M_PI, M_PI);
+    auto h = new TH2F(boost::str(boost::format("%setaphi_clus")%getHistoPrefix()).c_str(), "", 140, -1.2, 1.2, 64, -1 * M_PI, M_PI);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1F("h_clusE", "", 100, 0, 10);
+    auto h = new TH1F(boost:::str(boost::format("%sclusE")%getHistoPrefix()).c_str(), "", 100, 0, 10);
     hm->registerHisto(h);
   }
 }

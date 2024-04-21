@@ -50,6 +50,7 @@ class CaloValid : public SubsysReco
  private:
   int Getpeaktime(TH1* h);
   void createHistos();
+  std::string getHistoPrefix() const;
   bool m_debug{0};
   std::string detector;
   Fun4AllHistoManager* hm{nullptr};
