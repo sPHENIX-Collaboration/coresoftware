@@ -1,15 +1,15 @@
-#ifndef __LL1OUTV1_H__
-#define __LL1OUTV1_H__
+#ifndef TRIGGER_LL1OUTV1_H
+#define TRIGGER_LL1OUTV1_H
 
-#include <string>
-#include <ostream>
-#include <phool/PHObject.h>
 #include "LL1Out.h"
 #include "TriggerDefs.h"
+
+#include <phool/PHObject.h>
+
+#include <ostream>
+#include <string>
 #include <vector>
 
-
-using namespace std;
 ///
 class LL1Outv1 : public LL1Out
 {
@@ -36,45 +36,43 @@ class LL1Outv1 : public LL1Out
   int isValid() const override;
 
   // Get Trigger Type
-  std::string getLL1Type() const override {return _ll1_type;}
+  std::string getLL1Type() const override { return _ll1_type; }
 
-  // Set Trigger Type  
-  void setLL1Type(std::string &ll1type) override { _ll1_type = ll1type;}
-  void setTriggerType(std::string &triggertype) override { _trigger_type = triggertype;}
+  // Set Trigger Type
+  void setLL1Type(std::string& ll1type) override { _ll1_type = ll1type; }
+  void setTriggerType(std::string& triggertype) override { _trigger_type = triggertype; }
 
-  TriggerDefs::TriggerKey getTriggerKey() const override {return _trigger_key;}
-  void setTriggerKey(TriggerDefs::TriggerKey key) override {_trigger_key = key;}
+  TriggerDefs::TriggerKey getTriggerKey() const override { return _trigger_key; }
+  void setTriggerKey(TriggerDefs::TriggerKey key) override { _trigger_key = key; }
 
-  std::vector<unsigned int>* GetTriggerBits() override {return _trigger_bits;}
+  std::vector<unsigned int>* GetTriggerBits() override { return _trigger_bits; }
   bool passesTrigger() override;
 
-  void add_word(int key, std::vector<unsigned int>* trigger_words) override { _trigger_words[key] = trigger_words;}
-  
-  void set_event_number(unsigned int evt) override { _event_number = evt;}
-  unsigned int get_event_number() override { return _event_number;}
-  void set_clock_number(unsigned int clk) override { _clock_number = clk;}
-  unsigned int get_clock_number() override { return _clock_number;}
+  void add_word(int key, std::vector<unsigned int>* trigger_words) override { _trigger_words[key] = trigger_words; }
 
-  ConstRange getTriggerWords() const override;  
+  void set_event_number(unsigned int evt) override { _event_number = evt; }
+  unsigned int get_event_number() override { return _event_number; }
+  void set_clock_number(unsigned int clk) override { _clock_number = clk; }
+  unsigned int get_clock_number() override { return _clock_number; }
+
+  ConstRange getTriggerWords() const override;
   Range getTriggerWords() override;
 
  protected:
-  
-  std::string _ll1_type;
-  std::string _trigger_type;
+  int idx{0};
+  unsigned int _event_number{0};
+  unsigned int _clock_number{0};
+  unsigned int _thresholds[10]{0};
 
   TriggerDefs::TriggerKey _trigger_key = TriggerDefs::TRIGGERKEYMAX;
 
-  int idx{};
-  unsigned int _event_number{};
-  unsigned int _clock_number{};
-
-  vector<unsigned int> *_trigger_bits;
+  std::string _ll1_type{"NONE"};
+  std::string _trigger_type{"NONE"};
+  std::vector<unsigned int>* _trigger_bits{nullptr};
   Map _trigger_words;
-  unsigned int _thresholds[10]{};
 
- private: // so the ClassDef does not show up with doc++
-  ClassDefOverride(LL1Outv1,1);
+ private:  // so the ClassDef does not show up with doc++
+  ClassDefOverride(LL1Outv1, 1);
 };
 
 #endif

@@ -1,15 +1,14 @@
-#ifndef __TRIGGERPRIMITIVE_H__
-#define __TRIGGERPRIMITIVE_H__
+#ifndef TRIGGER_TRIGGERPRIMITIVE_H
+#define TRIGGER_TRIGGERPRIMITIVE_H
 
-#include <stdio.h>
-#include <iostream>
-#include <string.h>
-#include <ostream>
-#include <phool/PHObject.h>
-#include <map>
-#include <climits>
-#include <vector>
 #include "TriggerDefs.h"
+
+#include <phool/PHObject.h>
+
+#include <iostream>
+#include <map>
+#include <ostream>
+#include <vector>
 
 ///
 class TriggerPrimitive : public PHObject
@@ -21,31 +20,25 @@ class TriggerPrimitive : public PHObject
   typedef std::pair<Iter, Iter> Range;
   typedef std::pair<ConstIter, ConstIter> ConstRange;
 
-  TriggerPrimitive();
-  TriggerPrimitive(TriggerDefs::TriggerPrimKey key);
-  virtual ~TriggerPrimitive();
-  
+  TriggerPrimitive() = default;
+  virtual ~TriggerPrimitive() override = default;
+
   /// Clear Event from memory
-  virtual void Reset() override;
+  virtual void Reset() override { return; }
   void identify(std::ostream& os = std::cout) const override;
-  int isValid() const override;
+  int isValid() const override { return 0; }
 
-  virtual std::vector<unsigned int>* get_sum_at_key(TriggerDefs::TriggerSumKey ) {return nullptr; }
+  virtual std::vector<unsigned int>* get_sum_at_key(TriggerDefs::TriggerSumKey) { return nullptr; }
 
-  virtual void add_sum(TriggerDefs::TriggerSumKey key, std::vector<unsigned int> *sum);
+  virtual void add_sum(TriggerDefs::TriggerSumKey /*key*/, std::vector<unsigned int>* /*sum*/) { return; }
 
-  virtual ConstRange getSums() const ;
+  virtual ConstRange getSums() const;
   virtual Range getSums();
-  
-  virtual size_t size() {return 0;}
 
- private:
-  
-  TriggerDefs::TriggerPrimKey m_triggerprimkey = TriggerDefs::TRIGGERPRIMKEYMAX;
-  Map _sums;
+  virtual size_t size() { return 0; }
 
- private: // so the ClassDef does not show up with doc++
-  ClassDefOverride(TriggerPrimitive,1);
+ private:  // so the ClassDef does not show up with doc++
+  ClassDefOverride(TriggerPrimitive, 1);
 };
 
 #endif

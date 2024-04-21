@@ -8,7 +8,6 @@
 class MinimumBiasInfov1 : public MinimumBiasInfo
 {
  public:
-
   MinimumBiasInfov1() = default;
   virtual ~MinimumBiasInfov1() override = default;
 

@@ -1,5 +1,5 @@
-#ifndef __TRIGGERDEFS_H__
-#define __TRIGGERDEFS_H__
+#ifndef TRIGGER_TRIGGERDEFS_H__
+#define TRIGGER_TRIGGERDEFS_H__
 
 #include <cstdint>
 #include <iostream>
@@ -10,7 +10,7 @@ namespace TriggerDefs
   typedef uint32_t TriggerKey;
   typedef uint32_t TriggerPrimKey;
   typedef uint32_t TriggerSumKey;
-  
+
   static TriggerKey TRIGGERKEYMAX __attribute__((unused)) = UINT32_MAX;
   static TriggerPrimKey TRIGGERPRIMKEYMAX __attribute__((unused)) = UINT32_MAX;
   static TriggerPrimKey TRIGGERSUMKEYMAX __attribute__((unused)) = UINT32_MAX;
@@ -28,7 +28,7 @@ namespace TriggerDefs
     cosmicTId = 4,
     cosmic_coinTId = 5,
     photonTId = 6
-  }  TriggerId;
+  } TriggerId;
 
   typedef enum
   {
@@ -53,7 +53,7 @@ namespace TriggerDefs
   TriggerId GetTriggerId(const std::string& trigger);
   DetectorId GetDetectorId(const std::string& detector);
   PrimitiveId GetPrimitiveId(const std::string& primitive);
-  
+
   static const unsigned int kBitShiftPrimitiveLocId __attribute__((unused)) = 5;
   static const unsigned int kBitShiftSumLocId __attribute__((unused)) = 0;
 
@@ -62,7 +62,7 @@ namespace TriggerDefs
   uint32_t getTriggerPrimKey(const TriggerDefs::TriggerId triggerId, const TriggerDefs::DetectorId detectorId, const TriggerDefs::PrimitiveId primitiveId, const uint16_t primlocid);
   uint32_t getTriggerSumKey(const TriggerDefs::TriggerId triggerId, const TriggerDefs::DetectorId detectorId, const TriggerDefs::PrimitiveId primitiveId, const uint16_t primlocid, const uint16_t sumlocid);
 
-  uint32_t GetTowerInfoKey( const TriggerDefs::DetectorId detId, const uint16_t iprim, const uint16_t isum, const uint16_t itower );
+  uint32_t GetTowerInfoKey(const TriggerDefs::DetectorId detId, const uint16_t iprim, const uint16_t isum, const uint16_t itower);
   uint32_t getTriggerId_from_TriggerKey(const TriggerDefs::TriggerKey triggerkey);
   uint32_t getTriggerId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey);
   uint32_t getTriggerId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey);
@@ -88,6 +88,6 @@ namespace TriggerDefs
 
   uint16_t getSumEtaId(const TriggerDefs::TriggerSumKey triggersumkey);
 
-};
+};  // namespace TriggerDefs
 
 #endif
