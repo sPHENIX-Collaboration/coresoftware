@@ -1,9 +1,11 @@
-#ifndef __LL1DEFS_H__
-#define __LL1DEFS_H__
+#ifndef TRIGGER_LL1DEFS_H
+#define TRIGGER_LL1DEFS_H
 
-namespace LL1Defs{
+namespace LL1Defs
+{
 
-  enum MBDTriggerWord{
+  enum MBDTriggerWord
+  {
     _N_NHIT = 0,
     _S_NHIT = 1,
     _N_TSUM = 2,
