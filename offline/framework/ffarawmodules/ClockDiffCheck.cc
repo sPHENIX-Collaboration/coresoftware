@@ -135,7 +135,7 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
       {
 	if (clk < std::get<0>(pktiter))
 	{
-	  clk |= 0x100000000;
+	  clk |= 0x100000000U;
 	}
 	clkdiff = clk - std::get<0>(pktiter);
 	clk &= 0xFFFFFFFF;
@@ -176,7 +176,7 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
       {
 	if (clk < std::get<0>(pktiter))
 	{
-	  clk |= 0x100000000;
+	  clk |= 0x100000000U;
 	}
 	clkdiff = clk - std::get<0>(pktiter);
 	clk &= 0xFFFFFFFF;
