@@ -96,7 +96,7 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   MoveHcalToNodeTree();
   MoveZdcToNodeTree();
   MySyncManager()->CurrentEvent(m_RefEventNo);
-  return iret;
+  return 0;
   // readagain:
   //   if (!IsOpen())
   //   {
