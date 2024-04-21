@@ -70,10 +70,7 @@ class LiteCaloEval : public SubsysReco
     calotype = i;
   }
 
-
   TFile *f_temp{nullptr};
-
-
 
   void Get_Histos(const std::string &infile, const std::string &fun4all_file = "");
 
@@ -82,7 +79,7 @@ class LiteCaloEval : public SubsysReco
   /// Setters
   void setFitMax(float fitMax) { fitmax = fitMax; }
   void setFitMin(float fitMin) { fitmin = fitMin; }
-  void set_spectra_binWidth(double binWidth) {binwidth = binWidth;}
+  void set_spectra_binWidth(double binWidth) { binwidth = binWidth; }
 
   /// Getters
   float getFitMax() { return fitmax; }
@@ -110,7 +107,6 @@ class LiteCaloEval : public SubsysReco
   TH1 *eta_hist[97] = {};
   TH2 *energy_eta_hist{nullptr};
   TH3 *e_eta_phi{nullptr};
-
 
   Calo calotype{NONE};
   int _ievent{0};
