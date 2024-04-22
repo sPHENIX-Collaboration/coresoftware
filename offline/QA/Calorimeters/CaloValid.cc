@@ -660,10 +660,11 @@ std::string CaloValid::getHistoPrefix() const { return std::string("h_") + Name(
 void CaloValid::createHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
 
   // create and register your histos (all types) here
   {
-    auto h = new TH2F(boost::str(boost::format("%semcal_mbd_correlation")%getHistoPrefix()).c_str(), ";emcal;mbd", 100, 0, 1, 100, 0, 1);
+    auto h = new TH2F(boost::str(boost::format("%semcal_mbd_correlation") % getHistoPrefix()).c_str(), ";emcal;mbd", 100, 0, 1, 100, 0, 1);
     hm->registerHisto(h);
   }
   {
@@ -849,4 +850,5 @@ void CaloValid::createHistos()
     auto h = new TH1F(boost::str(boost::format("%sclusE")%getHistoPrefix()).c_str(), "", 100, 0, 10);
     hm->registerHisto(h);
   }
+
 }
