@@ -113,7 +113,7 @@ class CaloValid : public SubsysReco
   TTree* towerntuple{nullptr};
   TNtuple* clusterntuple{nullptr};
 */
-  
+
   int _eventcounter{0};
   int _range{1};
 };
