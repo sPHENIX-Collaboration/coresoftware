@@ -488,7 +488,6 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
 
     InttNameSpace::RawData_s raw;
     InttNameSpace::Offline_s ofl;
-    double hit_energy;
 
     for (unsigned int i1 = 0; i1 < vybin.size(); i1++)  // loop over all fired cells
     {
@@ -522,10 +521,11 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       ofl.strip_y = vybin[i1]; //vybin is the row
       raw = InttNameSpace::ToRawData(ofl);
 
+      double hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
+      addtruthhitset(hitsetkey, hitkey, hit_energy);
+
       if (m_HotChannelSet.find(raw) != m_HotChannelSet.end())
       { //We still want the truth hit
-        hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
-        addtruthhitset(hitsetkey, hitkey, hit_energy);
         continue;
       }
 
@@ -543,10 +543,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
         std::cout << "add energy " << venergy[i1].first << " to intthit " << std::endl;
       }
 
-      hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
       hit->addEnergy(hit_energy);
-
-      addtruthhitset(hitsetkey, hitkey, hit_energy);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
