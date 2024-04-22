@@ -84,6 +84,10 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     iret += FillZdc();
   }
+  if (iret)
+  {
+    return -1;
+  }
   DetermineReferenceEventNumber();
   std::cout << "new ref event: " <<  m_RefEventNo << std::endl;
   MoveGl1ToNodeTree();
@@ -92,7 +96,7 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   MoveHcalToNodeTree();
   MoveZdcToNodeTree();
   MySyncManager()->CurrentEvent(m_RefEventNo);
-  return iret;
+  return 0;
   // readagain:
   //   if (!IsOpen())
   //   {

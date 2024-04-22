@@ -107,7 +107,6 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
   m_alignStates.verbosity(Verbosity());
-  m_fieldMap = "FIELDMAP_TRACKING";
   if (std::filesystem::path(m_fieldMap).extension() != ".root")
   {
     m_fieldMap = CDBInterface::instance()->getUrl(m_fieldMap);

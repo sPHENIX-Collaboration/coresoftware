@@ -8,13 +8,18 @@ AM_CPPFLAGS = \
   -DHomogeneousField
 
 lib_LTLIBRARIES = \
-   libqa_modules.la
+   libsimqa_modules.la \
+   libsimqa_kfparticle.la
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libqa_modules_la_LIBADD = \
+libsimqa_kfparticle_la_LIBADD = \
+  libsimqa_modules.la \
+  -lkfparticle_sphenix
+
+libsimqa_modules_la_LIBADD = \
   -lcalo_io \
   -lfun4all \
   -lg4detectors_io \
@@ -43,7 +48,10 @@ pkginclude_HEADERS = \
   QAG4SimulationTruthDecay.h \
   QAG4Decayer.h 
 
-libqa_modules_la_SOURCES = \
+libsimqa_kfparticle_la_SOURCES = \
+  QAG4SimulationKFParticle.cc
+
+libsimqa_modules_la_SOURCES = \
   QAG4SimulationCalorimeter.cc \
   QAG4SimulationCalorimeterSum.cc \
   QAG4SimulationDistortions.cc \
@@ -62,7 +70,8 @@ libqa_modules_la_SOURCES = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_qa
+  testexternals_qa \
+  testexternals_simqa_kfparticle
 
 BUILT_SOURCES = \
 	testexternals.cc
@@ -71,7 +80,13 @@ testexternals_qa_SOURCES = \
 	testexternals.cc
 
 testexternals_qa_LDADD = \
-	libqa_modules.la
+	libsimqa_modules.la
+
+testexternals_simqa_kfparticle_SOURCES = \
+	testexternals.cc
+
+testexternals_simqa_kfparticle_LDADD = \
+	libsimqa_modules.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

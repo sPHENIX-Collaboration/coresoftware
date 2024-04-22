@@ -1,5 +1,5 @@
 #include "InttClusterQA.h"
-#include "CylinderGeomIntt.h"
+#include <intt/CylinderGeomIntt.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 

@@ -233,6 +233,12 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
     {
       std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
       std::map<TrkrDefs::cluskey, Acts::Vector3> silposmap, tpcposmap;
+      for(auto& key : tpcClusKeys)
+      {
+        auto cluster = _cluster_map->findCluster(key);
+        auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
+        tpcposmap.emplace(key, clusglob);
+      }
       for (auto& key : newClusKeys)
       {
         bool isTpcKey = false;
