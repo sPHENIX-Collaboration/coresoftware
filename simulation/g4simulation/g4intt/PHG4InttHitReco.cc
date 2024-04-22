@@ -29,6 +29,8 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Utils.h>
 
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -46,6 +48,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <filesystem>
 #include <map>      // for _Rb_tree_const_it...
 #include <memory>   // for allocator_traits<...
 #include <set>
@@ -229,6 +232,13 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
       auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
       DetNode->addNode(newNode);
     }
+  }
+
+  if (Verbosity() > 0)
+  {
+    std::cout<<"Intt simulation BadChannelMap : size = "<<m_HotChannelSet.size()<<"  ";
+    std::cout<<(( m_HotChannelSet.size() >0 ) ? "hotchannel loaded " : "emtpy. hotchannel is not loaded");
+    std::cout<<std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -476,6 +486,10 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     // End of charge sharing implementation
     //===================================
 
+    InttNameSpace::RawData_s raw;
+    InttNameSpace::Offline_s ofl;
+    double hit_energy;
+
     for (unsigned int i1 = 0; i1 < vybin.size(); i1++)  // loop over all fired cells
     {
       // We add the Intt TrkrHitsets directly to the node using hitsetcontainer
@@ -500,7 +514,21 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
 
       // generate the key for this hit
       TrkrDefs::hitkey hitkey = InttDefs::genHitKey(vzbin[i1], vybin[i1]);
-      // See if this hit already exists
+      // See if this hit already exists and is not a raw hit
+      ofl.layer = sphxlayer;
+      ofl.ladder_phi = ladder_z_index;
+      ofl.ladder_z = ladder_phi_index;
+      ofl.strip_x = vzbin[i1]; //vzbin is the col
+      ofl.strip_y = vybin[i1]; //vybin is the row
+      raw = InttNameSpace::ToRawData(ofl);
+
+      if (m_HotChannelSet.find(raw) != m_HotChannelSet.end())
+      { //We still want the truth hit
+        hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
+        addtruthhitset(hitsetkey, hitkey, hit_energy);
+        continue;
+      }
+
       TrkrHit *hit = hitsetit->second->getHit(hitkey);
       if (!hit)
       {
@@ -515,7 +543,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
         std::cout << "add energy " << venergy[i1].first << " to intthit " << std::endl;
       }
 
-      double hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
+      hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
       hit->addEnergy(hit_energy);
 
       addtruthhitset(hitsetkey, hitkey, hit_energy);
@@ -973,4 +1001,83 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode *topNode)
   m_truth_hits->Reset();
   prior_g4hit = nullptr;
   return;
+}
+
+
+int PHG4InttHitReco::LoadHotChannelMapLocal(std::string const& filename)
+{
+  if (filename.empty())
+  {
+    std::cout << "int PHG4InttHitReco.cc::LoadHotChannelMapLocal(std::string const& filename)" << std::endl;
+    std::cout << "\tArgument 'filename' is empty string" << std::endl;
+    return 1;
+  }
+
+  if (!std::filesystem::exists(filename))
+  {
+    std::cout << "int PHG4InttHitReco.cc::LoadHotChannelMapLocal(std::string const& filename)" << std::endl;
+    std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
+    return 1;
+  }
+
+
+  CDBTTree cdbttree(filename);
+  // need to checkt for error exception
+  cdbttree.LoadCalibrations();
+
+  m_HotChannelSet.clear();
+  uint64_t N = cdbttree.GetSingleIntValue("size");
+  for (uint64_t n = 0; n < N; ++n)
+  {
+    //C++ designated initializers only available with -std=c++20
+    //Just going to build the struct normally
+    InttNameSpace::RawData_s rawHotChannel;
+    rawHotChannel.felix_server = cdbttree.GetIntValue(n, "felix_server");
+    rawHotChannel.felix_channel = cdbttree.GetIntValue(n, "felix_channel");
+    rawHotChannel.chip = cdbttree.GetIntValue(n, "chip");
+    rawHotChannel.channel = cdbttree.GetIntValue(n, "channel");
+
+    m_HotChannelSet.insert(rawHotChannel);
+  }
+
+  return 0;
+}
+
+int PHG4InttHitReco::LoadHotChannelMapRemote(std::string const& name)
+{
+  if (name.empty())
+  {
+    std::cout << "int PHG4InttHitReco.cc::LoadHotChannelMapRemote(std::string const& name)" << std::endl;
+    std::cout << "\tArgument 'name' is empty string" << std::endl;
+    return 1;
+  }
+
+  std::string database = CDBInterface::instance()->getUrl(name);
+
+  if (!std::filesystem::exists(database))
+  {
+    std::cout << "int PHG4InttHitReco.cc::LoadHotChannelMapRemote(std::string const& filename)" << std::endl;
+    std::cout << "\tFile '" << database << "' does not exist" << std::endl;
+    return 1;
+  }
+
+  CDBTTree cdbttree(database);
+  cdbttree.LoadCalibrations();
+
+  m_HotChannelSet.clear();
+  uint64_t N = cdbttree.GetSingleIntValue("size");
+  for (uint64_t n = 0; n < N; ++n)
+  {
+    //C++ designated initializers only available with -std=c++20
+    //Just going to build the struct normally
+    InttNameSpace::RawData_s rawHotChannel;
+    rawHotChannel.felix_server = cdbttree.GetIntValue(n, "felix_server");
+    rawHotChannel.felix_channel = cdbttree.GetIntValue(n, "felix_channel");
+    rawHotChannel.chip = cdbttree.GetIntValue(n, "chip");
+    rawHotChannel.channel = cdbttree.GetIntValue(n, "channel");
+
+    m_HotChannelSet.insert(rawHotChannel);
+  }
+
+  return 0;
 }
