@@ -516,8 +516,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       TrkrDefs::hitkey hitkey = InttDefs::genHitKey(vzbin[i1], vybin[i1]);
       // See if this hit already exists and is not a raw hit
       ofl.layer = sphxlayer;
-      ofl.ladder_phi = ladder_z_index;
-      ofl.ladder_z = ladder_phi_index;
+      ofl.ladder_z = ladder_z_index;
+      ofl.ladder_phi = ladder_phi_index;
       ofl.strip_x = vzbin[i1]; //vzbin is the col
       ofl.strip_y = vybin[i1]; //vybin is the row
       raw = InttNameSpace::ToRawData(ofl);
