@@ -517,8 +517,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       ofl.layer = sphxlayer;
       ofl.ladder_z = ladder_z_index;
       ofl.ladder_phi = ladder_phi_index;
-      ofl.strip_x = vzbin[i1]; //vzbin is the col
-      ofl.strip_y = vybin[i1]; //vybin is the row
+      ofl.strip_x = vybin[i1]; //vzbin is the col
+      ofl.strip_y = vzbin[i1]; //vybin is the row
       raw = InttNameSpace::ToRawData(ofl);
 
       double hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
