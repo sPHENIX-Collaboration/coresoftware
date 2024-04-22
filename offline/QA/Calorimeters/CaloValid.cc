@@ -34,8 +34,6 @@
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
 
-#include <format>
-
 #include <cmath>     // for log10, pow, sqrt, abs, M_PI
 #include <iostream>  // for operator<<, endl, basic_...
 #include <limits>
@@ -43,10 +41,9 @@
 #include <string>
 #include <utility>  // for pair
 
-CaloValid::CaloValid(const std::string& name, const std::string& filename)
+CaloValid::CaloValid(const std::string& name)
   : SubsysReco(name)
   , detector("HCALIN")
-  , outfilename(filename)
 {
 }
 
@@ -87,6 +84,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     std::cout << _eventcounter << std::endl;
   }
 
+    auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
   float totalcemc = 0.;
   float totalihcal = 0.;
   float totalohcal = 0.;
@@ -115,6 +115,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   int max_ohcal_t = -1;
 
   // get time estimate
+  auto hzdctime_cut = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%szdctime_cut") % getHistoPrefix()).c_str()));
+  auto hemcaltime_cut = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%semcaltime_cut") % getHistoPrefix()).c_str()));
+  auto hihcaltime_cut = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sihcaltime_cut") % getHistoPrefix()).c_str()));
+  auto hohcaltime_cut = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sohcaltime_cut") % getHistoPrefix()).c_str()));
+
   max_zdc_t = Getpeaktime(hzdctime_cut);
   max_emcal_t = Getpeaktime(hemcaltime_cut);
   max_ihcal_t = Getpeaktime(hihcaltime_cut);
@@ -127,6 +132,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     std::cout << "CaloValid GlobalVertexMap node is missing" << std::endl;
   }
   float vtx_z = std::numeric_limits<float>::quiet_NaN();
+  auto hvtx_z_raw = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%svtx_z_raw") % getHistoPrefix()).c_str()));
+
   if (vertexmap && !vertexmap->empty())
   {
     GlobalVertex* vtx = vertexmap->begin()->second;
@@ -143,6 +150,14 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     if (towers)
     {
       int size = towers->size();  // online towers should be the same!
+      auto h_cemc_e_chi2 = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%scemc_e_chi2") % getHistoPrefix()).c_str()));
+      auto h_cemc_status = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%scemc_status") % getHistoPrefix()).c_str()));
+      auto hemcaltime = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%semcaltime") % getHistoPrefix()).c_str()));
+      auto h_cemc_etaphi_time = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_time") % getHistoPrefix()).c_str()));
+      auto h_cemc_etaphi = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi") % getHistoPrefix()).c_str()));
+      auto h_cemc_etaphi_wQA = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_wQA") % getHistoPrefix()).c_str()));
+      auto h_cemc_etaphi_badChi2 = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_badChi2") % getHistoPrefix()).c_str()));
+
       for (int channel = 0; channel < size; channel++)
       {
         TowerInfo* tower = towers->get_tower_at_channel(channel);
@@ -194,6 +209,14 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
     if (towers)
     {
+      auto h_ihcal_e_chi2 = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sihcal_e_chi2") % getHistoPrefix()).c_str()));
+      auto h_ihcal_status = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sihcal_status") % getHistoPrefix()).c_str()));
+      auto hihcaltime = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sihcaltime") % getHistoPrefix()).c_str()));
+      auto h_hcalin_etaphi_time = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sihcal_etaphi_time") % getHistoPrefix()).c_str()));
+      auto h_hcalin_etaphi = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sihcal_etaphi") % getHistoPrefix()).c_str()));
+      auto h_hcalin_etaphi_wQA = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sihcal_etaphi_wQA") % getHistoPrefix()).c_str()));
+      auto h_hcalin_etaphi_badChi2 = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sihcal_etaphi_badChi2") % getHistoPrefix()).c_str()));
+
       int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
@@ -250,6 +273,14 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
     if (towers)
     {
+      auto h_ohcal_e_chi2 = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sohcal_e_chi2") % getHistoPrefix()).c_str()));
+      auto h_ohcal_status = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sohcal_status") % getHistoPrefix()).c_str()));
+      auto hohcaltime = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sohcaltime") % getHistoPrefix()).c_str()));
+      auto h_hcalout_etaphi_time = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sohcal_etaphi_time") % getHistoPrefix()).c_str()));
+      auto h_hcalout_etaphi = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sohcal_etaphi") % getHistoPrefix()).c_str()));
+      auto h_hcalout_etaphi_wQA = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sohcal_etaphi_wQA") % getHistoPrefix()).c_str()));
+      auto h_hcalout_etaphi_badChi2 = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sohcal_etaphi_badChi2") % getHistoPrefix()).c_str()));
+
       int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
@@ -260,7 +291,6 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         int iphi = towers->getTowerPhiBin(towerkey);
         int _time = tower->get_time();
         float _timef = tower->get_time_float();
-        hihcaltime_cut->Fill(_time);
         hohcaltime_cut->Fill(_time);
         h_ohcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
         bool isGood = tower->get_isGood();
@@ -307,6 +337,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
     if (towers)
     {
+      auto hzdctime = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%szdctime") % getHistoPrefix()).c_str()));
+
       int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
@@ -360,6 +392,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
     if (towers)
     {
+      auto h_cemc_etaphi_fracHitADC = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_fracHitADC") % getHistoPrefix()).c_str()));
+
       int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
@@ -384,6 +418,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
     if (towers)
     {
+      auto h_hcalout_etaphi_fracHitADC = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sohcal_etaphi_fracHitADC") % getHistoPrefix()).c_str()));
+
       int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
@@ -408,6 +444,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALIN");
     if (towers)
     {
+      auto h_hcalin_etaphi_fracHitADC = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sihcal_etaphi_fracHitADC") % getHistoPrefix()).c_str()));
+
       int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
@@ -444,25 +482,35 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     float pmtadc = mbdpmt->get_q();
     totalmbd += pmtadc;
   }
+  auto h_emcal_mbd_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%semcal_mbd_correlation") % getHistoPrefix()).c_str()));
+  auto h_ihcal_mbd_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sihcal_mbd_correlation") % getHistoPrefix()).c_str()));
+  auto h_ohcal_mbd_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sohcal_mbd_correlation") % getHistoPrefix()).c_str()));
+  auto h_emcal_hcal_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%semcal_hcal_correlation") % getHistoPrefix()).c_str()));
+auto h_emcal_zdc_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%szdc_emcal_correlation") % getHistoPrefix()).c_str()));
+auto h_totalzdc_e = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%stotalzdc_e") % getHistoPrefix()).c_str()));
+auto hzdcSouthraw = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%szdcSouthraw") % getHistoPrefix()).c_str()));
+auto hzdcNorthraw = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%szdcNorthraw") % getHistoPrefix()).c_str()));
+auto hzdcSouthcalib = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%szdcSouthcalib") % getHistoPrefix()).c_str()));
+auto hzdcNorthcalib = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%szdcNorthcalib") % getHistoPrefix()).c_str()));
 
-  h_emcal_mbd_correlation->Fill(totalcemc / emcaldownscale, totalmbd / mbddownscale);
-  h_ihcal_mbd_correlation->Fill(totalihcal / ihcaldownscale, totalmbd / mbddownscale);
-  h_ohcal_mbd_correlation->Fill(totalohcal / ohcaldownscale, totalmbd / mbddownscale);
-  h_emcal_hcal_correlation->Fill(totalcemc / emcaldownscale, totalohcal / ohcaldownscale);
-  h_emcal_zdc_correlation->Fill(totalcemc / emcaldownscale, totalzdc / zdcdownscale);
-  h_totalzdc_e->Fill(totalzdc);
+h_emcal_mbd_correlation->Fill(totalcemc / emcaldownscale, totalmbd / mbddownscale);
+h_ihcal_mbd_correlation->Fill(totalihcal / ihcaldownscale, totalmbd / mbddownscale);
+h_ohcal_mbd_correlation->Fill(totalohcal / ohcaldownscale, totalmbd / mbddownscale);
+h_emcal_hcal_correlation->Fill(totalcemc / emcaldownscale, totalohcal / ohcaldownscale);
+h_emcal_zdc_correlation->Fill(totalcemc / emcaldownscale, totalzdc / zdcdownscale);
+h_totalzdc_e->Fill(totalzdc);
 
-  hzdcSouthraw->Fill(totalzdcsouthraw);
-  hzdcNorthraw->Fill(totalzdcnorthraw);
-  hzdcSouthcalib->Fill(totalzdcsouthcalib);
-  hzdcNorthcalib->Fill(totalzdcnorthcalib);
+hzdcSouthraw->Fill(totalzdcsouthraw);
+hzdcNorthraw->Fill(totalzdcnorthraw);
+hzdcSouthcalib->Fill(totalzdcsouthcalib);
+hzdcNorthcalib->Fill(totalzdcnorthcalib);
 
-  //------------------------------ clusters & pi0 ------------------------------//
-  RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_POS_COR_CEMC");
-  if (!clusterContainer)
-  {
-    std::cout << PHWHERE << "funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
-    return 0;
+//------------------------------ clusters & pi0 ------------------------------//
+RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_POS_COR_CEMC");
+if (!clusterContainer)
+{
+  std::cout << PHWHERE << "funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
+  return 0;
   }
 
   //////////////////////////////////////////
@@ -476,6 +524,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
               << ": Could not find node " << towergeomnodename << std::endl;
     gSystem->Exit(1);
   }
+  auto h_clusE = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sclusE") % getHistoPrefix()).c_str()));
+  auto h_etaphi_clus = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%setaphi_clus") % getHistoPrefix()).c_str()));
+  auto h_InvMass = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sInvMass") % getHistoPrefix()).c_str()));
 
   // cuts
   float emcMinClusE1 = 1.3;  // 0.5;
@@ -660,7 +711,7 @@ void CaloValid::createHistos()
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1F(boost::str(boost:format("%scemc_status")%getHistoPrefix()).c_str(), "", 256, 0, 256);
+    auto h = new TH1F(boost::str(boost::format("%scemc_status")%getHistoPrefix()).c_str(), "", 256, 0, 256);
     hm->registerHisto(h);
   }
 
@@ -720,19 +771,19 @@ void CaloValid::createHistos()
   }
   // ZDC QA plots
   {
-    auto h = new TH1D(boost::str(boost::format("%shzdcSouthraw")%getHistoPrefix()).c_str(), "hzdcSouthraw", 1500, 0, 15000);
+    auto h = new TH1D(boost::str(boost::format("%szdcSouthraw")%getHistoPrefix()).c_str(), "hzdcSouthraw", 1500, 0, 15000);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D(boost::str(boost::format("%shzdcNorthraw")%getHistoPrefix()).c_str(), "hzdcNorthraw", 1500, 0, 15000);
+    auto h = new TH1D(boost::str(boost::format("%szdcNorthraw")%getHistoPrefix()).c_str(), "hzdcNorthraw", 1500, 0, 15000);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D(boost::str(boost::format("%shzdcSouthcalib")%getHistoPrefix()).c_str(), "hzdcSouthcalib", 1500, 0, 15000);
+    auto h = new TH1D(boost::str(boost::format("%szdcSouthcalib")%getHistoPrefix()).c_str(), "hzdcSouthcalib", 1500, 0, 15000);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D(boost::str(boost::format("%shzdcNorthcalib")%getHistoPrefix()).c_str(), "hzdcNorthcalib", 1500, 0, 15000);
+    auto h = new TH1D(boost::str(boost::format("%szdcNorthcalib")%getHistoPrefix()).c_str(), "hzdcNorthcalib", 1500, 0, 15000);
     hm->registerHisto(h);
   }
   {
@@ -785,7 +836,7 @@ void CaloValid::createHistos()
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D(boost::str(boost::format("%sohcaltime")%getHistoPrefix()).c_str()), "hohcaltime", 50, -17.5, 32.5);
+    auto h = new TH1D(boost::str(boost::format("%sohcaltime")%getHistoPrefix()).c_str(), "hohcaltime", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
 
@@ -795,7 +846,7 @@ void CaloValid::createHistos()
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1F(boost:::str(boost::format("%sclusE")%getHistoPrefix()).c_str(), "", 100, 0, 10);
+    auto h = new TH1F(boost::str(boost::format("%sclusE")%getHistoPrefix()).c_str(), "", 100, 0, 10);
     hm->registerHisto(h);
   }
 }

@@ -27,7 +27,7 @@ libcalovalid_la_LIBADD = \
   -lmbd_io \
   -lphool \
   -lSubsysReco \
-  -lqautil
+  -lqautils
 
 ################################################
 # linking tests
