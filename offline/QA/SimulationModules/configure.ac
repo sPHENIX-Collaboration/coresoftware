@@ -1,4 +1,4 @@
-AC_INIT(qa_modules,[1.00])
+AC_INIT(simqa_modules,[1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE
