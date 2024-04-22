@@ -82,24 +82,24 @@ int PHTpcCentralMembraneClusterizer::InitRun(PHCompositeNode *topNode)
   for (int i = 0; i < 48; i++)
   {
     hphi_reco_pos[i] = new TH1F(
-      (boost::format("hphi_reco_pos_layer%02d") % (7+i)).str().c_str(),
-      (boost::format("Reco #phi for Layer %02d Z > 0;#phi;counts") % (7+i)).str().c_str(),
-50, 0.0, M_PI / 9);
+        (boost::format("hphi_reco_pos_layer%02d") % (7 + i)).str().c_str(),
+        (boost::format("Reco #phi for Layer %02d Z > 0;#phi;counts") % (7 + i)).str().c_str(),
+        50, 0.0, M_PI / 9);
     hphi_reco_neg[i] = new TH1F(
-      (boost::format("hphi_reco_neg_layer%02d") % (7+i)).str().c_str(),
-      (boost::format("Reco #phi for Layer %02d Z < 0;#phi;counts") % (7+i)).str().c_str(),
-50, 0.0, M_PI / 9);
+        (boost::format("hphi_reco_neg_layer%02d") % (7 + i)).str().c_str(),
+        (boost::format("Reco #phi for Layer %02d Z < 0;#phi;counts") % (7 + i)).str().c_str(),
+        50, 0.0, M_PI / 9);
 
     if (i < 47)
     {
       hphi_reco_pair_pos[i] = new TH1F(
-	(boost::format("hphi_reco_pair_pos_layers%02d_%02d") % (7+i) % (8 + i)).str().c_str(),
-	 (boost::format("Reco #phi for Layers %02d and %02d Z > 0;#phi;counts") %(7 + i) %(8 + i)).str().c_str(),
-50, 0.0, M_PI / 9);
+          (boost::format("hphi_reco_pair_pos_layers%02d_%02d") % (7 + i) % (8 + i)).str().c_str(),
+          (boost::format("Reco #phi for Layers %02d and %02d Z > 0;#phi;counts") % (7 + i) % (8 + i)).str().c_str(),
+          50, 0.0, M_PI / 9);
       hphi_reco_pair_neg[i] = new TH1F(
-	(boost::format("hphi_reco_pair_neg_layers%02d_%02d") % (7+i) % (8 + i)).str().c_str(),
-	 (boost::format("Reco #phi for Layers %02d and %02d Z < 0;#phi;counts") %(7 + i) %(8 + i)).str().c_str(),
-50, 0.0, M_PI / 9);
+          (boost::format("hphi_reco_pair_neg_layers%02d_%02d") % (7 + i) % (8 + i)).str().c_str(),
+          (boost::format("Reco #phi for Layers %02d and %02d Z < 0;#phi;counts") % (7 + i) % (8 + i)).str().c_str(),
+          50, 0.0, M_PI / 9);
     }
   }
 

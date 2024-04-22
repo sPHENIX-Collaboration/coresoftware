@@ -3,8 +3,6 @@
 #ifndef TPCCALIB_PHTPCCENTRALMEMBRANECLUSTERIZER_H
 #define TPCCALIB_PHTPCCENTRALMEMBRANECLUSTERIZER_H
 
-
-
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
@@ -80,52 +78,52 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
 
   ///@name counters
   //@{
-  int m_total_clusters {0};
-  int m_accepted_clusters {0};
-  int m_cm_clusters {0};
-  int m_cm_clusters_size1 {0};
-  int m_cm_clusters_size2 {0};
+  int m_total_clusters{0};
+  int m_accepted_clusters{0};
+  int m_cm_clusters{0};
+  int m_cm_clusters_size1{0};
+  int m_cm_clusters_size2{0};
   //@}
 
-  int m_moduloThreshold {5};
-  int m_metaClusterThreshold {18};
+  int m_moduloThreshold{5};
+  int m_metaClusterThreshold{18};
 
-  bool _histos {false};
-  TH1 *henergy {nullptr};
-  TH1 *hz {nullptr};
-  TH1 *hz_pos {nullptr};
-  TH1 *hz_neg {nullptr};
-  TH2 *hxy {nullptr};
-  TH1 *hDist {nullptr};
-  TH2 *hDistRow {nullptr};
-  TH1 *hDist2 {nullptr};
-  TH2 *hDistRowAdj {nullptr};
-  TH1 *hDist2Adj {nullptr};
-  TH1 *hClustE[3] {nullptr};
+  bool _histos{false};
+  TH1 *henergy{nullptr};
+  TH1 *hz{nullptr};
+  TH1 *hz_pos{nullptr};
+  TH1 *hz_neg{nullptr};
+  TH2 *hxy{nullptr};
+  TH1 *hDist{nullptr};
+  TH2 *hDistRow{nullptr};
+  TH1 *hDist2{nullptr};
+  TH2 *hDistRowAdj{nullptr};
+  TH1 *hDist2Adj{nullptr};
+  TH1 *hClustE[3]{nullptr};
 
-  TH2 *hrPhi_reco_petalModulo_pos {nullptr};
-  TH2 *hrPhi_reco_petalModulo_neg {nullptr};
+  TH2 *hrPhi_reco_petalModulo_pos{nullptr};
+  TH2 *hrPhi_reco_petalModulo_neg{nullptr};
 
-  TH1 *hphi_reco_pos[48] {nullptr};
-  TH1 *hphi_reco_neg[48] {nullptr};
+  TH1 *hphi_reco_pos[48]{nullptr};
+  TH1 *hphi_reco_neg[48]{nullptr};
 
-  TH1 *hphi_reco_pair_pos[47] {nullptr};
-  TH1 *hphi_reco_pair_neg[47] {nullptr};
+  TH1 *hphi_reco_pair_pos[47]{nullptr};
+  TH1 *hphi_reco_pair_neg[47]{nullptr};
 
-  int nPairAbove_pos[47] {0};
-  int nPairAbove_neg[47] {0};
+  int nPairAbove_pos[47]{0};
+  int nPairAbove_neg[47]{0};
 
-  double pairAboveContent_pos[47] {0.0};
-  double pairAboveContent_neg[47] {0.0};
+  double pairAboveContent_pos[47]{0.0};
+  double pairAboveContent_neg[47]{0.0};
 
-  std::string m_histogramfilename {"PHTpcCentralMembraneClusterizer.root"};
+  std::string m_histogramfilename{"PHTpcCentralMembraneClusterizer.root"};
   std::unique_ptr<TFile> m_histogramfile;
 
-  unsigned int _min_adc_value {0};
-  double _min_z_value {0.0};
-  double _cmclus_dr_inner {0.51};   // cm
-  double _cmclus_dr_mid {0.95};     // cm
-  double _cmclus_dr_outer {1.025};  // cm
+  unsigned int _min_adc_value{0};
+  double _min_z_value{0.0};
+  double _cmclus_dr_inner{0.51};   // cm
+  double _cmclus_dr_mid{0.95};     // cm
+  double _cmclus_dr_outer{1.025};  // cm
 };
 
 #endif  // TPCCALIB_PHTPCCENTRALMEMBRANECLUSTERIZER_H
