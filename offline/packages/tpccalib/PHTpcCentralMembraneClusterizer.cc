@@ -1,19 +1,5 @@
 #include "PHTpcCentralMembraneClusterizer.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-#include <TFile.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <string>
-#include <TVector3.h>
-#include <TCanvas.h>
-#include <TGraph.h>
-#include <cmath>
-
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
@@ -28,6 +14,21 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/ActsTransformations.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TVector3.h>
+#include <TCanvas.h>
+#include <TGraph.h>
+
+#include <string>
+#include <cmath>
 
 namespace 
 {
@@ -127,7 +128,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       auto glob = tgeometry->getGlobalPosition(cluskey, cluster);
       TVector3 tmp_pos(glob(0),glob(1),glob(2));
 
-      unsigned int layer = TrkrDefs::getLayer(cluskey);
+      unsigned int cluster_layer = TrkrDefs::getLayer(cluskey);
 
       double phi = tmp_pos.Phi();
 
@@ -146,10 +147,10 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	//mean_z_content_plus += tmp_pos.Z();
 
 	hrPhi_reco_petalModulo_pos->Fill(phiMod, tmp_pos.Perp());
-	hphi_reco_pos[layer-7]->Fill(phiMod);
+	hphi_reco_pos[cluster_layer-7]->Fill(phiMod);
 	//for layer pairs, if last layer can only go in layer 53-54 pair, if first layer can only go in layer 7-8 pair
-	if(layer < 54) hphi_reco_pair_pos[layer-7]->Fill(phiMod);
-	if(layer > 7) hphi_reco_pair_pos[layer-8]->Fill(phiMod);
+	if(cluster_layer < 54) hphi_reco_pair_pos[cluster_layer-7]->Fill(phiMod);
+	if(cluster_layer > 7) hphi_reco_pair_pos[cluster_layer-8]->Fill(phiMod);
       }else{
 
 	hz_neg->Fill(tmp_pos.Z());
@@ -157,10 +158,10 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	//mean_z_content_minus += tmp_pos.Z();
 
 	hrPhi_reco_petalModulo_neg->Fill(phiMod, tmp_pos.Perp());
-	hphi_reco_neg[layer-7]->Fill(phiMod);
+	hphi_reco_neg[cluster_layer-7]->Fill(phiMod);
 	//for layer pairs, if last layer can only go in layer 53-54 pair, if first layer can only go in layer 7-8 pair
-	if(layer < 54) hphi_reco_pair_neg[layer-7]->Fill(phiMod);
-	if(layer > 7) hphi_reco_pair_neg[layer-8]->Fill(phiMod);
+	if(cluster_layer < 54) hphi_reco_pair_neg[cluster_layer-7]->Fill(phiMod);
+	if(cluster_layer > 7) hphi_reco_pair_neg[cluster_layer-8]->Fill(phiMod);
       }
 
     }
@@ -217,8 +218,8 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       if(Verbosity() > 0)
       {
         unsigned int lyr = TrkrDefs::getLayer(cluskey);
-        unsigned short  side = TpcDefs::getSide(cluskey);
-        std::cout << " z " << z << " side " << side << " layer " << lyr << " Adc " << cluster->getAdc() << " x " << x << " y " << y << std::endl;
+        unsigned short cluster_side = TpcDefs::getSide(cluskey);
+        std::cout << " z " << z << " side " << cluster_side << " layer " << lyr << " Adc " << cluster->getAdc() << " x " << x << " y " << y << std::endl;
       }
 
       TVector3 tmp_pos(x,y,z);
