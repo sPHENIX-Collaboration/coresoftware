@@ -46,9 +46,7 @@ CaloValid::CaloValid(const std::string& name)
 {
 }
 
-CaloValid::~CaloValid()
-{
-}
+CaloValid::~CaloValid() = default;
 
 int CaloValid::Init(PHCompositeNode* /*unused*/)
 {
