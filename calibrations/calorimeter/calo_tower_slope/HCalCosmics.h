@@ -19,7 +19,7 @@ class HCalCosmics : public SubsysReco
 {
  public:
   //! constructor
-  HCalCosmics(const std::string& , const std::string& );
+  HCalCosmics(const std::string &, const std::string &);
   //! destructor
   virtual ~HCalCosmics();
 

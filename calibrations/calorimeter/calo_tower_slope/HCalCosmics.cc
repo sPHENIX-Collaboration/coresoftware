@@ -158,12 +158,12 @@ int HCalCosmics::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "HCalCosmics::End" << std::endl;
   outfile->cd();
-  for (int ieta = 0; ieta < n_etabin; ++ieta)
+  for (auto &ieta : h_channel_hist)
   {
-    for (int iphi = 0; iphi < n_phibin; ++iphi)
+    for (auto &iphi : ieta)
     {
-      h_channel_hist[ieta][iphi]->Write();
-      delete h_channel_hist[ieta][iphi];
+      iphi->Write();
+      delete iphi;
     }
   }
   h_mip->Write();
