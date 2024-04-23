@@ -12,17 +12,13 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64 \
   -lcalo_io \
-  -lSubsysReco \
-  -lfun4all \
   -lSubsysReco
 
 libLiteCaloEvalTowSlope_la_SOURCES = \
-  LiteCaloEval.cc \
-  HCalCosmics.cc
+  LiteCaloEval.cc
 
 pkginclude_HEADERS = \
-  LiteCaloEval.h \
-  HCalCosmics.h
+  LiteCaloEval.h
 
 BUILT_SOURCES = \
   testexternals.cc
