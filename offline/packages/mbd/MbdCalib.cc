@@ -225,7 +225,8 @@ int MbdCalib::Download_Gains(const std::string& dbase_location)
       }
     }
   }
-  else
+  
+  if ( isnan(_qfit_mpv[0]) )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -299,7 +300,8 @@ int MbdCalib::Download_TQT0(const std::string& dbase_location)
     }
     infile.close();
   }
-  else
+
+  if ( isnan(_tqfit_t0mean[0]) ) 
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -374,7 +376,8 @@ int MbdCalib::Download_TTT0(const std::string& dbase_location)
     }
     infile.close();
   }
-  else
+
+  if ( isnan(_ttfit_t0mean[0]) )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -436,9 +439,11 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
     }
     infile.close();
   }
-  else
+  
+
+  if ( _sampmax[0] == -1 )
   {
-    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    std::cout << PHWHERE << ", ERROR, calib file not processed, " << dbase_location << std::endl;
     _status = -1;
     return _status;  // file not found
   }
@@ -627,7 +632,8 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
 
     infile.close();
   }
-  else
+
+  if ( _shape_y[8].size()==0 )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -751,11 +757,12 @@ int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
 
     infile.close();
   }
-  else
+
+  if ( _tcorr_y[0].size()==0 )
   {
-    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    std::cout << PHWHERE << ", ERROR, MBD tcorr not loaded, " << dbase_location << std::endl;
     _status = -1;
-    return _status;  // file not found
+    return _status;  // file not loaded
   }
 
   // Now we interpolate the timecorr
@@ -780,13 +787,11 @@ int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
  
       _tcorr_y_interp[ifeech].push_back( tcorr_interp );
 
-      /*
-      if ( ifeech==0 && itdc<2*step )
+      if ( ifeech==0 && itdc<2*step && Verbosity() )
       {
         std::cout << _tcorr_y_interp[ifeech][itdc] << " ";
         if ( itdc%step==(step-1) ) std::cout << std::endl;
       }
-      */
     }
 
   }
@@ -910,7 +915,8 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
 
     infile.close();
   }
-  else
+
+  if ( _scorr_y[0].size()==0 )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;

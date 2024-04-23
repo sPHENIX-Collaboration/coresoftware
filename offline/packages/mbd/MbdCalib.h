@@ -33,11 +33,31 @@ class MbdCalib
   float get_tt0(const int ipmt) const { return _ttfit_t0mean[ipmt]; }
   int get_sampmax(const int ifeech) const { return _sampmax[ifeech]; }
   float get_tcorr(const int ifeech, const int tdc) const {
+    if (tdc<0)
+    {
+      std::cout << "bad tdc " << ifeech << " " << tdc << std::endl;
+      return _tcorr_y_interp[ifeech][0];
+    }
+    if (tdc>=_tcorr_maxrange[ifeech])
+    {
+      std::cout << "bad tdc " << ifeech << " " << tdc << " " << _tcorr_maxrange[ifeech] << std::endl;
+      return _tcorr_y_interp[ifeech][_tcorr_maxrange[ifeech]-1];
+    }
+    //std::cout << "aaa " << _tcorr_y_interp[ifeech].size() << std::endl;
     return _tcorr_y_interp[ifeech][tdc];
   }
   float get_scorr(const int ifeech, const int adc) const {
-    if (adc<0||adc>=16000) return std::numeric_limits<float>::quiet_NaN();
     if ( _scorr_y_interp[ifeech].size() == 0 ) return 0.; // return 0 if calib doesn't exist
+    if (adc<0)
+    {
+      std::cout << "bad adc " << ifeech << " " << adc << std::endl;
+      return _scorr_y_interp[ifeech][0];
+    }
+    if (adc>=_scorr_maxrange[ifeech])
+    {
+      std::cout << "bad adc " << ifeech << " " << adc << std::endl;
+      return _scorr_y_interp[ifeech][_scorr_maxrange[ifeech]-1];
+    }
     return _scorr_y_interp[ifeech][adc];
   }
 
