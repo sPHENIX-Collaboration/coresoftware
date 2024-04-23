@@ -1,3 +1,4 @@
+
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
 #ifndef CALOTOWERSLOPE_LITECALOEVAL_H
@@ -70,10 +71,7 @@ class LiteCaloEval : public SubsysReco
     calotype = i;
   }
 
-
   TFile *f_temp{nullptr};
-
-
 
   void Get_Histos(const std::string &infile, const std::string &fun4all_file = "");
 
@@ -85,15 +83,13 @@ class LiteCaloEval : public SubsysReco
   void set_spectra_binWidth(double binWidth) { binwidth = binWidth; }
 
   /// Getters
-  float getFitMax() { return fitmax; } 
+  float getFitMax() { return fitmax; }
   float getFitMin() { return fitmin; }
 
   void setInputTowerNodeName(const std::string &inpNodenm)
   {
     _inputnodename = inpNodenm;
   }
-
-  bool chk_isChimney(int, int); //this f'n will check to see if a tower is part of the chimney or high eta support ring
 
  private:
   TFile *cal_output{nullptr};
@@ -113,15 +109,13 @@ class LiteCaloEval : public SubsysReco
   TH2 *energy_eta_hist{nullptr};
   TH3 *e_eta_phi{nullptr};
 
-
   Calo calotype{NONE};
-
   int _ievent{0};
 
   float fitmin{0.};
   float fitmax{0.};
 
-  double binwidth{0.};
+  double binwidth{0.001};
 
   std::string _caloname;
   std::string _filename;
