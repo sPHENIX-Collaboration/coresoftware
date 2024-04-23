@@ -82,6 +82,8 @@ class LiteCaloEval : public SubsysReco
   void setFitMin(float fitMin) { fitmin = fitMin; }
   void set_spectra_binWidth(double binWidth) { binwidth = binWidth; }
 
+  bool chk_isChimney(int, int);
+
   /// Getters
   float getFitMax() { return fitmax; }
   float getFitMin() { return fitmin; }
