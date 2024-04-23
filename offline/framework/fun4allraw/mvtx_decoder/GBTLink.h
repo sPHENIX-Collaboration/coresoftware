@@ -110,6 +110,10 @@ struct GBTLink
   uint32_t prev_pck_cnt = 0;
   uint32_t hbf_count = 0;
 
+  bool busy_on = false, busy_off = false;
+  bool chip_header_found = false;
+  bool chip_trailer_found = true;
+
   PayLoadSG rawData;         // scatter-gatter buffer for cached CRU pages, each starting with RDH
   size_t dataOffset = 0;     //
   std::vector<InteractionRecord> mL1TrgTime;
@@ -466,10 +470,6 @@ inline int GBTLink::decode_lane( const uint8_t chipId, PayLoadCont& buffer)
 
   uint8_t dataC = 0;
   uint16_t dataS = 0;
-
-  bool busy_on = false, busy_off = false;
-  bool chip_header_found = false;
-  bool chip_trailer_found = false;
 
   uint8_t laneId = 0xFF;
   uint8_t bc = 0xFF;
