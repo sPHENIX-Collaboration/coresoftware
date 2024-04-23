@@ -82,16 +82,18 @@ class LiteCaloEval : public SubsysReco
   /// Setters
   void setFitMax(float fitMax) { fitmax = fitMax; }
   void setFitMin(float fitMin) { fitmin = fitMin; }
-  void set_spectra_binWidth(double binWidth) {binwidth = binWidth;}
+  void set_spectra_binWidth(double binWidth) { binwidth = binWidth; }
 
   /// Getters
-  float getFitMax() { return fitmax; }
+  float getFitMax() { return fitmax; } 
   float getFitMin() { return fitmin; }
 
   void setInputTowerNodeName(const std::string &inpNodenm)
   {
     _inputnodename = inpNodenm;
   }
+
+  bool chk_isChimney(int, int); //this f'n will check to see if a tower is part of the chimney or high eta support ring
 
  private:
   TFile *cal_output{nullptr};
@@ -113,12 +115,13 @@ class LiteCaloEval : public SubsysReco
 
 
   Calo calotype{NONE};
+
   int _ievent{0};
 
   float fitmin{0.};
   float fitmax{0.};
 
-  double binwidth{0.001};
+  double binwidth{0.};
 
   std::string _caloname;
   std::string _filename;
