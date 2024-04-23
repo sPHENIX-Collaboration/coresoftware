@@ -205,6 +205,10 @@ class PHActsTrkFitter : public SubsysReco
   /// Flag for pp running
   bool m_pp_mode = false;
 
+  // do we have a constant field
+  bool m_ConstField{false};
+  double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
+
   // max variation of bunch crossing away from crossing_estimate
   short int max_bunch_search = 2;
 
