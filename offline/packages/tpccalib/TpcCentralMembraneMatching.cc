@@ -1204,13 +1204,13 @@ int  TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
     }
 
   // Looking for the RUN node
-  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-  if (!runNode)
-    {
-      std::cout << PHWHERE << "RUN Node missing, doing nothing." << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }      
-  PHNodeIterator runiter(runNode);
+  //PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  //if (!runNode)
+  //{
+  //std::cout << PHWHERE << "RUN Node missing, doing nothing." << std::endl;
+  //return Fun4AllReturnCodes::ABORTRUN;
+  //}      
+  //PHNodeIterator runiter(runNode);
   //auto flashDiffContainer = findNode::getClass<CMFlashDifferenceContainerv1>(runNode, "CM_FLASH_DIFFERENCES");
   auto flashDiffContainer = findNode::getClass<CMFlashDifferenceContainerv1>(topNode, "CM_FLASH_DIFFERENCES");
   if (!flashDiffContainer)
@@ -1272,7 +1272,7 @@ int  TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
   if( !m_dcc_out )
   { 
      /// Get the RUN node and check
-     auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+    auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
      if (!runNode)
      {
        std::cout << "TpcCentralMembraneMatching::InitRun - RUN Node missing, quitting" << std::endl;
