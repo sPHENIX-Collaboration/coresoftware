@@ -27,8 +27,7 @@ class InttSurveyMap : public InttLoadable
 
   val_t const* GetTransform(key_t const&) const;
 
-  std::string DefaultFileName() const override { return "InttSurveyMap.root"; }
-  std::string DefaultCDBName() const override { return "InttSurveyMap"; }
+  std::string DefaultName() const override { return "InttSurveyMap"; }
 
  protected:
   int LoadFromCDBTTree(CDBTTree&) override;

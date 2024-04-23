@@ -11,16 +11,13 @@ class InttLoadable
   InttLoadable() = default;
   virtual ~InttLoadable() = default;
 
-  int LoadFromFile(std::string = "");
-  int LoadFromCDB(std::string = "");
-
+  int Load(std::string = "");
   bool IsLoaded() const;
 
   int Verbosity() const;
   int Verbosity(int const&);
 
-  virtual std::string DefaultFileName() const {return "";}
-  virtual std::string DefaultCDBName() const {return "";}
+  virtual std::string DefaultName() const {return "";}
 
  protected:
   virtual int LoadFromCDBTTree(CDBTTree&);

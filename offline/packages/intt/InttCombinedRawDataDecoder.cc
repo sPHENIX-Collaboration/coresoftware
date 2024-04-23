@@ -31,8 +31,6 @@
 
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
-  , m_calibinfoDAC({"INTT_DACMAP", CDB})
-  , m_calibinfoBCO({"INTT_BCOMAP", CDB})
 {
 }
 
@@ -107,35 +105,11 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
     }
   }
 
-
-  ///////////////////////////////////////
-  if(Verbosity())
-  {
-    std::cout<<"calibinfo DAC : "<<m_calibinfoDAC.first<<" "<<(m_calibinfoDAC.second==CDB?"CDB":"FILE")<<std::endl;
-  }
-  m_dacmap.Verbosity(Verbosity());
-  if(m_calibinfoDAC.second == CDB){
-     m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
-  } else {
-     m_dacmap.LoadFromFile(m_calibinfoDAC.first);
-  }
-  
-  ///////////////////////////////////////
-  if(Verbosity())
-  {
-    std::cout<<"calibinfo BCO : "<<m_calibinfoBCO.first<<" "<<(m_calibinfoBCO.second==CDB?"CDB":"FILE")<<std::endl;
-  }
-  m_bcomap.Verbosity(Verbosity());
-  if(m_calibinfoBCO.second == CDB){
-     m_bcomap.LoadFromCDB(m_calibinfoBCO.first);
-  } else {
-     m_bcomap.LoadFromFile(m_calibinfoBCO.first);
-  }
-
-  if(m_feemap.LoadFromCDB())
+  // This is needed to perform associations between raw and online
+  if(!m_feemap.IsLoaded() && m_feemap.Load())
   {
     std::cerr << PHWHERE << "\n"
-              << "Failed to load " << m_feemap.DefaultCDBName() << " from CDB\n"
+              << "Failed to load " << m_feemap.DefaultName() << " from CDB\n"
               << "Exiting" << std::endl;
 	exit(1);
 	gSystem->Exit(1);
@@ -267,14 +241,3 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filename)
-{
-  return m_badmap.LoadFromFile(filename);
-}
-
-int InttCombinedRawDataDecoder::LoadHotChannelMapRemote(std::string const& name)
-{
-  return m_badmap.LoadFromCDB(name);
-}
-

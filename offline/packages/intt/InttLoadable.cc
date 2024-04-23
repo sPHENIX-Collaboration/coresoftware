@@ -6,43 +6,30 @@
 #include <iostream>
 #include <filesystem>
 
-int InttLoadable::LoadFromFile(
-    std::string filename)
-{
-  m_loaded = 0;
-  if (filename.empty())
-  {
-    filename = DefaultFileName();
-  }
-
-  if (!std::filesystem::exists(filename))
-  {
-    std::cerr << __PRETTY_FUNCTION__ << std::endl;
-    std::cerr << "\tFile \"" << filename << "\" does not exist" << std::endl;
-    return 1;
-  }
-
-  CDBTTree cdbttree(filename);
-  cdbttree.LoadCalibrations();
-
-  m_loaded = (LoadFromCDBTTree(cdbttree) == 0);
-  return m_loaded ? 0 : 1;
-}
-
-int InttLoadable::LoadFromCDB(
+int InttLoadable::Load(
     std::string name)
 {
   m_loaded = 0;
 
   if (name.empty())
   {
-    name = DefaultCDBName();
+    name = DefaultName();
   }
-  name = CDBInterface::instance()->getUrl(name);
-  if (name.empty())
+
+  if(name.find(".root") == std::string::npos)
+  {
+    name = CDBInterface::instance()->getUrl(name);
+    if (name.empty())
+    {
+      std::cerr << __PRETTY_FUNCTION__ << std::endl;
+      std::cerr << "\tPayload type \"" << DefaultName() << "\" not found in CDB" << std::endl;
+      return 1;
+    }
+  }
+  else if (!std::filesystem::exists(name))
   {
     std::cerr << __PRETTY_FUNCTION__ << std::endl;
-    std::cerr << "\tPayload type \"" << DefaultCDBName() << "\" not found in CDB" << std::endl;
+    std::cerr << "\tFile \"" << name << "\" does not exist" << std::endl;
     return 1;
   }
 

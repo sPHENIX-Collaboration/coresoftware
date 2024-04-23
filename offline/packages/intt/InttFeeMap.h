@@ -33,8 +33,7 @@ class InttFeeMap : public InttLoadable
   InttMap::Offline_s ToOffline(InttMap::Online_s const&) const;
   InttMap::Offline_s ToOffline(InttMap::RawData_s const&) const;
 
-  std::string DefaultFileName() const override { return "InttFeeMap.root"; }
-  std::string DefaultCDBName() const override { return "InttFeeMap"; }
+  std::string DefaultName() const override { return "InttFeeMap"; }
 
  protected:
   int LoadFromCDBTTree(CDBTTree&) override;
