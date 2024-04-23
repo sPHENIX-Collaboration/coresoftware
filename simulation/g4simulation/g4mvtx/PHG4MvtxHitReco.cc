@@ -55,6 +55,13 @@
 #include <vector>  // for vector
 #include <set>  // for vector
 
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
+#include <ffarawobjects/MvtxRawEvtHeader.h>
+
+// New headers I added
+
+
 PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string &name, const std::string &detector)
   : SubsysReco(name)
   , PHParameterInterface(name)
@@ -193,6 +200,29 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
       auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
       DetNode->addNode(newNode);
     }
+  }
+
+  std::string database = CDBInterface::instance()->getUrl(
+      "MVTX_DeadPixelMap");  // This is specifically for MVTX Dead Pixels
+  CDBTTree *cdbttree = new CDBTTree(database);
+
+  int NPixel = -1;
+  NPixel = cdbttree->GetSingleIntValue("TotalDeadPixels");
+
+  for (int i = 0; i < NPixel; i++)
+  {
+    int Layer = cdbttree->GetIntValue(i, "layer");
+    int Stave = cdbttree->GetIntValue(i, "stave");
+    int Chip = cdbttree->GetIntValue(i, "chip");
+    int Col = cdbttree->GetIntValue(i, "col");
+    int Row = cdbttree->GetIntValue(i, "row");
+    if (Verbosity() == 0){
+      std::cout << "Layer: "<< Layer << ", Stave: "<< Stave << ", Chip: " << Chip << ", Row: " << Row << ", Col: " << Col << std::endl;
+    }
+
+    TrkrDefs::hitsetkey DeadPixelHitKey = MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
+    TrkrDefs::hitkey DeadHitKey = MvtxDefs::genHitKey(Col, Row);
+    m_deadPixelMap.push_back({std::make_pair(DeadPixelHitKey, DeadHitKey)});
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -615,7 +645,9 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       // End of charge sharing implementation
       //===================================
 
+
       // loop over all fired cells for this g4hit and add them to the TrkrHitSet
+
       for (unsigned int i1 = 0; i1 < vpixel.size(); i1++)  // loop over all fired cells
       {
         // This is the new storage object version
@@ -637,22 +669,41 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
           // See if this hit already exists
 	  TrkrHit* hit = nullptr;
           hit = hitsetit->second->getHit(hitkey);
-          if (!hit)
+          
+          if (hit){
+            std::cout << PHWHERE << "::" << __func__
+                << " - duplicated hit, hitsetkey: " << hitsetkey
+                << " hitkey: " << hitkey << std::endl;
+            continue;
+          }
+          const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, 0);
+        
+          if (std::find(m_deadPixelMap.begin(), m_deadPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_deadPixelMap.end())
           {
-            // Otherwise, create a new one
+            // create hit and insert in hitset
+            
+            if (Verbosity() > 0){
+              std::cout << "Layer: "<< layer <<", Stave: "<< (uint16_t)MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t)MvtxDefs::getChipId(hitsetkey) << ", Row: "<< (uint16_t)MvtxDefs::getRow(hitkey) << ", Col: "<< (uint16_t)MvtxDefs::getCol(hitkey) << ", Strobe: " << (int)MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << ", hit is not associated with a dead pixel, it proceeds to create a new hit." << std::endl;
+            }
+            
             hit = new TrkrHitv2();
             hitsetit->second->addHitSpecificKey(hitkey, hit);
           }
-
+          else{
+            if (Verbosity() > 0){
+              std::cout << "Layer: "<< layer <<", Stave: "<< (uint16_t)MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t)MvtxDefs::getChipId(hitsetkey) << ", Row: "<< (uint16_t)MvtxDefs::getRow(hitkey) << ", Col: "<< (uint16_t)MvtxDefs::getCol(hitkey) << ", Strobe: " << (int)MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << ", hit is not associated with a dead pixel, it proceeds to continue." << std::endl;
+            }
+            continue;
+          }
           // Either way, add the energy to it
           double hitenergy = venergy[i1].first * TrkrDefs::MvtxEnergyScaleup;
           hit->addEnergy(hitenergy);
-
+          
           addtruthhitset(hitsetkey, hitkey, hitenergy);
-
-          if (Verbosity() > 0)
-            std::cout << "     added hit " << hitkey << " to hitset " << hitsetkey << " with strobe id " << strobe << " in layer " << layer
-                      << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << std::endl;
+  
+          if (Verbosity() > 0){
+            std::cout << "Layer: "<< layer <<", Stave: "<< (uint16_t)MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t)MvtxDefs::getChipId(hitsetkey) << ", Row: "<< (uint16_t)MvtxDefs::getRow(hitkey) << ", Col: "<< (uint16_t)MvtxDefs::getCol(hitkey) << ", Strobe: " << (int)MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup <<std::endl;
+          }
 
           // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
           // There is only one TrkrHit per pixel, but there may be multiple g4hits
@@ -670,7 +721,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   }  // end loop over layers
 
   // print the list of entries in the association table
-  if (Verbosity() > 2)
+  if (Verbosity() > 0)
   {
     std::cout << "From PHG4MvtxHitReco: " << std::endl;
     hitTruthAssoc->identify();
