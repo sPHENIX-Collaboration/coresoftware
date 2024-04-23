@@ -507,6 +507,10 @@ void MakeActsGeometry::buildActsSurfaces()
   setMaterialResponseFile(responseFile, materialFile);
 
   // Response file contains arguments necessary for geometry building
+  std::istringstream stringline(m_magField);
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  stringline >> fieldstrength;
+
   std::ostringstream fld;
   fld.str("");
   fld << "0:0:" << m_magField;
@@ -521,22 +525,24 @@ void MakeActsGeometry::buildActsSurfaces()
   argstr[9] = std::to_string(m_magFieldRescale);
 
   /// Alter args if using field map
-  if (std::filesystem::path(m_magField).extension() != ".root")
+  if (stringline.fail())
   {
-    m_magField = CDBInterface::instance()->getUrl(m_magField);
+    if (std::filesystem::path(m_magField).extension() != ".root")
+    {
+      m_magField = CDBInterface::instance()->getUrl(m_magField);
+    }
+    if (std::filesystem::exists(m_magField))
+    {
+      argstr[7] = "--bf-map-file";
+      argstr[8] = m_magField;
+      argstr[9] = "--bf-map-tree";
+      argstr[10] = "fieldmap";
+      argstr[11] = "--bf-map-lengthscale-mm";
+      argstr[12] = "10";
+      argstr[13] = "--bf-map-fieldscale-tesla";
+      argstr[14] = std::to_string(m_magFieldRescale);
+    }
   }
-  if (std::filesystem::exists(m_magField))
-  {
-    argstr[7] = "--bf-map-file";
-    argstr[8] = m_magField;
-    argstr[9] = "--bf-map-tree";
-    argstr[10] = "fieldmap";
-    argstr[11] = "--bf-map-lengthscale-mm";
-    argstr[12] = "10";
-    argstr[13] = "--bf-map-fieldscale-tesla";
-    argstr[14] = std::to_string(m_magFieldRescale);
-  }
-
   //  if(Verbosity() > 0)
   std::cout << "Mag field now " << m_magField << " with rescale "
             << m_magFieldRescale << std::endl;
