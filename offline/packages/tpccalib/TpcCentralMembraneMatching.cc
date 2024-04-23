@@ -221,6 +221,7 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F *r_phi, bool
 
   proj->GetXaxis()->SetRange(0,0);
 
+  std::vector<int> hitMatches;
 
 
   for(int i=2; i<proj->GetNbinsX(); i++){
@@ -231,6 +232,22 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F *r_phi, bool
     }
   }
 
+
+  if(rPeaks.size() < 5){
+
+    if(pos){
+      m_clust_RPeaks_pos.clear();
+    }
+    else{
+      m_clust_RPeaks_neg.clear();
+    }
+
+    if(Verbosity()){
+      std::cout << (pos?"positive":"negative") << " z has fewer than 5 radial peaks (only has " << rPeaks.size() << "). Returning empty vectors" << std::endl;
+    }
+    return hitMatches;
+    
+  }
 
 
   double threshold = 0.75;
@@ -392,7 +409,6 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F *r_phi, bool
       }
     }
 
-  std::vector<int> hitMatches;
   for(int i=0; i<(int)NNMatches[match].size(); i++){
     hitMatches.push_back(NNMatches[match][i]);
   }
