@@ -1,7 +1,6 @@
 
-#include "MicromegasClusterQA.h"
-#include "CylinderGeomMicromegas.h"
-#include "MicromegasDefs.h"
+#include "MvtxClusterQA.h"
+#include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -13,6 +12,7 @@
 #include <qautils/QAHistManagerDef.h>
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/MvtxDefs.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -26,43 +26,40 @@
 #include <TH2F.h>
 
 //____________________________________________________________________________..
-MicromegasClusterQA::MicromegasClusterQA(const std::string &name)
+MvtxClusterQA::MvtxClusterQA(const std::string &name)
   : SubsysReco(name)
 {
 }
 
 //____________________________________________________________________________..
-MicromegasClusterQA::~MicromegasClusterQA()
-{
-}
-
-//____________________________________________________________________________..
-int MicromegasClusterQA::Init(PHCompositeNode *)
+int MvtxClusterQA::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int MicromegasClusterQA::InitRun(PHCompositeNode *topNode)
+int MvtxClusterQA::InitRun(PHCompositeNode *topNode)
 {
   auto geomContainer = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
+      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!geomContainer)
   {
     std::cout << PHWHERE
-              << " CYLINDERGEOM_MICROMEGAS_FULL  node not found on node tree"
+              << " CYLINDERGEOM_MVTX  node not found on node tree"
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  int layer = 0;
-  const auto range = geomContainer->get_begin_end();
-
-  for (auto iter = range.first; iter != range.second; ++iter)
+  for (auto &layer : {0, 1, 2})
   {
-    auto layergeom = static_cast<CylinderGeomMicromegas *>(iter->second);
-    int ntiles = layergeom->get_tiles_count();
-    m_layerTileMap.insert(std::make_pair(layer, ntiles));
-    layer++;
+    auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geomContainer->GetLayerGeom(layer));
+    if (!layergeom)
+    {
+      std::cout << PHWHERE << "Did not get layergeom for layer "
+                << layer << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    int nstaves = layergeom->get_N_staves();
+    m_layerStaveMap.insert(std::make_pair(layer, nstaves));
   }
 
   createHistos();
@@ -70,7 +67,7 @@ int MicromegasClusterQA::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
+int MvtxClusterQA::process_event(PHCompositeNode *topNode)
 {
   auto clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterContainer)
@@ -89,13 +86,14 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::micromegasId))
+  for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
   {
     int numclusters = 0;
     auto range = clusterContainer->getClusters(hsk);
     auto layer = TrkrDefs::getLayer(hsk);
-    auto tile = MicromegasDefs::getTileId(hsk);
-    auto h = dynamic_cast<TH2 *>(hm->getHisto(Form("%sncluspertile%i_%i", getHistoPrefix().c_str(), ((int) layer) - 55, (int) tile)));
+    auto stave = MvtxDefs::getStaveId(hsk);
+    auto chip = MvtxDefs::getChipId(hsk);
+    auto h = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperchip%i_%i_%i", getHistoPrefix().c_str(), (int) layer, (int) stave, (int) chip)));
 
     for (auto iter = range.first; iter != range.second; ++iter)
     {
@@ -105,13 +103,13 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
       m_totalClusters++;
       numclusters++;
     }
-    m_nclustersPerTile[((int) layer) - 55][(int) tile] += numclusters;
+    m_nclustersPerChip[(int) layer][(int) stave][(int) chip] += numclusters;
   }
 
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
-int MicromegasClusterQA::EndRun(const int runnumber)
+int MvtxClusterQA::EndRun(const int runnumber)
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -119,57 +117,64 @@ int MicromegasClusterQA::EndRun(const int runnumber)
   TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperrun", getHistoPrefix().c_str())));
   h_totalclusters->Fill(runnumber, m_totalClusters / m_event);
 
-  for (const auto &[layer, tiles] : m_layerTileMap)
+  for (const auto &[layer, staves] : m_layerStaveMap)
   {
-    for (int tile = 0; tile < tiles; tile++)
+    for (int stave = 0; stave < staves; stave++)
     {
-      TH2 *h = dynamic_cast<TH2 *>(hm->getHisto(Form("%sncluspertileperrun%i_%i", getHistoPrefix().c_str(), layer, tile)));
-      if (h)
+      for (int chip = 0; chip < 9; chip++)
       {
-        h->Fill(runnumber, m_nclustersPerTile[layer][tile] / m_event);
+        TH2 *h = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperchipperrun%i_%i_%i", getHistoPrefix().c_str(), layer, stave, chip)));
+        if (h)
+        {
+          h->Fill(runnumber, m_nclustersPerChip[layer][stave][chip] / m_event);
+        }
       }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
-int MicromegasClusterQA::End(PHCompositeNode *)
+int MvtxClusterQA::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-std::string MicromegasClusterQA::getHistoPrefix() const
+std::string MvtxClusterQA::getHistoPrefix() const
 {
   return std::string("h_") + Name() + std::string("_");
 }
-void MicromegasClusterQA::createHistos()
+void MvtxClusterQA::createHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   {
     auto h = new TH2F(Form("%snclusperrun", getHistoPrefix().c_str()),
-                      "Micromegas Clusters per event per run number", m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
+                      "MVTX Clusters per event per run number", m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
     h->GetXaxis()->SetTitle("Run number");
     h->GetYaxis()->SetTitle("Clusters per event");
     hm->registerHisto(h);
   }
 
-  for (const auto &[layer, ntiles] : m_layerTileMap)
+  for (const auto &[layer, nstave] : m_layerStaveMap)
   {
-    for (int tile = 0; tile < ntiles; tile++)
+    for (int stave = 0; stave < nstave; stave++)
     {
-      auto h = new TH2F(Form("%sncluspertile%i_%i", getHistoPrefix().c_str(),
-                             layer, tile),
-                        "Micromegas clusters per tile", 2000, -30, 30, 2000, -20, 20);
-      h->GetXaxis()->SetTitle("Local z [cm]");
-      h->GetYaxis()->SetTitle("Local rphi [cm]");
-      hm->registerHisto(h);
+      //! 9 chips on each stave
+      for (int chip = 0; chip < 9; chip++)
+      {
+        auto h = new TH2F(Form("%snclusperchip%i_%i_%i", getHistoPrefix().c_str(),
+                               layer, stave, chip),
+                          "MVTX clusters per chip", 2000, -2, 2, 2000, -1, 1);
+        h->GetXaxis()->SetTitle("Local z [cm]");
+        h->GetYaxis()->SetTitle("Local rphi [cm]");
+        hm->registerHisto(h);
 
-      auto h2 = new TH2F(Form("%sncluspertileperrun%i_%i", getHistoPrefix().c_str(), layer, tile),
-                         "Micromegas clusters per event per tile per run", m_runbins, m_beginRun, m_endRun, 100, 0, 20);
-      h2->GetXaxis()->SetTitle("Run number");
-      h2->GetYaxis()->SetTitle("Clusters per event");
-      hm->registerHisto(h2);
+        auto h2 = new TH2F(Form("%snclusperchipperrun%i_%i_%i", getHistoPrefix().c_str(), layer, stave, chip),
+                           "MVTX clusters per event per chip per run", m_runbins, m_beginRun, m_endRun, 100, 0, 100);
+        h2->GetXaxis()->SetTitle("Run number");
+        h2->GetYaxis()->SetTitle("Clusters per event");
+        hm->registerHisto(h2);
+      }
     }
   }
 
