@@ -54,7 +54,7 @@
 namespace
 {
   // check vector validity
-  inline bool is_valid(const Acts::Vector3 vec)
+  inline bool is_valid(const Acts::Vector3& vec)
   {
     return !(std::isnan(vec.x()) || std::isnan(vec.y()) || std::isnan(vec.z()));
   }
@@ -105,6 +105,12 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
   m_alignStates.verbosity(Verbosity());
+  std::istringstream stringline(m_fieldMap);
+  stringline >> fieldstrength;
+  if (!stringline.fail())  // it is a float
+  {
+    m_ConstField = true;
+  }
   m_alignStates.fieldMap(m_fieldMap);
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
@@ -161,7 +167,9 @@ int PHCosmicsTrkFitter::process_event(PHCompositeNode* topNode)
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHCosmicsTrkFitter::process_event" << std::endl;
     if (Verbosity() > 30)
+    {
       logLevel = Acts::Logging::VERBOSE;
+    }
   }
 
   /// Fill an additional track map if using the acts evaluator
@@ -234,10 +242,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     std::cout << " seed map size " << m_seedMap->size() << std::endl;
   }
 
-  for (auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end();
-       ++trackiter)
+  for (auto track : *m_seedMap)
   {
-    TrackSeed* track = *trackiter;
     if (!track)
     {
       continue;
@@ -380,13 +386,13 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     auto pca = tangent.first;
 
     float p;
-    if (m_fieldMap.find(".root") != std::string::npos)
+    if (m_ConstField)
     {
-      p = tpcseed->get_p();
+      p = cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
     }
     else
     {
-      p = cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+      p = tpcseed->get_p();
     }
 
     tan *= p;
@@ -448,7 +454,6 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     auto actsFourPos = Acts::Vector4(position(0), position(1),
                                      position(2),
                                      10 * Acts::UnitConstants::ns);
-
 
     if (sourceLinks.size() > 20)
     {
@@ -942,7 +947,10 @@ void PHCosmicsTrkFitter::fillVectors(TrackSeed* tpcseed, TrackSeed* siseed)
         double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
         double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
         unsigned int side = TpcDefs::getSide(key);
-        if (side == 0) zloc = -zloc;
+        if (side == 0)
+        {
+          zloc = -zloc;
+        }
         ly = zloc * 10;
       }
       m_locy.push_back(ly);
@@ -1024,37 +1032,40 @@ void PHCosmicsTrkFitter::getCharge(
     global_vec.push_back(glob);
   }
 
-  Acts::Vector3 globalMostOuter(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN());
+  Acts::Vector3 globalMostOuter(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
   Acts::Vector3 globalSecondMostOuter(0, 999999, 0);
   float largestR = 0;
   // loop over global positions
-  for (unsigned int i = 0; i < global_vec.size(); ++i)
+  for (auto& i : global_vec)
   {
-    Acts::Vector3 global = global_vec[i];
+    Acts::Vector3 global = i;
     // float r = std::sqrt(square(global.x()) + square(global.y()));
     float r = radius(global.x(), global.y());
 
     /// use the top hemisphere to determine the charge
     if (r > largestR && global.y() > 0)
     {
-      globalMostOuter = global_vec[i];
+      globalMostOuter = i;
       largestR = r;
     }
   }
 
   //! find the closest cluster to the outermost cluster
   float maxdr = std::numeric_limits<float>::max();
-  for (unsigned int i = 0; i < global_vec.size(); i++)
+  for (auto& i : global_vec)
   {
-    if (global_vec[i].y() < 0) continue;
+    if (i.y() < 0)
+    {
+      continue;
+    }
 
-    float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(global_vec[i].x()) + square(global_vec[i].y()));
+    float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(i.x()) + square(i.y()));
     //! Place a dr cut to get maximum bend due to TPC clusters having
     //! larger fluctuations
     if (dr < maxdr && dr > 10)
     {
       maxdr = dr;
-      globalSecondMostOuter = global_vec[i];
+      globalSecondMostOuter = i;
     }
   }
 
@@ -1069,8 +1080,14 @@ void PHCosmicsTrkFitter::getCharge(
                                globalSecondMostOuter.x());
   auto dphi = secondphi - firstphi;
 
-  if (dphi > M_PI) dphi = 2. * M_PI - dphi;
-  if (dphi < -M_PI) dphi = 2 * M_PI + dphi;
+  if (dphi > M_PI)
+  {
+    dphi = 2. * M_PI - dphi;
+  }
+  if (dphi < -M_PI)
+  {
+    dphi = 2 * M_PI + dphi;
+  }
 
   if (dphi > 0)
   {

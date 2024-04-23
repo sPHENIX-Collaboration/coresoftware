@@ -804,11 +804,14 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
 
     if ( isnan(xx) )
     {
-      std::cout << PHWHERE << " " << _evt_counter << ", " << _ch
-        << " ERROR x par0 par1 " << x[0] << "\t" << par[0] << "\t" << par[1] << std::endl;
-      if ( x[0] == 0. )
+      if (_verbose > 0)
       {
-        gSubPulse->Print("ALL");
+	std::cout << PHWHERE << " " << _evt_counter << ", " << _ch
+		  << " ERROR x par0 par1 " << x[0] << "\t" << par[0] << "\t" << par[1] << std::endl;
+	if ( x[0] == 0. )
+	{
+	  gSubPulse->Print("ALL");
+	}
       }
       return 0.;
     }

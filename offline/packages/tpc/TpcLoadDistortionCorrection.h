@@ -28,14 +28,16 @@ class TpcLoadDistortionCorrection : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode*) override;
 
-  //! distortion filename //deprecated
-  void set_distortion_filename(const std::string& value)
+  // convenient enumeration for distortion type
+  enum DistortionType:int
   {
-    set_correction_filename(0, value);
-  }
+    DistortionType_Static = 0,
+    DistortionType_Average = 1,
+    DistortionType_Fluctuation = 2
+  };
 
   //! correction filename
-  void set_correction_filename(int i, const std::string& value)
+  void set_correction_filename(DistortionType i, const std::string& value)
   {
     if (i < 0 || i >= 3) return;
     m_correction_filename[i] = value;

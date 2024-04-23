@@ -51,10 +51,13 @@ void ActsAlignmentStates::fillAlignmentStateMap(const ActsTrackFittingAlgorithm:
   const auto crossing = track->get_silicon_seed()->get_crossing();
 
   ActsPropagator propagator(m_tGeometry);
-  if (m_fieldMap.find(".root") == std::string::npos)
+  std::istringstream stringline(m_fieldMap);
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  stringline >> fieldstrength;
+  if (!stringline.fail())
   {
     propagator.constField();
-    propagator.setConstFieldValue(std::stod(m_fieldMap));
+    propagator.setConstFieldValue(fieldstrength);
   }
 
   SvtxAlignmentStateMap::StateVec statevec;
@@ -270,8 +273,9 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
 
   projx = X - (tangent.dot(X) / tangent.dot(Z)) * Z;
   projy = Y - (tangent.dot(Y) / tangent.dot(Z)) * Z;
-  if (m_verbosity > 2)
+  if (m_verbosity > 2) {
     std::cout << "projxy " << projx.transpose() << ", " << projy.transpose() << std::endl;
+}
   return std::make_pair(projx, projy);
 }
 

@@ -29,7 +29,8 @@
 #include <phool/getClass.h>
 
 #include <TFile.h>
-#include <TH1.h>    // for obtaining the B field value
+#include <TH1.h>  // for obtaining the B field value
+#include <TSystem.h>
 #include <TTree.h>  // for getting the TTree from the file
 
 #include <KFPVertex.h>
@@ -41,9 +42,10 @@
 #include <cctype>                     // for toupper
 #include <cmath>                      // for sqrt
 #include <cstdlib>                    // for size_t, exit
-#include <iostream>                   // for operator<<, endl, basi...
-#include <map>                        // for map
-#include <tuple>                      // for tie, tuple
+#include <filesystem>
+#include <iostream>  // for operator<<, endl, basi...
+#include <map>       // for map
+#include <tuple>     // for tie, tuple
 
 class PHCompositeNode;
 
@@ -112,16 +114,22 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
   assert(topNode);
 
   // Load the official offline B-field map that is also used in tracking, basically copying the codes from: https://github.com/sPHENIX-Collaboration/coresoftware/blob/master/offline/packages/trackreco/MakeActsGeometry.cc#L478-L483, provide by Joe Osborn.
-  char *calibrationsroot = getenv("CALIBRATIONROOT");
-  std::string m_magField = "sphenix3dtrackingmapxyz.root";
-
-  if (calibrationsroot != nullptr)
+  if (std::filesystem::path(m_magField).extension() != ".root")
   {
-    m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
+    m_magField = CDBInterface::instance()->getUrl(m_magField);
   }
-
-  m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);  // Joe's New Implementation to get the field map file name on 05/10/2023
-
+  // Joe's New Implementation to get the field map file name on 05/10/2023
+  if (!std::filesystem::exists(m_magField))
+  {
+    if (m_magField.empty())
+    {
+      m_magField = "empty string";
+    }
+    std::cout << PHWHERE << "Fieldmap " << m_magField
+              << " does not exist" << std::endl;
+    gSystem->Exit(1);
+  }
+  std::cout << "KFPARTICLE: using fieldmap : " << m_magField << std::endl;
   TFile *fin = new TFile(m_magField.c_str());
   fin->cd();
 
@@ -465,6 +473,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     intermediate_list.emplace_back(intermediates_name[i], intermediates_charge[i]);
   }
 
+  daughter_list.reserve(nTracks);
   for (int i = 0; i < nTracks; ++i)
   {
     daughter_list.emplace_back(daughters_name[i], daughters_charge[i]);
