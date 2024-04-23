@@ -17,7 +17,6 @@ SvtxVertexMap::ConstIter SvtxVertexMap::end() const
   return DummyVertexMap.end();
 }
 
-
 SvtxVertexMap::Iter SvtxVertexMap::begin()
 {
   return DummyVertexMap.end();
@@ -32,4 +31,3 @@ SvtxVertexMap::Iter SvtxVertexMap::end()
 {
   return DummyVertexMap.end();
 }
-

@@ -87,12 +87,23 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     }
 
     // by default use previous bco clock for gtm bco
-    Gl1Packetv1 *newhit = new Gl1Packetv1();
+    Gl1Packet *newhit = new Gl1Packetv1();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     newhit->setBCO(packet->lValue(0, "BCO"));
+    newhit->setHitFormat(packet->getHitFormat());
     newhit->setIdentifier(packet->getIdentifier());
     newhit->setEvtSequence(EventSequence);
+    newhit->setPacketNumber(packet->iValue(0));
     newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
+    newhit->setTriggerInput(packet->lValue(0, "TriggerInput"));
+    newhit->setTriggerVector(packet->lValue(0, "TriggerVector"));
+  for (int i = 0; i< 64; i++)
+  {
+    for (int j = 0; j<3; j++)
+    {
+      newhit->setScaler(i,j,packet->lValue(i,j));
+    }
+  }
     if (Verbosity() > 2)
     {
       std::cout << PHWHERE << " Packet: " << packet->getIdentifier()
@@ -112,6 +123,10 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     }
     m_Gl1PacketMap[EventSequence].push_back(newhit);
     m_EventStack.insert(EventSequence);
+    if (ddump_enabled())
+    {
+      ddumppacket(packet);
+    }
 
     delete packet;
   }

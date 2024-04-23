@@ -9,6 +9,8 @@
 
 #include <cstdint>
 #include <iostream>
+#include <map>
+#include <string>
 
 /**
  * @brief Define a namespace for Trkr typedefs
@@ -53,6 +55,16 @@ namespace TrkrDefs
     tpcId = 2,
     micromegasId = 3,
     ttl = 4,
+  };
+
+  //! Standard names for trackers
+  static const std::map<TrkrId, std::string> TrkrNames =
+  {
+      {mvtxId, "MVTX"},
+      {inttId, "INTT"},
+      {tpcId, "TPC"},
+      {micromegasId, "MICROMEGAS"},
+      {ttl, "TTL"}
   };
 
   /// Print the bits for each key type

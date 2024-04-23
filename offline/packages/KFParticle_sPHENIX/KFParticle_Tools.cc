@@ -80,7 +80,7 @@ KFParticle_Tools::KFParticle_Tools()
   , m_dira_max(1.01)
   , m_mother_pt(0.)
   , m_mother_ipchi2(FLT_MAX)
-  , m_get_charge_conjugate(true)
+  , m_get_charge_conjugate(false)
   , m_extrapolateTracksToSV(true)
   , m_vtx_map_node_name("SvtxVertexMap")
   , m_trk_map_node_name("SvtxTrackMap")
@@ -292,15 +292,6 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
   {
     goodTrack = true;
   }
-  /*
-  std::cout << "Track pT = " << pt << ", min. track pT = " << m_track_pt << std::endl;
-  std::cout << "Track pTchi2 = " << ptchi2 << ", min. track pTchi2 = " << m_track_ptchi2 << std::endl;
-  std::cout << "Track IP = " << min_ip << ", min. track IP = " << m_track_ip << std::endl;
-  std::cout << "Track IPchi2 = " << min_ipchi2 << ", min. track IPchi2 = " << m_track_ipchi2 << std::endl;
-  std::cout << "Track chi2/nDoF = " << trackchi2ndof << ", max. track chi2/nDoF = " << m_track_chi2ndof << std::endl;
-  std::string track_designation = goodTrack ? "good" : "bad";
-  std::cout << "Track designated as " << track_designation << std::endl;
-  */
   return goodTrack;
 }
 
@@ -569,7 +560,7 @@ float KFParticle_Tools::flightDistanceChi2(const KFParticle &particle, const KFP
   return m_chi2Value(0, 0);
 }
 
-std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters[], std::string daughterOrder[],
+std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters[], int daughterOrder[],
                                                            bool isIntermediate, int intermediateNumber, int nTracks,
                                                            bool constrainMass, float required_vertexID)
 {
@@ -592,17 +583,41 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   for (int i = 0; i < nTracks; ++i)
   {
     float daughterMass = 0;
-    daughterMass = constrainMass ? getParticleMass(daughterOrder[i].c_str()) : vDaughters[i].GetMass();
+
+    if ((Int_t) vDaughters[i].GetQ() != 0)
+    {
+      // For charged particle, like p+/-, pi+/-, Sigma+/-, etc...
+      // different charged particle has different PDGID
+      // just to protect if they have different mass for different charge
+      // but in EvtGen, there is no C-violation...so this is just a protection
+      daughterMass = constrainMass ? getParticleMass((Int_t) vDaughters[i].GetQ() * daughterOrder[i]) : vDaughters[i].GetMass();
+    }
+    else if ((Int_t) vDaughters[i].GetQ() == 0)
+    {
+      // For neutral particle, like pi0, eta, J/psi, etc... who do not have an anti-particle with anti-PDGID
+      // and other neutral particle, like Lambda0/anti-Lambda0 ... who have an anti-particle with anti-PDGID
+      // avoid charge*PDGID=0 case and getting wrong mass
+      daughterMass = constrainMass ? getParticleMass(daughterOrder[i]) : vDaughters[i].GetMass();
+    }
+
     if ((num_remaining_tracks > 0 && i >= m_num_intermediate_states) || isIntermediate)
     {
-      daughterMass = getParticleMass(daughterOrder[i].c_str());
+      if ((Int_t) vDaughters[i].GetQ() != 0)
+      {
+        daughterMass = getParticleMass((Int_t) vDaughters[i].GetQ() * daughterOrder[i]);
+      }
+      else if ((Int_t) vDaughters[i].GetQ() == 0)
+      {
+        daughterMass = getParticleMass(daughterOrder[i]);
+      }
+
     }
     inputTracks[i].Create(vDaughters[i].Parameters(),
                           vDaughters[i].CovarianceMatrix(),
                           (Int_t) vDaughters[i].GetQ(),
                           daughterMass);
     mother.AddDaughter(inputTracks[i]);
-    unique_vertexID += vDaughters[i].GetQ() * getParticleMass(daughterOrder[i].c_str());
+    unique_vertexID += (Int_t) vDaughters[i].GetQ() * getParticleMass(daughterOrder[i]);
   }
 
   if (isIntermediate)
@@ -703,7 +718,7 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   }
 }
 
-std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFParticle vertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID)
+std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex, bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID)
 {
   KFParticle candidate;
   bool isGoodCandidate;
@@ -718,21 +733,21 @@ std::tuple<KFParticle, bool> KFParticle_Tools::getCombination(KFParticle vDaught
   return std::make_tuple(candidate, isGoodCandidate);
 }
 
-std::vector<std::vector<std::string>> KFParticle_Tools::findUniqueDaughterCombinations(int start, int end)
+std::vector<std::vector<int>> KFParticle_Tools::findUniqueDaughterCombinations(int start, int end)
 {
   std::vector<int> vect_permutations;
-  std::vector<std::vector<std::string>> uniqueCombinations;
-  std::map<int, std::string> daughterMap;
+  std::vector<std::vector<int>> uniqueCombinations;
+  std::map<int, int> daughterMap;
   for (int i = start; i < end; i++)
   {
-    daughterMap.insert(std::pair<int, std::string>(i, m_daughter_name[i]));
+    daughterMap.insert(std::pair<int, int>(i, abs(getParticleID(m_daughter_name[i].c_str()))));
     vect_permutations.push_back(i);
   }
   int *permutations = &vect_permutations[0];
 
   do
   {
-    std::vector<std::string> combination;
+    std::vector<int> combination;
     combination.reserve((end - start));
     for (int i = 0; i < (end - start); i++)
     {

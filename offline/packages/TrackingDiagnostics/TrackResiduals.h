@@ -45,7 +45,7 @@ class TrackResiduals : public SubsysReco
   void trackmapName(const std::string &name) { m_trackMapName = name; }
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
-  void ppmode() { m_ppmode = true;}
+  void ppmode() { m_ppmode = true; }
   void zeroField() { m_zeroField = true; }
   void runnumber(const int run) { m_runnumber = run; }
   void segment(const int seg) { m_segment = seg; }
@@ -86,7 +86,7 @@ class TrackResiduals : public SubsysReco
 
   bool m_doAlignment = false;
   bool m_ppmode = false;
-  
+
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
   int m_runnumber = std::numeric_limits<int>::quiet_NaN();
@@ -122,6 +122,8 @@ class TrackResiduals : public SubsysReco
   float m_rzint = std::numeric_limits<float>::quiet_NaN();
   float m_xyslope = std::numeric_limits<float>::quiet_NaN();
   float m_xyint = std::numeric_limits<float>::quiet_NaN();
+  float m_yzslope = std::numeric_limits<float>::quiet_NaN();
+  float m_yzint = std::numeric_limits<float>::quiet_NaN();
   float m_R = std::numeric_limits<float>::quiet_NaN();
   float m_X0 = std::numeric_limits<float>::quiet_NaN();
   float m_Y0 = std::numeric_limits<float>::quiet_NaN();

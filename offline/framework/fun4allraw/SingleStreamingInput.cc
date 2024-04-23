@@ -12,12 +12,6 @@
 #include <set>
 #include <utility>  // for pair
 
-SingleStreamingInput::SingleStreamingInput(const std::string &name, Fun4AllEvtInputPoolManager *inman)
-  : Fun4AllBase(name)
-  , m_InputMgr(inman)
-{
-}
-
 SingleStreamingInput::SingleStreamingInput(const std::string &name)
   : Fun4AllBase(name)
 {

@@ -11,14 +11,13 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -DRAVE -DRaveDllExport= \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I${G4_MAIN}/include \
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem${G4_MAIN}/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(MYINSTALL)/lib64 \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
@@ -42,14 +41,12 @@ pkginclude_HEADERS = \
   PHActsTrackProjection.h \
   PHActsTrackPropagator.h \
   PHCASeeding.h \
-  TrackQA.h \
   PHCosmicsFilter.h \
   PHCosmicsTrkFitter.h \
   PHCosmicSeeder.h \
   PHCosmicTrackMerger.h \
   PHCosmicSeedCombiner.h \
   PHCosmicSiliconPropagator.h \
-  PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHGhostRejection.h \
   PHInitVertexing.h \
@@ -61,7 +58,6 @@ pkginclude_HEADERS = \
   PHRaveVertexing.h \
   PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
-  PHSiliconTruthTrackSeeding.h \
   PHSimpleKFProp.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
@@ -129,13 +125,11 @@ libtrack_reco_la_SOURCES = \
   ALICEKF.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
-  TrackQA.cc \
   PHCosmicsFilter.cc \
   PHCosmicSeedCombiner.cc \
   PHCosmicSeeder.cc \
   PHCosmicTrackMerger.cc \
   PHCosmicSiliconPropagator.cc \
-  PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
   PHGhostRejection.cc \
   PHInitVertexing.cc \
@@ -144,7 +138,6 @@ libtrack_reco_la_SOURCES = \
   PHSiliconHelicalPropagator.cc \
   PHSiliconSeedMerger.cc \
   PHSiliconTpcTrackMatching.cc \
-  PHSiliconTruthTrackSeeding.cc \
   PHSimpleKFProp.cc \
   PHSimpleVertexFinder.cc \
   PHTpcClusterMover.cc \

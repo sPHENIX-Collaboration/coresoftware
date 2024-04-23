@@ -40,6 +40,7 @@
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4IonisParamMat.hh>
 #include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4LogicalVolumeStore.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4MaterialTable.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -67,6 +68,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <list>
 #include <memory>   // for unique_ptr
 #include <utility>  // for pair, make_pair
 #include <vector>   // for vector, vector<>::iter...
@@ -265,6 +267,23 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
       ++it4;
     }
     ++it2;
+  }
+
+  //Inner HCal support ring (only the part in Outer HCal volume)
+  // it only exists in the new gdml file, this check keeps the old file
+  // without the inner hcal support readable
+  G4AssemblyVolume *m_iHCalRing = reader->GetAssembly("iHCalRing");  // ihcal ring
+  if (m_iHCalRing)
+  {
+    std::vector<G4VPhysicalVolume *>::iterator itr = m_iHCalRing->GetVolumesIterator();
+    for (unsigned int iring = 0; iring < m_iHCalRing->TotalImprintedVolumes(); iring++)
+    {
+      m_DisplayAction->AddSupportRingVolume((*itr)->GetLogicalVolume());
+      m_SteelAbsorberLogVolSet.insert((*itr)->GetLogicalVolume());
+      hcalenvelope->AddDaughter((*itr));
+      //std::cout<<(*itr)->GetName()<<std::endl;
+      ++itr;
+    }
   }
 
   for (auto &logical_vol : m_SteelAbsorberLogVolSet)

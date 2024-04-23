@@ -99,6 +99,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <exception>  // for exception
+#include <filesystem>
 #include <iostream>   // for operator<<, endl
 #include <memory>
 
@@ -278,10 +279,10 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
 
   std::unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
-  if (m_FieldMapFile == "CDB")
+  if (std::filesystem::path(m_FieldMapFile).extension() != ".root")
   {
     // loading from database
-    std::string url = CDBInterface::instance()->getUrl("FIELDMAPBIG", m_FieldMapFile);
+    std::string url = CDBInterface::instance()->getUrl(m_FieldMapFile);
     default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, url, m_MagneticFieldRescale));
   }
   else if (m_FieldMapFile != "NONE")

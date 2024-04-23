@@ -221,6 +221,10 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
 #ifdef FFAMEMTRACKER
     ffamemtracker->Start(memory_tracker_name, "SubsysReco");
 #endif
+    if (Verbosity() >= 3)
+    {
+      std::cout << "Calling Init() for Subsystem " << subsystem->Name() << std::endl;
+    }
     iret = subsystem->Init(subsystopNode);
 #ifdef FFAMEMTRACKER
     ffamemtracker->Stop(memory_tracker_name, "SubsysReco");

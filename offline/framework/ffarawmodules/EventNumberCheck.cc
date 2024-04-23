@@ -27,7 +27,7 @@ EventNumberCheck::EventNumberCheck(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int EventNumberCheck::Init(PHCompositeNode *topNode)
+int EventNumberCheck::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -36,8 +36,8 @@ int EventNumberCheck::Init(PHCompositeNode *topNode)
 int EventNumberCheck::process_event(PHCompositeNode *topNode)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  Event *evt = findNode::getClass<Event>(topNode,m_MyPrdfNode);
-    evt->identify();
+  Event *evt = findNode::getClass<Event>(topNode, m_MyPrdfNode);
+  evt->identify();
   int eventno = evt->getEvtSequence();
   int nw = evt->getPacketList(plist, 10000);
   if (nw >= 10000)
@@ -46,7 +46,7 @@ int EventNumberCheck::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   }
   auto insert_chk = m_EventSeen.insert(eventno);
-  if (! insert_chk.second)
+  if (!insert_chk.second)
   {
     std::cout << "event " << eventno << " exists already"
               << " counter: " << se->EventNumber() << std::endl;
@@ -59,7 +59,7 @@ void EventNumberCheck::CheckFem(int nw)
   std::set<int> femclkcemc, clkcemc;
   std::set<int> femclkmbd, clkmbd;
   static int ifirst = 1;
-  for (int i=0; i<nw; i++)
+  for (int i = 0; i < nw; i++)
   {
     int pktid = plist[i]->getIdentifier();
     if (pktid > 2000)
@@ -73,25 +73,24 @@ void EventNumberCheck::CheckFem(int nw)
     if (Verbosity() > 1)
     {
       std::cout << "packet " << plist[i]->getIdentifier() << ", evt nr "
-		<<   plist[i]->iValue(0, "EVTNR") << ", bclk 0x" << std::hex 
-		<< plist[i]->iValue(0, "CLOCK") << std::dec << std::endl;
+                << plist[i]->iValue(0, "EVTNR") << ", bclk 0x" << std::hex
+                << plist[i]->iValue(0, "CLOCK") << std::dec << std::endl;
     }
-    for ( int j = 0; j <  plist[i]->iValue(0,"NRMODULES"); j++)
+    for (int j = 0; j < plist[i]->iValue(0, "NRMODULES"); j++)
     {
       if (Verbosity() > 1)
       {
-	std::cout << "FEM " << j << ", Clock 0x" << std::hex 
-		  <<  plist[i]->iValue(j,"FEMCLOCK") << std::dec << std::endl;
+        std::cout << "FEM " << j << ", Clock 0x" << std::hex
+                  << plist[i]->iValue(j, "FEMCLOCK") << std::dec << std::endl;
       }
       if (pktid > 2000)
       {
-	femclkcemc.insert(plist[i]->iValue(j,"FEMCLOCK"));
+        femclkcemc.insert(plist[i]->iValue(j, "FEMCLOCK"));
       }
       else
       {
-	femclkmbd.insert(plist[i]->iValue(j,"FEMCLOCK"));
+        femclkmbd.insert(plist[i]->iValue(j, "FEMCLOCK"));
       }
-
     }
     delete plist[i];
   }
@@ -133,7 +132,7 @@ void EventNumberCheck::CheckFem(int nw)
   }
 
   int femclockcemc = *(clkcemc.begin());
-  int femclockmbd =  *(clkmbd.begin());
+  int femclockmbd = *(clkmbd.begin());
   if (previous_event_clkdiff != femclockcemc - femclockmbd)
   {
     if (ifirst)
@@ -142,8 +141,8 @@ void EventNumberCheck::CheckFem(int nw)
     }
     else
     {
-      std::cout << "clock diff changed at event " //<< eventno 
-		<< " from " << previous_event_clkdiff  << " to " 
+      std::cout << "clock diff changed at event "  //<< eventno
+                << " from " << previous_event_clkdiff << " to "
                 << femclockcemc - femclockmbd << std::endl;
     }
     previous_event_clkdiff = femclockcemc - femclockmbd;
