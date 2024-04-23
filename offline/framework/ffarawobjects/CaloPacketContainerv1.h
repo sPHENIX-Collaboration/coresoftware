@@ -27,6 +27,7 @@ class CaloPacketContainerv1 : public CaloPacketContainer
   CaloPacket *AddPacket(CaloPacket *calopacket) override;
   unsigned int get_npackets() override;
   CaloPacket *getPacket(unsigned int index) override;
+  CaloPacket *getPacketbyId(int id) override;
 
  private:
   TClonesArray *CaloPacketsTCArray{nullptr};

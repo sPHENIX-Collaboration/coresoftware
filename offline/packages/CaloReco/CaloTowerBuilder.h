@@ -3,8 +3,8 @@
 #ifndef CALOTOWERBUILDER_H
 #define CALOTOWERBUILDER_H
 
-#include "CaloWaveformProcessing.h"
 #include "CaloTowerDefs.h"
+#include "CaloWaveformProcessing.h"
 
 #include <fun4all/SubsysReco.h>
 
@@ -16,7 +16,6 @@ class PHCompositeNode;
 class TowerInfoContainer;
 class TowerInfoContainerv3;
 
-
 class CaloTowerBuilder : public SubsysReco
 {
  public:
@@ -25,7 +24,11 @@ class CaloTowerBuilder : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+
   void CreateNodeTree(PHCompositeNode *topNode);
+
+  int process_rawdata(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  int process_offline(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
 
   void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
@@ -67,25 +70,31 @@ class CaloTowerBuilder : public SubsysReco
     return;
   }
 
+  void set_offlineflag(const bool f = true)
+  {
+    m_UseOfflinePacketFlag = f;
+  }
+
  private:
   int process_sim();
-  CaloWaveformProcessing *WaveformProcessing {nullptr};
-  TowerInfoContainer *m_CaloInfoContainer {nullptr};  //! Calo info
-  TowerInfoContainer *m_CalowaveformContainer {nullptr};  //waveform from simulation
-  bool m_isdata {true};
-  bool _bdosoftwarezerosuppression {false};
-  int m_packet_low {std::numeric_limits<int>::min()};
-  int m_packet_high {std::numeric_limits<int>::min()};
-  int m_nsamples {16};
-  int m_nchannels {192};
-  int m_nzerosuppsamples {2};
-  int _nsoftwarezerosuppression {40};
-  CaloTowerDefs::DetectorSystem m_dettype {CaloTowerDefs::CEMC};
-  CaloTowerDefs::BuilderType m_buildertype {CaloTowerDefs::kPRDFTowerv1};
-  CaloWaveformProcessing::process _processingtype {CaloWaveformProcessing::NONE};
-  std::string m_detector {"CEMC"};
-  std::string m_inputNodePrefix {"WAVEFORM_"};
-  std::string m_outputNodePrefix {"TOWERS_"};
+  CaloWaveformProcessing *WaveformProcessing{nullptr};
+  TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
+  TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
+  bool m_isdata{true};
+  bool _bdosoftwarezerosuppression{false};
+  bool m_UseOfflinePacketFlag{false};
+  int m_packet_low{std::numeric_limits<int>::min()};
+  int m_packet_high{std::numeric_limits<int>::min()};
+  int m_nsamples{16};
+  int m_nchannels{192};
+  int m_nzerosuppsamples{2};
+  int _nsoftwarezerosuppression{40};
+  CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::CEMC};
+  CaloTowerDefs::BuilderType m_buildertype{CaloTowerDefs::kPRDFTowerv1};
+  CaloWaveformProcessing::process _processingtype{CaloWaveformProcessing::NONE};
+  std::string m_detector{"CEMC"};
+  std::string m_inputNodePrefix{"WAVEFORM_"};
+  std::string m_outputNodePrefix{"TOWERS_"};
   std::string TowerNodeName;
 };
 

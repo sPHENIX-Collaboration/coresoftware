@@ -49,7 +49,7 @@ int DumpPHHepMCGenEventMap::process_Node(PHNode *myNode)
       HepMC::GenEvent *evt = genevt->getEvent();
       if (!evt)
       {
-	*fout << "GenEvent is nullptr" << std::endl;
+        *fout << "GenEvent is nullptr" << std::endl;
       }
       else
       {

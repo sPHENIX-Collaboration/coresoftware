@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -49,7 +49,6 @@ pkginclude_HEADERS = \
   TpcDistortionCorrectionContainer.h \
   TpcLoadDistortionCorrection.h \
   TpcMap.h \
-  TpcRawDataDecoder.h \
   TpcRawWriter.h \
   TpcSimpleClusterizer.h
 
@@ -78,7 +77,6 @@ libtpc_la_SOURCES = \
   TpcCombinedRawDataUnpacker.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
-  TpcRawDataDecoder.cc \
   TpcRawWriter.cc \
   TpcSimpleClusterizer.cc
 

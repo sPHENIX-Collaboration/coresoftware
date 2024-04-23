@@ -173,7 +173,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
-  alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
+  // alignment_transformation.useInttSurveyGeometry(m_inttSurvey); 
    if(Verbosity() > 1)
     {
       alignment_transformation.verbosity();
@@ -858,10 +858,13 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 }
 
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
-{
-  
+{ 
   if(Verbosity() > 10)
-  { std::cout << "MakeActsGeometry::makeInttMapPairs - inttVolume: " << inttVolume->volumeName() << std::endl; }
+  { 
+    std::cout << "MakeActsGeometry::makeInttMapPairs - inttVolume: " << inttVolume->volumeName() << std::endl; 
+  }
+
+  std::cout << "Use Intt survey geometry? m_inttSurvey =" << m_inttSurvey << std::endl;
 
   auto inttLayerArray = inttVolume->confinedLayers();
 
@@ -882,20 +885,38 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       auto surf = surfaceVector.at(j)->getSharedPtr();
       auto vec3d = surf->center(m_geoCtxt);
 
-      double ref_rad[4] = {7.188, 7.732, 9.680, 10.262};
+      double ref_rad[4] = {-1., -1., -1., -1.};
+      if (m_inttSurvey) 
+      {
+        ref_rad[0] = 7.453;
+        ref_rad[1] = 8.046;
+        ref_rad[2] = 9.934;
+        ref_rad[3] = 10.569;
+      }
+      else
+      {
+        ref_rad[0] = 7.188;
+        ref_rad[1] = 7.732;
+        ref_rad[2] = 9.680;
+        ref_rad[3] = 10.262;
+      }
+
+      const double tolerance = (m_inttSurvey) ? 0.15 : 0.1;
 
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       
       /// The Acts geometry builder combines layers 4 and 5 together, 
       /// and layers 6 and 7 together. We need to use the radius to figure
       /// out which layer to use to get the layergeom
-      double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
+      double layer_rad = (m_inttSurvey) ? sqrt(pow(world_center[0]-m_inttbarrelcenter_survey_x, 2) + pow(world_center[1]-m_inttbarrelcenter_survey_y, 2)) : sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
 
       unsigned int layer = 0;
-      for (unsigned int i = 0; i < 4; ++i)
+      for (unsigned int i2 = 0; i2 < 4; ++i2)
       {
-        if (fabs(layer_rad - ref_rad[i]) < 0.1)
-          layer = i + 3;
+        if (fabs(layer_rad - ref_rad[i2]) < tolerance)
+        {
+          layer = i2 + 3;
+        }
       }
 
       TrkrDefs::hitsetkey hitsetkey = getInttHitSetKeyFromCoords(layer, world_center);
@@ -932,7 +953,6 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       }
     }
   }
-
 }
 
 void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
@@ -968,10 +988,10 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
       unsigned int layer = 0;
-      for (unsigned int i = 0; i < 3; ++i)
+      for (unsigned int i2 = 0; i2 < 3; ++i2)
       {
-        if (fabs(layer_rad - ref_rad[i]) < 0.1)
-          layer = i;
+        if (fabs(layer_rad - ref_rad[i2]) < 0.1)
+	{layer = i2;}
       }
 
       TrkrDefs::hitsetkey hitsetkey = getMvtxHitSetKeyFromCoords(layer, world_center);
@@ -1121,6 +1141,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   }
 
   double location[3] = {world[0], world[1], world[2]};
+  std::cout << "In getInttHitSetKeyFromCoords: layer=" << layer << " location[0]=" << location[0] << " location[1]=" << location[1] << " location[2]=" << location[2] << std::endl;
   int segment_z_bin = 0;
   int segment_phi_bin = 0;
   layergeom->find_indices_from_segment_center(segment_z_bin, 

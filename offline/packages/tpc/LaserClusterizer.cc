@@ -122,10 +122,10 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   m_clusterTree->Branch("itHist_0",&m_itHist_0);
   m_clusterTree->Branch("itHist_1",&m_itHist_1);
   m_clusterTree->Branch("nClusters",&m_nClus);
-  m_clusterTree->Branch("time_search",&t_search);
-  m_clusterTree->Branch("time_clus",&t_clus);
-  m_clusterTree->Branch("time_erase",&t_erase);
-  m_clusterTree->Branch("time_all",&t_all);
+  m_clusterTree->Branch("time_search",&time_search);
+  m_clusterTree->Branch("time_clus",&time_clus);
+  m_clusterTree->Branch("time_erase",&time_erase);
+  m_clusterTree->Branch("time_all",&time_all);
   
   //m_clusterTree->Branch("clusters",&m_clusterlist);
 
@@ -445,13 +445,18 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   m_nClus = (int)m_eventClusters.size();
+  t_all->stop();
+
+  time_search = t_search->get_accumulated_time() / 1000.;
+  time_clus = t_clus->get_accumulated_time() / 1000.;
+  time_erase = t_erase->get_accumulated_time() / 1000.;
+  time_all = t_all->get_accumulated_time() / 1000.;
 
   //std::cout << "filling tree" << std::endl;
   m_clusterTree->Fill();
   //std::cout << "tree filled" << std::endl;
 
 
-  t_all->stop();
 
   if(Verbosity())
     {

@@ -28,7 +28,7 @@ PHG4TpcEndCapDisplayAction::~PHG4TpcEndCapDisplayAction()
 void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
-  for (auto it : m_LogicalVolumeMap)
+  for (const auto &it : m_LogicalVolumeMap)
   {
     G4LogicalVolume *logvol = it.first;
     if (logvol->GetVisAttributes())
@@ -40,7 +40,7 @@ void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvo
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-// cppcheck-suppress internalAstError
+                                    // cppcheck-suppress internalAstError
     if (it.second == "G10" or it.second == "FR4")
     {
       visatt->SetColour(G4Colour(0.0, .5, 0.0));

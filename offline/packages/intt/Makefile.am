@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -33,32 +33,32 @@ lib_LTLIBRARIES = \
   libintt.la 
 
 pkginclude_HEADERS = \
+  CylinderGeomIntt.h \
+  InttArborist.h \
+  InttBadChannelMap.h \
+  InttBadChannelMapv1.h \
+  InttBCOMap.h \
   InttClusterizer.h \
   InttClusterQA.h \
-  InttCombinedRawDataConverter.h \
   InttCombinedRawDataDecoder.h \
-  InttMaskedChannelSet.h \
-  InttMaskedChannelSetv1.h \
+  InttDacMap.h \
   InttFeeMap.h \
   InttFeeMapv1.h \
   InttFelixMap.h \
   InttMap.h \
   InttMapping.h \
-  InttRawDataConverter.h \
-  InttRawDataDecoder.h \
   InttSurveyMap.h \
   InttSurveyMapv1.h \
   InttVertexFinder.h \
   InttVertexMap.h \
   InttVertexMapv1.h \
   InttVertex.h \
-  InttVertexv1.h \
-  CylinderGeomIntt.h
+  InttVertexv1.h
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
-  InttMaskedChannelSet_Dict.cc \
-  InttMaskedChannelSetv1_Dict.cc \
+  InttBadChannelMap_Dict.cc \
+  InttBadChannelMapv1_Dict.cc \
   InttFeeMap_Dict.cc \
   InttFeeMapv1_Dict.cc \
   InttMap_Dict.cc \
@@ -72,8 +72,8 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomIntt_Dict_rdict.pcm \
-  InttMaskedChannelSet_Dict_rdict.pcm \
-  InttMaskedChannelSetv1_Dict_rdict.pcm \
+  InttBadChannelMap_Dict_rdict.pcm \
+  InttBadChannelMapv1_Dict_rdict.pcm \
   InttFeeMap_Dict_rdict.pcm \
   InttFeeMapv1_Dict_rdict.pcm \
   InttMap_Dict_rdict.pcm \
@@ -86,19 +86,19 @@ nobase_dist_pcm_DATA = \
 
 # sources for intt library
 libintt_la_SOURCES = \
+  InttArborist.cc \
+  InttBCOMap.cc \
+  InttBadChannelMap.cc \
+  InttBadChannelMapv1.cc \
   InttClusterizer.cc \
   InttClusterQA.cc \
-  InttCombinedRawDataConverter.cc \
   InttCombinedRawDataDecoder.cc \
-  InttMaskedChannelSet.cc \
-  InttMaskedChannelSetv1.cc \
+  InttDacMap.cc \
   InttFeeMap.cc \
   InttFeeMapv1.cc \
   InttFelixMap.cc \
   InttMapping.cc \
   InttMap.cc \
-  InttRawDataConverter.cc \
-  InttRawDataDecoder.cc \
   InttSurveyMap.cc \
   InttSurveyMapv1.cc \
   InttVertexFinder.cc
@@ -115,8 +115,8 @@ libintt_la_LIBADD = \
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomIntt.cc \
-  InttMaskedChannelSet.cc \
-  InttMaskedChannelSetv1.cc \
+  InttBadChannelMap.cc \
+  InttBadChannelMapv1.cc \
   InttFeeMap.cc \
   InttFeeMapv1.cc \
   InttMap.cc \

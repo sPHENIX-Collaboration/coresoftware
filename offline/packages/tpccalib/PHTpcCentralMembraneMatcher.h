@@ -245,6 +245,10 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   std::vector<double> m_clust_RPeaks_pos;
   std::vector<double> m_clust_RPeaks_neg;
 
+  double m_global_RShift_pos;
+  double m_global_RShift_neg;
+  
+
   double getPhiRotation_smoothed( TH1D *hitHist, TH1D *clustHist );
 
   std::vector<double> getRPeaks(TH2F *r_phi);

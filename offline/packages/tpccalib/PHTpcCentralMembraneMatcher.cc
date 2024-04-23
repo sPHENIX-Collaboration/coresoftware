@@ -296,6 +296,12 @@ std::vector<int> PHTpcCentralMembraneMatcher::doGlobalRMatching(TH2F *r_phi, boo
 
   TH1D *proj = r_phi->ProjectionY("R_proj");
 
+  if(pos){
+    m_global_RShift_pos = 0.0;
+  }
+  else{
+    m_global_RShift_neg = 0.0;
+  }
 
   std::vector<double> rPeaks;
   std::vector<double> rHeights;
@@ -434,21 +440,20 @@ std::vector<int> PHTpcCentralMembraneMatcher::doGlobalRMatching(TH2F *r_phi, boo
   double R3_gaps = 2.1941;
 
   int skip = 0;
-  for(int i=1; i<(int)finalRHeights.size(); i++){
+  for(int i=1; i<(int)finalRPeaks.size(); i++){
     skips.push_back(0);
     double gap = finalRPeaks[i] - finalRPeaks[i-1];
-    if(finalRPeaks[i] > 31 && finalRPeaks[i] < 41){
-      int nGaps = (int)round(gap/R1_gaps);
-      skip += nGaps-1;
+    int nGaps = 1;
+    if(finalRPeaks[i] < 41){
+      nGaps = (int)round(gap/R1_gaps);
     }
-    if(finalRPeaks[i] > 41 && finalRPeaks[i] < 58){
-      int nGaps = (int)round(gap/R2_gaps);
-      skip += nGaps-1;
+    if(finalRPeaks[i] >= 41 && finalRPeaks[i] < 58){
+      nGaps = (int)round(gap/R2_gaps);
     }
-    if(finalRPeaks[i] > 58){
-      int nGaps = (int)round(gap/R3_gaps);
-      skip += nGaps-1;
+    if(finalRPeaks[i] >= 58){
+      nGaps = (int)round(gap/R3_gaps);
     }
+    skip += nGaps-1;
     skips[i]=skip;
   }
 
@@ -463,12 +468,17 @@ std::vector<int> PHTpcCentralMembraneMatcher::doGlobalRMatching(TH2F *r_phi, boo
     }
   }
 
+  int maxShift = 2;
+  while(startOffset+maxShift+skips[skips.size()-1] > (int)m_truth_RPeaks.size()-1){
+    maxShift -= 1;
+  }
+
   double bestSum = 100000000.0;
   int shift = 0;
 
   std::vector<double> shifts;
 
-  for(int i=startOffset-2; i<=startOffset+2; i++){
+  for(int i=startOffset-2; i<=startOffset+maxShift; i++){
     double sum = 0.0;
     double move = m_truth_RPeaks[i] - finalRPeaks[0];
     for(int j=0; j<(int)finalRPeaks.size(); j++){
@@ -493,6 +503,12 @@ std::vector<int> PHTpcCentralMembraneMatcher::doGlobalRMatching(TH2F *r_phi, boo
 
   for(int i=0; i<(int)finalRPeaks.size(); i++){
     hitMatches.push_back(i+shift+skips[i]);
+  }
+
+  if(pos){
+    m_global_RShift_pos = m_truth_RPeaks[shift] - finalRPeaks[0];
+  }else{
+    m_global_RShift_neg = m_truth_RPeaks[shift] - finalRPeaks[0];
   }
 
   return hitMatches;
@@ -921,14 +937,14 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       //std::cout << "PHTpcCentralMembraneMatcher::process_event - R12Gap_pos= " << R12Gap_pos << "   value=" << R12Gap_pos_value << std::endl;
       //std::cout << "PHTpcCentralMembraneMatcher::process_event - R23Gap_pos= " << R23Gap_pos << "   value=" << R23Gap_pos_value << std::endl;
       for(int i=0; i<(int)hitMatches_pos.size(); i++){
-	std::cout << "positive cluster index " << i << "   hit match " << hitMatches_pos[i] << "   recoPeak=" << m_clust_RPeaks_pos[i] << "   truthPeak=" << m_truth_RPeaks[hitMatches_pos[i]] << "   residual=" << m_truth_RPeaks[hitMatches_pos[i]] - m_clust_RPeaks_pos[i] << std::endl;
+	std::cout << "positive cluster index " << i << "   hit match " << hitMatches_pos[i] << "   recoPeak=" << m_clust_RPeaks_pos[i] << "   shifted recoPeak=" << m_clust_RPeaks_pos[i] + m_global_RShift_pos  << "   truthPeak=" << m_truth_RPeaks[hitMatches_pos[i]] << "   residual=" << m_truth_RPeaks[hitMatches_pos[i]] - (m_clust_RPeaks_pos[i] + m_global_RShift_pos) << std::endl;
       }
 
 
       //std::cout << "PHTpcCentralMembraneMatcher::process_event - R12Gap_neg= " << R12Gap_neg << "   value=" << R12Gap_neg_value << std::endl;
       //std::cout << "PHTpcCentralMembraneMatcher::process_event - R23Gap_neg= " << R23Gap_neg << "   value=" << R23Gap_neg_value << std::endl;
       for(int i=0; i<(int)hitMatches_neg.size(); i++){
-	std::cout << "negative cluster index " << i << "   hit match " << hitMatches_neg[i] << "   recoPeak=" << m_clust_RPeaks_neg[i] << "   truthPeak=" << m_truth_RPeaks[hitMatches_neg[i]] << "   residual=" << m_truth_RPeaks[hitMatches_neg[i]] - m_clust_RPeaks_neg[i] << std::endl;
+	std::cout << "negative cluster index " << i << "   hit match " << hitMatches_neg[i] << "   recoPeak=" << m_clust_RPeaks_neg[i] << "   shifted recoPeak=" << m_clust_RPeaks_neg[i] + m_global_RShift_neg << "   truthPeak=" << m_truth_RPeaks[hitMatches_neg[i]] << "   residual=" << m_truth_RPeaks[hitMatches_neg[i]] - (m_clust_RPeaks_neg[i] + m_global_RShift_neg) << std::endl;
       }
 
     }
