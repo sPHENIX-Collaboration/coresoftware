@@ -40,12 +40,10 @@ PHSiliconCosmicSeeding::PHSiliconCosmicSeeding(const std::string &name)
 }
 
 //____________________________________________________________________________..
-PHSiliconCosmicSeeding::~PHSiliconCosmicSeeding()
-{
-}
+PHSiliconCosmicSeeding::~PHSiliconCosmicSeeding() = default;
 
 //____________________________________________________________________________..
-int PHSiliconCosmicSeeding::Init(PHCompositeNode *)
+int PHSiliconCosmicSeeding::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -54,15 +52,21 @@ int PHSiliconCosmicSeeding::Init(PHCompositeNode *)
 int PHSiliconCosmicSeeding::InitRun(PHCompositeNode *topNode)
 {
   int ret = createNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  if (ret != Fun4AllReturnCodes::EVENT_OK)
+  {
+    return ret;
+  }
   ret = getNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  if (ret != Fun4AllReturnCodes::EVENT_OK)
+  {
+    return ret;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int PHSiliconCosmicSeeding::process_event(PHCompositeNode *)
+int PHSiliconCosmicSeeding::process_event(PHCompositeNode * /*unused*/)
 {
   PHSiliconCosmicSeeding::PositionMap clusterPositions;
   std::set<TrkrDefs::TrkrId> detectors;
@@ -92,7 +96,10 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode *)
   if (Verbosity() > 2)
   {
     std::cout << "doublets size is " << doublets.size() << std::endl;
-    if (doublets.size() > 0) std::cout << "nonzero doublet size" << std::endl;
+    if (doublets.size() > 0)
+    {
+      std::cout << "nonzero doublet size" << std::endl;
+    }
   }
 
   auto longseeds = addClustersOnLine(doublets, clusterPositions);
@@ -108,11 +115,7 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode *)
   }
 
   pruneSeeds(finalseeds, clusterPositions);
-  if(finalseeds.size()>0)
-  {
-    std::cout << "SEED FOUND" << std::endl;
-    
-  }
+
   for (auto &s : finalseeds)
   {
     std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
@@ -132,9 +135,7 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode *)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
-void
-PHSiliconCosmicSeeding::pruneSeeds(SeedVector &seeds, PositionMap &clusterPositions)
+void PHSiliconCosmicSeeding::pruneSeeds(SeedVector &seeds, PositionMap &clusterPositions)
 {
   SeedVector prunedSeeds;
   for (auto &s : seeds)
@@ -144,7 +145,6 @@ PHSiliconCosmicSeeding::pruneSeeds(SeedVector &seeds, PositionMap &clusterPositi
     {
       auto pos = clusterPositions.find(key)->second;
       xypoints.push_back(std::make_pair(pos.x(), pos.y()));
-
     }
 
     auto xyLineParams = TrackFitUtils::line_fit(xypoints);
@@ -181,9 +181,15 @@ PHSiliconCosmicSeeding::combineSeeds(SeedVector &seeds)
         if (Verbosity() > 3)
         {
           std::cout << "duplicate seeds found with " << std::endl;
-          for (auto &key : s1.ckeys) std::cout << key << ", ";
+          for (auto &key : s1.ckeys)
+          {
+            std::cout << key << ", ";
+          }
           std::cout << std::endl;
-          for (auto &key : s2.ckeys) std::cout << key << ", ";
+          for (auto &key : s2.ckeys)
+          {
+            std::cout << key << ", ";
+          }
           std::cout << std::endl;
         }
         //! check it isn't already in there
@@ -248,7 +254,7 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(See
     }
   }
   SeedVector longseeds;
-  for (auto doublet : doublets)
+  for (const auto &doublet : doublets)
   {
     if (doublet.ckeys.size() > 3)
     {
@@ -313,7 +319,7 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::makeDoublets(Position
   return doublets;
 }
 //____________________________________________________________________________..
-int PHSiliconCosmicSeeding::End(PHCompositeNode *)
+int PHSiliconCosmicSeeding::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
