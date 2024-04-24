@@ -469,7 +469,7 @@ inline int GBTLink::decode_lane( const uint8_t chipId, PayLoadCont& buffer)
 
   bool busy_on = false, busy_off = false;
   bool chip_header_found = false;
-  bool chip_trailer_found = false;
+  bool chip_trailer_found = true;
 
   uint8_t laneId = 0xFF;
   uint8_t bc = 0xFF;
