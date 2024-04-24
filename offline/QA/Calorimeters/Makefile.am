@@ -26,7 +26,8 @@ libcalovalid_la_LIBADD = \
   -lglobalvertex_io \
   -lmbd_io \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
+  -lqautils
 
 ################################################
 # linking tests

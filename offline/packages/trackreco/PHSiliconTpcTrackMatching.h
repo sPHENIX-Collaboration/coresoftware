@@ -32,8 +32,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_y_search_window(const double win) { _y_search_win = win; }
   void set_z_search_window(const double win) { _z_search_win = win; }
 
-  void set_match_window_function_pars(const double a, const double b, const double ptmin) 
-  { 
+  void set_match_window_function_pars(const double a, const double b, const double ptmin)
+  {
     _match_function_a = a;
     _match_function_b = b;
     _match_function_ptmin = ptmin;
@@ -98,6 +98,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   //  double _reference_collision_rate = 50e3;  // reference rate for phi correction
   //  double _si_vertex_dzmax = 0.25;  // mm
   double crossing_period = 106.0;  // ns
+  double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
 
   bool _test_windows = false;
   bool _pp_mode = false;
