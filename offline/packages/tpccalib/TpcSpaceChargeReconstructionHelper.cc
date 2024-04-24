@@ -59,13 +59,13 @@ namespace
   /// phi range for west sector (TPC sectors 10 and 22)
   const range_t phi_range_west = transform_range({-1.21452, -0.911172});
 
-  /// list of theta (polar) angles for each micromeas in central sector
+  /// list of theta angles for each micromeas in central sector with theta defined as atan2(z,r)
   const range_list_t theta_range_central = {{-0.918257, -0.613136}, {-0.567549, -0.031022}, {0.0332154, 0.570419}, {0.613631, 0.919122}};
 
-  /// list of theta (polar) angles for each micromeas in east sector
+  /// list of theta angles for each micromeas in central sector with theta defined as atan2(z,r)
   const range_list_t theta_range_east = {{-0.636926, -0.133603}, {0.140678, 0.642714}};
 
-  /// list of theta (polar) angles for each micromeas in west sector
+  /// list of theta angles for each micromeas in central sector with theta defined as atan2(z,r)
   const range_list_t theta_range_west = {{-0.643676, -0.141004}, {0.13485, 0.640695}};
   //@}
 
