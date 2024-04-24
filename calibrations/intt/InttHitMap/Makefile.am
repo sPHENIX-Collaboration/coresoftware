@@ -7,10 +7,8 @@ AM_LDFLAGS = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem`root-config --incdir`
-
-pcmdir = $(libdir)
 
 lib_LTLIBRARIES = \
     libintthitmap.la
@@ -19,7 +17,6 @@ pkginclude_HEADERS = \
   InttHitMap.h
 
 libintthitmap_la_SOURCES = \
-  $(ROOTDICTS) \
   InttHitMap.cc  
 
 libintthitmap_la_LDFLAGS = \
@@ -29,11 +26,8 @@ libintthitmap_la_LDFLAGS = \
   -lfun4all \
   -lg4detectors_io \
   -lphg4hit \
-  -lg4dst \
   -lg4eval \
-  -lintt 
-  
-
+  -lintt
 
 
 ################################################
@@ -54,14 +48,5 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-%_Dict.cc: %.h %LinkDef.h
-	rootcling -f $@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
-
-
-
-
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES) *.pcm
+	rm -f $(BUILT_SOURCES)
