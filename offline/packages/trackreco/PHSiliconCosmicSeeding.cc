@@ -107,7 +107,12 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode *)
     std::cout << "final seeds size is " << finalseeds.size() << std::endl;
   }
 
-  // auto prunedSeeds = pruneSeeds(longseeds, clusterPositions);
+  pruneSeeds(finalseeds, clusterPositions);
+  if(finalseeds.size()>0)
+  {
+    std::cout << "SEED FOUND" << std::endl;
+    
+  }
   for (auto &s : finalseeds)
   {
     std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
@@ -126,69 +131,36 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode *)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-PHSiliconCosmicSeeding::SeedVector
+
+
+void
 PHSiliconCosmicSeeding::pruneSeeds(SeedVector &seeds, PositionMap &clusterPositions)
 {
   SeedVector prunedSeeds;
   for (auto &s : seeds)
   {
-    seed newseed;
-    //! Line fit both in x-y and r-z
-    TrackFitUtils::position_vector_t rzpoints, xypoints;
+    TrackFitUtils::position_vector_t xypoints;
     for (auto &key : s.ckeys)
     {
       auto pos = clusterPositions.find(key)->second;
       xypoints.push_back(std::make_pair(pos.x(), pos.y()));
-      float clusr = r(pos.x(), pos.y());
-      if (pos.y() < 0)
-      {
-        clusr *= -1;
-      }
-      rzpoints.push_back(std::make_pair(pos.z(), clusr));
+
     }
 
     auto xyLineParams = TrackFitUtils::line_fit(xypoints);
-    auto rzLineParams = TrackFitUtils::line_fit(rzpoints);
-
-    std::vector<TrkrDefs::cluskey> newClusKeysrz, newClusKeysxy, intersect;
-    std::vector<Acts::Vector3> newClusPosrz, newClusPosxy;
-
-    // now add clusters along lines
-    int nxyclusters = TrackFitUtils::addClustersOnLine(xyLineParams,
-                                                       true,
-                                                       1.0,
-                                                       m_tGeometry,
-                                                       m_clusterContainer,
-                                                       newClusPosxy,
-                                                       newClusKeysxy,
-                                                       0, 7);
-    int nrzclusters = TrackFitUtils::addClustersOnLine(rzLineParams,
-                                                       false,
-                                                       1.0,
-                                                       m_tGeometry,
-                                                       m_clusterContainer,
-                                                       newClusPosrz,
-                                                       newClusKeysrz,
-                                                       0, 7);
-
-    std::set_intersection(newClusKeysxy.begin(), newClusKeysxy.end(),
-                          newClusKeysrz.begin(), newClusKeysrz.end(), std::back_inserter(intersect));
-    if (Verbosity() > 2)
+    float lineSlope = std::get<0>(xyLineParams);
+    float lineIntercept = std::get<1>(xyLineParams);
+    for (auto &key : s.ckeys)
     {
-      std::cout << "Intersection number of clusters is " << nxyclusters << " , " << nrzclusters << std::endl;
-    }
-    if (intersect.size() > 0)
-    {
-      std::set<TrkrDefs::cluskey> newkeys;
-      for (auto &key : intersect)
+      auto pos = clusterPositions.find(key)->second;
+      float distance = std::abs(lineSlope * pos.x() - pos.y() + lineIntercept) / std::sqrt(lineSlope * lineSlope + 1);
+      if (distance > 0.5)
       {
-        newkeys.insert(key);
+        s.ckeys.erase(key);
       }
-      newseed.ckeys = newkeys;
-      prunedSeeds.push_back(newseed);
     }
   }
-  return prunedSeeds;
+  return;
 }
 PHSiliconCosmicSeeding::SeedVector
 PHSiliconCosmicSeeding::combineSeeds(SeedVector &seeds)

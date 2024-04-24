@@ -45,7 +45,7 @@ class PHSiliconCosmicSeeding : public SubsysReco
   SeedVector makeDoublets(PositionMap &clusterPositions);
   SeedVector addClustersOnLine(SeedVector &doublets, PositionMap &clusterPositions);
   SeedVector combineSeeds(SeedVector &doublets);
-  SeedVector pruneSeeds(SeedVector &doublets, PositionMap &clusterPositions);
+  void pruneSeeds(SeedVector &doublets, PositionMap &clusterPositions);
   TrkrClusterContainer *m_clusterContainer = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
