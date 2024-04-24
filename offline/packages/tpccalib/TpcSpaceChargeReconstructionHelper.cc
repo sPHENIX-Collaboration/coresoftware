@@ -25,8 +25,14 @@ namespace
   template <class T>
   inline constexpr T get_bound_angle(T phi)
   {
-    while (phi < 0) phi += 2 * M_PI;
-    while (phi >= 2 * M_PI) phi -= 2 * M_PI;
+    while (phi < 0)
+    {
+      phi += 2 * M_PI;
+    }
+    while (phi >= 2 * M_PI)
+    {
+      phi -= 2 * M_PI;
+    }
     return phi;
   }
 
@@ -191,7 +197,6 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z(TH3* source, const TH3* m
   }
 }
 
-
 //____________________________________________________________________________________
 void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* mask, uint8_t side)
 {
@@ -212,17 +217,15 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* 
   {
     for (int ip = 0; ip < source->GetNbinsX(); ++ip)
     {
-
       // handle pad plane on the positive side (zmax)
-      if( side&Side_positive )
+      if (side & Side_positive)
       {
-
         // find first non empty bin, starting from last zaxis bin
         int iz_min = -1;
-        for( int iz = source->GetNbinsZ()-1; iz >= 0; --iz )
+        for (int iz = source->GetNbinsZ() - 1; iz >= 0; --iz)
         {
           const bool in_range = mask->GetBinContent(ip + 1, ir + 1, iz + 1) > 0;
-          if( in_range )
+          if (in_range)
           {
             iz_min = iz;
             break;
@@ -230,10 +233,13 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* 
         }
 
         // check bin validity
-        if( iz_min<0 ) { continue; }
+        if (iz_min < 0)
+        {
+          continue;
+        }
 
         // loop over empty bins and do the interpolation
-        for( int iz = iz_min+1; iz < source->GetNbinsZ(); ++iz )
+        for (int iz = iz_min + 1; iz < source->GetNbinsZ(); ++iz)
         {
           const double z_min = source->GetZaxis()->GetBinCenter(iz_min + 1);
           const double z_max = source->GetZaxis()->GetXmax();
@@ -252,20 +258,17 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* 
           source->SetBinContent(ip + 1, ir + 1, iz + 1, distortion);
           source->SetBinError(ip + 1, ir + 1, iz + 1, error);
         }
-
       }
 
-
       // handle pad plane on the negative side (zmin
-      if( side&Side_negative )
+      if (side & Side_negative)
       {
-
         // find first non empty bin, starting from first zaxis bin
         int iz_max = -1;
-        for( int iz = 0; iz < source->GetNbinsZ(); ++iz )
+        for (int iz = 0; iz < source->GetNbinsZ(); ++iz)
         {
           const bool in_range = mask->GetBinContent(ip + 1, ir + 1, iz + 1) > 0;
-          if( in_range )
+          if (in_range)
           {
             iz_max = iz;
             break;
@@ -273,14 +276,16 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* 
         }
 
         // check bin validity
-        if( iz_max<0 ) { continue; }
+        if (iz_max < 0)
+        {
+          continue;
+        }
 
         // loop over empty bins and do the interpolation
-        for( int iz = 0; iz < iz_max; ++iz )
+        for (int iz = 0; iz < iz_max; ++iz)
         {
-
           const double z_min = source->GetZaxis()->GetXmin();
-          const double z_max = source->GetZaxis()->GetBinCenter( iz_max+1 );
+          const double z_max = source->GetZaxis()->GetBinCenter(iz_max + 1);
           const double z = source->GetZaxis()->GetBinCenter(iz + 1);
           const double alpha_min = (z_max - z) / (z_max - z_min);
           const double alpha_max = (z - z_min) / (z_max - z_min);
@@ -295,9 +300,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z2(TH3* source, const TH3* 
 
           source->SetBinContent(ip + 1, ir + 1, iz + 1, distortion);
           source->SetBinError(ip + 1, ir + 1, iz + 1, error);
-
         }
-
       }
     }
   }
@@ -450,7 +453,10 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi2(TH3* source, const TH3
 //_______________________________________________
 std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(const TH3* source)
 {
-  if (!source) return std::make_tuple<TH3*, TH3*>(nullptr, nullptr);
+  if (!source)
+  {
+    return std::make_tuple<TH3*, TH3*>(nullptr, nullptr);
+  }
 
   auto xaxis = source->GetXaxis();
   auto yaxis = source->GetYaxis();
@@ -458,22 +464,24 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(const TH3* sour
   auto ibin = zaxis->FindBin((double) 0);
 
   // create histograms
-  const TString name( source->GetName() );
+  const TString name(source->GetName());
   auto hneg = new TH3F(
-      name+"_negz", name+"_negz",
+      name + "_negz", name + "_negz",
       xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
       yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
       ibin - 1, zaxis->GetXmin(), zaxis->GetBinUpEdge(ibin - 1));
 
   auto hpos = new TH3F(
-      name+"_posz", name+"_posz",
+      name + "_posz", name + "_posz",
       xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
       yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
       zaxis->GetNbins() - (ibin - 1), zaxis->GetBinLowEdge(ibin), zaxis->GetXmax());
 
   // copy content and errors
   for (int ix = 0; ix < xaxis->GetNbins(); ++ix)
+  {
     for (int iy = 0; iy < yaxis->GetNbins(); ++iy)
+    {
       for (int iz = 0; iz < zaxis->GetNbins(); ++iz)
       {
         const auto content = source->GetBinContent(ix + 1, iy + 1, iz + 1);
@@ -490,6 +498,8 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(const TH3* sour
           hpos->SetBinError(ix + 1, iy + 1, iz - (ibin - 1) + 1, error);
         }
       }
+    }
+  }
 
   // also copy axis titles
   for (const auto h : {hneg, hpos})
@@ -542,12 +552,16 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
 
   // fill center
   for (int iphi = 0; iphi < phibins; ++iphi)
+  {
     for (int ir = 0; ir < rbins; ++ir)
+    {
       for (int iz = 0; iz < zbins; ++iz)
       {
         hout->SetBinContent(iphi + 2, ir + 2, iz + 2, source->GetBinContent(iphi + 1, ir + 1, iz + 1));
         hout->SetBinError(iphi + 2, ir + 2, iz + 2, source->GetBinError(iphi + 1, ir + 1, iz + 1));
       }
+    }
+  }
 
   // fill guarding phi bins
   /*
@@ -556,6 +570,7 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
    * - first valid bin is copied to last guarding bin
    */
   for (int ir = 0; ir < rbins + 2; ++ir)
+  {
     for (int iz = 0; iz < zbins + 2; ++iz)
     {
       // copy last bin to first guarding bin
@@ -566,9 +581,11 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
       hout->SetBinContent(phibins + 2, ir + 1, iz + 1, hout->GetBinContent(2, ir + 1, iz + 1));
       hout->SetBinError(phibins + 2, ir + 1, iz + 1, hout->GetBinError(2, ir + 1, iz + 1));
     }
+  }
 
   // fill guarding r bins
   for (int iphi = 0; iphi < phibins + 2; ++iphi)
+  {
     for (int iz = 0; iz < zbins + 2; ++iz)
     {
       hout->SetBinContent(iphi + 1, 1, iz + 1, hout->GetBinContent(iphi + 1, 2, iz + 1));
@@ -577,9 +594,11 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
       hout->SetBinContent(iphi + 1, rbins + 2, iz + 1, hout->GetBinContent(iphi + 1, rbins + 1, iz + 1));
       hout->SetBinError(iphi + 1, rbins + 2, iz + 1, hout->GetBinError(iphi + 1, rbins + 1, iz + 1));
     }
+  }
 
   // fill guarding z bins
   for (int iphi = 0; iphi < phibins + 2; ++iphi)
+  {
     for (int ir = 0; ir < rbins + 2; ++ir)
     {
       hout->SetBinContent(iphi + 1, ir + 1, 1, hout->GetBinContent(iphi + 1, ir + 1, 2));
@@ -588,6 +607,7 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
       hout->SetBinContent(iphi + 1, ir + 1, zbins + 2, hout->GetBinContent(iphi + 1, ir + 1, zbins + 1));
       hout->SetBinError(iphi + 1, ir + 1, zbins + 2, hout->GetBinError(iphi + 1, ir + 1, zbins + 1));
     }
+  }
 
   return hout;
 }

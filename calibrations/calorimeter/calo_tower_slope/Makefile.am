@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 lib_LTLIBRARIES = libLiteCaloEvalTowSlope.la
@@ -12,13 +12,17 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64 \
   -lcalo_io \
+  -lSubsysReco \
+  -lfun4all \
   -lSubsysReco
 
 libLiteCaloEvalTowSlope_la_SOURCES = \
-  LiteCaloEval.cc
+  LiteCaloEval.cc \
+  HCalCosmics.cc
 
 pkginclude_HEADERS = \
-  LiteCaloEval.h
+  LiteCaloEval.h \
+  HCalCosmics.h
 
 BUILT_SOURCES = \
   testexternals.cc

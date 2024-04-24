@@ -67,8 +67,8 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
 
   if (calotype == LiteCaloEval::HCALIN)
   {
-    hcalin_energy_eta = new TH2F("hcalin_energy_eta", "hcalin energy eta", 1000, 0, 100, 240, -1.1, 1.1);
-    hcalin_e_eta_phi = new TH3F("hcalin_e_eta_phi", "hcalin e eta phi", 50, 0, 12, 24, -1.1, 1.1, 64, -3.14159, 3.14159);
+    hcalin_energy_eta = new TH2F("hcalin_energy_eta", "hcalin energy eta", 100, 0, 10, 24, -0.5, 23.5);
+    hcalin_e_eta_phi = new TH3F("hcalin_e_eta_phi", "hcalin e eta phi", 60, 0, 6, 24, -0.5, 23.5, 64, -0.5, 63.5);
 
     /// create tower histos
     for (int i = 0; i < 24; i++)
@@ -102,8 +102,8 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
 
   else if (calotype == LiteCaloEval::HCALOUT)
   {
-    hcalout_energy_eta = new TH2F("hcalout_energy_eta", "hcalout energy eta", 100, 0, 10, 240, -1.1, 1.1);
-    hcalout_e_eta_phi = new TH3F("hcalout_e_eta_phi", "hcalout e eta phi", 60, 0, 15, 24, -1.1, 1.1, 64, -3.14159, 3.14159);
+    hcalout_energy_eta = new TH2F("hcalout_energy_eta", "hcalout energy eta", 100, 0, 10, 24, 0.5, 23.5);
+    hcalout_e_eta_phi = new TH3F("hcalout_e_eta_phi", "hcalout e eta phi", 100, 0, 10, 24, -0.5, 23.5, 64, -0.5, 63.5);
 
     /// create tower histos
     for (int i = 0; i < 24; i++)
@@ -167,10 +167,10 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
     }
 
     // make 2d histo
-    energy_eta_hist = new TH2F("energy_eta_hist", "energy eta and all phi", 512, 0, 10, 960, -1.15, 1.15);
+    energy_eta_hist = new TH2F("energy_eta_hist", "energy eta and all phi", 100, 0, 10, 96, -0.5, 95.5);
 
     // make 3d histo
-    e_eta_phi = new TH3F("e_eta_phi", "e v eta v phi", 50, 0, 10, 192, -1.1335, 1.13350, 256, -3.14159, 3.14159);
+    e_eta_phi = new TH3F("e_eta_phi", "e v eta v phi", 100, 0, 10, 96, -0.5, 95.5, 256, -0.5, 255.5);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -447,6 +447,8 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
     max_iphi = 64;
   }
 
+  std::cout << "Target bin width: " << binwidth << std::endl;
+
   /// start of eta loop
   for (int i = 0; i < max_ieta + 1; i++)
   {
@@ -462,16 +464,25 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
     }
 
     /// holds the eta slice of histos
-    TH1 *heta_temp = nullptr;
-    f_temp->GetObject(b.c_str(), heta_temp);
-    if (heta_temp == nullptr)
+    TH1F *heta_temp = (TH1F *) f_temp->Get(b.c_str());
+
+    if (i == 0)
     {
-      std::cout << PHWHERE << " warning hist " << b << " not found" << std::endl;
-      gSystem->Exit(1);
-      exit(1);
+      std::cout << "Old bin width for eta slice " << heta_temp->GetBinWidth(1) << std::endl;
     }
+
     // rebin histogram
     heta_temp->Rebin(binwidth / heta_temp->GetBinWidth(1));
+
+    if (i == 0)
+    {
+      std::cout << "New bin width for eta slice " << heta_temp->GetBinWidth(1) << std::endl;
+    }
+
+    if (!heta_temp && i == 0)
+    {
+      std::cout << " warning hist " << b << " not found" << std::endl;
+    }
 
     /// assign the eta slice histo to an array (these arrays are private members in LCE.h)
     eta_hist[i] = heta_temp;
@@ -506,17 +517,25 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
       }
 
       /// heta_tempp holds tower histogram
-      TH1 *heta_tempp = nullptr;
-      f_temp->GetObject(hist_name_p.c_str(), heta_tempp);
-      if (heta_tempp == nullptr)
+      TH1F *heta_tempp = (TH1F *) f_temp->Get(hist_name_p.c_str());
+
+      if (i == 0 && j == 0)
       {
-        std::cout << PHWHERE << " warning hist " << hist_name_p << " not found" << std::endl;
-        gSystem->Exit(1);
-        exit(1);
+        std::cout << "Old bin width for towers " << heta_tempp->GetBinWidth(1) << std::endl;
       }
 
       // rebin histogram
       heta_tempp->Rebin(binwidth / heta_tempp->GetBinWidth(1));
+
+      if (i == 0 && j == 0)
+      {
+        std::cout << "New bin width for towers " << heta_tempp->GetBinWidth(1) << std::endl;
+      }
+
+      if (!heta_tempp && i == 0)
+      {
+        std::cout << " warning hist " << hist_name_p.c_str() << " not found" << std::endl;
+      }
 
       /// assign heta_tempp to array of tower histos
       cemc_hist_eta_phi[i][j] = heta_tempp;
@@ -537,7 +556,7 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
 
 void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 {
-  bool onlyEta = false;
+  bool onlyEta = false;  // will determine if you only run over eta slices or not
 
   if (fitmin < 0.001)
   {
@@ -673,10 +692,10 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         cleanEtaRef = (TH1F *) hcalout_eta[iik]->Clone(cleanEta.c_str());
 
-        // remove towers from eta slice reference associated with the chimney and support ring in high eta region
-        if (i < 4 || i >= 20)
+        // remove towers from eta slice reference associated with the chimney (i < 4) and support ring in high eta region(i>19)
+        if (i < 4 || i > 19)
         {
-          for (int phiCH = 14; phiCH <= 19; phiCH++)
+          for (int phiCH = 14; phiCH < 20; phiCH++)
           {
             cleanEtaRef->Add((TH1F *) hcal_out_eta_phi[i][phiCH], -1.0);
           }
@@ -785,6 +804,10 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       /// histo to hold tower clone
       TH1F *hnewfp = nullptr;
 
+      // check to see if tower in question is part of the chimney/high eta support ring
+
+      bool _isChimney = chk_isChimney(i, j);
+
       if (calotype == LiteCaloEval::CEMC)
       {
         // skip tower if there are no entries
@@ -816,7 +839,12 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         if (flag_fit_rings == true)
         {
-          cleanEtaRef->Add((TH1F *) hcal_out_eta_phi[i][j], -1.0);
+          // check to see if tower is part of chimney/high eta support. If it isnt, proceed to remove that tower from eta ref. This is to ensure we dont remove towers in these regions  twice from eta ref bc they already were in L717
+
+          if (!_isChimney)
+          {
+            cleanEtaRef->Add((TH1F *) hcal_out_eta_phi[i][j], -1.0);
+          }
         }
 
         else
@@ -849,6 +877,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         If true the towers are actually fit against the eta ring. This happends bc "myexpo" uses a tgraph
         to fit, and if we dont make LCE_grff for a tower, myexpo uses the latest version of LCE_grff, which is an eta slice tgraph
       */
+
       if (flag_fit_rings == false)
       {
         hnewfp->Smooth(nsmooth);
@@ -928,7 +957,10 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         if (flag_fit_rings == true)
         {
-          cleanEtaRef->Add((TH1F *) hcal_out_eta_phi[i][j], 1.0);
+          if (!_isChimney)
+          {
+            cleanEtaRef->Add((TH1F *) hcal_out_eta_phi[i][j], 1.0);
+          }
         }
       }
 
@@ -1081,4 +1113,14 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   f_temp->Close();
 
   // std::cout << "LEAVING REL SHIFTS" << std::endl;
+}
+
+bool LiteCaloEval::chk_isChimney(int ieta, int iphi)
+{
+  if ((ieta < 4 || ieta > 19) && (iphi > 13 && iphi < 20))
+  {
+    return true;
+  }
+
+  return false;
 }
