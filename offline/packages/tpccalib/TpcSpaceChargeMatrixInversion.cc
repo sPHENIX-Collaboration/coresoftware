@@ -272,8 +272,8 @@ void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections()
     std::unique_ptr<TH3> hpos(std::get<1>(result));
 
     return std::make_tuple(
-        TpcSpaceChargeReconstructionHelper::add_guarding_bins(hneg.get(), name+"_negz" ),
-        TpcSpaceChargeReconstructionHelper::add_guarding_bins(hpos.get(), name+"_posz" ) );
+        TpcSpaceChargeReconstructionHelper::add_guarding_bins(hneg.get(), name + "_negz"),
+        TpcSpaceChargeReconstructionHelper::add_guarding_bins(hpos.get(), name + "_posz"));
   };
 
   // apply finishing transformations to histograms and save in container
@@ -333,10 +333,10 @@ void TpcSpaceChargeMatrixInversion::extrapolate_distortion_corrections()
      * decide on which side of the histograms the pad plane is set.
      * this is used to guide the last z interpolation from readout plane to the outermost micromegas module
      */
-    const uint8_t side = (i==0) ? TpcSpaceChargeReconstructionHelper::Side_negative : TpcSpaceChargeReconstructionHelper::Side_positive;
+    const uint8_t side = (i == 0) ? TpcSpaceChargeReconstructionHelper::Side_negative : TpcSpaceChargeReconstructionHelper::Side_positive;
 
     // labmda function to process a given histogram, and return the updated one
-    auto process_histogram = [&hmask, &hmask_extrap_z, &hmask_extrap_p, &hmask_extrap_p2, side](TH3* h, TH2* h_cm )
+    auto process_histogram = [&hmask, &hmask_extrap_z, &hmask_extrap_p, &hmask_extrap_p2, side](TH3* h, TH2* h_cm)
     {
       // perform z extrapolation
       TpcSpaceChargeReconstructionHelper::extrapolate_z(h, hmask.get());
@@ -375,7 +375,10 @@ void TpcSpaceChargeMatrixInversion::save_distortion_corrections(const std::strin
   {
     for (const auto& h : h_list)
     {
-      if (h) h->Write(h->GetName());
+      if (h)
+      {
+        h->Write(h->GetName());
+      }
     }
   }
 

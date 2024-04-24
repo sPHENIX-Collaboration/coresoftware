@@ -107,21 +107,12 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
   m_alignStates.verbosity(Verbosity());
-  if (std::filesystem::path(m_fieldMap).extension() != ".root")
+  std::istringstream stringline(m_fieldMap);
+  stringline >> fieldstrength;
+  if (!stringline.fail())  // it is a float
   {
-    m_fieldMap = CDBInterface::instance()->getUrl(m_fieldMap);
+    m_ConstField = true;
   }
-  if (!std::filesystem::exists(m_fieldMap))
-  {
-    if (m_fieldMap.empty())
-    {
-      m_fieldMap = "empty string";
-    }
-    std::cout << PHWHERE << "Fieldmap " << m_fieldMap
-              << " does not exist" << std::endl;
-    gSystem->Exit(1);
-  }
-
   m_alignStates.fieldMap(m_fieldMap);
   auto level = Acts::Logging::FATAL;
   if (Verbosity() > 5)
@@ -533,28 +524,23 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         }
       }
 
-      float px = NAN;
-      float py = NAN;
-      float pz = NAN;
-      // Chris: This check does not make any sense - the m_fieldMap string is given to
-      // ActsAlignmentStates as field, this assumes that it may be a float (for a constant solenoidal field)
-      // which would crash upstream. If this functionality is desired, this needs to be set somewhere else
-      // e.g. in the macro where we can extract the strength if the field is constant
-      // Also doing this string operations for every single track are expensive
-      // if (m_fieldMap.find(".root") != std::string::npos)
-      //   {
-      px = tpcseed->get_px();
-      py = tpcseed->get_py();
-      pz = tpcseed->get_pz();
-      //   }
-      // else
-      //   {
-      //     float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
-      //     float phi = tpcseed->get_phi();
-      //     px = pt * std::cos(phi);
-      //     py = pt * std::sin(phi);
-      //     pz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
-      //   }
+      float px = std::numeric_limits<float>::quiet_NaN();
+      float py = std::numeric_limits<float>::quiet_NaN();
+      float pz = std::numeric_limits<float>::quiet_NaN();
+      if (m_ConstField)
+      {
+        float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
+        float phi = tpcseed->get_phi();
+        px = pt * std::cos(phi);
+        py = pt * std::sin(phi);
+        pz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
+      }
+      else
+      {
+        px = tpcseed->get_px();
+        py = tpcseed->get_py();
+        pz = tpcseed->get_pz();
+      }
 
       Acts::Vector3 momentum(px, py, pz);
       if (!is_valid(momentum))

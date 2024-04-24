@@ -18,27 +18,26 @@
  * \brief performs space charge distortion reconstruction using tracks
  */
 
-class TpcSpaceChargeMatrixInversion: public Fun4AllBase
+class TpcSpaceChargeMatrixInversion : public Fun4AllBase
 {
-  public:
-
+ public:
   /// constructor
-  TpcSpaceChargeMatrixInversion( const std::string& = "TPCSPACECHARGEMATRIXINVERSION" );
+  TpcSpaceChargeMatrixInversion(const std::string& = "TPCSPACECHARGEMATRIXINVERSION");
 
   ///@name modifiers
   //@{
 
   /// load central membrane distortion correction
-  void load_cm_distortion_corrections( const std::string& /*filename*/ );
+  void load_cm_distortion_corrections(const std::string& /*filename*/);
 
   /// load average distortion correction
-  void load_average_distortion_corrections( const std::string& /*filename*/ );
+  void load_average_distortion_corrections(const std::string& /*filename*/);
 
   /// add space charge correction matrix to current. Returns true on success
-  bool add( const TpcSpaceChargeMatrixContainer& );
+  bool add(const TpcSpaceChargeMatrixContainer&);
 
   /// add space charge correction matrix, loaded from file, to current. Returns true on success
-  bool add_from_file( const std::string& /*filename*/, const std::string& /*objectname*/ = "TpcSpaceChargeMatrixContainer" );
+  bool add_from_file(const std::string& /*filename*/, const std::string& /*objectname*/ = "TpcSpaceChargeMatrixContainer");
 
   /// calculate distortions by inverting stored matrices, and save relevant histograms
   void calculate_distortion_corrections();
@@ -51,8 +50,7 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
 
   //@}
 
-  private:
-
+ private:
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
 
@@ -61,7 +59,6 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
 
   /// central membrane distortion container
   std::unique_ptr<TpcDistortionCorrectionContainer> m_dcc_cm;
-
 };
 
 #endif
