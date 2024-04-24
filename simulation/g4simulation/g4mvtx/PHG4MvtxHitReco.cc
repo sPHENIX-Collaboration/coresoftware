@@ -216,7 +216,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     int Chip = cdbttree->GetIntValue(i, "chip");
     int Col = cdbttree->GetIntValue(i, "col");
     int Row = cdbttree->GetIntValue(i, "row");
-    if (Verbosity() == 0){
+    if (Verbosity() > 0){
       std::cout << "Layer: "<< Layer << ", Stave: "<< Stave << ", Chip: " << Chip << ", Row: " << Row << ", Col: " << Col << std::endl;
     }
 
