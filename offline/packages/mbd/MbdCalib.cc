@@ -790,7 +790,10 @@ int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
       if ( ifeech==0 && itdc<2*step && Verbosity() )
       {
         std::cout << _tcorr_y_interp[ifeech][itdc] << " ";
-        if ( itdc%step==(step-1) ) std::cout << std::endl;
+        if ( itdc%step==(step-1) )
+        {
+          std::cout << std::endl;
+        }
       }
     }
 
