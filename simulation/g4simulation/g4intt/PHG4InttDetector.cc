@@ -134,20 +134,13 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
   // INTT survey map to get the survey information
   InttSurveyMap *survey = new InttSurveyMap();
-  if (useSurvey)
+  if (useSurvey && survey->Load())
   {
-    std::string url = CDBInterface::instance()->getUrl("InttSurveyMap");
-    if (!std::filesystem::exists(url))
-    {
-      std::cout << PHWHERE << " Could not locate INTT survey geometry " << url << std::endl;
-      gSystem->Exit(1);
-    }
-    std::cout << PHWHERE << "Use the INTT survey geometry. Get the survey map from " << url << std::endl;
-    if (survey->LoadFromFile(url))
-    {
-      std::cout << PHWHERE << "Failed to load INTT survey geometry from the CDB" << std::endl;
-      gSystem->Exit(1);
-    }
+    std::cerr << PHWHERE << "\n"
+              << "\tuseSurvey is set, but default loading from CDB failed\n"
+              << "\tExiting" << std::endl;
+	gSystem->Exit(1);
+	exit(1);
   }
   else
   {
