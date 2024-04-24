@@ -1,3 +1,4 @@
+
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
 #ifndef CALOTOWERSLOPE_LITECALOEVAL_H
@@ -17,6 +18,7 @@ class TNtuple;
 class TF1;
 
 double LCE_fitf(double *f, double *p);
+
 TGraph *LCE_grff{nullptr};
 
 class LiteCaloEval : public SubsysReco
@@ -35,7 +37,7 @@ class LiteCaloEval : public SubsysReco
 
   LiteCaloEval(const std::string &name = "LiteCaloEval", const std::string &caloNm = "CEMC", const std::string &fnm = "outJF");
 
-  // to distinguish when we want to implement input decal
+  // to distinguish when we want to implement input decal (for simulations work)
   void set_mode(int modeset)
   {
     mode = modeset;
@@ -69,25 +71,18 @@ class LiteCaloEval : public SubsysReco
     calotype = i;
   }
 
-  // TNtuple -> to store fit parameters
-
   TFile *f_temp{nullptr};
-  /*
-  TNtuple *nt_corrVals;
-  TF1 *fit_func;
-  TF1 *fit_result;
-  float fit_value_mean;
-  float corr_val;
-  */
 
-  //  TF1 *mygaus;
   void Get_Histos(const std::string &infile, const std::string &fun4all_file = "");
-  // void Fit_Histos();
+
   void FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts);
 
   /// Setters
   void setFitMax(float fitMax) { fitmax = fitMax; }
   void setFitMin(float fitMin) { fitmin = fitMin; }
+  void set_spectra_binWidth(double binWidth) { binwidth = binWidth; }
+
+  bool chk_isChimney(int, int);
 
   /// Getters
   float getFitMax() { return fitmax; }
@@ -116,12 +111,14 @@ class LiteCaloEval : public SubsysReco
   TH2 *energy_eta_hist{nullptr};
   TH3 *e_eta_phi{nullptr};
 
-  //  TH2 *evtCentrality {nullptr};
-
   Calo calotype{NONE};
   int _ievent{0};
+
   float fitmin{0.};
   float fitmax{0.};
+
+  double binwidth{0.001};
+
   std::string _caloname;
   std::string _filename;
   std::string _inputnodename;
