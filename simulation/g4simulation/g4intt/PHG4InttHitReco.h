@@ -41,8 +41,7 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 
   void Detector(const std::string& d) { m_Detector = d; }
 
-   int LoadHotChannelMapLocal(std::string const& = "INTT_HotChannelMap.root");
-  int LoadHotChannelMapRemote(std::string const& = "INTT_HotChannelMap");
+  void setHotStripMaskFile(const std::string& name) { m_hotStripFileName = name; }
 
  protected:
   std::string m_Detector = "INTT";
@@ -70,6 +69,7 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   TrkrHitSetContainer* m_truth_hits;                              // generate and delete a container for each truth track
   std::map<TrkrDefs::hitsetkey, unsigned int> m_hitsetkey_cnt{};  // counter for making ckeys form hitsetkeys
 
+  std::string m_hotStripFileName = "INTT_HotMap";
   typedef std::set<InttNameSpace::RawData_s, InttNameSpace::RawDataComparator> Set_t;
   Set_t m_HotChannelSet;
 

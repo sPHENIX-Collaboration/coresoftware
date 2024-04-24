@@ -234,10 +234,34 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  //Check for the hot channel map
+  std::string hotStripFile = std::filesystem::exists(m_hotStripFileName) ? m_hotStripFileName : CDBInterface::instance()->getUrl(m_hotStripFileName);
+
+  if (std::filesystem::exists(hotStripFile))
+  {
+    CDBTTree cdbttree(hotStripFile);
+    cdbttree.LoadCalibrations();
+
+    m_HotChannelSet.clear();
+    uint64_t N = cdbttree.GetSingleIntValue("size");
+    for (uint64_t n = 0; n < N; ++n)
+    {
+      //C++ designated initializers only available with -std=c++20
+      //Just going to build the struct normally
+      InttNameSpace::RawData_s rawHotChannel;
+      rawHotChannel.felix_server = cdbttree.GetIntValue(n, "felix_server");
+      rawHotChannel.felix_channel = cdbttree.GetIntValue(n, "felix_channel");
+      rawHotChannel.chip = cdbttree.GetIntValue(n, "chip");
+      rawHotChannel.channel = cdbttree.GetIntValue(n, "channel");
+
+      m_HotChannelSet.insert(rawHotChannel);
+    }
+  }
+
   if (Verbosity() > 0)
   {
-    std::cout<<"Intt simulation BadChannelMap : size = "<<m_HotChannelSet.size()<<"  ";
-    std::cout<<(( m_HotChannelSet.size() >0 ) ? "hotchannel loaded " : "emtpy. hotchannel is not loaded");
+    std::cout<<"INTT simulation BadChannelMap : size = "<<m_HotChannelSet.size()<<"  ";
+    std::cout<<(( m_HotChannelSet.size() > 0 ) ? "Hot channel map loaded " : "Hot channel map is not loaded");
     std::cout<<std::endl;
   }
 
@@ -998,83 +1022,4 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode *topNode)
   m_truth_hits->Reset();
   prior_g4hit = nullptr;
   return;
-}
-
-
-int PHG4InttHitReco::LoadHotChannelMapLocal(std::string const& filename)
-{
-  if (filename.empty())
-  {
-    std::cout << "int PHG4InttHitReco.cc::LoadHotChannelMapLocal(std::string const& filename)" << std::endl;
-    std::cout << "\tArgument 'filename' is empty string" << std::endl;
-    return 1;
-  }
-
-  if (!std::filesystem::exists(filename))
-  {
-    std::cout << "int PHG4InttHitReco.cc::LoadHotChannelMapLocal(std::string const& filename)" << std::endl;
-    std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
-    return 1;
-  }
-
-
-  CDBTTree cdbttree(filename);
-  // need to checkt for error exception
-  cdbttree.LoadCalibrations();
-
-  m_HotChannelSet.clear();
-  uint64_t N = cdbttree.GetSingleIntValue("size");
-  for (uint64_t n = 0; n < N; ++n)
-  {
-    //C++ designated initializers only available with -std=c++20
-    //Just going to build the struct normally
-    InttNameSpace::RawData_s rawHotChannel;
-    rawHotChannel.felix_server = cdbttree.GetIntValue(n, "felix_server");
-    rawHotChannel.felix_channel = cdbttree.GetIntValue(n, "felix_channel");
-    rawHotChannel.chip = cdbttree.GetIntValue(n, "chip");
-    rawHotChannel.channel = cdbttree.GetIntValue(n, "channel");
-
-    m_HotChannelSet.insert(rawHotChannel);
-  }
-
-  return 0;
-}
-
-int PHG4InttHitReco::LoadHotChannelMapRemote(std::string const& name)
-{
-  if (name.empty())
-  {
-    std::cout << "int PHG4InttHitReco.cc::LoadHotChannelMapRemote(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'name' is empty string" << std::endl;
-    return 1;
-  }
-
-  std::string database = CDBInterface::instance()->getUrl(name);
-
-  if (!std::filesystem::exists(database))
-  {
-    std::cout << "int PHG4InttHitReco.cc::LoadHotChannelMapRemote(std::string const& filename)" << std::endl;
-    std::cout << "\tFile '" << database << "' does not exist" << std::endl;
-    return 1;
-  }
-
-  CDBTTree cdbttree(database);
-  cdbttree.LoadCalibrations();
-
-  m_HotChannelSet.clear();
-  uint64_t N = cdbttree.GetSingleIntValue("size");
-  for (uint64_t n = 0; n < N; ++n)
-  {
-    //C++ designated initializers only available with -std=c++20
-    //Just going to build the struct normally
-    InttNameSpace::RawData_s rawHotChannel;
-    rawHotChannel.felix_server = cdbttree.GetIntValue(n, "felix_server");
-    rawHotChannel.felix_channel = cdbttree.GetIntValue(n, "felix_channel");
-    rawHotChannel.chip = cdbttree.GetIntValue(n, "chip");
-    rawHotChannel.channel = cdbttree.GetIntValue(n, "channel");
-
-    m_HotChannelSet.insert(rawHotChannel);
-  }
-
-  return 0;
 }
