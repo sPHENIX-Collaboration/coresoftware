@@ -226,7 +226,7 @@ int MbdCalib::Download_Gains(const std::string& dbase_location)
     }
   }
   
-  if ( isnan(_qfit_mpv[0]) )
+  if ( std::isnan(_qfit_mpv[0]) )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -301,7 +301,7 @@ int MbdCalib::Download_TQT0(const std::string& dbase_location)
     infile.close();
   }
 
-  if ( isnan(_tqfit_t0mean[0]) ) 
+  if ( std::isnan(_tqfit_t0mean[0]) )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -377,7 +377,7 @@ int MbdCalib::Download_TTT0(const std::string& dbase_location)
     infile.close();
   }
 
-  if ( isnan(_ttfit_t0mean[0]) )
+  if ( std::isnan(_ttfit_t0mean[0]) )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
