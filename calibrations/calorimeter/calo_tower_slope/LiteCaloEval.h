@@ -1,3 +1,4 @@
+
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
 #ifndef CALOTOWERSLOPE_LITECALOEVAL_H
@@ -80,6 +81,8 @@ class LiteCaloEval : public SubsysReco
   void setFitMax(float fitMax) { fitmax = fitMax; }
   void setFitMin(float fitMin) { fitmin = fitMin; }
   void set_spectra_binWidth(double binWidth) { binwidth = binWidth; }
+
+  bool chk_isChimney(int, int);
 
   /// Getters
   float getFitMax() { return fitmax; }
