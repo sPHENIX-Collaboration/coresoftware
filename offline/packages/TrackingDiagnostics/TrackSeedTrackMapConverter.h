@@ -4,6 +4,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -20,7 +21,7 @@ class TrackSeedTrackMapConverter : public SubsysReco
  public:
   TrackSeedTrackMapConverter(const std::string &name = "TrackSeedTrackMapConverter");
 
-  virtual ~TrackSeedTrackMapConverter();
+  virtual ~TrackSeedTrackMapConverter() = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -38,17 +39,21 @@ class TrackSeedTrackMapConverter : public SubsysReco
   void addKeys(TrackSeed *seedToAddTo, TrackSeed *seedToAdd);
   std::pair<int, float> getCosmicCharge(TrackSeed *seed, float vertexradius) const;
 
-  std::string m_trackMapName = "SvtxTrackMap";
-  std::string m_trackSeedName = "TpcTrackSeedContainer";
+  ActsGeometry *m_tGeometry{nullptr};
+  SvtxTrackMap *m_trackMap{nullptr};
+  TrackSeedContainer *m_seedContainer{nullptr};
+  TrackSeedContainer *m_tpcContainer{nullptr};
+  TrackSeedContainer *m_siContainer{nullptr};
+  TrkrClusterContainer *m_clusters{nullptr};
 
-  bool m_cosmics = false;
-  SvtxTrackMap *m_trackMap = nullptr;
-  TrackSeedContainer *m_seedContainer = nullptr;
-  TrackSeedContainer *m_tpcContainer = nullptr;
-  TrackSeedContainer *m_siContainer = nullptr;
-  std::string m_fieldMap = "";
-  TrkrClusterContainer *m_clusters = nullptr;
-  ActsGeometry *m_tGeometry = nullptr;
+  double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
+
+  bool m_cosmics{false};
+  bool m_ConstField{false};
+
+  std::string m_fieldMap;
+  std::string m_trackMapName{"SvtxTrackMap"};
+  std::string m_trackSeedName{"TpcTrackSeedContainer"};
 };
 
 #endif  // TRACKSEEDTRACKMAPCONVERTER_H

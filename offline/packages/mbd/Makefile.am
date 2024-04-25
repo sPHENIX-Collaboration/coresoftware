@@ -13,11 +13,20 @@ lib_LTLIBRARIES = \
   libmbd.la
 endif
 
+if USE_ONLINE
+AM_CPPFLAGS = \
+  -DONLINE \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I${G4_MAIN}/include \
+  -isystem$(ROOTSYS)/include
+else
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
   -isystem$(ROOTSYS)/include
+endif
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -29,6 +38,7 @@ pkginclude_HEADERS = \
   BbcGeom.h \
   BbcGeomV1.h \
   MbdDefs.h \
+  MbdEvent.h \
   MbdGeom.h \
   MbdGeomV1.h \
   MbdOut.h \
@@ -40,6 +50,7 @@ pkginclude_HEADERS = \
   MbdPmtHitV1.h \
   MbdReturnCodes.h \
   MbdRunningStats.h \
+  MbdCalib.h \
   MbdSig.h
 
 else
@@ -176,6 +187,7 @@ endif
 if USE_ONLINE
 libmbd_io_la_SOURCES = \
   $(ROOTDICTS) \
+  MbdEvent.cc \
   BbcGeomV1.cc \
   MbdGeomV1.cc \
   MbdOut.cc \
@@ -186,6 +198,7 @@ libmbd_io_la_SOURCES = \
   MbdPmtContainer.cc \
   MbdPmtContainerV1.cc \
   MbdRunningStats.cc \
+  MbdCalib.cc \
   MbdSig.cc
 
 else
