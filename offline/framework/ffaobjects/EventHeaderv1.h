@@ -34,6 +34,8 @@ class EventHeaderv1 : public EventHeader
   /// isValid returns non zero if object contains valid data
   int isValid() const override;
 
+  void CopyTo(EventHeader *) override;
+
   /// get Run Number
   int get_RunNumber() const override { return RunNumber; }
   /// set Run Number
