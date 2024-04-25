@@ -78,9 +78,9 @@ class CaloTriggerEmulator : public SubsysReco
   //! Set TriggerType
   void setTriggerType(const std::string &name);
   void setTriggerType(TriggerDefs::TriggerId triggerid);
-  void setEmcalLUTFile(std::string &filename) { _emcal_lutname = filename; }
-  void setHcalinLUTFile(std::string &filename) { _hcalin_lutname = filename; }
-  void setHcaloutLUTFile(std::string &filename) { _hcalout_lutname = filename; }
+  void setEmcalLUTFile(const std::string &filename) { _emcal_lutname = filename; }
+  void setHcalinLUTFile(const std::string &filename) { _hcalin_lutname = filename; }
+  void setHcaloutLUTFile(const std::string &filename) { _hcalout_lutname = filename; }
 
   void useEMCALDefaultLUT(bool def) { _default_lut_emcal = def; }
   void useHCALINDefaultLUT(bool def) { _default_lut_hcalin = def; }
@@ -169,6 +169,11 @@ class CaloTriggerEmulator : public SubsysReco
   unsigned int m_l1_adc_table_time[1024]{};
   unsigned int m_l1_slewing_table[4096]{};
   unsigned int m_l1_hcal_table[4096]{};
+
+
+  std::map<unsigned int, TH1I*> h_emcal_lut;
+  std::map<unsigned int, TH1I*> h_hcalin_lut;
+  std::map<unsigned int, TH1I*> h_hcalout_lut;
 
   CDBHistos *cdbttree_emcal{nullptr};
   CDBHistos *cdbttree_hcalin{nullptr};
