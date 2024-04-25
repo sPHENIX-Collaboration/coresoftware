@@ -53,8 +53,8 @@ class EventHeaderv1 : public EventHeader
   int64_t get_intval(const std::string &name) const override;
 
  private:
-  int RunNumber = 0;    // Run number
-  int EvtSequence = 0;  // Event number
+  int RunNumber {0};    // Run number
+  int EvtSequence {0};  // Event number
   std::map<std::string, int64_t> m_IntEventProperties;
   std::map<std::string, float> m_FloatEventProperties;
 
