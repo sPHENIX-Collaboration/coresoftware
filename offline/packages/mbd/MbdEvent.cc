@@ -144,12 +144,14 @@ int MbdEvent::InitRun()
   // Init parameters of the signal processing
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
+    _mbdsig[ifeech].SetCalib(_mbdcal);
+
     // Do evt-by-evt pedestal using sample range below
-    //_mbdsig[ifeech].SetEventPed0Range(0,1);
-    //_mbdsig[ifeech].SetEventPed0PreSamp(6, 2, _mbdcal->get_sampmax(ifeech));
     if ( _calpass!=1 )
     {
-      _mbdsig[ifeech].SetEventPed0PreSamp(5, 4, _mbdcal->get_sampmax(ifeech));
+      const int presamp = 5;  // start from 5 samples before sampmax
+      const int nsamps = -1;  // use all to sample 0
+      _mbdsig[ifeech].SetEventPed0PreSamp(presamp, nsamps, _mbdcal->get_sampmax(ifeech));
     }
     else
     {
@@ -240,7 +242,28 @@ int MbdEvent::End()
     std::string fname = _caldir.Data(); fname += "mbd_sampmax.calib";
     _mbdcal->Write_SampMax( fname );
 
+    fname = _caldir.Data(); fname += "mbd_sampmax.root";
+    _mbdcal->Write_CDB_SampMax( fname );
+
+    TDirectory *orig_dir = gDirectory;
+    _smax_tfile->cd();
+
+    for (auto & sig : _mbdsig)
+    {
+      sig.WritePedHist();
+    }
+
+    CalcPedCalib();
+
+    std::string pedfname = _caldir.Data(); pedfname += "mbd_ped.calib";
+    _mbdcal->Write_Ped( pedfname );
+
+    pedfname = _caldir.Data(); pedfname += "mbd_ped.root";
+    _mbdcal->Write_CDB_Ped( pedfname );
+
     _smax_tfile->Write();
+
+    orig_dir->cd();
   }
 
   return 1;
@@ -912,6 +935,44 @@ int MbdEvent::CalcSampMaxCalib()
     }
     delete h_projx;
   }
+
+  if ( !_is_online )
+  {
+    orig_dir->cd();
+  }
+
+  return 1;
+}
+
+int MbdEvent::CalcPedCalib()
+{
+  TDirectory *orig_dir = gDirectory;
+  if ( !_is_online )
+  {
+    _smax_tfile->cd();
+  }
+
+  // ped for each feech
+  TF1 *pedgaus = new TF1("pedgaus","gaus",0.,2999.);
+  for (int ifeech=0; ifeech<MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    TH1 *hped0 = _mbdsig[ifeech].GetPedHist();
+    float mean = hped0->GetBinCenter( hped0->GetMaximumBin() );
+    float ampl = hped0->GetBinContent( hped0->GetMaximumBin() );
+    float sigma = 4.0;
+
+    pedgaus->SetParameters(ampl,mean,sigma);
+    pedgaus->SetRange(mean-4*sigma, mean+4*sigma);
+    hped0->Fit(pedgaus,"RNQ");
+
+    mean = pedgaus->GetParameter(1);
+    float meanerr = pedgaus->GetParError(1);
+    sigma = pedgaus->GetParameter(2);
+    float sigmaerr = pedgaus->GetParError(2);
+
+    _mbdcal->set_ped( ifeech, mean, meanerr, sigma, sigmaerr );
+  }
+  delete pedgaus;
 
   if ( !_is_online )
   {
