@@ -177,7 +177,6 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::V
 {
 
 
-  std::cout << "cluster 1: " << track1_silicon_cluster_size << " cluster 2: " << track2_silicon_cluster_size << std::endl;
   double px1 = track1->get_px();
   double py1 = track1->get_py();
   double pz1 = track1->get_pz();
