@@ -208,8 +208,6 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F *r_phi, bool
   std::vector<double> finalRHeights;
   std::vector<std::vector<int>> groupR;
 
-  double totalHeight = 0.0;
-  
   proj->GetXaxis()->SetRangeUser(0,41);
   double maxR1 = proj->GetMaximum();
 
@@ -291,7 +289,6 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F *r_phi, bool
     
     finalRPeaks[currentPeak] = num/den;
     finalRHeights[currentPeak] = den;
-    totalHeight += den;
   }
 
   if(pos)
@@ -379,7 +376,7 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F *r_phi, bool
     double move = m_truth_RPeaks[i] - finalRPeaks[middle_peak];
     std::vector<int> tmpMatches;
     for(int j=0; j<(int)finalRPeaks.size(); j++){
-      int minMatch = -1;
+      int minMatch = 0;
       double minResidual = 1000000000.0;
       for(int k=0; k<(int)m_truth_RPeaks.size(); k++){
 	if(fabs(finalRPeaks[j] + move - m_truth_RPeaks[k]) < minResidual){

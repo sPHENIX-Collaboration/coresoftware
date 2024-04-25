@@ -27,11 +27,23 @@ void LaserClusterv1::identify(std::ostream& os) const
 
 int LaserClusterv1::isValid() const
 {
-  if(std::isnan(getX())) return 0;
-  if(std::isnan(getY())) return 0;
-  if(std::isnan(getZ())) return 0;
+  if(std::isnan(getX()))
+    {
+      return 0;
+    }
+  if(std::isnan(getY()))
+    {
+      return 0;
+    }
+  if(std::isnan(getZ()))
+    {
+      return 0;
+    }
 
-  if (m_adc == 0xFFFFFFFF) return 0;
+  if (m_adc == 0xFFFFFFFF)
+    {
+      return 0;
+    }
 
   return 1;
 }
@@ -39,7 +51,10 @@ int LaserClusterv1::isValid() const
 void LaserClusterv1::CopyFrom( const LaserCluster& source )
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
+  if( this == &source )
+    {
+      return;
+    }
  
   // parent class method
   LaserCluster::CopyFrom( source );

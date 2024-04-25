@@ -247,8 +247,14 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
 	    int it = TpcDefs::getTBin(hitr->first);
 
-	    if(side == 0) m_itHist_0->Fill(it);
-	    else m_itHist_1->Fill(it);
+	    if(side == 0)
+	      {
+		m_itHist_0->Fill(it);
+	      }
+	    else
+	      {
+		m_itHist_1->Fill(it);
+	      }
 
 	  }
       }
@@ -312,7 +318,10 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
 	    float_t fadc = (hitr->second->getAdc()) - m_pedestal; // proper int rounding +0.5
 	    unsigned short adc = 0;
-	    if(fadc>0) adc =  (unsigned short) fadc;
+	    if(fadc>0)
+	      {
+		adc =  (unsigned short) fadc;
+	      }
 	    if(adc<=0){
 	      continue;
 	    }
@@ -336,7 +345,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 	    float x = r * cos(phi);
 	    float y = r * sin(phi);
 	    float z = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
-	    if (side == 0){
+	    if (side == 1){
 	      z = -z;
 	      it = -it;
 	    }
@@ -411,9 +420,15 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     int it = coords[2];
 
     int layerMax = layer+1;
-    if(layer == 22 || layer == 38 || layer == 54) layerMax = layer;
+    if(layer == 22 || layer == 38 || layer == 54)
+      {
+	layerMax = layer;
+      }
     int layerMin = layer-1;
-    if(layer == 7 || layer == 23 || layer == 39) layerMin = layer;
+    if(layer == 7 || layer == 23 || layer == 39)
+      {
+	layerMin = layer;
+      }
 
     //std::cout << "current number of clusters: " << m_clusterlist->size() << std::endl;
     //std::cout << "max adc=" << iterKey->first << "   coordinates (layer,iphi,it)=(" << layer << "," << iphi << "," << it << ")" << std::endl;
@@ -579,7 +594,10 @@ void LaserClusterizer::calc_cluster_parameter(vector<pointKeyLaser> &clusHits, s
 
   }
 
-  if(nHits == 0) return;
+  if(nHits == 0)
+    {
+      return;
+    }
 
   // std::cout << "making cluster " << m_clusterlist->size() << std::endl;
   //std::cout << "adc=" << adcSum << "   r=" << rSum/adcSum << "   phi=" << phiSum/adcSum << "   t=" << tSum/adcSum << "   nHits=" << nHits << std::endl;
