@@ -4,8 +4,8 @@
 #include <TDirectory.h>
 #include <TF1.h>
 #include <TFile.h>
-#include <TH1D.h>
-#include <TH2D.h>
+#include <TH1.h>
+#include <TH2.h>
 #include <TLine.h>
 #include <TStyle.h>
 #include <TText.h>
@@ -19,9 +19,8 @@
 #include <string>
 #include <vector>
 
-using namespace std;
 //////////////
-// Funtions //
+// Functions //
 //////////////
 double SingleGaussianFit(TH1D *hist, double &mean1, double &sigma1);
 // Function to do fitting return value : value for HotChannel cut
@@ -106,8 +105,8 @@ void InttChannelClassifier(int runnumber = 20869)  // runnumber
   // Load HitMap                        //
   ////////////////////////////////////////
   int in_sig = 10 * sig_cut;
-  std::string rootfilename = map_input_path + "hitmap_run" + to_string(runnumber) + ".root";
-  std::string cdbttree_name = cdb_output_path + "cdb_inttbadchanmap_" + to_string(runnumber) + ".root";
+  std::string rootfilename = map_input_path + "hitmap_run" + std::to_string(runnumber) + ".root";
+  std::string cdbttree_name = cdb_output_path + "cdb_inttbadchanmap_" + std::to_string(runnumber) + ".root";
   TFile *file = nullptr;
   file = TFile::Open(rootfilename.c_str(), "READ");
 
@@ -155,7 +154,7 @@ void InttChannelClassifier(int runnumber = 20869)  // runnumber
     std::cerr << "Unable to open the file." << std::endl;
     return;
   }
-  std::string outputfile = root_output_path + "InttHotDeadMap_test_" + to_string(runnumber) + "_" + to_string(in_sig) + ".root";
+  std::string outputfile = root_output_path + "InttHotDeadMap_test_" + std::to_string(runnumber) + "_" + std::to_string(in_sig) + ".root";
   TFile *sfile = new TFile(outputfile.c_str(), "RECREATE");
   TTree *st = new TTree("tree", "tree");
   double ch_entry, mean_gaus, sigma_gaus = 0.;
@@ -255,14 +254,14 @@ void InttChannelClassifier(int runnumber = 20869)  // runnumber
     {
       if (debug)
       {
-        cout << "moudle : " << i << " Type A " << HotChannelCut_A_Fit[felix][i] << endl;
-        cout << "moudle : " << i << " Type B " << HotChannelCut_B_Fit[felix][i] << endl;
+        std::cout << "moudle : " << i << " Type A " << HotChannelCut_A_Fit[felix][i] << std::endl;
+        std::cout << "moudle : " << i << " Type B " << HotChannelCut_B_Fit[felix][i] << std::endl;
       }
       for (int j = 0; j < 26; j++)
       {
         if (debug)
         {
-          cout << "Felix : " << felix << " moudle : " << i << " Type A and chip : " << j << "  " << HotChannelCut_A_Fit[felix][i] << endl;
+          std::cout << "Felix : " << felix << " moudle : " << i << " Type A and chip : " << j << "  " << HotChannelCut_A_Fit[felix][i] << std::endl;
         }
         for (int chan = 0; chan < 128; chan++)
         {
