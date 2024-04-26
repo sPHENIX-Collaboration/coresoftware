@@ -28,7 +28,9 @@ ROOTDICTS = \
   InttRawHit_Dict.cc \
   InttRawHitContainer_Dict.cc \
   InttRawHitContainerv1_Dict.cc \
+  InttRawHitContainerv2_Dict.cc \
   InttRawHitv1_Dict.cc \
+  InttRawHitv2_Dict.cc \
   MicromegasRawHit_Dict.cc \
   MicromegasRawHitContainer_Dict.cc \
   MicromegasRawHitContainerv1_Dict.cc \
@@ -60,7 +62,9 @@ nobase_dist_pcm_DATA = \
   InttRawHit_Dict_rdict.pcm \
   InttRawHitContainer_Dict_rdict.pcm \
   InttRawHitContainerv1_Dict_rdict.pcm \
+  InttRawHitContainerv2_Dict_rdict.pcm \
   InttRawHitv1_Dict_rdict.pcm \
+  InttRawHitv2_Dict_rdict.pcm \
   MicromegasRawHit_Dict_rdict.pcm \
   MicromegasRawHitContainer_Dict_rdict.pcm \
   MicromegasRawHitContainerv1_Dict_rdict.pcm \
@@ -91,7 +95,9 @@ pkginclude_HEADERS = \
   InttRawHit.h \
   InttRawHitContainer.h \
   InttRawHitContainerv1.h \
+  InttRawHitContainerv2.h \
   InttRawHitv1.h \
+  InttRawHitv2.h \
   MicromegasRawHit.h \
   MicromegasRawHitContainer.h \
   MicromegasRawHitContainerv1.h \
@@ -118,7 +124,9 @@ libffarawobjects_la_SOURCES = \
   Gl1RawHitv1.cc \
   Gl1RawHitv2.cc \
   InttRawHitContainerv1.cc \
+  InttRawHitContainerv2.cc \
   InttRawHitv1.cc \
+  InttRawHitv2.cc \
   MicromegasRawHitContainerv1.cc \
   MicromegasRawHitv1.cc \
   MvtxRawHitContainerv1.cc \
