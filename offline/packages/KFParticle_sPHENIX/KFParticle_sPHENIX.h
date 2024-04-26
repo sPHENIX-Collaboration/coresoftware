@@ -307,6 +307,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void magFieldFile(const std::string &fname) { m_magField = fname; }
 
+  void getField();
+
  private:
   bool m_has_intermediates_sPHENIX;
   bool m_constrain_to_vertex_sPHENIX;

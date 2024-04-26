@@ -28,8 +28,8 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Utils.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
@@ -52,10 +52,16 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>  // for allocator_tra...
+#include <set>     // for vector
 #include <vector>  // for vector
-#include <set>  // for vector
 
-PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string &name, const std::string &detector)
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
+#include <ffarawobjects/MvtxRawEvtHeader.h>
+
+// New headers I added
+
+PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string& name, const std::string& detector)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_detector(detector)
@@ -63,7 +69,7 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string &name, const std::string &det
   , m_tmax(5000.)
   , m_strobe_width(5.)
   , m_strobe_separation(0.)
-  , m_truth_hits { new TrkrHitSetContainerv1 }
+  , m_truth_hits{new TrkrHitSetContainerv1}
 {
   if (Verbosity())
   {
@@ -77,7 +83,7 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string &name, const std::string &det
   InitializeParameters();
 }
 
-int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
+int PHG4MvtxHitReco::InitRun(PHCompositeNode* topNode)
 {
   UpdateParametersWithMacro();
 
@@ -101,15 +107,15 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
 
   //! get DST node
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   assert(dstNode);
 
   //! get detector run node
-  auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
   assert(runNode);
 
   PHNodeIterator runiter(runNode);
-  auto runDetNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", m_detector));
+  auto runDetNode = dynamic_cast<PHCompositeNode*>(runiter.findFirst("PHCompositeNode", m_detector));
   if (!runDetNode)
   {
     runDetNode = new PHCompositeNode(m_detector);
@@ -123,7 +129,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
   if (!hitsetcontainer)
   {
     PHNodeIterator dstiter(dstNode);
-    auto trkrnode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto trkrnode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!trkrnode)
     {
       trkrnode = new PHCompositeNode("TRKR");
@@ -140,7 +146,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
   if (!hittruthassoc)
   {
     PHNodeIterator dstiter(dstNode);
-    auto trkrnode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto trkrnode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!trkrnode)
     {
       trkrnode = new PHCompositeNode("TRKR");
@@ -177,13 +183,14 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     assert(m_truthinfo);
   }
 
-  if (record_ClusHitsVerbose) {
+  if (record_ClusHitsVerbose)
+  {
     // get the node
     mClusHitsVerbose = findNode::getClass<ClusHitsVerbosev1>(topNode, "Trkr_TruthClusHitsVerbose");
     if (!mClusHitsVerbose)
     {
       PHNodeIterator dstiter(dstNode);
-      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      auto DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
       if (!DetNode)
       {
         DetNode = new PHCompositeNode("TRKR");
@@ -195,12 +202,36 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  std::string database = CDBInterface::instance()->getUrl(
+      "MVTX_DeadPixelMap");  // This is specifically for MVTX Dead Pixels
+  CDBTTree* cdbttree = new CDBTTree(database);
+
+  int NPixel = -1;
+  NPixel = cdbttree->GetSingleIntValue("TotalDeadPixels");
+
+  for (int i = 0; i < NPixel; i++)
+  {
+    int Layer = cdbttree->GetIntValue(i, "layer");
+    int Stave = cdbttree->GetIntValue(i, "stave");
+    int Chip = cdbttree->GetIntValue(i, "chip");
+    int Col = cdbttree->GetIntValue(i, "col");
+    int Row = cdbttree->GetIntValue(i, "row");
+    if (Verbosity() > 0)
+    {
+      std::cout << "Layer: " << Layer << ", Stave: " << Stave << ", Chip: " << Chip << ", Row: " << Row << ", Col: " << Col << std::endl;
+    }
+
+    TrkrDefs::hitsetkey DeadPixelHitKey = MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
+    TrkrDefs::hitkey DeadHitKey = MvtxDefs::genHitKey(Col, Row);
+    m_deadPixelMap.push_back({std::make_pair(DeadPixelHitKey, DeadHitKey)});
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
+int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 {
-  ActsGeometry *tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  ActsGeometry* tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tgeometry)
   {
     std::cout << "Could not locate acts geometry" << std::endl;
@@ -239,7 +270,9 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   // the strobe start time in future
 
   if (Verbosity() > 0)
+  {
     std::cout << " m_strobe_width " << m_strobe_width << " m_strobe_separation " << m_strobe_separation << " strobe_zero_tm_start " << strobe_zero_tm_start << " m_extended_readout_time " << m_extended_readout_time << std::endl;
+  }
 
   // loop over all of the layers in the g4hit container
   auto layer_range = g4hitContainer->getLayers();
@@ -250,7 +283,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     assert(layer < 3);
 
     // we need the geometry object for this layer
-    auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geoNode->GetLayerGeom(layer));
+    auto layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geoNode->GetLayerGeom(layer));
     assert(layergeom);
 
     // loop over the hits in this layer
@@ -272,24 +305,31 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
       truthcheck_g4hit(g4hit, topNode);
 
-      //cout << "From PHG4MvtxHitReco: Call hit print method: " << std::endl;
+      // cout << "From PHG4MvtxHitReco: Call hit print method: " << std::endl;
       if (Verbosity() > 4)
+      {
         g4hit->print();
+      }
 
       unsigned int n_replica = 1;
 
-      //Function returns ns
-      //std::pair<double, double> alpide_pulse = generate_alpide_pulse(g4hit->get_edep());
+      // Function returns ns
+      // std::pair<double, double> alpide_pulse = generate_alpide_pulse(g4hit->get_edep());
 
       double lead_edge = g4hit->get_t(0) * ns + alpide_pulse.first;
       double fall_edge = g4hit->get_t(1) * ns + alpide_pulse.second;
 
       if (Verbosity() > 0)
+      {
         std::cout << " MvtxHitReco: t0 " << g4hit->get_t(0) << " t1 " << g4hit->get_t(1) << " lead_edge " << lead_edge
                   << " fall_edge " << fall_edge << " tmin " << m_tmin << " tmax " << m_tmax << std::endl;
+      }
 
       // check that the signal occurred witin the time window 0 to extended_readout_time, discard if not
-      if (lead_edge > m_tmax or fall_edge < m_tmin) continue;
+      if (lead_edge > m_tmax or fall_edge < m_tmin)
+      {
+        continue;
+      }
 
       double t0_strobe_frame = get_strobe_frame(lead_edge, strobe_zero_tm_start);
       double t1_strobe_frame = get_strobe_frame(fall_edge, strobe_zero_tm_start);
@@ -351,8 +391,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 4)
       {
         // As a check, get the positions of the hit pixels in world coordinates from the geo object
-	      auto hskey = MvtxDefs::genHitSetKey(*layer,stave_number,chip_number,strobe);
-	      auto surf = tgeometry->maps().getSiliconSurface(hskey);
+              auto hskey = MvtxDefs::genHitSetKey(*layer,stave_number,chip_number,strobe);
+              auto surf = tgeometry->maps().getSiliconSurface(hskey);
 
         TVector3 location_in = layergeom->get_world_from_local_coords(surf,tgeometry, local_in);
         TVector3 location_out = layergeom->get_world_from_local_coords(surf,tgeometry, local_out);
@@ -416,7 +456,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       std::vector<int> vxbin;
       std::vector<int> vzbin;
       std::vector<std::pair<double, double> > venergy;
-      //double trklen = 0.0;
+      // double trklen = 0.0;
 
       //===================================================
       // OK, now we have found which sensor the hit is in, extracted the hit
@@ -439,8 +479,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       // The diffusion widths below were inspired by those plots, corresponding to where the probability drops off to 1/3 of the peak value
       // However note that we make the simplifying assumption that the probability distribution is flat within this diffusion width,
       // while in the simulation it is not
-      //double diffusion_width_max = 35.0e-04;   // maximum diffusion radius 35 microns, in cm
-      //double diffusion_width_min = 12.0e-04;   // minimum diffusion radius 12 microns, in cm
+      // double diffusion_width_max = 35.0e-04;   // maximum diffusion radius 35 microns, in cm
+      // double diffusion_width_min = 12.0e-04;   // minimum diffusion radius 12 microns, in cm
       double diffusion_width_max = 25.0e-04;  // maximum diffusion radius 35 microns, in cm
       double diffusion_width_min = 8.0e-04;   // minimum diffusion radius 12 microns, in cm
 
@@ -483,10 +523,22 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
       // need to check that values of xbin and zbin are within the valid range
       // YCM: Fix pixel range: Xbin (row) 0 to 511, Zbin (col) 0 to 1023
-      if (xbin_min < 0) xbin_min = 0;
-      if (zbin_min < 0) zbin_min = 0;
-      if (xbin_max >= maxNX) xbin_max = maxNX - 1;
-      if (zbin_max >= maxNZ) xbin_max = maxNZ - 1;
+      if (xbin_min < 0)
+      {
+        xbin_min = 0;
+      }
+      if (zbin_min < 0)
+      {
+        zbin_min = 0;
+      }
+      if (xbin_max >= maxNX)
+      {
+        xbin_max = maxNX - 1;
+      }
+      if (zbin_max >= maxNZ)
+      {
+        xbin_max = maxNZ - 1;
+      }
 
       if (Verbosity() > 1)
       {
@@ -496,7 +548,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
       // skip this hit if it involves an unreasonable  number of pixels
       // this skips it if either the xbin or ybin range traversed is greater than 8 (for 8 adding two pixels at each end makes the range 12)
-      if (xbin_max - xbin_min > 12 || zbin_max - zbin_min > 12) continue;
+      if (xbin_max - xbin_min > 12 || zbin_max - zbin_min > 12)
+      {
+        continue;
+      }
 
       // this hit is skipped earlier if this dimensioning would be exceeded
       double pixenergy[12][12] = {};  // init to 0
@@ -616,6 +671,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       //===================================
 
       // loop over all fired cells for this g4hit and add them to the TrkrHitSet
+
       for (unsigned int i1 = 0; i1 < vpixel.size(); i1++)  // loop over all fired cells
       {
         // This is the new storage object version
@@ -624,8 +680,14 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         {
           int strobe = t0_strobe_frame + i_rep;
           // to fit in a 5 bit field in the hitsetkey [-16,15]
-          if (strobe < -16) strobe = -16;
-          if (strobe >= 16) strobe = 15;
+          if (strobe < -16)
+          {
+            strobe = -16;
+          }
+          if (strobe >= 16)
+          {
+            strobe = 15;
+          }
 
           // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the Mvtx
           TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, strobe);
@@ -635,15 +697,38 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
           // generate the key for this hit
           TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(vzbin[i1], vxbin[i1]);
           // See if this hit already exists
-	  TrkrHit* hit = nullptr;
+          TrkrHit* hit = nullptr;
           hit = hitsetit->second->getHit(hitkey);
-          if (!hit)
+
+          if (hit)
           {
-            // Otherwise, create a new one
+            std::cout << PHWHERE << "::" << __func__
+                      << " - duplicated hit, hitsetkey: " << hitsetkey
+                      << " hitkey: " << hitkey << std::endl;
+            continue;
+          }
+          const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, 0);
+
+          if (std::find(m_deadPixelMap.begin(), m_deadPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_deadPixelMap.end())
+          {
+            // create hit and insert in hitset
+
+            if (Verbosity() > 0)
+            {
+              std::cout << "Layer: " << layer << ", Stave: " << (uint16_t) MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t) MvtxDefs::getChipId(hitsetkey) << ", Row: " << (uint16_t) MvtxDefs::getRow(hitkey) << ", Col: " << (uint16_t) MvtxDefs::getCol(hitkey) << ", Strobe: " << (int) MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << ", hit is not associated with a dead pixel, it proceeds to create a new hit." << std::endl;
+            }
+
             hit = new TrkrHitv2();
             hitsetit->second->addHitSpecificKey(hitkey, hit);
           }
-
+          else
+          {
+            if (Verbosity() > 0)
+            {
+              std::cout << "Layer: " << layer << ", Stave: " << (uint16_t) MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t) MvtxDefs::getChipId(hitsetkey) << ", Row: " << (uint16_t) MvtxDefs::getRow(hitkey) << ", Col: " << (uint16_t) MvtxDefs::getCol(hitkey) << ", Strobe: " << (int) MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << ", hit is not associated with a dead pixel, it proceeds to continue." << std::endl;
+            }
+            continue;
+          }
           // Either way, add the energy to it
           double hitenergy = venergy[i1].first * TrkrDefs::MvtxEnergyScaleup;
           hit->addEnergy(hitenergy);
@@ -651,8 +736,9 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
           addtruthhitset(hitsetkey, hitkey, hitenergy);
 
           if (Verbosity() > 0)
-            std::cout << "     added hit " << hitkey << " to hitset " << hitsetkey << " with strobe id " << strobe << " in layer " << layer
-                      << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << std::endl;
+          {
+            std::cout << "Layer: " << layer << ", Stave: " << (uint16_t) MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t) MvtxDefs::getChipId(hitsetkey) << ", Row: " << (uint16_t) MvtxDefs::getRow(hitkey) << ", Col: " << (uint16_t) MvtxDefs::getCol(hitkey) << ", Strobe: " << (int) MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << std::endl;
+          }
 
           // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
           // There is only one TrkrHit per pixel, but there may be multiple g4hits
@@ -666,11 +752,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       }  // end loop over hit cells
     }    // end loop over g4hits for this layer
 
-
   }  // end loop over layers
 
   // print the list of entries in the association table
-  if (Verbosity() > 2)
+  if (Verbosity() > 0)
   {
     std::cout << "From PHG4MvtxHitReco: " << std::endl;
     hitTruthAssoc->identify();
@@ -680,28 +765,31 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
   end_event_truthcluster(topNode);
 
-  if (Verbosity() > 3) {
+  if (Verbosity() > 3)
+  {
     int nclusprint = -1;
     std::cout << PHWHERE << ": content of clusters " << std::endl;
     auto& tmap = m_truthtracks->getMap();
     std::cout << " Number of tracks: " << tmap.size() << std::endl;
-    for (auto& _pair : tmap) {
+    for (auto& _pair : tmap)
+    {
       auto& track = _pair.second;
 
-      printf("id(%2i) phi:eta:pt(", (int)track->getTrackid());
+      printf("id(%2i) phi:eta:pt(", (int) track->getTrackid());
       std::cout << "phi:eta:pt(";
       printf("%5.2f:%5.2f:%5.2f", track->getPhi(), track->getPseudoRapidity(), track->getPt());
       /* Form("%5.2:%5.2:%5.2", track->getPhi(), track->getPseudoRapidity(), track->getPt()) */
-      //<<track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() 
-      std::cout << ") nclusters(" << track->getClusters().size() <<") ";
+      //<<track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt()
+      std::cout << ") nclusters(" << track->getClusters().size() << ") ";
       int nclus = 0;
-      for (auto cluskey : track->getClusters()) {
-        std::cout << " " 
-          << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) <<":index(" <<
-          ((int)  TrkrDefs::getClusIndex(cluskey)) << ")" << std::endl;
+      for (auto cluskey : track->getClusters())
+      {
+        std::cout << " "
+                  << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) << ":index(" << ((int) TrkrDefs::getClusIndex(cluskey)) << ")" << std::endl;
         ++nclus;
-        if (nclusprint > 0 && nclus >= nclusprint) {
-          std::cout << " ... "; 
+        if (nclusprint > 0 && nclus >= nclusprint)
+        {
+          std::cout << " ... ";
           break;
         }
       }
@@ -709,8 +797,9 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << " ----- end of clusters " << std::endl;
   }
 
-  if (m_is_emb) {
-    cluster_truthhits(topNode); // the last track was truth -- cluster it
+  if (m_is_emb)
+  {
+    cluster_truthhits(topNode);  // the last track was truth -- cluster it
     prior_g4hit = nullptr;
   }
 
@@ -724,14 +813,14 @@ std::pair<double, double> PHG4MvtxHitReco::generate_alpide_pulse(const double en
   {
     std::cout << "energy_deposited: " << energy_deposited << std::endl;
   }
-  //int silicon_band_gap = 1.12; //Band gap energy in eV
-  //int Q_in = rand() % 5000 + 50;
-  //int clipping_point = 110;
-  //double ToT_start = Q_in < 200 ? 395.85*exp(-0.5*pow((Q_in+851.43)/286.91, 2)) : 0.5;
-  //double ToT_end = Q_in < clipping_point ? 5.90*exp(-0.5*pow((Q_in-99.86)/54.80, 2)) : 5.8 - 6.4e-4 * Q_in;
+  // int silicon_band_gap = 1.12; //Band gap energy in eV
+  // int Q_in = rand() % 5000 + 50;
+  // int clipping_point = 110;
+  // double ToT_start = Q_in < 200 ? 395.85*exp(-0.5*pow((Q_in+851.43)/286.91, 2)) : 0.5;
+  // double ToT_end = Q_in < clipping_point ? 5.90*exp(-0.5*pow((Q_in-99.86)/54.80, 2)) : 5.8 - 6.4e-4 * Q_in;
 
-  //return make_pair(ToT_start*1e3, ToT_end*1e3);
-  // Using constant alpide pulse length
+  // return make_pair(ToT_start*1e3, ToT_end*1e3);
+  //  Using constant alpide pulse length
   return std::make_pair<double, double>(1.5 * microsecond, 5.9 * microsecond);
 }
 
@@ -762,7 +851,7 @@ void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, cons
 
 void PHG4MvtxHitReco::SetDefaultParameters()
 {
-  //cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << std::endl;
+  // cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << std::endl;
   set_default_double_param("mvtx_tmin", -5000);
   set_default_double_param("mvtx_tmax", 5000);
   set_default_double_param("mvtx_strobe_width", 5 * microsecond);
@@ -781,54 +870,66 @@ TrkrDefs::hitsetkey PHG4MvtxHitReco::zero_strobe_bits(TrkrDefs::hitsetkey hitset
   return bare_hitsetkey;
 }
 
-PHG4MvtxHitReco::~PHG4MvtxHitReco() {
+PHG4MvtxHitReco::~PHG4MvtxHitReco()
+{
   delete m_truth_hits;
 }
 
-void PHG4MvtxHitReco::truthcheck_g4hit(PHG4Hit* g4hit, PHCompositeNode* topNode) {
-  int new_trkid = (g4hit==nullptr) ? -1 : g4hit->get_trkid();
+void PHG4MvtxHitReco::truthcheck_g4hit(PHG4Hit* g4hit, PHCompositeNode* topNode)
+{
+  int new_trkid = (g4hit == nullptr) ? -1 : g4hit->get_trkid();
   bool is_new_track = (new_trkid != m_trkid);
-  if (Verbosity()>5) std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
-  if (!is_new_track) {
-      /* FIXME */ 
-      /* std::cout << " FIXME PEAR Checking g4hit : " << g4hit->get_x(0) << " " */ 
-      /*   << g4hit->get_y(0) << " " << g4hit->get_z(0) */ 
+  if (Verbosity() > 5)
+  {
+    std::cout << PHWHERE << std::endl
+              << " -> Checking status of PHG4Hit. Track id(" << new_trkid << ")" << std::endl;
+  }
+  if (!is_new_track)
+  {
+    /* FIXME */
+    /* std::cout << " FIXME PEAR Checking g4hit : " << g4hit->get_x(0) << " " */
+    /*   << g4hit->get_y(0) << " " << g4hit->get_z(0) */
+    /*   << "  trackid("<<g4hit->get_trkid() << ") " << std::endl; */
+    if (m_is_emb)
+    {
+      /* std::cout << " FIXME Checking MVTX g4hit : " << g4hit->get_x(0) << " " */
+      /*   << g4hit->get_y(0) << " " << g4hit->get_z(0) */
       /*   << "  trackid("<<g4hit->get_trkid() << ") " << std::endl; */
-    if (m_is_emb) {
-      /* std::cout << " FIXME Checking MVTX g4hit : " << g4hit->get_x(0) << " " */ 
-      /*   << g4hit->get_y(0) << " " << g4hit->get_z(0) */ 
-      /*   << "  trackid("<<g4hit->get_trkid() << ") " << std::endl; */
-      if (prior_g4hit!=nullptr
-          && (    std::abs(prior_g4hit->get_x(0)-g4hit->get_x(0)) > max_g4hitstep
-               || std::abs(prior_g4hit->get_y(0)-g4hit->get_y(0)) > max_g4hitstep
-             )
-          )
+      if (prior_g4hit != nullptr && (std::abs(prior_g4hit->get_x(0) - g4hit->get_x(0)) > max_g4hitstep || std::abs(prior_g4hit->get_y(0) - g4hit->get_y(0)) > max_g4hitstep))
       {
-          // this is a looper track -- cluster hits up to this point already
-          cluster_truthhits(topNode);
+        // this is a looper track -- cluster hits up to this point already
+        cluster_truthhits(topNode);
       }
       prior_g4hit = g4hit;
     }
     return;
   }
   // <- STATUS: this is a new track
-  if (Verbosity()>2) std::cout << PHWHERE << std::endl << " -> Found new embedded track with id: " << new_trkid << std::endl;
-  if (m_is_emb) {
-    cluster_truthhits(topNode); // cluster m_truth_hits and add m_current_track
+  if (Verbosity() > 2)
+  {
+    std::cout << PHWHERE << std::endl
+              << " -> Found new embedded track with id: " << new_trkid << std::endl;
+  }
+  if (m_is_emb)
+  {
+    cluster_truthhits(topNode);  // cluster m_truth_hits and add m_current_track
     m_current_track = nullptr;
     prior_g4hit = nullptr;
   }
   m_trkid = new_trkid;
   m_is_emb = m_truthinfo->isEmbeded(m_trkid);
-  if (m_is_emb) {
+  if (m_is_emb)
+  {
     m_current_track = m_truthtracks->getTruthTrack(m_trkid, m_truthinfo);
     prior_g4hit = g4hit;
   }
 }
 
-void PHG4MvtxHitReco::end_event_truthcluster ( PHCompositeNode* topNode ) {
-  if (m_is_emb) {
-    cluster_truthhits(topNode); // cluster m_truth_hits and add m_current_track
+void PHG4MvtxHitReco::end_event_truthcluster(PHCompositeNode* topNode)
+{
+  if (m_is_emb)
+  {
+    cluster_truthhits(topNode);  // cluster m_truth_hits and add m_current_track
     m_current_track = nullptr;
     m_trkid = -1;
     m_is_emb = false;
@@ -837,14 +938,17 @@ void PHG4MvtxHitReco::end_event_truthcluster ( PHCompositeNode* topNode ) {
 }
 
 void PHG4MvtxHitReco::addtruthhitset(
-    TrkrDefs::hitsetkey hitsetkey, 
-    TrkrDefs::hitkey hitkey, 
-    float neffelectrons) 
+    TrkrDefs::hitsetkey hitsetkey,
+    TrkrDefs::hitkey hitkey,
+    float neffelectrons)
 {
-  if (!m_is_emb) return;
+  if (!m_is_emb)
+  {
+    return;
+  }
   TrkrHitSetContainer::Iterator hitsetit = m_truth_hits->findOrAddHitSet(hitsetkey);
   // See if this hit already exists
-  TrkrHit *hit = nullptr;
+  TrkrHit* hit = nullptr;
   hit = hitsetit->second->getHit(hitkey);
   if (!hit)
   {
@@ -856,7 +960,8 @@ void PHG4MvtxHitReco::addtruthhitset(
   hit->addEnergy(neffelectrons);
 }
 
-void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
+void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode)
+{
   // clusterize the mvtx hits in m_truth_hits, put them in m_truthclusters, and put the id's in m_current_track
   // ----------------------------------------------------------------------------------------------------
   // Digitization -- simplified from g4mvtx/PHG4MvtxDigitizer --
@@ -896,7 +1001,7 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
   /*     double _energy_threshold = 0.; // FIXME */
   /*     const double dummy_pixel_thickness = 0.001; */
   /*     const double mip_e = 0.003876; */
-  /*     double _energy_scale =  mip_e * dummy_pixel_thickness; // FIXME: note: this doesn't actually */ 
+  /*     double _energy_scale =  mip_e * dummy_pixel_thickness; // FIXME: note: this doesn't actually */
   /*                                                            // matter either here or for the Svtx Tracks -- the energy is digital -- either the hit is there or it isn't */
   /*     double _max_adc = 255; */
   /*     if ((hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold) */
@@ -908,7 +1013,7 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
   /*     if (adc > _max_adc) adc = _max_adc; */
   /*     hit->setAdc(adc); */
 
-      /* if (rm_hit) hits_rm.insert(hit_iter->first); */
+  /* if (rm_hit) hits_rm.insert(hit_iter->first); */
   /*   } */
 
   /*   for (const auto &key : hits_rm) */
@@ -922,85 +1027,105 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
   // Prune hits -- simplified from mvtx/MvtxHitReco
   // ----------------------------------------------------------------------------------------------------
   std::multimap<TrkrDefs::hitsetkey, TrkrDefs::hitsetkey> hitset_multimap;  // will map (bare hitset, hitset with strobe)
-  std::set<TrkrDefs::hitsetkey> bare_hitset_set;  // list of all physical sensor hitsetkeys (i.e. with strobe set to zero)
+  std::set<TrkrDefs::hitsetkey> bare_hitset_set;                            // list of all physical sensor hitsetkeys (i.e. with strobe set to zero)
 
-  TrkrHitSetContainer::ConstRange hitsetrange = m_truth_hits->getHitSets(TrkrDefs::TrkrId::mvtxId); // actually m_truth_hits can only have MVTX hits at this point...
+  TrkrHitSetContainer::ConstRange hitsetrange = m_truth_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);  // actually m_truth_hits can only have MVTX hits at this point...
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
+  {
+    auto hitsetkey = hitsetitr->first;
+
+    // get the hitsetkey value for strobe 0
+    unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
+    unsigned int stave = MvtxDefs::getStaveId(hitsetitr->first);
+    unsigned int chip = MvtxDefs::getChipId(hitsetitr->first);
+    auto bare_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
+
+    hitset_multimap.insert(std::make_pair(bare_hitsetkey, hitsetkey));
+    bare_hitset_set.insert(bare_hitsetkey);
+
+    if (Verbosity() > 0)
     {
-      auto hitsetkey = hitsetitr->first;
-
-      // get the hitsetkey value for strobe 0
-      unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
-      unsigned int stave =  MvtxDefs::getStaveId(hitsetitr->first);
-      unsigned int chip =  MvtxDefs::getChipId(hitsetitr->first);
-      auto bare_hitsetkey =  MvtxDefs::genHitSetKey(layer, stave, chip, 0);
-
-      hitset_multimap.insert(std::make_pair(bare_hitsetkey, hitsetkey));
-      bare_hitset_set.insert(bare_hitsetkey);
-
-      if(Verbosity() > 0) std::cout << " found hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
+      std::cout << " found hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
     }
+  }
 
   // Now consolidate all hits into the hitset with strobe 0, and delete the other hitsets
   //==============================================================
-  for(auto bare_it = bare_hitset_set.begin(); bare_it != bare_hitset_set.end(); ++bare_it)
+  for (unsigned int bare_hitsetkey : bare_hitset_set)
+  {
+    TrkrHitSet* bare_hitset = (m_truth_hits->findOrAddHitSet(bare_hitsetkey))->second;
+    if (Verbosity() > 0)
     {
-      auto bare_hitsetkey = *bare_it;
-      TrkrHitSet* bare_hitset = (m_truth_hits->findOrAddHitSet(bare_hitsetkey))->second;
-      if(Verbosity() > 0) std::cout << "         bare_hitset " << bare_hitsetkey << " initially has " << bare_hitset->size() << " hits " << std::endl; 
-
-      auto bare_hitsetrange= hitset_multimap.equal_range(bare_hitsetkey);
-      for(auto it = bare_hitsetrange.first; it != bare_hitsetrange.second; ++ it)
-	{ 
-	  auto hitsetkey = it->second;
-
-	  int strobe = MvtxDefs::getStrobeId(hitsetkey);
-	  if(strobe != 0)
-	    {
-	      if(Verbosity() > 0)  std::cout << "            process hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
-
-	      // copy all hits to the hitset with strobe 0
-	      TrkrHitSet* hitset = m_truth_hits->findHitSet(hitsetkey);		
-
-	       if(Verbosity() > 0) 
-		 std::cout << "                hitsetkey " << hitsetkey << " has strobe " << strobe << " and has " << hitset->size() << " hits,  so copy it" << std::endl;
-
-	      TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-	      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-		   hitr != hitrangei.second;
-		   ++hitr)
-		{
-		  auto hitkey = hitr->first;
-		  if(Verbosity() > 0) std::cout << "                 found hitkey " << hitkey << std::endl;		  
-		  // if it is already there, leave it alone, this is a duplicate hit
-		  auto tmp_hit = bare_hitset->getHit(hitkey);
-		  if(tmp_hit) 
-		    {
-		      if(Verbosity() > 0) std::cout << "                          hitkey " << hitkey << " is already in bare hitsest, do not copy" << std::endl;
-		      continue;
-		    }
-
-		  // otherwise copy the hit over 
-		   if(Verbosity() > 0)  std::cout << "                          copying over hitkey " << hitkey << std::endl;
-		  auto old_hit = hitr->second;
-		  TrkrHit *new_hit = new TrkrHitv2();
-		  new_hit->setAdc(old_hit->getAdc());
-		  bare_hitset->addHitSpecificKey(hitkey, new_hit);
-		}
-
-	      // all hits are copied over to the strobe zero hitset, remove this hitset
-	      m_truth_hits->removeHitSet(hitsetkey);
-	    }
-	}
+      std::cout << "         bare_hitset " << bare_hitsetkey << " initially has " << bare_hitset->size() << " hits " << std::endl;
     }
+
+    auto bare_hitsetrange = hitset_multimap.equal_range(bare_hitsetkey);
+    for (auto it = bare_hitsetrange.first; it != bare_hitsetrange.second; ++it)
+    {
+      auto hitsetkey = it->second;
+
+      int strobe = MvtxDefs::getStrobeId(hitsetkey);
+      if (strobe != 0)
+      {
+        if (Verbosity() > 0)
+        {
+          std::cout << "            process hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
+        }
+
+        // copy all hits to the hitset with strobe 0
+        TrkrHitSet* hitset = m_truth_hits->findHitSet(hitsetkey);
+
+        if (Verbosity() > 0)
+        {
+          std::cout << "                hitsetkey " << hitsetkey << " has strobe " << strobe << " and has " << hitset->size() << " hits,  so copy it" << std::endl;
+        }
+
+        TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+        for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+             hitr != hitrangei.second;
+             ++hitr)
+        {
+          auto hitkey = hitr->first;
+          if (Verbosity() > 0)
+          {
+            std::cout << "                 found hitkey " << hitkey << std::endl;
+          }
+          // if it is already there, leave it alone, this is a duplicate hit
+          auto tmp_hit = bare_hitset->getHit(hitkey);
+          if (tmp_hit)
+          {
+            if (Verbosity() > 0)
+            {
+              std::cout << "                          hitkey " << hitkey << " is already in bare hitsest, do not copy" << std::endl;
+            }
+            continue;
+          }
+
+          // otherwise copy the hit over
+          if (Verbosity() > 0)
+          {
+            std::cout << "                          copying over hitkey " << hitkey << std::endl;
+          }
+          auto old_hit = hitr->second;
+          TrkrHit* new_hit = new TrkrHitv2();
+          new_hit->setAdc(old_hit->getAdc());
+          bare_hitset->addHitSpecificKey(hitkey, new_hit);
+        }
+
+        // all hits are copied over to the strobe zero hitset, remove this hitset
+        m_truth_hits->removeHitSet(hitsetkey);
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------------------------------------
   // cluster hits -- simplified from mvtx/MvtxClusterizer
   // ----------------------------------------------------------------------------------------------------
   PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
-  if (!geom_container) {
+  if (!geom_container)
+  {
     std::cout << PHWHERE << std::endl;
     std::cout << "WARNING: cannot find the geometry CYLINDERGEOM_MVTX" << std::endl;
     m_truth_hits->Reset();
@@ -1016,74 +1141,88 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
-    { // hitsetitr    : pair(TrkrDefs::hitsetkey, TrkrHitSet>;   TrkrHitSet : map <HitKey, TrkrHit>
-      TrkrHitSet *hitset = hitsetitr->second; // hitset : map <TrkrDefs::hitkey, TrkrHit>
-      
-      /* if (true) */ 
-  if(Verbosity() > 0)
-	{ 
-	  unsigned int layer  = TrkrDefs::getLayer    (hitsetitr ->first);
-	  unsigned int stave  = MvtxDefs::getStaveId  (hitsetitr ->first);
-	  unsigned int chip   = MvtxDefs::getChipId   (hitsetitr ->first);
-	  unsigned int strobe = MvtxDefs::getStrobeId (hitsetitr ->first);
-	  std::cout << "MvtxClusterizer found hitsetkey " << hitsetitr->first << " layer " << layer << " stave " << stave << " chip " << chip << " strobe " << strobe << std::endl;
-     	}
+  {                                          // hitsetitr    : pair(TrkrDefs::hitsetkey, TrkrHitSet>;   TrkrHitSet : map <HitKey, TrkrHit>
+    TrkrHitSet* hitset = hitsetitr->second;  // hitset : map <TrkrDefs::hitkey, TrkrHit>
 
-      if (Verbosity() > 2)
-	hitset->identify();
-      
-      TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+    /* if (true) */
+    if (Verbosity() > 0)
+    {
+      unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
+      unsigned int stave = MvtxDefs::getStaveId(hitsetitr->first);
+      unsigned int chip = MvtxDefs::getChipId(hitsetitr->first);
+      unsigned int strobe = MvtxDefs::getStrobeId(hitsetitr->first);
+      std::cout << "MvtxClusterizer found hitsetkey " << hitsetitr->first << " layer " << layer << " stave " << stave << " chip " << chip << " strobe " << strobe << std::endl;
+    }
+
+    if (Verbosity() > 2)
+    {
+      hitset->identify();
+    }
+
+    TrkrHitSet::ConstRange hitrangei = hitset->getHits();
 
     auto hitsetkey = hitset->getHitSetKey();
-	  auto ckey = TrkrDefs::genClusKey(hitsetkey, 0); // there is only one cluster made per cluskey
-	  
-	  // determine the size of the cluster in phi and z
+    auto ckey = TrkrDefs::genClusKey(hitsetkey, 0);  // there is only one cluster made per cluskey
+
+    // determine the size of the cluster in phi and z
     std::set<int> phibins;
     std::set<int> zbins;
-	  
-	  // determine the cluster position...
-	  double locxsum = 0.;
-	  double loczsum = 0.;
-	  
-	  double locclusx = NAN;
-	  double locclusz = NAN;
-	  
-	  // we need the geometry object for this layer to get the global positions
-	  int layer = TrkrDefs::getLayer(ckey);
-	  auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geom_container->GetLayerGeom(layer));
-	  if (!layergeom)
-	    exit(1);
-	  
+
+    // determine the cluster position...
+    double locxsum = 0.;
+    double loczsum = 0.;
+
+    double locclusx = NAN;
+    double locclusz = NAN;
+
+    // we need the geometry object for this layer to get the global positions
+    int layer = TrkrDefs::getLayer(ckey);
+    auto layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container->GetLayerGeom(layer));
+    if (!layergeom)
+    {
+      exit(1);
+    }
 
     // make a tunable threshold for energy in a given hit
     //  -- percentage of someting? (total cluster energy)
-    double sum_adc { 0. };
-	  for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit) {
+    double sum_adc{0.};
+    for (auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
+    {
       sum_adc += ihit->second->getAdc();
     }
-    const double threshold = sum_adc * m_pixel_thresholdrat; //FIXME -- tune this as needed
-    std::map<int,unsigned int> m_iphi, m_it, m_iphiCut, m_itCut; // FIXME
-	  /* const unsigned int npixels = std::distance( hitrangei.first, hitrangei.second ); */
+    const double threshold = sum_adc * m_pixel_thresholdrat;       // FIXME -- tune this as needed
+    std::map<int, unsigned int> m_iphi, m_it, m_iphiCut, m_itCut;  // FIXME
+                                                                   /* const unsigned int npixels = std::distance( hitrangei.first, hitrangei.second ); */
     // to tune this parameter: run a bunch of tracks and compare truth sizes and reco sizes,
     // should come out the same
-    double npixels {0.};
-    for ( auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
+    double npixels{0.};
+    for (auto ihit = hitrangei.first; ihit != hitrangei.second; ++ihit)
     {
       const auto adc = ihit->second->getAdc();
-      int col =  MvtxDefs::getCol( ihit->first);
-      int row = MvtxDefs::getRow(  ihit->first);
+      int col = MvtxDefs::getCol(ihit->first);
+      int row = MvtxDefs::getRow(ihit->first);
 
-      if (mClusHitsVerbose) {
-        std::map<int,unsigned int>& m_phi = (adc<threshold) ? m_iphiCut : m_iphi;
-        std::map<int,unsigned int>& m_z   = (adc<threshold) ? m_itCut   : m_it;
+      if (mClusHitsVerbose)
+      {
+        std::map<int, unsigned int>& m_phi = (adc < threshold) ? m_iphiCut : m_iphi;
+        std::map<int, unsigned int>& m_z = (adc < threshold) ? m_itCut : m_it;
 
-        auto pnew = m_phi.try_emplace(row,adc);
-        if (!pnew.second) pnew.first->second += adc;
+        auto pnew = m_phi.try_emplace(row, adc);
+        if (!pnew.second)
+        {
+          pnew.first->second += adc;
+        }
 
-        pnew = m_z.try_emplace(col,adc);
-        if (!pnew.second) pnew.first->second += adc;
+        pnew = m_z.try_emplace(col, adc);
+        if (!pnew.second)
+        {
+          pnew.first->second += adc;
+        }
       }
-      if (adc<threshold) continue;
+      if (adc < threshold)
+      {
+        continue;
+      }
 
       // size
       npixels += 1.;
@@ -1091,76 +1230,99 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode) {
       phibins.insert(row);
 
       // get local coordinates, in stave reference frame, for hit
-      auto local_coords = layergeom->get_local_coords_from_pixel(row,col);
+      auto local_coords = layergeom->get_local_coords_from_pixel(row, col);
 
       /*
          manually offset position along y (thickness of the sensor),
          to account for effective hit position in the sensor, resulting from diffusion.
          Effective position corresponds to 1um above the middle of the sensor
          */
-      local_coords.SetY( 1e-4 );
+      local_coords.SetY(1e-4);
 
       // update cluster position
       locxsum += local_coords.X();
       loczsum += local_coords.Z();
       // add the association between this cluster key and this hitkey to the table
-    }  //mapiter
-    if (mClusHitsVerbose) {
-      if (Verbosity()>10) {
-        for (auto& hit : m_iphi) {
-          std::cout << " m_phi(" << hit.first <<" : " << hit.second<<") " << std::endl;
+    }  // mapiter
+    if (mClusHitsVerbose)
+    {
+      if (Verbosity() > 10)
+      {
+        for (auto& hit : m_iphi)
+        {
+          std::cout << " m_phi(" << hit.first << " : " << hit.second << ") " << std::endl;
         }
       }
-      for (auto& hit : m_iphi)    mClusHitsVerbose->addPhiHit    (hit.first, (float)hit.second);
-      for (auto& hit : m_it)      mClusHitsVerbose->addZHit      (hit.first, (float)hit.second);
-      for (auto& hit : m_iphiCut) mClusHitsVerbose->addPhiCutHit (hit.first, (float)hit.second);
-      for (auto& hit : m_itCut)   mClusHitsVerbose->addZCutHit   (hit.first, (float)hit.second);
+      for (auto& hit : m_iphi)
+      {
+        mClusHitsVerbose->addPhiHit(hit.first, (float) hit.second);
+      }
+      for (auto& hit : m_it)
+      {
+        mClusHitsVerbose->addZHit(hit.first, (float) hit.second);
+      }
+      for (auto& hit : m_iphiCut)
+      {
+        mClusHitsVerbose->addPhiCutHit(hit.first, (float) hit.second);
+      }
+      for (auto& hit : m_itCut)
+      {
+        mClusHitsVerbose->addZCutHit(hit.first, (float) hit.second);
+      }
     }
-	  
-	  // This is the local position
-	  locclusx = locxsum / npixels;
-	  locclusz = loczsum / npixels;
-	  
-	  const double pitch   = layergeom->get_pixel_x();
-	  const double length  = layergeom->get_pixel_z();
-	  const double phisize = phibins.size() * pitch;
-	  const double zsize   = zbins.size()   * length;
-	  
+
+    // This is the local position
+    locclusx = locxsum / npixels;
+    locclusz = loczsum / npixels;
+
+    const double pitch = layergeom->get_pixel_x();
+    const double length = layergeom->get_pixel_z();
+    const double phisize = phibins.size() * pitch;
+    const double zsize = zbins.size() * length;
+
     /* if (true) { */
-	  if(Verbosity() > 0) {
-	    std::cout << " MvtxClusterizer: cluskey " << ckey << " layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize 
-		 << " zbins " << zbins.size() << " length " << length << " zsize " << zsize 
-		 << " local x " << locclusx << " local y " << locclusz
-		 << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << " MvtxClusterizer: cluskey " << ckey << " layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize
+                << " zbins " << zbins.size() << " length " << length << " zsize " << zsize
+                << " local x " << locclusx << " local y " << locclusz
+                << std::endl;
     }
-	  
+
     // ok force it use use cluster version v4 for now (Valgrind is not happy with application of v5)
-	  /* if (m_cluster_version==4){ */
-    if (m_cluster_version == 4) {
-	    auto clus = std::make_unique<TrkrClusterv4>();
-	    clus->setAdc(npixels);
-	    clus->setLocalX(locclusx);
-	    clus->setLocalY(locclusz);
-	    
-	    clus->setPhiSize(phibins.size());
-	    clus->setZSize(zbins.size());
-	    // All silicon surfaces have a 1-1 map to hitsetkey. 
-	    // So set subsurface key to 0
-	    clus->setSubSurfKey(0);
-	    
-	    if (Verbosity() > 2) clus->identify();
-	    
+    /* if (m_cluster_version==4){ */
+    if (m_cluster_version == 4)
+    {
+      auto clus = std::make_unique<TrkrClusterv4>();
+      clus->setAdc(npixels);
+      clus->setLocalX(locclusx);
+      clus->setLocalY(locclusz);
+
+      clus->setPhiSize(phibins.size());
+      clus->setZSize(zbins.size());
+      // All silicon surfaces have a 1-1 map to hitsetkey.
+      // So set subsurface key to 0
+      clus->setSubSurfKey(0);
+
+      if (Verbosity() > 2)
+      {
+        clus->identify();
+      }
+
       // get the count of how many clusters have allready been added to this hitsetkey (possibly from other embedded tracks tracks)
-      m_hitsetkey_cnt.try_emplace(hitsetkey,0);
+      m_hitsetkey_cnt.try_emplace(hitsetkey, 0);
       unsigned int& cnt = m_hitsetkey_cnt[hitsetkey];
       ckey = TrkrDefs::genClusKey(hitsetkey, cnt);
-	    m_truthclusters->addClusterSpecifyKey(ckey, clus.release());
+      m_truthclusters->addClusterSpecifyKey(ckey, clus.release());
       m_current_track->addCluster(ckey);
-      if (mClusHitsVerbose) {
+      if (mClusHitsVerbose)
+      {
         mClusHitsVerbose->push_hits(ckey);
       }
       ++cnt;
-    } else {
+    }
+    else
+    {
       std::cout << PHWHERE << std::endl;
       std::cout << "Error: only cluster version 4 allowed." << std::endl;
     }  // loop over hitsets

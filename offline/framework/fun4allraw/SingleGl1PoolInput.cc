@@ -77,6 +77,20 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
+      if (evt->getEvtType() == ENDRUNEVENT)
+      {
+        AllDone(1);
+        std::unique_ptr<Event> nextevt(GetEventiterator()->getNextEvent());
+        if (nextevt)
+        {
+          std::cout << PHWHERE << " Found event after End Run Event " << std::endl;
+          std::cout << "End Run Event identify: " << std::endl;
+          evt->identify();
+          std::cout << "Next event identify: " << std::endl;
+          nextevt->identify();
+        }
+        return;
+      }
       continue;
     }
     int EventSequence = evt->getEvtSequence();

@@ -10,7 +10,6 @@
 #include "TH2F.h"
 
 // Forward declarations
-class Fun4AllHistoManager;
 class PHCompositeNode;
 class TFile;
 class TH1F;
@@ -44,8 +43,6 @@ class HCalCosmics : public SubsysReco
  protected:
   std::string detector;
   std::string prefix = "TOWERS_";
-
-  Fun4AllHistoManager *hm = nullptr;
 
   // HCal geometry
   static const int n_etabin = 24;

@@ -5,10 +5,11 @@
 #include "MbdPmtContainer.h"
 #include "MbdPmtHit.h"
 
+#ifndef ONLINE
 #include <fun4all/Fun4AllReturnCodes.h>
-
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
+#endif
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -32,6 +33,8 @@ MbdEvent::MbdEvent(const int cal_pass) :
   // set default values
 
   _nsamples = MbdDefs::MAX_SAMPLES;  // Set to maximum initially, reset when we get a packet
+
+#ifndef ONLINE
   recoConsts *rc = recoConsts::instance();
   if (rc->FlagExist("MBD_TEMPLATEFIT"))
   {
@@ -41,6 +44,10 @@ MbdEvent::MbdEvent(const int cal_pass) :
   {
     do_templatefit = 1;
   }
+#else
+  do_templatefit = 0;
+  _is_online = 1;
+#endif
 
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
@@ -60,44 +67,18 @@ MbdEvent::MbdEvent(const int cal_pass) :
     hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -50., 50.);
     hevt_bbct[iarm]->SetLineColor(4);
   }
+  /*
   h2_tmax[0] = new TH2F("h2_ttmax", "time tmax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES - 0.5, 128, 0, 128);
   h2_tmax[0]->SetXTitle("sample");
   h2_tmax[0]->SetYTitle("ch");
   h2_tmax[1] = new TH2F("h2_qtmax", "chg tmax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES - 0.5, 128, 0, 128);
   h2_tmax[1]->SetXTitle("sample");
   h2_tmax[1]->SetYTitle("ch");
+  */
 
   for (float &iboard : TRIG_SAMP)
   {
     iboard = -1;
-  }
-
-  // Maybe this is used in the online monitor???
-  // BBCCALIB is used in offline to read in our calibrations
-  const char *bbccaldir = getenv("BBCCALIB");
-  if (bbccaldir)
-  {
-    // Online calibrations
-    std::string gainfile = std::string(bbccaldir) + "/" + "bbc_mip.calib";
-    Read_Charge_Calib(gainfile);
-
-    std::string tq_t0_offsetfile = std::string(bbccaldir) + "/" + "bbc_tq_t0.calib";
-    Read_TQ_T0_Offsets(tq_t0_offsetfile);
-
-    std::string tq_clk_offsetfile = std::string(bbccaldir) + "/" + "bbc_tq_clk.calib";
-    Read_TQ_CLK_Offsets(tq_clk_offsetfile);
-
-    std::string tt_clk_offsetfile = std::string(bbccaldir) + "/" + "bbc_tt_clk.calib";
-    Read_TT_CLK_Offsets(tt_clk_offsetfile);
-
-    /*
-    std::string mondata_fname = std::string(bbccaldir) + "/" + "BbcMonData.dat";
-    std::ifstream mondatafile( mondata_fname );
-    string label;
-    mondatafile >> label >> bz_offset;
-    std::cout << PHWHERE << label << "\t" << bz_offset << std::endl;
-    mondatafile.close();
-    */
   }
 
   // Debug stuff
@@ -130,17 +111,18 @@ MbdEvent::~MbdEvent()
 
 int MbdEvent::InitRun()
 {
-  h2_tmax[0]->Reset();
-  h2_tmax[1]->Reset();
-
   Clear();
 
+#ifndef ONLINE
   recoConsts *rc = recoConsts::instance();
   _runnum = rc->get_IntFlag("RUNNUMBER");
   if (_verbose)
   {
     std::cout << PHWHERE << "RUNNUMBER " << _runnum << std::endl;
   }
+#else
+  _runnum = 0;  // for online, not used
+#endif
 
   if (_mbdgeom == nullptr)
   {
@@ -194,14 +176,17 @@ int MbdEvent::InitRun()
     std::cout << "OUTPUT CALDIR = " << _caldir << std::endl;
   }
 
-  if ( _calpass == 1 )
+  if ( _calpass == 1 || _is_online )
   {
-    std::cout << "MBD Cal Pass 1" << std::endl;
     TDirectory *orig_dir = gDirectory;
+    if ( !_is_online )
+    {
+      std::cout << "MBD Cal Pass 1" << std::endl;
 
-    TString savefname = _caldir; savefname += "calpass1.root";
-    std::cout << "Saving calpass 1 results to " << savefname << std::endl;
-    _smax_tfile = std::make_unique<TFile>(savefname,"RECREATE");
+      TString savefname = _caldir; savefname += "calpass1.root";
+      std::cout << "Saving calpass 1 results to " << savefname << std::endl;
+      _smax_tfile = std::make_unique<TFile>(savefname,"RECREATE");
+    }
 
     std::string name;
 
@@ -212,10 +197,10 @@ int MbdEvent::InitRun()
       h_tmax[ich]->SetXTitle("sample");
       h_tmax[ich]->SetYTitle("ch");
     }
-    h2_tmax[0] = new TH2F("h2_ttmax","time tmax vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
-    h2_tmax[1] = new TH2F("h2_qtmax","chg tmax vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
-    h2_wave[0] = new TH2F("h2_twave","time adc vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
-    h2_wave[1] = new TH2F("h2_qwave","chg adc vs ch",_nsamples,-0.5,_nsamples-0.5,128,0,128);
+    h2_tmax[0] = new TH2F("h2_tsmax","time smax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES-0.5, 128, 0, 128);
+    h2_tmax[1] = new TH2F("h2_qsmax","chg smax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES-0.5, 128, 0, 128);
+    h2_wave[0] = new TH2F("h2_twave","time adc vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES-0.5, 128, 0, 128);
+    h2_wave[1] = new TH2F("h2_qwave","chg adc vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES-0.5, 128, 0, 128);
 
     h2_trange_raw = new TH2F("h2_trange_raw","tadc (raw) at trig samp vs ch",1600,0,16384,128,0,128);
     h2_trange = new TH2F("h2_trange","tadc at trig samp vs ch",1638,-100,16280,128,0,128);
@@ -229,7 +214,10 @@ int MbdEvent::InitRun()
       h2_wave[itype]->SetYTitle("ch");
     }
 
-    orig_dir->cd();
+    if (!_is_online)
+    {
+      orig_dir->cd();
+    }
   }
   else if ( _calpass == 2 )
   {
@@ -290,14 +278,22 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
   // First check if there is any event (ie, reading from PRDF)
   if (event == nullptr || bbcpmts == nullptr)
   {
+#ifndef ONLINE
     return Fun4AllReturnCodes::DISCARDEVENT;
+#else
+    return 1;
+#endif
   }
 
   int evt_type = event->getEvtType();
   if (evt_type != DATAEVENT)
   {
     std::cout << PHWHERE << "MbdEvent: Event type is not DATAEVENT, skipping" << std::endl;
+#ifndef ONLINE
     return Fun4AllReturnCodes::DISCARDEVENT;
+#else
+    return 1;
+#endif
   }
 
   m_evt = event->getEvtSequence();
@@ -327,7 +323,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       _nsamples = p[ipkt]->iValue(0, "SAMPLES");
       {
         static int counter = 0;
-        if ( counter<2 )
+        if ( counter<1 )
         {
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
         }
@@ -370,7 +366,11 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     {
       // flag_err = 1;
       std::cout << PHWHERE << " ERROR, evt " << m_evt << " Missing Packet " << pktid << std::endl;
+#ifndef ONLINE
       return Fun4AllReturnCodes::ABORTEVENT;
+#else
+      return -1;
+#endif
     }
   }
 
@@ -810,9 +810,11 @@ int MbdEvent::DoQuickClockOffsetCalib()
       // std::cout << "iboard " << iboard << "\t" << iboard*8+1 << "\t" << (iboard+1)*8 << "\t" << h_trigsamp[iboard]->GetEntries() << std::endl;
       std::cout << "TRIG_SAMP" << iboard << "\t" << TRIG_SAMP[iboard] << std::endl;
     }
+
+    _calib_done = 1;
   }
 
-  return 1;
+  return _calib_done;
 }
 
 // Store data for sampmax calibration (to correct ADC sample offsets by channel)
@@ -862,9 +864,10 @@ int MbdEvent::FillSampMaxCalib()
 
   // At 1000 events, get the tmax for the time channels
   // so we can fill the h2_trange histograms
-  if ( h2_tmax[0]->GetEntries() == (128*1000) )
+  if ( h2_tmax[0]->GetEntries() == (128*100) )
   {
     CalcSampMaxCalib();
+    _calib_done = 1;
   }
 
   return 1;
@@ -873,7 +876,10 @@ int MbdEvent::FillSampMaxCalib()
 int MbdEvent::CalcSampMaxCalib()
 {
   TDirectory *orig_dir = gDirectory;
-  _smax_tfile->cd();
+  if ( !_is_online )
+  {
+    _smax_tfile->cd();
+  }
 
   // sampmax for each board, for time and ch channels
   int feech = 0;
@@ -907,7 +913,10 @@ int MbdEvent::CalcSampMaxCalib()
     delete h_projx;
   }
 
-  orig_dir->cd();
+  if ( !_is_online )
+  {
+    orig_dir->cd();
+  }
 
   return 1;
 }

@@ -19,7 +19,9 @@ class GlobalVertexMapv1 : public GlobalVertexMap
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override { clear(); }
-  int isValid() const override { return 1; }
+  int isValid() const override { return _map.size(); }
+  PHObject* CloneMe() const override { return new GlobalVertexMapv1(*this); }
+  void CopyTo(GlobalVertexMap *) override;
 
   bool empty() const override { return _map.empty(); }
   size_t size() const override { return _map.size(); }
