@@ -1,18 +1,21 @@
+#include <cdbobjects/CDBTTree.h>
+
+#include <TFile.h>
+#include <TStyle.h>
+#include <TTree.h>
+#include <TDirectory.h>
+#include <TCanvas.h>
+#include <TH1D.h>
+#include <TH2D.h>
+#include <TText.h>
+#include <TLine.h>
+#include <TF1.h>
+
+#include <array>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
-
-#include <cdbobjects/CDBTTree.h>
-
-#include "TFile.h"
-#include "TTree.h"
-#include "TDirectory.h"
-#include "TCanvas.h"
-#include "TH1D.h"
-#include "TH2D.h"
-
-R__LOAD_LIBRARY(libcdbobjects.so)
 
 using namespace std;
 //////////////
@@ -25,7 +28,7 @@ double SingleGaussianFit(TH1D *hist, double &mean1, double &sigma1);
 /////////////////////
 //Global parameters//
 /////////////////////
-int chip = 26;
+//int chip = 26;
 int mod = 14;
 double sig_cut = 3.0;
 bool Writecsv = false;
@@ -410,15 +413,15 @@ double SingleGaussianFit(TH1D *hist, double &mean1, double &sigma1)
   // SingleGaussian[5] = new TF1("singleGaussian5", "gaus", 0.006, 0.008);
   // SingleGaussian[6] = new TF1("singleGaussian6", "gaus", 0.04, 0.055);
   TF1 *FirstGaussian = new TF1("First_Gaussian", "gaus", 0.003, 0.03);
-  double constant = 0;
+//  double constant = 0;
   double chi2 = 0;
-  double sigma0 = 0;
-  double mean0 = 0;
+//  double sigma0 = 0;
+//  double mean0 = 0;
   int ndf = 0;
   double chi2ndf = 0;
-  double par[9];
-  double sigma_max = 1e-3;
-  double sigma_min = 1e-4;
+//  double par[9];
+//  double sigma_max = 1e-3;
+//  double sigma_min = 1e-4;
   bool DoMultifit = true; // By default, try to do fitting with several Gaussian
   hist->Fit(FirstGaussian, "RQ");
   mean1 = FirstGaussian->GetParameter(1);
@@ -427,24 +430,28 @@ double SingleGaussianFit(TH1D *hist, double &mean1, double &sigma1)
   sigma1 = FirstGaussian->GetParameter(2);
   chi2ndf = chi2 / ndf;
   int labbel = -1;
-  int flag = -1;
-  double _mean[7] = {0};
-  double _constant[7] = {0};
-  double _chi2[7] = {0};
-  double _chi2ndf[7] = {0};
-  double _ndf[7] = {0};
-  double _sigma[7] = {0};
-  int _flag[7] = {0};
-  for (int i = 0; i < 7; i++)
-  {
-    _constant[i] = -1;
-    _mean[i] = -1;
-    _chi2[i] = -1;
-    _chi2ndf[i] = -1;
-    _ndf[i] = -1;
-    _sigma[i] = -1;
-    _flag[i] = -1;
-  }
+//  int flag = -1;
+  // double _mean[7] = {0};
+  // double _constant[7] = {0};
+  // double _chi2[7] = {0};
+  // double _chi2ndf[7] = {0};
+  // double _ndf[7] = {0};
+  // double _sigma[7] = {0};
+//  int _flag[7] = {0};
+  std::array<double, 7> _mean;
+  std::array<double, 7> _constant;
+  std::array<double, 7> _chi2;
+  std::array<double, 7> _chi2ndf;
+  std::array<double, 7> _sigma;
+  std::array<double, 7> _ndf;
+  std::array<int,7> _flag;
+  _mean.fill(-1);
+  _constant.fill(-1);
+  _chi2.fill(-1);
+  _chi2ndf.fill(-1);
+  _sigma.fill(-1);
+  _ndf.fill(-1);
+  _flag.fill(-1);
 
   if (DoMultifit)
   {
@@ -457,43 +464,44 @@ double SingleGaussianFit(TH1D *hist, double &mean1, double &sigma1)
 
     for (int i = 0; i < 3; i++)
     {
-      _mean[i] = SingleGaussian[i]->GetParameter(1);
-      _constant[i] = SingleGaussian[i]->GetParameter(1);
-      _chi2[i] = SingleGaussian[i]->GetChisquare();
-      _ndf[i] = SingleGaussian[i]->GetNDF();
-      _chi2ndf[i] = _chi2[i] / _ndf[i];
-      _sigma[i] = SingleGaussian[i]->GetParameter(2);
-      if (_chi2ndf[i] > 100)
+      _mean.at(i) = SingleGaussian[i]->GetParameter(1);
+      _constant.at(i) = SingleGaussian[i]->GetParameter(1);
+      _chi2.at(i) = SingleGaussian[i]->GetChisquare();
+      _ndf.at(i) = SingleGaussian[i]->GetNDF();
+      _chi2ndf.at(i) = _chi2.at(i) / _ndf.at(i);
+      _sigma.at(i) = SingleGaussian[i]->GetParameter(2);
+      if (_chi2ndf.at(i) > 100)
       {
-        _mean[i] = -1;
-        _flag[i] = 0;
+        _mean.at(i) = -1;
+        _flag.at(i) = 0;
       }
-      if (_sigma[i] < 0.00001)
+      if (_sigma.at(i) < 0.00001)
       {
-        _mean[i] = -1;
-        _flag[i] = 1;
+        _mean.at(i) = -1;
+        _flag.at(i) = 1;
       }
-      if (_mean[i] > 0.025 || SingleGaussian[i]->Eval(_mean[i]) < 55 || SingleGaussian[i]->Eval(_mean[i]) > 2000)
+      if (_mean.at(i) > 0.025 || SingleGaussian[i]->Eval(_mean.at(i)) < 55 || SingleGaussian[i]->Eval(_mean.at(i)) > 2000)
       {
-        _mean[i] = -1;
-        _flag[i] = 2;
+        _mean.at(i) = -1;
+        _flag.at(i) = 2;
       }
     }
-    mean1 = _mean[0];
-    sigma1 = _sigma[0];
-    flag = _flag[0];
+    mean1 = _mean.at(0);
+    sigma1 = _sigma.at(0);
+//    flag = _flag.at(0);
     for (int i = 1; i < 3; i++)
     {
-      if (mean1 < _mean[i] && _sigma[i] != 0)
+      if (mean1 < _mean.at(i) && _sigma.at(i) != 0)
       {
-        mean1 = _mean[i];
-        sigma1 = _sigma[i];
-        chi2ndf = _chi2ndf[i];
+        mean1 = _mean.at(i);
+        sigma1 = _sigma.at(i);
+        chi2ndf = _chi2ndf.at(i);
         labbel = i;
       }
     }
   }
-  flag = _flag[labbel];
+
+//  flag = _flag.at(labbel);
   TText *text = new TText(0.7, 0.7, Form("chi2/ndf: %.1f , %d", chi2ndf, labbel));
   text->SetNDC();
   text->SetTextSize(0.03);
@@ -514,7 +522,7 @@ double SingleGaussianFit(TH1D *hist, double &mean1, double &sigma1)
   text4->SetTextSize(0.03);
   text4->Draw("SAME");
   /* used for debugging purpose.
-    TText *text5 = new TText(0.7, 0.50, Form("%d %d %d %d %d %d %d", _flag[0], _flag[1], _flag[2], _flag[3], _flag[4], _flag[5], _flag[6]));
+    TText *text5 = new TText(0.7, 0.50, Form("%d %d %d %d %d %d %d", _flag.at[0], _flag[1], _flag[2], _flag[3], _flag[4], _flag[5], _flag[6]));
     text5->SetNDC();
     text5->SetTextSize(0.03);
     text5->Draw("SAME");
