@@ -480,12 +480,22 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 
   if (minsamp < 0)
   {
-    std::cout << PHWHERE << " ped minsamp " << minsamp << "\t" << max << "\t" << presample << "\t" << nsamps << std::endl;
+    static int counter = 0;
+    if ( counter<1 )
+    {
+      std::cout << PHWHERE << " ped minsamp " << minsamp << "\t" << max << "\t" << presample << "\t" << nsamps << std::endl;
+      counter++;
+    }
     minsamp = 0;
   }
   if (maxsamp < 0)
   {
-    std::cout << PHWHERE << " ped maxsamp " << maxsamp << "\t" << max << "\t" << presample << std::endl;
+    static int counter = 0;
+    if ( counter<1 )
+    {
+      std::cout << PHWHERE << " ped maxsamp " << maxsamp << "\t" << max << "\t" << presample << std::endl;
+      counter++;
+    }
     maxsamp = minsamp;
   }
 
