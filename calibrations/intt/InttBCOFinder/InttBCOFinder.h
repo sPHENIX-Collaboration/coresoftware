@@ -1,19 +1,13 @@
-#ifndef INTTBCOFINDER_H__
-#define INTTBCOFINDER_H__
+#ifndef INTTBCOFINDER_INTTBCOFINDER_H
+#define INTTBCOFINDER_INTTBCOFINDER_H
 
-#include <cdbobjects/CDBTTree.h>
 #include <fun4all/SubsysReco.h>
 
-#include <TObject.h>
+#include <string>
 
-#include <filesystem>
-#include <iomanip>  // setw, setfill
-#include <iostream>
-#include <vector>
-
+class CDBTTree;
 class PHCompositeNode;
 class TFile;
-class TTree;
 class TH2;
 
 class InttBCOFinder : public SubsysReco
@@ -40,7 +34,6 @@ class InttBCOFinder : public SubsysReco
 
  private:
   TFile *outFile_{nullptr};
-  //  TTree *tree_ {nullptr};
   CDBTTree *cdbttree_{nullptr};
   TH2 *h2_bco_ladder_[8]{};      // histogram for BCO alignment check half ladder by half ladder
   TH2 *h2_bco_ladder_cut_[8]{};  // histogram after BCO cuto

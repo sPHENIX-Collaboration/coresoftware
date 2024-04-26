@@ -2,25 +2,24 @@
 
 #include <cdbobjects/CDBTTree.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TFile.h>
-#include <TH2D.h>
+#include <TH2.h>
 #include <TSystem.h>
-#include <TTree.h>
 
 #include <boost/format.hpp>
 
+#include <cstdint>
+#include <cstdlib>
 #include <iostream>
 #include <string>
-#include <vector>
 
 InttBCOFinder::InttBCOFinder(const std::string &name, const std::string &filename, const std::string &filename2, int nevents)
   : SubsysReco(name)
