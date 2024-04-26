@@ -16,6 +16,7 @@
 
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <qautils/QAHistManagerDef.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -33,74 +34,85 @@
 #include <string>
 #include <utility>  // for pair
 
-TriggerValid::TriggerValid(const std::string& name, const std::string& filename)
+TriggerValid::TriggerValid(const std::string& name)
   : SubsysReco(name)
   , trigger("JET")
-  , outfilename(filename)
 {
 }
 
 TriggerValid::~TriggerValid()
 {
-  delete hm;
 }
 
 int TriggerValid::Init(PHCompositeNode* /*unused*/)
 {
-  delete hm; // this is a null pointer - make cppcheck happy
-  hm = new Fun4AllHistoManager(Name());
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
   // create and register your histos (all types) here
 
   if (m_debug)
   {
     std::cout << "In TriggerValid::Init" << std::endl;
   }
-  
 
-  outfile = new TFile(outfilename.c_str(), "RECREATE");
-
-  h_emu_emcal_2x2_frequency = new TH2F("h_emu_emcal_2x2_frequency", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
-  h_emu_emcal_8x8_frequency = new TH2F("h_emu_emcal_8x8_frequency", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
-
-  h_emu_ihcal_2x2_frequency = new TH2F("h_emu_ihcal_2x2_frequency", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
-  h_emu_ohcal_2x2_frequency = new TH2F("h_emu_ohcal_2x2_frequency", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
-  h_emu_hcal_2x2_frequency = new TH2F("h_emu_hcal_2x2_frequency", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
-
-  h_emu_jet_frequency = new TH2F("h_emu_jet_frequency", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
-
-  h_emcal_ll1_2x2_frequency = new TH2F("h_emcal_ll1_2x2_frequency", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
-  h_emcal_ll1_8x8_frequency = new TH2F("h_emcal_ll1_8x8_frequency", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
-
-  h_hcal_ll1_2x2_frequency = new TH2F("h_hcal_ll1_2x2_frequency", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
-
-  h_jet_ll1_frequency = new TH2F("h_jet_frequency", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
-
-  h_emu_emcal_2x2_avg_out = new TProfile2D("h_emu_emcal_2x2_avg_out", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
-  h_emu_emcal_8x8_avg_out = new TProfile2D("h_emu_emcal_8x8_avg_out", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
-
-  h_emu_ihcal_2x2_avg_out = new TProfile2D("h_emu_ihcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
-  h_emu_ohcal_2x2_avg_out = new TProfile2D("h_emu_ohcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
-  h_emu_hcal_2x2_avg_out = new TProfile2D("h_emu_hcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
-
-  h_emu_jet_avg_out = new TProfile2D("h_emu_jet_avg_out", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
-  h_emu_photon_avg_out = new TProfile2D("h_emu_photon_avg_out", ";#eta;#phi", 12, 0, 12, 32, 0, 32);
-
-  h_emcal_ll1_2x2_avg_out = new TProfile2D("h_emcal_ll1_2x2_avg_out", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
-  h_emcal_ll1_8x8_avg_out = new TProfile2D("h_emcal_ll1_8x8_avg_out", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
-
-  h_hcal_ll1_2x2_avg_out = new TProfile2D("h_hcal_ll1_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
-
-  h_jet_ll1_avg_out = new TProfile2D("h_jet_ll1_avg_out", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
-
-  h_emcal_2x2_energy_lutsum = new TH2F("h_emcal_2x2_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10,128, 0, 128);
-  h_emcal_8x8_energy_lutsum = new TH2F("h_emcal_8x8_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
-  h_hcal_2x2_energy_lutsum = new TH2F("h_hcal_2x2_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
-  h_jet_energy_lutsum = new TH2F("h_jet_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
-
-  h_match_emcal = new TProfile2D("h_match_emcal", ";#eta;#phi",48, 0, 48, 128, 0, 128); 
-  h_match_emcal_ll1 = new TProfile2D("h_match_emcal_ll1", ";#eta;#phi",12, 0, 12, 32, 0, 32); 
-  h_match_hcal_ll1 = new TProfile2D("h_match_hcal_ll1", ";#eta;#phi",12, 0, 12, 32, 0, 32); 
-  h_match_jet_ll1 = new TProfile2D("h_match_jet_ll1", ";#eta;#phi",9, 0, 9, 32, 0, 32); 
+  auto h_emu_emcal_2x2_frequency = new TH2F("h_emu_emcal_2x2_frequency", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
+  hm->registerHisto(h_emu_emcal_2x2_frequency);
+  auto h_emu_emcal_8x8_frequency = new TH2F("h_emu_emcal_8x8_frequency", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
+  hm->registerHisto(h_emu_emcal_8x8_frequency);
+  auto h_emu_ihcal_2x2_frequency = new TH2F("h_emu_ihcal_2x2_frequency", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
+  hm->registerHisto(h_emu_ihcal_2x2_frequency);
+  auto h_emu_ohcal_2x2_frequency = new TH2F("h_emu_ohcal_2x2_frequency", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
+  hm->registerHisto(h_emu_ohcal_2x2_frequency);
+  auto h_emu_hcal_2x2_frequency = new TH2F("h_emu_hcal_2x2_frequency", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
+  hm->registerHisto(h_emu_hcal_2x2_frequency);
+  auto h_emu_jet_frequency = new TH2F("h_emu_jet_frequency", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
+  hm->registerHisto(h_emu_jet_frequency);
+  auto h_emcal_ll1_2x2_frequency = new TH2F("h_emcal_ll1_2x2_frequency", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
+  hm->registerHisto(h_emcal_ll1_2x2_frequency);
+  auto h_emcal_ll1_8x8_frequency = new TH2F("h_emcal_ll1_8x8_frequency", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
+  hm->registerHisto(h_emcal_ll1_8x8_frequency);
+  auto h_hcal_ll1_2x2_frequency = new TH2F("h_hcal_ll1_2x2_frequency", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
+  hm->registerHisto(h_hcal_ll1_2x2_frequency);
+  auto h_jet_ll1_frequency = new TH2F("h_jet_frequency", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
+  hm->registerHisto(h_jet_ll1_frequency);
+  auto h_emu_emcal_2x2_avg_out = new TProfile2D("h_emu_emcal_2x2_avg_out", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
+  hm->registerHisto(h_emu_emcal_2x2_avg_out);
+  auto h_emu_emcal_8x8_avg_out = new TProfile2D("h_emu_emcal_8x8_avg_out", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
+  hm->registerHisto(h_emu_emcal_8x8_avg_out);
+  auto h_emu_ihcal_2x2_avg_out = new TProfile2D("h_emu_ihcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
+  hm->registerHisto(h_emu_ihcal_2x2_avg_out);
+  auto h_emu_ohcal_2x2_avg_out = new TProfile2D("h_emu_ohcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
+  hm->registerHisto(h_emu_ohcal_2x2_avg_out);
+  auto h_emu_hcal_2x2_avg_out = new TProfile2D("h_emu_hcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
+  hm->registerHisto(h_emu_hcal_2x2_avg_out);
+  auto h_emu_jet_avg_out = new TProfile2D("h_emu_jet_avg_out", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
+  hm->registerHisto(h_emu_jet_avg_out);
+  auto h_emu_photon_avg_out = new TProfile2D("h_emu_photon_avg_out", ";#eta;#phi", 12, 0, 12, 32, 0, 32);
+  hm->registerHisto(h_emu_photon_avg_out);
+  auto h_emcal_ll1_2x2_avg_out = new TProfile2D("h_emcal_ll1_2x2_avg_out", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
+  hm->registerHisto(h_emcal_ll1_2x2_avg_out);  
+  auto h_emcal_ll1_8x8_avg_out = new TProfile2D("h_emcal_ll1_8x8_avg_out", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
+  hm->registerHisto(h_emcal_ll1_8x8_avg_out);
+  auto h_hcal_ll1_2x2_avg_out = new TProfile2D("h_hcal_ll1_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
+  hm->registerHisto(h_hcal_ll1_2x2_avg_out);
+  auto h_jet_ll1_avg_out = new TProfile2D("h_jet_ll1_avg_out", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
+  hm->registerHisto(h_jet_ll1_avg_out);
+  auto h_emcal_2x2_energy_lutsum = new TH2F("h_emcal_2x2_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10,128, 0, 128);
+  hm->registerHisto(h_emcal_2x2_energy_lutsum); 
+  auto h_emcal_8x8_energy_lutsum = new TH2F("h_emcal_8x8_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
+  hm->registerHisto(h_emcal_8x8_energy_lutsum);  
+  auto h_hcal_2x2_energy_lutsum = new TH2F("h_hcal_2x2_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
+  hm->registerHisto(h_hcal_2x2_energy_lutsum); 
+  auto h_jet_energy_lutsum = new TH2F("h_jet_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
+  hm->registerHisto(h_jet_energy_lutsum);
+  auto h_match_emcal = new TProfile2D("h_match_emcal", ";#eta;#phi",48, 0, 48, 128, 0, 128); 
+  hm->registerHisto(h_match_emcal);  
+  auto h_match_emcal_ll1 = new TProfile2D("h_match_emcal_ll1", ";#eta;#phi",12, 0, 12, 32, 0, 32); 
+  hm->registerHisto(h_match_emcal_ll1);  
+  auto h_match_hcal_ll1 = new TProfile2D("h_match_hcal_ll1", ";#eta;#phi",12, 0, 12, 32, 0, 32); 
+  hm->registerHisto(h_match_hcal_ll1); 
+  auto h_match_jet_ll1 = new TProfile2D("h_match_jet_ll1", ";#eta;#phi",9, 0, 9, 32, 0, 32); 
+  hm->registerHisto(h_match_jet_ll1);
 
   if (m_debug)
     {
@@ -155,6 +167,35 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 
   TriggerPrimitiveContainer* trigger_primitives_hcal_ll1 = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_HCAL_LL1");
 
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+  auto h_emu_emcal_2x2_frequency = dynamic_cast<TH2*>(hm->getHisto("h_emu_emcal_2x2_frequency"));
+  auto h_emu_emcal_8x8_frequency = dynamic_cast<TH2*>(hm->getHisto("h_emu_emcal_8x8_frequency"));
+  auto h_emu_ihcal_2x2_frequency = dynamic_cast<TH2*>(hm->getHisto("h_emu_ihcal_2x2_frequency"));
+  auto h_emu_ohcal_2x2_frequency = dynamic_cast<TH2*>(hm->getHisto("h_emu_ohcal_2x2_frequency"));
+  auto h_emu_hcal_2x2_frequency = dynamic_cast<TH2*>(hm->getHisto("h_emu_hcal_2x2_frequency"));
+  auto h_emu_jet_frequency = dynamic_cast<TH2*>(hm->getHisto("h_emu_jet_frequency"));
+  auto h_emcal_ll1_2x2_frequency = dynamic_cast<TH2*>(hm->getHisto("h_emcal_ll1_2x2_frequency"));
+  auto h_emcal_ll1_8x8_frequency = dynamic_cast<TH2*>(hm->getHisto("h_emcal_ll1_8x8_frequency"));
+  auto h_hcal_ll1_2x2_frequency = dynamic_cast<TH2*>(hm->getHisto("h_hcal_ll1_2x2_frequency"));
+  auto h_jet_ll1_frequency = dynamic_cast<TH2*>(hm->getHisto("h_jet_frequency"));
+  auto h_emu_emcal_2x2_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emu_emcal_2x2_avg_out"));
+  auto h_emu_emcal_8x8_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emu_emcal_8x8_avg_out"));
+  auto h_emu_ihcal_2x2_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emu_ihcal_2x2_avg_out"));
+  auto h_emu_ohcal_2x2_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emu_ohcal_2x2_avg_out"));
+  auto h_emu_hcal_2x2_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emu_hcal_2x2_avg_out"));
+  auto h_emu_jet_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emu_jet_avg_out"));
+  auto h_emcal_ll1_2x2_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emcal_ll1_2x2_avg_out"));
+  auto h_emcal_ll1_8x8_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emcal_ll1_8x8_avg_out"));
+  auto h_hcal_ll1_2x2_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_hcal_ll1_2x2_avg_out"));
+  auto h_jet_ll1_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_jet_ll1_avg_out"));
+  auto h_emcal_2x2_energy_lutsum = dynamic_cast<TH2*>(hm->getHisto("h_emcal_2x2_energy_lutsum"));
+  auto h_emcal_8x8_energy_lutsum = dynamic_cast<TH2*>(hm->getHisto("h_emcal_8x8_energy_lutsum"));
+  auto h_hcal_2x2_energy_lutsum = dynamic_cast<TH2*>(hm->getHisto("h_hcal_2x2_energy_lutsum"));
+  auto h_jet_energy_lutsum = dynamic_cast<TH2*>(hm->getHisto("h_jet_energy_lutsum"));
+  auto h_match_emcal = dynamic_cast<TProfile2D*>(hm->getHisto("h_match_emcal"));
+  auto h_match_hcal_ll1 = dynamic_cast<TProfile2D*>(hm->getHisto("h_match_hcal_ll1"));
+  auto h_match_jet_ll1 = dynamic_cast<TProfile2D*>(hm->getHisto("h_match_jet_ll1"));
 
   std::map<TriggerDefs::TriggerSumKey, unsigned int> v_emcal_ll1_2x2 = {};
   std::map<TriggerDefs::TriggerSumKey, unsigned int> v_emcal_emu_2x2 = {};
@@ -742,11 +783,5 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
    
 int TriggerValid::End(PHCompositeNode* /*topNode*/)
 {
-  outfile->cd();
-
-  outfile->Write();
-  outfile->Close();
-  delete outfile;
-  hm->dumpHistos(outfilename, "UPDATE");
-  return 0;
+  return Fun4AllReturnCodes::EVENT_OK;
 }

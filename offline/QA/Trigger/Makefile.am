@@ -24,7 +24,8 @@ libtriggervalid_la_LIBADD = \
   -lcalotrigger_io \
   -lfun4all \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
+  -lqautils
 
 ################################################
 # linking tests
