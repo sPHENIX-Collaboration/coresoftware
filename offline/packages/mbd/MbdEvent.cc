@@ -243,7 +243,9 @@ int MbdEvent::End()
     _mbdcal->Write_SampMax( fname );
 
     fname = _caldir.Data(); fname += "mbd_sampmax.root";
+#ifndef ONLINE
     _mbdcal->Write_CDB_SampMax( fname );
+#endif
 
     TDirectory *orig_dir = gDirectory;
     _smax_tfile->cd();
@@ -259,7 +261,9 @@ int MbdEvent::End()
     _mbdcal->Write_Ped( pedfname );
 
     pedfname = _caldir.Data(); pedfname += "mbd_ped.root";
+#ifndef ONLINE
     _mbdcal->Write_CDB_Ped( pedfname );
+#endif
 
     _smax_tfile->Write();
 
