@@ -15,6 +15,9 @@ class CentralityInfov2 : public CentralityInfov1
   void identify(std::ostream &os = std::cout) const override;
   void Reset() override {}
 
+  PHObject* CloneMe() const override { return new CentralityInfov2(*this); }
+  void CopyTo(CentralityInfo *info) override;
+
   bool has_centrality_bin(const PROP prop_id) const override;
   int get_centrality_bin(const PROP prop_id) const override;
   void set_centrality_bin(const PROP prop_id, const int value) override;
