@@ -173,7 +173,7 @@ int InttBCOFinder::End(PHCompositeNode * /*topNode*/)
       std::cout << "InttBCOFinder::Writing histograms of BCO distribution" << std::endl;
       std::cout << "InttBCOFinder::File path : " << outfname_ << std::endl;
     }
-    outFile_ = new TFile(outfname_.c_str(), "RECREATE");
+    outFile_ = TFile::Open(outfname_.c_str(), "RECREATE");
     if (outFile_ != nullptr)
     {
       outFile_->cd();
@@ -183,8 +183,8 @@ int InttBCOFinder::End(PHCompositeNode * /*topNode*/)
         h2_bco_ladder_cut_[j]->Write();
       }
       outFile_->Write();
+      outFile_->Close();
     }
-    outFile_->Close();
   }
   return 0;
 }
