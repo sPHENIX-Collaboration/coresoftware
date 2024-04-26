@@ -11,6 +11,8 @@
 #include <TLine.h>
 #include <TF1.h>
 
+#include <boost/format.hpp>
+
 #include <array>
 #include <iostream>
 #include <fstream>
@@ -124,24 +126,24 @@ void InttChannelClassifier(int runnumber = 20869) //runnumber
   {
     for (int j = 0; j < 14; j++)
     {
-      h2_AllMap[i][j] = (TH2D *)file->Get(Form("HitMap_%d_%d", i, j));
-      h2_ColdMap[i][j] = new TH2D(Form("ColdMap_%d_%d", i, j), Form("ColdMap_%d_%d", i, j), 128, 0, 128, 26, 0, 26);
-      h2_HalfMap[i][j] = new TH2D(Form("HalfMap_%d_%d", i, j), Form("HalfMap_%d_%d", i, j), 128, 0, 128, 26, 0, 26);
-      h2_HotMap[i][j] = new TH2D(Form("HotMap_%d_%d", i, j), Form("HotMap_%d_%d", i, j), 128, 0, 128, 26, 0, 26);
-      h2_DeadMap[i][j] = new TH2D(Form("DeadMap_%d_%d", i, j), Form("DeadMap_%d_%d", i, j), 128, 0, 128, 26, 0, 26);
+      h2_AllMap[i][j] = (TH2D *)file->Get((boost::format("HitMap_%d_%d") % i % j).str().c_str());
+      h2_ColdMap[i][j] = new TH2D((boost::format("ColdMap_%d_%d") % i % j).str().c_str(), (boost::format("ColdMap_%d_%d") % i % j).str().c_str(), 128, 0, 128, 26, 0, 26);
+      h2_HalfMap[i][j] = new TH2D((boost::format("HalfMap_%d_%d") % i % j).str().c_str(), (boost::format("HalfMap_%d_%d") % i % j).str().c_str(), 128, 0, 128, 26, 0, 26);
+      h2_HotMap[i][j] = new TH2D((boost::format("HotMap_%d_%d") % i % j).str().c_str(), (boost::format("HotMap_%d_%d") % i % j).str().c_str(), 128, 0, 128, 26, 0, 26);
+      h2_DeadMap[i][j] = new TH2D((boost::format("DeadMap_%d_%d") % i % j).str().c_str(), (boost::format("DeadMap_%d_%d") % i % j).str().c_str(), 128, 0, 128, 26, 0, 26);
     }
   }
   //////////////////////////////////////////
   // Define condition for the hot channel //
   //////////////////////////////////////////
-  double HotChannelCut_A_Fit[8][14] = {0.};
-  double HotChannelCut_B_Fit[8][14] = {0.};
-  double ColdChannelCut_A_Fit[8][14] = {0.};
-  double ColdChannelCut_B_Fit[8][14] = {0.};
-  double par_meanA[8][14] = {0.};  // Array to save the mean & sigma value, [0][module] = mean, [1][module] = sigma
-  double par_sigmaA[8][14] = {0.}; // Array to save the mean & sigma value, [0][module] = mean, [1][module] = sigma
-  double par_meanB[8][14] = {0.};  // Array to save the mean & sigma value, [0][module] = mean, [1][module] = sigma
-  double par_sigmaB[8][14] = {0.}; // Array to save the mean & sigma value, [0][module] = mean, [1][module] = sigma
+  double HotChannelCut_A_Fit[8][14] = {{0.}};
+  double HotChannelCut_B_Fit[8][14] = {{0.}};
+  double ColdChannelCut_A_Fit[8][14] = {{0.}};
+  double ColdChannelCut_B_Fit[8][14] = {{0.}};
+  double par_meanA[8][14] = {{0.}};  // Array to save the mean & sigma value, [0][module] = mean, [1][module] = sigma
+  double par_sigmaA[8][14] = {{0.}}; // Array to save the mean & sigma value, [0][module] = mean, [1][module] = sigma
+  double par_meanB[8][14] = {{0.}};  // Array to save the mean & sigma value, [0][module] = mean, [1][module] = sigma
+  double par_sigmaB[8][14] = {{0.}}; // Array to save the mean & sigma value, [0][module] = mean, [1][module] = sigma
   /////////////////////////////////////////////////
   // Create TFile and TTree to save information  //
   // These are used to check fitting result      //
@@ -177,8 +179,8 @@ void InttChannelClassifier(int runnumber = 20869) //runnumber
   TCanvas *canB[8];
   for (int i = 0; i < 8; i++)
   {
-    canA[i] = new TCanvas(Form("TypeA_Felix_%d", i), Form("TypeA_Felix_%d", i), 1200, 1200);
-    canB[i] = new TCanvas(Form("TypeB_Felix_%d", i), Form("TypeB_Felix_%d", i), 1200, 1200);
+    canA[i] = new TCanvas((boost::format("TypeA_Felix_%d") % i).str().c_str(), (boost::format("TypeA_Felix_%d") % i).str().c_str(), 1200, 1200);
+    canB[i] = new TCanvas((boost::format("TypeB_Felix_%d") % i).str().c_str(), (boost::format("TypeB_Felix_%d") % i).str().c_str(), 1200, 1200);
     canA[i]->Divide(7, 2);
     canB[i]->Divide(7, 2);
   }
@@ -189,8 +191,8 @@ void InttChannelClassifier(int runnumber = 20869) //runnumber
   {
     for (int i = 0; i < 14; i++)
     {
-      h1_hist_fit_A[felix][i] = new TH1D(Form("h1_hist_fit_A%d_%d", felix, i), Form("h1_hist_fit_A%d_%d", felix, i), 100, 0, 0.03);
-      h1_hist_fit_B[felix][i] = new TH1D(Form("h1_hist_fit_B%d_%d", felix, i), Form("h1_hist_fit_B%d_%d", felix, i), 100, 0, 0.03);
+      h1_hist_fit_A[felix][i] = new TH1D((boost::format("h1_hist_fit_A%d_%d") % felix % i).str().c_str(), (boost::format("h1_hist_fit_A%d_%d") % felix % i).str().c_str(), 100, 0, 0.03);
+      h1_hist_fit_B[felix][i] = new TH1D((boost::format("h1_hist_fit_B%d_%d") % felix % i).str().c_str(), (boost::format("h1_hist_fit_B%d_%d") % felix % i).str().c_str(), 100, 0, 0.03);
       for (int j = 0; j < 26; j++)
       {
         for (int chan = 0; chan < 128; chan++)
@@ -209,8 +211,9 @@ void InttChannelClassifier(int runnumber = 20869) //runnumber
       canA[felix]->cd(i + 1);
       HotChannelCut_A_Fit[felix][i] = SingleGaussianFit(h1_hist_fit_A[felix][i], mean, sigma);
       ColdChannelCut_A_Fit[felix][i] = mean - sig_cut * sigma;
-      if (mean_first == 0)
+      if (mean_first == 0) {
         mean_first = mean;
+}
       if (mean < 0.005)
       {
         HotChannelCut_A_Fit[felix][i] = 1;
@@ -247,7 +250,7 @@ void InttChannelClassifier(int runnumber = 20869) //runnumber
   TDirectory *dir[8];
   for (int felix = 0; felix < 8; felix++)
   {
-    dir[felix] = sfile->mkdir(Form("Felix_%d", felix));
+    dir[felix] = sfile->mkdir((boost::format("Felix_%d") % felix).str().c_str());
     dir[felix]->cd();
     for (int i = 0; i < 14; i++)
     {
@@ -258,8 +261,9 @@ void InttChannelClassifier(int runnumber = 20869) //runnumber
       }
       for (int j = 0; j < 26; j++)
       {
-        if (debug)
+        if (debug) {
           cout << "Felix : " << felix << " moudle : " << i << " Type A and chip : " << j << "  " << HotChannelCut_A_Fit[felix][i] << endl;
+}
         for (int chan = 0; chan < 128; chan++)
         {
           // double entry = h1_chip[i][j]->GetBinContent(chan + 1);
@@ -384,7 +388,8 @@ void InttChannelClassifier(int runnumber = 20869) //runnumber
   cdbttree->WriteCDBTTree();
   st->Write();
   // Add content to the end of the file
-  if(Writecsv) csvFile << runnumber << "," << NumOfHot << "\n";
+  if(Writecsv) { csvFile << runnumber << "," << NumOfHot << "\n";
+}
 
   // Close the file
   csvFile.close();
@@ -438,13 +443,13 @@ double SingleGaussianFit(TH1D *hist, double &mean1, double &sigma1)
   // double _ndf[7] = {0};
   // double _sigma[7] = {0};
 //  int _flag[7] = {0};
-  std::array<double, 7> _mean;
-  std::array<double, 7> _constant;
-  std::array<double, 7> _chi2;
-  std::array<double, 7> _chi2ndf;
-  std::array<double, 7> _sigma;
-  std::array<double, 7> _ndf;
-  std::array<int,7> _flag;
+  std::array<double, 7> _mean{};
+  std::array<double, 7> _constant{};
+  std::array<double, 7> _chi2{};
+  std::array<double, 7> _chi2ndf{};
+  std::array<double, 7> _sigma{};
+  std::array<double, 7> _ndf{};
+  std::array<int,7> _flag{};
   _mean.fill(-1);
   _constant.fill(-1);
   _chi2.fill(-1);
@@ -502,27 +507,27 @@ double SingleGaussianFit(TH1D *hist, double &mean1, double &sigma1)
   }
 
 //  flag = _flag.at(labbel);
-  TText *text = new TText(0.7, 0.7, Form("chi2/ndf: %.1f , %d", chi2ndf, labbel));
+  TText *text = new TText(0.7, 0.7, (boost::format("chi2/ndf: %.1f , %d") % chi2ndf % labbel).str().c_str());
   text->SetNDC();
   text->SetTextSize(0.03);
   text->Draw("SAME");
 
-  TText *text2 = new TText(0.7, 0.65, Form("sigma: %.10f", sigma1));
+  TText *text2 = new TText(0.7, 0.65, (boost::format("sigma: %.10f") % sigma1).str().c_str());
   text2->SetNDC();
   text2->SetTextSize(0.03);
   text2->Draw("SAME");
 
-  TText *text3 = new TText(0.7, 0.6, Form("mean: %.4f", mean1));
+  TText *text3 = new TText(0.7, 0.6, (boost::format("mean: %.4f") % mean1).str().c_str());
   text3->SetNDC();
   text3->SetTextSize(0.03);
   text3->Draw("SAME");
 
-  TText *text4 = new TText(0.7, 0.55, Form("sigma: %.6f", sigma1));
+  TText *text4 = new TText(0.7, 0.55, (boost::format("sigma: %.6f") % sigma1).str().c_str());
   text4->SetNDC();
   text4->SetTextSize(0.03);
   text4->Draw("SAME");
   /* used for debugging purpose.
-    TText *text5 = new TText(0.7, 0.50, Form("%d %d %d %d %d %d %d", _flag.at[0], _flag[1], _flag[2], _flag[3], _flag[4], _flag[5], _flag[6]));
+    TText *text5 = new TText(0.7, 0.50, (boost::format("%d %d %d %d %d %d %d") % _flag.at[0] %_flag[1] %_flag[2] %_flag[3] %_flag[4] %_flag[5] %_flag[6]).str().c_str());
     text5->SetNDC();
     text5->SetTextSize(0.03);
     text5->Draw("SAME");

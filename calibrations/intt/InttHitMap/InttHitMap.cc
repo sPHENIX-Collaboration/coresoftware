@@ -9,6 +9,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <boost/format.hpp>
+
 #include <TSystem.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -29,11 +31,11 @@ InttHitMap::InttHitMap(const std::string &name, const std::string &filename, int
 // Destructor
 InttHitMap::~InttHitMap()
 {
-  for (int i = 0; i < 8; i++)
+  for (auto & i : h2_AllMap_)
   {
-    for (int j = 0; j < 14; j++)
+    for (auto & j : i)
     {
-      delete h2_AllMap_[i][j];
+      delete j;
     }
   }
 }
@@ -52,7 +54,7 @@ int InttHitMap::Init(PHCompositeNode * /*topNode*/)
   {
     for (int j = 0; j < 14; j++)
     {
-      h2_AllMap_[i][j] = new TH2D(Form("HitMap_%d_%d", i, j), Form("Normalized_HitMap_%d_%d", i, j), 128, 0, 128, 27, 0, 27);
+      h2_AllMap_[i][j] = new TH2D((boost::format("HitMap_%d_%d") % i % j).str().c_str(), (boost::format("Normalized_HitMap_%d_%d") % i % j).str().c_str(), 128, 0, 128, 27, 0, 27);
     }
   }
   return 0;
@@ -204,7 +206,7 @@ int InttHitMap::SetBCOFile(const char* bcofile)
  
   for(int i=0;i<8;i++)
   {
-    h2_bco_cut_[i] = (TH2D*)inBCOFile_->Get(Form("h2_bco_felix_cut%d",i));
+    inBCOFile_->GetObject((boost::format("h2_bco_felix_cut%d") %i).str().c_str(),h2_bco_cut_[i] );
   }
   return 1;
 }
