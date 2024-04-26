@@ -39,9 +39,9 @@ class TriggerValid : public SubsysReco
   int process_ll1out(PHCompositeNode*);
 
   void Trigger(const std::string& name) { trigger = name; }
- 
+
   void set_debug(bool debug) { m_debug = debug; }
- 
+
  private:
   int Getpeaktime(TH1* h);
 
@@ -50,7 +50,6 @@ class TriggerValid : public SubsysReco
 
   int _eventcounter{0};
   int _range{1};
-
 };
 
 #endif
