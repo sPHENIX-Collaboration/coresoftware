@@ -17,6 +17,8 @@
 #include <TTree.h>
 #include <TH2D.h>
 
+#include <boost/format.hpp>
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -48,8 +50,8 @@ int InttBCOFinder::Init(PHCompositeNode * /*topNode*/)
   }
   for (int j = 0; j < 8; j++)
   {
-    h2_bco_ladder_[j] = new TH2D(Form("h2_bco_felix_%d", j), Form("h2_bco_felix_%d", j), 14, 0, 14, 128, 0, 128);
-    h2_bco_ladder_cut_[j] = new TH2D(Form("h2_bco_felix_cut%d", j), Form("h2_bco_felix_cut%d", j), 14, 0, 14, 128, 0, 128);
+    h2_bco_ladder_[j] = new TH2D((boost::format("h2_bco_felix_%d")% j).str().c_str(), (boost::format("h2_bco_felix_%d") % j).str().c_str(), 14, 0, 14, 128, 0, 128);
+    h2_bco_ladder_cut_[j] = new TH2D((boost::format("h2_bco_felix_cut%d") % j).str().c_str(), (boost::format("h2_bco_felix_cut%d") % j).str().c_str(), 14, 0, 14, 128, 0, 128);
   }
   return 0;
 }
@@ -111,10 +113,11 @@ int InttBCOFinder::process_event(PHCompositeNode * topNode)
    // std::cout << bco << " " << felixnumber << std::endl;
     int bco_diff = (bco_full & 0x7FU) - bco;
     
-    if (bco_diff < 0)
+    if (bco_diff < 0) {
       h2_bco_ladder_[felixnumber]->Fill(felixchannel, bco_diff + 128);
-    else
+    } else {
       h2_bco_ladder_[felixnumber]->Fill(felixchannel, bco_diff);
+}
   }
   ievent_++;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -207,20 +210,22 @@ void InttBCOFinder::FindBCOPeak()
       h2_bco_ladder_cut_[felixnumber]->SetBinContent(binX, maxYBin, maxXValue); // Fill the peak position in the 2D histogram( it will be used for BCO cut)
       // Check the closest bin content (peak-1, peak+1)
       int BinY1 = maxYBin - 1;
-      if (maxYBin == 1)
+      if (maxYBin == 1) {
         BinY1 = 128;
+}
       int BinY2 = maxYBin + 1;
-      if (maxYBin == 128)
+      if (maxYBin == 128) {
         BinY2 = 1;
+}
       double ClosestBinContent1 = h2_bco_ladder_[felixnumber]->GetBinContent(binX, BinY1);
       double ClosestBinContent2 = h2_bco_ladder_[felixnumber]->GetBinContent(binX, BinY2);
       h2_bco_ladder_cut_[felixnumber]->SetBinContent(binX, BinY1, ClosestBinContent1);
       h2_bco_ladder_cut_[felixnumber]->SetBinContent(binX, BinY2, ClosestBinContent2);
     }
-    h2_bco_ladder_[felixnumber]->SetTitle(Form("felix %d evt %d", felixnumber, ievent_));
+    h2_bco_ladder_[felixnumber]->SetTitle((boost::format("felix %d evt %d") % felixnumber % ievent_).str().c_str());
     h2_bco_ladder_[felixnumber]->SetXTitle("module");
     h2_bco_ladder_[felixnumber]->SetYTitle("BCO_Full - BCO");
-    h2_bco_ladder_cut_[felixnumber]->SetTitle(Form("felix %d evt %d cut", felixnumber, ievent_));
+    h2_bco_ladder_cut_[felixnumber]->SetTitle((boost::format("felix %d evt %d cut") % felixnumber % ievent_).str().c_str());
     h2_bco_ladder_cut_[felixnumber]->SetXTitle("module");
     h2_bco_ladder_cut_[felixnumber]->SetYTitle("BCO_Full - BCO");
   }
