@@ -1,15 +1,15 @@
-#ifndef INTTHITMAP_H__
-#define INTTHITMAP_H__
-
-#include <vector>
-
-#include <fun4all/SubsysReco.h>
+#ifndef INTTHITMAP_INTTHITMAP_H
+#define INTTHITMAP_INTTHITMAP_H
 
 #include <intt/InttFeeMap.h>
 #include <intt/InttFeeMapv1.h>
 #include <intt/InttMap.h>
 
+#include <fun4all/SubsysReco.h>
+
 #include <TObject.h>
+
+#include <vector>
 
 class PHCompositeNode;
 class TFile;
@@ -44,17 +44,19 @@ class InttHitMap : public SubsysReco
 
   ///////////////////////////////////
 
+private:
+  TFile* inBCOFile_ {nullptr};
+  TFile* outFile_ {nullptr};
+  int nevents_ {0};
+  int ievent_ {0};
+  TH2D* h2_AllMap_[8][14] {};
+  TH2D* h2_bco_cut_[8] {};
+  bool IsCloneHit_[8][14][26][128]{};
+
   std::string bcofname_;
   std::string feemapname_;
   std::string outfname_;
-  std::string m_InttRawNodeName = "INTTRAWHIT";
-  TFile* inBCOFile_ = nullptr;
-  TFile* outFile_ = nullptr;
-  int nevents_;
-  int ievent_;
-  TH2D* h2_AllMap_[8][14];
-  TH2D* h2_bco_cut_[8];
-  bool IsCloneHit_[8][14][26][128];
+  std::string m_InttRawNodeName {"INTTRAWHIT"};
 
   struct Half_Chip
   {

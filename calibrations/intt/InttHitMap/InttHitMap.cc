@@ -21,11 +21,10 @@
 
 // Constructor
 InttHitMap::InttHitMap(const std::string &name, const std::string &filename, int nevents)
-    : SubsysReco(name), outFile_(nullptr), ievent_(0)
-{
-  outfname_ = filename;
-  nevents_ = nevents;
-}
+    : SubsysReco(name)
+    , nevents_(nevents)
+  , outfname_(filename)
+{}
 
 // Destructor
 InttHitMap::~InttHitMap()

@@ -17,6 +17,7 @@ pkginclude_HEADERS = \
   InttHitMap.h
 
 libintthitmap_la_SOURCES = \
+  InttChannelClassifier.cc \
   InttHitMap.cc  
 
 libintthitmap_la_LDFLAGS = \
