@@ -1,22 +1,23 @@
 #include "InttHitMap.h"
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
+#include <intt/InttMap.h>
 
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
 
-#include <phool/PHCompositeNode.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <boost/format.hpp>
 
-#include <TCanvas.h>
 #include <TFile.h>
 #include <TH2.h>
 #include <TSystem.h>
-#include <TTree.h>
 
+#include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -177,10 +178,9 @@ int InttHitMap::End(PHCompositeNode * /*topNode*/)
   return 0;
 }
 
-int InttHitMap::SetFeeMapFile(const char *feemapfile)
+int InttHitMap::SetFeeMapFile(const std::string &feemapfile)
 {
-  feemapname_ = feemapfile;
-  if (fee_map.LoadFromFile(feemapname_))
+  if (fee_map.LoadFromFile(feemapfile))
   {
     std::cerr << "InttHitMap::failed to load fee map" << std::endl;
     return 1;
@@ -188,15 +188,14 @@ int InttHitMap::SetFeeMapFile(const char *feemapfile)
   return 0;
 }
 
-int InttHitMap::SetBCOFile(const char *bcofile)
+int InttHitMap::SetBCOFile(const std::string &bcofile)
 {
   if (!isBCOcutON_ && Verbosity() > 5)
   {
     std::cout << "InttHitMap::BCO cut option is OFF. isBCOcutON_ == false)" << std::endl;
     return 0;
   }
-  bcofname_ = std::string(bcofile);
-  inBCOFile_ = TFile::Open(bcofname_.c_str());
+  inBCOFile_ = TFile::Open(bcofile.c_str());
   if (inBCOFile_ == nullptr)
   {
     std::cout << "InttHitMap::BCO file is not sucessfully loaded." << std::endl;
