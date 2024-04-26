@@ -1,6 +1,7 @@
 #include "InttBCOFinder.h"
 
 #include <cdbobjects/CDBTTree.h>
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -20,15 +21,12 @@
 #include <vector>
 #include <string>
 
-R__LOAD_LIBRARY(libcdbobjects.so)
-
 InttBCOFinder::InttBCOFinder(const std::string &name, const std::string &filename, const std::string &filename2, int nevents)
-    : SubsysReco(name),  outFile_(nullptr), tree_(nullptr), ievent_(0)
-{
-  outfname_ = filename;
-  cdbname_ = filename2;
-  nevents_ = nevents;
-}
+    : SubsysReco(name)
+  ,nevents_ (nevents)
+  , outfname_(filename)
+    , cdbname_(filename2)
+{}
 
 // Destructor
 InttBCOFinder::~InttBCOFinder()

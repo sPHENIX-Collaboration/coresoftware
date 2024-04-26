@@ -1,20 +1,20 @@
 #ifndef INTTBCOFINDER_H__
 #define INTTBCOFINDER_H__
 
+#include <fun4all/SubsysReco.h>
+#include <cdbobjects/CDBTTree.h>
+
 #include <TObject.h>
+
 #include <vector>
 #include <filesystem>
 #include <iostream>
 #include <iomanip> // setw, setfill
 
-#include <fun4all/SubsysReco.h>
-#include <cdbobjects/CDBTTree.h>
-R__LOAD_LIBRARY(libcdbobjects.so)
-
 class PHCompositeNode;
 class TFile;
 class TTree;
-class TH2D;
+class TH2;
 
 class InttBCOFinder : public SubsysReco
 {
@@ -32,24 +32,29 @@ class InttBCOFinder : public SubsysReco
 
   /// SubsysReco end processing method
   int End(PHCompositeNode *);
-  bool IsADCcutON_ = false;
-  bool WriteCDBTTree_ = false;
-  bool WriteQAFile_ = false;
+
   void FindBCOPeak();
   void ADCCut(const bool flag) { IsADCcutON_ = flag; }
   void WriteCDBTTree(const bool flag) { WriteCDBTTree_=flag; }
   void WriteQAFile(const bool flag) { WriteQAFile_ = flag; }
 
-  std::string m_InttRawNodeName = "INTTRAWHIT";
-  TFile *outFile_ = nullptr;
-  TTree *tree_ = nullptr;
-  CDBTTree *cdbttree_ = nullptr;
-  int nevents_;
-  int ievent_;
+private:
+  TFile *outFile_ {nullptr};
+//  TTree *tree_ {nullptr};
+  CDBTTree *cdbttree_ {nullptr};
+  TH2 *h2_bco_ladder_[8]{};     // histogram for BCO alignment check half ladder by half ladder
+  TH2 *h2_bco_ladder_cut_[8]{}; // histogram after BCO cuto
+
+  int nevents_ {0};
+  int ievent_ {0};
+
+  bool IsADCcutON_ {false};
+  bool WriteCDBTTree_ {false};
+  bool WriteQAFile_ {false};
+
+  std::string m_InttRawNodeName {"INTTRAWHIT"};
   std::string outfname_;
   std::string cdbname_;
-  TH2D *h2_bco_ladder_[8];     // histogram for BCO alignment check half ladder by half ladder
-  TH2D *h2_bco_ladder_cut_[8]; // histogram after BCO cuto
 
 };
 #endif
