@@ -11,29 +11,29 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-
-#include <TSystem.h>
 #include <TFile.h>
-#include <TTree.h>
 #include <TH2D.h>
+#include <TSystem.h>
+#include <TTree.h>
 
 #include <boost/format.hpp>
 
 #include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 
 InttBCOFinder::InttBCOFinder(const std::string &name, const std::string &filename, const std::string &filename2, int nevents)
-    : SubsysReco(name)
-  ,nevents_ (nevents)
+  : SubsysReco(name)
+  , nevents_(nevents)
   , outfname_(filename)
-    , cdbname_(filename2)
-{}
+  , cdbname_(filename2)
+{
+}
 
 // Destructor
 InttBCOFinder::~InttBCOFinder()
 {
-  for(int i=0;i<8;i++)
+  for (int i = 0; i < 8; i++)
   {
     delete h2_bco_ladder_[i];
     delete h2_bco_ladder_cut_[i];
@@ -50,7 +50,7 @@ int InttBCOFinder::Init(PHCompositeNode * /*topNode*/)
   }
   for (int j = 0; j < 8; j++)
   {
-    h2_bco_ladder_[j] = new TH2D((boost::format("h2_bco_felix_%d")% j).str().c_str(), (boost::format("h2_bco_felix_%d") % j).str().c_str(), 14, 0, 14, 128, 0, 128);
+    h2_bco_ladder_[j] = new TH2D((boost::format("h2_bco_felix_%d") % j).str().c_str(), (boost::format("h2_bco_felix_%d") % j).str().c_str(), 14, 0, 14, 128, 0, 128);
     h2_bco_ladder_cut_[j] = new TH2D((boost::format("h2_bco_felix_cut%d") % j).str().c_str(), (boost::format("h2_bco_felix_cut%d") % j).str().c_str(), 14, 0, 14, 128, 0, 128);
   }
   return 0;
@@ -74,22 +74,23 @@ int InttBCOFinder::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int InttBCOFinder::process_event(PHCompositeNode * topNode)
+int InttBCOFinder::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 5)
   {
     std::cout << "InttBCOFinder::Beginning process_event in InttBCOFinder.cc" << std::endl;
   }
 
-  if (ievent_ >= nevents_ )
-  {if (Verbosity() > 5)
+  if (ievent_ >= nevents_)
   {
-    std::cout << "InttBCOFinder::Last event is processed." << std::endl;
-  }
+    if (Verbosity() > 5)
+    {
+      std::cout << "InttBCOFinder::Last event is processed." << std::endl;
+    }
     return Fun4AllReturnCodes::EVENT_OK;
-   // return Fun4AllReturnCodes::ABORTRUN;
+    // return Fun4AllReturnCodes::ABORTRUN;
   }
- 
+
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
   if (!inttcont)
   {
@@ -104,20 +105,23 @@ int InttBCOFinder::process_event(PHCompositeNode * topNode)
   for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
   {
     InttRawHit *intthit = inttcont->get_hit(i);
-    //if (!intthit)
-    //  continue;
+    // if (!intthit)
+    //   continue;
     uint64_t bco_full = intthit->get_bco();
     int bco = intthit->get_FPHX_BCO();
     int felixnumber = intthit->get_packetid() - 3001;
     int felixchannel = intthit->get_fee();
-   // std::cout << bco << " " << felixnumber << std::endl;
+    // std::cout << bco << " " << felixnumber << std::endl;
     int bco_diff = (bco_full & 0x7FU) - bco;
-    
-    if (bco_diff < 0) {
+
+    if (bco_diff < 0)
+    {
       h2_bco_ladder_[felixnumber]->Fill(felixchannel, bco_diff + 128);
-    } else {
+    }
+    else
+    {
       h2_bco_ladder_[felixnumber]->Fill(felixchannel, bco_diff);
-}
+    }
   }
   ievent_++;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -168,7 +172,7 @@ int InttBCOFinder::End(PHCompositeNode * /*topNode*/)
     if (Verbosity() > 1)
     {
       std::cout << "InttBCOFinder::Writing histograms of BCO distribution" << std::endl;
-      std::cout << "InttBCOFinder::File path : "<<outfname_ << std::endl;
+      std::cout << "InttBCOFinder::File path : " << outfname_ << std::endl;
     }
     outFile_ = new TFile(outfname_.c_str(), "RECREATE");
     if (outFile_ != nullptr)
@@ -207,16 +211,18 @@ void InttBCOFinder::FindBCOPeak()
           maxYBin = binY;
         }
       }
-      h2_bco_ladder_cut_[felixnumber]->SetBinContent(binX, maxYBin, maxXValue); // Fill the peak position in the 2D histogram( it will be used for BCO cut)
+      h2_bco_ladder_cut_[felixnumber]->SetBinContent(binX, maxYBin, maxXValue);  // Fill the peak position in the 2D histogram( it will be used for BCO cut)
       // Check the closest bin content (peak-1, peak+1)
       int BinY1 = maxYBin - 1;
-      if (maxYBin == 1) {
+      if (maxYBin == 1)
+      {
         BinY1 = 128;
-}
+      }
       int BinY2 = maxYBin + 1;
-      if (maxYBin == 128) {
+      if (maxYBin == 128)
+      {
         BinY2 = 1;
-}
+      }
       double ClosestBinContent1 = h2_bco_ladder_[felixnumber]->GetBinContent(binX, BinY1);
       double ClosestBinContent2 = h2_bco_ladder_[felixnumber]->GetBinContent(binX, BinY2);
       h2_bco_ladder_cut_[felixnumber]->SetBinContent(binX, BinY1, ClosestBinContent1);
