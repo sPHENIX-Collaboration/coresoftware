@@ -11,11 +11,11 @@
 
 #include <boost/format.hpp>
 
-#include <TSystem.h>
-#include <TFile.h>
-#include <TTree.h>
 #include <TCanvas.h>
+#include <TFile.h>
 #include <TH2.h>
+#include <TSystem.h>
+#include <TTree.h>
 
 #include <iostream>
 #include <string>
@@ -23,17 +23,18 @@
 
 // Constructor
 InttHitMap::InttHitMap(const std::string &name, const std::string &filename, int nevents)
-    : SubsysReco(name)
-    , nevents_(nevents)
+  : SubsysReco(name)
+  , nevents_(nevents)
   , outfname_(filename)
-{}
+{
+}
 
 // Destructor
 InttHitMap::~InttHitMap()
 {
-  for (auto & i : h2_AllMap_)
+  for (auto &i : h2_AllMap_)
   {
-    for (auto & j : i)
+    for (auto &j : i)
     {
       delete j;
     }
@@ -74,14 +75,13 @@ int InttHitMap::InitRun(PHCompositeNode *topNode)
 
     return -1;
   }
-  
-  
-  if(nevents_==0)
+
+  if (nevents_ == 0)
   {
-    std::cout<<"InttHitMap::Maximun # of event is not specified."<<std::endl;
-    std::cout<<"InttHitMap::Total # of events will be used."<<std::endl;
+    std::cout << "InttHitMap::Maximun # of event is not specified." << std::endl;
+    std::cout << "InttHitMap::Total # of events will be used." << std::endl;
   }
- 
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -92,14 +92,14 @@ int InttHitMap::process_event(PHCompositeNode *topNode)
     std::cout << "InttHitMap::Beginning process_event in InttHitMap" << std::endl;
   }
   //  nevents_ = 1000;
-  if (ievent_ >= nevents_ && nevents_!=0)
+  if (ievent_ >= nevents_ && nevents_ != 0)
   {
     std::cout << "Last event is processed." << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
-    //return Fun4AllReturnCodes::ABORTRUN;
+    // return Fun4AllReturnCodes::ABORTRUN;
   }
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
-   if (!inttcont)
+  if (!inttcont)
   {
     std::cout << PHWHERE << std::endl;
     std::cout << "InttHitMap::process_event(PHCompositeNode* topNode)" << std::endl;
@@ -139,7 +139,7 @@ int InttHitMap::process_event(PHCompositeNode *topNode)
 
     uint64_t bco_full = intthit->get_bco();
     int bco = intthit->get_FPHX_BCO();
-    
+
     //////////////////// BCO Filtering  ////////////////////////////////
     if (isBCOcutON_ && (inBCOFile_ != nullptr))
     {
@@ -165,7 +165,6 @@ int InttHitMap::process_event(PHCompositeNode *topNode)
 
 int InttHitMap::End(PHCompositeNode * /*topNode*/)
 {
-
   if (Verbosity() > 1)
   {
     std::cout << "Processing InttHitMap done" << std::endl;
@@ -189,55 +188,53 @@ int InttHitMap::SetFeeMapFile(const char *feemapfile)
   return 0;
 }
 
-int InttHitMap::SetBCOFile(const char* bcofile)
+int InttHitMap::SetBCOFile(const char *bcofile)
 {
-  if(!isBCOcutON_ && Verbosity() > 5 )
+  if (!isBCOcutON_ && Verbosity() > 5)
   {
-    std::cout<<"InttHitMap::BCO cut option is OFF. isBCOcutON_ == false)"<<std::endl;
+    std::cout << "InttHitMap::BCO cut option is OFF. isBCOcutON_ == false)" << std::endl;
     return 0;
   }
   bcofname_ = std::string(bcofile);
   inBCOFile_ = TFile::Open(bcofname_.c_str());
-  if(inBCOFile_ == nullptr)
+  if (inBCOFile_ == nullptr)
   {
-    std::cout<<"InttHitMap::BCO file is not sucessfully loaded."<<std::endl;
+    std::cout << "InttHitMap::BCO file is not sucessfully loaded." << std::endl;
     return 0;
   }
- 
-  for(int i=0;i<8;i++)
+
+  for (int i = 0; i < 8; i++)
   {
-    inBCOFile_->GetObject((boost::format("h2_bco_felix_cut%d") %i).str().c_str(),h2_bco_cut_[i] );
+    inBCOFile_->GetObject((boost::format("h2_bco_felix_cut%d") % i).str().c_str(), h2_bco_cut_[i]);
   }
   return 1;
 }
 
-bool InttHitMap::isBCOPeak(int felix,int ladder, int bco, uint64_t bcofull)
+bool InttHitMap::isBCOPeak(int felix, int ladder, int bco, uint64_t bcofull)
 {
   int bco_diff = (bcofull & 0x7FU) - bco;
-  if (bco_diff < 0) 
+  if (bco_diff < 0)
   {
     bco_diff = bco_diff + 128;
   }
-  //Main part for BCO cut.
-  //Load the BCO histogram and apply the BCO cut 
-  //Default : Hits belongs to [peak-1,peak+1] (3BCO) region will survice after BCO cut
-  //To change the BCO region, h2_bco_cut_[felix] needs to be modified
-  if(h2_bco_cut_[felix]->GetBinContent(ladder+1,bco_diff+1)!=0) 
+  // Main part for BCO cut.
+  // Load the BCO histogram and apply the BCO cut
+  // Default : Hits belongs to [peak-1,peak+1] (3BCO) region will survice after BCO cut
+  // To change the BCO region, h2_bco_cut_[felix] needs to be modified
+  if (h2_bco_cut_[felix]->GetBinContent(ladder + 1, bco_diff + 1) != 0)
   {
-    return true; 
+    return true;
   }
   return false;
 }
 
-
-
 bool InttHitMap::FillHitMap(int in_felix, int in_module, int in_barrel, int in_chip, int in_chan)
 {
   double norm_factor = 0.;
-  if (in_chip < 5 || (in_chip > 12 && in_chip < 18)) // Condition for Type B
+  if (in_chip < 5 || (in_chip > 12 && in_chip < 18))  // Condition for Type B
   {
     norm_factor = (nevents_);
-    if (in_barrel == 1) // Inner barrel(= 0) : 7.1888[cm], Outer barrel(= 1) : 9.680[cm]
+    if (in_barrel == 1)  // Inner barrel(= 0) : 7.1888[cm], Outer barrel(= 1) : 9.680[cm]
     {
       norm_factor = norm_factor / (9.680 / 7.1888);
     }
@@ -245,8 +242,8 @@ bool InttHitMap::FillHitMap(int in_felix, int in_module, int in_barrel, int in_c
   }
   else
   {
-    norm_factor = (nevents_) / 1.25; // Normailzed by chip type
-    if (in_barrel == 1)              // Inner barrel(= 0) : 7.1888[cm], Outer barrel(= 1) : 9.680[cm]
+    norm_factor = (nevents_) / 1.25;  // Normailzed by chip type
+    if (in_barrel == 1)               // Inner barrel(= 0) : 7.1888[cm], Outer barrel(= 1) : 9.680[cm]
     {
       norm_factor = norm_factor / (9.680 / 7.1888);
     }
