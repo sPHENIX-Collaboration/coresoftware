@@ -232,7 +232,7 @@ PHSiliconCosmicSeeding::combineSeeds(SeedVector &seeds)
 }
 PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(SeedVector &doublets, PositionMap &clusterPositions)
 {
-  for (auto &doublet : doublets)
+  for (auto doublet : doublets)
   {
     TrackFitUtils::position_vector_t xypoints;
     for (auto &key : doublet.ckeys)
@@ -254,9 +254,9 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(See
     }
   }
   SeedVector longseeds;
-  for (const auto &doublet : doublets)
+  for (auto doublet : doublets)
   {
-    if (doublet.ckeys.size() > 3)
+    if (doublet.ckeys.size() > 3 && doublet.ckeys.size() < 20)
     {
       longseeds.push_back(doublet);
     }
