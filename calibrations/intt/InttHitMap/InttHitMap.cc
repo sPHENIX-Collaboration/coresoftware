@@ -169,9 +169,10 @@ int InttHitMap::End(PHCompositeNode * /*topNode*/)
     std::cout << "Processing InttHitMap done" << std::endl;
   }
   if (outFile_ != nullptr)
-  
-  outFile_->Write();
-  outFile_->Close();
+  {
+    outFile_->Write();
+    outFile_->Close();
+  }
   return 0;
 }
 
