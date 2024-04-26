@@ -16,8 +16,6 @@ class RunHeader : public PHObject
   /// dtor
   ~RunHeader() override {}
 
-  PHObject *CloneMe() const override;
-
   /// Clear Event
   void Reset() override;
 
