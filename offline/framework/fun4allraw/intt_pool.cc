@@ -17,6 +17,7 @@ enum ITEM
   F_FULL_FPHX,
   F_FULL_ROC,
   F_AMPLITUDE,
+  F_EVENT_COUNTER,
   F_DATAWORD
 };
 
@@ -122,14 +123,19 @@ int intt_pool::iValue(const int fee, const char *what)
     return iValue(hit, F_FPHX_BCO);
   }
 
-  if (strcmp(what, "FULL_FPHX") == 0)
-  {
-    return iValue(hit, F_FULL_FPHX);
-  }
+  //--if (strcmp(what, "FULL_FPHX") == 0)
+  //--{
+  //--  return iValue(hit, F_FULL_FPHX);
+  //--}
 
   if (strcmp(what, "FULL_ROC") == 0)
   {
     return iValue(hit, F_FULL_ROC);
+  }
+
+  if (strcmp(what, "EVENT_COUNTER") == 0)
+  {
+    return iValue(hit, F_EVENT_COUNTER);
   }
 
   if (strcmp(what, "DATAWORD") == 0)
@@ -215,6 +221,10 @@ int intt_pool::iValue(const int hit, const int field)
 
   case F_AMPLITUDE:
     return intt_hits[hit]->amplitude;
+    break;
+
+  case F_EVENT_COUNTER:
+    return intt_hits[hit]->event_counter;
     break;
 
   case F_DATAWORD:
@@ -520,7 +530,11 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
   l = hitlist[1];
   BCO |= ((l & 0xffff) << 16);
   BCO |= ((l >> 16) & 0xffff);
-  unsigned int event_counter = hitlist[2];
+  //unsigned int event_counter = hitlist[2];
+  unsigned int event_counter = 0;
+  l = hitlist[2];
+  event_counter |= ((l & 0xffff) << 16);
+  event_counter |= ((l >> 16) & 0xffff);
 
   int count = 0;
   for (unsigned int i = 3; i < hitlist.size(); i++)
