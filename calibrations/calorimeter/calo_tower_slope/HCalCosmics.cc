@@ -3,7 +3,6 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/SubsysReco.h>
@@ -33,14 +32,12 @@ HCalCosmics::HCalCosmics(const std::string &name, const std::string &fname)
 
 HCalCosmics::~HCalCosmics()
 {
-  delete hm;
 }
 
 int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << std::endl
             << "HCalCosmics::Init" << std::endl;
-  hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(outfilename.c_str(), "RECREATE");
 
   for (int ieta = 0; ieta < n_etabin; ++ieta)
@@ -58,8 +55,6 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
 
   h_time_energy = new TH2F("h_time_energy", "", 100, -10, 10, 100, -50, 1e3);
 
-  Fun4AllServer *se = Fun4AllServer::instance();
-  se->registerHistoManager(hm);
 
   event = 0;
   return 0;
@@ -169,9 +164,9 @@ int HCalCosmics::End(PHCompositeNode * /*topNode*/)
   h_mip->Write();
   h_waveformchi2->Write();
   h_time_energy->Write();
+
   outfile->Close();
   delete outfile;
-  hm->dumpHistos(outfilename, "UPDATE");
   return 0;
 }
 
