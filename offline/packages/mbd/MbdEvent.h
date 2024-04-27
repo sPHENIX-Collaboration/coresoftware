@@ -56,6 +56,8 @@ class MbdEvent
 
   MbdSig *GetSig(const int ipmt) { return &_mbdsig[ipmt]; }
 
+  MbdCalib *GetCalib() { return _mbdcal; }
+
   int FillSampMaxCalib();
 
   int  calib_is_done() { return _calib_done; }
@@ -141,6 +143,9 @@ class MbdEvent
   TH2 *h2_trange_raw{};   // raw tdc at maxsamp vs ch
   TH2 *h2_trange{};       // subtracted tdc at maxsamp vs ch
   //TH1 *h_trange[2]{};     // subtracted tdc at maxsamp, [S/N]
+
+  // pedestals (hists are in MbdSig)
+  int CalcPedCalib();
 
   TCanvas *ac{nullptr};  // for plots used during debugging
 

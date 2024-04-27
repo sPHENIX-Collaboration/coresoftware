@@ -144,12 +144,14 @@ int MbdEvent::InitRun()
   // Init parameters of the signal processing
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
+    _mbdsig[ifeech].SetCalib(_mbdcal);
+
     // Do evt-by-evt pedestal using sample range below
-    //_mbdsig[ifeech].SetEventPed0Range(0,1);
-    //_mbdsig[ifeech].SetEventPed0PreSamp(6, 2, _mbdcal->get_sampmax(ifeech));
     if ( _calpass!=1 )
     {
-      _mbdsig[ifeech].SetEventPed0PreSamp(5, 4, _mbdcal->get_sampmax(ifeech));
+      const int presamp = 5;  // start from 5 samples before sampmax
+      const int nsamps = -1;  // use all to sample 0
+      _mbdsig[ifeech].SetEventPed0PreSamp(presamp, nsamps, _mbdcal->get_sampmax(ifeech));
     }
     else
     {
@@ -240,7 +242,32 @@ int MbdEvent::End()
     std::string fname = _caldir.Data(); fname += "mbd_sampmax.calib";
     _mbdcal->Write_SampMax( fname );
 
+    fname = _caldir.Data(); fname += "mbd_sampmax.root";
+#ifndef ONLINE
+    _mbdcal->Write_CDB_SampMax( fname );
+#endif
+
+    TDirectory *orig_dir = gDirectory;
+    _smax_tfile->cd();
+
+    for (auto & sig : _mbdsig)
+    {
+      sig.WritePedHist();
+    }
+
+    CalcPedCalib();
+
+    std::string pedfname = _caldir.Data(); pedfname += "mbd_ped.calib";
+    _mbdcal->Write_Ped( pedfname );
+
+    pedfname = _caldir.Data(); pedfname += "mbd_ped.root";
+#ifndef ONLINE
+    _mbdcal->Write_CDB_Ped( pedfname );
+#endif
+
     _smax_tfile->Write();
+
+    orig_dir->cd();
   }
 
   return 1;
@@ -506,7 +533,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
 
 
   // bbcpmts->Reset();
-  // std::cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << std::endl;
+  //std::cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << std::endl;
 
   // Copy to output
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
@@ -828,7 +855,7 @@ int MbdEvent::FillSampMaxCalib()
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
     int pmtch = _mbdgeom->get_pmt(ifeech);
                                                                                   
-    _mbdsig[ifeech].SetXY(m_samp[ifeech], m_adc[ifeech]);
+    //_mbdsig[ifeech].SetXY(m_samp[ifeech], m_adc[ifeech]);
 
     for (int isamp=0; isamp<_nsamples; isamp++)
     {
@@ -848,7 +875,7 @@ int MbdEvent::FillSampMaxCalib()
     //std::cout << "fillint h2_tmax " << pmtch << "\t" << maxsamp << std::endl;
     //_mbdsig[ifeech].Print();
 
-    if ( type==0 && h2_tmax[0]->GetEntries() > (128*1000) )
+    if ( type==0 && h2_tmax[0]->GetEntries() > (128*500) )
     {
       int samp_max = _mbdcal->get_sampmax( ifeech );
 
@@ -864,7 +891,7 @@ int MbdEvent::FillSampMaxCalib()
 
   // At 1000 events, get the tmax for the time channels
   // so we can fill the h2_trange histograms
-  if ( h2_tmax[0]->GetEntries() == (128*100) )
+  if ( h2_tmax[0]->GetEntries() == (128*500) )
   {
     CalcSampMaxCalib();
     _calib_done = 1;
@@ -912,6 +939,44 @@ int MbdEvent::CalcSampMaxCalib()
     }
     delete h_projx;
   }
+
+  if ( !_is_online )
+  {
+    orig_dir->cd();
+  }
+
+  return 1;
+}
+
+int MbdEvent::CalcPedCalib()
+{
+  TDirectory *orig_dir = gDirectory;
+  if ( !_is_online )
+  {
+    _smax_tfile->cd();
+  }
+
+  // ped for each feech
+  TF1 *pedgaus = new TF1("pedgaus","gaus",0.,2999.);
+  for (int ifeech=0; ifeech<MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    TH1 *hped0 = _mbdsig[ifeech].GetPedHist();
+    float mean = hped0->GetBinCenter( hped0->GetMaximumBin() );
+    float ampl = hped0->GetBinContent( hped0->GetMaximumBin() );
+    float sigma = 4.0;
+
+    pedgaus->SetParameters(ampl,mean,sigma);
+    pedgaus->SetRange(mean-4*sigma, mean+4*sigma);
+    hped0->Fit(pedgaus,"RNQ");
+
+    mean = pedgaus->GetParameter(1);
+    float meanerr = pedgaus->GetParError(1);
+    sigma = pedgaus->GetParameter(2);
+    float sigmaerr = pedgaus->GetParError(2);
+
+    _mbdcal->set_ped( ifeech, mean, meanerr, sigma, sigmaerr );
+  }
+  delete pedgaus;
 
   if ( !_is_online )
   {
