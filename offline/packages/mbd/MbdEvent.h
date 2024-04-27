@@ -56,6 +56,8 @@ class MbdEvent
 
   MbdSig *GetSig(const int ipmt) { return &_mbdsig[ipmt]; }
 
+  MbdCalib *GetCalib() { return _mbdcal; }
+
   int FillSampMaxCalib();
 
   int  calib_is_done() { return _calib_done; }

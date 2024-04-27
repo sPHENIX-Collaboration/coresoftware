@@ -533,7 +533,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
 
 
   // bbcpmts->Reset();
-  // std::cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << std::endl;
+  //std::cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << std::endl;
 
   // Copy to output
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
@@ -855,7 +855,7 @@ int MbdEvent::FillSampMaxCalib()
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
     int pmtch = _mbdgeom->get_pmt(ifeech);
                                                                                   
-    _mbdsig[ifeech].SetXY(m_samp[ifeech], m_adc[ifeech]);
+    //_mbdsig[ifeech].SetXY(m_samp[ifeech], m_adc[ifeech]);
 
     for (int isamp=0; isamp<_nsamples; isamp++)
     {
@@ -875,7 +875,7 @@ int MbdEvent::FillSampMaxCalib()
     //std::cout << "fillint h2_tmax " << pmtch << "\t" << maxsamp << std::endl;
     //_mbdsig[ifeech].Print();
 
-    if ( type==0 && h2_tmax[0]->GetEntries() > (128*1000) )
+    if ( type==0 && h2_tmax[0]->GetEntries() > (128*500) )
     {
       int samp_max = _mbdcal->get_sampmax( ifeech );
 
@@ -891,7 +891,7 @@ int MbdEvent::FillSampMaxCalib()
 
   // At 1000 events, get the tmax for the time channels
   // so we can fill the h2_trange histograms
-  if ( h2_tmax[0]->GetEntries() == (128*100) )
+  if ( h2_tmax[0]->GetEntries() == (128*500) )
   {
     CalcSampMaxCalib();
     _calib_done = 1;
