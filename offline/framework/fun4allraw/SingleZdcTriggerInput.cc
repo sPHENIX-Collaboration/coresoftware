@@ -112,6 +112,7 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
+      int packet_id = plist[i]->getIdentifier();
       if (nr_modules > 3)
       {
 	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
@@ -122,7 +123,7 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       newhit->setNrChannels(nr_channels);
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setEvtSequence(EventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
@@ -175,7 +176,14 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       }
       if (TriggerInputManager())
       {
+	if (packet_id == std::clamp(packet_id, 9000, 9999))
+	{
+        TriggerInputManager()->AddSEpdPacket(EventSequence, newhit);
+	}
+	else
+	{
         TriggerInputManager()->AddZdcPacket(EventSequence, newhit);
+	}
       }
       m_ZdcPacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
@@ -293,6 +301,19 @@ void SingleZdcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
   {
     zdcpacketcont = new CaloPacketContainerv1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(zdcpacketcont, "ZDCPackets", "PHObject");
+    detNode->addNode(newNode);
+  }
+  detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "SEPD"));
+  if (!detNode)
+  {
+    detNode = new PHCompositeNode("SEPD");
+    dstNode->addNode(detNode);
+  }
+  CaloPacketContainer *sepdpacketcont = findNode::getClass<CaloPacketContainer>(detNode, "SEPDPackets");
+  if (!sepdpacketcont)
+  {
+    sepdpacketcont = new CaloPacketContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(sepdpacketcont, "SEPDPackets", "PHObject");
     detNode->addNode(newNode);
   }
 }

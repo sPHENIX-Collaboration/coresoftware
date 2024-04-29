@@ -69,6 +69,9 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillZdc();
   int MoveZdcToNodeTree();
   void AddZdcPacket(int eventno, CaloPacket *pkt);
+// the sepd is read together with the zdc in the FillZdc method
+  int MoveSEpdToNodeTree();
+  void AddSEpdPacket(int eventno, CaloPacket *pkt);
   void DetermineReferenceEventNumber();
 
  private:
@@ -102,6 +105,11 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     unsigned int EventFoundCounter {0};
   };
 
+  struct SEpdPacketInfo
+  {
+    std::vector<CaloPacket *> SEpdPacketVector;
+    unsigned int EventFoundCounter {0};
+  };
   struct ZdcPacketInfo
   {
     std::vector<CaloPacket *> ZdcPacketVector;
@@ -122,6 +130,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::vector<SingleTriggerInput *> m_MbdInputVector;
   std::vector<SingleTriggerInput *> m_CemcInputVector;
   std::vector<SingleTriggerInput *> m_HcalInputVector;
+  std::vector<SingleTriggerInput *> m_SEpdInputVector;
   std::vector<SingleTriggerInput *> m_ZdcInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
@@ -130,6 +139,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, MbdPacketInfo> m_MbdPacketMap;
   std::map<int, CemcPacketInfo> m_CemcPacketMap;
   std::map<int, HcalPacketInfo> m_HcalPacketMap;
+  std::map<int, SEpdPacketInfo> m_SEpdPacketMap;
   std::map<int, ZdcPacketInfo> m_ZdcPacketMap;
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;

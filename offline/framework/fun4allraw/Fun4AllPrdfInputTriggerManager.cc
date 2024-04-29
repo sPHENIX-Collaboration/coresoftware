@@ -95,6 +95,7 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   MoveCemcToNodeTree();
   MoveHcalToNodeTree();
   MoveZdcToNodeTree();
+  MoveSEpdToNodeTree();
   MySyncManager()->CurrentEvent(m_RefEventNo);
   return 0;
   // readagain:
@@ -1014,6 +1015,45 @@ void Fun4AllPrdfInputTriggerManager::AddZdcPacket(int eventno, CaloPacket *pkt)
               << eventno << std::endl;
   }
   m_ZdcPacketMap[eventno].ZdcPacketVector.push_back(pkt);
+  return;
+}
+
+int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
+{
+  std::cout << "stashed sepd Events: " << m_SEpdPacketMap.size() << std::endl;
+  CaloPacketContainer *sepd = findNode::getClass<CaloPacketContainer>(m_topNode, "SEPDPackets");
+  if (!sepd)
+  {
+    return 0;
+  }
+  //  std::cout << "before filling m_SEpdPacketMap size: " <<  m_SEpdPacketMap.size() << std::endl;
+  for (auto sepdhititer : m_SEpdPacketMap.begin()->second.SEpdPacketVector)
+  {
+    if (Verbosity() > 1)
+    {
+      sepdhititer->identify();
+    }
+    sepd->AddPacket(sepdhititer);
+  }
+  for (auto iter : m_SEpdInputVector)
+  {
+    iter->CleanupUsedPackets(m_SEpdPacketMap.begin()->first);
+  }
+  m_SEpdPacketMap.begin()->second.SEpdPacketVector.clear();
+  m_SEpdPacketMap.erase(m_SEpdPacketMap.begin());
+  // std::cout << "size  m_SEpdPacketMap: " <<  m_SEpdPacketMap.size()
+  // 	    << std::endl;
+  return 0;
+}
+
+void Fun4AllPrdfInputTriggerManager::AddSEpdPacket(int eventno, CaloPacket *pkt)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Adding sepd packet " << pkt->getEvtSequence() << " to eventno: "
+              << eventno << std::endl;
+  }
+  m_SEpdPacketMap[eventno].SEpdPacketVector.push_back(pkt);
   return;
 }
 
