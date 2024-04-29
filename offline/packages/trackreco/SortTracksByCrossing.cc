@@ -69,13 +69,15 @@ int SortTracksByCrossing::process_event(PHCompositeNode */*topNode*/)
   for(const auto& [trackkey, track] : *_track_map)
     {
       auto crossing = track->get_crossing();
-
+      std::cout << "trackkey " << trackkey << " crossing " << crossing << std::endl;
+ 
       _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);
     }
 
   for(const auto& [vtxkey, vertex] : *_svtx_vertex_map)
     {
-        //auto crossing = vertex->get_beam_crossing();
+       std::cout << "Vertex ID: " << vtxkey << " vertex crossing " << vertex->get_beam_crossing() << " list of tracks: " << std::endl;
+
        std::set<short int> crossings;
        short int crossing = -1000;
        for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
@@ -86,8 +88,21 @@ int SortTracksByCrossing::process_event(PHCompositeNode */*topNode*/)
             continue;
           }
 
+          auto siseed = track->get_silicon_seed();
+          short int intt_crossing = siseed->get_crossing();
+
           crossing = track->get_crossing();
-          std::cout << " vtxid " << vtxkey << " trackID " << *trackiter << " crossing " << crossing << std::endl;
+          std::cout << " vtxid " << vtxkey  << " crossing " << crossing << " intt_crossing " << intt_crossing 
+	  // << " siid " << siid
+          << " trackID " << *trackiter
+          << " track Z " << track->get_z()
+	  << " X " << track->get_x()
+	  << " Y " << track->get_y()
+	  << " quality " << track->get_quality() 
+	  << " pt " << track->get_pt()
+          << std::endl;
+          siseed->identify();
+
           crossings.insert(crossing);
        }
 
