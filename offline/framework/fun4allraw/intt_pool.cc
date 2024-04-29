@@ -1,5 +1,10 @@
 #include "intt_pool.h"
-#include <string.h>
+
+#include <Event/packet.h>
+
+#include <algorithm>       // for max
+#include <iomanip>         // for operator<<, setw, setfill
+#include <cstring>
 
 using namespace std;
 
@@ -22,9 +27,9 @@ enum ITEM
 };
 
 intt_pool::intt_pool(const unsigned int depth, const unsigned int low_mark)
+  : _required_depth (depth)
+  , _low_mark(low_mark)
 {
-  _required_depth = depth;
-  _low_mark = low_mark;
   // last_index.fill(0);
   for (int fee = 0; fee < MAX_FEECOUNT; fee++)
   {
@@ -67,8 +72,10 @@ int intt_pool::addPacket(Packet *p)
 
 unsigned int intt_pool::rawValue(const int fee, const int index)
 {
-  if (fee < 0 || fee >= MAX_FEECOUNT) return 0;
-  if (index < 0 || (unsigned int) index >= fee_data[fee].size()) return 0;
+  if (fee < 0 || fee >= MAX_FEECOUNT) { return 0;
+}
+  if (index < 0 || (unsigned int) index >= fee_data[fee].size()) { return 0;
+}
   return fee_data[fee][index];
 }
 
@@ -76,7 +83,8 @@ int intt_pool::iValue(const int fee, const char *what)
 {
   if (strcmp(what, "FEE_LENGTH") == 0)
   {
-    if (fee < 0 || fee >= MAX_FEECOUNT) return 0;
+    if (fee < 0 || fee >= MAX_FEECOUNT) { return 0;
+}
     return fee_data[fee].size();
   }
 
@@ -149,12 +157,18 @@ int intt_pool::iValue(const int fee, const char *what)
 long long intt_pool::lValue(const int hit, const int field)
 {
   intt_decode();
-  if (hit < 0 || hit >= (int) intt_hits.size()) return 0;
+  if (hit < 0 || hit >= (int) intt_hits.size()) { return 0;
+}
 
+// NOLINTNEXTLINE(hicpp-multiway-paths-covered)
   switch (field)
   {
   case F_BCO:
     return intt_hits[hit]->bco;
+    break;
+
+  default:
+    coutfl << "Unknown field " << field << std::endl;
     break;
   }
 
@@ -176,9 +190,10 @@ unsigned int intt_pool::min_depth() const
 {
   unsigned int d = 0;
 
-  for (int fee = 0; fee < MAX_FEECOUNT; fee++)
+  for (const auto & fee : fee_data)
   {
-    if (fee_data[fee].size() > d) d = fee_data[fee].size();
+    if (fee.size() > d) { d = fee.size();
+}
   }
 
   return d;
@@ -187,7 +202,8 @@ unsigned int intt_pool::min_depth() const
 int intt_pool::iValue(const int hit, const int field)
 {
   intt_decode();
-  if (hit < 0 || hit >= (int) intt_hits.size()) return 0;
+  if (hit < 0 || hit >= (int) intt_hits.size()) { return 0;
+}
 
   switch (field)
   {
@@ -230,6 +246,10 @@ int intt_pool::iValue(const int hit, const int field)
   case F_DATAWORD:
     return intt_hits[hit]->word;
     break;
+
+  default:
+    coutfl << "Unknown field " << field << std::endl;
+    break;
   }
 
   return 0;
@@ -271,7 +291,8 @@ int intt_pool::intt_decode()
     return 0;
   }
 
-  if (_is_decoded) return 0;
+  if (_is_decoded) { return 0;
+}
   _is_decoded = 1;
 
   for (int fee = 0; fee < MAX_FEECOUNT; fee++)
@@ -290,7 +311,8 @@ int intt_pool::intt_decode()
     j = 0;
 
     unsigned int remaining = fee_data[fee].size() - _low_mark;
-    if (fee_data[fee].size() < _low_mark) remaining = 0;
+    if (fee_data[fee].size() < _low_mark) { remaining = 0;
+}
 
     while (j < (remaining))
     {
@@ -301,7 +323,8 @@ int intt_pool::intt_decode()
 
         j++;
         last_index[fee] = j;
-        if (j > fee_data[fee].size()) coutfl << "Warning " << j << " " << fee_data[fee].size() << endl;
+        if (j > fee_data[fee].size()) { coutfl << "Warning " << j << " " << fee_data[fee].size() << endl;
+}
         continue;
       }
       header_found = 1;
@@ -311,7 +334,8 @@ int intt_pool::intt_decode()
       // push back the cdae word, the BCO, and event counter
       if (fee_data[fee].size() - j >= 3)
       {
-        for (int k = 0; k < 3; k++) hitlist.push_back(fee_data[fee][j++]);
+        for (int k = 0; k < 3; k++) { hitlist.push_back(fee_data[fee][j++]);
+}
         last_index[fee] = j;
       }
       else
@@ -320,7 +344,8 @@ int intt_pool::intt_decode()
         break;
       }
       last_index[fee] = j;
-      if (j > fee_data[fee].size()) coutfl << "Warning " << j << " " << fee_data[fee].size() << endl;
+      if (j > fee_data[fee].size()) { coutfl << "Warning " << j << " " << fee_data[fee].size() << endl;
+}
       // ok, now let's go until we hit the end, or hit the next header, or a footer
 
       while (j < fee_data[fee].size())  // note we don't stop at the "leftover" amount here
@@ -331,7 +356,8 @@ int intt_pool::intt_decode()
           header_found = 0;
           j--;
           last_index[fee] = j;
-          if (j > fee_data[fee].size()) coutfl << "Warning " << j << " " << fee_data[fee].size() << endl;
+          if (j > fee_data[fee].size()) { coutfl << "Warning " << j << " " << fee_data[fee].size() << endl;
+}
           // we have a full hitlist in the vector here
           coutfl << "calling decode with size " << hitlist.size() << endl;
           intt_decode_hitlist(hitlist, fee);
@@ -348,7 +374,8 @@ int intt_pool::intt_decode()
           hitlist.clear();
           j++;
           last_index[fee] = j;
-          if (j > fee_data[fee].size()) coutfl << "Warning " << j << " " << fee_data[fee].size() << endl;
+          if (j > fee_data[fee].size()) { coutfl << "Warning " << j << " " << fee_data[fee].size() << endl;
+}
 
           break;
         }
@@ -361,7 +388,8 @@ int intt_pool::intt_decode()
       last_index[fee] = j;
 
       remaining = fee_data[fee].size() - _low_mark;
-      if (fee_data[fee].size() < _low_mark) remaining = 0;
+      if (fee_data[fee].size() < _low_mark) { remaining = 0;
+}
     }
 
     //--coutfl<<"fee "<<fee
@@ -400,7 +428,8 @@ int intt_pool::intt_decode()
     // coutfl << "FEE " << fee << " erasing  " << last_index[fee] << " words, size is  " << fee_data[fee].size() << endl;
     for (unsigned int j = 0; j < last_index[fee]; j++)
     {
-      if (fee_data[fee].size()) fee_data[fee].erase(fee_data[fee].begin());
+      if (fee_data[fee].size()) { fee_data[fee].erase(fee_data[fee].begin());
+}
     }
     // coutfl << "FEE " << fee << " size is now " << fee_data[fee].size() << endl;
   }
@@ -526,15 +555,15 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
   unsigned long long l = 0;
 
   l = hitlist[0];
-  BCO |= (((l >> 16) & 0xff) << 32);
+  BCO |= (((l >> 16U) & 0xffU) << 32U);
   l = hitlist[1];
-  BCO |= ((l & 0xffff) << 16);
-  BCO |= ((l >> 16) & 0xffff);
+  BCO |= ((l & 0xffffU) << 16U);
+  BCO |= ((l >> 16U) & 0xffffU);
   //unsigned int event_counter = hitlist[2];
   unsigned int event_counter = 0;
   l = hitlist[2];
-  event_counter |= ((l & 0xffff) << 16);
-  event_counter |= ((l >> 16) & 0xffff);
+  event_counter |= ((l & 0xffffU) << 16U);
+  event_counter |= ((l >> 16U) & 0xffffU);
 
   int count = 0;
   for (unsigned int i = 3; i < hitlist.size(); i++)
@@ -544,14 +573,14 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
     hit->event_counter = event_counter;
     hit->fee = fee;
     hit->bco = BCO;
-    hit->channel_id = (x >> 16) & 0x7f;  // 7bits
-    hit->chip_id = (x >> 23) & 0x3f;     // 6
-    hit->adc = (x >> 29) & 0x7;          // 3
+    hit->channel_id = (x >> 16U) & 0x7fU;  // 7bits
+    hit->chip_id = (x >> 23U) & 0x3fU;     // 6
+    hit->adc = (x >> 29U) & 0x7U;          // 3
 
-    hit->FPHX_BCO = x & 0x7f;
-    hit->full_FPHX = (x >> 7) & 0x1;   // 1
-    hit->full_ROC = (x >> 8) & 0x1;    // 1
-    hit->amplitude = (x >> 9) & 0x3f;  // 1
+    hit->FPHX_BCO = x & 0x7fU;
+    hit->full_FPHX = (x >> 7U) & 0x1U;   // 1
+    hit->full_ROC = (x >> 8U) & 0x1U;    // 1
+    hit->amplitude = (x >> 9U) & 0x3fU;  // 1
     hit->word = x;
     if (verbosity > 1)
     {
