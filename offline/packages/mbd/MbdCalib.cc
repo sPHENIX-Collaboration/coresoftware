@@ -463,7 +463,7 @@ int MbdCalib::Download_Ped(const std::string& dbase_location)
     infile.close();
   }
 
-  if ( isnan(_pedmean[0]) )
+  if ( std::isnan(_pedmean[0]) )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;

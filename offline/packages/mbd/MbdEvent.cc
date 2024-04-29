@@ -442,7 +442,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     {
       tdc[pmtch] = _mbdsig[ifeech].MBDTDC(_mbdcal->get_sampmax(ifeech));
 
-      if ( tdc[pmtch] < 40. || isnan(tdc[pmtch]) || fabs(_mbdcal->get_tt0(pmtch))>100. )
+      if ( tdc[pmtch] < 40. || std::isnan(tdc[pmtch]) || fabs(_mbdcal->get_tt0(pmtch))>100. )
       {
         m_pmttt[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();  // no hit
       }
@@ -455,7 +455,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       }
 
     }
-    //else if ( type == 1 && !isnan(m_pmttt[pmtch]) ) // process charge channels which have good time hit
+    //else if ( type == 1 && !std::isnan(m_pmttt[pmtch]) ) // process charge channels which have good time hit
     else if ( type == 1 ) // process charge channels which have good time hit
     {
 
@@ -502,7 +502,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
         {
           // we have a good tt ch. correct for slew if there is a hit
           //if ( ifeech==0 ) std::cout << "applying scorr" << std::endl;
-          if ( !isnan(m_pmttt[pmtch]) )
+          if ( !std::isnan(m_pmttt[pmtch]) )
           {
             m_pmttt[pmtch] -= _mbdcal->get_scorr(ifeech-8,m_ampl[ifeech]);
           }
