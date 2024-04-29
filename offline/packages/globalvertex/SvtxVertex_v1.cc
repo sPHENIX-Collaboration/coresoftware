@@ -14,7 +14,10 @@ SvtxVertex_v1::SvtxVertex_v1()
   , _err()
   , _track_ids()
 {
-  for (int i = 0; i < 3; ++i) _pos[i] = NAN;
+  for (float& _po : _pos)
+  {
+    _po = NAN;
+  }
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
@@ -64,23 +67,44 @@ void SvtxVertex_v1::identify(ostream& os) const
 
 int SvtxVertex_v1::isValid() const
 {
-  if (_id == 0xFFFFFFFF) return 0;
-  if (std::isnan(_t0)) return 0;
-  if (std::isnan(_chisq)) return 0;
-  if (_ndof == 0xFFFFFFFF) return 0;
-
-  for (int i = 0; i < 3; ++i)
+  if (_id == 0xFFFFFFFF)
   {
-    if (std::isnan(_pos[i])) return 0;
+    return 0;
+  }
+  if (std::isnan(_t0))
+  {
+    return 0;
+  }
+  if (std::isnan(_chisq))
+  {
+    return 0;
+  }
+  if (_ndof == 0xFFFFFFFF)
+  {
+    return 0;
+  }
+
+  for (float _po : _pos)
+  {
+    if (std::isnan(_po))
+    {
+      return 0;
+    }
   }
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
     {
-      if (std::isnan(get_error(i, j))) return 0;
+      if (std::isnan(get_error(i, j)))
+      {
+        return 0;
+      }
     }
   }
-  if (_track_ids.empty()) return 0;
+  if (_track_ids.empty())
+  {
+    return 0;
+  }
   return 1;
 }
 
@@ -97,6 +121,9 @@ float SvtxVertex_v1::get_error(unsigned int i, unsigned int j) const
 
 unsigned int SvtxVertex_v1::covar_index(unsigned int i, unsigned int j) const
 {
-  if (i > j) std::swap(i, j);
+  if (i > j)
+  {
+    std::swap(i, j);
+  }
   return i + 1 + (j + 1) * (j) / 2 - 1;
 }

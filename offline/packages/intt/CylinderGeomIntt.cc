@@ -81,7 +81,10 @@ void CylinderGeomIntt::find_indices_from_world_location(int& segment_z_bin, int&
 {
   double signz = (location[2] > 0) ? 1. : -1;
   double phi = atan2(location[1], location[0]);
-  if (fabs(phi - m_OffsetPhi) > 0.01 && phi < 0)
+  double tolerance_phi = 0.05;
+  double tolerance_z = 0.5;
+
+  if (fabs(phi - m_OffsetPhi) > tolerance_phi && phi < 0)
   {
     phi += 2.0 * M_PI;
   }
@@ -92,7 +95,8 @@ void CylinderGeomIntt::find_indices_from_world_location(int& segment_z_bin, int&
 
   // decide if this is a type A (0) or type B (1) sensor
   int itype;
-  if (fabs((z_tmp / m_LadderZ[0])) < 1.0)
+  // if (fabs((z_tmp / m_LadderZ[0])) < 1.0)
+  if (fabs((1.0 - z_tmp / m_LadderZ[0])) < tolerance_z)
   {
     itype = 0;
   }
@@ -115,20 +119,23 @@ void CylinderGeomIntt::find_indices_from_segment_center(int& segment_z_bin, int&
 {
   double signz = (location[2] > 0) ? 1. : -1;
   double phi = atan2(location[1], location[0]);
-  if (fabs(phi - m_OffsetPhi) > 0.01 && phi < 0)
+  // std::cout << "phi before 2pi shift=" << phi << " offset " << m_OffsetPhi << " fabs(phi - m_OffsetPhi)=" << fabs(phi - m_OffsetPhi) << std::endl;
+  double tolerance_phi = 0.05;
+  double tolerance_z = 0.5;
+  if (fabs(phi - m_OffsetPhi) > tolerance_phi && phi < 0)
   {
     phi += 2.0 * M_PI;
   }
   double segment_phi_bin_tmp = (phi - m_OffsetPhi) / m_dPhi;
   segment_phi_bin = lround(segment_phi_bin_tmp);
 
-  //  std::cout << "     phi " <<phi << " segment_phi_bin_tmp " <<  segment_phi_bin_tmp << " segment_phi_bin " << segment_phi_bin << " location " << location[0] << "  " << location[1] << "  " << location[2] << std::endl;
+  // std::cout << "     phi " <<phi << " segment_phi_bin_tmp " <<  segment_phi_bin_tmp << " segment_phi_bin " << segment_phi_bin << " location " << location[0] << "  " << location[1] << "  " << location[2] << std::endl;
 
   double z_tmp = location[2] / signz;
 
   // decide if this is a type A (0) or type B (1) sensor
   int itype;
-  if (fabs((1.0 - z_tmp / m_LadderZ[0])) < 0.01)
+  if (fabs((1.0 - z_tmp / m_LadderZ[0])) < tolerance_z)
   {
     itype = 0;
   }

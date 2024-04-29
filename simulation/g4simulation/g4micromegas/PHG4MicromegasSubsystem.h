@@ -60,7 +60,7 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
 
  private:
   // \brief Set default parameter values
-  void SetDefaultParameters() override { return; }
+  void SetDefaultParameters() override;
 
   //! detector construction
   /*! derives from PHG4Detector */

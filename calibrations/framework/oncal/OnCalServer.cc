@@ -5,29 +5,29 @@
 
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>  // for Fun4AllServer, Fun4AllServe...
 #include <fun4all/Fun4AllSyncManager.h>
 #include <fun4all/Fun4AllUtils.h>
-#include <phool/recoConsts.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIOManager.h>
-#include <phool/PHNodeIterator.h>
+#include <phool/PHTimeStamp.h>  // for PHTimeStamp, operator<<
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <pdbcalbase/PdbApplication.h>
 #include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankList.h>
-#include <pdbcalbase/PdbBankListIterator.h>
 #include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbCalBank.h>
-#include <pgcal/PgPostCalBank.h>
-
 #include <pdbcalbase/RunToTime.h>
 
+#include <RtypesCore.h>  // for Stat_t
+#include <TDirectory.h>  // for TDirectoryAtomicAdapter
 #include <TFile.h>
 #include <TH1.h>
+#include <TNamed.h>  // for TNamed
 #include <TROOT.h>
-#include <TSystem.h>
+#include <TString.h>  // for TString
 
 // odbc++ classes
 #pragma GCC diagnostic push
@@ -38,25 +38,25 @@
 #include <odbc++/preparedstatement.h>
 #include <odbc++/resultset.h>
 #include <odbc++/resultsetmetadata.h>
+#include <odbc++/statement.h>  // for Statement
+#include <odbc++/types.h>      // for SQLException, Timestamp
 #pragma GCC diagnostic pop
 
-#include <boost/foreach.hpp>
-
-#include <sys/utsname.h>
 #include <unistd.h>
 #include <algorithm>
+#include <cassert>  // for assert
+#include <cctype>   // for tolower
 #include <cstdlib>
+#include <cstring>  // for strcmp
 #include <fstream>
 #include <iostream>
+#include <iterator>  // for reverse_iterator
 #include <list>
 #include <map>
-#include <memory>
 #include <sstream>
+#include <utility>  // for pair
 
-using namespace std;
-using namespace odbc;
-
-const static string cvstag = "OnCalv86";
+const static std::string cvstag = "OnCalv86";
 
 odbc::Connection *DBconnection = nullptr;
 
@@ -112,7 +112,7 @@ OnCalServer::GetEndValidityTS()
   }
   else
   {
-    cout << PHWHERE << "Screwup - the end validity time is not set" << endl;
+    std::cout << PHWHERE << "Screwup - the end validity time is not set" << std::endl;
     exit(1);
   }
 }
@@ -127,7 +127,7 @@ PHTimeStamp *OnCalServer::GetBeginValidityTS()
   }
   else
   {
-    cout << PHWHERE << "Screwup - the begin validity time is not set" << endl;
+    std::cout << PHWHERE << "Screwup - the begin validity time is not set" << std::endl;
     exit(1);
   }
 }
@@ -135,8 +135,8 @@ PHTimeStamp *OnCalServer::GetBeginValidityTS()
 
 void OnCalServer::dumpHistos()
 {
-  ostringstream filename;
-  string fileprefix = "./";
+  std::ostringstream filename;
+  std::string fileprefix = "./";
 
   if (getenv("ONCAL_SAVEDIR"))
   {
@@ -145,10 +145,10 @@ void OnCalServer::dumpHistos()
   }
 
   int compress = 3;
-  map<string, set<string> >::const_iterator iter;
-  //  map<string, TH1 *>::const_iterator hiter;
+  std::map<std::string, std::set<std::string> >::const_iterator iter;
+  //  std::map<std::string, TH1 *>::const_iterator hiter;
   TH1 *histo;
-  set<string>::const_iterator siter;
+  std::set<std::string>::const_iterator siter;
   for (iter = calibratorhistomap.begin(); iter != calibratorhistomap.end(); ++iter)
   {
     filename.str("");
@@ -157,7 +157,7 @@ void OnCalServer::dumpHistos()
              << "_" << iter->first << ".root";
     TFile *hfile = new TFile(filename.str().c_str(), "RECREATE",
                              "Created by Online Calibrator", compress);
-    cout << "OnCalServer::dumpHistos() Output root file: " << filename.str() << endl;
+    std::cout << "OnCalServer::dumpHistos() Output root file: " << filename.str() << std::endl;
     for (siter = (iter->second).begin(); siter != (iter->second).end(); ++siter)
     {
       histo = dynamic_cast<TH1 *>(getHisto(*siter));
@@ -167,9 +167,9 @@ void OnCalServer::dumpHistos()
       }
       else
       {
-        cout << PHWHERE << "Histogram "
-             << *siter << " not found, will not be saved in "
-             << filename.str() << endl;
+        std::cout << PHWHERE << "Histogram "
+                  << *siter << " not found, will not be saved in "
+                  << filename.str() << std::endl;
       }
     }
     hfile->Close();
@@ -183,8 +183,8 @@ void OnCalServer::registerHisto(TH1 *h1d, OnCal *Calibrator, const int replace)
 {
   if (Calibrator)
   {
-    string calibratorname = Calibrator->Name();
-    map<string, set<string> >::iterator iter;
+    std::string calibratorname = Calibrator->Name();
+    std::map<std::string, std::set<std::string> >::iterator iter;
     iter = calibratorhistomap.find(calibratorname);
     if (iter != calibratorhistomap.end())
     {
@@ -192,7 +192,7 @@ void OnCalServer::registerHisto(TH1 *h1d, OnCal *Calibrator, const int replace)
     }
     else
     {
-      set<string> newset;
+      std::set<std::string> newset;
       newset.insert(h1d->GetName());
       newset.insert("OnCalServerVars");
       calibratorhistomap[calibratorname] = newset;
@@ -202,7 +202,7 @@ void OnCalServer::registerHisto(TH1 *h1d, OnCal *Calibrator, const int replace)
   return;
 }
 
-void OnCalServer::unregisterHisto(const string &calibratorname)
+void OnCalServer::unregisterHisto(const std::string &calibratorname)
 {
   calibratorhistomap.erase(calibratorname);
   return;
@@ -215,25 +215,25 @@ int OnCalServer::process_event()
   nEvents++;
   if ((nEvents % eventcheckfrequency) == 0)  // check every 1000 events
   {
-    cout << nEvents << " events, testing" << endl;
+    std::cout << nEvents << " events, testing" << std::endl;
     unsigned int j = 0;
     unsigned int ical = 0;
-    vector<pair<SubsysReco *, PHCompositeNode *> >::const_iterator iter;
+    std::vector<std::pair<SubsysReco *, PHCompositeNode *> >::const_iterator iter;
     for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
     {
       OnCal *oncal = dynamic_cast<OnCal *>(iter->first);
       if (oncal)
       {
         ical++;
-        cout << "Name: " << oncal->Name()
-             << " is " << oncal->AllDone() << endl;
+        std::cout << "Name: " << oncal->Name()
+                  << " is " << oncal->AllDone() << std::endl;
         j += oncal->AllDone();
       }
     }
     if (j == ical)
     {
-      cout << "Everyone is done after "
-           << nEvents << " Events" << endl;
+      std::cout << "Everyone is done after "
+                << nEvents << " Events" << std::endl;
       i = 1;
     }
   }
@@ -244,7 +244,7 @@ int OnCalServer::BeginRun(const int runno)
 {
   if (runno <= 0)
   {
-    cout << PHWHERE << "Invalid Run Number: " << runno << endl;
+    std::cout << PHWHERE << "Invalid Run Number: " << runno << std::endl;
     exit(1);
   }
   FillRunListFromFileList();
@@ -259,13 +259,13 @@ int OnCalServer::BeginRun(const int runno)
     return 0;
   }
   RunNumber(runno);
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
   // copy the subsys reco pointers to another set for
   // easier search (we only need the pointers to find
   // the subsystems with special timestamp/runnumber needs
-  set<SubsysReco *> NeedOtherTimeStamp;
-  map<string, set<SubsysReco *> >::const_iterator miter;
-  set<SubsysReco *>::const_iterator siter;
+  std::set<SubsysReco *> NeedOtherTimeStamp;
+  std::map<std::string, std::set<SubsysReco *> >::const_iterator miter;
+  std::set<SubsysReco *>::const_iterator siter;
   for (miter = requiredCalibrators.begin();
        miter != requiredCalibrators.end(); ++miter)
   {
@@ -298,40 +298,40 @@ int OnCalServer::BeginRun(const int runno)
   // created in init) call the InitRun of the module and cd back
 
   gROOT->cd(default_Tdirectory.c_str());
-  string currdir = gDirectory->GetPath();
-  set<string> droplist;
+  std::string currdir = gDirectory->GetPath();
+  std::set<std::string> droplist;
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
-    ostringstream newdirname;
+    std::ostringstream newdirname;
     newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
     if (!gROOT->cd(newdirname.str().c_str()))
     {
-      cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << endl;
+      std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
+                << (*iter).second->getName()
+                << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
     OnCal *oncal = dynamic_cast<OnCal *>((*iter).first);
     if (oncal)
     {
-      string table = "OnCal";
+      std::string table = "OnCal";
       table += (*iter).first->Name();
       check_create_subsystable(table);
       insertRunNumInDB(table, runNum);
-      string calibname = (*iter).first->Name();
+      std::string calibname = (*iter).first->Name();
       add_calibrator_to_statustable(calibname);
-      set<int>::const_iterator runiter;
+      std::set<int>::const_iterator runiter;
       int calibstatus = GetCalibStatus(calibname, runNum);
       if (calibstatus > 0 && testmode == 0)
       {
-        cout << calibname << " already ran for run " << runNum << endl;
+        std::cout << calibname << " already ran for run " << runNum << std::endl;
         droplist.insert(calibname);
         unregisterSubsystem(oncal);
         unregisterHisto(calibname);
       }
       else
       {
-        ostringstream stringarg;
+        std::ostringstream stringarg;
         stringarg << OnCalDBCodes::STARTED;
         for (runiter = runlist.begin(); runiter != runlist.end(); ++runiter)
         {
@@ -341,7 +341,7 @@ int OnCalServer::BeginRun(const int runno)
     }
     if (NeedOtherTimeStamp.find((*iter).first) != NeedOtherTimeStamp.end())
     {
-      cout << "changing timestamp for " << (*iter).first->Name() << endl;
+      std::cout << "changing timestamp for " << (*iter).first->Name() << std::endl;
       rc->set_IntFlag("RUNNUMBER", fun4allrun);
       // rc->set_TimeStamp(Fun4AllBORTimeStamp);
     }
@@ -355,7 +355,7 @@ int OnCalServer::BeginRun(const int runno)
       iret = (*iter).first->InitRun(TopNode);
       if (iret == Fun4AllReturnCodes::ABORTRUN)
       {
-        cout << PHWHERE << "Module " << (*iter).first->Name() << " issued Abort Run, exiting" << endl;
+        std::cout << PHWHERE << "Module " << (*iter).first->Name() << " issued Abort Run, exiting" << std::endl;
         exit(-1);
       }
       i += iret;
@@ -391,32 +391,32 @@ int OnCalServer::End()
 {
   if (nEvents == 0)
   {
-    cout << "No Events read, you probably gave me an empty filelist" << endl;
+    std::cout << "No Events read, you probably gave me an empty filelist" << std::endl;
     return -1;
   }
   PdbApplication *app = PdbApplication::instance();
   app->setDBName("oncal");
   int i = 0;
-  vector<pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
   gROOT->cd(default_Tdirectory.c_str());
-  string currdir = gDirectory->GetPath();
+  std::string currdir = gDirectory->GetPath();
 
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
-    ostringstream newdirname;
+    std::ostringstream newdirname;
     newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
     if (!gROOT->cd(newdirname.str().c_str()))
     {
-      cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << endl;
+      std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
+                << (*iter).second->getName()
+                << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
     else
     {
       if (Verbosity() > 2)
       {
-        cout << "End: cded to " << newdirname.str().c_str() << endl;
+        std::cout << "End: cded to " << newdirname.str().c_str() << std::endl;
       }
     }
     i += (*iter).first->End((*iter).second);
@@ -431,17 +431,17 @@ int OnCalServer::End()
     {
       continue;
     }
-    ostringstream newdirname;
+    std::ostringstream newdirname;
     newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
     if (!gROOT->cd(newdirname.str().c_str()))
     {
-      cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << endl;
+      std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
+                << (*iter).second->getName()
+                << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
 
-    string CalibratorName = oncal->Name();
+    std::string CalibratorName = oncal->Name();
 
     int verificationstatus = oncal->VerificationOK();
     int databasecommitstatus = oncal->CommitedToPdbCalOK();
@@ -449,10 +449,10 @@ int OnCalServer::End()
     // report success database the status of the calibration
     if (recordDB)
     {
-      string table = "OnCal";
+      std::string table = "OnCal";
       table += CalibratorName;
 
-      ostringstream stringarg;
+      std::ostringstream stringarg;
       if (databasecommitstatus == OnCalDBCodes::SUCCESS)
       {
         stringarg << OnCalDBCodes::COVERED;
@@ -461,15 +461,14 @@ int OnCalServer::End()
       {
         stringarg << OnCalDBCodes::FAILED;
       }
-      set<int>::const_iterator runiter;
+      std::set<int>::const_iterator runiter;
       for (runiter = runlist.begin(); runiter != runlist.end(); ++runiter)
       {
         updateDB(successTable, CalibratorName, stringarg.str(), *runiter);
       }
       // update the first run which was used in the calibration
       // with the real status
-      updateDB(successTable.c_str(), CalibratorName.c_str(),
-               databasecommitstatus);
+      updateDB(successTable, CalibratorName, databasecommitstatus);
 
       stringarg.str("");
       stringarg << databasecommitstatus;
@@ -495,12 +494,12 @@ int OnCalServer::End()
       stp.setTime(endticks);
       updateDB(table, "endtime", stp.toString(), RunNumber());
 
-      string filelist = "";
-      BOOST_FOREACH (Fun4AllSyncManager *sync, SyncManagers)
+      std::string filelist = "";
+      for (Fun4AllSyncManager *sync : SyncManagers)
       {
-        BOOST_FOREACH (Fun4AllInputManager *inmgr, sync->GetInputManagers())
+        for (Fun4AllInputManager *inmgr : sync->GetInputManagers())
         {
-          BOOST_FOREACH (string infile, inmgr->GetFileOpenedList())
+          for (const std::string &infile : inmgr->GetFileOpenedList())
           {
             filelist += (infile).substr(((infile).find_last_of('/') + 1), (infile).size());
             filelist += " ";  // this needs to be stripped again for last entry
@@ -508,15 +507,15 @@ int OnCalServer::End()
         }
       }
       filelist.pop_back();  // strip empty space at end from loop
-      cout << "FileList: " << filelist << endl;
+      std::cout << "FileList: " << filelist << std::endl;
       updateDB(table, "files", filelist, RunNumber());
       updateDB(table, "cvstag", cvstag, RunNumber());
     }
 
-    cout << "SERVER SUMMARY: " << oncal->Name() << "  "
-         << (verificationstatus == 1 ? "Verification: SUCCESS  " : "Verification: FAILURE  ")
-         << (databasecommitstatus == 1 ? "DB commit: SUCCESS  " : "DB commit: FAILURE  ")
-         << endl;
+    std::cout << "SERVER SUMMARY: " << oncal->Name() << "  "
+              << (verificationstatus == 1 ? "Verification: SUCCESS  " : "Verification: FAILURE  ")
+              << (databasecommitstatus == 1 ? "DB commit: SUCCESS  " : "DB commit: FAILURE  ")
+              << std::endl;
 
     printStamps();
   }
@@ -526,7 +525,7 @@ int OnCalServer::End()
 }
 //---------------------------------------------------------------------
 
-void OnCalServer::Print(const string &what) const
+void OnCalServer::Print(const std::string &what) const
 {
   Fun4AllServer::Print(what);
   if (what == "ALL" || what == "CALIBRATOR")
@@ -534,69 +533,69 @@ void OnCalServer::Print(const string &what) const
     // loop over the map and print out the content
     // (name and location in memory)
 
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of Calibrators in OnCalServer:" << endl;
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of Calibrators in OnCalServer:" << std::endl;
 
-    vector<pair<SubsysReco *, PHCompositeNode *> >::const_iterator miter;
+    std::vector<std::pair<SubsysReco *, PHCompositeNode *> >::const_iterator miter;
     for (miter = Subsystems.begin();
          miter != Subsystems.end(); ++miter)
     {
       OnCal *oncal = dynamic_cast<OnCal *>((*miter).first);
       if (oncal)
       {
-        cout << oncal->Name() << endl;
+        std::cout << oncal->Name() << std::endl;
       }
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   if (what == "ALL" || what == "REQUIRED")
   {
     // loop over the map and print out the content
     // (name and location in memory)
 
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of required Calibrations in OnCalServer:" << endl;
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of required Calibrations in OnCalServer:" << std::endl;
 
-    map<string, set<SubsysReco *> >::const_iterator iter;
-    set<SubsysReco *>::const_iterator siter;
+    std::map<std::string, std::set<SubsysReco *> >::const_iterator iter;
+    std::set<SubsysReco *>::const_iterator siter;
     for (iter = requiredCalibrators.begin();
          iter != requiredCalibrators.end(); ++iter)
     {
-      cout << iter->first << " calibrations are needed by " << endl;
+      std::cout << iter->first << " calibrations are needed by " << std::endl;
       for (siter = iter->second.begin(); siter != iter->second.end(); ++siter)
       {
-        cout << (*siter)->Name() << endl;
+        std::cout << (*siter)->Name() << std::endl;
       }
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   if (what == "ALL" || what == "FILES")
   {
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of PRDF Files in OnCalServer:" << endl;
-    BOOST_FOREACH (Fun4AllSyncManager *sync, SyncManagers)
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of PRDF Files in OnCalServer:" << std::endl;
+    for (Fun4AllSyncManager *sync : SyncManagers)
     {
-      BOOST_FOREACH (Fun4AllInputManager *inmgr, sync->GetInputManagers())
+      for (Fun4AllInputManager *inmgr : sync->GetInputManagers())
       {
-        BOOST_FOREACH (string infile, inmgr->GetFileList())
+        for (const std::string &infile : inmgr->GetFileList())
         {
-          cout << "File: " << infile << endl;
+          std::cout << "File: " << infile << std::endl;
         }
       }
     }
   }
   if (what == "ALL" || what == "RUNS")
   {
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of Run Numbers in OnCalServer:" << endl;
-    set<int>::const_iterator liter;
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of Run Numbers in OnCalServer:" << std::endl;
+    std::set<int>::const_iterator liter;
     for (liter = runlist.begin(); liter != runlist.end(); ++liter)
     {
-      cout << "Run : " << *liter << endl;
+      std::cout << "Run : " << *liter << std::endl;
     }
   }
 
@@ -605,25 +604,25 @@ void OnCalServer::Print(const string &what) const
 
 void OnCalServer::printStamps()
 {
-  cout << endl
-       << endl;
-  cout << "*******************************************" << endl;
-  cout << "*    VALIDITY RANGE FOR THIS CALIBRATION  *" << endl;
-  cout << "*                                         *" << endl;
-  cout << "* Used Run     :   ";
-  cout << runNum << endl;
-  cout << endl;
-  cout << "* Begin Valid  :   ";
+  std::cout << std::endl
+            << std::endl;
+  std::cout << "*******************************************" << std::endl;
+  std::cout << "*    VALIDITY RANGE FOR THIS CALIBRATION  *" << std::endl;
+  std::cout << "*                                         *" << std::endl;
+  std::cout << "* Used Run     :   ";
+  std::cout << runNum << std::endl;
+  std::cout << std::endl;
+  std::cout << "* Begin Valid  :   ";
   beginTimeStamp.print();
-  cout << endl;
-  cout << "* End Valid    :   ";
+  std::cout << std::endl;
+  std::cout << "* End Valid    :   ";
   endTimeStamp.print();
-  cout << endl;
-  cout << "*                                         *" << endl;
-  cout << "*******************************************" << endl;
-  cout << endl
-       << endl
-       << endl;
+  std::cout << std::endl;
+  std::cout << "*                                         *" << std::endl;
+  std::cout << "*******************************************" << std::endl;
+  std::cout << std::endl
+            << std::endl
+            << std::endl;
 }
 
 //---------------------------------------------------------------------
@@ -634,10 +633,10 @@ void OnCalServer::RunNumber(const int runnum)
   SetBorTime(runnum);
   if (recordDB)
   {
-    set<int>::const_iterator runiter;
+    std::set<int>::const_iterator runiter;
     time_t beginrunticks;
     time_t endrunticks;
-    ostringstream stringarg;
+    std::ostringstream stringarg;
     odbc::Timestamp stp;
     for (runiter = runlist.begin(); runiter != runlist.end(); ++runiter)
     {
@@ -679,13 +678,13 @@ bool OnCalServer::connectDB()
     try
     {
       DBconnection =
-          DriverManager::getConnection(database.c_str(), "phnxrc", "");
+          odbc::DriverManager::getConnection(database.c_str(), "phnxrc", "");
     }
-    catch (SQLException &e)
+    catch (odbc::SQLException &e)
     {
-      cout << "Cannot connect to " << database.c_str() << endl;
-      cout << e.getMessage() << endl;
-      cout << "countdown: " << countdown << endl;
+      std::cout << "Cannot connect to " << database.c_str() << std::endl;
+      std::cout << e.getMessage() << std::endl;
+      std::cout << "countdown: " << countdown << std::endl;
       countdown--;
       failure = true;
       sleep(100);  // try again in 100 secs
@@ -693,10 +692,10 @@ bool OnCalServer::connectDB()
   }
   if (failure)
   {
-    cout << "could not connect to DB after 10 tries in 1000 secs, giving up" << endl;
+    std::cout << "could not connect to DB after 10 tries in 1000 secs, giving up" << std::endl;
     exit(-1);
   }
-  cout << "connected to " << database.c_str() << " database." << endl;
+  std::cout << "connected to " << database.c_str() << " database." << std::endl;
   return true;
 }
 //---------------------------------------------------------------------
@@ -709,18 +708,18 @@ int OnCalServer::DisconnectDB()
 }
 //---------------------------------------------------------------------
 
-bool OnCalServer::insertRunNumInDB(const string &DBtable, const int runno)
+bool OnCalServer::insertRunNumInDB(const std::string &DBtable, const int runno)
 {
   if (findRunNumInDB(DBtable, runno))
   {
     return true;
   }
 
-  cout << "new row will be created in DB for run " << runno << endl;
+  std::cout << "new row will be created in DB for run " << runno << std::endl;
 
-  Statement *statement = nullptr;
+  odbc::Statement *statement = nullptr;
   statement = DBconnection->createStatement();
-  ostringstream cmd;
+  std::ostringstream cmd;
   cmd << "INSERT INTO "
       << DBtable
       << " (runnumber) VALUES ("
@@ -728,18 +727,18 @@ bool OnCalServer::insertRunNumInDB(const string &DBtable, const int runno)
 
   if (Verbosity() == 1)
   {
-    cout << "in function OnCalServer::insertRunNumInDB() ... ";
-    cout << "executing SQL statements ..." << endl;
-    cout << cmd.str() << endl;
+    std::cout << "in function OnCalServer::insertRunNumInDB() ... ";
+    std::cout << "executing SQL statements ..." << std::endl;
+    std::cout << cmd.str() << std::endl;
   }
 
   try
   {
     statement->executeUpdate(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << e.getMessage() << endl;
+    std::cout << e.getMessage() << std::endl;
     return false;
   }
 
@@ -748,15 +747,15 @@ bool OnCalServer::insertRunNumInDB(const string &DBtable, const int runno)
 
 //---------------------------------------------------------------------
 
-bool OnCalServer::findRunNumInDB(const string &DBtable, const int runno)
+bool OnCalServer::findRunNumInDB(const std::string &DBtable, const int runno)
 {
   if (!DBconnection)
   {
     connectDB();
   }
-  Statement *statement = nullptr;
-  ResultSet *rs = nullptr;
-  ostringstream cmd;
+  odbc::Statement *statement = nullptr;
+  odbc::ResultSet *rs = nullptr;
+  std::ostringstream cmd;
   cmd << "SELECT runnumber FROM "
       << DBtable
       << " WHERE runnumber = "
@@ -766,18 +765,18 @@ bool OnCalServer::findRunNumInDB(const string &DBtable, const int runno)
 
   if (Verbosity() == 1)
   {
-    cout << "in function OnCalServer::findRunNumInDB() ";
-    cout << "executing SQL statement ..." << endl
-         << cmd.str() << endl;
+    std::cout << "in function OnCalServer::findRunNumInDB() ";
+    std::cout << "executing SQL statement ..." << std::endl
+              << cmd.str() << std::endl;
   }
 
   try
   {
     rs = statement->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << PHWHERE << " exception caught: " << e.getMessage() << endl;
+    std::cout << PHWHERE << " exception caught: " << e.getMessage() << std::endl;
     return false;
   }
 
@@ -788,9 +787,9 @@ bool OnCalServer::findRunNumInDB(const string &DBtable, const int runno)
     {
       entry = rs->getInt("runnumber");
     }
-    catch (SQLException &e)
+    catch (odbc::SQLException &e)
     {
-      cout << PHWHERE << " exception caught: " << e.getMessage() << endl;
+      std::cout << PHWHERE << " exception caught: " << e.getMessage() << std::endl;
       return false;
     }
   }
@@ -798,45 +797,45 @@ bool OnCalServer::findRunNumInDB(const string &DBtable, const int runno)
   {
     return false;
   }
-  cout << "run number " << entry << " already exists in DB" << endl;
+  std::cout << "run number " << entry << " already exists in DB" << std::endl;
   return true;
 }
 
-bool OnCalServer::updateDBRunRange(const char *table, const char *column, const int entry, const int firstrun, const int lastrun)
+bool OnCalServer::updateDBRunRange(const std::string &table, const std::string &column, const int entry, const int firstrun, const int lastrun)
 {
   if (!DBconnection)
   {
     connectDB();
   }
 
-  Statement *statement = nullptr;
+  odbc::Statement *statement = nullptr;
 
-  TString command = "UPDATE ";
+  std::string command = "UPDATE ";
   command += table;
   command += " SET ";
   command += column;
   command += " = ";
-  command += entry;
+  command += std::to_string(entry);
   command += " WHERE runnumber >= ";
-  command += firstrun;
+  command += std::to_string(firstrun);
   command += " and runnumber <= ";
-  command += lastrun;
+  command += std::to_string(lastrun);
 
   if (Verbosity() == 1)
   {
-    cout << "in function OnCalServer::updateDB() ... ";
-    cout << "executin SQL statement ... " << endl;
-    cout << command.Data() << endl;
+    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "executin SQL statement ... " << std::endl;
+    std::cout << command << std::endl;
   }
   statement = DBconnection->createStatement();
 
   try
   {
-    statement->executeUpdate(command.Data());
+    statement->executeUpdate(command);
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << e.getMessage() << endl;
+    std::cout << e.getMessage() << std::endl;
     return false;
   }
 
@@ -845,14 +844,14 @@ bool OnCalServer::updateDBRunRange(const char *table, const char *column, const 
 
 //---------------------------------------------------------------------
 
-bool OnCalServer::updateDB(const char *table, const char *column, int entry)
+bool OnCalServer::updateDB(const std::string &table, const std::string &column, int entry)
 {
   if (!DBconnection)
   {
     connectDB();
   }
 
-  Statement *statement = nullptr;
+  odbc::Statement *statement = nullptr;
 
   TString command = "UPDATE ";
   command += table;
@@ -865,9 +864,9 @@ bool OnCalServer::updateDB(const char *table, const char *column, int entry)
 
   if (Verbosity() == 1)
   {
-    cout << "in function OnCalServer::updateDB() ... ";
-    cout << "executin SQL statement ... " << endl;
-    cout << command.Data() << endl;
+    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "executin SQL statement ... " << std::endl;
+    std::cout << command.Data() << std::endl;
   }
   statement = DBconnection->createStatement();
 
@@ -875,9 +874,9 @@ bool OnCalServer::updateDB(const char *table, const char *column, int entry)
   {
     statement->executeUpdate(command.Data());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << e.getMessage() << endl;
+    std::cout << e.getMessage() << std::endl;
     return false;
   }
 
@@ -885,13 +884,13 @@ bool OnCalServer::updateDB(const char *table, const char *column, int entry)
 }
 //---------------------------------------------------------------------
 
-bool OnCalServer::updateDB(const char *table, const char *column, bool entry)
+bool OnCalServer::updateDB(const std::string &table, const std::string &column, bool entry)
 {
   if (!DBconnection)
   {
     connectDB();
   }
-  Statement *statement = nullptr;
+  odbc::Statement *statement = nullptr;
 
   TString command = "UPDATE ";
   command += table;
@@ -904,9 +903,9 @@ bool OnCalServer::updateDB(const char *table, const char *column, bool entry)
 
   if (Verbosity() == 1)
   {
-    cout << "in function OnCalServer::updateDB() ... ";
-    cout << "executin SQL statement ... " << endl;
-    cout << command.Data() << endl;
+    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "executin SQL statement ... " << std::endl;
+    std::cout << command.Data() << std::endl;
   }
   statement = DBconnection->createStatement();
 
@@ -914,9 +913,9 @@ bool OnCalServer::updateDB(const char *table, const char *column, bool entry)
   {
     statement->executeUpdate(command.Data());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << e.getMessage() << endl;
+    std::cout << e.getMessage() << std::endl;
     return false;
   }
 
@@ -925,16 +924,16 @@ bool OnCalServer::updateDB(const char *table, const char *column, bool entry)
 
 //---------------------------------------------------------------------
 
-int OnCalServer::updateDB(const string &table, const string &column,
+int OnCalServer::updateDB(const std::string &table, const std::string &column,
                           const time_t ticks)
 {
   if (!DBconnection)
   {
     connectDB();
   }
-  Statement *statement = nullptr;
+  odbc::Statement *statement = nullptr;
 
-  ostringstream cmd;
+  std::ostringstream cmd;
   statement = DBconnection->createStatement();
   cmd << "UPDATE "
       << table
@@ -947,42 +946,42 @@ int OnCalServer::updateDB(const string &table, const string &column,
 
   if (Verbosity() == 1)
   {
-    cout << "in function OnCalServer::updateDB() ... ";
-    cout << "executin SQL statement ... " << endl;
-    cout << cmd.str() << endl;
+    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "executin SQL statement ... " << std::endl;
+    std::cout << cmd.str() << std::endl;
   }
 
   try
   {
     statement->executeUpdate(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << e.getMessage() << endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
   }
   return 0;
 }
 //---------------------------------------------------------------------
 
-bool OnCalServer::updateDB(const string &table, const string &column,
-                           const string &entry, const int runno, const bool append)
+bool OnCalServer::updateDB(const std::string &table, const std::string &column,
+                           const std::string &entry, const int runno, const bool append)
 {
   if (!DBconnection)
   {
     connectDB();
   }
 
-  Statement *statement = nullptr;
+  odbc::Statement *statement = nullptr;
 
   statement = DBconnection->createStatement();
 
-  string comment = "";
-  ostringstream cmd;
+  std::string comment = "";
+  std::ostringstream cmd;
   if (append)
   {
-    ResultSet *rs = nullptr;
-    ostringstream query;
+    odbc::ResultSet *rs = nullptr;
+    std::ostringstream query;
     query << "SELECT * FROM "
           << table
           << " WHERE runnumber = "
@@ -992,11 +991,11 @@ bool OnCalServer::updateDB(const string &table, const string &column,
     {
       rs = statement->executeQuery(query.str());
     }
-    catch (SQLException &e)
+    catch (odbc::SQLException &e)
     {
-      cout << "in function OnCalServer::updateDB() ... ";
-      cout << "run number " << runno << "not found in DB" << endl;
-      cout << e.getMessage() << endl;
+      std::cout << "in function OnCalServer::updateDB() ... ";
+      std::cout << "run number " << runno << "not found in DB" << std::endl;
+      std::cout << e.getMessage() << std::endl;
     }
 
     rs->next();
@@ -1005,11 +1004,11 @@ bool OnCalServer::updateDB(const string &table, const string &column,
       comment = rs->getString(column);
       comment += " ";  // add empty space between comments
     }
-    catch (SQLException &e)
+    catch (odbc::SQLException &e)
     {
-      cout << "in function OnCalServer::updateDB() ... " << endl;
-      cout << "nothing to append." << endl;
-      cout << e.getMessage() << endl;
+      std::cout << "in function OnCalServer::updateDB() ... " << std::endl;
+      std::cout << "nothing to append." << std::endl;
+      std::cout << e.getMessage() << std::endl;
     }
     delete rs;
   }
@@ -1026,18 +1025,18 @@ bool OnCalServer::updateDB(const string &table, const string &column,
 
   if (Verbosity() == 1)
   {
-    cout << "in function OnCalServer::updateDB() ... ";
-    cout << "executin SQL statement ... " << endl;
-    cout << cmd.str() << endl;
+    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "executin SQL statement ... " << std::endl;
+    std::cout << cmd.str() << std::endl;
   }
 
   try
   {
     statement->executeUpdate(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << e.getMessage() << endl;
+    std::cout << e.getMessage() << std::endl;
     return false;
   }
   delete statement;
@@ -1050,11 +1049,11 @@ int OnCalServer::check_create_subsystable(const std::string &tablename)
 {
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return -1;
   }
-  vector<pair<string, string> > calibrator_columns;
-  vector<pair<string, string> >::const_iterator coliter;
+  std::vector<std::pair<std::string, std::string> > calibrator_columns;
+  std::vector<std::pair<std::string, std::string> >::const_iterator coliter;
   calibrator_columns.emplace_back("runnumber", "int NOT NULL");
   calibrator_columns.emplace_back("verified", "int default -2");
   calibrator_columns.emplace_back("committed", "int default -2");
@@ -1067,18 +1066,18 @@ int OnCalServer::check_create_subsystable(const std::string &tablename)
   calibrator_columns.emplace_back("begintime", "timestamp(0) with time zone");
   calibrator_columns.emplace_back("endtime", "timestamp(0) with time zone");
 
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
-  cmd << "SELECT * FROM " << tablename << " LIMIT 1" << ends;
-  ResultSet *rs = nullptr;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
+  cmd << "SELECT * FROM " << tablename << " LIMIT 1" << std::ends;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << tablename << " does not exist, will create it" << endl;
-    //      cout << "Message: " << e.getMessage() << endl;
+    std::cout << "Table " << tablename << " does not exist, will create it" << std::endl;
+    //      std::cout << "Message: " << e.getMessage() << std::endl;
   }
   if (!rs)
   {
@@ -1102,13 +1101,13 @@ int OnCalServer::check_create_subsystable(const std::string &tablename)
       {
         rs->findColumn((*coliter).first);
       }
-      catch (SQLException &e)
+      catch (odbc::SQLException &e)
       {
-        const string &exceptionmessage = e.getMessage();
-        if (exceptionmessage.find("not found in result set") != string::npos)
+        const std::string &exceptionmessage = e.getMessage();
+        if (exceptionmessage.find("not found in result set") != std::string::npos)
         {
-          cout << "Column " << (*coliter).first << " does not exist in "
-               << tablename << ", creating it" << endl;
+          std::cout << "Column " << (*coliter).first << " does not exist in "
+                    << tablename << ", creating it" << std::endl;
           cmd.str("");
           cmd << "ALTER TABLE "
               << tablename
@@ -1118,12 +1117,12 @@ int OnCalServer::check_create_subsystable(const std::string &tablename)
               << (*coliter).second;
           try
           {
-            Statement *stmtup = DBconnection->createStatement();
+            odbc::Statement *stmtup = DBconnection->createStatement();
             stmtup->executeUpdate(cmd.str());
           }
-          catch (SQLException &e1)
+          catch (odbc::SQLException &e1)
           {
-            cout << PHWHERE << " Exception caught: " << e1.getMessage() << endl;
+            std::cout << PHWHERE << " Exception caught: " << e1.getMessage() << std::endl;
           }
         }
       }
@@ -1137,16 +1136,16 @@ int OnCalServer::add_calibrator_to_statustable(const std::string &calibratorname
 {
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return -1;
   }
   if (check_calibrator_in_statustable(calibratorname) == 0)
   {
     return 0;
   }
-  const string &calibname = calibratorname;
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
+  const std::string &calibname = calibratorname;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
   cmd.str("");
   cmd << "ALTER TABLE " << successTable << " ADD COLUMN "
       << calibname << " int";
@@ -1154,10 +1153,10 @@ int OnCalServer::add_calibrator_to_statustable(const std::string &calibratorname
   {
     stmt->executeUpdate(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Message: " << e.getMessage() << endl;
-    cout << "cmd: " << cmd.str() << endl;
+    std::cout << "Message: " << e.getMessage() << std::endl;
+    std::cout << "cmd: " << cmd.str() << std::endl;
     exit(1);
   }
   cmd.str("");
@@ -1167,10 +1166,10 @@ int OnCalServer::add_calibrator_to_statustable(const std::string &calibratorname
   {
     stmt->executeUpdate(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Message: " << e.getMessage() << endl;
-    cout << "cmd: " << cmd.str() << endl;
+    std::cout << "Message: " << e.getMessage() << std::endl;
+    std::cout << "cmd: " << cmd.str() << std::endl;
     exit(1);
   }
   cmd.str("");
@@ -1180,10 +1179,10 @@ int OnCalServer::add_calibrator_to_statustable(const std::string &calibratorname
   {
     stmt->executeUpdate(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Message: " << e.getMessage() << endl;
-    cout << "cmd: " << cmd.str() << endl;
+    std::cout << "Message: " << e.getMessage() << std::endl;
+    std::cout << "cmd: " << cmd.str() << std::endl;
     exit(1);
   }
 
@@ -1196,25 +1195,25 @@ int OnCalServer::check_calibrator_in_statustable(const std::string &calibratorna
   // select * from information_schema.columns where table_name = 'oncal_status' and column_name = 'svxstripdeadmapcal';
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return -1;
   }
-  string calibname = calibratorname;
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
-  cmd << "SELECT * FROM " << successTable << " LIMIT 1" << ends;
-  ResultSet *rs = nullptr;
+  std::string calibname = calibratorname;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
+  cmd << "SELECT * FROM " << successTable << " LIMIT 1" << std::ends;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Message: " << e.getMessage() << endl;
-    cout << "Table " << successTable << " does not exist, your logic is off" << endl;
+    std::cout << "Message: " << e.getMessage() << std::endl;
+    std::cout << "Table " << successTable << " does not exist, your logic is off" << std::endl;
     exit(1);
   }
-  ResultSetMetaData *meta = rs->getMetaData();
+  odbc::ResultSetMetaData *meta = rs->getMetaData();
   unsigned int nocolumn = rs->getMetaData()->getColumnCount();
   // column names are lower case only, so convert string to lowercase
   // The bizarre cast here is needed for newer gccs
@@ -1226,7 +1225,7 @@ int OnCalServer::check_calibrator_in_statustable(const std::string &calibratorna
     {
       if (Verbosity() > 0)
       {
-        cout << calibname << " is in " << successTable << endl;
+        std::cout << calibname << " is in " << successTable << std::endl;
       }
       return 0;
     }
@@ -1240,21 +1239,21 @@ int OnCalServer::check_create_successtable(const std::string &tablename)
 {
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return -1;
   }
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
-  cmd << "SELECT runnumber FROM " << tablename << " LIMIT 1" << ends;
-  ResultSet *rs = nullptr;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
+  cmd << "SELECT runnumber FROM " << tablename << " LIMIT 1" << std::ends;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << tablename << " does not exist, will create it" << endl;
-    //      cout << "Message: " << e.getMessage() << endl;
+    std::cout << "Table " << tablename << " does not exist, will create it" << std::endl;
+    //      std::cout << "Message: " << e.getMessage() << std::endl;
   }
   if (!rs)
   {
@@ -1266,15 +1265,15 @@ int OnCalServer::check_create_successtable(const std::string &tablename)
         << "endrun timestamp(0) with time zone, "
         << "comment text, "
         << "primary key(runnumber))";
-    cout << cmd.str() << endl;
+    std::cout << cmd.str() << std::endl;
     try
     {
       stmt->executeUpdate(cmd.str());
     }
-    catch (SQLException &e)
+    catch (odbc::SQLException &e)
     {
-      cout << "Error, Message: " << e.getMessage() << endl;
-      //      cout << "Message: " << e.getMessage() << endl;
+      std::cout << "Error, Message: " << e.getMessage() << std::endl;
+      //      std::cout << "Message: " << e.getMessage() << std::endl;
     }
   }
   return 0;
@@ -1293,13 +1292,13 @@ void OnCalServer::recordDataBase(const bool bookkeep)
 void OnCalServer::BeginTimeStamp(const PHTimeStamp &TimeStp)
 {
   beginTimeStamp = TimeStp;
-  cout << "OnCalServer::BeginTimeStamp: Setting BOR TimeStamp to " << beginTimeStamp << endl;
+  std::cout << "OnCalServer::BeginTimeStamp: Setting BOR TimeStamp to " << beginTimeStamp << std::endl;
 }
 
 void OnCalServer::EndTimeStamp(const PHTimeStamp &TimeStp)
 {
   endTimeStamp = TimeStp;
-  cout << "OnCalServer::EndTimeStamp: Setting EOR TimeStamp to " << endTimeStamp << endl;
+  std::cout << "OnCalServer::EndTimeStamp: Setting EOR TimeStamp to " << endTimeStamp << std::endl;
 }
 
 PHTimeStamp *
@@ -1308,24 +1307,24 @@ OnCalServer::GetLastGoodRunTS(OnCal *calibrator, const int irun)
   PHTimeStamp *ts = nullptr;
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return ts;
   }
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
-  ostringstream subsystable;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
+  std::ostringstream subsystable;
   subsystable << "oncal" << calibrator->Name();
   cmd << "SELECT runnumber FROM " << successTable << " where runnumber < "
       << irun << " and "
       << calibrator->Name() << " > 0 order by runnumber desc limit 1";
-  ResultSet *rs = nullptr;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << subsystable.str() << " does not exist" << endl;
+    std::cout << "Table " << subsystable.str() << " does not exist" << std::endl;
     return ts;
   }
   if (rs->next())
@@ -1333,15 +1332,15 @@ OnCalServer::GetLastGoodRunTS(OnCal *calibrator, const int irun)
     RunToTime *rt = RunToTime::instance();
     int oldrun = rs->getInt("runnumber");
     ts = rt->getBeginTime(oldrun);
-    cout << "Getting previous good run, current run: " << irun
-         << ", previous good run: " << oldrun
-         << " began ";
+    std::cout << "Getting previous good run, current run: " << irun
+              << ", previous good run: " << oldrun
+              << " began ";
     ts->print();
-    cout << endl;
+    std::cout << std::endl;
   }
   else
   {
-    cout << PHWHERE << " No previous good run found for run " << irun << endl;
+    std::cout << PHWHERE << " No previous good run found for run " << irun << std::endl;
   }
   delete rs;
   return ts;
@@ -1349,12 +1348,12 @@ OnCalServer::GetLastGoodRunTS(OnCal *calibrator, const int irun)
 
 int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const int commit)
 {
-  vector<string> caltab;
+  std::vector<std::string> caltab;
   calibrator->GetPdbCalTables(caltab);
-  vector<string>::const_iterator iter;
+  std::vector<std::string>::const_iterator iter;
   for (iter = caltab.begin(); iter != caltab.end(); ++iter)
   {
-    cout << "dealing with table: " << *iter << endl;
+    std::cout << "dealing with table: " << *iter << std::endl;
     SyncCalibTimeStampsToOnCal(calibrator, *iter, commit);
   }
   return 0;
@@ -1362,69 +1361,69 @@ int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const int c
 
 int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::string &table, const int commit)
 {
-  string name = calibrator->Name();
+  std::string name = calibrator->Name();
   odbc::Connection *con = nullptr;
   odbc::Connection *concalib = nullptr;
-  ostringstream cmd;
+  std::ostringstream cmd;
   try
   {
-    con = DriverManager::getConnection(database.c_str(), "phnxrc", "");
+    con = odbc::DriverManager::getConnection(database.c_str(), "phnxrc", "");
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Cannot connect to " << database.c_str() << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot connect to " << database.c_str() << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
   }
   try
   {
-    concalib = DriverManager::getConnection("oncal", "phnxrc", "");
+    concalib = odbc::DriverManager::getConnection("oncal", "phnxrc", "");
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Cannot connect to "
-         << "oncal" << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot connect to "
+              << "oncal" << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
   }
-  Statement *stmt = nullptr;
+  odbc::Statement *stmt = nullptr;
   try
   {
     stmt = con->createStatement();
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Cannot create statement" << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot create statement" << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
   }
 
-  PreparedStatement *stmt1 = nullptr;
-  ResultSet *rs1 = nullptr;
+  odbc::PreparedStatement *stmt1 = nullptr;
+  odbc::ResultSet *rs1 = nullptr;
   try
   {
     cmd.str("");
     cmd << "SELECT * from " << table << " where startvaltime = ?";
     stmt1 = concalib->prepareStatement(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Cannot create statement" << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot create statement" << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
   }
 
-  PreparedStatement *stmtupd = nullptr;
+  odbc::PreparedStatement *stmtupd = nullptr;
   try
   {
     cmd.str("");
     cmd << "update " << table << " set endvaltime = ? where startvaltime = ?";
     stmtupd = concalib->prepareStatement(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Cannot create statement" << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot create statement" << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
   }
 
@@ -1435,14 +1434,14 @@ int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::
       << name
       << " > 0";
   //      << " > 0 and runnumber < 150000";
-  ResultSet *rs = nullptr;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Message: " << e.getMessage() << endl;
+    std::cout << "Message: " << e.getMessage() << std::endl;
     return -1;
   }
   while (rs->next())
@@ -1451,18 +1450,18 @@ int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::
     int startticks = rs->getLong("startvaltime");
     int endticks = rs->getLong("endvaltime");
     // int status = rs->getInt(name);
-    //       cout << "run: " << run
+    //       std::cout << "run: " << run
     // 	   << ", status: " << status
     // 	   << ", startticks: " << startticks
-    // 	   << ", endticks: " << endticks << endl;
+    // 	   << ", endticks: " << endticks << std::endl;
     stmt1->setInt(1, startticks);
     try
     {
       rs1 = stmt1->executeQuery();
     }
-    catch (SQLException &e)
+    catch (odbc::SQLException &e)
     {
-      cout << "Message: " << e.getMessage() << endl;
+      std::cout << "Message: " << e.getMessage() << std::endl;
       return -1;
     }
     int ionce = 0;
@@ -1475,13 +1474,13 @@ int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::
       {
         if (!isproblem)
         {
-          cout << "endvaltime problem with run " << run << endl;
-          cout << "endvaltime from oncal_status: " << endticks << endl;
-          cout << "startvaltime from oncal_status: " << startticks << endl;
-          cout << "endvaltime from calibrations DB: " << rs1->getInt("endvaltime") << endl;
+          std::cout << "endvaltime problem with run " << run << std::endl;
+          std::cout << "endvaltime from oncal_status: " << endticks << std::endl;
+          std::cout << "startvaltime from oncal_status: " << startticks << std::endl;
+          std::cout << "endvaltime from calibrations DB: " << rs1->getInt("endvaltime") << std::endl;
           if (endticks < rs1->getInt("endvaltime"))
           {
-            cout << "ENDTICKS smaller CALIB" << endl;
+            std::cout << "ENDTICKS smaller CALIB" << std::endl;
             //                      return -1;
           }
         }
@@ -1491,19 +1490,19 @@ int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::
       {
         if (isproblem)
         {
-          cout << "endvaltime changes, check run " << run << endl;
+          std::cout << "endvaltime changes, check run " << run << std::endl;
           //                  return -1;
         }
       }
-      // 	   cout << "starttime: " << rs1->getInt("startvaltime") << endl;
-      // 	   cout << "endtime: " << rs1->getInt("endvaltime") << endl;
+      // 	   std::cout << "starttime: " << rs1->getInt("startvaltime") << std::endl;
+      // 	   std::cout << "endtime: " << rs1->getInt("endvaltime") << std::endl;
       ionce++;
     }
     if (isproblem)
     {
-      cout << "Adjusting run " << run << endl;
-      cout << "changing endvaltime from " << calibendval
-           << " to " << endticks << endl;
+      std::cout << "Adjusting run " << run << std::endl;
+      std::cout << "changing endvaltime from " << calibendval
+                << " to " << endticks << std::endl;
       if (commit)
       {
         stmtupd->setInt(1, endticks);
@@ -1513,7 +1512,7 @@ int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::
     }
     if (!ionce)
     {
-      cout << "Run " << run << " not found" << endl;
+      std::cout << "Run " << run << " not found" << std::endl;
     }
     delete rs1;
   }
@@ -1527,54 +1526,54 @@ int OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
 {
   odbc::Connection *con = nullptr;
   RunToTime *rt = RunToTime::instance();
-  ostringstream cmd;
+  std::ostringstream cmd;
   try
   {
-    con = DriverManager::getConnection(database.c_str(), "phnxrc", "");
+    con = odbc::DriverManager::getConnection(database.c_str(), "phnxrc", "");
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Cannot connect to " << database.c_str() << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot connect to " << database.c_str() << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
   }
-  Statement *stmt = nullptr;
+  odbc::Statement *stmt = nullptr;
   try
   {
     stmt = con->createStatement();
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Cannot create statement" << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot create statement" << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
   }
 
-  PreparedStatement *stmtupd = nullptr;
+  odbc::PreparedStatement *stmtupd = nullptr;
   try
   {
     cmd.str("");
     cmd << "UPDATE oncal_status set endvaltime = ? where runnumber = ?";
     stmtupd = con->prepareStatement(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Cannot create statement" << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot create statement" << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
   }
 
   cmd.str("");
   cmd << "select * from "
       << successTable;  //<< " where runnumber > 160000";
-  ResultSet *rs = nullptr;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Message: " << e.getMessage() << endl;
+    std::cout << "Message: " << e.getMessage() << std::endl;
     return -1;
   }
   while (rs->next())
@@ -1598,9 +1597,9 @@ int OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
     }
     if (rtstartticks != startticks)
     {
-      cout << "Run " << run
-           << ": Start mismatch, oncal: " << startticks
-           << ", rt: " << rtstartticks << endl;
+      std::cout << "Run " << run
+                << ": Start mismatch, oncal: " << startticks
+                << ", rt: " << rtstartticks << std::endl;
     }
     if (rtendticks != endticks)
     {
@@ -1608,14 +1607,14 @@ int OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
       // in this case the calibration adds 1 sec to starttime
       if (rtstartticks != rtendticks)
       {
-        cout << "Run " << run
-             << ": End mismatch, oncal: " << endticks
-             << ", rt: " << rtendticks << endl;
+        std::cout << "Run " << run
+                  << ": End mismatch, oncal: " << endticks
+                  << ", rt: " << rtendticks << std::endl;
         if (endticks > rtendticks)
         {
-          cout << "BAD: endticks: " << endticks
-               << ", rtendticks: " << rtendticks
-               << endl;
+          std::cout << "BAD: endticks: " << endticks
+                    << ", rtendticks: " << rtendticks
+                    << std::endl;
           return -1;
         }
         if (commit)
@@ -1629,9 +1628,9 @@ int OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
       {
         if (startticks != endticks - 1)
         {
-          cout << "Run " << run
-               << ": Start/End mismatch, Start: " << startticks
-               << ", End: " << endticks << endl;
+          std::cout << "Run " << run
+                    << ": Start/End mismatch, Start: " << startticks
+                    << ", End: " << endticks << std::endl;
           endticks = startticks + 1;
           if (commit)
           {
@@ -1644,15 +1643,15 @@ int OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
         {
           if (Verbosity() > 0)
           {
-            cout << "run " << run << " was twiddled by OnCal" << endl;
+            std::cout << "run " << run << " was twiddled by OnCal" << std::endl;
           }
         }
       }
     }
-    //       cout << "run: " << run
+    //       std::cout << "run: " << run
     // 	   << ", status: " << status
     // 	   << ", startticks: " << startticks
-    // 	   << ", endticks: " << endticks << endl;
+    // 	   << ", endticks: " << endticks << std::endl;
   }
   delete rs;
   delete con;
@@ -1665,7 +1664,7 @@ int OnCalServer::CopyTables(const OnCal *calibrator, const int FromRun, const in
   return iret;
 }
 
-int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, const string &what, const int commit)
+int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, const std::string &what, const int commit)
 {
   int iret = -1;
   runNum = myrunnumber;
@@ -1673,27 +1672,27 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
   SetEorTime(myrunnumber);
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return -1;
   }
   add_calibrator_to_statustable(calibrator->Name());
-  string table = "OnCal";
+  std::string table = "OnCal";
   table += calibrator->Name();
   check_create_subsystable(table);
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
 
   cmd << "SELECT runnumber FROM "
       << successTable << " where runnumber = "
       << myrunnumber;
-  ResultSet *rs = nullptr;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << successTable << " does not exist" << endl;
+    std::cout << "Table " << successTable << " does not exist" << std::endl;
     return -1;
   }
   if (!rs->next())
@@ -1710,10 +1709,10 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << PHWHERE << " Exception caught, Message: "
-         << e.getMessage() << endl;
+    std::cout << PHWHERE << " Exception caught, Message: "
+              << e.getMessage() << std::endl;
     return -1;
   }
   if (rs->next() || testmode)
@@ -1721,12 +1720,12 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
     PdbBankManager *bankManager = PdbBankManager::instance();
     PdbApplication *application = bankManager->getApplication();
     application->setDBName("oncal");
-    string tablecomment = "Subsytem provided";
+    std::string tablecomment = "Subsytem provided";
     iret = calibrator->CreateCalibration(runnumber, what, tablecomment, commit);
     if (!iret)
     {
-      cout << "Comment: " << tablecomment << endl;
-      cout << "updating oncal status tables for " << runnumber << endl;
+      std::cout << "Comment: " << tablecomment << std::endl;
+      std::cout << "updating oncal status tables for " << runnumber << std::endl;
       if (commit)
       {
         CreateCalibrationUpdateStatus(calibrator, table, tablecomment, OnCalDBCodes::SUBSYSTEM);
@@ -1734,7 +1733,7 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
     }
     else
     {
-      cout << "Calibratior " << calibrator->Name() << " for run " << runnumber << " failed" << endl;
+      std::cout << "Calibratior " << calibrator->Name() << " for run " << runnumber << " failed" << std::endl;
       if (commit)
       {
         CreateCalibrationUpdateStatus(calibrator, table, tablecomment, OnCalDBCodes::FAILED);
@@ -1743,18 +1742,18 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
   }
   else
   {
-    cout << PHWHERE << " Run " << runnumber << " is already successfully calibrated for "
-         << calibrator->Name() << endl;
+    std::cout << PHWHERE << " Run " << runnumber << " is already successfully calibrated for "
+              << calibrator->Name() << std::endl;
   }
   return iret;
 }
 
-void OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const string &table, const string &tablecomment, const int dbcode)
+void OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const std::string &table, const std::string &tablecomment, const int dbcode)
 {
   updateDB(successTable.c_str(), calibrator->Name(), dbcode);
   insertRunNumInDB(table, RunNumber());
   updateDB(table, "comment", tablecomment, RunNumber(), true);
-  ostringstream stringarg;
+  std::ostringstream stringarg;
   stringarg.str("");
   stringarg << calibrator->CommitedToPdbCalOK();
   updateDB(table, "committed", stringarg.str(), RunNumber());
@@ -1776,29 +1775,29 @@ void OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const string 
   stp.setTime(endticks);
   updateDB(table, "endtime", stp.toString(), RunNumber());
   updateDB(table, "cvstag", cvstag, RunNumber());
-  vector<string> flist = calibrator->GetLocalFileList();
+  std::vector<std::string> flist = calibrator->GetLocalFileList();
   if (flist.size())
   {
-    string filelist = "";
-    BOOST_FOREACH (string infile, flist)
+    std::string filelist = "";
+    for (const std::string &infile : flist)
     {
       filelist += infile;
       filelist += " ";
     }
     filelist.pop_back();  // strip empty space at end from loop
-    cout << "FileList: " << filelist << endl;
+    std::cout << "FileList: " << filelist << std::endl;
     updateDB(table, "files", filelist, RunNumber());
   }
   return;
 }
 
-int OnCalServer::CopySnglTable(const string &pdbclass, const string &tablename, const int bankid, const int FromRun, const int ToRun, const int commit)
+int OnCalServer::CopySnglTable(const std::string &pdbclass, const std::string &tablename, const int bankid, const int FromRun, const int ToRun, const int commit)
 {
   int iret = CopySnglTableNewBankId(pdbclass, tablename, bankid, bankid, FromRun, ToRun, commit);
   return iret;
 }
 
-int OnCalServer::CopySnglTableNewBankId(const string &pdbclass, const string &tablename, const int bankid, const int Tobankid, const int FromRun, const int ToRun, const int commit)
+int OnCalServer::CopySnglTableNewBankId(const std::string &pdbclass, const std::string &tablename, const int bankid, const int Tobankid, const int FromRun, const int ToRun, const int commit)
 {
   RunToTime *rt = RunToTime::instance();
   PHTimeStamp *ts = rt->getBeginTime(FromRun);
@@ -1813,7 +1812,7 @@ int OnCalServer::CopySnglTableNewBankId(const string &pdbclass, const string &ta
   PHTimeStamp *tendnew = rt->getEndTime(ToRun);
   application->startUpdate();
   PdbCalBank *pdbBanknew = (PdbCalBank *) (pdbBank->clone());
-  ostringstream newdesc;
+  std::ostringstream newdesc;
   newdesc << "copied from run " << FromRun;
   if (pdbBanknew)
   {
@@ -1822,9 +1821,9 @@ int OnCalServer::CopySnglTableNewBankId(const string &pdbclass, const string &ta
     {
       for (unsigned int i = 0; i < pdbBank->getLength(); i++)
       {
-        cout << "orig: " << endl;
+        std::cout << "orig: " << std::endl;
         pdbBank->printEntry(i);
-        cout << "new: " << endl;
+        std::cout << "new: " << std::endl;
         pdbBanknew->printEntry(i);
       }
     }
@@ -1839,10 +1838,10 @@ int OnCalServer::CopySnglTableNewBankId(const string &pdbclass, const string &ta
     }
     if (Verbosity() > 0)
     {
-      cout << "StartValTime: orig " << pdbBank->getStartValTime()
-           << ", new: " << pdbBanknew->getStartValTime() << endl;
-      cout << "EndValTime: orig " << pdbBank->getEndValTime()
-           << ", new: " << pdbBanknew->getEndValTime() << endl;
+      std::cout << "StartValTime: orig " << pdbBank->getStartValTime()
+                << ", new: " << pdbBanknew->getStartValTime() << std::endl;
+      std::cout << "EndValTime: orig " << pdbBank->getEndValTime()
+                << ", new: " << pdbBanknew->getEndValTime() << std::endl;
     }
     if (commit)
     {
@@ -1867,7 +1866,7 @@ int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int pre
   PHTimeStamp *ts = rt->getBeginTime(irun);
   if (!ts)
   {
-    cout << PHWHERE << "Unknown Run " << irun << endl;
+    std::cout << PHWHERE << "Unknown Run " << irun << std::endl;
     return -1;
   }
   int curstart = ts->getTics();
@@ -1882,25 +1881,25 @@ int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int pre
   int closestrun = -1;
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return -1;
   }
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
 
   // look only for runs which were actually successfully calibrated (status = 1)
   cmd << "SELECT runnumber,startvaltime,endvaltime FROM "
       << successTable << " where runnumber < "
       << irun << " and "
       << calibrator->Name() << " = 1 order by runnumber desc limit 1";
-  ResultSet *rs = nullptr;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << successTable << " does not exist" << endl;
+    std::cout << "Table " << successTable << " does not exist" << std::endl;
     return -1;
   }
   int prevrun = -1;
@@ -1910,16 +1909,16 @@ int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int pre
     prevrun = rs->getInt("runnumber");
     unsigned int prevstart = rs->getLong("startvaltime");
     prevend = rs->getLong("endvaltime");
-    cout << "previous run: " << prevrun
-         << ", start: " << prevstart
-         << ", end: " << prevend
-         << endl;
+    std::cout << "previous run: " << prevrun
+              << ", start: " << prevstart
+              << ", end: " << prevend
+              << std::endl;
   }
   else
   {
     if (Verbosity() > 0)
     {
-      cout << PHWHERE << " No previous good run found for run " << irun << endl;
+      std::cout << PHWHERE << " No previous good run found for run " << irun << std::endl;
     }
   }
   delete rs;
@@ -1928,7 +1927,7 @@ int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int pre
   {
     if (Verbosity() > 0)
     {
-      cout << "Closest previous run is " << closestrun << endl;
+      std::cout << "Closest previous run is " << closestrun << std::endl;
     }
     return closestrun;
   }
@@ -1941,9 +1940,9 @@ int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int pre
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << successTable << " does not exist" << endl;
+    std::cout << "Table " << successTable << " does not exist" << std::endl;
     return -1;
   }
   int nextrun = -1;
@@ -1955,17 +1954,17 @@ int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int pre
     unsigned int nextend = rs->getLong("endvaltime");
     if (Verbosity() > 0)
     {
-      cout << "next run: " << nextrun
-           << ", start: " << nextstart
-           << ", end: " << nextend
-           << endl;
+      std::cout << "next run: " << nextrun
+                << ", start: " << nextstart
+                << ", end: " << nextend
+                << std::endl;
     }
   }
   else
   {
     if (Verbosity() > 0)
     {
-      cout << PHWHERE << " No next good run found for run " << irun << endl;
+      std::cout << PHWHERE << " No next good run found for run " << irun << std::endl;
     }
   }
   delete rs;
@@ -1982,9 +1981,9 @@ int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int pre
   }
   if (Verbosity() > 0)
   {
-    cout << "diff prev: " << tdiffprev
-         << ", next: " << tdiffnext
-         << endl;
+    std::cout << "diff prev: " << tdiffprev
+              << ", next: " << tdiffnext
+              << std::endl;
   }
   if (tdiffprev < tdiffnext)
   {
@@ -1996,7 +1995,7 @@ int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int pre
   }
   if (Verbosity() > 0)
   {
-    cout << "closest run: " << closestrun << endl;
+    std::cout << "closest run: " << closestrun << std::endl;
   }
   return closestrun;
 }
@@ -2017,24 +2016,24 @@ int OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const
   // find this run in oncal_status
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return -1;
   }
   runNum = runno;
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
 
   cmd << "SELECT runnumber FROM "
       << successTable << " where runnumber = "
       << runno;
-  ResultSet *rs = nullptr;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << successTable << " does not exist" << endl;
+    std::cout << "Table " << successTable << " does not exist" << std::endl;
     return -1;
   }
   if (!rs->next())
@@ -2051,10 +2050,10 @@ int OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << PHWHERE << " Exception caught, Message: "
-         << e.getMessage() << endl;
+    std::cout << PHWHERE << " Exception caught, Message: "
+              << e.getMessage() << std::endl;
     return -1;
   }
   if (rs->next())
@@ -2069,12 +2068,12 @@ int OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const
       FromRun = ClosestGoodRun(calibrator, runno);
       if (FromRun < 0)
       {
-        cout << "ClosestGoodRun returned bad runnumber: " << FromRun << endl;
+        std::cout << "ClosestGoodRun returned bad runnumber: " << FromRun << std::endl;
         return -1;
       }
     }
-    cout << "Going to copy calibration for run " << runno
-         << " from run " << FromRun << endl;
+    std::cout << "Going to copy calibration for run " << runno
+              << " from run " << FromRun << std::endl;
 
     iret = OverwriteCalibration(calibrator, runno, commit, FromRun);
     if (!iret)
@@ -2088,24 +2087,24 @@ int OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const
       {
         newstatus = OnCalDBCodes::COPIEDLATER;
       }
-      string table = "OnCal";
+      std::string table = "OnCal";
       table += calibrator->Name();
-      ostringstream comment;
+      std::ostringstream comment;
       comment << " CopiedRun(" << FromRun << ")";
-      cout << "updating oncal status tables for " << runno << endl;
+      std::cout << "updating oncal status tables for " << runno << std::endl;
       if (commit)
       {
         updateDB(successTable.c_str(), calibrator->Name(), newstatus);
         insertRunNumInDB(table, runNum);
         updateDB(table, "comment", comment.str(), runNum, true);
-        updateDB(table.c_str(), "committed", true);
+        updateDB(table, "committed", true);
       }
     }
   }
   else
   {
-    cout << "Run " << runno
-         << " has a good calibrations, doing nothing" << endl;
+    std::cout << "Run " << runno
+              << " has a good calibrations, doing nothing" << std::endl;
   }
   delete rs;
   return iret;
@@ -2119,8 +2118,8 @@ int OnCalServer::SetBorTime(const int runno)
   PHTimeStamp *BorTimeStp(runTime->getBeginTime(runno));
   if (!BorTimeStp)
   {
-    cout << PHWHERE << "Cannot get begin time for run " << runno << endl;
-    cout << "Exiting" << endl;
+    std::cout << PHWHERE << "Cannot get begin time for run " << runno << std::endl;
+    std::cout << "Exiting" << std::endl;
     exit(1);
   }
   BeginTimeStamp(*BorTimeStp);
@@ -2128,9 +2127,9 @@ int OnCalServer::SetBorTime(const int runno)
   // enter begin run timestamp into rc flags
   PHTimeStamp BeginRunTimeStamp(*BorTimeStp);
   //  rc->set_TimeStamp(BeginRunTimeStamp);
-  cout << "OnCalServer::SetBorTime from RunToTime was found for run : " << runno << " to ";
+  std::cout << "OnCalServer::SetBorTime from RunToTime was found for run : " << runno << " to ";
   BeginRunTimeStamp.print();
-  cout << endl;
+  std::cout << std::endl;
 
   delete BorTimeStp;
   return 0;
@@ -2160,9 +2159,9 @@ int OnCalServer::SetEorTime(const int runno)
     EorTimeStp->setTics(eorticks);
   }
   EndTimeStamp(*EorTimeStp);
-  cout << "OnCalServer::SetEorTime: setting eor time to ";
+  std::cout << "OnCalServer::SetEorTime: setting eor time to ";
   EorTimeStp->print();
-  cout << endl;
+  std::cout << std::endl;
   delete EorTimeStp;
   return 0;
 }
@@ -2173,8 +2172,8 @@ int OnCalServer::GetRunTimeTicks(const int runno, time_t &borticks, time_t &eort
   PHTimeStamp *TimeStp(runTime->getBeginTime(runno));
   if (!TimeStp)
   {
-    cout << PHWHERE << "Cannot get begin time for run " << runno << endl;
-    cout << "Exiting" << endl;
+    std::cout << PHWHERE << "Cannot get begin time for run " << runno << std::endl;
+    std::cout << "Exiting" << std::endl;
     exit(1);
   }
   borticks = TimeStp->getTics();
@@ -2199,10 +2198,10 @@ int OnCalServer::GetRunTimeTicks(const int runno, time_t &borticks, time_t &eort
 
 int OnCalServer::requiredCalibration(SubsysReco *reco, const std::string &calibratorname)
 {
-  map<string, set<SubsysReco *> >::iterator iter;
+  std::map<std::string, std::set<SubsysReco *> >::iterator iter;
   if (check_calibrator_in_statustable(calibratorname))
   {
-    cout << PHWHERE << " the calibrator " << calibratorname << " is unknown to me" << endl;
+    std::cout << PHWHERE << " the calibrator " << calibratorname << " is unknown to me" << std::endl;
     return -1;
   }
   iter = requiredCalibrators.find(calibratorname);
@@ -2212,7 +2211,7 @@ int OnCalServer::requiredCalibration(SubsysReco *reco, const std::string &calibr
   }
   else
   {
-    set<SubsysReco *> subsys;
+    std::set<SubsysReco *> subsys;
     subsys.insert(reco);
     requiredCalibrators[calibratorname] = subsys;
   }
@@ -2225,12 +2224,12 @@ int OnCalServer::FindClosestCalibratedRun(const int irun)
   PHTimeStamp *ts = rt->getBeginTime(irun);
   if (!ts)
   {
-    cout << PHWHERE << "Unknown Run " << irun << endl;
+    std::cout << PHWHERE << "Unknown Run " << irun << std::endl;
     return -1;
   }
   if (requiredCalibrators.size() == 0)
   {
-    cout << PHWHERE << "No required calibrations given" << endl;
+    std::cout << PHWHERE << "No required calibrations given" << std::endl;
     return irun;
   }
   int curstart = ts->getTics();
@@ -2245,12 +2244,12 @@ int OnCalServer::FindClosestCalibratedRun(const int irun)
   int closestrun = -1;
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return -1;
   }
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
-  map<string, set<SubsysReco *> >::const_iterator iter;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
+  std::map<std::string, std::set<SubsysReco *> >::const_iterator iter;
   // look only for runs which were actually successfully calibrated (status = 1)
   cmd << "SELECT runnumber,startvaltime,endvaltime FROM "
       << successTable << " where runnumber <= "
@@ -2261,14 +2260,14 @@ int OnCalServer::FindClosestCalibratedRun(const int irun)
   }
 
   cmd << " order by runnumber desc limit 1";
-  ResultSet *rs = nullptr;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << successTable << " does not exist" << endl;
+    std::cout << "Table " << successTable << " does not exist" << std::endl;
     return -1;
   }
   int prevrun = 0;
@@ -2280,21 +2279,21 @@ int OnCalServer::FindClosestCalibratedRun(const int irun)
     prevend = rs->getLong("endvaltime");
     if (prevrun != irun)
     {
-      cout << "previous run: " << prevrun
-           << ", start: " << prevstart
-           << ", end: " << prevend
-           << endl;
+      std::cout << "previous run: " << prevrun
+                << ", start: " << prevstart
+                << ", end: " << prevend
+                << std::endl;
     }
   }
   else
   {
-    cout << PHWHERE << " No previous good run found for run " << irun << endl;
+    std::cout << PHWHERE << " No previous good run found for run " << irun << std::endl;
   }
   delete rs;
   // if the current run fullfills requirements return immediately
   if (prevrun == irun)
   {
-    cout << "closest run with required calibs is current run: " << irun << endl;
+    std::cout << "closest run with required calibs is current run: " << irun << std::endl;
     return irun;
   }
   cmd.str("");
@@ -2311,9 +2310,9 @@ int OnCalServer::FindClosestCalibratedRun(const int irun)
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << successTable << " does not exist" << endl;
+    std::cout << "Table " << successTable << " does not exist" << std::endl;
     return -1;
   }
   int nextrun = 0;
@@ -2323,14 +2322,14 @@ int OnCalServer::FindClosestCalibratedRun(const int irun)
     nextrun = rs->getInt("runnumber");
     nextstart = rs->getLong("startvaltime");
     unsigned int nextend = rs->getLong("endvaltime");
-    cout << "next run: " << nextrun
-         << ", start: " << nextstart
-         << ", end: " << nextend
-         << endl;
+    std::cout << "next run: " << nextrun
+              << ", start: " << nextstart
+              << ", end: " << nextend
+              << std::endl;
   }
   else
   {
-    cout << PHWHERE << " No next good run found for run " << irun << endl;
+    std::cout << PHWHERE << " No next good run found for run " << irun << std::endl;
   }
   delete rs;
   int tdiffprev = curstart - prevend;
@@ -2352,22 +2351,19 @@ int OnCalServer::FindClosestCalibratedRun(const int irun)
   {
     closestrun = nextrun;
   }
-  cout << "closest run with required calibs: " << closestrun << endl;
+  std::cout << "closest run with required calibs: " << closestrun << std::endl;
   return closestrun;
 }
 
 int OnCalServer::FillRunListFromFileList()
 {
-  // get sync managers and ask them for input managers and ask those for
-  // their respective file lists. BOOST_FOREACH allows us to do loops without
-  // having to explicietly declare all those vectors/lists
-  BOOST_FOREACH (Fun4AllSyncManager *sync, SyncManagers)
+  for (Fun4AllSyncManager *sync : SyncManagers)
   {
-    BOOST_FOREACH (Fun4AllInputManager *inmgr, sync->GetInputManagers())
+    for (Fun4AllInputManager *inmgr : sync->GetInputManagers())
     {
-      BOOST_FOREACH (string infile, inmgr->GetFileList())
+      for (const std::string &infile : inmgr->GetFileList())
       {
-        pair<int, int> runseg = Fun4AllUtils::GetRunSegment(infile);
+        std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(infile);
         runlist.insert(runseg.first);
       }
     }
@@ -2382,13 +2378,13 @@ int OnCalServer::AdjustRichTimeStampForMultipleRuns()
   time_t dummy;
   time_t beginticks;
   time_t endticks;
-  string table = "OnCalRichCal";
+  std::string table = "OnCalRichCal";
   check_create_subsystable(table);
   GetRunTimeTicks(firstrun, beginticks, dummy);
   GetRunTimeTicks(lastrun, dummy, endticks);
-  ostringstream stringarg;
+  std::ostringstream stringarg;
   stringarg << OnCalDBCodes::COVERED;
-  //  set<int>::const_iterator runiter;
+  //  std::set<int>::const_iterator runiter;
   /*
     for (runiter = runlist.begin(); runiter != runlist.end(); runiter++)
     {
@@ -2411,52 +2407,52 @@ int OnCalServer::AdjustRichTimeStampForMultipleRuns()
   stp.setTime(endticks);
   updateDB(table, "endtime", stp.toString(), firstrun);
   /*
-    string tablename = "calibrichadc";
+    std::string tablename = "calibrichadc";
     odbc::Connection *con = 0;
-    ostringstream cmd;
+    std::ostringstream cmd;
     try
     {
-    con = DriverManager::getConnection("oncal", "phnxrc", "");
+    con = odbc::DriverManager::getConnection("oncal", "phnxrc", "");
     }
-    catch (SQLException& e)
+    catch (odbc::SQLException& e)
     {
-    cout << "Cannot connect to " << database.c_str() << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot connect to " << database.c_str() << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
     }
-    Statement *stmt = 0;
-    Statement *stmtup = 0;
+    odbc::Statement *stmt = 0;
+    odbc::Statement *stmtup = 0;
     try
     {
     stmt = con->createStatement();
     stmtup = con->createStatement();
     }
-    catch (SQLException& e)
+    catch (odbc::SQLException& e)
     {
-    cout << "Cannot create statement" << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot create statement" << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
     }
 
-    ResultSet *rs1 = 0;
+    odbc::ResultSet *rs1 = 0;
     cmd.str("");
     cmd << "SELECT  endvaltime from " << tablename
     << " where bankid = 1 and startvaltime = " << beginticks;
-    cout << "sql cmd: " << cmd.str() << endl;
+    std::cout << "sql cmd: " << cmd.str() << std::endl;
     try
     {
     rs1 = stmt->executeQuery(cmd.str());
     }
-    catch (SQLException& e)
+    catch (odbc::SQLException& e)
     {
-    cout << "Cannot create statement" << endl;
-    cout << e.getMessage() << endl;
+    std::cout << "Cannot create statement" << std::endl;
+    std::cout << e.getMessage() << std::endl;
     return -1;
     }
     if (rs1->next())
     {
-    cout << "Endcaltime: " << rs1->getInt("endvaltime") << endl;
-    cout << "future endvaltime: " << endticks << endl;
+    std::cout << "Endcaltime: " << rs1->getInt("endvaltime") << std::endl;
+    std::cout << "future endvaltime: " << endticks << std::endl;
     cmd.str("");
     cmd << "Update " << tablename
     << " set endvaltime = " << endticks
@@ -2467,8 +2463,8 @@ int OnCalServer::AdjustRichTimeStampForMultipleRuns()
     }
     else
     {
-    cout << "Could not find startvaltime " << beginticks
-    << "from run " << firstrun << endl;
+    std::cout << "Could not find startvaltime " << beginticks
+    << "from run " << firstrun << std::endl;
     }
 
   */
@@ -2476,30 +2472,30 @@ int OnCalServer::AdjustRichTimeStampForMultipleRuns()
   return 0;
 }
 
-int OnCalServer::GetCalibStatus(const string &calibname, const int runno)
+int OnCalServer::GetCalibStatus(const std::string &calibname, const int runno)
 {
   int iret = -3;
   if (!connectDB())
   {
-    cout << "could not connect to " << database << endl;
+    std::cout << "could not connect to " << database << std::endl;
     return -4;
   }
-  Statement *stmt = DBconnection->createStatement();
-  ostringstream cmd;
+  odbc::Statement *stmt = DBconnection->createStatement();
+  std::ostringstream cmd;
 
   // look only for runs which were actually successfully calibrated (status = 1)
   cmd << "SELECT " << calibname << " FROM "
       << successTable << " where runnumber = "
       << runno;
-  cout << "exec " << cmd.str() << endl;
-  ResultSet *rs = nullptr;
+  std::cout << "exec " << cmd.str() << std::endl;
+  odbc::ResultSet *rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
   }
-  catch (SQLException &e)
+  catch (odbc::SQLException &e)
   {
-    cout << "Table " << successTable << " does not exist" << endl;
+    std::cout << "Table " << successTable << " does not exist" << std::endl;
     return -5;
   }
   if (rs->next())
@@ -2508,8 +2504,8 @@ int OnCalServer::GetCalibStatus(const string &calibname, const int runno)
   }
   else
   {
-    cout << PHWHERE << " No calib status for " << calibname
-         << " for " << runno << endl;
+    std::cout << PHWHERE << " No calib status for " << calibname
+              << " for " << runno << std::endl;
   }
   delete rs;
   return iret;
@@ -2520,9 +2516,9 @@ void OnCalServer::TestMode(const int i)
   const char *logname = getenv("LOGNAME");
   if (logname)
   {
-    if (strcmp(logname, "phnxcal") == 0 || strcmp(logname, "anatrain") == 0)
+    if (strcmp(logname, "sphnxpro") == 0 || strcmp(logname, "anatrain") == 0)
     {
-      cout << "phnxcal,anatrain account is not allowed to run in testmode" << endl;
+      std::cout << "phnxcal,anatrain account is not allowed to run in testmode" << std::endl;
     }
     else
     {
@@ -2531,7 +2527,7 @@ void OnCalServer::TestMode(const int i)
   }
   else
   {
-    cout << "could not get account via env var LOGNAME, not setting testmode" << endl;
+    std::cout << "could not get account via env var LOGNAME, not setting testmode" << std::endl;
   }
   return;
 }

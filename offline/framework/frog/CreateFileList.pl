@@ -15,7 +15,7 @@ sub print_single_types;
 my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
 
-my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\' and dsttype <> 'beam' and dsttype <> 'cosmic'");
+my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\' and dsttype <> 'beam' and dsttype <> 'cosmic' and dataset = 'mdc2'");
 $getdsttypes->execute();
 
 my %dsttype = ();

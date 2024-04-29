@@ -3,11 +3,12 @@
 #ifndef G4MAIN_PHG4PHENIXSTACKINGACTION_H
 #define G4MAIN_PHG4PHENIXSTACKINGACTION_H
 
+#include <Geant4/G4ClassificationOfNewTrack.hh>
 #include <Geant4/G4UserStackingAction.hh>
 
 #include <list>
 
-class G4Step;
+class G4Track;
 class PHG4StackingAction;
 
 class PHG4PhenixStackingAction : public G4UserStackingAction

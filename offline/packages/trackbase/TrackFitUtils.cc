@@ -18,6 +18,11 @@ namespace
   {
     return x * x;
   }
+  template <class T>
+  inline constexpr T r(const T& x, const T& y)
+  {
+    return std::sqrt(square(x) + square(y));
+  }
 }  // namespace
 
 std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global)
@@ -62,7 +67,43 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
 
   return line;
 }
+Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey& key,
+                                                         TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& yzslope, float& yzint)
+{
+  Acts::Vector3 intersection(std::numeric_limits<float>::quiet_NaN(),
+                             std::numeric_limits<float>::quiet_NaN(),
+                             std::numeric_limits<float>::quiet_NaN());
 
+  auto surf = geometry->maps().getSurface(key, cluster);
+
+  
+  //! Take two random x points and calculate y and z on the line to find 2
+  //! 3D points with which to calculate the 3D line
+  float x1 = -1;
+  float x2 = 5;
+  float y1 = xyslope * x1 + xyint;
+  float y2 = xyslope * x2 + xyint;
+
+  float z1 = (y1 - yzint) / yzslope;
+  float z2 = (y2 - yzint) / yzslope;
+
+  Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
+  Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 u = v2 - v1;
+  float dot = surfnorm.dot(u);
+
+  //! If it does not satisfy this, line was parallel to the surface
+  if (abs(dot) > 1e-6)
+  {
+    Acts::Vector3 w = v1 - surfcenter;
+    float fac = -surfnorm.dot(w) / dot;
+    u *= fac;
+    intersection = v1 + u;
+  }
+
+  return intersection;
+}
 //_________________________________________________________________________________
 TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const TrackFitUtils::position_vector_t& positions)
 {
@@ -347,7 +388,11 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
         float dcax = pcax - x;
         float dcay = pcay - y;
         float dca = std::sqrt(square(dcax) + square(dcay));
-
+        if(!isXY && TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::inttId)
+        {
+          //! Just ignore the z direction completely for the intt
+          dca = dcay;
+        }
         if (dca < dca_cut)
         {
           keys_to_add.insert(cluskey);

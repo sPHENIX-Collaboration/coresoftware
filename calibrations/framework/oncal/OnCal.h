@@ -4,9 +4,9 @@
 #include <fun4all/SubsysReco.h>
 #include <iostream>
 #include <string>
+#include <utility>  // for pair
 #include <vector>
 
-class Event;
 class PHCompositeNode;
 
 class OnCal : public SubsysReco

@@ -21,8 +21,10 @@ pkginclude_HEADERS = \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
   InputManagerType.h \
+  SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
+  SingleHcalTriggerInput.h \
   SingleMbdTriggerInput.h \
   SingleInttPoolInput.h \
   SingleMicromegasPoolInput.h \
@@ -31,7 +33,8 @@ pkginclude_HEADERS = \
   SingleStreamingInput.h \
   SingleTpcPoolInput.h \
   SingleTriggerInput.h \
-  SingleZdcInput.h
+  SingleZdcInput.h \
+  SingleZdcTriggerInput.h
 
 decoderincludedir = $(includedir)/mvtx_decoder
 decoderinclude_HEADERS = \
@@ -67,11 +70,13 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
-	mvtx_pool.cc \
   intt_pool.cc \
+  mvtx_pool.cc \
   tpc_pool.cc \
+  SingleCemcTriggerInput.cc \
   SingleGl1PoolInput.cc \
   SingleGl1TriggerInput.cc \
+  SingleHcalTriggerInput.cc \
   SingleInttPoolInput.cc \
   SingleMbdTriggerInput.cc \
   SingleMicromegasPoolInput.cc \
@@ -80,13 +85,14 @@ libfun4allraw_la_SOURCES = \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \
   SingleTriggerInput.cc \
-  SingleZdcInput.cc
+  SingleZdcInput.cc \
+  SingleZdcTriggerInput.cc
 
 libfun4allraw_la_LIBADD = \
+  libmvtx_decoder.la \
   -lffarawobjects \
   -lfun4all \
   -lEvent \
-	-lmvtx_decoder \
   -lphoolraw
 
 BUILT_SOURCES = testexternals.cc

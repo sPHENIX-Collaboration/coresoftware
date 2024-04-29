@@ -16,8 +16,9 @@
 
 class Event;
 class SinglePrdfInput;
-class oEvent;
-class Packet;
+class CaloPacket;
+class Gl1Packet;
+class MbdPacket;
 class PHCompositeNode;
 class SingleTriggerInput;
 class SyncObject;
@@ -41,11 +42,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
-  SinglePrdfInput *AddPrdfInputList(const std::string &listfile);
-  SinglePrdfInput *AddPrdfInputFile(const std::string &filename);
-  SinglePrdfInput *registerPrdfInput(SinglePrdfInput *prdfin);
   void registerTriggerInput(SingleTriggerInput *prdfin, InputManagerType::enu_subsystem system);
-  void AddPacket(const int evtno, Packet *p);
   void UpdateEventFoundCounter(const int evtno);
   void UpdateDroppedPacket(const int packetid);
   void AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin);
@@ -57,56 +54,92 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void Resynchronize();
   void ClearAllEvents();
   void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
+  int FillCemc();
+  int MoveCemcToNodeTree();
+  void AddCemcPacket(int eventno, CaloPacket *pkt);
   int FillGl1();
-  void AddGl1Packet(int eventno, OfflinePacket *gl1pkt);
+  int MoveGl1ToNodeTree();
+  void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
   int FillMbd();
-  void AddMbdPacket(int eventno, OfflinePacket *mbdpkt);
+  int MoveMbdToNodeTree();
+  void AddMbdPacket(int eventno, CaloPacket *mbdpkt);
+  int FillHcal();
+  int MoveHcalToNodeTree();
+  void AddHcalPacket(int eventno, CaloPacket *pkt);
+  int FillZdc();
+  int MoveZdcToNodeTree();
+  void AddZdcPacket(int eventno, CaloPacket *pkt);
+  // the sepd is read together with the zdc in the FillZdc method
+  int MoveSEpdToNodeTree();
+  void AddSEpdPacket(int eventno, CaloPacket *pkt);
+  void DetermineReferenceEventNumber();
 
  private:
-  struct PacketInfo
-  {
-    std::vector<Packet *> PacketVector;
-    unsigned int EventFoundCounter = 0;
-  };
-
   struct SinglePrdfInputInfo
   {
-    uint64_t bclkoffset = 0;
+    uint64_t bclkoffset{0};
   };
 
   struct Gl1PacketInfo
   {
-    std::vector<OfflinePacket *> Gl1PacketVector;
-    unsigned int EventFoundCounter = 0;
+    std::vector<Gl1Packet *> Gl1PacketVector;
+    unsigned int EventFoundCounter{0};
   };
 
   struct MbdPacketInfo
   {
-    std::vector<OfflinePacket *> MbdPacketVector;
-    unsigned int EventFoundCounter = 0;
+    std::vector<CaloPacket *> MbdPacketVector;
+    unsigned int EventFoundCounter{0};
   };
 
-  bool m_StartUpFlag = true;
+  struct CemcPacketInfo
+  {
+    std::vector<CaloPacket *> CemcPacketVector;
+    unsigned int EventFoundCounter{0};
+  };
+
+  struct HcalPacketInfo
+  {
+    std::vector<CaloPacket *> HcalPacketVector;
+    unsigned int EventFoundCounter{0};
+  };
+
+  struct SEpdPacketInfo
+  {
+    std::vector<CaloPacket *> SEpdPacketVector;
+    unsigned int EventFoundCounter{0};
+  };
+  struct ZdcPacketInfo
+  {
+    std::vector<CaloPacket *> ZdcPacketVector;
+    unsigned int EventFoundCounter{0};
+  };
+
   int m_RunNumber{0};
+  int m_RefEventNo{std::numeric_limits<int>::min()};
   bool m_gl1_registered_flag{false};
   bool m_mbd_registered_flag{false};
+  bool m_cemc_registered_flag{false};
+  bool m_hcal_registered_flag{false};
+  bool m_zdc_registered_flag{false};
   unsigned int m_PoolDepth = 100;
-  unsigned int m_InitialPoolDepth = 20;
-  int m_RefEventNo{0};
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
   std::vector<SingleTriggerInput *> m_MbdInputVector;
+  std::vector<SingleTriggerInput *> m_CemcInputVector;
+  std::vector<SingleTriggerInput *> m_HcalInputVector;
+  std::vector<SingleTriggerInput *> m_SEpdInputVector;
+  std::vector<SingleTriggerInput *> m_ZdcInputVector;
   SyncObject *m_SyncObject = nullptr;
   PHCompositeNode *m_topNode = nullptr;
-  Event *m_Event = nullptr;
-  PHDWORD workmem[4 * 1024 * 1024] = {};
-  oEvent *oph = nullptr;
   SinglePrdfInput *m_RefPrdfInput = nullptr;
-  std::map<int, PacketInfo> m_PacketMap;
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, MbdPacketInfo> m_MbdPacketMap;
-  std::string m_PrdfNodeName;
+  std::map<int, CemcPacketInfo> m_CemcPacketMap;
+  std::map<int, HcalPacketInfo> m_HcalPacketMap;
+  std::map<int, SEpdPacketInfo> m_SEpdPacketMap;
+  std::map<int, ZdcPacketInfo> m_ZdcPacketMap;
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;

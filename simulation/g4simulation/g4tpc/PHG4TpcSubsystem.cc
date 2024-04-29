@@ -75,7 +75,7 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename : nodes)
+    for (const auto &nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -130,7 +130,7 @@ void PHG4TpcSubsystem::Print(const std::string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4TpcSubsystem::GetDetector(void) const
+PHG4Detector *PHG4TpcSubsystem::GetDetector() const
 {
   return m_Detector;
 }
@@ -193,8 +193,8 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   //  I think a calculation just for the rohacell would be more than sufficient.
   set_default_string_param("window_core_material", "ROHACELL_FOAM_51");
   set_default_double_param("window_thickness", 0.56);  // overall thickness
-  //I just checked with PC manufacturers and we can get 8.9 micron thick copper in reasonably large sheets.
-  // At normal incidence, 8.9 microns is 0.06% of a radiation length.
+  // I just checked with PC manufacturers and we can get 8.9 micron thick copper in reasonably large sheets.
+  //  At normal incidence, 8.9 microns is 0.06% of a radiation length.
   set_default_string_param("window_surface1_material", "G4_Cu");
   set_default_double_param("window_surface1_thickness", 8.9e-4);  // 8.9  um outter shell thickness be default
   // The FR4 should be either 5 or 10 mils thick.  10 mils is 254 microns and 5 mils is 0.127 microns.  I think either of these is mechanically fine...
@@ -203,30 +203,29 @@ void PHG4TpcSubsystem::SetDefaultParameters()
 
   // for geonode initialization
   set_default_double_param("drift_velocity", 8.0e-03);
-  
+
   set_default_int_param("ntpc_layers_inner", 16);
   set_default_int_param("ntpc_layers_mid", 16);
   set_default_int_param("ntpc_layers_outer", 16);
   set_default_int_param("tpc_minlayer_inner", 7);
 
-  set_default_double_param("tpc_minradius_inner", 31.105);//30.0);  // cm
-  set_default_double_param("tpc_minradius_mid", 41.153);//40.0);
-  set_default_double_param("tpc_minradius_outer", 58.367);//60.0);
+  set_default_double_param("tpc_minradius_inner", 31.105);  // 30.0);  // cm
+  set_default_double_param("tpc_minradius_mid", 41.153);    // 40.0);
+  set_default_double_param("tpc_minradius_outer", 58.367);  // 60.0);
 
-  set_default_double_param("tpc_maxradius_inner", 40.249);//40.0);  // cm
-  set_default_double_param("tpc_maxradius_mid", 57.475);//60.0);
-  set_default_double_param("tpc_maxradius_outer", 75.911);//77.0);  // from Tom
+  set_default_double_param("tpc_maxradius_inner", 40.249);  // 40.0);  // cm
+  set_default_double_param("tpc_maxradius_mid", 57.475);    // 60.0);
+  set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
-  set_default_double_param("maxdriftlength", 105.5);     // cm
-  set_default_double_param("extended_readout_time", 0.0); //ns
-  set_default_double_param("tpc_adc_clock", 53.0);  // ns, for 18.8 MHz clock
+  set_default_double_param("maxdriftlength", 105.5);       // cm
+  set_default_double_param("extended_readout_time", 0.0);  // ns
+  set_default_double_param("tpc_adc_clock", 53.0);         // ns, for 18.8 MHz clock
 
-  set_default_double_param("tpc_sector_phi_inner", 0.5024);//2 * M_PI / 12 );//sector size in phi for R1 sector
-  set_default_double_param("tpc_sector_phi_mid",   0.5087);//2 * M_PI / 12 );//sector size in phi for R2 sector
-  set_default_double_param("tpc_sector_phi_outer", 0.5097);//2 * M_PI / 12 );//sector size in phi for R3 sector
+  set_default_double_param("tpc_sector_phi_inner", 0.5024);  // 2 * M_PI / 12 );//sector size in phi for R1 sector
+  set_default_double_param("tpc_sector_phi_mid", 0.5087);    // 2 * M_PI / 12 );//sector size in phi for R2 sector
+  set_default_double_param("tpc_sector_phi_outer", 0.5097);  // 2 * M_PI / 12 );//sector size in phi for R3 sector
 
   set_default_int_param("ntpc_phibins_inner", 1152);
   set_default_int_param("ntpc_phibins_mid", 1536);
   set_default_int_param("ntpc_phibins_outer", 2304);
-
 }

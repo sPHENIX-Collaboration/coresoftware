@@ -7,13 +7,13 @@
 #ifndef TRACKRECO_PHTRUTHTRACKSEEDING_H
 #define TRACKRECO_PHTRUTHTRACKSEEDING_H
 
-#include "PHTrackSeeding.h"
+#include <gsl/gsl_rng.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
+#include <memory>
 #include <string>  // for string
 #include <vector>
-#include <memory>
-#include <gsl/gsl_rng.h>
+#include "PHTrackSeeding.h"
 
 // forward declarations
 class PHCompositeNode;
@@ -81,16 +81,16 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   int GetNodes(PHCompositeNode* topNode);
   int CreateNodes(PHCompositeNode* topNode);
 
-  void buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters, 
-		      PHG4Particle *g4particle, TrackSeedContainer* container);
+  void buildTrackSeed(const std::vector<TrkrDefs::cluskey>& clusters,
+                      PHG4Particle* g4particle, TrackSeedContainer* container);
   PHG4TruthInfoContainer* m_g4truth_container = nullptr;
 
   /// get crossing id from intt clusters associated to track
   /* this is a copy of the code in PHTruthSiliconAssociation */
   std::set<short int> getInttCrossings(TrackSeed*) const;
 
-  TrkrClusterContainer *m_clusterMap = nullptr;
-  TrkrClusterCrossingAssoc *m_cluster_crossing_map = nullptr;
+  TrkrClusterContainer* m_clusterMap = nullptr;
+  TrkrClusterCrossingAssoc* m_cluster_crossing_map = nullptr;
   PHG4HitContainer* phg4hits_tpc = nullptr;
   PHG4HitContainer* phg4hits_intt = nullptr;
   PHG4HitContainer* phg4hits_mvtx = nullptr;
@@ -106,25 +106,24 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   //! minimal truth momentum cut (GeV)
   double _min_momentum = 50e-3;
 
-  TrackSeedContainer *_track_map_silicon = nullptr;
-  TrackSeedContainer *_track_map_combined = nullptr;
+  TrackSeedContainer* _track_map_silicon = nullptr;
+  TrackSeedContainer* _track_map_combined = nullptr;
 
-  ActsGeometry *tgeometry = nullptr;
+  ActsGeometry* tgeometry = nullptr;
 
-  bool _circle_fit_seed = false;
+  //  bool _circle_fit_seed = false;
 
   //! rng de-allocator
   class Deleter
   {
-    public:
+   public:
     //! deletion operator
-    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+    void operator()(gsl_rng* rng) const { gsl_rng_free(rng); }
   };
 
   //! random generator that conform with sPHENIX standard
   /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
   std::unique_ptr<gsl_rng, Deleter> m_rng;
-
 };
 
 #endif

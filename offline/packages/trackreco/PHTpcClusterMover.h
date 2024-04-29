@@ -69,14 +69,14 @@ class PHTpcClusterMover : public SubsysReco
   TpcDistortionCorrectionContainer* _dcc{nullptr};
 
   double layer_radius[48] = {0};
-  double inner_tpc_min_radius = 30.0;
-  double mid_tpc_min_radius = 40.0;
-  double outer_tpc_min_radius = 60.0;
-  double outer_tpc_max_radius = 77.0;
+//  double inner_tpc_min_radius = 30.0;
+//  double mid_tpc_min_radius = 40.0;
+//  double outer_tpc_min_radius = 60.0;
+//  double outer_tpc_max_radius = 77.0;
 
-  double inner_tpc_spacing = 0.0;
-  double mid_tpc_spacing = 0.0;
-  double outer_tpc_spacing = 0.0;
+//  double inner_tpc_spacing = 0.0;
+//  double mid_tpc_spacing = 0.0;
+//  double outer_tpc_spacing = 0.0;
 
 };
 

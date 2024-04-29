@@ -149,7 +149,7 @@ void TrackSeed_v1::lineFit(TrkrClusterContainer* clusters,
   lineFit(positions, startLayer, endLayer);
 }
 
-void TrackSeed_v1::circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+void TrackSeed_v1::circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                                      uint8_t startLayer,
                                      uint8_t endLayer)
 {
@@ -204,7 +204,7 @@ void TrackSeed_v1::circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>&
   }
 }
 
-void TrackSeed_v1::lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+void TrackSeed_v1::lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
                            uint8_t startLayer,
                            uint8_t endLayer)
 {
@@ -286,7 +286,7 @@ float TrackSeed_v1::get_pt() const
   /// Scaling factor for radius in 1.4T field
   return 0.3 * 1.4 / 100. * fabs(1. / m_qOverR);
 }
-float TrackSeed_v1::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const
+float TrackSeed_v1::get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const
 {
   const auto [x, y] = findRoot();
   float phi = std::atan2(-1 * (m_X0 - x), (m_Y0 - y));
@@ -328,23 +328,24 @@ float TrackSeed_v1::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& position
 float TrackSeed_v1::get_phi(TrkrClusterContainer* clusters,
                             ActsGeometry* tGeometry) const
 {
-  auto clus1 = clusters->findCluster(*(m_cluster_keys.begin()));
-  auto key = *std::next(m_cluster_keys.begin(), 1);
-  auto clus2 = clusters->findCluster(key);
-  if (!clus1 or !clus2)
-  {
-    return NAN;
-  }
+  // check that there are enough clusters associated to the seed
+  if( m_cluster_keys.size() < 2 ) return NAN;
 
-  Acts::Vector3 pos0 = tGeometry->getGlobalPosition(
-      *(m_cluster_keys.begin()),
-      clus1);
+  const auto key1 = *(m_cluster_keys.begin());
+  const auto clus1 = clusters->findCluster(key1);
+  if( !clus1 ) return NAN;
 
-  Acts::Vector3 pos1 = tGeometry->getGlobalPosition(key, clus2);
-  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
-  positions.insert(std::make_pair(*(m_cluster_keys.begin()), pos0));
-  positions.insert(std::make_pair(key, pos1));
+  const auto key2 = *(++m_cluster_keys.begin());
+  const auto clus2 = clusters->findCluster(key2);
+  if( !clus2 ) return NAN;
+
+  const auto pos1 = tGeometry->getGlobalPosition(key1, clus1);
+  const auto pos2 = tGeometry->getGlobalPosition(key2, clus2);
+  const std::map<TrkrDefs::cluskey, Acts::Vector3> positions = {
+    { key1, pos1 },
+    { key2, pos2 } };
   return get_phi(positions);
+
 }
 
 float TrackSeed_v1::get_theta() const

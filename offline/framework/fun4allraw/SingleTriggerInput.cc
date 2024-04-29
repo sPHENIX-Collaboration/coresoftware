@@ -6,6 +6,7 @@
 
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
+#include <Event/packet.h>
 
 #include <cstdint>   // for uint64_t
 #include <iostream>  // for operator<<, basic_ostream, endl
@@ -19,6 +20,11 @@ SingleTriggerInput::SingleTriggerInput(const std::string &name)
 
 SingleTriggerInput::~SingleTriggerInput()
 {
+  for (auto &openfiles : m_PacketDumpFile)
+  {
+    openfiles.second->close();
+  }
+  m_PacketDumpFile.clear();
   delete m_EventIterator;
 }
 
@@ -135,5 +141,24 @@ void SingleTriggerInput::ClearCurrentEvent()
   CleanupUsedPackets(currentbclk);
   m_BclkStack.erase(currentbclk);
   m_BeamClockFEE.erase(currentbclk);
+  return;
+}
+
+void SingleTriggerInput::ddumppacket(Packet *pkt)
+{
+  int packetid = pkt->getIdentifier();
+  if (m_PacketDumpFile.find(packetid) == m_PacketDumpFile.end())
+  {
+    std::string fname = "packet_" + std::to_string(packetid) + ".ddump";
+    std::ofstream *dumpfile = new std::ofstream(fname);
+    //dumpfile.open(fname);
+      m_PacketDumpFile.insert(std::make_pair(packetid,dumpfile));
+      m_PacketDumpCounter.insert(std::make_pair(packetid,m_ddump_flag));
+  }
+  if (m_PacketDumpCounter[packetid] != 0)
+  {
+    pkt->dump(*m_PacketDumpFile[packetid]);
+    m_PacketDumpCounter[packetid]--;
+  }
   return;
 }
