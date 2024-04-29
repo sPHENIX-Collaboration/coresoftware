@@ -150,24 +150,6 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
           newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
         }
       }
- /*
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
-      newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
-      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
-      newhit->setEvtSequence(EventSequence);
-      for (int ifem = 0; ifem < 2; ifem++)
-      {
-        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
-      }
-      for (int ipmt = 0; ipmt < 128; ipmt++)
-      {
-        for (int isamp = 0; isamp < 31; isamp++)
-        {
-          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-        }
-      }
-*/
       if (Verbosity() > 2)
       {
         std::cout << PHWHERE << "evtno: " << EventSequence
@@ -262,9 +244,9 @@ bool SingleZdcTriggerInput::GetSomeMoreEvents(const unsigned int keep)
 
   int first_event = m_ZdcPacketMap.begin()->first;
   int last_event = m_ZdcPacketMap.rbegin()->first;
-  std::cout << "number of zdc events: " << m_ZdcPacketMap.size() << std::endl;
   if (Verbosity() > 1)
   {
+    std::cout << "number of zdc events: " << m_ZdcPacketMap.size() << std::endl;
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
