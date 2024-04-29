@@ -69,7 +69,7 @@ class intt_pool
     uint16_t full_FPHX;
     uint16_t full_ROC;
     uint16_t amplitude;
-//    uint16_t full_fphx;
+    //    uint16_t full_fphx;
     uint32_t event_counter;
     uint32_t word;
   };
