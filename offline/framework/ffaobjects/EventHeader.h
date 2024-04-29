@@ -30,6 +30,8 @@ class EventHeader : public PHObject
   /// isValid returns non zero if object contains valid data
   int isValid() const override;
 
+  virtual void CopyTo(EventHeader *) {return;}
+
   /// get Run Number
   virtual int get_RunNumber() const { return 0; }
   /// set Run Number

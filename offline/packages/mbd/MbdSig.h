@@ -1,19 +1,21 @@
 #ifndef __MBDSIG_H__
 #define __MBDSIG_H__
 
+#include "MbdRunningStats.h"
+
 #include <TH1.h>
-//#include <TH2.h>
+
 #include <fstream>
 #include <vector>
 #include <queue>
 
-#include "MbdRunningStats.h"
 
 class TFile;
 class TTree;
 class TGraphErrors;
 class TH2;
 // class THnSparse;
+class MbdCalib;
 
 /**
 
@@ -30,8 +32,11 @@ class MbdSig
 
   // MbdSig& operator= (const MbdSig& obj) = delete; // never used
 
+  void SetNSamples( const int s ) { _nsamples = s; }
   void SetY(const Float_t *y, const int invert = 1);
   void SetXY(const Float_t *x, const Float_t *y, const int invert = 1);
+
+  void SetCalib(MbdCalib *mcal);
 
   TH1 *GetHist() { return hpulse; }
   TGraphErrors *GetGraph() { return gpulse; }
@@ -59,20 +64,20 @@ class MbdSig
     minped0samp = minsamp;
     maxped0samp = maxsamp;
   }
+
   void SetEventPed0Range(const Double_t minx, const Double_t maxx)
   {
     minped0x = minx;
     maxped0x = maxx;
   }
-  void SetEventPed0PreSamp(const Int_t presample, const Int_t nsamps = 1, const int max_samp = -1)
-  {
-    ped_presamp = presample;
-    ped_presamp_nsamps = nsamps;
-    ped_presamp_maxsamp = max_samp;
-  }
+
+  void SetEventPed0PreSamp(const Int_t presample, const Int_t nsamps = -1, const int max_samp = -1);
+
   void CalcEventPed0(const Int_t minsamp, const Int_t maxsamp);
   void CalcEventPed0(const Double_t minx, const Double_t maxx);
   void CalcEventPed0_PreSamp(const Int_t pre_samp, const Int_t nsamps = 1);
+
+  TH1 *GetPedHist() { return hPed0; }
 
   /** Leading Edge Discriminator signal */
   Double_t LeadingEdge(const Double_t threshold);  // Leading Edge Discriminator Time
@@ -110,18 +115,21 @@ class MbdSig
   TF1 *GetTemplateFcn() { return template_fcn; }
   void SetMinMaxFitTime(const Double_t mintime, const Double_t maxtime);
 
+  void WritePedHist();
+
   void PadUpdate();
   void Print();
-  void Verbose(const int v) { verbose = v; }
+  void Verbose(const int v) { _verbose = v; }
 
  private:
   void Init();
 
-  int ch;
-  int nsamples;
+  int _ch;
+  int _nsamples;
   int _status{0};
 
   int _evt_counter{0};
+  MbdCalib *_mbdcal{nullptr};
 
   /** fit values*/
   // should make an array for the different methods
@@ -142,8 +150,10 @@ class MbdSig
   /** for CalcPed0 */
   //std::unique_ptr<MbdRunningStats> ped0stats{nullptr};    //!
   MbdRunningStats *ped0stats{nullptr};    //!
-  TH1 *hPed0;                     //!
+  TH1 *hPed0{nullptr};            //! all events
+  TH1 *hPedEvt{nullptr};          //! evt-by-event pedestal
   TF1 *ped_fcn{nullptr};
+  TF1 *ped_tail{nullptr};         //! tail of prev signal
   Double_t ped0;                  //!
   Double_t ped0rms;               //!
   Int_t use_ped0;                 //! whether to apply ped0
@@ -178,7 +188,7 @@ class MbdSig
   Double_t fit_min_time{};  //! min time for fit, in original units of waveform data
   Double_t fit_max_time{};  //! max time for fit, in original units of waveform data
 
-  int verbose;
+  int _verbose;
 };
 
 #endif  // __MBDSIG_H__

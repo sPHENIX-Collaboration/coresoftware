@@ -13,11 +13,20 @@ lib_LTLIBRARIES = \
   libmbd.la
 endif
 
+if USE_ONLINE
+AM_CPPFLAGS = \
+  -DONLINE \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I${G4_MAIN}/include \
+  -isystem$(ROOTSYS)/include
+else
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
   -isystem$(ROOTSYS)/include
+endif
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -28,12 +37,24 @@ if USE_ONLINE
 pkginclude_HEADERS = \
   BbcGeom.h \
   BbcGeomV1.h \
+  MbdDefs.h \
+  MbdEvent.h \
   MbdGeom.h \
-  MbdGeomV1.h
+  MbdGeomV1.h \
+  MbdOut.h \
+  MbdOutV1.h \
+  MbdOutV2.h \
+  MbdPmtContainer.h \
+  MbdPmtContainerV1.h \
+  MbdPmtHit.h \
+  MbdPmtHitV1.h \
+  MbdReturnCodes.h \
+  MbdRunningStats.h \
+  MbdCalib.h \
+  MbdSig.h
 
 else
 pkginclude_HEADERS = \
-  MbdRunningStats.h \
   BbcDefs.h \
   MbdDefs.h \
   BbcOut.h \
@@ -53,6 +74,7 @@ pkginclude_HEADERS = \
   MbdPmtSimHitV1.h \
   BbcPmtInfoContainerV1.h \
   BbcPmtInfoV1.h \
+  MbdRunningStats.h \
   MbdSig.h \
   MbdEvent.h \
   MbdCalib.h \
@@ -75,7 +97,14 @@ ROOTDICTS = \
   BbcGeom_Dict.cc \
   BbcGeomV1_Dict.cc \
   MbdGeom_Dict.cc \
-  MbdGeomV1_Dict.cc
+  MbdGeomV1_Dict.cc \
+  MbdOut_Dict.cc \
+  MbdOutV1_Dict.cc \
+  MbdOutV2_Dict.cc \
+  MbdPmtContainer_Dict.cc \
+  MbdPmtContainerV1_Dict.cc \
+  MbdPmtHit_Dict.cc \
+  MbdPmtHitV1_Dict.cc
 
 else
 ROOTDICTS = \
@@ -114,7 +143,16 @@ nobase_dist_pcm_DATA = \
   BbcGeom_Dict_rdict.pcm \
   BbcGeomV1_Dict_rdict.pcm \
   MbdGeom_Dict_rdict.pcm \
-  MbdGeomV1_Dict_rdict.pcm
+  MbdGeomV1_Dict_rdict.pcm \
+  MbdOut_Dict_rdict.pcm \
+  MbdOutV1_Dict_rdict.pcm \
+  MbdOutV2_Dict_rdict.pcm \
+  MbdPmtHit_Dict_rdict.pcm \
+  MbdPmtHitV1_Dict_rdict.pcm \
+  MbdPmtSimHitV1_Dict_rdict.pcm \
+  MbdPmtContainer_Dict_rdict.pcm \
+  MbdPmtContainerV1_Dict_rdict.pcm \
+  MbdPmtSimContainerV1_Dict_rdict.pcm
 
 else
 nobase_dist_pcm_DATA = \
@@ -149,12 +187,24 @@ endif
 if USE_ONLINE
 libmbd_io_la_SOURCES = \
   $(ROOTDICTS) \
+  MbdEvent.cc \
   BbcGeomV1.cc \
-  MbdGeomV1.cc
+  MbdGeomV1.cc \
+  MbdOut.cc \
+  MbdOutV1.cc \
+  MbdOutV2.cc \
+  MbdPmtHit.cc \
+  MbdPmtHitV1.cc \
+  MbdPmtContainer.cc \
+  MbdPmtContainerV1.cc \
+  MbdRunningStats.cc \
+  MbdCalib.cc \
+  MbdSig.cc
 
 else
 libmbd_io_la_SOURCES = \
   $(ROOTDICTS) \
+  BbcGeomV1.cc \
   BbcOut.cc \
   BbcOutV1.cc \
   BbcPmtHit.cc \
@@ -163,7 +213,7 @@ libmbd_io_la_SOURCES = \
   BbcPmtContainerV1.cc \
   BbcPmtInfoV1.cc \
   BbcPmtInfoContainerV1.cc \
-  BbcGeomV1.cc \
+  MbdGeomV1.cc \
   MbdOut.cc \
   MbdOutV1.cc \
   MbdOutV2.cc \
@@ -173,15 +223,14 @@ libmbd_io_la_SOURCES = \
   MbdPmtContainer.cc \
   MbdPmtContainerV1.cc \
   MbdPmtSimContainerV1.cc \
-  MbdGeomV1.cc \
+  MbdRunningStats.cc \
+  MbdSig.cc \
   BbcVertexv1.cc \
   BbcVertexv2.cc \
   BbcVertexMap.cc \
   BbcVertexMapv1.cc
 
 libmbd_la_SOURCES = \
-  MbdRunningStats.cc \
-  MbdSig.cc \
   MbdEvent.cc \
   MbdCalib.cc \
   MbdReco.cc

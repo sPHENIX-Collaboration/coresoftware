@@ -7,8 +7,8 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase_historic/SvtxTrackMap.h>
 #include <globalvertex/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
@@ -56,7 +56,7 @@ class KshortReconstruction : public SubsysReco
   void setTrackDCACut(double cut) { track_dca_cut = cut; }
   void setRequireMVTX(bool set) { _require_mvtx = set; }
   void setDecayMass(Float_t decayMassSet) { decaymass = decayMassSet; }  //(muons decaymass = 0.1057) (pions = 0.13957) (electron = 0.000511)
-  void set_output_file(const std::string &outputfile) { filepath = outputfile; }
+  void set_output_file(const std::string& outputfile) { filepath = outputfile; }
 
  private:
   void fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj);
@@ -64,7 +64,7 @@ class KshortReconstruction : public SubsysReco
   void fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1D* massreco, double& invariantMass, double& invariantPt, float& rapidity, float& pseudorapidity);
 
   // void findPcaTwoTracks(SvtxTrack *track1, SvtxTrack *track2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca);
-  void findPcaTwoTracks(Acts::Vector3 pos1, Acts::Vector3 pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca);
+  void findPcaTwoTracks(const Acts::Vector3& pos1, const Acts::Vector3& pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca);
 
   int getNodes(PHCompositeNode* topNode);
 

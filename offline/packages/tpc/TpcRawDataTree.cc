@@ -2,20 +2,15 @@
 #include "TpcRawDataTree.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
+
 #include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <Event/Event.h>
-#include <Event/EventTypes.h>
 #include <Event/packet.h>
 
 #include <TFile.h>
-#include <TH1F.h>
-#include <TH2F.h>
+#include <TH1.h>
+#include <TH2.h>
 #include <TTree.h>
 
 #include <cassert>
@@ -179,8 +174,8 @@ int TpcRawDataTree::process_event(PHCompositeNode *topNode)
       m_checksum = p->iValue(wf, "CHECKSUM");
       m_checksumError = p->iValue(wf, "CHECKSUMERROR");
 
-      TH1F *fillHist;
-      TH2F *fillHist2D;
+      TH1 *fillHist;
+      TH2 *fillHist2D;
 
       if (m_fee == 2 ||
           m_fee == 4 ||

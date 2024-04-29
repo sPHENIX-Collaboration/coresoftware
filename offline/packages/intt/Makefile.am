@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -39,7 +39,6 @@ pkginclude_HEADERS = \
   InttBadChannelMapv1.h \
   InttBCOMap.h \
   InttClusterizer.h \
-  InttClusterQA.h \
   InttCombinedRawDataDecoder.h \
   InttDacMap.h \
   InttFeeMap.h \
@@ -91,7 +90,6 @@ libintt_la_SOURCES = \
   InttBadChannelMap.cc \
   InttBadChannelMapv1.cc \
   InttClusterizer.cc \
-  InttClusterQA.cc \
   InttCombinedRawDataDecoder.cc \
   InttDacMap.cc \
   InttFeeMap.cc \
@@ -131,8 +129,7 @@ libintt_io_la_LIBADD = \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
-  -ltrackbase_historic_io \
-  -lqautils
+  -ltrackbase_historic_io
 
 endif
 

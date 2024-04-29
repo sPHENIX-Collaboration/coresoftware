@@ -12,6 +12,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
+#include <phool/recoConsts.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -19,6 +20,10 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
+
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
+#include <ffamodules/CDBInterface.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -45,6 +50,7 @@ CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
 //____________________________________________________________________________..
 CaloTowerBuilder::~CaloTowerBuilder()
 {
+  delete cdbttree;
   delete WaveformProcessing;
 }
 
@@ -52,7 +58,7 @@ CaloTowerBuilder::~CaloTowerBuilder()
 int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
   WaveformProcessing->set_processing_type(_processingtype);
-  WaveformProcessing->set_softwarezerosuppression(_bdosoftwarezerosuppression, _nsoftwarezerosuppression);
+  WaveformProcessing->set_softwarezerosuppression(m_bdosoftwarezerosuppression, m_nsoftwarezerosuppression);
 
   if (m_dettype == CaloTowerDefs::CEMC)
   {
@@ -65,6 +71,22 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
     }
+
+    //===============
+    // conditions DB flags
+    //===============
+
+    m_calibName = "cemc_adcskipmask";
+
+    m_fieldname = "adcskipmask";
+
+    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+    if (calibdir.empty())
+    {
+      std::cout << PHWHERE << "ADC Skip mask not found in CDB, not even in the default... " << std::endl;
+      exit(1);
+    }
+    cdbttree = new CDBTTree(calibdir.c_str());
   }
   else if (m_dettype == CaloTowerDefs::HCALIN)
   {
@@ -177,7 +199,13 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
     Packet *packet = _event->getPacket(pid);
     if (packet)
     {
+      unsigned int adc_skip_mask = 0;
       int nchannels = packet->iValue(0, "CHANNELS");
+      if (m_dettype == CaloTowerDefs::CEMC)
+      {  // special condition during zdc commisioning
+        adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
+      }
+
       if (m_dettype == CaloTowerDefs::ZDC)
       {  // special condition during zdc commisioning
         if (nchannels < m_nchannels)
@@ -194,8 +222,6 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
 
       for (int channel = 0; channel < nchannels; channel++)
       {
-        // mask empty channels
-
         if (m_dettype == CaloTowerDefs::SEPD)
         {
           int sector = ((channel + 1) / 32);
@@ -204,6 +230,30 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
             continue;
           }
         }
+
+        if (m_dettype == CaloTowerDefs::CEMC)
+        {
+          if (channel % 64 == 0)
+          {
+            unsigned int adcboard = (unsigned int) channel / 64;
+            if ((adc_skip_mask >> adcboard) & 0x1U)
+            {
+              for (int iskip = 0; iskip < 64; iskip++)
+              {
+                std::vector<float> waveform;
+                waveform.reserve(m_nsamples);
+
+                for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+                {
+                  waveform.push_back(0);
+                }
+                waveforms.push_back(waveform);
+                waveform.clear();
+              }
+            }
+          }
+        }
+
         std::vector<float> waveform;
         waveform.reserve(m_nsamples);
         if (packet->iValue(channel, "SUPPRESSED"))
@@ -221,7 +271,9 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
         waveforms.push_back(waveform);
         waveform.clear();
       }
-      if (nchannels < m_nchannels)
+      // if nchannels < set number and it is the EMCAL but with the skip already accounted for, we need to skip this part. otherwise it assumes the last board was taken out
+
+      if (nchannels < m_nchannels && !(m_dettype == CaloTowerDefs::CEMC && adc_skip_mask < 4))
       {
         for (int channel = 0; channel < m_nchannels - nchannels; channel++)
         {
@@ -234,9 +286,9 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
               continue;
             }
           }
-          std::vector<float> waveform;
-          waveform.reserve(m_nsamples);
 
+          std::vector<float> waveform;
+          waveform.reserve(2);
           for (int samp = 0; samp < m_nzerosuppsamples; samp++)
           {
             waveform.push_back(0);
@@ -245,6 +297,7 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
           waveform.clear();
         }
       }
+
       delete packet;
     }
     else  // if the packet is missing treat constitutent channels as zero suppressed
@@ -287,6 +340,13 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
     if (packet)
     {
       int nchannels = packet->iValue(0, "CHANNELS");
+      unsigned int adc_skip_mask = 0;
+
+      if (m_dettype == CaloTowerDefs::CEMC)
+      {  // special condition during zdc commisioning
+        adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
+      }
+
       if (m_dettype == CaloTowerDefs::ZDC)
       {  // special condition during zdc commisioning
         if (nchannels < m_nchannels)
@@ -313,6 +373,29 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
             continue;
           }
         }
+        if (m_dettype == CaloTowerDefs::CEMC)
+        {
+          if (channel % 64 == 0)
+          {
+            unsigned int adcboard = (unsigned int) channel / 64;
+            if ((adc_skip_mask >> adcboard) & 0x1U)
+            {
+              for (int iskip = 0; iskip < 64; iskip++)
+              {
+                std::vector<float> waveform;
+                waveform.reserve(m_nsamples);
+
+                for (int samp = 0; samp < m_nzerosuppsamples; samp++)
+                {
+                  waveform.push_back(0);
+                }
+                waveforms.push_back(waveform);
+                waveform.clear();
+              }
+            }
+          }
+        }
+
         std::vector<float> waveform;
         waveform.reserve(m_nsamples);
         if (packet->iValue(channel, "SUPPRESSED"))
@@ -330,7 +413,8 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
         waveforms.push_back(waveform);
         waveform.clear();
       }
-      if (nchannels < m_nchannels)
+
+      if (nchannels < m_nchannels && !(m_dettype == CaloTowerDefs::CEMC && adc_skip_mask < 4))
       {
         for (int channel = 0; channel < m_nchannels - nchannels; channel++)
         {

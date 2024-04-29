@@ -55,6 +55,10 @@ pkginclude_HEADERS = \
   InttDefs.h \
   InttEventInfo.h \
   InttEventInfov1.h \
+  LaserCluster.h \
+  LaserClusterContainer.h \
+  LaserClusterContainerv1.h \
+  LaserClusterv1.h \
   MvtxDefs.h \
   MvtxEventInfo.h \
   MvtxEventInfov1.h \
@@ -125,6 +129,10 @@ ROOTDICTS = \
   ClusHitsVerbosev1_Dict.cc \
   InttEventInfo_Dict.cc \
   InttEventInfov1_Dict.cc \
+  LaserClusterContainer_Dict.cc \
+  LaserClusterContainerv1_Dict.cc \
+  LaserCluster_Dict.cc \
+  LaserClusterv1_Dict.cc \
   MvtxEventInfo_Dict.cc \
   MvtxEventInfov1_Dict.cc \
   MvtxEventInfov2_Dict.cc \
@@ -189,6 +197,10 @@ nobase_dist_pcm_DATA = \
   ClusHitsVerbosev1_Dict_rdict.pcm \
   InttEventInfo_Dict_rdict.pcm \
   InttEventInfov1_Dict_rdict.pcm \
+  LaserClusterContainer_Dict_rdict.pcm \
+  LaserClusterContainerv1_Dict_rdict.pcm \
+  LaserCluster_Dict_rdict.pcm \
+  LaserClusterv1_Dict_rdict.pcm \
   MvtxEventInfo_Dict_rdict.pcm \
   MvtxEventInfov1_Dict_rdict.pcm \
   MvtxEventInfov2_Dict_rdict.pcm \
@@ -255,6 +267,8 @@ libtrack_io_la_SOURCES = \
   InttDefs.cc \
   InttEventInfo.cc \
   InttEventInfov1.cc \
+  LaserClusterContainerv1.cc \
+  LaserClusterv1.cc \
   MvtxDefs.cc \
   MvtxEventInfo.cc \
   MvtxEventInfov1.cc \

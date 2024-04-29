@@ -302,6 +302,7 @@ int Fun4AllStreamingInputManager::ResetEvent()
   //   iter->CleanupUsedPackets(m_CurrentBeamClock);
   // }
   //  m_SyncObject->Reset();
+  m_RefBCO = 0;
   return 0;
 }
 
@@ -567,6 +568,8 @@ int Fun4AllStreamingInputManager::FillGl1()
     MySyncManager()->CurrentEvent(gl1rawhit->getEvtSequence());
     m_RefBCO = gl1hititer->get_bco();
     m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)
+//    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
+
   }
   for (auto iter : m_Gl1InputVector)
   {
@@ -594,14 +597,12 @@ int Fun4AllStreamingInputManager::FillIntt()
   // FillInttPool() contains this check already and will return non zero
   // so here m_InttRawHitMap will always contain entries
   uint64_t select_crossings = m_intt_bco_range;
-  if (m_RefBCO > 0)
+  if (m_RefBCO == 0)
   {
-    select_crossings += m_RefBCO;
+    m_RefBCO = m_InttRawHitMap.begin()->first;
+//    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
   }
-  else
-  {
-    select_crossings += m_InttRawHitMap.begin()->first;
-  }
+  select_crossings += m_RefBCO;
   if (Verbosity() > 2)
   {
     std::cout << "select INTT crossings"
@@ -677,24 +678,24 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
   // std::cout << "before filling m_MvtxRawHitMap size: " <<  m_MvtxRawHitMap.size() << std::endl;
   uint64_t select_crossings = m_mvtx_bco_range;
-  if (m_RefBCO > 0)
+  if (m_RefBCO == 0)
   {
-    select_crossings += m_RefBCO;
+    m_RefBCO = m_MvtxRawHitMap.begin()->first;
   }
-  else
-  {
-    select_crossings += m_MvtxRawHitMap.begin()->first;
-  }
+  select_crossings += m_RefBCO;
+
+  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_bco_range ? 0 : m_RefBCO - m_mvtx_bco_range;
   if (Verbosity() > 2)
   {
     std::cout << "select MVTX crossings"
-              << " from 0x" << std::hex << m_RefBCO - m_mvtx_bco_range
+              << " from 0x" << std::hex << ref_bco_minus_range
               << " to 0x" << select_crossings - m_mvtx_bco_range
               << std::dec << std::endl;
   }
   // m_MvtxRawHitMap.empty() does not need to be checked here, FillMvtxPool returns non zero
   // if this map is empty which is handled above
-  while (m_MvtxRawHitMap.begin()->first < m_RefBCO - m_mvtx_bco_range)
+  //All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
+  while (m_MvtxRawHitMap.begin()->first < ref_bco_minus_range)
   {
     if (Verbosity() > 2)
     {
@@ -764,14 +765,11 @@ int Fun4AllStreamingInputManager::FillMicromegas()
 
   auto container = findNode::getClass<MicromegasRawHitContainer>(m_topNode, "MICROMEGASRAWHIT");
   uint64_t select_crossings = m_micromegas_bco_range;
-  if (m_RefBCO > 0)
+  if (m_RefBCO == 0)
   {
-    select_crossings += m_RefBCO;
+    m_RefBCO = m_MicromegasRawHitMap.begin()->first;
   }
-  else
-  {
-    select_crossings += m_MicromegasRawHitMap.begin()->first;
-  }
+  select_crossings += m_RefBCO;
   if (Verbosity() > 2)
   {
     std::cout << "select MicroMegas crossings"
@@ -834,14 +832,11 @@ int Fun4AllStreamingInputManager::FillTpc()
   TpcRawHitContainer *tpccont = findNode::getClass<TpcRawHitContainer>(m_topNode, "TPCRAWHIT");
   //  std::cout << "before filling m_TpcRawHitMap size: " <<  m_TpcRawHitMap.size() << std::endl;
   uint64_t select_crossings = m_tpc_bco_range;
-  if (m_RefBCO > 0)
+  if (m_RefBCO == 0)
   {
-    select_crossings += m_RefBCO;
+    m_RefBCO = m_TpcRawHitMap.begin()->first;
   }
-  else
-  {
-    select_crossings += m_TpcRawHitMap.begin()->first;
-  }
+  select_crossings += m_RefBCO;
   if (Verbosity() > 2)
   {
     std::cout << "select TPC crossings"

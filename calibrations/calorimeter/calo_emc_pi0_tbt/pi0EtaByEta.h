@@ -60,7 +60,6 @@ class pi0EtaByEta : public SubsysReco
     use_pdc = state;
     return;
   }
-
   void set_pt1BaseClusCut(float fac)
   {
     pt1BaseClusCut = fac;
@@ -81,8 +80,15 @@ class pi0EtaByEta : public SubsysReco
     doMix = state;
     return;
   }
+  void set_calibConvLev(float val)
+  {
+    convLev=val;
+    return;
+  }
 
   void set_massTargetHistFile(const std::string& file);
+  bool checkOutput(const std::string& file);
+
 
  protected:
   int Getpeaktime(TH1* h);
@@ -201,6 +207,10 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_pt2{nullptr};
   TH1* h_nclusters{nullptr};
   TH1* h_emcal_e_eta{nullptr};
+
+  float convLev = 0.005;
+
+
 };
 
 #endif

@@ -20,6 +20,8 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+#include <cmath>
 namespace
 {
   template <class T>
@@ -35,12 +37,15 @@ TrackSeedTrackMapConverter::TrackSeedTrackMapConverter(const std::string& name)
 }
 
 //____________________________________________________________________________..
-TrackSeedTrackMapConverter::~TrackSeedTrackMapConverter() = default;
-
-//____________________________________________________________________________..
 int TrackSeedTrackMapConverter::InitRun(PHCompositeNode* topNode)
 {
   int ret = getNodes(topNode);
+  std::istringstream stringline(m_fieldMap);
+  stringline >> fieldstrength;
+  if (!stringline.fail())  // it is a float
+  {
+    m_ConstField = true;
+  }
   return ret;
 }
 
@@ -82,7 +87,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
   /// Start with a fresh track map in case running iterative tracking
   m_trackMap->Reset();
-  
+
   unsigned int trackid = 0;
   for (const auto& trackSeed : *m_seedContainer)
   {
@@ -120,7 +125,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       {
         std::cout << "tpc seed id " << trackSeed->get_tpc_seed_index() << std::endl;
         std::cout << "si seed id " << trackSeed->get_silicon_seed_index() << std::endl;
-	std::cout << "crossing_estimate " << trackSeed->get_crossing_estimate()  << std::endl;
+        std::cout << "crossing_estimate " << trackSeed->get_crossing_estimate() << std::endl;
       }
 
       unsigned int seedindex = trackSeed->get_tpc_seed_index();
@@ -133,7 +138,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
           svtxtrack->set_x(tpcseed->get_x());
           svtxtrack->set_y(tpcseed->get_y());
           svtxtrack->set_z(tpcseed->get_z());
-	  svtxtrack->set_crossing(SHRT_MAX);
+          svtxtrack->set_crossing(SHRT_MAX);
         }
         else
         {
@@ -141,7 +146,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
           svtxtrack->set_x(siseed->get_x());
           svtxtrack->set_y(siseed->get_y());
           svtxtrack->set_z(siseed->get_z());
-	        svtxtrack->set_crossing(siseed->get_crossing());
+          svtxtrack->set_crossing(siseed->get_crossing());
           addKeys(svtxtrack, siseed);
           svtxtrack->set_silicon_seed(siseed);
         }
@@ -206,13 +211,13 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         svtxtrack->set_y(pca.y());
 
         float p;
-        if (m_fieldMap.find(".root") != std::string::npos)
+        if (m_ConstField)
         {
-          p = tpcseed->get_p();
+          p = std::cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
         }
         else
         {
-          p = cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+          p = tpcseed->get_p();
         }
 
         tan *= p;
@@ -224,12 +229,17 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         svtxtrack->set_z(svtxtrack->get_pz() > 0 ? (slope < 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()));
         svtxtrack->set_charge(charge);
         addKeys(svtxtrack, tpcseed);
-        if (silseed) addKeys(svtxtrack, silseed);
+        if (silseed)
+        {
+          addKeys(svtxtrack, silseed);
+        }
 
         svtxtrack->set_tpc_seed(tpcseed);
         svtxtrack->set_silicon_seed(silseed);
         if (Verbosity() > 5)
+        {
           svtxtrack->identify();
+        }
       }
       addKeys(svtxtrack, tpcseed);
       svtxtrack->set_tpc_seed(tpcseed);
@@ -243,20 +253,20 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       svtxtrack->set_y(trackSeed->get_y());
       svtxtrack->set_z(trackSeed->get_z());
       svtxtrack->set_charge(trackSeed->get_qOverR() > 0 ? 1 : -1);
-      if (m_fieldMap.find(".root") != std::string::npos)
+      if (m_ConstField)
       {
-        svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
-        svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
-        svtxtrack->set_pz(trackSeed->get_pz());
-      }
-      else
-      {
-        float pt = fabs(1. / trackSeed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+        float pt = fabs(1. / trackSeed->get_qOverR()) * (0.3 / 100) * fieldstrength;
 
         float phi = trackSeed->get_phi(m_clusters, m_tGeometry);
         svtxtrack->set_px(pt * std::cos(phi));
         svtxtrack->set_py(pt * std::sin(phi));
         svtxtrack->set_pz(pt * std::cosh(trackSeed->get_eta()) * std::cos(trackSeed->get_theta()));
+      }
+      else
+      {
+        svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
+        svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
+        svtxtrack->set_pz(trackSeed->get_pz());
       }
 
       // calculate chisq and ndf
@@ -475,7 +485,10 @@ std::pair<int, float> TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* see
   float maxdr = std::numeric_limits<float>::max();
   for (auto& glob : globpos)
   {
-    if (glob.y() > 0) continue;
+    if (glob.y() > 0)
+    {
+      continue;
+    }
     float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(glob.x()) + square(glob.y()));
     if (dr < maxdr && dr > 10)
     {
@@ -492,8 +505,14 @@ std::pair<int, float> TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* see
   const auto secondphi = atan2(globalSecondMostOuter.y(),
                                globalSecondMostOuter.x());
   auto dphi = secondphi - firstphi;
-  if (dphi > M_PI) dphi = 2. * M_PI - dphi;
-  if (dphi < -M_PI) dphi = 2. * M_PI + dphi;
+  if (dphi > M_PI)
+  {
+    dphi = 2. * M_PI - dphi;
+  }
+  if (dphi < -M_PI)
+  {
+    dphi = 2. * M_PI + dphi;
+  }
 
   float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
   float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
