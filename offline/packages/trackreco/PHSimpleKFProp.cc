@@ -87,11 +87,14 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   }
 
   PHFieldConfigv1 fcfg;
+
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
   if (std::filesystem::path(m_magField).extension() != ".root")
   {
     m_magField = CDBInterface::instance()->getUrl(m_magField);
   }
+  if(!_use_const_field)
+    {
   if (!std::filesystem::exists(m_magField))
   {
     if (m_magField.empty())
@@ -102,7 +105,13 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
               << " does not exist" << std::endl;
     gSystem->Exit(1);
   }
+    
   fcfg.set_filename(m_magField);
+    }
+  else{
+    fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
+    fcfg.set_magfield_rescale(_const_field);
+  }
   //  fcfg.set_rescale(1);
   _field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
 
