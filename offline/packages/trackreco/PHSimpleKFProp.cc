@@ -93,22 +93,23 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   {
     m_magField = CDBInterface::instance()->getUrl(m_magField);
   }
-  if(!_use_const_field)
-    {
-  if (!std::filesystem::exists(m_magField))
+  if (!_use_const_field)
   {
-    if (m_magField.empty())
+    if (!std::filesystem::exists(m_magField))
     {
-      m_magField = "empty string";
+      if (m_magField.empty())
+      {
+        m_magField = "empty string";
+      }
+      std::cout << PHWHERE << "Fieldmap " << m_magField
+                << " does not exist" << std::endl;
+      gSystem->Exit(1);
     }
-    std::cout << PHWHERE << "Fieldmap " << m_magField
-              << " does not exist" << std::endl;
-    gSystem->Exit(1);
+
+    fcfg.set_filename(m_magField);
   }
-    
-  fcfg.set_filename(m_magField);
-    }
-  else{
+  else
+  {
     fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
     fcfg.set_magfield_rescale(_const_field);
   }
