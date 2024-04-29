@@ -1,7 +1,7 @@
 #include "MbdSig.h"
+#include "MbdCalib.h"
 
 #include <phool/phool.h>
-#include "MbdCalib.h"
 
 #include <TF1.h>
 #include <TFile.h>
@@ -854,11 +854,11 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
 
 
   // When fit is out of limits of good part of spline, ignore fit
-  if (xx < template_begintime || xx > template_endtime || isnan(xx) )
+  if (xx < template_begintime || xx > template_endtime || std::isnan(xx) )
   {
     TF1::RejectPoint();
 
-    if ( isnan(xx) )
+    if ( std::isnan(xx) )
     {
       if (_verbose > 0)
       {
