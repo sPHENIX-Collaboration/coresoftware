@@ -167,6 +167,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         for (uint16_t is = 0; is < samples; ++is)
         {
           uint16_t adval = packet->iValue(wf, is);
+          // This is temporary fix for decoder change. Will be changed again for real ZS data decoding.
           if(adval =>64000){ newhit->set_samples(is); break;}
           newhit->set_adc(is, adval);
         }
