@@ -300,7 +300,8 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         for( unsigned short is = 0; is < std::min<unsigned short>( samples, 1024 ); ++is )
         {
           // assign sample id and corresponding adc, save copy in container
-          unsigned short adc = packet->iValue(iwf,is);
+          const uint16_t adc = packet->iValue(iwf,is);
+          if( adc == MicromegasDefs::m_adc_invalid ) continue;
           sample.sample = is;
           sample.adc = adc;
           sample_map.emplace( sample.lvl1_bco, sample );
