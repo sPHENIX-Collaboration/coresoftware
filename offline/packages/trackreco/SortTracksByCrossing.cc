@@ -65,15 +65,19 @@ int SortTracksByCrossing::process_event(PHCompositeNode */*topNode*/)
   if(Verbosity() > 0)
     std::cout << PHWHERE << " track map size " << _track_map->size()  << std::endl;
 
+  std::set<short int> crossings;
   
   for(const auto& [trackkey, track] : *_track_map)
     {
       auto crossing = track->get_crossing();
-      std::cout << "trackkey " << trackkey << " crossing " << crossing << std::endl;
+      crossings.insert(crossing);
  
       _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);
+
+       if(Verbosity() > 0) { std::cout << "trackkey " << trackkey << " crossing " << crossing << std::endl; }
     }
 
+/*
   for(const auto& [vtxkey, vertex] : *_svtx_vertex_map)
     {
        std::cout << "Vertex ID: " << vtxkey << " vertex crossing " << vertex->get_beam_crossing() << " list of tracks: " << std::endl;
@@ -91,9 +95,9 @@ int SortTracksByCrossing::process_event(PHCompositeNode */*topNode*/)
           auto siseed = track->get_silicon_seed();
           short int intt_crossing = siseed->get_crossing();
 
+          // the track crossing may be from the INTT clusters or from geometric matching if there are no INTT clusters
           crossing = track->get_crossing();
           std::cout << " vtxid " << vtxkey  << " crossing " << crossing << " intt_crossing " << intt_crossing 
-	  // << " siid " << siid
           << " trackID " << *trackiter
           << " track Z " << track->get_z()
 	  << " X " << track->get_x()
@@ -112,10 +116,13 @@ int SortTracksByCrossing::process_event(PHCompositeNode */*topNode*/)
         }
 
       _track_vertex_crossing_map->addVertexAssoc(crossing, vtxkey);
-    }
+   }
+*/
+
+
 
   // print the results
-  _track_vertex_crossing_map->identify();
+//  _track_vertex_crossing_map->identify();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -172,13 +179,14 @@ int SortTracksByCrossing::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  /*
   _svtx_vertex_map = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
   if (!_svtx_vertex_map)
   {
     std::cout << PHWHERE << " ERROR: Can't find SvtxVertexMap: " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
- 
+  */ 
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

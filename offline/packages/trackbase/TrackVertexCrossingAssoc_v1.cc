@@ -57,14 +57,6 @@ void TrackVertexCrossingAssoc_v1::identify(std::ostream& os) const
 
     }
 
-      /*
-     for (const auto& map_pair : _vertex_assoc_map)
-  {
-    os << "crossing " << map_pair.first << std::dec
-       << "  vertexid: " << map_pair.second; 
-  }
-  os << "------------------------------" << std::endl;
-      */
   return;
 }
 
