@@ -130,7 +130,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
       for(auto it : _vertex_track_map)
 	{
 	  if(Verbosity() > 1) std::cout << " vertex " << it.first + vertex_id << " track " << it.second << std::endl;      
-	  _vertex_set.insert(it.first);
+	  _vertex_set.insert(it.first);  
 	}
       
       // this finds average vertex positions after removal of outlying track pairs 
@@ -159,7 +159,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	  avgCov /= sqrt(cov_wt);
 	  if(Verbosity() > 2)
 	    {
-	      std::cout << "Average covariance for vertex " << it + vertex_id << " is:" << std::endl;
+	      std::cout << "Average covariance for vertex " << it << " is:" << std::endl;
 	      std::cout << std::setprecision(8) << avgCov << std::endl; 
 	    }
 	  _vertex_covariance_map.insert(std::make_pair(it, avgCov));
@@ -171,12 +171,14 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
       
       for(auto it : _vertex_set)
 	{
+	  unsigned int thisid = it + vertex_id;  // the address of the vertex in the event
+
 	  auto svtxVertex = std::make_unique<SvtxVertex_v2>();
 	  
 	  svtxVertex->set_chisq(0.0);
 	  svtxVertex->set_ndof(0);
 	  svtxVertex->set_t0(0);
-	  svtxVertex->set_id(it + vertex_id);
+	  svtxVertex->set_id(thisid);
 	  svtxVertex->set_beam_crossing(cross);
 	  
 	  auto ret = _vertex_track_map.equal_range(it);
@@ -184,16 +186,16 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	    {
 	      unsigned int trid = cit->second;
 	      
-	      if(Verbosity() > 1) std::cout << "   vertex " << it + vertex_id << " insert track " << trid << std::endl; 
+	      if(Verbosity() > 1) std::cout << "   vertex " << thisid  << " insert track " << trid << std::endl; 
 	      svtxVertex->insert_track(trid);
-	      _track_map->get(trid)->set_vertex_id(it + vertex_id);
+	      _track_map->get(trid)->set_vertex_id(thisid);
 	    }
 	  
 	  Eigen::Vector3d pos = _vertex_position_map.find(it)->second;
 	  svtxVertex->set_x(pos.x());  
 	  svtxVertex->set_y(pos.y());
 	  svtxVertex->set_z(pos.z());
-	  if(Verbosity() > 1) std::cout << "   vertex " << it + vertex_id << " insert pos.x " << pos.x() << " pos.y " << pos.y() << " pos.z " << pos.z() << std::endl; 
+	  if(Verbosity() > 1) { std::cout << "   vertex " << thisid  << " insert pos.x " << pos.x() << " pos.y " << pos.y() << " pos.z " << pos.z() << std::endl; }
 	  
 	  auto vtxCov = _vertex_covariance_map.find(it)->second;
 	  for(int i = 0; i < 3; ++i) 
@@ -205,9 +207,9 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	    }
 	  
 	  _svtx_vertex_map->insert(svtxVertex.release());      
-
-	  vertex_id++;
 	}
+
+      vertex_id += _vertex_set.size();
 
       /// Iterate through the tracks and assign the closest vtx id to 
       /// the track position for propagating back to the vtx. Catches any
@@ -218,27 +220,34 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	{
 	  auto thistrack = _track_map->get(trackkey); // get the original, not the copy
 	  auto vtxid = thistrack->get_vertex_id();
+	  std::cout << "        track " << trackkey << " track vtxid " << vtxid  << std::endl;
+
 	  /// If there is a vertex already assigned, keep going
-	  if(_svtx_vertex_map->get(vtxid))
+	  if( vtxid !=  std::numeric_limits<unsigned int>::max() )	  
 	    { continue; }
 	  
 	  float maxdz = std::numeric_limits<float>::max();
 	  unsigned int newvtxid = std::numeric_limits<unsigned int>::max();
 	  
-	  for(const auto& [vtxkey, vertex] : *_svtx_vertex_map)
+	  for(auto it : _vertex_set)
 	    {
-	      float dz = thistrack->get_z() - vertex->get_z();
+	      unsigned int thisid = it + vertex_id - _vertex_set.size();
+
+	      if(Verbosity() > 1) { std::cout << "                test vertex " << thisid  << std::endl; }
+
+	      auto thisvertex = _svtx_vertex_map->get(thisid);
+	      float dz = thistrack->get_z() - thisvertex->get_z();
 	      if(fabs(dz) < maxdz)
 		{
 		  maxdz = dz;
-		  newvtxid = vtxkey;
+		  newvtxid = thisid;
 		}
 	    }
 
 	  if( newvtxid !=  std::numeric_limits<unsigned int>::max() )	  
 	    {
 	      thistrack->set_vertex_id(newvtxid);
-	      if(Verbosity() > 1) { std::cout << "   assign vertex " << newvtxid << " to additional track " << trackkey << std::endl; }
+	      if(Verbosity() > 1) { std::cout << "                assign vertex " << newvtxid << " to additional track " << trackkey << std::endl; }
 	    }
 	}
 
