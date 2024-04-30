@@ -166,7 +166,9 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         // adc values
         for (uint16_t is = 0; is < samples; ++is)
         {
-          newhit->set_adc(is, packet->iValue(wf, is));
+          uint16_t adval = packet->iValue(wf, is);
+          if(adval =>64000){ newhit->set_samples(is); break;}
+          newhit->set_adc(is, adval);
         }
 
         m_BeamClockFEE[gtm_bco].insert(FEE);
