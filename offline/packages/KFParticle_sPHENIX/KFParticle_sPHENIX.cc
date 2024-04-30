@@ -477,6 +477,14 @@ void KFParticle_sPHENIX::getField()
 {
   //This sweeps the sPHENIX magnetic field map from some point radially then grabs the first event that passes the selection
   m_magField = std::filesystem::exists(m_magField) ? m_magField : CDBInterface::instance()->getUrl(m_magField);
+  if(m_magField.empty())
+  {
+    std::cerr << PHWHERE << "\n"
+	          << "\tMember \"m_magField\" is empty string\n"
+			  << "\tExiting" << std::endl;
+	gSystem->Exit(1);
+	exit(1);
+  }
 
   if (Verbosity() > 0)
   {

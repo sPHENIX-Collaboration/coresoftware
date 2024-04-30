@@ -318,7 +318,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;
-  std::string m_magField;
+  std::string m_magField = "FIELDMAP_TRACKING";
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLESPHENIX_H
