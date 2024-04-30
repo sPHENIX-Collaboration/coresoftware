@@ -9,28 +9,23 @@
 
 #include <phool/getClass.h>
 
-#include <TF1.h>
-#include <TFile.h>
-#include <TH1F.h>
-#include <TMath.h>
-#include "Math/SpecFuncMathCore.h"
-
 #include <Event/Event.h>
 #include <Event/packet.h>
+
+#include <Math/SpecFuncMathCore.h>
 #include <TCanvas.h>
+#include <TF1.h>
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TMath.h>
+
 #include <cassert>
 #include <sstream>
 
-using namespace std;
-
 HCalCosmics::HCalCosmics(const std::string &name, const std::string &fname)
   : SubsysReco(name)
-  , detector("HCALIN")
   , outfilename(fname)
-{
-}
-
-HCalCosmics::~HCalCosmics()
 {
 }
 
@@ -55,7 +50,6 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
 
   h_time_energy = new TH2F("h_time_energy", "", 100, -10, 10, 100, -50, 1e3);
 
-
   event = 0;
   return 0;
 }
@@ -73,15 +67,13 @@ int HCalCosmics::process_event(PHCompositeNode *topNode)
 
 int HCalCosmics::process_towers(PHCompositeNode *topNode)
 {
-  ostringstream nodenamev2;
-  nodenamev2.str("");
-  nodenamev2 << prefix << detector;
+  std::string nodenamev2 = prefix + detector;
 
-  TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, nodenamev2.str());
+  TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, nodenamev2);
   if (!towers)
   {
     std::cout << std::endl
-              << "Didn't find node " << nodenamev2.str() << std::endl;
+              << "Didn't find node " << nodenamev2 << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
@@ -203,7 +195,7 @@ double HCalCosmics::gamma_function(double *x, double *par)
   return val;
 }
 
-TF1 *HCalCosmics::fitHist(TH1F *h)
+TF1 *HCalCosmics::fitHist(TH1 *h)
 {
   TF1 *f_gaus = new TF1("f_gaus", "gaus", 0, 10000);
   h->Fit(f_gaus, "QN", "", 0, 10000);
@@ -242,7 +234,7 @@ void HCalCosmics::fitChannels(const std::string &infile, const std::string &outf
     for (int iphi = 0; iphi < n_phibin; ++iphi)
     {
       std::string channel_histname = "h_channel_" + std::to_string(ieta) + "_" + std::to_string(iphi);
-      h_channel_hist[ieta][iphi] = (TH1F *) fin->Get(channel_histname.c_str());
+      fin->GetObject(channel_histname.c_str(), h_channel_hist[ieta][iphi]);
     }
   }
 
@@ -254,9 +246,9 @@ void HCalCosmics::fitChannels(const std::string &infile, const std::string &outf
 
   TFile *outfileFit = new TFile(outfilename2.c_str(), "recreate");
 
-  TH2F *h2_peak = new TH2F("h2_peak", "", n_etabin, 0, n_etabin, n_phibin, 0, n_phibin);
+  TH2 *h2_peak = new TH2F("h2_peak", "", n_etabin, 0, n_etabin, n_phibin, 0, n_phibin);
 
-  TH1F *h_allTow = (TH1F *) h_channel_hist[0][0]->Clone("h_allTow");
+  TH1 *h_allTow = (TH1 *) h_channel_hist[0][0]->Clone("h_allTow");
   h_allTow->Reset();
 
   for (int ieta = 0; ieta < n_etabin; ++ieta)
