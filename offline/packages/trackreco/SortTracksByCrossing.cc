@@ -8,9 +8,6 @@
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <globalvertex/SvtxVertex_v2.h>
-#include <globalvertex/SvtxVertexMap_v1.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
@@ -77,53 +74,6 @@ int SortTracksByCrossing::process_event(PHCompositeNode */*topNode*/)
        if(Verbosity() > 0) { std::cout << "trackkey " << trackkey << " crossing " << crossing << std::endl; }
     }
 
-/*
-  for(const auto& [vtxkey, vertex] : *_svtx_vertex_map)
-    {
-       std::cout << "Vertex ID: " << vtxkey << " vertex crossing " << vertex->get_beam_crossing() << " list of tracks: " << std::endl;
-
-       std::set<short int> crossings;
-       short int crossing = -1000;
-       for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
-       {
-          SvtxTrack* track = _track_map->get(*trackiter);
-          if (!track)
-          {
-            continue;
-          }
-
-          auto siseed = track->get_silicon_seed();
-          short int intt_crossing = siseed->get_crossing();
-
-          // the track crossing may be from the INTT clusters or from geometric matching if there are no INTT clusters
-          crossing = track->get_crossing();
-          std::cout << " vtxid " << vtxkey  << " crossing " << crossing << " intt_crossing " << intt_crossing 
-          << " trackID " << *trackiter
-          << " track Z " << track->get_z()
-	  << " X " << track->get_x()
-	  << " Y " << track->get_y()
-	  << " quality " << track->get_quality() 
-	  << " pt " << track->get_pt()
-          << std::endl;
-          siseed->identify();
-
-          crossings.insert(crossing);
-       }
-
-      if(crossings.size() > 1)
-	{
-           std::cout << "Warning: more than one crossing value for vertex ID " << vtxkey << std::endl;
-        }
-
-      _track_vertex_crossing_map->addVertexAssoc(crossing, vtxkey);
-   }
-*/
-
-
-
-  // print the results
-//  _track_vertex_crossing_map->identify();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -179,14 +129,6 @@ int SortTracksByCrossing::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  /*
-  _svtx_vertex_map = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
-  if (!_svtx_vertex_map)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find SvtxVertexMap: " << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  */ 
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

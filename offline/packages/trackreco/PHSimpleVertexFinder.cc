@@ -244,6 +244,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 		}
 	    }
 
+	  // this updates the track, but does not add it to the vertex primary track list
 	  if( newvtxid !=  std::numeric_limits<unsigned int>::max() )	  
 	    {
 	      thistrack->set_vertex_id(newvtxid);

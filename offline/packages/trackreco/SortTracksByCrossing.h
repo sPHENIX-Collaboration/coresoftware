@@ -24,7 +24,6 @@
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
-class SvtxVertexMap;
 class TrkrCluster;
 class TrackVertexCrossingAssoc;
 
@@ -46,7 +45,6 @@ class SortTracksByCrossing : public SubsysReco
   int CreateNodes(PHCompositeNode* topNode);
   
   SvtxTrackMap *_track_map{nullptr};
-  SvtxVertexMap *_svtx_vertex_map{nullptr};
   
   TrackVertexCrossingAssoc* _track_vertex_crossing_map;
 
