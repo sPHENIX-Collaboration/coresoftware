@@ -38,18 +38,15 @@ pkginclude_HEADERS = \
   TrainingHitsContainer.h \
   TrainingHits.h \
   TpcRawDataTree.h \
-  TpcChanQA.h \
   TpcClusterCleaner.h \
   TpcClusterizer.h \
   TpcClusterMover.h \
-  TpcClusterQA.h \
   TpcClusterZCrossingCorrection.h \
   TpcCombinedRawDataUnpacker.h \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
   TpcLoadDistortionCorrection.h \
   TpcMap.h \
-  TpcRawDataDecoder.h \
   TpcRawWriter.h \
   TpcSimpleClusterizer.h
 
@@ -69,20 +66,14 @@ dist_mydata_DATA = \
 # sources for tpc library
 libtpc_la_SOURCES = \
   TpcRawDataTree.cc \
-  TpcChanQA.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
-<<<<<<< HEAD
-  TpcClusterQA.cc \
-=======
   TpcClusterMover.cc \
   TpcClusterZCrossingCorrection.cc \
->>>>>>> 44662d7f2855355602e4f2f6b09526a6f31828c0
   TpcCombinedRawDataUnpacker.cc \
   TpcDistortionCorrection.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
-  TpcRawDataDecoder.cc \
   TpcRawWriter.cc \
   TpcSimpleClusterizer.cc
 
