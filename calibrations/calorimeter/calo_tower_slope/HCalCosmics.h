@@ -4,15 +4,17 @@
 #define HCALCOSMICS_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <array>
 #include <string>
 #include <vector>
-#include "TH2F.h"
 
 // Forward declarations
 class PHCompositeNode;
 class TFile;
-class TH1F;
+class TF1;
+class TH1;
+class TH2;
 
 class HCalCosmics : public SubsysReco
 {
@@ -20,7 +22,7 @@ class HCalCosmics : public SubsysReco
   //! constructor
   HCalCosmics(const std::string &, const std::string &);
   //! destructor
-  virtual ~HCalCosmics();
+  ~HCalCosmics() override = default;
 
   //! Processing
   int Init(PHCompositeNode *) override;
@@ -38,36 +40,33 @@ class HCalCosmics : public SubsysReco
 
   static double gamma_function(double *x, double *par);
   void fitChannels(const std::string &infile, const std::string &outfile2);
-  TF1 *fitHist(TH1F *);
+  TF1 *fitHist(TH1 *);
 
- protected:
-  std::string detector;
-  std::string prefix = "TOWERS_";
-
+ private:
   // HCal geometry
-  static const int n_etabin = 24;
-  static const int n_phibin = 64;
+  static const int n_etabin{24};
+  static const int n_phibin{64};
+
+  TFile *outfile{nullptr};
+  TH1 *h_channel_hist[n_etabin][n_phibin]{{nullptr}};
+  TH2 *h_waveformchi2{nullptr};
+  TH2 *h_time_energy{nullptr};
+  TH1 *h_mip{nullptr};
 
   // Cut threshold
-  int tower_threshold = 500;
-  int vert_threshold = 500;
-  int veto_threshold = 350;
+  int tower_threshold{500};
+  int vert_threshold{500};
+  int veto_threshold{350};
+  int event{0};
 
-  TH1F *h_channel_hist[n_etabin][n_phibin] = {{nullptr}};
-  TH2F *h_waveformchi2 = nullptr;
-  TH2F *h_time_energy = nullptr;
-  TH1F *h_mip = nullptr;
+  float m_peak[n_etabin][n_phibin]{};
+  float m_chi2[n_etabin][n_phibin]{};
 
+  //  bool debug {false};
+
+  std::string prefix{"TOWERS_"};
+  std::string detector{"HCALIN"};
   std::string outfilename;
-
-  int event = 0;
-
-  float m_peak[n_etabin][n_phibin] = {};
-  float m_chi2[n_etabin][n_phibin] = {};
-
-  bool debug = false;
-
-  TFile *outfile = nullptr;
 };
 
 #endif  // HCALCOSMICS_H
