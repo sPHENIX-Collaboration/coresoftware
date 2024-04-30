@@ -91,6 +91,12 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode * /*unused*/)
     std::cout << "cluster map size is " << clusterPositions.size() << std::endl;
   }
 
+  //! to protect against events with hot channels. Cosmics should not produce more than
+  //! 500 clusters in the silicon
+  if(clusterPositions.size() > 500) 
+  {
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   auto doublets = makeDoublets(clusterPositions);
 
   if (Verbosity() > 2)
@@ -261,7 +267,7 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(See
       longseeds.push_back(doublet);
     }
   }
-  if (Verbosity() > 3)
+  if (Verbosity() > 2)
   {
     std::cout << "num seeds " << longseeds.size() << std::endl;
     int i = 0;
@@ -277,6 +283,7 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(See
       i++;
     }
   }
+  
   return longseeds;
 }
 PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::makeDoublets(PositionMap &clusterPositions)
