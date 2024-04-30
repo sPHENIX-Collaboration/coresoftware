@@ -37,12 +37,15 @@ TrackSeedTrackMapConverter::TrackSeedTrackMapConverter(const std::string& name)
 }
 
 //____________________________________________________________________________..
-TrackSeedTrackMapConverter::~TrackSeedTrackMapConverter() = default;
-
-//____________________________________________________________________________..
 int TrackSeedTrackMapConverter::InitRun(PHCompositeNode* topNode)
 {
   int ret = getNodes(topNode);
+  std::istringstream stringline(m_fieldMap);
+  stringline >> fieldstrength;
+  if (!stringline.fail())  // it is a float
+  {
+    m_ConstField = true;
+  }
   return ret;
 }
 
@@ -208,13 +211,13 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         svtxtrack->set_y(pca.y());
 
         float p;
-        if (m_fieldMap.find(".root") != std::string::npos)
+        if (m_ConstField)
         {
-          p = tpcseed->get_p();
+          p = std::cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
         }
         else
         {
-          p = std::cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+          p = tpcseed->get_p();
         }
 
         tan *= p;
@@ -250,20 +253,20 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       svtxtrack->set_y(trackSeed->get_y());
       svtxtrack->set_z(trackSeed->get_z());
       svtxtrack->set_charge(trackSeed->get_qOverR() > 0 ? 1 : -1);
-      if (m_fieldMap.find(".root") != std::string::npos)
+      if (m_ConstField)
       {
-        svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
-        svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
-        svtxtrack->set_pz(trackSeed->get_pz());
-      }
-      else
-      {
-        float pt = fabs(1. / trackSeed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+        float pt = fabs(1. / trackSeed->get_qOverR()) * (0.3 / 100) * fieldstrength;
 
         float phi = trackSeed->get_phi(m_clusters, m_tGeometry);
         svtxtrack->set_px(pt * std::cos(phi));
         svtxtrack->set_py(pt * std::sin(phi));
         svtxtrack->set_pz(pt * std::cosh(trackSeed->get_eta()) * std::cos(trackSeed->get_theta()));
+      }
+      else
+      {
+        svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
+        svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
+        svtxtrack->set_pz(trackSeed->get_pz());
       }
 
       // calculate chisq and ndf

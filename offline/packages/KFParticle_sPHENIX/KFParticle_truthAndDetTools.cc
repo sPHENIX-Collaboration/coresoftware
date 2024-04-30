@@ -257,9 +257,9 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
     auto svtxvertexvector = svtxviter->second;
     SvtxVertex *svtxvertex = nullptr;
 
-    for (auto &vertex : svtxvertexvector)
+    for (auto &vertex_iter : svtxvertexvector)
     {
-      svtxvertex = dst_vertexmap->find(vertex->get_id())->second;
+      svtxvertex = dst_vertexmap->find(vertex_iter->get_id())->second;
     }
 
     PHG4VtxPoint *truePoint = vertexeval->max_truth_point_by_ntracks(svtxvertex);

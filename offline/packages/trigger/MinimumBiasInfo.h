@@ -11,6 +11,7 @@ class MinimumBiasInfo : public PHObject
   void identify(std::ostream &os = std::cout) const override { os << "MinimumBiasInfo base class" << std::endl; };
   void Reset() override {}
   int isValid() const override { return 0; }
+  virtual void CopyTo(MinimumBiasInfo *) {return;}
   virtual void setIsAuAuMinimumBias(bool) { return; }
   virtual bool isAuAuMinimumBias() const { return false; }
 

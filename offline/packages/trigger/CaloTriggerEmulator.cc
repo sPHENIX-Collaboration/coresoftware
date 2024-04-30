@@ -86,6 +86,25 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
       m2_trig_time[j][k] = 0;
     }
   }
+
+
+  for (int i = 0; i < 24576;i++)
+  {
+    unsigned int key = TowerInfoDefs::encode_emcal(i);
+    h_emcal_lut[key] = nullptr;
+  }
+
+  for (int i = 0; i < 1536;i++)
+  {
+    unsigned int key = TowerInfoDefs::encode_hcal(i);
+    h_hcalin_lut[key] = nullptr;
+  }
+  for (int i = 0; i <1536;i++)
+  {
+    unsigned int key = TowerInfoDefs::encode_hcal(i);
+    h_hcalout_lut[key] = nullptr;
+  }
+
   for (int i = 0; i < 2; i++)
   {
     m_out_tsum[i] = 0;
@@ -422,7 +441,7 @@ int CaloTriggerEmulator::Download_Calibrations()
   {
     if (!_emcal_lutname.empty())
     {
-      cdbttree_emcal = new CDBHistos(_emcal_lutname);
+      cdbttree_emcal = new CDBHistos(_emcal_lutname);      
     }
     else
     {
@@ -437,6 +456,18 @@ int CaloTriggerEmulator::Download_Calibrations()
         cdbttree_emcal = new CDBHistos(calibdir);
       }
     }
+
+    if (cdbttree_emcal)
+      {
+	cdbttree_emcal->LoadCalibrations();
+
+	for (int i = 0; i < 24576;i++)
+	  {
+	    std::string histoname = "h_emcal_lut_" + std::to_string(i);
+	    unsigned int key = TowerInfoDefs::encode_emcal(i);
+	    h_emcal_lut[key] = (TH1I*) cdbttree_emcal->getHisto(histoname.c_str());
+	  }
+      }
   }
   if (_do_hcalin && !_default_lut_hcalin)
   {
@@ -456,7 +487,21 @@ int CaloTriggerEmulator::Download_Calibrations()
       {
         cdbttree_hcalin = new CDBHistos(calibdir);
       }
+      cdbttree_hcalin->LoadCalibrations();
+
     }
+    if (cdbttree_hcalin)
+      {
+	cdbttree_hcalin->LoadCalibrations();
+
+	for (int i = 0; i < 1536;i++)
+	  {
+	    std::string histoname = "h_hcalin_lut_" + std::to_string(i);
+	    unsigned int key = TowerInfoDefs::encode_hcal(i);
+	    h_hcalin_lut[key] = (TH1I*) cdbttree_hcalin->getHisto(histoname.c_str());
+	  }
+      }
+
   }
   if (_do_hcalout && !_default_lut_hcalout)
   {
@@ -477,6 +522,18 @@ int CaloTriggerEmulator::Download_Calibrations()
         cdbttree_hcalout = new CDBHistos(calibdir);
       }
     }
+    if (cdbttree_hcalout)
+      {
+	cdbttree_hcalout->LoadCalibrations();
+
+	for (int i = 0; i < 1536;i++)
+	  {
+	    std::string histoname = "h_hcalout_lut_" + std::to_string(i);
+	    unsigned int key = TowerInfoDefs::encode_hcal(i);
+	    h_hcalout_lut[key] = (TH1I*) cdbttree_hcalout->getHisto(histoname.c_str());
+	  }
+      }
+
   }
   return 0;
 }
@@ -838,13 +895,12 @@ int CaloTriggerEmulator::process_primitives()
               }
               else
               {
-                std::string histoname = "h_emcal_lut_" + std::to_string(TowerInfoDefs::decode_emcal(key));
-                unsigned int lut_output = ((unsigned int) cdbttree_emcal->getHisto(histoname.c_str())->GetBinContent(lut_input + 1)) & 0x3ffU;
+                unsigned int lut_output = ((unsigned int) h_emcal_lut[key]->GetBinContent(lut_input + 1)) & 0x3ffU;
                 tmp = (lut_output >> 2U);
               }
               temp_sum += (tmp & 0xffU);
             }
-            sum = ((temp_sum & 0xfffU) >> 2U) & 0xffU;
+            sum = ((temp_sum & 0x3ffU) >> 2U) & 0xffU;
           }
           _sum->push_back(sum);
         }
@@ -887,10 +943,7 @@ int CaloTriggerEmulator::process_primitives()
           {
             for (int j = 0; j < 4; j++)
             {
-              unsigned int etabin = (ip % 3) * 8 + (isum % 4) * 2 + j % 2;
-              unsigned int phibin = (ip / 3) * 8 + (isum / 4) * 2 + j / 2;
-
-              unsigned int key = TowerInfoDefs::encode_hcal(etabin, phibin);
+              unsigned int key = TriggerDefs::GetTowerInfoKey(TriggerDefs::GetDetectorId("HCAL"), ip, isum, j);
               unsigned int lut_input = (m_peak_sub_ped_hcalout[key]->at(is) >> 4U) & 0x3ffU;
               if (_default_lut_hcalout)
               {
@@ -898,14 +951,13 @@ int CaloTriggerEmulator::process_primitives()
               }
               else
               {
-                std::string histoname = "h_hcalout_lut_" + std::to_string(TowerInfoDefs::decode_hcal(key));
-                unsigned int lut_output = ((unsigned int) cdbttree_hcalout->getHisto(histoname.c_str())->GetBinContent(lut_input + 1)) & 0x3ffU;
+                unsigned int lut_output = ((unsigned int) h_hcalout_lut[key]->GetBinContent(lut_input + 1)) & 0x3ffU;
                 tmp = (lut_output >> 2U);
               }
               //			  tmp =(m_l1_adc_table[( m_peak_sub_ped_hcalout[key]->at(is) >> 4U) & 0x3ffU] >> 2U);
               temp_sum += (tmp & 0xffU);
             }
-            sum = ((temp_sum & 0xfffU) >> 2U) & 0xffU;
+            sum = ((temp_sum & 0x3ffU) >> 2U) & 0xffU;
           }
           _sum->push_back(sum);
         }
@@ -945,9 +997,7 @@ int CaloTriggerEmulator::process_primitives()
           {
             for (int j = 0; j < 4; j++)
             {
-              unsigned int etabin = (ip % 3) * 8 + (isum % 4) * 2 + j % 2;
-              unsigned int phibin = (ip / 3) * 8 + (isum / 4) * 2 + j / 2;
-              unsigned int key = TowerInfoDefs::encode_hcal(etabin, phibin);
+              unsigned int key = TriggerDefs::GetTowerInfoKey(TriggerDefs::GetDetectorId("HCAL"), ip, isum, j);
               unsigned int lut_input = (m_peak_sub_ped_hcalin[key]->at(is) >> 4U) & 0x3ffU;
               if (_default_lut_hcalin)
               {
@@ -955,8 +1005,7 @@ int CaloTriggerEmulator::process_primitives()
               }
               else
               {
-                std::string histoname = "h_hcalin_lut_" + std::to_string(TowerInfoDefs::decode_hcal(key));
-                unsigned int lut_output = ((unsigned int) cdbttree_hcalin->getHisto(histoname)->GetBinContent(lut_input + 1)) & 0x3ffU;
+                unsigned int lut_output = ((unsigned int) h_hcalin_lut[key]->GetBinContent(lut_input + 1)) & 0x3ffU;
                 tmp = (lut_output >> 2U);
               }
 
@@ -1269,7 +1318,7 @@ int CaloTriggerEmulator::process_organizer()
           {
             TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
             uint16_t sumphi = TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumPhiId(sumkey);
-            uint16_t sumeta = (2 - TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey)) * 4 + TriggerDefs::getSumEtaId(sumkey);
+            uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumEtaId(sumkey);
 
             int i = 0;
             if (CheckChannelMasks(sumkey))
@@ -1326,7 +1375,7 @@ int CaloTriggerEmulator::process_organizer()
             TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
             uint16_t sumphi = TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumPhiId(sumkey);
             //		      uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey)*4 + TriggerDefs::getSumEtaId(sumkey);
-            uint16_t sumeta = (2 - TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey)) * 4 + TriggerDefs::getSumEtaId(sumkey);
+            uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumEtaId(sumkey);
             int i = 0;
             if (CheckChannelMasks(sumkey))
             {
@@ -2391,6 +2440,10 @@ void CaloTriggerEmulator::CreateNodes(PHCompositeNode *topNode)
 
 int CaloTriggerEmulator::End(PHCompositeNode * /*topNode*/)
 {
+  delete cdbttree_emcal;
+  delete cdbttree_hcalout;
+  delete cdbttree_hcalin;
+
   std::cout << "------------------------" << std::endl;
   std::cout << "Total passed: " << _npassed << "/" << _nevent << std::endl;
   std::cout << "------------------------" << std::endl;

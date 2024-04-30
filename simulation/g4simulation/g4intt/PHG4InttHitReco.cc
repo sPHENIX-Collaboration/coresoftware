@@ -29,6 +29,8 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Utils.h>
 
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -46,6 +48,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <filesystem>
 #include <map>      // for _Rb_tree_const_it...
 #include <memory>   // for allocator_traits<...
 #include <set>
@@ -229,6 +232,37 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
       auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
       DetNode->addNode(newNode);
     }
+  }
+
+  //Check for the hot channel map
+  std::string hotStripFile = std::filesystem::exists(m_hotStripFileName) ? m_hotStripFileName : CDBInterface::instance()->getUrl(m_hotStripFileName);
+
+  if (std::filesystem::exists(hotStripFile))
+  {
+    CDBTTree cdbttree(hotStripFile);
+    cdbttree.LoadCalibrations();
+
+    m_HotChannelSet.clear();
+    uint64_t N = cdbttree.GetSingleIntValue("size");
+    for (uint64_t n = 0; n < N; ++n)
+    {
+      //C++ designated initializers only available with -std=c++20
+      //Just going to build the struct normally
+      InttNameSpace::RawData_s rawHotChannel;
+      rawHotChannel.felix_server = cdbttree.GetIntValue(n, "felix_server");
+      rawHotChannel.felix_channel = cdbttree.GetIntValue(n, "felix_channel");
+      rawHotChannel.chip = cdbttree.GetIntValue(n, "chip");
+      rawHotChannel.channel = cdbttree.GetIntValue(n, "channel");
+
+      m_HotChannelSet.insert(rawHotChannel);
+    }
+  }
+
+  if (Verbosity() > 0)
+  {
+    std::cout<<"INTT simulation BadChannelMap : size = "<<m_HotChannelSet.size()<<"  ";
+    std::cout<<(( m_HotChannelSet.size() > 0 ) ? "Hot channel map loaded " : "Hot channel map is not loaded");
+    std::cout<<std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -476,6 +510,9 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     // End of charge sharing implementation
     //===================================
 
+    InttNameSpace::RawData_s raw;
+    InttNameSpace::Offline_s ofl;
+
     for (unsigned int i1 = 0; i1 < vybin.size(); i1++)  // loop over all fired cells
     {
       // We add the Intt TrkrHitsets directly to the node using hitsetcontainer
@@ -500,7 +537,22 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
 
       // generate the key for this hit
       TrkrDefs::hitkey hitkey = InttDefs::genHitKey(vzbin[i1], vybin[i1]);
-      // See if this hit already exists
+      // See if this hit already exists and is not a raw hit
+      ofl.layer = sphxlayer;
+      ofl.ladder_z = ladder_z_index;
+      ofl.ladder_phi = ladder_phi_index;
+      ofl.strip_x = vybin[i1]; //vzbin is the col
+      ofl.strip_y = vzbin[i1]; //vybin is the row
+      raw = InttNameSpace::ToRawData(ofl);
+
+      double hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
+      addtruthhitset(hitsetkey, hitkey, hit_energy);
+
+      if (m_HotChannelSet.find(raw) != m_HotChannelSet.end())
+      { //We still want the truth hit
+        continue;
+      }
+
       TrkrHit *hit = hitsetit->second->getHit(hitkey);
       if (!hit)
       {
@@ -515,10 +567,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
         std::cout << "add energy " << venergy[i1].first << " to intthit " << std::endl;
       }
 
-      double hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
       hit->addEnergy(hit_energy);
-
-      addtruthhitset(hitsetkey, hitkey, hit_energy);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);

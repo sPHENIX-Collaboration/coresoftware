@@ -9,7 +9,10 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <map>
+#include <set>
 #include <string>
+
+#include <intt/InttMapping.h>
 
 class PHCompositeNode;
 
@@ -38,6 +41,8 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 
   void Detector(const std::string& d) { m_Detector = d; }
 
+  void setHotStripMaskFile(const std::string& name) { m_hotStripFileName = name; }
+
  protected:
   std::string m_Detector = "INTT";
   std::string m_HitNodeName;
@@ -63,6 +68,10 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   const int m_cluster_version{4};
   TrkrHitSetContainer* m_truth_hits;                              // generate and delete a container for each truth track
   std::map<TrkrDefs::hitsetkey, unsigned int> m_hitsetkey_cnt{};  // counter for making ckeys form hitsetkeys
+
+  std::string m_hotStripFileName = "INTT_HotMap";
+  typedef std::set<InttNameSpace::RawData_s, InttNameSpace::RawDataComparator> Set_t;
+  Set_t m_HotChannelSet;
 
   PHG4Hit* prior_g4hit{nullptr};  // used to check for jumps in g4hits for loopers;
   void truthcheck_g4hit(PHG4Hit*, PHCompositeNode* topNode);

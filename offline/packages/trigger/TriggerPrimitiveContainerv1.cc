@@ -50,12 +50,13 @@ int TriggerPrimitiveContainerv1::isValid() const
 
 TriggerPrimitive* TriggerPrimitiveContainerv1::get_primitive_at_key(TriggerDefs::TriggerPrimKey key)
 {
-  if (!_primitives[key])
+  TriggerDefs::TriggerPrimKey pkey = (key & 0xffffffe0U);
+  if (!_primitives[pkey])
   {
     return nullptr;
   }
 
-  return _primitives[key];
+  return _primitives[pkey];
 }
 
 void TriggerPrimitiveContainerv1::add_primitive(TriggerDefs::TriggerPrimKey key, TriggerPrimitive* prim)
