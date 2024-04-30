@@ -52,13 +52,11 @@ pkginclude_HEADERS = \
   TpcSimpleClusterizer.h
 
 ROOTDICTS = \
-  LaserClusterizer_Dict.cc \
   TrainingHitsContainer_Dict.cc \
   TrainingHits_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  LaserClusterizer_Dict_rdict.pcm \
   TrainingHitsContainer_Dict_rdict.pcm \
   TrainingHits_Dict_rdict.pcm
 
@@ -72,7 +70,10 @@ libtpc_la_SOURCES = \
   TpcRawDataTree.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
+  TpcClusterMover.cc \
+  TpcClusterZCrossingCorrection.cc \
   TpcCombinedRawDataUnpacker.cc \
+  TpcDistortionCorrection.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
   TpcRawWriter.cc \
@@ -92,12 +93,8 @@ libtpc_la_LIBADD = \
 # sources for io library
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
-  LaserClusterizer.cc \
   TrainingHitsContainer.cc \
-  TrainingHits.cc \
-  TpcClusterMover.cc \
-  TpcDistortionCorrection.cc \
-  TpcClusterZCrossingCorrection.cc
+  TrainingHits.cc
 
 libtpc_io_la_LIBADD = \
   -ltrack_io \
