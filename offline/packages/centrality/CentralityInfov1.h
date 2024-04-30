@@ -16,6 +16,9 @@ class CentralityInfov1 : public CentralityInfo
   void Reset() override;
   int isValid() const override { return 1; }
 
+  PHObject* CloneMe() const override { return new CentralityInfov1(*this); }
+  void CopyTo(CentralityInfo *info) override;
+
   bool has_quantity(const PROP prop_id) const override;
   float get_quantity(const PROP prop_id) const override;
   void set_quantity(const PROP prop_id, const float value) override;

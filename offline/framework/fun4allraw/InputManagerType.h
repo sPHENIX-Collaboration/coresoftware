@@ -12,7 +12,8 @@ namespace InputManagerType
     GL1 = 5,
     MBD = 6,
     HCAL = 7,
-    CEMC = 8
+    CEMC = 8,
+    ZDC = 9
   };
 
 }

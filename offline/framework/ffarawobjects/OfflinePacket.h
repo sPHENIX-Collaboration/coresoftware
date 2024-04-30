@@ -15,6 +15,8 @@ class OfflinePacket : public PHObject
 
   virtual int getIdentifier() const { return std::numeric_limits<int>::min(); }
   virtual void setIdentifier(const int) { return; }
+  virtual int getHitFormat() const { return std::numeric_limits<int>::min(); }
+  virtual void setHitFormat(const int) { return; }
   virtual int getEvtSequence() const { return std::numeric_limits<int>::min(); }
   virtual void setEvtSequence(const int) { return; }
   virtual uint64_t getBCO() const { return std::numeric_limits<uint64_t>::max(); }

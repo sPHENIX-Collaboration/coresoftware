@@ -17,7 +17,6 @@ class PHCompositeNode;
 class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
 {
  public:
-  explicit SingleStreamingInput(const std::string &name, Fun4AllEvtInputPoolManager *inman);
   explicit SingleStreamingInput(const std::string &name);
   ~SingleStreamingInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
@@ -35,23 +34,26 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual bool CheckPoolDepth(const uint64_t bclk);
   virtual void ClearCurrentEvent();
   virtual Eventiterator *GetEventiterator() const { return m_EventIterator; }
-  virtual Fun4AllEvtInputPoolManager *InputManager() { return m_InputMgr; }
-  virtual void InputManager(Fun4AllEvtInputPoolManager *in) { m_InputMgr = in; }
+  /* virtual Fun4AllEvtInputPoolManager *InputManager() { return m_InputMgr; } */
+  /* virtual void InputManager(Fun4AllEvtInputPoolManager *in) { m_InputMgr = in; } */
   virtual Fun4AllStreamingInputManager *StreamingInputManager() { return m_StreamingInputMgr; }
   virtual void StreamingInputManager(Fun4AllStreamingInputManager *in) { m_StreamingInputMgr = in; }
   virtual void CreateDSTNode(PHCompositeNode *) { return; }
   virtual void ConfigureStreamingInputManager() { return; }
   virtual void SubsystemEnum(const int id) { m_SubsystemEnum = id; }
   virtual int SubsystemEnum() const { return m_SubsystemEnum; }
+  void MaxBclkDiff(uint64_t ui) { m_MaxBclkSpread = ui; }
+  uint64_t MaxBclkDiff() const { return m_MaxBclkSpread; }
 
  private:
-  Eventiterator *m_EventIterator = nullptr;
-  Fun4AllEvtInputPoolManager *m_InputMgr = nullptr;
-  Fun4AllStreamingInputManager *m_StreamingInputMgr = nullptr;
-  unsigned int m_EventNumberOffset = 1;  // packet event counters start at 0 but we start with event number 1
-  int m_RunNumber = 0;
-  int m_EventsThisFile = 0;
-  int m_AllDone = 0;
+  Eventiterator *m_EventIterator{nullptr};
+  //  Fun4AllEvtInputPoolManager *m_InputMgr {nullptr};
+  Fun4AllStreamingInputManager *m_StreamingInputMgr{nullptr};
+  uint64_t m_MaxBclkSpread{1000000};
+  unsigned int m_EventNumberOffset{1};  // packet event counters start at 0 but we start with event number 1
+  int m_RunNumber{0};
+  int m_EventsThisFile{0};
+  int m_AllDone{0};
   int m_SubsystemEnum{0};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<int, uint64_t> m_FEEBclkMap;

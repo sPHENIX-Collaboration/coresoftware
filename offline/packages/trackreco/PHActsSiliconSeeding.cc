@@ -28,12 +28,16 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
+#ifndef __clang__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overread"
+#endif
 #include <Acts/Seeding/BinnedSPGroup.hpp>
+#ifndef __clang__
 #pragma GCC diagnostic pop
+#endif
 #include <Acts/Seeding/InternalSeed.hpp>
 #include <Acts/Seeding/InternalSpacePoint.hpp>
 #include <Acts/Seeding/Seed.hpp>
@@ -122,8 +126,10 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
   eventTimer->restart();
 
   if (Verbosity() > 0)
+  {
     std::cout << "Processing PHActsSiliconSeeding event "
               << m_event << std::endl;
+  }
 
   std::vector<const SpacePoint*> spVec;
   auto seedVector = runSeeder(spVec);
@@ -144,8 +150,10 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
   spVec.clear();
 
   if (Verbosity() > 0)
+  {
     std::cout << "Finished PHActsSiliconSeeding process_event"
               << std::endl;
+  }
 
   if (Verbosity() > 0)
   {
@@ -271,7 +279,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       std::vector<Acts::Vector3> globalPositions;
 
       std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
-      auto trackSeed = std::make_unique<TrackSeed_v1>();
+      auto trackSeed = std::make_unique<TrackSeed_v2>();
 
       for (auto& spacePoint : seed.sp())
       {
@@ -295,18 +303,18 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
                     << std::endl;
         }
       }
-      if(m_searchInIntt)
+      if (m_searchInIntt)
       {
         int nintt = 0;
         for (auto& key : cluster_keys)
         {
-          if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
+          if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
           {
             nintt++;
           }
         }
         /// if acts found a triplet in the INTT only it is likely a bad seed
-        if(nintt > 2)
+        if (nintt > 2)
         {
           continue;
         }
@@ -343,7 +351,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       /// Add possible matches to cluster list to be parsed when
       /// Svtx tracks are made
-      for (int newkey = 0; newkey < additionalClusters.size(); newkey++)
+      for (unsigned int newkey = 0; newkey < additionalClusters.size(); newkey++)
       {
         trackSeed->insert_cluster_key(additionalClusters[newkey]);
         positions.insert(std::make_pair(additionalClusters[newkey], globalPositions[mvtxsize + newkey]));
@@ -360,6 +368,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       //! Circle fit again to take advantage of INTT lever arm
       trackSeed->circleFitByTaubin(positions, 0, 8);
+      float phi = trackSeed->get_phi(positions);
+      trackSeed->set_phi(phi);  // make phi persistent
 
       if (Verbosity() > 0)
       {
@@ -375,7 +385,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       {
         std::cout << "Silicon seed id " << m_seedContainer->size() << std::endl;
         std::cout << "seed phi, theta, eta : "
-                  << trackSeed->get_phi(m_clusterMap, m_tGeometry) << ", " << trackSeed->get_theta()
+                  << trackSeed->get_phi() << ", " << trackSeed->get_theta()
                   << ", " << trackSeed->get_eta() << std::endl;
         trackSeed->identify();
       }
@@ -402,11 +412,12 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
     std::cout << "Total number of seeds found in "
               << seedVector.size() << " volume regions gives "
               << numSeeds << " Acts seeds " << std::endl
-              << std::endl << std::endl;
+              << std::endl
+              << std::endl;
     m_seedContainer->identify();
-    for(auto& seed : *m_seedContainer)
+    for (auto& seed : *m_seedContainer)
     {
-      if(!seed) 
+      if (!seed)
       {
         continue;
       }
@@ -446,7 +457,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
   }
 
   /// Project the seed to the INTT to find matches
-  for (int layer = 0; layer < m_nInttLayers; ++layer)
+  for (unsigned int layer = 0; layer < m_nInttLayers; ++layer)
   {
     auto cci = TrackFitUtils::circle_circle_intersection(
         m_nInttLayerRadii[layer],
@@ -525,18 +536,18 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
   std::set<int> layersToSkip;
   if (m_searchInIntt)
   {
-    for(auto it = seed.begin_cluster_keys();
-    it != seed.end_cluster_keys();
-    ++it)
+    for (auto it = seed.begin_cluster_keys();
+         it != seed.end_cluster_keys();
+         ++it)
     {
       auto key = *it;
       unsigned int layer = TrkrDefs::getLayer(key);
-      if(layer == 3 or layer == 4)
+      if (layer == 3 or layer == 4)
       {
         layersToSkip.insert(0);
         layersToSkip.insert(1);
       }
-      else if (layer == 5 or layer==6)
+      else if (layer == 5 or layer == 6)
       {
         layersToSkip.insert(2);
         layersToSkip.insert(3);
@@ -544,11 +555,11 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
     }
   }
 
-  for (int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
+  for (unsigned int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
   {
-    if(m_searchInIntt)
+    if (m_searchInIntt)
     {
-      if(layersToSkip.find(inttlayer) != layersToSkip.end())
+      if (layersToSkip.find(inttlayer) != layersToSkip.end())
       {
         continue;
       }
@@ -599,7 +610,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
         const auto cluskey = clusIter->first;
-        if (_iteration_map != NULL && m_nIteration > 0)
+        if (_iteration_map != nullptr && m_nIteration > 0)
         {
           if (_iteration_map->getIteration(cluskey) < m_nIteration)
           {
@@ -739,6 +750,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r, surf->geometryId(), var[0] * m_uncfactor, var[1] * m_uncfactor});
 
   if (Verbosity() > 2)
+  {
     std::cout << "Space point has "
               << x << ", " << y << ", " << z << " with local coords "
               << localPos.transpose()
@@ -748,6 +760,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
               << " and cluster key "
               << key << " and geo id "
               << surf->geometryId() << std::endl;
+  }
 
   return spPtr;
 }
@@ -758,41 +771,41 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
   unsigned int numSiliconHits = 0;
   unsigned int totNumSiliconHits = 0;
   std::vector<TrkrDefs::TrkrId> dets = {TrkrDefs::TrkrId::mvtxId};
-  if(m_searchInIntt)
+  if (m_searchInIntt)
   {
     dets.push_back(TrkrDefs::TrkrId::inttId);
   }
-  for(const auto& det : dets)
+  for (const auto& det : dets)
   {
-  for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det))
-  {
-    auto range = m_clusterMap->getClusters(hitsetkey);
-    for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
+    for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det))
     {
-      const auto cluskey = clusIter->first;
-      totNumSiliconHits++;
-      if (_iteration_map != NULL && m_nIteration > 0)
+      auto range = m_clusterMap->getClusters(hitsetkey);
+      for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
-        if (_iteration_map->getIteration(cluskey) < m_nIteration)
+        const auto cluskey = clusIter->first;
+        totNumSiliconHits++;
+        if (_iteration_map != nullptr && m_nIteration > 0)
         {
-          continue;  // skip hits used in a previous iteration
+          if (_iteration_map->getIteration(cluskey) < m_nIteration)
+          {
+            continue;  // skip hits used in a previous iteration
+          }
         }
-      }
 
-      const auto cluster = clusIter->second;
-      const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-      const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey);
-      if (!surface)
-      {
-        continue;
-      }
+        const auto cluster = clusIter->second;
+        const auto hitsetkey_A = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+        const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey_A);
+        if (!surface)
+        {
+          continue;
+        }
 
-      auto sp = makeSpacePoint(surface, cluskey, cluster).release();
-      spVec.push_back(sp);
-      rRangeSPExtent.extend({sp->x(), sp->y(), sp->z()});
-      numSiliconHits++;
+        auto sp = makeSpacePoint(surface, cluskey, cluster).release();
+        spVec.push_back(sp);
+        rRangeSPExtent.extend({sp->x(), sp->y(), sp->z()});
+        numSiliconHits++;
+      }
     }
-  }
   }
   if (m_seedAnalysis)
   {
@@ -899,11 +912,15 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode* topNode)
   }
 
   if (m_useTruthClusters)
+  {
     m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode,
                                                             "TRKR_CLUSTER_TRUTH");
+  }
   else
+  {
     m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode,
                                                             "TRKR_CLUSTER");
+  }
 
   if (!m_clusterMap)
   {
@@ -1003,7 +1020,9 @@ double PHActsSiliconSeeding::normPhi2Pi(const double phi)
 {
   double returnPhi = phi;
   if (returnPhi < 0)
+  {
     returnPhi += 2 * M_PI;
+  }
   return returnPhi;
 }
 

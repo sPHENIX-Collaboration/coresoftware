@@ -1,5 +1,5 @@
 /*!
- *  \file PrelimDistortionCorrection.cc
+ *  \File PrelimDistortionCorrection.cc
  *  \brief	Makes preliminary TPC distortion corrections in pp running and replaces TPC seed parameters with new fits
  *  \author Tony Frawley
  */
@@ -37,7 +37,7 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
@@ -206,10 +206,10 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 
   // These accumulate trackseeds as we loop over tracks, keylist is a vector of vectors of seed cluskeys
   // The seeds are all given to the fitter at once
-    std::vector<std::vector<TrkrDefs::cluskey>> keylist;
+    std::vector<std::vector<TrkrDefs::cluskey>> keylist_A;
     PositionMap correctedOffsetTrackClusPositions;   //  this is an std::map<TrkrDefs::cluskey, Acts::Vector3>
 
-  for(int track_it = 0; track_it != _track_map->size(); ++track_it )
+  for(unsigned int track_it = 0; track_it != _track_map->size(); ++track_it )
   {
     if(Verbosity()>0) { std::cout << "TPC seed " << track_it << std::endl; }
     // if not a TPC track, ignore
@@ -228,6 +228,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 		  << " Y0 " << track->get_y()
 		  << " Z0 " << track->get_z()
 		  << " eta " << track->get_eta()
+		  << " phi " << track->get_phi()
 		  << std::endl;
       }
 
@@ -284,11 +285,11 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       /// Can't circle fit a seed with less than 3 clusters, skip it
       if(dumvec.size() < 3)
 	{ continue; }
-      keylist.push_back(dumvec);
+      keylist_A.push_back(dumvec);
 
       if(Verbosity() > 0)
 	{
-	  std::cout << "Added  input seed " << track_it << "  becomes output seed " << keylist.size() - 1 << std::endl;
+	  std::cout << "Added  input seed " << track_it << "  becomes output seed " << keylist_A.size() - 1 << std::endl;
 	}
 
     } // end if TPC seed
@@ -300,7 +301,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       
   // refit the corrected clusters 
   std::vector<float> trackChi2;
-  auto seeds = fitter->ALICEKalmanFilter(keylist, true, correctedOffsetTrackClusPositions,
+  auto seeds = fitter->ALICEKalmanFilter(keylist_A, true, correctedOffsetTrackClusPositions,
 					 trackChi2);
   
   // update the seed parameters on the node tree
@@ -398,7 +399,7 @@ PositionMap PrelimDistortionCorrection::PrepareKDTrees()
 }
 
 
-void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& positions)
+void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap& positions)
 {
   int seed_index = 0;
   for(auto& seed: seeds )
@@ -409,6 +410,8 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, 
     seed.lineFit(positions, 7, 55);
     
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+    float phi = seed.get_phi(positions);
+    seed.set_phi(phi);  // stores the preliminary distortion corrected phi permanently
     _track_map->insert(&seed); 
 
     if(Verbosity() > 0)
@@ -416,18 +419,25 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v1>& seeds, 
 	std::cout << "Publishing seed " << seed_index
 		  << " q " << q
 		  << " qOverR " << fabs(seed.get_qOverR()) * q 
-		  << " X0 " << seed.get_x()
-		  << " Y0 " << seed.get_y()
-		  << " Z0 " << seed.get_z()
+		  << " x " << seed.get_x()
+		  << " y " << seed.get_y()
+		  << " z " << seed.get_z()
+		  << " pT " << seed.get_pt()
 		  << " eta " << seed.get_eta()
+		  << " phi " << seed.get_phi()
 		  << std::endl;
+      }
+    if(Verbosity() > 5)
+      {
+	TrackSeed* readseed = _track_map->get(seed_index);
+	readseed->identify();
       }
 
     seed_index++;
   }
 }
 
-void PrelimDistortionCorrection::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
+void PrelimDistortionCorrection::publishSeeds(const std::vector<TrackSeed_v2>& seeds)
 {
   for( const auto& seed:seeds )
   { _track_map->insert(&seed); }

@@ -19,7 +19,6 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   MvtxClusterizer.h \
-  MvtxClusterQA.h \
   MvtxHitPruner.h \
   MvtxCombinedRawDataDecoder.h \
   CylinderGeom_Mvtx.h \
@@ -35,7 +34,6 @@ nobase_dist_pcm_DATA = \
 # sources for mvtx library
 libmvtx_la_SOURCES = \
   MvtxClusterizer.cc \
-  MvtxClusterQA.cc \
   MvtxHitPruner.cc \
   MvtxCombinedRawDataDecoder.cc
 
@@ -45,7 +43,6 @@ libmvtx_la_LIBADD = \
   -lffarawobjects \
   -lphg4hit \
   -lSubsysReco \
-  -lqautils \
   -lcdbobjects
 
 # sources for io library

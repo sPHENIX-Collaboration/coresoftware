@@ -16,7 +16,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
@@ -134,26 +134,26 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
   {
     longestseed = chainedSeeds.front();
   }
-  for (auto& seed : chainedSeeds)
+  for (auto& seed_A : chainedSeeds)
   {
     if (m_analysis)
     {
       float seed_data[] = {
           (float) m_event,
           (float) iseed,
-          (float) seed.ckeys.size(),
-          seed.xyintercept,
-          seed.xyslope,
-          seed.rzintercept,
-          seed.rzslope,
+          (float) seed_A.ckeys.size(),
+          seed_A.xyintercept,
+          seed_A.xyslope,
+          seed_A.rzintercept,
+          seed_A.rzslope,
           longestseed.xyintercept,
           longestseed.xyslope,
           longestseed.rzintercept,
           longestseed.rzslope};
       m_tup->Fill(seed_data);
     }
-    auto svtxseed = std::make_unique<TrackSeed_v1>();
-    for (auto& key : seed.ckeys)
+    auto svtxseed = std::make_unique<TrackSeed_v2>();
+    for (auto& key : seed_A.ckeys)
     {
       svtxseed->insert_cluster_key(key);
     }
@@ -167,10 +167,10 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::findIntersections(PHCosmicSeeder::See
 {
   std::set<int> seedsToDelete;
   //! combine seeds with common ckeys
-  for (int i = 0; i < initialSeeds.size(); ++i)
+  for (unsigned int i = 0; i < initialSeeds.size(); ++i)
   {
     auto& seed1 = initialSeeds[i];
-    for (int j = i; j < initialSeeds.size(); ++j)
+    for (unsigned int j = i; j < initialSeeds.size(); ++j)
     {
       if (i == j)
       {
@@ -194,7 +194,7 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::findIntersections(PHCosmicSeeder::See
   }
 
   SeedVector finalSeeds;
-  for (int i = 0; i < initialSeeds.size(); ++i)
+  for (unsigned int i = 0; i < initialSeeds.size(); ++i)
   {
     if (seedsToDelete.find(i) != seedsToDelete.end())
     {
@@ -213,10 +213,10 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
 {
   PHCosmicSeeder::SeedVector returnseeds;
   std::set<int> seedsToDelete;
-  for (int i = 0; i < initialSeeds.size(); ++i)
+  for (unsigned int i = 0; i < initialSeeds.size(); ++i)
   {
     auto& seed1 = initialSeeds[i];
-    for (int j = i; j < initialSeeds.size(); ++j)
+    for (unsigned int j = i; j < initialSeeds.size(); ++j)
     {
       if (i == j)
       {
@@ -254,7 +254,7 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       }
     }
   }
-  for (int i = 0; i < initialSeeds.size(); ++i)
+  for (unsigned int i = 0; i < initialSeeds.size(); ++i)
   {
     if (seedsToDelete.find(i) != seedsToDelete.end())
     {
@@ -271,9 +271,9 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
   SeedVector prunedSeeds;
   std::set<int> seedsToDelete;
 
-  for (int i = 0; i < initialSeeds.size(); ++i)
+  for (unsigned int i = 0; i < initialSeeds.size(); ++i)
   {
-    for (int j = i; j < initialSeeds.size(); ++j)
+    for (unsigned int j = i; j < initialSeeds.size(); ++j)
     {
       if (i == j)
       {
@@ -305,7 +305,7 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
   {
     std::cout << "seeds to delete size is " << seedsToDelete.size() << std::endl;
   }
-  for (int i = 0; i < initialSeeds.size(); ++i)
+  for (unsigned int i = 0; i < initialSeeds.size(); ++i)
   {
     if (seedsToDelete.find(i) != seedsToDelete.end())
     {
@@ -420,32 +420,32 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
 
   /// erase doublets
   std::set<int> seedsToDelete;
-  for (int i = 0; i < seeds.size(); ++i)
+  for (unsigned int i = 0; i < seeds.size(); ++i)
   {
-    auto seed = seeds[i];
+    auto seed_A = seeds[i];
     if (Verbosity() > 2)
     {
       std::cout << "keys in seed " << std::endl;
-      for (auto& key : seed.ckeys)
+      for (auto& key : seed_A.ckeys)
       {
         std::cout << key << ", ";
       }
       std::cout << std::endl
                 << "seed pos " << std::endl;
-      for (auto& key : seed.ckeys)
+      for (auto& key : seed_A.ckeys)
       {
         std::cout << clusterPositions.find(key)->second.transpose() << std::endl;
       }
       std::cout << "Done printing seed info" << std::endl;
     }
-    if (seed.ckeys.size() < 3)
+    if (seed_A.ckeys.size() < 3)
     {
       seedsToDelete.insert(i);
     }
   }
 
   PHCosmicSeeder::SeedVector returnSeeds;
-  for (int i = 0; i < seeds.size(); i++)
+  for (unsigned int i = 0; i < seeds.size(); i++)
   {
     if (seedsToDelete.find(i) != seedsToDelete.end())
     {
@@ -455,13 +455,13 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
   }
   return returnSeeds;
 }
-void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed,
+void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed_A,
                                                    PHCosmicSeeder::PositionMap& clusters, bool isXY)
 {
   float avgx = 0;
   float avgy = 0;
   PHCosmicSeeder::PositionMap seedClusters;
-  for (auto& key : seed.ckeys)
+  for (auto& key : seed_A.ckeys)
   {
     auto glob = clusters.find(key)->second;
     if (isXY)
@@ -477,8 +477,8 @@ void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed,
     seedClusters.insert(std::make_pair(key, glob));
   }
 
-  avgx /= seed.ckeys.size();
-  avgy /= seed.ckeys.size();
+  avgx /= seed_A.ckeys.size();
+  avgy /= seed_A.ckeys.size();
   float num = 0;
   float denom = 0;
   for (auto& [key, glob] : seedClusters)
@@ -496,13 +496,13 @@ void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed,
   }
   if (isXY)
   {
-    seed.xyslope = num / denom;
-    seed.xyintercept = avgy - seed.xyslope * avgx;
+    seed_A.xyslope = num / denom;
+    seed_A.xyintercept = avgy - seed_A.xyslope * avgx;
   }
   else
   {
-    seed.rzslope = num / denom;
-    seed.rzintercept = avgy - seed.rzslope * avgx;
+    seed_A.rzslope = num / denom;
+    seed_A.rzintercept = avgy - seed_A.rzslope * avgx;
   }
 }
 int PHCosmicSeeder::getNodes(PHCompositeNode* topNode)

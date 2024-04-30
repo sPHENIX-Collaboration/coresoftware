@@ -2,12 +2,10 @@
 
 #include <phool/phool.h>
 
-#include <climits>
-#include <cmath>
-#include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, basic_ostream::o...
-#include <string>    // for operator<<, string, char_traits
-#include <utility>   // for pair
+#include <limits>
+#include <string>   // for operator<<, string, char_traits
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -64,7 +62,7 @@ int EicEventHeaderv1::get_property_int(const PROPERTY prop_id) const
     return u_property(i->second).idata;
   }
 
-  return INT_MIN;
+  return std::numeric_limits<int>::min();
 }
 
 unsigned int
@@ -85,7 +83,7 @@ EicEventHeaderv1::get_property_uint(const PROPERTY prop_id) const
     return u_property(i->second).uidata;
   }
 
-  return UINT_MAX;
+  return std::numeric_limits<unsigned int>::max();
 }
 
 void EicEventHeaderv1::set_property(const PROPERTY prop_id, const float value)
@@ -135,5 +133,5 @@ EicEventHeaderv1::get_property_nocheck(const PROPERTY prop_id) const
   {
     return iter->second;
   }
-  return UINT_MAX;
+  return std::numeric_limits<unsigned int>::max();
 }

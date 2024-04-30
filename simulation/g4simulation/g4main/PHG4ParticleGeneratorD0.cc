@@ -1,7 +1,6 @@
 #include "PHG4ParticleGeneratorD0.h"
 
 #include "PHG4InEvent.h"
-#include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4Particlev1.h"
 
 #include <phool/PHRandomSeed.h>
@@ -21,6 +20,7 @@
 #include <vector>    // for vector, vector<>::const_iterator
 
 class PHCompositeNode;
+class PHG4Particle;
 
 PHG4ParticleGeneratorD0::PHG4ParticleGeneratorD0(const std::string &name)
   : PHG4ParticleGeneratorBase(name)

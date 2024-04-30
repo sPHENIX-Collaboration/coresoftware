@@ -63,7 +63,7 @@ PHG4TpcSteppingAction::~PHG4TpcSteppingAction()
   delete m_Hit;
 }
 //____________________________________________________________________________..
-bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -140,7 +140,7 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit = new PHG4Hitv1();
     }
     m_Hit->set_layer(layer_id);
-    //here we set the entrance values in cm
+    // here we set the entrance values in cm
     m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
     m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
     m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
@@ -152,10 +152,10 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     // time in ns
     m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-    //set and save the track ID
+    // set and save the track ID
     m_Hit->set_trkid(aTrack->GetTrackID());
     m_SaveTrackId = aTrack->GetTrackID();
-    //set the initial energy deposit
+    // set the initial energy deposit
     m_Hit->set_edep(0);
     if (whichactive > 0)  // return of IsInTpcDetector, > 0 hit in tpc gas volume, < 0 hit in support structures
     {
@@ -222,7 +222,7 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
-    //sum up the energy to get total deposited
+    // sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (whichactive > 0)
     {
@@ -269,10 +269,11 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         {
           m_Shower->add_g4hit_id(m_CurrentHitContainer->GetID(), m_Hit->get_hit_id());
         }
-
-        double rin = sqrt(m_Hit->get_x(0) * m_Hit->get_x(0) + m_Hit->get_y(0) * m_Hit->get_y(0));
-        double rout = sqrt(m_Hit->get_x(1) * m_Hit->get_x(1) + m_Hit->get_y(1) * m_Hit->get_y(1));
+        // promote to double to force double sqrt
+        double rin = sqrt((double) (m_Hit->get_x(0) * m_Hit->get_x(0) + m_Hit->get_y(0) * m_Hit->get_y(0)));
+        double rout = sqrt((double) (m_Hit->get_x(1) * m_Hit->get_x(1) + m_Hit->get_y(1) * m_Hit->get_y(1)));
         if (Verbosity() > 10)
+        {
           if ((rin > 69.0 && rin < 70.125) || (rout > 69.0 && rout < 70.125))
           {
             std::cout << "Added Tpc g4hit with rin, rout = " << rin << "  " << rout
@@ -293,6 +294,7 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
                       << " rav " << (rout + rin) / 2.0
                       << std::endl;
           }
+        }
 
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track

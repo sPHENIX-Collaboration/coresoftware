@@ -19,9 +19,9 @@ class PHG4InttFPHXParameterisation : public G4VPVParameterisation
   void ComputeTransformation(const G4int icopy, G4VPhysicalVolume *physVol) const override;
 
  private:
-  G4double fXFPHX[20];
-  G4double fYFPHX[20];
-  G4double fZFPHX[20];
+  G4double fXFPHX[20]{};
+  G4double fYFPHX[20]{};
+  G4double fZFPHX[20]{};
 };
 
 #endif

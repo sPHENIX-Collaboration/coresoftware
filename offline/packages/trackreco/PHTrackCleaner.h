@@ -12,9 +12,9 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -25,7 +25,6 @@ class TrackSeedContainer;
 class PHTrackCleaner : public SubsysReco
 {
  public:
-
   PHTrackCleaner(const std::string &name = "PHTrackCleaner");
 
   ~PHTrackCleaner() override;
@@ -34,22 +33,21 @@ class PHTrackCleaner : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
- void set_pp_mode(const bool flag){_pp_mode = flag ;}
- void set_quality_cut(const float cut) {quality_cut = cut;}
+  void set_pp_mode(const bool flag) { _pp_mode = flag; }
+  void set_quality_cut(const float cut) { quality_cut = cut; }
 
  private:
-
-  int GetNodes(PHCompositeNode* topNode);
+  int GetNodes(PHCompositeNode *topNode);
   void findGhostTracks();
 
-SvtxTrackMap *_track_map{nullptr};
-SvtxTrack *_track{nullptr};
- TrackSeedContainer *_tpc_seed_map{nullptr};
+  SvtxTrackMap *_track_map{nullptr};
+  SvtxTrack *_track{nullptr};
+  TrackSeedContainer *_tpc_seed_map{nullptr};
+  TrackSeedContainer *_silicon_seed_map{nullptr};
 
- double min_ndf = 25;
- float quality_cut = 15.0;
- bool _pp_mode = false;
-
+  double min_ndf = 25;
+  float quality_cut = 15.0;
+  bool _pp_mode = false;
 };
 
-#endif // PHTRACKCLEANER_H
+#endif  // PHTRACKCLEANER_H

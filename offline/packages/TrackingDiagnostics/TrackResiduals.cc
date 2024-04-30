@@ -78,18 +78,16 @@ TrackResiduals::TrackResiduals(const std::string& name)
 }
 
 //____________________________________________________________________________..
-TrackResiduals::~TrackResiduals()
-{
-}
+TrackResiduals::~TrackResiduals() = default;
 
 //____________________________________________________________________________..
-int TrackResiduals::Init(PHCompositeNode*)
+int TrackResiduals::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int TrackResiduals::InitRun(PHCompositeNode*)
+int TrackResiduals::InitRun(PHCompositeNode* /*unused*/)
 {
   m_outfile = new TFile(m_outfileName.c_str(), "RECREATE");
   createBranches();
@@ -200,8 +198,8 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   if (gl1)
   {
     m_bco = gl1->get_bco();
-    auto lbshift = m_bco << 24;
-    m_bcotr = lbshift >> 24;
+    auto lbshift = m_bco << 24U;
+    m_bcotr = lbshift >> 24U;
   }
   else
   {
@@ -360,7 +358,10 @@ float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey c
   double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
   double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
   unsigned int side = TpcDefs::getSide(cluster_key);
-  if (side == 0) zloc = -zloc;
+  if (side == 0)
+  {
+    zloc = -zloc;
+  }
   float z = zloc;  // in cm
 
   return z;
@@ -376,7 +377,10 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   for (auto& pos : clusPos)
   {
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) clusr *= -1;
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
 
     // exclude silicon and tpot clusters for now
     if (fabs(clusr) > 80 || fabs(clusr) < 30)
@@ -404,11 +408,14 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   std::vector<Acts::Vector3> clusPos;
   TrackFitUtils::getTrackletClusters(geometry, clusters,
                                      clusPos, keys);
-  TrackFitUtils::position_vector_t xypoints, rzpoints;
+  TrackFitUtils::position_vector_t xypoints, rzpoints, yzpoints;
   for (auto& pos : clusPos)
   {
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) clusr *= -1;
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    }
 
     // exclude silicon and tpot clusters for now
     if (fabs(clusr) > 80 || fabs(clusr) < 30)
@@ -417,14 +424,18 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     }
     rzpoints.push_back(std::make_pair(pos.z(), clusr));
     xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+    yzpoints.push_back(std::make_pair(pos.z(), pos.y()));
   }
 
   auto xyparams = TrackFitUtils::line_fit(xypoints);
   auto rzparams = TrackFitUtils::line_fit(rzpoints);
+  auto yzparams = TrackFitUtils::line_fit(yzpoints);
   m_xyint = std::get<1>(xyparams);
   m_xyslope = std::get<0>(xyparams);
   m_rzint = std::get<1>(rzparams);
   m_rzslope = std::get<0>(rzparams);
+  m_yzint = std::get<1>(yzparams);
+  m_yzslope = std::get<0>(yzparams);
 }
 
 void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
@@ -524,7 +535,7 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
 }
 
 //____________________________________________________________________________..
-int TrackResiduals::End(PHCompositeNode*)
+int TrackResiduals::End(PHCompositeNode* /*unused*/)
 {
   m_outfile->cd();
   m_tree->Write();
@@ -586,7 +597,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
       m_ladderzid = InttDefs::getLadderZId(m_hitsetkey);
       m_ladderphiid = InttDefs::getLadderPhiId(m_hitsetkey);
       m_timebucket = InttDefs::getTimeBucketId(m_hitsetkey);
-      
+
       m_staveid = std::numeric_limits<int>::quiet_NaN();
       m_chipid = std::numeric_limits<int>::quiet_NaN();
       m_strobeid = std::numeric_limits<int>::quiet_NaN();
@@ -708,8 +719,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
 
         float AdcClockPeriod = geoLayer->get_zstep();
         m_zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
-	double NZBinsSide = 249;  // physical z bins per TPC side
-	double tdriftmax = AdcClockPeriod * NZBinsSide;
+        double NZBinsSide = 249;  // physical z bins per TPC side
+        double tdriftmax = AdcClockPeriod * NZBinsSide;
         m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - m_zdriftlength;
         if (m_side == 0)
         {
@@ -797,11 +808,11 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
   {
     float rawclusz = convertTimeToZ(geometry, ckey, cluster);
-    
+
     int crossing = track->get_crossing();
     unsigned int side = TpcDefs::getSide(ckey);
     clusz = m_clusterCrossingCorrection.correctZ(rawclusz, side, crossing);
-    if(!m_ppmode)
+    if (!m_ppmode)
     {
       clusz = rawclusz;
     }
@@ -841,31 +852,31 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     //! skip filling the state information if a state is not there
     //! or we just ran the seeding. Fill with Nans to maintain the
     //! 1-to-1 mapping between cluster/state vectors
-    m_idealsurfalpha.push_back(NAN);
-    m_idealsurfbeta.push_back(NAN);
-    m_idealsurfgamma.push_back(NAN);
-    m_missurfalpha.push_back(NAN);
-    m_missurfbeta.push_back(NAN);
-    m_missurfgamma.push_back(NAN);
-    m_idealsurfcenterx.push_back(NAN);
-    m_idealsurfcentery.push_back(NAN);
-    m_idealsurfcenterz.push_back(NAN);
-    m_idealsurfnormx.push_back(NAN);
-    m_idealsurfnormy.push_back(NAN);
-    m_idealsurfnormz.push_back(NAN);
-    m_missurfcenterx.push_back(NAN);
-    m_missurfcentery.push_back(NAN);
-    m_missurfcenterz.push_back(NAN);
-    m_missurfnormx.push_back(NAN);
-    m_missurfnormy.push_back(NAN);
-    m_missurfnormz.push_back(NAN);
-    m_clusgxideal.push_back(NAN);
-    m_clusgyideal.push_back(NAN);
-    m_clusgzideal.push_back(NAN);
-    m_statepx.push_back(NAN);
-    m_statepy.push_back(NAN);
-    m_statepz.push_back(NAN);
-    m_statepl.push_back(NAN);
+    m_idealsurfalpha.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfbeta.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfgamma.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfalpha.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfbeta.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfgamma.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfcenterx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfcentery.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfcenterz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfnormx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfnormy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_idealsurfnormz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfcenterx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfcentery.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfcenterz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfnormx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfnormy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_missurfnormz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_clusgxideal.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_clusgyideal.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_clusgzideal.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepl.push_back(std::numeric_limits<float>::quiet_NaN());
     return;
   }
 
@@ -993,14 +1004,14 @@ void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
 }
 void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
                                            TrkrCluster* cluster, ActsGeometry* geometry)
-{ 
+{
   auto intersection = TrackFitUtils::surface_3Dline_intersection(key, cluster, geometry, m_xyslope,
-  m_xyint, m_rzslope, m_rzint);
-  
+                                                                 m_xyint, m_yzslope, m_yzint);
+
   auto surf = geometry->maps().getSurface(key, cluster);
   Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
 
-  if(!std::isnan(intersection.x()))
+  if (!std::isnan(intersection.x()))
   {
     auto locstateres = surf->globalToLocal(geometry->geometry().getGeoContext(),
                                            intersection * Acts::UnitConstants::cm,
@@ -1026,11 +1037,11 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
   {
     //! otherwise the line is parallel to the surface, should not happen if
     //! we have a cluster on the surface but just fill the state vecs with nan
-    m_statelx.push_back(NAN);
-    m_statelz.push_back(NAN);
-    m_stategx.push_back(NAN);
-    m_stategy.push_back(NAN);
-    m_stategz.push_back(NAN);
+    m_statelx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statelz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_stategx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_stategy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_stategz.push_back(std::numeric_limits<float>::quiet_NaN());
   }
 }
 void TrackResiduals::createBranches()
@@ -1128,8 +1139,10 @@ void TrackResiduals::createBranches()
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
   m_tree->Branch("rzslope", &m_rzslope, "m_rzslope/F");
   m_tree->Branch("xyslope", &m_xyslope, "m_xyslope/F");
+  m_tree->Branch("yzslope", &m_yzslope, "m_yzslope/F");
   m_tree->Branch("rzint", &m_rzint, "m_rzint/F");
   m_tree->Branch("xyint", &m_xyint, "m_xyint/F");
+  m_tree->Branch("yzint", &m_yzint, "m_yzint/F");
   m_tree->Branch("R", &m_R, "m_R/F");
   m_tree->Branch("X0", &m_X0, "m_X0/F");
   m_tree->Branch("Y0", &m_Y0, "m_Y0/F");
@@ -1146,8 +1159,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgz", &m_clusgz);
   m_tree->Branch("cluslayer", &m_cluslayer);
   m_tree->Branch("clussize", &m_clussize);
-  m_tree->Branch("clusphisize",&m_clusphisize);
-  m_tree->Branch("cluszsize",&m_cluszsize);
+  m_tree->Branch("clusphisize", &m_clusphisize);
+  m_tree->Branch("cluszsize", &m_cluszsize);
   m_tree->Branch("clushitsetkey", &m_clushitsetkey);
   m_tree->Branch("idealsurfcenterx", &m_idealsurfcenterx);
   m_tree->Branch("idealsurfcentery", &m_idealsurfcentery);

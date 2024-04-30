@@ -28,12 +28,13 @@ class InttSurveyMap : public PHObject
   int LoadFromCDB(std::string const& = "InttSurveyMap");
 
   int GetStripTransform(key_t const&, val_t&) const;
+  int GetSensorTransform(key_t const&, val_t&) const;
+  int GetLadderTransform(key_t const&, val_t&) const;
 
   virtual void identify(std::ostream& = std::cout) const override;
   virtual std::size_t size() const;
 
   virtual val_t const* GetAbsoluteTransform(key_t const&) const;
-  virtual val_t const* GetRelativeTransform(key_t const&) const;
 
  protected:
   virtual int v_LoadFromCDBTTree(CDBTTree&);
