@@ -3,6 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
+  -isystem$(OPT_SPHENIX)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -20,8 +21,12 @@ libXingShiftCal_la_SOURCES = \
   XingShiftCal.cc
 
 libXingShiftCal_la_LIBADD = \
+  -L$(OPT_SPHENIX)/lib \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
+  -loncal \
+  -lodbc \
+  -lodbc++
 
 BUILT_SOURCES = testexternals.cc
 
