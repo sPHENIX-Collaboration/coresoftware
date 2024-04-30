@@ -72,8 +72,14 @@ libtpc_la_SOURCES = \
   TpcChanQA.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
+<<<<<<< HEAD
   TpcClusterQA.cc \
+=======
+  TpcClusterMover.cc \
+  TpcClusterZCrossingCorrection.cc \
+>>>>>>> 44662d7f2855355602e4f2f6b09526a6f31828c0
   TpcCombinedRawDataUnpacker.cc \
+  TpcDistortionCorrection.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
   TpcRawDataDecoder.cc \
@@ -96,10 +102,7 @@ libtpc_la_LIBADD = \
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
   TrainingHitsContainer.cc \
-  TrainingHits.cc \
-  TpcClusterMover.cc \
-  TpcDistortionCorrection.cc \
-  TpcClusterZCrossingCorrection.cc
+  TrainingHits.cc
 
 libtpc_io_la_LIBADD = \
   -ltrack_io \
