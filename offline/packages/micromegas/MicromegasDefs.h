@@ -12,6 +12,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <array>
+#include <cstdint>
 
 namespace MicromegasDefs
 {
@@ -112,6 +113,9 @@ namespace MicromegasDefs
 
   //! total number of channels
   static constexpr int m_nchannels_total = m_nfee*m_nchannels_fee;
+
+  //! mark invalid ADC values
+  static constexpr uint16_t m_adc_invalid = 65000;
 
 }
 
