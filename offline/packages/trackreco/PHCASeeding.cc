@@ -825,7 +825,7 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
         float yt = test_pos.y();
         float zt = test_pos.z();
         float new_dr = sqrt(xt * xt + yt * yt) - sqrt(x1 * x1 + y1 * y1);
-        if (fabs((z1 - z2) / dr_12 - (zt - z1) / new_dr) > 0.5)
+        if (fabs((z1 - z2) / dr_12 - (zt - z1) / new_dr) > _clusadd_delta_dzdr_window)
         {
           continue;
         }
@@ -841,7 +841,7 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
         float d2phidr2 = dphi12 / (dr_12 * dr_12) - dphi23 / (dr_23 * dr_23);
         float new_dphi = std::fmod(atan2(yt, xt) - atan2(y1, x1), M_PI);
         float new_d2phidr2 = new_dphi / (new_dr * new_dr) - dphi12 / (dr_12 * dr_12);
-        if (seed.size() < 6 && fabs(d2phidr2 - new_d2phidr2) < .005)
+        if (seed.size() < 6 && fabs(d2phidr2 - new_d2phidr2) < _clusadd_delta_dphidr2_window)
         {
           //    no_next_link = false;
           keylist newseed = seed;
