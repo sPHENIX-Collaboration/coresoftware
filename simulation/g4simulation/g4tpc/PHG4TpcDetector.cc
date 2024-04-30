@@ -29,6 +29,9 @@
 #include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
+#include <ffamodules/CDBInterface.h>
+#include <cdbobjects/CDBTTree.h>
+
 #include <algorithm>  // for max, copy
 #include <cassert>
 #include <cmath>
@@ -36,6 +39,9 @@
 #include <iostream>  // for basic_ostream::operator<<
 #include <map>       // for map
 #include <sstream>
+
+#include <numeric> // Include the numeric header for the iota function
+
 
 class G4VSolid;
 class PHCompositeNode;
@@ -488,6 +494,20 @@ void PHG4TpcDetector::add_geometry_node()
     runNode->addNode(newNode);
   }
 
+  m_cdb = CDBInterface::instance();
+  std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
+  if (calibdir[0] == '/')
+  {
+    // use generic CDBTree to load
+    m_cdbttree = new CDBTTree(calibdir.c_str());
+    m_cdbttree->LoadCalibrations();
+  }
+  else
+  {
+    std::cout << "PHG4TpcPadPlaneReadout::InitRun No calibration file found" << std::endl;
+    exit(1);
+  }    
+
   const std::array<int, 3> NTpcLayers =
   {{
     m_Params->get_int_param("ntpc_layers_inner"),
@@ -562,7 +582,56 @@ void PHG4TpcDetector::add_geometry_node()
     SectorPhi[1] * 12 / (double) NPhiBins[1],
     SectorPhi[2] * 12 / (double) NPhiBins[2]
   }};
-  
+  const int NLayers = 16*3;
+  std::array< std::vector<double>, NLayers > pad_phi;
+  std::array< std::vector<int>, NLayers > pad_num;
+  int Nfee = 26;
+  int Nch = 256;
+  for(int f=0;f<Nfee;f++){
+    for(int ch=0;ch<Nch;ch++){
+      //int mod = 0;
+      //if(f>5) mod = 1;
+      //if(f>15) mod =2;
+      unsigned int key = 256 * (f) + ch;
+      std::string varname = "layer";// + to_string(key);
+      int layer = m_cdbttree->GetIntValue(key,varname);
+      //varname = "fee";// + to_string(key);
+      //m_cdbttree->GetIntValue(key,varname);
+      //varname = "ch";// + to_string(key);
+      //m_cdbttree->GetIntValue(key,varname);
+      //varname = "R";// + to_string(key);
+      //m_cdbttree->GetDoubleValue(key,varname);
+      if (layer>0){
+        
+        varname = "phi";// + to_string(key);
+        pad_phi[layer-7].push_back(m_cdbttree->GetDoubleValue(key,varname));
+        varname = "pad";// + to_string(key);
+        pad_num[layer-7].push_back(m_cdbttree->GetIntValue(key,varname));      
+      }
+    }
+  }
+
+  for (size_t layer = 0; layer < NLayers; ++layer) {
+    // Create a vector of indices
+    std::vector<size_t> indices(pad_num[layer].size());
+    std::iota(indices.begin(), indices.end(), 0); // Fill with 0, 1, 2, ..., n-1
+
+    // Define a custom comparator based on the values in the pad vector
+    auto comparator = [&](size_t i, size_t j) {
+        return pad_num[layer][i] < pad_num[layer][j];
+    };
+    // Sort the indices vector based on the values in the pad vector
+    std::sort(indices.begin(), indices.end(), comparator);
+    // Rearrange phi vector according to the sorted indices
+    std::vector<double> sorted_phi(pad_phi[layer].size());
+    for (size_t i = 0; i < pad_num[layer].size(); ++i) {
+        sorted_phi[i] = pad_phi[layer][indices[i]];
+    }
+
+    // Replace the original phi vector with the sorted one
+    pad_phi[layer] = sorted_phi;
+
+  }
   // should move to a common file 
   static constexpr int NSides = 2;
   static constexpr int NSectors = 12;
@@ -644,6 +713,7 @@ void PHG4TpcDetector::add_geometry_node()
       layerseggeo->set_phi_bias(sector_Phi_bias);
       layerseggeo->set_sector_min_phi(sector_min_Phi);
       layerseggeo->set_sector_max_phi(sector_max_Phi);
+      layerseggeo->set_layer_pad_phi(pad_phi[layer-7]);
       
       // Chris Pinkenburg: greater causes huge memory growth which causes problems
       // on our farm. If you need to increase this - TALK TO ME first

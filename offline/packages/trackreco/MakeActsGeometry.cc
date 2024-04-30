@@ -383,15 +383,15 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
       tpc_gas_measurement_vol[ilayer]->SetVisibility(kTRUE);
 
       if(Verbosity() > 3)
-	{
-	  std::cout << " Made box for layer " << ilayer 
-		    << " with dx " << m_layerThickness[ilayer] << " dy " 
-		    << box_r_phi << " ref arc " 
-		    << m_surfStepPhi * m_layerRadius[ilayer] << " dz " 
-		    << m_surfStepZ << std::endl;
-	  tpc_gas_measurement_vol[ilayer]->Print();
-	  tpc_gas_measurement_vol[ilayer]->CheckOverlaps();
-	}
+	    {
+	      std::cout << " Made box for layer " << ilayer 
+	    	    << " with dx " << m_layerThickness[ilayer] << " dy " 
+	    	    << box_r_phi << " ref arc " 
+	    	    << m_surfStepPhi * m_layerRadius[ilayer] << " dz " 
+	    	    << m_surfStepZ << std::endl;
+	      tpc_gas_measurement_vol[ilayer]->Print();
+	      tpc_gas_measurement_vol[ilayer]->CheckOverlaps();
+	    }
       	      
       for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
 	{
@@ -403,7 +403,9 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 	      for (unsigned int iphi = 0; iphi < m_nSurfPhi; ++iphi)
 		{
 		  
-		  double min_phi = m_modulePhiStart + 
+		  //double min_phi = m_layerPhiMin[ilayer][side][imod]; 
+		  //double phi_width = m_layerPhiWidth[ilayer]; 
+      double min_phi = m_modulePhiStart + 
 		    (double) imod * m_moduleStepPhi + 
 		    (double) iphi * m_surfStepPhi;
 		  double phi_center = min_phi + m_surfStepPhi / 2.0;
@@ -1478,6 +1480,12 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   {
     m_layerRadius[layer] = layeriter->second->get_radius();
     m_layerThickness[layer] = layeriter->second->get_thickness();
+    //m_layerPhiMin[layer] = layeriter->second->get_phimin();
+
+    //m_layerPhiMin[layer] = layeriter->second->get_sector_min_phi();//eshulga
+    //m_layerPhiMax[layer] = layeriter->second->get_sector_max_phi();//eshulga
+
+    //m_layerPhiWidth[layer] = layeriter->second->get_phistep()*layeriter->second->get_phibins();//eshulga
     layer++;
   }
 

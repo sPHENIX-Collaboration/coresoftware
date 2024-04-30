@@ -26,6 +26,7 @@
 
 //#include "tpc/TpcFullMap.h"
 
+
 #include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
@@ -99,7 +100,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert( GeomContainer );
-    
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -730,9 +731,9 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_sector_phi_mid",   0.5087);//2 * M_PI / 12 );//sector size in phi for R2 sector
   set_default_double_param("tpc_sector_phi_outer", 0.5097);//2 * M_PI / 12 );//sector size in phi for R3 sector
 
-  set_default_double_param("tpc_sector_phi_bias_inner", 0.0041);//sector bias in phi for R1 sector
-  set_default_double_param("tpc_sector_phi_bias_mid",   0.0029);//sector bias in phi for R2 sector
-  set_default_double_param("tpc_sector_phi_bias_outer", 0.0);   //sector bias in phi for R3 sector
+  set_default_double_param("tpc_sector_phi_bias_inner", -0.0041);//sector bias in phi for R1 sector
+  set_default_double_param("tpc_sector_phi_bias_mid",   -0.0029);//sector bias in phi for R2 sector
+  set_default_double_param("tpc_sector_phi_bias_outer", -0.0);   //sector bias in phi for R3 sector
 
   set_default_int_param("ntpc_phibins_inner", 1128); //94 * 12
   set_default_int_param("ntpc_phibins_mid", 1536);   //128 * 12

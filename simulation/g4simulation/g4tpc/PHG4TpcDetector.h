@@ -17,6 +17,9 @@ class PHCompositeNode;
 class PHG4TpcDisplayAction;
 class PHG4Subsystem;
 class PHParameters;
+class CDBTTree;
+class CDBInterface;
+
 
 class PHG4TpcDetector : public PHG4Detector
 {
@@ -59,6 +62,11 @@ class PHG4TpcDetector : public PHG4Detector
   //double phi_bias [3] = {0.0041, 0.0029, 0.0};
 
   std::string m_SuperDetectorName;
+
+
+  CDBTTree *m_cdbttree = nullptr;
+  CDBInterface *m_cdb = nullptr;
+
 };
 
 #endif

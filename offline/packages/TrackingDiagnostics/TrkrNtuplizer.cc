@@ -930,6 +930,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
  	    double radius = GeoLayer_local->get_radius();
             fx_hit[n_hit::nhitphibin] = (float) TpcDefs::getPad(hit_key);
             fx_hit[n_hit::nhittbin] = (float) TpcDefs::getTBin(hit_key);
+            //std::cout<<"hit_key = "<< hit_key << " layer_local="<< layer_local <<  " TrkrNtuplizer:: fx_hit[n_hit::nhitphibin]="<<fx_hit[n_hit::nhitphibin] << " (float) TpcDefs::getPad(hit_key)=" << (float) TpcDefs::getPad(hit_key) <<std::endl;
             fx_hit[n_hit::nhitphi] = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
 
             double zdriftlength = fx_hit[n_hit::nhittbin] * m_tGeometry->get_drift_velocity() * AdcClockPeriod;

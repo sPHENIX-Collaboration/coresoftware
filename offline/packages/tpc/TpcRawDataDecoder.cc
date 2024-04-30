@@ -347,7 +347,7 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
         int FEE_R[26] = {2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
         // conter clockwise FEE mapping (From Takao)
         // int FEE_map[26]={3, 2, 5, 3, 4, 0, 2, 1, 3, 4, 5, 7, 6, 2, 0, 1, 0, 1, 4, 5, 11, 9, 10, 8, 6, 7};
-        // int pads_per_sector[3] = {96, 128, 192};
+        int pads_per_sector[3] = {94, 128, 192};
         int FEE_map[26] = {4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
         // setting the mapp of the FEE
         int feeM = FEE_map[fee];
@@ -447,8 +447,9 @@ int TpcRawDataDecoder::process_event(PHCompositeNode *topNode)
           if (float(adc) - pedestal > 2)
           {
             unsigned int phibin = layergeom->find_phibin(phi);
-            // if((int)phibin > pads_per_sector[FEE_R[fee]-1]*12) std::cout << "TpcRawDataDecoder:: phibin is out of range > "<< pads_per_sector[FEE_R[fee]-1]*12 << std::endl;
+            if((int)phibin > 1000) std::cout << "TpcRawDataDecoder:: phibin is out of range > "<< pads_per_sector[FEE_R[fee]-1]*12 << std::endl;
             TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(phibin, (unsigned int) t);
+            if(hitkey == 4294902012) std::cout << "TpcRawDataDecoder:: hitkey = "<< hitkey << " phibin = "<< phibin << std::endl;
             // double phi_center = layergeom->get_phicenter(phibin);
             // if(phi_center<0) phi_center += 2*M_PI;
             // int phibin_mc = layergeom->find_phibin(phi);

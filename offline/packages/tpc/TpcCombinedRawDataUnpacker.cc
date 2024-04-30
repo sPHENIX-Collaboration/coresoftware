@@ -233,8 +233,23 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
     varname = "phi";  // + std::to_string(key);
     double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
+    varname = "pad";
+    int pad_n = m_cdbttree->GetIntValue(key, varname);
     PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
-    unsigned int phibin = layergeom->find_phibin(phi);
+    unsigned int phibin = layergeom->get_phibin(phi,side);//layergeom->find_phibin(phi);
+    int calc_pad_n = layergeom->get_phibins()/12*mc_sectors[sector % 12] + abs(pad_n - side*layergeom->get_phibins()/12);
+    if(calc_pad_n-int(phibin)!=0){
+      std::cout<< "TpcCombinedRawDataUnpacker::process_event: side = "<< side << 
+                                                          " sector = "<< sector<< 
+                                                          " layer = " << layer << 
+                                                          " phi = " << phi <<
+                                                          " pad_n = " << pad_n << 
+                                                          " phibin = " << phibin << 
+                                                          " calc pad_n = " << calc_pad_n << 
+                                                          " layergeom->get_phibins()/12 = " << layergeom->get_phibins()/12 << 
+                                                          " diff pad = " << calc_pad_n-int(phibin) <<
+                                                          " diff phi = " << phi-layergeom->get_phi(phibin) << std::endl;
+    }
     if (m_writeTree)
     {
       float fX[12];
@@ -255,7 +270,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     }
     hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
-
+    //if(hit_set_key>60000) 
+    //std::cout<< "TpcCombinedRawDataUnpacker::process_event: hit_set_key=" << hit_set_key << 
+    //                      " layer=" << layer <<
+    //                      " (mc_sectors[sector % 12])=" << (mc_sectors[sector % 12]) <<
+    //                      " side=" << side << std::endl;
     float hpedestal = 0;
     float hpedwidth = 0;
     pedhist.Reset();
@@ -302,6 +321,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       if ((float(adc) - hpedestal) > (hpedwidth * 4))
       {
         hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
+        //if(hit_key>4294902000) std::cout<< "TpcCombinedRawDataUnpacker::process_event: hit_key=" << hit_key <<
+        //                                    " phi=" << phi <<  
+        //                                    " phibin=" << phibin << 
+        //                                    " layergeom->find_phibin(phi)=" << layergeom->find_phibin(phi) <<
+        //                                    " t=" << t << std::endl;
         // find existing hit, or create new one
         hit = hit_set_container_itr->second->getHit(hit_key);
         if (!hit)

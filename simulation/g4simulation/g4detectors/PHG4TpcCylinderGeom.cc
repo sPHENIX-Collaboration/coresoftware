@@ -293,7 +293,7 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
   // if (phi < phimin){
   //   norm_phi = phi + 2* M_PI;
   // }
-  side = 0;
+  //side = 0;
 
   int phi_bin = -1;
 
@@ -302,7 +302,17 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
     if (norm_phi < sector_max_Phi[side][s] && norm_phi > sector_min_Phi[side][s])
     {
       // NOLINTNEXTLINE(bugprone-integer-division)
-      phi_bin = (floor(std::abs(sector_max_Phi[side][s] - norm_phi) / phistep) + nphibins / 12 * s);
+      //std::cout<<sector_min_Phi[side][s]<< "<"<< norm_phi <<"<"<< sector_max_Phi[side][s]<<std::endl;
+      //phi_bin = (floor(std::abs(sector_max_Phi[side][s] - norm_phi) / phistep) + nphibins / 12 * s);
+      for(long unsigned int i=0;i<layer_pad_phi.size();i++){
+        double set_pad_phi = (sector_max_Phi[side][s]+sector_min_Phi[side][s])/2 - pow(-1,side)*layer_pad_phi[i];
+        //std::cout<< "nphibins*phistep*s = "<<nphibins<<"*"<<phistep<<"*"<<s<<std::endl;
+        //std::cout << set_pad_phi-phistep/2 << "<" << norm_phi << "<" << set_pad_phi+phistep/2 << "phistep/2=" << phistep/2 << std::endl;
+        if(norm_phi<set_pad_phi+phistep/2 && norm_phi>set_pad_phi-phistep/2){
+          //std::cout<< "PHG4TpcCylinderGeom::find_phibin: layer_pad_phi.size() "<<layer_pad_phi.size()<<" i="<< i << "side i = " <<abs(i - side*nphibins / 12) << " calc pad = " <<abs(i - side*nphibins / 12) + nphibins / 12 * s<<" norm_phi="<<norm_phi<<" layer_pad_phi[i]"<<layer_pad_phi[i]<<std::endl;
+          phi_bin = abs(i - side*nphibins / 12) + nphibins / 12 * s;
+        }
+      }
       break;
     }
     if (s == 11)
@@ -320,6 +330,17 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
         break;
       }
     }
+
+  
+    //if (phi_bin>3000) {
+    //  std::cout<< "PHG4TpcCylinderGeom::find_phibin: "<<
+    //  "phi_bin=" << phi_bin <<
+    //  "side="<< side << 
+    //  "norm_phi=" << norm_phi << 
+    //  "phistep=" << phistep << 
+    //  "nphibins = " << nphibins << 
+    //  "s= " << s << std::endl;
+    //}
   }
   return phi_bin;
 }

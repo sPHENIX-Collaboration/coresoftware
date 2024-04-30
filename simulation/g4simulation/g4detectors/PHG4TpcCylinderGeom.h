@@ -76,6 +76,8 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   void set_sector_min_phi(std::array<std::vector<double>, NSides> s_min_phi) { sector_min_Phi = s_min_phi; }
   void set_sector_max_phi(std::array<std::vector<double>, NSides> s_max_phi) { sector_max_Phi = s_max_phi; }
 
+  void set_layer_pad_phi( std::vector<double> s_layer_pad_phi) { layer_pad_phi = s_layer_pad_phi; };
+
   std::array<std::vector<double>, NSides> get_sector_min_phi() { return sector_min_Phi; }
   std::array<std::vector<double>, NSides> get_sector_max_phi() { return sector_max_Phi; }
 
@@ -99,6 +101,7 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   std::array<std::vector<double>, NSides> sector_Phi_bias;
   std::array<std::vector<double>, NSides> sector_min_Phi;
   std::array<std::vector<double>, NSides> sector_max_Phi;
+  std::vector<double> layer_pad_phi;
 
   // streamer
   friend std::ostream& operator<<(std::ostream&, const PHG4TpcCylinderGeom&);

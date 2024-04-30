@@ -245,6 +245,11 @@ class MakeActsGeometry : public SubsysReco
   
   double m_layerRadius[m_nTpcLayers] = {0};
   double m_layerThickness[m_nTpcLayers] = {0};
+  //double m_layerPhiMin[m_nTpcLayers] = {0};
+  //double m_layerPhiWidth[m_nTpcLayers] = {0};
+
+  //std::array< std::array<std::vector<double>, NSides>,m_nTpcLayers > m_layerPhiMin;
+  //std::array< std::array<std::vector<double>, NSides>,m_nTpcLayers > m_layerPhiMax;
 
   // Spaces to prevent boxes from touching when placed
   const double half_width_clearance_thick = 0.4999;

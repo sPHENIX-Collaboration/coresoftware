@@ -139,8 +139,9 @@ namespace
       {
         continue;
       }
-
+      
       int iphi = iter.second.first + my_data.phioffset;
+      std::cout<< "TpcSimpleClusterizer::calc_cluster_parameter iter.second.first + my_data.phioffset = " << iphi <<" = "<<iter.second.first << "+"<< my_data.phioffset<< std::endl;
       int iz = iter.second.second + my_data.zoffset;
       if (iphi > phibinhi)
       {
