@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -35,6 +35,7 @@ lib_LTLIBRARIES = \
   libtpc.la
 
 pkginclude_HEADERS = \
+  LaserClusterizer.h \
   TrainingHitsContainer.h \
   TrainingHits.h \
   TpcRawDataTree.h \
@@ -65,17 +66,18 @@ dist_mydata_DATA = \
 
 # sources for tpc library
 libtpc_la_SOURCES = \
+  LaserClusterizer.cc \
   TpcRawDataTree.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
-  TpcClusterMover.cc \
-  TpcClusterZCrossingCorrection.cc \
   TpcCombinedRawDataUnpacker.cc \
-  TpcDistortionCorrection.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
   TpcRawWriter.cc \
-  TpcSimpleClusterizer.cc
+  TpcSimpleClusterizer.cc \
+  TpcClusterMover.cc \
+  TpcClusterZCrossingCorrection.cc \
+  TpcDistortionCorrection.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
@@ -86,8 +88,7 @@ libtpc_la_LIBADD = \
   -lmicromegas_io \
   -lfun4all \
   -lSpectrum \
-  -lpthread \
-  -lqautils
+  -lpthread
 
 # sources for io library
 libtpc_io_la_SOURCES = \
