@@ -39,7 +39,9 @@
 static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
     {CaloTowerDefs::CEMC, "CEMCPackets"},
     {CaloTowerDefs::HCALIN, "HCALPackets"},
-    {CaloTowerDefs::HCALOUT, "HCALPackets"}};
+    {CaloTowerDefs::HCALOUT, "HCALPackets"},
+    {CaloTowerDefs::ZDC, "ZDCPackets"},
+    {CaloTowerDefs::SEPD, "SEPDPackets"}};
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
   : SubsysReco(name)
