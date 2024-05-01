@@ -6,6 +6,8 @@
 
 #include <centrality/CentralityInfo.h>
 
+#include <mbd/MbdOut.h>
+
 #include <ffaobjects/EventHeader.h>
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObject.h>
@@ -46,6 +48,10 @@ int CopyIODataNodes::InitRun(PHCompositeNode *topNode)
   {
     CreateMinimumBiasInfo(topNode, se->topNode());
   }
+  if (m_CopyMbdOutFlag)
+  {
+    CreateMbdOut(topNode, se->topNode());
+  }
   if (m_CopySyncObjectFlag)
   {
     CreateSyncObject(topNode, se->topNode());
@@ -73,6 +79,10 @@ int CopyIODataNodes::process_event(PHCompositeNode *topNode)
   if (m_CopyMinimumBiasInfoFlag)
   {
     CopyMinimumBiasInfo(topNode, se->topNode());
+  }
+  if (m_CopyMbdOutFlag)
+  {
+    CopyMbdOut(topNode, se->topNode());
   }
   if (m_CopySyncObjectFlag)
   {
@@ -279,6 +289,49 @@ void CopyIODataNodes::CopyMinimumBiasInfo(PHCompositeNode *from_topNode, PHCompo
     to_minimumbiasinfo->identify();
   }
 
+  return;
+}
+
+void CopyIODataNodes::CreateMbdOut(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
+{
+  MbdOut *from_mbdout = findNode::getClass<MbdOut>(from_topNode, "MbdOut");
+  if (!from_mbdout)
+  {
+    std::cout << "Could not locate MbdOut no " << from_topNode->getName() << std::endl;
+    m_CopyMbdOutFlag = false;
+    return;
+  }
+  MbdOut *to_mbdout = findNode::getClass<MbdOut>(to_topNode, "MbdOut");
+  if (!to_mbdout)
+  {
+    PHNodeIterator iter(to_topNode);
+    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+    if (!dstNode)
+    {
+      dstNode = new PHCompositeNode("DST");
+      to_topNode->addNode(dstNode);
+    }
+    to_mbdout = dynamic_cast<MbdOut *>(from_mbdout->CloneMe());
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(to_mbdout, "MbdOut", "PHObject");
+    dstNode->addNode(newNode);
+  }
+  return;
+
+}
+
+void CopyIODataNodes::CopyMbdOut(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
+{
+  MbdOut *from_mbdout = findNode::getClass<MbdOut>(from_topNode, "MbdOut");
+  MbdOut *to_mbdout = findNode::getClass<MbdOut>(to_topNode, "MbdOut");
+  from_mbdout->CopyTo(to_mbdout);
+  if (Verbosity() > 0)
+  {
+    std::cout << "From MbdOut identify()" << std::endl;
+    from_mbdout->identify();
+    std::cout << "To MbdOut identify()" << std::endl;
+    to_mbdout->identify();
+  }
+  
   return;
 }
 
