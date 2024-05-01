@@ -123,7 +123,7 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode * /*unused*/)
   pruneSeeds(finalseeds, clusterPositions);
   for (auto &s : finalseeds)
   {
-    if(s.ckeys.size() == 0)
+    if(s.ckeys.size() < 3)
     {
       continue;
     }
