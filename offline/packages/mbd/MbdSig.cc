@@ -1,4 +1,5 @@
 #include "MbdSig.h"
+#include "MbdCalib.h"
 
 #include <phool/phool.h>
 
@@ -33,7 +34,6 @@ MbdSig::MbdSig(const int chnum, const int nsamp)
   , gRawPulse{nullptr}
   , gSubPulse{nullptr}
   , gpulse{nullptr}
-  , hPed0{nullptr}
   , ped0{0}
   ,  // ped average
   ped0rms{0}
@@ -95,8 +95,11 @@ void MbdSig::Init()
   ped0stats = new MbdRunningStats(100);  // use the last 100 events for running pedestal
   name = "hPed0_";
   name += _ch;
-  hPed0 = new TH1F(name, name, 16384, -0.5, 16383.5);
+  hPed0 = new TH1F(name, name, 3000, -0.5, 2999.5);
   // hPed0 = new TH1F(name,name,10000,1,0); // automatically determine the range
+  name = "hPedEvt_";
+  name += _ch;
+  hPedEvt = new TH1F(name, name, 3000, -0.5, 2999.5);
 
   SetTemplateSize(900, 1000, -10., 20.);
   // SetTemplateSize(300,300,0.,15.);
@@ -104,6 +107,10 @@ void MbdSig::Init()
   // Set pedestal function
   ped_fcn = new TF1("ped_fcn","[0]",0,2);
   ped_fcn->SetLineColor(3);
+
+  // Set tail function
+  ped_tail = new TF1("ped_tail","[0]+[1]*exp(-[2]*x)",0,2);
+  ped_tail->SetLineColor(2);
 }
 
 void MbdSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_t begt, const Double_t endt)
@@ -167,6 +174,23 @@ MbdSig::~MbdSig()
   delete hTime;
   delete template_fcn;
   delete ped_fcn;
+  delete ped_tail;
+}
+
+void MbdSig::SetEventPed0PreSamp(const Int_t presample, const Int_t nsamps, const int max_samp)
+{
+  ped_presamp = presample;
+  ped_presamp_nsamps = nsamps;
+  if ( ped_presamp_nsamps < 0 && max_samp > 0 )
+  {
+    ped_presamp_nsamps = max_samp - presample + 1;
+  }
+  ped_presamp_maxsamp = max_samp;
+}
+
+void MbdSig::SetCalib(MbdCalib *m)
+{
+  _mbdcal = m;
 }
 
 // This sets y, and x to sample number (starts at 0)
@@ -213,6 +237,8 @@ void MbdSig::SetY(const Float_t* y, const int invert)
       gSubPulse->SetPointError(isamp, 0., ped0rms);
     }
   }
+
+  _evt_counter++;
 }
 
 void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
@@ -283,6 +309,7 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
     }
   }
 
+  _evt_counter++;
   _verbose = 0;
 }
 
@@ -310,6 +337,11 @@ Double_t MbdSig::GetSplineAmpl()
   }
 
   return f_ampl;
+}
+
+void MbdSig::WritePedHist()
+{
+  hPed0->Write();
 }
 
 void MbdSig::FillPed0(const Int_t sampmin, const Int_t sampmax)
@@ -375,8 +407,7 @@ void MbdSig::SetPed0(const Double_t mean, const Double_t rms)
 void MbdSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
 {
   // if (_ch==8) cout << "In MbdSig::CalcEventPed0(int,int)" << endl;
-  hPed0->Reset();
-  // ped0stats->Clear();
+  hPedEvt->Reset();
 
   Double_t x, y;
   for (int isamp = minpedsamp; isamp <= maxpedsamp; isamp++)
@@ -384,16 +415,15 @@ void MbdSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
     gRawPulse->GetPoint(isamp, x, y);
 
     hPed0->Fill(y);
+    hPedEvt->Fill(y);
     // ped0stats->Push( y );
     // if ( _ch==8 ) cout << "ped0stats " << isamp << "\t" << y << endl;
   }
 
   // use straight mean for pedestal
   // Could consider using fit to hPed0 to remove outliers
-  float mean = hPed0->GetMean();
-  float rms = hPed0->GetRMS();
-
-  // SetPed0( ped0stats->Mean(), ped0stats->RMS() );
+  float mean = hPedEvt->GetMean();
+  float rms = hPedEvt->GetRMS();
 
   SetPed0(mean, rms);
   // if (_ch==8) cout << "ped0stats mean, rms " << mean << "\t" << rms << endl;
@@ -402,8 +432,7 @@ void MbdSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
 // Get Event by Event Ped0 if requested
 void MbdSig::CalcEventPed0(const Double_t minpedx, const Double_t maxpedx)
 {
-  hPed0->Reset();
-  // ped0stats->Clear();
+  hPedEvt->Reset();
 
   Double_t x, y;
   Int_t n = gRawPulse->GetN();
@@ -415,71 +444,83 @@ void MbdSig::CalcEventPed0(const Double_t minpedx, const Double_t maxpedx)
     if (x >= minpedx && x <= maxpedx)
     {
       hPed0->Fill(y);
+      hPedEvt->Fill(y);
       // ped0stats->Push( y );
     }
   }
 
   // use straight mean for pedestal
   // Could consider using fit to hPed0 to remove outliers
-  SetPed0(hPed0->GetMean(), hPed0->GetRMS());
-  /*
-     Double_t mean = ped0stats->Mean();
-     Double_t rms = ped0stats->RMS();
-     SetPed0( mean, rms );
-     */
-  // cout << "ped0stats " << mean << "\t" << rms << endl;
+  SetPed0(hPedEvt->GetMean(), hPedEvt->GetRMS());
 }
 
 // Get Event by Event Ped0, num samples before peak
 // presample is number of samples before peak, nsamps is how many samples
+// If difficult to get pedestal, use running mean from previous 100 events
 void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 {
   //_verbose = 100;
-  hPed0->Reset();
   //ped0stats->Clear();
 
-  Double_t x, y;
   // Int_t n = gRawPulse->GetN();
   // Int_t max = gRawPulse->GetHistogram()->GetMaximumBin();
   Long64_t max = ped_presamp_maxsamp;
 
-  // if there is no maxsamp set, use the max found in this event
-  if ( ped_presamp_maxsamp == -1 )
+  // actual max from event
+  Long64_t actual_max = TMath::LocMax(gRawPulse->GetN(), gRawPulse->GetY());
+
+  if ( ped_presamp_maxsamp == -1 ) // if there is no maxsamp set, use the max found in this event
   {
-    max = TMath::LocMax(gRawPulse->GetN(), gRawPulse->GetY());
+    max = actual_max;
   }
+
   Int_t minsamp = max - presample - nsamps + 1;
   Int_t maxsamp = max - presample;
   //std::cout << "CalcEventPed0_PreSamp: ch ctr max " << _ch << "\t" << _evt_counter << "\t" << max << std::endl;
 
   if (minsamp < 0)
   {
+    static int counter = 0;
+    if ( counter<1 )
+    {
+      std::cout << PHWHERE << " ped minsamp " << minsamp << "\t" << max << "\t" << presample << "\t" << nsamps << std::endl;
+      counter++;
+    }
     minsamp = 0;
-    _status = 1;  // bad pedestal
   }
   if (maxsamp < 0)
   {
-    maxsamp = 0;
-    _status = 1;
+    static int counter = 0;
+    if ( counter<1 )
+    {
+      std::cout << PHWHERE << " ped maxsamp " << maxsamp << "\t" << max << "\t" << presample << std::endl;
+      counter++;
+    }
+    maxsamp = minsamp;
   }
 
   if ( _verbose )
   {
-    std::cout << "hPed0 presamp ch " << _ch << std::endl;
+    std::cout << "CalcEventPed0_Presamp(), ch " << _ch << std::endl;
   }
 
   double mean = ped0stats->Mean();
   //double rms = ped0stats->RMS();
-  double rms = 4.0;
+  double rms = _mbdcal->get_pedrms(_ch);
 
   ped_fcn->SetRange(minsamp-0.1,maxsamp+0.1);
   ped_fcn->SetParameter(0,1500.);
   if ( _verbose )
   {
-    gRawPulse->Fit( ped_fcn, "R" );
-    gRawPulse->Draw("ap");
-    ped_fcn->Draw("same");
-    PadUpdate();
+    gRawPulse->Fit( ped_fcn, "RQ" );
+
+    double chi2ndf = ped_fcn->GetChisquare()/ped_fcn->GetNDF();
+    if ( chi2ndf > 4.0 )
+    {
+      gRawPulse->Draw("ap");
+      ped_fcn->Draw("same");
+      PadUpdate();
+    }
   }
   else
   {
@@ -490,20 +531,19 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   double chi2 = ped_fcn->GetChisquare();
   double ndf = ped_fcn->GetNDF();
 
-  //int nstats = ped0stats->NumDataValues();
-
   if ( chi2/ndf < 4.0 )
   {
     mean = ped_fcn->GetParameter(0);
+
+    Double_t x, y;
 
     for (int isamp = minsamp; isamp <= maxsamp; isamp++)
     {
       gRawPulse->GetPoint(isamp, x, y);
 
       // exclude outliers
-      if ( fabs(y-mean) < 5.0*rms )
+      if ( fabs(y-mean) < 4.0*rms )
       {
-        hPed0->Fill(y);
         ped0stats->Push( y );
       }
 
@@ -516,30 +556,46 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   }
   else
   {
-    if ( _verbose )
+    // ped fit was bad, we have signal contamination in ped region
+    // or other thing going on
+
+    if ( ped0stats->Size() < ped0stats->MaxNum() ) // use pre-calib for early events
     {
-      if ( _evt_counter<128*100 )
-      {
-        std::cout << "ccc ch " << _ch << "\t" << chi2/ndf << "\t" << mean << std::endl;
-      }
-      std::string junk;
-      cin >> junk;
+      mean = _mbdcal->get_ped(_ch);
     }
+    else  // use running mean, once enough stats are accumulated
+    {
+      mean = ped0stats->Mean();
+
+      if ( _verbose )
+      {
+        gRawPulse->Draw("ap");
+        PadUpdate();
+
+        if ( _evt_counter<100 )
+        {
+          double ped0statsrms = ped0stats->RMS();
+          std::cout << "aaa ch " << _ch << "\t" << _evt_counter << "\t" << mean << "\t" << ped0statsrms << std::endl;
+        }
+        std::string junk;
+        cin >> junk;
+      }
+    }
+
     // use straight mean for pedestal
     // Could consider using fit to hPed0 to remove outliers
-    mean = ped0stats->Mean();
     //rms = ped0stats->RMS();
     //Double_t mean = hPed0->GetMean();
     //Double_t rms = hPed0->GetRMS();
   }
 
   SetPed0(mean, rms);
-  if (_verbose > 0 && _evt_counter < 128*10)
+
+  if (_verbose > 0 && _evt_counter < 10)
   {
     std::cout << "CalcEventPed0_PreSamp: ped0stats " << _ch << "\t" << _evt_counter << "\t" << mean << "\t" << rms << std::endl;
     cout << "CalcEventPed0_PreSamp: ped0stats " << ped0stats->RMS() << std::endl;
   }
-  _evt_counter++;
 
   _verbose = 0;
 }
@@ -798,11 +854,11 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
 
 
   // When fit is out of limits of good part of spline, ignore fit
-  if (xx < template_begintime || xx > template_endtime || isnan(xx) )
+  if (xx < template_begintime || xx > template_endtime || std::isnan(xx) )
   {
     TF1::RejectPoint();
 
-    if ( isnan(xx) )
+    if ( std::isnan(xx) )
     {
       if (_verbose > 0)
       {

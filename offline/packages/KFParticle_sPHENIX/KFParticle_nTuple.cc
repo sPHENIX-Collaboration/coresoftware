@@ -303,7 +303,7 @@ void KFParticle_nTuple::initializeBranches()
 
 void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
                                    KFParticle motherParticle,
-                                   const KFParticle& vertex,
+                                   const KFParticle& vertex_fillbranch,
                                    std::vector<KFParticle> daughters,
                                    std::vector<KFParticle> intermediates,
                                    int nPVs, int multiplicity)
@@ -388,12 +388,12 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   if (m_constrain_to_vertex_nTuple)
   {
-    m_calculated_mother_dira = kfpTupleTools.eventDIRA(motherParticle, vertex);
-    m_calculated_mother_fdchi2 = kfpTupleTools.flightDistanceChi2(motherParticle, vertex);
-    m_calculated_mother_ip = motherParticle.GetDistanceFromVertex(vertex);
-    m_calculated_mother_ipchi2 = motherParticle.GetDeviationFromVertex(vertex);
+    m_calculated_mother_dira = kfpTupleTools.eventDIRA(motherParticle, vertex_fillbranch);
+    m_calculated_mother_fdchi2 = kfpTupleTools.flightDistanceChi2(motherParticle, vertex_fillbranch);
+    m_calculated_mother_ip = motherParticle.GetDistanceFromVertex(vertex_fillbranch);
+    m_calculated_mother_ipchi2 = motherParticle.GetDeviationFromVertex(vertex_fillbranch);
     m_calculated_mother_ip_err = m_calculated_mother_ip / std::sqrt(m_calculated_mother_ipchi2);
-    m_calculated_mother_ip_xy = motherParticle.GetDistanceFromVertexXY(vertex);
+    m_calculated_mother_ip_xy = motherParticle.GetDistanceFromVertexXY(vertex_fillbranch);
   }
   m_calculated_mother_x = motherParticle.GetX();
   m_calculated_mother_y = motherParticle.GetY();
@@ -432,10 +432,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_intermediate_fdchi2[i] = kfpTupleTools.flightDistanceChi2(intermediateArray[i], motherParticle);
       if (m_constrain_to_vertex_nTuple)
       {
-        m_calculated_intermediate_ip[i] = intermediateArray[i].GetDistanceFromVertex(vertex);
-        m_calculated_intermediate_ipchi2[i] = intermediateArray[i].GetDeviationFromVertex(vertex);
+        m_calculated_intermediate_ip[i] = intermediateArray[i].GetDistanceFromVertex(vertex_fillbranch);
+        m_calculated_intermediate_ipchi2[i] = intermediateArray[i].GetDeviationFromVertex(vertex_fillbranch);
         m_calculated_intermediate_ip_err[i] = m_calculated_intermediate_ip[i] / std::sqrt(m_calculated_intermediate_ipchi2[i]);
-        m_calculated_intermediate_ip_xy[i] = intermediateArray[i].GetDistanceFromVertexXY(vertex);
+        m_calculated_intermediate_ip_xy[i] = intermediateArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
       }
       m_calculated_intermediate_x[i] = intermediateArray[i].GetX();
       m_calculated_intermediate_y[i] = intermediateArray[i].GetY();
@@ -478,10 +478,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_daughter_mass[i] = daughterArray[i].GetMass();
     if (m_constrain_to_vertex_nTuple)
     {
-      m_calculated_daughter_ip[i] = daughterArray[i].GetDistanceFromVertex(vertex);
-      m_calculated_daughter_ipchi2[i] = daughterArray[i].GetDeviationFromVertex(vertex);
+      m_calculated_daughter_ip[i] = daughterArray[i].GetDistanceFromVertex(vertex_fillbranch);
+      m_calculated_daughter_ipchi2[i] = daughterArray[i].GetDeviationFromVertex(vertex_fillbranch);
       m_calculated_daughter_ip_err[i] = m_calculated_daughter_ip[i] / std::sqrt(m_calculated_daughter_ipchi2[i]);
-      m_calculated_daughter_ip_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex);
+      m_calculated_daughter_ip_xy[i] = daughterArray[i].GetDistanceFromVertexXY(vertex_fillbranch);
     }
     m_calculated_daughter_x[i] = daughterArray[i].GetX();
     m_calculated_daughter_y[i] = daughterArray[i].GetY();
@@ -515,7 +515,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     }
     if (m_truth_matching)
     {
-      fillTruthBranch(topNode, m_tree, daughterArray[i], i, vertex, m_constrain_to_vertex_nTuple);
+      fillTruthBranch(topNode, m_tree, daughterArray[i], i, vertex_fillbranch, m_constrain_to_vertex_nTuple);
     }
     if (m_truth_matching)
     {
@@ -569,25 +569,25 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   if (m_constrain_to_vertex_nTuple)
   {
-    motherParticle.SetProductionVertex(vertex);
+    motherParticle.SetProductionVertex(vertex_fillbranch);
     motherParticle.GetLifeTime(m_calculated_mother_decaytime, m_calculated_mother_decaytime_err);
     motherParticle.GetDecayLength(m_calculated_mother_decaylength, m_calculated_mother_decaylength_err);
 
     m_calculated_mother_decaytime /= speedOfLight;
     m_calculated_mother_decaytime_err /= speedOfLight;
 
-    m_calculated_vertex_x = vertex.GetX();
-    m_calculated_vertex_y = vertex.GetY();
-    m_calculated_vertex_z = vertex.GetZ();
-    m_calculated_vertex_v = kfpTupleTools.calculateEllipsoidVolume(vertex);
-    m_calculated_vertex_chi2 = vertex.GetChi2();
-    m_calculated_vertex_ndof = vertex.GetNDF();
-    // m_calculated_vertex_cov          = &vertex.CovarianceMatrix()[0];
+    m_calculated_vertex_x = vertex_fillbranch.GetX();
+    m_calculated_vertex_y = vertex_fillbranch.GetY();
+    m_calculated_vertex_z = vertex_fillbranch.GetZ();
+    m_calculated_vertex_v = kfpTupleTools.calculateEllipsoidVolume(vertex_fillbranch);
+    m_calculated_vertex_chi2 = vertex_fillbranch.GetChi2();
+    m_calculated_vertex_ndof = vertex_fillbranch.GetNDF();
+    // m_calculated_vertex_cov          = &vertex_fillbranch.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j)
     {
-      m_calculated_vertex_cov[j] = vertex.GetCovariance(j);
+      m_calculated_vertex_cov[j] = vertex_fillbranch.GetCovariance(j);
     }
-    m_calculated_vertex_nTracks = kfpTupleTools.getTracksFromVertex(topNode, vertex, m_vtx_map_node_name_nTuple);
+    m_calculated_vertex_nTracks = kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
   }
 
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);
