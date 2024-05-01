@@ -128,7 +128,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_detector = "ZDC";
     m_packet_low = 12001;
     m_packet_high = 12001;
-    m_nchannels = 16;
+    m_nchannels = 52;
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the ZDC to fast processing
@@ -202,30 +202,38 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
       unsigned int adc_skip_mask = 0;
       int nchannels = packet->iValue(0, "CHANNELS");
       if (m_dettype == CaloTowerDefs::CEMC)
-      {  // special condition during zdc commisioning
+      {  
         adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
       }
 
       if (m_dettype == CaloTowerDefs::ZDC)
-      {  // special condition during zdc commisioning
-        if (nchannels < m_nchannels)
-        {
-          return Fun4AllReturnCodes::ABORTEVENT;
-        }
-        nchannels = m_nchannels;
-      }
+       { 
+         if (nchannels < m_nchannels)
+         {
+           return Fun4AllReturnCodes::ABORTEVENT;
+          }
+          nchannels = m_nchannels;
+       }
       if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
       {
         return Fun4AllReturnCodes::ABORTEVENT;
       }
-      // int sector = 0;
 
       for (int channel = 0; channel < nchannels; channel++)
       {
         if (m_dettype == CaloTowerDefs::SEPD)
         {
           int sector = ((channel + 1) / 32);
-          if (channel == (14 + 32 * sector))
+          int emptych = -999;
+          if(sector == 0)
+          {
+             emptych = 1;
+          }
+          else
+          {
+             emptych = 14 + 32 * sector;
+          }
+          if (channel == emptych)
           {
             continue;
           }
@@ -277,15 +285,24 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
       {
         for (int channel = 0; channel < m_nchannels - nchannels; channel++)
         {
-          if (m_dettype == CaloTowerDefs::SEPD)
-          {
-            int sector = ((channel + 1) / 32);
-
-            if (channel == (14 + 32 * sector))
+            if (m_dettype == CaloTowerDefs::SEPD)
             {
-              continue;
+              int sector = ((channel + 1) / 32);
+              int emptych = -999;
+              if(sector == 0)
+              {
+                 emptych = 1;
+              }
+              else
+              {
+                 emptych = 14 + 32 * sector;
+              }
+              if (channel == emptych)
+              {
+                continue;
+              }
             }
-          }
+
 
           std::vector<float> waveform;
           waveform.reserve(2);
@@ -304,14 +321,24 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
     {
       for (int channel = 0; channel < m_nchannels; channel++)
       {
-        if (m_dettype == CaloTowerDefs::SEPD)
-        {
-          int sector = ((channel + 1) / 32);
-          if (channel == (14 + 32 * sector))
+          if (m_dettype == CaloTowerDefs::SEPD)
           {
-            continue;
+            int sector = ((channel + 1) / 32);
+            int emptych = -999;
+            if(sector == 0)
+            {
+               emptych = 1;
+            }
+            else
+            {
+               emptych = 14 + 32 * sector;
+            }
+            if (channel == emptych)
+            {
+              continue;
+            }
           }
-        }
+
         std::vector<float> waveform;
         waveform.reserve(2);
         for (int samp = 0; samp < m_nzerosuppsamples; samp++)
@@ -343,17 +370,17 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
       unsigned int adc_skip_mask = 0;
 
       if (m_dettype == CaloTowerDefs::CEMC)
-      {  // special condition during zdc commisioning
+      {  
         adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
       }
 
       if (m_dettype == CaloTowerDefs::ZDC)
-      {  // special condition during zdc commisioning
+      {  
         if (nchannels < m_nchannels)
         {
           return Fun4AllReturnCodes::ABORTEVENT;
         }
-        nchannels = m_nchannels;
+         nchannels = m_nchannels;
       }
       if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
       {
@@ -365,14 +392,24 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
       {
         // mask empty channels
 
-        if (m_dettype == CaloTowerDefs::SEPD)
-        {
-          int sector = ((channel + 1) / 32);
-          if (channel == (14 + 32 * sector))
+          if (m_dettype == CaloTowerDefs::SEPD)
           {
-            continue;
+            int sector = ((channel + 1) / 32);
+            int emptych = -999;
+            if(sector == 0)
+            {
+               emptych = 1;
+            }
+            else
+            {
+               emptych = 14 + 32 * sector;
+            }
+            if (channel == emptych)
+            {
+              continue;
+            }
           }
-        }
+
         if (m_dettype == CaloTowerDefs::CEMC)
         {
           if (channel % 64 == 0)
@@ -418,15 +455,24 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
       {
         for (int channel = 0; channel < m_nchannels - nchannels; channel++)
         {
-          if (m_dettype == CaloTowerDefs::SEPD)
-          {
-            int sector = ((channel + 1) / 32);
-
-            if (channel == (14 + 32 * sector))
+            if (m_dettype == CaloTowerDefs::SEPD)
             {
-              continue;
+              int sector = ((channel + 1) / 32);
+              int emptych = -999;
+              if(sector == 0)
+              {
+                 emptych = 1;
+              }
+              else
+              {
+                 emptych = 14 + 32 * sector;
+              }
+              if (channel == emptych)
+              {
+                continue;
+              }
             }
-          }
+
           std::vector<float> waveform;
           waveform.reserve(m_nsamples);
 
@@ -443,14 +489,24 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
     {
       for (int channel = 0; channel < m_nchannels; channel++)
       {
-        if (m_dettype == CaloTowerDefs::SEPD)
-        {
-          int sector = ((channel + 1) / 32);
-          if (channel == (14 + 32 * sector))
+          if (m_dettype == CaloTowerDefs::SEPD)
           {
-            continue;
+            int sector = ((channel + 1) / 32);
+            int emptych = -999;
+            if(sector == 0)
+            {
+               emptych = 1;
+            }
+            else
+            {
+               emptych = 14 + 32 * sector;
+            }
+            if (channel == emptych)
+            {
+              continue;
+            }
           }
-        }
+
         std::vector<float> waveform;
         waveform.reserve(2);
         for (int samp = 0; samp < m_nzerosuppsamples; samp++)
