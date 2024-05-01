@@ -232,7 +232,7 @@ PHSiliconCosmicSeeding::combineSeeds(SeedVector &seeds)
 }
 PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(SeedVector &doublets, PositionMap &clusterPositions)
 {
-  for (auto &doublet : doublets)
+  for (auto doublet : doublets)
   {
     TrackFitUtils::position_vector_t xypoints;
     for (auto &key : doublet.ckeys)
@@ -254,9 +254,9 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(See
     }
   }
   SeedVector longseeds;
-  for (const auto &doublet : doublets)
+  for (auto doublet : doublets)
   {
-    if (doublet.ckeys.size() > 3)
+    if (doublet.ckeys.size() > 3 && doublet.ckeys.size() < 20)
     {
       longseeds.push_back(doublet);
     }
@@ -284,10 +284,14 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::makeDoublets(Position
   SeedVector doublets;
   std::set<TrkrDefs::cluskey> keys;
 
-  for (auto &[key1, pos1] : clusterPositions)
+  for (auto iter = clusterPositions.begin(); iter != clusterPositions.end(); ++iter)
   {
-    for (auto &[key2, pos2] : clusterPositions)
+    auto key1 = iter->first;
+    auto pos1 = iter->second;
+    for (auto iter2 = iter; iter2 != clusterPositions.end(); ++iter2)
     {
+      auto key2 = iter2->first;
+      auto pos2 = iter2->second;
       if (key1 == key2)
       {
         continue;
@@ -300,6 +304,11 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::makeDoublets(Position
                   << pos2.transpose() << std::endl;
       }
       if (dist > m_maxDoubletDistance)
+      {
+        continue;
+      }
+      // skip doublets that are too close together
+      if (dist < 0.1)
       {
         continue;
       }
