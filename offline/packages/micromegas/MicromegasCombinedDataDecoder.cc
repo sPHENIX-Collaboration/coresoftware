@@ -163,15 +163,19 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode *topNode)
     if( rms <= 0 ) continue;
 
     // loop over samples find maximum
-    std::vector<int> adc;
+    std::vector<uint16_t> adc_list;
     for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
-    { adc.push_back(rawhit->get_adc(is)); }
+    {
+      const uint16_t adc = rawhit->get_adc(is);
+      if( adc != MicromegasDefs::m_adc_invalid )
+      { adc_list.push_back(adc); }
+    }
 
-    if( adc.empty() ) continue;
+    if( adc_list.empty() ) continue;
 
     // get max adc value in range
     /* TODO: use more advanced signal processing */
-    auto max_adc = *std::max_element( adc.begin(), adc.end() );
+    auto max_adc = *std::max_element( adc_list.begin(), adc_list.end() );
 
     // compare to hard min_adc value
     if( max_adc < m_min_adc ) continue;

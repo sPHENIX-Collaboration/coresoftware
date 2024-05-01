@@ -301,7 +301,8 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         for( unsigned short is = 0; is < std::min<unsigned short>( samples, 1024 ); ++is )
         {
           // assign sample id and corresponding adc, save copy in container
-          unsigned short adc = packet->iValue(iwf,is);
+          const uint16_t adc = packet->iValue(iwf,is);
+          if( adc == MicromegasDefs::m_adc_invalid ) continue;
           sample.sample = is;
           sample.adc = adc;
           sample_map.emplace( sample.lvl1_bco, sample );
@@ -364,7 +365,7 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/ )
   // print bco map
   if( Verbosity() )
   for( const auto& [bco,nwaveforms]:m_bco_map )
-  { std::cout << "MicromegasRawDataEvaluation::End - bco: 0x" << std::hex << bco << std::dec << ", nwaveforms: " << nwaveforms << std::endl; }
+  { std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl; }
 
   // print bco list, for offline processing
   if( Verbosity() )
