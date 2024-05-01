@@ -72,6 +72,8 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   // the sepd is read together with the zdc in the FillZdc method
   int MoveSEpdToNodeTree();
   void AddSEpdPacket(int eventno, CaloPacket *pkt);
+  void AddLL1Packet(int eventno, CaloPacket *pkt);
+
   void DetermineReferenceEventNumber();
 
  private:

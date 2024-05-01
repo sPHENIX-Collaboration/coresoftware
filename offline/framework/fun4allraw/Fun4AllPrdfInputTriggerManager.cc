@@ -1087,6 +1087,18 @@ void Fun4AllPrdfInputTriggerManager::AddSEpdPacket(int eventno, CaloPacket *pkt)
   return;
 }
 
+void Fun4AllPrdfInputTriggerManager::AddLL1Packet(int eventno, CaloPacket *pkt)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "AddSEpdPacket: Adding sepd packet " << pkt->getIdentifier()
+              << " for event " << pkt->getEvtSequence() << " to eventno: "
+              << eventno << std::endl;
+  }
+  m_SEpdPacketMap[eventno].SEpdPacketVector.push_back(pkt);
+  return;
+}
+
 void Fun4AllPrdfInputTriggerManager::DetermineReferenceEventNumber()
 {
   if (!m_Gl1PacketMap.empty())
