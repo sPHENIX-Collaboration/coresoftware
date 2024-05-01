@@ -85,7 +85,7 @@ class PHSimpleVertexFinder : public SubsysReco
   std::map<unsigned int, matrix_t> _vertex_covariance_map;
   std::set<unsigned int> _vertex_set;
 
-  TrackVertexCrossingAssoc* _track_vertex_crossing_map;  
+  TrackVertexCrossingAssoc* _track_vertex_crossing_map{nullptr};  
 };
 
 #endif // PHSIMPLEVERTEXFINDER_H
