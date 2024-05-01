@@ -38,6 +38,7 @@ TriggerValid::TriggerValid(const std::string& name, const std::string& filename)
   , trigger("JET")
   , outfilename(filename)
 {
+  m_onlyLL1 = false;
 }
 
 TriggerValid::~TriggerValid()
@@ -71,7 +72,7 @@ int TriggerValid::Init(PHCompositeNode* /*unused*/)
   h_emcal_ll1_2x2_frequency = new TH2F("h_emcal_ll1_2x2_frequency", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
   h_emcal_ll1_8x8_frequency = new TH2F("h_emcal_ll1_8x8_frequency", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
 
-  h_hcal_ll1_2x2_frequency = new TH2F("h_hcal_ll1_2x2_frequency", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
+  h_hcal_ll1_2x2_frequency = new TH2F("h_hcal_ll1_2x2_frequency", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
 
   h_jet_ll1_frequency = new TH2F("h_jet_frequency", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
 
@@ -80,7 +81,7 @@ int TriggerValid::Init(PHCompositeNode* /*unused*/)
 
   h_emu_ihcal_2x2_avg_out = new TProfile2D("h_emu_ihcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
   h_emu_ohcal_2x2_avg_out = new TProfile2D("h_emu_ohcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
-  h_emu_hcal_2x2_avg_out = new TProfile2D("h_emu_hcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
+  h_emu_hcal_2x2_avg_out = new TProfile2D("h_emu_hcal_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
 
   h_emu_jet_avg_out = new TProfile2D("h_emu_jet_avg_out", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
   h_emu_photon_avg_out = new TProfile2D("h_emu_photon_avg_out", ";#eta;#phi", 12, 0, 12, 32, 0, 32);
@@ -88,7 +89,7 @@ int TriggerValid::Init(PHCompositeNode* /*unused*/)
   h_emcal_ll1_2x2_avg_out = new TProfile2D("h_emcal_ll1_2x2_avg_out", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
   h_emcal_ll1_8x8_avg_out = new TProfile2D("h_emcal_ll1_8x8_avg_out", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
 
-  h_hcal_ll1_2x2_avg_out = new TProfile2D("h_hcal_ll1_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
+  h_hcal_ll1_2x2_avg_out = new TProfile2D("h_hcal_ll1_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
 
   h_jet_ll1_avg_out = new TProfile2D("h_jet_ll1_avg_out", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
 
@@ -551,7 +552,9 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 	
 	}
     }
-   
+
+  if (m_onlyLL1) return 0 ;
+
   // match emulated with real
   for (auto & it : v_emcal_ll1_2x2)
     {
@@ -570,6 +573,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 	  exit(1);
 	}     
     }
+
   for (auto & it : v_emcal_ll1_8x8)
     {
       unsigned int sumk = it.first;

@@ -41,13 +41,14 @@ class TriggerValid : public SubsysReco
   void Trigger(const std::string& name) { trigger = name; }
  
   void set_debug(bool debug) { m_debug = debug; }
- 
+  void set_onlyLL1(bool ll1) {m_onlyLL1 = ll1;}
  private:
   int Getpeaktime(TH1* h);
 
   bool m_debug{0};
   std::string trigger;
   std::string outfilename;
+  bool m_onlyLL1{0};
   Fun4AllHistoManager* hm{nullptr};
   TFile* outfile{nullptr};
 
