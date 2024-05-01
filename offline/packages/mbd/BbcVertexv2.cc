@@ -38,19 +38,19 @@ int BbcVertexv2::isValid() const
   {
     return 0;
   }
-  if (isnan(_t))
+  if (std::isnan(_t))
   {
     return 0;
   }
-  if (isnan(_t_err))
+  if (std::isnan(_t_err))
   {
     return 0;
   }
-  if (isnan(_z))
+  if (std::isnan(_z))
   {
     return 0;
   }
-  if (isnan(_z_err))
+  if (std::isnan(_z_err))
   {
     return 0;
   }
