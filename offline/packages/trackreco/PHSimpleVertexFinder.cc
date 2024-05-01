@@ -5,7 +5,7 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrackVertexCrossingAssoc.h>
+#include <trackbase/TrackVertexCrossingAssoc_v1.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 
@@ -71,7 +71,21 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
   if(_vertex_track_map.size() > 0)
     _svtx_vertex_map->clear();
 
-  std::set<short int> crossings =  _track_vertex_crossing_map->getCrossings();
+  // Write to a new map on the node tree that contains (crossing, trackid) pairs for all tracks
+  // Later, will add to it a map  containing (crossing, vertexid)
+
+  _track_vertex_crossing_map->Clear();  
+  std::set<short int> crossings;
+  for(const auto& [trackkey, track] : *_track_map)
+    {
+      auto crossing = track->get_crossing();
+      crossings.insert(crossing);
+      
+      _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);
+      
+      if(Verbosity() > 0) { std::cout << "trackkey " << trackkey << " crossing " << crossing << std::endl; }
+    }
+  
   unsigned int vertex_id = 0;
 
   for(auto cross : crossings)
@@ -84,7 +98,8 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
       _vertex_covariance_map.clear();
       _vertex_set.clear();
       
-      std::cout << "process tracks for beam crossing " << cross << std::endl;
+      if(Verbosity() > 0)   
+	{  std::cout << "process tracks for beam crossing " << cross << std::endl; }
 
       // get the subset of tracks for this crossing
       auto crossing_track_index = _track_vertex_crossing_map->getTracks(cross);
@@ -220,7 +235,8 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	{
 	  auto thistrack = _track_map->get(trackkey); // get the original, not the copy
 	  auto vtxid = thistrack->get_vertex_id();
-	  std::cout << "        track " << trackkey << " track vtxid " << vtxid  << std::endl;
+	  if(Verbosity() > 1) 
+	    { std::cout << "        track " << trackkey << " track vtxid " << vtxid  << std::endl; }
 
 	  /// If there is a vertex already assigned, keep going
 	  if( vtxid !=  std::numeric_limits<unsigned int>::max() )	  
@@ -342,6 +358,16 @@ int PHSimpleVertexFinder::CreateNodes(PHCompositeNode* topNode)
 
     }
 
+  _track_vertex_crossing_map = findNode::getClass<TrackVertexCrossingAssoc>(topNode,"TrackVertexCrossingAssocMap");
+  if(!_track_vertex_crossing_map)
+    {
+      _track_vertex_crossing_map = new TrackVertexCrossingAssoc_v1;
+      PHIODataNode<PHObject>* trackvertexNode = new PHIODataNode<PHObject>( 
+									   _track_vertex_crossing_map, "TrackVertexCrossingAssocMap","PHObject");
+      
+      svtxNode->addNode(trackvertexNode);
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHSimpleVertexFinder::GetNodes(PHCompositeNode* topNode)
@@ -349,13 +375,6 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode* topNode)
 
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!_track_map)
-    {
-      std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  _track_vertex_crossing_map = findNode::getClass<TrackVertexCrossingAssoc>(topNode,"TrackVertexCrossingAssocMap");
-  if (!_track_vertex_crossing_map)
     {
       std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
