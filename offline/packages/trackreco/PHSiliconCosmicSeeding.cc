@@ -123,22 +123,39 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode * /*unused*/)
   pruneSeeds(finalseeds, clusterPositions);
   for (auto &s : finalseeds)
   {
-    if(s.ckeys.size() < 3)
+    //! make some quality cuts on the seeds
+    if (s.ckeys.size() < 3)
     {
       continue;
     }
-    std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+    int nmaps = 0;
+    int nintt = 0;
     for (auto &key : s.ckeys)
     {
-      si_seed->insert_cluster_key(key);
+      if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::mvtxId)
+      {
+        nmaps++;
+      }
+      if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
+      {
+        nintt++;
+      }
     }
-    si_seed->circleFitByTaubin(clusterPositions, 0, 7);
-    si_seed->lineFit(clusterPositions, 0, 7);
-    if (Verbosity() > 3)
+    if (nmaps > 3 && nmaps < 9 && nintt > 2 && nintt < 7)
     {
-      si_seed->identify();
+      std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+      for (auto &key : s.ckeys)
+      {
+        si_seed->insert_cluster_key(key);
+      }
+      si_seed->circleFitByTaubin(clusterPositions, 0, 7);
+      si_seed->lineFit(clusterPositions, 0, 7);
+      if (Verbosity() > 3)
+      {
+        si_seed->identify();
+      }
+      m_seedContainer->insert(si_seed.get());
     }
-    m_seedContainer->insert(si_seed.get());
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
