@@ -14,14 +14,36 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
+  TrksInJetQA.h \
+  TrksInJetQAHist.h \
+  TrksInJetQATypes.h \
+  TrksInJetQAConfig.h \
+  TrksInJetQABaseFiller.h \
+  TrksInJetQAInJetFiller.h \
+  TrksInJetQAInclusiveFiller.h \
+  TrksInJetQABaseManager.h \
+  TrksInJetQAHitManager.h \
+  TrksInJetQAClustManager.h \
+  TrksInJetQATrkManager.h \
+  TrksInJetQAJetManager.h
 
 libjetqa_la_SOURCES = \
+  TrksInJetQA.cc \
+  TrksInJetQABaseFiller.cc \
+  TrksInJetQAInJetFiller.cc \
+  TrksInJetQAInclusiveFiller.cc \
+  TrksInJetQABaseManager.cc \
+  TrksInJetQAHitManager.cc \
+  TrksInJetQAClustManager.cc \
+  TrksInJetQATrkManager.cc \
+  TrksInJetQAJetManager.cc
 
 libjetqa_la_LIBADD = \
   -lcalo_io \
   -lcalotrigger_io \
   -lfun4all \
   -lphool \
+  -lg4dst \
   -lSubsysReco \
   -lqautils
 
