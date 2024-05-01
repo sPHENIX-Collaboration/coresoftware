@@ -636,11 +636,13 @@ void PHG4TpcDetector::add_geometry_node()
         sector_R_bias[zside].push_back(0);
         sector_Phi_bias[zside].push_back(0);
 
-        double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
-        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector + pow(-1,zside) * SectorPhiBias[iregion];
+        //double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
+        //double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector + pow(-1,zside) * SectorPhiBias[iregion];
+        double sec_max_phi = M_PI - M_PI / 12 - 2 * M_PI / 12 * isector + pow(-1,zside) * SectorPhiBias[iregion];
 
 
-        double sec_min_phi = sec_max_phi - SectorPhi[iregion];
+        //double sec_min_phi = sec_max_phi - SectorPhi[iregion];
+        double sec_min_phi = sec_max_phi - 2 * M_PI / 12;
         sector_min_Phi[zside].push_back(sec_min_phi);
         sector_max_Phi[zside].push_back(sec_max_phi);
       }  // isector

@@ -281,12 +281,14 @@ int PHG4TpcCylinderGeom::get_phibin_new(const double phi) const
 
 int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
 {
+
   double norm_phi = phi;
   if (phi < phimin || phi > (phimin + nphibins * phistep))
   {
     int nwraparound = -floor((phi - phimin) * 0.5 / M_PI);
     norm_phi += 2 * M_PI * nwraparound;
   }
+
   // if (phi >  M_PI){
   //   norm_phi = phi - 2* M_PI;
   // }
@@ -299,38 +301,77 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
 
   for (std::size_t s = 0; s < sector_max_Phi[side].size(); s++)
   {
+
     if (norm_phi < sector_max_Phi[side][s] && norm_phi > sector_min_Phi[side][s])
     {
       // NOLINTNEXTLINE(bugprone-integer-division)
-      //std::cout<<sector_min_Phi[side][s]<< "<"<< norm_phi <<"<"<< sector_max_Phi[side][s]<<std::endl;
+
       //phi_bin = (floor(std::abs(sector_max_Phi[side][s] - norm_phi) / phistep) + nphibins / 12 * s);
       for(long unsigned int i=0;i<layer_pad_phi.size();i++){
         double set_pad_phi = (sector_max_Phi[side][s]+sector_min_Phi[side][s])/2 - pow(-1,side)*layer_pad_phi[i];
         //std::cout<< "nphibins*phistep*s = "<<nphibins<<"*"<<phistep<<"*"<<s<<std::endl;
-        //std::cout << set_pad_phi-phistep/2 << "<" << norm_phi << "<" << set_pad_phi+phistep/2 << "phistep/2=" << phistep/2 << std::endl;
+        //if(norm_phi>3){
+        //  std::cout << set_pad_phi-phistep/2 << "<" << norm_phi << "<" << set_pad_phi+phistep/2 << "phistep/2=" << phistep/2 << std::endl;
+        //}
         if(norm_phi<set_pad_phi+phistep/2 && norm_phi>set_pad_phi-phistep/2){
           //std::cout<< "PHG4TpcCylinderGeom::find_phibin: layer_pad_phi.size() "<<layer_pad_phi.size()<<" i="<< i << "side i = " <<abs(i - side*nphibins / 12) << " calc pad = " <<abs(i - side*nphibins / 12) + nphibins / 12 * s<<" norm_phi="<<norm_phi<<" layer_pad_phi[i]"<<layer_pad_phi[i]<<std::endl;
           phi_bin = abs(i - side*nphibins / 12) + nphibins / 12 * s;
+          break;
         }
       }
-      break;
+      
     }
     if (s == 11)
     {
-      if (norm_phi < sector_max_Phi[side][s] && norm_phi >= -M_PI)
-      {
-        // NOLINTNEXTLINE(bugprone-integer-division)
-        phi_bin = floor(std::abs(sector_max_Phi[side][s] - norm_phi) / phistep) + nphibins / 12 * s;
-        break;
-      }
-      if (norm_phi > sector_min_Phi[side][s] + 2 * M_PI)
-      {
-        // NOLINTNEXTLINE(bugprone-integer-division)
-        phi_bin = floor(std::abs(sector_max_Phi[side][s] - (norm_phi - 2 * M_PI)) / phistep) + nphibins / 12 * s;
-        break;
-      }
-    }
 
+      if(norm_phi > sector_min_Phi[side][s] + 2 * M_PI){  
+        //std::cout<<"norm_phi = " << norm_phi <<"> sector_min_Phi[side][s] + 2 * M_PI = "   << sector_min_Phi[side][s] + 2 * M_PI<< " sector_min_Phi[side][s]="<< sector_min_Phi[side][s]<< " sector_max_Phi[side][s]="<<sector_max_Phi[side][s] <<std::endl;
+        for(long unsigned int i=0;i<layer_pad_phi.size();i++){
+          double set_pad_phi = (sector_max_Phi[side][s]+sector_min_Phi[side][s])/2 - pow(-1,side)*layer_pad_phi[i];
+          //std::cout<< "nphibins*phistep*s = "<<nphibins<<"*"<<phistep<<"*"<<s<<std::endl;
+
+          //std::cout << set_pad_phi-phistep/2 << "<" << norm_phi << "<" << set_pad_phi+phistep/2 << "phistep/2=" << phistep/2 << std::endl;
+        
+          if(-1*norm_phi<set_pad_phi+phistep/2 && -1*norm_phi>set_pad_phi-phistep/2){
+            //std::cout<< "PHG4TpcCylinderGeom::find_phibin: layer_pad_phi.size() "<<layer_pad_phi.size()<<" i="<< i << "side i = " <<abs(i - side*nphibins / 12) << " calc pad = " <<abs(i - side*nphibins / 12) + nphibins / 12 * s<<" norm_phi="<<norm_phi<<" layer_pad_phi[i]"<<layer_pad_phi[i]<<std::endl;
+            phi_bin = abs(i - side * nphibins / 12) + nphibins / 12 * s;
+            //phi_bin = abs( i + 1 ) + nphibins / 12 * s;
+            break;
+            //std::cout<< "phi_bin = "<< abs(i - side*nphibins / 12) + nphibins / 12 * s << std::endl;
+          }
+        }
+      }
+      if (-1*norm_phi < sector_max_Phi[side][s] && -1*norm_phi >= -M_PI){
+        //std::cout<<"norm_phi = " << norm_phi <<"< sector_max_Phi[side][s] = "   << sector_max_Phi[side][s] <<std::endl;
+        for(long unsigned int i=0;i<layer_pad_phi.size();i++){
+          double set_pad_phi = (sector_max_Phi[side][s]+sector_min_Phi[side][s])/2 + pow(-1,side)*layer_pad_phi[i];
+          //std::cout << set_pad_phi-phistep/2 << "<" << norm_phi << "<" << set_pad_phi+phistep/2 << "phistep/2=" << phistep/2 << std::endl;
+          if(-1*norm_phi<set_pad_phi+phistep/2 && -1*norm_phi>set_pad_phi-phistep/2){
+            //std::cout<< "PHG4TpcCylinderGeom::find_phibin: layer_pad_phi.size() "<<layer_pad_phi.size()<<" i="<< i << "side i = " <<abs(i - side*nphibins / 12) << " calc pad = " <<abs(i - side*nphibins / 12) + nphibins / 12 * s<<" norm_phi="<<norm_phi<<" layer_pad_phi[i]"<<layer_pad_phi[i]<<std::endl;
+            //std::cout<< "PHG4TpcCylinderGeom::find_phibin:  "<< abs(i - side*nphibins / 12) + nphibins / 12 * s <<std::endl;           
+            phi_bin = abs(i - side * nphibins / 12) + nphibins / 12 * s;
+            break;
+            //std::cout<< "phi_bin = "<< abs(i - side*nphibins / 12) + nphibins / 12 * s << std::endl;
+          }  
+        }   
+      }
+      
+    //  if (norm_phi < sector_max_Phi[side][s] && norm_phi >= -M_PI)
+    //  {
+    //    // NOLINTNEXTLINE(bugprone-integer-division)
+    //    phi_bin = floor(std::abs(sector_max_Phi[side][s] - norm_phi) / phistep) + nphibins / 12 * s;
+    //    break;
+    //  }
+    //  if (norm_phi > sector_min_Phi[side][s] + 2 * M_PI)
+    //  {
+    //    // NOLINTNEXTLINE(bugprone-integer-division)
+    //    phi_bin = floor(std::abs(sector_max_Phi[side][s] - (norm_phi - 2 * M_PI)) / phistep) + nphibins / 12 * s;
+    //    break;
+    //  }
+    }
+  //if(phi==-0.249803){
+  //  std::cout<<"PHG4TpcCylinderGeom::find_phibin 2"<<std::endl;
+  //}
   
     //if (phi_bin>3000) {
     //  std::cout<< "PHG4TpcCylinderGeom::find_phibin: "<<
@@ -404,6 +445,8 @@ float PHG4TpcCylinderGeom::get_tbin_float(const double z) const
 
 int PHG4TpcCylinderGeom::get_phibin(const double phi, int side) const
 {
+  //std::cout<< "PHG4TpcCylinderGeom::get_phibin 0" <<std::endl;
+
   double new_phi = phi;
   if (phi > M_PI)
   {
@@ -414,10 +457,12 @@ int PHG4TpcCylinderGeom::get_phibin(const double phi, int side) const
     new_phi = phi + 2 * M_PI;
   }
   // Get phi-bin number
-  int phi_bin = find_phibin(new_phi);
+  int phi_bin = find_phibin(new_phi,side);
+  //std::cout<< "PHG4TpcCylinderGeom::get_phibin 1" << phi_bin <<std::endl;
 
-  side = 0;
+  //side = 0;
   // If phi-bin is not defined, check that it is in the dead area and put it to the edge of sector
+  //std::cout<< "PHG4TpcCylinderGeom::get_phibin 2" <<std::endl;
   if (phi_bin < 0)
   {
     //
@@ -449,10 +494,15 @@ int PHG4TpcCylinderGeom::get_phibin(const double phi, int side) const
     }
     // exit(1);
 
-    phi_bin = find_phibin(new_phi);
+    phi_bin = find_phibin(new_phi,side);
+    //std::cout<< "PHG4TpcCylinderGeom::get_phibin 3 "<< phi_bin <<std::endl;
     if (phi_bin < 0)
     {
-      std::cout << PHWHERE << "Asking for bin for phi outside of phi range: " << phi << std::endl;
+      std::cout << PHWHERE << "PHG4TpcCylinderGeom::get_phibin: Asking for bin for phi outside of phi range: " << phi << std::endl;
+      //for (std::size_t s = 0; s < sector_max_Phi[side].size(); s++)
+      //{
+      //  std::cout<<sector_min_Phi[side][s]<< "<"<< phi <<"<"<< sector_max_Phi[side][s] <<" dphi -> max-phi = "<< sector_max_Phi[side][s] - phi << " min-phi = " <<sector_min_Phi[side][s] - phi <<std::endl;
+      //}
       exit(1);
       // phi_bin=0;
     }

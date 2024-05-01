@@ -254,7 +254,8 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     uint16_t sam = tpchit->get_samples();
 
     varname = "phi";  // + std::to_string(key);
-    double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
+    double phi = (sector % 12) * M_PI / 6 - pow(-1,side)*m_cdbttree->GetDoubleValue(key, varname);
+    //    -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     varname = "pad";
     int pad_n = m_cdbttree->GetIntValue(key, varname);
     PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
