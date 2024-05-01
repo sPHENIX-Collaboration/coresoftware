@@ -202,12 +202,12 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
       unsigned int adc_skip_mask = 0;
       int nchannels = packet->iValue(0, "CHANNELS");
       if (m_dettype == CaloTowerDefs::CEMC)
-      {  
+      {
         adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
       }
 
       if (m_dettype == CaloTowerDefs::ZDC)
-       { 
+       {
          if (nchannels < m_nchannels)
          {
            return Fun4AllReturnCodes::ABORTEVENT;
@@ -225,7 +225,7 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
         {
           int sector = ((channel + 1) / 32);
           int emptych = -999;
-          if(sector == 0)
+          if((sector == 0) && (pid==9001))
           {
              emptych = 1;
           }
@@ -289,7 +289,7 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
             {
               int sector = ((channel + 1) / 32);
               int emptych = -999;
-              if(sector == 0)
+              if((sector == 0) && (pid==9001))
               {
                  emptych = 1;
               }
@@ -325,7 +325,7 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
           {
             int sector = ((channel + 1) / 32);
             int emptych = -999;
-            if(sector == 0)
+            if((sector == 0) && (pid==9001))
             {
                emptych = 1;
             }
@@ -370,12 +370,12 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
       unsigned int adc_skip_mask = 0;
 
       if (m_dettype == CaloTowerDefs::CEMC)
-      {  
+      {
         adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
       }
 
       if (m_dettype == CaloTowerDefs::ZDC)
-      {  
+      {
         if (nchannels < m_nchannels)
         {
           return Fun4AllReturnCodes::ABORTEVENT;
@@ -396,7 +396,7 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
           {
             int sector = ((channel + 1) / 32);
             int emptych = -999;
-            if(sector == 0)
+            if((sector == 0) && (pid==9001))
             {
                emptych = 1;
             }
@@ -459,7 +459,7 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
             {
               int sector = ((channel + 1) / 32);
               int emptych = -999;
-              if(sector == 0)
+              if((sector == 0) && (pid==9001))
               {
                  emptych = 1;
               }
@@ -493,7 +493,7 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
           {
             int sector = ((channel + 1) / 32);
             int emptych = -999;
-            if(sector == 0)
+            if((sector == 0) && (pid==9001))
             {
                emptych = 1;
             }
