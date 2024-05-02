@@ -5,11 +5,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-// Inclusion of necessary header files
-//#include <TFile.h>
-/* #include <TH1.h> */
-/* #include <TH2.h> */
-
 #include <string>
 #include <vector>
 
@@ -22,7 +17,7 @@ class TH2;
 
 class TpcChanQA : public SubsysReco  // Inherit public parts of SubsysReco
 {
-  // list of public attributes
+  // list of public methods
  public:
   // Function that sets file name and allocated memory to adcSamples
   explicit TpcChanQA(const std::string &name = "TpcChanQA.root");
@@ -45,9 +40,7 @@ class TpcChanQA : public SubsysReco  // Inherit public parts of SubsysReco
     m_packets.push_back(packet);
   }
 
-  // Define vector of packets as protected attribute
- protected:
-  // List of private attributes
+  // List of private members
  private:
   TFile *m_file{nullptr};        // File being processed
   TH1 *h_channel_hits{nullptr};  // Histogram of hits per channel

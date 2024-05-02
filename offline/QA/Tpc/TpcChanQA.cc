@@ -3,21 +3,18 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <Event/Event.h>
-#include <Event/EventTypes.h>
 #include <Event/packet.h>
 
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
 
+#include <cassert>
+#include <cstddef>
+#include <memory>
 #include <iostream>
 #include <string>
 //
