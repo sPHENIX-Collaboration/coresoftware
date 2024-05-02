@@ -5,13 +5,13 @@
 
 #include <fun4allraw/Fun4AllPrdfInputManager.h>
 
-//#include <fun4all/Fun4AllDstInputManager.h>
-//#include <fun4all/Fun4AllDstOutputManager.h>
+#include <fun4all/Fun4AllDstInputManager.h>
+#include <fun4all/Fun4AllDstOutputManager.h>
 #include <fun4all/Fun4AllInputManager.h>
-//#include <fun4all/Fun4AllRunNodeInputManager.h>
+#include <fun4all/Fun4AllRunNodeInputManager.h>
 #include <fun4all/Fun4AllServer.h>
-//#include <fun4all/Fun4AllUtils.h>
-//#include <fun4all/SubsysReco.h>
+#include <fun4all/Fun4AllUtils.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/recoConsts.h>
 
@@ -20,7 +20,6 @@ R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
 R__LOAD_LIBRARY(libXingShiftCal.so)
 
-//void Fun4All_xingshift(const std::string &fname = "/sphenix/lustre01/sphnxpro/commissioning/GL1/cosmics/GL1_cosmics_gl1daq-00034390-0000.prdf", int nEvents = 2000)
 void Fun4All_xingshift(const std::string &fname = "/sphenix/lustre01/sphnxpro/commissioning/GL1/beam/GL1_beam_gl1daq-00040934-0000.evt", int nEvents = 10000)
 {
 
