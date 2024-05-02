@@ -1,5 +1,5 @@
-#ifndef INTTHITMAP_INTTHITMAP_H
-#define INTTHITMAP_INTTHITMAP_H
+#ifndef INTTHITMAPV1_INTTHITMAPV1_H
+#define INTTHITMAPV1_INTTHITMAPV1_H
 
 #include <intt/InttFeeMap.h>
 #include <intt/InttFeeMapv1.h>
@@ -15,6 +15,7 @@
 
 class PHCompositeNode;
 class TFile;
+class TTree;
 class TH2;
 
 class InttHitMap : public SubsysReco
@@ -36,20 +37,25 @@ class InttHitMap : public SubsysReco
 
   bool isBCOcutON_ = false;
   bool isBCOPeak(int felix, int ladder, int bco, uint64_t bcofull);
-
   void SetBCOcut(const bool flag) { isBCOcutON_ = flag; }
+
+  bool isBeam_ = true; 
+  void IsBeam(const bool flag) { isBeam_ = flag; }
   int SetBCOFile(const std::string &bcofile);
   int SetFeeMapFile(const std::string &feemapfile);
   InttFeeMapv1 fee_map;
   bool FillHitMap(int felix, int moudle, int barrel, int chip, int chan);
-
+  void SetRunNumber(const int runnum){ runnumber_ = runnum; }
   ///////////////////////////////////
 
  private:
   TFile* inBCOFile_{nullptr};
   TFile* outFile_{nullptr};
+  TTree* outTree_{nullptr};
   int nevents_{0};
   int ievent_{0};
+  uint32_t total_event_{0};
+  int runnumber_{0};
   TH2* h2_AllMap_[8][14]{};
   TH2* h2_bco_cut_[8]{};
   bool IsCloneHit_[8][14][26][128]{};
@@ -63,41 +69,7 @@ class InttHitMap : public SubsysReco
     int _module_id_;
     int _chip_id_;
   };
-  ////////////////////////////
-  // List of Half entry chips//
-  ////////////////////////////
-  std::vector<Half_Chip> half_chips =  // Chip number 0~25
-      {
-          // Felix 0
-          {0, 7, 14},
-          // Felix 2
-          {2, 9, 15},
-          // Felix 3
-          {3, 13, 20},
-          {3, 13, 22},
-          {3, 13, 24},
-          // Felix 7
-          {7, 0, 0},
-          {7, 0, 1},
-          {7, 0, 2},
-          {7, 0, 3},
-          {7, 0, 4},
-          {7, 0, 13},
-          {7, 0, 14},
-          {7, 0, 15},
-          {7, 0, 16},
-          {7, 0, 17},
-          {7, 0, 6},
-          {7, 0, 8},
-          {7, 0, 10},
-          {7, 0, 12},
-          {7, 0, 19},
-          {7, 0, 21},
-          {7, 0, 23},
-          {7, 0, 25},
-          {7, 1, 0},
-          {7, 1, 1},
-      };
+
 };
 
 #endif
