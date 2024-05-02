@@ -32,6 +32,7 @@ class CopyIODataNodes : public SubsysReco
   void CopyEventHeader(bool flag = true) { m_CopyEventHeaderFlag = flag; }
   void CopyGlobalVertexMap(bool flag = true) { m_CopyGlobalVertexMapFlag = flag; }
   void CopyMinimumBiasInfo(bool flag = true) { m_CopyMinimumBiasInfoFlag = flag; }
+  void CopyMbdOut(bool flag = true) { m_CopyMbdOutFlag = flag; }
   void CopyRunHeader(bool flag = true) { m_CopyRunHeaderFlag = flag; }
   void CopySyncObject(bool flag = true) { m_CopySyncObjectFlag = flag; }
 
@@ -48,6 +49,9 @@ class CopyIODataNodes : public SubsysReco
   void CreateMinimumBiasInfo(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
   void CopyMinimumBiasInfo(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
 
+  void CreateMbdOut(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
+  void CopyMbdOut(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
+
   void CopyRunHeader(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
 
   void CreateSyncObject(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
@@ -57,6 +61,7 @@ class CopyIODataNodes : public SubsysReco
   bool m_CopyEventHeaderFlag = true;
   bool m_CopyGlobalVertexMapFlag = true;
   bool m_CopyMinimumBiasInfoFlag = true;
+  bool m_CopyMbdOutFlag = true;
   bool m_CopyRunHeaderFlag = true;
   bool m_CopySyncObjectFlag = true;
 };

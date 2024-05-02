@@ -97,6 +97,10 @@ class LaserClusterizer : public SubsysReco
   //TTree *m_hitTree = nullptr;
   TH1I *m_itHist_0 = nullptr;
   TH1I *m_itHist_1 = nullptr;
+
+  TH1D *m_tHist_0 = nullptr;
+  TH1D *m_tHist_1 = nullptr;
+
   int m_nClus = 0;
   double time_search = 0;
   double time_clus = 0;
