@@ -132,3 +132,14 @@ UShort_t MbdOutV2::get_femclock() const
 {
   return femclk;
 }
+
+void MbdOutV2::CopyTo(MbdOut *mbd)
+{
+  mbd->set_t0(bt0, bt0err);
+  mbd->set_zvtx(bz, bzerr);
+
+  mbd->set_arm(0, bns, bqs, bts);
+  mbd->set_arm(1, bnn, bqn, btn);
+  
+  mbd->set_clocks(evt, clk, femclk);
+}
