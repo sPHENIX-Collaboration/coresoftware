@@ -1,15 +1,4 @@
-
 #include "PHSiliconCosmicSeeding.h"
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>
-#include <phool/PHTimer.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
 
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
@@ -18,6 +7,17 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v1.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
+#include <phool/PHTimer.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 namespace
 {
@@ -254,7 +254,7 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(See
     }
   }
   SeedVector longseeds;
-  for (auto doublet : doublets)
+  for (const auto& doublet : doublets)
   {
     if (doublet.ckeys.size() > 3 && doublet.ckeys.size() < 20)
     {

@@ -1,11 +1,12 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef PHSILICONCOSMICSEEDING_H
-#define PHSILICONCOSMICSEEDING_H
+#ifndef TRACKRECO_PHSILICONCOSMICSEEDING_H
+#define TRACKRECO_PHSILICONCOSMICSEEDING_H
 
-#include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
+
+#include <fun4all/SubsysReco.h>
 
 #include <map>
 #include <set>
@@ -53,4 +54,4 @@ class PHSiliconCosmicSeeding : public SubsysReco
   std::string m_trackMapName = "SiliconTrackSeedContainer";
 };
 
-#endif  // PHSILICONCOSMICSEEDING_H
+#endif  // TRACKRECO_PHSILICONCOSMICSEEDING_H
