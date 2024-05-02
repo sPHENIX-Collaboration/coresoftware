@@ -115,12 +115,17 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   m_itHist_0 = new TH1I("m_itHist_0","side 0;it",360,-0.5,359.5);
   m_itHist_1 = new TH1I("m_itHist_1","side 1;it",360,-0.5,359.5);
 
+  m_tHist_0 = new TH1D("m_tHist_0","side 0;t [sec]",360,0,19133);
+  m_tHist_1 = new TH1D("m_tHist_1","side 1;t [sec]",360,0,19133);
+
   m_clusterTree = new TTree("clusterTree","clusterTree");
   m_clusterTree->Branch("event",&m_event);
   //m_clusterTree->Branch("cluster",&m_currentCluster);
   m_clusterTree->Branch("clusters",&m_eventClusters);
   m_clusterTree->Branch("itHist_0",&m_itHist_0);
   m_clusterTree->Branch("itHist_1",&m_itHist_1);
+  m_clusterTree->Branch("tHist_0",&m_tHist_0);
+  m_clusterTree->Branch("tHist_1",&m_tHist_1);
   m_clusterTree->Branch("nClusters",&m_nClus);
   m_clusterTree->Branch("time_search",&time_search);
   m_clusterTree->Branch("time_clus",&time_clus);
@@ -237,23 +242,26 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 	//	if(count>0)continue;
 	TrkrHitSet *hitset = hitsetitr->second;
 	int side = TpcDefs::getSide(hitsetitr->first);
+	PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom(TrkrDefs::getLayer(hitsetitr->first));
 
 	TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-	
 	for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
 	     hitr != hitrangei.second;
 	     ++hitr)
 	  {
 
 	    int it = TpcDefs::getTBin(hitr->first);
+	    double t = layergeom->get_zcenter(it);
 
 	    if(side == 0)
 	      {
 		m_itHist_0->Fill(it);
+		m_tHist_0->Fill(t);
 	      }
 	    else
 	      {
 		m_itHist_1->Fill(it);
+		m_tHist_1->Fill(t);
 	      }
 
 	  }
@@ -491,6 +499,10 @@ int LaserClusterizer::ResetEvent(PHCompositeNode */*topNode*/)
   
   m_itHist_0->Reset();
   m_itHist_1->Reset();
+
+  m_tHist_0->Reset();
+  m_tHist_1->Reset();
+
 
   m_eventClusters.clear();
   
