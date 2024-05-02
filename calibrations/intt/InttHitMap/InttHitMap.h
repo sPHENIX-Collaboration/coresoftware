@@ -1,5 +1,5 @@
-#ifndef INTTHITMAPV1_INTTHITMAPV1_H
-#define INTTHITMAPV1_INTTHITMAPV1_H
+#ifndef INTTHITMAPV1_INTTHITMAP_H
+#define INTTHITMAPV1_INTTHITMAP_H
 
 #include <intt/InttFeeMap.h>
 #include <intt/InttFeeMapv1.h>
