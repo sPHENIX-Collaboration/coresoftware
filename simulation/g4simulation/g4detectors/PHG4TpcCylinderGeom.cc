@@ -369,19 +369,7 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
     //    break;
     //  }
     }
-  //if(phi==-0.249803){
-  //  std::cout<<"PHG4TpcCylinderGeom::find_phibin 2"<<std::endl;
-  //}
-  
-    //if (phi_bin>3000) {
-    //  std::cout<< "PHG4TpcCylinderGeom::find_phibin: "<<
-    //  "phi_bin=" << phi_bin <<
-    //  "side="<< side << 
-    //  "norm_phi=" << norm_phi << 
-    //  "phistep=" << phistep << 
-    //  "nphibins = " << nphibins << 
-    //  "s= " << s << std::endl;
-    //}
+
   }
   return phi_bin;
 }
@@ -465,7 +453,6 @@ int PHG4TpcCylinderGeom::get_phibin(const double phi, int side) const
   //std::cout<< "PHG4TpcCylinderGeom::get_phibin 2" <<std::endl;
   if (phi_bin < 0)
   {
-    //
     for (std::size_t s = 0; s < sector_max_Phi[side].size(); s++)
     {
       double daPhi = 0;
