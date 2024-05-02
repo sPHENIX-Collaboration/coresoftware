@@ -487,8 +487,6 @@ int CaloTriggerEmulator::Download_Calibrations()
       {
         cdbttree_hcalin = new CDBHistos(calibdir);
       }
-      cdbttree_hcalin->LoadCalibrations();
-
     }
     if (cdbttree_hcalin)
       {

@@ -55,7 +55,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 
  private:
 
-  void makePixelMask(hitMask &aMask, std::string dbName, std::string totalPixelsToMask);
+  void makePixelMask(hitMask &aMask, const std::string& dbName, const std::string& totalPixelsToMask);
 
   std::pair<double, double> generate_alpide_pulse(const double energy_deposited);
 

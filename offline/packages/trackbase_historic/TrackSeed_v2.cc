@@ -67,6 +67,7 @@ void TrackSeed_v2::identify(std::ostream& os) const
 {
   os << "TrackSeed_v2 object ";
   os << "charge " << get_charge() << std::endl;
+  os << "beam crossing " << get_crossing() << std::endl;
   os << "(pt,pz) = (" << get_pt()
      << ", " << get_pz() << ")" << std::endl;
   os << " phi " << m_phi << " eta " << get_eta() << std::endl;
