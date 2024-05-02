@@ -146,7 +146,7 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
   TH2F *h_hits = h_hits_eta_phi_adc;
 
   TFile *fout = new TFile(outfilename.c_str(), "recreate");
-  
+
   TH2F *h_hot = new TH2F("h_hot", "", Neta, 0, Neta, Nphi, 0, Nphi);
   TH1F *h1_hits[Neta];
   TH1F *h1_hits2[Neta];
@@ -184,10 +184,7 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
     {
       h_hot->SetBinContent(ie + 1, iphi + 1, 0);
       float val = h_hits->GetBinContent(ie + 1, iphi + 1);
-      if (val == 0) // dead tower
-      {
-         h_hot->SetBinContent(ie + 1, iphi + 1, 1);
-      }
+
       if ((val - mean) / std > sigma_bad_thresh)  // hot tower
       {
         h_hot->SetBinContent(ie + 1, iphi + 1, 2);
@@ -198,9 +195,9 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
         h_hot->SetBinContent(ie + 1, iphi + 1, 3);
         h_hits->SetBinContent(ie + 1, iphi + 1, 0);
       }
-      if (val == 0)
+      if (val == 0)  // dead tower
       {
-        h_hot->SetBinContent(ie + 1, iphi + 1, 3);
+        h_hot->SetBinContent(ie + 1, iphi + 1, 1);
       }
     }
   }

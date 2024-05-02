@@ -38,6 +38,10 @@ class emcNoisyTowerFinder : public SubsysReco
   void WriteCDBTree(const int runnumber);
   void FindHot(std::string& infilename, std::string& outfilename, const std::string& inHist = "h_hits_eta_phi_gev");
 
+  void set_energy_threshold_adc(float val) { energy_threshold_adc = val; }
+  void set_energy_threshold_gev(float val) { energy_threshold_gev = val; }
+  void set_sigma_bad_thresh(float val) { sigma_bad_thresh = val; }
+
  private:
   TFile* out{nullptr};
 
