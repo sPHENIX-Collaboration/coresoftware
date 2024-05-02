@@ -110,32 +110,26 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   
 
 
-  m_debugFile = new TFile(m_debugFileName.c_str(),"RECREATE");
+  if(m_debug){
+    m_debugFile = new TFile(m_debugFileName.c_str(),"RECREATE");
+  }
 
   m_itHist_0 = new TH1I("m_itHist_0","side 0;it",360,-0.5,359.5);
   m_itHist_1 = new TH1I("m_itHist_1","side 1;it",360,-0.5,359.5);
 
-  m_clusterTree = new TTree("clusterTree","clusterTree");
-  m_clusterTree->Branch("event",&m_event);
-  //m_clusterTree->Branch("cluster",&m_currentCluster);
-  m_clusterTree->Branch("clusters",&m_eventClusters);
-  m_clusterTree->Branch("itHist_0",&m_itHist_0);
-  m_clusterTree->Branch("itHist_1",&m_itHist_1);
-  m_clusterTree->Branch("nClusters",&m_nClus);
-  m_clusterTree->Branch("time_search",&time_search);
-  m_clusterTree->Branch("time_clus",&time_clus);
-  m_clusterTree->Branch("time_erase",&time_erase);
-  m_clusterTree->Branch("time_all",&time_all);
+  if(m_debug){
+    m_clusterTree = new TTree("clusterTree","clusterTree");
+    m_clusterTree->Branch("event",&m_event);
+    m_clusterTree->Branch("clusters",&m_eventClusters);
+    m_clusterTree->Branch("itHist_0",&m_itHist_0);
+    m_clusterTree->Branch("itHist_1",&m_itHist_1);
+    m_clusterTree->Branch("nClusters",&m_nClus);
+    m_clusterTree->Branch("time_search",&time_search);
+    m_clusterTree->Branch("time_clus",&time_clus);
+    m_clusterTree->Branch("time_erase",&time_erase);
+    m_clusterTree->Branch("time_all",&time_all);
+  }
   
-  //m_clusterTree->Branch("clusters",&m_clusterlist);
-
-  /*
-  m_hitTree = new TTree("hitTree","hitTree");
-  m_hitTree->Branch("event",&m_event);
-  m_hitTree->Branch("hit",&m_currentHit);
-  m_hitTree->Branch("hitH",&m_currentHit_hardware);
-  */
-
   m_tdriftmax = AdcClockPeriod * NZBinsSide;  
 
   t_all = std::make_unique<PHTimer>("t_all");
