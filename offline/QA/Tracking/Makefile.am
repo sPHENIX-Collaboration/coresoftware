@@ -16,7 +16,7 @@ pkginclude_HEADERS = \
   TpcClusterQA.h \
   MicromegasClusterQA.h \
   CosmicTrackQA.h \
-  TrackQA.h
+  VertexQA.h
 
 lib_LTLIBRARIES = \
   libtrackingqa.la
@@ -27,7 +27,7 @@ libtrackingqa_la_SOURCES = \
   TpcClusterQA.cc \
   MicromegasClusterQA.cc \
   CosmicTrackQA.cc \
-  TrackQA.cc
+  VertexQA.cc
 
 libtrackingqa_la_LIBADD = \
   -lphool \
