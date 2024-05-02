@@ -23,6 +23,7 @@ libg4eval_hp_la_LIBADD = \
   -lg4detectors_io \
   -ltrackbase_historic_io \
   -ltrack_io \
+  -ltpc \
   -ltpc_io \
   -lmvtx_io \
   -lintt_io \
