@@ -1,6 +1,7 @@
 //Include necessary files
 #include "TpcChanQA.h"
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllHistoManager.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -10,6 +11,8 @@
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
+#include <qautils/QAHistManagerDef.h>
+#include <boost/format.hpp>
 #include <iostream>
 #include <string>
 //
@@ -25,9 +28,6 @@ TpcChanQA::TpcChanQA(const std::string &name)
 //____________________________________________________________________________..
 int TpcChanQA::InitRun(PHCompositeNode *)
 {
-  //Define arbitrary character to assign values to later
-  char name[100];
-
   // Takes string of raw data file and truncates it down to sector number
   sectorNum = m_fname;
   size_t pos = sectorNum.find("TPC_ebdc");
@@ -43,11 +43,11 @@ int TpcChanQA::InitRun(PHCompositeNode *)
   m_file = TFile::Open(m_fname.c_str(), "recreate");
   assert(m_file->IsOpen());
 
-  // Define histograms initialized in header file
-  sprintf(name,"h_channel_hits_sec%s",sectorNum.c_str());
-  h_channel_hits = new TH1F(name,name,256,0,256);
-  sprintf(name,"h_channel_ADCs_sec%s",sectorNum.c_str());
-  h_channel_ADCs = new TH2F(name,name,256,0,256,1024,0,1024);
+  // Reference histograms initialized in header file to histos in HistoManager
+  sprintf(name,"_sec%s",sectorNum.c_str());
+  auto h_channel_hits = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%schannel_hits") % getHistoPrefix()).c_str()+name));
+  sprintf(name,"_sec%s",sectorNum.c_str());
+  auto h_channel_hits = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%schannel_ADCs") % getHistoPrefix()).c_str()+name));
   //
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -140,4 +140,28 @@ std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName
   m_file->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+std::string CaloValid::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); } //Define prefix to all histos in HistoManager
+
+//____________________________________________________________________________..
+void TpcChanQA::createHistos()
+{
+  // Initialize HistoManager
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  // Create and register histos in HistoManager
+  {
+    sprintf(name,"_sec%s",sectorNum.c_str());
+    auto h = new TH1F(boost::str(boost::format("%schannel_hits") % getHitoPrefix()).c_str()+name,";Channels;hits",256,0,256);
+    hm->registerHisto(h);
+  }
+
+  {
+    sprintf(name,"_sec%s",sectorNum.c_str());
+    auto h = new TH2F(boost::str(boost::format("%schannel_ADCs") % getHitoPrefix()).c_str()+name,";Channels;ADCs",256,0,256,1024,0,1024);
+    hm->registerHisto(h);
+  }
 }

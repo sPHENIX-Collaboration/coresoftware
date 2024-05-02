@@ -14,6 +14,7 @@
 
 // Call classes to be used in code
 class PHCompositeNode;
+class Fun4AllHistoManager;
 //
 
 class TpcChanQA : public SubsysReco // Inherit public parts of SubsysReco
@@ -47,6 +48,10 @@ class TpcChanQA : public SubsysReco // Inherit public parts of SubsysReco
 
   // List of private attributes
  private:
+  char name[100];
+  void createHistos();
+  std::string getHistoPrefix() const;
+
   std::string m_fname; // Name of file given to program
   std::string sectorNum; // Sector number associated with data file
   TFile *m_file = nullptr; // File being processed
