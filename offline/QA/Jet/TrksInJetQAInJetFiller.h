@@ -65,9 +65,9 @@ class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller {
     // private methods
     void       GetNode(const int node, PHCompositeNode* topNode);
     void       FillJetAndTrackQAHists(PHCompositeNode* topNode);
-    void       FillClustAndHitQAHists(SvtxTrack* track, PHCompositeNode* topNode);
+    void       FillClustAndHitQAHists(SvtxTrack* track);
     void       GetCstTracks(Jet* jet, PHCompositeNode* topNode);
-    void       GetNonCstTracks(Jet* jet, PHCompositeNode* topNode);
+    void       GetNonCstTracks(Jet* jet);
     bool       IsCstNotRelevant(const uint32_t type);
     bool       IsTrkInList(const uint32_t id);
     double     GetTrackJetDist(SvtxTrack* track, Jet* jet);

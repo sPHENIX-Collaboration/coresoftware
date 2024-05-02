@@ -66,11 +66,11 @@ void TrksInJetQA::Configure(
 
 // fun4all methods ------------------------------------------------------------
 
-int TrksInJetQA::Init(PHCompositeNode* topNode) {
+int TrksInJetQA::Init(PHCompositeNode* /*topNode*/) {
 
   // print debug message
   if (m_config.doDebug && (m_config.verbose > 0)) {
-    std::cout << "TrksInJetQA::Init(PHCompositeNode* topNode) Initializing" << std::endl;
+    std::cout << "TrksInJetQA::Init(PHCompositeNode* /*topNode*/) Initializing" << std::endl;
   }
 
   // initialize output & histograms
@@ -103,11 +103,11 @@ int TrksInJetQA::process_event(PHCompositeNode* topNode) {
 
 
 
-int TrksInJetQA::End(PHCompositeNode* topNode) {
+int TrksInJetQA::End(PHCompositeNode* /*topNode*/) {
 
   // print debug message
   if (m_config.doDebug && (m_config.verbose > 0)) {
-    std::cout << "TrksInJetQA::End(PHCompositeNode* topNode) This is the End..." << std::endl;
+    std::cout << "TrksInJetQA::End(PHCompositeNode* /*topNode*/) This is the End..." << std::endl;
   }
 
   // save hists to file if needed

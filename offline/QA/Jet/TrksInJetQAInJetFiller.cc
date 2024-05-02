@@ -67,7 +67,7 @@ void TrksInJetQAInJetFiller::FillJetAndTrackQAHists(PHCompositeNode* topNode) {
 
     // get all tracks "in" a jet
     GetCstTracks(jet, topNode);
-    GetNonCstTracks(jet, topNode);
+    GetNonCstTracks(jet);
 
     // grab jet info and fill histograms
     if (m_config.doJetQA) m_jetManager -> GetInfo(jet, m_trksInJet);
@@ -80,7 +80,7 @@ void TrksInJetQAInJetFiller::FillJetAndTrackQAHists(PHCompositeNode* topNode) {
 
       // fill cluster and hit histograms as needed
       if (m_config.doClustQA || m_config.doHitQA) {
-        FillClustAndHitQAHists(track, topNode);
+        FillClustAndHitQAHists(track);
       }
     }  // end track loop
   }  // end jet loop
@@ -90,7 +90,7 @@ void TrksInJetQAInJetFiller::FillJetAndTrackQAHists(PHCompositeNode* topNode) {
 
 
 
-void TrksInJetQAInJetFiller::FillClustAndHitQAHists(SvtxTrack* track, PHCompositeNode* topNode) {
+void TrksInJetQAInJetFiller::FillClustAndHitQAHists(SvtxTrack* track) {
 
   // get cluster keys
   for (auto clustKey : ClusKeyIter(track)) {
@@ -132,7 +132,7 @@ void TrksInJetQAInJetFiller::FillClustAndHitQAHists(SvtxTrack* track, PHComposit
   }  // end cluster key loop
   return;
 
-}  // end 'FillClustQAHists(SvtxTrack*, PHCompositeNode*)'
+}  // end 'FillClustQAHists(SvtxTrack*)'
 
 
 
@@ -170,7 +170,7 @@ void TrksInJetQAInJetFiller::GetCstTracks(Jet* jet, PHCompositeNode* topNode) {
 
 
 
-void TrksInJetQAInJetFiller::GetNonCstTracks(Jet* jet, PHCompositeNode* topNode) {
+void TrksInJetQAInJetFiller::GetNonCstTracks(Jet* jet) {
 
   // loop over tracks
   for (
@@ -201,7 +201,7 @@ void TrksInJetQAInJetFiller::GetNonCstTracks(Jet* jet, PHCompositeNode* topNode)
   }  // end track loop
   return;
 
-}  // end 'GetNonCstTracks(Jet* jet, PHCompositeNode* topNode)'
+}  // end 'GetNonCstTracks(Jet* jet)'
 
 
 

@@ -39,11 +39,13 @@ libjetqa_la_SOURCES = \
   TrksInJetQAJetManager.cc
 
 libjetqa_la_LIBADD = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
-  -lcalotrigger_io \
   -lfun4all \
   -lphool \
   -lg4dst \
+  -lg4eval \
   -lSubsysReco \
   -lqautils
 

@@ -61,9 +61,9 @@ class TrksInJetQA : public SubsysReco {
 
 
     // f4a methods
-    int Init(PHCompositeNode* topNode)          override;
+    int Init(PHCompositeNode* /*topNode*/)      override;
     int process_event(PHCompositeNode* topNode) override;
-    int End(PHCompositeNode* topNode)           override;
+    int End(PHCompositeNode* /*topNode*/)       override;
 
   private:
 
