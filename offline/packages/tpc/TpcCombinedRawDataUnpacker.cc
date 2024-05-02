@@ -253,27 +253,27 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     uint16_t sampch = tpchit->get_sampachannel();
     uint16_t sam = tpchit->get_samples();
 
-    varname = "phi";  // + std::to_string(key);
-    double phi = (sector % 12) * M_PI / 6 - pow(-1,side)*m_cdbttree->GetDoubleValue(key, varname);
+    //varname = "phi";  // + std::to_string(key);
+    //double phi = (sector % 12) * M_PI / 6 - pow(-1,side)*m_cdbttree->GetDoubleValue(key, varname);
     //    -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     varname = "pad";
     int pad_n = m_cdbttree->GetIntValue(key, varname);
     PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
 
-    unsigned int phibin = layergeom->get_phibin(phi,side);//layergeom->find_phibin(phi);
-    int calc_pad_n = layergeom->get_phibins()/12*mc_sectors[sector % 12] + abs(pad_n - side*layergeom->get_phibins()/12);
-    if(calc_pad_n-int(phibin)!=0){
-      std::cout<< "TpcCombinedRawDataUnpacker::process_event: side = "<< side << 
-                                                          " sector = "<< sector<< 
-                                                          " layer = " << layer << 
-                                                          " phi = " << phi <<
-                                                          " pad_n = " << pad_n << 
-                                                          " phibin = " << phibin << 
-                                                          " calc pad_n = " << calc_pad_n << 
-                                                          " layergeom->get_phibins()/12 = " << layergeom->get_phibins()/12 << 
-                                                          " diff pad = " << calc_pad_n-int(phibin) <<
-                                                          " diff phi = " << phi-layergeom->get_phi(phibin) << std::endl;
-    }
+    //unsigned int phibin = layergeom->get_phibin(phi,side);//layergeom->find_phibin(phi);
+    int phibin = layergeom->get_phibins()/12*mc_sectors[sector % 12] + abs(pad_n - side*layergeom->get_phibins()/12);
+    //if(calc_pad_n-int(phibin)!=0){
+    //  std::cout<< "TpcCombinedRawDataUnpacker::process_event: side = "<< side << 
+    //                                                      " sector = "<< sector<< 
+    //                                                      " layer = " << layer << 
+    //                                                      " phi = " << phi <<
+    //                                                      " pad_n = " << pad_n << 
+    //                                                      " phibin = " << phibin << 
+    //                                                      " calc pad_n = " << calc_pad_n << 
+    //                                                      " layergeom->get_phibins()/12 = " << layergeom->get_phibins()/12 << 
+    //                                                      " diff pad = " << calc_pad_n-int(phibin) <<
+    //                                                      " diff phi = " << phi-layergeom->get_phi(phibin) << std::endl;
+    //}
 
     if (m_writeTree)
     {
