@@ -9,7 +9,8 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(OFFLINE_MAIN)/lib64 \
+  -lcdbobjects
 
 pkginclude_HEADERS = \
   XingShiftCal.h
@@ -27,6 +28,7 @@ libXingShiftCal_la_LIBADD = \
   -loncal \
   -lodbc \
   -lodbc++
+
 
 BUILT_SOURCES = testexternals.cc
 

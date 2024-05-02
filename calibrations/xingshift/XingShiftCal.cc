@@ -30,12 +30,14 @@
 #include <odbc++/resultsetmetadata.h>
 #include <odbc++/preparedstatement.h>
 
+#include <cdbobjects/CDBTTree.h>
+
 using namespace odbc;
 
 XingShiftCal::XingShiftCal(const std::string &name, const int poverwriteSpinEntry)
-  : SubsysReco(name)
+  : SubsysReco(name), overwriteSpinEntry(poverwriteSpinEntry)
 {
-  overwriteSpinEntry = poverwriteSpinEntry;
+  //overwriteSpinEntry = poverwriteSpinEntry;
   nevt = 0;
   for (auto &scalercount : scalercounts)
   {
@@ -61,6 +63,10 @@ int XingShiftCal::Init(PHCompositeNode * /*topNode*/)
 int XingShiftCal::InitRun(PHCompositeNode * /*topNode*/)
 {
   // std::cout << "XingShiftCal::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+
+  recoConsts *rc = recoConsts::instance();
+  runnumber = rc->get_IntFlag("RUNNUMBER");
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -75,7 +81,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
 
   if (evt->getEvtType() == BEGRUNEVENT)
   {
-
+    std::cout << "here" << std::endl;
     //================ BeginRunEvent packets ================//
     pBluePol = evt->getPacket(packet_BLUEPOL);
     pYellPol = evt->getPacket(packet_YELLPOL);
@@ -94,6 +100,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     polBlueErr = -999;
     if (pBluePol)
     {
+      
       polBlue = pBluePol->iValue(0)/10000.0;
       polBlueErr = pBluePol->iValue(1)/10000.0;
       delete pBluePol;
@@ -216,13 +223,13 @@ int XingShiftCal::ResetEvent(PHCompositeNode * /*topNode*/)
   // std::cout << "XingShiftCal::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+/*
 int XingShiftCal::EndRun(const int runnumber)
 {
   std::cout << "XingShiftCal::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+*/
 int XingShiftCal::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "XingShiftCal::End(PHCompositeNode *topNode) This is the End..." << std::endl;
@@ -240,19 +247,26 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
     std::cout << "Not enough statistics. Did not calibrate." << std::endl;
   }
 
-  /*
-  if (committopdbcal && success)
+  std::cout << success << std::endl;
+  if (success)
   {
-    CommitConstantsToDatabase();
-    CommitPatternToSpinDB();
+    const std::string cdbfname = Form("/sphenix/user/dloomis/cdb/SPIN-%08d_crossingshiftCDBTTree.root",runnumber);
+    WriteToCDB(cdbfname);
+    CommitToSpinDB();
+    if (commitSuccessCDB) 
+    {
+      std::cout<<"Commit to CDB : SUCCESS"<<std::endl;
+    } else {
+      std::cout<<"Commit to CDB : FAILURE"<<std::endl;
+    }
     if (commitSuccessSpinDB) 
     {
-      cout<<"Commit to SpinDB : SUCCESS"<<endl;
+      std::cout<<"Commit to SpinDB : SUCCESS"<<std::endl;
     } else {
-      cout<<"Commit to SpinDB : FAILURE"<<endl;
+      std::cout<<"Commit to SpinDB : FAILURE"<<std::endl;
     }
   }
-  */
+  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -345,27 +359,45 @@ int XingShiftCal::CalculateCrossingShift(int &xing, uint64_t counts[NTRIG][NBUNC
         return 0;
       }
     }
-
-    /*
-    if ( itrig > 0) { //if not matching for all trigger selections used, fails
-      if ( shift_array[itrig]!= shift_array[itrig-1] && !trig_inactive_array[itrig] && !trig_inactive_array[itrig-1]) {
-        xing = 0;
-        succ = false;
-        return 0;
-      } else if (!trig_inactive_array[itrig]){
-        xing = shift_array[itrig];
-      }
-    }
-
-    */
   }
 
   // succ = true;
   return 0;
 }
 
+
+int XingShiftCal::WriteToCDB(const std::string fname)
+{
+  std::cout<<"XingShiftCal::WriteToCDB()"<<std::endl;
+  int xing_correction_offset = 0;
+  if ( success ){
+    xing_correction_offset  = xingshift;
+  } else {
+    //if (verbosity) {
+    std::cout<<"no successful calibration, no commit"<<std::endl;
+      //}
+    commitSuccessCDB = 0;
+    return 0;
+  }
+  
+ 
+  CDBTTree*cdbttree = new CDBTTree(fname);
+  cdbttree->SetSingleIntValue("crossingshift",xing_correction_offset);
+  cdbttree->CommitSingle();
+  //cdbttree->Print();
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+
+  commitSuccessCDB = 1;
+  
+  return 0;
+
+}
+
+
+
 //Commit to spinDB ported from PHENIX
-int XingShiftCal::CommitPatternToSpinDB()
+int XingShiftCal::CommitToSpinDB()
 {
   std::cout<<"XingShiftCal::CommitPatternToSpinDB()"<<std::endl;
   std::string status; //-------------------------------------------->
@@ -381,11 +413,13 @@ int XingShiftCal::CommitPatternToSpinDB()
     return 0;
   }
 
-
+  
   // prepare values for db
   unsigned int qa_level = 0xffff;
-  OnCalServer *server = OnCalServer::instance();
-  int runnumber = server->RunNumber();
+  //OnCalServer *server = OnCalServer::instance();
+  //int runnumber = server->RunNumber();
+  
+  
   if (fillnumberBlue != fillnumberYellow) {
     std::cout<<"fillnumber is wrong : fillnumberBlue = "<<fillnumberBlue
 	     <<"fillnumberYellow = "<<fillnumberYellow<<std::endl;
@@ -555,10 +589,11 @@ int XingShiftCal::CommitPatternToSpinDB()
     sql<<"}'";
     sql<<", "<<qa_level<<");";
   }
-  //if (verbosity) cout<<sql.str()<<endl;
+  if (1/*verbosity*/) std::cout<<sql.str()<<std::endl;
 
 
   // exec sql
+  
   Statement* stmtSpin = conSpin->createStatement();
   try {
     stmtSpin->executeUpdate(sql.str());
@@ -574,6 +609,7 @@ int XingShiftCal::CommitPatternToSpinDB()
     }
     return 0;
   }
+  
   //if (verbosity) cout<<"spin db done"<<endl;
   commitSuccessSpinDB = 1;
 

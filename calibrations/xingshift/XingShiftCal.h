@@ -26,7 +26,7 @@ class XingShiftCal : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int ResetEvent(PHCompositeNode *topNode) override;
-  int EndRun(const int runnumber) override;
+  //int EndRun(const int runnumber) override;
   int End(PHCompositeNode *topNode) override;
   int Reset(PHCompositeNode * /*topNode*/) override;
 
@@ -34,7 +34,8 @@ class XingShiftCal : public SubsysReco
 
   int Calibrate(const int final = 0);
   int CalculateCrossingShift(int &xingshift, uint64_t counts[NTRIG][NBUNCHES], bool &success);
-  int CommitPatternToSpinDB();
+  int WriteToCDB(const std::string fname);
+  int CommitToSpinDB();
   std::string SQLArrayConstF(float x, int n);
 
  private:
@@ -61,20 +62,22 @@ class XingShiftCal : public SubsysReco
   const int packet_BLUESPIN = 14902;
   const int packet_YELLSPIN = 14903;
   const int packet_BLUEPOL = 14905;
-  const int packet_YELLPOL = 14906;
-  const int packet_BLUEASYM = 14907;
+  const int packet_BLUEASYM = 14906;
+  const int packet_YELLPOL = 14907;
   const int packet_YELLASYM = 14908;
   const int packet_BLUEINTPATTERN = 14910;
-  const int packet_YELLINTPATTERN = 14911;
-  const int packet_BLUEPOLPATTERN = 14912;
+  const int packet_BLUEPOLPATTERN = 14911;
+  const int packet_YELLINTPATTERN = 14912;
   const int packet_YELLPOLPATTERN = 14913;
   const int packet_BLUEFILLNUMBER = 14915;
   const int packet_YELLFILLNUMBER = 14916;
   const int packet_GL1 = 14001;
 
+  int runnumber = 0;
   bool success = 0;
+  int commitSuccessCDB = 0;
   int commitSuccessSpinDB = 0;
-  int overwriteSpinEntry;
+  int overwriteSpinEntry = 0;
 
   // default xingshift
   int xingshift = 0;
