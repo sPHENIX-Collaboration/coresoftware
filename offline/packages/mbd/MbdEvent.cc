@@ -9,6 +9,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
+#include <ffarawobjects/CaloPacket.h>
+#include <ffarawobjects/CaloPacketContainer.h>
 #endif
 
 #include <Event/Event.h>
@@ -300,6 +302,91 @@ void MbdEvent::Clear()
   m_bbct0err = std::numeric_limits<Float_t>::quiet_NaN();
 }
 
+#ifndef ONLINE
+// Get raw data from event combined DSTs
+int MbdEvent::SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts)
+{
+  //Verbosity(100);
+  // First check if there is any event (ie, reading from PRDF)
+  if (mbdraw == nullptr || bbcpmts == nullptr)
+  {
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
+
+  // Get Packets
+  CaloPacket *dstp[2]{nullptr};
+  for (int ipkt = 0; ipkt < 2; ipkt++)
+  {
+    int pktid = 1001 + ipkt;  // packet id
+    dstp[ipkt] = mbdraw->getPacketbyId(pktid);
+
+    if (Verbosity() > 0)
+    {
+      static int counter = 0;
+      if (counter < 4)
+      {
+        std::cout << "Found packet " << pktid << "\t" << dstp[ipkt] << std::endl;
+        counter++;
+      }
+    }
+    if (dstp[ipkt])
+    {
+      _nsamples = dstp[ipkt]->iValue(0, "SAMPLES");
+      {
+        static int counter = 0;
+        if ( counter<1 )
+        {
+          std::cout << "NSAMPLES = " << _nsamples << std::endl;
+        }
+        counter++;
+      }
+
+      m_xmitclocks[ipkt] = static_cast<UShort_t>(dstp[ipkt]->iValue(0, "CLOCK"));
+
+      m_femclocks[ipkt][0] = static_cast<UShort_t>(dstp[ipkt]->iValue(0, "FEMCLOCK"));
+      m_femclocks[ipkt][1] = static_cast<UShort_t>(dstp[ipkt]->iValue(1, "FEMCLOCK"));
+
+      for (int ich = 0; ich < NCHPERPKT; ich++)
+      {
+        int feech = ipkt * NCHPERPKT + ich;
+        for (int isamp = 0; isamp < _nsamples; isamp++)
+        {
+          m_adc[feech][isamp] = dstp[ipkt]->iValue(isamp, ich);
+          m_samp[feech][isamp] = isamp;
+
+          /*
+          if ( m_adc[feech][isamp] <= 100 )
+          {
+            //flag_err = 1;
+            std::cout << "BAD " << m_evt << "\t" << feech << "\t" << m_samp[feech][isamp]
+                << "\t" << m_adc[feech][isamp] << std::endl;
+          }
+          */
+        }
+
+        _mbdsig[feech].SetNSamples( _nsamples );
+        _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
+
+        //std::cout << "feech " << feech << std::endl;
+        //_mbdsig[feech].Print();
+      }
+
+      //delete dstp[ipkt];
+      //dstp[ipkt] = nullptr;
+    }
+    else
+    {
+      // flag_err = 1;
+      std::cout << PHWHERE << " ERROR, evt " << m_evt << " Missing Packet " << pktid << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+
+  ProcessRawPackets(bbcpmts);
+  return 0;
+}
+#endif  // ONLINE
+
 int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
 {
   // First check if there is any event (ie, reading from PRDF)
@@ -324,13 +411,12 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
   }
 
   m_evt = event->getEvtSequence();
-  UShort_t xmitclocks[2];    // [ipkt]
-  UShort_t femclocks[2][2];  // [ipkt][iadc]
 
   // Get the relevant packets from the Event object and transfer the
   // data to the subsystem-specific table.
 
   // int flag_err = 0;
+  Packet *p[2]{nullptr};
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     int pktid = 1001 + ipkt;  // packet id
@@ -357,10 +443,10 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
         counter++;
       }
 
-      xmitclocks[ipkt] = static_cast<UShort_t>(p[ipkt]->iValue(0, "CLOCK"));
+      m_xmitclocks[ipkt] = static_cast<UShort_t>(p[ipkt]->iValue(0, "CLOCK"));
 
-      femclocks[ipkt][0] = static_cast<UShort_t>(p[ipkt]->iValue(0, "FEMCLOCK"));
-      femclocks[ipkt][1] = static_cast<UShort_t>(p[ipkt]->iValue(1, "FEMCLOCK"));
+      m_femclocks[ipkt][0] = static_cast<UShort_t>(p[ipkt]->iValue(0, "FEMCLOCK"));
+      m_femclocks[ipkt][1] = static_cast<UShort_t>(p[ipkt]->iValue(1, "FEMCLOCK"));
 
       for (int ich = 0; ich < NCHPERPKT; ich++)
       {
@@ -401,11 +487,18 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     }
   }
 
+  return 0;
+}
+
+int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
+{
   // Do a quick sanity check that all fem counters agree
-  if (xmitclocks[0] != xmitclocks[1])
+  if (m_xmitclocks[0] != m_xmitclocks[1])
   {
     std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << std::endl;
   }
+  /*
+  // format changed in run2024, need to update check
   for (auto &femclock : femclocks)
   {
     for (unsigned short iadc : femclock)
@@ -416,10 +509,11 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       }
     }
   }
+  */
 
   // Store the clock info. We use just the first one, and assume all are consistent.
-  m_clk = xmitclocks[0];
-  m_femclk = femclocks[0][0];
+  m_clk = m_xmitclocks[0];
+  m_femclk = m_femclocks[0][0];
 
   // We get SAMPMAX on this pass
   if ( _calpass == 1 )
@@ -808,6 +902,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
 // This needs to be reconsidered for 2024 run, hopefully timing instability is fixed by then!
 // Only used in online monitoring
+/*
 int MbdEvent::DoQuickClockOffsetCalib()
 {
   for (int ifeech = 0; ifeech < 256; ifeech++)
@@ -843,6 +938,7 @@ int MbdEvent::DoQuickClockOffsetCalib()
 
   return _calib_done;
 }
+*/
 
 // Store data for sampmax calibration (to correct ADC sample offsets by channel)
 // This will replace DoQuickClockOffsetCalib() for 2024

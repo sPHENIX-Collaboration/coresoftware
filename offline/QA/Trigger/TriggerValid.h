@@ -41,7 +41,6 @@ class TriggerValid : public SubsysReco
   void Trigger(const std::string& name) { trigger = name; }
 
   void set_debug(bool debug) { m_debug = debug; }
-
  private:
   int Getpeaktime(TH1* h);
 

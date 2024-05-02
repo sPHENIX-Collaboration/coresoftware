@@ -31,6 +31,10 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Utils.h>
 
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
+#include <ffarawobjects/MvtxRawEvtHeader.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -47,6 +51,8 @@
 
 #include <TVector3.h>  // for TVector3, ope...
 
+#include <boost/format.hpp>
+
 #include <cassert>  // for assert
 #include <cmath>
 #include <cstdlib>
@@ -55,9 +61,6 @@
 #include <set>     // for vector
 #include <vector>  // for vector
 
-#include <cdbobjects/CDBTTree.h>
-#include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
-#include <ffarawobjects/MvtxRawEvtHeader.h>
 
 // New headers I added
 
@@ -748,13 +751,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
     for (auto& _pair : tmap)
     {
       auto& track = _pair.second;
-
-      printf("id(%2i) phi:eta:pt(", (int) track->getTrackid());
-      std::cout << "phi:eta:pt(";
-      printf("%5.2f:%5.2f:%5.2f", track->getPhi(), track->getPseudoRapidity(), track->getPt());
-      /* Form("%5.2:%5.2:%5.2", track->getPhi(), track->getPseudoRapidity(), track->getPt()) */
-      //<<track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt()
-      std::cout << ") nclusters(" << track->getClusters().size() << ") ";
+      std::cout << (boost::format("id(%2i) phi:eta:pt(%5.2f:%5.2f:%5.2f) nclusters(") % (int) track->getTrackid() %track->getPhi() %track->getPseudoRapidity() %track->getPt()).str() << track->getClusters().size() << ") " << std::endl;
       int nclus = 0;
       for (auto cluskey : track->getClusters())
       {
@@ -1306,7 +1303,7 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode)
   return;
 }
 
-void PHG4MvtxHitReco::makePixelMask(hitMask &aMask, std::string dbName, std::string totalPixelsToMask)
+void PHG4MvtxHitReco::makePixelMask(hitMask &aMask, const std::string& dbName, const std::string& totalPixelsToMask)
 {
   std::string database = CDBInterface::instance()->getUrl(dbName);
   CDBTTree *cdbttree = new CDBTTree(database);

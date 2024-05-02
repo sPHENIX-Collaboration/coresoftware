@@ -121,7 +121,7 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
 
 int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 {
-  std::vector<KFParticle> mother, vertex;
+  std::vector<KFParticle> mother, vertex_kfparticle;
   std::vector<std::vector<KFParticle>> daughters, intermediates;
   int nPVs, multiplicity;
 
@@ -148,7 +148,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  createDecay(topNode, mother, vertex, daughters, intermediates, nPVs, multiplicity);
+  createDecay(topNode, mother, vertex_kfparticle, daughters, intermediates, nPVs, multiplicity);
 
   if (!m_has_intermediates_sPHENIX)
   {
@@ -156,7 +156,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   }
   if (!m_constrain_to_vertex_sPHENIX)
   {
-    vertex = mother;
+    vertex_kfparticle = mother;
   }
 
   if (mother.size() != 0)
@@ -173,7 +173,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
       if (m_save_output)
       {
-        fillBranch(topNode, mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity);
+        fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
       }
       if (m_save_dst)
       {
@@ -182,7 +182,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
       if (Verbosity() >= VERBOSITY_SOME)
       {
-        printParticles(mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity);
+        printParticles(mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
       }
       if (Verbosity() >= VERBOSITY_MORE)
       {
@@ -505,8 +505,8 @@ void KFParticle_sPHENIX::getField()
       ++z;
     }
 
-    n = n & 0x3; //Constrains n from 0 to 3
-    r = r & 0x2;
+    n = n & 0x3U; //Constrains n from 0 to 3
+    r = r & 0x2U;
 
     double x = r*std::cos(n*arc);
     double y = r*std::sin(n*arc);
