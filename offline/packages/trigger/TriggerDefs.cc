@@ -124,7 +124,14 @@ TriggerDefs::getPrimitivePhiId_from_TriggerPrimKey(const TriggerDefs::TriggerPri
       detId == TriggerDefs::DetectorId::hcaloutDId ||
       detId == TriggerDefs::DetectorId::hcalDId)
   {
-    return tmp / 3;
+    if (primId == TriggerDefs::PrimitiveId::calPId)
+    {
+      return tmp / 3;
+    }
+    else if (primId == TriggerDefs::PrimitiveId::jetPId)
+    {
+      return tmp;
+    }
   }
   else if (detId == TriggerDefs::DetectorId::emcalDId)
   {
@@ -159,7 +166,14 @@ TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(const TriggerDefs::TriggerSumK
       detId == TriggerDefs::DetectorId::hcaloutDId ||
       detId == TriggerDefs::DetectorId::hcalDId)
   {
-    return tmp / 3;
+    if (primId == TriggerDefs::PrimitiveId::calPId)
+    {
+      return tmp / 3;
+    }
+    else if (primId == TriggerDefs::PrimitiveId::jetPId)
+    {
+      return tmp;
+    }
   }
   else if (detId == TriggerDefs::DetectorId::emcalDId)
   {
@@ -269,7 +283,15 @@ TriggerDefs::getSumPhiId(const TriggerDefs::TriggerSumKey triggersumkey)
       detId == TriggerDefs::DetectorId::hcaloutDId ||
       detId == TriggerDefs::DetectorId::hcalDId)
   {
-    return tmp / 4;
+    if (primId == TriggerDefs::PrimitiveId::calPId)
+    {
+      return tmp / 4;
+    }
+    else if (primId == TriggerDefs::PrimitiveId::jetPId)
+    {
+      return tmp / 12;
+    }
+
   }
   else if (detId == TriggerDefs::DetectorId::emcalDId)
   {
@@ -302,6 +324,14 @@ TriggerDefs::getSumEtaId(const TriggerDefs::TriggerSumKey triggersumkey)
       detId == TriggerDefs::DetectorId::hcaloutDId ||
       detId == TriggerDefs::DetectorId::hcalDId)
   {
+    if (primId == TriggerDefs::PrimitiveId::calPId)
+    {
+      return tmp % 4;
+    }
+    else if (primId == TriggerDefs::PrimitiveId::jetPId)
+    {
+      return tmp % 12;
+    }
     return tmp % 4;
   }
   else if (detId == TriggerDefs::DetectorId::emcalDId)

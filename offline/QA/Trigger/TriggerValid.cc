@@ -69,7 +69,7 @@ int TriggerValid::Init(PHCompositeNode* /*unused*/)
   hm->registerHisto(h_emcal_ll1_2x2_frequency);
   auto h_emcal_ll1_8x8_frequency = new TH2F("h_emcal_ll1_8x8_frequency", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
   hm->registerHisto(h_emcal_ll1_8x8_frequency);
-  auto h_hcal_ll1_2x2_frequency = new TH2F("h_hcal_ll1_2x2_frequency", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
+  auto h_hcal_ll1_2x2_frequency = new TH2F("h_hcal_ll1_2x2_frequency", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
   hm->registerHisto(h_hcal_ll1_2x2_frequency);
   auto h_jet_ll1_frequency = new TH2F("h_jet_frequency", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
   hm->registerHisto(h_jet_ll1_frequency);
@@ -91,10 +91,19 @@ int TriggerValid::Init(PHCompositeNode* /*unused*/)
   hm->registerHisto(h_emcal_ll1_2x2_avg_out);
   auto h_emcal_ll1_8x8_avg_out = new TProfile2D("h_emcal_ll1_8x8_avg_out", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
   hm->registerHisto(h_emcal_ll1_8x8_avg_out);
-  auto h_hcal_ll1_2x2_avg_out = new TProfile2D("h_hcal_ll1_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 64, 0, 64);
+  auto h_hcal_ll1_2x2_avg_out = new TProfile2D("h_hcal_ll1_2x2_avg_out", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
   hm->registerHisto(h_hcal_ll1_2x2_avg_out);
   auto h_jet_ll1_avg_out = new TProfile2D("h_jet_ll1_avg_out", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
   hm->registerHisto(h_jet_ll1_avg_out);
+
+  auto h_emcal_ll1_2x2_sample = new TProfile2D("h_emcal_ll1_2x2_sample", ";#eta;#phi", 48, 0, 96, 128, 0, 256);
+  hm->registerHisto(h_emcal_ll1_2x2_sample);
+  auto h_emcal_ll1_8x8_sample = new TProfile2D("h_emcal_ll1_8x8_sample", ";#eta;#phi", 12, 0, 96, 32, 0, 256);
+  hm->registerHisto(h_emcal_ll1_8x8_sample);
+  auto h_hcal_ll1_2x2_sample = new TProfile2D("h_hcal_ll1_2x2_sample", ";#eta;#phi", 12, 0, 24, 32, 0, 64);
+  hm->registerHisto(h_hcal_ll1_2x2_sample);
+  auto h_jet_ll1_sample = new TProfile2D("h_jet_sample", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
+  hm->registerHisto(h_jet_ll1_sample);
   auto h_emcal_2x2_energy_lutsum = new TH2F("h_emcal_2x2_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 128, 0, 128);
   hm->registerHisto(h_emcal_2x2_energy_lutsum);
   auto h_emcal_8x8_energy_lutsum = new TH2F("h_emcal_8x8_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
@@ -185,6 +194,10 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
   auto h_emcal_ll1_8x8_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emcal_ll1_8x8_avg_out"));
   auto h_hcal_ll1_2x2_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_hcal_ll1_2x2_avg_out"));
   auto h_jet_ll1_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_jet_ll1_avg_out"));
+  auto h_emcal_ll1_2x2_sample = dynamic_cast<TProfile2D*>(hm->getHisto("h_emcal_ll1_2x2_sample"));
+  auto h_emcal_ll1_8x8_sample = dynamic_cast<TProfile2D*>(hm->getHisto("h_emcal_ll1_8x8_sample"));
+  auto h_hcal_ll1_2x2_sample = dynamic_cast<TProfile2D*>(hm->getHisto("h_hcal_ll1_2x2_sample"));
+  auto h_jet_ll1_sample = dynamic_cast<TProfile2D*>(hm->getHisto("h_jet_sample"));
   auto h_emcal_2x2_energy_lutsum = dynamic_cast<TH2*>(hm->getHisto("h_emcal_2x2_energy_lutsum"));
   auto h_emcal_8x8_energy_lutsum = dynamic_cast<TH2*>(hm->getHisto("h_emcal_8x8_energy_lutsum"));
   auto h_hcal_2x2_energy_lutsum = dynamic_cast<TH2*>(hm->getHisto("h_hcal_2x2_energy_lutsum"));
@@ -218,10 +231,11 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         std::vector<unsigned int>::iterator it = max_element(sum->begin(), sum->end());
         unsigned int summ = 0;
         unsigned int sumk = (*siter).first;
-
+	unsigned int sums = 99;
         if (it != sum->end())
         {
           summ = (*it);
+	  sums = std::distance(sum->begin(), it);
         }
 
         uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
@@ -233,6 +247,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
           float i2x2y = h_emcal_ll1_2x2_frequency->GetYaxis()->GetBinCenter(sum_phi + 1);
           h_emcal_ll1_2x2_frequency->Fill(i2x2x, i2x2y, 1);
           h_emcal_ll1_2x2_avg_out->Fill(i2x2x, i2x2y, summ);
+          h_emcal_ll1_2x2_sample->Fill(i2x2x, i2x2y, sums);
         }
         v_emcal_ll1_2x2[sumk] = summ;
       }
@@ -252,10 +267,11 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         std::vector<unsigned int>::iterator it = max_element(sum->begin(), sum->end());
         unsigned int summ = 0;
         unsigned int sumk = (*siter).first;
-
+	unsigned int sums = 99;
         if (it != sum->end())
         {
           summ = (*it);
+	  sums = std::distance(sum->begin(), it);
         }
 
         uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 2 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
@@ -267,6 +283,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
           float i2x2y = h_emcal_ll1_8x8_frequency->GetYaxis()->GetBinCenter(sum_phi + 1);
           h_emcal_ll1_8x8_frequency->Fill(i2x2x, i2x2y, 1);
           h_emcal_ll1_8x8_avg_out->Fill(i2x2x, i2x2y, summ);
+          h_emcal_ll1_8x8_sample->Fill(i2x2x, i2x2y, sums);
         }
         v_emcal_ll1_8x8[sumk] = summ;
       }
@@ -286,14 +303,15 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         std::vector<unsigned int>::iterator it = max_element(sum->begin(), sum->end());
         unsigned int summ = 0;
         unsigned int sumk = (*siter).first;
-
+	unsigned int sums = 99;
         if (it != sum->end())
         {
           summ = (*it);
+	  sums = std::distance(sum->begin(), it);
         }
 
-        uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
-        uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk) + 4 * TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumk);
+        uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 2 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
+        uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk);
 
         if (summ)
         {
@@ -301,6 +319,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
           float i2x2y = h_hcal_ll1_2x2_frequency->GetYaxis()->GetBinCenter(sum_phi + 1);
           h_hcal_ll1_2x2_frequency->Fill(i2x2x, i2x2y, 1);
           h_hcal_ll1_2x2_avg_out->Fill(i2x2x, i2x2y, summ);
+          h_hcal_ll1_2x2_sample->Fill(i2x2x, i2x2y, sums);
         }
         v_hcal_ll1_2x2[sumk] = summ;
       }
@@ -545,22 +564,24 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
       std::vector<unsigned int>::iterator it = max_element(trigger_word->begin(), trigger_word->end());
       unsigned int summ = 0;
       unsigned int sumk = 0;
-
+      unsigned sums = 99;
       if (it != trigger_word->end())
       {
         summ = (*it);
         sumk = (*iter).first;
+	sums = std::distance(trigger_word->begin(), it);
       }
 
       if (summ)
       {
         unsigned int ijetx = (sumk >> 16U) & 0xffffU;
         unsigned int ijety = (sumk & 0xffffU);
-
         h_jet_ll1_frequency->Fill(ijetx, ijety, 1);
         h_jet_ll1_avg_out->Fill(ijetx, ijety, summ);
-        v_jet_ll1[sumk] = summ;
+        h_jet_ll1_sample->Fill(ijetx, ijety, sums);
+	
       }
+      v_jet_ll1[sumk] = summ;
     }
   }
 
