@@ -6,9 +6,11 @@
 
 #include <TFile.h>
 #include <TTree.h>
+
 #ifndef ONLINE
 #include <fun4all/Fun4AllBase.h>
 #endif
+
 #include <vector>
 
 class PHCompositeNode;
@@ -21,6 +23,9 @@ class MbdGeom;
 class CDBUtils;
 class TF1;
 class TCanvas;
+#ifndef ONLINE
+class CaloPacketContainer;
+#endif
 
 class MbdEvent
 {
@@ -29,6 +34,9 @@ class MbdEvent
   virtual ~MbdEvent();
 
   int SetRawData(Event *event, MbdPmtContainer *mbdpmts);
+#ifndef ONLINE
+  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *mbdpmts);
+#endif
   int Calculate(MbdPmtContainer *mbdpmts, MbdOut *mbdout);
   int InitRun();
   int End();
@@ -74,7 +82,7 @@ class MbdEvent
   int Read_TQ_T0_Offsets(const std::string &calfname);
   int Read_TQ_CLK_Offsets(const std::string &calfname);
   int Read_TT_CLK_Offsets(const std::string &calfname);
-  int DoQuickClockOffsetCalib();
+  //int DoQuickClockOffsetCalib();
 
   int _debugintt{0};
   void ReadSyncFile(const char *fname = "SYNC_INTTMBD.root");
@@ -92,12 +100,15 @@ class MbdEvent
   int _nsamples{31};
   int _calib_done{0};
   int _is_online{0};
-  Packet *p[2]{nullptr, nullptr};
+
+  int ProcessRawPackets(MbdPmtContainer *mbdpmts);
 
   // alignment data
-  Int_t m_evt{0};
+  Int_t   m_evt{0};
   Short_t m_clk{0};
   Short_t m_femclk{0};
+  UInt_t  m_xmitclocks[2];     // [ipkt]
+  UInt_t  m_femclocks[2][2];   // [ipkt][iadc]
 
   // raw data
   Float_t m_adc[MbdDefs::MBD_N_FEECH][MbdDefs::MAX_SAMPLES]{};   // raw waveform, adc values
