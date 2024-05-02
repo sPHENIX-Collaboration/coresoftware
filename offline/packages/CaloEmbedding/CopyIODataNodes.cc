@@ -294,6 +294,7 @@ void CopyIODataNodes::CopyMinimumBiasInfo(PHCompositeNode *from_topNode, PHCompo
 
 void CopyIODataNodes::CreateMbdOut(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
 {
+
   MbdOut *from_mbdout = findNode::getClass<MbdOut>(from_topNode, "MbdOut");
   if (!from_mbdout)
   {
@@ -311,9 +312,18 @@ void CopyIODataNodes::CreateMbdOut(PHCompositeNode *from_topNode, PHCompositeNod
       dstNode = new PHCompositeNode("DST");
       to_topNode->addNode(dstNode);
     }
+
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *mbdNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "MBD"));
+    if (!mbdNode)
+    {
+      mbdNode = new PHCompositeNode("MBD");
+      dstNode->addNode(mbdNode);
+    }
+
     to_mbdout = dynamic_cast<MbdOut *>(from_mbdout->CloneMe());
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(to_mbdout, "MbdOut", "PHObject");
-    dstNode->addNode(newNode);
+    mbdNode->addNode(newNode);
   }
   return;
 
