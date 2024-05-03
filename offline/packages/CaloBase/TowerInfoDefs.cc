@@ -323,7 +323,7 @@ unsigned int TowerInfoDefs::get_epd_phibin(unsigned int key)
 
 unsigned int TowerInfoDefs::encode_zdc(const unsigned int towerIndex)
 {
-  if (towerIndex > 15)
+  if (towerIndex > 51)
   {
     std::cout << "Attempting to access zdc channel with invalid number " << towerIndex << std::endl;
     exit(1);

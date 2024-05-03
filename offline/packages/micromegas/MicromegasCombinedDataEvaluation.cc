@@ -209,7 +209,8 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
     for( unsigned short is = 0; is < std::min<unsigned short>( samples, 1024 ); ++is )
     {
       // assign sample id and corresponding adc, save copy in container
-      auto adc = rawhit->get_adc(is);
+      const auto adc = rawhit->get_adc(is);
+      if( adc == MicromegasDefs::m_adc_invalid ) continue;
       sample.sample = is;
       sample.adc = adc;
       sample_map.emplace( sample.lvl1_bco, sample );

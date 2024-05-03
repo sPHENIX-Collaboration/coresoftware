@@ -42,7 +42,7 @@ int MicromegasRawDataCalibration::InitRun(PHCompositeNode* /*topNode*/)
 //___________________________________________________________________________
 int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
 {
-  
+
   // load relevant nodes
   // PRDF node
   auto event = findNode::getClass<Event>(topNode, "PRDF");
@@ -64,12 +64,12 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
       { std::cout << "MicromegasRawDataCalibration::process_event - event contains no TPOT data" << std::endl; }
       continue;
     }
-    
+
     // get number of datasets (also call waveforms)
     const auto n_waveforms = packet->iValue(0, "NR_WF" );
     if( Verbosity() )
     { std::cout << "MicromegasRawDataCalibration::process_event - n_waveforms: " << n_waveforms << std::endl; }
-    
+
     for( int i=0; i<n_waveforms; ++i )
     {
       auto channel = packet->iValue( i, "CHANNEL" );
@@ -85,8 +85,8 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
           << " samples: " << samples
           << std::endl;
       }
-        
-      // find relevant profile histogram 
+
+      // find relevant profile histogram
       TProfile* profile = nullptr;
       auto piter = m_profile_map.lower_bound( fee );
       if( piter == m_profile_map.end() || fee < piter->first )
@@ -94,13 +94,17 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
         // create and insert
         profile = new TProfile( Form( "h_adc_channel_%i", fee ), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
         profile->SetErrorOption( "s" );
-        m_profile_map.insert(  piter, std::make_pair( fee, profile ) );      
+        m_profile_map.insert(  piter, std::make_pair( fee, profile ) );
       } else profile = piter->second;
-      
+
       // fill
       for( int is = std::max( m_sample_min,0 ); is < std::min( m_sample_max,samples ); ++ is )
-      { profile->Fill( channel, packet->iValue(i,is) ); }
-        
+      {
+        const uint16_t adc =  packet->iValue(i,is);
+        if( adc != MicromegasDefs::m_adc_invalid )
+        { profile->Fill( channel, adc); }
+      }
+
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -109,9 +113,9 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
 //_____________________________________________________________________
 int MicromegasRawDataCalibration::End(PHCompositeNode* /*topNode*/ )
 {
-  
+
   // write calibration data to ouput file
-  if( m_profile_map.empty() ) 
+  if( m_profile_map.empty() )
   {
     std::cout << "MicromegasRawDataCalibration::End - no data" << std::endl;
   } else {
@@ -130,6 +134,6 @@ int MicromegasRawDataCalibration::End(PHCompositeNode* /*topNode*/ )
     }
     calibration_data.write( m_calibration_filename );
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }

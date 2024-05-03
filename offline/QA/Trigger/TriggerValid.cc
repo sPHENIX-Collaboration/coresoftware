@@ -565,73 +565,86 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
   }
 
   // match emulated with real
-  for (auto& it : v_emcal_ll1_2x2)
-  {
-    unsigned int sumk = it.first;
-    uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
-    uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk) + 4 * TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumk);
 
-    std::map<TriggerDefs::TriggerSumKey, unsigned int>::iterator itt = v_emcal_emu_2x2.find(it.first);
-    if (itt != v_emcal_emu_2x2.end())
-    {
-      h_match_emcal->Fill(sum_eta, sum_phi, (it.second == (*itt).second ? 1 : 0));
-    }
-    else
-    {
-      std::cout << "emcal 2x2: Trigger Sum " << std::hex << it.first << " does not exist -- > " << (*v_emcal_emu_2x2.begin()).first << std::endl;
-      exit(1);
-    }
-  }
-  for (auto& it : v_emcal_ll1_8x8)
+  if (v_emcal_emu_2x2.size())
   {
-    unsigned int sumk = it.first;
-    uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
-    uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk);
+    for (auto& it : v_emcal_ll1_2x2)
+    {
+      unsigned int sumk = it.first;
+      uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
+      uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk) + 4 * TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumk);
 
-    std::map<TriggerDefs::TriggerSumKey, unsigned int>::iterator itt = v_emcal_emu_8x8.find(it.first);
-    if (itt != v_emcal_emu_8x8.end())
-    {
-      h_match_emcal->Fill(sum_eta, sum_phi, (it.second == (*itt).second ? 1 : 0));
-    }
-    else
-    {
-      std::cout << "emcal 8x8: Trigger Sum " << std::hex << it.first << " does not exist --> " << (*v_emcal_emu_8x8.begin()).first << std::endl;
-      exit(1);
-    }
-  }
-  for (auto& it : v_hcal_ll1_2x2)
-  {
-    unsigned int sumk = it.first;
-    uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
-    uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk);
-    std::map<TriggerDefs::TriggerSumKey, unsigned int>::iterator itt = v_hcal_emu_2x2.find(it.first);
-    if (itt != v_hcal_emu_2x2.end())
-    {
-      h_match_hcal_ll1->Fill(sum_eta, sum_phi, (it.second == (*itt).second ? 1 : 0));
-    }
-    else
-    {
-      std::cout << "hcal 2x2: Trigger Sum " << std::hex << it.first << " does not exist -- > " << (*v_hcal_emu_2x2.begin()).first << " is here" << std::endl;
-      exit(1);
-    }
-  }
-  for (auto& it : v_jet_ll1)
-  {
-    uint16_t sum_eta = (it.first >> 16U) & 0xffffU;
-    uint16_t sum_phi = (it.first) & 0xffffU;
-
-    std::map<TriggerDefs::TriggerSumKey, unsigned int>::iterator itt = v_jet_emu.find(it.first);
-    if (itt != v_jet_emu.end())
-    {
-      h_match_jet_ll1->Fill(sum_eta, sum_phi, (it.second == (*itt).second ? 1 : 0));
-    }
-    else
-    {
-      std::cout << "jet: Trigger Sum " << std::hex << it.first << " does not exist -->" << (*v_jet_emu.begin()).first << std::endl;
-      exit(1);
+      std::map<TriggerDefs::TriggerSumKey, unsigned int>::iterator itt = v_emcal_emu_2x2.find(it.first);
+      if (itt != v_emcal_emu_2x2.end())
+      {
+        h_match_emcal->Fill(sum_eta, sum_phi, (it.second == (*itt).second ? 1 : 0));
+      }
+      else
+      {
+        std::cout << "emcal 2x2: Trigger Sum " << std::hex << it.first << " does not exist -- > " << (*v_emcal_emu_2x2.begin()).first << std::endl;
+        exit(1);
+      }
     }
   }
 
+  if (v_emcal_emu_8x8.size())
+  {
+    for (auto& it : v_emcal_ll1_8x8)
+    {
+      unsigned int sumk = it.first;
+      uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
+      uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk);
+
+      std::map<TriggerDefs::TriggerSumKey, unsigned int>::iterator itt = v_emcal_emu_8x8.find(it.first);
+      if (itt != v_emcal_emu_8x8.end())
+      {
+        h_match_emcal->Fill(sum_eta, sum_phi, (it.second == (*itt).second ? 1 : 0));
+      }
+      else
+      {
+        std::cout << "emcal 8x8: Trigger Sum " << std::hex << it.first << " does not exist --> " << (*v_emcal_emu_8x8.begin()).first << std::endl;
+        exit(1);
+      }
+    }
+  }
+  if (v_hcal_emu_2x2.size())
+  {
+    for (auto& it : v_hcal_ll1_2x2)
+    {
+      unsigned int sumk = it.first;
+      uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
+      uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk);
+      std::map<TriggerDefs::TriggerSumKey, unsigned int>::iterator itt = v_hcal_emu_2x2.find(it.first);
+      if (itt != v_hcal_emu_2x2.end())
+      {
+        h_match_hcal_ll1->Fill(sum_eta, sum_phi, (it.second == (*itt).second ? 1 : 0));
+      }
+      else
+      {
+        std::cout << "hcal 2x2: Trigger Sum " << std::hex << it.first << " does not exist -- > " << (*v_hcal_emu_2x2.begin()).first << " is here" << std::endl;
+        exit(1);
+      }
+    }
+  }
+  if (v_jet_emu.size())
+  {
+    for (auto& it : v_jet_ll1)
+    {
+      uint16_t sum_eta = (it.first >> 16U) & 0xffffU;
+      uint16_t sum_phi = (it.first) & 0xffffU;
+
+      std::map<TriggerDefs::TriggerSumKey, unsigned int>::iterator itt = v_jet_emu.find(it.first);
+      if (itt != v_jet_emu.end())
+      {
+        h_match_jet_ll1->Fill(sum_eta, sum_phi, (it.second == (*itt).second ? 1 : 0));
+      }
+      else
+      {
+        std::cout << "jet: Trigger Sum " << std::hex << it.first << " does not exist -->" << (*v_jet_emu.begin()).first << std::endl;
+        exit(1);
+      }
+    }
+  }
   // h_emcal_2x2_energy_lutsum = new TH2F("h_emcal_2x2_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 256);
   // h_emcal_8x8_energy_lutsum = new TH2F("h_emcal_8x8_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 256);
   // h_hcal_2x2_energy_lutsum = new TH2F("h_hcal_2x2_energy_lutsum",";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 256);

@@ -322,8 +322,8 @@ int PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode *topNode)
     _svtx_seed_map = new TrackSeedContainer_v1();
     PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(_svtx_seed_map, "SvtxTrackSeedContainer", "PHObject");
     svtxNode->addNode(node);
-  }
-
+  } 
+  
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {

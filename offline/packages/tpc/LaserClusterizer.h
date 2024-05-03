@@ -60,6 +60,7 @@ class LaserClusterizer : public SubsysReco
   //void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
   void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
 
+  void set_debug(bool debug) { m_debug = debug; }
   void set_debug_name(const std::string &name){ m_debugFileName = name; }
 
   void set_pedestal(float val) { pedestal = val;}
@@ -89,12 +90,17 @@ class LaserClusterizer : public SubsysReco
   // From Tony Frawley July 5, 2022
   //double m_sampa_tbias = 39.6;  // ns  
 
+  bool m_debug = false;
   string m_debugFileName = "LaserClusterizer_debug.root";
   TFile *m_debugFile = nullptr;
   TTree *m_clusterTree = nullptr;
   //TTree *m_hitTree = nullptr;
   TH1I *m_itHist_0 = nullptr;
   TH1I *m_itHist_1 = nullptr;
+
+  TH1D *m_tHist_0 = nullptr;
+  TH1D *m_tHist_1 = nullptr;
+
   int m_nClus = 0;
   double time_search = 0;
   double time_clus = 0;
