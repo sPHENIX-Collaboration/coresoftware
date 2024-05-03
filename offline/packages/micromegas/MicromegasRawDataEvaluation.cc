@@ -202,6 +202,12 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         sample.layer = TrkrDefs::getLayer( hitsetkey );
         sample.tile = MicromegasDefs::getTileId( hitsetkey );
 
+        // get channel
+        sample.channel = packet->iValue( iwf, "CHANNEL" );
+
+        // bound check
+        if( sample.channel >= MicromegasDefs::m_nchannels_fee ) continue;
+
         // beam crossing
         sample.fee_bco = packet->iValue(iwf, "BCO");
         sample.lvl1_bco = 0;
@@ -210,6 +216,8 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         auto& bco_matching_pair = m_fee_bco_matching_map[sample.fee_id];
 
         // find matching lvl1 bco
+        // static constexpr unsigned int max_fee_bco_diff = 5;
+        // if( (sample.fee_bco-bco_matching_pair.first) < max_fee_bco_diff )
         if( bco_matching_pair.first == sample.fee_bco )
         {
 

@@ -206,13 +206,13 @@ class MicromegasRawDataEvaluation : public SubsysReco
   };
 
   //! set flags. Should be a bitwise or of Flags enum
-  void set_flags( int flags )
+  void set_flags( unsigned int flags )
   { m_flags = flags; }
 
   private:
 
   //! flags
-  int m_flags = EvalSample | EvalWaveform | EvalTagger;
+  unsigned int m_flags = EvalSample | EvalWaveform | EvalTagger;
 
   //! calibration filename
   std::string m_calibration_filename = "TPOT_Pedestal_000.root";
