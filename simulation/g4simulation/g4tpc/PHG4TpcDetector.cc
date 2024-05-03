@@ -578,16 +578,16 @@ void PHG4TpcDetector::add_geometry_node()
       //m_cdbttree->GetIntValue(key,varname);
       //varname = "R";// + to_string(key);
       //m_cdbttree->GetDoubleValue(key,varname);
-      if (layer>0){
-        
+      if (layer>6){
+        int v_layer = layer-7;
         varname = "phi";// + to_string(key);
-        pad_phi[layer-7].push_back(m_cdbttree->GetDoubleValue(key,varname));
+        pad_phi[v_layer].push_back(m_cdbttree->GetDoubleValue(key,varname));
         varname = "pad";// + to_string(key);
-        pad_num[layer-7].push_back(m_cdbttree->GetIntValue(key,varname));      
+        pad_num[v_layer].push_back(m_cdbttree->GetIntValue(key,varname));      
       }
     }
   }
-
+  // Sorting phi wrt pad number
   for (size_t layer = 0; layer < NLayers; ++layer) {
     // Create a vector of indices
     std::vector<size_t> indices(pad_num[layer].size());
@@ -694,20 +694,22 @@ void PHG4TpcDetector::add_geometry_node()
           r_length = Thickness[3];
         }
       }
-      layerseggeo->set_thickness(r_length);
-      layerseggeo->set_radius(current_r + r_length / 2);
-      layerseggeo->set_binning(PHG4CellDefs::sizebinning);
-      layerseggeo->set_zbins(NTBins);
-      layerseggeo->set_zmin(MinT);
-      layerseggeo->set_zstep(TBinWidth);
-      layerseggeo->set_phibins(NPhiBins[iregion]);
-      layerseggeo->set_phistep(PhiBinWidth[iregion]);
-      layerseggeo->set_r_bias(sector_R_bias);
-      layerseggeo->set_phi_bias(sector_Phi_bias);
-      layerseggeo->set_sector_min_phi(sector_min_Phi);
-      layerseggeo->set_sector_max_phi(sector_max_Phi);
-      layerseggeo->set_layer_pad_phi(pad_phi[layer-7]);
-      
+      int v_layer = layer-7;
+      if (v_layer>=0){
+        layerseggeo->set_thickness(r_length);
+        layerseggeo->set_radius(current_r + r_length / 2);
+        layerseggeo->set_binning(PHG4CellDefs::sizebinning);
+        layerseggeo->set_zbins(NTBins);
+        layerseggeo->set_zmin(MinT);
+        layerseggeo->set_zstep(TBinWidth);
+        layerseggeo->set_phibins(NPhiBins[iregion]);
+        layerseggeo->set_phistep(PhiBinWidth[iregion]);
+        layerseggeo->set_r_bias(sector_R_bias);
+        layerseggeo->set_phi_bias(sector_Phi_bias);
+        layerseggeo->set_sector_min_phi(sector_min_Phi);
+        layerseggeo->set_sector_max_phi(sector_max_Phi);
+        layerseggeo->set_layer_pad_phi(pad_phi[v_layer]);
+      }
 
       // Chris Pinkenburg: greater causes huge memory growth which causes problems
       // on our farm. If you need to increase this - TALK TO ME first
