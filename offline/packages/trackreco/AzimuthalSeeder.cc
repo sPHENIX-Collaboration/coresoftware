@@ -17,7 +17,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <TFile.h>
 #include <TH2.h>
@@ -81,7 +81,7 @@ int AzimuthalSeeder::process_event(PHCompositeNode *)
   {
     auto key0 = iter->first;
     auto pos0 = iter->second;
-    for (auto iter2 = clusterPositions[2].begin(); iter2 != clusterPositions[2].end(); ++iter2)
+    for (auto iter2 = clusterPositions[1].begin(); iter2 != clusterPositions[1].end(); ++iter2)
     {
       auto key1 = iter2->first;
       auto pos1 = iter2->second;
@@ -94,23 +94,74 @@ int AzimuthalSeeder::process_event(PHCompositeNode *)
       h_phi->Fill(phi0, phi0 - phi1);
       if (fabs(phi0 - phi1) < 0.1)
       {
-        for (const auto &[key2, pos2] : clusterPositions[2])
-        {
-          float phi2 = atan2(pos2.y(), pos2.x());
-          h_phi2->Fill(phi0, phi0 - phi2);
-          h_phi3->Fill(phi2, phi1 - phi2);
-          if (fabs(phi0 - phi2) < 0.1 && fabs(phi1 - phi2) < 0.1)
-          {
-            seed s;
-            s.ckeys.push_back(key0);
-            s.ckeys.push_back(key1);
-            s.ckeys.push_back(key2);
-            seeds.push_back(s);
-          }
-        }
-      }
+        seed s;
+        s.ckeys.push_back(key0);
+        s.ckeys.push_back(key1);
+        s.globpos.push_back(pos0);
+        s.globpos.push_back(pos1);
+        seeds.push_back(s);
+         }
     }
   }
+for(auto&s : seeds)
+{
+  for (const auto &[key2, pos2] : clusterPositions[2])
+  {
+    float phi2 = atan2(pos2.y(), pos2.x());
+    float phi1 = atan2(s.globpos[1].y(), s.globpos[1].x());
+    float phi0 = atan2(s.globpos[0].y(), s.globpos[0].x());
+    h_phi2->Fill(phi0, phi0 - phi2);
+    h_phi3->Fill(phi2, phi1 - phi2);
+    if (fabs(phi0 - phi2) < 0.1 && fabs(phi1 - phi2) < 0.1)
+    {
+      s.ckeys.push_back(key2);
+      s.globpos.push_back(pos2);
+    }
+  }
+}
+
+SeedVector finalseeds;
+for (auto &s : seeds)
+{
+  TrackFitUtils::position_vector_t xypoints, rzpoints;
+  for (auto &pos : s.globpos)
+  {
+    xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+    float r = std::sqrt(pos.x() * pos.x() + pos.y() * pos.y());
+    if(pos.y()<0)
+    {
+      r = -r;
+    }
+    rzpoints.push_back(std::make_pair(pos.z(), r));
+  }
+  auto xyLineParams = TrackFitUtils::line_fit(xypoints);
+  auto rzLineParams = TrackFitUtils::line_fit(rzpoints);
+  float xySlope = std::get<0>(xyLineParams);
+  float xyIntercept = std::get<1>(xyLineParams);
+  float rzSlope = std::get<0>(rzLineParams);
+  float rzIntercept = std::get<1>(rzLineParams);
+  bool badseed = false;
+
+  for (auto &pos : s.globpos)
+  {
+    float r = std::sqrt(pos.x() * pos.x() + pos.y() * pos.y());
+    if(pos.y() < 0)
+    {
+      r = -r;
+    }
+    float distancexy = std::abs(xySlope * pos.x() - pos.y() + xyIntercept) / std::sqrt(xySlope * xySlope + 1);
+    float distancerz = std::abs(rzSlope * pos.z() - r + rzIntercept) / std::sqrt(rzSlope * rzSlope + 1);
+    if (distancexy > 0.1 || distancerz > 0.1)
+    {
+      badseed = true;
+      break;
+    }
+  }
+  if(!badseed)
+  {
+    finalseeds.push_back(std::move(s));
+  }
+}
 
   for (auto &map : {clusterPositions[1], clusterPositions[2]})
   {
@@ -119,15 +170,27 @@ int AzimuthalSeeder::process_event(PHCompositeNode *)
       clusterPositions[0].insert(std::make_pair(key, pos));
     }
   }
-  for (auto &s : seeds)
+  std::cout << "finalseed size " << finalseeds.size() << std::endl;
+  for (auto &s : finalseeds)
   {
-    std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+    if(s.ckeys.size() < 3)
+    {
+      continue;
+    }
+    std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
     for (auto &key : s.ckeys)
     {
       si_seed->insert_cluster_key(key);
     }
-    si_seed->circleFitByTaubin(clusterPositions[0], 0, 7);
-    si_seed->lineFit(clusterPositions[0], 0, 7);
+    float avgphi = 0;
+    for(auto& pos : s.globpos)
+    {
+      avgphi += atan2(pos.y(), pos.x());
+    }
+    avgphi /= s.globpos.size();
+    si_seed->set_phi(avgphi);
+    si_seed->circleFitByTaubin(clusterPositions[0], 0, 3);
+    si_seed->lineFit(clusterPositions[0], 0, 3);
     if (Verbosity() > 3)
     {
       si_seed->identify();

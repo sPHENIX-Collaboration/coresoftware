@@ -23,6 +23,7 @@ class AzimuthalSeeder : public SubsysReco
   struct seed
   {
     std::vector<TrkrDefs::cluskey> ckeys;
+    std::vector<Acts::Vector3> globpos;
   };
   using SeedVector = std::vector<seed>;
   AzimuthalSeeder(const std::string &name = "AzimuthalSeeder");
