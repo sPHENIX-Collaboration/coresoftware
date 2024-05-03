@@ -175,6 +175,8 @@ int m_segtype = std::numeric_limits<int>::quiet_NaN();
 int m_tileid = std::numeric_limits<int>::quiet_NaN();
 
 //! clusters on track information
+std::vector<float> m_clusAdc;
+std::vector<float> m_clusMaxAdc;
 std::vector<float> m_cluslx;
 std::vector<float> m_cluslz;
 std::vector<float> m_cluselx;
