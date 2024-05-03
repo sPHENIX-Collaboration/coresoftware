@@ -10,30 +10,31 @@
 #ifndef TRKSINJETQA_H
 #define TRKSINJETQA_H
 
+// module utilities
+#include "TrksInJetQAHist.h"
+#include "TrksInJetQAConfig.h"
+#include "TrksInJetQAInJetFiller.h"
+#include "TrksInJetQAInclusiveFiller.h"
+
+// qa utilities
+#include <qautils/QAHistManagerDef.h>
+
+// f4a includes
+#include <fun4all/SubsysReco.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllHistoManager.h>
+// phool includes
+#include <phool/phool.h>
+#include <phool/PHCompositeNode.h>
+// root includes
+#include <TFile.h>
+
 // c++ utilities
 #include <string>
 #include <vector>
 #include <cassert>
 #include <utility>
 #include <optional>
-// root libraries
-#include <TFile.h>
-// f4a libraries
-#include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllHistoManager.h>
-// phool libraries
-#include <phool/phool.h>
-#include <phool/PHCompositeNode.h>
-// qa utilities
-#include <qautils/QAHistManagerDef.h>
-// module utilities
-#include "TrksInJetQAHist.h"
-#include "TrksInJetQAConfig.h"
-// submodule definitions
-#include "TrksInJetQAInJetFiller.h"
-#include "TrksInJetQAInclusiveFiller.h"
-
 
 
 // TrksInJetQA definition -----------------------------------------------------

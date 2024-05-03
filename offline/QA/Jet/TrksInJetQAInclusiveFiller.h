@@ -10,12 +10,9 @@
 #ifndef TRACKSINJETSQAMAKER_INCLUSIVEQAHISTFILLER_H
 #define TRACKSINJETSQAMAKER_INCLUSIVEQAHISTFILLER_H
 
-// c+ utilities
-#include <cassert>
-// phool libraries
-#include <phool/phool.h>
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
+// submodule definitions
+#include "TrksInJetQABaseFiller.h"
+
 // tracking libraries
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrDefs.h>
@@ -29,9 +26,14 @@
 // jet libraries
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
-// submodule definitions
-#include "TrksInJetQABaseFiller.h"
 
+// phool libraries
+#include <phool/phool.h>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+
+// c+ utilities
+#include <cassert>
 
 
 // TrksInJetQAInclusiveFiller -------------------------------------------------

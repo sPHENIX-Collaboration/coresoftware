@@ -10,7 +10,7 @@ AM_LDFLAGS = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
@@ -46,6 +46,7 @@ libjetqa_la_LIBADD = \
   -lfun4all \
   -lphool \
   -lg4eval \
+  -lparticleflow_io \
   -lSubsysReco \
   -lqautils
 

@@ -10,22 +10,24 @@
 #ifndef TRKSINJETQABASEMANAGER_H
 #define TRKSINJETQABASEMANAGER_H
 
-// c++ utilities
-#include <string>
-#include <vector>
-#include <utility>
-#include <iostream>
-// root libraries
-#include <TH1.h>
-#include <TH2.h>
-#include <TDirectory.h>
-// phool libraries
-#include <phool/phool.h>
 // module utilities
 #include "TrksInJetQAHist.h"
 #include "TrksInJetQATypes.h"
 #include "TrksInJetQAConfig.h"
 
+// phool includes
+#include <phool/phool.h>
+
+// root includes
+#include <TH1.h>
+#include <TH2.h>
+#include <TDirectory.h>
+
+// c++ utilities
+#include <string>
+#include <vector>
+#include <utility>
+#include <iostream>
 
 
 // TrksInJetQABaseManager definition ------------------------------------------
@@ -36,7 +38,7 @@ class TrksInJetQABaseManager {
 
     // ctor/dtor
     TrksInJetQABaseManager(TrksInJetQAConfig& config, TrksInJetQAHist& hist);
-    ~TrksInJetQABaseManager();
+    virtual ~TrksInJetQABaseManager();
 
     // public methods
     void MakeHistograms(std::string label = "");

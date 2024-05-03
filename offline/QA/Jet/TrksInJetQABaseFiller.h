@@ -10,21 +10,6 @@
 #ifndef TRKSINJETQABASEFILLER_H
 #define TRKSINJETQABASEFILLER_H
 
-// c++ utilities
-#include <string>
-// root libraries
-#include <TFile.h>
-// phool libraries
-#include <phool/phool.h>
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
-// tracking libraries
-#include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-// jet libraries
-#include <jetbase/JetContainer.h>
 // submodule definitions
 #include "TrksInJetQAHitManager.h"
 #include "TrksInJetQAClustManager.h"
@@ -34,6 +19,24 @@
 #include "TrksInJetQAHist.h"
 #include "TrksInJetQAConfig.h"
 
+// tracking includes
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+// jet includes
+#include <jetbase/JetContainer.h>
+
+// phool libraries
+#include <phool/phool.h>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+
+// root includes
+#include <TFile.h>
+
+// c++ includes
+#include <string>
 
 
 // TrksInJetQABaseFiller ------------------------------------------------------
@@ -44,7 +47,7 @@ class TrksInJetQABaseFiller {
 
     // ctor/dtor
     TrksInJetQABaseFiller(TrksInJetQAConfig& config, TrksInJetQAHist& hist);
-    ~TrksInJetQABaseFiller();
+    virtual ~TrksInJetQABaseFiller();
 
     // public methods
     void MakeHistograms(std::string label = "");

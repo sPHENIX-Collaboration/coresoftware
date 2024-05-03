@@ -10,16 +10,12 @@
 #ifndef TRKSINJETQAINJETFILLER_H
 #define TRKSINJETQAINJETFILLER_H
 
-// c+ utilities
-#include <vector>
-#include <cassert>
-// root libraries
-#include <TMath.h>
-// phool libraries
-#include <phool/phool.h>
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
-// tracking libraries
+// module utilities
+#include "TrksInJetQATypes.h"
+// submodule definitions
+#include "TrksInJetQABaseFiller.h"
+
+// tracking includes
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
@@ -29,18 +25,26 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-// particle flow libraries
+// particle flow includes
 #include <particleflowreco/ParticleFlowElement.h>
 #include <particleflowreco/ParticleFlowElementContainer.h>
-// jet libraries
+// jet includes
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
-// g4eval libraries
+// g4eval includes
 #include <g4eval/ClusKeyIter.h>
-// module utilities
-#include "TrksInJetQATypes.h"
-// submodule definitions
-#include "TrksInJetQABaseFiller.h"
+
+// phool includes
+#include <phool/phool.h>
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+
+// root includes
+#include <TMath.h>
+
+// c+ utilities
+#include <vector>
+#include <cassert>
 
 
 
@@ -55,7 +59,7 @@ class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller {
 
     // ctor/dtor
     using TrksInJetQABaseFiller::TrksInJetQABaseFiller;
-    ~TrksInJetQAInJetFiller() {};
+    ~TrksInJetQAInJetFiller() override = default;
 
     // inherited public methods
     void Fill(PHCompositeNode* topNode) override;
