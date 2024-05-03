@@ -315,7 +315,7 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
         //}
         if(norm_phi<set_pad_phi+phistep/2 && norm_phi>set_pad_phi-phistep/2){
           //std::cout<< "PHG4TpcCylinderGeom::find_phibin: layer_pad_phi.size() "<<layer_pad_phi.size()<<" i="<< i << "side i = " <<abs(i - side*nphibins / 12) << " calc pad = " <<abs(i - side*nphibins / 12) + nphibins / 12 * s<<" norm_phi="<<norm_phi<<" layer_pad_phi[i]"<<layer_pad_phi[i]<<std::endl;
-          phi_bin = abs(i - side*nphibins / 12) + nphibins / 12 * s;
+          phi_bin = abs(int(i) - side*nphibins / 12) + nphibins / 12 * s;
           break;
         }
       }
@@ -334,7 +334,7 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
         
           if(-1*norm_phi<set_pad_phi+phistep/2 && -1*norm_phi>set_pad_phi-phistep/2){
             //std::cout<< "PHG4TpcCylinderGeom::find_phibin: layer_pad_phi.size() "<<layer_pad_phi.size()<<" i="<< i << "side i = " <<abs(i - side*nphibins / 12) << " calc pad = " <<abs(i - side*nphibins / 12) + nphibins / 12 * s<<" norm_phi="<<norm_phi<<" layer_pad_phi[i]"<<layer_pad_phi[i]<<std::endl;
-            phi_bin = abs(i - side * nphibins / 12) + nphibins / 12 * s;
+            phi_bin = abs(int(i) - side * nphibins / 12) + nphibins / 12 * s;
             //phi_bin = abs( i + 1 ) + nphibins / 12 * s;
             break;
             //std::cout<< "phi_bin = "<< abs(i - side*nphibins / 12) + nphibins / 12 * s << std::endl;
@@ -349,7 +349,7 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
           if(-1*norm_phi<set_pad_phi+phistep/2 && -1*norm_phi>set_pad_phi-phistep/2){
             //std::cout<< "PHG4TpcCylinderGeom::find_phibin: layer_pad_phi.size() "<<layer_pad_phi.size()<<" i="<< i << "side i = " <<abs(i - side*nphibins / 12) << " calc pad = " <<abs(i - side*nphibins / 12) + nphibins / 12 * s<<" norm_phi="<<norm_phi<<" layer_pad_phi[i]"<<layer_pad_phi[i]<<std::endl;
             //std::cout<< "PHG4TpcCylinderGeom::find_phibin:  "<< abs(i - side*nphibins / 12) + nphibins / 12 * s <<std::endl;           
-            phi_bin = abs(i - side * nphibins / 12) + nphibins / 12 * s;
+            phi_bin = abs(int(i) - side * nphibins / 12) + nphibins / 12 * s;
             break;
             //std::cout<< "phi_bin = "<< abs(i - side*nphibins / 12) + nphibins / 12 * s << std::endl;
           }  
