@@ -33,16 +33,16 @@ class MbdCalib
   float get_tt0(const int ipmt) const { return _ttfit_t0mean[ipmt]; }
   float get_ped(const int ifeech) const { return _pedmean[ifeech]; }
   float get_pedrms(const int ifeech) const { return _pedsigma[ifeech]; }
-  int get_sampmax(const int ifeech) const { return _sampmax[ifeech]; }
+  int   get_sampmax(const int ifeech) const { return _sampmax[ifeech]; }
   float get_tcorr(const int ifeech, const int tdc) const {
     if (tdc<0)
     {
-      std::cout << "bad tdc " << ifeech << " " << tdc << std::endl;
+      //std::cout << "bad tdc " << ifeech << " " << tdc << std::endl;
       return _tcorr_y_interp[ifeech][0];
     }
     if (tdc>=_tcorr_maxrange[ifeech])
     {
-      std::cout << "bad tdc " << ifeech << " " << tdc << " " << _tcorr_maxrange[ifeech] << std::endl;
+      //std::cout << "bad tdc " << ifeech << " " << tdc << " " << _tcorr_maxrange[ifeech] << std::endl;
       return _tcorr_y_interp[ifeech][_tcorr_maxrange[ifeech]-1];
     }
     //std::cout << "aaa " << _tcorr_y_interp[ifeech].size() << std::endl;
@@ -52,12 +52,12 @@ class MbdCalib
     if ( _scorr_y_interp[ifeech].size() == 0 ) return 0.; // return 0 if calib doesn't exist
     if (adc<0)
     {
-      std::cout << "bad adc " << ifeech << " " << adc << std::endl;
+      //std::cout << "bad adc " << ifeech << " " << adc << std::endl;
       return _scorr_y_interp[ifeech][0];
     }
     if (adc>=_scorr_maxrange[ifeech])
     {
-      //std::cout << "bad adc " << ifeech << " " << adc << std::endl;
+      //std::cout << "high adc " << ifeech << " " << adc << std::endl;
       return _scorr_y_interp[ifeech][_scorr_maxrange[ifeech]-1];
     }
     return _scorr_y_interp[ifeech][adc];
@@ -109,7 +109,7 @@ class MbdCalib
   void Reset();
   // void Print(Option_t* option) const;
 
-  int Verbosity() { return _verbose; }
+  int  Verbosity()            { return _verbose; }
   void Verbosity(const int v) { _verbose = v; }
 
  private:
@@ -153,7 +153,7 @@ class MbdCalib
   std::array<float, MbdDefs::MBD_N_FEECH> _pedsigma{};
   std::array<float, MbdDefs::MBD_N_FEECH> _pedsigmaerr{};
 
-  // Peak of waveform
+  // SampMax (Peak of waveform)
   std::array<int, MbdDefs::MBD_N_FEECH> _sampmax{};
 
   // Waveform Template
