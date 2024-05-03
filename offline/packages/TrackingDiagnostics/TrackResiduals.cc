@@ -156,6 +156,8 @@ void TrackResiduals::clearClusterStateVectors()
   m_clusgx.clear();
   m_clusgy.clear();
   m_clusgz.clear();
+  m_clusAdc.clear();
+  m_clusMaxAdc.clear();
   m_cluslayer.clear();
   m_clussize.clear();
   m_clushitsetkey.clear();
@@ -277,10 +279,9 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       std::vector<TrkrDefs::cluskey> keys;
       for (const auto& ckey : get_cluster_keys(track))
       {
-        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
-        {
+     
           keys.push_back(ckey);
-        }
+        
       }
       if (m_zeroField)
       {
@@ -417,11 +418,13 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
       clusr *= -1;
     }
 
-    // exclude silicon and tpot clusters for now
-    if (fabs(clusr) > 80 || fabs(clusr) < 30)
+    // exclude 1d tpot clusters for now
+    
+    if (fabs(clusr) > 80)
     {
       continue;
     }
+    
     rzpoints.push_back(std::make_pair(pos.z(), clusr));
     xypoints.push_back(std::make_pair(pos.x(), pos.y()));
     yzpoints.push_back(std::make_pair(pos.z(), pos.y()));
@@ -827,6 +830,8 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_clusgx.push_back(clusglob.x());
   m_clusgy.push_back(clusglob.y());
   m_clusgz.push_back(clusglob.z());
+  m_clusAdc.push_back(cluster->getAdc());
+  m_clusMaxAdc.push_back(cluster->getMaxAdc());
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
   m_clusphisize.push_back(cluster->getPhiSize());
   m_cluszsize.push_back(cluster->getZSize());
@@ -1010,7 +1015,6 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
 
   auto surf = geometry->maps().getSurface(key, cluster);
   Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
-
   if (!std::isnan(intersection.x()))
   {
     auto locstateres = surf->globalToLocal(geometry->geometry().getGeoContext(),
@@ -1157,6 +1161,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgx", &m_clusgx);
   m_tree->Branch("clusgy", &m_clusgy);
   m_tree->Branch("clusgz", &m_clusgz);
+  m_tree->Branch("clusAdc", &m_clusAdc);
+  m_tree->Branch("clusMaxAdc", &m_clusMaxAdc);
   m_tree->Branch("cluslayer", &m_cluslayer);
   m_tree->Branch("clussize", &m_clussize);
   m_tree->Branch("clusphisize", &m_clusphisize);
