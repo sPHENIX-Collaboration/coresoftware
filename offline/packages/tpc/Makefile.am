@@ -20,11 +20,9 @@ lib_LTLIBRARIES = \
   libtpc.la
 
 pkginclude_HEADERS = \
-  TpcFullMap.h \
   TpcMap.h
 
 libtpc_la_SOURCES = \
-  TpcFullMap.cc \
   TpcMap.cc
 
 noinst_PROGRAMS = \
@@ -48,7 +46,6 @@ pkginclude_HEADERS = \
   TpcCombinedRawDataUnpacker.h \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
-  TpcFullMap.h \
   TpcLoadDistortionCorrection.h \
   TpcMap.h \
   TpcRawWriter.h \
@@ -74,7 +71,6 @@ libtpc_la_SOURCES = \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
   TpcCombinedRawDataUnpacker.cc \
-  TpcFullMap.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
   TpcRawWriter.cc \
