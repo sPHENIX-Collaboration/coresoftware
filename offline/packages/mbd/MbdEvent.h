@@ -107,8 +107,8 @@ class MbdEvent
   Int_t   m_evt{0};
   Short_t m_clk{0};
   Short_t m_femclk{0};
-  UInt_t  m_xmitclocks[2];     // [ipkt]
-  UInt_t  m_femclocks[2][2];   // [ipkt][iadc]
+  UInt_t  m_xmitclocks[2]{};     // [ipkt]
+  UInt_t  m_femclocks[2][2]{};   // [ipkt][iadc]
 
   // raw data
   Float_t m_adc[MbdDefs::MBD_N_FEECH][MbdDefs::MAX_SAMPLES]{};   // raw waveform, adc values

@@ -3,28 +3,24 @@
 
 #include <fun4all/SubsysReco.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
-#include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrCluster.h>
 
 #include <phool/PHTimer.h>
 
-#if !defined(__CINT__) || defined(__CLING__)
-//BOOST for combi seeding                                                                                                                                                                                                                                                      
+#include <TFile.h>
+#include <TH1I.h>
+#include <TTree.h>
+
+// BOOST for combi seeding
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/point.hpp>
-
 #include <boost/geometry/index/rtree.hpp>
-#endif
 
-
-#include <TFile.h>
-#include <TTree.h>
-#include <TH1I.h>
-
-#include <map> 
-#include <vector>
+#include <map>
 #include <string>
+#include <vector>
 
 class LaserClusterContainerv1;
 class LaserClusterv1;
@@ -36,7 +32,6 @@ class RawHitSetContainer;
 class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
 
-using namespace std;
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
@@ -55,21 +50,21 @@ class LaserClusterizer : public SubsysReco
   int ResetEvent(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  //void calc_cluster_parameter(vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap);
-  void calc_cluster_parameter(vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
-  //void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
-  void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
+  // void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap);
+  void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
+  // void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
+  void remove_hits(std::vector<pointKeyLaser> &clusHits, bgi::rtree<pointKeyLaser, bgi::quadratic<16>> &rtree, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
 
   void set_debug(bool debug) { m_debug = debug; }
-  void set_debug_name(const std::string &name){ m_debugFileName = name; }
+  void set_debug_name(const std::string &name) { m_debugFileName = name; }
 
-  void set_pedestal(float val) { pedestal = val;}
-  void set_min_clus_size(float val) { min_clus_size = val;}
-  void set_min_adc_sum(float val) { min_adc_sum = val;}
+  void set_pedestal(float val) { pedestal = val; }
+  void set_min_clus_size(float val) { min_clus_size = val; }
+  void set_min_adc_sum(float val) { min_adc_sum = val; }
 
  private:
   int m_event = -1;
-  
+
   TrkrHitSetContainer *m_hits = nullptr;
   RawHitSetContainer *m_rawhits = nullptr;
   LaserClusterContainerv1 *m_clusterlist = nullptr;
@@ -79,22 +74,22 @@ class LaserClusterizer : public SubsysReco
   double min_clus_size = 1;
   double min_adc_sum = 10;
   double m_pedestal = 74.4;
- 
+
   double m_tdriftmax = 0;
-  double AdcClockPeriod = 53.0;   // ns 
+  double AdcClockPeriod = 53.0;  // ns
   double NZBinsSide = 249;
 
   bool do_read_raw = false;
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
-  //double m_sampa_tbias = 39.6;  // ns  
+  // double m_sampa_tbias = 39.6;  // ns
 
   bool m_debug = false;
-  string m_debugFileName = "LaserClusterizer_debug.root";
+  std::string m_debugFileName = "LaserClusterizer_debug.root";
   TFile *m_debugFile = nullptr;
   TTree *m_clusterTree = nullptr;
-  //TTree *m_hitTree = nullptr;
+  // TTree *m_hitTree = nullptr;
   TH1I *m_itHist_0 = nullptr;
   TH1I *m_itHist_1 = nullptr;
 
@@ -116,7 +111,6 @@ class LaserClusterizer : public SubsysReco
   std::unique_ptr<PHTimer> t_search;
   std::unique_ptr<PHTimer> t_clus;
   std::unique_ptr<PHTimer> t_erase;
-
 };
 
 #endif

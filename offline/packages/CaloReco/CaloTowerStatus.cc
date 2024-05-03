@@ -48,12 +48,13 @@ CaloTowerStatus::CaloTowerStatus(const std::string &name)
 //____________________________________________________________________________..
 CaloTowerStatus::~CaloTowerStatus()
 {
-  delete m_cdbttree_chi2;
-  delete m_cdbttree_time;
   if (Verbosity() > 0)
   {
     std::cout << "CaloTowerStatus::~CaloTowerStatus() Calling dtor" << std::endl;
   }
+  delete m_cdbttree_chi2;
+  delete m_cdbttree_time;
+  delete m_cdbttree_hotMap;
 }
 
 //____________________________________________________________________________..

@@ -28,10 +28,9 @@ class TProfile;
 /// micromegas raw data decoder
 class MicromegasRawDataEvaluation : public SubsysReco
 {
-  public:
-
+ public:
   /// constructor
-  MicromegasRawDataEvaluation( const std::string &name = "MicromegasRawDataEvaluation" );
+  MicromegasRawDataEvaluation(const std::string& name = "MicromegasRawDataEvaluation");
 
   /// global initialization
   int Init(PHCompositeNode*) override;
@@ -46,27 +45,27 @@ class MicromegasRawDataEvaluation : public SubsysReco
   int End(PHCompositeNode*) override;
 
   /// calibration file
-  void set_calibration_file( const std::string& value ) { m_calibration_filename = value; }
+  void set_calibration_file(const std::string& value) { m_calibration_filename = value; }
 
   /// set number of RMS sigma used to defined static threshold on a given channel
-  void set_n_sigma( double value ) { m_n_sigma = value; }
+  void set_n_sigma(double value) { m_n_sigma = value; }
 
   /// set minimum ADC value, disregarding pedestal and RMS.
   /** This removes faulty channels for which calibration has failed */
-  void set_min_adc( double value ) { m_min_adc = value; }
+  void set_min_adc(double value) { m_min_adc = value; }
 
   /// set min sample for noise estimation
-  void set_sample_min( int value ) { m_sample_min = value; }
+  void set_sample_min(int value) { m_sample_min = value; }
 
   /// set min sample for noise estimation
-  void set_sample_max( int value ) { m_sample_max = value; }
+  void set_sample_max(int value) { m_sample_max = value; }
 
   /// output file name for evaluation histograms
-  void set_evaluation_outputfile(const std::string &outputfile) {m_evaluation_filename = outputfile;}
+  void set_evaluation_outputfile(const std::string& outputfile) { m_evaluation_filename = outputfile; }
 
   class Sample
   {
-    public:
+   public:
     /// packet
     unsigned int packet_id = 0;
 
@@ -110,7 +109,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
    */
   class Waveform
   {
-    public:
+   public:
     /// packet
     unsigned int packet_id = 0;
 
@@ -151,19 +150,20 @@ class MicromegasRawDataEvaluation : public SubsysReco
     Waveform() = default;
 
     //! construct from sample
-    Waveform( const Sample& sample )
-    { copy_from( sample ); }
+    Waveform(const Sample& sample)
+    {
+      copy_from(sample);
+    }
 
     //! copy from sample
-    void copy_from( const Sample& );
+    void copy_from(const Sample&);
 
     using List = std::vector<Waveform>;
   };
 
   class TaggerInformation
   {
-    public:
-
+   public:
     /// packet
     unsigned int packet_id = 0;
 
@@ -183,36 +183,36 @@ class MicromegasRawDataEvaluation : public SubsysReco
     uint32_t endat_count = 0;
 
     using List = std::vector<TaggerInformation>;
-
   };
 
-  class Container: public PHObject
+  class Container : public PHObject
   {
-    public:
+   public:
     void Reset();
 
     TaggerInformation::List taggers;
     Waveform::List waveforms;
     Sample::List samples;
 
-    ClassDef(Container,1)
+    ClassDef(Container, 1)
   };
 
-  enum Flags
+  enum Flags : unsigned
   {
-    EvalSample = 1<<0,
-    EvalWaveform = 1<<1,
-    EvalTagger = 1<<2,
+    EvalSample = 1 << 0,
+    EvalWaveform = 1 << 1,
+    EvalTagger = 1 << 2,
   };
 
   //! set flags. Should be a bitwise or of Flags enum
-  void set_flags( int flags )
-  { m_flags = flags; }
+  void set_flags(unsigned int flags)
+  {
+    m_flags = flags;
+  }
 
-  private:
-
+ private:
   //! flags
-  int m_flags = EvalSample | EvalWaveform | EvalTagger;
+  unsigned int m_flags = EvalSample | EvalWaveform | EvalTagger;
 
   //! calibration filename
   std::string m_calibration_filename = "TPOT_Pedestal_000.root";
@@ -255,9 +255,8 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
   /// map waveforms to bco
   /** this is used to count how many waveforms are found for a given lvl1 bco */
-  using bco_map_t = std::map<uint64_t,unsigned int>;
+  using bco_map_t = std::map<uint64_t, unsigned int>;
   bco_map_t m_bco_map;
-
 };
 
 #endif
