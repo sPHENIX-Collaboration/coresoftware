@@ -73,11 +73,11 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     int status = Fun4AllReturnCodes::ABORTEVENT;
     if ( m_event!=nullptr )
     {
-      m_mbdevent->SetRawData(m_event, m_mbdpmts);
+      status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
     }
     else if ( m_mbdraw!=nullptr )
     {
-      m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts);
+      status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts);
     }
 
     if (status == Fun4AllReturnCodes::ABORTEVENT)
@@ -85,6 +85,10 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;  // there wasn't good data in BBC/MBD
     }
     else if (status == Fun4AllReturnCodes::DISCARDEVENT)
+    {
+      return Fun4AllReturnCodes::DISCARDEVENT;
+    }
+    else if (status == -1001)
     {
       return Fun4AllReturnCodes::DISCARDEVENT;
     }

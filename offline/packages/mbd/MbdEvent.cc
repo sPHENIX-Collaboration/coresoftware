@@ -29,7 +29,6 @@
 #include <iostream>
 
 MbdEvent::MbdEvent(const int cal_pass) :
-  _tres(0.05),
   _calpass(cal_pass)
 {
   // set default values
@@ -69,14 +68,6 @@ MbdEvent::MbdEvent(const int cal_pass) :
     hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -50., 50.);
     hevt_bbct[iarm]->SetLineColor(4);
   }
-  /*
-  h2_tmax[0] = new TH2F("h2_ttmax", "time tmax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES - 0.5, 128, 0, 128);
-  h2_tmax[0]->SetXTitle("sample");
-  h2_tmax[0]->SetYTitle("ch");
-  h2_tmax[1] = new TH2F("h2_qtmax", "chg tmax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES - 0.5, 128, 0, 128);
-  h2_tmax[1]->SetXTitle("sample");
-  h2_tmax[1]->SetYTitle("ch");
-  */
 
   for (float &iboard : TRIG_SAMP)
   {
@@ -141,6 +132,13 @@ int MbdEvent::InitRun()
   if (!_simflag)
   {
     _mbdcal->Download_All();
+
+    // check if sampmax and ped calibs exist
+    int scheck = _mbdcal->get_sampmax(0);
+    if ( scheck<0 )
+    {
+      _no_sampmax = 1;
+    }
   }
 
   // Init parameters of the signal processing
@@ -149,15 +147,15 @@ int MbdEvent::InitRun()
     _mbdsig[ifeech].SetCalib(_mbdcal);
 
     // Do evt-by-evt pedestal using sample range below
-    if ( _calpass!=1 )
+    if ( _calpass==1 || _no_sampmax )
+    {
+      _mbdsig[ifeech].SetEventPed0Range(0,1);
+    }
+    else
     {
       const int presamp = 5;  // start from 5 samples before sampmax
       const int nsamps = -1;  // use all to sample 0
       _mbdsig[ifeech].SetEventPed0PreSamp(presamp, nsamps, _mbdcal->get_sampmax(ifeech));
-    }
-    else
-    {
-      _mbdsig[ifeech].SetEventPed0Range(0,1);
     }
 
     // Read in template if specified
@@ -180,10 +178,10 @@ int MbdEvent::InitRun()
     std::cout << "OUTPUT CALDIR = " << _caldir << std::endl;
   }
 
-  if ( _calpass == 1 || _is_online )
+  if ( _calpass == 1 || _is_online || _no_sampmax )
   {
     TDirectory *orig_dir = gDirectory;
-    if ( !_is_online )
+    if ( _calpass == 1 )
     {
       std::cout << "MBD Cal Pass 1" << std::endl;
 
@@ -218,7 +216,7 @@ int MbdEvent::InitRun()
       h2_wave[itype]->SetYTitle("ch");
     }
 
-    if (!_is_online)
+    if ( _calpass==1 )
     {
       orig_dir->cd();
     }
@@ -382,8 +380,8 @@ int MbdEvent::SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts)
     }
   }
 
-  ProcessRawPackets(bbcpmts);
-  return 0;
+  int status = ProcessRawPackets(bbcpmts);
+  return status;
 }
 #endif  // ONLINE
 
@@ -487,7 +485,8 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     }
   }
 
-  return 0;
+  int status = ProcessRawPackets(bbcpmts);
+  return status;
 }
 
 int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
@@ -516,10 +515,16 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
   m_femclk = m_femclocks[0][0];
 
   // We get SAMPMAX on this pass
-  if ( _calpass == 1 )
+  if ( _calpass == 1 || _no_sampmax == 1 )
   {
     FillSampMaxCalib();
     m_evt++;
+    static int counter = 0;
+    if ( counter<1 )
+    {
+      std::cout << "MBD: no sampmax calib, determining it on the fly" << std::endl;
+      counter++;
+    }
     return -1001; // stop processing event (negative return values end event processing)
   }
 
@@ -900,45 +905,6 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   return 1;
 }
 
-// This needs to be reconsidered for 2024 run, hopefully timing instability is fixed by then!
-// Only used in online monitoring
-/*
-int MbdEvent::DoQuickClockOffsetCalib()
-{
-  for (int ifeech = 0; ifeech < 256; ifeech++)
-  {
-    _mbdsig[ifeech].SetXY(m_samp[ifeech], m_adc[ifeech]);
-
-    // determine the trig_samp board by board
-    int tq = (ifeech / 8) % 2;  // 0 = T-channel, 1 = Q-channel
-    int pmtch = (ifeech / 16) * 8 + ifeech % 8;
-
-    double x, y;
-    _mbdsig[ifeech].LocMax(x, y);
-    h2_tmax[tq]->Fill(x, pmtch);
-  }
-
-  if (h2_tmax[1]->GetEntries() == 128 * 100)
-  {
-    TString name;
-    TH1 *h_trigsamp[16]{};
-    for (int iboard = 0; iboard < 16; iboard++)
-    {
-      name = "h_trigsamp";
-      name += iboard;
-      h_trigsamp[iboard] = h2_tmax[1]->ProjectionX(name, iboard * 8 + 1, (iboard + 1) * 8);
-      int maxbin = h_trigsamp[iboard]->GetMaximumBin();
-      TRIG_SAMP[iboard] = h_trigsamp[iboard]->GetBinCenter(maxbin);
-      // std::cout << "iboard " << iboard << "\t" << iboard*8+1 << "\t" << (iboard+1)*8 << "\t" << h_trigsamp[iboard]->GetEntries() << std::endl;
-      std::cout << "TRIG_SAMP" << iboard << "\t" << TRIG_SAMP[iboard] << std::endl;
-    }
-
-    _calib_done = 1;
-  }
-
-  return _calib_done;
-}
-*/
 
 // Store data for sampmax calibration (to correct ADC sample offsets by channel)
 // This will replace DoQuickClockOffsetCalib() for 2024
@@ -987,10 +953,18 @@ int MbdEvent::FillSampMaxCalib()
 
   // At 1000 events, get the tmax for the time channels
   // so we can fill the h2_trange histograms
-  if ( h2_tmax[0]->GetEntries() == (128*500) )
+  if ( h2_tmax[0]->GetEntries() == (128*1000) )
   {
     CalcSampMaxCalib();
     _calib_done = 1;
+    std::cout << "MBD: on the fly sampmax calib done" << std::endl;
+
+    for (int ifeech=0; ifeech<MbdDefs::MBD_N_FEECH; ifeech++)
+    {
+      const int presamp = 5;  // start from 5 samples before sampmax
+      const int nsamps = -1;  // use all to sample 0
+      _mbdsig[ifeech].SetEventPed0PreSamp(presamp, nsamps, _mbdcal->get_sampmax(ifeech));
+    }
   }
 
   return 1;
@@ -999,7 +973,7 @@ int MbdEvent::FillSampMaxCalib()
 int MbdEvent::CalcSampMaxCalib()
 {
   TDirectory *orig_dir = gDirectory;
-  if ( !_is_online )
+  if ( _calpass==1 )
   {
     _smax_tfile->cd();
   }
@@ -1036,10 +1010,12 @@ int MbdEvent::CalcSampMaxCalib()
     delete h_projx;
   }
 
-  if ( !_is_online )
+  if ( _calpass==1 )
   {
     orig_dir->cd();
   }
+
+  _no_sampmax = 0;  // now we have samp max
 
   return 1;
 }
@@ -1047,7 +1023,7 @@ int MbdEvent::CalcSampMaxCalib()
 int MbdEvent::CalcPedCalib()
 {
   TDirectory *orig_dir = gDirectory;
-  if ( !_is_online )
+  if ( _calpass==1 )
   {
     _smax_tfile->cd();
   }
@@ -1074,7 +1050,7 @@ int MbdEvent::CalcPedCalib()
   }
   delete pedgaus;
 
-  if ( !_is_online )
+  if ( _calpass==1 )
   {
     orig_dir->cd();
   }
