@@ -10,20 +10,23 @@
 #ifndef TRACKSINJETSQAMAKER_JETQAHISTMANAGER_H
 #define TRACKSINJETSQAMAKER_JETQAHISTMANAGER_H
 
+// submodule definitions
+#include "TrksInJetQABaseManager.h"
+
+// jet includes
+#include <jetbase/Jet.h>
+// tracking includes
+#include <trackbase_historic/SvtxTrack.h>
+
+// root includes
+#include <TH1.h>
+#include <TH2.h>
+
 // c++ utilities
 #include <limits>
 #include <vector>
 #include <utility>
 #include <optional>
-// root libraries
-#include <TH1.h>
-#include <TH2.h>
-// jet libraries
-#include <jetbase/Jet.h>
-// tracking libraries
-#include <trackbase_historic/SvtxTrack.h>
-// submodule definitions
-#include "TrksInJetQABaseManager.h"
 
 
 
@@ -49,7 +52,7 @@ class TrksInJetQAJetManager : public TrksInJetQABaseManager {
 
     // ctor/dtor
     using TrksInJetQABaseManager::TrksInJetQABaseManager;
-    ~TrksInJetQAJetManager() {};
+    virtual ~TrksInJetQAJetManager() override = default;
 
     // public methods
     void GetInfo(Jet* jet, std::optional<std::vector<SvtxTrack*>> tracks = std::nullopt);

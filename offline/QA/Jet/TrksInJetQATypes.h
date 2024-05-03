@@ -9,16 +9,18 @@
 #ifndef TRKSINJETSQATYPES_H
 #define TRKSINJETSQATYPES_H
 
+// particle flow libraries
+#include <particleflowreco/ParticleFlowElement.h>
+#include <particleflowreco/ParticleFlowElementContainer.h>
+
+// root libraries
+#include <TH1.h>
+#include <TH2.h>
+
 // c++ utilities
 #include <string>
 #include <vector>
 #include <utility>
-// root libraries
-#include <TH1.h>
-#include <TH2.h>
-// particle flow libraries
-#include <particleflowreco/ParticleFlowElement.h>
-#include <particleflowreco/ParticleFlowElementContainer.h>
 
 
 

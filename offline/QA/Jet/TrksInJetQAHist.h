@@ -10,11 +10,12 @@
 #ifndef TRKSINJETSQAHIST_H
 #define TRKSINJETSQAHIST_H
 
+// module utilities
+#include "TrksInJetQATypes.h"
+
 // c++ utilities
 #include <string>
 #include <utility>
-// module utilities
-#include "TrksInJetQATypes.h"
 
 
 

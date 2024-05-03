@@ -10,21 +10,23 @@
 #ifndef TRKSINJETQACLUSTMANAGER_H
 #define TRKSINJETQACLUSTMANAGER_H
 
-// c++ utilities
-#include <limits>
-#include <vector>
-#include <utility>
-// root libraries
-#include <TH1.h>
-#include <TH2.h>
-// tracking libraries
+// submodule definitions
+#include "TrksInJetQABaseManager.h"
+
+// tracking includes
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
-// submodule definitions
-#include "TrksInJetQABaseManager.h"
 
+// root includes
+#include <TH1.h>
+#include <TH2.h>
+
+// c++ utilities
+#include <limits>
+#include <vector>
+#include <utility>
 
 
 // TrksInJetQAClustManager definition -----------------------------------------

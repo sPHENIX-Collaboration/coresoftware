@@ -10,22 +10,24 @@
 #ifndef TRKSINJETQAHITMANAGER_H
 #define TRKSINJETQAHITMANAGER_H
 
-// c++ utilities
-#include <limits>
-#include <vector>
-#include <utility>
-// root libraries
-#include <TH1.h>
-#include <TH2.h>
-// tracking libraries
+// submodule definitions
+#include "TrksInJetQABaseManager.h"
+
+// tracking includes
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrDefs.h>
-// submodule definitions
-#include "TrksInJetQABaseManager.h"
 
+// root includes
+#include <TH1.h>
+#include <TH2.h>
+
+// c++ utilities
+#include <limits>
+#include <vector>
+#include <utility>
 
 
 // TrksInJetQAHitManager definition -------------------------------------------

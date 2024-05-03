@@ -10,18 +10,20 @@
 #ifndef TRKSINJETQATRKMANAGER_H
 #define TRKSINJETQATRKMANAGER_H
 
+// submodule definitions
+#include "TrksInJetQABaseManager.h"
+
+// tracking includes
+#include <trackbase_historic/SvtxTrack.h>
+
+// root includes
+#include <TH1.h>
+#include <TH2.h>
+
 // c++ utilities
 #include <limits>
 #include <vector>
 #include <utility>
-// root libraries
-#include <TH1.h>
-#include <TH2.h>
-// tracking libraries
-#include <trackbase_historic/SvtxTrack.h>
-// submodule definitions
-#include "TrksInJetQABaseManager.h"
-
 
 
 // TrksInJetQATrkManager definition -------------------------------------------
