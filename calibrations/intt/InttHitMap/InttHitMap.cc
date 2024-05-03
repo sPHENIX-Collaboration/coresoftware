@@ -13,9 +13,9 @@
 #include <boost/format.hpp>
 
 #include <TFile.h>
-#include <TTree.h>
 #include <TH2.h>
 #include <TSystem.h>
+#include <TTree.h>
 
 #include <cstdint>
 #include <cstring>
@@ -61,9 +61,9 @@ int InttHitMap::Init(PHCompositeNode * /*topNode*/)
       h2_AllMap_[i][j] = new TH2D((boost::format("HitMap_%d_%d") % i % j).str().c_str(), (boost::format("Normalized_HitMap_%d_%d") % i % j).str().c_str(), 128, 0, 128, 27, 0, 27);
     }
   }
-  outTree_ = new TTree("tree","tree");
-  outTree_ -> Branch("total_event",&total_event_);
-  outTree_ -> Branch("runnumber",&runnumber_);
+  outTree_ = new TTree("tree", "tree");
+  outTree_->Branch("total_event", &total_event_);
+  outTree_->Branch("runnumber", &runnumber_);
   return 0;
 }
 
@@ -176,7 +176,7 @@ int InttHitMap::End(PHCompositeNode * /*topNode*/)
   {
     std::cout << "Processing InttHitMap done" << std::endl;
   }
-  if(outTree_ != nullptr)
+  if (outTree_ != nullptr)
   {
     outTree_->Fill();
   }
@@ -240,17 +240,25 @@ bool InttHitMap::isBCOPeak(int felix, int ladder, int bco, uint64_t bcofull)
 bool InttHitMap::FillHitMap(int in_felix, int in_module, int in_barrel, int in_chip, int in_chan)
 {
   double norm_factor = 0.;
-  if(isBeam_)
+  if (isBeam_)
   {
-    if (in_chip < 5 || (in_chip > 12 && in_chip < 18)) // Condition for Type B
-      norm_factor = 2.0;                               // Type B : 2.0[cm]
+    if (in_chip < 5 || (in_chip > 12 && in_chip < 18))
+    {                     // Condition for Type B
+      norm_factor = 2.0;  // Type B : 2.0[cm]
+    }
     else
-      norm_factor = 1.6; // Type A : 1.6[cm]
+    {
+      norm_factor = 1.6;  // Type A : 1.6[cm]
+    }
     if (in_barrel == 0)
-      norm_factor  *= (10.005/7.4994); // Inner barrel(= 0) : 7.4994[cm] Outer barrel(= 1) : 10.005[cm]
+    {
+      norm_factor *= (10.005 / 7.4994);  // Inner barrel(= 0) : 7.4994[cm] Outer barrel(= 1) : 10.005[cm]
+    }
   }
   else
+  {
     norm_factor = 1;
+  }
   h2_AllMap_[in_felix][in_module]->Fill(in_chan, in_chip, 1. / (norm_factor));
   return true;
 }

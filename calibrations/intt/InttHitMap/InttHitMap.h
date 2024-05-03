@@ -39,13 +39,13 @@ class InttHitMap : public SubsysReco
   bool isBCOPeak(int felix, int ladder, int bco, uint64_t bcofull);
   void SetBCOcut(const bool flag) { isBCOcutON_ = flag; }
 
-  bool isBeam_ = true; 
+  bool isBeam_ = true;
   void IsBeam(const bool flag) { isBeam_ = flag; }
-  int SetBCOFile(const std::string &bcofile);
-  int SetFeeMapFile(const std::string &feemapfile);
+  int SetBCOFile(const std::string& bcofile);
+  int SetFeeMapFile(const std::string& feemapfile);
   InttFeeMapv1 fee_map;
   bool FillHitMap(int felix, int moudle, int barrel, int chip, int chan);
-  void SetRunNumber(const int runnum){ runnumber_ = runnum; }
+  void SetRunNumber(const int runnum) { runnumber_ = runnum; }
   ///////////////////////////////////
 
  private:
@@ -69,7 +69,6 @@ class InttHitMap : public SubsysReco
     int _module_id_;
     int _chip_id_;
   };
-
 };
 
 #endif
