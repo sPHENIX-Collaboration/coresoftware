@@ -28,6 +28,7 @@ TpcChanQA::TpcChanQA(const std::string &name)
 //____________________________________________________________________________..
 int TpcChanQA::InitRun(PHCompositeNode *)
 {
+
   // Takes string of raw data file and truncates it down to sector number
   sectorNum = m_fname;
   size_t pos = sectorNum.find("TPC_ebdc");
@@ -39,16 +40,11 @@ int TpcChanQA::InitRun(PHCompositeNode *)
   // Sets side to South if SectorNum > 11 (EBDC 12-23)
   if(stoi(sectorNum) > 11) side = 1;
 
+  createHistos();
+
   // Creates data file and checks whether it was successfully opened
   m_file = TFile::Open(m_fname.c_str(), "recreate");
   assert(m_file->IsOpen());
-
-  // Reference histograms initialized in header file to histos in HistoManager
-  sprintf(name,"_sec%s",sectorNum.c_str());
-  auto h_channel_hits = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%schannel_hits") % getHistoPrefix()).c_str()+name));
-  sprintf(name,"_sec%s",sectorNum.c_str());
-  auto h_channel_hits = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%schannel_ADCs") % getHistoPrefix()).c_str()+name));
-  //
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -72,6 +68,15 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
     {
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
+
+  //Call HistoManager
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  // Reference histograms initialized in header file to histos in HistoManager
+  auto h_channel_hits = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
+  auto h_channel_ADCs = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
+  //
   
   // Loop over packets in event
   for (int packet : m_packets)
@@ -118,12 +123,6 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
 	}
     }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int TpcChanQA::End(PHCompositeNode *)
-{
   // Set histogram directory to 0 so data is saved after closing file
   h_channel_hits->SetDirectory(0);
   h_channel_ADCs->SetDirectory(0);
@@ -132,6 +131,13 @@ int TpcChanQA::End(PHCompositeNode *)
   m_file->cd();
   h_channel_hits->Write();
   h_channel_ADCs->Write();
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+int TpcChanQA::End(PHCompositeNode *)
+{
 
 std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName() << std::endl;
   m_file->ls();
@@ -143,7 +149,7 @@ std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName
 }
 
 //____________________________________________________________________________..
-std::string CaloValid::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); } //Define prefix to all histos in HistoManager
+std::string TpcChanQA::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); } //Define prefix to all histos in HistoManager
 
 //____________________________________________________________________________..
 void TpcChanQA::createHistos()
@@ -154,14 +160,12 @@ void TpcChanQA::createHistos()
 
   // Create and register histos in HistoManager
   {
-    sprintf(name,"_sec%s",sectorNum.c_str());
-    auto h = new TH1F(boost::str(boost::format("%schannel_hits") % getHitoPrefix()).c_str()+name,";Channels;hits",256,0,256);
+    auto h = new TH1F(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(),";Channels;hits",256,0,256);
     hm->registerHisto(h);
   }
 
   {
-    sprintf(name,"_sec%s",sectorNum.c_str());
-    auto h = new TH2F(boost::str(boost::format("%schannel_ADCs") % getHitoPrefix()).c_str()+name,";Channels;ADCs",256,0,256,1024,0,1024);
+    auto h = new TH2F(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(),";Channels;ADCs",256,0,256,1024,0,1024);
     hm->registerHisto(h);
   }
 }

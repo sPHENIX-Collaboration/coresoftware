@@ -48,15 +48,14 @@ class TpcChanQA : public SubsysReco // Inherit public parts of SubsysReco
 
   // List of private attributes
  private:
-  char name[100];
   void createHistos();
   std::string getHistoPrefix() const;
 
   std::string m_fname; // Name of file given to program
   std::string sectorNum; // Sector number associated with data file
   TFile *m_file = nullptr; // File being processed
-  TH1F *h_channel_hits = nullptr; // Histogram of hits per channel
-  TH2F *h_channel_ADCs = nullptr; // Histogram of ADC counts per channel
+  //TH1F *h_channel_hits = nullptr; // Histogram of hits per channel
+  //TH2F *h_channel_ADCs = nullptr; // Histogram of ADC counts per channel
 
   int side = 0; // Face of the TPC (0==North && 1==South)
   int m_packet = 0; // packet number

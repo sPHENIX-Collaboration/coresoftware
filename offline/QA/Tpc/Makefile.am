@@ -21,7 +21,8 @@ libtpcqa_la_SOURCES = \
 
 libtpcqa_la_LIBADD = \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
+  -lqautils
 
 BUILT_SOURCES = testexternals.cc
 
