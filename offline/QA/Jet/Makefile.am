@@ -42,9 +42,9 @@ libjetqa_la_LIBADD = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
+  -lparticleflow_io \
   -lfun4all \
   -lphool \
-  -lg4dst \
   -lg4eval \
   -lSubsysReco \
   -lqautils
