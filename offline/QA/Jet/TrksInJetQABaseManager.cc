@@ -41,7 +41,7 @@ TrksInJetQABaseManager::~TrksInJetQABaseManager() {
 
 // public methods -------------------------------------------------------------
 
-void TrksInJetQABaseManager::MakeHistograms(std::string label) {
+void TrksInJetQABaseManager::MakeHistograms(const std::string &label) {
 
   DefineHistograms();
   BuildHistograms(label);
@@ -51,12 +51,13 @@ void TrksInJetQABaseManager::MakeHistograms(std::string label) {
 
 
 
-void TrksInJetQABaseManager::SaveHistograms(TDirectory* topDir, std::string outDirName) {
+void TrksInJetQABaseManager::SaveHistograms(TDirectory* topDir, const std::string &outDirName) {
 
-  TDirectory* outDir = topDir -> mkdir(outDirName.data());
+  TDirectory* outDir = topDir -> mkdir(outDirName.c_str());
   if (!outDir) {
     std::cerr << PHWHERE << ": PANIC: unable to make output directory!" << std::endl;
-    assert(outDir);
+    exit(1);
+    
   }
 
   outDir -> cd();
@@ -99,7 +100,7 @@ void TrksInJetQABaseManager::GrabHistograms(
 
 // private methods ------------------------------------------------------------
 
-void TrksInJetQABaseManager::BuildHistograms(std::string label) {
+void TrksInJetQABaseManager::BuildHistograms(const std::string &label) {
 
   // build 1d histograms
   m_vecHist1D.resize( m_vecHistTypes.size() );

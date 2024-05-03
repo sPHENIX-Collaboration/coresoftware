@@ -45,16 +45,16 @@ TrksInJetQA::~TrksInJetQA() {
 // public methods -------------------------------------------------------------
 
 void TrksInJetQA::Configure(
-  TrksInJetQAConfig config,
+  const TrksInJetQAConfig &config,
   std::optional<TrksInJetQAHist> hist
-) {
-
+)
+ {
+   m_config = config;
   // print debug messages
   if (m_config.doDebug && (m_config.verbose > 3)) {
     std::cout << "TrksInJetQA::~TrksInJetQA() Calling dtor" << std::endl;
   }
 
-  m_config = config;
   if (hist.has_value()) {
     m_hist = hist.value();
   }

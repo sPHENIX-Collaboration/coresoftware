@@ -41,14 +41,14 @@ class TrksInJetQABaseManager {
     virtual ~TrksInJetQABaseManager();
 
     // public methods
-    void MakeHistograms(std::string label = "");
-    void SaveHistograms(TDirectory* outFile, std::string outDirName);
+    void MakeHistograms(const std::string &label = "");
+    void SaveHistograms(TDirectory* outFile, const std::string &outDirName);
     void GrabHistograms(std::vector<TH1D*>& vecOutHist1D, std::vector<TH2D*>& vecOutHist2D);
 
   protected:
 
     // private methods
-    void BuildHistograms(std::string label = "");
+    void BuildHistograms(const std::string &label = "");
     void ResetVectors();
 
     // private helper methods

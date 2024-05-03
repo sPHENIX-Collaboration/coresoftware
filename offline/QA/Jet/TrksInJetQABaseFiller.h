@@ -46,12 +46,12 @@ class TrksInJetQABaseFiller {
   public:
 
     // ctor/dtor
-    TrksInJetQABaseFiller(TrksInJetQAConfig& config, TrksInJetQAHist& hist);
+    TrksInJetQABaseFiller(const TrksInJetQAConfig& config, TrksInJetQAHist& hist);
     virtual ~TrksInJetQABaseFiller();
 
     // public methods
-    void MakeHistograms(std::string label = "");
-    void SaveHistograms(TFile* outFile, std::string outDirName);
+    void MakeHistograms(const std::string &label = "");
+    void SaveHistograms(TFile* outFile, const std::string &outDirName);
     void GrabHistograms(std::vector<TH1D*>& vecOutHist1D, std::vector<TH2D*>& vecOutHist2D);
 
     // virtual public methods

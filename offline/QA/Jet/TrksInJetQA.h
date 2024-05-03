@@ -56,7 +56,7 @@ class TrksInJetQA : public SubsysReco {
 
     // public methods
     void Configure(
-      TrksInJetQAConfig config,
+      const TrksInJetQAConfig &config,
       std::optional<TrksInJetQAHist> hist = std::nullopt
     );
 

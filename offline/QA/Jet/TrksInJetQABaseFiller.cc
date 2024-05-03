@@ -16,13 +16,11 @@
 // ctor/dtor ------------------------------------------------------------------
 
 TrksInJetQABaseFiller::TrksInJetQABaseFiller(
-  TrksInJetQAConfig& config,
-  TrksInJetQAHist& hist
-) {
-
-  // grab utilities
-  m_config = config;
-  m_hist   = hist;
+  const TrksInJetQAConfig& config,
+  TrksInJetQAHist& hist)
+  : m_config(config)
+  , m_hist(hist)
+{
 
   // initialize managers
   if (m_config.doHitQA)   m_hitManager   = std::make_unique<TrksInJetQAHitManager>(m_config, m_hist);
@@ -44,7 +42,7 @@ TrksInJetQABaseFiller::~TrksInJetQABaseFiller() {
 
 // public methods -------------------------------------------------------------
 
-void TrksInJetQABaseFiller::MakeHistograms(std::string label) {
+void TrksInJetQABaseFiller::MakeHistograms(const std::string &label) {
 
   // initialize relevant submodules
   if (m_config.doHitQA)   m_hitManager   -> MakeHistograms(label);
@@ -57,9 +55,9 @@ void TrksInJetQABaseFiller::MakeHistograms(std::string label) {
 
 
 
-void TrksInJetQABaseFiller::SaveHistograms(TFile* outFile, std::string outDirName) {
+void TrksInJetQABaseFiller::SaveHistograms(TFile* outFile, const std::string &outDirName) {
 
-  TDirectory* outDir = outFile -> mkdir(outDirName.data());
+  TDirectory* outDir = outFile -> mkdir(outDirName.c_str());
   if (!outDir) {
     std::cerr << PHWHERE << ": PANIC: unable to make output directory!" << std::endl;
     assert(outDir);
