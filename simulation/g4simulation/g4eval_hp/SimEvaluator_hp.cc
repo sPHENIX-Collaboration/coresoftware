@@ -60,7 +60,7 @@ namespace
   };
 
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
-  
+
   template<class T> inline T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
   //! pt
@@ -138,6 +138,8 @@ namespace
     particleStruct._pz = particle->get_pz();
     particleStruct._pt = get_pt( particle->get_px(), particle->get_py() );
     particleStruct._p = get_p( particle->get_px(), particle->get_py(), particle->get_pz() );
+    particleStruct._e = particle->get_e();
+
     particleStruct._eta = get_eta( particleStruct._p, particleStruct._pz );
     return particleStruct;
   }
@@ -152,7 +154,7 @@ namespace
     g4hitstruct._z = g4hit->get_avg_z();
     g4hitstruct._r = get_r( g4hitstruct._x, g4hitstruct._y );
     g4hitstruct._phi = std::atan2( g4hitstruct._y, g4hitstruct._x );
-    g4hitstruct._length = std::sqrt( 
+    g4hitstruct._length = std::sqrt(
       square(g4hit->get_x(1) - g4hit->get_x(0))+
       square(g4hit->get_y(1) - g4hit->get_y(0))+
       square(g4hit->get_z(1) - g4hit->get_z(0)));
