@@ -41,12 +41,12 @@ class XingShiftCal : public SubsysReco
  private:
   Packet *p = nullptr;
 
-  Packet *pBlueSpin = nullptr;
-  Packet *pYellSpin = nullptr;
+//  Packet *pBlueSpin = nullptr;
+//  Packet *pYellSpin = nullptr;
   Packet *pBluePol = nullptr;
   Packet *pYellPol = nullptr;
-  Packet *pBlueAsym = nullptr;
-  Packet *pYellAsym = nullptr;
+//  Packet *pBlueAsym = nullptr;
+//  Packet *pYellAsym = nullptr;
   Packet *pBlueIntPattern = nullptr;
   Packet *pYellIntPattern = nullptr;
   Packet *pBluePolPattern = nullptr;
@@ -59,12 +59,12 @@ class XingShiftCal : public SubsysReco
   int evtcap = 50000;
   int done = 0;
 
-  const int packet_BLUESPIN = 14902;
-  const int packet_YELLSPIN = 14903;
+//  const int packet_BLUESPIN = 14902;
+//  const int packet_YELLSPIN = 14903;
   const int packet_BLUEPOL = 14905;
-  const int packet_BLUEASYM = 14906;
+//  const int packet_BLUEASYM = 14906;
   const int packet_YELLPOL = 14907;
-  const int packet_YELLASYM = 14908;
+//  const int packet_YELLASYM = 14908;
   const int packet_BLUEINTPATTERN = 14910;
   const int packet_BLUEPOLPATTERN = 14911;
   const int packet_YELLINTPATTERN = 14912;
