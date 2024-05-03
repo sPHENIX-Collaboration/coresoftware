@@ -8,7 +8,7 @@ LT_INIT([disable-static])
 dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 dnl   make warnings fatal errors: -Werror
-dnl leaving this here in case we want to play with different compiler 
+dnl leaving this here in case we want to play with different compiler
 dnl specific flags
  case $CXX in
   clang++)
@@ -18,6 +18,9 @@ dnl specific flags
    CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wextra "
   ;;
  esac
+
+CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

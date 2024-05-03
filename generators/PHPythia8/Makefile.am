@@ -3,15 +3,23 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -isystem`root-config --incdir` 
+  -isystem`root-config --incdir`
 
-lib_LTLIBRARIES = libPHPythia8.la 
+lib_LTLIBRARIES = libPHPythia8.la
 
 pkginclude_HEADERS = \
   PHPythia8.h \
+  PHPythia8_hp.h \
   PHPy8GenTrigger.h \
   PHPy8ParticleTrigger.h \
-  PHPy8JetTrigger.h 
+  PHPy8JetTrigger.h
+
+ROOTDICTS = \
+ PHPythia8_hp_Dict.cc
+
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  PHPythia8_hp_Dict_rdict.pcm
 
 libPHPythia8_la_LDFLAGS = \
   -L$(libdir) \
@@ -26,7 +34,9 @@ libPHPythia8_la_LIBADD = \
   -lHepMC
 
 libPHPythia8_la_SOURCES = \
+  $(ROOTDICTS) \
   PHPythia8.cc \
+  PHPythia8_hp.cc \
   PHPy8GenTrigger.cc \
   PHPy8ParticleTrigger.cc \
   PHPy8JetTrigger.cc
@@ -42,6 +52,13 @@ noinst_PROGRAMS = \
 
 testexternals_LDADD = \
   libPHPythia8.la
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
