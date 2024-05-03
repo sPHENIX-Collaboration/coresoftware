@@ -30,6 +30,7 @@ AzimuthalSeeder::AzimuthalSeeder(const std::string &name)
 //____________________________________________________________________________..
 AzimuthalSeeder::~AzimuthalSeeder()
 {
+  delete file;
 }
 
 //____________________________________________________________________________..
