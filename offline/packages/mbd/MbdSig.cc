@@ -507,7 +507,7 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   double mean = ped0stats->Mean();
   //double rms = ped0stats->RMS();
   double rms = _mbdcal->get_pedrms(_ch);
-  if ( isnan(rms) )
+  if ( std::isnan(rms) )
   {
     // ped calib doesn't exist, set to average
     rms = 5.0;
@@ -564,7 +564,7 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
     // ped fit was bad, we have signal contamination in ped region
     // or other thing going on
 
-    if ( ped0stats->Size() < ped0stats->MaxNum() && !isnan(_mbdcal->get_ped(_ch)) ) // use pre-calib for early events
+    if ( ped0stats->Size() < ped0stats->MaxNum() && !std::isnan(_mbdcal->get_ped(_ch)) ) // use pre-calib for early events
     {
       mean = _mbdcal->get_ped(_ch);
     }
