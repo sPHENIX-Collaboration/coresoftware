@@ -20,10 +20,14 @@ void TrksInJetQAInclusiveFiller::Fill(PHCompositeNode* topNode) {
 
   GetNodes(topNode);
   
-  if (m_config.doHitQA)   FillHitQAHists();
-  if (m_config.doClustQA) FillClustQAHists();
-  if (m_config.doTrackQA) FillTrackQAHists();
-  if (m_config.doJetQA)   FillJetQAHists();
+  if (m_config.doHitQA) {   FillHitQAHists();
+}
+  if (m_config.doClustQA) { FillClustQAHists();
+}
+  if (m_config.doTrackQA) { FillTrackQAHists();
+}
+  if (m_config.doJetQA) {   FillJetQAHists();
+}
   return;
 
 }  // end 'Fill(PHCompositeNode* topNode)'
@@ -106,14 +110,10 @@ void TrksInJetQAInclusiveFiller::FillClustQAHists() {
 void TrksInJetQAInclusiveFiller::FillTrackQAHists() {
 
   // loop over tracks
-  for (
-    SvtxTrackMap::Iter itTrk = m_trkMap -> begin();
-    itTrk != m_trkMap -> end();
-    ++itTrk
-  ) {
+  for (auto & itTrk : *m_trkMap) {
 
     // grab track
-    SvtxTrack* track = itTrk -> second;
+    SvtxTrack* track = itTrk.second;
 
     // grab info and fill histograms
     m_trackManager -> GetInfo(track);

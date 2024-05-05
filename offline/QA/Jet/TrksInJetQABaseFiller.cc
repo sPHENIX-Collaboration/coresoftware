@@ -35,15 +35,6 @@ TrksInJetQABaseFiller::TrksInJetQABaseFiller(
 }  // end ctor()'
 
 
-
-TrksInJetQABaseFiller::~TrksInJetQABaseFiller() {
-
-  /* nothing to do */
-
-}  // end dtor
-
-
-
 // public methods -------------------------------------------------------------
 
 void TrksInJetQABaseFiller::MakeHistograms(const std::string &label) {

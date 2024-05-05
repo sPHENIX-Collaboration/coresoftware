@@ -39,9 +39,6 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 
-// root includes
-#include <TMath.h>
-
 // c+ utilities
 #include <vector>
 #include <cassert>

@@ -32,6 +32,7 @@ void TrksInJetQAInJetFiller::Fill(PHCompositeNode* topNode) {
 void TrksInJetQAInJetFiller::GetNode(const int node, PHCompositeNode* topNode) {
 
   // jump to relevant node
+// NOLINTNEXTLINE(hicpp-multiway-paths-covered)
   switch (node) {
 
     case Node::Flow:
@@ -70,13 +71,15 @@ void TrksInJetQAInJetFiller::FillJetAndTrackQAHists(PHCompositeNode* topNode) {
     GetNonCstTracks(jet);
 
     // grab jet info and fill histograms
-    if (m_config.doJetQA) m_jetManager -> GetInfo(jet, m_trksInJet);
+    if (m_config.doJetQA) { m_jetManager -> GetInfo(jet, m_trksInJet);
+}
 
     // loop over tracks in the jet
     for (SvtxTrack* track : m_trksInJet) {
 
       // grab track info and fill histograms
-      if (m_config.doTrackQA) m_trackManager -> GetInfo(track);
+      if (m_config.doTrackQA) { m_trackManager -> GetInfo(track);
+}
 
       // fill cluster and hit histograms as needed
       if (m_config.doClustQA || m_config.doHitQA) {
@@ -110,7 +113,8 @@ void TrksInJetQAInJetFiller::FillClustAndHitQAHists(SvtxTrack* track) {
       // grab hit set and key associated with cluster key
       TrkrDefs::hitsetkey setKey = TrkrDefs::getHitSetKeyFromClusKey(clustKey);
       TrkrHitSet*         set    = m_hitMap -> findHitSet(setKey);
-      if (!set || !(set -> size() > 0)) return;
+      if (!set || !(set -> size() > 0)) { return;
+}
 
       // loop over all hits in hit set
       TrkrHitSet::ConstRange hits = set -> getHits();
@@ -140,24 +144,21 @@ void TrksInJetQAInJetFiller::GetCstTracks(Jet* jet, PHCompositeNode* topNode) {
 
   // loop over consituents
   auto csts = jet -> get_comp_vec();
-  for (
-    auto cst = csts.begin();
-    cst != csts.end();
-    ++cst
-  ) {
+  for (auto & cst : csts) {
 
     // ignore cst if non-relevent type
-    const uint32_t src = cst -> first;
-    if ( IsCstNotRelevant(src) ) continue;
+    const uint32_t src = cst.first;
+    if ( IsCstNotRelevant(src) ) { continue;
+}
 
     // if cst is track, add to list
     if (src == Jet::SRC::TRACK) {
-      m_trksInJet.push_back( m_trkMap -> get(cst -> second) );
+      m_trksInJet.push_back( m_trkMap -> get(cst.second) );
     }
 
     // if pfo, grab track if needed
     if (src == Jet::SRC::PARTICLE) {
-      PFObject*  pfo   = GetPFObject(cst -> second, topNode);
+      PFObject*  pfo   = GetPFObject(cst.second, topNode);
       SvtxTrack* track = GetTrkFromPFO(pfo);
       if (track) {
         m_trksInJet.push_back( track );
@@ -173,17 +174,14 @@ void TrksInJetQAInJetFiller::GetCstTracks(Jet* jet, PHCompositeNode* topNode) {
 void TrksInJetQAInJetFiller::GetNonCstTracks(Jet* jet) {
 
   // loop over tracks
-  for (
-    SvtxTrackMap::Iter itTrk = m_trkMap -> begin();
-    itTrk != m_trkMap -> end();
-    ++itTrk
-  ) {
+  for (auto & itTrk : *m_trkMap) {
 
     // grab track
-    SvtxTrack* track = itTrk -> second;
+    SvtxTrack* track = itTrk.second;
 
     // ignore tracks we've already added to the list
-    if ( IsTrkInList(track -> get_id()) ) continue;
+    if ( IsTrkInList(track -> get_id()) ) { continue;
+}
 
     // FIXME this can be improved!
     //   - jets don't necessarily have areas of
@@ -238,8 +236,10 @@ double TrksInJetQAInJetFiller::GetTrackJetDist(SvtxTrack* track, Jet* jet) {
 
   // get delta phi
   double dPhi = (track -> get_phi()) - (jet -> get_phi());
-  if (dPhi < (-1. * TMath::Pi())) dPhi += TMath::TwoPi();
-  if (dPhi > (1. * TMath::Pi()))  dPhi -= TMath::TwoPi();
+  if (dPhi < (-1. * M_PI)) { dPhi += 2.*M_PI;
+}
+  if (dPhi > (1. * M_PI)) {  dPhi -= 2.*M_PI;
+}
 
   // return distance
   return std::hypot(dEta, dPhi);
@@ -251,10 +251,11 @@ double TrksInJetQAInJetFiller::GetTrackJetDist(SvtxTrack* track, Jet* jet) {
 PFObject* TrksInJetQAInJetFiller::GetPFObject(const uint32_t id, PHCompositeNode* topNode) {
 
   // pointer to pfo 
-  PFObject* pfoToFind = NULL;
+  PFObject* pfoToFind = nullptr;
 
   // grab pf node if needed
-  if (!m_flowStore) GetNode(Node::Flow, topNode);
+  if (!m_flowStore) { GetNode(Node::Flow, topNode);
+}
 
   // loop over pfos
   for (
@@ -281,7 +282,7 @@ PFObject* TrksInJetQAInJetFiller::GetPFObject(const uint32_t id, PHCompositeNode
 SvtxTrack* TrksInJetQAInJetFiller::GetTrkFromPFO(PFObject* pfo) {
 
   // pointer to track
-  SvtxTrack* track = NULL;
+  SvtxTrack* track = nullptr;
 
   // if pfo has track, try to grab
   const auto type = pfo -> get_type();

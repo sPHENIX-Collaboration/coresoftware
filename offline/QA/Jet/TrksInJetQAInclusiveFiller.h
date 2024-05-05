@@ -44,7 +44,7 @@ class TrksInJetQAInclusiveFiller : public TrksInJetQABaseFiller {
 
     // ctor/dtor
     using TrksInJetQABaseFiller::TrksInJetQABaseFiller;
-    ~TrksInJetQAInclusiveFiller() {};
+    ~TrksInJetQAInclusiveFiller() override = default;
 
     // inherited public methods
     void Fill(PHCompositeNode* topNode) override;

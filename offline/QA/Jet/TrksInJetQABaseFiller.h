@@ -47,7 +47,7 @@ class TrksInJetQABaseFiller {
 
     // ctor/dtor
     TrksInJetQABaseFiller(const TrksInJetQAConfig& config, TrksInJetQAHist& hist);
-    virtual ~TrksInJetQABaseFiller();
+    virtual ~TrksInJetQABaseFiller() = default;
 
     // public methods
     void MakeHistograms(const std::string &label = "");
