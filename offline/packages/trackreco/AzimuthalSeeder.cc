@@ -30,13 +30,12 @@ AzimuthalSeeder::AzimuthalSeeder(const std::string &name)
 //____________________________________________________________________________..
 AzimuthalSeeder::~AzimuthalSeeder()
 {
-  delete file;
 }
 
 //____________________________________________________________________________..
 int AzimuthalSeeder::Init(PHCompositeNode *)
 {
-  file = new TFile("outfile.root", "recreate");
+  file = std::make_unique<TFile>("ASoutfile.root", "recreate");
   h_phi = new TH2F("h_phi", "h_phi", 1000, -3.2, 3.2, 1000, -3.2, 3.2);
   h_phi2 = new TH2F("h_phi2", "h_phi2", 1000, -3.2, 3.2, 1000, -3.2, 3.2);
   h_phi3 = new TH2F("h_phi3", "h_phi3", 1000, -3.2, 3.2, 1000, -3.2, 3.2);
@@ -92,6 +91,7 @@ int AzimuthalSeeder::process_event(PHCompositeNode *)
       }
       float phi0 = atan2(pos0.y(), pos0.x());
       float phi1 = atan2(pos1.y(), pos1.x());
+
       h_phi->Fill(phi0, phi0 - phi1);
       if (fabs(phi0 - phi1) < 0.1)
       {
@@ -101,68 +101,68 @@ int AzimuthalSeeder::process_event(PHCompositeNode *)
         s.globpos.push_back(pos0);
         s.globpos.push_back(pos1);
         seeds.push_back(s);
-         }
+      }
     }
   }
-for(auto&s : seeds)
-{
-  for (const auto &[key2, pos2] : clusterPositions[2])
+  for (auto &s : seeds)
   {
-    float phi2 = atan2(pos2.y(), pos2.x());
-    float phi1 = atan2(s.globpos[1].y(), s.globpos[1].x());
-    float phi0 = atan2(s.globpos[0].y(), s.globpos[0].x());
-    h_phi2->Fill(phi0, phi0 - phi2);
-    h_phi3->Fill(phi2, phi1 - phi2);
-    if (fabs(phi0 - phi2) < 0.1 && fabs(phi1 - phi2) < 0.1)
+    for (const auto &[key2, pos2] : clusterPositions[2])
     {
-      s.ckeys.push_back(key2);
-      s.globpos.push_back(pos2);
+      float phi2 = atan2(pos2.y(), pos2.x());
+      float phi1 = atan2(s.globpos[1].y(), s.globpos[1].x());
+      float phi0 = atan2(s.globpos[0].y(), s.globpos[0].x());
+      h_phi2->Fill(phi0, phi0 - phi2);
+      h_phi3->Fill(phi2, phi1 - phi2);
+      if (fabs(phi0 - phi2) < 0.1 && fabs(phi1 - phi2) < 0.1)
+      {
+        s.ckeys.push_back(key2);
+        s.globpos.push_back(pos2);
+      }
     }
   }
-}
 
-SeedVector finalseeds;
-for (auto &s : seeds)
-{
-  TrackFitUtils::position_vector_t xypoints, rzpoints;
-  for (auto &pos : s.globpos)
+  SeedVector finalseeds;
+  for (auto &s : seeds)
   {
-    xypoints.push_back(std::make_pair(pos.x(), pos.y()));
-    float r = std::sqrt(pos.x() * pos.x() + pos.y() * pos.y());
-    if(pos.y()<0)
+    TrackFitUtils::position_vector_t xypoints, rzpoints;
+    for (auto &pos : s.globpos)
     {
-      r = -r;
+      xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+      float r = std::sqrt(pos.x() * pos.x() + pos.y() * pos.y());
+      if (pos.y() < 0)
+      {
+        r = -r;
+      }
+      rzpoints.push_back(std::make_pair(pos.z(), r));
     }
-    rzpoints.push_back(std::make_pair(pos.z(), r));
-  }
-  auto xyLineParams = TrackFitUtils::line_fit(xypoints);
-  auto rzLineParams = TrackFitUtils::line_fit(rzpoints);
-  float xySlope = std::get<0>(xyLineParams);
-  float xyIntercept = std::get<1>(xyLineParams);
-  float rzSlope = std::get<0>(rzLineParams);
-  float rzIntercept = std::get<1>(rzLineParams);
-  bool badseed = false;
+    auto xyLineParams = TrackFitUtils::line_fit(xypoints);
+    auto rzLineParams = TrackFitUtils::line_fit(rzpoints);
+    float xySlope = std::get<0>(xyLineParams);
+    float xyIntercept = std::get<1>(xyLineParams);
+    float rzSlope = std::get<0>(rzLineParams);
+    float rzIntercept = std::get<1>(rzLineParams);
+    bool badseed = false;
 
-  for (auto &pos : s.globpos)
-  {
-    float r = std::sqrt(pos.x() * pos.x() + pos.y() * pos.y());
-    if(pos.y() < 0)
+    for (auto &pos : s.globpos)
     {
-      r = -r;
+      float r = std::sqrt(pos.x() * pos.x() + pos.y() * pos.y());
+      if (pos.y() < 0)
+      {
+        r = -r;
+      }
+      float distancexy = std::abs(xySlope * pos.x() - pos.y() + xyIntercept) / std::sqrt(xySlope * xySlope + 1);
+      float distancerz = std::abs(rzSlope * pos.z() - r + rzIntercept) / std::sqrt(rzSlope * rzSlope + 1);
+      if (distancexy > 0.1 || distancerz > 0.1)
+      {
+        badseed = true;
+        break;
+      }
     }
-    float distancexy = std::abs(xySlope * pos.x() - pos.y() + xyIntercept) / std::sqrt(xySlope * xySlope + 1);
-    float distancerz = std::abs(rzSlope * pos.z() - r + rzIntercept) / std::sqrt(rzSlope * rzSlope + 1);
-    if (distancexy > 0.1 || distancerz > 0.1)
+    if (!badseed)
     {
-      badseed = true;
-      break;
+      finalseeds.push_back(std::move(s));
     }
   }
-  if(!badseed)
-  {
-    finalseeds.push_back(std::move(s));
-  }
-}
 
   for (auto &map : {clusterPositions[1], clusterPositions[2]})
   {
@@ -174,7 +174,7 @@ for (auto &s : seeds)
   std::cout << "finalseed size " << finalseeds.size() << std::endl;
   for (auto &s : finalseeds)
   {
-    if(s.ckeys.size() < 3)
+    if (s.ckeys.size() < 3)
     {
       continue;
     }
@@ -184,7 +184,7 @@ for (auto &s : seeds)
       si_seed->insert_cluster_key(key);
     }
     float avgphi = 0;
-    for(auto& pos : s.globpos)
+    for (auto &pos : s.globpos)
     {
       avgphi += atan2(pos.y(), pos.x());
     }
@@ -204,11 +204,14 @@ for (auto &s : seeds)
 //____________________________________________________________________________..
 int AzimuthalSeeder::End(PHCompositeNode *)
 {
-  file->cd();
-  h_phi->Write();
-  h_phi2->Write();
-  h_phi3->Write();
-  file->Close();
+  if (m_outfile)
+  {
+    file->cd();
+    h_phi->Write();
+    h_phi2->Write();
+    h_phi3->Write();
+    file->Close();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

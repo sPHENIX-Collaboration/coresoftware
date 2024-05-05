@@ -34,15 +34,16 @@ class AzimuthalSeeder : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
+  void histos() { m_outfile = true; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
-  TFile *file = nullptr;
+  std::unique_ptr<TFile> file = nullptr;
   TH2 *h_phi = nullptr;
   TH2 *h_phi2 = nullptr;
   TH2 *h_phi3 = nullptr;
-
+  bool m_outfile = false;
   std::string m_trackMapName = "SiliconTrackSeedContainer";
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
