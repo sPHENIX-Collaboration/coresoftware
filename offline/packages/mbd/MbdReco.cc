@@ -84,11 +84,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     {
       return Fun4AllReturnCodes::ABORTEVENT;  // there wasn't good data in BBC/MBD
     }
-    else if (status == Fun4AllReturnCodes::DISCARDEVENT)
-    {
-      return Fun4AllReturnCodes::DISCARDEVENT;
-    }
-    else if (status == -1001)
+    else if (status == Fun4AllReturnCodes::DISCARDEVENT || status == -1001)
     {
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
