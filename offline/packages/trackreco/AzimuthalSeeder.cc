@@ -21,6 +21,8 @@
 
 #include <TFile.h>
 #include <TH2.h>
+
+#include <cmath>
 //____________________________________________________________________________..
 AzimuthalSeeder::AzimuthalSeeder(const std::string &name)
   : SubsysReco(name)
@@ -28,12 +30,7 @@ AzimuthalSeeder::AzimuthalSeeder(const std::string &name)
 }
 
 //____________________________________________________________________________..
-AzimuthalSeeder::~AzimuthalSeeder()
-{
-}
-
-//____________________________________________________________________________..
-int AzimuthalSeeder::Init(PHCompositeNode *)
+int AzimuthalSeeder::Init(PHCompositeNode * /*unused*/)
 {
   file = std::make_unique<TFile>("ASoutfile.root", "recreate");
   h_phi = new TH2F("h_phi", "h_phi", 1000, -3.2, 3.2, 1000, -3.2, 3.2);
@@ -47,13 +44,16 @@ int AzimuthalSeeder::Init(PHCompositeNode *)
 int AzimuthalSeeder::InitRun(PHCompositeNode *topNode)
 {
   int ret = createNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  if (ret != Fun4AllReturnCodes::EVENT_OK)
+  {
+    return ret;
+  }
   getNodes(topNode);
   return ret;
 }
 
 //____________________________________________________________________________..
-int AzimuthalSeeder::process_event(PHCompositeNode *)
+int AzimuthalSeeder::process_event(PHCompositeNode * /*unused*/)
 {
   AzimuthalSeeder::PositionMap clusterPositions[4];
   std::set<TrkrDefs::TrkrId> detectors;
@@ -81,10 +81,10 @@ int AzimuthalSeeder::process_event(PHCompositeNode *)
   {
     auto key0 = iter->first;
     auto pos0 = iter->second;
-    for (auto iter2 = clusterPositions[1].begin(); iter2 != clusterPositions[1].end(); ++iter2)
+    for (auto &iter2 : clusterPositions[1])
     {
-      auto key1 = iter2->first;
-      auto pos1 = iter2->second;
+      auto key1 = iter2.first;
+      auto pos1 = iter2.second;
       if (key0 == key1)
       {
         continue;
@@ -93,7 +93,7 @@ int AzimuthalSeeder::process_event(PHCompositeNode *)
       float phi1 = atan2(pos1.y(), pos1.x());
 
       h_phi->Fill(phi0, phi0 - phi1);
-      if (fabs(phi0 - phi1) < 0.1)
+      if (std::fabs(phi0 - phi1) < 0.1)
       {
         seed s;
         s.ckeys.push_back(key0);
@@ -113,7 +113,7 @@ int AzimuthalSeeder::process_event(PHCompositeNode *)
       float phi0 = atan2(s.globpos[0].y(), s.globpos[0].x());
       h_phi2->Fill(phi0, phi0 - phi2);
       h_phi3->Fill(phi2, phi1 - phi2);
-      if (fabs(phi0 - phi2) < 0.1 && fabs(phi1 - phi2) < 0.1)
+      if (std::fabs(phi0 - phi2) < 0.1 && std::fabs(phi1 - phi2) < 0.1)
       {
         s.ckeys.push_back(key2);
         s.globpos.push_back(pos2);
@@ -202,7 +202,7 @@ int AzimuthalSeeder::process_event(PHCompositeNode *)
 }
 
 //____________________________________________________________________________..
-int AzimuthalSeeder::End(PHCompositeNode *)
+int AzimuthalSeeder::End(PHCompositeNode * /*unused*/)
 {
   if (m_outfile)
   {
