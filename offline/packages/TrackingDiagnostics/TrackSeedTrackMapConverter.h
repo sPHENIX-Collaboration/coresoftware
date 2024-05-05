@@ -31,6 +31,7 @@ class TrackSeedTrackMapConverter : public SubsysReco
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
   void setTrackSeedName(const std::string &name) { m_trackSeedName = name; }
   void cosmics() { m_cosmics = true; }
+  void constField() { m_ConstField = true; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
