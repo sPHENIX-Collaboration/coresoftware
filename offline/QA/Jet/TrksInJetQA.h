@@ -11,8 +11,8 @@
 #define TRKSINJETQA_H
 
 // module utilities
-#include "TrksInJetQAHist.h"
 #include "TrksInJetQAConfig.h"
+#include "TrksInJetQAHist.h"
 #include "TrksInJetQAInJetFiller.h"
 #include "TrksInJetQAInclusiveFiller.h"
 
@@ -20,75 +20,74 @@
 #include <qautils/QAHistManagerDef.h>
 
 // f4a includes
-#include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 // phool includes
-#include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/phool.h>
 // root includes
 #include <TFile.h>
 
 // c++ utilities
-#include <string>
-#include <vector>
 #include <cassert>
-#include <utility>
 #include <optional>
-
+#include <string>
+#include <utility>
+#include <vector>
 
 // TrksInJetQA definition -----------------------------------------------------
 
-class TrksInJetQA : public SubsysReco {
+class TrksInJetQA : public SubsysReco
+{
+ public:
+  //  output modes
+  enum OutMode
+  {
+    File,
+    QA
+  };
 
-  public:
+  // ctor/dtor
+  TrksInJetQA(const std::string& name);
+  ~TrksInJetQA() override;
 
-    //  output modes
-    enum OutMode {File, QA};
+  // setters
+  void SetOutFileName(const std::string& name) { m_outFileName = name; }
+  void SetHistSuffix(const std::string& suffix) { m_histSuffix = suffix; }
 
-    // ctor/dtor
-    TrksInJetQA(const std::string& name);
-    ~TrksInJetQA() override;
+  // public methods
+  void Configure(
+      const TrksInJetQAConfig& config,
+      std::optional<TrksInJetQAHist> hist = std::nullopt);
 
-    // setters
-    void SetOutFileName(const std::string& name)  {m_outFileName = name;}
-    void SetHistSuffix(const std::string& suffix) {m_histSuffix  = suffix;}
+  // f4a methods
+  int Init(PHCompositeNode* /*topNode*/) override;
+  int process_event(PHCompositeNode* topNode) override;
+  int End(PHCompositeNode* /*topNode*/) override;
 
-    // public methods
-    void Configure(
-      const TrksInJetQAConfig &config,
-      std::optional<TrksInJetQAHist> hist = std::nullopt
-    );
+ private:
+  // private methods
+  void InitOutput();
+  void InitHistograms();
+  void RegisterHistograms();
 
+  // io members
+  //   - FIXME raw pointers should be smart ones!
+  TFile* m_outFile = NULL;
+  std::string m_outFileName = "tracksInJetsQA.root";
+  Fun4AllHistoManager* m_manager = NULL;
 
-    // f4a methods
-    int Init(PHCompositeNode* /*topNode*/)      override;
-    int process_event(PHCompositeNode* topNode) override;
-    int End(PHCompositeNode* /*topNode*/)       override;
+  // optional suffix for histograms
+  std::optional<std::string> m_histSuffix = std::nullopt;
 
-  private:
+  // submodules to run
+  std::unique_ptr<TrksInJetQAInJetFiller> m_inJet;
+  std::unique_ptr<TrksInJetQAInclusiveFiller> m_inclusive;
 
-    // private methods
-    void InitOutput();
-    void InitHistograms();
-    void RegisterHistograms();
-
-    // io members
-    //   - FIXME raw pointers should be smart ones!
-    TFile*               m_outFile     = NULL;
-    std::string          m_outFileName = "tracksInJetsQA.root";
-    Fun4AllHistoManager* m_manager     = NULL;
-
-    // optional suffix for histograms
-    std::optional<std::string> m_histSuffix  = std::nullopt;
-
-    // submodules to run
-    std::unique_ptr<TrksInJetQAInJetFiller>     m_inJet;
-    std::unique_ptr<TrksInJetQAInclusiveFiller> m_inclusive;
-
-    // module utilities
-    TrksInJetQAConfig m_config;
-    TrksInJetQAHist   m_hist;
+  // module utilities
+  TrksInJetQAConfig m_config;
+  TrksInJetQAHist m_hist;
 
 };  // end TrksInJetQA
 
