@@ -257,7 +257,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       {
         float pt = fabs(1. / trackSeed->get_qOverR()) * (0.3 / 100) * fieldstrength;
 
-        float phi = trackSeed->get_phi(m_clusters, m_tGeometry);
+        float phi = trackSeed->get_phi();
         svtxtrack->set_px(pt * std::cos(phi));
         svtxtrack->set_py(pt * std::sin(phi));
         svtxtrack->set_pz(pt * std::cosh(trackSeed->get_eta()) * std::cos(trackSeed->get_theta()));
@@ -275,6 +275,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       double Y0 = trackSeed->get_Y0();
       double Z0 = trackSeed->get_Z0();
       double slope = trackSeed->get_slope();
+      svtxtrack->set_crossing(0);
       std::vector<double> xy_error2;
       std::vector<double> rz_error2;
       std::vector<double> xy_residuals;

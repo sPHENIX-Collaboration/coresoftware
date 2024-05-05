@@ -42,6 +42,7 @@ class PHSimpleVertexFinder : public SubsysReco
  void setTrackQualityCut(double cut) {_qual_cut = cut;}
  void setRequireMVTX(bool set) {_require_mvtx = set;}
  void setNmvtxRequired(unsigned int n) {_nmvtx_required = n;}
+ void setTrackPtCut(const double cut) {_track_pt_cut = cut;}
  // void setUseTrackCovariance(bool set) {_use_track_covariance = set;}
  void setOutlierPairCut(const double cut) {_outlier_cut = cut;}
 
