@@ -57,6 +57,7 @@ class HCalCosmics : public SubsysReco
   TH2F *h_waveformchi2 = nullptr;
   TH2F *h_time_energy = nullptr;
   TH1F *h_mip = nullptr;
+  TH1F *h_event = nullptr;
 
   std::string outfilename;
 
