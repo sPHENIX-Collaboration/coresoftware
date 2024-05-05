@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef MVTXCLUSTERQA_H
-#define MVTXCLUSTERQA_H
+#ifndef QA_TRACKING_MVTXCLUSTERQA_H
+#define QA_TRACKING_MVTXCLUSTERQA_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -18,11 +18,9 @@ class MvtxClusterQA : public SubsysReco
 
   ~MvtxClusterQA() override = default;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
-  int End(PHCompositeNode *topNode) override;
 
   void beginRun(const int run) { m_beginRun = run; }
   void endRun(const int run) { m_endRun = run; }
@@ -40,4 +38,4 @@ class MvtxClusterQA : public SubsysReco
   int m_nclustersPerChip[3][20][9] = {{{0}}};
 };
 
-#endif  // MvtxClusterQA_H
+#endif  // QA_TRACKING_MVTXCLUSTERQA_H

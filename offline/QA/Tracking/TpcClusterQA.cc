@@ -203,7 +203,7 @@ void TpcClusterQA::createHistos()
     for (int i = 0; i < 24; i++)
     {
       auto h = new TH2F((boost::format("%snclusperrun_sector%i") % getHistoPrefix() % i).str().c_str(),
-			(boost::format("TPC Clusters per event per run number sector %i") % i).str().c_str(), m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
+                        (boost::format("TPC Clusters per event per run number sector %i") % i).str().c_str(), m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
       h->GetXaxis()->SetTitle("Run number");
       h->GetYaxis()->SetTitle((boost::format("Clusters per event in Sector %i") % i).str().c_str());
       hm->registerHisto(h);

@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef MICROMEGASCLUSTERQA_H_
-#define MICROMEGASCLUSTERQA_H_
+#ifndef QA_TRACKING_MICROMEGASCLUSTERQA_H_
+#define QA_TRACKING_MICROMEGASCLUSTERQA_H_
 
 #include <fun4all/SubsysReco.h>
 
@@ -16,13 +16,11 @@ class MicromegasClusterQA : public SubsysReco
  public:
   MicromegasClusterQA(const std::string &name = "MicromegasClusterQA");
 
-  ~MicromegasClusterQA() override;
+  ~MicromegasClusterQA() override = default;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
-  int End(PHCompositeNode *topNode) override;
 
   void beginRun(const int run) { m_beginRun = run; }
   void endRun(const int run) { m_endRun = run; }
