@@ -52,6 +52,7 @@ class HCalCosmics : public SubsysReco
   TH2 *h_waveformchi2{nullptr};
   TH2 *h_time_energy{nullptr};
   TH1 *h_mip{nullptr};
+  TH1 *h_event{nullptr};
 
   // Cut threshold
   int tower_threshold{500};
