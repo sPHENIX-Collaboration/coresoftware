@@ -4,12 +4,11 @@
 #define XINGSHIFT_XINGSHIFTCAL_H
 
 #include <fun4all/SubsysReco.h>
-#include <oncal/OnCal.h>
 
+#include <cstdint>
 #include <string>
 
 class PHCompositeNode;
-class Event;
 class Packet;
 
 class XingShiftCal : public SubsysReco

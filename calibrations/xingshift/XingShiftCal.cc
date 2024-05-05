@@ -4,19 +4,13 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
-#include <oncal/OnCalServer.h>
-
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
-#include <Event/msg_profile.h>
+#include <Event/packet.h>
 
 #include <TCanvas.h>
 #include <TH1.h>
@@ -25,13 +19,11 @@
 
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
-#include <odbc++/errorhandler.h>
-#include <odbc++/preparedstatement.h>
 #include <odbc++/resultset.h>
-#include <odbc++/resultsetmetadata.h>
-#include <odbc++/setup.h>
+#include <odbc++/statement.h>
 #include <odbc++/types.h>
-#include <sql.h>
+
+#include <iostream>
 
 XingShiftCal::XingShiftCal(const std::string &name, const int poverwriteSpinEntry)
   : SubsysReco(name)
