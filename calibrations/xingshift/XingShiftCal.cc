@@ -1,6 +1,9 @@
 #include "XingShiftCal.h"
 
+#include <cdbobjects/CDBTTree.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -18,7 +21,7 @@
 #include <TCanvas.h>
 #include <TH1.h>
 
-#include <phool/PHCompositeNode.h>
+#include <boost/format.hpp>
 
 #include <odbc++/connection.h>
 #include <odbc++/setup.h>
@@ -30,7 +33,6 @@
 #include <odbc++/resultsetmetadata.h>
 #include <odbc++/preparedstatement.h>
 
-#include <cdbobjects/CDBTTree.h>
 
 using namespace odbc;
 
@@ -250,7 +252,7 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
   std::cout << success << std::endl;
   if (success)
   {
-    const std::string cdbfname = Form("/sphenix/user/dloomis/cdb/SPIN-%08d_crossingshiftCDBTTree.root",runnumber);
+    const std::string cdbfname = (boost::format("SPIN-%08d_crossingshiftCDBTTree.root") %runnumber).str();
     WriteToCDB(cdbfname);
     CommitToSpinDB();
     if (commitSuccessCDB) 
@@ -366,7 +368,7 @@ int XingShiftCal::CalculateCrossingShift(int &xing, uint64_t counts[NTRIG][NBUNC
 }
 
 
-int XingShiftCal::WriteToCDB(const std::string fname)
+int XingShiftCal::WriteToCDB(const std::string& fname)
 {
   std::cout<<"XingShiftCal::WriteToCDB()"<<std::endl;
   int xing_correction_offset = 0;
@@ -434,7 +436,7 @@ int XingShiftCal::CommitToSpinDB()
 	   <<std::endl;
     //}
   
-  if (1/*0 && verbosity*/) 
+  if (true/*0 && verbosity*/) 
   {
     for (int ibeam = 0; ibeam < 2; ibeam++) 
     {
@@ -460,7 +462,7 @@ int XingShiftCal::CommitToSpinDB()
   std::string dbowner = "phnxrc";
   std::string dbpasswd = "";
   std::string dbtable = "spin";
-  Connection* conSpin = 0;
+  Connection* conSpin = nullptr;
   try {
     conSpin = DriverManager::getConnection(dbname.c_str(), dbowner.c_str(), dbpasswd.c_str());
   } catch (SQLException& e) {
@@ -470,7 +472,7 @@ int XingShiftCal::CommitToSpinDB()
     commitSuccessSpinDB = 0;
     if (conSpin) {
       delete conSpin;
-      conSpin = 0;
+      conSpin = nullptr;
     }
     return 0;
   }
@@ -485,7 +487,7 @@ int XingShiftCal::CommitToSpinDB()
 	   <<";";
   //if (verbosity) cout<<sqlSpinSelect.str()<<endl;
   Statement* stmtSpinSelect = conSpin->createStatement();
-  ResultSet* rsSpin = 0;
+  ResultSet* rsSpin = nullptr;
   try {
     rsSpin = stmtSpinSelect->executeQuery(sqlSpinSelect.str());
   } catch (SQLException& e) {
@@ -495,17 +497,19 @@ int XingShiftCal::CommitToSpinDB()
     commitSuccessSpinDB = 0;
     if (conSpin) {
       delete conSpin;
-      conSpin = 0;
+      conSpin = nullptr;
     }
     return 0;
   }
   if (rsSpin->next()) {
-    if (1/*verbosity*/) std::cout<<"run "<<runnumber<<" exists in "<<dbtable
+    if (true/*verbosity*/) { std::cout<<"run "<<runnumber<<" exists in "<<dbtable
 				 <<", ready to UPDATE"<<std::endl;
+}
     runExists = true;
   } else {
-    if (1/*verbosity*/) std::cout<<"run "<<runnumber<<" NOT exists in "<<dbtable
+    if (true/*verbosity*/) { std::cout<<"run "<<runnumber<<" NOT exists in "<<dbtable
 			    <<", ready to INSERT"<<std::endl;
+}
   }
 
   
@@ -515,7 +519,7 @@ int XingShiftCal::CommitToSpinDB()
     commitSuccessSpinDB = 0;
     if (conSpin) {
        delete conSpin;
-      conSpin = 0;
+      conSpin = nullptr;
     }
     return 0;
   }
@@ -589,7 +593,8 @@ int XingShiftCal::CommitToSpinDB()
     sql<<"}'";
     sql<<", "<<qa_level<<");";
   }
-  if (1/*verbosity*/) std::cout<<sql.str()<<std::endl;
+  if (true/*verbosity*/) { std::cout<<sql.str()<<std::endl;
+}
 
 
   // exec sql
@@ -598,14 +603,13 @@ int XingShiftCal::CommitToSpinDB()
   try {
     stmtSpin->executeUpdate(sql.str());
   } catch (SQLException& e) {
-    std::string errmsg = e.getMessage();
-    std::cout << PHWHERE
+       std::cout << PHWHERE
 	      << " Exception caught at XingShiftCal::CommitPatternToSpinDB when insert into spin DB" << std::endl;
     std::cout << "Message: " << e.getMessage() << std::endl;
     commitSuccessSpinDB = 0;
     if (conSpin) {
       delete conSpin;
-      conSpin = 0;
+      conSpin = nullptr;
     }
     return 0;
   }
@@ -616,7 +620,7 @@ int XingShiftCal::CommitToSpinDB()
 
   if (conSpin) {
     delete conSpin;
-    conSpin = 0;
+    conSpin = nullptr;
   }
   return 0;
 }
@@ -628,7 +632,8 @@ std::string XingShiftCal::SQLArrayConstF(float x, int n)
   for (int i = 0; i < n; i++)
   {
     s<<x;
-    if (i < n-1) s<<",";
+    if (i < n-1) { s<<",";
+}
   }
   s<<"}'";
   return s.str();
