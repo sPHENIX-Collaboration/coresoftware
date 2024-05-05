@@ -115,6 +115,7 @@ int MvtxClusterQA::EndRun(const int runnumber)
   assert(hm);
 
   TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperrun", getHistoPrefix().c_str())));
+// NOLINTNEXTLINE(bugprone-integer-division)
   h_totalclusters->Fill(runnumber, m_totalClusters / m_event);
 
   for (const auto &[layer, staves] : m_layerStaveMap)
@@ -126,6 +127,7 @@ int MvtxClusterQA::EndRun(const int runnumber)
         TH2 *h = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperchipperrun%i_%i_%i", getHistoPrefix().c_str(), layer, stave, chip)));
         if (h)
         {
+// NOLINTNEXTLINE(bugprone-integer-division)
           h->Fill(runnumber, m_nclustersPerChip[layer][stave][chip] / m_event);
         }
       }

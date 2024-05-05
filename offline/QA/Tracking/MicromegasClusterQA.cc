@@ -33,11 +33,10 @@ MicromegasClusterQA::MicromegasClusterQA(const std::string &name)
 
 //____________________________________________________________________________..
 MicromegasClusterQA::~MicromegasClusterQA()
-{
-}
+= default;
 
 //____________________________________________________________________________..
-int MicromegasClusterQA::Init(PHCompositeNode *)
+int MicromegasClusterQA::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -133,7 +132,7 @@ int MicromegasClusterQA::EndRun(const int runnumber)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
-int MicromegasClusterQA::End(PHCompositeNode *)
+int MicromegasClusterQA::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

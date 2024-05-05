@@ -110,6 +110,7 @@ int VertexQA::EndRun(const int runnumber)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   TH2* h_verticesperevent = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "nverticesperrun").c_str()));
+// NOLINTNEXTLINE(bugprone-integer-division)
   h_verticesperevent->Fill(runnumber, m_vertices / m_event);
   return Fun4AllReturnCodes::EVENT_OK;
 }

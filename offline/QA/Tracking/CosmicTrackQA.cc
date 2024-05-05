@@ -252,6 +252,7 @@ int CosmicTrackQA::EndRun(const int runnumber)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   TH2* h_tracksperevent = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "ntracksperrun").c_str()));
+// NOLINTNEXTLINE(bugprone-integer-division)
   h_tracksperevent->Fill(runnumber, m_tracks / m_event);
   return Fun4AllReturnCodes::EVENT_OK;
 }
