@@ -35,7 +35,7 @@ TrksInJetQA::~TrksInJetQA() {
   //   - FIXME use smart pointers instead!
   if (m_outFile) {
     delete m_outFile;
-    m_outFile = NULL;
+    m_outFile = nullptr;
   }
 
 }  // end dtor
@@ -95,8 +95,10 @@ int TrksInJetQA::process_event(PHCompositeNode* topNode) {
   }
 
   // run submodules
-  if (m_config.doInJet)     m_inJet     -> Fill(topNode);
-  if (m_config.doInclusive) m_inclusive -> Fill(topNode);
+  if (m_config.doInJet) {     m_inJet     -> Fill(topNode);
+}
+  if (m_config.doInclusive) { m_inclusive -> Fill(topNode);
+}
   return Fun4AllReturnCodes::EVENT_OK;
 
 }  // end 'process_event(PHCompositeNode*)'
@@ -114,8 +116,10 @@ int TrksInJetQA::End(PHCompositeNode* /*topNode*/) {
   if (m_config.outMode == OutMode::File) {
 
     // save histograms
-    if (m_config.doInJet)     m_inJet     -> SaveHistograms(m_outFile, "InJet");
-    if (m_config.doInclusive) m_inclusive -> SaveHistograms(m_outFile, "Inclusive");
+    if (m_config.doInJet) {     m_inJet     -> SaveHistograms(m_outFile, "InJet");
+}
+    if (m_config.doInclusive) { m_inclusive -> SaveHistograms(m_outFile, "Inclusive");
+}
 
     // close file
     m_outFile -> cd();
@@ -209,8 +213,10 @@ void TrksInJetQA::RegisterHistograms() {
 
   std::vector<TH1D*> vecHist1D;
   std::vector<TH2D*> vecHist2D;
-  if (m_config.doInJet)     m_inJet     -> GrabHistograms(vecHist1D, vecHist2D);
-  if (m_config.doInclusive) m_inclusive -> GrabHistograms(vecHist1D, vecHist2D);
+  if (m_config.doInJet) {     m_inJet     -> GrabHistograms(vecHist1D, vecHist2D);
+}
+  if (m_config.doInclusive) { m_inclusive -> GrabHistograms(vecHist1D, vecHist2D);
+}
 
   // register w/ manager
   for (TH1D* hist1D : vecHist1D) {

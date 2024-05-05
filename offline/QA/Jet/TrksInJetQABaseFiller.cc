@@ -23,10 +23,14 @@ TrksInJetQABaseFiller::TrksInJetQABaseFiller(
 {
 
   // initialize managers
-  if (m_config.doHitQA)   m_hitManager   = std::make_unique<TrksInJetQAHitManager>(m_config, m_hist);
-  if (m_config.doClustQA) m_clustManager = std::make_unique<TrksInJetQAClustManager>(m_config, m_hist);
-  if (m_config.doTrackQA) m_trackManager = std::make_unique<TrksInJetQATrkManager>(m_config, m_hist);
-  if (m_config.doJetQA)   m_jetManager   = std::make_unique<TrksInJetQAJetManager>(m_config, m_hist);
+  if (m_config.doHitQA) {   m_hitManager   = std::make_unique<TrksInJetQAHitManager>(m_config, m_hist);
+}
+  if (m_config.doClustQA) { m_clustManager = std::make_unique<TrksInJetQAClustManager>(m_config, m_hist);
+}
+  if (m_config.doTrackQA) { m_trackManager = std::make_unique<TrksInJetQATrkManager>(m_config, m_hist);
+}
+  if (m_config.doJetQA) {   m_jetManager   = std::make_unique<TrksInJetQAJetManager>(m_config, m_hist);
+}
 
 }  // end ctor()'
 
@@ -45,10 +49,14 @@ TrksInJetQABaseFiller::~TrksInJetQABaseFiller() {
 void TrksInJetQABaseFiller::MakeHistograms(const std::string &label) {
 
   // initialize relevant submodules
-  if (m_config.doHitQA)   m_hitManager   -> MakeHistograms(label);
-  if (m_config.doClustQA) m_clustManager -> MakeHistograms(label);
-  if (m_config.doTrackQA) m_trackManager -> MakeHistograms(label);
-  if (m_config.doJetQA)   m_jetManager   -> MakeHistograms(label);
+  if (m_config.doHitQA) {   m_hitManager   -> MakeHistograms(label);
+}
+  if (m_config.doClustQA) { m_clustManager -> MakeHistograms(label);
+}
+  if (m_config.doTrackQA) { m_trackManager -> MakeHistograms(label);
+}
+  if (m_config.doJetQA) {   m_jetManager   -> MakeHistograms(label);
+}
   return;
 
 }  // end 'MakeHistograms(std::string)'
@@ -63,10 +71,14 @@ void TrksInJetQABaseFiller::SaveHistograms(TFile* outFile, const std::string &ou
     assert(outDir);
   }
 
-  if (m_config.doHitQA)   m_hitManager   -> SaveHistograms(outDir, m_config.hitOutDir);
-  if (m_config.doClustQA) m_clustManager -> SaveHistograms(outDir, m_config.clustOutDir);
-  if (m_config.doTrackQA) m_trackManager -> SaveHistograms(outDir, m_config.trackOutDir);
-  if (m_config.doJetQA)   m_jetManager   -> SaveHistograms(outDir, m_config.jetOutDir);
+  if (m_config.doHitQA) {   m_hitManager   -> SaveHistograms(outDir, m_config.hitOutDir);
+}
+  if (m_config.doClustQA) { m_clustManager -> SaveHistograms(outDir, m_config.clustOutDir);
+}
+  if (m_config.doTrackQA) { m_trackManager -> SaveHistograms(outDir, m_config.trackOutDir);
+}
+  if (m_config.doJetQA) {   m_jetManager   -> SaveHistograms(outDir, m_config.jetOutDir);
+}
   return;
 
 }  // end 'SaveHistograms(TFile*, std::string)'
@@ -78,10 +90,14 @@ void TrksInJetQABaseFiller::GrabHistograms(
   std::vector<TH2D*>& vecOutHist2D
 ) {
 
-  if (m_config.doHitQA)   m_hitManager   -> GrabHistograms(vecOutHist1D, vecOutHist2D);
-  if (m_config.doClustQA) m_clustManager -> GrabHistograms(vecOutHist1D, vecOutHist2D);
-  if (m_config.doTrackQA) m_trackManager -> GrabHistograms(vecOutHist1D, vecOutHist2D);
-  if (m_config.doJetQA)   m_jetManager   -> GrabHistograms(vecOutHist1D, vecOutHist2D);
+  if (m_config.doHitQA) {   m_hitManager   -> GrabHistograms(vecOutHist1D, vecOutHist2D);
+}
+  if (m_config.doClustQA) { m_clustManager -> GrabHistograms(vecOutHist1D, vecOutHist2D);
+}
+  if (m_config.doTrackQA) { m_trackManager -> GrabHistograms(vecOutHist1D, vecOutHist2D);
+}
+  if (m_config.doJetQA) {   m_jetManager   -> GrabHistograms(vecOutHist1D, vecOutHist2D);
+}
   return;
 
 }  // end 'GrabHistograms(std::vector<TH1D*>&, std::vector<TH2D*>&)'

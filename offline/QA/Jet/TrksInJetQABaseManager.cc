@@ -61,12 +61,12 @@ void TrksInJetQABaseManager::SaveHistograms(TDirectory* topDir, const std::strin
   }
 
   outDir -> cd();
-  for (auto hist1Ds : m_vecHist1D) {
+  for (const auto& hist1Ds : m_vecHist1D) {
     for (TH1D* hist1D : hist1Ds) {
       hist1D -> Write();
     }
   }
-  for (auto hist2Ds : m_vecHist2D) {
+  for (const auto& hist2Ds : m_vecHist2D) {
     for (TH2D* hist2D : hist2Ds) {
       hist2D -> Write();
     }
@@ -82,12 +82,12 @@ void TrksInJetQABaseManager::GrabHistograms(
   std::vector<TH2D*>& vecOutHist2D
 ) {
 
-  for (auto hist1Ds : m_vecHist1D) {
+  for (const auto& hist1Ds : m_vecHist1D) {
     for (TH1D* hist1D : hist1Ds) {
       vecOutHist1D.push_back(hist1D);
     }
   }
-  for (auto hist2Ds : m_vecHist2D) {
+  for (const auto& hist2Ds : m_vecHist2D) {
     for (TH2D* hist2D : hist2Ds) {
       vecOutHist2D.push_back(hist2D);
     }
