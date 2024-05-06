@@ -95,13 +95,13 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       }
       else
       {
-        auto h = new TH1F(Form("h_%d", (int) round(v.at(size1))), "", size1, -0.5, size1 - 0.5);
+        auto h = new TH1F(std::string("h_" + std::to_string((int) round(v.at(size1)))).c_str(), "", size1, -0.5, size1 - 0.5);
         for (int i = 0; i < size1; i++)
         {
           h->SetBinContent(i + 1, v.at(i));
           h->SetBinError(i + 1, 1);
         }
-        auto f = new TF1(Form("f_%d", (int) round(v.at(size1))), this, &CaloWaveformFitting::template_function, 0, 31, 3, "CaloWaveformFitting", "template_function");
+        auto f = new TF1(std::string("f_" + std::to_string((int) round(v.at(size1)))).c_str(), this, &CaloWaveformFitting::template_function, 0, 31, 3, "CaloWaveformFitting", "template_function");
         ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
         ROOT::Fit::BinData data(v.size() - 1, 1);
         ROOT::Fit::FillData(data, h);
