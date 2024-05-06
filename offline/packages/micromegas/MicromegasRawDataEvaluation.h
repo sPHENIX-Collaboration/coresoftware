@@ -72,6 +72,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
     /// ll1 bco
     uint64_t lvl1_bco = 0;
 
+    /// ll1 bco
+    unsigned int lvl1_bco_masked = 0;
+
     /// fee bco
     unsigned int fee_bco = 0;
 
