@@ -209,19 +209,21 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         if( sample.channel >= MicromegasDefs::m_nchannels_fee ) continue;
 
         // beam crossing
-        sample.fee_bco = packet->iValue(iwf, "BCO");
+        sample.fee_bco = static_cast<uint32_t>(packet->iValue(iwf, "BCO"));
         sample.lvl1_bco = 0;
+        sample.lvl1_bco_masked = 0;
 
         // find bco matching map corresponding to fee
         auto& bco_matching_pair = m_fee_bco_matching_map[sample.fee_id];
 
         // find matching lvl1 bco
-        // static constexpr unsigned int max_fee_bco_diff = 5;
-        // if( (sample.fee_bco-bco_matching_pair.first) < max_fee_bco_diff )
-        if( bco_matching_pair.first == sample.fee_bco )
+        static constexpr unsigned int max_fee_bco_diff = 10;
+        if( (sample.fee_bco-bco_matching_pair.first) < max_fee_bco_diff )
+          // if( bco_matching_pair.first == sample.fee_bco )
         {
 
           sample.lvl1_bco = bco_matching_pair.second;
+          sample.lvl1_bco_masked = ( bco_matching_pair.second & 0xFFFFF );
 
         } else {
 
@@ -251,6 +253,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
             bco_matching_pair.first = sample.fee_bco;
             bco_matching_pair.second = lvl1_bco;
             sample.lvl1_bco = lvl1_bco;
+            sample.lvl1_bco_masked = ( lvl1_bco & 0xFFFFF );
 
             // remove bco from running list
             bco_list.pop_front();
