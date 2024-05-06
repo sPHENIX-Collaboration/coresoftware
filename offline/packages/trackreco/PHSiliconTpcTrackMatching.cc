@@ -61,6 +61,8 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   {
     return ret;
   }
+  std::istringstream stringline(m_fieldMap);
+  stringline >> fieldstrength;
 
   return ret;
 }
@@ -320,8 +322,8 @@ int PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode *topNode)
     _svtx_seed_map = new TrackSeedContainer_v1();
     PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(_svtx_seed_map, "SvtxTrackSeedContainer", "PHObject");
     svtxNode->addNode(node);
-  }
-
+  } 
+  
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
@@ -369,7 +371,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
     double tpc_phi = _tracklet_tpc->get_phi();
     double tpc_eta = _tracklet_tpc->get_eta();
-    double tpc_pt = fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * std::stod(m_fieldMap);
+    double tpc_pt = fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
     if (Verbosity() > 8)
     {
       std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " phi " << tpc_phi << " pt " << tpc_pt << " tpc z " << _tracklet_tpc->get_z() << std::endl;
@@ -380,22 +382,22 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
     double mag = getMatchingInflationFactor(tpc_pt);
 
-    if(_use_old_matching)   // for testing only
+    if (_use_old_matching)  // for testing only
+    {
+      mag = 1.0;
+      if (tpc_pt < 6.0)
       {
-	mag = 1.0;
-	if (tpc_pt < 6.0)
-	  {
-	    mag = 2;
-	  }
-	if (tpc_pt < 3.0)
-	  {
-	    mag = 4.0;
-	  }
-	if (tpc_pt < 1.5)
-	  {
-	    mag = 6.0;
-	  }
+        mag = 2;
       }
+      if (tpc_pt < 3.0)
+      {
+        mag = 4.0;
+      }
+      if (tpc_pt < 1.5)
+      {
+        mag = 6.0;
+      }
+    }
 
     if (Verbosity() > 3)
     {
@@ -699,12 +701,12 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
 
 double PHSiliconTpcTrackMatching::getMatchingInflationFactor(double tpc_pt)
 {
-  double  mag = 1.0;
+  double mag = 1.0;
 
-  if(tpc_pt > _match_function_ptmin)
-    {
-      mag = _match_function_a + _match_function_b/pow(tpc_pt, _match_function_pow);
-    }
+  if (tpc_pt > _match_function_ptmin)
+  {
+    mag = _match_function_a + _match_function_b / pow(tpc_pt, _match_function_pow);
+  }
 
   //  std::cout << " tpc_pt = " << tpc_pt << " mag " << mag << " a " << match_function_a << " b " << match_function_b << std::endl;
 

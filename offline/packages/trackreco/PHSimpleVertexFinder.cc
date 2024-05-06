@@ -5,8 +5,9 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrackVertexCrossingAssoc_v1.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
-#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
 
 #include <globalvertex/SvtxVertex_v2.h>
 #include <globalvertex/SvtxVertexMap_v1.h>
@@ -64,155 +65,253 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
   if(Verbosity() > 0)
     std::cout << PHWHERE << " track map size " << _track_map->size()  << std::endl;
-
-  // reset maps
-  _vertex_track_map.clear();
-  _track_pair_map.clear();
-  _track_pair_pca_map.clear();
-  _vertex_position_map.clear();
-  _vertex_covariance_map.clear();
-  _vertex_set.clear();
   
   _active_dcacut = _base_dcacut;
 
-  // Find all instances where two tracks have a dca of < _dcacut,  and capture the pair details
-  // Fills _track_pair_map and _track_pair_pca_map
-  checkDCAs();
-
-  /// If we didn't find any matches, try again with a slightly larger DCA cut
-  if(_track_pair_map.size() == 0)
-    {
-      _active_dcacut = 3.0 * _base_dcacut;
-      checkDCAs();
-    }
-
-  if(Verbosity() > 0)
-    {  std::cout << "track pair map size " << _track_pair_map.size() << std::endl; }
-
-  // get all connected pairs of tracks by looping over the track_pair map
-  std::vector<std::set<unsigned int>> connected_tracks = findConnectedTracks();
-
-  // make vertices - each set of connected tracks is a vertex
-  for(unsigned int ivtx = 0; ivtx < connected_tracks.size(); ++ivtx)
-    {
-      if(Verbosity() > 1) std::cout << "process vertex " << ivtx << std::endl;
-
-      for(auto it : connected_tracks[ivtx])
-	{
-	  unsigned int id = it;
-	  _vertex_track_map.insert(std::make_pair(ivtx, id));
-	  if(Verbosity() > 2)  std::cout << " adding track " << id << " to vertex " << ivtx << std::endl;	  
-	}      
-    }
-
-  // make a list of vertices
-  for(auto it : _vertex_track_map)
-    {
-      if(Verbosity() > 1) std::cout << " vertex " << it.first << " track " << it.second << std::endl;      
-      _vertex_set.insert(it.first);
-    }
-  
-  // this finds average vertex positions after removal of outlying track pairs 
-  removeOutlierTrackPairs();
-
-  // average covariance for accepted tracks
-  for(auto it : _vertex_set)
-    {
-      matrix_t avgCov = matrix_t::Zero();
-      double cov_wt = 0.0;
-      
-      auto ret = _vertex_track_map.equal_range(it);
-      for (auto cit=ret.first; cit!=ret.second; ++cit)
-	{
-	  unsigned int trid = cit->second;
-	  matrix_t cov;
-	  auto track = _track_map->get(trid);
-	  for(int i = 0; i < 3; ++i)
-	    for(int j = 0; j < 3; ++j)
-	      cov(i,j) = track->get_error(i,j);
-	  
-	  avgCov += cov;
-	  cov_wt++;
-	}
-      
-      avgCov /= sqrt(cov_wt);
-      if(Verbosity() > 2)
-	{
-	  std::cout << "Average covariance for vertex " << it << " is:" << std::endl;
-	  std::cout << std::setprecision(8) << avgCov << std::endl; 
-	}
-      _vertex_covariance_map.insert(std::make_pair(it, avgCov));
-    }
-  
-  // Write the vertices to the vertex map on the node tree
-  //==============================================
   if(_vertex_track_map.size() > 0)
     _svtx_vertex_map->clear();
 
-  for(auto it : _vertex_set)
-    {
-      auto svtxVertex = std::make_unique<SvtxVertex_v2>();
+  // Write to a new map on the node tree that contains (crossing, trackid) pairs for all tracks
+  // Later, will add to it a map  containing (crossing, vertexid)
 
-      svtxVertex->set_chisq(0.0);
-      svtxVertex->set_ndof(0);
-      svtxVertex->set_t0(0);
-      svtxVertex->set_id(it);
-
-      auto ret = _vertex_track_map.equal_range(it);
-      for (auto cit=ret.first; cit!=ret.second; ++cit)
-      {
-	unsigned int trid = cit->second;
-
-	if(Verbosity() > 1) std::cout << "   vertex " << it << " insert track " << trid << std::endl; 
-	svtxVertex->insert_track(trid);
-	_track_map->get(trid)->set_vertex_id(it);
-      }
-
-      Eigen::Vector3d pos = _vertex_position_map.find(it)->second;
-      svtxVertex->set_x(pos.x());  
-      svtxVertex->set_y(pos.y());
-      svtxVertex->set_z(pos.z());
-      if(Verbosity() > 1) std::cout << "   vertex " << it << " insert pos.x " << pos.x() << " pos.y " << pos.y() << " pos.z " << pos.z() << std::endl; 
-
-      auto vtxCov = _vertex_covariance_map.find(it)->second;
-      for(int i = 0; i < 3; ++i) 
-	{
-	  for(int j = 0; j < 3; ++j)
-	    {
-	      svtxVertex->set_error(i, j, vtxCov(i,j)); 
-	    }
-	}
-      
-      _svtx_vertex_map->insert(svtxVertex.release());      
-    }
-  
-  /// Iterate through the tracks and assign the closest vtx id to 
-  /// the track position for propagating back to the vtx. Catches any
-  /// tracks that were missed or were not  compatible with any of the
-  /// identified vertices
-  //=================================================
+  _track_vertex_crossing_map->Clear();  
+  std::set<short int> crossings;
   for(const auto& [trackkey, track] : *_track_map)
     {
-      auto vtxid = track->get_vertex_id();
+      auto crossing = track->get_crossing();
+      crossings.insert(crossing);
+      
+      _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);
+      
+      if(Verbosity() > 0) { std::cout << "trackkey " << trackkey << " crossing " << crossing << std::endl; }
+    }
+  
+  unsigned int vertex_id = 0;
 
-      /// If there is a vertex already assigned, keep going
-      if(_svtx_vertex_map->get(vtxid))
-	{ continue; }
+  for(auto cross : crossings)
+    {
+      // reset maps for each crossing
+      _vertex_track_map.clear();
+      _track_pair_map.clear();
+      _track_pair_pca_map.clear();
+      _vertex_position_map.clear();
+      _vertex_covariance_map.clear();
+      _vertex_set.clear();
       
-      float maxdz = std::numeric_limits<float>::max();
-      unsigned int newvtxid = std::numeric_limits<unsigned int>::max();
-      
-      for(const auto& [vtxkey, vertex] : *_svtx_vertex_map)
+      if(Verbosity() > 0)   
+	{  std::cout << "process tracks for beam crossing " << cross << std::endl; }
+
+      // get the subset of tracks for this crossing
+      auto crossing_track_index = _track_vertex_crossing_map->getTracks(cross);
+      SvtxTrackMap* crossing_tracks = new SvtxTrackMap_v2;
+      for(auto iter = crossing_track_index.first; iter != crossing_track_index.second; ++iter)
 	{
-	  float dz = track->get_z() - vertex->get_z();
-	  if(fabs(dz) < maxdz)
+	  unsigned int trackkey = (*iter).second;
+	  SvtxTrack* track = _track_map->get(trackkey);
+	  crossing_tracks->insertWithKey(track, trackkey);
+	}
+
+      // Find all instances where two tracks have a dca of < _dcacut,  and capture the pair details
+      // Fills _track_pair_map and _track_pair_pca_map
+      checkDCAs(crossing_tracks);
+
+      /// If we didn't find any matches, try again with a slightly larger DCA cut
+      if(_track_pair_map.size() == 0)
+	{
+	  _active_dcacut = 3.0 * _base_dcacut;
+	  checkDCAs(crossing_tracks);
+	}
+
+      if(Verbosity() > 0)
+	{  std::cout << "crossing " << cross << " track pair map size " << _track_pair_map.size() << std::endl; }
+
+      // get all connected pairs of tracks by looping over the track_pair map
+      std::vector<std::set<unsigned int>> connected_tracks = findConnectedTracks();
+
+      // make vertices - each set of connected tracks is a vertex
+      for(unsigned int ivtx = 0; ivtx < connected_tracks.size(); ++ivtx)
+	{
+	  if(Verbosity() > 0) std::cout << "process vertex " << ivtx + vertex_id << std::endl;
+	  
+	  for(auto it : connected_tracks[ivtx])
 	    {
-	      maxdz = dz;
-	      newvtxid = vtxkey;
-	    }
+	      unsigned int id = it;
+	      _vertex_track_map.insert(std::make_pair(ivtx, id));
+	      if(Verbosity() > 0)  std::cout << "  adding track " << id << " to vertex " << ivtx + vertex_id << std::endl;	  
+	    }      
+	}
+
+      // make a list of vertices
+      for(auto it : _vertex_track_map)
+	{
+	  if(Verbosity() > 1) std::cout << " vertex " << it.first + vertex_id << " track " << it.second << std::endl;      
+	  _vertex_set.insert(it.first);  
 	}
       
-      track->set_vertex_id(newvtxid);
+      // this finds average vertex positions after removal of outlying track pairs 
+      removeOutlierTrackPairs();
+
+      // average covariance for accepted tracks
+      for(auto it : _vertex_set)
+	{
+	  matrix_t avgCov = matrix_t::Zero();
+	  double cov_wt = 0.0;
+	  
+	  auto ret = _vertex_track_map.equal_range(it);
+	  for (auto cit=ret.first; cit!=ret.second; ++cit)
+	    {
+	      unsigned int trid = cit->second;
+	      matrix_t cov;
+	      auto track = _track_map->get(trid);
+	      for(int i = 0; i < 3; ++i)
+		for(int j = 0; j < 3; ++j)
+		  cov(i,j) = track->get_error(i,j);
+	      
+	      avgCov += cov;
+	      cov_wt++;
+	    }
+	  
+	  avgCov /= sqrt(cov_wt);
+	  if(Verbosity() > 2)
+	    {
+	      std::cout << "Average covariance for vertex " << it << " is:" << std::endl;
+	      std::cout << std::setprecision(8) << avgCov << std::endl; 
+	    }
+	  _vertex_covariance_map.insert(std::make_pair(it, avgCov));
+	}
+
+      
+      // Write the vertices to the vertex map on the node tree
+      //==============================================
+      
+      for(auto it : _vertex_set)
+	{
+	  unsigned int thisid = it + vertex_id;  // the address of the vertex in the event
+
+	  auto svtxVertex = std::make_unique<SvtxVertex_v2>();
+	  
+	  svtxVertex->set_chisq(0.0);
+	  svtxVertex->set_ndof(0);
+	  svtxVertex->set_t0(0);
+	  svtxVertex->set_id(thisid);
+	  svtxVertex->set_beam_crossing(cross);
+	  
+	  auto ret = _vertex_track_map.equal_range(it);
+	  for (auto cit=ret.first; cit!=ret.second; ++cit)
+	    {
+	      unsigned int trid = cit->second;
+	      
+	      if(Verbosity() > 1) std::cout << "   vertex " << thisid  << " insert track " << trid << std::endl; 
+	      svtxVertex->insert_track(trid);
+	      _track_map->get(trid)->set_vertex_id(thisid);
+	    }
+	  
+	  Eigen::Vector3d pos = _vertex_position_map.find(it)->second;
+	  svtxVertex->set_x(pos.x());  
+	  svtxVertex->set_y(pos.y());
+	  svtxVertex->set_z(pos.z());
+	  if(Verbosity() > 1) { std::cout << "   vertex " << thisid  << " insert pos.x " << pos.x() << " pos.y " << pos.y() << " pos.z " << pos.z() << std::endl; }
+	  
+	  auto vtxCov = _vertex_covariance_map.find(it)->second;
+	  for(int i = 0; i < 3; ++i) 
+	    {
+	      for(int j = 0; j < 3; ++j)
+		{
+		  svtxVertex->set_error(i, j, vtxCov(i,j)); 
+		}
+	    }
+	  
+	  _svtx_vertex_map->insert(svtxVertex.release());      
+	}
+
+      vertex_id += _vertex_set.size();
+
+      /// Iterate through the tracks and assign the closest vtx id to 
+      /// the track position for propagating back to the vtx. Catches any
+      /// tracks that were missed or were not  compatible with any of the
+      /// identified vertices
+      //=================================================
+      for(const auto& [trackkey, track] : *crossing_tracks)
+	{
+	  auto thistrack = _track_map->get(trackkey); // get the original, not the copy
+	  auto vtxid = thistrack->get_vertex_id();
+	  if(Verbosity() > 1) 
+	    { std::cout << "        track " << trackkey << " track vtxid " << vtxid  << std::endl; }
+
+	  /// If there is a vertex already assigned, keep going
+	  if( vtxid !=  std::numeric_limits<unsigned int>::max() )	  
+	    { continue; }
+	  
+	  float maxdz = std::numeric_limits<float>::max();
+	  unsigned int newvtxid = std::numeric_limits<unsigned int>::max();
+	  
+	  for(auto it : _vertex_set)
+	    {
+	      unsigned int thisid = it + vertex_id - _vertex_set.size();
+
+	      if(Verbosity() > 1) { std::cout << "                test vertex " << thisid  << std::endl; }
+
+	      auto thisvertex = _svtx_vertex_map->get(thisid);
+	      float dz = thistrack->get_z() - thisvertex->get_z();
+	      if(fabs(dz) < maxdz)
+		{
+		  maxdz = dz;
+		  newvtxid = thisid;
+		}
+	    }
+
+	  // this updates the track, but does not add it to the vertex primary track list
+	  if( newvtxid !=  std::numeric_limits<unsigned int>::max() )	  
+	    {
+	      thistrack->set_vertex_id(newvtxid);
+	      if(Verbosity() > 1) { std::cout << "                assign vertex " << newvtxid << " to additional track " << trackkey << std::endl; }
+	    }
+	}
+
+      delete crossing_tracks;
+
+    } // end loop over crossings
+
+  // update the crossing vertex map with the results
+  for(const auto& [vtxkey, vertex] : *_svtx_vertex_map)
+    {
+      short int crossing = vertex->get_beam_crossing();
+      _track_vertex_crossing_map->addVertexAssoc(crossing, vtxkey);
+
+      if(Verbosity() > 1)
+	{
+	  std::cout << "Vertex ID: " << vtxkey << " vertex crossing " << crossing << " list of tracks: " << std::endl;
+	  for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
+	    {
+	      SvtxTrack* track = _track_map->get(*trackiter);
+	      if (!track)
+		{
+		  continue;
+		}
+	      
+	      auto siseed = track->get_silicon_seed();
+	      short int intt_crossing = siseed->get_crossing();
+	      
+	      // the track crossing may be from the INTT clusters or from geometric matching if there are no INTT clusters
+	      short int track_crossing = track->get_crossing();
+	      std::cout << " vtxid " << vtxkey  << " vertex crossing " << crossing 
+			<< " track crossing " << track_crossing 
+			<< " intt crossing " << intt_crossing 
+			<< " trackID " << *trackiter
+			<< " track Z " << track->get_z()
+			<< " X " << track->get_x()
+			<< " Y " << track->get_y()
+			<< " quality " << track->get_quality() 
+			<< " pt " << track->get_pt()
+			<< std::endl;
+	      if(Verbosity() > 3) { siseed->identify(); }
+	    }
+	}
+    }
+  
+  if(Verbosity() > 2)
+    {
+      _track_vertex_crossing_map->identify(); 
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -259,6 +358,16 @@ int PHSimpleVertexFinder::CreateNodes(PHCompositeNode* topNode)
 
     }
 
+  _track_vertex_crossing_map = findNode::getClass<TrackVertexCrossingAssoc>(topNode,"TrackVertexCrossingAssocMap");
+  if(!_track_vertex_crossing_map)
+    {
+      _track_vertex_crossing_map = new TrackVertexCrossingAssoc_v1;
+      PHIODataNode<PHObject>* trackvertexNode = new PHIODataNode<PHObject>( 
+									   _track_vertex_crossing_map, "TrackVertexCrossingAssocMap","PHObject");
+      
+      svtxNode->addNode(trackvertexNode);
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHSimpleVertexFinder::GetNodes(PHCompositeNode* topNode)
@@ -266,14 +375,74 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode* topNode)
 
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!_track_map)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
- 
-
+    {
+      std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHSimpleVertexFinder::checkDCAs(SvtxTrackMap* track_map)
+{
+  // Loop over tracks and check for close DCA match with all other tracks
+  for(auto tr1_it = track_map->begin(); tr1_it != track_map->end(); ++tr1_it)
+    {
+      auto id1 = tr1_it->first;
+      auto tr1 = tr1_it->second;
+      if(tr1->get_quality() > _qual_cut) continue;
+      if(_require_mvtx)
+	{
+	  unsigned int nmvtx = 0;
+	  TrackSeed *siliconseed = tr1->get_silicon_seed();
+	  if(!siliconseed)
+	    { continue; }
+
+	  for(auto clusit = siliconseed->begin_cluster_keys(); clusit != siliconseed->end_cluster_keys(); ++clusit)
+	    {
+	      if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId )
+		{
+		  nmvtx++;
+		}
+	      if(nmvtx >= _nmvtx_required) break;
+	    }
+	  if(nmvtx < _nmvtx_required) continue;
+	  if(Verbosity() > 3) std::cout << " tr1 id "  << id1 << " has nmvtx at least " << nmvtx << std::endl;
+	}
+      
+      // look for close DCA matches with all other such tracks
+      for(auto tr2_it = std::next(tr1_it); tr2_it != track_map->end(); ++tr2_it)
+	{
+	  auto id2 = tr2_it->first;
+	  auto tr2 = tr2_it->second;
+	  if(tr2->get_quality() > _qual_cut) continue;
+	  if(_require_mvtx)
+	    {
+	      unsigned int nmvtx = 0;
+	      TrackSeed *siliconseed = tr2->get_silicon_seed();
+	      if(!siliconseed)
+		{ continue; }
+	     
+	      for(auto clusit = siliconseed->begin_cluster_keys(); clusit != siliconseed->end_cluster_keys(); ++clusit)
+		{
+		  if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId)
+		    {
+		      nmvtx++;
+		    }
+		  if(nmvtx >= _nmvtx_required) break;
+		}
+	      if(nmvtx < _nmvtx_required) continue;
+	      if(Verbosity() > 3)  std::cout << " tr2 id " << id2 << " has nmvtx at least " << nmvtx << std::endl;
+	    }
+	  
+	  // find DCA of these two tracks
+	  if(Verbosity() > 3) std::cout << "Check DCA for tracks " << id1 << " and  " << id2 << std::endl;
+	  
+	  findDcaTwoTracks(tr1, tr2);
+
+	}
+    }
+
 }
 
 void PHSimpleVertexFinder::checkDCAs()

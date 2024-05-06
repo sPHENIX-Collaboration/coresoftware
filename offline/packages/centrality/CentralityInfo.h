@@ -16,6 +16,7 @@ class CentralityInfo : public PHObject
 
   void identify(std::ostream &os = std::cout) const override { os << "CentralityInfo base class" << std::endl; };
   int isValid() const override { return 0; }
+  virtual void CopyTo(CentralityInfo *) {return;}
 
   enum PROP
   {

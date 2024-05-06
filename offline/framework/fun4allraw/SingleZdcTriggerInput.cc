@@ -108,10 +108,11 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
 
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
+      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
+      int packet_id = plist[i]->getIdentifier();
       if (nr_modules > 3)
       {
 	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
@@ -122,7 +123,7 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       newhit->setNrChannels(nr_channels);
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setEvtSequence(EventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
@@ -149,24 +150,6 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
           newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
         }
       }
- /*
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
-      newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
-      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
-      newhit->setEvtSequence(EventSequence);
-      for (int ifem = 0; ifem < 2; ifem++)
-      {
-        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
-      }
-      for (int ipmt = 0; ipmt < 128; ipmt++)
-      {
-        for (int isamp = 0; isamp < 31; isamp++)
-        {
-          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-        }
-      }
-*/
       if (Verbosity() > 2)
       {
         std::cout << PHWHERE << "evtno: " << EventSequence
@@ -175,7 +158,14 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       }
       if (TriggerInputManager())
       {
+	if (packet_id == std::clamp(packet_id, 9000, 9999))
+	{
+        TriggerInputManager()->AddSEpdPacket(EventSequence, newhit);
+	}
+	else
+	{
         TriggerInputManager()->AddZdcPacket(EventSequence, newhit);
+	}
       }
       m_ZdcPacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
@@ -254,9 +244,9 @@ bool SingleZdcTriggerInput::GetSomeMoreEvents(const unsigned int keep)
 
   int first_event = m_ZdcPacketMap.begin()->first;
   int last_event = m_ZdcPacketMap.rbegin()->first;
-  std::cout << "number of zdc events: " << m_ZdcPacketMap.size() << std::endl;
   if (Verbosity() > 1)
   {
+    std::cout << "number of zdc events: " << m_ZdcPacketMap.size() << std::endl;
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
@@ -293,6 +283,19 @@ void SingleZdcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
   {
     zdcpacketcont = new CaloPacketContainerv1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(zdcpacketcont, "ZDCPackets", "PHObject");
+    detNode->addNode(newNode);
+  }
+  detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "SEPD"));
+  if (!detNode)
+  {
+    detNode = new PHCompositeNode("SEPD");
+    dstNode->addNode(detNode);
+  }
+  CaloPacketContainer *sepdpacketcont = findNode::getClass<CaloPacketContainer>(detNode, "SEPDPackets");
+  if (!sepdpacketcont)
+  {
+    sepdpacketcont = new CaloPacketContainerv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(sepdpacketcont, "SEPDPackets", "PHObject");
     detNode->addNode(newNode);
   }
 }

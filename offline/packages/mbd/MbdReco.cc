@@ -20,8 +20,9 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <ffarawobjects/CaloPacketContainer.h>
+
 #include <TF1.h>
-#include <TH1.h>
 
 using namespace std;
 using namespace Fun4AllReturnCodes;
@@ -67,9 +68,17 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 {
   getNodes(topNode);
 
-  if (m_event != nullptr && m_mbdpmts != nullptr)
+  if ( (m_mbdevent!=nullptr || m_mbdraw!=nullptr) && m_mbdpmts != nullptr)
   {
-    int status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
+    int status = Fun4AllReturnCodes::ABORTEVENT;
+    if ( m_event!=nullptr )
+    {
+      status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
+    }
+    else if ( m_mbdraw!=nullptr )
+    {
+      status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts);
+    }
 
     if (status == Fun4AllReturnCodes::ABORTEVENT)
     {
@@ -79,15 +88,17 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     {
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
+    else if (status == -1001)
+    {
+      return Fun4AllReturnCodes::DISCARDEVENT;
+    }
     else if (status < 0)
     {
       return Fun4AllReturnCodes::EVENT_OK;
     }
   }
 
-  if ( _calpass == 2 )
-  {
-  }
+  // Here is where we should create calibrated dst from uncalibrated dst
 
   m_mbdevent->Calculate(m_mbdpmts, m_mbdout);
 
@@ -201,8 +212,12 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
   m_event = findNode::getClass<Event>(topNode, "PRDF");
   // cout << "event addr " << (unsigned int)m_event << endl;
 
-  if (m_event == nullptr)
+  // Get the raw data from event combined DST
+  m_mbdraw = findNode::getClass<CaloPacketContainer>(topNode, "MBDPackets");
+  
+  if (!m_event && !m_mbdraw)
   {
+    // not PRDF and not event combined DST, so we assume this is a sim file
     _simflag = 1;
 
     static int counter = 0;

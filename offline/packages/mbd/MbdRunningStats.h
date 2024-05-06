@@ -9,22 +9,21 @@
 class MbdRunningStats
 {
 public:
-  MbdRunningStats(const std::size_t imaxnum = -1);
+  MbdRunningStats(const unsigned int imaxnum = 100);
   void Clear();
   void Push(double x);
 
-  long long NumDataValues() const;
-  std::size_t MaxNum() const;
+  unsigned int Size() const { return static_cast<unsigned int>(values.size()); }
+  unsigned int MaxNum() const { return maxnum; }
 
   double Mean() const;
   double Variance() const;
   double StandardDeviation() const;
   double RMS() const;
 
-
 private:
   std::queue<int> values;
-  std::size_t maxnum; // max values in sum
+  unsigned int maxnum; // max values in sum
   double S1{0.};  // sum of values
   double S2{0.};  // sum of squares
 };

@@ -35,6 +35,7 @@ lib_LTLIBRARIES = \
   libtpc.la
 
 pkginclude_HEADERS = \
+  LaserClusterizer.h \
   TrainingHitsContainer.h \
   TrainingHits.h \
   TpcRawDataTree.h \
@@ -65,6 +66,7 @@ dist_mydata_DATA = \
 
 # sources for tpc library
 libtpc_la_SOURCES = \
+  LaserClusterizer.cc \
   TpcRawDataTree.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
@@ -72,7 +74,10 @@ libtpc_la_SOURCES = \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
   TpcRawWriter.cc \
-  TpcSimpleClusterizer.cc
+  TpcSimpleClusterizer.cc \
+  TpcClusterMover.cc \
+  TpcClusterZCrossingCorrection.cc \
+  TpcDistortionCorrection.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
@@ -89,10 +94,7 @@ libtpc_la_LIBADD = \
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
   TrainingHitsContainer.cc \
-  TrainingHits.cc \
-  TpcClusterMover.cc \
-  TpcDistortionCorrection.cc \
-  TpcClusterZCrossingCorrection.cc
+  TrainingHits.cc
 
 libtpc_io_la_LIBADD = \
   -ltrack_io \

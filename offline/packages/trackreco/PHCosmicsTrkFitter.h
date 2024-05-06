@@ -148,7 +148,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   /// TrackMap containing SvtxTracks
   SvtxTrackMap* m_trackMap = nullptr;
-//  SvtxTrackMap* m_directedTrackMap = nullptr;
+  //  SvtxTrackMap* m_directedTrackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
   TrackSeedContainer* m_seedMap = nullptr;
   TrackSeedContainer* m_tpcSeeds = nullptr;
@@ -169,6 +169,10 @@ class PHCosmicsTrkFitter : public SubsysReco
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
 
+  // do we have a constant field
+  bool m_ConstField = false;
+  double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
+
   /// A bool to use the chi2 outlier finder in the track fitting
   bool m_useOutlierFinder = false;
   ResidualOutlierFinder m_outlierFinder;
@@ -188,7 +192,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
   /// tpc distortion correction utility class
-//  TpcDistortionCorrection _distortionCorrection;
+  //  TpcDistortionCorrection _distortionCorrection;
 
   // cluster mover utility class
   //  TpcClusterMover _clusterMover;

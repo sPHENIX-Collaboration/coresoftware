@@ -104,7 +104,7 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
 
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
+      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
@@ -141,8 +141,8 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
         }
       }
  /*
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
-      newhit->setBCO(plist[i]->iValue(0, "CLOCK"));
+      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
+      newhit->setBCO(plist[i]->lValue(0, "CLOCK"));
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(plist[i]->getIdentifier());
       newhit->setEvtSequence(EventSequence);

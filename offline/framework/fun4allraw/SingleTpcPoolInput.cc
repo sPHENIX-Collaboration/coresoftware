@@ -142,6 +142,9 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
           }
           once = 0;
         }
+
+        if(packet->iValue(wf, "CHECKSUMERROR") ==1) continue;
+
         TpcRawHit *newhit = new TpcRawHitv1();
         int FEE = packet->iValue(wf, "FEE");
         newhit->set_bco(packet->iValue(wf, "BCO"));
@@ -160,13 +163,24 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         //         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
 
         // samples
-        const uint16_t samples = packet->iValue(wf, "SAMPLES");
+        //const uint16_t samples = packet->iValue(wf, "SAMPLES");
+
+	// Temp remedy as we set the time window as 360 for now
+        const uint16_t samples = 360;
+
         newhit->set_samples(samples);
 
         // adc values
         for (uint16_t is = 0; is < samples; ++is)
         {
-          newhit->set_adc(is, packet->iValue(wf, is));
+          uint16_t adval = packet->iValue(wf, is);
+
+          // This is temporary fix for decoder change. Will be changed again for real ZS data decoding.
+          //if(adval >= 64000){ newhit->set_samples(is); break;}
+ 
+          // With this, the hit is unseen from clusterizer
+          if(adval >= 64000) newhit->set_adc(is,0);
+          else newhit->set_adc(is, adval);
         }
 
         m_BeamClockFEE[gtm_bco].insert(FEE);

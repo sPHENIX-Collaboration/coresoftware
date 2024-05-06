@@ -54,6 +54,15 @@ GlobalVertex* GlobalVertexMapv1::get(unsigned int id)
 GlobalVertex* GlobalVertexMapv1::insert(GlobalVertex* clus)
 {
   unsigned int index = clus->get_id();
-  auto ret = _map.insert(std::make_pair(index, clus));
-  return ret.first->second;
+  _map[index] = clus;
+  return _map[index];
+}
+
+void GlobalVertexMapv1::CopyTo(GlobalVertexMap *to_global)
+{
+  for (auto const &it : _map)
+  {
+    GlobalVertex *glvtx = dynamic_cast<GlobalVertex *> (it.second->CloneMe());
+    to_global->insert(glvtx);
+  }
 }

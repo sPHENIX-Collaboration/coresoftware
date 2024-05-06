@@ -157,7 +157,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
     unsigned int clk;
     unsigned int evt;
     int nsamples;
-    int monitor;
+    //int monitor;
     for (int pid = m_packet_low; pid <= m_packet_high; pid++)
     {
       Packet *packet = _event->getPacket(pid);
@@ -167,7 +167,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
         evt = packet->iValue(0, "EVTNR");
         clk = packet->iValue(0, "CLOCK");
         nsamples = packet->iValue(0, "SAMPLES");
-        monitor = packet->iValue(0, "MONITOR");
+        //monitor = packet->iValue(0, "MONITOR");
 
         if (!m_no_ll1out)
         {
@@ -183,20 +183,36 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
           return Fun4AllReturnCodes::DISCARDEVENT;
         }
 
+	TriggerDefs::PrimitiveId primid = TriggerDefs::GetPrimitiveId(m_trigger);
+	if (primid == TriggerDefs::PrimitiveId::nonePId)
+	{
+	  primid = TriggerDefs::GetPrimitiveId(m_ll1);
+	}
+
         for (int iprim = 0; iprim < m_nprimitives; iprim++)
         {
-          primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), m_nprimitives * (pid - m_packet_low) + iprim);
+
+	  
+          primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, m_nprimitives * (pid - m_packet_low) + iprim);
 
           _trigger_primitive = new TriggerPrimitivev1(primkey);
 
           for (int channel = 0; channel < m_nchannels_per_primitive; channel++)
           {
-            sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), TriggerDefs::GetPrimitiveId(m_ll1), m_nprimitives * (pid - m_packet_low) + iprim, channel);
+	    sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, m_nprimitives * (pid - m_packet_low) + iprim, channel);
+	    
             _sum = new std::vector<unsigned int>();
             _sum->reserve(nsamples);
             for (int samp = 0; samp < nsamples; samp++)
             {
-              _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim * m_nchannels_per_primitive + channel)));
+              if (pid == 13002)
+	      {
+		_sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim*2 + channel/12 + 32*(channel%12))));
+	      }
+	      else
+	      {
+		_sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim * m_nchannels_per_primitive + channel)));
+	      }
             }
 
             _trigger_primitive->add_sum(sumkey, _sum);
@@ -220,28 +236,19 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
         }
         else
         {
-          TriggerDefs::TriggerId tid = TriggerDefs::TriggerId::noneTId;
-          TriggerDefs::PrimitiveId prid = TriggerDefs::PrimitiveId::nonePId;
+          TriggerDefs::TriggerId tid = TriggerDefs::TriggerId::jetTId;
+          TriggerDefs::PrimitiveId prid = TriggerDefs::PrimitiveId::jetPId;
+          TriggerDefs::DetectorId did = TriggerDefs::DetectorId::emcalDId;
 
-          if (monitor < 3)
-          {
-            tid = TriggerDefs::TriggerId::pairTId;
-            prid = TriggerDefs::PrimitiveId::pairPId;
-          }
-          else
-          {
-            tid = TriggerDefs::TriggerId::jetTId;
-            prid = TriggerDefs::PrimitiveId::jetPId;
-          }
-
+	  
           m_trigger_primitives_ll1->setTriggerType(tid);
-          primkey = TriggerDefs::getTriggerPrimKey(tid, TriggerDefs::GetDetectorId(m_ll1), prid, pid - m_packet_low);
+          primkey = TriggerDefs::getTriggerPrimKey(tid, did, prid, pid - m_packet_low);
 
           _trigger_primitive = new TriggerPrimitivev1(primkey);
-
-          for (int channel = 0; channel < ntriggerwords; channel++)
+	  
+          for (int channel = 0; channel < 24; channel++)
           {
-            sumkey = TriggerDefs::getTriggerSumKey(tid, TriggerDefs::GetDetectorId(m_ll1), prid, pid - m_packet_low, channel);
+            sumkey = TriggerDefs::getTriggerSumKey(tid, did, prid, pid - m_packet_low, channel);
             _sum = new std::vector<unsigned int>();
             _sum->reserve(nsamples);
 
