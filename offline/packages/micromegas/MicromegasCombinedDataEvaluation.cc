@@ -154,6 +154,15 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
     sample.layer = TrkrDefs::getLayer( hitsetkey );
     sample.tile = MicromegasDefs::getTileId( hitsetkey );
 
+    // channel and bound check.
+    sample.channel = rawhit->get_channel();
+    if( sample.channel >= MicromegasDefs::m_nchannels_fee )
+    {
+      if( Verbosity() )
+      { std::cout << "MicromegasCombinedDataEvaluation::process_event - invalid channel: " << sample.channel << std::endl; }
+      continue;
+    }
+
     // beam crossing
     sample.fee_bco = rawhit->get_bco();
     sample.lvl1_bco = rawhit->get_gtm_bco();
@@ -171,7 +180,6 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
     // channel, sampa_channel, sampa address and strip
     sample.sampa_address = rawhit->get_sampaaddress();
     sample.sampa_channel = rawhit->get_sampachannel();
-    sample.channel = rawhit->get_channel();
     sample.strip = m_mapping.get_physical_strip(sample.fee_id, sample.channel);
 
     // get channel rms and pedestal from calibration data
