@@ -16,6 +16,7 @@ class TrkrClusterContainer;
 class TrackSeedContainer;
 class TFile;
 class TH2;
+
 class AzimuthalSeeder : public SubsysReco
 {
  public:
@@ -28,7 +29,7 @@ class AzimuthalSeeder : public SubsysReco
   using SeedVector = std::vector<seed>;
   AzimuthalSeeder(const std::string &name = "AzimuthalSeeder");
 
-  ~AzimuthalSeeder() override;
+  ~AzimuthalSeeder() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;

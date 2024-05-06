@@ -14,13 +14,13 @@
 #include "TrksInJetQABaseFiller.h"
 
 // tracking libraries
-#include <trackbase/TrkrHit.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 // jet libraries
@@ -28,34 +28,31 @@
 #include <jetbase/JetContainer.h>
 
 // phool libraries
-#include <phool/phool.h>
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 // c+ utilities
 #include <cassert>
 
-
 // TrksInJetQAInclusiveFiller -------------------------------------------------
 
-class TrksInJetQAInclusiveFiller : public TrksInJetQABaseFiller {
+class TrksInJetQAInclusiveFiller : public TrksInJetQABaseFiller
+{
+ public:
+  // ctor/dtor
+  using TrksInJetQABaseFiller::TrksInJetQABaseFiller;
+  ~TrksInJetQAInclusiveFiller() override = default;
 
-  public:
+  // inherited public methods
+  void Fill(PHCompositeNode* topNode) override;
 
-    // ctor/dtor
-    using TrksInJetQABaseFiller::TrksInJetQABaseFiller;
-    ~TrksInJetQAInclusiveFiller() {};
-
-    // inherited public methods
-    void Fill(PHCompositeNode* topNode) override;
-
-  private:
-
-    // private methods
-    void FillHitQAHists();
-    void FillClustQAHists();
-    void FillTrackQAHists();
-    void FillJetQAHists();
+ private:
+  // private methods
+  void FillHitQAHists();
+  void FillClustQAHists();
+  void FillTrackQAHists();
+  void FillJetQAHists();
 
 };  // end TrksInJetQAInclusiveFiller
 

@@ -22,48 +22,58 @@
 
 // c++ utilities
 #include <limits>
-#include <vector>
 #include <utility>
-
+#include <vector>
 
 // TrksInJetQATrkManager definition -------------------------------------------
 
-class TrksInJetQATrkManager : public TrksInJetQABaseManager {
+class TrksInJetQATrkManager : public TrksInJetQABaseManager
+{
+ public:
+  // histogram accessors
+  //   - TODO split tracks into seed types
+  enum Type
+  {
+    All
+  };
+  enum H1D
+  {
+    Eta,
+    Phi,
+    Pt,
+    Qual
+  };
+  enum H2D
+  {
+    EtaVsPhi,
+    PtVsQual
+  };
 
-  public:
+  // histogram content
+  struct TrackQAContent
+  {
+    double eta = std::numeric_limits<double>::max();
+    double phi = std::numeric_limits<double>::max();
+    double pt = std::numeric_limits<double>::max();
+    double qual = std::numeric_limits<double>::max();
+  };
 
-    // histogram accessors
-    //   - TODO split tracks into seed types
-    enum Type {All};
-    enum H1D  {Eta, Phi, Pt, Qual};
-    enum H2D  {EtaVsPhi, PtVsQual};
+  // ctor/dtor
+  using TrksInJetQABaseManager::TrksInJetQABaseManager;
+  ~TrksInJetQATrkManager(){};
 
-    // histogram content
-    struct TrackQAContent {
-      double eta  = std::numeric_limits<double>::max();
-      double phi  = std::numeric_limits<double>::max();
-      double pt   = std::numeric_limits<double>::max();
-      double qual = std::numeric_limits<double>::max();
-    };
+  // public methods
+  void GetInfo(SvtxTrack* track);
 
-    // ctor/dtor
-    using TrksInJetQABaseManager::TrksInJetQABaseManager;
-    ~TrksInJetQATrkManager() {};
+ private:
+  // private methods
+  void FillHistograms(const int type, TrackQAContent& content);
 
-    // public methods
-    void GetInfo(SvtxTrack* track);
-
-  private:
-
-    // private methods
-    void FillHistograms(const int type, TrackQAContent& content);
-
-    // inherited private methods
-    void DefineHistograms() override;
+  // inherited private methods
+  void DefineHistograms() override;
 
 };  // end TrksInJetQATrkManager
 
 #endif
 
 // end ------------------------------------------------------------------------
-

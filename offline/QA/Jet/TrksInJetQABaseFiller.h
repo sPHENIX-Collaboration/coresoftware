@@ -11,26 +11,26 @@
 #define TRKSINJETQABASEFILLER_H
 
 // submodule definitions
-#include "TrksInJetQAHitManager.h"
 #include "TrksInJetQAClustManager.h"
-#include "TrksInJetQATrkManager.h"
+#include "TrksInJetQAHitManager.h"
 #include "TrksInJetQAJetManager.h"
+#include "TrksInJetQATrkManager.h"
 // module utilties
-#include "TrksInJetQAHist.h"
 #include "TrksInJetQAConfig.h"
+#include "TrksInJetQAHist.h"
 
 // tracking includes
 #include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 // jet includes
 #include <jetbase/JetContainer.h>
 
 // phool libraries
-#include <phool/phool.h>
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 // root includes
 #include <TFile.h>
@@ -38,47 +38,44 @@
 // c++ includes
 #include <string>
 
-
 // TrksInJetQABaseFiller ------------------------------------------------------
 
-class TrksInJetQABaseFiller {
+class TrksInJetQABaseFiller
+{
+ public:
+  // ctor/dtor
+  TrksInJetQABaseFiller(const TrksInJetQAConfig& config, TrksInJetQAHist& hist);
+  virtual ~TrksInJetQABaseFiller() = default;
 
-  public:
+  // public methods
+  void MakeHistograms(const std::string& label = "");
+  void SaveHistograms(TFile* outFile, const std::string& outDirName);
+  void GrabHistograms(std::vector<TH1D*>& vecOutHist1D, std::vector<TH2D*>& vecOutHist2D);
 
-    // ctor/dtor
-    TrksInJetQABaseFiller(const TrksInJetQAConfig& config, TrksInJetQAHist& hist);
-    virtual ~TrksInJetQABaseFiller();
+  // virtual public methods
+  virtual void Fill(PHCompositeNode* topNode) = 0;
 
-    // public methods
-    void MakeHistograms(const std::string &label = "");
-    void SaveHistograms(TFile* outFile, const std::string &outDirName);
-    void GrabHistograms(std::vector<TH1D*>& vecOutHist1D, std::vector<TH2D*>& vecOutHist2D);
+ protected:
+  // private methods
+  void GetNodes(PHCompositeNode* topNode);
 
-    // virtual public methods
-    virtual void Fill(PHCompositeNode* topNode) = 0;
+  // necessary dst nodes
+  //   - FIXME these should be smart pointers!
+  ActsGeometry* m_actsGeom = NULL;
+  TrkrHitSetContainer* m_hitMap = NULL;
+  TrkrClusterContainer* m_clustMap = NULL;
+  SvtxTrackMap* m_trkMap = NULL;
+  JetContainer* m_jetMap = NULL;
 
-  protected:
+  // submodules to use
+  std::unique_ptr<TrksInJetQAHitManager> m_hitManager = NULL;
+  std::unique_ptr<TrksInJetQAClustManager> m_clustManager = NULL;
+  std::unique_ptr<TrksInJetQATrkManager> m_trackManager = NULL;
+  std::unique_ptr<TrksInJetQAJetManager> m_jetManager = NULL;
 
-    // private methods
-    void GetNodes(PHCompositeNode* topNode);
-
-    // necessary dst nodes
-    //   - FIXME these should be smart pointers!
-    ActsGeometry*         m_actsGeom = NULL;
-    TrkrHitSetContainer*  m_hitMap   = NULL;
-    TrkrClusterContainer* m_clustMap = NULL;
-    SvtxTrackMap*         m_trkMap   = NULL;
-    JetContainer*         m_jetMap   = NULL;
-
-    // submodules to use
-    std::unique_ptr<TrksInJetQAHitManager>   m_hitManager   = NULL;
-    std::unique_ptr<TrksInJetQAClustManager> m_clustManager = NULL;
-    std::unique_ptr<TrksInJetQATrkManager>   m_trackManager = NULL;
-    std::unique_ptr<TrksInJetQAJetManager>   m_jetManager   = NULL;
-
-    // module utilities
-    TrksInJetQAConfig m_config;
-    TrksInJetQAHist   m_hist;
+  // module utilities
+  TrksInJetQAConfig m_config;
+  TrksInJetQAHist m_hist;
 
 };  // end TrksInJetQABaseFiller
 
