@@ -219,7 +219,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode *topNode)
         // find matching lvl1 bco
         static constexpr unsigned int max_fee_bco_diff = 10;
         if( (sample.fee_bco-bco_matching_pair.first) < max_fee_bco_diff )
-          // if( bco_matching_pair.first == sample.fee_bco )
         {
 
           sample.lvl1_bco = bco_matching_pair.second;
