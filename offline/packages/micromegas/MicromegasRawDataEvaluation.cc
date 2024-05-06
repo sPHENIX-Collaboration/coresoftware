@@ -53,7 +53,13 @@ namespace
     }
     return out;
   }
-}  // namespace
+
+  // get the difference between two BCO.
+  template<class T>
+  inline static constexpr T get_bco_diff( const T& first, const T& second )
+  { return first < second ? (second-first):(first-second); }
+
+}
 
 //_________________________________________________________
 void MicromegasRawDataEvaluation::Waveform::copy_from(const MicromegasRawDataEvaluation::Sample& sample)
@@ -210,8 +216,19 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         sample.packet_id = packet_id;
         sample.fee_id = packet->iValue(iwf, "FEE");
         const auto hitsetkey = m_mapping.get_hitsetkey(sample.fee_id);
-        sample.layer = TrkrDefs::getLayer(hitsetkey);
-        sample.tile = MicromegasDefs::getTileId(hitsetkey);
+        sample.layer = TrkrDefs::getLayer( hitsetkey );
+        sample.tile = MicromegasDefs::getTileId( hitsetkey );
+
+        // get channel
+        sample.channel = packet->iValue( iwf, "CHANNEL" );
+
+        // bound check
+        if( sample.channel >= MicromegasDefs::m_nchannels_fee )
+        {
+          if( Verbosity() )
+          { std::cout << "MicromegasRawDataEvaluation::process_event - invalid channel: " << sample.channel << std::endl; }
+          continue;
+        }
 
         // beam crossing
         sample.fee_bco = static_cast<uint32_t>(packet->iValue(iwf, "BCO"));
@@ -223,7 +240,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
         // find matching lvl1 bco
         static constexpr unsigned int max_fee_bco_diff = 10;
-        if( (sample.fee_bco-bco_matching_pair.first) < max_fee_bco_diff )
+        if( get_bco_diff(sample.fee_bco,bco_matching_pair.first) < max_fee_bco_diff )
         {
           sample.lvl1_bco = bco_matching_pair.second;
           sample.lvl1_bco_masked = ( bco_matching_pair.second & 0xFFFFF );
@@ -283,9 +300,8 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         ++m_bco_map[sample.lvl1_bco];
 
         // channel, sampa_channel, sampa address and strip
-        sample.sampa_address = packet->iValue(iwf, "SAMPAADDRESS");
-        sample.sampa_channel = packet->iValue(iwf, "SAMPACHANNEL");
-        sample.channel = packet->iValue(iwf, "CHANNEL");
+        sample.sampa_address = packet->iValue( iwf, "SAMPAADDRESS" );
+        sample.sampa_channel = packet->iValue( iwf, "SAMPACHANNEL" );
         sample.strip = m_mapping.get_physical_strip(sample.fee_id, sample.channel);
 
         // get channel rms and pedestal from calibration data
