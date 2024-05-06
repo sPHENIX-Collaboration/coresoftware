@@ -140,7 +140,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     hvtx_z_raw->Fill(vtx_z);
   }
 
-  //---------------------------calibrated towers-------------------------------//
+  //--------------------------- calibrated towers -------------------------------//
   {
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
     if (towers)
@@ -153,6 +153,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       auto h_cemc_etaphi = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi") % getHistoPrefix()).c_str()));
       auto h_cemc_etaphi_wQA = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_wQA") % getHistoPrefix()).c_str()));
       auto h_cemc_etaphi_badChi2 = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_badChi2") % getHistoPrefix()).c_str()));
+      auto h_cemc_tower_e = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%scemc_tower_e") % getHistoPrefix()).c_str()));
 
       for (int channel = 0; channel < size; channel++)
       {
@@ -165,6 +166,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         h_cemc_e_chi2->Fill(offlineenergy, tower->get_chi2());
         float _timef = tower->get_time_float();
         hemcaltime_cut->Fill(_time);
+        h_cemc_tower_e->Fill(offlineenergy);
         bool isGood = tower->get_isGood();
         uint8_t status = tower->get_status();
         for (int is = 0; is < 8; is++)
@@ -212,6 +214,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       auto h_hcalin_etaphi = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sihcal_etaphi") % getHistoPrefix()).c_str()));
       auto h_hcalin_etaphi_wQA = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sihcal_etaphi_wQA") % getHistoPrefix()).c_str()));
       auto h_hcalin_etaphi_badChi2 = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sihcal_etaphi_badChi2") % getHistoPrefix()).c_str()));
+      auto h_hcalin_tower_e = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%shcalin_tower_e") % getHistoPrefix()).c_str()));
 
       int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
@@ -224,6 +227,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         int _time = tower->get_time();
         float _timef = tower->get_time_float();
         hihcaltime_cut->Fill(_time);
+        h_hcalin_tower_e->Fill(offlineenergy);
         h_ihcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
         bool isGood = tower->get_isGood();
         h_ihcal_status->Fill(tower->get_status());
@@ -276,6 +280,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       auto h_hcalout_etaphi = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sohcal_etaphi") % getHistoPrefix()).c_str()));
       auto h_hcalout_etaphi_wQA = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sohcal_etaphi_wQA") % getHistoPrefix()).c_str()));
       auto h_hcalout_etaphi_badChi2 = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sohcal_etaphi_badChi2") % getHistoPrefix()).c_str()));
+      auto h_hcalout_tower_e = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%shcalout_tower_e") % getHistoPrefix()).c_str()));
 
       int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
@@ -288,6 +293,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         int _time = tower->get_time();
         float _timef = tower->get_time_float();
         hohcaltime_cut->Fill(_time);
+        h_hcalout_tower_e->Fill(offlineenergy);
         h_ohcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
         bool isGood = tower->get_isGood();
         h_ohcal_status->Fill(tower->get_status());
@@ -843,6 +849,18 @@ void CaloValid::createHistos()
   }
   {
     auto h = new TH1F(boost::str(boost::format("%sclusE") % getHistoPrefix()).c_str(), "", 100, 0, 10);
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH1F(boost::str(boost::format("%scemc_tower_e") % getHistoPrefix()).c_str(), "", 1000, -0.1,0.2);
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH1F(boost::str(boost::format("%shcalout_tower_e") % getHistoPrefix()).c_str(), "", 1000, -0.1,0.2);
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH1F(boost::str(boost::format("%shcalin_tower_e") % getHistoPrefix()).c_str(), "", 1000, -0.1,0.2);
     hm->registerHisto(h);
   }
 }
