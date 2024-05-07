@@ -85,6 +85,6 @@ bool PgPostBankWrapper::commit()
   else
   {
     cout << "Bank is a nullptr pointer" << endl;
-    return 0;
+    return false;
   }
 }

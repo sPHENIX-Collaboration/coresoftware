@@ -46,7 +46,8 @@ PgPostApplication *PgPostApplication::instance()
 
 int PgPostApplication::Register(const string &dbname)
 {
-  if (__instance.get()) return -1;
+  if (__instance.get()) { return -1;
+}
   mySpecificCopy = new PgPostApplication(dbname);
   __instance = std::unique_ptr<PdbApplication>(mySpecificCopy);
   return 0;
@@ -54,7 +55,8 @@ int PgPostApplication::Register(const string &dbname)
 
 int PgPostApplication::releaseConnection()
 {
-  if (!__instance.get()) return -1;
+  if (!__instance.get()) { return -1;
+}
   if (con)
   {
     con->Close();
@@ -64,18 +66,18 @@ int PgPostApplication::releaseConnection()
 }
 
 PgPostApplication::PgPostApplication(const string &dbname)
-  : readOnly(1)
+  : readOnly(true)
   , dsn(dbname)
 {
 }
 
 PgPostApplication::~PgPostApplication()
 {
-  mySpecificCopy = 0;
+  mySpecificCopy = nullptr;
   if (con)
   {
     con->Close();
-    con = 0;
+    con = nullptr;
   }
 }
 
@@ -94,11 +96,11 @@ TSQLConnection *PgPostApplication::getConnection()
   return con;
 }
 
-int PgPostApplication::setDBName(const string &name)
+int PgPostApplication::setDBName(const string &dbname)
 {
-  if (dsn != name)
+  if (dsn != dbname)
   {
-    dsn = name;
+    dsn = dbname;
     if (con)
     {
       con->Close();
@@ -117,14 +119,14 @@ int PgPostApplication::setDBName(const string &name)
 PdbStatus
 PgPostApplication::startUpdate()
 {
-  readOnly = 0;
+  readOnly = false;
   return 1;
 }
 
 PdbStatus
 PgPostApplication::startRead()
 {
-  readOnly = 1;
+  readOnly = true;
   return 1;
 }
 
@@ -133,7 +135,8 @@ PgPostApplication::abort()
 {
   PgPostBankWrapperManager::instance().clear();
   // will roll back a Xact in progres
-  if (con) con->Rollback();
+  if (con) { con->Rollback();
+}
   return 1;
 }
 
@@ -150,7 +153,8 @@ PgPostApplication::commit()
   {
     // Commit the registered wrappers (this will also forget them).
     bool ok = PgPostBankWrapperManager::instance().commit();
-    if (con) con->Commit();
+    if (con) { con->Commit();
+}
     return (ok == true);
   }
 }

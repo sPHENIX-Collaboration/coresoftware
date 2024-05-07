@@ -27,13 +27,13 @@ using namespace std;
 //_____________________________________________________________________________
 PgPostCalBankIterator::PgPostCalBankIterator(PgPostBankManager& bm)
   : fBM(bm)
-  , fApplication(0)
+  , fApplication(nullptr)
   , fDBName("")
   , fTableName("")
   , fIsValid(false)
   , fBankID(-1)
-  , fSQLStatement(0)
-  , fSQLResultSet(0)
+  , fSQLStatement(nullptr)
+  , fSQLResultSet(nullptr)
 {
   fApplication = dynamic_cast<PgPostApplication*>(fBM.getApplication());
   if (!fApplication)
@@ -106,7 +106,7 @@ PgPostCalBankIterator::next()
 {
   if (!fIsValid)
   {
-    return 0;
+    return nullptr;
   }
 
   //
@@ -188,7 +188,7 @@ PgPostCalBankIterator::next()
   }
 
   fIsValid = false;
-  return 0;
+  return nullptr;
 }
 
 //_____________________________________________________________________________

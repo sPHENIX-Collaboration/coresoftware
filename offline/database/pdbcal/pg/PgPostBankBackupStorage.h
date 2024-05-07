@@ -36,10 +36,10 @@ class PgPostBankBackupStorage : public TNamed
 
   PgPostBankBackupStorage();
 
-  virtual ~PgPostBankBackupStorage();
+  ~PgPostBankBackupStorage() override;
 
-  virtual void
-  Print(Option_t *option = "") const;
+  void
+  Print(Option_t *option = "") const override;
 
   bool
   isValid() const;
@@ -71,12 +71,10 @@ class PgPostBankBackupStorage : public TNamed
     {
     }
 
-    ~BankHeader()
-    {
-    }
+    ~BankHeader() override = default;
 
-    virtual void
-    Print(Option_t *option = "") const;
+    void
+    Print(Option_t *option = "") const override;
 
     int
     getBankID() const

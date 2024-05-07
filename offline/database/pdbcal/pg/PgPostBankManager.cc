@@ -47,7 +47,7 @@ const bool registered =
     PdbBankManagerFactory::instance().registerCreator(name, singletonCreator, "PdbBankManager");
 }  // namespace
 
-PgPostBankManager *PgPostBankManager::mySpecificCopy = 0;
+PgPostBankManager *PgPostBankManager::mySpecificCopy = nullptr;
 
 PgPostBankManager *PgPostBankManager::instance()
 {
@@ -56,7 +56,8 @@ PgPostBankManager *PgPostBankManager::instance()
 
 int PgPostBankManager::Register()
 {
-  if (__instance) return -1;
+  if (__instance) { return -1;
+}
   mySpecificCopy = new PgPostBankManager();
   __instance = mySpecificCopy;
   return 0;
@@ -72,7 +73,7 @@ PgPostBankManager::PgPostBankManager()
 
 PgPostBankManager::~PgPostBankManager()
 {
-  mySpecificCopy = 0;
+  mySpecificCopy = nullptr;
 }
 
 PdbCalBankIterator *
@@ -87,12 +88,12 @@ PgPostBankManager::createBank(const int beginRunNumber, const int endRunNumber, 
   RunToTime *runTime = RunToTime::instance();
 
   PHTimeStamp *beginRunTime = runTime->getBeginTime(beginRunNumber);
-  if (beginRunTime != 0)
+  if (beginRunTime != nullptr)
   {
     PHTimeStamp startTime = *(beginRunTime);
 
     PHTimeStamp *endRunTime = runTime->getEndTime(endRunNumber);
-    if (endRunTime != 0)
+    if (endRunTime != nullptr)
     {
       PHTimeStamp endTime = *(endRunTime);
       delete beginRunTime;
@@ -102,7 +103,7 @@ PgPostBankManager::createBank(const int beginRunNumber, const int endRunNumber, 
         cout << PHWHERE << "Bad Start/EndRun Time: Start Time: "
              << startTime << " >= End Time: "
              << endTime << endl;
-        return 0;
+        return nullptr;
       }
       return createBank(className, bankID, description, startTime, endTime, bankName);
     }
@@ -110,7 +111,7 @@ PgPostBankManager::createBank(const int beginRunNumber, const int endRunNumber, 
     {
       delete beginRunTime;
       cout << PHWHERE << "endTime = 0" << endl;
-      return 0;
+      return nullptr;
     }
     delete beginRunTime;
   }
@@ -118,7 +119,7 @@ PgPostBankManager::createBank(const int beginRunNumber, const int endRunNumber, 
   {
     cout << PHWHERE << "beginTime = 0" << endl;
   }
-  return 0;
+  return nullptr;
 }
 
 PdbCalBank *
@@ -127,7 +128,7 @@ PgPostBankManager::createBank(const int runNumber, const string &className, PdbB
   RunToTime *runTime = RunToTime::instance();
 
   PHTimeStamp *runBeginTime = runTime->getBeginTime(runNumber);
-  if (runBeginTime != 0)
+  if (runBeginTime != nullptr)
   {
     PHTimeStamp startTime = *(runBeginTime);
     PHTimeStamp endTime = startTime;
@@ -144,7 +145,7 @@ PgPostBankManager::createBank(const int runNumber, const string &className, PdbB
     delete runBeginTime;
     return createBank(className, bankID, description, startTime, endTime, bankName);
   }
-  return 0;
+  return nullptr;
 }
 
 PdbCalBank *
@@ -172,7 +173,7 @@ PgPostBankManager::createBank(const string &className, PdbBankID bankID, const s
   {
     std::cerr << PHWHERE << "\t NO BANK " << rName
               << " IN THE MAP" << std::endl;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -182,13 +183,13 @@ PgPostBankManager::fetchBank(const string &className, PdbBankID bankID, const st
   RunToTime *runTime = RunToTime::instance();
 
   PHTimeStamp *runBeginTime = runTime->getBeginTime(runNumber);
-  if (runBeginTime != 0)
+  if (runBeginTime != nullptr)
   {
     PHTimeStamp searchTime = *(runBeginTime);
     delete runBeginTime;
     return fetchBank(className, bankID, bankName, searchTime);
   }
-  return 0;
+  return nullptr;
 }
 
 PdbCalBank *
@@ -197,13 +198,13 @@ PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, c
   RunToTime *runTime = RunToTime::instance();
 
   PHTimeStamp *runBeginTime = runTime->getBeginTime(runNumber);
-  if (runBeginTime != 0)
+  if (runBeginTime != nullptr)
   {
     PHTimeStamp searchTime = *(runBeginTime);
     delete runBeginTime;
     return fetchClosestBank(className, bankID, bankName, searchTime);
   }
-  return 0;
+  return nullptr;
 }
 
 // void PgPostBankManager::fetchAllBanks(PdbBankList & bankList, const string &className, PdbBankID bankID, const string &bankName, const int runNumber)
@@ -307,7 +308,7 @@ PdbCalBank *PgPostBankManager::fetchBank(const string &/*className*/, PdbBankID 
   else
   {
     std::cerr << PHWHERE << "NO Bank found : " << tem.str() << std::endl;
-    return 0;
+    return nullptr;
   }
 }
 

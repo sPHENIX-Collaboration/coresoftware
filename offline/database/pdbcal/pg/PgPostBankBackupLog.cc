@@ -29,8 +29,7 @@ PgPostBankBackupLog::PgPostBankBackupLog(const std::string& TableName,
 }
 
 PgPostBankBackupLog::~PgPostBankBackupLog()
-{
-}
+= default;
 
 void PgPostBankBackupLog::Init()
 {
@@ -40,8 +39,9 @@ void PgPostBankBackupLog::Init()
     {
       const TString s_con = "dsn=calibrations_backup_log; uid=phnxrc; pwd= ";
 
-      if (Verbosity() >= 1)
+      if (Verbosity() >= 1) {
         cout << "PgPostBankBackupLog::Init - connect to " << s_con << endl;
+}
 
       con = gSQLDriverManager->GetConnection(s_con);
       if (!con)
@@ -60,9 +60,10 @@ void PgPostBankBackupLog::Init()
       sqlcmd << "insert into calib_log (tablename,rid,ops,tag) values ('"
              << tablename << "',?,?,'" << tag << "');";
 
-      if (Verbosity() >= 1)
+      if (Verbosity() >= 1) {
         cout << "PgPostBankBackupLog::Init - make TSQLPreparedStatement "
              << sqlcmd.str() << endl;
+}
       pstmt = con->PrepareStatement(sqlcmd.str().c_str());
 
       if (!pstmt)

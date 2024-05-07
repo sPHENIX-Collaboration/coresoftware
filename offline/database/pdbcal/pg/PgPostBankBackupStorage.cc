@@ -63,7 +63,6 @@ PgPostBankBackupStorage::PgPostBankBackupStorage()
 
 PgPostBankBackupStorage::~PgPostBankBackupStorage()
 {
-  if (bank)
     delete bank;
 }
 
@@ -189,12 +188,15 @@ void PgPostBankBackupStorage::set_obj_info(const PgPostCalBank *bw)
   obj_header.setInsertTime(bw->getInsertTime());
   obj_header.setStartValTime(bw->getStartValTime());
   obj_header.setEndValTime(bw->getEndValTime());
-  if (!bw->getDescription().empty())
+  if (!bw->getDescription().empty()) {
     obj_header.setDescription(bw->getDescription());
-  if (!bw->getUserName().empty())
+}
+  if (!bw->getUserName().empty()) {
     obj_header.setUserName(bw->getUserName());
-  if (!bw->getTableName().empty())
+}
+  if (!bw->getTableName().empty()) {
     obj_header.setTableName(bw->getTableName());
+}
 }
 
 void PgPostBankBackupStorage::Print(Option_t *option) const

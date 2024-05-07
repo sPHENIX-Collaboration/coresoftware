@@ -189,7 +189,7 @@ RunToTimePg::getTime(const int runNumber, const string& what)
     }
   }
   delete rs;
-  return 0;
+  return nullptr;
 }
 
 PHTimeStamp*
@@ -272,7 +272,7 @@ int RunToTimePg::getRunNumber(const PHTimeStamp& ts)
   delete rs;
   if (runnumber == -1)
   {
-    goto cleanup;
+    return runnumber;
   }
 
   cmd.str("");
@@ -303,6 +303,5 @@ int RunToTimePg::getRunNumber(const PHTimeStamp& ts)
   }
   delete rs;
 
-cleanup:
   return runnumber;
 }
