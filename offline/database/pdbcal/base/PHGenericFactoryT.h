@@ -44,8 +44,8 @@ class PHGenericFactoryT : public FactoryErrorPolicy<AbstractProduct>
       , name_()
     {
     }
-    ProductCreatorPair(ProductCreator creator, const char* productname)
-      : creator_(creator)
+    ProductCreatorPair(ProductCreator pc_creator, const char* productname)
+      : creator_(pc_creator)
       , name_(productname)
     {
     }
