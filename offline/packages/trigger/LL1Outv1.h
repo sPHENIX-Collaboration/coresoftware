@@ -48,6 +48,14 @@ class LL1Outv1 : public LL1Out
   std::vector<unsigned int>* GetTriggerBits() override { return _trigger_bits; }
   bool passesTrigger() override;
 
+  bool passesThreshold(int ith) override;
+
+  std::vector<TriggerDefs::TriggerSumKey> getTriggeredSums() override { return _triggered_sums;}
+  std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives() override { return _triggered_primitives;}
+
+  void addTriggeredSum(TriggerDefs::TriggerSumKey sk) override;
+  void addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk) override;
+
   void add_word(int key, std::vector<unsigned int>* trigger_words) override { _trigger_words[key] = trigger_words; }
 
   void set_event_number(unsigned int evt) override { _event_number = evt; }
@@ -69,6 +77,9 @@ class LL1Outv1 : public LL1Out
   std::string _ll1_type{"NONE"};
   std::string _trigger_type{"NONE"};
   std::vector<unsigned int>* _trigger_bits{nullptr};
+  std::vector<unsigned int> _triggered_sums = {};
+  std::vector<unsigned int> _triggered_primitives = {};
+
   Map _trigger_words;
 
  private:  // so the ClassDef does not show up with doc++

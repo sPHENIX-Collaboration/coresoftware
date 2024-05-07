@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 LL1Outv1::LL1Outv1()
   : _trigger_key(TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(_trigger_type)))
@@ -32,7 +33,8 @@ LL1Outv1::~LL1Outv1()
 void LL1Outv1::Reset()
 {
   _trigger_bits->clear();
-
+  _triggered_sums.clear();
+  _triggered_primitives.clear();
   while (_trigger_words.begin() != _trigger_words.end())
   {
     delete _trigger_words.begin()->second;
@@ -89,4 +91,44 @@ bool LL1Outv1::passesTrigger()
     }
   }
   return false;
+}
+
+bool LL1Outv1::passesThreshold(int ith)
+{
+  for (unsigned int& _trigger_bit : *_trigger_bits)
+  {
+    if (((_trigger_bit >> (uint16_t) ith) & 0x1U) == 0x1U)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+void LL1Outv1::addTriggeredSum(TriggerDefs::TriggerSumKey sk) 
+{
+  unsigned int sumk = sk;
+  if (!_triggered_sums.size())
+    {
+      _triggered_sums.push_back(sumk);
+      return;
+    }
+  if (std::find(_triggered_sums.begin(), _triggered_sums.end(), sumk) == std::end(_triggered_sums))
+    {
+      _triggered_sums.push_back(sumk);
+    }
+}
+void LL1Outv1::addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk)
+{
+  unsigned int primk = pk;
+  if (!_triggered_primitives.size())
+    {
+      _triggered_primitives.push_back(primk);
+      return;
+    }
+  if (std::find(_triggered_primitives.begin(), _triggered_primitives.end(), primk) == std::end(_triggered_primitives))
+    {
+      _triggered_primitives.push_back(primk);
+    }
+  return;
 }

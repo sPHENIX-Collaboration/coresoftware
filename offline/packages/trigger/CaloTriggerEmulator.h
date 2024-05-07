@@ -159,12 +159,7 @@ class CaloTriggerEmulator : public SubsysReco
 
   TriggerPrimitiveContainer *_primitives_emcal_ll1{nullptr};
 
-  TriggerPrimitive *_primitive{nullptr};
 
-  std::vector<unsigned int> *_sum{nullptr};
-  std::vector<unsigned int> *_bits{nullptr};
-
-  //! Lookup tables
   unsigned int m_l1_adc_table[1024]{};
   unsigned int m_l1_adc_table_time[1024]{};
   unsigned int m_l1_slewing_table[4096]{};
@@ -211,10 +206,10 @@ class CaloTriggerEmulator : public SubsysReco
 
   unsigned int m_nhit1, m_nhit2, m_timediff1, m_timediff2, m_timediff3;
 
-  std::map<unsigned int, std::vector<unsigned int> *> m_peak_sub_ped_emcal;
-  std::map<unsigned int, std::vector<unsigned int> *> m_peak_sub_ped_mbd;
-  std::map<unsigned int, std::vector<unsigned int> *> m_peak_sub_ped_hcalin;
-  std::map<unsigned int, std::vector<unsigned int> *> m_peak_sub_ped_hcalout;
+  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_emcal;
+  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_mbd;
+  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_hcalin;
+  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_hcalout;
 
   //! Verbosity.
   int _nevent;

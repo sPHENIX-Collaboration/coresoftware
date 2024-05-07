@@ -39,6 +39,13 @@ class LL1Out : public PHObject
   virtual std::vector<unsigned int>* GetTriggerBits() { return nullptr; }
 
   virtual bool passesTrigger() { return 0; }
+  virtual bool passesThreshold(int /*ith*/) { return 0; }
+
+  virtual std::vector<TriggerDefs::TriggerSumKey> getTriggeredSums();
+  virtual std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives();
+
+  virtual void addTriggeredSum(TriggerDefs::TriggerSumKey /*sk*/) { return; }
+  virtual void addTriggeredPrimitive(TriggerDefs::TriggerPrimKey /*pk*/) { return; }
 
   virtual void add_word(int /*key*/, std::vector<unsigned int>* /*trigger_words*/) {}
 
