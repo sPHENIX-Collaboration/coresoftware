@@ -21,23 +21,31 @@ int BeamCrossingAnalysis::InitRun(PHCompositeNode* topNode)
 {
   const char* cfilepath = filepath.c_str();
   fout = new TFile(cfilepath, "recreate");
-  ntp_vertex = new TNtuple("ntp_vertex", "Vertex ntuple","crossing:vtxid:x:y:z:ntracks");
-  ntp_track = new TNtuple("ntp_track", "Track ntuple", "crossing:trackid:x:y:z:px:py:pz");
+  ntp_vertex = new TNtuple("ntp_vertex", "Vertex ntuple","crossing:event:vtxid:x:y:z:ntracks");
+  ntp_track = new TNtuple("ntp_track", "Track ntuple", "crossing:event:trackid:x:y:z:px:py:pz");
 
   getNodes(topNode);
 
   hcross = new TH1D("hcross", "Crossings", 1000, -20, 200);  // root histogram arguments: name,title,bins,minvalx,maxvalx
+
+  _event = 0;
 
   return 0;
 }
 
 int BeamCrossingAnalysis::process_event(PHCompositeNode* /**topNode*/)
 {
+  _event++;
+
   std::set<short int> crossing_set = m_track_vertex_crossing_map->getCrossings();
 
   for (const auto& cross : crossing_set)
-    { 
-      std::cout  << "Crossing " << cross << std::endl;
+    {
+      if(Verbosity() > 0)
+	{
+
+	  std::cout  << "Event " << _event << " Crossing " << cross << std::endl;
+	}
 
       hcross->Fill(cross);  
 
@@ -48,24 +56,27 @@ int BeamCrossingAnalysis::process_event(PHCompositeNode* /**topNode*/)
 	{
 	  unsigned int vtxid = itr->second;	  
 	  const SvtxVertex* svtxVertex = m_vertexMap->get(vtxid);
-float vx=0;
-float vy=0;
-float vz=0;
+	  float vx=0;
+	  float vy=0;
+	  float vz=0;
           unsigned int ntracks = 0;
 	  if (svtxVertex)
 	    {
-	      vx = svtxVertex->get_x() * Acts::UnitConstants::cm;
-	      vy = svtxVertex->get_y() * Acts::UnitConstants::cm;
-	      vz = svtxVertex->get_z() * Acts::UnitConstants::cm;
+	      vx = svtxVertex->get_x() ;
+	      vy = svtxVertex->get_y() ;
+	      vz = svtxVertex->get_z();
 
 	      ntracks = svtxVertex->size_tracks();
 	    }	 
 	  
 	  // fill vertex ntuple
-	  float vertex_info[] = {(float) cross, (float) vtxid, vx, vy, vz, (float) ntracks };
+          float vertex_info[] = {(float) cross, (float) _event,  (float) vtxid, vx, vy, vz, (float) ntracks };
 	  ntp_vertex->Fill(vertex_info);
 
-	  std::cout << "    crossing  " << cross << " vertex ID " << vtxid << " x " << vx << " y " << vy << " z " << vz << std::endl;
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << "    crossing  " << cross << " vertex ID " << vtxid << " x " << vx << " y " << vy << " z " << vz << " cm " <<  Acts::UnitConstants::cm << std::endl;
+	    }
 	} 
       
                 
@@ -78,28 +89,31 @@ float vz=0;
 	  const SvtxTrack *track = m_svtxTrackMap->get(trid);	  
           if (!track) continue;
 
-float tx=0;
-float ty=0;
-float tz=0;
-float px=0;
-float py=0;
-float pz=0;
+	  float tx=0;
+	  float ty=0;
+	  float tz=0;
+	  float px=0;
+	  float py=0;
+	  float pz=0;
 
 
-           tx = track->get_x() * Acts::UnitConstants::cm;
-	   ty = track->get_y() * Acts::UnitConstants::cm;
-	   tz = track->get_z() * Acts::UnitConstants::cm;
+	  tx = track->get_x() ;
+	  ty = track->get_y() ;
+	  tz = track->get_z() ;
 
-	   px = track->get_px();
-	   py = track->get_py();
-	   pz = track->get_pz();
+	  px = track->get_px();
+	  py = track->get_py();
+	  pz = track->get_pz();
 
 	  // fill track ntuple
-	  float track_info[] = {(float) cross, (float) trid, tx, ty, tz, px, py, pz };
+          float track_info[] = {(float) cross, (float) _event, (float) trid, tx, ty, tz, px, py, pz };
 	  ntp_track->Fill(track_info);
 
-	  std::cout << "    crossing  " << cross << " track ID " << trid << " x " << tx << " y " << ty << " z " << tz 
-		    << " px " << px << " py " << py << " pz " << pz   << std::endl;
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << "    crossing  " << cross << " event " << _event << " track ID " << trid << " x " << tx << " y " << ty << " z " << tz 
+			<< " px " << px << " py " << py << " pz " << pz   << std::endl;
+	    }
 
 	} 
       
@@ -114,23 +128,23 @@ int BeamCrossingAnalysis::getNodes(PHCompositeNode* topNode)
 {
   m_svtxTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!m_svtxTrackMap)
-  {
-    std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+    {
+      std::cout << PHWHERE << "No SvtxTrackMap on node tree, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!m_vertexMap)
-  {
-    std::cout << PHWHERE << "No vertexMap on node tree, exiting." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+    {
+      std::cout << PHWHERE << "No vertexMap on node tree, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   m_track_vertex_crossing_map = findNode::getClass<TrackVertexCrossingAssoc>(topNode,"TrackVertexCrossingAssocMap");
   if(!m_track_vertex_crossing_map)
     {
-    std::cout << PHWHERE << "No TrackVertexCrossingAssocMap on node tree, exiting." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+      std::cout << PHWHERE << "No TrackVertexCrossingAssocMap on node tree, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -50,6 +50,8 @@ class BeamCrossingAnalysis : public SubsysReco
   double _qual_cut = 10.0;
   TFile* fout = nullptr;
 
+  unsigned int _event = 0;
+
 };
 
 #endif  // BEAMCROSSINGANALYSIS_H
