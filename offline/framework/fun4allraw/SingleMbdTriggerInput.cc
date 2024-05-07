@@ -248,9 +248,9 @@ bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
 
   int first_event = m_MbdPacketMap.begin()->first;
   int last_event = m_MbdPacketMap.rbegin()->first;
-  std::cout << "number of mbd events: " << m_MbdPacketMap.size() << std::endl;
   if (Verbosity() > 1)
   {
+    std::cout << "number of mbd events: " << m_MbdPacketMap.size() << std::endl;
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
