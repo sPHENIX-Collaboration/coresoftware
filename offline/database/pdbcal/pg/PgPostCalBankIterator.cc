@@ -7,7 +7,7 @@
 #include <pdbcalbase/PdbBankID.h>
 #include <pdbcalbase/PdbCalBank.h>
 
-#include <phool/PHTimeStamp.h>          // for PHTimeStamp, operator<<
+#include <phool/PHTimeStamp.h>  // for PHTimeStamp, operator<<
 #include <phool/phool.h>
 
 #include <RDBC/TSQLConnection.h>
@@ -20,7 +20,6 @@
 #include <iostream>
 #include <sstream>
 #include <utility>
-
 
 using namespace std;
 

@@ -2,7 +2,7 @@
 //  -*- C++ -*-.
 /*!
  * \file PgPostBankBackupStorage.hh
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.3 $
  * \date $Date: 2014/04/14 22:56:48 $

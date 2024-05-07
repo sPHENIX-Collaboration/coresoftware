@@ -14,10 +14,10 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <iterator>                // for reverse_iterator
+#include <iterator>  // for reverse_iterator
 #include <sstream>
 #include <string>
-#include <utility>                 // for pair
+#include <utility>  // for pair
 
 using namespace odbc;
 using namespace std;

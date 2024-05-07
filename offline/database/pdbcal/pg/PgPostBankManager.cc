@@ -3,16 +3,16 @@
 #include "PgPostBankWrapper.h"
 #include "PgPostCalBankIterator.h"
 
+#include <pdbcalbase/PHGenericFactoryT.h>
 #include <pdbcalbase/PdbBankID.h>
+#include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbBankManagerFactory.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>
-#include <pdbcalbase/PHGenericFactoryT.h>
 #include <pdbcalbase/RunToTime.h>
-#include <pdbcalbase/PdbBankManager.h>
 
-#include <phool/PHObject.h>                    // for PHObject
-#include <phool/PHTimeStamp.h>                 // for PHTimeStamp, operator<<
+#include <phool/PHObject.h>     // for PHObject
+#include <phool/PHTimeStamp.h>  // for PHTimeStamp, operator<<
 #include <phool/phool.h>
 
 #include <RDBC/TSQLConnection.h>
@@ -34,17 +34,17 @@ using namespace std;
 
 namespace
 {
-PdbBankManager *singletonCreator()
-{
-  // rememeber that this will not neccessarily return a
-  // pointer to the singleton PgPostBankManager. If
-  // an Objy application is instantiated, it will return 0.
-  return PgPostBankManager::instance();
-}
+  PdbBankManager *singletonCreator()
+  {
+    // rememeber that this will not neccessarily return a
+    // pointer to the singleton PgPostBankManager. If
+    // an Objy application is instantiated, it will return 0.
+    return PgPostBankManager::instance();
+  }
 
-const std::string name = "Pg";
-const bool registered =
-    PdbBankManagerFactory::instance().registerCreator(name, singletonCreator, "PdbBankManager");
+  const std::string name = "Pg";
+  const bool registered =
+      PdbBankManagerFactory::instance().registerCreator(name, singletonCreator, "PdbBankManager");
 }  // namespace
 
 PgPostBankManager *PgPostBankManager::mySpecificCopy = nullptr;
@@ -56,8 +56,10 @@ PgPostBankManager *PgPostBankManager::instance()
 
 int PgPostBankManager::Register()
 {
-  if (__instance) { return -1;
-}
+  if (__instance)
+  {
+    return -1;
+  }
   mySpecificCopy = new PgPostBankManager();
   __instance = mySpecificCopy;
   return 0;
@@ -157,7 +159,7 @@ PgPostBankManager::createBank(const string &className, PdbBankID bankID, const s
   if (classMap->find(rName) != classMap->end())
   {
     PdbCalBank *b = (*classMap)[rName];
-    PdbCalBank *b1 = dynamic_cast<PdbCalBank *> (b->CloneMe());
+    PdbCalBank *b1 = dynamic_cast<PdbCalBank *>(b->CloneMe());
     PgPostBankWrapper *bw = new PgPostBankWrapper(b1);
     bw->setBankID(bankID.getInternalValue());
     PHTimeStamp ts;
@@ -235,7 +237,7 @@ PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, c
 // }
 
 //__________________________________________________________________________________
-PdbCalBank *PgPostBankManager::fetchBank(const string &/*className*/, PdbBankID bankID, const string &bankName, const PHTimeStamp &searchTime)
+PdbCalBank *PgPostBankManager::fetchBank(const string & /*className*/, PdbBankID bankID, const string &bankName, const PHTimeStamp &searchTime)
 {
 #ifdef DEBUG
   cout << "Fetching " << className << " from " << bankName << endl;
@@ -300,7 +302,7 @@ PdbCalBank *PgPostBankManager::fetchBank(const string &/*className*/, PdbBankID 
     // insert new id in bank list matching name
     /*
     Remark: when the key "a" is not already in the map, it is inserted automatically by the call below,
-    using the default constructor of the object associated to the key, here std::set<int> 
+    using the default constructor of the object associated to the key, here std::set<int>
     */
     BankRid[bankName].insert(rid);
     return bw;
@@ -314,7 +316,7 @@ PdbCalBank *PgPostBankManager::fetchBank(const string &/*className*/, PdbBankID 
 
 //__________________________________________________________________________________
 PdbCalBank *
-PgPostBankManager::fetchClosestBank(const string &/*className*/, PdbBankID /*bankID*/, const string &/*bankName*/, PHTimeStamp &/*searchTime*/)
+PgPostBankManager::fetchClosestBank(const string & /*className*/, PdbBankID /*bankID*/, const string & /*bankName*/, PHTimeStamp & /*searchTime*/)
 {
   cout << PHWHERE << " PdbBankManager::fetchClosestBank: This method is not implemented" << endl;
   exit(1);
