@@ -15,15 +15,6 @@
 // The char* comparison operator, required by the STL map
 //
 template <typename T>
-struct strless : std::binary_function<T, T, bool>
-{
-  bool operator()(const T& x, const T& y) const
-  {
-    return strcmp(x, y) < 0;
-  }
-};
-
-template <typename T>
 class PdbClassMap
 {
  public:
@@ -31,8 +22,8 @@ class PdbClassMap
   virtual ~PdbClassMap();
 
   T*& operator[](const char* className) { return _map[className]; }
-  typename std::map<const char*, T*, strless<const char*> >::iterator find(const char* className) { return _map.find(className); }
-  typename std::map<const char*, T*, strless<const char*> >::iterator end() { return _map.end(); }
+  typename std::map<const char*, T*>::iterator find(const char* className) { return _map.find(className); }
+  typename std::map<const char*, T*>::iterator end() { return _map.end(); }
   void erase(const char* className);
 
  protected:
@@ -40,7 +31,7 @@ class PdbClassMap
 
  private:
   static PdbClassMap* _instance;
-  std::map<const char*, T*, strless<const char*> > _map;
+  std::map<const char*, T*> _map;
 };
 
 template <typename T>
