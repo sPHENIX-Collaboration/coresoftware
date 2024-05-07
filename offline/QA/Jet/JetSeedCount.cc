@@ -47,7 +47,7 @@ JetSeedCount::~JetSeedCount()
   std::cout << "JetSeedCount::~JetSeedCount() Calling dtor" << std::endl;
 }
 
-int JetSeedCount::Init(PHCompositeNode *topNode)
+int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << "JetSeedCount::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   std::cout << "Opening output file named " << m_outputFileName << std::endl;
@@ -61,7 +61,7 @@ int JetSeedCount::Init(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int JetSeedCount::InitRun(PHCompositeNode *topNode)
+int JetSeedCount::InitRun(PHCompositeNode * /*topNode*/)
 {
   std::cout << "JetSeedCount::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -159,7 +159,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int JetSeedCount::ResetEvent(PHCompositeNode *topNode)
+int JetSeedCount::ResetEvent(PHCompositeNode * /*topNode*/)
 {
   //std::cout << "JetSeedCount::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -173,7 +173,7 @@ int JetSeedCount::EndRun(const int runnumber)
 }
 
 //____________________________________________________________________________..
-int JetSeedCount::End(PHCompositeNode *topNode)
+int JetSeedCount::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "JetSeedCount::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   PHTFileServer::get().cd(m_outputFileName);
