@@ -86,6 +86,11 @@ class PHCASeeding : public PHTrackSeeding
     _neighbor_eta_width = eta_width;
     _neighbor_phi_width = phi_width;
   }
+  void SetClusAdd_delta_window(float _dzdr_cutoff, float _dphidr2_cutoff) 
+  {
+    _clusadd_delta_dzdr_window = _dzdr_cutoff;
+    _clusadd_delta_dphidr2_window = _dphidr2_cutoff;
+  }
   void SetMinHitsPerCluster(unsigned int minHits) { _min_nhits_per_cluster = minHits; }
   void SetMinClustersPerTrack(unsigned int minClus) { _min_clusters_per_track = minClus; }
 
@@ -154,6 +159,8 @@ class PHCASeeding : public PHTrackSeeding
   //  float _cluster_alice_y_error;
   float _neighbor_phi_width;
   float _neighbor_eta_width;
+  float _clusadd_delta_dzdr_window = 0.5;
+  float _clusadd_delta_dphidr2_window = 0.005;
   float _max_sin_phi;
   float _cosTheta_limit;
   double _rz_outlier_threshold = 0.1;

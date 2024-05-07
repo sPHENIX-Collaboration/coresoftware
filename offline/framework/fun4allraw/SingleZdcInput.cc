@@ -107,7 +107,7 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
         }
         previous_eventnumber[i] = evtno;
         evtno += (rollover[i] << 16U);
-        unsigned int bclk = plist[i]->iValue(0, "CLOCK");
+        unsigned int bclk = plist[i]->lValue(0, "CLOCK");
 
         // NOLINTNEXTLINE(hicpp-signed-bitwise)
         bool useFEMInfo = ((plist[i]->getIdentifier() / 1000 == 12) && evtno != ((EventSequence - 2) & 0xffff));
@@ -239,12 +239,12 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
       {
         for (auto pktiter : iter.second)
         {
-          if (pktiter->iValue(0, "CLOCK") == common_beam_clock)
+          if (pktiter->lValue(0, "CLOCK") == common_beam_clock)
           {
             if (Verbosity() > 1)
             {
               std::cout << "adding packet " << pktiter->getIdentifier() << " beam clock "
-                        << std::hex << pktiter->iValue(0, "CLOCK") << std::dec << std::endl;
+                        << std::hex << pktiter->lValue(0, "CLOCK") << std::dec << std::endl;
             }
             if (InputMgr())
             {
@@ -256,7 +256,7 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
             if (Verbosity() > 1)
             {
               std::cout << "Deleting packet " << pktiter->getIdentifier() << " beam clock "
-                        << std::hex << pktiter->iValue(0, "CLOCK") << " common bclk: "
+                        << std::hex << pktiter->lValue(0, "CLOCK") << " common bclk: "
                         << common_beam_clock << std::dec << std::endl;
             }
             if (InputMgr())

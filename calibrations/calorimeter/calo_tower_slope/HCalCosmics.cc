@@ -3,44 +3,36 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
 
-#include <TF1.h>
-#include <TFile.h>
-#include <TH1F.h>
-#include <TMath.h>
-#include "Math/SpecFuncMathCore.h"
-
 #include <Event/Event.h>
 #include <Event/packet.h>
+
+#include <Math/SpecFuncMathCore.h>
 #include <TCanvas.h>
+#include <TF1.h>
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TMath.h>
+
 #include <cassert>
 #include <sstream>
 
-using namespace std;
-
 HCalCosmics::HCalCosmics(const std::string &name, const std::string &fname)
   : SubsysReco(name)
-  , detector("HCALIN")
   , outfilename(fname)
 {
-}
-
-HCalCosmics::~HCalCosmics()
-{
-  delete hm;
 }
 
 int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << std::endl
             << "HCalCosmics::Init" << std::endl;
-  hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(outfilename.c_str(), "RECREATE");
 
   for (int ieta = 0; ieta < n_etabin; ++ieta)
@@ -55,11 +47,9 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
   h_waveformchi2->GetXaxis()->SetTitle("peak (ADC)");
   h_waveformchi2->GetYaxis()->SetTitle("chi2");
   h_mip = new TH1F("h_mip", "", 100, 0, 10000);
+  h_event = new TH1F("h_event", "", 1, 0, 1);
 
   h_time_energy = new TH2F("h_time_energy", "", 100, -10, 10, 100, -50, 1e3);
-
-  Fun4AllServer *se = Fun4AllServer::instance();
-  se->registerHistoManager(hm);
 
   event = 0;
   return 0;
@@ -67,26 +57,26 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
 
 int HCalCosmics::process_event(PHCompositeNode *topNode)
 {
-  if (event % 10000 == 0)
+  if (event % 100 == 0)
   {
     std::cout << "HCalCosmics::process_event " << event << std::endl;
   }
   process_towers(topNode);
   event++;
+  h_event->Fill(0);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int HCalCosmics::process_towers(PHCompositeNode *topNode)
 {
-  ostringstream nodenamev2;
-  nodenamev2.str("");
-  nodenamev2 << prefix << detector;
+  std::string nodenamev2 = prefix + detector;
 
-  TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, nodenamev2.str());
+  TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, nodenamev2);
   if (!towers)
   {
     std::cout << std::endl
-              << "Didn't find node " << nodenamev2.str() << std::endl;
+              << "Didn't find node " << nodenamev2 << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
@@ -169,9 +159,10 @@ int HCalCosmics::End(PHCompositeNode * /*topNode*/)
   h_mip->Write();
   h_waveformchi2->Write();
   h_time_energy->Write();
+  h_event->Write();
+
   outfile->Close();
   delete outfile;
-  hm->dumpHistos(outfilename, "UPDATE");
   return 0;
 }
 
@@ -208,7 +199,7 @@ double HCalCosmics::gamma_function(double *x, double *par)
   return val;
 }
 
-TF1 *HCalCosmics::fitHist(TH1F *h)
+TF1 *HCalCosmics::fitHist(TH1 *h)
 {
   TF1 *f_gaus = new TF1("f_gaus", "gaus", 0, 10000);
   h->Fit(f_gaus, "QN", "", 0, 10000);
@@ -247,7 +238,7 @@ void HCalCosmics::fitChannels(const std::string &infile, const std::string &outf
     for (int iphi = 0; iphi < n_phibin; ++iphi)
     {
       std::string channel_histname = "h_channel_" + std::to_string(ieta) + "_" + std::to_string(iphi);
-      h_channel_hist[ieta][iphi] = (TH1F *) fin->Get(channel_histname.c_str());
+      fin->GetObject(channel_histname.c_str(), h_channel_hist[ieta][iphi]);
     }
   }
 
@@ -259,9 +250,9 @@ void HCalCosmics::fitChannels(const std::string &infile, const std::string &outf
 
   TFile *outfileFit = new TFile(outfilename2.c_str(), "recreate");
 
-  TH2F *h2_peak = new TH2F("h2_peak", "", n_etabin, 0, n_etabin, n_phibin, 0, n_phibin);
+  TH2 *h2_peak = new TH2F("h2_peak", "", n_etabin, 0, n_etabin, n_phibin, 0, n_phibin);
 
-  TH1F *h_allTow = (TH1F *) h_channel_hist[0][0]->Clone("h_allTow");
+  TH1 *h_allTow = (TH1 *) h_channel_hist[0][0]->Clone("h_allTow");
   h_allTow->Reset();
 
   for (int ieta = 0; ieta < n_etabin; ++ieta)
