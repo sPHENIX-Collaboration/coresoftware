@@ -47,7 +47,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     FillPacketDiff(pkt);
   }
 
-  std::vector<std::string> nodenames {"CEMCPackets", "HCALPackets", "MBDPackets"};
+  std::vector<std::string> nodenames {"CEMCPackets", "HCALPackets", "MBDPackets", "SEPDPackets", "ZDCPackets"};
   for (const auto &iter : nodenames)
   {
     CaloPacketContainer *cemccont = findNode::getClass<CaloPacketContainer>(topNode, iter);
