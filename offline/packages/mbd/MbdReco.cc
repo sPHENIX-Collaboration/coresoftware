@@ -11,6 +11,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <Event/Event.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
@@ -23,9 +24,6 @@
 #include <ffarawobjects/CaloPacketContainer.h>
 
 #include <TF1.h>
-
-using namespace std;
-using namespace Fun4AllReturnCodes;
 
 //____________________________________________________________________________..
 MbdReco::MbdReco(const std::string &name)
@@ -73,18 +71,18 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     int status = Fun4AllReturnCodes::ABORTEVENT;
     if ( m_event!=nullptr )
     {
-      m_mbdevent->SetRawData(m_event, m_mbdpmts);
+      status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
     }
     else if ( m_mbdraw!=nullptr )
     {
-      m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts);
+      status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts);
     }
 
     if (status == Fun4AllReturnCodes::ABORTEVENT)
     {
       return Fun4AllReturnCodes::ABORTEVENT;  // there wasn't good data in BBC/MBD
     }
-    else if (status == Fun4AllReturnCodes::DISCARDEVENT)
+    else if (status == Fun4AllReturnCodes::DISCARDEVENT || status == -1001)
     {
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
@@ -206,7 +204,7 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
 {
   // Get the bbc prdf data to mpcRawContent
   m_event = findNode::getClass<Event>(topNode, "PRDF");
-  // cout << "event addr " << (unsigned int)m_event << endl;
+  // std::cout << "event addr " << (unsigned int)m_event << endl;
 
   // Get the raw data from event combined DST
   m_mbdraw = findNode::getClass<CaloPacketContainer>(topNode, "MBDPackets");
@@ -219,7 +217,7 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
     static int counter = 0;
     if (counter < 1)
     {
-      cout << PHWHERE << "Unable to get PRDF, assuming this is simulation" << endl;
+      std::cout << PHWHERE << "Unable to get PRDF, assuming this is simulation" << std::endl;
       counter++;
     }
   }

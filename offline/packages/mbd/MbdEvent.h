@@ -98,8 +98,9 @@ class MbdEvent
   int _runnum{0};
   int _simflag{0};
   int _nsamples{31};
-  int _calib_done{0};
-  int _is_online{0};
+  int _calib_done{0}; 
+  int _no_sampmax{0};     //! sampmax calib doesn't exist
+  int _is_online{0};      //! for OnlMon
 
   int ProcessRawPackets(MbdPmtContainer *mbdpmts);
 
@@ -107,8 +108,8 @@ class MbdEvent
   Int_t   m_evt{0};
   Short_t m_clk{0};
   Short_t m_femclk{0};
-  UInt_t  m_xmitclocks[2];     // [ipkt]
-  UInt_t  m_femclocks[2][2];   // [ipkt][iadc]
+  UInt_t  m_xmitclocks[2]{};     // [ipkt]
+  UInt_t  m_femclocks[2][2]{};   // [ipkt][iadc]
 
   // raw data
   Float_t m_adc[MbdDefs::MBD_N_FEECH][MbdDefs::MAX_SAMPLES]{};   // raw waveform, adc values
@@ -133,7 +134,7 @@ class MbdEvent
   Float_t m_bbczerr{std::numeric_limits<Float_t>::quiet_NaN()};   // z-vertex error
   Float_t m_bbct0{std::numeric_limits<Float_t>::quiet_NaN()};     // start time
   Float_t m_bbct0err{std::numeric_limits<Float_t>::quiet_NaN()};  // start time error
-  Float_t _tres = std::numeric_limits<Float_t>::quiet_NaN();      // time resolution of one channel
+  Float_t _tres{std::numeric_limits<Float_t>::quiet_NaN()};       // time resolution of one channel
 
   TH1 *hevt_bbct[2]{};  // time in each bbc, per event
   TF1 *gausfit[2]{nullptr, nullptr};

@@ -7,11 +7,11 @@
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
 
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <qautils/QAHistManagerDef.h>
-#include <globalvertex/SvtxVertex.h>
-#include <globalvertex/SvtxVertexMap.h>
 
 #include <TH2.h>
 #include <cassert>
@@ -31,7 +31,7 @@ int VertexQA::InitRun(PHCompositeNode* /*unused*/)
 //____________________________________________________________________________..
 int VertexQA::process_event(PHCompositeNode* topNode)
 {
-  //auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+  // auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
   if (!vertexmap)
   {
@@ -53,7 +53,7 @@ int VertexQA::process_event(PHCompositeNode* topNode)
   auto h_ntrackpervertex = dynamic_cast<TH1*>(hm->getHisto(std::string(getHistoPrefix() + "ntrackspervertex").c_str()));
 
   m_vertices += vertexmap->size();
-  h_nvertex->Fill( vertexmap->size() );
+  h_nvertex->Fill(vertexmap->size());
   for (const auto& [key, vertex] : *vertexmap)
   {
     if (!vertex)
@@ -79,7 +79,7 @@ int VertexQA::process_event(PHCompositeNode* topNode)
 
     h_ntrackpervertex->Fill(vertex->size_tracks());
     // loop over all tracks on vertex
-    //for (Vertex::TrackIter iter = vertex->begin_tracks();
+    // for (Vertex::TrackIter iter = vertex->begin_tracks();
     //     iter != vertex->end_tracks();
     //     ++iter)
     //{
@@ -110,6 +110,7 @@ int VertexQA::EndRun(const int runnumber)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   TH2* h_verticesperevent = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "nverticesperrun").c_str()));
+  // NOLINTNEXTLINE(bugprone-integer-division)
   h_verticesperevent->Fill(runnumber, m_vertices / m_event);
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -191,5 +192,4 @@ void VertexQA::createHistos()
     h->GetXaxis()->SetTitle("Run number");
     hm->registerHisto(h);
   }
-
 }

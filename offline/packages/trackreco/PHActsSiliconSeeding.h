@@ -129,6 +129,14 @@ class PHActsSiliconSeeding : public SubsysReco
   {
     m_helixcut = cut;
   }
+  void bfield(const float field) 
+  {
+    m_bField = field;
+  }
+  void minpt(const float pt)
+  {
+    m_minSeedPt = pt;
+  }
 
   /// A function to run the seeder with large (true)
   /// or small (false) grid spacing
