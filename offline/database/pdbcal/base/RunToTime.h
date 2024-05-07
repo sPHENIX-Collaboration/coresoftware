@@ -8,8 +8,8 @@ class RunToTime
 
 protected:
 
-  RunToTime();
-  virtual ~RunToTime();
+  RunToTime() = default;
+  virtual ~RunToTime() = default;
 
   static  RunToTime *__instance; 
 public:

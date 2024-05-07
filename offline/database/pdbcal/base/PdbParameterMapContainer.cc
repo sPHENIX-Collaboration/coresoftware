@@ -32,11 +32,10 @@ PdbParameterMapContainer::~PdbParameterMapContainer()
 
 void PdbParameterMapContainer::print() const
 {
-  for (map<int, PdbParameterMap *>::const_iterator iter = parametermap.begin();
-       iter != parametermap.end(); ++iter)
+  for (auto iter : parametermap)
   {
-    cout << "layer " << iter->first << endl;
-    iter->second->print();
+    cout << "layer " << iter.first << endl;
+    iter.second->print();
   }
   return;
 }
@@ -106,7 +105,7 @@ int PdbParameterMapContainer::WriteToFile(const std::string &detector_name,
   fnamestream << detector_name << "_geoparams"
               << "-"
               << bankID.getInternalValue() << "-" << TStart.getTics() << "-"
-              << TStop.getTics() << "-" << time(0) << "." << extension;
+              << TStop.getTics() << "-" << time(nullptr) << "." << extension;
   string fname = fnamestream.str();
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
   fullpath << fname;
