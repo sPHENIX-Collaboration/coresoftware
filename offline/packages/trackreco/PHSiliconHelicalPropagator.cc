@@ -121,7 +121,10 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     {
       continue;
     }
-
+  if(Verbosity() > 2)
+  {
+    tpcseed->identify();
+  }
     std::vector<Acts::Vector3> clusterPositions;
     std::vector<TrkrDefs::cluskey> clusterKeys;
     for (auto iter = tpcseed->begin_cluster_keys();
@@ -136,12 +139,40 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     {
       continue;
     }
+    if(Verbosity() > 3)
+    {
+      for(auto& param : fitparams)
+      {
+        std::cout << "fit param " << param << std::endl;
+      }
+    }
     std::vector<TrkrDefs::cluskey> si_clusterKeys, si_clusterKeysrz;
     std::vector<Acts::Vector3> si_clusterPositions, si_clusterPositionsrz;
     std::map<TrkrDefs::cluskey, Acts::Vector3> positionMap;
     TrackFitUtils::line_fit_output_t rzLineParams = std::make_tuple(fitparams[3], fitparams[4]);
-    unsigned int nSiClusters = TrackFitUtils::addClusters(fitparams, _dca_cut, _tgeometry, _cluster_map, si_clusterPositions, si_clusterKeys, 0, 6);
-    int nrzClusters = TrackFitUtils::addClustersOnLine(rzLineParams,
+    unsigned int nSiClusters = std::numeric_limits<unsigned int>::quiet_NaN();
+   
+   if(m_zeroField)
+   {
+     TrackFitUtils::position_vector_t xypoints;
+     for(auto& pos : clusterPositions)
+     {
+       xypoints.push_back({pos.x(), pos.y()});
+     }
+     auto xyparams = TrackFitUtils::line_fit(xypoints);
+     std::cout << "xyparams are " << std::get<0>(xyparams) << " " << std::get<1>(xyparams) << std::endl;
+     nSiClusters = TrackFitUtils::addClustersOnLine(xyparams,
+                                                    true,
+                                                    _dca_cut,
+                                                    _tgeometry, _cluster_map,
+                                                    si_clusterPositions,
+                                                    si_clusterKeys,
+                                                    0, 6);
+   }
+   else{
+    nSiClusters = TrackFitUtils::addClusters(fitparams, _dca_cut, _tgeometry, _cluster_map, si_clusterPositions, si_clusterKeys, 0, 6);
+   }
+   int nrzClusters = TrackFitUtils::addClustersOnLine(rzLineParams,
                                                        false,
                                                        _dca_z_cut,
                                                        _tgeometry,
@@ -156,6 +187,14 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
 
     if (newkeys.size() > 0)
     {
+      if(Verbosity() > 0)
+      {
+        std::cout << "Adding " << newkeys.size() << " Keys " << std::endl;
+        for(auto& key : newkeys)
+        {
+          std::cout << "key " << (unsigned int) key << std::endl;
+        }
+      }
       std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
       std::map<short, int> crossing_frequency;
       Acts::Vector3 tpcExGlobal = clusterPositions.front();
