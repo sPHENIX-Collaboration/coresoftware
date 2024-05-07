@@ -88,7 +88,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       }
       else
       {
-	if (refdiff != std::get<2>(iter.second))
+	if ((refdiff&0xFFFFFFFFU) != (std::get<2>(iter.second)&0xFFFFFFFFU))
 	{
 	  std::bitset<32> x(refdiff);
 	  std::bitset<32> y0(std::get<0>(iter.second));
