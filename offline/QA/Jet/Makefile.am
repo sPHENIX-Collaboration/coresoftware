@@ -25,7 +25,8 @@ pkginclude_HEADERS = \
   TrksInJetQAHitManager.h \
   TrksInJetQAClustManager.h \
   TrksInJetQATrkManager.h \
-  TrksInJetQAJetManager.h
+  TrksInJetQAJetManager.h \
+  JetSeedCount.h
 
 libjetqa_la_SOURCES = \
   TrksInJetQA.cc \
@@ -36,12 +37,14 @@ libjetqa_la_SOURCES = \
   TrksInJetQAHitManager.cc \
   TrksInJetQAClustManager.cc \
   TrksInJetQATrkManager.cc \
-  TrksInJetQAJetManager.cc
+  TrksInJetQAJetManager.cc \
+  JetSeedCount.cc
 
 libjetqa_la_LIBADD = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
+  -lcentrality_io \
   -lparticleflow_io \
   -lfun4all \
   -lphool \
