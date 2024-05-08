@@ -287,7 +287,7 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
 }
 
 //____________________________________________________________________________..
-int JetSeedCount::Reset(PHCompositeNode *topNode)
+int JetSeedCount::Reset(PHCompositeNode * /*topNode*/)
 {
  std::cout << "JetSeedCount::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
  return Fun4AllReturnCodes::EVENT_OK;
