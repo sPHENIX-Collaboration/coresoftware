@@ -45,7 +45,11 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
       }
     }
 
-    unsigned int track1_silicon_cluster_size = siliconseed->size_cluster_keys();
+    unsigned int track1_silicon_cluster_size = std::numeric_limits<unsigned int>::quiet_NaN();
+    if (siliconseed)
+    {
+      track1_silicon_cluster_size = siliconseed->size_cluster_keys();
+    }
 
     Acts::Vector3 pos1(tr1->get_x(), tr1->get_y(), tr1->get_z());
     Acts::Vector3 mom1(tr1->get_px(), tr1->get_py(), tr1->get_pz());
@@ -84,8 +88,12 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
         }
       }
 
-      unsigned int track2_silicon_cluster_size = siliconseed2->size_cluster_keys();
-      //unsigned int track2_silicon_cluster_size = 0;
+      unsigned int track2_silicon_cluster_size = std::numeric_limits<unsigned int>::quiet_NaN();
+      if (siliconseed2)
+      {
+        track2_silicon_cluster_size = siliconseed2->size_cluster_keys();
+      }
+      // unsigned int track2_silicon_cluster_size = 0;
 
       // dca xy and dca z cut here compare to track dca cut
       Acts::Vector3 pos2(tr2->get_x(), tr2->get_y(), tr2->get_z());
@@ -148,11 +156,9 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
 
         // if(pair_dca_proj > pair_dca_cut) continue;
 
-
-	// invariant mass is calculated in this method
-        fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, rapidity, pseudorapidity);  
-        fillNtp(tr1, tr2, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj,track1_silicon_cluster_size,track2_silicon_cluster_size);
-
+        // invariant mass is calculated in this method
+        fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, rapidity, pseudorapidity);
+        fillNtp(tr1, tr2, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj, track1_silicon_cluster_size, track2_silicon_cluster_size);
 
         if (Verbosity() > 2)
         {
@@ -178,8 +184,6 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
 
 void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj, unsigned int track1_silicon_cluster_size, unsigned int track2_silicon_cluster_size)
 {
-
-
   double px1 = track1->get_px();
   double py1 = track1->get_py();
   double pz1 = track1->get_pz();
