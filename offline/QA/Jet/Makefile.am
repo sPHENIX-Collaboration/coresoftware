@@ -44,6 +44,7 @@ libjetqa_la_LIBADD = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
+  -lcentrality_io \
   -lparticleflow_io \
   -lfun4all \
   -lphool \
