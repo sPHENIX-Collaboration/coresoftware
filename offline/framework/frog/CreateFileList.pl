@@ -67,7 +67,8 @@ my %pileupdesc = (
     "1" => "50kHz for Au+Au, 3MHz for p+p (default)",
     "2" => "25kHz for Au+Au",
     "3" => "10kHz for Au+Au",
-    "4" => "1MHz for pp 100us streaming"
+    "4" => "1MHz for pp 100us streaming",
+    "5" => "2MHz for pp 20us streaming",
     );
 
 my $nEvents;
@@ -154,6 +155,10 @@ elsif ($pileup == 3)
 elsif ($pileup == 4)
 {
     $pp_pileupstring = sprintf("1MHz");
+}
+elsif ($pileup == 5)
+{
+    $pp_pileupstring = sprintf("2MHz");
 }
 
 else
