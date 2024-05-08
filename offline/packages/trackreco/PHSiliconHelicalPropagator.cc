@@ -173,8 +173,6 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     {
      
      auto xyparams = TrackFitUtils::line_fit(xypoints);
-     std::cout << "xyparams are " << std::get<0>(xyparams) << " " << std::get<1>(xyparams) << std::endl;
-      std::cout << "rzparams are " << std::get<0>(rzparams) << " " << std::get<1>(rzparams) << std::endl;
      nSiClusters = TrackFitUtils::addClustersOnLine(xyparams,
                                                     true,
                                                     _dca_cut,

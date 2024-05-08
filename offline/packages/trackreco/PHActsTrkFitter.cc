@@ -306,14 +306,15 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     unsigned int siid = track->get_silicon_seed_index();
     short int crossing_estimate = track->get_crossing_estimate();  // geometric crossing estimate
 
+    if (Verbosity() > 3)
+    {
+      std::cout << " tpcid " << tpcid << " siid " << siid << std::endl;
+    }
+
     /// A track seed is made for every tpc seed. Not every tpc seed
     /// has a silicon match, we skip those cases completely in pp running
     if (m_pp_mode && siid == std::numeric_limits<unsigned int>::max())
     {
-      if (Verbosity() > 3)
-      {
-        std::cout << " tpcid " << tpcid << " siid " << siid << " running in pp mode and SvtxSeedTrack has no silicon match, skip it" << std::endl;
-      }
       continue;
     }
 
@@ -487,7 +488,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         position(1) = siseed->get_y() * Acts::UnitConstants::cm;
         position(2) = siseed->get_z() * Acts::UnitConstants::cm;
       }
-      else
+      if(!siseed || !is_valid(position))
       {
         position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
         position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
@@ -495,6 +496,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
       if (!is_valid(position))
       {
+        if(Verbosity() > 4)
+        {
+          std::cout << "Invalid position of " << position.transpose() << std::endl;
+        }
         continue;
       }
 
@@ -545,6 +550,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::Vector3 momentum(px, py, pz);
       if (!is_valid(momentum))
       {
+        if(Verbosity() > 4)
+        {
+          std::cout << "Invalid momentum of " << momentum.transpose() << std::endl;
+        }
         continue;
       }
 
@@ -638,6 +647,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
           if (ivary != nvary)
           {
+            if(Verbosity() > 3)
+            {
+              std::cout << "Skipping track fit for trial variation" << std::endl;
+            }
             continue;
           }
 

@@ -68,6 +68,8 @@ class TrackResiduals : public SubsysReco
                          TrkrClusterContainer *clusters);
   void fillStatesWithCircleFit(const TrkrDefs::cluskey &key, TrkrCluster *cluster,
                                Acts::Vector3 &glob, ActsGeometry *geometry);
+  void fillVertexTree(PHCompositeNode *topNode);
+  void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int>& tpc_seed_ids);
 
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
@@ -75,11 +77,12 @@ class TrackResiduals : public SubsysReco
   TTree *m_clustree = nullptr;
   TTree *m_hittree = nullptr;
   TTree *m_vertextree = nullptr;
+  TTree *m_failedfits = nullptr;
 
   bool m_doClusters = false;
   bool m_doHits = false;
   bool m_zeroField = false;
-
+  
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   ClusterErrorPara m_clusErrPara;
@@ -129,6 +132,14 @@ class TrackResiduals : public SubsysReco
   float m_R = std::numeric_limits<float>::quiet_NaN();
   float m_X0 = std::numeric_limits<float>::quiet_NaN();
   float m_Y0 = std::numeric_limits<float>::quiet_NaN();
+
+  float m_seedx = std::numeric_limits<float>::quiet_NaN();
+  float m_seedy = std::numeric_limits<float>::quiet_NaN();
+  float m_seedz = std::numeric_limits<float>::quiet_NaN();
+  float m_seedpx = std::numeric_limits<float>::quiet_NaN();
+  float m_seedpy = std::numeric_limits<float>::quiet_NaN();
+  float m_seedpz = std::numeric_limits<float>::quiet_NaN();
+  int m_seedcharge = std::numeric_limits<int>::quiet_NaN();
 
   //! hit tree info
   uint32_t m_hitsetkey = std::numeric_limits<uint32_t>::quiet_NaN();
