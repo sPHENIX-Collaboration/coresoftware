@@ -56,30 +56,29 @@ int BeamCrossingAnalysis::process_event(PHCompositeNode* /**topNode*/)
 	{
 	  unsigned int vtxid = itr->second;	  
 	  const SvtxVertex* svtxVertex = m_vertexMap->get(vtxid);
+	  if(!svtxVertex) { continue; }
+
 	  float vx=0;
 	  float vy=0;
 	  float vz=0;
           unsigned int ntracks = 0;
-	  if (svtxVertex)
-	    {
-	      vx = svtxVertex->get_x() ;
-	      vy = svtxVertex->get_y() ;
-	      vz = svtxVertex->get_z();
-
-	      ntracks = svtxVertex->size_tracks();
-	    }	 
+	  vx = svtxVertex->get_x() ;
+	  vy = svtxVertex->get_y() ;
+	  vz = svtxVertex->get_z();
 	  
+	  ntracks = svtxVertex->size_tracks();
+	  	  
 	  // fill vertex ntuple
           float vertex_info[] = {(float) cross, (float) _event,  (float) vtxid, vx, vy, vz, (float) ntracks };
 	  ntp_vertex->Fill(vertex_info);
 
 	  if(Verbosity() > 0)
 	    {
-	      std::cout << "    crossing  " << cross << " vertex ID " << vtxid << " x " << vx << " y " << vy << " z " << vz << " cm " <<  Acts::UnitConstants::cm << std::endl;
+	      std::cout << "    crossing  " << cross << " vertex ID " << vtxid 
+			<< " x " << vx << " y " << vy << " z " << vz << " cm " <<  std::endl;
 	    }
 	} 
-      
-                
+                      
       // get all tracks for this crossing
       auto trit = m_track_vertex_crossing_map->getTracks(cross);
       for (auto itr = trit.first; itr != trit.second; ++itr)
@@ -87,7 +86,7 @@ int BeamCrossingAnalysis::process_event(PHCompositeNode* /**topNode*/)
 	  unsigned int  trid = itr->second;	  
 
 	  const SvtxTrack *track = m_svtxTrackMap->get(trid);	  
-          if (!track) continue;
+          if (!track) { continue; }
 
 	  float tx=0;
 	  float ty=0;
@@ -111,7 +110,8 @@ int BeamCrossingAnalysis::process_event(PHCompositeNode* /**topNode*/)
 
 	  if(Verbosity() > 0)
 	    {
-	      std::cout << "    crossing  " << cross << " event " << _event << " track ID " << trid << " x " << tx << " y " << ty << " z " << tz 
+	      std::cout << "    crossing  " << cross << " event " << _event << " track ID " << trid 
+			<< " x " << tx << " y " << ty << " z " << tz 
 			<< " px " << px << " py " << py << " pz " << pz   << std::endl;
 	    }
 

@@ -46,8 +46,6 @@ class BeamCrossingAnalysis : public SubsysReco
   TH1D* hcross{nullptr};
 
   std::string filepath = "";
-  bool _require_mvtx = true;
-  double _qual_cut = 10.0;
   TFile* fout = nullptr;
 
   unsigned int _event = 0;
