@@ -67,7 +67,7 @@ class PHActsGSF : public SubsysReco
   std::shared_ptr<Acts::PerigeeSurface> makePerigee(SvtxTrack* track) const;
   ActsTrackFittingAlgorithm::TrackParameters makeSeed(
       SvtxTrack* track,
-      std::shared_ptr<Acts::PerigeeSurface> psurf) const;
+      const std::shared_ptr<Acts::PerigeeSurface>& psurf) const;
   //  SourceLinkVec getSourceLinks(TrackSeed* track,
   //                         ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
   //                         const short int& crossing);
@@ -113,7 +113,6 @@ class PHActsGSF : public SubsysReco
   std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";
 
-  std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
   SvtxTrackMap* m_seedTracks = nullptr;
 
   ClusterErrorPara _ClusErrPara;
