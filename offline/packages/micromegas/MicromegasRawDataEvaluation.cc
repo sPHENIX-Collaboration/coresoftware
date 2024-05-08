@@ -243,7 +243,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         if( get_bco_diff(sample.fee_bco,bco_matching_pair.first) < max_fee_bco_diff )
         {
           sample.lvl1_bco = bco_matching_pair.second;
-          sample.lvl1_bco_masked = ( bco_matching_pair.second & 0xFFFFF );
+          sample.lvl1_bco_masked = ( bco_matching_pair.second & 0xFFFFFU );
 
         } else {
 
@@ -274,7 +274,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             bco_matching_pair.first = sample.fee_bco;
             bco_matching_pair.second = lvl1_bco;
             sample.lvl1_bco = lvl1_bco;
-            sample.lvl1_bco_masked = ( lvl1_bco & 0xFFFFF );
+            sample.lvl1_bco_masked = ( lvl1_bco & 0xFFFFFU );
 
             // remove bco from running list
             bco_list.pop_front();
