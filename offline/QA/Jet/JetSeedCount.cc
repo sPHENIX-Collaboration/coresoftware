@@ -1,29 +1,19 @@
 #include "JetSeedCount.h"
 
 #include <jetbase/JetContainer.h>
-#include <jetbase/JetMap.h>
 
-#include <jetbackground/TowerBackground.h>
-
-#include <centrality/CentralityInfov2.h>
+#include <centrality/CentralityInfo.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerGeomContainer.h>
-#include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainer.h>
-
-#include <fun4all/Fun4AllBase.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <TH1.h>
 #include <TH2.h>
 
 #include <iostream>
