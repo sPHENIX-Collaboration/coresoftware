@@ -35,7 +35,6 @@ int BeamCrossingAnalysis::InitRun(PHCompositeNode* topNode)
 
 int BeamCrossingAnalysis::process_event(PHCompositeNode* /**topNode*/)
 {
-  _event++;
 
   std::set<short int> crossing_set = m_track_vertex_crossing_map->getCrossings();
 
@@ -119,6 +118,7 @@ int BeamCrossingAnalysis::process_event(PHCompositeNode* /**topNode*/)
       
     }
   
+  _event++;
   
   return 0;
 }
