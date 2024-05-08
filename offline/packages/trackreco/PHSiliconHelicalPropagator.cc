@@ -149,18 +149,32 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     std::vector<TrkrDefs::cluskey> si_clusterKeys, si_clusterKeysrz;
     std::vector<Acts::Vector3> si_clusterPositions, si_clusterPositionsrz;
     std::map<TrkrDefs::cluskey, Acts::Vector3> positionMap;
-    TrackFitUtils::line_fit_output_t rzLineParams = std::make_tuple(fitparams[3], fitparams[4]);
+
     unsigned int nSiClusters = std::numeric_limits<unsigned int>::quiet_NaN();
-   
-   if(m_zeroField)
-   {
-     TrackFitUtils::position_vector_t xypoints;
-     for(auto& pos : clusterPositions)
-     {
-       xypoints.push_back({pos.x(), pos.y()});
-     }
+    TrackFitUtils::position_vector_t xypoints, rzpoints;
+    for (auto& pos : clusterPositions)
+    {
+      xypoints.push_back({pos.x(), pos.y()});
+      float clusr = std::sqrt(pos.x() * pos.x() + pos.y() * pos.y());
+      if (pos.y() < 0)
+      {
+        clusr = -clusr;
+      }
+      rzpoints.push_back({pos.z(), clusr});
+
+      if (Verbosity() > 5)
+      {
+        std::cout << "Cluster pos " << pos.transpose() << " and r " << std::sqrt(pos.x() * pos.x() + pos.y() * pos.y()) << std::endl;
+      }
+    }
+    auto rzparams = TrackFitUtils::line_fit(rzpoints);
+
+    if (m_zeroField)
+    {
+     
      auto xyparams = TrackFitUtils::line_fit(xypoints);
      std::cout << "xyparams are " << std::get<0>(xyparams) << " " << std::get<1>(xyparams) << std::endl;
+      std::cout << "rzparams are " << std::get<0>(rzparams) << " " << std::get<1>(rzparams) << std::endl;
      nSiClusters = TrackFitUtils::addClustersOnLine(xyparams,
                                                     true,
                                                     _dca_cut,
@@ -172,7 +186,7 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
    else{
     nSiClusters = TrackFitUtils::addClusters(fitparams, _dca_cut, _tgeometry, _cluster_map, si_clusterPositions, si_clusterKeys, 0, 6);
    }
-   int nrzClusters = TrackFitUtils::addClustersOnLine(rzLineParams,
+   int nrzClusters = TrackFitUtils::addClustersOnLine(rzparams,
                                                        false,
                                                        _dca_z_cut,
                                                        _tgeometry,
@@ -245,6 +259,7 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
       */
       si_seed->circleFitByTaubin(positionMap, 0, 8);
       si_seed->lineFit(positionMap, 0, 8);
+      si_seed->set_crossing(0);
       TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
 
       std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
