@@ -72,6 +72,8 @@ class MbdEvent
   int  Verbosity() { return _verbose; }
   void Verbosity(const int v) { _verbose = v; }
 
+  int ProcessRawPackets(MbdPmtContainer *mbdpmts);
+
  private:
   static const int NCHPERPKT = 128;
 
@@ -102,7 +104,6 @@ class MbdEvent
   int _no_sampmax{0};     //! sampmax calib doesn't exist
   int _is_online{0};      //! for OnlMon
 
-  int ProcessRawPackets(MbdPmtContainer *mbdpmts);
 
   // alignment data
   Int_t   m_evt{0};
