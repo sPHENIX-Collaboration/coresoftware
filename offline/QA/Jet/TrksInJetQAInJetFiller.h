@@ -16,13 +16,13 @@
 #include "TrksInJetQABaseFiller.h"
 
 // tracking includes
-#include <trackbase/TrkrHit.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 // particle flow includes
@@ -35,54 +35,50 @@
 #include <g4eval/ClusKeyIter.h>
 
 // phool includes
-#include <phool/phool.h>
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-
-// root includes
-#include <TMath.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 // c+ utilities
-#include <vector>
 #include <cassert>
-
-
+#include <vector>
 
 // TrksInJetQAInJetFiller -----------------------------------------------------
 
-class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller {
+class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller
+{
+ public:
+  // additional nodes to grab
+  enum Node
+  {
+    Flow
+  };
 
-  public:
+  // ctor/dtor
+  using TrksInJetQABaseFiller::TrksInJetQABaseFiller;
+  ~TrksInJetQAInJetFiller() override = default;
 
-    // additional nodes to grab
-    enum Node {Flow};
+  // inherited public methods
+  void Fill(PHCompositeNode* topNode) override;
 
-    // ctor/dtor
-    using TrksInJetQABaseFiller::TrksInJetQABaseFiller;
-    ~TrksInJetQAInJetFiller() override = default;
+ private:
+  // private methods
+  void GetNode(const int node, PHCompositeNode* topNode);
+  void FillJetAndTrackQAHists(PHCompositeNode* topNode);
+  void FillClustAndHitQAHists(SvtxTrack* track);
+  void GetCstTracks(Jet* jet, PHCompositeNode* topNode);
+  void GetNonCstTracks(Jet* jet);
+  bool IsCstNotRelevant(const uint32_t type);
+  bool IsTrkInList(const uint32_t id);
+  double GetTrackJetDist(SvtxTrack* track, Jet* jet);
+  PFObject* GetPFObject(const uint32_t id, PHCompositeNode* topNode);
+  SvtxTrack* GetTrkFromPFO(PFObject* pfo);
 
-    // inherited public methods
-    void Fill(PHCompositeNode* topNode) override;
+  // additional dst nodes needed
+  PFObjectStore* m_flowStore = NULL;
 
-  private:
-
-    // private methods
-    void       GetNode(const int node, PHCompositeNode* topNode);
-    void       FillJetAndTrackQAHists(PHCompositeNode* topNode);
-    void       FillClustAndHitQAHists(SvtxTrack* track);
-    void       GetCstTracks(Jet* jet, PHCompositeNode* topNode);
-    void       GetNonCstTracks(Jet* jet);
-    bool       IsCstNotRelevant(const uint32_t type);
-    bool       IsTrkInList(const uint32_t id);
-    double     GetTrackJetDist(SvtxTrack* track, Jet* jet);
-    PFObject*  GetPFObject(const uint32_t id, PHCompositeNode* topNode);
-    SvtxTrack* GetTrkFromPFO(PFObject* pfo);
-
-    // additional dst nodes needed
-    PFObjectStore* m_flowStore = NULL;
-
-    // for tracks in jet
-    std::vector<SvtxTrack*> m_trksInJet;
+  // for tracks in jet
+  std::vector<SvtxTrack*> m_trksInJet;
 
 };  // end TrksInJetQAInJetFiller
 

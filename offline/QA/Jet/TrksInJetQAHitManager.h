@@ -14,11 +14,11 @@
 #include "TrksInJetQABaseManager.h"
 
 // tracking includes
-#include <trackbase/TrkrHit.h>
-#include <trackbase/TpcDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>
 
 // root includes
 #include <TH1.h>
@@ -26,44 +26,60 @@
 
 // c++ utilities
 #include <limits>
-#include <vector>
 #include <utility>
-
+#include <vector>
 
 // TrksInJetQAHitManager definition -------------------------------------------
 
-class TrksInJetQAHitManager : public TrksInJetQABaseManager {
+class TrksInJetQAHitManager : public TrksInJetQABaseManager
+{
+ public:
+  // histogram accessors
+  enum Type
+  {
+    Mvtx,
+    Intt,
+    Tpc,
+    All
+  };
+  enum H1D
+  {
+    Ene,
+    ADC,
+    Layer,
+    PhiBin,
+    ZBin
+  };
+  enum H2D
+  {
+    EneVsLayer,
+    EneVsADC,
+    PhiVsZBin
+  };
 
-  public:
+  // histogram content
+  struct HitQAContent
+  {
+    double ene = std::numeric_limits<double>::max();
+    uint64_t adc = std::numeric_limits<uint64_t>::max();
+    uint16_t layer = std::numeric_limits<uint16_t>::max();
+    uint16_t phiBin = std::numeric_limits<uint16_t>::max();
+    uint16_t zBin = std::numeric_limits<uint16_t>::max();
+  };
 
-    // histogram accessors
-    enum Type {Mvtx, Intt, Tpc, All};
-    enum H1D  {Ene, ADC, Layer, PhiBin, ZBin};
-    enum H2D  {EneVsLayer, EneVsADC, PhiVsZBin};
+  // ctor/dtor
+  using TrksInJetQABaseManager::TrksInJetQABaseManager;
+  ~TrksInJetQAHitManager(){};
 
-    // histogram content
-    struct HitQAContent {
-      double   ene    = std::numeric_limits<double>::max();
-      uint64_t adc    = std::numeric_limits<uint64_t>::max();
-      uint16_t layer  = std::numeric_limits<uint16_t>::max();
-      uint16_t phiBin = std::numeric_limits<uint16_t>::max();
-      uint16_t zBin   = std::numeric_limits<uint16_t>::max();
-    };
+  // public methods
+  void GetInfo(TrkrHit* hit, TrkrDefs::hitsetkey& setKey, TrkrDefs::hitkey& hitKey);
 
-    // ctor/dtor
-    using TrksInJetQABaseManager::TrksInJetQABaseManager;
-    ~TrksInJetQAHitManager() {};
+ private:
+  // private methods
+  void FillHistograms(const int type, HitQAContent& content);
 
-    // public methods
-    void GetInfo(TrkrHit* hit, TrkrDefs::hitsetkey& setKey, TrkrDefs::hitkey& hitKey);
-
-  private:
-
-    // private methods
-    void FillHistograms(const int type, HitQAContent& content);
-
-    // inherited private methods
-    void DefineHistograms() override;
+  // inherited private methods
+  void DefineHistograms() override;
 
 };  // end TrksInJetQAHitManager
 

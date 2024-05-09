@@ -9,8 +9,8 @@
 #include <phool/PHTimeStamp.h>
 
 #include <ctime>
-#include <map>
 #include <iostream>
+#include <map>
 #include <string>
 
 class PdbCalBank;

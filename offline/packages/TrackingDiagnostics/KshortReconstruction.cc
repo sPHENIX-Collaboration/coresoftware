@@ -31,6 +31,7 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
     // calculate number silicon tracks
     double this_dca_cut = track_dca_cut;
     TrackSeed* siliconseed = tr1->get_silicon_seed();
+
     if (!siliconseed)
     {
       this_dca_cut *= 5;
@@ -43,6 +44,13 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
         continue;
       }
     }
+
+    unsigned int track1_silicon_cluster_size = std::numeric_limits<unsigned int>::quiet_NaN();
+    if (siliconseed)
+    {
+      track1_silicon_cluster_size = siliconseed->size_cluster_keys();
+    }
+
     Acts::Vector3 pos1(tr1->get_x(), tr1->get_y(), tr1->get_z());
     Acts::Vector3 mom1(tr1->get_px(), tr1->get_py(), tr1->get_pz());
     Acts::Vector3 dcaVals1 = calculateDca(tr1, mom1, pos1);
@@ -64,7 +72,9 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
 
       // calculate number silicon tracks
       TrackSeed* siliconseed2 = tr2->get_silicon_seed();
+
       double this_dca_cut2 = track_dca_cut;
+
       if (!siliconseed2)
       {
         this_dca_cut2 *= 5;
@@ -77,6 +87,13 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
           continue;
         }
       }
+
+      unsigned int track2_silicon_cluster_size = std::numeric_limits<unsigned int>::quiet_NaN();
+      if (siliconseed2)
+      {
+        track2_silicon_cluster_size = siliconseed2->size_cluster_keys();
+      }
+      // unsigned int track2_silicon_cluster_size = 0;
 
       // dca xy and dca z cut here compare to track dca cut
       Acts::Vector3 pos2(tr2->get_x(), tr2->get_y(), tr2->get_z());
@@ -141,7 +158,7 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
 
         // invariant mass is calculated in this method
         fillHistogram(projected_mom1, projected_mom2, recomass, invariantMass, invariantPt, rapidity, pseudorapidity);
-        fillNtp(tr1, tr2, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj);
+        fillNtp(tr1, tr2, dcaVals1, dcaVals2, pca_rel1, pca_rel2, pair_dca, invariantMass, invariantPt, rapidity, pseudorapidity, projected_pos1, projected_pos2, projected_mom1, projected_mom2, pca_rel1_proj, pca_rel2_proj, pair_dca_proj, track1_silicon_cluster_size, track2_silicon_cluster_size);
 
         if (Verbosity() > 2)
         {
@@ -165,7 +182,7 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
   return 0;
 }
 
-void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj)
+void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj, unsigned int track1_silicon_cluster_size, unsigned int track2_silicon_cluster_size)
 {
   double px1 = track1->get_px();
   double py1 = track1->get_py();
@@ -200,7 +217,7 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::V
     return;
   }
 
-  float reco_info[] = {track1->get_x(), track1->get_y(), track1->get_z(), track1->get_px(), track1->get_py(), track1->get_pz(), (float) dcavals1(0), (float) dcavals1(1), (float) dcavals1(2), (float) pca_rel1(0), (float) pca_rel1(1), (float) pca_rel1(2), (float) eta1, (float) track1->get_charge(), (float) tpcClusters1, track2->get_x(), track2->get_y(), track2->get_z(), track2->get_px(), track2->get_py(), track2->get_pz(), (float) dcavals2(0), (float) dcavals2(1), (float) dcavals2(2), (float) pca_rel2(0), (float) pca_rel2(1), (float) pca_rel2(2), (float) eta2, (float) track2->get_charge(), (float) tpcClusters2, svtxVertex->get_x(), svtxVertex->get_y(), svtxVertex->get_z(), (float) pair_dca, (float) invariantMass, (float) invariantPt, (float) pathLength(0), (float) pathLength(1), (float) pathLength(2), mag_pathLength, rapidity, pseudorapidity, (float) projected_pos1(0), (float) projected_pos1(1), (float) projected_pos1(2), (float) projected_pos2(0), (float) projected_pos2(1), (float) projected_pos2(2), (float) projected_mom1(0), (float) projected_mom1(1), (float) projected_mom1(2), (float) projected_mom2(0), (float) projected_mom2(1), (float) projected_mom2(2), (float) pca_rel1_proj(0), (float) pca_rel1_proj(1), (float) pca_rel1_proj(2), (float) pca_rel2_proj(0), (float) pca_rel2_proj(1), (float) pca_rel2_proj(2), (float) pair_dca_proj, (float) pathLength_proj(0), (float) pathLength_proj(1), (float) pathLength_proj(2), mag_pathLength_proj, track1->get_quality(), track2->get_quality(), cos_theta_reco};
+  float reco_info[] = {track1->get_x(), track1->get_y(), track1->get_z(), track1->get_px(), track1->get_py(), track1->get_pz(), (float) dcavals1(0), (float) dcavals1(1), (float) dcavals1(2), (float) pca_rel1(0), (float) pca_rel1(1), (float) pca_rel1(2), (float) eta1, (float) track1->get_charge(), (float) tpcClusters1, track2->get_x(), track2->get_y(), track2->get_z(), track2->get_px(), track2->get_py(), track2->get_pz(), (float) dcavals2(0), (float) dcavals2(1), (float) dcavals2(2), (float) pca_rel2(0), (float) pca_rel2(1), (float) pca_rel2(2), (float) eta2, (float) track2->get_charge(), (float) tpcClusters2, svtxVertex->get_x(), svtxVertex->get_y(), svtxVertex->get_z(), (float) pair_dca, (float) invariantMass, (float) invariantPt, (float) pathLength(0), (float) pathLength(1), (float) pathLength(2), mag_pathLength, rapidity, pseudorapidity, (float) projected_pos1(0), (float) projected_pos1(1), (float) projected_pos1(2), (float) projected_pos2(0), (float) projected_pos2(1), (float) projected_pos2(2), (float) projected_mom1(0), (float) projected_mom1(1), (float) projected_mom1(2), (float) projected_mom2(0), (float) projected_mom2(1), (float) projected_mom2(2), (float) pca_rel1_proj(0), (float) pca_rel1_proj(1), (float) pca_rel1_proj(2), (float) pca_rel2_proj(0), (float) pca_rel2_proj(1), (float) pca_rel2_proj(2), (float) pair_dca_proj, (float) pathLength_proj(0), (float) pathLength_proj(1), (float) pathLength_proj(2), mag_pathLength_proj, track1->get_quality(), track2->get_quality(), cos_theta_reco, (float) track1_silicon_cluster_size, (float) track2_silicon_cluster_size};
 
   ntp_reco_info->Fill(reco_info);
 }
@@ -461,7 +478,7 @@ int KshortReconstruction::InitRun(PHCompositeNode* topNode)
 {
   const char* cfilepath = filepath.c_str();
   fout = new TFile(cfilepath, "recreate");
-  ntp_reco_info = new TNtuple("ntp_reco_info", "decay_pairs", "x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:phi1:pca_rel1_x:pca_rel1_y:pca_rel1_z:eta1:charge1:tpcClusters_1:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:phi2:pca_rel2_x:pca_rel2_y:pca_rel2_z:eta2:charge2:tpcClusters_2:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:pathlength_x:pathlength_y:pathlength_z:pathlength:rapidity:pseudorapidity:projected_pos1_x:projected_pos1_y:projected_pos1_z:projected_pos2_x:projected_pos2_y:projected_pos2_z:projected_mom1_x:projected_mom1_y:projected_mom1_z:projected_mom2_x:projected_mom2_y:projected_mom2_z:projected_pca_rel1_x:projected_pca_rel1_y:projected_pca_rel1_z:projected_pca_rel2_x:projected_pca_rel2_y:projected_pca_rel2_z:projected_pair_dca:projected_pathlength_x:projected_pathlength_y:projected_pathlength_z:projected_pathlength:quality1:quality2:cosThetaReco");
+  ntp_reco_info = new TNtuple("ntp_reco_info", "decay_pairs", "x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:phi1:pca_rel1_x:pca_rel1_y:pca_rel1_z:eta1:charge1:tpcClusters_1:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:phi2:pca_rel2_x:pca_rel2_y:pca_rel2_z:eta2:charge2:tpcClusters_2:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:pathlength_x:pathlength_y:pathlength_z:pathlength:rapidity:pseudorapidity:projected_pos1_x:projected_pos1_y:projected_pos1_z:projected_pos2_x:projected_pos2_y:projected_pos2_z:projected_mom1_x:projected_mom1_y:projected_mom1_z:projected_mom2_x:projected_mom2_y:projected_mom2_z:projected_pca_rel1_x:projected_pca_rel1_y:projected_pca_rel1_z:projected_pca_rel2_x:projected_pca_rel2_y:projected_pca_rel2_z:projected_pair_dca:projected_pathlength_x:projected_pathlength_y:projected_pathlength_z:projected_pathlength:quality1:quality2:cosThetaReco:track1_silicon_clusters:track2_silicon_clusters");
 
   getNodes(topNode);
 

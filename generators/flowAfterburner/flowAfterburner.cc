@@ -155,7 +155,7 @@ float calc_v2(double b, double eta, double pt)
   float temp2 = pow(pt + 0.1, -a2) / (1 + exp(-(pt - 4.5) / a3));
   float temp3 = 0.01 / (1 + exp(-(pt - 4.5) / a3));
 
-  //v2 = (a4 * (temp1 + temp2) + temp3) * exp (-0.5 * eta * eta / 6.27 / 6.27);
+  // v2 = (a4 * (temp1 + temp2) + temp3) * exp (-0.5 * eta * eta / 6.27 / 6.27);
 
   // Adjust flow rapidity dependence to better match PHOBOS 200 GeV Au+Au data
   // JGL 9/9/2019
@@ -221,7 +221,7 @@ AddFlowToParent(HepMC::GenEvent *event, HepMC::GenParticle *parent)
 
   v1 = 0, v2 = 0, v3 = 0, v4 = 0, v5 = 0, v6 = 0;
 
-  //Call the appropriate function to set the vn values
+  // Call the appropriate function to set the vn values
   if (algorithm == minbias_algorithm)
   {
     jjia_minbias_new(b, eta, pt);
@@ -241,9 +241,9 @@ AddFlowToParent(HepMC::GenEvent *event, HepMC::GenParticle *parent)
   gsl_root_fsolver *s = gsl_root_fsolver_alloc(T);
   double x_lo = -2 * M_PI, x_hi = 2 * M_PI;
   float params[13];
-  for (int ipar = 0; ipar < 13; ipar++)
+  for (float &param : params)
   {
-    params[ipar] = 0;
+    param = 0;
   }
   gsl_function F;
   F.function = &vn_func;
@@ -277,7 +277,9 @@ AddFlowToParent(HepMC::GenEvent *event, HepMC::GenParticle *parent)
   gsl_root_fsolver_free(s);
 
   if (iter >= 1000)
+  {
     return 0;
+  }
 
   phishift = phi - phi_0;
 
@@ -292,7 +294,7 @@ AddFlowToParent(HepMC::GenEvent *event, HepMC::GenParticle *parent)
 
 int flowAfterburner(HepMC::GenEvent *event,
                     CLHEP::HepRandomEngine *engine,
-                    std::string algorithmName,
+                    const std::string &algorithmName,
                     float mineta, float maxeta,
                     float minpt, float maxpt)
 {
