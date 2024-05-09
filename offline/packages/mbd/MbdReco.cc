@@ -106,13 +106,16 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     }
   }
 
-  // Here is where we should create calibrated dst from uncalibrated dst
+  // Calibrate from UNCALDST or recalibrate from DST
+  if ( _calpass==3 )
+  {
+    m_mbdevent->ProcessRawPackets( m_mbdpmts );
+  }
 
   m_mbdevent->Calculate(m_mbdpmts, m_mbdout);
 
   // For multiple global vertex
-  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0)
-  {
+  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0) {
     auto vertex = std::make_unique<MbdVertexv2>();
     vertex->set_t(m_mbdevent->get_bbct0());
     vertex->set_z(m_mbdevent->get_bbcz());
