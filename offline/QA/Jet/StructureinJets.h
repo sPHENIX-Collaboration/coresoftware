@@ -1,28 +1,28 @@
 
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef STRUCTUREINJETS_H
-#define STRUCTUREINJETS_H
+#ifndef QA_JET_STRUCTUREINJETS_H
+#define QA_JET_STRUCTUREINJETS_H
 
 // qa utilities
-#include <qautils/QAHistManagerDef.h>
+//#include <qautils/QAHistManagerDef.h>
 
 // f4a includes
-#include <fun4all/Fun4AllHistoManager.h>
+//#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/SubsysReco.h>
-#include "TTree.h"
-#include <string>
-#include "TH2F.h"
 
+#include <string>
+
+class Fun4AllHistoManager;
 class PHCompositeNode;
+class TH2;
 class TH3;
 
 class StructureinJets : public SubsysReco
 {
  public:
-
   StructureinJets(const std::string &recojetname = "AntiKt_Tower_r04",
-	       const std::string &outputfilename = "tracksinjets.root");
+                  const std::string &outputfilename = "tracksinjets.root");
 
   ~StructureinJets() override;
 
@@ -59,17 +59,18 @@ class StructureinJets : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
-  bool isAA; // Declare isAA as a public member variable
+  bool isAA() const { return isAAFlag; }
+  void isAA(bool b) { isAAFlag = b; }
 
  private:
-
   std::string m_recoJetName;
-  float m_trk_pt_cut;
-  float m_jetRadius;
+  float m_trk_pt_cut{2};
+  float m_jetRadius{0.4};
+  bool isAAFlag{false};
   std::string m_outputFileName;
-  TH3 *m_h_track_vs_calo_pt;
-  TH2F *m_h_track_pt;
-  Fun4AllHistoManager* m_manager = NULL;	
+  TH3 *m_h_track_vs_calo_pt{nullptr};
+  TH2 *m_h_track_pt{nullptr};
+  Fun4AllHistoManager *m_manager{nullptr};
 };
 
-#endif // STRUCTUREINJETS_H
+#endif  // QA_JET_STRUCTUREINJETS_H
