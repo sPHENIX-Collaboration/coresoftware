@@ -275,23 +275,35 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
   if (Verbosity() > 1)
   {
     std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
+    if (std::isfinite(m_MagneticField))
+    {
+      std::cout << "using constant file with " << m_MagneticField << " Tesla" << std::endl;
+    }
+    else
+    {
+      std::cout << "Using fieldmap: " << m_FieldMapFile << std::endl;
+    }
   }
-
   std::unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
-
-  if (std::filesystem::path(m_FieldMapFile).extension() != ".root")
+  if (std::isfinite(m_MagneticField))
   {
-    // loading from database
-    std::string url = CDBInterface::instance()->getUrl(m_FieldMapFile);
-    default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, url, m_MagneticFieldRescale));
-  }
-  else if (m_FieldMapFile != "NONE")
-  {
-    default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, m_FieldMapFile, m_MagneticFieldRescale));
+    default_field_cfg.reset(new PHFieldConfigv2(0, 0, m_MagneticField * m_MagneticFieldRescale));
   }
   else
   {
-    default_field_cfg.reset(new PHFieldConfigv2(0, 0, m_MagneticField * m_MagneticFieldRescale));
+    if (std::filesystem::path(m_FieldMapFile).extension() != ".root")
+    {
+      // loading from database
+      m_FieldMapFile  = CDBInterface::instance()->getUrl(m_FieldMapFile);
+    }
+    if (std::filesystem::exists(m_FieldMapFile))
+    {
+      default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, m_FieldMapFile, m_MagneticFieldRescale));
+    }
+    else
+    {
+      std::cout << PHWHERE << " Fieldmap " << m_FieldMapFile << " not found " << std::endl;
+    }
   }
 
   if (Verbosity() > 1)

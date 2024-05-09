@@ -156,6 +156,8 @@ void TrackResiduals::clearClusterStateVectors()
   m_clusgx.clear();
   m_clusgy.clear();
   m_clusgz.clear();
+  m_clusAdc.clear();
+  m_clusMaxAdc.clear();
   m_cluslayer.clear();
   m_clussize.clear();
   m_clushitsetkey.clear();
@@ -218,6 +220,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
   if (m_doClusters)
   {
+    clearClusterStateVectors();
     fillClusterTree(clustermap, geometry);
   }
 
@@ -277,10 +280,9 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       std::vector<TrkrDefs::cluskey> keys;
       for (const auto& ckey : get_cluster_keys(track))
       {
-        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
-        {
+     
           keys.push_back(ckey);
-        }
+        
       }
       if (m_zeroField)
       {
@@ -345,6 +347,40 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     }
     m_tree->Fill();
   }
+
+auto svtxvertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+if(svtxvertexmap)
+{
+  m_nvertices = svtxvertexmap->size();
+  clearClusterStateVectors();
+
+  for (const auto& [key, vertex] : *svtxvertexmap)
+  {
+    m_vertexid = key;
+    m_vx = vertex->get_x();
+    m_vy = vertex->get_y();
+    m_vz = vertex->get_z();
+    m_ntracks = vertex->size_tracks();
+    for(auto it = vertex->begin_tracks(); it != vertex->end_tracks(); ++it)
+    {
+      auto id = *it;
+      auto track = trackmap->find(id)->second;
+      if(!track){
+        continue;
+      }
+      for (const auto& ckey : get_cluster_keys(track))
+      {
+        TrkrCluster* cluster = clustermap->findCluster(ckey);
+        Acts::Vector3 clusglob = geometry->getGlobalPosition(ckey, cluster);
+        m_clusgx.push_back(clusglob.x());
+        m_clusgy.push_back(clusglob.y());
+        m_clusgz.push_back(clusglob.z());
+      }
+    }
+
+    m_vertextree->Fill();
+  }
+}
 
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -417,11 +453,13 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
       clusr *= -1;
     }
 
-    // exclude silicon and tpot clusters for now
-    if (fabs(clusr) > 80 || fabs(clusr) < 30)
+    // exclude 1d tpot clusters for now
+    
+    if (fabs(clusr) > 80)
     {
       continue;
     }
+    
     rzpoints.push_back(std::make_pair(pos.z(), clusr));
     xypoints.push_back(std::make_pair(pos.x(), pos.y()));
     yzpoints.push_back(std::make_pair(pos.z(), pos.y()));
@@ -441,6 +479,7 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
 void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
                                      ActsGeometry* geometry)
 {
+
   for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
                     TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
   {
@@ -547,6 +586,7 @@ int TrackResiduals::End(PHCompositeNode* /*unused*/)
   {
     m_hittree->Write();
   }
+  m_vertextree->Write();
   m_outfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -764,6 +804,8 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 
   ActsTransformations transformer;
   TrkrCluster* cluster = clustermap->findCluster(ckey);
+  Acts::Vector3 clusglob = geometry->getGlobalPosition(ckey, cluster);
+
   switch (TrkrDefs::getTrkrId(ckey))
   {
   case TrkrDefs::mvtxId:
@@ -779,8 +821,6 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     m_nmms++;
     break;
   }
-
-  Acts::Vector3 clusglob = geometry->getGlobalPosition(ckey, cluster);
 
   SvtxTrackState* state = nullptr;
 
@@ -827,6 +867,8 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_clusgx.push_back(clusglob.x());
   m_clusgy.push_back(clusglob.y());
   m_clusgz.push_back(clusglob.z());
+  m_clusAdc.push_back(cluster->getAdc());
+  m_clusMaxAdc.push_back(cluster->getMaxAdc());
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
   m_clusphisize.push_back(cluster->getPhiSize());
   m_cluszsize.push_back(cluster->getZSize());
@@ -1010,7 +1052,6 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
 
   auto surf = geometry->maps().getSurface(key, cluster);
   Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
-
   if (!std::isnan(intersection.x()))
   {
     auto locstateres = surf->globalToLocal(geometry->geometry().getGeoContext(),
@@ -1046,6 +1087,22 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
 }
 void TrackResiduals::createBranches()
 {
+  m_vertextree = new TTree("vertextree", "tree with vertices");
+  m_vertextree->Branch("run", &m_runnumber, "m_runnumber/I");
+  m_vertextree->Branch("segment", &m_segment, "m_segment/I");
+  m_vertextree->Branch("event", &m_event, "m_event/I");
+  m_vertextree->Branch("gl1bco", &m_bco, "m_bco/l");
+  m_vertextree->Branch("trbco", &m_bcotr, "m_bcotr/l");
+  m_vertextree->Branch("vertexid", &m_vertexid, "m_vertexid/I");
+  m_vertextree->Branch("vx", &m_vx, "m_vx/F");
+  m_vertextree->Branch("vy", &m_vy, "m_vy/F");
+  m_vertextree->Branch("vz", &m_vz, "m_vz/F");
+  m_vertextree->Branch("ntracks", &m_ntracks, "m_ntracks/I");
+  m_vertextree->Branch("nvertices", &m_nvertices, "m_nvertices/I");
+  m_vertextree->Branch("gx", &m_clusgx);
+  m_vertextree->Branch("gy", &m_clusgy);
+  m_vertextree->Branch("gz", &m_clusgz);
+
   m_hittree = new TTree("hittree", "A tree with all hits");
   m_hittree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_hittree->Branch("segment", &m_segment, "m_segment/I");
@@ -1157,6 +1214,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgx", &m_clusgx);
   m_tree->Branch("clusgy", &m_clusgy);
   m_tree->Branch("clusgz", &m_clusgz);
+  m_tree->Branch("clusAdc", &m_clusAdc);
+  m_tree->Branch("clusMaxAdc", &m_clusMaxAdc);
   m_tree->Branch("cluslayer", &m_cluslayer);
   m_tree->Branch("clussize", &m_clussize);
   m_tree->Branch("clusphisize", &m_clusphisize);

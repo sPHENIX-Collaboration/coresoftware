@@ -135,6 +135,9 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
       }
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
+        newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
+        newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
+        newhit->setSuppressed(ipmt,plist[i]->iValue(ipmt,"SUPPRESSED"));
         for (int isamp = 0; isamp < nr_samples; isamp++)
         {
           newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
@@ -245,9 +248,9 @@ bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
 
   int first_event = m_MbdPacketMap.begin()->first;
   int last_event = m_MbdPacketMap.rbegin()->first;
-  std::cout << "number of mbd events: " << m_MbdPacketMap.size() << std::endl;
   if (Verbosity() > 1)
   {
+    std::cout << "number of mbd events: " << m_MbdPacketMap.size() << std::endl;
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
