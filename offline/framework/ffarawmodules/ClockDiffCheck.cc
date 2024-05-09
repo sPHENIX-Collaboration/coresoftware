@@ -90,18 +90,23 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       {
 	if ((refdiff&0xFFFFFFFFU) != (std::get<2>(iter.second)&0xFFFFFFFFU))
 	{
-	  std::bitset<32> x(refdiff);
-	  std::bitset<32> y0(std::get<0>(iter.second));
-	  std::bitset<32> y1(std::get<1>(iter.second));
-	  std::bitset<32> y2(std::get<2>(iter.second));
-	  std::cout << "packet " << iter.first << " had different clock diff: 0x" << std::hex
-		    <<  std::get<1>(iter.second) << ", ref diff: 0x" << refdiff << std::dec << std::endl;
+	  static int nprint = 0;
+	  if (nprint < 1000 || Verbosity() > 1)
+	  {
+	    std::bitset<32> x(refdiff);
+	    std::bitset<32> y0(std::get<0>(iter.second));
+	    std::bitset<32> y1(std::get<1>(iter.second));
+	    std::bitset<32> y2(std::get<2>(iter.second));
+	    std::cout << "packet " << iter.first << " had different clock diff: 0x" << std::hex
+		      <<  std::get<1>(iter.second) << ", ref diff: 0x" << refdiff << std::dec << std::endl;
 
-	  std::cout << "reff: " << x << std::endl;
-	  std::cout << "this: " << y2 << std::endl;
+	    std::cout << "reff: " << x << std::endl;
+	    std::cout << "this: " << y2 << std::endl;
 
-	  std::cout << "prev: " << y0 << std::endl;
-	  std::cout << "curr: " << y1 << std::endl;
+	    std::cout << "prev: " << y0 << std::endl;
+	    std::cout << "curr: " << y1 << std::endl;
+	    nprint++;
+	  }
 	}
       }
     }
