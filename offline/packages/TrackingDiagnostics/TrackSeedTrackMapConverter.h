@@ -15,7 +15,6 @@ class TrackSeed;
 class TrackSeedContainer;
 class ActsGeometry;
 class TrkrClusterContainer;
-
 class TrackSeedTrackMapConverter : public SubsysReco
 {
  public:
@@ -39,6 +38,7 @@ class TrackSeedTrackMapConverter : public SubsysReco
   void addKeys(std::unique_ptr<SvtxTrack_v4> &track, TrackSeed *seed);
   void addKeys(TrackSeed *seedToAddTo, TrackSeed *seedToAdd);
   std::pair<int, float> getCosmicCharge(TrackSeed *seed, float vertexradius) const;
+  void lineFit(SvtxTrack_v4 *track, TrackSeed *seed);
 
   ActsGeometry *m_tGeometry{nullptr};
   SvtxTrackMap *m_trackMap{nullptr};
@@ -51,7 +51,8 @@ class TrackSeedTrackMapConverter : public SubsysReco
 
   bool m_cosmics{false};
   bool m_ConstField{false};
-
+  bool m_zeroField{false};
+  
   std::string m_fieldMap;
   std::string m_trackMapName{"SvtxTrackMap"};
   std::string m_trackSeedName{"TpcTrackSeedContainer"};
