@@ -453,16 +453,19 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
   int p_region = -1;
   for (int iregion = 0; iregion < 3; ++iregion)
   {
+    //std::cout<< MinRadius[iregion] << " < " << radius << " < " << MaxRadius[iregion] << std::endl;
+
     if (radius < MaxRadius[iregion] && radius > MinRadius[iregion])
     {
       p_region = iregion;
     }
   }
-
-  if (p_region > 0)
+  //std::cout<< phi << " p_region " << p_region << std::endl;
+  if (p_region > -1)
   {
     for (int s = 0; s < 12; s++)
     {
+      //std::cout << " s " << s << std::endl;
       double daPhi = 0;
       if (s == 0)
       {
@@ -472,17 +475,23 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
       {
         daPhi = fabs(sector_min_Phi_sectors[side][p_region][s - 1] - sector_max_Phi_sectors[side][p_region][s]);
       }
+      //std::cout << " daPhi " << daPhi << std::endl;
       double min_phi = sector_max_Phi_sectors[side][p_region][s];
       double max_phi = sector_max_Phi_sectors[side][p_region][s] + daPhi;
+      //std::cout<< phi << " min_phi " << min_phi << " max_phi " << max_phi << " daPhi " << daPhi << std::endl;
       if (new_phi <= max_phi && new_phi >= min_phi)
       {
         if (fabs(max_phi - new_phi) > fabs(new_phi - min_phi))
         {
           new_phi = min_phi - PhiBinWidth[p_region] / 5;  // to be changed
+          //std::cout<< " min_phi = " << min_phi << " max_phi = " << max_phi << std::endl;
+          //std::cout<< "min_phi - PhiBinWidth[p_region] / 5 = " << min_phi <<"-"<< PhiBinWidth[p_region] <<"/"<< 5 <<std::endl;
         }
         else
         {
           new_phi = max_phi + PhiBinWidth[p_region] / 5;
+          //std::cout<< " min_phi = " << min_phi << " max_phi = " << max_phi << std::endl;
+          //std::cout<< "max_phi + PhiBinWidth[p_region] / 5 = " << max_phi <<"+"<< PhiBinWidth[p_region] <<"/"<< 5 <<std::endl;
         }
       }
     }
@@ -517,12 +526,15 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   const double philim_low_calc = phi - (_nsigmas * cloud_sig_rp / radius) - phistepsize;
   const double philim_high_calc = phi + (_nsigmas * cloud_sig_rp / radius) + phistepsize;
 
+  //std::cout << "side : "<< side <<" zigzags: phi " << phi << " philim_low_calc " << philim_low_calc << " philim_high_calc " << philim_high_calc << std::endl;
   // Find the pad range that covers this phi range
+  //std::cout << "philim_low = check_phi" << std::endl;
   const double philim_low = check_phi(side, philim_low_calc, radius);
+  //std::cout << "philim_high = check_phi" << std::endl;
   const double philim_high = check_phi(side, philim_high_calc, radius);
 
-  int phibin_low = LayerGeom->get_phibin(philim_high);
-  int phibin_high = LayerGeom->get_phibin(philim_low);
+  int phibin_low = LayerGeom->get_phibin(philim_high,side);
+  int phibin_high = LayerGeom->get_phibin(philim_low,side);
   int npads = phibin_high - phibin_low;
 
   if (Verbosity() > 1000)
