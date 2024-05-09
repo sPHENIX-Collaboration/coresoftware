@@ -49,6 +49,8 @@ class TrackResiduals : public SubsysReco
   void zeroField() { m_zeroField = true; }
   void runnumber(const int run) { m_runnumber = run; }
   void segment(const int seg) { m_segment = seg; }
+  void linefitAll() { m_linefitTPCOnly = false;  }
+  void failedTree() { m_doFailedSeeds = true; }
 
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
@@ -82,7 +84,7 @@ class TrackResiduals : public SubsysReco
   bool m_doClusters = false;
   bool m_doHits = false;
   bool m_zeroField = false;
-  
+  bool m_doFailedSeeds = false;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   ClusterErrorPara m_clusErrPara;
@@ -91,6 +93,7 @@ class TrackResiduals : public SubsysReco
 
   bool m_doAlignment = false;
   bool m_ppmode = false;
+  bool m_linefitTPCOnly = true;
 
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
@@ -195,6 +198,7 @@ std::vector<float> m_cluselz;
 std::vector<float> m_clusgx;
 std::vector<float> m_clusgy;
 std::vector<float> m_clusgz;
+std::vector<float> m_clusgr;
 std::vector<int> m_cluslayer;
 std::vector<int> m_clussize;
 std::vector<int> m_clusphisize;

@@ -154,6 +154,7 @@ void TrackResiduals::clearClusterStateVectors()
   m_cluslz.clear();
   m_cluselx.clear();
   m_cluselz.clear();
+  m_clusgr.clear();
   m_clusgx.clear();
   m_clusgy.clear();
   m_clusgz.clear();
@@ -331,6 +332,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       }
       for (const auto& ckey : get_cluster_keys(track))
       {
+
         fillClusterBranches(ckey, track, topNode);
       }
     }
@@ -386,8 +388,10 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   }
 
   fillVertexTree(topNode);
-  fillFailedSeedTree(topNode, tpc_seed_ids);
-
+  if(m_doFailedSeeds)
+  {
+    fillFailedSeedTree(topNode, tpc_seed_ids);
+  }
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -397,9 +401,9 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsig
   auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto svtxseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
-  auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
   if (!tpcseedmap or !trackmap or !clustermap or !silseedmap or !svtxseedmap or !geometry)
   {
@@ -473,6 +477,11 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsig
       m_clusgx.push_back(global.x());
       m_clusgy.push_back(global.y());
       m_clusgz.push_back(global.z());
+      float cr = r(global.x(), global.y());
+      if(global.y() < 0) {
+        cr = -cr;
+      }
+      m_clusgr.push_back(cr);
       auto detid = TrkrDefs::getTrkrId(ckey);
       if (detid == TrkrDefs::TrkrId::mvtxId)
       {
@@ -528,6 +537,11 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
           m_clusgx.push_back(clusglob.x());
           m_clusgy.push_back(clusglob.y());
           m_clusgz.push_back(clusglob.z());
+          float clusr = r(clusglob.x(), clusglob.y());
+          if(clusglob.y() < 0) {
+            clusr = -clusr;
+          }
+          m_clusgr.push_back(clusr);
         }
       }
 
@@ -605,7 +619,7 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
 
     // exclude 1d tpot clusters for now
     
-    if (fabs(clusr) > 80)
+    if (fabs(clusr) > 80 || (m_linefitTPCOnly && fabs(clusr)<20.))
     {
       continue;
     }
@@ -956,7 +970,6 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   ActsTransformations transformer;
   TrkrCluster* cluster = clustermap->findCluster(ckey);
   Acts::Vector3 clusglob = geometry->getGlobalPosition(ckey, cluster);
-
   switch (TrkrDefs::getTrkrId(ckey))
   {
   case TrkrDefs::mvtxId:
@@ -991,25 +1004,14 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_cluskeys.push_back(ckey);
 
   //! have cluster and state, fill vectors
-  m_cluslx.push_back(cluster->getLocalX());
   m_clusedge.push_back(cluster->getEdge());
   m_clusoverlap.push_back(cluster->getOverlap());
-  float clusz = cluster->getLocalY();
 
-  if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::tpcId)
-  {
-    float rawclusz = convertTimeToZ(geometry, ckey, cluster);
+  auto loc = geometry->getLocalCoords(ckey, cluster);
 
-    int crossing = track->get_crossing();
-    unsigned int side = TpcDefs::getSide(ckey);
-    clusz = m_clusterCrossingCorrection.correctZ(rawclusz, side, crossing);
-    if (!m_ppmode)
-    {
-      clusz = rawclusz;
-    }
-  }
+  m_cluslx.push_back(loc.x());
+  m_cluslz.push_back(loc.y());
 
-  m_cluslz.push_back(clusz);
   float clusr = r(clusglob.x(), clusglob.y());
   auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster,
                                                                 clusr, ckey);
@@ -1017,6 +1019,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_cluselz.push_back(sqrt(para_errors.second));
   m_clusgx.push_back(clusglob.x());
   m_clusgy.push_back(clusglob.y());
+  m_clusgr.push_back(clusglob.y() > 0 ? clusr : -1*clusr);
   m_clusgz.push_back(clusglob.z());
   m_clusAdc.push_back(cluster->getAdc());
   m_clusMaxAdc.push_back(cluster->getMaxAdc());
@@ -1091,7 +1094,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   alignmentTransformationContainer::use_alignment = false;
   auto idealcenter = surf->center(geometry->geometry().getGeoContext());
   auto idealnorm = -1 * surf->normal(geometry->geometry().getGeoContext());
-  Acts::Vector3 ideal_local(cluster->getLocalX(), clusz, 0.0);
+  Acts::Vector3 ideal_local(loc.x(), loc.y(), 0.0);
   Acts::Vector3 ideal_glob = surf->transform(geometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
   auto idealrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
 
@@ -1257,7 +1260,8 @@ void TrackResiduals::createBranches()
   m_failedfits->Branch("gx",&m_clusgx);
   m_failedfits->Branch("gy",&m_clusgy);
   m_failedfits->Branch("gz",&m_clusgz);
-  m_failedfits->Branch("lx",&m_cluslx);
+  m_failedfits->Branch("gr", &m_clusgr);
+  m_failedfits->Branch("lx", &m_cluslx);
   m_failedfits->Branch("lz",&m_cluslz);
 
   m_vertextree = new TTree("vertextree", "tree with vertices");
@@ -1275,6 +1279,7 @@ void TrackResiduals::createBranches()
   m_vertextree->Branch("gx", &m_clusgx);
   m_vertextree->Branch("gy", &m_clusgy);
   m_vertextree->Branch("gz", &m_clusgz);
+  m_vertextree->Branch("gr", &m_clusgr);
 
   m_hittree = new TTree("hittree", "A tree with all hits");
   m_hittree->Branch("run", &m_runnumber, "m_runnumber/I");
@@ -1394,6 +1399,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgx", &m_clusgx);
   m_tree->Branch("clusgy", &m_clusgy);
   m_tree->Branch("clusgz", &m_clusgz);
+  m_tree->Branch("clusgr", &m_clusgr);
   m_tree->Branch("clusAdc", &m_clusAdc);
   m_tree->Branch("clusMaxAdc", &m_clusMaxAdc);
   m_tree->Branch("cluslayer", &m_cluslayer);
