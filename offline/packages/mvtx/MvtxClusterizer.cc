@@ -612,8 +612,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       clus->setLocalY(locclusz);
       clus->setPhiError(phierror);
       clus->setZError(zerror);
-      clus->setPhiSize(phibins.size());
-      clus->setZSize(zbins.size());
+      clus->setPhiSize((char) phibins.size());
+      clus->setZSize((char) zbins.size());
       // All silicon surfaces have a 1-1 map to hitsetkey.
       // So set subsurface key to 0
       clus->setSubSurfKey(0);
