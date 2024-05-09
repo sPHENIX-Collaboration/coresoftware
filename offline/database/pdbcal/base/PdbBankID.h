@@ -16,23 +16,23 @@
 
 #include <phool/PHObject.h>
 
-class PdbBankID : public PHObject {
-public:
-   PdbBankID(const int val = 0);
-   ~PdbBankID() override{}
+class PdbBankID : public PHObject
+{
+ public:
+  PdbBankID(const int val = 0);
+  ~PdbBankID() override {}
 
-   void print() const;
+  void print() const;
 
-   int  getInternalValue() const { return bankID; }
-   void setInternalValue(const int val) { bankID = val; }
-   
-   friend int operator == (const PdbBankID &, const PdbBankID &);
-   
-private:
+  int getInternalValue() const { return bankID; }
+  void setInternalValue(const int val) { bankID = val; }
+
+  friend int operator==(const PdbBankID &, const PdbBankID &);
+
+ private:
   int bankID;
 
   ClassDefOverride(PdbBankID, 1)
-
 };
 
 #endif /* PDBCAL_BASE_PDBBANKID_H */
