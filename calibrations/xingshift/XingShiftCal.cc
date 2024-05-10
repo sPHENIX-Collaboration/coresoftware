@@ -261,6 +261,8 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
     }
   }
 
+  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -323,7 +325,12 @@ int XingShiftCal::CalculateCrossingShift(int &xing, uint64_t counts[NTRIG][NBUNC
       long long abort_sum = 0;
       for (int iabortbunch = NBUNCHES - 9; iabortbunch < NBUNCHES; iabortbunch++)
       {
-        abort_sum += counts[itrig][(iabortbunch + ishift) % NBUNCHES];
+	int shiftbunch = iabortbunch - ishift;
+	if (shiftbunch < 0)
+	{
+	  shiftbunch = 120 + shiftbunch;
+	}
+        abort_sum += counts[itrig][(shiftbunch) % NBUNCHES];
       }
       if (abort_sum < abort_sum_prev)
       {
@@ -409,8 +416,7 @@ int XingShiftCal::CommitToSpinDB()
 
   // prepare values for db
   unsigned int qa_level = 0xffff;
-  // OnCalServer *server = OnCalServer::instance();
-  // int runnumber = server->RunNumber();
+  
 
   if (fillnumberBlue != fillnumberYellow)
   {
