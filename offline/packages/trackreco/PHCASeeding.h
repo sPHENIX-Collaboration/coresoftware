@@ -8,6 +8,9 @@
  *  \author Michael Peters & Christof Roland
  */
 
+// Statement for if we want to save out the intermediary clustering steps
+/* #define _CLUSTER_LOG_TUPOUT_ */
+
 // begin
 
 #include "ALICEKF.h"
@@ -40,6 +43,11 @@
 #include <unordered_set>
 #include <utility>  // for pair
 #include <vector>   // for vector
+
+#if defined(_CLUSTER_LOG_TUPOUT_)
+#include <TFile.h>
+#include <TNtuple.h>
+#endif
 
 class PHCompositeNode;
 class PHTimer;
@@ -117,6 +125,19 @@ class PHCASeeding : public PHTrackSeeding
   int End() override;
 
  private:
+  bool _save_clus_proc = false;
+
+#if defined(_CLUSTER_LOG_TUPOUT_)
+  TFile* _f_clustering_process = nullptr;
+  int      _nevent=-1;
+  // Save the steps of the clustering
+  TNtuple* _tupclus_all = nullptr;    // all clusters
+  TNtuple* _tupclus_links = nullptr; //  clusters which are linked
+  TNtuple* _tupclus_bilinks = nullptr; // bi-linked clusters
+  TNtuple* _tupclus_seeds = nullptr; // seed (outermost three bi-linked chain
+  TNtuple* _tupclus_grown_seeds = nullptr; // seeds saved out
+#endif
+
   enum skip_layers
   {
     on,
