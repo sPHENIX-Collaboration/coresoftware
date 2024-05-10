@@ -260,7 +260,7 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
       std::cout << "Commit to SpinDB : FAILURE" << std::endl;
     }
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
