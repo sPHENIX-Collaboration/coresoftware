@@ -121,7 +121,10 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     {
       continue;
     }
-
+  if(Verbosity() > 2)
+  {
+    tpcseed->identify();
+  }
     std::vector<Acts::Vector3> clusterPositions;
     std::vector<TrkrDefs::cluskey> clusterKeys;
     for (auto iter = tpcseed->begin_cluster_keys();
@@ -136,32 +139,88 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
     {
       continue;
     }
-    std::vector<TrkrDefs::cluskey> si_clusterKeys;
-    std::vector<Acts::Vector3> si_clusterPositions;
+    if(Verbosity() > 3)
+    {
+      for(auto& param : fitparams)
+      {
+        std::cout << "fit param " << param << std::endl;
+      }
+    }
+    std::vector<TrkrDefs::cluskey> si_clusterKeys, si_clusterKeysrz;
+    std::vector<Acts::Vector3> si_clusterPositions, si_clusterPositionsrz;
     std::map<TrkrDefs::cluskey, Acts::Vector3> positionMap;
 
-    unsigned int nSiClusters = TrackFitUtils::addClusters(fitparams, 1000., _tgeometry, _cluster_map, si_clusterPositions, si_clusterKeys, 0, 6);
-    std::transform(si_clusterKeys.begin(), si_clusterKeys.end(),
-                   si_clusterPositions.begin(), std::inserter(positionMap, positionMap.end()), [](TrkrDefs::cluskey a, const Acts::Vector3& b)
-                   { return std::make_pair(a, b); });
-    if (nSiClusters > 0)
+    unsigned int nSiClusters = std::numeric_limits<unsigned int>::quiet_NaN();
+    TrackFitUtils::position_vector_t xypoints, rzpoints;
+    for (auto& pos : clusterPositions)
     {
+      xypoints.push_back({pos.x(), pos.y()});
+      float clusr = std::sqrt(pos.x() * pos.x() + pos.y() * pos.y());
+      if (pos.y() < 0)
+      {
+        clusr = -clusr;
+      }
+      rzpoints.push_back({pos.z(), clusr});
+
+      if (Verbosity() > 5)
+      {
+        std::cout << "Cluster pos " << pos.transpose() << " and r " << std::sqrt(pos.x() * pos.x() + pos.y() * pos.y()) << std::endl;
+      }
+    }
+    auto rzparams = TrackFitUtils::line_fit(rzpoints);
+
+    if (m_zeroField)
+    {
+     
+     auto xyparams = TrackFitUtils::line_fit(xypoints);
+     nSiClusters = TrackFitUtils::addClustersOnLine(xyparams,
+                                                    true,
+                                                    _dca_cut,
+                                                    _tgeometry, _cluster_map,
+                                                    si_clusterPositions,
+                                                    si_clusterKeys,
+                                                    0, 6);
+   }
+   else{
+    nSiClusters = TrackFitUtils::addClusters(fitparams, _dca_cut, _tgeometry, _cluster_map, si_clusterPositions, si_clusterKeys, 0, 6);
+   }
+   int nrzClusters = TrackFitUtils::addClustersOnLine(rzparams,
+                                                       false,
+                                                       _dca_z_cut,
+                                                       _tgeometry,
+                                                       _cluster_map,
+                                                       si_clusterPositionsrz,
+                                                       si_clusterKeysrz,
+                                                       0, 6);
+    std::vector<TrkrDefs::cluskey> newkeys;
+    std::set_intersection(si_clusterKeys.begin(), si_clusterKeys.end(),
+                          si_clusterKeysrz.begin(), si_clusterKeysrz.end(),
+                          std::back_inserter(newkeys));
+
+    if (newkeys.size() > 0)
+    {
+      if(Verbosity() > 0)
+      {
+        std::cout << "Adding " << newkeys.size() << " Keys " << std::endl;
+        for(auto& key : newkeys)
+        {
+          std::cout << "key " << (unsigned int) key << std::endl;
+        }
+      }
       std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
       std::map<short, int> crossing_frequency;
-
-      Acts::Vector3 layer0global(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
-
-      for (auto clusterkey : si_clusterKeys)
+      Acts::Vector3 tpcExGlobal = clusterPositions.front();
+      for (auto& clusterkey : newkeys)
       {
-        if (TrkrDefs::getLayer(clusterkey) == 0)
-        {
-          auto cluster = _cluster_map->findCluster(clusterkey);
-          layer0global = _tgeometry->getGlobalPosition(clusterkey, cluster);
-        }
-        if (TrkrDefs::getTrkrId(clusterkey) == TrkrDefs::mvtxId)
+        //! Check that the clusters are in the same quadrant
+        auto cluster = _cluster_map->findCluster(clusterkey);
+        auto global = _tgeometry->getGlobalPosition(clusterkey, cluster);
+        positionMap.insert({clusterkey, global});
+        if (sgn(global.x()) == sgn(tpcExGlobal.x()) && sgn(global.y()) == sgn(tpcExGlobal.y()))
         {
           si_seed->insert_cluster_key(clusterkey);
         }
+        /*
         else if (TrkrDefs::getTrkrId(clusterkey) == TrkrDefs::inttId)
         {
           auto hit_crossings = _cluster_crossing_map->getCrossings(clusterkey);
@@ -178,16 +237,15 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
             }
           }
 
-          //! Check that the INTT clusters are in the same quadrant
-          auto cluster = _cluster_map->findCluster(clusterkey);
-          auto global = _tgeometry->getGlobalPosition(clusterkey, cluster);
-          if (sgn(global.x()) == sgn(layer0global.x()) && sgn(global.y()) == sgn(layer0global.y()))
+         
+          if (sgn(global.x()) == sgn(tpcExGlobal.x()) && sgn(global.y()) == sgn(tpcExGlobal.y()))
           {
             si_seed->insert_cluster_key(clusterkey);
           }
         }
+        */
       }
-
+/*
       if (crossing_frequency.size() > 0)
       {
         short most_common_crossing = (std::max_element(crossing_frequency.begin(), crossing_frequency.end(),
@@ -196,9 +254,10 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
                                          ->first;
         si_seed->set_crossing(most_common_crossing);
       }
+      */
       si_seed->circleFitByTaubin(positionMap, 0, 8);
       si_seed->lineFit(positionMap, 0, 8);
-
+      si_seed->set_crossing(0);
       TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
 
       std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
@@ -206,7 +265,9 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
       int si_seed_index = _si_seeds->find(mapped_seed);
       if (Verbosity() > 0)
       {
-        std::cout << "inserted " << nSiClusters << " silicon clusters for tpc seed " << tpc_seed_index << std::endl;
+        std::cout << "found  " << nSiClusters << " silicon clusters in xy for tpc seed " << tpc_seed_index << std::endl;
+        std::cout << "found " << nrzClusters << " silicon clusters in rz for tpc seed " << tpc_seed_index << std::endl;
+        std::cout << "intersection is " << newkeys.size() << std::endl;
         std::cout << "new silicon seed index: " << si_seed_index << std::endl;
       }
       full_seed->set_tpc_seed_index(tpc_seed_index);
