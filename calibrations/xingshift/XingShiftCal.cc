@@ -73,7 +73,6 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
 
   if (evt->getEvtType() == BEGRUNEVENT)
   {
-    std::cout << "here" << std::endl;
     //================ BeginRunEvent packets ================//
     pBluePol = evt->getPacket(packet_BLUEPOL);
     pYellPol = evt->getPacket(packet_YELLPOL);
@@ -106,18 +105,6 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
       delete pYellPol;
     }
     //==========================================================//
-
-    /*
-    pBlueSpin = evt->getPacket(packet_BLUESPIN);
-    pYellSpin = evt->getPacket(packet_YELLSPIN);
-    for (int i = 0; i < NBUNCHES; i++)
-    {
-      blueSpinPattern[i] = pBlueSpin->iValue(i);
-      yellSpinPattern[i] = pYellSpin->iValue(i);
-    }
-    delete pBlueSpin;
-    delete pYellSpin;
-    */
 
     //============== Get intended spin patterns from buckets ==============//
     // there are 360 buckets for 120 bunches
@@ -323,7 +310,12 @@ int XingShiftCal::CalculateCrossingShift(int &xing, uint64_t counts[NTRIG][NBUNC
       long long abort_sum = 0;
       for (int iabortbunch = NBUNCHES - 9; iabortbunch < NBUNCHES; iabortbunch++)
       {
-        abort_sum += counts[itrig][(iabortbunch + ishift) % NBUNCHES];
+	int shiftbunch = iabortbunch - ishift;
+	if (shiftbunch < 0)
+	{
+	  shiftbunch = 120 + shiftbunch;
+	}
+        abort_sum += counts[itrig][(shiftbunch) % NBUNCHES];
       }
       if (abort_sum < abort_sum_prev)
       {
@@ -409,8 +401,7 @@ int XingShiftCal::CommitToSpinDB()
 
   // prepare values for db
   unsigned int qa_level = 0xffff;
-  // OnCalServer *server = OnCalServer::instance();
-  // int runnumber = server->RunNumber();
+  
 
   if (fillnumberBlue != fillnumberYellow)
   {
