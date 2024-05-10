@@ -128,13 +128,14 @@ class PHCASeeding : public PHTrackSeeding
   bool _save_clus_proc = false;
 
 #if defined(_CLUSTER_LOG_TUPOUT_)
-  TFile* _f_clustering_process;
+  TFile* _f_clustering_process = nullptr;
   int      _nevent=-1;
-  TNtuple* _tupclus_all; // save the steps of the clustering
-  TNtuple* _tupclus_links; // save the steps of the clustering
-  TNtuple* _tupclus_bilinks; // save the steps of the clustering
-  TNtuple* _tupclus_seeds; // save the steps of the clustering
-  TNtuple* _tupclus_grown_seeds; // save the steps of the clustering
+  // Save the steps of the clustering
+  TNtuple* _tupclus_all = nullptr;    // all clusters
+  TNtuple* _tupclus_links = nullptr; //  clusters which are linked
+  TNtuple* _tupclus_bilinks = nullptr; // bi-linked clusters
+  TNtuple* _tupclus_seeds = nullptr; // seed (outermost three bi-linked chain
+  TNtuple* _tupclus_grown_seeds = nullptr; // seeds saved out
 #endif
 
   enum skip_layers
