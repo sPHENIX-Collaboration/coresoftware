@@ -73,7 +73,6 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
 
   if (evt->getEvtType() == BEGRUNEVENT)
   {
-    std::cout << "here" << std::endl;
     //================ BeginRunEvent packets ================//
     pBluePol = evt->getPacket(packet_BLUEPOL);
     pYellPol = evt->getPacket(packet_YELLPOL);
@@ -106,18 +105,6 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
       delete pYellPol;
     }
     //==========================================================//
-
-    /*
-    pBlueSpin = evt->getPacket(packet_BLUESPIN);
-    pYellSpin = evt->getPacket(packet_YELLSPIN);
-    for (int i = 0; i < NBUNCHES; i++)
-    {
-      blueSpinPattern[i] = pBlueSpin->iValue(i);
-      yellSpinPattern[i] = pYellSpin->iValue(i);
-    }
-    delete pBlueSpin;
-    delete pYellSpin;
-    */
 
     //============== Get intended spin patterns from buckets ==============//
     // there are 360 buckets for 120 bunches
