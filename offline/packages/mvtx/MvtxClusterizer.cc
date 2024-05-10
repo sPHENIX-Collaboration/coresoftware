@@ -612,8 +612,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       clus->setLocalY(locclusz);
       clus->setPhiError(phierror);
       clus->setZError(zerror);
-      clus->setPhiSize((char) phibins.size());
-      clus->setZSize((char) zbins.size());
+      clus->setPhiSize(phibins.size());
+      clus->setZSize(zbins.size());
       // All silicon surfaces have a 1-1 map to hitsetkey.
       // So set subsurface key to 0
       clus->setSubSurfKey(0);
@@ -623,7 +623,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
         clus->identify();
       }
 
-      m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+      if (zbins.size() <= 127) m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 
     }  // clusitr loop
   }    // loop over hitsets
@@ -909,7 +909,7 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
         clus->identify();
       }
 
-      m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+      if (zbins.size() <= 127) m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
     }  // clusitr loop
   }    // loop over hitsets
 

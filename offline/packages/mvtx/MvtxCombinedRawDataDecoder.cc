@@ -22,6 +22,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
@@ -128,6 +129,10 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
     m_hotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
   }
+
+  recoConsts *rc = recoConsts::instance();
+  m_runNumber = rc->get_IntFlag("RUNNUMBER");
+  m_strobeWidth = m_runNumber < 41875 ? 89. : 5.; 
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
