@@ -23,6 +23,7 @@
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 
+#include <trackbase_historic/TrackAnalysisUtils.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
@@ -267,7 +268,11 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     m_pcax = track->get_x();
     m_pcay = track->get_y();
     m_pcaz = track->get_z();
-
+    Acts::Vector3 zero = Acts::Vector3::Zero();
+    auto dcapair = TrackAnalysisUtils::get_dca(track, zero);
+    m_dcaxy = dcapair.first.first;
+    m_dcaz = dcapair.second.first;
+   
     clearClusterStateVectors();
     if (Verbosity() > 1)
     {
@@ -1203,6 +1208,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("R", &m_R, "m_R/F");
   m_tree->Branch("X0", &m_X0, "m_X0/F");
   m_tree->Branch("Y0", &m_Y0, "m_Y0/F");
+  m_tree->Branch("dcaxy", &m_dcaxy, "m_dcaxy/F");
+  m_tree->Branch("dcaz", &m_dcaz, "m_dcaz/F");
 
   m_tree->Branch("cluskeys", &m_cluskeys);
   m_tree->Branch("clusedge", &m_clusedge);

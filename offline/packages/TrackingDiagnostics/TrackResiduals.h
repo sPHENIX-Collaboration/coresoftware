@@ -129,7 +129,9 @@ class TrackResiduals : public SubsysReco
   float m_R = std::numeric_limits<float>::quiet_NaN();
   float m_X0 = std::numeric_limits<float>::quiet_NaN();
   float m_Y0 = std::numeric_limits<float>::quiet_NaN();
-
+  float m_dcaxy = std::numeric_limits<float>::quiet_NaN();
+  float m_dcaz = std::numeric_limits<float>::quiet_NaN();
+  
   //! hit tree info
   uint32_t m_hitsetkey = std::numeric_limits<uint32_t>::quiet_NaN();
   float m_hitgx = std::numeric_limits<float>::quiet_NaN();

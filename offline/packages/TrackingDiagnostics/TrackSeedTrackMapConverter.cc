@@ -370,7 +370,7 @@ void TrackSeedTrackMapConverter::lineFit(SvtxTrack_v4* track, TrackSeed* seed)
   Acts::Vector3 mom(std::cos(phi) * std::sin(theta),
                     std::sin(phi) * std::sin(theta), std::cos(theta));
 
-  auto pca = TrackFitUtils::getPCALinePoint(glob, mom, Acts::Vector3::Zero());
+  auto pca = TrackFitUtils::getPCALinePoint(Acts::Vector3::Zero(), mom, glob);
   track->set_x(pca.x());
   track->set_y(pca.y());
 }
