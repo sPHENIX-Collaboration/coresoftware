@@ -36,6 +36,7 @@ class AzimuthalSeeder : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void histos() { m_outfile = true; }
+  void residualLimit(const float limit) { m_outlierLimit = limit; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
@@ -49,6 +50,8 @@ class AzimuthalSeeder : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
+
+  float m_outlierLimit = 0.1;
 };
 
 #endif  // AZIMUTHALSEEDER_H

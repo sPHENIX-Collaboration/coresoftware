@@ -152,7 +152,7 @@ int AzimuthalSeeder::process_event(PHCompositeNode * /*unused*/)
       }
       float distancexy = std::abs(xySlope * pos.x() - pos.y() + xyIntercept) / std::sqrt(xySlope * xySlope + 1);
       float distancerz = std::abs(rzSlope * pos.z() - r + rzIntercept) / std::sqrt(rzSlope * rzSlope + 1);
-      if (distancexy > 0.1 || distancerz > 0.1)
+      if (distancexy > m_outlierLimit || distancerz > m_outlierLimit)
       {
         badseed = true;
         break;
@@ -171,7 +171,10 @@ int AzimuthalSeeder::process_event(PHCompositeNode * /*unused*/)
       clusterPositions[0].insert(std::make_pair(key, pos));
     }
   }
-  std::cout << "finalseed size " << finalseeds.size() << std::endl;
+  if(Verbosity() > 2)
+  {
+    std::cout << "finalseed size " << finalseeds.size() << std::endl;
+  }
   for (auto &s : finalseeds)
   {
     if (s.ckeys.size() < 3)
