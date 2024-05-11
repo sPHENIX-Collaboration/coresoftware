@@ -59,6 +59,7 @@
 #include <utility>  // for pair, make_pair
 #include <vector>
 
+
 //#define _DEBUG_
 
 #if defined(_DEBUG_)
@@ -317,6 +318,10 @@ PositionMap PHCASeeding::FillTree()
       const Acts::Vector3 globalpos = {globalpos_d.x(), globalpos_d.y(), globalpos_d.z()};
       cachedPositions.insert(std::make_pair(ckey, globalpos));
 
+#if defined(_CLUSTER_LOG_TUPOUT_)
+      _tupclus_all->Fill(_nevent, globalpos_d.x(), globalpos_d.y(), globalpos_d.z());
+#endif
+
       const double clus_phi = get_phi(globalpos);
       const double clus_eta = get_eta(globalpos);
       const double clus_l = layer;
@@ -359,6 +364,9 @@ PositionMap PHCASeeding::FillTree()
 
 int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
 {
+#if defined(_CLUSTER_LOG_TUPOUT_)
+  _nevent += 1;
+#endif
   if (Verbosity() > 1)
   {
     std::cout << " Process...  " << std::endl;
@@ -646,10 +654,18 @@ std::pair<std::vector<std::unordered_set<keylink>>, std::vector<std::unordered_s
     for (auto cluster : bestBelowClusters)
     {
       belowLinks[layer_index].insert(keylink{{StartCluster, cluster}});
+#if defined(_CLUSTER_LOG_TUPOUT_)
+      auto& v = globalPositions.at(cluster.second);
+      _tupclus_links->Fill(_nevent, TrkrDefs::getLayer(cluster.second), 0, v.x(), v.y(), v.z());
+#endif
     }
     for (auto cluster : bestAboveClusters)
     {
       aboveLinks[layer_index].insert(keylink{{StartCluster, cluster}});
+#if defined(_CLUSTER_LOG_TUPOUT_)
+      auto& v = globalPositions.at(cluster.second);
+      _tupclus_links->Fill(_nevent, TrkrDefs::getLayer(cluster.second), 1, v.x(), v.y(), v.z());
+#endif
     }
     t_seed->stop();
     set_insert_time += t_seed->elapsed();
@@ -723,6 +739,17 @@ double PHCASeeding::getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b,
 
 std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<keylink>>& bidirectionalLinks, const PositionMap& globalPositions) const
 {
+
+#if defined(_CLUSTER_LOG_TUPOUT_)
+  for (auto& list: bidirectionalLinks) {
+  for (auto& link : list) {
+      auto& v0 = globalPositions.at(link[0].second);
+      _tupclus_bilinks->Fill(_nevent, TrkrDefs::getLayer(link[0].second),0,v0.x(),v0.y(),v0.z());
+      auto& v1 = globalPositions.at(link[1].second);
+      _tupclus_bilinks->Fill(_nevent, TrkrDefs::getLayer(link[1].second),0,v1.x(),v1.y(),v1.z());
+  }
+  }
+#endif
   // follow bidirectional links to form lists of cluster keys
   // (to be fitted for track seed parameters)
   std::vector<keylist> trackSeedPairs;
@@ -770,6 +797,17 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
         trackSeedTriplet.push_back(trackKeyChain[1]);
         trackSeedTriplet.push_back(testlink[1].second);
         trackSeedKeyLists.push_back(trackSeedTriplet);
+#if defined(_CLUSTER_LOG_TUPOUT_)
+      auto& c0 = trackKeyChain[0];
+      auto& v0 = globalPositions.at(c0);
+      _tupclus_seeds->Fill(_nevent, TrkrDefs::getLayer(c0), 0, v0.x(), v0.y(), v0.z());
+      auto& c1 = trackKeyChain[1];
+      auto& v1 = globalPositions.at(c1);
+      _tupclus_seeds->Fill(_nevent, TrkrDefs::getLayer(c1), 1, v1.x(), v1.y(), v1.z());
+      auto& c2 = testlink[1].second;
+      auto& v2 = globalPositions.at(c2);
+      _tupclus_seeds->Fill(_nevent, TrkrDefs::getLayer(c2), 2, v2.x(), v2.y(), v2.z());
+#endif
       }
     }
   }
@@ -852,6 +890,12 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
       if (seed.size() > 5)
       {
         trackSeedKeyLists.push_back(seed);
+#if defined(_CLUSTER_LOG_TUPOUT_)
+        for (int i=0;i<6;++i) {
+          auto& v = globalPositions.at(seed[i]);
+          _tupclus_grown_seeds->Fill(_nevent, TrkrDefs::getLayer(seed[i]), i, v.x(), v.y(), v.z());
+        }
+#endif
       }
     }
     if (Verbosity() > 0)
@@ -1042,7 +1086,7 @@ void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v2>& seeds)
   }
 }
 
-int PHCASeeding::Setup(PHCompositeNode* topNode)
+int PHCASeeding::Setup(PHCompositeNode* topNode) // This is called by ::InitRun
 {
   //  if(Verbosity()>0)
   std::cout << "Called Setup" << std::endl;
@@ -1097,6 +1141,18 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)
   fitter->setFixedClusterError(0, _fixed_clus_err.at(0));
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
+  
+#if defined(_CLUSTER_LOG_TUPOUT_)
+  std::cout << " Writing _CLUSTER_LOG_TUPOUT.root file " << std::endl;
+  _f_clustering_process = new TFile("_CLUSTER_LOG_TUPOUT.root", "recreate");
+  _tupclus_all         = new TNtuple("all",         "all clusters","event:x:y:z");
+  _tupclus_links       = new TNtuple("links",       "links","event:layer:updown01:x:y:z");
+  _tupclus_bilinks     = new TNtuple("bilinks",     "bilinks","event:layer:topbot01:x:y:z");
+  _tupclus_seeds       = new TNtuple("seeds",       "3 bilink seeds cores","event:layer:seed012:x:y:z");
+  _tupclus_grown_seeds = new TNtuple("grown_seeds", "grown seeds", "event:layer:seednum05:x:y:z");
+#endif
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1106,5 +1162,16 @@ int PHCASeeding::End()
   {
     std::cout << "Called End " << std::endl;
   }
+
+#if defined(_CLUSTER_LOG_TUPOUT_)
+  _f_clustering_process->cd();
+  _tupclus_all         ->Write();
+  _tupclus_links       ->Write();
+  _tupclus_bilinks     ->Write();
+  _tupclus_seeds       ->Write();
+  _tupclus_grown_seeds ->Write();
+  _f_clustering_process->Close();
+#endif
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
