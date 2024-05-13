@@ -37,6 +37,7 @@ class LL1Out : public PHObject
   virtual void setTriggerKey(TriggerDefs::TriggerKey /*key*/) {}
 
   virtual std::vector<unsigned int>* GetTriggerBits() { return nullptr; }
+  virtual std::vector<unsigned int>* get_word(int /*word*/) { return nullptr; }
 
   virtual bool passesTrigger() { return 0; }
   virtual bool passesThreshold(int /*ith*/) { return 0; }

@@ -104,11 +104,11 @@ int TriggerValid::Init(PHCompositeNode* /*unused*/)
   hm->registerHisto(h_hcal_ll1_2x2_sample);
   auto h_jet_ll1_sample = new TProfile2D("h_jet_sample", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
   hm->registerHisto(h_jet_ll1_sample);
-  auto h_emcal_2x2_energy_lutsum = new TH2F("h_emcal_2x2_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 128, 0, 128);
+  auto h_emcal_2x2_energy_lutsum = new TH2F("h_emcal_2x2_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 256, 0, 256);
   hm->registerHisto(h_emcal_2x2_energy_lutsum);
-  auto h_emcal_8x8_energy_lutsum = new TH2F("h_emcal_8x8_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
+  auto h_emcal_8x8_energy_lutsum = new TH2F("h_emcal_8x8_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 256, 0, 256);
   hm->registerHisto(h_emcal_8x8_energy_lutsum);
-  auto h_hcal_2x2_energy_lutsum = new TH2F("h_hcal_2x2_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
+  auto h_hcal_2x2_energy_lutsum = new TH2F("h_hcal_2x2_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 256, 0, 256);
   hm->registerHisto(h_hcal_2x2_energy_lutsum);
   auto h_jet_energy_lutsum = new TH2F("h_jet_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
   hm->registerHisto(h_jet_energy_lutsum);
@@ -477,7 +477,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         }
 
         uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
-        uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk) + 4 * TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumk);
+        uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk);
 
         if (summ)
         {
@@ -587,7 +587,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 
   // match emulated with real
 
-  if (v_emcal_emu_2x2.size())
+  if (v_emcal_emu_2x2.size() && v_emcal_ll1_2x2.size())
   {
     for (auto& it : v_emcal_ll1_2x2)
     {
@@ -608,7 +608,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
     }
   }
 
-  if (v_emcal_emu_8x8.size())
+  if (v_emcal_emu_8x8.size() && v_emcal_ll1_8x8.size())
   {
     for (auto& it : v_emcal_ll1_8x8)
     {
@@ -628,7 +628,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
       }
     }
   }
-  if (v_hcal_emu_2x2.size())
+  if (v_hcal_emu_2x2.size()  && v_hcal_ll1_2x2.size())
   {
     for (auto& it : v_hcal_ll1_2x2)
     {
@@ -647,7 +647,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
       }
     }
   }
-  if (v_jet_emu.size())
+  if (v_jet_emu.size() && v_jet_ll1.size())
   {
     for (auto& it : v_jet_ll1)
     {
@@ -675,6 +675,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
   float hcal_energies[12][35]{};
   if (towers_emcal)
   {
+
     // go through the emulated 2x2 map for emcal
     for (auto& it : v_emcal_emu_2x2)
     {
@@ -721,8 +722,8 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
     for (auto& it : v_hcal_emu_2x2)
     {
       unsigned int sumk = it.first;
-      uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
-      uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk) + 4 * TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumk);
+      uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 2 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
+      uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk);
 
       float energy_sum = 0.0;
       for (int itower = 0; itower < 4; itower++)
