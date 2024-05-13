@@ -49,6 +49,8 @@ class TrackResiduals : public SubsysReco
   void zeroField() { m_zeroField = true; }
   void runnumber(const int run) { m_runnumber = run; }
   void segment(const int seg) { m_segment = seg; }
+  void linefitAll() { m_linefitTPCOnly = false;  }
+  void failedTree() { m_doFailedSeeds = true; }
 
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
@@ -68,16 +70,21 @@ class TrackResiduals : public SubsysReco
                          TrkrClusterContainer *clusters);
   void fillStatesWithCircleFit(const TrkrDefs::cluskey &key, TrkrCluster *cluster,
                                Acts::Vector3 &glob, ActsGeometry *geometry);
+  void fillVertexTree(PHCompositeNode *topNode);
+  void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int>& tpc_seed_ids);
 
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
   TTree *m_clustree = nullptr;
   TTree *m_hittree = nullptr;
+  TTree *m_vertextree = nullptr;
+  TTree *m_failedfits = nullptr;
+
   bool m_doClusters = false;
   bool m_doHits = false;
   bool m_zeroField = false;
-
+  bool m_doFailedSeeds = false;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   ClusterErrorPara m_clusErrPara;
@@ -86,6 +93,7 @@ class TrackResiduals : public SubsysReco
 
   bool m_doAlignment = false;
   bool m_ppmode = false;
+  bool m_linefitTPCOnly = true;
 
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
@@ -127,6 +135,17 @@ class TrackResiduals : public SubsysReco
   float m_R = std::numeric_limits<float>::quiet_NaN();
   float m_X0 = std::numeric_limits<float>::quiet_NaN();
   float m_Y0 = std::numeric_limits<float>::quiet_NaN();
+  float m_dcaxy = std::numeric_limits<float>::quiet_NaN();
+  float m_dcaz = std::numeric_limits<float>::quiet_NaN();
+  
+
+  float m_seedx = std::numeric_limits<float>::quiet_NaN();
+  float m_seedy = std::numeric_limits<float>::quiet_NaN();
+  float m_seedz = std::numeric_limits<float>::quiet_NaN();
+  float m_seedpx = std::numeric_limits<float>::quiet_NaN();
+  float m_seedpy = std::numeric_limits<float>::quiet_NaN();
+  float m_seedpz = std::numeric_limits<float>::quiet_NaN();
+  int m_seedcharge = std::numeric_limits<int>::quiet_NaN();
 
   //! hit tree info
   uint32_t m_hitsetkey = std::numeric_limits<uint32_t>::quiet_NaN();
@@ -142,109 +161,115 @@ class TrackResiduals : public SubsysReco
   int m_strip = std::numeric_limits<int>::quiet_NaN();
   float m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
 
-  //! cluster tree info
-  float m_sclusgr = std::numeric_limits<float>::quiet_NaN();
-  float m_sclusphi = std::numeric_limits<float>::quiet_NaN();
-  float m_scluseta = std::numeric_limits<float>::quiet_NaN();
-  float m_adc = std::numeric_limits<float>::quiet_NaN();
-  float m_clusmaxadc = std::numeric_limits<float>::quiet_NaN();
-  int m_phisize = std::numeric_limits<int>::quiet_NaN();
-  int m_zsize = std::numeric_limits<int>::quiet_NaN();
-  float m_scluslx = std::numeric_limits<float>::quiet_NaN();
-  float m_scluslz = std::numeric_limits<float>::quiet_NaN();
-  float m_sclusgx = std::numeric_limits<float>::quiet_NaN();
-  float m_sclusgy = std::numeric_limits<float>::quiet_NaN();
-  float m_sclusgz = std::numeric_limits<float>::quiet_NaN();
-  int m_scluslayer = std::numeric_limits<int>::quiet_NaN();
-  float m_scluselx = std::numeric_limits<float>::quiet_NaN();
-  float m_scluselz = std::numeric_limits<float>::quiet_NaN();
-  int m_clussector = std::numeric_limits<int>::quiet_NaN();
-  int m_side = std::numeric_limits<int>::quiet_NaN();
-  int m_staveid = std::numeric_limits<int>::quiet_NaN();
-  int m_chipid = std::numeric_limits<int>::quiet_NaN();
-  int m_strobeid = std::numeric_limits<int>::quiet_NaN();
-  int m_ladderzid = std::numeric_limits<int>::quiet_NaN();
-  int m_ladderphiid = std::numeric_limits<int>::quiet_NaN();
-  int m_timebucket = std::numeric_limits<int>::quiet_NaN();
-  int m_segtype = std::numeric_limits<int>::quiet_NaN();
-  int m_tileid = std::numeric_limits<int>::quiet_NaN();
+int m_ntracks = std::numeric_limits<int>::quiet_NaN();
+int m_nvertices = std::numeric_limits<int>::quiet_NaN();
 
-  //! clusters on track information
-  std::vector<float> m_cluslx;
-  std::vector<float> m_cluslz;
-  std::vector<float> m_cluselx;
-  std::vector<float> m_cluselz;
-  std::vector<float> m_clusgx;
-  std::vector<float> m_clusgy;
-  std::vector<float> m_clusgz;
-  std::vector<int> m_cluslayer;
-  std::vector<int> m_clussize;
-  std::vector<int> m_clusphisize;
-  std::vector<int> m_cluszsize;
-  std::vector<int> m_clusedge;
-  std::vector<int> m_clusoverlap;
-  std::vector<uint32_t> m_clushitsetkey;
-  std::vector<uint64_t> m_cluskeys;
-  std::vector<float> m_idealsurfcenterx;
-  std::vector<float> m_idealsurfcentery;
-  std::vector<float> m_idealsurfcenterz;
-  std::vector<float> m_idealsurfnormx;
-  std::vector<float> m_idealsurfnormy;
-  std::vector<float> m_idealsurfnormz;
-  std::vector<float> m_missurfcenterx;
-  std::vector<float> m_missurfcentery;
-  std::vector<float> m_missurfcenterz;
-  std::vector<float> m_missurfnormx;
-  std::vector<float> m_missurfnormy;
-  std::vector<float> m_missurfnormz;
-  std::vector<float> m_clusgxideal;
-  std::vector<float> m_clusgyideal;
-  std::vector<float> m_clusgzideal;
-  std::vector<float> m_idealsurfalpha;
-  std::vector<float> m_idealsurfbeta;
-  std::vector<float> m_idealsurfgamma;
-  std::vector<float> m_missurfalpha;
-  std::vector<float> m_missurfbeta;
-  std::vector<float> m_missurfgamma;
+//! cluster tree info
+float m_sclusgr = std::numeric_limits<float>::quiet_NaN();
+float m_sclusphi = std::numeric_limits<float>::quiet_NaN();
+float m_scluseta = std::numeric_limits<float>::quiet_NaN();
+float m_adc = std::numeric_limits<float>::quiet_NaN();
+float m_clusmaxadc = std::numeric_limits<float>::quiet_NaN();
+int m_phisize = std::numeric_limits<int>::quiet_NaN();
+int m_zsize = std::numeric_limits<int>::quiet_NaN();
+float m_scluslx = std::numeric_limits<float>::quiet_NaN();
+float m_scluslz = std::numeric_limits<float>::quiet_NaN();
+float m_sclusgx = std::numeric_limits<float>::quiet_NaN();
+float m_sclusgy = std::numeric_limits<float>::quiet_NaN();
+float m_sclusgz = std::numeric_limits<float>::quiet_NaN();
+int m_scluslayer = std::numeric_limits<int>::quiet_NaN();
+float m_scluselx = std::numeric_limits<float>::quiet_NaN();
+float m_scluselz = std::numeric_limits<float>::quiet_NaN();
+int m_clussector = std::numeric_limits<int>::quiet_NaN();
+int m_side = std::numeric_limits<int>::quiet_NaN();
+int m_staveid = std::numeric_limits<int>::quiet_NaN();
+int m_chipid = std::numeric_limits<int>::quiet_NaN();
+int m_strobeid = std::numeric_limits<int>::quiet_NaN();
+int m_ladderzid = std::numeric_limits<int>::quiet_NaN();
+int m_ladderphiid = std::numeric_limits<int>::quiet_NaN();
+int m_timebucket = std::numeric_limits<int>::quiet_NaN();
+int m_segtype = std::numeric_limits<int>::quiet_NaN();
+int m_tileid = std::numeric_limits<int>::quiet_NaN();
 
-  //! states on track information
-  std::vector<float> m_statelx;
-  std::vector<float> m_statelz;
-  std::vector<float> m_stateelx;
-  std::vector<float> m_stateelz;
-  std::vector<float> m_stategx;
-  std::vector<float> m_stategy;
-  std::vector<float> m_stategz;
-  std::vector<float> m_statepx;
-  std::vector<float> m_statepy;
-  std::vector<float> m_statepz;
-  std::vector<float> m_statepl;
+//! clusters on track information
+std::vector<float> m_clusAdc;
+std::vector<float> m_clusMaxAdc;
+std::vector<float> m_cluslx;
+std::vector<float> m_cluslz;
+std::vector<float> m_cluselx;
+std::vector<float> m_cluselz;
+std::vector<float> m_clusgx;
+std::vector<float> m_clusgy;
+std::vector<float> m_clusgz;
+std::vector<float> m_clusgr;
+std::vector<int> m_cluslayer;
+std::vector<int> m_clussize;
+std::vector<int> m_clusphisize;
+std::vector<int> m_cluszsize;
+std::vector<int> m_clusedge;
+std::vector<int> m_clusoverlap;
+std::vector<uint32_t> m_clushitsetkey;
+std::vector<uint64_t> m_cluskeys;
+std::vector<float> m_idealsurfcenterx;
+std::vector<float> m_idealsurfcentery;
+std::vector<float> m_idealsurfcenterz;
+std::vector<float> m_idealsurfnormx;
+std::vector<float> m_idealsurfnormy;
+std::vector<float> m_idealsurfnormz;
+std::vector<float> m_missurfcenterx;
+std::vector<float> m_missurfcentery;
+std::vector<float> m_missurfcenterz;
+std::vector<float> m_missurfnormx;
+std::vector<float> m_missurfnormy;
+std::vector<float> m_missurfnormz;
+std::vector<float> m_clusgxideal;
+std::vector<float> m_clusgyideal;
+std::vector<float> m_clusgzideal;
+std::vector<float> m_idealsurfalpha;
+std::vector<float> m_idealsurfbeta;
+std::vector<float> m_idealsurfgamma;
+std::vector<float> m_missurfalpha;
+std::vector<float> m_missurfbeta;
+std::vector<float> m_missurfgamma;
 
-  std::vector<float> m_statelxglobderivdx;
-  std::vector<float> m_statelxglobderivdy;
-  std::vector<float> m_statelxglobderivdz;
-  std::vector<float> m_statelxglobderivdalpha;
-  std::vector<float> m_statelxglobderivdbeta;
-  std::vector<float> m_statelxglobderivdgamma;
+//! states on track information
+std::vector<float> m_statelx;
+std::vector<float> m_statelz;
+std::vector<float> m_stateelx;
+std::vector<float> m_stateelz;
+std::vector<float> m_stategx;
+std::vector<float> m_stategy;
+std::vector<float> m_stategz;
+std::vector<float> m_statepx;
+std::vector<float> m_statepy;
+std::vector<float> m_statepz;
+std::vector<float> m_statepl;
 
-  std::vector<float> m_statelxlocderivd0;
-  std::vector<float> m_statelxlocderivz0;
-  std::vector<float> m_statelxlocderivphi;
-  std::vector<float> m_statelxlocderivtheta;
-  std::vector<float> m_statelxlocderivqop;
+std::vector<float> m_statelxglobderivdx;
+std::vector<float> m_statelxglobderivdy;
+std::vector<float> m_statelxglobderivdz;
+std::vector<float> m_statelxglobderivdalpha;
+std::vector<float> m_statelxglobderivdbeta;
+std::vector<float> m_statelxglobderivdgamma;
 
-  std::vector<float> m_statelzglobderivdx;
-  std::vector<float> m_statelzglobderivdy;
-  std::vector<float> m_statelzglobderivdz;
-  std::vector<float> m_statelzglobderivdalpha;
-  std::vector<float> m_statelzglobderivdbeta;
-  std::vector<float> m_statelzglobderivdgamma;
+std::vector<float> m_statelxlocderivd0;
+std::vector<float> m_statelxlocderivz0;
+std::vector<float> m_statelxlocderivphi;
+std::vector<float> m_statelxlocderivtheta;
+std::vector<float> m_statelxlocderivqop;
 
-  std::vector<float> m_statelzlocderivd0;
-  std::vector<float> m_statelzlocderivz0;
-  std::vector<float> m_statelzlocderivphi;
-  std::vector<float> m_statelzlocderivtheta;
-  std::vector<float> m_statelzlocderivqop;
+std::vector<float> m_statelzglobderivdx;
+std::vector<float> m_statelzglobderivdy;
+std::vector<float> m_statelzglobderivdz;
+std::vector<float> m_statelzglobderivdalpha;
+std::vector<float> m_statelzglobderivdbeta;
+std::vector<float> m_statelzglobderivdgamma;
+
+std::vector<float> m_statelzlocderivd0;
+std::vector<float> m_statelzlocderivz0;
+std::vector<float> m_statelzlocderivphi;
+std::vector<float> m_statelzlocderivtheta;
+std::vector<float> m_statelzlocderivqop;
 };
 
 #endif  // TRACKRESIDUALS_H

@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   PHActsTrackProjection.h \
   PHActsTrackPropagator.h \
   PHCASeeding.h \
+  AzimuthalSeeder.h \
   PHCosmicsFilter.h \
   PHCosmicsTrkFitter.h \
   PHCosmicSeeder.h \
@@ -126,6 +127,7 @@ libtrack_reco_la_SOURCES = \
   ALICEKF.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
+  AzimuthalSeeder.cc \
   PHCosmicsFilter.cc \
   PHCosmicSeedCombiner.cc \
   PHCosmicSeeder.cc \
@@ -166,26 +168,27 @@ libtrack_reco_io_la_LIBADD = \
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
   $(ACTS_LIBS) \
-  -lSubsysReco \
+  -lcalo_io \
   -lg4eval \
   -lg4testbench \
   -lg4detectors \
-  -lgsl \
-  -lgslcblas \
-  -lgenfit2 \
-  -lgenfit2exp \
-  -lPHGenFit \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
+  -lgenfit2 \
+  -lgenfit2exp \
+  -lglobalvertex_io \
+  -lgsl \
+  -lgslcblas \
+  -lintt_io \
   -lmicromegas_io \
   -lmvtx_io \
-  -lintt_io \
-  -ltrack_io \
-  -ltrackbase_historic_io \
-  -lcalo_io \
   -lphparameter \
-  -lglobalvertex_io
+  -lPHGenFit \
+  -lSubsysReco \
+  -ltrack_io \
+  -ltpc \
+  -ltrackbase_historic_io
 
 
 # Rule for generating table CINT dictionaries.

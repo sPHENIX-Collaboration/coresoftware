@@ -165,7 +165,7 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
     for (auto&& iter = track->begin_states(); iter != track->end_states(); ++iter)
     {
       const auto& [pathlength, state] = *iter;
-      if(pathlength == 0)
+      if (pathlength == 0)
       {
         continue;
       }
@@ -176,8 +176,8 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
       auto clusloc = geometry->getLocalCoords(cluskey, cluster);
       auto surf = geometry->maps().getSurface(cluskey, cluster);
       auto stateloc = surf->globalToLocal(geometry->geometry().getGeoContext(),
-                                     stateglob * Acts::UnitConstants::cm,
-                                     surf->normal(geometry->geometry().getGeoContext()));
+                                          stateglob * Acts::UnitConstants::cm,
+                                          surf->normal(geometry->geometry().getGeoContext()));
       float statelx = NAN;
       float statelz = NAN;
       if (stateloc.ok())
@@ -199,7 +199,7 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
       h_gyfitresid->Fill(TrkrDefs::getLayer(cluskey), clusglob.y() - stateglob.y());
       h_gzfitresid->Fill(TrkrDefs::getLayer(cluskey), clusglob.z() - stateglob.z());
     }
-    
+
     h_nmaps->Fill(nmaps);
     h_nintt->Fill(nintt);
     h_ntpc->Fill(ntpc);
@@ -252,6 +252,7 @@ int CosmicTrackQA::EndRun(const int runnumber)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   TH2* h_tracksperevent = dynamic_cast<TH2*>(hm->getHisto(std::string(getHistoPrefix() + "ntracksperrun").c_str()));
+  // NOLINTNEXTLINE(bugprone-integer-division)
   h_tracksperevent->Fill(runnumber, m_tracks / m_event);
   return Fun4AllReturnCodes::EVENT_OK;
 }

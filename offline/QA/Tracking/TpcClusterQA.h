@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef TPCCLUSTERQA_H
-#define TPCCLUSTERQA_H
+#ifndef QA_TRACKING_TPCCLUSTERQA_H
+#define QA_TRACKING_TPCCLUSTERQA_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -16,13 +16,11 @@ class TpcClusterQA : public SubsysReco
  public:
   TpcClusterQA(const std::string &name = "TpcClusterQA");
 
-  ~TpcClusterQA() override;
+  ~TpcClusterQA() override = default;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
-  int End(PHCompositeNode *topNode) override;
   void beginRun(const int run) { m_beginRun = run; }
   void endRun(const int run) { m_endRun = run; }
 
@@ -41,4 +39,4 @@ class TpcClusterQA : public SubsysReco
   int m_clustersPerSector[24] = {0};
 };
 
-#endif  // TPCCLUSTERQA_H
+#endif  // QA_TRACKING_TPCCLUSTERQA_H

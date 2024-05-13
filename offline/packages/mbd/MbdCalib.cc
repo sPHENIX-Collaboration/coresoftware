@@ -133,6 +133,7 @@ int MbdCalib::Download_All()
   }
 #endif
 
+  // download local calibs (text versions)
   if ( bbc_caldir.size() > 0 )
   {
     std::string sampmax_file = bbc_caldir + "/mbd_sampmax.calib";

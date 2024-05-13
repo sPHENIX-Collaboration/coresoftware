@@ -2,11 +2,11 @@
 #include "PgPostApplication.h"
 #include "PgPostBankWrapperManager.h"
 
-#include <pdbcalbase/PdbBankID.h>        // for PdbBankID
-#include <pdbcalbase/PdbCalBank.h>       // for PdbCalBank
+#include <pdbcalbase/PdbBankID.h>   // for PdbBankID
+#include <pdbcalbase/PdbCalBank.h>  // for PdbCalBank
 
-#include <phool/phool.h>
 #include <phool/PHTimeStamp.h>
+#include <phool/phool.h>
 
 #include <RDBC/TSQLConnection.h>
 #include <RDBC/TSQLPreparedStatement.h>
@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
-
 
 using namespace std;
 
@@ -85,6 +84,6 @@ bool PgPostBankWrapper::commit()
   else
   {
     cout << "Bank is a nullptr pointer" << endl;
-    return 0;
+    return false;
   }
 }
