@@ -7,14 +7,16 @@ const int SpinDBContent::ERROR_VALUE=-999;
 
 //////////////////////////////////////////////////////////
 
-void SpinDBContent::Initialize(void){
+void SpinDBContent::Initialize()
+{
   runnum=ERROR_VALUE;
   qa_level=ERROR_VALUE;
   fillnum=ERROR_VALUE;
   badrun=ERROR_VALUE;
   cross_shift=ERROR_VALUE;
 
-  for(int icross=0; icross<NCROSS; icross++){
+  for(int icross=0; icross<NCROSS; icross++)
+  {
     bpol[icross]=(float)ERROR_VALUE;
     bpolerr[icross]=(float)ERROR_VALUE;
     bpolsys[icross]=(float)ERROR_VALUE;
@@ -44,9 +46,11 @@ void SpinDBContent::Initialize(void){
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBContent::CheckBunchNumber(int bunch){
-  if(bunch<0 || bunch>=NCROSS){
-    printf("Error : bunch number (%d) is out of range (0-%d).",bunch,NCROSS-1);
+int SpinDBContent::CheckBunchNumber(int bunch)
+{
+  if(bunch<0 || bunch>=NCROSS)
+  {
+    std::cout << (boost::format("Error : bunch number (%d) is out of range (0-119).") % bunch).str();
     return(ERROR_VALUE);
   }
 
@@ -55,34 +59,52 @@ int SpinDBContent::CheckBunchNumber(int bunch){
 
 ///////////////////////////////////////////////////////////////
 
-void SpinDBContent::Print(Option_t*) const {
-  printf("Run number = %d\n",runnum);
-  printf("QA Level = %d\n",qa_level);
-  printf("Fill number = %d\n",fillnum);
-  printf("Bad run QA = %d\n",badrun);
-  printf("Crossing shift = %d\n",cross_shift);
+void SpinDBContent::Print(Option_t* /*option*/) const 
+{
+  std::cout << (boost::format("Run number = %d\n") % runnum).str();
+  std::cout << (boost::format("QA Level = %d\n") % qa_level).str();
+  std::cout << (boost::format("Fill number = %d\n") % fillnum).str();
+  std::cout << (boost::format("Bad run QA = %d\n") % badrun).str();
+  std::cout << (boost::format("Crossing shift = %d\n") % cross_shift).str();
+  
 
-  for(int i=0; i<NCROSS; i++){
-    printf("%3d : %12lld %12lld %12lld : %3d %3d : %d",i,
-	   scaler_mbd_vtxcut[i],scaler_mbd_nocut[i],
-           scaler_zdc_nocut[i],
-           bpat[i],ypat[i],bad_bunch[i]);
-    printf(" : %6.3f +- %6.3f +- %6.3f %6.3f +- %6.3f +- %6.3f\n",
-	   bpol[i],bpolerr[i],bpolsys[i],ypol[i],ypolerr[i],ypolsys[i]);
+  for(int i = 0; i < NCROSS; i++)
+  {
+    std::cout << (boost::format("%3d : %12lld %12lld %12lld : %3d %3d : %d") 
+                 % i 
+                 % scaler_mbd_vtxcut[i] 
+                 % scaler_mbd_nocut[i]
+                 % scaler_zdc_nocut[i]
+                 % bpat[i] 
+                 % ypat[i] 
+		  % bad_bunch[i]).str();
+
+    std::cout << (boost::format(" : %6.3f +- %6.3f +- %6.3f %6.3f +- %6.3f +- %6.3f\n") 
+                 % bpol[i] 
+                 % bpolerr[i] 
+                 % bpolsys[i]
+                 % ypol[i] 
+                 % ypolerr[i] 
+		  % ypolsys[i]).str();
   }
 
-  printf("Transvers comp. blue X   = %f +- %f\n",tc_x_blue,tc_x_blueerr);
-  printf("Transvers comp. blue Y   = %f +- %f\n",tc_y_blue,tc_y_blueerr);
-  printf("Transvers comp. yellow X = %f +- %f\n",tc_x_yellow,tc_x_yellowerr);
-  printf("Transvers comp. yellow Y = %f +- %f\n",tc_y_yellow,tc_y_yellowerr);
+  std::cout << (boost::format("Transvers comp. blue X   = %f +- %f\n") % tc_x_blue % tc_x_blueerr).str();
+  std::cout << (boost::format("Transvers comp. blue Y   = %f +- %f\n") % tc_y_blue % tc_y_blueerr).str();
+  std::cout << (boost::format("Transvers comp. yellow X = %f +- %f\n") % tc_x_yellow % tc_x_yellowerr).str();
+  std::cout << (boost::format("Transvers comp. yellow Y = %f +- %f\n") % tc_y_yellow % tc_y_yellowerr).str();
+  
 
   return;
 }
 
 ///////////////////////////////////////////////////////////
 
-int SpinDBContent::SetPolarizationBlue(int bunch,float value,float error){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetPolarizationBlue(int bunch, float value, float error)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   bpol[bunch]=value;
   bpolerr[bunch]=error;
   return(1);
@@ -90,8 +112,12 @@ int SpinDBContent::SetPolarizationBlue(int bunch,float value,float error){
 
 ///////////////////////////////////////////////////////////
 
-int SpinDBContent::SetPolarizationBlue(int bunch,float value,float error,float syserr){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetPolarizationBlue(int bunch, float value, float error, float syserr)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   bpol[bunch]=value;
   bpolerr[bunch]=error;
   bpolsys[bunch]=syserr;
@@ -100,16 +126,24 @@ int SpinDBContent::SetPolarizationBlue(int bunch,float value,float error,float s
 
 /////////////////////////////////////////////////////
 
-int SpinDBContent::SetPolarizationYellow(int bunch,float value,float error){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetPolarizationYellow(int bunch, float value, float error)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   ypol[bunch]=value;
   ypolerr[bunch]=error;
   return(1);
 }
 /////////////////////////////////////////////////////
 
-int SpinDBContent::SetPolarizationYellow(int bunch,float value,float error,float syserr){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetPolarizationYellow(int bunch, float value, float error, float syserr)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   ypol[bunch]=value;
   ypolerr[bunch]=error;
   ypolsys[bunch]=syserr;
@@ -117,47 +151,68 @@ int SpinDBContent::SetPolarizationYellow(int bunch,float value,float error,float
 }
 /////////////////////////////////////////////////////
 
-int SpinDBContent::SetSpinPatternBlue(int bunch,int value){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetSpinPatternBlue(int bunch, int value)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   bpat[bunch]=value;
   return(1);
 }
 
 /////////////////////////////////////////////////////
 
-int SpinDBContent::SetSpinPatternYellow(int bunch,int value){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetSpinPatternYellow(int bunch, int value)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   ypat[bunch]=value;
   return(1);
 }
 
 /////////////////////////////////////////////////////
 
-int SpinDBContent::SetScalerMbdVertexCut(int bunch,long long value){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetScalerMbdVertexCut(int bunch, long long value)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   scaler_mbd_vtxcut[bunch]=value;
   return(1);
 }
 
 //////////////////////////////////////////////////////
 
-int SpinDBContent::SetScalerMbdNoCut(int bunch,long long value){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetScalerMbdNoCut(int bunch, long long value)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   scaler_mbd_nocut[bunch]=value;
   return(1);
 }
 
 //////////////////////////////////////////////////////
 
-int SpinDBContent::SetScalerZdcNoCut(int bunch,long long value){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetScalerZdcNoCut(int bunch, long long value)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   scaler_zdc_nocut[bunch]=value;
   return(1);
 }
 
 ////////////////////////////////////////////////////////
 
-int SpinDBContent::SetScaler(int channel,int bunch,long long value){
+int SpinDBContent::SetScaler(int channel, int bunch, long long value)
+{
   switch(channel){
   case 0:
     return SetScalerMbdVertexCut(bunch,value);
@@ -173,15 +228,20 @@ int SpinDBContent::SetScaler(int channel,int bunch,long long value){
 
 ////////////////////////////////////////////////////////////////
 
-int SpinDBContent::SetBadBunchFlag(int bunch,int value){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::SetBadBunchFlag(int bunch, int value)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   bad_bunch[bunch]=value;
   return(1);
 }
 
 //////////////////////////////////////////////////////
 
-void SpinDBContent::SetTransCompBlueX(float value,float error){
+void SpinDBContent::SetTransCompBlueX(float value, float error)
+{
   tc_x_blue=value;
   tc_x_blueerr=error;
   return;
@@ -189,7 +249,8 @@ void SpinDBContent::SetTransCompBlueX(float value,float error){
 
 //////////////////////////////////////////////////////
 
-void SpinDBContent::SetTransCompBlueY(float value,float error){
+void SpinDBContent::SetTransCompBlueY(float value, float error)
+{
   tc_y_blue=value;
   tc_y_blueerr=error;
   return;
@@ -197,7 +258,8 @@ void SpinDBContent::SetTransCompBlueY(float value,float error){
 
 ////////////////////////////////////////////////////////////////
 
-void SpinDBContent::SetTransCompYellowX(float value,float error){
+void SpinDBContent::SetTransCompYellowX(float value, float error)
+{
   tc_x_yellow=value;
   tc_x_yellowerr=error;
   return;
@@ -205,7 +267,8 @@ void SpinDBContent::SetTransCompYellowX(float value,float error){
 
 /////////////////////////////////////////////////////////////////
 
-void SpinDBContent::SetTransCompYellowY(float value,float error){
+void SpinDBContent::SetTransCompYellowY(float value, float error)
+{
   tc_y_yellow=value;
   tc_y_yellowerr=error;
   return;
@@ -213,8 +276,12 @@ void SpinDBContent::SetTransCompYellowY(float value,float error){
 
 ////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetPolarizationBlue(int bunch,float &value,float &error){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetPolarizationBlue(int bunch, float &value, float &error)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   value=bpol[bunch];
   error=bpolerr[bunch];
   return(1);
@@ -222,8 +289,12 @@ int SpinDBContent::GetPolarizationBlue(int bunch,float &value,float &error){
 
 ////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetPolarizationBlue(int bunch,float &value,float &error,float &syserr){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetPolarizationBlue(int bunch, float &value, float &error, float &syserr)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   value=bpol[bunch];
   error=bpolerr[bunch];
   syserr=bpolsys[bunch];
@@ -232,8 +303,12 @@ int SpinDBContent::GetPolarizationBlue(int bunch,float &value,float &error,float
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetPolarizationBlue(int bunch,double &value,double &error){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetPolarizationBlue(int bunch, double &value, double &error)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   value=(double)bpol[bunch];
   error=(double)bpolerr[bunch];
   return(1);
@@ -241,8 +316,12 @@ int SpinDBContent::GetPolarizationBlue(int bunch,double &value,double &error){
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetPolarizationBlue(int bunch,double &value,double &error,double &syserr){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetPolarizationBlue(int bunch, double &value, double &error, double &syserr)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   value=(double)bpol[bunch];
   error=(double)bpolerr[bunch];
   syserr=(double)bpolsys[bunch];
@@ -251,8 +330,12 @@ int SpinDBContent::GetPolarizationBlue(int bunch,double &value,double &error,dou
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetPolarizationYellow(int bunch,float &value,float &error){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetPolarizationYellow(int bunch, float &value, float &error)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   value=ypol[bunch];
   error=ypolerr[bunch];
   return(1);
@@ -260,8 +343,12 @@ int SpinDBContent::GetPolarizationYellow(int bunch,float &value,float &error){
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetPolarizationYellow(int bunch,float &value,float &error,float &syserr){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetPolarizationYellow(int bunch, float &value, float &error, float &syserr)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   value=ypol[bunch];
   error=ypolerr[bunch];
   syserr=ypolsys[bunch];
@@ -270,8 +357,12 @@ int SpinDBContent::GetPolarizationYellow(int bunch,float &value,float &error,flo
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetPolarizationYellow(int bunch,double &value,double &error){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetPolarizationYellow(int bunch, double &value, double &error)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   value=(double)ypol[bunch];
   error=(double)ypolerr[bunch];
   return(1);
@@ -279,8 +370,12 @@ int SpinDBContent::GetPolarizationYellow(int bunch,double &value,double &error){
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetPolarizationYellow(int bunch,double &value,double &error,double &syserr){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetPolarizationYellow(int bunch, double &value, double &error, double &syserr)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   value=(double)ypol[bunch];
   error=(double)ypolerr[bunch];
   syserr=(double)ypolsys[bunch];
@@ -289,42 +384,63 @@ int SpinDBContent::GetPolarizationYellow(int bunch,double &value,double &error,d
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetSpinPatternBlue(int bunch){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetSpinPatternBlue(int bunch)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   return(bpat[bunch]);
 }
 
 ////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetSpinPatternYellow(int bunch){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetSpinPatternYellow(int bunch)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   return(ypat[bunch]);
 }
 
 ////////////////////////////////////////////////////////////////
 
-long long SpinDBContent::GetScalerMbdVertexCut(int bunch){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+long long SpinDBContent::GetScalerMbdVertexCut(int bunch)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   return(scaler_mbd_vtxcut[bunch]);
 }
 
 ////////////////////////////////////////////////////////////////
 
-long long SpinDBContent::GetScalerMbdNoCut(int bunch){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+long long SpinDBContent::GetScalerMbdNoCut(int bunch)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   return(scaler_mbd_nocut[bunch]);
 }
 
 ////////////////////////////////////////////////////////////////
 
-long long SpinDBContent::GetScalerZdcNoCut(int bunch){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+long long SpinDBContent::GetScalerZdcNoCut(int bunch)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   return(scaler_zdc_nocut[bunch]);
 }
 
 ////////////////////////////////////////////////////////////////
 
-long long SpinDBContent::GetScaler(int channel,int bunch){
+long long SpinDBContent::GetScaler(int channel, int bunch)
+{
   switch(channel){
   case 0:
     return GetScalerMbdVertexCut(bunch);
@@ -340,8 +456,12 @@ long long SpinDBContent::GetScaler(int channel,int bunch){
 
 ////////////////////////////////////////////////////////////////
 
-int SpinDBContent::GetBadBunchFlag(int bunch){
-  if(CheckBunchNumber(bunch)==ERROR_VALUE){return(ERROR_VALUE);}
+int SpinDBContent::GetBadBunchFlag(int bunch)
+{
+  if(CheckBunchNumber(bunch) == ERROR_VALUE)
+  {
+    return(ERROR_VALUE);
+  }
   return(bad_bunch[bunch]);
 }
 

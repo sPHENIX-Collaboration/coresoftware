@@ -20,30 +20,32 @@
 
 #define QA_ERROR_VALUE -999
 
-namespace odbc{
+namespace odbc
+{
   class Connection;
   class Statement;
   class ResultSet;
 };
 
-class SpinDBOutput : public TObject{
+class SpinDBOutput : public TObject
+{
 public:
-  SpinDBOutput(void){Initialize();}
+  SpinDBOutput(){Initialize();}
   SpinDBOutput(const char *user){Initialize(); SetUserName(user);}
-  virtual ~SpinDBOutput(void){Delete();}
-  void Initialize(void);
+  virtual ~SpinDBOutput(){Delete();}
+  void Initialize();
   void SetUserName(const char *user){user_name=user; return;}
   void SetDBName(const char *dbname);
   void SetTableName(const char *tname);
-  int PrintDBColumn(void);
+  int PrintDBColumn();
   int PrintDBRawContent(int runnum,int qa_level=QA_ERROR_VALUE);
   int CheckRunRow(int runnum,int qa_level=QA_ERROR_VALUE);
   int CheckRunRowStore(int runnum);
   int StoreDBContent(int run1,int run2,int qa_level=QA_ERROR_VALUE);
-  void ClearDBContent(void);
+  void ClearDBContent();
   int GetDBContent(SpinDBContent &spin_cont,int runnum,int qa_level=QA_ERROR_VALUE);
   int GetDBContentStore(SpinDBContent &spin_cont,int runnum);
-  int GetDefaultQA(int runnum);
+  //int GetDefaultQA(int runnum);
 
 private:
 

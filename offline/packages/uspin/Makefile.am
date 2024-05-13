@@ -22,7 +22,8 @@ pkginclude_HEADERS = \
 libuspin_la_SOURCES = \
   SpinDBInput.cc \
   SpinDBContent.cc \
-  SpinDBOutput.cc
+  SpinDBOutput.cc \
+  SpinDBUtil_Dict.C
 
 libuspin_la_LDFLAGS = \
   -L$(libdir) \
@@ -35,8 +36,10 @@ libuspin_la_LDFLAGS = \
 noinst_HEADERS =  \
   SpinDBUtilLinkDef.h
 
-nodist_libuspin_la_SOURCES = \
-  SpinDBUtil_Dict.C
+pcmdir = $(libdir)
+
+nobase_dist_pcm_DATA = \
+  SpinDBUtil_Dict_rdict.pcm
 
 # linking tests
 BUILT_SOURCES = testexternals.cc
@@ -55,7 +58,7 @@ testexternals.cc:
 	echo "}" >> $@
 
 SpinDBUtil_Dict.C: SpinDBContent.h SpinDBInput.h SpinDBOutput.h SpinDBUtilLinkDef.h
-	rootcint -f $@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES) *.pcm

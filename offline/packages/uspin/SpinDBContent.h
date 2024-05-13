@@ -38,24 +38,28 @@
 #ifndef _SPINDBCONTENT_
 #define _SPINDBCONTENT_
 
-#include <stdio.h>
 #include <TObject.h>
+
+#include <boost/format.hpp>
+
+#include <stdio.h>
+#include <iostream>
 
 class SpinDBContent : public TObject{
 public:
-  SpinDBContent(void){Initialize();}
-  virtual ~SpinDBContent(void){;}
-  void Initialize(void);
-  static int GetNCrossing(void){return(NCROSS);}
-  static int GetErrorValue(void){return(ERROR_VALUE);}
+  SpinDBContent(){Initialize();}
+  virtual ~SpinDBContent(){;}
+  void Initialize();
+  static int GetNCrossing(){return(NCROSS);}
+  static int GetErrorValue(){return(ERROR_VALUE);}
   int CheckBunchNumber(int bunch);
   void Print(Option_t* ="") const;
 
-  int GetRunNumber(void){return(runnum);}
-  int GetQALevel(void){return(qa_level);}
-  int GetFillNumber(void){return(fillnum);}
-  int GetBadRunFlag(void){return(badrun);}
-  int GetCrossingShift(void){return(cross_shift);}
+  int GetRunNumber(){return(runnum);}
+  int GetQALevel(){return(qa_level);}
+  int GetFillNumber(){return(fillnum);}
+  int GetBadRunFlag(){return(badrun);}
+  int GetCrossingShift(){return(cross_shift);}
 
   // bunch xing id from SpinDataEventOut::SpinGL1CrossingID
   int GetPolarizationBlue(int bunch,float &value,float &error);

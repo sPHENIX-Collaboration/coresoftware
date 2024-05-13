@@ -10,33 +10,36 @@
 #ifndef _SPINDBINPUT_
 #define _SPINDBINPUT_
 
-#include <stdio.h>
-#include <sstream>
+#include "SpinDBContent.h"
 
 #include <TObject.h>
 
-#include "SpinDBContent.h"
+#include <stdio.h>
+#include <sstream>
 
-namespace odbc{
+
+namespace odbc
+{
   class Connection;
   class Statement;
   class ResultSet;
 };
 
-class SpinDBInput : public TObject{
+class SpinDBInput : public TObject
+{
 public:
-  SpinDBInput(void){Initialize();}
-  virtual ~SpinDBInput(void){Delete();}
-  void Initialize(void);
+  SpinDBInput(){Initialize();}
+  virtual ~SpinDBInput(){Delete();}
+  void Initialize();
   void Delete(Option_t* ="");
-  int IsConnected(void);
+  int IsConnected();
   int CheckRunRow(int runnum, int qa_level, const char *opt="");
   int CreateRunRow(int runnum, int qa_level);
   int DeleteRunRow(int runnum, int qa_level);
-  int CheckQARunRow(int runnum);
-  int CreateQARunRow(int runnum);
-  int DeleteQARunRow(int runnum);
-  int SetQADefault(int runnum,int qa_level);
+  //int CheckQARunRow(int runnum);
+  //int CreateQARunRow(int runnum);
+  //int DeleteQARunRow(int runnum);
+  //int SetQADefault(int runnum,int qa_level);
   int InitializeRunRow(SpinDBContent spin_cont);
   int UpdateDBContent(SpinDBContent spin_cont);
   int UpdateValue(int runnum, int qa_level, const char *name,int value);
