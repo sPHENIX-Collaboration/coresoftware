@@ -8,7 +8,7 @@
 // ERROR_VALUE       : Error value
 // NCROSS            : Number of crossing (120)
 // runnum            : Run number
-// qa_level          : Level of QA for stored data. 
+// qa_level          : Level of QA for stored data.
 // fillnum           : Fill number
 // badrun            : Run QA by spin analysis, 1:bad 0:good
 // cross_shift       : Crossing sfhit, corrected=(raw+cross_shift)%NCROSS
@@ -35,80 +35,97 @@
 
 ////////////////////////////////////////////////////////////////
 
-#ifndef _SPINDBCONTENT_
-#define _SPINDBCONTENT_
+#ifndef USPIN_SPINDBCONTENT_H
+#define USPIN_SPINDBCONTENT_H
 
-#include <TObject.h>
+//#include <stdio.h>
+//#include <iostream>
 
-#include <boost/format.hpp>
-
-#include <stdio.h>
-#include <iostream>
-
-class SpinDBContent : public TObject{
-public:
-  SpinDBContent(){Initialize();}
-  virtual ~SpinDBContent(){;}
+class SpinDBContent
+{
+ public:
+  SpinDBContent() { Initialize(); }
+  virtual ~SpinDBContent() { ; }
   void Initialize();
-  static int GetNCrossing(){return(NCROSS);}
-  static int GetErrorValue(){return(ERROR_VALUE);}
+  static int GetNCrossing() { return (NCROSS); }
+  static int GetErrorValue() { return (ERROR_VALUE); }
   int CheckBunchNumber(int bunch);
-  void Print(Option_t* ="") const;
+  void Print() const;
 
-  int GetRunNumber(){return(runnum);}
-  int GetQALevel(){return(qa_level);}
-  int GetFillNumber(){return(fillnum);}
-  int GetBadRunFlag(){return(badrun);}
-  int GetCrossingShift(){return(cross_shift);}
+  int GetRunNumber() { return (runnum); }
+  int GetQALevel() { return (qa_level); }
+  int GetFillNumber() { return (fillnum); }
+  int GetBadRunFlag() { return (badrun); }
+  int GetCrossingShift() { return (cross_shift); }
 
   // bunch xing id from SpinDataEventOut::SpinGL1CrossingID
-  int GetPolarizationBlue(int bunch,float &value,float &error);
-  int GetPolarizationBlue(int bunch,float &value,float &error,float &syserr);
-  int GetPolarizationBlue(int bunch,double &value,double &error);
-  int GetPolarizationBlue(int bunch,double &value,double &error,double &syserr);
-  int GetPolarizationYellow(int bunch,float &value,float &error);
-  int GetPolarizationYellow(int bunch,float &value,float &error,float &syserr);
-  int GetPolarizationYellow(int bunch,double &value,double &error);
-  int GetPolarizationYellow(int bunch,double &value,double &error,double &syserr);
+  int GetPolarizationBlue(int bunch, float &value, float &error);
+  int GetPolarizationBlue(int bunch, float &value, float &error, float &syserr);
+  int GetPolarizationBlue(int bunch, double &value, double &error);
+  int GetPolarizationBlue(int bunch, double &value, double &error, double &syserr);
+  int GetPolarizationYellow(int bunch, float &value, float &error);
+  int GetPolarizationYellow(int bunch, float &value, float &error, float &syserr);
+  int GetPolarizationYellow(int bunch, double &value, double &error);
+  int GetPolarizationYellow(int bunch, double &value, double &error, double &syserr);
   int GetSpinPatternBlue(int bunch);
   int GetSpinPatternYellow(int bunch);
   long long GetScalerMbdVertexCut(int bunch);
   long long GetScalerMbdNoCut(int bunch);
   long long GetScalerZdcNoCut(int bunch);
-  long long GetScaler(int channel,int bunch);
+  long long GetScaler(int channel, int bunch);
   int GetBadBunchFlag(int bunch);
 
-  void GetTransCompBlueX(float &value,float &error);
-  void GetTransCompBlueX(double &value,double &error);
-  void GetTransCompBlueY(float &value,float &error);
-  void GetTransCompBlueY(double &value,double &error);
-  void GetTransCompYellowX(float &value,float &error);
-  void GetTransCompYellowX(double &value,double &error);
-  void GetTransCompYellowY(float &value,float &error);
-  void GetTransCompYellowY(double &value,double &error);
+  void GetTransCompBlueX(float &value, float &error);
+  void GetTransCompBlueX(double &value, double &error);
+  void GetTransCompBlueY(float &value, float &error);
+  void GetTransCompBlueY(double &value, double &error);
+  void GetTransCompYellowX(float &value, float &error);
+  void GetTransCompYellowX(double &value, double &error);
+  void GetTransCompYellowY(float &value, float &error);
+  void GetTransCompYellowY(double &value, double &error);
 
-  void SetRunNumber(int run){runnum=run; return;}
-  void SetQALevel(int qa){qa_level=qa; return;}
-  void SetFillNumber(int fill){fillnum=fill; return;}
-  void SetBadRunFlag(int flag){badrun=flag; return;}
-  void SetCrossingShift(int shift){cross_shift=shift; return;}
-  int SetPolarizationBlue(int bunch,float value,float error);
-  int SetPolarizationYellow(int bunch,float value,float error);
-  int SetPolarizationBlue(int bunch,float value,float error,float syserr);
-  int SetPolarizationYellow(int bunch,float value,float error,float syserr);
-  int SetSpinPatternBlue(int bunch,int value);
-  int SetSpinPatternYellow(int bunch,int value);
-  int SetScalerMbdVertexCut(int bunch,long long value);
-  int SetScalerMbdNoCut(int bunch,long long value);
-  int SetScalerZdcNoCut(int bunch,long long value);
-  int SetScaler(int channel,int bunch,long long value);
-  int SetBadBunchFlag(int bunch,int value);
-  void SetTransCompBlueX(float value,float error);
-  void SetTransCompBlueY(float value,float error);
-  void SetTransCompYellowX(float value,float error);
-  void SetTransCompYellowY(float value,float error);
+  void SetRunNumber(int run)
+  {
+    runnum = run;
+    return;
+  }
+  void SetQALevel(int qa)
+  {
+    qa_level = qa;
+    return;
+  }
+  void SetFillNumber(int fill)
+  {
+    fillnum = fill;
+    return;
+  }
+  void SetBadRunFlag(int flag)
+  {
+    badrun = flag;
+    return;
+  }
+  void SetCrossingShift(int shift)
+  {
+    cross_shift = shift;
+    return;
+  }
+  int SetPolarizationBlue(int bunch, float value, float error);
+  int SetPolarizationYellow(int bunch, float value, float error);
+  int SetPolarizationBlue(int bunch, float value, float error, float syserr);
+  int SetPolarizationYellow(int bunch, float value, float error, float syserr);
+  int SetSpinPatternBlue(int bunch, int value);
+  int SetSpinPatternYellow(int bunch, int value);
+  int SetScalerMbdVertexCut(int bunch, long long value);
+  int SetScalerMbdNoCut(int bunch, long long value);
+  int SetScalerZdcNoCut(int bunch, long long value);
+  int SetScaler(int channel, int bunch, long long value);
+  int SetBadBunchFlag(int bunch, int value);
+  void SetTransCompBlueX(float value, float error);
+  void SetTransCompBlueY(float value, float error);
+  void SetTransCompYellowX(float value, float error);
+  void SetTransCompYellowY(float value, float error);
 
-private:
+ private:
   static const int NCROSS;
   static const int ERROR_VALUE;
 
@@ -137,8 +154,6 @@ private:
   float tc_x_yellowerr;
   float tc_y_yellow;
   float tc_y_yellowerr;
-
-  ClassDef(SpinDBContent,1)
 };
 
-#endif /* _SPINDBCONTENT_ */
+#endif /* USPIN_SPINDBCONTENT_H */
