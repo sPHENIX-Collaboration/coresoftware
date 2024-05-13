@@ -15,6 +15,7 @@
 #include <TFile.h>
 #include <TH2.h>
 #include <TSystem.h>
+#include <TTree.h>
 
 #include <cstdint>
 #include <cstring>
@@ -47,6 +48,7 @@ InttHitMap::~InttHitMap()
  */
 int InttHitMap::Init(PHCompositeNode * /*topNode*/)
 {
+  fee_map.LoadFromCDB("InttFeeMap");
   if (Verbosity() > 5)
   {
     std::cout << "Beginning Init in InttHitMap" << std::endl;
@@ -59,6 +61,9 @@ int InttHitMap::Init(PHCompositeNode * /*topNode*/)
       h2_AllMap_[i][j] = new TH2D((boost::format("HitMap_%d_%d") % i % j).str().c_str(), (boost::format("Normalized_HitMap_%d_%d") % i % j).str().c_str(), 128, 0, 128, 27, 0, 27);
     }
   }
+  outTree_ = new TTree("tree", "tree");
+  outTree_->Branch("total_event", &total_event_);
+  outTree_->Branch("runnumber", &runnumber_);
   return 0;
 }
 
@@ -119,6 +124,7 @@ int InttHitMap::process_event(PHCompositeNode *topNode)
     InttRawHit *intthit = inttcont->get_hit(i);
     // if (!intthit)
     //   continue;
+    total_event_ = intthit->get_event_counter();
     raw.pid = intthit->get_packetid();
     raw.fee = intthit->get_fee();
     raw.chp = (intthit->get_chip_id() + 25) % 26;
@@ -169,6 +175,10 @@ int InttHitMap::End(PHCompositeNode * /*topNode*/)
   if (Verbosity() > 1)
   {
     std::cout << "Processing InttHitMap done" << std::endl;
+  }
+  if (outTree_ != nullptr)
+  {
+    outTree_->Fill();
   }
   if (outFile_ != nullptr)
   {
@@ -230,23 +240,25 @@ bool InttHitMap::isBCOPeak(int felix, int ladder, int bco, uint64_t bcofull)
 bool InttHitMap::FillHitMap(int in_felix, int in_module, int in_barrel, int in_chip, int in_chan)
 {
   double norm_factor = 0.;
-  if (in_chip < 5 || (in_chip > 12 && in_chip < 18))  // Condition for Type B
+  if (isBeam_)
   {
-    norm_factor = (nevents_);
-    if (in_barrel == 1)  // Inner barrel(= 0) : 7.1888[cm], Outer barrel(= 1) : 9.680[cm]
-    {
-      norm_factor = norm_factor / (9.680 / 7.1888);
+    if (in_chip < 5 || (in_chip > 12 && in_chip < 18))
+    {                     // Condition for Type B
+      norm_factor = 2.0;  // Type B : 2.0[cm]
     }
-    h2_AllMap_[in_felix][in_module]->Fill(in_chan, in_chip, 1. / norm_factor);
+    else
+    {
+      norm_factor = 1.6;  // Type A : 1.6[cm]
+    }
+    if (in_barrel == 0)
+    {
+      norm_factor *= (10.005 / 7.4994);  // Inner barrel(= 0) : 7.4994[cm] Outer barrel(= 1) : 10.005[cm]
+    }
   }
   else
   {
-    norm_factor = (nevents_) / 1.25;  // Normailzed by chip type
-    if (in_barrel == 1)               // Inner barrel(= 0) : 7.1888[cm], Outer barrel(= 1) : 9.680[cm]
-    {
-      norm_factor = norm_factor / (9.680 / 7.1888);
-    }
-    h2_AllMap_[in_felix][in_module]->Fill(in_chan, in_chip, 1. / (norm_factor));
+    norm_factor = 1;
   }
+  h2_AllMap_[in_felix][in_module]->Fill(in_chan, in_chip, 1. / (norm_factor));
   return true;
 }

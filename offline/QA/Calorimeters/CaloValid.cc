@@ -93,13 +93,13 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   float totalzdcsouthcalib = 0.;
   float totalzdcnorthcalib = 0.;
 
-  float emcaldownscale = 1000000. / 800.;
-  float ihcaldownscale = 40000. / 300.;
-  float ohcaldownscale = 250000. / 600.;
-  float mbddownscale = 2000.0;
-  float zdcdownscale = 1e4;
+  float emcaldownscale = 100000. / 800.;
+  float ihcaldownscale = 4000. / 300.;
+  float ohcaldownscale = 25000. / 600.;
+  float mbddownscale = 200.0;
+  float zdcdownscale = 1e3;
 
-  float adc_threshold = 15.;
+  float adc_threshold = 100.;
 
   float emcal_hit_threshold = 0.5;  // GeV
   float ohcal_hit_threshold = 0.5;
@@ -153,6 +153,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       auto h_cemc_etaphi = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi") % getHistoPrefix()).c_str()));
       auto h_cemc_etaphi_wQA = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_wQA") % getHistoPrefix()).c_str()));
       auto h_cemc_etaphi_badChi2 = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_badChi2") % getHistoPrefix()).c_str()));
+      auto hemcal_tower_e = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%semcal_tower_e") % getHistoPrefix()).c_str()));
+      auto h_cemc_etaphi_fracHit = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_fracHit") % getHistoPrefix()).c_str()));
+
 
       for (int channel = 0; channel < size; channel++)
       {
@@ -167,6 +170,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         hemcaltime_cut->Fill(_time);
         bool isGood = tower->get_isGood();
         uint8_t status = tower->get_status();
+        hemcal_tower_e->Fill(offlineenergy);
+
         for (int is = 0; is < 8; is++)
         {
           if (status & 1U)  // clang-tidy mark 1 as unsigned
@@ -196,6 +201,14 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
               h_cemc_etaphi_badChi2->Fill(ieta, iphi, 0);
             }
           }
+        }
+        if (offlineenergy > 0.25)
+        {
+          h_cemc_etaphi_fracHit->Fill(ieta, iphi, 1);
+        }
+        else
+        {
+          h_cemc_etaphi_fracHit->Fill(ieta, iphi, 0);
         }
       }
     }
@@ -467,16 +480,19 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   MbdPmtContainer* bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
   if (!bbcpmts)
   {
-    std::cout << "makeMBDTrees::process_event: Could not find MbdPmtContainer, aborting" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    std::cout << "CaloVald::process_event: Could not find MbdPmtContainer," << std::endl;
+    // return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  int nPMTs = bbcpmts->get_npmt();
-  for (int i = 0; i < nPMTs; i++)
+  if (bbcpmts)
   {
-    MbdPmtHit* mbdpmt = bbcpmts->get_pmt(i);
-    float pmtadc = mbdpmt->get_q();
-    totalmbd += pmtadc;
+    int nPMTs = bbcpmts->get_npmt();
+    for (int i = 0; i < nPMTs; i++)
+    {
+      MbdPmtHit* mbdpmt = bbcpmts->get_pmt(i);
+      float pmtadc = mbdpmt->get_q();
+      totalmbd += pmtadc;
+    }
   }
   auto h_emcal_mbd_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%semcal_mbd_correlation") % getHistoPrefix()).c_str()));
   auto h_ihcal_mbd_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sihcal_mbd_correlation") % getHistoPrefix()).c_str()));
@@ -505,7 +521,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_POS_COR_CEMC");
   if (!clusterContainer)
   {
-    std::cout << PHWHERE << "funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
+    std::cout << PHWHERE << "CaloValid::funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
     return 0;
   }
 
@@ -740,6 +756,10 @@ void CaloValid::createHistos()
     auto h = new TProfile2D(boost::str(boost::format("%scemc_etaphi_fracHitADC") % getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
     hm->registerHisto(h);
   }
+    {
+    auto h = new TProfile2D(boost::str(boost::format("%scemc_etaphi_fracHit") % getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+    hm->registerHisto(h);
+  }
   {
     auto h = new TProfile2D(boost::str(boost::format("%sihcal_etaphi_fracHitADC") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
     hm->registerHisto(h);
@@ -835,7 +855,10 @@ void CaloValid::createHistos()
     auto h = new TH1D(boost::str(boost::format("%sohcaltime") % getHistoPrefix()).c_str(), "hohcaltime", 50, -17.5, 32.5);
     hm->registerHisto(h);
   }
-
+  {
+    auto h = new TH1F(boost::str(boost::format("%semcal_tower_e") % getHistoPrefix()).c_str(), "emcal_tower_e", 5000, -0.1, 1);
+    hm->registerHisto(h);
+  }
   // cluster QA
   {
     auto h = new TH2F(boost::str(boost::format("%setaphi_clus") % getHistoPrefix()).c_str(), "", 140, -1.2, 1.2, 64, -1 * M_PI, M_PI);

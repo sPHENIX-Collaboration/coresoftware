@@ -52,6 +52,24 @@ class CaloTowerStatus : public SubsysReco
     time_cut = threshold;
     return;
   }
+  void set_directURL_hotMap(const std::string &str)
+  {
+    m_directURL_hotMap = str;
+    use_directURL_hotMap = true;
+    return;
+  }
+  void set_directURL_time(const std::string &str)
+  {
+    m_directURL_time = str;
+    use_directURL_time = true;
+    return;
+  }
+  void set_directURL_chi2(const std::string &str)
+  {
+    m_directURL_chi2 = str;
+    use_directURL_chi2 = true;
+    return;
+  }
 
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
@@ -74,6 +92,13 @@ class CaloTowerStatus : public SubsysReco
   std::string m_fieldname_hotMap;
   std::string m_calibName_hotMap;
   std::string m_inputNodePrefix{"TOWERS_"};
+
+  std::string m_directURL_time;
+  std::string m_directURL_hotMap;
+  std::string m_directURL_chi2;
+  bool use_directURL_time{false};
+  bool use_directURL_hotMap{false};
+  bool use_directURL_chi2{false};
 
   float badChi2_treshold = 1e4;
   float fraction_badChi2_threshold = 0.01;

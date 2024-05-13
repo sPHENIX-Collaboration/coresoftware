@@ -6,9 +6,11 @@
 
 #include <TFile.h>
 #include <TTree.h>
+
 #ifndef ONLINE
 #include <fun4all/Fun4AllBase.h>
 #endif
+
 #include <vector>
 
 class PHCompositeNode;
@@ -21,6 +23,9 @@ class MbdGeom;
 class CDBUtils;
 class TF1;
 class TCanvas;
+#ifndef ONLINE
+class CaloPacketContainer;
+#endif
 
 class MbdEvent
 {
@@ -29,6 +34,9 @@ class MbdEvent
   virtual ~MbdEvent();
 
   int SetRawData(Event *event, MbdPmtContainer *mbdpmts);
+#ifndef ONLINE
+  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *mbdpmts);
+#endif
   int Calculate(MbdPmtContainer *mbdpmts, MbdOut *mbdout);
   int InitRun();
   int End();
@@ -64,6 +72,8 @@ class MbdEvent
   int  Verbosity() { return _verbose; }
   void Verbosity(const int v) { _verbose = v; }
 
+  int ProcessRawPackets(MbdPmtContainer *mbdpmts);
+
  private:
   static const int NCHPERPKT = 128;
 
@@ -74,7 +84,7 @@ class MbdEvent
   int Read_TQ_T0_Offsets(const std::string &calfname);
   int Read_TQ_CLK_Offsets(const std::string &calfname);
   int Read_TT_CLK_Offsets(const std::string &calfname);
-  int DoQuickClockOffsetCalib();
+  //int DoQuickClockOffsetCalib();
 
   int _debugintt{0};
   void ReadSyncFile(const char *fname = "SYNC_INTTMBD.root");
@@ -90,14 +100,17 @@ class MbdEvent
   int _runnum{0};
   int _simflag{0};
   int _nsamples{31};
-  int _calib_done{0};
-  int _is_online{0};
-  Packet *p[2]{nullptr, nullptr};
+  int _calib_done{0}; 
+  int _no_sampmax{0};     //! sampmax calib doesn't exist
+  int _is_online{0};      //! for OnlMon
+
 
   // alignment data
-  Int_t m_evt{0};
+  Int_t   m_evt{0};
   Short_t m_clk{0};
   Short_t m_femclk{0};
+  UInt_t  m_xmitclocks[2]{};     // [ipkt]
+  UInt_t  m_femclocks[2][2]{};   // [ipkt][iadc]
 
   // raw data
   Float_t m_adc[MbdDefs::MBD_N_FEECH][MbdDefs::MAX_SAMPLES]{};   // raw waveform, adc values
@@ -122,7 +135,7 @@ class MbdEvent
   Float_t m_bbczerr{std::numeric_limits<Float_t>::quiet_NaN()};   // z-vertex error
   Float_t m_bbct0{std::numeric_limits<Float_t>::quiet_NaN()};     // start time
   Float_t m_bbct0err{std::numeric_limits<Float_t>::quiet_NaN()};  // start time error
-  Float_t _tres = std::numeric_limits<Float_t>::quiet_NaN();      // time resolution of one channel
+  Float_t _tres{std::numeric_limits<Float_t>::quiet_NaN()};       // time resolution of one channel
 
   TH1 *hevt_bbct[2]{};  // time in each bbc, per event
   TF1 *gausfit[2]{nullptr, nullptr};

@@ -47,6 +47,7 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
   h_waveformchi2->GetXaxis()->SetTitle("peak (ADC)");
   h_waveformchi2->GetYaxis()->SetTitle("chi2");
   h_mip = new TH1F("h_mip", "", 100, 0, 10000);
+  h_event = new TH1F("h_event", "", 1, 0, 1);
 
   h_time_energy = new TH2F("h_time_energy", "", 100, -10, 10, 100, -50, 1e3);
 
@@ -56,12 +57,14 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
 
 int HCalCosmics::process_event(PHCompositeNode *topNode)
 {
-  if (event % 10000 == 0)
+  if (event % 100 == 0)
   {
     std::cout << "HCalCosmics::process_event " << event << std::endl;
   }
   process_towers(topNode);
   event++;
+  h_event->Fill(0);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -156,6 +159,7 @@ int HCalCosmics::End(PHCompositeNode * /*topNode*/)
   h_mip->Write();
   h_waveformchi2->Write();
   h_time_energy->Write();
+  h_event->Write();
 
   outfile->Close();
   delete outfile;

@@ -9,6 +9,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
+#include <ffarawobjects/CaloPacket.h>
+#include <ffarawobjects/CaloPacketContainer.h>
 #endif
 
 #include <Event/Event.h>
@@ -27,7 +29,6 @@
 #include <iostream>
 
 MbdEvent::MbdEvent(const int cal_pass) :
-  _tres(0.05),
   _calpass(cal_pass)
 {
   // set default values
@@ -67,14 +68,6 @@ MbdEvent::MbdEvent(const int cal_pass) :
     hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -50., 50.);
     hevt_bbct[iarm]->SetLineColor(4);
   }
-  /*
-  h2_tmax[0] = new TH2F("h2_ttmax", "time tmax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES - 0.5, 128, 0, 128);
-  h2_tmax[0]->SetXTitle("sample");
-  h2_tmax[0]->SetYTitle("ch");
-  h2_tmax[1] = new TH2F("h2_qtmax", "chg tmax vs ch", MbdDefs::MAX_SAMPLES, -0.5, MbdDefs::MAX_SAMPLES - 0.5, 128, 0, 128);
-  h2_tmax[1]->SetXTitle("sample");
-  h2_tmax[1]->SetYTitle("ch");
-  */
 
   for (float &iboard : TRIG_SAMP)
   {
@@ -139,6 +132,13 @@ int MbdEvent::InitRun()
   if (!_simflag)
   {
     _mbdcal->Download_All();
+
+    // check if sampmax and ped calibs exist
+    int scheck = _mbdcal->get_sampmax(0);
+    if ( scheck<0 )
+    {
+      _no_sampmax = 1;
+    }
   }
 
   // Init parameters of the signal processing
@@ -147,15 +147,15 @@ int MbdEvent::InitRun()
     _mbdsig[ifeech].SetCalib(_mbdcal);
 
     // Do evt-by-evt pedestal using sample range below
-    if ( _calpass!=1 )
+    if ( _calpass==1 || _no_sampmax )
+    {
+      _mbdsig[ifeech].SetEventPed0Range(0,1);
+    }
+    else
     {
       const int presamp = 5;  // start from 5 samples before sampmax
       const int nsamps = -1;  // use all to sample 0
       _mbdsig[ifeech].SetEventPed0PreSamp(presamp, nsamps, _mbdcal->get_sampmax(ifeech));
-    }
-    else
-    {
-      _mbdsig[ifeech].SetEventPed0Range(0,1);
     }
 
     // Read in template if specified
@@ -178,10 +178,10 @@ int MbdEvent::InitRun()
     std::cout << "OUTPUT CALDIR = " << _caldir << std::endl;
   }
 
-  if ( _calpass == 1 || _is_online )
+  if ( _calpass == 1 || _is_online || _no_sampmax )
   {
     TDirectory *orig_dir = gDirectory;
-    if ( !_is_online )
+    if ( _calpass == 1 )
     {
       std::cout << "MBD Cal Pass 1" << std::endl;
 
@@ -216,7 +216,7 @@ int MbdEvent::InitRun()
       h2_wave[itype]->SetYTitle("ch");
     }
 
-    if (!_is_online)
+    if ( _calpass==1 )
     {
       orig_dir->cd();
     }
@@ -300,6 +300,91 @@ void MbdEvent::Clear()
   m_bbct0err = std::numeric_limits<Float_t>::quiet_NaN();
 }
 
+#ifndef ONLINE
+// Get raw data from event combined DSTs
+int MbdEvent::SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts)
+{
+  //Verbosity(100);
+  // First check if there is any event (ie, reading from PRDF)
+  if (mbdraw == nullptr || bbcpmts == nullptr)
+  {
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
+
+  // Get Packets
+  CaloPacket *dstp[2]{nullptr};
+  for (int ipkt = 0; ipkt < 2; ipkt++)
+  {
+    int pktid = 1001 + ipkt;  // packet id
+    dstp[ipkt] = mbdraw->getPacketbyId(pktid);
+
+    if (Verbosity() > 0)
+    {
+      static int counter = 0;
+      if (counter < 4)
+      {
+        std::cout << "Found packet " << pktid << "\t" << dstp[ipkt] << std::endl;
+        counter++;
+      }
+    }
+    if (dstp[ipkt])
+    {
+      _nsamples = dstp[ipkt]->iValue(0, "SAMPLES");
+      {
+        static int counter = 0;
+        if ( counter<1 )
+        {
+          std::cout << "NSAMPLES = " << _nsamples << std::endl;
+        }
+        counter++;
+      }
+
+      m_xmitclocks[ipkt] = static_cast<UShort_t>(dstp[ipkt]->iValue(0, "CLOCK"));
+
+      m_femclocks[ipkt][0] = static_cast<UShort_t>(dstp[ipkt]->iValue(0, "FEMCLOCK"));
+      m_femclocks[ipkt][1] = static_cast<UShort_t>(dstp[ipkt]->iValue(1, "FEMCLOCK"));
+
+      for (int ich = 0; ich < NCHPERPKT; ich++)
+      {
+        int feech = ipkt * NCHPERPKT + ich;
+        for (int isamp = 0; isamp < _nsamples; isamp++)
+        {
+          m_adc[feech][isamp] = dstp[ipkt]->iValue(isamp, ich);
+          m_samp[feech][isamp] = isamp;
+
+          /*
+          if ( m_adc[feech][isamp] <= 100 )
+          {
+            //flag_err = 1;
+            std::cout << "BAD " << m_evt << "\t" << feech << "\t" << m_samp[feech][isamp]
+                << "\t" << m_adc[feech][isamp] << std::endl;
+          }
+          */
+        }
+
+        _mbdsig[feech].SetNSamples( _nsamples );
+        _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
+
+        //std::cout << "feech " << feech << std::endl;
+        //_mbdsig[feech].Print();
+      }
+
+      //delete dstp[ipkt];
+      //dstp[ipkt] = nullptr;
+    }
+    else
+    {
+      // flag_err = 1;
+      std::cout << PHWHERE << " ERROR, evt " << m_evt << " Missing Packet " << pktid << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+
+  int status = ProcessRawPackets(bbcpmts);
+  return status;
+}
+#endif  // ONLINE
+
 int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
 {
   // First check if there is any event (ie, reading from PRDF)
@@ -324,13 +409,12 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
   }
 
   m_evt = event->getEvtSequence();
-  UShort_t xmitclocks[2];    // [ipkt]
-  UShort_t femclocks[2][2];  // [ipkt][iadc]
 
   // Get the relevant packets from the Event object and transfer the
   // data to the subsystem-specific table.
 
   // int flag_err = 0;
+  Packet *p[2]{nullptr};
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     int pktid = 1001 + ipkt;  // packet id
@@ -357,10 +441,10 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
         counter++;
       }
 
-      xmitclocks[ipkt] = static_cast<UShort_t>(p[ipkt]->iValue(0, "CLOCK"));
+      m_xmitclocks[ipkt] = static_cast<UShort_t>(p[ipkt]->iValue(0, "CLOCK"));
 
-      femclocks[ipkt][0] = static_cast<UShort_t>(p[ipkt]->iValue(0, "FEMCLOCK"));
-      femclocks[ipkt][1] = static_cast<UShort_t>(p[ipkt]->iValue(1, "FEMCLOCK"));
+      m_femclocks[ipkt][0] = static_cast<UShort_t>(p[ipkt]->iValue(0, "FEMCLOCK"));
+      m_femclocks[ipkt][1] = static_cast<UShort_t>(p[ipkt]->iValue(1, "FEMCLOCK"));
 
       for (int ich = 0; ich < NCHPERPKT; ich++)
       {
@@ -401,11 +485,19 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     }
   }
 
+  int status = ProcessRawPackets(bbcpmts);
+  return status;
+}
+
+int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
+{
   // Do a quick sanity check that all fem counters agree
-  if (xmitclocks[0] != xmitclocks[1])
+  if (m_xmitclocks[0] != m_xmitclocks[1])
   {
     std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << std::endl;
   }
+  /*
+  // format changed in run2024, need to update check
   for (auto &femclock : femclocks)
   {
     for (unsigned short iadc : femclock)
@@ -416,16 +508,23 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
       }
     }
   }
+  */
 
   // Store the clock info. We use just the first one, and assume all are consistent.
-  m_clk = xmitclocks[0];
-  m_femclk = femclocks[0][0];
+  m_clk = m_xmitclocks[0];
+  m_femclk = m_femclocks[0][0];
 
   // We get SAMPMAX on this pass
-  if ( _calpass == 1 )
+  if ( _calpass == 1 || _no_sampmax == 1 )
   {
     FillSampMaxCalib();
     m_evt++;
+    static int counter = 0;
+    if ( counter<1 )
+    {
+      std::cout << "MBD: no sampmax calib, determining it on the fly" << std::endl;
+      counter++;
+    }
     return -1001; // stop processing event (negative return values end event processing)
   }
 
@@ -806,43 +905,6 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   return 1;
 }
 
-// This needs to be reconsidered for 2024 run, hopefully timing instability is fixed by then!
-// Only used in online monitoring
-int MbdEvent::DoQuickClockOffsetCalib()
-{
-  for (int ifeech = 0; ifeech < 256; ifeech++)
-  {
-    _mbdsig[ifeech].SetXY(m_samp[ifeech], m_adc[ifeech]);
-
-    // determine the trig_samp board by board
-    int tq = (ifeech / 8) % 2;  // 0 = T-channel, 1 = Q-channel
-    int pmtch = (ifeech / 16) * 8 + ifeech % 8;
-
-    double x, y;
-    _mbdsig[ifeech].LocMax(x, y);
-    h2_tmax[tq]->Fill(x, pmtch);
-  }
-
-  if (h2_tmax[1]->GetEntries() == 128 * 100)
-  {
-    TString name;
-    TH1 *h_trigsamp[16]{};
-    for (int iboard = 0; iboard < 16; iboard++)
-    {
-      name = "h_trigsamp";
-      name += iboard;
-      h_trigsamp[iboard] = h2_tmax[1]->ProjectionX(name, iboard * 8 + 1, (iboard + 1) * 8);
-      int maxbin = h_trigsamp[iboard]->GetMaximumBin();
-      TRIG_SAMP[iboard] = h_trigsamp[iboard]->GetBinCenter(maxbin);
-      // std::cout << "iboard " << iboard << "\t" << iboard*8+1 << "\t" << (iboard+1)*8 << "\t" << h_trigsamp[iboard]->GetEntries() << std::endl;
-      std::cout << "TRIG_SAMP" << iboard << "\t" << TRIG_SAMP[iboard] << std::endl;
-    }
-
-    _calib_done = 1;
-  }
-
-  return _calib_done;
-}
 
 // Store data for sampmax calibration (to correct ADC sample offsets by channel)
 // This will replace DoQuickClockOffsetCalib() for 2024
@@ -891,10 +953,18 @@ int MbdEvent::FillSampMaxCalib()
 
   // At 1000 events, get the tmax for the time channels
   // so we can fill the h2_trange histograms
-  if ( h2_tmax[0]->GetEntries() == (128*500) )
+  if ( h2_tmax[0]->GetEntries() == (128*1000) )
   {
     CalcSampMaxCalib();
     _calib_done = 1;
+    std::cout << "MBD: on the fly sampmax calib done" << std::endl;
+
+    for (int ifeech=0; ifeech<MbdDefs::MBD_N_FEECH; ifeech++)
+    {
+      const int presamp = 5;  // start from 5 samples before sampmax
+      const int nsamps = -1;  // use all to sample 0
+      _mbdsig[ifeech].SetEventPed0PreSamp(presamp, nsamps, _mbdcal->get_sampmax(ifeech));
+    }
   }
 
   return 1;
@@ -903,7 +973,7 @@ int MbdEvent::FillSampMaxCalib()
 int MbdEvent::CalcSampMaxCalib()
 {
   TDirectory *orig_dir = gDirectory;
-  if ( !_is_online )
+  if ( _calpass==1 )
   {
     _smax_tfile->cd();
   }
@@ -940,10 +1010,12 @@ int MbdEvent::CalcSampMaxCalib()
     delete h_projx;
   }
 
-  if ( !_is_online )
+  if ( _calpass==1 )
   {
     orig_dir->cd();
   }
+
+  _no_sampmax = 0;  // now we have samp max
 
   return 1;
 }
@@ -951,7 +1023,7 @@ int MbdEvent::CalcSampMaxCalib()
 int MbdEvent::CalcPedCalib()
 {
   TDirectory *orig_dir = gDirectory;
-  if ( !_is_online )
+  if ( _calpass==1 )
   {
     _smax_tfile->cd();
   }
@@ -978,7 +1050,7 @@ int MbdEvent::CalcPedCalib()
   }
   delete pedgaus;
 
-  if ( !_is_online )
+  if ( _calpass==1 )
   {
     orig_dir->cd();
   }
