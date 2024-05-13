@@ -13,6 +13,7 @@
 #include <phool/phool.h>
 
 #include <RtypesCore.h>  // for Double_t
+#include <TCanvas.h>
 #include <TF1.h>
 #include <TFile.h>
 #include <TGraph.h>
@@ -20,6 +21,7 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
+#include <TLatex.h>
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TTree.h>
@@ -143,7 +145,7 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
       {
         std::string hist_name = "emc_ieta" + std::to_string(i) + "_phi" + std::to_string(j);
 
-        cemc_hist_eta_phi[i][j] = new TH1F(hist_name.c_str(), "Hist_ieta_phi_leaf(e)", 10000, 0, 10);
+        cemc_hist_eta_phi[i][j] = new TH1F(hist_name.c_str(), "Hist_ieta_phi_leaf(e)", 400, 0, 2);
         cemc_hist_eta_phi[i][j]->SetXTitle("Energy [GeV]");
       }
     }
@@ -153,17 +155,8 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
     {
       gStyle->SetOptFit(1);
       std::string b = "eta_" + std::to_string(i);
-
-      if (i < 96)
-      {
-        eta_hist[i] = new TH1F(b.c_str(), "eta and all phi's", 10000, 0, 10);
-        eta_hist[i]->SetXTitle("Energy [GeV]");
-      }
-      else
-      {
-        eta_hist[i] = new TH1F(b.c_str(), "eta and all phi's", 100000, 0, 10);
-        eta_hist[i]->SetXTitle("Energy [GeV]");
-      }
+      eta_hist[i] = new TH1F(b.c_str(), "eta and all phi's", 400, 0, 2);
+      eta_hist[i]->SetXTitle("Energy [GeV]");
     }
 
     // make 2d histo
@@ -624,6 +617,8 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   corrPat->SetXTitle("#eta bin");
   corrPat->SetYTitle("#phi bin");
 
+  TH2F* h2_failQA  = new TH2F("h2_failQA", "", max_ieta, 0, max_ieta, max_iphi, 0, max_iphi);
+
   // 1d histo for gain shift values
   TH1F *gainvals = new TH1F("gainvals", "Towerslope Correction Values", 10000, 0, 10);
   gainvals->SetXTitle("Gain Shift Value");
@@ -792,6 +787,33 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       continue;
     }
 
+    /////////////////////
+    // QA -- Blair
+    if (doQA)
+    {
+      if (flag_fit_rings == true)
+      {
+        if (calotype == LiteCaloEval::CEMC)
+        {
+          for (int j = 0; j < max_iphi; j++)
+          {
+            cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], -1.0);
+
+            bool qa_res = spec_QA(cemc_hist_eta_phi[i][j], cleanEtaRef,true);
+            if (qa_res == false)
+            {
+              std::cout << "failed QA " << i << "," << j << std::endl;
+              cemc_hist_eta_phi[i][j]->Reset();
+              h2_failQA->Fill(i, j);
+            }
+            else
+            {
+              cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], 1.0);
+            }
+          }
+        }
+      }
+    }
     /****************************************************
     This is the nested forloop to start tower material
     ****************************************************/
@@ -821,7 +843,6 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         {
           cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], -1.0);
         }
-
         else
         {
           hnewfp = (TH1F *) ref_lce->cemc_hist_eta_phi[i][j]->Clone(myClnmp.c_str());
@@ -1028,9 +1049,8 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   g1.Write();
 
   corrPat->Write();
-
+  h2_failQA->Write();
   gainvals->Write();
-
   h_gainErr->Write();
 
   /*
@@ -1123,4 +1143,245 @@ bool LiteCaloEval::chk_isChimney(int ieta, int iphi)
   }
 
   return false;
+}
+
+float LiteCaloEval::spec_QA(TH1 *h_spec, TH1 *h_ref, bool /*retFloat*/)
+{
+  float norm = h_spec->Integral(h_spec->FindBin(0.4, 1.1), h_spec->FindBin(1.0));
+  if (norm == 0)
+  {
+    std::cout << "no data for QA" << std::endl;
+    return false;
+  }
+  TF1 *f_exp = new TF1("f_exp", "[0]*TMath::Exp(-1.0*x*[1])", 0.5, 1);
+  h_spec->Fit(f_exp, "QNR", "", 0.4, 1.);
+  float spec_p1 = f_exp->GetParameter(1);
+  h_ref->Fit(f_exp, "QNR", "", 0.4, 1.);
+  float ref_p1 = f_exp->GetParameter(1);
+  float calib = ref_p1 / spec_p1;
+  delete f_exp;
+  return calib;
+}
+
+bool LiteCaloEval::spec_QA(TH1 *h_spec, TH1 *h_ref)
+{
+  float calib = spec_QA(h_spec, h_ref, true);
+  if (calib > 1.2 || calib < 0.8)
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
+
+void LiteCaloEval::plot_cemc(const std::string& path)
+{
+  TH2F *h_fail = new TH2F("h_fail", "", 96, 0, 96, 256, 0, 256);
+  TH2F *h_corrPat = new TH2F("corrPat", "", 96, 0, 96, 256, 0, 256);
+  TH2F *h_hits = new TH2F("h_hits", "", 96, 0, 96, 256, 0, 256);
+  TH2F *h_expCalib = new TH2F("h_expCalib", "", 96, 0, 96, 256, 0, 256);
+  h_hits->SetXTitle("#it{#eta}_{i}");
+  h_hits->SetYTitle("#it{#phi}_{i}");
+  TH2F *h_hits_clean = new TH2F("h_hits_clean", "", 96, 0, 96, 256, 0, 256);
+  h_hits_clean->SetXTitle("#it{#eta}_{i}");
+  h_hits_clean->SetYTitle("#it{#phi}_{i}");
+
+  for (int ieta = 0; ieta < 96; ieta++)
+  {
+    for (int iphi = 0; iphi < 256; iphi++)
+    {
+      h_corrPat->SetBinContent(ieta + 1, iphi + 1, 1);
+      cemc_hist_eta_phi[ieta][iphi]->Rebin(5);
+      // record hits
+      int binhit = cemc_hist_eta_phi[ieta][iphi]->FindBin(0.25);
+      int binMax = cemc_hist_eta_phi[ieta][iphi]->GetNbinsX();
+      float hits = cemc_hist_eta_phi[ieta][iphi]->Integral(binhit, binMax + 1);
+      h_hits->SetBinContent(ieta + 1, iphi + 1, hits);
+      h_hits->SetBinError(ieta + 1, iphi + 1, sqrt(hits));
+      h_hits_clean->SetBinContent(ieta + 1, iphi + 1, hits);
+      h_hits_clean->SetBinError(ieta + 1, iphi + 1, sqrt(hits));
+      int bin = cemc_hist_eta_phi[ieta][iphi]->FindBin(0.2);
+      if (cemc_hist_eta_phi[ieta][iphi]->GetBinContent(bin) == 0)
+      {
+        continue;
+      }
+      float calib = spec_QA(cemc_hist_eta_phi[ieta][iphi], eta_hist[ieta], true);
+      h_expCalib->SetBinContent(ieta + 1, iphi + 1, calib);
+      if (!spec_QA(cemc_hist_eta_phi[ieta][iphi], eta_hist[ieta],true))
+      {
+        h_fail->Fill(ieta, iphi);
+        h_corrPat->SetBinContent(ieta + 1, iphi + 1, 0);
+        h_hits_clean->SetBinContent(ieta + 1, iphi + 1, 0);
+      }
+    }
+  }
+
+  // find hot towers
+  TH2F *h_hot = new TH2F("h_hot", "", 96, 0, 96, 256, 0, 256);
+  TH1F *h1_hits[96];
+  TH1F *h1_hits2[96];
+  float max = h_hits_clean->GetBinContent(h_hits_clean->GetMaximumBin());
+  float min = h_hits_clean->GetMinimum();
+  if (min == 0)
+  {
+    min = 1;
+  }
+
+  TCanvas *c3 = new TCanvas("c3", "c3", 1600, 600);
+
+  for (int ie = 0; ie < 96; ie++)
+  {
+   std::string name1 = "h1_hits"    + std::to_string(ie);
+   std::string name2 = "h1_hits2_"  + std::to_string(ie);
+
+    h1_hits[ie] = new  TH1F(name1.c_str(), "", 200, min, max);
+    h1_hits2[ie] = new TH1F(name2.c_str(), "", 200, min, max);
+    for (int iphi = 0; iphi < 256; iphi++)
+    {
+      h1_hits[ie]->Fill(h_hits_clean->GetBinContent(ie + 1, iphi + 1));
+    }
+    float mean = h1_hits[ie]->GetMean();
+    float std = h1_hits[ie]->GetStdDev();
+    for (int iphi = 0; iphi < 256; iphi++)
+    {
+      float val = h_hits_clean->GetBinContent(ie + 1, iphi + 1);
+      if (fabs(mean - val) / std > 3)
+      {
+        continue;
+      }
+      h1_hits2[ie]->Fill(val);
+    }
+    mean = h1_hits[ie]->GetMean();
+    std = h1_hits[ie]->GetStdDev();
+    for (int iphi = 0; iphi < 256; iphi++)
+    {
+      h_hot->SetBinContent(ie + 1, iphi + 1, 0);
+      float val = h_hits_clean->GetBinContent(ie + 1, iphi + 1);
+      if (val == 0)
+      {
+        continue;
+      }
+      if (fabs(mean - val) / std > 5)
+      {
+        h_hot->SetBinContent(ie + 1, iphi + 1, 1);
+        h_corrPat->SetBinContent(ie + 1, iphi + 1, 0);
+        h_hits_clean->SetBinContent(ie + 1, iphi + 1, 0);
+      }
+    }
+    h1_hits[ie]->Write();
+    h1_hits2[ie]->Write();
+    if (ie < 90)
+    {
+      continue;
+    }
+    h1_hits[ie]->Draw("hist same");
+    h1_hits[ie]->GetYaxis()->SetRangeUser(0.1, 100);
+    h1_hits[ie]->GetXaxis()->SetTitle("Number of hits");
+    h1_hits[ie]->GetXaxis()->SetNdivisions(505);
+    h1_hits2[ie]->Draw("hist same");
+    h1_hits2[ie]->SetLineColor(kBlue);
+  }
+  c3->SaveAs((path+"/hits.pdf").c_str());
+
+  TLatex latex;
+  latex.SetTextFont(42);
+  latex.SetTextSize(0.04);
+  latex.SetTextAlign(12);  // Align to the left
+  latex.SetNDC();
+
+  int ieta = 0;
+  for (int iplot = 0; iplot < 10; iplot++)
+  {
+    TCanvas *c1 = new TCanvas("c1", "c1", 400, 600);
+
+    for (int ie = 0; ie < 10; ie++)
+    {
+      if (ieta > 95)
+      {
+        continue;
+      }
+      for (int iphi = 0; iphi < 256; iphi++)
+      {
+        // scale hist
+        int bin = cemc_hist_eta_phi[ieta][iphi]->FindBin(0.2);
+        if (cemc_hist_eta_phi[ieta][iphi]->GetBinContent(bin) == 0) 
+         {
+           continue;
+        }
+        cemc_hist_eta_phi[ieta][iphi]->Scale(1.0 / cemc_hist_eta_phi[ieta][iphi]->GetBinContent(bin) * pow(10, ie));
+        // plot
+        cemc_hist_eta_phi[ieta][iphi]->Draw("same hist");
+        cemc_hist_eta_phi[ieta][iphi]->SetXTitle("pre-calib tower [GeV]");
+        cemc_hist_eta_phi[ieta][iphi]->SetYTitle("N_{twr}/N_{twr}(E=0.2 GeV) x10^{ieta}");
+        cemc_hist_eta_phi[ieta][iphi]->GetXaxis()->SetRangeUser(0, 1);
+        cemc_hist_eta_phi[ieta][iphi]->GetYaxis()->SetRangeUser(0.01, 1e11);
+        if (h_corrPat->GetBinContent(ieta + 1, iphi + 1) == 0)
+        {
+          cemc_hist_eta_phi[ieta][iphi]->SetLineColor(kBlue);
+          h_fail->Fill(ieta, iphi);
+          h_hits_clean->SetBinContent(ieta + 1, iphi + 1, 0);
+        }
+        latex.SetTextSize(0.02);
+        latex.SetTextColor(kBlack);
+        std::string result = "#eta_{" + std::to_string(ieta) + "}#times10^{" + std::to_string(ie) + "}";
+        latex.DrawLatex(0.22 + 0.07 * ie, 0.92, result.c_str());
+      }
+
+      // eta_hist[ieta]->Rebin(5);
+      int bin = eta_hist[ieta]->FindBin(0.2);
+      if (eta_hist[ieta]->GetBinContent(bin) == 0)
+      {
+        ieta++;
+        std::cout << "no data for eta=" << ieta << std::endl;
+        continue;
+      }
+      eta_hist[ieta]->Scale(1.0 / eta_hist[ieta]->GetBinContent(bin) * pow(10, ie));
+      eta_hist[ieta]->Draw("same hist");
+      eta_hist[ieta]->SetLineColor(kRed);
+
+      ieta++;
+    }
+
+    gPad->SetLogy();
+
+    latex.SetTextSize(0.04);
+
+    latex.SetTextColor(kBlack);
+    latex.DrawLatex(0.6, 0.87, "#it{#bf{sPHENIX}} Internal");
+    latex.SetTextColor(kRed);
+    latex.DrawLatex(0.6, 0.83, "eta integrated");
+    latex.SetTextColor(kBlue);
+    latex.DrawLatex(0.6, 0.79, "failed QA");
+
+    c1->SaveAs((path+"/tsc_spec"+ std::to_string(iplot)+".pdf").c_str());
+    delete c1;
+  }
+
+  TCanvas *c2 = new TCanvas("c2", "c2", 600, 600);
+  h_fail->Draw("COLZ");
+
+  latex.SetTextColor(kBlack);
+  std::string stuff = std::to_string(h_fail->GetEntries()) + " failed QA";
+  latex.DrawLatex(0.2, 0.87, stuff.c_str());
+
+  c2->SaveAs((path + "/failQA.pdf").c_str());
+
+  TCanvas *c4 = new TCanvas("c4", "c4", 600, 600);
+  h_expCalib->Draw("COLZ");
+  h_expCalib->GetZaxis()->SetRangeUser(0.5, 2);
+  gPad->SetRightMargin(0.15);
+
+  latex.SetTextColor(kBlack);
+
+  c4->SaveAs((path+"/expCalib.pdf").c_str());
+
+  h_hot->Write();
+  h_hits->Write();
+  h_hits_clean->Write();
+  h_corrPat->Write();
+  h_expCalib->Write();
+
+  f_temp->Close();
 }
