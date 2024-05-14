@@ -138,10 +138,7 @@ int MbdEvent::InitRun()
     if ( scheck<0 && _calpass!=1 )
     {
       _no_sampmax = 1000;    // num events for on the fly calculation
-      if ( _calpass!=1 )
-      {
-        std::cout << PHWHERE << ",no sampmax calib, determining it on the fly using first " << _no_sampmax << " evts." << std::endl;
-      }
+      std::cout << PHWHERE << ",no sampmax calib, determining it on the fly using first " << _no_sampmax << " evts." << std::endl;
     }
   }
 
