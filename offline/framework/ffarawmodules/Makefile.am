@@ -12,6 +12,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   CemcCheck.h \
+  ClockDiffCheck.h \
   DumpPacket.h \
   EventCombiner.h \
   EventNumberCheck.h \
@@ -20,13 +21,15 @@ pkginclude_HEADERS = \
   InttCheck.h \
   MbdCheck.h \
   StreamingCheck.h \
-  TpcCheck.h
+  TpcCheck.h \
+  ZdcCheck.h
 
 lib_LTLIBRARIES = \
   libffarawmodules.la
 
 libffarawmodules_la_SOURCES = \
   CemcCheck.cc \
+  ClockDiffCheck.cc \
   DumpPacket.cc \
   EventCombiner.cc \
   EventNumberCheck.cc \
@@ -35,7 +38,8 @@ libffarawmodules_la_SOURCES = \
   InttCheck.cc \
   MbdCheck.cc \
   StreamingCheck.cc \
-  TpcCheck.cc
+  TpcCheck.cc \
+  ZdcCheck.cc
 
 libffarawmodules_la_LIBADD = \
   -lEvent \

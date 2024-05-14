@@ -1,9 +1,11 @@
 #include "CaloPacketContainerv1.h"
 #include "CaloPacketv1.h"
 
+#include <phool/phool.h>
+
 #include <TClonesArray.h>
 
-static const int NCALOPACKETS = 2;
+static const int NCALOPACKETS = 128;
 
 CaloPacketContainerv1::CaloPacketContainerv1()
 {
@@ -24,11 +26,15 @@ void CaloPacketContainerv1::Reset()
 void CaloPacketContainerv1::identify(std::ostream &os) const
 {
   os << "CaloPacketContainerv1" << std::endl;
-  os << "containing " << CaloPacketsTCArray->GetEntriesFast() << " Calo hits" << std::endl;
-  CaloPacket *calohit = static_cast<CaloPacket *>(CaloPacketsTCArray->At(0));
-  if (calohit)
+  os << "containing " << CaloPacketsTCArray->GetEntriesFast() << " Calo Packets" << std::endl;
+  for (int i=0 ; i<=CaloPacketsTCArray->GetLast(); i++)
   {
-    os << "for beam clock: " << std::hex << calohit->getBCO() << std::dec << std::endl;
+    CaloPacket *calopkt = static_cast<CaloPacket *>(CaloPacketsTCArray->At(i));
+    if (calopkt)
+    {
+      os << "id: " << calopkt->getIdentifier() << std::endl;
+      os << "for beam clock: " << std::hex << calopkt->getBCO() << std::dec << std::endl;
+    }
   }
 }
 
@@ -59,4 +65,17 @@ CaloPacket *CaloPacketContainerv1::AddPacket(CaloPacket *calohit)
 CaloPacket *CaloPacketContainerv1::getPacket(unsigned int index)
 {
   return (CaloPacket *) CaloPacketsTCArray->At(index);
+}
+
+CaloPacket *CaloPacketContainerv1::getPacketbyId(int id)
+{
+  for (int i=0 ; i<=CaloPacketsTCArray->GetLast(); i++)
+  {
+    CaloPacket *pkt = (CaloPacket *) CaloPacketsTCArray->At(i);
+    if (pkt->getIdentifier() == id)
+    {
+      return pkt;
+    }
+  }
+  return nullptr;
 }

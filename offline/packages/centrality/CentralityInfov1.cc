@@ -4,7 +4,8 @@
 
 void CentralityInfov1::identify(std::ostream& os) const
 {
-  os << "CentralityInfo: " << std::endl;
+  os << "CentralityInfov1: " << std::endl;
+  os << "      Centile: " << (has_centile(CentralityInfo::PROP::mbd_NS) ? get_centile(CentralityInfo::PROP::mbd_NS) : -999.99) << std::endl;
 
   return;
 }
@@ -56,5 +57,17 @@ float CentralityInfov1::get_centile(const PROP prop_id) const
   else
   {
     return _centile_map.at(prop_id);
+  }
+}
+
+void CentralityInfov1::CopyTo(CentralityInfo *info)
+{
+  for (auto const &it :  _quantity_map)
+  {
+    info->set_quantity((CentralityInfo::PROP) (it.first),it.second);
+  }
+  for (auto const &it :  _centile_map)
+  {
+    info->set_centile((CentralityInfo::PROP) (it.first),it.second);
   }
 }

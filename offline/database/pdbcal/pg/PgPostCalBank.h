@@ -16,8 +16,8 @@
 class PgPostCalBank : public PdbCalBank
 {
  public:
-  PgPostCalBank() {}
-  virtual ~PgPostCalBank() {}
+  PgPostCalBank() = default;
+  ~PgPostCalBank() override = default;
 
   void printHeader() const override { std::cout << "I'm PgPostCalBank" << std::endl; }
   void printEntry(size_t) override = 0;

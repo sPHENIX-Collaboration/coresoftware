@@ -21,7 +21,9 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
@@ -37,6 +39,8 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
+#include "ActsEvaluator.h"
+
 #include <TDatabasePDG.h>
 
 //____________________________________________________________________________..
@@ -46,9 +50,7 @@ PHActsGSF::PHActsGSF(const std::string& name)
 }
 
 //____________________________________________________________________________..
-PHActsGSF::~PHActsGSF()
-{
-}
+PHActsGSF::~PHActsGSF() = default;
 
 //____________________________________________________________________________..
 int PHActsGSF::InitRun(PHCompositeNode* topNode)
@@ -56,6 +58,38 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
   if (Verbosity() > 1)
   {
     std::cout << "PHActsGSF::InitRun begin" << std::endl;
+  }
+
+  if (m_actsEvaluator)
+  {
+    PHNodeIterator iter(topNode);
+
+    PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+
+    if (!dstNode)
+    {
+      std::cerr << "DST node is missing, quitting" << std::endl;
+      throw std::runtime_error("Failed to find DST node in PHActsTrkFitter::createNodes");
+    }
+
+    PHNodeIterator dstIter(topNode);
+    PHCompositeNode* svtxNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", "SVTX"));
+
+    if (!svtxNode)
+    {
+      svtxNode = new PHCompositeNode("SVTX");
+      dstNode->addNode(svtxNode);
+    }
+    m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode, _seed_track_map_name);
+
+    if (!m_seedTracks)
+    {
+      m_seedTracks = new SvtxTrackMap_v2;
+
+      PHIODataNode<PHObject>* seedNode =
+          new PHIODataNode<PHObject>(m_seedTracks, _seed_track_map_name, "PHObject");
+      svtxNode->addNode(seedNode);
+    }
   }
 
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
@@ -71,16 +105,42 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
       bha,
       12, 1e-4, Acts::MixtureReductionMethod::eMaxWeight, false, false);
 
+  if (m_actsEvaluator)
+  {
+    m_evaluator = std::make_unique<ActsEvaluator>(m_evalname);
+    m_evaluator->Init(topNode);
+    m_evaluator->verbosity(Verbosity());
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int PHActsGSF::process_event(PHCompositeNode*)
+int PHActsGSF::process_event(PHCompositeNode* topNode)
 {
   auto logLevel = Acts::Logging::FATAL;
+
+  if (m_actsEvaluator)
+  {
+    m_evaluator->next_event(topNode);
+  }
+
   if (Verbosity() > 4)
   {
     logLevel = Acts::Logging::VERBOSE;
+  }
+
+  /// Fill an additional track map if using the acts evaluator
+  /// for proto track comparison to fitted track
+  if (m_actsEvaluator)
+  {
+    /// wipe at the beginning of every new fit pass, so that the seeds
+    /// are whatever is currently in SvtxTrackMap
+    m_seedTracks->clear();
+    for (const auto& [key, track] : *m_trackMap)
+    {
+      m_seedTracks->insert(track);
+    }
   }
 
   auto logger = Acts::getDefaultLogger("PHActsGSF", logLevel);
@@ -88,12 +148,25 @@ int PHActsGSF::process_event(PHCompositeNode*)
   for (const auto& [key, track] : *m_trackMap)
   {
     auto pSurface = makePerigee(track);
-    if(!pSurface)
+    if (!pSurface)
     {
       //! If no vertex was assigned to track, just skip it
       continue;
     }
     const auto seed = makeSeed(track, pSurface);
+
+    auto svtxseed = new TrackSeed_v2();
+    std::map<TrkrDefs::cluskey, Acts::Vector3> clusterPositions;
+    for (auto& cKey : get_cluster_keys(track))
+    {
+      auto cluster = m_clusterContainer->findCluster(cKey);
+      auto globalPosition = m_tGeometry->getGlobalPosition(cKey, cluster);
+      clusterPositions.insert(std::make_pair(cKey, globalPosition));
+      svtxseed->insert_cluster_key(cKey);
+    }
+    svtxseed->set_phi(track->get_phi());
+    svtxseed->circleFitByTaubin(clusterPositions, 0, 57);
+    svtxseed->lineFit(clusterPositions, 7, 57);
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
     TrackSeed* tpcseed = track->get_tpc_seed();
@@ -111,42 +184,41 @@ int PHActsGSF::process_event(PHCompositeNode*)
       continue;
     }
 
-    /* 
+    /*
     auto sourceLinks = getSourceLinks(tpcseed, measurements, crossing);
     auto silSourceLinks = getSourceLinks(silseed, measurements, crossing);
     */
 
-   // loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
+    // loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
     MakeSourceLinks makeSourceLinks;
     makeSourceLinks.setVerbosity(Verbosity());
     makeSourceLinks.set_pp_mode(m_pp_mode);
-    
+
     makeSourceLinks.resetTransientTransformMap(
-					       m_alignmentTransformationMapTransient,
-					       m_transient_id_set,
-					       m_tGeometry);
+        m_alignmentTransformationMapTransient,
+        m_transient_id_set,
+        m_tGeometry);
 
     auto sourceLinks = makeSourceLinks.getSourceLinks(
-							       tpcseed, 
-							       measurements, 
-							       m_clusterContainer, 
-							       m_tGeometry, 
-							       m_dccStatic, m_dccAverage, m_dccFluctuation,
-							       m_alignmentTransformationMapTransient, 
-							       m_transient_id_set, 
-							       crossing);
+        tpcseed,
+        measurements,
+        m_clusterContainer,
+        m_tGeometry,
+        m_dccStatic, m_dccAverage, m_dccFluctuation,
+        m_alignmentTransformationMapTransient,
+        m_transient_id_set,
+        crossing);
     auto silSourceLinks = makeSourceLinks.getSourceLinks(
-							     silseed, 
-							     measurements, 
-							     m_clusterContainer, 
-							     m_tGeometry, 
-							     m_dccStatic, m_dccAverage, m_dccFluctuation,
-							     m_alignmentTransformationMapTransient, 
-							     m_transient_id_set, 
-							     crossing);
+        silseed,
+        measurements,
+        m_clusterContainer,
+        m_tGeometry,
+        m_dccStatic, m_dccAverage, m_dccFluctuation,
+        m_alignmentTransformationMapTransient,
+        m_transient_id_set,
+        crossing);
     // copy transient map for this track into transient geoContext
-    m_transient_geocontext =  m_alignmentTransformationMapTransient;
-
+    m_transient_geocontext = m_alignmentTransformationMapTransient;
 
     for (auto& siSL : silSourceLinks)
     {
@@ -180,7 +252,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
 
     if (result.ok())
     {
-      updateTrack(result, track, tracks);
+      updateTrack(result, track, tracks, svtxseed, measurements);
     }
   }
 
@@ -190,7 +262,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
 std::shared_ptr<Acts::PerigeeSurface> PHActsGSF::makePerigee(SvtxTrack* track) const
 {
   SvtxVertex* vertex = m_vertexMap->get(track->get_vertex_id());
-  if(!vertex)
+  if (!vertex)
   {
     return nullptr;
   }
@@ -204,7 +276,7 @@ std::shared_ptr<Acts::PerigeeSurface> PHActsGSF::makePerigee(SvtxTrack* track) c
 }
 
 ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
-                                                               std::shared_ptr<Acts::PerigeeSurface> psurf) const
+                                                               const std::shared_ptr<Acts::PerigeeSurface>& psurf) const
 {
   Acts::Vector4 fourpos(track->get_x() * Acts::UnitConstants::cm,
                         track->get_y() * Acts::UnitConstants::cm,
@@ -226,7 +298,7 @@ ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
                                                             charge / momentum.norm(),
                                                             cov,
                                                             Acts::ParticleHypothesis::electron(),
-                                                            1*Acts::UnitConstants::cm)
+                                                            1 * Acts::UnitConstants::cm)
       .value();
 }
 
@@ -241,7 +313,9 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
 }
 
 void PHActsGSF::updateTrack(FitResult& result, SvtxTrack* track,
-                            ActsTrackFittingAlgorithm::TrackContainer& tracks)
+                            ActsTrackFittingAlgorithm::TrackContainer& tracks,
+                            const TrackSeed* seed,
+                            const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
@@ -254,6 +328,12 @@ void PHActsGSF::updateTrack(FitResult& result, SvtxTrack* track,
                                                                 outtrack.parameters(), outtrack.covariance(), Acts::ParticleHypothesis::electron()}});
 
   updateSvtxTrack(trackTips, indexedParams, tracks, track);
+
+  if (m_actsEvaluator)
+  {
+    m_evaluator->evaluateTrackFit(tracks, trackTips, indexedParams, track,
+                                  seed, measurements);
+  }
 }
 
 void PHActsGSF::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
@@ -323,9 +403,27 @@ void PHActsGSF::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexTy
   transformer.fillSvtxTrackStates(mj, tracktip, track, m_transient_geocontext);
 }
 
-//____________________________________________________________________________..
-int PHActsGSF::End(PHCompositeNode*)
+std::vector<TrkrDefs::cluskey> PHActsGSF::get_cluster_keys(SvtxTrack* track)
 {
+  std::vector<TrkrDefs::cluskey> out;
+  for (const auto& seed : {track->get_silicon_seed(), track->get_tpc_seed()})
+  {
+    if (seed)
+    {
+      std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(out));
+    }
+  }
+
+  return out;
+}
+
+//____________________________________________________________________________..
+int PHActsGSF::End(PHCompositeNode* /*unused*/)
+{
+  if (m_actsEvaluator)
+  {
+    m_evaluator->End();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -379,12 +477,12 @@ int PHActsGSF::getNodes(PHCompositeNode* topNode)
   }
 
   m_alignmentTransformationMapTransient = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainerTransient");
-  if(!m_alignmentTransformationMapTransient)
-    {
-      std::cout << PHWHERE << "alignmentTransformationContainerTransient not on node tree. Bailing"
-                << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  if (!m_alignmentTransformationMapTransient)
+  {
+    std::cout << PHWHERE << "alignmentTransformationContainerTransient not on node tree. Bailing"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

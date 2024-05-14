@@ -3,7 +3,7 @@
 
 #include <TClonesArray.h>
 
-static const int NTPCHITS = 100;
+static const int NTPCHITS = 10000;
 
 TpcRawHitContainerv1::TpcRawHitContainerv1()
 {

@@ -1,16 +1,16 @@
 #ifndef FUN4ALLRAW_INTT_POOL_H
 #define FUN4ALLRAW_INTT_POOL_H
 
-#include <Event/packet.h>
+#include <Event/event_io.h>  // for OSTREAM
 
-#include <algorithm>
 #include <array>
 #include <cstdint>
-#include <functional>
+#include <iostream>
 #include <map>
-#include <set>
 #include <string>
 #include <vector>
+
+class Packet;
 
 class intt_pool
 {
@@ -69,7 +69,7 @@ class intt_pool
     uint16_t full_FPHX;
     uint16_t full_ROC;
     uint16_t amplitude;
-    uint16_t full_fphx;
+    //    uint16_t full_fphx;
     uint32_t event_counter;
     uint32_t word;
   };
@@ -77,7 +77,7 @@ class intt_pool
   std::vector<unsigned int> fee_data[MAX_FEECOUNT];
   std::vector<intt_hit *> intt_hits;
 
-  std::array<unsigned int, MAX_FEECOUNT> last_index;
+  std::array<unsigned int, MAX_FEECOUNT> last_index{};
   std::map<unsigned int, uint64_t> last_bco;
   std::string name;
 };

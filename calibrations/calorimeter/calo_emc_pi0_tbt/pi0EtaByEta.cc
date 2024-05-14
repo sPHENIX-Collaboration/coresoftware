@@ -529,6 +529,10 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
     {
       std::cout << "pi0EtaByEta::fitEtaSlices null hist" << std::endl;
     }
+    if (h_M_eta[i]->GetEntries() == 0)
+    {
+      continue;
+    }
 
     fitFunOut[i] = fitHistogram(h_M_eta[i]);
     std::string funcname = "f_pi0_eta" + std::to_string(i);
@@ -572,6 +576,10 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
         final_mass_target = h_target_mass->GetBinContent(i + 1);
       }
       float correction = final_mass_target / h_peak_eta->GetBinContent(i + 1);
+      if ( h_peak_eta->GetBinContent(i + 1) == 0) 
+      {
+         correction = 0;
+      }
       unsigned int key = TowerInfoDefs::encode_emcal(i, j);
       float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
       cdbttree2->SetFloatValue(key, m_fieldname, val1 * correction);
@@ -609,6 +617,52 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
 
   return;
 }
+
+
+bool pi0EtaByEta::checkOutput(const std::string& file)
+{
+  TFile* fin = new TFile(file.c_str()); 
+  TH1F* h_peak_eta = (TH1F*) fin->Get("h_peak_eta");
+
+  float final_mass_target = target_pi0_mass;
+
+  int numConv = 0;
+  int numNotConv = 0;
+  
+  for (int i = 0; i < 96; i++)
+  {
+    if (use_h_target_mass)
+    {
+      final_mass_target = h_target_mass->GetBinContent(i + 1);
+    }
+    float corr = 1.0 - final_mass_target / h_peak_eta->GetBinContent(i + 1);
+    if ( h_peak_eta->GetBinContent(i + 1) == 0) 
+    {
+      corr = 0;
+    }
+    std::cout << "err " << corr << std::endl;
+    if (fabs(corr) < convLev) 
+    {
+      numConv++; 
+    }
+    else
+    {
+      numNotConv++;
+    }
+  }
+  
+  delete fin; 
+
+  if (numNotConv <= 1)
+  {
+    return true;
+  }
+  else 
+  { 
+    return false;
+  }
+}
+
 
 void pi0EtaByEta::set_massTargetHistFile(const std::string& file)
 {

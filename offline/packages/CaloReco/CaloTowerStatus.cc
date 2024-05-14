@@ -29,6 +29,7 @@
 
 #include <TSystem.h>
 
+#include <cmath>
 #include <cstdlib>    // for exit
 #include <exception>  // for exception
 #include <iostream>   // for operator<<, basic_ostream
@@ -47,12 +48,13 @@ CaloTowerStatus::CaloTowerStatus(const std::string &name)
 //____________________________________________________________________________..
 CaloTowerStatus::~CaloTowerStatus()
 {
-  delete m_cdbttree_chi2;
-  delete m_cdbttree_time;
   if (Verbosity() > 0)
   {
     std::cout << "CaloTowerStatus::~CaloTowerStatus() Calling dtor" << std::endl;
   }
+  delete m_cdbttree_chi2;
+  delete m_cdbttree_time;
+  delete m_cdbttree_hotMap;
 }
 
 //____________________________________________________________________________..
@@ -86,6 +88,10 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_chi2 = "fraction";
 
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_chi2);
+      if (use_directURL_chi2)
+  {
+    calibdir = m_directURL_chi2;
+  }
   if (!calibdir.empty())
   {
     m_cdbttree_chi2 = new CDBTTree(calibdir);
@@ -100,6 +106,10 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_time = "time";
 
   calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
+  if (use_directURL_time)
+  {
+    calibdir = m_directURL_time;
+  }
   if (!calibdir.empty())
   {
     m_cdbttree_time = new CDBTTree(calibdir);
@@ -111,10 +121,17 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   }
 
   m_calibName_hotMap = m_detector + "nome";
-  if (m_dettype == CaloTowerDefs::CEMC) m_calibName_hotMap = m_detector + "_BadTowerMap"; 
+  if (m_dettype == CaloTowerDefs::CEMC)
+  {
+    m_calibName_hotMap = m_detector + "_BadTowerMap";
+  }
   m_fieldname_hotMap = "status";
 
   calibdir = CDBInterface::instance()->getUrl(m_calibName_hotMap);
+  if (use_directURL_hotMap)
+  {
+    calibdir = m_directURL_hotMap;
+  }
   if (!calibdir.empty())
   {
     m_cdbttree_hotMap = new CDBTTree(calibdir);
@@ -124,7 +141,6 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     std::cout << "CaloTowerStatus::::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
     m_doHotMap = false;
   }
-
 
   PHNodeIterator iter(topNode);
 
@@ -163,7 +179,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = m_raw_towers->encode_key(channel);
-    m_raw_towers->get_tower_at_channel(channel)->set_status(0); // resetting status
+    m_raw_towers->get_tower_at_channel(channel)->set_status(0);  // resetting status
 
     if (m_doHotChi2)
     {
@@ -184,7 +200,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (fabs(time-mean_time) > time_cut && m_doTime)
+    if (std::fabs(time - mean_time) > time_cut && m_doTime)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
     }

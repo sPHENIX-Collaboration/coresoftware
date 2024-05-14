@@ -42,6 +42,7 @@ class TrackSeed : public PHObject
                        ActsGeometry*) const { return NAN; }
   virtual float get_py(TrkrClusterContainer*,
                        ActsGeometry*) const { return NAN; }
+  virtual float get_phi() const { return NAN; }
   virtual float get_phi(TrkrClusterContainer*,
                         ActsGeometry*) const { return NAN; }
   virtual float get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>&) const { return NAN; }
@@ -58,6 +59,8 @@ class TrackSeed : public PHObject
   virtual float get_theta() const { return NAN; }
   virtual float get_pt() const { return NAN; }
   virtual float get_p() const { return NAN; }
+  virtual float get_px() const { return NAN; }
+  virtual float get_py() const { return NAN; }
   virtual short int get_crossing() const { return 0; }
 
   virtual void set_crossing(const short int) {}
@@ -66,6 +69,7 @@ class TrackSeed : public PHObject
   virtual void set_Y0(const float) {}
   virtual void set_slope(const float) {}
   virtual void set_Z0(const float) {}
+  virtual void set_phi(const float) {}
 
   virtual void circleFitByTaubin(TrkrClusterContainer*,
                                  ActsGeometry*,

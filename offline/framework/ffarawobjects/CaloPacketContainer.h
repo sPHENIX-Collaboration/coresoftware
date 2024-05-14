@@ -15,6 +15,7 @@ class CaloPacketContainer : public PHObject
   virtual CaloPacket *AddPacket(CaloPacket *) { return nullptr; }
   virtual unsigned int get_npackets() { return 0; }
   virtual CaloPacket *getPacket(unsigned int) { return nullptr; }
+  virtual CaloPacket *getPacketbyId(int) { return nullptr; }
 
  private:
   ClassDefOverride(CaloPacketContainer, 1)

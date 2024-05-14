@@ -2,7 +2,7 @@
 //  -*- C++ -*-.
 /*!
  * \file PgPostBankBackupStorage.hh
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.3 $
  * \date $Date: 2014/04/14 22:56:48 $
@@ -36,10 +36,10 @@ class PgPostBankBackupStorage : public TNamed
 
   PgPostBankBackupStorage();
 
-  virtual ~PgPostBankBackupStorage();
+  ~PgPostBankBackupStorage() override;
 
-  virtual void
-  Print(Option_t *option = "") const;
+  void
+  Print(Option_t *option = "") const override;
 
   bool
   isValid() const;
@@ -71,12 +71,10 @@ class PgPostBankBackupStorage : public TNamed
     {
     }
 
-    ~BankHeader()
-    {
-    }
+    ~BankHeader() override = default;
 
-    virtual void
-    Print(Option_t *option = "") const;
+    void
+    Print(Option_t *option = "") const override;
 
     int
     getBankID() const
