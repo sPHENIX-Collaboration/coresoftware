@@ -74,8 +74,6 @@ class MbdEvent
   int  Verbosity() { return _verbose; }
   void Verbosity(const int v) { _verbose = v; }
 
-  int ProcessRawPackets(MbdPmtContainer *mbdpmts);
-
  private:
   static const int NCHPERPKT = 128;
 
