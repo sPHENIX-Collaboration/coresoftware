@@ -11,7 +11,7 @@
 // Statement for if we want to save out the intermediary clustering steps
 /* #define _CLUSTER_LOG_TUPOUT_ */
 
-// begin
+// begin test here
 
 #include "ALICEKF.h"
 #include "PHTrackSeeding.h"  // for PHTrackSeeding
@@ -37,6 +37,7 @@
 #include <cmath>    // for M_PI
 #include <cstdint>  // for uint64_t
 #include <map>      // for map
+#include <unordered_map>      // for map
 #include <memory>
 #include <set>
 #include <string>  // for string
@@ -55,21 +56,32 @@ class SvtxTrack_v3;
 class TpcDistortionCorrectionContainer;
 class TrkrCluster;
 
+
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-using point = bg::model::point<float, 3, bg::cs::cartesian>;
-using box = bg::model::box<point>;
-using pointKey = std::pair<point, TrkrDefs::cluskey>;
-using coordKey = std::pair<std::array<float, 3>, TrkrDefs::cluskey>;
-using keylink = std::array<coordKey, 2>;
-using keylist = std::vector<TrkrDefs::cluskey>;
-using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
 class PHCASeeding : public PHTrackSeeding
 {
  public:
-  PHCASeeding(
+   static const int _NLAYERS_TPC = 48;
+   // move `using` statements inside of the class to avoid polluting the global namespace
+
+   using point = bg::model::point<float, 2, bg::cs::cartesian>;
+   using box = bg::model::box<point>;
+   using pointKey = std::pair<point, TrkrDefs::cluskey>;
+   using coordKey = std::pair<std::array<float, 2>, TrkrDefs::cluskey>; // just use phi and eta, no longer needs the layer
+   using keyList = std::vector<TrkrDefs::cluskey>;
+   using keysPerLayer = std::array<keyList, _NLAYERS_TPC>;
+   using keyLink = std::pair<TrkrDefs::cluskey, TrkrDefs::cluskey>;
+   using keyLinksPerLayer = std::array<std::vector<keyLink>,_NLAYERS_TPC>;
+
+   /* using bgi::rtree<pointKey, bgi::quadratic<16>> = rTreeType; */
+
+   using PositionMap = std::unordered_map<TrkrDefs::cluskey, Acts::Vector3>;
+   /* using coordKey_perLayer = std::array<std::vector<coordKey>,_NLAYERS_TPC>; */
+
+   PHCASeeding(
       const std::string& name = "PHCASeeding",
       unsigned int start_layer = 7,
       unsigned int end_layer = 55,
@@ -138,11 +150,11 @@ class PHCASeeding : public PHTrackSeeding
   TNtuple* _tupclus_grown_seeds = nullptr; // seeds saved out
 #endif
 
-  enum skip_layers
-  {
-    on,
-    off
-  };
+  // enum skip_layers -- no longer used in PHCASeeding.cc
+  // {
+    // on,
+    // off
+  // };
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
@@ -153,14 +165,14 @@ class PHCASeeding : public PHTrackSeeding
    * incorporates TPC distortion correction, if present
    */
   Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
+  std::pair<PositionMap, keysPerLayer> FillGlobalPositions();
+  std::vector<coordKey> FillTree(bgi::rtree<pointKey,bgi::quadratic<16>>&, const keyList&, const PositionMap&, int layer);
+  int FindSeedsWithMerger(const PositionMap&, const keysPerLayer&);
+  keyLinksPerLayer CreateBiLinks(const PositionMap&, const keysPerLayer&);
 
-  PositionMap FillTree();
-  int FindSeedsWithMerger(const PositionMap&);
-  std::pair<std::vector<std::unordered_set<keylink>>, std::vector<std::unordered_set<keylink>>> CreateLinks(const std::vector<coordKey>& clusters, const PositionMap& globalPositions) const;
-  std::vector<std::vector<keylink>> FindBiLinks(const std::vector<std::unordered_set<keylink>>& belowLinks, const std::vector<std::unordered_set<keylink>>& aboveLinks) const;
-  std::vector<keylist> FollowBiLinks(const std::vector<std::vector<keylink>>& bidirectionalLinks, const PositionMap& globalPositions) const;
-  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey>& returned_values) const;
-  std::vector<TrackSeed_v2> RemoveBadClusters(const std::vector<keylist>& seeds, const PositionMap& globalPositions) const;
+  std::vector<keyList> FollowBiLinks(const keyLinksPerLayer& bidirectionalLinks, const PositionMap& globalPositions) const;
+  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double etamin, double phimax, double etamax, std::vector<pointKey>& returned_values) const;
+  std::vector<TrackSeed_v2> RemoveBadClusters(const std::vector<keyList>& seeds, const PositionMap& globalPositions) const;
   double getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b, TrkrDefs::cluskey c, const PositionMap& globalPositions) const;
 
   void publishSeeds(const std::vector<TrackSeed_v2>& seeds);
@@ -205,7 +217,10 @@ class PHCASeeding : public PHTrackSeeding
 
   std::unique_ptr<PHTimer> t_seed;
   std::unique_ptr<PHTimer> t_fill;
-  bgi::rtree<pointKey, bgi::quadratic<16>> _rtree;
+  std::unique_ptr<PHTimer> t_makebilinks;
+  std::unique_ptr<PHTimer> t_makeseeds;
+  /* std::array<bgi::rtree<pointKey, bgi::quadratic<16>>, _NLAYERS_TPC> _rtrees; */
+  std::array<bgi::rtree<pointKey,bgi::quadratic<16>>, 3> _rtrees; // need three layers at a time
 };
 
 #endif
