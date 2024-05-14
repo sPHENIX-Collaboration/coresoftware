@@ -23,3 +23,15 @@ LL1Out::Range LL1Out::getTriggerWords()
 {
   return std::make_pair(dummy_map.begin(), dummy_map.end());
 }
+
+std::vector<TriggerDefs::TriggerSumKey> LL1Out::getTriggeredSums()
+{
+  return std::vector<TriggerDefs::TriggerSumKey>();
+}
+
+
+std::vector<TriggerDefs::TriggerPrimKey> LL1Out::getTriggeredPrimitives()
+{
+  return std::vector<TriggerDefs::TriggerPrimKey>();
+}
+
