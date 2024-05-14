@@ -156,8 +156,8 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
         UE = UE * (1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2)));
       }
       float new_energy = raw_energy - UE;
-      // if a tower has time = -10 or -11 it is masked, leave it at zero
-      if (tower->get_time() == -10 || tower->get_time() == -11)
+      // if a tower is masked, leave it at zero
+      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
       {
         new_energy = 0;
       }
@@ -245,8 +245,8 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
         UE = UE * (1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2)));
       }
       float new_energy = raw_energy - UE;
-      // if a tower has time = -10 or -11 it is masked, leave it at zero
-      if (tower->get_time() == -10 || tower->get_time() == -11)
+      // if a tower is masked, leave it at zero
+      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
       {
         new_energy = 0;
       }
@@ -330,8 +330,8 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
         UE = UE * (1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2)));
       }
       float new_energy = raw_energy - UE;
-      // if a tower has time = -10 or -11 it is masked, leave it at zero
-      if (tower->get_time() == -10 || tower->get_time() == -11)
+      // if a tower is masked, leave it at zero
+      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
       {
         new_energy = 0;
       }
