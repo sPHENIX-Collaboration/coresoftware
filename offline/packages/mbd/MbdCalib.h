@@ -101,8 +101,8 @@ class MbdCalib
   void Reset_Ped();
   void Reset_Gains();
 
-  void Update_TQT0(const float dz); // update with new z-vertex
-  void Update_TTT0(const float dz);
+  void Update_TQT0(const float dz, const float dt = 0.); // update with new z-vertex, t0
+  void Update_TTT0(const float dz, const float dt = 0.);
 
   // void Dump_to_file(const std::string& what = "ALL");
 
