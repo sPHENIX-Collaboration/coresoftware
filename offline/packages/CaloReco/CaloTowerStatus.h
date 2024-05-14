@@ -52,19 +52,19 @@ class CaloTowerStatus : public SubsysReco
     time_cut = threshold;
     return;
   }
-  void set_directURL_hotMap(std::string str)
+  void set_directURL_hotMap(const std::string &str)
   {
     m_directURL_hotMap = str;
     use_directURL_hotMap = true;
     return;
   }
-  void set_directURL_time(std::string str)
+  void set_directURL_time(const std::string &str)
   {
     m_directURL_time = str;
     use_directURL_time = true;
     return;
   }
-  void set_directURL_chi2(std::string str)
+  void set_directURL_chi2(const std::string &str)
   {
     m_directURL_chi2 = str;
     use_directURL_chi2 = true;
