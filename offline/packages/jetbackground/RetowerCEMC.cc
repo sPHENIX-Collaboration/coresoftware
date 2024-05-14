@@ -246,7 +246,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         if (_EMCAL_RETOWER_MASKED_A[eta][phi]/_EMCAL_RETOWER_TOTAL_A[eta][phi] > _FRAC_CUT)
         {
           towerinfo->set_energy(0);
-	  towerinfo->set_isHot(1);
+	  towerinfo->set_isHot(true);
         }
 	else
 	  {
