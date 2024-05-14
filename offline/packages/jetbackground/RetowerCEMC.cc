@@ -151,17 +151,17 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         {
           continue;
         }
-	if(!this_isBad)
-	  {
-	    _EMCAL_RETOWER_E[this_IHetabin + etabin_iter][this_IHphibin] += this_E * fractionalcontribution[etabin_iter + 1];
-	  }
-	else
-	  {
-	    //if the tower is bad, don't add its energy to the retower and keep track of how much is masked
-	    _EMCAL_RETOWER_MASKED_A[this_IHetabin + etabin_iter][this_IHphibin] += fractionalcontribution[etabin_iter + 1];
-	  }
-	//also keep track of the total area going into the retower
-	_EMCAL_RETOWER_TOTAL_A[this_IHetabin + etabin_iter][this_IHphibin] += fractionalcontribution[etabin_iter + 1];
+        if (!this_isBad)
+        {
+          _EMCAL_RETOWER_E[this_IHetabin + etabin_iter][this_IHphibin] += this_E * fractionalcontribution[etabin_iter + 1];
+        }
+        else
+        {
+          // if the tower is bad, don't add its energy to the retower and keep track of how much is masked
+          _EMCAL_RETOWER_MASKED_A[this_IHetabin + etabin_iter][this_IHphibin] += fractionalcontribution[etabin_iter + 1];
+        }
+        // also keep track of the total area going into the retower
+        _EMCAL_RETOWER_TOTAL_A[this_IHetabin + etabin_iter][this_IHphibin] += fractionalcontribution[etabin_iter + 1];
       }
     }
   }
@@ -243,18 +243,18 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         unsigned int towerindex = emcal_retower->decode_key(towerkey);
         TowerInfo *towerinfo = emcal_retower->get_tower_at_channel(towerindex);
         towerinfo->set_energy(_EMCAL_RETOWER_E[eta][phi]);
-        if (_EMCAL_RETOWER_MASKED_A[eta][phi]/_EMCAL_RETOWER_TOTAL_A[eta][phi] > _FRAC_CUT)
+        if (_EMCAL_RETOWER_MASKED_A[eta][phi] / _EMCAL_RETOWER_TOTAL_A[eta][phi] > _FRAC_CUT)
         {
           towerinfo->set_energy(0);
-	  towerinfo->set_isHot(true);
+          towerinfo->set_isHot(true);
         }
-	else
-	  {
-	    //scale up the total energy to account for the amount that's been masked
-	    towerinfo->set_energy(_EMCAL_RETOWER_E[eta][phi]*1./(1.-_EMCAL_RETOWER_MASKED_A[eta][phi]/_EMCAL_RETOWER_TOTAL_A[eta][phi]));
-	    //set the chi2 to be the masked fraction
-	    towerinfo->set_chi2(_EMCAL_RETOWER_MASKED_A[eta][phi]/_EMCAL_RETOWER_TOTAL_A[eta][phi]);
-	  }
+        else
+        {
+          // scale up the total energy to account for the amount that's been masked
+          towerinfo->set_energy(_EMCAL_RETOWER_E[eta][phi] * 1. / (1. - _EMCAL_RETOWER_MASKED_A[eta][phi] / _EMCAL_RETOWER_TOTAL_A[eta][phi]));
+          // set the chi2 to be the masked fraction
+          towerinfo->set_chi2(_EMCAL_RETOWER_MASKED_A[eta][phi] / _EMCAL_RETOWER_TOTAL_A[eta][phi]);
+        }
       }
     }
   }
