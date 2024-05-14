@@ -90,14 +90,19 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts);
     }
 
-    if (status == Fun4AllReturnCodes::DISCARDEVENT || status == -1001)
+    if (status == Fun4AllReturnCodes::DISCARDEVENT )
     {
       static int counter = 0;
-      if ( counter<2 )
+      if ( counter<3 )
       {
         std::cout << PHWHERE << " ERROR, no good data in MBD" << std::endl;
         counter++;
       }
+      return Fun4AllReturnCodes::DISCARDEVENT;
+    }
+    else if ( status == -1001 )
+    {
+      // calculating sampmax on this event
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
     else if (status < 0)
