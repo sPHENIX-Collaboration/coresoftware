@@ -171,7 +171,7 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
   return 0;
 }
 
-unsigned int TpcMap::getLayer(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
+int TpcMap::getLayer(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int /* packetid */) const
 {
   if (FEE >= 26 || FEEChannel > 255)
   {

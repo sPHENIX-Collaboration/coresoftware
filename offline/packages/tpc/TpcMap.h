@@ -11,7 +11,7 @@ class TpcMap
   TpcMap() = default;
   virtual ~TpcMap() = default;
 
-  virtual unsigned int getLayer(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
+  virtual int getLayer(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
   virtual unsigned int getPad(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
   virtual double getR(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
   virtual double getPhi(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
@@ -24,7 +24,7 @@ class TpcMap
   struct tpc_map
   {
     unsigned int padnr;
-    unsigned int layer;
+    int layer;
     unsigned int FEE;
     unsigned int FEEChannel;
     double PadR;
