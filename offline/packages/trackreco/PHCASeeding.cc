@@ -773,46 +773,43 @@ std::vector<PHCASeeding::keyList> PHCASeeding::FollowBiLinks(const PHCASeeding::
   std::vector<keyList> trackSeedPairs;
   // get starting cluster keys, create a keyList for each
   // (only check last element of each pair because we start from the outer layers and go inward)
-  for (unsigned int layer = 0; layer < _nlayers_tpc - 1; ++layer)
-  {
+  /* for (unsigned int layer = 0; layer < _nlayers_tpc - 1; ++layer) */
+  /* { */
     
-    for (const auto& startCand : bidirectionalLinks[layer]) {
-      //see if any link in an above layer is pointing to the starCand
-      const auto& l_above = bidirectionalLinks[layer+1];
-      if (!std::binary_search(l_above.begin(), l_above.end(), startCand,
-            [](const keyLink& a, const keyLink& b) { return a.second < b.first; })) 
+  /*   for (const auto& startCand : bidirectionalLinks[layer]) { */
+  /*     //see if any link in an above layer is pointing to the starCand */
+  /*     const auto& l_above = bidirectionalLinks[layer+1]; */
+  /*     if (!std::binary_search(l_above.begin(), l_above.end(), startCand, */
+  /*           [](const keyLink& a, const keyLink& b) { return a.second < b.first; })) */ 
+  /*     { */
+  /*       trackSeedPairs.push_back({startCand.first, startCand.second}); */
+  /*     } */
+  /*   } */
+  /* } */
+
+
+
+  for (unsigned int layer = 0; layer < _NLAYERS_TPC - 1; ++layer)
+  {
+    for (auto startCand = bidirectionalLinks[layer].begin(); startCand != bidirectionalLinks[layer].end(); ++startCand)
+    {
+      bool has_above_link = false;
+      unsigned int imax = 1;
+      if (layer == _nlayers_tpc - 2)
       {
-        trackSeedPairs.push_back({startCand.first, startCand.second});
+        imax = 1;
+      }
+      for (unsigned int i = 1; i <= imax; i++)
+      {
+        has_above_link = has_above_link || std::any_of(bidirectionalLinks[layer + i].begin(), bidirectionalLinks[layer + i].end(), [&](keyLink k)
+          { return startCand->first == k.second; });
+      }
+      if (!has_above_link)
+      {
+        trackSeedPairs.push_back({startCand->first, startCand->second});
       }
     }
   }
-
-
-
-/*     for (auto startCand = bidirectionalLinks[layer].begin(); startCand != bidirectionalLinks[layer].end(); ++startCand) */
-/*     { */
-/*       bool has_above_link = false; */
-/*       unsigned int imax = 1; */
-/*       if (layer == _nlayers_tpc - 2) */
-/*       { */
-/*         imax = 1; */
-/*       } */
-/*       for (unsigned int i = 1; i <= imax; i++) */
-/*       { */
-/*         has_above_link = has_above_link || std::any_of(bidirectionalLinks[layer + i].begin(), bidirectionalLinks[layer + i].end(), [&](keyLink k) */
-/*           { return startCand->first == k.second; }); */
-/*       } */
-/*       //      for(std::vector<keylink>::iterator testlink = bidirectionalLinks[layer+1].begin(); !has_above_link && (testlink != bidirectionalLinks[layer+1].end()); ++testlink) */
-/*       //      { */
-/*       //        if((*startCand) == (*testlink)) continue; */
-/*       //        if((*startCand)[0] == (*testlink)[1]) has_above_link = true; */
-/*       //      } */
-/*       if (!has_above_link) */
-/*       { */
-/*         trackSeedPairs.push_back({startCand->first, startCand->second}); */
-/*       } */
-/*     } */
-/*   } */
 
   // form all possible starting 3-cluster tracks (we need that to calculate curvature)
   std::vector<keyList> trackSeedKeyLists;
