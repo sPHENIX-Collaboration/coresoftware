@@ -51,7 +51,7 @@ class CaloWaveformFitting
   TProfile *h_template = nullptr;
   double template_function(double *x, double *par);
   int _nthreads = 1;
-  int _nzerosuppresssamples = 2;
+  static constexpr int _nzerosuppresssamples = 2;
   int _nsoftwarezerosuppression = 40;
   bool _bdosoftwarezerosuppression = false;
   bool _maxsoftwarezerosuppression = false;
