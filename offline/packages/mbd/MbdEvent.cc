@@ -135,9 +135,10 @@ int MbdEvent::InitRun()
 
     // check if sampmax and ped calibs exist
     int scheck = _mbdcal->get_sampmax(0);
-    if ( scheck<0 && _calpass!=1 )
+    if ( (scheck<0 || _is_online) && _calpass!=1 )
     {
       _no_sampmax = 1000;    // num events for on the fly calculation
+      _calib_done = 0;
       std::cout << PHWHERE << ",no sampmax calib, determining it on the fly using first " << _no_sampmax << " evts." << std::endl;
     }
   }
@@ -148,7 +149,7 @@ int MbdEvent::InitRun()
     _mbdsig[ifeech].SetCalib(_mbdcal);
 
     // Do evt-by-evt pedestal using sample range below
-    if ( _calpass==1 || _no_sampmax>0 )
+    if ( _calpass==1 || _is_online || _no_sampmax>0 )
     {
       _mbdsig[ifeech].SetEventPed0Range(0,1);
     }
@@ -216,13 +217,27 @@ int MbdEvent::InitRun()
         h2_wave[itype]->SetYTitle("ch");
       }
     }
+    else
+    {
+      // Reset histograms
+      //for (int ich=0; ich<MbdDefs::MBD_N_FEECH; ich++)
+      for (auto h : h_smax )
+      {
+        h->Reset();
+      }
+      h2_smax[0]->Reset();
+      h2_smax[1]->Reset();
+      h2_wave[0]->Reset();
+      h2_wave[1]->Reset();
+    }
 
     if ( _calpass==1 )
     {
       orig_dir->cd();
     }
   }
-  else if ( _calpass == 2 )
+
+  if ( _calpass == 2 )
   {
     // zero out the tt_t0, tq_t0, and gains to produce uncalibrated time and charge
     std::cout << "MBD Cal Pass 2" << std::endl;
@@ -920,7 +935,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
     // if (_verbose > 10)
     // if ( _verbose && mybbz[_syncevt]< -40. )
-    if (_verbose)
+    if (_verbose>1000)
     {
       std::cout << "bbcz " << m_bbcz << std::endl;
       std::string junk;
@@ -1057,6 +1072,7 @@ int MbdEvent::CalcSampMaxCalib()
     for (int ich=0; ich<8; ich++)
     {
       _mbdcal->set_sampmax( feech, samp_max );
+      //std::cout << "sampmax " << feech << "\t" << samp_max << std::endl;
       feech++;
     }
     delete h_projx;
