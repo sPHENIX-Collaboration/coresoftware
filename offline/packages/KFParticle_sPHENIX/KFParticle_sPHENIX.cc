@@ -488,7 +488,7 @@ void KFParticle_sPHENIX::getField()
 
   float Bz = 0.;
   unsigned int r = 0.;
-  float z = 1.;
+  float z = 0.;
 
   double arc = M_PI/2;
   unsigned int n = 0;
@@ -517,9 +517,9 @@ void KFParticle_sPHENIX::getField()
     TEntryList *elist = (TEntryList*)gDirectory->Get("elist");
     if (elist->GetEntry(0))
     {
-      TLeaf *xpos = fieldmap->GetLeaf("bz");
-      xpos->GetBranch()->GetEntry(elist->GetEntry(0));
-      Bz = xpos->GetValue();
+      TLeaf *fieldValue = fieldmap->GetLeaf("bz");
+      fieldValue->GetBranch()->GetEntry(elist->GetEntry(0));
+      Bz = fieldValue->GetValue();
     }
 
     ++n;
@@ -530,7 +530,6 @@ void KFParticle_sPHENIX::getField()
       n = 0;
     }
   }
-
   // The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
   Bz *= 10;  // Factor of 10 to convert the B field unit from kG to T
   KFParticle::SetField((double) Bz);
