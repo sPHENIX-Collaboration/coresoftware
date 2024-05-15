@@ -63,7 +63,8 @@ class ResonanceJetTagging : public SubsysReco
     K0 = 5,
     GAMMA = 6,
     ELECTRON = 7,
-    LAMBDAC = 8
+    LAMBDAC = 8,
+    LAMBDAS = 9
   };
 
   /// Constructor

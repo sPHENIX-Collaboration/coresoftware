@@ -45,6 +45,10 @@ int TrackSeedTrackMapConverter::InitRun(PHCompositeNode* topNode)
   if (!stringline.fail())  // it is a float
   {
     m_ConstField = true;
+    if(std::stof(m_fieldMap) < 0.02)
+    {
+      m_zeroField = true;
+    }
   }
   return ret;
 }
@@ -154,14 +158,15 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
         if (m_fieldMap.find(".root") != std::string::npos)
         {
-          svtxtrack->set_px(tpcseed->get_px(m_clusters, m_tGeometry));
-          svtxtrack->set_py(tpcseed->get_py(m_clusters, m_tGeometry));
-          svtxtrack->set_pz(tpcseed->get_pz());
+        
+          svtxtrack->set_px(trackSeed->get_pt() * std::cos(trackSeed->get_phi()));
+          svtxtrack->set_py(trackSeed->get_pt() * std::sin(trackSeed->get_phi()));
+          svtxtrack->set_pz(trackSeed->get_pz());
         }
         else
         {
-          float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
-          float phi = tpcseed->get_phi(m_clusters, m_tGeometry);
+          float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
+          float phi = tpcseed->get_phi();
           svtxtrack->set_px(pt * std::cos(phi));
           svtxtrack->set_py(pt * std::sin(phi));
           svtxtrack->set_pz(pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta()));
@@ -251,6 +256,11 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
       svtxtrack->set_x(trackSeed->get_x());
       svtxtrack->set_y(trackSeed->get_y());
+      if(m_zeroField)
+      {
+        // replace x and y with a line fit instead of helix fit
+        lineFit(svtxtrack.get(), trackSeed);
+      }
       svtxtrack->set_z(trackSeed->get_z());
       svtxtrack->set_charge(trackSeed->get_qOverR() > 0 ? 1 : -1);
       if (m_ConstField)
@@ -264,8 +274,9 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       }
       else
       {
-        svtxtrack->set_px(trackSeed->get_px(m_clusters, m_tGeometry));
-        svtxtrack->set_py(trackSeed->get_py(m_clusters, m_tGeometry));
+     
+        svtxtrack->set_px(trackSeed->get_pt() * std::cos(trackSeed->get_phi()));
+        svtxtrack->set_py(trackSeed->get_pt() * std::sin(trackSeed->get_phi()));
         svtxtrack->set_pz(trackSeed->get_pz());
       }
 
@@ -351,7 +362,20 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+void TrackSeedTrackMapConverter::lineFit(SvtxTrack_v4* track, TrackSeed* seed)
+{
+  auto firstclusterckey = *(seed->begin_cluster_keys());
+  auto cluster = m_clusters->findCluster(firstclusterckey);
+  auto glob = m_tGeometry->getGlobalPosition(firstclusterckey, cluster);
+  float phi = seed->get_phi();
+  float theta = seed->get_theta();
+  Acts::Vector3 mom(std::cos(phi) * std::sin(theta),
+                    std::sin(phi) * std::sin(theta), std::cos(theta));
 
+  auto pca = TrackFitUtils::getPCALinePoint(Acts::Vector3::Zero(), mom, glob);
+  track->set_x(pca.x());
+  track->set_y(pca.y());
+}
 //____________________________________________________________________________..
 int TrackSeedTrackMapConverter::End(PHCompositeNode* /*unused*/)
 {

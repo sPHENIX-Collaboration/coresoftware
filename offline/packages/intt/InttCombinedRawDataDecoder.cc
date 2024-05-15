@@ -15,7 +15,7 @@
 #include <ffarawobjects/InttRawHitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-
+#include <fun4all/Fun4AllServer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>  // for PHIODataNode
 #include <phool/PHNodeIterator.h>
@@ -112,6 +112,17 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
     }
   }
 
+  InttRawHitContainer* inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
+  if (!inttcont)
+  {
+    std::cout << PHWHERE << std::endl;
+    std::cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << std::endl;
+    std::cout << "removing module" << std::endl;
+
+    Fun4AllServer* se = Fun4AllServer::instance();
+    se->unregisterSubsystem(this);
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   ///////////////////////////////////////
   std::cout<<"calibinfo DAC : "<<m_calibinfoDAC.first<<" "<<(m_calibinfoDAC.second==CDB?"CDB":"FILE")<<std::endl;

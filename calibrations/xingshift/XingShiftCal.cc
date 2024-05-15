@@ -49,6 +49,7 @@ XingShiftCal::~XingShiftCal()
 int XingShiftCal::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << "XingShiftCal::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -58,7 +59,6 @@ int XingShiftCal::InitRun(PHCompositeNode * /*topNode*/)
 
   recoConsts *rc = recoConsts::instance();
   runnumber = rc->get_IntFlag("RUNNUMBER");
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -73,7 +73,6 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
 
   if (evt->getEvtType() == BEGRUNEVENT)
   {
-    std::cout << "here" << std::endl;
     //================ BeginRunEvent packets ================//
     pBluePol = evt->getPacket(packet_BLUEPOL);
     pYellPol = evt->getPacket(packet_YELLPOL);
@@ -107,18 +106,6 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     }
     //==========================================================//
 
-    /*
-    pBlueSpin = evt->getPacket(packet_BLUESPIN);
-    pYellSpin = evt->getPacket(packet_YELLSPIN);
-    for (int i = 0; i < NBUNCHES; i++)
-    {
-      blueSpinPattern[i] = pBlueSpin->iValue(i);
-      yellSpinPattern[i] = pYellSpin->iValue(i);
-    }
-    delete pBlueSpin;
-    delete pYellSpin;
-    */
-
     //============== Get intended spin patterns from buckets ==============//
     // there are 360 buckets for 120 bunches
 
@@ -126,6 +113,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     {
       for (int i = 0; i < 360; i += 3)
       {
+	blueFillPattern[i / 3] = pBlueIntPattern->iValue(i);
         if (pBlueIntPattern->iValue(i))
         {
           blueSpinPattern[i / 3] = pBluePolPattern->iValue(i);
@@ -143,6 +131,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     {
       for (int i = 0; i < 360; i += 3)
       {
+	yellFillPattern[i / 3] = pYellIntPattern->iValue(i);
         if (pYellIntPattern->iValue(i))
         {
           yellSpinPattern[i / 3] = pYellPolPattern->iValue(i);
@@ -321,9 +310,18 @@ int XingShiftCal::CalculateCrossingShift(int &xing, uint64_t counts[NTRIG][NBUNC
     for (int ishift = 0; ishift < NBUNCHES; ishift++)
     {
       long long abort_sum = 0;
-      for (int iabortbunch = NBUNCHES - 9; iabortbunch < NBUNCHES; iabortbunch++)
+      for (int iunfillbunch = 0; iunfillbunch < NBUNCHES; iunfillbunch++)
       {
-        abort_sum += counts[itrig][(iabortbunch + ishift) % NBUNCHES];
+	if (blueFillPattern[iunfillbunch] && yellFillPattern[iunfillbunch])
+	{
+	  continue;
+	}
+	int shiftbunch = iunfillbunch - ishift;
+	if (shiftbunch < 0)
+	{
+	  shiftbunch = 120 + shiftbunch;
+	}
+        abort_sum += counts[itrig][(shiftbunch) % NBUNCHES];
       }
       if (abort_sum < abort_sum_prev)
       {
@@ -409,8 +407,7 @@ int XingShiftCal::CommitToSpinDB()
 
   // prepare values for db
   unsigned int qa_level = 0xffff;
-  // OnCalServer *server = OnCalServer::instance();
-  // int runnumber = server->RunNumber();
+  
 
   if (fillnumberBlue != fillnumberYellow)
   {

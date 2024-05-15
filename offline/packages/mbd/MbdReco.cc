@@ -66,9 +66,21 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 {
   getNodes(topNode);
 
-  if ( (m_mbdevent!=nullptr || m_mbdraw!=nullptr) && m_mbdpmts != nullptr)
+  if ( (m_mbdevent==nullptr && m_mbdraw==nullptr) || m_mbdpmts==nullptr )
   {
-    int status = Fun4AllReturnCodes::ABORTEVENT;
+    static int counter = 0;
+    if ( counter<2 )
+    {
+      std::cout << PHWHERE << " ERROR, didn't find mbdevent, mbdraw, or mbdpmts" << std::endl;
+      counter++;
+    }
+    return Fun4AllReturnCodes::ABORTEVENT;  // missing an essential object in BBC/MBD
+  }
+
+  // Process raw waveforms from real data
+  if ( m_mbdevent!=nullptr || m_mbdraw!=nullptr )
+  {
+    int status = Fun4AllReturnCodes::EVENT_OK;
     if ( m_event!=nullptr )
     {
       status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
@@ -78,12 +90,19 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts);
     }
 
-    if (status == Fun4AllReturnCodes::ABORTEVENT)
+    if (status == Fun4AllReturnCodes::DISCARDEVENT )
     {
-      return Fun4AllReturnCodes::ABORTEVENT;  // there wasn't good data in BBC/MBD
+      static int counter = 0;
+      if ( counter<3 )
+      {
+        std::cout << PHWHERE << " ERROR, no good data in MBD" << std::endl;
+        counter++;
+      }
+      return Fun4AllReturnCodes::DISCARDEVENT;
     }
-    else if (status == Fun4AllReturnCodes::DISCARDEVENT || status == -1001)
+    else if ( status == -1001 )
     {
+      // calculating sampmax on this event
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
     else if (status < 0)
@@ -92,13 +111,16 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     }
   }
 
-  // Here is where we should create calibrated dst from uncalibrated dst
+  // Calibrate from UNCALDST or recalibrate from DST
+  if ( _calpass==3 )
+  {
+    m_mbdevent->ProcessRawPackets( m_mbdpmts );
+  }
 
   m_mbdevent->Calculate(m_mbdpmts, m_mbdout);
 
   // For multiple global vertex
-  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0)
-  {
+  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0) {
     auto vertex = std::make_unique<MbdVertexv2>();
     vertex->set_t(m_mbdevent->get_bbct0());
     vertex->set_z(m_mbdevent->get_bbcz());
@@ -217,7 +239,7 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
     static int counter = 0;
     if (counter < 1)
     {
-      std::cout << PHWHERE << "Unable to get PRDF, assuming this is simulation" << std::endl;
+      std::cout << PHWHERE << "Unable to get PRDF or Event Combined DST, assuming this is simulation" << std::endl;
       counter++;
     }
   }

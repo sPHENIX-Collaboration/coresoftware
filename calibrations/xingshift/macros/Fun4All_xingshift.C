@@ -20,7 +20,7 @@ R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libfun4allraw.so)
 R__LOAD_LIBRARY(libXingShiftCal.so)
 
-void Fun4All_xingshift(const std::string &fname = "/sphenix/lustre01/sphnxpro/commissioning/GL1/beam/GL1_beam_gl1daq-00040934-0000.evt", int nEvents = 10000)
+void Fun4All_xingshift(const std::string &fname = "/sphenix/lustre01/sphnxpro/commissioning/GL1/beam/GL1_beam_gl1daq-00041937-0000.evt", int nEvents = 100000)
 {
 
   Fun4AllServer *se = Fun4AllServer::instance();

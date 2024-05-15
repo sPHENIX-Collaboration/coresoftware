@@ -83,6 +83,8 @@ class XingShiftCal : public SubsysReco
 
   int blueSpinPattern[NBUNCHES]{0};
   int yellSpinPattern[NBUNCHES]{0};
+  int blueFillPattern[NBUNCHES]{0};
+  int yellFillPattern[NBUNCHES]{0};
 
   float polBlue{0};
   float polBlueErr{0};

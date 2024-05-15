@@ -88,6 +88,10 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_chi2 = "fraction";
 
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_chi2);
+      if (use_directURL_chi2)
+  {
+    calibdir = m_directURL_chi2;
+  }
   if (!calibdir.empty())
   {
     m_cdbttree_chi2 = new CDBTTree(calibdir);
@@ -102,6 +106,10 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_time = "time";
 
   calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
+  if (use_directURL_time)
+  {
+    calibdir = m_directURL_time;
+  }
   if (!calibdir.empty())
   {
     m_cdbttree_time = new CDBTTree(calibdir);
@@ -120,6 +128,10 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_hotMap = "status";
 
   calibdir = CDBInterface::instance()->getUrl(m_calibName_hotMap);
+  if (use_directURL_hotMap)
+  {
+    calibdir = m_directURL_hotMap;
+  }
   if (!calibdir.empty())
   {
     m_cdbttree_hotMap = new CDBTTree(calibdir);
