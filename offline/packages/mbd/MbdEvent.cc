@@ -220,9 +220,10 @@ int MbdEvent::InitRun()
     else
     {
       // Reset histograms
-      for (int ich=0; ich<MbdDefs::MBD_N_FEECH; ich++)
+      //for (int ich=0; ich<MbdDefs::MBD_N_FEECH; ich++)
+      for (auto h : h_smax )
       {
-        h_smax[ich]->Reset();
+        h->Reset();
       }
       h2_smax[0]->Reset();
       h2_smax[1]->Reset();
