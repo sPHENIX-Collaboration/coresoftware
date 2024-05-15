@@ -481,14 +481,14 @@ void Fun4AllStreamingInputManager::AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit)
   m_MvtxRawHitMap[bclk].MvtxRawHitVector.push_back(hit);
 }
 
-void Fun4AllStreamingInputManager::AddMvtxFeeId(uint64_t bclk, uint16_t feeid)
+void Fun4AllStreamingInputManager::AddMvtxDetField(uint64_t bclk, uint16_t feeid, uint32_t detField)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "Adding mvtx feeid to bclk 0x"
+    std::cout << "Adding mvtx detField for feeid to bclk 0x"
               << std::hex << bclk << std::dec << std::endl;
   }
-  m_MvtxRawHitMap[bclk].MvtxFeeIds.insert(feeid);
+  m_MvtxRawHitMap[bclk].MvtxDetField[feeid] = detField;
 }
 
 void Fun4AllStreamingInputManager::AddMvtxL1TrgBco(uint64_t bclk, uint64_t lv1Bco)
@@ -848,7 +848,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
     auto mvtxRawHitInfoIt = m_MvtxRawHitMap.begin();
 
-  mvtxEvtHeader->AddFeeId(mvtxRawHitInfoIt->second.MvtxFeeIds);
+  mvtxEvtHeader->AddDetField(mvtxRawHitInfoIt->second.MvtxDetField);
   mvtxEvtHeader->AddL1Trg(mvtxRawHitInfoIt->second.MvtxL1TrgBco);
   while (m_MvtxRawHitMap.begin()->first <= select_crossings - m_mvtx_bco_range)
   {

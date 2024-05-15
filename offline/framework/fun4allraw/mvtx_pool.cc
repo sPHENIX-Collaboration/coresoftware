@@ -283,6 +283,10 @@ int mvtx_pool::iValue(const int i_feeid, const int idx, const char *what)
   {
     return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].ir.bc : -1;
   }
+  else if ( strcmp(what, "TRG_DET_FIELD") == 0 )
+  {
+    return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].detectorField : -1;
+  }
   else if ( strcmp(what, "TRG_NR_HITS") == 0)
   {
     return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].n_hits : -1;

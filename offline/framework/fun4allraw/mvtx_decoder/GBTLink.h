@@ -47,6 +47,7 @@ namespace mvtx
     GBTCalibDataWord calWord = {};
     size_t first_hit_pos = 0;
     size_t n_hits = 0;
+    uint32_t detectorField = 0;
 
     TRGData(uint64_t orb, uint16_t b) : ir(orb, b) {};
 
@@ -253,6 +254,8 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
 
   status = None;
 
+  uint32_t detectorField = 0;
+
   auto currRawPiece = rawData.currentPiece();
   dataOffset = 0;
   while (currRawPiece)
@@ -298,6 +301,7 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
         log_error << "Wrong dataOffset value " << dataOffset << " at the start of a HBF" << std::endl;
         assert(false);
       }
+      detectorField = rdh.detectorField;
       statistics.clear();
       //TODO: initialize/clear alpide data buffer
       for ( uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg )
@@ -380,6 +384,7 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
           {
             n_no_continuation++;
             mTrgData.emplace_back(ir.orbit, ir.bc);
+            mTrgData.back().detectorField = detectorField;
           } // end if not cont
         } // end TDH
         else if ( gbtWord.isCDW() ) // CALIBRATION DATA WORD

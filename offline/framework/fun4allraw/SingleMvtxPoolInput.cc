@@ -3,7 +3,7 @@
 
 #include "Fun4AllStreamingInputManager.h"
 
-#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
+#include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
 
@@ -147,6 +147,7 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
           m_FeeStrobeMap[feeId] += num_strobes;
           for (int i_strb{0}; i_strb < num_strobes; ++i_strb)
           {
+            auto strb_detField = pool->iValue(feeId, i_strb, "TRG_DET_FIELD");
             auto strb_bco = pool->lValue(feeId, i_strb, "TRG_IR_BCO");
             auto strb_bc = pool->iValue(feeId, i_strb, "TRG_IR_BC");
             auto num_hits = pool->iValue(feeId, i_strb, "TRG_NR_HITS");
@@ -180,7 +181,7 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
             }
             if (StreamingInputManager())
             {
-              StreamingInputManager()->AddMvtxFeeId(strb_bco, feeId);
+              StreamingInputManager()->AddMvtxDetField(strb_bco, feeId, strb_detField);
             }
             m_BeamClockFEE[strb_bco].insert(feeId);
             m_BclkStack.insert(strb_bco);
@@ -412,10 +413,10 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode, "MVTXRAWEVTHEADER");
+  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeaderv2>(detNode, "MVTXRAWEVTHEADER");
   if (!mvtxEH)
   {
-    mvtxEH = new MvtxRawEvtHeaderv1();
+    mvtxEH = new MvtxRawEvtHeaderv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
     detNode->addNode(newNode);
   }
