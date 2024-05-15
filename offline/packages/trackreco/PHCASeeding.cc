@@ -74,6 +74,8 @@
 #define LogWarning(exp) \
   if (Verbosity() > 0) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
 
+/* #define FIXME(str) std::cout <<" FIXME: " << str << std::endl; */
+
 //#define _DEBUG_
 
 // end
@@ -310,7 +312,7 @@ std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding:
   _rtree.clear();
   /* _rtree.reserve(ckeys.size()); */
   for (const auto& ckey : ckeys) {
-    const auto globalpos_d = globalPositions.at(ckey);
+    const auto& globalpos_d = globalPositions.at(ckey);
     const double clus_phi = get_phi(globalpos_d);
     const double clus_eta = get_eta(globalpos_d);
     if (Verbosity() > 0)
@@ -422,8 +424,6 @@ int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPosit
 
 PHCASeeding::keyLinksPerLayer PHCASeeding::CreateBiLinks(const PHCASeeding::PositionMap& globalPositions, const PHCASeeding::keysPerLayer& ckeys)
 {
-  /* size_t nclusters = 0; */
-
   double cluster_find_time = 0;
   double rtree_query_time = 0;
   double transform_time = 0;
@@ -444,9 +444,9 @@ PHCASeeding::keyLinksPerLayer PHCASeeding::CreateBiLinks(const PHCASeeding::Posi
     int index       = (layer_index  )%3;
     int index_above = (layer_index+1)%3;
 
+    auto& _rtree_below = _rtrees[index_below];
     auto& coord = coord_arr[index];
     auto& _rtree_above = _rtrees[index_above];
-    auto& _rtree_below = _rtrees[index_below];
     // find the above and below links. Match the below links with the 
     // previous_layer_above
     std::vector<keyLink> belowLinks;
@@ -640,7 +640,7 @@ PHCASeeding::keyLinksPerLayer PHCASeeding::CreateBiLinks(const PHCASeeding::Posi
     // if(bestAboveCluster.second != 0) aboveLinks[layer_index].insert(keylink{{*StartCluster,bestAboveCluster}});
     for (auto cluster : bestBelowClusters)
     {
-      belowLinks.push_back({StartCluster.second, cluster.second});
+      belowLinks.emplace_back(std::make_pair(StartCluster.second, cluster.second));
 #if defined(_CLUSTER_LOG_TUPOUT_)
       auto& v = globalPositions.at(cluster.second);
       _tupclus_links->Fill(_nevent, TrkrDefs::getLayer(cluster.second), 0, v.x(), v.y(), v.z());
@@ -648,7 +648,7 @@ PHCASeeding::keyLinksPerLayer PHCASeeding::CreateBiLinks(const PHCASeeding::Posi
     }
     for (auto cluster : bestAboveClusters)
     {
-      aboveLinks.push_back({StartCluster.second, cluster.second});
+      aboveLinks.emplace_back(std::make_pair(StartCluster.second, cluster.second));
 #if defined(_CLUSTER_LOG_TUPOUT_)
       auto& v = globalPositions.at(cluster.second);
       _tupclus_links->Fill(_nevent, TrkrDefs::getLayer(cluster.second), 1, v.x(), v.y(), v.z());
@@ -1143,17 +1143,16 @@ int PHCASeeding::Setup(PHCompositeNode* topNode) // This is called by ::InitRun
   }
 
   t_fill = std::make_unique<PHTimer>("t_fill");
-  t_seed = std::make_unique<PHTimer>("t_seed");
   t_fill->stop();
+
+  t_seed = std::make_unique<PHTimer>("t_seed");
   t_seed->stop();
 
-  if (Verbosity()>0) {
-    t_makebilinks = std::make_unique<PHTimer>("t_makebilinks");
-    t_makebilinks->stop();
+  t_makebilinks = std::make_unique<PHTimer>("t_makebilinks");
+  t_makebilinks->stop();
 
-    t_makeseeds = std::make_unique<PHTimer>("t_makeseeds");
-    t_makeseeds->stop();
-  }
+  t_makeseeds = std::make_unique<PHTimer>("t_makeseeds");
+  t_makeseeds->stop();
 
   //  fcfg.set_rescale(1);
   std::unique_ptr<PHField> field_map;
