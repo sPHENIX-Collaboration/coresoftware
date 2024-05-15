@@ -12,6 +12,8 @@
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>
 
+#include <fun4all/Fun4AllServer.h>
+
 #include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/MvtxRawHit.h>
@@ -102,10 +104,8 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
       findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
   if (!mvtx_raw_event_header)
   {
-    std::cout << PHWHERE << "::" << __func__ << ": Could not get \""
-              << m_MvtxRawEvtHeaderNodeName << "\" from Node Tree" << std::endl;
-    std::cout << "Have you built this yet?" << std::endl;
-    exit(1);
+    Fun4AllServer* se = Fun4AllServer::instance();
+    se->unregisterSubsystem(this);
   }
 
   // Mask Hot MVTX Pixels
