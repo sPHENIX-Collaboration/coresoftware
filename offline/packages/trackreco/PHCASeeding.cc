@@ -431,6 +431,23 @@ PHCASeeding::keyLinksPerLayer PHCASeeding::CreateBiLinks(const PHCASeeding::Posi
   double set_insert_time = 0;
   keyLinksPerLayer bilinks;
 
+  keyChains chains{};
+
+
+  // LOGIC:
+  // Need to look at three rows at a time:
+  //     -prior row
+  //     -current row
+  //     -next row
+  // - Move inwards from the outermost row to the innermost row
+  // - Make links (1) to current row from prior row, and (2) from current row to next row
+  // - For each link from prior row, if it matches a link from the prior iteratio (it's
+  // "to next row" link), then that link becomes a bilink)
+  // - For each bilink, check if it's top cluster is at the head of a an existing chain
+  //     if it is, add it to that chain
+  //     if it is not, then start a new chain
+  //     if a chain has reach max length, just keep track of 
+
   std::array<std::vector<coordKey>,3> coord_arr;
   for (int layer=0;layer<3;++layer) {
     coord_arr[layer] = FillTree(_rtrees[layer], ckeys[layer], globalPositions, layer);

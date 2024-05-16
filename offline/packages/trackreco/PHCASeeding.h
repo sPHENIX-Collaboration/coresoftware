@@ -65,6 +65,7 @@ class PHCASeeding : public PHTrackSeeding
 {
  public:
    static const int _NLAYERS_TPC = 48;
+   static const int _START_LAYER_TPC = 7;
    // move `using` statements inside of the class to avoid polluting the global namespace
 
    using point = bg::model::point<float, 2, bg::cs::cartesian>;
@@ -72,6 +73,7 @@ class PHCASeeding : public PHTrackSeeding
    using pointKey = std::pair<point, TrkrDefs::cluskey>;
    using coordKey = std::pair<std::array<float, 2>, TrkrDefs::cluskey>; // just use phi and eta, no longer needs the layer
    using keyList = std::vector<TrkrDefs::cluskey>;
+   using keyChains = std::vector<keyList>
    using keysPerLayer = std::array<keyList, _NLAYERS_TPC>;
    using keyLink = std::pair<TrkrDefs::cluskey, TrkrDefs::cluskey>;
    using keyLinksPerLayer = std::array<std::vector<keyLink>,_NLAYERS_TPC>;
