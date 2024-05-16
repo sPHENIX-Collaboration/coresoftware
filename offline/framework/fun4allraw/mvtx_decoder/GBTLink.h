@@ -105,7 +105,8 @@ struct GBTLink
   InteractionRecord ir = {};
 
   GBTLinkDecodingStat statistics; // link decoding statistics
-  bool     hbf_found = false;
+
+  bool hbf_error = false;
 
   uint32_t hbf_length = 0;
   uint32_t prev_pck_cnt = 0;
