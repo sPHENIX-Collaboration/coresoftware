@@ -47,7 +47,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     FillPacketDiff(pkt);
   }
 
-  std::vector<std::string> nodenames {"CEMCPackets", "HCALPackets", "MBDPackets"};
+  std::vector<std::string> nodenames {"CEMCPackets", "HCALPackets", "MBDPackets", "SEPDPackets", "ZDCPackets"};
   for (const auto &iter : nodenames)
   {
     CaloPacketContainer *cemccont = findNode::getClass<CaloPacketContainer>(topNode, iter);
@@ -61,6 +61,11 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     }
   }
   uint64_t refdiff = std::numeric_limits<uint64_t>::max();
+  auto itergl1 = m_PacketStuffMap.find(14001);
+  if (itergl1 != m_PacketStuffMap.end())
+  {
+    refdiff = std::get<2>(itergl1->second);
+  }
   for (auto &iter : m_PacketStuffMap)
   {
     if (!std::get<4>(iter.second))
@@ -83,20 +88,25 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       }
       else
       {
-	if (refdiff != std::get<2>(iter.second))
+	if ((refdiff&0xFFFFFFFFU) != (std::get<2>(iter.second)&0xFFFFFFFFU))
 	{
-	  std::bitset<16> x(refdiff);
-	  std::bitset<16> y0(std::get<0>(iter.second));
-	  std::bitset<16> y1(std::get<1>(iter.second));
-	  std::bitset<16> y2(std::get<2>(iter.second));
-	  std::cout << "packet " << iter.first << " had different clock diff: 0x" << std::hex
-		    <<  std::get<1>(iter.second) << ", ref diff: 0x" << refdiff << std::dec << std::endl;
+	  static int nprint = 0;
+	  if (nprint < 1000 || Verbosity() > 1)
+	  {
+	    std::bitset<32> x(refdiff);
+	    std::bitset<32> y0(std::get<0>(iter.second));
+	    std::bitset<32> y1(std::get<1>(iter.second));
+	    std::bitset<32> y2(std::get<2>(iter.second));
+	    std::cout << "packet " << iter.first << " had different clock diff: 0x" << std::hex
+		      <<  std::get<1>(iter.second) << ", ref diff: 0x" << refdiff << std::dec << std::endl;
 
-	  std::cout << "reff: " << x << std::endl;
-	  std::cout << "this: " << y2 << std::endl;
+	    std::cout << "reff: " << x << std::endl;
+	    std::cout << "this: " << y2 << std::endl;
 
-	  std::cout << "prev: " << y0 << std::endl;
-	  std::cout << "curr: " << y1 << std::endl;
+	    std::cout << "prev: " << y0 << std::endl;
+	    std::cout << "curr: " << y1 << std::endl;
+	    nprint++;
+	  }
 	}
       }
     }
@@ -130,10 +140,10 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
       {
 	if (clk < std::get<0>(pktiter))
 	{
-	  clk |= 0x10000;
+	  clk |= 0x100000000U;
 	}
 	clkdiff = clk - std::get<0>(pktiter);
-	clk &= 0xFFFF;
+	clk &= 0xFFFFFFFF;
       }
       std::get<1>(pktiter) = clk;
       std::get<2>(pktiter) = clkdiff;
@@ -152,7 +162,7 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
 void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
 {
     unsigned int packetid = pkt->getIdentifier();
-    uint64_t clk = (pkt->getBCO()&0xFFFF);
+    uint64_t clk = (pkt->getBCO()&0xFFFFFFFF);
     if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
     {
       std::string hname = "clkdiff" + std::to_string(packetid);
@@ -171,10 +181,10 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
       {
 	if (clk < std::get<0>(pktiter))
 	{
-	  clk |= 0x10000;
+	  clk |= 0x100000000U;
 	}
 	clkdiff = clk - std::get<0>(pktiter);
-	clk &= 0xFFFF;
+	clk &= 0xFFFFFFFF;
       }
       std::get<1>(pktiter) = clk;
       std::get<2>(pktiter) = clkdiff;

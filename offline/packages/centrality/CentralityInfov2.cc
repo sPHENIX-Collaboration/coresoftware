@@ -4,8 +4,8 @@
 
 void CentralityInfov2::identify(std::ostream& os) const
 {
-  os << "  CentralityInfo: " << std::endl;
-  os << "      Centrile: " << (has_centile(CentralityInfo::PROP::mbd_NS) ? get_centile(CentralityInfo::PROP::mbd_NS) : -999.99) << std::endl;
+  os << "  CentralityInfo v2: " << std::endl;
+  os << "      Centile: " << (has_centile(CentralityInfo::PROP::mbd_NS) ? get_centile(CentralityInfo::PROP::mbd_NS) : -999.99) << std::endl;
   os << "      CentBin : " << (has_centrality_bin(CentralityInfo::PROP::mbd_NS) ? get_centrality_bin(CentralityInfo::PROP::mbd_NS) : -999.99) << std::endl;
 
   return;
@@ -30,5 +30,14 @@ int CentralityInfov2::get_centrality_bin(const PROP prop_id) const
   else
   {
     return _centrality_bin_map.at(prop_id);
+  }
+}
+
+void CentralityInfov2::CopyTo(CentralityInfo *info)
+{
+  CentralityInfov1::CopyTo(info);
+  for (auto const &it : _centrality_bin_map)
+  {
+    info->set_centrality_bin((CentralityInfo::PROP) (it.first),it.second);
   }
 }

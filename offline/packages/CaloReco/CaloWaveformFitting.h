@@ -29,6 +29,11 @@ class CaloWaveformFitting
     _nsoftwarezerosuppression = softwarezerosuppression;
     _bdosoftwarezerosuppression = usezerosuppression;
   }
+  void set_maxsoftwarezerosuppression(bool usezerosuppression,int softwarezerosuppression)
+  {
+    _nsoftwarezerosuppression = softwarezerosuppression;
+    _maxsoftwarezerosuppression = usezerosuppression;
+  }
 
   int get_nthreads() 
   {
@@ -49,6 +54,7 @@ class CaloWaveformFitting
   int _nzerosuppresssamples = 2;
   int _nsoftwarezerosuppression = 40;
   bool _bdosoftwarezerosuppression = false;
+  bool _maxsoftwarezerosuppression = false;
   std::string m_template_input_file;
   std::string url_template;
   double m_peakTimeTemp = 0;

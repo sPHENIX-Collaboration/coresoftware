@@ -67,6 +67,7 @@ void TrackSeed_v2::identify(std::ostream& os) const
 {
   os << "TrackSeed_v2 object ";
   os << "charge " << get_charge() << std::endl;
+  os << "beam crossing " << get_crossing() << std::endl;
   os << "(pt,pz) = (" << get_pt()
      << ", " << get_pz() << ")" << std::endl;
   os << " phi " << m_phi << " eta " << get_eta() << std::endl;
@@ -232,6 +233,11 @@ void TrackSeed_v2::circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vec
                                      uint8_t endLayer)
 {
   TrackFitUtils::position_vector_t positions_2d;
+  //! Can only fit 3 points or more
+  if(m_cluster_keys.size() < 3)
+  {
+    return;
+  }
   for (const auto& key : m_cluster_keys)
   {
     const auto layer = TrkrDefs::getLayer(key);
@@ -287,6 +293,11 @@ void TrackSeed_v2::lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& pos
                            uint8_t endLayer)
 {
   TrackFitUtils::position_vector_t positions_2d;
+  //! need at least 2 to fit
+  if(m_cluster_keys.size() < 2)
+  {
+    return;
+  }
   for (const auto& key : m_cluster_keys)
   {
     const auto layer = TrkrDefs::getLayer(key);

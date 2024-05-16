@@ -4,8 +4,8 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/InttRawHitContainerv1.h>
-#include <ffarawobjects/InttRawHitv1.h>
+#include <ffarawobjects/InttRawHitContainerv2.h>
+#include <ffarawobjects/InttRawHitv2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -135,7 +135,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
         std::set<uint64_t> bclk_set;
         for (int j = 0; j < num_hits; j++)
         {
-          InttRawHit *newhit = new InttRawHitv1();
+          InttRawHit *newhit = new InttRawHitv2();
           int FEE = pool->iValue(j, "FEE");
           uint64_t gtm_bco = pool->lValue(j, "BCO");
           newhit->set_packetid(pool->getIdentifier());
@@ -149,6 +149,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
           newhit->set_FPHX_BCO(pool->iValue(j, "FPHX_BCO"));
           newhit->set_full_FPHX(pool->iValue(j, "FULL_FPHX"));
           newhit->set_full_ROC(pool->iValue(j, "FULL_ROC"));
+          newhit->set_event_counter(pool->iValue(j, "EVENT_COUNTER"));
 
           gtm_bco += m_Rollover[FEE];
           bclk_set.insert(gtm_bco);
@@ -167,7 +168,8 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
                       << ", nr_hits: " << num_hits
                       << ", FEE: " << FEE
                       << ", bco: 0x" << std::hex << gtm_bco << std::dec
-                      << ", channel: " << newhit->get_channel_id() << std::endl;
+                      << ", channel: " << newhit->get_channel_id()
+                      << ", evt_counter: " << newhit->get_event_counter() << std::endl;
           }
           if (StreamingInputManager())
           {
@@ -351,7 +353,7 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
   InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, "INTTRAWHIT");
   if (!intthitcont)
   {
-    intthitcont = new InttRawHitContainerv1();
+    intthitcont = new InttRawHitContainerv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
     detNode->addNode(newNode);
   }

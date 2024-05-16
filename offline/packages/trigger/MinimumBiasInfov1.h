@@ -8,7 +8,6 @@
 class MinimumBiasInfov1 : public MinimumBiasInfo
 {
  public:
-
   MinimumBiasInfov1() = default;
   virtual ~MinimumBiasInfov1() override = default;
 
@@ -17,6 +16,10 @@ class MinimumBiasInfov1 : public MinimumBiasInfo
   virtual void Reset() override{};
 
   int isValid() const override { return 1; }
+
+  PHObject* CloneMe() const override { return new MinimumBiasInfov1(*this); }
+
+  void CopyTo(MinimumBiasInfo *mbinfo) override;
 
   void setIsAuAuMinimumBias(bool is_min_bias) override { _isMinBias = is_min_bias; }
   bool isAuAuMinimumBias() const override { return _isMinBias; }

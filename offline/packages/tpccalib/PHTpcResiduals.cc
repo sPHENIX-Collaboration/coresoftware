@@ -534,7 +534,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
 
     // Fill distortion matrices
-    m_matrix_container->add_to_lhs(index, 0, 0, 1. / erp);
+    m_matrix_container->add_to_lhs(index, 0, 0, clusR / erp);
     m_matrix_container->add_to_lhs(index, 0, 1, 0);
     m_matrix_container->add_to_lhs(index, 0, 2, trackAlpha / erp);
 
@@ -542,7 +542,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     m_matrix_container->add_to_lhs(index, 1, 1, 1. / ez);
     m_matrix_container->add_to_lhs(index, 1, 2, trackBeta / ez);
 
-    m_matrix_container->add_to_lhs(index, 2, 0, trackAlpha / erp);
+    m_matrix_container->add_to_lhs(index, 2, 0, clusR*trackAlpha / erp);
     m_matrix_container->add_to_lhs(index, 2, 1, trackBeta / ez);
     m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
 

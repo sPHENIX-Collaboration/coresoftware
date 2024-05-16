@@ -25,6 +25,9 @@ class MbdOut : public PHObject
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
 
+  ///  copying for embedding
+  virtual void CopyTo(MbdOut *) {return;}
+
   /// get ZVertex determined by Mbd
   virtual Float_t get_zvtx() const;
 

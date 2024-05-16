@@ -114,7 +114,7 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
 	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
 	gSystem->Exit(1);
       }
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
+      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);

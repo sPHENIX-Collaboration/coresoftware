@@ -8,6 +8,9 @@
  *  \author Michael Peters & Christof Roland
  */
 
+// Statement for if we want to save out the intermediary clustering steps
+/* #define _CLUSTER_LOG_TUPOUT_ */
+
 // begin
 
 #include "ALICEKF.h"
@@ -40,6 +43,11 @@
 #include <unordered_set>
 #include <utility>  // for pair
 #include <vector>   // for vector
+
+#if defined(_CLUSTER_LOG_TUPOUT_)
+#include <TFile.h>
+#include <TNtuple.h>
+#endif
 
 class PHCompositeNode;
 class PHTimer;
@@ -86,12 +94,17 @@ class PHCASeeding : public PHTrackSeeding
     _neighbor_eta_width = eta_width;
     _neighbor_phi_width = phi_width;
   }
+  void SetClusAdd_delta_window(float _dzdr_cutoff, float _dphidr2_cutoff) 
+  {
+    _clusadd_delta_dzdr_window = _dzdr_cutoff;
+    _clusadd_delta_dphidr2_window = _dphidr2_cutoff;
+  }
   void SetMinHitsPerCluster(unsigned int minHits) { _min_nhits_per_cluster = minHits; }
   void SetMinClustersPerTrack(unsigned int minClus) { _min_clusters_per_track = minClus; }
 
   void set_field_dir(const double rescale)
   {
-    std::cout << "rescale: " << rescale << std::endl;
+    std::cout << "PHCASeeding::set_field_dir rescale: " << rescale << std::endl;
     _fieldDir = 1;
     if (rescale > 0)
       _fieldDir = -1;
@@ -112,6 +125,19 @@ class PHCASeeding : public PHTrackSeeding
   int End() override;
 
  private:
+  bool _save_clus_proc = false;
+
+#if defined(_CLUSTER_LOG_TUPOUT_)
+  TFile* _f_clustering_process = nullptr;
+  int      _nevent=-1;
+  // Save the steps of the clustering
+  TNtuple* _tupclus_all = nullptr;    // all clusters
+  TNtuple* _tupclus_links = nullptr; //  clusters which are linked
+  TNtuple* _tupclus_bilinks = nullptr; // bi-linked clusters
+  TNtuple* _tupclus_seeds = nullptr; // seed (outermost three bi-linked chain
+  TNtuple* _tupclus_grown_seeds = nullptr; // seeds saved out
+#endif
+
   enum skip_layers
   {
     on,
@@ -154,6 +180,8 @@ class PHCASeeding : public PHTrackSeeding
   //  float _cluster_alice_y_error;
   float _neighbor_phi_width;
   float _neighbor_eta_width;
+  float _clusadd_delta_dzdr_window = 0.5;
+  float _clusadd_delta_dphidr2_window = 0.005;
   float _max_sin_phi;
   float _cosTheta_limit;
   double _rz_outlier_threshold = 0.1;
@@ -165,7 +193,7 @@ class PHCASeeding : public PHTrackSeeding
   bool _pp_mode = false;
   std::array<double, 3> _fixed_clus_err = {.1, .1, .1};
 
-  std::string m_magField = "";
+  std::string m_magField;
 
   /// acts geometry
   ActsGeometry* tGeometry{nullptr};

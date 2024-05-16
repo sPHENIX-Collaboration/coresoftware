@@ -232,9 +232,12 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     auto hit = hitset_it->second->getHit(hitkey);
     if (hit)
     {
+      if(Verbosity() > 1)
+	{
       std::cout << PHWHERE << "::" << __func__
                 << " - duplicated hit, hitsetkey: " << hitsetkey
                 << " hitkey: " << hitkey << std::endl;
+	}
       continue;
     }
 

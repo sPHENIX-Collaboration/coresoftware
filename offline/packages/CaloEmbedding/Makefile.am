@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -12,22 +12,26 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   caloTowerEmbed.h \
+  CopyIODataNodes.h \
   HepMCCollisionVertex.h
 
 lib_LTLIBRARIES = \
   libCaloEmbedding.la
 
 libCaloEmbedding_la_SOURCES = \
-  HepMCCollisionVertex.cc \
-  caloTowerEmbed.cc
+  caloTowerEmbed.cc \
+  CopyIODataNodes.cc \
+  HepMCCollisionVertex.cc
 
 libCaloEmbedding_la_LIBADD = \
-  -lphool \
-  -lSubsysReco \
-  -lfun4all \
   -lcalo_io \
+  -lcalotrigger_io \
+  -lcentrality_io \
+  -lfun4all \
+  -lglobalvertex_io \
   -lphhepmc_io \
-  -lglobalvertex_io
+  -lphool \
+  -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc
 

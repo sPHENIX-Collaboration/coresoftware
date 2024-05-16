@@ -5,14 +5,14 @@
 
 #include <pdbcalbase/RunToTime.h>
 
-#include <phool/PHTimeStamp.h>     // for PHTimeStamp
+#include <phool/PHTimeStamp.h>  // for PHTimeStamp
 
 #include <map>
 #include <string>
 
 namespace odbc
 {
-class Connection;
+  class Connection;
 }
 
 class RunToTimePg : public RunToTime
@@ -43,4 +43,4 @@ class RunToTimePg : public RunToTime
   odbc::Connection *con;
 };
 
-#endif // PDBCALPG_RUNTOTIMEPG_H
+#endif  // PDBCALPG_RUNTOTIMEPG_H

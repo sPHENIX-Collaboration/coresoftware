@@ -127,7 +127,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
 	gSystem->Exit(1);
       }
 
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
+      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);
@@ -150,6 +150,9 @@ void SingleCemcTriggerInput::FillPool(const unsigned int /*nbclks*/)
       }
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
+        newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
+        newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
+        newhit->setSuppressed(ipmt,plist[i]->iValue(ipmt,"SUPPRESSED"));
         for (int isamp = 0; isamp < nr_samples; isamp++)
         {
           newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
