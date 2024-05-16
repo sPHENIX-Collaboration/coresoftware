@@ -301,8 +301,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     }
     if (tpcseed){
       m_dedx = calc_dedx(tpcseed, clustermap,tpcGeom);
-      std::cout << "m_dedx: " << m_dedx << std::endl;
-      std::cout << "zf check" << std::endl;
     }
     if (m_zeroField)
     {
@@ -326,7 +324,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     }
     else
     {
-      std::cout << "nonzf" << std::endl;
       if (tpcseed)
       {
         m_seedpx = tpcseed->get_px();
