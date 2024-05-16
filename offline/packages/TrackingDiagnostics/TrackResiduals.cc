@@ -316,7 +316,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
         qor = silseed->get_qOverR();
         phi = silseed->get_phi();
       }
-      std::cout << "qor" << std::endl;
       float pt = fabs(1. / qor) * (0.3 / 100) * 0.01;
       m_seedpx = pt * std::cos(phi);
       m_seedpy = pt * std::sin(phi);
