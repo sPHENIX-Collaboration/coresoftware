@@ -9,7 +9,7 @@
  */
 
 // Statement for if we want to save out the intermediary clustering steps
-/* #define _CLUSTER_LOG_TUPOUT_ */
+#define _CLUSTER_LOG_TUPOUT_
 
 // begin test here
 
@@ -65,7 +65,7 @@ class PHCASeeding : public PHTrackSeeding
 {
  public:
    static const int _NLAYERS_TPC = 48;
-   static const int _START_LAYER_TPC = 7;
+   static const int _FIRST_LAYER_TPC = 7;
    // move `using` statements inside of the class to avoid polluting the global namespace
 
    using point = bg::model::point<float, 2, bg::cs::cartesian>;
@@ -73,7 +73,7 @@ class PHCASeeding : public PHTrackSeeding
    using pointKey = std::pair<point, TrkrDefs::cluskey>;
    using coordKey = std::pair<std::array<float, 2>, TrkrDefs::cluskey>; // just use phi and eta, no longer needs the layer
    using keyList = std::vector<TrkrDefs::cluskey>;
-   using keyChains = std::vector<keyList>
+   using keyChains = std::vector<keyList>;
    using keysPerLayer = std::array<keyList, _NLAYERS_TPC>;
    using keyLink = std::pair<TrkrDefs::cluskey, TrkrDefs::cluskey>;
    using keyLinksPerLayer = std::array<std::vector<keyLink>,_NLAYERS_TPC>;
@@ -115,6 +115,14 @@ class PHCASeeding : public PHTrackSeeding
   }
   void SetMinHitsPerCluster(unsigned int minHits) { _min_nhits_per_cluster = minHits; }
   void SetMinClustersPerTrack(unsigned int minClus) { _min_clusters_per_track = minClus; }
+  void SetNClustersPerSeedRange(unsigned int minClus, unsigned int maxClus) 
+  { _min_clusters_per_seed = minClus;  _max_clusters_per_seed = maxClus; 
+    if (_min_clusters_per_seed < 3) {
+      std::cout << " Error in SetNClustersPerSeedRange: " << __FILE__
+        << " min value cannot be less than three." << std::endl;
+      assert(false);
+    }
+  }
 
   void set_field_dir(const double rescale)
   {
@@ -170,9 +178,9 @@ class PHCASeeding : public PHTrackSeeding
   std::pair<PositionMap, keysPerLayer> FillGlobalPositions();
   std::vector<coordKey> FillTree(bgi::rtree<pointKey,bgi::quadratic<16>>&, const keyList&, const PositionMap&, int layer);
   int FindSeedsWithMerger(const PositionMap&, const keysPerLayer&);
-  keyLinksPerLayer CreateBiLinks(const PositionMap&, const keysPerLayer&);
+  keyChains MakeChains(const PositionMap&, const keysPerLayer&);
 
-  std::vector<keyList> FollowBiLinks(const keyLinksPerLayer& bidirectionalLinks, const PositionMap& globalPositions) const;
+  std::vector<keyList> ChainsToSeeds(const keyChains&, const PositionMap&) const;
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double etamin, double phimax, double etamax, std::vector<pointKey>& returned_values) const;
   std::vector<TrackSeed_v2> RemoveBadClusters(const std::vector<keyList>& seeds, const PositionMap& globalPositions) const;
   double getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b, TrkrDefs::cluskey c, const PositionMap& globalPositions) const;
@@ -190,6 +198,8 @@ class PHCASeeding : public PHTrackSeeding
   unsigned int _end_layer;
   unsigned int _min_nhits_per_cluster;
   unsigned int _min_clusters_per_track;
+  unsigned int _max_clusters_per_seed = 6;
+  unsigned int _min_clusters_per_seed = 6;
   //  float _cluster_z_error;
   //  float _cluster_alice_y_error;
   float _neighbor_phi_width;
