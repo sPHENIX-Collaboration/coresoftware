@@ -19,6 +19,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TTree.h>
 #include <map>
 #include <string>
 
@@ -187,6 +188,25 @@ class PHActsSiliconSeeding : public SubsysReco
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
+  void clearTreeVariables();
+  TTree *m_tree = nullptr;
+  int m_seedid = std::numeric_limits<int>::quiet_NaN();
+  std::vector<float> m_mvtxgx = {};
+  std::vector<float> m_mvtxgy = {};
+  std::vector<float> m_mvtxgz = {};
+  std::vector<float> m_mvtxgr = {};
+  float m_projgx = std::numeric_limits<float>::quiet_NaN();
+  float m_projgy = std::numeric_limits<float>::quiet_NaN();
+  float m_projgz = std::numeric_limits<float>::quiet_NaN();
+  float m_projgr = std::numeric_limits<float>::quiet_NaN();
+  float m_projlx = std::numeric_limits<float>::quiet_NaN();
+  float m_projlz = std::numeric_limits<float>::quiet_NaN();
+  float m_clusgx = std::numeric_limits<float>::quiet_NaN();
+  float m_clusgy = std::numeric_limits<float>::quiet_NaN();
+  float m_clusgz = std::numeric_limits<float>::quiet_NaN();
+  float m_clusgr = std::numeric_limits<float>::quiet_NaN();
+  float m_cluslx = std::numeric_limits<float>::quiet_NaN();
+  float m_cluslz = std::numeric_limits<float>::quiet_NaN();
 
   ActsGeometry *m_tGeometry = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;

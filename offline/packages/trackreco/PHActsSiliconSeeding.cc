@@ -258,21 +258,25 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 {
   int numSeeds = 0;
   int numGoodSeeds = 0;
-
+  m_seedid = -1;
   /// Loop over grid volumes
   for (auto& seeds : seedVector)
   {
     /// Loop over actual seeds in this grid volume
     for (auto& seed : seeds)
     {
-      if (Verbosity() > 1)
+      if (Verbosity() > -1)
       {
         std::cout << "Seed " << numSeeds << " has "
                   << seed.sp().size() << " measurements "
                   << std::endl;
       }
 
-      numSeeds++;
+      if(m_seedAnalysis)
+      {
+      clearTreeVariables();
+      m_seedid++;
+      }
 
       std::vector<TrkrDefs::cluskey> cluster_keys;
 
@@ -291,7 +295,18 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
             cluskey,
             m_clusterMap->findCluster(cluskey));
         globalPositions.push_back(globalPosition);
-
+        if(m_seedAnalysis)
+        {
+        m_mvtxgx.push_back(globalPosition(0));
+        m_mvtxgy.push_back(globalPosition(1));
+        float clusr = std::sqrt(square(globalPosition(0)) + square(globalPosition(1)));
+        if(globalPosition.y() < 0)
+        {
+          clusr *= -1;
+        }
+        m_mvtxgr.push_back(clusr);
+        m_mvtxgz.push_back(globalPosition(2));
+        }
         positions.insert(std::make_pair(cluskey, globalPosition));
         if (Verbosity() > 1)
         {
@@ -346,15 +361,15 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       fitTimer->restart();
 
       /// Project to INTT and find matches
-      int mvtxsize = globalPositions.size();
+      //int mvtxsize = globalPositions.size();
       auto additionalClusters = findInttMatches(globalPositions, *trackSeed);
 
       /// Add possible matches to cluster list to be parsed when
       /// Svtx tracks are made
       for (unsigned int newkey = 0; newkey < additionalClusters.size(); newkey++)
       {
-        trackSeed->insert_cluster_key(additionalClusters[newkey]);
-        positions.insert(std::make_pair(additionalClusters[newkey], globalPositions[mvtxsize + newkey]));
+        //trackSeed->insert_cluster_key(additionalClusters[newkey]);
+        //positions.insert(std::make_pair(additionalClusters[newkey], globalPositions[mvtxsize + newkey]));
 
         if (Verbosity() > 1)
         {
@@ -508,10 +523,11 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
                                                 square(yProj[layer])));
     }
 
-    if (Verbosity() > 2)
+    if (Verbosity() > -1)
     {
-      std::cout << "Projected point is : " << xProj[layer] << ", "
-                << yProj[layer] << ", " << zProj[layer] << std::endl;
+
+      //std::cout << "Projected point is : " << xProj[layer] << ", "
+        //        << yProj[layer] << ", " << zProj[layer] << std::endl;
     }
   }
 
@@ -594,7 +610,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       /// Check that the projection is within some reasonable amount of the segment
       /// to reject e.g. looking at segments in the opposite hemisphere. This is about
       /// the size of one intt segment (256 * 80 micron strips in a segment)
-      if (fabs(dphi) > 0.2)
+      if (fabs(dphi) > 0.4)
       {
         continue;
       }
@@ -605,7 +621,17 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       projectionLocal = layerGeom->get_local_from_world_coords(surf,
                                                                m_tGeometry,
                                                                projectionGlobal);
-
+      m_projgx = projectionGlobal.x();
+      m_projgy = projectionGlobal.y();
+      m_projgr = std::sqrt(square(projectionGlobal.x()) + square(projectionGlobal.y()));
+      if(m_projgy<0)
+      {
+        m_projgr *= -1;
+      }
+      m_projgz = projectionGlobal.z();
+      m_projlx = projectionLocal[1];
+      m_projlz = projectionLocal[2];
+      
       auto range = m_clusterMap->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
@@ -624,6 +650,16 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
         {
           const auto globalP = m_tGeometry->getGlobalPosition(
               cluskey, cluster);
+          m_clusgx = globalP.x();
+          m_clusgy = globalP.y();
+          m_clusgr = std::sqrt(square(globalP.x()) + square(globalP.y()));
+          if(globalP.y() < 0)
+          {
+            m_clusgr *= -1;
+          }
+          m_clusgz = globalP.z();
+          m_cluslx = cluster->getLocalX();
+          m_cluslz = cluster->getLocalY();
           h_nInttProj->Fill(projectionLocal[1] - cluster->getLocalX(),
                             projectionLocal[2] - cluster->getLocalY());
           h_hits->Fill(globalP(0), globalP(1));
@@ -632,6 +668,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 
           h_resids->Fill(zProj[inttlayer] - cluster->getLocalY(),
                          projRphi - cluster->getLocalX());
+          m_tree->Fill();
         }
 
         /// Z strip spacing is the entire strip, so because we use fabs
@@ -986,9 +1023,47 @@ void PHActsSiliconSeeding::writeHistograms()
   m_file->Write();
   m_file->Close();
 }
-
+void PHActsSiliconSeeding::clearTreeVariables()
+{
+  m_mvtxgx.clear();
+  m_mvtxgy.clear();
+  m_mvtxgr.clear();
+  m_mvtxgz.clear();
+  m_projgx = NAN;
+  m_projgy = NAN;
+  m_projgr = NAN;
+  m_projgz = NAN;
+  m_projlx = NAN;
+  m_projlz = NAN;
+  m_clusgx = NAN;
+  m_clusgy = NAN;
+  m_clusgr = NAN;
+  m_clusgz = NAN;
+  m_cluslx = NAN;
+  m_cluslz = NAN;
+}
 void PHActsSiliconSeeding::createHistograms()
 {
+  m_tree = new TTree("seeds", "seed tree");
+  m_tree->Branch("seedid", &m_seedid, "m_seedid/I");
+  m_tree->Branch("event", &m_event, "m_event/I");
+  m_tree->Branch("projgx", &m_projgx, "m_projgx/F");
+  m_tree->Branch("projgy", &m_projgy, "m_projgy/F");
+  m_tree->Branch("projgr", &m_projgr, "m_projgr/F");
+  m_tree->Branch("projgz", &m_projgz, "m_projgz/F");
+  m_tree->Branch("projlx", &m_projlx, "m_projlx/F");
+  m_tree->Branch("projlz", &m_projlz, "m_projlz/F");
+  m_tree->Branch("clusgx",&m_clusgx, "m_clusgx/F");
+  m_tree->Branch("clusgy",&m_clusgy, "m_clusgy/F");
+  m_tree->Branch("clusgz",&m_clusgz, "m_clusgz/F");
+  m_tree->Branch("clusgr", &m_clusgr, "m_clusgr/F");
+  m_tree->Branch("cluslx", &m_cluslx, "m_cluslx/F");
+  m_tree->Branch("cluslz",&m_cluslz, "m_cluslz/F");
+  m_tree->Branch("mvtxgx",&m_mvtxgx);
+  m_tree->Branch("mvtxgy",&m_mvtxgy);
+  m_tree->Branch("mvtxgz",&m_mvtxgz);
+  m_tree->Branch("mvtxgr", &m_mvtxgr);
+
   h_nMatchedClusters = new TH1F("nMatchedClusters", ";N_{matches}", 50, 0, 50);
   h_nInttProj = new TH2F("nInttProj", ";l_{0}^{proj}-l_{0}^{clus} [cm]; l_{1}^{proj}-l_{1}^{clus} [cm]",
                          10000, -10, 10, 10000, -50, 50);
