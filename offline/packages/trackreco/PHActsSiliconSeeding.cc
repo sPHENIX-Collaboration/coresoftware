@@ -272,11 +272,11 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
                   << std::endl;
       }
 
-      if(m_seedAnalysis)
+      if (m_seedAnalysis)
       {
-      clearTreeVariables();
-      m_seedid++;
-      std::cout << "seed id " << m_seedid << std::endl;
+        clearTreeVariables();
+        m_seedid++;
+        std::cout << "seed id " << m_seedid << std::endl;
       }
 
       std::vector<TrkrDefs::cluskey> cluster_keys;
@@ -296,17 +296,17 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
             cluskey,
             m_clusterMap->findCluster(cluskey));
         globalPositions.push_back(globalPosition);
-        if(m_seedAnalysis)
+        if (m_seedAnalysis)
         {
-        m_mvtxgx.push_back(globalPosition(0));
-        m_mvtxgy.push_back(globalPosition(1));
-        float clusr = std::sqrt(square(globalPosition(0)) + square(globalPosition(1)));
-        if(globalPosition.y() < 0)
-        {
-          clusr *= -1;
-        }
-        m_mvtxgr.push_back(clusr);
-        m_mvtxgz.push_back(globalPosition(2));
+          m_mvtxgx.push_back(globalPosition(0));
+          m_mvtxgy.push_back(globalPosition(1));
+          float clusr = std::sqrt(square(globalPosition(0)) + square(globalPosition(1)));
+          if (globalPosition.y() < 0)
+          {
+            clusr *= -1;
+          }
+          m_mvtxgr.push_back(clusr);
+          m_mvtxgz.push_back(globalPosition(2));
         }
         positions.insert(std::make_pair(cluskey, globalPosition));
         if (Verbosity() > 1)
@@ -356,24 +356,25 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       trackSeed->lineFit(positions, 0, 8);
       z = trackSeed->get_Z0();
-      std::cout << "Line fit params " <<
-      trackSeed->get_Z0() << ", " << trackSeed->get_slope() << std::endl;
-      std::cout << "circle fit params " << fabs(1./trackSeed->get_qOverR()) << ", "
+      std::cout << "Line fit params " << trackSeed->get_Z0() << ", " << trackSeed->get_slope() << std::endl;
+      std::cout << "circle fit params " << fabs(1. / trackSeed->get_qOverR()) << ", "
                 << trackSeed->get_X0() << ", " << trackSeed->get_Y0() << std::endl;
       fitTimer->stop();
       auto circlefittime = fitTimer->get_accumulated_time();
       fitTimer->restart();
 
+      float phi = trackSeed->get_phi(positions);
+      trackSeed->set_phi(phi);  // make phi persistent
       /// Project to INTT and find matches
-      //int mvtxsize = globalPositions.size();
+      // int mvtxsize = globalPositions.size();
       auto additionalClusters = findInttMatches(globalPositions, *trackSeed);
 
       /// Add possible matches to cluster list to be parsed when
       /// Svtx tracks are made
       for (unsigned int newkey = 0; newkey < additionalClusters.size(); newkey++)
       {
-        //trackSeed->insert_cluster_key(additionalClusters[newkey]);
-        //positions.insert(std::make_pair(additionalClusters[newkey], globalPositions[mvtxsize + newkey]));
+        // trackSeed->insert_cluster_key(additionalClusters[newkey]);
+        // positions.insert(std::make_pair(additionalClusters[newkey], globalPositions[mvtxsize + newkey]));
 
         if (Verbosity() > 1)
         {
@@ -387,8 +388,6 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       //! Circle fit again to take advantage of INTT lever arm
       trackSeed->circleFitByTaubin(positions, 0, 8);
-      float phi = trackSeed->get_phi(positions);
-      trackSeed->set_phi(phi);  // make phi persistent
 
       if (Verbosity() > 0)
       {
@@ -451,16 +450,11 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
     std::vector<Acts::Vector3>& clusters,
     TrackSeed& seed)
 {
-  const float R = fabs(1. / seed.get_qOverR());
-  const float X0 = seed.get_X0();
-  const float Y0 = seed.get_Y0();
-  const float B = seed.get_Z0();
-  const float m = seed.get_slope();
-
-  double xProj[m_nInttLayers];
-  double yProj[m_nInttLayers];
-  double zProj[m_nInttLayers];
-
+ 
+std::vector<float> fitpars{(float)fabs(1./seed.get_qOverR()), 
+(float)seed.get_X0(), (float)seed.get_Y0(), 
+(float)seed.get_Z0(), (float)seed.get_slope()};
+float trackphi = seed.get_phi();
   /// Diagnostic
   if (m_seedAnalysis)
   {
@@ -475,261 +469,161 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
     }
   }
 
-  /// Project the seed to the INTT to find matches
-  for (unsigned int layer = 0; layer < m_nInttLayers; ++layer)
-  {
-    auto cci = TrackFitUtils::circle_circle_intersection(
-        m_nInttLayerRadii[layer],
-        R, X0, Y0);
-    double xplus = std::get<0>(cci);
-    double yplus = std::get<1>(cci);
-    double xminus = std::get<2>(cci);
-    double yminus = std::get<3>(cci);
-
-    /// If there are no real solutions to the intersection, skip
-    if (std::isnan(xplus))
-    {
-      if (Verbosity() > 2)
-      {
-        std::cout << "Circle intersection calc failed, skipping"
-                  << std::endl;
-        std::cout << "layer radius " << m_nInttLayerRadii[layer]
-                  << " and circ rad " << R << " with center " << X0
-                  << ", " << Y0 << std::endl;
-      }
-      continue;
-    }
-
-    /// Figure out which solution is correct based on the position
-    /// of the last layer in the mvtx seed
-    const auto lastclusglob = clusters.at(clusters.size() - 1);
-    const double lastClusPhi = atan2(lastclusglob(1), lastclusglob(0));
-    const double plusPhi = atan2(yplus, xplus);
-    const double minusPhi = atan2(yminus, xminus);
-
-    if (fabs(lastClusPhi - plusPhi) < fabs(lastClusPhi - minusPhi))
-    {
-      xProj[layer] = xplus;
-      yProj[layer] = yplus;
-    }
-    else
-    {
-      xProj[layer] = xminus;
-      yProj[layer] = yminus;
-    }
-
-    zProj[layer] = m * m_nInttLayerRadii[layer] + B;
-
-    if (m_seedAnalysis)
-    {
-      h_projHits->Fill(xProj[layer], yProj[layer]);
-      h_zprojHits->Fill(zProj[layer], std::sqrt(square(xProj[layer]) +
-                                                square(yProj[layer])));
-    }
-
-    if (Verbosity() > -1)
-    {
-
-      //std::cout << "Projected point is : " << xProj[layer] << ", "
-        //        << yProj[layer] << ", " << zProj[layer] << std::endl;
-    }
-  }
-
-  return matchInttClusters(clusters, seed, xProj, yProj, zProj);
-}
-
-std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
-    std::vector<Acts::Vector3>& clusters,
-    TrackSeed& seed,
-    const double xProj[],
-    const double yProj[],
-    const double zProj[])
-{
   std::vector<TrkrDefs::cluskey> matchedClusters;
-  TrkrDefs::cluskey matchedClusterLay0;
-  Acts::Vector3 matchedGlobPosLay0;
-  TrkrDefs::cluskey matchedClusterLay1;
-  Acts::Vector3 matchedGlobPosLay1;
-  float minResidLay0 = std::numeric_limits<float>::max();
-  float minResidLay1 = std::numeric_limits<float>::max();
-
-  std::set<int> layersToSkip;
-  if (m_searchInIntt)
+  std::map<int, float> minResidLayer;
+  std::map<int, TrkrDefs::cluskey> minResidckey;
+  std::map<int, Acts::Vector3> minResidGlobPos;
+  for(int i=0; i<7; i++)
   {
-    for (auto it = seed.begin_cluster_keys();
-         it != seed.end_cluster_keys();
-         ++it)
-    {
-      auto key = *it;
-      unsigned int layer = TrkrDefs::getLayer(key);
-      if (layer == 3 or layer == 4)
-      {
-        layersToSkip.insert(0);
-        layersToSkip.insert(1);
-      }
-      else if (layer == 5 or layer == 6)
-      {
-        layersToSkip.insert(2);
-        layersToSkip.insert(3);
-      }
-    }
+    minResidLayer.insert(std::make_pair(i, std::numeric_limits<float>::max()));
+  }
+  std::set<unsigned int> layersToSkip;
+  for (auto it = seed.begin_cluster_keys();
+       it != seed.end_cluster_keys();
+       ++it)
+  {
+    auto key = *it;
+    unsigned int layer = TrkrDefs::getLayer(key);
+    std::cout << "skipping layer " << (unsigned int)layer << std::endl;
+    layersToSkip.insert(layer);
   }
 
-  for (unsigned int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
+  int nlayers = 3;
+  int layer = 0;
+  for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId})
   {
-    if (m_searchInIntt)
+    if (det == TrkrDefs::TrkrId::inttId)
     {
-      if (layersToSkip.find(inttlayer) != layersToSkip.end())
+      nlayers = 7;
+      layer = 3;
+    }
+    std::cout << "iteraing det " << (unsigned int) det << std::endl;
+    while (layer < nlayers)
+    {
+      std::cout << "iterating layer" << (unsigned int)layer << std::endl;
+      if (layersToSkip.find(layer) != layersToSkip.end())
       {
+        std::cout << "skipping" << std::endl;
+        layer++;
         continue;
       }
-    }
-    const double projR = std::sqrt(square(xProj[inttlayer]) + square(yProj[inttlayer]));
-    const double projPhi = std::atan2(yProj[inttlayer], xProj[inttlayer]);
-    const double projRphi = projR * projPhi;
 
-    for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::inttId, inttlayer + 3))
+      for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det, layer))
+      {
+        auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
+        auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
+        float surfphi = atan2(surfcenter.y(), surfcenter.x());
+        float dphi = normPhi2Pi(trackphi - surfphi);
+        std::cout << "surf center " << surfcenter.transpose() << std::endl;
+        std::cout << "track phi " << trackphi << std::endl;
+        /// Check that the projection is within some reasonable amount of the segment
+        /// to reject e.g. looking at segments in the opposite hemisphere. This is about
+        /// the size of one intt segment (256 * 80 micron strips in a segment)
+        if (fabs(dphi) > 0.4)
+        {
+         continue;
+        }
+
+
+        auto range = m_clusterMap->getClusters(hitsetkey);
+        for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
+        {
+          const auto cluskey = clusIter->first;
+          if (_iteration_map != nullptr && m_nIteration > 0)
+          {
+            if (_iteration_map->getIteration(cluskey) < m_nIteration)
+            {
+              continue;  // skip clusters used in a previous iteration
+            }
+          }
+
+          const auto cluster = clusIter->second;
+          auto glob = m_tGeometry->getGlobalPosition(
+              cluskey, cluster);
+          std::cout << "cluster glob " << glob.transpose() << std::endl;
+          auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
+          std::cout << "intersection is " << intersection.transpose() << std::endl;
+          auto local = (surf->transform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
+          local /= Acts::UnitConstants::cm;
+          m_projgx = intersection.x();
+          m_projgy = intersection.y();
+          m_projgr = std::sqrt(square(intersection.x()) + square(intersection.y()));
+          if (m_projgy < 0)
+          {
+            m_projgr *= -1;
+          }
+          m_projgz = intersection.z();
+          m_projlx = local.x();
+          m_projlz = local.y();
+          /// Diagnostic
+          if (m_seedAnalysis)
+          {
+            const auto globalP = m_tGeometry->getGlobalPosition(
+                cluskey, cluster);
+            m_clusgx = globalP.x();
+            m_clusgy = globalP.y();
+            m_clusgr = std::sqrt(square(globalP.x()) + square(globalP.y()));
+            if (globalP.y() < 0)
+            {
+              m_clusgr *= -1;
+            }
+            m_clusgz = globalP.z();
+            m_cluslx = cluster->getLocalX();
+            m_cluslz = cluster->getLocalY();
+            h_nInttProj->Fill(local.x() - cluster->getLocalX(),
+                              local.y() - cluster->getLocalY());
+            h_hits->Fill(globalP(0), globalP(1));
+            h_zhits->Fill(globalP(2),
+                          std::sqrt(square(globalP(0)) + square(globalP(1))));
+
+            h_resids->Fill(local.y() - cluster->getLocalY(),
+                           local.x() - cluster->getLocalX());
+            m_tree->Fill();
+          }
+
+          /// Z strip spacing is the entire strip, so because we use fabs
+          /// we divide by two
+          float rphiresid = fabs(local.x() - cluster->getLocalX());
+          float zresid = fabs(local.y() - cluster->getLocalY());
+          std::cout << "residuals are " << rphiresid << ", " << zresid << std::endl;
+          if (rphiresid < m_rPhiSearchWin and
+              zresid < m_zSearchWindow)
+          {
+            
+            if(rphiresid < minResidLayer[layer])
+            {
+              minResidLayer[layer] = rphiresid;
+              minResidckey[layer] = cluskey;
+              minResidGlobPos[layer] = glob;
+            }
+           
+            if (Verbosity() > 4)
+            {
+              std::cout << "Matched INTT cluster with cluskey " << cluskey
+                        << " and position " << glob.transpose()
+                        << std::endl
+                        << " with projections rphi "
+                        << local.x() << " and inttclus rphi " << cluster->getLocalX()
+                        << " and proj z " << local.y() << " and inttclus z "
+                        << cluster->getLocalY() << " in layer " << layer
+                        << " with search windows " << m_rPhiSearchWin
+                        << " in rphi and strip z spacing " << m_zSearchWindow
+                        << std::endl;
+            }
+          }
+        }
+      }
+      layer++;
+    }
+    
+  }
+  for(int i=0; i<7; i++)
+  {
+    if(minResidLayer[i] < std::numeric_limits<float>::max())
     {
-      double ladderLocation[3] = {0., 0., 0.};
-
-      // Add three to skip the mvtx layers for comparison
-      // to projections
-      auto layerGeom = dynamic_cast<CylinderGeomIntt*>(m_geomContainerIntt->GetLayerGeom(inttlayer + 3));
-
-      auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
-      layerGeom->find_segment_center(surf, m_tGeometry, ladderLocation);
-
-      const double ladderphi = atan2(ladderLocation[1], ladderLocation[0]) + layerGeom->get_strip_phi_tilt();
-      const auto stripZSpacing = layerGeom->get_strip_z_spacing();
-      if(std::isnan(m_zSearchWindow))
-      {
-        m_zSearchWindow = stripZSpacing / 2.;
-      }
-      float dphi = ladderphi - projPhi;
-      if (dphi > M_PI)
-      {
-        dphi -= 2. * M_PI;
-      }
-      else if (dphi < -1 * M_PI)
-      {
-        dphi += 2. * M_PI;
-      }
-
-      /// Check that the projection is within some reasonable amount of the segment
-      /// to reject e.g. looking at segments in the opposite hemisphere. This is about
-      /// the size of one intt segment (256 * 80 micron strips in a segment)
-      //if (fabs(dphi) > 0.4)
-      //{
-        //continue;
-      //}
-
-      TVector3 projectionLocal(0, 0, 0);
-      TVector3 projectionGlobal(xProj[inttlayer], yProj[inttlayer], zProj[inttlayer]);
-
-      projectionLocal = layerGeom->get_local_from_world_coords(surf,
-                                                               m_tGeometry,
-                                                               projectionGlobal);
-      m_projgx = projectionGlobal.x();
-      m_projgy = projectionGlobal.y();
-      m_projgr = std::sqrt(square(projectionGlobal.x()) + square(projectionGlobal.y()));
-      if(m_projgy<0)
-      {
-        m_projgr *= -1;
-      }
-      m_projgz = projectionGlobal.z();
-      m_projlx = projectionLocal[1];
-      m_projlz = projectionLocal[2];
-      
-      auto range = m_clusterMap->getClusters(hitsetkey);
-      for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
-      {
-        const auto cluskey = clusIter->first;
-        if (_iteration_map != nullptr && m_nIteration > 0)
-        {
-          if (_iteration_map->getIteration(cluskey) < m_nIteration)
-          {
-            continue;  // skip clusters used in a previous iteration
-          }
-        }
-
-        const auto cluster = clusIter->second;
-        /// Diagnostic
-        if (m_seedAnalysis)
-        {
-          const auto globalP = m_tGeometry->getGlobalPosition(
-              cluskey, cluster);
-          m_clusgx = globalP.x();
-          m_clusgy = globalP.y();
-          m_clusgr = std::sqrt(square(globalP.x()) + square(globalP.y()));
-          if(globalP.y() < 0)
-          {
-            m_clusgr *= -1;
-          }
-          m_clusgz = globalP.z();
-          m_cluslx = cluster->getLocalX();
-          m_cluslz = cluster->getLocalY();
-          h_nInttProj->Fill(projectionLocal[1] - cluster->getLocalX(),
-                            projectionLocal[2] - cluster->getLocalY());
-          h_hits->Fill(globalP(0), globalP(1));
-          h_zhits->Fill(globalP(2),
-                        std::sqrt(square(globalP(0)) + square(globalP(1))));
-
-          h_resids->Fill(zProj[inttlayer] - cluster->getLocalY(),
-                         projRphi - cluster->getLocalX());
-          m_tree->Fill();
-        }
-
-        /// Z strip spacing is the entire strip, so because we use fabs
-        /// we divide by two
-        float rphiresid = fabs(projectionLocal[1] - cluster->getLocalX());
-        float zresid = fabs(projectionLocal[2] - cluster->getLocalY());
-        if (rphiresid < m_rPhiSearchWin and
-            zresid < m_zSearchWindow)
-        {
-          const auto globalPos = m_tGeometry->getGlobalPosition(
-              cluskey, cluster);
-
-          if (inttlayer < 2 && rphiresid < minResidLay0)
-          {
-            matchedClusterLay0 = cluskey;
-            /// Cache INTT global positions with seed
-            matchedGlobPosLay0 = globalPos;
-            minResidLay0 = rphiresid;
-          }
-          if (inttlayer > 1 && rphiresid < minResidLay1)
-          {
-            matchedClusterLay1 = cluskey;
-            matchedGlobPosLay1 = globalPos;
-            minResidLay1 = rphiresid;
-          }
-
-          if (Verbosity() > 4)
-          {
-            std::cout << "Matched INTT cluster with cluskey " << cluskey
-                      << " and position " << globalPos.transpose()
-                      << std::endl
-                      << " with projections rphi "
-                      << projRphi << " and inttclus rphi " << cluster->getLocalX()
-                      << " and proj z " << zProj[inttlayer] << " and inttclus z "
-                      << cluster->getLocalY() << " in layer " << inttlayer
-                      << " with search windows " << m_rPhiSearchWin
-                      << " in rphi and strip z spacing " << stripZSpacing
-                      << std::endl;
-          }
-        }
-      }
+      matchedClusters.push_back(minResidckey[i]);
+      clusters.push_back(minResidGlobPos[i]);
     }
-  }
-
-  if (minResidLay0 < std::numeric_limits<float>::max())
-  {
-    matchedClusters.push_back(matchedClusterLay0);
-    clusters.push_back(matchedGlobPosLay0);
-  }
-  if (minResidLay1 < std::numeric_limits<float>::max())
-  {
-    matchedClusters.push_back(matchedClusterLay1);
-    clusters.push_back(matchedGlobPosLay1);
   }
 
   if (m_seedAnalysis)
@@ -1061,15 +955,15 @@ void PHActsSiliconSeeding::createHistograms()
   m_tree->Branch("projgz", &m_projgz, "m_projgz/F");
   m_tree->Branch("projlx", &m_projlx, "m_projlx/F");
   m_tree->Branch("projlz", &m_projlz, "m_projlz/F");
-  m_tree->Branch("clusgx",&m_clusgx, "m_clusgx/F");
-  m_tree->Branch("clusgy",&m_clusgy, "m_clusgy/F");
-  m_tree->Branch("clusgz",&m_clusgz, "m_clusgz/F");
+  m_tree->Branch("clusgx", &m_clusgx, "m_clusgx/F");
+  m_tree->Branch("clusgy", &m_clusgy, "m_clusgy/F");
+  m_tree->Branch("clusgz", &m_clusgz, "m_clusgz/F");
   m_tree->Branch("clusgr", &m_clusgr, "m_clusgr/F");
   m_tree->Branch("cluslx", &m_cluslx, "m_cluslx/F");
-  m_tree->Branch("cluslz",&m_cluslz, "m_cluslz/F");
-  m_tree->Branch("mvtxgx",&m_mvtxgx);
-  m_tree->Branch("mvtxgy",&m_mvtxgy);
-  m_tree->Branch("mvtxgz",&m_mvtxgz);
+  m_tree->Branch("cluslz", &m_cluslz, "m_cluslz/F");
+  m_tree->Branch("mvtxgx", &m_mvtxgx);
+  m_tree->Branch("mvtxgy", &m_mvtxgy);
+  m_tree->Branch("mvtxgz", &m_mvtxgz);
   m_tree->Branch("mvtxgr", &m_mvtxgr);
 
   h_nMatchedClusters = new TH1F("nMatchedClusters", ";N_{matches}", 50, 0, 50);
@@ -1102,9 +996,13 @@ void PHActsSiliconSeeding::createHistograms()
 double PHActsSiliconSeeding::normPhi2Pi(const double phi)
 {
   double returnPhi = phi;
-  if (returnPhi < 0)
+  if (returnPhi < -M_PI)
   {
     returnPhi += 2 * M_PI;
+  }
+  if(returnPhi > M_PI)
+  {
+    returnPhi -= 2 * M_PI;
   }
   return returnPhi;
 }
