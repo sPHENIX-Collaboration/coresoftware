@@ -623,7 +623,7 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
   t_seed->restart();
 
   // sort the body links per layer so that links can be binary-searched per layer
-  for (auto& layer : bodyLinks) { std::sort(layer.begin(), layer.end()); }
+  /* for (auto& layer : bodyLinks) { std::sort(layer.begin(), layer.end()); } */
   return std::make_pair(startLinks, bodyLinks);
 }
 
@@ -655,18 +655,20 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks( const PHCASeeding::keyLinks& t
     TrkrDefs::cluskey trackHead = startLink.second;
     unsigned int trackHead_layer = TrkrDefs::getLayer(trackHead) - _FIRST_LAYER_TPC;
     // the following call with get iterators to all bilinks which match the head
-    auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink());
-    for (auto matchlink = matched_links.first; matchlink != matched_links.second; ++matchlink)
-    {
+    for (const auto& matchlink : bilinks[trackHead_layer]) {
+    /* auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink()); */
+    /* for (auto matchlink = matched_links.first; matchlink != matched_links.second; ++matchlink) */
+    /* { */
+      if (matchlink.first != trackHead) continue;
       keyList trackSeedTriplet;
       trackSeedTriplet.push_back(startLink.first);
       trackSeedTriplet.push_back(startLink.second);
-      trackSeedTriplet.push_back(matchlink->second);
+      trackSeedTriplet.push_back(matchlink.second);
       trackSeedKeyLists.push_back(trackSeedTriplet);
 
       _FILL_TUPLE(_tupclus_seeds, 0, startLink.first, globalPositions.at(startLink.first));
       _FILL_TUPLE(_tupclus_seeds, 1, startLink.second, globalPositions.at(startLink.second));
-      _FILL_TUPLE(_tupclus_seeds, 2, matchlink->second, globalPositions.at(matchlink->second));
+      _FILL_TUPLE(_tupclus_seeds, 2, matchlinkg.second, globalPositions.at(matchlinkg.second));
     }
   }
 
@@ -701,9 +703,13 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks( const PHCASeeding::keyLinks& t
       unsigned int trackHead_layer = TrkrDefs::getLayer(trackHead) - (_nlayers_intt + _nlayers_maps);
       // bool no_next_link = true;
       /* for (auto testlink = matched_links.first; testlink != matched_links.second; ++testlink) */
-    auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink());
-    for (auto link = matched_links.first; link != matched_links.second; ++link)
-      {
+    for (const auto& link : bilinks[trackHead_layer]) {
+      if (link.first != trackHead) continue;
+      // It appears that it is just faster to traverse the lists, then use a binary-sorted search
+      // In any case, if we use this cord in the future, be sure to sort the bilinks before using
+    /* auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink()); */
+    /* for (auto link = matched_links.first; link != matched_links.second; ++link) */
+      /* { */
         auto& head_pos = globalPositions.at(trackHead);
         auto& prev_pos = globalPositions.at(seed.rbegin()[1]);
         float x1 = head_pos.x();
@@ -713,16 +719,14 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks( const PHCASeeding::keyLinks& t
         float y2 = prev_pos.y();
         float z2 = prev_pos.z();
         float dr_12 = sqrt(x1 * x1 + y1 * y1) - sqrt(x2 * x2 + y2 * y2);
-        TrkrDefs::cluskey testCluster = link->second;
+        TrkrDefs::cluskey testCluster = link.second;
         auto& test_pos = globalPositions.at(testCluster);
         float xt = test_pos.x();
         float yt = test_pos.y();
         float zt = test_pos.z();
         float new_dr = sqrt(xt * xt + yt * yt) - sqrt(x1 * x1 + y1 * y1);
         if (fabs((z1 - z2) / dr_12 - (zt - z1) / new_dr) > _clusadd_delta_dzdr_window)
-        {
-          continue;
-        }
+        { continue; }
         auto& third_pos = globalPositions.at(seed.rbegin()[2]);
         float x3 = third_pos.x();
         float y3 = third_pos.y();
@@ -739,7 +743,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks( const PHCASeeding::keyLinks& t
         {
           //    no_next_link = false;
           keyList newseed = seed;
-          newseed.push_back(link->second);
+          newseed.push_back(link.second);
           newtempSeedKeyLists.push_back(newseed);
         }
       }
