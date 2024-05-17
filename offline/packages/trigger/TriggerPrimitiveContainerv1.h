@@ -27,7 +27,7 @@ class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
   ///
   TriggerPrimitiveContainerv1() = default;
 
-  TriggerPrimitiveContainerv1(const std::string& triggertype);
+  TriggerPrimitiveContainerv1(TriggerDefs::TriggerId tid, TriggerDefs::DetectorId did);
   ///
   ~TriggerPrimitiveContainerv1() override;
 
@@ -36,13 +36,16 @@ class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override;
 
-  void setTriggerType(TriggerDefs::TriggerId triggerid) override { m_triggerkey = TriggerDefs::getTriggerKey(triggerid); }
+  void setTriggerId(TriggerDefs::TriggerId triggerid) override { m_triggerid = triggerid ; };
+  void setDetectorId(TriggerDefs::DetectorId detectorid) override { m_detectorid = detectorid ; };
+  void setPrimitiveId(TriggerDefs::PrimitiveId primitiveid) override { m_primitiveid = primitiveid ; };
 
   TriggerPrimitive* get_primitive_at_key(TriggerDefs::TriggerPrimKey /* index */) override;
 
   void add_primitive(TriggerDefs::TriggerPrimKey, TriggerPrimitive*) override;
-
-  TriggerDefs::TriggerKey getTriggerKey() { return m_triggerkey; }
+  TriggerDefs::TriggerId getTriggerId() { return m_triggerid; }
+  TriggerDefs::DetectorId getDetectorId() { return m_detectorid; }
+  TriggerDefs::PrimitiveId getPrimitiveId() { return m_primitiveid; }
 
   ConstRange getTriggerPrimitives() const override;
   Range getTriggerPrimitives() override;
@@ -50,7 +53,10 @@ class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
   size_t size() override { return _primitives.size(); }
 
  private:  // so the ClassDef does not show up with doc++
-  TriggerDefs::TriggerKey m_triggerkey = TriggerDefs::TRIGGERKEYMAX;
+  TriggerDefs::TriggerId m_triggerid = TriggerDefs::TriggerId::noneTId;
+  TriggerDefs::DetectorId m_detectorid = TriggerDefs::DetectorId::noneDId;
+  TriggerDefs::PrimitiveId m_primitiveid = TriggerDefs::PrimitiveId::nonePId;
+
   Map _primitives;
 
   ClassDefOverride(TriggerPrimitiveContainerv1, 1);

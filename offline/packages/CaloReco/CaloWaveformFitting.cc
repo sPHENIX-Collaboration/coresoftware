@@ -230,7 +230,12 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
     float amp = 0;
     float time = 0;
     float ped = 0;
-    if (nsamples >= 3)
+    if (nsamples == 2){
+      amp = v.at(1);
+      time = -1;
+      ped = v.at(0);
+    }
+    else if (nsamples >= 3)
     {
       int maxx = 0;
       for (int i = 0; i < nsamples; i++)

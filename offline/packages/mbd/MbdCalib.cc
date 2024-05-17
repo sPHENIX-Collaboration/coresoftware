@@ -466,7 +466,7 @@ int MbdCalib::Download_Ped(const std::string& dbase_location)
 
   if ( std::isnan(_pedmean[0]) )
   {
-    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    std::cout << PHWHERE << ", WARNING, ped calib missing, " << dbase_location << std::endl;
     _status = -1;
     return _status;
   }
@@ -530,7 +530,7 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
 
   if ( _sampmax[0] == -1 )
   {
-    std::cout << PHWHERE << ", ERROR, calib file not processed, " << dbase_location << std::endl;
+    std::cout << PHWHERE << ", WARNING, sampmax calib missing, " << dbase_location << std::endl;
     _status = -1;
     return _status;  // file not found
   }
@@ -1228,7 +1228,7 @@ int MbdCalib::Write_CDB_Ped(const std::string& dbfile)
     cdbttree->SetFloatValue(ifeech, "pedsigma", _pedsigma[ifeech]);
     cdbttree->SetFloatValue(ifeech, "pedsigmaerr", _pedsigmaerr[ifeech]);
 
-    if (ifeech < 5 || ifeech >= MbdDefs::MBD_N_PMT - 5)
+    if (ifeech < 5 || ifeech >= MbdDefs::MBD_N_FEECH - 5)
     {
       std::cout << ifeech << "\t" << cdbttree->GetFloatValue(ifeech, "pedmean") << std::endl;
     }
@@ -1496,39 +1496,47 @@ int MbdCalib::Write_CDB_All()
 }
 #endif
 
-void MbdCalib::Update_TQT0(const float dz)
+// dz is what we need to move the MBD z by
+// dt is what we change the MBD t0 by
+void MbdCalib::Update_TQT0(const float dz, const float dt)
 {
-  // dz is what we need to move the MBD z by
-  const float dt = dz/MbdDefs::C;
+  const float z_dt = dz/MbdDefs::C;
 
   for (int ipmt=0; ipmt<MbdDefs::MBD_N_PMT; ipmt++)
   {
+    // update zvtx
     if ( ipmt<64 )  // south
     {
-      _tqfit_t0mean[ipmt] -= dt;
+      _tqfit_t0mean[ipmt] -= z_dt;
     }
     else
     {
-      _tqfit_t0mean[ipmt] += dt;
+      _tqfit_t0mean[ipmt] += z_dt;
     }
+
+    // update t0
+    _tqfit_t0mean[ipmt] -= dt;
   }
 }
 
-void MbdCalib::Update_TTT0(const float dz)
+void MbdCalib::Update_TTT0(const float dz, const float dt)
 {
   // dz is what we need to move the MBD z by
-  const float dt = dz/MbdDefs::C;
+  const float z_dt = dz/MbdDefs::C;
 
   for (int ipmt=0; ipmt<MbdDefs::MBD_N_PMT; ipmt++)
   {
     if ( ipmt<64 )  // south
     {
-      _ttfit_t0mean[ipmt] -= dt;
+      _ttfit_t0mean[ipmt] -= z_dt;
     }
     else
     {
-      _ttfit_t0mean[ipmt] += dt;
+      _ttfit_t0mean[ipmt] += z_dt;
     }
+
+    // update t0
+    _ttfit_t0mean[ipmt] -= dt;
   }
 }
 

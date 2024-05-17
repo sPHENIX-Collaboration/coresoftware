@@ -27,7 +27,11 @@ class TriggerPrimitiveContainer : public PHObject
   virtual void Reset() override { return; };
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override { return 1; }
-  virtual void setTriggerType(TriggerDefs::TriggerId /*triggerid*/) { return; }
+
+  virtual void setTriggerId(TriggerDefs::TriggerId /*triggerid*/) { return;}
+  virtual void setDetectorId(TriggerDefs::DetectorId /*detectorid*/) { return; }
+  virtual void setPrimitiveId(TriggerDefs::PrimitiveId /*primitiveid*/) { return; }
+
   virtual TriggerPrimitive* get_primitive_at_key(TriggerDefs::TriggerPrimKey) { return nullptr; }
 
   virtual void add_primitive(TriggerDefs::TriggerPrimKey, TriggerPrimitive*) { return; }

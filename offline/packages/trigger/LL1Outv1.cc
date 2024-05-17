@@ -6,66 +6,104 @@
 
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 LL1Outv1::LL1Outv1()
-  : _trigger_key(TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(_trigger_type)))
+  : m_trigger_key(TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(m_trigger_type)))
 {
-  _trigger_bits = new std::vector<unsigned int>();
+  m_trigger_bits = new std::vector<unsigned int>();
 }
 
 LL1Outv1::LL1Outv1(const std::string& triggertype, const std::string& ll1type)
-  : _trigger_key(TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(triggertype)))
-  , _ll1_type(ll1type)
-  , _trigger_type(triggertype)
+  : m_trigger_key(TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(triggertype)))
+  , m_triggerid(TriggerDefs::GetTriggerId(triggertype))
+  , m_ll1_type(ll1type)
+  , m_trigger_type(triggertype)
 {
-  _trigger_bits = new std::vector<unsigned int>();
+  m_trigger_bits = new std::vector<unsigned int>();
+
+  int ntriggerwords = 0;
+  if (m_triggerid == TriggerDefs::TriggerId::jetTId || m_triggerid == TriggerDefs::TriggerId::photonTId)
+    {
+      ntriggerwords = 384;
+    }
+  else if (m_triggerid == TriggerDefs::TriggerId::pairTId )
+    {
+      ntriggerwords = 0;
+    }
+  else if (m_triggerid == TriggerDefs::TriggerId::mbdTId )
+    {
+      ntriggerwords = 8;
+    }
+
+  for (int channel = 0; channel < ntriggerwords; channel++)
+    {
+      std::vector<unsigned int>* sum = new std::vector<unsigned int>();
+      if (m_triggerid == TriggerDefs::TriggerId::jetTId || m_triggerid == TriggerDefs::TriggerId::photonTId)
+	{
+	  add_word(((unsigned int) (channel % 32) & 0xffffU) + (((unsigned int) (channel / 32) & 0xffffU) << 16U), sum);
+	}
+      if (m_triggerid == TriggerDefs::TriggerId::mbdTId)
+	{
+	  add_word(channel, sum);
+	}
+
+    }
 }
 
 LL1Outv1::~LL1Outv1()
 {
   // you cannot call a virtual method in the ctor, you need to be specific
   // which one you want to call
-  LL1Outv1::Reset();
+
+  m_trigger_bits->clear();
+  m_triggered_sums.clear();
+  m_triggered_primitives.clear();
+  for (auto &word : m_trigger_words)
+  {
+    word.second->clear();
+  }
+  
 }
 
 //______________________________________
 void LL1Outv1::Reset()
 {
-  _trigger_bits->clear();
-
-  while (_trigger_words.begin() != _trigger_words.end())
+  m_trigger_bits->clear();
+  m_triggered_sums.clear();
+  m_triggered_primitives.clear();
+  for (auto &word : m_trigger_words)
   {
-    delete _trigger_words.begin()->second;
-    _trigger_words.erase(_trigger_words.begin());
+    word.second->clear();
   }
 }
 
 LL1Outv1::ConstRange LL1Outv1::getTriggerWords() const
 {
-  return make_pair(_trigger_words.begin(), _trigger_words.end());
+  return make_pair(m_trigger_words.begin(), m_trigger_words.end());
 }
 
 LL1Outv1::Range LL1Outv1::getTriggerWords()
 {
-  return make_pair(_trigger_words.begin(), _trigger_words.end());
+  return make_pair(m_trigger_words.begin(), m_trigger_words.end());
 }
 
 //______________________________________
 void LL1Outv1::identify(std::ostream& out) const
 {
-  out << __FILE__ << __FUNCTION__ << " LL1Out: Triggertype = " << _trigger_type << " LL1 type = " << _ll1_type << std::endl;
-  out << __FILE__ << __FUNCTION__ << " Event number: " << _event_number << "    Clock: " << _clock_number << std::endl;
-  out << __FILE__ << __FUNCTION__ << " Trigger bits    " << _trigger_bits->size() << " : ";
-  for (unsigned int _trigger_bit : *_trigger_bits)
+  out << __FILE__ << __FUNCTION__ << " LL1Out: Triggertype = " << m_trigger_type << " LL1 type = " << m_ll1_type << std::endl;
+  out << __FILE__ << __FUNCTION__ << " Event number: " << m_event_number << "    Clock: " << m_clock_number << std::endl;
+  out << __FILE__ << __FUNCTION__ << " Trigger bits    " << m_trigger_bits->size() << " : ";
+  for (unsigned int trigger_bit : *m_trigger_bits)
   {
-    std::cout << " " << _trigger_bit;
+    std::cout << " " << trigger_bit;
   }
   out << " " << std::endl;
   out << __FILE__ << __FUNCTION__ << " Trigger words    " << std::endl;
 
-  for (auto _trigger_word : _trigger_words)
+  for (auto trigger_word : m_trigger_words)
   {
-    for (unsigned int& j : *_trigger_word.second)
+    for (unsigned int& j : *trigger_word.second)
     {
       std::cout << " " << j;
     }
@@ -81,12 +119,52 @@ int LL1Outv1::isValid() const
 
 bool LL1Outv1::passesTrigger()
 {
-  for (unsigned int& _trigger_bit : *_trigger_bits)
+  for (unsigned int& trigger_bit : *m_trigger_bits)
   {
-    if (_trigger_bit)
+    if (trigger_bit)
     {
       return true;
     }
   }
   return false;
+}
+
+bool LL1Outv1::passesThreshold(int ith)
+{
+  for (unsigned int& trigger_bit : *m_trigger_bits)
+  {
+    if (((trigger_bit >> (uint16_t) (ith - 1)) & 0x1U) == 0x1U)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+void LL1Outv1::addTriggeredSum(TriggerDefs::TriggerSumKey sk) 
+{
+  unsigned int sumk = sk;
+  if (!m_triggered_sums.size())
+    {
+      m_triggered_sums.push_back(sumk);
+      return;
+    }
+  if (std::find(m_triggered_sums.begin(), m_triggered_sums.end(), sumk) == std::end(m_triggered_sums))
+    {
+      m_triggered_sums.push_back(sumk);
+    }
+}
+void LL1Outv1::addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk)
+{
+  unsigned int primk = pk;
+  if (!m_triggered_primitives.size())
+    {
+      m_triggered_primitives.push_back(primk);
+      return;
+    }
+  if (std::find(m_triggered_primitives.begin(), m_triggered_primitives.end(), primk) == std::end(m_triggered_primitives))
+    {
+      m_triggered_primitives.push_back(primk);
+    }
+  return;
 }
