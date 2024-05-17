@@ -286,7 +286,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       tpc_seed_ids.insert(tpcseedmap->find(tpcseed));
     }
     auto silseed = track->get_silicon_seed();
-    std::cout << "silseed check" << std::endl;
     if (silseed)
     {
       m_seedx = silseed->get_x();
@@ -306,20 +305,26 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     {
       float qor = NAN;
       float phi = NAN;
+      float theta = NAN;
+      float eta = NAN;
       if (tpcseed)
       {
         qor = tpcseed->get_qOverR();
         phi = tpcseed->get_phi();
+        eta = tpcseed->get_eta();
+        theta = tpcseed->get_theta();
       }
       else if (silseed)
       {
         qor = silseed->get_qOverR();
         phi = silseed->get_phi();
+        eta = silseed->get_eta();
+        theta = silseed->get_theta();
       }
       float pt = fabs(1. / qor) * (0.3 / 100) * 0.01;
       m_seedpx = pt * std::cos(phi);
       m_seedpy = pt * std::sin(phi);
-      m_seedpz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
+      m_seedpz = pt * std::cosh(eta) * std::cos(theta);
     }
     else
     {
@@ -650,9 +655,7 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     }
     global_vec.push_back(pos);
   }
-
   auto fitpars = TrackFitUtils::fitClusters(global_vec, keys);
-
   m_xyint = std::numeric_limits<float>::quiet_NaN();
   m_xyslope = std::numeric_limits<float>::quiet_NaN();
   if (fitpars.size() > 0)
@@ -1248,8 +1251,8 @@ void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
   fitpars.push_back(m_Y0);
   fitpars.push_back(m_rzslope);
   fitpars.push_back(m_rzint);
-  auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, geometry);
 
+  auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, geometry);
   m_stategx.push_back(intersection.x());
   m_stategy.push_back(intersection.y());
   m_stategz.push_back(intersection.z());
