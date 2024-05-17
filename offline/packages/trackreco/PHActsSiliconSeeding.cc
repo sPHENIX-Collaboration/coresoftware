@@ -276,6 +276,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       {
       clearTreeVariables();
       m_seedid++;
+      std::cout << "seed id " << m_seedid << std::endl;
       }
 
       std::vector<TrkrDefs::cluskey> cluster_keys;
@@ -355,7 +356,10 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       trackSeed->lineFit(positions, 0, 8);
       z = trackSeed->get_Z0();
-
+      std::cout << "Line fit params " <<
+      trackSeed->get_Z0() << ", " << trackSeed->get_slope() << std::endl;
+      std::cout << "circle fit params " << fabs(1./trackSeed->get_qOverR()) << ", "
+                << trackSeed->get_X0() << ", " << trackSeed->get_Y0() << std::endl;
       fitTimer->stop();
       auto circlefittime = fitTimer->get_accumulated_time();
       fitTimer->restart();
@@ -597,6 +601,10 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 
       const double ladderphi = atan2(ladderLocation[1], ladderLocation[0]) + layerGeom->get_strip_phi_tilt();
       const auto stripZSpacing = layerGeom->get_strip_z_spacing();
+      if(std::isnan(m_zSearchWindow))
+      {
+        m_zSearchWindow = stripZSpacing / 2.;
+      }
       float dphi = ladderphi - projPhi;
       if (dphi > M_PI)
       {
@@ -610,10 +618,10 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       /// Check that the projection is within some reasonable amount of the segment
       /// to reject e.g. looking at segments in the opposite hemisphere. This is about
       /// the size of one intt segment (256 * 80 micron strips in a segment)
-      if (fabs(dphi) > 0.4)
-      {
-        continue;
-      }
+      //if (fabs(dphi) > 0.4)
+      //{
+        //continue;
+      //}
 
       TVector3 projectionLocal(0, 0, 0);
       TVector3 projectionGlobal(xProj[inttlayer], yProj[inttlayer], zProj[inttlayer]);
@@ -676,7 +684,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
         float rphiresid = fabs(projectionLocal[1] - cluster->getLocalX());
         float zresid = fabs(projectionLocal[2] - cluster->getLocalY());
         if (rphiresid < m_rPhiSearchWin and
-            zresid < stripZSpacing / 2.)
+            zresid < m_zSearchWindow)
         {
           const auto globalPos = m_tGeometry->getGlobalPosition(
               cluskey, cluster);
