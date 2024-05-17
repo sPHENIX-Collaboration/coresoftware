@@ -450,13 +450,43 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
     const std::vector<coordKey>& coord        = coord_arr[index_current];
     auto& _rtree_below = _rtrees[index_below];
 
+    std::cout << " FIXME COORD W0: " << ((int)coord.size()) << std::endl;
+
+
     auto& next_head_index = chain_indices_arr[layer_index%2];
     auto& last_head_index = chain_indices_arr[(layer_index+1)%2];
-    last_head_index.clear();
+    /* std::cout << " FIXME Y+0 NEXT HEAD INDEX SIZE: " << ((int)next_head_index.size()) << std::endl; */
+    next_head_index.clear();
+    std::cout << " FIXME LAYER: " << layer_index << std::endl;
+    std::cout << " FIXME Y+1 NEXT HEAD INDEX SIZE: " << ((int)next_head_index.size()) << std::endl;
+    std::cout << " FIXME Z-1 LAST HEAD INDEX SIZE: " << ((int)last_head_index.size()) << std::endl;
+    std::cout << " FIXME chain size: " << ((int)chains.size()) << std::endl;
+
+    // FIXME check the indices: if they work:
+    //
+    bool first = true;
+    for (auto it = last_head_index.begin(); it != last_head_index.end(); ++it) {
+      auto key = it->first;
+      auto index = it->second;
+      if (first) {
+        first = false;
+        std::cout << " Checking layer[" << ((int)TrkrDefs::getLayer(key)) << "]" << std::endl;
+      }
+      if (index == -1) std::cout << " FIXME A202: -1 " << std::endl;
+      else if (chains[index].back()!=key) std::cout << " FIXME A101: chains (" << ((int)TrkrDefs::getLayer(key))<<") ends with key? " << (chains[index].back() == key) << std::endl;
+    }
 
     auto& curr_downlinks = previous_downlinks_arr[layer_index%2];
     auto& last_downlinks = previous_downlinks_arr[(layer_index+1)%2];
-    last_downlinks.clear();
+
+    /* std::cout << " FIXME A-0 curr_downlinks SIZE: " << ((int)curr_downlinks.size()) << std::endl; */
+    /* std::cout << " FIXME A-1 last_downlinks SIZE: " << ((int)last_downlinks.size()) << std::endl; */
+
+    curr_downlinks.clear();
+    /* std::cout << " FIXME iter("<<layer_index<<") : " << last_downlinks.size() << std::endl; */
+
+    std::cout << " FIXME B-0 curr_downlinks SIZE: " << ((int)curr_downlinks.size()) << std::endl;
+    std::cout << " FIXME B-1 last_downlinks SIZE: " << ((int)last_downlinks.size()) << std::endl;
 
     // For all the clusters in coord, find nearest neighbors in the 
     // above and below layers and make links
@@ -467,6 +497,8 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
     std::vector<keyLink> aboveLinks;
     for (const auto& StartCluster : coord)
     {
+      /* std::cout << " FIXME A4 Start cluster(" << ((int)TrkrDefs::getLayer(StartCluster.second)) << " in loop("<<layer_index <<")" << std::endl; */
+
       double StartPhi = StartCluster.first[0];
       const auto& globalpos = globalPositions.at(StartCluster.second);
       double StartX = globalpos(0);
@@ -566,31 +598,41 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
       compute_best_angle_time += t_seed->elapsed();
       t_seed->restart();
 
+      int FIXME_cntbi = 0;
+
       for (auto cluster : bestBelowClusters)
       {
         curr_downlinks.insert({StartCluster.second, cluster});
         _FILL_TUPLE(_tupclus_links, 0, StartCluster.second, globalPositions.at(cluster));
         _FILL_TUPLE(_tupclus_links, -1, cluster, globalPositions.at(cluster));
       }
+
       for (auto cluster : bestAboveClusters)
       {
-        _FILL_TUPLE(_tupclus_links, 2, cluster, globalPositions.at(cluster));
+        _FILL_TUPLE(_tupclus_links, 1, cluster, globalPositions.at(cluster));
         keyLink uplink = std::make_pair(cluster, StartCluster.second);
+
         if (last_downlinks.find(uplink) != last_downlinks.end())
         {
+          /* std::cout << " FIXME A0 found : " << std::endl; */
+          ++FIXME_cntbi;
           // this is a bilink -- start new chain or add to existing chain
           const auto& key_top = uplink.first;
           const auto& key_bot = uplink.second;
           _FILL_TUPLE(_tupclus_bilinks, 0, key_top, globalPositions.at(cluster));
           _FILL_TUPLE(_tupclus_bilinks, 1, key_bot, globalPositions.at(cluster));
+          /* std::cout << " FIXME Z0 LAST HEAD INDEX SIZE: " << ((int)last_head_index.size()) << std::endl; */
+          /* std::cout << " FIXME Z1 NEXT HEAD INDEX SIZE: " << ((int)next_head_index.size()) << std::endl; */
           if (last_head_index.count(key_top)!=0)
           {
+            std::cout << " FIXME Growing chain!: " << std::endl;
             // this link continues an existing chain(s)
             auto indices = last_head_index.equal_range(key_top);
-            for (auto index = indices.first; index != indices.second; ++index) {
-              /* for (const auto& index : last_head_index.equal_range(key_top)) */
-              /* { */
-              if (index->second == -1)
+            std::cout << " FIXME links to same: " << ((int)(last_head_index.count(key_top))) << std::endl;
+            /* int fixme_z0 = 0; */
+            for (auto key_index = indices.first; key_index != indices.second; ++key_index) 
+            { // begin every matched chain
+              if (key_index->second == -1)
               {
                 // this is from a chain already at the maximum links:
                 // add no additional linked, and set index to -1 to indicate 
@@ -598,41 +640,60 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
                 next_head_index.insert({key_bot, -1});
                 continue;
               }
-              keyList& chain = chains[index->second];
-              int index_new = index->second;
-              if (chain.back() != key_top)
+              keyList& chain = chains[key_index->second];
+              if (chain.back() == key_top)
               {
-                // this is chain that has already had a link added -- it is splitting --
-                // so duplicate the chain up to the final link and add the link to there
+                chain.push_back(key_bot);
+                next_head_index.insert({key_bot,key_index->second});
+                /* std::cout << " FIXME v4 copy chain index same? " << (chains[key_index->second].back() ==key_bot) << std::endl; */
+              } else {
+                /* std::cout << " FIXME v3 next to top? " << (chain.rbegin()[1] == key_top) << std::endl; */
+
+                /* std::assert(chain.rbegin()[1] == key_top); */
                 chains.emplace_back(chain.begin(), chain.end() - 1);
-                chain = chains.back();
-                index_new = chains.size() - 1;
+                chains.back().push_back(key_bot);
+                next_head_index.insert({key_bot,chains.size()-1});
+                /* std::cout << " FIXME v3 copy chain index same? " << (chains[chains.size()-1].back() ==key_bot) << std::endl; */
               }
-              chain.push_back(key_bot);
-              if (chain.size() == _max_clusters_per_seed)
-              {
-                // this chain is at the maximum link length -- don't keep further links
-                next_head_index.insert({key_bot, -1});
-              }
-              else
-              {
-                next_head_index.insert({key_bot, index_new});
-              }
-            }
+            } // end loop over every matched chain
           }
           else
+          // bilink is not linked to any prior bilink -- so start a new chain
           {
-            // bilink is not linked to any prior bilink -- so start a new chain
+            /* std::cout << " FIXME New chain!: " << std::endl; */
             chains.emplace_back(keyList{key_top, key_bot});
             next_head_index.insert({key_bot, chains.size() - 1});
+            std::cout << " FIXME v1 chain index same? " << (chains.back().back() ==key_bot) << std::endl;
           }
+        } // end logic for bilink
+        else 
+        { 
+          /* std::cout << " FIXME A2 bilink not found " << std::endl; */
         }
-      } // end bilink-making loop per up-link
+      } // end loop over all down links
     } // end loop over start clusters
+
+        int FIXME_cnt_chains = 0;
+        int FIXME_cnt_links = 0;
+
+        /* std::cout << " FIXME: chains " << std::endl; */
+        for (auto& chain : chains) {
+          /* std::cout << " FIXME X0 Chain: " << (FIXME_cnt_chains++) << " " << ((int)chain.size()) << std::endl; */
+          /* for (auto& link : chain) std::cout << " " << ((int)TrkrDefs::getLayer(link)); */
+          /* std::cout << std::endl; */
+          FIXME_cnt_links += chain.size();
+          if (FIXME_cnt_chains>5) break;
+        }
+      /* std::cout << " FIXME total links: " << FIXME_cnt_links << std::endl; */
     t_seed->stop();
     set_insert_time += t_seed->elapsed();
     t_seed->restart();
     LogDebug(" max collinearity: " << maxCosPlaneAngle << std::endl);
+    /* std::cout << " FIXME X+1 NEXT HEAD INDEX SIZE: " << ((int)next_head_index.size()) << std::endl; */
+    /* std::cout << " FIXME X-1 LAST HEAD INDEX SIZE: " << ((int)last_head_index.size()) << std::endl; */
+
+    /* std::cout << " FIXME C-0 curr_downlinks SIZE: " << ((int)curr_downlinks.size()) << std::endl; */
+    /* std::cout << " FIXME C-1 last_downlinks SIZE: " << ((int)last_downlinks.size()) << std::endl; */
   } // end loop over layers (to make links)
 
   t_seed->stop();
@@ -935,7 +996,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode) // This is called by ::InitRun
 #if defined(_CLUSTER_LOG_TUPOUT_)
   std::cout << " Writing _CLUSTER_LOG_TUPOUT.root file " << std::endl;
   _f_clustering_process = new TFile("_CLUSTER_LOG_TUPOUT.root", "recreate");
-  _tupclus_all         = new TNtuple("all",         "all clusters","event:x:y:z");
+  _tupclus_all         = new TNtuple("all",         "all clusters","event:layer:num:x:y:z");
   _tupclus_links       = new TNtuple("links",       "links","event:layer:updown01:x:y:z");
   _tupclus_bilinks     = new TNtuple("bilinks",     "bilinks","event:layer:topbot01:x:y:z");
   _tupclus_seeds       = new TNtuple("seeds",       "3 bilink seeds cores","event:layer:seed012:x:y:z");
