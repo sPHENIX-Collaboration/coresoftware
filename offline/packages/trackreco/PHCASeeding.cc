@@ -80,9 +80,18 @@
   tupname->Fill(_nevent,TrkrDefs::getLayer(key), num, pos.x(), pos.y(), pos.z())
 #define _FILL_TUPLE_WITH_SEED(tupname, seed,pos) \
   for (unsigned int i=0; i<seed.size();++i) _FILL_TUPLE(tupname, i, seed[i], pos.at(seed[i]))
+#define _PROGRESS_TUPOUT_COUNT() _tupout_count += 1
 #else 
 #define _FILL_TUPLE(tupname, num, key,pos) (void) 0
 #define _FILL_TUPLE_WITH_SEED(tupname, seed, pos) (void) 0
+#define _PROGRESS_TUPOUT_COUNT() (void) 0
+#endif
+
+#if defined(_PHCASEEDING_TIMER_OUT_)
+#define _PHCASEEDING_PRINT_TIME(timer,statement) timer->stop(); \
+  std::cout << "Time to " << statement << ": " << timer->elapsed()/1000 << " s" << std::endl;
+#else
+#define _PHCASEEDING_PRINT_TIME(timer, statement) (void) 0
 #endif
 
 
@@ -338,9 +347,7 @@ std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding:
 
 int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
 {
-#if defined(_CLUSTER_LOG_TUPOUT_)
-  _nevent += 1;
-#endif
+  _PROGRESS_TUPOUT_COUNT();
   if (Verbosity() > 1)
   {
     std::cout << " Process...  " << std::endl;
@@ -392,14 +399,11 @@ int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPosit
   keyLinks trackSeedPairs;
   keyLinkPerLayer bodyLinks;
   std::tie(trackSeedPairs, bodyLinks) = CreateBiLinks(globalPositions, ckeys);
+  _PHCASEEDING_PRINT_TIME(t_makebilinks, "init and make bilinks");
 
-  if (Verbosity() > 0) {
-    t_makebilinks->stop();
-    std::cout << "Time to make bilinks: " << t_makebilinks->elapsed() / 1000 << " s" << std::endl;
-  }
-
-  if (Verbosity() > 0) { t_makeseeds->restart(); }
+  t_makeseeds->restart();
   keyLists trackSeedKeyLists = FollowBiLinks(trackSeedPairs, bodyLinks, globalPositions);
+  _PHCASEEDING_PRINT_TIME(t_makeseeds, "make seeds");
   if (Verbosity() > 0 )
   {
     t_makeseeds->stop();

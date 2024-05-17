@@ -10,6 +10,7 @@
 
 // Statement for if we want to save out the intermediary clustering steps
 /* #define _CLUSTER_LOG_TUPOUT_ */
+#define _PHCASEEDING_TIMER_OUT_
 
 // begin test here
 
@@ -151,7 +152,7 @@ class PHCASeeding : public PHTrackSeeding
 
 #if defined(_CLUSTER_LOG_TUPOUT_)
   TFile* _f_clustering_process = nullptr;
-  int      _nevent=-1;
+  int      _tupout_count=-1;
   // Save the steps of the clustering
   TNtuple* _tupclus_all = nullptr;    // all clusters
   TNtuple* _tupclus_links = nullptr; //  clusters which are linked
