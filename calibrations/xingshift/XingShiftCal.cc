@@ -226,28 +226,26 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
     std::cout << "Not enough statistics. Did not calibrate." << std::endl;
   }
 
-  std::cout << success << std::endl;
-  if (success)
+  const std::string cdbfname = (boost::format("SPIN-%08d_crossingshiftCDBTTree.root") % runnumber).str();
+  WriteToCDB(cdbfname);
+  CommitToSpinDB();
+
+  if (commitSuccessCDB)
   {
-    const std::string cdbfname = (boost::format("SPIN-%08d_crossingshiftCDBTTree.root") % runnumber).str();
-    WriteToCDB(cdbfname);
-    CommitToSpinDB();
-    if (commitSuccessCDB)
-    {
-      std::cout << "Commit to CDB : SUCCESS" << std::endl;
-    }
-    else
-    {
-      std::cout << "Commit to CDB : FAILURE" << std::endl;
-    }
-    if (commitSuccessSpinDB)
-    {
-      std::cout << "Commit to SpinDB : SUCCESS" << std::endl;
-    }
-    else
-    {
-      std::cout << "Commit to SpinDB : FAILURE" << std::endl;
-    }
+    std::cout << "Commit to CDB : SUCCESS" << std::endl;
+  }
+  else
+  {
+    std::cout << "Commit to CDB : FAILURE" << std::endl;
+  }
+
+  if (commitSuccessSpinDB)
+  {
+    std::cout << "Commit to SpinDB : SUCCESS" << std::endl;
+  }
+  else
+  {
+    std::cout << "Commit to SpinDB : FAILURE" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -363,24 +361,22 @@ int XingShiftCal::WriteToCDB(const std::string &fname)
   if (success)
   {
     xing_correction_offset = xingshift;
+    CDBTTree *cdbttree = new CDBTTree(fname);
+    cdbttree->SetSingleIntValue("crossingshift", xing_correction_offset);
+    cdbttree->CommitSingle();
+    // cdbttree->Print();
+    cdbttree->WriteCDBTTree();
+    delete cdbttree;
+
+    commitSuccessCDB = 1;
   }
   else
   {
     // if (verbosity) {
-    std::cout << "no successful calibration, no commit" << std::endl;
+    std::cout << "no successful calibration, do not commit crossing shift to CDB" << std::endl;
     //}
     commitSuccessCDB = 0;
-    return 0;
   }
-
-  CDBTTree *cdbttree = new CDBTTree(fname);
-  cdbttree->SetSingleIntValue("crossingshift", xing_correction_offset);
-  cdbttree->CommitSingle();
-  // cdbttree->Print();
-  cdbttree->WriteCDBTTree();
-  delete cdbttree;
-
-  commitSuccessCDB = 1;
 
   return 0;
 }
@@ -399,10 +395,11 @@ int XingShiftCal::CommitToSpinDB()
   else
   {
     // if (verbosity) {
-    std::cout << "no successful calibration, no pattern to commit" << std::endl;
+    std::cout << "no successful calibration, do not commit crossing shift to spinDB" << std::endl;
+    std::cout << "committing other spin quantities" << std::endl;
     //}
     commitSuccessSpinDB = 0;
-    return 0;
+    //return 0;
   }
 
   // prepare values for db
@@ -544,9 +541,12 @@ int XingShiftCal::CommitToSpinDB()
         << "polarblue = " << SQLArrayConstF(polBlue, NBUNCHES) << ", "
         << "polarblueerror = " << SQLArrayConstF(polBlueErr, NBUNCHES) << ", "
         << "polaryellow = " << SQLArrayConstF(polYellow, NBUNCHES) << ", "
-        << "polaryellowerror = " << SQLArrayConstF(polYellowErr, NBUNCHES) << ", "
-        << "crossingshift = " << xing_correction_offset << ", "
-        << "spinpatternblue = '{";
+        << "polaryellowerror = " << SQLArrayConstF(polYellowErr, NBUNCHES) << ", ";
+    if (success)
+    {
+      sql << "crossingshift = " << xing_correction_offset << ", ";
+    }  
+    sql << "spinpatternblue = '{";
     for (int icross = 0; icross < NBUNCHES; icross++)
     {
       sql << blueSpinPattern[icross];
@@ -573,16 +573,27 @@ int XingShiftCal::CommitToSpinDB()
   }
   else
   {
-    sql << "INSERT INTO " << dbtable
-        << " (runnumber, fillnumber, polarblue, polarblueerror, polaryellow, polaryellowerror, crossingshift, spinpatternblue, spinpatternyellow, qa_level) VALUES ("
-        << runnumber << ", "
+    sql << "INSERT INTO " << dbtable;
+    if (success)
+    {
+      sql << " (runnumber, fillnumber, polarblue, polarblueerror, polaryellow, polaryellowerror, crossingshift, spinpatternblue, spinpatternyellow, qa_level) VALUES (";
+    }
+    else
+    {
+      sql << " (runnumber, fillnumber, polarblue, polarblueerror, polaryellow, polaryellowerror, spinpatternblue, spinpatternyellow, qa_level) VALUES (";
+    }
+    sql << runnumber << ", "
         << fillnumberBlue << ", "
         << SQLArrayConstF(polBlue, NBUNCHES) << ", "
         << SQLArrayConstF(polBlueErr, NBUNCHES) << ", "
         << SQLArrayConstF(polYellow, NBUNCHES) << ", "
-        << SQLArrayConstF(polYellowErr, NBUNCHES) << ", "
-        << xing_correction_offset
-        << ", '{";
+        << SQLArrayConstF(polYellowErr, NBUNCHES) << ", ";
+    if (success)
+    {
+      sql << xing_correction_offset << ", ";
+    }
+        
+    sql << "'{";
     for (int icross = 0; icross < NBUNCHES; icross++)
     {
       sql << blueSpinPattern[icross];
