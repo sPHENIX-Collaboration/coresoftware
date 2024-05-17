@@ -74,6 +74,13 @@
 #define LogWarning(exp) \
   if (Verbosity() > 0) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
 
+#if defined(_PHCASEEDING_TIMER_OUT_)
+#define _PHCASEEDING_PRINT_TIME(timer,statement) timer->stop(); \
+  std::cout << " _PHCASEEDING_PRINT_TIME: Time to " << statement << ": " << timer->elapsed()/1000 << " s" << std::endl;
+#else
+#define _PHCASEEDING_PRINT_TIME(timer, statement) (void) 0
+#endif
+
 /* #define FIXME(str) std::cout <<" FIXME: " << str << std::endl; */
 
 //#define _DEBUG_
@@ -401,21 +408,15 @@ int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPosit
   t_seed->restart();
 
   keyLinksPerLayer bilinks = CreateBiLinks(globalPositions, ckeys);
-  if (Verbosity() > 0) {
-    t_makebilinks->stop();
-    std::cout << "Time to make bilinks: " << t_makebilinks->elapsed() / 1000 << " s" << std::endl;
-  }
+  _PHCASEEDING_PRINT_TIME(t_makebilinks, "init and make bilinks");
   // std::pair<ckeylinks_per_layer, ckeylinks_per_layer> = CreateLinks(fromPointKey(allClusters), globalPositions); // put the bilinks finder into the end of create links --> don't have to save all the rows
   // std::vector<std::vector<keylink>> biLinks = FindBiLinks(links.first, links.second);
   
 
-  if (Verbosity() > 0) { t_makeseeds->restart(); }
+  t_makeseeds->restart();
   std::vector<keyList> trackSeedKeyLists = FollowBiLinks(bilinks, globalPositions);
-  if (Verbosity() > 0 )
-  {
-    t_makeseeds->stop();
-    std::cout << "Time to make seeds: " << t_makeseeds->elapsed() / 1000 << " s" << std::endl;
-  }
+  _PHCASEEDING_PRINT_TIME(t_makeseeds, "make seeds");
+
   std::vector<TrackSeed_v2> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
 
   publishSeeds(seeds);

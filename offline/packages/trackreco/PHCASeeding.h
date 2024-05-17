@@ -8,10 +8,9 @@
  *  \author Michael Peters & Christof Roland
  */
 
-// Statement for if we want to save out the intermediary clustering steps
+// Statements for if we want to save out the intermediary clustering steps
 /* #define _CLUSTER_LOG_TUPOUT_ */
-
-// begin test here
+#define _PHCASEEDING_TIMER_OUT_
 
 #include "ALICEKF.h"
 #include "PHTrackSeeding.h"  // for PHTrackSeeding
