@@ -89,7 +89,7 @@
 
 #if defined(_PHCASEEDING_TIMER_OUT_)
 #define _PHCASEEDING_PRINT_TIME(timer,statement) timer->stop(); \
-  std::cout << "Time to " << statement << ": " << timer->elapsed()/1000 << " s" << std::endl;
+  std::cout << " _PHCASEEDING_PRINT_TIME: Time to " << statement << ": " << timer->elapsed()/1000 << " s" << std::endl;
 #else
 #define _PHCASEEDING_PRINT_TIME(timer, statement) (void) 0
 #endif
