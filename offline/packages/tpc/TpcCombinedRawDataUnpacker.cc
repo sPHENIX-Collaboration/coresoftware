@@ -271,24 +271,30 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
     //varname = "phi";  // + std::to_string(key);
     //double phi = (sector % 12) * M_PI / 6 - pow(-1,side)*m_cdbttree->GetDoubleValue(key, varname);
+    //double phi_map = m_cdbttree->GetDoubleValue(key, varname);
     //    -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     varname = "pad";
     int pad_n = m_cdbttree->GetIntValue(key, varname);
     PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
 
     //unsigned int phibin = layergeom->get_phibin(phi,side);//layergeom->find_phibin(phi);
+    //unsigned int phii = layergeom->find_vecbin(phi,side);
     int phibin = layergeom->get_phibins()/12*mc_sectors[sector % 12] + abs(pad_n - side*layergeom->get_phibins()/12);
+    //double phi_new = layergeom->get_phi(phibin, side);
     //if(calc_pad_n-int(phibin)!=0){
+    //if(abs(phi-phi_new)>1e-10){
+    //  std::cout<< " phii = " << phii << std::endl;
+    //  std::cout<< " phi_map = " << phi_map << std::endl;
     //  std::cout<< "TpcCombinedRawDataUnpacker::process_event: side = "<< side << 
-    //                                                      " sector = "<< sector<< 
+    //                                                      " sector = "<< sector % 12<< 
     //                                                      " layer = " << layer << 
-    //                                                      " phi = " << phi <<
+    //                                                      " phi_new = " << phi_new <<
     //                                                      " pad_n = " << pad_n << 
     //                                                      " phibin = " << phibin << 
     //                                                      " calc pad_n = " << calc_pad_n << 
     //                                                      " layergeom->get_phibins()/12 = " << layergeom->get_phibins()/12 << 
     //                                                      " diff pad = " << calc_pad_n-int(phibin) <<
-    //                                                      " diff phi = " << phi-layergeom->get_phi(phibin) << std::endl;
+    //                                                      " diff phi = " << phi-phi_new << std::endl;
     //}
 
     if (m_writeTree)

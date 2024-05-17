@@ -589,6 +589,13 @@ void PHG4TpcDetector::add_geometry_node()
   }
   // Sorting phi wrt pad number
   for (size_t layer = 0; layer < NLayers; ++layer) {
+    //std::cout<< "BEFORE" <<std::endl;
+    //std::cout<< "Layer: " << layer <<std::endl;
+    //for(size_t p=0;p<pad_num[layer].size();p++){
+    //  std::cout<< pad_num[layer][p]<<", "<<pad_phi[layer][p]<<std::endl;
+    //}
+
+    
     // Create a vector of indices
     std::vector<size_t> indices(pad_num[layer].size());
     std::iota(indices.begin(), indices.end(), 0); // Fill with 0, 1, 2, ..., n-1
@@ -607,7 +614,11 @@ void PHG4TpcDetector::add_geometry_node()
 
     // Replace the original phi vector with the sorted one
     pad_phi[layer] = sorted_phi;
-
+    //std::cout<< "AFTER" <<std::endl;
+    //std::cout<< "Layer: " << layer <<std::endl;
+    //for(size_t p=0;p<pad_num[layer].size();p++){
+    //  std::cout<< pad_num[layer][p]<<", "<<pad_phi[layer][p]<<std::endl;
+    //}
   }
   // should move to a common file 
 

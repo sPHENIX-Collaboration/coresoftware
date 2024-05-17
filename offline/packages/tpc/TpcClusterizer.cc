@@ -511,7 +511,7 @@ namespace
     }
     // This is the global position
     double clusiphi = iphi_sum / adc_sum;
-    double clusphi = my_data.layergeom->get_phi(clusiphi);
+    double clusphi = my_data.layergeom->get_phi(clusiphi, my_data.side);
 
     float clusx = radius * cos(clusphi);
     float clusy = radius * sin(clusphi);
