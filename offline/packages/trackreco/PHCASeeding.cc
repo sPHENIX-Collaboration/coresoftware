@@ -74,16 +74,15 @@
 #define LogWarning(exp) \
   if (Verbosity() > 0) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
 
-/* #define FIXME(str) std::cout <<" FIXME: " << str << std::endl; */
-
+// _CLUSTER_LOG_TUPOUT_ defined statement in the header file
 #if defined(_CLUSTER_LOG_TUPOUT_)
 #define _FILL_TUPLE(tupname, num, key, pos) \
   tupname->Fill(_nevent,TrkrDefs::getLayer(key), num, pos.x(), pos.y(), pos.z())
 #define _FILL_TUPLE_WITH_SEED(tupname, seed,pos) \
-  for (unsigned int i=0; i<seed.size();++i) _FILL_TUPLE(tupname, i, seed[i], pos)
-#else
+  for (unsigned int i=0; i<seed.size();++i) _FILL_TUPLE(tupname, i, seed[i], pos.at(seed[i]))
+#else 
 #define _FILL_TUPLE(tupname, num, key,pos) (void) 0
-#define _FILL_TUPLE_WITH_SEED(tupname, num, key, pos) (void) 0
+#define _FILL_TUPLE_WITH_SEED(tupname, seed, pos) (void) 0
 #endif
 
 
@@ -253,8 +252,8 @@ void PHCASeeding::QueryTree(const bgi::rtree<PHCASeeding::pointKey, bgi::quadrat
   }
 }
 
-std::pair<PHCASeeding::PositionMap, PHCASeeding::keysPerLayer> PHCASeeding::FillGlobalPositions() {
-  keysPerLayer ckeys;
+std::pair<PHCASeeding::PositionMap, PHCASeeding::keyListPerLayer> PHCASeeding::FillGlobalPositions() {
+  keyListPerLayer ckeys;
   PositionMap cachedPositions;
   cachedPositions.reserve(_cluster_map->size());  //avoid resizing mid-execution
 
@@ -360,7 +359,7 @@ int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
   t_makebilinks->restart();
 
   PositionMap globalPositions;
-  keysPerLayer ckeys;
+  keyListPerLayer ckeys;
   std::tie(globalPositions, ckeys) = FillGlobalPositions();
 
   t_seed->stop();
@@ -386,18 +385,21 @@ int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPositions, const PHCASeeding::keysPerLayer& ckeys)
+int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPositions, const PHCASeeding::keyListPerLayer& ckeys)
 {
   t_seed->restart();
 
-  keyChains chains = MakeChains(globalPositions, ckeys);
+  keyLinks trackSeedPairs;
+  keyLinkPerLayer bodyLinks;
+  std::tie(trackSeedPairs, bodyLinks) = CreateBiLinks(globalPositions, ckeys);
+
   if (Verbosity() > 0) {
     t_makebilinks->stop();
-    std::cout << "Time to make chains: " << t_makebilinks->elapsed() / 1000 << " s" << std::endl;
+    std::cout << "Time to make bilinks: " << t_makebilinks->elapsed() / 1000 << " s" << std::endl;
   }
 
   if (Verbosity() > 0) { t_makeseeds->restart(); }
-  keyChains trackSeedKeyLists = ChainsToSeeds(chains, globalPositions);
+  keyLists trackSeedKeyLists = FollowBiLinks(trackSeedPairs, bodyLinks, globalPositions);
   if (Verbosity() > 0 )
   {
     t_makeseeds->stop();
@@ -407,24 +409,27 @@ int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPosit
 
   publishSeeds(seeds);
   return seeds.size();
+
 }
 
-PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& globalPositions, const PHCASeeding::keysPerLayer& ckeys)
+std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::CreateBiLinks(const PHCASeeding::PositionMap& globalPositions, const PHCASeeding::keyListPerLayer& ckeys)
 {
+  keyLinks startLinks; // bilinks at start of chains
+  keyLinkPerLayer bodyLinks; //  bilinks to build chains
+                              //
   double cluster_find_time = 0;
   double rtree_query_time = 0;
   double transform_time = 0;
   double compute_best_angle_time = 0;
   double set_insert_time = 0;
 
-  keyChains chains;
 
   // there are three coord_array (only the current layer is used at a time,
   // but it is filled the same time as the _rtrees, which are used two at
   // a time -- the prior padplane row and the next padplain row
   std::array<std::vector<coordKey>,3> coord_arr;
-  std::array<std::unordered_multimap<TrkrDefs::cluskey,int>,2> chain_indices_arr;
   std::array<std::unordered_set<keyLink>,2> previous_downlinks_arr;
+  std::array<std::unordered_set<TrkrDefs::cluskey>,2> bottom_of_bilink_arr;
 
   // iterate from outer to inner layers
   const int inner_index = _start_layer - _FIRST_LAYER_TPC+1;
@@ -450,43 +455,14 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
     const std::vector<coordKey>& coord        = coord_arr[index_current];
     auto& _rtree_below = _rtrees[index_below];
 
-    std::cout << " FIXME COORD W0: " << ((int)coord.size()) << std::endl;
-
-
-    auto& next_head_index = chain_indices_arr[layer_index%2];
-    auto& last_head_index = chain_indices_arr[(layer_index+1)%2];
-    /* std::cout << " FIXME Y+0 NEXT HEAD INDEX SIZE: " << ((int)next_head_index.size()) << std::endl; */
-    next_head_index.clear();
-    std::cout << " FIXME LAYER: " << layer_index << std::endl;
-    std::cout << " FIXME Y+1 NEXT HEAD INDEX SIZE: " << ((int)next_head_index.size()) << std::endl;
-    std::cout << " FIXME Z-1 LAST HEAD INDEX SIZE: " << ((int)last_head_index.size()) << std::endl;
-    std::cout << " FIXME chain size: " << ((int)chains.size()) << std::endl;
-
-    // FIXME check the indices: if they work:
-    //
-    bool first = true;
-    for (auto it = last_head_index.begin(); it != last_head_index.end(); ++it) {
-      auto key = it->first;
-      auto index = it->second;
-      if (first) {
-        first = false;
-        std::cout << " Checking layer[" << ((int)TrkrDefs::getLayer(key)) << "]" << std::endl;
-      }
-      if (index == -1) std::cout << " FIXME A202: -1 " << std::endl;
-      else if (chains[index].back()!=key) std::cout << " FIXME A101: chains (" << ((int)TrkrDefs::getLayer(key))<<") ends with key? " << (chains[index].back() == key) << std::endl;
-    }
-
     auto& curr_downlinks = previous_downlinks_arr[layer_index%2];
     auto& last_downlinks = previous_downlinks_arr[(layer_index+1)%2];
 
-    /* std::cout << " FIXME A-0 curr_downlinks SIZE: " << ((int)curr_downlinks.size()) << std::endl; */
-    /* std::cout << " FIXME A-1 last_downlinks SIZE: " << ((int)last_downlinks.size()) << std::endl; */
+    auto& curr_bottom_of_bilink = bottom_of_bilink_arr[layer_index%2];
+    auto& last_bottom_of_bilink = bottom_of_bilink_arr[(layer_index+1)%2];
 
     curr_downlinks.clear();
-    /* std::cout << " FIXME iter("<<layer_index<<") : " << last_downlinks.size() << std::endl; */
-
-    std::cout << " FIXME B-0 curr_downlinks SIZE: " << ((int)curr_downlinks.size()) << std::endl;
-    std::cout << " FIXME B-1 last_downlinks SIZE: " << ((int)last_downlinks.size()) << std::endl;
+    curr_bottom_of_bilink.clear();
 
     // For all the clusters in coord, find nearest neighbors in the 
     // above and below layers and make links
@@ -497,8 +473,6 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
     std::vector<keyLink> aboveLinks;
     for (const auto& StartCluster : coord)
     {
-      /* std::cout << " FIXME A4 Start cluster(" << ((int)TrkrDefs::getLayer(StartCluster.second)) << " in loop("<<layer_index <<")" << std::endl; */
-
       double StartPhi = StartCluster.first[0];
       const auto& globalpos = globalPositions.at(StartCluster.second);
       double StartX = globalpos(0);
@@ -510,7 +484,6 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
       LogDebug(" starting cluster:" << std::endl);
       LogDebug(" z: " << StartZ << std::endl);
       LogDebug(" phi: " << StartPhi << std::endl);
-      // LogDebug(" layer: " << StartLayer << std::endl);
 
       std::vector<pointKey> ClustersAbove;
       std::vector<pointKey> ClustersBelow;
@@ -591,14 +564,12 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
         }
       }
       // NOTE:
-      // There was some old compended code here for allowing layers to be skipped. This 
+      // There was some old commented-out code here for allowing layers to be skipped. This 
       // may be useful in the future. This chunk of code has been moved towards the 
-      // end fo the file under the title: "---OLD CODE: SKIP_LAYERS---"
+      // end fo the file under the title: "---OLD CODE 0: SKIP_LAYERS---"
       t_seed->stop();
       compute_best_angle_time += t_seed->elapsed();
       t_seed->restart();
-
-      int FIXME_cntbi = 0;
 
       for (auto cluster : bestBelowClusters)
       {
@@ -614,86 +585,25 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
 
         if (last_downlinks.find(uplink) != last_downlinks.end())
         {
-          /* std::cout << " FIXME A0 found : " << std::endl; */
-          ++FIXME_cntbi;
-          // this is a bilink -- start new chain or add to existing chain
+          // this is a bilink
           const auto& key_top = uplink.first;
           const auto& key_bot = uplink.second;
+          curr_bottom_of_bilink.insert(key_bot);
           _FILL_TUPLE(_tupclus_bilinks, 0, key_top, globalPositions.at(cluster));
           _FILL_TUPLE(_tupclus_bilinks, 1, key_bot, globalPositions.at(cluster));
-          /* std::cout << " FIXME Z0 LAST HEAD INDEX SIZE: " << ((int)last_head_index.size()) << std::endl; */
-          /* std::cout << " FIXME Z1 NEXT HEAD INDEX SIZE: " << ((int)next_head_index.size()) << std::endl; */
-          if (last_head_index.count(key_top)!=0)
-          {
-            std::cout << " FIXME Growing chain!: " << std::endl;
-            // this link continues an existing chain(s)
-            auto indices = last_head_index.equal_range(key_top);
-            std::cout << " FIXME links to same: " << ((int)(last_head_index.count(key_top))) << std::endl;
-            /* int fixme_z0 = 0; */
-            for (auto key_index = indices.first; key_index != indices.second; ++key_index) 
-            { // begin every matched chain
-              if (key_index->second == -1)
-              {
-                // this is from a chain already at the maximum links:
-                // add no additional linked, and set index to -1 to indicate 
-                // a full chain
-                next_head_index.insert({key_bot, -1});
-                continue;
-              }
-              keyList& chain = chains[key_index->second];
-              if (chain.back() == key_top)
-              {
-                chain.push_back(key_bot);
-                next_head_index.insert({key_bot,key_index->second});
-                /* std::cout << " FIXME v4 copy chain index same? " << (chains[key_index->second].back() ==key_bot) << std::endl; */
-              } else {
-                /* std::cout << " FIXME v3 next to top? " << (chain.rbegin()[1] == key_top) << std::endl; */
-
-                /* std::assert(chain.rbegin()[1] == key_top); */
-                chains.emplace_back(chain.begin(), chain.end() - 1);
-                chains.back().push_back(key_bot);
-                next_head_index.insert({key_bot,chains.size()-1});
-                /* std::cout << " FIXME v3 copy chain index same? " << (chains[chains.size()-1].back() ==key_bot) << std::endl; */
-              }
-            } // end loop over every matched chain
+          
+          if (last_bottom_of_bilink.find(key_top)==last_bottom_of_bilink.end()) {
+            startLinks.push_back(std::make_pair(key_top,key_bot));
+          } else {
+            bodyLinks[layer_index+1].push_back(std::make_pair(key_top,key_bot));
           }
-          else
-          // bilink is not linked to any prior bilink -- so start a new chain
-          {
-            /* std::cout << " FIXME New chain!: " << std::endl; */
-            chains.emplace_back(keyList{key_top, key_bot});
-            next_head_index.insert({key_bot, chains.size() - 1});
-            std::cout << " FIXME v1 chain index same? " << (chains.back().back() ==key_bot) << std::endl;
-          }
-        } // end logic for bilink
-        else 
-        { 
-          /* std::cout << " FIXME A2 bilink not found " << std::endl; */
         }
-      } // end loop over all down links
+      } // end loop over all up-links
     } // end loop over start clusters
-
-        int FIXME_cnt_chains = 0;
-        int FIXME_cnt_links = 0;
-
-        /* std::cout << " FIXME: chains " << std::endl; */
-        for (auto& chain : chains) {
-          /* std::cout << " FIXME X0 Chain: " << (FIXME_cnt_chains++) << " " << ((int)chain.size()) << std::endl; */
-          /* for (auto& link : chain) std::cout << " " << ((int)TrkrDefs::getLayer(link)); */
-          /* std::cout << std::endl; */
-          FIXME_cnt_links += chain.size();
-          if (FIXME_cnt_chains>5) break;
-        }
-      /* std::cout << " FIXME total links: " << FIXME_cnt_links << std::endl; */
     t_seed->stop();
     set_insert_time += t_seed->elapsed();
     t_seed->restart();
     LogDebug(" max collinearity: " << maxCosPlaneAngle << std::endl);
-    /* std::cout << " FIXME X+1 NEXT HEAD INDEX SIZE: " << ((int)next_head_index.size()) << std::endl; */
-    /* std::cout << " FIXME X-1 LAST HEAD INDEX SIZE: " << ((int)last_head_index.size()) << std::endl; */
-
-    /* std::cout << " FIXME C-0 curr_downlinks SIZE: " << ((int)curr_downlinks.size()) << std::endl; */
-    /* std::cout << " FIXME C-1 last_downlinks SIZE: " << ((int)last_downlinks.size()) << std::endl; */
   } // end loop over layers (to make links)
 
   t_seed->stop();
@@ -708,7 +618,9 @@ PHCASeeding::keyChains PHCASeeding::MakeChains(const PHCASeeding::PositionMap& g
   }
   t_seed->restart();
 
-  return chains; //std::make_pair(belowLinks, aboveLinks);
+  // sort the body links per layer so that links can be binary-searched per layer
+  for (auto& layer : bodyLinks) { std::sort(layer.begin(), layer.end()); }
+  return std::make_pair(startLinks, bodyLinks);
 }
 
 double PHCASeeding::getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b, TrkrDefs::cluskey c, const PHCASeeding::PositionMap& globalPositions) const
@@ -729,121 +641,158 @@ double PHCASeeding::getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b,
   return 2 * sin(break_angle) / hypot_length;
 }
 
-PHCASeeding::keyChains PHCASeeding::ChainsToSeeds(const PHCASeeding::keyChains& chains, const PHCASeeding::PositionMap& globalPositions) const
+PHCASeeding::keyLists PHCASeeding::FollowBiLinks( const PHCASeeding::keyLinks& trackSeedPairs, const PHCASeeding::keyLinkPerLayer& bilinks, const PHCASeeding::PositionMap& globalPositions) const
 {
-/* bidirectionalLinks */
-  std::vector<keyList> trackSeedPairs;
-  keyChains seeds;
-  
-  t_seed->restart();
-  for (const auto& chain : chains) {
-    if (chain.size() < 3) continue;
 
-    // write the chain to the tntuple for seeds
-    _FILL_TUPLE(_tupclus_seeds, 0, chain[0], globalPositions.at(chain[0]));
-    _FILL_TUPLE(_tupclus_seeds, 1, chain[1], globalPositions.at(chain[1]));
-    _FILL_TUPLE(_tupclus_seeds, 2, chain[2], globalPositions.at(chain[2]));
+  // form all possible starting 3-cluster tracks (we need that to calculate curvature)
+  std::vector<keyList> trackSeedKeyLists;
+  for (auto& startLink : trackSeedPairs)
+  {
+    TrkrDefs::cluskey trackHead = startLink.second;
+    unsigned int trackHead_layer = TrkrDefs::getLayer(trackHead) - _FIRST_LAYER_TPC;
+    // the following call with get iterators to all bilinks which match the head
+    auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink());
+    for (auto matchlink = matched_links.first; matchlink != matched_links.second; ++matchlink)
+    {
+      keyList trackSeedTriplet;
+      trackSeedTriplet.push_back(startLink.first);
+      trackSeedTriplet.push_back(startLink.second);
+      trackSeedTriplet.push_back(matchlink->second);
+      trackSeedKeyLists.push_back(trackSeedTriplet);
 
-    // inspect the chain for adding clusters 3rd-nth cluster
-    // by adding criteria
-    bool chain_ok = true;
-    for (unsigned int i=2; i<chains.size()-1; ++i) {
-      const auto& trackHead = chain[i];
-      auto& head_pos = globalPositions.at(trackHead);
-      auto& prev_pos = globalPositions.at(chain[i-1]);
-      float x1 = head_pos.x();
-      float y1 = head_pos.y();
-      float z1 = head_pos.z();
-      float x2 = prev_pos.x();
-      float y2 = prev_pos.y();
-      float z2 = prev_pos.z();
-      float dr_12 = sqrt(x1 * x1 + y1 * y1) - sqrt(x2 * x2 + y2 * y2);
-
-      const auto& testCluster = chain[i + 1];
-      auto& test_pos = globalPositions.at(testCluster);
-      float xt = test_pos.x();
-      float yt = test_pos.y();
-      float zt = test_pos.z();
-      float new_dr = sqrt(xt * xt + yt * yt) - sqrt(x1 * x1 + y1 * y1);
-      if (fabs((z1 - z2) / dr_12 - (zt - z1) / new_dr) > _clusadd_delta_dzdr_window)
-      {
-        chain_ok = false;
-        break;
-      }
-      auto& third_pos = globalPositions.at(chain[i-2]);
-      float x3 = third_pos.x();
-      float y3 = third_pos.y();
-      float dr_23 = sqrt(x2 * x2 + y2 * y2) - sqrt(x3 * x3 + y3 * y3);
-      float phi1 = atan2(y1, x1);
-      float phi2 = atan2(y2, x2);
-      float phi3 = atan2(y3, x3);
-      float dphi12 = std::fmod(phi1 - phi2, M_PI);
-      float dphi23 = std::fmod(phi2 - phi3, M_PI);
-      float d2phidr2 = dphi12 / (dr_12 * dr_12) - dphi23 / (dr_23 * dr_23);
-      float new_dphi = std::fmod(atan2(yt, xt) - atan2(y1, x1), M_PI);
-      float new_d2phidr2 = new_dphi / (new_dr * new_dr) - dphi12 / (dr_12 * dr_12);
-
-      if (fabs(d2phidr2 - new_d2phidr2) > _clusadd_delta_dphidr2_window)
-      {
-        chain_ok = false;
-        break;
-      }
-    }
-
-    if (chain_ok) {
-      seeds.push_back(chain);
+      _FILL_TUPLE(_tupclus_seeds, 0, startLink.first, globalPositions.at(startLink.first));
+      _FILL_TUPLE(_tupclus_seeds, 1, startLink.second, globalPositions.at(startLink.second));
+      _FILL_TUPLE(_tupclus_seeds, 2, matchlink->second, globalPositions.at(matchlink->second));
     }
   }
 
   t_seed->stop();
   if (Verbosity() > 0)
   {
-    std::cout << "seed assembly time from chains:" << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+    std::cout << "starting cluster finding time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
   }
   t_seed->restart();
+  // assemble track cluster chains from starting cluster keys (ordered from outside in)
 
-#if defined(_DEBUG_)
-  LogDebug(" track key chains assembled: " << seeds.size() << std::endl);
-  if (Verbosity()>0) {
-    for (auto& seed : seeds)
-    {
-        std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << seed->size() << std::endl;
-    }
-  }
-#endif
+  // std::cout << "STARTING SEED ASSEMBLY" << std::endl;
 
-  int i=0;
-  for (auto& seed : seeds)
+  //  std::vector<keyList> trackSeedKeyLists;
+  std::vector<keyList> tempSeedKeyLists = trackSeedKeyLists;
+  trackSeedKeyLists.clear();
+
+  while (tempSeedKeyLists.size() > 0)
   {
-    i++;
+    if (Verbosity() > 0)
+    {
+      std::cout << "temp size: " << tempSeedKeyLists.size() << std::endl;
+    }
+    if (Verbosity() > 0)
+    {
+      std::cout << "final size: " << trackSeedKeyLists.size() << std::endl;
+    }
+    std::vector<keyList> newtempSeedKeyLists;
+    for (auto& seed : tempSeedKeyLists)
+    {
+      TrkrDefs::cluskey trackHead = seed.back();
+      unsigned int trackHead_layer = TrkrDefs::getLayer(trackHead) - (_nlayers_intt + _nlayers_maps);
+      // bool no_next_link = true;
+      /* for (auto testlink = matched_links.first; testlink != matched_links.second; ++testlink) */
+    auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink());
+    for (auto link = matched_links.first; link != matched_links.second; ++link)
+      {
+        auto& head_pos = globalPositions.at(trackHead);
+        auto& prev_pos = globalPositions.at(seed.rbegin()[1]);
+        float x1 = head_pos.x();
+        float y1 = head_pos.y();
+        float z1 = head_pos.z();
+        float x2 = prev_pos.x();
+        float y2 = prev_pos.y();
+        float z2 = prev_pos.z();
+        float dr_12 = sqrt(x1 * x1 + y1 * y1) - sqrt(x2 * x2 + y2 * y2);
+        TrkrDefs::cluskey testCluster = link->second;
+        auto& test_pos = globalPositions.at(testCluster);
+        float xt = test_pos.x();
+        float yt = test_pos.y();
+        float zt = test_pos.z();
+        float new_dr = sqrt(xt * xt + yt * yt) - sqrt(x1 * x1 + y1 * y1);
+        if (fabs((z1 - z2) / dr_12 - (zt - z1) / new_dr) > _clusadd_delta_dzdr_window)
+        {
+          continue;
+        }
+        auto& third_pos = globalPositions.at(seed.rbegin()[2]);
+        float x3 = third_pos.x();
+        float y3 = third_pos.y();
+        float dr_23 = sqrt(x2 * x2 + y2 * y2) - sqrt(x3 * x3 + y3 * y3);
+        float phi1 = atan2(y1, x1);
+        float phi2 = atan2(y2, x2);
+        float phi3 = atan2(y3, x3);
+        float dphi12 = std::fmod(phi1 - phi2, M_PI);
+        float dphi23 = std::fmod(phi2 - phi3, M_PI);
+        float d2phidr2 = dphi12 / (dr_12 * dr_12) - dphi23 / (dr_23 * dr_23);
+        float new_dphi = std::fmod(atan2(yt, xt) - atan2(y1, x1), M_PI);
+        float new_d2phidr2 = new_dphi / (new_dr * new_dr) - dphi12 / (dr_12 * dr_12);
+        if (seed.size() < 6 && fabs(d2phidr2 - new_d2phidr2) < _clusadd_delta_dphidr2_window)
+        {
+          //    no_next_link = false;
+          keyList newseed = seed;
+          newseed.push_back(link->second);
+          newtempSeedKeyLists.push_back(newseed);
+        }
+      }
+      if (seed.size() > 5)
+      {
+        trackSeedKeyLists.push_back(seed);
+        _FILL_TUPLE_WITH_SEED(_tupclus_grown_seeds, seed, globalPositions);
+      }
+    }
+    if (Verbosity() > 0)
+    {
+      std::cout << "new temp size: " << newtempSeedKeyLists.size() << std::endl;
+    }
+    tempSeedKeyLists = newtempSeedKeyLists;
+  }
+  // old code block move to end of code under the title: "---OLD CODE 1: SKIP_LAYERS---"
+  t_seed->stop();
+  if (Verbosity() > 0)
+  {
+    std::cout << "keychain assembly time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+  }
+  t_seed->restart();
+  LogDebug(" track key chains assembled: " << trackSeedKeyLists.size() << std::endl);
+  LogDebug(" track key chain lengths: " << std::endl);
+  for (auto trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
+  {
+    LogDebug(" " << trackKeyChain->size() << std::endl);
+  }
+  int jumpcount = 0;
+  LogDebug(" track key associations:" << std::endl);
+  for (auto& trackSeedKeyList : trackSeedKeyLists)
+  {
     LogDebug(" seed " << i << ":" << std::endl);
 
     double lasteta = -100;
     double lastphi = -100;
-    int jumpcount = 0;
-    for (unsigned long& j : seed)
+    for (unsigned long& j : trackSeedKeyList)
     {
       const auto& globalpos = globalPositions.at(j); 
       const double clus_phi = get_phi(globalpos);
       const double clus_eta = get_eta(globalpos);
       const double etajump = clus_eta - lasteta;
       const double phijump = clus_phi - lastphi;
-      unsigned int lay =0;
+#if defined(_DEBUG_)
+      unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j].second);
+#endif
       if ((fabs(etajump) > 0.1 && lasteta != -100) || (fabs(phijump) > 1 && lastphi != -100))
       {
         LogDebug(" Eta or Phi jump too large! " << std::endl);
         ++jumpcount;
       }
-
-#if defined(_DEBUG_)
-      lay = TrkrDefs::getLayer(seeds[i][j].second);
       LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") "
                                       << " (x,y,z) = (" << globalpos(0) << "," << globalpos(1) << "," << globalpos(2) << ")" << std::endl);
-#endif
 
       if (Verbosity() > 0)
       {
-        lay = TrkrDefs::getLayer(j);
+        unsigned int lay = TrkrDefs::getLayer(j);
         std::cout << "  eta, phi, layer = (" << clus_eta << "," << clus_phi << "," << lay << ") "
                   << " (x,y,z) = (" << globalpos(0) << "," << globalpos(1) << "," << globalpos(2) << ")" << std::endl;
       }
@@ -858,7 +807,7 @@ PHCASeeding::keyChains PHCASeeding::ChainsToSeeds(const PHCASeeding::keyChains& 
     std::cout << "eta-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
   }
   t_seed->restart();
-  return seeds;
+  return trackSeedKeyLists;
 }
 
 std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const std::vector<PHCASeeding::keyList>& chains, const PHCASeeding::PositionMap& globalPositions) const
@@ -881,9 +830,9 @@ std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const std::vector<PHCAS
     }
 
     TrackFitUtils::position_vector_t xy_pts;
-    for (const auto& ckey : chain)
+    for (const auto& cluskey : chain)
     {
-      const auto& global = globalPositions.at(ckey);
+      const auto& global = globalPositions.at(cluskey);
       xy_pts.emplace_back(global.x(), global.y());
     }
 
@@ -1026,7 +975,62 @@ int PHCASeeding::End()
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-    // ---OLD CODE: SKIP_LAYERS---
+    // ---OLD CODE 1: SKIP_LAYERS---
+  //  trackSeedKeyLists = tempSeedKeyLists;
+  /*
+    for(auto trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
+    {
+      bool reached_end = false;
+      while(!reached_end)
+      {
+        TrkrDefs::cluskey trackHead = trackKeyChain->back();
+        TrkrDefs::cluskey secondToLast = trackKeyChain->rbegin()[1];
+        TrkrDefs::cluskey thirdToLast = trackKeyChain->rbegin()[2];
+        auto& head_pos = globalPositions.at(trackHead);
+        auto& sec_pos = globalPositions.at(secondToLast);
+        auto& third_pos = globalPositions.at(thirdToLast);
+        double dz_avg = ((head_pos.z()-sec_pos.z())+(sec_pos.z()-third_pos.z()))/2.;
+        double dx1 = head_pos.x()-sec_pos.x();
+        double dy1 = head_pos.y()-sec_pos.y();
+        double dx2 = sec_pos.x()-third_pos.x();
+        double dy2 = sec_pos.y()-third_pos.y();
+        double ddx = dx1-dx2;
+        double ddy = dy1-dy2;
+        double new_dx = dx1+ddx;
+        double new_dy = dy1+ddy;
+        double new_x = head_pos.x()+new_dx;
+        double new_y = head_pos.y()+new_dy;
+        double new_z = head_pos.z()+dz_avg;
+        std::cout << "(x,y,z) = (" << head_pos.x() << ", " << head_pos.y() << ", " << head_pos.z() << ")" << std::endl;
+        unsigned int trackHead_layer = TrkrDefs::getLayer(trackHead) - (_nlayers_intt + _nlayers_maps);
+        std::cout << "layer " << trackHead_layer << std::endl;
+        std::cout << "projected: (" << new_x << ", " << new_y << ", " << new_z << ")" << std::endl;
+        TrkrDefs::cluskey nextCluster;
+        double bestDist = 1e9;
+        bool no_next_link = true;
+        for(auto testlink = bilinks[trackHead_layer].begin(); testlink != bilinks[trackHead_layer].end(); ++testlink)
+        {
+          if((*testlink)[0].second==trackHead)
+          {
+            TrkrDefs::cluskey testCluster = (*testlink)[1].second;
+            auto& test_pos = globalPositions.at(testCluster);
+            std::cout << "test cluster: (" << test_pos.x() << ", " << test_pos.y() << ", " << test_pos.z() << ")" << std::endl;
+            double distToNew = sqrt(square<double>(test_pos.x()-new_x)+square<double>(test_pos.y()-new_y)+square<double>(test_pos.z()-new_z));
+            if(distToNew<bestDist)
+            {
+              std::cout << "current best" << std::endl;
+              nextCluster = testCluster;
+              bestDist = distToNew;
+            }
+            no_next_link = false;
+          }
+        }
+        if(!no_next_link) trackKeyChain->push_back(nextCluster);
+        if(no_next_link) reached_end = true;
+      }
+    }
+  */
+    // ---OLD CODE 0: SKIP_LAYERS---
     /*
     if(mode == skip_layers::on)
     {

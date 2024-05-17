@@ -9,7 +9,7 @@
  */
 
 // Statement for if we want to save out the intermediary clustering steps
-#define _CLUSTER_LOG_TUPOUT_
+/* #define _CLUSTER_LOG_TUPOUT_ */
 
 // begin test here
 
@@ -72,16 +72,16 @@ class PHCASeeding : public PHTrackSeeding
    using box = bg::model::box<point>;
    using pointKey = std::pair<point, TrkrDefs::cluskey>;
    using coordKey = std::pair<std::array<float, 2>, TrkrDefs::cluskey>; // just use phi and eta, no longer needs the layer
-   using keyList = std::vector<TrkrDefs::cluskey>;
-   using keyChains = std::vector<keyList>;
-   using keysPerLayer = std::array<keyList, _NLAYERS_TPC>;
-   using keyLink = std::pair<TrkrDefs::cluskey, TrkrDefs::cluskey>;
-   using keyLinksPerLayer = std::array<std::vector<keyLink>,_NLAYERS_TPC>;
 
-   /* using bgi::rtree<pointKey, bgi::quadratic<16>> = rTreeType; */
+   using keyList = std::vector<TrkrDefs::cluskey>;
+   using keyLists = std::vector<keyList>;
+   using keyListPerLayer = std::array<keyList, _NLAYERS_TPC>;
+
+   using keyLink = std::pair<TrkrDefs::cluskey, TrkrDefs::cluskey>;
+   using keyLinks = std::vector<keyLink>;
+   using keyLinkPerLayer = std::array<std::vector<keyLink>,_NLAYERS_TPC>;
 
    using PositionMap = std::unordered_map<TrkrDefs::cluskey, Acts::Vector3>;
-   /* using coordKey_perLayer = std::array<std::vector<coordKey>,_NLAYERS_TPC>; */
 
    PHCASeeding(
       const std::string& name = "PHCASeeding",
@@ -160,11 +160,20 @@ class PHCASeeding : public PHTrackSeeding
   TNtuple* _tupclus_grown_seeds = nullptr; // seeds saved out
 #endif
 
-  // enum skip_layers -- no longer used in PHCASeeding.cc
-  // {
-    // on,
-    // off
-  // };
+  // have a comparator to search vector of sorted bilinks for links with starting
+  // a key of a given value
+  class CompKeyToBilink {
+   public:
+    bool operator()(const keyLink& p, const TrkrDefs::cluskey& val) const
+    {
+      return p.first < val;
+    }
+    bool operator()(const TrkrDefs::cluskey& val, const keyLink& p) const
+    {
+      return val < p.first;
+    }
+  };
+  std::pair<std::vector<keyLink>::iterator, std::vector<keyLink>::iterator> FindBilinks(const TrkrDefs::cluskey& key);
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
@@ -175,12 +184,12 @@ class PHCASeeding : public PHTrackSeeding
    * incorporates TPC distortion correction, if present
    */
   Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
-  std::pair<PositionMap, keysPerLayer> FillGlobalPositions();
+  std::pair<PositionMap, keyListPerLayer> FillGlobalPositions();
+  std::pair<keyLinks, keyLinkPerLayer> CreateBiLinks(const PositionMap& globalPositions, const keyListPerLayer& ckeys);
+  PHCASeeding::keyLists FollowBiLinks( const keyLinks& trackSeedPairs, const keyLinkPerLayer& bilinks, const PositionMap& globalPositions) const;
   std::vector<coordKey> FillTree(bgi::rtree<pointKey,bgi::quadratic<16>>&, const keyList&, const PositionMap&, int layer);
-  int FindSeedsWithMerger(const PositionMap&, const keysPerLayer&);
-  keyChains MakeChains(const PositionMap&, const keysPerLayer&);
+  int FindSeedsWithMerger(const PositionMap&, const keyListPerLayer&);
 
-  std::vector<keyList> ChainsToSeeds(const keyChains&, const PositionMap&) const;
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double etamin, double phimax, double etamax, std::vector<pointKey>& returned_values) const;
   std::vector<TrackSeed_v2> RemoveBadClusters(const std::vector<keyList>& seeds, const PositionMap& globalPositions) const;
   double getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b, TrkrDefs::cluskey c, const PositionMap& globalPositions) const;
