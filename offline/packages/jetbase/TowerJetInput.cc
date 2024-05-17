@@ -415,6 +415,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(geocaloid, ieta, iphi);
 	  //skip masked towers
 	  if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2()) continue;
+	  if(std::isnan(tower->get_energy())) continue;
 	  RawTowerGeom *tower_geom = geom->get_tower_geometry(key);
 	  assert(tower_geom);
 
@@ -424,7 +425,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  double z = z0 - vtxz;
 	  double eta = asinh(z / r);  // eta after shift from vertex
 	  double pt = tower->get_energy() / cosh(eta);
-	  if (tower->get_energy() == NAN) {pt = 0/cosh(eta);}
+	  double e = tower->get_energy();
 	  double px = pt * cos(phi);
 	  double py = pt * sin(phi);
 	  double pz = pt * sinh(eta);
@@ -433,7 +434,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  jet->set_px(px);
 	  jet->set_py(py);
 	  jet->set_pz(pz);
-	  jet->set_e(tower->get_energy());
+	  jet->set_e(e);
 	  jet->insert_comp(m_input,channel);
 	  pseudojets.push_back(jet);
 	}
