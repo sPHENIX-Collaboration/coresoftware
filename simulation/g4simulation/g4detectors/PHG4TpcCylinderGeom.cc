@@ -735,7 +735,7 @@ PHG4TpcCylinderGeom::get_phicenter_new(const int ibin) const
 }
 
 double
-PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
+PHG4TpcCylinderGeom::get_phicenter(const int ibin, int side) const
 {
   // double phi_center = -999;
   if (ibin < 0 || ibin > nphibins)
@@ -746,10 +746,12 @@ PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
 
   check_binning_method_phi();
 
-  const int side = 0;
   unsigned int pads_per_sector = nphibins / 12;
   unsigned int sector = ibin / pads_per_sector;
-  double phi_center = (sector_max_Phi[side][sector] - (ibin + 0.5 - sector * pads_per_sector) * phistep);
+  //double phi_center = (sector_max_Phi[side][sector] - (ibin + 0.5 - sector * pads_per_sector) * phistep);
+  int vbin = ibin -  pads_per_sector * sector;
+  //double phi_center = (sector_max_Phi[side][sector]+sector_min_Phi[side][sector])/2 - pow(-1,side)*layer_pad_phi[vbin];
+  double phi_center = (sector_max_Phi[side][sector]+sector_min_Phi[side][sector])/2 - layer_pad_phi[vbin];
   if (phi_center <= -M_PI)
   {
     phi_center += 2 * M_PI;
@@ -760,8 +762,7 @@ PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
 double
 PHG4TpcCylinderGeom::get_phi(const float ibin, int side) const
 {
-  //int mc_sectors[12]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0};
-  //int mc_sectors[12]{5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
+
   // double phi_center = -999;
   if (ibin < 0 || ibin > nphibins)
   {
@@ -777,7 +778,8 @@ PHG4TpcCylinderGeom::get_phi(const float ibin, int side) const
   //double phi_old = (sector_max_Phi[side][sector] - (ibin + 0.5 - sector * pads_per_sector) * phistep);
   int vbin = ibin -  pads_per_sector * sector;
   //int vbin1 = layer_pad_phi.size()-vbin;
-  double phi = (sector_max_Phi[side][sector]+sector_min_Phi[side][sector])/2 - pow(-1,side)*layer_pad_phi[vbin];
+  //double phi = (sector_max_Phi[side][sector]+sector_min_Phi[side][sector])/2 - pow(-1,side)*layer_pad_phi[vbin];
+  double phi = (sector_max_Phi[side][sector]+sector_min_Phi[side][sector])/2 - layer_pad_phi[vbin];
   //for(size_t k=0; k<layer_pad_phi.size();k++){
   //  std::cout << k << "; "<< layer_pad_phi[k] << "| ";
   //}

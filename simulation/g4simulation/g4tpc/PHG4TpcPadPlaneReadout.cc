@@ -346,7 +346,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       // is also useful for comparison with PHG4TpcClusterizer result when running single track events.
       // The only information written to the cell other than neffelectrons is tbin and pad number, so get those from geometry
       double tcenter = LayerGeom->get_zcenter(tbin_num);
-      double phicenter = LayerGeom->get_phicenter(pad_num);
+      double phicenter = LayerGeom->get_phicenter(pad_num, side);
       //unsigned int MapKey = layernum*10000 + pad_num;
       //double map_phi_center = M.getPhi(MapKey);
       //std::cout << " pad_num " << pad_num << " phicenter " << phicenter << " Map phi  "<< map_phi_center << std::endl;
@@ -571,7 +571,7 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
     {
       pad_now -= phibins;
     }
-    pads_phi[ipad] = LayerGeom->get_phicenter(pad_now);
+    pads_phi[ipad] = LayerGeom->get_phicenter(pad_now,side);
     sum_of_pads_phi += pads_phi[ipad];
     sum_of_pads_absphi += fabs(pads_phi[ipad]);
   }

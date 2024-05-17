@@ -403,7 +403,7 @@ namespace
       assert(training_hits);
       training_hits->radius = radius;
       std::cout<< "TpcClusterizer::calc_cluster_parameter: iphi_center + my_data.phioffset = " << iphi_center << "+" << my_data.phioffset <<"="<< iphi_center + my_data.phioffset <<std::endl;
-      training_hits->phi = my_data.layergeom->get_phicenter(iphi_center + my_data.phioffset);
+      training_hits->phi = my_data.layergeom->get_phicenter(iphi_center + my_data.phioffset, my_data.side);
       double center_t = my_data.layergeom->get_zcenter(it_center + my_data.toffset) + my_data.sampa_tbias;
       training_hits->z = (my_data.m_tdriftmax - center_t) * my_data.tGeometry->get_drift_velocity();
       if (my_data.side == 0)
