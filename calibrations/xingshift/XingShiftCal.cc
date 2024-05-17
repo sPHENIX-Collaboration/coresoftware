@@ -31,6 +31,7 @@ XingShiftCal::XingShiftCal(const std::string &name, const int poverwriteSpinEntr
 {
   // overwriteSpinEntry = poverwriteSpinEntry;
   nevt = 0;
+  
   for (auto &scalercount : scalercounts)
   {
     for (unsigned long &j : scalercount)
@@ -343,7 +344,7 @@ int XingShiftCal::CalculateCrossingShift(int &xing, uint64_t counts[NTRIG][NBUNC
       }
       else
       {
-        xing = 0;
+        xing = -999;
         succ = false;
         return 0;
       }
@@ -387,7 +388,7 @@ int XingShiftCal::CommitToSpinDB()
   std::cout << "XingShiftCal::CommitPatternToSpinDB()" << std::endl;
   std::string status;  //-------------------------------------------->
 
-  int xing_correction_offset = 0;
+  int xing_correction_offset = -999;
   if (success)
   {
     xing_correction_offset = xingshift;
@@ -395,8 +396,8 @@ int XingShiftCal::CommitToSpinDB()
   else
   {
     // if (verbosity) {
-    std::cout << "no successful calibration, do not commit crossing shift to spinDB" << std::endl;
-    std::cout << "committing other spin quantities" << std::endl;
+    std::cout << "no successful calibration, commit crossing shift -999 to spinDB" << std::endl;
+    
     //}
     commitSuccessSpinDB = 0;
     //return 0;
@@ -541,11 +542,8 @@ int XingShiftCal::CommitToSpinDB()
         << "polarblue = " << SQLArrayConstF(polBlue, NBUNCHES) << ", "
         << "polarblueerror = " << SQLArrayConstF(polBlueErr, NBUNCHES) << ", "
         << "polaryellow = " << SQLArrayConstF(polYellow, NBUNCHES) << ", "
-        << "polaryellowerror = " << SQLArrayConstF(polYellowErr, NBUNCHES) << ", ";
-    if (success)
-    {
-      sql << "crossingshift = " << xing_correction_offset << ", ";
-    }  
+        << "polaryellowerror = " << SQLArrayConstF(polYellowErr, NBUNCHES) << ", "
+	<< "crossingshift = " << xing_correction_offset << ", ";
     sql << "spinpatternblue = '{";
     for (int icross = 0; icross < NBUNCHES; icross++)
     {
@@ -574,25 +572,14 @@ int XingShiftCal::CommitToSpinDB()
   else
   {
     sql << "INSERT INTO " << dbtable;
-    if (success)
-    {
-      sql << " (runnumber, fillnumber, polarblue, polarblueerror, polaryellow, polaryellowerror, crossingshift, spinpatternblue, spinpatternyellow, qa_level) VALUES (";
-    }
-    else
-    {
-      sql << " (runnumber, fillnumber, polarblue, polarblueerror, polaryellow, polaryellowerror, spinpatternblue, spinpatternyellow, qa_level) VALUES (";
-    }
+    sql << " (runnumber, fillnumber, polarblue, polarblueerror, polaryellow, polaryellowerror, crossingshift, spinpatternblue, spinpatternyellow, qa_level) VALUES (";
     sql << runnumber << ", "
         << fillnumberBlue << ", "
         << SQLArrayConstF(polBlue, NBUNCHES) << ", "
         << SQLArrayConstF(polBlueErr, NBUNCHES) << ", "
         << SQLArrayConstF(polYellow, NBUNCHES) << ", "
-        << SQLArrayConstF(polYellowErr, NBUNCHES) << ", ";
-    if (success)
-    {
-      sql << xing_correction_offset << ", ";
-    }
-        
+        << SQLArrayConstF(polYellowErr, NBUNCHES) << ", "
+	<< xing_correction_offset << ", ";  
     sql << "'{";
     for (int icross = 0; icross < NBUNCHES; icross++)
     {
