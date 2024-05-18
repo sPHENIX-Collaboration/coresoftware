@@ -62,6 +62,7 @@ std::map<std::string, int> Use =
         {"MVTX", 1},
         {"INTT", 1},
         {"TPC", 1},
+        {"TPOT", 1},
         {"EMCAL", 0},
         {"OHCAL", 0},
         {"IHCAL", 0}};
@@ -507,9 +508,9 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
 void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number)
 {
-  m_tree->Branch(TString(daughter_number) + "_local_x", &detector_local_x[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_local_y", &detector_local_y[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_local_z", &detector_local_z[daughter_id]);
+  m_tree->Branch(TString(daughter_number) + "_residual_x", &residual_x[daughter_id]);
+  m_tree->Branch(TString(daughter_number) + "_residual_y", &residual_y[daughter_id]);
+  m_tree->Branch(TString(daughter_number) + "_residual_z", &residual_z[daughter_id]);
   m_tree->Branch(TString(daughter_number) + "_layer", &detector_layer[daughter_id]);
 
   for (auto const &subdetector : Use)
@@ -527,16 +528,23 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, c
   {
     m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_staveID", &mvtx_staveID[daughter_id]);
     m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_chipID", &mvtx_chipID[daughter_id]);
+    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nHits", &detector_nHits_MVTX[daughter_id]);
   }
   if (detectorName == "INTT")
   {
     m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_ladderZID", &intt_ladderZID[daughter_id]);
     m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_ladderPhiID", &intt_ladderPhiID[daughter_id]);
+    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nHits", &detector_nHits_INTT[daughter_id]);
   }
   if (detectorName == "TPC")
   {
     m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_sectorID", &tpc_sectorID[daughter_id]);
     m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_side", &tpc_side[daughter_id]);
+    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nHits", &detector_nHits_TPC[daughter_id]);
+  }
+  if (detectorName == "TPOT")
+  {
+    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nHits", &detector_nHits_TPOT[daughter_id]);
   }
 }
 
@@ -555,6 +563,17 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
     std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
   }
 
+  std::string geoName = "ActsGeometry";
+  findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(geoName));
+  if (findNode)
+  {
+    geometry = findNode::getClass<ActsGeometry>(topNode, geoName);
+  }
+  else
+  {
+    std::cout << "KFParticle detector info: " << geoName << " does not exist" << std::endl;
+  }
+
   findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("TRKR_CLUSTER"));
   if (findNode)
   {
@@ -566,44 +585,95 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
   }
 
   track = getTrack(daughter.Id(), dst_trackmap);
+  detector_nHits_MVTX[daughter_id] = 0;
+  detector_nHits_INTT[daughter_id] = 0;
+  detector_nHits_TPC[daughter_id] = 0;
+  detector_nHits_TPOT[daughter_id] = 0;
 
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
+  TrackSeed *silseed = track->get_silicon_seed();
+  TrackSeed *tpcseed = track->get_tpc_seed();
+
+  if (silseed)
   {
-    TrkrDefs::cluskey clusKey = *iter;
-    TrkrCluster *cluster = dst_clustermap->findCluster(clusKey);
-    const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
-
-    detector_local_x[daughter_id].push_back(cluster->getX());
-    detector_local_y[daughter_id].push_back(cluster->getY());
-    detector_local_z[daughter_id].push_back(cluster->getZ());
-    detector_layer[daughter_id].push_back(TrkrDefs::getLayer(clusKey));
-    unsigned int staveId, chipId, ladderZId, ladderPhiId, sectorId, side;
-    staveId = chipId = ladderZId = ladderPhiId = sectorId = side = -99;
-
-    if (Use["MVTX"] && trkrId == TrkrDefs::mvtxId)
+    for (auto cluster_iter = silseed->begin_cluster_keys(); cluster_iter != silseed->end_cluster_keys(); ++cluster_iter)
     {
-      staveId = MvtxDefs::getStaveId(clusKey);
-      chipId = MvtxDefs::getChipId(clusKey);
+      const auto &cluster_key = *cluster_iter;
+      const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+  
+      detector_layer[daughter_id].push_back(TrkrDefs::getLayer(cluster_key));
+  
+      unsigned int staveId, chipId, ladderZId, ladderPhiId, sectorId, side;
+      staveId = chipId = ladderZId = ladderPhiId = sectorId = side = std::numeric_limits<unsigned int>::quiet_NaN();
+  
+      if (Use["MVTX"] && trackerID == TrkrDefs::mvtxId)
+      {
+        staveId = MvtxDefs::getStaveId(cluster_key);
+        chipId = MvtxDefs::getChipId(cluster_key);
+        ++detector_nHits_MVTX[daughter_id];
+      }
+      else if (Use["INTT"] && trackerID == TrkrDefs::inttId)
+      {
+        ladderZId = InttDefs::getLadderZId(cluster_key);
+        ladderPhiId = InttDefs::getLadderPhiId(cluster_key);
+        ++detector_nHits_INTT[daughter_id];
+      }
+  
+      mvtx_staveID[daughter_id].push_back(staveId);
+      mvtx_chipID[daughter_id].push_back(chipId);
+      intt_ladderZID[daughter_id].push_back(ladderZId);
+      intt_ladderPhiID[daughter_id].push_back(ladderPhiId);
+      tpc_sectorID[daughter_id].push_back(sectorId);
+      tpc_side[daughter_id].push_back(side);
     }
-    else if (Use["INTT"] && trkrId == TrkrDefs::inttId)
-    {
-      ladderZId = InttDefs::getLadderZId(clusKey);
-      ladderPhiId = InttDefs::getLadderPhiId(clusKey);
-    }
-    else if (Use["TPC"] && trkrId == TrkrDefs::tpcId)
-    {
-      sectorId = TpcDefs::getSectorId(clusKey);
-      side = TpcDefs::getSide(clusKey);
-    }
+  }
 
-    mvtx_staveID[daughter_id].push_back(staveId);
-    mvtx_chipID[daughter_id].push_back(chipId);
-    intt_ladderZID[daughter_id].push_back(ladderZId);
-    intt_ladderPhiID[daughter_id].push_back(ladderPhiId);
-    tpc_sectorID[daughter_id].push_back(sectorId);
-    tpc_side[daughter_id].push_back(side);
+  if (tpcseed)
+  {
+    for (auto cluster_iter = tpcseed->begin_cluster_keys(); cluster_iter != tpcseed->end_cluster_keys(); ++cluster_iter)
+    {
+      const auto &cluster_key = *cluster_iter;
+      const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+      detector_layer[daughter_id].push_back(TrkrDefs::getLayer(cluster_key));
+  
+      unsigned int staveId, chipId, ladderZId, ladderPhiId, sectorId, side;
+      staveId = chipId = ladderZId = ladderPhiId = sectorId = side = std::numeric_limits<unsigned int>::quiet_NaN();
+  
+      if (Use["TPC"] && trackerID == TrkrDefs::tpcId)
+      {
+        sectorId = TpcDefs::getSectorId(cluster_key);
+        side = TpcDefs::getSide(cluster_key);
+        ++detector_nHits_TPC[daughter_id];
+      }
+      else if (Use["TPOT"] && trackerID == TrkrDefs::micromegasId)
+      {
+        ++detector_nHits_TPOT[daughter_id];
+      }
+  
+      mvtx_staveID[daughter_id].push_back(staveId);
+      mvtx_chipID[daughter_id].push_back(chipId);
+      intt_ladderZID[daughter_id].push_back(ladderZId);
+      intt_ladderPhiID[daughter_id].push_back(ladderPhiId);
+      tpc_sectorID[daughter_id].push_back(sectorId);
+      tpc_side[daughter_id].push_back(side);
+    }
+  }
+
+  for (auto state_iter = track->begin_states();
+       state_iter != track->end_states();
+       ++state_iter)
+  {
+    SvtxTrackState* tstate = state_iter->second;
+    if (tstate->get_pathlength() != 0) //The first track state is an extrapolation so has no cluster
+    {
+      auto stateckey = tstate->get_cluskey();
+      TrkrCluster *cluster = dst_clustermap->findCluster(stateckey);
+      auto global = geometry->getGlobalPosition(stateckey, cluster);
+  
+      residual_x[daughter_id].push_back(global.x() - tstate->get_x());
+      residual_y[daughter_id].push_back(global.y() - tstate->get_y());
+      residual_z[daughter_id].push_back(global.z() - tstate->get_z()); 
+    }
   }
 }
 
@@ -653,9 +723,9 @@ void KFParticle_truthAndDetTools::clearVectors()
     m_true_daughter_track_history_pT[i].clear();
 
     // Detector vectors
-    detector_local_x[i].clear();
-    detector_local_y[i].clear();
-    detector_local_z[i].clear();
+    residual_x[i].clear();
+    residual_y[i].clear();
+    residual_z[i].clear();
     detector_layer[i].clear();
     mvtx_staveID[i].clear();
     mvtx_chipID[i].clear();

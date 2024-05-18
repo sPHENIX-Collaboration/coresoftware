@@ -191,6 +191,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   auto mvtxGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   auto inttGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   auto mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
+
   if (!mmGeom)
   {
     mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
@@ -296,6 +297,9 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       m_seedx = tpcseed->get_x();
       m_seedy = tpcseed->get_y();
       m_seedz = tpcseed->get_z();
+    }
+    if (tpcseed){
+      m_dedx = calc_dedx(tpcseed, clustermap,tpcGeom);
     }
     if (m_zeroField)
     {
@@ -423,6 +427,35 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
+float TrackResiduals::calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clustermap, PHG4TpcCylinderGeomContainer *tpcGeom){
+
+  std::vector<TrkrDefs::cluskey> clusterKeys;
+  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+		       tpcseed->end_cluster_keys());
+  
+  std::vector<float> dedxlist;
+  for (unsigned int i = 0; i < clusterKeys.size(); i++){
+    TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
+    unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+    TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+    float adc = cluster->getAdc();
+    PHG4TpcCylinderGeom* GeoLayer_local = tpcGeom->GetLayerCellGeom(layer_local);
+    float thick = GeoLayer_local->get_thickness();
+    
+    dedxlist.push_back(adc/thick);
+    sort(dedxlist.begin(), dedxlist.end());
+  }
+  int trunc_min = 0;
+  int trunc_max = (int)dedxlist.size()*0.7;
+  float sumdedx = 0;
+  int ndedx = 0;
+  for(int j = trunc_min; j<=trunc_max;j++){
+    sumdedx+=dedxlist.at(j);
+    ndedx++;
+  }
+  sumdedx/=ndedx;
+  return sumdedx;
+}
 
 void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsigned int>& tpc_seed_ids)
 {
@@ -432,6 +465,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto svtxseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  auto tpcGeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
   if (!tpcseedmap or !trackmap or !clustermap or !silseedmap or !svtxseedmap or !geometry)
   {
@@ -483,6 +517,8 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       m_seedpz = tpcseed->get_pz();
     }
     m_seedcharge = tpcseed->get_qOverR() > 1 ? 1 : -1;
+    m_dedx = calc_dedx(tpcseed, clustermap,tpcGeo);
+    std::cout << "m_dedx: " << m_dedx << std::endl;
     m_nmaps = 0;
     m_nintt = 0;
     m_ntpc = 0;
@@ -1290,7 +1326,8 @@ void TrackResiduals::createBranches()
   m_failedfits->Branch("seedpx", &m_seedpx, "m_seedpx/F");
   m_failedfits->Branch("seedpy", &m_seedpy, "m_seedpy/F");
   m_failedfits->Branch("seedpz", &m_seedpz, "m_seedpz/F");
-  m_failedfits->Branch("seedcharge", &m_seedcharge, "m_seedcharge/F");
+  m_failedfits->Branch("seedcharge", &m_seedcharge, "m_seedcharge/I");
+  m_failedfits->Branch("dedx", &m_dedx, "m_dedx/F");
   m_failedfits->Branch("nmaps", &m_nmaps, "m_nmaps/I");
   m_failedfits->Branch("nintt", &m_nintt, "m_nintt/I");
   m_failedfits->Branch("ntpc", &m_ntpc, "m_ntpc/I");
@@ -1395,6 +1432,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("seedy", &m_seedy, "m_seedy/F");
   m_tree->Branch("seedz", &m_seedz, "m_seedz/F");
   m_tree->Branch("seedcharge", &m_seedcharge, "m_seedcharge/I");
+  m_tree->Branch("dedx", &m_dedx, "m_dedx/F");
   m_tree->Branch("px", &m_px, "m_px/F");
   m_tree->Branch("py", &m_py, "m_py/F");
   m_tree->Branch("pz", &m_pz, "m_pz/F");
