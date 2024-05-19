@@ -388,6 +388,24 @@ int XingShiftCal::CommitToSpinDB()
   std::cout << "XingShiftCal::CommitPatternToSpinDB()" << std::endl;
   std::string status;  //-------------------------------------------->
 
+
+  if (runnumber == 0)
+  {
+    std::cout << "Run doesn't exist" << std::endl;
+    commitSuccessSpinDB = 0;
+    return 0;
+  }
+
+  if (fillnumberBlue != fillnumberYellow)
+  {
+    std::cout << "fillnumber is wrong : fillnumberBlue = " << fillnumberBlue
+              << "fillnumberYellow = " << fillnumberYellow << std::endl;
+    commitSuccessSpinDB = 0;
+    return 0;
+  }
+
+  
+
   int xing_correction_offset = -999;
   if (success)
   {
@@ -407,13 +425,7 @@ int XingShiftCal::CommitToSpinDB()
   unsigned int qa_level = 0xffff;
   
 
-  if (fillnumberBlue != fillnumberYellow)
-  {
-    std::cout << "fillnumber is wrong : fillnumberBlue = " << fillnumberBlue
-              << "fillnumberYellow = " << fillnumberYellow << std::endl;
-    commitSuccessSpinDB = 0;
-    return 0;
-  }
+  
 
   // if (verbosity) {
   std::cout << "polb = " << polBlue << " +- " << polBlueErr
