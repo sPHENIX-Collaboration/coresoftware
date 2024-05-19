@@ -191,6 +191,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   auto mvtxGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   auto inttGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   auto mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
+
   if (!mmGeom)
   {
     mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
@@ -285,7 +286,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       tpc_seed_ids.insert(tpcseedmap->find(tpcseed));
     }
     auto silseed = track->get_silicon_seed();
-    std::cout << "silseed check" << std::endl;
     if (silseed)
     {
       m_seedx = silseed->get_x();
@@ -298,30 +298,36 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       m_seedy = tpcseed->get_y();
       m_seedz = tpcseed->get_z();
     }
-    std::cout << "zf check" << std::endl;
+    if (tpcseed){
+      m_dedx = calc_dedx(tpcseed, clustermap,tpcGeom);
+    }
     if (m_zeroField)
     {
       float qor = NAN;
       float phi = NAN;
+      float theta = NAN;
+      float eta = NAN;
       if (tpcseed)
       {
         qor = tpcseed->get_qOverR();
         phi = tpcseed->get_phi();
+        eta = tpcseed->get_eta();
+        theta = tpcseed->get_theta();
       }
       else if (silseed)
       {
         qor = silseed->get_qOverR();
         phi = silseed->get_phi();
+        eta = silseed->get_eta();
+        theta = silseed->get_theta();
       }
-      std::cout << "qor" << std::endl;
       float pt = fabs(1. / qor) * (0.3 / 100) * 0.01;
       m_seedpx = pt * std::cos(phi);
       m_seedpy = pt * std::sin(phi);
-      m_seedpz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
+      m_seedpz = pt * std::cosh(eta) * std::cos(theta);
     }
     else
     {
-      std::cout << "nonzf" << std::endl;
       if (tpcseed)
       {
         m_seedpx = tpcseed->get_px();
@@ -421,6 +427,35 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
+float TrackResiduals::calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clustermap, PHG4TpcCylinderGeomContainer *tpcGeom){
+
+  std::vector<TrkrDefs::cluskey> clusterKeys;
+  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+		       tpcseed->end_cluster_keys());
+  
+  std::vector<float> dedxlist;
+  for (unsigned int i = 0; i < clusterKeys.size(); i++){
+    TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
+    unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+    TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+    float adc = cluster->getAdc();
+    PHG4TpcCylinderGeom* GeoLayer_local = tpcGeom->GetLayerCellGeom(layer_local);
+    float thick = GeoLayer_local->get_thickness();
+    
+    dedxlist.push_back(adc/thick);
+    sort(dedxlist.begin(), dedxlist.end());
+  }
+  int trunc_min = 0;
+  int trunc_max = (int)dedxlist.size()*0.7;
+  float sumdedx = 0;
+  int ndedx = 0;
+  for(int j = trunc_min; j<=trunc_max;j++){
+    sumdedx+=dedxlist.at(j);
+    ndedx++;
+  }
+  sumdedx/=ndedx;
+  return sumdedx;
+}
 
 void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsigned int>& tpc_seed_ids)
 {
@@ -430,6 +465,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto svtxseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  auto tpcGeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
   if (!tpcseedmap or !trackmap or !clustermap or !silseedmap or !svtxseedmap or !geometry)
   {
@@ -481,6 +517,8 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       m_seedpz = tpcseed->get_pz();
     }
     m_seedcharge = tpcseed->get_qOverR() > 1 ? 1 : -1;
+    m_dedx = calc_dedx(tpcseed, clustermap,tpcGeo);
+    std::cout << "m_dedx: " << m_dedx << std::endl;
     m_nmaps = 0;
     m_nintt = 0;
     m_ntpc = 0;
@@ -617,9 +655,7 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     }
     global_vec.push_back(pos);
   }
-
   auto fitpars = TrackFitUtils::fitClusters(global_vec, keys);
-
   m_xyint = std::numeric_limits<float>::quiet_NaN();
   m_xyslope = std::numeric_limits<float>::quiet_NaN();
   if (fitpars.size() > 0)
@@ -1255,8 +1291,8 @@ void TrackResiduals::fillStatesWithCircleFit(const TrkrDefs::cluskey& key,
   fitpars.push_back(m_Y0);
   fitpars.push_back(m_rzslope);
   fitpars.push_back(m_rzint);
-  auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, geometry);
 
+  auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, geometry);
   m_stategx.push_back(intersection.x());
   m_stategy.push_back(intersection.y());
   m_stategz.push_back(intersection.z());
@@ -1330,7 +1366,8 @@ void TrackResiduals::createBranches()
   m_failedfits->Branch("seedpx", &m_seedpx, "m_seedpx/F");
   m_failedfits->Branch("seedpy", &m_seedpy, "m_seedpy/F");
   m_failedfits->Branch("seedpz", &m_seedpz, "m_seedpz/F");
-  m_failedfits->Branch("seedcharge", &m_seedcharge, "m_seedcharge/F");
+  m_failedfits->Branch("seedcharge", &m_seedcharge, "m_seedcharge/I");
+  m_failedfits->Branch("dedx", &m_dedx, "m_dedx/F");
   m_failedfits->Branch("nmaps", &m_nmaps, "m_nmaps/I");
   m_failedfits->Branch("nintt", &m_nintt, "m_nintt/I");
   m_failedfits->Branch("ntpc", &m_ntpc, "m_ntpc/I");
@@ -1435,6 +1472,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("seedy", &m_seedy, "m_seedy/F");
   m_tree->Branch("seedz", &m_seedz, "m_seedz/F");
   m_tree->Branch("seedcharge", &m_seedcharge, "m_seedcharge/I");
+  m_tree->Branch("dedx", &m_dedx, "m_dedx/F");
   m_tree->Branch("px", &m_px, "m_px/F");
   m_tree->Branch("py", &m_py, "m_py/F");
   m_tree->Branch("pz", &m_pz, "m_pz/F");

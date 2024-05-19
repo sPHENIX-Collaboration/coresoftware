@@ -87,7 +87,7 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
   assert(hm);
 
   TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "stotal_clusters")));
-  TH2 *h_clusterssector = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "sncluspersector")));
+  TH2 *h_clusterssector = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ncluspersector")));
 
   struct HistoList
   {
