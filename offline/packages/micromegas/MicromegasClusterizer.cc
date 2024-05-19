@@ -363,7 +363,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         }
       }
 
-
       auto cluster = std::make_unique<TrkrClusterv5>();
       cluster->setAdc( adc_sum );
       cluster->setMaxAdc( max_adc );
@@ -388,10 +387,23 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
             break;
           }
         }
-      // add to container
-      trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
 
+      // eliminate single strip clusters
+      if(segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_PHI)
+          {
+	    if(cluster->getPhiSize() > 1)
+	      {
+		trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
+	      }
+	  }
 
+      if(segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_Z)
+          {
+	    if(cluster->getZSize() > 1)
+	      {
+		trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
+	      }
+	  }
     }
 
   }
