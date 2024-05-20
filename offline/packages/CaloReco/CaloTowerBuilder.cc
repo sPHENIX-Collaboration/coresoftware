@@ -130,7 +130,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_detector = "ZDC";
     m_packet_low = 12001;
     m_packet_high = 12001;
-    m_nchannels = 52;
+    m_nchannels = 128;
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the ZDC to fast processing
@@ -223,6 +223,7 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
 
       for (int channel = 0; channel < nchannels; channel++)
       {
+        
         if (m_dettype == CaloTowerDefs::SEPD)
         {
           int sector = ((channel + 1) / 32);
@@ -239,6 +240,14 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
           {
             continue;
           }
+        }
+          
+        if (m_dettype == CaloTowerDefs::ZDC)
+        {
+            if(((channel > 17) && (channel < 48)) || ((channel > 63) && (channel < 80)) || ((channel > 81) && (channel < 112)))
+            {
+              continue;
+            }
         }
 
         if (m_dettype == CaloTowerDefs::CEMC)
@@ -305,7 +314,14 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
               }
             }
 
-
+            if (m_dettype == CaloTowerDefs::ZDC)
+            {
+                if(((channel > 17) && (channel < 48)) || ((channel > 63) && (channel < 80)) || ((channel > 81) && (channel < 112)))
+                {
+                  continue;
+                }
+            }
+            
           std::vector<float> waveform;
           waveform.reserve(2);
           for (int samp = 0; samp < m_nzerosuppsamples; samp++)
@@ -339,6 +355,14 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
             {
               continue;
             }
+          }
+          
+          if (m_dettype == CaloTowerDefs::ZDC)
+          {
+              if(((channel > 17) && (channel < 48)) || ((channel > 63) && (channel < 80)) || ((channel > 81) && (channel < 112)))
+              {
+                continue;
+              }
           }
 
         std::vector<float> waveform;
@@ -412,6 +436,14 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
             }
           }
 
+          if (m_dettype == CaloTowerDefs::ZDC)
+          {
+              if(((channel > 17) && (channel < 48)) || ((channel > 63) && (channel < 80)) || ((channel > 81) && (channel < 112)))
+              {
+                continue;
+              }
+          }
+          
         if (m_dettype == CaloTowerDefs::CEMC)
         {
           if (channel % 64 == 0)
@@ -474,7 +506,14 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
                 continue;
               }
             }
-
+            
+            if (m_dettype == CaloTowerDefs::ZDC)
+            {
+                if(((channel > 17) && (channel < 48)) || ((channel > 63) && (channel < 80)) || ((channel > 81) && (channel < 112)))
+                {
+                  continue;
+                }
+            }
           std::vector<float> waveform;
           waveform.reserve(m_nsamples);
 
@@ -507,6 +546,14 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
             {
               continue;
             }
+          }
+          
+          if (m_dettype == CaloTowerDefs::ZDC)
+          {
+              if(((channel > 17) && (channel < 48)) || ((channel > 63) && (channel < 80)) || ((channel > 81) && (channel < 112)))
+              {
+                continue;
+              }
           }
 
         std::vector<float> waveform;
@@ -659,3 +706,4 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, TowerNodeName, "PHObject");
   DetNode->addNode(newTowerNode);
 }
+
