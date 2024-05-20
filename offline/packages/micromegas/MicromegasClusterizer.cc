@@ -391,18 +391,18 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       // eliminate single strip clusters
       if(segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_PHI)
           {
-	    if(cluster->getPhiSize() > 1)
-	      {
-		trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-	      }
+	    if(m_drop_single_strips && cluster->getPhiSize() < 2) 
+	      { continue; }
+
+	    trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
 	  }
 
       if(segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_Z)
           {
-	    if(cluster->getZSize() > 1)
-	      {
-		trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-	      }
+	    if(m_drop_single_strips && cluster->getZSize() < 2)
+	      { continue; }
+
+	    trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
 	  }
     }
 
