@@ -9,7 +9,7 @@
  */
 
 // Statements for if we want to save out the intermediary clustering steps
-/* #define _CLUSTER_LOG_TUPOUT_ */
+#define _PHCASEEDING_TUPOUT_
 #define _PHCASEEDING_TIMER_OUT_
 
 #include "ALICEKF.h"
@@ -44,7 +44,7 @@
 #include <utility>  // for pair
 #include <vector>   // for vector
 
-#if defined(_CLUSTER_LOG_TUPOUT_)
+#if defined(_PHCASEEDING_TUPOUT_)
 #include <TFile.h>
 #include <TNtuple.h>
 #endif
@@ -148,7 +148,7 @@ class PHCASeeding : public PHTrackSeeding
  private:
   bool _save_clus_proc = false;
 
-#if defined(_CLUSTER_LOG_TUPOUT_)
+#if defined(_PHCASEEDING_TUPOUT_)
   TFile* _f_clustering_process = nullptr;
   int      _tupout_count=-1;
   // Save the steps of the clustering
