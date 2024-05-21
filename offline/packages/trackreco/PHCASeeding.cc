@@ -74,10 +74,10 @@
 #define LogWarning(exp) \
   if (Verbosity() > 0) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
 
-// _CLUSTER_LOG_TUPOUT_ defined statement in the header file
-#if defined(_CLUSTER_LOG_TUPOUT_)
+// _PHCASEEDING_TUPOUT_ defined statement in the header file
+#if defined(_PHCASEEDING_TUPOUT_)
 #define _FILL_TUPLE(tupname, num, key, pos) \
-  tupname->Fill(_nevent,TrkrDefs::getLayer(key), num, pos.x(), pos.y(), pos.z())
+  tupname->Fill(_tupout_count,TrkrDefs::getLayer(key), num, pos.x(), pos.y(), pos.z())
 #define _FILL_TUPLE_WITH_SEED(tupname, seed,pos) \
   for (unsigned int i=0; i<seed.size();++i) _FILL_TUPLE(tupname, i, seed[i], pos.at(seed[i]))
 #define _PROGRESS_TUPOUT_COUNT() _tupout_count += 1
@@ -446,8 +446,8 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
 
   for (int layer_index=outer_index; layer_index>=inner_index;--layer_index) {
     // these lines of code will rotates through all three _rtree's in the array,
-    // where the old upper becomes the new middle, the old middle the new lower,
-    // and the old lower drops out and that _rtree is filled with the new upper
+    // where the old lower becomes the new middle, the old middle the new upper,
+    // and the old upper drops out and that _rtree is filled with the new lower
     int index_above   = (layer_index+1)%3;
     int index_current = (layer_index  )%3;
     int index_below   = (layer_index-1)%3;
@@ -471,8 +471,7 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
     // above and below layers and make links
     // Any link to an above node which matches the same clusters
     // on the previous iteration (to a "below node") becomes a "bilink"
-    // Each bilink will either add to an existing chain or start a new one
-    /* std::vector<keyLink> belowLinks; */
+    // Check if this bilink links to a prior bilink or not
     std::vector<keyLink> aboveLinks;
     for (const auto& StartCluster : coord)
     {
@@ -667,7 +666,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks( const PHCASeeding::keyLinks& t
 
       _FILL_TUPLE(_tupclus_seeds, 0, startLink.first, globalPositions.at(startLink.first));
       _FILL_TUPLE(_tupclus_seeds, 1, startLink.second, globalPositions.at(startLink.second));
-      _FILL_TUPLE(_tupclus_seeds, 2, matchlinkg.second, globalPositions.at(matchlinkg.second));
+      _FILL_TUPLE(_tupclus_seeds, 2, matchlink.second, globalPositions.at(matchlink.second));
     }
   }
 
@@ -949,7 +948,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode) // This is called by ::InitRun
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
   
-#if defined(_CLUSTER_LOG_TUPOUT_)
+#if defined(_PHCASEEDING_TUPOUT_)
   std::cout << " Writing _CLUSTER_LOG_TUPOUT.root file " << std::endl;
   _f_clustering_process = new TFile("_CLUSTER_LOG_TUPOUT.root", "recreate");
   _tupclus_all         = new TNtuple("all",         "all clusters","event:layer:num:x:y:z");
@@ -970,7 +969,7 @@ int PHCASeeding::End()
     std::cout << "Called End " << std::endl;
   }
 
-#if defined(_CLUSTER_LOG_TUPOUT_)
+#if defined(_PHCASEEDING_TUPOUT_)
   _f_clustering_process->cd();
   _tupclus_all         ->Write();
   _tupclus_links       ->Write();
