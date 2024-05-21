@@ -49,7 +49,6 @@
 #include <Eigen/Dense>
 
 #include <algorithm>
-#include <algorithm>  // for find
 #include <cmath>
 #include <filesystem>
 #include <iostream>
@@ -76,22 +75,22 @@
 
 // _PHCASEEDING_TUPOUT_ defined statement in the header file
 #if defined(_PHCASEEDING_TUPOUT_)
-#define _FILL_TUPLE(tupname, num, key, pos) \
+#define FILL_TUPLE(tupname, num, key, pos) \
   tupname->Fill(_tupout_count,TrkrDefs::getLayer(key), num, pos.x(), pos.y(), pos.z())
-#define _FILL_TUPLE_WITH_SEED(tupname, seed,pos) \
-  for (unsigned int i=0; i<seed.size();++i) _FILL_TUPLE(tupname, i, seed[i], pos.at(seed[i]))
-#define _PROGRESS_TUPOUT_COUNT() _tupout_count += 1
+#define FILL_TUPLE_WITH_SEED(tupname, seed,pos) \
+  for (unsigned int i=0; i<seed.size();++i) FILL_TUPLE(tupname, i, seed[i], pos.at(seed[i]))
+#define PROGRESS_TUPOUT_COUNT() _tupout_count += 1
 #else 
-#define _FILL_TUPLE(tupname, num, key,pos) (void) 0
-#define _FILL_TUPLE_WITH_SEED(tupname, seed, pos) (void) 0
-#define _PROGRESS_TUPOUT_COUNT() (void) 0
+#define FILL_TUPLE(tupname, num, key,pos) (void) 0
+#define FILL_TUPLE_WITH_SEED(tupname, seed, pos) (void) 0
+#define PROGRESS_TUPOUT_COUNT() (void) 0
 #endif
 
 #if defined(_PHCASEEDING_TIMER_OUT_)
-#define _PHCASEEDING_PRINT_TIME(timer,statement) timer->stop(); \
-  std::cout << " _PHCASEEDING_PRINT_TIME: Time to " << statement << ": " << timer->elapsed()/1000 << " s" << std::endl;
+#define PHCASEEDING_PRINT_TIME(timer,statement) timer->stop(); \
+  std::cout << " PHCASEEDING_PRINT_TIME: Time to " << statement << ": " << timer->elapsed()/1000 << " s" << std::endl;
 #else
-#define _PHCASEEDING_PRINT_TIME(timer, statement) (void) 0
+#define PHCASEEDING_PRINT_TIME(timer, statement) (void) 0
 #endif
 
 //#define _DEBUG_
@@ -294,7 +293,7 @@ std::pair<PHCASeeding::PositionMap, PHCASeeding::keyListPerLayer> PHCASeeding::F
       const Acts::Vector3 globalpos = {globalpos_d.x(), globalpos_d.y(), globalpos_d.z()};
       cachedPositions.insert(std::make_pair(ckey, globalpos));
       ckeys[layer-_FIRST_LAYER_TPC].push_back(ckey);
-      _FILL_TUPLE(_tupclus_all, 0, ckey, globalpos);
+      FILL_TUPLE(_tupclus_all, 0, ckey, globalpos);
     }
   }
   return std::make_pair(cachedPositions, ckeys);
@@ -346,7 +345,7 @@ std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding:
 
 int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
 {
-  _PROGRESS_TUPOUT_COUNT();
+  PROGRESS_TUPOUT_COUNT();
   if (Verbosity() > 1)
   {
     std::cout << " Process...  " << std::endl;
@@ -398,11 +397,11 @@ int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPosit
   keyLinks trackSeedPairs;
   keyLinkPerLayer bodyLinks;
   std::tie(trackSeedPairs, bodyLinks) = CreateBiLinks(globalPositions, ckeys);
-  _PHCASEEDING_PRINT_TIME(t_makebilinks, "init and make bilinks");
+  PHCASEEDING_PRINT_TIME(t_makebilinks, "init and make bilinks");
 
   t_makeseeds->restart();
   keyLists trackSeedKeyLists = FollowBiLinks(trackSeedPairs, bodyLinks, globalPositions);
-  _PHCASEEDING_PRINT_TIME(t_makeseeds, "make seeds");
+  PHCASEEDING_PRINT_TIME(t_makeseeds, "make seeds");
   if (Verbosity() > 0 )
   {
     t_makeseeds->stop();
@@ -576,13 +575,13 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
       for (auto cluster : bestBelowClusters)
       {
         curr_downlinks.insert({StartCluster.second, cluster});
-        _FILL_TUPLE(_tupclus_links, 0, StartCluster.second, globalPositions.at(cluster));
-        _FILL_TUPLE(_tupclus_links, -1, cluster, globalPositions.at(cluster));
+        FILL_TUPLE(_tupclus_links, 0, StartCluster.second, globalPositions.at(cluster));
+        FILL_TUPLE(_tupclus_links, -1, cluster, globalPositions.at(cluster));
       }
 
       for (auto cluster : bestAboveClusters)
       {
-        _FILL_TUPLE(_tupclus_links, 1, cluster, globalPositions.at(cluster));
+        FILL_TUPLE(_tupclus_links, 1, cluster, globalPositions.at(cluster));
         keyLink uplink = std::make_pair(cluster, StartCluster.second);
 
         if (last_downlinks.find(uplink) != last_downlinks.end())
@@ -591,8 +590,8 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
           const auto& key_top = uplink.first;
           const auto& key_bot = uplink.second;
           curr_bottom_of_bilink.insert(key_bot);
-          _FILL_TUPLE(_tupclus_bilinks, 0, key_top, globalPositions.at(cluster));
-          _FILL_TUPLE(_tupclus_bilinks, 1, key_bot, globalPositions.at(cluster));
+          FILL_TUPLE(_tupclus_bilinks, 0, key_top, globalPositions.at(cluster));
+          FILL_TUPLE(_tupclus_bilinks, 1, key_bot, globalPositions.at(cluster));
           
           if (last_bottom_of_bilink.find(key_top)==last_bottom_of_bilink.end()) {
             startLinks.push_back(std::make_pair(key_top,key_bot));
@@ -657,16 +656,17 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks( const PHCASeeding::keyLinks& t
     /* auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink()); */
     /* for (auto matchlink = matched_links.first; matchlink != matched_links.second; ++matchlink) */
     /* { */
-      if (matchlink.first != trackHead) continue;
+      if (matchlink.first != trackHead) { continue;
+}
       keyList trackSeedTriplet;
       trackSeedTriplet.push_back(startLink.first);
       trackSeedTriplet.push_back(startLink.second);
       trackSeedTriplet.push_back(matchlink.second);
       trackSeedKeyLists.push_back(trackSeedTriplet);
 
-      _FILL_TUPLE(_tupclus_seeds, 0, startLink.first, globalPositions.at(startLink.first));
-      _FILL_TUPLE(_tupclus_seeds, 1, startLink.second, globalPositions.at(startLink.second));
-      _FILL_TUPLE(_tupclus_seeds, 2, matchlink.second, globalPositions.at(matchlink.second));
+      FILL_TUPLE(_tupclus_seeds, 0, startLink.first, globalPositions.at(startLink.first));
+      FILL_TUPLE(_tupclus_seeds, 1, startLink.second, globalPositions.at(startLink.second));
+      FILL_TUPLE(_tupclus_seeds, 2, matchlink.second, globalPositions.at(matchlink.second));
     }
   }
 
@@ -702,7 +702,8 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks( const PHCASeeding::keyLinks& t
       // bool no_next_link = true;
       /* for (auto testlink = matched_links.first; testlink != matched_links.second; ++testlink) */
     for (const auto& link : bilinks[trackHead_layer]) {
-      if (link.first != trackHead) continue;
+      if (link.first != trackHead) { continue;
+}
       // It appears that it is just faster to traverse the lists, then use a binary-sorted search
       // In any case, if we use this cord in the future, be sure to sort the bilinks before using
     /* auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink()); */
@@ -748,7 +749,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks( const PHCASeeding::keyLinks& t
       if (seed.size() > 5)
       {
         trackSeedKeyLists.push_back(seed);
-        _FILL_TUPLE_WITH_SEED(_tupclus_grown_seeds, seed, globalPositions);
+        FILL_TUPLE_WITH_SEED(_tupclus_grown_seeds, seed, globalPositions);
       }
     }
     if (Verbosity() > 0)
