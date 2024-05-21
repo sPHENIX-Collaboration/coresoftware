@@ -577,8 +577,12 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
           /// we divide by two
           float rphiresid = fabs(local.x() - cluster->getLocalX());
           float zresid = fabs(local.y() - cluster->getLocalY());
-          if (rphiresid < m_rPhiSearchWin and
-              zresid < m_zSearchWindow)
+
+          if ((det == TrkrDefs::TrkrId::mvtxId && rphiresid < m_mvtxrPhiSearchWin &&
+              zresid < m_mvtxzSearchWin) 
+              ||
+              (det == TrkrDefs::TrkrId::inttId && rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin))
+              
           {
             
             if(rphiresid < minResidLayer[layer])
@@ -597,8 +601,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
                         << local.x() << " and inttclus rphi " << cluster->getLocalX()
                         << " and proj z " << local.y() << " and inttclus z "
                         << cluster->getLocalY() << " in layer " << layer
-                        << " with search windows " << m_rPhiSearchWin
-                        << " in rphi and strip z spacing " << m_zSearchWindow
                         << std::endl;
             }
           }

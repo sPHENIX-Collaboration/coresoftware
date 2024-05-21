@@ -61,16 +61,22 @@ class PHActsSiliconSeeding : public SubsysReco
     m_seedAnalysis = seedAnalysis;
   }
 
-  void setRPhiSearchWindow(const float win)
+  void setinttRPhiSearchWindow(const float win)
   {
-    m_rPhiSearchWin = win;
-    std::cout << "Search window is " << m_rPhiSearchWin << std::endl;
+    m_inttrPhiSearchWin = win;
   }
-  void setZSearchWindow(const float& win)
+  void setinttZSearchWindow(const float& win)
   {
-    m_zSearchWindow = win;
+    m_inttzSearchWin = win;
   }
-
+  void setmvtxRPhiSearchWindow(const float win)
+  {
+    m_mvtxrPhiSearchWin = win;
+  }
+  void setmvtxZSearchWindow(const float &win)
+  {
+    m_mvtxzSearchWin = win;
+  }
   /// For each MVTX+INTT seed, take the best INTT hits and form
   /// 1 silicon seed per MVTX seed
   void cleanSeeds(bool cleanSeeds)
@@ -287,9 +293,10 @@ class PHActsSiliconSeeding : public SubsysReco
   double m_nInttLayerRadii[m_nInttLayers] = {0};
 
   /// Search window for phi to match intt clusters in cm
-  double m_rPhiSearchWin = 0.1;
-  float m_zSearchWindow = std::numeric_limits<float>::quiet_NaN();
-
+  double m_inttrPhiSearchWin = 0.1;
+  float m_inttzSearchWin = std::numeric_limits<float>::quiet_NaN();
+  double m_mvtxrPhiSearchWin = 0.2;
+  float m_mvtxzSearchWin = 0.5;
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 
