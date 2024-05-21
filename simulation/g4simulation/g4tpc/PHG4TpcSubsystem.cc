@@ -233,5 +233,4 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_int_param("ntpc_phibins_mid", 1536);   //128 * 12
   set_default_int_param("ntpc_phibins_outer", 2304); //192 * 12
 
-
 }

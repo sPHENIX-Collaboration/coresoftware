@@ -199,7 +199,11 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_constrain_to_vertex_sPHENIX = constrain_to_vertex;
   }
 
-  void useFakePrimaryVertex(bool use_fake) { m_use_fake_pv = use_fake; }
+  void useFakePrimaryVertex(bool use_fake)
+  {
+    m_use_fake_pv = use_fake;
+    m_use_fake_pv_nTuple = use_fake;
+  }
 
   void allowZeroMassTracks(bool allow) { m_allowZeroMassTracks = allow; }
 
@@ -318,7 +322,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;
-  std::string m_magField;
+  std::string m_magField = "FIELDMAP_TRACKING";
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLESPHENIX_H

@@ -126,17 +126,10 @@ int caloTowerEmbed::process_event(PHCompositeNode * /*topNode*/)
       keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta_sim, iphi_sim);
     }
 
+    _sim_towers->get_tower_at_channel(channel)->set_status(_data_towers->get_tower_at_channel(channel)->get_status());
+
     TowerInfo *caloinfo_data = _data_towers->get_tower_at_channel(channel);
     TowerInfo *caloinfo_sim = _sim_towers->get_tower_at_channel(channel);
-
-    if (m_removeBadTowers && !caloinfo_data->get_isGood())
-    {
-
-      _sim_towers->get_tower_at_channel(channel)->set_energy(0.0);
-      _sim_towers->get_tower_at_channel(channel)->set_time(-11);
-
-      continue;
-    }
 
     float data_E = caloinfo_data->get_energy();
     float sim_E = caloinfo_sim->get_energy();
