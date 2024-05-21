@@ -353,7 +353,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
         m_nBadInitialFits++;
         continue;
       }
-
+      std::cout << "Line fitting" << std::endl;
       trackSeed->lineFit(positions, 0, 8);
       z = trackSeed->get_Z0();
       std::cout << "Line fit params " << trackSeed->get_Z0() << ", " << trackSeed->get_slope() << std::endl;
@@ -367,7 +367,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       trackSeed->set_phi(phi);  // make phi persistent
       /// Project to INTT and find matches
       // int mvtxsize = globalPositions.size();
-      auto additionalClusters = findInttMatches(globalPositions, *trackSeed);
+      auto additionalClusters = findInttMatches(globalPositions, cluster_keys, *trackSeed);
 
       /// Add possible matches to cluster list to be parsed when
       /// Svtx tracks are made
@@ -448,13 +448,12 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
 std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
     std::vector<Acts::Vector3>& clusters,
+    std::vector<TrkrDefs::cluskey>& keys,
     TrackSeed& seed)
 {
- 
-std::vector<float> fitpars{(float)fabs(1./seed.get_qOverR()), 
-(float)seed.get_X0(), (float)seed.get_Y0(), 
-(float)seed.get_Z0(), (float)seed.get_slope()};
-float trackphi = seed.get_phi();
+  auto fitpars = TrackFitUtils::fitClusters(clusters, keys,true);
+
+  float trackphi = seed.get_phi();
   /// Diagnostic
   if (m_seedAnalysis)
   {
@@ -484,7 +483,6 @@ float trackphi = seed.get_phi();
   {
     auto key = *it;
     unsigned int layer = TrkrDefs::getLayer(key);
-    std::cout << "skipping layer " << (unsigned int)layer << std::endl;
     layersToSkip.insert(layer);
   }
 
@@ -497,13 +495,10 @@ float trackphi = seed.get_phi();
       nlayers = 7;
       layer = 3;
     }
-    std::cout << "iteraing det " << (unsigned int) det << std::endl;
     while (layer < nlayers)
     {
-      std::cout << "iterating layer" << (unsigned int)layer << std::endl;
       if (layersToSkip.find(layer) != layersToSkip.end())
       {
-        std::cout << "skipping" << std::endl;
         layer++;
         continue;
       }
@@ -514,8 +509,7 @@ float trackphi = seed.get_phi();
         auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
         float surfphi = atan2(surfcenter.y(), surfcenter.x());
         float dphi = normPhi2Pi(trackphi - surfphi);
-        std::cout << "surf center " << surfcenter.transpose() << std::endl;
-        std::cout << "track phi " << trackphi << std::endl;
+ 
         /// Check that the projection is within some reasonable amount of the segment
         /// to reject e.g. looking at segments in the opposite hemisphere. This is about
         /// the size of one intt segment (256 * 80 micron strips in a segment)
@@ -540,9 +534,7 @@ float trackphi = seed.get_phi();
           const auto cluster = clusIter->second;
           auto glob = m_tGeometry->getGlobalPosition(
               cluskey, cluster);
-          std::cout << "cluster glob " << glob.transpose() << std::endl;
           auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
-          std::cout << "intersection is " << intersection.transpose() << std::endl;
           auto local = (surf->transform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
           local /= Acts::UnitConstants::cm;
           m_projgx = intersection.x();
@@ -585,7 +577,6 @@ float trackphi = seed.get_phi();
           /// we divide by two
           float rphiresid = fabs(local.x() - cluster->getLocalX());
           float zresid = fabs(local.y() - cluster->getLocalY());
-          std::cout << "residuals are " << rphiresid << ", " << zresid << std::endl;
           if (rphiresid < m_rPhiSearchWin and
               zresid < m_zSearchWindow)
           {

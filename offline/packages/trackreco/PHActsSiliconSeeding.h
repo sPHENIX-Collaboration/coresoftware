@@ -181,6 +181,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// belonging to MVTX track stub
   std::vector<TrkrDefs::cluskey> findInttMatches(
       std::vector<Acts::Vector3> &clusters,
+      std::vector<TrkrDefs::cluskey>& keys,
       TrackSeed &seed);
 
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters,
