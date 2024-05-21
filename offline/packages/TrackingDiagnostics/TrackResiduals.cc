@@ -1075,6 +1075,33 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     }
   }
 
+  if(Verbosity() > 2)
+    {
+      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::micromegasId)
+	{
+	  unsigned int layer =  TrkrDefs::getLayer(ckey);
+	  auto loc = geometry->getLocalCoords(ckey, cluster);  
+	  std::cout << " MMs layer " << layer << " cluslx " << loc(0) << " clusly " << loc(1) << std:: endl; 
+	  std::cout << "     clusgx " <<  clusglob.x() 
+		    << " clusgy " << clusglob.y() 
+		    << " clusgz " << clusglob.z() 
+		    << std::endl;
+
+	  if(!state)
+	    {
+	      std::cout << " ****** ckey " << ckey << " track " << track->get_id() << " in layer " << layer << " found no matching state " << std::endl;
+	    }
+	  else
+	    {
+	      std::cout << "found matching state for ckey " << ckey  << " track " << track->get_id() << " in layer " <<  layer  << std::endl;
+	      std::cout << "   stategx  " << state->get_x() 
+			<< " stategy " << state->get_y() 
+			<< " stategz " << state->get_z()
+			<< std::endl; 	  
+	    }
+	}
+    }
+
   m_cluskeys.push_back(ckey);
 
   //! have cluster and state, fill vectors
@@ -1119,6 +1146,19 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     {
       fillStatesWithCircleFit(ckey, cluster, clusglob, geometry);
     }
+
+    if(Verbosity() > 2)
+      {
+	if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::micromegasId)
+	  {
+	    unsigned int ssize = m_stategx.size();
+	    std::cout << "   ckey " << ckey << " after circle fit: stategx  " << m_stategx[ssize-1]
+		      << " stategy " << m_stategy[ssize-1]
+		      << " stategz " << m_stategy[ssize-1]
+		      << std::endl; 	  
+	  }
+      }
+
     //! skip filling the state information if a state is not there
     //! or we just ran the seeding. Fill with Nans to maintain the
     //! 1-to-1 mapping between cluster/state vectors
