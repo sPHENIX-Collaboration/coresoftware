@@ -78,11 +78,14 @@
 #if defined(_CLUSTER_LOG_TUPOUT_)
 #define _FILL_TUPLE(tupname, num, key, pos) \
   tupname->Fill(_nevent,TrkrDefs::getLayer(key), num, pos.x(), pos.y(), pos.z())
+#define _FILL_TUPLE_V1V2(tupname, num, key, pos,v0,v1) \
+  tupname->Fill(_nevent,TrkrDefs::getLayer(key), num, pos.x(), pos.y(), pos.z(),v0,v1)
 #define _FILL_TUPLE_WITH_SEED(tupname, seed,pos) \
   for (unsigned int i=0; i<seed.size();++i) _FILL_TUPLE(tupname, i, seed[i], pos.at(seed[i]))
 #define _PROGRESS_TUPOUT_COUNT() _tupout_count += 1
 #else 
 #define _FILL_TUPLE(tupname, num, key,pos) (void) 0
+#define _FILL_TUPLE_V1V2(tupname, num, key,pos,v0,v1) (void) 0
 #define _FILL_TUPLE_WITH_SEED(tupname, seed, pos) (void) 0
 #define _PROGRESS_TUPOUT_COUNT() (void) 0
 #endif
@@ -539,7 +542,6 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
 
       // find the three clusters closest to a straight line
       // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
-      double maxCosPlaneAngle = -0.95;
       // double minSumLengths = 1e9;
       keyList bestBelowClusters;
       keyList bestAboveClusters;
@@ -547,22 +549,49 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
       {
         for (size_t iBelow = 0; iBelow < delta_below.size(); ++iBelow)
         {
+          // test for straightness of line just by taking the cos(angle) between the two vectors
+          // use the sq as it is much faster than sqrt
+          const auto& A = delta_below[iBelow];
+          const auto& B = delta_above[iAbove];
+          // calculate normalized dot product between two vectors
+          const double A_len_sq = (A[0]*A[0]+A[1]*A[1]+A[2]*A[2]);
+          const double B_len_sq = (B[0]*B[0]+B[1]*B[1]+B[2]*B[2]);
+          const double dot_prod = (A[0]*B[0]+A[1]*B[1]+A[2]*B[2]);
+          const double cos_angle_sq = dot_prod*dot_prod/A_len_sq/B_len_sq; //(A[0]*B[0]+A[1]*B[1]+A[2]*B[2])/A_len/B_len; // also same as cos(angle), where angle is between two vectors
+
           //        double dotProduct = delta_below[iBelow][0]*delta_above[iAbove][0]+delta_below[iBelow][1]*delta_above[iAbove][1]+delta_below[iBelow][2]*delta_above[iAbove][2];
           //        double belowLength = sqrt(delta_below[iBelow][0]*delta_below[iBelow][0]+delta_below[iBelow][1]*delta_below[iBelow][1]+delta_below[iBelow][2]*delta_below[iBelow][2]);
           //        double aboveLength = sqrt(delta_above[iAbove][0]*delta_above[iAbove][0]+delta_above[iAbove][1]*delta_above[iAbove][1]+delta_above[iAbove][2]*delta_above[iAbove][2]);
-          double angle = breaking_angle(
-              delta_below[iBelow][0],
-              delta_below[iBelow][1],
-              delta_below[iBelow][2],
-              delta_above[iAbove][0],
-              delta_above[iAbove][1],
-              delta_above[iAbove][2]);
-          if (cos(angle) < maxCosPlaneAngle)
+          // double angle = breaking_angle(
+              // delta_below[iBelow][0],
+              // delta_below[iBelow][1],
+              // delta_below[iBelow][2],
+              // delta_above[iAbove][0],
+              // delta_above[iAbove][1],
+              // delta_above[iAbove][2]);
+          // double _cos_angle = cos(angle);
+          // alternatively, just take the cosine of the angle from the dot product
+          // double A = sqrt(delta_below[iBelow][0]*delta_below[iBelow][0]+delta_below[iBelow][1]*delta_below[iBelow][1]+delta_below[iBelow][2]*delta_below[iBelow][2]);
+          // double B = sqrt(delta_above[iAbove][0]*delta_above[iAbove][0]+delta_above[iAbove][1]*delta_above[iAbove][1]+delta_above[iAbove][2]*delta_above[iAbove][2]);
+          // double dot_product = delta_below[iBelow][0]*delta_above[iAbove][0]+delta_below[iBelow][1]*delta_above[iAbove][1]+delta_below[iBelow][2]*delta_above[iAbove][2];
+          // double alt_angle = dot_product/A/B;
+          // std::cout << " cos(angle): " << cos_angle << " vs: " << _cos_angle << " for delta: " << (cos_angle-_cos_angle) << std::endl;
+
+        const double maxCosPlaneAngle = -0.95;
+        const double maxCosPlaneAngle_sq = maxCosPlaneAngle*maxCosPlaneAngle;
+          if ( (dot_prod < 0.) && (cos_angle_sq > maxCosPlaneAngle_sq))
           {
             // maxCosPlaneAngle = cos(angle);
             // minSumLengths = belowLength+aboveLength;
             bestBelowClusters.push_back(ClustersBelow[iBelow].second);
             bestAboveClusters.push_back(ClustersAbove[iAbove].second);
+
+            // fill the tuples for plotting
+            _FILL_TUPLE(_tupclus_links, 0, StartCluster.second, 
+                globalPositions.at(StartCluster.second));
+            _FILL_TUPLE(_tupclus_links, -1, cluster, globalPositions.at(bestBelowClusters.back()));
+            _FILL_TUPLE(_tupclus_links, 1, cluster,  globalPositions.at(bestAboveClusters.back()));
+
           }
         }
       }
@@ -577,13 +606,10 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
       for (auto cluster : bestBelowClusters)
       {
         curr_downlinks.insert({StartCluster.second, cluster});
-        _FILL_TUPLE(_tupclus_links, 0, StartCluster.second, globalPositions.at(cluster));
-        _FILL_TUPLE(_tupclus_links, -1, cluster, globalPositions.at(cluster));
       }
 
       for (auto cluster : bestAboveClusters)
       {
-        _FILL_TUPLE(_tupclus_links, 1, cluster, globalPositions.at(cluster));
         keyLink uplink = std::make_pair(cluster, StartCluster.second);
 
         if (last_downlinks.find(uplink) != last_downlinks.end())
@@ -953,7 +979,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode) // This is called by ::InitRun
   std::cout << " Writing _CLUSTER_LOG_TUPOUT.root file " << std::endl;
   _f_clustering_process = new TFile("_CLUSTER_LOG_TUPOUT.root", "recreate");
   _tupclus_all         = new TNtuple("all",         "all clusters","event:layer:num:x:y:z");
-  _tupclus_links       = new TNtuple("links",       "links","event:layer:updown01:x:y:z");
+  _tupclus_links       = new TNtuple("links",       "links","event:layer:updown01:x:y:z:delta_eta:delta_phi");
   _tupclus_bilinks     = new TNtuple("bilinks",     "bilinks","event:layer:topbot01:x:y:z");
   _tupclus_seeds       = new TNtuple("seeds",       "3 bilink seeds cores","event:layer:seed012:x:y:z");
   _tupclus_grown_seeds = new TNtuple("grown_seeds", "grown seeds", "event:layer:seednum05:x:y:z");
