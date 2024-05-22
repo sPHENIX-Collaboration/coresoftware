@@ -276,7 +276,6 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       {
         clearTreeVariables();
         m_seedid++;
-        std::cout << "seed id " << m_seedid << std::endl;
       }
 
       std::vector<TrkrDefs::cluskey> cluster_keys;
@@ -353,12 +352,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
         m_nBadInitialFits++;
         continue;
       }
-      std::cout << "Line fitting" << std::endl;
+
       trackSeed->lineFit(positions, 0, 8);
       z = trackSeed->get_Z0();
-      std::cout << "Line fit params " << trackSeed->get_Z0() << ", " << trackSeed->get_slope() << std::endl;
-      std::cout << "circle fit params " << fabs(1. / trackSeed->get_qOverR()) << ", "
-                << trackSeed->get_X0() << ", " << trackSeed->get_Y0() << std::endl;
       fitTimer->stop();
       auto circlefittime = fitTimer->get_accumulated_time();
       fitTimer->restart();
@@ -366,15 +362,15 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       float phi = trackSeed->get_phi(positions);
       trackSeed->set_phi(phi);  // make phi persistent
       /// Project to INTT and find matches
-      // int mvtxsize = globalPositions.size();
+      int mvtxsize = globalPositions.size();
       auto additionalClusters = findInttMatches(globalPositions, cluster_keys, *trackSeed);
 
       /// Add possible matches to cluster list to be parsed when
       /// Svtx tracks are made
       for (unsigned int newkey = 0; newkey < additionalClusters.size(); newkey++)
       {
-        // trackSeed->insert_cluster_key(additionalClusters[newkey]);
-        // positions.insert(std::make_pair(additionalClusters[newkey], globalPositions[mvtxsize + newkey]));
+        trackSeed->insert_cluster_key(additionalClusters[newkey]);
+        positions.insert(std::make_pair(additionalClusters[newkey], globalPositions[mvtxsize + newkey]));
 
         if (Verbosity() > 1)
         {
@@ -388,7 +384,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       //! Circle fit again to take advantage of INTT lever arm
       trackSeed->circleFitByTaubin(positions, 0, 8);
-
+      phi = trackSeed->get_phi(positions);
+      trackSeed->set_phi(phi);
       if (Verbosity() > 0)
       {
         std::cout << "find intt clusters time " << addClusters << std::endl;
