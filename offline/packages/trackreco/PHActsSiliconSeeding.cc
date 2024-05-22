@@ -257,7 +257,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
     /// Loop over actual seeds in this grid volume
     for (auto& seed : seeds)
     {
-      if (Verbosity() > -1)
+      if (Verbosity() > 1)
       {
         std::cout << "Seed " << numSeeds << " has "
                   << seed.sp().size() << " measurements "
@@ -267,7 +267,6 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       if (m_seedAnalysis)
       {
         clearTreeVariables();
-        std::cout << "seed id " << m_seedid << std::endl;
         m_seedid++;
       }
 
@@ -365,7 +364,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
         trackSeed->insert_cluster_key(additionalClusters[newkey]);
         positions.insert(std::make_pair(additionalClusters[newkey], globalPositions[mvtxsize + newkey]));
 
-        if (Verbosity() > -1)
+        if (Verbosity() > 2)
         {
           std::cout << "adding additional intt key " << additionalClusters[newkey] << std::endl;
         }
@@ -492,7 +491,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
         layer++;
         continue;
       }
-      std::cout << "Checking detector " << (unsigned int) det << " and layer " << (unsigned int) layer << std::endl;
       for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det, layer))
       {
         auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
@@ -503,7 +501,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
         /// Check that the projection is within some reasonable amount of the segment
         /// to reject e.g. looking at segments in the opposite hemisphere. This is about
         /// the size of one intt segment (256 * 80 micron strips in a segment)
-        if (fabs(dphi) > 0.4)
+        if (fabs(dphi) > 0.2)
         {
          continue;
         }
@@ -567,13 +565,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           /// we divide by two
           float rphiresid = fabs(local.x() - cluster->getLocalX());
           float zresid = fabs(local.y() - cluster->getLocalY());
-          if(det == TrkrDefs::TrkrId::inttId)
-          {
-            std::cout << "rphi resid " << rphiresid << " and z resid " << zresid << std::endl;
-            std::cout << "search windows " << m_inttrPhiSearchWin << " and " << m_inttzSearchWin << std::endl;
-            std::cout << " cluster position " << glob.transpose() << std::endl;
-            std::cout << " projection " << intersection.transpose() << std::endl;
-          }
+         
           if ((det == TrkrDefs::TrkrId::mvtxId && rphiresid < m_mvtxrPhiSearchWin &&
               zresid < m_mvtxzSearchWin) 
               ||
