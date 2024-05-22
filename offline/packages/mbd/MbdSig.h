@@ -133,19 +133,19 @@ class MbdSig
 
   /** fit values*/
   // should make an array for the different methods
-  Double_t f_ampl; /** best guess (from fit of spline or template, or max adc) */
-  Double_t f_time; /** best guess (from fit of spline or template, or max adc) */
+  Double_t f_ampl{0,}; /** best guess (from fit of spline or template, or max adc) */
+  Double_t f_time{0.}; /** best guess (from fit of spline or template, or max adc) */
 
-  Double_t f_time_offset; /** time offset used in fit */
+  Double_t f_time_offset{4.0}; /** time offset used in fit */
 
-  Double_t f_integral; /** integral */
+  Double_t f_integral{0.}; /** integral */
 
-  TH1 *hRawPulse;           //!
-  TH1 *hSubPulse;           //!
-  TH1 *hpulse;              //!
-  TGraphErrors *gRawPulse;  //!
-  TGraphErrors *gSubPulse;  //!
-  TGraphErrors *gpulse;     //!
+  TH1 *hRawPulse{nullptr};           //!
+  TH1 *hSubPulse{nullptr};           //!
+  TH1 *hpulse{nullptr};              //!
+  TGraphErrors *gRawPulse{nullptr};  //!
+  TGraphErrors *gSubPulse{nullptr};  //!
+  TGraphErrors *gpulse{nullptr};     //!
 
   /** for CalcPed0 */
   //std::unique_ptr<MbdRunningStats> ped0stats{nullptr};    //!
@@ -154,13 +154,13 @@ class MbdSig
   TH1 *hPedEvt{nullptr};          //! evt-by-event pedestal
   TF1 *ped_fcn{nullptr};
   TF1 *ped_tail{nullptr};         //! tail of prev signal
-  Double_t ped0;                  //!
-  Double_t ped0rms;               //!
-  Int_t use_ped0;                 //! whether to apply ped0
-  Int_t minped0samp;              //! min sample for event-by-event ped, inclusive
-  Int_t maxped0samp;              //! max sample for event-by-event ped, inclusive
-  Double_t minped0x;              //! min x for event-by-event ped, inclusive
-  Double_t maxped0x;              //! max x for event-by-event ped, inclusive
+  Double_t ped0{0.};                  //!
+  Double_t ped0rms{0.};               //!
+  int   use_ped0{0};                 //! whether to apply ped0
+  Int_t minped0samp{-9999};       //! min sample for event-by-event ped, inclusive
+  Int_t maxped0samp{-9999};       //! max sample for event-by-event ped, inclusive
+  Double_t minped0x{0.};              //! min x for event-by-event ped, inclusive
+  Double_t maxped0x{0.};              //! max x for event-by-event ped, inclusive
   Double_t ped_presamp{};         //! presamples for ped calculation
   Double_t ped_presamp_nsamps{};  //! num of presamples for ped calculation
   Double_t ped_presamp_maxsamp{-1}; //! a peak sample for ped calc (-1 = use max)
@@ -169,26 +169,26 @@ class MbdSig
   // Double_t time_calib;
 
   /** For pulse template extraction */
-  TH2 *h2Template;
-  TH2 *h2Residuals;
+  TH2 *h2Template{nullptr};
+  TH2 *h2Residuals{nullptr};
 
-  TH1 *hAmpl;
-  TH1 *hTime;
-  Int_t template_npointsx;
-  Int_t template_npointsy;
-  Double_t template_begintime;
-  Double_t template_endtime;
-  // Double_t template_min_good_amplitude;  //! for template, in original units of waveform data
-  // Double_t template_max_good_amplitude;  //! for template, in original units of waveform data
-  // Double_t template_min_xrange;          //! for template, in original units of waveform data
-  // Double_t template_max_xrange;          //! for template, in original units of waveform data
+  TH1 *hAmpl{nullptr};
+  TH1 *hTime{nullptr};
+  Int_t template_npointsx{0};
+  Int_t template_npointsy{0};
+  Double_t template_begintime{0.};
+  Double_t template_endtime{0.};
+  // Double_t template_min_good_amplitude{20.};    //! for template, in original units of waveform data
+  // Double_t template_max_good_amplitude{4080.};  //! for template, in original units of waveform data
+  // Double_t template_min_xrange{0.};             //! for template, in original units of waveform data
+  // Double_t template_max_xrange{0.};             //! for template, in original units of waveform data
   std::vector<float> template_y;
   std::vector<float> template_yrms;
-  TF1 *template_fcn;
+  TF1 *template_fcn{nullptr};
   Double_t fit_min_time{};  //! min time for fit, in original units of waveform data
   Double_t fit_max_time{};  //! max time for fit, in original units of waveform data
 
-  int _verbose;
+  int _verbose{0};
 };
 
 #endif  // __MBDSIG_H__

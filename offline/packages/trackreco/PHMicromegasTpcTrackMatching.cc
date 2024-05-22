@@ -174,14 +174,22 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     auto seed = _svtx_seed_map->get(seedID);
     auto siID = seed->get_silicon_seed_index();
     auto tracklet_si = _si_track_map->get(siID);
-    if(!tracklet_si) continue;  // cannot use tracks not matched to silicon because crossing is unknown
 
-    short int crossing = tracklet_si->get_crossing();
-    if (crossing == SHRT_MAX) 
+    short int crossing = 0;
+    if(_pp_mode)
       {
-	if(Verbosity() > 0) 
-	  std::cout  << " svtx seed " << seedID << " with si seed " << siID << " crossing not defined: crossing = " << crossing << " skip this track" << std::endl;
-	continue;
+	if(!tracklet_si) continue;  // cannot use tracks not matched to silicon because crossing is unknown
+	
+	crossing = tracklet_si->get_crossing();
+	if (crossing == SHRT_MAX) 
+	  {
+	    if(Verbosity() > 0)
+	      { 
+		std::cout  << " svtx seed " << seedID << " with si seed " << siID 
+			   << " crossing not defined: crossing = " << crossing << " skip this track" << std::endl;
+	      }
+	    continue;
+	  }
       }
 
     auto tpcID = seed->get_tpc_seed_index();
@@ -393,6 +401,8 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
               << " dz " << dz
               << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z
               << " rphi_proj " <<  rphi_proj << " z_proj " << z_proj
+	      << " pt " << tracklet_tpc->get_pt()
+	      << " charge " << tracklet_tpc->get_charge()
               << std::endl;
           }
         }

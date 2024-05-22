@@ -623,7 +623,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
         clus->identify();
       }
 
-      m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+      if (zbins.size() <= 127) m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 
     }  // clusitr loop
   }    // loop over hitsets
@@ -909,7 +909,7 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
         clus->identify();
       }
 
-      m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+      if (zbins.size() <= 127) m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
     }  // clusitr loop
   }    // loop over hitsets
 

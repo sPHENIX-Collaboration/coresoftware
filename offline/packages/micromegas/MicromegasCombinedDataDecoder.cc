@@ -14,6 +14,7 @@
 #include <ffarawobjects/MicromegasRawHitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
@@ -93,6 +94,13 @@ int MicromegasCombinedDataDecoder::InitRun(PHCompositeNode* topNode)
     hitsetcontainer = new TrkrHitSetContainerv1;
     auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     trkrnode->addNode(newNode);
+  }
+  auto rawhitcontainer = findNode::getClass<MicromegasRawHitContainer>(topNode, m_rawhitnodename);
+  if(!rawhitcontainer)
+  {
+    Fun4AllServer* se = Fun4AllServer::instance();
+    se->unregisterSubsystem(this);
+    std::cout << PHWHERE << "Removing TPOT unpacker, no raw hit container" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
