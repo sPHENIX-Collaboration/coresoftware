@@ -183,9 +183,9 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
 
-  /// Projects circle fit to INTT radii to find possible INTT clusters
-  /// belonging to MVTX track stub
-  std::vector<TrkrDefs::cluskey> findInttMatches(
+  /// Projects circle fit to radii to find possible MVTX/INTT clusters
+  /// belonging to track stub
+  std::vector<TrkrDefs::cluskey> findMatches(
       std::vector<Acts::Vector3> &clusters,
       std::vector<TrkrDefs::cluskey>& keys,
       TrackSeed &seed);
@@ -288,13 +288,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Maximum allowed transverse PCA for seed, cm
   double m_maxSeedPCA = 2.;
 
-  /// Doesn't change, we are building the INTT this way
-  const static unsigned int m_nInttLayers = 4;
-  double m_nInttLayerRadii[m_nInttLayers] = {0};
-
   /// Search window for phi to match intt clusters in cm
   double m_inttrPhiSearchWin = 0.1;
-  float m_inttzSearchWin = std::numeric_limits<float>::quiet_NaN();
+  float m_inttzSearchWin = 0.8; // default to a half strip width
   double m_mvtxrPhiSearchWin = 0.2;
   float m_mvtxzSearchWin = 0.5;
   /// Whether or not to use truth clusters in hit lookup
