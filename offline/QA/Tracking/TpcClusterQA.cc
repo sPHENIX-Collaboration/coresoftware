@@ -1,5 +1,12 @@
 #include "TpcClusterQA.h"
 
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
+#include <qautils/QAHistManagerDef.h>
+
+#include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <trackbase/ActsGeometry.h>
@@ -8,6 +15,9 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <qautils/QAHistManagerDef.h>
@@ -34,6 +44,9 @@ TpcClusterQA::TpcClusterQA(const std::string &name)
 //____________________________________________________________________________..
 int TpcClusterQA::InitRun(PHCompositeNode *topNode)
 {
+  //m_file = TFile::Open("TpcClusterQAoutfile.root","recreate");
+  //assert(m_file->IsOpen());
+    
   // find tpc geometry
   auto geomContainer =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
@@ -68,14 +81,26 @@ int TpcClusterQA::InitRun(PHCompositeNode *topNode)
 
 //____________________________________________________________________________..
 int TpcClusterQA::process_event(PHCompositeNode *topNode)
-{
+{ int debug_verbose=2;
+
+  if(debug_verbose==2) {std::cout<<"Coming to 1"<<std::endl;}
   auto clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterContainer)
   {
     std::cout << PHWHERE << "No cluster container, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+if(debug_verbose==2) {std::cout<<"Coming to 111"<<std::endl;}
+  auto geomContainer =
+              findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if(debug_verbose==2) {std::cout<<"Coming to 112"<<std::endl;}  
+  auto hitmap = findNode::getClass<TrkrHitSetContainer>(topNode,"TRKR_HITSET");
+  if(!hitmap)
+    {
+      std::cout << PHWHERE << "No hitmap found, bailing" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+if(debug_verbose==2) {std::cout<<"Coming to 113"<<std::endl;}
   auto tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tGeometry)
   {
@@ -83,11 +108,15 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  if(debug_verbose==2) {std::cout<<"Coming to 114"<<std::endl;}
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  if(debug_verbose==2) {std::cout<<"Coming to 3"<<std::endl;}
+
   TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "stotal_clusters")));
   TH2 *h_clusterssector = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ncluspersector")));
+  TH2F *h_hitpositions = dynamic_cast<TH2F *>(hm->getHisto(Form("%shit_positions", getHistoPrefix().c_str())));
 
   struct HistoList
   {
@@ -119,12 +148,53 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
   { if (h) { h->Fill(val); 
 } };
 
+if(debug_verbose==1) {std::cout<<"Coming to 4"<<std::endl;} 
+TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
+ for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
+      hitsetiter != all_hitsets.second;
+      ++hitsetiter)
+   {
+    auto hitsetkey = hitsetiter->first;
+    TrkrHitSet* hitset = hitsetiter->second;
+    if(TrkrDefs::getTrkrId(hitsetkey) != TrkrDefs::TrkrId::tpcId)
+      {
+	continue;
+      }
+if(debug_verbose==1) {std::cout<<"Coming to 5"<<std::endl;}    
+int hitlayer = TrkrDefs::getLayer(hitsetkey);
+    std::cout<<__PRETTY_FUNCTION__<<"hitlayer="<<hitlayer<<std::endl;
+    //auto sector = TpcDefs::getSectorId(hitsetkey);
+    //auto side = TpcDefs::getSide(hitsetkey);
+    auto hitrangei = hitset->getHits();
+    for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+         hitr != hitrangei.second;
+         ++hitr)
+    { 
+      if(debug_verbose==1) {std::cout<<"Coming to 6"<<std::endl;}
+      auto hitkey = hitr->first;
+      //auto hit = hitr->second;
+      //auto adc = hit->getAdc();
+      auto hitpad = TpcDefs::getPad(hitkey);
+      //auto hittbin = TpcDefs::getTBin(hitkey);
+      //Check TrackResiduals.cc
+if(debug_verbose==1) {std::cout<<"Coming to 7"<<std::endl;}      
+auto geoLayer = geomContainer->GetLayerCellGeom(hitlayer);
+      if(debug_verbose==1) {std::cout<<"Coming to 8"<<std::endl;}
+      auto phi = geoLayer->get_phicenter(hitpad);
+      auto radius = geoLayer->get_radius();
+      auto hitgx = radius * std::cos(phi);
+      auto hitgy = radius * std::sin(phi);
+if(debug_verbose==1) {std::cout<<"Coming to 9"<<std::endl;}      
+h_hitpositions->Fill(hitgx,hitgy);
+    }
+
+   }
   float nclusperevent[24] = {0};
   for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
     int numclusters = 0;
-
-    auto range = clusterContainer->getClusters(hsk);
+if(debug_verbose==1) {std::cout<<"Coming to 10"<<std::endl;}    
+auto range = clusterContainer->getClusters(hsk);
     int sector = TpcDefs::getSectorId(hsk);
     int side = TpcDefs::getSide(hsk);
     if (side > 0)
@@ -132,8 +202,10 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
       sector += 12;
     }
     for (auto iter = range.first; iter != range.second; ++iter)
-    {
+    { 
+      if(debug_verbose==1) {std::cout<<"Coming to 11"<<std::endl;}
       const auto cluskey = iter->first;
+//std::cout<<"cluskey="<<cluskey<<std::endl;
       const auto cluster = iter->second;
       const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(cluskey));
       int region = it->second;
@@ -142,15 +214,15 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
-
-      fill(hiter->second.crphisize, cluster->getPhiSize());
+if(debug_verbose==1) {std::cout<<"Coming to 12"<<std::endl;}      
+fill(hiter->second.crphisize, cluster->getPhiSize());
       fill(hiter->second.czsize, cluster->getZSize());
       fill(hiter->second.crphierr, cluster->getRPhiError());
       fill(hiter->second.czerr, cluster->getZError());
       fill(hiter->second.cedge, cluster->getEdge());
       fill(hiter->second.coverlap, cluster->getOverlap());
-
-      numclusters++;
+if(debug_verbose==1) {std::cout<<"Coming to 13"<<std::endl;}      
+numclusters++;
     }
 
     nclusperevent[sector] += numclusters;
@@ -261,6 +333,14 @@ void TpcClusterQA::createHistos()
                       "TPC clusters per hitsetkey", 1152, 0, 1152, 10000, 0, 10000);
     h->GetXaxis()->SetTitle("Hitsetkey number");
     h->GetYaxis()->SetTitle("Number of clusters");
+    hm->registerHisto(h);
+  }
+    
+  {
+    auto h = new TH2F(Form("%shit_positions", getHistoPrefix().c_str()),
+                                           "Histogram of hit x y positions", 160, 0, 80, 160, 0, 80);
+    h->GetXaxis()->SetTitle("x (cm)");
+    h->GetYaxis()->SetTitle("y (cm)");
     hm->registerHisto(h);
   }
 
