@@ -120,24 +120,21 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   m_mbdevent->Calculate(m_mbdpmts, m_mbdout);
 
   // For multiple global vertex
-  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0) {
+  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0)
+  {
     auto vertex = std::make_unique<MbdVertexv2>();
     vertex->set_t(m_mbdevent->get_bbct0());
     vertex->set_z(m_mbdevent->get_bbcz());
     vertex->set_z_err(0.6);
     vertex->set_t_err(m_tres);
-
-    /*
-    for (int iarm = 0; iarm < 2; iarm++)
-    {
-      vertex->set_bbc_ns( iarm, m_mbdevent->get_bbcn(iarm), m_mbdevent->get_bbcq(iarm), m_mbdevent->get_bbct(iarm) );
-    }
-    */
+    vertex->set_beam_crossing(0);
 
     m_mbdvtxmap->insert(vertex.release());
+
+    // copy to globalvertex
   }
 
-  if (Verbosity() > 0)
+  //if (Verbosity() > 0)
   {
     std::cout << "mbd vertex z and t0 " << m_mbdevent->get_bbcz() << ", " << m_mbdevent->get_bbct0() << std::endl;
   }
@@ -203,12 +200,19 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
     bbcNode->addNode(MbdPmtContainerNode);
   }
 
-  m_mbdvtxmap = findNode::getClass<MbdVertexMap>(bbcNode, "MbdVertexMap");
+  PHCompositeNode *globalNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "GLOBAL"));
+  if (!globalNode)
+  {
+    globalNode = new PHCompositeNode("GLOBAL");
+    dstNode->addNode(globalNode);
+  }
+
+  m_mbdvtxmap = findNode::getClass<MbdVertexMap>(globalNode, "MbdVertexMap");
   if (!m_mbdvtxmap)
   {
     m_mbdvtxmap = new MbdVertexMapv1();
     PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(m_mbdvtxmap, "MbdVertexMap", "PHObject");
-    bbcNode->addNode(VertexMapNode);
+    globalNode->addNode(VertexMapNode);
   }
 
   m_mbdgeom = findNode::getClass<MbdGeom>(runNode, "MbdGeom");
