@@ -1676,6 +1676,8 @@ int CaloTriggerEmulator::process_trigger()
     for (int is = 0; is < nsample; is++)
       {
 	pass |= bits.at(is);
+	trig_bits->push_back(bits.at(is));
+
       }
 
     if (pass)
@@ -1766,6 +1768,7 @@ int CaloTriggerEmulator::process_trigger()
     {
       trig_bits->push_back(bits.at(is));
     }
+
     if (pass)
     {
       m_npassed++;
@@ -1875,6 +1878,7 @@ int CaloTriggerEmulator::process_trigger()
     int pass = 0;
     for (int is = 0; is < nsample; is++)
     {
+      std::cout << bits.at(is) << std::endl;
       trig_bits->push_back(bits.at(is));
       if (trig_bits->at(is))
       {
