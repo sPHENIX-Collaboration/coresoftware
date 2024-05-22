@@ -16,6 +16,9 @@ class PHSiliconHelicalPropagator : public SubsysReco
   int End(PHCompositeNode* topNode) override;
 
   void set_track_map_name(const std::string& name) { _track_map_name = name; }
+  void zeroField() { m_zeroField = true;  }
+  void dca_xy_cut(const float cut) { _dca_cut = cut; }
+  void dca_z_cut(const float cut) { _dca_z_cut = cut; }
 
  private:
   int createSeedContainer(TrackSeedContainer*& container, const std::string& container_name, PHCompositeNode* topNode);
@@ -27,5 +30,8 @@ class PHSiliconHelicalPropagator : public SubsysReco
   TrkrClusterContainer* _cluster_map = nullptr;
   TrkrClusterCrossingAssoc* _cluster_crossing_map = nullptr;
 
+  float _dca_cut = 1.;
+  float _dca_z_cut = 1.;
+  bool m_zeroField = false;
   std::string _track_map_name = "SvtxTrackSeedContainer";
 };

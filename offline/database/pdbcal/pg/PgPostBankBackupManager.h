@@ -4,7 +4,7 @@
 
 /*!
  * \file PgPostBankBackupManager.hh
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.8 $
  * \date $Date: 2014/05/19 17:06:23 $

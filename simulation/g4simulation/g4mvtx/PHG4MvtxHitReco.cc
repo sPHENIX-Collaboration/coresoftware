@@ -684,9 +684,12 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 
           if (hit)
           {
-            std::cout << PHWHERE << "::" << __func__
-                      << " - duplicated hit, hitsetkey: " << hitsetkey
-                      << " hitkey: " << hitkey << std::endl;
+	    if (Verbosity() > 0)
+	    {
+	      std::cout << PHWHERE << "::" << __func__
+			<< " - duplicated hit, hitsetkey: " << hitsetkey
+			<< " hitkey: " << hitkey << std::endl;
+	    }
             continue;
           }
           const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, 0);

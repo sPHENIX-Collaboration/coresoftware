@@ -93,7 +93,18 @@ class LiteCaloEval : public SubsysReco
     _inputnodename = inpNodenm;
   }
 
+  float spec_QA(TH1* h_spec,TH1* h_ref,bool retFloat);
+  bool spec_QA(TH1* h_spec,TH1* h_ref);
+
+  void plot_cemc(const std::string& path);
+
+  void set_doQA(bool status=true)
+  {
+    doQA = status;
+  }
+
  private:
+ 
   TFile *cal_output{nullptr};
 
   TH1 *hcal_out_eta_phi[24][64] = {};
@@ -116,6 +127,8 @@ class LiteCaloEval : public SubsysReco
 
   float fitmin{0.};
   float fitmax{0.};
+
+  bool doQA = false;
 
   double binwidth{0.001};
 

@@ -27,7 +27,8 @@ class PdbBankListIterator : public PHPointerListIterator<PdbCalBank>
   }
 
   ~PdbBankListIterator() override {}
- private: 
+
+ private:
   PdbBankListIterator() = delete;
 };
 

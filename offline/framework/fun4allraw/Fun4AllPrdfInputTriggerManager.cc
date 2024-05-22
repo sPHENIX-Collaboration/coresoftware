@@ -88,7 +88,10 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
     return -1;
   }
   DetermineReferenceEventNumber();
-  std::cout << "new ref event: " << m_RefEventNo << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "new ref event: " << m_RefEventNo << std::endl;
+  }
   MoveGl1ToNodeTree();
   MoveMbdToNodeTree();
   MoveCemcToNodeTree();

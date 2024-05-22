@@ -94,15 +94,15 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
     m_GDMPath = CDBInterface::instance()->getUrl(m_GDMPath);
     m_Params->set_string_param("GDMPath", m_GDMPath);
   }
-  std::string ironfieldmap = m_Params->get_string_param("IronFieldMapPath");
-  if (std::filesystem::path(ironfieldmap).extension() != ".root")
-  {
-    ironfieldmap = CDBInterface::instance()->getUrl(ironfieldmap);
-    m_Params->set_string_param("IronFieldMapPath", ironfieldmap);
-  }
   PHFieldConfig *fieldconf = findNode::getClass<PHFieldConfig>(Node, PHFieldUtility::GetDSTConfigNodeName());
   if (fieldconf->get_field_config() != PHFieldConfig::kFieldUniform)
   {
+    std::string ironfieldmap = m_Params->get_string_param("IronFieldMapPath");
+    if (std::filesystem::path(ironfieldmap).extension() != ".root")
+    {
+      ironfieldmap = CDBInterface::instance()->getUrl(ironfieldmap);
+      m_Params->set_string_param("IronFieldMapPath", ironfieldmap);
+    }
     m_FieldSetup =
         new PHG4OHCalFieldSetup(
             ironfieldmap, m_Params->get_double_param("IronFieldMapScale"),
@@ -269,9 +269,9 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     ++it2;
   }
 
-  //Inner HCal support ring (only the part in Outer HCal volume)
-  // it only exists in the new gdml file, this check keeps the old file
-  // without the inner hcal support readable
+  // Inner HCal support ring (only the part in Outer HCal volume)
+  //  it only exists in the new gdml file, this check keeps the old file
+  //  without the inner hcal support readable
   G4AssemblyVolume *m_iHCalRing = reader->GetAssembly("iHCalRing");  // ihcal ring
   if (m_iHCalRing)
   {
@@ -281,7 +281,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
       m_DisplayAction->AddSupportRingVolume((*itr)->GetLogicalVolume());
       m_SteelAbsorberLogVolSet.insert((*itr)->GetLogicalVolume());
       hcalenvelope->AddDaughter((*itr));
-      //std::cout<<(*itr)->GetName()<<std::endl;
+      // std::cout<<(*itr)->GetName()<<std::endl;
       ++itr;
     }
   }

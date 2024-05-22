@@ -13,6 +13,7 @@ class MbdVertexMap;
 class MbdOut;
 class MbdGeom;
 class Event;
+class CaloPacketContainer;
 class TF1;
 class TH1;
 
@@ -41,6 +42,7 @@ class MbdReco : public SubsysReco
 
   std::unique_ptr<MbdEvent> m_mbdevent{nullptr};
   Event *m_event{nullptr};
+  CaloPacketContainer *m_mbdraw{nullptr};
   MbdOut *m_mbdout{nullptr};
   MbdPmtContainer *m_mbdpmts{nullptr};
   MbdGeom *m_mbdgeom{nullptr};

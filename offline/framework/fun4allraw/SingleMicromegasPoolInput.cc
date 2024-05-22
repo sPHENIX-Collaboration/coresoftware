@@ -49,6 +49,11 @@ namespace
     return out;
   }
 
+  // get the difference of two unsiged numbers
+  template<class T>
+  inline static constexpr T get_bco_diff( const T& first, const T& second )
+  { return first < second ? (second-first):(first-second); }
+
   // minimum number of requested samples
   static constexpr int m_min_req_samples = 5;
 
@@ -205,7 +210,8 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         // get matching gtm bco, from bco alignment object
         uint64_t gtm_bco = 0;
         auto&& bco_alignment = m_bco_alignment_list.at(fee_id);
-        if (bco_alignment.fee_bco == fee_bco)
+        static constexpr unsigned int max_fee_bco_diff = 10;
+        if( get_bco_diff( fee_bco, bco_alignment.fee_bco ) < max_fee_bco_diff )
         {
           // assign gtm bco
           gtm_bco = bco_alignment.gtm_bco;

@@ -14,6 +14,8 @@
 #include <ffarawobjects/TpcRawHitContainerv1.h>
 #include <ffarawobjects/TpcRawHitv1.h>
 
+#include <fun4all/Fun4AllServer.h>
+
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 
@@ -129,6 +131,20 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     PHIODataNode<PHObject>* new_node = new PHIODataNode<PHObject>(trkr_hit_set_container, "TRKR_HITSET", "PHObject");
     trkr_node->addNode(new_node);
   }
+
+  TpcRawHitContainerv1* tpccont = findNode::getClass<TpcRawHitContainerv1>(topNode, m_TpcRawNodeName);
+  if (!tpccont)
+  {
+    std::cout << PHWHERE << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)" << std::endl;
+    std::cout << "Could not get \"" << m_TpcRawNodeName << "\" from Node Tree" << std::endl;
+    std::cout << "Removing module" << std::endl;
+
+    Fun4AllServer *se = Fun4AllServer::instance();
+    se->unregisterSubsystem(this);
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   if (m_writeTree)
   {
     m_file = new TFile(outfile_name.c_str(), "RECREATE");

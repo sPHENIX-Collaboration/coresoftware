@@ -1,16 +1,7 @@
-
 #include "TpcClusterQA.h"
-
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>
-
-#include <qautils/QAHistManagerDef.h>
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrackFitUtils.h>
@@ -22,22 +13,22 @@
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
 
-#include <TH1F.h>
-#include <TH2F.h>
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <TH1.h>
+#include <TH2.h>
+
+#include <boost/format.hpp>
 
 //____________________________________________________________________________..
 TpcClusterQA::TpcClusterQA(const std::string &name)
   : SubsysReco(name)
 {
-}
-
-//____________________________________________________________________________..
-TpcClusterQA::~TpcClusterQA() = default;
-
-//____________________________________________________________________________..
-int TpcClusterQA::Init(PHCompositeNode * /*unused*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
@@ -95,8 +86,8 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(Form("%stotal_clusters", getHistoPrefix().c_str())));
-  TH2 *h_clusterssector = dynamic_cast<TH2 *>(hm->getHisto(Form("%sncluspersector", getHistoPrefix().c_str())));
+  TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "stotal_clusters")));
+  TH2 *h_clusterssector = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ncluspersector")));
 
   struct HistoList
   {
@@ -115,12 +106,12 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
   for (auto &region : {0, 1, 2})
   {
     HistoList hist;
-    hist.crphisize = dynamic_cast<TH1 *>(hm->getHisto(Form("%sphisize_%i", getHistoPrefix().c_str(), region)));
-    hist.czsize = dynamic_cast<TH1 *>(hm->getHisto(Form("%szsize_%i", getHistoPrefix().c_str(), region)));
-    hist.crphierr = dynamic_cast<TH1 *>(hm->getHisto(Form("%srphi_error_%i", getHistoPrefix().c_str(), region)));
-    hist.czerr = dynamic_cast<TH1 *>(hm->getHisto(Form("%sz_error_%i", getHistoPrefix().c_str(), region)));
-    hist.cedge = dynamic_cast<TH1 *>(hm->getHisto(Form("%sclusedge_%i", getHistoPrefix().c_str(), region)));
-    hist.coverlap = dynamic_cast<TH1 *>(hm->getHisto(Form("%sclusoverlap_%i", getHistoPrefix().c_str(), region)));
+    hist.crphisize = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sphisize_%i") % getHistoPrefix() % region).str()));
+    hist.czsize = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%szsize_%i") % getHistoPrefix() % region).str()));
+    hist.crphierr = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%srphi_error_%i") % getHistoPrefix() % region).str()));
+    hist.czerr = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sz_error_%i") % getHistoPrefix() % region).str()));
+    hist.cedge = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusedge_%i") % getHistoPrefix() % region).str()));
+    hist.coverlap = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusoverlap_%i") % getHistoPrefix() % region).str()));
 
     histos.insert(std::make_pair(region, hist));
   }
@@ -181,20 +172,15 @@ int TpcClusterQA::EndRun(const int runnumber)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperrun", getHistoPrefix().c_str())));
+  TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nclusperrun")));
   h_totalclusters->Fill(runnumber, (float) m_totalClusters / m_event);
 
   for (int i = 0; i < 24; i++)
   {
-    TH2 *h = dynamic_cast<TH2 *>(hm->getHisto(Form("%snclusperrun_sector%i", getHistoPrefix().c_str(), i)));
+    TH2 *h = dynamic_cast<TH2 *>(hm->getHisto((boost::format("%snclusperrun_sector%i") % getHistoPrefix() % i).str()));
     h->Fill(runnumber, (float) m_clustersPerSector[i] / m_event);
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-//____________________________________________________________________________..
-int TpcClusterQA::End(PHCompositeNode * /*unused*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -207,7 +193,7 @@ void TpcClusterQA::createHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   {
-    auto h = new TH2F(Form("%snclusperrun", getHistoPrefix().c_str()),
+    auto h = new TH2F(std::string(getHistoPrefix() + "nclusperrun").c_str(),
                       "TPC Clusters per event per run number", m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
     h->GetXaxis()->SetTitle("Run number");
     h->GetYaxis()->SetTitle("Clusters per event");
@@ -216,15 +202,15 @@ void TpcClusterQA::createHistos()
   {
     for (int i = 0; i < 24; i++)
     {
-      auto h = new TH2F(Form("%snclusperrun_sector%i", getHistoPrefix().c_str(), i),
-                        Form("TPC Clusters per event per run number sector %i", i), m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
+      auto h = new TH2F((boost::format("%snclusperrun_sector%i") % getHistoPrefix() % i).str().c_str(),
+                        (boost::format("TPC Clusters per event per run number sector %i") % i).str().c_str(), m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
       h->GetXaxis()->SetTitle("Run number");
-      h->GetYaxis()->SetTitle(Form("Clusters per event in Sector %i", i));
+      h->GetYaxis()->SetTitle((boost::format("Clusters per event in Sector %i") % i).str().c_str());
       hm->registerHisto(h);
     }
   }
   {
-    auto h = new TH2F(Form("%sncluspersector", getHistoPrefix().c_str()),
+    auto h = new TH2F(std::string(getHistoPrefix() + "ncluspersector").c_str(),
                       "TPC Clusters per event per sector", 24, 0, 24, 1000, 0, 1000);
     h->GetXaxis()->SetTitle("Sector number");
     h->GetYaxis()->SetTitle("Clusters per event");
@@ -233,45 +219,45 @@ void TpcClusterQA::createHistos()
   for (auto &region : {0, 1, 2})
   {
     {
-      auto h = new TH1F(Form("%sphisize_%i", getHistoPrefix().c_str(), region),
-                        Form("TPC cluster #phi size region_%i", region), 10, 0, 10);
+      auto h = new TH1F((boost::format("%sphisize_%i") % getHistoPrefix() % region).str().c_str(),
+                        (boost::format("TPC cluster #phi size region_%i") % region).str().c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("Cluster #phi_{size}");
       hm->registerHisto(h);
     }
     {
-      auto h = new TH1F(Form("%szsize_%i", getHistoPrefix().c_str(), region),
-                        Form("TPC cluster z size region_%i", region), 10, 0, 10);
+      auto h = new TH1F((boost::format("%szsize_%i") % getHistoPrefix() % region).str().c_str(),
+                        (boost::format("TPC cluster z size region_%i") % region).str().c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("Cluster z_{size}");
       hm->registerHisto(h);
     }
     {
-      auto h = new TH1F(Form("%srphi_error_%i", getHistoPrefix().c_str(), region),
-                        Form("TPC r#Delta#phi error region_%i", region), 100, 0, 0.075);
+      auto h = new TH1F((boost::format("%srphi_error_%i") % getHistoPrefix() % region).str().c_str(),
+                        (boost::format("TPC r#Delta#phi error region_%i") % region).str().c_str(), 100, 0, 0.075);
       h->GetXaxis()->SetTitle("r#Delta#phi error [cm]");
       hm->registerHisto(h);
     }
     {
-      auto h = new TH1F(Form("%sz_error_%i", getHistoPrefix().c_str(), region),
-                        Form("TPC z error region_%i", region), 100, 0, 0.18);
+      auto h = new TH1F((boost::format("%sz_error_%i") % getHistoPrefix() % region).str().c_str(),
+                        (boost::format("TPC z error region_%i") % region).str().c_str(), 100, 0, 0.18);
       h->GetXaxis()->SetTitle("z error [cm]");
       hm->registerHisto(h);
     }
     {
-      auto h = new TH1F(Form("%sclusedge_%i", getHistoPrefix().c_str(), region),
-                        Form("TPC hits on edge_%i", region), 30, 0, 30);
+      auto h = new TH1F((boost::format("%sclusedge_%i") % getHistoPrefix() % region).str().c_str(),
+                        (boost::format("TPC hits on edge_%i") % region).str().c_str(), 30, 0, 30);
       h->GetXaxis()->SetTitle("Cluster edge");
       hm->registerHisto(h);
     }
     {
-      auto h = new TH1F(Form("%sclusoverlap_%i", getHistoPrefix().c_str(), region),
-                        Form("TPC clus overlap_%i", region), 30, 0, 30);
+      auto h = new TH1F((boost::format("%sclusoverlap_%i") % getHistoPrefix() % region).str().c_str(),
+                        (boost::format("TPC clus overlap_%i") % region).str().c_str(), 30, 0, 30);
       h->GetXaxis()->SetTitle("Cluster overlap");
       hm->registerHisto(h);
     }
   }
 
   {
-    auto h = new TH2F(Form("%stotal_clusters", getHistoPrefix().c_str()),
+    auto h = new TH2F(std::string(getHistoPrefix() + "stotal_clusters").c_str(),
                       "TPC clusters per hitsetkey", 1152, 0, 1152, 10000, 0, 10000);
     h->GetXaxis()->SetTitle("Hitsetkey number");
     h->GetYaxis()->SetTitle("Number of clusters");

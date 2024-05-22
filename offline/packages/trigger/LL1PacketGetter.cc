@@ -120,8 +120,6 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
   }
   if (!m_no_ll1out)
   {
-    m_trigger_primitives->setTriggerType(m_triggerid);
-
     m_ll1out = findNode::getClass<LL1Out>(topNode, m_ll1_nodename);
     if (!m_ll1out)
     {
@@ -131,7 +129,6 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
   }
   else
   {
-    m_trigger_primitives->setTriggerType(m_triggerid);
     m_trigger_primitives_ll1 = findNode::getClass<TriggerPrimitiveContainer>(topNode, m_triggerprimitive_ll1_nodename);
     if (!m_trigger_primitives_ll1)
     {
@@ -195,14 +192,13 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 	  
           primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, m_nprimitives * (pid - m_packet_low) + iprim);
 
-          _trigger_primitive = new TriggerPrimitivev1(primkey);
+          _trigger_primitive = m_trigger_primitives->get_primitive_at_key(primkey);
 
           for (int channel = 0; channel < m_nchannels_per_primitive; channel++)
           {
 	    sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, m_nprimitives * (pid - m_packet_low) + iprim, channel);
 	    
-            _sum = new std::vector<unsigned int>();
-            _sum->reserve(nsamples);
+            _sum = _trigger_primitive->get_sum_at_key(sumkey);
             for (int samp = 0; samp < nsamples; samp++)
             {
               if (pid == 13002)
@@ -215,23 +211,19 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 	      }
             }
 
-            _trigger_primitive->add_sum(sumkey, _sum);
           }
-          m_trigger_primitives->add_primitive(primkey, _trigger_primitive);
         }
 
         if (!m_no_ll1out)
         {
           for (int channel = 0; channel < ntriggerwords; channel++)
           {
-            _sum = new std::vector<unsigned int>();
-            _sum->reserve(nsamples);
+	    std::vector<unsigned int>* sum = m_ll1out->get_word(((unsigned int) (channel % 32) & 0xffffU) + (((unsigned int) (channel / 32) & 0xffffU) << 16U));
+	    
             for (int samp = 0; samp < nsamples; samp++)
             {
-              _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives * m_nchannels_per_primitive + channel)));
+              sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives * m_nchannels_per_primitive + channel)));
             }
-
-            m_ll1out->add_word(((unsigned int) (channel % 32) & 0xffffU) + (((unsigned int) (channel / 32) & 0xffffU) << 16U), _sum);
           }
         }
         else
@@ -241,7 +233,6 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
           TriggerDefs::DetectorId did = TriggerDefs::DetectorId::emcalDId;
 
 	  
-          m_trigger_primitives_ll1->setTriggerType(tid);
           primkey = TriggerDefs::getTriggerPrimKey(tid, did, prid, pid - m_packet_low);
 
           _trigger_primitive = new TriggerPrimitivev1(primkey);
@@ -370,7 +361,7 @@ int LL1PacketGetter::CreateNodeTree(PHCompositeNode *topNode)
     TriggerPrimitiveContainer *primoutll1 = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, m_triggerprimitive_ll1_nodename);
     if (!primoutll1)
     {
-      primoutll1 = new TriggerPrimitiveContainerv1();
+      primoutll1 = new TriggerPrimitiveContainerv1(m_triggerid, m_detectorid);
       PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(primoutll1, m_triggerprimitive_ll1_nodename, "PHObject");
       ll1Node->addNode(LL1OutNode);
     }
@@ -378,7 +369,7 @@ int LL1PacketGetter::CreateNodeTree(PHCompositeNode *topNode)
   TriggerPrimitiveContainer *primout = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, m_triggerprimitive_nodename);
   if (!primout)
   {
-    primout = new TriggerPrimitiveContainerv1();
+    primout = new TriggerPrimitiveContainerv1(m_triggerid, TriggerDefs::DetectorId::noneDId);
     PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(primout, m_triggerprimitive_nodename, "PHObject");
     ll1Node->addNode(LL1OutNode);
   }

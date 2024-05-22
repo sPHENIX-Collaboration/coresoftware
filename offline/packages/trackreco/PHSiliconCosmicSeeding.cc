@@ -91,6 +91,12 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode * /*unused*/)
     std::cout << "cluster map size is " << clusterPositions.size() << std::endl;
   }
 
+  //! to protect against events with hot channels. Cosmics should not produce more than
+  //! 500 clusters in the silicon
+  if (clusterPositions.size() > 500)
+  {
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   auto doublets = makeDoublets(clusterPositions);
 
   if (Verbosity() > 2)
@@ -115,21 +121,41 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode * /*unused*/)
   }
 
   pruneSeeds(finalseeds, clusterPositions);
-
   for (auto &s : finalseeds)
   {
-    std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+    //! make some quality cuts on the seeds
+    if (s.ckeys.size() < 3)
+    {
+      continue;
+    }
+    int nmaps = 0;
+    int nintt = 0;
     for (auto &key : s.ckeys)
     {
-      si_seed->insert_cluster_key(key);
+      if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::mvtxId)
+      {
+        nmaps++;
+      }
+      if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
+      {
+        nintt++;
+      }
     }
-    si_seed->circleFitByTaubin(clusterPositions, 0, 7);
-    si_seed->lineFit(clusterPositions, 0, 7);
-    if (Verbosity() > 3)
+    if (nmaps > 3 && nmaps < 9 && nintt > 2 && nintt < 7)
     {
-      si_seed->identify();
+      std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+      for (auto &key : s.ckeys)
+      {
+        si_seed->insert_cluster_key(key);
+      }
+      si_seed->circleFitByTaubin(clusterPositions, 0, 7);
+      si_seed->lineFit(clusterPositions, 0, 7);
+      if (Verbosity() > 3)
+      {
+        si_seed->identify();
+      }
+      m_seedContainer->insert(si_seed.get());
     }
-    m_seedContainer->insert(si_seed.get());
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -150,15 +176,17 @@ void PHSiliconCosmicSeeding::pruneSeeds(SeedVector &seeds, PositionMap &clusterP
     auto xyLineParams = TrackFitUtils::line_fit(xypoints);
     float lineSlope = std::get<0>(xyLineParams);
     float lineIntercept = std::get<1>(xyLineParams);
+    std::set<TrkrDefs::cluskey> newKeys;
     for (auto &key : s.ckeys)
     {
       auto pos = clusterPositions.find(key)->second;
       float distance = std::abs(lineSlope * pos.x() - pos.y() + lineIntercept) / std::sqrt(lineSlope * lineSlope + 1);
-      if (distance > 0.5)
+      if (distance < 0.5)
       {
-        s.ckeys.erase(key);
+        newKeys.insert(key);
       }
     }
+    s.ckeys = newKeys;
   }
   return;
 }
@@ -232,6 +260,7 @@ PHSiliconCosmicSeeding::combineSeeds(SeedVector &seeds)
 }
 PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(SeedVector &doublets, PositionMap &clusterPositions)
 {
+  SeedVector longseeds;
   for (auto doublet : doublets)
   {
     TrackFitUtils::position_vector_t xypoints;
@@ -252,16 +281,13 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(See
         doublet.ckeys.insert(newkey);
       }
     }
-  }
-  SeedVector longseeds;
-  for (auto doublet : doublets)
-  {
     if (doublet.ckeys.size() > 3 && doublet.ckeys.size() < 20)
     {
       longseeds.push_back(doublet);
     }
   }
-  if (Verbosity() > 3)
+
+  if (Verbosity() > 2)
   {
     std::cout << "num seeds " << longseeds.size() << std::endl;
     int i = 0;
@@ -277,6 +303,7 @@ PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::addClustersOnLine(See
       i++;
     }
   }
+
   return longseeds;
 }
 PHSiliconCosmicSeeding::SeedVector PHSiliconCosmicSeeding::makeDoublets(PositionMap &clusterPositions)

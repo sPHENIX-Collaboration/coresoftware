@@ -39,6 +39,9 @@ class MicromegasClusterizer : public SubsysReco
   void set_use_default_pedestal( bool value )
   { m_use_default_pedestal = value; }
 
+  void set_drop_single_strips(bool drop)
+  { m_drop_single_strips = drop; }
+
   /// calibration file
   void set_calibration_file( const std::string& value )
   { m_calibration_filename = value; }
@@ -47,6 +50,9 @@ class MicromegasClusterizer : public SubsysReco
 
   //!@name calibration filename
   //@{
+
+  // discard single strip clusters if true
+  bool m_drop_single_strips = false;
 
   /// if true, use default pedestal to get hit charge. Relies on calibration data otherwise
   bool m_use_default_pedestal = true;

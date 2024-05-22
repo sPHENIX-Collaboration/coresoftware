@@ -11,6 +11,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <Event/Event.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
@@ -20,11 +21,9 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <TF1.h>
-#include <TH1.h>
+#include <ffarawobjects/CaloPacketContainer.h>
 
-using namespace std;
-using namespace Fun4AllReturnCodes;
+#include <TF1.h>
 
 //____________________________________________________________________________..
 MbdReco::MbdReco(const std::string &name)
@@ -67,16 +66,43 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 {
   getNodes(topNode);
 
-  if (m_event != nullptr && m_mbdpmts != nullptr)
+  if ( (m_mbdevent==nullptr && m_mbdraw==nullptr) || m_mbdpmts==nullptr )
   {
-    int status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
-
-    if (status == Fun4AllReturnCodes::ABORTEVENT)
+    static int counter = 0;
+    if ( counter<2 )
     {
-      return Fun4AllReturnCodes::ABORTEVENT;  // there wasn't good data in BBC/MBD
+      std::cout << PHWHERE << " ERROR, didn't find mbdevent, mbdraw, or mbdpmts" << std::endl;
+      counter++;
     }
-    else if (status == Fun4AllReturnCodes::DISCARDEVENT)
+    return Fun4AllReturnCodes::ABORTEVENT;  // missing an essential object in BBC/MBD
+  }
+
+  // Process raw waveforms from real data
+  if ( m_mbdevent!=nullptr || m_mbdraw!=nullptr )
+  {
+    int status = Fun4AllReturnCodes::EVENT_OK;
+    if ( m_event!=nullptr )
     {
+      status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
+    }
+    else if ( m_mbdraw!=nullptr )
+    {
+      status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts);
+    }
+
+    if (status == Fun4AllReturnCodes::DISCARDEVENT )
+    {
+      static int counter = 0;
+      if ( counter<3 )
+      {
+        std::cout << PHWHERE << " ERROR, no good data in MBD" << std::endl;
+        counter++;
+      }
+      return Fun4AllReturnCodes::DISCARDEVENT;
+    }
+    else if ( status == -1001 )
+    {
+      // calculating sampmax on this event
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
     else if (status < 0)
@@ -85,8 +111,10 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if ( _calpass == 2 )
+  // Calibrate from UNCALDST or recalibrate from DST
+  if ( _calpass==3 )
   {
+    m_mbdevent->ProcessRawPackets( m_mbdpmts );
   }
 
   m_mbdevent->Calculate(m_mbdpmts, m_mbdout);
@@ -99,18 +127,14 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     vertex->set_z(m_mbdevent->get_bbcz());
     vertex->set_z_err(0.6);
     vertex->set_t_err(m_tres);
-
-    /*
-    for (int iarm = 0; iarm < 2; iarm++)
-    {
-      vertex->set_bbc_ns( iarm, m_mbdevent->get_bbcn(iarm), m_mbdevent->get_bbcq(iarm), m_mbdevent->get_bbct(iarm) );
-    }
-    */
+    vertex->set_beam_crossing(0);
 
     m_mbdvtxmap->insert(vertex.release());
+
+    // copy to globalvertex
   }
 
-  if (Verbosity() > 0)
+  //if (Verbosity() > 0)
   {
     std::cout << "mbd vertex z and t0 " << m_mbdevent->get_bbcz() << ", " << m_mbdevent->get_bbct0() << std::endl;
   }
@@ -176,12 +200,19 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
     bbcNode->addNode(MbdPmtContainerNode);
   }
 
-  m_mbdvtxmap = findNode::getClass<MbdVertexMap>(bbcNode, "MbdVertexMap");
+  PHCompositeNode *globalNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "GLOBAL"));
+  if (!globalNode)
+  {
+    globalNode = new PHCompositeNode("GLOBAL");
+    dstNode->addNode(globalNode);
+  }
+
+  m_mbdvtxmap = findNode::getClass<MbdVertexMap>(globalNode, "MbdVertexMap");
   if (!m_mbdvtxmap)
   {
     m_mbdvtxmap = new MbdVertexMapv1();
     PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(m_mbdvtxmap, "MbdVertexMap", "PHObject");
-    bbcNode->addNode(VertexMapNode);
+    globalNode->addNode(VertexMapNode);
   }
 
   m_mbdgeom = findNode::getClass<MbdGeom>(runNode, "MbdGeom");
@@ -199,16 +230,20 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
 {
   // Get the bbc prdf data to mpcRawContent
   m_event = findNode::getClass<Event>(topNode, "PRDF");
-  // cout << "event addr " << (unsigned int)m_event << endl;
+  // std::cout << "event addr " << (unsigned int)m_event << endl;
 
-  if (m_event == nullptr)
+  // Get the raw data from event combined DST
+  m_mbdraw = findNode::getClass<CaloPacketContainer>(topNode, "MBDPackets");
+  
+  if (!m_event && !m_mbdraw)
   {
+    // not PRDF and not event combined DST, so we assume this is a sim file
     _simflag = 1;
 
     static int counter = 0;
     if (counter < 1)
     {
-      cout << PHWHERE << "Unable to get PRDF, assuming this is simulation" << endl;
+      std::cout << PHWHERE << "Unable to get PRDF or Event Combined DST, assuming this is simulation" << std::endl;
       counter++;
     }
   }

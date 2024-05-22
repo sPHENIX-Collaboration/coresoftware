@@ -22,46 +22,6 @@ using namespace std;
 MbdSig::MbdSig(const int chnum, const int nsamp)
   : _ch{chnum}
   , _nsamples{nsamp}
-  , f_ampl{0}
-  , f_time{0}
-  , f_time_offset{4.0}
-  ,  // time shift from fit
-  f_integral{0.}
-  ,  // time shift from fit
-  hRawPulse{nullptr}
-  , hSubPulse{nullptr}
-  , hpulse{nullptr}
-  , gRawPulse{nullptr}
-  , gSubPulse{nullptr}
-  , gpulse{nullptr}
-  , ped0{0}
-  ,  // ped average
-  ped0rms{0}
-  , use_ped0{0}
-  , minped0samp{-9999}
-  , maxped0samp{-9999}
-  , minped0x{0.}
-  , maxped0x{0.}
-  ,
-  // time_calib{0},
-  h2Template{nullptr}
-  , h2Residuals{nullptr}
-  ,
-  // range of good amplitudes for templates
-  // units are usually in ADC counts
-  hAmpl{nullptr}
-  , hTime{nullptr}
-  , template_npointsx{0}
-  , template_npointsy{0}
-  , template_begintime{0}
-  , template_endtime{0}
-  ,
-  // template_min_good_amplitude{20.},
-  // template_max_good_amplitude{4080},
-  // template_min_xrange{0},
-  // template_max_xrange{0},
-  template_fcn{nullptr}
-  , _verbose{0}
 {
   // cout << "In MbdSig::MbdSig(" << _ch << "," << _nsamples << ")" << endl;
 }
@@ -507,6 +467,11 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   double mean = ped0stats->Mean();
   //double rms = ped0stats->RMS();
   double rms = _mbdcal->get_pedrms(_ch);
+  if ( std::isnan(rms) )
+  {
+    // ped calib doesn't exist, set to average
+    rms = 5.0;
+  }
 
   ped_fcn->SetRange(minsamp-0.1,maxsamp+0.1);
   ped_fcn->SetParameter(0,1500.);
@@ -559,11 +524,11 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
     // ped fit was bad, we have signal contamination in ped region
     // or other thing going on
 
-    if ( ped0stats->Size() < ped0stats->MaxNum() ) // use pre-calib for early events
+    if ( ped0stats->Size() < ped0stats->MaxNum() && !std::isnan(_mbdcal->get_ped(_ch)) ) // use pre-calib for early events
     {
       mean = _mbdcal->get_ped(_ch);
     }
-    else  // use running mean, once enough stats are accumulated
+    else  // use running mean, once enough stats are accumulated, or if no pre-calib pedestals
     {
       mean = ped0stats->Mean();
 
@@ -729,6 +694,14 @@ Double_t MbdSig::Integral(const Double_t xmin, const Double_t xmax)
 
 void MbdSig::LocMax(Double_t& x_at_max, Double_t& ymax, Double_t xminrange, Double_t xmaxrange)
 {
+  _verbose = 0;
+  if ( _verbose && _ch==250 )
+  {
+    gSubPulse->Draw("ap");
+    gPad->Modified();
+    gPad->Update();
+  }
+
   // Find index of maximum peak
   Int_t n = gSubPulse->GetN();
   Double_t* x = gSubPulse->GetX();
@@ -761,6 +734,14 @@ void MbdSig::LocMax(Double_t& x_at_max, Double_t& ymax, Double_t xminrange, Doub
       ymax = y[i];
       x_at_max = x[i];
     }
+  }
+
+  if ( _verbose )
+  {
+    string junk;
+    cin >> junk;
+    std::cout << "MbdSig::LocMax, " << x_at_max << "\t" << ymax << std::endl;
+    _verbose = 0;
   }
 }
 
@@ -984,13 +965,13 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   }
 
   // Threshold cut
-  if ( ymax < 10. )
+  if ( ymax < 20. )
   {
     f_ampl = 0.;
     f_time = std::numeric_limits<Float_t>::quiet_NaN();
     if ( _verbose>10 )
     {
-      std::cout << "skipping, ymax < 10" << std::endl;
+      std::cout << "skipping, ymax < 20" << std::endl;
       gSubPulse->Draw("ap");
       gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
       gPad->SetGridy(1);

@@ -251,6 +251,7 @@ libmbd_la_LIBADD = \
   libmbd_io.la \
   -lphool \
   -lffamodules \
+  -lffarawobjects \
   -lcdbobjects \
   -lSubsysReco \
   -lglobalvertex_io
