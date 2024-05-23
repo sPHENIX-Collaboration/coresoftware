@@ -131,7 +131,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   std::unique_ptr<TFile> m_debugfile;
   std::string m_debugfilename = "CMMatcher.root";
 
-  TH2F *hit_r_phi{};
+  TH2F *truth_r_phi_pos{};
+  TH2F *truth_r_phi_neg{};
 
   TH2F *clust_r_phi_pos{};
   TH2F *clust_r_phi_neg{};

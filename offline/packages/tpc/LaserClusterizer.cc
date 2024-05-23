@@ -103,6 +103,7 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
 
   if (m_debug)
   {
+
     m_clusterTree = new TTree("clusterTree", "clusterTree");
     m_clusterTree->Branch("event", &m_event);
     m_clusterTree->Branch("clusters", &m_eventClusters);
@@ -211,7 +212,6 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     {
       TrkrHitSet *hitset = hitsetitr->second;
       int side = TpcDefs::getSide(hitsetitr->first);
-      PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom(TrkrDefs::getLayer(hitsetitr->first));
 
       TrkrHitSet::ConstRange hitrangei = hitset->getHits();
       for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
@@ -219,23 +219,14 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
            ++hitr)
       {
         int it = TpcDefs::getTBin(hitr->first);
-        double t = layergeom->get_zcenter(it);
 
         if (side == 0)
         {
           m_itHist_0->Fill(it);
-          if (m_debug)
-          {
-            m_tHist_0->Fill(t);
-          }
         }
         else
         {
           m_itHist_1->Fill(it);
-          if (m_debug)
-          {
-            m_tHist_1->Fill(t);
-          }
         }
       }
     }
@@ -300,11 +291,11 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
         int iphi = TpcDefs::getPad(hitr->first);
         int it = TpcDefs::getTBin(hitr->first);
 
-        if (side == 0 && fabs(it - itMax_0) > 50)
+        if (side == 0 && fabs(it - itMax_0) > 25)
         {
           continue;
         }
-        if (side == 1 && fabs(it - itMax_1) > 50)
+        if (side == 1 && fabs(it - itMax_1) > 25)
         {
           continue;
         }
@@ -411,7 +402,9 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
   if (m_debug)
   {
-    m_nClus = (int) m_eventClusters.size();
+
+    m_eventClusters = m_clusterlist;
+    m_nClus = (int) m_eventClusters->size();
   }
   t_all->stop();
 
@@ -440,14 +433,6 @@ int LaserClusterizer::ResetEvent(PHCompositeNode * /*topNode*/)
 {
   m_itHist_0->Reset();
   m_itHist_1->Reset();
-
-  if (m_debug)
-  {
-    m_tHist_0->Reset();
-    m_tHist_1->Reset();
-
-    m_eventClusters.clear();
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -571,7 +556,7 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   if (m_debug)
   {
     m_currentCluster = (LaserClusterv1 *) clus->CloneMe();
-    m_eventClusters.push_back((LaserClusterv1 *) m_currentCluster->CloneMe());
+    //m_eventClusters.push_back((LaserClusterv1 *) m_currentCluster->CloneMe());
   }
 }
 

@@ -550,7 +550,8 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     match_ntup = new TNtuple("match_ntup", "Match NTuple", "event:truthR:truthPhi:recoR:recoPhi:recoZ:nhits:r1:phi1:e1:layer1:r2:phi2:e2:layer2");
   }
 
-  hit_r_phi = new TH2F("hit_r_phi", "hit r vs #phi;#phi (rad); r (cm)", 360, -M_PI, M_PI, 500, 0, 100);
+  truth_r_phi_pos = new TH2F("truth_r_phi_pos", "truth r vs #phi Z>0;#phi (rad); r (cm)", 360, -M_PI, M_PI, 500, 0, 100);
+  truth_r_phi_neg = new TH2F("truth_r_phi_neg", "truth r vs #phi Z<0;#phi (rad); r (cm)", 360, -M_PI, M_PI, 500, 0, 100);
 
   clust_r_phi_pos = new TH2F("clust_r_phi_pos", "clust R vs #phi Z>0;#phi (rad); r (cm)", 360, -M_PI, M_PI, 350, 20, 90);
   clust_r_phi_neg = new TH2F("clust_r_phi_neg", "clust R vs #phi Z<0;#phi (rad); r (cm)", 360, -M_PI, M_PI, 350, 20, 90);
@@ -571,12 +572,13 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     source.SetZ(+1);
     m_truth_pos.push_back(source);
 
-    hit_r_phi->Fill(source.Phi(), source.Perp());
+    truth_r_phi_pos->Fill(source.Phi(), source.Perp());
 
     source.SetZ(-1);
+    source.RotateZ(M_PI/18.0);
     m_truth_pos.push_back(source);
 
-    hit_r_phi->Fill(source.Phi(), source.Perp());
+    truth_r_phi_neg->Fill(source.Phi(), source.Perp());
   };
 
   // inner region extended is the 8 layers inside 30 cm
@@ -805,13 +807,13 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
   }
 
   // get global phi rotation for each module
-  m_clustRotation_pos[0] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR1", 151, 206), clust_r_phi_pos->ProjectionX("cR1_pos", 151, 206));
-  m_clustRotation_pos[1] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR2", 206, 290), clust_r_phi_pos->ProjectionX("cR2_pos", 206, 290));
-  m_clustRotation_pos[2] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR3", 290, 499), clust_r_phi_pos->ProjectionX("cR3_pos", 290, 499));
+  m_clustRotation_pos[0] = getPhiRotation_smoothed(truth_r_phi_pos->ProjectionX("hR1", 151, 206), clust_r_phi_pos->ProjectionX("cR1_pos", 151, 206));
+  m_clustRotation_pos[1] = getPhiRotation_smoothed(truth_r_phi_pos->ProjectionX("hR2", 206, 290), clust_r_phi_pos->ProjectionX("cR2_pos", 206, 290));
+  m_clustRotation_pos[2] = getPhiRotation_smoothed(truth_r_phi_pos->ProjectionX("hR3", 290, 499), clust_r_phi_pos->ProjectionX("cR3_pos", 290, 499));
 
-  m_clustRotation_neg[0] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR1", 151, 206), clust_r_phi_neg->ProjectionX("cR1_neg", 151, 206));
-  m_clustRotation_neg[1] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR2", 206, 290), clust_r_phi_neg->ProjectionX("cR2_neg", 206, 290));
-  m_clustRotation_neg[2] = getPhiRotation_smoothed(hit_r_phi->ProjectionX("hR3", 290, 499), clust_r_phi_neg->ProjectionX("cR3_neg", 290, 499));
+  m_clustRotation_neg[0] = getPhiRotation_smoothed(truth_r_phi_neg->ProjectionX("hR1", 151, 206), clust_r_phi_neg->ProjectionX("cR1_neg", 151, 206));
+  m_clustRotation_neg[1] = getPhiRotation_smoothed(truth_r_phi_neg->ProjectionX("hR2", 206, 290), clust_r_phi_neg->ProjectionX("cR2_neg", 206, 290));
+  m_clustRotation_neg[2] = getPhiRotation_smoothed(truth_r_phi_neg->ProjectionX("hR3", 290, 499), clust_r_phi_neg->ProjectionX("cR3_neg", 290, 499));
 
   // get hit and cluster peaks
   /*
@@ -1322,7 +1324,8 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
     m_debugfile->cd();
 
     match_ntup->Write();
-    hit_r_phi->Write();
+    truth_r_phi_pos->Write();
+    truth_r_phi_neg->Write();
     clust_r_phi_pos->Write();
     clust_r_phi_neg->Write();
 
