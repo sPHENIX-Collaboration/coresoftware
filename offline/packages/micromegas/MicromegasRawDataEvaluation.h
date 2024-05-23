@@ -71,7 +71,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
     unsigned int packet_id = 0;
 
     /// ll1 bco
-    uint64_t lvl1_bco = 0;
+    uint64_t gtm_bco = 0;
 
     /// fee bco
     unsigned int fee_bco = 0;
@@ -115,7 +115,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
     unsigned int packet_id = 0;
 
     /// ll1 bco
-    uint64_t lvl1_bco = 0;
+    uint64_t gtm_bco = 0;
 
     /// fee bco
     unsigned int fee_bco = 0;
@@ -254,15 +254,15 @@ class MicromegasRawDataEvaluation : public SubsysReco
     public:
 
     //! first lvl1 bco (40 bits)
-    bool m_has_lvl1_bco_first = false;
-    uint64_t m_lvl1_bco_first = 0;
+    bool m_has_gtm_bco_first = false;
+    uint64_t m_gtm_bco_first = 0;
 
     //! first fee bco (20 bits)
     bool m_has_fee_bco_first = false;
     unsigned int m_fee_bco_first = 0;
 
     //! list of available bco
-    std::list<uint64_t> m_lvl1_bco_list;
+    std::list<uint64_t> m_gtm_bco_list;
 
     //! matching between fee bco and lvl1 bco
     std::list<m_bco_matching_pair_t> m_bco_matching_list;
@@ -270,7 +270,7 @@ class MicromegasRawDataEvaluation : public SubsysReco
     //! need to truncate bco matching list to some decent value
     void truncate( unsigned int /* maxsize */ );
 
-    //! get predicted fee_bco from lvl1_bco
+    //! get predicted fee_bco from gtm_bco
     unsigned int get_predicted_fee_bco( uint64_t ) const;
 
   };
