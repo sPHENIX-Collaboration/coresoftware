@@ -85,7 +85,7 @@ unsigned int MicromegasRawDataEvaluation::bco_matching_information_t::get_predic
   /* todo: should replace with actual rational number for John K. */
   static constexpr double multiplier = 4.2629164;
 
-  // get lvl1 bco difference with proper rollover accounting
+  // get gtm bco difference with proper rollover accounting
   uint64_t gtm_bco_difference = (gtm_bco > m_gtm_bco_first) ?
     (gtm_bco - m_gtm_bco_first):
     (gtm_bco + (1LL<<40) - m_gtm_bco_first);
@@ -165,7 +165,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
   m_container->Reset();
 
-  // temporary storage for samples and waveforms, sorted by lvl1 bco
+  // temporary storage for samples and waveforms, sorted by gtm bco
   std::multimap<uint64_t, Sample> sample_map;
   std::multimap<uint64_t, Waveform> waveform_map;
 
@@ -256,7 +256,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
           << " packet: " << packet_id
           << " fee_bco_predicted: " << std::hex << fee_bco_predicted_list << std::dec
           << std::endl;
-
       }
     }
 
@@ -305,7 +304,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
           { std::cout << "MicromegasRawDataEvaluation::process_event - packet: " << packet_id << " m_fee_bco_first: " << sample.fee_bco << std::endl; }
         }
 
-        // find matching lvl1 bco
+        // find matching gtm bco
         const auto bco_matching_iter = std::find_if(
           bco_matching_information.m_bco_matching_list.begin(),
           bco_matching_information.m_bco_matching_list.end(),
@@ -315,10 +314,11 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         if( bco_matching_iter != bco_matching_information.m_bco_matching_list.end() )
         {
 
-          // found matching lvl1
+          // found matching gtm
           sample.gtm_bco = bco_matching_iter->second;
 
         } else {
+
           auto iter = std::find_if(
             bco_matching_information.m_gtm_bco_list.begin(),
             bco_matching_information.m_gtm_bco_list.end(),
@@ -340,7 +340,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
                 << std::endl;
             }
 
-            // fee_bco is new. Assume it corresponds to the first available lvl1 bco
+            // fee_bco is new. Assume it corresponds to the first available gtm bco
             // update running fee_bco and gtm_bco pair accordingly
             bco_matching_information.m_bco_matching_list.push_back(std::make_pair(sample.fee_bco, gtm_bco));
             sample.gtm_bco = gtm_bco;
