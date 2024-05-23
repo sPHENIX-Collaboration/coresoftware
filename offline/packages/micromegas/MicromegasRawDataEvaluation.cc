@@ -250,13 +250,13 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         std::transform(
           bco_matching_information.m_lvl1_bco_list.begin(),
           bco_matching_information.m_lvl1_bco_list.end(),
-          fee_bco_predicted_list.begin(),
+          std::back_inserter(fee_bco_predicted_list),
           [&bco_matching_information](const uint64_t& lvl1_bco ){ return bco_matching_information.get_predicted_fee_bco(lvl1_bco); } );
 
         std::cout
           << "MicromegasRawDataEvaluation::process_event -"
           << " packet: " << packet_id
-          << " fee_bco_predicted: " << std::hex << bco_matching_information.m_lvl1_bco_list << std::dec
+          << " fee_bco_predicted: " << std::hex << fee_bco_predicted_list << std::dec
           << std::endl;
 
       }
