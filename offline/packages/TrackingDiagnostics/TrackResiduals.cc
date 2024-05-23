@@ -196,7 +196,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   {
     mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
   }
-  if (!trackmap or !clustermap or !geometry or !hitmap)
+  if (!trackmap or !clustermap or !geometry or (!hitmap && m_doHits))
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
