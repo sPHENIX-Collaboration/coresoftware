@@ -1,8 +1,8 @@
 #ifndef TRACKBASEHISTORIC_TRACKSTATEINFOV1_H
 #define TRACKBASEHISTORIC_TRACKSTATEINFOV1_H
 
-#include <trackbase/TrkrDefs.h>
 #include "TrackStateInfo.h"
+#include <trackbase/TrkrDefs.h>
 
 #include <cmath>
 #include <cstddef>  // for size_t
