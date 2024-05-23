@@ -1,6 +1,8 @@
 #include "TrackInfoContainer_v1.h"
-#include <phool/PHObject.h>
+
 #include "SvtxTrackInfo.h"
+
+#include <phool/PHObject.h>
 
 #include <climits>
 #include <map>

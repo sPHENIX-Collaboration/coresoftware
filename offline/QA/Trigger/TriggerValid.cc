@@ -104,13 +104,13 @@ int TriggerValid::Init(PHCompositeNode* /*unused*/)
   hm->registerHisto(h_hcal_ll1_2x2_sample);
   auto h_jet_ll1_sample = new TProfile2D("h_jet_sample", ";#eta;#phi", 9, 0, 9, 32, 0, 32);
   hm->registerHisto(h_jet_ll1_sample);
-  auto h_emcal_2x2_energy_lutsum = new TH2F("h_emcal_2x2_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 256, 0, 256);
+  auto h_emcal_2x2_energy_lutsum = new TH2F("h_emcal_2x2_energy_lutsum", ";LUT output; Energy [GeV]", 256, -0.5, 255.5, 200, 0, 20);
   hm->registerHisto(h_emcal_2x2_energy_lutsum);
-  auto h_emcal_8x8_energy_lutsum = new TH2F("h_emcal_8x8_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 256, 0, 256);
+  auto h_emcal_8x8_energy_lutsum = new TH2F("h_emcal_8x8_energy_lutsum", ";LUT output; Energy [GeV]", 256, -0.5, 255.5, 200, 0, 20);
   hm->registerHisto(h_emcal_8x8_energy_lutsum);
-  auto h_hcal_2x2_energy_lutsum = new TH2F("h_hcal_2x2_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 256, 0, 256);
+  auto h_hcal_2x2_energy_lutsum = new TH2F("h_hcal_2x2_energy_lutsum", ";LUT output; Energy [GeV]", 256, -0.5, 255.5, 200, 0, 20);
   hm->registerHisto(h_hcal_2x2_energy_lutsum);
-  auto h_jet_energy_lutsum = new TH2F("h_jet_energy_lutsum", ";Energy [GeV];LUT output", 100, 0, 10, 64, 0, 64);
+  auto h_jet_energy_lutsum = new TH2F("h_jet_energy_lutsum", ";LUT output; Energy [GeV]", 4096, -0.5, 4095.5, 200, 0, 20);
   hm->registerHisto(h_jet_energy_lutsum);
   auto h_match_emcal = new TProfile2D("h_match_emcal", ";#eta;#phi", 48, 0, 48, 128, 0, 128);
   hm->registerHisto(h_match_emcal);
@@ -476,7 +476,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
           summ = (*it);
         }
 
-        uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
+        uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 2 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
         uint16_t sum_eta = TriggerDefs::getSumEtaId(sumk);
 
         if (summ)
@@ -690,9 +690,10 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         int iphi = sum_phi * 2 + itower / 2;
         TowerInfo* tower = towers_emcal->get_tower_at_key(TowerInfoDefs::encode_emcal(ieta, iphi));
         float offlineenergy = tower->get_energy();
+	if (!tower->get_isGood()) continue;
         energy_sum += offlineenergy;
       }
-      h_emcal_2x2_energy_lutsum->Fill(energy_sum, it.second);
+      h_emcal_2x2_energy_lutsum->Fill( it.second, energy_sum);
     }
 
     // now the 8x8
@@ -709,10 +710,11 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         int iphi = sum_phi * 8 + itower / 8;
         TowerInfo* tower = towers_emcal->get_tower_at_key(TowerInfoDefs::encode_emcal(ieta, iphi));
         float offlineenergy = tower->get_energy();
+	if (!tower->get_isGood()) continue;
         energy_sum += offlineenergy;
       }
       emcal_energies[sum_eta][sum_phi] = energy_sum;
-      h_emcal_8x8_energy_lutsum->Fill(energy_sum, it.second);
+      h_emcal_8x8_energy_lutsum->Fill(it.second, energy_sum);
     }
   }
 
@@ -734,16 +736,19 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         {
           TowerInfo* tower = towers_hcalin->get_tower_at_key(TowerInfoDefs::encode_hcal(ieta, iphi));
           float offlineenergy = tower->get_energy();
+
+	  if (!tower->get_isGood()) continue;
           energy_sum += offlineenergy;
         }
         if (towers_hcalin)
         {
           TowerInfo* tower = towers_hcalout->get_tower_at_key(TowerInfoDefs::encode_hcal(ieta, iphi));
           float offlineenergy = tower->get_energy();
+	  if (!tower->get_isGood()) continue;
           energy_sum += offlineenergy;
         }
       }
-      h_hcal_2x2_energy_lutsum->Fill(energy_sum, it.second);
+      h_hcal_2x2_energy_lutsum->Fill(it.second, energy_sum);
       hcal_energies[sum_eta][sum_phi] = energy_sum;
     }
   }
@@ -775,7 +780,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
     uint16_t sum_phi = sumk & 0xffffU;
     uint16_t sum_eta = (sumk >> 16U) & 0xffffU;
 
-    h_jet_energy_lutsum->Fill(jet_energies[sum_eta][sum_phi], it.second);
+    h_jet_energy_lutsum->Fill( it.second, jet_energies[sum_eta][sum_phi]);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

@@ -141,7 +141,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
           svtxtrack->set_x(tpcseed->get_x());
           svtxtrack->set_y(tpcseed->get_y());
           svtxtrack->set_z(tpcseed->get_z());
-          svtxtrack->set_crossing(SHRT_MAX);
+          svtxtrack->set_crossing(std::numeric_limits<short int>::max());
         }
         else
         {

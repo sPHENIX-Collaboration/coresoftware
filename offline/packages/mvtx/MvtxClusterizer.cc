@@ -539,27 +539,18 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       static constexpr std::array<double, 7> scalefactors_phi = {
           {0.36, 0.6, 0.37, 0.49, 0.4, 0.37, 0.33}};
 
-      if (phibins.size() == 1 && zbins.size() == 1)
+      if ((phibins.size() == 1 && zbins.size() == 1) ||
+          (phibins.size() == 2 && zbins.size() == 2))
       {
         phierror *= scalefactors_phi[0];
       }
-      else if (phibins.size() == 2 && zbins.size() == 1)
+      else if ((phibins.size() == 2 && zbins.size() == 1) ||
+               (phibins.size() == 2 && zbins.size() == 3))
       {
         phierror *= scalefactors_phi[1];
       }
-      else if (phibins.size() == 1 && zbins.size() == 2)
-      {
-        phierror *= scalefactors_phi[2];
-      }
-      else if (phibins.size() == 2 && zbins.size() == 2)
-      {
-        phierror *= scalefactors_phi[0];
-      }
-      else if (phibins.size() == 2 && zbins.size() == 3)
-      {
-        phierror *= scalefactors_phi[1];
-      }
-      else if (phibins.size() == 3 && zbins.size() == 2)
+      else if ((phibins.size() == 1 && zbins.size() == 2) ||
+               (phibins.size() == 3 && zbins.size() == 2))
       {
         phierror *= scalefactors_phi[2];
       }
@@ -623,7 +614,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
         clus->identify();
       }
 
-      if (zbins.size() <= 127) m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+      if (zbins.size() <= 127)
+      {
+        m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+      }
 
     }  // clusitr loop
   }    // loop over hitsets
@@ -824,27 +818,18 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
 
       static constexpr std::array<double, 7> scalefactors_phi = {
           {0.36, 0.6, 0.37, 0.49, 0.4, 0.37, 0.33}};
-      if (phibins.size() == 1 && zbins.size() == 1)
+      if ((phibins.size() == 1 && zbins.size() == 1) ||
+          (phibins.size() == 2 && zbins.size() == 2))
       {
         phierror *= scalefactors_phi[0];
       }
-      else if (phibins.size() == 2 && zbins.size() == 1)
+      else if ((phibins.size() == 2 && zbins.size() == 1) ||
+               (phibins.size() == 2 && zbins.size() == 3))
       {
         phierror *= scalefactors_phi[1];
       }
-      else if (phibins.size() == 1 && zbins.size() == 2)
-      {
-        phierror *= scalefactors_phi[2];
-      }
-      else if (phibins.size() == 2 && zbins.size() == 2)
-      {
-        phierror *= scalefactors_phi[0];
-      }
-      else if (phibins.size() == 2 && zbins.size() == 3)
-      {
-        phierror *= scalefactors_phi[1];
-      }
-      else if (phibins.size() == 3 && zbins.size() == 2)
+      else if ((phibins.size() == 1 && zbins.size() == 2) ||
+               (phibins.size() == 3 && zbins.size() == 2))
       {
         phierror *= scalefactors_phi[2];
       }
@@ -909,7 +894,10 @@ void MvtxClusterizer::ClusterMvtxRaw(PHCompositeNode *topNode)
         clus->identify();
       }
 
-      if (zbins.size() <= 127) m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+      if (zbins.size() <= 127)
+      {
+        m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+      }
     }  // clusitr loop
   }    // loop over hitsets
 
