@@ -1,11 +1,11 @@
 #ifndef TRACKBASE_ACTSSOURCELINK_H
 #define TRACKBASE_ACTSSOURCELINK_H
 
+#include "TrkrDefs.h"
+
 #include <Acts/EventData/SourceLink.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/Surfaces/Surface.hpp>
-
-#include "TrkrDefs.h"
 
 #include <cassert>
 #include <iostream>
