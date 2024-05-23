@@ -43,6 +43,7 @@ namespace
         {
           o << ", ";
         }
+        if( is_hex ) o << "0x";
         o << value;
         first = false;
       }
@@ -202,7 +203,15 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
             bco_matching_information.m_has_gtm_bco_first = true;
 
             if( Verbosity() )
-            { std::cout << "SingleMicromegasPoolInput::FillPool - packet: " << packet_id << " m_gtm_bco_first: " << gtm_bco << std::endl; }
+            {
+              std::cout
+                << "SingleMicromegasPoolInput::FillPool -"
+                << " packet: " << packet_id
+                << std::hex
+                << " m_gtm_bco_first: 0x" << gtm_bco
+                << std::dec
+                << std::endl;
+            }
           }
 
           // store in list of available bco
@@ -279,7 +288,15 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
           bco_matching_information.m_has_fee_bco_first = true;
 
           if( Verbosity() )
-          { std::cout << "SingleMicromegasPoolInput::FillPool - packet: " << packet_id << " m_fee_bco_first: " << fee_bco << std::endl; }
+          {
+            std::cout
+              << "SingleMicromegasPoolInput::FillPool -"
+              << " packet: " << packet_id
+              << std::hex
+              << " m_fee_bco_first: 0x" << fee_bco
+              << std::dec
+              << std::endl;
+            }
         }
 
         // find matching gtm bco

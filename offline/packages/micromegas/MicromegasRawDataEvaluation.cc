@@ -214,10 +214,16 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         {
           bco_matching_information.m_gtm_bco_first = tagger.bco;
           bco_matching_information.m_has_gtm_bco_first = true;
-
           if( Verbosity() )
-          { std::cout << "MicromegasRawDataEvaluation::process_event - packet: " << packet_id << " m_gtm_bco_first: " << tagger.bco << std::endl; }
-
+          {
+            std::cout
+              << "MicromegasRawDataEvaluation::process_event -"
+              << " packet: " << packet_id
+              << std::hex
+              << " m_gtm_bco_first: 0x" << tagger.bco
+              << std::dec
+              << std::endl;
+          }
         }
 
         // store in list of available bco
@@ -301,9 +307,16 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         {
           bco_matching_information.m_fee_bco_first = sample.fee_bco;
           bco_matching_information.m_has_fee_bco_first = true;
-
           if( Verbosity() )
-          { std::cout << "MicromegasRawDataEvaluation::process_event - packet: " << packet_id << " m_fee_bco_first: " << sample.fee_bco << std::endl; }
+          {
+            std::cout
+              << "MicromegasRawDataEvaluation::process_event -"
+              << " packet: " << packet_id
+              << std::hex
+              << " m_fee_bco_first: 0x" << sample.fee_bco
+              << std::dec
+              << std::endl;
+          }
         }
 
         // find matching gtm bco
@@ -356,7 +369,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             {
               std::cout << "MicromegasRawDataEvaluation::process_event -"
                         << " fee_id: " << sample.fee_id
-                        << " fee_bco: 0x" << std::hex << sample.fee_bco << std::dec
+                        << std::hex
+                        << " fee_bco: 0x" << sample.fee_bco
+                        << std::dec
                         << " gtm_bco: none"
                         << std::endl;
             }
