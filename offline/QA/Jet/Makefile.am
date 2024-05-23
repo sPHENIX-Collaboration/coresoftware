@@ -27,7 +27,8 @@ pkginclude_HEADERS = \
   TrksInJetQAClustManager.h \
   TrksInJetQATrkManager.h \
   TrksInJetQAJetManager.h \
-  JetSeedCount.h
+  JetSeedCount.h \
+  JetKinematicCheck.h
 
 libjetqa_la_SOURCES = \
   StructureinJets.cc \
@@ -40,7 +41,8 @@ libjetqa_la_SOURCES = \
   TrksInJetQAClustManager.cc \
   TrksInJetQATrkManager.cc \
   TrksInJetQAJetManager.cc \
-  JetSeedCount.cc
+  JetSeedCount.cc \
+  JetKinematicCheck.cc
 
 libjetqa_la_LIBADD = \
   -L$(libdir) \

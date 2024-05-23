@@ -66,11 +66,6 @@ class JetKinematicCheck : public SubsysReco
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
-  /// Reset
-  int Reset(PHCompositeNode * /*topNode*/) override;
-
-  void Print(const std::string &what = "ALL") const override;
-
  private:
 
   Fun4AllHistoManager *hm{nullptr};

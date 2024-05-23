@@ -30,17 +30,23 @@ SubsysReco("JetKinematicCheck")
 
 
 {
+  if(Verbosity() > 1)
+    {
   std::cout << "JetKinematicCheck::JetKinematicCheck(const std::string &name) Calling ctor" << std::endl;
+}
 }
 
 //____________________________________________________________________________..
 JetKinematicCheck::~JetKinematicCheck()
 {
+  if(Verbosity() > 1)
+    {
   std::cout << "JetKinematicCheck::~JetKinematicCheck() Calling dtor" << std::endl;
+    }
 }
 
 //____________________________________________________________________________..
-int JetKinematicCheck::Init(PHCompositeNode *topNode)
+int JetKinematicCheck::Init(PHCompositeNode *)
 {
 
 
@@ -124,17 +130,22 @@ int JetKinematicCheck::Init(PHCompositeNode *topNode)
 
 
 
-
+  if(Verbosity() > 1)
+    {
   std::cout << "JetKinematicCheck::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
+    }
+return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
 //____________________________________________________________________________..
-int JetKinematicCheck::InitRun(PHCompositeNode *topNode)
+int JetKinematicCheck::InitRun(PHCompositeNode *)
 {
+  if(Verbosity() > 1)
+    {
   std::cout << "JetKinematicCheck::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
+    }
+return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
@@ -161,7 +172,7 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
   	std::cout
   	  << "MyJetAnalysis::process_event - Error can not find DST Reco JetContainer node "
   	  << recoJetName << std::endl;
-  	exit(-1);
+  	return Fun4AllReturnCodes::ABORTRUN;
       }
 
 
@@ -198,9 +209,11 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
   }
 
 
-
+  if(Verbosity() > 1)
+    {
   std::cout << "JetKinematicCheck::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
+    }
+return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
@@ -208,16 +221,20 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int JetKinematicCheck::EndRun(const int runnumber)
 {
+  if(Verbosity() > 1)
+    {
   std::cout << "JetKinematicCheck::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
+    }
+return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int JetKinematicCheck::End(PHCompositeNode *topNode)
+int JetKinematicCheck::End(PHCompositeNode *)
 {
-
+  if(Verbosity() > 1)
+    {
   std::cout << "JetKinematicCheck::End(PHCompositeNode *topNode) Entering the end" << std::endl;
-
+    }
 
 
   //for jet spectra [R02]
@@ -497,20 +514,9 @@ int JetKinematicCheck::End(PHCompositeNode *topNode)
 
 
 
-
+  if(Verbosity() > 1)
+    {
   std::cout << "JetKinematicCheck::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int JetKinematicCheck::Reset(PHCompositeNode *topNode)
-{
- std::cout << "JetKinematicCheck::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-void JetKinematicCheck::Print(const std::string &what) const
-{
-  std::cout << "JetKinematicCheck::Print(const std::string &what) const Printing info for " << what << std::endl;
 }
