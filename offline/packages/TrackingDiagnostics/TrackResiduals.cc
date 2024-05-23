@@ -239,7 +239,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
-    m_trackid = key;
+    m_trackid = track->get_id();
     m_crossing = track->get_crossing();
     m_px = track->get_px();
     m_py = track->get_py();
