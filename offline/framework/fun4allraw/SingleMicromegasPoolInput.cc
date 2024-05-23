@@ -87,7 +87,7 @@ unsigned int SingleMicromegasPoolInput::bco_matching_information_t::get_predicte
   static constexpr double multiplier = 4.2629164;
 
   // get lvl1 bco difference with proper rollover accounting
-  uint64_t gtm_bco_difference = (gtm_bco > m_gtm_bco_first) ?
+  uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
     (gtm_bco - m_gtm_bco_first):
     (gtm_bco + (1LL<<40) - m_gtm_bco_first);
 

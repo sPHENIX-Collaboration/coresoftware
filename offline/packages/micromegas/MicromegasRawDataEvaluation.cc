@@ -88,7 +88,7 @@ unsigned int MicromegasRawDataEvaluation::bco_matching_information_t::get_predic
   static constexpr double multiplier = 4.2629164;
 
   // get gtm bco difference with proper rollover accounting
-  uint64_t gtm_bco_difference = (gtm_bco > m_gtm_bco_first) ?
+  uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
     (gtm_bco - m_gtm_bco_first):
     (gtm_bco + (1LL<<40) - m_gtm_bco_first);
 
@@ -339,7 +339,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             bco_matching_information.m_gtm_bco_list.end(),
             [&sample, &bco_matching_information]( const uint64_t& gtm_bco )
             { return get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco ) < max_gtm_bco_diff; } );
-
           if( iter != bco_matching_information.m_gtm_bco_list.end() )
           {
             const auto& gtm_bco = *iter;
