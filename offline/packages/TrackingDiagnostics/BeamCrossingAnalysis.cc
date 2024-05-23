@@ -9,7 +9,7 @@
 #include <utility>
 
 #include <TFile.h>
-#include <TH1D.h>
+#include <TH1.h>
 #include <TNtuple.h>
 
 BeamCrossingAnalysis::BeamCrossingAnalysis(const std::string& name)

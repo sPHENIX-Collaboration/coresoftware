@@ -2,16 +2,14 @@
 #ifndef TRACKBASE_CALIBRATOR_H
 #define TRACKBASE_CALIBRATOR_H
 
-#include <Acts/EventData/Measurement.hpp>
-#include <Acts/EventData/MultiTrajectory.hpp>
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <Acts/EventData/VectorMultiTrajectory.hpp>
-#pragma GCC diagnostic pop
-
 #include "ActsSourceLink.h"
 #include "TrkrDefs.h"
 #include "alignmentTransformationContainer.h"
+
+#include <Acts/EventData/Measurement.hpp>
+#include <Acts/EventData/MultiTrajectory.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
+
 
 class Calibrator
 {
