@@ -32,6 +32,9 @@ namespace
   static constexpr unsigned int max_fee_bco_diff = 10;
   static constexpr unsigned int max_lvl1_bco_diff = 100;
 
+  // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
+  static constexpr unsigned int max_matching_data_size = 50;
+
   // streamer for lists
   template <class T>
   std::ostream& operator<<(std::ostream& out, const std::list<T>& list)
@@ -66,7 +69,14 @@ template<class T>
 { return first < second ? (second-first):(first-second); }
 
 //_________________________________________________________
-unsigned int MicromegasRawDataEvaluation::bco_matching_information_t::get_predicted_fee_bco( uint64_t lvl1_bco )
+void MicromegasRawDataEvaluation::bco_matching_information_t::truncate( unsigned int maxsize )
+{
+  while( m_lvl1_bco_list.size() > maxsize ) { m_lvl1_bco_list.pop_front(); }
+  while( m_bco_matching_list.size() > maxsize ) { m_bco_matching_list.pop_front(); }
+}
+
+//_________________________________________________________
+unsigned int MicromegasRawDataEvaluation::bco_matching_information_t::get_predicted_fee_bco( uint64_t lvl1_bco ) const
 {
   // check proper initialization
   if( !(m_has_lvl1_bco_first && m_has_fee_bco_first ) ) return 0;
@@ -229,10 +239,26 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
       if (!bco_matching_information.m_lvl1_bco_list.empty())
       {
-        std::cout << "MicromegasRawDataEvaluation::process_event -"
-                  << " packet: " << packet_id
-                  << " bco: " << std::hex << bco_matching_information.m_lvl1_bco_list << std::dec
-                  << std::endl;
+        std::cout
+          << "MicromegasRawDataEvaluation::process_event -"
+          << " packet: " << packet_id
+          << " lvl1_bco: " << std::hex << bco_matching_information.m_lvl1_bco_list << std::dec
+          << std::endl;
+
+        // also print predicted fee bco
+        std::list<unsigned int> fee_bco_predicted_list;
+        std::transform(
+          bco_matching_information.m_lvl1_bco_list.begin(),
+          bco_matching_information.m_lvl1_bco_list.end(),
+          fee_bco_predicted_list.begin(),
+          [&bco_matching_information](const uint64_t& lvl1_bco ){ return bco_matching_information.get_predicted_fee_bco(lvl1_bco); } );
+
+        std::cout
+          << "MicromegasRawDataEvaluation::process_event -"
+          << " packet: " << packet_id
+          << " fee_bco_predicted: " << std::hex << bco_matching_information.m_lvl1_bco_list << std::dec
+          << std::endl;
+
       }
     }
 
@@ -295,8 +321,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
           sample.lvl1_bco = bco_matching_iter->second;
 
         } else {
-
-          #if true
           auto iter = std::find_if(
             bco_matching_information.m_lvl1_bco_list.begin(),
             bco_matching_information.m_lvl1_bco_list.end(),
@@ -309,13 +333,13 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             if (Verbosity())
             {
               std::cout << "MicromegasRawDataEvaluation::process_event -"
-                        << " fee_id: " << sample.fee_id
-                        << std::hex
-                        << " fee_bco: 0x" << sample.fee_bco
-                        << " predicted: 0x" << bco_matching_information.get_predicted_fee_bco(lvl1_bco)
-                        << " gtm_bco: 0x" << lvl1_bco
-                        << std::dec
-                        << std::endl;
+                << " fee_id: " << sample.fee_id
+                << std::hex
+                << " fee_bco: 0x" << sample.fee_bco
+                << " predicted: 0x" << bco_matching_information.get_predicted_fee_bco(lvl1_bco)
+                << " gtm_bco: 0x" << lvl1_bco
+                << std::dec
+                << std::endl;
             }
 
             // fee_bco is new. Assume it corresponds to the first available lvl1 bco
@@ -327,36 +351,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             bco_matching_information.m_lvl1_bco_list.erase(iter);
 
           }
-
-          #else
-
-          if( !bco_matching_information.m_lvl1_bco_list.empty() )
-          {
-            const auto& lvl1_bco = bco_matching_information.m_lvl1_bco_list.front();
-            if (Verbosity())
-            {
-              std::cout << "MicromegasRawDataEvaluation::process_event -"
-                        << " fee_id: " << sample.fee_id
-                        << std::hex
-                        << " fee_bco: 0x" << sample.fee_bco
-                        << " predicted: 0x" << bco_matching_information.get_predicted_fee_bco(lvl1_bco)
-                        << " gtm_bco: 0x" << lvl1_bco
-                        << std::dec
-                        << std::endl;
-            }
-
-            // fee_bco is new. Assume it corresponds to the first available lvl1 bco
-            // update running fee_bco and lvl1_bco pair accordingly
-            bco_matching_information.m_bco_matching_list.push_back(std::make_pair(sample.fee_bco, lvl1_bco));
-            sample.lvl1_bco = lvl1_bco;
-
-            // remove bco from running list
-            bco_matching_information.m_lvl1_bco_list.pop_front();
-
-          }
-
-          #endif
-
           else
           {
             if (Verbosity() && orphans.insert(std::make_pair(sample.fee_id, sample.fee_bco)).second)
@@ -436,14 +430,16 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         }
       }
     }
+
+    // cleanup
+    bco_matching_information.truncate(max_matching_data_size);
+
   }
 
   // copy all samples and waveform to container
   if (m_flags & EvalSample)
   {
     for (auto&& [lvl_bco, sample] : sample_map)
-    // clang-tidy suggests the std::move has no effect (trivially copyable type)
-    //    { m_container->samples.push_back(std::move(sample)); }
     {
       m_container->samples.push_back(sample);
     }
@@ -452,8 +448,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
   if (m_flags & EvalWaveform)
   {
     for (auto&& [lvl1_bco, waveform] : waveform_map)
-    // clang-tidy suggests the std::move has no effect (trivially copyable type)
-    //    { m_container->waveforms.push_back(std::move(waveform)); }
     {
       m_container->waveforms.push_back(waveform);
     }

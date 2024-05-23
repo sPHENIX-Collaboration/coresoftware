@@ -267,10 +267,11 @@ class MicromegasRawDataEvaluation : public SubsysReco
     //! matching between fee bco and lvl1 bco
     std::list<m_bco_matching_pair_t> m_bco_matching_list;
 
-    //! todo: need to truncate bco matching list to some decent value
+    //! need to truncate bco matching list to some decent value
+    void truncate( unsigned int /* maxsize */ );
 
     //! get predicted fee_bco from lvl1_bco
-    unsigned int get_predicted_fee_bco( uint64_t );
+    unsigned int get_predicted_fee_bco( uint64_t ) const;
 
   };
 
