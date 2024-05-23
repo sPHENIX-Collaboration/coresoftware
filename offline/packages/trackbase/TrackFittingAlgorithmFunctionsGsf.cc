@@ -1,6 +1,6 @@
-#include <utility>
-
 #include "ActsGsfTrackFittingAlgorithm.h"
+
+#include <utility>
 
 std::shared_ptr<ActsTrackFittingAlgorithm::TrackFitterFunction>
 ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
