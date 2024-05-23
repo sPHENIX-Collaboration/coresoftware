@@ -436,6 +436,13 @@ float TrackResiduals::calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *cluste
   std::vector<float> dedxlist;
   for (unsigned int i = 0; i < clusterKeys.size(); i++){
     TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
+ 
+    auto detid = TrkrDefs::getTrkrId(cluster_key);
+    if (detid != TrkrDefs::TrkrId::tpcId) 
+      {
+	continue;   // the micromegas clusters are added to the TPC seeds
+      }
+
     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
     TrkrCluster* cluster = clustermap->findCluster(cluster_key);
     float adc = cluster->getAdc();
