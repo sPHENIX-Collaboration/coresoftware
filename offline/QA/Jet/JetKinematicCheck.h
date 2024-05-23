@@ -4,11 +4,11 @@
 #ifndef JETKINEMATICCHECK_H
 #define JETKINEMATICCHECK_H
 
-#include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/SubsysReco.h>
 #include <qautils/QAHistManagerDef.h>
-#include <vector>
 #include <string>
+#include <vector>
 
 class TH1;
 class TH2;
@@ -18,11 +18,10 @@ class PHCompositeNode;
 class JetKinematicCheck : public SubsysReco
 {
  public:
-
   JetKinematicCheck(const std::string &recojetnameR02 = "AntiKt_Tower_r02",
-		    const std::string &recojetnameR03 = "AntiKt_Tower_r03",
-		    const std::string &recojetnameR04 = "AntiKt_Tower_r04");
-		    
+                    const std::string &recojetnameR03 = "AntiKt_Tower_r03",
+                    const std::string &recojetnameR04 = "AntiKt_Tower_r04");
+
   ~JetKinematicCheck() override;
 
   // set eta range
@@ -38,8 +37,6 @@ class JetKinematicCheck : public SubsysReco
     m_ptRange.first = low;
     m_ptRange.second = high;
   }
-
-
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.
@@ -67,7 +64,6 @@ class JetKinematicCheck : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
  private:
-
   Fun4AllHistoManager *hm{nullptr};
 
   std::string m_recoJetNameR02;
@@ -83,7 +79,7 @@ class JetKinematicCheck : public SubsysReco
   std::vector<float> m_pt;
   std::vector<float> m_radii;
 
-  // output histograms 
+  // output histograms
   TH1 *jet_spectra_r02 = nullptr;
   TH1 *jet_spectra_r03 = nullptr;
   TH1 *jet_spectra_r04 = nullptr;
@@ -102,7 +98,6 @@ class JetKinematicCheck : public SubsysReco
   TH1 *jet_mass_eta_1D_r03 = nullptr;
   TH2 *jet_mass_eta_r04 = nullptr;
   TH1 *jet_mass_eta_1D_r04 = nullptr;
-
 };
 
-#endif // JETKINEMATICCHECK_H
+#endif  // JETKINEMATICCHECK_H
