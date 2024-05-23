@@ -37,28 +37,30 @@ namespace
 
   // streamer for lists
   template <class T>
-  std::ostream& operator<<(std::ostream& out, const std::list<T>& list)
+  std::ostream& operator<<(std::ostream& o, const std::list<T>& list)
   {
     if (list.empty())
     {
-      out << "{}";
+      o << "{}";
     }
     else
     {
-      out << "{ ";
+      const bool is_hex = (o.flags()&std::ios_base::hex);
+      o << "{ ";
       bool first = true;
       for (const auto& value : list)
       {
         if (!first)
         {
-          out << ", ";
+          o << ", ";
         }
-        out << value;
+        if( is_hex ) o << "0x";
+        o << value;
         first = false;
       }
-      out << " }";
+      o << " }";
     }
-    return out;
+    return o;
   }
 
 }
