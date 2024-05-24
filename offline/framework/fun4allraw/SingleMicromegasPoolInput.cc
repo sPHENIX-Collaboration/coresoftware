@@ -80,7 +80,7 @@ void SingleMicromegasPoolInput::bco_matching_information_t::truncate( unsigned i
 unsigned int SingleMicromegasPoolInput::bco_matching_information_t::get_predicted_fee_bco( uint64_t gtm_bco ) const
 {
   // check proper initialization
-  if( !(m_has_gtm_bco_first && m_has_fee_bco_first ) ) return 0;
+  if( !(m_has_gtm_bco_first && m_has_fee_bco_first ) ) { return 0; }
 
   // this is the clock multiplier from lvl1 to fee clock
   /* todo: should replace with actual rational number for John K. */
@@ -89,7 +89,7 @@ unsigned int SingleMicromegasPoolInput::bco_matching_information_t::get_predicte
   // get lvl1 bco difference with proper rollover accounting
   uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
     (gtm_bco - m_gtm_bco_first):
-    (gtm_bco + (1LL<<40) - m_gtm_bco_first);
+    (gtm_bco + (1ULL<<40) - m_gtm_bco_first);
 
   // convert to fee bco, and truncate to 20 bits
   uint64_t fee_bco_predicted = m_fee_bco_first + multiplier*(gtm_bco_difference);
@@ -339,7 +339,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
             // fee_bco is new. Assume it corresponds to the first available gtm bco
             // update running fee_bco and gtm_bco pair accordingly
-            bco_matching_information.m_bco_matching_list.push_back(std::make_pair(fee_bco, gtm_bco));
+            bco_matching_information.m_bco_matching_list.emplace_back(fee_bco, gtm_bco);
 
             // remove bco from running list
             bco_matching_information.m_gtm_bco_list.erase(iter);
