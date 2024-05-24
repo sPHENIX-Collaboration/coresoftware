@@ -1,17 +1,15 @@
 #include "TrkrTruthTrackContainerv1.h"
 #include "TrkrTruthTrackv1.h"
 
-#include <algorithm>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
-#include <iostream>
-#include <phool/phool.h>
-#include <set>
 
-using std::endl;
-using std::cout;
-using std::set;
+#include <phool/phool.h>
+
+#include <algorithm>
+#include <iostream>
+#include <set>
 
 void TrkrTruthTrackContainerv1::Reset()
 {
@@ -24,10 +22,11 @@ void TrkrTruthTrackContainerv1::Reset()
 
 void TrkrTruthTrackContainerv1::addTruthTrack(TrkrTruthTrack* track)
 {
-  if (!track) return;
+  if (!track) { return;
+}
   const auto id { track->getTrackid() };
   if (hasTrackid(id)) {
-    cout << PHWHERE << "Warning, replacing existing track-id("<<id<<")" << endl;
+    std::cout << PHWHERE << "Warning, replacing existing track-id("<<id<<")" << std::endl;
   }
   m_data[id] = track;
 }
@@ -35,8 +34,8 @@ void TrkrTruthTrackContainerv1::addTruthTrack(TrkrTruthTrack* track)
 TrkrTruthTrack* TrkrTruthTrackContainerv1::getTruthTrack(unsigned int trackid)
 {
   if (!hasTrackid(trackid)) {
-    cout << PHWHERE << " Asking for TrkrTruthTrack " << trackid 
-      << " which is not present. Returning empty track." << endl;
+    std::cout << PHWHERE << " Asking for TrkrTruthTrack " << trackid 
+      << " which is not present. Returning empty track." << std::endl;
     TrkrTruthTrack* track = new TrkrTruthTrackv1();
     return track;
   }
@@ -45,11 +44,12 @@ TrkrTruthTrack* TrkrTruthTrackContainerv1::getTruthTrack(unsigned int trackid)
 
 TrkrTruthTrack* TrkrTruthTrackContainerv1::getTruthTrack (unsigned int id, PHG4TruthInfoContainer* truth_info) { 
   // return the track if already in m_data, otherwise make it and return the newly made track
-  if (hasTrackid(id)) return m_data[id];
+  if (hasTrackid(id)) { return m_data[id];
+}
       PHG4Particle* particle = /*(PHG4Particlev3*)*/ truth_info->GetParticle(id);
       if (particle == nullptr) {
-        cout << PHWHERE << " Note: embedded track from PHG4TruthInfoContainer, id( " 
-          << id <<" )without an associated PHG4Particle" << endl;
+        std::cout << PHWHERE << " Note: embedded track from PHG4TruthInfoContainer, id( " 
+          << id <<" )without an associated PHG4Particle" << std::endl;
         auto current_track = new TrkrTruthTrackv1();
         current_track->setTrackid(id);
         m_data[id] = current_track;

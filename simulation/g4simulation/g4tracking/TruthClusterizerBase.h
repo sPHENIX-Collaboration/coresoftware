@@ -20,9 +20,8 @@
 //  the associated TrkrTruthTrackContainer.
 
 #include <trackbase/TrkrDefs.h>
-#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <map>
-#include <iostream>
 
 class PHCompositeNode;
 class TrkrHitSetContainer;

@@ -1,31 +1,20 @@
 #include "TruthClusterizerBase.h"
 
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
-#include <intt/CylinderGeomIntt.h>
 
-/* #include <trackbase/InttDefs.h> */
-#include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrClusterContainer.h>        // for TrkrClusterContainer
 #include <trackbase/TrkrClusterContainerv4.h>
-#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>         // for TrkrHitSetContainer
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
-#include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>
-
-#include <g4mvtx/PHG4MvtxDigitizer.h>
-#include <mvtx/MvtxHitPruner.h>
-#include <mvtx/MvtxClusterizer.h>
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -35,15 +24,12 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <TMatrixFfwd.h>                            // for TMatrixF
-#include <TMatrixT.h>                               // for TMatrixT, operator*
-#include <TMatrixTUtils.h>                          // for TMatrixTRow
+#include <boost/format.hpp>
 
-
-#include <array>
-#include <cmath>
+#include <cassert>
 #include <iostream>
-#include <set>
+#include <string>                                  // for operator<<
+#include <utility>                                 // for pair
 #include <vector> 
 
 TruthClusterizerBase::TruthClusterizerBase ( )
@@ -67,7 +53,6 @@ void TruthClusterizerBase::init_clusterizer_base( PHCompositeNode*& _topNode, in
   m_truthtracks = findNode::getClass<TrkrTruthTrackContainer>(m_topNode, "TRKR_TRUTHTRACKCONTAINER");
   if (!m_truthtracks)
   {
-    PHNodeIterator dstiter(dstNode);
     m_truthtracks = new TrkrTruthTrackContainerv1();
     auto newNode = new PHIODataNode<PHObject>(m_truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
     DetNode->addNode(newNode);
@@ -96,8 +81,10 @@ TruthClusterizerBase::~TruthClusterizerBase() {
 void TruthClusterizerBase::check_g4hit_status(PHG4Hit* hit) {
   int new_trkid = (hit==nullptr) ? -1 : hit->get_trkid();
   m_is_new_track = (new_trkid != m_trkid);
-  if (m_verbosity>5) std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
-  if (!m_is_new_track) return;
+  if (m_verbosity>5) { std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
+}
+  if (!m_is_new_track) { return;
+}
 
   m_trkid = new_trkid; // although m_current_track won't catch up until update_track is called
   m_was_emb = m_is_emb;
@@ -131,7 +118,8 @@ void TruthClusterizerBase::addhitset(
     TrkrDefs::hitkey hitkey, 
     float neffelectrons) 
 {
-  if (!m_is_emb) return;
+  if (!m_is_emb) { return;
+}
   TrkrHitSetContainer::Iterator hitsetit = m_hits->findOrAddHitSet(hitsetkey);
   // See if this hit already exists
   TrkrHit *hit = nullptr;
@@ -153,12 +141,7 @@ void TruthClusterizerBase::print_clusters(int nclusprint) {
   for (auto& _pair : tmap) {
     auto& track = _pair.second;
 
-    printf("id(%2i) phi:eta:pt(", (int)track->getTrackid());
-    std::cout << "phi:eta:pt(";
-    printf("%5.2f:%5.2f:%5.2f", track->getPhi(), track->getPseudoRapidity(), track->getPt());
-      /* Form("%5.2:%5.2:%5.2", track->getPhi(), track->getPseudoRapidity(), track->getPt()) */
-      //<<track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() 
-    std::cout << ") nclusters(" << track->getClusters().size() <<") ";
+    std::cout << (boost::format("id(%2i) phi:eta:pt(%5.2f:%5.2f:%5.2f) nclusters(%d) ") % (int)track->getTrackid() %track->getPhi() %track->getPseudoRapidity() %track->getPt() %track->getClusters().size()).str();
     if (m_verbosity <= 10) { std::cout << std::endl; }
     else {
       int nclus = 0;

@@ -87,6 +87,7 @@ bool TrkrTruthTrackv1::has_hitsetkey(TrkrDefs::cluskey key) const {
 
 std::pair<bool, TrkrDefs::cluskey> TrkrTruthTrackv1::get_cluskey(TrkrDefs::hitsetkey hitsetkey) const { 
   auto lb = std::lower_bound(clusters.begin(), clusters.end(), hitsetkey, CompHitSetKey());
-  if (lb == clusters.end() || TrkrDefs::getHitSetKeyFromClusKey(*lb) != hitsetkey) return { false, 0. };
-  else return { true,  *lb };
+  if (lb == clusters.end() || TrkrDefs::getHitSetKeyFromClusKey(*lb) != hitsetkey) { return { false, 0. };
+  } else { return { true,  *lb };
+}
 }

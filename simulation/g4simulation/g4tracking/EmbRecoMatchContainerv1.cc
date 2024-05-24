@@ -20,7 +20,7 @@ void EmbRecoMatchContainerv1::addMatch(EmbRecoMatch* match) {
   auto id_true = match->idTruthTrack();
   auto id_reco = match->idRecoTrack();
 
-  m_RecoToTruth.push_back({id_reco, id_true}); // vector of which to go to
+  m_RecoToTruth.emplace_back(id_reco, id_true); // vector of which to go to
 
   if (m_nTruthPerReco.find(id_reco) == m_nTruthPerReco.end()) {
     m_nTruthPerReco[id_reco] = 1;
@@ -41,7 +41,8 @@ void EmbRecoMatchContainerv1::checkfill_idsTruthUnmatched(unsigned short id_true
 }
 
 void EmbRecoMatchContainerv1::Reset() {
-  for (auto &m : m_data) delete m;
+  for (auto &m : m_data) { delete m;
+}
   m_data              .clear();
   m_RecoToTruth       .clear();
   m_idsTruthUnmatched .clear();
@@ -51,13 +52,15 @@ void EmbRecoMatchContainerv1::Reset() {
 
 std::vector<unsigned short>  EmbRecoMatchContainerv1::ids_TruthMatched() const {
   std::vector<unsigned short> vec;
-  for (auto& id : m_data) vec.push_back(id->idTruthTrack());
+  for (auto& id : m_data) { vec.push_back(id->idTruthTrack());
+}
   return vec;
 }
 
 std::vector<unsigned short>  EmbRecoMatchContainerv1::ids_RecoMatched() const {
   std::vector<unsigned short> vec;
-  for (auto& id : m_RecoToTruth) vec.push_back(id.first);
+  for (auto& id : m_RecoToTruth) { vec.push_back(id.first);
+}
   return vec;
 }
 
@@ -121,6 +124,7 @@ void EmbRecoMatchContainerv1::identify(std::ostream& os) const {
     /* m->nClustersTruth(), m->nClustersReco(), m->meanClusterZDiff(), m->meanClusterPhiDiff()) << std::endl; */
   }
   os << " IDs of embedded tracks that were not reconstructed: " << std::endl;
-  for (const auto n : m_idsTruthUnmatched) os << n << " ";
+  for (const auto n : m_idsTruthUnmatched) { os << n << " ";
+}
   os << std::endl;
 }
