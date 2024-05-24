@@ -4,12 +4,12 @@
 #include <g4tracking/TrkrTruthTrackContainer.h>
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
 
-#include <trackbase/TrkrClusterContainer.h>        // for TrkrClusterContainer
+#include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterContainer
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>         // for TrkrHitSetContainer
+#include <trackbase/TrkrHitSetContainer.h>  // for TrkrHitSetContainer
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
@@ -20,7 +20,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                         // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -28,22 +28,24 @@
 
 #include <cassert>
 #include <iostream>
-#include <string>                                  // for operator<<
-#include <utility>                                 // for pair
-#include <vector> 
+#include <string>   // for operator<<
+#include <utility>  // for pair
+#include <vector>
 
-TruthClusterizerBase::TruthClusterizerBase ( )
-    : m_hits      { new TrkrHitSetContainerv1 }
-{ }
+TruthClusterizerBase::TruthClusterizerBase()
+  : m_hits{new TrkrHitSetContainerv1}
+{
+}
 
-void TruthClusterizerBase::init_clusterizer_base( PHCompositeNode*& _topNode, int _verbosity ) {
+void TruthClusterizerBase::init_clusterizer_base(PHCompositeNode*& _topNode, int _verbosity)
+{
   m_topNode = _topNode;
   m_verbosity = _verbosity;
   PHNodeIterator iter(m_topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   assert(dstNode);
   PHNodeIterator dstiter(dstNode);
-  auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+  auto DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
   if (!DetNode)
   {
     DetNode = new PHCompositeNode("TRKR");
@@ -72,33 +74,43 @@ void TruthClusterizerBase::init_clusterizer_base( PHCompositeNode*& _topNode, in
     std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;
     assert(m_truthinfo);
   }
-}      
-      
-TruthClusterizerBase::~TruthClusterizerBase() {
+}
+
+TruthClusterizerBase::~TruthClusterizerBase()
+{
   delete m_hits;
 }
 
-void TruthClusterizerBase::check_g4hit_status(PHG4Hit* hit) {
-  int new_trkid = (hit==nullptr) ? -1 : hit->get_trkid();
+void TruthClusterizerBase::check_g4hit_status(PHG4Hit* hit)
+{
+  int new_trkid = (hit == nullptr) ? -1 : hit->get_trkid();
   m_is_new_track = (new_trkid != m_trkid);
-  if (m_verbosity>5) { std::cout << PHWHERE << std::endl << " -> Checking status of PHG4Hit. Track id("<<new_trkid<<")" << std::endl;
-}
-  if (!m_is_new_track) { return;
-}
+  if (m_verbosity > 5)
+  {
+    std::cout << PHWHERE << std::endl
+              << " -> Checking status of PHG4Hit. Track id(" << new_trkid << ")" << std::endl;
+  }
+  if (!m_is_new_track)
+  {
+    return;
+  }
 
-  m_trkid = new_trkid; // although m_current_track won't catch up until update_track is called
+  m_trkid = new_trkid;  // although m_current_track won't catch up until update_track is called
   m_was_emb = m_is_emb;
   m_is_emb = m_truthinfo->isEmbeded(m_trkid);
 }
 
 // to call if m_was_emb=true and after clustering
-void TruthClusterizerBase::transfer_clusters(TrkrClusterContainer* pass_clusters) {
-  m_hits->Reset(); // clear out the old  hits
-  for (auto hitsetkey : pass_clusters->getHitSetKeys()) {
-    m_hitsetkey_cnt.try_emplace(hitsetkey,0);
+void TruthClusterizerBase::transfer_clusters(TrkrClusterContainer* pass_clusters)
+{
+  m_hits->Reset();  // clear out the old  hits
+  for (auto hitsetkey : pass_clusters->getHitSetKeys())
+  {
+    m_hitsetkey_cnt.try_emplace(hitsetkey, 0);
     unsigned int& cnt = m_hitsetkey_cnt[hitsetkey];
     auto range = pass_clusters->getClusters(hitsetkey);
-    for (auto cluster = range.first; cluster != range.second; ++cluster) {
+    for (auto cluster = range.first; cluster != range.second; ++cluster)
+    {
       auto ckey = TrkrDefs::genClusKey(hitsetkey, cnt);
       m_clusters->addClusterSpecifyKey(ckey, cluster->second);
       m_current_track->addCluster(ckey);
@@ -109,20 +121,23 @@ void TruthClusterizerBase::transfer_clusters(TrkrClusterContainer* pass_clusters
 }
 
 // if m_is_new_track
-void TruthClusterizerBase::update_track() {
+void TruthClusterizerBase::update_track()
+{
   m_current_track = m_is_emb ? m_truthtracks->getTruthTrack(m_trkid, m_truthinfo) : nullptr;
 }
 
 void TruthClusterizerBase::addhitset(
-    TrkrDefs::hitsetkey hitsetkey, 
-    TrkrDefs::hitkey hitkey, 
-    float neffelectrons) 
+    TrkrDefs::hitsetkey hitsetkey,
+    TrkrDefs::hitkey hitkey,
+    float neffelectrons)
 {
-  if (!m_is_emb) { return;
-}
+  if (!m_is_emb)
+  {
+    return;
+  }
   TrkrHitSetContainer::Iterator hitsetit = m_hits->findOrAddHitSet(hitsetkey);
   // See if this hit already exists
-  TrkrHit *hit = nullptr;
+  TrkrHit* hit = nullptr;
   hit = hitsetit->second->getHit(hitkey);
   if (!hit)
   {
@@ -134,24 +149,31 @@ void TruthClusterizerBase::addhitset(
   hit->addEnergy(neffelectrons);
 }
 
-void TruthClusterizerBase::print_clusters(int nclusprint) {
+void TruthClusterizerBase::print_clusters(int nclusprint)
+{
   std::cout << PHWHERE << ": content of clusters " << std::endl;
   auto& tmap = m_truthtracks->getMap();
   std::cout << " Number of tracks: " << tmap.size() << std::endl;
-  for (auto& _pair : tmap) {
+  for (auto& _pair : tmap)
+  {
     auto& track = _pair.second;
 
-    std::cout << (boost::format("id(%2i) phi:eta:pt(%5.2f:%5.2f:%5.2f) nclusters(%d) ") % (int)track->getTrackid() %track->getPhi() %track->getPseudoRapidity() %track->getPt() %track->getClusters().size()).str();
-    if (m_verbosity <= 10) { std::cout << std::endl; }
-    else {
+    std::cout << (boost::format("id(%2i) phi:eta:pt(%5.2f:%5.2f:%5.2f) nclusters(%d) ") % (int) track->getTrackid() % track->getPhi() % track->getPseudoRapidity() % track->getPt() % track->getClusters().size()).str();
+    if (m_verbosity <= 10)
+    {
+      std::cout << std::endl;
+    }
+    else
+    {
       int nclus = 0;
-      for (auto cluskey : track->getClusters()) {
-        std::cout << " " 
-          << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) <<":index(" <<
-          ((int)  TrkrDefs::getClusIndex(cluskey)) << ")";
+      for (auto cluskey : track->getClusters())
+      {
+        std::cout << " "
+                  << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) << ":index(" << ((int) TrkrDefs::getClusIndex(cluskey)) << ")";
         ++nclus;
-        if (nclusprint > 0 && nclus >= nclusprint) {
-          std::cout << " ... "; 
+        if (nclusprint > 0 && nclus >= nclusprint)
+        {
+          std::cout << " ... ";
           break;
         }
       }
@@ -159,4 +181,3 @@ void TruthClusterizerBase::print_clusters(int nclusprint) {
   }
   std::cout << PHWHERE << " ----- end of clusters " << std::endl;
 }
-
