@@ -1,4 +1,4 @@
-/*!h
+/*!
  * \file MicromegasMapping.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
