@@ -105,7 +105,7 @@ m_detectors( {
   // updated after fiber swapping on May 23, to fix flaky initialization of the FEE
 
   {5001, 23, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   1 ), "sec21.3", "R3.9", "M8Z",  "SCIZ" },
-  {5001, 24, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 6 ), "sec22.0", "R3.8", "M6P",  "SWIP" },
+  {5001, 24, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 6 ), "sec22.0", "R3.7", "M6P",  "SWIP" },
   {5001, 25, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   6 ), "sec22.1", "R3.8", "M6Z",  "SWIZ" },
 
   // north side
