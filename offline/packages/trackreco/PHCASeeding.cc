@@ -87,8 +87,8 @@
 #define _FILL_SEARCH_WINDOWS() fillsearchwindows()
 #else 
 #define _WRITE_TUPLES() (void) 0
-#define _FILL_TUPLE(tupname, num, key) (void) 0
-#define _FILL_TUPLE_WITH_SEED(tupname, seed) (void) 0
+#define _FILL_TUPLE(tupname, num, key, pos) (void) 0
+#define _FILL_TUPLE_WITH_SEED(tupname, seed, pos) (void) 0
 #define _PROGRESS_TUPOUT_COUNT() (void) 0
 #define _TUPWIN_LINK(_tree, coordkey, globpos) (void) 0
 #define _TUPWIN_COS_ANGLE(keyA, keyB, keyC, posmap, cos_angle, isneg) (void) 0
@@ -359,7 +359,7 @@ std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding:
 
 int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
 {
-  PROGRESS_TUPOUT_COUNT();
+  _PROGRESS_TUPOUT_COUNT();
   if (Verbosity() > 1)
   {
     std::cout << " Process...  " << std::endl;
@@ -780,7 +780,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
       if (seed.size() > 5)
       {
         trackSeedKeyLists.push_back(seed);
-        FILL_TUPLE_WITH_SEED(_tupclus_grown_seeds, seed, globalPositions);
+        _FILL_TUPLE_WITH_SEED(_tupclus_grown_seeds, seed, globalPositions);
       }
     }
     if (Verbosity() > 0)
