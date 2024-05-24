@@ -7,7 +7,6 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrackFitUtils.h>
 
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 
@@ -1180,8 +1179,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         //      nhits_local += tpcseed->size_cluster_keys();
         // fill the Gseed NTuple
         //---------------------
-	float dedx = calc_dedx(tpcseed);
-	float n1pix = get_n1pix(tpcseed);
+        float dedx = calc_dedx(tpcseed);
+        float n1pix = get_n1pix(tpcseed);
         float fx_seed[n_seed::seedsize] = {(float) track->get_id(), 0, tpt, teta, tphi, xyint, rzint, xyslope, rzslope, tX0, tY0, tZ0, R0, charge, dedx, n1pix, nhits_local};
 
         if (_ntp_tpcseed)
@@ -1286,7 +1285,7 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   short int crossing_int = track->get_crossing();
   fX[n_track::ntrktrackID] = trackID;
   fX[n_track::ntrkcrossing] = std::numeric_limits<float>::quiet_NaN();
-  if (crossing_int == SHRT_MAX)
+  if (crossing_int == std::numeric_limits<short int>::max())
   {
     fX[n_track::ntrkcrossing] = std::numeric_limits<float>::quiet_NaN();
   }
@@ -1458,51 +1457,53 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   fX[n_track::ntrkpcaz] = track->get_z();
 }
 
-float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
+float TrkrNtuplizer::calc_dedx(TrackSeed* tpcseed)
+{
+  std::vector<TrkrDefs::cluskey> clusterKeys;
+  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+                     tpcseed->end_cluster_keys());
 
-    std::vector<TrkrDefs::cluskey> clusterKeys;
-    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
-		       tpcseed->end_cluster_keys());
+  std::vector<float> dedxlist;
+  for (unsigned long cluster_key : clusterKeys)
+  {
+    unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+    TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+    float adc = cluster->getAdc();
+    PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
+    float thick = GeoLayer_local->get_thickness();
 
-    std::vector<float> dedxlist;
-    for (unsigned int i = 0; i < clusterKeys.size(); i++){
-      TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
-      unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-      TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
-      float adc = cluster->getAdc();
-      PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
-      float thick = GeoLayer_local->get_thickness();
-
-      dedxlist.push_back(adc/thick);
-      sort(dedxlist.begin(), dedxlist.end());
-    }
-    int trunc_min = 0;
-    int trunc_max = (int)dedxlist.size()*0.7;
-    float sumdedx = 0;
-    int ndedx = 0;
-    for(int j = trunc_min; j<=trunc_max;j++){
-      sumdedx+=dedxlist.at(j);
-      ndedx++;
-    }
-    sumdedx/=ndedx;
-    return sumdedx;
+    dedxlist.push_back(adc / thick);
+    sort(dedxlist.begin(), dedxlist.end());
+  }
+  int trunc_min = 0;
+  int trunc_max = (int) dedxlist.size() * 0.7;
+  float sumdedx = 0;
+  int ndedx = 0;
+  for (int j = trunc_min; j <= trunc_max; j++)
+  {
+    sumdedx += dedxlist.at(j);
+    ndedx++;
+  }
+  sumdedx /= ndedx;
+  return sumdedx;
 }
 
-float TrkrNtuplizer::get_n1pix(TrackSeed *tpcseed){
+float TrkrNtuplizer::get_n1pix(TrackSeed* tpcseed)
+{
+  std::vector<TrkrDefs::cluskey> clusterKeys;
+  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+                     tpcseed->end_cluster_keys());
 
-    std::vector<TrkrDefs::cluskey> clusterKeys;
-    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
-		       tpcseed->end_cluster_keys());
-
-    float n1pix = 0;
-    for (unsigned int i = 0; i < clusterKeys.size(); i++){
-      TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
-      TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
-      if(cluster->getPhiSize()==1){
-	n1pix++;
-      }
+  float n1pix = 0;
+  for (unsigned long cluster_key : clusterKeys)
+  {
+    TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+    if (cluster->getPhiSize() == 1)
+    {
+      n1pix++;
     }
-    return n1pix;
+  }
+  return n1pix;
 }
 
 void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_key)
@@ -1639,7 +1640,7 @@ SvtxTrack* TrkrNtuplizer::best_track_from(TrkrDefs::cluskey cluster_key)
   }
 
   SvtxTrack* best_track = nullptr;
-  float best_quality = FLT_MAX;
+  float best_quality = std::numeric_limits<float>::max();
 
   std::set<SvtxTrack*> tracks = all_tracks_from(cluster_key);
   // loop over all SvtxTracks

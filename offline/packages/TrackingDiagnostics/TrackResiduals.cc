@@ -45,6 +45,8 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
+#include <limits>
+
 namespace
 {
   template <class T>
@@ -237,7 +239,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
-
     m_trackid = key;
     m_crossing = track->get_crossing();
     m_px = track->get_px();
@@ -298,15 +299,16 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       m_seedy = tpcseed->get_y();
       m_seedz = tpcseed->get_z();
     }
-    if (tpcseed){
-      m_dedx = calc_dedx(tpcseed, clustermap,tpcGeom);
+    if (tpcseed)
+    {
+      m_dedx = calc_dedx(tpcseed, clustermap, tpcGeom);
     }
     if (m_zeroField)
     {
-      float qor = NAN;
-      float phi = NAN;
-      float theta = NAN;
-      float eta = NAN;
+      float qor = std::numeric_limits<float>::quiet_NaN();
+      float phi = std::numeric_limits<float>::quiet_NaN();
+      float theta = std::numeric_limits<float>::quiet_NaN();
+      float eta = std::numeric_limits<float>::quiet_NaN();
       if (tpcseed)
       {
         qor = tpcseed->get_qOverR();
@@ -427,33 +429,39 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
-float TrackResiduals::calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clustermap, PHG4TpcCylinderGeomContainer *tpcGeom){
-
+float TrackResiduals::calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* clustermap, PHG4TpcCylinderGeomContainer* tpcGeom)
+{
   std::vector<TrkrDefs::cluskey> clusterKeys;
   clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
-		       tpcseed->end_cluster_keys());
-  
+                     tpcseed->end_cluster_keys());
+
   std::vector<float> dedxlist;
-  for (unsigned int i = 0; i < clusterKeys.size(); i++){
-    TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
+  for (unsigned long cluster_key : clusterKeys)
+  {
+    auto detid = TrkrDefs::getTrkrId(cluster_key);
+    if (detid != TrkrDefs::TrkrId::tpcId) 
+      {
+	continue;   // the micromegas clusters are added to the TPC seeds
+      }
     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
     TrkrCluster* cluster = clustermap->findCluster(cluster_key);
     float adc = cluster->getAdc();
     PHG4TpcCylinderGeom* GeoLayer_local = tpcGeom->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();
-    
-    dedxlist.push_back(adc/thick);
+
+    dedxlist.push_back(adc / thick);
     sort(dedxlist.begin(), dedxlist.end());
   }
   int trunc_min = 0;
-  int trunc_max = (int)dedxlist.size()*0.7;
+  int trunc_max = (int) dedxlist.size() * 0.7;
   float sumdedx = 0;
   int ndedx = 0;
-  for(int j = trunc_min; j<=trunc_max;j++){
-    sumdedx+=dedxlist.at(j);
+  for (int j = trunc_min; j <= trunc_max; j++)
+  {
+    sumdedx += dedxlist.at(j);
     ndedx++;
   }
-  sumdedx/=ndedx;
+  sumdedx /= ndedx;
   return sumdedx;
 }
 
@@ -517,7 +525,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       m_seedpz = tpcseed->get_pz();
     }
     m_seedcharge = tpcseed->get_qOverR() > 1 ? 1 : -1;
-    m_dedx = calc_dedx(tpcseed, clustermap,tpcGeo);
+    m_dedx = calc_dedx(tpcseed, clustermap, tpcGeo);
     std::cout << "m_dedx: " << m_dedx << std::endl;
     m_nmaps = 0;
     m_nintt = 0;
@@ -643,11 +651,6 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   for (auto& pos : clusPos)
   {
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0)
-    {
-      clusr *= -1;
-    }
-
     // exclude silicon and tpot clusters for now
     if (fabs(clusr) > 80 || (m_linefitTPCOnly && fabs(clusr) < 20.))
     {
@@ -655,7 +658,8 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     }
     global_vec.push_back(pos);
   }
-  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys);
+
+  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
   m_xyint = std::numeric_limits<float>::quiet_NaN();
   m_xyslope = std::numeric_limits<float>::quiet_NaN();
   if (fitpars.size() > 0)
@@ -1075,32 +1079,32 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
     }
   }
 
-  if(Verbosity() > 2)
+  if (Verbosity() > 2)
+  {
+    if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::micromegasId)
     {
-      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::micromegasId)
-	{
-	  unsigned int layer =  TrkrDefs::getLayer(ckey);
-	  auto loc = geometry->getLocalCoords(ckey, cluster);  
-	  std::cout << " MMs layer " << layer << " cluslx " << loc(0) << " clusly " << loc(1) << std:: endl; 
-	  std::cout << "     clusgx " <<  clusglob.x() 
-		    << " clusgy " << clusglob.y() 
-		    << " clusgz " << clusglob.z() 
-		    << std::endl;
+      unsigned int layer = TrkrDefs::getLayer(ckey);
+      auto loc = geometry->getLocalCoords(ckey, cluster);
+      std::cout << " MMs layer " << layer << " cluslx " << loc(0) << " clusly " << loc(1) << std::endl;
+      std::cout << "     clusgx " << clusglob.x()
+                << " clusgy " << clusglob.y()
+                << " clusgz " << clusglob.z()
+                << std::endl;
 
-	  if(!state)
-	    {
-	      std::cout << " ****** ckey " << ckey << " track " << track->get_id() << " in layer " << layer << " found no matching state " << std::endl;
-	    }
-	  else
-	    {
-	      std::cout << "found matching state for ckey " << ckey  << " track " << track->get_id() << " in layer " <<  layer  << std::endl;
-	      std::cout << "   stategx  " << state->get_x() 
-			<< " stategy " << state->get_y() 
-			<< " stategz " << state->get_z()
-			<< std::endl; 	  
-	    }
-	}
+      if (!state)
+      {
+        std::cout << " ****** ckey " << ckey << " track " << track->get_id() << " in layer " << layer << " found no matching state " << std::endl;
+      }
+      else
+      {
+        std::cout << "found matching state for ckey " << ckey << " track " << track->get_id() << " in layer " << layer << std::endl;
+        std::cout << "   stategx  " << state->get_x()
+                  << " stategy " << state->get_y()
+                  << " stategz " << state->get_z()
+                  << std::endl;
+      }
     }
+  }
 
   m_cluskeys.push_back(ckey);
 
@@ -1147,17 +1151,17 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
       fillStatesWithCircleFit(ckey, cluster, clusglob, geometry);
     }
 
-    if(Verbosity() > 2)
+    if (Verbosity() > 2)
+    {
+      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::micromegasId)
       {
-	if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::micromegasId)
-	  {
-	    unsigned int ssize = m_stategx.size();
-	    std::cout << "   ckey " << ckey << " after circle fit: stategx  " << m_stategx[ssize-1]
-		      << " stategy " << m_stategy[ssize-1]
-		      << " stategz " << m_stategy[ssize-1]
-		      << std::endl; 	  
-	  }
+        unsigned int ssize = m_stategx.size();
+        std::cout << "   ckey " << ckey << " after circle fit: stategx  " << m_stategx[ssize - 1]
+                  << " stategy " << m_stategy[ssize - 1]
+                  << " stategz " << m_stategy[ssize - 1]
+                  << std::endl;
       }
+    }
 
     //! skip filling the state information if a state is not there
     //! or we just ran the seeding. Fill with Nans to maintain the

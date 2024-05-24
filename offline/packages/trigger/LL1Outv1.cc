@@ -131,6 +131,11 @@ bool LL1Outv1::passesTrigger()
 
 bool LL1Outv1::passesThreshold(int ith)
 {
+  if (!ith)
+    {
+      return passesTrigger();
+    }
+  
   for (unsigned int& trigger_bit : *m_trigger_bits)
   {
     if (((trigger_bit >> (uint16_t) (ith - 1)) & 0x1U) == 0x1U)

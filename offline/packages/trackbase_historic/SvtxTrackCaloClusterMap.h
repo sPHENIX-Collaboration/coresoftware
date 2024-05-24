@@ -1,8 +1,9 @@
 #ifndef TRACKBASEHISTORIC_SVTXTRACKCALOCLUSTERMAP_H
 #define TRACKBASEHISTORIC_SVTXTRACKCALOCLUSTERMAP_H
 
-#include <calobase/RawCluster.h>
 #include "SvtxTrack.h"
+
+#include <calobase/RawCluster.h>
 
 #include <phool/PHObject.h>
 
