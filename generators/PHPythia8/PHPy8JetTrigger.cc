@@ -16,8 +16,6 @@
 #include <utility>    // for swap
 #include <vector>     // for vector
 
-using namespace std;
-
 //__________________________________________________________
 PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name)
   : PHPy8GenTrigger(name)
@@ -42,8 +40,8 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 {
   if (Verbosity() > 2)
   {
-    cout << "PHPy8JetTrigger::Apply - pythia event size: "
-         << pythia->event.size() << endl;
+    std::cout << "PHPy8JetTrigger::Apply - pythia event size: "
+         << pythia->event.size() << std::endl;
   }
 
   // Loop over all particles in the event
@@ -102,7 +100,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
       max_pt = pt;
     }
 
-    vector<fastjet::PseudoJet> constituents = fastjet.constituents();
+    std::vector<fastjet::PseudoJet> constituents = fastjet.constituents();
     int ijet_nconst = constituents.size();
 
     if (pt > _minPt && ijet_nconst >= _nconst)
@@ -152,7 +150,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
   if (Verbosity() > 2)
   {
-    cout << "PHPy8JetTrigger::Apply - max_pt = " << max_pt << ", and jetFound = " << jetFound << endl;
+    std::cout << "PHPy8JetTrigger::Apply - max_pt = " << max_pt << ", and jetFound = " << jetFound << std::endl;
   }
 
   return jetFound;
@@ -165,7 +163,7 @@ void PHPy8JetTrigger::SetEtaHighLow(double etaHigh, double etaLow)
 
   if (_theEtaHigh < _theEtaLow)
   {
-    swap(_theEtaHigh, _theEtaLow);
+    std::swap(_theEtaHigh, _theEtaLow);
   }
 }
 
@@ -191,10 +189,10 @@ void PHPy8JetTrigger::SetMinNumConstituents(int nconst)
 
 void PHPy8JetTrigger::PrintConfig()
 {
-  cout << "---------------- PHPy8JetTrigger::PrintConfig --------------------" << endl;
+  std::cout << "---------------- PHPy8JetTrigger::PrintConfig --------------------" << std::endl;
 
-  cout << "   Particles EtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << endl;
-  cout << "   Minimum Jet pT: " << _minPt << " GeV/c" << endl;
-  cout << "   Anti-kT Radius: " << _R << endl;
-  cout << "-----------------------------------------------------------------------" << endl;
+  std::cout << "   Particles EtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << std::endl;
+  std::cout << "   Minimum Jet pT: " << _minPt << " GeV/c" << std::endl;
+  std::cout << "   Anti-kT Radius: " << _R << std::endl;
+  std::cout << "-----------------------------------------------------------------------" << std::endl;
 }
