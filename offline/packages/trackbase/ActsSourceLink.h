@@ -1,11 +1,19 @@
 #ifndef TRACKBASE_ACTSSOURCELINK_H
 #define TRACKBASE_ACTSSOURCELINK_H
 
-#include <Acts/EventData/SourceLink.hpp>
-#include <Acts/Geometry/TrackingGeometry.hpp>
-#include <Acts/Surfaces/Surface.hpp>
-
 #include "TrkrDefs.h"
+
+#ifndef __clang__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#include <Acts/Geometry/TrackingGeometry.hpp>
+#pragma GCC diagnostic pop
+#else
+#include <Acts/Geometry/TrackingGeometry.hpp>
+#endif
+
+#include <Acts/EventData/SourceLink.hpp>
+#include <Acts/Surfaces/Surface.hpp>
 
 #include <cassert>
 #include <iostream>

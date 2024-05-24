@@ -5,17 +5,7 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
-case $CXX in
- clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template"
- ;;
- g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror"
- ;;
-esac
-
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
-AC_SUBST(CINTDEFS)
+CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wshadow -Werror"
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
