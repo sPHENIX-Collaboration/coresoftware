@@ -76,6 +76,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
     /// fee bco
     unsigned int fee_bco = 0;
 
+    /// fee bco predicted (from gtm)
+    unsigned int fee_bco_predicted = 0;
+
     /// checksum and checksum error
     unsigned int checksum = 0;
     unsigned int checksum_error = 0;
@@ -119,6 +122,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
     /// fee bco
     unsigned int fee_bco = 0;
+
+    /// fee bco predicted (from gtm)
+    unsigned int fee_bco_predicted = 0;
 
     /// checksum and checksum error
     unsigned int checksum = 0;
