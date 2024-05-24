@@ -457,8 +457,8 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
 
   for (int layer_index=outer_index; layer_index>=inner_index;--layer_index) {
     // these lines of code will rotates through all three _rtree's in the array,
-    // where the old upper becomes the new middle, the old middle the new lower,
-    // and the old lower drops out and that _rtree is filled with the new upper
+    // where the old lower becomes the new middle, the old middle the new upper,
+    // and the old upper drops out and that _rtree is filled with the new lower
     int index_above   = (layer_index+1)%3;
     int index_current = (layer_index  )%3;
     int index_below   = (layer_index-1)%3;
@@ -482,8 +482,7 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer>  PHCASeeding::Cre
     // above and below layers and make links
     // Any link to an above node which matches the same clusters
     // on the previous iteration (to a "below node") becomes a "bilink"
-    // Each bilink will either add to an existing chain or start a new one
-    /* std::vector<keyLink> belowLinks; */
+    // Check if this bilink links to a prior bilink or not
     std::vector<keyLink> aboveLinks;
     for (const auto& StartCluster : coord)
     {

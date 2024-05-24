@@ -37,6 +37,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   void set_z_search_window_lyr2(const double win){_z_search_win[1] = win;}
   void set_min_tpc_layer(const unsigned int layer){_min_tpc_layer = layer;}
   void set_test_windows_printout(const bool test){_test_windows = test;}
+  void set_pp_mode(const bool mode){_pp_mode = mode;}
   void SetIteration(int iter){_n_iteration = iter;}
   
   int InitRun(PHCompositeNode* topNode) override;
@@ -103,7 +104,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
 
   //! true to printout actual residuals for testing
   bool _test_windows = false;   
-  
+
+  bool _pp_mode = false;  
 };
 
 #endif // PHMICROMEGASTPCTRACKMATCHING_H
