@@ -51,7 +51,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
   for (int i = 0; i < pythia->event.size(); ++i)
   {
     if (pythia->event[i].status() > 0)
-    {  //only stable particles
+    {  // only stable particles
 
       // remove some particles (muons, taus, neutrinos)...
       // 12 == nu_e
@@ -93,16 +93,16 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
   bool jetFound = false;
   double max_pt = -1;
-  for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
+  for (auto &fastjet : fastjets)
   {
-    const double pt = sqrt(fastjets[ijet].px() * fastjets[ijet].px() + fastjets[ijet].py() * fastjets[ijet].py());
+    const double pt = sqrt(fastjet.px() * fastjet.px() + fastjet.py() * fastjet.py());
 
     if (pt > max_pt)
     {
       max_pt = pt;
     }
 
-    vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
+    vector<fastjet::PseudoJet> constituents = fastjet.constituents();
     int ijet_nconst = constituents.size();
 
     if (pt > _minPt && ijet_nconst >= _nconst)
@@ -113,19 +113,19 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
         double leading_Z = 0.0;
 
-        double jet_ptot = sqrt(fastjets[ijet].px() * fastjets[ijet].px() +
-                               fastjets[ijet].py() * fastjets[ijet].py() +
-                               fastjets[ijet].pz() * fastjets[ijet].pz());
+        double jet_ptot = sqrt(fastjet.px() * fastjet.px() +
+                               fastjet.py() * fastjet.py() +
+                               fastjet.pz() * fastjet.pz());
 
-        for (unsigned int j = 0; j < constituents.size(); j++)
+        for (auto &constituent : constituents)
         {
-          double con_ptot = sqrt(constituents[j].px() * constituents[j].px() +
-                                 constituents[j].py() * constituents[j].py() +
-                                 constituents[j].pz() * constituents[j].pz());
+          double con_ptot = sqrt(constituent.px() * constituent.px() +
+                                 constituent.py() * constituent.py() +
+                                 constituent.pz() * constituent.pz());
 
-          double ctheta = (constituents[j].px() * fastjets[ijet].px() +
-                           constituents[j].py() * fastjets[ijet].py() +
-                           constituents[j].pz() * fastjets[ijet].pz()) /
+          double ctheta = (constituent.px() * fastjet.px() +
+                           constituent.py() * fastjet.py() +
+                           constituent.pz() * fastjet.pz()) /
                           (con_ptot * jet_ptot);
 
           double z_constit = con_ptot * ctheta / jet_ptot;

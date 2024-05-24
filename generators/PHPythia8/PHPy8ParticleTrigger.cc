@@ -68,10 +68,10 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
   for (int i = 0; i < pythia->event.size(); ++i)
   {
     // loop over all the trigger particle criteria
-    for (int j = 0; j < int(_theParticles.size()); j++)
+    for (int _theParticle : _theParticles)
     {
-      if (pythia->event[i].id() == _theParticles[j] &&
-          (pythia->event[i].status() > 0    //only stable particles
+      if (pythia->event[i].id() == _theParticle &&
+          (pythia->event[i].status() > 0    // only stable particles
            or (not m_doStableParticleOnly)  // or not
            ))
       {
@@ -171,13 +171,13 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
 
         // loop over all partents to this particle
         bool passedParents = false;
-        for (int k = 0; k < int(_theParents.size()); k++)
+        for (int _theParent : _theParents)
         {
           // check Mothers
           std::vector<int> moms = pythia->event[i].motherList();
-          for (int m = 0; m < int(moms.size()); m++)
+          for (int mom : moms)
           {
-            if (abs(pythia->event[moms[m]].id()) == abs(_theParents[k]))
+            if (abs(pythia->event[mom].id()) == abs(_theParent))
             {
               passedParents = true;
               if (Verbosity() > 5)
@@ -186,23 +186,23 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
               }
               break;
             }
-          }  //moms for loop
+          }  // moms for loop
           if (passedParents)
           {
             break;
           }
-        }  //parents for loop
+        }  // parents for loop
 
-        //If we made it here and it passes parents, success!
+        // If we made it here and it passes parents, success!
         if (_theParents.size() == 0 || passedParents)
         {
           return true;
         }
 
-      }  //if _theParticles
+      }  // if _theParticles
     }    //_theParticles for loop
 
-  }  //pythia event for loop
+  }  // pythia event for loop
 
   return false;
 }
@@ -497,16 +497,16 @@ void PHPy8ParticleTrigger::PrintConfig()
   }
 
   cout << "   Particles: ";
-  for (int i = 0; i < int(_theParticles.size()); i++)
+  for (int _theParticle : _theParticles)
   {
-    cout << _theParticles[i] << "  ";
+    cout << _theParticle << "  ";
   }
   cout << endl;
 
   cout << "   Parents: ";
-  for (int i = 0; i < int(_theParents.size()); i++)
+  for (int _theParent : _theParents)
   {
-    cout << _theParents[i] << "  ";
+    cout << _theParent << "  ";
   }
   cout << endl;
 

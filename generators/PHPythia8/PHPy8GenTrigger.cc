@@ -5,14 +5,14 @@
 using namespace std;
 
 //__________________________________________________________
-PHPy8GenTrigger::PHPy8GenTrigger(const std::string &name)
+PHPy8GenTrigger::PHPy8GenTrigger(const std::string& name)
   : m_Verbosity(0)
   , m_Name(name)
 {
 }
 
 //__________________________________________________________
-std::vector<int> PHPy8GenTrigger::convertToInts(std::string s)
+std::vector<int> PHPy8GenTrigger::convertToInts(const std::string& s)
 {
   vector<int> theVec;
   stringstream ss(s);

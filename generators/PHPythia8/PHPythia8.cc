@@ -85,9 +85,9 @@ int PHPythia8::Init(PHCompositeNode *topNode)
   {
     read_config(m_ConfigFileName);
   }
-  for (unsigned int j = 0; j < m_Commands.size(); j++)
+  for (auto &m_Command : m_Commands)
   {
-    m_Pythia8->readString(m_Commands[j]);
+    m_Pythia8->readString(m_Command);
   }
 
   create_node_tree(topNode);
@@ -133,7 +133,7 @@ int PHPythia8::End(PHCompositeNode * /*topNode*/)
     //-* dump out closing info (cross-sections, etc)
     m_Pythia8->stat();
 
-    //match pythia printout
+    // match pythia printout
     cout << " |                                                                "
          << "                                                 | " << endl;
     cout << "                         PHPythia8::End - " << m_EventCount
@@ -213,14 +213,14 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
       cout << "PHPythia8::process_event - triggersize: " << m_RegisteredTriggers.size() << endl;
     }
 
-    for (unsigned int tr = 0; tr < m_RegisteredTriggers.size(); tr++)
+    for (auto &m_RegisteredTrigger : m_RegisteredTriggers)
     {
-      bool trigResult = m_RegisteredTriggers[tr]->Apply(m_Pythia8);
+      bool trigResult = m_RegisteredTrigger->Apply(m_Pythia8);
 
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
         cout << "PHPythia8::process_event trigger: "
-             << m_RegisteredTriggers[tr]->GetName() << "  " << trigResult << endl;
+             << m_RegisteredTrigger->GetName() << "  " << trigResult << endl;
       }
 
       if (m_TriggersOR && trigResult)
@@ -236,7 +236,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
       if (Verbosity() >= VERBOSITY_EVEN_MORE && !passedTrigger)
       {
         cout << "PHPythia8::process_event - failed trigger: "
-             << m_RegisteredTriggers[tr]->GetName() << endl;
+             << m_RegisteredTrigger->GetName() << endl;
       }
     }
 
