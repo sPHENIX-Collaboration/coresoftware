@@ -689,6 +689,7 @@ void PHG4TpcDetector::add_geometry_node()
                   << " NTBins " << NTBins << " tmin " << MinT << " tstep " << TBinWidth
                   << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << std::endl;
       }
+      std::cout << "PHG4TpcDetector::add_geometry_node layer = " << layer << std::endl;
 
       auto layerseggeo = new PHG4TpcCylinderGeom;
       layerseggeo->set_layer(layer);
