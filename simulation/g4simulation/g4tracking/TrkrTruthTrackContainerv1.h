@@ -20,7 +20,7 @@ class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
  public:
   void Reset() override;
   /* void fillEmbeddedTrkIds(PHG4TruthInfoContainer*); // fill in all the embedded track ids at once */
-  void addTruthTrack (TrkrTruthTrack*) override;
+  void addTruthTrack(TrkrTruthTrack*) override;
   TrkrTruthTrack* getTruthTrack(unsigned int trackid) override;
   TrkrTruthTrack* getTruthTrack(unsigned int trackid, PHG4TruthInfoContainer*) override;
   ConstRange getTruthTrackRange() const override;
@@ -30,11 +30,11 @@ class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
   TrkrTruthTrackContainerv1() = default;
 
   void identify(std::ostream& os = std::cout) const override;
-  int nhw_virt()  override { return 61; };
+  int nhw_virt() override { return 61; };
 
  private:
   // the data
-  Map m_data {};
+  Map m_data{};
 
   ClassDefOverride(TrkrTruthTrackContainerv1, 1)
 };
