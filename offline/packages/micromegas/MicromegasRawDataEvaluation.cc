@@ -22,50 +22,86 @@
 
 #include <cassert>
 #include <fstream>
-#include <list>
 #include <memory>
 #include <set>
 
 namespace
 {
+
+  // define limit for matching two fee_bco
+  static constexpr unsigned int max_fee_bco_diff = 10;
+  static constexpr unsigned int max_gtm_bco_diff = 100;
+
+  // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
+  static constexpr unsigned int max_matching_data_size = 50;
+
   // streamer for lists
   template <class T>
-  std::ostream& operator<<(std::ostream& out, const std::list<T>& list)
+  std::ostream& operator<<(std::ostream& o, const std::list<T>& list)
   {
     if (list.empty())
     {
-      out << "{}";
+      o << "{}";
     }
     else
     {
-      out << "{ ";
+      const bool is_hex = (o.flags()&std::ios_base::hex);
+      o << "{ ";
       bool first = true;
       for (const auto& value : list)
       {
         if (!first)
         {
-          out << ", ";
+          o << ", ";
         }
-        out << value;
+        if( is_hex ) o << "0x";
+        o << value;
         first = false;
       }
-      out << " }";
+      o << " }";
     }
-    return out;
+    return o;
   }
 
-  // get the difference between two BCO.
-  template<class T>
-  inline static constexpr T get_bco_diff( const T& first, const T& second )
-  { return first < second ? (second-first):(first-second); }
+}
 
+// get the difference between two BCO.
+template<class T>
+  inline static constexpr T get_bco_diff( const T& first, const T& second )
+{ return first < second ? (second-first):(first-second); }
+
+//_________________________________________________________
+void MicromegasRawDataEvaluation::bco_matching_information_t::truncate( unsigned int maxsize )
+{
+  while( m_gtm_bco_list.size() > maxsize ) { m_gtm_bco_list.pop_front(); }
+  while( m_bco_matching_list.size() > maxsize ) { m_bco_matching_list.pop_front(); }
+}
+
+//_________________________________________________________
+unsigned int MicromegasRawDataEvaluation::bco_matching_information_t::get_predicted_fee_bco( uint64_t gtm_bco ) const
+{
+  // check proper initialization
+  if( !(m_has_gtm_bco_first && m_has_fee_bco_first ) ) { return 0; }
+
+  // this is the clock multiplier from lvl1 to fee clock
+  /* todo: should replace with actual rational number for John K. */
+  static constexpr double multiplier = 4.2629164;
+
+  // get gtm bco difference with proper rollover accounting
+  uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
+    (gtm_bco - m_gtm_bco_first):
+    (gtm_bco + (1ULL<<40) - m_gtm_bco_first);
+
+  // convert to fee bco, and truncate to 20 bits
+  uint64_t fee_bco_predicted = m_fee_bco_first + multiplier*(gtm_bco_difference);
+  return (unsigned int)(fee_bco_predicted & 0xFFFFF);
 }
 
 //_________________________________________________________
 void MicromegasRawDataEvaluation::Waveform::copy_from(const MicromegasRawDataEvaluation::Sample& sample)
 {
   packet_id = sample.packet_id;
-  lvl1_bco = sample.lvl1_bco;
+  gtm_bco = sample.gtm_bco;
   fee_bco = sample.fee_bco;
   checksum = sample.checksum;
   checksum_error = sample.checksum_error;
@@ -131,7 +167,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
   m_container->Reset();
 
-  // temporary storage for samples and waveforms, sorted by lvl1 bco
+  // temporary storage for samples and waveforms, sorted by gtm bco
   std::multimap<uint64_t, Sample> sample_map;
   std::multimap<uint64_t, Waveform> waveform_map;
 
@@ -149,12 +185,11 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    // taggers
-    int n_tagger = packet->lValue(0, "N_TAGGER");
+    // get relevant bco matching information
+    auto& bco_matching_information = m_bco_matching_information_map[packet_id];
 
-    // store tagged lvl1 bcos into a vector
-    using bco_list_t = std::list<uint64_t>;
-    bco_list_t main_bco_list;
+    // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
+    int n_tagger = packet->lValue(0, "N_TAGGER");
     for (int t = 0; t < n_tagger; t++)
     {
       TaggerInformation tagger;
@@ -174,12 +209,29 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
       if (tagger.is_lvl1 && (m_flags & (EvalSample | EvalWaveform)))
       {
-        // store bco
-        main_bco_list.push_back(tagger.bco);
+        // initialize first gtm_bco
+        if( !bco_matching_information.m_has_gtm_bco_first )
+        {
+          bco_matching_information.m_gtm_bco_first = tagger.bco;
+          bco_matching_information.m_has_gtm_bco_first = true;
+          if( Verbosity() )
+          {
+            std::cout
+              << "MicromegasRawDataEvaluation::process_event -"
+              << " packet: " << packet_id
+              << std::hex
+              << " m_gtm_bco_first: 0x" << tagger.bco
+              << std::dec
+              << std::endl;
+          }
+        }
+
+        // store in list of available bco
+        bco_matching_information.m_gtm_bco_list.push_back(tagger.bco);
       }
     }
 
-    // get number of datasets (also call waveforms)
+    // get number of waveforms
     const auto n_waveform = packet->iValue(0, "NR_WF");
 
     if (Verbosity())
@@ -187,24 +239,36 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
       std::cout << "MicromegasRawDataEvaluation::process_event -"
                 << " packet: " << packet_id
                 << " taggers: " << n_tagger
-                << " n_lvl1_bco: " << main_bco_list.size()
+                << " n_gtm_bco: " << bco_matching_information.m_gtm_bco_list.size()
                 << " n_waveform: " << n_waveform
                 << std::endl;
 
-      if (!main_bco_list.empty())
+      if (!bco_matching_information.m_gtm_bco_list.empty())
       {
-        std::cout << "MicromegasRawDataEvaluation::process_event -"
-                  << " packet: " << packet_id
-                  << " bco: " << std::hex << main_bco_list << std::dec
-                  << std::endl;
+        std::cout
+          << "MicromegasRawDataEvaluation::process_event -"
+          << " packet: " << packet_id
+          << " gtm_bco: " << std::hex << bco_matching_information.m_gtm_bco_list << std::dec
+          << std::endl;
+
+        // also print predicted fee bco
+        std::list<unsigned int> fee_bco_predicted_list;
+        std::transform(
+          bco_matching_information.m_gtm_bco_list.begin(),
+          bco_matching_information.m_gtm_bco_list.end(),
+          std::back_inserter(fee_bco_predicted_list),
+          [&bco_matching_information](const uint64_t& gtm_bco ){ return bco_matching_information.get_predicted_fee_bco(gtm_bco); } );
+
+        std::cout
+          << "MicromegasRawDataEvaluation::process_event -"
+          << " packet: " << packet_id
+          << " fee_bco_predicted: " << std::hex << fee_bco_predicted_list << std::dec
+          << std::endl;
       }
     }
 
     if (m_flags & (EvalSample | EvalWaveform))
     {
-      // store available bco list for each fee
-      std::map<unsigned short, bco_list_t> bco_list_map;
-
       // keep track of orphans
       using fee_pair_t = std::pair<unsigned int, unsigned int>;
       std::set<fee_pair_t> orphans;
@@ -232,51 +296,71 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
         // beam crossing
         sample.fee_bco = static_cast<uint32_t>(packet->iValue(iwf, "BCO"));
-        sample.lvl1_bco = 0;
-        sample.lvl1_bco_masked = 0;
+        sample.gtm_bco = 0;
 
-        // find bco matching map corresponding to fee
-        auto& bco_matching_pair = m_fee_bco_matching_map[sample.fee_id];
+        // checksum and checksum error
+        sample.checksum = packet->iValue(iwf, "CHECKSUM");
+        sample.checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
 
-        // find matching lvl1 bco
-        static constexpr unsigned int max_fee_bco_diff = 10;
-        if( get_bco_diff(sample.fee_bco,bco_matching_pair.first) < max_fee_bco_diff )
+        // initialize first fee_bco
+        if( !bco_matching_information.m_has_fee_bco_first )
         {
-          sample.lvl1_bco = bco_matching_pair.second;
-          sample.lvl1_bco_masked = ( bco_matching_pair.second & 0xFFFFFU );
+          bco_matching_information.m_fee_bco_first = sample.fee_bco;
+          bco_matching_information.m_has_fee_bco_first = true;
+          if( Verbosity() )
+          {
+            std::cout
+              << "MicromegasRawDataEvaluation::process_event -"
+              << " packet: " << packet_id
+              << std::hex
+              << " m_fee_bco_first: 0x" << sample.fee_bco
+              << std::dec
+              << std::endl;
+          }
+        }
+
+        // find matching gtm bco
+        const auto bco_matching_iter = std::find_if(
+          bco_matching_information.m_bco_matching_list.begin(),
+          bco_matching_information.m_bco_matching_list.end(),
+          [&sample]( const m_bco_matching_pair_t& pair )
+          { return get_bco_diff( pair.first, sample.fee_bco ) < max_fee_bco_diff; } );
+
+        if( bco_matching_iter != bco_matching_information.m_bco_matching_list.end() )
+        {
+
+          // found matching gtm
+          sample.gtm_bco = bco_matching_iter->second;
+
         } else {
 
-          // find bco list corresponding to fee, insert main list if not found
-          auto bco_list_iter = bco_list_map.lower_bound(sample.fee_id);
-          if (bco_list_iter == bco_list_map.end() || sample.fee_id < bco_list_iter->first)
+          auto iter = std::find_if(
+            bco_matching_information.m_gtm_bco_list.begin(),
+            bco_matching_information.m_gtm_bco_list.end(),
+            [&sample, &bco_matching_information]( const uint64_t& gtm_bco )
+            { return get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco ) < max_gtm_bco_diff; } );
+          if( iter != bco_matching_information.m_gtm_bco_list.end() )
           {
-            bco_list_iter = bco_list_map.insert(bco_list_iter, std::make_pair(sample.fee_id, main_bco_list));
-          }
-
-          // get local reference to fee's bco list
-          auto& bco_list = bco_list_iter->second;
-          if (!bco_list.empty())
-          {
+            const auto& gtm_bco = *iter;
             if (Verbosity())
             {
               std::cout << "MicromegasRawDataEvaluation::process_event -"
-                        << " fee_id: " << sample.fee_id
-                        << " fee_bco: 0x" << std::hex << sample.fee_bco
-                        << " gtm_bco: 0x" << bco_list.front()
-                        << std::dec
-                        << std::endl;
+                << " fee_id: " << sample.fee_id
+                << std::hex
+                << " fee_bco: 0x" << sample.fee_bco
+                << " predicted: 0x" << bco_matching_information.get_predicted_fee_bco(gtm_bco)
+                << " gtm_bco: 0x" << gtm_bco
+                << std::dec
+                << std::endl;
             }
 
-            // fee_bco is new. Assume it corresponds to the first available lvl1 bco
-            // update running fee_bco and lvl1_bco pair accordingly
-            const auto lvl1_bco = bco_list.front();
-            bco_matching_pair.first = sample.fee_bco;
-            bco_matching_pair.second = lvl1_bco;
-            sample.lvl1_bco = lvl1_bco;
-            sample.lvl1_bco_masked = ( lvl1_bco & 0xFFFFFU );
+            // fee_bco is new. Assume it corresponds to the first available gtm bco
+            // update running fee_bco and gtm_bco pair accordingly
+            bco_matching_information.m_bco_matching_list.emplace_back(sample.fee_bco, gtm_bco);
+            sample.gtm_bco = gtm_bco;
 
             // remove bco from running list
-            bco_list.pop_front();
+            bco_matching_information.m_gtm_bco_list.erase(iter);
           }
           else
           {
@@ -284,19 +368,17 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             {
               std::cout << "MicromegasRawDataEvaluation::process_event -"
                         << " fee_id: " << sample.fee_id
-                        << " fee_bco: 0x" << std::hex << sample.fee_bco << std::dec
+                        << std::hex
+                        << " fee_bco: 0x" << sample.fee_bco
+                        << std::dec
                         << " gtm_bco: none"
                         << std::endl;
             }
           }
         }
 
-        // checksum and checksum error
-        sample.checksum = packet->iValue(iwf, "CHECKSUM");
-        sample.checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
-
-        // increment bco map
-        ++m_bco_map[sample.lvl1_bco];
+        // increment number of waveforms found for this gtm_bco
+        ++m_bco_map[sample.gtm_bco];
 
         // channel, sampa_channel, sampa address and strip
         sample.sampa_address = packet->iValue( iwf, "SAMPAADDRESS" );
@@ -318,7 +400,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
                     << " tile: " << sample.tile
                     << " layer: " << sample.layer
                     << " tile: " << sample.tile
-                    << " lvl1_bco: " << sample.lvl1_bco
+                    << " gtm_bco: " << sample.gtm_bco
                     << " fee_bco: " << sample.fee_bco
                     << " error: " << sample.checksum_error
                     << " channel: " << sample.channel
@@ -338,7 +420,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
           }
           sample.sample = is;
           sample.adc = adc;
-          sample_map.emplace(sample.lvl1_bco, sample);
+          sample_map.emplace(sample.gtm_bco, sample);
 
           if (sample.adc > sample_max.adc)
           {
@@ -357,18 +439,20 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
               waveform.sample_max < m_sample_max &&
               waveform.adc_max > pedestal + m_n_sigma * rms;
 
-          waveform_map.emplace(waveform.lvl1_bco, waveform);
+          waveform_map.emplace(waveform.gtm_bco, waveform);
         }
       }
     }
+
+    // cleanup
+    bco_matching_information.truncate(max_matching_data_size);
+
   }
 
   // copy all samples and waveform to container
   if (m_flags & EvalSample)
   {
     for (auto&& [lvl_bco, sample] : sample_map)
-    // clang-tidy suggests the std::move has no effect (trivially copyable type)
-    //    { m_container->samples.push_back(std::move(sample)); }
     {
       m_container->samples.push_back(sample);
     }
@@ -376,9 +460,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
   if (m_flags & EvalWaveform)
   {
-    for (auto&& [lvl1_bco, waveform] : waveform_map)
-    // clang-tidy suggests the std::move has no effect (trivially copyable type)
-    //    { m_container->waveforms.push_back(std::move(waveform)); }
+    for (auto&& [gtm_bco, waveform] : waveform_map)
     {
       m_container->waveforms.push_back(waveform);
     }
@@ -412,7 +494,7 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/)
   // print bco list, for offline processing
   if (Verbosity())
   {
-    std::cout << "const std::vector<uint64_t> lvl1_bco_list = {" << std::endl;
+    std::cout << "const std::vector<uint64_t> gtm_bco_list = {" << std::endl;
     bool first = true;
     int count = 0;
     for (const auto& [bco, nwaveforms] : m_bco_map)

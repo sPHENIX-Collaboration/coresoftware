@@ -3,8 +3,16 @@
 
 #include "TrkrDefs.h"
 
-#include <Acts/EventData/SourceLink.hpp>
+#ifndef __clang__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <Acts/Geometry/TrackingGeometry.hpp>
+#pragma GCC diagnostic pop
+#else
+#include <Acts/Geometry/TrackingGeometry.hpp>
+#endif
+
+#include <Acts/EventData/SourceLink.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <cassert>

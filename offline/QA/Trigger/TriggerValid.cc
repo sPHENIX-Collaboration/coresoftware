@@ -4,6 +4,7 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
+
 #include <calotrigger/LL1Out.h>
 #include <calotrigger/LL1Outv1.h>
 #include <calotrigger/TriggerDefs.h>
@@ -11,12 +12,14 @@
 #include <calotrigger/TriggerPrimitiveContainer.h>
 #include <calotrigger/TriggerPrimitiveContainerv1.h>
 #include <calotrigger/TriggerPrimitivev1.h>
+
+#include <qautils/QAHistManagerDef.h>
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-#include <qautils/QAHistManagerDef.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -39,8 +42,6 @@ TriggerValid::TriggerValid(const std::string& name)
   , trigger("JET")
 {
 }
-
-TriggerValid::~TriggerValid() = default;
 
 int TriggerValid::Init(PHCompositeNode* /*unused*/)
 {
@@ -231,11 +232,11 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         std::vector<unsigned int>::iterator it = max_element(sum->begin(), sum->end());
         unsigned int summ = 0;
         unsigned int sumk = (*siter).first;
-	unsigned int sums = 99;
+        unsigned int sums = 99;
         if (it != sum->end())
         {
           summ = (*it);
-	  sums = std::distance(sum->begin(), it);
+          sums = std::distance(sum->begin(), it);
         }
 
         uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 4 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
@@ -267,11 +268,11 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         std::vector<unsigned int>::iterator it = max_element(sum->begin(), sum->end());
         unsigned int summ = 0;
         unsigned int sumk = (*siter).first;
-	unsigned int sums = 99;
+        unsigned int sums = 99;
         if (it != sum->end())
         {
           summ = (*it);
-	  sums = std::distance(sum->begin(), it);
+          sums = std::distance(sum->begin(), it);
         }
 
         uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 2 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
@@ -303,11 +304,11 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         std::vector<unsigned int>::iterator it = max_element(sum->begin(), sum->end());
         unsigned int summ = 0;
         unsigned int sumk = (*siter).first;
-	unsigned int sums = 99;
+        unsigned int sums = 99;
         if (it != sum->end())
         {
           summ = (*it);
-	  sums = std::distance(sum->begin(), it);
+          sums = std::distance(sum->begin(), it);
         }
 
         uint16_t sum_phi = TriggerDefs::getSumPhiId(sumk) + 2 * TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumk);
@@ -569,7 +570,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
       {
         summ = (*it);
         sumk = (*iter).first;
-	sums = std::distance(trigger_word->begin(), it);
+        sums = std::distance(trigger_word->begin(), it);
       }
 
       if (summ)
@@ -579,7 +580,6 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         h_jet_ll1_frequency->Fill(ijetx, ijety, 1);
         h_jet_ll1_avg_out->Fill(ijetx, ijety, summ);
         h_jet_ll1_sample->Fill(ijetx, ijety, sums);
-	
       }
       v_jet_ll1[sumk] = summ;
     }
@@ -628,7 +628,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
       }
     }
   }
-  if (v_hcal_emu_2x2.size()  && v_hcal_ll1_2x2.size())
+  if (v_hcal_emu_2x2.size() && v_hcal_ll1_2x2.size())
   {
     for (auto& it : v_hcal_ll1_2x2)
     {
@@ -675,7 +675,6 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
   float hcal_energies[12][35]{};
   if (towers_emcal)
   {
-
     // go through the emulated 2x2 map for emcal
     for (auto& it : v_emcal_emu_2x2)
     {
@@ -690,10 +689,13 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         int iphi = sum_phi * 2 + itower / 2;
         TowerInfo* tower = towers_emcal->get_tower_at_key(TowerInfoDefs::encode_emcal(ieta, iphi));
         float offlineenergy = tower->get_energy();
-	if (!tower->get_isGood()) continue;
+        if (!tower->get_isGood())
+        {
+          continue;
+        }
         energy_sum += offlineenergy;
       }
-      h_emcal_2x2_energy_lutsum->Fill( it.second, energy_sum);
+      h_emcal_2x2_energy_lutsum->Fill(it.second, energy_sum);
     }
 
     // now the 8x8
@@ -710,7 +712,10 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         int iphi = sum_phi * 8 + itower / 8;
         TowerInfo* tower = towers_emcal->get_tower_at_key(TowerInfoDefs::encode_emcal(ieta, iphi));
         float offlineenergy = tower->get_energy();
-	if (!tower->get_isGood()) continue;
+        if (!tower->get_isGood())
+        {
+          continue;
+        }
         energy_sum += offlineenergy;
       }
       emcal_energies[sum_eta][sum_phi] = energy_sum;
@@ -737,14 +742,20 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
           TowerInfo* tower = towers_hcalin->get_tower_at_key(TowerInfoDefs::encode_hcal(ieta, iphi));
           float offlineenergy = tower->get_energy();
 
-	  if (!tower->get_isGood()) continue;
+          if (!tower->get_isGood())
+          {
+            continue;
+          }
           energy_sum += offlineenergy;
         }
         if (towers_hcalin)
         {
           TowerInfo* tower = towers_hcalout->get_tower_at_key(TowerInfoDefs::encode_hcal(ieta, iphi));
           float offlineenergy = tower->get_energy();
-	  if (!tower->get_isGood()) continue;
+          if (!tower->get_isGood())
+          {
+            continue;
+          }
           energy_sum += offlineenergy;
         }
       }
@@ -780,13 +791,8 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
     uint16_t sum_phi = sumk & 0xffffU;
     uint16_t sum_eta = (sumk >> 16U) & 0xffffU;
 
-    h_jet_energy_lutsum->Fill( it.second, jet_energies[sum_eta][sum_phi]);
+    h_jet_energy_lutsum->Fill(it.second, jet_energies[sum_eta][sum_phi]);
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int TriggerValid::End(PHCompositeNode* /*topNode*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
