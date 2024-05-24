@@ -43,7 +43,10 @@ namespace
         {
           o << ", ";
         }
-        if( is_hex ) o << "0x";
+        if( is_hex )
+	{
+	  o << "0x";
+	}
         o << value;
         first = false;
       }
@@ -89,11 +92,11 @@ unsigned int SingleMicromegasPoolInput::bco_matching_information_t::get_predicte
   // get lvl1 bco difference with proper rollover accounting
   uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
     (gtm_bco - m_gtm_bco_first):
-    (gtm_bco + (1ULL<<40) - m_gtm_bco_first);
+    (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
 
   // convert to fee bco, and truncate to 20 bits
   uint64_t fee_bco_predicted = m_fee_bco_first + multiplier*(gtm_bco_difference);
-  return (unsigned int)(fee_bco_predicted & 0xFFFFF);
+  return (unsigned int)(fee_bco_predicted & 0xFFFFFU);
 }
 
 //______________________________________________________________
