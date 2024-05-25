@@ -314,13 +314,13 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
               }
             }
 
-            if (m_dettype == CaloTowerDefs::ZDC)
-            {
-                if(((channel > 17) && (channel < 48)) || ((channel > 63) && (channel < 80)) || ((channel > 81) && (channel < 112)))
-                {
-                  continue;
-                }
-            }
+            // if (m_dettype == CaloTowerDefs::ZDC)
+            // {
+            //     if(((channel > 17) && (channel < 48)) || ((channel > 63) && (channel < 80)) || ((channel > 81) && (channel < 112)))
+            //     {
+            //       continue;
+            //     }
+            // }
             
           std::vector<float> waveform;
           waveform.reserve(2);
