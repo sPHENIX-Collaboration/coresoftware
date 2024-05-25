@@ -103,6 +103,7 @@ namespace MicromegasDefs
    * One might need to change this in the future when 5000 becomes used by a different subsystem
    */
   static constexpr int m_npackets = 3;
+  static constexpr int m_npackets_active = 2;
   static constexpr std::array<unsigned int,m_npackets> m_packet_ids = {5000, 5001, 5002};
 
   //! number of channels per fee board
