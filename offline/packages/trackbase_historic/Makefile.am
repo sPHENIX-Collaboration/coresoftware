@@ -9,7 +9,7 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -120,7 +120,7 @@ nobase_dist_pcm_DATA = \
   SvtxTrackSeed_v1_Dict_rdict.pcm \
   SvtxTrackSeed_v2_Dict_rdict.pcm \
   TrackSeed_FastSim_v1_Dict_rdict.pcm \
- 	TrackSeed_FastSim_v2_Dict_rdict.pcm \
+  TrackSeed_FastSim_v2_Dict_rdict.pcm \
   TrackSeedContainer_Dict_rdict.pcm \
   TrackSeedContainer_v1_Dict_rdict.pcm \
   PHG4ParticleSvtxMap_Dict_rdict.pcm \

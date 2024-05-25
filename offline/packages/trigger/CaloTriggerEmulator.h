@@ -12,6 +12,7 @@
 #include <TH2.h>
 #include <TProfile.h>
 #include <TTree.h>
+#include <TNtuple.h>
 
 #include <cstdint>
 
@@ -78,9 +79,14 @@ class CaloTriggerEmulator : public SubsysReco
   //! Set TriggerType
   void setTriggerType(const std::string &name);
   void setTriggerType(TriggerDefs::TriggerId triggerid);
+
+  void setOptMaskFile(const std::string &filename) { m_optmask_file = filename; }
+
   void setEmcalLUTFile(const std::string &filename) { m_emcal_lutname = filename; }
   void setHcalinLUTFile(const std::string &filename) { m_hcalin_lutname = filename; }
   void setHcaloutLUTFile(const std::string &filename) { m_hcalout_lutname = filename; }
+
+  void useMax(bool max) { m_use_max= max; }
 
   void useEMCALDefaultLUT(bool def) { m_default_lut_emcal = def; }
   void useHCALINDefaultLUT(bool def) { m_default_lut_hcalin = def; }
@@ -106,6 +112,7 @@ class CaloTriggerEmulator : public SubsysReco
   }
 
   bool CheckFiberMasks(TriggerDefs::TriggerPrimKey key);
+  void LoadFiberMasks();
   bool CheckChannelMasks(TriggerDefs::TriggerSumKey key);
 
   void identify();
@@ -114,6 +121,8 @@ class CaloTriggerEmulator : public SubsysReco
   std::string m_ll1_nodename;
   std::string m_prim_nodename;
   std::string m_waveform_nodename;
+
+  std::string m_optmask_file;
 
   std::string m_emcal_lutname;
   std::string m_hcalin_lutname;
@@ -124,6 +133,7 @@ class CaloTriggerEmulator : public SubsysReco
 
   TriggerDefs::TriggerId m_triggerid = TriggerDefs::TriggerId::noneTId;
 
+  bool m_use_max{true};
   bool m_do_hcalin{false};
   bool m_do_hcalout{false};
   bool m_do_emcal{false};
