@@ -29,10 +29,10 @@ namespace
 {
 
   // define limit for matching two fee_bco
-  static constexpr unsigned int max_fee_bco_diff = 10;
+  static constexpr unsigned int max_fee_bco_diff = 50;
 
   // define limit for matching fee_bco to fee_bco_predicted
-  static constexpr unsigned int max_gtm_bco_diff = 100;
+  static constexpr unsigned int max_gtm_bco_diff = 150;
 
   // define limit above which one need to re-synchronize fee_bco and fee_bco_predicted
   static constexpr unsigned int max_gtm_bco_diff_resync = 10;
