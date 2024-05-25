@@ -198,7 +198,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
     auto& bco_matching_information = m_bco_matching_information_map[packet_id];
 
     // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
-    int n_tagger = packet->lValue(0, "N_TAGGER");
+    const int n_tagger = packet->lValue(0, "N_TAGGER");
     for (int t = 0; t < n_tagger; t++)
     {
       TaggerInformation tagger;
