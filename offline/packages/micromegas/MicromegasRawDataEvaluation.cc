@@ -197,6 +197,20 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
     // get relevant bco matching information
     auto& bco_matching_information = m_bco_matching_information_map[packet_id];
 
+    // copy starting information from other bco_matching_information if already verified
+    for( auto&& [unused, local]:m_bco_matching_information_map )
+    {
+      if( local.m_verified )
+      {
+        bco_matching_information.m_verified = true;
+        bco_matching_information.m_has_gtm_bco_first = true;
+        bco_matching_information.m_gtm_bco_first = local.m_gtm_bco_first;
+
+        bco_matching_information.m_has_fee_bco_first = true;
+        bco_matching_information.m_fee_bco_first = local.m_fee_bco_first;
+      }
+    }
+
     // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
     const int n_tagger = packet->lValue(0, "N_TAGGER");
     for (int t = 0; t < n_tagger; t++)
@@ -351,7 +365,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             { return get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco ) < max_gtm_bco_diff; } );
           if( iter != bco_matching_information.m_gtm_bco_list.end() )
           {
-            const auto& gtm_bco = *iter;
+            const auto gtm_bco = *iter;
             if (Verbosity())
             {
               std::cout << "MicromegasRawDataEvaluation::process_event -"
@@ -367,6 +381,34 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             // save fee_bco and gtm_bco matching in map
             bco_matching_information.m_bco_matching_list.emplace_back(sample.fee_bco, gtm_bco);
 
+            // store
+            sample.gtm_bco = gtm_bco;
+            sample.fee_bco_predicted = bco_matching_information.get_predicted_fee_bco(gtm_bco);
+
+            // remove bco from running list
+            bco_matching_information.m_gtm_bco_list.erase(iter);
+
+            /*
+             * if matching information is not verified, and the found match is not trivial (0),
+             * change verified flag to true, and assign to all other non verified matching information
+             */
+            if( !bco_matching_information.m_verified && get_bco_diff( sample.fee_bco, bco_matching_information.m_fee_bco_first ) > max_gtm_bco_diff )
+            {
+              bco_matching_information.m_verified = true;
+              for( auto&& [unused, local]:m_bco_matching_information_map )
+              {
+                if( !local.m_verified )
+                {
+                  local.m_verified = true;
+                  local.m_has_gtm_bco_first = true;
+                  local.m_fee_bco_first = bco_matching_information.m_fee_bco_first;
+
+                  local.m_has_fee_bco_first = true;
+                  local.m_gtm_bco_first = bco_matching_information.m_gtm_bco_first;
+                }
+              }
+            }
+
             // if fee_bco_predicted have drifted too much from fee_bco, reset the reference
             if( get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco ) > max_gtm_bco_diff_resync )
             {
@@ -374,12 +416,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
               bco_matching_information.m_gtm_bco_first = gtm_bco;
             }
 
-            // store
-            sample.gtm_bco = gtm_bco;
-            sample.fee_bco_predicted = bco_matching_information.get_predicted_fee_bco(gtm_bco);
-
-            // remove bco from running list
-            bco_matching_information.m_gtm_bco_list.erase(iter);
           }
           else
           {

@@ -259,6 +259,13 @@ class MicromegasRawDataEvaluation : public SubsysReco
   {
     public:
 
+    //! verified flag
+    /**
+     * the flag is set to true as soon as a non-trivial match is found between FEE_BCO and GTM_BCO
+     * it shows that the chosen reference are correct
+     */
+    bool m_verified = false;
+
     //! first lvl1 bco (40 bits)
     bool m_has_gtm_bco_first = false;
     uint64_t m_gtm_bco_first = 0;
