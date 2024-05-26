@@ -194,20 +194,6 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
     // get relevant bco matching information
     auto& bco_matching_information = m_bco_matching_information_map[packet_id];
 
-    // copy starting information from other bco_matching_information if already verified
-    for( auto&& [unused, local]:m_bco_matching_information_map )
-    {
-      if( local.m_verified )
-      {
-        bco_matching_information.m_verified = true;
-        bco_matching_information.m_has_gtm_bco_first = true;
-        bco_matching_information.m_gtm_bco_first = local.m_gtm_bco_first;
-
-        bco_matching_information.m_has_fee_bco_first = true;
-        bco_matching_information.m_fee_bco_first = local.m_fee_bco_first;
-      }
-    }
-
     // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
     const int n_tagger = packet->lValue(0, "N_TAGGER");
     for (int t = 0; t < n_tagger; t++)
@@ -253,6 +239,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
     // get number of waveforms
     const auto n_waveform = packet->iValue(0, "NR_WF");
+    m_waveform_count_total += n_waveform;
 
     if (Verbosity())
     {
@@ -387,23 +374,11 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
             /*
              * if matching information is not verified, and the found match is not trivial (0),
-             * change verified flag to true, and assign to all other non verified matching information
+             * change verified flag to true.
              */
             if( !bco_matching_information.m_verified && get_bco_diff( sample.fee_bco, bco_matching_information.m_fee_bco_first ) > max_gtm_bco_diff )
             {
               bco_matching_information.m_verified = true;
-              for( auto&& [unused, local]:m_bco_matching_information_map )
-              {
-                if( !local.m_verified )
-                {
-                  local.m_verified = true;
-                  local.m_has_gtm_bco_first = true;
-                  local.m_fee_bco_first = bco_matching_information.m_fee_bco_first;
-
-                  local.m_has_fee_bco_first = true;
-                  local.m_gtm_bco_first = bco_matching_information.m_gtm_bco_first;
-                }
-              }
             }
 
             // if fee_bco_predicted have drifted too much from fee_bco, reset the reference
@@ -425,6 +400,19 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
                         << std::dec
                         << " gtm_bco: none"
                         << std::endl;
+            }
+
+            // increment count
+            ++m_waveform_count_dropped;
+
+            /*
+             * if no match is found, and matching_information has not been verified,
+             * try using this BCO as a reference instead
+             */
+            if( !bco_matching_information.m_verified && sample.fee_bco > bco_matching_information.m_fee_bco_first )
+            {
+              bco_matching_information.m_has_fee_bco_first = true;
+              bco_matching_information.m_fee_bco_first = sample.fee_bco;
             }
           }
         }
@@ -539,7 +527,11 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/)
   {
     for (const auto& [bco, nwaveforms] : m_bco_map)
     {
-      std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl;
+      std::cout
+        << "MicromegasRawDataEvaluation::End - "
+        << " bco: 0x" << std::hex << bco << std::dec
+        << ", nwaveforms: " << nwaveforms
+        << std::endl;
     }
   }
 
@@ -566,6 +558,13 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/)
     }
     std::cout << std::endl
               << "};" << std::endl;
+  }
+
+  if( Verbosity() )
+  {
+    std::cout << "MicromegasRawDataEvaluation::End - waveform_count_total: " << m_waveform_count_total << std::endl;
+    std::cout << "MicromegasRawDataEvaluation::End - waveform_count_dropped: " << m_waveform_count_dropped << std::endl;
+    std::cout << "MicromegasRawDataEvaluation::End - ratio: " << double(m_waveform_count_dropped)/m_waveform_count_total << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
