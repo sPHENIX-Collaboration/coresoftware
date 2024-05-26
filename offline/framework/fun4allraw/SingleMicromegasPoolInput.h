@@ -47,6 +47,13 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   {
     public:
 
+    //! verified flag
+    /**
+     * the flag is set to true as soon as a non-trivial match is found between FEE_BCO and GTM_BCO
+     * it shows that the chosen reference are correct
+     */
+    bool m_verified = false;
+
     //! first gtm bco (40 bits)
     /** it is needed to be able to convert gtm bco in a predicted fee bco */
     bool m_has_gtm_bco_first = false;
