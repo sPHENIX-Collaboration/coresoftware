@@ -296,6 +296,13 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t, unsigned int>;
   bco_map_t m_bco_map;
+
+  // keep track of total number of waveforms
+  uint64_t m_waveform_count_total = 0;
+
+  // keep track of dropped waveforms
+  uint64_t m_waveform_count_dropped = 0;
+
 };
 
 #endif

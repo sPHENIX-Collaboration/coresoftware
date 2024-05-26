@@ -202,20 +202,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       // get relevant bco matching information
       auto& bco_matching_information = m_bco_matching_information_map[packet_id];
 
-      // copy starting information from other bco_matching_information if already verified
-      for( auto&& [unused, local]:m_bco_matching_information_map )
-      {
-        if( local.m_verified )
-        {
-          bco_matching_information.m_verified = true;
-          bco_matching_information.m_has_gtm_bco_first = true;
-          bco_matching_information.m_gtm_bco_first = local.m_gtm_bco_first;
-
-          bco_matching_information.m_has_fee_bco_first = true;
-          bco_matching_information.m_fee_bco_first = local.m_fee_bco_first;
-        }
-      }
-
       // loop over taggers
       const int ntagger = packet->lValue(0, "N_TAGGER");
       for (int t = 0; t < ntagger; t++)
@@ -378,23 +364,11 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
             /*
              * if matching information is not verified, and the found match is not trivial (0),
-             * change verified flag to true, and assign to all other non verified matching information
+             * change verified flag to true
              */
             if( !bco_matching_information.m_verified && get_bco_diff( fee_bco, bco_matching_information.m_fee_bco_first ) > max_gtm_bco_diff )
             {
               bco_matching_information.m_verified = true;
-              for( auto&& [unused, local]:m_bco_matching_information_map )
-              {
-                if( !local.m_verified )
-                {
-                  local.m_verified = true;
-                  local.m_has_gtm_bco_first = true;
-                  local.m_fee_bco_first = bco_matching_information.m_fee_bco_first;
-
-                  local.m_has_fee_bco_first = true;
-                  local.m_gtm_bco_first = bco_matching_information.m_gtm_bco_first;
-                }
-              }
             }
 
             // if fee_bco_predicted have drifted too much from fee_bco, reset the reference
@@ -421,6 +395,16 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
             // increment count
             ++m_waveform_count_dropped;
+
+            /*
+             * if no match is found, and matching_information has not been verified,
+             * try using this BCO as a reference instead
+             */
+            if( !bco_matching_information.m_verified && fee_bco > bco_matching_information.m_fee_bco_first )
+            {
+              bco_matching_information.m_has_fee_bco_first = true;
+              bco_matching_information.m_fee_bco_first = fee_bco;
+            }
 
             // skip the waverform
             continue;
