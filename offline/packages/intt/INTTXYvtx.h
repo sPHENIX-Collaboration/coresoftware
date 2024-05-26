@@ -62,8 +62,8 @@ class INTTXYvtx {
     };
 
     public:
-        INTTXYvtx(string               runType, 
-                  string               outFolderDirectory,
+        INTTXYvtx(const string&        runType, 
+                  const string&        outFolderDirectory,
                   pair<double, double> beamOrigin, 
                   double               phiDiffCut       = 0.11, 
                   pair<double, double> DCACut           = {-1,1}, 
@@ -179,10 +179,10 @@ class INTTXYvtx {
 
         void                    DrawTGraphErrors(vector<double> x_vec, vector<double> y_vec, 
                                                  vector<double> xE_vec, vector<double> yE_vec, 
-                                                 string output_directory, vector<string> plot_name);
+                                                 const string& output_directory, vector<string> plot_name);
         void                    Draw2TGraph(vector<double> x1_vec, vector<double> y1_vec, 
                                             vector<double> x2_vec, vector<double> y2_vec, 
-                                            string output_directory, vector<string> plot_name);
+                                            const string& output_directory, vector<string> plot_name);
 
         void                    TH2F_threshold(TH2F * hist, double threshold);
         vector<double>          SumTH2FColumnContent(TH2F * hist_in);
@@ -278,7 +278,7 @@ class INTTXYvtx {
         int      zvtx_cal_require = 15;
 
         string   plot_text;
-        long     total_NClus;
+        long     total_NClus{0};
 
         TCanvas* c1       {nullptr}; //PrintPlotsVTXxy, PrintPlots(), FillLine_FindVertex, DrawTGraphErrors, Draw2TGraph
         TLatex*  ltx      {nullptr}; //PrintPlotsVTXxy, PrintPlots(), FillLine_FindVertex, DrawTGraphErrors, Draw2TGraph
@@ -306,8 +306,8 @@ class INTTXYvtx {
 
 };
 
-INTTXYvtx::INTTXYvtx(string              runType, 
-                     string              outFolderDirectory, 
+INTTXYvtx::INTTXYvtx(const string&       runType, 
+                     const string&       outFolderDirectory, 
                      pair<double,double> beamOrigin, 
                      double              phiDiffCut, 
                      pair<double,double> DCACut, 
@@ -705,7 +705,7 @@ void INTTXYvtx::ProcessEvt(
         || total_NClus < N_clu_cutl)
     {
         return;
-        printf("In INTTXYvtx class, event : %i, low clu continue, NClus : %lu \n", event_i, total_NClus); 
+        printf("In INTTXYvtx class, event : %i, low clu continue, NClus : %ld\n", event_i, total_NClus); 
     }
 
     //-------------------------------
@@ -1774,7 +1774,7 @@ void INTTXYvtx::DrawTGraphErrors(
              vector<double> y_vec, 
              vector<double> xE_vec, 
              vector<double> yE_vec, 
-             string         output_directory, 
+             const string&  output_directory, 
              vector<string> plot_name)
 {
     if(m_enable_drawhist) 
@@ -1806,7 +1806,7 @@ void INTTXYvtx::Draw2TGraph(
               vector<double> y1_vec, 
               vector<double> x2_vec, 
               vector<double> y2_vec, 
-              string         output_directory, 
+              const string&  output_directory, 
               vector<string> plot_name)
 {
     if(m_enable_drawhist) 

@@ -367,7 +367,7 @@ void InttZVertexFinder::SetBeamCenter(const double beamx, const double beamy)
   if(m_inttzvtx!=nullptr) m_inttzvtx->SetBeamOrigin(beamx*10., beamy*10.); // convert to cm to mm unit
 }
 
-void InttZVertexFinder::SetOutDirectory(const string outDirectory) 
+void InttZVertexFinder::SetOutDirectory(const string& outDirectory) 
 { 
   if(m_inttzvtx!=nullptr) m_inttzvtx->SetOutDirectory(outDirectory); // convert to cm to mm unit
 }

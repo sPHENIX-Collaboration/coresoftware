@@ -32,7 +32,7 @@ class InttZVertexFinder : public SubsysReco
   void Print(const std::string &what = "ALL") const override;
 
   void SetBeamCenter(const double beamx, const double beamy);
-  void SetOutDirectory(const std::string outDirectory);
+  void SetOutDirectory(const std::string& outDirectory);
 
   void EnableQA(const bool enableQA);
   void EnableEventDisplay(const bool enableEvtDisp);

@@ -7,7 +7,7 @@
 
 InttVertexMapv1::~InttVertexMapv1()
 {
-  clear();
+  InttVertexMapv1::clear();
 }
 
 void InttVertexMapv1::identify(std::ostream& os) const
