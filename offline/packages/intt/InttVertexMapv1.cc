@@ -7,12 +7,17 @@
 
 InttVertexMapv1::~InttVertexMapv1()
 {
-  InttVertexMapv1::clear();
+  clear();
 }
 
 void InttVertexMapv1::identify(std::ostream& os) const
 {
   os << "InttVertexMapv1: size = " << _map.size() << std::endl;
+  for (auto& m : _map)
+  {
+    m.second->identify(os);
+  }
+
   return;
 }
 
@@ -46,14 +51,14 @@ InttVertex* InttVertexMapv1::get(unsigned int id)
   return iter->second;
 }
 
-InttVertex* InttVertexMapv1::insert(InttVertex* clus)
+InttVertex* InttVertexMapv1::insert(InttVertex* vertex)
 {
   unsigned int index = 0;
   if (!_map.empty())
   {
     index = _map.rbegin()->first + 1;
   }
-  _map.insert(std::make_pair(index, clus));
+  _map.insert(std::make_pair(index, vertex));
   _map[index]->set_id(index);
   return _map[index];
 }

@@ -199,7 +199,10 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   {
     intt_event_header = findNode::getClass<InttEventInfo>(topNode, "INTTEVENTHEADER");
     assert(intt_event_header);
-    intt_event_header->set_bco_full(inttcont->get_hit(0)->get_bco());
+    if(inttcont->get_nhits()>0)
+      intt_event_header->set_bco_full(inttcont->get_hit(0)->get_bco());
+    else 
+      intt_event_header->set_bco_full(0);
   }
 
   TrkrDefs::hitsetkey hit_set_key = 0;
