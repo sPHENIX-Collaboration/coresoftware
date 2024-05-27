@@ -44,6 +44,10 @@ class BeamCrossingAnalysis : public SubsysReco
   TNtuple *ntp_vertex{nullptr};
   TNtuple *ntp_track{nullptr};
   TH1D* hcross{nullptr};
+  TH1D* hvertz{nullptr};
+  TH1D* htrackz{nullptr};
+  TH1D* hvertcross{nullptr};
+  TH1D* htrackcross{nullptr};
 
   std::string filepath = "";
   TFile* fout = nullptr;

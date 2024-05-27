@@ -2,6 +2,7 @@
 #define TRIGGERVALID_TRIGGERVALID_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 #include <vector>
 
@@ -23,16 +24,13 @@ class TriggerValid : public SubsysReco
   TriggerValid(const std::string& name = "TriggerValid");
 
   //! destructor
-  virtual ~TriggerValid();
+  ~TriggerValid() override = default;
 
   //! full initialization
-  int Init(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
 
   //! event processing method
-  int process_event(PHCompositeNode*);
-
-  //! end of run method
-  int End(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   int process_towers(PHCompositeNode*);
   int process_primitives(PHCompositeNode*);
@@ -41,6 +39,7 @@ class TriggerValid : public SubsysReco
   void Trigger(const std::string& name) { trigger = name; }
 
   void set_debug(bool debug) { m_debug = debug; }
+
  private:
   int Getpeaktime(TH1* h);
 

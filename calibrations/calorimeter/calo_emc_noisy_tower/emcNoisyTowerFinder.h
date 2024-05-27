@@ -41,6 +41,7 @@ class emcNoisyTowerFinder : public SubsysReco
   void set_energy_threshold_adc(float val) { energy_threshold_adc = val; }
   void set_energy_threshold_gev(float val) { energy_threshold_gev = val; }
   void set_sigma_bad_thresh(float val) { sigma_bad_thresh = val; }
+  void set_hcal(){Nphi = 64; Neta = 24; return;}
 
  private:
   TFile* out{nullptr};

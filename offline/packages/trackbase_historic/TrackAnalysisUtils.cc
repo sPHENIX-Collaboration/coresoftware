@@ -1,7 +1,8 @@
 #include "TrackAnalysisUtils.h"
 
-#include <cmath>
 #include "SvtxTrack.h"
+
+#include <cmath>
 
 namespace TrackAnalysisUtils
 {

@@ -14,6 +14,7 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
+  StructureinJets.h \
   TrksInJetQA.h \
   TrksInJetQAHist.h \
   TrksInJetQATypes.h \
@@ -26,9 +27,11 @@ pkginclude_HEADERS = \
   TrksInJetQAClustManager.h \
   TrksInJetQATrkManager.h \
   TrksInJetQAJetManager.h \
-  JetSeedCount.h
+  JetSeedCount.h \
+  JetKinematicCheck.h
 
 libjetqa_la_SOURCES = \
+  StructureinJets.cc \
   TrksInJetQA.cc \
   TrksInJetQABaseFiller.cc \
   TrksInJetQAInJetFiller.cc \
@@ -38,7 +41,8 @@ libjetqa_la_SOURCES = \
   TrksInJetQAClustManager.cc \
   TrksInJetQATrkManager.cc \
   TrksInJetQAJetManager.cc \
-  JetSeedCount.cc
+  JetSeedCount.cc \
+  JetKinematicCheck.cc
 
 libjetqa_la_LIBADD = \
   -L$(libdir) \

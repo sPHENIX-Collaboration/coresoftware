@@ -537,8 +537,6 @@ void G4Pythia6Decayer::ForceDecay(EDecayType decayType)
     break;
 
   case kNoDecayHeavy:
-    break;
-
   case kMaxDecay:
     break;
   }

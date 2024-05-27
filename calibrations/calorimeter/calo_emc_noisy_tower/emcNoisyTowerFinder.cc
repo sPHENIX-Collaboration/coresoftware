@@ -141,7 +141,17 @@ int emcNoisyTowerFinder::ResetEvent(PHCompositeNode * /*topNode*/)
 void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilename, const std::string &inHist)
 {
   TFile *fin = new TFile(infilename.c_str());
+  if (!fin)
+  {
+    std::cout << "emcNoisyTowerFinder::FindHot: input file not found " << infilename.c_str() << std::endl;
+    return;
+  }
   h_hits_eta_phi_adc = (TH2F *) fin->Get(inHist.c_str());
+    if (!h_hits_eta_phi_adc)
+  {
+    std::cout << "emcNoisyTowerFinder::FindHot: input hist not found " << inHist.c_str() << std::endl;
+    return;
+  }
 
   TH2F *h_hits = h_hits_eta_phi_adc;
 
