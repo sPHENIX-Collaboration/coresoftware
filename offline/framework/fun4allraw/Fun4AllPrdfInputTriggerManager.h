@@ -131,7 +131,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   bool m_mbd_registered_flag{false};
   bool m_cemc_registered_flag{false};
   bool m_hcal_registered_flag{false};
-  bool m_ll1_registered_flag{false};
+//  bool m_ll1_registered_flag{false};
   bool m_zdc_registered_flag{false};
   unsigned int m_PoolDepth = 100;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
