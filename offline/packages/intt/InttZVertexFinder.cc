@@ -36,7 +36,6 @@ pair<double, double> zvtx_QA_width       = {40, 70};
 double               zvtx_QA_ratio       = 0.00006;
 bool                 draw_event_display  = false;
 bool                 enable_qa           = false;
-double               peek                = 3.324;
 
 int                  clu_sum_adc_cut     = 31;
 int                  clu_size_cut        = 4;
@@ -96,8 +95,8 @@ InttZVertexFinder::InttZVertexFinder(const std::string &name):
                            zvtx_cal_require, 
                            zvtx_QA_width, 
                            draw_event_display, 
-                           enable_qa, 
-                           peek))
+                           enable_qa
+                           ))
 {
   std::cout << "InttZVertexFinder::InttZVertexFinder(const std::string &name) Calling ctor" << std::endl;
 }

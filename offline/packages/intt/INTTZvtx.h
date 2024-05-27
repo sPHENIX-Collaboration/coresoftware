@@ -86,7 +86,6 @@ class INTTZvtx
                  pair<double,double>  zvtxQAWidth      = {39.62, 65.36}, 
                  bool                 drawEventDisplay = true, 
                  bool                 enableQA         = true, 
-                 double               peekCut          = 3.32405, 
                  bool                 printMessageOpt  = true);
 
         virtual ~INTTZvtx();
@@ -137,7 +136,6 @@ class INTTZvtx
         pair<double, double> zvtx_QA_width;    // note : for the zvtx range Quality check, check the width 
         bool                 draw_event_display{false};
         bool                 m_enable_qa       {false};
-        double               peek;
         bool                 print_message_opt;
 
         pair<double,double> evt_possible_z_range    = {-700, 700};
@@ -304,7 +302,6 @@ INTTZvtx::INTTZvtx(string              runType,
                    pair<double,double> zvtxQAWidth, 
                    bool                drawEventDisplay, 
                    bool                enableQA, 
-                   double              peekCut, 
                    bool                printMessageOpt)
   : run_type(            runType)
   , out_folder_directory(outFolderDirectory)
@@ -317,7 +314,6 @@ INTTZvtx::INTTZvtx(string              runType,
   , zvtx_QA_width(       zvtxQAWidth)
   , draw_event_display(  drawEventDisplay)
   , m_enable_qa(         enableQA)
-  , peek(                peekCut)
   , print_message_opt(   printMessageOpt)
 {
     //SetsPhenixStyle();
@@ -912,7 +908,7 @@ bool INTTZvtx::ProcessEvt(
     //--cout<<"--3--"<<endl;
     //// 
     // tracklet reconstruction from inner and outer clusters
-    double good_pair_count = 0;    
+    int good_pair_count = 0;    
 
     for (int inner_phi_i = 0; inner_phi_i < 360; inner_phi_i++) // note : each phi cell (1 degree)
     {
@@ -1415,7 +1411,7 @@ bool INTTZvtx::ProcessEvt(
     ////////////////////////////////////////
 
     //cout<<"good pair count : "<<good_pair_count<<endl;
-    cout<<"evt : "<<event_i<<", good pair count : "<< N_comb.size()<<endl;
+    cout<<"evt : "<<event_i<<", good pair count : "<< N_comb.size()<<" "<<good_pair_count<<endl;
 
 
 
@@ -2002,7 +1998,7 @@ double INTTZvtx::get_track_phi(double inner_clu_phi_in, double delta_phi_in)
     if (track_phi < 0) {track_phi += 360;}
     else if (track_phi > 360) {track_phi -= 360;}
     else if (track_phi == 360) {track_phi = 0;}
-    else {track_phi = track_phi;}
+    //else {track_phi = track_phi;}
     return track_phi;
 }
 #endif
