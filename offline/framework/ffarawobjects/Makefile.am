@@ -31,6 +31,10 @@ ROOTDICTS = \
   InttRawHitContainerv2_Dict.cc \
   InttRawHitv1_Dict.cc \
   InttRawHitv2_Dict.cc \
+  LL1Packet_Dict.cc \
+  LL1Packetv1_Dict.cc \
+  LL1PacketContainer_Dict.cc \
+  LL1PacketContainerv1_Dict.cc \
   MicromegasRawHit_Dict.cc \
   MicromegasRawHitContainer_Dict.cc \
   MicromegasRawHitContainerv1_Dict.cc \
@@ -65,6 +69,10 @@ nobase_dist_pcm_DATA = \
   InttRawHitContainerv2_Dict_rdict.pcm \
   InttRawHitv1_Dict_rdict.pcm \
   InttRawHitv2_Dict_rdict.pcm \
+  LL1Packet_Dict_rdict.pcm \
+  LL1Packetv1_Dict_rdict.pcm \
+  LL1PacketContainer_Dict_rdict.pcm \
+  LL1PacketContainerv1_Dict_rdict.pcm \
   MicromegasRawHit_Dict_rdict.pcm \
   MicromegasRawHitContainer_Dict_rdict.pcm \
   MicromegasRawHitContainerv1_Dict_rdict.pcm \
@@ -98,6 +106,10 @@ pkginclude_HEADERS = \
   InttRawHitContainerv2.h \
   InttRawHitv1.h \
   InttRawHitv2.h \
+  LL1Packet.h \
+  LL1Packetv1.h \
+  LL1PacketContainer.h \
+  LL1PacketContainerv1.h \
   MicromegasRawHit.h \
   MicromegasRawHitContainer.h \
   MicromegasRawHitContainerv1.h \
@@ -127,6 +139,8 @@ libffarawobjects_la_SOURCES = \
   InttRawHitContainerv2.cc \
   InttRawHitv1.cc \
   InttRawHitv2.cc \
+  LL1Packetv1.cc \
+  LL1PacketContainerv1.cc \
   MicromegasRawHitContainerv1.cc \
   MicromegasRawHitv1.cc \
   MvtxRawHitContainerv1.cc \
