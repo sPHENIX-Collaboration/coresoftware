@@ -258,7 +258,7 @@ TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TpcClusterQA::EndRun(const int runnumber)
+int TpcClusterQA::EndRun(const int /*runnumber*/)
 {
 
   return Fun4AllReturnCodes::EVENT_OK;
