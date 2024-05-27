@@ -81,26 +81,20 @@ int TpcClusterQA::InitRun(PHCompositeNode *topNode)
 
 //____________________________________________________________________________..
 int TpcClusterQA::process_event(PHCompositeNode *topNode)
-{ int debug_verbose=2;
-
-  if(debug_verbose==2) {std::cout<<"Coming to 1"<<std::endl;}
+{ 
   auto clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterContainer)
   {
-    std::cout << PHWHERE << "No cluster container, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-if(debug_verbose==2) {std::cout<<"Coming to 111"<<std::endl;}
   auto geomContainer =
               findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if(debug_verbose==2) {std::cout<<"Coming to 112"<<std::endl;}  
   auto hitmap = findNode::getClass<TrkrHitSetContainer>(topNode,"TRKR_HITSET");
   if(!hitmap)
     {
       std::cout << PHWHERE << "No hitmap found, bailing" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-if(debug_verbose==2) {std::cout<<"Coming to 113"<<std::endl;}
   auto tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tGeometry)
   {
@@ -108,15 +102,15 @@ if(debug_verbose==2) {std::cout<<"Coming to 113"<<std::endl;}
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  if(debug_verbose==2) {std::cout<<"Coming to 114"<<std::endl;}
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  if(debug_verbose==2) {std::cout<<"Coming to 3"<<std::endl;}
 
   TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "stotal_clusters")));
   TH2 *h_clusterssector = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ncluspersector")));
   TH2F *h_hitpositions = dynamic_cast<TH2F *>(hm->getHisto(Form("%shit_positions", getHistoPrefix().c_str())));
+  TH1F *h_hitzpositions_side0 = dynamic_cast<TH1F *>(hm->getHisto(Form("%shitz_positions_side0", getHistoPrefix().c_str())));
+  TH1F *h_hitzpositions_side1 = dynamic_cast<TH1F *>(hm->getHisto(Form("%shitz_positions_side1", getHistoPrefix().c_str())));
 
   struct HistoList
   {
@@ -126,6 +120,12 @@ if(debug_verbose==2) {std::cout<<"Coming to 113"<<std::endl;}
     TH1 *czerr = nullptr;
     TH1 *cedge = nullptr;
     TH1 *coverlap = nullptr;
+    TH1 *cxposition_side0 = nullptr;
+    TH1 *cxposition_side1 = nullptr;
+    TH1 *cyposition_side0 = nullptr;
+    TH1 *cyposition_side1 = nullptr;
+    TH1 *czposition_side0 = nullptr;
+    TH1 *czposition_side1 = nullptr;
   };
 
   int hitsetkeynum = 0;
@@ -141,14 +141,23 @@ if(debug_verbose==2) {std::cout<<"Coming to 113"<<std::endl;}
     hist.czerr = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sz_error_%i") % getHistoPrefix() % region).str()));
     hist.cedge = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusedge_%i") % getHistoPrefix() % region).str()));
     hist.coverlap = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusoverlap_%i") % getHistoPrefix() % region).str()));
-
+    
+      
+    hist.cxposition_side0 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusxposition_side0_%i") % getHistoPrefix() % region).str()));
+    hist.cxposition_side1 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusxposition_side1_%i") % getHistoPrefix() % region).str()));
+        
+    hist.cyposition_side0 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusyposition_side0_%i") % getHistoPrefix() % region).str()));
+    hist.cyposition_side1 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusyposition_side1_%i") % getHistoPrefix() % region).str()));
+      
+    hist.czposition_side0 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%scluszposition_side0_%i") % getHistoPrefix() % region).str()));
+    hist.czposition_side1 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%scluszposition_side1_%i") % getHistoPrefix() % region).str()));
+      
     histos.insert(std::make_pair(region, hist));
   }
   auto fill = [](TH1 *h, float val)
   { if (h) { h->Fill(val); 
 } };
 
-if(debug_verbose==1) {std::cout<<"Coming to 4"<<std::endl;} 
 TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
  for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
       hitsetiter != all_hitsets.second;
@@ -160,32 +169,38 @@ TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
       {
 	continue;
       }
-if(debug_verbose==1) {std::cout<<"Coming to 5"<<std::endl;}    
 int hitlayer = TrkrDefs::getLayer(hitsetkey);
-    std::cout<<__PRETTY_FUNCTION__<<"hitlayer="<<hitlayer<<std::endl;
     //auto sector = TpcDefs::getSectorId(hitsetkey);
-    //auto side = TpcDefs::getSide(hitsetkey);
+    auto m_side = TpcDefs::getSide(hitsetkey);
     auto hitrangei = hitset->getHits();
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
          hitr != hitrangei.second;
          ++hitr)
     { 
-      if(debug_verbose==1) {std::cout<<"Coming to 6"<<std::endl;}
       auto hitkey = hitr->first;
       //auto hit = hitr->second;
       //auto adc = hit->getAdc();
       auto hitpad = TpcDefs::getPad(hitkey);
-      //auto hittbin = TpcDefs::getTBin(hitkey);
+      auto m_hittbin = TpcDefs::getTBin(hitkey);
       //Check TrackResiduals.cc
-if(debug_verbose==1) {std::cout<<"Coming to 7"<<std::endl;}      
-auto geoLayer = geomContainer->GetLayerCellGeom(hitlayer);
-      if(debug_verbose==1) {std::cout<<"Coming to 8"<<std::endl;}
+      auto geoLayer = geomContainer->GetLayerCellGeom(hitlayer);
       auto phi = geoLayer->get_phicenter(hitpad);
       auto radius = geoLayer->get_radius();
-      auto hitgx = radius * std::cos(phi);
-      auto hitgy = radius * std::sin(phi);
-if(debug_verbose==1) {std::cout<<"Coming to 9"<<std::endl;}      
-h_hitpositions->Fill(hitgx,hitgy);
+      auto m_hitgx = radius * std::cos(phi);
+      auto m_hitgy = radius * std::sin(phi);
+      float AdcClockPeriod = geoLayer->get_zstep();
+      float m_zdriftlength = m_hittbin * tGeometry->get_drift_velocity() * AdcClockPeriod;
+      double NZBinsSide = 249;  // physical z bins per TPC side
+      double tdriftmax = AdcClockPeriod * NZBinsSide;
+      auto m_hitgz = (tdriftmax * tGeometry->get_drift_velocity()) - m_zdriftlength;
+      if (m_side == 0)
+      {
+          m_hitgz *= -1;
+      }
+      //geoLayer->identify(std::cout);
+      h_hitpositions->Fill(m_hitgx,m_hitgy);
+      if(m_side==0){h_hitzpositions_side0->Fill(m_hitgz);}
+      if(m_side==1){h_hitzpositions_side1->Fill(m_hitgz);}
     }
 
    }
@@ -193,7 +208,6 @@ h_hitpositions->Fill(hitgx,hitgy);
   for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
     int numclusters = 0;
-if(debug_verbose==1) {std::cout<<"Coming to 10"<<std::endl;}    
 auto range = clusterContainer->getClusters(hsk);
     int sector = TpcDefs::getSectorId(hsk);
     int side = TpcDefs::getSide(hsk);
@@ -203,10 +217,14 @@ auto range = clusterContainer->getClusters(hsk);
     }
     for (auto iter = range.first; iter != range.second; ++iter)
     { 
-      if(debug_verbose==1) {std::cout<<"Coming to 11"<<std::endl;}
       const auto cluskey = iter->first;
-//std::cout<<"cluskey="<<cluskey<<std::endl;
-      const auto cluster = iter->second;
+      const auto cluster = iter->second; //auto cluster = clusters->findCluster(key);
+      auto glob = tGeometry->getGlobalPosition(cluskey, cluster);
+      auto sclusgx = glob.x();
+      auto sclusgy = glob.y();
+      auto sclusgz = glob.z();
+        
+        
       const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(cluskey));
       int region = it->second;
       const auto hiter = histos.find(region);
@@ -214,14 +232,24 @@ auto range = clusterContainer->getClusters(hsk);
       {
         continue;
       }
-if(debug_verbose==1) {std::cout<<"Coming to 12"<<std::endl;}      
 fill(hiter->second.crphisize, cluster->getPhiSize());
       fill(hiter->second.czsize, cluster->getZSize());
       fill(hiter->second.crphierr, cluster->getRPhiError());
       fill(hiter->second.czerr, cluster->getZError());
       fill(hiter->second.cedge, cluster->getEdge());
       fill(hiter->second.coverlap, cluster->getOverlap());
-if(debug_verbose==1) {std::cout<<"Coming to 13"<<std::endl;}      
+        
+      if(side==0){
+        fill(hiter->second.cxposition_side0, sclusgx);
+        fill(hiter->second.cyposition_side0, sclusgy);
+        fill(hiter->second.czposition_side0, sclusgz);
+      }
+      if(side==1){
+        fill(hiter->second.cxposition_side1, sclusgx);
+        fill(hiter->second.cyposition_side1, sclusgy);
+        fill(hiter->second.czposition_side1, sclusgz);
+      }
+        
 numclusters++;
     }
 
@@ -326,6 +354,42 @@ void TpcClusterQA::createHistos()
       h->GetXaxis()->SetTitle("Cluster overlap");
       hm->registerHisto(h);
     }
+    {
+      auto h = new TH1F((boost::format("%sclusxposition_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                          (boost::format("TPC cluster x position side 0_%i") % region).str().c_str(), 210*2, -105, 105);
+        h->GetXaxis()->SetTitle("x (cm)");
+        hm->registerHisto(h);
+    }
+    {
+      auto h = new TH1F((boost::format("%sclusxposition_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                            (boost::format("TPC cluster x position side 1_%i") % region).str().c_str(), 210*2, -105, 105);
+      h->GetXaxis()->SetTitle("x (cm)");
+      hm->registerHisto(h);
+    }
+    {
+      auto h = new TH1F((boost::format("%sclusyposition_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                            (boost::format("TPC cluster y position side 0_%i") % region).str().c_str(), 210*2, -105, 105);
+      h->GetXaxis()->SetTitle("y (cm)");
+      hm->registerHisto(h);
+    }
+    {
+      auto h = new TH1F((boost::format("%sclusyposition_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                              (boost::format("TPC cluster y position side 1_%i") % region).str().c_str(), 210*2, -105, 105);
+      h->GetXaxis()->SetTitle("y (cm)");
+      hm->registerHisto(h);
+    }
+    {
+      auto h = new TH1F((boost::format("%scluszposition_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                            (boost::format("TPC cluster z position side 0_%i") % region).str().c_str(), 210*2, -105, 105);
+      h->GetXaxis()->SetTitle("z (cm)");
+      hm->registerHisto(h);
+    }
+    {
+      auto h = new TH1F((boost::format("%scluszposition_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                              (boost::format("TPC cluster z position side 1_%i") % region).str().c_str(), 210*2, -105, 105);
+      h->GetXaxis()->SetTitle("z (cm)");
+      hm->registerHisto(h);
+    }
   }
 
   {
@@ -335,6 +399,9 @@ void TpcClusterQA::createHistos()
     h->GetYaxis()->SetTitle("Number of clusters");
     hm->registerHisto(h);
   }
+  
+  
+  
     
   {
     auto h = new TH2F(Form("%shit_positions", getHistoPrefix().c_str()),
@@ -343,6 +410,17 @@ void TpcClusterQA::createHistos()
     h->GetYaxis()->SetTitle("y (cm)");
     hm->registerHisto(h);
   }
-
+  {
+    auto h = new TH1F(Form("%shitz_positions_side0", getHistoPrefix().c_str()),
+                                             "Histogram of hit z positions side=0", 105*4, -105, 105);
+    h->GetXaxis()->SetTitle("z (cm)");
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH1F(Form("%shitz_positions_side1", getHistoPrefix().c_str()),
+                                             "Histogram of hit z positions side=1", 105*4, -105, 105);
+    h->GetXaxis()->SetTitle("z (cm)");
+    hm->registerHisto(h);
+  }
   return;
 }
