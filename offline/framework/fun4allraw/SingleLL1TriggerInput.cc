@@ -3,8 +3,8 @@
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/LL1Packetv1.h>
 #include <ffarawobjects/LL1PacketContainerv1.h>
+#include <ffarawobjects/LL1Packetv1.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -92,8 +92,8 @@ void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     if (npackets >= NLL1PACKETS)
     {
       std::cout << PHWHERE << " Packets array size " << NLL1PACKETS
-		<< " too small for " << Name()
-<< ", increase NLL1PACKETS and rebuild" << std::endl;
+                << " too small for " << Name()
+                << ", increase NLL1PACKETS and rebuild" << std::endl;
       exit(1);
     }
 
@@ -106,24 +106,40 @@ void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
 
       // by default use previous bco clock for gtm bco
       LL1Packet *newhit = new LL1Packetv1();
-      int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
-      if (nr_modules > 3)
-      {
-	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
-	gSystem->Exit(1);
-      }
       uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
-// offline packet content
+      // offline packet content
+      newhit->setEvtSequence(EventSequence);
       newhit->setIdentifier(plist[i]->getIdentifier());
       newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-// ll1 packet additions
+      // ll1 packet additions
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);
-      newhit->setEvtSequence(EventSequence);
+      newhit->setTriggerWords(plist[i]->iValue(0, "TRIGGERWORDS"));
+      newhit->setSlotNr(plist[i]->iValue(0, "SLOTNR"));
+      newhit->setCardNr(plist[i]->iValue(0, "CARDNR"));
+      newhit->setMonitor(plist[i]->iValue(0, "MONITOR"));
+      for (int ichan = 0; ichan < nr_channels; ichan++)
+      {
+        for (int isamp = 0; isamp < nr_samples; isamp++)
+        {
+          if (isamp >= newhit->getMaxNumSamples() || ichan >= newhit->getMaxNumChannels())
+          {
+            std::cout << "sample: " << isamp
+                      << ", channel: " << ichan << std::endl;
+            gSystem->Exit(1);
+          }
+          else
+          {
+            newhit->setSample(ichan, isamp, plist[i]->iValue(isamp, ichan));
+          }
+        }
+      }
+      newhit->identify();
+      //      newhit->dump();
       if (Verbosity() > 2)
       {
         std::cout << PHWHERE << "evtno: " << EventSequence
@@ -138,7 +154,7 @@ void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       m_EventStack.insert(EventSequence);
       if (ddump_enabled())
       {
-	ddumppacket(plist[i]);
+        ddumppacket(plist[i]);
       }
       delete plist[i];
     }
