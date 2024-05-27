@@ -27,7 +27,7 @@ void LL1PacketContainerv1::identify(std::ostream &os) const
 {
   os << "LL1PacketContainerv1" << std::endl;
   os << "containing " << LL1PacketsTCArray->GetEntriesFast() << " Calo Packets" << std::endl;
-  for (int i=0 ; i<=LL1PacketsTCArray->GetLast(); i++)
+  for (int i = 0; i <= LL1PacketsTCArray->GetLast(); i++)
   {
     LL1Packet *calopkt = static_cast<LL1Packet *>(LL1PacketsTCArray->At(i));
     if (calopkt)
@@ -69,7 +69,7 @@ LL1Packet *LL1PacketContainerv1::getPacket(unsigned int index)
 
 LL1Packet *LL1PacketContainerv1::getPacketbyId(int id)
 {
-  for (int i=0 ; i<=LL1PacketsTCArray->GetLast(); i++)
+  for (int i = 0; i <= LL1PacketsTCArray->GetLast(); i++)
   {
     LL1Packet *pkt = (LL1Packet *) LL1PacketsTCArray->At(i);
     if (pkt->getIdentifier() == id)
