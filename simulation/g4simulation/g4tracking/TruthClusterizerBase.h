@@ -20,9 +20,8 @@
 //  the associated TrkrTruthTrackContainer.
 
 #include <trackbase/TrkrDefs.h>
-#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <map>
-#include <iostream>
 
 class PHCompositeNode;
 class TrkrHitSetContainer;
@@ -32,46 +31,45 @@ class TrkrTruthTrack;
 class PHG4TruthInfoContainer;
 class PHG4Hit;
 
-class TruthClusterizerBase {
-  protected:
-  TrkrHitSetContainer*     m_hits          ;
-  int                      m_verbosity     { 0 };
-  PHCompositeNode*         m_topNode       { nullptr };
-  TrkrTruthTrackContainer* m_truthtracks   { nullptr };
-  TrkrClusterContainer*    m_clusters      { nullptr }; // cluster container passed to individual clusterers
-  PHG4TruthInfoContainer*  m_truthinfo     { nullptr };
-  int                      m_trkid         { -1      };
-  bool                     m_is_emb        { false   };
-  bool                     m_was_emb       { false   };
-  bool                     m_is_new_track  { false   };
-  TrkrTruthTrack*          m_current_track { nullptr };
-  
+class TruthClusterizerBase
+{
+ protected:
+  TrkrHitSetContainer* m_hits;
+  int m_verbosity{0};
+  PHCompositeNode* m_topNode{nullptr};
+  TrkrTruthTrackContainer* m_truthtracks{nullptr};
+  TrkrClusterContainer* m_clusters{nullptr};  // cluster container passed to individual clusterers
+  PHG4TruthInfoContainer* m_truthinfo{nullptr};
+  int m_trkid{-1};
+  bool m_is_emb{false};
+  bool m_was_emb{false};
+  bool m_is_new_track{false};
+  TrkrTruthTrack* m_current_track{nullptr};
 
-  std::map<TrkrDefs::hitsetkey,unsigned int> m_hitsetkey_cnt {}; // counter for making ckeys form hitsetkeys
+  std::map<TrkrDefs::hitsetkey, unsigned int> m_hitsetkey_cnt{};  // counter for making ckeys form hitsetkeys
 
   // implemented individually for mvtx, intt and tpc cluster hits
   /* static int dummy_cluster_hits() { */
-    /* return Fun4AllReturnCodes::EVENT_OK; */
+  /* return Fun4AllReturnCodes::EVENT_OK; */
   /* }; */
 
-  public:
-  TruthClusterizerBase ( );
-  void    init_clusterizer_base ( PHCompositeNode*& _topNode, int verbosity );
+ public:
+  TruthClusterizerBase();
+  void init_clusterizer_base(PHCompositeNode*& _topNode, int verbosity);
   virtual ~TruthClusterizerBase();
 
   // main use functions
-  void check_g4hit_status (PHG4Hit*);
+  void check_g4hit_status(PHG4Hit*);
   void transfer_clusters(TrkrClusterContainer*);
   void update_track();
   void transfer_clusters();
 
-  void addhitset   (TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons);
+  void addhitset(TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons);
 
   // convenience
-  int  Verbosity() { return m_verbosity; };
+  int Verbosity() { return m_verbosity; };
   void set_verbosity(int _) { m_verbosity = _; };
-  void print_clusters(int nclusprint=20);
-
+  void print_clusters(int nclusprint = 20);
 };
 
 #endif

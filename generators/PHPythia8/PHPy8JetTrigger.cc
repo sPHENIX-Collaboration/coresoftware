@@ -16,8 +16,6 @@
 #include <utility>    // for swap
 #include <vector>     // for vector
 
-using namespace std;
-
 //__________________________________________________________
 PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name)
   : PHPy8GenTrigger(name)
@@ -42,8 +40,8 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 {
   if (Verbosity() > 2)
   {
-    cout << "PHPy8JetTrigger::Apply - pythia event size: "
-         << pythia->event.size() << endl;
+    std::cout << "PHPy8JetTrigger::Apply - pythia event size: "
+         << pythia->event.size() << std::endl;
   }
 
   // Loop over all particles in the event
@@ -51,7 +49,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
   for (int i = 0; i < pythia->event.size(); ++i)
   {
     if (pythia->event[i].status() > 0)
-    {  //only stable particles
+    {  // only stable particles
 
       // remove some particles (muons, taus, neutrinos)...
       // 12 == nu_e
@@ -93,16 +91,16 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
   bool jetFound = false;
   double max_pt = -1;
-  for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
+  for (auto &fastjet : fastjets)
   {
-    const double pt = sqrt(fastjets[ijet].px() * fastjets[ijet].px() + fastjets[ijet].py() * fastjets[ijet].py());
+    const double pt = sqrt(fastjet.px() * fastjet.px() + fastjet.py() * fastjet.py());
 
     if (pt > max_pt)
     {
       max_pt = pt;
     }
 
-    vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
+    std::vector<fastjet::PseudoJet> constituents = fastjet.constituents();
     int ijet_nconst = constituents.size();
 
     if (pt > _minPt && ijet_nconst >= _nconst)
@@ -113,19 +111,19 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
         double leading_Z = 0.0;
 
-        double jet_ptot = sqrt(fastjets[ijet].px() * fastjets[ijet].px() +
-                               fastjets[ijet].py() * fastjets[ijet].py() +
-                               fastjets[ijet].pz() * fastjets[ijet].pz());
+        double jet_ptot = sqrt(fastjet.px() * fastjet.px() +
+                               fastjet.py() * fastjet.py() +
+                               fastjet.pz() * fastjet.pz());
 
-        for (unsigned int j = 0; j < constituents.size(); j++)
+        for (auto &constituent : constituents)
         {
-          double con_ptot = sqrt(constituents[j].px() * constituents[j].px() +
-                                 constituents[j].py() * constituents[j].py() +
-                                 constituents[j].pz() * constituents[j].pz());
+          double con_ptot = sqrt(constituent.px() * constituent.px() +
+                                 constituent.py() * constituent.py() +
+                                 constituent.pz() * constituent.pz());
 
-          double ctheta = (constituents[j].px() * fastjets[ijet].px() +
-                           constituents[j].py() * fastjets[ijet].py() +
-                           constituents[j].pz() * fastjets[ijet].pz()) /
+          double ctheta = (constituent.px() * fastjet.px() +
+                           constituent.py() * fastjet.py() +
+                           constituent.pz() * fastjet.pz()) /
                           (con_ptot * jet_ptot);
 
           double z_constit = con_ptot * ctheta / jet_ptot;
@@ -152,7 +150,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
   if (Verbosity() > 2)
   {
-    cout << "PHPy8JetTrigger::Apply - max_pt = " << max_pt << ", and jetFound = " << jetFound << endl;
+    std::cout << "PHPy8JetTrigger::Apply - max_pt = " << max_pt << ", and jetFound = " << jetFound << std::endl;
   }
 
   return jetFound;
@@ -165,7 +163,7 @@ void PHPy8JetTrigger::SetEtaHighLow(double etaHigh, double etaLow)
 
   if (_theEtaHigh < _theEtaLow)
   {
-    swap(_theEtaHigh, _theEtaLow);
+    std::swap(_theEtaHigh, _theEtaLow);
   }
 }
 
@@ -191,10 +189,10 @@ void PHPy8JetTrigger::SetMinNumConstituents(int nconst)
 
 void PHPy8JetTrigger::PrintConfig()
 {
-  cout << "---------------- PHPy8JetTrigger::PrintConfig --------------------" << endl;
+  std::cout << "---------------- PHPy8JetTrigger::PrintConfig --------------------" << std::endl;
 
-  cout << "   Particles EtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << endl;
-  cout << "   Minimum Jet pT: " << _minPt << " GeV/c" << endl;
-  cout << "   Anti-kT Radius: " << _R << endl;
-  cout << "-----------------------------------------------------------------------" << endl;
+  std::cout << "   Particles EtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << std::endl;
+  std::cout << "   Minimum Jet pT: " << _minPt << " GeV/c" << std::endl;
+  std::cout << "   Anti-kT Radius: " << _R << std::endl;
+  std::cout << "-----------------------------------------------------------------------" << std::endl;
 }

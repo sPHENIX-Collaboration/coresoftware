@@ -25,6 +25,9 @@ class MicromegasMapping
   /// get list of fee ids
   std::vector<int> get_fee_id_list() const;
 
+  /// get list of fee ids for a given packet
+  std::vector<int> get_fee_id_list(int /*packet_id*/) const;
+
   /// get hitsetkey from fiber_id (fee_id)
   TrkrDefs::hitsetkey get_hitsetkey(int /*fee_id*/) const;
 
@@ -66,10 +69,14 @@ class MicromegasMapping
    public:
     /// constructor
     DetectorId(
-        int fee_id, TrkrDefs::hitsetkey hitsetkey,
+        int packet_id,
+        int fee_id,
+        TrkrDefs::hitsetkey hitsetkey,
         const std::string& fibername, const std::string& breakoutname,
         const std::string& detname_saclay, const std::string& detname_sphenix)
-      : m_fee_id(fee_id)
+      :
+      m_packet_id(packet_id)
+      , m_fee_id(fee_id)
       , m_hitsetkey(hitsetkey)
       , m_fibername(fibername)
       , m_breakoutname(breakoutname)
@@ -77,6 +84,9 @@ class MicromegasMapping
       , m_detname_sphenix(detname_sphenix)
     {
     }
+
+    /// packet_id
+    int m_packet_id = 0;
 
     /// fee_id
     int m_fee_id = 0;

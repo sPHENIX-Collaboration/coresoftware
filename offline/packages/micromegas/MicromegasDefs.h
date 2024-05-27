@@ -114,6 +114,9 @@ namespace MicromegasDefs
   //! total number of channels
   static constexpr int m_nchannels_total = m_nfee*m_nchannels_fee;
 
+  //! maximum valid ADC
+  static constexpr uint16_t m_adc_max = 1024;
+
   //! mark invalid ADC values
   static constexpr uint16_t m_adc_invalid = 65000;
 

@@ -239,7 +239,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
-
     m_trackid = key;
     m_crossing = track->get_crossing();
     m_px = track->get_px();
@@ -439,6 +438,11 @@ float TrackResiduals::calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* cluste
   std::vector<float> dedxlist;
   for (unsigned long cluster_key : clusterKeys)
   {
+    auto detid = TrkrDefs::getTrkrId(cluster_key);
+    if (detid != TrkrDefs::TrkrId::tpcId) 
+      {
+	continue;   // the micromegas clusters are added to the TPC seeds
+      }
     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
     TrkrCluster* cluster = clustermap->findCluster(cluster_key);
     float adc = cluster->getAdc();
@@ -647,11 +651,6 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   for (auto& pos : clusPos)
   {
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0)
-    {
-      clusr *= -1;
-    }
-
     // exclude silicon and tpot clusters for now
     if (fabs(clusr) > 80 || (m_linefitTPCOnly && fabs(clusr) < 20.))
     {
@@ -659,7 +658,8 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     }
     global_vec.push_back(pos);
   }
-  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys);
+
+  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
   m_xyint = std::numeric_limits<float>::quiet_NaN();
   m_xyslope = std::numeric_limits<float>::quiet_NaN();
   if (fitpars.size() > 0)
