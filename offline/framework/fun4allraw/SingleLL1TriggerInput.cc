@@ -3,8 +3,8 @@
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/CaloPacketv1.h>
-#include <ffarawobjects/CaloPacketContainerv1.h>
+#include <ffarawobjects/LL1Packetv1.h>
+#include <ffarawobjects/LL1PacketContainerv1.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -31,7 +31,7 @@
 
 // it is 8 packets for the ll1, this number needs to be npackets+1
 // so it doesn't trigger the warning and exit. Setting it to 10
-static const int NLL1PACKETS = 10;
+static const int NLL1PACKETS = 19;
 
 SingleLL1TriggerInput::SingleLL1TriggerInput(const std::string &name)
   : SingleTriggerInput(name)
@@ -105,7 +105,7 @@ void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       }
 
       // by default use previous bco clock for gtm bco
-      CaloPacket *newhit = new CaloPacketv1();
+      LL1Packet *newhit = new LL1Packetv1();
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
@@ -115,36 +115,15 @@ void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
 	gSystem->Exit(1);
       }
       uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
-      newhit->setNrModules(nr_modules);
-      newhit->setNrSamples(nr_samples);
-      newhit->setNrChannels(nr_channels);
-      newhit->setBCO(gtm_bco);
-      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
+// offline packet content
       newhit->setIdentifier(plist[i]->getIdentifier());
       newhit->setHitFormat(plist[i]->getHitFormat());
+      newhit->setBCO(gtm_bco);
+      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
+// ll1 packet additions
+      newhit->setNrSamples(nr_samples);
+      newhit->setNrChannels(nr_channels);
       newhit->setEvtSequence(EventSequence);
-      newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
-      newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
-      newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
-      newhit->setCalcOddChecksum(plist[i]->iValue(0, "CALCODDCHECKSUM"));
-      newhit->setModuleAddress(plist[i]->iValue(0,"MODULEADDRESS"));
-      newhit->setDetId(plist[i]->iValue(0,"DETID"));
-      for (int ifem = 0; ifem < nr_modules; ifem++)
-      {
-        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
-        newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
-        newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
-      }
-      for (int ipmt = 0; ipmt < nr_channels; ipmt++)
-      {
-        newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
-        newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
-        newhit->setSuppressed(ipmt,plist[i]->iValue(ipmt,"SUPPRESSED"));
-        for (int isamp = 0; isamp < nr_samples; isamp++)
-        {
-          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-        }
-      }
       if (Verbosity() > 2)
       {
         std::cout << PHWHERE << "evtno: " << EventSequence
@@ -261,10 +240,10 @@ void SingleLL1TriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode = new PHCompositeNode("LL1");
     dstNode->addNode(detNode);
   }
-  CaloPacketContainer *ll1packetcont = findNode::getClass<CaloPacketContainer>(detNode, "LL1Packets");
+  LL1PacketContainer *ll1packetcont = findNode::getClass<LL1PacketContainer>(detNode, "LL1Packets");
   if (!ll1packetcont)
   {
-    ll1packetcont = new CaloPacketContainerv1();
+    ll1packetcont = new LL1PacketContainerv1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(ll1packetcont, "LL1Packets", "PHObject");
     detNode->addNode(newNode);
   }

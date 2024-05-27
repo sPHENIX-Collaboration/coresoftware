@@ -14,6 +14,8 @@
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
 #include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/LL1Packet.h>
+#include <ffarawobjects/LL1PacketContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -958,6 +960,86 @@ void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
   return;
 }
 
+int Fun4AllPrdfInputTriggerManager::FillLL1()
+{
+  // unsigned int alldone = 0;
+  for (auto iter : m_LL1InputVector)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "Fun4AllTriggerInputManager::FillLL1 - fill pool for " << iter->Name() << std::endl;
+    }
+    iter->FillPool();
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
+      }
+    }
+  }
+  if (m_LL1PacketMap.empty())
+  {
+    std::cout << "we are done" << std::endl;
+    return -1;
+  }
+  return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::MoveLL1ToNodeTree()
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "stashed ll1 Events: " << m_LL1PacketMap.size() << std::endl;
+  }
+  LL1PacketContainer *ll1 = findNode::getClass<LL1PacketContainer>(m_topNode, "LL1Packets");
+  if (!ll1)
+  {
+    return 0;
+  }
+  //  std::cout << "before filling m_LL1PacketMap size: " <<  m_LL1PacketMap.size() << std::endl;
+  for (auto ll1hititer : m_LL1PacketMap.begin()->second.LL1PacketVector)
+  {
+    if (Verbosity() > 1)
+    {
+      ll1hititer->identify();
+    }
+    ll1->AddPacket(ll1hititer);
+  }
+  for (auto iter : m_LL1InputVector)
+  {
+    iter->CleanupUsedPackets(m_LL1PacketMap.begin()->first);
+  }
+  m_LL1PacketMap.begin()->second.LL1PacketVector.clear();
+  m_LL1PacketMap.erase(m_LL1PacketMap.begin());
+  // std::cout << "size  m_LL1PacketMap: " <<  m_LL1PacketMap.size()
+  // 	    << std::endl;
+  return 0;
+}
+
+void Fun4AllPrdfInputTriggerManager::AddLL1Packet(int eventno, LL1Packet *pkt)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "AddLL1Packet: Adding ll1 packet " << pkt->getIdentifier()
+              << " for event " << pkt->getEvtSequence() << " to eventno: "
+              << eventno << std::endl;
+  }
+  m_LL1PacketMap[eventno].LL1PacketVector.push_back(pkt);
+  return;
+}
+
 int Fun4AllPrdfInputTriggerManager::FillZdc()
 {
   // unsigned int alldone = 0;
@@ -1090,18 +1172,6 @@ void Fun4AllPrdfInputTriggerManager::AddSEpdPacket(int eventno, CaloPacket *pkt)
   return;
 }
 
-void Fun4AllPrdfInputTriggerManager::AddLL1Packet(int eventno, CaloPacket *pkt)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "AddSEpdPacket: Adding sepd packet " << pkt->getIdentifier()
-              << " for event " << pkt->getEvtSequence() << " to eventno: "
-              << eventno << std::endl;
-  }
-  m_SEpdPacketMap[eventno].SEpdPacketVector.push_back(pkt);
-  return;
-}
-
 void Fun4AllPrdfInputTriggerManager::DetermineReferenceEventNumber()
 {
   if (!m_Gl1PacketMap.empty())
@@ -1111,6 +1181,10 @@ void Fun4AllPrdfInputTriggerManager::DetermineReferenceEventNumber()
   else if (!m_MbdPacketMap.empty())
   {
     m_RefEventNo = m_MbdPacketMap.begin()->first;
+  }
+  else if (!m_LL1PacketMap.empty())
+  {
+    m_RefEventNo = m_LL1PacketMap.begin()->first;
   }
   else if (!m_HcalPacketMap.empty())
   {

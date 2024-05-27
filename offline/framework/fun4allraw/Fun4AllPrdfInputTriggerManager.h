@@ -18,7 +18,7 @@ class Event;
 class SinglePrdfInput;
 class CaloPacket;
 class Gl1Packet;
-class MbdPacket;
+class LL1Packet;
 class PHCompositeNode;
 class SingleTriggerInput;
 class SyncObject;
@@ -60,6 +60,9 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillGl1();
   int MoveGl1ToNodeTree();
   void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
+  int FillLL1();
+  int MoveLL1ToNodeTree();
+  void AddLL1Packet(int eventno, LL1Packet *pkt);
   int FillMbd();
   int MoveMbdToNodeTree();
   void AddMbdPacket(int eventno, CaloPacket *mbdpkt);
@@ -72,7 +75,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   // the sepd is read together with the zdc in the FillZdc method
   int MoveSEpdToNodeTree();
   void AddSEpdPacket(int eventno, CaloPacket *pkt);
-  void AddLL1Packet(int eventno, CaloPacket *pkt);
 
   void DetermineReferenceEventNumber();
 
@@ -106,6 +108,12 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     unsigned int EventFoundCounter{0};
   };
 
+  struct LL1PacketInfo
+  {
+    std::vector<LL1Packet *> LL1PacketVector;
+    unsigned int EventFoundCounter{0};
+  };
+
   struct SEpdPacketInfo
   {
     std::vector<CaloPacket *> SEpdPacketVector;
@@ -123,14 +131,16 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   bool m_mbd_registered_flag{false};
   bool m_cemc_registered_flag{false};
   bool m_hcal_registered_flag{false};
+  bool m_ll1_registered_flag{false};
   bool m_zdc_registered_flag{false};
   unsigned int m_PoolDepth = 100;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
-  std::vector<SingleTriggerInput *> m_MbdInputVector;
   std::vector<SingleTriggerInput *> m_CemcInputVector;
   std::vector<SingleTriggerInput *> m_HcalInputVector;
+  std::vector<SingleTriggerInput *> m_LL1InputVector;
+  std::vector<SingleTriggerInput *> m_MbdInputVector;
   std::vector<SingleTriggerInput *> m_SEpdInputVector;
   std::vector<SingleTriggerInput *> m_ZdcInputVector;
   SyncObject *m_SyncObject = nullptr;
@@ -140,6 +150,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, MbdPacketInfo> m_MbdPacketMap;
   std::map<int, CemcPacketInfo> m_CemcPacketMap;
   std::map<int, HcalPacketInfo> m_HcalPacketMap;
+  std::map<int, LL1PacketInfo> m_LL1PacketMap;
   std::map<int, SEpdPacketInfo> m_SEpdPacketMap;
   std::map<int, ZdcPacketInfo> m_ZdcPacketMap;
   std::map<int, int> m_DroppedPacketMap;
