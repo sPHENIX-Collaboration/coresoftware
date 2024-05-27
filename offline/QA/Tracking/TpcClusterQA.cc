@@ -1,11 +1,5 @@
 #include "TpcClusterQA.h"
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>
-
-#include <qautils/QAHistManagerDef.h>
-
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
@@ -44,9 +38,6 @@ TpcClusterQA::TpcClusterQA(const std::string &name)
 //____________________________________________________________________________..
 int TpcClusterQA::InitRun(PHCompositeNode *topNode)
 {
-  //m_file = TFile::Open("TpcClusterQAoutfile.root","recreate");
-  //assert(m_file->IsOpen());
-    
   // find tpc geometry
   auto geomContainer =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
@@ -169,7 +160,7 @@ TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
       {
 	continue;
       }
-int hitlayer = TrkrDefs::getLayer(hitsetkey);
+    int hitlayer = TrkrDefs::getLayer(hitsetkey);
     //auto sector = TpcDefs::getSectorId(hitsetkey);
     auto m_side = TpcDefs::getSide(hitsetkey);
     auto hitrangei = hitset->getHits();
@@ -208,7 +199,7 @@ int hitlayer = TrkrDefs::getLayer(hitsetkey);
   for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
     int numclusters = 0;
-auto range = clusterContainer->getClusters(hsk);
+    auto range = clusterContainer->getClusters(hsk);
     int sector = TpcDefs::getSectorId(hsk);
     int side = TpcDefs::getSide(hsk);
     if (side > 0)
@@ -232,7 +223,7 @@ auto range = clusterContainer->getClusters(hsk);
       {
         continue;
       }
-fill(hiter->second.crphisize, cluster->getPhiSize());
+      fill(hiter->second.crphisize, cluster->getPhiSize());
       fill(hiter->second.czsize, cluster->getZSize());
       fill(hiter->second.crphierr, cluster->getRPhiError());
       fill(hiter->second.czerr, cluster->getZError());
@@ -250,7 +241,7 @@ fill(hiter->second.crphisize, cluster->getPhiSize());
         fill(hiter->second.czposition_side1, sclusgz);
       }
         
-numclusters++;
+      numclusters++;
     }
 
     nclusperevent[sector] += numclusters;
@@ -269,17 +260,6 @@ numclusters++;
 
 int TpcClusterQA::EndRun(const int runnumber)
 {
-  auto hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
-
-  TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nclusperrun")));
-  h_totalclusters->Fill(runnumber, (float) m_totalClusters / m_event);
-
-  for (int i = 0; i < 24; i++)
-  {
-    TH2 *h = dynamic_cast<TH2 *>(hm->getHisto((boost::format("%snclusperrun_sector%i") % getHistoPrefix() % i).str()));
-    h->Fill(runnumber, (float) m_clustersPerSector[i] / m_event);
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -292,23 +272,6 @@ void TpcClusterQA::createHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  {
-    auto h = new TH2F(std::string(getHistoPrefix() + "nclusperrun").c_str(),
-                      "TPC Clusters per event per run number", m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
-    h->GetXaxis()->SetTitle("Run number");
-    h->GetYaxis()->SetTitle("Clusters per event");
-    hm->registerHisto(h);
-  }
-  {
-    for (int i = 0; i < 24; i++)
-    {
-      auto h = new TH2F((boost::format("%snclusperrun_sector%i") % getHistoPrefix() % i).str().c_str(),
-                        (boost::format("TPC Clusters per event per run number sector %i") % i).str().c_str(), m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
-      h->GetXaxis()->SetTitle("Run number");
-      h->GetYaxis()->SetTitle((boost::format("Clusters per event in Sector %i") % i).str().c_str());
-      hm->registerHisto(h);
-    }
-  }
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "ncluspersector").c_str(),
                       "TPC Clusters per event per sector", 24, 0, 24, 1000, 0, 1000);
@@ -399,8 +362,6 @@ void TpcClusterQA::createHistos()
     h->GetYaxis()->SetTitle("Number of clusters");
     hm->registerHisto(h);
   }
-  
-  
   
     
   {

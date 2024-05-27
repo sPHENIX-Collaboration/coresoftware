@@ -9,12 +9,6 @@
 #include <set>
 #include <string>
 
-#include <cmath>
-#include <iostream>
-#include <limits>
-
-class TFile;
-
 class PHCompositeNode;
 
 class TpcClusterQA : public SubsysReco
@@ -27,12 +21,9 @@ class TpcClusterQA : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
-  void beginRun(const int run) { m_beginRun = run; }
-  void endRun(const int run) { m_endRun = run; }
  private:
   void createHistos();
     
-  //TFile *m_file = nullptr;
 
   std::string getHistoPrefix() const;
   std::set<int> m_layers;
@@ -40,9 +31,6 @@ class TpcClusterQA : public SubsysReco
    
   int m_event = 0;
   int m_totalClusters = 0;
-  int m_beginRun = 25900;
-  int m_endRun = 26200;
-  int m_runbins = m_endRun - m_beginRun;
   int m_clustersPerSector[24] = {0};
 };
 
