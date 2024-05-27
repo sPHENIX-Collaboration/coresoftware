@@ -41,7 +41,7 @@ void Gl1Packetv2::FillFrom(const Gl1Packet *pkt)
       setScaler(i, j, pkt->lValue(i, j));
     }
   }
-  std::string gl1p_names[3] {"GL1PRAW","GL1PLIVE","GL1PSCALED"};
+  std::string gl1p_names[3]{"GL1PRAW", "GL1PLIVE", "GL1PSCALED"};
   for (int i = 0; i < 16; i++)
   {
     for (int j = 0; j < 3; j++)
@@ -114,7 +114,8 @@ void Gl1Packetv2::dump(std::ostream &os) const
      << "0x" << std::hex << lValue(0, "TriggerInput") << std::dec << "   " << lValue(0, "TriggerInput") << std::endl;
   os << "Trigger Vector:  "
      << "0x" << std::hex << lValue(0, "TriggerVector") << std::dec << "   " << lValue(0, "TriggerVector") << std::endl;
-  os << "GTM Busy Vector: " << "0x" << std::hex <<  lValue(0, "GTMBusyVector") << std::dec << "   " << lValue(0, "GTMBusyVector") << std::endl;
+  os << "GTM Busy Vector: "
+     << "0x" << std::hex << lValue(0, "GTMBusyVector") << std::dec << "   " << lValue(0, "GTMBusyVector") << std::endl;
   os << "Bunch Number:    " << lValue(0, "BunchNumber") << std::endl
      << std::endl;
   os << "Trg #                  raw              live              scaled" << std::endl;
@@ -136,17 +137,17 @@ void Gl1Packetv2::dump(std::ostream &os) const
   os << std::endl;
   os << "Gl1P #                raw              live              scaled" << std::endl;
   os << "----------------------------------------------------------------" << std::endl;
-  
-  for (i = 0; i< 16; i++)
+
+  for (i = 0; i < 16; i++)
+  {
+    if (lValue(i, "GL1PRAW") || lValue(i, "GL1PLIVE") || lValue(i, "GL1PSCALED"))
     {
-      if ( lValue(i, "GL1PRAW") ||  lValue(i, "GL1PLIVE") ||  lValue(i, "GL1PSCALED") )
-	{
-	  os << std::setw(3) << i << "    ";
-	  os << " " << std::setw(18) << lValue(i, "GL1PRAW")
-	     << " " << std::setw(18) << lValue(i, "GL1PLIVE")
-	     << " " << std::setw(18) << lValue(i, "GL1PSCALED")
-	     << std::endl;
-	}
+      os << std::setw(3) << i << "    ";
+      os << " " << std::setw(18) << lValue(i, "GL1PRAW")
+         << " " << std::setw(18) << lValue(i, "GL1PLIVE")
+         << " " << std::setw(18) << lValue(i, "GL1PSCALED")
+         << std::endl;
     }
+  }
   os << std::endl;
 }

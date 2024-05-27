@@ -25,9 +25,8 @@ class Gl1Packetv2 : public Gl1Packet
   uint64_t getTriggerInput() const override { return TriggerInput; }
   void setTriggerVector(const uint64_t i) override { TriggerVector = i; }
   uint64_t getTriggerVector() const override { return TriggerVector; }
-  void setGTMBusyVector(const uint64_t i) override {GTMBusyVector = i; }
+  void setGTMBusyVector(const uint64_t i) override { GTMBusyVector = i; }
   uint64_t getGTMBusyVector() const override { return GTMBusyVector; }
-
 
   void setScaler(int iscal, int index, uint64_t lval) override { scaler.at(iscal).at(index) = lval; }
   void setGl1pScaler(int iscal, int index, uint64_t lval) override { gl1pscaler.at(iscal).at(index) = lval; }
