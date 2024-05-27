@@ -17,9 +17,9 @@ class PHPy8GenTrigger
   PHPy8GenTrigger(const std::string &name = "PHPy8GenTrigger");
 
  public:
-  virtual ~PHPy8GenTrigger(){}
+  virtual ~PHPy8GenTrigger() {}
 
-  virtual bool Apply(Pythia8::Pythia */*pythia*/)
+  virtual bool Apply(Pythia8::Pythia * /*pythia*/)
   {
     std::cout << "PHPy8GenTrigger::Apply - in virtual function" << std::endl;
     return false;
@@ -27,7 +27,7 @@ class PHPy8GenTrigger
 
   virtual std::string GetName() { return m_Name; }
 
-  std::vector<int> convertToInts(std::string s);
+  std::vector<int> convertToInts(const std::string &s);
   int Verbosity() const { return m_Verbosity; }
   void Verbosity(int v) { m_Verbosity = v; }
 

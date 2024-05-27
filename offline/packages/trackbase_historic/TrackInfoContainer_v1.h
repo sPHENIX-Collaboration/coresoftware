@@ -1,10 +1,12 @@
 #ifndef TRACKINFOCONTAINERV1_H
 #define TRACKINFOCONTAINERV1_H
 
-#include <phool/PHObject.h>
+#include "TrackInfoContainer.h"
+
 #include "SvtxTrackInfo.h"
 #include "SvtxTrackInfo_v1.h"
-#include "TrackInfoContainer.h"
+
+#include <phool/PHObject.h>
 
 #include <TClonesArray.h>
 #include <climits>

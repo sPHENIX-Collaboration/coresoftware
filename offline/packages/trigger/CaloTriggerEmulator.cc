@@ -254,14 +254,26 @@ bool CaloTriggerEmulator::CheckChannelMasks(TriggerDefs::TriggerSumKey key)
 // cehck whether a fiber has been masked
 bool CaloTriggerEmulator::CheckFiberMasks(TriggerDefs::TriggerPrimKey key)
 {
-  for (unsigned int &it : m_masks_fiber)
-  {
-    if (key == it)
+  return (std::find(m_masks_fiber.begin(), m_masks_fiber.end(), key) != m_masks_fiber.end());
+}
+
+void CaloTriggerEmulator::LoadFiberMasks()
+{
+
+  TFile *fin = new TFile(m_optmask_file.c_str(), "r");
+  TNtuple *tn_keys = (TNtuple*) fin->Get("tn_optmask");
+  float key;
+  tn_keys->SetBranchAddress("primkey", &key);
+  for (int i = 0; i < tn_keys->GetEntries(); i++)
     {
-      return true;
+      tn_keys->GetEntry(i);
+      unsigned int primkey = static_cast<unsigned int>((int)key);
+      m_masks_fiber.push_back(primkey);
     }
-  }
-  return false;
+  
+  fin->Close();
+  delete fin;
+
 }
 
 // setting the trigger type
@@ -438,6 +450,11 @@ int CaloTriggerEmulator::InitRun(PHCompositeNode *topNode)
 
 int CaloTriggerEmulator::Download_Calibrations()
 {
+  if (!m_optmask_file.empty())
+    {
+      LoadFiberMasks();
+    }
+
   if (m_do_emcal && !m_default_lut_emcal)
   {
     if (!m_emcal_lutname.empty())
@@ -639,7 +656,13 @@ int CaloTriggerEmulator::process_waveforms()
       {
 	for (int i = sample_start; i < sample_end; i++)
 	{
-	  int subtraction = tower->get_waveform_value(i) - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0));
+	  int16_t maxim = tower->get_waveform_value(i);
+	  if (m_use_max)
+	    {
+	      int16_t max1 =  std::max(tower->get_waveform_value(i), tower->get_waveform_value(i+1));
+	      maxim =  std::max(max1, tower->get_waveform_value(i+2));
+	    }
+	  int subtraction = maxim - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0));
 	  // if negative, set to 0
 	  if (subtraction < 0)
 	  {
@@ -691,9 +714,15 @@ int CaloTriggerEmulator::process_waveforms()
 	for (int i = sample_start; i < sample_end; i++)
 	{
 	  unsigned int subtraction = 0;
-	  if (tower->get_waveform_value(i) - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0)) > 0)
+	  int16_t maxim = tower->get_waveform_value(i);
+	  if (m_use_max)
+	    {
+	      int16_t max1 =  std::max(tower->get_waveform_value(i), tower->get_waveform_value(i+1));
+	      maxim =  std::max(max1, tower->get_waveform_value(i+2));
+	    }
+	  if (maxim - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0)) > 0)
 	  {
-	    subtraction = tower->get_waveform_value(i) - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0));
+	    subtraction = maxim - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0));
 	  }
 	  else
 	  {
@@ -750,7 +779,14 @@ int CaloTriggerEmulator::process_waveforms()
       {
 	for (int i = sample_start; i < sample_end; i++)
 	{
-	  int subtraction = tower->get_waveform_value(i) - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0));
+	  int16_t maxim = tower->get_waveform_value(i);
+	  if (m_use_max)
+	    {
+	      int16_t max1 =  std::max(tower->get_waveform_value(i), tower->get_waveform_value(i+1));
+	      maxim =  std::max(max1, tower->get_waveform_value(i+2));
+	    }
+
+	  int subtraction = maxim - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0));
 
 	  if (subtraction < 0)
 	  {
@@ -1640,6 +1676,8 @@ int CaloTriggerEmulator::process_trigger()
     for (int is = 0; is < nsample; is++)
       {
 	pass |= bits.at(is);
+	trig_bits->push_back(bits.at(is));
+
       }
 
     if (pass)
@@ -1730,6 +1768,7 @@ int CaloTriggerEmulator::process_trigger()
     {
       trig_bits->push_back(bits.at(is));
     }
+
     if (pass)
     {
       m_npassed++;
@@ -1839,6 +1878,7 @@ int CaloTriggerEmulator::process_trigger()
     int pass = 0;
     for (int is = 0; is < nsample; is++)
     {
+      std::cout << bits.at(is) << std::endl;
       trig_bits->push_back(bits.at(is));
       if (trig_bits->at(is))
       {

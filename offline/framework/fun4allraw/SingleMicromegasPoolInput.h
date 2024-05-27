@@ -41,25 +41,53 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
 
-  //! keep track of matching between fee and gtm_bco
-  class bco_alignment_t
+  //! store relevant information for bco matching between lvl1 and fee.
+  using m_bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
+  class bco_matching_information_t
   {
-   public:
-    //! available gtm bcos
-    std::list<uint64_t> gtm_bco_list;
+    public:
 
-    //! current fee bco
-    unsigned int fee_bco{0};
+    //! verified flag
+    /**
+     * the flag is set to true as soon as a non-trivial match is found between FEE_BCO and GTM_BCO
+     * it shows that the chosen reference are correct
+     */
+    bool m_verified = false;
 
-    //! current gtm bco
-    uint64_t gtm_bco{0};
+    //! first gtm bco (40 bits)
+    /** it is needed to be able to convert gtm bco in a predicted fee bco */
+    bool m_has_gtm_bco_first = false;
+    uint64_t m_gtm_bco_first = 0;
+
+    //! first fee bco (20 bits)
+    /** it is needed to be able to convert gtm bco in a predicted fee bco */
+    bool m_has_fee_bco_first = false;
+    unsigned int m_fee_bco_first = 0;
+
+    //! list of available bco
+    std::list<uint64_t> m_gtm_bco_list;
+
+    //! matching between fee bco and lvl1 bco
+    std::list<m_bco_matching_pair_t> m_bco_matching_list;
+
+    //! need to truncate bco matching list to some decent value
+    void truncate( unsigned int /* maxsize */ );
+
+    //! get predicted fee_bco from gtm_bco
+    unsigned int get_predicted_fee_bco( uint64_t ) const;
+
   };
 
-  //! max number of fees per single micromegas input
-  static constexpr unsigned short m_max_fee{26};
+  //! map bco_information_t to packet id
+  using bco_matching_information_map_t = std::map<unsigned int, bco_matching_information_t>;
+  bco_matching_information_map_t m_bco_matching_information_map;
 
-  //! keep one bco alignment object per fee
-  std::array<bco_alignment_t, m_max_fee> m_bco_alignment_list;
+  // keep track of total number of waveforms
+  uint64_t m_waveform_count_total = 0;
+
+  // keep track of dropped waveforms
+  uint64_t m_waveform_count_dropped = 0;
+
 };
 
 #endif

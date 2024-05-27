@@ -272,6 +272,7 @@ void TpcClusterQA::createHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
+ 
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "ncluspersector").c_str(),
                       "TPC Clusters per event per sector", 24, 0, 24, 1000, 0, 1000);

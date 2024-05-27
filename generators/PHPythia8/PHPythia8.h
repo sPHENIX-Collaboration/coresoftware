@@ -5,7 +5,7 @@
 
 #include <phhepmc/PHHepMCGenHelper.h>
 
-#include <algorithm> // for max
+#include <algorithm>  // for max
 #include <cmath>
 #include <string>
 #include <vector>

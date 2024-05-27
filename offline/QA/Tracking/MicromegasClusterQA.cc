@@ -102,27 +102,9 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
-int MicromegasClusterQA::EndRun(const int runnumber)
+int MicromegasClusterQA::EndRun(const int /*runnumber*/)
 {
-  auto hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
-
-  TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nclusperrun")));
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  h_totalclusters->Fill(runnumber, m_totalClusters / m_event);
-
-  for (const auto &[layer, tiles] : m_layerTileMap)
-  {
-    for (int tile = 0; tile < tiles; tile++)
-    {
-      TH2 *h = dynamic_cast<TH2 *>(hm->getHisto((boost::format("%sncluspertileperrun%i_%i") % getHistoPrefix() % layer % tile).str()));
-      if (h)
-      {
-        // NOLINTNEXTLINE(bugprone-integer-division)
-        h->Fill(runnumber, m_nclustersPerTile[layer][tile] / m_event);
-      }
-    }
-  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -134,14 +116,7 @@ void MicromegasClusterQA::createHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  {
-    auto h = new TH2F(std::string(getHistoPrefix() + "nclusperrun").c_str(),
-                      "Micromegas Clusters per event per run number", m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
-    h->GetXaxis()->SetTitle("Run number");
-    h->GetYaxis()->SetTitle("Clusters per event");
-    hm->registerHisto(h);
-  }
-
+ 
   for (const auto &[layer, ntiles] : m_layerTileMap)
   {
     for (int tile = 0; tile < ntiles; tile++)
@@ -152,11 +127,6 @@ void MicromegasClusterQA::createHistos()
       h->GetYaxis()->SetTitle("Local rphi [cm]");
       hm->registerHisto(h);
 
-      auto h2 = new TH2F((boost::format("%sncluspertileperrun%i_%i") % getHistoPrefix() % layer % tile).str().c_str(),
-                         "Micromegas clusters per event per tile per run", m_runbins, m_beginRun, m_endRun, 100, 0, 20);
-      h2->GetXaxis()->SetTitle("Run number");
-      h2->GetYaxis()->SetTitle("Clusters per event");
-      hm->registerHisto(h2);
     }
   }
 

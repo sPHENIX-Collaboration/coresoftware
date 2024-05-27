@@ -1,9 +1,9 @@
 #ifndef TRACKBASEHISTORIC_SVTXTRACKSEED_V1_H
 #define TRACKBASEHISTORIC_SVTXTRACKSEED_V1_H
 
-#include <phool/PHObject.h>
-
 #include "TrackSeed.h"
+
+#include <phool/PHObject.h>
 
 #include <cmath>
 #include <iostream>
