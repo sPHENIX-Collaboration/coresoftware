@@ -19,7 +19,7 @@
 #include <filesystem>
 
 
-#include <INTTZvtx.h>
+#include "INTTZvtx.h"
 
 /////////////////////////////////////////
 // init value for temporal use
@@ -232,7 +232,7 @@ int InttZVertexFinder::process_event(PHCompositeNode *topNode)
         //int size = cluster->getSize();
         int adc  = cluster->getAdc();
 
-        if(adc<40) continue;
+        if(adc<40) { continue; }
 
 
         p_temp_sPH_nocolumn_vec->push_back({
@@ -346,8 +346,9 @@ int InttZVertexFinder::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int InttZVertexFinder::End(PHCompositeNode* /*topNode*/)
 {
-  if(Verbosity())
+  if(Verbosity()) {
     std::cout << "InttZVertexFinder::End(PHCompositeNode *topNode) " << std::endl;
+  }
 
   m_inttzvtx-> PrintPlots();
   m_inttzvtx-> EndRun();
@@ -363,22 +364,26 @@ void InttZVertexFinder::Print(const std::string &what) const
 
 void InttZVertexFinder::SetBeamCenter(const double beamx, const double beamy) 
 { 
-  if(m_inttzvtx!=nullptr) m_inttzvtx->SetBeamOrigin(beamx*10., beamy*10.); // convert to cm to mm unit
+  if(m_inttzvtx!=nullptr) { 
+    m_inttzvtx->SetBeamOrigin(beamx*10., beamy*10.); // convert to cm to mm unit 
+  }
 }
 
 void InttZVertexFinder::SetOutDirectory(const string& outDirectory) 
 { 
-  if(m_inttzvtx!=nullptr) m_inttzvtx->SetOutDirectory(outDirectory); // convert to cm to mm unit
+  if(m_inttzvtx!=nullptr) {
+    m_inttzvtx->SetOutDirectory(outDirectory); // convert to cm to mm unit
+  }
 }
 
 
 void InttZVertexFinder::EnableQA(const bool enableQA) 
 { 
-  if(m_inttzvtx!=nullptr) m_inttzvtx->EnableQA(enableQA);
+  if(m_inttzvtx!=nullptr) { m_inttzvtx->EnableQA(enableQA); }
 }
 
 void InttZVertexFinder::EnableEventDisplay(const bool enableEvtDisp) 
 { 
-  if(m_inttzvtx!=nullptr) m_inttzvtx->EnableEventDisplay(enableEvtDisp);
+  if(m_inttzvtx!=nullptr) { m_inttzvtx->EnableEventDisplay(enableEvtDisp); }
 }
 

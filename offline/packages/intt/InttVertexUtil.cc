@@ -72,9 +72,10 @@ namespace InttVertexUtil {
   
     std::vector<float> v_range; v_range.clear(); 
   
-    for (unsigned int i = 0; i < v.size(); i++){
-      if (v[i] >= sigmaEff_vec[1] && v[i] <= sigmaEff_vec[2]){
-        v_range.push_back( v[i] );
+    //for (unsigned int i = 0; i < v.size(); i++){
+    for (auto& vi : v ){
+      if (vi >= sigmaEff_vec[1] && vi <= sigmaEff_vec[2]){
+        v_range.push_back( vi );
       }
     }
   

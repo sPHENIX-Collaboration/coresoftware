@@ -48,26 +48,30 @@ bool GetPhiCheckTag(
     int inner_2_check = 0;
     int inner_3_check = 0;
     int inner_4_check = 0;
-    for (unsigned int inner_i = 0; inner_i < temp_sPH_inner_nocolumn_vec.size(); inner_i++) {
-        if (temp_sPH_inner_nocolumn_vec[inner_i].phi >=   0 && temp_sPH_inner_nocolumn_vec[inner_i].phi <  90) inner_1_check = 1;
-        if (temp_sPH_inner_nocolumn_vec[inner_i].phi >=  90 && temp_sPH_inner_nocolumn_vec[inner_i].phi < 180) inner_2_check = 1;
-        if (temp_sPH_inner_nocolumn_vec[inner_i].phi >= 180 && temp_sPH_inner_nocolumn_vec[inner_i].phi < 270) inner_3_check = 1;
-        if (temp_sPH_inner_nocolumn_vec[inner_i].phi >= 270 && temp_sPH_inner_nocolumn_vec[inner_i].phi < 360) inner_4_check = 1;
+    //for (unsigned int inner_i = 0; inner_i < temp_sPH_inner_nocolumn_vec.size(); inner_i++) 
+    for (auto& clu : temp_sPH_inner_nocolumn_vec) 
+    {
+        if (clu.phi >=   0 && clu.phi <  90) {inner_1_check = 1; }
+        if (clu.phi >=  90 && clu.phi < 180) {inner_2_check = 1; }
+        if (clu.phi >= 180 && clu.phi < 270) {inner_3_check = 1; }
+        if (clu.phi >= 270 && clu.phi < 360) {inner_4_check = 1; }
 
-        if ( (inner_1_check + inner_2_check + inner_3_check + inner_4_check) == 4 ) break;
+        if ( (inner_1_check + inner_2_check + inner_3_check + inner_4_check) == 4 ) {break;}
     }
 
     int outer_1_check = 0;
     int outer_2_check = 0;
     int outer_3_check = 0;
     int outer_4_check = 0;
-    for (unsigned int outer_i = 0; outer_i < temp_sPH_outer_nocolumn_vec.size(); outer_i++) {
-        if (temp_sPH_outer_nocolumn_vec[outer_i].phi >=   0 && temp_sPH_outer_nocolumn_vec[outer_i].phi <  90) outer_1_check = 1;
-        if (temp_sPH_outer_nocolumn_vec[outer_i].phi >=  90 && temp_sPH_outer_nocolumn_vec[outer_i].phi < 180) outer_2_check = 1;
-        if (temp_sPH_outer_nocolumn_vec[outer_i].phi >= 180 && temp_sPH_outer_nocolumn_vec[outer_i].phi < 270) outer_3_check = 1;
-        if (temp_sPH_outer_nocolumn_vec[outer_i].phi >= 270 && temp_sPH_outer_nocolumn_vec[outer_i].phi < 360) outer_4_check = 1;
+    //for (unsigned int outer_i = 0; outer_i < temp_sPH_outer_nocolumn_vec.size(); outer_i++) 
+    for (auto& clu : temp_sPH_outer_nocolumn_vec) 
+    {
+        if (clu.phi >=   0 && clu.phi <  90) { outer_1_check = 1; }
+        if (clu.phi >=  90 && clu.phi < 180) { outer_2_check = 1; }
+        if (clu.phi >= 180 && clu.phi < 270) { outer_3_check = 1; }
+        if (clu.phi >= 270 && clu.phi < 360) { outer_4_check = 1; }
 
-        if ( (outer_1_check + outer_2_check + outer_3_check + outer_4_check) == 4 ) break;
+        if ( (outer_1_check + outer_2_check + outer_3_check + outer_4_check) == 4 ) { break; }
     }
 
     if ( (inner_1_check + inner_2_check + inner_3_check + inner_4_check + 
@@ -351,25 +355,29 @@ int InttXYVertexFinder::createNodes(PHCompositeNode* topNode)
 
 void InttXYVertexFinder::SetBeamCenter(const double beamx, const double beamy)
 { 
-  if(m_inttxyvtx!=nullptr) 
+  if(m_inttxyvtx!=nullptr) { 
     m_inttxyvtx->SetBeamOrigin(beamx*10., beamy*10.);  // converted from "cm" to "mm"
+  }
 }
   
 void InttXYVertexFinder::SetSaveHisto(const bool savehist)
 { 
-  if(m_inttxyvtx!=nullptr) 
+  if(m_inttxyvtx!=nullptr)  {
     m_inttxyvtx->SetSaveHisto(savehist); 
+  }
 }
   
 void InttXYVertexFinder::EnableDrawHisto(const bool enable)
 { 
-  if(m_inttxyvtx!=nullptr) 
+  if(m_inttxyvtx!=nullptr) { 
     m_inttxyvtx->EnableDrawHisto(enable); 
+  }
 }
 
 void InttXYVertexFinder::EnableQA(const bool enable)
 { 
-  if(m_inttxyvtx!=nullptr) 
+  if(m_inttxyvtx!=nullptr) { 
     m_inttxyvtx->EnableQA(enable); 
+  }
 }
 
