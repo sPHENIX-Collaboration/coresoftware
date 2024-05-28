@@ -5,8 +5,8 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>
 #include <array>
+#include <string>
 
 class PHCompositeNode;
 class InttVertexMap;

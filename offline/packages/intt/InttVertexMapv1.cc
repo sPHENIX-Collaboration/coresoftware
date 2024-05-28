@@ -1,6 +1,5 @@
-#include "InttVertexMapv1.h"
-
 #include "InttVertex.h"
+#include "InttVertexMapv1.h"
 
 #include <iterator>  // for reverse_iterator
 #include <utility>   // for pair, make_pair

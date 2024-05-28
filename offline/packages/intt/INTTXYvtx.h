@@ -3,22 +3,21 @@
 
 #include "InttVertexUtil.h"
 
-#include <string>
-#include <vector>
-#include <map>
-#include <iostream>
-#include <numeric>
-#include <filesystem>
-
-
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TGraphErrors.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TCanvas.h>
 #include <TLegend.h>
-#include <TGraphErrors.h>
-#include <TProfile.h>
 #include <TLatex.h>
-#include <TFile.h>
+#include <TProfile.h>
+
+#include <iostream>
+#include <filesystem>
+#include <map>
+#include <numeric>
+#include <string>
+#include <vector>
 
 using std::string;
 using std::vector;

@@ -1,25 +1,25 @@
 #include "InttZVertexFinder.h"
+#include "InttVertexv1.h"
+#include "InttVertexMapv1.h"
+#include "INTTZvtx.h"
 
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/ActsGeometry.h>
-#include <trackbase/InttDefs.h>
 
-#include "InttVertexMapv1.h"
-#include "InttVertexv1.h"
 
 #include <filesystem>
 
 
-#include "INTTZvtx.h"
 
 /////////////////////////////////////////
 // init value for temporal use

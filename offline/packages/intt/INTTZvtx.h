@@ -3,20 +3,23 @@
 
 #include "InttVertexUtil.h"
 
-#include <vector>
-#include <string>
-#include <map>
-#include <iostream>
-
 #include <TCanvas.h>
+#include <TColor.h>
+#include <TFile.h>
+#include <TGraphErrors.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TGraphErrors.h>
-#include <TColor.h>
 #include <TLine.h>
 #include <TLatex.h>
-#include <TFile.h>
 #include <TTree.h>
+
+
+#include <iostream>
+#include <filesystem>
+#include <map>
+#include <numeric>
+#include <vector>
+#include <string>
 
 
 using std::string;
@@ -75,8 +78,8 @@ class INTTZvtx
       };
 
     public : 
-        INTTZvtx(string               runType, 
-                 string               outFolderDirectory, 
+        INTTZvtx(const string&        runType, 
+                 const string&        outFolderDirectory, 
                  pair<double,double>  beamOrigin, 
                  double               phiDiffCut       = 0.11, 
                  pair<double, double> DCACut           = {-1,1}, 
@@ -119,7 +122,7 @@ class INTTZvtx
         ZvtxInfo&            GetZvtxInfo()   { return m_zvtxinfo; }
         void                 SetBeamOrigin(double beamx, double beamy) { beam_origin = std::make_pair(beamx, beamy); }
         void                 SetPrintMessageOpt(const bool opt)        { print_message_opt = opt; }
-        void                 SetOutDirectory(const string sOutDirectory){ out_folder_directory = sOutDirectory; }
+        void                 SetOutDirectory(const string& sOutDirectory){ out_folder_directory = sOutDirectory; }
 
 
     private : 
@@ -291,8 +294,8 @@ class INTTZvtx
 
 
 
-INTTZvtx::INTTZvtx(string              runType, 
-                   string              outFolderDirectory, 
+INTTZvtx::INTTZvtx(const string&       runType, 
+                   const string&       outFolderDirectory, 
                    pair<double,double> beamOrigin, 
                    double              phiDiffCut, 
                    pair<double,double> DCACut, 
@@ -326,9 +329,6 @@ INTTZvtx::INTTZvtx(string              runType,
     MC_z_diff_peak = -777.;
     MC_z_diff_width = -777.;
 
-    out_N_cluster_south = 0;
-    out_N_cluster_north = 0;
-
     N_group_info_detail = {-1.,-1.,-1.,-1.};
 
     N_comb.clear(); N_comb_e.clear(); z_mid.clear(); z_range.clear(); N_comb_phi.clear();
@@ -339,6 +339,47 @@ INTTZvtx::INTTZvtx(string              runType,
     inner_clu_phi_map = vector<vector<pair<bool,clu_info>>>(360);
     outer_clu_phi_map = vector<vector<pair<bool,clu_info>>>(360);
 
+    /////////// 
+    // ntuple variables
+    out_eID             = 0;
+    bco_full_out        = 0;
+    N_cluster_inner_out = -1;
+    N_cluster_outer_out = -1;
+    out_ES_zvtx   = -1;
+    out_ES_zvtxE  = -1;
+    out_ES_rangeL = -1;
+    out_ES_rangeR = -1;
+    out_ES_N_good = -1;
+    out_ES_width_density = -1;
+    
+    out_LB_Gaus_Mean_mean  = -1;
+    out_LB_Gaus_Mean_meanE = -1;
+    out_LB_Gaus_Mean_chi2  = -1;
+    out_LB_Gaus_Mean_width = -1;
+    
+    out_LB_Gaus_Width_width      = -1;
+    out_LB_Gaus_Width_size_width = -1;
+    out_LB_Gaus_Width_offset     = -1;
+    
+    out_mid_cut_Ngroup     = -1;
+    out_mid_cut_peak_width = -1;
+    out_mid_cut_peak_ratio = -1;
+
+    out_LB_cut_Ngroup     = -1;
+    out_LB_cut_peak_width = -1;
+    out_LB_cut_peak_ratio = -1;
+    
+    out_LB_geo_mean   = -1;
+    out_good_zvtx_tag = 0;
+
+    MC_true_zvtx = -9999.;
+
+    out_centrality_bin = -1;
+
+    out_N_cluster_north = 0;
+    out_N_cluster_south = 0;
+
+    ///////////
 //    Init();
 }
 
@@ -863,7 +904,7 @@ bool INTTZvtx::ProcessEvt(
         || total_NClus < N_clu_cutl)
     {
         if(m_enable_qa) {tree_out -> Fill(); }
-        printf("In INTTZvtx class, event : %i, return low clu continue, NClus : %lu %lu %lu\n", event_i, total_NClus, 
+        printf("In INTTZvtx class, event : %i, return low clu continue, NClus : %ld %lu %lu\n", event_i, total_NClus, 
           temp_sPH_inner_nocolumn_vec.size(), temp_sPH_outer_nocolumn_vec.size()
         ); 
         return false;

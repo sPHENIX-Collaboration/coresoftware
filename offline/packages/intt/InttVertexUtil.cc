@@ -1,8 +1,8 @@
 #include "InttVertexUtil.h"
 
-#include <vector>
 #include <algorithm>
 #include <numeric>
+#include <vector>
 
 using std::vector;
 
@@ -65,7 +65,7 @@ namespace InttVertexUtil {
     return accumulate( input_vector.begin(), input_vector.end(), 0.0 ) / double(input_vector.size());
   }
   
-  std::vector<float> sigmaEff_avg (std::vector<float> v, float threshold)
+  std::vector<float> sigmaEff_avg (const std::vector<float>& v, float threshold)
   {
     
     std::vector<float> sigmaEff_vec = sigmaEff(v,threshold);
