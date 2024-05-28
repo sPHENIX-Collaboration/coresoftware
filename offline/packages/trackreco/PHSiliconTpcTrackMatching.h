@@ -16,6 +16,8 @@ class TrackSeed;
 class TrkrClusterContainer;
 class TF1;
 class TrkrClusterCrossingAssoc;
+class TFile;
+class TNtuple;
 
 class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 {
@@ -70,6 +72,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   double getBunchCrossing(unsigned int trid, double z_mismatch);
   double getMatchingInflationFactor(double tpc_pt);
 
+  TFile *_file = nullptr;
+  TNtuple *_tree = nullptr;
+
   // default values, can be replaced from the macro
   double _phi_search_win = 0.01;
   double _eta_search_win = 0.004;
@@ -91,7 +96,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   TrkrClusterContainer *_cluster_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
-
+  int m_event = 0;
   std::map<unsigned int, double> _z_mismatch_map;
 
   //  double _collision_rate = 50e3;  // input rate for phi correction
