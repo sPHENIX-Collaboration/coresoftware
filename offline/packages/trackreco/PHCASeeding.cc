@@ -690,7 +690,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
       // bool no_next_link = true;
       /* for (auto testlink = matched_links.first; testlink != matched_links.second; ++testlink) */
     for (const auto& link : bilinks[trackHead_layer]) {
-      if (link.first != trackHead) continue;
+      if (link.first != trackHead) { continue; }
       // It appears that it is just faster to traverse the lists then it is to use a binary-sorted search
       // In any case, if we use this cord in the future, be sure to sort the bilinks before using
     /* auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink()); */
@@ -1096,15 +1096,14 @@ void PHCASeeding::FillTupWinGrowSeed(const PHCASeeding::keyList& seed, const PHC
 }
 #else
 void PHCASeeding::write_tuples() {};
-void PHCASeeding::fill_tuple(TNtuple*, float, TrkrDefs::cluskey, const Acts::Vector3&) const {};
-void PHCASeeding::fill_tuple_with_seed(TNtuple*, const PHCASeeding::keyList&, const PHCASeeding::PositionMap&) const {};
+void PHCASeeding::fill_tuple(TNtuple* /**/, float /**/, TrkrDefs::cluskey /**/, const Acts::Vector3& /**/) const {};
+void PHCASeeding::fill_tuple_with_seed(TNtuple* /**/, const PHCASeeding::keyList& /**/, const PHCASeeding::PositionMap& /**/) const {};
 void PHCASeeding::process_tupout_count() {};
-// These functions are used when compiling for QA tuples
-void PHCASeeding::FillTupWinLink(bgi::rtree<PHCASeeding::pointKey,bgi::quadratic<16>>&, const PHCASeeding::coordKey&, const PHCASeeding::PositionMap&) const {};
-void PHCASeeding::FillTupWinCosAngle(const TrkrDefs::cluskey, const TrkrDefs::cluskey, const TrkrDefs::cluskey, const PHCASeeding::PositionMap&, double, bool) const {};
-void PHCASeeding::FillTupWinGrowSeed(const PHCASeeding::keyList&, const PHCASeeding::keyLink&, const PHCASeeding::PositionMap&) const {};
-
+void PHCASeeding::FillTupWinLink(bgi::rtree<PHCASeeding::pointKey,bgi::quadratic<16>>&/**/, const PHCASeeding::coordKey&/**/, const PHCASeeding::PositionMap&/**/) const {};
+void PHCASeeding::FillTupWinCosAngle(const TrkrDefs::cluskey/**/, const TrkrDefs::cluskey/**/, const TrkrDefs::cluskey/**/, const PHCASeeding::PositionMap&/**/, double/**/, bool/**/) const {};
+void PHCASeeding::FillTupWinGrowSeed(const PHCASeeding::keyList&/**/, const PHCASeeding::keyLink&/**/, const PHCASeeding::PositionMap&/**/) const {};
 #endif // defined _PHCASEEDING_CLUSTERLOG_TUPOUT_
+
 
     // ---OLD CODE 1: SKIP_LAYERS---
   //  trackSeedKeyLists = tempSeedKeyLists;
