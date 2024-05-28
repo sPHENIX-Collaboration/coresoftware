@@ -47,6 +47,13 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   {
     public:
 
+    //! verified flag
+    /**
+     * the flag is set to true as soon as a non-trivial match is found between FEE_BCO and GTM_BCO
+     * it shows that the chosen reference are correct
+     */
+    bool m_verified = false;
+
     //! first gtm bco (40 bits)
     /** it is needed to be able to convert gtm bco in a predicted fee bco */
     bool m_has_gtm_bco_first = false;
@@ -74,6 +81,12 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   //! map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, bco_matching_information_t>;
   bco_matching_information_map_t m_bco_matching_information_map;
+
+  // keep track of total number of waveforms
+  uint64_t m_waveform_count_total = 0;
+
+  // keep track of dropped waveforms
+  uint64_t m_waveform_count_dropped = 0;
 
 };
 

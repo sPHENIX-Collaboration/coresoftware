@@ -43,7 +43,10 @@ namespace
         {
           o << ", ";
         }
-        if( is_hex ) o << "0x";
+        if( is_hex )
+	{
+	  o << "0x";
+	}
         o << value;
         first = false;
       }
@@ -61,8 +64,13 @@ namespace
   static constexpr int m_min_req_samples = 5;
 
   // define limit for matching two fee_bco
-  static constexpr unsigned int max_fee_bco_diff = 10;
-  static constexpr unsigned int max_gtm_bco_diff = 100;
+  static constexpr unsigned int max_fee_bco_diff = 50;
+
+  // define limit for matching fee_bco to fee_bco_predicted
+  static constexpr unsigned int max_gtm_bco_diff = 50;
+
+  // define limit above which one need to re-synchronize fee_bco and fee_bco_predicted
+  static constexpr unsigned int max_gtm_bco_diff_resync = 10;
 
   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
   static constexpr unsigned int max_matching_data_size = 50;
@@ -89,11 +97,11 @@ unsigned int SingleMicromegasPoolInput::bco_matching_information_t::get_predicte
   // get lvl1 bco difference with proper rollover accounting
   uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
     (gtm_bco - m_gtm_bco_first):
-    (gtm_bco + (1ULL<<40) - m_gtm_bco_first);
+    (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
 
   // convert to fee bco, and truncate to 20 bits
   uint64_t fee_bco_predicted = m_fee_bco_first + multiplier*(gtm_bco_difference);
-  return (unsigned int)(fee_bco_predicted & 0xFFFFF);
+  return (unsigned int)(fee_bco_predicted & 0xFFFFFU);
 }
 
 //______________________________________________________________
@@ -107,6 +115,15 @@ SingleMicromegasPoolInput::SingleMicromegasPoolInput(const std::string& name)
 //______________________________________________________________
 SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
 {
+
+  if( Verbosity() )
+  {
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_total: " << m_waveform_count_total << std::endl;
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped: " << m_waveform_count_dropped << std::endl;
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio: " << double(m_waveform_count_dropped)/m_waveform_count_total << std::endl;
+  }
+
+
   delete[] plist;
 }
 
@@ -221,6 +238,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
       // loop over waveforms
       const int nwf = packet->iValue(0, "NR_WF");
+      m_waveform_count_total += nwf;
 
       if (Verbosity())
       {
@@ -343,6 +361,26 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
             // remove bco from running list
             bco_matching_information.m_gtm_bco_list.erase(iter);
+
+            /*
+             * if matching information is not verified, and the found match is not trivial (0),
+             * change verified flag to true
+             */
+            if( !bco_matching_information.m_verified && get_bco_diff( fee_bco, bco_matching_information.m_fee_bco_first ) > max_gtm_bco_diff )
+            {
+              bco_matching_information.m_verified = true;
+            }
+
+            // if fee_bco_predicted have drifted too much from fee_bco, reset the reference
+            if( get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), fee_bco ) > max_gtm_bco_diff_resync )
+            {
+              for( auto&& [unused, local]:m_bco_matching_information_map )
+              {
+                local.m_fee_bco_first = fee_bco;
+                local.m_gtm_bco_first = gtm_bco;
+              }
+            }
+
           }
           else
           {
@@ -353,6 +391,19 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
                 << " fee_bco: 0x" << std::hex << fee_bco << std::dec
                 << " gtm_bco: none"
                 << std::endl;
+            }
+
+            // increment count
+            ++m_waveform_count_dropped;
+
+            /*
+             * if no match is found, and matching_information has not been verified,
+             * try using this BCO as a reference instead
+             */
+            if( !bco_matching_information.m_verified && fee_bco > bco_matching_information.m_fee_bco_first )
+            {
+              bco_matching_information.m_has_fee_bco_first = true;
+              bco_matching_information.m_fee_bco_first = fee_bco;
             }
 
             // skip the waverform

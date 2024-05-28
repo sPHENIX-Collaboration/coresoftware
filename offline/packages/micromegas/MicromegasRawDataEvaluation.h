@@ -76,6 +76,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
     /// fee bco
     unsigned int fee_bco = 0;
 
+    /// fee bco predicted (from gtm)
+    unsigned int fee_bco_predicted = 0;
+
     /// checksum and checksum error
     unsigned int checksum = 0;
     unsigned int checksum_error = 0;
@@ -119,6 +122,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
 
     /// fee bco
     unsigned int fee_bco = 0;
+
+    /// fee bco predicted (from gtm)
+    unsigned int fee_bco_predicted = 0;
 
     /// checksum and checksum error
     unsigned int checksum = 0;
@@ -253,6 +259,13 @@ class MicromegasRawDataEvaluation : public SubsysReco
   {
     public:
 
+    //! verified flag
+    /**
+     * the flag is set to true as soon as a non-trivial match is found between FEE_BCO and GTM_BCO
+     * it shows that the chosen reference are correct
+     */
+    bool m_verified = false;
+
     //! first lvl1 bco (40 bits)
     bool m_has_gtm_bco_first = false;
     uint64_t m_gtm_bco_first = 0;
@@ -283,6 +296,13 @@ class MicromegasRawDataEvaluation : public SubsysReco
   /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t, unsigned int>;
   bco_map_t m_bco_map;
+
+  // keep track of total number of waveforms
+  uint64_t m_waveform_count_total = 0;
+
+  // keep track of dropped waveforms
+  uint64_t m_waveform_count_dropped = 0;
+
 };
 
 #endif

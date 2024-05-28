@@ -66,8 +66,8 @@ class CaloPacketv1 : public CaloPacket
   int iValue(const int i, const std::string &what) const override;
   int iValue(const int channel, const int sample) const override;
   void dump(std::ostream &os = std::cout) const override;
-  void dump93(std::ostream &os = std::cout) const;
-  void dump172(std::ostream &os = std::cout) const;
+  void dump_iddigitizer_31s(std::ostream &os = std::cout) const;
+  void dump_iddigitizer_12s(std::ostream &os = std::cout) const;
 
  protected:
   int PacketEvtSequence{0};

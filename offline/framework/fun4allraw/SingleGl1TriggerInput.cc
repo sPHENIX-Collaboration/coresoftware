@@ -3,7 +3,7 @@
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/Gl1Packetv1.h>
+#include <ffarawobjects/Gl1Packetv2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -87,7 +87,7 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     }
 
     // by default use previous bco clock for gtm bco
-    Gl1Packet *newhit = new Gl1Packetv1();
+    Gl1Packet *newhit = new Gl1Packetv2();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     newhit->setBCO(packet->lValue(0, "BCO"));
     newhit->setHitFormat(packet->getHitFormat());
@@ -97,13 +97,20 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
     newhit->setTriggerInput(packet->lValue(0, "TriggerInput"));
     newhit->setTriggerVector(packet->lValue(0, "TriggerVector"));
-  for (int i = 0; i< 64; i++)
-  {
-    for (int j = 0; j<3; j++)
+    newhit->setGTMBusyVector(packet->lValue(0, "GTMBusyVector"));
+    for (int i = 0; i < 64; i++)
     {
-      newhit->setScaler(i,j,packet->lValue(i,j));
+      for (int j = 0; j < 3; j++)
+      {
+        newhit->setScaler(i, j, packet->lValue(i, j));
+      }
     }
-  }
+    for (int i = 0; i < 16; i++)
+    {
+      newhit->setGl1pScaler(i, 0, packet->lValue(i, "GL1PRAW"));
+      newhit->setGl1pScaler(i, 1, packet->lValue(i, "GL1PLIVE"));
+      newhit->setGl1pScaler(i, 2, packet->lValue(i, "GL1PSCALED"));
+    }
     if (Verbosity() > 2)
     {
       std::cout << PHWHERE << " Packet: " << packet->getIdentifier()
@@ -230,7 +237,7 @@ void SingleGl1TriggerInput::CreateDSTNode(PHCompositeNode *topNode)
   OfflinePacket *gl1hitcont = findNode::getClass<OfflinePacket>(detNode, "GL1Packet");
   if (!gl1hitcont)
   {
-    gl1hitcont = new Gl1Packetv1();
+    gl1hitcont = new Gl1Packetv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, "GL1Packet", "PHObject");
     detNode->addNode(newNode);
   }
