@@ -14,7 +14,7 @@ AM_CXXFLAGS=`geant4-config --cflags`
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -DEVTGEN_HEPMC3
 
 libg4decayer_la_LDFLAGS = \

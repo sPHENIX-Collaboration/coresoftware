@@ -1467,6 +1467,10 @@ float TrkrNtuplizer::calc_dedx(TrackSeed* tpcseed)
   {
     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
     TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+    if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId)
+      {
+	continue;
+      }
     float adc = cluster->getAdc();
     PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();

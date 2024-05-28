@@ -25,6 +25,7 @@ pkginclude_HEADERS = \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
   SingleHcalTriggerInput.h \
+  SingleLL1TriggerInput.h \
   SingleMbdTriggerInput.h \
   SingleInttPoolInput.h \
   SingleMicromegasPoolInput.h \
@@ -78,6 +79,7 @@ libfun4allraw_la_SOURCES = \
   SingleGl1TriggerInput.cc \
   SingleHcalTriggerInput.cc \
   SingleInttPoolInput.cc \
+  SingleLL1TriggerInput.cc \
   SingleMbdTriggerInput.cc \
   SingleMicromegasPoolInput.cc \
   SingleMvtxPoolInput.cc \

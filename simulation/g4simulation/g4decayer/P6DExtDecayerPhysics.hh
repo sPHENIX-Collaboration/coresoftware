@@ -49,7 +49,7 @@ class P6DExtDecayerPhysics : public G4VPhysicsConstructor
 {
  public:
   P6DExtDecayerPhysics(const G4String& name = "ExtDecayer");
-  virtual ~P6DExtDecayerPhysics();
+  ~P6DExtDecayerPhysics() override = default;
 
   void SetForceDecay(EDecayType force_decay_type)
   {
@@ -61,8 +61,8 @@ class P6DExtDecayerPhysics : public G4VPhysicsConstructor
  protected:
   // methods
   // construct particle and physics
-  virtual void ConstructParticle();
-  virtual void ConstructProcess();
+  void ConstructParticle() override {return;}
+  void ConstructProcess() override;
 
  private:
   /// Not implemented

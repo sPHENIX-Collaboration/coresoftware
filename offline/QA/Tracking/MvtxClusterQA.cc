@@ -106,30 +106,9 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
-int MvtxClusterQA::EndRun(const int runnumber)
+int MvtxClusterQA::EndRun(const int /*runnumber*/)
 {
-  auto hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
-
-  TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nclusperrun")));
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  h_totalclusters->Fill(runnumber, m_totalClusters / m_event);
-
-  for (const auto &[layer, staves] : m_layerStaveMap)
-  {
-    for (int stave = 0; stave < staves; stave++)
-    {
-      for (int chip = 0; chip < 9; chip++)
-      {
-        TH2 *h = dynamic_cast<TH2 *>(hm->getHisto((boost::format("%snclusperchipperrun%i_%i_%i") % getHistoPrefix() % layer % stave % chip).str()));
-        if (h)
-        {
-          // NOLINTNEXTLINE(bugprone-integer-division)
-          h->Fill(runnumber, m_nclustersPerChip[layer][stave][chip] / m_event);
-        }
-      }
-    }
-  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
@@ -143,13 +122,7 @@ void MvtxClusterQA::createHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  {
-    auto h = new TH2F(std::string(getHistoPrefix() + "nclusperrun").c_str(),
-                      "MVTX Clusters per event per run number", m_runbins, m_beginRun, m_endRun, 1000, 0, 1000);
-    h->GetXaxis()->SetTitle("Run number");
-    h->GetYaxis()->SetTitle("Clusters per event");
-    hm->registerHisto(h);
-  }
+  
 
   for (const auto &[layer, nstave] : m_layerStaveMap)
   {
@@ -164,11 +137,6 @@ void MvtxClusterQA::createHistos()
         h->GetYaxis()->SetTitle("Local rphi [cm]");
         hm->registerHisto(h);
 
-        auto h2 = new TH2F((boost::format("%snclusperchipperrun%i_%i_%i") % getHistoPrefix() % layer % stave % chip).str().c_str(),
-                           "MVTX clusters per event per chip per run", m_runbins, m_beginRun, m_endRun, 100, 0, 100);
-        h2->GetXaxis()->SetTitle("Run number");
-        h2->GetYaxis()->SetTitle("Clusters per event");
-        hm->registerHisto(h2);
       }
     }
   }
