@@ -44,10 +44,8 @@
 #include <utility>  // for pair
 #include <vector>   // for vector
 
-#if defined(_PHCASEEDING_CLUSTERLOG_TUPOUT_)
 #include <TFile.h>
 #include <TNtuple.h>
-#endif
 
 class PHCompositeNode;
 class PHTimer;
@@ -149,7 +147,6 @@ class PHCASeeding : public PHTrackSeeding
  private:
   bool _save_clus_proc = false;
 
-#if defined(_PHCASEEDING_CLUSTERLOG_TUPOUT_)
   TFile* _f_clustering_process = nullptr;
   int      _tupout_count=-1;
   // Save the steps of the clustering
@@ -166,14 +163,15 @@ class PHCASeeding : public PHTrackSeeding
 
   TNtuple* _search_windows = nullptr; // This is really just a lazy way to store what search paramaters where used.
                                   // It would be equally valid in a TMap or map<string,float>
-
-  // functions used to fill tuples
+  // functions used to fill tuples -- only defined if _PHCASEEDING_CLUSTERLOG_TUPOUT_ is defined in preprocessor
+  void write_tuples();
+  void fill_tuple(TNtuple*, float, TrkrDefs::cluskey, const Acts::Vector3&) const;
+  void fill_tuple_with_seed(TNtuple*, const keyList&, const PositionMap&) const;
+  void process_tupout_count();
   void FillTupWinLink(bgi::rtree<pointKey,bgi::quadratic<16>>&, const coordKey&, const PositionMap&)const;
   void FillTupWinCosAngle(const TrkrDefs::cluskey, const TrkrDefs::cluskey, const TrkrDefs::cluskey, const PositionMap&, double cos_angle, bool isneg) const;
   void FillTupWinGrowSeed(const keyList& seed, const keyLink& link, const PositionMap& globalPositions) const;
-  void process_tupout_count();
-  void write_tuples();
-#endif
+  /* void fill_tuple_with_seed(TN */
 
 
   // have a comparator to search vector of sorted bilinks for links with starting
