@@ -974,7 +974,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             fx_hit[n_hit::nhitphibin] = (float) TpcDefs::getPad(hit_key);
             fx_hit[n_hit::nhittbin] = (float) TpcDefs::getTBin(hit_key);
             //std::cout<<"hit_key = "<< hit_key << " layer_local="<< layer_local <<  " TrkrNtuplizer:: fx_hit[n_hit::nhitphibin]="<<fx_hit[n_hit::nhitphibin] << " (float) TpcDefs::getPad(hit_key)=" << (float) TpcDefs::getPad(hit_key) <<std::endl;
-            fx_hit[n_hit::nhitphi] = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
+            fx_hit[n_hit::nhitphi] = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin], fx_hit[n_hit::nhitzelem]);
 
             double zdriftlength = fx_hit[n_hit::nhittbin] * m_tGeometry->get_drift_velocity() * AdcClockPeriod;
             // convert z drift length to z position in the TPC
@@ -988,7 +988,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             }
             fx_hit[n_hit::nhitz] = clusz;
             fx_hit[n_hit::nhitr] = radius;
-            float phi_center = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
+            float phi_center = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin], fx_hit[n_hit::nhitzelem]);
             fx_hit[n_hit::nhitx] = radius * cos(phi_center);
             fx_hit[n_hit::nhity] = radius * sin(phi_center);
           }
@@ -1468,6 +1468,9 @@ float TrkrNtuplizer::calc_dedx(TrackSeed* tpcseed)
   {
     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
     TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+    if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId){
+	    continue;
+    }
     float adc = cluster->getAdc();
     PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();

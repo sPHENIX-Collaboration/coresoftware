@@ -315,9 +315,9 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       fX[n++] = sam;
       m_ntup->Fill(fX);
     }
-    if(layer>54){
-      std::cout<< "TpcCombinedRawDataUnpacker::process_event: layer = "<< layer << std::endl;
-    }
+    //if(layer>54){
+    //  std::cout<< "TpcCombinedRawDataUnpacker::process_event: layer = "<< layer << std::endl;
+    //}
     hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 

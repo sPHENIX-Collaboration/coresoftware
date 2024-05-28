@@ -532,9 +532,16 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   const double philim_low = check_phi(side, philim_low_calc, radius);
   //std::cout << "philim_high = check_phi" << std::endl;
   const double philim_high = check_phi(side, philim_high_calc, radius);
+  //philim_high = -1.32067;//eshulga
+  //std::cout<<"PHG4TpcPadPlaneReadout::populate_zigzag_phibins phibin_low philim_high="<< philim_high << std::endl;
+  //for (int p =0; p<100;p++){
+  //  LayerGeom->get_phibin(-M_PI+p*M_PI/100,side);
+  //}
 
   int phibin_low = LayerGeom->get_phibin(philim_high,side);
+  //std::cout<<"PHG4TpcPadPlaneReadout::populate_zigzag_phibins phibin_high philim_low="<< philim_low << std::endl;
   int phibin_high = LayerGeom->get_phibin(philim_low,side);
+  //std::cout<<"PHG4TpcPadPlaneReadout::populate_zigzag_phibins npads " << std::endl;
   int npads = phibin_high - phibin_low;
 
   if (Verbosity() > 1000)

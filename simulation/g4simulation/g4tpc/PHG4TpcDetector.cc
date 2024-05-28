@@ -656,6 +656,7 @@ void PHG4TpcDetector::add_geometry_node()
         double sec_min_phi = sec_max_phi - 2 * M_PI / 12;
         sector_min_Phi[zside].push_back(sec_min_phi);
         sector_max_Phi[zside].push_back(sec_max_phi);
+        std::cout<< "sec_min_phi = " << sec_min_phi << " sec_max_phi = " << sec_max_phi << std::endl;
       }  // isector
     }
 
@@ -689,7 +690,6 @@ void PHG4TpcDetector::add_geometry_node()
                   << " NTBins " << NTBins << " tmin " << MinT << " tstep " << TBinWidth
                   << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << std::endl;
       }
-      std::cout << "PHG4TpcDetector::add_geometry_node layer = " << layer << std::endl;
 
       auto layerseggeo = new PHG4TpcCylinderGeom;
       layerseggeo->set_layer(layer);
