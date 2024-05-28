@@ -99,9 +99,9 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
 
   TH2 *h_totalclusters = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "stotal_clusters")));
   TH2 *h_clusterssector = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ncluspersector")));
-  TH2F *h_hitpositions = dynamic_cast<TH2F *>(hm->getHisto(Form("%shit_positions", getHistoPrefix().c_str())));
-  TH1F *h_hitzpositions_side0 = dynamic_cast<TH1F *>(hm->getHisto(Form("%shitz_positions_side0", getHistoPrefix().c_str())));
-  TH1F *h_hitzpositions_side1 = dynamic_cast<TH1F *>(hm->getHisto(Form("%shitz_positions_side1", getHistoPrefix().c_str())));
+  TH2F *h_hitpositions = dynamic_cast<TH2F *>(hm->getHisto(std::string(getHistoPrefix() +"hit_positions")));
+  TH1F *h_hitzpositions_side0 = dynamic_cast<TH1F *>(hm->getHisto(std::string(getHistoPrefix() +"hitz_positions_side0")));
+  TH1F *h_hitzpositions_side1 = dynamic_cast<TH1F *>(hm->getHisto(std::string(getHistoPrefix() +"hitz_positions_side1")));
 
   struct HistoList
   {
@@ -149,7 +149,7 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
   { if (h) { h->Fill(val); 
 } };
 
-TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
+TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets(TrkrDefs::TrkrId::tpcId);
  for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
       hitsetiter != all_hitsets.second;
       ++hitsetiter)
@@ -308,49 +308,49 @@ void TpcClusterQA::createHistos()
     }
     {
       auto h = new TH1F((boost::format("%sclusedge_%i") % getHistoPrefix() % region).str().c_str(),
-                        (boost::format("TPC hits on edge_%i") % region).str().c_str(), 30, 0, 30);
+                        (boost::format("TPC hits on edge region_%i") % region).str().c_str(), 30, 0, 30);
       h->GetXaxis()->SetTitle("Cluster edge");
       hm->registerHisto(h);
     }
     {
       auto h = new TH1F((boost::format("%sclusoverlap_%i") % getHistoPrefix() % region).str().c_str(),
-                        (boost::format("TPC clus overlap_%i") % region).str().c_str(), 30, 0, 30);
+                        (boost::format("TPC clus overlap region_%i") % region).str().c_str(), 30, 0, 30);
       h->GetXaxis()->SetTitle("Cluster overlap");
       hm->registerHisto(h);
     }
     {
       auto h = new TH1F((boost::format("%sclusxposition_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                          (boost::format("TPC cluster x position side 0_%i") % region).str().c_str(), 210*2, -105, 105);
+                          (boost::format("TPC cluster x position side 0 region_%i") % region).str().c_str(), 210*2, -105, 105);
         h->GetXaxis()->SetTitle("x (cm)");
         hm->registerHisto(h);
     }
     {
       auto h = new TH1F((boost::format("%sclusxposition_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                            (boost::format("TPC cluster x position side 1_%i") % region).str().c_str(), 210*2, -105, 105);
+                            (boost::format("TPC cluster x position side 1 region_%i") % region).str().c_str(), 210*2, -105, 105);
       h->GetXaxis()->SetTitle("x (cm)");
       hm->registerHisto(h);
     }
     {
       auto h = new TH1F((boost::format("%sclusyposition_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                            (boost::format("TPC cluster y position side 0_%i") % region).str().c_str(), 210*2, -105, 105);
+                            (boost::format("TPC cluster y position side 0 region_%i") % region).str().c_str(), 210*2, -105, 105);
       h->GetXaxis()->SetTitle("y (cm)");
       hm->registerHisto(h);
     }
     {
       auto h = new TH1F((boost::format("%sclusyposition_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                              (boost::format("TPC cluster y position side 1_%i") % region).str().c_str(), 210*2, -105, 105);
+                              (boost::format("TPC cluster y position side 1 region_%i") % region).str().c_str(), 210*2, -105, 105);
       h->GetXaxis()->SetTitle("y (cm)");
       hm->registerHisto(h);
     }
     {
       auto h = new TH1F((boost::format("%scluszposition_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                            (boost::format("TPC cluster z position side 0_%i") % region).str().c_str(), 210*2, -105, 105);
+                            (boost::format("TPC cluster z position side 0 region_%i") % region).str().c_str(), 210*2, -105, 105);
       h->GetXaxis()->SetTitle("z (cm)");
       hm->registerHisto(h);
     }
     {
       auto h = new TH1F((boost::format("%scluszposition_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                              (boost::format("TPC cluster z position side 1_%i") % region).str().c_str(), 210*2, -105, 105);
+                              (boost::format("TPC cluster z position side 1 region_%i") % region).str().c_str(), 210*2, -105, 105);
       h->GetXaxis()->SetTitle("z (cm)");
       hm->registerHisto(h);
     }
@@ -366,20 +366,20 @@ void TpcClusterQA::createHistos()
   
     
   {
-    auto h = new TH2F(Form("%shit_positions", getHistoPrefix().c_str()),
+    auto h = new TH2F(std::string(getHistoPrefix()+"hit_positions").c_str(),
                                            "Histogram of hit x y positions", 160, 0, 80, 160, 0, 80);
     h->GetXaxis()->SetTitle("x (cm)");
     h->GetYaxis()->SetTitle("y (cm)");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1F(Form("%shitz_positions_side0", getHistoPrefix().c_str()),
+    auto h = new TH1F(std::string(getHistoPrefix()+"hitz_positions_side0").c_str(),
                                              "Histogram of hit z positions side=0", 105*4, -105, 105);
     h->GetXaxis()->SetTitle("z (cm)");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1F(Form("%shitz_positions_side1", getHistoPrefix().c_str()),
+    auto h = new TH1F(std::string(getHistoPrefix()+"hitz_positions_side1").c_str(),
                                              "Histogram of hit z positions side=1", 105*4, -105, 105);
     h->GetXaxis()->SetTitle("z (cm)");
     hm->registerHisto(h);
