@@ -18,7 +18,7 @@ class InttXYVertexFinder : public SubsysReco
 
  public:
 
-  InttXYVertexFinder(const std::string &name = "InttXYVertexFinder");
+  explicit InttXYVertexFinder(const std::string &name = "InttXYVertexFinder");
 
   ~InttXYVertexFinder() override;
 

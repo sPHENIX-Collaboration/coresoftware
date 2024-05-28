@@ -47,7 +47,7 @@ bool GetPhiCheckTag(
     int inner_3_check = 0;
     int inner_4_check = 0;
     //for (unsigned int inner_i = 0; inner_i < temp_sPH_inner_nocolumn_vec.size(); inner_i++) 
-    for (auto& clu : temp_sPH_inner_nocolumn_vec) 
+    for (const auto& clu : temp_sPH_inner_nocolumn_vec) 
     {
         if (clu.phi >=   0 && clu.phi <  90) {inner_1_check = 1; }
         if (clu.phi >=  90 && clu.phi < 180) {inner_2_check = 1; }
@@ -62,7 +62,7 @@ bool GetPhiCheckTag(
     int outer_3_check = 0;
     int outer_4_check = 0;
     //for (unsigned int outer_i = 0; outer_i < temp_sPH_outer_nocolumn_vec.size(); outer_i++) 
-    for (auto& clu : temp_sPH_outer_nocolumn_vec) 
+    for (const auto& clu : temp_sPH_outer_nocolumn_vec) 
     {
         if (clu.phi >=   0 && clu.phi <  90) { outer_1_check = 1; }
         if (clu.phi >=  90 && clu.phi < 180) { outer_2_check = 1; }

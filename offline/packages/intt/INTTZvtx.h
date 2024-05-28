@@ -247,14 +247,14 @@ class INTTZvtx
         vector<double>         N_group_info; // QA,  note : the information of groups remaining in the histogram after the strong background suppression
         vector<double>         N_group_info_detail; // good_vtx note : detail
 
-        double                 final_zvtx;
-        double                 tight_offset_width; // tight zvertex QA & draw
-        double                 tight_offset_peak;  // tight zvertex QA & draw
-        double                 loose_offset_peak;  // z-vertex!
-        double                 loose_offset_peakE; // z-vertex error!
-        bool                   good_zvtx_tag;
-        double                 good_zvtx_tag_int;
-        int                    good_comb_id; // used for tracklet reco
+        double                 final_zvtx{0};
+        double                 tight_offset_width{0}; // tight zvertex QA & draw
+        double                 tight_offset_peak{0};  // tight zvertex QA & draw
+        double                 loose_offset_peak{0};  // z-vertex!
+        double                 loose_offset_peakE{0}; // z-vertex error!
+        bool                   good_zvtx_tag{0};
+        double                 good_zvtx_tag_int{0};
+        int                    good_comb_id{0}; // used for tracklet reco
         
 
         TGraphErrors* z_range_gr_draw {nullptr}; // draw processEvt
