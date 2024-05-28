@@ -12,6 +12,7 @@ class Gl1Packet : public OfflinePacketv1
   ~Gl1Packet() override = default;
   using OfflinePacket::FillFrom;
   virtual void setScaler(int /*iscal*/, int /*index*/, uint64_t /*lval*/) { return; }
+  virtual void setGl1pScaler(int /*iscal*/, int /*index*/, uint64_t /*lval*/) { return; }
   virtual void setPacketNumber(const unsigned int /* i */) { return; }
   virtual unsigned int getPacketNumber() const { return 0; }
   virtual void setBunchNumber(const uint64_t /*i*/) { return; }
@@ -20,6 +21,8 @@ class Gl1Packet : public OfflinePacketv1
   virtual uint64_t getTriggerInput() const { return 0; }
   virtual void setTriggerVector(const uint64_t /*i*/) { return; }
   virtual uint64_t getTriggerVector() const { return 0; }
+  virtual void setGTMBusyVector(const uint64_t /*i*/) { return; }
+  virtual uint64_t getGTMBusyVector() const { return 0; }
 
   virtual void FillFrom(const Gl1Packet * /*pkt*/) { return; }
 
