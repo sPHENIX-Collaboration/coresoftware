@@ -29,8 +29,8 @@ class CaloTowerBuilder : public SubsysReco
 
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  int process_rawdata(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
-  int process_offline(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  int process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  
 
   void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {

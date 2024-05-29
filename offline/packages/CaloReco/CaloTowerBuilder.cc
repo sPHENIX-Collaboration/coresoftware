@@ -32,6 +32,7 @@
 #include <TSystem.h>
 
 #include <climits>
+#include <variant>
 #include <iostream>  // for operator<<, endl, basic...
 #include <memory>    // for allocator_traits<>::val...
 #include <vector>    // for vector
@@ -183,57 +184,76 @@ int CaloTowerBuilder::process_sim()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std::vector<float>> &waveforms)
+
+
+int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &waveforms)
 {
-  // if we are going from prdf
-  Event *_event = findNode::getClass<Event>(topNode, "PRDF");
-  if (_event == nullptr)
+  std::variant<CaloPacketContainer*, Event*> event;
+  if (m_UseOfflinePacketFlag)
   {
-    std::cout << PHWHERE << " Event not found" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    CaloPacketContainer *hcalcont = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(m_dettype)->second);
+    if (!hcalcont)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+    event = hcalcont;
   }
-  if (_event->getEvtType() != DATAEVENT)  /// special events where we do not read out the calorimeters
+  else
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    Event *_event = findNode::getClass<Event>(topNode, "PRDF");
+    if (_event == nullptr)
+    {
+      std::cout << PHWHERE << " Event not found" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    if (_event->getEvtType() != DATAEVENT)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    event = _event;
   }
-  for (int pid = m_packet_low; pid <= m_packet_high; pid++)
+  //since the function call on Packet and CaloPacket is the same, maybe we can use lambda?
+  auto process_packet = [&](auto *packet, int pid)
   {
-    Packet *packet = _event->getPacket(pid);
     if (packet)
     {
-      unsigned int adc_skip_mask = 0;
       int nchannels = packet->iValue(0, "CHANNELS");
+      unsigned int adc_skip_mask = 0;
+
       if (m_dettype == CaloTowerDefs::CEMC)
       {
         adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
       }
 
       if (m_dettype == CaloTowerDefs::ZDC)
-       {
-         if (nchannels < m_nchannels)
-         {
-           return Fun4AllReturnCodes::ABORTEVENT;
-          }
-          nchannels = m_nchannels;
-       }
+      {
+        if (nchannels < m_nchannels)
+        {
+          return Fun4AllReturnCodes::ABORTEVENT;
+        }
+        nchannels = m_nchannels;
+      }
       if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
       {
         return Fun4AllReturnCodes::ABORTEVENT;
       }
+      // int sector = 0;
 
       for (int channel = 0; channel < nchannels; channel++)
       {
+        // mask empty channels
+
         if (m_dettype == CaloTowerDefs::SEPD)
         {
           int sector = ((channel + 1) / 32);
           int emptych = -999;
-          if((sector == 0) && (pid==9001))
+          if ((sector == 0) && (pid == 9001))
           {
-             emptych = 1;
+            emptych = 1;
           }
           else
           {
-             emptych = 14 + 32 * sector;
+            emptych = 14 + 32 * sector;
           }
           if (channel == emptych)
           {
@@ -281,199 +301,28 @@ int CaloTowerBuilder::process_rawdata(PHCompositeNode *topNode, std::vector<std:
         waveforms.push_back(waveform);
         waveform.clear();
       }
-      // if nchannels < set number and it is the EMCAL but with the skip already accounted for, we need to skip this part. otherwise it assumes the last board was taken out
 
       if (nchannels < m_nchannels && !(m_dettype == CaloTowerDefs::CEMC && adc_skip_mask < 4))
       {
         for (int channel = 0; channel < m_nchannels - nchannels; channel++)
         {
-            if (m_dettype == CaloTowerDefs::SEPD)
-            {
-              int sector = ((channel + 1) / 32);
-              int emptych = -999;
-              if((sector == 0) && (pid==9001))
-              {
-                 emptych = 1;
-              }
-              else
-              {
-                 emptych = 14 + 32 * sector;
-              }
-              if (channel == emptych)
-              {
-                continue;
-              }
-            }
-
-
-          std::vector<float> waveform;
-          waveform.reserve(2);
-          for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-          {
-            waveform.push_back(0);
-          }
-          waveforms.push_back(waveform);
-          waveform.clear();
-        }
-      }
-
-      delete packet;
-    }
-    else  // if the packet is missing treat constitutent channels as zero suppressed
-    {
-      for (int channel = 0; channel < m_nchannels; channel++)
-      {
           if (m_dettype == CaloTowerDefs::SEPD)
           {
             int sector = ((channel + 1) / 32);
             int emptych = -999;
-            if((sector == 0) && (pid==9001))
+            if ((sector == 0) && (pid == 9001))
             {
-               emptych = 1;
+              emptych = 1;
             }
             else
             {
-               emptych = 14 + 32 * sector;
+              emptych = 14 + 32 * sector;
             }
             if (channel == emptych)
             {
               continue;
             }
           }
-
-        std::vector<float> waveform;
-        waveform.reserve(2);
-        for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-        {
-          waveform.push_back(0);
-        }
-        waveforms.push_back(waveform);
-        waveform.clear();
-      }
-    }
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std::vector<float>> &waveforms)
-{
-  // if we are going from prdf
-  CaloPacketContainer *hcalcont = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(m_dettype)->second);
-  if (!hcalcont)
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-  for (int pid = m_packet_low; pid <= m_packet_high; pid++)
-  {
-    CaloPacket *packet = hcalcont->getPacketbyId(pid);
-    if (packet)
-    {
-      int nchannels = packet->iValue(0, "CHANNELS");
-      unsigned int adc_skip_mask = 0;
-
-      if (m_dettype == CaloTowerDefs::CEMC)
-      {
-        adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
-      }
-
-      if (m_dettype == CaloTowerDefs::ZDC)
-      {
-        if (nchannels < m_nchannels)
-        {
-          return Fun4AllReturnCodes::ABORTEVENT;
-        }
-         nchannels = m_nchannels;
-      }
-      if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
-      {
-        return Fun4AllReturnCodes::ABORTEVENT;
-      }
-      // int sector = 0;
-
-      for (int channel = 0; channel < nchannels; channel++)
-      {
-        // mask empty channels
-
-          if (m_dettype == CaloTowerDefs::SEPD)
-          {
-            int sector = ((channel + 1) / 32);
-            int emptych = -999;
-            if((sector == 0) && (pid==9001))
-            {
-               emptych = 1;
-            }
-            else
-            {
-               emptych = 14 + 32 * sector;
-            }
-            if (channel == emptych)
-            {
-              continue;
-            }
-          }
-
-        if (m_dettype == CaloTowerDefs::CEMC)
-        {
-          if (channel % 64 == 0)
-          {
-            unsigned int adcboard = (unsigned int) channel / 64;
-            if ((adc_skip_mask >> adcboard) & 0x1U)
-            {
-              for (int iskip = 0; iskip < 64; iskip++)
-              {
-                std::vector<float> waveform;
-                waveform.reserve(m_nsamples);
-
-                for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-                {
-                  waveform.push_back(0);
-                }
-                waveforms.push_back(waveform);
-                waveform.clear();
-              }
-            }
-          }
-        }
-
-        std::vector<float> waveform;
-        waveform.reserve(m_nsamples);
-        if (packet->iValue(channel, "SUPPRESSED"))
-        {
-          waveform.push_back(packet->iValue(channel, "PRE"));
-          waveform.push_back(packet->iValue(channel, "POST"));
-        }
-        else
-        {
-          for (int samp = 0; samp < m_nsamples; samp++)
-          {
-            waveform.push_back(packet->iValue(samp, channel));
-          }
-        }
-        waveforms.push_back(waveform);
-        waveform.clear();
-      }
-
-      if (nchannels < m_nchannels && !(m_dettype == CaloTowerDefs::CEMC && adc_skip_mask < 4))
-      {
-        for (int channel = 0; channel < m_nchannels - nchannels; channel++)
-        {
-            if (m_dettype == CaloTowerDefs::SEPD)
-            {
-              int sector = ((channel + 1) / 32);
-              int emptych = -999;
-              if((sector == 0) && (pid==9001))
-              {
-                 emptych = 1;
-              }
-              else
-              {
-                 emptych = 14 + 32 * sector;
-              }
-              if (channel == emptych)
-              {
-                continue;
-              }
-            }
 
           std::vector<float> waveform;
           waveform.reserve(m_nsamples);
@@ -491,23 +340,23 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
     {
       for (int channel = 0; channel < m_nchannels; channel++)
       {
-          if (m_dettype == CaloTowerDefs::SEPD)
+        if (m_dettype == CaloTowerDefs::SEPD)
+        {
+          int sector = ((channel + 1) / 32);
+          int emptych = -999;
+          if ((sector == 0) && (pid == 9001))
           {
-            int sector = ((channel + 1) / 32);
-            int emptych = -999;
-            if((sector == 0) && (pid==9001))
-            {
-               emptych = 1;
-            }
-            else
-            {
-               emptych = 14 + 32 * sector;
-            }
-            if (channel == emptych)
-            {
-              continue;
-            }
+            emptych = 1;
           }
+          else
+          {
+            emptych = 14 + 32 * sector;
+          }
+          if (channel == emptych)
+          {
+            continue;
+          }
+        }
 
         std::vector<float> waveform;
         waveform.reserve(2);
@@ -519,10 +368,33 @@ int CaloTowerBuilder::process_offline(PHCompositeNode *topNode, std::vector<std:
         waveform.clear();
       }
     }
+    return Fun4AllReturnCodes::EVENT_OK;
+  };
+
+  for (int pid = m_packet_low; pid <= m_packet_high; pid++)
+  {
+    if (auto hcalcont = std::get_if<CaloPacketContainer *>(&event))
+    {
+      CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
+      if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+      {
+        return Fun4AllReturnCodes::ABORTEVENT;
+      }
+    }
+    else if (auto _event = std::get_if<Event *>(&event))
+    {
+      Packet *packet = (*_event)->getPacket(pid);
+      if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+      {
+        return Fun4AllReturnCodes::ABORTEVENT;
+      }
+    }
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
+
 }
-//____________________________________________________________________________..
+  //____________________________________________________________________________..
 int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
 {
   if (!m_isdata)
@@ -530,19 +402,9 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     return process_sim();
   }
   std::vector<std::vector<float>> waveforms;
-  if (m_UseOfflinePacketFlag)
+  if(process_data(topNode, waveforms) == Fun4AllReturnCodes::ABORTEVENT)
   {
-    if (process_offline(topNode, waveforms) == Fun4AllReturnCodes::ABORTEVENT)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  }
-  else
-  {
-    if (process_rawdata(topNode, waveforms) == Fun4AllReturnCodes::ABORTEVENT)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
   // waveform vector is filled here, now fill our output. methods from the base class make sure
   // we only fill what the chosen container version supports
