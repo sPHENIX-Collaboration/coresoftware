@@ -230,14 +230,12 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
         if (nchannels < m_nchannels)
         {
           delete packet;
-          return Fun4AllReturnCodes::ABORTEVENT;
         }
         nchannels = m_nchannels;
       }
       if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
       {
         delete packet;
-        return Fun4AllReturnCodes::ABORTEVENT;
       }
       // int sector = 0;
 
@@ -245,23 +243,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
       {
         // mask empty channels
 
-        if (m_dettype == CaloTowerDefs::SEPD)
-        {
-          int sector = ((channel + 1) / 32);
-          int emptych = -999;
-          if ((sector == 0) && (pid == 9001))
-          {
-            emptych = 1;
-          }
-          else
-          {
-            emptych = 14 + 32 * sector;
-          }
-          if (channel == emptych)
-          {
-            continue;
-          }
-        }
+        if (skipChannel(channel, pid)) continue;
 
         if (m_dettype == CaloTowerDefs::CEMC)
         {
@@ -308,23 +290,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
       {
         for (int channel = 0; channel < m_nchannels - nchannels; channel++)
         {
-          if (m_dettype == CaloTowerDefs::SEPD)
-          {
-            int sector = ((channel + 1) / 32);
-            int emptych = -999;
-            if ((sector == 0) && (pid == 9001))
-            {
-              emptych = 1;
-            }
-            else
-            {
-              emptych = 14 + 32 * sector;
-            }
-            if (channel == emptych)
-            {
-              continue;
-            }
-          }
+           if (skipChannel(channel, pid)) continue;
 
           std::vector<float> waveform;
           waveform.reserve(m_nsamples);
@@ -342,23 +308,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
     {
       for (int channel = 0; channel < m_nchannels; channel++)
       {
-        if (m_dettype == CaloTowerDefs::SEPD)
-        {
-          int sector = ((channel + 1) / 32);
-          int emptych = -999;
-          if ((sector == 0) && (pid == 9001))
-          {
-            emptych = 1;
-          }
-          else
-          {
-            emptych = 14 + 32 * sector;
-          }
-          if (channel == emptych)
-          {
-            continue;
-          }
-        }
+        if (skipChannel(channel, pid)) continue;
 
         std::vector<float> waveform;
         waveform.reserve(2);
@@ -372,6 +322,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
     }
     return Fun4AllReturnCodes::EVENT_OK;
   };
+
 
   for (int pid = m_packet_low; pid <= m_packet_high; pid++)
   {
@@ -388,8 +339,11 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
       Packet *packet = (*_event)->getPacket(pid);
       if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
       {
+        //I think it is safe to delete a nullptr...
+        delete packet;
         return Fun4AllReturnCodes::ABORTEVENT;
       }
+      delete packet;
     }
   }
 
@@ -433,6 +387,28 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   waveforms.clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+bool CaloTowerBuilder::skipChannel(int ich, int pid)
+{
+  if (m_dettype == CaloTowerDefs::SEPD)
+  {
+    int sector = ((ich + 1) / 32);
+    int emptych = -999;
+    if ((sector == 0) && (pid == 9001))
+    {
+      emptych = 1;
+    }
+    else
+    {
+      emptych = 14 + 32 * sector;
+    }
+    if (ich == emptych)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)

@@ -79,6 +79,7 @@ class CaloTowerBuilder : public SubsysReco
 
  private:
   int process_sim();
+  bool skipChannel(int ich, int pid);
   CaloWaveformProcessing *WaveformProcessing{nullptr};
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
