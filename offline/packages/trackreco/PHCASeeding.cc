@@ -685,10 +685,19 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
     std::vector<keyList> newtempSeedKeyLists;
     for (auto& seed : tempSeedKeyLists)
     {
+      // don't try to grow seeds past the maximum
+      if (seed.size() >= _max_clusters_per_seed) {
+        trackSeedKeyLists.push_back(seed);
+        fill_tuple_with_seed(_tupclus_grown_seeds, seed, globalPositions);
+        continue;
+      }
+
       TrkrDefs::cluskey trackHead = seed.back();
       unsigned int trackHead_layer = TrkrDefs::getLayer(trackHead) - (_nlayers_intt + _nlayers_maps);
       // bool no_next_link = true;
       /* for (auto testlink = matched_links.first; testlink != matched_links.second; ++testlink) */
+
+    bool did_seed_grow = false;
     for (const auto& link : bilinks[trackHead_layer]) {
       if (link.first != trackHead) { continue; }
       // It appears that it is just faster to traverse the lists then it is to use a binary-sorted search
@@ -735,16 +744,16 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
         float d2phidr2 = dphi12 / (dr_12 * dr_12) - dphi23 / (dr_23 * dr_23);
         float new_dphi = std::fmod(atan2(yt, xt) - atan2(y1, x1), M_PI);
         float new_d2phidr2 = new_dphi / (new_dr * new_dr) - dphi12 / (dr_12 * dr_12);
-        if (seed.size() < 6 && fabs(d2phidr2 - new_d2phidr2) < _clusadd_delta_dphidr2_window)
+        if (fabs(d2phidr2 - new_d2phidr2) < _clusadd_delta_dphidr2_window)
         {
-          //    no_next_link = false;
+          did_seed_grow = true;
           keyList newseed = seed;
           newseed.push_back(link.second);
           newtempSeedKeyLists.push_back(newseed);
         }
-      }
-      if (seed.size() > 5)
-      {
+      } // end look over possible links to grow the seed
+      if (did_seed_grow == false && seed.size() >= _min_clusters_per_seed) {
+        // publish the seed
         trackSeedKeyLists.push_back(seed);
         fill_tuple_with_seed(_tupclus_grown_seeds, seed, globalPositions);
       }
