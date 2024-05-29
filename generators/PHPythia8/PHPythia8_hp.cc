@@ -432,7 +432,7 @@ void PHPythia8_hp::evaluate_event()
     {
       // check mothers
       const auto& mother_list = particle.motherList();
-      if( std::none_of( mother_list.begin(), mother_list.end(), [mother_index](const int& i ) { return i == mother_index; } ) )
+      if( std::none_of( mother_list.begin(), mother_list.end(), [mother_index](const int& index ) { return index == mother_index; } ) )
       { continue; }
 
       std::cout << "PHPythia8_hp::evaluate_event - found daughter" << std::endl;
