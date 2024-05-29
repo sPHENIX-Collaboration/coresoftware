@@ -26,6 +26,8 @@
 #include <phool/phool.h>
 
 #include <TF1.h>
+#include <TFile.h>
+#include <TNtuple.h>
 
 #include <climits>   // for UINT_MAX
 #include <cmath>     // for fabs, sqrt
@@ -51,7 +53,12 @@ PHSiliconTpcTrackMatching::~PHSiliconTpcTrackMatching() = default;
 int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 {
   UpdateParametersWithMacro();
-
+  if(_test_windows)
+  {
+  _file = new TFile("track_match.root", "RECREATE");
+  _tree = new TNtuple("track_match", "track_match",
+                      "event:siphi:sieta:six:siy:siz:tpcphi:tpceta:tpcx:tpcy:tpcz:tpcid:siid");
+  }
   // put these in the output file
   cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta "
        << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_crossing " << _use_intt_crossing << endl;
@@ -179,7 +186,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
 
     cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;
   }
-
+  m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -263,6 +270,12 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
 
 int PHSiliconTpcTrackMatching::End(PHCompositeNode * /*unused*/)
 {
+  if(_test_windows)
+  {
+  _file->cd();
+  _tree->Write();
+  _file->Close();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -322,8 +335,8 @@ int PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode *topNode)
     _svtx_seed_map = new TrackSeedContainer_v1();
     PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(_svtx_seed_map, "SvtxTrackSeedContainer", "PHObject");
     svtxNode->addNode(node);
-  } 
-  
+  }
+
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
@@ -397,6 +410,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       {
         mag = 6.0;
       }
+      mag = 1.0;
     }
 
     if (Verbosity() > 3)
@@ -421,9 +435,21 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       {
         continue;
       }
-
       bool eta_match = false;
       double si_eta = _tracklet_si->get_eta();
+      double si_phi = _tracklet_si->get_phi();
+
+      double si_x = _tracklet_si->get_x();
+      double si_y = _tracklet_si->get_y();
+      double si_z = _tracklet_si->get_z();
+      unsigned int siid = phtrk_iter_si;
+  if(_test_windows)
+  {
+      _tree->Fill((float) m_event,
+                  (float) si_phi, (float) si_eta, (float) si_x, (float) si_y, (float) si_z,
+                  (float) tpc_phi, (float) tpc_eta, (float) tpc_x, (float) tpc_y, (float) tpc_z,
+                  (float) siid, (float) tpcid);
+  }
       if (fabs(tpc_eta - si_eta) < _eta_search_win * mag)
       {
         eta_match = true;
@@ -432,10 +458,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       {
         continue;
       }
-      unsigned int siid = phtrk_iter_si;
-      double si_x = _tracklet_si->get_x();
-      double si_y = _tracklet_si->get_y();
-      double si_z = _tracklet_si->get_z();
+
       bool position_match = false;
       if (_pp_mode)
       {
@@ -460,7 +483,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       }
 
       bool phi_match = false;
-      double si_phi = _tracklet_si->get_phi();
       if (fabs(tpc_phi - si_phi) < _phi_search_win * mag)
       {
         phi_match = true;
