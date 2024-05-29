@@ -380,7 +380,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       trackSeed->set_phi(phi);
       if(m_searchInIntt)
       {
-        //trackSeed->lineFit(positions, 0, 7);
+        trackSeed->lineFit(positions, 0, 2);
       }
 
       if (Verbosity() > 0)
