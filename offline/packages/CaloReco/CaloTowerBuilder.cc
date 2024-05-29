@@ -229,12 +229,14 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
       {
         if (nchannels < m_nchannels)
         {
+          delete packet;
           return Fun4AllReturnCodes::ABORTEVENT;
         }
         nchannels = m_nchannels;
       }
       if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
       {
+        delete packet;
         return Fun4AllReturnCodes::ABORTEVENT;
       }
       // int sector = 0;
