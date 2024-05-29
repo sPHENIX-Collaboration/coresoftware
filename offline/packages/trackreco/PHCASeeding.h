@@ -9,7 +9,7 @@
  */
 
 // Statements for if we want to save out the intermediary clustering steps
-/* #define _PHCASEEDING_CLUSTERLOG_TUPOUT_ */
+#define _PHCASEEDING_CLUSTERLOG_TUPOUT_
 /* #define _PHCASEEDING_TIMER_OUT_ */
 
 #include "ALICEKF.h"
@@ -221,8 +221,8 @@ class PHCASeeding : public PHTrackSeeding
   unsigned int _end_layer;
   unsigned int _min_nhits_per_cluster;
   unsigned int _min_clusters_per_track;
-  unsigned int _max_clusters_per_seed = 6;
-  unsigned int _min_clusters_per_seed = 6;
+  unsigned int _max_clusters_per_seed = 6; // currently not used
+  unsigned int _min_clusters_per_seed = 6; // currently the abs. number used
   //  float _cluster_z_error;
   //  float _cluster_alice_y_error;
   float _neighbor_phi_width;

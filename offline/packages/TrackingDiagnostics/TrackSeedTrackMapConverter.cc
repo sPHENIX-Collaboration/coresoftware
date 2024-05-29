@@ -121,7 +121,6 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
     svtxtrack->set_id(trackid);
     trackid++;
-
     /// If we've run the track matching
     if (m_trackSeedName.find("SvtxTrackSeed") != std::string::npos)
     {
@@ -253,6 +252,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
     else
     {
       /// Otherwise we are using an individual subdetectors container
+      svtxtrack->set_id(m_seedContainer->find(trackSeed));
 
       svtxtrack->set_x(trackSeed->get_x());
       svtxtrack->set_y(trackSeed->get_y());

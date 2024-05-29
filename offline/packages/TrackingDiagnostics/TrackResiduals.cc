@@ -181,6 +181,7 @@ void TrackResiduals::clearClusterStateVectors()
 //____________________________________________________________________________..
 int TrackResiduals::process_event(PHCompositeNode* topNode)
 {
+  auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -198,7 +199,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   {
     mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
   }
-  if (!trackmap or !clustermap or !geometry or !hitmap)
+  if (!trackmap or !clustermap or !geometry or (!hitmap && m_doHits))
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -239,7 +240,8 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
-    m_trackid = key;
+    m_trackid = track->get_id();
+
     m_crossing = track->get_crossing();
     m_px = track->get_px();
     m_py = track->get_py();
@@ -261,6 +263,26 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     m_nintt = 0;
     m_ntpc = 0;
     m_nmms = 0;
+    m_silid = std::numeric_limits<unsigned int>::quiet_NaN();
+    m_tpcid = std::numeric_limits<unsigned int>::quiet_NaN();
+    m_silseedx = std::numeric_limits<float>::quiet_NaN();
+    m_silseedy = std::numeric_limits<float>::quiet_NaN();
+    m_silseedz = std::numeric_limits<float>::quiet_NaN();
+    m_silseedpx = std::numeric_limits<float>::quiet_NaN();
+    m_silseedpy = std::numeric_limits<float>::quiet_NaN();
+    m_silseedpz = std::numeric_limits<float>::quiet_NaN();
+    m_silseedphi = std::numeric_limits<float>::quiet_NaN();
+    m_silseedeta = std::numeric_limits<float>::quiet_NaN();
+    m_silseedcharge = std::numeric_limits<int>::quiet_NaN();
+    m_tpcseedx = std::numeric_limits<float>::quiet_NaN();
+    m_tpcseedy = std::numeric_limits<float>::quiet_NaN();
+    m_tpcseedz = std::numeric_limits<float>::quiet_NaN();
+    m_tpcseedpx = std::numeric_limits<float>::quiet_NaN();
+    m_tpcseedpy = std::numeric_limits<float>::quiet_NaN();
+    m_tpcseedpz = std::numeric_limits<float>::quiet_NaN();
+    m_tpcseedphi = std::numeric_limits<float>::quiet_NaN();
+    m_tpcseedeta = std::numeric_limits<float>::quiet_NaN();
+    m_tpcseedcharge = std::numeric_limits<int>::quiet_NaN();
     m_vertexid = track->get_vertex_id();
     if (vertexmap)
     {
@@ -284,20 +306,34 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     auto tpcseed = track->get_tpc_seed();
     if (tpcseed)
     {
+      m_tpcid = tpcseedmap->find(tpcseed);
       tpc_seed_ids.insert(tpcseedmap->find(tpcseed));
     }
     auto silseed = track->get_silicon_seed();
     if (silseed)
     {
-      m_seedx = silseed->get_x();
-      m_seedy = silseed->get_y();
-      m_seedz = silseed->get_z();
+      m_silid = silseedmap->find(silseed);
+      m_silseedx = silseed->get_x();
+      m_silseedy = silseed->get_y();
+      m_silseedz = silseed->get_z();
+      m_silseedpx = silseed->get_px();
+      m_silseedpy = silseed->get_py();
+      m_silseedpz = silseed->get_pz();
+      m_silseedphi = silseed->get_phi();
+      m_silseedeta = silseed->get_eta();
+      m_silseedcharge = silseed->get_qOverR() > 1 ? 1 : -1;
     }
-    else if (tpcseed)
+    if (tpcseed)
     {
-      m_seedx = tpcseed->get_x();
-      m_seedy = tpcseed->get_y();
-      m_seedz = tpcseed->get_z();
+      m_tpcseedx = tpcseed->get_x();
+      m_tpcseedy = tpcseed->get_y();
+      m_tpcseedz = tpcseed->get_z();
+      m_tpcseedpx = tpcseed->get_px();
+      m_tpcseedpy = tpcseed->get_py();
+      m_tpcseedpz = tpcseed->get_pz();
+      m_tpcseedphi = tpcseed->get_phi();
+      m_tpcseedeta = tpcseed->get_eta();
+      m_tpcseedcharge = tpcseed->get_qOverR() > 1 ? 1 : -1;
     }
     if (tpcseed)
     {
@@ -324,23 +360,23 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
         theta = silseed->get_theta();
       }
       float pt = fabs(1. / qor) * (0.3 / 100) * 0.01;
-      m_seedpx = pt * std::cos(phi);
-      m_seedpy = pt * std::sin(phi);
-      m_seedpz = pt * std::cosh(eta) * std::cos(theta);
+      m_tpcseedpx = pt * std::cos(phi);
+      m_tpcseedpy = pt * std::sin(phi);
+      m_tpcseedpz = pt * std::cosh(eta) * std::cos(theta);
     }
     else
     {
       if (tpcseed)
       {
-        m_seedpx = tpcseed->get_px();
-        m_seedpy = tpcseed->get_py();
-        m_seedpz = tpcseed->get_pz();
+        m_tpcseedpx = tpcseed->get_px();
+        m_tpcseedpy = tpcseed->get_py();
+        m_tpcseedpz = tpcseed->get_pz();
       }
       else if (silseed)
       {
-        m_seedpx = silseed->get_px();
-        m_seedpy = silseed->get_py();
-        m_seedpz = silseed->get_pz();
+        m_silseedpx = silseed->get_px();
+        m_silseedpy = silseed->get_py();
+        m_silseedpz = silseed->get_pz();
       }
     }
     clearClusterStateVectors();
@@ -499,34 +535,33 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
 
     if (silseed)
     {
-      m_seedx = silseed->get_x();
-      m_seedy = silseed->get_y();
-      m_seedz = silseed->get_z();
+      m_silseedx = silseed->get_x();
+      m_silseedy = silseed->get_y();
+      m_silseedz = silseed->get_z();
     }
     else
     {
-      m_seedx = tpcseed->get_x();
-      m_seedy = tpcseed->get_y();
-      m_seedz = tpcseed->get_z();
+      m_tpcseedx = tpcseed->get_x();
+      m_tpcseedy = tpcseed->get_y();
+      m_tpcseedz = tpcseed->get_z();
     }
 
     if (m_zeroField)
     {
       float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * 0.01;
       float phi = tpcseed->get_phi();
-      m_seedpx = pt * std::cos(phi);
-      m_seedpy = pt * std::sin(phi);
-      m_seedpz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
+      m_tpcseedpx = pt * std::cos(phi);
+      m_tpcseedpy = pt * std::sin(phi);
+      m_tpcseedpz = pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta());
     }
     else
     {
-      m_seedpx = tpcseed->get_px();
-      m_seedpy = tpcseed->get_py();
-      m_seedpz = tpcseed->get_pz();
+      m_tpcseedpx = tpcseed->get_px();
+      m_tpcseedpy = tpcseed->get_py();
+      m_tpcseedpz = tpcseed->get_pz();
     }
-    m_seedcharge = tpcseed->get_qOverR() > 1 ? 1 : -1;
+    m_tpcseedcharge = tpcseed->get_qOverR() > 1 ? 1 : -1;
     m_dedx = calc_dedx(tpcseed, clustermap, tpcGeo);
-    std::cout << "m_dedx: " << m_dedx << std::endl;
     m_nmaps = 0;
     m_nintt = 0;
     m_ntpc = 0;
@@ -1364,13 +1399,16 @@ void TrackResiduals::createBranches()
   m_failedfits->Branch("segment", &m_segment, "m_segment/I");
   m_failedfits->Branch("trackid", &m_trackid, "m_trackid/I");
   m_failedfits->Branch("event", &m_event, "m_event/I");
-  m_failedfits->Branch("seedx", &m_seedx, "m_seedx/F");
-  m_failedfits->Branch("seedy", &m_seedy, "m_seedy/F");
-  m_failedfits->Branch("seedz", &m_seedz, "m_seedz/F");
-  m_failedfits->Branch("seedpx", &m_seedpx, "m_seedpx/F");
-  m_failedfits->Branch("seedpy", &m_seedpy, "m_seedpy/F");
-  m_failedfits->Branch("seedpz", &m_seedpz, "m_seedpz/F");
-  m_failedfits->Branch("seedcharge", &m_seedcharge, "m_seedcharge/I");
+  m_failedfits->Branch("silseedx", &m_silseedx, "m_silseedx/F");
+  m_failedfits->Branch("silseedy", &m_silseedy, "m_silseedy/F");
+  m_failedfits->Branch("silseedz", &m_silseedz, "m_silseedz/F");
+  m_failedfits->Branch("tpcseedx", &m_tpcseedx, "m_tpcseedx/F");
+  m_failedfits->Branch("tpcseedy", &m_tpcseedy, "m_tpcseedy/F");
+  m_failedfits->Branch("tpcseedz", &m_tpcseedz, "m_tpcseedz/F");
+  m_failedfits->Branch("tpcseedpx", &m_tpcseedpx, "m_tpcseedpx/F");
+  m_failedfits->Branch("tpcseedpy", &m_tpcseedpy, "m_tpcseedpy/F");
+  m_failedfits->Branch("tpcseedpz", &m_tpcseedpz, "m_tpcseedpz/F");
+  m_failedfits->Branch("tpcseedcharge", &m_tpcseedcharge, "m_tpcseedcharge/I");
   m_failedfits->Branch("dedx", &m_dedx, "m_dedx/F");
   m_failedfits->Branch("nmaps", &m_nmaps, "m_nmaps/I");
   m_failedfits->Branch("nintt", &m_nintt, "m_nintt/I");
@@ -1466,16 +1504,29 @@ void TrackResiduals::createBranches()
   m_tree->Branch("segment", &m_segment, "m_segment/I");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
+  m_tree->Branch("tpcid",&m_tpcid,"m_tpcid/I");
+  m_tree->Branch("silid",&m_silid,"m_silid/I");
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_tree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
-  m_tree->Branch("seedpx", &m_seedpx, "m_seedpx/F");
-  m_tree->Branch("seedpy", &m_seedpy, "m_seedpy/F");
-  m_tree->Branch("seedpz", &m_seedpz, "m_seedpz/F");
-  m_tree->Branch("seedx", &m_seedx, "m_seedx/F");
-  m_tree->Branch("seedy", &m_seedy, "m_seedy/F");
-  m_tree->Branch("seedz", &m_seedz, "m_seedz/F");
-  m_tree->Branch("seedcharge", &m_seedcharge, "m_seedcharge/I");
+  m_tree->Branch("silseedx",&m_silseedx,"m_silseedx/F");
+  m_tree->Branch("silseedy",&m_silseedy,"m_silseedy/F");
+  m_tree->Branch("silseedz",&m_silseedz,"m_silseedz/F");
+  m_tree->Branch("silseedpx",&m_silseedpx,"m_silseedpx/F");
+  m_tree->Branch("silseedpy",&m_silseedpy,"m_silseedpy/F");
+  m_tree->Branch("silseedpz",&m_silseedpz,"m_silseedpz/F");
+  m_tree->Branch("silseedphi",&m_silseedphi,"m_silseedphi/F");
+  m_tree->Branch("silseedeta",&m_silseedeta,"m_silseedeta/F");
+  m_tree->Branch("silseedcharge",&m_silseedcharge,"m_silseedcharge/I");
+  m_tree->Branch("tpcseedx", &m_tpcseedx, "m_tpcseedx/F");
+  m_tree->Branch("tpcseedy", &m_tpcseedy, "m_tpcseedy/F");
+  m_tree->Branch("tpcseedz", &m_tpcseedz, "m_tpcseedz/F");
+  m_tree->Branch("tpcseedpx", &m_tpcseedpx, "m_tpcseedpx/F");
+  m_tree->Branch("tpcseedpy", &m_tpcseedpy, "m_tpcseedpy/F");
+  m_tree->Branch("tpcseedpz", &m_tpcseedpz, "m_tpcseedpz/F");
+  m_tree->Branch("tpcseedphi", &m_tpcseedphi, "m_tpcseedphi/F");
+  m_tree->Branch("tpcseedeta", &m_tpcseedeta, "m_tpcseedeta/F");
+  m_tree->Branch("tpcseedcharge", &m_tpcseedcharge, "m_tpcseedcharge/I");
   m_tree->Branch("dedx", &m_dedx, "m_dedx/F");
   m_tree->Branch("px", &m_px, "m_px/F");
   m_tree->Branch("py", &m_py, "m_py/F");

@@ -375,9 +375,14 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       fitTimer->restart();
 
       //! Circle fit again to take advantage of INTT lever arm
-      trackSeed->circleFitByTaubin(positions, 0, 8);
+      trackSeed->circleFitByTaubin(positions, 0, 7);
       phi = trackSeed->get_phi(positions);
       trackSeed->set_phi(phi);
+      if(m_searchInIntt)
+      {
+        trackSeed->lineFit(positions, 0, 2);
+      }
+
       if (Verbosity() > 0)
       {
         std::cout << "find intt clusters time " << addClusters << std::endl;

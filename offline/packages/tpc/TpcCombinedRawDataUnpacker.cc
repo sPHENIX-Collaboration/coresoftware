@@ -275,6 +275,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     //    -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     varname = "pad";
     int pad_n = m_cdbttree->GetIntValue(key, varname);
+
     PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
 
     //unsigned int phibin = layergeom->get_phibin(phi,side);//layergeom->find_phibin(phi);
@@ -413,8 +414,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       for (uint16_t s = 0; s < sam; s++)
       {
         uint16_t adc = tpchit->get_adc(s);
-        int t = s;
-
+        int t = s-m_presampleShift;
+        if(t<0)
+        {
+          continue;
+        }
         if ((float(adc) - hpedestal) > (hpedwidth * m_ped_sig_cut))
         {
           hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
