@@ -121,12 +121,19 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   max_ihcal_t = Getpeaktime(hihcaltime_cut);
   max_ohcal_t = Getpeaktime(hohcaltime_cut);
 
+	// create histogram to track if nodes exists
+	auto h_nodes = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%snodes_exists") % getHistoPrefix()).c_str()));
+
   //----------------------------------vertex------------------------------------------------------//
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
     std::cout << "CaloValid GlobalVertexMap node is missing" << std::endl;
   }
+	// bin1: GlobalVertxMap
+	float bin1 = h_nodes->GetBinContent(1);
+	h_nodes->SetBinContent(1, bin1+1);	
+
   float vtx_z = std::numeric_limits<float>::quiet_NaN();
   auto hvtx_z_raw = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%svtx_z_raw") % getHistoPrefix()).c_str()));
 
@@ -145,6 +152,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
     if (towers)
     {
+			//bin2: TOWERINFO_CALIB_CEMC
+			float bin2 = h_nodes->GetBinContent(2);
+			h_nodes->SetBinContent(2, bin2+1);
+
       int size = towers->size();  // online towers should be the same!
       auto h_cemc_e_chi2 = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%scemc_e_chi2") % getHistoPrefix()).c_str()));
       auto h_cemc_status = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%scemc_status") % getHistoPrefix()).c_str()));
@@ -218,6 +229,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
     if (towers)
     {
+			//bin3: TOWERINFO_CALIB_HCALIN
+			float bin3 = h_nodes->GetBinContent(3);
+			h_nodes->SetBinContent(3, bin3+1);
+
       auto h_ihcal_e_chi2 = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sihcal_e_chi2") % getHistoPrefix()).c_str()));
       auto h_ihcal_status = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sihcal_status") % getHistoPrefix()).c_str()));
       auto hihcaltime = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sihcaltime") % getHistoPrefix()).c_str()));
@@ -282,6 +297,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
     if (towers)
     {
+			//bin4: TOWERINFO_CALIB_HCALOUT
+			float bin4 = h_nodes->GetBinContent(4);
+			h_nodes->SetBinContent(4, bin4+1);
+
       auto h_ohcal_e_chi2 = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sohcal_e_chi2") % getHistoPrefix()).c_str()));
       auto h_ohcal_status = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sohcal_status") % getHistoPrefix()).c_str()));
       auto hohcaltime = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%sohcaltime") % getHistoPrefix()).c_str()));
@@ -346,6 +365,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
     if (towers)
     {
+			//bin5: TOWERINFO_CALIB_ZDC
+			float bin5 = h_nodes->GetBinContent(5);
+			h_nodes->SetBinContent(5, bin5+1);
+
       auto hzdctime = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%szdctime") % getHistoPrefix()).c_str()));
 
       int size = towers->size();  // online towers should be the same!
@@ -380,6 +403,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");
     if (towers)
     {
+			//bin6: TOWERS_ZDC
+			float bin6 = h_nodes->GetBinContent(6);
+			h_nodes->SetBinContent(6, bin6+1);
+
       int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
@@ -401,6 +428,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
     if (towers)
     {
+			//bin7: TOWERS_CEMC
+			float bin7 = h_nodes->GetBinContent(7);
+			h_nodes->SetBinContent(7, bin7+1);
+
       auto h_cemc_etaphi_fracHitADC = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%scemc_etaphi_fracHitADC") % getHistoPrefix()).c_str()));
 
       int size = towers->size();  // online towers should be the same!
@@ -427,6 +458,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
     if (towers)
     {
+			//bin8: TOWERS_HCALOUT
+			float bin8 = h_nodes->GetBinContent(8);
+			h_nodes->SetBinContent(8, bin8+1);
+
       auto h_hcalout_etaphi_fracHitADC = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sohcal_etaphi_fracHitADC") % getHistoPrefix()).c_str()));
 
       int size = towers->size();  // online towers should be the same!
@@ -453,6 +488,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALIN");
     if (towers)
     {
+			//bin9: TOWERS_HCALIN
+			float bin9 = h_nodes->GetBinContent(9);
+			h_nodes->SetBinContent(9, bin9+1);
+
       auto h_hcalin_etaphi_fracHitADC = dynamic_cast<TProfile2D*>(hm->getHisto(boost::str(boost::format("%sihcal_etaphi_fracHitADC") % getHistoPrefix()).c_str()));
 
       int size = towers->size();  // online towers should be the same!
@@ -486,6 +525,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
   if (bbcpmts)
   {
+		//bin10: MbdPmtContainer
+		float bin10 = h_nodes->GetBinContent(10);
+		h_nodes->SetBinContent(10, bin10+1);
+
     int nPMTs = bbcpmts->get_npmt();
     for (int i = 0; i < nPMTs; i++)
     {
@@ -524,6 +567,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     std::cout << PHWHERE << "CaloValid::funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
     return 0;
   }
+
+	//bin11: TOWERINFO_POS_COR_CEMC
+	float bin11 = h_nodes->GetBinContent(11);
+	h_nodes->SetBinContent(11, bin11+1);
+
 
   //////////////////////////////////////////
   // geometry for hot tower/cluster masking
@@ -674,7 +722,13 @@ void CaloValid::createHistos()
   assert(hm);
 
   // create and register your histos (all types) here
-  {
+	
+	{
+		auto h = new TH1F(boost::str(boost::format("%snodes_exists") % getHistoPrefix()).c_str(), "", 11, 0, 11);
+    hm->registerHisto(h);
+	}
+
+	{
     auto h = new TH2F(boost::str(boost::format("%semcal_mbd_correlation") % getHistoPrefix()).c_str(), ";emcal;mbd", 100, 0, 1, 100, 0, 1);
     hm->registerHisto(h);
   }
