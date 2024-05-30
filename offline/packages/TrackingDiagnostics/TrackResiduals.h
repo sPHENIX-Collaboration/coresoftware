@@ -29,6 +29,7 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class PHG4TpcCylinderGeomContainer;
 class PHG4CylinderGeomContainer;
+class TpcDistortionCorrectionContainer;
 class TrackResiduals : public SubsysReco
 {
  public:
@@ -88,6 +89,8 @@ class TrackResiduals : public SubsysReco
   bool m_zeroField = false;
   bool m_doFailedSeeds = false;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+
+  TpcDistortionCorrectionContainer *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
 
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";

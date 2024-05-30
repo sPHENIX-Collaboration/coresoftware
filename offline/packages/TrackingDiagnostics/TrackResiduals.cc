@@ -32,6 +32,8 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
+#include <tpc/TpcGlobalPositionWrapper.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
 #include <ffarawobjects/Gl1RawHit.h>
 
 #include <globalvertex/GlobalVertex.h>
@@ -91,11 +93,25 @@ int TrackResiduals::Init(PHCompositeNode* /*unused*/)
 }
 
 //____________________________________________________________________________..
-int TrackResiduals::InitRun(PHCompositeNode* /*unused*/)
+int TrackResiduals::InitRun(PHCompositeNode* topNode)
 {
   m_outfile = new TFile(m_outfileName.c_str(), "RECREATE");
   createBranches();
-
+  m_dccStatic = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
+  if (m_dccStatic)
+  {
+    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl;
+  }
+  m_dccAverage = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
+  if (m_dccAverage)
+  {
+    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl;
+  }
+  m_dccFluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
+  if (m_dccFluctuation)
+  {
+    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 void TrackResiduals::clearClusterStateVectors()
@@ -577,7 +593,16 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       {
         auto ckey = *it;
         auto cluster = clustermap->findCluster(ckey);
-        auto global = geometry->getGlobalPosition(ckey, cluster);
+        Acts::Vector3 global;
+        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
+        {
+          global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, 0,
+                                                                                m_dccStatic, m_dccAverage, m_dccFluctuation);
+        }
+        else
+        {
+          global = geometry->getGlobalPosition(ckey, cluster);
+        }
         auto local = geometry->getLocalCoords(ckey, cluster);
         m_cluslx.push_back(local.x());
         m_cluslz.push_back(local.y());
@@ -641,7 +666,17 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
         for (const auto& ckey : get_cluster_keys(track))
         {
           TrkrCluster* cluster = clustermap->findCluster(ckey);
-          Acts::Vector3 clusglob = geometry->getGlobalPosition(ckey, cluster);
+
+          Acts::Vector3 clusglob;
+          if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+          {
+            clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
+                                                                                  m_dccStatic, m_dccAverage, m_dccFluctuation);
+          }
+          else
+          {
+            clusglob = geometry->getGlobalPosition(key, cluster);
+          }
           m_clusgx.push_back(clusglob.x());
           m_clusgy.push_back(clusglob.y());
           m_clusgz.push_back(clusglob.z());
@@ -768,7 +803,15 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
       {
         auto key = iter->first;
         auto cluster = clusters->findCluster(key);
-        auto glob = geometry->getGlobalPosition(key, cluster);
+        Acts::Vector3 glob;
+        if(TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+        {
+          glob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
+          m_dccStatic, m_dccAverage, m_dccFluctuation);
+        }
+        else{
+          glob = geometry->getGlobalPosition(key, cluster);
+        }
         m_sclusgx = glob.x();
         m_sclusgy = glob.y();
         m_sclusgz = glob.z();
@@ -1082,7 +1125,16 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
 
   ActsTransformations transformer;
   TrkrCluster* cluster = clustermap->findCluster(ckey);
-  Acts::Vector3 clusglob = geometry->getGlobalPosition(ckey, cluster);
+  Acts::Vector3 clusglob;
+  if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
+  {
+    clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, 0,
+                                                                          m_dccStatic, m_dccAverage, m_dccFluctuation);
+  }
+  else
+  {
+    clusglob = geometry->getGlobalPosition(ckey, cluster);
+  }
   switch (TrkrDefs::getTrkrId(ckey))
   {
   case TrkrDefs::mvtxId:
