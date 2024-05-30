@@ -18,11 +18,9 @@ class TrkrCluster;
 
 class TpcGlobalPositionWrapper
 {
-    public:
+ public:
   static Acts::Vector3 getGlobalPositionDistortionCorrected(const TrkrDefs::cluskey& key, TrkrCluster* cluster, ActsGeometry* tGeometry, const short int& crossing,
-                                                  const TpcDistortionCorrectionContainer* staticCorrection, const TpcDistortionCorrectionContainer* averageCorrection, const TpcDistortionCorrectionContainer* fluctuationCorrection);
-
-  
+                                                            const TpcDistortionCorrectionContainer* staticCorrection, const TpcDistortionCorrectionContainer* averageCorrection, const TpcDistortionCorrectionContainer* fluctuationCorrection);
 };
 
 #endif

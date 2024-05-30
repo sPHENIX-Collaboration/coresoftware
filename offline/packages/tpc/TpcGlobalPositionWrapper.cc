@@ -6,8 +6,8 @@
 #include <trackbase/TrkrCluster.h>
 
 Acts::Vector3 TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(const TrkrDefs::cluskey& key, TrkrCluster* cluster,
-                                                                   ActsGeometry* tGeometry, const short int& crossing, const TpcDistortionCorrectionContainer* staticCorrection,
-                                                                   const TpcDistortionCorrectionContainer* averageCorrection, const TpcDistortionCorrectionContainer* fluctuationCorrection)
+                                                                             ActsGeometry* tGeometry, const short int& crossing, const TpcDistortionCorrectionContainer* staticCorrection,
+                                                                             const TpcDistortionCorrectionContainer* averageCorrection, const TpcDistortionCorrectionContainer* fluctuationCorrection)
 {
   TpcClusterZCrossingCorrection m_crossingCorrection;
   TpcDistortionCorrection m_distortionCorrection;

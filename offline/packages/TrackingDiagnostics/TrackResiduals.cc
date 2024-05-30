@@ -32,9 +32,9 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
-#include <tpc/TpcGlobalPositionWrapper.h>
-#include <tpc/TpcDistortionCorrectionContainer.h>
 #include <ffarawobjects/Gl1RawHit.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -491,10 +491,10 @@ float TrackResiduals::calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* cluste
   for (unsigned long cluster_key : clusterKeys)
   {
     auto detid = TrkrDefs::getTrkrId(cluster_key);
-    if (detid != TrkrDefs::TrkrId::tpcId) 
-      {
-	continue;   // the micromegas clusters are added to the TPC seeds
-      }
+    if (detid != TrkrDefs::TrkrId::tpcId)
+    {
+      continue;  // the micromegas clusters are added to the TPC seeds
+    }
     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
     TrkrCluster* cluster = clustermap->findCluster(cluster_key);
     float adc = cluster->getAdc();
@@ -597,7 +597,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
         if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
         {
           global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, 0,
-                                                                                m_dccStatic, m_dccAverage, m_dccFluctuation);
+                                                                                  m_dccStatic, m_dccAverage, m_dccFluctuation);
         }
         else
         {
@@ -671,7 +671,7 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
           if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
           {
             clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
-                                                                                  m_dccStatic, m_dccAverage, m_dccFluctuation);
+                                                                                      m_dccStatic, m_dccAverage, m_dccFluctuation);
           }
           else
           {
@@ -804,12 +804,13 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
         auto key = iter->first;
         auto cluster = clusters->findCluster(key);
         Acts::Vector3 glob;
-        if(TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+        if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
         {
           glob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
-          m_dccStatic, m_dccAverage, m_dccFluctuation);
+                                                                                m_dccStatic, m_dccAverage, m_dccFluctuation);
         }
-        else{
+        else
+        {
           glob = geometry->getGlobalPosition(key, cluster);
         }
         m_sclusgx = glob.x();
@@ -1129,7 +1130,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
   {
     clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, 0,
-                                                                          m_dccStatic, m_dccAverage, m_dccFluctuation);
+                                                                              m_dccStatic, m_dccAverage, m_dccFluctuation);
   }
   else
   {
@@ -1556,20 +1557,20 @@ void TrackResiduals::createBranches()
   m_tree->Branch("segment", &m_segment, "m_segment/I");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
-  m_tree->Branch("tpcid",&m_tpcid,"m_tpcid/I");
-  m_tree->Branch("silid",&m_silid,"m_silid/I");
+  m_tree->Branch("tpcid", &m_tpcid, "m_tpcid/I");
+  m_tree->Branch("silid", &m_silid, "m_silid/I");
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_tree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
-  m_tree->Branch("silseedx",&m_silseedx,"m_silseedx/F");
-  m_tree->Branch("silseedy",&m_silseedy,"m_silseedy/F");
-  m_tree->Branch("silseedz",&m_silseedz,"m_silseedz/F");
-  m_tree->Branch("silseedpx",&m_silseedpx,"m_silseedpx/F");
-  m_tree->Branch("silseedpy",&m_silseedpy,"m_silseedpy/F");
-  m_tree->Branch("silseedpz",&m_silseedpz,"m_silseedpz/F");
-  m_tree->Branch("silseedphi",&m_silseedphi,"m_silseedphi/F");
-  m_tree->Branch("silseedeta",&m_silseedeta,"m_silseedeta/F");
-  m_tree->Branch("silseedcharge",&m_silseedcharge,"m_silseedcharge/I");
+  m_tree->Branch("silseedx", &m_silseedx, "m_silseedx/F");
+  m_tree->Branch("silseedy", &m_silseedy, "m_silseedy/F");
+  m_tree->Branch("silseedz", &m_silseedz, "m_silseedz/F");
+  m_tree->Branch("silseedpx", &m_silseedpx, "m_silseedpx/F");
+  m_tree->Branch("silseedpy", &m_silseedpy, "m_silseedpy/F");
+  m_tree->Branch("silseedpz", &m_silseedpz, "m_silseedpz/F");
+  m_tree->Branch("silseedphi", &m_silseedphi, "m_silseedphi/F");
+  m_tree->Branch("silseedeta", &m_silseedeta, "m_silseedeta/F");
+  m_tree->Branch("silseedcharge", &m_silseedcharge, "m_silseedcharge/I");
   m_tree->Branch("tpcseedx", &m_tpcseedx, "m_tpcseedx/F");
   m_tree->Branch("tpcseedy", &m_tpcseedy, "m_tpcseedy/F");
   m_tree->Branch("tpcseedz", &m_tpcseedz, "m_tpcseedz/F");
