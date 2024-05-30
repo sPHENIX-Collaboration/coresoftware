@@ -152,19 +152,33 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
   if (Verbosity() > 0)
   {
-    cout << PHWHERE
-         << " TPC seed map size " << _track_map_tpc->size()
-         << " Silicon seed map size " << _track_map_silicon->size()
-         << endl;
+    if(_track_map_tpc)
+    {
+      std::cout << PHWHERE
+                << " TPC seed map size " << _track_map_tpc->size() << std::endl;
+    }
+    if(_track_map_silicon){
+      std::cout << " Silicon seed map size " << _track_map_silicon->size()
+                << std::endl;
+    }
   }
 
-  if (_track_map_silicon->size() == 0 && _track_map_tpc->size() == 0)
+  if (fitsilicon)
   {
-    return Fun4AllReturnCodes::EVENT_OK;
+    if(_track_map_silicon->size() == 0)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+  if (fittpc)
+  {
+    if (_track_map_tpc->size() == 0){
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
-  // Decide whether we want to make a helical fit for silicon or TPC
-  unsigned int maxtracks = 0;
+    // Decide whether we want to make a helical fit for silicon or TPC
+    unsigned int maxtracks = 0;
   unsigned int nsilicon = 0;
   unsigned int ntpc = 0;
   unsigned int nclus = 0;
@@ -204,6 +218,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     // Get a vector of cluster keys from the tracklet
     getTrackletClusterList(tracklet, cluskey_vec);
+    if(cluskey_vec.size() < 4)
+    {
+      continue;
+    }
     // store cluster global positions in a vector global_vec and cluskey_vec
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
 
@@ -900,14 +918,14 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
   //---------------------------------
 
   _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, _silicon_track_map_name);
-  if (!_track_map_silicon)
+  if (!_track_map_silicon && (fitsilicon || fitfulltrack))
   {
     cerr << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _track_map_tpc = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
-  if (!_track_map_tpc)
+  if (!_track_map_tpc && (fittpc || fitfulltrack))
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
