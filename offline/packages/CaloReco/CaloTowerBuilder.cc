@@ -241,10 +241,10 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
 
       for (int channel = 0; channel < nchannels; channel++)
       {
-        // mask empty channels
-
-        if (skipChannel(channel, pid)) continue;
-
+        if (skipChannel(channel, pid))
+        {
+          continue;
+        }
         if (m_dettype == CaloTowerDefs::CEMC)
         {
           if (channel % 64 == 0)
@@ -290,8 +290,10 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
       {
         for (int channel = 0; channel < m_nchannels - nchannels; channel++)
         {
-           if (skipChannel(channel, pid)) continue;
-
+          if (skipChannel(channel, pid))
+          {
+            continue;
+          }
           std::vector<float> waveform;
           waveform.reserve(m_nsamples);
 
@@ -308,8 +310,10 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
     {
       for (int channel = 0; channel < m_nchannels; channel++)
       {
-        if (skipChannel(channel, pid)) continue;
-
+        if (skipChannel(channel, pid))
+        {
+          continue;
+        }
         std::vector<float> waveform;
         waveform.reserve(2);
         for (int samp = 0; samp < m_nzerosuppsamples; samp++)
