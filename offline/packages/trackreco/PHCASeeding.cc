@@ -584,27 +584,6 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
       }  // end loop over all up-links
     }    // end loop over start clusters
 
-              int fixme_ndown = (int) startLinks.size();
-              for (int k=0; k<(fixme_ndown-1);++k) {
-                for (int j=k+1; j<fixme_ndown; ++j) {
-                  if (startLinks[k].first == startLinks[j].first && startLinks[k].second == startLinks[j].second) {
-                    std::cout << " FIXME C1 found duplicate in startLinks" << std::endl;
-                    /* continue; */
-                  }
-                }
-              }
-    
-      // check for duplicate downlinks
-            const auto& BL = bodyLinks[layer_index+1];
-              fixme_ndown = (int) BL.size();
-              for (int k=0; k<(fixme_ndown-1);++k) {
-                for (int j=k+1; j<fixme_ndown; ++j) {
-                  if (BL[k].first == BL[j].first && BL[k].second == BL[j].second) {
-                    std::cout << " FIXME C3 found duplicate in bodyLinks" << std::endl;
-                    /* continue; */
-                  }
-                }
-              }
     t_seed->stop();
     set_insert_time += t_seed->elapsed();
     t_seed->restart();
@@ -1076,14 +1055,8 @@ void PHCASeeding::fill_split_chains(const PHCASeeding::keyList& seed, const PHCA
   // now fill a chain of the possible added seeds
   index = -1;
   nlinks = add_links.size();
-  TrkrDefs::cluskey fixme_lastlink = 0;
 
-  bool first_err_link = true;
   for (const auto& link : add_links) {
-    if (first_err_link && link == fixme_lastlink) {
-       std::cout << " FIXME ERROR duplicate link! " << std::endl;
-    }
-    fixme_lastlink = link;
     index += 1;
     auto link_pos = pos.at(link);
     float xt = link_pos.x();
@@ -1097,7 +1070,7 @@ void PHCASeeding::fill_split_chains(const PHCASeeding::keyList& seed, const PHCA
     float dphit0 = std::fmod(phit-phi0, M_PI);
 
     float d2phidr2 = dphit0/dr_t0/dr_t0 - dphidr01;
-    _tup_chainfork->Fill(_tupout_count, n_tupchains, TrkrDefs::getLayer(link), x0, y0, z0, dzdr, d2phidr2, index, nlinks);
+    _tup_chainfork->Fill(_tupout_count, n_tupchains, TrkrDefs::getLayer(link), xt, yt, zt, dzdr, d2phidr2, index, nlinks);
   }
 }
 
