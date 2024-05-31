@@ -96,7 +96,8 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 	      CaloPacketContainer *container = findNode::getClass<CaloPacketContainer>(topNode, nodeiter);
 	      for (unsigned int i = 0; i < container->get_npackets(); i++)
 		{
-		  if (iter.first == container->getPacket(i)->getIdentifier())
+		  unsigned int packetID = container->getPacket(i)->getIdentifier();
+		  if (iter.first == packetID)
 		    {
 		      delete container->getPacket(i);
 		    }
