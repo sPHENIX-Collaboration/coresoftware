@@ -29,8 +29,8 @@ class CaloTowerBuilder : public SubsysReco
 
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  int process_rawdata(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
-  int process_offline(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  int process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  
 
   void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
@@ -79,6 +79,7 @@ class CaloTowerBuilder : public SubsysReco
 
  private:
   int process_sim();
+  bool skipChannel(int ich, int pid);
   CaloWaveformProcessing *WaveformProcessing{nullptr};
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
