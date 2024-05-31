@@ -32,6 +32,7 @@
 #include <TH2.h>
 #include <TH1.h>
 
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -206,12 +207,14 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   {    
 
     // remove noise
-    if(jet->get_pt() < 1) continue;
+    if(jet->get_pt() < 1) { continue;
+}
 
     // apply eta and pt cuts
     bool eta_cut = (jet->get_eta() >= m_etaRange.first) and (jet->get_eta() <= m_etaRange.second);
     bool pt_cut = (jet->get_pt() >= m_ptRange.first) and (jet->get_pt() <= m_ptRange.second);
-    if ((not eta_cut) or (not pt_cut)) continue;
+    if ((not eta_cut) or (not pt_cut)) { continue;
+}
   
 
     // zero out counters
@@ -249,15 +252,15 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
 	      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta, iphi);
 	      float tower_phi = tower_geomIH->get_tower_geometry(key)->get_phi();
 	      float tower_eta = tower_geomIH->get_tower_geometry(key)->get_eta();
-        tower_eT = tower->get_energy()/cosh(tower_eta);
+        tower_eT = tower->get_energy()/std::cosh(tower_eta);
 
         if(comp.first == 30)
         { // is sub1
           if(has_tower_background)
           {
             float UE = towBack->get_UE(1).at(ieta);
-            float tower_UE = UE *( 1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
-            tower_eT = (tower->get_energy() - tower_UE)/cosh(tower_eta);
+            float tower_UE = UE *( 1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2)));
+            tower_eT = (tower->get_energy() - tower_UE)/std::cosh(tower_eta);
           }
         }
 
@@ -280,15 +283,15 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
         const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta, iphi);
         float tower_phi = tower_geomOH->get_tower_geometry(key)->get_phi();
         float tower_eta = tower_geomOH->get_tower_geometry(key)->get_eta();
-        tower_eT = tower->get_energy()/cosh(tower_eta);
+        tower_eT = tower->get_energy()/std::cosh(tower_eta);
 
         if(comp.first == 31)
         { // is sub1
           if(has_tower_background)
           {
             float UE = towBack->get_UE(2).at(ieta);
-            float tower_UE = UE *( 1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
-            tower_eT = (tower->get_energy() - tower_UE)/cosh(tower_eta);
+            float tower_UE = UE *( 1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2)));
+            tower_eT = (tower->get_energy() - tower_UE)/std::cosh(tower_eta);
           }
         }
 
@@ -312,15 +315,15 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
         const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta, iphi);
         float tower_phi = tower_geomIH->get_tower_geometry(key)->get_phi();
         float tower_eta = tower_geomIH->get_tower_geometry(key)->get_eta();
-        tower_eT = tower->get_energy()/cosh(tower_eta);
+        tower_eT = tower->get_energy()/std::cosh(tower_eta);
 
         if(comp.first == 29)
         { // is sub1
           if(has_tower_background)
           {
             float UE = towBack->get_UE(0).at(ieta);
-            float tower_UE = UE *( 1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
-            tower_eT = (tower->get_energy() - tower_UE)/cosh(tower_eta);
+            float tower_UE = UE *( 1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2)));
+            tower_eT = (tower->get_energy() - tower_UE)/std::cosh(tower_eta);
           }
         }
 

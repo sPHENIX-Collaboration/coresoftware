@@ -64,7 +64,7 @@ class ConstituentsinJets : public SubsysReco
         Fun4AllHistoManager* m_manager{nullptr};
 
         TH1 * h1_ConstituentsinJets_total{nullptr};
-        TH1 * h1_ConstituentsinJets_CaloTowers{nullptr};
+        //TH1 * h1_ConstituentsinJets_CaloTowers{nullptr};
         TH1 * h1_ConstituentsinJets_IHCAL{nullptr};
         TH1 * h1_ConstituentsinJets_OHCAL{nullptr};
         TH1 * h1_ConstituentsinJets_CEMC{nullptr};
