@@ -168,9 +168,8 @@ PHCASeeding::PHCASeeding(
     unsigned int nlayers_intt,
     unsigned int nlayers_tpc,
     float neighbor_phi_width,
-    float neighbor_eta_width,
-    float maxSinPhi,
-    float cosTheta_limit)
+    float neighbor_z_width,
+    float maxSinPhi)
   : PHTrackSeeding(name)
   , _nlayers_maps(nlayers_maps)
   , _nlayers_intt(nlayers_intt)
@@ -180,9 +179,8 @@ PHCASeeding::PHCASeeding(
   , _min_nhits_per_cluster(min_nhits_per_cluster)
   , _min_clusters_per_track(min_clusters_per_track)
   , _neighbor_phi_width(neighbor_phi_width)
-  , _neighbor_eta_width(neighbor_eta_width)
+  , _neighbor_z_width(neighbor_z_width)
   , _max_sin_phi(maxSinPhi)
-  , _cosTheta_limit(cosTheta_limit)
 {
 }
 
@@ -290,20 +288,20 @@ std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding:
   {
     const auto& globalpos_d = globalPositions.at(ckey);
     const double clus_phi = get_phi(globalpos_d);
-    const double clus_eta = get_eta(globalpos_d);
+    const double clus_z = globalpos_d.z();
     if (Verbosity() > 0)
     {
       /* int layer = TrkrDefs::getLayer(ckey); */
       std::cout << "Found cluster " << ckey << " in layer " << layer << std::endl;
     }
     std::vector<pointKey> testduplicate;
-    QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, clus_phi + 0.00001, clus_eta + 0.00001, testduplicate);
+    QueryTree(_rtree, clus_phi - 0.00001, clus_z - 0.00001, clus_phi + 0.00001, clus_z + 0.00001, testduplicate);
     if (!testduplicate.empty())
     {
       ++n_dupli;
       continue;
     }
-    coords.push_back({{static_cast<float>(clus_phi), static_cast<float>(clus_eta)}, ckey});
+    coords.push_back({{static_cast<float>(clus_phi), static_cast<float>(clus_z)}, ckey});
     t_fill->restart();
     _rtree.insert(std::make_pair(point(clus_phi, globalpos_d.z()), ckey));
     t_fill->stop();
@@ -427,10 +425,12 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
     // where the old lower becomes the new middle, the old middle the new upper,
     // and the old upper drops out and that _rtree is filled with the new lower
     int index_above = (layer_index + 1) % 3;
-    int index_current = (layer_index) % 3;
+    int index_current = (layer_index)   % 3;
     int index_below = (layer_index - 1) % 3;
 
     coord_arr[index_below] = FillTree(_rtrees[index_below], ckeys[layer_index - 1], globalPositions, layer_index - 1);
+
+    // NO DUPLICATES FOUND IN COORD_ARR
 
     auto& _rtree_above = _rtrees[index_above];
     const std::vector<coordKey>& coord = coord_arr[index_current];
@@ -450,6 +450,7 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
     // Any link to an above node which matches the same clusters
     // on the previous iteration (to a "below node") becomes a "bilink"
     // Check if this bilink links to a prior bilink or not
+    
     std::vector<keyLink> aboveLinks;
     for (const auto& StartCluster : coord)
     {
@@ -470,18 +471,18 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
 
       QueryTree(_rtree_below,
           StartPhi - _neighbor_phi_width,
-          StartZ - _neighbor_eta_width,
+          StartZ - _neighbor_z_width,
           StartPhi + _neighbor_phi_width,
-          StartZ + _neighbor_eta_width,
+          StartZ + _neighbor_z_width,
           ClustersBelow);
         
       FillTupWinLink(_rtree_below, StartCluster, globalPositions);
 
       QueryTree(_rtree_above,
                 StartPhi - _neighbor_phi_width,
-                StartZ - _neighbor_eta_width,
+                StartZ - _neighbor_z_width,
                 StartPhi + _neighbor_phi_width,
-                StartZ + _neighbor_eta_width,
+                StartZ + _neighbor_z_width,
                 ClustersAbove);
 
       t_seed->stop();
@@ -519,8 +520,7 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
       // find the three clusters closest to a straight line
       // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
       // double minSumLengths = 1e9;
-      keyList bestBelowClusters;
-      keyList bestAboveClusters;
+      std::unordered_set<TrkrDefs::cluskey> bestAboveClusters;
       for (size_t iAbove = 0; iAbove < delta_above.size(); ++iAbove)
       {
         for (size_t iBelow = 0; iBelow < delta_below.size(); ++iBelow)
@@ -542,8 +542,8 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
           {
             // maxCosPlaneAngle = cos(angle);
             // minSumLengths = belowLength+aboveLength;
-            bestBelowClusters.push_back(ClustersBelow[iBelow].second);
-            bestAboveClusters.push_back(ClustersAbove[iAbove].second);
+            curr_downlinks.insert({StartCluster.second, ClustersBelow[iBelow].second});
+            bestAboveClusters.insert(ClustersAbove[iAbove].second);
 
             // fill the tuples for plotting
             fill_tuple(_tupclus_links,  0, StartCluster.second, globalPositions.at(StartCluster.second));
@@ -560,11 +560,6 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
       t_seed->stop();
       compute_best_angle_time += t_seed->elapsed();
       t_seed->restart();
-
-      for (auto cluster : bestBelowClusters)
-      {
-        curr_downlinks.insert({StartCluster.second, cluster});
-      }
 
       for (auto cluster : bestAboveClusters)
       {
@@ -584,9 +579,11 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
           } else {
             bodyLinks[layer_index+1].push_back(std::make_pair(key_top,key_bot));
           }
+
         }
       }  // end loop over all up-links
     }    // end loop over start clusters
+
     t_seed->stop();
     set_insert_time += t_seed->elapsed();
     t_seed->restart();
@@ -672,6 +669,8 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
   std::vector<keyList> tempSeedKeyLists = trackSeedKeyLists;
   trackSeedKeyLists.clear();
 
+  int nsplit_chains = -1;
+
   while (tempSeedKeyLists.size() > 0)
   {
     if (Verbosity() > 0)
@@ -698,6 +697,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
       /* for (auto testlink = matched_links.first; testlink != matched_links.second; ++testlink) */
 
     bool did_seed_grow = false;
+    keyList links_added {}; 
     for (const auto& link : bilinks[trackHead_layer]) {
       if (link.first != trackHead) { continue; }
       // It appears that it is just faster to traverse the lists then it is to use a binary-sorted search
@@ -746,12 +746,14 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
         float new_d2phidr2 = new_dphi / (new_dr * new_dr) - dphi12 / (dr_12 * dr_12);
         if (fabs(d2phidr2 - new_d2phidr2) < _clusadd_delta_dphidr2_window)
         {
+          links_added.push_back(link.second);
           did_seed_grow = true;
           keyList newseed = seed;
           newseed.push_back(link.second);
           newtempSeedKeyLists.push_back(newseed);
         }
       } // end look over possible links to grow the seed
+      fill_split_chains(seed, links_added, globalPositions, nsplit_chains);
       if (did_seed_grow == false && seed.size() >= _min_clusters_per_seed) {
         // publish the seed
         trackSeedKeyLists.push_back(seed);
@@ -954,6 +956,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   fitter->setFixedClusterError(0, _fixed_clus_err.at(0));
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
+
   
 #if defined(_PHCASEEDING_CLUSTERLOG_TUPOUT_)
   std::cout << " Writing _CLUSTER_LOG_TUPOUT.root file " << std::endl;
@@ -971,6 +974,9 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
 
   _search_windows = new TNtuple("search_windows","windows used in algorithm to seed clusters",
       "DelEta_ClSearch:DelPhi_ClSearch:start_layer:end_layer:dzdr_ClAdd:dphidr2_ClAdd");
+
+  _tup_chainfork  = new TNtuple("chainfork", "chain with multiple links, which if forking", "event:nchain:layer:x:y:z:dzdr:d2phidr2:nlink:nlinks"); // nlinks to add, 0 ... nlinks
+  _tup_chainbody  = new TNtuple("chainbody", "chain body with multiple link options", "event:nchain:layer:x:y:z:dzdr:d2phidr2:nlink:nlinks"); // nlinks in chain being added to will be 0, 1, 2 ... working backward from the fork -- dZ and dphi are dropped for final links as necessary
 #endif
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -986,6 +992,92 @@ int PHCASeeding::End()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+#if defined(_PHCASEEDING_CHAIN_FORKS_)
+
+void PHCASeeding::fill_split_chains(const PHCASeeding::keyList& seed, const PHCASeeding::keyList& add_links, const PHCASeeding::PositionMap& pos, int& n_tupchains) const 
+{
+  if (add_links.size() < 2) return;
+  n_tupchains += 1;
+
+  // fill the chain leading to the forks
+  int nlinks = seed.size();
+
+  bool has_0 = false;
+  float x0{0.}, y0{0.}, z0{0.}, r0{0.}, phi0{0.};
+
+  bool has_1 = false;
+  float /*x1, y1,*/ z1{0.}, r1{0.}, phi1{0.};
+
+  bool has_2 = false;
+  float /*x2, y2, z2,*/ r2{0.}, phi2{0.};
+
+  int index = seed.size(); // index will count backwards from the end of the chain
+                 // dR is not calculated for the final (outermost layer) link
+                 // dPhi is not calculated for the final two (outmost layer) link
+
+  float dphidr01=-1000.;
+  for (const auto& link : seed) {
+    index -= 1;
+    if (has_1) {
+      has_2 = true;
+      /*x2=x1; y2=y1; z2=z1;*/ r2=r1; phi2=phi1;
+    }
+    if (has_0) {
+      has_1 = true;
+      /*x1=x0; y1=y0;*/ z1=z0; r1=r0; phi1=phi0;
+    }
+    auto link_pos = pos.at(link);
+    has_0 = true;
+    x0 = link_pos.x();
+    y0 = link_pos.y();
+    z0 = link_pos.z();
+    phi0 = atan2(y0,x0);
+    r0 = sqrt(x0*x0+y0*y0);
+
+    if (!has_1) {
+      _tup_chainbody->Fill(_tupout_count, n_tupchains, TrkrDefs::getLayer(link), x0, y0, z0, -1000., -1000., index, nlinks);
+      continue;
+    } 
+    float dzdr = (z0-z1)/(r0-r1);
+    if (!has_2) {
+      _tup_chainbody->Fill(_tupout_count, n_tupchains, TrkrDefs::getLayer(link), x0, y0, z0, dzdr, -1000., index, nlinks);
+      continue;
+    }
+    float dphi01 = std::fmod(phi1-phi0, M_PI);
+    float dphi12 = std::fmod(phi2-phi1, M_PI);
+    float dr_01 = r1-r0;
+    float dr_12 = r2-r1;
+    dphidr01 = dphi01/dr_01/dr_01;
+    float d2phidr2 = dphidr01 - dphi12/dr_12/dr_12;
+    _tup_chainbody->Fill(_tupout_count, n_tupchains, TrkrDefs::getLayer(link), x0, y0, z0, dzdr, d2phidr2, index, nlinks);
+  } 
+  
+  // now fill a chain of the possible added seeds
+  index = -1;
+  nlinks = add_links.size();
+
+  for (const auto& link : add_links) {
+    index += 1;
+    auto link_pos = pos.at(link);
+    float xt = link_pos.x();
+    float yt = link_pos.y();
+    float zt = link_pos.z();
+    float phit = atan2(yt,xt);
+    float rt = sqrt(xt*xt+yt*yt);
+    float dr_t0 = rt - r0;
+
+    float dzdr = (zt-z0)/(rt-r0);
+    float dphit0 = std::fmod(phit-phi0, M_PI);
+
+    float d2phidr2 = dphit0/dr_t0/dr_t0 - dphidr01;
+    _tup_chainfork->Fill(_tupout_count, n_tupchains, TrkrDefs::getLayer(link), xt, yt, zt, dzdr, d2phidr2, index, nlinks);
+  }
+}
+
+#else
+void PHCASeeding::fill_split_chains(const PHCASeeding::keyList& /*chain*/, const PHCASeeding::keyList& /*links*/, const PHCASeeding::PositionMap& /*pos*/, int& /*nchains*/) const {};
+#endif
+
 #if defined(_PHCASEEDING_CLUSTERLOG_TUPOUT_)
 void PHCASeeding::write_tuples() {
   _f_clustering_process->cd();
@@ -999,6 +1091,8 @@ void PHCASeeding::write_tuples() {
   _tupwin_seed23     ->Write();
   _tupwin_seedL1     ->Write();
   _search_windows    ->Write();
+  _tup_chainbody ->Write();
+  _tup_chainfork ->Write();
   _f_clustering_process->Close();
 }
 
@@ -1018,7 +1112,7 @@ void PHCASeeding::fill_tuple_with_seed(TNtuple* tup, const PHCASeeding::keyList&
 void PHCASeeding::process_tupout_count() {
   _tupout_count += 1;
   if (_tupout_count!=0) return;
-  _search_windows->Fill(_neighbor_eta_width,_neighbor_phi_width,_start_layer,_end_layer,_clusadd_delta_dzdr_window,_clusadd_delta_dphidr2_window);
+  _search_windows->Fill(_neighbor_z_width,_neighbor_phi_width,_start_layer,_end_layer,_clusadd_delta_dzdr_window,_clusadd_delta_dphidr2_window);
 }
 
 void PHCASeeding::FillTupWinLink(bgi::rtree<PHCASeeding::pointKey,bgi::quadratic<16>>& _rtree_below, const PHCASeeding::coordKey& StartCluster, const PHCASeeding::PositionMap& globalPositions) const
