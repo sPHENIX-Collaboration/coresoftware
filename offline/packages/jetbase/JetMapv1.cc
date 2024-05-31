@@ -90,21 +90,30 @@ void JetMapv1::identify(std::ostream& os) const
 const Jet* JetMapv1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return nullptr;
+  if (iter == _map.end())
+  {
+    return nullptr;
+  }
   return iter->second;
 }
 
 Jet* JetMapv1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return nullptr;
+  if (iter == _map.end())
+  {
+    return nullptr;
+  }
   return iter->second;
 }
 
 Jet* JetMapv1::insert(Jet* jet)
 {
   unsigned int index = 0;
-  if (!_map.empty()) index = _map.rbegin()->first + 1;
+  if (!_map.empty())
+  {
+    index = _map.rbegin()->first + 1;
+  }
   _map.insert(std::make_pair(index, jet));
   _map[index]->set_id(index);
   return (_map[index]);

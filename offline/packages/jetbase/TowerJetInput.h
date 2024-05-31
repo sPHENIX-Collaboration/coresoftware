@@ -1,8 +1,8 @@
 #ifndef JETBASE_TOWERJETINPUT_H
 #define JETBASE_TOWERJETINPUT_H
 
-#include "JetInput.h"
 #include "Jet.h"
+#include "JetInput.h"
 
 #include <calobase/RawTowerDefs.h>
 
@@ -25,7 +25,7 @@ class TowerJetInput : public JetInput
 
  private:
   Jet::SRC m_input;
-  RawTowerDefs::CalorimeterId geocaloid;
+  RawTowerDefs::CalorimeterId geocaloid{RawTowerDefs::CalorimeterId::NONE};
   bool m_use_towerinfo = false;
 };
 

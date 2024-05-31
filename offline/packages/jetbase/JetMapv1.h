@@ -14,7 +14,7 @@ class PHObject;
 class JetMapv1 : public JetMap
 {
  public:
-  JetMapv1()  = default;
+  JetMapv1() = default;
   explicit JetMapv1(const JetMap& jets);
   JetMapv1& operator=(const JetMap& jets);
   ~JetMapv1() override;
@@ -22,7 +22,7 @@ class JetMapv1 : public JetMap
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;
   int isValid() const override { return 1; }
-  PHObject* CloneMe() const override  { return new JetMapv1(*this);}
+  PHObject* CloneMe() const override { return new JetMapv1(*this); }
 
   // map content info ----------------------------------------------------------
 
@@ -67,7 +67,7 @@ class JetMapv1 : public JetMap
   Iter find(unsigned int idkey) override { return _map.find(idkey); }
   Iter end() override { return _map.end(); }
 
-  std::vector<Jet*> vec() override; // defaulted to PT in JetMap.h
+  std::vector<Jet*> vec() override;  // defaulted to PT in JetMap.h
 
  private:
   Jet::ALGO _algo = Jet::NONE;  //< algorithm used to reconstruct jets
