@@ -894,6 +894,39 @@ namespace
       int nedge = 0;
       get_cluster(iphi, it, *my_data, adcval, ihit_list, ntouch, nedge);
 
+      if(my_data->FixedWindow>0){
+	//get cluster dimensions and check if they hit the window boundaries
+	int wphibinhi = -1;
+	int wphibinlo = 666666;
+	int wtbinhi = -1;
+	int wtbinlo = 666666;
+	for (auto witer : ihit_list){
+	  int wiphi = witer.iphi + my_data->phioffset;
+	  int wit = witer.it + my_data->toffset;
+	  double wadc = witer.adc;      
+	  if (wadc <= 0){ continue; }
+	  if (wiphi > wphibinhi){ wphibinhi = wiphi; }
+	  if (wiphi < wphibinlo) { wphibinlo = wiphi; }
+	  if (wit > wtbinhi) { wtbinhi = wit; }
+	  if (wit < wtbinlo) { wtbinlo = wit; }
+	}
+	char wtsize = wtbinhi - wtbinlo + 1;
+	char wphisize = wphibinhi - wphibinlo + 1;
+
+	//check if we have a super big cluster and switch from fixed window to step down
+	if(ihit_list.size()>(0.5*pow((2*my_data->FixedWindow+1),2))||
+	   wphisize>=(2*my_data->FixedWindow+1)||
+	   wtsize>=(2*my_data->FixedWindow+1)){
+	  int window_cache = my_data->FixedWindow;
+	  //std::cout << " fixed size before " << ihit_list.size() << " | " << pow((2*my_data->FixedWindow+1),2) << std::endl;
+	  my_data->FixedWindow = 0;
+	  //reset hit list and try again without fixed window
+	  ihit_list.clear();
+	  get_cluster(iphi, it, *my_data, adcval, ihit_list, ntouch, nedge);
+	  //std::cout << " stepdown size after " << ihit_list.size() << std::endl;
+	  my_data->FixedWindow = window_cache;
+	}
+      }
       // -> calculate cluster parameters
       // -> add hits to truth association
       // remove hits from all_hit_map
