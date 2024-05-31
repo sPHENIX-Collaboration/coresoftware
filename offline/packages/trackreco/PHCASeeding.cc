@@ -278,7 +278,7 @@ std::pair<PHCASeeding::PositionMap, PHCASeeding::keyListPerLayer> PHCASeeding::F
   return std::make_pair(cachedPositions, ckeys);
 }
 
-std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding::pointKey, bgi::quadratic<16>>& _rtree, const PHCASeeding::keyList& ckeys, const PHCASeeding::PositionMap& globalPositions, const int layer)
+std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding::pointKey, bgi::quadratic<16>>& _rtree, const PHCASeeding::keyList& ckeys, PHCASeeding::PositionMap& globalPositions, const int layer)
 {
   // Fill _rtree with the clusters in ckeys; remove duplicates, and return a vector of the coordKeys
   // Note that layer is only used for a cout statement
@@ -319,6 +319,49 @@ std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding:
   if (Verbosity() > 0)
   {
     std::cout << "number of duplicates : " << n_dupli << std::endl;
+  }
+  std::cout << "setting up dummy clusters..." << std::endl;
+  const double phi_width = .01;
+  const double z_width = 1.;
+  const size_t max_neighbors = 1000;
+  uint32_t dummy_id = 0;
+  TrkrDefs::hitsetkey dummy_hskey = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::ttl,0);
+  for(const auto& ckey : ckeys)
+  {
+    const auto& globalpos_d = globalPositions.at(ckey);
+    const double phi = get_phi(globalpos_d);
+    const double z = globalpos_d.z();
+
+    std::cout << "(phi,z) = (" << phi << "," << z << ")" << std::endl;
+
+    std::vector<pointKey> neighbors;
+    QueryTree(_rtree, phi - phi_width, z - z_width, phi + phi_width, z + z_width, neighbors);
+
+    std::cout << "found " << neighbors.size() << " neighbors" << std::endl;
+
+    if(neighbors.size()>max_neighbors)
+    {
+      std::cout << "removing neighbors" << std::endl;
+      const double r = sqrt(pow(globalpos_d.x(),2.)+pow(globalpos_d.y(),2.));
+      double avg_phi=phi;
+      double avg_z=z;
+      for(const auto& neighbor : neighbors)
+      {
+        _rtree.remove(neighbor);
+        avg_phi+=bg::get<0>(neighbor.first);
+        avg_z+=bg::get<1>(neighbor.first);
+      }
+      avg_phi/=(neighbors.size()+1);
+      avg_z/=(neighbors.size()+1);
+      std::cout << "(avg_phi,avg_z) = (" << avg_phi << "," << avg_z << ")" << std::endl;
+      
+      _rtree.remove(std::make_pair(point(phi,z),ckey));
+      const TrkrDefs::cluskey dummy_ckey = TrkrDefs::genClusKey(dummy_hskey,dummy_id);
+      dummy_id++;
+      _rtree.insert(std::make_pair(point(avg_phi,avg_z),dummy_ckey));
+      const Acts::Vector3 dummy_gpos = {r*cos(avg_phi),r*sin(avg_phi),avg_z};
+      globalPositions.insert(std::make_pair(dummy_ckey,dummy_gpos));
+    }
   }
   return coords;
 }
@@ -370,7 +413,7 @@ int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPositions, const PHCASeeding::keyListPerLayer& ckeys)
+int PHCASeeding::FindSeedsWithMerger(PHCASeeding::PositionMap& globalPositions, const PHCASeeding::keyListPerLayer& ckeys)
 {
   t_seed->restart();
 
@@ -393,7 +436,7 @@ int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPosit
   return seeds.size();
 }
 
-std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::CreateBiLinks(const PHCASeeding::PositionMap& globalPositions, const PHCASeeding::keyListPerLayer& ckeys)
+std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::CreateBiLinks(PHCASeeding::PositionMap& globalPositions, const PHCASeeding::keyListPerLayer& ckeys)
 {
   keyLinks startLinks;        // bilinks at start of chains
   keyLinkPerLayer bodyLinks;  //  bilinks to build chains
@@ -519,8 +562,8 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
       // find the three clusters closest to a straight line
       // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
       // double minSumLengths = 1e9;
-      keyList bestBelowClusters;
-      keyList bestAboveClusters;
+      std::unordered_set<TrkrDefs::cluskey> bestBelowClusters;
+      std::unordered_set<TrkrDefs::cluskey> bestAboveClusters;
       for (size_t iAbove = 0; iAbove < delta_above.size(); ++iAbove)
       {
         for (size_t iBelow = 0; iBelow < delta_below.size(); ++iBelow)
@@ -542,8 +585,8 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
           {
             // maxCosPlaneAngle = cos(angle);
             // minSumLengths = belowLength+aboveLength;
-            bestBelowClusters.push_back(ClustersBelow[iBelow].second);
-            bestAboveClusters.push_back(ClustersAbove[iAbove].second);
+            bestBelowClusters.insert(ClustersBelow[iBelow].second);
+            bestAboveClusters.insert(ClustersAbove[iAbove].second);
 
             // fill the tuples for plotting
             fill_tuple(_tupclus_links,  0, StartCluster.second, globalPositions.at(StartCluster.second));
@@ -866,6 +909,7 @@ std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const std::vector<PHCAS
     for (unsigned long i : chain)
     {
       // if(xy_resid[i]>_xy_outlier_threshold) continue;
+      if(TrkrDefs::getTrkrId(i)==TrkrDefs::TrkrId::ttl) continue;
       trackseed.insert_cluster_key(i);
     }
 
