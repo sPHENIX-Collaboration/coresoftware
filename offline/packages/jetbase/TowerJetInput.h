@@ -14,7 +14,7 @@ class PHCompositeNode;
 class TowerJetInput : public JetInput
 {
  public:
-  TowerJetInput(Jet::SRC input);
+  TowerJetInput(Jet::SRC input, const std::string prefix = "TOWERINFO_CALIB");
   ~TowerJetInput() override {}
 
   void identify(std::ostream& os = std::cout) override;
@@ -27,6 +27,8 @@ class TowerJetInput : public JetInput
   Jet::SRC m_input;
   RawTowerDefs::CalorimeterId geocaloid;
   bool m_use_towerinfo = false;
+  std::string m_towerNodePrefix;
+  std::string towerName;
 };
 
 #endif
