@@ -189,11 +189,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   std::vector<TrackSeed> cumulative_someseed;
   std::vector<SvtxTrack_v4> cumulative_newTrack;
 
-  if (fittpc)
+  if (fittpc && _track_map_tpc != nullptr)
   {
     maxtracks = _track_map_tpc->size();
   }
-  if (fitsilicon)
+  if (fitsilicon && _track_map_silicon != nullptr)
   {
     maxtracks = _track_map_silicon->size();
   }
