@@ -32,7 +32,7 @@ namespace
   static constexpr unsigned int max_fee_bco_diff = 50;
 
   // define limit for matching fee_bco to fee_bco_predicted
-  static constexpr unsigned int max_gtm_bco_diff = 150;
+  static constexpr unsigned int max_gtm_bco_diff = 20;
 
   // define limit above which one need to re-synchronize fee_bco and fee_bco_predicted
   static constexpr unsigned int max_gtm_bco_diff_resync = 10;
@@ -93,7 +93,7 @@ unsigned int MicromegasRawDataEvaluation::bco_matching_information_t::get_predic
 
   // this is the clock multiplier from lvl1 to fee clock
   /* todo: should replace with actual rational number for John K. */
-  static constexpr double multiplier = 4.2629164;
+  static constexpr double multiplier = 4.2629169;
 
   // get gtm bco difference with proper rollover accounting
   uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
@@ -362,6 +362,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
                 << " predicted: 0x" << bco_matching_information.get_predicted_fee_bco(gtm_bco)
                 << " gtm_bco: 0x" << gtm_bco
                 << std::dec
+                << " difference: " << get_bco_diff(bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco)
                 << std::endl;
             }
 
@@ -387,6 +388,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             // if fee_bco_predicted have drifted too much from fee_bco, reset the reference
             if( get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco ) > max_gtm_bco_diff_resync )
             {
+              std::cout << "MicromegasRawDataEvaluation::process_event - updating clock references" << std::endl;
               bco_matching_information.m_fee_bco_first = sample.fee_bco;
               bco_matching_information.m_gtm_bco_first = gtm_bco;
             }
@@ -412,8 +414,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
              * if no match is found, and matching_information has not been verified,
              * try using this BCO as a reference instead
              */
-            if( !bco_matching_information.m_verified && sample.fee_bco > bco_matching_information.m_fee_bco_first )
+            if( !bco_matching_information.m_verified && sample.fee_bco > bco_matching_information.m_fee_bco_first && sample.fee_id != 11 )
             {
+              std::cout << "MicromegasRawDataEvaluation::process_event - adjusting FEE reference" << std::endl;
               bco_matching_information.m_has_fee_bco_first = true;
               bco_matching_information.m_fee_bco_first = sample.fee_bco;
             }

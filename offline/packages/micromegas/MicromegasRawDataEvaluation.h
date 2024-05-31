@@ -266,6 +266,9 @@ class MicromegasRawDataEvaluation : public SubsysReco
      */
     bool m_verified = false;
 
+    //! number of gtm bco rollover
+    unsigned int m_gtm_bco_ovf_count = 0;
+
     //! first lvl1 bco (40 bits)
     bool m_has_gtm_bco_first = false;
     uint64_t m_gtm_bco_first = 0;
