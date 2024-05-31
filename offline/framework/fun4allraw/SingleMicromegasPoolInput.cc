@@ -63,18 +63,6 @@ namespace
   // minimum number of requested samples
   static constexpr int m_min_req_samples = 5;
 
-  // define limit for matching two fee_bco
-  static constexpr unsigned int max_fee_bco_diff = 50;
-
-  // define limit for matching fee_bco to fee_bco_predicted
-  static constexpr unsigned int max_gtm_bco_diff = 50;
-
-  // define limit above which one need to re-synchronize fee_bco and fee_bco_predicted
-  static constexpr unsigned int max_gtm_bco_diff_resync = 10;
-
-  // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
-  static constexpr unsigned int max_matching_data_size = 50;
-
 }  // namespace
 
 //_________________________________________________________
@@ -90,17 +78,13 @@ unsigned int SingleMicromegasPoolInput::bco_matching_information_t::get_predicte
   // check proper initialization
   if( !(m_has_gtm_bco_first && m_has_fee_bco_first ) ) { return 0; }
 
-  // this is the clock multiplier from lvl1 to fee clock
-  /* todo: should replace with actual rational number for John K. */
-  static constexpr double multiplier = 4.2629164;
-
   // get lvl1 bco difference with proper rollover accounting
   uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
     (gtm_bco - m_gtm_bco_first):
     (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
 
   // convert to fee bco, and truncate to 20 bits
-  uint64_t fee_bco_predicted = m_fee_bco_first + multiplier*(gtm_bco_difference);
+  uint64_t fee_bco_predicted = m_fee_bco_first + m_multiplier*(gtm_bco_difference);
   return (unsigned int)(fee_bco_predicted & 0xFFFFFU);
 }
 
@@ -323,7 +307,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
           bco_matching_information.m_bco_matching_list.begin(),
           bco_matching_information.m_bco_matching_list.end(),
           [&fee_bco]( const m_bco_matching_pair_t& pair )
-          { return get_bco_diff( pair.first, fee_bco ) < max_fee_bco_diff; } );
+          { return get_bco_diff( pair.first, fee_bco ) < bco_matching_information_t::m_max_fee_bco_diff; } );
 
         if( bco_matching_iter != bco_matching_information.m_bco_matching_list.end() )
         {
@@ -338,7 +322,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
             bco_matching_information.m_gtm_bco_list.begin(),
             bco_matching_information.m_gtm_bco_list.end(),
             [&fee_bco, &bco_matching_information]( const uint64_t& gtm_bco_local )
-            { return get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco_local), fee_bco ) < max_gtm_bco_diff; } );
+            { return get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco_local), fee_bco ) < bco_matching_information_t::m_max_gtm_bco_diff; } );
 
           if( iter != bco_matching_information.m_gtm_bco_list.end() )
           {
@@ -366,19 +350,9 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
              * if matching information is not verified, and the found match is not trivial (0),
              * change verified flag to true
              */
-            if( !bco_matching_information.m_verified && get_bco_diff( fee_bco, bco_matching_information.m_fee_bco_first ) > max_gtm_bco_diff )
+            if( !bco_matching_information.m_verified && get_bco_diff( fee_bco, bco_matching_information.m_fee_bco_first ) > bco_matching_information_t::m_max_gtm_bco_diff )
             {
               bco_matching_information.m_verified = true;
-            }
-
-            // if fee_bco_predicted have drifted too much from fee_bco, reset the reference
-            if( get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), fee_bco ) > max_gtm_bco_diff_resync )
-            {
-              for( auto&& [unused, local]:m_bco_matching_information_map )
-              {
-                local.m_fee_bco_first = fee_bco;
-                local.m_gtm_bco_first = gtm_bco;
-              }
             }
 
           }
@@ -453,7 +427,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       }
 
       // cleanup
-      bco_matching_information.truncate(max_matching_data_size);
+      bco_matching_information.truncate(bco_matching_information_t::m_max_matching_data_size);
     }
   }
 }

@@ -132,6 +132,21 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
     //! get predicted fee_bco from gtm_bco
     unsigned int get_predicted_fee_bco( uint64_t ) const;
 
+    // this is the clock multiplier from lvl1 to fee clock
+    /* todo: should replace with actual rational number for John K. */
+    // static constexpr double multiplier = 4.2629164;
+    // static constexpr double multiplier = 4.2629169; // from run 43402
+    static constexpr double m_multiplier = 4.262916255; // from run 43817
+
+    // define limit for matching two fee_bco
+    static constexpr unsigned int m_max_fee_bco_diff = 50;
+
+    // define limit for matching fee_bco to fee_bco_predicted
+    static constexpr unsigned int m_max_gtm_bco_diff = 100;
+
+    // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
+    static constexpr unsigned int m_max_matching_data_size = 50;
+
   };
 
   /// map bco_information_t to packet id
