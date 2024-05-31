@@ -78,6 +78,12 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       m_NumSpecialEvents++;
       continue;
     }
+    static bool firstevent = true;
+    if (firstevent)
+    {
+      firstevent = false;
+      continue;
+    }
     int EventSequence = evt->getEvtSequence();
     Packet *packet = evt->getPacket(14001);
 
