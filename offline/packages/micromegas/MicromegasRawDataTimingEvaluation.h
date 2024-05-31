@@ -7,7 +7,6 @@
  */
 
 #include "MicromegasCalibrationData.h"
-#include "MicromegasMapping.h"
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
