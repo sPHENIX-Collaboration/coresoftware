@@ -163,14 +163,14 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     }
   }
 
-  if (fitsilicon)
+  if (fitsilicon && _track_map_silicon != nullptr)
   {
     if(_track_map_silicon->size() == 0)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
-  if (fittpc)
+  if (fittpc && _track_map_tpc != nullptr)
   {
     if (_track_map_tpc->size() == 0){
       return Fun4AllReturnCodes::ABORTEVENT;
