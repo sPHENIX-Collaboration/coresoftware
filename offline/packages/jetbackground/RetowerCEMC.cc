@@ -73,7 +73,8 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
     _NPHI = geomIH->get_phibins();
 
     _EMCAL_RETOWER_E.resize(_NETA, std::vector<float>(_NPHI, 0));
-    _EMCAL_RETOWER_T.resize(_NETA, std::vector<int>(_NPHI, 0));
+    _EMCAL_RETOWER_MASKED_A.resize(_NETA, std::vector<float>(_NPHI, 0));
+    _EMCAL_RETOWER_TOTAL_A.resize(_NETA, std::vector<float>(_NPHI, 0));
   }
 
   for (int eta = 0; eta < _NETA; eta++)
@@ -81,7 +82,8 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
     for (int phi = 0; phi < _NPHI; phi++)
     {
       _EMCAL_RETOWER_E[eta][phi] = 0;
-      _EMCAL_RETOWER_T[eta][phi] = 0;
+      _EMCAL_RETOWER_MASKED_A[eta][phi] = 0;
+      _EMCAL_RETOWER_TOTAL_A[eta][phi] = 0;
     }
   }
 
@@ -142,19 +144,24 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
 
       int this_IHphibin = geomIH->get_phibin(tower_geom->get_phi());
       float this_E = tower->get_energy();
-      int this_T = tower->get_time();
+      int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
       for (int etabin_iter = -1; etabin_iter <= 1; etabin_iter++)
       {
         if (this_IHetabin + etabin_iter < 0 || this_IHetabin + etabin_iter >= _NETA)
         {
           continue;
         }
-        _EMCAL_RETOWER_E[this_IHetabin + etabin_iter][this_IHphibin] += this_E * fractionalcontribution[etabin_iter + 1];
-        if (this_T == -10 || this_T == -11)  // if a tower in this retower is masked, mask the retower as well. Masking is noted by time = -10 or -11
+        if (!this_isBad)
         {
-          // currently just set the retowered tower to -10 even if the original tower was -11
-          _EMCAL_RETOWER_T[this_IHetabin + etabin_iter][this_IHphibin] = -10;
+          _EMCAL_RETOWER_E[this_IHetabin + etabin_iter][this_IHphibin] += this_E * fractionalcontribution[etabin_iter + 1];
         }
+        else
+        {
+          // if the tower is bad, don't add its energy to the retower and keep track of how much is masked
+          _EMCAL_RETOWER_MASKED_A[this_IHetabin + etabin_iter][this_IHphibin] += fractionalcontribution[etabin_iter + 1];
+        }
+        // also keep track of the total area going into the retower
+        _EMCAL_RETOWER_TOTAL_A[this_IHetabin + etabin_iter][this_IHphibin] += fractionalcontribution[etabin_iter + 1];
       }
     }
   }
@@ -236,11 +243,18 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         unsigned int towerindex = emcal_retower->decode_key(towerkey);
         TowerInfo *towerinfo = emcal_retower->get_tower_at_channel(towerindex);
         towerinfo->set_energy(_EMCAL_RETOWER_E[eta][phi]);
-        if (_EMCAL_RETOWER_T[eta][phi] == -10)
+        if (_EMCAL_RETOWER_MASKED_A[eta][phi] / _EMCAL_RETOWER_TOTAL_A[eta][phi] > _FRAC_CUT)
         {
           towerinfo->set_energy(0);
+          towerinfo->set_isHot(true);
         }
-        towerinfo->set_time(_EMCAL_RETOWER_T[eta][phi]);
+        else
+        {
+          // scale up the total energy to account for the amount that's been masked
+          towerinfo->set_energy(_EMCAL_RETOWER_E[eta][phi] * 1. / (1. - _EMCAL_RETOWER_MASKED_A[eta][phi] / _EMCAL_RETOWER_TOTAL_A[eta][phi]));
+          // set the chi2 to be the masked fraction
+          towerinfo->set_chi2(_EMCAL_RETOWER_MASKED_A[eta][phi] / _EMCAL_RETOWER_TOTAL_A[eta][phi]);
+        }
       }
     }
   }

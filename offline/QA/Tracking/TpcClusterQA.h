@@ -21,14 +21,15 @@ class TpcClusterQA : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
-  
+ 
  private:
   void createHistos();
+    
 
   std::string getHistoPrefix() const;
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
-
+   
   int m_event = 0;
   int m_totalClusters = 0;
   int m_clustersPerSector[24] = {0};

@@ -16,6 +16,8 @@
 #include <trackbase_historic/SvtxTrackState_v2.h>
 #include <trackbase_historic/TrackSeed.h>
 
+#include <tpc/TpcGlobalPositionWrapper.h>
+
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <Acts/EventData/ParticleHypothesis.hpp>
@@ -99,7 +101,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
     }
 
     const unsigned int trkrid = TrkrDefs::getTrkrId(key);
-    const unsigned int side = TpcDefs::getSide(key);
 
     if(m_verbosity > 1) { std::cout << "    Cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl; }
 
@@ -107,33 +108,14 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
     // we do this by modifying the fake surface transform, to move the cluster to the corrected position
     if (trkrid == TrkrDefs::tpcId)
     {
-      Acts::Vector3 global = tGeometry->getGlobalPosition(key, cluster);
-      Acts::Vector3 global_in = global;
-
-      // make all corrections to global position of TPC cluster
-      float z = _clusterCrossingCorrection.correctZ(global[2], side, crossing);
-      global[2] = z;
-
-      // apply distortion corrections
-      if (dcc_static)
-      {
-        global = _distortionCorrection.get_corrected_position(global, dcc_static);
-      }
-      if (dcc_average)
-      {
-        global = _distortionCorrection.get_corrected_position(global, dcc_average);
-      }
-      if (dcc_fluctuation)
-      {
-        global = _distortionCorrection.get_corrected_position(global, dcc_fluctuation);
-      }
+      Acts::Vector3 global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, tGeometry, crossing, dcc_static, dcc_average, dcc_fluctuation);
+      Acts::Vector3 global_in = tGeometry->getGlobalPosition(key, cluster);
 
       if(m_verbosity > 2)
 	{
 	  std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
 		    << " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
-		    << " crossing z correction " << z - global_in(2) 
-		    << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - z 
+		    << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - global_in(2) 
 		    << std::endl;
 	}
 
@@ -341,7 +323,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     }
 
     const unsigned int trkrid = TrkrDefs::getTrkrId(key);
-    const unsigned int side = TpcDefs::getSide(key);
 
     if(m_verbosity > 1) { std::cout << "    Cluster key " << key << " trkrid " << trkrid << " crossing " << crossing << std::endl; }
 
@@ -352,30 +333,13 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     
     if (trkrid == TrkrDefs::tpcId)
       {
-	// make all corrections to global position of TPC cluster
-	float z = _clusterCrossingCorrection.correctZ(global[2], side, crossing);
-	global[2] = z;
-
-	// apply distortion corrections
-	if (dcc_static)
-	  {
-	    global = _distortionCorrection.get_corrected_position(global, dcc_static);
-	  }
-	if (dcc_average)
-	  {
-	    global = _distortionCorrection.get_corrected_position(global, dcc_average);
-	  }
-	if (dcc_fluctuation)
-	  {
-	    global = _distortionCorrection.get_corrected_position(global, dcc_fluctuation);
-	  }
+        global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, tGeometry, crossing, dcc_static, dcc_average, dcc_fluctuation);
 
         if (m_verbosity > 1)
 	  {
 	    std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
 		      << " corr glob (unmoved) " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
-		      << " crossing z correction " << z - global_in(2) 
-		      << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - z 
+		      << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - global_in(2) 
 		      << std::endl;
 	  }
       }

@@ -200,7 +200,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     }
   }
 
-  std::string cluster_node_name = "CLUSTERINFO_CEMC";
+  std::string cluster_node_name = "CLUSTERINFO_CEMC2";
 	
   if (use_pdc)
   {
