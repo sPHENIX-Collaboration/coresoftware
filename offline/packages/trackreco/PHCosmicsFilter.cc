@@ -6,44 +6,67 @@
 
 //begin
 
-//#ifndef PHCOSMICSFILTER_H
-//#define PHCOSMICSFILTER_H
+#include "PHCosmicsFilter.h"
 
-#include <fun4all/SubsysReco.h>
+#include "AssocInfoContainer.h"                         // for AssocInfoCont...
+
+// sPHENIX Geant4 includes
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterIterationMapv1.h>
+#include <trackbase/TrkrDefs.h>  // for getLayer, clu...
+
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
 
-// Helix Hough + Eigen includes (hidden from rootcint)
-#if !defined(__CINT__) || defined(__CLING__)
+// sPHENIX includes
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
-#include <Eigen/Core>                              // for Matrix
-#endif
+#include <phool/PHTimer.h>                              // for PHTimer
+#include <phool/getClass.h>
 
+//ROOT includes for debugging
+#include <TFile.h>
+#include <TH1.h>
+#include <TNtuple.h>
+#include <TAxis.h>
+#include <TGraph.h>
 
+#include <Eigen/Core>                  // for Matrix
+#include <Eigen/Dense>
 
-#if !defined(__CINT__) || defined(__CLING__)
 //BOOST for combi seeding
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/point.hpp>
-
 #include <boost/geometry/index/rtree.hpp>
-#endif
 
 // standard includes
+#include <algorithm>
 #include <cfloat>
-#include <iostream>                                // for operator<<, basic_...
+#include <climits>                                     // for UINT_MAX
+#include <cmath>
+#include <iostream>
 #include <list>
 #include <map>
 #include <memory>
-#include <set>                                     // for set
+#include <memory>
+#include <set>                                          // for set
 #include <string>                                  // for string
-#include <utility>                                 // for pair
+#include <tuple>
+#include <utility>
 #include <vector>
+                                   // for pair, make_pair
 
 // forward declarations
 class BbcVertexMap;
@@ -69,47 +92,6 @@ class SvtxHitMap;
 class TNtuple;
 class TFile;
 
-#include "PHCosmicsFilter.h"
-
-#include "AssocInfoContainer.h"                         // for AssocInfoCont...
-
-// trackbase_historic includes
-#include <trackbase/TrackFitUtils.h>
-#include <trackbase/TrkrCluster.h>  // for TrkrCluster
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrDefs.h>  // for getLayer, clu...
-#include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrClusterIterationMapv1.h>
-#include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v2.h>
-
-
-// sPHENIX Geant4 includes
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-
-// sPHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHTimer.h>                              // for PHTimer
-#include <phool/getClass.h>
-
-#include <Eigen/Core>                  // for Matrix
-#include <Eigen/Dense>
-
-
-
-//ROOT includes for debugging
-#include <TFile.h>
-#include <TNtuple.h>
-#include <TAxis.h>
-#include <TGraph.h>
-//BOOST for combi seeding
-#include <boost/geometry/geometries/box.hpp>
-#include <boost/geometry/geometries/point.hpp>
-#include <boost/geometry/index/rtree.hpp>
 
 using point = bg::model::point<float, 3, bg::cs::cartesian>;
 //typedef bg::model::point<float, 3, bg::cs::cartesian> point;
@@ -120,19 +102,6 @@ using pointKey = std::pair<point, TrkrDefs::cluskey>;
 
 using myrtree = bgi::rtree<pointKey, bgi::quadratic<16>>;
 
-// standard includes
-#include <TH1.h>
-//#include <stdio.h>      /* printf */
-//#include <cmath.h>       /* copysign */
-#include <algorithm>
-#include <climits>                                     // for UINT_MAX
-#include <cmath>
-#include <iostream>
-#include <memory>
-#include <set>                                          // for set
-#include <tuple>
-#include <utility>   
-                                   // for pair, make_pair
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
@@ -140,11 +109,6 @@ using myrtree = bgi::rtree<pointKey, bgi::quadratic<16>>;
 
 
 using namespace std;
-//using namespace ROOT::Minuit2;
-//namespace bg = boost::geometry;
-//namespace bgi = boost::geometry::index;
-
-//typedef uint64_t cluskey;
 
 vector<TrkrCluster*> clusterpoints;
 

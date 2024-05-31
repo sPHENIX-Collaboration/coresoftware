@@ -11,11 +11,11 @@
 
 #include "Jet.h"
 
+#include <array>
 #include <cmath>
 #include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
-#include <array>
 #include <utility>  // for pair, make_pair
 
 class PHObject;
@@ -85,21 +85,23 @@ class Jetv2 : public Jet
 
   // Jet properties
   void resize_properties(size_t size) override { _properties.resize(size, NAN); };
-  std::vector<float>& get_property_vec() override { return _properties; } // new in v2
-  size_t size_properties() const override { return _properties.size(); }  // implemented in v1 and v2
-                                                                                                       
+  std::vector<float>& get_property_vec() override { return _properties; }  // new in v2
+  size_t size_properties() const override { return _properties.size(); }   // implemented in v1 and v2
+
   float get_property(Jet::PROPERTY index) const override { return _properties[static_cast<int>(index)]; };
   inline void set_property(Jet::PROPERTY index, float value) override
-  { _properties[static_cast<int>(index)] = value; };
+  {
+    _properties[static_cast<int>(index)] = value;
+  };
 
   // Jet components
   size_t size_comp() const override { return _comp_ids.size(); }
   void clear_comp() override { _comp_ids.clear(); }
   void insert_comp(SRC iSRC, unsigned int compid) override;
-  void insert_comp(Jet::SRC, unsigned int compid, bool) override; //skips setting _is_sorted flag
+  void insert_comp(Jet::SRC, unsigned int compid, bool) override;  // skips setting _is_sorted flag
   void insert_comp(TYPE_comp_vec&) override;
   void insert_comp(TYPE_comp_vec&, bool) override;
-  void set_comp_sort_flag(bool f=false) override {_is_sorted=f;}; 
+  void set_comp_sort_flag(bool f = false) override { _is_sorted = f; };
 
   void print_comp(std::ostream& os = std::cout, bool single_line = false) override;
   size_t num_comp(SRC iSRC = Jet::SRC::VOID) override;
@@ -119,10 +121,10 @@ class Jetv2 : public Jet
   /// unique identifier within container
   unsigned int _id = ~0x0;
   void ensure_sorted();
-  bool _is_sorted { false };
+  bool _is_sorted{false};
 
   /// jet momentum vector (px,py,pz)
-  std::array<float,3> _mom {{ NAN, NAN, NAN}} ;
+  std::array<float, 3> _mom{{NAN, NAN, NAN}};
 
   /// jet energy
   float _e = NAN;
@@ -157,8 +159,6 @@ class Jetv2 : public Jet
   size_t erase_comp(Jet::SRC /**/) override;
   void erase_comp(Iter /*iter*/) override;
   void erase_comp(Iter /*first*/, Iter /*last*/) override;
-
-
 
   ClassDefOverride(Jetv2, 1);
 };

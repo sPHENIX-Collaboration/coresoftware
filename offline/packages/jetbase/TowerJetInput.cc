@@ -60,8 +60,10 @@ void TowerJetInput::identify(std::ostream &os)
 
 std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0) { std::cout << "TowerJetInput::process_event -- entered" << std::endl;
-}
+  if (Verbosity() > 0)
+  {
+    std::cout << "TowerJetInput::process_event -- entered" << std::endl;
+  }
 
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
@@ -428,10 +430,14 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       int iphi = towerinfos->getTowerPhiBin(calokey);
       const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(geocaloid, ieta, iphi);
       // skip masked towers
-      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2()) { continue;
-}
-      if (std::isnan(tower->get_energy())) { continue;
-}
+      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
+      {
+        continue;
+      }
+      if (std::isnan(tower->get_energy()))
+      {
+        continue;
+      }
       RawTowerGeom *tower_geom = geom->get_tower_geometry(key);
       assert(tower_geom);
 
@@ -485,8 +491,9 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       pseudojets.push_back(jet);
     }
   }
-  if (Verbosity() > 0) { std::cout << "TowerJetInput::process_event -- exited" << std::endl;
-}
-
+  if (Verbosity() > 0)
+  {
+    std::cout << "TowerJetInput::process_event -- exited" << std::endl;
+  }
   return pseudojets;
 }

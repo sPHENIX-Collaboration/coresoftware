@@ -27,7 +27,10 @@ void TrackJetInput::identify(std::ostream &os)
 
 std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0) std::cout << "TrackJetInput::process_event -- entered" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "TrackJetInput::process_event -- entered" << std::endl;
+  }
 
   // Pull the reconstructed track information off the node tree...
 
@@ -53,7 +56,10 @@ std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back(jet);
   }
 
-  if (Verbosity() > 0) std::cout << "TrackJetInput::process_event -- exited" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "TrackJetInput::process_event -- exited" << std::endl;
+  }
 
   return pseudojets;
 }

@@ -1,11 +1,11 @@
 #include "JetProbeInput.h"
 
 #include "Jet.h"
-#include "Jetv2.h"
 #include "JetContainer.h"
+#include "Jetv2.h"
 
-#include <g4main/PHG4Particle.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
@@ -19,8 +19,12 @@
 #include <utility>  // for pair
 #include <vector>
 
-JetProbeInput::JetProbeInput(PHCompositeNode* topNode) {
-  if (!topNode) { return; }
+JetProbeInput::JetProbeInput(PHCompositeNode* topNode)
+{
+  if (!topNode)
+  {
+    return;
+  }
 
   JetContainer* jets = findNode::getClass<JetContainer>(topNode, "JetProbeContainer");
   if (!jets)
@@ -31,17 +35,20 @@ JetProbeInput::JetProbeInput(PHCompositeNode* topNode) {
   Jet* probe = jets->get_UncheckedAt(0);
   phi = probe->get_phi();
   eta = probe->get_eta();
-  pt  = probe->get_pt();
+  pt = probe->get_pt();
 }
 
-void JetProbeInput::identify(std::ostream &os)
+void JetProbeInput::identify(std::ostream& os)
 {
   os << "   JetProbeInput" << std::endl;
 }
 
-std::vector<Jet *> JetProbeInput::get_input(PHCompositeNode *topNode)
+std::vector<Jet*> JetProbeInput::get_input(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 0) { std::cout << "JetProbeInput::process_event -- entered" << std::endl; }
+  if (Verbosity() > 0)
+  {
+    std::cout << "JetProbeInput::process_event -- entered" << std::endl;
+  }
 
   JetContainer* jets = findNode::getClass<JetContainer>(topNode, "JetProbeContainer");
   if (!jets)
@@ -51,7 +58,7 @@ std::vector<Jet *> JetProbeInput::get_input(PHCompositeNode *topNode)
   }
 
   // Pull the reconstructed track information off the node tree...
-  std::vector<Jet *> pseudojets;
+  std::vector<Jet*> pseudojets;
   Jet* jet = jets->get_UncheckedAt(0);
   Jet* probe = new Jetv2();
   probe->set_px(jet->get_px());
