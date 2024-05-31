@@ -222,6 +222,18 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     {
       continue;
     }
+    int nintt = 0;
+    for (auto& key : cluskey_vec)
+    {
+      if(TrkrDefs::getTrkrId(key) == TrkrDefs::inttId)
+      {
+        nintt++;
+      }
+    }
+    if(nintt<2)
+    {
+      continue;
+    }
     // store cluster global positions in a vector global_vec and cluskey_vec
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
 
@@ -630,11 +642,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
 
       // add some cluster cuts
-      if (residual(0) > 0.2)
+      if (residual(0) > 1.0)
       {
         continue;  // 2 mm cut
       }
-      if (residual(1) > 0.2)
+      if (residual(1) > 1.0)
       {
         continue;  // 2 mm cut
       }
@@ -675,7 +687,19 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     if (use_event_vertex)
     {
-      if (Verbosity() > 3)
+      for(int p = 0; p<3; p++)
+      {
+
+      
+      if(is_vertex_param_fixed(p))
+      {
+        glblvtx_derivativeX[p] = 0;
+        glblvtx_derivativeY[p] = 0;
+      }
+      
+
+      }
+      if (Verbosity() > -1)
       {
         std::cout << "vertex info for track " << trackid << " with charge " << newTrack.get_charge() << std::endl;
 
@@ -705,15 +729,15 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
 
       // add some track cuts
-      if (fabs(newTrack.get_z() - event_vtx(2)) > 0.2)
+      if (fabs(newTrack.get_z() - event_vtx(2)) > 1)
       {
         continue;  // 2 mm cut
       }
-      if (fabs(newTrack.get_x()) > 0.2)
+      if (fabs(newTrack.get_x()) > 1)
       {
         continue;  // 2 mm cut
       }
-      if (fabs(newTrack.get_y()) > 0.2)
+      if (fabs(newTrack.get_y()) > 1)
       {
         continue;  // 2 mm cut
       }
@@ -1337,7 +1361,16 @@ unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std:
 {
   return TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec, 0, 6);
 }
-
+bool HelicalFitter::is_vertex_param_fixed(unsigned int param)
+{
+  bool ret = false;
+  auto it = fixed_vertex_params.find(param);
+  if(it != fixed_vertex_params.end())
+  {
+    ret = true;
+  }
+  return ret;
+}
 bool HelicalFitter::is_intt_layer_fixed(unsigned int layer)
 {
   bool ret = false;
