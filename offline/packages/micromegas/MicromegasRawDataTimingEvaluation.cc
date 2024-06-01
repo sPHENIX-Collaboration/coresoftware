@@ -59,12 +59,16 @@ namespace
     return o;
   }
 
+  // get the difference between two BCO.
+  template<class T>
+    inline static constexpr T get_bco_diff( const T& first, const T& second )
+  { return first < second ? (second-first):(first-second); }
+
 }
 
-// get the difference between two BCO.
-template<class T>
-  inline static constexpr T get_bco_diff( const T& first, const T& second )
-{ return first < second ? (second-first):(first-second); }
+// this is the clock multiplier from lvl1 to fee clock
+/* todo: should replace with actual rational number for John K. */
+double MicromegasRawDataTimingEvaluation::bco_matching_information_t::m_multiplier = 4.262916255;
 
 //_________________________________________________________
 void MicromegasRawDataTimingEvaluation::bco_matching_information_t::truncate( unsigned int maxsize )

@@ -65,6 +65,10 @@ namespace
 
 }  // namespace
 
+// this is the clock multiplier from lvl1 to fee clock
+/* todo: should replace with actual rational number for John K. */
+double SingleMicromegasPoolInput::bco_matching_information_t::m_multiplier = 4.262916255;
+
 //_________________________________________________________
 void SingleMicromegasPoolInput::bco_matching_information_t::truncate( unsigned int maxsize )
 {
