@@ -47,6 +47,10 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
   /// output file name for evaluation histograms
   void set_evaluation_outputfile(const std::string& outputfile) { m_evaluation_filename = outputfile; }
 
+  /// set gtm clock multiplier
+  static void set_gtm_clock_multiplier( double value )
+  { bco_matching_information_t::m_multiplier = value; }
+
   /**
    * waveform is similar to sample except that there is only one of which per waveform,
    * and that it stores the max adc and corresponding sample_id
@@ -132,11 +136,8 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
     //! get predicted fee_bco from gtm_bco
     unsigned int get_predicted_fee_bco( uint64_t ) const;
 
-    // this is the clock multiplier from lvl1 to fee clock
-    /* todo: should replace with actual rational number for John K. */
-    // static constexpr double multiplier = 4.2629164;
-    // static constexpr double multiplier = 4.2629169; // from run 43402
-    static constexpr double m_multiplier = 4.262916255; // from run 43817
+    //! gtm clock multiplier
+    static double m_multiplier;
 
     // define limit for matching two fee_bco
     static constexpr unsigned int m_max_fee_bco_diff = 50;
