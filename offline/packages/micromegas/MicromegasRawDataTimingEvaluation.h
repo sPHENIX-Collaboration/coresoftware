@@ -25,6 +25,8 @@ class TH1;
 class TH2;
 class TProfile;
 
+class Packet;
+
 /// micromegas raw data decoder
 class MicromegasRawDataTimingEvaluation : public SubsysReco
 {
@@ -149,6 +151,9 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
     static constexpr unsigned int m_max_matching_data_size = 50;
 
   };
+
+  /// find clock references for a given packet, and store in bco matching information
+  bool find_bco_matching_reference( Packet*, bco_matching_information_t&);
 
   /// map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, bco_matching_information_t>;
