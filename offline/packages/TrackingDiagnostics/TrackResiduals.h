@@ -29,6 +29,7 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class PHG4TpcCylinderGeomContainer;
 class PHG4CylinderGeomContainer;
+class TpcDistortionCorrectionContainer;
 class TrackResiduals : public SubsysReco
 {
  public:
@@ -89,6 +90,8 @@ class TrackResiduals : public SubsysReco
   bool m_doFailedSeeds = false;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
+  TpcDistortionCorrectionContainer *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
+
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
   std::string m_trackMapName = "SvtxTrackMap";
@@ -105,6 +108,8 @@ class TrackResiduals : public SubsysReco
   uint64_t m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
   unsigned int m_trackid = std::numeric_limits<unsigned int>::quiet_NaN();
   unsigned int m_crossing = std::numeric_limits<unsigned int>::quiet_NaN();
+  unsigned int m_tpcid = std::numeric_limits<unsigned int>::quiet_NaN();
+  unsigned int m_silid = std::numeric_limits<unsigned int>::quiet_NaN();
   float m_px = std::numeric_limits<float>::quiet_NaN();
   float m_py = std::numeric_limits<float>::quiet_NaN();
   float m_pz = std::numeric_limits<float>::quiet_NaN();
@@ -140,13 +145,25 @@ class TrackResiduals : public SubsysReco
   float m_dcaxy = std::numeric_limits<float>::quiet_NaN();
   float m_dcaz = std::numeric_limits<float>::quiet_NaN();
 
-  float m_seedx = std::numeric_limits<float>::quiet_NaN();
-  float m_seedy = std::numeric_limits<float>::quiet_NaN();
-  float m_seedz = std::numeric_limits<float>::quiet_NaN();
-  float m_seedpx = std::numeric_limits<float>::quiet_NaN();
-  float m_seedpy = std::numeric_limits<float>::quiet_NaN();
-  float m_seedpz = std::numeric_limits<float>::quiet_NaN();
-  int m_seedcharge = std::numeric_limits<int>::quiet_NaN();
+  float m_silseedx = std::numeric_limits<float>::quiet_NaN();
+  float m_silseedy = std::numeric_limits<float>::quiet_NaN();
+  float m_silseedz = std::numeric_limits<float>::quiet_NaN();
+  float m_silseedpx = std::numeric_limits<float>::quiet_NaN();
+  float m_silseedpy = std::numeric_limits<float>::quiet_NaN();
+  float m_silseedpz = std::numeric_limits<float>::quiet_NaN();
+  int m_silseedcharge = std::numeric_limits<int>::quiet_NaN();
+  float m_silseedphi = std::numeric_limits<float>::quiet_NaN();
+  float m_silseedeta = std::numeric_limits<float>::quiet_NaN();
+  float m_tpcseedx = std::numeric_limits<float>::quiet_NaN();
+  float m_tpcseedy = std::numeric_limits<float>::quiet_NaN();
+  float m_tpcseedz = std::numeric_limits<float>::quiet_NaN();
+  float m_tpcseedpx = std::numeric_limits<float>::quiet_NaN();
+  float m_tpcseedpy = std::numeric_limits<float>::quiet_NaN();
+  float m_tpcseedpz = std::numeric_limits<float>::quiet_NaN();
+  int m_tpcseedcharge = std::numeric_limits<int>::quiet_NaN();
+  float m_tpcseedphi = std::numeric_limits<float>::quiet_NaN();
+  float m_tpcseedeta = std::numeric_limits<float>::quiet_NaN();
+
   float m_dedx = std::numeric_limits<float>::quiet_NaN();
 
   //! hit tree info
