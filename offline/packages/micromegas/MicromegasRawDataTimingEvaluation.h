@@ -7,6 +7,7 @@
  */
 
 #include "MicromegasCalibrationData.h"
+#include "MicromegasBcoMatchingInformation.h"
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
@@ -48,10 +49,6 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
 
   /// output file name for evaluation histograms
   void set_evaluation_outputfile(const std::string& outputfile) { m_evaluation_filename = outputfile; }
-
-  /// set gtm clock multiplier
-  static void set_gtm_clock_multiplier( double value )
-  { bco_matching_information_t::m_multiplier = value; }
 
   /**
    * waveform is similar to sample except that there is only one of which per waveform,
@@ -102,61 +99,8 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
   //! main branch
   Container* m_container = nullptr;
 
-  //! store relevant information for bco matching between lvl1 and fee.
-  using m_bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
-  class bco_matching_information_t
-  {
-    public:
-
-    //! verified flag
-    /**
-     * the flag is set to true as soon as a non-trivial match is found between FEE_BCO and GTM_BCO
-     * it shows that the chosen reference are correct
-     */
-    bool m_verified = false;
-
-    //! number of gtm bco rollover
-    unsigned int m_gtm_bco_ovf_count = 0;
-
-    //! first lvl1 bco (40 bits)
-    bool m_has_gtm_bco_first = false;
-    uint64_t m_gtm_bco_first = 0;
-
-    //! first fee bco (20 bits)
-    bool m_has_fee_bco_first = false;
-    unsigned int m_fee_bco_first = 0;
-
-    //! list of available bco
-    std::list<uint64_t> m_gtm_bco_list;
-
-    //! matching between fee bco and lvl1 bco
-    std::list<m_bco_matching_pair_t> m_bco_matching_list;
-
-    //! need to truncate bco matching list to some decent value
-    void truncate( unsigned int /* maxsize */ );
-
-    //! get predicted fee_bco from gtm_bco
-    unsigned int get_predicted_fee_bco( uint64_t ) const;
-
-    //! gtm clock multiplier
-    static double m_multiplier;
-
-    // define limit for matching two fee_bco
-    static constexpr unsigned int m_max_fee_bco_diff = 50;
-
-    // define limit for matching fee_bco to fee_bco_predicted
-    static constexpr unsigned int m_max_gtm_bco_diff = 100;
-
-    // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
-    static constexpr unsigned int m_max_matching_data_size = 50;
-
-  };
-
-  /// find clock references for a given packet, and store in bco matching information
-  bool find_bco_matching_reference( Packet*, bco_matching_information_t&);
-
   /// map bco_information_t to packet id
-  using bco_matching_information_map_t = std::map<unsigned int, bco_matching_information_t>;
+  using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation>;
   bco_matching_information_map_t m_bco_matching_information_map;
 
   /// map waveforms to bco
