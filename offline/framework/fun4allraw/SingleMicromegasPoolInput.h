@@ -30,6 +30,11 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
+  /// set gtm clock multiplier
+  /* this account for the fequency difference between GTM clock and internal FEE clock */
+  static void set_gtm_clock_multiplier( double value )
+  { bco_matching_information_t::m_multiplier = value; }
+
  private:
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
@@ -75,6 +80,18 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
 
     //! get predicted fee_bco from gtm_bco
     unsigned int get_predicted_fee_bco( uint64_t ) const;
+
+    // this is the clock multiplier from lvl1 to fee clock
+    static double m_multiplier;
+
+    // define limit for matching two fee_bco
+    static constexpr unsigned int m_max_fee_bco_diff = 50;
+
+    // define limit for matching fee_bco to fee_bco_predicted
+    static constexpr unsigned int m_max_gtm_bco_diff = 100;
+
+    // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
+    static constexpr unsigned int m_max_matching_data_size = 50;
 
   };
 

@@ -28,18 +28,6 @@
 namespace
 {
 
-  // define limit for matching two fee_bco
-  static constexpr unsigned int max_fee_bco_diff = 50;
-
-  // define limit for matching fee_bco to fee_bco_predicted
-  static constexpr unsigned int max_gtm_bco_diff = 150;
-
-  // define limit above which one need to re-synchronize fee_bco and fee_bco_predicted
-  static constexpr unsigned int max_gtm_bco_diff_resync = 10;
-
-  // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
-  static constexpr unsigned int max_matching_data_size = 50;
-
   // streamer for lists
   template <class T>
   std::ostream& operator<<(std::ostream& o, const std::list<T>& list)
@@ -71,12 +59,16 @@ namespace
     return o;
   }
 
+  // get the difference between two BCO.
+  template<class T>
+    inline static constexpr T get_bco_diff( const T& first, const T& second )
+  { return first < second ? (second-first):(first-second); }
+
 }
 
-// get the difference between two BCO.
-template<class T>
-  inline static constexpr T get_bco_diff( const T& first, const T& second )
-{ return first < second ? (second-first):(first-second); }
+// this is the clock multiplier from lvl1 to fee clock
+/* todo: should replace with actual rational number for John K. */
+double MicromegasRawDataEvaluation::bco_matching_information_t::m_multiplier = 4.262916255;
 
 //_________________________________________________________
 void MicromegasRawDataEvaluation::bco_matching_information_t::truncate( unsigned int maxsize )
@@ -91,17 +83,13 @@ unsigned int MicromegasRawDataEvaluation::bco_matching_information_t::get_predic
   // check proper initialization
   if( !(m_has_gtm_bco_first && m_has_fee_bco_first ) ) { return 0; }
 
-  // this is the clock multiplier from lvl1 to fee clock
-  /* todo: should replace with actual rational number for John K. */
-  static constexpr double multiplier = 4.2629164;
-
   // get gtm bco difference with proper rollover accounting
   uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
     (gtm_bco - m_gtm_bco_first):
     (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
 
   // convert to fee bco, and truncate to 20 bits
-  uint64_t fee_bco_predicted = m_fee_bco_first + multiplier*(gtm_bco_difference);
+  uint64_t fee_bco_predicted = m_fee_bco_first + m_multiplier*(gtm_bco_difference);
   return (unsigned int)(fee_bco_predicted & 0xFFFFFU);
 }
 
@@ -288,7 +276,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         // create running sample, assign packet, fee, layer and tile id
         Sample sample;
         sample.packet_id = packet_id;
-        sample.fee_id = packet->iValue(iwf, "FEE");
+        sample.fee_id = m_mapping.get_old_fee_id(packet->iValue(iwf, "FEE"));
         const auto hitsetkey = m_mapping.get_hitsetkey(sample.fee_id);
         sample.layer = TrkrDefs::getLayer( hitsetkey );
         sample.tile = MicromegasDefs::getTileId( hitsetkey );
@@ -334,7 +322,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
           bco_matching_information.m_bco_matching_list.begin(),
           bco_matching_information.m_bco_matching_list.end(),
           [&sample]( const m_bco_matching_pair_t& pair )
-          { return get_bco_diff( pair.first, sample.fee_bco ) < max_fee_bco_diff; } );
+          { return get_bco_diff( pair.first, sample.fee_bco ) < bco_matching_information_t::m_max_fee_bco_diff; } );
 
         if( bco_matching_iter != bco_matching_information.m_bco_matching_list.end() )
         {
@@ -349,7 +337,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
             bco_matching_information.m_gtm_bco_list.begin(),
             bco_matching_information.m_gtm_bco_list.end(),
             [&sample, &bco_matching_information]( const uint64_t& gtm_bco )
-            { return get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco ) < max_gtm_bco_diff; } );
+            { return get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco ) < bco_matching_information_t::m_max_gtm_bco_diff; } );
           if( iter != bco_matching_information.m_gtm_bco_list.end() )
           {
             const auto gtm_bco = *iter;
@@ -362,6 +350,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
                 << " predicted: 0x" << bco_matching_information.get_predicted_fee_bco(gtm_bco)
                 << " gtm_bco: 0x" << gtm_bco
                 << std::dec
+                << " difference: " << get_bco_diff(bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco)
                 << std::endl;
             }
 
@@ -379,16 +368,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
              * if matching information is not verified, and the found match is not trivial (0),
              * change verified flag to true.
              */
-            if( !bco_matching_information.m_verified && get_bco_diff( sample.fee_bco, bco_matching_information.m_fee_bco_first ) > max_gtm_bco_diff )
+            if( !bco_matching_information.m_verified && get_bco_diff( sample.fee_bco, bco_matching_information.m_fee_bco_first ) > bco_matching_information_t::m_max_gtm_bco_diff )
             {
               bco_matching_information.m_verified = true;
-            }
-
-            // if fee_bco_predicted have drifted too much from fee_bco, reset the reference
-            if( get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco), sample.fee_bco ) > max_gtm_bco_diff_resync )
-            {
-              bco_matching_information.m_fee_bco_first = sample.fee_bco;
-              bco_matching_information.m_gtm_bco_first = gtm_bco;
             }
 
           }
@@ -412,8 +394,9 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
              * if no match is found, and matching_information has not been verified,
              * try using this BCO as a reference instead
              */
-            if( !bco_matching_information.m_verified && sample.fee_bco > bco_matching_information.m_fee_bco_first )
+            if( !bco_matching_information.m_verified && sample.fee_bco > bco_matching_information.m_fee_bco_first && sample.fee_id != 11 )
             {
+              std::cout << "MicromegasRawDataEvaluation::process_event - adjusting FEE reference" << std::endl;
               bco_matching_information.m_has_fee_bco_first = true;
               bco_matching_information.m_fee_bco_first = sample.fee_bco;
             }
@@ -488,7 +471,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
     }
 
     // cleanup
-    bco_matching_information.truncate(max_matching_data_size);
+    bco_matching_information.truncate(bco_matching_information_t::m_max_matching_data_size);
 
   }
 
