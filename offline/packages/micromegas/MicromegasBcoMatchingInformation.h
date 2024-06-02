@@ -99,7 +99,7 @@ class MicromegasBcoMatchingInformation
   static double m_multiplier;
 
   // define limit for matching two fee_bco
-  static constexpr unsigned int m_max_fee_bco_diff = 50;
+  static constexpr unsigned int m_max_fee_bco_diff = 10;
 
   // define limit for matching fee_bco to fee_bco_predicted
   static constexpr unsigned int m_max_gtm_bco_diff = 100;
