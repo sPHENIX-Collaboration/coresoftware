@@ -6,7 +6,6 @@
  */
 
 #include "MicromegasBcoMatchingInformation.h"
-#include "MicromegasDefs.h"
 
 #include <Event/packet.h>
 
@@ -49,6 +48,9 @@ namespace
   template<class T>
     inline static constexpr T get_bco_diff( const T& first, const T& second )
   { return first < second ? (second-first):(first-second); }
+
+  //! copied from micromegas/MicromegasDefs.h, not available here
+  static constexpr int m_nchannels_fee = 256;
 
 }
 
@@ -156,7 +158,7 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
     const unsigned short channel = packet->iValue( iwf, "CHANNEL" );
 
     // bound check
-    if( channel >= MicromegasDefs::m_nchannels_fee )
+    if( channel >= m_nchannels_fee )
     { continue; }
 
     const uint32_t fee_bco = static_cast<uint32_t>(packet->iValue(iwf, "BCO"));
@@ -263,14 +265,14 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t
       {
 
         // find element for which predicted fee_bco is the closest to request
-        const auto iter = std::min_element(
+        const auto iter2 = std::min_element(
           m_gtm_bco_list.begin(),
           m_gtm_bco_list.end(),
           [this, fee_bco]( const uint64_t& first, const uint64_t& second )
           { return get_bco_diff( get_predicted_fee_bco(first).value(), fee_bco ) <  get_bco_diff( get_predicted_fee_bco(second).value(), fee_bco ); } );
 
-        const int fee_bco_diff = (iter != m_gtm_bco_list.end()) ?
-          get_bco_diff( get_predicted_fee_bco(*iter).value(), fee_bco ):-1;
+        const int fee_bco_diff = (iter2 != m_gtm_bco_list.end()) ?
+          get_bco_diff( get_predicted_fee_bco(*iter2).value(), fee_bco ):-1;
 
         std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco -"
           << std::hex
