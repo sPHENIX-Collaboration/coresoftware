@@ -84,12 +84,12 @@ unsigned int MicromegasRawDataTimingEvaluation::bco_matching_information_t::get_
   if( !(m_has_gtm_bco_first && m_has_fee_bco_first ) ) { return 0; }
 
   // get gtm bco difference with proper rollover accounting
-  uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
+  const uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
     (gtm_bco - m_gtm_bco_first):
     (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
 
   // convert to fee bco, and truncate to 20 bits
-  uint64_t fee_bco_predicted = m_fee_bco_first + m_multiplier*(gtm_bco_difference);
+  const uint64_t fee_bco_predicted = m_fee_bco_first + m_multiplier*(gtm_bco_difference);
   return (unsigned int)(fee_bco_predicted & 0xFFFFFU);
 }
 
@@ -440,13 +440,17 @@ bool MicromegasRawDataTimingEvaluation::find_bco_matching_reference( Packet* pac
     {
       if( get_bco_diff( gtm_bco_diff_list[i], fee_bco_diff ) < bco_matching_information_t::m_max_fee_bco_diff )
       {
-        std::cout << "MicromegasRawDataTimingEvaluation::find_bco_matching_reference - matching is verified" << std::endl;
         bco_matching_information.m_verified = true;
         bco_matching_information.m_has_gtm_bco_first = true;
         bco_matching_information.m_gtm_bco_first = gtm_bco_list[i];
 
         bco_matching_information.m_has_fee_bco_first = true;
         bco_matching_information.m_fee_bco_first = fee_bco_prev;
+        std::cout << "MicromegasRawDataTimingEvaluation::find_bco_matching_reference - matching is verified" << std::endl;
+        std::cout << "MicromegasRawDataTimingEvaluation::find_bco_matching_reference -"
+          << " m_gtm_bco_first: " << std::hex << bco_matching_information.m_gtm_bco_first << std::dec << std::endl;
+        std::cout << "MicromegasRawDataTimingEvaluation::find_bco_matching_reference -"
+          << " m_fee_bco_first: " << std::hex << bco_matching_information.m_fee_bco_first << std::dec << std::endl;
         return true;
       }
     }
