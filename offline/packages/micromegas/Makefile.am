@@ -66,7 +66,6 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
-  MicromegasBcoMatchingInformation.h\
   MicromegasCalibrationData.h \
   MicromegasClusterizer.h \
   MicromegasCombinedDataDecoder.h \
@@ -109,7 +108,6 @@ libmicromegas_io_la_LIBADD = \
   -ltrackbase_historic_io
 
 libmicromegas_la_SOURCES = \
-  MicromegasBcoMatchingInformation.cc\
   MicromegasClusterizer.cc \
   MicromegasCombinedDataDecoder.cc \
   MicromegasCombinedDataEvaluation.cc \
@@ -123,6 +121,7 @@ libmicromegas_la_SOURCES = \
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \
+  -lfun4allraw \
   -lffarawobjects \
   -lphg4hit \
   -lSubsysReco

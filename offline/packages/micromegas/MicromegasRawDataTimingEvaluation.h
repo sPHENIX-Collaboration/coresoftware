@@ -7,9 +7,9 @@
  */
 
 #include "MicromegasCalibrationData.h"
-#include "MicromegasBcoMatchingInformation.h"
 
 #include <fun4all/SubsysReco.h>
+#include <fun4allraw/MicromegasBcoMatchingInformation.h>
 #include <phool/PHObject.h>
 
 #include <TTree.h>
@@ -99,19 +99,19 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
   //! main branch
   Container* m_container = nullptr;
 
-  /// map bco_information_t to packet id
+  //! map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation>;
   bco_matching_information_map_t m_bco_matching_information_map;
 
-  /// map waveforms to bco
+  //! map waveforms to bco
   /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t, unsigned int>;
   bco_map_t m_bco_map;
 
-  // keep track of total number of waveforms
+  //! keep track of total number of waveforms
   uint64_t m_waveform_count_total = 0;
 
-  // keep track of dropped waveforms
+  //! keep track of dropped waveforms
   uint64_t m_waveform_count_dropped = 0;
 
 };
