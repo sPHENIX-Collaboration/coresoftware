@@ -51,7 +51,13 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *towerinfosEM3 = nullptr;
   if (m_use_towerinfo)
   {
-    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
+    EMTowerName = m_towerNodePrefix + "_CEMC";
+    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
+    if(!towerinfosEM3)
+    {
+      std::cout << "RetowerCEMC::process_event: Cannot find node "<<EMTowerName<<std::endl;
+      exit(1);
+    }
   }
   else
   {
@@ -229,10 +235,11 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
 
   if (m_use_towerinfo)
   {
-    TowerInfoContainer *emcal_retower = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+    EMRetowerName = m_towerNodePrefix + "_CEMC_RETOWER";
+    TowerInfoContainer *emcal_retower = findNode::getClass<TowerInfoContainer>(topNode, EMRetowerName);
     if (Verbosity() > 0)
     {
-      std::cout << "RetowerCEMC::process_event: filling TOWERINFO_CALIB_CEMC_RETOWER node" << std::endl;
+      std::cout << "RetowerCEMC::process_event: filling "<<EMRetowerName<<" node" << std::endl;
     }
     // create new towers
     for (int eta = 0; eta < _NETA; eta++)
@@ -310,22 +317,24 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
 
   if (m_use_towerinfo)
   {
-    TowerInfoContainer *test_emcal_retower = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-    TowerInfoContainer *hcal_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+    EMRetowerName = m_towerNodePrefix + "_CEMC_RETOWER";
+    IHTowerName = m_towerNodePrefix + "_HCALIN";
+    TowerInfoContainer *test_emcal_retower = findNode::getClass<TowerInfoContainer>(topNode, EMRetowerName);
+    TowerInfoContainer *hcal_towers = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
     if (!test_emcal_retower)
     {
       if (Verbosity() > 0)
       {
-        std::cout << "RetowerCEMC::CreateNode : creating TOWERINFO_CALIB_CEMC_RETOWER node " << std::endl;
+        std::cout << "RetowerCEMC::CreateNode : creating "<<EMRetowerName<<" node " << std::endl;
       }
 
       TowerInfoContainer *emcal_retower = dynamic_cast<TowerInfoContainer *>(hcal_towers->CloneMe());
-      PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_retower, "TOWERINFO_CALIB_CEMC_RETOWER", "PHObject");
+      PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_retower, EMRetowerName, "PHObject");
       emcalNode->addNode(emcalTowerNode);
     }
     else
     {
-      std::cout << "RetowerCEMC::CreateNode : TOWERINFO_CALIB_CEMC_RETOWER already exists! " << std::endl;
+      std::cout << "RetowerCEMC::CreateNode : "<<EMRetowerName<<" already exists! " << std::endl;
     }
   }
   else

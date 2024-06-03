@@ -34,6 +34,8 @@ class TowerInfo : public PHObject
   virtual bool get_isNotInstr() const { return false; }
   virtual void set_isNoCalib(bool /*isNotInstr*/) { return; }
   virtual bool get_isNoCalib() const { return false; }
+  virtual void set_isZS(bool /*isZS*/) { return; }
+  virtual bool get_isZS() const { return false; }
   virtual bool get_isGood() const { return true; }
   virtual uint8_t get_status() const { return 0; }
   virtual void set_status(uint8_t /*status*/) { return; }

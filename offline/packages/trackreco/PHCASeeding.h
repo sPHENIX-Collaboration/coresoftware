@@ -9,7 +9,8 @@
  */
 
 // Statements for if we want to save out the intermediary clustering steps
-#define _PHCASEEDING_CLUSTERLOG_TUPOUT_
+/* #define _PHCASEEDING_CLUSTERLOG_TUPOUT_ */
+/* #define _PHCASEEDING_CHAIN_FORKS_ */
 /* #define _PHCASEEDING_TIMER_OUT_ */
 
 #include "ALICEKF.h"
@@ -67,7 +68,7 @@ class PHCASeeding : public PHTrackSeeding
 
    using point = bg::model::point<float, 2, bg::cs::cartesian>;
    using box = bg::model::box<point>;
-   using pointKey = std::pair<point, TrkrDefs::cluskey>; // phi and eta in the key
+   using pointKey = std::pair<point, TrkrDefs::cluskey>; // phi and z in the key
    using coordKey = std::pair<std::array<float, 2>, TrkrDefs::cluskey>; // just use phi and eta, no longer needs the layer
 
    using keyList = std::vector<TrkrDefs::cluskey>;
@@ -90,9 +91,10 @@ class PHCASeeding : public PHTrackSeeding
       const unsigned int nlayers_intt = 4,
       const unsigned int nlayers_tpc = 48,
       float neighbor_phi_width = .02,
-      float neighbor_eta_width = .01,
-      float maxSinPhi = 0.999,
-      float cosTheta_limit = -0.8);
+      float neighbor_z_width = .01,
+      float maxSinPhi = 0.999
+      /* float cosTheta_limit = -0.8 */
+      );
 
   ~PHCASeeding() override {}
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up)
@@ -100,9 +102,9 @@ class PHCASeeding : public PHTrackSeeding
     _start_layer = layer_low;
     _end_layer = layer_up;
   }
-  void SetSearchWindow(float eta_width, float phi_width)
+  void SetSearchWindow(float z_width, float phi_width)
   {
-    _neighbor_eta_width = eta_width;
+    _neighbor_z_width = z_width;
     _neighbor_phi_width = phi_width;
   }
   void SetClusAdd_delta_window(float _dzdr_cutoff, float _dphidr2_cutoff) 
@@ -141,22 +143,26 @@ class PHCASeeding : public PHTrackSeeding
   int Setup(PHCompositeNode* topNode) override;
   int Process(PHCompositeNode* topNode) override;
   int InitializeGeometry(PHCompositeNode* topNode);
-  int FindSeedsLayerSkip(double cosTheta_limit);
+  /* int FindSeedsLayerSkip(double cosTheta_limit); */
   int End() override;
 
  private:
   bool _save_clus_proc = false;
 
   TFile* _f_clustering_process = nullptr;
-  int      _tupout_count=-1;
+  int _tupout_count = -1;
+  int _n_tupchains  = -1;
   // Save the steps of the clustering
   TNtuple* _tupclus_all         = nullptr; // all clusters
   TNtuple* _tupclus_links       = nullptr; //  clusters which are linked
   TNtuple* _tupclus_bilinks     = nullptr; // bi-linked clusters
   TNtuple* _tupclus_seeds       = nullptr; // seed (outermost three bi-linked chain
   TNtuple* _tupclus_grown_seeds = nullptr; // seeds saved out
+                                           //
+  TNtuple* _tup_chainbody  = nullptr;
+  TNtuple* _tup_chainfork  = nullptr;
 
-  TNtuple* _tupwin_link      = nullptr; // cluster pairs with dphi and deta (very wide windows) x0,x1,y0,y1,z0,z1
+  TNtuple* _tupwin_link      = nullptr; // cluster pairs with dphi and dz (very wide windows) x0,x1,y0,y1,z0,z1
   TNtuple* _tupwin_cos_angle = nullptr; // directed cosine (all cluster triples which are found) x0,x1,x2
   TNtuple* _tupwin_seed23    = nullptr; // from third to fourth link -- can only use passing seeds
   TNtuple* _tupwin_seedL1    = nullptr; // from third to fourth link -- can only use passing seeds
@@ -171,6 +177,7 @@ class PHCASeeding : public PHTrackSeeding
   void FillTupWinLink(bgi::rtree<pointKey,bgi::quadratic<16>>&, const coordKey&, const PositionMap&)const;
   void FillTupWinCosAngle(const TrkrDefs::cluskey, const TrkrDefs::cluskey, const TrkrDefs::cluskey, const PositionMap&, double cos_angle, bool isneg) const;
   void FillTupWinGrowSeed(const keyList& seed, const keyLink& link, const PositionMap& globalPositions) const;
+  void fill_split_chains(const keyList& chain, const keyList& keylinks, const PositionMap& globalPositions, int& nchains) const;
   /* void fill_tuple_with_seed(TN */
 
 
@@ -204,7 +211,7 @@ class PHCASeeding : public PHTrackSeeding
   std::vector<coordKey> FillTree(bgi::rtree<pointKey,bgi::quadratic<16>>&, const keyList&, const PositionMap&, int layer);
   int FindSeedsWithMerger(const PositionMap&, const keyListPerLayer&);
 
-  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double etamin, double phimax, double etamax, std::vector<pointKey>& returned_values) const;
+  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double zmin, double phimax, double zmax, std::vector<pointKey>& returned_values) const;
   std::vector<TrackSeed_v2> RemoveBadClusters(const std::vector<keyList>& seeds, const PositionMap& globalPositions) const;
   double getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b, TrkrDefs::cluskey c, const PositionMap& globalPositions) const;
 
@@ -226,11 +233,11 @@ class PHCASeeding : public PHTrackSeeding
   //  float _cluster_z_error;
   //  float _cluster_alice_y_error;
   float _neighbor_phi_width;
-  float _neighbor_eta_width;
+  float _neighbor_z_width;
   float _clusadd_delta_dzdr_window = 0.5;
   float _clusadd_delta_dphidr2_window = 0.005;
   float _max_sin_phi;
-  float _cosTheta_limit;
+  /* float _cosTheta_limit; */
   double _rz_outlier_threshold = 0.1;
   double _xy_outlier_threshold = 0.1;
   double _fieldDir = -1;

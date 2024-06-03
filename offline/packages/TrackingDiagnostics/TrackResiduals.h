@@ -29,6 +29,7 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class PHG4TpcCylinderGeomContainer;
 class PHG4CylinderGeomContainer;
+class TpcDistortionCorrectionContainer;
 class TrackResiduals : public SubsysReco
 {
  public:
@@ -89,6 +90,8 @@ class TrackResiduals : public SubsysReco
   bool m_doFailedSeeds = false;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
+  TpcDistortionCorrectionContainer *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
+
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
   std::string m_trackMapName = "SvtxTrackMap";
@@ -142,7 +145,7 @@ class TrackResiduals : public SubsysReco
   float m_dcaxy = std::numeric_limits<float>::quiet_NaN();
   float m_dcaz = std::numeric_limits<float>::quiet_NaN();
 
-float m_silseedx = std::numeric_limits<float>::quiet_NaN();
+  float m_silseedx = std::numeric_limits<float>::quiet_NaN();
   float m_silseedy = std::numeric_limits<float>::quiet_NaN();
   float m_silseedz = std::numeric_limits<float>::quiet_NaN();
   float m_silseedpx = std::numeric_limits<float>::quiet_NaN();

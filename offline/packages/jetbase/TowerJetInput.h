@@ -1,8 +1,8 @@
 #ifndef JETBASE_TOWERJETINPUT_H
 #define JETBASE_TOWERJETINPUT_H
 
-#include "JetInput.h"
 #include "Jet.h"
+#include "JetInput.h"
 
 #include <calobase/RawTowerDefs.h>
 
@@ -14,7 +14,7 @@ class PHCompositeNode;
 class TowerJetInput : public JetInput
 {
  public:
-  TowerJetInput(Jet::SRC input);
+  TowerJetInput(Jet::SRC input, const std::string prefix = "TOWERINFO_CALIB");
   ~TowerJetInput() override {}
 
   void identify(std::ostream& os = std::cout) override;
@@ -25,8 +25,10 @@ class TowerJetInput : public JetInput
 
  private:
   Jet::SRC m_input;
-  RawTowerDefs::CalorimeterId geocaloid;
+  RawTowerDefs::CalorimeterId geocaloid{RawTowerDefs::CalorimeterId::NONE};
   bool m_use_towerinfo = false;
+  std::string m_towerNodePrefix;
+  std::string towerName;
 };
 
 #endif
