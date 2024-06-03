@@ -200,11 +200,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   for (unsigned int trackid = 0; trackid < maxtracks; ++trackid)
   {
     TrackSeed* tracklet = nullptr;
-    if (fitsilicon)
+    if (fitsilicon && _track_map_silicon != nullptr)
     {
       tracklet = _track_map_silicon->get(trackid);
     }
-    else if (fittpc)
+    else if (fittpc && _track_map_tpc != nullptr)
     {
       tracklet = _track_map_tpc->get(trackid);
     }
@@ -230,7 +230,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         nintt++;
       }
     }
-    if(nintt<2)
+    if(fitsilicon && nintt<2)
     {
       continue;
     }
