@@ -99,10 +99,10 @@ void LL1Packetv1::dump(std::ostream &os) const
     dump_idll1_mbd(os);
     break;
   case IDLL1_EMCAL_MON3:
-    dump_idll_emcal_mon3(os);
+    dump_idll1_emcal_mon3(os);
     break;
   case IDLL1_JET_EMCAL_MON1:
-    dump_idll_jet_emcal_mon1(os);
+    dump_idll1_jet_emcal_mon1(os);
     break;
   default:
     std::cout << "unknown hit format: "
@@ -157,7 +157,7 @@ void LL1Packetv1::dump_idll1_mbd(std::ostream &os) const
   }
 }
 //  Packet_iddigitizerv3
-void LL1Packetv1::dump_idll_emcal_mon3(std::ostream &os) const
+void LL1Packetv1::dump_idll1_emcal_mon3(std::ostream &os) const
 {
   os << "-------------------------------------------------------------- " << std::endl;
   for (int ch = 0; ch < 24; ch++)
@@ -190,9 +190,10 @@ void LL1Packetv1::dump_idll_emcal_mon3(std::ostream &os) const
     }
   }
 }
-void LL1Packetv1::dump_idll_jet_emcal_mon1(std::ostream &os) const
+void LL1Packetv1::dump_idll1_jet_emcal_mon1(std::ostream &os) const
 {
   os << " -------------- " << (iValue(0, "MONITOR") ? "HCAL Data Map" : "EMCAL Data Map") << " -------------- " << std::endl;
+  os << "samples: " <<  iValue(0, "SAMPLES") << std::endl;
   for (int sample = 0; sample < iValue(0, "SAMPLES"); sample++)
   {
     os << std::dec << "BC : " << sample << std::endl;
