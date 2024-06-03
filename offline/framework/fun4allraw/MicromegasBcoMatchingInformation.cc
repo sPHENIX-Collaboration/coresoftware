@@ -210,8 +210,10 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
 std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t fee_bco )
 {
   // make sure the bco matching is properly initialized
-  if( !m_verified ) return std::nullopt;
-
+  if( !m_verified )
+  {
+    return std::nullopt;
+  }
   // find matching gtm bco in map
   const auto bco_matching_iter = std::find_if(
     m_bco_matching_list.begin(),
