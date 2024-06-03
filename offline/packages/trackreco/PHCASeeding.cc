@@ -19,6 +19,8 @@
 
 // tpc distortion correction
 #include <tpc/TpcDistortionCorrectionContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <phfield/PHFieldConfigv2.h>
 
@@ -62,7 +64,7 @@
 
 #if defined(_DEBUG_)
 #define LogDebug(exp) \
-  if (Verbosity() > 0) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
+  if (Verbosity() > 2) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #else
 #define LogDebug(exp) (void) 0
 #endif
@@ -250,7 +252,7 @@ std::pair<PHCASeeding::PositionMap, PHCASeeding::keyListPerLayer> PHCASeeding::F
       unsigned int layer = TrkrDefs::getLayer(ckey);
       if (layer < _start_layer || layer >= _end_layer)
       {
-        if (Verbosity() > 0)
+        if (Verbosity() > 2)
         {
           std::cout << "layer: " << layer << std::endl;
         }
@@ -289,7 +291,7 @@ std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding:
     const auto& globalpos_d = globalPositions.at(ckey);
     const double clus_phi = get_phi(globalpos_d);
     const double clus_z = globalpos_d.z();
-    if (Verbosity() > 0)
+    if (Verbosity() > 5)
     {
       /* int layer = TrkrDefs::getLayer(ckey); */
       std::cout << "Found cluster " << ckey << " in layer " << layer << std::endl;
@@ -306,15 +308,15 @@ std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding:
     _rtree.insert(std::make_pair(point(clus_phi, globalpos_d.z()), ckey));
     t_fill->stop();
   }
-  if (Verbosity() > 1)
+  if (Verbosity() > 5)
   {
     std::cout << "nhits in layer(" << layer << "): " << coords.size() << std::endl;
   }
-  if (Verbosity() > 0)
+  if (Verbosity() > 3)
   {
     std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
   }
-  if (Verbosity() > 0)
+  if (Verbosity() > 3)
   {
     std::cout << "number of duplicates : " << n_dupli << std::endl;
   }
@@ -324,7 +326,7 @@ std::vector<PHCASeeding::coordKey> PHCASeeding::FillTree(bgi::rtree<PHCASeeding:
 int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
 {
   process_tupout_count();
-  if (Verbosity() > 1)
+  if (Verbosity() > 3)
   {
     std::cout << " Process...  " << std::endl;
   }
@@ -424,6 +426,7 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
     // these lines of code will rotates through all three _rtree's in the array,
     // where the old lower becomes the new middle, the old middle the new upper,
     // and the old upper drops out and that _rtree is filled with the new lower
+    const unsigned int LAYER = layer_index + _FIRST_LAYER_TPC;
     int index_above = (layer_index + 1) % 3;
     int index_current = (layer_index)   % 3;
     int index_below = (layer_index - 1) % 3;
@@ -470,20 +473,20 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
       std::vector<pointKey> ClustersBelow;
 
       QueryTree(_rtree_below,
-          StartPhi - _neighbor_phi_width,
-          StartZ - _neighbor_z_width,
-          StartPhi + _neighbor_phi_width,
-          StartZ + _neighbor_z_width,
+          StartPhi - dphi_per_layer[LAYER],
+          StartZ - dZ_per_layer[LAYER],
+          StartPhi + dphi_per_layer[LAYER],
+          StartZ + dZ_per_layer[LAYER],
           ClustersBelow);
         
       FillTupWinLink(_rtree_below, StartCluster, globalPositions);
 
       QueryTree(_rtree_above,
-                StartPhi - _neighbor_phi_width,
-                StartZ - _neighbor_z_width,
-                StartPhi + _neighbor_phi_width,
-                StartZ + _neighbor_z_width,
-                ClustersAbove);
+          StartPhi - dphi_per_layer[LAYER+1],
+          StartZ - dZ_per_layer[LAYER+1],
+          StartPhi + dphi_per_layer[LAYER+1],
+          StartZ + dZ_per_layer[LAYER+1],
+          ClustersAbove);
 
       t_seed->stop();
       rtree_query_time += t_seed->elapsed();
@@ -510,6 +513,7 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
                      [&](pointKey AboveCandidate)
                      {
           const auto& abovepos = globalPositions.at(AboveCandidate.second);
+          /* std::cout << " FIXME LAYER: " << ((int) LAYER) << " vs " << ((int)TrkrDefs::getLayer(AboveCandidate.second)) << std::endl; */
           return std::array<double,3>{abovepos(0)-StartX,
           abovepos(1)-StartY,
           abovepos(2)-StartZ}; });
@@ -673,11 +677,11 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
 
   while (tempSeedKeyLists.size() > 0)
   {
-    if (Verbosity() > 0)
+    if (Verbosity() > 2)
     {
       std::cout << "temp size: " << tempSeedKeyLists.size() << std::endl;
     }
-    if (Verbosity() > 0)
+    if (Verbosity() > 2)
     {
       std::cout << "final size: " << trackSeedKeyLists.size() << std::endl;
     }
@@ -760,7 +764,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
         fill_tuple_with_seed(_tupclus_grown_seeds, seed, globalPositions);
       }
     }
-    if (Verbosity() > 0)
+    if (Verbosity() > 2)
     {
       std::cout << "new temp size: " << newtempSeedKeyLists.size() << std::endl;
     }
@@ -768,7 +772,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
   }
   // old code block move to end of code under the title: "---OLD CODE 1: SKIP_LAYERS---"
   t_seed->stop();
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     std::cout << "keychain assembly time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
   }
@@ -805,7 +809,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
       LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") "
                                       << " (x,y,z) = (" << globalpos(0) << "," << globalpos(1) << "," << globalpos(2) << ")" << std::endl);
 
-      if (Verbosity() > 0)
+      if (Verbosity() > 2)
       {
         unsigned int lay = TrkrDefs::getLayer(j);
         std::cout << "  eta, phi, layer = (" << clus_eta << "," << clus_phi << "," << lay << ") "
@@ -817,7 +821,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
   }
   LogDebug(" Total large jumps: " << jumpcount << std::endl);
   t_seed->stop();
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     std::cout << "eta-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
   }
@@ -839,7 +843,7 @@ std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const std::vector<PHCAS
     {
       continue;
     }
-    if (Verbosity() > 0)
+    if (Verbosity() > 3)
     {
       std::cout << "chain size: " << chain.size() << std::endl;
     }
@@ -872,7 +876,7 @@ std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const std::vector<PHCAS
     }
 
     clean_chains.push_back(trackseed);
-    if (Verbosity() > 0)
+    if (Verbosity() > 2)
     {
       std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
     }
@@ -957,6 +961,26 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
 
+  std::cout << " FIXME A0 " << std::endl;
+
+  PHG4TpcCylinderGeomContainer* geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!geom_container)
+  {
+    std::cerr << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  std::cout << " FIXME A1 " << std::endl;
+  for (int i=8;i<=54; ++i) {
+    const float rad_0 = geom_container->GetLayerCellGeom(i-1)->get_radius();
+    const float rad_1 = geom_container->GetLayerCellGeom(i)->get_radius();
+    const float delta_rad = rad_1-rad_0;
+
+    dZ_per_layer[i]   = _neighbor_z_width   * delta_rad;
+    dphi_per_layer[i] = _neighbor_phi_width * delta_rad;
+    std::cout << " FIXME layer(" << i <<") delta-rad: " << delta_rad << std::endl;
+  }
+  std::cout << " FIXME A2 " << std::endl;
   
 #if defined(_PHCASEEDING_CLUSTERLOG_TUPOUT_)
   std::cout << " Writing _CLUSTER_LOG_TUPOUT.root file " << std::endl;
@@ -978,6 +1002,30 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   _tup_chainfork  = new TNtuple("chainfork", "chain with multiple links, which if forking", "event:nchain:layer:x:y:z:dzdr:d2phidr2:nlink:nlinks"); // nlinks to add, 0 ... nlinks
   _tup_chainbody  = new TNtuple("chainbody", "chain body with multiple link options", "event:nchain:layer:x:y:z:dzdr:d2phidr2:nlink:nlinks"); // nlinks in chain being added to will be 0, 1, 2 ... working backward from the fork -- dZ and dphi are dropped for final links as necessary
 #endif
+
+  // NOTE:
+  // gaps downwards one layer in R are about:
+  // The gaps between each layer to the one below:
+  // layers 40-49 : 1.1
+  // layers 39    : 1.9
+  // layers 24-38 : 1.0
+  // layers 23    : 1.7
+  // layers 8-22  : 0.6
+  //
+  // layer: 49->48 width 1.10
+  // ...
+  // layer: 40->39 width 1.1
+  // ...
+  // layer: 40->39 width 1.1
+  // layer: 39->38 width 1.9
+  // layer: 38->37 width 1.0
+  // layer: 37->36 width 1.0
+  // ...
+  // layer: 24->23 width 1.0
+  // layer: 23->22 width 1.7
+  // layer: 22->21 width 0.6
+  // ...
+  // layer: 8->7   width 0.6
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

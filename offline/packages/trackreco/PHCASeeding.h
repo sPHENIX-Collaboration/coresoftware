@@ -9,7 +9,7 @@
  */
 
 // Statements for if we want to save out the intermediary clustering steps
-/* #define _PHCASEEDING_CLUSTERLOG_TUPOUT_ */
+#define _PHCASEEDING_CLUSTERLOG_TUPOUT_
 /* #define _PHCASEEDING_CHAIN_FORKS_ */
 /* #define _PHCASEEDING_TIMER_OUT_ */
 
@@ -80,6 +80,9 @@ class PHCASeeding : public PHTrackSeeding
    using keyLinkPerLayer = std::array<std::vector<keyLink>,_NLAYERS_TPC>;
 
    using PositionMap = std::unordered_map<TrkrDefs::cluskey, Acts::Vector3>;
+
+   std::array<float, 55> dZ_per_layer;
+   std::array<float, 55> dphi_per_layer;
 
    PHCASeeding(
       const std::string& name = "PHCASeeding",
