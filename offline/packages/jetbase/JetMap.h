@@ -7,11 +7,11 @@
 
 #include <cmath>
 #include <cstddef>  // for size_t
+#include <functional>
 #include <iostream>
 #include <map>
-#include <vector>
-#include <functional>
 #include <set>
+#include <vector>
 
 class JetMap : public PHObject
 {
@@ -21,13 +21,13 @@ class JetMap : public PHObject
   typedef typ_JetMap::const_iterator ConstIter;
   typedef typ_JetMap::iterator Iter;
 
-  typedef std::vector<Jet*> vec_JetMap; // to be used when sorting typ_JetMap to iterate over
+  typedef std::vector<Jet*> vec_JetMap;  // to be used when sorting typ_JetMap to iterate over
 
   // source identifier iterators
   typedef std::set<Jet::SRC>::const_iterator ConstSrcIter;
   typedef std::set<Jet::SRC>::iterator SrcIter;
 
-  JetMap()  = default;
+  JetMap() = default;
   ~JetMap() override = default;
 
   void identify(std::ostream& os = std::cout) const override;
@@ -55,7 +55,6 @@ class JetMap : public PHObject
   virtual SrcIter find_src(Jet::SRC src);
   virtual SrcIter end_src();
 
-
   // map access to jets --------------------------------------------------------
 
   virtual bool empty() const { return true; }
@@ -69,7 +68,6 @@ class JetMap : public PHObject
   virtual Jet* insert(Jet* /*jet*/) { return nullptr; }
   virtual size_t erase(unsigned int /*idkey*/) { return 0; }
 
-
   virtual ConstIter begin() const;
   virtual ConstIter find(unsigned int idkey) const;
   virtual ConstIter end() const;
@@ -78,7 +76,7 @@ class JetMap : public PHObject
   virtual Iter find(unsigned int idkey);
   virtual Iter end();
 
-  virtual std::vector<Jet*> vec()=0;
+  virtual std::vector<Jet*> vec() = 0;
 
  private:
   ClassDefOverride(JetMap, 1);

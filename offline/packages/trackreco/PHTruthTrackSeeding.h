@@ -7,13 +7,16 @@
 #ifndef TRACKRECO_PHTRUTHTRACKSEEDING_H
 #define TRACKRECO_PHTRUTHTRACKSEEDING_H
 
-#include <gsl/gsl_rng.h>
+#include "PHTrackSeeding.h"
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
+
+#include <gsl/gsl_rng.h>
+
 #include <memory>
 #include <string>  // for string
 #include <vector>
-#include "PHTrackSeeding.h"
 
 // forward declarations
 class PHCompositeNode;

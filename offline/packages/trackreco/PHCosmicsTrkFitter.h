@@ -30,7 +30,6 @@
 #include <TFile.h>
 #include <TTree.h>
 
-#include <trackbase/alignmentTransformationContainer.h>
 
 class MakeActsGeometry;
 class SvtxTrack;
