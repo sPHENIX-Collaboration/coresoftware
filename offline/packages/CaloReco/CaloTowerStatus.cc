@@ -182,7 +182,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     //only reset what we will set
     m_raw_towers->get_tower_at_channel(channel)->set_isHot(false); 
     m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false); 
-    m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false); 
+    m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(false); 
 
     if (m_doHotChi2)
     {
