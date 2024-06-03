@@ -14,7 +14,7 @@ class PHCompositeNode;
 class TowerJetInput : public JetInput
 {
  public:
-  TowerJetInput(Jet::SRC input, const std::string prefix = "TOWERINFO_CALIB");
+  TowerJetInput(Jet::SRC input, const std::string &prefix = "TOWERINFO_CALIB");
   ~TowerJetInput() override {}
 
   void identify(std::ostream& os = std::cout) override;
