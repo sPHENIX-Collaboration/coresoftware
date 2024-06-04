@@ -961,7 +961,6 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
 
-  std::cout << " FIXME A0 " << std::endl;
 
   PHG4TpcCylinderGeomContainer* geom_container =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
@@ -970,7 +969,6 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
     std::cerr << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  std::cout << " FIXME A1 " << std::endl;
   for (int i=8;i<=54; ++i) {
     const float rad_0 = geom_container->GetLayerCellGeom(i-1)->get_radius();
     const float rad_1 = geom_container->GetLayerCellGeom(i)->get_radius();
@@ -978,9 +976,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
 
     dZ_per_layer[i]   = _neighbor_z_width   * delta_rad;
     dphi_per_layer[i] = _neighbor_phi_width * delta_rad;
-    std::cout << " FIXME layer(" << i <<") delta-rad: " << delta_rad << std::endl;
   }
-  std::cout << " FIXME A2 " << std::endl;
   
 #if defined(_PHCASEEDING_CLUSTERLOG_TUPOUT_)
   std::cout << " Writing _CLUSTER_LOG_TUPOUT.root file " << std::endl;
