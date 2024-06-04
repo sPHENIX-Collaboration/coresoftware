@@ -112,7 +112,7 @@ class RawClusterBuilderTopo : public SubsysReco
 
   int get_matching_HCal_phi_from_EMCal(int index_emcal_phi)
   {
-    return [(index_emcal_phi + 251)/4] % _HCAL_NPHI;
+    return ((index_emcal_phi + 251)/4) % _HCAL_NPHI;
   }
 
   std::vector<int> get_adjacent_towers_by_ID(int ID);
