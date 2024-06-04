@@ -102,7 +102,8 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     newhit->setPacketNumber(packet->iValue(0));
     newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
     newhit->setTriggerInput(packet->lValue(0, "TriggerInput"));
-    newhit->setTriggerVector(packet->lValue(0, "TriggerVector"));
+    newhit->setLiveVector(packet->lValue(0, "LiveVector"));
+    newhit->setScaledVector(packet->lValue(0, "ScaledVector"));
     newhit->setGTMBusyVector(packet->lValue(0, "GTMBusyVector"));
     for (int i = 0; i < 64; i++)
     {
