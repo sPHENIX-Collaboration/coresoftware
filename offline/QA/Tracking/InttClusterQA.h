@@ -22,6 +22,11 @@ class InttClusterQA : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
 
+  void writeSensorInfo(bool value)
+  {
+    m_sensorInfo = value;
+  }
+
  private:
   void createHistos();
 
@@ -30,6 +35,7 @@ class InttClusterQA : public SubsysReco
   int m_event = 0;
   int m_totalClusters = 0;
   int m_nclustersPerSensor[4][16][4] = {{{0}}};
+  bool m_sensorInfo = false;
 };
 
 #endif  // InttClusterQA_H
