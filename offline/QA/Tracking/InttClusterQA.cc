@@ -118,9 +118,9 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
   {
     int sensor_hits = hitsetitr->second->size();
-    float sensor_occupancy = (float) sensor_hits / (512*1024);
+    float sensor_occupancy = (float) sensor_hits / (128.*26.);
     auto h_occupancy = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%ssensorOccupancy") % getHistoPrefix()).str()));
-    h_occupancy->Fill(sensor_occupancy);
+    h_occupancy->Fill(100.*sensor_occupancy);
   }
 
   m_event++;
@@ -143,11 +143,11 @@ void InttClusterQA::createHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto h_occupancy = new TH1F((boost::format("%ssensorOccupancy") % getHistoPrefix()).str().c_str(),"INTT Sensor Occupancy",1000,0,2);
+  auto h_occupancy = new TH1F((boost::format("%ssensorOccupancy") % getHistoPrefix()).str().c_str(),"INTT Sensor Occupancy",100,0,5);
   h_occupancy->GetXaxis()->SetTitle("Sensor Occupancy [%]");
   h_occupancy->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_occupancy);
-  auto h_clusSize = new TH1F((boost::format("%sclusterSize") % getHistoPrefix()).str().c_str(),"INTT Cluster Size",5000,-0.5,4999.5);
+  auto h_clusSize = new TH1F((boost::format("%sclusterSize") % getHistoPrefix()).str().c_str(),"INTT Cluster Size",20,-0.5,19.5);
   h_clusSize->GetXaxis()->SetTitle("Cluster Size");
   h_clusSize->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusSize);

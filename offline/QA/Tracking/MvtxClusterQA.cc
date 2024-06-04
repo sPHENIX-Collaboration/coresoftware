@@ -127,11 +127,12 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
 
   TrkrHitSetContainer::ConstRange hitsetrange = trkrHitSetContainer->getHitSets(TrkrDefs::TrkrId::mvtxId);
 
+  auto h_occupancy = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%schipOccupancy") % getHistoPrefix()).str()));
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
   {
     int chip_hits = hitsetitr->second->size();
     float chip_occupancy = (float) chip_hits / (512*1024);
-    auto h_occupancy = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%schipOccupancy") % getHistoPrefix()).str()));
+    chip_occupancy = 100*chip_occupancy;
     h_occupancy->Fill(chip_occupancy);
   }
 
@@ -155,11 +156,11 @@ void MvtxClusterQA::createHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
  
-  auto h_occupancy = new TH1F((boost::format("%schipOccupancy") % getHistoPrefix()).str().c_str(),"MVTX Chip Occupancy",1000,0,2); 
+  auto h_occupancy = new TH1F((boost::format("%schipOccupancy") % getHistoPrefix()).str().c_str(),"MVTX Chip Occupancy",60,0,0.6); 
   h_occupancy->GetXaxis()->SetTitle("Chip Occupancy [%]");
   h_occupancy->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_occupancy);
-  auto h_clusSize = new TH1F((boost::format("%sclusterSize") % getHistoPrefix()).str().c_str(),"MVTX Cluster Size",5000,-0.5,4999.5); 
+  auto h_clusSize = new TH1F((boost::format("%sclusterSize") % getHistoPrefix()).str().c_str(),"MVTX Cluster Size",50,-0.5,49.5); 
   h_clusSize->GetXaxis()->SetTitle("Cluster Size");
   h_clusSize->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusSize);
