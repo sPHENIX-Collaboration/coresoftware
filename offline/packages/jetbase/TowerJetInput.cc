@@ -22,7 +22,7 @@
 #include <utility>  // for pair
 #include <vector>
 
-TowerJetInput::TowerJetInput(Jet::SRC input, std::string prefix)
+TowerJetInput::TowerJetInput(Jet::SRC input, const std::string &prefix)
   : m_input(input)
   , m_towerNodePrefix(std::move(prefix))
 {

@@ -42,8 +42,8 @@ class LL1Packetv1 : public LL1Packet
   int iValue(const int channel, const int sample) const override;
   void dump(std::ostream &os = std::cout) const override;
   void dump_idll1_mbd(std::ostream &os = std::cout) const;
-  void dump_idll_emcal_mon3(std::ostream &os = std::cout) const;
-  void dump_idll_jet_emcal_mon1(std::ostream &os = std::cout) const;
+  void dump_idll1_emcal_mon3(std::ostream &os = std::cout) const;
+  void dump_idll1_jet_emcal_mon1(std::ostream &os = std::cout) const;
 
  protected:
   int PacketEvtSequence{0};
