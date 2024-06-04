@@ -23,8 +23,15 @@ class Gl1Packetv2 : public Gl1Packet
   uint64_t getBunchNumber() const override { return BunchNumber; }
   void setTriggerInput(const uint64_t i) override { TriggerInput = i; }
   uint64_t getTriggerInput() const override { return TriggerInput; }
-  void setTriggerVector(const uint64_t i) override { TriggerVector = i; }
-  uint64_t getTriggerVector() const override { return TriggerVector; }
+
+  void setLiveVector(const uint64_t i) override { LiveVector = i; }
+  void setTriggerVector(const uint64_t i) override { setLiveVector(i); } // backward compatibility
+  uint64_t getLiveVector() const override { return LiveVector; }
+  uint64_t getTriggerVector() const override { return getLiveVector(); } // backward compatibility
+
+  void setScaledVector(const uint64_t i) override { ScaledVector =i;}
+  uint64_t getScaledVector() const override { return ScaledVector; }
+
   void setGTMBusyVector(const uint64_t i) override { GTMBusyVector = i; }
   uint64_t getGTMBusyVector() const override { return GTMBusyVector; }
 
@@ -41,13 +48,14 @@ class Gl1Packetv2 : public Gl1Packet
   unsigned int packet_nr{0};
   uint64_t BunchNumber{std::numeric_limits<uint64_t>::max()};
   uint64_t TriggerInput{0};
-  uint64_t TriggerVector{0};
+  uint64_t LiveVector{0};
+  uint64_t ScaledVector{0};
   uint64_t GTMBusyVector{0};
   std::array<std::array<uint64_t, 3>, 64> scaler{{{0}}};
   std::array<std::array<uint64_t, 3>, 16> gl1pscaler{{{0}}};
 
  private:
-  ClassDefOverride(Gl1Packetv2, 1)
+  ClassDefOverride(Gl1Packetv2, 2)
 };
 
 #endif
