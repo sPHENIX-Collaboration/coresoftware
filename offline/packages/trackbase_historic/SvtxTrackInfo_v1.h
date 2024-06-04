@@ -32,18 +32,18 @@ class SvtxTrackInfo_v1 : public SvtxTrackInfo
     m_crossing = source.get_crossing();
     m_hitbitmap = source.get_hitbitmap();
 
-    set_x(source.get_x());
-    set_y(source.get_y());
-    set_z(source.get_z());
-    set_phi(source.get_phi());
-    set_theta(source.get_theta());
-    set_qOp(source.get_qOp());
+    SvtxTrackInfo_v1::set_x(source.get_x());
+    SvtxTrackInfo_v1::set_y(source.get_y());
+    SvtxTrackInfo_v1::set_z(source.get_z());
+    SvtxTrackInfo_v1::set_phi(source.get_phi());
+    SvtxTrackInfo_v1::set_theta(source.get_theta());
+    SvtxTrackInfo_v1::set_qOp(source.get_qOp());
 
     for (int i = 0; i < 5; i++)
     {
       for (int j = i; j < 5; j++)
       {
-        set_covariance(i, j, source.get_covariance(i, j));
+        SvtxTrackInfo_v1::set_covariance(i, j, source.get_covariance(i, j));
       }
     }
   }
