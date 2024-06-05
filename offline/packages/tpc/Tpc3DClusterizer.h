@@ -74,7 +74,7 @@ class Tpc3DClusterizer : public SubsysReco
   double pedestal = 74.4;
   double min_clus_size = 1;
   double min_adc_sum = 10;
-  double m_pedestal = 74.4;
+  //  double m_pedestal = 74.4;
 
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;  // ns
@@ -107,7 +107,7 @@ class Tpc3DClusterizer : public SubsysReco
   double time_all = 0;
 
   LaserClusterv1 *m_currentCluster = nullptr;
-  std::vector<LaserClusterv1 *> m_eventClusters;
+  std::vector<LaserClusterv1 *> m_eventClusters = {nullptr};
   std::vector<float> m_currentHit;
   std::vector<float> m_currentHit_hardware;
 
