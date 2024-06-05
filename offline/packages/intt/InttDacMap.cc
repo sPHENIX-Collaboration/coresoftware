@@ -1,7 +1,5 @@
 #include "InttDacMap.h"
 
-#include <ffamodules/CDBInterface.h>
-
 #include <cdbobjects/CDBTTree.h>
 
 #include <filesystem>
@@ -10,50 +8,6 @@
 InttDacMap::InttDacMap()
 {
   InttDacMap::SetDefault();
-}
-
-int InttDacMap::LoadFromCDB(std::string const& calibname)
-{
-  if (calibname.empty())
-  {
-    std::cout << "InttDacMap::LoadFromCDB(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'name' is empty string" << std::endl;
-    return -1;
-  }
-
-  std::string database = CDBInterface::instance()->getUrl(calibname);
-  if (database.empty())
-  {
-    std::cout << "InttDacMap::LoadFromCDB(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'database' is empty string. calibname invalid :" << calibname << std::endl;
-    return -1;
-  }
-
-  return LoadFromFile(database);
-}
-
-int InttDacMap::LoadFromFile(std::string const& filename)
-{
-  if (filename.empty())
-  {
-    std::cout << "InttDacMap::LoadFromFile(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'filename' is empty string" << std::endl;
-    return -1;
-  }
-
-  if (!std::filesystem::exists(filename))
-  {
-    std::cout << "int InttDacMap::LoadFromFile(std::string const& filename)" << std::endl;
-    std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
-    return -1;
-  }
-
-  std::cout << "CDBFile: " << filename << std::endl;
-
-  CDBTTree cdbttree = CDBTTree(filename);
-  cdbttree.LoadCalibrations();
-
-  return LoadFromCDBTTree(cdbttree);
 }
 
 int InttDacMap::WriteToFile(std::string const& filename)
@@ -71,11 +25,8 @@ int InttDacMap::WriteToFile(std::string const& filename)
   return 0;
 }
 
-int InttDacMap::LoadFromCDBTTree(CDBTTree& cdbttree)
+int InttDacMap::LoadFromCdbTTree(CDBTTree& cdbttree)
 {
-  ///////////////
-  std::cout << "LoadFromCDBTTree::LoadFromCDBTTree" << std::endl;
-
   uint64_t N = cdbttree.GetSingleIntValue("size");
   for (uint64_t n = 0; n < N; ++n)
   {
@@ -123,20 +74,6 @@ unsigned short InttDacMap::GetDAC(const uint& felix_server,
 
     return -1;
   }
-}
-
-unsigned short InttDacMap::GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc)
-{
-  return GetDAC(rawdata.felix_server,
-                rawdata.felix_channel,
-                rawdata.chip,
-                rawdata.channel,
-                adc);
-}
-
-unsigned short InttDacMap::GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc)
-{
-  return GetDAC(InttNameSpace::ToRawData(offline), adc);
 }
 
 void InttDacMap::SetDefault(const uint& Adc0,

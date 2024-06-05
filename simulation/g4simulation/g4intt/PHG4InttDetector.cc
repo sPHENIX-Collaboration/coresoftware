@@ -6,7 +6,7 @@
 
 #include <intt/CylinderGeomIntt.h>
 #include <intt/InttMap.h>
-#include <intt/InttSurveyMapv1.h>
+#include <intt/InttSurveyMap.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -133,24 +133,13 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   // we loop over layers. All layers have only one laddertype
 
   // INTT survey map to get the survey information
-  InttSurveyMap *survey = new InttSurveyMapv1();
+  InttSurveyMap *survey = new InttSurveyMap();
   if (useSurvey)
   {
-    std::string url = CDBInterface::instance()->getUrl("InttSurveyMap");
-    if (!std::filesystem::exists(url))
-    {
-      std::cout << PHWHERE << " Could not locate INTT survey geometry " << url << std::endl;
-      gSystem->Exit(1);
-    }
-    std::cout << PHWHERE << "Use the INTT survey geometry. Get the survey map from " << url << std::endl;
-    if (survey->LoadFromFile(url))
+    if (survey->Load("InttSurveyMap"))
     {
       std::cout << PHWHERE << "Failed to load INTT survey geometry from the CDB" << std::endl;
       gSystem->Exit(1);
-    }
-    if (Verbosity() > 0)
-    {
-      survey->identify();
     }
   }
   else

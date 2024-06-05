@@ -1,21 +1,20 @@
 #ifndef INTT_INTTDACMAP_H
 #define INTT_INTTDACMAP_H
 
-#include "InttMapping.h"
+#include "InttLoadable.h"
+#include "InttMap.h"
 
 #include <array>
 #include <string>
 
 class CDBTTree;
 
-class InttDacMap
+class InttDacMap : public InttLoadable
 {
  public:
   InttDacMap();
-  virtual ~InttDacMap() {}
+  virtual ~InttDacMap() = default;
 
-  virtual int LoadFromCDB(std::string const& calibname);
-  virtual int LoadFromFile(std::string const& filename);
   virtual int WriteToFile(std::string const& filename);
 
   // Access by OnlineChannel
@@ -24,8 +23,6 @@ class InttDacMap
                                 const uint& chip,
                                 const uint& channel,
                                 const uint& adc);
-  virtual unsigned short GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc);
-  virtual unsigned short GetDAC(InttNameSpace::Offline_s const& offline, const uint& adc);
 
   virtual void Verbosity(const int& verbosity) { m_verbosity = verbosity; };
 
@@ -39,14 +36,12 @@ class InttDacMap
                           const uint& Adc7 = 210);
 
  protected:
-  int LoadFromCDBTTree(CDBTTree& cdbttree);
+  int LoadFromCdbTTree(CDBTTree& cdbttree);
   void FillToCDBTTree(CDBTTree& cdbttree);
 
  private:
   typedef std::array<std::array<std::array<std::array<int, 8>, 26>, 14>, 8> DacArray;
-
   DacArray m_dac{};  // [FELIX_SERVER:8][FELIX_CHANNEL:14][CHIP:26][DAC:8]
-
   int m_verbosity{0};
 };
 

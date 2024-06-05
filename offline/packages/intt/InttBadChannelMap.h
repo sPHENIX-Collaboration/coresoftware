@@ -1,35 +1,28 @@
 #ifndef INTT_BAD_CHANNEL_MAP_H
 #define INTT_BAD_CHANNEL_MAP_H
 
+#include "InttLoadable.h"
 #include "InttMap.h"
 
-#include <phool/PHObject.h>
-#include <iostream>
+#include <set>
 #include <string>
 
 class CDBTTree;
 
-class InttBadChannelMap : public PHObject
+class InttBadChannelMap : public InttLoadable
 {
  public:
   InttBadChannelMap() = default;
   ~InttBadChannelMap() override = default;
 
-  int LoadFromFile(std::string const& = "InttBadChannelMap.root");
-  int LoadFromCDB(std::string const& = "InttBadChannelMap");
-
-  virtual void identify(std::ostream& = std::cout) const override;
-  virtual std::size_t size() const;
-
-  virtual bool IsBad(InttMap::Online_s const&) const;
   virtual bool IsBad(InttMap::Offline_s const&) const;
-  virtual bool IsBad(InttMap::RawData_s const&) const;
 
  protected:
-  virtual int v_LoadFromCDBTTree(CDBTTree&);
+  int LoadFromCdbTTree(CDBTTree&) override;
 
  private:
-  ClassDefOverride(InttBadChannelMap, 1)
+  typedef std::set<InttMap::Offline_s, InttMap::OfflineWildcardComparator> Set_t;
+  Set_t m_bad_channel_set;
 };
 
 #endif  // INTT_BAD_CHANNEL_MAP_H

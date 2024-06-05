@@ -1,9 +1,8 @@
 #ifndef INTT_SURVEY_MAP_H
 #define INTT_SURVEY_MAP_H
 
+#include "InttLoadable.h"
 #include "InttMap.h"
-
-#include <phool/PHObject.h>
 
 #include <Eigen/Geometry>
 
@@ -14,7 +13,7 @@
 
 class CDBTTree;
 
-class InttSurveyMap : public PHObject
+class InttSurveyMap : public InttLoadable
 {
  public:
   typedef std::map<InttMap::Offline_s, Eigen::Affine3d, InttMap::OfflineComparator> map_t;
@@ -31,16 +30,13 @@ class InttSurveyMap : public PHObject
   int GetSensorTransform(key_t const&, val_t&) const;
   int GetLadderTransform(key_t const&, val_t&) const;
 
-  virtual void identify(std::ostream& = std::cout) const override;
-  virtual std::size_t size() const;
-
   virtual val_t const* GetAbsoluteTransform(key_t const&) const;
 
  protected:
-  virtual int v_LoadFromCDBTTree(CDBTTree&);
+  int LoadFromCdbTTree(CDBTTree&) override;
 
  private:
-  ClassDefOverride(InttSurveyMap, 1)
+  map_t m_absolute_transforms;
 };
 
 #endif  // INTT_SURVEY_MAP_H

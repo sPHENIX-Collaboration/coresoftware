@@ -1,50 +1,16 @@
 #include "InttSurveyMap.h"
+#include "InttMap.h"
 
 #include <cdbobjects/CDBTTree.h>
 
-#include <ffamodules/CDBInterface.h>
+#include <boost/format.hpp>
+#include <utility>
 
-#include <filesystem>  // for exists
-#include <utility>     // for pair
-
-int InttSurveyMap::LoadFromFile(
-    std::string const& filename)
+InttSurveyMap::val_t const* InttSurveyMap::GetAbsoluteTransform(
+    key_t const& k) const
 {
-  if (filename.empty())
-  {
-    std::cout << "int InttSurveyMap::LoadFromFile(std::string const& filename)" << std::endl;
-    std::cout << "\tArgument 'filename' is empty string" << std::endl;
-    return 1;
-  }
-
-  if (!std::filesystem::exists(filename))
-  {
-    std::cout << "int InttSurveyMap::LoadFromFile(std::string const& filename)" << std::endl;
-    std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
-    return 1;
-  }
-
-  CDBTTree cdbttree(filename);
-  cdbttree.LoadCalibrations();
-
-  return v_LoadFromCDBTTree(cdbttree);
-}
-
-int InttSurveyMap::LoadFromCDB(
-    std::string const& name)
-{
-  if (name.empty())
-  {
-    std::cout << "int InttSurveyMap::LoadFromCDB(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'name' is empty string" << std::endl;
-    return 1;
-  }
-
-  std::string database = CDBInterface::instance()->getUrl(name);
-  CDBTTree cdbttree(database);
-  cdbttree.LoadCalibrations();
-
-  return v_LoadFromCDBTTree(cdbttree);
+  map_t::const_iterator itr = m_absolute_transforms.find(k);
+  return itr != m_absolute_transforms.end() ? &(itr->second) : nullptr;
 }
 
 int InttSurveyMap::GetStripTransform(
@@ -135,28 +101,31 @@ int InttSurveyMap::GetLadderTransform(
 
   return 0;
 }
-
-void InttSurveyMap::identify(
-    std::ostream& out) const
+int InttSurveyMap::LoadFromCdbTTree(
+    CDBTTree& cdbttree)
 {
-  out << "InttSurveyMap\n"
-      << "\tBase Version\n"
-      << "\tUnimplemented" << std::endl;
-}
+  Eigen::Affine3d aff;
+  InttMap::Offline_s ofl;
 
-std::size_t InttSurveyMap::size() const
-{
+  m_absolute_transforms.clear();
+
+  Int_t N = cdbttree.GetSingleIntValue("size");
+  for (Int_t n = 0; n < N; ++n)
+  {
+    ofl.layer =      cdbttree.GetIntValue(n, "layer");
+    ofl.ladder_phi = cdbttree.GetIntValue(n, "ladder_phi");
+    ofl.ladder_z =   cdbttree.GetIntValue(n, "ladder_z");
+    ofl.strip_z =    cdbttree.GetIntValue(n, "strip_z");
+    ofl.strip_phi =  cdbttree.GetIntValue(n, "strip_phi");
+
+    for (int i = 0; i < 16; ++i)
+    {
+      std::string boost_formatted = boost::str(boost::format("m_abs_%01d_%01d") % (i/4) % (i%4));
+      aff.matrix()(i / 4, i % 4) = cdbttree.GetDoubleValue(n, boost_formatted);
+    }
+    m_absolute_transforms.insert({ofl, aff});
+  }
+
   return 0;
 }
 
-InttSurveyMap::val_t const* InttSurveyMap::GetAbsoluteTransform(
-    key_t const& /*unused*/) const
-{
-	return nullptr;
-}
-
-int InttSurveyMap::v_LoadFromCDBTTree(
-    CDBTTree& /*unused*/)
-{
-  return 0;
-}

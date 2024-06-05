@@ -1,35 +1,29 @@
 #ifndef INTT_FEE_MAP_H
 #define INTT_FEE_MAP_H
 
+#include "InttLoadable.h"
 #include "InttMap.h"
 
-#include <phool/PHObject.h>
-
 #include <cstddef>  // for size_t
-#include <iostream>
+#include <map>
 #include <string>
 
 class CDBTTree;
 
-class InttFeeMap : public PHObject
+class InttFeeMap : public InttLoadable
 {
  public:
   InttFeeMap() = default;
   ~InttFeeMap() override = default;
 
-  int LoadFromFile(std::string const& = "InttFeeMap.root");
-  int LoadFromCDB(std::string const& = "InttFeeMap");
+  int Convert(InttMap::Online_s&, InttMap::Offline_s const&) const;
+  int Convert(InttMap::Offline_s&, InttMap::Online_s const&) const;
 
-  virtual void identify(std::ostream& = std::cout) const override;
+  int Convert(InttMap::RawData_s&, InttMap::Online_s const&) const;
+  int Convert(InttMap::Online_s&, InttMap::RawData_s const&) const;
 
-  virtual int Convert(InttMap::Online_s&, InttMap::Offline_s const&) const;
-  virtual int Convert(InttMap::Offline_s&, InttMap::Online_s const&) const;
-
-  virtual int Convert(InttMap::RawData_s&, InttMap::Online_s const&) const;
-  virtual int Convert(InttMap::Online_s&, InttMap::RawData_s const&) const;
-
-  virtual int Convert(InttMap::RawData_s&, InttMap::Offline_s const&) const;
-  virtual int Convert(InttMap::Offline_s&, InttMap::RawData_s const&) const;
+  int Convert(InttMap::RawData_s&, InttMap::Offline_s const&) const;
+  int Convert(InttMap::Offline_s&, InttMap::RawData_s const&) const;
 
   InttMap::Online_s ToOnline(InttMap::Offline_s const&) const;
   InttMap::Online_s ToOnline(InttMap::RawData_s const&) const;
@@ -41,10 +35,14 @@ class InttFeeMap : public PHObject
   InttMap::Offline_s ToOffline(InttMap::RawData_s const&) const;
 
  protected:
-  virtual int v_LoadFromCDBTTree(CDBTTree&);
+  int LoadFromCdbTTree(CDBTTree&) override;
 
  private:
-  ClassDefOverride(InttFeeMap, 1)
+  typedef std::map<InttMap::Online_s, InttMap::RawData_s, InttMap::OnlineWildcardComparator> onl_to_raw_map_t;
+  typedef std::map<InttMap::RawData_s, InttMap::Online_s, InttMap::RawDataWildcardComparator> raw_to_onl_map_t;
+
+  onl_to_raw_map_t m_onl_to_raw;
+  raw_to_onl_map_t m_raw_to_onl;
 };
 
 #endif  // INTT_FEE_MAP_H
