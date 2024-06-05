@@ -141,6 +141,9 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
         // found matching gtm
         waveform.gtm_bco = result.value();
 
+        // also save predicted bco
+        waveform.fee_bco_predicted = bco_matching_information.get_predicted_fee_bco( waveform.gtm_bco ).value();
+
       } else {
 
         // invalid
