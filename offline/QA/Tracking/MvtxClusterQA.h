@@ -22,6 +22,11 @@ class MvtxClusterQA : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
 
+  void writeChipInfo(bool value)
+  {
+    m_chipInfo = value;
+  }
+
  private:
   void createHistos();
 
@@ -30,6 +35,7 @@ class MvtxClusterQA : public SubsysReco
   int m_event = 0;
   int m_totalClusters = 0;
   int m_nclustersPerChip[3][20][9] = {{{0}}};
+  bool m_chipInfo = false;
 };
 
 #endif  // QA_TRACKING_MVTXCLUSTERQA_H
