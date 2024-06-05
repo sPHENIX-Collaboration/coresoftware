@@ -41,11 +41,11 @@ LL1Outv1::LL1Outv1(const std::string& triggertype, const std::string& ll1type)
       std::vector<unsigned int>* sum = new std::vector<unsigned int>();
       if (m_triggerid == TriggerDefs::TriggerId::jetTId || m_triggerid == TriggerDefs::TriggerId::photonTId)
 	{
-	  add_word(((unsigned int) (channel % 32) & 0xffffU) + (((unsigned int) (channel / 32) & 0xffffU) << 16U), sum);
+	  LL1Outv1::add_word(((unsigned int) (channel % 32) & 0xffffU) + (((unsigned int) (channel / 32) & 0xffffU) << 16U), sum);
 	}
       if (m_triggerid == TriggerDefs::TriggerId::mbdTId)
 	{
-	  add_word(channel, sum);
+	  LL1Outv1::add_word(channel, sum);
 	}
 
     }

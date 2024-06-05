@@ -112,7 +112,7 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
         newhit->setScaler(i, j, packet->lValue(i, j));
       }
     }
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 12; i++)
     {
       newhit->setGl1pScaler(i, 0, packet->lValue(i, "GL1PRAW"));
       newhit->setGl1pScaler(i, 1, packet->lValue(i, "GL1PLIVE"));

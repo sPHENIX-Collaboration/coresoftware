@@ -122,6 +122,9 @@ void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       newhit->setSlotNr(plist[i]->iValue(0, "SLOTNR"));
       newhit->setCardNr(plist[i]->iValue(0, "CARDNR"));
       newhit->setMonitor(plist[i]->iValue(0, "MONITOR"));
+      newhit->setFemWords(plist[i]->iValue(0, "FEMWORDS"));
+      newhit->setFibers(plist[i]->iValue(0, "FIBERS"));
+      newhit->setSums(plist[i]->iValue(0, "SUMS"));
       for (int ichan = 0; ichan < nr_channels; ichan++)
       {
         for (int isamp = 0; isamp < nr_samples; isamp++)
