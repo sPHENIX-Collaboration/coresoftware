@@ -27,10 +27,10 @@ class InttCombinedRawDataDecoder : public SubsysReco
   void runInttStandalone(bool runAlone) { m_runStandAlone = runAlone; }
   void writeInttEventHeader(bool write) { m_writeInttEventHeader = write; }
 
-  int LoadBadMap(std::string const& name = "INTT_HotChannelMap") {return m_badmap.Load(name);}
+  int LoadBadMap(std::string const& name = "INTT_HotMap") {return m_badmap.Load(name);}
   int LoadBcoMap(std::string const& name = "INTT_BCOMAP") {return m_bcomap.Load(name);}
   int LoadDacMap(std::string const& name = "INTT_DACMAP") {return m_dacmap.Load(name);}
-  int LoadFeeMap(std::string const& name = "INTT_FEEMAP") {return m_feemap.Load(name);}
+  int LoadFeeMap(std::string const& name = "InttFeeMap") {return m_feemap.Load(name);}
 
  private:
   InttEventInfo* intt_event_header{nullptr};
