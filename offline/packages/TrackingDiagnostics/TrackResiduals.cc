@@ -715,8 +715,21 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
                                        TrkrClusterContainer* clusters)
 {
   std::vector<Acts::Vector3> clusPos, global_vec;
-  TrackFitUtils::getTrackletClusters(geometry, clusters,
-                                     clusPos, keys);
+  for(auto& key : keys)
+  {
+    auto cluster = clusters->findCluster(key);
+    Acts::Vector3 pos;
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+    {
+      pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
+                                                                            m_dccStatic, m_dccAverage, m_dccFluctuation);
+    }
+    else
+    {
+      pos = geometry->getGlobalPosition(key, cluster);
+    }
+    clusPos.push_back(pos);
+  }
 
   for (auto& pos : clusPos)
   {
@@ -755,8 +768,21 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
                                      TrkrClusterContainer* clusters)
 {
   std::vector<Acts::Vector3> clusPos;
-  TrackFitUtils::getTrackletClusters(geometry, clusters,
-                                     clusPos, keys);
+  for (auto& key : keys)
+  {
+    auto cluster = clusters->findCluster(key);
+    Acts::Vector3 pos;
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+    {
+      pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
+                                                                           m_dccStatic, m_dccAverage, m_dccFluctuation);
+    }
+    else
+    {
+      pos = geometry->getGlobalPosition(key, cluster);
+    }
+    clusPos.push_back(pos);
+  }
   TrackFitUtils::position_vector_t xypoints, rzpoints, yzpoints;
   for (auto& pos : clusPos)
   {
