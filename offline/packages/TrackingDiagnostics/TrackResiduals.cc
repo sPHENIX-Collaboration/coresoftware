@@ -411,11 +411,11 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       }
       if (m_zeroField)
       {
-        lineFitClusters(keys, geometry, clustermap);
+        lineFitClusters(keys, geometry, clustermap, m_crossing);
       }
       else
       {
-        circleFitClusters(keys, geometry, clustermap);
+        circleFitClusters(keys, geometry, clustermap, m_crossing);
       }
       for (const auto& ckey : get_cluster_keys(track))
       {
@@ -712,7 +712,8 @@ float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey c
 }
 void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
                                        ActsGeometry* geometry,
-                                       TrkrClusterContainer* clusters)
+                                       TrkrClusterContainer* clusters,
+                                       const short int& crossing)
 {
   std::vector<Acts::Vector3> clusPos, global_vec;
   for(auto& key : keys)
@@ -721,7 +722,7 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     Acts::Vector3 pos;
     if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
     {
-      pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
+      pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, crossing,
                                                                             m_dccStatic, m_dccAverage, m_dccFluctuation);
     }
     else
@@ -765,7 +766,8 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
 
 void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
                                      ActsGeometry* geometry,
-                                     TrkrClusterContainer* clusters)
+                                     TrkrClusterContainer* clusters,
+                                     const short int& crossing)
 {
   std::vector<Acts::Vector3> clusPos;
   for (auto& key : keys)
@@ -774,7 +776,7 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     Acts::Vector3 pos;
     if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
     {
-      pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
+      pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, crossing,
                                                                            m_dccStatic, m_dccAverage, m_dccFluctuation);
     }
     else
