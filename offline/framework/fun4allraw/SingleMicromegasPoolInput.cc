@@ -125,6 +125,19 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       // read gtm bco information
       bco_matching_information.save_gtm_bco_information( packet.get() );
 
+      // save BCO from tagger internally
+      const int n_tagger = packet->lValue(0, "N_TAGGER");
+      for (int t = 0; t < n_tagger; t++)
+      {
+        const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+        if (is_lvl1)
+        {
+          const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+          m_BeamClockPacket[gtm_bco].insert(packet_id);
+          m_BclkStack.insert(gtm_bco);
+        }
+      }
+
       // loop over waveforms
       const int nwf = packet->iValue(0, "NR_WF");
       m_waveform_count_total += nwf;
@@ -228,7 +241,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
 
         m_MicromegasRawHitMap[gtm_bco].push_back(newhit.release());
-        m_BclkStack.insert(gtm_bco);
       }
 
       // cleanup
@@ -298,7 +310,6 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
         delete pktiter;
       }
 
-      toclearbclk.push_back(iter.first);
     }
     else
     {
@@ -306,12 +317,40 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
     }
   }
 
-  for (auto iter : toclearbclk)
+  // cleanup block stat
+  for( auto iter = m_BclkStack.begin(); iter != m_BclkStack.end(); )
   {
-    m_BclkStack.erase(iter);
-    m_BeamClockFEE.erase(iter);
-    m_MicromegasRawHitMap.erase(iter);
+    if( *iter <= bclk )
+    {
+      iter = m_BclkStack.erase(iter);
+    } else {
+      break;
+    }
   }
+
+  // generic map cleanup
+  auto cleanup = [bclk]( auto map )
+  {
+    for( auto iter = map.begin(); iter!= map.end(); )
+    {
+      if( iter->first <= bclk )
+      {
+        iter = map.erase(iter);
+      } else {
+        break;
+      }
+    }
+  };
+
+  cleanup( m_BeamClockFEE );
+  cleanup( m_BeamClockPacket );
+  cleanup( m_MicromegasRawHitMap );
+//   for (const auto& bclk : toclearbclk)
+//   {
+//     m_BclkStack.erase(bclk);
+//     m_BeamClockFEE.erase(bclk);
+//     m_MicromegasRawHitMap.erase(bclk);
+//   }
 }
 
 //_______________________________________________________
