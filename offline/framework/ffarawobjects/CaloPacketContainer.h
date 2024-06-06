@@ -3,6 +3,8 @@
 
 #include <phool/PHObject.h>
 
+#include <limits>
+
 class CaloPacket;
 
 class CaloPacketContainer : public PHObject
@@ -16,6 +18,8 @@ class CaloPacketContainer : public PHObject
   virtual unsigned int get_npackets() { return 0; }
   virtual CaloPacket *getPacket(unsigned int) { return nullptr; }
   virtual CaloPacket *getPacketbyId(int) { return nullptr; }
+  virtual void setEvtSequence(const int) {return;}
+  virtual int getEvtSequence() const {return std::numeric_limits<int>::min();}
 
  private:
   ClassDefOverride(CaloPacketContainer, 1)

@@ -3,6 +3,8 @@
 
 #include "CaloPacketContainer.h"
 
+#include <limits>
+
 class CaloPacket;
 class TClonesArray;
 
@@ -28,11 +30,14 @@ class CaloPacketContainerv1 : public CaloPacketContainer
   unsigned int get_npackets() override;
   CaloPacket *getPacket(unsigned int index) override;
   CaloPacket *getPacketbyId(int id) override;
+  void setEvtSequence(const int i) override {eventno = i;}
+  int getEvtSequence() const override {return eventno;}
 
  private:
   TClonesArray *CaloPacketsTCArray{nullptr};
+  int eventno{std::numeric_limits<int>::min()};
 
-  ClassDefOverride(CaloPacketContainerv1, 1)
+  ClassDefOverride(CaloPacketContainerv1, 2)
 };
 
 #endif
