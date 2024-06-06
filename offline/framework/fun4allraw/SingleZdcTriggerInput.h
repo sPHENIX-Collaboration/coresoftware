@@ -19,7 +19,7 @@ class SingleZdcTriggerInput : public SingleTriggerInput
  public:
   explicit SingleZdcTriggerInput(const std::string &name);
   ~SingleZdcTriggerInput() override;
-  void FillPool(const unsigned int) override;
+  void FillPool(const unsigned int keep) override;
   void CleanupUsedPackets(const int eventno) override;
   void ClearCurrentEvent() override;
   bool GetSomeMoreEvents(const unsigned int keep);

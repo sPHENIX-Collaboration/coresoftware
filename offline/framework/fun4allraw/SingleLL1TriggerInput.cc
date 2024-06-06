@@ -46,7 +46,7 @@ SingleLL1TriggerInput::~SingleLL1TriggerInput()
   delete[] plist;
 }
 
-void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
+void SingleLL1TriggerInput::FillPool(const unsigned int keep)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -60,7 +60,7 @@ void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       return;
     }
   }
-  while (GetSomeMoreEvents())
+  while (GetSomeMoreEvents(keep))
   {
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
@@ -218,7 +218,7 @@ void SingleLL1TriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleLL1TriggerInput::GetSomeMoreEvents()
+bool SingleLL1TriggerInput::GetSomeMoreEvents(const unsigned int keep)
 {
   if (AllDone())
   {
@@ -236,6 +236,10 @@ bool SingleLL1TriggerInput::GetSomeMoreEvents()
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
+  }
+  if (keep > 2 && m_LL1PacketMap.size() < keep)
+  {
+    return true;
   }
   if (first_event >= last_event)
   {

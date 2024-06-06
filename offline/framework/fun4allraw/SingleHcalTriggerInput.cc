@@ -46,7 +46,7 @@ SingleHcalTriggerInput::~SingleHcalTriggerInput()
   delete[] plist;
 }
 
-void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
+void SingleHcalTriggerInput::FillPool(const unsigned int keep)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -60,7 +60,7 @@ void SingleHcalTriggerInput::FillPool(const unsigned int /*nbclks*/)
       return;
     }
   }
-  while (GetSomeMoreEvents())
+  while (GetSomeMoreEvents(keep))
   {
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
@@ -219,7 +219,7 @@ void SingleHcalTriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleHcalTriggerInput::GetSomeMoreEvents()
+bool SingleHcalTriggerInput::GetSomeMoreEvents(const unsigned int keep)
 {
   if (AllDone())
   {
@@ -237,6 +237,10 @@ bool SingleHcalTriggerInput::GetSomeMoreEvents()
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
+  }
+  if (keep > 2 && m_HcalPacketMap.size() < keep)
+  {
+    return true;
   }
   if (first_event >= last_event)
   {
