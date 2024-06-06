@@ -1207,69 +1207,13 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
               << (unsigned int) TrkrDefs::getLayer(ckey) << " with pos "
               << clusglob.transpose() << std::endl;
   }
-  if (!state)
-  {
-    if (m_zeroField)
-    {
-      fillStatesWithLineFit(ckey, cluster, geometry);
-    }
-    else
-    {
-      fillStatesWithCircleFit(ckey, cluster, clusglob, geometry);
-    }
-
-    if (Verbosity() > 2)
-      {
-	if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::micromegasId)
-	  {
-	    unsigned int ssize = m_stategx.size();
-        std::cout << "   ckey " << ckey << " after circle fit: stategx  " << m_stategx[ssize - 1]
-                  << " stategy " << m_stategy[ssize - 1]
-                  << " stategz " << m_stategy[ssize - 1]
-                  << std::endl;
-      }
-    }
-
-    //! skip filling the state information if a state is not there
-    //! or we just ran the seeding. Fill with Nans to maintain the
-    //! 1-to-1 mapping between cluster/state vectors
-    m_idealsurfalpha.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_idealsurfbeta.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_idealsurfgamma.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_missurfalpha.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_missurfbeta.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_missurfgamma.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_idealsurfcenterx.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_idealsurfcentery.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_idealsurfcenterz.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_idealsurfnormx.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_idealsurfnormy.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_idealsurfnormz.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_missurfcenterx.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_missurfcentery.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_missurfcenterz.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_missurfnormx.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_missurfnormy.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_missurfnormz.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_clusgxideal.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_clusgyideal.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_clusgzideal.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_statepx.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_statepy.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_statepz.push_back(std::numeric_limits<float>::quiet_NaN());
-    m_statepl.push_back(std::numeric_limits<float>::quiet_NaN());
-    return;
-  }
 
   auto surf = geometry->maps().getSurface(ckey, cluster);
-  Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
-  Acts::Vector2 stateloc;
+
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
   auto misalignnorm = -1 * surf->normal(geometry->geometry().getGeoContext());
   auto misrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
-  auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
-                                    stateglob * Acts::UnitConstants::cm,
-                                    misalignnorm);
+
 
   float mgamma = atan2(-misrot(1, 0), misrot(0, 0));
   float mbeta = -asin(misrot(0, 1));
@@ -1323,6 +1267,45 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   m_clusgxideal.push_back(ideal_glob.x());
   m_clusgyideal.push_back(ideal_glob.y());
   m_clusgzideal.push_back(ideal_glob.z());
+
+  if (!state)
+  {
+    if (m_zeroField)
+    {
+      fillStatesWithLineFit(ckey, cluster, geometry);
+    }
+    else
+    {
+      fillStatesWithCircleFit(ckey, cluster, clusglob, geometry);
+    }
+
+    if (Verbosity() > 2)
+    {
+      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::micromegasId)
+      {
+        unsigned int ssize = m_stategx.size();
+        std::cout << "   ckey " << ckey << " after circle fit: stategx  " << m_stategx[ssize - 1]
+                  << " stategy " << m_stategy[ssize - 1]
+                  << " stategz " << m_stategy[ssize - 1]
+                  << std::endl;
+      }
+    }
+
+    //! skip filling the state information if a state is not there
+    //! or we just ran the seeding. Fill with Nans to maintain the
+    //! 1-to-1 mapping between cluster/state vectors
+    m_statepx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepl.push_back(std::numeric_limits<float>::quiet_NaN());
+    return;
+  }
+
+  Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
+  Acts::Vector2 stateloc;
+  auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
+                                    stateglob * Acts::UnitConstants::cm,
+                                    misalignnorm);
 
   if (result.ok())
   {

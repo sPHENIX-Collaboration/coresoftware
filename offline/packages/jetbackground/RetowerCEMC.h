@@ -40,6 +40,11 @@ class RetowerCEMC : public SubsysReco
   {
     _FRAC_CUT = frac_cut;
   }
+  void set_towerNodePrefix(const std::string &prefix)
+  {
+    m_towerNodePrefix = prefix;
+    return;
+  }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
@@ -52,6 +57,10 @@ class RetowerCEMC : public SubsysReco
   std::vector<std::vector<int> > _EMCAL_RETOWER_T;
   std::vector<std::vector<float> > _EMCAL_RETOWER_MASKED_A;
   std::vector<std::vector<float> > _EMCAL_RETOWER_TOTAL_A;
+  std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
+  std::string EMTowerName;
+  std::string IHTowerName;
+  std::string EMRetowerName;
 };
 
 #endif

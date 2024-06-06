@@ -10,7 +10,8 @@ void Gl1Packetv2::Reset()
   packet_nr = 0;
   BunchNumber = std::numeric_limits<uint64_t>::max();
   TriggerInput = 0;
-  TriggerVector = 0;
+  LiveVector = 0;
+  ScaledVector = 0;
   GTMBusyVector = 0;
   for (auto &row : scaler)
   {
@@ -32,7 +33,8 @@ void Gl1Packetv2::FillFrom(const Gl1Packet *pkt)
   setBunchNumber(pkt->getBunchNumber());
   setPacketNumber(pkt->getPacketNumber());
   setTriggerInput(pkt->getTriggerInput());
-  setTriggerVector(pkt->getTriggerVector());
+  setLiveVector(pkt->getLiveVector());
+  setScaledVector(pkt->getScaledVector());
   setGTMBusyVector(pkt->getGTMBusyVector());
   for (int i = 0; i < 64; i++)
   {
@@ -81,6 +83,14 @@ long long Gl1Packetv2::lValue(const int i, const std::string &what) const
   {
     return getTriggerVector();
   }
+  if (what == "LiveVector")
+  {
+    return getLiveVector();
+  }
+  if (what == "ScaledVector")
+  {
+    return getScaledVector();
+  }
   if (what == "GTMBusyVector")
   {
     return getGTMBusyVector();
@@ -112,8 +122,10 @@ void Gl1Packetv2::dump(std::ostream &os) const
      << "0x" << std::hex << lValue(0, "BCO") << std::dec << "   " << lValue(0, "BCO") << std::endl;
   os << "Trigger Input:   "
      << "0x" << std::hex << lValue(0, "TriggerInput") << std::dec << "   " << lValue(0, "TriggerInput") << std::endl;
-  os << "Trigger Vector:  "
-     << "0x" << std::hex << lValue(0, "TriggerVector") << std::dec << "   " << lValue(0, "TriggerVector") << std::endl;
+  os << "Live Vector:  "
+     << "0x" << std::hex << lValue(0, "LiveVector") << std::dec << "   " << lValue(0, "LiveVector") << std::endl;
+  os << "Scaled Vector:  "
+     << "0x" << std::hex << lValue(0, "ScaledVector") << std::dec << "   " << lValue(0, "ScaledVector") << std::endl;
   os << "GTM Busy Vector: "
      << "0x" << std::hex << lValue(0, "GTMBusyVector") << std::dec << "   " << lValue(0, "GTMBusyVector") << std::endl;
   os << "Bunch Number:    " << lValue(0, "BunchNumber") << std::endl

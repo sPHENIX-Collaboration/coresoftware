@@ -1,7 +1,7 @@
 #include "FastJetOptions.h"
 
 #include <phool/phool.h>  // for PHWHERE
-                         
+
 #include <cassert>
 #include <iostream>
 
@@ -127,9 +127,9 @@ FastJetOptions& FastJetOptions::update(std::vector<FastJetOptItem> input)
   return *this;
 }
 
-float FastJetOptions::next_val(int& i, std::vector<FastJetOptItem>& inputs)
+float FastJetOptions::next_val(unsigned int i, std::vector<FastJetOptItem>& inputs)
 {
-  if (inputs.size() > static_cast<size_t>(i + 1) && inputs[i + 1].is_val)
+  if (inputs.size() > (i + 1) && inputs[i + 1].is_val)
   {
     ++i;
     return inputs[i].val;
@@ -159,10 +159,12 @@ void FastJetOptions::print(std::ostream& os)
   {
     os << " - minimum constituent pT cut: " << constituent_min_pt << std::endl;
   }
-  if (use_jet_min_pt) {
+  if (use_jet_min_pt)
+  {
     os << " - minimum jet pt: " << jet_min_pt << std::endl;
   }
-  if (use_jet_max_eta) {
+  if (use_jet_max_eta)
+  {
     os << " - maximum |eta_jet|: " << jet_max_eta << std::endl;
   }
   if (doSoftDrop)
@@ -180,8 +182,9 @@ void FastJetOptions::print(std::ostream& os)
     os << " - calculate jet median background estimator density with cutting "
        << nhardestcut_jetmedbkgdens << " hardest jets within |eta|<" << etahardestcut_jetmedbkgdens << std::endl;
   }
-  
-  if (cs_calc_constsub) {
+
+  if (cs_calc_constsub)
+  {
     os << " - calculate jet background constituent subtractor " << std::endl;
   }
 }
@@ -189,21 +192,37 @@ void FastJetOptions::print(std::ostream& os)
 void FastJetOptions::initialize()
 {
   // set some required derived options when first running FastJetAlgo
-  if (calc_jetmedbkgdens) {
+  if (calc_jetmedbkgdens)
+  {
     calc_area = true;
   }
 
-  if (calc_area && ghost_max_rap == 0) {
-    if (use_jet_max_eta) ghost_max_rap = (jet_max_eta + jet_R);
-    else ghost_max_rap = 5.;
-  }
-
-  if (calc_jetmedbkgdens) {
-    if (nhardestcut_jetmedbkgdens > 0 && etahardestcut_jetmedbkgdens == 0) {
-      if (use_jet_max_eta) etahardestcut_jetmedbkgdens = jet_max_eta;
-      else etahardestcut_jetmedbkgdens = ghost_max_rap;
+  if (calc_area && ghost_max_rap == 0)
+  {
+    if (use_jet_max_eta)
+    {
+      ghost_max_rap = (jet_max_eta + jet_R);
+    }
+    else
+    {
+      ghost_max_rap = 5.;
     }
   }
-  
+
+  if (calc_jetmedbkgdens)
+  {
+    if (nhardestcut_jetmedbkgdens > 0 && etahardestcut_jetmedbkgdens == 0)
+    {
+      if (use_jet_max_eta)
+      {
+        etahardestcut_jetmedbkgdens = jet_max_eta;
+      }
+      else
+      {
+        etahardestcut_jetmedbkgdens = ghost_max_rap;
+      }
+    }
+  }
+
   use_jet_selection = (use_jet_max_eta || use_jet_min_pt);
 }

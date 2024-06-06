@@ -6,7 +6,7 @@
 #include <array>
 #include <limits>
 
-static const int MAX_NUM_CHANNELS = 384;
+static const int MAX_NUM_CHANNELS = 672;
 static const int MAX_NUM_SAMPLES = 5;
 
 class LL1Packetv1 : public LL1Packet
@@ -33,6 +33,12 @@ class LL1Packetv1 : public LL1Packet
   int getCardNr() const override { return CardNr; }
   void setMonitor(int i) override { Monitor = i; }
   int getMonitor() const override { return Monitor; }
+  void setFemWords(int i) override { FemWords = i; }
+  int getFemWords() const override { return FemWords; }
+  void setSums(int i) override { Sums = i; }
+  int getSums() const override { return Sums; }
+  void setFibers(int i) override { Fibers = i; }
+  int getFibers() const override { return Fibers; }
 
   void setSample(int ipmt, int isamp, uint32_t val) override { samples.at(isamp).at(ipmt) = val; }
   uint32_t getSample(int ipmt, int isamp) const override { return samples.at(isamp).at(ipmt); }
@@ -42,8 +48,8 @@ class LL1Packetv1 : public LL1Packet
   int iValue(const int channel, const int sample) const override;
   void dump(std::ostream &os = std::cout) const override;
   void dump_idll1_mbd(std::ostream &os = std::cout) const;
-  void dump_idll_emcal_mon3(std::ostream &os = std::cout) const;
-  void dump_idll_jet_emcal_mon1(std::ostream &os = std::cout) const;
+  void dump_idll1_emcal_mon3(std::ostream &os = std::cout) const;
+  void dump_idll1_jet_emcal_mon1(std::ostream &os = std::cout) const;
 
  protected:
   int PacketEvtSequence{0};
@@ -53,6 +59,9 @@ class LL1Packetv1 : public LL1Packet
   int SlotNr{0};
   int CardNr{0};
   int Monitor{0};
+  int FemWords{0};
+  int Sums{0};
+  int Fibers{0};
 
   std::array<std::array<uint32_t, MAX_NUM_CHANNELS>, MAX_NUM_SAMPLES> samples{};
 

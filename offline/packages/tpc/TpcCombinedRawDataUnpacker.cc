@@ -159,6 +159,15 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     std::cout << "TpcCombinedRawDataUnpacker:: startevt = " << startevt << std::endl;
     std::cout << "TpcCombinedRawDataUnpacker:: endevt = " << endevt << std::endl;
   }
+
+  // check run number if presamples need to be shifted, which went from 80 -> 120
+  // at 41624
+  Fun4AllServer* se = Fun4AllServer::instance();
+  if (se->RunNumber() < 41624)
+  {
+    m_presampleShift = 0;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -302,7 +311,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       for (uint16_t s = 0; s < sam; s++)
       {
         uint16_t adc = tpchit->get_adc(s);
-        int t = s;
+        int t = s - m_presampleShift;
 
         hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
         // find existing hit, or create new one
