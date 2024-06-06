@@ -67,32 +67,33 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   int iret = 0;
   if (m_gl1_registered_flag)  // Gl1 first to get the reference
   {
-    iret += FillGl1();
+    iret += FillGl1(m_PoolDepth);
   }
   if (m_mbd_registered_flag)  // Mbd next to get the reference if Gl1 is missing
   {
-    iret += FillMbd();
+    iret += FillMbd(m_PoolDepth);
   }
   if (m_hcal_registered_flag)  // Mbd first to get the reference
   {
-    iret += FillHcal();
+    iret += FillHcal(m_PoolDepth);
   }
   if (m_cemc_registered_flag)  // Mbd first to get the reference
   {
-    iret += FillCemc();
+    iret += FillCemc(m_PoolDepth);
   }
   if (m_zdc_registered_flag)  // Mbd first to get the reference
   {
-    iret += FillZdc();
+    iret += FillZdc(m_PoolDepth);
   }
   if (m_ll1_registered_flag)  // LL1 next to get the reference if Gl1 is missing
   {
-    iret += FillLL1();
+    iret += FillLL1(m_PoolDepth);
   }
   if (iret)
   {
     return -1;
   }
+  m_PoolDepth = m_DefaultPoolDepth;
   DetermineReferenceEventNumber();
   if (Verbosity() > 0)
   {
@@ -465,7 +466,7 @@ void Fun4AllPrdfInputTriggerManager::CreateBclkOffsets()
   for (const auto &iter : clockcounters)
   {
     int imax = -1;
-    int diffmax = INT_MAX;
+    int diffmax = std::numeric_limits<int>::max();
     for (auto initer : iter.second)
     {
       if (Verbosity() > 0)
@@ -650,7 +651,7 @@ void Fun4AllPrdfInputTriggerManager::ClearAllEvents()
   m_RefClockCounters.clear();
 }
 
-int Fun4AllPrdfInputTriggerManager::FillGl1()
+int Fun4AllPrdfInputTriggerManager::FillGl1(const unsigned int nEvents)
 {
   // unsigned int alldone = 0;
   for (auto iter : m_Gl1InputVector)
@@ -659,7 +660,7 @@ int Fun4AllPrdfInputTriggerManager::FillGl1()
     {
       std::cout << "Fun4AllTriggerInputManager::FillGl1 - fill pool for " << iter->Name() << std::endl;
     }
-    iter->FillPool();
+    iter->FillPool(nEvents);
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();
@@ -732,7 +733,7 @@ void Fun4AllPrdfInputTriggerManager::AddGl1Packet(int eventno, Gl1Packet *pkt)
   return;
 }
 
-int Fun4AllPrdfInputTriggerManager::FillMbd()
+int Fun4AllPrdfInputTriggerManager::FillMbd(const unsigned int nEvents)
 {
   // unsigned int alldone = 0;
   for (auto iter : m_MbdInputVector)
@@ -741,7 +742,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd()
     {
       std::cout << "Fun4AllTriggerInputManager::FillMbd - fill pool for " << iter->Name() << std::endl;
     }
-    iter->FillPool();
+    iter->FillPool(nEvents);
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();
@@ -811,7 +812,7 @@ void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, CaloPacket *pkt)
   return;
 }
 
-int Fun4AllPrdfInputTriggerManager::FillHcal()
+int Fun4AllPrdfInputTriggerManager::FillHcal(const unsigned int nEvents)
 {
   // unsigned int alldone = 0;
   for (auto iter : m_HcalInputVector)
@@ -820,7 +821,7 @@ int Fun4AllPrdfInputTriggerManager::FillHcal()
     {
       std::cout << "Fun4AllTriggerInputManager::FillHcal - fill pool for " << iter->Name() << std::endl;
     }
-    iter->FillPool();
+    iter->FillPool(nEvents);
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();
@@ -890,7 +891,7 @@ void Fun4AllPrdfInputTriggerManager::AddHcalPacket(int eventno, CaloPacket *pkt)
   return;
 }
 
-int Fun4AllPrdfInputTriggerManager::FillCemc()
+int Fun4AllPrdfInputTriggerManager::FillCemc(const unsigned int nEvents)
 {
   // unsigned int alldone = 0;
   for (auto iter : m_CemcInputVector)
@@ -899,7 +900,7 @@ int Fun4AllPrdfInputTriggerManager::FillCemc()
     {
       std::cout << "Fun4AllTriggerInputManager::FillCemc - fill pool for " << iter->Name() << std::endl;
     }
-    iter->FillPool();
+    iter->FillPool(nEvents);
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();
@@ -969,7 +970,7 @@ void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
   return;
 }
 
-int Fun4AllPrdfInputTriggerManager::FillLL1()
+int Fun4AllPrdfInputTriggerManager::FillLL1(const unsigned int nEvents)
 {
   // unsigned int alldone = 0;
   for (auto iter : m_LL1InputVector)
@@ -978,7 +979,7 @@ int Fun4AllPrdfInputTriggerManager::FillLL1()
     {
       std::cout << "Fun4AllTriggerInputManager::FillLL1 - fill pool for " << iter->Name() << std::endl;
     }
-    iter->FillPool();
+    iter->FillPool(nEvents);
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();
@@ -1049,7 +1050,7 @@ void Fun4AllPrdfInputTriggerManager::AddLL1Packet(int eventno, LL1Packet *pkt)
   return;
 }
 
-int Fun4AllPrdfInputTriggerManager::FillZdc()
+int Fun4AllPrdfInputTriggerManager::FillZdc(const unsigned int nEvents)
 {
   // unsigned int alldone = 0;
   for (auto iter : m_ZdcInputVector)
@@ -1058,7 +1059,7 @@ int Fun4AllPrdfInputTriggerManager::FillZdc()
     {
       std::cout << "Fun4AllTriggerInputManager::FillZdc - fill pool for " << iter->Name() << std::endl;
     }
-    iter->FillPool();
+    iter->FillPool(nEvents);
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();

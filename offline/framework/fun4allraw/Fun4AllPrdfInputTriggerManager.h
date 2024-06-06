@@ -54,28 +54,28 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void Resynchronize();
   void ClearAllEvents();
   void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
-  int FillCemc();
+  int FillCemc(const unsigned int nEvents = 2);
   int MoveCemcToNodeTree();
   void AddCemcPacket(int eventno, CaloPacket *pkt);
-  int FillGl1();
+  int FillGl1(const unsigned int nEvents = 2);
   int MoveGl1ToNodeTree();
   void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
-  int FillLL1();
+  int FillLL1(const unsigned int nEvents = 2);
   int MoveLL1ToNodeTree();
   void AddLL1Packet(int eventno, LL1Packet *pkt);
-  int FillMbd();
+  int FillMbd(const unsigned int nEvents = 2);
   int MoveMbdToNodeTree();
   void AddMbdPacket(int eventno, CaloPacket *mbdpkt);
-  int FillHcal();
+  int FillHcal(const unsigned int nEvents = 2);
   int MoveHcalToNodeTree();
   void AddHcalPacket(int eventno, CaloPacket *pkt);
-  int FillZdc();
+  int FillZdc(const unsigned int nEvents = 2);
   int MoveZdcToNodeTree();
   void AddZdcPacket(int eventno, CaloPacket *pkt);
   // the sepd is read together with the zdc in the FillZdc method
   int MoveSEpdToNodeTree();
   void AddSEpdPacket(int eventno, CaloPacket *pkt);
-
+  void InitialPoolDepth(unsigned int n) {m_InitialPoolDepth = n; m_PoolDepth = n;}
   void DetermineReferenceEventNumber();
 
  private:
@@ -133,7 +133,9 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   bool m_hcal_registered_flag{false};
   bool m_ll1_registered_flag{false};
   bool m_zdc_registered_flag{false};
-  unsigned int m_PoolDepth = 100;
+  unsigned int m_InitialPoolDepth = 10;
+  unsigned int m_DefaultPoolDepth = 2;
+  unsigned int m_PoolDepth = m_InitialPoolDepth;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
