@@ -1099,13 +1099,18 @@ int Fun4AllPrdfInputTriggerManager::MoveZdcToNodeTree()
     return 0;
   }
   //  std::cout << "before filling m_ZdcPacketMap size: " <<  m_ZdcPacketMap.size() << std::endl;
+  zdc->setEvtSequence(m_RefEventNo);
   for (auto zdchititer : m_ZdcPacketMap.begin()->second.ZdcPacketVector)
   {
-    if (Verbosity() > 1)
+    if (m_ZdcPacketMap.begin()->first == m_RefEventNo)
+    {
+    std::cout << "event at m_ZdcPacketMap.begin(): " << m_ZdcPacketMap.begin()->first << std::endl;
+    if (Verbosity() > 10)
     {
       zdchititer->identify();
     }
     zdc->AddPacket(zdchititer);
+    }
   }
   // Since the ZDC and sEPD are in the same file using the same input manager
   // clean up zdc and sepd together in MoveSEpdToNodeTree()
@@ -1147,24 +1152,39 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
     return 0;
   }
   // std::cout << "before filling m_SEpdPacketMap size: " <<  m_SEpdPacketMap.size() << std::endl;
+  sepd->setEvtSequence(m_RefEventNo);
   for (auto sepdhititer : m_SEpdPacketMap.begin()->second.SEpdPacketVector)
   {
-    if (Verbosity() > 1)
+    if (m_SEpdPacketMap.begin()->first == m_RefEventNo)
+    {
+    std::cout << "event at m_SEpdPacketMap.begin(): " << m_SEpdPacketMap.begin()->first << std::endl;
+    if (Verbosity() > 10)
     {
       sepdhititer->identify();
     }
     sepd->AddPacket(sepdhititer);
+    }
   }
   // Since the ZDC and sEPD are in the same file using the same input manager
   // clean up zdc and sepd here
   for (auto iter : m_ZdcInputVector)
   {
-    iter->CleanupUsedPackets(m_ZdcPacketMap.begin()->first);
+//    iter->CleanupUsedPackets(m_ZdcPacketMap.begin()->first);
+    std::cout << "Cleaning event no from zdc inputmgr " << m_RefEventNo << std::endl;
+    iter->CleanupUsedPackets(m_RefEventNo);
   }
+  if (m_ZdcPacketMap.begin()->first <= m_RefEventNo)
+  {
+    std::cout << "Erasing event no " << m_ZdcPacketMap.begin()->first << " from zdc pktmap" << std::endl;
   m_ZdcPacketMap.begin()->second.ZdcPacketVector.clear();
   m_ZdcPacketMap.erase(m_ZdcPacketMap.begin());
+  }
+  if (m_SEpdPacketMap.begin()->first <= m_RefEventNo)
+  {
+    std::cout << "Erasing event no " << m_SEpdPacketMap.begin()->first << " from sepd pktmap" << std::endl;
   m_SEpdPacketMap.begin()->second.SEpdPacketVector.clear();
   m_SEpdPacketMap.erase(m_SEpdPacketMap.begin());
+  }
   // std::cout << "size  m_SEpdPacketMap: " <<  m_SEpdPacketMap.size()
   // 	    << std::endl;
   return 0;

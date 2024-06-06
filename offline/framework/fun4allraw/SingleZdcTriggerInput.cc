@@ -167,10 +167,11 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
 	}
 	else
 	{
+//        CorrectedEventSequence = EventSequence;
         TriggerInputManager()->AddZdcPacket(CorrectedEventSequence, newhit);
 	}
       }
-      m_ZdcPacketMap[EventSequence].push_back(newhit);
+      m_ZdcPacketMap[CorrectedEventSequence].push_back(newhit);
       m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
@@ -206,8 +207,10 @@ void SingleZdcTriggerInput::CleanupUsedPackets(const int eventno)
   {
     if (iter.first <= eventno)
     {
+      std::cout << "Deleting event " << iter.first << " from zdc input mgr" << std::endl;
       for (auto pktiter : iter.second)
       {
+	std::cout << "Deleting packet " << pktiter->getIdentifier() << std::endl;
         delete pktiter;
       }
       toclearevents.push_back(iter.first);
