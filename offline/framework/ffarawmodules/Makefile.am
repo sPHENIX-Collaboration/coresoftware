@@ -22,6 +22,7 @@ pkginclude_HEADERS = \
   LL1Check.h \
   MbdCheck.h \
   StreamingCheck.h \
+  SEpdCheck.h \
   TpcCheck.h \
   ZdcCheck.h
 
@@ -39,6 +40,7 @@ libffarawmodules_la_SOURCES = \
   InttCheck.cc \
   LL1Check.cc \
   MbdCheck.cc \
+  SEpdCheck.cc \
   StreamingCheck.cc \
   TpcCheck.cc \
   ZdcCheck.cc
