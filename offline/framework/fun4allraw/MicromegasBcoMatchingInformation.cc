@@ -81,10 +81,10 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
   const int n_tagger = packet->lValue(0, "N_TAGGER");
   for (int t = 0; t < n_tagger; t++)
   {
-    bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+    const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
     if (is_lvl1)
     {
-      uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+      const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
       m_gtm_bco_list.push_back(gtm_bco);
     }
   }
