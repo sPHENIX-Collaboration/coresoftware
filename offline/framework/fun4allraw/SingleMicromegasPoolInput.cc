@@ -458,7 +458,7 @@ void SingleMicromegasPoolInput::FillBcoStatistics( uint64_t gtm_bco)
   { m_npacket_bco_hist = new TH1I( "m_npacket_bco_hist", "packet count per GTM BCO; packets; A.U.", 10, 0, 10 ); }
 
   if( !m_nwaveform_bco_hist )
-  { m_nwaveform_bco_hist = new TH1I( "m_nwaveform_bco_hist", "waveform count per GTM BCO; waveforms; A.U.", 10, 0, 10 ); }
+  { m_nwaveform_bco_hist = new TH1I( "m_nwaveform_bco_hist", "waveform count per GTM BCO; waveforms; A.U.", 4100, 0, 4100 ); }
 
   unsigned int n_waveforms = 0;
   unsigned int n_packets = 0;
