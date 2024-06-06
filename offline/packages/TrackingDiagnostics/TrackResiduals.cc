@@ -259,6 +259,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     m_trackid = track->get_id();
 
     m_crossing = track->get_crossing();
+    m_crossing_estimate = SHRT_MAX;
     m_px = track->get_px();
     m_py = track->get_py();
     m_pz = track->get_pz();
@@ -549,11 +550,13 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
     auto tpcseed = tpcseedmap->get(tpcseedindex);
     auto silseed = silseedmap->get(siliconseedindex);
 
+    int crossing = SHRT_MAX;
     if (silseed)
     {
       m_silseedx = silseed->get_x();
       m_silseedy = silseed->get_y();
       m_silseedz = silseed->get_z();
+      crossing = silseed->get_crossing();
     }
     else
     {
@@ -596,8 +599,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
         Acts::Vector3 global;
         if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
         {
-          global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, 0,
-                                                                                  m_dccStatic, m_dccAverage, m_dccFluctuation);
+          global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, crossing, m_dccStatic, m_dccAverage, m_dccFluctuation);
         }
         else
         {
@@ -651,6 +653,7 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
     for (const auto& [key, vertex] : *svtxvertexmap)
     {
       m_vertexid = key;
+      m_vertex_crossing = vertex->get_beam_crossing();
       m_vx = vertex->get_x();
       m_vy = vertex->get_y();
       m_vz = vertex->get_z();
@@ -670,8 +673,7 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
           Acts::Vector3 clusglob;
           if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
           {
-            clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
-                                                                                      m_dccStatic, m_dccAverage, m_dccFluctuation);
+            clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, track->get_crossing(), m_dccStatic, m_dccAverage, m_dccFluctuation);
           }
           else
           {
@@ -806,8 +808,7 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
         Acts::Vector3 glob;
         if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
         {
-          glob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, 0,
-                                                                                m_dccStatic, m_dccAverage, m_dccFluctuation);
+          glob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, SHRT_MAX, m_dccStatic, m_dccAverage, m_dccFluctuation);
         }
         else
         {
@@ -1129,8 +1130,7 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   Acts::Vector3 clusglob;
   if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
   {
-    clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, 0,
-                                                                              m_dccStatic, m_dccAverage, m_dccFluctuation);
+    clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, track->get_crossing(), m_dccStatic, m_dccAverage, m_dccFluctuation);
   }
   else
   {
@@ -1157,42 +1157,21 @@ void TrackResiduals::fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack* trac
   for (auto state_iter = track->begin_states();
        state_iter != track->end_states();
        ++state_iter)
-  {
-    SvtxTrackState* tstate = state_iter->second;
-    auto stateckey = tstate->get_cluskey();
-    if (stateckey == ckey)
     {
-      state = tstate;
-      break;
+      SvtxTrackState* tstate = state_iter->second;
+      auto stateckey = tstate->get_cluskey();
+      if (stateckey == ckey)
+	{
+	  state = tstate;
+	  break;
+	}
     }
-  }
 
-  if (Verbosity() > 2)
-  {
-    if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::micromegasId)
+  if(!state && m_dropClustersNoState)
     {
-      unsigned int layer = TrkrDefs::getLayer(ckey);
-      auto loc = geometry->getLocalCoords(ckey, cluster);
-      std::cout << " MMs layer " << layer << " cluslx " << loc(0) << " clusly " << loc(1) << std::endl;
-      std::cout << "     clusgx " << clusglob.x()
-                << " clusgy " << clusglob.y()
-                << " clusgz " << clusglob.z()
-                << std::endl;
-
-      if (!state)
-      {
-        std::cout << " ****** ckey " << ckey << " track " << track->get_id() << " in layer " << layer << " found no matching state " << std::endl;
-      }
-      else
-      {
-        std::cout << "found matching state for ckey " << ckey << " track " << track->get_id() << " in layer " << layer << std::endl;
-        std::cout << "   stategx  " << state->get_x()
-                  << " stategy " << state->get_y()
-                  << " stategz " << state->get_z()
-                  << std::endl;
-      }
+      // drop clusters for which there is no state
+      return;
     }
-  }
 
   m_cluskeys.push_back(ckey);
 
@@ -1464,6 +1443,7 @@ void TrackResiduals::createBranches()
   m_vertextree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_vertextree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_vertextree->Branch("vertexid", &m_vertexid, "m_vertexid/I");
+  m_vertextree->Branch("vertex_crossing", &m_vertex_crossing, "m_vertex_crossing/I");
   m_vertextree->Branch("vx", &m_vx, "m_vx/F");
   m_vertextree->Branch("vy", &m_vy, "m_vy/F");
   m_vertextree->Branch("vz", &m_vz, "m_vz/F");
@@ -1545,6 +1525,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_tree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
+  m_tree->Branch("crossing_estimate", &m_crossing_estimate, "m_crossing_estimate/I");
   m_tree->Branch("silseedx", &m_silseedx, "m_silseedx/F");
   m_tree->Branch("silseedy", &m_silseedy, "m_silseedy/F");
   m_tree->Branch("silseedz", &m_silseedz, "m_silseedz/F");
@@ -1580,6 +1561,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("ntpc", &m_ntpc, "m_ntpc/I");
   m_tree->Branch("nmms", &m_nmms, "m_nmms/I");
   m_tree->Branch("vertexid", &m_vertexid, "m_vertexid/I");
+  m_tree->Branch("vertex_crossing", &m_vertex_crossing, "m_vertex_crossing/I");
   m_tree->Branch("vx", &m_vx, "m_vx/F");
   m_tree->Branch("vy", &m_vy, "m_vy/F");
   m_tree->Branch("vz", &m_vz, "m_vz/F");
