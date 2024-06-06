@@ -99,6 +99,7 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     std::cout << "new ref event: " << m_RefEventNo << std::endl;
   }
+  ClockSyncCheck();
   MoveGl1ToNodeTree();
   MoveMbdToNodeTree();
   MoveCemcToNodeTree();
@@ -716,6 +717,7 @@ int Fun4AllPrdfInputTriggerManager::MoveGl1ToNodeTree()
     iter->CleanupUsedPackets(m_Gl1PacketMap.begin()->first);
   }
   m_Gl1PacketMap.begin()->second.Gl1PacketVector.clear();
+  m_Gl1PacketMap.begin()->second.BcoMap.clear();
   m_Gl1PacketMap.erase(m_Gl1PacketMap.begin());
   // std::cout << "size  m_Gl1PacketMap: " <<  m_Gl1PacketMap.size()
   // 	    << std::endl;
@@ -729,7 +731,9 @@ void Fun4AllPrdfInputTriggerManager::AddGl1Packet(int eventno, Gl1Packet *pkt)
     std::cout << "Adding gl1 hit to eventno: "
               << eventno << std::endl;
   }
-  m_Gl1PacketMap[eventno].Gl1PacketVector.push_back(pkt);
+  auto &iter = m_Gl1PacketMap[eventno];
+  iter.Gl1PacketVector.push_back(pkt);
+  iter.BcoMap.insert(std::make_pair(pkt->getIdentifier(),pkt->getBCO()));
   return;
 }
 
@@ -1136,7 +1140,9 @@ void Fun4AllPrdfInputTriggerManager::AddZdcPacket(int eventno, CaloPacket *pkt)
               << " for event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
-  m_ZdcPacketMap[eventno].ZdcPacketVector.push_back(pkt);
+  auto &iter = m_ZdcPacketMap[eventno];
+  iter.ZdcPacketVector.push_back(pkt);
+  iter.BcoMap.insert(std::make_pair(pkt->getIdentifier(),pkt->getBCO()));
   return;
 }
 
@@ -1153,16 +1159,16 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
   }
   // std::cout << "before filling m_SEpdPacketMap size: " <<  m_SEpdPacketMap.size() << std::endl;
   sepd->setEvtSequence(m_RefEventNo);
-  for (auto sepdhititer : m_SEpdPacketMap.begin()->second.SEpdPacketVector)
+  for (auto sepdhititer : m_SEpdPacketMap.begin()->second.SEpdSinglePacketMap)
   {
     if (m_SEpdPacketMap.begin()->first == m_RefEventNo)
     {
     std::cout << "event at m_SEpdPacketMap.begin(): " << m_SEpdPacketMap.begin()->first << std::endl;
     if (Verbosity() > 10)
     {
-      sepdhititer->identify();
+      sepdhititer.second->identify();
     }
-    sepd->AddPacket(sepdhititer);
+    sepd->AddPacket(sepdhititer.second);
     }
   }
   // Since the ZDC and sEPD are in the same file using the same input manager
@@ -1177,12 +1183,14 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
   {
     std::cout << "Erasing event no " << m_ZdcPacketMap.begin()->first << " from zdc pktmap" << std::endl;
   m_ZdcPacketMap.begin()->second.ZdcPacketVector.clear();
+  m_ZdcPacketMap.begin()->second.BcoMap.clear();
   m_ZdcPacketMap.erase(m_ZdcPacketMap.begin());
   }
   if (m_SEpdPacketMap.begin()->first <= m_RefEventNo)
   {
     std::cout << "Erasing event no " << m_SEpdPacketMap.begin()->first << " from sepd pktmap" << std::endl;
-  m_SEpdPacketMap.begin()->second.SEpdPacketVector.clear();
+  m_SEpdPacketMap.begin()->second.SEpdSinglePacketMap.clear();
+  m_SEpdPacketMap.begin()->second.BcoMap.clear();
   m_SEpdPacketMap.erase(m_SEpdPacketMap.begin());
   }
   // std::cout << "size  m_SEpdPacketMap: " <<  m_SEpdPacketMap.size()
@@ -1198,7 +1206,9 @@ void Fun4AllPrdfInputTriggerManager::AddSEpdPacket(int eventno, CaloPacket *pkt)
               << " for event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
-  m_SEpdPacketMap[eventno].SEpdPacketVector.push_back(pkt);
+  auto &iter = m_SEpdPacketMap[eventno];
+  iter.SEpdSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
+  iter.BcoMap.insert(std::make_pair(pkt->getIdentifier(),pkt->getBCO()));
   return;
 }
 
@@ -1227,6 +1237,70 @@ void Fun4AllPrdfInputTriggerManager::DetermineReferenceEventNumber()
   else if (!m_ZdcPacketMap.empty())
   {
     m_RefEventNo = m_ZdcPacketMap.begin()->first;
+  }
+  return;
+}
+
+void Fun4AllPrdfInputTriggerManager::ClockSyncCheck()
+{
+  if (!m_Gl1PacketMap.empty())
+  {
+    for (auto gl1hititer = m_Gl1PacketMap.begin(); gl1hititer != m_Gl1PacketMap.end(); ++gl1hititer)
+    {
+      std::cout << "gl1 event: " <<  gl1hititer->first << std::endl;
+      for (auto &pktiter : gl1hititer->second.Gl1PacketVector)
+      {
+	std::cout << "pkt id : " << pktiter->getIdentifier()
+		  << ", clock: 0x" << std::hex << pktiter->getBCO() << std::dec << std::endl;
+	uint64_t prev_bco = pktiter->getBCO();
+        auto nextIt = std::next(gl1hititer);
+	if (nextIt !=  m_Gl1PacketMap.end())
+	{
+	  std::cout << "next gl1 event: " << nextIt->first << std::endl;
+	  for (auto &nextpktiter : nextIt->second.Gl1PacketVector)
+	  {
+	    std::cout << "next pkt id : " << nextpktiter->getIdentifier()
+		      << ", clock: 0x" << std::hex << nextpktiter->getBCO() << std::dec << std::endl;
+	  }
+	}
+
+      }
+    }
+  }
+  if (!m_MbdPacketMap.empty())
+  {
+    //   m_RefEventNo = m_MbdPacketMap.begin()->first;
+  }
+  if (!m_LL1PacketMap.empty())
+  {
+//    m_RefEventNo = m_LL1PacketMap.begin()->first;
+  }
+  if (!m_HcalPacketMap.empty())
+  {
+//    m_RefEventNo = m_HcalPacketMap.begin()->first;
+  }
+  if (!m_CemcPacketMap.empty())
+  {
+//    m_RefEventNo = m_CemcPacketMap.begin()->first;
+  }
+  if (!m_ZdcPacketMap.empty())
+  {
+    for (auto &zdcpktiter : m_ZdcPacketMap)
+    {
+      std::cout << "zdc event: " <<  zdcpktiter.first << std::endl;
+      for (auto &pktiter : zdcpktiter.second.ZdcPacketVector)
+      {
+	std::cout << "pkt id : " << pktiter->getIdentifier()
+		  << ", clock: 0x" << std::hex << pktiter->getBCO() << std::dec << std::endl;
+      }
+    }
+  }
+  if (!m_SEpdPacketMap.empty())
+  {
+    for (auto &sepdpktiter : m_SEpdPacketMap)
+    {
+      std::cout << "sepd event: " <<  sepdpktiter.first << std::endl; 
+    }
   }
   return;
 }
