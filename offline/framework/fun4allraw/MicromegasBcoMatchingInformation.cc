@@ -79,7 +79,7 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
 {
   // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
   const int n_tagger = packet->lValue(0, "N_TAGGER");
-  for (int t = 0; t < n_tagger; t++)
+  for (int t = 0; t < n_tagger; ++t)
   {
     const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
     if (is_lvl1)
