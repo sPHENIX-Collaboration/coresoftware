@@ -127,7 +127,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
       // save BCO from tagger internally
       const int n_tagger = packet->lValue(0, "N_TAGGER");
-      for (int t = 0; t < n_tagger; t++)
+      for (int t = 0; t < n_tagger; ++t)
       {
         const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
         if (is_lvl1)
@@ -300,7 +300,6 @@ void SingleMicromegasPoolInput::Print(const std::string& what) const
 //____________________________________________________________________________
 void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
-  std::vector<uint64_t> toclearbclk;
   for (const auto& iter : m_MicromegasRawHitMap)
   {
     if (iter.first <= bclk)
@@ -309,7 +308,6 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
       {
         delete pktiter;
       }
-
     }
     else
     {
@@ -329,7 +327,7 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
   }
 
   // generic map cleanup
-  auto cleanup = [bclk]( auto map )
+  auto cleanup = [bclk]( auto&& map )
   {
     for( auto iter = map.begin(); iter!= map.end(); )
     {
@@ -345,17 +343,13 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
   cleanup( m_BeamClockFEE );
   cleanup( m_BeamClockPacket );
   cleanup( m_MicromegasRawHitMap );
-//   for (const auto& bclk : toclearbclk)
-//   {
-//     m_BclkStack.erase(bclk);
-//     m_BeamClockFEE.erase(bclk);
-//     m_MicromegasRawHitMap.erase(bclk);
-//   }
 }
 
 //_______________________________________________________
 void SingleMicromegasPoolInput::ClearCurrentEvent()
 {
+  std::cout << "SingleMicromegasPoolInput::ClearCurrentEvent." << std::endl;
+
   uint64_t currentbclk = *m_BclkStack.begin();
   CleanupUsedPackets(currentbclk);
   return;
