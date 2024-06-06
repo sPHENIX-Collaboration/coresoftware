@@ -22,6 +22,9 @@
 #include <ffaobjects/SyncObject.h>  // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>
 
+#include <qautils/QAHistManagerDef.h>
+#include <qautils/QAUtil.h>
+
 #include <frog/FROG.h>
 
 #include <phool/PHObject.h>  // for PHObject
@@ -29,6 +32,7 @@
 #include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
+#include <TH1.h>
 
 #include <algorithm>  // for max
 #include <cassert>
@@ -43,6 +47,8 @@ Fun4AllStreamingInputManager::Fun4AllStreamingInputManager(const std::string &na
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   m_topNode = se->topNode(TopNodeName());
+
+  createQAHistos();
   return;
 }
 
@@ -829,6 +835,11 @@ int Fun4AllStreamingInputManager::FillTpc()
   {
     return iret;
   }
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+  TH1 *h_refbco = dynamic_cast<TH1 *>(hm->getHisto("h_TPC_refbco"));
+  TH1 *h_gl1tagged = dynamic_cast<TH1 *>(hm->getHisto("h_TPC_trigtagbco"));
+
   TpcRawHitContainer *tpccont = findNode::getClass<TpcRawHitContainer>(m_topNode, "TPCRAWHIT");
   //  std::cout << "before filling m_TpcRawHitMap size: " <<  m_TpcRawHitMap.size() << std::endl;
   uint64_t select_crossings = m_tpc_bco_range;
@@ -846,6 +857,24 @@ int Fun4AllStreamingInputManager::FillTpc()
   }
   // m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
   // if this map is empty which is handled above
+  int refbcobitshift = m_RefBCO & 0x3F;
+  std::cout << "ref bco bit shift is " << m_RefBCO << ", " << refbcobitshift << std::endl;
+  h_refbco->Fill(refbcobitshift);
+    for (size_t p = 0; p < m_TpcInputVector.size(); p++)
+      {
+        std::cout << "checking packet " << p << std::endl;
+        auto bcl_stack = m_TpcInputVector[p]->BclkStack();
+        std::cout << "bcl stack " << bcl_stack.size() << std::endl;
+        for (auto &bcl : bcl_stack)
+        {
+          auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
+          if (diff < 5)
+          {
+            h_gl1tagged->Fill(refbcobitshift);
+          }
+        }
+      }
+    
   while (m_TpcRawHitMap.begin()->first < m_RefBCO - m_tpc_negative_bco)
   {
     for (auto iter : m_TpcInputVector)
@@ -1078,4 +1107,20 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
     return -1;
   }
   return 0;
+}
+void Fun4AllStreamingInputManager::createQAHistos()
+{
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  {
+    auto h = new TH1F("h_TPC_refbco", "TPC ref BCO", 1000, 0, 1000);
+    h->GetXaxis()->SetTitle("GL1 BCO");
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH1F("h_TPC_trigtagbco", "TPC trigger tagged BCO", 1000, 0, 1000);
+    h->GetXaxis()->SetTitle("GL1 BCO");
+    hm->registerHisto(h);
+  }
 }

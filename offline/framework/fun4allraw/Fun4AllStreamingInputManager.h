@@ -95,6 +95,8 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
     std::vector<TpcRawHit *> TpcRawHitVector;
     unsigned int EventFoundCounter{0};
   };
+  
+  void createQAHistos();
 
   SyncObject *m_SyncObject{nullptr};
   PHCompositeNode *m_topNode{nullptr};

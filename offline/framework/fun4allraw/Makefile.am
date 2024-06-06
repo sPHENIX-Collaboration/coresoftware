@@ -97,7 +97,8 @@ libfun4allraw_la_LIBADD = \
   -lffarawobjects \
   -lfun4all \
   -lEvent \
-  -lphoolraw
+  -lphoolraw \
+  -lqautils
 
 BUILT_SOURCES = testexternals.cc
 
