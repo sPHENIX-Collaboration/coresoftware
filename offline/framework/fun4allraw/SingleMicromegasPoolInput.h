@@ -31,16 +31,41 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
+  //! save some statistics for BCO statistics
+  void SaveBcoStatistics( uint64_t /*gtm_bco*/);
+
  private:
   std::array<Packet*,10> plist{};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
 
+  //! store list of packets that have data for a given beam clock
+  /**
+   * all packets in taggers are stored,
+   * disregarding whether there is data associated to it or not
+   * this allows to keep track of dropped data, also in zero-suppression mode
+   */
+  std::map<uint64_t, std::set<int>> m_BeamClockPacket;
+
+  //! store list of FEE that have data for a given beam clock
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
+
+  //! store list of raw hits matching a given bco
   std::map<uint64_t, std::vector<MicromegasRawHit *>> m_MicromegasRawHitMap;
+
+  //! store current list of BCO on a per fee basis.
+  /** only packets for which a given FEE have data are stored */
   std::map<int, uint64_t> m_FEEBclkMap;
+
+  //! store current list of BCO
+  /**
+   * all packets in taggers are stored,
+   * disregarding whether there is data associated to it or not
+   * this allows to keep track of dropped data, also in zero-suppression mode
+   */
   std::set<uint64_t> m_BclkStack;
+
 
   //! map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation>;
@@ -51,6 +76,8 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
 
   // keep track of dropped waveforms
   uint64_t m_waveform_count_dropped = 0;
+
+  //! gtm bco statistics
 
 };
 
