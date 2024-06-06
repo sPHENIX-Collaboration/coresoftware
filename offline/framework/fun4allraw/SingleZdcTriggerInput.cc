@@ -101,6 +101,9 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
 
     for (int i = 0; i < npackets; i++)
     {
+      int packet_id = plist[i]->getIdentifier();
+// The call to  EventNumberOffset(identifier) will initialize it to our default if it wasn't set already
+      int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
         plist[i]->identify();
@@ -112,7 +115,6 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
-      int packet_id = plist[i]->getIdentifier();
       if (nr_modules > 3)
       {
 	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
@@ -152,7 +154,8 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       }
       if (Verbosity() > 2)
       {
-        std::cout << PHWHERE << "evtno: " << EventSequence
+        std::cout << PHWHERE << "corrected evtno: " << CorrectedEventSequence
+		  << ", original evtno: " << EventSequence
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
@@ -160,15 +163,15 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       {
 	if (packet_id == std::clamp(packet_id, 9000, 9999))
 	{
-        TriggerInputManager()->AddSEpdPacket(EventSequence, newhit);
+        TriggerInputManager()->AddSEpdPacket(CorrectedEventSequence, newhit);
 	}
 	else
 	{
-        TriggerInputManager()->AddZdcPacket(EventSequence, newhit);
+        TriggerInputManager()->AddZdcPacket(CorrectedEventSequence, newhit);
 	}
       }
       m_ZdcPacketMap[EventSequence].push_back(newhit);
-      m_EventStack.insert(EventSequence);
+      m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
 	ddumppacket(plist[i]);
