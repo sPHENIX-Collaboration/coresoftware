@@ -7,6 +7,7 @@
 #include <array>
 #include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -14,6 +15,9 @@
 class Fun4AllEvtInputPoolManager;
 class MicromegasRawHit;
 class Packet;
+
+class TFile;
+class TH1;
 
 class SingleMicromegasPoolInput : public SingleStreamingInput
 {
@@ -31,8 +35,16 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
+  /// enable evaluation
+  void SetDoEvaluation(bool value)
+  { m_do_evaluation = value; }
+
+  /// output file name for evaluation histograms
+  void SetEvaluationOutputFilename(const std::string& outputfile)
+  { m_evaluation_filename = outputfile; }
+
   //! save some statistics for BCO statistics
-  void SaveBcoStatistics( uint64_t /*gtm_bco*/);
+  void FillBcoStatistics( uint64_t /*gtm_bco*/);
 
  private:
   std::array<Packet*,10> plist{};
@@ -77,7 +89,15 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   // keep track of dropped waveforms
   uint64_t m_waveform_count_dropped = 0;
 
-  //! gtm bco statistics
+  bool m_do_evaluation = false;
+  std::string m_evaluation_filename = "SingleMicromegasPoolInput.root";
+  std::unique_ptr<TFile> m_evaluation_file;
+
+  //!@name gtm bco statistics histogram
+  //@{
+  TH1* m_npacket_bco_hist = nullptr;
+  TH1* m_nwaveform_bco_hist = nullptr;
+  //@}
 
 };
 

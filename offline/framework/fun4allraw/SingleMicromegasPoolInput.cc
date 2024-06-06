@@ -18,9 +18,10 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <TFile.h>
+#include <TH1.h>
+
 #include <algorithm>
-#include <memory>
-#include <set>
 
 namespace
 {
@@ -44,6 +45,16 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
     std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped: " << m_waveform_count_dropped << std::endl;
     std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio: " << double(m_waveform_count_dropped)/m_waveform_count_total << std::endl;
   }
+
+  if( m_evaluation_file )
+  {
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - writing histograms to " << m_evaluation_filename << std::endl;
+    m_evaluation_file->cd();
+    if( m_npacket_bco_hist ) m_npacket_bco_hist->Write();
+    if( m_nwaveform_bco_hist ) m_nwaveform_bco_hist->Write();
+    m_evaluation_file->Close();
+  }
+
 }
 
 //______________________________________________________________
@@ -433,4 +444,42 @@ void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
     StreamingInputManager()->SetMicromegasBcoRange(m_BcoRange);
     StreamingInputManager()->SetMicromegasNegativeBco(m_NegativeBco);
   }
+}
+
+//_______________________________________________________
+void SingleMicromegasPoolInput::FillBcoStatistics( uint64_t gtm_bco)
+{
+  if( !m_do_evaluation ) return;
+
+  if( !m_evaluation_file )
+  { m_evaluation_file.reset( TFile::Open( m_evaluation_filename.c_str(), "RECREATE" )); }
+
+  if( !m_npacket_bco_hist )
+  { m_npacket_bco_hist = new TH1I( "m_npacket_bco_hist", "packet count per GTM BCO; packets; A.U.", 10, 0, 10 ); }
+
+  if( !m_nwaveform_bco_hist )
+  { m_nwaveform_bco_hist = new TH1I( "m_nwaveform_bco_hist", "waveform count per GTM BCO; waveforms; A.U.", 10, 0, 10 ); }
+
+  unsigned int n_waveforms = 0;
+  unsigned int n_packets = 0;
+  for( uint64_t gtm_bco_loc = gtm_bco - m_NegativeBco; gtm_bco_loc < gtm_bco + m_BcoRange - m_NegativeBco; ++gtm_bco_loc )
+  {
+    const auto packet_iter = m_BeamClockPacket.find(gtm_bco_loc);
+    if( packet_iter != m_BeamClockPacket.end() ) { n_packets += packet_iter->second.size(); }
+
+    const auto wf_iter = m_MicromegasRawHitMap.find(gtm_bco_loc);
+    if( wf_iter != m_MicromegasRawHitMap.end() ) { n_waveforms += wf_iter->second.size(); }
+  }
+
+  if( Verbosity() )
+  {
+    std::cout << "SingleMicromegasPoolInput::FillBcoStatistics -"
+      << " BCO: 0x" << std::hex << gtm_bco << std::dec
+      << " n_packets: " << n_packets
+      << " n_waveforms: " << n_waveforms
+      << std::endl;
+  }
+
+  m_npacket_bco_hist->Fill(n_packets);
+  m_nwaveform_bco_hist->Fill(n_waveforms);
 }
