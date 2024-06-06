@@ -136,11 +136,11 @@ namespace
   }
 
   /// pseudo rapidity of Acts::Vector3
-  inline double get_eta(const Acts::Vector3& position)
-  {
-    const double norm = std::sqrt(square(position.x()) + square(position.y()) + square(position.z()));
-    return std::log((norm + position.z()) / (norm - position.z())) / 2;
-  }
+  /* inline double get_eta(const Acts::Vector3& position) */
+  /* { */
+  /*   const double norm = std::sqrt(square(position.x()) + square(position.y()) + square(position.z())); */
+  /*   return std::log((norm + position.z()) / (norm - position.z())) / 2; */
+  /* } */
 
   inline double breaking_angle(double x1, double y1, double z1, double x2, double y2, double z2)
   {
@@ -218,7 +218,7 @@ Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster*
   return globalpos;
 }
 
-void PHCASeeding::QueryTree(const bgi::rtree<PHCASeeding::pointKey, bgi::quadratic<16>>& rtree, double phimin, double etamin, double phimax, double etamax, std::vector<pointKey>& returned_values) const
+void PHCASeeding::QueryTree(const bgi::rtree<PHCASeeding::pointKey, bgi::quadratic<16>>& rtree, double phimin, double z_min, double phimax, double z_max, std::vector<pointKey>& returned_values) const
 {
   bool query_both_ends = false;
   if (phimin < 0)
@@ -233,12 +233,12 @@ void PHCASeeding::QueryTree(const bgi::rtree<PHCASeeding::pointKey, bgi::quadrat
   }
   if (query_both_ends)
   {
-    rtree.query(bgi::intersects(box(point(phimin, etamin), point(2 * M_PI, etamax))), std::back_inserter(returned_values));
-    rtree.query(bgi::intersects(box(point(0., etamin), point(phimax, etamax))), std::back_inserter(returned_values));
+    rtree.query(bgi::intersects(box(point(phimin, z_min), point(2 * M_PI, z_max))), std::back_inserter(returned_values));
+    rtree.query(bgi::intersects(box(point(0., z_min), point(phimax, z_max))), std::back_inserter(returned_values));
   }
   else
   {
-    rtree.query(bgi::intersects(box(point(phimin, etamin), point(phimax, etamax))), std::back_inserter(returned_values));
+    rtree.query(bgi::intersects(box(point(phimin, z_min), point(phimax, z_max))), std::back_inserter(returned_values));
   }
 }
 
@@ -505,7 +505,7 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
       delta_above.clear();
       delta_below.resize(ClustersBelow.size());
       delta_above.resize(ClustersAbove.size());
-      // calculate (delta_eta, delta_phi) vector for each neighboring cluster
+      // calculate (delta_z_, delta_phi) vector for each neighboring cluster
 
       std::transform(ClustersBelow.begin(), ClustersBelow.end(), delta_below.begin(),
                      [&](pointKey BelowCandidate)
@@ -528,7 +528,7 @@ std::pair<PHCASeeding::keyLinks, PHCASeeding::keyLinkPerLayer> PHCASeeding::Crea
       t_seed->restart();
 
       // find the three clusters closest to a straight line
-      // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
+      // (by maximizing the cos of the angle between the (delta_z_,delta_phi) vectors)
       // double minSumLengths = 1e9;
       std::unordered_set<TrkrDefs::cluskey> bestAboveClusters;
       for (size_t iAbove = 0; iAbove < delta_above.size(); ++iAbove)
@@ -795,33 +795,33 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
   {
     LogDebug(" seed " << i << ":" << std::endl);
 
-    double lasteta = -100;
+    double last_z = -100;
     double lastphi = -100;
     for (unsigned long& j : trackSeedKeyList)
     {
       const auto& globalpos = globalPositions.at(j);
       const double clus_phi = get_phi(globalpos);
-      const double clus_eta = get_eta(globalpos);
-      const double etajump = clus_eta - lasteta;
+      const double clus_z = globalpos.z();
+      const double z_jump = clus_z - last_z;
       const double phijump = clus_phi - lastphi;
 #if defined(_DEBUG_)
       unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j].second);
 #endif
-      if ((fabs(etajump) > 0.1 && lasteta != -100) || (fabs(phijump) > 1 && lastphi != -100))
+      if ((fabs(z_jump) > 0.1 && last_z != -100) || (fabs(phijump) > 1 && lastphi != -100))
       {
-        LogDebug(" Eta or Phi jump too large! " << std::endl);
+        LogDebug(" Z or Phi jump too large! " << std::endl);
         ++jumpcount;
       }
-      LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") "
+      LogDebug(" (Z,phi,layer) = (" << clus_z << "," << clus_phi << "," << lay << ") "
                                       << " (x,y,z) = (" << globalpos(0) << "," << globalpos(1) << "," << globalpos(2) << ")" << std::endl);
 
       if (Verbosity() > 2)
       {
         unsigned int lay = TrkrDefs::getLayer(j);
-        std::cout << "  eta, phi, layer = (" << clus_eta << "," << clus_phi << "," << lay << ") "
+        std::cout << "  Z, phi, layer = (" << clus_z << "," << clus_phi << "," << lay << ") "
                   << " (x,y,z) = (" << globalpos(0) << "," << globalpos(1) << "," << globalpos(2) << ")" << std::endl;
       }
-      lasteta = clus_eta;
+      last_z = clus_z;
       lastphi = clus_phi;
     }
   }
@@ -829,7 +829,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
   t_seed->stop();
   if (Verbosity() > 1)
   {
-    std::cout << "eta-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
+    std::cout << "z-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << std::endl;
   }
   t_seed->restart();
   return trackSeedKeyLists;
@@ -988,7 +988,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   std::cout << " Writing _CLUSTER_LOG_TUPOUT.root file " << std::endl;
   _f_clustering_process = new TFile("_CLUSTER_LOG_TUPOUT.root", "recreate");
   _tupclus_all         = new TNtuple("all",         "all clusters","event:layer:num:x:y:z");
-  _tupclus_links       = new TNtuple("links",       "links","event:layer:updown01:x:y:z:delta_eta:delta_phi");
+  _tupclus_links       = new TNtuple("links",       "links","event:layer:updown01:x:y:z:delta_z:delta_phi");
   _tupclus_bilinks     = new TNtuple("bilinks",     "bilinks","event:layer:topbot01:x:y:z");
   _tupclus_seeds       = new TNtuple("seeds",       "3 bilink seeds cores","event:layer:seed012:x:y:z");
   _tupclus_grown_seeds = new TNtuple("grown_seeds", "grown seeds", "event:layer:seednum05:x:y:z");
@@ -999,7 +999,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
       "event:layerL:xL:yL:zL:layer1:x1:y1:z1:dzdr_12:dzdr_L1:delta_dzdr_12_L1:d2phidr2_123:d2phidr2_L12:delta_d2phidr2");
 
   _search_windows = new TNtuple("search_windows","windows used in algorithm to seed clusters",
-      "DelEta_ClSearch:DelPhi_ClSearch:start_layer:end_layer:dzdr_ClAdd:dphidr2_ClAdd");
+      "DelZ_ClSearch:DelPhi_ClSearch:start_layer:end_layer:dzdr_ClAdd:dphidr2_ClAdd");
 
   _tup_chainfork  = new TNtuple("chainfork", "chain with multiple links, which if forking", "event:nchain:layer:x:y:z:dzdr:d2phidr2:nlink:nlinks"); // nlinks to add, 0 ... nlinks
   _tup_chainbody  = new TNtuple("chainbody", "chain body with multiple link options", "event:nchain:layer:x:y:z:dzdr:d2phidr2:nlink:nlinks"); // nlinks in chain being added to will be 0, 1, 2 ... working backward from the fork -- dZ and dphi are dropped for final links as necessary

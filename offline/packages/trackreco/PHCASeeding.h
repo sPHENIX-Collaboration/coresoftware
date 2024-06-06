@@ -69,7 +69,7 @@ class PHCASeeding : public PHTrackSeeding
    using point = bg::model::point<float, 2, bg::cs::cartesian>;
    using box = bg::model::box<point>;
    using pointKey = std::pair<point, TrkrDefs::cluskey>; // phi and z in the key
-   using coordKey = std::pair<std::array<float, 2>, TrkrDefs::cluskey>; // just use phi and eta, no longer needs the layer
+   using coordKey = std::pair<std::array<float, 2>, TrkrDefs::cluskey>; // just use phi and Z, no longer needs the layer
 
    using keyList = std::vector<TrkrDefs::cluskey>;
    using keyLists = std::vector<keyList>;
