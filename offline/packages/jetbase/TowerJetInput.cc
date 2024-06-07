@@ -411,7 +411,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     return std::vector<Jet *>();
   }
 
-  if (abs(vtxz) > 1e3) //code crashes with very large z vertex, so skip these events
+  if (std::abs(vtxz) > 1e3) //code crashes with very large z vertex, so skip these events
     {
       static bool once = true;
       if (once)
