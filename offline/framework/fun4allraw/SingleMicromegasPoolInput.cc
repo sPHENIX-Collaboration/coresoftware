@@ -18,9 +18,10 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <TFile.h>
+#include <TH1.h>
+
 #include <algorithm>
-#include <memory>
-#include <set>
 
 namespace
 {
@@ -44,6 +45,16 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
     std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped: " << m_waveform_count_dropped << std::endl;
     std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio: " << double(m_waveform_count_dropped)/m_waveform_count_total << std::endl;
   }
+
+  if( m_evaluation_file )
+  {
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - writing histograms to " << m_evaluation_filename << std::endl;
+    m_evaluation_file->cd();
+    if( m_npacket_bco_hist ) m_npacket_bco_hist->Write();
+    if( m_nwaveform_bco_hist ) m_nwaveform_bco_hist->Write();
+    m_evaluation_file->Close();
+  }
+
 }
 
 //______________________________________________________________
@@ -124,6 +135,19 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
       // read gtm bco information
       bco_matching_information.save_gtm_bco_information( packet.get() );
+
+      // save BCO from tagger internally
+      const int n_tagger = packet->lValue(0, "N_TAGGER");
+      for (int t = 0; t < n_tagger; ++t)
+      {
+        const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+        if (is_lvl1)
+        {
+          const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+          m_BeamClockPacket[gtm_bco].insert(packet_id);
+          m_BclkStack.insert(gtm_bco);
+        }
+      }
 
       // loop over waveforms
       const int nwf = packet->iValue(0, "NR_WF");
@@ -228,7 +252,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
 
         m_MicromegasRawHitMap[gtm_bco].push_back(newhit.release());
-        m_BclkStack.insert(gtm_bco);
       }
 
       // cleanup
@@ -288,7 +311,6 @@ void SingleMicromegasPoolInput::Print(const std::string& what) const
 //____________________________________________________________________________
 void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
-  std::vector<uint64_t> toclearbclk;
   for (const auto& iter : m_MicromegasRawHitMap)
   {
     if (iter.first <= bclk)
@@ -297,8 +319,6 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
       {
         delete pktiter;
       }
-
-      toclearbclk.push_back(iter.first);
     }
     else
     {
@@ -306,17 +326,41 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
     }
   }
 
-  for (auto iter : toclearbclk)
+  // cleanup block stat
+  for( auto iter = m_BclkStack.begin(); iter != m_BclkStack.end(); )
   {
-    m_BclkStack.erase(iter);
-    m_BeamClockFEE.erase(iter);
-    m_MicromegasRawHitMap.erase(iter);
+    if( *iter <= bclk )
+    {
+      iter = m_BclkStack.erase(iter);
+    } else {
+      break;
+    }
   }
+
+  // generic map cleanup
+  auto cleanup = [bclk]( auto&& map )
+  {
+    for( auto iter = map.begin(); iter!= map.end(); )
+    {
+      if( iter->first <= bclk )
+      {
+        iter = map.erase(iter);
+      } else {
+        break;
+      }
+    }
+  };
+
+  cleanup( m_BeamClockFEE );
+  cleanup( m_BeamClockPacket );
+  cleanup( m_MicromegasRawHitMap );
 }
 
 //_______________________________________________________
 void SingleMicromegasPoolInput::ClearCurrentEvent()
 {
+  std::cout << "SingleMicromegasPoolInput::ClearCurrentEvent." << std::endl;
+
   uint64_t currentbclk = *m_BclkStack.begin();
   CleanupUsedPackets(currentbclk);
   return;
@@ -400,4 +444,42 @@ void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
     StreamingInputManager()->SetMicromegasBcoRange(m_BcoRange);
     StreamingInputManager()->SetMicromegasNegativeBco(m_NegativeBco);
   }
+}
+
+//_______________________________________________________
+void SingleMicromegasPoolInput::FillBcoStatistics( uint64_t gtm_bco)
+{
+  if( !m_do_evaluation ) return;
+
+  if( !m_evaluation_file )
+  { m_evaluation_file.reset( TFile::Open( m_evaluation_filename.c_str(), "RECREATE" )); }
+
+  if( !m_npacket_bco_hist )
+  { m_npacket_bco_hist = new TH1I( "m_npacket_bco_hist", "packet count per GTM BCO; packets; A.U.", 10, 0, 10 ); }
+
+  if( !m_nwaveform_bco_hist )
+  { m_nwaveform_bco_hist = new TH1I( "m_nwaveform_bco_hist", "waveform count per GTM BCO; waveforms; A.U.", 4100, 0, 4100 ); }
+
+  unsigned int n_waveforms = 0;
+  unsigned int n_packets = 0;
+  for( uint64_t gtm_bco_loc = gtm_bco - m_NegativeBco; gtm_bco_loc < gtm_bco + m_BcoRange - m_NegativeBco; ++gtm_bco_loc )
+  {
+    const auto packet_iter = m_BeamClockPacket.find(gtm_bco_loc);
+    if( packet_iter != m_BeamClockPacket.end() ) { n_packets += packet_iter->second.size(); }
+
+    const auto wf_iter = m_MicromegasRawHitMap.find(gtm_bco_loc);
+    if( wf_iter != m_MicromegasRawHitMap.end() ) { n_waveforms += wf_iter->second.size(); }
+  }
+
+  if( Verbosity() )
+  {
+    std::cout << "SingleMicromegasPoolInput::FillBcoStatistics -"
+      << " BCO: 0x" << std::hex << gtm_bco << std::dec
+      << " n_packets: " << n_packets
+      << " n_waveforms: " << n_waveforms
+      << std::endl;
+  }
+
+  m_npacket_bco_hist->Fill(n_packets);
+  m_nwaveform_bco_hist->Fill(n_waveforms);
 }
