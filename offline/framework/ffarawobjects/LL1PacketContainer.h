@@ -20,6 +20,8 @@ class LL1PacketContainer : public PHObject
   virtual LL1Packet *getPacketbyId(int) { return nullptr; }
   virtual void setEvtSequence(const int) {return;}
   virtual int getEvtSequence() const {return std::numeric_limits<int>::min();}
+  virtual void setStatus(const unsigned int) {return;}
+  virtual unsigned int getStatus() const {return 0;}
 
  private:
   ClassDefOverride(LL1PacketContainer, 1)

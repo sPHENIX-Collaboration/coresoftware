@@ -32,10 +32,13 @@ class CaloPacketContainerv1 : public CaloPacketContainer
   CaloPacket *getPacketbyId(int id) override;
   void setEvtSequence(const int i) override {eventno = i;}
   int getEvtSequence() const override {return eventno;}
+  void setStatus(const unsigned int ui) override {status = ui;}
+  unsigned int getStatus() const override {return status;}
 
  private:
   TClonesArray *CaloPacketsTCArray{nullptr};
   int eventno{std::numeric_limits<int>::min()};
+  unsigned int status {0};
 
   ClassDefOverride(CaloPacketContainerv1, 2)
 };
