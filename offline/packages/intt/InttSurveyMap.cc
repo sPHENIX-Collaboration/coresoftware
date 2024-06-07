@@ -49,24 +49,23 @@ int InttSurveyMap::LoadFromCDB(
 
 int InttSurveyMap::GetStripTransform(
     key_t const& k,
-	val_t& v) const
+    val_t& v) const
 {
   val_t const* transform_ptr = nullptr;
   key_t ofl{
-    k.layer,
-    k.ladder_phi,
-    k.ladder_z,
-	InttMap::Wildcard,
-	InttMap::Wildcard
-  };
+      k.layer,
+      k.ladder_phi,
+      k.ladder_z,
+      InttMap::Wildcard,
+      InttMap::Wildcard};
 
   transform_ptr = GetAbsoluteTransform(ofl);
-  if(!transform_ptr)
+  if (!transform_ptr)
   {
     return 1;
   }
 
-  for(int i = 0; i < 16; ++i)
+  for (int i = 0; i < 16; ++i)
   {
     v.matrix()(i / 4, i % 4) = i / 4 == i % 4;
   }
@@ -90,19 +89,18 @@ int InttSurveyMap::GetStripTransform(
 
 int InttSurveyMap::GetSensorTransform(
     key_t const& k,
-	val_t& v) const
+    val_t& v) const
 {
   val_t const* transform_ptr = nullptr;
   key_t ofl{
-    k.layer,
-    k.ladder_phi,
-    k.ladder_z,
-	InttMap::Wildcard,
-	InttMap::Wildcard
-  };
+      k.layer,
+      k.ladder_phi,
+      k.ladder_z,
+      InttMap::Wildcard,
+      InttMap::Wildcard};
 
   transform_ptr = GetAbsoluteTransform(ofl);
-  if(!transform_ptr)
+  if (!transform_ptr)
   {
     return 1;
   }
@@ -114,19 +112,18 @@ int InttSurveyMap::GetSensorTransform(
 
 int InttSurveyMap::GetLadderTransform(
     key_t const& k,
-	val_t& v) const
+    val_t& v) const
 {
   val_t const* transform_ptr = nullptr;
   key_t ofl{
-    k.layer,
-    k.ladder_phi,
-	InttMap::Wildcard,
-	InttMap::Wildcard,
-	InttMap::Wildcard
-  };
+      k.layer,
+      k.ladder_phi,
+      InttMap::Wildcard,
+      InttMap::Wildcard,
+      InttMap::Wildcard};
 
   transform_ptr = GetAbsoluteTransform(ofl);
-  if(!transform_ptr)
+  if (!transform_ptr)
   {
     return 1;
   }
@@ -152,7 +149,7 @@ std::size_t InttSurveyMap::size() const
 InttSurveyMap::val_t const* InttSurveyMap::GetAbsoluteTransform(
     key_t const& /*unused*/) const
 {
-	return nullptr;
+  return nullptr;
 }
 
 int InttSurveyMap::v_LoadFromCDBTTree(
