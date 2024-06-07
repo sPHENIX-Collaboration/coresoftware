@@ -87,8 +87,8 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct Gl1PacketInfo
   {
-    std::vector<Gl1Packet *> Gl1PacketVector;
-    std::map<int, uint64_t> BcoMap;
+    std::map<int, Gl1Packet *> Gl1SinglePacketMap;
+    std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
 
@@ -119,13 +119,13 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   struct SEpdPacketInfo
   {
     std::map<int, CaloPacket *> SEpdSinglePacketMap;
-    std::map<int, uint64_t> BcoMap;
+    std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
   struct ZdcPacketInfo
   {
     std::map<int, CaloPacket *> ZdcSinglePacketMap;
-    std::map<int, uint64_t> BcoMap;
+    std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
 

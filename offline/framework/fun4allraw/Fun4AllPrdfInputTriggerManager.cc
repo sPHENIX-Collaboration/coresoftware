@@ -54,9 +54,9 @@ Fun4AllPrdfInputTriggerManager::~Fun4AllPrdfInputTriggerManager()
   }
   for (auto const &mapiter : m_Gl1PacketMap)
   {
-    for (auto gl1packet : mapiter.second.Gl1PacketVector)
+    for (auto &gl1packet : mapiter.second.Gl1SinglePacketMap)
     {
-      delete gl1packet;
+      delete gl1packet.second;
     }
   }
   m_Gl1PacketMap.clear();
@@ -642,9 +642,9 @@ void Fun4AllPrdfInputTriggerManager::ClearAllEvents()
 {
   for (auto const &mapiter : m_Gl1PacketMap)
   {
-    for (auto gl1packet : mapiter.second.Gl1PacketVector)
+    for (auto &gl1packet : mapiter.second.Gl1SinglePacketMap)
     {
-      delete gl1packet;
+      delete gl1packet.second;
     }
   }
   m_Gl1PacketMap.clear();
@@ -702,13 +702,13 @@ int Fun4AllPrdfInputTriggerManager::MoveGl1ToNodeTree()
     return 0;
   }
 
-  for (auto gl1hititer : m_Gl1PacketMap.begin()->second.Gl1PacketVector)
+  for (auto &gl1hititer : m_Gl1PacketMap.begin()->second.Gl1SinglePacketMap)
   {
     if (Verbosity() > 1)
     {
-      gl1hititer->identify();
+      gl1hititer.second->identify();
     }
-    gl1packet->FillFrom(gl1hititer);
+    gl1packet->FillFrom(gl1hititer.second);
     // m_RefEventNo = gl1hititer->getEvtSequence();
     // gl1packet->setEvtSequence(m_RefEventNo);
   }
@@ -716,8 +716,8 @@ int Fun4AllPrdfInputTriggerManager::MoveGl1ToNodeTree()
   {
     iter->CleanupUsedPackets(m_Gl1PacketMap.begin()->first);
   }
-  m_Gl1PacketMap.begin()->second.Gl1PacketVector.clear();
-  m_Gl1PacketMap.begin()->second.BcoMap.clear();
+  m_Gl1PacketMap.begin()->second.Gl1SinglePacketMap.clear();
+  m_Gl1PacketMap.begin()->second.BcoDiffMap.clear();
   m_Gl1PacketMap.erase(m_Gl1PacketMap.begin());
   // std::cout << "size  m_Gl1PacketMap: " <<  m_Gl1PacketMap.size()
   // 	    << std::endl;
@@ -732,8 +732,7 @@ void Fun4AllPrdfInputTriggerManager::AddGl1Packet(int eventno, Gl1Packet *pkt)
               << eventno << std::endl;
   }
   auto &iter = m_Gl1PacketMap[eventno];
-  iter.Gl1PacketVector.push_back(pkt);
-  iter.BcoMap.insert(std::make_pair(pkt->getIdentifier(),pkt->getBCO()));
+  iter.Gl1SinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
   return;
 }
 
@@ -1142,7 +1141,6 @@ void Fun4AllPrdfInputTriggerManager::AddZdcPacket(int eventno, CaloPacket *pkt)
   }
   auto &iter = m_ZdcPacketMap[eventno];
   iter.ZdcSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
-  iter.BcoMap.insert(std::make_pair(pkt->getIdentifier(),pkt->getBCO()));
   return;
 }
 
@@ -1183,14 +1181,14 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
   {
     std::cout << "Erasing event no " << m_ZdcPacketMap.begin()->first << " from zdc pktmap" << std::endl;
   m_ZdcPacketMap.begin()->second.ZdcSinglePacketMap.clear();
-  m_ZdcPacketMap.begin()->second.BcoMap.clear();
+  m_ZdcPacketMap.begin()->second.BcoDiffMap.clear();
   m_ZdcPacketMap.erase(m_ZdcPacketMap.begin());
   }
   if (m_SEpdPacketMap.begin()->first <= m_RefEventNo)
   {
     std::cout << "Erasing event no " << m_SEpdPacketMap.begin()->first << " from sepd pktmap" << std::endl;
   m_SEpdPacketMap.begin()->second.SEpdSinglePacketMap.clear();
-  m_SEpdPacketMap.begin()->second.BcoMap.clear();
+  m_SEpdPacketMap.begin()->second.BcoDiffMap.clear();
   m_SEpdPacketMap.erase(m_SEpdPacketMap.begin());
   }
   // std::cout << "size  m_SEpdPacketMap: " <<  m_SEpdPacketMap.size()
@@ -1247,22 +1245,30 @@ void Fun4AllPrdfInputTriggerManager::ClockSyncCheck()
     for (auto gl1hititer = m_Gl1PacketMap.begin(); gl1hititer != m_Gl1PacketMap.end(); ++gl1hititer)
     {
       std::cout << "gl1 event: " <<  gl1hititer->first << std::endl;
-      for (auto &pktiter : gl1hititer->second.Gl1PacketVector)
+      auto nextIt = std::next(gl1hititer);
+      if (nextIt !=  m_Gl1PacketMap.end())
       {
-	std::cout << "pkt id : " << pktiter->getIdentifier()
-		  << ", clock: 0x" << std::hex << pktiter->getBCO() << std::dec << std::endl;
-	uint64_t prev_bco = pktiter->getBCO();
-        auto nextIt = std::next(gl1hititer);
-	if (nextIt !=  m_Gl1PacketMap.end())
+	std::cout << "size of bcomap: " << nextIt->second.BcoDiffMap.size() << std::endl;
+	if (! nextIt->second.BcoDiffMap.empty())
 	{
-	  std::cout << "next gl1 event: " << nextIt->first << std::endl;
-	  for (auto &nextpktiter : nextIt->second.Gl1PacketVector)
+	  continue;
+	}
+	std::cout << "next gl1 event: " <<  nextIt->first << std::endl;
+	for (auto &pktiter : gl1hititer->second.Gl1SinglePacketMap)
+	{
+	  uint64_t prev_bco = pktiter.second->getBCO();
+	  int prev_packetid = pktiter.first;
+	  auto currpkt = nextIt->second.Gl1SinglePacketMap.find(prev_packetid);//->find(prev_packetid);
+	  if (currpkt != nextIt->second.Gl1SinglePacketMap.end())
 	  {
-	    std::cout << "next pkt id : " << nextpktiter->getIdentifier()
-		      << ", clock: 0x" << std::hex << nextpktiter->getBCO() << std::dec << std::endl;
+	    uint64_t curr_bco = currpkt->second->getBCO();
+	    uint64_t diffbco = curr_bco - prev_bco;
+	    gl1hititer->second.BcoDiffMap[prev_packetid] = diffbco;
+	    std::cout << "packet " << prev_packetid << ", prev_bco 0x: " << std::hex
+		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
+		      << diffbco << std::dec << std::endl;
 	  }
 	}
-
       }
     }
   }
@@ -1296,9 +1302,39 @@ void Fun4AllPrdfInputTriggerManager::ClockSyncCheck()
   }
   if (!m_SEpdPacketMap.empty())
   {
-    for (auto &sepdpktiter : m_SEpdPacketMap)
+    for (auto sepdhititer = m_SEpdPacketMap.begin(); sepdhititer != m_SEpdPacketMap.end(); ++sepdhititer)
     {
-      std::cout << "sepd event: " <<  sepdpktiter.first << std::endl; 
+      std::cout << "sepd event: " <<  sepdhititer->first << std::endl;
+      auto nextIt = std::next(sepdhititer);
+      if (nextIt !=  m_SEpdPacketMap.end())
+      {
+	std::cout << "next sepd event: " <<  nextIt->first << std::endl;
+	if (! nextIt->second.BcoDiffMap.empty()) // this event was already handled, BcoDiffMap is filled
+	{
+	  continue;
+	}
+	std::set<uint64_t> bcodiffs;
+	for (auto &pktiter : sepdhititer->second.SEpdSinglePacketMap)
+	{
+	  uint64_t prev_bco = pktiter.second->getBCO();
+	  int prev_packetid = pktiter.first;
+	  auto currpkt = nextIt->second.SEpdSinglePacketMap.find(prev_packetid);//->find(prev_packetid);
+	  if (currpkt != nextIt->second.SEpdSinglePacketMap.end())
+	  {
+	    uint64_t curr_bco = currpkt->second->getBCO();
+	    uint64_t diffbco = curr_bco - prev_bco;
+	    sepdhititer->second.BcoDiffMap[prev_packetid] = diffbco;
+	    std::cout << "packet " << prev_packetid << ", prev_bco 0x: " << std::hex
+		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
+		      << diffbco << std::dec << std::endl;
+	    bcodiffs.insert(diffbco);
+	  }
+	}
+	if (bcodiffs.size() > 1)
+	{
+	  std::cout << PHWHERE << " different bco diffs for sepd packets for event " << nextIt->first << std::endl;
+	}
+      }
     }
   }
   return;
