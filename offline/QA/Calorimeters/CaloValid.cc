@@ -783,7 +783,7 @@ int CaloValid::Getpeaktime(TH1* h)
   return tcut;
 }
 
-TH2F* CaloValid::LogYHist2D(const std::string& name, const std::string& title, int xbins_in, double xmin, double xmax, int ybins_in, double ymin, double ymax)
+TH2* CaloValid::LogYHist2D(const std::string& name, const std::string& title, int xbins_in, double xmin, double xmax, int ybins_in, double ymin, double ymax)
 {
   Double_t logymin = std::log10(ymin);
   Double_t logymax = std::log10(ymax);

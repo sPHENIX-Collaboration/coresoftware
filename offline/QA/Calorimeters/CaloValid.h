@@ -11,16 +11,15 @@ class PHCompositeNode;
 class TFile;
 class TNtuple;
 class TTree;
-class TH2F;
-class TH1F;
 class TH1;
+class TH2;
 class TProfile2D;
 
 class CaloValid : public SubsysReco
 {
  public:
   //! constructor
-  CaloValid(const std::string& name = "CaloValid", const std::string &filename = "testQA.root"); //int nevents = 100);
+  CaloValid(const std::string& name = "CaloValid");// const std::string &filename = "testQA.root"); //int nevents = 100);
 
   //! destructor
   virtual ~CaloValid();
@@ -43,7 +42,7 @@ class CaloValid : public SubsysReco
   void set_timing_cut_width(const int& t) { _range = t; }
 
   void set_debug(bool debug) { m_debug = debug; }
-  TH2F* LogYHist2D(const std::string& name, const std::string& title, int, double, double, int, double, double);
+  TH2* LogYHist2D(const std::string& name, const std::string& title, int, double, double, int, double, double);
 
  private:
   int Getpeaktime(TH1* h);
@@ -56,13 +55,13 @@ class CaloValid : public SubsysReco
   std::string m_outputFileName;
   std::string OutputFileName;
 
-  TH1F* h_cemc_channel_pedestal[128*192];
-  TH1F* h_ihcal_channel_pedestal[32*48];
-  TH1F* h_ohcal_channel_pedestal[32*48];
+  TH1* h_cemc_channel_pedestal[128*192];
+  TH1* h_ihcal_channel_pedestal[32*48];
+  TH1* h_ohcal_channel_pedestal[32*48];
 
-  TH1F* h_cemc_channel_energy[128*192];
-  TH1F* h_ihcal_channel_energy[32*48];
-  TH1F* h_ohcal_channel_energy[32*48];
+  TH1* h_cemc_channel_energy[128*192];
+  TH1* h_ihcal_channel_energy[32*48];
+  TH1* h_ohcal_channel_energy[32*48];
 
   //TProfile2D* h_cemc_etaphi_pedRMS{nullptr};
  
