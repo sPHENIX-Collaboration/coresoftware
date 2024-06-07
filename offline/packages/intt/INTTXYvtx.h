@@ -19,12 +19,6 @@
 #include <string>
 #include <vector>
 
-using std::string;
-//using std::vector;
-using std::pair;
-using std::cout;
-using std::endl;
-
 // note : this class mainly focus on two things 
 // note : 1. find a single vertex for the whole run
 // note :     a. the functions prepared for this purpose are : ProcessEvt(), GetFinalVTXxy(), MacroVTXSquare()
@@ -56,11 +50,11 @@ class INTTXYvtx {
     };
 
     public:
-        INTTXYvtx(const string&        runType, 
-                  const string&        outFolderDirectory,
-                  pair<double, double> beamOrigin, 
+        INTTXYvtx(const std::string&        runType, 
+                  const std::string&        outFolderDirectory,
+                  std::pair<double, double> beamOrigin, 
                   double               phiDiffCut       = 0.11, 
-                  pair<double, double> DCACut           = {-1,1}, 
+                  std::pair<double, double> DCACut           = {-1,1}, 
                   int                  NCluCutl         = 20, 
                   int                  NCluCut          = 10000, 
                   double               angleDiffNew_l   = 0.0, 
@@ -99,7 +93,7 @@ class INTTXYvtx {
         //////////////////////////////////////////////////////
         // calculate XY vertex
         //  quadorant method
-        std::vector<pair<double,double>> MacroVTXSquare(double length, int N_trial);
+        std::vector<std::pair<double,double>> MacroVTXSquare(double length, int N_trial);
                                       // |- subMacroVTXxyCorrection(i,i1, draw_plot_opt);
                                       //     |- GetVTXxyCorrection_new(true_trial_index);
                                       //         |- subMacroPlotWorking
@@ -110,8 +104,8 @@ class INTTXYvtx {
                                       // |- Draw2TGraph(
 
         //  linefilled method
-        std::vector<pair<double,double>> FillLine_FindVertex(
-                                        pair<double,double> window_center, 
+        std::vector<std::pair<double,double>> FillLine_FindVertex(
+                                        std::pair<double,double> window_center, 
                                         double              segmentation = 0.005, 
                                         double              window_width = 5.0, 
                                         int                 N_bins       = 100
@@ -128,15 +122,15 @@ class INTTXYvtx {
         //////////////////////////////////////////////////////
         // access to internal variables, necessary?
         unsigned long                       GetVecNele();
-        pair<double,double>                 GetFinalVTXxy();
-        pair<std::vector<TH2F *>, std::vector<TH1F*>> GetHistFinal();
+        std::pair<double,double>                 GetFinalVTXxy();
+        std::pair<std::vector<TH2F *>, std::vector<TH1F*>> GetHistFinal();
 
     protected:
-        string              run_type;
-        string              out_folder_directory;
-        pair<double,double> beam_origin;
+        std::string              run_type;
+        std::string              out_folder_directory;
+        std::pair<double,double> beam_origin;
         double              phi_diff_cut;        
-        pair<double,double> DCA_cut;
+        std::pair<double,double> DCA_cut;
         int                 N_clu_cutl;
         int                 N_clu_cut;
         double              angle_diff_new_l;
@@ -149,7 +143,7 @@ class INTTXYvtx {
         bool                m_enable_qa{false};
 
         bool                m_initialized{false};
-        string              m_quad_pdfname{"New_Trial_square.pdf"};
+        std::string              m_quad_pdfname{"New_Trial_square.pdf"};
 
     protected:
         ////////////////////////////
@@ -161,10 +155,10 @@ class INTTXYvtx {
         double                  calculateAngleBetweenVectors(double x1, double y1, double x2, double y2, double targetX, double targetY);
 
 
-        //void                    PrintPlotsVTXxy(string sub_out_folder_name);
+        //void                    PrintPlotsVTXxy(std::string sub_out_folder_name);
         void                    PrintPlotsVTXxy();
 
-        std::vector<pair<double,double>> Get4vtx(pair<double,double> origin, double length);
+        std::vector<std::pair<double,double>> Get4vtx(std::pair<double,double> origin, double length);
         void                        TH1F_FakeClone(TH1F* hist_in, TH1F* hist_out);
         void                        TH2F_FakeClone(TH2F* hist_in, TH2F* hist_out);
 
@@ -173,10 +167,10 @@ class INTTXYvtx {
 
         void                    DrawTGraphErrors(std::vector<double> x_vec, std::vector<double> y_vec, 
                                                  std::vector<double> xE_vec, std::vector<double> yE_vec, 
-                                                 const string& output_directory, std::vector<string> plot_name);
+                                                 const std::string& output_directory, std::vector<std::string> plot_name);
         void                    Draw2TGraph(std::vector<double> x1_vec, std::vector<double> y1_vec, 
                                             std::vector<double> x2_vec, std::vector<double> y2_vec, 
-                                            const string& output_directory, std::vector<string> plot_name);
+                                            const std::string& output_directory, std::vector<std::string> plot_name);
 
         void                    TH2F_threshold(TH2F * hist, double threshold);
         std::vector<double>          SumTH2FColumnContent(TH2F * hist_in);
@@ -262,7 +256,7 @@ class INTTXYvtx {
         
         // note : to keep the cluster pair information
         // note : this is the vector for the whole run, not event by event
-        std::vector<pair<type_pos,type_pos>> cluster_pair_vec{};
+        std::vector<std::pair<type_pos,type_pos>> cluster_pair_vec{};
 
         double   Clus_InnerPhi_Offset{0};
         double   Clus_OuterPhi_Offset{0};
@@ -271,7 +265,7 @@ class INTTXYvtx {
 
         int      zvtx_cal_require = 15;
 
-        string   plot_text;
+        std::string   plot_text;
         long     total_NClus{0};
 
         TCanvas* c1       {nullptr}; //PrintPlotsVTXxy, PrintPlots(), FillLine_FindVertex, DrawTGraphErrors, Draw2TGraph

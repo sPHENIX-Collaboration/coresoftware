@@ -9,11 +9,11 @@ double cos_func(double *x, double *par)
     return -1 * par[0] * cos(par[1] * (x[0] - par[2])) + par[3];
 }
 
-INTTXYvtx::INTTXYvtx(const string&       runType, 
-                     const string&       outFolderDirectory, 
-                     pair<double,double> beamOrigin, 
+INTTXYvtx::INTTXYvtx(const std::string&       runType, 
+                     const std::string&       outFolderDirectory, 
+                     std::pair<double,double> beamOrigin, 
                      double              phiDiffCut, 
-                     pair<double,double> DCACut, 
+                     std::pair<double,double> DCACut, 
                      int                 NCluCutl, 
                      int                 NCluCut, 
                      double              angleDiffNew_l, 
@@ -48,11 +48,11 @@ INTTXYvtx::~INTTXYvtx()
 {
   // InitHist
   for(auto& itr: m_v_hist){
-    //--cout<<"del : "<<itr->GetTitle()<<" "<<std::hex<<(long)itr<<std::hex<<endl;
+    //--std::cout<<"del : "<<itr->GetTitle()<<" "<<std::hex<<(long)itr<<std::hex<<std::endl;
     delete itr; itr=nullptr;
   }
   //--for(auto& itr: m_v_hist){
-  //--  cout<<"after del : "<<std::hex<<(long)itr<<std::hex<<endl;
+  //--  std::cout<<"after del : "<<std::hex<<(long)itr<<std::hex<<std::endl;
   //--}
 
   // InitGraph
@@ -372,11 +372,11 @@ void INTTXYvtx::ProcessEvt(
 )
 {
     if(!m_initialized) {
-       cout<<"INTTXYvtx is not initialized, abort in ProcessEvt"<<endl;
+       std::cout<<"INTTXYvtx is not initialized, abort in ProcessEvt"<<std::endl;
        exit(1);
     }
 
-    if (print_message_opt && event_i%10000 == 0) {cout<<"In INTTXYvtx class, running event : "<<event_i<<endl;}
+    if (print_message_opt && event_i%10000 == 0) {std::cout<<"In INTTXYvtx class, running event : "<<event_i<<std::endl;}
 
     total_NClus = temp_sPH_inner_nocolumn_vec.size() + temp_sPH_outer_nocolumn_vec.size();
 
@@ -388,18 +388,18 @@ void INTTXYvtx::ProcessEvt(
 
     if (total_NClus < zvtx_cal_require) {
        return; 
-       cout<<"return confirmation"<<endl;
+       std::cout<<"return confirmation"<<std::endl;
     }
     
     if (run_type == "MC" && NvtxMC != 1) { 
        return; 
-       cout<<"In INTTXYvtx class, event : "<<event_i
-           <<" Nvtx : "<<NvtxMC<<" Nvtx more than one "<<endl;
+       std::cout<<"In INTTXYvtx class, event : "<<event_i
+           <<" Nvtx : "<<NvtxMC<<" Nvtx more than one "<<std::endl;
     }
     if (PhiCheckTag == false) { 
        return; 
-       cout<<"In INTTXYvtx class, event : "<<event_i
-           <<" Nvtx : "<<NvtxMC<<" Not full phi has hits "<<endl;
+       std::cout<<"In INTTXYvtx class, event : "<<event_i
+           <<" Nvtx : "<<NvtxMC<<" Not full phi has hits "<<std::endl;
     }
     
     if (   temp_sPH_inner_nocolumn_vec.size() < 10 
@@ -445,7 +445,7 @@ void INTTXYvtx::ProcessEvt(
       }
     }
 
-    //--  cout<<"  "<<event_i<<" clusterpair:size : "<<cluster_pair_vec.size()<<endl;
+    //--  std::cout<<"  "<<event_i<<" clusterpair:size : "<<cluster_pair_vec.size()<<std::endl;
 }
 
 void INTTXYvtx::ClearEvt()
@@ -459,12 +459,12 @@ unsigned long INTTXYvtx::GetVecNele()
     return cluster_pair_vec.size();
 }
 
-pair<double,double> INTTXYvtx::GetFinalVTXxy()
+std::pair<double,double> INTTXYvtx::GetFinalVTXxy()
 {
     return {current_vtxX, current_vtxY};
 }
 
-pair<std::vector<TH2F *>, std::vector<TH1F*>> INTTXYvtx::GetHistFinal()
+std::pair<std::vector<TH2F *>, std::vector<TH1F*>> INTTXYvtx::GetHistFinal()
 {
     return {
         {DCA_distance_inner_phi_peak_final, 
@@ -480,13 +480,13 @@ pair<std::vector<TH2F *>, std::vector<TH1F*>> INTTXYvtx::GetHistFinal()
 void INTTXYvtx::PrintPlots()
 {
     if(!m_initialized) {
-       cout<<"INTTXYvtx is not initialized, abort in PrintPlots"<<endl;
+       std::cout<<"INTTXYvtx is not initialized, abort in PrintPlots"<<std::endl;
        exit(1);
     }
 
     if(m_enable_drawhist&&m_enable_qa)
     {
-      string s_inttlabel = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
+      std::string s_inttlabel = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
       // note : -----------------------------------------------------------------------------------------
       inner_outer_pos_xy -> Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01,  s_inttlabel.c_str());
@@ -527,18 +527,18 @@ void INTTXYvtx::PrintPlots()
 
 //--------------------------------------------------------------------------
 // quadrant method
-std::vector<pair<double,double>> INTTXYvtx::MacroVTXSquare(double length, int N_trial)
+std::vector<std::pair<double,double>> INTTXYvtx::MacroVTXSquare(double length, int N_trial)
 {
     if(!m_initialized) {
-       cout<<"INTTXYvtx is not initialized, abort in MacroVTXSquare"<<endl;
+       std::cout<<"INTTXYvtx is not initialized, abort in MacroVTXSquare"<<std::endl;
        exit(1);
     }
 
     bool draw_plot_opt = m_enable_drawhist;
 
     const double                original_length = length;
-    pair<double,double>         origin          = {0,0};
-    std::vector<pair<double,double>> vtx_vec         = Get4vtx(origin,length); // vtx_vec.push_back(origin);
+    std::pair<double,double>         origin          = {0,0};
+    std::vector<std::pair<double,double>> vtx_vec         = Get4vtx(origin,length); // vtx_vec.push_back(origin);
 
     int            small_index{0};
     std::vector<double> small_info_vec(18, -999);
@@ -558,10 +558,10 @@ std::vector<pair<double,double>> INTTXYvtx::MacroVTXSquare(double length, int N_
 
 
     if (print_message_opt == true) {
-       cout<<"In INTTXYvtx::MacroVTXSquare, N pairs : "<<cluster_pair_vec.size()<<endl;
+       std::cout<<"In INTTXYvtx::MacroVTXSquare, N pairs : "<<cluster_pair_vec.size()<<std::endl;
 
-       cout<<N_trial<<" runs, smart. which gives you the resolution down to "
-           <<length/pow(2,N_trial)<<" mm"<<endl;
+       std::cout<<N_trial<<" runs, smart. which gives you the resolution down to "
+           <<length/pow(2,N_trial)<<" mm"<<std::endl;
     }
 
     if(cluster_pair_vec.size()==0){ // minimum tracklet cut. need to be tuned
@@ -612,13 +612,13 @@ std::vector<pair<double,double>> INTTXYvtx::MacroVTXSquare(double length, int N_
     for (int i = 0; i < N_trial; i++)
     {
         if (print_message_opt == true) {
-          cout<<"~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~"
+          std::cout<<"~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~"
               <<" step "<<i<<" "
-              <<"~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~"<<endl;
+              <<"~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~"<<std::endl;
         }
         for (unsigned int i1 = 0; i1 < vtx_vec.size(); i1++)
         {
-            if (print_message_opt == true) {cout<<"tested vertex : "<<vtx_vec[i1].first<<" "<<vtx_vec[i1].second<<endl;}
+            if (print_message_opt == true) {std::cout<<"tested vertex : "<<vtx_vec[i1].first<<" "<<vtx_vec[i1].second<<std::endl;}
 
             if(m_enable_drawhist){
               c1->cd();
@@ -637,10 +637,10 @@ std::vector<pair<double,double>> INTTXYvtx::MacroVTXSquare(double length, int N_
 
  
             if (print_message_opt == true) {
-              cout<<"trial : "<<i
+              std::cout<<"trial : "<<i
                   <<" vertex : "<<i1
                   <<" DCA fit error : "<<info_vec[3]
-                  <<" angle diff fit error : "<<info_vec[5]<<endl;
+                  <<" angle diff fit error : "<<info_vec[5]<<std::endl;
             }
 
             All_FitError_DCA_Y.push_back(info_vec[3]);
@@ -665,12 +665,12 @@ std::vector<pair<double,double>> INTTXYvtx::MacroVTXSquare(double length, int N_
                   TH1F_FakeClone(angle_diff_new_bkg_remove,   angle_diff_new_bkg_remove_final);
                 }
             }
-            if (print_message_opt == true){cout<<" "<<endl;}
+            if (print_message_opt == true){std::cout<<" "<<std::endl;}
 
             ClearHist(1);
         }
 
-        if (print_message_opt == true) {cout<<"the Quadrant "<<small_index<<" won the competition"<<endl;}
+        if (print_message_opt == true) {std::cout<<"the Quadrant "<<small_index<<" won the competition"<<std::endl;}
         
         Winner_FitError_DCA_Y.push_back(small_info_vec[3]);
         Winner_FitError_DCA_X.push_back(i);
@@ -688,7 +688,7 @@ std::vector<pair<double,double>> INTTXYvtx::MacroVTXSquare(double length, int N_
             origin = {(vtx_vec[small_index].first + origin.first)/2., 
                       (vtx_vec[small_index].second + origin.second)/2.};
 
-            // cout<<"test : "<<origin.first<<" "<<origin.second<<" length: "<<length<<endl;
+            // std::cout<<"test : "<<origin.first<<" "<<origin.second<<" length: "<<length<<std::endl;
             // if (small_index == 4) {length /= 1.5;}
             // else {length /= 2.;}
             length /= 2.;
@@ -744,7 +744,7 @@ std::vector<double> INTTXYvtx::subMacroVTXxyCorrection(int test_index, int trial
     int true_trial_index = test_index * 4 + trial_index;
     std::vector<double> out_vec = GetVTXxyCorrection_new(true_trial_index);
 
-    string sub_out_folder_name{};
+    std::string sub_out_folder_name{};
     if (draw_plot_opt == true){
         sub_out_folder_name = Form("%s/New_trial_square_%i_%i",
                                     out_folder_directory.c_str(), 
@@ -766,9 +766,9 @@ std::vector<double> INTTXYvtx::subMacroVTXxyCorrection(int test_index, int trial
 std::vector<double> INTTXYvtx::GetVTXxyCorrection_new(int trial_index)
 {
     if (print_message_opt == true) {
-        cout<<"Trial : "<<trial_index
-            <<"---------------------------- ---------------------------- ----------------------------"<<endl;
-        cout<<"Given vertex: "<<current_vtxX <<" "<<current_vtxY<<endl;
+        std::cout<<"Trial : "<<trial_index
+            <<"---------------------------- ---------------------------- ----------------------------"<<std::endl;
+        std::cout<<"Given vertex: "<<current_vtxX <<" "<<current_vtxY<<std::endl;
     }
 
     if(m_enable_qa){
@@ -779,7 +779,7 @@ std::vector<double> INTTXYvtx::GetVTXxyCorrection_new(int trial_index)
       gaus_fit -> SetParameters(-4.5, 197, 50, 0);
       gaus_fit -> SetParLimits(0,-100,0); // note : the gaus distribution points down
       // DCA_distance_inner_phi_peak_profile -> Fit(gaus_fit, "N","",100, 260);
-      // cout<<"test, gaus fit range : "<<gaus_fit->GetParameter(1) - 25<<" "<<gaus_fit->GetParameter(1) + 25<<endl;
+      // std::cout<<"test, gaus fit range : "<<gaus_fit->GetParameter(1) - 25<<" "<<gaus_fit->GetParameter(1) + 25<<std::endl;
     }
     
     subMacroPlotWorking(1,100,260,25);
@@ -832,7 +832,7 @@ void INTTXYvtx::subMacroPlotWorking(
 
         if (phi_correction == true)
         {
-            // cout<<"option selected "<<endl;
+            // std::cout<<"option selected "<<std::endl;
             Clus_InnerPhi_Offset = (cluster_pair_vec[i].first.y - current_vtxY < 0) 
                                ? atan2(cluster_pair_vec[i].first.y - current_vtxY, cluster_pair_vec[i].first.x - current_vtxX) * (180./M_PI) + 360 
                                : atan2(cluster_pair_vec[i].first.y - current_vtxY, cluster_pair_vec[i].first.x - current_vtxX) * (180./M_PI);
@@ -892,7 +892,7 @@ void INTTXYvtx::subMacroPlotWorking(
         DCA_distance_inner_phi_peak_profile_graph -> SetPoint(point_index, 
                                                               DCA_distance_inner_phi_peak_profile->GetBinCenter(i+1), 
                                                               DCA_distance_inner_phi_peak_profile->GetBinContent(i+1));
-        // cout<<"("<<DCA_distance_inner_phi_peak_profile->GetBinCenter(i+1)<<", "<< DCA_distance_inner_phi_peak_profile->GetBinContent(i+1)<<")"<<endl;
+        // std::cout<<"("<<DCA_distance_inner_phi_peak_profile->GetBinCenter(i+1)<<", "<< DCA_distance_inner_phi_peak_profile->GetBinContent(i+1)<<")"<<std::endl;
         point_index += 1;
     }
 
@@ -925,7 +925,7 @@ void INTTXYvtx::subMacroPlotWorking(
         angle_diff_inner_phi_peak_profile_graph -> SetPoint(point_index, 
                                                             angle_diff_inner_phi_peak_profile->GetBinCenter(i+1), 
                                                             angle_diff_inner_phi_peak_profile->GetBinContent(i+1));
-        // cout<<"("<<angle_diff_inner_phi_peak_profile->GetBinCenter(i+1)<<", "<< angle_diff_inner_phi_peak_profile->GetBinContent(i+1)<<")"<<endl;
+        // std::cout<<"("<<angle_diff_inner_phi_peak_profile->GetBinCenter(i+1)<<", "<< angle_diff_inner_phi_peak_profile->GetBinContent(i+1)<<")"<<std::endl;
         point_index += 1;
     }
 
@@ -963,7 +963,7 @@ void INTTXYvtx::subMacroPlotWorking(
           DCA_distance_outer_phi_peak_profile_graph -> SetPoint(point_index, 
                                                                 DCA_distance_outer_phi_peak_profile->GetBinCenter(i+1), 
                                                                 DCA_distance_outer_phi_peak_profile->GetBinContent(i+1));
-          // cout<<"("<<DCA_distance_outer_phi_peak_profile->GetBinCenter(i+1)<<", "<< DCA_distance_outer_phi_peak_profile->GetBinContent(i+1)<<")"<<endl;
+          // std::cout<<"("<<DCA_distance_outer_phi_peak_profile->GetBinCenter(i+1)<<", "<< DCA_distance_outer_phi_peak_profile->GetBinContent(i+1)<<")"<<std::endl;
           point_index += 1;
       }
          
@@ -984,7 +984,7 @@ void INTTXYvtx::subMacroPlotWorking(
           angle_diff_outer_phi_peak_profile_graph -> SetPoint(point_index, 
                                                               angle_diff_outer_phi_peak_profile->GetBinCenter(i+1), 
                                                               angle_diff_outer_phi_peak_profile->GetBinContent(i+1));
-          // cout<<"("<<angle_diff_outer_phi_peak_profile->GetBinCenter(i+1)<<", "<< angle_diff_outer_phi_peak_profile->GetBinContent(i+1)<<")"<<endl;
+          // std::cout<<"("<<angle_diff_outer_phi_peak_profile->GetBinCenter(i+1)<<", "<< angle_diff_outer_phi_peak_profile->GetBinContent(i+1)<<")"<<std::endl;
           point_index += 1;
       }
 
@@ -999,19 +999,19 @@ void INTTXYvtx::subMacroPlotWorking(
     }
     
     if (m_enable_qa && print_message_opt == true) {
-        cout<<"circle radius : "<<abs(gaus_fit->GetParameter(0) + gaus_fit->GetParameter(3))
-            <<" possible correction angle : "<<gaus_fit->GetParameter(1)<<endl;
+        std::cout<<"circle radius : "<<abs(gaus_fit->GetParameter(0) + gaus_fit->GetParameter(3))
+            <<" possible correction angle : "<<gaus_fit->GetParameter(1)<<std::endl;
     }
 }
 
-//void INTTXYvtx::PrintPlotsVTXxy(string sub_out_folder_name)
+//void INTTXYvtx::PrintPlotsVTXxy(std::string sub_out_folder_name)
 void INTTXYvtx::PrintPlotsVTXxy()
 {
     if(m_enable_drawhist)
     {
-      string s_inttlabel = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
-      string s_pdfname = out_folder_directory + "/" + m_quad_pdfname;
-      cout<<s_pdfname<<endl;
+      std::string s_inttlabel = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
+      std::string s_pdfname = out_folder_directory + "/" + m_quad_pdfname;
+      std::cout<<s_pdfname<<std::endl;
       
       // note : -----------------------------------------------------------------------------------------
       DCA_distance_inner_phi -> Draw("colz0");
@@ -1236,7 +1236,7 @@ void INTTXYvtx::ClearHist(int /*print_option*/)
 void INTTXYvtx::EndRun()
 {
     if(!m_initialized) {
-       cout<<"INTTXYvtx is not initialized, abort in EndRun"<<endl;
+       std::cout<<"INTTXYvtx is not initialized, abort in EndRun"<<std::endl;
        exit(1);
     }
 
@@ -1354,7 +1354,7 @@ void INTTXYvtx::TH2F_threshold_advanced_2(TH2F * hist, double threshold)
     TMath::Sort(all_bin_content_vec.size(), &all_bin_content_vec[0], &ind[0]);
     for (int i = 0; i < chosen_bin; i++) {
        max_cut += all_bin_content_vec[ind[i]]; 
-       /*cout<<"test : "<<all_bin_content_vec[ind[i]]<<endl;*/
+       /*std::cout<<"test : "<<all_bin_content_vec[ind[i]]<<std::endl;*/
     }
 
     max_cut = (max_cut / double(chosen_bin)) * threshold;
@@ -1383,7 +1383,7 @@ INTTXYvtx::calculateDistanceAndClosestPoint(
         double a = (y2 - y1) / (x2 - x1);
         double b = y1 - a * x1;
 
-        // cout<<"slope : y="<<a<<"x+"<<b<<endl;
+        // std::cout<<"slope : y="<<a<<"x+"<<b<<std::endl;
         
         // Calculate the closest distance from (target_x, target_y) to the line y = ax + b
         double closest_distance = std::abs(a * target_x - target_y + b) / std::sqrt(a * a + 1);
@@ -1425,7 +1425,7 @@ double INTTXYvtx::calculateAngleBetweenVectors(
     // Calculate the cross product of vector_1 and vector_2 (z-component)
     double crossProduct = vector1X * vector2Y - vector1Y * vector2X;
     
-    // cout<<" crossProduct : "<<crossProduct<<endl;
+    // std::cout<<" crossProduct : "<<crossProduct<<std::endl;
 
     // Calculate the magnitudes of vector_1 and vector_2
     double magnitude1 = std::sqrt(vector1X * vector1X + vector1Y * vector1Y);
@@ -1442,7 +1442,7 @@ double INTTXYvtx::calculateAngleBetweenVectors(
   
     //--double angleInDegrees_new = angleInRadians_new * 180.0 / M_PI;
     
-    // cout<<"angle : "<<angleInDegrees_new<<endl;
+    // std::cout<<"angle : "<<angleInDegrees_new<<std::endl;
 
     double DCA_value = sin(angleInRadians_new) * magnitude2; // DCA_value insread of DCA_distance
 
@@ -1460,7 +1460,7 @@ void INTTXYvtx::Hist_1D_bkg_remove(TH1F * hist_in, double factor)
     }
 
     double bkg_level = accumulate( Nbin_content_vec.begin(), Nbin_content_vec.end(), 0.0 ) / Nbin_content_vec.size();
-    // cout<<"test, bkg cut : "<<bkg_level * factor<<endl;
+    // std::cout<<"test, bkg cut : "<<bkg_level * factor<<std::endl;
 
     for (int i = 0; i < hist_in -> GetNbinsX(); i++){
         // note : the background rejection is here : bkg_level * 1.5 for the time being
@@ -1477,8 +1477,8 @@ void INTTXYvtx::DrawTGraphErrors(
              std::vector<double> y_vec, 
              std::vector<double> xE_vec, 
              std::vector<double> yE_vec, 
-             const string&  output_directory, 
-             std::vector<string> plot_name)
+             const std::string&  output_directory, 
+             std::vector<std::string> plot_name)
 {
     if(m_enable_drawhist) 
     {
@@ -1509,8 +1509,8 @@ void INTTXYvtx::Draw2TGraph(
               std::vector<double> y1_vec, 
               std::vector<double> x2_vec, 
               std::vector<double> y2_vec, 
-              const string&  output_directory, 
-              std::vector<string> plot_name)
+              const std::string&  output_directory, 
+              std::vector<std::string> plot_name)
 {
     if(m_enable_drawhist) 
     {
@@ -1568,12 +1568,12 @@ std::vector<double> INTTXYvtx::SumTH2FColumnContent(TH2F * hist_in)
 }
 
 
-std::vector<pair<double,double>> INTTXYvtx::Get4vtx(pair<double,double> origin, double length)
+std::vector<std::pair<double,double>> INTTXYvtx::Get4vtx(std::pair<double,double> origin, double length)
 {
-    std::vector<pair<double,double>> unit_vtx = {{1,1},{-1,1},{-1,-1},{1,-1}};
-    std::vector<pair<double,double>> vec_out{};//-- vec_out.clear();
+    std::vector<std::pair<double,double>> unit_vtx = {{1,1},{-1,1},{-1,-1},{1,-1}};
+    std::vector<std::pair<double,double>> vec_out{};//-- vec_out.clear();
 
-    for (pair i1 : unit_vtx)
+    for (std::pair i1 : unit_vtx)
     {
         vec_out.push_back({i1.first * length + origin.first, i1.second * length + origin.second});
     }
@@ -1586,7 +1586,7 @@ void INTTXYvtx::TH2F_FakeClone(TH2F*hist_in, TH2F*hist_out)
     if (hist_in -> GetNbinsX() != hist_out -> GetNbinsX() || 
         hist_in -> GetNbinsY() != hist_out -> GetNbinsY())
     {
-        cout<<"In INTTXYvtx::TH2F_FakeClone, the input and output histogram have different binning!"<<endl;
+        std::cout<<"In INTTXYvtx::TH2F_FakeClone, the input and output histogram have different binning!"<<std::endl;
         return;
     }
 
@@ -1601,7 +1601,7 @@ void INTTXYvtx::TH1F_FakeClone(TH1F*hist_in, TH1F*hist_out)
 {
     if (hist_in -> GetNbinsX() != hist_out -> GetNbinsX())
     {
-        cout<<"In INTTXYvtx::TH1F_FakeClone, the input and output histogram have different binning!"<<endl;
+        std::cout<<"In INTTXYvtx::TH1F_FakeClone, the input and output histogram have different binning!"<<std::endl;
         return;
     }
 
@@ -1617,7 +1617,7 @@ void INTTXYvtx::TH2FSampleLineFill(
         std::pair<double,double> outer_clu)
 {
     if(!m_initialized) {
-       cout<<"INTTXYvtx is not initialized, abort in MacroVTXSquare"<<endl;
+       std::cout<<"INTTXYvtx is not initialized, abort in MacroVTXSquare"<<std::endl;
        exit(1);
     }
 
@@ -1655,9 +1655,9 @@ void INTTXYvtx::TH2FSampleLineFill(
     }
 }
 
-std::vector<pair<double,double>> 
+std::vector<std::pair<double,double>> 
 INTTXYvtx::FillLine_FindVertex(
-             pair<double,double> window_center, 
+             std::pair<double,double> window_center, 
              double              segmentation, 
              double              window_width, 
              int                 N_bins
@@ -1694,9 +1694,9 @@ INTTXYvtx::FillLine_FindVertex(
     xy_hist_bkgrm -> GetYaxis() -> SetTitle("Y axis [mm]");
     xy_hist_bkgrm -> GetXaxis() -> SetNdivisions(505);
 
-    // cout<<"test test size and bin of the hist xy_hist : "<<xy_hist -> GetNbinsX()<<" "<<xy_hist -> GetNbinsY()<<endl;
-    // cout<<"test test bin width of the hist xy_hist : "<<xy_hist -> GetXaxis() -> GetBinWidth(1)<<" "<<xy_hist -> GetYaxis() -> GetBinWidth(1)<<endl;
-    // cout<<"draw_plot status : "<<draw_plot<<endl;
+    // std::cout<<"test test size and bin of the hist xy_hist : "<<xy_hist -> GetNbinsX()<<" "<<xy_hist -> GetNbinsY()<<std::endl;
+    // std::cout<<"test test bin width of the hist xy_hist : "<<xy_hist -> GetXaxis() -> GetBinWidth(1)<<" "<<xy_hist -> GetYaxis() -> GetBinWidth(1)<<std::endl;
+    // std::cout<<"draw_plot status : "<<draw_plot<<std::endl;
 
     
     for (unsigned int i = 0; i < cluster_pair_vec.size(); i++)
@@ -1714,7 +1714,7 @@ INTTXYvtx::FillLine_FindVertex(
         );
 
         if (DCA_info_vec[0] != fabs(DCA_sign) && fabs( DCA_info_vec[0] - fabs(DCA_sign) ) > 0.1){
-            cout<<"different DCA : "<<DCA_info_vec[0]<<" "<<DCA_sign<<" diff : "<<DCA_info_vec[0] - fabs(DCA_sign)<<endl;
+            std::cout<<"different DCA : "<<DCA_info_vec[0]<<" "<<DCA_sign<<" diff : "<<DCA_info_vec[0] - fabs(DCA_sign)<<std::endl;
         }
 
         Clus_InnerPhi_Offset = (cluster_pair_vec[i].first.y - window_center.second < 0) 
@@ -1755,7 +1755,7 @@ INTTXYvtx::FillLine_FindVertex(
     double reco_vtx_x = xy_hist_bkgrm->GetMean(1);// note : the TH2F calculate the GetMean based on the bin center, no need to apply additional offset
     double reco_vtx_y = xy_hist_bkgrm->GetMean(2);// note : the TH2F calculate the GetMean based on the bin center, no need to apply additional offset
 
-    // cout<<"test : in the line filled, the process is almost done"<<endl;
+    // std::cout<<"test : in the line filled, the process is almost done"<<std::endl;
 
     if (draw_plot)
     {
@@ -1766,7 +1766,7 @@ INTTXYvtx::FillLine_FindVertex(
         reco_vertex_gr -> SetPoint(reco_vertex_gr -> GetN(), reco_vtx_x, reco_vtx_y);
 
 
-        string s_inttlabel = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
+        std::string s_inttlabel = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
         // note : -----------------------------------------------------------------------------------------
         xy_hist -> Draw("colz0");
         ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
@@ -1786,7 +1786,7 @@ INTTXYvtx::FillLine_FindVertex(
         c1 -> Print(Form("%s/linefill_qa.pdf)",out_folder_directory.c_str()));
         c1 -> Clear();
 
-        // cout<<"test : hello, can you see me ?"<<endl;
+        // std::cout<<"test : hello, can you see me ?"<<std::endl;
     }
 
     return {{reco_vtx_x,reco_vtx_y},

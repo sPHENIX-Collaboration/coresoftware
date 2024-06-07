@@ -148,7 +148,7 @@ int InttXYVertexFinder::process_event(PHCompositeNode* topNode)
           findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterMap)
   {
-      cout << PHWHERE << "TrkrClusterContainer node is missing." << endl;
+      std::cout << PHWHERE << "TrkrClusterContainer node is missing." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -240,21 +240,21 @@ int InttXYVertexFinder::process_event(PHCompositeNode* topNode)
   // calculate XY vertex
   if( (event_i % m_period) == 0) {
     // quadorant method 
-    std::vector< pair<double,double>> out_vtx = m_inttxyvtx -> MacroVTXSquare(4,10);
+    std::vector< std::pair<double,double>> out_vtx = m_inttxyvtx -> MacroVTXSquare(4,10);
     m_vertex_quad[0] = out_vtx[0].first;
     m_vertex_quad[1] = out_vtx[0].second;
 
     if(Verbosity()>1){
-      cout<<" "<<endl;
-      cout<<"The best vertex throughout the scan: "<<out_vtx[0].first<<" "<<out_vtx[0].second<<endl;
-      cout<<"The origin during that scan: "        <<out_vtx[1].first<<" "<<out_vtx[1].second<<endl;
-      cout<<"Fit error, DCA and angle diff: "      <<out_vtx[2].first<<" "<<out_vtx[2].second<<endl;
-      cout<<"fit pol0 pos Y, DCA and angle diff: " <<out_vtx[3].first<<" "<<out_vtx[3].second<<endl;
+      std::cout<<" "<<std::endl;
+      std::cout<<"The best vertex throughout the scan: "<<out_vtx[0].first<<" "<<out_vtx[0].second<<std::endl;
+      std::cout<<"The origin during that scan: "        <<out_vtx[1].first<<" "<<out_vtx[1].second<<std::endl;
+      std::cout<<"Fit error, DCA and angle diff: "      <<out_vtx[2].first<<" "<<out_vtx[2].second<<std::endl;
+      std::cout<<"fit pol0 pos Y, DCA and angle diff: " <<out_vtx[3].first<<" "<<out_vtx[3].second<<std::endl;
     }
     
 
     // line filled method
-    std::vector<pair<double,double>> out_vtx_line 
+    std::vector<std::pair<double,double>> out_vtx_line 
                          = m_inttxyvtx -> FillLine_FindVertex(
                                {(out_vtx[0].first  + out_vtx[1].first)/2., 
                                 (out_vtx[0].second + out_vtx[1].second)/2.}, 
@@ -264,10 +264,10 @@ int InttXYVertexFinder::process_event(PHCompositeNode* topNode)
     m_vertex_line[1] = out_vtx_line[0].second;
 
     if(Verbosity()>1){
-      cout<<" "<<endl;
-      cout<<"By fill-line method,"<<endl;
-      cout<<"Reco Run Vertex XY: "<<out_vtx_line[0].first<<" "<<out_vtx_line[0].second<<endl;
-      cout<<"Reco Run Vertex XY Error: "<<out_vtx_line[1].first<<" "<<out_vtx_line[1].second<<endl;
+      std::cout<<" "<<std::endl;
+      std::cout<<"By fill-line method,"<<std::endl;
+      std::cout<<"Reco Run Vertex XY: "<<out_vtx_line[0].first<<" "<<out_vtx_line[0].second<<std::endl;
+      std::cout<<"Reco Run Vertex XY Error: "<<out_vtx_line[1].first<<" "<<out_vtx_line[1].second<<std::endl;
     }
   
     ///////////////////////////////////////////////////
@@ -299,9 +299,9 @@ int InttXYVertexFinder::process_event(PHCompositeNode* topNode)
     (event_i % m_period) == 0
   ) 
   {
-    cout<<event_i<<", vtx_xy_quad: "<<m_vertex_quad[0]<<" "<<m_vertex_quad[1]<<" "<<m_vertex_quad[2]
+    std::cout<<event_i<<", vtx_xy_quad: "<<m_vertex_quad[0]<<" "<<m_vertex_quad[1]<<" "<<m_vertex_quad[2]
                  <<", vtx_xy_line: "<<m_vertex_line[0]<<" "<<m_vertex_line[1]<<" "<<m_vertex_line[2]
-                 <<endl;
+                 <<std::endl;
   }
   event_i++;
 
