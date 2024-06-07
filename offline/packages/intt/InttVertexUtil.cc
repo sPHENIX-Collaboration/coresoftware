@@ -1,10 +1,11 @@
 #include "InttVertexUtil.h"
 
+#include <TF1.h>
+#include <TMath.h>
+
 #include <algorithm>
 #include <numeric>
 #include <vector>
-
-using std::vector;
 
 namespace InttVertexUtil {
   double gaus_func(double *x, double *par)
@@ -16,7 +17,7 @@ namespace InttVertexUtil {
       return par[0] * TMath::Gaus(x[0],par[1],par[2]) + par[3];
   }
   
-  std::vector<float> sigmaEff(vector<float> v, float threshold)
+  std::vector<float> sigmaEff(std::vector<float> v, float threshold)
   {
   
     sort(v.begin(),v.end());

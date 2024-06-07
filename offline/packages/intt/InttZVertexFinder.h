@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef INTTZVERTEXFINDER_H
-#define INTTZVERTEXFINDER_H
+#ifndef INTT_INTTZVERTEXFINDER_H
+#define INTT_INTTZVERTEXFINDER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -46,4 +46,4 @@ class InttZVertexFinder : public SubsysReco
 
 };
 
-#endif // INTTZVERTEXFINDER_H
+#endif // INTT_INTTZVERTEXFINDER_H

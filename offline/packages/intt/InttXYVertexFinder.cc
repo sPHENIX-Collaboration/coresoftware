@@ -3,10 +3,6 @@
 #include "InttVertexMapv1.h"
 #include "INTTXYvtx.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>
@@ -15,7 +11,12 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
-//
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <cmath>
 #include <string>
 
 std::string xyinit_sDataType            = "data"; // or "MC"
@@ -182,8 +183,8 @@ int InttXYVertexFinder::process_event(PHCompositeNode* topNode)
 	double clu_y  = globalPos.y()*10.;  // convert to "mm" unit
 	double clu_z  = globalPos.z()*10.;  // convert to "mm" unit
 
-	double clu_phi = (clu_y < 0) ? atan2(clu_y,clu_x) * (180./TMath::Pi()) + 360 
-		: atan2(clu_y,clu_x) * (180./TMath::Pi());
+	double clu_phi = (clu_y < 0) ? atan2(clu_y,clu_x) * (180./M_PI) + 360 
+		: atan2(clu_y,clu_x) * (180./M_PI);
 
 	double clu_radius = sqrt(pow(clu_x,2)+pow(clu_y,2));
 
@@ -239,7 +240,7 @@ int InttXYVertexFinder::process_event(PHCompositeNode* topNode)
   // calculate XY vertex
   if( (event_i % m_period) == 0) {
     // quadorant method 
-    vector< pair<double,double>> out_vtx = m_inttxyvtx -> MacroVTXSquare(4,10);
+    std::vector< pair<double,double>> out_vtx = m_inttxyvtx -> MacroVTXSquare(4,10);
     m_vertex_quad[0] = out_vtx[0].first;
     m_vertex_quad[1] = out_vtx[0].second;
 
@@ -253,7 +254,7 @@ int InttXYVertexFinder::process_event(PHCompositeNode* topNode)
     
 
     // line filled method
-    vector<pair<double,double>> out_vtx_line 
+    std::vector<pair<double,double>> out_vtx_line 
                          = m_inttxyvtx -> FillLine_FindVertex(
                                {(out_vtx[0].first  + out_vtx[1].first)/2., 
                                 (out_vtx[0].second + out_vtx[1].second)/2.}, 

@@ -4,10 +4,6 @@
 #include "INTTZvtx.h"
 
 /// Fun4All includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>
@@ -17,22 +13,28 @@
 #include <trackbase/TrkrHitSetContainer.h>
 
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <cmath>
 #include <filesystem>
 
 
 
 /////////////////////////////////////////
 // init value for temporal use
-string               sDataType           = "data"; // or "MC"
-string               sOutFolderDirectory = "./";
-pair<double, double> beam_origin         = {-0.23436750, 2.5985125}; // note : for run20869
+std::string               sDataType           = "data"; // or "MC"
+std::string               sOutFolderDirectory = "./";
+std::pair<double, double> beam_origin         = {-0.23436750, 2.5985125}; // note : for run20869
 double               phi_diff_cut        = 1; //0.265 + 0.269;            // note : for run20869
-//pair<double, double> DCA_cut             = {0.277 - 0.730, 0.277 + 0.730}; // note : for run20869
-pair<double, double> DCA_cut             = {-3,3}; // note : for run20869
+//std::pair<double, double> DCA_cut             = {0.277 - 0.730, 0.277 + 0.730}; // note : for run20869
+std::pair<double, double> DCA_cut             = {-3,3}; // note : for run20869
 int                  N_clu_cut           = 10000;
 int                  N_clu_cutl          = 4; // 20
 unsigned int         zvtx_cal_require    = 3; //5; //15;
-pair<double, double> zvtx_QA_width       = {40, 70}; 
+std::pair<double, double> zvtx_QA_width       = {40, 70}; 
 double               zvtx_QA_ratio       = 0.00006;
 bool                 draw_event_display  = false;
 bool                 enable_qa           = false;
@@ -189,7 +191,7 @@ int InttZVertexFinder::process_event(PHCompositeNode *topNode)
           findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterMap)
   {
-      cout << PHWHERE << "TrkrClusterContainer node is missing." << endl;
+      std::cout << PHWHERE << "TrkrClusterContainer node is missing." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -224,8 +226,8 @@ int InttZVertexFinder::process_event(PHCompositeNode *topNode)
         double clu_y  = globalPos.y()*10.; // convert from "cm" to "mm" unit
         double clu_z  = globalPos.z()*10.; // convert from "cm" to "mm" unit
 
-        double clu_phi = (clu_y < 0) ? atan2(clu_y,clu_x) * (180./TMath::Pi()) + 360 
-                                     : atan2(clu_y,clu_x) * (180./TMath::Pi());
+        double clu_phi = (clu_y < 0) ? atan2(clu_y,clu_x) * (180./M_PI) + 360 
+                                     : atan2(clu_y,clu_x) * (180./M_PI);
         
         double clu_radius = sqrt(pow(clu_x,2)+pow(clu_y,2));
 
@@ -255,10 +257,10 @@ int InttZVertexFinder::process_event(PHCompositeNode *topNode)
         temp_sPH_nocolumn_rz_vec[1].push_back( ( clu_phi > 180 ) ? clu_radius * -1 : clu_radius );
 
 
-        //cout<<"cluster pos: ";
-        //cout<<globalPos.x()<<" ";
-        //cout<<globalPos.y()<<" ";
-        //cout<<globalPos.z()<<endl;
+        //std::cout<<"cluster pos: ";
+        //std::cout<<globalPos.x()<<" ";
+        //std::cout<<globalPos.y()<<" ";
+        //std::cout<<globalPos.z()<<std::endl;
 
 
       }
@@ -285,7 +287,7 @@ int InttZVertexFinder::process_event(PHCompositeNode *topNode)
         5  // centrality bin, note : no bco_full for MC
       ); 
 
-  cout<<"InttZVertex:process_evt status = "<<(status?"good":"failed")<<endl;
+  std::cout<<"InttZVertex:process_evt status = "<<(status?"good":"failed")<<std::endl;
 
 
   std::vector<double>       vtxout     = m_inttzvtx->GetEvtZPeak();   // mm unit
@@ -298,7 +300,7 @@ int InttZVertexFinder::process_event(PHCompositeNode *topNode)
  INTTZvtx::ZvtxInfo& zvtxinfo = m_inttzvtx->GetZvtxInfo();
 
   //--if(m_inttvertexmap->size()>0){
-  //--  cout<<"added to existing vertex"<<endl;
+  //--  std::cout<<"added to existing vertex"<<std::endl;
   //--  for(auto vtx = m_inttvertexmap->begin(); vtx!=m_inttvertexmap->end(); ++vtx){
   //--    vtx->second->set_x(final_vtx[0]);
   //--    vtx->second->set_y(final_vtx[1]);
@@ -306,7 +308,7 @@ int InttZVertexFinder::process_event(PHCompositeNode *topNode)
   //--  }
   //--}
   //--else {
-    //--cout<<"new vertex created"<<endl;
+    //--std::cout<<"new vertex created"<<std::endl;
     auto vertex = std::make_unique<InttVertexv1>();
     vertex->set_x(final_vtx[0]);
     vertex->set_y(final_vtx[1]);
@@ -369,7 +371,7 @@ void InttZVertexFinder::SetBeamCenter(const double beamx, const double beamy)
   }
 }
 
-void InttZVertexFinder::SetOutDirectory(const string& outDirectory) 
+void InttZVertexFinder::SetOutDirectory(const std::string& outDirectory) 
 { 
   if(m_inttzvtx!=nullptr) {
     m_inttzvtx->SetOutDirectory(outDirectory); // convert to cm to mm unit
