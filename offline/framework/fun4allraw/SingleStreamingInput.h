@@ -44,7 +44,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual int SubsystemEnum() const { return m_SubsystemEnum; }
   void MaxBclkDiff(uint64_t ui) { m_MaxBclkSpread = ui; }
   uint64_t MaxBclkDiff() const { return m_MaxBclkSpread; }
-  virtual const std::set<uint64_t>& BclkStack() const { return m_BclkStack; }
+  virtual const std::map<int, std::set<uint64_t>>& BclkStackMap() const { return m_BclkStackPacketMap; }
  
  private:
   Eventiterator *m_EventIterator{nullptr};
@@ -59,6 +59,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
+  std::map<int, std::set<uint64_t>> m_BclkStackPacketMap;
 };
 
 #endif
