@@ -1,9 +1,8 @@
 #ifndef INTT_INTTVERTEXMAPV1_H
 #define INTT_INTTVERTEXMAPV1_H
 
-#include "InttVertexMap.h"
-
 #include "InttVertex.h"
+#include "InttVertexMap.h"
 
 #include <cstddef>  // for size_t
 #include <iostream>
