@@ -44,7 +44,8 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual int SubsystemEnum() const { return m_SubsystemEnum; }
   void MaxBclkDiff(uint64_t ui) { m_MaxBclkSpread = ui; }
   uint64_t MaxBclkDiff() const { return m_MaxBclkSpread; }
-  const std::set<uint64_t>& BclkStack() const { return m_BclkStack; }
+  virtual const std::set<uint64_t>& BclkStack() const { return m_BclkStack; }
+ 
  private:
   Eventiterator *m_EventIterator{nullptr};
   //  Fun4AllEvtInputPoolManager *m_InputMgr {nullptr};

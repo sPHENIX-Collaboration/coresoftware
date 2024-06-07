@@ -27,6 +27,7 @@
 
 #include <frog/FROG.h>
 
+#include <boost/format.hpp>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
@@ -837,8 +838,13 @@ int Fun4AllStreamingInputManager::FillTpc()
   }
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  TH1 *h_refbco = dynamic_cast<TH1 *>(hm->getHisto("h_TPC_refbco"));
-  TH1 *h_gl1tagged = dynamic_cast<TH1 *>(hm->getHisto("h_TPC_trigtagbco"));
+  TH1 *h_refbco[24];
+  TH1 *h_gl1tagged[24];
+  for (int i = 0; i < 24; i++)
+  {
+    h_refbco[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_TpcPoolQA_RefGL1BCO_packet%i") % i).str()));
+    h_gl1tagged[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_TpcPoolQA_TagBCO_packet%i") % i).str()));
+  }
 
   TpcRawHitContainer *tpccont = findNode::getClass<TpcRawHitContainer>(m_topNode, "TPCRAWHIT");
   //  std::cout << "before filling m_TpcRawHitMap size: " <<  m_TpcRawHitMap.size() << std::endl;
@@ -857,24 +863,7 @@ int Fun4AllStreamingInputManager::FillTpc()
   }
   // m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
   // if this map is empty which is handled above
-  int refbcobitshift = m_RefBCO & 0x3F;
-  std::cout << "ref bco bit shift is " << m_RefBCO << ", " << refbcobitshift << std::endl;
-  h_refbco->Fill(refbcobitshift);
-    for (size_t p = 0; p < m_TpcInputVector.size(); p++)
-      {
-        std::cout << "checking packet " << p << std::endl;
-        auto bcl_stack = m_TpcInputVector[p]->BclkStack();
-        std::cout << "bcl stack " << bcl_stack.size() << std::endl;
-        for (auto &bcl : bcl_stack)
-        {
-          auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-          if (diff < 5)
-          {
-            h_gl1tagged->Fill(refbcobitshift);
-          }
-        }
-      }
-    
+ 
   while (m_TpcRawHitMap.begin()->first < m_RefBCO - m_tpc_negative_bco)
   {
     for (auto iter : m_TpcInputVector)
@@ -889,6 +878,22 @@ int Fun4AllStreamingInputManager::FillTpc()
       return iret;
     }
   }
+
+  int refbcobitshift = m_RefBCO & 0x3F;
+  for (size_t p = 0; p < m_TpcInputVector.size(); p++)
+  {
+    h_refbco[p]->Fill(refbcobitshift);
+    auto bcl_stack = m_TpcInputVector[p]->BclkStack();
+    for (auto &bcl : bcl_stack)
+    {
+      auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
+      if (diff < 5)
+      {
+        h_gl1tagged[p]->Fill(refbcobitshift);
+      }
+    }
+  }
+
   // again m_TpcRawHitMap.empty() is handled by return of FillTpcPool()
   while (m_TpcRawHitMap.begin()->first <= select_crossings - m_tpc_negative_bco)
   {
@@ -1113,14 +1118,19 @@ void Fun4AllStreamingInputManager::createQAHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  
+    for(int i=0; i<24; i++)
+    {
+
+      {
+    auto h = new TH1F((boost::format("h_TpcPoolQA_RefGL1BCO_packet%i") % i).str().c_str(), "TPC ref BCO", 10000, 0, 10000);
+    h->GetXaxis()->SetTitle("GL1 BCO");
+    hm->registerHisto(h);
+      }
   {
-    auto h = new TH1F("h_TPC_refbco", "TPC ref BCO", 1000, 0, 1000);
+    auto h = new TH1F((boost::format("h_TpcPoolQA_TagBCO_packet%i") % i).str().c_str(), "TPC trigger tagged BCO", 1000, 0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
     hm->registerHisto(h);
   }
-  {
-    auto h = new TH1F("h_TPC_trigtagbco", "TPC trigger tagged BCO", 1000, 0, 1000);
-    h->GetXaxis()->SetTitle("GL1 BCO");
-    hm->registerHisto(h);
   }
 }

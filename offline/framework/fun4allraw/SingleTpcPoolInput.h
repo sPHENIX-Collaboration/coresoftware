@@ -28,6 +28,7 @@ class SingleTpcPoolInput : public SingleStreamingInput
   void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
+  const std::set<uint64_t>& BclkStack() const { return m_BclkStack; }
 
  private:
   Packet **plist{nullptr};
