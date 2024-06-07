@@ -742,10 +742,8 @@ TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TO
 	double rmsZS = h_ohcal_channel_energy[channel]->GetRMS();
 	h_CaloValid_ohcal_etaphi_ZSpedRMS->Fill(ieta, iphi, rmsZS);
       }
-
    }
  }
-  //QAHistManagerDef::saveQARootFile(OutputFileName);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
