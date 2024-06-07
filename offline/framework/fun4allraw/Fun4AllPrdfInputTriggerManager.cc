@@ -1104,16 +1104,16 @@ int Fun4AllPrdfInputTriggerManager::MoveZdcToNodeTree()
   }
   //  std::cout << "before filling m_ZdcPacketMap size: " <<  m_ZdcPacketMap.size() << std::endl;
   zdc->setEvtSequence(m_RefEventNo);
-  for (auto zdchititer : m_ZdcPacketMap.begin()->second.ZdcPacketVector)
+  for (auto zdchititer : m_ZdcPacketMap.begin()->second.ZdcSinglePacketMap)
   {
     if (m_ZdcPacketMap.begin()->first == m_RefEventNo)
     {
     std::cout << "event at m_ZdcPacketMap.begin(): " << m_ZdcPacketMap.begin()->first << std::endl;
     if (Verbosity() > 10)
     {
-      zdchititer->identify();
+      zdchititer.second->identify();
     }
-    zdc->AddPacket(zdchititer);
+    zdc->AddPacket(zdchititer.second);
     }
   }
   // Since the ZDC and sEPD are in the same file using the same input manager
@@ -1141,7 +1141,7 @@ void Fun4AllPrdfInputTriggerManager::AddZdcPacket(int eventno, CaloPacket *pkt)
               << eventno << std::endl;
   }
   auto &iter = m_ZdcPacketMap[eventno];
-  iter.ZdcPacketVector.push_back(pkt);
+  iter.ZdcSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
   iter.BcoMap.insert(std::make_pair(pkt->getIdentifier(),pkt->getBCO()));
   return;
 }
@@ -1182,7 +1182,7 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
   if (m_ZdcPacketMap.begin()->first <= m_RefEventNo)
   {
     std::cout << "Erasing event no " << m_ZdcPacketMap.begin()->first << " from zdc pktmap" << std::endl;
-  m_ZdcPacketMap.begin()->second.ZdcPacketVector.clear();
+  m_ZdcPacketMap.begin()->second.ZdcSinglePacketMap.clear();
   m_ZdcPacketMap.begin()->second.BcoMap.clear();
   m_ZdcPacketMap.erase(m_ZdcPacketMap.begin());
   }
@@ -1208,7 +1208,6 @@ void Fun4AllPrdfInputTriggerManager::AddSEpdPacket(int eventno, CaloPacket *pkt)
   }
   auto &iter = m_SEpdPacketMap[eventno];
   iter.SEpdSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
-  iter.BcoMap.insert(std::make_pair(pkt->getIdentifier(),pkt->getBCO()));
   return;
 }
 
@@ -1288,10 +1287,10 @@ void Fun4AllPrdfInputTriggerManager::ClockSyncCheck()
     for (auto &zdcpktiter : m_ZdcPacketMap)
     {
       std::cout << "zdc event: " <<  zdcpktiter.first << std::endl;
-      for (auto &pktiter : zdcpktiter.second.ZdcPacketVector)
+      for (auto &pktiter : zdcpktiter.second.ZdcSinglePacketMap)
       {
-	std::cout << "pkt id : " << pktiter->getIdentifier()
-		  << ", clock: 0x" << std::hex << pktiter->getBCO() << std::dec << std::endl;
+	std::cout << "pkt id : " << pktiter.first
+		  << ", clock: 0x" << std::hex << pktiter.second->getBCO() << std::dec << std::endl;
       }
     }
   }

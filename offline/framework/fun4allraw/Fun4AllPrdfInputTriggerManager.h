@@ -124,7 +124,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   };
   struct ZdcPacketInfo
   {
-    std::vector<CaloPacket *> ZdcPacketVector;
+    std::map<int, CaloPacket *> ZdcSinglePacketMap;
     std::map<int, uint64_t> BcoMap;
     unsigned int EventFoundCounter{0};
   };
