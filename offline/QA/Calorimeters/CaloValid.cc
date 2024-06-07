@@ -5,7 +5,7 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/TowerInfov2.h>
+#include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -40,14 +40,10 @@
 #include <string>
 #include <utility>  // for pair
 
-CaloValid::CaloValid(const std::string& name, const std::string &filename) // int nevents)
+CaloValid::CaloValid(const std::string& name)
   : SubsysReco(name)
   , detector("HCALIN")
-  , m_outputFileName(filename)
 {
-  OutputNtupleFile = nullptr;
-  OutputFileName = filename;
-  //_nevents = nevents;
 }
 
 CaloValid::~CaloValid() = default;
@@ -58,42 +54,40 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   {
     std::cout << "In CaloValid::Init" << std::endl;
   }
-  std::cout << "CaloValid::Init started..." << std::endl;
-  OutputNtupleFile = new TFile(OutputFileName.c_str(),"RECREATE");
-  std::cout << "CaloValid::Init: output file " << OutputFileName.c_str() << " opened." << std::endl;
 
   createHistos();
-  char hname[99];
-  char hnameE[99];
 
 //---------EMCal--------//
 {
   int size = 128*192;
   for(int channel = 0; channel < size; channel++){
-    sprintf(hname,"h_cemc_channel_pedestal_%d",channel);
-    h_cemc_channel_pedestal[channel] = new TH1F(hname,hname, 2000, -0.5, 2000.5);
-    sprintf(hnameE, "h_cemc_channel_energy_%d", channel);
-    h_cemc_channel_energy[channel] = new TH1F(hnameE, hnameE, 1000, -50, 50);
+    std::string hname = (boost::format("h_cemc_channel_pedestal_%d") % channel).str();
+    h_cemc_channel_pedestal[channel] = new TH1F(hname.c_str(), hname.c_str(), 2000, -0.5, 2000.5);
+    
+    std::string hnameE = (boost::format("h_cemc_channel_energy_%d") % channel).str();
+    h_cemc_channel_energy[channel] = new TH1F(hnameE.c_str(), hnameE.c_str(), 1000, -50, 50);
  }
 }
 //--------OHCal--------//
 { 
   int size = 32*48;
   for(int channel = 0; channel < size; channel++){
-    sprintf(hname,"h_ohcal_channel_pedestal_%d",channel);
-    h_ohcal_channel_pedestal[channel] = new TH1F(hname,hname, 2000, -0.5, 2000.5);
-    sprintf(hnameE, "h_ohcal_channel_energy_%d", channel);
-    h_ohcal_channel_energy[channel] = new TH1F(hnameE, hnameE, 1000, -50, 50);
+    std::string hname = (boost::format("h_ohcal_channel_pedestal_%d") % channel).str();
+    h_ohcal_channel_pedestal[channel] = new TH1F(hname.c_str(), hname.c_str(), 2000, -0.5, 2000.5);
+    
+    std::string hnameE = (boost::format("h_ohcal_channel_energy_%d") % channel).str();
+    h_ohcal_channel_energy[channel] = new TH1F(hnameE.c_str(), hnameE.c_str(), 1000, -50, 50);
  }
 }
 //--------IHCal-------//
 {
   int size = 32*48;
   for(int channel = 0; channel < size; channel++){
-    sprintf(hname,"h_ihcal_channel_pedestal_%d",channel);
-    h_ihcal_channel_pedestal[channel] = new TH1F(hname,hname, 2000, -0.5, 2000.5);
-    sprintf(hnameE, "h_ihcal_channel_energy_%d", channel);
-    h_ihcal_channel_energy[channel] = new TH1F(hnameE, hnameE, 1000, -50, 50);
+    std::string hname = (boost::format("h_ihcal_channel_pedestal_%d") % channel).str();
+    h_ihcal_channel_pedestal[channel] = new TH1F(hname.c_str(), hname.c_str(), 2000, -0.5, 2000.5);
+    
+    std::string hnameE = (boost::format("h_ihcal_channel_energy_%d") % channel).str();
+    h_ihcal_channel_energy[channel] = new TH1F(hnameE.c_str(), hnameE.c_str(), 1000, -50, 50);
  }
 }
   
@@ -682,8 +676,7 @@ int CaloValid::End(PHCompositeNode* topNode)
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  
-  OutputNtupleFile->cd();
+
 //------EmCal-----//
 { 
  TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
@@ -752,7 +745,7 @@ TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TO
 
    }
  }
-  QAHistManagerDef::saveQARootFile(OutputFileName);
+  //QAHistManagerDef::saveQARootFile(OutputFileName);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
