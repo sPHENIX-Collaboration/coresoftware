@@ -889,7 +889,9 @@ int Fun4AllStreamingInputManager::FillTpc()
       auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
       if (diff < 5)
       {
+        // just fill it once per packet, as we just care if any data was sent 
         h_gl1tagged[p]->Fill(refbcobitshift);
+        break;
       }
     }
   }
@@ -1123,13 +1125,15 @@ void Fun4AllStreamingInputManager::createQAHistos()
     {
 
       {
-    auto h = new TH1F((boost::format("h_TpcPoolQA_RefGL1BCO_packet%i") % i).str().c_str(), "TPC ref BCO", 10000, 0, 10000);
+    auto h = new TH1I((boost::format("h_TpcPoolQA_RefGL1BCO_packet%i") % i).str().c_str(), "TPC ref BCO", 100, 0, 100);
     h->GetXaxis()->SetTitle("GL1 BCO");
+    h->SetTitle((boost::format("Packet %i") % i).str().c_str());
     hm->registerHisto(h);
       }
   {
-    auto h = new TH1F((boost::format("h_TpcPoolQA_TagBCO_packet%i") % i).str().c_str(), "TPC trigger tagged BCO", 1000, 0, 1000);
+    auto h = new TH1I((boost::format("h_TpcPoolQA_TagBCO_packet%i") % i).str().c_str(), "TPC trigger tagged BCO", 100, 0, 100);
     h->GetXaxis()->SetTitle("GL1 BCO");
+    h->SetTitle((boost::format("Packet %i") % i).str().c_str());
     hm->registerHisto(h);
   }
   }
