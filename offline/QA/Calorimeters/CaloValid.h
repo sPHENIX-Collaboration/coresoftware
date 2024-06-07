@@ -11,9 +11,8 @@ class PHCompositeNode;
 class TFile;
 class TNtuple;
 class TTree;
-class TH2F;
-class TH1F;
 class TH1;
+class TH2;
 class TProfile2D;
 
 class CaloValid : public SubsysReco
@@ -56,41 +55,41 @@ class CaloValid : public SubsysReco
   std::string m_outputFileName;
   std::string OutputFileName;
 
-  TH1F* h_cemc_channel_pedestal[128*192];
-  TH1F* h_ihcal_channel_pedestal[32*48];
-  TH1F* h_ohcal_channel_pedestal[32*48];
+  TH1* h_cemc_channel_pedestal[128*192];
+  TH1* h_ihcal_channel_pedestal[32*48];
+  TH1* h_ohcal_channel_pedestal[32*48];
 
-  TH1F* h_cemc_channel_energy[128*192];
-  TH1F* h_ihcal_channel_energy[32*48];
-  TH1F* h_ohcal_channel_energy[32*48];
+  TH1* h_cemc_channel_energy[128*192];
+  TH1* h_ihcal_channel_energy[32*48];
+  TH1* h_ohcal_channel_energy[32*48];
 
   //TProfile2D* h_cemc_etaphi_pedRMS{nullptr};
  
   //TProfile2D* h_cemc_etaphi_pedRMS{nullptr};
   /*
-  TH2F* h_emcal_mbd_correlation{nullptr};
-  TH2F* h_ohcal_mbd_correlation{nullptr};
-  TH2F* h_ihcal_mbd_correlation{nullptr};
-  TH2F* h_emcal_hcal_correlation{nullptr};
-  TH2F* h_emcal_zdc_correlation{nullptr};
+  TH2* h_emcal_mbd_correlation{nullptr};
+  TH2* h_ohcal_mbd_correlation{nullptr};
+  TH2* h_ihcal_mbd_correlation{nullptr};
+  TH2* h_emcal_hcal_correlation{nullptr};
+  TH2* h_emcal_zdc_correlation{nullptr};
 
-  TH1F* h_InvMass{nullptr};
+  TH1* h_InvMass{nullptr};
 
-  TH2F* h_cemc_etaphi{nullptr};
-  TH2F* h_hcalin_etaphi{nullptr};
-  TH2F* h_hcalout_etaphi{nullptr};
-  TH2F* h_cemc_etaphi_wQA{nullptr};
-  TH2F* h_hcalin_etaphi_wQA{nullptr};
-  TH2F* h_hcalout_etaphi_wQA{nullptr};
+  TH2* h_cemc_etaphi{nullptr};
+  TH2* h_hcalin_etaphi{nullptr};
+  TH2* h_hcalout_etaphi{nullptr};
+  TH2* h_cemc_etaphi_wQA{nullptr};
+  TH2* h_hcalin_etaphi_wQA{nullptr};
+  TH2* h_hcalout_etaphi_wQA{nullptr};
   TH1* h_totalzdc_e{nullptr};
 
   TProfile2D* h_cemc_etaphi_time{nullptr};
   TProfile2D* h_hcalin_etaphi_time{nullptr};
   TProfile2D* h_hcalout_etaphi_time{nullptr};
 
-  TH2F* h_cemc_e_chi2{nullptr};
-  TH2F* h_ohcal_e_chi2{nullptr};
-  TH2F* h_ihcal_e_chi2{nullptr};
+  TH2* h_cemc_e_chi2{nullptr};
+  TH2* h_ohcal_e_chi2{nullptr};
+  TH2* h_ihcal_e_chi2{nullptr};
 
   TProfile2D* h_cemc_etaphi_badChi2{nullptr};
   TProfile2D* h_hcalin_etaphi_badChi2{nullptr};
@@ -123,8 +122,8 @@ class CaloValid : public SubsysReco
   TH1* h_ohcal_status{nullptr};
   TH1* h_cemc_status{nullptr};
 
-  TH1F* h_clusE{nullptr};
-  TH2F* h_etaphi_clus{nullptr};
+  TH1* h_clusE{nullptr};
+  TH2* h_etaphi_clus{nullptr};
 
   TTree* towerntuple{nullptr};
   TNtuple* clusterntuple{nullptr};
