@@ -1420,6 +1420,7 @@ int CaloTriggerEmulator::process_organizer()
 	    }
 	}
 
+	// get jet primitives (after EMCAL and HCAL sum)
 	TriggerPrimitiveContainerv1::Range range = m_primitives->getTriggerPrimitives();
 	for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
 	  {
@@ -1431,15 +1432,15 @@ int CaloTriggerEmulator::process_organizer()
 	    for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
 	      {
 		TriggerDefs::TriggerSumKey jet_skey = (*iter_sum).first;
+
 		TriggerDefs::TriggerSumKey hcal_skey = TriggerDefs::getTriggerSumKey(m_triggerid, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey), TriggerDefs::getSumLocId(jet_skey));
 		TriggerDefs::TriggerSumKey emcal_skey = TriggerDefs::getTriggerSumKey(m_triggerid, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey), TriggerDefs::getSumLocId(jet_skey));
 
 		int i = 0;
-		for (unsigned int &it_s : *(*iter_sum).second)
+		for (unsigned int &it_s : *(iter_sum->second))
 		  {
 		    unsigned int sum_hcal = m_primitives_hcal_ll1->get_primitive_at_key(hcal_pkey)->get_sum_at_key(hcal_skey)->at(i);
 		    unsigned int sum_emcal = m_primitives_emcal_ll1->get_primitive_at_key(emcal_pkey)->get_sum_at_key(emcal_skey)->at(i);
-
 		    it_s = ((sum_hcal + sum_emcal) >> 1U);
 		    i++;
 		  }
@@ -1725,7 +1726,7 @@ int CaloTriggerEmulator::process_trigger()
         int i = 0;
         int sum_phi = static_cast<int>(TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumkey) * 2 + TriggerDefs::getSumPhiId(sumkey));
         int sum_eta = static_cast<int>(TriggerDefs::getSumEtaId(sumkey));
-        for (unsigned int &it_s : *(*iter_sum).second)
+        for (unsigned int &it_s : *(iter_sum->second))
         {
           for (int ijeta = (sum_eta <= 3 ? 0 : sum_eta - 3); ijeta <= (sum_eta > 8 ? 8 : sum_eta); ijeta++)
           {
