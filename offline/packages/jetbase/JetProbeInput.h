@@ -1,8 +1,8 @@
 #ifndef G4JET_JETPROBEINPUT__H
 #define G4JET_JETPROBEINPUT__H
 
-#include "JetInput.h"
 #include "Jet.h"
+#include "JetInput.h"
 
 #include <iostream>  // for cout, ostream
 #include <vector>
@@ -14,7 +14,7 @@ class PHCompositeNode;
 class JetProbeInput : public JetInput
 {
  public:
-  JetProbeInput(PHCompositeNode* node=nullptr);
+  JetProbeInput(PHCompositeNode* node = nullptr);
   ~JetProbeInput() override {}
 
   //! by default, JetProbeInput process all truth primary particle.
@@ -26,10 +26,9 @@ class JetProbeInput : public JetInput
   std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
   // filled upon initialization if instantiated with topNode
-  float phi { -100. };
-  float eta { -100. };
-  float pt  { -100. };
-
+  float phi{-100.};
+  float eta{-100.};
+  float pt{-100.};
 };
 
 #endif

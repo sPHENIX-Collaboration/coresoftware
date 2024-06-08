@@ -11,8 +11,8 @@ constexpr size_t PayLoadCont::MinCapacity;
 
 //________________________________________________________________________________
 PayLoadCont::PayLoadCont(const PayLoadCont& src)
+  :mBuffer(src.mBuffer)
 {
-  mBuffer = src.mBuffer;
   if (src.mPtr)
   {
     mPtr = mBuffer.data() + (src.mPtr - src.mBuffer.data());

@@ -10,6 +10,7 @@
 #include "MicromegasMapping.h"
 
 #include <fun4all/SubsysReco.h>
+#include <fun4allraw/MicromegasBcoMatchingInformation.h>
 #include <phool/PHObject.h>
 
 #include <TTree.h>
@@ -253,46 +254,11 @@ class MicromegasRawDataEvaluation : public SubsysReco
   //! main branch
   Container* m_container = nullptr;
 
-  //! store relevant information for bco matching between lvl1 and fee.
-  using m_bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
-  class bco_matching_information_t
-  {
-    public:
-
-    //! verified flag
-    /**
-     * the flag is set to true as soon as a non-trivial match is found between FEE_BCO and GTM_BCO
-     * it shows that the chosen reference are correct
-     */
-    bool m_verified = false;
-
-    //! first lvl1 bco (40 bits)
-    bool m_has_gtm_bco_first = false;
-    uint64_t m_gtm_bco_first = 0;
-
-    //! first fee bco (20 bits)
-    bool m_has_fee_bco_first = false;
-    unsigned int m_fee_bco_first = 0;
-
-    //! list of available bco
-    std::list<uint64_t> m_gtm_bco_list;
-
-    //! matching between fee bco and lvl1 bco
-    std::list<m_bco_matching_pair_t> m_bco_matching_list;
-
-    //! need to truncate bco matching list to some decent value
-    void truncate( unsigned int /* maxsize */ );
-
-    //! get predicted fee_bco from gtm_bco
-    unsigned int get_predicted_fee_bco( uint64_t ) const;
-
-  };
-
-  /// map bco_information_t to packet id
-  using bco_matching_information_map_t = std::map<unsigned int, bco_matching_information_t>;
+  //! map bco_information_t to packet id
+  using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation>;
   bco_matching_information_map_t m_bco_matching_information_map;
 
-  /// map waveforms to bco
+  //! map waveforms to bco
   /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t, unsigned int>;
   bco_map_t m_bco_map;

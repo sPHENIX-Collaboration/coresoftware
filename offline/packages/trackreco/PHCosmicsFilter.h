@@ -1,3 +1,6 @@
+#ifndef PHCOSMICSFILTER_H
+#define PHCOSMICSFILTER_H
+
 /*!
  *  \file RPHCosmicsFilter.h
  *  \RTree based hough tracking for cosmics
@@ -6,6 +9,8 @@
 
 
 //begin
+
+#include "PHTrackSeeding.h"
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey
@@ -48,13 +53,15 @@
 #include <Eigen/LU>
 
 //BOOST for combi seeding
+#include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/index/rtree.hpp>
 
+
 // standard includes
 #include <algorithm>
-#include <assert.h>                                      // for assert
+#include <cassert>                                      // for assert
 #include <cfloat>
 #include <climits>                                      // for UINT_MAX
 #include <cmath>
@@ -62,50 +69,27 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>                                      // for back_insert_...
+#include <map>
 #include <memory>
+#include <string>                      // for string
 #include <tuple>
+#include <vector>
+
 
 class PHField;
 class TGeoManager;
 
-using namespace Eigen;
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
 
 
+using namespace Eigen;
 using namespace std;
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 //end
-
-
-
-#ifndef PHCOSMICSFILTER_H
-#define PHCOSMICSFILTER_H
-
-#include "PHTrackSeeding.h"
-
-
-#if !defined(__CINT__) || defined(__CLING__)
-//BOOST for combi seeding
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/box.hpp>
-#include <boost/geometry/geometries/point.hpp>
-
-#include <boost/geometry/index/rtree.hpp>
-#endif
-
-
-
-
-// standard includes
-#include <cfloat>
-#include <iostream>                    // for operator<<, endl, basic_ostream
-#include <map>
-#include <string>                      // for string
-#include <vector>
 
 // forward declarations
 class PHCompositeNode;

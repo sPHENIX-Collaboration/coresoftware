@@ -31,15 +31,15 @@ class PHCompositeNode;
 class JetReco : public SubsysReco
 {
  public:
-   enum TRANSITION
-   {
+  enum TRANSITION
+  {
     JET_CONTAINER,
     JET_MAP,
     BOTH,
-    PRETEND_BOTH // do just JET_CONTAINER, but still append _JC to the name
-   };
+    PRETEND_BOTH  // do just JET_CONTAINER, but still append _JC to the name
+  };
 
-  JetReco(const std::string &name = "JetReco", TRANSITION _which_fill=JET_CONTAINER); // , bool fill_JetContainer=false);
+  JetReco(const std::string &name = "JetReco", TRANSITION _which_fill = JET_CONTAINER);  // , bool fill_JetContainer=false);
   ~JetReco() override;
 
   int InitRun(PHCompositeNode *topNode) override;
@@ -56,12 +56,12 @@ class JetReco : public SubsysReco
   void set_input_node(const std::string &inputnode) { _inputnode = inputnode; }
   /* void set_fill_JetContainer(bool b) { _fill_JetContainer = b; } */
 
-  JetAlgo* get_algo(unsigned int which_algo=0);
+  JetAlgo *get_algo(unsigned int which_algo = 0);
 
  private:
   int CreateNodes(PHCompositeNode *topNode);
-  void FillJetNode(PHCompositeNode *topNode, int ialgo, std::vector<Jet *> jets);
-  void FillJetContainer(PHCompositeNode *topNode, int ialgo, std::vector<Jet*>& jets);
+  void FillJetNode(PHCompositeNode *topNode, int ialgo, const std::vector<Jet *> &jets);
+  void FillJetContainer(PHCompositeNode *topNode, int ialgo, std::vector<Jet *> &jets);
 
   std::vector<JetInput *> _inputs;
   std::vector<JetAlgo *> _algos;
@@ -70,13 +70,16 @@ class JetReco : public SubsysReco
   std::vector<std::string> _outputs;
 
   // transition functions, while moving from JetMap to JetContainer.
-  // May be removed after transition is made, depending on state of 
+  // May be removed after transition is made, depending on state of
   // functions
-  std::string JC_name (std::string name) { 
-    if (which_fill == TRANSITION::BOTH || which_fill==TRANSITION::PRETEND_BOTH) return name+"_JC";
-    else return name;
+  std::string JC_name(std::string name)
+  {
+    if (which_fill == TRANSITION::BOTH || which_fill == TRANSITION::PRETEND_BOTH)
+      return name + "_JC";
+    else
+      return name;
   }
-  TRANSITION which_fill;// fill both container and map 
+  TRANSITION which_fill;  // fill both container and map
   bool use_jetcon;
   bool use_jetmap;
 };

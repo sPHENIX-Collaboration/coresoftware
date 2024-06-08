@@ -56,7 +56,17 @@ class MicromegasMapping
   /// get fee id from hitset key
   int get_fee_id_from_hitsetkey(TrkrDefs::hitsetkey) const;
 
+  /// convert fee_id from data stream into old fee_id before fiber swapping */
+  /*
+   * this is used  to keep backward compatibility
+   * how it works is that every time a given fiber from the detector is connected to a new slot in the EBDC (a new FEE_ID),
+   * one must convert the new fee_id to the old one, that match the same detector
+   * in m_detectors. This works as long as fibers from the detectors are assigned to previously unsused slots/fee_id.
+   */
+  int get_old_fee_id( int /*fee_id*/ ) const;
+
  private:
+
   /// construct fee channel id to physical strip mapping
   void construct_channel_mapping();
 
@@ -118,6 +128,7 @@ class MicromegasMapping
 
   /// map FEE channel id to physical strip id (phi view)
   std::array<int, MicromegasDefs::m_nchannels_fee> m_fee_to_strip_mapping_phi = {{0}};
+
 };
 
 #endif

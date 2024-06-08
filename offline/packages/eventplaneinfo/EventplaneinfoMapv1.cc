@@ -8,7 +8,7 @@
 
 EventplaneinfoMapv1::~EventplaneinfoMapv1()
 {
-  clear();
+  EventplaneinfoMapv1::clear();
 }
 
 void EventplaneinfoMapv1::identify(std::ostream& os) const
