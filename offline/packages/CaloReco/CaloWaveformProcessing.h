@@ -17,6 +17,7 @@ class CaloWaveformProcessing : public SubsysReco
     TEMPLATE = 1,
     ONNX = 2,
     FAST = 3,
+    NYQUIST = 4,
   };
 
   CaloWaveformProcessing() = default;
