@@ -17,7 +17,6 @@ class InttXYVertexFinder : public SubsysReco
   typedef std::array<double, 3> VertexPos;
 
  public:
-
   explicit InttXYVertexFinder(const std::string &name = "InttXYVertexFinder");
 
   ~InttXYVertexFinder() override;
@@ -41,15 +40,15 @@ class InttXYVertexFinder : public SubsysReco
   void EnableQA(const bool enable);
 
  private:
-  int createNodes(PHCompositeNode* topNode);
+  int createNodes(PHCompositeNode *topNode);
 
  private:
-   INTTXYvtx*     m_inttxyvtx    {nullptr};
-   InttVertexMap* m_inttvertexmap{nullptr};
-   int            m_period       {1000};
+  INTTXYvtx *m_inttxyvtx{nullptr};
+  InttVertexMap *m_inttvertexmap{nullptr};
+  int m_period{1000};
 
-   VertexPos      m_vertex_quad{0, 0, -9999.};
-   VertexPos      m_vertex_line{0, 0, -9999.};
+  VertexPos m_vertex_quad{0, 0, -9999.};
+  VertexPos m_vertex_line{0, 0, -9999.};
 };
 
-#endif // INTTXYVERTEXFINDER_H
+#endif  // INTTXYVERTEXFINDER_H

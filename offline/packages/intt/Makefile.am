@@ -107,7 +107,9 @@ libintt_la_SOURCES = \
   InttSurveyMapv1.cc \
   InttVertexUtil.cc \
   InttXYVertexFinder.cc \
-  InttZVertexFinder.cc
+  InttZVertexFinder.cc \
+  INTTXYvtx.cc \
+  INTTZvtx.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
