@@ -36,11 +36,11 @@ int InttBadChannelMapv1::v_LoadFromCDBTTree(
   for (Long64_t n = 0; n < N; ++n)
   {
     m_bad_channel_set->insert((struct InttMap::Offline_s){
-        .layer =      cdbttree.GetIntValue(n, "layer"),
+        .layer = cdbttree.GetIntValue(n, "layer"),
         .ladder_phi = cdbttree.GetIntValue(n, "ladder_phi"),
-        .ladder_z =   cdbttree.GetIntValue(n, "ladder_z"),
-        .strip_z =    cdbttree.GetIntValue(n, "strip_z"),
-        .strip_phi =  cdbttree.GetIntValue(n, "strip_phi"),
+        .ladder_z = cdbttree.GetIntValue(n, "ladder_z"),
+        .strip_z = cdbttree.GetIntValue(n, "strip_z"),
+        .strip_phi = cdbttree.GetIntValue(n, "strip_phi"),
     });
   }
 
