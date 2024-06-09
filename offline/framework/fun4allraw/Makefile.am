@@ -28,8 +28,8 @@ pkginclude_HEADERS = \
   SingleHcalTriggerInput.h \
   SingleLL1TriggerInput.h \
   SingleMbdTriggerInput.h \
-  SingleInttPoolInput.h \
   SingleMicromegasPoolInput.h \
+  SingleInttPoolInput.h \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
@@ -97,7 +97,8 @@ libfun4allraw_la_LIBADD = \
   -lffarawobjects \
   -lfun4all \
   -lEvent \
-  -lphoolraw
+  -lphoolraw \
+  -lqautils
 
 BUILT_SOURCES = testexternals.cc
 
