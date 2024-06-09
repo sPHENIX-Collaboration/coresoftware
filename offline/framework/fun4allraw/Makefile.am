@@ -28,8 +28,8 @@ pkginclude_HEADERS = \
   SingleHcalTriggerInput.h \
   SingleLL1TriggerInput.h \
   SingleMbdTriggerInput.h \
-  SingleInttPoolInput.h \
   SingleMicromegasPoolInput.h \
+  SingleInttPoolInput.h \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \

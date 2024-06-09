@@ -1,6 +1,7 @@
 #include "Fun4AllStreamingInputManager.h"
 
 #include "InputManagerType.h"
+#include "SingleMicromegasPoolInput.h"
 #include "SingleStreamingInput.h"
 
 #include <ffarawobjects/Gl1RawHit.h>
@@ -805,6 +806,19 @@ int Fun4AllStreamingInputManager::FillMicromegas()
       return iret;
     }
   }
+
+  // fill all BCO statistics
+  bool first = true;
+  for (const auto &iter : m_MicromegasInputVector)
+  {
+    if (first)
+    {
+      static_cast<SingleMicromegasPoolInput*>(iter)->createQAHistos();
+      first = false; 
+    }
+    static_cast<SingleMicromegasPoolInput*>(iter)->FillBcoQA(m_RefBCO);
+  }
+
 
   while ((m_MicromegasRawHitMap.begin()->first) <= select_crossings - m_micromegas_negative_bco)
   {
