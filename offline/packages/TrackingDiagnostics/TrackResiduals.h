@@ -4,6 +4,7 @@
 #define TRACKRESIDUALS_H
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcClusterMover.h>
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
@@ -48,6 +49,7 @@ class TrackResiduals : public SubsysReco
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
   void ppmode() { m_ppmode = true; }
+  void convertSeeds(bool flag) { m_convertSeeds = flag; }
   void dropClustersNoState(bool flag) { m_dropClustersNoState = flag; }
   void zeroField() { m_zeroField = true; }
   void runnumber(const int run) { m_runnumber = run; }
@@ -65,8 +67,14 @@ class TrackResiduals : public SubsysReco
   void fillHitTree(TrkrHitSetContainer *hitmap, ActsGeometry *geometry,
                    PHG4TpcCylinderGeomContainer *tpcGeom, PHG4CylinderGeomContainer *mvtxGeom,
                    PHG4CylinderGeomContainer *inttGeom, PHG4CylinderGeomContainer *mmGeom);
-  void fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack *track,
-                           PHCompositeNode *topNode);
+  void fillResidualTreeKF( PHCompositeNode* topNode );
+  void fillResidualTreeSeeds( PHCompositeNode* topNode );
+  void fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* track,  
+			     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved,
+			     PHCompositeNode* topNode);
+  void fillClusterBranchesSeeds(TrkrDefs::cluskey ckey, // SvtxTrack* track,
+				std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global,
+				PHCompositeNode* topNode);
   void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
                        TrkrClusterContainer *clusters, const short int& crossing);
   void circleFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
@@ -90,6 +98,7 @@ class TrackResiduals : public SubsysReco
   bool m_zeroField = false;
   bool m_doFailedSeeds = false;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  TpcClusterMover m_clusterMover;
 
   TpcDistortionCorrectionContainer *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
 
@@ -99,6 +108,7 @@ class TrackResiduals : public SubsysReco
 
   bool m_doAlignment = false;
   bool m_ppmode = false;
+  bool m_convertSeeds = false;
   bool m_linefitTPCOnly = true;
   bool m_dropClustersNoState = false;
 
