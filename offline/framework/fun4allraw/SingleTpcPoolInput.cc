@@ -304,12 +304,15 @@ void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // {
   //   iter.second.clear();
   // }
-  m_BclkStackPacketMap.clear();
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
     m_BeamClockFEE.erase(iter);
     m_TpcRawHitMap.erase(iter);
+    for(auto& [packetid, bclkset] : m_BclkStackPacketMap)
+    {
+      bclkset.erase(iter);
+    }
   }
 }
 

@@ -892,18 +892,14 @@ int Fun4AllStreamingInputManager::FillTpc()
 
   int refbcobitshift = m_RefBCO & 0x3F;
   h_refbco->Fill(refbcobitshift);
-  std::cout << "ref bco " << m_RefBCO << std::endl;
   for (size_t p = 0; p < m_TpcInputVector.size(); p++)
   {
-    std::cout << "ebdc " << p << std::endl;
     auto bcl_stack = m_TpcInputVector[p]->BclkStackMap();
     int packetnum = 0;
     for (auto &[packetid, bclset] : bcl_stack)
     {
-      std::cout << "packet id " << packetid << std::endl;
       for (auto &bcl : bclset)
       {
-        std::cout << " bcl balues are " << bcl << std::endl;
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
         if (diff < 5)
         {
