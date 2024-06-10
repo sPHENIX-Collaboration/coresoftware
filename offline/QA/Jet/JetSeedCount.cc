@@ -32,8 +32,11 @@ JetSeedCount::JetSeedCount(const std::string &recojetname, const std::string &tr
 int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << "JetSeedCount::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  std::cout << "Opening output file named " << m_outputFileName << std::endl;
-  // PHTFileServer::get().open(m_outputFileName, "RECREATE");
+  if (m_writeToOutputFile)
+  {
+    std::cout << "Opening output file named " << m_outputFileName << std::endl;
+    PHTFileServer::get().open(m_outputFileName, "RECREATE");
+  }
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
@@ -154,7 +157,10 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
 int JetSeedCount::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "JetSeedCount::End(PHCompositeNode *topNode) This is the End..." << std::endl;
-  PHTFileServer::get().cd(m_outputFileName);
+  if (m_writeToOutputFile)
+  {
+    PHTFileServer::get().cd(m_outputFileName);
+  }
 
   TH1 *hRawSeedCount = new TH1F("hRawSeedCount", "Raw Seed Count per Event", 100, 0.00, 50.00);
   hRawSeedCount->GetXaxis()->SetTitle("Raw Seed Count per Event");
