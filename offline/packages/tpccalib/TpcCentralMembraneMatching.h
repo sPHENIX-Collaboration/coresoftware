@@ -259,6 +259,11 @@ class TpcCentralMembraneMatching : public SubsysReco
   std::vector<int> doGlobalRMatching(TH2F *r_phi, bool pos);
 
   int getClusterRMatch(std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR);
+
+  void doDistortionMatching();
+
+  void doUnmatchedNN();
+
 };
 
 #endif  // PHTPCCENTRALMEMBRANEMATCHER_H

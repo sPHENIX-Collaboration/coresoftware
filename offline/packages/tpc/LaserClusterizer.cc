@@ -468,13 +468,24 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
 
   auto *clus = new LaserClusterv1;
 
+  int meanSide = 0;
+
   for (auto &clusHit : clusHits)
   {
     float coords[3] = {clusHit.first.get<0>(), clusHit.first.get<1>(), clusHit.first.get<2>()};
     std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> spechitkey = clusHit.second;
 
-    // int side = TpcDefs::getSide(spechitkey.second);
+    int side = TpcDefs::getSide(spechitkey.second);
     // unsigned int sector= TpcDefs::getSectorId(spechitkey.second);
+
+    if(side)
+    {
+      meanSide++;
+    }
+    else
+    {
+      meanSide--;
+    }
 
     PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom((int) coords[0]);
 
@@ -550,6 +561,8 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   clus->setLayer(layerSum / adcSum);
   clus->setIPhi(iphiSum / adcSum);
   clus->setIT(itSum / adcSum);
+  if(meanSide>0) clus->setSide(1);
+  else clus->setSide(0);
 
   const auto ckey = TrkrDefs::genClusKey(maxKey, m_clusterlist->size());
   m_clusterlist->addClusterSpecifyKey(ckey, clus);

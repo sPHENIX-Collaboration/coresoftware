@@ -59,6 +59,9 @@ class LaserClusterv1 : public LaserCluster
 
   unsigned int getNhits() const override {return m_hitVec.size();}
 
+  bool getSide() const override {return m_side;}
+  void setSide(bool side) override { m_side = side; }
+
   //
   // cluster info
   //
@@ -103,6 +106,8 @@ class LaserClusterv1 : public LaserCluster
 
   /// number of TPC clusters used to create this central mebrane cluster
   unsigned int m_nhits = UINT_MAX;
+
+  bool side = 0;
 
   ClassDefOverride(LaserClusterv1, 1)
 };

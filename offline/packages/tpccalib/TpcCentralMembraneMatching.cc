@@ -510,6 +510,125 @@ int TpcCentralMembraneMatching::getClusterRMatch(std::vector<int> hitMatches, st
   }
 }
 
+void TpcCentralMembraneMatching::doDistortionMatching(std::vector<TVector3> reco_pos)
+{
+
+  
+  
+  int truth_index = 0;
+  int nMatched = 0;
+  std::vector<bool> truth_matched(m_truth_pos.size());
+  std::vector<bool> reco_matched(reco_pos.size());
+
+  for (auto truth : m_truth_pos)
+  {
+
+    double tR = get_r(truth.X(), truth.Y());
+    double tPhi = truth.Phi();
+    double tz = truth.Z();
+
+    int truthRIndex = -1;
+
+    // get which hit radial index this it
+    for (int k = 0; k < (int) m_truth_RPeaks.size(); k++)
+    {
+      if (std::abs(tR - m_truth_RPeaks[k]) < 0.5)
+      {
+	truthRIndex = k;
+	break;
+      }
+    }
+
+    int recoMatchIndex = -1;
+    int reco_index = 0;
+    for (auto reco : reco_pos)
+    {
+
+      int region = -1;
+
+      if(reco.Perp() < 41)
+      {
+	region = 0;
+      }
+      else if (reco.Perp() >= 41 && reco.Perp() < 58)
+      {
+	region = 1;
+      }
+      else if(reco.Perp() >= 58)
+      {
+	region = 2;
+      }
+
+      double rR = get_r(reco.X(), reco.Y());
+      double rPhi = reco.Phi();
+      double rZ = reco.Z();
+      if(region != -1)
+      {
+	if(rZ > 0)
+	{
+	  rPhi -= m_clustRotation_pos[region];
+	}
+	else
+	{
+	  rPhi -= m_clustRotation_neg[region];
+	}
+      }
+
+
+      int clustRMatchIndex = -1;
+      if (side == 0)
+      {
+	clustRMatchIndex = getClusterRMatch(m_RMatches_0, m_clust_RPeaks_0, rR);
+      }
+      else
+      {
+	clustRMatchIndex = getClusterRMatch(m_RMatches_1, m_clust_RPeaks_1, rR);
+      }
+
+      if (clustRMatchIndex == -1 || truthRIndex != clustRMatchIndex)
+      {
+	continue;
+      }
+
+      if((side == 0 && tZ > 0) || (side == 1 && tZ < 0))
+      {
+	continue;
+      }
+
+      auto dphi = delta_phi(tPhi - rPhi);
+      if(fabs(dphi) > m_phi_cut)
+      {
+	continue;
+      }
+
+      if (fabs(dphi) < fabs(prev_dphi))
+      {
+	prev_dphi = dphi;
+	recoMatchIndex = reco_index;
+	truth_matched[truth_index] = true;
+      }
+
+      reco_index++;
+    } // end loop over reco
+
+    if (recoMatchIndex != -1)
+    {
+      reco_matched[recoMatchIndex] = true;
+      nMatched++;
+    }
+
+    truth_index++;
+  } // end loop over truth
+
+  for(int i=0; i<(int)truth_matched.size(); i++)
+  {
+
+  }
+
+
+
+}
+
 //____________________________________________________________________________..
 int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
 {
