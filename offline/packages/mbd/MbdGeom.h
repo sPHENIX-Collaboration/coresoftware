@@ -31,6 +31,8 @@ class MbdGeom : public PHObject
     virtual int get_pmt(const unsigned int feech) const { return (feech / 16) * 8 + feech % 8; }
     virtual int get_type(const unsigned int feech) const { return (feech / 8) % 2; }  // 0=T-channel, 1=Q-channel
 
+    virtual void download_hv() {}
+
     virtual void Reset() override {}
 
   private:

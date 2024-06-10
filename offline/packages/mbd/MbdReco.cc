@@ -22,6 +22,7 @@
 #include <phool/phool.h>
 
 #include <ffarawobjects/CaloPacketContainer.h>
+#include <ffarawobjects/Gl1Packet.h>
 
 #include <TF1.h>
 
@@ -87,7 +88,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     }
     else if ( m_mbdraw!=nullptr )
     {
-      status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts);
+      status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts,m_gl1raw);
     }
 
     if (status == Fun4AllReturnCodes::DISCARDEVENT )
@@ -95,10 +96,20 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       static int counter = 0;
       if ( counter<3 )
       {
-        std::cout << PHWHERE << " ERROR, no good data in MBD" << std::endl;
+        std::cout << PHWHERE << " Warning, MBD discarding event " << std::endl;
         counter++;
       }
       return Fun4AllReturnCodes::DISCARDEVENT;
+    }
+    else if (status == Fun4AllReturnCodes::ABORTEVENT )
+    {
+      static int counter = 0;
+      if ( counter<3 )
+      {
+        std::cout << PHWHERE << " Warning, MBD aborting event " << std::endl;
+        counter++;
+      }
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
     else if ( status == -1001 )
     {
@@ -134,7 +145,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     // copy to globalvertex
   }
 
-  //if (Verbosity() > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "mbd vertex z and t0 " << m_mbdevent->get_bbcz() << ", " << m_mbdevent->get_bbct0() << std::endl;
   }
@@ -247,6 +258,9 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
       counter++;
     }
   }
+
+  // Get the raw gl1 data from event combined DST
+  m_gl1raw = findNode::getClass<Gl1Packet>(topNode, "Gl1Packet");
 
   // MbdPmtContainer
   m_mbdpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");

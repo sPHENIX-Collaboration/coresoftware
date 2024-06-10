@@ -94,7 +94,6 @@ MbdGeomV2::MbdGeomV2()
     MbdGeomV2::set_xyz(ipmt, tube_x, tube_y, tube_z);
   }
 
-  download_hv();
 }
 
 void MbdGeomV2::set_xyz(const unsigned int ipmt, const float x, const float y, const float z)
@@ -104,6 +103,15 @@ void MbdGeomV2::set_xyz(const unsigned int ipmt, const float x, const float y, c
   pmt_z[ipmt] = z;
   pmt_r[ipmt] = std::sqrt(x * x + y * y);
   pmt_phi[ipmt] = std::atan2(y, x);
+}
+
+const std::multimap<int,int>& MbdGeomV2::get_hvmap()
+{
+  if ( pmt_hv.size()==0 )
+  {
+    download_hv();
+  }
+  return pmt_hv;
 }
 
 void MbdGeomV2::download_hv()

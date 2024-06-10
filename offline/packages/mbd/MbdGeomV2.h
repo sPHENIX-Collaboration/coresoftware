@@ -19,7 +19,7 @@ class MbdGeomV2 : public MbdGeom
   void set_xyz(const unsigned int ipmt, const float x, const float y, const float z) override;
 
   void download_hv() override;
-  const std::multimap<int,int>& get_hvmap() { return pmt_hv; }
+  const std::multimap<int,int>& get_hvmap();
 
   virtual void Reset() override {}
 
