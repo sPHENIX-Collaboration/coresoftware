@@ -14,6 +14,14 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
+
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
 
@@ -28,6 +36,23 @@
 #include <TH2.h>
 
 #include <boost/format.hpp>
+
+namespace
+{
+  std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track)
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for (const auto& seed : {track->get_silicon_seed(), track->get_tpc_seed()})
+    {
+      if (seed)
+      {
+        std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(out));
+      }
+    }
+
+    return out;
+  }
+}
 
 //____________________________________________________________________________..
 TpcClusterQA::TpcClusterQA(const std::string &name)
@@ -62,6 +87,25 @@ int TpcClusterQA::InitRun(PHCompositeNode *topNode)
       {
         m_layerRegionMap.insert(std::make_pair(iter->first, region));
       }
+    }
+  }
+  
+  if (m_residQA)
+  {
+    m_dccStatic = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
+    if (m_dccStatic)
+    {
+      std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl;
+    }
+    m_dccAverage = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
+    if (m_dccAverage)
+    {
+      std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl;
+    }
+    m_dccFluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
+    if (m_dccFluctuation)
+    {
+      std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl;
     }
   }
 
@@ -254,6 +298,145 @@ TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets(TrkrDefs::TrkrI
     h_clusterssector->Fill(i, nclusperevent[i]);
     m_clustersPerSector[i] += nclusperevent[i];
   }
+  
+  if (m_residQA)
+  {
+    auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+    auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+    auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    auto svtxseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+
+    if (!tpcseedmap or !trackmap or !clustermap or !svtxseedmap or !geometry)
+    {
+      std::cout << "Missing node, can't continue" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;;
+    }
+
+    TH1I *h_ntpc = dynamic_cast<TH1I *>(hm->getHisto(std::string(getHistoPrefix() +"ntpc")));
+
+    struct PhiHistoList
+    {
+      TH1 *cphisize1pT_side0 = nullptr;
+      TH1 *cphisize1pT_side1 = nullptr;
+      TH1 *cphisizegeq1pT_side0 = nullptr;
+      TH1 *cphisizegeq1pT_side1 = nullptr;
+    };
+
+    using PhiHistoMap = std::map<int, PhiHistoList>;
+    PhiHistoMap phihistos;
+    for (auto &region : {0, 1, 2})
+    {
+      PhiHistoList phihist;
+    
+      phihist.cphisize1pT_side0 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusphisize1pT_side0_%i") % getHistoPrefix() % region).str()));
+      phihist.cphisize1pT_side1 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusphisize1pT_side1_%i") % getHistoPrefix() % region).str()));
+    
+      phihist.cphisizegeq1pT_side0 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusphisizegeq1pT_side0_%i") % getHistoPrefix() % region).str()));
+      phihist.cphisizegeq1pT_side1 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sclusphisizegeq1pT_side1_%i") % getHistoPrefix() % region).str()));
+    
+      phihistos.insert(std::make_pair(region, phihist));
+    }
+
+    std::set<unsigned int> tpc_seed_ids;
+    for (const auto& [key, track] : *trackmap)
+    {
+      if (!track)
+      {
+        continue;
+      }
+      m_px = track->get_px();
+      m_py = track->get_py();
+      m_pt = std::sqrt(m_px*m_px + m_py*m_py); 
+  
+      m_ntpc = 0;
+      m_region.clear();
+      m_clusgz.clear();
+      m_cluslayer.clear();
+      m_clusphisize.clear();
+      m_cluszsize.clear();
+      for (const auto& ckey : get_cluster_keys(track))
+      {
+        TrkrCluster* cluster = clustermap->findCluster(ckey);
+        Acts::Vector3 clusglob;
+        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
+        {
+          clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, track->get_crossing(), 
+                                                                                    m_dccStatic, m_dccAverage, m_dccFluctuation); //NEED TO DEFINE THESE
+        }
+        else
+        {
+          clusglob = geometry->getGlobalPosition(ckey, cluster);
+        }
+        switch (TrkrDefs::getTrkrId(ckey))
+        {      
+          case TrkrDefs::tpcId:
+            m_ntpc++;
+            break; 
+        }
+        const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(ckey));
+        int region = it->second;
+        m_region.push_back(region);
+        m_clusgz.push_back(clusglob.z());
+        m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
+        m_clusphisize.push_back(cluster->getPhiSize());
+        m_cluszsize.push_back(cluster->getZSize()); 
+      }
+      
+      if (m_pt > 0.8) h_ntpc->Fill(m_ntpc);
+     
+      int nClus = m_cluslayer.size(); 
+      for (int cl = 0; cl < nClus; cl++) 
+      {
+        if (m_pt > 0.8 && m_ntpc > 25)
+        {
+          if (m_clusphisize[cl] == 1 && m_cluszsize[cl] > 1)
+          {
+            if (m_clusgz[cl] < 0.)
+            {
+              const auto hiter = phihistos.find(m_region[cl]);
+              if (hiter == phihistos.end())
+              {
+                continue;
+              }
+              fill(hiter->second.cphisize1pT_side0, m_pt); 
+            }
+            else if (m_clusgz[cl] > 0.)
+            {
+              const auto hiter = phihistos.find(m_region[cl]);
+              if (hiter == phihistos.end())
+              {
+                continue;
+              }
+              fill(hiter->second.cphisize1pT_side1, m_pt); 
+            } 
+          }
+          if (m_clusphisize[cl] >= 1 && m_cluszsize[cl] > 1)
+          {
+            if (m_clusgz[cl] < 0.)
+            {
+              const auto hiter = phihistos.find(m_region[cl]);
+              if (hiter == phihistos.end())
+              {
+                continue;
+              }
+              fill(hiter->second.cphisizegeq1pT_side0, m_pt); 
+            }
+            else if (m_clusgz[cl] > 0.)
+            {
+              const auto hiter = phihistos.find(m_region[cl]);
+              if (hiter == phihistos.end())
+              {
+                continue;
+              }
+              fill(hiter->second.cphisizegeq1pT_side1, m_pt); 
+            } 
+          }
+        } 
+      }
+    }  
+  }   
+  
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -354,6 +537,34 @@ void TpcClusterQA::createHistos()
       h->GetXaxis()->SetTitle("z (cm)");
       hm->registerHisto(h);
     }
+    if (m_residQA)
+    {
+      auto h = new TH1F((boost::format("%sclusphisize1pT_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                              (boost::format("TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 0.8, 3.2);
+      h->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+      hm->registerHisto(h);
+    }
+    if (m_residQA)
+    {
+      auto h = new TH1F((boost::format("%sclusphisize1pT_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                              (boost::format("TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 0.8, 3.2);
+      h->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+      hm->registerHisto(h);
+    }
+    if (m_residQA)
+    {
+      auto h = new TH1F((boost::format("%sclusphisizegeq1pT_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                              (boost::format("TPC Cluster Phi Size >= 1, side 0, region_%i") % region).str().c_str(), 4, 0.8, 3.2);
+      h->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+      hm->registerHisto(h);
+    }
+    if (m_residQA)
+    {
+      auto h = new TH1F((boost::format("%sclusphisizegeq1pT_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                              (boost::format("TPC Cluster Phi Size >= 1, side 1, region_%i") % region).str().c_str(), 4, 0.8, 3.2);
+      h->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+      hm->registerHisto(h);
+    }
   }
 
   {
@@ -382,6 +593,13 @@ void TpcClusterQA::createHistos()
     auto h = new TH1F(std::string(getHistoPrefix()+"hitz_positions_side1").c_str(),
                                              "Histogram of hit z positions side=1", 105*4, -105, 105);
     h->GetXaxis()->SetTitle("z (cm)");
+    hm->registerHisto(h);
+  }
+  if (m_residQA)
+  {
+    auto h = new TH1I(std::string(getHistoPrefix()+"ntpc").c_str(),
+                                             "Clusters per Track Full Detector", 50, 0, 50);
+    h->GetXaxis()->SetTitle("nClusters/Track");
     hm->registerHisto(h);
   }
   return;
