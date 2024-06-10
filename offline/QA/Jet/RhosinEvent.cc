@@ -3,7 +3,7 @@
 // fun4all includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/PHTFileServer.h>
+// #include <fun4all/PHTFileServer.h>
 
 #include <qautils/QAHistManagerDef.h>
 
@@ -19,11 +19,12 @@
 
 #include <iostream>
 #include <string>
+#include <cassert>
 #include <vector>
 
-RhosinEvent::RhosinEvent(const std::string &outputfilename)
-  : SubsysReco("RhosinEvent")
-  , m_outputFileName(outputfilename)
+RhosinEvent::RhosinEvent(const std::string &name)
+  : SubsysReco(name)
+  // , m_name(outputfilename)
   , m_do_mult_rho(true)
   , m_do_area_rho(true)
   , m_mult_rho_node("TowerRho_MULT")
@@ -38,13 +39,13 @@ RhosinEvent::RhosinEvent(const std::string &outputfilename)
 
 int RhosinEvent::Init(PHCompositeNode * /*topNode*/)
 {
-    if (Verbosity() > 0)
-    {
-        std::cout << "RhosinEvent::Init - Output to " << m_outputFileName << std::endl;
-    } 
+    // if (Verbosity() > 0)
+    // {
+        // std::cout << "RhosinEvent::Init - Output to " << m_outputFileName << std::endl;
+    // } 
 
     // create output file
-    PHTFileServer::get().open(m_outputFileName, "RECREATE");
+    // PHTFileServer::get().open(m_outputFileName, "RECREATE");
 
     m_manager = QAHistManagerDef::getHistoManager();
     if (!m_manager)
@@ -84,13 +85,6 @@ int RhosinEvent::Init(PHCompositeNode * /*topNode*/)
     h1_area_rho_sigma = new TH1D("h1_area_rho_sigma", "h1_area_rho_sigma", N_rho_area, N_rho_area_bins);
     h1_area_rho_sigma->GetXaxis()->SetTitle("sigma_A");
     h1_area_rho_sigma->GetYaxis()->SetTitle("Counts");
-
-
-    // register histograms
-    m_manager->registerHisto(h1_mult_rho);
-    m_manager->registerHisto(h1_mult_rho_sigma);
-    m_manager->registerHisto(h1_area_rho);
-    m_manager->registerHisto(h1_area_rho_sigma);
 
 
     if(Verbosity() > 0)
@@ -148,15 +142,23 @@ int RhosinEvent::End(PHCompositeNode* /*topNode*/)
   if(Verbosity() > 0)
   {
     std::cout << "RhosinEvent::EndRun - End run " << std::endl;
-    std::cout << "RhosinEvent::EndRun - Writing to " << m_outputFileName << std::endl;
+    // std::cout << "RhosinEvent::EndRun - Writing to " << m_outputFileName << std::endl;
   }
 
-  PHTFileServer::get().cd(m_outputFileName);
+  // PHTFileServer::get().cd(m_outputFileName);
   
-  h1_mult_rho->Write();
-  h1_mult_rho_sigma->Write();
-  h1_area_rho->Write();
-  h1_area_rho_sigma->Write();
+  // h1_mult_rho->Write();
+  // h1_mult_rho_sigma->Write();
+  // h1_area_rho->Write();
+  // h1_area_rho_sigma->Write();
+
+  
+    // register histograms
+    m_manager->registerHisto(h1_mult_rho);
+    m_manager->registerHisto(h1_mult_rho_sigma);
+    m_manager->registerHisto(h1_area_rho);
+    m_manager->registerHisto(h1_area_rho_sigma);
+
 
   if(Verbosity() > 0)
   {

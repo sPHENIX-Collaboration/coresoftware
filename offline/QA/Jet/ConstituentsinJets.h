@@ -22,8 +22,7 @@ class ConstituentsinJets : public SubsysReco
     public:
 
         ConstituentsinJets(
-            const std::string &recojetname = "AntiKt_Tower_r04",
-            const std::string &outputfilename = "ConstituentsinJets.root");
+            const std::string &recojetname = "AntiKt_Tower_r04");
         ~ConstituentsinJets() override {};
 
         void setRecoJetNodeName(const std::string &name)
@@ -52,7 +51,7 @@ class ConstituentsinJets : public SubsysReco
 
         //! Input Node strings
         std::string m_recoJetName { "AntiKt_Tower_r04"};
-        std::string m_outputFileName{ "ConstituentsinJets.root"};
+        // std::string m_outputFileName{ "ConstituentsinJets.root"};
 
 
         // ! Kinematic cuts and reco jet node name

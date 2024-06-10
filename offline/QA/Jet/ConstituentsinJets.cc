@@ -3,7 +3,7 @@
 // fun4all includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/PHTFileServer.h>
+// #include <fun4all/PHTFileServer.h>
 
 // phool includes
 #include <phool/PHCompositeNode.h>
@@ -42,10 +42,10 @@
 #include <map>
 #include <utility>
 
-ConstituentsinJets::ConstituentsinJets(const std::string &recojetname , const std::string &outputfilename)
+ConstituentsinJets::ConstituentsinJets(const std::string &recojetname )
   : SubsysReco("ConstituentsinJets")
   , m_recoJetName(recojetname)
-  , m_outputFileName(outputfilename)  
+  // , m_outputFileName(outputfilename)  
   // these are all initialized but included here for clarity
   , m_etaRange(-1.1, 1.1)
   , m_ptRange(1.0, 1000)
@@ -66,7 +66,7 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
 {
   
     // create output file
-    PHTFileServer::get().open(m_outputFileName, "RECREATE");
+    // PHTFileServer::get().open(m_outputFileName, "RECREATE");
 
     m_manager = QAHistManagerDef::getHistoManager();
     if (!m_manager)
@@ -131,15 +131,15 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
     h2_jetFracE_vs_caloLayer->GetYaxis()->SetTitle("E fraction");
 
     // register histograms
-    m_manager->registerHisto(h1_ConstituentsinJets_total);
-    m_manager->registerHisto(h1_ConstituentsinJets_IHCAL);
-    m_manager->registerHisto(h1_ConstituentsinJets_OHCAL);
-    m_manager->registerHisto(h1_ConstituentsinJets_CEMC);
-    m_manager->registerHisto(h2_ConstituentsinJets_vs_caloLayer);
-    m_manager->registerHisto(h1_jetFracE_IHCAL);
-    m_manager->registerHisto(h1_jetFracE_OHCAL);
-    m_manager->registerHisto(h1_jetFracE_CEMC);
-    m_manager->registerHisto(h2_jetFracE_vs_caloLayer);
+    // m_manager->registerHisto(h1_ConstituentsinJets_total);
+    // m_manager->registerHisto(h1_ConstituentsinJets_IHCAL);
+    // m_manager->registerHisto(h1_ConstituentsinJets_OHCAL);
+    // m_manager->registerHisto(h1_ConstituentsinJets_CEMC);
+    // m_manager->registerHisto(h2_ConstituentsinJets_vs_caloLayer);
+    // m_manager->registerHisto(h1_jetFracE_IHCAL);
+    // m_manager->registerHisto(h1_jetFracE_OHCAL);
+    // m_manager->registerHisto(h1_jetFracE_CEMC);
+    // m_manager->registerHisto(h2_jetFracE_vs_caloLayer);
 
 
     if(Verbosity() > 0)
@@ -388,22 +388,32 @@ int ConstituentsinJets::End(PHCompositeNode  */*topNode*/)
   if(Verbosity() > 0)
   {
     std::cout << "ConstituentsinJets::EndRun - End run " << std::endl;
-    std::cout << "ConstituentsinJets::EndRun - Writing to " << m_outputFileName << std::endl;
+    // std::cout << "ConstituentsinJets::EndRun - Writing to " << m_outputFileName << std::endl;
   }
 
-  PHTFileServer::get().cd(m_outputFileName);
+  // PHTFileServer::get().cd(m_outputFileName);
+
+  m_manager->registerHisto(h1_ConstituentsinJets_total);
+  m_manager->registerHisto(h1_ConstituentsinJets_IHCAL);
+  m_manager->registerHisto(h1_ConstituentsinJets_OHCAL);
+  m_manager->registerHisto(h1_ConstituentsinJets_CEMC);
+  m_manager->registerHisto(h2_ConstituentsinJets_vs_caloLayer);
+  m_manager->registerHisto(h1_jetFracE_IHCAL);
+  m_manager->registerHisto(h1_jetFracE_OHCAL);
+  m_manager->registerHisto(h1_jetFracE_CEMC);
+  m_manager->registerHisto(h2_jetFracE_vs_caloLayer);
   
   // write histograms to root file
-  h1_ConstituentsinJets_total->Write();
-  h1_ConstituentsinJets_IHCAL->Write();
-  h1_ConstituentsinJets_OHCAL->Write();
-  h1_ConstituentsinJets_CEMC->Write();
-  h2_ConstituentsinJets_vs_caloLayer->Write();
+  // h1_ConstituentsinJets_total->Write();
+  // h1_ConstituentsinJets_IHCAL->Write();
+  // h1_ConstituentsinJets_OHCAL->Write();
+  // h1_ConstituentsinJets_CEMC->Write();
+  // h2_ConstituentsinJets_vs_caloLayer->Write();
 
-  h1_jetFracE_IHCAL->Write();
-  h1_jetFracE_OHCAL->Write();
-  h1_jetFracE_CEMC->Write();
-  h2_jetFracE_vs_caloLayer->Write();  
+  // h1_jetFracE_IHCAL->Write();
+  // h1_jetFracE_OHCAL->Write();
+  // h1_jetFracE_CEMC->Write();
+  // h2_jetFracE_vs_caloLayer->Write();  
  
   if(Verbosity() > 0)
   {
