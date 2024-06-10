@@ -216,9 +216,9 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
         m_TpcRawHitMap[gtm_bco].push_back(newhit);
         m_BclkStack.insert(gtm_bco);
-                //	}
+        //	}
       }
-      
+
       delete packet;
     }
   }
@@ -309,7 +309,7 @@ void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
     m_BclkStack.erase(iter);
     m_BeamClockFEE.erase(iter);
     m_TpcRawHitMap.erase(iter);
-    for(auto& [packetid, bclkset] : m_BclkStackPacketMap)
+    for (auto &[packetid, bclkset] : m_BclkStackPacketMap)
     {
       bclkset.erase(iter);
     }

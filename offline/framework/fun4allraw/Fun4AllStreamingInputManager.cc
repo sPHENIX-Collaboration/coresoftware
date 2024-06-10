@@ -28,13 +28,13 @@
 
 #include <frog/FROG.h>
 
-#include <boost/format.hpp>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <boost/format.hpp>
 
-#include <TSystem.h>
 #include <TH1.h>
+#include <TSystem.h>
 
 #include <algorithm>  // for max
 #include <cassert>
@@ -576,8 +576,7 @@ int Fun4AllStreamingInputManager::FillGl1()
     MySyncManager()->CurrentEvent(gl1rawhit->getEvtSequence());
     m_RefBCO = gl1hititer->get_bco();
     m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)
-//    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
-
+                                          //    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
   }
   for (auto iter : m_Gl1InputVector)
   {
@@ -608,7 +607,7 @@ int Fun4AllStreamingInputManager::FillIntt()
   if (m_RefBCO == 0)
   {
     m_RefBCO = m_InttRawHitMap.begin()->first;
-//    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
+    //    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
   }
   select_crossings += m_RefBCO;
   if (Verbosity() > 2)
@@ -702,7 +701,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
   // m_MvtxRawHitMap.empty() does not need to be checked here, FillMvtxPool returns non zero
   // if this map is empty which is handled above
-  //All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
+  // All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
   while (m_MvtxRawHitMap.begin()->first < ref_bco_minus_range)
   {
     if (Verbosity() > 2)
@@ -810,9 +809,8 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   // fill all BCO statistics
   for (const auto &iter : m_MicromegasInputVector)
   {
-    static_cast<SingleMicromegasPoolInput*>(iter)->FillBcoQA(m_RefBCO);
+    static_cast<SingleMicromegasPoolInput *>(iter)->FillBcoQA(m_RefBCO);
   }
-
 
   while ((m_MicromegasRawHitMap.begin()->first) <= select_crossings - m_micromegas_negative_bco)
   {
@@ -851,10 +849,10 @@ int Fun4AllStreamingInputManager::FillTpc()
   TH1 *h_gl1tagged[24][2];
   for (int i = 0; i < 24; i++)
   {
-    for(int j=0; j<2; j++)
+    for (int j = 0; j < 2; j++)
     {
-    h_gl1tagged[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str()));
-  }
+      h_gl1tagged[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str()));
+    }
   }
 
   TpcRawHitContainer *tpccont = findNode::getClass<TpcRawHitContainer>(m_topNode, "TPCRAWHIT");
@@ -874,7 +872,7 @@ int Fun4AllStreamingInputManager::FillTpc()
   }
   // m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
   // if this map is empty which is handled above
- 
+
   while (m_TpcRawHitMap.begin()->first < m_RefBCO - m_tpc_negative_bco)
   {
     for (auto iter : m_TpcInputVector)
@@ -904,10 +902,9 @@ int Fun4AllStreamingInputManager::FillTpc()
         if (diff < 5)
         {
           h_gl1tagged[p][packetnum]->Fill(refbcobitshift);
-        
+        }
       }
-    }
-    packetnum++;
+      packetnum++;
     }
   }
 
@@ -1146,17 +1143,16 @@ void Fun4AllStreamingInputManager::createQAHistos()
     auto h_nwaveform_bco_hist = new TH1I("h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Waveforms; A.U.", 4100, 0, 4100);
     hm->registerHisto(h_nwaveform_bco_hist);
   }
-    for(int i=0; i<24; i++)
-    {
-      for (int j = 0; j < 2; j++)
-      {
-  
+  for (int i = 0; i < 24; i++)
   {
-    auto h = new TH1I((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str().c_str(), "TPC trigger tagged BCO", 1000, 0, 1000);
-    h->GetXaxis()->SetTitle("GL1 BCO");
-    h->SetTitle((boost::format("Packet %i and packet %i") % i %j).str().c_str());
-    hm->registerHisto(h);
-  }
+    for (int j = 0; j < 2; j++)
+    {
+      {
+        auto h = new TH1I((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str().c_str(), "TPC trigger tagged BCO", 1000, 0, 1000);
+        h->GetXaxis()->SetTitle("GL1 BCO");
+        h->SetTitle((boost::format("Packet %i and packet %i") % i % j).str().c_str());
+        hm->registerHisto(h);
       }
+    }
   }
 }
