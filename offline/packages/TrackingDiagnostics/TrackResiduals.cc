@@ -412,11 +412,11 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       }
       if (m_zeroField)
       {
-        lineFitClusters(keys, geometry, clustermap);
+        lineFitClusters(keys, geometry, clustermap, m_crossing);
       }
       else
       {
-        circleFitClusters(keys, geometry, clustermap);
+        circleFitClusters(keys, geometry, clustermap, m_crossing);
       }
       for (const auto& ckey : get_cluster_keys(track))
       {
@@ -714,11 +714,25 @@ float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey c
 }
 void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
                                        ActsGeometry* geometry,
-                                       TrkrClusterContainer* clusters)
+                                       TrkrClusterContainer* clusters,
+                                       const short int& crossing)
 {
   std::vector<Acts::Vector3> clusPos, global_vec;
-  TrackFitUtils::getTrackletClusters(geometry, clusters,
-                                     clusPos, keys);
+  for(auto& key : keys)
+  {
+    auto cluster = clusters->findCluster(key);
+    Acts::Vector3 pos;
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+    {
+      pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, crossing,
+                                                                            m_dccStatic, m_dccAverage, m_dccFluctuation);
+    }
+    else
+    {
+      pos = geometry->getGlobalPosition(key, cluster);
+    }
+    clusPos.push_back(pos);
+  }
 
   for (auto& pos : clusPos)
   {
@@ -754,11 +768,25 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
 
 void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
                                      ActsGeometry* geometry,
-                                     TrkrClusterContainer* clusters)
+                                     TrkrClusterContainer* clusters,
+                                     const short int& crossing)
 {
   std::vector<Acts::Vector3> clusPos;
-  TrackFitUtils::getTrackletClusters(geometry, clusters,
-                                     clusPos, keys);
+  for (auto& key : keys)
+  {
+    auto cluster = clusters->findCluster(key);
+    Acts::Vector3 pos;
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+    {
+      pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, crossing,
+                                                                           m_dccStatic, m_dccAverage, m_dccFluctuation);
+    }
+    else
+    {
+      pos = geometry->getGlobalPosition(key, cluster);
+    }
+    clusPos.push_back(pos);
+  }
   TrackFitUtils::position_vector_t xypoints, rzpoints, yzpoints;
   for (auto& pos : clusPos)
   {

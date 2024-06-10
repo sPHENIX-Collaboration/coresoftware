@@ -1,8 +1,8 @@
 #ifndef INTT_FEE_MAPv1_H
 #define INTT_FEE_MAPv1_H
 
-#include "InttMap.h"
 #include "InttFeeMap.h"
+#include "InttMap.h"
 
 #include <phool/PHObject.h>
 
