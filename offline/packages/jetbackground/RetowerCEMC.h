@@ -36,15 +36,31 @@ class RetowerCEMC : public SubsysReco
   {
     m_use_towerinfo = use_towerinfo;
   }
+  void set_frac_cut(float frac_cut)
+  {
+    _FRAC_CUT = frac_cut;
+  }
+  void set_towerNodePrefix(const std::string &prefix)
+  {
+    m_towerNodePrefix = prefix;
+    return;
+  }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
   int _WEIGHTED_ENERGY_DISTRIBUTION{1};
   int _NETA{-1};
   int _NPHI{-1};
+  float _FRAC_CUT{0.5};
   bool m_use_towerinfo{false};
   std::vector<std::vector<float> > _EMCAL_RETOWER_E;
   std::vector<std::vector<int> > _EMCAL_RETOWER_T;
+  std::vector<std::vector<float> > _EMCAL_RETOWER_MASKED_A;
+  std::vector<std::vector<float> > _EMCAL_RETOWER_TOTAL_A;
+  std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
+  std::string EMTowerName;
+  std::string IHTowerName;
+  std::string EMRetowerName;
 };
 
 #endif

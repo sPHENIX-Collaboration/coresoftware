@@ -43,6 +43,7 @@ class TpcClusterizer : public SubsysReco
   void set_do_wedge_emulation(bool do_wedge) { do_wedge_emulation = do_wedge; }
   void set_do_sequential(bool do_seq) { do_sequential = do_seq; }
   void set_do_split(bool split) { do_split = split; }
+  void set_fixed_window(int fixed) { do_fixed_window = fixed; }
   void set_pedestal(float val) { pedestal = val; }
   void set_seed_threshold(float val) { seed_threshold = val; }
   void set_edge_threshold(float val) { edge_threshold = val; }
@@ -65,9 +66,10 @@ class TpcClusterizer : public SubsysReco
     set_min_err_squared(0);
     set_min_clus_size(0);
     set_min_adc_sum(5);
-    set_remove_singles(true);
-    set_max_cluster_half_size_phi(5);
-    set_max_cluster_half_size_z(8);
+    set_remove_singles(false);
+    set_max_cluster_half_size_phi(10);
+    set_max_cluster_half_size_z(20);
+    set_fixed_window(3);
   };
   ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
 
@@ -88,6 +90,7 @@ class TpcClusterizer : public SubsysReco
   bool do_read_raw = false;
   bool do_singles = false;
   bool do_split = true;
+  int do_fixed_window = 0;
   double pedestal = 74.4;
   double seed_threshold = 5;
   double edge_threshold = 0;

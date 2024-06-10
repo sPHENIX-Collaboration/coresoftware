@@ -1,8 +1,8 @@
 #ifndef INTT_MAP_H
 #define INTT_MAP_H
 
-#include <iostream>
 #include <phool/PHObject.h>
+#include <iostream>
 
 class InttMap : public PHObject
 {
@@ -18,8 +18,8 @@ class InttMap : public PHObject
     field_t chp = Wildcard;
     field_t chn = Wildcard;
 
-	Online_s& operator++();
-	Online_s& operator--();
+    Online_s& operator++();
+    Online_s& operator--();
   };
   static bool IsValid(struct Online_s const&);
   static bool IsValidOrWildcard(struct Online_s const&);
@@ -36,8 +36,8 @@ class InttMap : public PHObject
     field_t chp = Wildcard;
     field_t chn = Wildcard;
 
-	RawData_s& operator++();
-	RawData_s& operator--();
+    RawData_s& operator++();
+    RawData_s& operator--();
   };
   static bool IsValid(struct RawData_s const&);
   static bool IsValidOrWildcard(struct RawData_s const&);
@@ -55,8 +55,8 @@ class InttMap : public PHObject
     field_t strip_z = Wildcard;
     field_t strip_phi = Wildcard;
 
-	Offline_s& operator++();
-	Offline_s& operator--();
+    Offline_s& operator++();
+    Offline_s& operator--();
   };
   static bool IsValid(struct Offline_s const&);
   static bool IsValidOrWildcard(struct Offline_s const&);

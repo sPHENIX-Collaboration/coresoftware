@@ -33,9 +33,10 @@
 #ifndef EVT_EXT_DECAYER_PHYSICS_H
 #define EVT_EXT_DECAYER_PHYSICS_H
 
+#include "G4EvtGenDecayer.hh"
+
 #include <Geant4/G4String.hh>
 #include <Geant4/G4VPhysicsConstructor.hh>
-#include "G4EvtGenDecayer.hh"
 
 /// The builder for external decayer.
 ///
@@ -48,7 +49,7 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
 {
  public:
   EvtGenExtDecayerPhysics(const G4String& name = "ExtDecayer");
-  virtual ~EvtGenExtDecayerPhysics();
+  ~EvtGenExtDecayerPhysics() override = default;
   void CustomizeEvtGenDecay(std::string& InputDecayFile)
   {
 	  DecayFile = InputDecayFile;
@@ -57,8 +58,8 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
  protected:
   // methods
   // construct particle and physics
-  virtual void ConstructParticle();
-  virtual void ConstructProcess();
+  void ConstructParticle() override {return;}
+  void ConstructProcess() override;
 
  private:
   /// Not implemented

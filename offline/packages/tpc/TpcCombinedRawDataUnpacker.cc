@@ -159,6 +159,15 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     std::cout << "TpcCombinedRawDataUnpacker:: startevt = " << startevt << std::endl;
     std::cout << "TpcCombinedRawDataUnpacker:: endevt = " << endevt << std::endl;
   }
+
+  // check run number if presamples need to be shifted, which went from 80 -> 120
+  // at 41624
+  Fun4AllServer* se = Fun4AllServer::instance();
+  if (se->RunNumber() < 41624)
+  {
+    m_presampleShift = 0;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -268,7 +277,6 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     uint16_t sampadd = tpchit->get_sampaaddress();
     uint16_t sampch = tpchit->get_sampachannel();
     uint16_t sam = tpchit->get_samples();
-
     varname = "phi";  // + std::to_string(key);
     double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
@@ -303,7 +311,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       for (uint16_t s = 0; s < sam; s++)
       {
         uint16_t adc = tpchit->get_adc(s);
-        int t = s;
+        int t = s - m_presampleShift;
 
         hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
         // find existing hit, or create new one
@@ -384,8 +392,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       for (uint16_t s = 0; s < sam; s++)
       {
         uint16_t adc = tpchit->get_adc(s);
-        int t = s;
-
+        int t = s-m_presampleShift;
+        if(t<0)
+        {
+          continue;
+        }
         if ((float(adc) - hpedestal) > (hpedwidth * m_ped_sig_cut))
         {
           hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);

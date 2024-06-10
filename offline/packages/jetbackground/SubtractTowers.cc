@@ -61,15 +61,18 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 
   if (m_use_towerinfo)
   {
-    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-    towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
-    towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+    EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER";
+    IHTowerName = m_towerNodePrefix + "_HCALIN";
+    OHTowerName = m_towerNodePrefix + "_HCALOUT";
+    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
+    towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
+    towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
 
     if (Verbosity() > 0)
     {
-      std::cout << "SubtractTowers::process_event: " << towerinfosEM3->size() << " TOWER_CALIB_CEMC_RETOWER towers" << std::endl;
-      std::cout << "SubtractTowers::process_event: " << towerinfosIH3->size() << " TOWER_CALIB_HCALIN towers" << std::endl;
-      std::cout << "SubtractTowers::process_event: " << towerinfosOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
+      std::cout << "SubtractTowers::process_event: " << towerinfosEM3->size() << EMTowerName << " towers" << std::endl;
+      std::cout << "SubtractTowers::process_event: " << towerinfosIH3->size() << IHTowerName << " towers" << std::endl;
+      std::cout << "SubtractTowers::process_event: " << towerinfosOH3->size() << OHTowerName << " towers" << std::endl;
     }
   }
   else
@@ -98,15 +101,18 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *ohcal_towerinfos = nullptr;
   if (m_use_towerinfo)
   {
-    emcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
-    ihcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
-    ohcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
+    EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER_SUB1";
+    IHTowerName = m_towerNodePrefix + "_HCALIN_SUB1";
+    OHTowerName = m_towerNodePrefix + "_HCALOUT_SUB1";
+    emcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
+    ihcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
+    ohcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
   }
   if (Verbosity() > 0)
   {
-    std::cout << "SubtractTowers::process_event: starting with " << emcal_towerinfos->size() << " TOWER_CALIB_CEMC_RETOWER_SUB1 towers" << std::endl;
-    std::cout << "SubtractTowers::process_event: starting with " << ihcal_towerinfos->size() << " TOWER_CALIB_HCALIN_SUB1 towers" << std::endl;
-    std::cout << "SubtractTowers::process_event: starting with " << ohcal_towerinfos->size() << " TOWER_CALIB_HCALOUT_SUB1 towers" << std::endl;
+    std::cout << "SubtractTowers::process_event: starting with " << emcal_towerinfos->size() << EMTowerName<<" towers" << std::endl;
+    std::cout << "SubtractTowers::process_event: starting with " << ihcal_towerinfos->size() << IHTowerName<<" towers" << std::endl;
+    std::cout << "SubtractTowers::process_event: starting with " << ohcal_towerinfos->size() << OHTowerName<<" towers" << std::endl;
   }
 
   else
@@ -156,8 +162,8 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
         UE = UE * (1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2)));
       }
       float new_energy = raw_energy - UE;
-      // if a tower has time = -10 or -11 it is masked, leave it at zero
-      if (tower->get_time() == -10 || tower->get_time() == -11)
+      // if a tower is masked, leave it at zero
+      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
       {
         new_energy = 0;
       }
@@ -245,8 +251,8 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
         UE = UE * (1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2)));
       }
       float new_energy = raw_energy - UE;
-      // if a tower has time = -10 or -11 it is masked, leave it at zero
-      if (tower->get_time() == -10 || tower->get_time() == -11)
+      // if a tower is masked, leave it at zero
+      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
       {
         new_energy = 0;
       }
@@ -330,8 +336,8 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
         UE = UE * (1 + 2 * background_v2 * std::cos(2 * (tower_phi - background_Psi2)));
       }
       float new_energy = raw_energy - UE;
-      // if a tower has time = -10 or -11 it is masked, leave it at zero
-      if (tower->get_time() == -10 || tower->get_time() == -11)
+      // if a tower is masked, leave it at zero
+      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
       {
         new_energy = 0;
       }
@@ -405,9 +411,9 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
     }
     else
     {
-      std::cout << "SubtractTowers::process_event: ending with " << emcal_towerinfos->size() << " TOWER_CALIB_CEMC_RETOWER_SUB1 towers" << std::endl;
-      std::cout << "SubtractTowers::process_event: ending with " << ihcal_towerinfos->size() << " TOWER_CALIB_HCALIN_SUB1 towers" << std::endl;
-      std::cout << "SubtractTowers::process_event: ending with " << ohcal_towerinfos->size() << " TOWER_CALIB_HCALOUT_SUB1 towers" << std::endl;
+      std::cout << "SubtractTowers::process_event: ending with " << emcal_towerinfos->size() << m_towerNodePrefix << "_CEMC_RETOWER_SUB1 towers" << std::endl;
+      std::cout << "SubtractTowers::process_event: ending with " << ihcal_towerinfos->size() << m_towerNodePrefix << "_HCALIN_SUB1 towers" << std::endl;
+      std::cout << "SubtractTowers::process_event: ending with " << ohcal_towerinfos->size() << m_towerNodePrefix << "_HCALOUT_SUB1 towers" << std::endl;
     }
   }
 
@@ -431,10 +437,11 @@ int SubtractTowers::CreateNode(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  TowerInfoContainer *hcal_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+  IHTowerName = m_towerNodePrefix + "_HCALIN";
+  TowerInfoContainer *hcal_towers = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
   if (m_use_towerinfo && !hcal_towers)
   {
-    std::cout << PHWHERE << "Cannot find TOWERINFO_CALIB_HCALIN for creating new tower containers. Exiting" << std::endl;
+    std::cout << PHWHERE << "Cannot find " << IHTowerName << " for creating new tower containers. Exiting" << std::endl;
     exit(1);
   }
 
@@ -447,21 +454,22 @@ int SubtractTowers::CreateNode(PHCompositeNode *topNode)
   }
   if (m_use_towerinfo)
   {
-    TowerInfoContainer *test_emcal_tower = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
+    EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER_SUB1";
+    TowerInfoContainer *test_emcal_tower = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
     if (!test_emcal_tower)
     {
       if (Verbosity() > 0)
       {
-        std::cout << "SubtractTowers::CreateNode : creating TOWERINFO_CALIB_CEMC_RETOWER_SUB1 node " << std::endl;
+        std::cout << "SubtractTowers::CreateNode : creating " << EMTowerName << " node " << std::endl;
       }
 
       TowerInfoContainer *emcal_towers = dynamic_cast<TowerInfoContainer *>(hcal_towers->CloneMe());
-      PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_towers, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1", "PHObject");
+      PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_towers, EMTowerName, "PHObject");
       emcalNode->addNode(emcalTowerNode);
     }
     else
     {
-      std::cout << "SubtractTowers::CreateNode : TOWER_CALIB_CEMC_RETOWER_SUB1 already exists! " << std::endl;
+      std::cout << "SubtractTowers::CreateNode : " << EMTowerName << " already exists! " << std::endl;
     }
   }
   else
@@ -492,21 +500,22 @@ int SubtractTowers::CreateNode(PHCompositeNode *topNode)
   }
   if (m_use_towerinfo)
   {
-    TowerInfoContainer *test_ihcal_tower = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
+    IHTowerName = m_towerNodePrefix + "_HCALIN_SUB1";
+    TowerInfoContainer *test_ihcal_tower = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
     if (!test_ihcal_tower)
     {
       if (Verbosity() > 0)
       {
-        std::cout << "SubtractTowers::CreateNode : creating TOWERINFO_CALIB_HCALIN_SUB1 node " << std::endl;
+        std::cout << "SubtractTowers::CreateNode : creating " << IHTowerName <<" node " << std::endl;
       }
 
       TowerInfoContainer *ihcal_towers = dynamic_cast<TowerInfoContainer *>(hcal_towers->CloneMe());
-      PHIODataNode<PHObject> *ihcalTowerNode = new PHIODataNode<PHObject>(ihcal_towers, "TOWERINFO_CALIB_HCALIN_SUB1", "PHObject");
+      PHIODataNode<PHObject> *ihcalTowerNode = new PHIODataNode<PHObject>(ihcal_towers, IHTowerName, "PHObject");
       ihcalNode->addNode(ihcalTowerNode);
     }
     else
     {
-      std::cout << "SubtractTowers::CreateNode : TOWER_CALIB_HCALIN_SUB1 already exists! " << std::endl;
+      std::cout << "SubtractTowers::CreateNode : " << IHTowerName << " already exists! " << std::endl;
     }
   }
   else
@@ -537,21 +546,22 @@ int SubtractTowers::CreateNode(PHCompositeNode *topNode)
   }
   if (m_use_towerinfo)
   {
-    TowerInfoContainer *test_ohcal_tower = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
+    OHTowerName = m_towerNodePrefix + "_HCALOUT_SUB1";
+    TowerInfoContainer *test_ohcal_tower = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
     if (!test_ohcal_tower)
     {
       if (Verbosity() > 0)
       {
-        std::cout << "SubtractTowers::CreateNode : creating TOWERINFO_CALIB_HCALOUT_SUB1 node " << std::endl;
+        std::cout << "SubtractTowers::CreateNode : creating " << OHTowerName << " node " << std::endl;
       }
 
       TowerInfoContainer *ohcal_towers = dynamic_cast<TowerInfoContainer *>(hcal_towers->CloneMe());
-      PHIODataNode<PHObject> *ohcalTowerNode = new PHIODataNode<PHObject>(ohcal_towers, "TOWERINFO_CALIB_HCALOUT_SUB1", "PHObject");
+      PHIODataNode<PHObject> *ohcalTowerNode = new PHIODataNode<PHObject>(ohcal_towers, OHTowerName, "PHObject");
       ohcalNode->addNode(ohcalTowerNode);
     }
     else
     {
-      std::cout << "SubtractTowers::CreateNode : TOWER_CALIB_HCALOUT_SUB1 already exists! " << std::endl;
+      std::cout << "SubtractTowers::CreateNode : " << OHTowerName << " already exists! " << std::endl;
     }
   }
   else

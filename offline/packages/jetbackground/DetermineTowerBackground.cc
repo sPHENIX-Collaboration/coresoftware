@@ -85,9 +85,27 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *towerinfosOH3 = nullptr;
   if (m_use_towerinfo)
   {
-    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-    towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
-    towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+    EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER";
+    IHTowerName = m_towerNodePrefix + "_HCALIN";
+    OHTowerName = m_towerNodePrefix + "_HCALOUT";
+    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
+    towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
+    towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
+    if(!towerinfosEM3)
+    {
+      std::cout << "DetermineTowerBackground::process_event: Cannot find node "<<EMTowerName<<std::endl;
+      exit(1);
+    }
+    if(!towerinfosIH3)
+    {
+      std::cout << "DetermineTowerBackground::process_event: Cannot find node "<<IHTowerName<<std::endl;
+      exit(1);
+    }
+    if(!towerinfosOH3)
+    {
+      std::cout << "DetermineTowerBackground::process_event: Cannot find node "<<OHTowerName<<std::endl;
+      exit(1);
+    }
   }
   else
   {
@@ -152,7 +170,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         int comp_ieta = -1;
         int comp_iphi = -1;
         float comp_ET = 0;
-        int comp_T = -99;
+        int comp_isBad = -99;
 
         RawTower *tower;
         TowerInfo *towerinfo;
@@ -169,7 +187,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
             const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
             tower_geom = geomIH->get_tower_geometry(key);
             comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-            comp_T = towerinfo->get_time();
+            comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
           }
           else if (comp.first == 7 || comp.first == 27)
           {
@@ -180,7 +198,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
             const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
             tower_geom = geomOH->get_tower_geometry(key);
             comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-            comp_T = towerinfo->get_time();
+            comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
           }
           else if (comp.first == 13 || comp.first == 28)
           {
@@ -191,7 +209,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
             const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
             tower_geom = geomIH->get_tower_geometry(key);
             comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-            comp_T = towerinfo->get_time();
+            comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
           }
         }
         else
@@ -224,7 +242,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
             comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
           }
         }
-        if (comp_T == -10 || comp_T == -11)
+        if (comp_isBad)
         {
           if (Verbosity() > 4)
           {
@@ -370,9 +388,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     _IHCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
     _OHCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
 
-    _EMCAL_T.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
-    _IHCAL_T.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
-    _OHCAL_T.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+    _EMCAL_ISBAD.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+    _IHCAL_ISBAD.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+    _OHCAL_ISBAD.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
 
     // for flow determination, build up a 1-D phi distribution of
     // energies from all layers summed together, populated only from eta
@@ -394,9 +412,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       _EMCAL_E[ieta][iphi] = 0;
       _IHCAL_E[ieta][iphi] = 0;
       _OHCAL_E[ieta][iphi] = 0;
-      _EMCAL_T[ieta][iphi] = 0;
-      _IHCAL_T[ieta][iphi] = 0;
-      _OHCAL_T[ieta][iphi] = 0;
+      _EMCAL_ISBAD[ieta][iphi] = 0;
+      _IHCAL_ISBAD[ieta][iphi] = 0;
+      _OHCAL_ISBAD[ieta][iphi] = 0;
     }
   }
 
@@ -420,10 +438,11 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       unsigned int key = towerinfosEM3->encode_key(channel);
       int this_etabin = towerinfosEM3->getTowerEtaBin(key);
       int this_phibin = towerinfosEM3->getTowerPhiBin(key);
-      float this_E = towerinfosEM3->get_tower_at_channel(channel)->get_energy();
-      int this_T = towerinfosEM3->get_tower_at_channel(channel)->get_time();
+      TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
+      float this_E = tower->get_energy();
+      int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
       _EMCAL_E[this_etabin][this_phibin] += this_E;
-      _EMCAL_T[this_etabin][this_phibin] = this_T;
+      _EMCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
     }
 
     // iterate over IHCal towerinfos
@@ -433,10 +452,11 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       unsigned int key = towerinfosIH3->encode_key(channel);
       int this_etabin = towerinfosIH3->getTowerEtaBin(key);
       int this_phibin = towerinfosIH3->getTowerPhiBin(key);
-      float this_E = towerinfosIH3->get_tower_at_channel(channel)->get_energy();
-      int this_T = towerinfosIH3->get_tower_at_channel(channel)->get_time();
+      TowerInfo *tower = towerinfosIH3->get_tower_at_channel(channel);
+      float this_E = tower->get_energy();
+      int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
       _IHCAL_E[this_etabin][this_phibin] += this_E;
-      _IHCAL_T[this_etabin][this_phibin] += this_T;
+      _IHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
     }
 
     // iterate over OHCal towerinfos
@@ -446,10 +466,11 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       unsigned int key = towerinfosOH3->encode_key(channel);
       int this_etabin = towerinfosOH3->getTowerEtaBin(key);
       int this_phibin = towerinfosOH3->getTowerPhiBin(key);
-      float this_E = towerinfosOH3->get_tower_at_channel(channel)->get_energy();
-      int this_T = towerinfosOH3->get_tower_at_channel(channel)->get_time();
+      TowerInfo *tower = towerinfosOH3->get_tower_at_channel(channel);
+      float this_E = tower->get_energy();
+      int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
       _OHCAL_E[this_etabin][this_phibin] += this_E;
-      _OHCAL_T[this_etabin][this_phibin] += this_T;
+      _OHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
     }
   }
   else
@@ -555,8 +576,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           bool isExcluded = false;
 
           // if the tower is masked, exclude it
-          int my_T = (layer == 0 ? _EMCAL_T[eta][phi] : (layer == 1 ? _IHCAL_T[eta][phi] : _OHCAL_T[eta][phi]));
-          if (my_T == -10 || my_T == -11)
+          int this_isBad = (layer == 0 ? _EMCAL_ISBAD[eta][phi] : (layer == 1 ? _IHCAL_ISBAD[eta][phi] : _OHCAL_ISBAD[eta][phi]));
+          if (this_isBad)
           {
             isExcluded = true;
           }
@@ -764,9 +785,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         bool isExcluded = false;
 
         float my_E = (layer == 0 ? _EMCAL_E[eta][phi] : (layer == 1 ? _IHCAL_E[eta][phi] : _OHCAL_E[eta][phi]));
-        int my_T = (layer == 0 ? _EMCAL_T[eta][phi] : (layer == 1 ? _IHCAL_T[eta][phi] : _OHCAL_T[eta][phi]));
+        int this_isBad = (layer == 0 ? _EMCAL_ISBAD[eta][phi] : (layer == 1 ? _IHCAL_ISBAD[eta][phi] : _OHCAL_ISBAD[eta][phi]));
         // if the tower is masked (energy identically zero), exclude it
-        if (my_T == -10 || my_T == -11)
+        if (this_isBad)
         {
           isExcluded = true;
           if (Verbosity() > 10)

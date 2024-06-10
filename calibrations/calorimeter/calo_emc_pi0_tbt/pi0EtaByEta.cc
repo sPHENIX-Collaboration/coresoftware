@@ -49,6 +49,9 @@ pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
   , outfilename(filename)
 {
   h_mass_eta_lt.fill(nullptr);
+	
+	for (auto& row : h_mass_tbt_lt){row.fill(nullptr);} // fill all ~24K towers as nullptr
+
   clusMix = new std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>();
 }
 
@@ -73,6 +76,15 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   {
     std::string histoname = "h_mass_eta_lt" + std::to_string(i);
     h_mass_eta_lt[i] = new TH1F(histoname.c_str(), "", 50, 0, 0.5);
+
+		if (runTowByTow)
+		{
+			for (int j = 0; j < 256; j++)
+			{
+				std::string histoname_tbt = "h_mass_tbt_lt_" + std::to_string(i) + "_" + std::to_string(j);
+				h_mass_tbt_lt[i][j] = new TH1F(histoname_tbt.c_str(), "", 50, 0, 0.5);
+			}
+		}
   }
 
   h_cemc_etaphi = new TH2F("h_cemc_etaphi", "", 96, 0, 96, 256, 0, 256);
@@ -189,6 +201,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   }
 
   std::string cluster_node_name = "CLUSTERINFO_CEMC2";
+	
   if (use_pdc)
   {
     cluster_node_name = "CLUSTERINFO_POS_COR_CEMC";
@@ -299,6 +312,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     RawCluster::TowerConstIterator toweriter;
     float lt_e = -1000;
     unsigned int lt_eta = -1;
+    unsigned int lt_phi = -1;
     for (toweriter = towerCR.first; toweriter != towerCR.second; ++toweriter)
     {
       int towereta = m_geometry->get_tower_geometry(toweriter->first)->get_bineta();
@@ -310,6 +324,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       {
         lt_e = energy;
         lt_eta = towereta;
+        lt_phi = towerphi;
       }
     }
 
@@ -377,11 +392,14 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
         h_InvMass->Fill(pi0.M());
       }
       h_pipT_Nclus_mass->Fill(pi0.Pt(), nClusCount, pi0.M());
-      if (lt_eta > 95)
+      if (lt_eta > 95) // this will ignore certain etabins (should we do same for phibins as well)
       {
         continue;
       }
       h_mass_eta_lt[lt_eta]->Fill(pi0.M());
+			
+			if (runTowByTow){h_mass_tbt_lt[lt_eta][lt_phi]->Fill(pi0.M());} // fill all towers
+
       h_InvMass_Nclus[nClusBin]->Fill(pi0.M());
     }
 
@@ -448,13 +466,14 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 }
 
 int pi0EtaByEta::End(PHCompositeNode* /*topNode*/)
-{
-  outfile->cd();
+{	
+	outfile->cd();
 
-  outfile->Write();
-  outfile->Close();
-  delete outfile;
-  hm->dumpHistos(outfilename, "UPDATE");
+	outfile->Write();
+	outfile->Close();
+	delete outfile;
+	hm->dumpHistos(outfilename, "UPDATE");
+
   return 0;
 }
 
@@ -618,6 +637,156 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   return;
 }
 
+
+// for pi0 tbt fit
+void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& fitOutFile, const std::string& cdbFile)
+{
+  TFile* fin = new TFile(infile.c_str());
+  std::cout << "getting hists" << std::endl;
+	
+  TH2F* h_peak_tbt = new TH2F("h_peak_tbt", "", 96, 0, 96, 256, 0 , 256);
+  TH2F* h_sigma_tbt = new TH2F("h_sigma_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2F* h_p3_tbt = new TH2F("h_p3_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2F* h_p4_tbt = new TH2F("h_p4_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2F* h_p5_tbt = new TH2F("h_p5_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2F* h_p6_tbt = new TH2F("h_p6_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2F* h_p0_tbt = new TH2F("h_p0_tbt", "", 96, 0, 96, 256, 0, 256);
+	
+  if (!fin)
+  {
+    std::cout << "pi0EtaByEta::fitEtaPhiTowers null fin" << std::endl;
+    exit(1);
+  }
+  TH2F* h_M_tbt[96][256];
+  for (int i = 0; i < 96; i++)
+  {
+		for (int j = 0; j < 256; j++)
+		{
+			std::string histoname = "h_mass_tbt_lt_" + std::to_string(i) + "_" + std::to_string(j);
+			h_M_tbt[i][j] = (TH2F*) fin->Get(histoname.c_str());
+			h_M_tbt[i][j]->Scale(1. / h_M_tbt[i][j]->Integral(), "width");
+		}
+  }
+	
+  TF1* fitFunOut[96][256];
+
+	
+  for (int i = 0; i < 96; i++)
+  {
+		for (int j = 0; j < 256; j++)
+		{
+			if (!h_M_tbt[i][j])
+			{
+				std::cout << "pi0EtaByEta::fitEtaPhiTowers null hist" << std::endl;
+			}
+			if (h_M_tbt[i][j]->GetEntries() == 0)
+			{
+				continue;
+			}
+
+			fitFunOut[i][j] = fitHistogram(h_M_tbt[i][j]);
+			std::string funcname = "f_pi0_tbt_" + std::to_string(i) + "_" + std::to_string(j);
+			fitFunOut[i][j]->SetName(funcname.c_str());
+			float mass_val_out = fitFunOut[i][j]->GetParameter(1);
+			float mass_err_out = fitFunOut[i][j]->GetParError(1);
+			h_peak_tbt->SetBinContent(i + 1, j + 1, mass_val_out);
+			
+			if (isnan(h_M_tbt[i][j]->GetEntries()))
+			{
+				h_peak_tbt->SetBinError(i + 1, j + 1, 0);
+				continue;
+			}
+		
+			h_peak_tbt->SetBinError(i + 1, j + 1, mass_err_out);
+
+			h_sigma_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(2));
+			h_sigma_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(2));
+			
+			h_p3_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(3));
+			h_p3_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(3));
+			
+			h_p4_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(4));
+			h_p4_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(4));
+			
+			h_p5_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(5));
+			h_p5_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(5));
+			
+			h_p6_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(6));
+			h_p6_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(6));
+			
+			h_p0_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(0));
+			h_p0_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(0));
+		}
+	}
+	
+
+  CDBTTree* cdbttree1 = new CDBTTree(cdbFile.c_str());
+  CDBTTree* cdbttree2 = new CDBTTree(cdbFile.c_str());
+	
+  std::string m_fieldname = "Femc_datadriven_qm1_correction";
+
+  float final_mass_target = target_pi0_mass;
+
+  for (int i = 0; i < 96; i++)
+  {
+    for (int j = 0; j < 256; j++)
+    {
+      if (use_h_target_mass)
+      {
+        final_mass_target = h_target_mass->GetBinContent(i+1, j+1);
+      }
+      float correction = final_mass_target / h_peak_tbt->GetBinContent(i+1, j+1);
+      if (h_peak_tbt->GetBinContent(i+1, j+1) == 0) 
+      {
+         correction = 0;
+      }
+      unsigned int key = TowerInfoDefs::encode_emcal(i, j);
+      float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
+      cdbttree2->SetFloatValue(key, m_fieldname, val1 * correction);
+    }
+  }
+
+  cdbttree2->Commit();
+  cdbttree2->WriteCDBTTree();
+
+  delete cdbttree2;
+  delete cdbttree1;
+
+  TFile* fit_out = new TFile(fitOutFile.c_str(), "recreate");
+  fit_out->cd();
+
+	for (auto& row : h_M_tbt) 
+	{
+    for (auto& _hist : row) 
+		{
+      _hist->Write();
+      delete _hist;
+    }
+	}
+ 
+	for (auto& row : h_M_tbt) 
+	{
+    for (auto& _hist : row) 
+		{
+      _hist->Write();
+      delete _hist;
+    }
+	}
+
+  h_p3_tbt->Write();
+  h_p4_tbt->Write();
+  h_p5_tbt->Write();
+  h_p6_tbt->Write();
+  h_p0_tbt->Write();
+  h_sigma_tbt->Write();
+  h_peak_tbt->Write();
+	
+  fin->Close();
+
+  std::cout << "finish fitting suc" << std::endl;
+
+  return;
+}
 
 bool pi0EtaByEta::checkOutput(const std::string& file)
 {

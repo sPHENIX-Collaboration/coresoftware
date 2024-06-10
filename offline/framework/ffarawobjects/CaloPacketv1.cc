@@ -1,5 +1,7 @@
 #include "CaloPacketv1.h"
 
+#include <Event/packetConstants.h>
+
 #include <TSystem.h>
 
 #include <iomanip>
@@ -249,11 +251,11 @@ void CaloPacketv1::dump(std::ostream &os) const
 {
   switch (getHitFormat())
   {
-  case 93:
-    dump93(os);
+  case IDDIGITIZER_31S:
+    dump_iddigitizer_31s(os);
     break;
-  case 172:
-    dump172(os);
+  case IDDIGITIZERV3_12S:
+    dump_iddigitizer_12s(os);
     break;
   default:
     std::cout << "unknown hit format: "
@@ -264,7 +266,7 @@ void CaloPacketv1::dump(std::ostream &os) const
 }
 
 
-void CaloPacketv1::dump93(std::ostream &os) const
+void CaloPacketv1::dump_iddigitizer_31s(std::ostream &os) const
 {
   int _nchannels = iValue(0, "CHANNELS");
   int _nsamples = iValue(0, "SAMPLES");
@@ -331,7 +333,7 @@ void CaloPacketv1::dump93(std::ostream &os) const
   }
 }
 //  Packet_iddigitizerv3
-void CaloPacketv1::dump172(std::ostream &os) const
+void CaloPacketv1::dump_iddigitizer_12s(std::ostream &os) const
 {
   int _nchannels = iValue(0, "CHANNELS");
   int _nsamples = iValue(0, "SAMPLES");

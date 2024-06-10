@@ -1,8 +1,9 @@
 #ifndef TRACKBASEHISTORIC_SVTXPHG4PARTICLEMAP_V1_H
 #define TRACKBASEHISTORIC_SVTXPHG4PARTICLEMAP_V1_H
 
-#include <iostream>
 #include "SvtxPHG4ParticleMap.h"
+
+#include <iostream>
 
 class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
 {
