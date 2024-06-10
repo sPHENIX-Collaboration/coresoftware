@@ -33,13 +33,14 @@ class TpcLoadDistortionCorrection : public SubsysReco
   {
     DistortionType_Static = 0,
     DistortionType_Average = 1,
-    DistortionType_Fluctuation = 2
+    DistortionType_Fluctuation = 2,
+    DistortionTtype_ModuleEdge = 3
   };
 
   //! correction filename
   void set_correction_filename(DistortionType i, const std::string& value)
   {
-    if (i < 0 || i >= 3) return;
+    if (i < 0 || i >= 4) return;
     m_correction_filename[i] = value;
     m_correction_in_use[i] = true;
   }
@@ -62,16 +63,16 @@ class TpcLoadDistortionCorrection : public SubsysReco
 
  private:
   //! correction filename
-  std::string m_correction_filename[3] = {"", "", ""};
+  std::string m_correction_filename[4] = {"", "", "",""};
 
   //! flag to indicate correction in use
-  bool m_correction_in_use[3] = {false, false, false};
+  bool m_correction_in_use[4] = {false, false, false,false};
 
   //! set the phi histogram to be interpreted as radians rather than mm
   bool m_phi_hist_in_radians = true;
 
   //! distortion object node name
-  std::string m_node_name[3] = {"TpcDistortionCorrectionContainerStatic", "TpcDistortionCorrectionContainerAverage", "TpcDistortionCorrectionContainerFluctuation"};
+  std::string m_node_name[4] = {"TpcDistortionCorrectionContainerStatic", "TpcDistortionCorrectionContainerAverage", "TpcDistortionCorrectionContainerFluctuation","TpcDistortionCorrectionContainerModuleEdge"};
 };
 
 #endif

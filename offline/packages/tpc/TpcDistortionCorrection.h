@@ -24,6 +24,13 @@ class TpcDistortionCorrection
     BeamInducedFluctuation = 2
   };
 
+  enum DistortionHandlingType
+  {
+    Volumetric = 0,
+    PlanarInterpolateToZero= 1,
+    PlanarFlat = 2
+  }
+
   enum CoordMask
   {
     COORD_PHI = 1 << 0,
