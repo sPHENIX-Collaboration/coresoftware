@@ -296,27 +296,32 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(std
   return fit_values;
 
 }
-
+//mabye I can find a way to make it thread safe
 std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> &vec_signal_samples)
 {
   // int N = (int) vec_signal_samples.size();
-
   auto max_elem_iter = std::max_element(vec_signal_samples.begin(), vec_signal_samples.end());
   int maxx = std::distance(vec_signal_samples.begin(), max_elem_iter);
   float max = *max_elem_iter;
 
-  float maxpos = 0;
-  max = 0;
-  for (float i = maxx - 1; i < maxx + 1; i += 0.01)
+  float maxpos = maxx;
+  float steplength = 0.5;
+  while (steplength > 0.001)
   {
-    float yval = psinc(i, vec_signal_samples);
-    if (yval > max)
+    for (float i = maxpos - steplength; i <= maxpos + steplength; i += steplength)
     {
-      max = yval;
-      maxpos = i;
+      float yval = max;
+      if(i != maxpos){ 
+        yval = psinc(i, vec_signal_samples);
+      }
+      if (yval > max)
+      {
+        max = yval;
+        maxpos = i;
+      }
     }
+    steplength /= 2;
   }
-
   float pedestal = 0;
 
   if (maxpos > 5)
@@ -331,6 +336,7 @@ std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> 
   {
     pedestal = (vec_signal_samples[0] + vec_signal_samples[1]) / 2;
   }
+  //need more consideration for what is the most effieicnt
   else
   {
     pedestal = max;
@@ -409,7 +415,14 @@ float CaloWaveformFitting::psinc(float time, std::vector<float> &vec_signal_samp
 
   if ((std::round(time) - time) < 1e-6)
   {
-    return stablepsinc(time, vec_signal_samples);
+    if (time < 0 || time >= N)
+    {
+      return stablepsinc(time, vec_signal_samples);
+    }
+    else
+    {
+      return vec_signal_samples.at(std::round(time));
+    }
   }
 
   float sum = 0;
