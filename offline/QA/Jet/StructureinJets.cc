@@ -188,8 +188,18 @@ int StructureinJets::EndRun(const int runnumber)
 //____________________________________________________________________________..
 int StructureinJets::End(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "StructureinJets::End - Output to " << m_outputFileName << std::endl;
-  PHTFileServer::get().cd(m_outputFileName);
+
+  // if flag is true, write to output file
+  // otherwise rely on histogram manager
+  if (writeToOutputFileFlag)
+  {
+    std::cout << "StructureinJets::End - Output to " << m_outputFileName << std::endl;
+    PHTFileServer::get().cd(m_outputFileName);
+  }
+  else
+  {
+    std::cout << "StructureinJets::End - Output to histogram manager" << std::endl;
+  }
 
   if (isAA())
   {
@@ -198,12 +208,19 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
     {
       m_h_track_vs_calo_pt->GetZaxis()->SetRange(i + 1, i + 1);
       h_proj = (TH2*) m_h_track_vs_calo_pt->Project3D("yx");
-      h_proj->Write((boost::format("h_track_vs_calo_%1.0f") % m_h_track_vs_calo_pt->GetZaxis()->GetBinLowEdge(i + 1)).str().c_str());
+      h_proj->SetName((boost::format("h_track_vs_calo_%1.0f") % m_h_track_vs_calo_pt->GetZaxis()->GetBinLowEdge(i + 1)).str().c_str());
+      if (writeToOutputFileFlag)
+      {
+        h_proj->Write();
+      }
     }
   }
   else
   {
-    m_h_track_pt->Write();  // if pp, do not project onto centrality bins
+    if (writeToOutputFileFlag)
+    {
+      m_h_track_pt->Write();  // if pp, do not project onto centrality bins
+    }
   }
   std::cout << "StructureinJets::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
