@@ -640,16 +640,33 @@ int Fun4AllStreamingInputManager::FillIntt()
   auto hm = QAHistManagerDef::getHistoManager();
   TH1 *h_refbco = dynamic_cast<TH1 *>(hm->getHisto("h_InttPoolQA_RefGL1BCO"));
   TH1 *h_gl1tagged[8];
+  TH1 *h_gl1taggedfee[8][14];
   for (int i = 0; i < 8; i++)
   {
   h_gl1tagged[i]= dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_ebdc%i") % i).str().c_str()));
-
+  for (int j = 0; j < 14; j++)
+  {
+    h_gl1taggedfee[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_ebdc%i_fee%i") % i % j).str().c_str()));
+  }
   }
     int refbcobitshift = m_RefBCO & 0x3F;
   h_refbco->Fill(refbcobitshift);
   for (size_t p = 0; p < m_InttInputVector.size(); p++)
   {
     auto bcl_stack = m_InttInputVector[p]->BclkStack();
+    auto feebclstack = m_InttInputVector[p]->BeamClockFEE();
+    for(auto& [bcl , feeidset] : feebclstack)
+    {
+      auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
+      if (diff > 1)  // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
+      {
+        continue;
+      }
+      for(auto& fee : feeidset)
+      {
+        h_gl1taggedfee[p][fee]->Fill(refbcobitshift);
+      }
+    }
     for (auto& gtmbco : bcl_stack)
     {
       auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
@@ -1177,11 +1194,17 @@ void Fun4AllStreamingInputManager::createQAHistos()
   for (int i = 0; i < 8; i++)
   {
     
-      auto h = new TH1I((boost::format("h_InttPoolQA_TagBCO_ebdc%i") % i).str().c_str(), "TPC trigger tagged BCO", 1000, 0, 1000);
+      auto h = new TH1I((boost::format("h_InttPoolQA_TagBCO_ebdc%i") % i).str().c_str(), "INTT trigger tagged BCO", 1000, 0, 1000);
       h->GetXaxis()->SetTitle("GL1 BCO");
       h->SetTitle((boost::format("EBDC %i") % i).str().c_str());
       hm->registerHisto(h);
-    
+      for (int j = 0; j<14; j++)
+      {
+        auto h2 = new TH1I((boost::format("h_InttPoolQA_TagBCO_ebdc%i_fee%i") % i % j).str().c_str(), "INTT trigger tagged BCO per FEE", 1000, 0, 1000);
+        h2->GetXaxis()->SetTitle("GL1 BCO");
+        h2->SetTitle((boost::format("EBDC %i FEE %i") % i % j).str().c_str());
+        hm->registerHisto(h2);
+      }
   }
     for (int i = 0; i < 24; i++)
     {
