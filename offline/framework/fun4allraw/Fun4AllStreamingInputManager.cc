@@ -808,14 +808,8 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   }
 
   // fill all BCO statistics
-  bool first = true;
   for (const auto &iter : m_MicromegasInputVector)
   {
-    if (first)
-    {
-      static_cast<SingleMicromegasPoolInput*>(iter)->createQAHistos();
-      first = false; 
-    }
     static_cast<SingleMicromegasPoolInput*>(iter)->FillBcoQA(m_RefBCO);
   }
 
@@ -859,7 +853,7 @@ int Fun4AllStreamingInputManager::FillTpc()
   {
     for(int j=0; j<2; j++)
     {
-    h_gl1tagged[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_TpcPoolQA_TagBCO_packet%i_subpacket%i") % i % j).str()));
+    h_gl1tagged[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str()));
   }
   }
 
@@ -898,22 +892,26 @@ int Fun4AllStreamingInputManager::FillTpc()
 
   int refbcobitshift = m_RefBCO & 0x3F;
   h_refbco->Fill(refbcobitshift);
+  std::cout << "ref bco " << m_RefBCO << std::endl;
   for (size_t p = 0; p < m_TpcInputVector.size(); p++)
   {
+    std::cout << "ebdc " << p << std::endl;
     auto bcl_stack = m_TpcInputVector[p]->BclkStackMap();
-    for (auto &[subpacket, bclset] : bcl_stack)
+    int packetnum = 0;
+    for (auto &[packetid, bclset] : bcl_stack)
     {
-      
-      for(auto& bcl : bclset)
+      std::cout << "packet id " << packetid << std::endl;
+      for (auto &bcl : bclset)
       {
-      auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-      if (diff < 5)
-      {
-        // just fill it once per packet, as we just care if any data was sent 
-        h_gl1tagged[p][subpacket]->Fill(refbcobitshift);
-        break;
+        std::cout << " bcl balues are " << bcl << std::endl;
+        auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
+        if (diff < 5)
+        {
+          h_gl1tagged[p][packetnum]->Fill(refbcobitshift);
+        
       }
     }
+    packetnum++;
     }
   }
 
@@ -1141,10 +1139,16 @@ void Fun4AllStreamingInputManager::createQAHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   {
-    auto h = new TH1I("h_TpcPoolQA_RefGL1BCO", "TPC ref BCO", 100, 0, 100);
+    auto h = new TH1I("h_TpcPoolQA_RefGL1BCO", "TPC ref BCO", 1000, 0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
     h->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h);
+  }
+  {
+    auto h_npacket_bco_hist = new TH1I("h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Packets; A.U.", 10, 0, 10);
+    hm->registerHisto(h_npacket_bco_hist);
+    auto h_nwaveform_bco_hist = new TH1I("h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Waveforms; A.U.", 4100, 0, 4100);
+    hm->registerHisto(h_nwaveform_bco_hist);
   }
     for(int i=0; i<24; i++)
     {
@@ -1152,7 +1156,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
       {
   
   {
-    auto h = new TH1I((boost::format("h_TpcPoolQA_TagBCO_packet%i_subpacket%i") % i % j).str().c_str(), "TPC trigger tagged BCO", 100, 0, 100);
+    auto h = new TH1I((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str().c_str(), "TPC trigger tagged BCO", 1000, 0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
     h->SetTitle((boost::format("Packet %i and packet %i") % i %j).str().c_str());
     hm->registerHisto(h);

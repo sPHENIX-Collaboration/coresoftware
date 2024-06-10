@@ -118,6 +118,11 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
           }
           // store
           previous_bco = gtm_bco;
+          if (m_BclkStackPacketMap.find(packet_id) == m_BclkStackPacketMap.end())
+          {
+            m_BclkStackPacketMap.insert(std::make_pair(packet_id, std::set<uint64_t>()));
+          }
+          m_BclkStackPacketMap[packet_id].insert(gtm_bco);
         }
       }
 
@@ -213,45 +218,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         m_BclkStack.insert(gtm_bco);
                 //	}
       }
-      if(i==0)
-      {
-        std::set<uint64_t> temp;
-        m_BclkStackPacketMap.insert(std::make_pair(i, temp));
-        std::cout << "packet 0 bclk stack" << std::endl;
-        for(auto [p, set] : m_BclkStackPacketMap)
-        {
-          for(auto bcl : set)
-          {
-            std::cout << "bcl " << bcl << std::endl;
-          }
-        }
-      }
-      else
-      {
-        std::set<uint64_t> temp;
-        for(auto iter : m_BclkStack)
-        {
-          if(m_BclkStackPacketMap[i-1].find(iter) != m_BclkStackPacketMap[i-1].end())
-          {
-            continue;
-          }
-          temp.insert(iter);
-        }
-        m_BclkStackPacketMap.insert(std::make_pair(i, temp));
-        std::cout << "packet 1 bclk stack" << std::endl;
-        for (auto [p, set] : m_BclkStackPacketMap)
-        {
-          for (auto bcl : set)
-          {
-            std::cout << "bcl " << bcl << std::endl;
-          }
-        }
-      }
-      std::cout << "bclk stack"<< std::endl;
-      for(auto bcl : m_BclkStack)
-      {
-        std::cout << "bcl " << bcl << std::endl;
-      }
+      
       delete packet;
     }
   }
@@ -337,7 +304,7 @@ void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // {
   //   iter.second.clear();
   // }
-
+  m_BclkStackPacketMap.clear();
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);

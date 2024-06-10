@@ -38,9 +38,6 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   //! save some statistics for BCO QA
   void FillBcoQA( uint64_t /*gtm_bco*/);
 
-  // write the initial histograms for QA manager
-  void createQAHistos();
-
  private:
   std::array<Packet*,10> plist{};
   unsigned int m_NumSpecialEvents{0};
