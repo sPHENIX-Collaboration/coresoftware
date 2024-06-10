@@ -104,59 +104,60 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 			  delete container->getPacket(i);
 			}
 		    }
-		}
-	      int EvtCounts[maxPackets*maxFem][2] = {0};
-	      int counter = 0;
-	      int bestEvt;
-	      int bestEvtCnt = 0;
-	      unsigned int npacket = container->get_npackets();
-	      for (unsigned int i = 0; i < npacket; i++)
-		{
-		  CaloPacket* packet = container->getPacket(i);
-		  if (packet)
-		    {
-		      int nrModules = packet->iValue(0, "NRMODULES");
-		      for (int j = 0; j < nrModules; j++)
-			{
-			  int k;
-			  for (k = 0; k < counter; k++)
-			    {
-			      if (EvtCounts[k][0] == packet->iValue(j, "FEMEVTNR"))
-				{
-				  EvtCounts[k][1]++;
-				  break;
-				}
-			    }
-			  if (k >= counter)
-			    {
-			      EvtCounts[counter][0] = packet->iValue(j, "FEMEVTNR");
-			      EvtCounts[counter][1]++;
-			      counter++;
-			    }
-			}
-		    }
-		}
-	      if (counter > 1)
-		{
-		  for (int i = 0; i < counter; i++)
-		    {
-		      if (bestEvtCnt < EvtCounts[i][1])
-			{
-			  bestEvtCnt = EvtCounts[i][1];
-			  bestEvt = EvtCounts[i][0];
-			}
-		    }
-		  for (unsigned int i = 0; i < npacket; ++i)
+		  const int maxDifCts = maxPackets*maxFem;
+		  int EvtCounts[maxDifCts][2] = {0};
+		  int counter = 0;
+		  int bestEvt;
+		  int bestEvtCnt = 0;
+		  unsigned int npacket = container->get_npackets();
+		  for (unsigned int i = 0; i < npacket; i++)
 		    {
 		      CaloPacket* packet = container->getPacket(i);
-		      if(packet)
+		      if (packet)
 			{
-			  for (int j = 0; j< packet->iValue(0, "NRMODULES"); j++)
+			  int nrModules = packet->iValue(0, "NRMODULES");
+			  for (int j = 0; j < nrModules; j++)
 			    {
-			      if (packet->iValue(j, "FEMEVTNR") != bestEvt)
+			      int k;
+			      for (k = 0; k < counter; k++)
 				{
-				  delete packet;
-				  break;
+				  if (EvtCounts[k][0] == packet->iValue(j, "FEMEVTNR"))
+				    {
+				      EvtCounts[k][1]++;
+				      break;
+				    }
+				}
+			      if (k >= counter)
+				{
+				  EvtCounts[counter][0] = packet->iValue(j, "FEMEVTNR");
+				  EvtCounts[counter][1]++;
+				  counter++;
+				}
+			    }
+			}
+		    }
+		  if (counter > 1)
+		    {
+		      for (int i = 0; i < counter; i++)
+			{
+			  if (bestEvtCnt < EvtCounts[i][1])
+			    {
+			      bestEvtCnt = EvtCounts[i][1];
+			      bestEvt = EvtCounts[i][0];
+			    }
+			}
+		      for (unsigned int i = 0; i < npacket; ++i)
+			{
+			  CaloPacket* packet = container->getPacket(i);
+			  if(packet)
+			    {
+			      for (int j = 0; j< packet->iValue(0, "NRMODULES"); j++)
+				{
+				  if (packet->iValue(j, "FEMEVTNR") != bestEvt)
+				    {
+				      delete packet;
+				      break;
+				    }
 				}
 			    }
 			}
