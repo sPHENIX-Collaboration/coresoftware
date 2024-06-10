@@ -41,9 +41,11 @@ ROOTDICTS = \
   MicromegasRawHitContainerv1_Dict.cc \
   MicromegasRawHitv1_Dict.cc \
   MvtxRawHit_Dict.cc \
+  MvtxRawHitv1_Dict.cc \
   MvtxRawHitContainer_Dict.cc \
   MvtxRawHitContainerv1_Dict.cc \
-  MvtxRawHitv1_Dict.cc \
+  MvtxFeeIdInfo_Dict.cc \
+  MvtxFeeIdInfov1_Dict.cc \
   MvtxRawEvtHeader_Dict.cc \
   MvtxRawEvtHeaderv1_Dict.cc \
   MvtxRawEvtHeaderv2_Dict.cc \
@@ -84,6 +86,8 @@ nobase_dist_pcm_DATA = \
   MvtxRawHitv1_Dict_rdict.pcm \
   MvtxRawHitContainer_Dict_rdict.pcm \
   MvtxRawHitContainerv1_Dict_rdict.pcm \
+  MvtxFeeIdInfo_Dict_rdict.pcm \
+  MvtxFeeIdInfov1_Dict_rdict.pcm \
   MvtxRawEvtHeader_Dict_rdict.pcm \
   MvtxRawEvtHeaderv1_Dict_rdict.pcm \
   MvtxRawEvtHeaderv2_Dict_rdict.pcm \
@@ -123,6 +127,8 @@ pkginclude_HEADERS = \
   MvtxRawHitv1.h \
   MvtxRawHitContainer.h \
   MvtxRawHitContainerv1.h \
+  MvtxFeeIdInfo.h \
+  MvtxFeeIdInfov1.h \
   MvtxRawEvtHeader.h \
   MvtxRawEvtHeaderv1.h \
   MvtxRawEvtHeaderv2.h \
@@ -150,8 +156,9 @@ libffarawobjects_la_SOURCES = \
   LL1PacketContainerv1.cc \
   MicromegasRawHitContainerv1.cc \
   MicromegasRawHitv1.cc \
-  MvtxRawHitContainerv1.cc \
   MvtxRawHitv1.cc \
+  MvtxRawHitContainerv1.cc \
+  MvtxFeeIdInfov1.cc \
   MvtxRawEvtHeaderv1.cc \
   MvtxRawEvtHeaderv2.cc \
   OfflinePacket.cc \

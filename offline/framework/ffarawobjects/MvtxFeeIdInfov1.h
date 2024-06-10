@@ -5,12 +5,12 @@
 
 #include <limits>
 
-class MvtxFeeIdInfov1 : public MvtxRawHit
+class MvtxFeeIdInfov1 : public MvtxFeeIdInfo
 {
  public:
   MvtxFeeIdInfov1() {}
-  MvtxFeeIdInfov1(MvtxRawHit *mvtxhit);
-  ~MvtxFeeIdInfov1() override{};
+  MvtxFeeIdInfov1(MvtxFeeIdInfo* info);
+  ~MvtxFeeIdInfov1() override {};
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -19,7 +19,7 @@ class MvtxFeeIdInfov1 : public MvtxRawHit
 
   uint16_t get_feeId() const override { return m_feeId; }
   // cppcheck-suppress virtualCallInConstructor
-  void set_feeId(const uint16_t val) override { m_feeId = feeId; }
+  void set_feeId(const uint16_t val) override { m_feeId = val; }
 
   uint32_t get_detField() const override { return m_detField; }
   // cppcheck-suppress virtualCallInConstructor
