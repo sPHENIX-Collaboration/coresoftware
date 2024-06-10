@@ -99,7 +99,8 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     std::cout << "new ref event: " << m_RefEventNo << std::endl;
   }
-  ClockSyncCheck();
+  ClockDiffFill();
+  ClockDiffCheck();
   MoveGl1ToNodeTree();
   MoveMbdToNodeTree();
   MoveCemcToNodeTree();
@@ -767,7 +768,7 @@ int Fun4AllPrdfInputTriggerManager::FillMbd(const unsigned int nEvents)
   }
   if (m_MbdPacketMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "MBD event stack is empty, we are done" << std::endl;
     return -1;
   }
   return 0;
@@ -785,19 +786,24 @@ int Fun4AllPrdfInputTriggerManager::MoveMbdToNodeTree()
     return 0;
   }
   //  std::cout << "before filling m_MbdPacketMap size: " <<  m_MbdPacketMap.size() << std::endl;
-  for (auto mbdhititer : m_MbdPacketMap.begin()->second.MbdPacketVector)
+  mbd->setEvtSequence(m_RefEventNo);
+  for (auto mbdhititer : m_MbdPacketMap.begin()->second.MbdSinglePacketMap)
   {
-    if (Verbosity() > 1)
+    if (m_MbdPacketMap.begin()->first == m_RefEventNo)
     {
-      mbdhititer->identify();
+      if (Verbosity() > 1)
+      {
+	mbdhititer.second->identify();
+      }
+      mbd->AddPacket(mbdhititer.second);
     }
-    mbd->AddPacket(mbdhititer);
   }
   for (auto iter : m_MbdInputVector)
   {
     iter->CleanupUsedPackets(m_MbdPacketMap.begin()->first);
   }
-  m_MbdPacketMap.begin()->second.MbdPacketVector.clear();
+  m_MbdPacketMap.begin()->second.MbdSinglePacketMap.clear();
+  m_MbdPacketMap.begin()->second.BcoDiffMap.clear();
   m_MbdPacketMap.erase(m_MbdPacketMap.begin());
   // std::cout << "size  m_MbdPacketMap: " <<  m_MbdPacketMap.size()
   // 	    << std::endl;
@@ -811,7 +817,7 @@ void Fun4AllPrdfInputTriggerManager::AddMbdPacket(int eventno, CaloPacket *pkt)
     std::cout << "Adding mbd hit to eventno: "
               << eventno << std::endl;
   }
-  m_MbdPacketMap[eventno].MbdPacketVector.push_back(pkt);
+  m_MbdPacketMap[eventno].MbdSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
   return;
 }
 
@@ -1204,8 +1210,8 @@ void Fun4AllPrdfInputTriggerManager::AddSEpdPacket(int eventno, CaloPacket *pkt)
               << " for event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
-  auto &iter = m_SEpdPacketMap[eventno];
-  iter.SEpdSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
+//  auto &iter = m_SEpdPacketMap[eventno];
+  m_SEpdPacketMap[eventno].SEpdSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
   return;
 }
 
@@ -1238,8 +1244,9 @@ void Fun4AllPrdfInputTriggerManager::DetermineReferenceEventNumber()
   return;
 }
 
-void Fun4AllPrdfInputTriggerManager::ClockSyncCheck()
+void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 {
+//std::vector<uint64_t> BcoDiffRef;
   if (!m_Gl1PacketMap.empty())
   {
     for (auto gl1hititer = m_Gl1PacketMap.begin(); gl1hititer != m_Gl1PacketMap.end(); ++gl1hititer)
@@ -1267,6 +1274,7 @@ void Fun4AllPrdfInputTriggerManager::ClockSyncCheck()
 	    std::cout << "packet " << prev_packetid << ", prev_bco 0x: " << std::hex
 		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
 		      << diffbco << std::dec << std::endl;
+	    m_RefBcoDiffMap[nextIt->first] = diffbco;
 	  }
 	}
       }
@@ -1274,6 +1282,40 @@ void Fun4AllPrdfInputTriggerManager::ClockSyncCheck()
   }
   if (!m_MbdPacketMap.empty())
   {
+    for (auto mbdhititer = m_MbdPacketMap.begin(); mbdhititer != m_MbdPacketMap.end(); ++mbdhititer)
+    {
+      std::cout << "mbd event: " <<  mbdhititer->first << std::endl;
+      auto nextIt = std::next(mbdhititer);
+      if (nextIt !=  m_MbdPacketMap.end())
+      {
+	std::cout << "next mbd event: " <<  nextIt->first << std::endl;
+	if (! nextIt->second.BcoDiffMap.empty()) // this event was already handled, BcoDiffMap is filled
+	{
+	  continue;
+	}
+	std::set<uint64_t> bcodiffs;
+	for (auto &pktiter : mbdhititer->second.MbdSinglePacketMap)
+	{
+	  uint64_t prev_bco = pktiter.second->getBCO();
+	  int prev_packetid = pktiter.first;
+	  auto currpkt = nextIt->second.MbdSinglePacketMap.find(prev_packetid);//->find(prev_packetid);
+	  if (currpkt != nextIt->second.MbdSinglePacketMap.end())
+	  {
+	    uint64_t curr_bco = currpkt->second->getBCO();
+	    uint64_t diffbco = curr_bco - prev_bco;
+	    mbdhititer->second.BcoDiffMap[prev_packetid] = diffbco;
+	    std::cout << "packet " << prev_packetid << ", prev_bco 0x: " << std::hex
+		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
+		      << diffbco << std::dec << std::endl;
+	    bcodiffs.insert(diffbco);
+	  }
+	}
+	if (bcodiffs.size() > 1)
+	{
+	  std::cout << PHWHERE << " different bco diffs for mbd packets for event " << nextIt->first << std::endl;
+	}
+      }
+    }
     //   m_RefEventNo = m_MbdPacketMap.begin()->first;
   }
   if (!m_LL1PacketMap.empty())
@@ -1335,6 +1377,44 @@ void Fun4AllPrdfInputTriggerManager::ClockSyncCheck()
 	  std::cout << PHWHERE << " different bco diffs for sepd packets for event " << nextIt->first << std::endl;
 	}
       }
+    }
+  }
+  return;
+}
+
+void Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
+{
+  for (auto &bcoiter : m_RefBcoDiffMap)
+  {
+    uint64_t refbco = bcoiter.second;
+    auto sepditer = m_SEpdPacketMap.find(bcoiter.first);
+    if (sepditer != m_SEpdPacketMap.end())
+    {
+      for (auto &pktiter : sepditer->second.BcoDiffMap)
+       {
+       	uint64_t thisbco = pktiter.second;
+        if (thisbco != refbco)
+	{
+	  std::cout << "BCO mismatch, Event " <<  sepditer->first
+       	          << " Packet " << pktiter.first << ", ref bco diff: 0x" << std::hex << refbco << " pktbco diff: 0x" << thisbco
+       		  << std::dec <<  std::endl;
+	}
+       }
+    }
+
+    auto mbditer = m_MbdPacketMap.find(bcoiter.first);
+    if (mbditer != m_MbdPacketMap.end())
+    {
+      for (auto &pktiter : mbditer->second.BcoDiffMap)
+       {
+       	uint64_t thisbco = pktiter.second;
+        if (thisbco != refbco)
+	{
+	  std::cout << "BCO mismatch"
+       	          << "Packet " << pktiter.first << ", ref bco diff: 0x" << std::hex << refbco << " pktbco diff: 0x" << thisbco
+       		  << std::dec <<  std::endl;
+	}
+       }
     }
   }
   return;

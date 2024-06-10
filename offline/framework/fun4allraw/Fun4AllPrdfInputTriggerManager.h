@@ -77,7 +77,8 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void AddSEpdPacket(int eventno, CaloPacket *pkt);
   void InitialPoolDepth(unsigned int n) {m_InitialPoolDepth = n; m_PoolDepth = n;}
   void DetermineReferenceEventNumber();
-  void ClockSyncCheck();
+  void ClockDiffFill();
+  void ClockDiffCheck();
 
  private:
   struct SinglePrdfInputInfo
@@ -94,7 +95,8 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct MbdPacketInfo
   {
-    std::vector<CaloPacket *> MbdPacketVector;
+    std::map<int, CaloPacket *> MbdSinglePacketMap;
+    std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
 
@@ -163,6 +165,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;
   std::map<SinglePrdfInput *, SinglePrdfInputInfo> m_SinglePrdfInputInfo;
+  std::map<int, uint64_t> m_RefBcoDiffMap;
 };
 
 #endif /* FUN4ALL_FUN4ALLPRDFINPUTPOOLMANAGER_H */
