@@ -131,7 +131,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   bool m_mbd_registered_flag{false};
   bool m_cemc_registered_flag{false};
   bool m_hcal_registered_flag{false};
-//  bool m_ll1_registered_flag{false};
+  bool m_ll1_registered_flag{false};
   bool m_zdc_registered_flag{false};
   unsigned int m_PoolDepth = 100;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
@@ -143,9 +143,9 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::vector<SingleTriggerInput *> m_MbdInputVector;
   std::vector<SingleTriggerInput *> m_SEpdInputVector;
   std::vector<SingleTriggerInput *> m_ZdcInputVector;
-  SyncObject *m_SyncObject = nullptr;
-  PHCompositeNode *m_topNode = nullptr;
-  SinglePrdfInput *m_RefPrdfInput = nullptr;
+  SyncObject *m_SyncObject {nullptr};
+  PHCompositeNode *m_topNode {nullptr};
+  SinglePrdfInput *m_RefPrdfInput {nullptr};
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, MbdPacketInfo> m_MbdPacketMap;
   std::map<int, CemcPacketInfo> m_CemcPacketMap;

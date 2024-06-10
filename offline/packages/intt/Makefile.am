@@ -48,11 +48,17 @@ pkginclude_HEADERS = \
   InttMapping.h \
   InttSurveyMap.h \
   InttSurveyMapv1.h \
-  InttVertexFinder.h \
+  InttXYVertexFinder.h \
+  InttZVertexFinder.h \
   InttVertexMap.h \
   InttVertexMapv1.h \
   InttVertex.h \
   InttVertexv1.h
+
+noinst_HEADERS = \
+  INTTZvtx.h \
+  INTTXYvtx.h \
+  InttVertexUtil.h 
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
@@ -99,7 +105,11 @@ libintt_la_SOURCES = \
   InttMap.cc \
   InttSurveyMap.cc \
   InttSurveyMapv1.cc \
-  InttVertexFinder.cc
+  InttVertexUtil.cc \
+  InttXYVertexFinder.cc \
+  InttZVertexFinder.cc \
+  INTTXYvtx.cc \
+  INTTZvtx.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
@@ -129,7 +139,8 @@ libintt_io_la_LIBADD = \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lglobalvertex 
 
 endif
 

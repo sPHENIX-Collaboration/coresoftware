@@ -48,7 +48,7 @@ int InttFeeMap::LoadFromCDB(
 }
 
 void InttFeeMap::identify(
-  std::ostream& out) const
+    std::ostream& out) const
 {
   out << "InttFeeMap\n"
       << "\tBase Version\n"
@@ -56,93 +56,93 @@ void InttFeeMap::identify(
 }
 
 int InttFeeMap::Convert(
-  InttMap::Online_s& /*unused*/,
-  InttMap::Offline_s const& /*unused*/) const
+    InttMap::Online_s& /*unused*/,
+    InttMap::Offline_s const& /*unused*/) const
 {
   return 1;
 }
 
 int InttFeeMap::Convert(
-  InttMap::Offline_s& /*unused*/,
-  InttMap::Online_s const& /*unused*/) const
+    InttMap::Offline_s& /*unused*/,
+    InttMap::Online_s const& /*unused*/) const
 {
   return 1;
 }
 
 int InttFeeMap::Convert(
-  InttMap::RawData_s& /*unused*/,
-  InttMap::Online_s const& /*unused*/) const
+    InttMap::RawData_s& /*unused*/,
+    InttMap::Online_s const& /*unused*/) const
 {
   return 1;
 }
 
 int InttFeeMap::Convert(
-  InttMap::Online_s& /*unused*/,
-  InttMap::RawData_s const& /*unused*/) const
+    InttMap::Online_s& /*unused*/,
+    InttMap::RawData_s const& /*unused*/) const
 {
   return 1;
 }
 
 int InttFeeMap::Convert(
-  InttMap::RawData_s& /*unused*/,
-  InttMap::Offline_s const& /*unused*/) const
+    InttMap::RawData_s& /*unused*/,
+    InttMap::Offline_s const& /*unused*/) const
 {
   return 1;
 }
 
 int InttFeeMap::Convert(
-  InttMap::Offline_s& /*unused*/,
-  InttMap::RawData_s const& /*unused*/) const
+    InttMap::Offline_s& /*unused*/,
+    InttMap::RawData_s const& /*unused*/) const
 {
   return 1;
 }
 
 InttMap::Online_s InttFeeMap::ToOnline(
-  InttMap::Offline_s const& ofl) const
+    InttMap::Offline_s const& ofl) const
 {
-	InttMap::Online_s onl;
-	Convert(onl, ofl);
-	return onl;
+  InttMap::Online_s onl;
+  Convert(onl, ofl);
+  return onl;
 }
 
 InttMap::Online_s InttFeeMap::ToOnline(
-  InttMap::RawData_s const& raw) const
+    InttMap::RawData_s const& raw) const
 {
-	InttMap::Online_s onl;
-	Convert(onl, raw);
-	return onl;
+  InttMap::Online_s onl;
+  Convert(onl, raw);
+  return onl;
 }
 
 InttMap::RawData_s InttFeeMap::ToRawData(
-  InttMap::Online_s const& onl) const
+    InttMap::Online_s const& onl) const
 {
-	InttMap::RawData_s raw;
-	Convert(raw, onl);
-	return raw;
+  InttMap::RawData_s raw;
+  Convert(raw, onl);
+  return raw;
 }
 
 InttMap::RawData_s InttFeeMap::ToRawData(
-  InttMap::Offline_s const& ofl) const
+    InttMap::Offline_s const& ofl) const
 {
-	InttMap::RawData_s raw;
-	Convert(raw, ofl);
-	return raw;
+  InttMap::RawData_s raw;
+  Convert(raw, ofl);
+  return raw;
 }
 
 InttMap::Offline_s InttFeeMap::ToOffline(
-  InttMap::Online_s const& onl) const
+    InttMap::Online_s const& onl) const
 {
-	InttMap::Offline_s ofl;
-	Convert(ofl, onl);
-	return ofl;
+  InttMap::Offline_s ofl;
+  Convert(ofl, onl);
+  return ofl;
 }
 
 InttMap::Offline_s InttFeeMap::ToOffline(
-  InttMap::RawData_s const& raw) const
+    InttMap::RawData_s const& raw) const
 {
-	InttMap::Offline_s ofl;
-	Convert(ofl, raw);
-	return ofl;
+  InttMap::Offline_s ofl;
+  Convert(ofl, raw);
+  return ofl;
 }
 
 int InttFeeMap::v_LoadFromCDBTTree(

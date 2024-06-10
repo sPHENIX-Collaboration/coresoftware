@@ -37,15 +37,15 @@ int InttSurveyMapv1::v_LoadFromCDBTTree(
   Int_t N = cdbttree.GetSingleIntValue("size");
   for (Int_t n = 0; n < N; ++n)
   {
-    ofl.layer =      cdbttree.GetIntValue(n, "layer");
+    ofl.layer = cdbttree.GetIntValue(n, "layer");
     ofl.ladder_phi = cdbttree.GetIntValue(n, "ladder_phi");
-    ofl.ladder_z =   cdbttree.GetIntValue(n, "ladder_z");
-    ofl.strip_z =    cdbttree.GetIntValue(n, "strip_z");
-    ofl.strip_phi =  cdbttree.GetIntValue(n, "strip_phi");
+    ofl.ladder_z = cdbttree.GetIntValue(n, "ladder_z");
+    ofl.strip_z = cdbttree.GetIntValue(n, "strip_z");
+    ofl.strip_phi = cdbttree.GetIntValue(n, "strip_phi");
 
     for (int i = 0; i < 16; ++i)
     {
-      std::string boost_formatted = boost::str(boost::format("m_abs_%01d_%01d") %  (i/4) % (i%4));
+      std::string boost_formatted = boost::str(boost::format("m_abs_%01d_%01d") % (i / 4) % (i % 4));
       aff.matrix()(i / 4, i % 4) = cdbttree.GetDoubleValue(n, boost_formatted);
     }
     m_absolute_transforms->insert({ofl, aff});

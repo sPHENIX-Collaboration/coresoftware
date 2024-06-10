@@ -2,9 +2,9 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -isystem$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -28,8 +28,8 @@ pkginclude_HEADERS = \
   SingleHcalTriggerInput.h \
   SingleLL1TriggerInput.h \
   SingleMbdTriggerInput.h \
-  SingleInttPoolInput.h \
   SingleMicromegasPoolInput.h \
+  SingleInttPoolInput.h \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
@@ -97,7 +97,8 @@ libfun4allraw_la_LIBADD = \
   -lffarawobjects \
   -lfun4all \
   -lEvent \
-  -lphoolraw
+  -lphoolraw \
+  -lqautils
 
 BUILT_SOURCES = testexternals.cc
 

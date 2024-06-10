@@ -10,6 +10,8 @@
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -73,6 +75,13 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  auto trkrHitSetContainer = findNode::getClass<TrkrHitSetContainerv1>(topNode, "TRKR_HITSET");
+  if (!trkrHitSetContainer)
+  {
+    std::cout << PHWHERE << "No trkrhitset container, bailing" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   auto tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tGeometry)
   {
@@ -90,17 +99,41 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
     auto layer = TrkrDefs::getLayer(hsk);
     auto stave = MvtxDefs::getStaveId(hsk);
     auto chip = MvtxDefs::getChipId(hsk);
-    auto h = dynamic_cast<TH2 *>(hm->getHisto((boost::format("%snclusperchip%i_%i_%i") % getHistoPrefix() % (int) layer % (int) stave % (int) chip).str()));
+    auto h_clusSize = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%sclusterSize") % getHistoPrefix()).str()));
 
-    for (auto iter = range.first; iter != range.second; ++iter)
+    if (m_chipInfo)
     {
-      // const auto cluskey = iter->first;
-      const auto cluster = iter->second;
-      h->Fill(cluster->getLocalY(), cluster->getLocalX());
-      m_totalClusters++;
-      numclusters++;
+      auto h = dynamic_cast<TH2 *>(hm->getHisto((boost::format("%snclusperchip%i_%i_%i") % getHistoPrefix() % (int) layer % (int) stave % (int) chip).str()));
+      for (auto iter = range.first; iter != range.second; ++iter)
+      {
+        // const auto cluskey = iter->first;
+        const auto cluster = iter->second;
+        h->Fill(cluster->getLocalY(), cluster->getLocalX());
+        h_clusSize->Fill(cluster->getSize());
+        m_totalClusters++;
+        numclusters++;
+      }
+      m_nclustersPerChip[(int) layer][(int) stave][(int) chip] += numclusters; 
     }
-    m_nclustersPerChip[(int) layer][(int) stave][(int) chip] += numclusters;
+    else
+    {
+      for (auto iter = range.first; iter != range.second; ++iter)
+      {
+        const auto cluster = iter->second;
+        h_clusSize->Fill(cluster->getSize());
+      }
+    }
+  }
+
+  TrkrHitSetContainer::ConstRange hitsetrange = trkrHitSetContainer->getHitSets(TrkrDefs::TrkrId::mvtxId);
+
+  auto h_occupancy = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%schipOccupancy") % getHistoPrefix()).str()));
+  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
+  {
+    int chip_hits = hitsetitr->second->size();
+    float chip_occupancy = (float) chip_hits / (512*1024);
+    chip_occupancy = 100*chip_occupancy;
+    h_occupancy->Fill(chip_occupancy);
   }
 
   m_event++;
@@ -122,21 +155,31 @@ void MvtxClusterQA::createHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  
+ 
+  auto h_occupancy = new TH1F((boost::format("%schipOccupancy") % getHistoPrefix()).str().c_str(),"MVTX Chip Occupancy",60,0,0.6); 
+  h_occupancy->GetXaxis()->SetTitle("Chip Occupancy [%]");
+  h_occupancy->GetYaxis()->SetTitle("Entries");
+  hm->registerHisto(h_occupancy);
+  auto h_clusSize = new TH1F((boost::format("%sclusterSize") % getHistoPrefix()).str().c_str(),"MVTX Cluster Size",50,-0.5,49.5); 
+  h_clusSize->GetXaxis()->SetTitle("Cluster Size");
+  h_clusSize->GetYaxis()->SetTitle("Entries");
+  hm->registerHisto(h_clusSize);
 
-  for (const auto &[layer, nstave] : m_layerStaveMap)
+  if (m_chipInfo)
   {
-    for (int stave = 0; stave < nstave; stave++)
+    for (const auto &[layer, nstave] : m_layerStaveMap)
     {
-      //! 9 chips on each stave
-      for (int chip = 0; chip < 9; chip++)
+      for (int stave = 0; stave < nstave; stave++)
       {
-        auto h = new TH2F((boost::format("%snclusperchip%i_%i_%i") % getHistoPrefix() % layer % stave % chip).str().c_str(),
-                          "MVTX clusters per chip", 2000, -2, 2, 2000, -1, 1);
-        h->GetXaxis()->SetTitle("Local z [cm]");
-        h->GetYaxis()->SetTitle("Local rphi [cm]");
-        hm->registerHisto(h);
-
+        //! 9 chips on each stave
+        for (int chip = 0; chip < 9; chip++)
+        {
+          auto h = new TH2F((boost::format("%snclusperchip%i_%i_%i") % getHistoPrefix() % layer % stave % chip).str().c_str(),
+                            "MVTX clusters per chip", 2000, -2, 2, 2000, -1, 1);
+          h->GetXaxis()->SetTitle("Local z [cm]");
+          h->GetYaxis()->SetTitle("Local rphi [cm]");
+          hm->registerHisto(h);
+        }
       }
     }
   }
