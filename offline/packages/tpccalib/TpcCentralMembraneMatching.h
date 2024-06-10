@@ -62,10 +62,6 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_debugfilename = debugfile;
   }
 
-  void setNMatchIter(int val) { m_nMatchIter = val; }
-
-  void set_useOnly_nClus2(bool val) { m_useOnly_nClus2 = val; }
-
   void set_grid_dimensions(int phibins, int rbins);
 
   //! run initialization
@@ -131,11 +127,9 @@ class TpcCentralMembraneMatching : public SubsysReco
   std::unique_ptr<TFile> m_debugfile;
   std::string m_debugfilename = "CMMatcher.root";
 
-  TH2F *truth_r_phi_pos{};
-  TH2F *truth_r_phi_neg{};
+  TH2F *truth_r_phi[2]{};
 
-  TH2F *clust_r_phi_pos{};
-  TH2F *clust_r_phi_neg{};
+  TH2F *reco_r_phi[2]{};
 
   TNtuple *match_ntup = nullptr;
 
@@ -241,29 +235,18 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   //@}
 
-  bool m_useOnly_nClus2 = false;
+  std::vector<double> m_reco_RPeaks[2];
+  double m_global_RShift[2];
+  std::vector<int> m_reco_RMatches[2];
 
-  int m_nMatchIter = 2;
+  double m_recoRotation[2][3];
 
-  double m_clustRotation_pos[3]{};
-  double m_clustRotation_neg[3]{};
-
-  std::vector<double> m_clust_RPeaks_pos;
-  std::vector<double> m_clust_RPeaks_neg;
-
-  double m_global_RShift_pos{};
-  double m_global_RShift_neg{};
 
   double getPhiRotation_smoothed(TH1D *hitHist, TH1D *clustHist);
 
   std::vector<int> doGlobalRMatching(TH2F *r_phi, bool pos);
 
-  int getClusterRMatch(std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR);
-
-  void doDistortionMatching();
-
-  void doUnmatchedNN();
-
+  int getClusterRMatch(double clusterR, int side);
 };
 
 #endif  // PHTPCCENTRALMEMBRANEMATCHER_H
