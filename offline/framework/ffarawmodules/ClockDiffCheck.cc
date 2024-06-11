@@ -106,7 +106,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 		    }
 		  int EvtCounts[maxDifCts][2] = {0};
 		  int counter = 0;
-		  int bestEvt;
+		  int bestEvt = -1;
 		  int bestEvtCnt = 0;
 		  unsigned int npacket = container->get_npackets();
 		  for (unsigned int i = 0; i < npacket; i++)
@@ -152,7 +152,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 			    {
 			      for (int j = 0; j< packet->iValue(0, "NRMODULES"); j++)
 				{
-				  if (packet->iValue(j, "FEMEVTNR") != bestEvt)
+				  if (packet->iValue(j, "FEMEVTNR") != bestEvt && bestEvt != -1)
 				    {
 				      delete packet;
 				      break;
