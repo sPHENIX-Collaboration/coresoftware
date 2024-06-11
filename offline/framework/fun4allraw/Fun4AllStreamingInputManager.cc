@@ -2,6 +2,7 @@
 
 #include "InputManagerType.h"
 #include "SingleMicromegasPoolInput.h"
+#include "SingleMvtxPoolInput.h"
 #include "SingleStreamingInput.h"
 
 #include <ffarawobjects/Gl1RawHit.h>
@@ -767,7 +768,41 @@ int Fun4AllStreamingInputManager::FillMvtx()
     std::cout << "after ditching, mvtx bco: 0x" << std::hex << m_MvtxRawHitMap.begin()->first << ", ref: 0x" << m_RefBCO
               << std::dec << std::endl;
   }
-  auto mvtxRawHitInfoIt = m_MvtxRawHitMap.begin();
+  auto hm = QAHistManagerDef::getHistoManager();
+  int refbcobitshift = m_RefBCO & 0x3F;
+  auto h_refbco = dynamic_cast<TH1 *>(hm->getHisto("h_MvtxPoolQA_RefGL1BCO"));
+  h_refbco->Fill(refbcobitshift);
+  for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
+  {
+    //std::cout << "packet " << p << std::endl;
+    auto h = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % p).str().c_str()));
+    auto gtml1bcoset = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getGtmL1BcoSet();
+    auto bcorange = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->GetBcoRange();
+    auto gtml1bcoset_perfee = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getFeeGTML1BCOMap();
+    for(auto& [feeid, gtmbcoset]: gtml1bcoset_perfee)
+    {
+      auto h_fee = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i_fee%i") % p % feeid).str().c_str()));
+      for(auto& gtmbco : gtmbcoset)
+      {
+        auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
+        if (diff < bcorange)
+        {
+          h_fee->Fill(refbcobitshift);
+          break;
+        }
+      }
+    }
+    for (auto &gtmbco : gtml1bcoset)
+    {
+      auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
+      if (diff < bcorange)
+      {
+        h->Fill(refbcobitshift);
+      }
+      }
+  }
+
+    auto mvtxRawHitInfoIt = m_MvtxRawHitMap.begin();
 
   mvtxEvtHeader->AddFeeId(mvtxRawHitInfoIt->second.MvtxFeeIds);
   mvtxEvtHeader->AddL1Trg(mvtxRawHitInfoIt->second.MvtxL1TrgBco);
@@ -1185,6 +1220,12 @@ void Fun4AllStreamingInputManager::createQAHistos()
     hm->registerHisto(h);
   }
   {
+    auto h = new TH1I("h_MvtxPoolQA_RefGL1BCO", "MVTX ref BCO", 1000, 0, 1000);
+    h->GetXaxis()->SetTitle("GL1 BCO");
+    h->SetTitle("GL1 Reference BCO");
+    hm->registerHisto(h);
+  }
+  {
     auto h_npacket_bco_hist = new TH1I("h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Packets; A.U.", 10, 0, 10);
     hm->registerHisto(h_npacket_bco_hist);
     auto h_nwaveform_bco_hist = new TH1I("h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Waveforms; A.U.", 4100, 0, 4100);
@@ -1193,7 +1234,6 @@ void Fun4AllStreamingInputManager::createQAHistos()
   //intt has 8 prdfs, one per felix
   for (int i = 0; i < 8; i++)
   {
-    
       auto h = new TH1I((boost::format("h_InttPoolQA_TagBCO_ebdc%i") % i).str().c_str(), "INTT trigger tagged BCO", 1000, 0, 1000);
       h->GetXaxis()->SetTitle("GL1 BCO");
       h->SetTitle((boost::format("EBDC %i") % i).str().c_str());
@@ -1205,6 +1245,22 @@ void Fun4AllStreamingInputManager::createQAHistos()
         h2->SetTitle((boost::format("EBDC %i FEE %i") % i % j).str().c_str());
         hm->registerHisto(h2);
       }
+  }
+  for (int i = 0; i < 6; i++)
+  {
+    {
+    auto h = new TH1I((boost::format("h_MvtxPoolQA_TagBCO_felix%i") %i).str().c_str(), "MVTX trigger tagged BCO", 1000, 0, 1000);
+    h->GetXaxis()->SetTitle("GL1 BCO");
+    h->SetTitle((boost::format("Felix %i") % i).str().c_str());
+    hm->registerHisto(h);
+  }
+  for(int j=0; j<12; j++)
+  {
+    auto h = new TH1I((boost::format("h_MvtxPoolQA_TagBCO_felix%i_fee%i") %i % j).str().c_str(), "MVTX trigger tagged BCO per FEE", 1000, 0, 1000);
+    h->GetXaxis()->SetTitle("GL1 BCO");
+    h->SetTitle((boost::format("Felix %i FEE %i") % i % j).str().c_str());
+    hm->registerHisto(h);
+  }
   }
     for (int i = 0; i < 24; i++)
     {

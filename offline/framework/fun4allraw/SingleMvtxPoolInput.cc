@@ -123,6 +123,7 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
       }
       if (num_feeId > 0)
       {
+      
         for (int i_fee{0}; i_fee < num_feeId; ++i_fee)
         {
           auto feeId = pool->iValue(i_fee, "FEEID");
@@ -130,10 +131,15 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
           //          auto hbfSize = plist[i]->iValue(feeId, "NR_HBF");
           auto num_strobes = pool->iValue(feeId, "NR_STROBES");
           auto num_L1Trgs = pool->iValue(feeId, "NR_PHYS_TRG");
+          if(m_FeeGTML1BCOMap.find(i_fee) == m_FeeGTML1BCOMap.end())
+          {
+            m_FeeGTML1BCOMap[i_fee] = std::set<uint64_t>();
+          }
           for (int iL1 = 0; iL1 < num_L1Trgs; ++iL1)
           {
             auto l1Trg_bco = pool->lValue(feeId, iL1, "L1_IR_BCO");
             //            auto l1Trg_bc  = plist[i]->iValue(feeId, iL1, "L1_IR_BC");
+            m_FeeGTML1BCOMap[i_fee].insert(l1Trg_bco);
             gtmL1BcoSet.emplace(l1Trg_bco);
           }
 
@@ -206,7 +212,6 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
         assert(0);
       }
     }
-    gtmL1BcoSet.clear();
   }
 }
 
@@ -282,15 +287,19 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // {
   //   iter.second.clear();
   // }
-
+  gtmL1BcoSet.clear();
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
     m_BeamClockFEE.erase(iter);
     m_MvtxRawHitMap.erase(iter);
-    gtmL1BcoSet.erase(iter);
     m_FeeStrobeMap.erase(iter);
+    for (auto &[feeid, gtmbcoset] : m_FeeGTML1BCOMap)
+    {
+      gtmbcoset.erase(iter);
+    }
   }
+  
 }
 
 bool SingleMvtxPoolInput::CheckPoolDepth(const uint64_t bclk)
