@@ -158,7 +158,9 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode* topNode)
     // create running sample, assign packet, fee, layer and tile id
     Sample sample;
     sample.packet_id = packet_id;
-    sample.fee_id = rawhit->get_fee();
+
+    // get fee id, apply mapping to original set
+    sample.fee_id = m_mapping.get_old_fee_id(rawhit->get_fee());
 
     const auto hitsetkey = m_mapping.get_hitsetkey(sample.fee_id);
     sample.layer = TrkrDefs::getLayer(hitsetkey);

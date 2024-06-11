@@ -29,6 +29,7 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class PHG4TpcCylinderGeomContainer;
 class PHG4CylinderGeomContainer;
+class TpcDistortionCorrectionContainer;
 class TrackResiduals : public SubsysReco
 {
  public:
@@ -47,6 +48,7 @@ class TrackResiduals : public SubsysReco
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
   void ppmode() { m_ppmode = true; }
+  void dropClustersNoState(bool flag) { m_dropClustersNoState = flag; }
   void zeroField() { m_zeroField = true; }
   void runnumber(const int run) { m_runnumber = run; }
   void segment(const int seg) { m_segment = seg; }
@@ -66,9 +68,9 @@ class TrackResiduals : public SubsysReco
   void fillClusterBranches(TrkrDefs::cluskey ckey, SvtxTrack *track,
                            PHCompositeNode *topNode);
   void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
-                       TrkrClusterContainer *clusters);
+                       TrkrClusterContainer *clusters, const short int& crossing);
   void circleFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
-                         TrkrClusterContainer *clusters);
+                         TrkrClusterContainer *clusters, const short int& crossing);
   void fillStatesWithCircleFit(const TrkrDefs::cluskey &key, TrkrCluster *cluster,
                                Acts::Vector3 &glob, ActsGeometry *geometry);
   void fillVertexTree(PHCompositeNode *topNode);
@@ -89,6 +91,8 @@ class TrackResiduals : public SubsysReco
   bool m_doFailedSeeds = false;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
+  TpcDistortionCorrectionContainer *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
+
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
   std::string m_trackMapName = "SvtxTrackMap";
@@ -96,6 +100,7 @@ class TrackResiduals : public SubsysReco
   bool m_doAlignment = false;
   bool m_ppmode = false;
   bool m_linefitTPCOnly = true;
+  bool m_dropClustersNoState = false;
 
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
@@ -104,7 +109,8 @@ class TrackResiduals : public SubsysReco
   uint64_t m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
   uint64_t m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
   unsigned int m_trackid = std::numeric_limits<unsigned int>::quiet_NaN();
-  unsigned int m_crossing = std::numeric_limits<unsigned int>::quiet_NaN();
+  int m_crossing = std::numeric_limits<int>::quiet_NaN();
+  int m_crossing_estimate = std::numeric_limits<int>::quiet_NaN();
   unsigned int m_tpcid = std::numeric_limits<unsigned int>::quiet_NaN();
   unsigned int m_silid = std::numeric_limits<unsigned int>::quiet_NaN();
   float m_px = std::numeric_limits<float>::quiet_NaN();
@@ -124,6 +130,7 @@ class TrackResiduals : public SubsysReco
   int m_ntpc = std::numeric_limits<int>::quiet_NaN();
   int m_nmms = std::numeric_limits<int>::quiet_NaN();
   unsigned int m_vertexid = std::numeric_limits<unsigned int>::quiet_NaN();
+  int m_vertex_crossing = std::numeric_limits<int>::quiet_NaN();
   float m_vx = std::numeric_limits<float>::quiet_NaN();
   float m_vy = std::numeric_limits<float>::quiet_NaN();
   float m_vz = std::numeric_limits<float>::quiet_NaN();
@@ -142,7 +149,7 @@ class TrackResiduals : public SubsysReco
   float m_dcaxy = std::numeric_limits<float>::quiet_NaN();
   float m_dcaz = std::numeric_limits<float>::quiet_NaN();
 
-float m_silseedx = std::numeric_limits<float>::quiet_NaN();
+  float m_silseedx = std::numeric_limits<float>::quiet_NaN();
   float m_silseedy = std::numeric_limits<float>::quiet_NaN();
   float m_silseedz = std::numeric_limits<float>::quiet_NaN();
   float m_silseedpx = std::numeric_limits<float>::quiet_NaN();

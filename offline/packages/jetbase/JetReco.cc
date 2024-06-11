@@ -22,12 +22,14 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <boost/format.hpp>
+
 // standard includes
 #include <cstdlib>  // for exit
+#include <fstream>
 #include <iostream>
 #include <memory>  // for allocator_traits<>::value_type
 #include <vector>
-#include <fstream>
 
 JetReco::JetReco(const std::string &name, TRANSITION _which)
   : SubsysReco(name)
@@ -43,7 +45,6 @@ JetReco::JetReco(const std::string &name, TRANSITION _which)
 /*   , use_jetmap{true} */
 /* { */
 /* } */
-
 
 JetReco::~JetReco()
 {
@@ -66,9 +67,15 @@ int JetReco::InitRun(PHCompositeNode *topNode)
   {
     std::cout << "========================== JetReco::InitRun() =============================" << std::endl;
     std::cout << " Input Selections:" << std::endl;
-    for (auto &_input : _inputs) _input->identify();
+    for (auto &_input : _inputs)
+    {
+      _input->identify();
+    }
     std::cout << " Algorithms:" << std::endl;
-    for (auto &_algo : _algos) _algo->identify();
+    for (auto &_algo : _algos)
+    {
+      _algo->identify();
+    }
     std::cout << "===========================================================================" << std::endl;
   }
 
@@ -77,8 +84,10 @@ int JetReco::InitRun(PHCompositeNode *topNode)
 
 int JetReco::process_event(PHCompositeNode *topNode)
 {
-
-  if (Verbosity() > 1) std::cout << "JetReco::process_event -- entered" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "JetReco::process_event -- entered" << std::endl;
+  }
 
   //------------------------------------------------------------------
   // This will also need to go into TClonesArrays in a future revision
@@ -105,76 +114,93 @@ int JetReco::process_event(PHCompositeNode *topNode)
     /* if (_fill_JetContainer) { */
     if (use_jetcon)
     {
-        if (Verbosity() > 5) std::cout << " Verbosity>5:: filling JetContainter for " << JC_name(_outputs[ialgo]) << std::endl;
-        FillJetContainer(topNode, ialgo, inputs);
+      if (Verbosity() > 5)
+      {
+        std::cout << " Verbosity>5:: filling JetContainter for " << JC_name(_outputs[ialgo]) << std::endl;
+      }
+      FillJetContainer(topNode, ialgo, inputs);
     }
     if (use_jetmap)
     {
-      if (Verbosity() > 5) std::cout << " Verbosity>5:: filling jetnode for " << _outputs[ialgo] << std::endl;
+      if (Verbosity() > 5)
+      {
+        std::cout << " Verbosity>5:: filling jetnode for " << _outputs[ialgo] << std::endl;
+      }
       std::vector<Jet *> jets = _algos[ialgo]->get_jets(inputs);  // owns memory
       FillJetNode(topNode, ialgo, jets);
     }
 
-    if (false ) { // These printouts were used in comparing the two map methods
-                  // It can be removed later
-      if (use_jetmap) {
+    if (false)
+    {  // These printouts were used in comparing the two map methods
+       // It can be removed later
+      if (use_jetmap)
+      {
         std::fstream fout;
         fout.open("fixme_jetmap", std::fstream::app);
         fout << " Printing jet results " << std::endl;
         JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ialgo]);
-        int ifixme =0;
-        for (auto _jet = jetmap->begin(); _jet != jetmap->end(); ++_jet) {
-          auto jet = _jet->second;
-          fout << Form(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]",
-              ++ifixme, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
-          std::vector<std::pair<int,int>> vconst;
-          /*legacy*/ for (auto _comp = jet->begin_comp(); _comp != jet->end_comp(); ++_comp) {
-            vconst.push_back({(int)_comp->first,(int)_comp->second});
+        int ifixme = 0;
+        for (auto &_jet : *jetmap)
+        {
+          auto jet = _jet.second;
+          fout << (boost::format(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]") % (++ifixme) % ((int) jet->size_comp()) % jet->get_pt() % jet->get_eta() % jet->get_phi()).str() << std::endl;
+          std::vector<std::pair<int, int>> vconst;
+          /*legacy*/ for (auto _comp = jet->begin_comp(); _comp != jet->end_comp(); ++_comp)
+          {
+            vconst.emplace_back((int) _comp->first, (int) _comp->second);
           }
-          std::sort(vconst.begin(), vconst.end(), [](std::pair<int,int> a, std::pair<int,int> b) 
-              { 
-              if      (a.first == b.first) return a.second < b.second;
-              else return a.first < b.first;
-              });
+          std::sort(vconst.begin(), vconst.end(), [](std::pair<int, int> a, std::pair<int, int> b)
+                    { 
+              if      (a.first == b.first) { return a.second < b.second;
+              } else { return a.first < b.first;
+} });
           fout << " constituents: ";
           int iconst = 0;
-          for (const auto& p : vconst) {
-            fout << Form("  c(%3i) %3i->%3i", iconst++, p.first, p.second) << std::endl;
+          for (const auto &p : vconst)
+          {
+            fout << (boost::format("  c(%3i) %3i->%3i") % (iconst++) % p.first % p.second).str() << std::endl;
           }
           fout << std::endl;
         }
       }
-      if (use_jetcon) {
+      if (use_jetcon)
+      {
         std::fstream fout;
         fout.open("fixme_jetcont", std::fstream::app);
         fout << " Printing jet results" << std::endl;
-        JetContainer *jet_cont = findNode::getClass<JetContainer>(topNode,JC_name(_outputs[ialgo]));
-        int ifixme =0;
+        JetContainer *jet_cont = findNode::getClass<JetContainer>(topNode, JC_name(_outputs[ialgo]));
+        int ifixme = 0;
 
         /* for (auto jet = jet_cont->begin(); jet != jet_cont->end(); ++jet) { */
-        for (auto jet : *jet_cont) {
-          fout << Form(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]",
-              ++ifixme, (int)jet->size_comp(), jet->get_pt(), jet->get_eta(), jet->get_phi()) << std::endl;
+        for (auto jet : *jet_cont)
+        {
+          fout << (boost::format(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]") % (++ifixme) % ((int) jet->size_comp()) % jet->get_pt() % jet->get_eta() % jet->get_phi()).str() << std::endl;
 
           fout << " constituents: ";
           int iconst = 0;
-          for (const auto& p : jet->get_comp_vec()) {
-            fout << Form("  c(%3i) %3i->%3i", iconst++, p.first, p.second) << std::endl;
+          for (const auto &p : jet->get_comp_vec())
+          {
+            fout << (boost::format("  c(%3i) %3i->%3i") % (iconst++) % p.first % p.second).str() << std::endl;
           }
 
           fout << std::endl;
         }
       }
     }
-
   }
 
   // clean up input vector
   // <- another place where TClonesArray's would make this more efficient
-  for (auto &input : inputs) delete input;
+  for (auto &input : inputs)
+  {
+    delete input;
+  }
   inputs.clear();
 
-  if (Verbosity() > 1) std::cout << "JetReco::process_event -- exited" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "JetReco::process_event -- exited" << std::endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -234,7 +260,7 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *> jets)
+void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, const std::vector<Jet *> &jets)
 {
   JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ipos]);
   if (!jetmap)
@@ -254,7 +280,7 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *>
   {
     jetmap->insert(jet);  // map takes ownership, sets unique id
   }
-  
+
   return;
 }
 

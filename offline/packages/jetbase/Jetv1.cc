@@ -1,6 +1,6 @@
 /*!
  * \file Jetv1.C
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -47,13 +47,25 @@ void Jetv1::Reset()
 
 int Jetv1::isValid() const
 {
-  if (_id == 0xFFFFFFFF) return 0;
+  if (_id == 0xFFFFFFFF)
+  {
+    return 0;
+  }
   for (float i : _mom)
   {
-    if (std::isnan(i)) return 0;
+    if (std::isnan(i))
+    {
+      return 0;
+    }
   }
-  if (std::isnan(_e)) return 0;
-  if (_comp_ids.empty()) return 0;
+  if (std::isnan(_e))
+  {
+    return 0;
+  }
+  if (_comp_ids.empty())
+  {
+    return 0;
+  }
   return 1;
 }
 
@@ -94,7 +106,7 @@ float Jetv1::get_mass() const
   float mass2 = get_mass2();
   if (mass2 < 0)
   {
-    return -1 * sqrt(std::fabs(mass2));
+    return -1 * std::sqrt(std::fabs(mass2));
   }
   return std::sqrt(mass2);
 }
@@ -134,7 +146,7 @@ void Jetv1::print_property(std::ostream& os) const
 {
   for (auto citer : _property_map)
   {
-    os << " ";  //indent
+    os << " ";  // indent
 
     switch (citer.first)
     {
@@ -153,15 +165,16 @@ void Jetv1::print_property(std::ostream& os) const
   }
 }
 
-void Jetv1::not_in_v1_msg(const std::string& method_name, std::ostream& os) const {
-  os << " warning: Method Jet::"<<method_name <<"() not implemented in Jetv1" << std::endl;
+void Jetv1::not_in_v1_msg(const std::string& method_name, std::ostream& os) const
+{
+  os << " warning: Method Jet::" << method_name << "() not implemented in Jetv1" << std::endl;
 }
 
-std::vector<float>& Jetv1::get_property_vec() {
+std::vector<float>& Jetv1::get_property_vec()
+{
   not_in_v1_msg("get_property_vec()");
   return DummyJetPropVecv1;
 }
-
 
 // inline float Jetv1::get_prop_by_index(unsigned int /*index*/) const
 // {
@@ -169,33 +182,33 @@ std::vector<float>& Jetv1::get_property_vec() {
 //   return NAN;
 // }
 
-//inline void Jetv1::set_prop_by_index(unsigned int /*index*/, float /*value*/)
+// inline void Jetv1::set_prop_by_index(unsigned int /*index*/, float /*value*/)
 //{
-//  not_in_v1_msg("set_prop_by_index()");
-//  return;
-//}
+//   not_in_v1_msg("set_prop_by_index()");
+//   return;
+// }
 
-void Jetv1::insert_comp(Jet::SRC /**/, unsigned int /**/, bool /**/) 
+void Jetv1::insert_comp(Jet::SRC /**/, unsigned int /**/, bool /**/)
 {
   not_in_v1_msg("insert_comp(src,unsigned int, bool)");
 }
 
-void Jetv1::insert_comp(Jet::TYPE_comp_vec&) 
+void Jetv1::insert_comp(Jet::TYPE_comp_vec& /*unused*/)
 {
   not_in_v1_msg("insert_comp(TYPE_comp_vec&)");
 }
 
-void Jetv1::insert_comp(Jet::TYPE_comp_vec&, bool) 
+void Jetv1::insert_comp(Jet::TYPE_comp_vec& /*unused*/, bool /*unused*/)
 {
   not_in_v1_msg("insert_comp(TYPE_comp_vec&, bool)");
 }
 
-void Jetv1::set_comp_sort_flag(bool /**/) 
+void Jetv1::set_comp_sort_flag(bool /**/)
 {
   not_in_v1_msg("set_comp_sort_flag");
 }
 
-size_t Jetv1::num_comp(Jet::SRC /**/) 
+size_t Jetv1::num_comp(Jet::SRC /**/)
 {
   not_in_v1_msg("num_comp");
   return 0;
@@ -206,7 +219,7 @@ void Jetv1::print_comp(std::ostream& /**/, bool /**/)
   not_in_v1_msg("print_comp");
 }
 
-std::vector<Jet::SRC> Jetv1::comp_src_vec() 
+std::vector<Jet::SRC> Jetv1::comp_src_vec()
 {
   not_in_v1_msg("print_comp");
   return {};
@@ -224,7 +237,7 @@ Jet::ITER_comp_vec Jetv1::comp_begin(Jet::SRC /**/)
   return Jet::comp_begin(Jet::SRC::VOID);
 }
 
-Jet::ITER_comp_vec Jetv1::comp_end(Jet::SRC /**/) 
+Jet::ITER_comp_vec Jetv1::comp_end(Jet::SRC /**/)
 {
   not_in_v1_msg("comp_end");
   return Jet::comp_end(Jet::SRC::VOID);
@@ -235,7 +248,7 @@ Jet::ITER_comp_vec Jetv1::comp_begin()
   not_in_v1_msg("comp_begin");
   return Jet::comp_begin();
 }
-Jet::ITER_comp_vec Jetv1::comp_end() 
+Jet::ITER_comp_vec Jetv1::comp_end()
 {
   not_in_v1_msg("comp_end");
   return Jet::comp_end();
@@ -245,7 +258,7 @@ Jet::TYPE_comp_vec& Jetv1::get_comp_vec()
   not_in_v1_msg("get_comp_vec");
   return Jet::get_comp_vec();
 }
-void Jetv1::resize_properties(size_t /**/) 
+void Jetv1::resize_properties(size_t /**/)
 {
   not_in_v1_msg("resize_properties()");
 }

@@ -91,6 +91,21 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 	if ((refdiff&0xFFFFFFFFU) != (std::get<2>(iter.second)&0xFFFFFFFFU))
 	{
 	  static int nprint = 0;
+	  if (delBadPkts)
+	    {
+	      for (const auto &nodeiter : nodenames)
+		{
+		  CaloPacketContainer *container = findNode::getClass<CaloPacketContainer>(topNode, nodeiter);
+		  for (unsigned int i = 0; i < container->get_npackets(); i++)
+		    {
+		      unsigned int packetID = container->getPacket(i)->getIdentifier();
+		      if (iter.first == packetID)
+			{
+			  delete container->getPacket(i);
+			}
+		    }
+		}
+	    }
 	  if (nprint < 1000 || Verbosity() > 1)
 	  {
 	    std::bitset<32> x(refdiff);

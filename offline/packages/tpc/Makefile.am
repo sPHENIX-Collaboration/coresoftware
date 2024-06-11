@@ -38,6 +38,7 @@ pkginclude_HEADERS = \
   LaserClusterizer.h \
   TrainingHitsContainer.h \
   TrainingHits.h \
+  Tpc3DClusterizer.h \
   TpcRawDataTree.h \
   TpcClusterCleaner.h \
   TpcClusterizer.h \
@@ -46,6 +47,7 @@ pkginclude_HEADERS = \
   TpcCombinedRawDataUnpacker.h \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
+  TpcGlobalPositionWrapper.h \
   TpcLoadDistortionCorrection.h \
   TpcMap.h \
   TpcRawWriter.h \
@@ -68,9 +70,11 @@ dist_mydata_DATA = \
 libtpc_la_SOURCES = \
   LaserClusterizer.cc \
   TpcRawDataTree.cc \
+  Tpc3DClusterizer.cc \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
   TpcCombinedRawDataUnpacker.cc \
+  TpcGlobalPositionWrapper.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
   TpcRawWriter.cc \

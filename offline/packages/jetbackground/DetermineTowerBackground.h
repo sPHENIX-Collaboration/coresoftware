@@ -44,6 +44,11 @@ class DetermineTowerBackground : public SubsysReco
   {
     m_use_towerinfo = use_towerinfo;
   }
+  void set_towerNodePrefix(const std::string &prefix)
+  {
+    m_towerNodePrefix = prefix;
+    return;
+  }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
@@ -85,6 +90,11 @@ class DetermineTowerBackground : public SubsysReco
   Jet::PROPERTY _index_SeedItr{};
 
   bool m_use_towerinfo{false};
+
+  std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
+  std::string EMTowerName;
+  std::string IHTowerName;
+  std::string OHTowerName;
 };
 
 #endif

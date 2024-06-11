@@ -114,7 +114,7 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode* topNode)
     }
     for (int iwf = 0; iwf < n_waveforms; ++iwf)
     {
-      const int fee = packet->iValue(iwf, "FEE");
+      const int fee = m_mapping.get_old_fee_id(packet->iValue(iwf, "FEE"));
       const auto channel = packet->iValue(iwf, "CHANNEL");
       const int samples = packet->iValue(iwf, "SAMPLES");
 

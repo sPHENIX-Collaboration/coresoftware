@@ -122,14 +122,18 @@ void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       newhit->setSlotNr(plist[i]->iValue(0, "SLOTNR"));
       newhit->setCardNr(plist[i]->iValue(0, "CARDNR"));
       newhit->setMonitor(plist[i]->iValue(0, "MONITOR"));
+      newhit->setFemWords(plist[i]->iValue(0, "FEMWORDS"));
+      newhit->setFibers(plist[i]->iValue(0, "FIBERS"));
+      newhit->setSums(plist[i]->iValue(0, "SUMS"));
       for (int ichan = 0; ichan < nr_channels; ichan++)
       {
         for (int isamp = 0; isamp < nr_samples; isamp++)
         {
           if (isamp >= newhit->getMaxNumSamples() || ichan >= newhit->getMaxNumChannels())
           {
-            std::cout << "sample: " << isamp
-                      << ", channel: " << ichan << std::endl;
+            std::cout << "Packet: " <<  newhit->getIdentifier()
+<< ", samples: " << isamp
+                      << ", channels: " << ichan << std::endl;
             gSystem->Exit(1);
           }
           else
@@ -138,7 +142,7 @@ void SingleLL1TriggerInput::FillPool(const unsigned int /*nbclks*/)
           }
         }
       }
-      newhit->identify();
+      //newhit->identify();
       //      newhit->dump();
       if (Verbosity() > 2)
       {

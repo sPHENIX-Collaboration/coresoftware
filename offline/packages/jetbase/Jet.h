@@ -8,7 +8,7 @@
 //
 //
 // Functions deprecated between v1 and above
-//   v1: 
+//   v1:
 //  virtual bool   has_property(Jet::PROPERTY  /*prop_id*/) const
 //  virtual float  get_property(Jet::PROPERTY  /*prop_id*/) const
 //  virtual void   set_property(Jet::PROPERTY  /*prop_id*/, float   /*value*/)
@@ -105,7 +105,7 @@ class Jet : public PHObject
     CEMC_TOWERINFO_SUB1 = 29,
     HCALIN_TOWERINFO_SUB1 = 30,
     HCALOUT_TOWERINFO_SUB1 = 31, /* needed for HI jet reco */
-    CEMC_TOWERINFO_EMBED = 32, /* needed for embedding */
+    CEMC_TOWERINFO_EMBED = 32,   /* needed for embedding */
     CEMC_TOWERINFO_SIM = 33,
     HCALIN_TOWERINFO_EMBED = 34,
     HCALIN_TOWERINFO_SIM = 35,
@@ -181,21 +181,21 @@ class Jet : public PHObject
   // Functions for jet properties (always float values)
   // --------------------------------------------------------------------------
   // In both Jetv1 and Jetv2
-  virtual float get_property(Jet::PROPERTY /*prop_id*/) const { return NAN; }; // in Jetv2 really uses the Jet::PROPERTY as an index for a vector
-  virtual void  set_property(Jet::PROPERTY /*prop_id*/, float /*value*/) {};   // in Jetv2 really uses the Jet::PROPERTY as an index for a vector
+  virtual float get_property(Jet::PROPERTY /*prop_id*/) const { return NAN; };  // in Jetv2 really uses the Jet::PROPERTY as an index for a vector
+  virtual void set_property(Jet::PROPERTY /*prop_id*/, float /*value*/){};      // in Jetv2 really uses the Jet::PROPERTY as an index for a vector
   virtual size_t size_properties() const { return 0; };
 
   //    new with Jetv2
-  virtual void resize_properties(size_t /**/) { };
+  virtual void resize_properties(size_t /**/){};
   virtual std::vector<float>& get_property_vec();
-  //virtual inline float get_prop_by_index(unsigned int /*index*/) const { return NAN; }
-  //virtual inline void set_prop_by_index(unsigned int /*index*/, float /*value*/) { return; }
-  
+  // virtual inline float get_prop_by_index(unsigned int /*index*/) const { return NAN; }
+  // virtual inline void set_prop_by_index(unsigned int /*index*/, float /*value*/) { return; }
+
   //   deprecated by Jetv2
   virtual bool has_property(Jet::PROPERTY /*prop_id*/) const { return false; };
   virtual void print_property(std::ostream& /*os*/) const {};
   //----------------------------------------------------------------------------------
-  
+
   // some types
   typedef std::pair<Jet::SRC, unsigned int> TYPE_comp;
   typedef std::vector<TYPE_comp> TYPE_comp_vec;
@@ -203,49 +203,49 @@ class Jet : public PHObject
 
   // --------------------------------------------------------------------------
   // Functions for jet components
-  //    in all Jet versions 
+  //    in all Jet versions
   virtual void clear_comp() {}
   virtual void insert_comp(Jet::SRC, unsigned int) {}
-  virtual void insert_comp(Jet::SRC, unsigned int, bool) {} //v2 only
-  virtual void insert_comp(TYPE_comp_vec&/**/) {} //v2 only
-  virtual void insert_comp(TYPE_comp_vec&/**/, bool/**/) {} //v2 only
+  virtual void insert_comp(Jet::SRC, unsigned int, bool) {}    // v2 only
+  virtual void insert_comp(TYPE_comp_vec& /**/) {}             // v2 only
+  virtual void insert_comp(TYPE_comp_vec& /**/, bool /**/) {}  // v2 only
 
   virtual size_t size_comp() const { return 0; };
   //    new with Jetv2
   virtual size_t num_comp(SRC = Jet::SRC::VOID /**/) { return 0; };
-  virtual void print_comp(std::ostream& /**/, bool /**/) {};
+  virtual void print_comp(std::ostream& /**/, bool /**/){};
   virtual std::vector<Jet::SRC> comp_src_vec() { return {}; };
   virtual std::map<Jet::SRC, size_t> comp_src_sizemap() { return {}; };
-  virtual void set_comp_sort_flag(bool=false) {};
-//
-//
+  virtual void set_comp_sort_flag(bool = false){};
+  //
+  //
   virtual ITER_comp_vec comp_begin();
   virtual ITER_comp_vec comp_begin(Jet::SRC);
   virtual ITER_comp_vec comp_end();
   virtual ITER_comp_vec comp_end(Jet::SRC);
-//
+  //
   virtual TYPE_comp_vec& get_comp_vec();
   //-- deprecated with Jetv2 ---------------------------------------------------------
   virtual bool empty_comp() const { return true; }
   virtual size_t count_comp(Jet::SRC /*source*/) const { return 0; };
-//
+  //
   typedef std::multimap<Jet::SRC, unsigned int> typ_comp_ids;
   typedef typ_comp_ids::const_iterator ConstIter;
   typedef typ_comp_ids::iterator Iter;
-//
+  //
   virtual ConstIter begin_comp() const;
   virtual ConstIter lower_bound_comp(Jet::SRC source) const;
   virtual ConstIter upper_bound_comp(Jet::SRC source) const;
   virtual ConstIter find(Jet::SRC source) const;
   virtual ConstIter end_comp() const;
-//
+  //
   virtual Iter begin_comp();
   virtual Iter lower_bound_comp(Jet::SRC source);
   virtual Iter upper_bound_comp(Jet::SRC source);
   virtual Iter find(Jet::SRC source);
   virtual Iter end_comp();
 
-  virtual size_t erase_comp(Jet::SRC) { return 0; } 
+  virtual size_t erase_comp(Jet::SRC) { return 0; }
   virtual void erase_comp(Iter /*iter*/) { return; }
   virtual void erase_comp(Iter /*first*/, Iter /*last*/) { return; }
   //----------------------------------------------------------------------------------

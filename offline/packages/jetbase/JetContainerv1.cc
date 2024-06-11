@@ -2,7 +2,9 @@
 #include "Jetv2.h"
 
 #include <phool/phool.h>  // for PHWHERE
-                         
+
+#include <boost/format.hpp>
+
 #include <string>
 
 JetContainerv1::JetContainerv1()
@@ -78,19 +80,21 @@ Jet* JetContainerv1::get_UncheckedAt(unsigned int index)
 void JetContainerv1::print_jets(std::ostream& os)
 {
   os << " No. of jets: " << m_njets;
-  if (!isnan(m_RhoMedian)) os << " rho median " << m_RhoMedian;
+  if (!isnan(m_RhoMedian))
+  {
+    os << " rho median " << m_RhoMedian;
+  }
   os << std::endl;
 
   int ijet = 0;
   for (auto jet : *this)
   {
-    os << Form("  jet(%2i) : pT(%6.2f)  eta(%6.2f)  phi(%6.2f)",
-               ijet, jet->get_pt(), jet->get_eta(), jet->get_phi());
+    os << (boost::format("  jet(%2i) : pT(%6.2f)  eta(%6.2f)  phi(%6.2f)") % ijet % jet->get_pt() % jet->get_eta() % jet->get_phi()).str();
     ++ijet;
     unsigned int i = 0;
     for (auto prop : m_pindex)
     {
-      os << Form("  %8s(%6.2f)", str_Jet_PROPERTY(prop.first).c_str(), jet->get_property(prop.second));
+      os << (boost::format("  %8s(%6.2f)") % (str_Jet_PROPERTY(prop.first)) % (jet->get_property(prop.second))).str();
       i++;
     }
     os << std::endl;
@@ -124,14 +128,17 @@ size_t JetContainerv1::add_property(Jet::PROPERTY prop)
 size_t JetContainerv1::add_property(std::set<Jet::PROPERTY> props)
 {
   bool added = false;
-  for (auto prop : props) {
+  for (auto prop : props)
+  {
     auto [iter, is_new] = m_pindex.try_emplace(prop, static_cast<Jet::PROPERTY>(m_psize));
-    if (is_new) {
+    if (is_new)
+    {
       ++m_psize;
       added = true;
     }
   }
-  if (added) {
+  if (added)
+  {
     resize_jet_pvecs();
   }
   return m_psize;
@@ -140,7 +147,10 @@ size_t JetContainerv1::add_property(std::set<Jet::PROPERTY> props)
 // get the index for a given property
 Jet::PROPERTY JetContainerv1::property_index(Jet::PROPERTY prop)
 {
-  if (!has_property(prop)) add_property(prop);
+  if (!has_property(prop))
+  {
+    add_property(prop);
+  }
   return m_pindex[prop];
 }
 
@@ -149,8 +159,8 @@ Jet::IterJetTCA JetContainerv1::begin()
   return Jet::IterJetTCA(m_clones);
 }
 
-Jet::IterJetTCA JetContainerv1::end() // dummy implementation -- don't anticipate that it will ever be checked
- {
+Jet::IterJetTCA JetContainerv1::end()  // dummy implementation -- don't anticipate that it will ever be checked
+{
   auto rval = Jet::IterJetTCA(m_clones);
   rval.index = rval.size;
   return rval;

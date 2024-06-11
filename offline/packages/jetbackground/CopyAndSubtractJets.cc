@@ -59,9 +59,27 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *towerinfosOH3 = nullptr;
   if (m_use_towerinfo)
   {
-    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-    towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
-    towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+    EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER";
+    IHTowerName = m_towerNodePrefix + "_HCALIN";
+    OHTowerName = m_towerNodePrefix + "_HCALOUT";
+    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
+    towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
+    towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
+    if(!towerinfosEM3)
+    {
+      std::cout << "CopyAndSubtractJets::process_event: Cannot find node "<<EMTowerName<<std::endl;
+      exit(1);
+    }
+    if(!towerinfosIH3)
+    {
+      std::cout << "CopyAndSubtractJets::process_event: Cannot find node "<<IHTowerName<<std::endl;
+      exit(1);
+    }
+    if(!towerinfosOH3)
+    {
+      std::cout << "CopyAndSubtractJets::process_event: Cannot find node "<<OHTowerName<<std::endl;
+      exit(1);
+    }
   }
   else
   {

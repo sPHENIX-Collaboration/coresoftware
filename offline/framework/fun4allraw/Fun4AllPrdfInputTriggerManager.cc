@@ -85,6 +85,10 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   {
     iret += FillZdc();
   }
+  if (m_ll1_registered_flag)  // LL1 next to get the reference if Gl1 is missing
+  {
+    iret += FillLL1();
+  }
   if (iret)
   {
     return -1;
@@ -98,6 +102,7 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
   MoveMbdToNodeTree();
   MoveCemcToNodeTree();
   MoveHcalToNodeTree();
+  MoveLL1ToNodeTree();
   // do not switch the order of zdc and sepd, they use a common input manager
   // and the cleanup is done in MoveSEpdToNodeTree, if the MoveZdcToNodeTree is
   // called after that it will segfault
@@ -365,6 +370,10 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
   case InputManagerType::GL1:
     m_gl1_registered_flag = true;
     m_Gl1InputVector.push_back(prdfin);
+    break;
+  case InputManagerType::LL1:
+    m_ll1_registered_flag = true;
+    m_LL1InputVector.push_back(prdfin);
     break;
   case InputManagerType::MBD:
     m_mbd_registered_flag = true;

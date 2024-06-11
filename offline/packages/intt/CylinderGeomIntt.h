@@ -122,7 +122,7 @@ class CylinderGeomIntt : public PHG4CylinderGeom
  protected:
   int m_Layer{-1};
   int m_NStripsPhiCell{-1};
-  int m_NStripsZSensor[2] {-1,-1};
+  int m_NStripsZSensor[2]{-1, -1};
   double m_StripX{std::numeric_limits<double>::quiet_NaN()};
   double m_StripY{std::numeric_limits<double>::quiet_NaN()};
   double m_SensorRadius{std::numeric_limits<double>::quiet_NaN()};
@@ -131,7 +131,7 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   double m_OffsetRot{std::numeric_limits<double>::quiet_NaN()};
   double m_dPhi{std::numeric_limits<double>::quiet_NaN()};
 
-  double m_StripZ[2] {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+  double m_StripZ[2]{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
   double m_LadderZ[2]{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(CylinderGeomIntt, 1)

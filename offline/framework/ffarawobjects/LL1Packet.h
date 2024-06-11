@@ -3,7 +3,6 @@
 
 #include "OfflinePacketv1.h"
 
-#include <array>
 #include <limits>
 
 class LL1Packet : public OfflinePacketv1
@@ -36,6 +35,12 @@ class LL1Packet : public OfflinePacketv1
   virtual int getCardNr() const { return 0; }
   virtual void setMonitor(int /*i*/) { return; }
   virtual int getMonitor() const { return 0; }
+  virtual void setFemWords(int /*i*/) {return;}
+  virtual int getFemWords() const {return 0;}
+  virtual void setSums(int /*i*/) {return;}
+  virtual int getSums() const {return 0;}
+  virtual void setFibers(int /*i*/) {return;}
+  virtual int getFibers() const {return 0;}
 
  private:
   ClassDefOverride(LL1Packet, 1)
