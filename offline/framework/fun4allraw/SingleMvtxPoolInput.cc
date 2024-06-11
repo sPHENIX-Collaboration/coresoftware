@@ -3,6 +3,7 @@
 
 #include "Fun4AllStreamingInputManager.h"
 
+#include <ffarawobjects/MvtxFeeIdInfov1.h>
 #include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
@@ -181,7 +182,7 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
             }
             if (StreamingInputManager())
             {
-              StreamingInputManager()->AddMvtxDetField(strb_bco, feeId, strb_detField);
+              StreamingInputManager()->AddMvtxFeeIdInfo(strb_bco, feeId, strb_detField);
             }
             m_BeamClockFEE[strb_bco].insert(feeId);
             m_BclkStack.insert(strb_bco);
@@ -413,7 +414,7 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeaderv2>(detNode, "MVTXRAWEVTHEADER");
+  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeader>(detNode, "MVTXRAWEVTHEADER");
   if (!mvtxEH)
   {
     mvtxEH = new MvtxRawEvtHeaderv2();
