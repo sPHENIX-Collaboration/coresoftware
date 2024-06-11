@@ -9,9 +9,9 @@
  */
 
 // Statements for if we want to save out the intermediary clustering steps
-/* #define _PHCASEEDING_CLUSTERLOG_TUPOUT_ */
-/* #define _PHCASEEDING_CHAIN_FORKS_ */
-/* #define _PHCASEEDING_TIMER_OUT_ */
+#define _PHCASEEDING_CLUSTERLOG_TUPOUT_
+#define _PHCASEEDING_CHAIN_FORKS_
+#define _PHCASEEDING_TIMER_OUT_
 
 #include "ALICEKF.h"
 #include "PHTrackSeeding.h"  // for PHTrackSeeding
@@ -84,6 +84,7 @@ class PHCASeeding : public PHTrackSeeding
    std::array<float, 55> dZ_per_layer;
    std::array<float, 55> dphi_per_layer;
 
+
    PHCASeeding(
       const std::string& name = "PHCASeeding",
       unsigned int start_layer = 7,
@@ -100,6 +101,7 @@ class PHCASeeding : public PHTrackSeeding
       );
 
   ~PHCASeeding() override {}
+  void SetSplitSeeds(bool opt=true) { _split_seeds=opt; }
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up)
   {
     _start_layer = layer_low;
@@ -151,7 +153,6 @@ class PHCASeeding : public PHTrackSeeding
 
  private:
   bool _save_clus_proc = false;
-
   TFile* _f_clustering_process = nullptr;
   int _tupout_count = -1;
   int _n_tupchains  = -1;
@@ -245,6 +246,7 @@ class PHCASeeding : public PHTrackSeeding
   double _xy_outlier_threshold = 0.1;
   double _fieldDir = -1;
   bool _use_const_field = false;
+  bool _split_seeds = true;
   float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
   bool _pp_mode = false;
