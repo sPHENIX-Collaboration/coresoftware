@@ -49,6 +49,18 @@ namespace
     inline static constexpr T get_bco_diff( const T& first, const T& second )
   { return first < second ? (second-first):(first-second); }
 
+  // define limit for matching two fee_bco
+  static constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
+
+  // define limit for matching two fee_bco
+  static constexpr unsigned int m_max_fee_bco_diff = 10;
+
+  // define limit for matching fee_bco to fee_bco_predicted
+  static constexpr unsigned int m_max_gtm_bco_diff = 100;
+
+  // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
+  static constexpr unsigned int m_max_matching_data_size = 50;
+
   //! copied from micromegas/MicromegasDefs.h, not available here
   static constexpr int m_nchannels_fee = 256;
 
@@ -181,6 +193,7 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
       if( get_bco_diff( gtm_bco_diff_list[i], fee_bco_diff ) < m_max_fee_bco_diff )
       {
         m_verified = true;
+        m_needs_synchronize = false;
         m_gtm_bco_first = gtm_bco_list[i];
         m_fee_bco_first = fee_bco_prev;
 
@@ -352,6 +365,10 @@ void MicromegasBcoMatchingInformation::update_multiplier_adjustment( uint64_t gt
     m_multiplier_adjustment_numerator = 0;
     m_multiplier_adjustment_denominator = 0;
     m_multiplier_adjustment_count = 0;
+
+    // also force resynchronization
+    m_needs_synchronize = true;
+
   }
 
 }
