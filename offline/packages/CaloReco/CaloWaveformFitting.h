@@ -58,11 +58,12 @@ class CaloWaveformFitting
   float psinc(float t, std::vector<float> &vec_signal_samples);
   TProfile *h_template = nullptr;
   double template_function(double *x, double *par);
-  int _nthreads = 1;
-  int _nzerosuppresssamples = 2;
-  int _nsoftwarezerosuppression = 40;
-  bool _bdosoftwarezerosuppression = false;
-  bool _maxsoftwarezerosuppression = false;
+  int _nthreads{1};
+  int _nzerosuppresssamples{2};
+  int _nsoftwarezerosuppression{40};
+  float _stepsize{0.001};
+  bool _bdosoftwarezerosuppression{false};
+  bool _maxsoftwarezerosuppression{false};
   std::string m_template_input_file;
   std::string url_template;
   double m_peakTimeTemp = 0;

@@ -306,13 +306,20 @@ std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> 
 
   float maxpos = maxx;
   float steplength = 0.5;
+
   while (steplength > 0.001)
   {
-    for (float i = maxpos - steplength; i <= maxpos + steplength; i += steplength)
+    //use 1.5 instead of 1 to avoid the floating point error...
+    float starttime = maxpos - 1 * steplength;
+    float endtime = maxpos + 1.5 * steplength;
+    
+    for (float i = starttime; i < endtime; i += steplength)
     {
+
       float yval = max;
       if(i != maxpos){ 
         yval = psinc(i, vec_signal_samples);
+       
       }
       if (yval > max)
       {
@@ -322,6 +329,7 @@ std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> 
     }
     steplength /= 2;
   }
+ 
   float pedestal = 0;
 
   if (maxpos > 5)
@@ -413,8 +421,9 @@ float CaloWaveformFitting::psinc(float time, std::vector<float> &vec_signal_samp
 {
   int N = (int) vec_signal_samples.size();
 
-  if ((std::round(time) - time) < 1e-6)
+  if (abs(std::round(time) - time) < 1e-6)
   {
+ 
     if (time < 0 || time >= N)
     {
       return stablepsinc(time, vec_signal_samples);
@@ -444,5 +453,6 @@ float CaloWaveformFitting::psinc(float time, std::vector<float> &vec_signal_samp
       sum += vec_signal_samples[n] * std::sin(piu) / (std::sin(piuN)) / N;
     }
   }
+ 
   return sum;
 }
