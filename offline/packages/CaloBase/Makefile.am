@@ -56,6 +56,7 @@ pkginclude_HEADERS = \
   TowerInfov1.h \
   TowerInfov2.h \
   TowerInfov3.h \
+  TowerInfov4.h \
   TowerInfoContainer.h \
   TowerInfoContainerv1.h \
   TowerInfoContainerv2.h \
@@ -84,6 +85,7 @@ ROOTDICTS = \
   TowerInfov1_Dict.cc \
   TowerInfov2_Dict.cc \
   TowerInfov3_Dict.cc \
+  TowerInfov4_Dict.cc \
   TowerInfoContainer_Dict.cc \
   TowerInfoContainerv1_Dict.cc \
   TowerInfoContainerv2_Dict.cc \
@@ -112,6 +114,7 @@ nobase_dist_pcm_DATA = \
   TowerInfov1_Dict_rdict.pcm \
   TowerInfov2_Dict_rdict.pcm \
   TowerInfov3_Dict_rdict.pcm \
+  TowerInfov4_Dict_rdict.pcm \
   TowerInfoContainer_Dict_rdict.pcm \
   TowerInfoContainerv1_Dict_rdict.pcm \
   TowerInfoContainerv2_Dict_rdict.pcm \
@@ -139,6 +142,7 @@ libcalo_io_la_SOURCES = \
   TowerInfov1.cc \
   TowerInfov2.cc \
   TowerInfov3.cc \
+  TowerInfov4.cc \
   TowerInfoDefs.cc \
   TowerInfoContainer.cc \
   TowerInfoContainerv1.cc \
