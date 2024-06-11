@@ -63,9 +63,11 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   for(int channel = 0; channel < size; channel++){
     std::string hname = (boost::format("h_cemc_channel_pedestal_%d") % channel).str();
     h_cemc_channel_pedestal[channel] = new TH1F(hname.c_str(), hname.c_str(), 2000, -0.5, 2000.5);
-    
+    h_cemc_channel_pedestal[channel]->SetDirectory(0);
+
     std::string hnameE = (boost::format("h_cemc_channel_energy_%d") % channel).str();
     h_cemc_channel_energy[channel] = new TH1F(hnameE.c_str(), hnameE.c_str(), 1000, -50, 50);
+h_cemc_channel_energy[channel]->SetDirectory(0);
  }
 }
 //--------OHCal--------//
@@ -74,9 +76,11 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   for(int channel = 0; channel < size; channel++){
     std::string hname = (boost::format("h_ohcal_channel_pedestal_%d") % channel).str();
     h_ohcal_channel_pedestal[channel] = new TH1F(hname.c_str(), hname.c_str(), 2000, -0.5, 2000.5);
-    
+    h_ohcal_channel_pedestal[channel]->SetDirectory(0);
+
     std::string hnameE = (boost::format("h_ohcal_channel_energy_%d") % channel).str();
     h_ohcal_channel_energy[channel] = new TH1F(hnameE.c_str(), hnameE.c_str(), 1000, -50, 50);
+h_ohcal_channel_energy[channel]->SetDirectory(0);
  }
 }
 //--------IHCal-------//
@@ -85,9 +89,11 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   for(int channel = 0; channel < size; channel++){
     std::string hname = (boost::format("h_ihcal_channel_pedestal_%d") % channel).str();
     h_ihcal_channel_pedestal[channel] = new TH1F(hname.c_str(), hname.c_str(), 2000, -0.5, 2000.5);
-    
+    h_ihcal_channel_pedestal[channel]->SetDirectory(0);
+
     std::string hnameE = (boost::format("h_ihcal_channel_energy_%d") % channel).str();
     h_ihcal_channel_energy[channel] = new TH1F(hnameE.c_str(), hnameE.c_str(), 1000, -50, 50);
+h_ihcal_channel_energy[channel]->SetDirectory(0);
  }
 }
   
