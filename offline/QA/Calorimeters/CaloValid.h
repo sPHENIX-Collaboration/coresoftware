@@ -19,7 +19,7 @@ class CaloValid : public SubsysReco
 {
  public:
   //! constructor
-  CaloValid(const std::string& name = "CaloValid");// const std::string &filename = "testQA.root"); //int nevents = 100);
+  CaloValid(const std::string& name = "CaloValid");  // const std::string &filename = "testQA.root"); //int nevents = 100);
 
   //! destructor
   virtual ~CaloValid();
@@ -55,17 +55,17 @@ class CaloValid : public SubsysReco
   std::string m_outputFileName;
   std::string OutputFileName;
 
-  TH1* h_cemc_channel_pedestal[128*192];
-  TH1* h_ihcal_channel_pedestal[32*48];
-  TH1* h_ohcal_channel_pedestal[32*48];
+  TH1* h_cemc_channel_pedestal[128 * 192];
+  TH1* h_ihcal_channel_pedestal[32 * 48];
+  TH1* h_ohcal_channel_pedestal[32 * 48];
 
-  TH1* h_cemc_channel_energy[128*192];
-  TH1* h_ihcal_channel_energy[32*48];
-  TH1* h_ohcal_channel_energy[32*48];
+  TH1* h_cemc_channel_energy[128 * 192];
+  TH1* h_ihcal_channel_energy[32 * 48];
+  TH1* h_ohcal_channel_energy[32 * 48];
 
-  //TProfile2D* h_cemc_etaphi_pedRMS{nullptr};
- 
-  //TProfile2D* h_cemc_etaphi_pedRMS{nullptr};
+  // TProfile2D* h_cemc_etaphi_pedRMS{nullptr};
+
+  // TProfile2D* h_cemc_etaphi_pedRMS{nullptr};
   /*
   TH2* h_emcal_mbd_correlation{nullptr};
   TH2* h_ohcal_mbd_correlation{nullptr};
