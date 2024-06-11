@@ -57,7 +57,7 @@ class JetSeedCount : public SubsysReco
  private:
   Fun4AllHistoManager *m_manager{nullptr};
 
-  bool m_writeToOutputFile;
+  bool m_writeToOutputFile {false};
 
   int m_event{0};
   int m_seed_sub{std::numeric_limits<int>::max()};
