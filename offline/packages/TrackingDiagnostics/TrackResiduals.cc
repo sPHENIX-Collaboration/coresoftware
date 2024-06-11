@@ -1168,7 +1168,6 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey, // SvtxTra
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
-  ActsTransformations transformer;
   TrkrCluster* cluster = clustermap->findCluster(ckey);
 
   //loop over global vector and get this cluster
