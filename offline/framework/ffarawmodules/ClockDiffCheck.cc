@@ -104,7 +104,9 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 			  delete container->getPacket(i);
 			}
 		    }
-		  int EvtCounts[maxDifCts][2] = {0};
+		  vector<vector<int>> EvtCounts;
+		  vector<int> NrAndCount(2);
+		  NrAndCount[1] = 1;
 		  int counter = 0;
 		  int bestEvt = -1;
 		  int bestEvtCnt = 0;
@@ -128,8 +130,8 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 				}
 			      if (k >= counter)
 				{
-				  EvtCounts[counter][0] = packet->iValue(j, "FEMEVTNR");
-				  EvtCounts[counter][1]++;
+				  NrAndCount[0] = packet->iValue(j, "FEMEVTNR");
+				  EvtCounts.push_back(NrAndCount);
 				  counter++;
 				}
 			    }
