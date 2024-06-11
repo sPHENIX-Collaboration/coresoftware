@@ -6,6 +6,10 @@
 #include <ffarawobjects/MicromegasRawHitContainerv1.h>
 #include <ffarawobjects/MicromegasRawHitv1.h>
 
+#include <qautils/QAHistManagerDef.h>
+#include <qautils/QAUtil.h>
+#include <fun4all/Fun4AllHistoManager.h>
+
 #include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
@@ -45,16 +49,6 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
     std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped: " << m_waveform_count_dropped << std::endl;
     std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio: " << double(m_waveform_count_dropped)/m_waveform_count_total << std::endl;
   }
-
-  if( m_evaluation_file )
-  {
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - writing histograms to " << m_evaluation_filename << std::endl;
-    m_evaluation_file->cd();
-    if( m_npacket_bco_hist ) m_npacket_bco_hist->Write();
-    if( m_nwaveform_bco_hist ) m_nwaveform_bco_hist->Write();
-    m_evaluation_file->Close();
-  }
-
 }
 
 //______________________________________________________________
@@ -447,19 +441,14 @@ void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
 }
 
 //_______________________________________________________
-void SingleMicromegasPoolInput::FillBcoStatistics( uint64_t gtm_bco)
+void SingleMicromegasPoolInput::FillBcoQA( uint64_t gtm_bco)
 {
-  if( !m_do_evaluation ) return;
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
 
-  if( !m_evaluation_file )
-  { m_evaluation_file.reset( TFile::Open( m_evaluation_filename.c_str(), "RECREATE" )); }
-
-  if( !m_npacket_bco_hist )
-  { m_npacket_bco_hist = new TH1I( "m_npacket_bco_hist", "packet count per GTM BCO; packets; A.U.", 10, 0, 10 ); }
-
-  if( !m_nwaveform_bco_hist )
-  { m_nwaveform_bco_hist = new TH1I( "m_nwaveform_bco_hist", "waveform count per GTM BCO; waveforms; A.U.", 4100, 0, 4100 ); }
-
+  TH1 *h_packet = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_npacket_bco"));
+  TH1 *h_waveform = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_nwaveform_bco")); 
+  
   unsigned int n_waveforms = 0;
   unsigned int n_packets = 0;
   for( uint64_t gtm_bco_loc = gtm_bco - m_NegativeBco; gtm_bco_loc < gtm_bco + m_BcoRange - m_NegativeBco; ++gtm_bco_loc )
@@ -473,13 +462,25 @@ void SingleMicromegasPoolInput::FillBcoStatistics( uint64_t gtm_bco)
 
   if( Verbosity() )
   {
-    std::cout << "SingleMicromegasPoolInput::FillBcoStatistics -"
+    std::cout << "SingleMicromegasPoolInput::FillBcoQA -"
       << " BCO: 0x" << std::hex << gtm_bco << std::dec
       << " n_packets: " << n_packets
       << " n_waveforms: " << n_waveforms
       << std::endl;
   }
 
-  m_npacket_bco_hist->Fill(n_packets);
-  m_nwaveform_bco_hist->Fill(n_waveforms);
+  h_packet->Fill(n_packets);
+  h_waveform->Fill(n_waveforms);
+}
+
+//_______________________________________________________
+void SingleMicromegasPoolInput::createQAHistos()
+{
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  auto h_npacket_bco_hist = new TH1I( "h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Packets; A.U.", 10, 0, 10 );
+  hm->registerHisto(h_npacket_bco_hist); 
+  auto h_nwaveform_bco_hist = new TH1I( "h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Waveforms; A.U.", 4100, 0, 4100 );
+  hm->registerHisto(h_nwaveform_bco_hist); 
 }

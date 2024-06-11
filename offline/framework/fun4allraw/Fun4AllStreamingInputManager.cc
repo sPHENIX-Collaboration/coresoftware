@@ -25,11 +25,13 @@
 
 #include <frog/FROG.h>
 
+#include <boost/format.hpp>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
+#include <TH1.h>
 
 #include <algorithm>  // for max
 #include <cassert>
@@ -44,6 +46,7 @@ Fun4AllStreamingInputManager::Fun4AllStreamingInputManager(const std::string &na
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   m_topNode = se->topNode(TopNodeName());
+  
   return;
 }
 
@@ -801,9 +804,15 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   }
 
   // fill all BCO statistics
+  bool first = true;
   for (const auto &iter : m_MicromegasInputVector)
   {
-    static_cast<SingleMicromegasPoolInput*>(iter)->FillBcoStatistics(m_RefBCO);
+    if (first)
+    {
+      static_cast<SingleMicromegasPoolInput*>(iter)->createQAHistos();
+      first = false; 
+    }
+    static_cast<SingleMicromegasPoolInput*>(iter)->FillBcoQA(m_RefBCO);
   }
 
 

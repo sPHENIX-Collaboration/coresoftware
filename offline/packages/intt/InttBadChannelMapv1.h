@@ -1,8 +1,8 @@
 #ifndef INTT_BAD_CHANNEL_MAPv1_H
 #define INTT_BAD_CHANNEL_MAPv1_H
 
-#include "InttMap.h"
 #include "InttBadChannelMap.h"
+#include "InttMap.h"
 
 #include <cstddef>  // for size_t
 #include <iostream>
