@@ -104,8 +104,8 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 			  delete container->getPacket(i);
 			}
 		    }
-		  vector<vector<int>> EvtCounts;
-		  vector<int> NrAndCount(2);
+		  std::vector<std::vector<int>> EvtCounts;
+		  std::vector<int> NrAndCount(2);
 		  NrAndCount[1] = 1;
 		  int counter = 0;
 		  int bestEvt = -1;
