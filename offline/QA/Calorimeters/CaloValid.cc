@@ -8,32 +8,31 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/getClass.h>
-#include <phool/phool.h>  // for PHWHERE
+#include <mbd/MbdPmtContainer.h>
+#include <mbd/MbdPmtHit.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
 #include <qautils/QAHistManagerDef.h>
 
-#include <boost/format.hpp>
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
-// MBD
-#include <TFile.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
+
 #include <TH1.h>
 #include <TH2.h>
 #include <TLorentzVector.h>
-#include <TNtuple.h>
 #include <TProfile2D.h>
 #include <TSystem.h>
-#include <TTree.h>
-#include <mbd/MbdPmtContainer.h>
-#include <mbd/MbdPmtHit.h>
 
+#include <boost/format.hpp>
+
+#include <cassert>
 #include <cmath>     // for log10, pow, sqrt, abs, M_PI
+#include <cstdint>
 #include <iostream>  // for operator<<, endl, basic_...
 #include <limits>
 #include <map>  // for operator!=, _Rb_tree_con...
@@ -45,8 +44,6 @@ CaloValid::CaloValid(const std::string& name)
   , detector("HCALIN")
 {
 }
-
-CaloValid::~CaloValid() = default;
 
 int CaloValid::Init(PHCompositeNode* /*unused*/)
 {
@@ -64,11 +61,11 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
     {
       std::string hname = (boost::format("h_cemc_channel_pedestal_%d") % channel).str();
       h_cemc_channel_pedestal[channel] = new TH1F(hname.c_str(), hname.c_str(), 2000, -0.5, 2000.5);
-      h_cemc_channel_pedestal[channel]->SetDirectory(0);
+      h_cemc_channel_pedestal[channel]->SetDirectory(nullptr);
 
       std::string hnameE = (boost::format("h_cemc_channel_energy_%d") % channel).str();
       h_cemc_channel_energy[channel] = new TH1F(hnameE.c_str(), hnameE.c_str(), 1000, -50, 50);
-      h_cemc_channel_energy[channel]->SetDirectory(0);
+      h_cemc_channel_energy[channel]->SetDirectory(nullptr);
     }
   }
   //--------OHCal--------//
@@ -78,11 +75,11 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
     {
       std::string hname = (boost::format("h_ohcal_channel_pedestal_%d") % channel).str();
       h_ohcal_channel_pedestal[channel] = new TH1F(hname.c_str(), hname.c_str(), 2000, -0.5, 2000.5);
-      h_ohcal_channel_pedestal[channel]->SetDirectory(0);
+      h_ohcal_channel_pedestal[channel]->SetDirectory(nullptr);
 
       std::string hnameE = (boost::format("h_ohcal_channel_energy_%d") % channel).str();
       h_ohcal_channel_energy[channel] = new TH1F(hnameE.c_str(), hnameE.c_str(), 1000, -50, 50);
-      h_ohcal_channel_energy[channel]->SetDirectory(0);
+      h_ohcal_channel_energy[channel]->SetDirectory(nullptr);
     }
   }
   //--------IHCal-------//
@@ -92,11 +89,11 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
     {
       std::string hname = (boost::format("h_ihcal_channel_pedestal_%d") % channel).str();
       h_ihcal_channel_pedestal[channel] = new TH1F(hname.c_str(), hname.c_str(), 2000, -0.5, 2000.5);
-      h_ihcal_channel_pedestal[channel]->SetDirectory(0);
+      h_ihcal_channel_pedestal[channel]->SetDirectory(nullptr);
 
       std::string hnameE = (boost::format("h_ihcal_channel_energy_%d") % channel).str();
       h_ihcal_channel_energy[channel] = new TH1F(hnameE.c_str(), hnameE.c_str(), 1000, -50, 50);
-      h_ihcal_channel_energy[channel]->SetDirectory(0);
+      h_ihcal_channel_energy[channel]->SetDirectory(nullptr);
     }
   }
 
