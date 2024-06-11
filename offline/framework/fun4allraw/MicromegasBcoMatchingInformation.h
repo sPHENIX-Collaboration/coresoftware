@@ -33,6 +33,10 @@ class MicromegasBcoMatchingInformation
   bool is_verified() const
   { return m_verified; }
 
+  //! true if new synchronization is needed
+  bool needs_synchronize() const
+  { return m_needs_synchronize; }
+
   //! get predicted fee_bco from gtm_bco
   std::optional<uint32_t> get_predicted_fee_bco( uint64_t ) const;
 
@@ -85,6 +89,9 @@ class MicromegasBcoMatchingInformation
   //! verified
   bool m_verified = false;
 
+  //! true if needs to re-synchronize gtm_bco_first and fee_bco_first
+  bool m_needs_synchronize = false;
+
   //! first lvl1 bco (40 bits)
   uint64_t m_gtm_bco_first = 0;
 
@@ -115,18 +122,6 @@ class MicromegasBcoMatchingInformation
 
   //! running count for multiplier adjustment
   unsigned int m_multiplier_adjustment_count = 0;
-
-  // define limit for matching two fee_bco
-  static constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
-
-  // define limit for matching two fee_bco
-  static constexpr unsigned int m_max_fee_bco_diff = 10;
-
-  // define limit for matching fee_bco to fee_bco_predicted
-  static constexpr unsigned int m_max_gtm_bco_diff = 100;
-
-  // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
-  static constexpr unsigned int m_max_matching_data_size = 50;
 
 };
 
