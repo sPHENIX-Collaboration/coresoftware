@@ -70,7 +70,7 @@ std::optional<uint32_t> MicromegasBcoMatchingInformation::get_predicted_fee_bco(
     (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
 
   // convert to fee bco, and truncate to 20 bits
-  const uint64_t fee_bco_predicted = m_fee_bco_first + m_multiplier*(gtm_bco_difference);
+  const uint64_t fee_bco_predicted = m_fee_bco_first + get_adjusted_multiplier()*gtm_bco_difference;
   return  uint32_t(fee_bco_predicted & 0xFFFFFU);
 }
 
@@ -141,7 +141,7 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
         (gtm_bco -  gtm_bco_list.back()):
         (gtm_bco + (1ULL<<40U) - gtm_bco_list.back());
 
-      gtm_bco_diff_list.push_back(m_multiplier*gtm_bco_difference);
+      gtm_bco_diff_list.push_back(get_adjusted_multiplier()*gtm_bco_difference);
     }
 
     // append to list
@@ -228,7 +228,7 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t
 
   } else {
 
-    // find element for which predicted fee_bco is the closest to request
+    // find element for which predicted fee_bco matches fee_bco, within limit
     const auto iter = std::find_if(
       m_gtm_bco_list.begin(),
       m_gtm_bco_list.end(),
@@ -241,13 +241,13 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t
       const auto gtm_bco = *iter;
       if (verbosity())
       {
-        const auto predicted_fee_bco = get_predicted_fee_bco(gtm_bco).value();
-        const auto fee_bco_diff = get_bco_diff(predicted_fee_bco, fee_bco);
+        const auto fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
+        const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
 
         std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco -"
           << std::hex
           << " fee_bco: 0x" << fee_bco
-          << " predicted: 0x" << predicted_fee_bco
+          << " predicted: 0x" << fee_bco_predicted
           << " gtm_bco: 0x" << gtm_bco
           << std::dec
           << " difference: " << fee_bco_diff
@@ -259,6 +259,9 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t
 
       // remove gtm bco from runing list
       m_gtm_bco_list.erase(iter);
+
+      // update clock adjustment
+      update_multiplier_adjustment( gtm_bco, fee_bco );
 
       return gtm_bco;
     } else {
@@ -302,4 +305,53 @@ void MicromegasBcoMatchingInformation::cleanup()
 
   // clear orphans
   m_orphans.clear();
+}
+
+
+//___________________________________________________
+double MicromegasBcoMatchingInformation::get_adjusted_multiplier() const
+{ return m_multiplier + m_multiplier_adjustment; }
+
+//___________________________________________________
+void MicromegasBcoMatchingInformation::update_multiplier_adjustment( uint64_t gtm_bco, uint32_t fee_bco )
+{
+  // check that references are valid
+  if( !m_verified ) return;
+
+  // skip if trivial
+  if( gtm_bco == m_gtm_bco_first ) return;
+
+  const uint32_t fee_bco_predicted = get_predicted_fee_bco( gtm_bco ).value();
+  const double delta_fee_bco = double(fee_bco)-double(fee_bco_predicted);
+  const double gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
+    (gtm_bco - m_gtm_bco_first):
+    (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
+
+  m_multiplier_adjustment_numerator += gtm_bco_difference*delta_fee_bco;
+  m_multiplier_adjustment_denominator += gtm_bco_difference*gtm_bco_difference;
+  ++m_multiplier_adjustment_count;
+
+  if( verbosity() )
+  {
+
+    const auto default_precision{std::cout.precision()};
+    std::cout << "MicromegasBcoMatchingInformation::update_multiplier_adjustment -"
+      << " m_multiplier_adjustment_count: " << m_multiplier_adjustment_count
+      << std::setprecision(10)
+      << " m_multiplier: " << get_adjusted_multiplier()
+      << " adjustment: " << m_multiplier_adjustment_numerator/m_multiplier_adjustment_denominator
+      << " m_multiplier_adjusted: " << get_adjusted_multiplier() + m_multiplier_adjustment_numerator/m_multiplier_adjustment_denominator
+      << std::setprecision(default_precision)
+      << std::endl;
+  }
+
+  // update multiplier
+  if( m_multiplier_adjustment_count > m_max_multiplier_adjustment_count )
+  {
+    m_multiplier_adjustment += m_multiplier_adjustment_numerator/m_multiplier_adjustment_denominator;
+    m_multiplier_adjustment_numerator = 0;
+    m_multiplier_adjustment_denominator = 0;
+    m_multiplier_adjustment_count = 0;
+  }
+
 }
