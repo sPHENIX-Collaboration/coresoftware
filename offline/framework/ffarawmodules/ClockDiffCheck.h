@@ -43,6 +43,7 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   bool delBadPkts = false;
   const int maxPackets = 8;
   const int maxFem = 3;
+  const int maxDifCts = maxPackets*maxFem;
   std::map<unsigned int, std::tuple<uint64_t, uint64_t, uint64_t, TH1 *, bool>> m_PacketStuffMap;
   /* std::string m_EvtNodeName = "CLOCKDIFFRAWHIT"; */
   /* std::set<uint64_t> bclk_seen; */

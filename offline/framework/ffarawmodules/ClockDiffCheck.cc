@@ -104,7 +104,6 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 			  delete container->getPacket(i);
 			}
 		    }
-		  const int maxDifCts = maxPackets*maxFem;
 		  int EvtCounts[maxDifCts][2] = {0};
 		  int counter = 0;
 		  int bestEvt;
