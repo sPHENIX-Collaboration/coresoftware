@@ -134,7 +134,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     // copy to globalvertex
   }
 
-  //if (Verbosity() > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "mbd vertex z and t0 " << m_mbdevent->get_bbcz() << ", " << m_mbdevent->get_bbct0() << std::endl;
   }
