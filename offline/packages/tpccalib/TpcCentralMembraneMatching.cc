@@ -32,6 +32,7 @@
 #include <cmath>
 #include <set>
 #include <string>
+#include <iomanip>
 
 namespace
 {
@@ -244,7 +245,7 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F* r_phi, bool
 
     if (Verbosity())
     {
-      std::cout << (side ? "side 1" : "side 0") << " z has fewer than 5 radial peaks (only has " << rPeaks.size() << "). Returning empty vectors" << std::endl;
+      std::cout << (side ? "side 1" : "side 0") << " has fewer than 5 radial peaks (only has " << rPeaks.size() << "). Returning empty vectors" << std::endl;
     }
     return hitMatches;
   }
@@ -464,23 +465,12 @@ int TpcCentralMembraneMatching::getClusterRMatch(double clusterR, int side)
   double closestDist = 100.;
   int closestPeak = -1;
 
-  std::vector<double> reco_RPeaks;
-
-  if(side)
-  {
-    reco_RPeaks = m_reco_RPeaks[1];
-  }
-  else
-  {
-    reco_RPeaks = m_reco_RPeaks[0];
-  }
-
   // find cluster peak closest to position of passed cluster
-  for (int j = 0; j < (int) reco_RPeaks.size(); j++)
+  for (int j = 0; j < (int) m_reco_RPeaks[side].size(); j++)
   {
-    if (std::abs(clusterR - reco_RPeaks[j]) < closestDist)
+    if (std::abs(clusterR - m_reco_RPeaks[side][j]) < closestDist)
     {
-      closestDist = std::abs(clusterR - reco_RPeaks[j]);
+      closestDist = std::abs(clusterR - m_reco_RPeaks[side][j]);
       closestPeak = j;
     }
   }
@@ -488,14 +478,7 @@ int TpcCentralMembraneMatching::getClusterRMatch(double clusterR, int side)
   // return hit match to cluster peak or -1 if closest peak failed (shouldn't be possible)
   if (closestPeak != -1)
   {
-    if(side)
-    {
-      return m_reco_RMatches[1][closestPeak];
-    }
-    else
-    {
-      return m_reco_RMatches[0][closestPeak];
-    }
+    return m_reco_RMatches[side][closestPeak];
   }
   else
   {
@@ -703,7 +686,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
   reco_r_phi[0]->Reset();
   reco_r_phi[1]->Reset();
 
-  int nClus_gt5 = 0;
+  int nClus_gtMin = 0;
+  int clusterIndex = 0;
 
   // read the reconstructed CM clusters
   auto clusrange = m_corrected_CMcluster_map->getClusters();
@@ -717,17 +701,17 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     const unsigned int nhits = cmclus->getNhits();
     // const unsigned int nclus = cmclus->getNclusters();
     const unsigned int adc = cmclus->getAdc();
-    //bool side = (bool)cmclus->getSide();
     bool side = (bool)TpcDefs::getSide(cmkey);
 
+    //std::cout << "cluster " << clusterIndex << " side=" << side << "   sideKey=" << sideKey << "   are they the same? " << (side == sideKey ? "true" : "false") << std::endl;
     // if(m_useOnly_nClus2 && nclus != 2) continue;
 
-    if (nhits <= 5)
+    if (nhits < m_nHitsInCuster_minimum)
     {
       continue;
     }
 
-    nClus_gt5++;
+    nClus_gtMin++;
 
     // const bool isRGap = cmclus->getIsRGap();
 
@@ -782,7 +766,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     {
       double raw_rad = sqrt(cmclus->getX() * cmclus->getX() + cmclus->getY() * cmclus->getY());
       double corr_rad = sqrt(tmp_pos.X() * tmp_pos.X() + tmp_pos.Y() * tmp_pos.Y());
-      std::cout << "found raw cluster " << cmkey << " with x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ() << " radius " << raw_rad << std::endl;
+      std::cout << "cluster " << clusterIndex << std::endl;
+      clusterIndex++;
+      std::cout << "found raw cluster " << cmkey << " side " << side << " with x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ() << " radius " << raw_rad << std::endl;
       std::cout << "                --- corrected positions: " << tmp_pos.X() << "  " << tmp_pos.Y() << "  " << tmp_pos.Z() << " radius " << corr_rad << std::endl;
     }
 
@@ -792,7 +778,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     }
   }
 
-  if (nClus_gt5 < 50)
+  if (nClus_gtMin < 25)
   {
     m_event_index++;
     return Fun4AllReturnCodes::EVENT_OK;
@@ -825,9 +811,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
 
   int truth_index = 0;
   int nMatched = 0;
-  std::vector<bool> truth_matched(m_truth_pos.size());
-  std::vector<bool> reco_matched(reco_pos.size());
-  std::vector<int> truth_matchedRecoIndex(reco_pos.size());
+  std::vector<bool> truth_matched(m_truth_pos.size(),false);
+  std::vector<bool> reco_matched(reco_pos.size(),false);
+  std::vector<int> truth_matchedRecoIndex(m_truth_pos.size(),-1);
 
   for (auto truth : m_truth_pos)
   {
@@ -848,32 +834,44 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
       }
     }
 
+    if(truthRIndex == -1){
+      truth_index++;
+      continue;
+    }
+
     double prev_dphi = 10000.0;
 
     int recoMatchIndex = -1;
-    int reco_index = 0;
+    unsigned int reco_index = 0;
     for (auto reco : reco_pos)
     {
 
-      int region = -1;
-
-      if(reco.Perp() < 41)
+      if(reco_matched[reco_index])
       {
-        region = 0;
-      }
-      else if (reco.Perp() >= 41 && reco.Perp() < 58)
-      {
-        region = 1;
-      }
-      else if(reco.Perp() >= 58)
-      {
-        region = 2;
+        reco_index++;
+        continue;
       }
 
       double rR = get_r(reco.X(), reco.Y());
       double rPhi = reco.Phi();
-      //double rZ = reco.Z();
       bool side = reco_side[reco_index];
+
+      int region = -1;
+
+      if(rR < 41)
+      {
+        region = 0;
+      }
+      else if (rR >= 41 && rR < 58)
+      {
+        region = 1;
+      }
+      else if(rR >= 58)
+      {
+        region = 2;
+      }
+
+ 
       if(region != -1)
       {
         if(side)
@@ -888,7 +886,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
 
 
       int clustRMatchIndex = -1;
-      clustRMatchIndex = getClusterRMatch(rR,side);
+      clustRMatchIndex = getClusterRMatch(rR,(int)(side ? 1 : 0));
       
       /*
       if (side)
@@ -903,17 +901,20 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
 
       if (clustRMatchIndex == -1 || truthRIndex != clustRMatchIndex)
       {
+        reco_index++;
         continue;
       }
 
       if((!side  && tZ > 0) || (side && tZ < 0))
       {
+        reco_index++;
         continue;
       }
 
       auto dphi = delta_phi(tPhi - rPhi);
       if(fabs(dphi) > m_phi_cut)
       {
+        reco_index++;
         continue;
       }
 
@@ -930,8 +931,17 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     if (recoMatchIndex != -1)
     {
       truth_matchedRecoIndex[truth_index] = recoMatchIndex;
-      reco_matched[reco_index] = true;
+      reco_matched[recoMatchIndex] = true;
       nMatched++;
+
+      if(Verbosity() > 2)
+      {
+
+        std::cout << "truth " << truth_index << " matched to reco " << recoMatchIndex << " and there are now " << nMatched << " matches" << std::endl;
+        std::cout << "tR=" << std::setw(10) << tR << " tPhi=" << std::setw(10) << tPhi << " tZ=" << std::setw(10) << tZ << std::endl;
+        std::cout << "rR=" << std::setw(10) << get_r(reco_pos[recoMatchIndex].X(), reco_pos[recoMatchIndex].Y())<< " rPhi=" << std::setw(10) << reco_pos[recoMatchIndex].Phi()  << " rZ=" << std::setw(10) << reco_pos[recoMatchIndex].Z() << " rSide=" << reco_side[recoMatchIndex] << "   dPhi=" << prev_dphi << std::endl;
+      }
+
     }
 
     truth_index++;
@@ -949,16 +959,22 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     std::cout << "TpcCentralMembraneMatching::process_event - matched_pair size: " << nMatched << std::endl;
   }
 
+  unsigned int ckey = 0;
   for (unsigned int i = 0; i < m_truth_pos.size(); i++)
   {
-  
-    unsigned int key = i;
+    
+    if(!truth_matched[i]) continue;
+
+    //std::cout << "i=" << i << "   ckey=" << ckey << "   reco_index=" << truth_matchedRecoIndex[i] << std::endl;
+
     int reco_index = truth_matchedRecoIndex[i];
 
     if(reco_index == -1)
     {
       continue;
     }
+
+    //std::cout << "good reco_index" << std::endl;
 
     auto cmdiff = new CMFlashDifferencev1();
     cmdiff->setTruthPhi(m_truth_pos[i].Phi());
@@ -972,10 +988,10 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
 
     if (Verbosity() > 1)
     {
-      std::cout << "adding cmdiff to container with key " << key << " in event " << m_event_index << std::endl;
+      std::cout << "adding cmdiff to container with key " << ckey << " in event " << m_event_index << std::endl;
     }
 
-    m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
+    m_cm_flash_diffs->addDifferenceSpecifyKey(ckey, cmdiff);
 
     if (m_savehistograms)
     {
@@ -991,8 +1007,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     }
 
     const double clus_z = reco_pos[reco_index].z();
-    const unsigned int side = (clus_z < 0) ? 0 : 1;
-    if(side != reco_side[reco_index]) std::cout << "sides do not match!" << std::endl;
+    const bool side = (clus_z < 0) ? false : true;
+    //if(side != reco_side[reco_index]) std::cout << "sides do not match!" << std::endl;
 
     // calculate residuals (cluster - truth)
     const double dr = reco_pos[reco_index].Perp() - m_truth_pos[i].Perp();
@@ -1013,6 +1029,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
       static_cast<TH2*>(dcc->m_hDZint[side])->Fill(clus_phi, clus_r, dz);
       static_cast<TH2*>(dcc->m_hentries[side])->Fill(clus_phi, clus_r);
     }
+
+    ckey++;
   }
 
   if (Verbosity())

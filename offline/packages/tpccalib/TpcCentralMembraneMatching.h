@@ -62,6 +62,11 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_debugfilename = debugfile;
   }
 
+  void set_nHitsInCluster_minimum(const unsigned int minHits)
+  {
+    m_nHitsInCuster_minimum = minHits;
+  }
+
   void set_grid_dimensions(int phibins, int rbins);
 
   //! run initialization
@@ -136,6 +141,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   int m_event_index = 0;
 
   //@}
+
+  unsigned int m_nHitsInCuster_minimum = 5;
 
   /// radius cut for matching clusters to pad, for size 2 clusters
   //  double m_rad_cut= 0.5;

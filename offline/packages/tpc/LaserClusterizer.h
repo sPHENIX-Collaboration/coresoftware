@@ -5,6 +5,7 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <phool/PHTimer.h>
 

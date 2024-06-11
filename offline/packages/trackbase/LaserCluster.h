@@ -60,9 +60,6 @@ class LaserCluster : public PHObject
   virtual float getIT() const { return NAN; }
   virtual void setIT(float) {}
 
-  virtual bool getSide() const { return NAN; }
-  virtual void setSide(bool) {}
-
   //
   // cluster info
   //

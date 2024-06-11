@@ -243,12 +243,12 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     itMeanContent_0 = itMeanContent_0 / 360.0;
     itMeanContent_1 = itMeanContent_1 / 360.0;
 
-    m_itHist_0->GetXaxis()->SetRange(150, 360);
+    m_itHist_0->GetXaxis()->SetRange(200, 360);
     double itMax_0 = m_itHist_0->GetBinCenter(m_itHist_0->GetMaximumBin());
     double itMaxContent_0 = m_itHist_0->GetMaximum();
     m_itHist_0->GetXaxis()->SetRange(0, 0);
 
-    m_itHist_1->GetXaxis()->SetRange(150, 360);
+    m_itHist_1->GetXaxis()->SetRange(200, 360);
     double itMax_1 = m_itHist_1->GetBinCenter(m_itHist_1->GetMaximumBin());
     double itMaxContent_1 = m_itHist_1->GetMaximum();
     m_itHist_1->GetXaxis()->SetRange(0, 0);
@@ -291,11 +291,11 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
         int iphi = TpcDefs::getPad(hitr->first);
         int it = TpcDefs::getTBin(hitr->first);
 
-        if (side == 0 && fabs(it - itMax_0) > 25)
+        if (side == 0 && fabs(it - itMax_0) > 10)
         {
           continue;
         }
-        if (side == 1 && fabs(it - itMax_1) > 25)
+        if (side == 1 && fabs(it - itMax_1) > 10)
         {
           continue;
         }
@@ -306,7 +306,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
         float x = r * cos(phi);
         float y = r * sin(phi);
         float z = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
-        if (side == 1)
+        if (side == 0)
         {
           z = -z;
           it = -it;
@@ -545,7 +545,7 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   double clusX = clusR * cos(clusPhi);
   double clusY = clusR * sin(clusPhi);
   double clusZ = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
-  if (itSum < 0)
+  if (meanSide < 0)
   {
     clusZ = -clusZ;
     for (int i = 0; i < (int) clus->getNhits(); i++)
@@ -561,8 +561,6 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   clus->setLayer(layerSum / adcSum);
   clus->setIPhi(iphiSum / adcSum);
   clus->setIT(itSum / adcSum);
-  if(meanSide>0) clus->setSide(1);
-  else clus->setSide(0);
 
   const auto ckey = TrkrDefs::genClusKey(maxKey, m_clusterlist->size());
   m_clusterlist->addClusterSpecifyKey(ckey, clus);
