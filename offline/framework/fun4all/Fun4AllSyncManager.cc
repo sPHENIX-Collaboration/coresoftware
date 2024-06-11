@@ -290,19 +290,19 @@ int Fun4AllSyncManager::skip(const int nevnts)
     // this is much faster than actually reading the events in
     int iret = 0;
     bool first = true;
-    for (auto & iman : m_InManager)
+    for (auto &iman : m_InManager)
     {
       if (iman->HasSyncObject())
       {
-	if (first)
-	{
-	  iret += iman->PushBackEvents(Npushback);
-	  first = false;
-	}
+        if (first)
+        {
+          iret += iman->PushBackEvents(Npushback);
+          first = false;
+        }
       }
       else
       {
-	iret += iman->SkipForThisManager(nevnts);
+        iret += iman->SkipForThisManager(nevnts);
       }
     }
     if (!iret)
