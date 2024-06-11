@@ -31,7 +31,7 @@
 #include <boost/format.hpp>
 
 #include <cassert>
-#include <cmath>     // for log10, pow, sqrt, abs, M_PI
+#include <cmath>  // for log10, pow, sqrt, abs, M_PI
 #include <cstdint>
 #include <iostream>  // for operator<<, endl, basic_...
 #include <limits>
@@ -43,6 +43,22 @@ CaloValid::CaloValid(const std::string& name)
   : SubsysReco(name)
   , detector("HCALIN")
 {
+}
+
+CaloValid::~CaloValid()
+{
+  for (int i = 0; i < 128 * 192; i++)
+  {
+    delete h_cemc_channel_pedestal[i];
+    delete h_cemc_channel_energy[i];
+  }
+  for (int i = 0; i < 32 * 48; i++)
+  {
+    delete h_ihcal_channel_pedestal[i];
+    delete h_ihcal_channel_energy[i];
+    delete h_ohcal_channel_pedestal[i];
+    delete h_ohcal_channel_energy[i];
+  }
 }
 
 int CaloValid::Init(PHCompositeNode* /*unused*/)

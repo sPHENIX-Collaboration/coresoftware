@@ -17,7 +17,7 @@ class CaloValid : public SubsysReco
   CaloValid(const std::string& name = "CaloValid");  // const std::string &filename = "testQA.root"); //int nevents = 100);
 
   //! destructor
-  ~CaloValid() override = default;
+  ~CaloValid() override;
 
   //! full initialization
   int Init(PHCompositeNode*) override;
