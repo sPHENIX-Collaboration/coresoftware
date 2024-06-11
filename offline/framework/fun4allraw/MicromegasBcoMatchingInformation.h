@@ -37,7 +37,7 @@ class MicromegasBcoMatchingInformation
   std::optional<uint32_t> get_predicted_fee_bco( uint64_t ) const;
 
   //! multiplier
-  static double multiplier()
+  static double get_gtm_clock_multiplier()
   { return m_multiplier; }
 
   //@}
@@ -73,6 +73,12 @@ class MicromegasBcoMatchingInformation
 
   private:
 
+  //! update multiplier adjustment
+  void update_multiplier_adjustment( uint64_t /* gtm_bco */, uint32_t /* fee_bco */ );
+
+  //! get adjusted multiplier
+  double get_adjusted_multiplier() const;
+
   //! verbosity
   unsigned int m_verbosity = 0;
 
@@ -97,6 +103,21 @@ class MicromegasBcoMatchingInformation
 
   //! gtm clock multiplier
   static double m_multiplier;
+
+  //! adjustment to multiplier
+  double m_multiplier_adjustment = 0;
+
+  //! running numerator for multiplier adjustment
+  double m_multiplier_adjustment_numerator = 0;
+
+  //! running denominator for multiplier adjustment
+  double m_multiplier_adjustment_denominator = 0;
+
+  //! running count for multiplier adjustment
+  unsigned int m_multiplier_adjustment_count = 0;
+
+  // define limit for matching two fee_bco
+  static constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
 
   // define limit for matching two fee_bco
   static constexpr unsigned int m_max_fee_bco_diff = 10;
