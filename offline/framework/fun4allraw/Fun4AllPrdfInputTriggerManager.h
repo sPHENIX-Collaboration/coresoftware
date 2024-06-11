@@ -166,6 +166,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, int> m_RefClockCounters;
   std::map<SinglePrdfInput *, SinglePrdfInputInfo> m_SinglePrdfInputInfo;
   std::map<int, uint64_t> m_RefBcoDiffMap;
+  std::vector<uint64_t> m_HayStack;
 };
 
 #endif /* FUN4ALL_FUN4ALLPRDFINPUTPOOLMANAGER_H */

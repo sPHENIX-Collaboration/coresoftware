@@ -1275,6 +1275,7 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
 		      << diffbco << std::dec << std::endl;
 	    m_RefBcoDiffMap[nextIt->first] = diffbco;
+	    m_HayStack.push_back(diffbco);
 	  }
 	}
       }
@@ -1390,6 +1391,7 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
     auto sepditer = m_SEpdPacketMap.find(bcoiter.first);
     if (sepditer != m_SEpdPacketMap.end())
     {
+      std::vector<uint64_t> needle;
       for (auto &pktiter : sepditer->second.BcoDiffMap)
        {
        	uint64_t thisbco = pktiter.second;
