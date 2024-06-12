@@ -243,7 +243,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   //@}
 
   std::vector<double> m_reco_RPeaks[2];
-  double m_global_RShift[2];
+  double m_m[2];
+  double m_b[2];
   std::vector<int> m_reco_RMatches[2];
 
   double m_recoRotation[2][3];
