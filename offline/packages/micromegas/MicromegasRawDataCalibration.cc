@@ -73,14 +73,14 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
     for( int i=0; i<n_waveforms; ++i )
     {
       auto channel = packet->iValue( i, "CHANNEL" );
-      int fee = packet->iValue(i, "FEE" );
+      int fee_id = m_mapping.get_old_fee_id(packet->iValue(i, "FEE"));
       int samples = packet->iValue( i, "SAMPLES" );
       if( Verbosity() )
       {
         std::cout
           << "MicromegasRawDataCalibration::process_event -"
           << " waveform: " << i
-          << " fee: " << fee
+          << " fee_id: " << fee_id
           << " channel: " << channel
           << " samples: " << samples
           << std::endl;
@@ -88,13 +88,13 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
 
       // find relevant profile histogram
       TProfile* profile = nullptr;
-      auto piter = m_profile_map.lower_bound( fee );
-      if( piter == m_profile_map.end() || fee < piter->first )
+      auto piter = m_profile_map.lower_bound( fee_id );
+      if( piter == m_profile_map.end() || fee_id < piter->first )
       {
         // create and insert
-        profile = new TProfile( Form( "h_adc_channel_%i", fee ), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
+        profile = new TProfile( Form( "h_adc_channel_%i", fee_id ), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
         profile->SetErrorOption( "s" );
-        m_profile_map.insert(  piter, std::make_pair( fee, profile ) );
+        m_profile_map.insert(  piter, std::make_pair( fee_id, profile ) );
       } else profile = piter->second;
 
       // fill
@@ -122,14 +122,14 @@ int MicromegasRawDataCalibration::End(PHCompositeNode* /*topNode*/ )
 
     // create calibration data object
     MicromegasCalibrationData calibration_data;
-    for( const auto& [fee, profile]:m_profile_map )
+    for( const auto& [fee_id, profile]:m_profile_map )
     {
       for( int i = 0; i < profile->GetNbinsX(); ++ i )
       {
         const auto pedestal = profile->GetBinContent(i+1);
         const auto rms = profile->GetBinError(i+1);
-        calibration_data.set_pedestal( fee, i, pedestal );
-        calibration_data.set_rms( fee, i, rms );
+        calibration_data.set_pedestal( fee_id, i, pedestal );
+        calibration_data.set_rms( fee_id, i, rms );
       }
     }
     calibration_data.write( m_calibration_filename );
