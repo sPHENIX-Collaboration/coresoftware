@@ -73,7 +73,6 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
    */
   std::set<uint64_t> m_BclkStack;
 
-
   //! map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation>;
   bco_matching_information_map_t m_bco_matching_information_map;
