@@ -229,6 +229,7 @@ int MicromegasRawDataTimingEvaluation::End(PHCompositeNode* /*topNode*/)
     std::cout << "MicromegasRawDataTimingEvaluation::End - waveform_count_total: " << counts << std::endl;
     std::cout << "MicromegasRawDataTimingEvaluation::End - waveform_count_dropped: " << dropped << std::endl;
     std::cout << "MicromegasRawDataTimingEvaluation::End - ratio: " << double(dropped)/counts << std::endl;
+    std::cout << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
