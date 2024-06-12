@@ -33,10 +33,6 @@ class MicromegasBcoMatchingInformation
   bool is_verified() const
   { return m_verified; }
 
-  //! true if new synchronization is needed
-  bool needs_synchronize() const
-  { return m_needs_synchronize; }
-
   //! get predicted fee_bco from gtm_bco
   std::optional<uint32_t> get_predicted_fee_bco( uint64_t ) const;
 
@@ -88,9 +84,6 @@ class MicromegasBcoMatchingInformation
 
   //! verified
   bool m_verified = false;
-
-  //! true if needs to re-synchronize gtm_bco_first and fee_bco_first
-  bool m_needs_synchronize = false;
 
   //! first lvl1 bco (40 bits)
   uint64_t m_gtm_bco_first = 0;
