@@ -8,7 +8,7 @@
  * @brief Laser cluster container base class
  */
 
-#include <trackbase/TrkrDefs.h>
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
