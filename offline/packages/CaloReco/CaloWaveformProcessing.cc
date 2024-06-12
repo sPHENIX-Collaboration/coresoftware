@@ -42,6 +42,13 @@ void CaloWaveformProcessing::initialize_processing()
     url_onnx = CDBInterface::instance()->getUrl(m_model_name, calibrations_repo_model);
     onnxmodule = onnxSession(url_onnx);
   }
+  else if (m_processingtype == CaloWaveformProcessing::NYQUIST)
+  {
+    std::string calibrations_repo_template = std::string(calibrationsroot) + "/WaveformProcessing/templates/" + m_template_input_file;
+    url_template = CDBInterface::instance()->getUrl(m_template_name, calibrations_repo_template);
+    m_Fitter = new CaloWaveformFitting();
+    m_Fitter->initialize_processing(url_template);
+  }
 }
 
 std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::vector<std::vector<float>> waveformvector)
@@ -63,6 +70,10 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
   if (m_processingtype == CaloWaveformProcessing::FAST)
   {
     fitresults = m_Fitter->calo_processing_fast(waveformvector);
+  }
+  if (m_processingtype == CaloWaveformProcessing::NYQUIST)
+  {
+    fitresults = m_Fitter->calo_processing_nyquist(waveformvector);
   }
   return fitresults;
 }

@@ -557,7 +557,7 @@ int Fun4AllStreamingInputManager::FillGl1()
   }
   if (m_Gl1RawHitMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "Gl1RawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   //    std::cout << "stashed gl1 BCOs: " << m_Gl1RawHitMap.size() << std::endl;
@@ -976,7 +976,7 @@ int Fun4AllStreamingInputManager::FillInttPool()
   }
   if (m_InttRawHitMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "InttRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   return 0;
@@ -1012,7 +1012,7 @@ int Fun4AllStreamingInputManager::FillTpcPool()
   }
   if (m_TpcRawHitMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "TpcRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   return 0;
@@ -1048,7 +1048,7 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
   }
   if (m_MicromegasRawHitMap.empty())
   {
-    std::cout << "Micromegas are done" << std::endl;
+    std::cout << "MicromegasRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   return 0;
@@ -1084,7 +1084,7 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
   }
   if (m_MvtxRawHitMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "MvtxRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   return 0;

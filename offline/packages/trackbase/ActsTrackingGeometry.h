@@ -1,15 +1,24 @@
 #ifndef TRACKBASE_ACTSTRACKINGGEOMETRY_H
 #define TRACKBASE_ACTSTRACKINGGEOMETRY_H
 
+
+#pragma GCC diagnostic push
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Wundefined-internal"
 #include <Acts/Definitions/Algebra.hpp>
-#include <Acts/Utilities/BinnedArray.hpp>
-#include <Acts/Utilities/Logger.hpp>
-#include <memory>
+#endif
+#pragma GCC diagnostic pop
 
 #include <Acts/Geometry/TrackingGeometry.hpp>
+
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
+
+#include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
+#include <Acts/Utilities/Logger.hpp>
+
+#include <memory>
 
 /**
  * A struct to carry around Acts geometry on node tree, so as to not put

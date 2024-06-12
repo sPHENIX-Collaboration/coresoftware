@@ -62,11 +62,15 @@ class StructureinJets : public SubsysReco
   bool isAA() const { return isAAFlag; }
   void isAA(bool b) { isAAFlag = b; }
 
+  bool writeToOutputFile() const { return writeToOutputFileFlag; }
+  void writeToOutputFile(bool b) { writeToOutputFileFlag = b; }
+
  private:
   std::string m_recoJetName;
   float m_trk_pt_cut{2};
   float m_jetRadius{0.4};
   bool isAAFlag{false};
+  bool writeToOutputFileFlag{false};
   std::string m_outputFileName;
   TH3 *m_h_track_vs_calo_pt{nullptr};
   TH2 *m_h_track_pt{nullptr};
