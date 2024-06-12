@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   MbdEvent.h \
   MbdGeom.h \
   MbdGeomV1.h \
+  MbdGeomV2.h \
   MbdOut.h \
   MbdOutV1.h \
   MbdOutV2.h \
@@ -83,6 +84,7 @@ pkginclude_HEADERS = \
   BbcGeomV1.h \
   MbdGeom.h \
   MbdGeomV1.h \
+  MbdGeomV2.h \
   BbcReturnCodes.h \
   MbdReturnCodes.h \
   BbcVertex.h \
@@ -98,6 +100,7 @@ ROOTDICTS = \
   BbcGeomV1_Dict.cc \
   MbdGeom_Dict.cc \
   MbdGeomV1_Dict.cc \
+  MbdGeomV2_Dict.cc \
   MbdOut_Dict.cc \
   MbdOutV1_Dict.cc \
   MbdOutV2_Dict.cc \
@@ -128,6 +131,7 @@ ROOTDICTS = \
   MbdOutV2_Dict.cc \
   MbdGeom_Dict.cc \
   MbdGeomV1_Dict.cc \
+  MbdGeomV2_Dict.cc \
   MbdPmtHit_Dict.cc \
   MbdPmtHitV1_Dict.cc \
   MbdPmtSimHitV1_Dict.cc \
@@ -144,6 +148,7 @@ nobase_dist_pcm_DATA = \
   BbcGeomV1_Dict_rdict.pcm \
   MbdGeom_Dict_rdict.pcm \
   MbdGeomV1_Dict_rdict.pcm \
+  MbdGeomV2_Dict_rdict.pcm \
   MbdOut_Dict_rdict.pcm \
   MbdOutV1_Dict_rdict.pcm \
   MbdOutV2_Dict_rdict.pcm \
@@ -176,6 +181,7 @@ nobase_dist_pcm_DATA = \
   MbdOutV2_Dict_rdict.pcm \
   MbdGeom_Dict_rdict.pcm \
   MbdGeomV1_Dict_rdict.pcm \
+  MbdGeomV2_Dict_rdict.pcm \
   MbdPmtHit_Dict_rdict.pcm \
   MbdPmtHitV1_Dict_rdict.pcm \
   MbdPmtSimHitV1_Dict_rdict.pcm \
@@ -190,6 +196,7 @@ libmbd_io_la_SOURCES = \
   MbdEvent.cc \
   BbcGeomV1.cc \
   MbdGeomV1.cc \
+  MbdGeomV2.cc \
   MbdOut.cc \
   MbdOutV1.cc \
   MbdOutV2.cc \
@@ -214,6 +221,7 @@ libmbd_io_la_SOURCES = \
   BbcPmtInfoV1.cc \
   BbcPmtInfoContainerV1.cc \
   MbdGeomV1.cc \
+  MbdGeomV2.cc \
   MbdOut.cc \
   MbdOutV1.cc \
   MbdOutV2.cc \

@@ -24,6 +24,7 @@ class TF1;
 class TCanvas;
 #ifndef ONLINE
 class CaloPacketContainer;
+class Gl1Packet;
 #endif
 
 class MbdEvent
@@ -34,7 +35,7 @@ class MbdEvent
 
   int SetRawData(Event *event, MbdPmtContainer *mbdpmts);
 #ifndef ONLINE
-  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *mbdpmts);
+  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *mbdpmts, Gl1Packet *gl1raw);
 #endif
   int Calculate(MbdPmtContainer *mbdpmts, MbdOut *mbdout);
   int InitRun();

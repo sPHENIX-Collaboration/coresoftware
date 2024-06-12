@@ -50,7 +50,7 @@ class MinimumBiasClassifier : public SubsysReco
   TowerInfoContainer *_towers_zdc{nullptr};
   TowerInfo *_tmp_tower{nullptr};
 
-  std::array<float, 2> _zdc_energy_sum{};
+  std::array<float, 17> _zdc_energy_sum{};
 };
 
 #endif

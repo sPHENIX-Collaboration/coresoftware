@@ -11,6 +11,7 @@
 #include <phool/recoConsts.h>
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
+#include <ffarawobjects/Gl1Packet.h>
 #endif
 
 #include <Event/Event.h>
@@ -343,13 +344,24 @@ void MbdEvent::Clear()
 
 #ifndef ONLINE
 // Get raw data from event combined DSTs
-int MbdEvent::SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts)
+int MbdEvent::SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw)
 {
   //Verbosity(100);
   // First check if there is any event (ie, reading from PRDF)
   if (mbdraw == nullptr || bbcpmts == nullptr)
   {
     return Fun4AllReturnCodes::DISCARDEVENT;
+  }
+
+  // Only use MBDNS triggered events for MBD calibrations
+  if ( _calpass>0 && gl1raw != nullptr )
+  {
+    const uint64_t MBDTRIGS = 0x7c00;  // MBDNS trigger bits
+    uint64_t trigvec = gl1raw->getTriggerVector();  // raw trigger only
+    if ( (trigvec&MBDTRIGS) == 0 )
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   // Get Packets
