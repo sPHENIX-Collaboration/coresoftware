@@ -77,11 +77,11 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation>;
   bco_matching_information_map_t m_bco_matching_information_map;
 
-  // keep track of total number of waveforms
-  uint64_t m_waveform_count_total = 0;
+  // keep track of total number of waveforms per packet
+  std::map<int,uint64_t> m_waveform_count_total{};
 
-  // keep track of dropped waveforms
-  uint64_t m_waveform_count_dropped = 0;
+  // keep track of dropped waveforms per packet
+  std::map<int,uint64_t> m_waveform_count_dropped{};
 
 };
 
