@@ -16,8 +16,9 @@ namespace
 {
 
   // streamer for lists
-  template <class T>
-  std::ostream& operator<<(std::ostream& o, const std::list<T>& list)
+  template <template<class> class Container, class T>
+    // template <class T>
+  std::ostream& operator<<(std::ostream& o, const Container<T>& list)
   {
     if (list.empty())
     {
@@ -160,6 +161,9 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
     gtm_bco_list.push_back( gtm_bco );
   }
 
+  // print all differences
+  std::cout << "MicromegasBcoMatchingInformation::find_reference - gtm_bco_diff_list: " << gtm_bco_diff_list << std::endl;
+
   uint32_t fee_bco_prev = 0;
   bool has_fee_bco_prev = false;
 
@@ -187,30 +191,39 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
     if( fee_bco_diff < m_max_fee_bco_diff )
     { continue; }
 
-    // loop for matching diff in gtm_bco array
+    std::cout << "MicromegasBcoMatchingInformation::find_reference - fee_bco_diff: " << fee_bco_diff << std::endl;
+
+    // look for matching diff in gtm_bco array
     for( size_t i = 0; i < gtm_bco_diff_list.size(); ++i )
     {
-      if( get_bco_diff( gtm_bco_diff_list[i], fee_bco_diff ) < m_max_fee_bco_diff )
-      {
-        m_verified = true;
-        m_gtm_bco_first = gtm_bco_list[i];
-        m_fee_bco_first = fee_bco_prev;
 
-        if( verbosity() )
+      uint64_t sum = 0;
+      for( size_t j=i; j<gtm_bco_diff_list.size(); ++j )
+      {
+        sum += gtm_bco_diff_list[j];
+        if( get_bco_diff( sum, fee_bco_diff ) < m_max_fee_bco_diff )
         {
-          std::cout << "MicromegasBcoMatchingInformation::find_reference - matching is verified" << std::endl;
-          std::cout
-            << "MicromegasBcoMatchingInformation::find_reference -"
-            << " m_gtm_bco_first: " << std::hex << m_gtm_bco_first << std::dec
-            << std::endl;
-          std::cout
-            << "MicromegasBcoMatchingInformation::find_reference -"
-            << " m_fee_bco_first: " << std::hex << m_fee_bco_first << std::dec
-            << std::endl;
+          m_verified = true;
+          m_gtm_bco_first = gtm_bco_list[i];
+          m_fee_bco_first = fee_bco_prev;
+
+          if( verbosity() )
+          {
+            std::cout << "MicromegasBcoMatchingInformation::find_reference - matching is verified" << std::endl;
+            std::cout
+              << "MicromegasBcoMatchingInformation::find_reference -"
+              << " m_gtm_bco_first: " << std::hex << m_gtm_bco_first << std::dec
+              << std::endl;
+            std::cout
+              << "MicromegasBcoMatchingInformation::find_reference -"
+              << " m_fee_bco_first: " << std::hex << m_fee_bco_first << std::dec
+              << std::endl;
+          }
+          return true;
         }
-        return true;
       }
     }
+
     // update previous fee_bco
     fee_bco_prev = fee_bco;
   }
