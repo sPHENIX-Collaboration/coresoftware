@@ -46,7 +46,7 @@ Fun4AllStreamingInputManager::Fun4AllStreamingInputManager(const std::string &na
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   m_topNode = se->topNode(TopNodeName());
-  
+
   return;
 }
 
@@ -434,6 +434,7 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
     break;
   case InputManagerType::MICROMEGAS:
     m_micromegas_registered_flag = true;
+    static_cast<SingleMicromegasPoolInput*>(evtin)->createQAHistos();
     m_MicromegasInputVector.push_back(evtin);
     break;
   case InputManagerType::GL1:
@@ -804,16 +805,8 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   }
 
   // fill all BCO statistics
-  bool first = true;
   for (const auto &iter : m_MicromegasInputVector)
-  {
-    if (first)
-    {
-      static_cast<SingleMicromegasPoolInput*>(iter)->createQAHistos();
-      first = false; 
-    }
-    static_cast<SingleMicromegasPoolInput*>(iter)->FillBcoQA(m_RefBCO);
-  }
+  { static_cast<SingleMicromegasPoolInput*>(iter)->FillBcoQA(m_RefBCO); }
 
 
   while ((m_MicromegasRawHitMap.begin()->first) <= select_crossings - m_micromegas_negative_bco)
