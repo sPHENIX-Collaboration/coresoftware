@@ -804,7 +804,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   }
 
   // fill all BCO statistics
-  static bool first = true;
+  bool first = true;
   for (const auto &iter : m_MicromegasInputVector)
   {
     if (first)
