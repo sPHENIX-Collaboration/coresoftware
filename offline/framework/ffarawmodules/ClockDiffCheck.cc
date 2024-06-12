@@ -101,66 +101,11 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 		      unsigned int packetID = container->getPacket(i)->getIdentifier();
 		      if (iter.first == packetID)
 			{
-			  delete container->getPacket(i);
-			}
-		    }
-		  std::vector<std::vector<int>> EvtCounts;
-		  std::vector<int> NrAndCount(2);
-		  NrAndCount[1] = 1;
-		  int counter = 0;
-		  int bestEvt = -1;
-		  int bestEvtCnt = 0;
-		  unsigned int npacket = container->get_npackets();
-		  for (unsigned int i = 0; i < npacket; i++)
-		    {
-		      CaloPacket* packet = container->getPacket(i);
-		      if (packet)
-			{
-			  int nrModules = packet->iValue(0, "NRMODULES");
-			  for (int j = 0; j < nrModules; j++)
-			    {
-			      int k;
-			      for (k = 0; k < counter; k++)
-				{
-				  if (EvtCounts[k][0] == packet->iValue(j, "FEMEVTNR"))
-				    {
-				      EvtCounts[k][1]++;
-				      break;
-				    }
-				}
-			      if (k >= counter)
-				{
-				  NrAndCount[0] = packet->iValue(j, "FEMEVTNR");
-				  EvtCounts.push_back(NrAndCount);
-				  counter++;
-				}
-			    }
-			}
-		    }
-		  if (counter > 1)
-		    {
-		      for (int i = 0; i < counter; i++)
-			{
-			  if (bestEvtCnt < EvtCounts[i][1])
-			    {
-			      bestEvtCnt = EvtCounts[i][1];
-			      bestEvt = EvtCounts[i][0];
-			    }
-			}
-		      for (unsigned int i = 0; i < npacket; ++i)
-			{
-			  CaloPacket* packet = container->getPacket(i);
-			  if(packet)
-			    {
-			      for (int j = 0; j< packet->iValue(0, "NRMODULES"); j++)
-				{
-				  if (packet->iValue(j, "FEMEVTNR") != bestEvt && bestEvt != -1)
-				    {
-				      delete packet;
-				      break;
-				    }
-				}
-			    }
+			  if(Verbosity() > 1) std::cout << "Dropping packet " << container->getPacket(i)->getIdentifier() << " for XMIT clock mismatch" << std::endl;
+			  container->deletePacket(container->getPacket(i));
+			  container->compress();
+			  if(Verbosity() > 3) std::cout << "Dropped." << std::endl;
+			  break;
 			}
 		    }
 		}
@@ -181,12 +126,80 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 	    std::cout << "curr: " << y1 << std::endl;
 	    nprint++;
 	  }
-	}
+	}	
       }
     }
   }
+  if(delBadPkts)
+    {
+      for (const auto &nodeiter : nodenames)
+	{
+	  CaloPacketContainer *container = findNode::getClass<CaloPacketContainer>(topNode, nodeiter);
+	  std::vector<std::vector<int>> EvtCounts;
+	  std::vector<int> NrAndCount(2);
+	  NrAndCount[1] = 1;
+	  int counter = 0;
+	  int bestEvt = -1;
+	  int bestEvtCnt = 0;
+	  unsigned int npacket = container->get_npackets();
+	  for (unsigned int i = 0; i < npacket; i++)
+	    {
+	      CaloPacket* packet = container->getPacket(i);
+	      if (packet)
+		{
+		  int nrModules = packet->iValue(0, "NRMODULES");
+		  for (int j = 0; j < nrModules; j++)
+		    {
+		      int k;
+		      for (k = 0; k < counter; k++)
+			{
+			  if (EvtCounts[k][0] == packet->iValue(j, "FEMEVTNR"))
+			    {
+			      EvtCounts[k][1]++;
+			      break;
+			    }
+			}
+		      if (k >= counter)
+			{
+			  NrAndCount[0] = packet->iValue(j, "FEMEVTNR");
+			  EvtCounts.push_back(NrAndCount);
+			  counter++;
+			}
+		    }
+		}
+	    }
+	  if (counter > 1)
+	    {
+	      for (int i = 0; i < counter; i++)
+		{
+		  if (bestEvtCnt < EvtCounts[i][1])
+		    {
+		      bestEvtCnt = EvtCounts[i][1];
+		      bestEvt = EvtCounts[i][0];
+		    }
+		}
+	      for (unsigned int i = 0; i < npacket; ++i)
+		{
+		  CaloPacket* packet = container->getPacket(i);
+		  if(packet)
+		    {
+		      for (int j = 0; j< packet->iValue(0, "NRMODULES"); j++)
+			{
+			  if (packet->iValue(j, "FEMEVTNR") != bestEvt && bestEvt != -1)
+			    {
+			      if(Verbosity() > 3) std::cout << "DEBUG::prep to delete packet for different FEM clock" << std::endl;
+			      container->deletePacket(packet);
+			      container->compress();
+			      if(Verbosity() > 3) std::cout << "DEBUG::deleted packet for different FEM clock" << std::endl;
+			      break;
+			    }
+			}
+		    }
+		}
+	    }
+	}
+    }
   
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
