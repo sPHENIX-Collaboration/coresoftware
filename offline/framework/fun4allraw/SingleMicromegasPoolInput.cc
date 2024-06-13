@@ -503,7 +503,7 @@ void SingleMicromegasPoolInput::createQAHistos()
    * next two bins is the number of times the GL1 BCO is found in the taggers list for a given packet_id
    * last bin is the sum
    */
-  auto h_packet_stat_hist = new TH1F( "h_MicromegasBCOQA_packet_stat", "Matching Tagger count per packet; packet id; GL1 trigger count", m_npackets_active+2, 0, m_npackets_active+2 );
+  auto h_packet_stat_hist = new TH1I( "h_MicromegasBCOQA_packet_stat", "Matching Tagger count per packet; packet id; GL1 trigger count", m_npackets_active+2, 0, m_npackets_active+2 );
   h_packet_stat_hist->GetXaxis()->SetBinLabel(1, "Reference" );
   h_packet_stat_hist->GetXaxis()->SetBinLabel(2, "5001" );
   h_packet_stat_hist->GetXaxis()->SetBinLabel(3, "5002" );
