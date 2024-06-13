@@ -60,7 +60,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       FillCaloClockDiff(cemccont);
     }
   }
-  std::vector<int> badPackets;
+  std::vector<unsigned int> badPackets;
   uint64_t refdiff = std::numeric_limits<uint64_t>::max();
   auto itergl1 = m_PacketStuffMap.find(14001);
   if (itergl1 != m_PacketStuffMap.end())
