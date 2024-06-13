@@ -27,6 +27,7 @@
 
 #include <TSystem.h>
 
+#include <algorithm>  // for std::search
 #include <cassert>
 #include <climits>
 #include <cstdlib>
@@ -1305,6 +1306,7 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 	    uint64_t curr_bco = currpkt->second->getBCO();
 	    uint64_t diffbco = curr_bco - prev_bco;
 	    mbdhititer->second.BcoDiffMap[prev_packetid] = diffbco;
+	    m_NeedleMap[prev_packetid].push_back(diffbco);
 	    std::cout << "packet " << prev_packetid << ", prev_bco 0x: " << std::hex
 		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
 		      << diffbco << std::dec << std::endl;
@@ -1367,6 +1369,7 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 	    uint64_t curr_bco = currpkt->second->getBCO();
 	    uint64_t diffbco = curr_bco - prev_bco;
 	    sepdhititer->second.BcoDiffMap[prev_packetid] = diffbco;
+	    m_NeedleMap[prev_packetid].push_back(diffbco);
 	    std::cout << "packet " << prev_packetid << ", prev_bco 0x: " << std::hex
 		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
 		      << diffbco << std::dec << std::endl;
@@ -1385,6 +1388,23 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 
 void Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 {
+  for (auto &iter : m_NeedleMap)
+  {
+    std::vector needle = iter.second;
+    needle.pop_back();
+    auto it = std::search(m_HayStack.begin(), m_HayStack.end(), needle.begin(), needle.end());
+
+    if (it != m_HayStack.end()) {
+        // If found, std::search returns an iterator to the first element of the subsequence
+        std::cout << "Sequence found at position: " << std::distance(m_HayStack.begin(), it) << std::endl;
+    } else {
+        // If not found, std::search returns haystack.end()
+        std::cout << "Sequence not found." << std::endl;
+    }
+  }
+  return;
+
+
   for (auto &bcoiter : m_RefBcoDiffMap)
   {
     uint64_t refbco = bcoiter.second;
