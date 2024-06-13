@@ -141,6 +141,7 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
             //            auto l1Trg_bc  = plist[i]->iValue(feeId, iL1, "L1_IR_BC");
             m_FeeGTML1BCOMap[i_fee].insert(l1Trg_bco);
             gtmL1BcoSet.emplace(l1Trg_bco);
+            m_gtmL1BcoSetRef.emplace(l1Trg_bco);
           }
 
           m_FeeStrobeMap[feeId] += num_strobes;
@@ -212,6 +213,7 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
         assert(0);
       }
     }
+    gtmL1BcoSet.clear();
   }
 }
 
@@ -287,13 +289,14 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // {
   //   iter.second.clear();
   // }
-  gtmL1BcoSet.clear();
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
     m_BeamClockFEE.erase(iter);
     m_MvtxRawHitMap.erase(iter);
     m_FeeStrobeMap.erase(iter);
+    m_gtmL1BcoSetRef.erase(iter);
+
     for (auto &[feeid, gtmbcoset] : m_FeeGTML1BCOMap)
     {
       gtmbcoset.erase(iter);
