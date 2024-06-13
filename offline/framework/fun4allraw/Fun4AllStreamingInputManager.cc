@@ -664,14 +664,18 @@ int Fun4AllStreamingInputManager::FillIntt()
     for (auto &[bcl, feeidset] : feebclstack)
     {
       auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-      if (diff > 1)  // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
+      if (diff <2)  // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
       {
-        continue;
+        if(feeidset.size() == 14)
+        {
+          dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % p).str().c_str()))->Fill(refbcobitshift);
+        }
+        for (auto &fee : feeidset)
+        {
+          h_gl1taggedfee[p][fee]->Fill(refbcobitshift);
+        }
       }
-      for(auto& fee : feeidset)
-      {
-        h_gl1taggedfee[p][fee]->Fill(refbcobitshift);
-      }
+     
     }
     bool thispacket = false;
 
@@ -792,21 +796,34 @@ int Fun4AllStreamingInputManager::FillMvtx()
   for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
   {
     auto h = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % p).str().c_str()));
+    auto h_all = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCOAllFees_Felix%i") % p).str().c_str()));
+
     auto gtml1bcoset = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getGtmL1BcoSet();
     auto bcorange = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->GetBcoRange();
     auto gtml1bcoset_perfee = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getFeeGTML1BCOMap();
-    for(auto& [feeid, gtmbcoset]: gtml1bcoset_perfee)
+    bool allfees = true;
+    for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
     {
       auto h_fee = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i_fee%i") % p % feeid).str().c_str()));
-      for(auto& gtmbco : gtmbcoset)
+      bool thisfee = false;
+      for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
         if (diff < bcorange)
         {
           h_fee->Fill(refbcobitshift);
+          thisfee = true;
           break;
         }
       }
+      if(thisfee == false)
+      {
+        allfees = false;
+      }
+    }
+    if(allfees)
+    {
+      h_all->Fill(refbcobitshift);
     }
     bool thispacket = false;
     for (auto &gtmbco : gtml1bcoset)
@@ -1288,6 +1305,11 @@ void Fun4AllStreamingInputManager::createQAHistos()
       h->GetXaxis()->SetTitle("GL1 BCO");
       h->SetTitle((boost::format("EBDC %i") % i).str().c_str());
       hm->registerHisto(h);
+
+      auto h_all = new TH1I((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") %i ).str().c_str(), "INTT trigger tagged BCO all servers", 1000, 0, 1000);
+      h_all->GetXaxis()->SetTitle("GL1 BCO");
+      h_all->SetTitle("GL1 Reference BCO");
+      hm->registerHisto(h_all);
       for (int j = 0; j<14; j++)
       {
         auto h2 = new TH1I((boost::format("h_InttPoolQA_TagBCO_server%i_fee%i") % i % j).str().c_str(), "INTT trigger tagged BCO per FEE", 1000, 0, 1000);
@@ -1303,13 +1325,17 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h->GetXaxis()->SetTitle("GL1 BCO");
     h->SetTitle((boost::format("Felix %i") % i).str().c_str());
     hm->registerHisto(h);
-  }
-  for(int j=0; j<12; j++)
-  {
-    auto h = new TH1I((boost::format("h_MvtxPoolQA_TagBCO_felix%i_fee%i") %i % j).str().c_str(), "MVTX trigger tagged BCO per FEE", 1000, 0, 1000);
-    h->GetXaxis()->SetTitle("GL1 BCO");
-    h->SetTitle((boost::format("Felix %i FEE %i") % i % j).str().c_str());
-    hm->registerHisto(h);
+    }
+    auto h_all = new TH1I((boost::format("h_MvtxPoolQA_TagBCOAllFees_Felix%i") % i).str().c_str(), "MVTX trigger tagged BCO all Fees", 1000, 0, 1000);
+    h_all->GetXaxis()->SetTitle("GL1 BCO");
+    h_all->SetTitle("GL1 Reference BCO");
+    hm->registerHisto(h_all);
+    for (int j = 0; j < 12; j++)
+    {
+      auto h = new TH1I((boost::format("h_MvtxPoolQA_TagBCO_felix%i_fee%i") % i % j).str().c_str(), "MVTX trigger tagged BCO per FEE", 1000, 0, 1000);
+      h->GetXaxis()->SetTitle("GL1 BCO");
+      h->SetTitle((boost::format("Felix %i FEE %i") % i % j).str().c_str());
+      hm->registerHisto(h);
   }
   }
     for (int i = 0; i < 24; i++)
