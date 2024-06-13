@@ -52,6 +52,7 @@ Fun4AllStreamingInputManager::Fun4AllStreamingInputManager(const std::string &na
   m_topNode = se->topNode(TopNodeName());
 
   createQAHistos();
+
   return;
 }
 
@@ -439,6 +440,7 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
     break;
   case InputManagerType::MICROMEGAS:
     m_micromegas_registered_flag = true;
+    static_cast<SingleMicromegasPoolInput*>(evtin)->createQAHistos();
     m_MicromegasInputVector.push_back(evtin);
     break;
   case InputManagerType::GL1:
@@ -561,7 +563,7 @@ int Fun4AllStreamingInputManager::FillGl1()
   }
   if (m_Gl1RawHitMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "Gl1RawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   //    std::cout << "stashed gl1 BCOs: " << m_Gl1RawHitMap.size() << std::endl;
@@ -883,9 +885,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
 
   // fill all BCO statistics
   for (const auto &iter : m_MicromegasInputVector)
-  {
-    static_cast<SingleMicromegasPoolInput *>(iter)->FillBcoQA(m_RefBCO);
-  }
+  { static_cast<SingleMicromegasPoolInput*>(iter)->FillBcoQA(m_RefBCO); }
 
   while ((m_MicromegasRawHitMap.begin()->first) <= select_crossings - m_micromegas_negative_bco)
   {
@@ -1089,7 +1089,7 @@ int Fun4AllStreamingInputManager::FillInttPool()
   }
   if (m_InttRawHitMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "InttRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   return 0;
@@ -1125,7 +1125,7 @@ int Fun4AllStreamingInputManager::FillTpcPool()
   }
   if (m_TpcRawHitMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "TpcRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   return 0;
@@ -1161,7 +1161,7 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
   }
   if (m_MicromegasRawHitMap.empty())
   {
-    std::cout << "Micromegas are done" << std::endl;
+    std::cout << "MicromegasRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   return 0;
@@ -1197,7 +1197,7 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
   }
   if (m_MvtxRawHitMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "MvtxRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   return 0;

@@ -173,8 +173,9 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         // samples
         // const uint16_t samples = packet->iValue(wf, "SAMPLES");
 
-        // Temp remedy as we set the time window as 360 for now
-        const uint16_t samples = 360;
+        // Temp remedy as we set the time window as 410 for now (extended from previous 360
+        // due to including of diffused laser flush)
+        const uint16_t samples = 410;
 
         newhit->set_samples(samples);
 

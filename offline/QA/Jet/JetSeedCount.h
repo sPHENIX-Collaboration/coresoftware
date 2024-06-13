@@ -37,6 +37,11 @@ class JetSeedCount : public SubsysReco
     m_ptRange.first = low;
     m_ptRange.second = high;
   }
+  void
+  setWriteToOutputFile(bool write)
+  {
+    m_writeToOutputFile = write;
+  }
 
   int Init(PHCompositeNode *topNode) override;
 
@@ -51,6 +56,8 @@ class JetSeedCount : public SubsysReco
 
  private:
   Fun4AllHistoManager *m_manager{nullptr};
+
+  bool m_writeToOutputFile {false};
 
   int m_event{0};
   int m_seed_sub{std::numeric_limits<int>::max()};
