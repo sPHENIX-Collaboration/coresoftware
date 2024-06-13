@@ -431,7 +431,7 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   unsigned int nHits = clusHits.size();
   int iphimin = 6666, iphimax = -1;
   int ilaymin = 6666, ilaymax = -1;
-  float itmin = 666666666, itmax = -66666666666;
+  float itmin = 66666666.6, itmax = -6666666666.6;
   auto *clus = new LaserClusterv1;
 
   for (auto &clusHit : clusHits)
