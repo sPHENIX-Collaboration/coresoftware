@@ -62,6 +62,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
   WaveformProcessing->set_processing_type(_processingtype);
   WaveformProcessing->set_softwarezerosuppression(m_bdosoftwarezerosuppression, m_nsoftwarezerosuppression);
+  if (m_setTimeLim)
+  {
+     WaveformProcessing->set_timeFitLim(m_timeLim_low,m_timeLim_high);
+  }
 
   if (m_dettype == CaloTowerDefs::CEMC)
   {
