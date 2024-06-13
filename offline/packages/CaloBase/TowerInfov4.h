@@ -4,7 +4,7 @@
 #include "TowerInfo.h"
 #include "TowerInfov1.h"
 
-class TowerInfov4 : public TowerInfov1
+class TowerInfov4 : public TowerInfo
 {
  public:
   TowerInfov4() {}
@@ -13,30 +13,34 @@ class TowerInfov4 : public TowerInfov1
 
   void Reset() override;
   void Clear(Option_t* = "") override;
-  void set_time(short t) override { TowerInfov1::set_time(t * 1000); }
-  short get_time() override { return TowerInfov1::get_time() / 1000; }
 
-  void set_time_float(float t) override { TowerInfov1::set_time(t * 1000); }
-  float get_time_float() override { return TowerInfov1::get_time() / 1000.; }
+  void set_energy(float _energy) override { energy = _energy; }
+  float get_energy() override { return energy; }
 
-  void set_chi2(float chi2) override
+  void set_time(short t) override { time = (t * 1000); }
+  short get_time() override { return ((float) time)/ 1000; }
+
+  void set_time_float(float t) override { time = t * 1000; }
+  float get_time_float() override { return time / 1000.; }
+
+  void set_chi2(float _chi2) override
   {
     float lnChi2;
-    if (chi2 <= 0)
+    if (_chi2 <= 0)
     {
       lnChi2 = 1;
     }
     else
     {
-      lnChi2 = std::log(chi2 + 1) / std::log(1.08);
+      lnChi2 = std::log(_chi2 + 1) / std::log(1.08);
     }
     if (lnChi2 > 255.0)
     {
       lnChi2 = 255;
     }
-    _chi2 = static_cast<uint8_t>(std::round(lnChi2));
+    chi2 = static_cast<uint8_t>(std::round(lnChi2));
   }
-  float get_chi2() override { return (pow(1.08, (float) _chi2) - 1.0); }
+  float get_chi2() override { return (pow(1.08, (float) chi2) - 1.0); }
 
   void set_isHot(bool isHot) override { set_status_bit(0, isHot); }
   bool get_isHot() const override { return get_status_bit(0); }
@@ -56,17 +60,19 @@ class TowerInfov4 : public TowerInfov1
   void set_isZS(bool isZS) override { set_status_bit(5, isZS); }
   bool get_isZS() const override { return get_status_bit(5); }
 
-  bool get_isGood() const override { return !((bool) _status); }
+  bool get_isGood() const override { return !((bool) status); }
 
-  uint8_t get_status() const override { return _status; }
+  uint8_t get_status() const override { return status; }
 
-  void set_status(uint8_t status) override { _status = status; }
+  void set_status(uint8_t _status) override { status = _status; }
 
   void copy_tower(TowerInfo* tower) override;
 
  private:
-  uint8_t _chi2 = 0;
-  uint8_t _status = 0;
+  float energy = 0;
+  short time = 0;
+  uint8_t chi2 = 0;
+  uint8_t status = 0;
 
   void set_status_bit(int bit, bool value)
   {
@@ -74,8 +80,8 @@ class TowerInfov4 : public TowerInfov1
     {
       return;
     }
-    _status &= ~((uint8_t) 1 << bit);
-    _status |= (uint8_t) value << bit;
+    status &= ~((uint8_t) 1 << bit);
+    status |= (uint8_t) value << bit;
   }
 
   bool get_status_bit(int bit) const
@@ -84,7 +90,7 @@ class TowerInfov4 : public TowerInfov1
     {
       return false;  // default behavior
     }
-    return (_status & ((uint8_t) 1 << bit)) != 0;
+    return (status & ((uint8_t) 1 << bit)) != 0;
   }
 
   ClassDefOverride(TowerInfov4, 1);
