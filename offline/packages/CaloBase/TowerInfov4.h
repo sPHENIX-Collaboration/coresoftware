@@ -1,7 +1,6 @@
 #ifndef TOWERINFOV4_H
 #define TOWERINFOV4_H
 
-#include <TMath.h>
 #include "TowerInfo.h"
 #include "TowerInfov1.h"
 
@@ -29,7 +28,7 @@ class TowerInfov4 : public TowerInfov1
     }
     else
     {
-      lnChi2 = TMath::Log(chi2 + 1) / TMath::Log(1.08);
+      lnChi2 = std::log(chi2 + 1) / std::log(1.08);
     }
     if (lnChi2 > 255.0)
     {
