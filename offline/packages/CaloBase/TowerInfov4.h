@@ -1,9 +1,9 @@
 #ifndef TOWERINFOV4_H
 #define TOWERINFOV4_H
 
+#include <TMath.h>
 #include "TowerInfo.h"
 #include "TowerInfov1.h"
-#include <TMath.h>
 
 class TowerInfov4 : public TowerInfov1
 {
@@ -20,16 +20,16 @@ class TowerInfov4 : public TowerInfov1
   void set_time_float(float t) override { TowerInfov1::set_time(t * 1000); }
   float get_time_float() override { return TowerInfov1::get_time() / 1000.; }
 
-  void set_chi2(float chi2) override 
-  { 
+  void set_chi2(float chi2) override
+  {
     float lnChi2;
     if (chi2 <= 0)
     {
       lnChi2 = 1;
     }
-    else 
+    else
     {
-      lnChi2 = TMath::Log(chi2+1) / TMath::Log(1.08);
+      lnChi2 = TMath::Log(chi2 + 1) / TMath::Log(1.08);
     }
     if (lnChi2 > 255.0)
     {
@@ -37,7 +37,7 @@ class TowerInfov4 : public TowerInfov1
     }
     _chi2 = static_cast<uint8_t>(std::round(lnChi2));
   }
-  float get_chi2() override { return (pow(1.08,(float) _chi2)-1.0); }
+  float get_chi2() override { return (pow(1.08, (float) _chi2) - 1.0); }
 
   void set_isHot(bool isHot) override { set_status_bit(0, isHot); }
   bool get_isHot() const override { return get_status_bit(0); }
