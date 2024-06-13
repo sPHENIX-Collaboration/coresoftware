@@ -774,7 +774,6 @@ int Fun4AllStreamingInputManager::FillMvtx()
   h_refbco->Fill(refbcobitshift);
   for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
   {
-    //std::cout << "packet " << p << std::endl;
     auto h = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % p).str().c_str()));
     auto gtml1bcoset = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getGtmL1BcoSet();
     auto bcorange = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->GetBcoRange();
