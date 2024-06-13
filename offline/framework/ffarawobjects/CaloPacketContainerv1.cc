@@ -82,12 +82,18 @@ CaloPacket *CaloPacketContainerv1::getPacketbyId(int id)
 
 void CaloPacketContainerv1::deletePacketAt(int index)
 {
-  CaloPacketsTCArray->RemoveAt(index);
-  CaloPacketsTCArray->Compress();
+  if (CaloPacketsTCArray->At(index))
+    {
+      CaloPacketsTCArray->RemoveAt(index);
+      CaloPacketsTCArray->Compress();
+    }
 }
 
 void CaloPacketContainerv1::deletePacket(CaloPacket *packet)
 {
-  CaloPacketsTCArray->Remove(packet);
-  CaloPacketsTCArray->Compress();
+  if (packet)
+    {
+      CaloPacketsTCArray->Remove(packet);
+      CaloPacketsTCArray->Compress();
+    }
 }

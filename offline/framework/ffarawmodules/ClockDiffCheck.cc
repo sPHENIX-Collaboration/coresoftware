@@ -60,6 +60,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       FillCaloClockDiff(cemccont);
     }
   }
+  std::vector<int> badPackets;
   uint64_t refdiff = std::numeric_limits<uint64_t>::max();
   auto itergl1 = m_PacketStuffMap.find(14001);
   if (itergl1 != m_PacketStuffMap.end())
@@ -90,26 +91,8 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       {
 	if ((refdiff&0xFFFFFFFFU) != (std::get<2>(iter.second)&0xFFFFFFFFU))
 	{
+	  badPackets.push_back(iter.first);
 	  static int nprint = 0;
-	  if (delBadPkts)
-	    {
-	      for (const auto &nodeiter : nodenames)
-		{
-		  CaloPacketContainer *container = findNode::getClass<CaloPacketContainer>(topNode, nodeiter);
-		  for (unsigned int i = 0; i < container->get_npackets(); i++)
-		    {
-		      unsigned int packetID = container->getPacket(i)->getIdentifier();
-		      if (iter.first == packetID)
-			{
-			  if(Verbosity() > 1) std::cout << "Dropping packet " << container->getPacket(i)->getIdentifier() << " for XMIT clock mismatch" << std::endl;
-			  container->deletePacket(container->getPacket(i));
-			  container->compress();
-			  if(Verbosity() > 3) std::cout << "Dropped." << std::endl;
-			  break;
-			}
-		    }
-		}
-	    }
 	  if (nprint < 1000 || Verbosity() > 1)
 	  {
 	    std::bitset<32> x(refdiff);
@@ -130,11 +113,26 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       }
     }
   }
+
   if(delBadPkts)
     {
       for (const auto &nodeiter : nodenames)
 	{
 	  CaloPacketContainer *container = findNode::getClass<CaloPacketContainer>(topNode, nodeiter);
+	  for (unsigned int i = 0; i < container->get_npackets(); i++)
+	    {
+	      unsigned int packetID = container->getPacket(i)->getIdentifier();
+	      for (unsigned int j = 0; j < badPackets.size(); j++)
+		{
+		  if (badPackets.at(j) == packetID)
+		    {
+		      if(Verbosity() > 1) std::cout << "Dropping packet " << container->getPacket(i)->getIdentifier() << " for XMIT clock mismatch" << std::endl;
+		      container->deletePacket(container->getPacket(i));
+		      if(Verbosity() > 3) std::cout << "Dropped." << std::endl;
+		      break;
+		    }
+		}
+	    }
 	  std::vector<std::vector<int>> EvtCounts;
 	  std::vector<int> NrAndCount(2);
 	  NrAndCount[1] = 1;
@@ -189,7 +187,6 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 			    {
 			      if(Verbosity() > 3) std::cout << "DEBUG::prep to delete packet for different FEM clock" << std::endl;
 			      container->deletePacket(packet);
-			      container->compress();
 			      if(Verbosity() > 3) std::cout << "DEBUG::deleted packet for different FEM clock" << std::endl;
 			      break;
 			    }
