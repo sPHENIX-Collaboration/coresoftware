@@ -23,14 +23,13 @@ class TowerInfov4 : public TowerInfov1
   void set_chi2(float chi2) override 
   { 
     float lnChi2;
-    float base = 1.1;
     if (chi2 <= 0)
     {
-      lnChi2 =0;
+      lnChi2 = 1;
     }
     else 
     {
-      lnChi2 = TMath::Log(chi2) / TMath::Log(base);
+      lnChi2 = TMath::Log(chi2+1) / TMath::Log(1.08);
     }
     if (lnChi2 > 255.0)
     {
@@ -38,7 +37,7 @@ class TowerInfov4 : public TowerInfov1
     }
     _chi2 = static_cast<uint8_t>(std::round(lnChi2));
   }
-  float get_chi2() override { return pow(1.1,(float) _chi2); }
+  float get_chi2() override { return (pow(1.08,(float) _chi2)-1.0); }
 
   void set_isHot(bool isHot) override { set_status_bit(0, isHot); }
   bool get_isHot() const override { return get_status_bit(0); }
