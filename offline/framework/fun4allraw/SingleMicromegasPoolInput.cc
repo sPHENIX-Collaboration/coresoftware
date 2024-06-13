@@ -484,3 +484,14 @@ void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
   h_packet->Fill(n_packets);
   h_waveform->Fill(n_waveforms);
 }
+//_______________________________________________________
+void SingleMicromegasPoolInput::createQAHistos()
+{
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  auto h_npacket_bco_hist = new TH1I("h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Packets; A.U.", 10, 0, 10);
+  hm->registerHisto(h_npacket_bco_hist);
+  auto h_nwaveform_bco_hist = new TH1I("h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Waveforms; A.U.", 4100, 0, 4100);
+  hm->registerHisto(h_nwaveform_bco_hist);
+}
