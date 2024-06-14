@@ -30,7 +30,7 @@ class TpcDistortionCorrection
     Volumetric = 0,
     PlanarInterpolateToZero= 1,
     PlanarFlat = 2
-  }
+  };
 
   enum CoordMask
   {
