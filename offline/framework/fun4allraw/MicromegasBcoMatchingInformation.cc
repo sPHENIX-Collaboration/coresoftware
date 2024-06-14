@@ -144,6 +144,14 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
 }
 
 //___________________________________________________
+void MicromegasBcoMatchingInformation::set_reference( uint64_t gtm_bco_first, uint32_t fee_bco_first )
+{
+  m_gtm_bco_first = gtm_bco_first;
+  m_fee_bco_first = fee_bco_first;
+  m_verified = true;
+}
+
+//___________________________________________________
 bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
 {
   // store gtm bco and diff to previous in an array

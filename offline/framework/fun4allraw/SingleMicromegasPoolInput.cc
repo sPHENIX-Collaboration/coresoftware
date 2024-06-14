@@ -26,6 +26,7 @@
 #include <TH1.h>
 
 #include <algorithm>
+#include <bitset>
 
 namespace
 {
@@ -42,6 +43,15 @@ namespace
     LARGE_DATA_T = 0b101,
     TRIG_EARLY_DATA_T = 0b110,
     TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
+
+  enum ModeBitType
+  {
+    BX_COUNTER_SYNC_T = 0,
+    ELINK_HEARTBEAT_T = 1,
+    SAMPA_EVENT_TRIGGER_T = 2,
+    CLEAR_LV1_LAST_T = 6,
+    CLEAR_LV1_ENDAT_T = 7
   };
 
 }  // namespace
@@ -153,6 +163,19 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
           const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
           m_BeamClockPacket[gtm_bco].insert(packet_id);
           m_BclkStack.insert(gtm_bco);
+        }
+
+        const bool is_modebit = static_cast<uint8_t>(packet->lValue(t, "IS_MODEBIT"));
+        if( is_modebit )
+        {
+          // get modebits
+          uint64_t modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
+          if( modebits&(1<<BX_COUNTER_SYNC_T) )
+          {
+            // get BCO, assign to bco_matching_information
+            const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+            bco_matching_information.set_reference( gtm_bco, 0 );
+          }
         }
       }
 
