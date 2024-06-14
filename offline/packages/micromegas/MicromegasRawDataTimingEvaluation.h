@@ -60,6 +60,10 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
     /// packet
     unsigned int packet_id = 0;
 
+    /// waveform type
+    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+    unsigned int type = 0;
+
     /// ll1 bco
     uint64_t gtm_bco = 0;
 

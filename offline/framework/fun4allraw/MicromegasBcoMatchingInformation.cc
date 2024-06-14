@@ -64,6 +64,18 @@ namespace
   //! copied from micromegas/MicromegasDefs.h, not available here
   static constexpr int m_nchannels_fee = 256;
 
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum SampaDataType
+  {
+    HEARTBEAT_T = 0b000,
+    TRUNCATED_DATA_T = 0b001,
+    TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
+    NORMAL_DATA_T = 0b100,
+    LARGE_DATA_T = 0b101,
+    TRIG_EARLY_DATA_T = 0b110,
+    TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
+
 }
 
 // this is the clock multiplier from lvl1 to fee clock
@@ -161,6 +173,14 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
   const int n_waveform = packet->iValue(0, "NR_WF");
   for (int iwf = 0; iwf < n_waveform; ++iwf)
   {
+
+    // check type
+    const unsigned short type = packet->iValue(iwf, "TYPE" );
+
+    // skip heartbeat waveforms
+    if( type == HEARTBEAT_T ) continue;
+
+    // check channel
     const unsigned short channel = packet->iValue( iwf, "CHANNEL" );
 
     // bound check

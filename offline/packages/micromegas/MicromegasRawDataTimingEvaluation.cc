@@ -128,6 +128,13 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
       waveform.packet_id = packet_id;
       waveform.fee_id = packet->iValue(iwf, "FEE");
       waveform.channel = packet->iValue( iwf, "CHANNEL" );
+      waveform.type = packet->iValue(iwf, "TYPE");
+
+      // ignore heartbeat waveforms
+      if( waveform.type == MicromegasDefs::HEARTBEAT_T ) continue;
+
+      // ignore heartbeat waveforms
+      if( waveform.type == 0 ) continue;
 
       // bound check
       if( waveform.channel >= MicromegasDefs::m_nchannels_fee )

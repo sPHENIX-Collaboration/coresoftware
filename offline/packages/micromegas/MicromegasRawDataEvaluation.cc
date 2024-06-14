@@ -165,6 +165,10 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
       for (int iwf = 0; iwf < n_waveform; ++iwf)
       {
+
+        const int type = packet->iValue(iwf, "TYPE");
+        if( type == MicromegasDefs::HEARTBEAT_T ) continue;
+
         // create running sample, assign packet, fee, layer and tile id
         Sample sample;
         sample.packet_id = packet_id;

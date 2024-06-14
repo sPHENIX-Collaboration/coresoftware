@@ -31,6 +31,19 @@ namespace
 {
   // minimum number of requested samples
   static constexpr int m_min_req_samples = 5;
+
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum SampaDataType
+  {
+    HEARTBEAT_T = 0b000,
+    TRUNCATED_DATA_T = 0b001,
+    TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
+    NORMAL_DATA_T = 0b100,
+    LARGE_DATA_T = 0b101,
+    TRIG_EARLY_DATA_T = 0b110,
+    TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
+
 }  // namespace
 
 //______________________________________________________________
@@ -174,6 +187,16 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       {
         // get fee id
         const int fee_id = packet->iValue(wf, "FEE");
+
+        // get type
+        const int type = packet->iValue(wf, "TYPE" );
+
+        // ignore heartbeat waveforms
+        /**
+         * TODO: in principle, since heartbeat data come at fixed GTM BCO interals,
+         * the corresponding FEE_BCO could be use to check FEE clock frequency
+         **/
+        if( type == HEARTBEAT_T ) continue;
 
         // get checksum_error and check
         const auto checksum_error = packet->iValue(wf, "CHECKSUMERROR");
