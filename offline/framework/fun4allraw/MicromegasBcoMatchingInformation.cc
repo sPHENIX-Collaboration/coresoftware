@@ -76,6 +76,15 @@ namespace
     TRIG_EARLY_LARGE_DATA_T = 0b111,
   };
 
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum ModeBitType
+  {
+    BX_COUNTER_SYNC_T = 0,
+    ELINK_HEARTBEAT_T = 1,
+    SAMPA_EVENT_TRIGGER_T = 2,
+    CLEAR_LV1_LAST_T = 6,
+    CLEAR_LV1_ENDAT_T = 7
+  };
 }
 
 // this is the clock multiplier from lvl1 to fee clock
@@ -144,15 +153,47 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation::set_reference( uint64_t gtm_bco_first, uint32_t fee_bco_first )
+bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
 {
-  m_gtm_bco_first = gtm_bco_first;
-  m_fee_bco_first = fee_bco_first;
-  m_verified = true;
+  if( find_reference_from_modebits( packet ) ) return true;
+  if( find_reference_from_data( packet ) ) return true;
+  return false;
 }
 
 //___________________________________________________
-bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
+bool MicromegasBcoMatchingInformation::find_reference_from_modebits( Packet* packet )
+{
+  // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
+  const int n_tagger = packet->lValue(0, "N_TAGGER");
+  for (int t = 0; t < n_tagger; ++t)
+  {
+    const bool is_modebit = static_cast<uint8_t>(packet->lValue(t, "IS_MODEBIT"));
+    if( is_modebit )
+    {
+      // get modebits
+      uint64_t modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
+      if( modebits&(1<<BX_COUNTER_SYNC_T) )
+      {
+        std::cout << "MicromegasBcoMatchingInformation::find_reference_from_modebits"
+          << " - packet: " << packet->getIdentifier()
+          << " found reference from modebits"
+          << std::endl;
+
+        // get BCO and assign
+        const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+        m_gtm_bco_first = gtm_bco;
+        m_fee_bco_first = 0;
+        m_verified = true;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+//___________________________________________________
+bool MicromegasBcoMatchingInformation::find_reference_from_data( Packet* packet )
 {
   // store gtm bco and diff to previous in an array
   std::vector<uint64_t> gtm_bco_list;
