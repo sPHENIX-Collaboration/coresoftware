@@ -1,8 +1,8 @@
 #ifndef FUN4ALLRAW_SINGLEMICROMEGASPOOLINPUT_H
 #define FUN4ALLRAW_SINGLEMICROMEGASPOOLINPUT_H
 
-#include "SingleStreamingInput.h"
 #include "MicromegasBcoMatchingInformation.h"
+#include "SingleStreamingInput.h"
 
 #include <array>
 #include <list>
@@ -36,13 +36,13 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
   //! save some statistics for BCO QA
-  void FillBcoQA( uint64_t /*gtm_bco*/);
+  void FillBcoQA(uint64_t /*gtm_bco*/);
 
   // write the initial histograms for QA manager
   void createQAHistos();
 
  private:
-  std::array<Packet*,10> plist{};
+  std::array<Packet *, 10> plist{};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
@@ -82,7 +82,6 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
 
   // keep track of dropped waveforms per packet
   std::map<int,uint64_t> m_waveform_count_dropped{};
-
 };
 
 #endif
