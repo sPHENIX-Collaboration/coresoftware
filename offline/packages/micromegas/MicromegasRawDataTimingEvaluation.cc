@@ -104,10 +104,12 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
 
     if (Verbosity())
     {
-      std::cout << "MicromegasRawDataTimingEvaluation::process_event -"
-                << " packet: " << packet_id
-                << " n_waveform: " << n_waveform
-                << std::endl;
+      std::cout
+        << "MicromegasRawDataTimingEvaluation::process_event -"
+        << " packet: " << packet_id
+        << " n_waveform: " << n_waveform
+        << std::endl;
+      bco_matching_information.print_gtm_bco_information();
     }
 
     // try find reference

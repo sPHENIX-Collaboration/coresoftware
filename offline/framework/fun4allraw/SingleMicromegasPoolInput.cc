@@ -163,10 +163,11 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       if (Verbosity())
       {
         std::cout
-            << "SingleMicromegasPoolInput::FillPool -"
-            << " packet: " << packet_id
-            << " n_waveform: " << nwf
-            << std::endl;
+          << "SingleMicromegasPoolInput::FillPool -"
+          << " packet: " << packet_id
+          << " n_waveform: " << nwf
+          << std::endl;
+        bco_matching_information.print_gtm_bco_information();
       }
 
       // try find reference
