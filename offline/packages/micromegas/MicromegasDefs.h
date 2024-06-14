@@ -121,7 +121,6 @@ namespace MicromegasDefs
   //! mark invalid ADC values
   static constexpr uint16_t m_adc_invalid = 65000;
 
-
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   // TODO: should move to online_distribution
   enum SampaDataType
