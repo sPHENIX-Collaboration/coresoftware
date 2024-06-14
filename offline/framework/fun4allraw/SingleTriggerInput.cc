@@ -178,3 +178,12 @@ int SingleTriggerInput::EventNumberOffset(const int packetid)
   }
   return m_EventNumberOffset[packetid];
 }
+
+void SingleTriggerInput::AdjustEventNumberOffset(const int packetid, const int offset)
+{
+  if (m_EventNumberOffset.find(packetid) == m_EventNumberOffset.end())
+  {
+    return;
+  }
+  m_EventNumberOffset[packetid]+= offset;
+}

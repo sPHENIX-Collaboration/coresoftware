@@ -65,6 +65,7 @@ Fun4AllPrdfInputTriggerManager::~Fun4AllPrdfInputTriggerManager()
 
 int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
 {
+tryagain:
   int iret = 0;
   if (m_gl1_registered_flag)  // Gl1 first to get the reference
   {
@@ -101,7 +102,10 @@ int Fun4AllPrdfInputTriggerManager::run(const int /*nevents*/)
     std::cout << "new ref event: " << m_RefEventNo << std::endl;
   }
   ClockDiffFill();
-  ClockDiffCheck();
+  if (ClockDiffCheck())
+  {
+    goto tryagain;
+  }
   MoveGl1ToNodeTree();
   MoveMbdToNodeTree();
   MoveCemcToNodeTree();
@@ -400,6 +404,7 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
     gSystem->Exit(1);
     exit(1);
   }
+  m_TriggerInputVector.push_back(prdfin);
   if (Verbosity() > 3)
   {
     std::cout << "registering " << prdfin->Name()
@@ -636,22 +641,84 @@ void Fun4AllPrdfInputTriggerManager::Resynchronize()
                 << std::endl;
     }
   }
-  ClearAllEvents();
+  ClearAllEvents(0);
   return;
 }
 
-void Fun4AllPrdfInputTriggerManager::ClearAllEvents()
+void Fun4AllPrdfInputTriggerManager::ClearAllEvents(const int eventno)
 {
-  for (auto const &mapiter : m_Gl1PacketMap)
+  for (auto &mapiter : m_Gl1PacketMap)
   {
-    for (auto &gl1packet : mapiter.second.Gl1SinglePacketMap)
-    {
-      delete gl1packet.second;
-    }
+    // for (auto &gl1packet : mapiter.second.Gl1SinglePacketMap)
+    // {
+    //   delete gl1packet.second;
+    // }
+    mapiter.second.Gl1SinglePacketMap.clear();
+    mapiter.second.BcoDiffMap.clear();
   }
   m_Gl1PacketMap.clear();
+
+  for (auto &mapiter : m_MbdPacketMap)
+  {
+    // for (auto &mbdpacket : mapiter.second.MbdSinglePacketMap)
+    // {
+    //   delete mbdpacket.second;
+    // }
+    mapiter.second.MbdSinglePacketMap.clear();
+    mapiter.second.BcoDiffMap.clear();
+  }
+  m_MbdPacketMap.clear();
+
+  for (auto &mapiter : m_SEpdPacketMap)
+  {
+    // for (auto &sepdpacket : mapiter.second.SEpdSinglePacketMap)
+    // {
+    //   delete sepdpacket.second;
+    // }
+    mapiter.second.SEpdSinglePacketMap.clear();
+    mapiter.second.BcoDiffMap.clear();
+  }
+  m_SEpdPacketMap.clear();
+
+  for (auto &mapiter : m_ZdcPacketMap)
+  {
+    // for (auto &zdcpacket : mapiter.second.ZdcSinglePacketMap)
+    // {
+    //   delete zdcpacket.second;
+    // }
+    mapiter.second.ZdcSinglePacketMap.clear();
+    mapiter.second.BcoDiffMap.clear();
+  }
+  m_ZdcPacketMap.clear();
+
   m_ClockCounters.clear();
   m_RefClockCounters.clear();
+
+  for (auto iter : m_Gl1InputVector)
+  {
+    iter->CleanupUsedPackets(eventno);
+  }
+  for (auto iter : m_MbdInputVector)
+  {
+    iter->CleanupUsedPackets(eventno);
+  }
+  for (auto iter : m_HcalInputVector)
+  {
+    iter->CleanupUsedPackets(eventno);
+  }
+  for (auto iter : m_CemcInputVector)
+  {
+    iter->CleanupUsedPackets(eventno);
+  }
+  for (auto iter : m_LL1InputVector)
+  {
+    iter->CleanupUsedPackets(eventno);
+  }
+  for (auto iter : m_ZdcInputVector)
+  {
+    iter->CleanupUsedPackets(eventno);
+  }
+
 }
 
 int Fun4AllPrdfInputTriggerManager::FillGl1(const unsigned int nEvents)
@@ -1386,58 +1453,44 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
   return;
 }
 
-void Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
+int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 {
+  std::map<int, int> eventoffset;  
   for (auto &iter : m_NeedleMap)
   {
     std::vector needle = iter.second;
     needle.pop_back();
     auto it = std::search(m_HayStack.begin(), m_HayStack.end(), needle.begin(), needle.end());
 
-    if (it != m_HayStack.end()) {
-        // If found, std::search returns an iterator to the first element of the subsequence
-        std::cout << "Sequence found at position: " << std::distance(m_HayStack.begin(), it) << std::endl;
-    } else {
-        // If not found, std::search returns haystack.end()
-        std::cout << "Sequence not found." << std::endl;
+    if (it != m_HayStack.end()) 
+    {
+      int position = std::distance(m_HayStack.begin(), it);
+      // If found, std::search returns an iterator to the first element of the subsequence
+      std::cout << "Sequence found at position: " << position << std::endl;
+      if (position > 0)
+      {
+	std::cout << "need to change evt offset of packet " << iter.first << " by " 
+		  << position << " counts" << std::endl;
+	eventoffset[iter.first] = position;
+      }
+    } 
+    else 
+    {
+      // If not found, std::search returns haystack.end()
+      std::cout << "Sequence not found." << std::endl;
     }
   }
-  return;
-
-
-  for (auto &bcoiter : m_RefBcoDiffMap)
+  if (! eventoffset.empty())
   {
-    uint64_t refbco = bcoiter.second;
-    auto sepditer = m_SEpdPacketMap.find(bcoiter.first);
-    if (sepditer != m_SEpdPacketMap.end())
+    for (auto iter : m_TriggerInputVector)
     {
-      std::vector<uint64_t> needle;
-      for (auto &pktiter : sepditer->second.BcoDiffMap)
-       {
-       	uint64_t thisbco = pktiter.second;
-        if (thisbco != refbco)
-	{
-	  std::cout << "BCO mismatch, Event " <<  sepditer->first
-       	          << " Packet " << pktiter.first << ", ref bco diff: 0x" << std::hex << refbco << " pktbco diff: 0x" << thisbco
-       		  << std::dec <<  std::endl;
-	}
-       }
+      for (auto &offiter:  eventoffset)
+      {
+	iter->AdjustEventNumberOffset(offiter.first, offiter.second);
+      }
     }
-
-    auto mbditer = m_MbdPacketMap.find(bcoiter.first);
-    if (mbditer != m_MbdPacketMap.end())
-    {
-      for (auto &pktiter : mbditer->second.BcoDiffMap)
-       {
-       	uint64_t thisbco = pktiter.second;
-        if (thisbco != refbco)
-	{
-	  std::cout << "BCO mismatch"
-       	          << "Packet " << pktiter.first << ", ref bco diff: 0x" << std::hex << refbco << " pktbco diff: 0x" << thisbco
-       		  << std::dec <<  std::endl;
-	}
-       }
-    }
+    ClearAllEvents(m_Gl1PacketMap.rbegin()->first);
+    return -1;
   }
-  return;
+  return 0;
 }

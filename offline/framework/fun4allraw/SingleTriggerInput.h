@@ -28,8 +28,8 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual int fileclose() override;
   virtual int AllDone() const { return m_AllDone; }
   virtual void AllDone(const int i) { m_AllDone = i; }
-  virtual void AdjustEventNumberOffset(const int packetid, const int iadjust) { m_EventNumberOffset[packetid] += iadjust; }
   virtual int EventNumberOffset(const int packetid);
+  virtual void AdjustEventNumberOffset(const int packetid, const int offset);
   virtual void Print(const std::string &what = "ALL") const override;
   virtual void CleanupUsedPackets(const int) { return; }
   virtual bool CheckPoolDepth(const uint64_t bclk);
