@@ -39,9 +39,14 @@ MicromegasRawDataTimingEvaluation::MicromegasRawDataTimingEvaluation(const std::
 int MicromegasRawDataTimingEvaluation::Init(PHCompositeNode* /*topNode*/)
 {
 
-  std::cout << "MicromegasRawDataTimingEvaluation::Init -"
-    << " MicromegasBcoMatchingInformation::multiplier: " << MicromegasBcoMatchingInformation::multiplier()
-    << std::endl;
+  {
+    const auto default_precision{std::cout.precision()};
+    std::cout << "MicromegasRawDataTimingEvaluation::Init -"
+      << std::setprecision(10)
+      << " MicromegasBcoMatchingInformation::multiplier: " << MicromegasBcoMatchingInformation::get_gtm_clock_multiplier()
+      << std::setprecision(default_precision)
+      << std::endl;
+    }
 
   m_evaluation_file.reset(new TFile(m_evaluation_filename.c_str(), "RECREATE"));
   m_evaluation_tree = new TTree("T", "T");
