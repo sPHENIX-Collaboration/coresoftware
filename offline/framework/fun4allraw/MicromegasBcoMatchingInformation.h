@@ -62,6 +62,9 @@ class MicromegasBcoMatchingInformation
   //! find clock references used to match FEE and GTM BCO clock from packet data
   bool find_reference( Packet* );
 
+  //! set BCO reference manually
+  void set_reference( uint64_t /* gtm_bco_first*/, uint32_t /* fee_bco_first */ );
+
   /**
    * matching information is verified if at least one match
    * between gtm_bco and fee_bco is found
