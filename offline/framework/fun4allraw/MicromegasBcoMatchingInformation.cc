@@ -175,11 +175,13 @@ bool MicromegasBcoMatchingInformation::find_reference_from_modebits( Packet* pac
       uint64_t modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
       if( modebits&(1<<BX_COUNTER_SYNC_T) )
       {
-        std::cout << "MicromegasBcoMatchingInformation::find_reference_from_modebits"
-          << " - packet: " << packet->getIdentifier()
-          << " found reference from modebits"
-          << std::endl;
-
+        if( verbosity() )
+        {
+          std::cout << "MicromegasBcoMatchingInformation::find_reference_from_modebits"
+            << " - packet: " << packet->getIdentifier()
+            << " found reference from modebits"
+            << std::endl;
+        }
         // get BCO and assign
         const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
         m_gtm_bco_first = gtm_bco;
