@@ -87,34 +87,13 @@ std::optional<uint32_t> MicromegasBcoMatchingInformation::get_predicted_fee_bco(
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet )
+void MicromegasBcoMatchingInformation::print_gtm_bco_information() const
 {
-  // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
-  const int n_tagger = packet->lValue(0, "N_TAGGER");
-  for (int t = 0; t < n_tagger; ++t)
+  if(!m_gtm_bco_list.empty())
   {
-    const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
-    if (is_lvl1)
-    {
-      const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
-      m_gtm_bco_list.push_back(gtm_bco);
-    }
-  }
-
-  if(verbosity() && !m_gtm_bco_list.empty())
-  {
-    // get packet id
-    const int packet_id = packet->getIdentifier();
 
     std::cout
       << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
-      << " packet: " << packet_id
-      << " n_tagger: " << n_tagger
-      << std::endl;
-
-    std::cout
-      << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
-      << " packet: " << packet_id
       << " gtm_bco: " << std::hex << m_gtm_bco_list << std::dec
       << std::endl;
 
@@ -130,9 +109,24 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
 
       std::cout
         << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
-        << " packet: " << packet_id
         << " fee_bco_predicted: " << std::hex << fee_bco_predicted_list << std::dec
         << std::endl;
+    }
+  }
+}
+
+//___________________________________________________
+void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet )
+{
+  // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
+  const int n_tagger = packet->lValue(0, "N_TAGGER");
+  for (int t = 0; t < n_tagger; ++t)
+  {
+    const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+    if (is_lvl1)
+    {
+      const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+      m_gtm_bco_list.push_back(gtm_bco);
     }
   }
 }
