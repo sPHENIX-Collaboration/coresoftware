@@ -190,16 +190,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         // get fee id
         const int fee_id = packet->iValue(wf, "FEE");
 
-        // get type
-        const int type = packet->iValue(wf, "TYPE" );
-
-        // ignore heartbeat waveforms
-        /**
-         * TODO: in principle, since heartbeat data come at fixed GTM BCO interals,
-         * the corresponding FEE_BCO could be use to check FEE clock frequency
-         **/
-        if( type == HEARTBEAT_T ) continue;
-
         // get checksum_error and check
         const auto checksum_error = packet->iValue(wf, "CHECKSUMERROR");
         if (checksum_error)
@@ -234,6 +224,10 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
           // skip the waverform
           continue;
         }
+
+        // get type
+        // ignore heartbeat waveforms
+        if( packet->iValue(wf, "TYPE" ) == HEARTBEAT_T ) continue;
 
         // create new hit
         auto newhit = std::make_unique<MicromegasRawHitv1>();

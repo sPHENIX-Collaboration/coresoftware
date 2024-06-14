@@ -143,11 +143,25 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
   const int n_tagger = packet->lValue(0, "N_TAGGER");
   for (int t = 0; t < n_tagger; ++t)
   {
+    // save level1 trigger bco
     const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
     if (is_lvl1)
     {
       const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
       m_gtm_bco_list.push_back(gtm_bco);
+    }
+
+    // also save hearbeat bco
+    const bool is_modebit = static_cast<uint8_t>(packet->lValue(t, "IS_MODEBIT"));
+    if( is_modebit )
+    {
+      // get modebits
+      uint64_t modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
+      if( modebits&(1<<ELINK_HEARTBEAT_T) )
+      {
+        const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+        m_gtm_bco_list.push_back(gtm_bco);
+      }
     }
   }
 }
