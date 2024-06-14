@@ -31,6 +31,8 @@ class SingleInttPoolInput : public SingleStreamingInput
   void SetBcoRange(const unsigned int value) { m_BcoRange = value; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
+  const std::set<uint64_t>& BclkStack() const override { return m_BclkStack; }
+  const std::map<uint64_t, std::set<int>>& BeamClockFEE() const override { return m_BeamClockFEE; }
 
  private:
   Packet **plist{nullptr};

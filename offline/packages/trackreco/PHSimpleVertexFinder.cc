@@ -76,7 +76,6 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
   // Write to a new map on the node tree that contains (crossing, trackid) pairs for all tracks
   // Later, will add to it a map  containing (crossing, vertexid)
 
-  _track_vertex_crossing_map->Clear();
   std::set<short int> crossings;
   for (const auto &[trackkey, track] : *_track_map)
   {
