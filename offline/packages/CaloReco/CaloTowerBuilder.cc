@@ -6,6 +6,7 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfoContainerv3.h>
+#include <calobase/TowerInfoContainerv4.h>
 
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
@@ -503,6 +504,10 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   else if (m_buildertype == CaloTowerDefs::kWaveformTowerv2)
   {
     m_CaloInfoContainer = new TowerInfoContainerv2(DetectorEnum);
+  }
+  else if (m_buildertype == CaloTowerDefs::kPRDFTowerv4)
+  {
+    m_CaloInfoContainer = new TowerInfoContainerv4(DetectorEnum);
   }
   else
   {
