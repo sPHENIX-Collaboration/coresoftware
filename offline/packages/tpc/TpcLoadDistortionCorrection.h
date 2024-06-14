@@ -34,7 +34,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
     DistortionType_Static = 0,
     DistortionType_Average = 1,
     DistortionType_Fluctuation = 2,
-    DistortionTtype_ModuleEdge = 3
+    DistortionType_ModuleEdge = 3
   };
 
   //! correction filename
@@ -49,6 +49,11 @@ class TpcLoadDistortionCorrection : public SubsysReco
   void set_read_phi_as_radians(bool flag)
   {
     m_phi_hist_in_radians = flag;
+  }
+  //! set the histogram to interpolate between hist value and zero, depending on z position. (has no effect if m_dimensions is 3)
+  void set_interpolate_2D_to_zero(bool flag)
+  {
+    m_interpolate_z = flag;
   }
 
   //! node name
@@ -70,6 +75,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
 
   //! set the phi histogram to be interpreted as radians rather than mm
   bool m_phi_hist_in_radians = true;
+  bool m_interpolate_z = true;
 
   //! distortion object node name
   std::string m_node_name[4] = {"TpcDistortionCorrectionContainerStatic", "TpcDistortionCorrectionContainerAverage", "TpcDistortionCorrectionContainerFluctuation","TpcDistortionCorrectionContainerModuleEdge"};

@@ -106,9 +106,7 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position(const Acts::Vector
     {
       z_new = z - dcc->m_hDZint[index]->Interpolate(phi, r) * zterm;
     }
-
-    //if we are in interpolation mode, we need to apply the z interpolation to all terms
-
+    
   }
 
   // update cluster
