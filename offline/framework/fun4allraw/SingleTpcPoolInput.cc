@@ -118,6 +118,11 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
           }
           // store
           previous_bco = gtm_bco;
+          if (m_BclkStackPacketMap.find(packet_id) == m_BclkStackPacketMap.end())
+          {
+            m_BclkStackPacketMap.insert(std::make_pair(packet_id, std::set<uint64_t>()));
+          }
+          m_BclkStackPacketMap[packet_id].insert(gtm_bco);
         }
       }
 
@@ -214,6 +219,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         m_BclkStack.insert(gtm_bco);
         //	}
       }
+
       delete packet;
     }
   }
@@ -299,12 +305,15 @@ void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // {
   //   iter.second.clear();
   // }
-
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
     m_BeamClockFEE.erase(iter);
     m_TpcRawHitMap.erase(iter);
+    for (auto &[packetid, bclkset] : m_BclkStackPacketMap)
+    {
+      bclkset.erase(iter);
+    }
   }
 }
 

@@ -61,7 +61,7 @@ class CaloWaveformFitting
   int _nthreads{1};
   int _nzerosuppresssamples{2};
   int _nsoftwarezerosuppression{40};
-  float _stepsize{0.001};
+//  float _stepsize{0.001};
   bool _bdosoftwarezerosuppression{false};
   bool _maxsoftwarezerosuppression{false};
   std::string m_template_input_file;

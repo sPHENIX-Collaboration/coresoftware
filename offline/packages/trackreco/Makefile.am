@@ -61,6 +61,7 @@ pkginclude_HEADERS = \
   PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
   PHSimpleKFProp.h \
+  PHStreakFinder.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
   PHTrackClusterAssociator.h \
@@ -144,6 +145,7 @@ libtrack_reco_la_SOURCES = \
   PHSiliconCosmicSeeding.cc \
   PHSimpleKFProp.cc \
   PHSimpleVertexFinder.cc \
+  PHStreakFinder.cc \
   PHTpcClusterMover.cc \
   PHTpcDeltaZCorrection.cc \
   PHTrackCleaner.cc \

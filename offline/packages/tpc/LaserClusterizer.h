@@ -5,6 +5,7 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <phool/PHTimer.h>
 
@@ -93,9 +94,6 @@ class LaserClusterizer : public SubsysReco
   TH1I *m_itHist_0 = nullptr;
   TH1I *m_itHist_1 = nullptr;
 
-  TH1D *m_tHist_0 = nullptr;
-  TH1D *m_tHist_1 = nullptr;
-
   int m_nClus = 0;
   double time_search = 0;
   double time_clus = 0;
@@ -103,7 +101,7 @@ class LaserClusterizer : public SubsysReco
   double time_all = 0;
 
   LaserClusterv1 *m_currentCluster = nullptr;
-  std::vector<LaserClusterv1 *> m_eventClusters;
+  LaserClusterContainerv1 *m_eventClusters = nullptr;
   std::vector<float> m_currentHit;
   std::vector<float> m_currentHit_hardware;
 
