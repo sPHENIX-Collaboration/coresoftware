@@ -362,7 +362,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       m_tpcseedpy = tpcseed->get_py();
       m_tpcseedpz = tpcseed->get_pz();
     }
-    m_tpcseedcharge = tpcseed->get_qOverR() > 1 ? 1 : -1;
+    m_tpcseedcharge = tpcseed->get_qOverR() > 0 ? 1 : -1;
     m_dedx = calc_dedx(tpcseed, clustermap, tpcGeo);
     m_nmaps = 0;
     m_nintt = 0;
@@ -1744,7 +1744,7 @@ void TrackResiduals::fillResidualTreeKF( PHCompositeNode* topNode)
 	  m_silseedpz = silseed->get_pz();
 	  m_silseedphi = silseed->get_phi();
 	  m_silseedeta = silseed->get_eta();
-	  m_silseedcharge = silseed->get_qOverR() > 1 ? 1 : -1;
+	  m_silseedcharge = silseed->get_qOverR() > 0 ? 1 : -1;
 	}
       if (tpcseed)
 	{
@@ -1756,7 +1756,7 @@ void TrackResiduals::fillResidualTreeKF( PHCompositeNode* topNode)
 	  m_tpcseedpz = tpcseed->get_pz();
 	  m_tpcseedphi = tpcseed->get_phi();
 	  m_tpcseedeta = tpcseed->get_eta();
-	  m_tpcseedcharge = tpcseed->get_qOverR() > 1 ? 1 : -1;
+	  m_tpcseedcharge = tpcseed->get_qOverR() > 0 ? 1 : -1;
 	}
       if (tpcseed)
 	{
@@ -1978,7 +1978,7 @@ void TrackResiduals::fillResidualTreeSeeds( PHCompositeNode* topNode )
       m_silseedpz = silseed->get_pz();
       m_silseedphi = silseed->get_phi();
       m_silseedeta = silseed->get_eta();
-      m_silseedcharge = silseed->get_qOverR() > 1 ? 1 : -1;
+      m_silseedcharge = silseed->get_qOverR() > 0 ? 1 : -1;
     }
     if (tpcseed)
     {
@@ -1990,7 +1990,7 @@ void TrackResiduals::fillResidualTreeSeeds( PHCompositeNode* topNode )
       m_tpcseedpz = tpcseed->get_pz();
       m_tpcseedphi = tpcseed->get_phi();
       m_tpcseedeta = tpcseed->get_eta();
-      m_tpcseedcharge = tpcseed->get_qOverR() > 1 ? 1 : -1;
+      m_tpcseedcharge = tpcseed->get_qOverR() > 0 ? 1 : -1;
     }
     if (tpcseed)
     {

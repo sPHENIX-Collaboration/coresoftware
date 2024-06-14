@@ -6,6 +6,7 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfoContainerv3.h>
+#include <calobase/TowerInfoContainerv4.h>
 
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
@@ -131,7 +132,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_detector = "ZDC";
     m_packet_low = 12001;
     m_packet_high = 12001;
-    m_nchannels = 52;
+    m_nchannels = 128;
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the ZDC to fast processing
@@ -237,13 +238,12 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
       {
          return Fun4AllReturnCodes::ABORTEVENT;
       }
-      // int sector = 0;
-
+     
       for (int channel = 0; channel < nchannels; channel++)
       {
         if (skipChannel(channel, pid))
         {
-          continue;
+           continue;
         }
         if (m_dettype == CaloTowerDefs::CEMC)
         {
@@ -423,6 +423,15 @@ bool CaloTowerBuilder::skipChannel(int ich, int pid)
       return true;
     }
   }
+    
+  if (m_dettype == CaloTowerDefs::ZDC)
+  {
+     if(((ich > 17) && (ich < 48)) || ((ich > 63) && (ich < 80)) || ((ich > 81) && (ich < 112)))
+     {
+        return true;
+     }
+  }
+    
   return false;
 }
 
@@ -503,6 +512,10 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   else if (m_buildertype == CaloTowerDefs::kWaveformTowerv2)
   {
     m_CaloInfoContainer = new TowerInfoContainerv2(DetectorEnum);
+  }
+  else if (m_buildertype == CaloTowerDefs::kPRDFTowerv4)
+  {
+    m_CaloInfoContainer = new TowerInfoContainerv4(DetectorEnum);
   }
   else
   {
