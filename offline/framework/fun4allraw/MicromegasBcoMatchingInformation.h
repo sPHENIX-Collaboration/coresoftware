@@ -40,6 +40,9 @@ class MicromegasBcoMatchingInformation
   static double get_gtm_clock_multiplier()
   { return m_multiplier; }
 
+  //! print gtm bco information
+  void print_gtm_bco_information() const;
+
   //@}
 
   //!@name modifiers
