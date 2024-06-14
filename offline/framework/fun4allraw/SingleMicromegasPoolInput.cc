@@ -458,42 +458,35 @@ void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  // set of packets for which the gtm BCO is found at least once
+  unsigned int n_waveforms = 0;
+  std::set<int> found_packets;
+  for (uint64_t gtm_bco_loc = gtm_bco - m_NegativeBco; gtm_bco_loc < gtm_bco + m_BcoRange - m_NegativeBco; ++gtm_bco_loc)
+  {
+    // packet ids
+    const auto packet_iter = m_BeamClockPacket.find(gtm_bco_loc);
+    if( packet_iter != m_BeamClockPacket.end() )
+    { found_packets.insert( packet_iter->second.begin(), packet_iter->second.end() ); }
+
+    // waveforms
+    const auto wf_iter = m_MicromegasRawHitMap.find(gtm_bco_loc);
+    if (wf_iter != m_MicromegasRawHitMap.end())
+    { n_waveforms += wf_iter->second.size(); }
+  }
+
+  // per packet statistics
   auto h_packet_stat = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_packet_stat"));
   h_packet_stat->Fill( "Reference", 1 );
 
-  unsigned int n_waveforms = 0;
-  unsigned int n_packets = 0;
-  for (uint64_t gtm_bco_loc = gtm_bco - m_NegativeBco; gtm_bco_loc < gtm_bco + m_BcoRange - m_NegativeBco; ++gtm_bco_loc)
-  {
-    const auto packet_iter = m_BeamClockPacket.find(gtm_bco_loc);
-    if( packet_iter != m_BeamClockPacket.end() )
-    {
-      for( const auto& packet_id:packet_iter->second )
-      { h_packet_stat->Fill( std::to_string(packet_id).c_str(), 1 ); }
+  for( const auto& packet_id:found_packets )
+  { h_packet_stat->Fill( std::to_string(packet_id).c_str(), 1 ); }
+  h_packet_stat->Fill( "All", found_packets.size()>= m_npackets_active );
 
-      h_packet_stat->Fill( "All", packet_iter->second.size() );
-      n_packets += packet_iter->second.size();
-    }
-
-    const auto wf_iter = m_MicromegasRawHitMap.find(gtm_bco_loc);
-    if (wf_iter != m_MicromegasRawHitMap.end())
-    {
-      n_waveforms += wf_iter->second.size();
-    }
-  }
-
-  if (Verbosity())
-  {
-    std::cout << "SingleMicromegasPoolInput::FillBcoQA -"
-              << " BCO: 0x" << std::hex << gtm_bco << std::dec
-              << " n_packets: " << n_packets
-              << " n_waveforms: " << n_waveforms
-              << std::endl;
-  }
-
+  // how many packet_id found for this BCO
   auto h_packet = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_npacket_bco"));
-  h_packet->Fill(n_packets);
+  h_packet->Fill(found_packets.size());
 
+  // how many waveforms found for this BCO
   auto h_waveform = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_nwaveform_bco"));
   h_waveform->Fill(n_waveforms);
 }
