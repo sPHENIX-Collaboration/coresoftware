@@ -70,6 +70,24 @@ class LaserCluster : public PHObject
   virtual unsigned int getNhits() const {return UINT_MAX;}
   virtual void setNhits( unsigned int) {}
 
+  virtual void setNLayers(unsigned int) {}
+  virtual unsigned int getNLayers() const { return UINT_MAX;}
+
+  virtual void setNIPhi(unsigned int) {}
+  virtual unsigned int getNIPhi() const { return UINT_MAX;}
+
+  virtual void setNIT(unsigned int) {}
+  virtual unsigned int getNIT() const { return UINT_MAX;}
+
+  virtual void setSDLayer(float) {}
+  virtual float getSDLayer() const { return NAN; }
+
+  virtual void setSDIPhi(float) {}
+  virtual float getSDIPhi() const { return NAN; }
+
+  virtual void setSDIT(float) {}
+  virtual float getSDIT() const { return NAN; }
+
   virtual void addHit() {}
  
   virtual void setHitLayer(int, float) {}

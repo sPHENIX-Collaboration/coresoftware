@@ -30,6 +30,7 @@ class TH1D;
 class TH2F;
 class TGraph;
 class TNtuple;
+class TTree;
 class TVector3;
 
 class TpcCentralMembraneMatching : public SubsysReco
@@ -39,7 +40,7 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   ~TpcCentralMembraneMatching() override = default;
 
-  /// set to true to store evaluation histograms and ntuples
+  /// set to true to store evaluation histograms and ttrees
   void setSavehistograms(bool value)
   {
     m_savehistograms = value;
@@ -136,9 +137,31 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   TH2F *reco_r_phi[2]{};
 
+  TH2F *m_matchResiduals[2]{};
+
   TNtuple *match_ntup = nullptr;
+  TTree *match_tree = nullptr;
 
   int m_event_index = 0;
+  int m_truthIndex = 0;
+  float m_truthR = 0.0;
+  float m_truthPhi = 0.0;
+  float m_recoR = 0.0;
+  float m_recoPhi = 0.0;
+  float m_recoZ = 0.0;
+  bool m_side = 0;
+  unsigned int m_adc = 0;
+  unsigned int m_nhits = 0;
+  unsigned int m_nLayers = 0;
+  unsigned int m_nIPhi = 0;
+  unsigned int m_nIT = 0;
+  float m_layersSD = 0.0;
+  float m_IPhiSD = 0.0;
+  float m_ITSD = 0.0;
+  int m_lowShift = 0;
+  int m_highShift = 0;
+
+
 
   //@}
 
@@ -245,6 +268,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   std::vector<double> m_reco_RPeaks[2];
   double m_m[2];
   double m_b[2];
+  int m_matchLow[2];
+  int m_matchHigh[2];
   std::vector<int> m_reco_RMatches[2];
 
   double m_recoRotation[2][3];

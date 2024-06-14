@@ -65,6 +65,24 @@ class LaserClusterv1 : public LaserCluster
   unsigned int getAdc() const override { return m_adc; }
   void setAdc(unsigned int adc) override { m_adc = adc; }
 
+  void setNLayers(unsigned int nLayers) override { m_nLayers = nLayers; }
+  unsigned int getNLayers() const override { return m_nLayers; }
+
+  void setNIPhi(unsigned int nIPhi) override { m_nIPhi = nIPhi; }
+  unsigned int getNIPhi() const override { return m_nIPhi; }
+
+  void setNIT(unsigned int nIT) override { m_nIT = nIT; }
+  unsigned int getNIT() const override { return m_nIT; }
+
+  void setSDLayer(float SDLayer) override { m_SDLayer = SDLayer; }
+  float getSDLayer() const override { return m_SDLayer; }
+
+  void setSDIPhi(float SDIPhi) override { m_SDIPhi = SDIPhi; }
+  float getSDIPhi() const override { return m_SDIPhi; }
+
+  void setSDIT(float SDIT) override { m_SDIT = SDIT; }
+  float getSDIT() const override { return m_SDIT; }
+
   void addHit() override {m_hitVec.push_back({0.0,0.0,0.0,0.0}); m_hitVecHardware.push_back({0.0,0.0,0.0}); }
 
   void setHitLayer(int i, float layer) override {m_hitVecHardware[i][0] = layer; }
@@ -103,6 +121,12 @@ class LaserClusterv1 : public LaserCluster
   
   /// number of TPC clusters used to create this central mebrane cluster
   unsigned int m_nhits = UINT_MAX;
+  unsigned int m_nLayers = UINT_MAX;
+  unsigned int m_nIPhi = UINT_MAX;
+  unsigned int m_nIT = UINT_MAX;
+  float m_SDLayer = NAN;
+  float m_SDIPhi = NAN;
+  float m_SDIT = NAN;
 
   ClassDefOverride(LaserClusterv1, 1)
 };

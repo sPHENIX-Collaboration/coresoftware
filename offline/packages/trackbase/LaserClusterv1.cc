@@ -67,6 +67,13 @@ void LaserClusterv1::CopyFrom( const LaserCluster& source )
   setIPhi( source.getIPhi() );
   setIT( source.getIT() );
   setNhits( source.getNhits() );
+  setNLayers( source.getNLayers() );
+  setNIPhi( source.getNIPhi() );
+  setNIT( source.getNIT() );
+  setSDLayer( source.getSDLayer() );
+  setSDIPhi( source.getSDIPhi() );
+  setSDIT( source.getSDIT() );
+
 
   for(int i=0; i<(int)source.getNhits(); i++){
     addHit();
