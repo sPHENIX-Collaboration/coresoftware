@@ -197,13 +197,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
           continue;
         }
 
-        // get number of samples and check
-        const uint16_t samples = packet->iValue(wf, "SAMPLES");
-        if (samples < m_min_req_samples)
-        {
-          continue;
-        }
-
         // get fee bco
         const unsigned int fee_bco = packet->iValue(wf, "BCO");
 
@@ -228,6 +221,13 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         // get type
         // ignore heartbeat waveforms
         if( packet->iValue(wf, "TYPE" ) == HEARTBEAT_T ) continue;
+
+        // get number of samples and check
+        const uint16_t samples = packet->iValue(wf, "SAMPLES");
+        if (samples < m_min_req_samples)
+        {
+          continue;
+        }
 
         // create new hit
         auto newhit = std::make_unique<MicromegasRawHitv1>();
