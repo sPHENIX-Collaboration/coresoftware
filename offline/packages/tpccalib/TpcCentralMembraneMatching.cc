@@ -6,16 +6,17 @@
 
 #include "TpcCentralMembraneMatching.h"
 
+#include <trackbase/CMFlashDifferencev1.h>
+#include <trackbase/CMFlashDifferenceContainerv1.h>
+#include <trackbase/LaserClusterContainerv1.h>
+#include <trackbase/LaserClusterv1.h>
+#include <trackbase/TpcDefs.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <trackbase/CMFlashDifferenceContainerv1.h>
-#include <trackbase/CMFlashDifferencev1.h>
-#include <trackbase/LaserClusterContainerv1.h>
-#include <trackbase/LaserClusterv1.h>
-#include <trackbase/TpcDefs.h>
 
 #include <TF1.h>
 #include <TFile.h>
@@ -165,7 +166,7 @@ void TpcCentralMembraneMatching::set_grid_dimensions(int phibins, int rbins)
 
 
 // get the average phi rotation using smoothed histograms
-double TpcCentralMembraneMatching::getPhiRotation_smoothed(TH1D* hitHist, TH1D* clustHist)
+double TpcCentralMembraneMatching::getPhiRotation_smoothed(TH1* hitHist, TH1* clustHist)
 {
   // smooth the truth and cluster histograms
   hitHist->Smooth();
@@ -190,7 +191,7 @@ double TpcCentralMembraneMatching::getPhiRotation_smoothed(TH1D* hitHist, TH1D* 
   return f1->GetParameter(1);
 }
 
-std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F* r_phi, bool side)
+std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2* r_phi, bool side)
 {
   TH1D* proj = r_phi->ProjectionY("R_proj");
 
