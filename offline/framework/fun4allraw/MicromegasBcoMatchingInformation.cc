@@ -92,6 +92,27 @@ namespace
   //! copied from micromegas/MicromegasDefs.h, not available here
   static constexpr int m_nchannels_fee = 256;
 
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum SampaDataType
+  {
+    HEARTBEAT_T = 0b000,
+    TRUNCATED_DATA_T = 0b001,
+    TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
+    NORMAL_DATA_T = 0b100,
+    LARGE_DATA_T = 0b101,
+    TRIG_EARLY_DATA_T = 0b110,
+    TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
+
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum ModeBitType
+  {
+    BX_COUNTER_SYNC_T = 0,
+    ELINK_HEARTBEAT_T = 1,
+    SAMPA_EVENT_TRIGGER_T = 2,
+    CLEAR_LV1_LAST_T = 6,
+    CLEAR_LV1_ENDAT_T = 7
+  };
 }
 
 // this is the clock multiplier from lvl1 to fee clock
@@ -115,34 +136,13 @@ std::optional<uint32_t> MicromegasBcoMatchingInformation::get_predicted_fee_bco(
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet )
+void MicromegasBcoMatchingInformation::print_gtm_bco_information() const
 {
-  // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
-  const int n_tagger = packet->lValue(0, "N_TAGGER");
-  for (int t = 0; t < n_tagger; ++t)
+  if(!m_gtm_bco_list.empty())
   {
-    const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
-    if (is_lvl1)
-    {
-      const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
-      m_gtm_bco_list.push_back(gtm_bco);
-    }
-  }
-
-  if(verbosity() && !m_gtm_bco_list.empty())
-  {
-    // get packet id
-    const int packet_id = packet->getIdentifier();
 
     std::cout
       << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
-      << " packet: " << packet_id
-      << " n_tagger: " << n_tagger
-      << std::endl;
-
-    std::cout
-      << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
-      << " packet: " << packet_id
       << " gtm_bco: " << std::hex << m_gtm_bco_list << std::dec
       << std::endl;
 
@@ -158,7 +158,6 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
 
       std::cout
         << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
-        << " packet: " << packet_id
         << " fee_bco_predicted: " << std::hex << fee_bco_predicted_list << std::dec
         << std::endl;
     }
@@ -166,7 +165,77 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
 }
 
 //___________________________________________________
+void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet )
+{
+  // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
+  const int n_tagger = packet->lValue(0, "N_TAGGER");
+  for (int t = 0; t < n_tagger; ++t)
+  {
+    // save level1 trigger bco
+    const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+    if (is_lvl1)
+    {
+      const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+      m_gtm_bco_list.push_back(gtm_bco);
+    }
+
+    // also save hearbeat bco
+    const bool is_modebit = static_cast<uint8_t>(packet->lValue(t, "IS_MODEBIT"));
+    if( is_modebit )
+    {
+      // get modebits
+      uint64_t modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
+      if( modebits&(1<<ELINK_HEARTBEAT_T) )
+      {
+        const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+        m_gtm_bco_list.push_back(gtm_bco);
+      }
+    }
+  }
+}
+
+//___________________________________________________
 bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
+{
+  if( find_reference_from_modebits( packet ) ) return true;
+  if( find_reference_from_data( packet ) ) return true;
+  return false;
+}
+
+//___________________________________________________
+bool MicromegasBcoMatchingInformation::find_reference_from_modebits( Packet* packet )
+{
+  // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
+  const int n_tagger = packet->lValue(0, "N_TAGGER");
+  for (int t = 0; t < n_tagger; ++t)
+  {
+    const bool is_modebit = static_cast<uint8_t>(packet->lValue(t, "IS_MODEBIT"));
+    if( is_modebit )
+    {
+      // get modebits
+      uint64_t modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
+      if( modebits&(1<<BX_COUNTER_SYNC_T) )
+      {
+        std::cout << "MicromegasBcoMatchingInformation::find_reference_from_modebits"
+          << " - packet: " << packet->getIdentifier()
+          << " found reference from modebits"
+          << std::endl;
+
+        // get BCO and assign
+        const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+        m_gtm_bco_first = gtm_bco;
+        m_fee_bco_first = 0;
+        m_verified = true;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+//___________________________________________________
+bool MicromegasBcoMatchingInformation::find_reference_from_data( Packet* packet )
 {
   // store gtm bco and diff to previous in an array
   std::vector<uint64_t> gtm_bco_list;
@@ -198,6 +267,14 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
   const int n_waveform = packet->iValue(0, "NR_WF");
   for (int iwf = 0; iwf < n_waveform; ++iwf)
   {
+
+    // check type
+    const unsigned short type = packet->iValue(iwf, "TYPE" );
+
+    // skip heartbeat waveforms
+    if( type == HEARTBEAT_T ) continue;
+
+    // check channel
     const unsigned short channel = packet->iValue( iwf, "CHANNEL" );
 
     // bound check

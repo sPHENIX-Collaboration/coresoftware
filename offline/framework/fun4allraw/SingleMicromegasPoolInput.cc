@@ -26,6 +26,7 @@
 #include <TH1.h>
 
 #include <algorithm>
+#include <bitset>
 
 namespace
 {
@@ -34,6 +35,19 @@ namespace
 
   // minimum number of requested samples
   static constexpr int m_min_req_samples = 5;
+
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum SampaDataType
+  {
+    HEARTBEAT_T = 0b000,
+    TRUNCATED_DATA_T = 0b001,
+    TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
+    NORMAL_DATA_T = 0b100,
+    LARGE_DATA_T = 0b101,
+    TRIG_EARLY_DATA_T = 0b110,
+    TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
+
 }  // namespace
 
 //______________________________________________________________
@@ -156,10 +170,11 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       if (Verbosity())
       {
         std::cout
-            << "SingleMicromegasPoolInput::FillPool -"
-            << " packet: " << packet_id
-            << " n_waveform: " << nwf
-            << std::endl;
+          << "SingleMicromegasPoolInput::FillPool -"
+          << " packet: " << packet_id
+          << " n_waveform: " << nwf
+          << std::endl;
+        bco_matching_information.print_gtm_bco_information();
       }
 
       // try find reference
@@ -188,13 +203,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
           continue;
         }
 
-        // get number of samples and check
-        const uint16_t samples = packet->iValue(wf, "SAMPLES");
-        if (samples < m_min_req_samples)
-        {
-          continue;
-        }
-
         // get fee bco
         const unsigned int fee_bco = packet->iValue(wf, "BCO");
 
@@ -213,6 +221,17 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
           ++m_waveform_count_dropped[packet_id];
 
           // skip the waverform
+          continue;
+        }
+
+        // get type
+        // ignore heartbeat waveforms
+        if( packet->iValue(wf, "TYPE" ) == HEARTBEAT_T ) continue;
+
+        // get number of samples and check
+        const uint16_t samples = packet->iValue(wf, "SAMPLES");
+        if (samples < m_min_req_samples)
+        {
           continue;
         }
 

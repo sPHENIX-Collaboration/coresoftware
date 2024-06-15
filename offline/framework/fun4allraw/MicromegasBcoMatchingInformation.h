@@ -40,6 +40,9 @@ class MicromegasBcoMatchingInformation
   static double get_gtm_clock_multiplier()
   { return m_multiplier; }
 
+  //! print gtm bco information
+  void print_gtm_bco_information() const;
+
   //@}
 
   //!@name modifiers
@@ -72,6 +75,12 @@ class MicromegasBcoMatchingInformation
   //@}
 
   private:
+
+  //! find reference from modebits
+  bool find_reference_from_modebits( Packet* );
+
+  //! find reference from data
+  bool find_reference_from_data( Packet* );
 
   //! update multiplier adjustment
   void update_multiplier_adjustment( uint64_t /* gtm_bco */, uint32_t /* fee_bco */ );

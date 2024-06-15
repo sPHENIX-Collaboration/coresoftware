@@ -103,10 +103,12 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
 
     if (Verbosity())
     {
-      std::cout << "MicromegasRawDataTimingEvaluation::process_event -"
-                << " packet: " << packet_id
-                << " n_waveform: " << n_waveform
-                << std::endl;
+      std::cout
+        << "MicromegasRawDataTimingEvaluation::process_event -"
+        << " packet: " << packet_id
+        << " n_waveform: " << n_waveform
+        << std::endl;
+      bco_matching_information.print_gtm_bco_information();
     }
 
     // try find reference
@@ -127,6 +129,7 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
       waveform.packet_id = packet_id;
       waveform.fee_id = packet->iValue(iwf, "FEE");
       waveform.channel = packet->iValue( iwf, "CHANNEL" );
+      waveform.type = packet->iValue(iwf, "TYPE");
 
       // bound check
       if( waveform.channel >= MicromegasDefs::m_nchannels_fee )
