@@ -47,6 +47,9 @@ tmtags
 # For vim:
 *.swp
 
+#for vscode
+.vscode
+
 # For redcar:
 .redcar
 
