@@ -10,6 +10,7 @@
 #include "LaserCluster.h"
 
 #include <iostream>
+#include <vector>
 
 class PHObject;
 
@@ -110,23 +111,23 @@ class LaserClusterv1 : public LaserCluster
  protected:
 
   /// mean cluster position
-  float m_pos[3] = {NAN, NAN, NAN};          
-  float m_posHardware[3] = {NAN, NAN, NAN};
+  float m_pos[3] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
+  float m_posHardware[3] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
 
   std::vector<std::vector<float>> m_hitVec;
   std::vector<std::vector<float>> m_hitVecHardware;
 
   /// cluster sum adc
-  unsigned int m_adc = 0xFFFFFFFF;
+  unsigned int m_adc = std::numeric_limits<unsigned int>::max();
   
   /// number of TPC clusters used to create this central mebrane cluster
-  unsigned int m_nhits = UINT_MAX;
-  unsigned int m_nLayers = UINT_MAX;
-  unsigned int m_nIPhi = UINT_MAX;
-  unsigned int m_nIT = UINT_MAX;
-  float m_SDLayer = NAN;
-  float m_SDIPhi = NAN;
-  float m_SDIT = NAN;
+  unsigned int m_nhits = std::numeric_limits<unsigned int>::max();
+  unsigned int m_nLayers = std::numeric_limits<unsigned int>::max();
+  unsigned int m_nIPhi = std::numeric_limits<unsigned int>::max();
+  unsigned int m_nIT = std::numeric_limits<unsigned int>::max();
+  float m_SDLayer = std::numeric_limits<float>::quiet_NaN();
+  float m_SDIPhi = std::numeric_limits<float>::quiet_NaN();
+  float m_SDIT = std::numeric_limits<float>::quiet_NaN();
 
   ClassDefOverride(LaserClusterv1, 1)
 };
