@@ -9,28 +9,30 @@
  */
 // ----------------------------------------------------------------------------
 
-#define TRIGGERCLUSTERMAKER_CC
+// module definition
+#include "TriggerClusterMaker.h"
 
-// c++ utiilites
-#include <algorithm>
-#include <cassert>
-#include <iostream>
 // calo base
 #include <calobase/RawCluster.h>
-// trigger libraries
+
+// trigger includes
 #include <calotrigger/LL1Out.h>
 #include <calotrigger/LL1Outv1.h>
 #include <calotrigger/TriggerPrimitiveContainer.h>
 #include <calotrigger/TriggerPrimitiveContainerv1.h>
-// f4a libraries
+
+// f4a includes
 #include <fun4all/Fun4AllReturnCodes.h>
-// phool libraries
+
+// phool includes
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
 
-// module definition
-#include "TriggerClusterMaker.h"
+// c++ includes
+#include <algorithm>
+#include <cassert>
+#include <iostream>
 
 
 
@@ -119,7 +121,7 @@ int TriggerClusterMaker::process_event(PHCompositeNode* topNode) {
 // ----------------------------------------------------------------------------
 //! Run final calculations
 // ----------------------------------------------------------------------------
-int TriggerClusterMaker::End(PHCompositeNode *topNode) {
+int TriggerClusterMaker::End(PHCompositeNode * /*topNode*/) {
 
   if (m_config.debug) {
     std::cout << "TriggerClusterMaker::End(PHCompositeNode *topNode) This is the End..." << std::endl;
@@ -176,7 +178,7 @@ void TriggerClusterMaker::InitOutTree() {
 // ----------------------------------------------------------------------------
 //! Create output node on node tree
 // ----------------------------------------------------------------------------
-void TriggerClusterMaker::InitOutNode(PHCompositeNode* topNode) {
+void TriggerClusterMaker::InitOutNode(PHCompositeNode*  /*topNode*/) {
 
   // print debug message
   if (m_config.debug && (Verbosity() > 0)) {

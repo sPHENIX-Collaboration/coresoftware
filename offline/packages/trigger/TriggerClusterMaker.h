@@ -9,21 +9,23 @@
  */
 // ----------------------------------------------------------------------------
 
-#ifndef TRIGGERCLUSTERMAKER_H
-#define TRIGGERCLUSTERMAKER_H
+#ifndef TRIGGER_TRIGGERCLUSTERMAKER_H
+#define TRIGGER_TRIGGERCLUSTERMAKER_H
 
-// c++ utilities
+// calo base
+#include <calobase/RawClusterContainer.h>
+
+// f4a libraries
+#include <fun4all/SubsysReco.h>
+
+// root libraries
+#include <TFile.h>
+#include <TTree.h>
+
 #include <array>
 #include <string>
 #include <utility>
 #include <vector>
-// calo base
-#include <calobase/RawClusterContainer.h>
-// f4a libraries
-#include <fun4all/SubsysReco.h>
-// root libraries
-#include <TFile.h>
-#include <TTree.h>
 
 // forward declarations
 class LL1Out;
