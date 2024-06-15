@@ -486,7 +486,7 @@ int XingShiftCal::CommitToSpinDB()
     return 0;
   }
 
-  int arrayindex = 0;
+
   while (rsGL1P->next()) {
     int index = rsGL1P->getInt("index");
     int bunch = rsGL1P->getInt("bunch");
@@ -503,9 +503,7 @@ int XingShiftCal::CommitToSpinDB()
     {
       zdcns[bunch] = rsGL1P->getInt("scaled");
     }
-    //int64_t scaled = rsGL1P->getInt("scaled"); // Retrieve the value of the "scaled" column
-    //std::cout << "scaled: " << scaled << std::endl;
-    arrayindex++;
+
   }
   // =======================================================
   
