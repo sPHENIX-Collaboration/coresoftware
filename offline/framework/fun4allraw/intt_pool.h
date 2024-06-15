@@ -86,6 +86,8 @@ protected:
   std::array<unsigned int,MAX_FEECOUNT> last_index;
   std::map<unsigned int, uint64_t> last_bco;
   std::string name;
+  std::set<unsigned long long> BCO_List;
+
 };
 
  
