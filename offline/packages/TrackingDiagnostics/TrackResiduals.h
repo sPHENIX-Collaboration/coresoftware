@@ -24,6 +24,7 @@ class TrkrCluster;
 class PHCompositeNode;
 class ActsGeometry;
 class SvtxTrack;
+class TrackSeed;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class PHG4TpcCylinderGeomContainer;
@@ -72,6 +73,7 @@ class TrackResiduals : public SubsysReco
                                Acts::Vector3 &glob, ActsGeometry *geometry);
   void fillVertexTree(PHCompositeNode *topNode);
   void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int>& tpc_seed_ids);
+  float calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clusters, PHG4TpcCylinderGeomContainer *tpcGeom);
 
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
@@ -146,6 +148,7 @@ class TrackResiduals : public SubsysReco
   float m_seedpy = std::numeric_limits<float>::quiet_NaN();
   float m_seedpz = std::numeric_limits<float>::quiet_NaN();
   int m_seedcharge = std::numeric_limits<int>::quiet_NaN();
+  float m_dedx = std::numeric_limits<float>::quiet_NaN();
 
   //! hit tree info
   uint32_t m_hitsetkey = std::numeric_limits<uint32_t>::quiet_NaN();

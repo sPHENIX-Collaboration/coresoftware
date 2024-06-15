@@ -51,6 +51,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   // std::string m_vtx_map_node_name_nTuple;
   bool m_use_intermediate_name;
   bool m_get_charge_conjugate_nTuple;
+  bool m_use_fake_pv_nTuple;
   std::vector<std::string> m_intermediate_name_ntuple;
 
  private:

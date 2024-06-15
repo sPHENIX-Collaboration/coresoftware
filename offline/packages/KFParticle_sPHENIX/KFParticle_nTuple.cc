@@ -31,9 +31,10 @@ KFParticle_nTuple::KFParticle_nTuple()
   , m_get_all_PVs(false)
   , m_truth_matching(false)
   , m_detector_info(false)
-  , m_calo_info(true)
+  , m_calo_info(false)
   , m_use_intermediate_name(true)
   , m_get_charge_conjugate_nTuple(false)
+  , m_use_fake_pv_nTuple(false)
   , m_tree(nullptr)
 {
 }  // Constructor
@@ -587,7 +588,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     {
       m_calculated_vertex_cov[j] = vertex_fillbranch.GetCovariance(j);
     }
-    m_calculated_vertex_nTracks = kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
+    m_calculated_vertex_nTracks = m_use_fake_pv_nTuple ? 0 : kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
   }
 
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);

@@ -26,6 +26,7 @@ class TrkrCluster;
 class TFile;
 class TNtuple;
 class SvtxTrack;
+class TrackSeed;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class TrkrClusterContainer;
@@ -85,6 +86,9 @@ class TrkrNtuplizer : public SubsysReco
   unsigned int _iseed{0};
   float m_fSeed{std::numeric_limits<float>::quiet_NaN()};
   // eval stack
+
+  float calc_dedx(TrackSeed *tpcseed);
+  float get_n1pix(TrackSeed *tpcseed);
 
   TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi);
   void get_dca(SvtxTrack *track, SvtxVertexMap *vertexmap,
