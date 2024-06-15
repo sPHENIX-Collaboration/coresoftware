@@ -14,7 +14,6 @@
 
 #include <TCanvas.h>
 #include <TH1.h>
-#include <TFile.h>
 
 #include <boost/format.hpp>
 
@@ -41,7 +40,6 @@ XingShiftCal::XingShiftCal(const std::string &name, const int poverwriteSpinEntr
     }
   }
 
-  hbnchnum = new TH1I("hbnchnum","hbnchnum",120,-0.5,119.5);
 
   std::cout << "XingShiftCal::XingShiftCal(const std::string &name) Calling ctor" << std::endl;
 }
@@ -170,7 +168,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
   {
     p = evt->getPacket(packet_GL1);
     int bunchnr = p->lValue(0, "BunchNumber");
-    hbnchnum->Fill(bunchnr);
+    
     for (int i = 0; i < NTRIG; i++)
     {
       // 2nd arg of lValue: 0 is raw trigger count, 1 is live trigger count, 2 is scaled trigger count
@@ -253,12 +251,6 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
   {
     std::cout << "Commit to SpinDB : FAILURE" << std::endl;
   }
-
-
-  TFile *outfile = new TFile("bnchnumhist.root","RECREATE");
-  hbnchnum->Write();
-  outfile->Write();
-  outfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

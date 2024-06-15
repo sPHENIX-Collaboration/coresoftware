@@ -10,7 +10,6 @@
 
 class PHCompositeNode;
 class Packet;
-class TH1;
 
 class XingShiftCal : public SubsysReco
 {
@@ -101,7 +100,6 @@ class XingShiftCal : public SubsysReco
   int64_t mbdvtx[NBUNCHES]{0};
   int64_t zdcns[NBUNCHES]{0};
 
-  TH1 *hbnchnum;
 
 };
 
