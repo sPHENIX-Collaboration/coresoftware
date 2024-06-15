@@ -109,10 +109,10 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
   bco_map_t m_bco_map;
 
   //! keep track of total number of waveforms
-  uint64_t m_waveform_count_total = 0;
+  std::map<int,uint64_t> m_waveform_count_total{};
 
   //! keep track of dropped waveforms
-  uint64_t m_waveform_count_dropped = 0;
+  std::map<int,uint64_t> m_waveform_count_dropped{};
 
 };
 
