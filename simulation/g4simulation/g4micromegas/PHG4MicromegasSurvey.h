@@ -16,45 +16,45 @@
 #include <Geant4/G4Transform3D.hh>
 
 #include <array>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 class PHG4MicromegasSurvey
 {
-
-  public:
-
+ public:
   /// constructor
   PHG4MicromegasSurvey();
 
   /// get module name from tile and layer
-  std::string get_module_name( int layer, uint tile ) const;
+  std::string get_module_name(int layer, uint tile) const;
 
   /// get transformation from tile and layer
-  G4Transform3D get_transformation( int layer, uint tile ) const;
+  G4Transform3D get_transformation(int layer, uint tile) const;
 
-  private:
-
+ private:
   /// internal detector definition (tile number, detector)
   struct tile_id_t
   {
-    tile_id_t( int layer, uint tile ):
-      m_layer( layer ),
-      m_tile( tile )
-    {}
+    tile_id_t(int layer, uint tile)
+      : m_layer(layer)
+      , m_tile(tile)
+    {
+    }
     int m_layer = 0;
     uint m_tile = 0;
 
-    bool operator == (const tile_id_t& other ) const
-    { return other.m_layer == m_layer && other.m_tile == m_tile; }
-
+    bool operator==(const tile_id_t& other) const
+    {
+      return other.m_layer == m_layer && other.m_tile == m_tile;
+    }
   };
 
   struct tile_id_hash_t
   {
     std::size_t operator()(const tile_id_t& id) const noexcept
-    { return id.m_tile + (id.m_layer<<4); }
-
+    {
+      return id.m_tile + (id.m_layer << 4);
+    }
   };
 
   /// map tile_id to module name
@@ -66,10 +66,11 @@ class PHG4MicromegasSurvey
   using translation_t = std::array<double, 3>;
   struct transformation_t
   {
-    transformation_t( const rotation_t& rotation, const translation_t& translation ):
-      m_rotation( rotation ),
-      m_translation( translation )
-    {}
+    transformation_t(const rotation_t& rotation, const translation_t& translation)
+      : m_rotation(rotation)
+      , m_translation(translation)
+    {
+    }
 
     /// x, y and z axis rotation in order, degrees
     rotation_t m_rotation = {{0}};
@@ -81,7 +82,6 @@ class PHG4MicromegasSurvey
   /// map module name to transformation
   using transformation_map_t = std::unordered_map<std::string, transformation_t>;
   transformation_map_t m_transformation_map;
-
 };
 
 #endif

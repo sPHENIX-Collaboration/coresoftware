@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -33,24 +33,42 @@ lib_LTLIBRARIES = \
   libintt.la 
 
 pkginclude_HEADERS = \
+  CylinderGeomIntt.h \
+  InttArborist.h \
+  InttBadChannelMap.h \
+  InttBadChannelMapv1.h \
+  InttBCOMap.h \
   InttClusterizer.h \
-  InttCombinedRawDataConverter.h \
   InttCombinedRawDataDecoder.h \
-  InttDeadMapHelper.h \
+  InttDacMap.h \
+  InttFeeMap.h \
+  InttFeeMapv1.h \
   InttFelixMap.h \
-  InttFelixMapObsolete.h \
+  InttMap.h \
   InttMapping.h \
-  InttRawDataConverter.h \
-  InttRawDataDecoder.h \
-  InttVertexFinder.h \
+  InttSurveyMap.h \
+  InttSurveyMapv1.h \
+  InttXYVertexFinder.h \
+  InttZVertexFinder.h \
   InttVertexMap.h \
   InttVertexMapv1.h \
   InttVertex.h \
-  InttVertexv1.h \
-  CylinderGeomIntt.h
+  InttVertexv1.h
+
+noinst_HEADERS = \
+  INTTZvtx.h \
+  INTTXYvtx.h \
+  InttVertexUtil.h 
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
+  InttBadChannelMap_Dict.cc \
+  InttBadChannelMapv1_Dict.cc \
+  InttFeeMap_Dict.cc \
+  InttFeeMapv1_Dict.cc \
+  InttMap_Dict.cc \
+  InttSurveyMap_Dict.cc \
+  InttSurveyMapv1_Dict.cc \
   InttVertexMap_Dict.cc \
   InttVertexMapv1_Dict.cc \
   InttVertex_Dict.cc \
@@ -59,6 +77,13 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomIntt_Dict_rdict.pcm \
+  InttBadChannelMap_Dict_rdict.pcm \
+  InttBadChannelMapv1_Dict_rdict.pcm \
+  InttFeeMap_Dict_rdict.pcm \
+  InttFeeMapv1_Dict_rdict.pcm \
+  InttMap_Dict_rdict.pcm \
+  InttSurveyMap_Dict_rdict.pcm \
+  InttSurveyMapv1_Dict_rdict.pcm \
   InttVertexMap_Dict_rdict.pcm \
   InttVertexMapv1_Dict_rdict.pcm \
   InttVertex_Dict_rdict.pcm \
@@ -66,19 +91,29 @@ nobase_dist_pcm_DATA = \
 
 # sources for intt library
 libintt_la_SOURCES = \
+  InttArborist.cc \
+  InttBCOMap.cc \
+  InttBadChannelMap.cc \
+  InttBadChannelMapv1.cc \
   InttClusterizer.cc \
-  InttCombinedRawDataConverter.cc \
   InttCombinedRawDataDecoder.cc \
-  InttDeadMapHelper.cc \
+  InttDacMap.cc \
+  InttFeeMap.cc \
+  InttFeeMapv1.cc \
   InttFelixMap.cc \
-  InttFelixMapObsolete.cc \
   InttMapping.cc \
-  InttRawDataConverter.cc \
-  InttRawDataDecoder.cc \
-  InttVertexFinder.cc
+  InttMap.cc \
+  InttSurveyMap.cc \
+  InttSurveyMapv1.cc \
+  InttVertexUtil.cc \
+  InttXYVertexFinder.cc \
+  InttZVertexFinder.cc \
+  INTTXYvtx.cc \
+  INTTZvtx.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
+  -lcdbobjects \
   -lCLHEP \
   -lffarawobjects \
   -lphg4hit \
@@ -88,15 +123,24 @@ libintt_la_LIBADD = \
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomIntt.cc \
+  InttBadChannelMap.cc \
+  InttBadChannelMapv1.cc \
+  InttFeeMap.cc \
+  InttFeeMapv1.cc \
+  InttMap.cc \
+  InttSurveyMap.cc \
+  InttSurveyMapv1.cc \
   InttVertexMap.cc \
   InttVertexMapv1.cc \
   InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
+  -lcdbobjects \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lglobalvertex 
 
 endif
 

@@ -2,12 +2,12 @@
 #define TPC_TPCSIMPLECLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrCluster.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrCluster.h>
 
-#include <map> 
-#include <vector>
+#include <map>
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
 class TrkrHitSet;
@@ -17,8 +17,8 @@ class TrkrClusterHitAssoc;
 class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
 
-//typedef std::pair<int, int> iphiz;
-//typedef std::pair<double, iphiz> ihit;
+// typedef std::pair<int, int> iphiz;
+// typedef std::pair<double, iphiz> ihit;
 typedef std::pair<unsigned short, unsigned short> iphiz;
 typedef std::pair<unsigned short, iphiz> ihit;
 
@@ -32,8 +32,8 @@ class TpcSimpleClusterizer : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
-  void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
+  void set_sector_fiducial_cut(const double cut) { SectorFiducialCut = cut; }
+  void set_do_hit_association(bool do_assoc) { do_hit_assoc = do_assoc; }
 
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
@@ -46,12 +46,11 @@ class TpcSimpleClusterizer : public SubsysReco
   bool do_hit_assoc = true;
   double pedestal = 74.4;
   double SectorFiducialCut = 0.5;
-  
+
   // TPC shaping offset correction parameters
   // From Tony Frawley May 13, 2021
   double par0_neg = 0.0503;
   double par0_pos = -0.0503;
-
 };
 
 #endif

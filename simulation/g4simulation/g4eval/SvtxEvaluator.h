@@ -42,7 +42,7 @@ class SvtxEvaluator : public SubsysReco
                 const std::string &filename = "g4eval.root",
                 const std::string &trackmapname = "SvtxTrackMap",
                 unsigned int nlayers_maps = 3,
-                unsigned int nlayers_intt = 8,
+                unsigned int nlayers_intt = 4,
                 unsigned int nlayers_tpc = 48,
                 unsigned int nlayers_mms = 2);
   ~SvtxEvaluator() override;

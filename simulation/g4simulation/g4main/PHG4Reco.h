@@ -152,7 +152,7 @@ class PHG4Reco : public SubsysReco
   void DefineMaterials();
   void DefineRegions();
 
-  float m_MagneticField = 0.;
+  float m_MagneticField {std::numeric_limits<float>::signaling_NaN()};
   float m_MagneticFieldRescale = 1.0;
   double m_WorldSize[3]{1000., 1000., 1000.};
 

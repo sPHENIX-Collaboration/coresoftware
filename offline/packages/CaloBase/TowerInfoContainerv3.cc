@@ -31,7 +31,7 @@ TowerInfoContainerv3::TowerInfoContainerv3(DETECTOR detec)
   }
   else if (_detector == DETECTOR::ZDC)
   {
-    nchannels = 16;
+    nchannels = 52;
   }
   _clones = new TClonesArray("TowerInfov3", nchannels);
   _clones->SetOwner();

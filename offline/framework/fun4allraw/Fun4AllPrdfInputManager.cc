@@ -133,6 +133,7 @@ readagain:
   if (!m_Event)
   {
     fileclose();
+    // NOLINTNEXTLINE(hicpp-avoid-goto)
     goto readagain;
   }
   if (Verbosity() > 1)
@@ -153,6 +154,7 @@ readagain:
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
     ResetEvent();
+    // NOLINTNEXTLINE(hicpp-avoid-goto)
     goto readagain;
   }
   return 0;

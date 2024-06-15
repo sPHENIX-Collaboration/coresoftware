@@ -29,16 +29,13 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
-#pragma GCC diagnostic pop
 
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <memory>  // for unique_ptr, make_...
 #include <set>
 #include <vector>  // for vector
@@ -547,11 +544,11 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       {
         phierror *= scalefactors_phi[2];
       }
-      // z error. All clusters have a z-size of 1.
-      const float zerror = length * invsqrt12;
+      // z error.
+      const float zerror = zbins.size() * length * invsqrt12;
 
-      double cluslocaly = NAN;
-      double cluslocalz = NAN;
+      double cluslocaly = std::numeric_limits<double>::quiet_NaN();
+      double cluslocalz = std::numeric_limits<double>::quiet_NaN();
 
       if (_make_e_weights[layer])
       {
@@ -572,7 +569,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       clus->setPhiError(phierror);
       clus->setZError(zerror);
       clus->setPhiSize(phibins.size());
-      clus->setZSize(1);
+      clus->setZSize(zbins.size());
       // All silicon surfaces have a 1-1 map to hitsetkey.
       // So set subsurface key to 0
       clus->setSubSurfKey(0);
@@ -851,11 +848,11 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
       {
         phierror *= scalefactors_phi[2];
       }
-      // z error. All clusters have a z-size of 1.
-      const float zerror = length * invsqrt12;
+      // z error.
+      const float zerror = zbins.size() * length * invsqrt12;
 
-      double cluslocaly = NAN;
-      double cluslocalz = NAN;
+      double cluslocaly = std::numeric_limits<double>::quiet_NaN();
+      double cluslocalz = std::numeric_limits<double>::quiet_NaN();
 
       if (_make_e_weights[layer])
       {
@@ -875,7 +872,7 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
       clus->setPhiError(phierror);
       clus->setZError(zerror);
       clus->setPhiSize(phibins.size());
-      clus->setZSize(1);
+      clus->setZSize(zbins.size());
       // All silicon surfaces have a 1-1 map to hitsetkey.
       // So set subsurface key to 0
       clus->setSubSurfKey(0);

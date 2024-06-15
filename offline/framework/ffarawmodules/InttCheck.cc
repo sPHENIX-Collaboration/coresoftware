@@ -4,8 +4,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <ffarawobjects/InttRawHitContainer.h>
 #include <ffarawobjects/InttRawHit.h>
+#include <ffarawobjects/InttRawHitContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -23,12 +23,12 @@
 
 //____________________________________________________________________________..
 InttCheck::InttCheck(const std::string &name)
-: SubsysReco(name)
+  : SubsysReco(name)
 {
 }
 
 //____________________________________________________________________________..
-int InttCheck::Init(PHCompositeNode *topNode)
+int InttCheck::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -36,46 +36,45 @@ int InttCheck::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int InttCheck::process_event(PHCompositeNode *topNode)
 {
-  InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode,m_EvtNodeName);
+  InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_EvtNodeName);
   if (!inttcont)
   {
     std::cout << "could not find node " << m_EvtNodeName << std::endl;
   }
   else
   {
-//  inttcont->identify();
+    //  inttcont->identify();
     uint64_t refbco = std::numeric_limits<uint64_t>::max();
     bool ifirst = true;
-    for (unsigned int i=0; i<inttcont->get_nhits(); i++)
+    for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
     {
       InttRawHit *inh = inttcont->get_hit(i);
       if (ifirst)
       {
-	refbco = inh->get_bco();
-	if (Verbosity() > 0)
-	{
-	  std::cout << "current bco: 0x" << std::hex << refbco
-		    << std::dec << std::endl;
-	}
-	if (bclk_seen.find(refbco) != bclk_seen.end())
-	{
-	  std::cout << "bco 0x" << std::hex << refbco << std::dec
-		    << " seen before" << std::endl;
-	}
-	bclk_seen.insert(refbco);
+        refbco = inh->get_bco();
+        if (Verbosity() > 0)
+        {
+          std::cout << "current bco: 0x" << std::hex << refbco
+                    << std::dec << std::endl;
+        }
+        if (bclk_seen.find(refbco) != bclk_seen.end())
+        {
+          std::cout << "bco 0x" << std::hex << refbco << std::dec
+                    << " seen before" << std::endl;
+        }
+        bclk_seen.insert(refbco);
         ifirst = false;
       }
       else
       {
-	if (refbco != inh->get_bco())
-	{
-	  std::cout << "scream, refbco: 0x" << std::hex << refbco
-		    << " current bco: 0x" << inh->get_bco()
-		    << std::dec << std::endl;
-	}
+        if (refbco != inh->get_bco())
+        {
+          std::cout << "scream, refbco: 0x" << std::hex << refbco
+                    << " current bco: 0x" << inh->get_bco()
+                    << std::dec << std::endl;
+        }
       }
     }
-
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -4,10 +4,10 @@
 #include "GlobalVertexMap.h"  // for GlobalVertexMap
 #include "GlobalVertexMapv1.h"
 #include "GlobalVertexv2.h"
-#include "SvtxVertex.h"
-#include "SvtxVertexMap.h"
 #include "MbdVertex.h"
 #include "MbdVertexMap.h"
+#include "SvtxVertex.h"
+#include "SvtxVertexMap.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -87,7 +87,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
   std::set<unsigned int> used_svtx_vtxids;
   std::set<unsigned int> used_mbd_vtxids;
- 
+
   if (svtxmap && mbdmap)
   {
     if (Verbosity())
@@ -178,7 +178,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
       // we have a standalone SVTX vertex
       GlobalVertex *vertex = new GlobalVertexv2();
-      
+
       vertex->set_id(globalmap->size());
 
       vertex->insert_vtx(GlobalVertex::SVTX, svtx);
@@ -202,7 +202,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
     }
   }
- 
+
   // okay now loop over all unused MBD vertexes (3rd class)...
   if (mbdmap)
   {
@@ -240,7 +240,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
     }
   }
- 
+
   /// Associate any tracks that were not assigned a track-vertex
   if (trackmap)
   {

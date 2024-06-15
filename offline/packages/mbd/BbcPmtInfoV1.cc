@@ -6,9 +6,9 @@ void BbcPmtInfoV1::Reset()
   Clear();
 }
 
-void BbcPmtInfoV1::Clear(Option_t* )
+void BbcPmtInfoV1::Clear(Option_t* /*unused*/)
 {
-  //std::cout << "clearing " << bpmt << std::endl;
+  // std::cout << "clearing " << bpmt << std::endl;
   bpmt = -1;
   bq = NAN;
   btt = NAN;

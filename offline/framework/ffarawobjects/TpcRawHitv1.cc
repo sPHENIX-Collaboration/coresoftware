@@ -11,8 +11,10 @@ TpcRawHitv1::TpcRawHitv1(TpcRawHit *tpchit)
   set_sampachannel(tpchit->get_sampachannel());
   set_samples(tpchit->get_samples());
 
-  for( size_t i = 0; i < tpchit->get_samples(); ++i )
-  { set_adc( i, tpchit->get_adc(i) ); }
+  for (size_t i = 0; i < tpchit->get_samples(); ++i)
+  {
+    set_adc(i, tpchit->get_adc(i));
+  }
 }
 
 void TpcRawHitv1::identify(std::ostream &os) const
@@ -21,7 +23,7 @@ void TpcRawHitv1::identify(std::ostream &os) const
   os << "packet id: " << packetid << std::endl;
 }
 
-void TpcRawHitv1::Clear(Option_t *)
+void TpcRawHitv1::Clear(Option_t * /*unused*/)
 {
   adc = std::vector<uint16_t>();
 }

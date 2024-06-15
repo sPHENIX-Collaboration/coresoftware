@@ -10,7 +10,7 @@
 
 class PHObject;
 
-class PdbParameterMap: public PdbCalChan
+class PdbParameterMap : public PdbCalChan
 {
  public:
   typedef std::map<const std::string, double> dMap;
@@ -29,34 +29,36 @@ class PdbParameterMap: public PdbCalChan
   PHObject *CloneMe() const override { return new PdbParameterMap(*this); }
 
   void print() const override;
-  void Reset() override; // from PHObject - clear content
+  void Reset() override;  // from PHObject - clear content
 
   //! hash of binary information for checking purpose
   size_t get_hash() const;
 
-  dConstRange get_dparam_iters() const 
-    {return make_pair(dparams.begin(),dparams.end());}
+  dConstRange get_dparam_iters() const
+  {
+    return make_pair(dparams.begin(), dparams.end());
+  }
 
-  iConstRange get_iparam_iters() const 
-    {return make_pair(iparams.begin(),iparams.end());}
+  iConstRange get_iparam_iters() const
+  {
+    return make_pair(iparams.begin(), iparams.end());
+  }
 
-
-  strConstRange get_cparam_iters() const 
-  {return make_pair(cparams.begin(),cparams.end());}
+  strConstRange get_cparam_iters() const
+  {
+    return make_pair(cparams.begin(), cparams.end());
+  }
 
   void set_int_param(const std::string &name, const int ival);
   void set_double_param(const std::string &name, const double dval);
   void set_string_param(const std::string &name, const std::string &str);
 
  protected:
-
   dMap dparams;
   iMap iparams;
   strMap cparams;
 
-
-  ClassDefOverride(PdbParameterMap,1)
-
-}; 
+  ClassDefOverride(PdbParameterMap, 1)
+};
 
 #endif

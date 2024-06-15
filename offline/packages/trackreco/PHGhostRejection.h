@@ -14,9 +14,9 @@
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 class PHCompositeNode;
 class TrackSeedContainer;
@@ -24,7 +24,7 @@ class TrkrCluster;
 class TrackSeed;
 class TrkrClusterContainer;
 
-class PHGhostRejection 
+class PHGhostRejection
 {
  public:
   PHGhostRejection() {}
@@ -32,27 +32,26 @@ class PHGhostRejection
 
   ~PHGhostRejection();
 
-  void rejectGhostTracks(std::vector<float>& trackChi2);
+  void rejectGhostTracks(std::vector<float> &trackChi2);
   void verbosity(int verb) { m_verbosity = verb; }
-  void trackSeedContainer(TrackSeedContainer *seeds){m_trackMap = seeds;}
-  void positionMap(std::map<TrkrDefs::cluskey, Acts::Vector3>& map) { m_positions = map; }
+  void trackSeedContainer(TrackSeedContainer *seeds) { m_trackMap = seeds; }
+  void positionMap(std::map<TrkrDefs::cluskey, Acts::Vector3> &map) { m_positions = map; }
 
  private:
-
   bool checkClusterSharing(TrackSeed *tr1, unsigned int trid1,
-			   TrackSeed *tr2, unsigned int trid2);
+                           TrackSeed *tr2, unsigned int trid2);
 
   double _phi_cut = 0.01;
   double _eta_cut = 0.004;
   double _x_cut = 0.3;
   double _y_cut = 0.3;
   double _z_cut = 0.4;
-  int _n_iteration = 0;
+  //  int _n_iteration = 0;
   unsigned int m_verbosity = 0;
-  
+
   TrackSeedContainer *m_trackMap = nullptr;
- 
+
   std::map<TrkrDefs::cluskey, Acts::Vector3> m_positions;
 };
 
-#endif // PHGHOSTREJECTION_H
+#endif  // PHGHOSTREJECTION_H

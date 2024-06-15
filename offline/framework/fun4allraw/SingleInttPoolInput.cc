@@ -2,9 +2,10 @@
 #include "intt_pool.h"
 
 #include "Fun4AllStreamingInputManager.h"
+#include "InputManagerType.h"
 
-#include <ffarawobjects/InttRawHitContainerv1.h>
-#include <ffarawobjects/InttRawHitv1.h>
+#include <ffarawobjects/InttRawHitContainerv2.h>
+#include <ffarawobjects/InttRawHitv2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -25,7 +26,7 @@
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
-  SubsystemEnum(Fun4AllStreamingInputManager::INTT);
+  SubsystemEnum(InputManagerType::INTT);
   plist = new Packet *[1];
 }
 
@@ -42,7 +43,7 @@ SingleInttPoolInput::~SingleInttPoolInput()
   }
 }
 
-void SingleInttPoolInput::FillPool(const unsigned int)
+void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -57,7 +58,7 @@ void SingleInttPoolInput::FillPool(const unsigned int)
     }
   }
 
-//  std::set<uint64_t> saved_beamclocks;
+  //  std::set<uint64_t> saved_beamclocks;
   while (GetSomeMoreEvents(0))
   {
     Event *evt = GetEventiterator()->getNextEvent();
@@ -134,7 +135,7 @@ void SingleInttPoolInput::FillPool(const unsigned int)
         std::set<uint64_t> bclk_set;
         for (int j = 0; j < num_hits; j++)
         {
-          InttRawHit *newhit = new InttRawHitv1();
+          InttRawHit *newhit = new InttRawHitv2();
           int FEE = pool->iValue(j, "FEE");
           uint64_t gtm_bco = pool->lValue(j, "BCO");
           newhit->set_packetid(pool->getIdentifier());
@@ -148,9 +149,11 @@ void SingleInttPoolInput::FillPool(const unsigned int)
           newhit->set_FPHX_BCO(pool->iValue(j, "FPHX_BCO"));
           newhit->set_full_FPHX(pool->iValue(j, "FULL_FPHX"));
           newhit->set_full_ROC(pool->iValue(j, "FULL_ROC"));
+          newhit->set_event_counter(pool->iValue(j, "EVENT_COUNTER"));
 
           gtm_bco += m_Rollover[FEE];
           bclk_set.insert(gtm_bco);
+          
           if (gtm_bco < m_PreviousClock[FEE])
           {
             m_Rollover[FEE] += 0x10000000000;
@@ -166,7 +169,8 @@ void SingleInttPoolInput::FillPool(const unsigned int)
                       << ", nr_hits: " << num_hits
                       << ", FEE: " << FEE
                       << ", bco: 0x" << std::hex << gtm_bco << std::dec
-                      << ", channel: " << newhit->get_channel_id() << std::endl;
+                      << ", channel: " << newhit->get_channel_id()
+                      << ", evt_counter: " << newhit->get_event_counter() << std::endl;
           }
           if (StreamingInputManager())
           {
@@ -308,10 +312,24 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   {
     if (bcliter.second <= localbclk)
     {
-      // std::cout << "FEE " << bcliter.first << " bclk: "
-      // 		<< std::hex << bcliter.second << ", req: " << localbclk
-      // 		<< std::dec << std::endl;
-      return true;
+      uint64_t highest_bclk = m_InttRawHitMap.rbegin()->first;
+      if ((highest_bclk - m_InttRawHitMap.begin()->first) < MaxBclkDiff())
+      {
+        // std::cout << "FEE " << bcliter.first << " bclk: "
+        // 		<< std::hex << bcliter.second << ", req: " << localbclk
+        // 		<< std::dec << std::endl;
+        return true;
+      }
+      else
+      {
+        std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
+                  << " with stuck bclk: " << std::hex << bcliter.second
+                  << " current bco range: 0x" << m_InttRawHitMap.begin()->first
+                  << ", to: 0x" << highest_bclk << ", delta: " << std::dec
+                  << (highest_bclk - m_InttRawHitMap.begin()->first)
+                  << std::dec << std::endl;
+        m_FEEBclkMap.erase(bcliter.first);
+      }
     }
   }
   return false;
@@ -336,8 +354,18 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
   InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, "INTTRAWHIT");
   if (!intthitcont)
   {
-    intthitcont = new InttRawHitContainerv1();
+    intthitcont = new InttRawHitContainerv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
     detNode->addNode(newNode);
+  }
+}
+//_______________________________________________________
+
+void SingleInttPoolInput::ConfigureStreamingInputManager()
+{
+  if (StreamingInputManager())
+  {
+    StreamingInputManager()->SetInttBcoRange(m_BcoRange);
+    StreamingInputManager()->SetInttNegativeBco(m_NegativeBco);
   }
 }

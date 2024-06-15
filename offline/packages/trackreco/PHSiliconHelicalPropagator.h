@@ -8,17 +8,20 @@
 class PHSiliconHelicalPropagator : public SubsysReco
 {
  public:
-  PHSiliconHelicalPropagator(std::string name = "PHSiliconHelicalPropagator");
+  PHSiliconHelicalPropagator(const std::string& name = "PHSiliconHelicalPropagator");
   ~PHSiliconHelicalPropagator();
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int End(PHCompositeNode* topNode) override;
 
-  void set_track_map_name(std::string name) { _track_map_name = name; }
+  void set_track_map_name(const std::string& name) { _track_map_name = name; }
+  void zeroField() { m_zeroField = true;  }
+  void dca_xy_cut(const float cut) { _dca_cut = cut; }
+  void dca_z_cut(const float cut) { _dca_z_cut = cut; }
 
  private:
-  int createSeedContainer(TrackSeedContainer*& container, const std::string container_name, PHCompositeNode* topNode);
+  int createSeedContainer(TrackSeedContainer*& container, const std::string& container_name, PHCompositeNode* topNode);
 
   ActsGeometry* _tgeometry = nullptr;
   TrackSeedContainer* _si_seeds = nullptr;
@@ -27,5 +30,8 @@ class PHSiliconHelicalPropagator : public SubsysReco
   TrkrClusterContainer* _cluster_map = nullptr;
   TrkrClusterCrossingAssoc* _cluster_crossing_map = nullptr;
 
+  float _dca_cut = 1.;
+  float _dca_z_cut = 1.;
+  bool m_zeroField = false;
   std::string _track_map_name = "SvtxTrackSeedContainer";
 };

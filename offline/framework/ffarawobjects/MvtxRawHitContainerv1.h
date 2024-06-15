@@ -6,9 +6,9 @@
 class MvtxRawHit;
 class TClonesArray;
 
-class  MvtxRawHitContainerv1: public MvtxRawHitContainer
+class MvtxRawHitContainerv1 : public MvtxRawHitContainer
 {
-public:
+ public:
   MvtxRawHitContainerv1();
   ~MvtxRawHitContainerv1() override;
 
@@ -28,10 +28,10 @@ public:
   unsigned int get_nhits() override;
   MvtxRawHit *get_hit(unsigned int index) override;
 
-private:
-    TClonesArray *MvtxRawHitsTCArray = nullptr;
+ private:
+  TClonesArray *MvtxRawHitsTCArray = nullptr;
 
-  ClassDefOverride(MvtxRawHitContainerv1,1)
+  ClassDefOverride(MvtxRawHitContainerv1, 1)
 };
 
 #endif

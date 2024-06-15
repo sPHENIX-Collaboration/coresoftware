@@ -21,36 +21,36 @@ class PgPostBankWrapper : public PgPostCalBank
  public:
   PgPostBankWrapper();
   PgPostBankWrapper(PdbCalBank *b);
-  virtual ~PgPostBankWrapper();
-  virtual PHObject *CloneMe() const { return new PgPostBankWrapper(*this); }
+  ~PgPostBankWrapper() override;
+  PHObject *CloneMe() const override { return new PgPostBankWrapper(*this); }
 
-  void printHeader() const;
-  void print() { bank->print(); }
-  void printEntry(size_t s) { bank->printEntry(s); }
+  void printHeader() const override;
+  void print() override { bank->print(); }
+  void printEntry(size_t s) override { bank->printEntry(s); }
 
-  size_t getLength() { return bank->getLength(); }
-  PdbCalChan &getEntry(size_t pos) { return bank->getEntry(pos); }
-  void setLength(size_t len) { bank->setLength(len); }
+  size_t getLength() override { return bank->getLength(); }
+  PdbCalChan &getEntry(size_t pos) override { return bank->getEntry(pos); }
+  void setLength(size_t len) override { bank->setLength(len); }
   virtual bool commit();
 
-  PdbBankID getBankID() const { return bankID; }
-  PHTimeStamp getInsertTime() const { return insertTime; }
-  PHTimeStamp getStartValTime() const { return startValTime; }
-  PHTimeStamp getEndValTime() const { return endValTime; }
-  std::string getDescription() const { return description; }
-  std::string getUserName() const { return userName; }
-  std::string getTableName() const { return tableName; }
+  PdbBankID getBankID() const override { return bankID; }
+  PHTimeStamp getInsertTime() const override { return insertTime; }
+  PHTimeStamp getStartValTime() const override { return startValTime; }
+  PHTimeStamp getEndValTime() const override { return endValTime; }
+  std::string getDescription() const override { return description; }
+  std::string getUserName() const override { return userName; }
+  std::string getTableName() const override { return tableName; }
 
-  void setBankID(const PdbBankID &val) { bankID = val; }
-  void setInsertTime(const PHTimeStamp &val) { insertTime = val; }
-  void setStartValTime(const PHTimeStamp &val) { startValTime = val; }
-  void setEndValTime(const PHTimeStamp &val) { endValTime = val; }
-  void setDescription(const std::string &val) { description = val; }
-  void setUserName(const std::string &val) { userName = val; }
-  void setTableName(const std::string &val) { tableName = val; }
+  void setBankID(const PdbBankID &val) override { bankID = val; }
+  void setInsertTime(const PHTimeStamp &val) override { insertTime = val; }
+  void setStartValTime(const PHTimeStamp &val) override { startValTime = val; }
+  void setEndValTime(const PHTimeStamp &val) override { endValTime = val; }
+  void setDescription(const std::string &val) override { description = val; }
+  void setUserName(const std::string &val) override { userName = val; }
+  void setTableName(const std::string &val) override { tableName = val; }
 
   PdbCalBank *getBank() { return bank; }
-  virtual int isValid(const PHTimeStamp &) const { return 0; }
+  int isValid(const PHTimeStamp &) const override { return 0; }
 
  private:
   PdbBankID bankID;

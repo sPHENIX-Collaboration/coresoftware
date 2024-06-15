@@ -1,6 +1,6 @@
 /*!
  * \file PgPostBankBackupStorage.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.2 $
  * \date $Date: 2014/01/31 16:50:40 $
@@ -15,7 +15,7 @@
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>
 
-#include <phool/PHTimeStamp.h>       // for PHTimeStamp
+#include <phool/PHTimeStamp.h>  // for PHTimeStamp
 
 #include <TNamed.h>
 
@@ -63,8 +63,7 @@ PgPostBankBackupStorage::PgPostBankBackupStorage()
 
 PgPostBankBackupStorage::~PgPostBankBackupStorage()
 {
-  if (bank)
-    delete bank;
+  delete bank;
 }
 
 //! use this storage object to recover the PdbCalBankWrapper
@@ -149,7 +148,7 @@ PgPostBankBackupStorage::BankHeader::get_id_string() const
   return o.str();
 }
 
-void PgPostBankBackupStorage::BankHeader::Print(Option_t */*option*/) const
+void PgPostBankBackupStorage::BankHeader::Print(Option_t * /*option*/) const
 {
   //  TObject::Print(option);
   cout << "ID = " << get_id_string() << " from user " << userName
@@ -190,11 +189,17 @@ void PgPostBankBackupStorage::set_obj_info(const PgPostCalBank *bw)
   obj_header.setStartValTime(bw->getStartValTime());
   obj_header.setEndValTime(bw->getEndValTime());
   if (!bw->getDescription().empty())
+  {
     obj_header.setDescription(bw->getDescription());
+  }
   if (!bw->getUserName().empty())
+  {
     obj_header.setUserName(bw->getUserName());
+  }
   if (!bw->getTableName().empty())
+  {
     obj_header.setTableName(bw->getTableName());
+  }
 }
 
 void PgPostBankBackupStorage::Print(Option_t *option) const

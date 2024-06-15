@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -42,7 +42,9 @@ pkginclude_HEADERS = \
   TpcSpaceChargeReconstructionHelper.h \
   PHTpcResiduals.h \
   PHTpcCentralMembraneClusterizer.h \
-  PHTpcCentralMembraneMatcher.h
+  PHTpcCentralMembraneMatcher.h \
+  TpcCentralMembraneMatching.h
+
 
 ROOTDICTS = \
   TpcSpaceChargeMatrixContainer_Dict.cc \
@@ -64,7 +66,8 @@ libtpccalib_la_SOURCES = \
   TpcSpaceChargeReconstructionHelper.cc \
   PHTpcResiduals.cc \
   PHTpcCentralMembraneClusterizer.cc \
-  PHTpcCentralMembraneMatcher.cc
+  PHTpcCentralMembraneMatcher.cc \
+  TpcCentralMembraneMatching.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

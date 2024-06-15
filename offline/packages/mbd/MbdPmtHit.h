@@ -46,7 +46,23 @@ class MbdPmtHit : public PHObject
     return MbdReturnCodes::MBD_INVALID_FLOAT;
   }
 
+  virtual Float_t get_npe() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return MbdReturnCodes::MBD_INVALID_FLOAT;
+  }
+
   virtual void set_pmt(const Short_t /*pmt*/, const Float_t /*q*/, const Float_t /*tt*/, const Float_t /*tq*/)
+  {
+    PHOOL_VIRTUAL_WARNING;
+  }
+
+  virtual void set_simpmt(const Float_t /*npe*/)
+  {
+    PHOOL_VIRTUAL_WARNING;
+  }
+
+  virtual void set_npe(const Float_t /*npe*/)
   {
     PHOOL_VIRTUAL_WARNING;
   }

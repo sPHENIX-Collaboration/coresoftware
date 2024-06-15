@@ -37,7 +37,7 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
   G4Colour colour_endcap_C(0.4, 0.4, 0.4, 0.4);
   G4Colour colour_copper(0.7, 0.4, 0, 1);
 
-  for (auto it : m_LogicalVolumeMap)
+  for (const auto &it : m_LogicalVolumeMap)
   {
     G4LogicalVolume *logvol = it.first;
     if (logvol->GetVisAttributes())
@@ -61,10 +61,11 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
       visatt->SetForceWireframe(true);
       visatt->SetVisibility(false);
     }
-    else if (it.second == "Rail")
+    else if (it.second == "Rail" ||
+             it.second == "StaveGlueBox")
     {
       visatt->SetColour(G4Colour::Cyan());
-      //visatt->SetVisibility( false );
+      // visatt->SetVisibility( false );
       visatt->SetVisibility(true);
     }
     else if (it.second == "RohaCell")
@@ -82,22 +83,11 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
       visatt->SetColour(G4Colour(0, 0, 1, 0.5));  // transparent blue
       visatt->SetVisibility(true);
     }
-    else if (it.second == "StaveCooler")
-    {
-      visatt->SetColour(colour_CFRP);
-      visatt->SetVisibility(true);
-    }
-    else if (it.second == "StaveCurve")
-    {
-      visatt->SetColour(colour_CFRP);
-      visatt->SetVisibility(true);
-    }
-    else if (it.second == "StaveGlueBox")
-    {
-      visatt->SetColour(G4Colour::Cyan());
-      visatt->SetVisibility(true);
-    }
-    else if (it.second == "StavePipe")
+    else if (it.second == "StaveCooler" ||
+             it.second == "StaveCurve" ||
+             it.second == "StavePipe" ||
+             it.second == "StaveStraightOuter" ||
+             it.second == "Skin")
     {
       visatt->SetColour(colour_CFRP);
       visatt->SetVisibility(true);
@@ -105,11 +95,6 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     else if (it.second == "StaveStraightInner")
     {
       visatt->SetColour(G4Colour::Grey());
-      visatt->SetVisibility(true);
-    }
-    else if (it.second == "StaveStraightOuter")
-    {
-      visatt->SetColour(colour_CFRP);
       visatt->SetVisibility(true);
     }
     else if (it.second == "StaveWater")
@@ -120,11 +105,17 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     else if (it.second.find("Endcap") != std::string::npos)  // any Endcap
     {
       if (it.second.find("_Al") != std::string::npos)
+      {
         visatt->SetColour(colour_endcap_Al);
+      }
       else if (it.second.find("_C") != std::string::npos)
+      {
         visatt->SetColour(colour_endcap_C);
+      }
       else
+      {
         visatt->SetColour(colour_endcap);
+      }
       visatt->SetVisibility(true);
     }
     else if (it.second.find("Glue") != std::string::npos)
@@ -140,11 +131,6 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     else if (it.second.find("Kapton") != std::string::npos)  // any Kapton
     {
       visatt->SetColour(G4Colour(0.0, 0.590, 1.0, 0.5));  // blue
-      visatt->SetVisibility(true);
-    }
-    else if (it.second == "Skin")
-    {
-      visatt->SetColour(colour_CFRP);
       visatt->SetVisibility(true);
     }
     else

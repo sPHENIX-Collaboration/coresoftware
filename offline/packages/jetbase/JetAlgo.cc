@@ -1,6 +1,6 @@
 #include "JetAlgo.h"
 
-typedef std::map<Jet::PROPERTY, unsigned int> PropMap;
+using PropMap = std::map<Jet::PROPERTY, unsigned int>;
 
 PropMap DummyPropMap;
 

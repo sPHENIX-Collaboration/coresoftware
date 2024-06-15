@@ -4,39 +4,42 @@
 
 #include <phool/PHObject.h>
 
-#include <vector>
 #include <iostream>
+#include <vector>
 
-TrackSeedContainer_v1::TrackSeedContainer_v1() :
-  m_seeds() {}
-
-TrackSeedContainer_v1::TrackSeedContainer_v1(const TrackSeedContainer_v1& seeds) : m_seeds()
+TrackSeedContainer_v1::TrackSeedContainer_v1()
+  : m_seeds()
 {
-  for(const TrackSeed* seed : seeds)
-    {
-      TrackSeed* newseed = dynamic_cast<TrackSeed*>(seed->CloneMe());
-      m_seeds.push_back(newseed);
-    }
+}
+
+TrackSeedContainer_v1::TrackSeedContainer_v1(const TrackSeedContainer_v1& seeds)
+  : m_seeds()
+{
+  for (const TrackSeed* seed : seeds)
+  {
+    TrackSeed* newseed = dynamic_cast<TrackSeed*>(seed->CloneMe());
+    m_seeds.push_back(newseed);
+  }
 }
 
 TrackSeedContainer_v1& TrackSeedContainer_v1::operator=(const TrackSeedContainer_v1& seedContainer)
 {
   Reset();
-  for(const TrackSeed* seed : seedContainer) 
-    {
-      TrackSeed* newseed = dynamic_cast<TrackSeed*>(seed->CloneMe());
-      m_seeds.push_back(newseed);
-    }
+  for (const TrackSeed* seed : seedContainer)
+  {
+    TrackSeed* newseed = dynamic_cast<TrackSeed*>(seed->CloneMe());
+    m_seeds.push_back(newseed);
+  }
 
   return *this;
 }
 
-void TrackSeedContainer_v1::Reset() 
+void TrackSeedContainer_v1::Reset()
 {
-  for(const TrackSeed* seed : m_seeds)
-    {
-      delete seed;
-    }
+  for (const TrackSeed* seed : m_seeds)
+  {
+    delete seed;
+  }
 
   m_seeds.clear();
 }
@@ -50,18 +53,24 @@ TrackSeedContainer_v1::~TrackSeedContainer_v1()
 void TrackSeedContainer_v1::identify(std::ostream& os) const
 {
   os << "TrackSeedContainer_v1 size is " << m_seeds.size()
-     << std::endl; 
+     << std::endl;
 }
 
 const TrackSeed* TrackSeedContainer_v1::get(const std::size_t key) const
 {
-  if(key > m_seeds.size()) { return nullptr; }
+  if (key > m_seeds.size())
+  {
+    return nullptr;
+  }
   return m_seeds.at(key);
 }
 
-TrackSeed* TrackSeedContainer_v1::get(const std::size_t key) 
+TrackSeed* TrackSeedContainer_v1::get(const std::size_t key)
 {
-  if(key > m_seeds.size()) { return nullptr; }
+  if (key > m_seeds.size())
+  {
+    return nullptr;
+  }
   return m_seeds.at(key);
 }
 
@@ -78,7 +87,7 @@ std::size_t TrackSeedContainer_v1::find(const TrackSeed* seed) const
   return std::distance(m_seeds.begin(), it);
 }
 
-std::size_t TrackSeedContainer_v1::find(const TrackSeed* seed) 
+std::size_t TrackSeedContainer_v1::find(const TrackSeed* seed)
 {
   auto it = std::find(m_seeds.begin(), m_seeds.end(), seed);
   return std::distance(m_seeds.begin(), it);

@@ -151,9 +151,18 @@ int PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
-    if (hiter->second->get_t(0) > tmax) continue;
-    if (hiter->second->get_t(1) < tmin) continue;
-    if (hiter->second->get_t(1) - hiter->second->get_t(0) >  m_DeltaT) continue;
+    if (hiter->second->get_t(0) > tmax)
+    {
+      continue;
+    }
+    if (hiter->second->get_t(1) < tmin)
+    {
+      continue;
+    }
+    if (hiter->second->get_t(1) - hiter->second->get_t(0) > m_DeltaT)
+    {
+      continue;
+    }
 
     short icolumn = hiter->second->get_scint_id();
     int introw = (hiter->second->get_hit_id() >> PHG4HitDefs::hit_idbits);

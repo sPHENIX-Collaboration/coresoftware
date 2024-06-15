@@ -13,7 +13,7 @@ class PHCompositeNode;
 
 class FermimotionAfterburner : public SubsysReco
 {
-public:
+ public:
   FermimotionAfterburner(const std::string &name = "FermimotionAfterburner", const double pTspec = 0.05);
 
   virtual ~FermimotionAfterburner();
@@ -30,7 +30,7 @@ public:
    */
   int process_event(PHCompositeNode *topNode) override;
 
-private:
+ private:
   void AddpF(PHCompositeNode *);
 
   gsl_rng *RandomGenerator;

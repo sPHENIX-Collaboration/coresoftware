@@ -5,7 +5,7 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <cmath>
+#include <limits>
 #include <set>
 #include <string>
 #include <vector>
@@ -41,7 +41,7 @@ class PHG4TpcDetector : public PHG4Detector
   int ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTpcExternalSupports(G4LogicalVolume *logicWorld);
 
-  void CreateCompositeMaterial(std::string compositeName, std::vector<std::string> materialName, std::vector<double> thickness);
+  void CreateCompositeMaterial(const std::string &compositeName, std::vector<std::string> materialName, std::vector<double> thickness);
 
   //! add geometry node
   /** this setups the relevant geometry needed for offline reconstruciton */
@@ -52,8 +52,8 @@ class PHG4TpcDetector : public PHG4Detector
   G4UserLimits *m_G4UserLimits = nullptr;
   int m_ActiveFlag = 0;
   int m_AbsorberActiveFlag = 0;
-  double m_InnerCageRadius = NAN;
-  double m_OuterCageRadius = NAN;
+  double m_InnerCageRadius = std::numeric_limits<double>::signaling_NaN();
+  double m_OuterCageRadius = std::numeric_limits<double>::signaling_NaN();
   std::set<G4VPhysicalVolume *> m_AbsorberVolumeSet;
   std::set<G4VPhysicalVolume *> m_ActiveVolumeSet;
 

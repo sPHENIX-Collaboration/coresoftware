@@ -1,14 +1,9 @@
+#include "ActsTrackFittingAlgorithm.h"
+
+#include <Acts/Definitions/TrackParametrization.hpp>
+
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
-#pragma GCC diagnostic ignored "-Wunused-value"
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#include <Acts/Definitions/TrackParametrization.hpp>
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <Acts/TrackFitting/GaussianSumFitter.hpp>
-#pragma GCC diagnostic pop
 
 #include <Acts/EventData/VectorTrackContainer.hpp>
 #include <Acts/Propagator/Navigator.hpp>
@@ -17,10 +12,10 @@
 #include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
+#include <Acts/TrackFitting/GaussianSumFitter.hpp>
 #include <Acts/TrackFitting/GsfMixtureReduction.hpp>
 #include <Acts/Utilities/Helpers.hpp>
 
-#include "ActsTrackFittingAlgorithm.h"
 
 namespace
 {
@@ -125,7 +120,7 @@ class ActsGsfTrackFittingAlgorithm
 
   std::shared_ptr<ActsTrackFittingAlgorithm::TrackFitterFunction>
   makeGsfFitterFunction(
-      std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+      const std::shared_ptr<const Acts::TrackingGeometry>& trackingGeometry,
       std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
       BetheHeitlerApprox betheHeitlerApprox, std::size_t maxComponents,
       double weightCutoff,

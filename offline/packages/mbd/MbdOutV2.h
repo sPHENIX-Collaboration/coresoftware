@@ -11,7 +11,7 @@ class TClonesArray;
 ///
 class MbdOutV2 : public MbdOut
 {
-public:
+ public:
   ///
   MbdOutV2();
   ///
@@ -27,6 +27,10 @@ public:
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
+
+  ///  functions to copy nodes for embedding
+  PHObject* CloneMe() const override { return new MbdOutV2(*this); }
+  void CopyTo(MbdOut *mbd) override;
 
   /// get ZVertex determined by Bbc
   Float_t get_zvtx() const override { return bz; }
@@ -96,20 +100,18 @@ public:
    */
   virtual UShort_t get_femclock() const override;
 
-
-private:
-
-  Float_t  bz{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t  bzerr{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t  bt0{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t  bt0err{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t  bqs{0};
-  Float_t  bqn{0};
-  Float_t  bts{std::numeric_limits<Float_t>::quiet_NaN()};
-  Float_t  btn{std::numeric_limits<Float_t>::quiet_NaN()};
-  Short_t  bns{0};
-  Short_t  bnn{0};
-  Int_t    evt{-1};
+ private:
+  Float_t bz{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bzerr{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bt0{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bt0err{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t bqs{0};
+  Float_t bqn{0};
+  Float_t bts{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t btn{std::numeric_limits<Float_t>::quiet_NaN()};
+  Short_t bns{0};
+  Short_t bnn{0};
+  Int_t evt{-1};
   UShort_t clk{0};
   UShort_t femclk{0};
 

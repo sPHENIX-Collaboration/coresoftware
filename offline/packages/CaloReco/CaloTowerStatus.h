@@ -9,7 +9,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <cassert>
 #include <iostream>
 #include <string>
 
@@ -33,41 +32,77 @@ class CaloTowerStatus : public SubsysReco
     m_dettype = dettype;
     return;
   }
-  void setCalibName(const std::string &name)
-  {
-    m_calibName = name;
-    m_overrideCalibName = 1;
-    return;
-  }
-  void setFieldName(const std::string &name)
-  {
-    m_fieldname = name;
-    m_overrideFieldName = 1;
-    return;
-  }
   void set_inputNodePrefix(const std::string &name)
   {
     m_inputNodePrefix = name;
     return;
   }
+  void set_badChi2_treshold(float threshold)
+  {
+    badChi2_treshold = threshold;
+    return;
+  }
+  void set_fraction_badChi2_threshold(float threshold)
+  {
+    fraction_badChi2_threshold = threshold;
+    return;
+  }
+  void set_time_cut(float threshold)
+  {
+    time_cut = threshold;
+    return;
+  }
+  void set_directURL_hotMap(const std::string &str)
+  {
+    m_directURL_hotMap = str;
+    use_directURL_hotMap = true;
+    return;
+  }
+  void set_directURL_time(const std::string &str)
+  {
+    m_directURL_time = str;
+    use_directURL_time = true;
+    return;
+  }
+  void set_directURL_chi2(const std::string &str)
+  {
+    m_directURL_chi2 = str;
+    use_directURL_chi2 = true;
+    return;
+  }
 
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
-  CDBTTree *m_cdbttree{nullptr};
 
-  bool m_overrideCalibName{false};
-  bool m_overrideFieldName{false};
-  bool m_doHot{true};
+  CDBTTree *m_cdbttree_chi2{nullptr};
+  CDBTTree *m_cdbttree_time{nullptr};
+  CDBTTree *m_cdbttree_hotMap{nullptr};
+
+  bool m_doHotChi2{true};
+  bool m_doTime{true};
+  bool m_doHotMap{true};
 
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 
   std::string m_detector;
-  std::string m_fieldname;
-  std::string m_calibName;
+  std::string m_fieldname_time;
+  std::string m_calibName_time;
+  std::string m_fieldname_chi2;
+  std::string m_calibName_chi2;
+  std::string m_fieldname_hotMap;
+  std::string m_calibName_hotMap;
   std::string m_inputNodePrefix{"TOWERS_"};
 
+  std::string m_directURL_time;
+  std::string m_directURL_hotMap;
+  std::string m_directURL_chi2;
+  bool use_directURL_time{false};
+  bool use_directURL_hotMap{false};
+  bool use_directURL_chi2{false};
 
-
+  float badChi2_treshold = 1e4;
+  float fraction_badChi2_threshold = 0.01;
+  float time_cut = 2;  // number of samples from the mean time for the channel in the run
 };
 
 #endif  // CALOTOWERBUILDER_H

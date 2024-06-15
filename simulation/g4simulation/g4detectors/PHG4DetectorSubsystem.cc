@@ -281,17 +281,17 @@ void PHG4DetectorSubsystem::InitializeParameters()
 
   SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class
-  for (std::map<const std::string, double>::const_iterator iter = default_double.begin(); iter != default_double.end(); ++iter)
+  for( const auto& [key, value]:default_double )
   {
-    params->set_double_param(iter->first, iter->second);
+    params->set_double_param(key,value);
   }
-  for (std::map<const std::string, int>::const_iterator iter = default_int.begin(); iter != default_int.end(); ++iter)
+  for( const auto& [key, value]:default_int )
   {
-    params->set_int_param(iter->first, iter->second);
+    params->set_int_param(key,value);
   }
-  for (std::map<const std::string, std::string>::const_iterator iter = default_string.begin(); iter != default_string.end(); ++iter)
+  for( const auto& [key, value]:default_string )
   {
-    params->set_string_param(iter->first, iter->second);
+    params->set_string_param(key,value);
   }
 }
 

@@ -2,10 +2,10 @@
 
 namespace
 {
-  ClusHitsVerbose::Vector     dummy_vec;
-  ClusHitsVerbose::Map        dummy_map;
+  ClusHitsVerbose::Vector dummy_vec;
+  ClusHitsVerbose::Map dummy_map;
   ClusHitsVerbose::PairVector dummy_pairvec;
-}
+}  // namespace
 
 ClusHitsVerbose::Vector& ClusHitsVerbose::phiBins(TrkrDefs::cluskey /*this key*/)
 {

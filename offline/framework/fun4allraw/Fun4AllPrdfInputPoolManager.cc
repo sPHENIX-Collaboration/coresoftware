@@ -385,6 +385,12 @@ SinglePrdfInput *Fun4AllPrdfInputPoolManager::AddPrdfInputList(const std::string
   return m_PrdfInputVector.back();
 }
 
+SinglePrdfInput *Fun4AllPrdfInputPoolManager::registerPrdfInput(SinglePrdfInput *prdfin)
+{
+  m_PrdfInputVector.push_back(prdfin);
+  return m_PrdfInputVector.back();
+}
+
 void Fun4AllPrdfInputPoolManager::AddPacket(const int evtno, Packet *p)
 {
   if (Verbosity() > 1)
@@ -399,7 +405,7 @@ void Fun4AllPrdfInputPoolManager::AddBeamClock(const int evtno, const int bclk, 
   if (Verbosity() > 1)
   {
     std::cout << "Adding event " << evtno << ", clock 0x" << std::hex << bclk << std::dec
-	      << " snglinput: " << prdfin->Name() << std::endl;
+              << " snglinput: " << prdfin->Name() << std::endl;
   }
   m_ClockCounters[evtno].push_back(std::make_pair(bclk, prdfin));
 }
@@ -435,9 +441,9 @@ void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
       int diffclk = CalcDiffBclk(veciter.first, refclock);
       if (Verbosity() > 1)
       {
-	std::cout << "diffclk for " << veciter.second->Name() << ": " << std::hex
-		  << diffclk << ", clk: 0x" << veciter.first
-		  << ", refclk: 0x" << refclock << std::dec << std::endl;
+        std::cout << "diffclk for " << veciter.second->Name() << ": " << std::hex
+                  << diffclk << ", clk: 0x" << veciter.first
+                  << ", refclk: 0x" << refclock << std::dec << std::endl;
       }
       auto clkiter = clockcounters.find(veciter.second);
       if (clkiter == clockcounters.end())
@@ -457,8 +463,8 @@ void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
     {
       if (Verbosity() > 0)
       {
-	std::cout << iter.first->Name() << " initer.second " << initer.second << std::hex
-		  << " initer.first: " << initer.first << std::dec << std::endl;
+        std::cout << iter.first->Name() << " initer.second " << initer.second << std::hex
+                  << " initer.first: " << initer.first << std::dec << std::endl;
       }
       if (initer.second > imax)
       {
@@ -473,7 +479,7 @@ void Fun4AllPrdfInputPoolManager::CreateBclkOffsets()
     if (Verbosity() > 0)
     {
       std::cout << "prdf mgr " << iter.first->Name() << " clkdiff: 0x" << std::hex
-		<< iter.second.bclkoffset << std::dec << std::endl;
+                << iter.second.bclkoffset << std::dec << std::endl;
     }
   }
 }
@@ -495,7 +501,6 @@ void Fun4AllPrdfInputPoolManager::DitchEvent(const int eventno)
   auto pktinfoiter = m_PacketMap.find(eventno);
   if (pktinfoiter == m_PacketMap.end())
   {
-
     return;
   }
   for (auto const &pktiter : pktinfoiter->second.PacketVector)
@@ -527,47 +532,47 @@ void Fun4AllPrdfInputPoolManager::Resynchronize()
     if (Verbosity() > 1)
     {
       std::cout << "looking for matching event " << iter.first
-		<< std::hex << " with clk 0x" << iter.second << std::dec << std::endl;
+                << std::hex << " with clk 0x" << iter.second << std::dec << std::endl;
     }
     for (const auto &clockiter : m_ClockCounters)
     {
       if (Verbosity() > 1)
       {
-	std::cout << "testing for matching with event " << clockiter.first << std::endl;
+        std::cout << "testing for matching with event " << clockiter.first << std::endl;
       }
       for (auto eventiter : clockiter.second)
       {
         int diffclock = CalcDiffBclk(eventiter.first, iter.second);
-	if (Verbosity() > 1)
-	{
-	  std::cout << "Event " << iter.first << " match with event " << clockiter.first
-		    << " clock 0x" << std::hex << eventiter.first << ", ref clock 0x" << iter.second
-		    << " diff 0x" << diffclock << std::dec
-		    << " for " << eventiter.second->Name() << std::endl;
-	}
+        if (Verbosity() > 1)
+        {
+          std::cout << "Event " << iter.first << " match with event " << clockiter.first
+                    << " clock 0x" << std::hex << eventiter.first << ", ref clock 0x" << iter.second
+                    << " diff 0x" << diffclock << std::dec
+                    << " for " << eventiter.second->Name() << std::endl;
+        }
         if (diffclock == m_SinglePrdfInputInfo[eventiter.second].bclkoffset)
         {
-	  if (Verbosity() > 1)
-	  {
-	    std::cout << "looking good for " << eventiter.second->Name() << std::endl;
-	  }
+          if (Verbosity() > 1)
+          {
+            std::cout << "looking good for " << eventiter.second->Name() << std::endl;
+          }
           matchevent[eventiter.second].clockcounter = clockiter.first;
           matchevent[eventiter.second].eventdiff = clockiter.first - iter.first;
         }
         else
         {
-	  if (Verbosity() > 1)
-	  {
-	    std::cout << "not so great for " << eventiter.second->Name() << std::endl;
-	  }
+          if (Verbosity() > 1)
+          {
+            std::cout << "not so great for " << eventiter.second->Name() << std::endl;
+          }
         }
       }
       if (matchevent.size() == m_SinglePrdfInputInfo.size())
       {
-	if (Verbosity() > 1)
-	{
-	  std::cout << "found all matches" << std::endl;
-	}
+        if (Verbosity() > 1)
+        {
+          std::cout << "found all matches" << std::endl;
+        }
         break;
       }
     }
@@ -575,7 +580,7 @@ void Fun4AllPrdfInputPoolManager::Resynchronize()
     {
       if (Verbosity() > 1)
       {
-	std::cout << "found all matches" << std::endl;
+        std::cout << "found all matches" << std::endl;
       }
       break;
     }
@@ -591,8 +596,8 @@ void Fun4AllPrdfInputPoolManager::Resynchronize()
     if (Verbosity() > 1)
     {
       std::cout << matches.first->Name() << " update event offset with: " << matches.second.eventdiff
-		<< ", current offset : " << matches.first->EventNumberOffset()
-		<< " would go to " << matches.first->EventNumberOffset() - matches.second.eventdiff << std::endl;
+                << ", current offset : " << matches.first->EventNumberOffset()
+                << " would go to " << matches.first->EventNumberOffset() - matches.second.eventdiff << std::endl;
     }
     if (minoffset > matches.first->EventNumberOffset() - matches.second.eventdiff)
     {
@@ -615,7 +620,7 @@ void Fun4AllPrdfInputPoolManager::Resynchronize()
     if (Verbosity() > 1)
     {
       std::cout << matches.first->Name() << " update event offset to: " << matches.first->EventNumberOffset()
-		<< std::endl;
+                << std::endl;
     }
   }
   ClearAllEvents();

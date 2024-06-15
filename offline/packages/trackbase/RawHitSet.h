@@ -112,13 +112,13 @@ class RawHitSet : public PHObject
   {
     return 0;
   }
-  protected:
 
+ protected:
   //! ctor, not to be called
   RawHitSet() = default;
 
-private:
+ private:
   ClassDefOverride(RawHitSet, 1);
 };
 
-#endif  //TRACKBASE_RAWHITSET_H
+#endif  // TRACKBASE_RAWHITSET_H

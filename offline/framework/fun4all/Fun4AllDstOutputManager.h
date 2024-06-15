@@ -32,11 +32,18 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
 
   int Write(PHCompositeNode *startNode) override;
   int WriteNode(PHCompositeNode *thisNode) override;
+  std::string UsedOutFileName() const { return m_UsedOutFileName; }
+  void CompressionSetting(const int i) { m_CompressionSetting = i; }
 
  private:
-  PHNodeIOManager *dstOut = nullptr;
-  int m_SaveRunNodeFlag = 1;
-  int m_SaveDstNodeFlag = 1;
+  int outfile_open_first_write();
+  PHNodeIOManager *dstOut{nullptr};
+  int m_SaveRunNodeFlag{1};
+  int m_SaveDstNodeFlag{1};
+  int m_CompressionSetting{505};
+  int m_CurrentSegment{0};
+  std::string m_FileNameStem;
+  std::string m_UsedOutFileName;
   std::set<std::string> savenodes;
   std::set<std::string> saverunnodes;
   std::set<std::string> stripnodes;

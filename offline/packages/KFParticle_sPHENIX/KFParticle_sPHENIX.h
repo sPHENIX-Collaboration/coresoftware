@@ -55,15 +55,15 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   explicit KFParticle_sPHENIX(const std::string &name);
 
-  virtual ~KFParticle_sPHENIX() {}
+  ~KFParticle_sPHENIX() override = default;
 
-  int Init(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
 
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode) override;
 
   /**
    * If verbosity is > 0, this will print out all candidate information:
@@ -127,7 +127,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_get_charge_conjugate = get_charge_conjugate;
   }
 
-  void setDaughters(std::vector<std::pair<std::string, int>> daughter_list)
+  void setDaughters(std::vector<std::pair<std::string, int> /*unused*/> daughter_list)
   {
     for (unsigned int i = 0; i < daughter_list.size(); ++i)
     {
@@ -136,7 +136,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     }
   }
 
-  void setIntermediateStates(std::vector<std::pair<std::string, int>> intermediate_list)
+  void setIntermediateStates(std::vector<std::pair<std::string, int> /*unused*/> intermediate_list)
   {
     for (unsigned int i = 0; i < intermediate_list.size(); ++i)
     {
@@ -199,7 +199,11 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_constrain_to_vertex_sPHENIX = constrain_to_vertex;
   }
 
-  void useFakePrimaryVertex(bool use_fake) { m_use_fake_pv = use_fake; }
+  void useFakePrimaryVertex(bool use_fake)
+  {
+    m_use_fake_pv = use_fake;
+    m_use_fake_pv_nTuple = use_fake;
+  }
 
   void allowZeroMassTracks(bool allow) { m_allowZeroMassTracks = allow; }
 
@@ -211,7 +215,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void constrainIntermediateMasses(bool constrain_int_mass) { m_constrain_int_mass = constrain_int_mass; }
 
-  void setIntermediateMassRange(std::vector<std::pair<float, float>> intermediate_mass_range)
+  void setIntermediateMassRange(std::vector<std::pair<float, float> /*unused*/> intermediate_mass_range)
   {
     for (unsigned int i = 0; i < intermediate_mass_range.size(); ++i) m_intermediate_mass_range.push_back(intermediate_mass_range[i]);
   }
@@ -226,7 +230,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (unsigned int i = 0; i < intermediate_min_IP.size(); ++i) m_intermediate_min_ip.push_back(intermediate_min_IP[i]);
   }
 
-  void setIntermediateIPRange(const std::vector<std::pair<float, float>> &intermediate_IP_range)
+  void setIntermediateIPRange(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IP_range)
   {
     for (unsigned int i = 0; i < intermediate_IP_range.size(); ++i)
     {
@@ -240,7 +244,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (unsigned int i = 0; i < intermediate_min_IPchi2.size(); ++i) m_intermediate_min_ipchi2.push_back(intermediate_min_IPchi2[i]);
   }
 
-  void setIntermediateIPchi2Range(const std::vector<std::pair<float, float>> &intermediate_IPchi2_range)
+  void setIntermediateIPchi2Range(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IPchi2_range)
   {
     for (unsigned int i = 0; i < intermediate_IPchi2_range.size(); ++i)
     {
@@ -305,16 +309,20 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   /// Use alternate vertex and track fitters
   void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = trk_map_node_name; }
 
+  void magFieldFile(const std::string &fname) { m_magField = fname; }
+
+  void getField();
+
  private:
   bool m_has_intermediates_sPHENIX;
   bool m_constrain_to_vertex_sPHENIX;
   bool m_require_mva;
   bool m_save_dst;
   bool m_save_output;
-  float m_Bz = 0;
   std::string m_outfile_name;
   TFile *m_outfile;
   std::string m_decayDescriptor;
+  std::string m_magField = "FIELDMAP_TRACKING";
 };
 
 #endif  // KFPARTICLESPHENIX_KFPARTICLESPHENIX_H

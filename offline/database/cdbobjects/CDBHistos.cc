@@ -102,12 +102,15 @@ void CDBHistos::registerHisto(TH1 *h1)
   return;
 }
 
-TH1 *CDBHistos::getHisto(const std::string &name)
+TH1 *CDBHistos::getHisto(const std::string &name, bool printerror)
 {
   const auto iter = m_HistoMap.find(name);
   if (iter == m_HistoMap.end())
   {
-    std::cout << __PRETTY_FUNCTION__ << ": Histogram " << name << " not found" << std::endl;
+    if (printerror)
+    {
+      std::cout << __PRETTY_FUNCTION__ << ": Histogram " << name << " not found" << std::endl;
+    }
     return nullptr;
   }
   return iter->second;

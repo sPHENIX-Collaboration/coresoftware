@@ -1,6 +1,6 @@
 #include "InttVertexMap.h"
 
-//class BbcVertex;
+// class BbcVertex;
 
 std::map<unsigned int, InttVertex*> DummyInttVertexMap;
 

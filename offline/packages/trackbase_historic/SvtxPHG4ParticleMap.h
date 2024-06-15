@@ -22,7 +22,7 @@ class SvtxPHG4ParticleMap : public PHObject
   {
     os << "SvtxPHG4ParticleMap base class " << std::endl;
   }
-  
+
   int isValid() const override { return 0; }
   PHObject* CloneMe() const override { return nullptr; }
   void Reset() override {}
@@ -34,8 +34,8 @@ class SvtxPHG4ParticleMap : public PHObject
   virtual bool processed() const { return false; }
   virtual void setProcessed(const bool) {}
 
-  virtual const WeightedTruthTrackMap & get(const unsigned int) const;
-  virtual WeightedTruthTrackMap & get(const unsigned int);
+  virtual const WeightedTruthTrackMap& get(const unsigned int) const;
+  virtual WeightedTruthTrackMap& get(const unsigned int);
   virtual WeightedTruthTrackMap insert(const unsigned int, const WeightedTruthTrackMap);
   virtual std::size_t erase(const unsigned int) { return 0; }
 
@@ -52,7 +52,6 @@ class SvtxPHG4ParticleMap : public PHObject
 
  private:
   ClassDefOverride(SvtxPHG4ParticleMap, 1);
-  
 };
 
 #endif

@@ -50,10 +50,10 @@ namespace
 
   /// radius
   template<class T> T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
-  
+
   /// get sector median angle associated to a given index
   /** this assumes that sector 0 is centered on phi=0, then numbered along increasing phi */
-  inline constexpr double get_sector_phi( int isec ) 
+  inline constexpr double get_sector_phi( int isec )
   { return isec*M_PI/6; }
 
   // specify bins for which one will save histograms
@@ -94,11 +94,11 @@ namespace
   }
 
   [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3& vector )
-  { 
+  {
     out << "(" << vector.x() << ", " << vector.y() << ", " << vector.z() << ")";
     return out;
   }
-  
+
 }
 
 //_____________________________________________________________________
@@ -182,11 +182,11 @@ int TpcSpaceChargeReconstruction::End(PHCompositeNode* /*topNode*/ )
     outputfile->cd();
     m_matrix_container->Write( "TpcSpaceChargeMatrixContainer" );
   }
-  
+
   // save histograms
   if( m_savehistograms && m_histogramfile )
   {
-    m_histogramfile->cd();    
+    m_histogramfile->cd();
     for( const auto& [cell,h]:m_h_drphi ) { if(h) h->Write(); }
     for( const auto& [cell,h]:m_h_dz ) { if(h) h->Write(); }
     for( const auto& [cell,h]:m_h_drphi_alpha ) { if(h) h->Write(); }
@@ -248,8 +248,8 @@ int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
   }
 
   assert( m_cluster_map );
-  
-  
+
+
   // tpc distortion corrections
   m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
@@ -270,23 +270,23 @@ void TpcSpaceChargeReconstruction::create_histograms()
   int rbins = 0;
   int zbins = 0;
   m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
-  
+
   // get bins corresponding to selected angles
   std::set<int> phibin_rec;
   std::transform( phi_rec.begin(), phi_rec.end(), std::inserter( phibin_rec, phibin_rec.end() ), [&]( const float& phi ) { return phibins*(phi-m_phimin)/(m_phimax-m_phimin); } );
-  
+
   std::set<int> zbin_rec;
   std::transform( z_rec.begin(), z_rec.end(), std::inserter( zbin_rec, zbin_rec.end() ), [&]( const float& z ) { return zbins*(z-m_zmin)/(m_zmax-m_zmin); } );
-  
+
   // keep track of all cell ids that match selected histograms
   for( int iphi = 0; iphi < phibins; ++iphi )
     for( int ir = 0; ir < rbins; ++ir )
     for( int iz = 0; iz < zbins; ++iz )
   {
-    
+
     if( phibin_rec.find( iphi ) == phibin_rec.end() || zbin_rec.find( iz ) == zbin_rec.end() ) continue;
     const auto icell = m_matrix_container->get_cell_index( iphi, ir, iz );
-    
+
     {
       // rphi residuals
       const auto hname = Form( "residual_drphi_p%i_r%i_z%i", iphi, ir, iz );
@@ -294,7 +294,7 @@ void TpcSpaceChargeReconstruction::create_histograms()
       h->GetXaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
       m_h_drphi.insert( std::make_pair( icell, h ) );
     }
-    
+
     {
       // 2D histograms
       const auto hname = Form( "residual_2d_drphi_p%i_r%i_z%i", iphi, ir, iz );
@@ -303,7 +303,7 @@ void TpcSpaceChargeReconstruction::create_histograms()
       h->GetYaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
       m_h_drphi_alpha.insert( std::make_pair( icell, h ) );
     }
-    
+
     {
       // z residuals
       const auto hname = Form( "residual_dz_p%i_r%i_z%i", iphi, ir, iz );
@@ -311,7 +311,7 @@ void TpcSpaceChargeReconstruction::create_histograms()
       h->GetXaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
       m_h_dz.insert( std::make_pair( icell, h ) );
     }
-    
+
     {
       // 2D histograms
       static constexpr double max_tbeta = 0.5;
@@ -320,8 +320,8 @@ void TpcSpaceChargeReconstruction::create_histograms()
       h->GetXaxis()->SetTitle( "tan#beta" );
       h->GetYaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
       m_h_dz_beta.insert( std::make_pair( icell, h ) );
-    }     
-  }  
+    }
+  }
 }
 
 //_________________________________________________________________________________
@@ -329,31 +329,31 @@ Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluske
 {
   // get global position from Acts transform
   auto globalPosition = m_tgeometry->getGlobalPosition(key, cluster);
-  
+
   // for the TPC calculate the proper z based on crossing and side
   const auto trkrid = TrkrDefs::getTrkrId(key);
   if(trkrid ==  TrkrDefs::tpcId)
-  {	 
+  {
     const auto side = TpcDefs::getSide(key);
-    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);    
-        
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
+
     // apply distortion corrections
-    if(m_dcc_static) 
+    if(m_dcc_static)
     {
-      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static ); 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static );
     }
-    
-    if(m_dcc_average) 
-    { 
-      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average ); 
+
+    if(m_dcc_average)
+    {
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average );
     }
-    
-    if(m_dcc_fluctuation) 
-    { 
-      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
+
+    if(m_dcc_fluctuation)
+    {
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation );
     }
   }
-    
+
   return globalPosition;
 }
 
@@ -419,7 +419,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 
   // running track state
   auto state_iter = track->begin_states();
-  
+
   // loop over clusters
   for( const auto& cluster_key:get_cluster_keys( track ) )
   {
@@ -446,12 +446,12 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     // cluster errors
     double cluster_rphi_error = cluster->getRPhiError();
     double cluster_z_error = cluster->getZError();
-    
-    /* 
+
+    /*
      * as instructed by Christof, it should not be necessary to cut on small
-     * cluster errors any more with clusters of version 4 or higher 
+     * cluster errors any more with clusters of version 4 or higher
      */
-    
+
     // find track state that is the closest to cluster
     /* this assumes that both clusters and states are sorted along r */
     float dr_min = -1;
@@ -551,15 +551,15 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       std::cout << "TpcSpaceChargeReconstruction::process_track - invalid cell index" << std::endl;
       continue;
     }
-    
+
     if( m_savehistograms )
-    {      
+    {
       { const auto iter = m_h_drphi.find( i ); if( iter != m_h_drphi.end() ) iter->second->Fill( drp ); }
       { const auto iter = m_h_drphi_alpha.find( i ); if( iter != m_h_drphi_alpha.end() ) iter->second->Fill( talpha, drp ); }
       { const auto iter = m_h_dz.find( i ); if( iter != m_h_dz.end() ) iter->second->Fill( dz ); }
       { const auto iter = m_h_dz_beta.find( i ); if( iter != m_h_dz_beta.end() ) iter->second->Fill( tbeta, dz ); }
     }
-    
+
     // check against limits
     if( std::abs( talpha ) > m_max_talpha ) continue;
     if( std::abs( tbeta ) > m_max_tbeta ) continue;
@@ -573,7 +573,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       std::cout << "TpcSpaceChargeReconstruction::process_track - layer: " << (int) TrkrDefs::getLayer(cluster_key) << std::endl;
       std::cout << "TpcSpaceChargeReconstruction::process_track -"
         << " cluster: (" << cluster_r << ", " << cluster_r*cluster_phi << ", " << cluster_z << ")"
-        << " (" << cluster_rphi_error << ", " << cluster_z_error << ")" 
+        << " (" << cluster_rphi_error << ", " << cluster_z_error << ")"
         << std::endl;
       std::cout << "TpcSpaceChargeReconstruction::process_track -"
         << " track: (" << track_r << ", " << cluster_r*track_phi << ", " << track_z << ")"
@@ -582,10 +582,10 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
         << std::endl;
       std::cout << std::endl;
     }
-      
+
     // update matrices
     // see https://indico.bnl.gov/event/7440/contributions/43328/attachments/31334/49446/talk.pdf for details
-    m_matrix_container->add_to_lhs(i, 0, 0, 1./erp );
+    m_matrix_container->add_to_lhs(i, 0, 0, cluster_r/erp );
     m_matrix_container->add_to_lhs(i, 0, 1, 0 );
     m_matrix_container->add_to_lhs(i, 0, 2, talpha/erp );
 
@@ -593,7 +593,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     m_matrix_container->add_to_lhs(i, 1, 1, 1./ez );
     m_matrix_container->add_to_lhs(i, 1, 2, tbeta/ez );
 
-    m_matrix_container->add_to_lhs(i, 2, 0, talpha/erp );
+    m_matrix_container->add_to_lhs(i, 2, 0, cluster_r*talpha/erp );
     m_matrix_container->add_to_lhs(i, 2, 1, tbeta/ez );
     m_matrix_container->add_to_lhs(i, 2, 2, square(talpha)/erp + square(tbeta)/ez );
 

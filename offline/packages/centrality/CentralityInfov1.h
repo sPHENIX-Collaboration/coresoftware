@@ -1,5 +1,5 @@
-#ifndef CENTRALITY_IO_CENTRALITYINFOV1_H
-#define CENTRALITY_IO_CENTRALITYINFOV1_H
+#ifndef CENTRALITY_CENTRALITYINFOV1_H
+#define CENTRALITY_CENTRALITYINFOV1_H
 
 #include "CentralityInfo.h"
 
@@ -9,12 +9,15 @@
 class CentralityInfov1 : public CentralityInfo
 {
  public:
-  CentralityInfov1();
+  CentralityInfov1() = default;
   ~CentralityInfov1() override {}
 
   void identify(std::ostream &os = std::cout) const override;
-  void Reset() override {}
+  void Reset() override;
   int isValid() const override { return 1; }
+
+  PHObject* CloneMe() const override { return new CentralityInfov1(*this); }
+  void CopyTo(CentralityInfo *info) override;
 
   bool has_quantity(const PROP prop_id) const override;
   float get_quantity(const PROP prop_id) const override;

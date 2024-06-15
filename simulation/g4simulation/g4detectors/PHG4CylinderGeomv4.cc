@@ -2,30 +2,6 @@
 
 #include <cmath>
 
-using namespace std;
-
-PHG4CylinderGeomv4::PHG4CylinderGeomv4()
-  : N_sensors_in_layer(-1)
-  , layer(-1)
-  , layer_radius(NAN)
-  , radius_stagger(NAN)
-  , layer_NZ(-1)
-  , segment_z_step(NAN)
-  , segment_phi_step(NAN)
-  , sensor_x_offset(NAN)
-  , sensor_y_offset(NAN)
-  , N_strip_columns(-1)
-  , N_strips_per_column(-1)
-  , N_staggers(-1)
-  , strip_z_spacing(NAN)
-  , strip_y_spacing(NAN)
-  , thickness(NAN)
-  , strip_tilt(NAN)
-
-{
-  return;
-}
-
 void PHG4CylinderGeomv4::identify(std::ostream& os) const
 {
   os << "PHG4CylinderGeomv4: layer: " << layer
@@ -43,12 +19,13 @@ void PHG4CylinderGeomv4::identify(std::ostream& os) const
      << ", strip_z_spacing: " << strip_z_spacing
      << ", strip_y_spacing: " << strip_y_spacing
      << ", strip_tilt: " << strip_tilt
-     << endl;
+     << std::endl;
   return;
 }
 
 void PHG4CylinderGeomv4::find_segment_center(int segment_z_bin, int segment_phi_bin, double location[])
 {
+  // NOLINTNEXTLINE(bugprone-integer-division)
   double z_location = (double) (segment_z_bin - layer_NZ / 2) * segment_z_step;
 
   // this determines the stggered layer radius
@@ -80,15 +57,27 @@ void PHG4CylinderGeomv4::find_strip_center(int segment_z_bin, int segment_phi_bi
 
   double strip_sensor_z = 0.0;
   if (N_strip_columns % 2)
+  {
+    // NOLINTNEXTLINE(bugprone-integer-division)
     strip_sensor_z = ((double) (strip_column - N_strip_columns / 2)) * strip_z_spacing;
+  }
   else
+  {
+    // NOLINTNEXTLINE(bugprone-integer-division)
     strip_sensor_z = ((double) (strip_column - N_strip_columns / 2) + 0.5) * strip_z_spacing;
+  }
 
   double strip_sensor_y = 0.0;
   if (N_strips_per_column % 2)
+  {
+    // NOLINTNEXTLINE(bugprone-integer-division)
     strip_sensor_y = (double) (strip_index - N_strips_per_column / 2) * strip_y_spacing;
+  }
   else
+  {
+    // NOLINTNEXTLINE(bugprone-integer-division)
     strip_sensor_y = ((double) (strip_index - N_strips_per_column / 2) + 0.5) * strip_y_spacing;
+  }
 
   // The sensor is set forward of the center in the ladder segment volume
   double strip_sensor_x = sensor_x_offset;

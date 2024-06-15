@@ -11,8 +11,8 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -28,17 +28,23 @@ namespace
 {
 
   // streamer for lists
-  template< class T >
-    std::ostream& operator << ( std::ostream& out, const std::list<T>& list )
+  template <class T>
+  std::ostream& operator<<(std::ostream& out, const std::list<T>& list)
   {
-    if( list.empty() ) out << "{}";
+    if (list.empty())
+    {
+      out << "{}";
+    }
     else
     {
       out << "{ ";
       bool first = true;
-      for( const auto& value:list )
+      for (const auto& value : list)
       {
-        if( !first ) out << ", ";
+        if (!first)
+        {
+          out << ", ";
+        }
         out << value;
         first = false;
       }
@@ -49,11 +55,10 @@ namespace
     return out;
   }
 
-}
-
+}  // namespace
 
 //_________________________________________________________
-void MicromegasCombinedDataEvaluation::Waveform::copy_from( const MicromegasCombinedDataEvaluation::Sample& sample )
+void MicromegasCombinedDataEvaluation::Waveform::copy_from(const MicromegasCombinedDataEvaluation::Sample& sample)
 {
   packet_id = sample.packet_id;
   lvl1_bco = sample.lvl1_bco;
@@ -85,35 +90,37 @@ void MicromegasCombinedDataEvaluation::Container::Reset()
 }
 
 //_________________________________________________________
-MicromegasCombinedDataEvaluation::MicromegasCombinedDataEvaluation( const std::string& name ):
-  SubsysReco( name )
-{}
+MicromegasCombinedDataEvaluation::MicromegasCombinedDataEvaluation(const std::string& name)
+  : SubsysReco(name)
+{
+}
 
 //_____________________________________________________________________
-int MicromegasCombinedDataEvaluation::Init(PHCompositeNode* /*topNode*/ )
+int MicromegasCombinedDataEvaluation::Init(PHCompositeNode* /*topNode*/)
 {
   // read calibrations
-  m_calibration_data.read( m_calibration_filename );
+  m_calibration_data.read(m_calibration_filename);
 
-  m_evaluation_file.reset( new TFile( m_evaluation_filename.c_str(), "RECREATE" ) );
-  m_evaluation_tree = new TTree( "T", "T" );
-  m_evaluation_tree->SetAutoSave( 5000 );
+  m_evaluation_file.reset(new TFile(m_evaluation_filename.c_str(), "RECREATE"));
+  m_evaluation_tree = new TTree("T", "T");
+  m_evaluation_tree->SetAutoSave(5000);
   m_container = new Container;
-  m_evaluation_tree->Branch( "Event", &m_container );
+  m_evaluation_tree->Branch("Event", &m_container);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int MicromegasCombinedDataEvaluation::InitRun(PHCompositeNode* /*topNode*/)
-{ return Fun4AllReturnCodes::EVENT_OK; }
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 //___________________________________________________________________________
-int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
+int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode* topNode)
 {
-
-  // load raw hits container  
+  // load raw hits container
   auto rawhitcontainer = findNode::getClass<MicromegasRawHitContainer>(topNode, m_rawhitnodename);
-  assert( rawhitcontainer );
+  assert(rawhitcontainer);
 
   // reset container
   m_container->Reset();
@@ -124,124 +131,148 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
 
   // map number of waveforms per packet
   std::map<unsigned int, size_t> packet_waveforms;
-  
+
   // loop over raw hits
-  if( Verbosity() )
-  { std::cout << "MicromegasCombinedDataEvaluation::process_event - hits: " << rawhitcontainer->get_nhits() << std::endl; }
-  
+  if (Verbosity())
+  {
+    std::cout << "MicromegasCombinedDataEvaluation::process_event - hits: " << rawhitcontainer->get_nhits() << std::endl;
+  }
+
   bool first = true;
   uint64_t first_lvl1_bco = 0;
-  
-  
-  for( unsigned int ihit = 0; ihit < rawhitcontainer->get_nhits(); ++ihit )
+
+  for (unsigned int ihit = 0; ihit < rawhitcontainer->get_nhits(); ++ihit)
   {
     const auto rawhit = rawhitcontainer->get_hit(ihit);
     const auto packet_id = rawhit->get_packetid();
 
     // make sure packet is valid
-    if( std::find( std::begin(MicromegasDefs::m_packet_ids), std::end(MicromegasDefs::m_packet_ids ), packet_id) == std::end(MicromegasDefs::m_packet_ids ) )
+    if (std::find(std::begin(MicromegasDefs::m_packet_ids), std::end(MicromegasDefs::m_packet_ids), packet_id) == std::end(MicromegasDefs::m_packet_ids))
     {
       std::cout << "MicromegasCombinedDataEvaluation::process_event - invalid packet: " << packet_id << std::endl;
       continue;
     }
-    
+
     ++packet_waveforms[packet_id];
 
     // create running sample, assign packet, fee, layer and tile id
     Sample sample;
     sample.packet_id = packet_id;
-    sample.fee_id = rawhit->get_fee();
+
+    // get fee id, apply mapping to original set
+    sample.fee_id = m_mapping.get_old_fee_id(rawhit->get_fee());
 
     const auto hitsetkey = m_mapping.get_hitsetkey(sample.fee_id);
-    sample.layer = TrkrDefs::getLayer( hitsetkey );
-    sample.tile = MicromegasDefs::getTileId( hitsetkey );
+    sample.layer = TrkrDefs::getLayer(hitsetkey);
+    sample.tile = MicromegasDefs::getTileId(hitsetkey);
+
+    // channel and bound check.
+    sample.channel = rawhit->get_channel();
+    if( sample.channel >= MicromegasDefs::m_nchannels_fee )
+    {
+      if( Verbosity() )
+      { std::cout << "MicromegasCombinedDataEvaluation::process_event - invalid channel: " << sample.channel << std::endl; }
+      continue;
+    }
 
     // beam crossing
     sample.fee_bco = rawhit->get_bco();
     sample.lvl1_bco = rawhit->get_gtm_bco();
 
-    if( first )
+    if (first)
     {
       first = false;
-      first_lvl1_bco = rawhit->get_gtm_bco(); 
+      first_lvl1_bco = rawhit->get_gtm_bco();
     }
-    
+
     // increment bco map
     // ++m_bco_map[sample.lvl1_bco];
 
     ++m_bco_map[first_lvl1_bco];
 
-//     // checksum and checksum error
-//     sample.checksum = rawhit->get_checksum();
-//     sample.checksum_error = rawhit->get_checksum_error();
+    //     // checksum and checksum error
+    //     sample.checksum = rawhit->get_checksum();
+    //     sample.checksum_error = rawhit->get_checksum_error();
 
     // channel, sampa_channel, sampa address and strip
     sample.sampa_address = rawhit->get_sampaaddress();
     sample.sampa_channel = rawhit->get_sampachannel();
-    sample.channel = rawhit->get_channel();
     sample.strip = m_mapping.get_physical_strip(sample.fee_id, sample.channel);
 
     // get channel rms and pedestal from calibration data
-    const double pedestal = m_calibration_data.get_pedestal( sample.fee_id, sample.channel );
-    const double rms = m_calibration_data.get_rms( sample.fee_id, sample.channel );
+    const double pedestal = m_calibration_data.get_pedestal(sample.fee_id, sample.channel);
+    const double rms = m_calibration_data.get_rms(sample.fee_id, sample.channel);
     sample.pedestal = pedestal;
     sample.rms = rms;
-    
+
     // get number of samples and loop
     const auto samples = rawhit->get_samples();
-    if( Verbosity() > 1 )
+    if (Verbosity() > 1)
     {
       std::cout << "MicromegasCombinedDataEvaluation::process_event -"
-        << " fee: " << sample.fee_id
-        << " tile: " << sample.tile
-        << " layer: " << sample.layer
-        << " tile: " << sample.tile
-        << " lvl1_bco: " << sample.lvl1_bco
-        << " fee_bco: " << sample.fee_bco
-        << " error: " << sample.checksum_error
-        << " channel: " << sample.channel
-        << " strip: " << sample.strip
-        << " samples: " << samples
-        << std::endl;
+                << " fee: " << sample.fee_id
+                << " tile: " << sample.tile
+                << " layer: " << sample.layer
+                << " tile: " << sample.tile
+                << " lvl1_bco: " << sample.lvl1_bco
+                << " fee_bco: " << sample.fee_bco
+                << " error: " << sample.checksum_error
+                << " channel: " << sample.channel
+                << " strip: " << sample.strip
+                << " samples: " << samples
+                << std::endl;
     }
 
     Sample sample_max;
-    for( unsigned short is = 0; is < std::min<unsigned short>( samples, 100 ); ++is )
+    for (unsigned short is = 0; is < std::min<unsigned short>(samples, 1024); ++is)
     {
       // assign sample id and corresponding adc, save copy in container
-      auto adc = rawhit->get_adc(is);
+      const auto adc = rawhit->get_adc(is);
+      if (adc == MicromegasDefs::m_adc_invalid)
+      {
+        continue;
+      }
       sample.sample = is;
       sample.adc = adc;
-      sample_map.emplace( sample.lvl1_bco, sample );
-      
-      if( sample.adc > sample_max.adc )
-      { sample_max = sample; }
-      
+      sample_map.emplace(sample.lvl1_bco, sample);
+
+      if (sample.adc > sample_max.adc)
+      {
+        sample_max = sample;
+      }
     }
 
     // create waveform
-    Waveform waveform( sample_max );
+    Waveform waveform(sample_max);
     waveform.is_signal =
-      rms > 0 &&
-      waveform.adc_max >= m_min_adc &&
-      waveform.sample_max >= m_sample_min &&
-      waveform.sample_max < m_sample_max &&
-      waveform.adc_max > pedestal+m_n_sigma * rms;
-    
-    waveform_map.emplace( waveform.lvl1_bco, waveform );
+        rms > 0 &&
+        waveform.adc_max >= m_min_adc &&
+        waveform.sample_max >= m_sample_min &&
+        waveform.sample_max < m_sample_max &&
+        waveform.adc_max > pedestal + m_n_sigma * rms;
+
+    waveform_map.emplace(waveform.lvl1_bco, waveform);
   }
 
   // copy all samples and waveform to container
-  for( auto&& [lvl_bco, sample]:sample_map )
-  { m_container->samples.push_back(std::move(sample)); }
+  for (auto&& [lvl_bco, sample] : sample_map)
+  //  { m_container->samples.push_back(std::move(sample)); } // std::move has no effect for trivially copyable types
+  {
+    m_container->samples.push_back(sample);
+  }
 
-  for( auto&& [lvl1_bco, waveform]:waveform_map )
-  { m_container->waveforms.push_back(std::move(waveform)); }
+  for (auto&& [lvl1_bco, waveform] : waveform_map)
+  //  { m_container->waveforms.push_back(std::move(waveform)); } // std::move has no effect for trivially copyable types
+  {
+    m_container->waveforms.push_back(waveform);
+  }
 
   // store number of waveforms
-  for( const auto& [packet_id, n_waveforms]:packet_waveforms ) 
-  { m_container->n_waveform.push_back(n_waveforms); }
-  
+  for (const auto& [packet_id, n_waveforms] : packet_waveforms)
+  {
+    m_container->n_waveform.push_back(n_waveforms);
+  }
+
   // fill evaluation tree
   m_evaluation_tree->Fill();
 
@@ -249,9 +280,9 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode *topNode)
 }
 
 //_____________________________________________________________________
-int MicromegasCombinedDataEvaluation::End(PHCompositeNode* /*topNode*/ )
+int MicromegasCombinedDataEvaluation::End(PHCompositeNode* /*topNode*/)
 {
-  if( m_evaluation_file && m_evaluation_tree )
+  if (m_evaluation_file && m_evaluation_tree)
   {
     m_evaluation_file->cd();
     m_evaluation_tree->Write();
@@ -259,21 +290,28 @@ int MicromegasCombinedDataEvaluation::End(PHCompositeNode* /*topNode*/ )
   }
 
   // print bco map
-  if( Verbosity() )
-  for( const auto& [bco,nwaveforms]:m_bco_map )
-  { std::cout << "MicromegasCombinedDataEvaluation::End - bco: 0x" << std::hex << bco << std::dec << ", nwaveforms: " << nwaveforms << std::endl; }
+  if (Verbosity())
+  {
+    for (const auto& [bco, nwaveforms] : m_bco_map)
+    {
+      std::cout << "MicromegasCombinedDataEvaluation::End - bco: 0x" << std::hex << bco << std::dec << ", nwaveforms: " << nwaveforms << std::endl;
+    }
+  }
 
   // print bco list, for offline processing
-  if( Verbosity() )
+  if (Verbosity())
   {
     std::cout << "const std::vector<uint64_t> lvl1_bco_list = {" << std::endl;
     bool first = true;
     int count = 0;
-    for( const auto& [bco,nwaveforms]:m_bco_map )
+    for (const auto& [bco, nwaveforms] : m_bco_map)
     {
-      if( !first ) std::cout << ", ";
+      if (!first)
+      {
+        std::cout << ", ";
+      }
       first = false;
-      if( count == 10 )
+      if (count == 10)
       {
         count = 0;
         std::cout << std::endl;
@@ -281,7 +319,8 @@ int MicromegasCombinedDataEvaluation::End(PHCompositeNode* /*topNode*/ )
       std::cout << " 0x" << std::hex << bco << std::dec;
       ++count;
     }
-    std::cout << std::endl << "};" << std::endl;
+    std::cout << std::endl
+              << "};" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

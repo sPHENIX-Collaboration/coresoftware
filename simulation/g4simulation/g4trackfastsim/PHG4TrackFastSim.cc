@@ -216,16 +216,16 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
   {
     m_RaveVertexFactory = new genfit::GFRaveVertexFactory(Verbosity(), true);
     //m_RaveVertexFactory->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
-    m_RaveVertexFactory->setMethod(m_VertexingMethod);
-    //m_RaveVertexFactory->setBeamspot();
-
-    //m_RaveVertexFactory = new PHRaveVertexFactory(Verbosity());
-
     if (!m_RaveVertexFactory)
     {
       cout << PHWHERE << " no Vertex Finder" << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
+    m_RaveVertexFactory->setMethod(m_VertexingMethod);
+    //m_RaveVertexFactory->setBeamspot();
+
+    //m_RaveVertexFactory = new PHRaveVertexFactory(Verbosity());
+
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

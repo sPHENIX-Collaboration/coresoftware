@@ -14,11 +14,10 @@
 #include <iostream>
 #include <memory>
 
-
 /**
  * @brief Base class for Central Membrane flassh combined cluster object
  *
- * Virtual base class for TPC CM flash cluster object 
+ * Virtual base class for TPC CM flash cluster object
  */
 class CMFlashCluster : public PHObject
 {
@@ -33,16 +32,15 @@ class CMFlashCluster : public PHObject
   void Reset() override {}
   int isValid() const override { return 0; }
 
-  
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
-  
-  //! copy content from base class
-  virtual void CopyFrom( const CMFlashCluster& )  {}
 
   //! copy content from base class
-  virtual void CopyFrom( CMFlashCluster* )  {}
- 
+  virtual void CopyFrom(const CMFlashCluster&) {}
+
+  //! copy content from base class
+  virtual void CopyFrom(CMFlashCluster*) {}
+
   //
   // cluster position
   //
@@ -67,7 +65,6 @@ class CMFlashCluster : public PHObject
   virtual float getZ2() const { return NAN; }
   virtual void setZ2(float) {}
 
-
   virtual void setLayer1(unsigned int) {}
   virtual unsigned int getLayer1() const { return UINT_MAX; }
 
@@ -80,24 +77,22 @@ class CMFlashCluster : public PHObject
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
 
-
   virtual void setAdc1(unsigned int) {}
   virtual unsigned int getAdc1() const { return UINT_MAX; }
 
   virtual void setAdc2(unsigned int) {}
   virtual unsigned int getAdc2() const { return UINT_MAX; }
 
-  virtual unsigned int getNclusters() const {return UINT_MAX;}
-  virtual void setNclusters( unsigned int) {}
+  virtual unsigned int getNclusters() const { return UINT_MAX; }
+  virtual void setNclusters(unsigned int) {}
   virtual void setIsRGap(bool) {}
   virtual bool getIsRGap() const { return false; }
   virtual void setIsPhiGap(bool) {}
   virtual bool getIsPhiGap() const { return false; }
-
 
  protected:
   CMFlashCluster() = default;
   ClassDefOverride(CMFlashCluster, 1)
 };
 
-#endif //TRACKBASE_CMFLASHCLUSTER_H
+#endif  // TRACKBASE_CMFLASHCLUSTER_H

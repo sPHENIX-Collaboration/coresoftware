@@ -71,6 +71,8 @@ class Fitter
 
   //! Default destructor
   ~Fitter();
+  explicit Fitter(const Fitter&) = delete;
+  Fitter& operator=(const Fitter&) = delete;
 
   static Fitter* getInstance(const std::string& tgeo_file_name,
                              const PHField* field,

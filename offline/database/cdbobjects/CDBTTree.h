@@ -27,6 +27,7 @@ class CDBTTree
   void WriteSingleCDBTTree();
   void WriteMultipleCDBTTree();
   void Print();
+  void SetFilename(const std::string &fname) {m_Filename = fname;}
   void LoadCalibrations();
   float GetSingleFloatValue(const std::string &name, int verbose = 1);
   float GetFloatValue(int channel, const std::string &name, int verbose = 1);

@@ -18,6 +18,7 @@ class RawTowerGeomContainerv1 : public RawTowerGeomContainer
   RawTowerGeomContainerv1(RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE);
   ~RawTowerGeomContainerv1() override;
 
+// cppcheck-suppress virtualCallInConstructor
   void Reset() override;
   int isValid() const override;
   void identify(std::ostream &os = std::cout) const override;

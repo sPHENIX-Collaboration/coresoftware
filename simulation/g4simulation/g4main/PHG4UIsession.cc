@@ -15,7 +15,7 @@ PHG4UIsession::PHG4UIsession()
 
 G4UIsession* PHG4UIsession::SessionStart() { return nullptr; }
 
-void PHG4UIsession::PauseSessionStart(const G4String&) { ; }
+void PHG4UIsession::PauseSessionStart(const G4String& /*Prompt*/) { ; }
 
 G4int PHG4UIsession::ReceiveG4cout(const G4String& coutString)
 {

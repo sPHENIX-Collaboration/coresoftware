@@ -110,14 +110,17 @@ int Fun4AllSyncManager::run(const int nevnts)
         if (iter->HasSyncObject())  // if zero (no syncing) no need to go further
         {
           if (hassync != iter->HasSyncObject())  // we have sync and no sync mixed
+          // NOLINTNEXTLINE(bugprone-branch-clone)
           {
             PrintSyncProblem();
             gSystem->Exit(1);
+            exit(1);
           }
           else if (hassync < 0)  // we have more than one nosync input
           {
             PrintSyncProblem();
             gSystem->Exit(1);
+            exit(1);
           }
         }
       }
@@ -207,6 +210,7 @@ int Fun4AllSyncManager::run(const int nevnts)
           }
           ++InIter;
         }
+        // NOLINTNEXTLINE(hicpp-avoid-goto)
         goto readerror;
       }
       else
@@ -284,10 +288,22 @@ int Fun4AllSyncManager::skip(const int nevnts)
     // (technically it just decrements the local counter in the PHNodeIOManager)
     // giving it a negative argument will skip events
     // this is much faster than actually reading the events in
-    int iret = m_InManager[0]->PushBackEvents(Npushback);
-    for (unsigned int i = 1; i < m_InManager.size(); ++i)
+    int iret = 0;
+    bool first = true;
+    for (auto &iman : m_InManager)
     {
-      iret += m_InManager[i]->SkipForThisManager(nevnts);
+      if (iman->HasSyncObject())
+      {
+        if (first)
+        {
+          iret += iman->PushBackEvents(Npushback);
+          first = false;
+        }
+      }
+      else
+      {
+        iret += iman->SkipForThisManager(nevnts);
+      }
     }
     if (!iret)
     {

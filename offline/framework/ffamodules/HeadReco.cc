@@ -20,6 +20,8 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
+#include <Event/Event.h>
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
@@ -91,6 +93,14 @@ int HeadReco::process_event(PHCompositeNode *topNode)
           }
         }
       }
+    }
+  }
+  else
+  {
+    Event *evt = findNode::getClass<Event>(topNode, "PRDF");
+    if (evt)
+    {
+      evtheader->set_EvtType(evt->getEvtType());
     }
   }
   evtheader->set_RunNumber(se->RunNumber());

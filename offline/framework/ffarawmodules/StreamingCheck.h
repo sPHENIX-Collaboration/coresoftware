@@ -22,11 +22,12 @@ class StreamingCheck : public SubsysReco
 
   int process_event(PHCompositeNode *topNode) override;
 
-//  int ResetEvent(PHCompositeNode *topNode) override;
+  //  int ResetEvent(PHCompositeNode *topNode) override;
 
-  void SetTpcBcoRange(const unsigned int i) {tpc_bcorange = i;}
+  void SetTpcBcoRange(const unsigned int i) { tpc_bcorange = i; }
+
  private:
-  unsigned int tpc_bcorange {0};
+  unsigned int tpc_bcorange{0};
   std::set<uint64_t> bclk_seen;
 };
 

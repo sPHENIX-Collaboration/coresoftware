@@ -51,6 +51,7 @@ class SvtxTrackState_v1 : public SvtxTrackState
   float get_phi() const override { return atan2(get_py(), get_px()); }
 
   float get_error(unsigned int i, unsigned int j) const override;
+  // cppcheck-suppress virtualCallInConstructor
   void set_error(unsigned int i, unsigned int j, float value) override;
 
   std::string get_name() const override { return state_name; }
@@ -64,9 +65,9 @@ class SvtxTrackState_v1 : public SvtxTrackState
 
  private:
   float _pathlength;
-  float _pos[3];
-  float _mom[3];
-  float _covar[21];  //  6x6 triangular packed storage
+  float _pos[3]{};
+  float _mom[3]{};
+  float _covar[21]{};  //  6x6 triangular packed storage
 
   std::string state_name;
 

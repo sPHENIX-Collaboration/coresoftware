@@ -9,8 +9,9 @@
 #include <boost/math/special_functions.hpp>  //covers all the special functions.
 #pragma GCC diagnostic pop
 
+#include <boost/format.hpp>
+
 #include <algorithm>  // for max
-#include <cassert>    // for assert
 #include <cmath>
 #include <cstdlib>  // for exit, abs
 #include <fstream>
@@ -55,9 +56,8 @@ Rossegger::Rossegger(double InnerRadius, double OuterRadius, double Rdo_Z, doubl
   PrecalcFreeConstants();
 
   // load the greens functions:
-  char zeroesfilename[200];
-  sprintf(zeroesfilename, "rosseger_zeroes_eps%1.0E_a%2.2f_b%2.2f_L%2.2f.root", epsilon, a, b, L);
-  TFile *fileptr = TFile::Open(zeroesfilename, "READ");
+  std::string zeroesfilename = boost::str(boost::format("rosseger_zeroes_eps%1.0E_a%2.2f_b%2.2f_L%2.2f.root") % epsilon % a % b % L);
+  TFile *fileptr = TFile::Open(zeroesfilename.c_str(), "READ");
   if (!fileptr)
   {  // generate the lookuptable
     FindMunk(epsilon);
@@ -116,7 +116,7 @@ double Rossegger::FindNextZero(double xstart, double localepsilon, int order, do
       double n1 = (this->*func)(order, x + localepsilon);
       if ((n0 < 0 && n1 < 0) || (n0 > 0 && n1 > 0))
       {
-        printf("neighbors on both sides have the same sign.  Check your function resolution!\n");
+        std::cout << "neighbors on both sides have the same sign.  Check your function resolution!" << std::endl;
       }
 
       return x0;
@@ -124,9 +124,8 @@ double Rossegger::FindNextZero(double xstart, double localepsilon, int order, do
     previous = value;
     x += localepsilon;
   }
-  std::cout << "logic break!\n";
-  assert(1 == 2);
-  return 0;
+  std::cout << "logic break!" << std::endl;
+  exit(1);
 }
 
 void Rossegger::FindBetamn(double localepsilon)
@@ -215,13 +214,12 @@ void Rossegger::FindMunk(double localepsilon)
       x += localepsilon;
       if (verbosity > 0)
       {
-        printf("Mu[%d][%d]=%E\n", n, k, Munk[n][k]);
-        printf("adjacent values are Rnk[mu-localepsilon]=%E\tRnk[mu+localepsilon]=%E\n",
-               Rnk_for_zeroes(n, x - localepsilon), Rnk_for_zeroes(n, x + localepsilon));
+        std::cout << boost::str(boost::format("Mu[%d][%d]=%E") % n % k % Munk[n][k]) << std::endl;
+        std::cout << boost::str(boost::format("adjacent values are Rnk[mu-localepsilon]=%E\tRnk[mu+localepsilon]=%E") % (Rnk_for_zeroes(n, x - localepsilon)) % (Rnk_for_zeroes(n, x + localepsilon))) << std::endl;
         if (verbosity > 100)
         {
-          printf("values of argument to limu and kimu are %f and %f\n",
-                 (n + 1) * pi / L * a, (n + 1) * pi / L * b);
+          std::cout << "values of argument to limu and kimu are " << ((n + 1) * pi / L * a)
+                    << " and " << ((n + 1) * pi / L * b) << std::endl;
         }
       }
     }
@@ -271,7 +269,7 @@ bool Rossegger::CheckZeroes(double localepsilon)
       result = Rmn_for_zeroes(m, Betamn[m][n] * b);
       if (abs(result) > localepsilon)
       {
-        printf("(m=%d,n=%d) Jm(x)Ym(lx)-Jm(lx)Ym(x) = %f for x=b*%f\n", m, n, result, Betamn[m][n]);
+        std::cout << boost::str(boost::format("(m=%d,n=%d) Jm(x)Ym(lx)-Jm(lx)Ym(x) = %f for x=b*%f") % m % n % result % Betamn[m][n]) << std::endl;
         return false;
       }
     }
@@ -285,8 +283,7 @@ bool Rossegger::CheckZeroes(double localepsilon)
       result = Rnk_for_zeroes(n, Munk[n][k]);
       if (abs(result) > localepsilon * 100)
       {
-        printf("(n=%d,k=%d) limu(npi*a/L)kimu(npi*b/L)-kimu(npi*a/L)kimu(npi*b/L) = %f (>eps*100) for mu=%f\n",
-               n, k, result, Munk[n][k]);
+        std::cout << boost::str(boost::format("(n=%d,k=%d) limu(npi*a/L)kimu(npi*b/L)-kimu(npi*a/L)kimu(npi*b/L) = %f (>eps*100) for mu=%f") % n % k % result % Munk[n][k]) << std::endl;
         return false;
       }
     }
@@ -298,7 +295,8 @@ bool Rossegger::CheckZeroes(double localepsilon)
 void Rossegger::PrecalcFreeConstants()
 {  // Routine used to fill the arrays of other values used repeatedly
   // these constants depend only on the geometry of the detector
-  printf("Precalcing %d geometric constants\n", 3 * NumberOfOrders + 5 * NumberOfOrders * NumberOfOrders);
+  std::cout << "Precalcing " << (3 * NumberOfOrders + 5 * NumberOfOrders * NumberOfOrders)
+            << "geometric constants" << std::endl;
   for (int n = 0; n < NumberOfOrders; n++)
   {
     BetaN[n] = (n + 1) * pi / L;  //  BetaN=(n+1)*pi/L as used in eg 5.32, .46
@@ -318,7 +316,8 @@ void Rossegger::PrecalcFreeConstants()
 void Rossegger::PrecalcDerivedConstants()
 {  // Routine used to fill the arrays of other values used repeatedly
    // these constants depend on geometry and the zeroes of special functions
-  printf("Precalcing %d geometric constants\n", 6 * NumberOfOrders * NumberOfOrders);
+  std::cout << "Precalcing " << (6 * NumberOfOrders * NumberOfOrders)
+            << " geometric constants" << std::endl;
 
   for (int n = 0; n < NumberOfOrders; n++)
   {
@@ -678,7 +677,7 @@ double Rossegger::Rnk_for_zeroes(int n, double mu)
   // unlike Rossegger, we count 'k' and 'n' from zero.
   if (verbosity > 10)
   {
-    printf("Rnk_for_zeroes called with n=%d,mu=%f\n", n, mu);
+    std::cout << "Rnk_for_zeroes called with n=" << n << ",mu=" << mu << std::endl;
   }
   double betana = BetaN_a[n];
   double betanb = BetaN_b[n];
@@ -693,7 +692,7 @@ double Rossegger::Rnk_for_zeroes_(int n, double mu)
   // unlike Rossegger, we count 'k' and 'n' from zero.
   if (verbosity > 10)
   {
-    printf("Rnk_for_zeroes called with n=%d,mu=%f\n", n, mu);
+    std::cout << "Rnk_for_zeroes called with n=" << n << ",mu=" << mu << std::endl;
   }
   double BetaN_ = (n + 1) * pi / L;  // this is defined in the paragraph before 5.46
   double betana = BetaN_ * a;
@@ -1018,13 +1017,13 @@ double Rossegger::Er(double r, double phi, double z, double r1, double phi1, dou
       part = (2 - ((m == 0) ? 1 : 0)) * cos(m * (phi - phi1));  // unitless
       if (verbosity > 10)
       {
-        printf("(2 - ((m==0)?1:0))*cos(m*(phi-phi1)); = %f\n", part);
+        std::cout << "(2 - ((m==0)?1:0))*cos(m*(phi-phi1)); = " << part << std::endl;
       }
       term *= part;
       part = sin(BetaN[n] * z) * sin(BetaN[n] * z1);  // unitless
       if (verbosity > 10)
       {
-        printf("sin(BetaN[n]*z)*sin(BetaN[n]*z1); = %f\n", part);
+        std::cout << "sin(BetaN[n]*z)*sin(BetaN[n]*z1); = " << part << std::endl;
       }
       term *= part;
 
@@ -1321,9 +1320,9 @@ double Rossegger::Ephi_(double r, double phi, double z, double r1, double phi1, 
   return G;
 }
 
-void Rossegger::SaveZeroes(const char *destfile)
+void Rossegger::SaveZeroes(const std::string &destfile)
 {
-  TFile *output = TFile::Open(destfile, "RECREATE");
+  TFile *output = TFile::Open(destfile.c_str(), "RECREATE");
   output->cd();
 
   TTree *tInfo = new TTree("info", "Mu[n][k] values");
@@ -1373,16 +1372,16 @@ void Rossegger::SaveZeroes(const char *destfile)
   return;
 }
 
-void Rossegger::LoadZeroes(const char *destfile)
+void Rossegger::LoadZeroes(const std::string &destfile)
 {
-  TFile *f = TFile::Open(destfile, "READ");
-  printf("reading rossegger zeroes from %s\n", destfile);
+  TFile *f = TFile::Open(destfile.c_str(), "READ");
+  std::cout << "reading rossegger zeroes from " << destfile << std::endl;
   TTree *tInfo = (TTree *) (f->Get("info"));
   int ord;
   tInfo->SetBranchAddress("order", &ord);
   tInfo->SetBranchAddress("epsilon", &epsilon);
   tInfo->GetEntry(0);
-  printf("order=%d,epsilon=%f\n", ord, epsilon);
+  std::cout << "order=" << ord << ",epsilon=" << epsilon << std::endl;
 
   int n, k, m;
   double munk, betamn;

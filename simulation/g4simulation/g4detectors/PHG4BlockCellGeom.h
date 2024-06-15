@@ -6,15 +6,16 @@
 #include <phool/PHObject.h>
 
 #include <iostream>  // for cout, ostream
+#include <limits>
 #include <string>
 #include <utility>  // for pair
 
 class PHG4BlockCellGeom : public PHObject
 {
  public:
-  PHG4BlockCellGeom();
+  PHG4BlockCellGeom() = default;
 
-  ~PHG4BlockCellGeom() override {}
+  ~PHG4BlockCellGeom() override = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;
@@ -67,16 +68,16 @@ class PHG4BlockCellGeom : public PHObject
   void check_binning_method_x(const std::string& src = "") const;
   std::string methodname(const int i) const;
 
-  int _layer;
-  int _binning;
+  int _layer{std::numeric_limits<int>::min()};
+  int _binning{0};
 
-  int _nzbins;
-  double _zmin;
-  double _zstep;
+  int _nzbins{-1};
+  double _zmin{std::numeric_limits<double>::quiet_NaN()};
+  double _zstep{std::numeric_limits<double>::quiet_NaN()};
 
-  int _nxbins;
-  double _xmin;
-  double _xstep;
+  int _nxbins{-1};
+  double _xmin{std::numeric_limits<double>::quiet_NaN()};
+  double _xstep{std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(PHG4BlockCellGeom, 1)
 };

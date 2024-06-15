@@ -28,8 +28,8 @@ class MbdVertexv2 : public MbdVertex
 
   float get_t_err() const override { return _t_err; }
   void set_t_err(float t_err) override { _t_err = t_err; }
-  
-  // Return 0 for now, can implement beam spot 
+
+  // Return 0 for now, can implement beam spot
   float get_x() const override { return 0; }
   float get_y() const override { return 0; }
 
@@ -43,13 +43,14 @@ class MbdVertexv2 : public MbdVertex
 
   unsigned int get_beam_crossing() const override { return _bco; }
   void set_beam_crossing(unsigned int bco) override { _bco = bco; }
+
  private:
-  unsigned int _id;  //< unique identifier within container
-  unsigned int _bco; //< global bco
-  float _t;          //< collision time
-  float _t_err;      //< collision time uncertainty
-  float _z;          //< collision position z
-  float _z_err;      //< collision position z uncertainty
+  unsigned int _id;   //< unique identifier within container
+  unsigned int _bco;  //< global bco
+  float _t;           //< collision time
+  float _t_err;       //< collision time uncertainty
+  float _z;           //< collision position z
+  float _z_err;       //< collision position z uncertainty
 
   ClassDefOverride(MbdVertexv2, 1);
 };

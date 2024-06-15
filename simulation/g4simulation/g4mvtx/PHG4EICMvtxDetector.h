@@ -69,13 +69,13 @@ class PHG4EICMvtxDetector : public PHG4Detector
   std::map<G4VPhysicalVolume*, std::tuple<int, int>> m_StavePV;
 
   // setup parameters
-  std::array<int, n_Layers> m_IsLayerActive;
-  std::array<int, n_Layers> m_IsLayerAbsorberActive;
-  std::array<int, n_Layers> m_IsBlackHole;
-  std::array<int, n_Layers> m_N_staves;
-  std::array<double, n_Layers> m_nominal_radius;
-  std::array<double, n_Layers> m_nominal_phitilt;
-  std::array<double, n_Layers> m_nominal_phi0;
+  std::array<int, n_Layers> m_IsLayerActive{};
+  std::array<int, n_Layers> m_IsLayerAbsorberActive{};
+  std::array<int, n_Layers> m_IsBlackHole{};
+  std::array<int, n_Layers> m_N_staves{};
+  std::array<double, n_Layers> m_nominal_radius{};
+  std::array<double, n_Layers> m_nominal_phitilt{};
+  std::array<double, n_Layers> m_nominal_phi0{};
 
   std::string m_Detector;
   std::string m_SuperDetector;

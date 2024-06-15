@@ -6,8 +6,8 @@
 namespace PHG4CylinderCellDefs
 {
   typedef unsigned int keytype;
-  static int keybits = 8;
-  static int cell_idbits = 32 - keybits;
+  static unsigned int keybits{8};
+  static unsigned int cell_idbits{32 - keybits};
   enum
   {
     undefined = 0,

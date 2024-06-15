@@ -147,9 +147,9 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         }
       }
 
-      //if (inEvent->isEmbeded(particle_iter->second))
-      // Do this for all primaries, not just the embedded particle, so that
-      // we can carry the barcode information forward.
+      // if (inEvent->isEmbeded(particle_iter->second))
+      //  Do this for all primaries, not just the embedded particle, so that
+      //  we can carry the barcode information forward.
 
       if (g4part)
       {

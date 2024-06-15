@@ -1,24 +1,21 @@
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#include "ActsTrackFittingAlgorithm.h"
+
 #include <Acts/Definitions/TrackParametrization.hpp>
-#pragma GCC diagnostic pop
+
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wunused-value"
 #include <Acts/Propagator/EigenStepper.hpp>
-#pragma GCC diagnostic pop
-
 #include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Propagator/Propagator.hpp>
+
 #include <Acts/Surfaces/Surface.hpp>
+
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
+
 #include <Acts/Utilities/Helpers.hpp>
 
-#include "ActsTrackFittingAlgorithm.h"
 
 namespace
 {
@@ -201,7 +198,7 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl
 
 std::shared_ptr<ActsTrackFittingAlgorithm::TrackFitterFunction>
 ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
-    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+    const std::shared_ptr<const Acts::TrackingGeometry>& trackingGeometry,
     std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
     bool multipleScattering, bool energyLoss,
     double reverseFilteringMomThreshold,
@@ -235,7 +232,7 @@ ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
 std::shared_ptr<
     ActsTrackFittingAlgorithm::DirectedTrackFitterFunction>
 ActsTrackFittingAlgorithm::makeDirectedKalmanFitterFunction(
-    std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+    const std::shared_ptr<const Acts::TrackingGeometry>& trackingGeometry,
     std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
     bool multipleScattering, bool energyLoss,
     double reverseFilteringMomThreshold,

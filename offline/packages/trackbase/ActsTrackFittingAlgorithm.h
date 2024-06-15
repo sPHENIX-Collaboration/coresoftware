@@ -6,26 +6,16 @@
 #include "ResidualOutlierFinder.h"
 
 #include <Acts/EventData/detail/CorrectedTransformationFreeToBound.hpp>
-#include <Acts/Geometry/TrackingGeometry.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wunused-value"
-#include <Acts/TrackFitting/KalmanFitter.hpp>
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
-#pragma GCC diagnostic pop
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
-#include <Acts/Propagator/MultiEigenStepperLoop.hpp>
-#pragma GCC diagnostic pop
-
 #include <Acts/EventData/SourceLink.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/EventData/VectorTrackContainer.hpp>
+
+#include <Acts/Geometry/TrackingGeometry.hpp>
+
+#include <Acts/Propagator/MultiEigenStepperLoop.hpp>
+
+#include <Acts/TrackFitting/KalmanFitter.hpp>
 
 #include <functional>
 #include <memory>
@@ -121,7 +111,7 @@ class ActsTrackFittingAlgorithm final
   /// @param reverseFilteringMomThreshold at which threshold
   /// @param freeToBoundCorrection Correction for non-linearity effect during transform from free to bound
   static std::shared_ptr<TrackFitterFunction> makeKalmanFitterFunction(
-      std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+      const std::shared_ptr<const Acts::TrackingGeometry>& trackingGeometry,
       std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,
@@ -131,7 +121,7 @@ class ActsTrackFittingAlgorithm final
                                                            Acts::Logging::FATAL));
 
   static std::shared_ptr<DirectedTrackFitterFunction> makeDirectedKalmanFitterFunction(
-      std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
+      const std::shared_ptr<const Acts::TrackingGeometry>& trackingGeometry,
       std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
       bool multipleScattering = true, bool energyLoss = true,
       double reverseFilteringMomThreshold = 0.0,

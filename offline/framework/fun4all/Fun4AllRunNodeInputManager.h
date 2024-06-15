@@ -32,7 +32,6 @@ class Fun4AllRunNodeInputManager : public Fun4AllDstInputManager
   int PushBackEvents(const int /*i*/) override { return 0; }
   int SkipForThisManager(const int nevents) override { return PushBackEvents(nevents); }
   int HasSyncObject() const override { return 0; }
-
 };
 
 #endif  // FUN4ALL_FUN4ALLRUNNODEINPUTMANAGER_H

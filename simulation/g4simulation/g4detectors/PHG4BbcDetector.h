@@ -48,7 +48,7 @@ class PHG4BbcDetector : public PHG4Detector
   int m_ActiveFlag = 0;
   int m_SupportActiveFlag = 0;
 
-  float m_bbcz = NAN;  // z-location of mid-point of quartz ckov crystals
+  float m_bbcz = NAN;      // z-location of mid-point of quartz ckov crystals
   float front_bbcz = NAN;  // z-location of front of BBC housing
 
   std::set<G4LogicalVolume *> m_PhysLogicalVolSet;

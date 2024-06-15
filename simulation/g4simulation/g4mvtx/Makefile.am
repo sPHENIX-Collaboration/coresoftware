@@ -7,7 +7,7 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem$(ROOTSYS)/include
 
 
@@ -43,8 +43,6 @@ libg4mvtx_la_SOURCES = \
   PHG4MvtxSubsystem.cc \
   PHG4EICMvtxSubsystem.cc \
   PHG4MvtxDigitizer.cc \
-  PHG4MvtxCable.cc \
-  PHG4MvtxServiceStructure.cc \
   PHG4MvtxSupport.cc
 
 ################################################

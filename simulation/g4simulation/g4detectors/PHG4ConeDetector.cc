@@ -22,7 +22,7 @@ class G4Material;
 class G4VSolid;
 
 //_______________________________________________________________
-//note this inactive thickness is ~1.5% of a radiation length
+// note this inactive thickness is ~1.5% of a radiation length
 PHG4ConeDetector::PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
   : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)

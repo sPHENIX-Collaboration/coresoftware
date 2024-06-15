@@ -7,8 +7,8 @@
 #ifndef TRACKBASE_RAWHITV1_H
 #define TRACKBASE_RAWHITV1_H
 
-#include "TrkrDefs.h"
 #include "RawHit.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
@@ -25,7 +25,7 @@ class RawHitv1 : public RawHit
 {
  public:
   //! ctor
-  RawHitv1(); 
+  RawHitv1();
 
   //! dtor
   ~RawHitv1() override {}
@@ -39,12 +39,12 @@ class RawHitv1 : public RawHit
 
   // after digitization, these are the adc values
   void setAdc(const unsigned int adc) override;
-  unsigned int getAdc() override ;
+  unsigned int getAdc() override;
 
   void setPhiBin(const unsigned int phibin) override;
   unsigned int getPhiBin() override;
 
-  void setTBin(const unsigned int tbin ) override;
+  void setTBin(const unsigned int tbin) override;
   unsigned int getTBin() override;
 
   unsigned short m_adc = 0;
@@ -52,8 +52,7 @@ class RawHitv1 : public RawHit
   unsigned short m_phibin = 0;
 
  protected:
-
   ClassDefOverride(RawHitv1, 1);
 };
 
-#endif //TRACKBASE_RAWHITV1_H
+#endif  // TRACKBASE_RAWHITV1_H

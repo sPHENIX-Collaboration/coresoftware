@@ -4,7 +4,7 @@
 #include "JetRecoEval.h"
 
 #include <jetbase/Jet.h>
-#include <jetbase/JetMap.h>
+#include <jetbase/JetContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -29,8 +29,7 @@ JetEvaluator::JetEvaluator(const std::string &name,
   , _recojetname(recojetname)
   , _truthjetname(truthjetname)
   , _filename(filename)
-{
-}
+{ }
 
 int JetEvaluator::Init(PHCompositeNode * /*topNode*/)
 {
@@ -141,6 +140,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
     std::cout << "JetEvaluator::fillOutputNtuples() entered" << std::endl;
   }
 
+
   JetRecoEval *recoeval = _jetevalstack->get_reco_eval();
   // JetTruthEval* trutheval = _jetevalstack->get_truth_eval();
 
@@ -155,7 +155,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
       std::cout << "JetEvaluator::filling recojet ntuple..." << std::endl;
     }
 
-    JetMap *recojets = findNode::getClass<JetMap>(topNode, _recojetname);
+    JetContainer *recojets = findNode::getClass<JetContainer>(topNode, _recojetname);
     if (!recojets)
     {
       std::cout << PHWHERE << " ERROR: Can't find " << _recojetname << std::endl;
@@ -163,9 +163,9 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
     }
 
     // for every recojet
-    for (auto &iter : *recojets)
+    for (auto recojet : *recojets)
     {
-      Jet *recojet = iter.second;
+      /* Jet *recojet = iter.second; */
       Jet *truthjet = recoeval->max_truth_jet_by_energy(recojet);
 
       float id = recojet->get_id();
@@ -224,7 +224,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
       std::cout << "JetEvaluator::filling truthjet ntuple..." << std::endl;
     }
 
-    JetMap *truthjets = findNode::getClass<JetMap>(topNode, _truthjetname);
+    JetContainer *truthjets = findNode::getClass<JetContainer>(topNode, _truthjetname);
     if (!truthjets)
     {
       std::cout << PHWHERE << " ERROR: Can't find " << _truthjetname << std::endl;
@@ -232,9 +232,9 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
     }
 
     // for every truthjet
-    for (auto &iter : *truthjets)
+    for (auto truthjet : *truthjets)
     {
-      Jet *truthjet = iter.second;
+      /* Jet *truthjet = iter.second; */
       Jet *recojet = recoeval->best_jet_from(truthjet);
 
       float gid = truthjet->get_id();

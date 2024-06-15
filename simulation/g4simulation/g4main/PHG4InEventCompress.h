@@ -5,12 +5,12 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>                // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class VariableArray;
 
-class PHG4InEventCompress: public SubsysReco
+class PHG4InEventCompress : public SubsysReco
 {
  public:
   PHG4InEventCompress(const std::string &name = "PHG4InEventCompress");

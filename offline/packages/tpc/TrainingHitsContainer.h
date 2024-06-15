@@ -1,19 +1,19 @@
 #ifndef TRAININGHITSCONTAINER_H
 #define TRAININGHITSCONTAINER_H
 
-#include "TrainingHits.h"
 #include <vector>
+#include "TrainingHits.h"
 
-class TrainingHitsContainer: public PHObject
+class TrainingHitsContainer : public PHObject
 {
-  public:
-    TrainingHitsContainer();
-    ~TrainingHitsContainer() override {}
-    void Reset() override;
+ public:
+  TrainingHitsContainer();
+  ~TrainingHitsContainer() override {}
+  void Reset() override;
 
-    std::vector<TrainingHits> v_hits;
+  std::vector<TrainingHits> v_hits;
 
-    ClassDefOverride(TrainingHitsContainer, 1)
+  ClassDefOverride(TrainingHitsContainer, 1)
 };
 
-#endif //TRAININGHITSCONTAINER_H
+#endif  // TRAININGHITSCONTAINER_H

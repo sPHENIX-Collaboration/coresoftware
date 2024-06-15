@@ -35,8 +35,8 @@ Fun4AllSingleDstPileupInputManager::Fun4AllSingleDstPileupInputManager(const std
 {
   // initialize random generator
   const uint seed = PHRandomSeed();
-  m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
-  gsl_rng_set( m_rng.get(), seed );
+  m_rng.reset(gsl_rng_alloc(gsl_rng_mt19937));
+  gsl_rng_set(m_rng.get(), seed);
 }
 
 //_____________________________________________________________________________
@@ -64,7 +64,7 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
   }
   // sanity check - the IManager must be nullptr when this method is executed
   // if not something is very very wrong and we must not continue
-  assert( !m_IManager );
+  assert(!m_IManager);
 
   // first read the runnode if not disabled
   if (m_ReadRunTTree)
@@ -82,7 +82,7 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
         SetRunNumber(runheader->get_RunNumber());
       }
       // delete our internal copy of the runnode when opening subsequent files
-      assert( !m_runNodeCopy );
+      assert(!m_runNodeCopy);
       m_runNodeCopy.reset(new PHCompositeNode("RUNNODECOPY"));
       if (!m_runNodeSum)
       {
@@ -142,12 +142,14 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
 //_____________________________________________________________________________
 int Fun4AllSingleDstPileupInputManager::run(const int nevents)
 {
-
   if (!IsOpen())
   {
     if (FileListEmpty())
     {
-      if (Verbosity() > 0) std::cout << Name() << ": No Input file open" << std::endl;
+      if (Verbosity() > 0)
+      {
+        std::cout << Name() << ": No Input file open" << std::endl;
+      }
       return -1;
     }
     else
@@ -173,7 +175,10 @@ readagain:
   while (dummy)
   {
     ++ncount;
-    if (nevents > 0 && ncount >= nevents) break;
+    if (nevents > 0 && ncount >= nevents)
+    {
+      break;
+    }
     dummy = m_IManager->read(m_dstNode);
   }
 
@@ -181,9 +186,14 @@ readagain:
   {
     fileclose();
     if (!OpenNextFile())
+    {
+      // NOLINTNEXTLINE(hicpp-avoid-goto)
       goto readagain;
+    }
     else
+    {
       return -1;
+    }
   }
 
   m_ievent_total += ncount;
@@ -204,6 +214,7 @@ readagain:
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cout << "Fun4AllSingleDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
+    // NOLINTNEXTLINE(hicpp-avoid-goto)
     goto readagain;
   }
 
@@ -217,27 +228,29 @@ readagain:
   merger.load_nodes(m_dstNode);
 
   // generate background collisions
-  const double mu = m_collision_rate*m_time_between_crossings*1e-9;
+  const double mu = m_collision_rate * m_time_between_crossings * 1e-9;
 
-  const int min_crossing = m_tmin/m_time_between_crossings;
-  const int max_crossing = m_tmax/m_time_between_crossings;
+  const int min_crossing = m_tmin / m_time_between_crossings;
+  const int max_crossing = m_tmax / m_time_between_crossings;
   int ievent_thisfile = m_ievent_thisfile;
   int neventsbackground = 0;
-  for( int icrossing = min_crossing; icrossing <= max_crossing; ++icrossing )
+  for (int icrossing = min_crossing; icrossing <= max_crossing; ++icrossing)
   {
     const double crossing_time = m_time_between_crossings * icrossing;
     const int ncollisions = gsl_ran_poisson(m_rng.get(), mu);
     for (int icollision = 0; icollision < ncollisions; ++icollision)
     {
-
       // try read
-      if(!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile) ) break;
+      if (!m_IManager_background->read(m_dstNodeInternal.get(), ievent_thisfile))
+      {
+        break;
+      }
 
       // merge
 
       if (Verbosity() > 0)
       {
-	std::cout << "Fun4AllSingleDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
+        std::cout << "Fun4AllSingleDstPileupInputManager::run - merged background event " << ievent_thisfile << " time: " << crossing_time << std::endl;
       }
       merger.copy_background_event(m_dstNodeInternal.get(), crossing_time);
 
@@ -247,7 +260,10 @@ readagain:
   }
 
   // jump event counter to the last background accepted event
-  if( neventsbackground > 0 ) PushBackEvents( -neventsbackground );
+  if (neventsbackground > 0)
+  {
+    PushBackEvents(-neventsbackground);
+  }
   return 0;
 }
 
@@ -315,7 +331,7 @@ int Fun4AllSingleDstPileupInputManager::setBranches()
       for (branchiter = m_branchread.begin(); branchiter != m_branchread.end(); ++branchiter)
       {
         m_IManager->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
-        if( m_IManager_background )
+        if (m_IManager_background)
         {
           m_IManager_background->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
         }
@@ -388,4 +404,3 @@ int Fun4AllSingleDstPileupInputManager::PushBackEvents(const int i)
             << " probably the dst is not open yet (you need to call fileopen or run 1 event for lists)" << std::endl;
   return -1;
 }
-

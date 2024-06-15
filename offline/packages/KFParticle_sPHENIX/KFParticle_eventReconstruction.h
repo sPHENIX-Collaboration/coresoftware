@@ -35,7 +35,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
  public:
   KFParticle_eventReconstruction();
 
-  virtual ~KFParticle_eventReconstruction() {}
+  ~KFParticle_eventReconstruction() override = default;
 
   /**
    * Starts the reconstruction chain
@@ -83,7 +83,6 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                             std::vector<KFParticle> possibleVertex);
 
   KFParticle createFakePV();
-  void setBz(double Bz_Tesla);
 
  protected:
   bool m_constrain_to_vertex;

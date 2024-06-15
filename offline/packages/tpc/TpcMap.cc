@@ -1,11 +1,12 @@
 #include "TpcMap.h"
 
-#include <climits>
 #include <cmath>
+#include <cstdlib>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
+#include <utility>
 
 void TpcMap::setMapNames(const std::string &r1, const std::string &r2, const std::string &r3)
 {
@@ -55,7 +56,7 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
 
   if (!infile.is_open())
   {
-    std::cout << "Could not open file: "<< fileName << std::endl;
+    std::cout << "Could not open file: " << fileName << std::endl;
     _broken = 1;
     return -1;
   }
@@ -64,8 +65,8 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
   getline(infile, line);  // throwaway - we skip the first line
   //  cout << __FILE__<< " " << __LINE__ << ": " << line << endl;
 
-  int abs_pad = INT_MAX;
-  int Radius = INT_MAX;
+  int abs_pad = std::numeric_limits<int>::max();
+  int Radius = std::numeric_limits<int>::max();
   // int Pad;
   // int  U;
   // int  G;
@@ -73,9 +74,9 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
   // int PinColID;
   // int PinRowID;
   // string PadName;
-  int FEE = INT_MAX;
+  int FEE = std::numeric_limits<int>::max();
   //  int FEE_Connector;
-  int FEE_Chan = INT_MAX;
+  int FEE_Chan = std::numeric_limits<int>::max();
   // double phi;
   // double x;
   // double y;
@@ -162,7 +163,9 @@ int TpcMap::digest_map(const std::string &fileName, const unsigned int section_o
 
     unsigned int key = 256 * (FEE) + FEE_Chan;
     tmap[key] = x;
-    //      cout << setw(5) << key << setw(5) << FEE << setw(5) << FEE_Chan << " " << PadR << "  " << PadPhi << endl;
+    //if(Radius<0){
+    //  std::cout << " " << key << " " << FEE << " " << FEE_Chan << " " << PadR << "  " << PadPhi << " " << Radius << std::endl;
+    //}
   }
   return 0;
 }

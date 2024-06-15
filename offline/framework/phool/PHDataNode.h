@@ -65,7 +65,7 @@ PHDataNode<T>::~PHDataNode()
   if (data.data)
   {
     delete data.data;
-    data.data = 0;
+    data.data = nullptr;
   }
 }
 

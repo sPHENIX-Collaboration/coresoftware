@@ -1,9 +1,13 @@
 
 #include "AnalyticFieldModel.h"
-#include "TFormula.h"
-#include "TVector3.h"
 
-#include <cstdio>
+#include <TFormula.h>
+#include <TVector3.h>
+
+#include <boost/format.hpp>
+
+#include <iostream>
+#include <string>
 
 AnalyticFieldModel::AnalyticFieldModel(float _ifc_radius, float _ofc_radius, float _z_max, float scalefactor)
 {
@@ -42,13 +46,12 @@ AnalyticFieldModel::AnalyticFieldModel(float _ifc_radius, float _ofc_radius, flo
   intEzDzTestFunction1 = new TFormula("intEzDz",
                                       "[0]* (x^4 - [3] *x^3 + [4] * x^2)*cos([1]* y)^2*exp(-1* [2] * z^2)");
 
-  printf("Setting Analytic Formula, variables:\n");
-  printf("ifc=%f\tofc=%f\tdelz=%f\ndiff=%f\tscale=%f\n", ifc_radius, ofc_radius, tpc_halfz, diff, scalefactor);
-  printf("a=%E\nb=%E\nc=%E\nd=%f\ne=%f\n", a, b, c, d, e);
+  std::cout << "Setting Analytic Formula, variables:" << std::endl;
+  std::cout << boost::str(boost::format("ifc=%f\tofc=%f\tdelz=%f\ndiff=%f\tscale=%f") % ifc_radius % ofc_radius % tpc_halfz % diff % scalefactor) << std::endl;
+  std::cout << boost::str(boost::format("a=%E\nb=%E\nc=%E\nd=%f\ne=%f") % a % b % c % d % e) << std::endl;
 
   vTestFunction1->SetParameters(a, b, c, d, e);
   rhoTestFunction1->SetParameters(a, b, c, d, e);
-  // printf("rho value at  (rmid,1,zmid)=%f\n",
 
   erTestFunction1->SetParameters(-a, b, c, d, e);
   ePhiTestFunction1->SetParameters(-a, b, c, d, e);
@@ -89,7 +92,7 @@ TVector3 AnalyticFieldModel::Eint(float zfinal, const TVector3& pos)
                intEzDzTestFunction1->Eval(pos.Perp(), pos.Phi(), zfinal));
 
   TVector3 ret = eintF - eintI;
-  // printf("Integrating z=%E to z=%E, delz=%E.  Before rotation, field integrals: (xyz)  (%E,%E,%E) to (%E,%E,%E), diff=(%E,%E,%E)\n",pos.Z(),zfinal,zfinal-pos.Z(),eintI.X(),eintI.Y(),eintI.Z(),eintF.X(),eintF.Y(),eintF.Z(),ret.X(),ret.Y(),ret.Z());
+  // std::cout <<  boost::str(boost::format("Integrating z=%E to z=%E, delz=%E.  Before rotation, field integrals: (xyz)  (%E,%E,%E) to (%E,%E,%E), diff=(%E,%E,%E)") %pos.Z() %zfinal %zfinal-pos.Z() %eintI.X() %eintI.Y() %eintI.Z() %eintF.X() %eintF.Y() %eintF.Z() %ret.X() %ret.Y() %ret.Z()) << std::endl;
   // now rotate this to the position we evaluated it at, to match the global coordinate system.
   ret.RotateZ(pos.Phi());
   return ret;

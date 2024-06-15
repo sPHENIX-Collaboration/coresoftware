@@ -4,7 +4,7 @@ AM_CXXFLAGS = `geant4-config --cflags`
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -13,7 +13,7 @@ lib_LTLIBRARIES = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib 
 
 libjetbase_io_la_LIBADD = \
   -lphool
@@ -21,13 +21,16 @@ libjetbase_io_la_LIBADD = \
 libjetbase_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  `fastjet-config --libs`
+  `fastjet-config --libs` \
+  -lConstituentSubtractor
 
 libjetbase_la_LIBADD = \
   libjetbase_io.la \
   -lcalo_io \
   -lfun4all \
   -lglobalvertex_io \
+  -lgsl \
+  -lgslcblas \
   -lRecursiveTools
 
 pkginclude_HEADERS = \
@@ -42,6 +45,8 @@ pkginclude_HEADERS = \
   JetMap.h \
   JetMapv1.h \
   JetInput.h \
+  JetProbeMaker.h \
+  JetProbeInput.h \
   JetAlgo.h \
   JetReco.h \
   TowerJetInput.h \
@@ -82,6 +87,8 @@ libjetbase_la_SOURCES = \
   JetAlgo.cc \
   FastJetAlgo.cc \
   FastJetOptions.cc \
+  JetProbeMaker.cc \
+  JetProbeInput.cc \
   JetReco.cc \
   TowerJetInput.cc \
   TrackJetInput.cc

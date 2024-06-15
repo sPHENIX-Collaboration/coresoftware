@@ -11,9 +11,9 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <iostream>          // for cout, ostream
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 class CMFlashCluster;
 
@@ -32,7 +32,7 @@ class CMFlashClusterContainerv1 : public CMFlashClusterContainer
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   CMFlashClusterContainerv1() = default;
-  
+
   void Reset() override;
 
   void identify(std::ostream &os = std::cout) const override;
@@ -40,16 +40,16 @@ class CMFlashClusterContainerv1 : public CMFlashClusterContainer
   void addClusterSpecifyKey(const unsigned int, CMFlashCluster *newClus) override;
 
   void removeCluster(unsigned int) override;
-  
+
   ConstRange getClusters() const override;
 
   CMFlashCluster *findCluster(unsigned int key) const override;
 
   unsigned int size() const override;
 
-  private:
+ private:
   Map m_clusmap;
   ClassDefOverride(CMFlashClusterContainerv1, 1)
 };
 
-#endif //TRACKBASE_CMFLASHCLUSTERCONTAINER_H
+#endif  // TRACKBASE_CMFLASHCLUSTERCONTAINER_H

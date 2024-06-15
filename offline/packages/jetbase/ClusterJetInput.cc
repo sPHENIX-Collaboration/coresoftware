@@ -1,7 +1,7 @@
 #include "ClusterJetInput.h"
 
 #include "Jet.h"
-#include "Jetv1.h"
+#include "Jetv2.h"
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -48,7 +48,10 @@ void ClusterJetInput::identify(std::ostream &os)
 
 std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (m_Verbosity > 0) std::cout << "ClusterJetInput::process_event -- entered" << std::endl;
+  if (m_Verbosity > 0)
+  {
+    std::cout << "ClusterJetInput::process_event -- entered" << std::endl;
+  }
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
@@ -155,7 +158,7 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
 
     CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*cluster, vertex);
 
-    Jet *jet = new Jetv1();
+    Jet *jet = new Jetv2();
     jet->set_px(E_vec_cluster.x());
     jet->set_py(E_vec_cluster.y());
     jet->set_pz(E_vec_cluster.z());
@@ -164,7 +167,10 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back(jet);
   }
 
-  if (m_Verbosity > 0) std::cout << "ClusterJetInput::process_event -- exited" << std::endl;
+  if (m_Verbosity > 0)
+  {
+    std::cout << "ClusterJetInput::process_event -- exited" << std::endl;
+  }
 
   return pseudojets;
 }

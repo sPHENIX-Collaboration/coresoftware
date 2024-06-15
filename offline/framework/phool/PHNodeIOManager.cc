@@ -99,7 +99,7 @@ bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
     {
       return false;
     }
-    file->SetCompressionLevel(CompressionLevel);
+    file->SetCompressionSettings(m_CompressionSetting);
     tree = new TTree(TreeName.c_str(), title.c_str());
     tree->SetMaxTreeSize(900000000000LL);  // set max size to ~900 GB
     gROOT->cd(currdir.c_str());
@@ -122,7 +122,7 @@ bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
     {
       return false;
     }
-    file->SetCompressionLevel(CompressionLevel);
+    file->SetCompressionSettings(m_CompressionSetting);
     tree = new TTree(TreeName.c_str(), title.c_str());
     gROOT->cd(currdir.c_str());
     return true;
@@ -523,25 +523,32 @@ bool PHNodeIOManager::isSelected(const std::string& objectName)
   return false;
 }
 
-bool PHNodeIOManager::SetCompressionLevel(const int level)
+bool PHNodeIOManager::SetCompressionSetting(const int level)
 {
   if (level < 0)
   {
     return false;
   }
-  CompressionLevel = level;
+  m_CompressionSetting = level;
   if (file)
   {
-    file->SetCompressionLevel(CompressionLevel);
+    file->SetCompressionSettings(m_CompressionSetting);
   }
 
   return true;
 }
 
-double
+uint64_t
 PHNodeIOManager::GetBytesWritten()
 {
   if (file) return file->GetBytesWritten();
+  return 0.;
+}
+
+uint64_t
+PHNodeIOManager::GetFileSize()
+{
+  if (file) return file->GetSize();
   return 0.;
 }
 

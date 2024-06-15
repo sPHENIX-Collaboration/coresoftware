@@ -7,7 +7,7 @@ Executable      = bash_for_condor_submission.sh
 
 
 # The argument to pass to the executable.
-Arguments       = "/sphenix/user/shulga/Work/IBF/DistortionMap/Files/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX10556072.root /sphenix/user/rcorliss/distortion_maps/2022.01/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX10556072"
+Arguments       = "/sphenix/user/shulga/Work/IBF/DistortionMap/Files/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX10556072.root /sphenix/u/czhang4/distortion_maps/2022.01/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX10556072"
 # run this job on.  Any arbitrary classad expression can
 # be used.
 #Requirements    = (CPU_Speed >= 1)
@@ -38,7 +38,7 @@ request_cpus = 1
 
 # Used to give jobs a directory with respect to file input 
 # and output.
-Initialdir      = /star/u/rcorliss/sphenix/coresoftware/calibrations/tpc/generator
+Initialdir      = /sphenix/u/czhang4/adamcoresoftware/calibrations/tpc/generator
 
 # Input file given to the job.
 #Input           = /dev/null

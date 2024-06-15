@@ -32,8 +32,6 @@
 class G4VPhysicalVolume;
 class PHCompositeNode;
 
-using namespace std;
-
 //______________________________________________________________
 PHG4EnvelopeSteppingAction::PHG4EnvelopeSteppingAction(PHG4EnvelopeDetector* detector)
   : PHG4SteppingAction(detector->GetName())
@@ -60,13 +58,13 @@ bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   int tower_id = touch->GetCopyNumber();
 
   /* Get energy deposited by this step */
-  //G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
+  // G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
 
   /* Get pointer to associated Geant4 track */
   const G4Track* aTrack = aStep->GetTrack();
 
-  //This detector is a black hole! Just put all kinetic energy into edep
+  // This detector is a black hole! Just put all kinetic energy into edep
   G4double edep = aTrack->GetKineticEnergy() / GeV;
   G4Track* killtrack = const_cast<G4Track*>(aTrack);
   killtrack->SetTrackStatus(fStopAndKill);
@@ -76,7 +74,7 @@ bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     /* Check if particle is 'geantino' */
     bool geantino = false;
-    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -94,9 +92,9 @@ bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       hit->set_scint_id(tower_id);
 
       /* Set hit location (tower index) */
-      //hit->set_index_j(idx_j);
-      //hit->set_index_k(idx_k);
-      //hit->set_index_l(idx_l);
+      // hit->set_index_j(idx_j);
+      // hit->set_index_k(idx_k);
+      // hit->set_index_l(idx_l);
       hit->set_index_j(0);
       hit->set_index_k(0);
       hit->set_index_l(0);
@@ -149,7 +147,7 @@ bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     }
 
     /* Update exit values- will be overwritten with every step until
-       * we leave the volume or the particle ceases to exist */
+     * we leave the volume or the particle ceases to exist */
     hit->set_x(1, postPoint->GetPosition().x() / cm);
     hit->set_y(1, postPoint->GetPosition().y() / cm);
     hit->set_z(1, postPoint->GetPosition().z() / cm);
@@ -185,7 +183,7 @@ bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
 void PHG4EnvelopeSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
+  std::string hitnodename;
 
   if (detector_->SuperDetector() != "NONE")
   {

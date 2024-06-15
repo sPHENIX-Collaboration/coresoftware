@@ -2,7 +2,7 @@
 
 void Calibrator::calibrate(const Calibrator::MeasurementContainer& measurements,
                            const Acts::GeometryContext& gctx,
-                           const Acts::CalibrationContext&,
+                           const Acts::CalibrationContext& /*unused*/,
                            const Acts::SourceLink& sourceLink,
                            Acts::VectorMultiTrajectory::TrackStateProxy& trackState) const
 {
@@ -12,7 +12,7 @@ void Calibrator::calibrate(const Calibrator::MeasurementContainer& measurements,
   std::visit(
       [&](const auto& uncalibmeas)
       {
-        std::array<Acts::BoundIndices, 2> indices;
+        std::array<Acts::BoundIndices, 2> indices{};
         indices[0] = Acts::BoundIndices::eBoundLoc0;
         indices[1] = Acts::BoundIndices::eBoundLoc1;
 

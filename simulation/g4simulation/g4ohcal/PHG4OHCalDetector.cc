@@ -7,22 +7,8 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Detector.h>
-#include <g4main/PHG4DisplayAction.h>
-#include <g4main/PHG4Subsystem.h>
-#include <g4main/PHG4Utils.h>
-
 #include <phfield/PHFieldConfig.h>
 #include <phfield/PHFieldUtility.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>  // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>  // for PHObject
-#include <phool/getClass.h>
-#include <phool/phool.h> 
-#include <phool/recoConsts.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
@@ -33,11 +19,30 @@
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
 
+#include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>
+#include <g4main/PHG4Subsystem.h>
+#include <g4main/PHG4Utils.h>
+
+#include <ffamodules/CDBInterface.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>  // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>  // for PHObject
+#include <phool/getClass.h>
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
+
 #include <TSystem.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
+#include <Geant4/G4IonisParamMat.hh>
 #include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4LogicalVolumeStore.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4MaterialTable.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4String.hh>
@@ -61,12 +66,12 @@
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
+#include <list>
 #include <memory>   // for unique_ptr
 #include <utility>  // for pair, make_pair
 #include <vector>   // for vector, vector<>::iter...
-
-class PHCompositeNode;
 
 PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -82,12 +87,25 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 {
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
+  // changes in the parameters have to be made here
+  // otherwise they will not be propagated to the node tree
+  if (std::filesystem::path(m_GDMPath).extension() != ".gdml")
+  {
+    m_GDMPath = CDBInterface::instance()->getUrl(m_GDMPath);
+    m_Params->set_string_param("GDMPath", m_GDMPath);
+  }
   PHFieldConfig *fieldconf = findNode::getClass<PHFieldConfig>(Node, PHFieldUtility::GetDSTConfigNodeName());
   if (fieldconf->get_field_config() != PHFieldConfig::kFieldUniform)
   {
+    std::string ironfieldmap = m_Params->get_string_param("IronFieldMapPath");
+    if (std::filesystem::path(ironfieldmap).extension() != ".root")
+    {
+      ironfieldmap = CDBInterface::instance()->getUrl(ironfieldmap);
+      m_Params->set_string_param("IronFieldMapPath", ironfieldmap);
+    }
     m_FieldSetup =
         new PHG4OHCalFieldSetup(
-            m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale"),
+            ironfieldmap, m_Params->get_double_param("IronFieldMapScale"),
             m_InnerRadius - 10 * cm,  // subtract 10 cm to make sure fieldmap with 2x2 grid covers it
             m_OuterRadius + 10 * cm,  // add 10 cm to make sure fieldmap with 2x2 grid covers it
             m_SizeZ / 2. + 10 * cm    // div by 2 bc G4 convention
@@ -151,7 +169,7 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   const G4MaterialTable *mtable = G4Material::GetMaterialTable();
   int nMaterials = G4Material::GetNumberOfMaterials();
-  for (G4int i = 0; i < nMaterials; ++i)
+  for (auto i = 0; i < nMaterials; ++i)
   {
     const G4Material *mat = (*mtable)[i];
     if (mat->GetName() == "Uniplast_scintillator")
@@ -162,7 +180,10 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
       }
     }
   }
-  if(!m_Params->get_int_param("saveg4hit")) AddGeometryNode();
+  if (!m_Params->get_int_param("saveg4hit"))
+  {
+    AddGeometryNode();
+  }
   return;
 }
 
@@ -172,6 +193,12 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
+  if (!std::filesystem::exists(m_GDMPath))
+  {
+    std::cout << PHWHERE << " Outer HCal gdml file " << m_GDMPath << " not found" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   gdmlParser.Read(m_GDMPath, false);
 
   G4AssemblyVolume *abs_asym = reader->GetAssembly("sector");         // absorber
@@ -240,6 +267,23 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
       ++it4;
     }
     ++it2;
+  }
+
+  // Inner HCal support ring (only the part in Outer HCal volume)
+  //  it only exists in the new gdml file, this check keeps the old file
+  //  without the inner hcal support readable
+  G4AssemblyVolume *m_iHCalRing = reader->GetAssembly("iHCalRing");  // ihcal ring
+  if (m_iHCalRing)
+  {
+    std::vector<G4VPhysicalVolume *>::iterator itr = m_iHCalRing->GetVolumesIterator();
+    for (unsigned int iring = 0; iring < m_iHCalRing->TotalImprintedVolumes(); iring++)
+    {
+      m_DisplayAction->AddSupportRingVolume((*itr)->GetLogicalVolume());
+      m_SteelAbsorberLogVolSet.insert((*itr)->GetLogicalVolume());
+      hcalenvelope->AddDaughter((*itr));
+      // std::cout<<(*itr)->GetName()<<std::endl;
+      ++itr;
+    }
   }
 
   for (auto &logical_vol : m_SteelAbsorberLogVolSet)
@@ -462,11 +506,7 @@ int PHG4OHCalDetector::map_towerid(const int tower_id)
 int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_id)
 {
   int rowid = -1;
-  if (layer_id <= 60)
-  {
-    rowid = layer_id + 95;
-  }
-  else if (/* layer_id > 60 && */ layer_id < 225)
+  if (layer_id < 225)
   {
     rowid = layer_id + 95;
   }
@@ -482,9 +522,12 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
   {
     rowid = 75 + layer_id;
   }
-  //shift the row index up by 5
+  // shift the row index up by 5
   rowid += 5;
-  if(rowid > 319) rowid -= 320;
+  if (rowid > 319)
+  {
+    rowid -= 320;
+  }
   if (rowid < 0 || rowid > 319)
   {
     std::cout << "bad rowid " << rowid << " for sector " << isector << ", layer_id " << layer_id << std::endl;
@@ -539,8 +582,11 @@ void PHG4OHCalDetector::AddGeometryNode()
     double phiend = phistart + 2. * M_PI / m_Params->get_int_param(PHG4HcalDefs::n_towers);
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
-    int tempi = i+1;
-    if(tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers)) tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
+    int tempi = i + 1;
+    if (tempi >= m_Params->get_int_param(PHG4HcalDefs::n_towers))
+    {
+      tempi -= m_Params->get_int_param(PHG4HcalDefs::n_towers);
+    }
     m_RawTowerGeom->set_phibounds(tempi, range);
   }
   double etalowbound = -m_Params->get_double_param("scinti_eta_coverage_neg");

@@ -31,7 +31,6 @@
 class G4VPhysicalVolume;
 class PHCompositeNode;
 
-using namespace std;
 //____________________________________________________________________________..
 PHG4HcalSteppingAction::PHG4HcalSteppingAction(PHG4HcalDetector* detector)
   : PHG4SteppingAction(detector->GetName())
@@ -74,15 +73,15 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // an expensive string compare for every track when we know
     // geantino or chargedgeantino has pid=0
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
     G4StepPoint* prePoint = aStep->GetPreStepPoint();
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
-    //       cout << "track id " << aTrack->GetTrackID() << endl;
-    //        cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-    //        cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+    //       std::cout << "track id " << aTrack->GetTrackID() << std::endl;
+    //        std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
+    //        std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
     switch (prePoint->GetStepStatus())
     {
     case fGeomBoundary:
@@ -94,14 +93,14 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
       m_Hit->set_layer((unsigned int) layer_id);
       m_Hit->set_scint_id(isactive);  // isactive contains the scintillator slat id
-      //here we set the entrance values in cm
+      // here we set the entrance values in cm
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
       // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-      //set the track ID
+      // set the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -113,7 +112,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         }
       }
 
-      //set the initial energy deposit
+      // set the initial energy deposit
       m_Hit->set_edep(0);
       m_Hit->set_eion(0);  // only implemented for v5 otherwise empty
       m_Hit->set_light_yield(0);
@@ -139,7 +138,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
       if (m_Hit->get_z(0) > zmax || m_Hit->get_z(0) < zmin)
       {
-        cout << "PHG4HcalSteppingAction: hit outside acceptance, layer: " << layer_id << endl;
+        std::cout << "PHG4HcalSteppingAction: hit outside acceptance, layer: " << layer_id << std::endl;
         m_Hit->identify();
       }
       break;
@@ -172,7 +171,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
     }
 
-    //sum up the energy to get total deposited
+    // sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     m_Hit->set_eion(m_Hit->get_eion() + eion);
     m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
@@ -180,7 +179,7 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (m_Hit->get_z(1) > zmax || m_Hit->get_z(1) < zmin)
     {
-      cout << "PHG4HcalSteppingAction: hit outside acceptance zmin " << zmin << ", zmax " << zmax << " at exit" << endl;
+      std::cout << "PHG4HcalSteppingAction: hit outside acceptance zmin " << zmin << ", zmax " << zmax << " at exit" << std::endl;
       m_Hit->identify();
     }
     if (geantino)
@@ -245,8 +244,8 @@ bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4HcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
   if (detector_->SuperDetector() != "NONE")
   {
     hitnodename = "G4HIT_" + detector_->SuperDetector();
@@ -258,7 +257,7 @@ void PHG4HcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
     absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
   }
 
-  //now look for the map and grab a pointer to it.
+  // now look for the map and grab a pointer to it.
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
   // if we do not find the node we need to make it.

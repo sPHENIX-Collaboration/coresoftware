@@ -5,11 +5,11 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>                // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 
-class PHG4InEventReadBack: public SubsysReco
+class PHG4InEventReadBack : public SubsysReco
 {
  public:
   PHG4InEventReadBack(const std::string &name = "PHG4InEventReadBack");
@@ -19,7 +19,6 @@ class PHG4InEventReadBack: public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
  protected:
-  
 };
 
 #endif

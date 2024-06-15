@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem`root-config --incdir`
 
 AM_LDFLAGS = \
@@ -72,9 +72,10 @@ pkginclude_HEADERS = \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
-  TrackSeedTrackMapConverter.h \
   TruthRecoTrackMatching.h \
-  compressor_generator.h
+  compressor_generator.h \
+  DSTTrackInfoWriter.h \
+  DSTTrackInfoReader.h
 
 
 ROOTDICTS = \
@@ -121,8 +122,9 @@ libg4eval_la_SOURCES = \
   TrackClusEvaluator.cc \
   TrkrClusterIsMatcher.cc \
   TrackEvaluation.cc \
-  TrackSeedTrackMapConverter.cc \
-  TruthRecoTrackMatching.cc
+  TruthRecoTrackMatching.cc \
+  DSTTrackInfoWriter.cc \
+  DSTTrackInfoReader.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

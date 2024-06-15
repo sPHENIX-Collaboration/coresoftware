@@ -25,8 +25,6 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <boost/foreach.hpp>
-
 #include <set>  // for set
 #include <sstream>
 
@@ -70,7 +68,7 @@ int PHG4PSTOFSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       nodename << "G4HIT_" << Name();
     }
     nodes.insert(nodename.str());
-    BOOST_FOREACH (std::string node, nodes)
+    for (auto &node : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)
@@ -101,7 +99,7 @@ int PHG4PSTOFSubsystem::process_event(PHCompositeNode *topNode)
 
 void PHG4PSTOFSubsystem::Print(const std::string &what) const
 {
-  //std::cout << "PSTOF Parameters: " << std::endl;
+  // std::cout << "PSTOF Parameters: " << std::endl;
   PrintDefaultParams();
   PrintMacroParams();
   GetParamsContainer()->Print();

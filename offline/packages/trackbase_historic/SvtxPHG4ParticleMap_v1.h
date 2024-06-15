@@ -2,6 +2,7 @@
 #define TRACKBASEHISTORIC_SVTXPHG4PARTICLEMAP_V1_H
 
 #include "SvtxPHG4ParticleMap.h"
+
 #include <iostream>
 
 class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
@@ -15,7 +16,12 @@ class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new SvtxPHG4ParticleMap_v1(*this); }
-  void Reset() override { clear(); m_processed = false; }
+  // cppcheck-suppress virtualCallInConstructor
+  void Reset() override
+  {
+    clear();
+    m_processed = false;
+  }
 
   bool empty() const override { return m_map.empty(); }
   std::size_t size() const override { return m_map.size(); }
@@ -25,8 +31,8 @@ class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
   bool processed() const override { return m_processed; }
   void setProcessed(const bool process) override { m_processed = process; }
 
-  const WeightedTruthTrackMap & get(const unsigned int key) const override;
-  WeightedTruthTrackMap & get(const unsigned int key) override
+  const WeightedTruthTrackMap& get(const unsigned int key) const override;
+  WeightedTruthTrackMap& get(const unsigned int key) override
   {
     return m_map[key];
   }

@@ -47,6 +47,7 @@ class PHRawOManager : public PHIOManager
   virtual ~PHRawOManager();
 
   bool setFile(const std::string &, const int setRun, const int setBufl, const int setEvtl, const int complvl);
+// cppcheck-suppress [virtualCallInConstructor]
   virtual void closeFile();
   virtual bool write(PHCompositeNode *);
   bool write(PHRawDataNode *);

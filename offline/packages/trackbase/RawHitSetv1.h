@@ -7,8 +7,8 @@
  * @date 4 June 2018
  * @brief Container for storing RawHit's
  */
-#include "TrkrDefs.h"
 #include "RawHitSet.h"
+#include "TrkrDefs.h"
 
 #include <iostream>
 #include <map>
@@ -70,4 +70,4 @@ class RawHitSetv1 : public RawHitSet
   ClassDefOverride(RawHitSetv1, 1);
 };
 
-#endif  //TRACKBASE_RawHitSetv1_H
+#endif  // TRACKBASE_RawHitSetv1_H

@@ -62,23 +62,9 @@ EvtGenExtDecayerPhysics::EvtGenExtDecayerPhysics(const G4String& name)
   /// Standard constructor
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-EvtGenExtDecayerPhysics::~EvtGenExtDecayerPhysics()
-{
-  /// Destructor
-}
-
 //
 // protected methods
 //
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void EvtGenExtDecayerPhysics::ConstructParticle()
-{
-  /// Nothing to be done here
-}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

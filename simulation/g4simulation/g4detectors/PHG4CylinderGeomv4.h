@@ -10,7 +10,7 @@
 class PHG4CylinderGeomv4 : public PHG4CylinderGeom
 {
  public:
-  PHG4CylinderGeomv4();
+  PHG4CylinderGeomv4() = default;
   PHG4CylinderGeomv4(const int lnsensors,
                      const int lnz,
                      const int nspc,
@@ -70,28 +70,28 @@ class PHG4CylinderGeomv4 : public PHG4CylinderGeom
   double get_sensor_y_offset() const { return sensor_y_offset; }
 
  protected:
-  int N_sensors_in_layer;
-  int layer;
+  int N_sensors_in_layer{-1};
+  int layer{-1};
 
   // finding the center of a sensor given ladder_segment_z and ladder_
-  double layer_radius;
-  double radius_stagger;
-  int layer_NZ;
-  double segment_z_step;
-  double segment_phi_step;
-  double sensor_x_offset;
-  double sensor_y_offset;
+  double layer_radius{std::numeric_limits<double>::quiet_NaN()};
+  double radius_stagger{std::numeric_limits<double>::quiet_NaN()};
+  int layer_NZ{-1};
+  double segment_z_step{std::numeric_limits<double>::quiet_NaN()};
+  double segment_phi_step{std::numeric_limits<double>::quiet_NaN()};
+  double sensor_x_offset{std::numeric_limits<double>::quiet_NaN()};
+  double sensor_y_offset{std::numeric_limits<double>::quiet_NaN()};
 
   // navigation within a sensor
-  //double strip_x_offset;
+  // double strip_x_offset;
   // double strip_y_offset;
-  int N_strip_columns;
-  int N_strips_per_column;
-  int N_staggers;
-  double strip_z_spacing;
-  double strip_y_spacing;
-  double thickness;
-  double strip_tilt;
+  int N_strip_columns{-1};
+  int N_strips_per_column{-1};
+  int N_staggers{-1};
+  double strip_z_spacing{std::numeric_limits<double>::quiet_NaN()};
+  double strip_y_spacing{std::numeric_limits<double>::quiet_NaN()};
+  double thickness{std::numeric_limits<double>::quiet_NaN()};
+  double strip_tilt{std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(PHG4CylinderGeomv4, 1)
 };

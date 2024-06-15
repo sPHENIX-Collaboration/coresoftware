@@ -3,11 +3,11 @@
 std::map<GlobalVertex::VTXTYPE, unsigned int> DummyGlobalVertex;
 std::map<GlobalVertex::VTXTYPE, GlobalVertex::VertexVector> dumVertexVector;
 
-GlobalVertex::ConstVertexIter GlobalVertex::begin_vertexes() const 
+GlobalVertex::ConstVertexIter GlobalVertex::begin_vertexes() const
 {
   return dumVertexVector.end();
 }
-GlobalVertex::ConstVertexIter GlobalVertex::find_vertexes(VTXTYPE) const
+GlobalVertex::ConstVertexIter GlobalVertex::find_vertexes(VTXTYPE /*unused*/) const
 {
   return dumVertexVector.end();
 }
@@ -19,7 +19,7 @@ GlobalVertex::VertexIter GlobalVertex::begin_vertexes()
 {
   return dumVertexVector.end();
 }
-GlobalVertex::VertexIter GlobalVertex::find_vertexes(VTXTYPE)
+GlobalVertex::VertexIter GlobalVertex::find_vertexes(VTXTYPE /*unused*/)
 {
   return dumVertexVector.end();
 }

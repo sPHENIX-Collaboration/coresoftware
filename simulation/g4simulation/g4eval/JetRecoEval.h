@@ -12,7 +12,7 @@
 
 class CaloEvalStack;
 
-class JetMap;
+class JetContainer;
 
 class PHCompositeNode;
 
@@ -135,8 +135,8 @@ class JetRecoEval
   std::string _recojetname;
   std::string _truthjetname;
 
-  JetMap* _recojets = nullptr;
-  JetMap* _truthjets = nullptr;
+  JetContainer* _recojets = nullptr;
+  JetContainer* _truthjets = nullptr;
 
   SvtxTrackMap* _trackmap = nullptr;
   RawTowerContainer* _cemctowers = nullptr;

@@ -4,7 +4,7 @@
 #include "SvtxTruthEval.h"
 
 #include <jetbase/Jet.h>
-#include <jetbase/JetMap.h>
+#include <jetbase/JetContainer.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 
@@ -84,12 +84,13 @@ std::set<PHG4Particle*> JetTruthEval::all_truth_particles(Jet* truthjet)
   std::set<PHG4Particle*> truth_particles;
 
   // loop over all the entries in the truthjet
-  for (Jet::ConstIter iter = truthjet->begin_comp();
-       iter != truthjet->end_comp();
-       ++iter)
+  /* for (Jet::ConstIter iter = truthjet->comp_begin(); */
+  /*      iter != truthjet->comp_end(); */
+  /*      ++iter) */
+  for (const auto& iter : truthjet->get_comp_vec())  // vector of pair<Jet::SRC, unsigned int>
   {
-    Jet::SRC source = iter->first;
-    unsigned int index = iter->second;
+    Jet::SRC source = iter.first;
+    unsigned int index = iter.second;
     if (source != Jet::PARTICLE)
     {
       std::cout << PHWHERE << " truth jet contains something other than particles!" << std::endl;
@@ -267,16 +268,15 @@ Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle)
   Jet* truth_jet = nullptr;
 
   // loop over all jets and look for this particle...
-  for (auto& _truthjet : *_truthjets)
+  for (auto candidate : *_truthjets)
   {
-    Jet* candidate = _truthjet.second;
+    /* Jet* candidate = _truthjet.second; */
 
     // loop over all consituents and look for this particle
-    for (Jet::ConstIter jter = candidate->begin_comp();
-         jter != candidate->end_comp();
-         ++jter)
+    for (const std::pair<Jet::SRC, unsigned int>& jter 
+        : candidate->get_comp_vec())
     {
-      unsigned int index = jter->second;
+      unsigned int index = jter.second;
 
       PHG4Particle* constituent = _truthinfo->GetParticle(index);
       if (_strict)
@@ -319,7 +319,7 @@ void JetTruthEval::get_node_pointers(PHCompositeNode* topNode)
     exit(-1);
   }
 
-  _truthjets = findNode::getClass<JetMap>(topNode, _truthjetname);
+  _truthjets = findNode::getClass<JetContainer>(topNode, _truthjetname);
   if (!_truthjets)
   {
     std::cout << PHWHERE << " ERROR: Can't find " << _truthjetname << std::endl;

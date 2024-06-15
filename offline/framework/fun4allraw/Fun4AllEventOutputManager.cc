@@ -14,11 +14,11 @@
 #include <iostream>
 #include <string>
 
-Fun4AllEventOutputManager::Fun4AllEventOutputManager(const std::string &myname, const std::string &filerule, const unsigned int sizeInMB, const int offset, const int increment)
+Fun4AllEventOutputManager::Fun4AllEventOutputManager(const std::string &myname, const std::string &filerule, const unsigned int nEvents, const unsigned int sizeInMB, const int offset, const int increment)
   : Fun4AllOutputManager(myname)
   , m_OutFileRule(filerule)
 {
-  m_OutStream = new Fun4AllRolloverFileOutStream(filerule, sizeInMB, offset, increment);
+  m_OutStream = new Fun4AllRolloverFileOutStream(filerule, nEvents, sizeInMB, offset, increment);
   m_OutStream->SetManager(this);
   return;
 }

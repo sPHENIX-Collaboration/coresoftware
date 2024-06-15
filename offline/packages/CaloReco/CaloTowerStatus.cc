@@ -29,6 +29,7 @@
 
 #include <TSystem.h>
 
+#include <cmath>
 #include <cstdlib>    // for exit
 #include <exception>  // for exception
 #include <iostream>   // for operator<<, basic_ostream
@@ -47,11 +48,13 @@ CaloTowerStatus::CaloTowerStatus(const std::string &name)
 //____________________________________________________________________________..
 CaloTowerStatus::~CaloTowerStatus()
 {
-  delete m_cdbttree;
   if (Verbosity() > 0)
   {
     std::cout << "CaloTowerStatus::~CaloTowerStatus() Calling dtor" << std::endl;
   }
+  delete m_cdbttree_chi2;
+  delete m_cdbttree_time;
+  delete m_cdbttree_hotMap;
 }
 
 //____________________________________________________________________________..
@@ -62,119 +65,81 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
-    std::string default_time_independent_calib = "cemc_pi0_twrSlope_v1_default";
-
-    if (!m_overrideCalibName)
-    {
-      m_calibName = m_detector + "_BadTowerMap";
-    }
-    if (!m_overrideFieldName)
-    {
-      m_fieldname = "status";
-    }
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    if (!calibdir.empty())
-    {
-      m_cdbttree = new CDBTTree(calibdir);
-    }
-    else
-    {
-      std::cout << "CaloTowerStatus::::InitRun No EMCal deadmap found" << std::endl;
-      m_doHot = false;
-    }
   }
   else if (m_dettype == CaloTowerDefs::HCALIN)
   {
     m_detector = "HCALIN";
-
-    if (!m_overrideCalibName)
-    {
-      m_calibName = m_detector + "_BadTowerMap";
-    }
-    if (!m_overrideFieldName)
-    {
-      m_fieldname = "status";
-    }
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    if (!calibdir.empty())
-    {
-      m_cdbttree = new CDBTTree(calibdir);
-    }
-    else
-    {
-      std::cout << "CaloTowerStatus::::InitRun No masking file for domain " << m_calibName << " found, not doing isHot" << std::endl;
-      m_doHot = false;
-    }
   }
   else if (m_dettype == CaloTowerDefs::HCALOUT)
   {
     m_detector = "HCALOUT";
-
-    if (!m_overrideCalibName)
-    {
-      m_calibName = m_detector + "_BadTowerMap";
-    }
-    if (!m_overrideFieldName)
-    {
-      m_fieldname = "status";
-    }
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    if (!calibdir.empty())
-    {
-      m_cdbttree = new CDBTTree(calibdir);
-    }
-    else
-    {
-      std::cout << "CaloTowerStatus::::InitRun No masking file for domain " << m_calibName << " found, not doing isHot" << std::endl;
-      m_doHot = false;
-    }
   }
   else if (m_dettype == CaloTowerDefs::ZDC)
   {
     m_detector = "ZDC";
-
-    if (!m_overrideCalibName)
-    {
-      m_calibName = "noMasker";
-    }
-    if (!m_overrideFieldName)
-    {
-      m_fieldname = "noMasker";
-    }
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    if (!calibdir.empty())
-    {
-      m_cdbttree = new CDBTTree(calibdir);
-    }
-    else
-    {
-      std::cout << "CaloTowerStatus::::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
-      exit(1);
-    }
   }
 
   else if (m_dettype == CaloTowerDefs::SEPD)
   {
     m_detector = "SEPD";
+  }
 
-    if (!m_overrideCalibName)
-    {
-      m_calibName = "noCalibYet";
-    }
-    if (!m_overrideFieldName)
-    {
-      m_fieldname = "noCalibYet";
-    }
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    if (!calibdir.empty())
-    {
-      m_cdbttree = new CDBTTree(calibdir);
-    }
-    else
-    {
-      std::cout << "CaloTowerStatus::::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
-      exit(1);
-    }
+  m_calibName_chi2 = m_detector + "_hotTowers_fracBadChi2";
+  m_fieldname_chi2 = "fraction";
+
+  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_chi2);
+      if (use_directURL_chi2)
+  {
+    calibdir = m_directURL_chi2;
+  }
+  if (!calibdir.empty())
+  {
+    m_cdbttree_chi2 = new CDBTTree(calibdir);
+  }
+  else
+  {
+    std::cout << "CaloTowerStatus::::InitRun No masking file for domain " << m_calibName_chi2 << " found, not doing isHot" << std::endl;
+    m_doHotChi2 = false;
+  }
+
+  m_calibName_time = m_detector + "_meanTime";
+  m_fieldname_time = "time";
+
+  calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
+  if (use_directURL_time)
+  {
+    calibdir = m_directURL_time;
+  }
+  if (!calibdir.empty())
+  {
+    m_cdbttree_time = new CDBTTree(calibdir);
+  }
+  else
+  {
+    std::cout << "CaloTowerStatus::::InitRun no timing info, " << m_calibName_time << " not found, not doing isHot" << std::endl;
+    m_doTime = false;
+  }
+
+  m_calibName_hotMap = m_detector + "nome";
+  if (m_dettype == CaloTowerDefs::CEMC)
+  {
+    m_calibName_hotMap = m_detector + "_BadTowerMap";
+  }
+  m_fieldname_hotMap = "status";
+
+  calibdir = CDBInterface::instance()->getUrl(m_calibName_hotMap);
+  if (use_directURL_hotMap)
+  {
+    calibdir = m_directURL_hotMap;
+  }
+  if (!calibdir.empty())
+  {
+    m_cdbttree_hotMap = new CDBTTree(calibdir);
+  }
+  else
+  {
+    std::cout << "CaloTowerStatus::::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
+    m_doHotMap = false;
   }
 
   PHNodeIterator iter(topNode);
@@ -208,19 +173,45 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
 int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 {
   unsigned int ntowers = m_raw_towers->size();
-  int mask_status = 0;
+  float fraction_badChi2 = 0;
+  float mean_time = 0;
+  int hotMap_val = 0;
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
-    if (m_doHot)
+    unsigned int key = m_raw_towers->encode_key(channel);
+    //only reset what we will set
+    m_raw_towers->get_tower_at_channel(channel)->set_isHot(false); 
+    m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false); 
+    m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(false); 
+
+    if (m_doHotChi2)
     {
-      mask_status = m_cdbttree->GetIntValue(channel, m_fieldname);
+      fraction_badChi2 = m_cdbttree_chi2->GetFloatValue(key, m_fieldname_chi2);
+    }
+    if (m_doTime)
+    {
+      mean_time = m_cdbttree_time->GetFloatValue(key, m_fieldname_time);
+    }
+    if (m_doHotMap)
+    {
+      hotMap_val = m_cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
-    if (mask_status > 1 && m_doHot)
+    float time = m_raw_towers->get_tower_at_channel(channel)->get_time_float();
+
+    if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (chi2 > 3e3)
+    if (std::fabs(time - mean_time) > time_cut && m_doTime)
+    {
+      m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
+    }
+    if (hotMap_val != 0 && m_doHotMap)
+    {
+      m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
+    }
+    if (chi2 > badChi2_treshold)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
     }

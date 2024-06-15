@@ -1,6 +1,7 @@
 #include "SinglePrdfInput.h"
 
 #include "Fun4AllPrdfInputPoolManager.h"
+#include "Fun4AllPrdfInputTriggerManager.h"
 
 #include <frog/FROG.h>
 
@@ -11,12 +12,27 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <limits>
+
 SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
   : Fun4AllBase(name)
   , m_InputMgr(inman)
 {
   plist = new Packet *[100];
   m_PacketEventNumberOffset = new int[100]{};
+  rollover.fill(0);
+  previous_eventnumber.fill(std::numeric_limits<int>::min());
+  //  std::fill_n(m_PacketEventNumberOffset, 100, 0);
+}
+
+SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputTriggerManager *inman)
+  : Fun4AllBase(name)
+  , m_TriggerInputMgr(inman)
+{
+  plist = new Packet *[100];
+  m_PacketEventNumberOffset = new int[100]{};
+  rollover.fill(0);
+  previous_eventnumber.fill(std::numeric_limits<int>::min());
   //  std::fill_n(m_PacketEventNumberOffset, 100, 0);
 }
 
@@ -71,7 +87,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       delete evt;
       continue;  // need handling for non data events
     }
-    int EventSequence = evt->getEvtSequence();
+    //    int EventSequence = evt->getEvtSequence();
     int npackets = evt->getPacketList(plist, 100);
     if (npackets == 100)
     {
@@ -79,10 +95,23 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
     }
     for (int i = 0; i < npackets; i++)
     {
-      if (plist[i]->iValue(0, "EVENCHECKSUMOK") != 0 && plist[i]->iValue(0, "ODDCHECKSUMOK") != 0)
+      if (plist[i]->iValue(0, "CHECKSUMOK") != 0)
       {
-        int evtno = plist[i]->iValue(0, "EVTNR");
-        unsigned int bclk = plist[i]->iValue(0, "CLOCK");
+        int evtno = plist[i]->iValue(0, "EVTNR") + rollover[i];
+        if (evtno < previous_eventnumber[i])
+        {
+          if (Verbosity() > 1)
+          {
+            std::cout << "rolling over, event " << std::hex << evtno
+                      << ", prev: " << previous_eventnumber[i]
+                      << ", rollover counter: " << (rollover[i] << 16U)
+                      << std::dec << std::endl;
+          }
+          rollover[i]++;
+        }
+        previous_eventnumber[i] = evtno;
+        evtno += (rollover[i] << 16U);
+        unsigned int bclk = plist[i]->lValue(0, "CLOCK");
         if (Verbosity() > 1)
         {
           std::cout << "packet " << plist[i]->getIdentifier() << " evt: " << evtno
@@ -103,7 +132,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         // also our packets are just 16bit counters, so we need to add the upper bits
         // from the event sequence
         // and our packet counters start at 0, while our events start at 1
-        evtno += m_EventNumberOffset + m_PacketEventNumberOffset[i] + m_NumSpecialEvents + (EventSequence & 0xFFFF0000);
+        evtno += m_EventNumberOffset + m_PacketEventNumberOffset[i] + m_NumSpecialEvents;
         m_PacketMap[bclk].push_back(plist[i]);
         m_EvtSet.insert(evtno);
         m_Event.emplace_back(std::make_pair(evtno, bclk));
@@ -154,7 +183,10 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       {
         for (auto const &pktiter : iter.second)
         {
-          m_InputMgr->AddPacket(common_event_number, pktiter);
+          if (m_InputMgr)
+          {
+            m_InputMgr->AddPacket(common_event_number, pktiter);
+          }
         }
       }
     }
@@ -200,33 +232,58 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       {
         for (auto pktiter : iter.second)
         {
-          if (pktiter->iValue(0, "CLOCK") == common_beam_clock)
+          if (pktiter->lValue(0, "CLOCK") == common_beam_clock)
           {
             if (Verbosity() > 1)
             {
               std::cout << "adding packet " << pktiter->getIdentifier() << " beam clock "
-                        << std::hex << pktiter->iValue(0, "CLOCK") << std::dec << std::endl;
+                        << std::hex << pktiter->lValue(0, "CLOCK") << std::dec << std::endl;
             }
-            m_InputMgr->AddPacket(common_event_number, pktiter);
+            if (m_InputMgr)
+            {
+              m_InputMgr->AddPacket(common_event_number, pktiter);
+            }
           }
           else
           {
             if (Verbosity() > 1)
             {
               std::cout << "Deleting packet " << pktiter->getIdentifier() << " beam clock "
-                        << std::hex << pktiter->iValue(0, "CLOCK") << " common bclk: "
+                        << std::hex << pktiter->lValue(0, "CLOCK") << " common bclk: "
                         << common_beam_clock << std::dec << std::endl;
             }
-            m_InputMgr->UpdateDroppedPacket(pktiter->getIdentifier());
+            if (m_InputMgr)
+            {
+              m_InputMgr->UpdateDroppedPacket(pktiter->getIdentifier());
+            }
+            else
+            {
+              m_TriggerInputMgr->UpdateDroppedPacket(pktiter->getIdentifier());
+            }
             delete pktiter;
           }
         }
       }
     }
-    m_InputMgr->AddBeamClock(common_event_number, common_beam_clock, this);
+    if (m_InputMgr)
+    {
+      m_InputMgr->AddBeamClock(common_event_number, common_beam_clock, this);
+    }
+    else
+    {
+      m_TriggerInputMgr->AddBeamClock(common_event_number, common_beam_clock, this);
+    }
+
     if (m_MeReferenceFlag)
     {
-      m_InputMgr->SetReferenceClock(common_event_number, common_beam_clock);
+      if (m_InputMgr)
+      {
+        m_InputMgr->SetReferenceClock(common_event_number, common_beam_clock);
+      }
+      else
+      {
+        m_TriggerInputMgr->SetReferenceClock(common_event_number, common_beam_clock);
+      }
     }
     m_PacketMap.clear();
     m_EvtSet.clear();
@@ -285,7 +342,7 @@ int SinglePrdfInput::majority_beamclock()
     }
   }
   int imax = -1;
-  int bclk = INT_MAX;
+  int bclk = std::numeric_limits<int>::max();
   for (auto iter : evtcnt)
   {
     if (iter.second > imax)
@@ -348,9 +405,16 @@ int SinglePrdfInput::fileclose()
 void SinglePrdfInput::MakeReference(const bool b)
 {
   m_MeReferenceFlag = b;
-  if (b && m_InputMgr)
+  if (b)
   {
-    m_InputMgr->SetReferenceInputMgr(this);
+    if (m_InputMgr)
+    {
+      m_InputMgr->SetReferenceInputMgr(this);
+    }
+    else
+    {
+      m_TriggerInputMgr->SetReferenceInputMgr(this);
+    }
   }
   return;
 }

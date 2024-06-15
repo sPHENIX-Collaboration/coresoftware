@@ -3,16 +3,15 @@
 
 #include "Vertex.h"
 
+#include <climits>
 #include <cmath>
 #include <iostream>
-#include <climits>
 #include <set>
 #include <vector>
 
 class SvtxVertex : public Vertex
 {
  public:
-
   ~SvtxVertex() override {}
 
   // PHObject virtual overloads
@@ -52,17 +51,17 @@ class SvtxVertex : public Vertex
   virtual void set_ndof(unsigned int) override {}
 
   virtual float get_position(unsigned int) const override { return NAN; }
-  virtual void set_position(unsigned int , float) override {}
+  virtual void set_position(unsigned int, float) override {}
 
-  virtual float get_error(unsigned int , unsigned int ) const override { return NAN; }
-  virtual void set_error(unsigned int , unsigned int , float ) override {}
+  virtual float get_error(unsigned int, unsigned int) const override { return NAN; }
+  virtual void set_error(unsigned int, unsigned int, float) override {}
 
   //
   // associated track ids methods
   //
   virtual void clear_tracks() override {}
   virtual bool empty_tracks() override { return true; }
-  virtual size_t size_tracks() const override{ return 0; }
+  virtual size_t size_tracks() const override { return 0; }
   virtual void insert_track(unsigned int /*trackid*/) override {}
   virtual size_t erase_track(unsigned int /*trackid*/) override { return 0; }
   virtual ConstTrackIter begin_tracks() const override;

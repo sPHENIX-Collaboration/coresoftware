@@ -109,7 +109,7 @@ PHParameterContainerInterface::get_double_param(const int detid, const std::stri
   }
   std::cout << "no parameters for detid " << detid << " in "
             << paramscontainer->Name() << " found" << std::endl;
-  return NAN;
+  return std::numeric_limits<double>::quiet_NaN();
 }
 
 void PHParameterContainerInterface::set_int_param(const int detid, const std::string &name, const int ival)
@@ -147,7 +147,7 @@ int PHParameterContainerInterface::get_int_param(const int detid, const std::str
   }
   std::cout << "no parameters for detid " << detid << " in "
             << paramscontainer->Name() << " found" << std::endl;
-  return (~0x0);
+  return (std::numeric_limits<int>::min());
 }
 
 void PHParameterContainerInterface::set_string_param(const int detid, const std::string &name, const std::string &sval)

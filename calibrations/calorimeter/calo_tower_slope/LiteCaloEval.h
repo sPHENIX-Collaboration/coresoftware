@@ -1,7 +1,8 @@
+
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef LITECALOEVAL_H
-#define LITECALOEVAL_H
+#ifndef CALOTOWERSLOPE_LITECALOEVAL_H
+#define CALOTOWERSLOPE_LITECALOEVAL_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -17,11 +18,15 @@ class TNtuple;
 class TF1;
 
 double LCE_fitf(double *f, double *p);
-TGraph *LCE_grff = nullptr;
+
+TGraph *LCE_grff{nullptr};
 
 class LiteCaloEval : public SubsysReco
 {
  public:
+  int m_myminbin = -1;
+  int m_mymaxbin = -3;
+
   enum Calo
   {
     NONE = 0,
@@ -32,7 +37,7 @@ class LiteCaloEval : public SubsysReco
 
   LiteCaloEval(const std::string &name = "LiteCaloEval", const std::string &caloNm = "CEMC", const std::string &fnm = "outJF");
 
-  // to distinguish when we want to implement input decal
+  // to distinguish when we want to implement input decal (for simulations work)
   void set_mode(int modeset)
   {
     mode = modeset;
@@ -66,61 +71,75 @@ class LiteCaloEval : public SubsysReco
     calotype = i;
   }
 
-  // TNtuple -> to store fit parameters
+  TFile *f_temp{nullptr};
 
-  TFile *f_temp = nullptr;
-  /*
-  TNtuple *nt_corrVals;
-  TF1 *fit_func;
-  TF1 *fit_result;
-  float fit_value_mean;
-  float corr_val;
-  */
+  void Get_Histos(const std::string &infile, const std::string &fun4all_file = "");
 
-  //  TF1 *mygaus;
-  void Get_Histos(const char *infile, const char *fun4all_file = "");
-  // void Fit_Histos();
   void FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts);
 
   /// Setters
-  void setFitMax(float fitMax);
-  void setFitMin(float fitMin);
+  void setFitMax(float fitMax) { fitmax = fitMax; }
+  void setFitMin(float fitMin) { fitmin = fitMin; }
+  void set_spectra_binWidth(double binWidth) { binwidth = binWidth; }
+
+  bool chk_isChimney(int, int);
 
   /// Getters
-  float getFitMax();
-  float getFitMin();
+  float getFitMax() { return fitmax; }
+  float getFitMin() { return fitmin; }
+
+  void setInputTowerNodeName(const std::string &inpNodenm)
+  {
+    _inputnodename = inpNodenm;
+  }
+
+  float spec_QA(TH1* h_spec,TH1* h_ref,bool retFloat);
+  bool spec_QA(TH1* h_spec,TH1* h_ref);
+
+  void plot_cemc(const std::string& path);
+
+  void set_doQA(bool status=true)
+  {
+    doQA = status;
+  }
 
  private:
-  TFile *cal_output = nullptr;
+ 
+  TFile *cal_output{nullptr};
 
   TH1 *hcal_out_eta_phi[24][64] = {};
   TH1 *hcalout_eta[25] = {};
-  TH2 *hcalout_energy_eta = nullptr;
+  TH2 *hcalout_energy_eta{nullptr};
   TH3 *hcalout_e_eta_phi = {};
 
   TH1 *hcal_in_eta_phi[24][64] = {};
   TH1 *hcalin_eta[25] = {};
-  TH2 *hcalin_energy_eta = nullptr;
-  TH3 *hcalin_e_eta_phi = nullptr;
+  TH2 *hcalin_energy_eta{nullptr};
+  TH3 *hcalin_e_eta_phi{nullptr};
 
   TH1 *cemc_hist_eta_phi[96][258] = {};
   TH1 *eta_hist[97] = {};
-  TH2 *energy_eta_hist = nullptr;
-  TH3 *e_eta_phi = nullptr;
+  TH2 *energy_eta_hist{nullptr};
+  TH3 *e_eta_phi{nullptr};
 
-  //  TH2 *evtCentrality = nullptr;
+  Calo calotype{NONE};
+  int _ievent{0};
 
-  Calo calotype = NONE;
-  int _ievent = 0;
-  float fitmin = 0.;
-  float fitmax = 0.;
+  float fitmin{0.};
+  float fitmax{0.};
+
+  bool doQA = false;
+
+  double binwidth{0.001};
+
   std::string _caloname;
   std::string _filename;
+  std::string _inputnodename;
 
   int mode = 0;
 
   // flag for using tower info
-  int m_UseTowerInfo = 0;
+  int m_UseTowerInfo{0};
 };
 
 #endif  // LITECALOEVAL_H

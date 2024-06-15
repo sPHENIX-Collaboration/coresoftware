@@ -22,6 +22,7 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
   void
   identify(std::ostream& os = std::cout) const override;
 
+// cppcheck-suppress virtualCallInConstructor
   void Reset() override;
 
   double

@@ -27,7 +27,9 @@
 #include <memory>
 #include <string>
 
-#include <trackbase/alignmentTransformationContainer.h>
+#include <TFile.h>
+#include <TTree.h>
+
 
 class MakeActsGeometry;
 class SvtxTrack;
@@ -37,6 +39,7 @@ class TrackSeedContainer;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
+class PHG4TpcCylinderGeomContainer;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
@@ -75,8 +78,8 @@ class PHCosmicsTrkFitter : public SubsysReco
     m_actsEvaluator = actsEvaluator;
   }
 
-  void setEvaluatorName(std::string name) { m_evalname = name; }
-  void setFieldMap(std::string& fieldMap)
+  void setEvaluatorName(const std::string& name) { m_evalname = name; }
+  void setFieldMap(const std::string& fieldMap)
   {
     m_fieldMap = fieldMap;
   }
@@ -85,7 +88,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   {
     m_pHypothesis = pHypothesis;
   }
-
+  void seedAnalysis() { m_seedClusAnalysis = true; }
   void commissioning(bool com) { m_commissioning = com; }
 
   void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
@@ -96,6 +99,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
   void setVertexRadius(const float rad) { m_vertexRadius = rad; }
+  void zeroField() { m_zeroField = true; }
 
  private:
   /// Get all the nodes
@@ -105,11 +109,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   int createNodes(PHCompositeNode* topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-  SourceLinkVec getSourceLinks(TrackSeed* track,
-                               ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-                               short int crossing,
-                               int& charge,
-                               float& cosmicslope);
+  void getCharge(TrackSeed* track, int& charge, float& cosmicslope);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
@@ -134,6 +134,7 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   Acts::BoundSquareMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const;
+  void makeBranches();
 
   /// Event counter
   int m_event = 0;
@@ -145,22 +146,31 @@ class PHCosmicsTrkFitter : public SubsysReco
   ActsTrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
-  alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
   SvtxTrackMap* m_trackMap = nullptr;
-  SvtxTrackMap* m_directedTrackMap = nullptr;
+  //  SvtxTrackMap* m_directedTrackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
   TrackSeedContainer* m_seedMap = nullptr;
   TrackSeedContainer* m_tpcSeeds = nullptr;
   TrackSeedContainer* m_siliconSeeds = nullptr;
 
+  // Used for distortion correction transformations
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
+  std::set<Acts::GeometryIdentifier> m_transient_id_set;
+  Acts::GeometryContext m_transient_geocontext;
+
   /// Number of acts fits that returned an error
   int m_nBadFits = 0;
-
+  int m_nGoodFits = 0;
+  int m_nLongSeeds = 0;
   //! bool to fill alignment state map for further processing
   bool m_commissioning = true;
 
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
+
+  // do we have a constant field
+  bool m_ConstField = false;
+  double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
 
   /// A bool to use the chi2 outlier finder in the track fitting
   bool m_useOutlierFinder = false;
@@ -181,10 +191,10 @@ class PHCosmicsTrkFitter : public SubsysReco
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
   /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
+  //  TpcDistortionCorrection _distortionCorrection;
 
   // cluster mover utility class
-  TpcClusterMover _clusterMover;
+  //  TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;
@@ -200,6 +210,36 @@ class PHCosmicsTrkFitter : public SubsysReco
 
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
+
+  bool m_zeroField = false;
+  PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
+
+  //! for diagnosing seed param + clusters
+  bool m_seedClusAnalysis = false;
+  TFile* m_outfile = nullptr;
+  TTree* m_tree = nullptr;
+  int m_seed = std::numeric_limits<int>::max();
+  float m_R = NAN;
+  float m_X0 = NAN;
+  float m_Y0 = NAN;
+  float m_Z0 = NAN;
+  float m_slope = NAN;
+  float m_pcax = NAN;
+  float m_pcay = NAN;
+  float m_pcaz = NAN;
+  float m_px = NAN;
+  float m_py = NAN;
+  float m_pz = NAN;
+  int m_charge = std::numeric_limits<int>::max();
+  int m_nmaps = std::numeric_limits<int>::max();
+  int m_nintt = std::numeric_limits<int>::max();
+  int m_ntpc = std::numeric_limits<int>::max();
+  int m_nmm = std::numeric_limits<int>::max();
+  std::vector<float> m_locx, m_locy, m_x, m_y, m_z, m_r, m_layer, m_phi, m_eta,
+      m_phisize, m_zsize, m_ephi, m_ez;
+  void clearVectors();
+  void fillVectors(TrackSeed* tpcseed, TrackSeed* siseed);
+  ClusterErrorPara m_clusErrPara;
 };
 
 #endif

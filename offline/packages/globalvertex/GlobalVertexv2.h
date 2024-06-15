@@ -42,7 +42,6 @@ class GlobalVertexv2 : public GlobalVertex
   unsigned int get_ndof() const override;
   float get_position(unsigned int coor) const override;
   float get_error(unsigned int i, unsigned int j) const override;
-  
 
   //
   // associated vertex methods
@@ -67,7 +66,7 @@ class GlobalVertexv2 : public GlobalVertex
 
  private:
   unsigned int _id;
-  unsigned int _bco;  //< global bco
+  unsigned int _bco;                                    //< global bco
   std::map<GlobalVertex::VTXTYPE, VertexVector> _vtxs;  //< list of vtxs
 
   ClassDefOverride(GlobalVertexv2, 2);

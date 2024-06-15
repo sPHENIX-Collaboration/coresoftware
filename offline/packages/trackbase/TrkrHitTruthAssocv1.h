@@ -11,9 +11,9 @@
 #include "TrkrDefs.h"
 #include "TrkrHitTruthAssoc.h"
 
-#include <iostream>              // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>               // for pair
+#include <utility>  // for pair
 
 /**
  * @brief Association object for PHG4Cells contributiong to TrkrHits
@@ -22,11 +22,9 @@
  */
 class TrkrHitTruthAssocv1 : public TrkrHitTruthAssoc
 {
-  
-  public:
-
+ public:
   TrkrHitTruthAssocv1() = default;
- 
+
   void Reset() override;
 
   void identify(std::ostream &os = std::cout) const override;
@@ -36,15 +34,13 @@ class TrkrHitTruthAssocv1 : public TrkrHitTruthAssoc
   void findOrAddAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey, const PHG4HitDefs::keytype) override;
 
   void removeAssoc(const TrkrDefs::hitsetkey, const TrkrDefs::hitkey) override;
-  
+
   void getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap &temp_map) const override;
 
-  private:
-  
+ private:
   MMap m_map;
-  
-  ClassDefOverride(TrkrHitTruthAssocv1, 1);
 
+  ClassDefOverride(TrkrHitTruthAssocv1, 1);
 };
 
-#endif //TRACKBASE_TRKRHITTRUTHASSOC_H
+#endif  // TRACKBASE_TRKRHITTRUTHASSOC_H

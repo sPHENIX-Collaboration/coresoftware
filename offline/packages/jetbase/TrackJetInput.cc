@@ -1,7 +1,7 @@
 #include "TrackJetInput.h"
 
 #include "Jet.h"
-#include "Jetv1.h"
+#include "Jetv2.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -27,7 +27,10 @@ void TrackJetInput::identify(std::ostream &os)
 
 std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0) std::cout << "TrackJetInput::process_event -- entered" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "TrackJetInput::process_event -- entered" << std::endl;
+  }
 
   // Pull the reconstructed track information off the node tree...
 
@@ -44,7 +47,7 @@ std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
   {
     const SvtxTrack *track = iter->second;
 
-    Jet *jet = new Jetv1();
+    Jet *jet = new Jetv2();
     jet->set_px(track->get_px());
     jet->set_py(track->get_py());
     jet->set_pz(track->get_pz());
@@ -53,7 +56,10 @@ std::vector<Jet *> TrackJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back(jet);
   }
 
-  if (Verbosity() > 0) std::cout << "TrackJetInput::process_event -- exited" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "TrackJetInput::process_event -- exited" << std::endl;
+  }
 
   return pseudojets;
 }

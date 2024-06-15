@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class MvtxEventInfo+;
+#pragma link C++ class MvtxEventInfo + ;
 
 #endif

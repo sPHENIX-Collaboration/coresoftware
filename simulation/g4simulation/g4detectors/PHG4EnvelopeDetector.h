@@ -18,16 +18,16 @@ class PHG4Subsystem;
 class PHG4EnvelopeDetector : public PHG4Detector
 {
  public:
-  //Constructor
+  // Constructor
   PHG4EnvelopeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
-  //Destructor
+  // Destructor
   ~PHG4EnvelopeDetector() override {}
 
-  //Construct
+  // Construct
   void ConstructMe(G4LogicalVolume *world) override;
 
-  //Volume accessors
+  // Volume accessors
   bool IsInEnvelope(G4VPhysicalVolume *) const;
 
   void SetPlace(G4double place_in_x, G4double place_in_y, G4double place_in_z)

@@ -16,20 +16,27 @@ libphnodedump_la_SOURCES = \
   Dumper.cc \
   DumpBbcPmtInfoContainer.cc \
   DumpBbcVertexMap.cc \
+  DumpCaloPacketContainer.cc \
   DumpCaloTriggerInfo.cc \
   DumpCdbUrlSave.cc \
   DumpCentralityInfo.cc \
+  DumpJetContainer.cc \
   DumpEpdGeom.cc \
-  DumpEpInfo.cc \
   DumpEventHeader.cc \
   DumpFlagSave.cc \
+  DumpGl1Packet.cc \
+  DumpGl1RawHit.cc \
   DumpGlobalVertexMap.cc \
   DumpInttDeadMap.cc \
   DumpInttRawHitContainer.cc \
   DumpJetMap.cc \
+  DumpMbdGeom.cc \
   DumpMbdOut.cc \
   DumpMbdPmtContainer.cc \
   DumpMbdVertexMap.cc \
+  DumpMicromegasRawHitContainer.cc \
+  DumpMvtxRawEvtHeader.cc \
+  DumpMvtxRawHitContainer.cc \
   DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \

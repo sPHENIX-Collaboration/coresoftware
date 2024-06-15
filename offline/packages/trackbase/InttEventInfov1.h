@@ -4,16 +4,16 @@
 #include "InttEventInfo.h"
 #include "TrkrDefs.h"
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 #include <iostream>
-#include <string>
 #include <map>
+#include <string>
 
 #include <phool/PHObject.h>
 
-class InttEventInfov1 : public InttEventInfo 
+class InttEventInfov1 : public InttEventInfo
 {
  public:
   InttEventInfov1();
@@ -23,7 +23,7 @@ class InttEventInfov1 : public InttEventInfo
   void Reset() override;
 
   uint64_t get_bco_full() const override;
-  void set_bco_full(uint64_t const&) override;
+  void set_bco_full(uint64_t const &) override;
 
  protected:
   uint64_t bco_full;
@@ -32,4 +32,4 @@ class InttEventInfov1 : public InttEventInfo
   ClassDefOverride(InttEventInfov1, 1)
 };
 
-#endif//INTT_EVENT_INFO_v1_H
+#endif  // INTT_EVENT_INFO_v1_H

@@ -1,4 +1,4 @@
-Checks: 'modernize-use-using, modernize-loop-convert, modernize-use-nullptr, modernize-use-emplace, modernize-redundant-void-arg, modernize-use-bool-literals, modernize-use-equals-default, performance-*, -clang-analyzer*, misc-*, bugprone-*, hicpp-braces-around-statements, hicpp-*,-hicpp-use-auto, -hicpp-no-array-decay, -hicpp-avoid-c-arrays, -bugprone-narrowing-conversions'
+Checks: 'modernize-use-using, modernize-loop-convert, modernize-use-nullptr, modernize-use-emplace, modernize-redundant-void-arg, modernize-use-bool-literals, modernize-use-equals-default, performance-*, -clang-analyzer*, misc-*, bugprone-*, hicpp-braces-around-statements, hicpp-*,-hicpp-use-auto, -hicpp-no-array-decay, -hicpp-avoid-c-arrays, -bugprone-narrowing-conversions, -bugprone-easily-swappable-parameters'
 # use this to find C math functions which should be replaced by std::
 #Checks: 'performance-type-promotion-in-math-fn, -clang-analyzer*'
 # use this to optimize string searching

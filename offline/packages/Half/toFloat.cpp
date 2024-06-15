@@ -73,7 +73,7 @@ halfToFloat (unsigned short y)
 	    //
 	    // Plus or minus zero
 	    //
-
+            // cppcheck-suppress integerOverflow
 	    return s << 31;
 	}
 	else
@@ -99,7 +99,7 @@ halfToFloat (unsigned short y)
 	    //
 	    // Positive or negative infinity
 	    //
-
+            // cppcheck-suppress integerOverflow
 	    return (s << 31) | 0x7f800000;
 	}
 	else
@@ -107,7 +107,7 @@ halfToFloat (unsigned short y)
 	    //
 	    // Nan -- preserve sign and significand bits
 	    //
-
+            // cppcheck-suppress integerOverflow
 	    return (s << 31) | 0x7f800000 | (m << 13);
 	}
     }
@@ -122,7 +122,7 @@ halfToFloat (unsigned short y)
     //
     // Assemble s, e and m.
     //
-
+    // cppcheck-suppress integerOverflow
     return (s << 31) | (e << 23) | m;
 }
 

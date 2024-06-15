@@ -9,7 +9,7 @@
 #include <string>
 
 class Jet;
-class JetMap;
+class JetContainer;
 
 class PHCompositeNode;
 
@@ -131,7 +131,7 @@ class JetTruthEval
   CaloEvalStack _eemcevalstack;
 
   PHG4TruthInfoContainer* _truthinfo = nullptr;
-  JetMap* _truthjets = nullptr;
+  JetContainer* _truthjets = nullptr;
 
   bool _strict = false;
   int _verbosity = 1;

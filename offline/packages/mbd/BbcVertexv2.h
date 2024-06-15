@@ -52,9 +52,9 @@ class BbcVertexv2 : public BbcVertex
   float _t_err;      //< collision time uncertainty
   float _z;          //< collision position z
   float _z_err;      //< collision position z uncertainty
-  int _bbc_ns_npmt[2];
-  float _bbc_ns_q[2];
-  float _bbc_ns_t[2];
+  int _bbc_ns_npmt[2]{};
+  float _bbc_ns_q[2]{};
+  float _bbc_ns_t[2]{};
 
   ClassDefOverride(BbcVertexv2, 1);
 };

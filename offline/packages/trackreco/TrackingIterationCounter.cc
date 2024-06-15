@@ -53,9 +53,14 @@ int TrackingIterationCounter::process_event(PHCompositeNode *)
   {
     auto silseed = track->get_silicon_seed();
     auto tpcseed = track->get_tpc_seed();
-
+    if(silseed)
+    {
     addClustersToIterationMap(silseed);
+    }
+    if(tpcseed)
+    {
     addClustersToIterationMap(tpcseed);
+  }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

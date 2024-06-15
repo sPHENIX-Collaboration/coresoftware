@@ -1,11 +1,12 @@
 #include "EicEventHeader.h"
 
+#include <phool/PHObject.h>
+
 #include <TSystem.h>
 
 #include <cassert>
 #include <cstdlib>
-
-using namespace std;
+#include <limits>
 
 void EicEventHeader::CopyFrom(const PHObject *phobj)
 {
@@ -14,7 +15,7 @@ void EicEventHeader::CopyFrom(const PHObject *phobj)
   // This is a generic copy of ALL properties an eic event header has
   // do not add explicit copies, they will be added to
   // the new eic event header with their default value increasing memory use
-  for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
+  for (unsigned char ic = 0; ic < std::numeric_limits<unsigned char>::max(); ic++)
   {
     PROPERTY prop_id = static_cast<EicEventHeader::PROPERTY>(ic);
     if (evthead->has_property(prop_id))
@@ -24,14 +25,9 @@ void EicEventHeader::CopyFrom(const PHObject *phobj)
   }
 }
 
-EicEventHeader::~EicEventHeader()
-{
-  return;
-}
-
 void EicEventHeader::Reset()
 {
-  cout << "Reset not implemented by daughter class" << endl;
+  std::cout << "Reset not implemented by daughter class" << std::endl;
   return;
 }
 
@@ -41,18 +37,18 @@ EicEventHeader::get_property_info(const PROPERTY prop_id)
   switch (prop_id)
   {
   case prop_eventgen:
-    return make_pair("Event Generator", EicEventHeader::type_int);
+    return std::make_pair("Event Generator", EicEventHeader::type_int);
   case prop_milou_weight:
-    return make_pair("Milou weight", EicEventHeader::type_float);
+    return std::make_pair("Milou weight", EicEventHeader::type_float);
   case prop_milou_truex:
-    return make_pair("Milou True X", EicEventHeader::type_float);
+    return std::make_pair("Milou True X", EicEventHeader::type_float);
   case prop_milou_trueq2:
-    return make_pair("Milou True Q2", EicEventHeader::type_float);
+    return std::make_pair("Milou True Q2", EicEventHeader::type_float);
   case prop_demp_weight:
-    return make_pair("DEMP weight", EicEventHeader::type_float);
+    return std::make_pair("DEMP weight", EicEventHeader::type_float);
 
   default:
-    cout << "EicEventHeader::get_property_info - Fatal Error - unknown index " << prop_id << endl;
+    std::cout << "EicEventHeader::get_property_info - Fatal Error - unknown index " << prop_id << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
@@ -60,7 +56,7 @@ EicEventHeader::get_property_info(const PROPERTY prop_id)
 
 bool EicEventHeader::check_property(const PROPERTY prop_id, const PROPERTY_TYPE prop_type)
 {
-  pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+  std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
   if (property_info.second != prop_type)
   {
     return false;
@@ -68,7 +64,7 @@ bool EicEventHeader::check_property(const PROPERTY prop_id, const PROPERTY_TYPE 
   return true;
 }
 
-string
+std::string
 EicEventHeader::get_property_type(const PROPERTY_TYPE prop_type)
 {
   switch (prop_type)
@@ -84,9 +80,9 @@ EicEventHeader::get_property_type(const PROPERTY_TYPE prop_type)
   }
 }
 
-void EicEventHeader::identify(ostream &os) const
+void EicEventHeader::identify(std::ostream &os) const
 {
-  os << "Class " << this->ClassName() << endl;
+  os << "Class " << this->ClassName() << std::endl;
   os << "Event Generator: ";
   switch (get_eventgenerator_type())
   {
@@ -100,5 +96,5 @@ void EicEventHeader::identify(ostream &os) const
     os << "Unknown";
     break;
   }
-  os << endl;
+  os << std::endl;
 }

@@ -28,8 +28,8 @@ class TH2;
 class TTree;
 
 /**
- * This class takes preliminary fits from PHActsTrkFitter to the 
- * silicon + MM clusters and calculates the residuals in the TPC 
+ * This class takes preliminary fits from PHActsTrkFitter to the
+ * silicon + MM clusters and calculates the residuals in the TPC
  * from that track fit. The TPC state has to be explicitly determined
  * here since the Acts::DirectNavigator does not visit the TPC states
  */
@@ -48,30 +48,29 @@ class PHTpcResiduals : public SubsysReco
 
   ///@name Option for setting distortion correction calculation limits
   //@{
-  void setMaxTrackAlpha(float maxTAlpha) 
+  void setMaxTrackAlpha(float maxTAlpha)
   { m_maxTAlpha = maxTAlpha;}
-  
+
   void setMaxTrackBeta(float maxTBeta)
   { m_maxTBeta = maxTBeta; }
-  
-  void setMaxTrackResidualDrphi(float maxResidualDrphi) 
+
+  void setMaxTrackResidualDrphi(float maxResidualDrphi)
   { m_maxResidualDrphi = maxResidualDrphi;}
-  
+
   void setMaxTrackResidualDz(float maxResidualDz)
   { m_maxResidualDz = maxResidualDz; }
-  
   //@}
 
-  /// track min pT 
-  void setMinPt( double value ) 
+  /// track min pT
+  void setMinPt( double value )
   { m_minPt = value; }
-  
+
   /// Grid dimensions
   void setGridDimensions(const int phiBins, const int rBins, const int zBins);
 
   /// set to true to store evaluation histograms and ntuples
   void setSavehistograms( bool ) {}
-    
+
   /// output file name for evaluation histograms
   void setHistogramOutputfile(const std::string&) {}
 
@@ -85,9 +84,9 @@ class PHTpcResiduals : public SubsysReco
 
   private:
 
-  using BoundTrackParam = 
+  using BoundTrackParam =
     const Acts::BoundTrackParameters;
-  
+
   /// pairs path length and track parameters
   using BoundTrackParamPair = std::pair<float,BoundTrackParam>;
 
@@ -107,16 +106,19 @@ class PHTpcResiduals : public SubsysReco
 
   /// fill track state from bound track parameters
   void addTrackState( SvtxTrack* track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters& params );
-  
+
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3& loc);
 
   //! create ACTS track parameters from Svtx track
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* ) const;
 
-  /// actis transformation
+  //! create ACTS track parameters from Svtx track state
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack*, SvtxTrackState* ) const;
+
+  /// acts transformation
   ActsTransformations m_transformer;
-  
+
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
   SvtxTrackMap *m_trackMap = nullptr;
@@ -125,7 +127,7 @@ class PHTpcResiduals : public SubsysReco
 
   // crossing z correction
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-  
+
   // distortion corrections
   TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
   TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
@@ -133,7 +135,7 @@ class PHTpcResiduals : public SubsysReco
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
-  
+
   float m_maxTAlpha = 0.6;
   float m_maxResidualDrphi = 0.5; // cm
   float m_maxTBeta = 1.5;
@@ -151,28 +153,25 @@ class PHTpcResiduals : public SubsysReco
   static constexpr unsigned int m_nLayersTpc = 48;
   static constexpr float m_zMin = -105.5; // cm
   static constexpr float m_zMax = 105.5;  // cm
- 
+
   /// cluster error parametrisation
   ClusterErrorPara m_cluster_error_parametrization;
-  
+
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
-  
+
   // TODO: check if needed
   int m_event = 0;
-  
+
   /// require micromegas to be present when extrapolating tracks to the TPC
   bool m_useMicromegas = true;
 
   /// minimum pT required for track to be considered in residuals calculation (GeV/c)
   double m_minPt = 0.5;
-  
+
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
-  /// running track crossing id
-  short int m_crossing = 0;
-  
   ///@name counters
   //@{
   int m_total_tracks = 0;

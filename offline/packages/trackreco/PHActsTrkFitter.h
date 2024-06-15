@@ -19,7 +19,6 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/alignmentTransformationContainer.h>
 
-#include <tpc/TpcClusterMover.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 
@@ -46,6 +45,7 @@ class TrackSeedContainer;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
+class PHG4TpcCylinderGeomContainer;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
@@ -99,8 +99,8 @@ class PHActsTrkFitter : public SubsysReco
     m_actsEvaluator = actsEvaluator;
   }
 
-  void setEvaluatorName(std::string name) { m_evalname = name; }
-  void setFieldMap(std::string& fieldMap)
+  void setEvaluatorName(const std::string& name) { m_evalname = name; }
+  void setFieldMap(const std::string& fieldMap)
   {
     m_fieldMap = fieldMap;
   }
@@ -121,6 +121,7 @@ class PHActsTrkFitter : public SubsysReco
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
+  void set_use_clustermover(bool use) { m_use_clustermover = use; }
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
 
  private:
@@ -131,9 +132,6 @@ class PHActsTrkFitter : public SubsysReco
   int createNodes(PHCompositeNode* topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-  SourceLinkVec getSourceLinks(TrackSeed* track,
-                               ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-                               short int crossing);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
@@ -177,6 +175,9 @@ class PHActsTrkFitter : public SubsysReco
 
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
+  std::set<Acts::GeometryIdentifier> m_transient_id_set;
+  Acts::GeometryContext m_transient_geocontext;
   SvtxTrackMap* m_trackMap = nullptr;
   SvtxTrackMap* m_directedTrackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
@@ -204,6 +205,10 @@ class PHActsTrkFitter : public SubsysReco
   /// Flag for pp running
   bool m_pp_mode = false;
 
+  // do we have a constant field
+  bool m_ConstField{false};
+  double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
+
   // max variation of bunch crossing away from crossing_estimate
   short int max_bunch_search = 2;
 
@@ -219,16 +224,12 @@ class PHActsTrkFitter : public SubsysReco
   TpcDistortionCorrectionContainer* _dcc_average{nullptr};
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
-
-  // cluster mover utility class
-  TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;
+  bool m_use_clustermover = true;
 
-  std::string m_fieldMap = "";
+  std::string m_fieldMap;
 
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
@@ -240,6 +241,8 @@ class PHActsTrkFitter : public SubsysReco
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
   bool m_commissioning = false;
+
+  PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

@@ -2,9 +2,9 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -isystem$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -13,64 +13,101 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   Fun4AllEventOutStream.h \
   Fun4AllEventOutputManager.h \
-  Fun4AllEvtInputPoolManager.h \
   Fun4AllFileOutStream.h \
   Fun4AllPrdfInputManager.h \
   Fun4AllPrdfInputPoolManager.h \
+  Fun4AllPrdfInputTriggerManager.h \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
-  SingleEvtInput.h \
+  InputManagerType.h \
+  MicromegasBcoMatchingInformation.h\
+  SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
-  SingleInttInput.h \
-  SingleInttPoolInput.h \
-  SingleMicromegasInput.h \
+  SingleGl1TriggerInput.h \
+  SingleHcalTriggerInput.h \
+  SingleLL1TriggerInput.h \
+  SingleMbdTriggerInput.h \
   SingleMicromegasPoolInput.h \
-  SingleMvtxInput.h \
+  SingleInttPoolInput.h \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
-  SingleTpcInput.h \
-  SingleTpcPoolInput.h
+  SingleTpcPoolInput.h \
+  SingleTriggerInput.h \
+  SingleZdcInput.h \
+  SingleZdcTriggerInput.h
+
+decoderincludedir = $(includedir)/mvtx_decoder
+decoderinclude_HEADERS = \
+  mvtx_decoder/DecodingStat.h \
+  mvtx_decoder/GBTLink.h \
+  mvtx_decoder/GBTWord.h \
+  mvtx_decoder/InteractionRecord.h \
+  mvtx_decoder/mvtx_utils.h \
+  mvtx_decoder/PayLoadCont.h \
+  mvtx_decoder/PayLoadSG.h \
+  mvtx_decoder/PixelData.h
 
 lib_LTLIBRARIES = \
+  libmvtx_decoder.la \
   libfun4allraw.la
+
+# source for mvtx decoder library
+libmvtx_decoder_la_SOURCES =\
+  mvtx_decoder/InteractionRecord.cc \
+  mvtx_decoder/PayLoadCont.cc \
+  mvtx_decoder/PixelData.cc \
+  mvtx_decoder/GBTWord.cc \
+  mvtx_decoder/DecodingStat.cc \
+  mvtx_decoder/GBTLink.cc
 
 libfun4allraw_la_SOURCES = \
   Fun4AllEventOutStream.cc \
   Fun4AllEventOutputManager.cc \
-  Fun4AllEvtInputPoolManager.cc \
   Fun4AllFileOutStream.cc \
   Fun4AllPrdfInputManager.cc \
   Fun4AllPrdfInputPoolManager.cc \
+  Fun4AllPrdfInputTriggerManager.cc \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
   intt_pool.cc \
+  mvtx_pool.cc \
   tpc_pool.cc \
-  SingleEvtInput.cc \
+  MicromegasBcoMatchingInformation.cc\
+  SingleCemcTriggerInput.cc \
   SingleGl1PoolInput.cc \
-  SingleInttInput.cc \
+  SingleGl1TriggerInput.cc \
+  SingleHcalTriggerInput.cc \
   SingleInttPoolInput.cc \
-  SingleMicromegasInput.cc \
+  SingleLL1TriggerInput.cc \
+  SingleMbdTriggerInput.cc \
   SingleMicromegasPoolInput.cc \
-  SingleMvtxInput.cc \
   SingleMvtxPoolInput.cc \
   SinglePrdfInput.cc \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \
-  SingleTpcInput.cc
+  SingleTriggerInput.cc \
+  SingleZdcInput.cc \
+  SingleZdcTriggerInput.cc
 
 libfun4allraw_la_LIBADD = \
+  libmvtx_decoder.la \
   -lffarawobjects \
   -lfun4all \
   -lEvent \
-  -lphoolraw
+  -lphoolraw \
+  -lqautils
 
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
+  testexternals_mvtx_decoder \
   testexternals
+
+testexternals_mvtx_decoder_SOURCES = testexternals.cc
+testexternals_mvtx_decoder_LDADD = libmvtx_decoder.la
 
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD   = libfun4allraw.la

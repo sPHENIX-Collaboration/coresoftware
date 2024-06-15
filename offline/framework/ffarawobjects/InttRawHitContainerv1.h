@@ -1,14 +1,14 @@
-#ifndef FUN4ALLRAW_INTTHITRAWCONTAINERV1_H
-#define FUN4ALLRAW_INTTHITRAWCONTAINERV1_H
+#ifndef FUN4ALLRAW_INTTRAWHITCONTAINERV1_H
+#define FUN4ALLRAW_INTTRAWHITCONTAINERV1_H
 
 #include "InttRawHitContainer.h"
 
 class InttRawHit;
 class TClonesArray;
 
-class  InttRawHitContainerv1: public InttRawHitContainer
+class InttRawHitContainerv1 : public InttRawHitContainer
 {
-public:
+ public:
   InttRawHitContainerv1();
   ~InttRawHitContainerv1() override;
 
@@ -28,10 +28,10 @@ public:
   unsigned int get_nhits() override;
   InttRawHit *get_hit(unsigned int index) override;
 
-private:
-    TClonesArray *InttRawHitsTCArray = nullptr;
+ private:
+  TClonesArray *InttRawHitsTCArray = nullptr;
 
-  ClassDefOverride(InttRawHitContainerv1,1)
+  ClassDefOverride(InttRawHitContainerv1, 1)
 };
 
 #endif

@@ -3,20 +3,27 @@
 
 #include "DumpBbcPmtInfoContainer.h"
 #include "DumpBbcVertexMap.h"
+#include "DumpCaloPacketContainer.h"
 #include "DumpCaloTriggerInfo.h"
 #include "DumpCdbUrlSave.h"
 #include "DumpCentralityInfo.h"
-#include "DumpEpInfo.h"
 #include "DumpEpdGeom.h"
 #include "DumpEventHeader.h"
 #include "DumpFlagSave.h"
+#include "DumpGl1Packet.h"
+#include "DumpGl1RawHit.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpInttDeadMap.h"
 #include "DumpInttRawHitContainer.h"
+#include "DumpJetContainer.h"
 #include "DumpJetMap.h"
+#include "DumpMbdGeom.h"
 #include "DumpMbdOut.h"
 #include "DumpMbdPmtContainer.h"
 #include "DumpMbdVertexMap.h"
+#include "DumpMicromegasRawHitContainer.h"
+#include "DumpMvtxRawEvtHeader.h"
+#include "DumpMvtxRawHitContainer.h"
 #include "DumpPHFieldConfig.h"
 #include "DumpPHG4BlockCellGeomContainer.h"
 #include "DumpPHG4BlockGeomContainer.h"
@@ -196,6 +203,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpBbcVertexMap(NodeName);
       }
+      else if (tmp->InheritsFrom("CaloPacketContainer"))
+      {
+        newdump = new DumpCaloPacketContainer(NodeName);
+      }
       else if (tmp->InheritsFrom("CaloTriggerInfo"))
       {
         newdump = new DumpCaloTriggerInfo(NodeName);
@@ -212,10 +223,6 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpEpdGeom(NodeName);
       }
-      else if (tmp->InheritsFrom("EpInfo"))
-      {
-        newdump = new DumpEpInfo(NodeName);
-      }
       else if (tmp->InheritsFrom("EventHeader"))
       {
         newdump = new DumpEventHeader(NodeName);
@@ -223,6 +230,14 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("FlagSave"))
       {
         newdump = new DumpFlagSave(NodeName);
+      }
+      else if (tmp->InheritsFrom("Gl1Packet"))
+      {
+        newdump = new DumpGl1Packet(NodeName);
+      }
+      else if (tmp->InheritsFrom("Gl1RawHit"))
+      {
+        newdump = new DumpGl1RawHit(NodeName);
       }
       else if (tmp->InheritsFrom("GlobalVertexMap"))
       {
@@ -240,6 +255,14 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpJetMap(NodeName);
       }
+      else if (tmp->InheritsFrom("JetContainer"))
+      {
+        newdump = new DumpJetContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("MbdGeom"))
+      {
+        newdump = new DumpMbdGeom(NodeName);
+      }
       else if (tmp->InheritsFrom("MbdOut"))
       {
         newdump = new DumpMbdOut(NodeName);
@@ -251,6 +274,18 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("MbdVertexMap"))
       {
         newdump = new DumpMbdVertexMap(NodeName);
+      }
+      else if (tmp->InheritsFrom("MicromegasRawHitContainer"))
+      {
+        newdump = new DumpMicromegasRawHitContainer(NodeName);
+      }
+      else if (tmp->InheritsFrom("MvtxRawEvtHeader"))
+      {
+        newdump = new DumpMvtxRawEvtHeader(NodeName);
+      }
+      else if (tmp->InheritsFrom("MvtxRawHitContainer"))
+      {
+        newdump = new DumpMvtxRawHitContainer(NodeName);
       }
       else if (tmp->InheritsFrom("ParticleFlowElementContainer"))
       {

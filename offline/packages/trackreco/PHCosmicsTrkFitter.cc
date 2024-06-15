@@ -1,4 +1,5 @@
 #include "PHCosmicsTrkFitter.h"
+#include "MakeSourceLinks.h"
 
 /// Tracking includes
 #include <trackbase/Calibrator.h>
@@ -44,6 +45,7 @@
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
 #include <TDatabasePDG.h>
+#include <TVector3.h>
 
 #include <cmath>
 #include <iostream>
@@ -52,7 +54,7 @@
 namespace
 {
   // check vector validity
-  inline bool is_valid(const Acts::Vector3 vec)
+  inline bool is_valid(const Acts::Vector3& vec)
   {
     return !(std::isnan(vec.x()) || std::isnan(vec.y()) || std::isnan(vec.z()));
   }
@@ -61,6 +63,14 @@ namespace
   {
     return x * x;
   }
+
+  /// get radius from coordinates
+  template <class T>
+  T radius(const T& x, const T& y)
+  {
+    return std::sqrt(square(x) + square(y));
+  }
+
 }  // namespace
 
 #include <trackbase/alignmentTransformationContainer.h>
@@ -95,6 +105,12 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
   m_alignStates.verbosity(Verbosity());
+  std::istringstream stringline(m_fieldMap);
+  stringline >> fieldstrength;
+  if (!stringline.fail())  // it is a float
+  {
+    m_ConstField = true;
+  }
   m_alignStates.fieldMap(m_fieldMap);
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
@@ -113,19 +129,20 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_fitCfg.fit->outlierFinder(m_outlierFinder);
   }
 
-  auto cellgeo =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-
-  if (cellgeo)
-  {
-    _clusterMover.initialize_geometry(cellgeo);
-  }
+  _tpccellgeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
   if (m_actsEvaluator)
   {
     m_evaluator = std::make_unique<ActsEvaluator>(m_evalname);
     m_evaluator->Init(topNode);
     m_evaluator->verbosity(Verbosity());
+  }
+
+  if (m_seedClusAnalysis)
+  {
+    m_outfile = new TFile(m_evalname.c_str(), "RECREATE");
+    m_tree = new TTree("seedclustree", "Tree with cosmic seeds and their clusters");
+    makeBranches();
   }
 
   if (Verbosity() > 1)
@@ -138,8 +155,6 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
 
 int PHCosmicsTrkFitter::process_event(PHCompositeNode* topNode)
 {
-  m_event++;
-
   auto logLevel = Acts::Logging::FATAL;
 
   if (m_actsEvaluator)
@@ -152,7 +167,9 @@ int PHCosmicsTrkFitter::process_event(PHCompositeNode* topNode)
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
     std::cout << "Start PHCosmicsTrkFitter::process_event" << std::endl;
     if (Verbosity() > 30)
+    {
       logLevel = Acts::Logging::VERBOSE;
+    }
   }
 
   /// Fill an additional track map if using the acts evaluator
@@ -177,6 +194,7 @@ int PHCosmicsTrkFitter::process_event(PHCompositeNode* topNode)
               << std::endl;
   }
 
+  m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -198,12 +216,18 @@ int PHCosmicsTrkFitter::End(PHCompositeNode* /*topNode*/)
   {
     m_evaluator->End();
   }
-
+  if (m_seedClusAnalysis)
+  {
+    m_outfile->cd();
+    m_tree->Write();
+    m_outfile->Close();
+  }
   if (Verbosity() > 0)
   {
-    std::cout << "The Acts track fitter had " << m_nBadFits
+    std::cout << "The Acts track fitter succeeded " << m_nGoodFits
+              << " times and had " << m_nBadFits
               << " fits return an error" << std::endl;
-
+    std::cout << "There were " << m_nLongSeeds << " long seeds" << std::endl;
     std::cout << "Finished PHCosmicsTrkFitter" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -218,10 +242,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     std::cout << " seed map size " << m_seedMap->size() << std::endl;
   }
 
-  for (auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end();
-       ++trackiter)
+  for (auto track : *m_seedMap)
   {
-    TrackSeed* track = *trackiter;
     if (!track)
     {
       continue;
@@ -247,20 +269,60 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       continue;
     }
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
     {
-      if (siseed) std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
       std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
     }
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
-    int charge = 0;
-    float cosmicslope = 0;
+
     SourceLinkVec sourceLinks;
-    if (siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing, charge, cosmicslope);
-    const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing, charge, cosmicslope);
+
+    MakeSourceLinks makeSourceLinks;
+    makeSourceLinks.initialize(_tpccellgeo);
+    makeSourceLinks.setVerbosity(Verbosity());
+    makeSourceLinks.set_pp_mode(false);
+
+    makeSourceLinks.resetTransientTransformMap(
+        m_alignmentTransformationMapTransient,
+        m_transient_id_set,
+        m_tGeometry);
+
+    if (siseed)
+    {
+      sourceLinks = makeSourceLinks.getSourceLinks(
+          siseed,
+          measurements,
+          m_clusterContainer,
+          m_tGeometry,
+          _dcc_static, _dcc_average, _dcc_fluctuation,
+          m_alignmentTransformationMapTransient,
+          m_transient_id_set,
+          crossing);
+    }
+    const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
+        tpcseed,
+        measurements,
+        m_clusterContainer,
+        m_tGeometry,
+        _dcc_static, _dcc_average, _dcc_fluctuation,
+        m_alignmentTransformationMapTransient,
+        m_transient_id_set,
+        crossing);
 
     sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+
+    if (sourceLinks.size() < 5)
+    {
+      continue;
+    }
+    int charge = 0;
+    float cosmicslope = 0;
+
+    getCharge(tpcseed, charge, cosmicslope);
+
+    // copy transient map for this track into transient geoContext
+    m_transient_geocontext = m_alignmentTransformationMapTransient;
 
     tpcseed->circleFitByTaubin(m_clusterContainer, m_tGeometry, 0, 58);
 
@@ -273,7 +335,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
                                                   tpcR, tpcx, tpcy);
     float intx, inty;
 
-    if (std::get<1>(intersect) < std::get<3>(intersect))
+    if (std::get<1>(intersect) > std::get<3>(intersect))
     {
       intx = std::get<0>(intersect);
       inty = std::get<1>(intersect);
@@ -283,6 +345,32 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       intx = std::get<2>(intersect);
       inty = std::get<3>(intersect);
     }
+    std::vector<TrkrDefs::cluskey> keys;
+    std::vector<Acts::Vector3> clusPos;
+    std::copy(tpcseed->begin_cluster_keys(), tpcseed->end_cluster_keys(), std::back_inserter(keys));
+    TrackFitUtils::getTrackletClusters(m_tGeometry, m_clusterContainer,
+                                       clusPos, keys);
+    TrackFitUtils::position_vector_t xypoints, rzpoints;
+    for (auto& pos : clusPos)
+    {
+      float clusr = radius(pos.x(), pos.y());
+      if (pos.y() < 0)
+      {
+        clusr *= -1;
+      }
+
+      // exclude silicon and tpot clusters for now
+      if (fabs(clusr) > 80 || fabs(clusr) < 30)
+      {
+        continue;
+      }
+      xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+      rzpoints.push_back(std::make_pair(pos.z(), clusr));
+    }
+
+    auto rzparams = TrackFitUtils::line_fit(rzpoints);
+    float fulllineintz = std::get<1>(rzparams);
+    float fulllineslope = std::get<0>(rzparams);
 
     float slope = tpcseed->get_slope();
     float intz = m_vertexRadius * slope + tpcseed->get_Z0();
@@ -298,13 +386,13 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     auto pca = tangent.first;
 
     float p;
-    if (m_fieldMap.find(".root") != std::string::npos)
+    if (m_ConstField)
     {
-      p = tpcseed->get_p();
+      p = cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
     }
     else
     {
-      p = cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * std::stod(m_fieldMap);
+      p = tpcseed->get_p();
     }
 
     tan *= p;
@@ -314,39 +402,103 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     //! the full cosmic track
     //! same with px/py since a single cosmic produces two seeds that bend
     //! in opposite directions
+    float theta = std::atan(fulllineslope);
+    /// Normalize to 0<theta<pi
+    if (theta < 0)
+    {
+      theta += M_PI;
+    }
+    float pz = std::cos(theta) * p;
+    if (fulllineslope < 0)
+    {
+      pz = fabs(pz);
+    }
+    else
+    {
+      pz = fabs(pz) * -1;
+    }
+    Acts::Vector3 momentum = Acts::Vector3::Zero();
 
-    Acts::Vector3 momentum(charge < 0 ? tan.x() : tan.x() * -1,
-                           charge < 0 ? tan.y() : tan.y() * -1,
-                           cosmicslope > 0 ? fabs(tan.z()) : -1 * fabs(tan.z()));
+    if (!m_zeroField)
+    {
+      momentum.x() = charge < 0 ? tan.x() : tan.x() * -1;
+      momentum.y() = charge < 0 ? tan.y() : tan.y() * -1;
+    }
+    else
+    {
+      auto xyparams = TrackFitUtils::line_fit(xypoints);
+      float fulllineslopexy = std::get<0>(xyparams);
+      if (fulllineslopexy < 0)
+      {
+        momentum.x() = fabs(tan.x());
+      }
+      else
+      {
+        momentum.x() = fabs(tan.x()) * -1;
+      }
+      momentum.y() = fabs(tan.y()) * -1;
+    }
+
+    momentum.z() = pz;
     Acts::Vector3 position(pca.x(), pca.y(),
-                           momentum.z() > 0 ? (slope < 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : m_vertexRadius * slope * -1 + tpcseed->get_Z0()));
+                           (m_vertexRadius - fulllineintz) / fulllineslope);
 
     position *= Acts::UnitConstants::cm;
-    if (!is_valid(momentum)) continue;
+    if (!is_valid(momentum))
+    {
+      continue;
+    }
 
     auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-        Acts::Vector3(0, -1 * m_vertexRadius * Acts::UnitConstants::cm, 0));
+        position);
     auto actsFourPos = Acts::Vector4(position(0), position(1),
                                      position(2),
                                      10 * Acts::UnitConstants::ns);
 
+    if (sourceLinks.size() > 20)
+    {
+      m_nLongSeeds++;
+    }
     Acts::BoundSquareMatrix cov = setDefaultCovariance();
-
+    if (m_seedClusAnalysis)
+    {
+      clearVectors();
+      m_seed = tpcid;
+      m_R = tpcR;
+      m_X0 = tpcx;
+      m_Y0 = tpcy;
+      m_Z0 = fulllineintz;
+      m_slope = fulllineslope;
+      m_pcax = position(0);
+      m_pcay = position(1);
+      m_pcaz = position(2);
+      m_px = momentum(0);
+      m_py = momentum(1);
+      m_pz = momentum(2);
+      m_charge = charge;
+      fillVectors(siseed, tpcseed);
+      m_tree->Fill();
+    }
     //! Reset the track seed with the dummy covariance
     auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
-                    pSurface,
-                    m_tGeometry->geometry().getGeoContext(),
-                    actsFourPos,
-                    momentum,
-                    charge / momentum.norm(),
-                    cov,
-                    Acts::ParticleHypothesis::muon(), 
-		    1*Acts::UnitConstants::cm)
-                    .value();
-
-    if (Verbosity() > 2)
+        pSurface,
+        m_transient_geocontext,
+        actsFourPos,
+        momentum,
+        charge / momentum.norm(),
+        cov,
+        Acts::ParticleHypothesis::muon(),
+        100 * Acts::UnitConstants::cm);
+    if (!seed.ok())
     {
-      printTrackSeed(seed);
+      std::cout << "Could not create track params, skipping track" << std::endl;
+      continue;
+    }
+
+    if (Verbosity() > 0)
+    {
+      std::cout << "Source link size " << sourceLinks.size() << std::endl;
+      printTrackSeed(seed.value());
     }
 
     //! Set host of propagator options for Acts to do e.g. material integration
@@ -360,7 +512,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     ActsTrackFittingAlgorithm::GeneralFitterOptions
         kfOptions{
-            m_tGeometry->geometry().getGeoContext(),
+            m_transient_geocontext,
             magcontext,
             calibcontext,
             &(*pSurface),
@@ -372,7 +524,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         std::make_shared<Acts::VectorMultiTrajectory>();
     ActsTrackFittingAlgorithm::TrackContainer
         tracks(trackContainer, trackStateContainer);
-    auto result = fitTrack(sourceLinks, seed, kfOptions, calibrator, tracks);
+    auto result = fitTrack(sourceLinks, seed.value(), kfOptions,
+                           calibrator, tracks);
 
     /// Check that the track fit result did not return an error
     if (result.ok())
@@ -389,6 +542,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       {
         m_trackMap->insertWithKey(&newTrack, trid);
       }
+      m_nGoodFits++;
     }
     else
     {
@@ -404,249 +558,6 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   }
 
   return;
-}
-
-//___________________________________________________________________________________
-SourceLinkVec PHCosmicsTrkFitter::getSourceLinks(
-    TrackSeed* track,
-    ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-    short int crossing,
-    int& charge,
-    float& cosmicslope)
-{
-  SourceLinkVec sourcelinks;
-
-  // loop over all clusters
-  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
-  int i = 0;
-
-  for (auto clusIter = track->begin_cluster_keys();
-       clusIter != track->end_cluster_keys();
-       ++clusIter)
-  {
-    i++;
-    auto key = *clusIter;
-    auto cluster = m_clusterContainer->findCluster(key);
-    if (!cluster)
-    {
-      if (Verbosity() > 0)
-        std::cout << "Failed to get cluster with key " << key << " for track " << m_seedMap->find(track) << std::endl;
-      else
-        std::cout << "PHCosmicsTrkFitter :: Key: " << key << " for track " << m_seedMap->find(track) << std::endl;
-      continue;
-    }
-
-    auto subsurfkey = cluster->getSubSurfKey();
-
-    /// Make a safety check for clusters that couldn't be attached
-    /// to a surface
-    auto surf = m_tGeometry->maps().getSurface(key, cluster);
-    if (!surf)
-    {
-      continue;
-    }
-
-    const unsigned int trkrid = TrkrDefs::getTrkrId(key);
-    const unsigned int side = TpcDefs::getSide(key);
-
-    // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset
-    // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks
-    Acts::Vector3 global = m_tGeometry->getGlobalPosition(key, cluster);
-
-    if (trkrid == TrkrDefs::tpcId)
-    {
-      // make all corrections to global position of TPC cluster
-      float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
-      global[2] = z;
-
-      // apply distortion corrections
-      if (_dcc_static)
-      {
-        global = _distortionCorrection.get_corrected_position(global, _dcc_static);
-      }
-      if (_dcc_average)
-      {
-        global = _distortionCorrection.get_corrected_position(global, _dcc_average);
-      }
-      if (_dcc_fluctuation)
-      {
-        global = _distortionCorrection.get_corrected_position(global, _dcc_fluctuation);
-      }
-    }
-
-    if (Verbosity() > 0)
-    {
-      std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing
-                << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
-    }
-
-    // add the global positions to a vector to give to the cluster mover
-    global_raw.push_back(std::make_pair(key, global));
-
-  }  // end loop over clusters here
-
-  // move the cluster positions back to the original readout surface
-  auto global_moved = _clusterMover.processTrack(global_raw);
-
-  Acts::Vector3 globalMostOuter;
-  Acts::Vector3 globalSecondMostOuter(0, 999999, 0);
-  float largestR = 0;
-  // loop over global positions returned by cluster mover
-  for (int i = 0; i < global_moved.size(); ++i)
-  {
-    TrkrDefs::cluskey cluskey = global_moved[i].first;
-    Acts::Vector3 global = global_moved[i].second;
-    float r = std::sqrt(square(global.x()) + square(global.y()));
-
-    /// use the bottom hemisphere to determine the charge
-    if (r > largestR && global.y() < 0)
-    {
-      globalMostOuter = global_moved[i].second;
-      largestR = r;
-    }
-
-    if (m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
-    {
-      if (Verbosity() > 3)
-      {
-        std::cout << PHWHERE << "skipping cluster in layer "
-                  << (unsigned int) TrkrDefs::getLayer(cluskey) << std::endl;
-      }
-      continue;
-    }
-
-    auto cluster = m_clusterContainer->findCluster(cluskey);
-    Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
-
-    // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
-    auto trkrid = TrkrDefs::getTrkrId(cluskey);
-    if (trkrid == TrkrDefs::tpcId)
-    {
-      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-      TrkrDefs::subsurfkey new_subsurfkey = 0;
-      surf = m_tGeometry->get_tpc_surface_from_coords(hitsetkey, global, new_subsurfkey);
-    }
-
-    if (!surf)
-    {
-      continue;
-    }
-
-    // get local coordinates
-    Acts::Vector2 localPos;
-    global *= Acts::UnitConstants::cm;
-
-    Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().getGeoContext());
-    auto local = surf->globalToLocal(m_tGeometry->geometry().getGeoContext(),
-                                     global, normal);
-
-    if (local.ok())
-    {
-      localPos = local.value() / Acts::UnitConstants::cm;
-    }
-    else
-    {
-      /// otherwise take the manual calculation for the TPC
-      Acts::Vector3 loct = surf->transform(m_tGeometry->geometry().getGeoContext()).inverse() * global;
-      loct /= Acts::UnitConstants::cm;
-
-      localPos(0) = loct(0);
-      localPos(1) = loct(1);
-    }
-
-    if (Verbosity() > 0)
-    {
-      std::cout << " cluster global after mover: " << global << std::endl;
-      std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
-      std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
-    }
-
-    Acts::ActsVector<2> loc;
-    loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
-    loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
-    std::array<Acts::BoundIndices, 2> indices;
-    indices[0] = Acts::BoundIndices::eBoundLoc0;
-    indices[1] = Acts::BoundIndices::eBoundLoc1;
-    Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
-
-    double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, cluskey);
-    cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
-    cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
-    cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
-    cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
-
-    ActsSourceLink::Index index = measurements.size();
-
-    SourceLink sl(surf->geometryId(), index, cluskey);
-    Acts::SourceLink actsSL{sl};
-    Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
-    if (Verbosity() > 3)
-    {
-      std::cout << "source link " << sl.index() << ", loc : "
-                << loc.transpose() << std::endl
-                << ", cov : " << cov.transpose() << std::endl
-                << " geo id " << sl.geometryId() << std::endl;
-      std::cout << "Surface : " << std::endl;
-      surf.get()->toStream(m_tGeometry->geometry().getGeoContext(), std::cout);
-      std::cout << std::endl;
-      std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
-      std::cout << "For key " << cluskey << " with local pos " << std::endl
-                << localPos(0) << ", " << localPos(1)
-                << std::endl;
-    }
-
-    sourcelinks.push_back(actsSL);
-    measurements.push_back(meas);
-  }
-
-  //! find the closest cluster to the outermost cluster
-  float maxdr = std::numeric_limits<float>::max();
-  for (int i = 0; i < global_moved.size(); i++)
-  {
-    if (global_moved[i].second.y() > 0) continue;
-
-    float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(global_moved[i].second.x()) + square(global_moved[i].second.y()));
-    //! Place a dr cut to get maximum bend due to TPC clusters having
-    //! larger fluctuations
-    if (dr < maxdr && dr > 10)
-    {
-      maxdr = dr;
-      globalSecondMostOuter = global_moved[i].second;
-    }
-  }
-
-  //! we have to calculate phi WRT the vertex position outside the detector,
-  //! not at (0,0)
-  Acts::Vector3 vertex(0, -1 * m_vertexRadius, 0);
-  globalMostOuter -= vertex;
-  globalSecondMostOuter -= vertex;
-
-  const auto firstphi = atan2(globalMostOuter.y(), globalMostOuter.x());
-  const auto secondphi = atan2(globalSecondMostOuter.y(),
-                               globalSecondMostOuter.x());
-  auto dphi = secondphi - firstphi;
-
-  if (dphi > M_PI) dphi = 2. * M_PI - dphi;
-  if (dphi < -M_PI) dphi = 2 * M_PI + dphi;
-
-  if (dphi > 0)
-  {
-    charge = -1;
-  }
-  else
-  {
-    charge = 1;
-  }
-
-  float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
-  float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
-  float z1 = globalMostOuter.z();
-  float z2 = globalSecondMostOuter.z();
-
-  cosmicslope = (r2 - r1) / (z2 - z1);
-
-  return sourcelinks;
 }
 
 bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
@@ -669,7 +580,7 @@ bool PHCosmicsTrkFitter::getTrackFitResult(FitResult& fitOutput,
   if (Verbosity() > 2)
   {
     std::cout << "Fitted parameters for track" << std::endl;
-    std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_tGeometry->geometry().getGeoContext(), Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1, 1, 1)).transpose()
+    std::cout << " position : " << outtrack.referenceSurface().localToGlobal(m_transient_geocontext, Acts::Vector2(outtrack.loc0(), outtrack.loc1()), Acts::Vector3(1, 1, 1)).transpose()
 
               << std::endl;
 
@@ -749,9 +660,9 @@ void PHCosmicsTrkFitter::updateSvtxTrack(
   const auto& params = paramsMap.find(trackTip)->second;
 
   /// Acts default unit is mm. So convert to cm
-  track->set_x(params.position(m_tGeometry->geometry().getGeoContext())(0) / Acts::UnitConstants::cm);
-  track->set_y(params.position(m_tGeometry->geometry().getGeoContext())(1) / Acts::UnitConstants::cm);
-  track->set_z(params.position(m_tGeometry->geometry().getGeoContext())(2) / Acts::UnitConstants::cm);
+  track->set_x(params.position(m_transient_geocontext)(0) / Acts::UnitConstants::cm);
+  track->set_y(params.position(m_transient_geocontext)(1) / Acts::UnitConstants::cm);
+  track->set_z(params.position(m_transient_geocontext)(2) / Acts::UnitConstants::cm);
 
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
@@ -783,7 +694,7 @@ void PHCosmicsTrkFitter::updateSvtxTrack(
   if (m_fillSvtxTrackStates)
   {
     rotater.fillSvtxTrackStates(mj, trackTip, track,
-                                m_tGeometry->geometry().getGeoContext());
+                                m_transient_geocontext);
   }
 
   if (Verbosity() > 2)
@@ -808,8 +719,10 @@ Acts::BoundSquareMatrix PHCosmicsTrkFitter::setDefaultCovariance() const
   /// but if it is too tight, it will just "believe" the track seed over
   /// the hit data
 
+  // cppcheck-suppress duplicateAssignExpression
   double sigmaD0 = 300 * Acts::UnitConstants::um;
   double sigmaZ0 = 300 * Acts::UnitConstants::um;
+  // cppcheck-suppress duplicateAssignExpression
   double sigmaPhi = 1 * Acts::UnitConstants::degree;
   double sigmaTheta = 1 * Acts::UnitConstants::degree;
   double sigmaT = 1. * Acts::UnitConstants::ns;
@@ -833,7 +746,7 @@ void PHCosmicsTrkFitter::printTrackSeed(const ActsTrackFittingAlgorithm::TrackPa
       << std::endl;
 
   std::cout
-      << "position: " << seed.position(m_tGeometry->geometry().getGeoContext()).transpose()
+      << "position: " << seed.position(m_transient_geocontext).transpose()
       << std::endl
       << "momentum: " << seed.momentum().transpose()
       << std::endl;
@@ -887,6 +800,14 @@ int PHCosmicsTrkFitter::createNodes(PHCompositeNode* topNode)
     m_alignmentStateMap = new SvtxAlignmentStateMap_v1;
     auto node = new PHDataNode<SvtxAlignmentStateMap>(m_alignmentStateMap, "SvtxAlignmentStateMap", "PHObject");
     svtxNode->addNode(node);
+  }
+
+  m_alignmentTransformationMapTransient = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainerTransient");
+  if (!m_alignmentTransformationMapTransient)
+  {
+    std::cout << PHWHERE << "alignmentTransformationContainerTransient not on node tree. Bailing"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   if (m_actsEvaluator)
@@ -967,4 +888,221 @@ int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHCosmicsTrkFitter::makeBranches()
+{
+  m_tree->Branch("seed", &m_seed, "m_seed/I");
+  m_tree->Branch("event", &m_event, "m_event/I");
+  m_tree->Branch("R", &m_R, "m_R/F");
+  m_tree->Branch("X0", &m_X0, "m_X0/F");
+  m_tree->Branch("Y0", &m_Y0, "m_Y0/F");
+  m_tree->Branch("Z0", &m_Z0, "m_Z0/F");
+  m_tree->Branch("slope", &m_slope, "m_slope/F");
+  m_tree->Branch("pcax", &m_pcax, "m_pcax/F");
+  m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
+  m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
+  m_tree->Branch("px", &m_px, "m_px/F");
+  m_tree->Branch("py", &m_py, "m_py/F");
+  m_tree->Branch("pz", &m_pz, "m_pz/F");
+  m_tree->Branch("charge", &m_charge, "m_charge/I");
+  m_tree->Branch("nmaps", &m_nmaps, "m_nmaps/I");
+  m_tree->Branch("nintt", &m_nintt, "m_nintt/I");
+  m_tree->Branch("ntpc", &m_ntpc, "m_ntpc/I");
+  m_tree->Branch("nmm", &m_nmm, "m_nmm/I");
+  m_tree->Branch("locx", &m_locx);
+  m_tree->Branch("locy", &m_locy);
+  m_tree->Branch("x", &m_x);
+  m_tree->Branch("y", &m_y);
+  m_tree->Branch("z", &m_z);
+  m_tree->Branch("r", &m_r);
+  m_tree->Branch("layer", &m_layer);
+  m_tree->Branch("phi", &m_phi);
+  m_tree->Branch("eta", &m_eta);
+  m_tree->Branch("phisize", &m_phisize);
+  m_tree->Branch("zsize", &m_zsize);
+  m_tree->Branch("ephi", &m_ephi);
+  m_tree->Branch("ez", &m_ez);
+}
+void PHCosmicsTrkFitter::fillVectors(TrackSeed* tpcseed, TrackSeed* siseed)
+{
+  for (auto seed : {tpcseed, siseed})
+  {
+    if (!seed)
+    {
+      continue;
+    }
+
+    for (auto it = seed->begin_cluster_keys(); it != seed->end_cluster_keys();
+         ++it)
+    {
+      auto key = *it;
+      auto cluster = m_clusterContainer->findCluster(key);
+      m_locx.push_back(cluster->getLocalX());
+      float ly = cluster->getLocalY();
+      if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId)
+      {
+        double drift_velocity = m_tGeometry->get_drift_velocity();
+        double zdriftlength = cluster->getLocalY() * drift_velocity;
+        double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
+        double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
+        unsigned int side = TpcDefs::getSide(key);
+        if (side == 0)
+        {
+          zloc = -zloc;
+        }
+        ly = zloc * 10;
+      }
+      m_locy.push_back(ly);
+      auto glob = m_tGeometry->getGlobalPosition(key, cluster);
+      m_x.push_back(glob.x());
+      m_y.push_back(glob.y());
+      m_z.push_back(glob.z());
+      float r = std::sqrt(glob.x() * glob.x() + glob.y() * glob.y());
+      m_r.push_back(r);
+      TVector3 globt(glob.x(), glob.y(), glob.z());
+      m_phi.push_back(globt.Phi());
+      m_eta.push_back(globt.Eta());
+      m_phisize.push_back(cluster->getPhiSize());
+      m_zsize.push_back(cluster->getZSize());
+      auto para_errors =
+          m_clusErrPara.get_clusterv5_modified_error(cluster, r, key);
+
+      m_ephi.push_back(std::sqrt(para_errors.first));
+      m_ez.push_back(std::sqrt(para_errors.second));
+    }
+  }
+}
+void PHCosmicsTrkFitter::clearVectors()
+{
+  m_locx.clear();
+  m_locy.clear();
+  m_x.clear();
+  m_y.clear();
+  m_z.clear();
+  m_layer.clear();
+  m_r.clear();
+  m_phi.clear();
+  m_eta.clear();
+  m_phisize.clear();
+  m_zsize.clear();
+  m_ephi.clear();
+  m_ez.clear();
+}
+
+void PHCosmicsTrkFitter::getCharge(
+    TrackSeed* track,
+    // TrkrClusterContainer*  clusterContainer,
+    // ActsGeometry* tGeometry,
+    // alignmentTransformationContainer* transformMapTransient,
+    // float vertexRadius,
+    int& charge,
+    float& cosmicslope)
+{
+  Acts::GeometryContext transient_geocontext;
+  transient_geocontext = m_alignmentTransformationMapTransient;  // set local/global transforms to distortion corrected ones for this track
+
+  std::vector<Acts::Vector3> global_vec;
+
+  for (auto clusIter = track->begin_cluster_keys();
+       clusIter != track->end_cluster_keys();
+       ++clusIter)
+  {
+    auto key = *clusIter;
+    auto cluster = m_clusterContainer->findCluster(key);
+    if (!cluster)
+    {
+      std::cout << "MakeSourceLinks::getCharge: Failed to get cluster with key " << key << " for track seed" << std::endl;
+      continue;
+    }
+
+    auto surf = m_tGeometry->maps().getSurface(key, cluster);
+    if (!surf)
+    {
+      continue;
+    }
+
+    // get cluster global positions
+    Acts::Vector2 local = m_tGeometry->getLocalCoords(key, cluster);  // converts TPC time to z
+    Acts::Vector3 glob = surf->localToGlobal(transient_geocontext,
+                                             local * Acts::UnitConstants::cm,
+                                             Acts::Vector3(1, 1, 1));
+    glob /= Acts::UnitConstants::cm;
+
+    global_vec.push_back(glob);
+  }
+
+  Acts::Vector3 globalMostOuter(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
+  Acts::Vector3 globalSecondMostOuter(0, 999999, 0);
+  float largestR = 0;
+  // loop over global positions
+  for (auto& i : global_vec)
+  {
+    Acts::Vector3 global = i;
+    // float r = std::sqrt(square(global.x()) + square(global.y()));
+    float r = radius(global.x(), global.y());
+
+    /// use the top hemisphere to determine the charge
+    if (r > largestR && global.y() > 0)
+    {
+      globalMostOuter = i;
+      largestR = r;
+    }
+  }
+
+  //! find the closest cluster to the outermost cluster
+  float maxdr = std::numeric_limits<float>::max();
+  for (auto& i : global_vec)
+  {
+    if (i.y() < 0)
+    {
+      continue;
+    }
+
+    float dr = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y())) - std::sqrt(square(i.x()) + square(i.y()));
+    //! Place a dr cut to get maximum bend due to TPC clusters having
+    //! larger fluctuations
+    if (dr < maxdr && dr > 10)
+    {
+      maxdr = dr;
+      globalSecondMostOuter = i;
+    }
+  }
+
+  //! we have to calculate phi WRT the vertex position outside the detector,
+  //! not at (0,0)
+  Acts::Vector3 vertex(0, m_vertexRadius, 0);
+  globalMostOuter -= vertex;
+  globalSecondMostOuter -= vertex;
+
+  const auto firstphi = atan2(globalMostOuter.y(), globalMostOuter.x());
+  const auto secondphi = atan2(globalSecondMostOuter.y(),
+                               globalSecondMostOuter.x());
+  auto dphi = secondphi - firstphi;
+
+  if (dphi > M_PI)
+  {
+    dphi = 2. * M_PI - dphi;
+  }
+  if (dphi < -M_PI)
+  {
+    dphi = 2 * M_PI + dphi;
+  }
+
+  if (dphi > 0)
+  {
+    charge = -1;
+  }
+  else
+  {
+    charge = 1;
+  }
+
+  float r1 = std::sqrt(square(globalMostOuter.x()) + square(globalMostOuter.y()));
+  float r2 = std::sqrt(square(globalSecondMostOuter.x()) + square(globalSecondMostOuter.y()));
+  float z1 = globalMostOuter.z();
+  float z2 = globalSecondMostOuter.z();
+  cosmicslope = (r2 - r1) / (z2 - z1);
+
+  return;
 }
