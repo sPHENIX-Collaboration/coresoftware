@@ -13,9 +13,7 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 #include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfoContainerv2.h>
-#include <calobase/TowerInfoContainerv3.h>
+#include <calobase/TowerInfoContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
