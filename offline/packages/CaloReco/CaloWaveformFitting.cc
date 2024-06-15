@@ -111,6 +111,10 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
         fitter->Config().SetParamsSettings(3, params);
         fitter->Config().ParSettings(1).SetLimits(-1 * m_peakTimeTemp, size1 - m_peakTimeTemp);  // set lim on time par
+        if (m_setTimeLim) 
+        {
+          fitter->Config().ParSettings(1).SetLimits(m_timeLim_low, m_timeLim_high);
+        }
         fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
         ROOT::Fit::FitResult fitres = fitter->Result();
         double chi2min = fitres.MinFcnValue();

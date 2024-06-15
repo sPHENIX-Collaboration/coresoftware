@@ -45,6 +45,34 @@ namespace
     return o;
   }
 
+  template <class T>
+  std::ostream& operator<<(std::ostream& o, const std::vector<T>& list)
+  {
+    if (list.empty())
+    {
+      o << "{}";
+    }
+    else
+    {
+      const bool is_hex = (o.flags()&std::ios_base::hex);
+      o << "{ ";
+      bool first = true;
+      for (const auto& value : list)
+      {
+        if (!first)
+        {
+          o << ", ";
+        }
+        if( is_hex )
+        { o << "0x"; }
+        o << value;
+        first = false;
+      }
+      o << " }";
+    }
+    return o;
+  }
+
   // get the difference between two BCO.
   template<class T>
     inline static constexpr T get_bco_diff( const T& first, const T& second )

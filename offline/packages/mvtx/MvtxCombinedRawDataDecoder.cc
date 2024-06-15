@@ -102,10 +102,17 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 
   mvtx_raw_event_header =
       findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
+
+  Fun4AllServer *se = Fun4AllServer::instance();
+
   if (!mvtx_raw_event_header)
   {
-    Fun4AllServer* se = Fun4AllServer::instance();
     se->unregisterSubsystem(this);
+  }
+
+  if(se->RunNumber() > 42735)
+  {
+    m_strobeWidth = 10.;
   }
 
   // Mask Hot MVTX Pixels
