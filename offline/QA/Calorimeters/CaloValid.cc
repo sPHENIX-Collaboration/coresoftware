@@ -22,6 +22,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <ffarawobjects/Gl1Packet.h>
+
 #include <TH1.h>
 #include <TH2.h>
 #include <TLorentzVector.h>
@@ -195,6 +197,25 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     }
     hvtx_z_raw->Fill(vtx_z);
   }
+
+  //--------------------------- trigger and GL1-------------------------------//
+  Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  if (!gl1PacketInfo)
+  {
+    std::cout << PHWHERE << "CaloValid::process_event: GL1Packet node is missing" << std::endl;
+  }
+
+  if (gl1PacketInfo)
+  {
+   auto h_triggerVec = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%striggerVec") % getHistoPrefix()).c_str()));
+    uint64_t triggervec = gl1PacketInfo->getTriggerVector();
+    for (int i = 0; i < 64; i++)
+    {
+      bool trig_decision = ((triggervec & 0x1U) == 0x1U);
+      if (trig_decision) h_triggerVec->Fill(i);
+      triggervec = (triggervec >> 1U) & 0xffffffffU;
+    }
+  } 
 
   //---------------------------calibrated towers-------------------------------//
   {
@@ -589,7 +610,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   hzdcNorthcalib->Fill(totalzdcnorthcalib);
 
   //------------------------------ clusters & pi0 ------------------------------//
-  RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_POS_COR_CEMC");
+  RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
   if (!clusterContainer)
   {
     std::cout << PHWHERE << "CaloValid::funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
@@ -896,17 +917,17 @@ void CaloValid::createHistos()
   }
 
   {
-    auto h = LogYHist2D(boost::str(boost::format("%scemc_e_chi2") % getHistoPrefix()).c_str(), "", 500, -2, 30, 1000, 0.5, 5e6);
+    auto h = LogYHist2D(boost::str(boost::format("%scemc_e_chi2") % getHistoPrefix()).c_str(), "", 270, -2, 25, 1000, 0.5, 4e8);
     h->SetDirectory(nullptr);
     hm->registerHisto(h);
   }
   {
-    auto h = LogYHist2D(boost::str(boost::format("%sihcal_e_chi2") % getHistoPrefix()).c_str(), "", 500, -2, 30, 1000, 0.5, 5e6);
+    auto h = LogYHist2D(boost::str(boost::format("%sihcal_e_chi2") % getHistoPrefix()).c_str(), "", 270, -2, 25, 1000, 0.5, 4e8);
     h->SetDirectory(nullptr);
     hm->registerHisto(h);
   }
   {
-    auto h = LogYHist2D(boost::str(boost::format("%sohcal_e_chi2") % getHistoPrefix()).c_str(), "", 500, -2, 30, 1000, 0.5, 5e6);
+    auto h = LogYHist2D(boost::str(boost::format("%sohcal_e_chi2") % getHistoPrefix()).c_str(), "", 270, -2, 25, 1000, 0.5, 4e8);
     h->SetDirectory(nullptr);
     hm->registerHisto(h);
   }
@@ -1101,6 +1122,11 @@ void CaloValid::createHistos()
   }
   {
     auto h = new TH1F(boost::str(boost::format("%sclusE") % getHistoPrefix()).c_str(), "", 100, 0, 10);
+    h->SetDirectory(nullptr);
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH1F(boost::str(boost::format("%striggerVec") % getHistoPrefix()).c_str(), "", 64, 0,64); 
     h->SetDirectory(nullptr);
     hm->registerHisto(h);
   }
