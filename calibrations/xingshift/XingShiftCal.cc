@@ -429,16 +429,14 @@ int XingShiftCal::CommitToSpinDB()
 
 
   //=============== connect to daq db to get gl1p scalers ===============
-  std::string remoteConnStr =
-        "DRIVER={PostgreSQL};"
-        "SERVER=sphnxdaqdbreplica;"
-        "PORT=5432;"
-        "DATABASE=daq;"
-    "UID=phnxrc;";
+  std::string daqdbname = "daq";
+  std::string daqdbowner = "phnxrc";
+  std::string daqdbpasswd = "";
+
   odbc::Connection *conDAQ = nullptr;
   try
   {
-    conDAQ = odbc::DriverManager::getConnection(remoteConnStr);
+    conDAQ = odbc::DriverManager::getConnection(daqdbname.c_str(), daqdbowner.c_str(), daqdbpasswd.c_str());
   }
   catch (odbc::SQLException &eDAQ)
   {
