@@ -685,16 +685,13 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
     return seeds;
   }
 
-  std::cout << " B0 " << std::endl;
   int nsplit_chains = -1;
   
   // positions of the seed being following
   std::array<float, 4> phi, R, Z;
   keyLists grown_seeds;
 
-  std::cout << " B1 " << std::endl;
   while (seeds.size() > 0) {
-    std::cout << "Seeds size: " << ((int)seeds.size()) << std::endl;
     keyLists split_seeds {}; // to collect when using split tracks
     for (auto& seed : seeds) {
 
