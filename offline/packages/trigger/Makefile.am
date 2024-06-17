@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -39,6 +39,7 @@ pkginclude_HEADERS = \
   LL1Outv1.h \
   CaloTriggerEmulator.h \
   LL1PacketGetter.h \
+  TriggerClusterMaker.h \
   TriggerDefs.h \
   TriggerPrimitive.h \
   TriggerPrimitivev1.h \
@@ -87,7 +88,8 @@ libcalotrigger_la_SOURCES = \
   LL1PacketGetter.cc \
   CaloTriggerEmulator.cc \
   CaloTriggerSim.cc \
-  MinimumBiasClassifier.cc
+  MinimumBiasClassifier.cc \
+  TriggerClusterMaker.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
