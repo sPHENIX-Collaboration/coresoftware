@@ -85,6 +85,16 @@ class LaserCluster : public PHObject
   virtual void setSDIT(float) {}
   virtual float getSDIT() const { return std::numeric_limits<float>::quiet_NaN(); }
 
+  virtual void setSDWeightedLayer(float) {}
+  virtual float getSDWeightedLayer() const { return std::numeric_limits<float>::quiet_NaN(); }
+
+  virtual void setSDWeightedIPhi(float) {}
+  virtual float getSDWeightedIPhi() const { return std::numeric_limits<float>::quiet_NaN(); }
+
+  virtual void setSDWeightedIT(float) {}
+  virtual float getSDWeightedIT() const { return std::numeric_limits<float>::quiet_NaN(); }
+
+
   virtual void addHit() {}
  
   virtual void setHitLayer(int, float) {}

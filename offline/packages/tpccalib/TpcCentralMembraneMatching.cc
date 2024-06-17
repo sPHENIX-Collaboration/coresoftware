@@ -619,6 +619,9 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     match_tree->Branch("layerSD",&m_layersSD);
     match_tree->Branch("IPhiSD",&m_IPhiSD);
     match_tree->Branch("ITSD",&m_ITSD);
+    match_tree->Branch("layerWeightedSD",&m_layersWeightedSD);
+    match_tree->Branch("IPhiWeightedSD",&m_IPhiWeightedSD);
+    match_tree->Branch("ITWeightedSD",&m_ITWeightedSD);
     match_tree->Branch("lowShift",&m_lowShift);
     match_tree->Branch("highShift",&m_highShift);
 
@@ -773,6 +776,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
   std::vector<float> reco_SDLayer;
   std::vector<float> reco_SDIPhi;
   std::vector<float> reco_SDIT;
+  std::vector<float> reco_SDWeightedLayer;
+  std::vector<float> reco_SDWeightedIPhi;
+  std::vector<float> reco_SDWeightedIT;
 
   // reset output distortion correction container histograms
   for (const auto& harray : {m_dcc_out->m_hDRint, m_dcc_out->m_hDPint, m_dcc_out->m_hDZint, m_dcc_out->m_hentries})
@@ -848,6 +854,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     reco_SDLayer.push_back(cmclus->getSDLayer());
     reco_SDIPhi.push_back(cmclus->getSDIPhi());
     reco_SDIT.push_back(cmclus->getSDIT());
+    reco_SDWeightedLayer.push_back(cmclus->getSDWeightedLayer());
+    reco_SDWeightedIPhi.push_back(cmclus->getSDWeightedIPhi());
+    reco_SDWeightedIT.push_back(cmclus->getSDWeightedIT());
 
     if (side == 0)
     {
@@ -1060,8 +1069,16 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
   if (m_savehistograms)
   {
     for(int i=0; i < (int) reco_pos.size(); i++){
-      m_truthR = m_truth_pos[reco_matchedTruthIndex[i]].Perp();
-      m_truthPhi = m_truth_pos[reco_matchedTruthIndex[i]].Phi();
+      if(reco_matchedTruthIndex[i] == -1)
+      {
+        m_truthR = -999;
+        m_truthPhi = -999;
+      }
+      else
+      {
+        m_truthR = m_truth_pos[reco_matchedTruthIndex[i]].Perp();
+        m_truthPhi = m_truth_pos[reco_matchedTruthIndex[i]].Phi();
+      }
       m_truthIndex = reco_matchedTruthIndex[i];
       m_recoR = reco_pos[i].Perp();
       m_recoPhi = reco_pos[i].Phi();
@@ -1075,6 +1092,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
       m_layersSD = reco_SDLayer[i];
       m_IPhiSD = reco_SDIPhi[i];
       m_ITSD = reco_SDIT[i];
+      m_layersWeightedSD = reco_SDWeightedLayer[i];
+      m_IPhiWeightedSD = reco_SDWeightedIPhi[i];
+      m_ITWeightedSD = reco_SDWeightedIT[i];
       if(m_side){
         m_lowShift = m_matchLow[1];
         m_highShift = m_matchHigh[1];

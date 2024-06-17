@@ -620,15 +620,19 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   double sigmaIPhi = 0.0;
   double sigmaIT = 0.0;
 
+  double sigmaWeightedLayer = 0.0;
+  double sigmaWeightedIPhi = 0.0;
+  double sigmaWeightedIT = 0.0;
+
   for(int i=0; i < (int) clus->getNhits(); i++){
     sigmaLayer += pow(clus->getHitLayer(i) - meanLayer,2);
     sigmaIPhi += pow(clus->getHitIPhi(i) - meanIPhi,2);
     sigmaIT += pow(clus->getHitIT(i) - meanIT,2);
-  }
 
-  sigmaLayer = sqrt(sigmaLayer/nHits);
-  sigmaIPhi = sqrt(sigmaIPhi/nHits);
-  sigmaIT = sqrt(sigmaIT/nHits);
+    sigmaWeightedLayer += clus->getHitAdc(i)*pow(clus->getHitLayer(i) - (layerSum / adcSum),2);
+    sigmaWeightedIPhi += clus->getHitAdc(i)*pow(clus->getHitIPhi(i) - (iphiSum / adcSum),2);
+    sigmaWeightedIT += clus->getHitAdc(i)*pow(clus->getHitIT(i) - (itSum / adcSum),2);
+  }
 
   clus->setAdc(adcSum);
   clus->setX(clusX);
@@ -640,9 +644,12 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   clus->setNLayers(usedLayer.size());
   clus->setNIPhi(usedIPhi.size());
   clus->setNIT(usedIT.size());
-  clus->setSDLayer(sigmaLayer);
-  clus->setSDIPhi(sigmaIPhi);
-  clus->setSDIT(sigmaIT);
+  clus->setSDLayer(sqrt(sigmaLayer / nHits));
+  clus->setSDIPhi(sqrt(sigmaIPhi / nHits));
+  clus->setSDIT(sqrt(sigmaIT / nHits));
+  clus->setSDWeightedLayer(sqrt(sigmaWeightedLayer / adcSum));
+  clus->setSDWeightedIPhi(sqrt(sigmaWeightedIPhi / adcSum));
+  clus->setSDWeightedIT(sqrt(sigmaWeightedIT / adcSum));
 
   const auto ckey = TrkrDefs::genClusKey(maxKey, m_clusterlist->size());
   m_clusterlist->addClusterSpecifyKey(ckey, clus);

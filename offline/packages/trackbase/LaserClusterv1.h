@@ -84,6 +84,15 @@ class LaserClusterv1 : public LaserCluster
   void setSDIT(float SDIT) override { m_SDIT = SDIT; }
   float getSDIT() const override { return m_SDIT; }
 
+  void setSDWeightedLayer(float SDLayer) override { m_SDWeightedLayer = SDLayer; }
+  float getSDWeightedLayer() const override { return m_SDWeightedLayer; }
+
+  void setSDWeightedIPhi(float SDIPhi) override { m_SDWeightedIPhi = SDIPhi; }
+  float getSDWeightedIPhi() const override { return m_SDWeightedIPhi; }
+
+  void setSDWeightedIT(float SDIT) override { m_SDWeightedIT = SDIT; }
+  float getSDWeightedIT() const override { return m_SDWeightedIT; }
+
   void addHit() override {m_hitVec.push_back({0.0,0.0,0.0,0.0}); m_hitVecHardware.push_back({0.0,0.0,0.0}); }
 
   void setHitLayer(int i, float layer) override {m_hitVecHardware[i][0] = layer; }
@@ -128,6 +137,9 @@ class LaserClusterv1 : public LaserCluster
   float m_SDLayer = std::numeric_limits<float>::quiet_NaN();
   float m_SDIPhi = std::numeric_limits<float>::quiet_NaN();
   float m_SDIT = std::numeric_limits<float>::quiet_NaN();
+  float m_SDWeightedLayer = std::numeric_limits<float>::quiet_NaN();
+  float m_SDWeightedIPhi = std::numeric_limits<float>::quiet_NaN();
+  float m_SDWeightedIT = std::numeric_limits<float>::quiet_NaN();
 
   ClassDefOverride(LaserClusterv1, 1)
 };

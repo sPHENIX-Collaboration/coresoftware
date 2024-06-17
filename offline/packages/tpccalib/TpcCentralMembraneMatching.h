@@ -164,6 +164,9 @@ class TpcCentralMembraneMatching : public SubsysReco
   float m_layersSD {0.0};
   float m_IPhiSD {0.0};
   float m_ITSD {0.0};
+  float m_layersWeightedSD {0.0};
+  float m_IPhiWeightedSD {0.0};
+  float m_ITWeightedSD {0.0};
   int m_lowShift {0};
   int m_highShift {0};
 
