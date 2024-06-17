@@ -60,6 +60,10 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
     /// packet
     unsigned int packet_id = 0;
 
+    /// waveform type
+    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+    unsigned int type = 0;
+
     /// ll1 bco
     uint64_t gtm_bco = 0;
 
@@ -109,10 +113,10 @@ class MicromegasRawDataTimingEvaluation : public SubsysReco
   bco_map_t m_bco_map;
 
   //! keep track of total number of waveforms
-  uint64_t m_waveform_count_total = 0;
+  std::map<int,uint64_t> m_waveform_count_total{};
 
   //! keep track of dropped waveforms
-  uint64_t m_waveform_count_dropped = 0;
+  std::map<int,uint64_t> m_waveform_count_dropped{};
 
 };
 

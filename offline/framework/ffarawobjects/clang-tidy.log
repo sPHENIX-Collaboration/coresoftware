@@ -1,0 +1,46 @@
+25837 warnings generated.
+56579 warnings generated.
+82366 warnings generated.
+99366 warnings generated.
+118979 warnings generated.
+138597 warnings generated.
+155596 warnings generated.
+172600 warnings generated.
+189609 warnings generated.
+215418 warnings generated.
+241230 warnings generated.
+258252 warnings generated.
+275277 warnings generated.
+301093 warnings generated.
+331819 warnings generated.
+357641 warnings generated.
+374677 warnings generated.
+393354 warnings generated.
+419160 warnings generated.
+436179 warnings generated.
+453183 warnings generated.
+470194 warnings generated.
+496014 warnings generated.
+513049 warnings generated.
+/phenix/u/pinkenbu/workarea/sPHENIX/gitrepov5/coresoftware/offline/framework/ffarawobjects/LL1Packetv1.cc:33:35: warning: parameter 'n' is unused [misc-unused-parameters]
+int LL1Packetv1::iValue(const int n, const std::string &what) const
+                                  ^
+                                   /*n*/
+/phenix/u/pinkenbu/workarea/sPHENIX/gitrepov5/coresoftware/offline/framework/ffarawobjects/LL1Packetv1.cc:115:48: warning: parameter 'os' is unused [misc-unused-parameters]
+void LL1Packetv1::dump_idll1_mbd(std::ostream &os) const
+                                               ^~
+                                                /*os*/
+/phenix/u/pinkenbu/workarea/sPHENIX/gitrepov5/coresoftware/offline/framework/ffarawobjects/LL1Packetv1.cc:160:54: warning: parameter 'os' is unused [misc-unused-parameters]
+void LL1Packetv1::dump_idll_emcal_mon3(std::ostream &os) const
+                                                     ^~
+                                                      /*os*/
+/phenix/u/pinkenbu/workarea/sPHENIX/gitrepov5/coresoftware/offline/framework/ffarawobjects/LL1Packetv1.cc:193:58: warning: parameter 'os' is unused [misc-unused-parameters]
+void LL1Packetv1::dump_idll_jet_emcal_mon1(std::ostream &os) const
+                                                         ^~
+                                                          /*os*/
+/phenix/u/pinkenbu/workarea/sPHENIX/gitrepov5/coresoftware/offline/framework/ffarawobjects/LL1Packetv1.cc:201:36: warning: statement should be inside braces [hicpp-braces-around-statements]
+    for (int ic = 0; ic < 32; ic++) std::cout << std::dec << "\t" << ic;
+                                   ^
+                                    {
+Suppressed 513044 warnings (513044 in non-user code).
+Use -header-filter=.* to display errors from all non-system headers. Use -system-headers to display errors from system headers as well.

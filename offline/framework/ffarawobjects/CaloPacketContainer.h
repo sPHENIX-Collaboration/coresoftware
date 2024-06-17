@@ -22,6 +22,8 @@ class CaloPacketContainer : public PHObject
   virtual int getEvtSequence() const {return std::numeric_limits<int>::min();}
   virtual void setStatus(const unsigned int) {return;}
   virtual unsigned int getStatus() const {return 0;}
+  virtual void deletePacketAt(int) {return;}
+  virtual void deletePacket(CaloPacket *) {return;}
 
  private:
   ClassDefOverride(CaloPacketContainer, 1)

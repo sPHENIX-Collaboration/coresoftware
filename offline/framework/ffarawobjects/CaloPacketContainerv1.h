@@ -34,6 +34,8 @@ class CaloPacketContainerv1 : public CaloPacketContainer
   int getEvtSequence() const override {return eventno;}
   void setStatus(const unsigned int ui) override {status = ui;}
   unsigned int getStatus() const override {return status;}
+  void deletePacketAt(int index) override;
+  void deletePacket(CaloPacket *packet) override;
 
  private:
   TClonesArray *CaloPacketsTCArray{nullptr};

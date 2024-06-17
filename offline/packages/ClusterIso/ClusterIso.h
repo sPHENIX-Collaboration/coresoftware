@@ -38,6 +38,10 @@ class ClusterIso : public SubsysReco
   //! returns coneSize*10 as an int
   /*const*/ int getConeSize();
   /*const*/ CLHEP::Hep3Vector getVertex();
+  void set_use_towerinfo(bool usetowerinfo)
+  {
+    m_use_towerinfo = usetowerinfo;
+  };
 
  private:
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
@@ -48,6 +52,7 @@ class ClusterIso : public SubsysReco
   float m_vz;        ///< Correct vertex z coordinate
   bool m_do_subtracted;
   bool m_do_unsubtracted;
+  bool m_use_towerinfo = true;
 };
 
 /** \Brief Function to find delta R between 2 objects
