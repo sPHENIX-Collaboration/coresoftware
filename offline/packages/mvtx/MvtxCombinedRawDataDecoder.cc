@@ -24,10 +24,13 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
+
 #include <algorithm>
+#include <array>
 #include <cassert>
 
 //_________________________________________________________
@@ -110,9 +113,10 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     se->unregisterSubsystem(this);
   }
 
-  if(se->RunNumber() > 42735)
+  float strobe_length_query = getStrobeLength();
+  if (strobe_length_query != 0 )
   {
-    m_strobeWidth = 10.;
+    m_strobeWidth = strobe_length_query;
   }
 
   // Mask Hot MVTX Pixels
@@ -292,4 +296,34 @@ void MvtxCombinedRawDataDecoder::removeDuplicates(
     end = remove(it + 1, end, *it);
   }
   v.erase(end, v.end());
+}
+
+float MvtxCombinedRawDataDecoder::getStrobeLength()
+{
+  recoConsts *rc = recoConsts::instance();
+  int m_runNumber = rc->get_IntFlag("RUNNUMBER");
+
+  std::string executable_command = "psql -h sphnxdaqdbreplica daq --csv -c \"SELECT strobe FROM mvtx_strobe WHERE hostname = \'mvtx0\' AND runnumber = ";
+  executable_command += std::to_string(m_runNumber);
+  executable_command += ";\" | tail -n 1";
+
+  std::string strobe_query = exec(executable_command.c_str());
+  return stof(strobe_query);
+}
+
+// https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+std::string MvtxCombinedRawDataDecoder::exec(const char *cmd)
+{
+  std::array<char, 128> buffer = {};
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe)
+  {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+  {
+    result += buffer.data();
+  }
+  return result;
 }
