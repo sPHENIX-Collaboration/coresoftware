@@ -120,6 +120,7 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
     {
       std::cout << "MicromegasRawDataTimingEvaluation::process_event - bco_matching not verified, dropping packet" << std::endl;
       m_waveform_count_dropped[packet_id] += n_waveform;
+      bco_matching_information.cleanup();
       continue;
     }
 
