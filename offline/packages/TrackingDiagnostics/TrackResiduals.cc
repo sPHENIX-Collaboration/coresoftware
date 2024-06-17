@@ -183,6 +183,9 @@ void TrackResiduals::clearClusterStateVectors()
   m_clusgx.clear();
   m_clusgy.clear();
   m_clusgz.clear();
+  m_clusgxunmoved.clear();
+  m_clusgyunmoved.clear();
+  m_clusgzunmoved.clear();
   m_clusAdc.clear();
   m_clusMaxAdc.clear();
   m_cluslayer.clear();
@@ -935,11 +938,14 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
 }
 
 void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* track,  
-					   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved,
+					   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global,
 					   PHCompositeNode* topNode)
 {
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+
+  // move the cluster positions back to the original readout surface
+  auto global_moved = m_clusterMover.processTrack(global);
 
   ActsTransformations transformer;
   TrkrCluster* cluster = clustermap->findCluster(ckey);
@@ -950,6 +956,14 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
     {
       auto thiskey = pair.first;
       clusglob = pair.second;
+      if(thiskey == ckey) break;
+    }
+
+  Acts::Vector3 clusglob_unmoved;
+  for(auto pair : global)
+    {
+      auto thiskey = pair.first;
+      clusglob_unmoved = pair.second;
       if(thiskey == ckey) break;
     }
 
@@ -1054,6 +1068,9 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   m_clusgy.push_back(clusglob.y());
   m_clusgr.push_back(clusglob.y() > 0 ? clusr : -1 * clusr);
   m_clusgz.push_back(clusglob.z());
+  m_clusgxunmoved.push_back(clusglob.x());
+  m_clusgyunmoved.push_back(clusglob.y());
+  m_clusgzunmoved.push_back(clusglob.z());
   m_clusAdc.push_back(cluster->getAdc());
   m_clusMaxAdc.push_back(cluster->getMaxAdc());
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
@@ -1165,17 +1182,37 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey, // SvtxTra
 					      std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global,
 					      PHCompositeNode* topNode)
 {
+  // The input map global contains the corrected cluster positions - NOT moved back to the surfacer.
+  // When filling the residualtree:
+  //    clusgx etc are the corrected - but not moved back to the surface - cluster positions
+  //    clugxideal etc are the completely uncorrected cluster positions - they do not even have crossing corrections
+  // CircleFitClusters was called before this method. It applies TOF, crossing, and all distortion corrections before fitting
+  //    stategx etc are at the intersection point of the helical fit with the cluster surface
+  //  What do we not have?
+  //     The clusters moved back to the surface, to compare with the state
+
+
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
+  // move the cluster positions back to the original readout surface
+  auto global_moved = m_clusterMover.processTrack(global);
+  
   TrkrCluster* cluster = clustermap->findCluster(ckey);
 
-  //loop over global vector and get this cluster
-  Acts::Vector3 clusglob;
+  //loop over global vectors and get this cluster
+  Acts::Vector3 clusglob(0,0,0);
   for(auto pair : global)
     {
       auto thiskey = pair.first;
       clusglob = pair.second;
+      if(thiskey == ckey) break;
+    }
+  Acts::Vector3 clusglob_moved(0,0,0);
+  for(auto pair : global_moved)
+    {
+      auto thiskey = pair.first;
+      clusglob_moved = pair.second;
       if(thiskey == ckey) break;
     }
   
@@ -1217,10 +1254,13 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey, // SvtxTra
                                                                 clusr, ckey);
   m_cluselx.push_back(sqrt(para_errors.first));
   m_cluselz.push_back(sqrt(para_errors.second));
-  m_clusgx.push_back(clusglob.x());
-  m_clusgy.push_back(clusglob.y());
-  m_clusgr.push_back(clusglob.y() > 0 ? clusr : -1 * clusr);
-  m_clusgz.push_back(clusglob.z());
+  m_clusgx.push_back(clusglob_moved.x());
+  m_clusgy.push_back(clusglob_moved.y());
+  m_clusgr.push_back(clusglob_moved.y() > 0 ? clusr : -1 * clusr);
+  m_clusgz.push_back(clusglob_moved.z());
+  m_clusgxunmoved.push_back(clusglob.x());
+  m_clusgyunmoved.push_back(clusglob.y());
+  m_clusgzunmoved.push_back(clusglob.z());
   m_clusAdc.push_back(cluster->getAdc());
   m_clusMaxAdc.push_back(cluster->getMaxAdc());
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
@@ -1572,6 +1612,9 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgy", &m_clusgy);
   m_tree->Branch("clusgz", &m_clusgz);
   m_tree->Branch("clusgr", &m_clusgr);
+  m_tree->Branch("clusgxunmoved", &m_clusgxunmoved);
+  m_tree->Branch("clusgyunmoved", &m_clusgyunmoved);
+  m_tree->Branch("clusgzunmoved", &m_clusgzunmoved);
   m_tree->Branch("clusAdc", &m_clusAdc);
   m_tree->Branch("clusMaxAdc", &m_clusMaxAdc);
   m_tree->Branch("cluslayer", &m_cluslayer);
@@ -1800,15 +1843,14 @@ void TrackResiduals::fillResidualTreeKF( PHCompositeNode* topNode)
 	  // add the global positions to a vector to give to the cluster mover
 	  global_raw.emplace_back(std::make_pair(ckey, global));
 	} 
-      // move the cluster positions back to the original readout surface
-      auto global_moved = m_clusterMover.processTrack(global_raw);
-      
+
+      // move the cluster positions back to the original readout surface in the fillClusterBranchesKF method
       
       if (!m_doAlignment)
 	{	  
 	  for (const auto& ckey : get_cluster_keys(track) )
 	    {
-	      fillClusterBranchesKF(ckey, track, global_moved, topNode);
+	      fillClusterBranchesKF(ckey, track, global_raw, topNode);
 	    }
 	}
         
@@ -1818,7 +1860,7 @@ void TrackResiduals::fillResidualTreeKF( PHCompositeNode* topNode)
 	{
 	  /// repopulate with info that is going into alignment
 	  clearClusterStateVectors();
-	  
+
 	  if (alignmentmap and alignmentmap->find(key) != alignmentmap->end())
 	    {
 	      auto& statevec = alignmentmap->find(key)->second;
@@ -1827,7 +1869,7 @@ void TrackResiduals::fillResidualTreeKF( PHCompositeNode* topNode)
 		{
 		  auto ckey = state->get_cluster_key();
 		  
-		  fillClusterBranchesKF(ckey, track, global_moved, topNode);
+		  fillClusterBranchesKF(ckey, track, global_raw, topNode);
 		  
 		  auto& globderivs = state->get_global_derivative_matrix();
 		  auto& locderivs = state->get_local_derivative_matrix();
@@ -2060,8 +2102,6 @@ void TrackResiduals::fillResidualTreeSeeds( PHCompositeNode* topNode )
       } 
 
     // ---- we do not use the global positions moved back to the surface in the case of seeds
-    //auto global_moved = m_clusterMover.processTrack(global_raw);
-
     
     if (!m_doAlignment)
       {
