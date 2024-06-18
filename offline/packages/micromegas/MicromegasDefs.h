@@ -109,6 +109,9 @@ namespace MicromegasDefs
   //! number of channels per fee board
   static constexpr int m_nchannels_fee = 256;
 
+  //! number of sampa chips per fee board
+  static constexpr int m_nsampa_fee = 8;
+
   //! number of fee boards
   static constexpr int m_nfee = 16;
 
