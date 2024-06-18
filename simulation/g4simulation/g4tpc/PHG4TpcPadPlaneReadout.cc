@@ -109,12 +109,11 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
     {
       int side, region, sector;
       double weight;
-      std::ifstream weights_file("tpc_module_gain_weights.txt");
+      std::ifstream weights_file(m_tpc_module_gain_weights_file);
       if(!weights_file.is_open()) 
 	{
-	  std::cout << "Failed to open weights file in PHG4TpcPadPlaneReadout" << std::endl;
+	  std::cout << ".In PHG4TpcPadPlaneReadout: Option to use module gain weights enabled, but weights file not found. Aborting." << std::endl;
 	  return Fun4AllReturnCodes::ABORTEVENT;
-
 	}
 
       for(int iside =0; iside < 2; ++iside)
@@ -282,7 +281,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   if (m_flagToUseGain == 1)
   {
     gain_weight = h_gain[side]->GetBinContent(h_gain[side]->FindBin(rad_gem * 10, phi_gain));  // rad_gem in cm -> *10 to get mm
-  nelec = nelec * gain_weight;
+    nelec = nelec * gain_weight;
   }
 
   if(m_use_module_gain_weights)

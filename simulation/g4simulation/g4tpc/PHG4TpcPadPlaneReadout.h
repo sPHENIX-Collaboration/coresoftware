@@ -33,6 +33,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   void UseGain(const int flagToUseGain);
   void SetUseModuleGainWeights(const int flag) {m_use_module_gain_weights = flag;}
+  void SetModuleGainWeightsFileName(std::string name) {m_tpc_module_gain_weights_file = name;}
   void ReadGain();
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
@@ -74,7 +75,10 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // Using Gain maps is turned off by default
   int m_flagToUseGain = 0;
 
-  bool m_use_module_gain_weights = true;
+  // Optionally apply a module-by-module weight to the GEM gain
+  // Weights are input from a file for all 72 TPC modules
+  bool m_use_module_gain_weights = false;
+  std::string m_tpc_module_gain_weights_file = "";
 
   // gaussian sampling
   static constexpr double _nsigmas = 5;
