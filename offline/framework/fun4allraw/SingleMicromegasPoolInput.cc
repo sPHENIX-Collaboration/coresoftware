@@ -188,6 +188,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       {
         std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
         m_waveform_count_dropped[packet_id] += nwf;
+        bco_matching_information.cleanup();
         continue;
       }
 

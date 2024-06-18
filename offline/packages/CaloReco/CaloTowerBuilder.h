@@ -76,6 +76,13 @@ class CaloTowerBuilder : public SubsysReco
   {
     m_UseOfflinePacketFlag = f;
   }
+  void set_timeFitLim(float low,float high)
+  {
+    m_setTimeLim = true;
+    m_timeLim_low = low;
+    m_timeLim_high = high;
+    return;
+  }
 
  private:
   int process_sim();
@@ -101,6 +108,9 @@ class CaloTowerBuilder : public SubsysReco
   std::string m_inputNodePrefix{"WAVEFORM_"};
   std::string m_outputNodePrefix{"TOWERS_"};
   std::string TowerNodeName;
+  bool m_setTimeLim{false};
+  float m_timeLim_low{-3.0};
+  float m_timeLim_high{4.0};
 
   std::string m_fieldname;
   std::string m_calibName;

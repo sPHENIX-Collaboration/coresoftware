@@ -292,6 +292,10 @@ float TrackResiduals::calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* cluste
     sort(dedxlist.begin(), dedxlist.end());
   }
   int trunc_min = 0;
+  if (dedxlist.size() < 1)
+  {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
   int trunc_max = (int) dedxlist.size() * 0.7;
   float sumdedx = 0;
   int ndedx = 0;
@@ -459,8 +463,6 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
           Acts::Vector3 clusglob;
           if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
           {
-	    std::cout << "fillVertexTree: call wrapper for ckey " << key << " crossing " << track->get_crossing() << std::endl;
-
             clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, track->get_crossing(), m_dccStatic, m_dccAverage, m_dccFluctuation);
           }
           else

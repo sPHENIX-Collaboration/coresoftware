@@ -60,6 +60,13 @@ class CaloWaveformProcessing : public SubsysReco
     _nsoftwarezerosuppression = softwarezerosuppression;
     _bdosoftwarezerosuppression = usezerosuppression;
   }
+  void set_timeFitLim(float low,float high)
+  {
+    m_setTimeLim = true;
+    m_timeLim_low = low;
+    m_timeLim_high = high;
+    return;
+  }
 
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
@@ -78,6 +85,10 @@ class CaloWaveformProcessing : public SubsysReco
   std::string m_template_input_file;
   std::string url_template;
   std::string m_template_name = "NONE";
+
+  bool m_setTimeLim{false};
+  float m_timeLim_low{-3.0};
+  float m_timeLim_high{4.0};
 
   std::string url_onnx;
   std::string m_model_name = "CEMC_ONNX";

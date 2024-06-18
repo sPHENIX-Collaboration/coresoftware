@@ -21,7 +21,15 @@ class TpcDistortionCorrection
   {
     StaticOnly = 0,
     BeamInducedAverage = 1,
-    BeamInducedFluctuation = 2
+    BeamInducedFluctuation = 2,
+    ModuleEdge = 3
+  };
+
+  enum DistortionHandlingType
+  {
+    Volumetric = 0,
+    PlanarInterpolateToZero= 1,
+    PlanarFlat = 2
   };
 
   enum CoordMask

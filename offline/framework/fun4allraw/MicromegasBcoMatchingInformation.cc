@@ -258,7 +258,8 @@ bool MicromegasBcoMatchingInformation::find_reference_from_data( Packet* packet 
   }
 
   // print all differences
-  std::cout << "MicromegasBcoMatchingInformation::find_reference - gtm_bco_diff_list: " << gtm_bco_diff_list << std::endl;
+  if( verbosity() )
+  { std::cout << "MicromegasBcoMatchingInformation::find_reference_from_data - gtm_bco_diff_list: " << gtm_bco_diff_list << std::endl; }
 
   uint32_t fee_bco_prev = 0;
   bool has_fee_bco_prev = false;
@@ -295,7 +296,7 @@ bool MicromegasBcoMatchingInformation::find_reference_from_data( Packet* packet 
     if( fee_bco_diff < m_max_fee_bco_diff )
     { continue; }
 
-    std::cout << "MicromegasBcoMatchingInformation::find_reference - fee_bco_diff: " << fee_bco_diff << std::endl;
+    std::cout << "MicromegasBcoMatchingInformation::find_reference_from_data - fee_bco_diff: " << fee_bco_diff << std::endl;
 
     // look for matching diff in gtm_bco array
     for( size_t i = 0; i < gtm_bco_diff_list.size(); ++i )
@@ -313,13 +314,13 @@ bool MicromegasBcoMatchingInformation::find_reference_from_data( Packet* packet 
 
           if( verbosity() )
           {
-            std::cout << "MicromegasBcoMatchingInformation::find_reference - matching is verified" << std::endl;
+            std::cout << "MicromegasBcoMatchingInformation::find_reference_from_data - matching is verified" << std::endl;
             std::cout
-              << "MicromegasBcoMatchingInformation::find_reference -"
+              << "MicromegasBcoMatchingInformation::find_reference_from_data -"
               << " m_gtm_bco_first: " << std::hex << m_gtm_bco_first << std::dec
               << std::endl;
             std::cout
-              << "MicromegasBcoMatchingInformation::find_reference -"
+              << "MicromegasBcoMatchingInformation::find_reference_from_data -"
               << " m_fee_bco_first: " << std::hex << m_fee_bco_first << std::dec
               << std::endl;
           }

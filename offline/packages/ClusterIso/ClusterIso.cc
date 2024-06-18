@@ -13,7 +13,7 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 #include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
@@ -61,6 +61,7 @@ ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize
   : SubsysReco(kname)
   , m_do_subtracted(do_subtracted)
   , m_do_unsubtracted(do_unsubtracted)
+  , m_use_towerinfo(true)
 {
   if (Verbosity() >= VERBOSITY_SOME) std::cout << Name() << "::ClusterIso constructed" << '\n';
   if (coneSize == 0 && Verbosity() >= VERBOSITY_QUIET) std::cout << "WARNING in " << Name() << "ClusterIso:: cone size is zero" << '\n';
@@ -136,12 +137,19 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 	 * NOTE: that during the background event subtraction the EMCal towers are grouped 
 	 * together so we have to use the inner HCal geometry. 
 	 */
+
+  std::string RawCemcClusterNodeName = "CLUSTER_CEMC";
+  if (m_use_towerinfo)
+  {
+    RawCemcClusterNodeName = "CLUSTERINFO_CEMC";
+  }
+
   if (m_do_subtracted)
   {
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE) std::cout << Name() << "::ClusterIso starting subtracted calculation" << '\n';
       //get EMCal towers
-      TowerInfoContainer *towersEM3old = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
+      TowerInfoContainer *towersEM3old = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
       if (towersEM3old == nullptr)
       {
         m_do_subtracted = false;
@@ -150,11 +158,11 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
       if (Verbosity() >= VERBOSITY_MORE) std::cout << Name() << "::ClusterIso::process_event: " << towersEM3old->size() << " TOWERINFO_CALIB_CEMC_RETOWER_SUB1 towers" << '\n';
 
       //get InnerHCal towers
-      TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
+      TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
       if (Verbosity() >= VERBOSITY_MORE) std::cout << Name() << "::ClusterIso::process_event: " << towersIH3->size() << " TOWERINFO_CALIB_HCALIN_SUB1 towers" << '\n';
 
       //get outerHCal towers
-      TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
+      TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
       if (Verbosity() >= VERBOSITY_MORE) std::cout << Name() << "::ClusterIso::process_event: " << towersOH3->size() << " TOWERINFO_CALIB_HCALOUT_SUB1 towers" << std::endl;
 
       //get geometry of calorimeter towers
@@ -163,7 +171,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
       RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
 
       {
-        RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_CEMC");
+        RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode, RawCemcClusterNodeName.c_str()); 
         RawClusterContainer::ConstRange begin_end = clusters->getClusters();
         RawClusterContainer::ConstIterator rtiter;
         if (Verbosity() >= VERBOSITY_SOME) std::cout << Name() << "::ClusterIso sees " << clusters->size() << " clusters " << '\n';
@@ -282,15 +290,15 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
     if (Verbosity() >= VERBOSITY_EVEN_MORE) std::cout << Name() << "::ClusterIso starting unsubtracted calculation" << '\n';
     {
       //get EMCal towers
-      TowerInfoContainer *towersEM3old = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC");
+      TowerInfoContainer *towersEM3old = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
       if (Verbosity() >= VERBOSITY_MORE) std::cout << "ClusterIso::process_event: " << towersEM3old->size() << " TOWERINFO_CALIB_CEMC towers" << '\n';
 
       //get InnerHCal towers
-      TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN");
+      TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
       if (Verbosity() >= VERBOSITY_MORE) std::cout << "ClusterIso::process_event: " << towersIH3->size() << " TOWERINFO_CALIB_HCALIN towers" << '\n';
 
       //get outerHCal towers
-      TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT");
+      TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
       if (Verbosity() >= VERBOSITY_MORE) std::cout << "ClusterIso::process_event: " << towersOH3->size() << " TOWERINFO_CALIB_HCALOUT towers" << std::endl;
 
       //get geometry of calorimeter towers
@@ -299,7 +307,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
       RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
 
       {
-        RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_CEMC");
+        RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode, RawCemcClusterNodeName.c_str());
         RawClusterContainer::ConstRange begin_end = clusters->getClusters();
         RawClusterContainer::ConstIterator rtiter;
         if (Verbosity() >= VERBOSITY_SOME) std::cout << " ClusterIso sees " << clusters->size() << " clusters " << '\n';

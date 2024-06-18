@@ -74,6 +74,7 @@ class PHCASeeding : public PHTrackSeeding
    using keyList = std::vector<TrkrDefs::cluskey>;
    using keyLists = std::vector<keyList>;
    using keyListPerLayer = std::array<keyList, _NLAYERS_TPC>;
+   using keySet = std::set<TrkrDefs::cluskey>;
 
    using keyLink = std::pair<TrkrDefs::cluskey, TrkrDefs::cluskey>;
    using keyLinks = std::vector<keyLink>;
