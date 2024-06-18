@@ -91,3 +91,6 @@ tmtags
 *.app
 /.cproject
 /.project
+
+# dev directory
+dev/*
