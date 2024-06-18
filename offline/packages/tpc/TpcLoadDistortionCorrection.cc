@@ -62,7 +62,7 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   }
 
   // create and populate the nodes for each distortion, if present:
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 4; i++)
   {
     if (!m_correction_in_use[i])
     {
@@ -106,6 +106,9 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
 
     // assign whether phi corrections (DP) should be read as radians or mm
     distortion_correction_object->m_phi_hist_in_radians = m_phi_hist_in_radians;
+
+    // assign whether 2D corrections should be interpolated to zero at readout or not (has no effect on 3D corrections)
+    distortion_correction_object->m_interpolate_z = m_interpolate_z;
 
     if (Verbosity())
     {
