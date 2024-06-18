@@ -39,6 +39,9 @@ class TowerInfov2 : public TowerInfov1
   void set_isNoCalib(bool isNoCalib) override { set_status_bit(4, isNoCalib); }
   bool get_isNoCalib() const override { return get_status_bit(4); }
 
+  void set_isZS(bool isZS) override { set_status_bit(5, isZS); }
+  bool get_isZS() const override { return get_status_bit(5); }
+
   bool get_isGood() const override { return !((bool) _status); }
 
   uint8_t get_status() const override { return _status; }

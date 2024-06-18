@@ -6,6 +6,10 @@
 #include <ffarawobjects/MicromegasRawHitContainerv1.h>
 #include <ffarawobjects/MicromegasRawHitv1.h>
 
+#include <fun4all/Fun4AllHistoManager.h>
+#include <qautils/QAHistManagerDef.h>
+#include <qautils/QAUtil.h>
+
 #include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
@@ -18,99 +22,53 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <TFile.h>
+#include <TH1.h>
+
 #include <algorithm>
-#include <memory>
-#include <set>
+#include <bitset>
 
 namespace
 {
-  // streamer for lists
-  template <class T>
-  std::ostream& operator<<(std::ostream& o, const std::list<T>& list)
-  {
-    if (list.empty())
-    {
-      o << "{}";
-    }
-    else
-    {
-      const bool is_hex = (o.flags()&std::ios_base::hex);
-      o << "{ ";
-      bool first = true;
-      for (const auto& value : list)
-      {
-        if (!first)
-        {
-          o << ", ";
-        }
-        if( is_hex )
-	{
-	  o << "0x";
-	}
-        o << value;
-        first = false;
-      }
-      o << " }";
-    }
-    return o;
-  }
-
-  // get the difference of two unsiged numbers
-  template<class T>
-  inline static constexpr T get_bco_diff( const T& first, const T& second )
-  { return first < second ? (second-first):(first-second); }
+  // maximum number of packets
+  static constexpr int m_npackets_active = 2;
 
   // minimum number of requested samples
   static constexpr int m_min_req_samples = 5;
 
-  // define limit for matching two fee_bco
-  static constexpr unsigned int max_fee_bco_diff = 10;
-  static constexpr unsigned int max_gtm_bco_diff = 100;
-
-  // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
-  static constexpr unsigned int max_matching_data_size = 50;
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum SampaDataType
+  {
+    HEARTBEAT_T = 0b000,
+    TRUNCATED_DATA_T = 0b001,
+    TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
+    NORMAL_DATA_T = 0b100,
+    LARGE_DATA_T = 0b101,
+    TRIG_EARLY_DATA_T = 0b110,
+    TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
 
 }  // namespace
-
-//_________________________________________________________
-void SingleMicromegasPoolInput::bco_matching_information_t::truncate( unsigned int maxsize )
-{
-  while( m_gtm_bco_list.size() > maxsize ) { m_gtm_bco_list.pop_front(); }
-  while( m_bco_matching_list.size() > maxsize ) { m_bco_matching_list.pop_front(); }
-}
-
-//_________________________________________________________
-unsigned int SingleMicromegasPoolInput::bco_matching_information_t::get_predicted_fee_bco( uint64_t gtm_bco ) const
-{
-  // check proper initialization
-  if( !(m_has_gtm_bco_first && m_has_fee_bco_first ) ) { return 0; }
-
-  // this is the clock multiplier from lvl1 to fee clock
-  /* todo: should replace with actual rational number for John K. */
-  static constexpr double multiplier = 4.2629164;
-
-  // get lvl1 bco difference with proper rollover accounting
-  uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
-    (gtm_bco - m_gtm_bco_first):
-    (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
-
-  // convert to fee bco, and truncate to 20 bits
-  uint64_t fee_bco_predicted = m_fee_bco_first + multiplier*(gtm_bco_difference);
-  return (unsigned int)(fee_bco_predicted & 0xFFFFFU);
-}
 
 //______________________________________________________________
 SingleMicromegasPoolInput::SingleMicromegasPoolInput(const std::string& name)
   : SingleStreamingInput(name)
 {
   SubsystemEnum(InputManagerType::MICROMEGAS);
-  plist = new Packet*[10];
 }
 
 //______________________________________________________________
 SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
 {
-  delete[] plist;
+  for( const auto& [packet,counts]:m_waveform_count_total )
+  {
+    const auto& dropped = m_waveform_count_dropped[packet];
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - packet: " << packet << std::endl;
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_total: " << counts << std::endl;
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped: " << dropped << std::endl;
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio: " << double(dropped)/counts << std::endl;
+    std::cout << std::endl;
+  }
 }
 
 //______________________________________________________________
@@ -164,7 +122,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
     }
 
     const int EventSequence = evt->getEvtSequence();
-    const int npackets = evt->getPacketList(plist, 10);
+    const int npackets = evt->getPacketList(&plist[0], 10);
 
     if (npackets == 10)
     {
@@ -175,7 +133,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
     for (int i = 0; i < npackets; i++)
     {
       // keep pointer to local packet
-      std::unique_ptr<Packet> packet( plist[i] );
+      std::unique_ptr<Packet> packet(plist[i]);
 
       // get packet id
       const auto packet_id = packet->getIdentifier();
@@ -187,80 +145,52 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
       // get relevant bco matching information
       auto& bco_matching_information = m_bco_matching_information_map[packet_id];
+      bco_matching_information.set_verbosity(Verbosity());
 
-      // loop over taggers
-      const int ntagger = packet->lValue(0, "N_TAGGER");
-      for (int t = 0; t < ntagger; t++)
+      // read gtm bco information
+      bco_matching_information.save_gtm_bco_information(packet.get());
+
+      // save BCO from tagger internally
+      const int n_tagger = packet->lValue(0, "N_TAGGER");
+      for (int t = 0; t < n_tagger; ++t)
       {
-        // only store gtm_bco for level1 type of taggers (not ENDDAT)
-        const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+        const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
         if (is_lvl1)
         {
-          // get gtm_bco
-          const auto gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
-
-          // initialize first gtm_bco
-          if( !bco_matching_information.m_has_gtm_bco_first )
-          {
-            bco_matching_information.m_gtm_bco_first = gtm_bco;
-            bco_matching_information.m_has_gtm_bco_first = true;
-
-            if( Verbosity() )
-            {
-              std::cout
-                << "SingleMicromegasPoolInput::FillPool -"
-                << " packet: " << packet_id
-                << std::hex
-                << " m_gtm_bco_first: 0x" << gtm_bco
-                << std::dec
-                << std::endl;
-            }
-          }
-
-          // store in list of available bco
-          bco_matching_information.m_gtm_bco_list.push_back(gtm_bco);
+          const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+          m_BeamClockPacket[gtm_bco].insert(packet_id);
+          m_BclkStack.insert(gtm_bco);
         }
       }
 
       // loop over waveforms
       const int nwf = packet->iValue(0, "NR_WF");
+      m_waveform_count_total[packet_id] += nwf;
 
       if (Verbosity())
       {
         std::cout
           << "SingleMicromegasPoolInput::FillPool -"
           << " packet: " << packet_id
-          << " n_gtm_bco: " << bco_matching_information.m_gtm_bco_list.size()
           << " n_waveform: " << nwf
           << std::endl;
-
-        if (!bco_matching_information.m_gtm_bco_list.empty())
-        {
-          std::cout
-            << "SingleMicromegasPoolInput::FillPool -"
-            << " packet: " << packet_id
-            << " gtm_bco: " << std::hex << bco_matching_information.m_gtm_bco_list << std::dec
-            << std::endl;
-
-          // also print predicted fee bco
-          std::list<unsigned int> fee_bco_predicted_list;
-          std::transform(
-            bco_matching_information.m_gtm_bco_list.begin(),
-            bco_matching_information.m_gtm_bco_list.end(),
-            std::back_inserter(fee_bco_predicted_list),
-            [&bco_matching_information](const uint64_t& gtm_bco ){ return bco_matching_information.get_predicted_fee_bco(gtm_bco); } );
-
-          std::cout
-            << "SingleMicromegasPoolInput::FillPool -"
-            << " packet: " << packet_id
-            << " fee_bco_predicted: " << std::hex << fee_bco_predicted_list << std::dec
-            << std::endl;
-        }
+        bco_matching_information.print_gtm_bco_information();
       }
 
-      // keep track of orphans
-      using fee_pair_t = std::pair<unsigned int, unsigned int>;
-      std::set<fee_pair_t> orphans;
+      // try find reference
+      if (!bco_matching_information.is_verified())
+      {
+        bco_matching_information.find_reference(packet.get());
+      }
+
+      // drop packet if not found
+      if (!bco_matching_information.is_verified())
+      {
+        std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
+        m_waveform_count_dropped[packet_id] += nwf;
+        bco_matching_information.cleanup();
+        continue;
+      }
 
       for (int wf = 0; wf < nwf; wf++)
       {
@@ -274,93 +204,36 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
           continue;
         }
 
+        // get fee bco
+        const unsigned int fee_bco = packet->iValue(wf, "BCO");
+
+        // find matching gtm bco
+        uint64_t gtm_bco = 0;
+        const auto result = bco_matching_information.find_gtm_bco(fee_bco);
+
+        if (result)
+        {
+          // assign gtm bco
+          gtm_bco = result.value();
+        }
+        else
+        {
+          // increment count
+          ++m_waveform_count_dropped[packet_id];
+
+          // skip the waverform
+          continue;
+        }
+
+        // get type
+        // ignore heartbeat waveforms
+        if( packet->iValue(wf, "TYPE" ) == HEARTBEAT_T ) continue;
+
         // get number of samples and check
         const uint16_t samples = packet->iValue(wf, "SAMPLES");
         if (samples < m_min_req_samples)
         {
           continue;
-        }
-
-        // get fee bco
-        const unsigned int fee_bco = packet->iValue(wf, "BCO");
-
-        // initialize first fee_bco
-        if( !bco_matching_information.m_has_fee_bco_first )
-        {
-          bco_matching_information.m_fee_bco_first = fee_bco;
-          bco_matching_information.m_has_fee_bco_first = true;
-
-          if( Verbosity() )
-          {
-            std::cout
-              << "SingleMicromegasPoolInput::FillPool -"
-              << " packet: " << packet_id
-              << std::hex
-              << " m_fee_bco_first: 0x" << fee_bco
-              << std::dec
-              << std::endl;
-            }
-        }
-
-        // find matching gtm bco
-        uint64_t gtm_bco = 0;
-        const auto bco_matching_iter = std::find_if(
-          bco_matching_information.m_bco_matching_list.begin(),
-          bco_matching_information.m_bco_matching_list.end(),
-          [&fee_bco]( const m_bco_matching_pair_t& pair )
-          { return get_bco_diff( pair.first, fee_bco ) < max_fee_bco_diff; } );
-
-        if( bco_matching_iter != bco_matching_information.m_bco_matching_list.end() )
-        {
-          // assign gtm bco
-          gtm_bco = bco_matching_iter->second;
-        }
-        else
-        {
-
-          // find gtm_bco in list that match fee bco
-          auto iter = std::find_if(
-            bco_matching_information.m_gtm_bco_list.begin(),
-            bco_matching_information.m_gtm_bco_list.end(),
-            [&fee_bco, &bco_matching_information]( const uint64_t& gtm_bco_local )
-            { return get_bco_diff( bco_matching_information.get_predicted_fee_bco(gtm_bco_local), fee_bco ) < max_gtm_bco_diff; } );
-
-          if( iter != bco_matching_information.m_gtm_bco_list.end() )
-          {
-            gtm_bco = *iter;
-            if (Verbosity())
-            {
-              std::cout << "SingleMicromegasPoolInput::FillPool -"
-                << " fee_id: " << fee_id
-                << std::hex
-                << " fee_bco: 0x" << fee_bco
-                << " predicted: 0x" << bco_matching_information.get_predicted_fee_bco(gtm_bco)
-                << " gtm_bco: 0x" << gtm_bco
-                << std::dec
-                << std::endl;
-            }
-
-            // fee_bco is new. Assume it corresponds to the first available gtm bco
-            // update running fee_bco and gtm_bco pair accordingly
-            bco_matching_information.m_bco_matching_list.emplace_back(fee_bco, gtm_bco);
-
-            // remove bco from running list
-            bco_matching_information.m_gtm_bco_list.erase(iter);
-          }
-          else
-          {
-            if (Verbosity() && orphans.insert(std::make_pair(fee_id, fee_bco)).second)
-            {
-              std::cout << "SingleMicromegasPoolInput::FillPool -"
-                << " fee_id: " << fee_id
-                << " fee_bco: 0x" << std::hex << fee_bco << std::dec
-                << " gtm_bco: none"
-                << std::endl;
-            }
-
-            // skip the waverform
-            continue;
-          }
         }
 
         // create new hit
@@ -401,11 +274,10 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
 
         m_MicromegasRawHitMap[gtm_bco].push_back(newhit.release());
-        m_BclkStack.insert(gtm_bco);
       }
 
       // cleanup
-      bco_matching_information.truncate(max_matching_data_size);
+      bco_matching_information.cleanup();
     }
   }
 }
@@ -461,7 +333,6 @@ void SingleMicromegasPoolInput::Print(const std::string& what) const
 //____________________________________________________________________________
 void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
-  std::vector<uint64_t> toclearbclk;
   for (const auto& iter : m_MicromegasRawHitMap)
   {
     if (iter.first <= bclk)
@@ -470,8 +341,6 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
       {
         delete pktiter;
       }
-
-      toclearbclk.push_back(iter.first);
     }
     else
     {
@@ -479,17 +348,45 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
     }
   }
 
-  for (auto iter : toclearbclk)
+  // cleanup block stat
+  for (auto iter = m_BclkStack.begin(); iter != m_BclkStack.end();)
   {
-    m_BclkStack.erase(iter);
-    m_BeamClockFEE.erase(iter);
-    m_MicromegasRawHitMap.erase(iter);
+    if (*iter <= bclk)
+    {
+      iter = m_BclkStack.erase(iter);
+    }
+    else
+    {
+      break;
+    }
   }
+
+  // generic map cleanup
+  auto cleanup = [bclk](auto&& map)
+  {
+    for (auto iter = map.begin(); iter != map.end();)
+    {
+      if (iter->first <= bclk)
+      {
+        iter = map.erase(iter);
+      }
+      else
+      {
+        break;
+      }
+    }
+  };
+
+  cleanup(m_BeamClockFEE);
+  cleanup(m_BeamClockPacket);
+  cleanup(m_MicromegasRawHitMap);
 }
 
 //_______________________________________________________
 void SingleMicromegasPoolInput::ClearCurrentEvent()
 {
+  std::cout << "SingleMicromegasPoolInput::ClearCurrentEvent." << std::endl;
+
   uint64_t currentbclk = *m_BclkStack.begin();
   CleanupUsedPackets(currentbclk);
   return;
@@ -572,5 +469,71 @@ void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
   {
     StreamingInputManager()->SetMicromegasBcoRange(m_BcoRange);
     StreamingInputManager()->SetMicromegasNegativeBco(m_NegativeBco);
+  }
+}
+
+//_______________________________________________________
+void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
+{
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  // set of packets for which the gtm BCO is found at least once
+  unsigned int n_waveforms = 0;
+  std::set<int> found_packets;
+  for (uint64_t gtm_bco_loc = gtm_bco - m_NegativeBco; gtm_bco_loc < gtm_bco + m_BcoRange - m_NegativeBco; ++gtm_bco_loc)
+  {
+    // packet ids
+    const auto packet_iter = m_BeamClockPacket.find(gtm_bco_loc);
+    if( packet_iter != m_BeamClockPacket.end() )
+    { found_packets.insert( packet_iter->second.begin(), packet_iter->second.end() ); }
+
+    // waveforms
+    const auto wf_iter = m_MicromegasRawHitMap.find(gtm_bco_loc);
+    if (wf_iter != m_MicromegasRawHitMap.end())
+    { n_waveforms += wf_iter->second.size(); }
+  }
+
+  // per packet statistics
+  auto h_packet_stat = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_packet_stat"));
+  h_packet_stat->Fill( "Reference", 1 );
+
+  for( const auto& packet_id:found_packets )
+  { h_packet_stat->Fill( std::to_string(packet_id).c_str(), 1 ); }
+  h_packet_stat->Fill( "All", found_packets.size()>= m_npackets_active );
+
+  // how many packet_id found for this BCO
+  auto h_packet = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_npacket_bco"));
+  h_packet->Fill(found_packets.size());
+
+  // how many waveforms found for this BCO
+  auto h_waveform = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_nwaveform_bco"));
+  h_waveform->Fill(n_waveforms);
+}
+//_______________________________________________________
+void SingleMicromegasPoolInput::createQAHistos()
+{
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  auto h_npacket_bco_hist = new TH1I( "h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Matching BCO tagger count; GL1 trigger count", 10, 0, 10 );
+  auto h_nwaveform_bco_hist = new TH1I( "h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Matching Waveform count; GL1 trigger count", 4100, 0, 4100 );
+
+  /*
+   * first bin is the number of requested GL1 BCO, for reference
+   * next two bins is the number of times the GL1 BCO is found in the taggers list for a given packet_id
+   * last bin is the sum
+   */
+  auto h_packet_stat_hist = new TH1I( "h_MicromegasBCOQA_packet_stat", "Matching Tagger count per packet; packet id; GL1 trigger count", m_npackets_active+2, 0, m_npackets_active+2 );
+  h_packet_stat_hist->GetXaxis()->SetBinLabel(1, "Reference" );
+  h_packet_stat_hist->GetXaxis()->SetBinLabel(2, "5001" );
+  h_packet_stat_hist->GetXaxis()->SetBinLabel(3, "5002" );
+  h_packet_stat_hist->GetXaxis()->SetBinLabel(4, "All" );
+
+  for( const auto& h:std::initializer_list<TH1*>{h_npacket_bco_hist, h_nwaveform_bco_hist, h_packet_stat_hist} )
+  {
+    h->SetFillStyle(1001);
+    h->SetFillColor(kYellow);
+    hm->registerHisto(h);
   }
 }

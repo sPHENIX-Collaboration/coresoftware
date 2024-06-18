@@ -101,8 +101,6 @@ m_detectors( {
   {5002, 6, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 0 ), "sec21.0", "R3.3", "M5P",  "SCOP" },
   {5002, 8, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   0 ), "sec21.1", "R3.4", "M5Z",  "SCOZ" },
   {5002, 9, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 1 ), "sec21.2", "R3.5", "M8P",  "SCIP" },
-  /* {10, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   1 ), "sec21.3", "R3.6", "M8Z",  "SCIZ" }, */
-  // updated after fiber swapping on May 23, to fix flaky initialization of the FEE
   {5001, 23, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   1 ), "sec21.3", "R3.9", "M8Z",  "SCIZ" },
   {5001, 24, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 6 ), "sec22.0", "R3.7", "M6P",  "SWIP" },
   {5001, 25, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   6 ), "sec22.1", "R3.8", "M6Z",  "SWIZ" },
@@ -167,6 +165,8 @@ std::vector<int> MicromegasMapping::get_fee_id_list( int packet_id ) const
 //____________________________________________________________________________________________________
 TrkrDefs::hitsetkey MicromegasMapping::get_hitsetkey( int fee_id ) const
 {
+
+  // apply mapping changes
   const auto iter = m_detector_map.find( fee_id );
   if( iter == m_detector_map.end() )
   {
@@ -182,6 +182,7 @@ TrkrDefs::hitsetkey MicromegasMapping::get_hitsetkey( int fee_id ) const
 //____________________________________________________________________________________________________
 std::string MicromegasMapping::get_detname_saclay( int fee_id ) const
 {
+  // apply mapping changes
   const auto iter = m_detector_map.find( fee_id );
   if( iter == m_detector_map.end() )
   {
@@ -197,6 +198,7 @@ std::string MicromegasMapping::get_detname_saclay( int fee_id ) const
 //____________________________________________________________________________________________________
 std::string MicromegasMapping::get_detname_sphenix( int fee_id ) const
 {
+  // apply mapping changes
   const auto iter = m_detector_map.find( fee_id );
   if( iter == m_detector_map.end() )
   {
@@ -212,6 +214,7 @@ std::string MicromegasMapping::get_detname_sphenix( int fee_id ) const
 //____________________________________________________________________________________________________
 int MicromegasMapping::get_physical_strip( int fee_id, int channel_id) const
 {
+  // apply mapping changes
   // bound check
   if( channel_id < 0 || channel_id >= MicromegasDefs::m_nchannels_fee )
   {
@@ -555,6 +558,18 @@ void MicromegasMapping::construct_channel_mapping()
     m_fee_to_strip_mapping_phi[channel_id] = strip_geant;
   }
 
-  // print_mapping( "m_fee_to_strip_mapping_phi", m_fee_to_strip_mapping_phi );
-
 }
+
+//_____________________________________________________________________
+int MicromegasMapping::get_old_fee_id( int fee_id ) const
+{
+  /*
+  * on May 29 2024, we the fiber arriving on fee_id 11 was moved to fee_id 21
+  * since fee_id 11 was not assigned before, we can internally convert all call to fee_id 21 to fee_id11,
+  * while keeping backward compatibility
+  */
+  static const std::map<int,int> internal_fee_id_map( {{21,11}} );
+  const auto& iter = internal_fee_id_map.find( fee_id );
+  return iter == internal_fee_id_map.end() ? fee_id:iter->second;
+}
+

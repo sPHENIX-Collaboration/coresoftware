@@ -26,6 +26,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   void do_zero_suppression(bool b) { m_do_zerosup = b; }
   void set_pedestalSigmaCut(float b) { m_ped_sig_cut = b; }
   void do_noise_rejection(bool b) { m_do_noise_rejection = b; }
+  void set_presampleShift(int b) { m_presampleShift = b; }
   void skipNevent(int b) { startevt = b; }
   void event_range(int a, int b)
   {
@@ -39,6 +40,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   CDBTTree *m_cdbttree{nullptr};
   CDBInterface *m_cdb{nullptr};
 
+  int m_presampleShift = 40; // number of presamples shifted to line up t0
   int _ievent{0};
   int startevt{-1};
   int endevt{9999999};

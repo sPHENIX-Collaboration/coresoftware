@@ -10,15 +10,16 @@
 #ifndef PHTPCCLUSTERMOVER_H
 #define PHTPCCLUSTERMOVER_H
 
+#include <trackbase/ActsGeometry.h>
+#include <trackbase_historic/ActsTransformations.h>
+
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcDistortionCorrection.h>
+
 #include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <vector>
-
-#include <trackbase/ActsGeometry.h>
-#include <trackbase_historic/ActsTransformations.h>
-#include <tpc/TpcDistortionCorrectionContainer.h>
-#include <tpc/TpcDistortionCorrection.h>
 
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;

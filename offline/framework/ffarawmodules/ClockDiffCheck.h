@@ -29,7 +29,18 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   void FillCaloClockDiff(CaloPacketContainer *pktcont);
   void FillPacketDiff(OfflinePacket *pkt);
 
+  void set_delBadPkts(bool newDelBadPkts)
+  {
+    delBadPkts = newDelBadPkts;
+  }
+
+  bool get_delBadPkts()
+  {
+    return delBadPkts;
+  }
+  
  private:
+  bool delBadPkts = false;
   std::map<unsigned int, std::tuple<uint64_t, uint64_t, uint64_t, TH1 *, bool>> m_PacketStuffMap;
   /* std::string m_EvtNodeName = "CLOCKDIFFRAWHIT"; */
   /* std::set<uint64_t> bclk_seen; */

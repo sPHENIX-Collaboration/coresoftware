@@ -10,6 +10,7 @@
 #include "LaserCluster.h"
 
 #include <iostream>
+#include <vector>
 
 class PHObject;
 
@@ -65,6 +66,33 @@ class LaserClusterv1 : public LaserCluster
   unsigned int getAdc() const override { return m_adc; }
   void setAdc(unsigned int adc) override { m_adc = adc; }
 
+  void setNLayers(unsigned int nLayers) override { m_nLayers = nLayers; }
+  unsigned int getNLayers() const override { return m_nLayers; }
+
+  void setNIPhi(unsigned int nIPhi) override { m_nIPhi = nIPhi; }
+  unsigned int getNIPhi() const override { return m_nIPhi; }
+
+  void setNIT(unsigned int nIT) override { m_nIT = nIT; }
+  unsigned int getNIT() const override { return m_nIT; }
+
+  void setSDLayer(float SDLayer) override { m_SDLayer = SDLayer; }
+  float getSDLayer() const override { return m_SDLayer; }
+
+  void setSDIPhi(float SDIPhi) override { m_SDIPhi = SDIPhi; }
+  float getSDIPhi() const override { return m_SDIPhi; }
+
+  void setSDIT(float SDIT) override { m_SDIT = SDIT; }
+  float getSDIT() const override { return m_SDIT; }
+
+  void setSDWeightedLayer(float SDLayer) override { m_SDWeightedLayer = SDLayer; }
+  float getSDWeightedLayer() const override { return m_SDWeightedLayer; }
+
+  void setSDWeightedIPhi(float SDIPhi) override { m_SDWeightedIPhi = SDIPhi; }
+  float getSDWeightedIPhi() const override { return m_SDWeightedIPhi; }
+
+  void setSDWeightedIT(float SDIT) override { m_SDWeightedIT = SDIT; }
+  float getSDWeightedIT() const override { return m_SDWeightedIT; }
+
   void addHit() override {m_hitVec.push_back({0.0,0.0,0.0,0.0}); m_hitVecHardware.push_back({0.0,0.0,0.0}); }
 
   void setHitLayer(int i, float layer) override {m_hitVecHardware[i][0] = layer; }
@@ -92,17 +120,26 @@ class LaserClusterv1 : public LaserCluster
  protected:
 
   /// mean cluster position
-  float m_pos[3] = {NAN, NAN, NAN};          
-  float m_posHardware[3] = {NAN, NAN, NAN};
+  float m_pos[3] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
+  float m_posHardware[3] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
 
   std::vector<std::vector<float>> m_hitVec;
   std::vector<std::vector<float>> m_hitVecHardware;
 
   /// cluster sum adc
-  unsigned int m_adc = 0xFFFFFFFF;
-
+  unsigned int m_adc = std::numeric_limits<unsigned int>::max();
+  
   /// number of TPC clusters used to create this central mebrane cluster
-  unsigned int m_nhits = UINT_MAX;
+  unsigned int m_nhits = std::numeric_limits<unsigned int>::max();
+  unsigned int m_nLayers = std::numeric_limits<unsigned int>::max();
+  unsigned int m_nIPhi = std::numeric_limits<unsigned int>::max();
+  unsigned int m_nIT = std::numeric_limits<unsigned int>::max();
+  float m_SDLayer = std::numeric_limits<float>::quiet_NaN();
+  float m_SDIPhi = std::numeric_limits<float>::quiet_NaN();
+  float m_SDIT = std::numeric_limits<float>::quiet_NaN();
+  float m_SDWeightedLayer = std::numeric_limits<float>::quiet_NaN();
+  float m_SDWeightedIPhi = std::numeric_limits<float>::quiet_NaN();
+  float m_SDWeightedIT = std::numeric_limits<float>::quiet_NaN();
 
   ClassDefOverride(LaserClusterv1, 1)
 };

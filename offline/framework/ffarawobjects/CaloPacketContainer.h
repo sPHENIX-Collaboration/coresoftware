@@ -1,5 +1,5 @@
-#ifndef FUN4ALLRAW_CALORAWHITCONTAINER_H
-#define FUN4ALLRAW_CALORAWHITCONTAINER_H
+#ifndef FUN4ALLRAW_CALOPACKETCONTAINER_H
+#define FUN4ALLRAW_CALOPACKETCONTAINER_H
 
 #include <phool/PHObject.h>
 
@@ -16,7 +16,8 @@ class CaloPacketContainer : public PHObject
   virtual unsigned int get_npackets() { return 0; }
   virtual CaloPacket *getPacket(unsigned int) { return nullptr; }
   virtual CaloPacket *getPacketbyId(int) { return nullptr; }
-
+  virtual void deletePacketAt(int) {}
+  virtual void deletePacket(CaloPacket *) {}
  private:
   ClassDefOverride(CaloPacketContainer, 1)
 };

@@ -3,6 +3,8 @@
 #ifndef PHACTSGSF_H
 #define PHACTSGSF_H
 
+#include "ActsEvaluator.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
@@ -10,23 +12,20 @@
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <trackbase/ActsSourceLink.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
 #include <trackbase/Calibrator.h>
 #include <trackbase/ClusterErrorPara.h>
 
 #include <Acts/Definitions/Algebra.hpp>
-#include <Acts/Utilities/BinnedArray.hpp>
-#include <Acts/Utilities/Logger.hpp>
-
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
+#include <Acts/Utilities/Logger.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
-#include <trackbase/ActsTrackFittingAlgorithm.h>
-
-#include "ActsEvaluator.h"
 
 #include <string>
 
