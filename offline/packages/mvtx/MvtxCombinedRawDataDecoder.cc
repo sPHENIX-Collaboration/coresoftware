@@ -113,11 +113,7 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     se->unregisterSubsystem(this);
   }
 
-  float strobe_length_query = getStrobeLength();
-  if (strobe_length_query != 0 )
-  {
-    m_strobeWidth = strobe_length_query;
-  }
+  getStrobeLength();
 
   // Mask Hot MVTX Pixels
   std::string database = CDBInterface::instance()->getUrl(
@@ -298,7 +294,7 @@ void MvtxCombinedRawDataDecoder::removeDuplicates(
   v.erase(end, v.end());
 }
 
-float MvtxCombinedRawDataDecoder::getStrobeLength()
+void MvtxCombinedRawDataDecoder::getStrobeLength()
 {
   recoConsts *rc = recoConsts::instance();
   int m_runNumber = rc->get_IntFlag("RUNNUMBER");
@@ -308,7 +304,18 @@ float MvtxCombinedRawDataDecoder::getStrobeLength()
   executable_command += ";\" | tail -n 1";
 
   std::string strobe_query = exec(executable_command.c_str());
-  return stof(strobe_query);
+
+  try
+  {
+    m_strobeWidth = stof(strobe_query);
+  }
+  catch (std::invalid_argument const& ex)
+  {
+    if (Verbosity() >= 1)
+    {
+      std::cout << PHWHERE << ":: Run number " << m_runNumber << " has no strobe length in the DAQ database, using " << m_strobeWidth << " microseconds" << std::endl;
+    }
+  }
 }
 
 // https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po

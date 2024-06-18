@@ -50,7 +50,7 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
 
  private:
   void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>>& v);
-  float getStrobeLength();
+  void getStrobeLength();
   std::string exec(const char *cmd);
 
   TrkrHitSetContainer* hit_set_container = nullptr;
