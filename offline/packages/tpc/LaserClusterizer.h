@@ -59,7 +59,7 @@ class LaserClusterizer : public SubsysReco
   void set_debug(bool debug) { m_debug = debug; }
   void set_debug_name(const std::string &name) { m_debugFileName = name; }
 
-  void set_pedestal(float val) { pedestal = val; }
+  void set_pedestal(float val) { m_pedestal = val; }
   void set_min_clus_size(float val) { min_clus_size = val; }
   void set_min_adc_sum(float val) { min_adc_sum = val; }
 
@@ -71,7 +71,6 @@ class LaserClusterizer : public SubsysReco
   LaserClusterContainerv1 *m_clusterlist = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
   PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
-  double pedestal = 74.4;
   double min_clus_size = 1;
   double min_adc_sum = 10;
   double m_pedestal = 74.4;
