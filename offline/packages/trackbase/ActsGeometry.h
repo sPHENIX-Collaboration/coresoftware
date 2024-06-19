@@ -51,9 +51,8 @@ class ActsGeometry
       TrkrCluster* cluster);
 
   Acts::Vector3 getGlobalPositionTpc(
-    const TrkrDefs::hitsetkey& hitsetkey, const TrkrDefs::hitkey& hitkey,
-    const float& clockPeriod
-  )
+      const TrkrDefs::hitsetkey& hitsetkey, const TrkrDefs::hitkey& hitkey, const float& phi, const float& rad,
+      const float& clockPeriod);
 
   Surface get_tpc_surface_from_coords(
       TrkrDefs::hitsetkey hitsetkey,
