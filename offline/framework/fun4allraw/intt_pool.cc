@@ -83,6 +83,9 @@ unsigned int intt_pool::rawValue(const int fee, const int index)
 
 int intt_pool::iValue(const int fee, const char *what)
 {
+
+  intt_decode();
+
   if (strcmp(what, "FEE_LENGTH") == 0)
   {
     if (fee < 0 || fee >= MAX_FEECOUNT)
@@ -92,13 +95,17 @@ int intt_pool::iValue(const int fee, const char *what)
     return fee_data[fee].size();
   }
 
-  intt_decode();
   int hit = fee;
 
   if (strcmp(what, "NR_HITS") == 0)
   {
     return intt_hits.size();
   }
+
+  if ( strcmp(what,"NR_BCOS") == 0)
+    {
+      return BCO_List.size();
+    }
 
   if (strcmp(what, "ADC") == 0)
   {
@@ -189,6 +196,16 @@ long long intt_pool::lValue(const int hit, const char *what)
   {
     return lValue(hit, F_BCO);
   }
+
+  unsigned int i= hit; //  size() is unsigned
+  if ( strcmp(what,"BCOLIST") == 0)
+    {
+      if ( hit < 0 || i >= BCO_List.size()) return 0;
+      auto it = BCO_List.cbegin();
+      for (unsigned int j = 0; j< i; j++) ++it;
+      return *it;
+    }
+
   return 0;
 }
 
@@ -289,6 +306,7 @@ int intt_pool::next()
     delete (*hit_itr);
   }
   intt_hits.clear();
+  BCO_List.clear();
 
   return 0;
 }
@@ -592,6 +610,8 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
   l = hitlist[2];
   event_counter |= ((l & 0xffffU) << 16U);
   event_counter |= ((l >> 16U) & 0xffffU);
+
+  BCO_List.insert(BCO);
 
   int count = 0;
   for (unsigned int i = 3; i < hitlist.size(); i++)

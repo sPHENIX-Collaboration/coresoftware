@@ -132,7 +132,14 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
           std::cout << "Number of Hits: " << num_hits << " for packet "
                     << pool->getIdentifier() << std::endl;
         }
-        std::set<uint64_t> bclk_set;
+        
+        int numBCOs = pool->iValue(0, "NR_BCOS");
+        for (int j = 0; j < numBCOs; j++)
+        {
+          auto bco = pool->lValue(j, "BCOLIST");
+          m_BclkStack.insert(bco);
+        }
+
         for (int j = 0; j < num_hits; j++)
         {
           InttRawHit *newhit = new InttRawHitv2();
@@ -152,7 +159,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
           newhit->set_event_counter(pool->iValue(j, "EVENT_COUNTER"));
 
           gtm_bco += m_Rollover[FEE];
-          bclk_set.insert(gtm_bco);
+          
           if (gtm_bco < m_PreviousClock[FEE])
           {
             m_Rollover[FEE] += 0x10000000000;
@@ -176,7 +183,6 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
             StreamingInputManager()->AddInttRawHit(gtm_bco, newhit);
           }
           m_InttRawHitMap[gtm_bco].push_back(newhit);
-          m_BclkStack.insert(gtm_bco);
         }
         //	    Print("FEEBCLK");
       }

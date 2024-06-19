@@ -29,16 +29,13 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
-#pragma GCC diagnostic pop
 
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <memory>  // for unique_ptr, make_...
 #include <set>
 #include <vector>  // for vector
@@ -550,8 +547,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       // z error.
       const float zerror = zbins.size() * length * invsqrt12;
 
-      double cluslocaly = NAN;
-      double cluslocalz = NAN;
+      double cluslocaly = std::numeric_limits<double>::quiet_NaN();
+      double cluslocalz = std::numeric_limits<double>::quiet_NaN();
 
       if (_make_e_weights[layer])
       {
@@ -854,8 +851,8 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
       // z error.
       const float zerror = zbins.size() * length * invsqrt12;
 
-      double cluslocaly = NAN;
-      double cluslocalz = NAN;
+      double cluslocaly = std::numeric_limits<double>::quiet_NaN();
+      double cluslocalz = std::numeric_limits<double>::quiet_NaN();
 
       if (_make_e_weights[layer])
       {

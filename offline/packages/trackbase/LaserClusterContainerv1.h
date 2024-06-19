@@ -25,7 +25,7 @@ class LaserCluster;
 class LaserClusterContainerv1 : public LaserClusterContainer
 {
  public:
-  typedef std::map<unsigned int, LaserCluster *> Map;
+  typedef std::map<TrkrDefs::cluskey, LaserCluster *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -37,13 +37,13 @@ class LaserClusterContainerv1 : public LaserClusterContainer
 
   void identify(std::ostream &os = std::cout) const override;
 
-  void addClusterSpecifyKey(const unsigned int, LaserCluster *newClus) override;
+  void addClusterSpecifyKey(const TrkrDefs::cluskey, LaserCluster *newClus) override;
 
-  void removeCluster(unsigned int) override;
+  void removeCluster(TrkrDefs::cluskey) override;
   
   ConstRange getClusters() const override;
 
-  LaserCluster *findCluster(unsigned int key) const override;
+  LaserCluster *findCluster(TrkrDefs::cluskey key) const override;
 
   unsigned int size() const override;
 

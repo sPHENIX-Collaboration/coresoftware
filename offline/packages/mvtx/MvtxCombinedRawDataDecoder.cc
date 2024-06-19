@@ -24,10 +24,13 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
+
 #include <algorithm>
+#include <array>
 #include <cassert>
 
 //_________________________________________________________
@@ -102,11 +105,15 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 
   mvtx_raw_event_header =
       findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
+
+  Fun4AllServer *se = Fun4AllServer::instance();
+
   if (!mvtx_raw_event_header)
   {
-    Fun4AllServer* se = Fun4AllServer::instance();
     se->unregisterSubsystem(this);
   }
+
+  getStrobeLength();
 
   // Mask Hot MVTX Pixels
   std::string database = CDBInterface::instance()->getUrl(
@@ -285,4 +292,45 @@ void MvtxCombinedRawDataDecoder::removeDuplicates(
     end = remove(it + 1, end, *it);
   }
   v.erase(end, v.end());
+}
+
+void MvtxCombinedRawDataDecoder::getStrobeLength()
+{
+  recoConsts *rc = recoConsts::instance();
+  int m_runNumber = rc->get_IntFlag("RUNNUMBER");
+
+  std::string executable_command = "psql -h sphnxdaqdbreplica daq --csv -c \"SELECT strobe FROM mvtx_strobe WHERE hostname = \'mvtx0\' AND runnumber = ";
+  executable_command += std::to_string(m_runNumber);
+  executable_command += ";\" | tail -n 1";
+
+  std::string strobe_query = exec(executable_command.c_str());
+
+  try
+  {
+    m_strobeWidth = stof(strobe_query);
+  }
+  catch (std::invalid_argument const& ex)
+  {
+    if (Verbosity() >= 1)
+    {
+      std::cout << PHWHERE << ":: Run number " << m_runNumber << " has no strobe length in the DAQ database, using " << m_strobeWidth << " microseconds" << std::endl;
+    }
+  }
+}
+
+// https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+std::string MvtxCombinedRawDataDecoder::exec(const char *cmd)
+{
+  std::array<char, 128> buffer = {};
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe)
+  {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+  {
+    result += buffer.data();
+  }
+  return result;
 }

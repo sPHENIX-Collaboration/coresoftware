@@ -143,7 +143,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
     // get number of waveforms
     const auto n_waveform = packet->iValue(0, "NR_WF");
-    m_waveform_count_total += n_waveform;
+    m_waveform_count_total[packet_id] += n_waveform;
 
     if (Verbosity())
     {
@@ -165,6 +165,10 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
       for (int iwf = 0; iwf < n_waveform; ++iwf)
       {
+
+        const int type = packet->iValue(iwf, "TYPE");
+        if( type == MicromegasDefs::HEARTBEAT_T ) continue;
+
         // create running sample, assign packet, fee, layer and tile id
         Sample sample;
         sample.packet_id = packet_id;
@@ -197,7 +201,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
         } else {
 
           // increment count
-          ++m_waveform_count_dropped;
+          ++m_waveform_count_dropped[packet_id];
 
         }
 
@@ -344,11 +348,14 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/)
               << "};" << std::endl;
   }
 
-  if( Verbosity() )
+  for( const auto& [packet,counts]:m_waveform_count_total )
   {
-    std::cout << "MicromegasRawDataEvaluation::End - waveform_count_total: " << m_waveform_count_total << std::endl;
-    std::cout << "MicromegasRawDataEvaluation::End - waveform_count_dropped: " << m_waveform_count_dropped << std::endl;
-    std::cout << "MicromegasRawDataEvaluation::End - ratio: " << double(m_waveform_count_dropped)/m_waveform_count_total << std::endl;
+    const auto& dropped = m_waveform_count_dropped[packet];
+    std::cout << "MicromegasRawDataEvaluation::End - packet: " << packet << std::endl;
+    std::cout << "MicromegasRawDataEvaluation::End - waveform_count_total: " << counts << std::endl;
+    std::cout << "MicromegasRawDataEvaluation::End - waveform_count_dropped: " << dropped << std::endl;
+    std::cout << "MicromegasRawDataEvaluation::End - ratio: " << double(dropped)/counts << std::endl;
+    std::cout << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
