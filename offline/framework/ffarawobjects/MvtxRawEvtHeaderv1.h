@@ -12,7 +12,7 @@ class MvtxRawEvtHeaderv1 : public MvtxRawEvtHeader
 {
  public:
   MvtxRawEvtHeaderv1() = default;
-  ~MvtxRawEvtHeaderv1() = default;
+  ~MvtxRawEvtHeaderv1() override = default;
 
   /// Clear Event
   void Reset() override;
