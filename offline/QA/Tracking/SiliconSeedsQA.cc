@@ -58,7 +58,7 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     auto h_nmaps = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nmaps").c_str()));
     auto h_nintt = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nintt").c_str()));
     auto h_nmaps_nintt = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nmaps_nintt").c_str()));
-    auto h_avgnclus_phi_eta = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_phi_eta").c_str()));
+    auto h_avgnclus_eta_phi = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi").c_str()));
     auto h_trackcrossing = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing").c_str()));
     auto h_dcaxyorigin_phi = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi").c_str()));
     auto h_dcaxyvtx_phi = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi").c_str()));
@@ -77,10 +77,9 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     auto h_vchi2dof = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexchi2dof").c_str()));
     auto h_ntrackpervertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrackspervertex").c_str()));
 
-    std::cout << "Number of tracks: " << trackmap->size() << std::endl;
     h_ntrack1d->Fill(trackmap->size());
 
-    std::pair<int,int> ntrack_isfromvtx; // first: number of tracks associated to a vertex, second: number of tracks not associated to a vertex
+    std::pair<int, int> ntrack_isfromvtx; // first: number of tracks associated to a vertex, second: number of tracks not associated to a vertex
 
     for (const auto &[key, track] : *trackmap)
     {
@@ -124,11 +123,10 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
         Acts::Vector3 zero = Acts::Vector3::Zero();
         auto dcapair_origin = TrackAnalysisUtils::get_dca(track, zero);
 
-        // auto track_vtxid = track->get_vertex_id();
         auto trackvtx = vertexmap->get(track->get_vertex_id());
         if (!trackvtx)
         {
-            std::cout << "No vertex found for track " << track->get_id() << std::endl;
+            // std::cout << "No vertex found for track " << track->get_id() << std::endl;
             ntrack_isfromvtx.first++;
             continue;
         }
@@ -137,11 +135,11 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
         Acts::Vector3 track_vtx(trackvtx->get_x(), trackvtx->get_y(), trackvtx->get_z());
         auto dcapair_vtx = TrackAnalysisUtils::get_dca(track, track_vtx);
 
-        h_ntrack->Fill(phi, eta);
+        h_ntrack->Fill(eta, phi);
         h_nmaps->Fill(nmaps);
         h_nintt->Fill(nintt);
         h_nmaps_nintt->Fill(nmaps, nintt);
-        h_avgnclus_phi_eta->Fill(phi, eta, nmaps + nintt);
+        h_avgnclus_eta_phi->Fill(eta, phi, nmaps + nintt);
         h_trackcrossing->Fill(trkcrossing);
         h_dcaxyorigin_phi->Fill(phi, dcapair_origin.first.first);
         h_dcaxyvtx_phi->Fill(phi, dcapair_vtx.first.first);
@@ -149,13 +147,10 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
         h_dcazvtx_phi->Fill(phi, dcapair_vtx.second.first);
     }
 
-    // Set the number of tracks associated to a vertex histogram
-    std::cout << "Number of tracks associated to a vertex: " << ntrack_isfromvtx.first << " Number of tracks not associated to a vertex: " << ntrack_isfromvtx.second << std::endl;
     h_ntrack_isfromvtx->SetBinContent(1, h_ntrack_isfromvtx->GetBinContent(1) + ntrack_isfromvtx.first);
     h_ntrack_isfromvtx->SetBinContent(2, h_ntrack_isfromvtx->GetBinContent(2) + ntrack_isfromvtx.second);
 
     // vertex
-    m_vertices += vertexmap->size();
     h_nvertex->Fill(vertexmap->size());
     for (const auto &[key, vertex] : *vertexmap)
     {
@@ -172,7 +167,7 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
         int vndof = vertex->get_ndof();
         int vcrossing = vertex->get_beam_crossing();
 
-        std::cout << "vertex (x,y,z,t,chi2,ndof,crossing)=(" << vx << "," << vy << "," << vz << "," << vt << "," << vchi2 << "," << vndof << "," << vcrossing << ")" << std::endl;
+        // std::cout << "vertex (x,y,z,t,chi2,ndof,crossing)=(" << vx << "," << vy << "," << vz << "," << vt << "," << vchi2 << "," << vndof << "," << vcrossing << ")" << std::endl;
 
         h_vx->Fill(vx);
         h_vy->Fill(vy);
@@ -185,7 +180,6 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
         h_ntrackpervertex->Fill(vertex->size_tracks());
     }
 
-    m_event++;
     return Fun4AllReturnCodes::EVENT_OK;
 }
 std::vector<TrkrDefs::cluskey> SiliconSeedsQA::get_cluster_keys(SvtxTrack *track)
@@ -221,150 +215,108 @@ void SiliconSeedsQA::createHistos()
     assert(hm);
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "nmaps").c_str(), "MVTX clusters per track", 7, -0.5, 6.5);
-        h->GetXaxis()->SetTitle("Number of MVTX clusters");
+        auto h = new TH1F(std::string(getHistoPrefix() + "nmaps").c_str(), "MVTX clusters per track;Number of MVTX clusters per track;Entries", 7, -0.5, 6.5);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "nintt").c_str(), "INTT clusters per track", 7, -0.5, 6.5);
-        h->GetXaxis()->SetTitle("Number of INTT clusters");
+        auto h = new TH1F(std::string(getHistoPrefix() + "nintt").c_str(), "INTT clusters per track;Number of INTT clusters per track;Entries", 7, -0.5, 6.5);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "nmaps_nintt").c_str(), "MVTX vs INTT clusters per track", 7, -0.5, 6.5, 7, -0.5, 6.5);
-        h->GetXaxis()->SetTitle("Number of MVTX clusters");
-        h->GetYaxis()->SetTitle("Number of INTT clusters");
+        auto h = new TH2F(std::string(getHistoPrefix() + "nmaps_nintt").c_str(), "MVTX vs INTT clusters per track;Number of MVTX clusters per track;Number of INTT clusters per track;Entries", 7, -0.5, 6.5, 7, -0.5, 6.5);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d").c_str(), "Num reconstructed tracks", 50, 0, 200);
-        h->GetXaxis()->SetTitle("Number of tracklets");
+        auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d").c_str(), "Number of reconstructed tracks;Number of silicon tracklets;Entries", 50, 0, 200);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks").c_str(), "Num reconstructed tracks", 300, -3.14159, 3.1459, 100, -1.1, 1.1);
-        h->GetXaxis()->SetTitle("#phi [rad]");
-        h->GetYaxis()->SetTitle("#eta");
+        auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks").c_str(), "Number of reconstructed tracks;#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_phi_eta").c_str(), "Average number of clusters per track", 300, -3.14159, 3.1459, 100, -1.1, 1.1, 0, 10);
-        h->GetXaxis()->SetTitle("#phi [rad]");
-        h->GetYaxis()->SetTitle("#eta");
+        auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi").c_str(), "Average number of clusters per track;#eta;#phi [rad];Average number of clusters per track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 10);
         hm->registerHisto(h);
     }
 
     {
-        // TODO: histogram binnings and range
-        auto h = new TH1F(std::string(getHistoPrefix() + "trackcrossing").c_str(), "Track beam bunch crossing", 100, -100, 300);
-        h->GetXaxis()->SetTitle("track crossing");
+        auto h = new TH1F(std::string(getHistoPrefix() + "trackcrossing").c_str(), "Track beam bunch crossing;Track crossing;Entries", 100, -100, 300);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi").c_str(), "DCA xy origin vs phi", 300, -3.14159, 3.1459, 90, -3, 3);
-        h->GetXaxis()->SetTitle("#phi [rad]");
-        h->GetYaxis()->SetTitle("DCA xy origin [cm]");
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi").c_str(), "DCA xy origin vs phi;#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi").c_str(), "DCA xy vertex vs phi", 300, -3.14159, 3.1459, 90, -3, 3);
-        h->GetXaxis()->SetTitle("#phi [rad]");
-        h->GetYaxis()->SetTitle("DCA xy vertex [cm]");
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi").c_str(), "DCA xy vertex vs phi;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi").c_str(), "DCA z origin vs phi", 300, -3.14159, 3.1459, 100, -10, 10);
-        h->GetXaxis()->SetTitle("#phi [rad]");
-        h->GetYaxis()->SetTitle("DCA z origin [cm]");
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi").c_str(), "DCA z origin vs phi;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi").c_str(), "DCA z vertex vs phi", 300, -3.14159, 3.1459, 100, -10, 10);
-        h->GetXaxis()->SetTitle("#phi [rad]");
-        h->GetYaxis()->SetTitle("DCA z vertex [cm]");
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi").c_str(), "DCA z vertex vs phi;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx").c_str(), "Num of tracks associated to a vertex", 2, -0.5, 1.5);
-        h->GetXaxis()->SetTitle("nTracks associated to a vertex");
+        auto h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx").c_str(), "Num of tracks associated to a vertex;Is track associated to a vertex;Entries", 2, -0.5, 1.5);
         hm->registerHisto(h);
     }
 
     // vertex
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "nrecovertices").c_str(), "Num of reco vertices per event", 20, 0, 20);
-        h->GetXaxis()->SetTitle("nVertices");
+        auto h = new TH1F(std::string(getHistoPrefix() + "nrecovertices").c_str(), "Num of reco vertices per event;Number of vertices;Entries", 20, 0, 20);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "vx").c_str(), "Vertex x", 100, -2.5, 2.5);
-        h->GetXaxis()->SetTitle("vx [cm]");
+        auto h = new TH1F(std::string(getHistoPrefix() + "vx").c_str(), "Vertex x;Vertex x [cm];Entries", 100, -2.5, 2.5);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "vy").c_str(), "Vertex y", 100, -2.5, 2.5);
-        h->GetXaxis()->SetTitle("vy [cm]");
+        auto h = new TH1F(std::string(getHistoPrefix() + "vy").c_str(), "Vertex y;Vertex y [cm];Entries", 100, -2.5, 2.5);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "vx_vy").c_str(), "Vertex x vs y", 100, -2.5, 2.5, 100, -2.5, 2.5);
-        h->GetXaxis()->SetTitle("vx [cm]");
-        h->GetYaxis()->SetTitle("vy [cm]");
+        auto h = new TH2F(std::string(getHistoPrefix() + "vx_vy").c_str(), "Vertex x vs y;Vertex x [cm];Vertex y [cm];Entries", 100, -2.5, 2.5, 100, -2.5, 2.5);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "vz").c_str(), "Vertex z", 50, -25, 25);
-        h->GetXaxis()->SetTitle("vz [cm]");
+        auto h = new TH1F(std::string(getHistoPrefix() + "vz").c_str(), "Vertex z;Vertex z [cm];Entries", 50, -25, 25);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "vt").c_str(), "Vertex t", 100, -1000, 20000);
-        h->GetXaxis()->SetTitle("vt [ns]");
+        auto h = new TH1F(std::string(getHistoPrefix() + "vt").c_str(), "Vertex t;Vertex t [ns];Entries", 100, -1000, 20000);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "vertexcrossing").c_str(), "Vertex beam bunch crossing", 100, -100, 300);
-        h->GetXaxis()->SetTitle("vertex crossing");
-        hm->registerHisto(h);
-    }
-
-    // {
-    //     auto h = new TH1F(std::string(getHistoPrefix() + "vertexchi2").c_str(), "Vertex chi2", 100, 0, 10000);
-    //     h->GetXaxis()->SetTitle("vertex #chi2");
-    //     hm->registerHisto(h);
-    // }
-
-    // {
-    //     auto h = new TH1F(std::string(getHistoPrefix() + "vertexndof").c_str(), "Vertex ndof", 50, 0, 50);
-    //     h->GetXaxis()->SetTitle("vertex ndof");
-    //     hm->registerHisto(h);
-    // }
-
-    {
-        auto h = new TH1F(std::string(getHistoPrefix() + "vertexchi2dof").c_str(), "Vertex chi2/ndof", 100, 0, 20);
-        h->GetXaxis()->SetTitle("vertex #chi2/ndof");
+        auto h = new TH1F(std::string(getHistoPrefix() + "vertexcrossing").c_str(), "Vertex beam bunch crossing;Vertex crossing;Entries", 100, -100, 300);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "ntrackspervertex").c_str(), "Num of tracks per vertex", 50, 0, 50);
-        h->GetXaxis()->SetTitle("nTracks per vertex");
+        auto h = new TH1F(std::string(getHistoPrefix() + "vertexchi2dof").c_str(), "Vertex chi2/ndof;Vertex #chi2/ndof;Entries", 100, 0, 20);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "ntrackspervertex").c_str(), "Num of tracks per vertex;Number of tracks per vertex;Entries", 50, 0, 50);
         hm->registerHisto(h);
     }
 }
