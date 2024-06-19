@@ -363,7 +363,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg11->SetBorderSize(0);
   leg11->SetTextSize(0.06);
   leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first%  m_ptRange.second).c_str(), "");
-  leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %1.1f") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_pt_r04->SetStats(false);
   jet_mass_pt_r04->SetTitle("Jet Mass vs p_{T} [R = 0.4]");
   jet_mass_pt_r04->GetListOfFunctions()->Add(leg11);
