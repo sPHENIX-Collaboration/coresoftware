@@ -1249,7 +1249,7 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
   {
 //    iter->CleanupUsedPackets(m_ZdcPacketMap.begin()->first);
     std::cout << "Cleaning event no from zdc inputmgr " << m_RefEventNo << std::endl;
-    iter->CleanupUsedPackets(m_RefEventNo);
+    iter->CleanupUsedPackets(m_RefEventNo-1);
   }
   if (m_ZdcPacketMap.begin()->first <= m_RefEventNo)
   {
@@ -1480,8 +1480,10 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
       std::cout << "Sequence not found." << std::endl;
     }
   }
+
   if (! eventoffset.empty())
   {
+ // just loop over all input managers, if it has this packet it will adjust the event number offset for it
     for (auto iter : m_TriggerInputVector)
     {
       for (auto &offiter:  eventoffset)
@@ -1489,8 +1491,49 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 	iter->AdjustEventNumberOffset(offiter.first, offiter.second);
       }
     }
-    ClearAllEvents(m_Gl1PacketMap.rbegin()->first);
-    return -1;
+    std::vector<int> eventnumbers;
+    for (auto sepdhititer = m_SEpdPacketMap.rbegin(); sepdhititer != m_SEpdPacketMap.rend(); ++sepdhititer)
+    {
+      eventnumbers. push_back(sepdhititer->first);
+    }
+    std::map<int, SEpdPacketInfo> tmp_sepdpacket_map;
+    for (auto evtnumiter : eventnumbers)
+    {
+      auto &sepdhititer = m_SEpdPacketMap[evtnumiter];
+      std::cout << PHWHERE << " Handling event no: " << evtnumiter << std::endl;
+      std::vector<int> packet_ids;
+      for (auto pktiter : sepdhititer.SEpdSinglePacketMap)
+      {
+	packet_ids.push_back(pktiter.first);
+      }
+      for (auto pktiditer : packet_ids)
+      {
+	auto &pktiter = sepdhititer.SEpdSinglePacketMap[pktiditer];
+	std::cout << PHWHERE <<  "handling pkt no: " << pktiditer << std::endl;
+	auto offsetiter = eventoffset.find(pktiditer);
+	if (offsetiter != eventoffset.end())
+	{
+	  int newevent = evtnumiter + offsetiter->second;
+	  std::cout << PHWHERE << "moving packet " << pktiditer << " from event " << evtnumiter << " to " << newevent << std::endl;
+//	  m_SEpdPacketMap[newevent].SEpdSinglePacketMap.insert( sepdhititer->second.SEpdSinglePacketMap.extract(pktiter.first));
+	  auto nh =  sepdhititer.SEpdSinglePacketMap.extract(pktiditer);
+	  std::cout <<  PHWHERE << "size of SEpdSinglePacketMap: " <<  m_SEpdPacketMap.size() << std::endl;
+//	  std::cout << PHWHERE << "extracted packet: " << nh.key() << std::endl;
+	  m_SEpdPacketMap[newevent].SEpdSinglePacketMap.insert(std::move(nh));
+//	  tmp_sepdpacket_map[newevent].SEpdSinglePacketMap.insert(std::move(nh));
+	}
+      }
+    }
   }
+  for (auto &sepdeventiter : m_SEpdPacketMap)
+  {
+//    for (auto sepdhititer : sepdeventiter.second.SEpdSinglePacketMap)
+    {
+      std::cout << "size of map for event " << sepdeventiter.first << " is " << sepdeventiter.second.SEpdSinglePacketMap.size() << std::endl;
+    }
+  }
+  //   ClearAllEvents(m_Gl1PacketMap.rbegin()->first);
+  //   return -1;
+  // }
   return 0;
 }
