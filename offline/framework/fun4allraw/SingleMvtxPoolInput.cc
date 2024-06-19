@@ -289,6 +289,10 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // {
   //   iter.second.clear();
   // }
+  std::cout << "SIZES " << m_BclkStack.size()
+            << ", " << m_BeamClockFEE.size() << ", " << m_MvtxRawHitMap.size()
+            << ", " << m_FeeStrobeMap.size() << ", " << m_gtmL1BcoSetRef.size()
+            << std::endl;
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
