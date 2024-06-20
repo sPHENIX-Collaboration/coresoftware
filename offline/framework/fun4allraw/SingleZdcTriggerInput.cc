@@ -306,11 +306,31 @@ void SingleZdcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
   }
 }
 
-// void SingleZdcTriggerInput::ConfigureStreamingInputManager()
-// {
-//   if (StreamingInputManager())
-//   {
-//     StreamingInputManager()->SetZdcBcoRange(m_BcoRange);
-//   }
-//   return;
-// }
+void SingleZdcTriggerInput::AdjustPacketMap(int pktid, int evtoffset)
+{
+  std::cout << PHWHERE << " adjusting local zdc packet map for packet " << pktid
+	    << " with offset " << evtoffset << std::endl;
+  std::vector<int> eventnumbers;
+  for (auto packetmapiter =  m_ZdcPacketMap.rbegin(); packetmapiter != m_ZdcPacketMap.rend(); ++packetmapiter )
+  {
+      eventnumbers.push_back(packetmapiter->first);
+  }
+
+    for (auto evtnumiter : eventnumbers)
+    {
+    int lastevent = evtnumiter;
+    int newevent = lastevent + evtoffset;
+//    for (auto pktiter : m_ZdcPacketMap[lastevent])
+    for (std::vector<OfflinePacket *>::iterator  pktiter =  m_ZdcPacketMap[lastevent].begin(); pktiter != m_ZdcPacketMap[lastevent].end(); ++pktiter )
+    {
+      if ((*pktiter)->getIdentifier() == pktid)
+      {
+	std::cout << PHWHERE << " need to move packet " << (*pktiter)->getIdentifier() << std::endl;
+	m_ZdcPacketMap[newevent].push_back(std::move(*pktiter));
+	m_ZdcPacketMap[lastevent].erase(pktiter);
+//	std::move
+	break;
+      }
+    }
+  }
+}

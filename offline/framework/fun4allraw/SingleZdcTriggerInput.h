@@ -25,7 +25,7 @@ class SingleZdcTriggerInput : public SingleTriggerInput
   bool GetSomeMoreEvents(const unsigned int keep);
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
-  //  void ConfigureStreamingInputManager() override;
+  void AdjustPacketMap(int pktid, int evtoffset) override;
 
  private:
   Packet **plist{nullptr};

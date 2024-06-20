@@ -1249,7 +1249,7 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
   {
 //    iter->CleanupUsedPackets(m_ZdcPacketMap.begin()->first);
     std::cout << "Cleaning event no from zdc inputmgr " << m_RefEventNo << std::endl;
-    iter->CleanupUsedPackets(m_RefEventNo-1);
+    iter->CleanupUsedPackets(m_RefEventNo);
   }
   if (m_ZdcPacketMap.begin()->first <= m_RefEventNo)
   {
@@ -1348,6 +1348,11 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 	}
       }
     }
+  }
+  std::cout << PHWHERE << "haystack size " << m_HayStack.size() << std::endl;
+  for (auto iter : m_HayStack)
+  {
+    std::cout << "haystack: 0x" << std::hex << iter << std::dec << std::endl;
   }
   if (!m_MbdPacketMap.empty())
   {
@@ -1478,6 +1483,10 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
     {
       // If not found, std::search returns haystack.end()
       std::cout << "Sequence not found." << std::endl;
+      for (auto &iter : needle)
+      {
+	std::cout << PHWHERE << "needle: 0x" << std::hex << iter << std::dec << std::endl;
+      }
     }
   }
 
@@ -1489,22 +1498,24 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
       for (auto &offiter:  eventoffset)
       {
 	iter->AdjustEventNumberOffset(offiter.first, offiter.second);
+	iter->AdjustPacketMap(offiter.first, offiter.second);
       }
     }
     std::vector<int> eventnumbers;
     for (auto sepdhititer = m_SEpdPacketMap.rbegin(); sepdhititer != m_SEpdPacketMap.rend(); ++sepdhititer)
     {
-      eventnumbers. push_back(sepdhititer->first);
+      eventnumbers.push_back(sepdhititer->first);
     }
     std::map<int, SEpdPacketInfo> tmp_sepdpacket_map;
     for (auto evtnumiter : eventnumbers)
     {
       auto &sepdhititer = m_SEpdPacketMap[evtnumiter];
       std::cout << PHWHERE << " Handling event no: " << evtnumiter << std::endl;
-      std::vector<int> packet_ids;
+      std::set<int> packet_ids;
       for (auto pktiter : sepdhititer.SEpdSinglePacketMap)
       {
-	packet_ids.push_back(pktiter.first);
+	packet_ids.insert(pktiter.first);
+        m_NeedleMap[pktiter.first].clear();
       }
       for (auto pktiditer : packet_ids)
       {
@@ -1515,12 +1526,9 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 	{
 	  int newevent = evtnumiter + offsetiter->second;
 	  std::cout << PHWHERE << "moving packet " << pktiditer << " from event " << evtnumiter << " to " << newevent << std::endl;
-//	  m_SEpdPacketMap[newevent].SEpdSinglePacketMap.insert( sepdhititer->second.SEpdSinglePacketMap.extract(pktiter.first));
 	  auto nh =  sepdhititer.SEpdSinglePacketMap.extract(pktiditer);
 	  std::cout <<  PHWHERE << "size of SEpdSinglePacketMap: " <<  m_SEpdPacketMap.size() << std::endl;
-//	  std::cout << PHWHERE << "extracted packet: " << nh.key() << std::endl;
 	  m_SEpdPacketMap[newevent].SEpdSinglePacketMap.insert(std::move(nh));
-//	  tmp_sepdpacket_map[newevent].SEpdSinglePacketMap.insert(std::move(nh));
 	}
       }
     }
@@ -1535,5 +1543,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
   //   ClearAllEvents(m_Gl1PacketMap.rbegin()->first);
   //   return -1;
   // }
+  m_HayStack.clear();
+  m_NeedleMap.clear();
   return 0;
 }
