@@ -30,6 +30,8 @@
 
 #include <boost/format.hpp>
 
+R__LOAD_LIBRARY(libtrack_io.so)
+
 //____________________________________________________________________________..
 MvtxClusterQA::MvtxClusterQA(const std::string &name)
   : SubsysReco(name)
@@ -128,12 +130,18 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
   TrkrHitSetContainer::ConstRange hitsetrange = trkrHitSetContainer->getHitSets(TrkrDefs::TrkrId::mvtxId);
 
   auto h_occupancy = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%schipOccupancy") % getHistoPrefix()).str()));
+  auto h_strobe = dynamic_cast<TH1I *>(hm->getHisto((boost::format("%sstrobeTiming") % getHistoPrefix()).str()));
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
   {
     int chip_hits = hitsetitr->second->size();
     float chip_occupancy = (float) chip_hits / (512*1024);
     chip_occupancy = 100*chip_occupancy;
     h_occupancy->Fill(chip_occupancy);
+    int strobe = MvtxDefs::getStrobeId(hitsetitr->first);
+    for (int i = 0; i < chip_hits; i++) 
+    {
+      h_strobe->Fill(strobe);
+    }
   }
 
   m_event++;
@@ -164,6 +172,10 @@ void MvtxClusterQA::createHistos()
   h_clusSize->GetXaxis()->SetTitle("Cluster Size");
   h_clusSize->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusSize);
+  auto h_strobe = new TH1I((boost::format("%sstrobeTiming") % getHistoPrefix()).str().c_str(),"MVTX Strobe Timing per Hit",32,-15,16); 
+  h_strobe->GetXaxis()->SetTitle("Strobe BCO - GL1 BCO");
+  h_strobe->GetYaxis()->SetTitle("Entries");
+  hm->registerHisto(h_strobe);
 
   if (m_chipInfo)
   {
