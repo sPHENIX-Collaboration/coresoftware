@@ -186,7 +186,10 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       // drop packet if not found
       if (!bco_matching_information.is_verified())
       {
-        std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
+        if(Verbosity())
+        {
+          std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
+        }
         m_waveform_count_dropped[packet_id] += nwf;
         bco_matching_information.cleanup();
         continue;
