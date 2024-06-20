@@ -56,14 +56,15 @@ class MicromegasMapping
   /// get fee id from hitset key
   int get_fee_id_from_hitsetkey(TrkrDefs::hitsetkey) const;
 
-  /// convert fee_id from data stream into old fee_id before fiber swapping */
+  /// convert fee_id from data stream into new fee_id after fiber swapping */
   /*
-   * this is used  to keep backward compatibility
+   * this is used  to keep being able to analyze older runs.
    * how it works is that every time a given fiber from the detector is connected to a new slot in the EBDC (a new FEE_ID),
-   * one must convert the new fee_id to the old one, that match the same detector
-   * in m_detectors. This works as long as fibers from the detectors are assigned to previously unsused slots/fee_id.
+   * one must convert the old fee_id to the new one, that match the same detector
+   * in m_detectors.
+   * This works as long as fibers from the detectors are assigned to previously unsused slots/fee_id.
    */
-  int get_old_fee_id( int /*fee_id*/ ) const;
+  int get_new_fee_id( int /*fee_id*/ ) const;
 
  private:
 

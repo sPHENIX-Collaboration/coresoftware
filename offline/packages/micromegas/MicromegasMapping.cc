@@ -106,7 +106,9 @@ m_detectors( {
   {5001, 25, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   6 ), "sec22.1", "R3.8", "M6Z",  "SWIZ" },
 
   // north side
-  {5001, 11, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R2.1", "M2P",  "NEIP" },
+  // on May 29 2024, fiber 11 was swapped to fiber 21
+  // {5001, 11, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R2.1", "M2P",  "NEIP" },
+  {5002, 21, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R3.10", "M2P",  "NEIP" },
   {5001, 12, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   5 ), "sec8.1",  "R2.2", "M2Z",  "NEIZ" },
   {5001, 19, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 3 ), "sec9.0",  "R2.3", "M10P", "NCOP" },
   {5001, 18, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   3 ), "sec9.1",  "R2.4", "M10Z", "NCOZ" },
@@ -561,14 +563,14 @@ void MicromegasMapping::construct_channel_mapping()
 }
 
 //_____________________________________________________________________
-int MicromegasMapping::get_old_fee_id( int fee_id ) const
+int MicromegasMapping::get_new_fee_id( int fee_id ) const
 {
   /*
   * on May 29 2024, we the fiber arriving on fee_id 11 was moved to fee_id 21
   * since fee_id 11 was not assigned before, we can internally convert all call to fee_id 21 to fee_id11,
   * while keeping backward compatibility
   */
-  static const std::map<int,int> internal_fee_id_map( {{21,11}} );
+  static const std::map<int,int> internal_fee_id_map( {{11,21}} );
   const auto& iter = internal_fee_id_map.find( fee_id );
   return iter == internal_fee_id_map.end() ? fee_id:iter->second;
 }
