@@ -124,7 +124,6 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
       }
       if (num_feeId > 0)
       {
-      
         for (int i_fee{0}; i_fee < num_feeId; ++i_fee)
         {
           auto feeId = pool->iValue(i_fee, "FEEID");
@@ -159,21 +158,18 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
               std::cout << " GBT: " << link.gbtid << ", bco: 0x" << std::hex << strb_bco << std::dec;
               std::cout << ", n_hits: " << num_hits << std::endl;
             }
-            for (int i_hit{0}; i_hit < num_hits; ++i_hit)
+            auto hits = pool->get_hits(feeId, i_strb);
+            for ( auto&& hit : hits )
             {
-              auto chip_bc = pool->iValue(feeId, i_strb, i_hit, "HIT_BC");
-              auto chip_id = pool->iValue(feeId, i_strb, i_hit, "HIT_CHIP_ID");
-              auto chip_row = pool->iValue(feeId, i_strb, i_hit, "HIT_ROW");
-              auto chip_col = pool->iValue(feeId, i_strb, i_hit, "HIT_COL");
               MvtxRawHit *newhit = new MvtxRawHitv1();
               newhit->set_bco(strb_bco);
               newhit->set_strobe_bc(strb_bc);
-              newhit->set_chip_bc(chip_bc);
+              newhit->set_chip_bc(hit->bunchcounter);
               newhit->set_layer_id(link.layer);
               newhit->set_stave_id(link.stave);
-              newhit->set_chip_id(3 * link.gbtid + chip_id);
-              newhit->set_row(chip_row);
-              newhit->set_col(chip_col);
+              newhit->set_chip_id(3 * link.gbtid + hit->chip_id);
+              newhit->set_row(hit->row_pos);
+              newhit->set_col(hit->col_pos);
               if (StreamingInputManager())
               {
                 StreamingInputManager()->AddMvtxRawHit(strb_bco, newhit);
@@ -304,7 +300,7 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
       gtmbcoset.erase(iter);
     }
   }
-  
+
 }
 
 bool SingleMvtxPoolInput::CheckPoolDepth(const uint64_t bclk)
