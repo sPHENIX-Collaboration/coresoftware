@@ -70,10 +70,6 @@ int LL1Packetv1::iValue(const int /*n*/, const std::string &what) const
   {
     return getFibers();
   }
-  if (what == "FIBERS")
-  {
-    return getFibers();
-  }
   if (what == "SUMS")
   {
     return getSums();
