@@ -978,35 +978,14 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             fx_hit[n_hit::nhitphibin] = (float) TpcDefs::getPad(hit_key);
             fx_hit[n_hit::nhittbin] = (float) TpcDefs::getTBin(hit_key);
             fx_hit[n_hit::nhitphi] = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
-	    double m_sampa_tbias = 39.6;  // ns
-	    /*	    double surfaceZCenter = 52.89;                                 // this is where G4 thinks the surface center is in cm
-	    double zdriftlength = (fx_hit[n_hit::nhittbin]+ m_sampa_tbias)*AdcClockPeriod * m_tGeometry->get_drift_velocity();  // cm
-	    double zloc = surfaceZCenter - zdriftlength;                   // local z relative to surface center (for north side):
-	    unsigned int side = TpcDefs::getSide(hitset_key);
-	    if (side == 0)
-	      {
-		zloc = -zloc;
-	      }
-	    //            double NZBinsSide = 249;  // physical z bins per TPC side
-	    // double m_tdriftmax = AdcClockPeriod * NZBinsSide;
-            double clusz = zloc;//((m_tdriftmax * m_tGeometry->get_drift_velocity())* 107.0 / 105.0) - zdriftlength;
-	    */
-	    double zdriftlength = (fx_hit[n_hit::nhittbin]+ m_sampa_tbias)* m_tGeometry->get_drift_velocity() * AdcClockPeriod;
-            // convert z drift length to z position in the TPC
-            //		cout << " tbin: " << tbin << " vdrift " <<m_tGeometry->get_drift_velocity() << " l drift: " << zdriftlength  <<endl;
-            double NZBinsSide = 360-76;  // physical z bins per TPC side
-            double m_tdriftmax = AdcClockPeriod * NZBinsSide;
-            double clusz = (m_tdriftmax * m_tGeometry->get_drift_velocity()) - zdriftlength;
+            float phi = GeoLayer_local->get_phicenter(TpcDefs::getPad(hit_key));
+            float clockperiod = GeoLayer_local->get_zstep();
+            auto glob = m_tGeometry->getGlobalPositionTpc(hitset_key, hit_key, phi, radius, clockperiod);
             
-            if (fx_hit[n_hit::nhitzelem] == 0)
-            {
-              clusz = -clusz;
-            }
-            fx_hit[n_hit::nhitz] = clusz;
+            fx_hit[n_hit::nhitz] = glob.z();
             fx_hit[n_hit::nhitr] = radius;
-            float phi_center = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
-            fx_hit[n_hit::nhitx] = radius * cos(phi_center);
-            fx_hit[n_hit::nhity] = radius * sin(phi_center);
+            fx_hit[n_hit::nhitx] = glob.x();
+            fx_hit[n_hit::nhity] = glob.y();
           }
 
           float* hit_data = new float[n_info::infosize + n_event::evsize + n_hit::hitsize];
