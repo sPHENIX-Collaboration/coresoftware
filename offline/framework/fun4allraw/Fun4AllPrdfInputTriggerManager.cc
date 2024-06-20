@@ -101,10 +101,13 @@ tryagain:
   {
     std::cout << "new ref event: " << m_RefEventNo << std::endl;
   }
-  ClockDiffFill();
-  if (ClockDiffCheck())
+  if (m_resync_flag)
   {
-    goto tryagain;
+    ClockDiffFill();
+    if (ClockDiffCheck())
+    {
+      goto tryagain;
+    }
   }
   MoveGl1ToNodeTree();
   MoveMbdToNodeTree();
@@ -1181,11 +1184,14 @@ int Fun4AllPrdfInputTriggerManager::MoveZdcToNodeTree()
   {
     if (m_ZdcPacketMap.begin()->first == m_RefEventNo)
     {
-    std::cout << "event at m_ZdcPacketMap.begin(): " << m_ZdcPacketMap.begin()->first << std::endl;
-    if (Verbosity() > 10)
-    {
-      zdchititer.second->identify();
-    }
+      if (Verbosity() > 2)
+      {
+	std::cout << "event at m_ZdcPacketMap.begin(): " << m_ZdcPacketMap.begin()->first << std::endl;
+	if (Verbosity() > 10)
+	{
+	  zdchititer.second->identify();
+	}
+      }
     zdc->AddPacket(zdchititer.second);
     }
   }
@@ -1235,11 +1241,14 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
   {
     if (m_SEpdPacketMap.begin()->first == m_RefEventNo)
     {
-    std::cout << "event at m_SEpdPacketMap.begin(): " << m_SEpdPacketMap.begin()->first << std::endl;
-    if (Verbosity() > 10)
-    {
-      sepdhititer.second->identify();
-    }
+      if (Verbosity() > 2)
+      {
+	std::cout << "event at m_SEpdPacketMap.begin(): " << m_SEpdPacketMap.begin()->first << std::endl;
+	if (Verbosity() > 10)
+	{
+	  sepdhititer.second->identify();
+	}
+      }
     sepd->AddPacket(sepdhititer.second);
     }
   }
@@ -1248,22 +1257,31 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
   for (auto iter : m_ZdcInputVector)
   {
 //    iter->CleanupUsedPackets(m_ZdcPacketMap.begin()->first);
-    std::cout << "Cleaning event no from zdc inputmgr " << m_RefEventNo << std::endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "Cleaning event no from zdc inputmgr " << m_RefEventNo << std::endl;
+    }
     iter->CleanupUsedPackets(m_RefEventNo);
   }
   if (m_ZdcPacketMap.begin()->first <= m_RefEventNo)
   {
-    std::cout << "Erasing event no " << m_ZdcPacketMap.begin()->first << " from zdc pktmap" << std::endl;
-  m_ZdcPacketMap.begin()->second.ZdcSinglePacketMap.clear();
-  m_ZdcPacketMap.begin()->second.BcoDiffMap.clear();
-  m_ZdcPacketMap.erase(m_ZdcPacketMap.begin());
+    if (Verbosity() > 1)
+    {
+      std::cout << "Erasing event no " << m_ZdcPacketMap.begin()->first << " from zdc pktmap" << std::endl;
+    }
+    m_ZdcPacketMap.begin()->second.ZdcSinglePacketMap.clear();
+    m_ZdcPacketMap.begin()->second.BcoDiffMap.clear();
+    m_ZdcPacketMap.erase(m_ZdcPacketMap.begin());
   }
   if (m_SEpdPacketMap.begin()->first <= m_RefEventNo)
   {
-    std::cout << "Erasing event no " << m_SEpdPacketMap.begin()->first << " from sepd pktmap" << std::endl;
-  m_SEpdPacketMap.begin()->second.SEpdSinglePacketMap.clear();
-  m_SEpdPacketMap.begin()->second.BcoDiffMap.clear();
-  m_SEpdPacketMap.erase(m_SEpdPacketMap.begin());
+    if (Verbosity() > 1)
+    {
+      std::cout << "Erasing event no " << m_SEpdPacketMap.begin()->first << " from sepd pktmap" << std::endl;
+    }
+    m_SEpdPacketMap.begin()->second.SEpdSinglePacketMap.clear();
+    m_SEpdPacketMap.begin()->second.BcoDiffMap.clear();
+    m_SEpdPacketMap.erase(m_SEpdPacketMap.begin());
   }
   // std::cout << "size  m_SEpdPacketMap: " <<  m_SEpdPacketMap.size()
   // 	    << std::endl;
@@ -1483,9 +1501,9 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
     {
       // If not found, std::search returns haystack.end()
       std::cout << "Sequence not found." << std::endl;
-      for (auto &iter : needle)
+      for (auto &needleiter : needle)
       {
-	std::cout << PHWHERE << "needle: 0x" << std::hex << iter << std::dec << std::endl;
+	std::cout << PHWHERE << "needle: 0x" << std::hex << needleiter << std::dec << std::endl;
       }
     }
   }
@@ -1519,7 +1537,6 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
       }
       for (auto pktiditer : packet_ids)
       {
-	auto &pktiter = sepdhititer.SEpdSinglePacketMap[pktiditer];
 	std::cout << PHWHERE <<  "handling pkt no: " << pktiditer << std::endl;
 	auto offsetiter = eventoffset.find(pktiditer);
 	if (offsetiter != eventoffset.end())

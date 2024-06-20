@@ -79,6 +79,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void DetermineReferenceEventNumber();
   void ClockDiffFill();
   int ClockDiffCheck();
+  void Resync(bool b = true) {m_resync_flag = b;}
 
  private:
   struct SinglePrdfInputInfo
@@ -139,6 +140,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   bool m_hcal_registered_flag{false};
   bool m_ll1_registered_flag{false};
   bool m_zdc_registered_flag{false};
+  bool m_resync_flag{false};
   unsigned int m_InitialPoolDepth = 10;
   unsigned int m_DefaultPoolDepth = 10;
   unsigned int m_PoolDepth = m_InitialPoolDepth;
