@@ -30,8 +30,6 @@
 
 #include <boost/format.hpp>
 
-R__LOAD_LIBRARY(libtrack_io.so)
-
 //____________________________________________________________________________..
 MvtxClusterQA::MvtxClusterQA(const std::string &name)
   : SubsysReco(name)
