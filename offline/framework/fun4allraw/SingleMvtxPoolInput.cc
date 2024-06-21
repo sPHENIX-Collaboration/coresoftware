@@ -132,10 +132,12 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
           //          auto hbfSize = plist[i]->iValue(feeId, "NR_HBF");
           auto num_strobes = pool->iValue(feeId, "NR_STROBES");
           auto num_L1Trgs = pool->iValue(feeId, "NR_PHYS_TRG");
-          if(m_FeeGTML1BCOMap.find(i_fee) == m_FeeGTML1BCOMap.end())
-          {
-            m_FeeGTML1BCOMap[i_fee] = std::set<uint64_t>();
-          }
+// this should not be needed, the m_FeeGTML1BCOMap[i_fee].insert(l1Trg_bco)
+// will create the set if it doesn't exist
+          // if(m_FeeGTML1BCOMap.find(i_fee) == m_FeeGTML1BCOMap.end())
+          // {
+          //   m_FeeGTML1BCOMap[i_fee] = std::set<uint64_t>();
+          // }
           for (int iL1 = 0; iL1 < num_L1Trgs; ++iL1)
           {
             auto l1Trg_bco = pool->lValue(feeId, iL1, "L1_IR_BCO");
