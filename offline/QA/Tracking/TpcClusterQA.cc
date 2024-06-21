@@ -386,7 +386,10 @@ TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets(TrkrDefs::TrkrI
         m_cluszsize.push_back(cluster->getZSize()); 
       }
       
-      if (m_pt > 0.8) h_ntpc->Fill(m_ntpc);
+      if (m_pt > 0.8)
+      {
+	h_ntpc->Fill(m_ntpc);
+      }
      
       int nClus = m_cluslayer.size(); 
       for (int cl = 0; cl < nClus; cl++) 
