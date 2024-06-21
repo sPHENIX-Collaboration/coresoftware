@@ -94,6 +94,14 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     unsigned int EventFoundCounter{0};
   };
 
+  struct CaloPacketInfo
+  {
+    std::map<int, CaloPacket *> CaloSinglePacketMap;
+    std::map<int, uint64_t> BcoDiffMap;
+    unsigned int EventFoundCounter{0};
+  };
+  int FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name="NONE");
+
   struct MbdPacketInfo
   {
     std::map<int, CaloPacket *> MbdSinglePacketMap;
@@ -125,6 +133,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
+
   struct ZdcPacketInfo
   {
     std::map<int, CaloPacket *> ZdcSinglePacketMap;
@@ -161,8 +170,9 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, CemcPacketInfo> m_CemcPacketMap;
   std::map<int, HcalPacketInfo> m_HcalPacketMap;
   std::map<int, LL1PacketInfo> m_LL1PacketMap;
-  std::map<int, SEpdPacketInfo> m_SEpdPacketMap;
-  std::map<int, ZdcPacketInfo> m_ZdcPacketMap;
+//  std::map<int, SEpdPacketInfo> m_SEpdPacketMap;
+  std::map<int, CaloPacketInfo> m_SEpdPacketMap;
+  std::map<int, CaloPacketInfo> m_ZdcPacketMap;
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;

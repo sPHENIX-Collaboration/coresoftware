@@ -674,22 +674,22 @@ void Fun4AllPrdfInputTriggerManager::ClearAllEvents(const int eventno)
 
   for (auto &mapiter : m_SEpdPacketMap)
   {
-    // for (auto &sepdpacket : mapiter.second.SEpdSinglePacketMap)
+    // for (auto &sepdpacket : mapiter.second.CaloSinglePacketMap)
     // {
     //   delete sepdpacket.second;
     // }
-    mapiter.second.SEpdSinglePacketMap.clear();
+    mapiter.second.CaloSinglePacketMap.clear();
     mapiter.second.BcoDiffMap.clear();
   }
   m_SEpdPacketMap.clear();
 
   for (auto &mapiter : m_ZdcPacketMap)
   {
-    // for (auto &zdcpacket : mapiter.second.ZdcSinglePacketMap)
+    // for (auto &zdcpacket : mapiter.second.CaloSinglePacketMap)
     // {
     //   delete zdcpacket.second;
     // }
-    mapiter.second.ZdcSinglePacketMap.clear();
+    mapiter.second.CaloSinglePacketMap.clear();
     mapiter.second.BcoDiffMap.clear();
   }
   m_ZdcPacketMap.clear();
@@ -1180,7 +1180,7 @@ int Fun4AllPrdfInputTriggerManager::MoveZdcToNodeTree()
   }
   //  std::cout << "before filling m_ZdcPacketMap size: " <<  m_ZdcPacketMap.size() << std::endl;
   zdc->setEvtSequence(m_RefEventNo);
-  for (auto zdchititer : m_ZdcPacketMap.begin()->second.ZdcSinglePacketMap)
+  for (auto zdchititer : m_ZdcPacketMap.begin()->second.CaloSinglePacketMap)
   {
     if (m_ZdcPacketMap.begin()->first == m_RefEventNo)
     {
@@ -1220,7 +1220,7 @@ void Fun4AllPrdfInputTriggerManager::AddZdcPacket(int eventno, CaloPacket *pkt)
               << eventno << std::endl;
   }
   auto &iter = m_ZdcPacketMap[eventno];
-  iter.ZdcSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
+  iter.CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
   return;
 }
 
@@ -1237,7 +1237,7 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
   }
   // std::cout << "before filling m_SEpdPacketMap size: " <<  m_SEpdPacketMap.size() << std::endl;
   sepd->setEvtSequence(m_RefEventNo);
-  for (auto sepdhititer : m_SEpdPacketMap.begin()->second.SEpdSinglePacketMap)
+  for (auto sepdhititer : m_SEpdPacketMap.begin()->second.CaloSinglePacketMap)
   {
     if (m_SEpdPacketMap.begin()->first == m_RefEventNo)
     {
@@ -1269,7 +1269,7 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
     {
       std::cout << "Erasing event no " << m_ZdcPacketMap.begin()->first << " from zdc pktmap" << std::endl;
     }
-    m_ZdcPacketMap.begin()->second.ZdcSinglePacketMap.clear();
+    m_ZdcPacketMap.begin()->second.CaloSinglePacketMap.clear();
     m_ZdcPacketMap.begin()->second.BcoDiffMap.clear();
     m_ZdcPacketMap.erase(m_ZdcPacketMap.begin());
   }
@@ -1279,7 +1279,7 @@ int Fun4AllPrdfInputTriggerManager::MoveSEpdToNodeTree()
     {
       std::cout << "Erasing event no " << m_SEpdPacketMap.begin()->first << " from sepd pktmap" << std::endl;
     }
-    m_SEpdPacketMap.begin()->second.SEpdSinglePacketMap.clear();
+    m_SEpdPacketMap.begin()->second.CaloSinglePacketMap.clear();
     m_SEpdPacketMap.begin()->second.BcoDiffMap.clear();
     m_SEpdPacketMap.erase(m_SEpdPacketMap.begin());
   }
@@ -1297,7 +1297,7 @@ void Fun4AllPrdfInputTriggerManager::AddSEpdPacket(int eventno, CaloPacket *pkt)
               << eventno << std::endl;
   }
 //  auto &iter = m_SEpdPacketMap[eventno];
-  m_SEpdPacketMap[eventno].SEpdSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
+  m_SEpdPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(),pkt));
   return;
 }
 
@@ -1425,15 +1425,7 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
   }
   if (!m_ZdcPacketMap.empty())
   {
-    for (auto &zdcpktiter : m_ZdcPacketMap)
-    {
-      std::cout << "zdc event: " <<  zdcpktiter.first << std::endl;
-      for (auto &pktiter : zdcpktiter.second.ZdcSinglePacketMap)
-      {
-	std::cout << "pkt id : " << pktiter.first
-		  << ", clock: 0x" << std::hex << pktiter.second->getBCO() << std::dec << std::endl;
-      }
-    }
+    FillNeedle(m_ZdcPacketMap.begin(), m_ZdcPacketMap.end(), "zdc");
   }
   if (!m_SEpdPacketMap.empty())
   {
@@ -1449,12 +1441,12 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 	  continue;
 	}
 	std::set<uint64_t> bcodiffs;
-	for (auto &pktiter : sepdhititer->second.SEpdSinglePacketMap)
+	for (auto &pktiter : sepdhititer->second.CaloSinglePacketMap)
 	{
 	  uint64_t prev_bco = pktiter.second->getBCO();
 	  int prev_packetid = pktiter.first;
-	  auto currpkt = nextIt->second.SEpdSinglePacketMap.find(prev_packetid);//->find(prev_packetid);
-	  if (currpkt != nextIt->second.SEpdSinglePacketMap.end())
+	  auto currpkt = nextIt->second.CaloSinglePacketMap.find(prev_packetid);//->find(prev_packetid);
+	  if (currpkt != nextIt->second.CaloSinglePacketMap.end())
 	  {
 	    uint64_t curr_bco = currpkt->second->getBCO();
 	    uint64_t diffbco = curr_bco - prev_bco;
@@ -1530,7 +1522,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
       auto &sepdhititer = m_SEpdPacketMap[evtnumiter];
       std::cout << PHWHERE << " Handling event no: " << evtnumiter << std::endl;
       std::set<int> packet_ids;
-      for (auto pktiter : sepdhititer.SEpdSinglePacketMap)
+      for (auto pktiter : sepdhititer.CaloSinglePacketMap)
       {
 	packet_ids.insert(pktiter.first);
         m_NeedleMap[pktiter.first].clear();
@@ -1543,24 +1535,64 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 	{
 	  int newevent = evtnumiter + offsetiter->second;
 	  std::cout << PHWHERE << "moving packet " << pktiditer << " from event " << evtnumiter << " to " << newevent << std::endl;
-	  auto nh =  sepdhititer.SEpdSinglePacketMap.extract(pktiditer);
-	  std::cout <<  PHWHERE << "size of SEpdSinglePacketMap: " <<  m_SEpdPacketMap.size() << std::endl;
-	  m_SEpdPacketMap[newevent].SEpdSinglePacketMap.insert(std::move(nh));
+	  auto nh =  sepdhititer.CaloSinglePacketMap.extract(pktiditer);
+	  std::cout <<  PHWHERE << "size of CaloSinglePacketMap: " <<  m_SEpdPacketMap.size() << std::endl;
+	  m_SEpdPacketMap[newevent].CaloSinglePacketMap.insert(std::move(nh));
 	}
       }
     }
   }
   for (auto &sepdeventiter : m_SEpdPacketMap)
   {
-//    for (auto sepdhititer : sepdeventiter.second.SEpdSinglePacketMap)
+//    for (auto sepdhititer : sepdeventiter.second.CaloSinglePacketMap)
     {
-      std::cout << "size of map for event " << sepdeventiter.first << " is " << sepdeventiter.second.SEpdSinglePacketMap.size() << std::endl;
+      std::cout << "size of map for event " << sepdeventiter.first << " is " << sepdeventiter.second.CaloSinglePacketMap.size() << std::endl;
     }
   }
   //   ClearAllEvents(m_Gl1PacketMap.rbegin()->first);
   //   return -1;
   // }
-  m_HayStack.clear();
-  m_NeedleMap.clear();
+//  m_HayStack.clear();
+//  m_NeedleMap.clear();
   return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name)
+{
+    for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
+    {
+      std::cout << PHWHERE << name <<" event: " <<  sepdhititer->first << std::endl;
+      auto nextIt = std::next(sepdhititer);
+      if (nextIt != end)
+      {
+	std::cout << PHWHERE << "next " << name << " event: " <<  nextIt->first << std::endl;
+	if (! nextIt->second.BcoDiffMap.empty()) // this event was already handled, BcoDiffMap is filled
+	{
+	  continue;
+	}
+	std::set<uint64_t> bcodiffs;
+	for (auto &pktiter : sepdhititer->second.CaloSinglePacketMap)
+	{
+	  uint64_t prev_bco = pktiter.second->getBCO();
+	  int prev_packetid = pktiter.first;
+	  auto currpkt = nextIt->second.CaloSinglePacketMap.find(prev_packetid);//->find(prev_packetid);
+	  if (currpkt != nextIt->second.CaloSinglePacketMap.end())
+	  {
+	    uint64_t curr_bco = currpkt->second->getBCO();
+	    uint64_t diffbco = curr_bco - prev_bco;
+	    sepdhititer->second.BcoDiffMap[prev_packetid] = diffbco;
+	    m_NeedleMap[prev_packetid].push_back(diffbco);
+	    std::cout << PHWHERE << name << " packet " << prev_packetid << ", prev_bco 0x: " << std::hex
+		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
+		      << diffbco << std::dec << std::endl;
+	    bcodiffs.insert(diffbco);
+	  }
+	}
+	if (bcodiffs.size() > 1)
+	{
+	  std::cout << PHWHERE << " different bco diffs for " << name << " packets for event " << nextIt->first << std::endl;
+	}
+      }
+    }
+    return 0;
 }
