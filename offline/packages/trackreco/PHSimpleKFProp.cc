@@ -1504,9 +1504,6 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer)
 {
-  int seed_index = 0;
-  int iseed = -1;
-
   PHGhostRejection rejector(Verbosity());
   
   // reject low-pt tracks & low-ncluster tracks
@@ -1546,14 +1543,20 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
 
   for (unsigned int itrack=0; itrack < seeds.size(); ++itrack) 
   {
-    if (rejector.m_rejected[iseed]) { continue; }
+    if (rejector.m_rejected[itrack]) { 
+      if (Verbosity() > 0)
+      {
+        std::cout << " Seed " << ((int)itrack) << " rejected. Not getting published." << std::endl;
+      }
+      continue; 
+    }
     auto& seed = seeds[itrack];
     _track_map->insert(&seed);
 
     int q = seed.get_charge();
     if (Verbosity() > 0)
     {
-      std::cout << "Publishing seed " << seed_index
+      std::cout << "Publishing seed " << ((int)itrack)
                 << " q " << q
                 << " qOverR " << fabs(seed.get_qOverR()) * q
                 << " x " << seed.get_x()
@@ -1563,8 +1566,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
                 << " eta " << seed.get_eta()
                 << " phi " << seed.get_phi()
                 << std::endl;
-    }
-    seed_index++;
+    } 
   }
 }
 
