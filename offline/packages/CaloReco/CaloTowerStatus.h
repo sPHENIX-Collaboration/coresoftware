@@ -37,9 +37,14 @@ class CaloTowerStatus : public SubsysReco
     m_inputNodePrefix = name;
     return;
   }
-  void set_badChi2_treshold(float threshold)
+  void set_badChi2_const_threshold(float threshold)
   {
-    badChi2_treshold = threshold;
+    badChi2_treshold_const = threshold;
+    return;
+  }
+  void set_badChi2_quadratic_threshold(float threshold)
+  {
+    badChi2_treshold_quadratic = threshold;
     return;
   }
   void set_fraction_badChi2_threshold(float threshold)
@@ -100,8 +105,9 @@ class CaloTowerStatus : public SubsysReco
   bool use_directURL_hotMap{false};
   bool use_directURL_chi2{false};
 
-  float badChi2_treshold = 1e4;
-  float fraction_badChi2_threshold = 0.01;
+  float badChi2_treshold_const = {1e4};
+  float badChi2_treshold_quadratic = {1./100};
+  float fraction_badChi2_threshold = {0.01};
   float time_cut = 2;  // number of samples from the mean time for the channel in the run
 };
 

@@ -122,9 +122,9 @@ void Gl1Packetv2::dump(std::ostream &os) const
      << "0x" << std::hex << lValue(0, "BCO") << std::dec << "   " << lValue(0, "BCO") << std::endl;
   os << "Trigger Input:   "
      << "0x" << std::hex << lValue(0, "TriggerInput") << std::dec << "   " << lValue(0, "TriggerInput") << std::endl;
-  os << "Live Vector:  "
+  os << "Live Vector:     "
      << "0x" << std::hex << lValue(0, "LiveVector") << std::dec << "   " << lValue(0, "LiveVector") << std::endl;
-  os << "Scaled Vector:  "
+  os << "Scaled Vector:   "
      << "0x" << std::hex << lValue(0, "ScaledVector") << std::dec << "   " << lValue(0, "ScaledVector") << std::endl;
   os << "GTM Busy Vector: "
      << "0x" << std::hex << lValue(0, "GTMBusyVector") << std::dec << "   " << lValue(0, "GTMBusyVector") << std::endl;

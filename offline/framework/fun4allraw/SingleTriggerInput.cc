@@ -162,3 +162,28 @@ void SingleTriggerInput::ddumppacket(Packet *pkt)
   }
   return;
 }
+
+int SingleTriggerInput::EventNumberOffset(const int packetid)
+{
+// initialize to zero, if map entry exists it will not overwrite it
+// just return false in retcode.second
+  auto retcode = m_EventNumberOffset.insert(std::make_pair(packetid,m_DefaultEventNumberOffset)); 
+  if (Verbosity() > 2)
+  {
+    if (retcode.second)
+    {
+      std::cout << PHWHERE << " Inserted " << m_DefaultEventNumberOffset << " as event offset for packet "
+		<< packetid << std::endl;
+    }
+  }
+  return m_EventNumberOffset[packetid];
+}
+
+void SingleTriggerInput::AdjustEventNumberOffset(const int packetid, const int offset)
+{
+  if (m_EventNumberOffset.find(packetid) == m_EventNumberOffset.end())
+  {
+    return;
+  }
+  m_EventNumberOffset[packetid]+= offset;
+}

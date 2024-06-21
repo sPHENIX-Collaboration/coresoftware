@@ -198,6 +198,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
     float time = m_raw_towers->get_tower_at_channel(channel)->get_time_float();
+    float adc = m_raw_towers->get_tower_at_channel(channel)->get_energy();
 
     if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)
     {
@@ -211,7 +212,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (chi2 > badChi2_treshold)
+    if (chi2 > std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic))
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
     }

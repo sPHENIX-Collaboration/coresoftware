@@ -34,6 +34,11 @@ class CaloPacketv1 : public CaloPacket
   void setChecksumMsb(int i, int ival) override {checksummsb.at(i) = ival; }
   int getChecksumMsb(int i) const override {return checksummsb.at(i); }
 
+  void setCalcChecksumLsb(int i, int ival) override {calcchecksumlsb.at(i) = ival; }
+  int getCalcChecksumLsb(int i) const override {return calcchecksumlsb.at(i); }
+  void setCalcChecksumMsb(int i, int ival) override {calcchecksummsb.at(i) = ival; }
+  int getCalcChecksumMsb(int i) const override {return calcchecksummsb.at(i); }
+
   void setNrChannels(int i) override { NrChannels = i; }
   int getNrChannels() const override { return NrChannels; }
   void setNrSamples(int i) override { NrSamples = i; }
@@ -66,8 +71,7 @@ class CaloPacketv1 : public CaloPacket
   int iValue(const int i, const std::string &what) const override;
   int iValue(const int channel, const int sample) const override;
   void dump(std::ostream &os = std::cout) const override;
-  void dump_iddigitizer_31s(std::ostream &os = std::cout) const;
-  void dump_iddigitizer_12s(std::ostream &os = std::cout) const;
+  void dump_iddigitizer(std::ostream &os = std::cout) const;
 
  protected:
   int PacketEvtSequence{0};
@@ -86,6 +90,8 @@ class CaloPacketv1 : public CaloPacket
   std::array<uint32_t, MAX_NUM_MODULES> femslot {};
   std::array<uint32_t, MAX_NUM_MODULES> checksumlsb {};
   std::array<uint32_t, MAX_NUM_MODULES> checksummsb {};
+  std::array<uint32_t, MAX_NUM_MODULES> calcchecksumlsb {};
+  std::array<uint32_t, MAX_NUM_MODULES> calcchecksummsb {};
 
   std::array<std::array<uint32_t, MAX_NUM_CHANNELS>, MAX_NUM_SAMPLES> samples {};
   std::array<bool,MAX_NUM_CHANNELS> isZeroSuppressed {};
@@ -93,7 +99,7 @@ class CaloPacketv1 : public CaloPacket
   std::array<uint32_t, MAX_NUM_CHANNELS> post {};
 
  private:
-  ClassDefOverride(CaloPacketv1, 1)
+  ClassDefOverride(CaloPacketv1, 2)
 };
 
 #endif

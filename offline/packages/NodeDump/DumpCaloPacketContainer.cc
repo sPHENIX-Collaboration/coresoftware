@@ -29,7 +29,8 @@ int DumpCaloPacketContainer::process_Node(PHNode *myNode)
     for (unsigned int i = 0; i < calocont->get_npackets(); i++)
     {
       CaloPacket *calopacket = calocont->getPacket(i);
-      *fout << "packet_nr: " << calopacket->iValue(0) << std::endl;
+      *fout << "packet_nr: " << calopacket->getIdentifier() << std::endl;
+      //if (calopacket->getIdentifier() != 9002) continue;
       *fout << "EventNr: " << calopacket->iValue(0, "EVTNR") << std::endl;
       *fout << "Clock: 0x" << std::hex << calopacket->iValue(0, "CLOCK") << std::dec << std::endl;
       *fout << "Modules: " << calopacket->iValue(0, "NRMODULES") << std::endl;

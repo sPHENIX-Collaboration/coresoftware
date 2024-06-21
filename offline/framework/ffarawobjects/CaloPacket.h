@@ -30,6 +30,10 @@ virtual int getMaxNumModules() const {return 0;}
   virtual int getChecksumLsb(int) const {return 0; }
   virtual void setChecksumMsb(int, int)  {return; }
   virtual int getChecksumMsb(int) const  {return 0; }
+  virtual void setCalcChecksumLsb(int, int) {return; }
+  virtual int getCalcChecksumLsb(int) const {return 0;}
+  virtual void setCalcChecksumMsb(int, int) {return;}
+  virtual int getCalcChecksumMsb(int) const {return 0;}
 
   virtual void setSample(int /*ipmt*/, int /*ichan*/, uint32_t /*val*/) { return; }
   virtual uint32_t getSample(int /*ipmt*/, int /*ichan*/) const { return std::numeric_limits<uint32_t>::max(); }

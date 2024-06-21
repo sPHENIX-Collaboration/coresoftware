@@ -49,6 +49,7 @@ tmtags
 
 #for vscode
 .vscode
+._*
 
 # For redcar:
 .redcar

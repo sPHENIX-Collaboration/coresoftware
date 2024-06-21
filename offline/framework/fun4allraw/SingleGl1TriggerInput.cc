@@ -37,7 +37,7 @@ SingleGl1TriggerInput::~SingleGl1TriggerInput()
   CleanupUsedPackets(std::numeric_limits<int>::max());
 }
 
-void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
+void SingleGl1TriggerInput::FillPool(const unsigned int keep)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -51,7 +51,7 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       return;
     }
   }
-  while (GetSomeMoreEvents())
+  while (GetSomeMoreEvents(keep))
   {
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
@@ -199,7 +199,7 @@ void SingleGl1TriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleGl1TriggerInput::GetSomeMoreEvents()
+bool SingleGl1TriggerInput::GetSomeMoreEvents(const unsigned int keep)
 {
   if (AllDone())
   {
@@ -217,6 +217,10 @@ bool SingleGl1TriggerInput::GetSomeMoreEvents()
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
+  }
+  if (keep > 2 && m_Gl1PacketMap.size() < keep)
+  {
+    return true;
   }
   if (first_event >= last_event)
   {
