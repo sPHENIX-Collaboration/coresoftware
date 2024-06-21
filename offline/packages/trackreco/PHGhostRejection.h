@@ -28,30 +28,35 @@ class PHGhostRejection
 {
  public:
   PHGhostRejection() {}
-  PHGhostRejection(unsigned int verbosity);
+  PHGhostRejection(unsigned int verbosity) : m_verbosity { verbosity } {};
 
   ~PHGhostRejection();
 
-  void rejectGhostTracks(std::vector<float> &trackChi2);
+  void rejectGhostTracks(std::vector<float> &trackChi2, TrackSeedContainer* tracks, std::map<TrkrDefs::cluskey, Acts::Vector3>& positions);
   void verbosity(int verb) { m_verbosity = verb; }
-  void trackSeedContainer(TrackSeedContainer *seeds) { m_trackMap = seeds; }
-  void positionMap(std::map<TrkrDefs::cluskey, Acts::Vector3> &map) { m_positions = map; }
+  /* void trackSeedContainer(TrackSeedContainer *seeds) { m_trackMap = seeds; } */
+  /* void positionMap(std::map<TrkrDefs::cluskey, Acts::Vector3> &map) { m_positions = map; } */
 
  private:
-  bool checkClusterSharing(TrackSeed *tr1, unsigned int trid1,
-                           TrackSeed *tr2, unsigned int trid2);
+  bool checkClusterSharing(TrackSeed *tr1, TrackSeed *tr2);
 
   double _phi_cut = 0.01;
   double _eta_cut = 0.004;
   double _x_cut = 0.3;
   double _y_cut = 0.3;
   double _z_cut = 0.4;
-  //  int _n_iteration = 0;
+
+  // cuts on minimally interesting tracks -- 
+  // here to remove noise
+  double _min_pt_cut = 0.2;
+  bool   _must_span_sectors = true;
+  size_t _min_clusters = 6;
+
   unsigned int m_verbosity = 0;
 
-  TrackSeedContainer *m_trackMap = nullptr;
+  /* TrackSeedContainer *m_trackMap = nullptr; */
 
-  std::map<TrkrDefs::cluskey, Acts::Vector3> m_positions;
+  /* std::map<TrkrDefs::cluskey, Acts::Vector3> m_positions; */
 };
 
 #endif  // PHGHOSTREJECTION_H

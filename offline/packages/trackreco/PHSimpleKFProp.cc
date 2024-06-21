@@ -430,11 +430,10 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   if(m_ghostrejection)
   {
   PHGhostRejection rejector(Verbosity());
-  rejector.positionMap(globalPositions);
-  rejector.trackSeedContainer(_track_map);
+  /* rejector.trackSeedContainer(_track_map); */
   timer.stop();
   timer.restart();
-  rejector.rejectGhostTracks(trackChi2);
+  rejector.rejectGhostTracks(trackChi2, _track_map, globalPositions);
   timer.stop();
   if (Verbosity() > 2)
   {
