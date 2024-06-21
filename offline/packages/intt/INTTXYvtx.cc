@@ -2,6 +2,8 @@
 
 #include <TF1.h>
 
+#include <boost/format.hpp>
+
 #include <cmath>
 
 double cos_func(double* x, double* par)
@@ -50,7 +52,6 @@ INTTXYvtx::~INTTXYvtx()
   {
     //--std::cout<<"del : "<<itr->GetTitle()<<" "<<std::hex<<(long)itr<<std::hex<<std::endl;
     delete itr;
-    itr = nullptr;
   }
   //--for(auto& itr: m_v_hist){
   //--  std::cout<<"after del : "<<std::hex<<(long)itr<<std::hex<<std::endl;
@@ -58,49 +59,34 @@ INTTXYvtx::~INTTXYvtx()
 
   // InitGraph
   delete angle_diff_inner_phi_peak_profile_graph;
-  angle_diff_inner_phi_peak_profile_graph = nullptr;
   delete angle_diff_outer_phi_peak_profile_graph;
-  angle_diff_outer_phi_peak_profile_graph = nullptr;
   delete DCA_distance_inner_phi_peak_profile_graph;
-  DCA_distance_inner_phi_peak_profile_graph = nullptr;
   delete DCA_distance_outer_phi_peak_profile_graph;
-  DCA_distance_outer_phi_peak_profile_graph = nullptr;
 
   // created in FillLine_FindVertex
   delete xy_hist;
-  xy_hist = nullptr;
   delete xy_hist_bkgrm;
-  xy_hist_bkgrm = nullptr;
 
   // InitRest
   delete cos_fit;
-  cos_fit = nullptr;
   delete gaus_fit;
-  gaus_fit = nullptr;
   delete horizontal_fit_inner;
-  horizontal_fit_inner = nullptr;
   delete horizontal_fit_angle_diff_inner;
-  horizontal_fit_angle_diff_inner = nullptr;
   delete horizontal_fit_outer;
-  horizontal_fit_outer = nullptr;
   delete horizontal_fit_angle_diff_outer;
-  horizontal_fit_angle_diff_outer = nullptr;
 
   delete c1;
-  c1 = nullptr;
   delete ltx;
-  ltx = nullptr;
   delete draw_text;
-  draw_text = nullptr;
 }
 
 void INTTXYvtx::Init()
 {
   if (m_enable_drawhist || m_savehist)
   {
-    if (!std::filesystem::exists(out_folder_directory.c_str()))
+    if (!std::filesystem::exists(out_folder_directory))
     {
-      system(Form("mkdir %s", out_folder_directory.c_str()));
+      std::filesystem::create_directory(out_folder_directory);
     }
   }
 
@@ -112,24 +98,6 @@ void INTTXYvtx::Init()
 
   m_initialized = true;
 }
-
-//--void INTTXYvtx::InitTreeOut()
-//--{
-//--    // file_out = new TFile(Form("%s/run_XY_tree.root",out_folder_directory.c_str()),"RECREATE");
-//--//--    // file_out -> cd();
-//--//--
-//--//--    // tree_out = new TTree("tree", "tree avg VtxXY");
-//--//--    // tree_out -> Branch("quadrant_corner_X",&out_quadrant_corner_X);
-//--//--    // tree_out -> Branch("quadrant_corner_Y",&out_quadrant_corner_Y);
-//--//--    // tree_out -> Branch("quadrant_center_X",&out_quadrant_center_X);
-//--//--    // tree_out -> Branch("quadrant_center_X",&out_quadrant_center_X);
-//--//--    // tree_out -> Branch("line_filled_mean_X",&out_line_filled_mean_X);
-//--//--    // tree_out -> Branch("line_filled_mean_Y",&out_line_filled_mean_Y);
-//--//--    // tree_out -> Branch("line_filled_stddev_X",&out_line_filled_stddev_X);
-//--//--    // tree_out -> Branch("line_filled_stddev_Y",&out_line_filled_stddev_Y);
-//--
-//--    return;
-//--}
 
 void INTTXYvtx::InitGraph()
 {
@@ -433,7 +401,6 @@ void INTTXYvtx::ProcessEvt(
   if (temp_sPH_inner_nocolumn_vec.size() < 10 || temp_sPH_outer_nocolumn_vec.size() < 10 || total_NClus > N_clu_cut || total_NClus < N_clu_cutl)
   {
     return;
-    printf("In INTTXYvtx class, event : %i, low clu continue, NClus : %ld\n", event_i, total_NClus);
   }
 
   //-------------------------------
@@ -510,40 +477,35 @@ void INTTXYvtx::PrintPlots()
 
   if (m_enable_drawhist && m_enable_qa)
   {
-    std::string s_inttlabel = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
+    std::string s_inttlabel = (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str();
     // note : -----------------------------------------------------------------------------------------
     inner_outer_pos_xy->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    // c1 -> Print(Form("%s/inner_outer_pos_xy.pdf",out_folder_directory.c_str()));
-    c1->Print(Form("%s/xyvtx_qa.pdf(", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/xyvtx_qa.pdf(") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     inner_pos_xy->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    // c1 -> Print(Form("%s/inner_pos_xy.pdf",out_folder_directory.c_str()));
-    c1->Print(Form("%s/xyvtx_qa.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/xyvtx_qa.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     outer_pos_xy->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    // c1 -> Print(Form("%s/outer_pos_xy.pdf",out_folder_directory.c_str()));
-    c1->Print(Form("%s/xyvtx_qa.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/xyvtx_qa.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     N_cluster_correlation->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    // c1 -> Print(Form("%s/N_cluster_correlation.pdf",out_folder_directory.c_str()));
-    c1->Print(Form("%s/xyvtx_qa.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/xyvtx_qa.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     N_cluster_correlation_close->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    // c1 -> Print(Form("%s/N_cluster_correlation_close.pdf",out_folder_directory.c_str()));
-    c1->Print(Form("%s/xyvtx_qa.pdf)", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/xyvtx_qa.pdf)") % out_folder_directory).str().c_str());
     c1->Clear();
   }
 }
@@ -629,8 +591,8 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
   {
     c1->cd();
     c1->Range(0, 0, 1, 1);
-    ltx->DrawLatex(0.5, 0.5, Form("QA plots for quadrant method"));
-    c1->Print(Form("%s/%s(", out_folder_directory.c_str(), m_quad_pdfname.c_str()));
+    ltx->DrawLatex(0.5, 0.5, "QA plots for quadrant method");
+    c1->Print((boost::format("%s/%s(") % out_folder_directory % m_quad_pdfname).str().c_str());
     c1->Clear();
   }
 
@@ -654,10 +616,8 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
       {
         c1->cd();
         c1->Range(0, 0, 1, 1);
-        ltx->DrawLatex(0.5, 0.5, Form("New_trial_square_%i_%i",
-                                      i,     // test_index,
-                                      i1));  // trial_index
-        c1->Print(Form("%s/%s", out_folder_directory.c_str(), m_quad_pdfname.c_str()));
+        ltx->DrawLatex(0.5, 0.5, (boost::format("New_trial_square_%i_%i") % i % i1).str().c_str());
+        c1->Print((boost::format("%s/%s") % out_folder_directory.c_str() % m_quad_pdfname).str().c_str());
         c1->Clear();
       }
 
@@ -736,7 +696,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
   if (m_enable_drawhist)
   {
     c1->cd();
-    c1->Print(Form("%s/%s)", out_folder_directory.c_str(), m_quad_pdfname.c_str()));
+    c1->Print((boost::format("%s/%s)") % out_folder_directory.c_str() % m_quad_pdfname).str().c_str());
     c1->Clear();
   }
 
@@ -744,7 +704,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
   {
     DrawTGraphErrors(grr_x, grr_y, grr_E, grr_E, out_folder_directory,
                      {
-                         Form("Square_scan_history_%.1fmm_%iTrials", original_length, N_trial)  // title
+                         (boost::format("Square_scan_history_%.1fmm_%iTrials") % original_length % N_trial).str().c_str()  // title
                          ,
                          "nth scan"  // x_title
                          ,
@@ -756,7 +716,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
                      });
     Draw2TGraph(All_FitError_angle_X, All_FitError_angle_Y, Winner_FitError_angle_X, Winner_FitError_angle_Y, out_folder_directory,
                 {
-                    Form("Angle_diff_fit_error_%iTrials", N_trial)  // title
+                    (boost::format("Angle_diff_fit_error_%iTrials") % N_trial).str().c_str()  // title
                     ,
                     "n iteration"  // x_title
                     ,
@@ -768,7 +728,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
                 });
     Draw2TGraph(All_FitError_DCA_X, All_FitError_DCA_Y, Winner_FitError_DCA_X, Winner_FitError_DCA_Y, out_folder_directory,
                 {
-                    Form("DCA_fit_error_%iTrials", N_trial)  // title
+                    (boost::format("DCA_fit_error_%iTrials") % N_trial).str().c_str()  // title
                     ,
                     "n iteration"  // x_title
                     ,
@@ -801,13 +761,10 @@ std::vector<double> INTTXYvtx::subMacroVTXxyCorrection(int test_index, int trial
   std::string sub_out_folder_name{};
   if (draw_plot_opt == true)
   {
-    sub_out_folder_name = Form("%s/New_trial_square_%i_%i",
-                               out_folder_directory.c_str(),
-                               test_index,
-                               trial_index);
+    sub_out_folder_name = (boost::format("%s/New_trial_square_%i_%i") % out_folder_directory % test_index % trial_index).str();
 
     //--if (std::filesystem::exists(sub_out_folder_name.c_str()) == false) {
-    //--  system(Form("mkdir %s",sub_out_folder_name.c_str()));
+    //--  system((boost::format("mkdir %s",sub_out_folder_name.c_str()));
     //--}
 
     // PrintPlotsVTXxy(sub_out_folder_name);
@@ -1082,23 +1039,19 @@ void INTTXYvtx::PrintPlotsVTXxy()
 {
   if (m_enable_drawhist)
   {
-    std::string s_inttlabel = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
+    std::string s_inttlabel = (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str();
     std::string s_pdfname = out_folder_directory + "/" + m_quad_pdfname;
     std::cout << s_pdfname << std::endl;
 
     // note : -----------------------------------------------------------------------------------------
     DCA_distance_inner_phi->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    // c1 -> Print(Form("%s/DCA_distance_inner_phi.pdf", sub_out_folder_name.c_str()));
-    // c1 -> Print(Form("%s.pdf(", sub_out_folder_name.c_str()));
     c1->Print(s_pdfname.c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     angle_diff_inner_phi->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    // c1 -> Print(Form("%s/angle_diff_inner_phi.pdf", sub_out_folder_name.c_str()));
-    // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
     c1->Print(s_pdfname.c_str());
     c1->Clear();
 
@@ -1112,10 +1065,8 @@ void INTTXYvtx::PrintPlotsVTXxy()
     // gaus_fit -> Draw("l same");
     horizontal_fit_inner->Draw("l same");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    draw_text->DrawLatex(0.25, 0.84, Form("#color[2]{Assumed vertex: %.3f mm, %.3f mm}", current_vtxX, current_vtxY));
-    draw_text->DrawLatex(0.25, 0.80, Form("#color[2]{Pol0 fit chi2/NDF: %.3f, fit error: %.3f}", horizontal_fit_inner->GetChisquare() / double(horizontal_fit_inner->GetNDF()), horizontal_fit_inner->GetParError(0)));
-    // c1 -> Print(Form("%s/DCA_distance_inner_phi_peak.pdf", sub_out_folder_name.c_str()));
-    // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
+    draw_text->DrawLatex(0.25, 0.84, (boost::format("#color[2]{Assumed vertex: %.3f mm, %.3f mm}") % current_vtxX % current_vtxY).str().c_str());
+    draw_text->DrawLatex(0.25, 0.80, (boost::format("#color[2]{Pol0 fit chi2/NDF: %.3f, fit error: %.3f}") % (horizontal_fit_inner->GetChisquare() / double(horizontal_fit_inner->GetNDF())) % horizontal_fit_inner->GetParError(0)).str().c_str());
     c1->Print(s_pdfname.c_str());
     c1->Clear();
 
@@ -1127,9 +1078,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
     angle_diff_inner_phi_peak_profile->Draw("same");
     horizontal_fit_angle_diff_inner->Draw("l same");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    draw_text->DrawLatex(0.25, 0.84, Form("#color[2]{Assumed vertex: %.3f mm, %.3f mm}", current_vtxX, current_vtxY));
-    // c1 -> Print(Form("%s/angle_diff_inner_phi_peak.pdf", sub_out_folder_name.c_str()));
-    // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
+    draw_text->DrawLatex(0.25, 0.84, (boost::format("#color[2]{Assumed vertex: %.3f mm, %.3f mm}") % current_vtxX % current_vtxY).str().c_str());
     c1->Print(s_pdfname.c_str());
     c1->Clear();
 
@@ -1139,16 +1088,12 @@ void INTTXYvtx::PrintPlotsVTXxy()
       // note : -----------------------------------------------------------------------------------------
       DCA_distance_outer_phi->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/DCA_distance_outer_phi.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
       angle_diff_outer_phi->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/angle_diff_outer_phi.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
@@ -1156,8 +1101,6 @@ void INTTXYvtx::PrintPlotsVTXxy()
       angle_diff->SetMinimum(0);
       angle_diff->Draw("hist");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/angle_diff.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
@@ -1166,72 +1109,55 @@ void INTTXYvtx::PrintPlotsVTXxy()
       angle_diff_new->Draw("hist");
       angle_diff_new_bkg_remove->Draw("hist same");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      draw_text->DrawLatex(0.4, 0.80, Form("#color[2]{Dist. StdDev: %.4f}", angle_diff_new_bkg_remove->GetStdDev()));
-      // c1 -> Print(Form("%s/angle_diff_new.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
+      draw_text->DrawLatex(0.4, 0.80, (boost::format("#color[2]{Dist. StdDev: %.4f}") % angle_diff_new_bkg_remove->GetStdDev()).str().c_str());
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
       DCA_distance->Draw("hist");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/DCA_distance.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
       angle_correlation->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/angle_correlation.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
       angle_diff_DCA_dist->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/angle_diff_DCA_dist.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
       DCA_point->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/DCA_point.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
       DCA_distance_inner_X->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/DCA_distance_inner_X.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
       DCA_distance_inner_Y->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/DCA_distance_inner_Y.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
       DCA_distance_outer_X->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/DCA_distance_outer_X.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
       DCA_distance_outer_Y->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      // c1 -> Print(Form("%s/DCA_distance_outer_Y.pdf", sub_out_folder_name.c_str()));
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
@@ -1243,9 +1169,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
       DCA_distance_outer_phi_peak_profile->Draw("same");
       horizontal_fit_outer->Draw("l same");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      draw_text->DrawLatex(0.25, 0.80, Form("#color[2]{Assumed vertex: %.3f mm, %.3f mm}", current_vtxX, current_vtxY));
-      // c1 -> Print(Form("%s/DCA_distance_outer_phi_peak.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
+      draw_text->DrawLatex(0.25, 0.80, (boost::format("#color[2]{Assumed vertex: %.3f mm, %.3f mm}") % current_vtxX % current_vtxY).str().c_str());
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
@@ -1256,10 +1180,8 @@ void INTTXYvtx::PrintPlotsVTXxy()
       angle_diff_outer_phi_peak->Draw("colz0");
       angle_diff_outer_phi_peak_profile->Draw("same");
       horizontal_fit_angle_diff_outer->Draw("l same");
-      ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, Form("%s, peak : %f", s_inttlabel.c_str(), peek));
-      draw_text->DrawLatex(0.25, 0.84, Form("#color[2]{Assumed vertex: %.3f mm, %.3f mm}", current_vtxX, current_vtxY));
-      // c1 -> Print(Form("%s/angle_diff_outer_phi_peak.pdf", sub_out_folder_name.c_str()));
-      // c1 -> Print(Form("%s.pdf", sub_out_folder_name.c_str()));
+      ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, (boost::format("%s, peak : %f") % s_inttlabel.c_str() % peek).str().c_str());
+      draw_text->DrawLatex(0.25, 0.84, (boost::format("#color[2]{Assumed vertex: %.3f mm, %.3f mm}") % current_vtxX % current_vtxY).str().c_str());
       c1->Print(s_pdfname.c_str());
       c1->Clear();
     }
@@ -1320,12 +1242,12 @@ void INTTXYvtx::EndRun()
   // write histograms
   if (m_savehist)
   {
-    if (!std::filesystem::exists(out_folder_directory.c_str()))
+    if (!std::filesystem::exists(out_folder_directory))
     {
-      system(Form("mkdir %s", out_folder_directory.c_str()));
+      std::filesystem::create_directory(out_folder_directory);
     }
 
-    TFile* file_out = new TFile(Form("%s/run_XY_histo.root", out_folder_directory.c_str()), "RECREATE");
+    TFile* file_out = new TFile((boost::format("%s/run_XY_histo.root") % out_folder_directory).str().c_str(), "RECREATE");
 
     for (auto& itr : m_v_hist)
     {
@@ -1593,9 +1515,8 @@ void INTTXYvtx::DrawTGraphErrors(
       g->Draw("AP");
     }
 
-    ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str()));
-    // c1 -> Print(Form("%s/%s.pdf", output_directory.c_str(), plot_name[0].c_str()));
-    c1->Print(Form("%s/%s", output_directory.c_str(), plot_name[4].c_str()));
+    ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str());
+    c1->Print((boost::format("%s/%s") % output_directory.c_str() % plot_name[4]).str().c_str());
     c1->Clear();
 
     delete g;
@@ -1640,9 +1561,8 @@ void INTTXYvtx::Draw2TGraph(
     legend->AddEntry(g1, "Tested vertex candidates", "p");
     legend->AddEntry(g2, "Better performed candidates", "p");
     legend->Draw("same");
-    ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str()));
-    // c1 -> Print(Form("%s/%s.pdf", output_directory.c_str(), plot_name[0].c_str()));
-    c1->Print(Form("%s/%s", output_directory.c_str(), plot_name[4].c_str()));
+    ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str());
+    c1->Print((boost::format("%s/%s") % output_directory.c_str() % plot_name[4]).str().c_str());
     c1->Clear();
     c1->SetLogy(0);
 
@@ -1877,22 +1797,20 @@ INTTXYvtx::FillLine_FindVertex(
     reco_vertex_gr->SetMarkerSize(1);
     reco_vertex_gr->SetPoint(reco_vertex_gr->GetN(), reco_vtx_x, reco_vtx_y);
 
-    std::string s_inttlabel = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
+    std::string s_inttlabel = (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str();
     // note : -----------------------------------------------------------------------------------------
     xy_hist->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    // c1 -> Print(Form("%s/Run_xy_hist.pdf",out_folder_directory.c_str()));
-    c1->Print(Form("%s/linefill_qa.pdf(", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/linefill_qa.pdf(") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     xy_hist_bkgrm->Draw("colz0");
-    draw_text->DrawLatex(0.21, 0.71 + 0.13, Form("Vertex of the Run: %.4f mm, %.4f mm", reco_vtx_x, reco_vtx_y));
-    draw_text->DrawLatex(0.21, 0.67 + 0.13, Form("Vertex error: %.4f mm, %.4f mm", xy_hist_bkgrm->GetMeanError(1), xy_hist_bkgrm->GetMeanError(2)));
+    draw_text->DrawLatex(0.21, 0.71 + 0.13, (boost::format("Vertex of the Run: %.4f mm, %.4f mm") % reco_vtx_x % reco_vtx_y).str().c_str());
+    draw_text->DrawLatex(0.21, 0.67 + 0.13, (boost::format("Vertex error: %.4f mm, %.4f mm") % xy_hist_bkgrm->GetMeanError(1) % xy_hist_bkgrm->GetMeanError(2)).str().c_str());
     reco_vertex_gr->Draw("p same");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    // c1 -> Print(Form("%s/Run_xy_hist_bkgrm.pdf",out_folder_directory.c_str()));
-    c1->Print(Form("%s/linefill_qa.pdf)", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/linefill_qa.pdf)") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // std::cout<<"test : hello, can you see me ?"<<std::endl;
