@@ -23,6 +23,8 @@ class TowerInfov2 : public TowerInfov1
   float get_chi2() override { return _chi2; }
   void set_pedestal(float pedestal) override { _pedestal = pedestal; }
   float get_pedestal() override { return _pedestal; }
+  void set_bitfliprecovery(float recovered) override { _recovered = recovered; }
+  float get_bitfliprecovery() override { return _recovered; }
 
   void set_isHot(bool isHot) override { set_status_bit(0, isHot); }
   bool get_isHot() const override { return get_status_bit(0); }
@@ -53,6 +55,7 @@ class TowerInfov2 : public TowerInfov1
  private:
   float _chi2 = 0;
   float _pedestal = 0;
+  float _recovered = 0;
   uint8_t _status = 0;
 
   void set_status_bit(int bit, bool value)
