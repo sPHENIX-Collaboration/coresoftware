@@ -101,6 +101,9 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
 
     for (int i = 0; i < npackets; i++)
     {
+      int packet_id = plist[i]->getIdentifier();
+// The call to  EventNumberOffset(identifier) will initialize it to our default if it wasn't set already
+      int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
         plist[i]->identify();
@@ -112,7 +115,6 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       int nr_modules = plist[i]->iValue(0,"NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
-      int packet_id = plist[i]->getIdentifier();
       if (nr_modules > 3)
       {
 	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
@@ -139,20 +141,32 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
         newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
         newhit->setChecksumLsb(ifem, plist[i]->iValue(ifem, "CHECKSUMLSB"));
         newhit->setChecksumMsb(ifem, plist[i]->iValue(ifem, "CHECKSUMMSB"));
+        newhit->setCalcChecksumLsb(ifem,plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
+        newhit->setCalcChecksumMsb(ifem,plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
       }
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
-        newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
-        newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
-        newhit->setSuppressed(ipmt,plist[i]->iValue(ipmt,"SUPPRESSED"));
-        for (int isamp = 0; isamp < nr_samples; isamp++)
-        {
-          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-        }
+        // store pre/post only for suppressed channels, the array in the packet routines is not
+        // initialized so reading pre/post for not zero suppressed channels returns garbage
+        bool isSuppressed = plist[i]->iValue(ipmt,"SUPPRESSED");
+        newhit->setSuppressed(ipmt,isSuppressed);
+	if (isSuppressed)
+	{
+	  newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
+	  newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
+	}
+	else
+	{
+	  for (int isamp = 0; isamp < nr_samples; isamp++)
+	  {
+	    newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+	  }
+	}
       }
       if (Verbosity() > 2)
       {
-        std::cout << PHWHERE << "evtno: " << EventSequence
+        std::cout << PHWHERE << "corrected evtno: " << CorrectedEventSequence
+		  << ", original evtno: " << EventSequence
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
@@ -160,15 +174,16 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       {
 	if (packet_id == std::clamp(packet_id, 9000, 9999))
 	{
-        TriggerInputManager()->AddSEpdPacket(EventSequence, newhit);
+        TriggerInputManager()->AddSEpdPacket(CorrectedEventSequence, newhit);
 	}
 	else
 	{
-        TriggerInputManager()->AddZdcPacket(EventSequence, newhit);
+//        CorrectedEventSequence = EventSequence;
+        TriggerInputManager()->AddZdcPacket(CorrectedEventSequence, newhit);
 	}
       }
-      m_ZdcPacketMap[EventSequence].push_back(newhit);
-      m_EventStack.insert(EventSequence);
+      m_ZdcPacketMap[CorrectedEventSequence].push_back(newhit);
+      m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
 	ddumppacket(plist[i]);
@@ -203,8 +218,16 @@ void SingleZdcTriggerInput::CleanupUsedPackets(const int eventno)
   {
     if (iter.first <= eventno)
     {
+      if (Verbosity() > 1)
+      {
+	std::cout << "Deleting event " << iter.first << " from zdc input mgr" << std::endl;
+      }
       for (auto pktiter : iter.second)
       {
+	if (Verbosity() > 1)
+	{
+	  std::cout << "Deleting packet " << pktiter->getIdentifier() << std::endl;
+	}
         delete pktiter;
       }
       toclearevents.push_back(iter.first);
@@ -300,11 +323,31 @@ void SingleZdcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
   }
 }
 
-// void SingleZdcTriggerInput::ConfigureStreamingInputManager()
-// {
-//   if (StreamingInputManager())
-//   {
-//     StreamingInputManager()->SetZdcBcoRange(m_BcoRange);
-//   }
-//   return;
-// }
+void SingleZdcTriggerInput::AdjustPacketMap(int pktid, int evtoffset)
+{
+  std::cout << PHWHERE << " adjusting local zdc packet map for packet " << pktid
+	    << " with offset " << evtoffset << std::endl;
+  std::vector<int> eventnumbers;
+  for (auto packetmapiter =  m_ZdcPacketMap.rbegin(); packetmapiter != m_ZdcPacketMap.rend(); ++packetmapiter )
+  {
+      eventnumbers.push_back(packetmapiter->first);
+  }
+
+    for (auto evtnumiter : eventnumbers)
+    {
+    int lastevent = evtnumiter;
+    int newevent = lastevent + evtoffset;
+//    for (auto pktiter : m_ZdcPacketMap[lastevent])
+    for (std::vector<OfflinePacket *>::iterator  pktiter =  m_ZdcPacketMap[lastevent].begin(); pktiter != m_ZdcPacketMap[lastevent].end(); ++pktiter )
+    {
+      if ((*pktiter)->getIdentifier() == pktid)
+      {
+	std::cout << PHWHERE << " need to move packet " << (*pktiter)->getIdentifier() << std::endl;
+	m_ZdcPacketMap[newevent].push_back(std::move(*pktiter));
+	m_ZdcPacketMap[lastevent].erase(pktiter);
+//	std::move
+	break;
+      }
+    }
+  }
+}
