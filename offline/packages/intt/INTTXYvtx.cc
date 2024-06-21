@@ -193,28 +193,28 @@ void INTTXYvtx::InitHist()
   if (m_enable_qa)
   {
     N_cluster_correlation = new TH2F("N_cluster_correlation", "N_cluster_correlation", 100, 0, 4000, 100, 0, 4000);
-    N_cluster_correlation->SetStats(0);
+    N_cluster_correlation->SetStats(false);
     N_cluster_correlation->GetXaxis()->SetTitle("inner N_cluster");
     N_cluster_correlation->GetYaxis()->SetTitle("Outer N_cluster");
     N_cluster_correlation->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(N_cluster_correlation);
 
     N_cluster_correlation_close = new TH2F("N_cluster_correlation_close", "N_cluster_correlation_close", 100, 0, 500, 100, 0, 500);
-    N_cluster_correlation_close->SetStats(0);
+    N_cluster_correlation_close->SetStats(false);
     N_cluster_correlation_close->GetXaxis()->SetTitle("inner N_cluster");
     N_cluster_correlation_close->GetYaxis()->SetTitle("Outer N_cluster");
     N_cluster_correlation_close->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(N_cluster_correlation_close);
 
     inner_pos_xy = new TH2F("inner_pos_xy", "inner_pos_xy", 360, -100, 100, 360, -100, 100);
-    inner_pos_xy->SetStats(0);
+    inner_pos_xy->SetStats(false);
     inner_pos_xy->GetXaxis()->SetTitle("X axis [mm]");
     inner_pos_xy->GetYaxis()->SetTitle("Y axis [mm]");
     inner_pos_xy->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(inner_pos_xy);
 
     outer_pos_xy = new TH2F("outer_pos_xy", "outer_pos_xy", 360, -150, 150, 360, -150, 150);
-    outer_pos_xy->SetStats(0);
+    outer_pos_xy->SetStats(false);
     outer_pos_xy->GetXaxis()->SetTitle("X axis [mm]");
     outer_pos_xy->GetYaxis()->SetTitle("Y axis [mm]");
     outer_pos_xy->GetXaxis()->SetNdivisions(505);
@@ -222,7 +222,7 @@ void INTTXYvtx::InitHist()
 
     // inner_outer_pos_xy = new TH2F("inner_outer_pos_xy","inner_outer_pos_xy",360,-150,150,360,-150,150);
     inner_outer_pos_xy = new TH2F("inner_outer_pos_xy", "inner_outer_pos_xy", 360, -150, 150, 360, -150, 150);
-    inner_outer_pos_xy->SetStats(0);
+    inner_outer_pos_xy->SetStats(false);
     inner_outer_pos_xy->GetXaxis()->SetTitle("X axis [mm]");
     inner_outer_pos_xy->GetYaxis()->SetTitle("Y axis [mm]");
     inner_outer_pos_xy->GetXaxis()->SetNdivisions(505);
@@ -232,14 +232,14 @@ void INTTXYvtx::InitHist()
   ///////////////////////////////////////
   // histograms for quadrant method
   DCA_distance_inner_phi = new TH2F("DCA_distance_inner_phi", "DCA_distance_inner_phi", 100, 0, 360, 100, -10, 10);
-  DCA_distance_inner_phi->SetStats(0);
+  DCA_distance_inner_phi->SetStats(false);
   DCA_distance_inner_phi->GetXaxis()->SetTitle("Inner phi [degree]");
   DCA_distance_inner_phi->GetYaxis()->SetTitle("DCA [mm]");
   DCA_distance_inner_phi->GetXaxis()->SetNdivisions(505);
   m_v_hist.push_back(DCA_distance_inner_phi);
 
   angle_diff_inner_phi = new TH2F("angle_diff_inner_phi", "angle_diff_inner_phi", 361, 0, 361, 100, -1.5, 1.5);
-  angle_diff_inner_phi->SetStats(0);
+  angle_diff_inner_phi->SetStats(false);
   angle_diff_inner_phi->GetXaxis()->SetTitle("Inner phi [degree]");
   angle_diff_inner_phi->GetYaxis()->SetTitle("Inner - Outer [degree]");
   angle_diff_inner_phi->GetXaxis()->SetNdivisions(505);
@@ -249,7 +249,7 @@ void INTTXYvtx::InitHist()
   // note : it's for the geometry correction
   angle_diff_inner_phi_peak_final = new TH2F("angle_diff_inner_phi_peak_final",
                                              "angle_diff_inner_phi_peak_final", 361, 0, 361, 100, -1.5, 1.5);
-  angle_diff_inner_phi_peak_final->SetStats(0);
+  angle_diff_inner_phi_peak_final->SetStats(false);
   angle_diff_inner_phi_peak_final->GetXaxis()->SetTitle("Inner phi [degree]");
   angle_diff_inner_phi_peak_final->GetYaxis()->SetTitle("Inner - Outer [degree]");
   angle_diff_inner_phi_peak_final->GetXaxis()->SetNdivisions(505);
@@ -257,7 +257,7 @@ void INTTXYvtx::InitHist()
 
   DCA_distance_inner_phi_peak_final = new TH2F("DCA_distance_inner_phi_peak_final",
                                                "DCA_distance_inner_phi_peak_final", 100, 0, 360, 100, -10, 10);
-  DCA_distance_inner_phi_peak_final->SetStats(0);
+  DCA_distance_inner_phi_peak_final->SetStats(false);
   DCA_distance_inner_phi_peak_final->GetXaxis()->SetTitle("Inner phi [degree]");
   DCA_distance_inner_phi_peak_final->GetYaxis()->SetTitle("DCA [mm]");
   DCA_distance_inner_phi_peak_final->GetXaxis()->SetNdivisions(505);
@@ -265,21 +265,21 @@ void INTTXYvtx::InitHist()
 
   // QA
   angle_diff = new TH1F("angle_diff", "angle_diff", 100, 0, 5);
-  angle_diff->SetStats(0);
+  angle_diff->SetStats(false);
   angle_diff->GetXaxis()->SetTitle("|Inner - Outer| [degree]");
   angle_diff->GetYaxis()->SetTitle("Entry");
   angle_diff->GetXaxis()->SetNdivisions(505);
   m_v_hist.push_back(angle_diff);
 
   angle_diff_new = new TH1F("angle_diff_new", "angle_diff_new", 100, angle_diff_new_l, angle_diff_new_r);
-  angle_diff_new->SetStats(0);
+  angle_diff_new->SetStats(false);
   angle_diff_new->GetXaxis()->SetTitle("|Inner - Outer| [degree]");
   angle_diff_new->GetYaxis()->SetTitle("Entry");
   angle_diff_new->GetXaxis()->SetNdivisions(505);
   m_v_hist.push_back(angle_diff_new);
 
   DCA_distance = new TH1F("DCA_distance", "DCA_distance", 100, -10, 10);
-  DCA_distance->SetStats(0);
+  DCA_distance->SetStats(false);
   DCA_distance->GetXaxis()->SetTitle("DCA [mm]");
   DCA_distance->GetYaxis()->SetTitle("Entry");
   DCA_distance->GetXaxis()->SetNdivisions(505);
@@ -288,63 +288,63 @@ void INTTXYvtx::InitHist()
   if (m_enable_qa)
   {
     DCA_distance_outer_phi = new TH2F("DCA_distance_outer_phi", "DCA_distance_outer_phi", 100, 0, 360, 100, -10, 10);
-    DCA_distance_outer_phi->SetStats(0);
+    DCA_distance_outer_phi->SetStats(false);
     DCA_distance_outer_phi->GetXaxis()->SetTitle("Outer phi [degree]");
     DCA_distance_outer_phi->GetYaxis()->SetTitle("DCA [mm]");
     DCA_distance_outer_phi->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(DCA_distance_outer_phi);
 
     angle_diff_outer_phi = new TH2F("angle_diff_outer_phi", "angle_diff_outer_phi", 361, 0, 361, 100, -1.5, 1.5);
-    angle_diff_outer_phi->SetStats(0);
+    angle_diff_outer_phi->SetStats(false);
     angle_diff_outer_phi->GetXaxis()->SetTitle("Outer phi [degree]");
     angle_diff_outer_phi->GetYaxis()->SetTitle("Inner - Outer [degree]");
     angle_diff_outer_phi->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(angle_diff_outer_phi);
 
     angle_correlation = new TH2F("angle_correlation", "angle_correlation", 361, 0, 361, 361, 0, 361);
-    angle_correlation->SetStats(0);
+    angle_correlation->SetStats(false);
     angle_correlation->GetXaxis()->SetTitle("Inner Phi [degree]");
     angle_correlation->GetYaxis()->SetTitle("Outer Phi [degree]");
     angle_correlation->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(angle_correlation);
 
     angle_diff_DCA_dist = new TH2F("angle_diff_DCA_dist", "angle_diff_DCA_dist", 100, -1.5, 1.5, 100, -3.5, 3.5);
-    angle_diff_DCA_dist->SetStats(0);
+    angle_diff_DCA_dist->SetStats(false);
     angle_diff_DCA_dist->GetXaxis()->SetTitle("Inner - Outer [degree]");
     angle_diff_DCA_dist->GetYaxis()->SetTitle("DCA distance [mm]");
     angle_diff_DCA_dist->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(angle_diff_DCA_dist);
 
     DCA_point = new TH2F("DCA_point", "DCA_point", 100, -10, 10, 100, -10, 10);
-    DCA_point->SetStats(0);
+    DCA_point->SetStats(false);
     DCA_point->GetXaxis()->SetTitle("X pos [mm]");
     DCA_point->GetYaxis()->SetTitle("Y pos [mm]");
     DCA_point->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(DCA_point);
 
     DCA_distance_inner_X = new TH2F("DCA_distance_inner_X", "DCA_distance_inner_X", 100, -100, 100, 100, -10, 10);
-    DCA_distance_inner_X->SetStats(0);
+    DCA_distance_inner_X->SetStats(false);
     DCA_distance_inner_X->GetXaxis()->SetTitle("Inner cluster X [mm]");
     DCA_distance_inner_X->GetYaxis()->SetTitle("DCA [mm]");
     DCA_distance_inner_X->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(DCA_distance_inner_X);
 
     DCA_distance_inner_Y = new TH2F("DCA_distance_inner_Y", "DCA_distance_inner_Y", 100, -100, 100, 100, -10, 10);
-    DCA_distance_inner_Y->SetStats(0);
+    DCA_distance_inner_Y->SetStats(false);
     DCA_distance_inner_Y->GetXaxis()->SetTitle("Inner cluster Y [mm]");
     DCA_distance_inner_Y->GetYaxis()->SetTitle("DCA [mm]");
     DCA_distance_inner_Y->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(DCA_distance_inner_Y);
 
     DCA_distance_outer_X = new TH2F("DCA_distance_outer_X", "DCA_distance_outer_X", 100, -130, 130, 100, -10, 10);
-    DCA_distance_outer_X->SetStats(0);
+    DCA_distance_outer_X->SetStats(false);
     DCA_distance_outer_X->GetXaxis()->SetTitle("Outer cluster X [mm]");
     DCA_distance_outer_X->GetYaxis()->SetTitle("DCA [mm]");
     DCA_distance_outer_X->GetXaxis()->SetNdivisions(505);
     m_v_hist.push_back(DCA_distance_outer_X);
 
     DCA_distance_outer_Y = new TH2F("DCA_distance_outer_Y", "DCA_distance_outer_Y", 100, -130, 130, 100, -10, 10);
-    DCA_distance_outer_Y->SetStats(0);
+    DCA_distance_outer_Y->SetStats(false);
     DCA_distance_outer_Y->GetXaxis()->SetTitle("Outer cluster Y [mm]");
     DCA_distance_outer_Y->GetYaxis()->SetTitle("DCA [mm]");
     DCA_distance_outer_Y->GetXaxis()->SetNdivisions(505);
@@ -354,7 +354,7 @@ void INTTXYvtx::InitHist()
     // note : it's for the geometry correction
     angle_diff_outer_phi_peak_final = new TH2F("angle_diff_outer_phi_peak_final",
                                                "angle_diff_outer_phi_peak_final", 361, 0, 361, 100, -1.5, 1.5);
-    angle_diff_outer_phi_peak_final->SetStats(0);
+    angle_diff_outer_phi_peak_final->SetStats(false);
     angle_diff_outer_phi_peak_final->GetXaxis()->SetTitle("Outer phi [degree]");
     angle_diff_outer_phi_peak_final->GetYaxis()->SetTitle("Inner - Outer [degree]");
     angle_diff_outer_phi_peak_final->GetXaxis()->SetNdivisions(505);
@@ -362,7 +362,7 @@ void INTTXYvtx::InitHist()
 
     DCA_distance_outer_phi_peak_final = new TH2F("DCA_distance_outer_phi_peak_final",
                                                  "DCA_distance_outer_phi_peak_final", 100, 0, 360, 100, -10, 10);
-    DCA_distance_outer_phi_peak_final->SetStats(0);
+    DCA_distance_outer_phi_peak_final->SetStats(false);
     DCA_distance_outer_phi_peak_final->GetXaxis()->SetTitle("Outer phi [degree]");
     DCA_distance_outer_phi_peak_final->GetYaxis()->SetTitle("DCA [mm]");
     DCA_distance_outer_phi_peak_final->GetXaxis()->SetNdivisions(505);
@@ -370,7 +370,7 @@ void INTTXYvtx::InitHist()
 
     angle_diff_new_bkg_remove_final = new TH1F("angle_diff_new_bkg_remove_final",
                                                "angle_diff_new_bkg_remove_final", 100, angle_diff_new_l, angle_diff_new_r);
-    angle_diff_new_bkg_remove_final->SetStats(0);
+    angle_diff_new_bkg_remove_final->SetStats(false);
     angle_diff_new_bkg_remove_final->GetXaxis()->SetTitle("|Inner - Outer| [degree]");
     angle_diff_new_bkg_remove_final->GetYaxis()->SetTitle("Entry");
     angle_diff_new_bkg_remove_final->GetXaxis()->SetNdivisions(505);
@@ -381,10 +381,10 @@ void INTTXYvtx::InitHist()
 // note : this function only prepare the pairs for the vertex XY calculation, it's like a general vertex for the whole run
 void INTTXYvtx::ProcessEvt(
     int event_i,
-    std::vector<clu_info> temp_sPH_inner_nocolumn_vec,
-    std::vector<clu_info> temp_sPH_outer_nocolumn_vec,
-    std::vector<std::vector<double>> /*temp_sPH_nocolumn_vec*/,
-    std::vector<std::vector<double>> /*temp_sPH_nocolumn_rz_vec*/,
+    const std::vector<clu_info>& temp_sPH_inner_nocolumn_vec,
+    const std::vector<clu_info>& temp_sPH_outer_nocolumn_vec,
+    const std::vector<std::vector<double>>& /*temp_sPH_nocolumn_vec*/,
+    const std::vector<std::vector<double>>& /*temp_sPH_nocolumn_rz_vec*/,
     int NvtxMC,
     double /*TrigZvtxMC*/,
     bool PhiCheckTag,
@@ -438,17 +438,17 @@ void INTTXYvtx::ProcessEvt(
 
   //-------------------------------
   // tracklet reconstruction accumulated multiple events
-  for (unsigned int inner_i = 0; inner_i < temp_sPH_inner_nocolumn_vec.size(); inner_i++)
+  for (auto& inner_i : temp_sPH_inner_nocolumn_vec)
   {
-    for (unsigned int outer_i = 0; outer_i < temp_sPH_outer_nocolumn_vec.size(); outer_i++)
+    for (auto& outer_i : temp_sPH_outer_nocolumn_vec)
     {
       // note : try to ease the analysis and also make it quick.
-      if (fabs(temp_sPH_inner_nocolumn_vec[inner_i].phi - temp_sPH_outer_nocolumn_vec[outer_i].phi) < 7)  // todo : the pre phi cut is here, can be optimized
+      if (fabs(inner_i.phi - outer_i.phi) < 7)  // todo : the pre phi cut is here, can be optimized
       {
-        cluster_pair_vec.push_back({{temp_sPH_inner_nocolumn_vec[inner_i].x,
-                                     temp_sPH_inner_nocolumn_vec[inner_i].y},
-                                    {temp_sPH_outer_nocolumn_vec[outer_i].x,
-                                     temp_sPH_outer_nocolumn_vec[outer_i].y}});
+        cluster_pair_vec.push_back({{inner_i.x,
+                                     inner_i.y},
+                                    {outer_i.x,
+                                     outer_i.y}});
       }
     }
   }
@@ -457,16 +457,16 @@ void INTTXYvtx::ProcessEvt(
   // QA histogram
   if (m_enable_qa)
   {
-    for (unsigned int inner_i = 0; inner_i < temp_sPH_inner_nocolumn_vec.size(); inner_i++)
+    for (auto& inner_i : temp_sPH_inner_nocolumn_vec)
     {
-      inner_pos_xy->Fill(temp_sPH_inner_nocolumn_vec[inner_i].x, temp_sPH_inner_nocolumn_vec[inner_i].y);
-      inner_outer_pos_xy->Fill(temp_sPH_inner_nocolumn_vec[inner_i].x, temp_sPH_inner_nocolumn_vec[inner_i].y);
+      inner_pos_xy->Fill(inner_i.x, inner_i.y);
+      inner_outer_pos_xy->Fill(inner_i.x, inner_i.y);
     }
 
-    for (unsigned int outer_i = 0; outer_i < temp_sPH_outer_nocolumn_vec.size(); outer_i++)
+    for (auto& outer_i : temp_sPH_outer_nocolumn_vec)
     {
-      outer_pos_xy->Fill(temp_sPH_outer_nocolumn_vec[outer_i].x, temp_sPH_outer_nocolumn_vec[outer_i].y);
-      inner_outer_pos_xy->Fill(temp_sPH_outer_nocolumn_vec[outer_i].x, temp_sPH_outer_nocolumn_vec[outer_i].y);
+      outer_pos_xy->Fill(outer_i.x, outer_i.y);
+      inner_outer_pos_xy->Fill(outer_i.x, outer_i.y);
     }
   }
 
@@ -839,7 +839,7 @@ std::vector<double> INTTXYvtx::GetVTXxyCorrection_new(int trial_index)
     // std::cout<<"test, gaus fit range : "<<gaus_fit->GetParameter(1) - 25<<" "<<gaus_fit->GetParameter(1) + 25<<std::endl;
   }
 
-  subMacroPlotWorking(1, 100, 260, 25);
+  subMacroPlotWorking(true, 100, 260, 25);
 
   return {
       angle_diff_new_bkg_remove->GetMean(),
@@ -872,36 +872,36 @@ void INTTXYvtx::subMacroPlotWorking(
   //   3 : horizontal_fit_inner            -> ParErr(0),   // note : inner DCA, pol0
   //   5 : horizontal_fit_angle_diff_inner -> ParErr(0),   // note : inner angle diff, pol0
 
-  for (unsigned int i = 0; i < cluster_pair_vec.size(); i++)
+  for (auto& i : cluster_pair_vec)
   {
     std::vector<double> DCA_info_vec = calculateDistanceAndClosestPoint(
-        cluster_pair_vec[i].first.x, cluster_pair_vec[i].first.y,
-        cluster_pair_vec[i].second.x, cluster_pair_vec[i].second.y,
+        i.first.x, i.first.y,
+        i.second.x, i.second.y,
         current_vtxX, current_vtxY);
 
     double DCA_sign = calculateAngleBetweenVectors(
-        cluster_pair_vec[i].second.x, cluster_pair_vec[i].second.y,
-        cluster_pair_vec[i].first.x, cluster_pair_vec[i].first.y,
+        i.second.x, i.second.y,
+        i.first.x, i.first.y,
         current_vtxX, current_vtxY);
 
     if (phi_correction == true)
     {
       // std::cout<<"option selected "<<std::endl;
-      Clus_InnerPhi_Offset = (cluster_pair_vec[i].first.y - current_vtxY < 0)
-                                 ? atan2(cluster_pair_vec[i].first.y - current_vtxY, cluster_pair_vec[i].first.x - current_vtxX) * (180. / M_PI) + 360
-                                 : atan2(cluster_pair_vec[i].first.y - current_vtxY, cluster_pair_vec[i].first.x - current_vtxX) * (180. / M_PI);
-      Clus_OuterPhi_Offset = (cluster_pair_vec[i].second.y - current_vtxY < 0)
-                                 ? atan2(cluster_pair_vec[i].second.y - current_vtxY, cluster_pair_vec[i].second.x - current_vtxX) * (180. / M_PI) + 360
-                                 : atan2(cluster_pair_vec[i].second.y - current_vtxY, cluster_pair_vec[i].second.x - current_vtxX) * (180. / M_PI);
+      Clus_InnerPhi_Offset = (i.first.y - current_vtxY < 0)
+                                 ? atan2(i.first.y - current_vtxY, i.first.x - current_vtxX) * (180. / M_PI) + 360
+                                 : atan2(i.first.y - current_vtxY, i.first.x - current_vtxX) * (180. / M_PI);
+      Clus_OuterPhi_Offset = (i.second.y - current_vtxY < 0)
+                                 ? atan2(i.second.y - current_vtxY, i.second.x - current_vtxX) * (180. / M_PI) + 360
+                                 : atan2(i.second.y - current_vtxY, i.second.x - current_vtxX) * (180. / M_PI);
     }
     else  // note : phi_correction == false
     {
-      Clus_InnerPhi_Offset = (cluster_pair_vec[i].first.y < 0)
-                                 ? atan2(cluster_pair_vec[i].first.y, cluster_pair_vec[i].first.x) * (180. / M_PI) + 360
-                                 : atan2(cluster_pair_vec[i].first.y, cluster_pair_vec[i].first.x) * (180. / M_PI);
-      Clus_OuterPhi_Offset = (cluster_pair_vec[i].second.y < 0)
-                                 ? atan2(cluster_pair_vec[i].second.y, cluster_pair_vec[i].second.x) * (180. / M_PI) + 360
-                                 : atan2(cluster_pair_vec[i].second.y, cluster_pair_vec[i].second.x) * (180. / M_PI);
+      Clus_InnerPhi_Offset = (i.first.y < 0)
+                                 ? atan2(i.first.y, i.first.x) * (180. / M_PI) + 360
+                                 : atan2(i.first.y, i.first.x) * (180. / M_PI);
+      Clus_OuterPhi_Offset = (i.second.y < 0)
+                                 ? atan2(i.second.y, i.second.x) * (180. / M_PI) + 360
+                                 : atan2(i.second.y, i.second.x) * (180. / M_PI);
     }
 
     //----------------------
@@ -924,10 +924,10 @@ void INTTXYvtx::subMacroPlotWorking(
       angle_diff_DCA_dist->Fill(Clus_InnerPhi_Offset - Clus_OuterPhi_Offset, DCA_sign);
       DCA_point->Fill(DCA_info_vec[1], DCA_info_vec[2]);
 
-      DCA_distance_inner_X->Fill(cluster_pair_vec[i].first.x, DCA_sign);
-      DCA_distance_inner_Y->Fill(cluster_pair_vec[i].first.y, DCA_sign);
-      DCA_distance_outer_X->Fill(cluster_pair_vec[i].second.x, DCA_sign);
-      DCA_distance_outer_Y->Fill(cluster_pair_vec[i].second.y, DCA_sign);
+      DCA_distance_inner_X->Fill(i.first.x, DCA_sign);
+      DCA_distance_inner_Y->Fill(i.first.y, DCA_sign);
+      DCA_distance_outer_X->Fill(i.second.x, DCA_sign);
+      DCA_distance_outer_Y->Fill(i.second.y, DCA_sign);
     }
 
   }  // note : end of the loop for the cluster pair
@@ -1103,7 +1103,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
-    DCA_distance_inner_phi_peak->SetStats(0);
+    DCA_distance_inner_phi_peak->SetStats(false);
     DCA_distance_inner_phi_peak->GetXaxis()->SetTitle("Inner phi [degree]");
     DCA_distance_inner_phi_peak->GetYaxis()->SetTitle("DCA [mm]");
     DCA_distance_inner_phi_peak->Draw("colz0");
@@ -1120,7 +1120,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
-    angle_diff_inner_phi_peak->SetStats(0);
+    angle_diff_inner_phi_peak->SetStats(false);
     angle_diff_inner_phi_peak->GetXaxis()->SetTitle("Inner phi [degree]");
     angle_diff_inner_phi_peak->GetYaxis()->SetTitle("Inner - Outer [degree]");
     angle_diff_inner_phi_peak->Draw("colz0");
@@ -1236,7 +1236,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
-      DCA_distance_outer_phi_peak->SetStats(0);
+      DCA_distance_outer_phi_peak->SetStats(false);
       DCA_distance_outer_phi_peak->GetXaxis()->SetTitle("Outer phi [degree]");
       DCA_distance_outer_phi_peak->GetYaxis()->SetTitle("DCA [mm]");
       DCA_distance_outer_phi_peak->Draw("colz0");
@@ -1250,7 +1250,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
       c1->Clear();
 
       // note : -----------------------------------------------------------------------------------------
-      angle_diff_outer_phi_peak->SetStats(0);
+      angle_diff_outer_phi_peak->SetStats(false);
       angle_diff_outer_phi_peak->GetXaxis()->SetTitle("Outer phi [degree]");
       angle_diff_outer_phi_peak->GetYaxis()->SetTitle("Inner - Outer [degree]");
       angle_diff_outer_phi_peak->Draw("colz0");
@@ -1332,8 +1332,14 @@ void INTTXYvtx::EndRun()
       itr->Write();
     }
 
-    if (xy_hist != nullptr) xy_hist->Write();
-    if (xy_hist_bkgrm != nullptr) xy_hist_bkgrm->Write();
+    if (xy_hist != nullptr)
+    {
+      xy_hist->Write();
+    }
+    if (xy_hist_bkgrm != nullptr)
+    {
+      xy_hist_bkgrm->Write();
+    }
 
     file_out->Close();
     delete file_out;
@@ -1667,9 +1673,10 @@ std::vector<std::pair<double, double>> INTTXYvtx::Get4vtx(std::pair<double, doub
   std::vector<std::pair<double, double>> unit_vtx = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
   std::vector<std::pair<double, double>> vec_out{};  //-- vec_out.clear();
 
+  vec_out.reserve(unit_vtx.size());
   for (std::pair i1 : unit_vtx)
   {
-    vec_out.push_back({i1.first * length + origin.first, i1.second * length + origin.second});
+    vec_out.emplace_back(i1.first * length + origin.first, i1.second * length + origin.second);
   }
 
   return vec_out;
@@ -1781,7 +1788,7 @@ INTTXYvtx::FillLine_FindVertex(
                      window_width / 2. + window_center.first,
                      N_bins, -1 * window_width / 2. + window_center.second,
                      window_width / 2. + window_center.second);
-  xy_hist->SetStats(0);
+  xy_hist->SetStats(false);
   xy_hist->GetXaxis()->SetTitle("X axis [mm]");
   xy_hist->GetYaxis()->SetTitle("Y axis [mm]");
   xy_hist->GetXaxis()->SetNdivisions(505);
@@ -1792,7 +1799,7 @@ INTTXYvtx::FillLine_FindVertex(
                            window_width / 2. + window_center.first,
                            N_bins, -1 * window_width / 2. + window_center.second,
                            window_width / 2. + window_center.second);
-  xy_hist_bkgrm->SetStats(0);
+  xy_hist_bkgrm->SetStats(false);
   xy_hist_bkgrm->GetXaxis()->SetTitle("X axis [mm]");
   xy_hist_bkgrm->GetYaxis()->SetTitle("Y axis [mm]");
   xy_hist_bkgrm->GetXaxis()->SetNdivisions(505);
@@ -1801,16 +1808,16 @@ INTTXYvtx::FillLine_FindVertex(
   // std::cout<<"test test bin width of the hist xy_hist : "<<xy_hist -> GetXaxis() -> GetBinWidth(1)<<" "<<xy_hist -> GetYaxis() -> GetBinWidth(1)<<std::endl;
   // std::cout<<"draw_plot status : "<<draw_plot<<std::endl;
 
-  for (unsigned int i = 0; i < cluster_pair_vec.size(); i++)
+  for (auto& i : cluster_pair_vec)
   {
     std::vector<double> DCA_info_vec = calculateDistanceAndClosestPoint(
-        cluster_pair_vec[i].first.x, cluster_pair_vec[i].first.y,
-        cluster_pair_vec[i].second.x, cluster_pair_vec[i].second.y,
+        i.first.x, i.first.y,
+        i.second.x, i.second.y,
         window_center.first, window_center.second);
 
     double DCA_sign = calculateAngleBetweenVectors(
-        cluster_pair_vec[i].second.x, cluster_pair_vec[i].second.y,
-        cluster_pair_vec[i].first.x, cluster_pair_vec[i].first.y,
+        i.second.x, i.second.y,
+        i.first.x, i.first.y,
         window_center.first, window_center.second);
 
     if (DCA_info_vec[0] != fabs(DCA_sign) && fabs(DCA_info_vec[0] - fabs(DCA_sign)) > 0.1)
@@ -1818,28 +1825,28 @@ INTTXYvtx::FillLine_FindVertex(
       std::cout << "different DCA : " << DCA_info_vec[0] << " " << DCA_sign << " diff : " << DCA_info_vec[0] - fabs(DCA_sign) << std::endl;
     }
 
-    Clus_InnerPhi_Offset = (cluster_pair_vec[i].first.y - window_center.second < 0)
-                               ? atan2(cluster_pair_vec[i].first.y - window_center.second,
-                                       cluster_pair_vec[i].first.x - window_center.first) *
+    Clus_InnerPhi_Offset = (i.first.y - window_center.second < 0)
+                               ? atan2(i.first.y - window_center.second,
+                                       i.first.x - window_center.first) *
                                          (180. / M_PI) +
                                      360
-                               : atan2(cluster_pair_vec[i].first.y - window_center.second,
-                                       cluster_pair_vec[i].first.x - window_center.first) *
+                               : atan2(i.first.y - window_center.second,
+                                       i.first.x - window_center.first) *
                                      (180. / M_PI);
-    Clus_OuterPhi_Offset = (cluster_pair_vec[i].second.y - window_center.second < 0)
-                               ? atan2(cluster_pair_vec[i].second.y - window_center.second,
-                                       cluster_pair_vec[i].second.x - window_center.first) *
+    Clus_OuterPhi_Offset = (i.second.y - window_center.second < 0)
+                               ? atan2(i.second.y - window_center.second,
+                                       i.second.x - window_center.first) *
                                          (180. / M_PI) +
                                      360
-                               : atan2(cluster_pair_vec[i].second.y - window_center.second,
-                                       cluster_pair_vec[i].second.x - window_center.first) *
+                               : atan2(i.second.y - window_center.second,
+                                       i.second.x - window_center.first) *
                                      (180. / M_PI);
 
     if (fabs(Clus_InnerPhi_Offset - Clus_OuterPhi_Offset) < 5)
     {
       TH2FSampleLineFill(xy_hist,
                          segmentation,
-                         {cluster_pair_vec[i].first.x, cluster_pair_vec[i].first.y},
+                         {i.first.x, i.first.y},
                          {DCA_info_vec[1], DCA_info_vec[2]});
       // note : the DCA cut may be biased since the DCA was calculated with respect to the vertex calculated by the quadrant method
       // if (DCA_cut.first < DCA_sign && DCA_sign < DCA_cut.second)

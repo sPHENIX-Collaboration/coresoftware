@@ -98,7 +98,7 @@ INTTZvtx::INTTZvtx(const std::string& runType,
   out_LB_cut_peak_ratio = -1;
 
   out_LB_geo_mean = -1;
-  out_good_zvtx_tag = 0;
+  out_good_zvtx_tag = false;
 
   MC_true_zvtx = -9999.;
 
@@ -114,12 +114,27 @@ INTTZvtx::INTTZvtx(const std::string& runType,
 INTTZvtx::~INTTZvtx()
 {
   // histos for z-vertex calculation
-  if (evt_possible_z != nullptr) delete evt_possible_z;
-  if (line_breakdown_hist != nullptr) delete line_breakdown_hist;
-  if (gaus_fit != nullptr) delete gaus_fit;
-  if (zvtx_finder != nullptr) delete zvtx_finder;
+  if (evt_possible_z != nullptr)
+  {
+    delete evt_possible_z;
+  }
+  if (line_breakdown_hist != nullptr)
+  {
+    delete line_breakdown_hist;
+  }
+  if (gaus_fit != nullptr)
+  {
+    delete gaus_fit;
+  }
+  if (zvtx_finder != nullptr)
+  {
+    delete zvtx_finder;
+  }
 
-  if (z_range_gr != nullptr) delete z_range_gr;
+  if (z_range_gr != nullptr)
+  {
+    delete z_range_gr;
+  }
 
   if (draw_event_display)
   {
@@ -132,9 +147,18 @@ INTTZvtx::~INTTZvtx()
 
     delete c2;
     // all the pads related to c2 are automatically deleted
-    if (temp_event_xy != nullptr) delete temp_event_xy;
-    if (temp_event_rz != nullptr) delete temp_event_rz;
-    if (z_range_gr_draw != nullptr) delete z_range_gr_draw;
+    if (temp_event_xy != nullptr)
+    {
+      delete temp_event_xy;
+    }
+    if (temp_event_rz != nullptr)
+    {
+      delete temp_event_rz;
+    }
+    if (z_range_gr_draw != nullptr)
+    {
+      delete z_range_gr_draw;
+    }
   }
 
   if (m_enable_qa)
@@ -425,40 +449,40 @@ void INTTZvtx::InitCanvas()
     c2 = new TCanvas("", "", 4000, 1600);
     c2->cd();
     pad_xy = new TPad(Form("pad_xy"), "", 0.0, 0.5, 0.2, 1.0);
-    Characterize_Pad(pad_xy, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    Characterize_Pad(pad_xy, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_xy->Draw();
 
     pad_rz = new TPad(Form("pad_rz"), "", 0.2, 0.5, 0.40, 1.0);
-    Characterize_Pad(pad_rz, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    Characterize_Pad(pad_rz, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_rz->Draw();
 
     pad_z = new TPad(Form("pad_z"), "", 0.40, 0.5, 0.6, 1.0);
-    Characterize_Pad(pad_z, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    Characterize_Pad(pad_z, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_z->Draw();
 
     pad_z_hist = new TPad(Form("pad_z_hist"), "", 0.6, 0.5, 0.8, 1.0);
-    Characterize_Pad(pad_z_hist, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    Characterize_Pad(pad_z_hist, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_z_hist->Draw();
 
     pad_z_line = new TPad(Form("pad_z_line"), "", 0.8, 0.5, 1, 1.0);
-    Characterize_Pad(pad_z_line, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    Characterize_Pad(pad_z_line, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_z_line->Draw();
 
     pad_phi_diff = new TPad(Form("pad_phi_diff"), "", 0.0, 0.0, 0.2, 0.5);
-    Characterize_Pad(pad_phi_diff, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    Characterize_Pad(pad_phi_diff, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_phi_diff->Draw();
 
     pad_track_phi = new TPad(Form("pad_track_phi"), "", 0.2, 0.0, 0.40, 0.5);
-    Characterize_Pad(pad_track_phi, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    Characterize_Pad(pad_track_phi, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_track_phi->Draw();
 
     pad_inner_outer_phi = new TPad(Form("pad_inner_outer_phi"), "", 0.4, 0.0, 0.60, 0.5);
-    Characterize_Pad(pad_inner_outer_phi, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    Characterize_Pad(pad_inner_outer_phi, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_inner_outer_phi->SetLogz(1);
     pad_inner_outer_phi->Draw();
 
     pad_phi_diff_1D = new TPad(Form("pad_phi_diff_1D"), "", 0.6, 0.0, 0.80, 0.5);
-    Characterize_Pad(pad_phi_diff_1D, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    Characterize_Pad(pad_phi_diff_1D, 0.15, 0.1, 0.1, 0.2, false, 0);
     // pad_phi_diff_1D -> SetLogz(1);
     pad_phi_diff_1D->Draw();
   }
@@ -594,7 +618,7 @@ bool INTTZvtx::ProcessEvt(
   out_LB_cut_peak_ratio = -1;
 
   out_LB_geo_mean = -1;
-  out_good_zvtx_tag = 0;
+  out_good_zvtx_tag = false;
 
   MC_true_zvtx = TrigZvtxMC * 10.;
 
@@ -671,23 +695,23 @@ bool INTTZvtx::ProcessEvt(
   // note : false means the cluster is not used
   double Clus_InnerPhi_Offset = 0;  // note : the vertex in XY is not at zero, so the "offset" moves the offset back to the orign which is (0,0)
   double Clus_OuterPhi_Offset = 0;  // note : the vertex in XY is not at zero, so the "offset" moves the offset back to the orign which is (0,0)
-  for (unsigned int inner_i = 0; inner_i < temp_sPH_inner_nocolumn_vec.size(); inner_i++)
+  for (auto& inner_i : temp_sPH_inner_nocolumn_vec)
   {
-    Clus_InnerPhi_Offset = (temp_sPH_inner_nocolumn_vec[inner_i].y - beam_origin.second < 0)
-                               ? atan2(temp_sPH_inner_nocolumn_vec[inner_i].y - beam_origin.second,
-                                       temp_sPH_inner_nocolumn_vec[inner_i].x - beam_origin.first) *
+    Clus_InnerPhi_Offset = (inner_i.y - beam_origin.second < 0)
+                               ? atan2(inner_i.y - beam_origin.second,
+                                       inner_i.x - beam_origin.first) *
                                          (180. / TMath::Pi()) +
                                      360
-                               : atan2(temp_sPH_inner_nocolumn_vec[inner_i].y - beam_origin.second,
-                                       temp_sPH_inner_nocolumn_vec[inner_i].x - beam_origin.first) *
+                               : atan2(inner_i.y - beam_origin.second,
+                                       inner_i.x - beam_origin.first) *
                                      (180. / TMath::Pi());
 
     // std::cout<<"inner clu phi : "<<Clus_InnerPhi_Offset<<" origin: "<< temp_sPH_inner_nocolumn_vec[inner_i].phi <<std::endl;
     // std::cout<<" ("<<Clus_InnerPhi_Offset<<", "<< temp_sPH_inner_nocolumn_vec[inner_i].phi<<")" <<std::endl;
     //
-    inner_clu_phi_map[int(Clus_InnerPhi_Offset)].push_back({false, temp_sPH_inner_nocolumn_vec[inner_i]});
+    inner_clu_phi_map[int(Clus_InnerPhi_Offset)].push_back({false, inner_i});
 
-    if (temp_sPH_inner_nocolumn_vec[inner_i].z > 0)
+    if (inner_i.z > 0)
     {
       out_N_cluster_north += 1;
     }
@@ -697,20 +721,20 @@ bool INTTZvtx::ProcessEvt(
     }
   }
   //--std::cout<<"--2--"<<std::endl;
-  for (unsigned int outer_i = 0; outer_i < temp_sPH_outer_nocolumn_vec.size(); outer_i++)
+  for (auto& outer_i : temp_sPH_outer_nocolumn_vec)
   {
-    Clus_OuterPhi_Offset = (temp_sPH_outer_nocolumn_vec[outer_i].y - beam_origin.second < 0)
-                               ? atan2(temp_sPH_outer_nocolumn_vec[outer_i].y - beam_origin.second,
-                                       temp_sPH_outer_nocolumn_vec[outer_i].x - beam_origin.first) *
+    Clus_OuterPhi_Offset = (outer_i.y - beam_origin.second < 0)
+                               ? atan2(outer_i.y - beam_origin.second,
+                                       outer_i.x - beam_origin.first) *
                                          (180. / TMath::Pi()) +
                                      360
-                               : atan2(temp_sPH_outer_nocolumn_vec[outer_i].y - beam_origin.second,
-                                       temp_sPH_outer_nocolumn_vec[outer_i].x - beam_origin.first) *
+                               : atan2(outer_i.y - beam_origin.second,
+                                       outer_i.x - beam_origin.first) *
                                      (180. / TMath::Pi());
 
-    outer_clu_phi_map[int(Clus_OuterPhi_Offset)].push_back({false, temp_sPH_outer_nocolumn_vec[outer_i]});
+    outer_clu_phi_map[int(Clus_OuterPhi_Offset)].push_back({false, outer_i});
 
-    if (temp_sPH_outer_nocolumn_vec[outer_i].z > 0)
+    if (outer_i.z > 0)
     {
       out_N_cluster_north += 1;
     }
@@ -934,7 +958,10 @@ bool INTTZvtx::ProcessEvt(
     }
 
     //--std::cout<<"--6--"<<std::endl;
-    if (z_range_gr != nullptr) delete z_range_gr;
+    if (z_range_gr != nullptr)
+    {
+      delete z_range_gr;
+    }
     z_range_gr = new TGraphErrors(eff_N_comb.size(),
                                   &eff_N_comb[0], &eff_z_mid[0],
                                   &eff_N_comb_e[0], &eff_z_range[0]);
@@ -1065,7 +1092,10 @@ bool INTTZvtx::ProcessEvt(
     // drawing event display & QA histograms
     if (draw_event_display)
     {
-      if (temp_event_xy != nullptr) delete temp_event_xy;
+      if (temp_event_xy != nullptr)
+      {
+        delete temp_event_xy;
+      }
       temp_event_xy = new TGraph(temp_sPH_nocolumn_vec[0].size(),
                                  &temp_sPH_nocolumn_vec[0][0], &temp_sPH_nocolumn_vec[1][0]);
       temp_event_xy->SetTitle("INTT event display X-Y plane");
@@ -1077,7 +1107,10 @@ bool INTTZvtx::ProcessEvt(
       temp_event_xy->SetMarkerColor(2);
       temp_event_xy->SetMarkerSize(1);
 
-      if (temp_event_rz != nullptr) delete temp_event_rz;
+      if (temp_event_rz != nullptr)
+      {
+        delete temp_event_rz;
+      }
       temp_event_rz = new TGraph(temp_sPH_nocolumn_rz_vec[0].size(),
                                  &temp_sPH_nocolumn_rz_vec[0][0], &temp_sPH_nocolumn_rz_vec[1][0]);
       temp_event_rz->SetTitle("INTT event display r-Z plane");
@@ -1117,7 +1150,10 @@ bool INTTZvtx::ProcessEvt(
       // note : --------------------------------------------------------------------------------------------------------------------------
       // std::cout<<"test tag 2-5"<<std::endl;
       pad_z->cd();
-      if (z_range_gr_draw != nullptr) delete z_range_gr_draw;
+      if (z_range_gr_draw != nullptr)
+      {
+        delete z_range_gr_draw;
+      }
       z_range_gr_draw = new TGraphErrors(N_comb.size(), &N_comb[0], &z_mid[0], &N_comb_e[0], &z_range[0]);
       z_range_gr_draw->GetYaxis()->SetRangeUser(-650, 650);
       z_range_gr_draw->GetXaxis()->SetTitle("Index");
@@ -1258,7 +1294,10 @@ bool INTTZvtx::ProcessEvt(
   std::cout << "evt : " << event_i << ", good pair count : " << N_comb.size() << " " << good_pair_count << std::endl;
 
   //--std::cout<<"--14 0--"<<std::endl;
-  if (m_enable_qa) tree_out->Fill();
+  if (m_enable_qa)
+  {
+    tree_out->Fill();
+  }
   //--std::cout<<"--14--"<<std::endl;
 
   return true;
