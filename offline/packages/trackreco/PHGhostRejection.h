@@ -13,6 +13,8 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase_historic/TrackSeed_v2.h>
+
 
 #include <map>
 #include <string>
@@ -21,7 +23,6 @@
 class PHCompositeNode;
 class TrackSeedContainer;
 class TrkrCluster;
-class TrackSeed;
 class TrkrClusterContainer;
 
 class PHGhostRejection
@@ -32,13 +33,17 @@ class PHGhostRejection
 
   ~PHGhostRejection();
 
-  void rejectGhostTracks(std::vector<float> &trackChi2, TrackSeedContainer* tracks, std::map<TrkrDefs::cluskey, Acts::Vector3>& positions);
+  std::vector<bool> rejectGhostTracks(std::vector<float> &trackChi2, std::vector<TrackSeed_v2>& seeds);
   void verbosity(int verb) { m_verbosity = verb; }
   /* void trackSeedContainer(TrackSeedContainer *seeds) { m_trackMap = seeds; } */
   /* void positionMap(std::map<TrkrDefs::cluskey, Acts::Vector3> &map) { m_positions = map; } */
 
+  void cut_on_pt_nclus(std::vector<TrackSeed_v2>& seeds);
+  void cut_ghosts(std::vector<float>& trackChi2, std::vector<TrackSeed_v2>& seeds);
+
+  std::vector<bool> m_rejected {}; // id
  private:
-  bool checkClusterSharing(TrackSeed *tr1, TrackSeed *tr2);
+  bool checkClusterSharing(TrackSeed& tr1, TrackSeed& tr2);
 
   double _phi_cut = 0.01;
   double _eta_cut = 0.004;

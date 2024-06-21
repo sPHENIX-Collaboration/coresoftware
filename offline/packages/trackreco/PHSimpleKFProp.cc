@@ -416,30 +416,17 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   }
   timer.stop();
   timer.restart();
-  publishSeeds(seeds.first, globalPositions);
-
-  timer.stop();
-  auto circlefittime = timer.elapsed();
-  if (Verbosity() > 0)
+  //  Move ghost rejection into publishSeeds, so that we don't publish
+  //  rejected seeds
+  if (m_ghostrejection) 
   {
-    std::cout << "circle fit all tracks time " << circlefittime << std::endl;
+    rejectAndPublishSeeds(seeds.first, globalPositions, trackChi2, timer);
+  } else {
+    publishSeeds(seeds.first);
   }
+
   publishSeeds(unused_tracks);
 
-  /// Remove tracks that are duplicates from the KFProp
-  if(m_ghostrejection)
-  {
-  PHGhostRejection rejector(Verbosity());
-  /* rejector.trackSeedContainer(_track_map); */
-  timer.stop();
-  timer.restart();
-  rejector.rejectGhostTracks(trackChi2, _track_map, globalPositions);
-  timer.stop();
-  if (Verbosity() > 2)
-  {
-    std::cout << "ghost rejection time " << timer.elapsed() << std::endl;
-  }
-  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1515,12 +1502,24 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
   return clean_chains;
 }
 
-void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions)
+void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer)
 {
   int seed_index = 0;
+  int iseed = -1;
 
-  for (auto& seed : seeds)
+  PHGhostRejection rejector(Verbosity());
+  
+  // reject low-pt tracks & low-ncluster tracks
+  rejector.cut_on_pt_nclus(seeds);
+
+  for (unsigned int itrack=0; itrack < seeds.size(); ++itrack) 
   {
+    // skip tracks with low-pt values
+    if (rejector.m_rejected[itrack]) {
+      continue;
+    }
+
+    auto& seed = seeds[itrack];
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
 
@@ -1534,9 +1533,24 @@ void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v2>& seeds, const Positi
     float phi = seed.get_phi(local);
     seed.set_phi(phi);  // make phi persistent
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+  }
 
+  // now do the ghost rejection *before* publishing the seeds to the _track_map
+  timer.stop();
+  timer.restart();
+  rejector.cut_ghosts(trackChi2, seeds);
+  if (Verbosity() > 2)
+  {
+    std::cout << "ghost rejection time " << timer.elapsed() << std::endl;
+  }
+
+  for (unsigned int itrack=0; itrack < seeds.size(); ++itrack) 
+  {
+    if (rejector.m_rejected[iseed]) { continue; }
+    auto& seed = seeds[itrack];
     _track_map->insert(&seed);
 
+    int q = seed.get_charge();
     if (Verbosity() > 0)
     {
       std::cout << "Publishing seed " << seed_index

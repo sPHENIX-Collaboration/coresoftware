@@ -17,6 +17,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <phool/PHTimer.h>
+
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <Eigen/Core>
@@ -152,7 +154,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>, 3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions);
+  void rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer);
   void publishSeeds(const std::vector<TrackSeed_v2>&);
   //   void MoveToVertex();
 
