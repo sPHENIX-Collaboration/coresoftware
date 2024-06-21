@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef COSMICTRACKQA_H
-#define COSMICTRACKQA_H
+#ifndef SILICONSEEDSQA_H
+#define SILICONSEEDSQA_H
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
@@ -34,4 +34,4 @@ class SiliconSeedsQA : public SubsysReco
   std::string m_vertexMapName = "SvtxVertexMap";
 };
 
-#endif  // COSMICTRACKQA_H
+#endif  // SILICONSEEDSQA_H
