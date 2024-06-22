@@ -49,7 +49,11 @@ StructureinJets::~StructureinJets()
 int StructureinJets::Init(PHCompositeNode* /*topNode*/)
 {
   std::cout << "StructureinJets::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  PHTFileServer::get().open(m_outputFileName, "RECREATE");
+  if (writeToOutputFileFlag)
+  {
+    PHTFileServer::get().open(m_outputFileName, "RECREATE");
+  }
+
   m_h_track_vs_calo_pt = new TH3F("m_h_track_vs_calo_pt", "", 100, 0, 100, 500, 0, 100, 10, 0, 100);
   m_h_track_vs_calo_pt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
   m_h_track_vs_calo_pt->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
