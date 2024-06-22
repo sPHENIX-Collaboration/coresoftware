@@ -95,7 +95,7 @@ tryagain:
   {
     return -1;
   }
-  m_PoolDepth = m_DefaultPoolDepth;
+//  m_PoolDepth = m_DefaultPoolDepth;
   DetermineReferenceEventNumber();
   if (Verbosity() > 0)
   {
@@ -1335,9 +1335,35 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 //std::vector<uint64_t> BcoDiffRef;
   if (!m_Gl1PacketMap.empty())
   {
+// clean up discarded entries from haystack using the first event in the Gl1 stack
+    auto gl1hititer = m_Gl1PacketMap.begin();
+    if (! gl1hititer->second.BcoDiffMap.empty()) // the very first event does not have a bco diff
+    {
+	auto bcoiter = gl1hititer->second.BcoDiffMap.begin();
+	std::cout << PHWHERE << " Haystack cleanup, bco diff for packet " 
+		  << bcoiter->first << " is 0x" << std::hex << bcoiter->second << std::dec << std::endl;
+
+	auto haystackiter = std::find(m_HayStack.begin(),m_HayStack.end(),bcoiter->second);
+	if (haystackiter !=  m_HayStack.end())
+	{
+	  std::cout << PHWHERE << "found " <<  std::hex << bcoiter->second << " in haystack" << std::dec << std::endl;
+	}
+	while(*m_HayStack.begin() != bcoiter->second)
+	{
+
+	  std::cout << "erasing " << std::hex << *m_HayStack.begin() << std::dec << std::endl;
+	  m_HayStack.erase(m_HayStack.begin());
+	}
+	std::cout << "begin of haystack " << std::hex << *m_HayStack.begin() << std::dec << std::endl;
+	std::cout << PHWHERE << "after cleaning haystack size " << m_HayStack.size() << std::endl;
+	for (auto iter : m_HayStack)
+	{
+	  std::cout << "after cleaning haystack: 0x" << std::hex << iter << std::dec << std::endl;
+	}
+    }
     for (auto gl1hititer = m_Gl1PacketMap.begin(); gl1hititer != m_Gl1PacketMap.end(); ++gl1hititer)
     {
-      std::cout << "gl1 event: " <<  gl1hititer->first << std::endl;
+      std::cout << "current gl1 event: " <<  gl1hititer->first << std::endl;
       auto nextIt = std::next(gl1hititer);
       if (nextIt !=  m_Gl1PacketMap.end())
       {
@@ -1351,16 +1377,17 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 	{
 	  uint64_t prev_bco = pktiter.second->getBCO();
 	  int prev_packetid = pktiter.first;
-	  auto currpkt = nextIt->second.Gl1SinglePacketMap.find(prev_packetid);//->find(prev_packetid);
+	  auto currpkt = nextIt->second.Gl1SinglePacketMap.find(prev_packetid);
 	  if (currpkt != nextIt->second.Gl1SinglePacketMap.end())
 	  {
 	    uint64_t curr_bco = currpkt->second->getBCO();
 	    uint64_t diffbco = curr_bco - prev_bco;
-	    gl1hititer->second.BcoDiffMap[prev_packetid] = diffbco;
+	    nextIt->second.BcoDiffMap[prev_packetid] = diffbco;
 	    std::cout << "packet " << prev_packetid << ", prev_bco 0x: " << std::hex
 		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
 		      << diffbco << std::dec << std::endl;
 	    m_RefBcoDiffMap[nextIt->first] = diffbco;
+	    std::cout << "Pushing 0x" << std::hex << diffbco << " into haystack" << std::dec << std::endl;
 	    m_HayStack.push_back(diffbco);
 	  }
 	}
