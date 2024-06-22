@@ -27,6 +27,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <sstream>
 
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 {
@@ -65,13 +66,40 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
     datafile.open(alignmentParamsFile);
   }
 
+  // check to see how many parameters per line in the file
+  // If it is old, there will only be six. In that case, set the global rotation pars to zero, and issue a warning.
+
+
+
+
   ActsSurfaceMaps surfMaps = m_tGeometry->maps();
   Surface surf;
 
   int fileLines = 1824;
   for (int i = 0; i < fileLines; i++)
   {
-    datafile >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz >> dgrx >> dgry >> dgrz;
+    std::string str; 
+    std::getline(datafile, str);
+    std::stringstream ss(str);
+
+    std::string dummy;
+    int count = 0;
+    while(ss >> dummy)
+      {
+	count ++;
+      }
+    if(count < 9)
+      {
+	std::stringstream str6(str);
+	str6 >>  hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz;
+	std::cout << "WARNING: you are reading an obsolete alignment parameters file" << std::endl
+		  << "     --- setting global rotation parameters to zero!" << std::endl;
+      }
+    else
+      {
+	std::stringstream str9(str);
+	str9 >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz >> dgrx >> dgry >> dgrz;
+      }
 
     // Perturbation translations and angles for stave and sensor
     Eigen::Vector3d sensorAngles(alpha, beta, gamma);
