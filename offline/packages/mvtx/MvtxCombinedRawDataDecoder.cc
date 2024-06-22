@@ -213,9 +213,14 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
 
-    uint64_t bcodiff = gl1 ? gl1bco - strobe : 0;
+    int bcodiff = gl1 ? gl1bco - strobe : 0;
     double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
     int index = std::floor(timeElapsed / m_strobeWidth);
+
+    if (index < -16 || index > 15)
+    {
+      continue; //Index is out of the 5-bit signed range
+    }
 
     if (Verbosity() >= 10)
     {
