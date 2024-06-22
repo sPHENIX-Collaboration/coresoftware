@@ -42,6 +42,11 @@ class JetSeedCount : public SubsysReco
   {
     m_writeToOutputFile = write;
   }
+  void
+  setHistTag(const std::string &tag)
+  {
+    m_histTag = tag;
+  }
 
   int Init(PHCompositeNode *topNode) override;
 
@@ -67,6 +72,7 @@ class JetSeedCount : public SubsysReco
   std::string m_recoJetName;
   std::string m_truthJetName;
   std::string m_outputFileName;
+  std::string m_histTag;
 
   std::pair<double, double> m_etaRange;
   std::pair<double, double> m_ptRange;
