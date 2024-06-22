@@ -95,7 +95,7 @@ tryagain:
   {
     return -1;
   }
-//  m_PoolDepth = m_DefaultPoolDepth;
+  m_PoolDepth = m_DefaultPoolDepth;
   DetermineReferenceEventNumber();
   if (Verbosity() > 0)
   {
@@ -786,9 +786,21 @@ int Fun4AllPrdfInputTriggerManager::MoveGl1ToNodeTree()
   }
   for (auto iter : m_Gl1InputVector)
   {
+    if (Verbosity() > 1)
+    {
+      std::cout << "GL1: cleaning out unused packets for event " << m_Gl1PacketMap.begin()->first << std::endl;
+    }
     iter->CleanupUsedPackets(m_Gl1PacketMap.begin()->first);
   }
   m_Gl1PacketMap.begin()->second.Gl1SinglePacketMap.clear();
+  if (Verbosity() > 1)
+  {
+    std::cout << "clearing bco diff map from " << std::endl;
+    for (auto iter : m_Gl1PacketMap.begin()->second.BcoDiffMap)
+    {
+      std::cout << "Packet " << iter.first << " bco: 0x" << std::hex << iter.second << std::dec << std::endl;
+    }
+  }
   m_Gl1PacketMap.begin()->second.BcoDiffMap.clear();
   m_Gl1PacketMap.erase(m_Gl1PacketMap.begin());
   // std::cout << "size  m_Gl1PacketMap: " <<  m_Gl1PacketMap.size()
@@ -1335,35 +1347,55 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 //std::vector<uint64_t> BcoDiffRef;
   if (!m_Gl1PacketMap.empty())
   {
-// clean up discarded entries from haystack using the first event in the Gl1 stack
-    auto gl1hititer = m_Gl1PacketMap.begin();
-    if (! gl1hititer->second.BcoDiffMap.empty()) // the very first event does not have a bco diff
+// This is a more sophisticated way to clean the Haystack but it is sensitive to repeated bco's
+// Lets go with the simpler one by just refilling the HayStack with the stored bco diffs
+    // auto gl1hititer = m_Gl1PacketMap.begin();
+    // if (! gl1hititer->second.BcoDiffMap.empty()) // the very first event does not have a bco diff
+    // {
+    // 	auto bcoiter = gl1hititer->second.BcoDiffMap.begin();
+    // 	std::cout << PHWHERE << " Haystack cleanup, bco diff for packet " 
+    // 		  << bcoiter->first << " is 0x" << std::hex << bcoiter->second << std::dec << std::endl;
+
+    // 	auto haystackiter = std::find(m_HayStack.begin(),m_HayStack.end(),bcoiter->second);
+    // 	if (haystackiter !=  m_HayStack.end())
+    // 	{
+    // 	  std::cout << PHWHERE << "found " <<  std::hex << bcoiter->second << " in haystack" << std::dec << std::endl;
+    // 	}
+    // 	while(*m_HayStack.begin() != bcoiter->second)
+    // 	{
+
+    // 	  std::cout << "erasing " << std::hex << *m_HayStack.begin() << std::dec << std::endl;
+    // 	  m_HayStack.erase(m_HayStack.begin());
+    // 	}
+    // 	std::cout << "begin of haystack " << std::hex << *m_HayStack.begin() << std::dec << std::endl;
+    // 	std::cout << PHWHERE << "after cleaning haystack size " << m_HayStack.size() << std::endl;
+    // 	for (auto iter : m_HayStack)
+    // 	{
+    // 	  std::cout << "after cleaning haystack: 0x" << std::hex << iter << std::dec << std::endl;
+    // 	}
+    // }
+
+// Just clear and refill the haystack with the stored bc diffs
+// we only have one GL1 packet, so we can just take the first packet
+    m_HayStack.clear();
+    for (auto gl1hititer = m_Gl1PacketMap.begin(); gl1hititer != m_Gl1PacketMap.end(); ++gl1hititer)
     {
-	auto bcoiter = gl1hititer->second.BcoDiffMap.begin();
-	std::cout << PHWHERE << " Haystack cleanup, bco diff for packet " 
-		  << bcoiter->first << " is 0x" << std::hex << bcoiter->second << std::dec << std::endl;
-
-	auto haystackiter = std::find(m_HayStack.begin(),m_HayStack.end(),bcoiter->second);
-	if (haystackiter !=  m_HayStack.end())
-	{
-	  std::cout << PHWHERE << "found " <<  std::hex << bcoiter->second << " in haystack" << std::dec << std::endl;
-	}
-	while(*m_HayStack.begin() != bcoiter->second)
-	{
-
-	  std::cout << "erasing " << std::hex << *m_HayStack.begin() << std::dec << std::endl;
-	  m_HayStack.erase(m_HayStack.begin());
-	}
-	std::cout << "begin of haystack " << std::hex << *m_HayStack.begin() << std::dec << std::endl;
-	std::cout << PHWHERE << "after cleaning haystack size " << m_HayStack.size() << std::endl;
-	for (auto iter : m_HayStack)
-	{
-	  std::cout << "after cleaning haystack: 0x" << std::hex << iter << std::dec << std::endl;
-	}
+      if (! gl1hititer->second.BcoDiffMap.empty()) // the very first event does not have a bco diff
+      {
+	m_HayStack.push_back(gl1hititer->second.BcoDiffMap.begin()->second);
+      }
     }
     for (auto gl1hititer = m_Gl1PacketMap.begin(); gl1hititer != m_Gl1PacketMap.end(); ++gl1hititer)
     {
       std::cout << "current gl1 event: " <<  gl1hititer->first << std::endl;
+      if (gl1hititer->second.BcoDiffMap.empty()) // first event, this is not set
+      {
+	for (auto &pktiter : gl1hititer->second.Gl1SinglePacketMap)
+	{
+m_HayStack.push_back(0x0);
+	  gl1hititer->second.BcoDiffMap[pktiter.first] = 0x0;
+	}
+      }
       auto nextIt = std::next(gl1hititer);
       if (nextIt !=  m_Gl1PacketMap.end())
       {
@@ -1456,42 +1488,9 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
   }
   if (!m_SEpdPacketMap.empty())
   {
-    for (auto sepdhititer = m_SEpdPacketMap.begin(); sepdhititer != m_SEpdPacketMap.end(); ++sepdhititer)
-    {
-      std::cout << "sepd event: " <<  sepdhititer->first << std::endl;
-      auto nextIt = std::next(sepdhititer);
-      if (nextIt !=  m_SEpdPacketMap.end())
-      {
-	std::cout << "next sepd event: " <<  nextIt->first << std::endl;
-	if (! nextIt->second.BcoDiffMap.empty()) // this event was already handled, BcoDiffMap is filled
-	{
-	  continue;
-	}
-	std::set<uint64_t> bcodiffs;
-	for (auto &pktiter : sepdhititer->second.CaloSinglePacketMap)
-	{
-	  uint64_t prev_bco = pktiter.second->getBCO();
-	  int prev_packetid = pktiter.first;
-	  auto currpkt = nextIt->second.CaloSinglePacketMap.find(prev_packetid);//->find(prev_packetid);
-	  if (currpkt != nextIt->second.CaloSinglePacketMap.end())
-	  {
-	    uint64_t curr_bco = currpkt->second->getBCO();
-	    uint64_t diffbco = curr_bco - prev_bco;
-	    sepdhititer->second.BcoDiffMap[prev_packetid] = diffbco;
-	    m_NeedleMap[prev_packetid].push_back(diffbco);
-	    std::cout << "packet " << prev_packetid << ", prev_bco 0x: " << std::hex
-		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
-		      << diffbco << std::dec << std::endl;
-	    bcodiffs.insert(diffbco);
-	  }
-	}
-	if (bcodiffs.size() > 1)
-	{
-	  std::cout << PHWHERE << " different bco diffs for sepd packets for event " << nextIt->first << std::endl;
-	}
-      }
-    }
+    FillNeedle(m_SEpdPacketMap.begin(), m_SEpdPacketMap.end(), "sepd");
   }
+
   return;
 }
 
@@ -1501,14 +1500,21 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
   for (auto &iter : m_NeedleMap)
   {
     std::vector needle = iter.second;
-    needle.pop_back();
+    auto haystack_size = m_HayStack.size();
+// still need to work on the ranges, lets wait for examples where random events get dropped
+    while (needle.size() >= haystack_size -1) // chop off last entry otherwise off by one wrt GL1 gives no match
+    {
+      needle.pop_back();
+    } 
+//    needle.erase(needle.begin());
+
     auto it = std::search(m_HayStack.begin(), m_HayStack.end(), needle.begin(), needle.end());
 
     if (it != m_HayStack.end()) 
     {
       int position = std::distance(m_HayStack.begin(), it);
+      position = position -1;
       // If found, std::search returns an iterator to the first element of the subsequence
-      std::cout << "Sequence found at position: " << position << std::endl;
       if (position > 0)
       {
 	std::cout << "need to change evt offset of packet " << iter.first << " by " 
@@ -1520,11 +1526,18 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
     {
       // If not found, std::search returns haystack.end()
       std::cout << "Sequence not found." << std::endl;
+    }
+//      std::cout << "Sequence found at position: " << position << std::endl;
+      std::cout << PHWHERE << "haystack size after position check " << m_HayStack.size() << std::endl;
+      for (auto iter : m_HayStack)
+      {
+	std::cout << "haystack: 0x" << std::hex << iter << std::dec << std::endl;
+      }
+      std::cout << PHWHERE << "needle size of packet " << iter.first << " after position check " << needle.size() << std::endl;
       for (auto &needleiter : needle)
       {
-	std::cout << PHWHERE << "needle: 0x" << std::hex << needleiter << std::dec << std::endl;
+	std::cout <<  "needle: 0x" << std::hex << needleiter << std::dec << std::endl;
       }
-    }
   }
 
   if (! eventoffset.empty())
@@ -1538,12 +1551,21 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 	iter->AdjustPacketMap(offiter.first, offiter.second);
       }
     }
+    if (!m_ZdcPacketMap.empty())
+    {
+      ShiftEvents(m_ZdcPacketMap, eventoffset,"zdc");
+    }
+  if (!m_SEpdPacketMap.empty())
+  {
+      ShiftEvents(m_SEpdPacketMap, eventoffset,"zdc");
+  }
+  return 0;
     std::vector<int> eventnumbers;
     for (auto sepdhititer = m_SEpdPacketMap.rbegin(); sepdhititer != m_SEpdPacketMap.rend(); ++sepdhititer)
     {
       eventnumbers.push_back(sepdhititer->first);
     }
-    std::map<int, SEpdPacketInfo> tmp_sepdpacket_map;
+
     for (auto evtnumiter : eventnumbers)
     {
       auto &sepdhititer = m_SEpdPacketMap[evtnumiter];
@@ -1563,8 +1585,10 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 	  int newevent = evtnumiter + offsetiter->second;
 	  std::cout << PHWHERE << "moving packet " << pktiditer << " from event " << evtnumiter << " to " << newevent << std::endl;
 	  auto nh =  sepdhititer.CaloSinglePacketMap.extract(pktiditer);
+	  auto nhbco =  sepdhititer.BcoDiffMap.extract(pktiditer);
 	  std::cout <<  PHWHERE << "size of CaloSinglePacketMap: " <<  m_SEpdPacketMap.size() << std::endl;
 	  m_SEpdPacketMap[newevent].CaloSinglePacketMap.insert(std::move(nh));
+	  m_SEpdPacketMap[newevent].BcoDiffMap.insert(std::move(nhbco));
 	}
       }
     }
@@ -1586,6 +1610,19 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 
 int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name)
 {
+  unsigned int haystacksize = m_HayStack.size();
+  auto sepdhititer = begin;
+  for (auto &pktiter : sepdhititer->second.CaloSinglePacketMap)
+  {
+    m_NeedleMap[pktiter.first].clear();
+  }
+    for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
+    {
+      for (auto bcoiter : sepdhititer->second.BcoDiffMap)
+      {
+        m_NeedleMap[bcoiter.first].push_back( bcoiter.second);
+      }
+    }
     for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
     {
       std::cout << PHWHERE << name <<" event: " <<  sepdhititer->first << std::endl;
@@ -1607,11 +1644,12 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
 	  {
 	    uint64_t curr_bco = currpkt->second->getBCO();
 	    uint64_t diffbco = curr_bco - prev_bco;
-	    sepdhititer->second.BcoDiffMap[prev_packetid] = diffbco;
-	    m_NeedleMap[prev_packetid].push_back(diffbco);
+	    nextIt->second.BcoDiffMap[prev_packetid] = diffbco;
 	    std::cout << PHWHERE << name << " packet " << prev_packetid << ", prev_bco 0x: " << std::hex
 		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
 		      << diffbco << std::dec << std::endl;
+	    std::cout << "Pushing 0x" << std::hex << diffbco << " into needle for packet " << std::dec << prev_packetid << std::endl;
+	    m_NeedleMap[prev_packetid].push_back(diffbco);
 	    bcodiffs.insert(diffbco);
 	  }
 	}
@@ -1622,4 +1660,48 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
       }
     }
     return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::ShiftEvents(std::map<int, CaloPacketInfo> &PacketInfoMap,std::map<int, int> &eventoffset, const std::string &name)
+{
+    std::vector<int> eventnumbers;
+    for (auto sepdhititer = PacketInfoMap.rbegin(); sepdhititer != PacketInfoMap.rend(); ++sepdhititer)
+    {
+      eventnumbers.push_back(sepdhititer->first);
+    }
+
+    for (auto evtnumiter : eventnumbers)
+    {
+      auto &sepdhititer = PacketInfoMap[evtnumiter];
+      std::cout << PHWHERE << " Handling event no: " << evtnumiter << " for " << name << std::endl;
+      std::set<int> packet_ids;
+      for (auto pktiter : sepdhititer.CaloSinglePacketMap)
+      {
+	packet_ids.insert(pktiter.first);
+        m_NeedleMap[pktiter.first].clear();
+      }
+      for (auto pktiditer : packet_ids)
+      {
+	std::cout << PHWHERE <<  "handling pkt no: " << pktiditer << std::endl;
+	auto offsetiter = eventoffset.find(pktiditer);
+	if (offsetiter != eventoffset.end())
+	{
+	  int newevent = evtnumiter + offsetiter->second;
+	  std::cout << PHWHERE << "moving packet " << pktiditer << " from event " << evtnumiter << " to " << newevent << std::endl;
+	  auto nh =  sepdhititer.CaloSinglePacketMap.extract(pktiditer);
+	  auto nhbco =  sepdhititer.BcoDiffMap.extract(pktiditer);
+	  std::cout <<  PHWHERE << "size of CaloSinglePacketMap: " <<  PacketInfoMap.size() << std::endl;
+	  PacketInfoMap[newevent].CaloSinglePacketMap.insert(std::move(nh));
+	  PacketInfoMap[newevent].BcoDiffMap.insert(std::move(nhbco));
+	}
+      }
+    }
+  for (auto &sepdeventiter : PacketInfoMap)
+  {
+//    for (auto sepdhititer : sepdeventiter.second.CaloSinglePacketMap)
+    {
+      std::cout << "size of map for event " << sepdeventiter.first << " is " << sepdeventiter.second.CaloSinglePacketMap.size() << std::endl;
+    }
+  }
+return 0;
 }

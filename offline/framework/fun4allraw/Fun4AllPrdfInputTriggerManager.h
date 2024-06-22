@@ -53,7 +53,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void DitchEvent(const int eventno);
   void Resynchronize();
   void ClearAllEvents(const int eventno);
-  void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
+  void SetPoolDepth(unsigned int d) { m_DefaultPoolDepth = d; }
   int FillCemc(const unsigned int nEvents = 2);
   int MoveCemcToNodeTree();
   void AddCemcPacket(int eventno, CaloPacket *pkt);
@@ -101,6 +101,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     unsigned int EventFoundCounter{0};
   };
   int FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name="NONE");
+  int ShiftEvents(std::map<int, CaloPacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name="NONE");
 
   struct MbdPacketInfo
   {
