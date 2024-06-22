@@ -19,10 +19,10 @@ class SingleLL1TriggerInput : public SingleTriggerInput
  public:
   explicit SingleLL1TriggerInput(const std::string &name);
   ~SingleLL1TriggerInput() override;
-  void FillPool(const unsigned int) override;
+  void FillPool(const unsigned int keep) override;
   void CleanupUsedPackets(const int eventno) override;
   void ClearCurrentEvent() override;
-  bool GetSomeMoreEvents();
+  bool GetSomeMoreEvents(const unsigned int keep);
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
   //  void ConfigureStreamingInputManager() override;

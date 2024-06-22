@@ -1,4 +1,4 @@
-#include "ZdcCheck.h"
+#include "SEpdCheck.h"
 
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -20,39 +20,39 @@
 #include <vector>    // for vector
 
 //____________________________________________________________________________..
-ZdcCheck::ZdcCheck(const std::string &name)
+SEpdCheck::SEpdCheck(const std::string &name)
   : SubsysReco(name)
 {
 }
 
 //____________________________________________________________________________..
-int ZdcCheck::Init(PHCompositeNode * /*topNode*/)
+int SEpdCheck::Init(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int ZdcCheck::process_event(PHCompositeNode *topNode)
+int SEpdCheck::process_event(PHCompositeNode *topNode)
 {
-  CaloPacketContainer *zdccont = findNode::getClass<CaloPacketContainer>(topNode, "ZDCPackets");
-  if (!zdccont)
+  CaloPacketContainer *sepdcont = findNode::getClass<CaloPacketContainer>(topNode, "SEPDPackets");
+  if (!sepdcont)
   {
-    std::cout << "could not find ZdcPacket node" << std::endl;
+    std::cout << "could not find SEpdPacket node" << std::endl;
   }
   else
   {
-    for (unsigned int i = 0; i < zdccont->get_npackets(); i++)
+    for (unsigned int i = 0; i < sepdcont->get_npackets(); i++)
     {
       if (ddump_enabled())
       {
-	ddumppacket(zdccont->getPacket(i));
+	ddumppacket(sepdcont->getPacket(i));
       }
     }
-    std::cout << "ZDC Evt no: " <<  zdccont->getEvtSequence() << std::endl;
-    for (unsigned int i = 0; i < zdccont->get_npackets(); i++)
+    std::cout << "SEPD Evt no: " <<  sepdcont->getEvtSequence() << std::endl;
+    for (unsigned int i = 0; i < sepdcont->get_npackets(); i++)
     {
-      std::cout << "Packet " << zdccont->getPacket(i)->getIdentifier()
-		<< " Evt no: " << zdccont->getPacket(i)->getEvtSequence() << std::endl;
+      std::cout << "Packet " << sepdcont->getPacket(i)->getIdentifier()
+		<< " Evt no: " << sepdcont->getPacket(i)->getEvtSequence() << std::endl;
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;

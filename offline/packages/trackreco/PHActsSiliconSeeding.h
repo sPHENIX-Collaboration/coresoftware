@@ -30,6 +30,7 @@ class TrackSeedContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
+class TrkrClusterCrossingAssoc;
 
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
 
@@ -195,11 +196,15 @@ class PHActsSiliconSeeding : public SubsysReco
                                                    const double xProj[],
                                                    const double yProj[],
                                                    const double zProj[]);
+  short int getCrossingIntt(TrackSeed& si_track);
+  std::vector<short int> getInttCrossings(TrackSeed& si_track);
 
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
   void clearTreeVariables();
+
+  TrkrClusterCrossingAssoc *_cluster_crossing_map = nullptr;
   TTree *m_tree = nullptr;
   int m_seedid = std::numeric_limits<int>::quiet_NaN();
   std::vector<float> m_mvtxgx = {};

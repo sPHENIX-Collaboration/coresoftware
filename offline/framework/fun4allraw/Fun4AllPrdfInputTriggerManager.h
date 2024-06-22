@@ -52,31 +52,34 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   uint64_t CalcDiffBclk(const uint64_t bclk1, const uint64_t bclk2);
   void DitchEvent(const int eventno);
   void Resynchronize();
-  void ClearAllEvents();
+  void ClearAllEvents(const int eventno);
   void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
-  int FillCemc();
+  int FillCemc(const unsigned int nEvents = 2);
   int MoveCemcToNodeTree();
   void AddCemcPacket(int eventno, CaloPacket *pkt);
-  int FillGl1();
+  int FillGl1(const unsigned int nEvents = 2);
   int MoveGl1ToNodeTree();
   void AddGl1Packet(int eventno, Gl1Packet *gl1pkt);
-  int FillLL1();
+  int FillLL1(const unsigned int nEvents = 2);
   int MoveLL1ToNodeTree();
   void AddLL1Packet(int eventno, LL1Packet *pkt);
-  int FillMbd();
+  int FillMbd(const unsigned int nEvents = 2);
   int MoveMbdToNodeTree();
   void AddMbdPacket(int eventno, CaloPacket *mbdpkt);
-  int FillHcal();
+  int FillHcal(const unsigned int nEvents = 2);
   int MoveHcalToNodeTree();
   void AddHcalPacket(int eventno, CaloPacket *pkt);
-  int FillZdc();
+  int FillZdc(const unsigned int nEvents = 2);
   int MoveZdcToNodeTree();
   void AddZdcPacket(int eventno, CaloPacket *pkt);
   // the sepd is read together with the zdc in the FillZdc method
   int MoveSEpdToNodeTree();
   void AddSEpdPacket(int eventno, CaloPacket *pkt);
-
+  void InitialPoolDepth(unsigned int n) {m_InitialPoolDepth = n; m_PoolDepth = n;}
   void DetermineReferenceEventNumber();
+  void ClockDiffFill();
+  int ClockDiffCheck();
+  void Resync(bool b = true) {m_resync_flag = b;}
 
  private:
   struct SinglePrdfInputInfo
@@ -86,13 +89,15 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct Gl1PacketInfo
   {
-    std::vector<Gl1Packet *> Gl1PacketVector;
+    std::map<int, Gl1Packet *> Gl1SinglePacketMap;
+    std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
 
   struct MbdPacketInfo
   {
-    std::vector<CaloPacket *> MbdPacketVector;
+    std::map<int, CaloPacket *> MbdSinglePacketMap;
+    std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
 
@@ -116,12 +121,14 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct SEpdPacketInfo
   {
-    std::vector<CaloPacket *> SEpdPacketVector;
+    std::map<int, CaloPacket *> SEpdSinglePacketMap;
+    std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
   struct ZdcPacketInfo
   {
-    std::vector<CaloPacket *> ZdcPacketVector;
+    std::map<int, CaloPacket *> ZdcSinglePacketMap;
+    std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
 
@@ -133,7 +140,10 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   bool m_hcal_registered_flag{false};
   bool m_ll1_registered_flag{false};
   bool m_zdc_registered_flag{false};
-  unsigned int m_PoolDepth = 100;
+  bool m_resync_flag{false};
+  unsigned int m_InitialPoolDepth = 10;
+  unsigned int m_DefaultPoolDepth = 10;
+  unsigned int m_PoolDepth = m_InitialPoolDepth;
   std::vector<SinglePrdfInput *> m_PrdfInputVector;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
@@ -157,6 +167,9 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;
   std::map<SinglePrdfInput *, SinglePrdfInputInfo> m_SinglePrdfInputInfo;
+  std::map<int, uint64_t> m_RefBcoDiffMap;
+  std::vector<uint64_t> m_HayStack;
+  std::map<int, std::vector<uint64_t>> m_NeedleMap;
 };
 
 #endif /* FUN4ALL_FUN4ALLPRDFINPUTPOOLMANAGER_H */

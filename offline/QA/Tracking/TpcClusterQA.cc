@@ -149,7 +149,8 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
 
   struct HistoList
   {
-    TH1 *crphisize = nullptr;
+    TH1 *crphisize_side0 = nullptr;
+    TH1 *crphisize_side1 = nullptr;
     TH1 *czsize = nullptr;
     TH1 *crphierr = nullptr;
     TH1 *czerr = nullptr;
@@ -170,7 +171,8 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
   for (auto &region : {0, 1, 2})
   {
     HistoList hist;
-    hist.crphisize = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sphisize_%i") % getHistoPrefix() % region).str()));
+    hist.crphisize_side0 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sphisize_side0_%i") % getHistoPrefix() % region).str()));
+    hist.crphisize_side1 = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sphisize_side1_%i") % getHistoPrefix() % region).str()));
     hist.czsize = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%szsize_%i") % getHistoPrefix() % region).str()));
     hist.crphierr = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%srphi_error_%i") % getHistoPrefix() % region).str()));
     hist.czerr = dynamic_cast<TH1 *>(hm->getHisto((boost::format("%sz_error_%i") % getHistoPrefix() % region).str()));
@@ -267,7 +269,6 @@ TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets(TrkrDefs::TrkrI
       {
         continue;
       }
-      fill(hiter->second.crphisize, cluster->getPhiSize());
       fill(hiter->second.czsize, cluster->getZSize());
       fill(hiter->second.crphierr, cluster->getRPhiError());
       fill(hiter->second.czerr, cluster->getZError());
@@ -275,11 +276,13 @@ TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets(TrkrDefs::TrkrI
       fill(hiter->second.coverlap, cluster->getOverlap());
         
       if(side==0){
+        fill(hiter->second.crphisize_side0, cluster->getPhiSize());
         fill(hiter->second.cxposition_side0, sclusgx);
         fill(hiter->second.cyposition_side0, sclusgy);
         fill(hiter->second.czposition_side0, sclusgz);
       }
       if(side==1){
+        fill(hiter->second.crphisize_side1, cluster->getPhiSize());
         fill(hiter->second.cxposition_side1, sclusgx);
         fill(hiter->second.cyposition_side1, sclusgy);
         fill(hiter->second.czposition_side1, sclusgz);
@@ -383,7 +386,10 @@ TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets(TrkrDefs::TrkrI
         m_cluszsize.push_back(cluster->getZSize()); 
       }
       
-      if (m_pt > 0.8) h_ntpc->Fill(m_ntpc);
+      if (m_pt > 0.8)
+      {
+	h_ntpc->Fill(m_ntpc);
+      }
      
       int nClus = m_cluslayer.size(); 
       for (int cl = 0; cl < nClus; cl++) 
@@ -466,8 +472,14 @@ void TpcClusterQA::createHistos()
   for (auto &region : {0, 1, 2})
   {
     {
-      auto h = new TH1F((boost::format("%sphisize_%i") % getHistoPrefix() % region).str().c_str(),
-                        (boost::format("TPC cluster #phi size region_%i") % region).str().c_str(), 10, 0, 10);
+      auto h = new TH1F((boost::format("%sphisize_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                        (boost::format("TPC (side 0) cluster #phi size region_%i") % region).str().c_str(), 10, 0, 10);
+      h->GetXaxis()->SetTitle("Cluster #phi_{size}");
+      hm->registerHisto(h);
+    }
+    {
+      auto h = new TH1F((boost::format("%sphisize_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                        (boost::format("TPC (side 1) cluster #phi size region_%i") % region).str().c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("Cluster #phi_{size}");
       hm->registerHisto(h);
     }
