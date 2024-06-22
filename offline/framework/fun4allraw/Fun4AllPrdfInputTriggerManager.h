@@ -167,11 +167,10 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   PHCompositeNode *m_topNode {nullptr};
   SinglePrdfInput *m_RefPrdfInput {nullptr};
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
-  std::map<int, MbdPacketInfo> m_MbdPacketMap;
+  std::map<int, CaloPacketInfo> m_MbdPacketMap;
   std::map<int, CemcPacketInfo> m_CemcPacketMap;
   std::map<int, HcalPacketInfo> m_HcalPacketMap;
   std::map<int, LL1PacketInfo> m_LL1PacketMap;
-//  std::map<int, SEpdPacketInfo> m_SEpdPacketMap;
   std::map<int, CaloPacketInfo> m_SEpdPacketMap;
   std::map<int, CaloPacketInfo> m_ZdcPacketMap;
   std::map<int, int> m_DroppedPacketMap;
