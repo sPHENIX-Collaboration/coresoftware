@@ -97,6 +97,11 @@ int TrackResiduals::InitRun(PHCompositeNode* topNode)
 {
   m_outfile = new TFile(m_outfileName.c_str(), "RECREATE");
   createBranches();
+  m_dccModuleEdge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
+  if (m_dccModuleEdge)
+  {
+    std::cout << PHWHERE << "  found module edge TPC distortion correction container" << std::endl;
+  }
   m_dccStatic = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
   if (m_dccStatic)
   {
@@ -389,7 +394,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
         Acts::Vector3 global;
         if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
         {
-          global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, crossing, m_dccStatic, m_dccAverage, m_dccFluctuation);
+          global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, crossing, m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation);
         }
         else
         {
@@ -463,7 +468,7 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
           Acts::Vector3 clusglob;
           if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
           {
-            clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, track->get_crossing(), m_dccStatic, m_dccAverage, m_dccFluctuation);
+            clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, track->get_crossing(), m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation);
           }
           else
           {
@@ -516,7 +521,7 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     {
       //  std::cout << "circleFitClusters: call wrapper for ckey " << key << " crossing " << crossing << std::endl;
       pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, crossing,
-                                                                            m_dccStatic, m_dccAverage, m_dccFluctuation);
+                                                                            m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation);
     }
     else
     {
@@ -571,7 +576,7 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     {
       //std::cout << "LineFitClusters: call wrapper with crossing " << crossing << std::endl;
       pos = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, geometry, crossing,
-                                                                           m_dccStatic, m_dccAverage, m_dccFluctuation);
+                                                                           m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation);
     }
     else
     {
@@ -899,18 +904,12 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         auto geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
         auto phi = geoLayer->get_phicenter(m_hitpad);
         auto radius = geoLayer->get_radius();
-
         float AdcClockPeriod = geoLayer->get_zstep();
-        m_zdriftlength = m_hittbin * geometry->get_drift_velocity() * AdcClockPeriod;
-        double NZBinsSide = 249;  // physical z bins per TPC side
-        double tdriftmax = AdcClockPeriod * NZBinsSide;
-        m_hitgz = (tdriftmax * geometry->get_drift_velocity()) - m_zdriftlength;
-        if (m_side == 0)
-        {
-          m_hitgz *= -1;
-        }
-        m_hitgx = radius * std::cos(phi);
-        m_hitgy = radius * std::sin(phi);
+        auto glob = geometry->getGlobalPositionTpc(m_hitsetkey, hitkey, phi, radius, AdcClockPeriod);
+        m_hitgx = glob.x();
+        m_hitgy = glob.y();
+        m_hitgz = glob.z();
+       
         break;
       }
       case TrkrDefs::TrkrId::micromegasId:
@@ -1880,7 +1879,7 @@ void TrackResiduals::fillResidualTreeKF( PHCompositeNode* topNode)
 
 	  if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
 	    {
-	      global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, m_crossing, m_dccStatic, m_dccAverage, m_dccFluctuation);
+	      global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, m_crossing, m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation);
 	    }	  
 
 	  // add the global positions to a vector to give to the cluster mover
@@ -2138,7 +2137,7 @@ void TrackResiduals::fillResidualTreeSeeds( PHCompositeNode* topNode )
 	Acts::Vector3 global = geometry->getGlobalPosition(ckey, cluster);  // works for the silicon and TPOT(?)
 	if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
 	  {
-	    global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, m_crossing, m_dccStatic, m_dccAverage, m_dccFluctuation);
+	    global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, m_crossing, m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation);
 	  }	  
 	// add the global positions to a vector to give to the cluster mover
 	global_raw.emplace_back(std::make_pair(ckey, global));

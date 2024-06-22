@@ -76,6 +76,8 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const std::string &name)
   ReadGain();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
+
+
   return;
 }
 
@@ -103,6 +105,33 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert(GeomContainer);
 
+  if(m_use_module_gain_weights)
+    {
+      int side, region, sector;
+      double weight;
+      std::ifstream weights_file(m_tpc_module_gain_weights_file);
+      if(!weights_file.is_open()) 
+	{
+	  std::cout << ".In PHG4TpcPadPlaneReadout: Option to use module gain weights enabled, but weights file not found. Aborting." << std::endl;
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+
+      for(int iside =0; iside < 2; ++iside)
+	{
+	  for(int isec = 0; isec < 12; ++isec)
+	    {
+	      for(int ir = 0; ir < 3; ++ir)
+		{
+		  weights_file >> side >> region >> sector >> weight;
+		  m_module_gain_weight[side][region][sector] = weight;
+		  std::cout << " iside " << iside << " side " << side << " ir " << ir 
+			    << " region " << region << " isec " << isec 
+			    << " sector " << sector << " weight " << weight << std::endl;
+		}
+	    }
+	}
+    }    
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -118,6 +147,23 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   //         for the single electron gain distribution -
   //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
   double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain);
+  // Put gain reading here
+
+  return nelec;
+}
+
+//_________________________________________________________
+double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(double weight)
+{
+  // Jin H.: For the GEM gain in sPHENIX TPC,
+  //         Bob pointed out the PHENIX HBD measured it as the Polya function with theta parameter = 0.8.
+  //         Just talked with Tom too, he suggest us to start the TPC modeling with simpler exponential function
+  //         with lambda parameter of 1/2000, (i.e. Polya function with theta parameter = 0, q_bar = 2000). Please note, this gain variation need to be sampled for each initial electron individually.
+  //         Summing over ~30 initial electrons, the distribution is pushed towards more Gauss like.
+  // Bob A.: I like Tom's suggestion to use the exponential distribution as a first approximation
+  //         for the single electron gain distribution -
+  //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
+  double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain * weight);
   // Put gain reading here
 
   return nelec;
@@ -235,8 +281,43 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   if (m_flagToUseGain == 1)
   {
     gain_weight = h_gain[side]->GetBinContent(h_gain[side]->FindBin(rad_gem * 10, phi_gain));  // rad_gem in cm -> *10 to get mm
+    nelec = nelec * gain_weight;
   }
-  nelec = nelec * gain_weight;
+
+  if(m_use_module_gain_weights)
+    {
+      double phistep = 30.0;
+      int sector = 0;
+
+      if( (phi_gain*180.0/M_PI) >=15 && (phi_gain*180.0 / M_PI) < 345)
+	{
+	  sector = 1 + (int) ( (phi_gain*180.0/M_PI - 15) / phistep);
+	} 
+      else
+	{
+	  sector = 0;
+	}
+
+      int this_region = -1;
+      for (int iregion = 0; iregion < 3; ++iregion)
+	{
+	  if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion])
+	    {
+	      this_region = iregion;
+	    }
+	}
+      if(this_region > -1) 
+	{
+	  gain_weight = m_module_gain_weight[side][this_region][sector];
+	}
+      // regenerate nelec with the new distribution
+      //    double original_nelec = nelec; 
+      nelec = getSingleEGEMAmplification(gain_weight);
+      //  std::cout << " side " << side << " this_region " << this_region 
+      //	<<  " sector " << sector << " original nelec " 
+      //	<< original_nelec << " new nelec " << nelec << std::endl;
+    }
+
   // std::cout<<"PHG4TpcPadPlaneReadout::MapToPadPlane gain_weight = "<<gain_weight<<std::endl;
   /* pass_data.neff_electrons = nelec; */
 

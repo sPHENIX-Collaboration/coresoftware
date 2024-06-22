@@ -29,7 +29,7 @@
 #include <set>
 #include <utility>  // for pair
 
-static const int NMBDPACKETS = 3;
+static const int NMBDPACKETS = 2+1; // one spare to get an error from getPacketList
 
 SingleMbdTriggerInput::SingleMbdTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
@@ -97,6 +97,9 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
 
     for (int i = 0; i < npackets; i++)
     {
+      int packet_id = plist[i]->getIdentifier();
+// The call to  EventNumberOffset(identifier) will initialize it to our default if it wasn't set already
+      int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
         plist[i]->identify();
@@ -118,9 +121,9 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
       newhit->setNrChannels(nr_channels);
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
-      newhit->setEvtSequence(EventSequence);
+      newhit->setEvtSequence(CorrectedEventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
       newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
@@ -132,47 +135,43 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
         newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
         newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
         newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
+        newhit->setChecksumLsb(ifem,plist[i]->iValue(ifem, "CHECKSUMLSB"));
+        newhit->setChecksumMsb(ifem,plist[i]->iValue(ifem, "CHECKSUMMSB"));
+        newhit->setCalcChecksumLsb(ifem,plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
+        newhit->setCalcChecksumMsb(ifem,plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
       }
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
-        newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
-        newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
-        newhit->setSuppressed(ipmt,plist[i]->iValue(ipmt,"SUPPRESSED"));
-        for (int isamp = 0; isamp < nr_samples; isamp++)
-        {
-          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-        }
+        // store pre/post only for suppressed channels, the array in the packet routines is not
+        // initialized so reading pre/post for not zero suppressed channels returns garbage
+        bool isSuppressed = plist[i]->iValue(ipmt,"SUPPRESSED");
+        newhit->setSuppressed(ipmt,isSuppressed);
+	if (isSuppressed)
+	{
+	  newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
+	  newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
+	}
+	else
+	{
+	  for (int isamp = 0; isamp < nr_samples; isamp++)
+	  {
+	    newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+	  }
+	}
       }
- /*
-      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
-      newhit->setBCO(plist[i]->lValue(0, "CLOCK"));
-      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
-      newhit->setEvtSequence(EventSequence);
-      for (int ifem = 0; ifem < 2; ifem++)
-      {
-        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
-      }
-      for (int ipmt = 0; ipmt < 128; ipmt++)
-      {
-        for (int isamp = 0; isamp < 31; isamp++)
-        {
-          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-        }
-      }
-*/
       if (Verbosity() > 2)
       {
-        std::cout << PHWHERE << "evtno: " << EventSequence
+        std::cout << PHWHERE << "corrected evtno: " << CorrectedEventSequence
+		  << ", original evtno: " << EventSequence
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
       if (TriggerInputManager())
       {
-        TriggerInputManager()->AddMbdPacket(EventSequence, newhit);
+        TriggerInputManager()->AddMbdPacket(CorrectedEventSequence, newhit);
       }
-      m_MbdPacketMap[EventSequence].push_back(newhit);
-      m_EventStack.insert(EventSequence);
+      m_MbdPacketMap[CorrectedEventSequence].push_back(newhit);
+      m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
 	ddumppacket(plist[i]);
