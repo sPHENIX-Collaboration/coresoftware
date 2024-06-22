@@ -22,8 +22,9 @@
 #include <cassert>
 #include <vector>
 
-RhosinEvent::RhosinEvent(const std::string &name)
+RhosinEvent::RhosinEvent(const std::string &name, const std::string &tag)
   : SubsysReco(name)
+  , m_histTag(tag)
   // , m_name(outputfilename)
   , m_do_mult_rho(true)
   , m_do_area_rho(true)
@@ -68,21 +69,32 @@ int RhosinEvent::Init(PHCompositeNode * /*topNode*/)
     {
         N_rho_area_bins[i] = (10.0/200.0)*i;
     }
-    
-    h1_mult_rho = new TH1D("h1_mult_rho", "h1_mult_rho", N_rho_mult, N_rho_mult_bins);
+
+    // construct histogram names
+    std::vector<std::string> vecHistNames = {
+      "h1_mult_rho",
+      "h1_mult_rho_sigma",
+      "h1_area_rho",
+      "h1_area_rho_sigma"
+    };
+    for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
+      vecHistNames[iHistName].append("_" + m_histTag);
+    }
+
+    h1_mult_rho = new TH1D(vecHistNames[0].data(), "h1_mult_rho", N_rho_mult, N_rho_mult_bins);
     h1_mult_rho->GetXaxis()->SetTitle("rho_M");
     h1_mult_rho->GetYaxis()->SetTitle("Counts");
 
-    h1_mult_rho_sigma = new TH1D("h1_mult_rho_sigma", "h1_mult_rho_sigma", N_rho_mult, N_rho_mult_bins);
+    h1_mult_rho_sigma = new TH1D(vecHistNames[1].data(), "h1_mult_rho_sigma", N_rho_mult, N_rho_mult_bins);
     h1_mult_rho_sigma->GetXaxis()->SetTitle("sigma_M");
     h1_mult_rho_sigma->GetYaxis()->SetTitle("Counts");
 
         
-    h1_area_rho = new TH1D("h1_area_rho", "h1_area_rho", N_rho_area, N_rho_area_bins);
+    h1_area_rho = new TH1D(vecHistNames[2].data(), "h1_area_rho", N_rho_area, N_rho_area_bins);
     h1_area_rho->GetXaxis()->SetTitle("rho_A");
     h1_area_rho->GetYaxis()->SetTitle("Counts");
 
-    h1_area_rho_sigma = new TH1D("h1_area_rho_sigma", "h1_area_rho_sigma", N_rho_area, N_rho_area_bins);
+    h1_area_rho_sigma = new TH1D(vecHistNames[3].data(), "h1_area_rho_sigma", N_rho_area, N_rho_area_bins);
     h1_area_rho_sigma->GetXaxis()->SetTitle("sigma_A");
     h1_area_rho_sigma->GetYaxis()->SetTitle("Counts");
 

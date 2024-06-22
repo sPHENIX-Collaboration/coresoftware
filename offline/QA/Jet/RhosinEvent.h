@@ -23,7 +23,10 @@ class RhosinEvent : public SubsysReco
 
     public:
 
-        RhosinEvent(const std::string &name = "RhosinEvent");
+        RhosinEvent(
+          const std::string &name = "RhosinEvent",
+          const std::string &tag = "AllTrig"
+        );
         ~RhosinEvent() override {};
 
         void add_mult_rho_node(const std::string &name)
@@ -46,6 +49,7 @@ class RhosinEvent : public SubsysReco
     private:
 
         //! Input Node strings
+        std::string m_histTag{"AllTrig"};
         // std::string m_outputFileName{"RhosinEvent.root"};
 
         bool m_do_mult_rho{true};
