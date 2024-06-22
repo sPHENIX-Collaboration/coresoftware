@@ -87,6 +87,7 @@ class LiteCaloEval : public SubsysReco
   /// Getters
   float getFitMax() { return fitmax; }
   float getFitMin() { return fitmin; }
+  float get_spectra_binWidth(){ return binwidth; }
 
   void setInputTowerNodeName(const std::string &inpNodenm)
   {
@@ -102,6 +103,10 @@ class LiteCaloEval : public SubsysReco
   {
     doQA = status;
   }
+
+  void draw_spectra();
+
+  void fit_info();
 
  private:
  
