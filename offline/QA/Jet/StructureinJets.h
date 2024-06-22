@@ -22,6 +22,7 @@ class StructureinJets : public SubsysReco
 {
  public:
   StructureinJets(const std::string &recojetname = "AntiKt_Tower_r04",
+                  const std::string &histTag = "AllTrig_AntiKt_Tower_r04",
                   const std::string &outputfilename = "tracksinjets.root");
 
   ~StructureinJets() override;
@@ -67,6 +68,7 @@ class StructureinJets : public SubsysReco
 
  private:
   std::string m_recoJetName;
+  std::string m_histTag;
   float m_trk_pt_cut{2};
   float m_jetRadius{0.4};
   bool isAAFlag{false};
