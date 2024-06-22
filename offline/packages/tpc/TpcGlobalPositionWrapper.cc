@@ -5,7 +5,7 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 
-Acts::Vector3 TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(const TrkrDefs::cluskey& key, TrkrCluster* cluster, ActsGeometry* tGeometry, short int crossing, const TpcDistortionCorrectionContainer* staticCorrection, const TpcDistortionCorrectionContainer* averageCorrection, const TpcDistortionCorrectionContainer* fluctuationCorrection)
+Acts::Vector3 TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(const TrkrDefs::cluskey& key, TrkrCluster* cluster, ActsGeometry* tGeometry, short int crossing, const TpcDistortionCorrectionContainer* moduleEdgeCorrection, const TpcDistortionCorrectionContainer* staticCorrection, const TpcDistortionCorrectionContainer* averageCorrection, const TpcDistortionCorrectionContainer* fluctuationCorrection)
 {
   // These cases should be handled properly by the caller, here we just set to zero if undefined
   if(crossing == SHRT_MAX) { crossing = 0; }
@@ -17,6 +17,10 @@ Acts::Vector3 TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(con
   global[2] = m_crossingCorrection.correctZ(global.z(), TpcDefs::getSide(key), crossing);
 
   // apply distortion corrections
+  if (moduleEdgeCorrection)
+  {
+    global = m_distortionCorrection.get_corrected_position(global, moduleEdgeCorrection);
+  }
   if (staticCorrection)
   {
     global = m_distortionCorrection.get_corrected_position(global, staticCorrection);

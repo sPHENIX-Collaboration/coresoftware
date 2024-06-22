@@ -92,6 +92,11 @@ int TpcClusterQA::InitRun(PHCompositeNode *topNode)
   
   if (m_residQA)
   {
+    m_dccModuleEdge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
+    if (m_dccModuleEdge)
+    {
+      std::cout << PHWHERE << "  found module edge TPC distortion correction container" << std::endl;
+    }
     m_dccStatic = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
     if (m_dccStatic)
     {
@@ -365,7 +370,7 @@ TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets(TrkrDefs::TrkrI
         if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
         {
           clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, geometry, track->get_crossing(), 
-                                                                                    m_dccStatic, m_dccAverage, m_dccFluctuation); //NEED TO DEFINE THESE
+                                                                                    m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation); //NEED TO DEFINE THESE
         }
         else
         {
