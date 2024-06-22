@@ -22,12 +22,18 @@ class ConstituentsinJets : public SubsysReco
     public:
 
         ConstituentsinJets(
-            const std::string &recojetname = "AntiKt_Tower_r04");
+            const std::string &recojetname = "AntiKt_Tower_r04",
+            const std::string &histTag = "AntiKt_Tower_R04"
+        );
         ~ConstituentsinJets() override {};
 
         void setRecoJetNodeName(const std::string &name)
         { // set the name of the node containing the reco jets
             m_recoJetName = name;
+        }
+        void setHistTag(const std::string &tag)
+        {  // set the tag to be applied to histogram names
+            m_histTag = tag;
         }
 
         void setEtaRange(double low, double high)
@@ -49,8 +55,9 @@ class ConstituentsinJets : public SubsysReco
 
     private:
 
-        //! Input Node strings
+        //! Input Node strings and histogram tags
         std::string m_recoJetName { "AntiKt_Tower_r04"};
+        std::string m_histTag { "AntiKt_Tower_R04" };
         // std::string m_outputFileName{ "ConstituentsinJets.root"};
 
 
