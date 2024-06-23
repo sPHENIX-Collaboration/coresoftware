@@ -1228,11 +1228,8 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey, // SvtxTra
   // When filling the residualtree:
   //    clusgx etc are the corrected - but not moved back to the surface - cluster positions
   //    clugxideal etc are the completely uncorrected cluster positions - they do not even have crossing corrections
-  // CircleFitClusters was called before this method. It applies TOF, crossing, and all distortion corrections before fitting
+  // CircleFitClusters is called in this method. It applies TOF, crossing, and all distortion corrections before fitting
   //    stategx etc are at the intersection point of the helical fit with the cluster surface
-  //  What do we not have?
-  //     The clusters moved back to the surface, to compare with the state
-
 
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
