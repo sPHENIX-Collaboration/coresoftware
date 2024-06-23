@@ -205,7 +205,6 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
   for (unsigned int i = 0; i < pktcont->get_npackets(); i++)
   {
     unsigned int packetid = pktcont->getPacket(i)->getIdentifier();
-    uint64_t clk = pktcont->getPacket(i)->getBCO();
     if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
     {
       std::string hname = "clkdiff" + std::to_string(packetid);
@@ -214,12 +213,21 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
       if (Verbosity() > 3)
       {
 	std::cout << "Add tuple for " << packetid << std::endl;
+	auto &pktiter = m_PacketStuffMap[packetid];
+	std::cout << PHWHERE << "packet init " << packetid << std::hex
+		  << ", clk: " << std::get<1>(pktiter)
+		  << ", clkdiff: " << std::get<2>(pktiter) << std::dec << ", tag: " << std::get<4>(pktiter)
+		  << std::endl;
+
       }
     }
     else
     {
       auto &pktiter = m_PacketStuffMap[packetid];
+      uint64_t clk = pktcont->getPacket(i)->getBCO();
       uint64_t clkdiff = std::numeric_limits<uint64_t>::max();
+      std::get<1>(pktiter) = clk;
+// only calculate clk diff and correct clock for rollover if previous clk is set (default is max uint64)
       if (std::get<0>(pktiter) < std::numeric_limits<uint64_t>::max())
       {
 	if (clk < std::get<0>(pktiter))
@@ -228,13 +236,12 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
 	}
 	clkdiff = clk - std::get<0>(pktiter);
 	clk &= 0xFFFFFFFF;
+	std::get<2>(pktiter) = clkdiff;
+	std::get<4>(pktiter) = true;
       }
-      std::get<1>(pktiter) = clk;
-      std::get<2>(pktiter) = clkdiff;
-      std::get<4>(pktiter) = true;
       if (Verbosity() > 2)
       {
-	std::cout << "packet " << packetid << ", clk: " << std::hex << clk
+	std::cout << PHWHERE << "packet " << packetid << ", clk: " << std::hex << clk
 		  << ", tup: " << std::get<1>(pktiter) << ", diff: " << clkdiff
 		  << ", tup: " << std::get<2>(pktiter) << std::dec << ", tag: " << std::get<4>(pktiter)
 		  << std::endl;

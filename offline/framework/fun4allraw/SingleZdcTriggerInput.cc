@@ -174,12 +174,11 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       {
 	if (packet_id == std::clamp(packet_id, 9000, 9999))
 	{
-        TriggerInputManager()->AddSEpdPacket(CorrectedEventSequence, newhit);
+	  TriggerInputManager()->AddSEpdPacket(CorrectedEventSequence, newhit);
 	}
 	else
 	{
-//        CorrectedEventSequence = EventSequence;
-        TriggerInputManager()->AddZdcPacket(CorrectedEventSequence, newhit);
+	  TriggerInputManager()->AddZdcPacket(CorrectedEventSequence, newhit);
 	}
       }
       m_ZdcPacketMap[CorrectedEventSequence].push_back(newhit);
