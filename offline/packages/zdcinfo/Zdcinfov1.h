@@ -24,7 +24,7 @@ class Zdcinfov1 : public Zdcinfo
   float get_zdc_energy(int arm) const override;
 
  private:
-    float m_zdc_e[2] = {};
+    float m_zdc_e[2] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
   ClassDefOverride(Zdcinfov1, 1);
 };
 
