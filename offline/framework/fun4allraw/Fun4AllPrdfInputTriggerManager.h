@@ -105,10 +105,12 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
 
   struct LL1PacketInfo
   {
-    std::vector<LL1Packet *> LL1PacketVector;
+    std::map<int, LL1Packet *> LL1SinglePacketMap;
     std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
+  int FillNeedleLL1(std::map<int, LL1PacketInfo>::iterator begin, std::map<int, LL1PacketInfo>::iterator end, const std::string &name="NONE");
+  int ShiftEventsLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name="NONE");
 
   int m_RunNumber{0};
   int m_RefEventNo{std::numeric_limits<int>::min()};
@@ -145,7 +147,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;
   std::map<SinglePrdfInput *, SinglePrdfInputInfo> m_SinglePrdfInputInfo;
-  std::map<int, uint64_t> m_RefBcoDiffMap;
   std::vector<uint64_t> m_HayStack;
   std::map<int, std::vector<uint64_t>> m_NeedleMap;
 };
