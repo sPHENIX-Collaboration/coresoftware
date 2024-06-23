@@ -3,8 +3,8 @@
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/CaloPacketv1.h>
 #include <ffarawobjects/CaloPacketContainerv1.h>
+#include <ffarawobjects/CaloPacketv1.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -45,12 +45,12 @@ SingleZdcTriggerInput::SingleZdcTriggerInput(const std::string &name)
 SingleZdcTriggerInput::~SingleZdcTriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
-// some events are already in the m_EventStack but they haven't been put
-// into the m_PacketMap
-   while(m_EventStack.begin() != m_EventStack.end())
-   {
-     m_EventStack.erase(m_EventStack.begin());
-   }
+  // some events are already in the m_EventStack but they haven't been put
+  // into the m_PacketMap
+  while (m_EventStack.begin() != m_EventStack.end())
+  {
+    m_EventStack.erase(m_EventStack.begin());
+  }
   delete[] plist;
 }
 
@@ -96,12 +96,12 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, NZDCPACKETS+1);
-    if (npackets >= NZDCPACKETS+1)
+    int npackets = evt->getPacketList(plist, NZDCPACKETS + 1);
+    if (npackets >= NZDCPACKETS + 1)
     {
       std::cout << PHWHERE << " Packets array size " << NZDCPACKETS
-		<< " too small for " << Name()
-		<< ", increase NZDCPACKETS and rebuild" << std::endl;
+                << " too small for " << Name()
+                << ", increase NZDCPACKETS and rebuild" << std::endl;
       gSystem->Exit(1);
       exit(1);
     }
@@ -109,7 +109,7 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
     for (int i = 0; i < npackets; i++)
     {
       int packet_id = plist[i]->getIdentifier();
-// The call to  EventNumberOffset(identifier) will initialize it to our default if it wasn't set already
+      // The call to  EventNumberOffset(identifier) will initialize it to our default if it wasn't set already
       int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
@@ -119,13 +119,13 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
       uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
-      int nr_modules = plist[i]->iValue(0,"NRMODULES");
+      int nr_modules = plist[i]->iValue(0, "NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
       if (nr_modules > 3)
       {
-	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
-	gSystem->Exit(1);
+        std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
+        gSystem->Exit(1);
       }
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
@@ -139,8 +139,8 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
       newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
       newhit->setCalcOddChecksum(plist[i]->iValue(0, "CALCODDCHECKSUM"));
-      newhit->setModuleAddress(plist[i]->iValue(0,"MODULEADDRESS"));
-      newhit->setDetId(plist[i]->iValue(0,"DETID"));
+      newhit->setModuleAddress(plist[i]->iValue(0, "MODULEADDRESS"));
+      newhit->setDetId(plist[i]->iValue(0, "DETID"));
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
         newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
@@ -148,51 +148,51 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
         newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
         newhit->setChecksumLsb(ifem, plist[i]->iValue(ifem, "CHECKSUMLSB"));
         newhit->setChecksumMsb(ifem, plist[i]->iValue(ifem, "CHECKSUMMSB"));
-        newhit->setCalcChecksumLsb(ifem,plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
-        newhit->setCalcChecksumMsb(ifem,plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
+        newhit->setCalcChecksumLsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
+        newhit->setCalcChecksumMsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
       }
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
         // store pre/post only for suppressed channels, the array in the packet routines is not
         // initialized so reading pre/post for not zero suppressed channels returns garbage
-        bool isSuppressed = plist[i]->iValue(ipmt,"SUPPRESSED");
-        newhit->setSuppressed(ipmt,isSuppressed);
-	if (isSuppressed)
-	{
-	  newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
-	  newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
-	}
-	else
-	{
-	  for (int isamp = 0; isamp < nr_samples; isamp++)
-	  {
-	    newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-	  }
-	}
+        bool isSuppressed = plist[i]->iValue(ipmt, "SUPPRESSED");
+        newhit->setSuppressed(ipmt, isSuppressed);
+        if (isSuppressed)
+        {
+          newhit->setPre(ipmt, plist[i]->iValue(ipmt, "PRE"));
+          newhit->setPost(ipmt, plist[i]->iValue(ipmt, "POST"));
+        }
+        else
+        {
+          for (int isamp = 0; isamp < nr_samples; isamp++)
+          {
+            newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+          }
+        }
       }
       if (Verbosity() > 2)
       {
         std::cout << PHWHERE << "corrected evtno: " << CorrectedEventSequence
-		  << ", original evtno: " << EventSequence
+                  << ", original evtno: " << EventSequence
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
       if (TriggerInputManager())
       {
-	if (packet_id == std::clamp(packet_id, 9000, 9999))
-	{
-	  TriggerInputManager()->AddSEpdPacket(CorrectedEventSequence, newhit);
-	}
-	else
-	{
-	  TriggerInputManager()->AddZdcPacket(CorrectedEventSequence, newhit);
-	}
+        if (packet_id == std::clamp(packet_id, 9000, 9999))
+        {
+          TriggerInputManager()->AddSEpdPacket(CorrectedEventSequence, newhit);
+        }
+        else
+        {
+          TriggerInputManager()->AddZdcPacket(CorrectedEventSequence, newhit);
+        }
       }
       m_PacketMap[CorrectedEventSequence].push_back(newhit);
       m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
-	ddumppacket(plist[i]);
+        ddumppacket(plist[i]);
       }
       delete plist[i];
     }
@@ -226,14 +226,14 @@ void SingleZdcTriggerInput::CleanupUsedPackets(const int eventno)
     {
       if (Verbosity() > 1)
       {
-	std::cout << "Deleting event " << iter.first << " from zdc input mgr" << std::endl;
+        std::cout << "Deleting event " << iter.first << " from zdc input mgr" << std::endl;
       }
       for (auto pktiter : iter.second)
       {
-	if (Verbosity() > 1)
-	{
-	  std::cout << "Deleting packet " << pktiter->getIdentifier() << std::endl;
-	}
+        if (Verbosity() > 1)
+        {
+          std::cout << "Deleting packet " << pktiter->getIdentifier() << std::endl;
+        }
         delete pktiter;
       }
       toclearevents.push_back(iter.first);

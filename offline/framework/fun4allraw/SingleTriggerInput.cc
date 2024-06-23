@@ -153,9 +153,9 @@ void SingleTriggerInput::ddumppacket(Packet *pkt)
   {
     std::string fname = "packet_" + std::to_string(packetid) + ".ddump";
     std::ofstream *dumpfile = new std::ofstream(fname);
-    //dumpfile.open(fname);
-      m_PacketDumpFile.insert(std::make_pair(packetid,dumpfile));
-      m_PacketDumpCounter.insert(std::make_pair(packetid,m_ddump_flag));
+    // dumpfile.open(fname);
+    m_PacketDumpFile.insert(std::make_pair(packetid, dumpfile));
+    m_PacketDumpCounter.insert(std::make_pair(packetid, m_ddump_flag));
   }
   if (m_PacketDumpCounter[packetid] != 0)
   {
@@ -167,15 +167,15 @@ void SingleTriggerInput::ddumppacket(Packet *pkt)
 
 int SingleTriggerInput::EventNumberOffset(const int packetid)
 {
-// initialize to zero, if map entry exists it will not overwrite it
-// just return false in retcode.second
-  auto retcode = m_EventNumberOffset.insert(std::make_pair(packetid,m_DefaultEventNumberOffset)); 
+  // initialize to zero, if map entry exists it will not overwrite it
+  // just return false in retcode.second
+  auto retcode = m_EventNumberOffset.insert(std::make_pair(packetid, m_DefaultEventNumberOffset));
   if (Verbosity() > 2)
   {
     if (retcode.second)
     {
       std::cout << PHWHERE << " Inserted " << m_DefaultEventNumberOffset << " as event offset for packet "
-		<< packetid << std::endl;
+                << packetid << std::endl;
     }
   }
   return m_EventNumberOffset[packetid];
@@ -187,41 +187,41 @@ void SingleTriggerInput::AdjustEventNumberOffset(const int packetid, const int o
   {
     return;
   }
-  m_EventNumberOffset[packetid]+= offset;
+  m_EventNumberOffset[packetid] += offset;
 }
 
 int SingleTriggerInput::AdjustPacketMap(int pktid, int evtoffset)
 {
   if (Verbosity() > 1)
   {
-    std::cout << PHWHERE << " adjusting local " << Name() 
-<< " packet map for packet " << pktid
-	    << " with offset " << evtoffset << std::endl;
+    std::cout << PHWHERE << " adjusting local " << Name()
+              << " packet map for packet " << pktid
+              << " with offset " << evtoffset << std::endl;
   }
   std::vector<int> eventnumbers;
-  for (auto packetmapiter =  m_PacketMap.rbegin(); packetmapiter != m_PacketMap.rend(); ++packetmapiter )
+  for (auto packetmapiter = m_PacketMap.rbegin(); packetmapiter != m_PacketMap.rend(); ++packetmapiter)
   {
-      eventnumbers.push_back(packetmapiter->first);
+    eventnumbers.push_back(packetmapiter->first);
   }
 
-    for (auto evtnumiter : eventnumbers)
-    {
+  for (auto evtnumiter : eventnumbers)
+  {
     int lastevent = evtnumiter;
     int newevent = lastevent + evtoffset;
-//    for (auto pktiter : m_PacketMap[lastevent])
-    for (std::vector<OfflinePacket *>::iterator  pktiter =  m_PacketMap[lastevent].begin(); pktiter != m_PacketMap[lastevent].end(); ++pktiter )
+    //    for (auto pktiter : m_PacketMap[lastevent])
+    for (std::vector<OfflinePacket *>::iterator pktiter = m_PacketMap[lastevent].begin(); pktiter != m_PacketMap[lastevent].end(); ++pktiter)
     {
       if ((*pktiter)->getIdentifier() == pktid)
       {
-	if (Verbosity() > 1)
-	{
-	std::cout << PHWHERE << " need to move packet " << (*pktiter)->getIdentifier() << std::endl;
-	}
-//      trivial variables give no speed benefit from using std::move
-//	m_PacketMap[newevent].push_back(std::move(*pktiter));
-	m_PacketMap[newevent].push_back(*pktiter);
-	m_PacketMap[lastevent].erase(pktiter);
-	break;
+        if (Verbosity() > 1)
+        {
+          std::cout << PHWHERE << " need to move packet " << (*pktiter)->getIdentifier() << std::endl;
+        }
+        //      trivial variables give no speed benefit from using std::move
+        //	m_PacketMap[newevent].push_back(std::move(*pktiter));
+        m_PacketMap[newevent].push_back(*pktiter);
+        m_PacketMap[lastevent].erase(pktiter);
+        break;
       }
     }
   }

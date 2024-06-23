@@ -74,11 +74,15 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   // the sepd is read together with the zdc in the FillZdc method
   int MoveSEpdToNodeTree();
   void AddSEpdPacket(int eventno, CaloPacket *pkt);
-  void InitialPoolDepth(unsigned int n) {m_InitialPoolDepth = n; m_PoolDepth = n;}
+  void InitialPoolDepth(unsigned int n)
+  {
+    m_InitialPoolDepth = n;
+    m_PoolDepth = n;
+  }
   void DetermineReferenceEventNumber();
   void ClockDiffFill();
   int ClockDiffCheck();
-  void Resync(bool b = true) {m_resync_flag = b;}
+  void Resync(bool b = true) { m_resync_flag = b; }
 
  private:
   struct SinglePrdfInputInfo
@@ -99,8 +103,8 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
-  int FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name="NONE");
-  int ShiftEvents(std::map<int, CaloPacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name="NONE");
+  int FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name = "NONE");
+  int ShiftEvents(std::map<int, CaloPacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name = "NONE");
 
   struct LL1PacketInfo
   {
@@ -108,8 +112,8 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
-  int FillNeedleLL1(std::map<int, LL1PacketInfo>::iterator begin, std::map<int, LL1PacketInfo>::iterator end, const std::string &name="NONE");
-  int ShiftEventsLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name="NONE");
+  int FillNeedleLL1(std::map<int, LL1PacketInfo>::iterator begin, std::map<int, LL1PacketInfo>::iterator end, const std::string &name = "NONE");
+  int ShiftEventsLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name = "NONE");
 
   int m_RunNumber{0};
   int m_RefEventNo{std::numeric_limits<int>::min()};
@@ -131,9 +135,9 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::vector<SingleTriggerInput *> m_MbdInputVector;
   std::vector<SingleTriggerInput *> m_SEpdInputVector;
   std::vector<SingleTriggerInput *> m_ZdcInputVector;
-  SyncObject *m_SyncObject {nullptr};
-  PHCompositeNode *m_topNode {nullptr};
-  SinglePrdfInput *m_RefPrdfInput {nullptr};
+  SyncObject *m_SyncObject{nullptr};
+  PHCompositeNode *m_topNode{nullptr};
+  SinglePrdfInput *m_RefPrdfInput{nullptr};
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, CaloPacketInfo> m_MbdPacketMap;
   std::map<int, CaloPacketInfo> m_CemcPacketMap;

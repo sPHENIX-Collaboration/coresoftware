@@ -43,12 +43,12 @@ SingleLL1TriggerInput::SingleLL1TriggerInput(const std::string &name)
 SingleLL1TriggerInput::~SingleLL1TriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
-// some events are already in the m_EventStack but they haven't been put
-// into the m_PacketMap
-   while(m_EventStack.begin() != m_EventStack.end())
-   {
-     m_EventStack.erase(m_EventStack.begin());
-   }
+  // some events are already in the m_EventStack but they haven't been put
+  // into the m_PacketMap
+  while (m_EventStack.begin() != m_EventStack.end())
+  {
+    m_EventStack.erase(m_EventStack.begin());
+  }
   delete[] plist;
 }
 
@@ -137,8 +137,8 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
         {
           if (isamp >= newhit->getMaxNumSamples() || ichan >= newhit->getMaxNumChannels())
           {
-            std::cout << "Packet: " <<  newhit->getIdentifier()
-<< ", samples: " << isamp
+            std::cout << "Packet: " << newhit->getIdentifier()
+                      << ", samples: " << isamp
                       << ", channels: " << ichan << std::endl;
             gSystem->Exit(1);
           }
@@ -148,8 +148,8 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
           }
         }
       }
-      //newhit->identify();
-      //      newhit->dump();
+      // newhit->identify();
+      //       newhit->dump();
       if (Verbosity() > 2)
       {
         std::cout << PHWHERE << "evtno: " << EventSequence

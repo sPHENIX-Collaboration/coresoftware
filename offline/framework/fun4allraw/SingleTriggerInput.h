@@ -5,8 +5,8 @@
 #include <fun4all/InputFileHandler.h>
 
 #include <cstdint>  // for uint64_t
-#include <map>
 #include <fstream>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -44,28 +44,27 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual void SubsystemEnum(const int id) { m_SubsystemEnum = id; }
   virtual int SubsystemEnum() const { return m_SubsystemEnum; }
   virtual void ddumppacket(Packet *pkt);
-  virtual void enable_ddump(int i = 1) {m_ddump_flag = i;}
-  virtual bool ddump_enabled() const {return m_ddump_flag;}
-  virtual void DefaultEventNumberOffset(const int i) {m_DefaultEventNumberOffset = i;}
-  virtual int AdjustPacketMap(int pktid, int evtoffset);// {return;}
+  virtual void enable_ddump(int i = 1) { m_ddump_flag = i; }
+  virtual bool ddump_enabled() const { return m_ddump_flag; }
+  virtual void DefaultEventNumberOffset(const int i) { m_DefaultEventNumberOffset = i; }
+  virtual int AdjustPacketMap(int pktid, int evtoffset);  // {return;}
 
-// these ones are used directly by the derived classes, maybe later
-// move to cleaner accessors
+  // these ones are used directly by the derived classes, maybe later
+  // move to cleaner accessors
  protected:
   std::map<int, std::vector<OfflinePacket *>> m_PacketMap;
   unsigned int m_NumSpecialEvents{0};
 
-
-// we have accessors for these here
+  // we have accessors for these here
  private:
-  Eventiterator *m_EventIterator {nullptr};
+  Eventiterator *m_EventIterator{nullptr};
   Fun4AllPrdfInputTriggerManager *m_TriggerInputMgr{nullptr};
-  int m_ddump_flag {0};
-  int m_RunNumber {0};
-  int m_EventsThisFile {0};
-  int m_AllDone {0};
+  int m_ddump_flag{0};
+  int m_RunNumber{0};
+  int m_EventsThisFile{0};
+  int m_AllDone{0};
   int m_SubsystemEnum{0};
-  int m_DefaultEventNumberOffset {0};
+  int m_DefaultEventNumberOffset{0};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
