@@ -31,7 +31,6 @@ class SingleZdcTriggerInput : public SingleTriggerInput
   unsigned int m_NumSpecialEvents{0};
 
   std::set<int> m_EventNumber;
-  std::map<int, std::vector<OfflinePacket *>> m_ZdcPacketMap;
   std::set<int> m_EventStack;
 };
 

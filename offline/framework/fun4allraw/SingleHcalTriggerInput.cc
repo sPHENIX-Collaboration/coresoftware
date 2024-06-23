@@ -168,7 +168,7 @@ void SingleHcalTriggerInput::FillPool(const unsigned int keep)
       {
         TriggerInputManager()->AddHcalPacket(EventSequence, newhit);
       }
-      m_HcalPacketMap[EventSequence].push_back(newhit);
+      m_PacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
       if (ddump_enabled())
       {
@@ -183,7 +183,7 @@ void SingleHcalTriggerInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_HcalPacketMap)
+    for (const auto &bcliter : m_PacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
     }
@@ -200,7 +200,7 @@ void SingleHcalTriggerInput::Print(const std::string &what) const
 void SingleHcalTriggerInput::CleanupUsedPackets(const int eventno)
 {
   std::vector<int> toclearevents;
-  for (const auto &iter : m_HcalPacketMap)
+  for (const auto &iter : m_PacketMap)
   {
     if (iter.first <= eventno)
     {
@@ -219,7 +219,7 @@ void SingleHcalTriggerInput::CleanupUsedPackets(const int eventno)
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-    m_HcalPacketMap.erase(iter);
+    m_PacketMap.erase(iter);
   }
 }
 
@@ -238,20 +238,20 @@ bool SingleHcalTriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     return false;
   }
-  if (m_HcalPacketMap.empty())
+  if (m_PacketMap.empty())
   {
     return true;
   }
 
-  int first_event = m_HcalPacketMap.begin()->first;
-  int last_event = m_HcalPacketMap.rbegin()->first;
+  int first_event = m_PacketMap.begin()->first;
+  int last_event = m_PacketMap.rbegin()->first;
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
   }
-  if (keep > 2 && m_HcalPacketMap.size() < keep)
+  if (keep > 2 && m_PacketMap.size() < keep)
   {
     return true;
   }

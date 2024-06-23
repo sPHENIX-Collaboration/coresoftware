@@ -322,37 +322,3 @@ void SingleZdcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode->addNode(newNode);
   }
 }
-
-// void SingleZdcTriggerInput::AdjustPacketMap(int pktid, int evtoffset)
-// {
-//   AdjustPacketMapGeneric(m_PacketMap,pktid, evtoffset, "zdc");
-//   return;
-// }
-/*
-  std::cout << PHWHERE << " adjusting local zdc packet map for packet " << pktid
-	    << " with offset " << evtoffset << std::endl;
-  std::vector<int> eventnumbers;
-  for (auto packetmapiter =  m_PacketMap.rbegin(); packetmapiter != m_PacketMap.rend(); ++packetmapiter )
-  {
-      eventnumbers.push_back(packetmapiter->first);
-  }
-
-    for (auto evtnumiter : eventnumbers)
-    {
-    int lastevent = evtnumiter;
-    int newevent = lastevent + evtoffset;
-//    for (auto pktiter : m_PacketMap[lastevent])
-    for (std::vector<OfflinePacket *>::iterator  pktiter =  m_PacketMap[lastevent].begin(); pktiter != m_PacketMap[lastevent].end(); ++pktiter )
-    {
-      if ((*pktiter)->getIdentifier() == pktid)
-      {
-	std::cout << PHWHERE << " need to move packet " << (*pktiter)->getIdentifier() << std::endl;
-	m_PacketMap[newevent].push_back(std::move(*pktiter));
-	m_PacketMap[lastevent].erase(pktiter);
-//	std::move
-	break;
-      }
-    }
-  }
-}
-*/

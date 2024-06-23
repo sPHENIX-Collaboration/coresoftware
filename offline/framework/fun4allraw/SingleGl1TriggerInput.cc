@@ -135,7 +135,7 @@ void SingleGl1TriggerInput::FillPool(const unsigned int keep)
     {
       TriggerInputManager()->AddGl1Packet(EventSequence, newhit);
     }
-    m_Gl1PacketMap[EventSequence].push_back(newhit);
+    m_PacketMap[EventSequence].push_back(newhit);
     m_EventStack.insert(EventSequence);
     if (ddump_enabled())
     {
@@ -150,7 +150,7 @@ void SingleGl1TriggerInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_Gl1PacketMap)
+    for (const auto &bcliter : m_PacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
     }
@@ -167,7 +167,7 @@ void SingleGl1TriggerInput::Print(const std::string &what) const
 void SingleGl1TriggerInput::CleanupUsedPackets(const int eventno)
 {
   std::vector<int> toclearevents;
-  for (const auto &iter : m_Gl1PacketMap)
+  for (const auto &iter : m_PacketMap)
   {
     if (iter.first <= eventno)
     {
@@ -186,7 +186,7 @@ void SingleGl1TriggerInput::CleanupUsedPackets(const int eventno)
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-    m_Gl1PacketMap.erase(iter);
+    m_PacketMap.erase(iter);
   }
 }
 
@@ -205,20 +205,20 @@ bool SingleGl1TriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     return false;
   }
-  if (m_Gl1PacketMap.empty())
+  if (m_PacketMap.empty())
   {
     return true;
   }
 
-  int first_event = m_Gl1PacketMap.begin()->first;
-  int last_event = m_Gl1PacketMap.rbegin()->first;
+  int first_event = m_PacketMap.begin()->first;
+  int last_event = m_PacketMap.rbegin()->first;
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
   }
-  if (keep > 2 && m_Gl1PacketMap.size() < keep)
+  if (keep > 2 && m_PacketMap.size() < keep)
   {
     return true;
   }
