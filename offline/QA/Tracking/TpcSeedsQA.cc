@@ -29,19 +29,14 @@ TpcSeedsQA::TpcSeedsQA(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int TpcSeedsQA::InitRun(PHCompositeNode * /*unused*/)
+int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
 {
     createHistos();
-    return Fun4AllReturnCodes::EVENT_OK;
-}
 
-//____________________________________________________________________________..
-int TpcSeedsQA::process_event(PHCompositeNode *topNode)
-{
-    auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-    auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
-    auto vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
+    clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+    vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
 
     if (!trackmap or !clustermap or !geometry or !vertexmap)
     {
@@ -53,31 +48,56 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
     assert(hm);
 
     // tracks with TPC clusters/tracklets
-    auto h_ntrack1d = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d").c_str()));
-    auto h_ntrack = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks").c_str()));
-    auto h_ntpc = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc").c_str()));
-    auto h_avgnclus_eta_phi = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi").c_str()));
-    auto h_trackcrossing = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing").c_str()));
-    auto h_dcaxyorigin_phi = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi").c_str()));
-    auto h_dcaxyvtx_phi = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi").c_str()));
-    auto h_dcazorigin_phi = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazorigin_phi").c_str()));
-    auto h_dcazvtx_phi = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazvtx_phi").c_str()));
-    auto h_ntrack_isfromvtx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrack_isfromvtx").c_str()));
+    h_ntrack1d = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d").c_str()));
+    h_ntrack1d_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_pos").c_str()));
+    h_ntrack1d_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_neg").c_str()));
+    h_ntrack_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks_pos").c_str()));
+    h_ntrack_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks_neg").c_str()));
+    h_ntpc_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_pos").c_str()));
+    h_ntpc_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_neg").c_str()));
+    h_ntpot_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpot_pos").c_str()));
+    h_ntpot_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpot_neg").c_str()));
+    h_avgnclus_eta_phi_pos = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi_pos").c_str()));
+    h_avgnclus_eta_phi_neg = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg").c_str()));
+    h_trackcrossing_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_pos").c_str()));
+    h_trackcrossing_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_neg").c_str()));
+    h_dcaxyorigin_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_pos").c_str()));
+    h_dcaxyorigin_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_neg").c_str()));
+    h_dcaxyvtx_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi_pos").c_str()));
+    h_dcaxyvtx_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi_neg").c_str()));
+    h_dcazorigin_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazorigin_phi_pos").c_str()));
+    h_dcazorigin_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazorigin_phi_neg").c_str()));
+    h_dcazvtx_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazvtx_phi_pos").c_str()));
+    h_dcazvtx_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazvtx_phi_neg").c_str()));
+    h_ntrack_isfromvtx_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrack_isfromvtx_pos").c_str()));
+    h_ntrack_isfromvtx_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrack_isfromvtx_neg").c_str()));
+    h_cluster_phisize1_fraction_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "cluster_phisize1_fraction_pos").c_str()));
+    h_cluster_phisize1_fraction_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "cluster_phisize1_fraction_neg").c_str()));
 
     // vertex
-    auto h_nvertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecovertices").c_str()));
-    auto h_vx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vx").c_str()));
-    auto h_vy = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vy").c_str()));
-    auto h_vx_vy = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "vx_vy").c_str()));
-    auto h_vz = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vz").c_str()));
-    auto h_vt = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vt").c_str()));
-    auto h_vcrossing = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexcrossing").c_str()));
-    auto h_vchi2dof = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexchi2dof").c_str()));
-    auto h_ntrackpervertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrackspervertex").c_str()));
+    h_nvertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecovertices").c_str()));
+    h_vx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vx").c_str()));
+    h_vy = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vy").c_str()));
+    h_vx_vy = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "vx_vy").c_str()));
+    h_vz = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vz").c_str()));
+    h_vt = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vt").c_str()));
+    h_vcrossing = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexcrossing").c_str()));
+    h_vchi2dof = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexchi2dof").c_str()));
+    h_ntrackpervertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrackspervertex").c_str()));
 
+    return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
+{
     h_ntrack1d->Fill(trackmap->size());
 
-    std::pair<int, int> ntrack_isfromvtx; // first: number of tracks not associated to a vertex, second: number of tracks associated to a vertex
+    std::pair<int, int> ntrack_isfromvtx_pos; // first: number of tracks not associated to a vertex, second: number of tracks associated to a vertex
+    std::pair<int, int> ntrack_isfromvtx_neg; // first: number of tracks not associated to a vertex, second: number of tracks associated to a vertex
+
+    int ntrack1d_pos = 0;
+    int ntrack1d_neg = 0;
 
     for (const auto &[key, track] : *trackmap)
     {
@@ -85,6 +105,10 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
         {
             continue;
         }
+
+        int charge = track->get_charge();
+        if (charge==1) ntrack1d_pos++;
+        else if (charge==-1) ntrack1d_neg++;
 
         auto ckeys = get_cluster_keys(track);
         std::vector<Acts::Vector3> cluspos;
@@ -97,10 +121,16 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
         int nmaps = 0;
         int nintt = 0;
         int ntpc = 0;
+        int ntpc_phisize1 = 0;
         int nmms = 0;
 
         for (auto &ckey : ckeys)
         {
+            if (TrkrDefs::getTrkrId(ckey)==TrkrDefs::tpcId)
+            {
+                TrkrCluster* cluster = clustermap->findCluster(ckey);
+                if (cluster->getPhiSize()==1) ntpc_phisize1++;
+            }
             switch (TrkrDefs::getTrkrId(ckey))
             {
             case TrkrDefs::mvtxId:
@@ -124,27 +154,58 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
         auto trackvtx = vertexmap->get(track->get_vertex_id());
         if (!trackvtx)
         {
-            // std::cout << "No vertex found for track " << track->get_id() << std::endl;
-            ntrack_isfromvtx.first++;
-            continue;
+            // std::cout << "No vertex found for track " << track->get_id() << std::std::endl;
+            if (charge==1) ntrack_isfromvtx_pos.first++;
+            else if (charge==1) ntrack_isfromvtx_neg.first++;
         }
-        ntrack_isfromvtx.second++;
+        else
+        {
+            Acts::Vector3 track_vtx(trackvtx->get_x(), trackvtx->get_y(), trackvtx->get_z());
+            auto dcapair_vtx = TrackAnalysisUtils::get_dca(track, track_vtx);
+            if (charge==1)
+            {
+                ntrack_isfromvtx_pos.second++;
+                h_dcaxyvtx_phi_pos->Fill(phi, dcapair_vtx.first.first);
+                h_dcazvtx_phi_pos->Fill(phi, dcapair_vtx.second.first);
+            }
+            else if (charge==-1)
+            {
+                ntrack_isfromvtx_neg.second++;
+                h_dcaxyvtx_phi_neg->Fill(phi, dcapair_vtx.first.first);
+                h_dcazvtx_phi_neg->Fill(phi, dcapair_vtx.second.first);
+            }
+        }
 
-        Acts::Vector3 track_vtx(trackvtx->get_x(), trackvtx->get_y(), trackvtx->get_z());
-        auto dcapair_vtx = TrackAnalysisUtils::get_dca(track, track_vtx);
-
-        h_ntrack->Fill(eta, phi);
-        h_ntpc->Fill(ntpc);
-        h_avgnclus_eta_phi->Fill(eta, phi, ntpc);
-        h_trackcrossing->Fill(trkcrossing);
-        h_dcaxyorigin_phi->Fill(phi, dcapair_origin.first.first);
-        h_dcaxyvtx_phi->Fill(phi, dcapair_vtx.first.first);
-        h_dcazorigin_phi->Fill(phi, dcapair_origin.second.first);
-        h_dcazvtx_phi->Fill(phi, dcapair_vtx.second.first);
+        if (charge==1)
+        {
+            h_ntrack_pos->Fill(eta, phi);
+            h_ntpc_pos->Fill(ntpc);
+            h_ntpot_pos->Fill(nmms);
+            h_avgnclus_eta_phi_pos->Fill(eta, phi, ntpc);
+            h_trackcrossing_pos->Fill(trkcrossing);
+            h_dcaxyorigin_phi_pos->Fill(phi, dcapair_origin.first.first);
+            h_dcazorigin_phi_pos->Fill(phi, dcapair_origin.second.first);
+            h_cluster_phisize1_fraction_pos->Fill((double) ntpc_phisize1 / (double) ntpc);
+        }
+        else if (charge==-1)
+        {
+            h_ntrack_neg->Fill(eta, phi);
+            h_ntpc_neg->Fill(ntpc);
+            h_ntpot_neg->Fill(nmms);
+            h_avgnclus_eta_phi_neg->Fill(eta, phi, ntpc);
+            h_trackcrossing_neg->Fill(trkcrossing);
+            h_dcaxyorigin_phi_neg->Fill(phi, dcapair_origin.first.first);
+            h_dcazorigin_phi_neg->Fill(phi, dcapair_origin.second.first);
+            h_cluster_phisize1_fraction_neg->Fill((double) ntpc_phisize1 / (double) ntpc);
+        }
     }
+    h_ntrack1d_pos->Fill(ntrack1d_pos);
+    h_ntrack1d_neg->Fill(ntrack1d_neg);
 
-    h_ntrack_isfromvtx->SetBinContent(1, h_ntrack_isfromvtx->GetBinContent(1) + ntrack_isfromvtx.first);
-    h_ntrack_isfromvtx->SetBinContent(2, h_ntrack_isfromvtx->GetBinContent(2) + ntrack_isfromvtx.second);
+    h_ntrack_isfromvtx_pos->SetBinContent(1, h_ntrack_isfromvtx_pos->GetBinContent(1) + ntrack_isfromvtx_pos.first);
+    h_ntrack_isfromvtx_pos->SetBinContent(2, h_ntrack_isfromvtx_pos->GetBinContent(2) + ntrack_isfromvtx_pos.second);
+    h_ntrack_isfromvtx_neg->SetBinContent(1, h_ntrack_isfromvtx_neg->GetBinContent(1) + ntrack_isfromvtx_neg.first);
+    h_ntrack_isfromvtx_neg->SetBinContent(2, h_ntrack_isfromvtx_neg->GetBinContent(2) + ntrack_isfromvtx_neg.second);
 
     // vertex
     h_nvertex->Fill(vertexmap->size());
@@ -178,6 +239,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
 
     return Fun4AllReturnCodes::EVENT_OK;
 }
+
 std::vector<TrkrDefs::cluskey> TpcSeedsQA::get_cluster_keys(SvtxTrack *track)
 {
     std::vector<TrkrDefs::cluskey> out;
@@ -211,7 +273,22 @@ void TpcSeedsQA::createHistos()
     assert(hm);
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "ntpc").c_str(), "TPC clusters per track;Number of TPC clusters per track;Entries", 55, -0.5, 54.5);
+        auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_pos").c_str(), "TPC clusters per positive track;Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_neg").c_str(), "TPC clusters per negative track;Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "ntpot_pos").c_str(), "TPOT clusters per positive track;Number of TPOT clusters per positive track;Entries", 2, -0.5, 1.5);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "ntpot_neg").c_str(), "TPOT clusters per negative track;Number of TPOT clusters per negative track;Entries", 2, -0.5, 1.5);
         hm->registerHisto(h);
     }
 
@@ -221,42 +298,102 @@ void TpcSeedsQA::createHistos()
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks").c_str(), "Number of reconstructed tracks;#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
+        auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_pos").c_str(), "Number of reconstructed positive tracks;Number of positive TPC tracklets;Entries", 50, 0, 200);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi").c_str(), "Average number of clusters per track;#eta;#phi [rad];Average number of clusters per track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 10);
+        auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_neg").c_str(), "Number of reconstructed negative tracks;Number of negative TPC tracklets;Entries", 50, 0, 200);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "trackcrossing").c_str(), "Track beam bunch crossing;Track crossing;Entries", 100, -100, 300);
+        auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_pos").c_str(), "Number of reconstructed positive tracks;#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi").c_str(), "DCA xy origin vs phi;#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+        auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_neg").c_str(), "Number of reconstructed negative tracks;#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi").c_str(), "DCA xy vertex vs phi;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+        auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_pos").c_str(), "Average number of clusters per positive track;#eta;#phi [rad];Average number of clusters per positive track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi").c_str(), "DCA z origin vs phi;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+        auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg").c_str(), "Average number of clusters per negative track;#eta;#phi [rad];Average number of clusters per negative track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi").c_str(), "DCA z vertex vs phi;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+        auto h = new TH1F(std::string(getHistoPrefix() + "trackcrossing_pos").c_str(), "Positive track beam bunch crossing;Positive track crossing;Entries", 100, -100, 300);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx").c_str(), "Num of tracks associated to a vertex;Is track associated to a vertex;Entries", 2, -0.5, 1.5);
+        auto h = new TH1F(std::string(getHistoPrefix() + "trackcrossing_neg").c_str(), "Negative track beam bunch crossing;Negative track crossing;Entries", 100, -100, 300);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_pos").c_str(), "DCA xy origin vs phi for positive track;#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_neg").c_str(), "DCA xy origin vs phi for negative track;#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi_pos").c_str(), "DCA xy vertex vs phi for positive track;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi_neg").c_str(), "DCA xy vertex vs phi for negative track;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi_pos").c_str(), "DCA z origin vs phi for positive track;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi_neg").c_str(), "DCA z origin vs phi for negative track;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi_pos").c_str(), "DCA z vertex vs phi for positive track;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi_neg").c_str(), "DCA z vertex vs phi for negative track;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx_pos").c_str(), "Num of positive tracks associated to a vertex;Is track associated to a vertex;Entries", 2, -0.5, 1.5);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx_neg").c_str(), "Num of negative tracks associated to a vertex;Is track associated to a vertex;Entries", 2, -0.5, 1.5);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_pos").c_str(), "Fraction of TPC clusters per positive track with phi size of 1;Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_neg").c_str(), "Fraction of TPC clusters per negative track with phi size of 1;Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
         hm->registerHisto(h);
     }
 
