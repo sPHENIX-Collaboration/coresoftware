@@ -41,6 +41,12 @@ SingleMbdTriggerInput::SingleMbdTriggerInput(const std::string &name)
 SingleMbdTriggerInput::~SingleMbdTriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
+// some events are already in the m_EventStack but they haven't been put
+// into the m_PacketMap
+   while(m_EventStack.begin() != m_EventStack.end())
+   {
+     m_EventStack.erase(m_EventStack.begin());
+   }
   delete[] plist;
 }
 

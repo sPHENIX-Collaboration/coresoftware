@@ -51,7 +51,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void CreateBclkOffsets();
   uint64_t CalcDiffBclk(const uint64_t bclk1, const uint64_t bclk2);
   void DitchEvent(const int eventno);
-  void Resynchronize();
   void ClearAllEvents(const int eventno);
   void SetPoolDepth(unsigned int d) { m_DefaultPoolDepth = d; }
   int FillCemc(const unsigned int nEvents = 2);
@@ -124,7 +123,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   unsigned int m_InitialPoolDepth = 10;
   unsigned int m_DefaultPoolDepth = 10;
   unsigned int m_PoolDepth = m_InitialPoolDepth;
-  std::vector<SinglePrdfInput *> m_PrdfInputVector;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
   std::vector<SingleTriggerInput *> m_CemcInputVector;
