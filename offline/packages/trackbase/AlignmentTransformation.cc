@@ -78,10 +78,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
   int fileLines = 1824;
   for (int i = 0; i < fileLines; i++)
   {
+    // guard against reading in old 5 parameter files
     std::string str; 
     std::getline(datafile, str);
     std::stringstream ss(str);
-
     std::string dummy;
     int count = 0;
     while(ss >> dummy)
@@ -92,13 +92,23 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
       {
 	std::stringstream str6(str);
 	str6 >>  hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz;
-	std::cout << "WARNING: you are reading an obsolete alignment parameters file" << std::endl
-		  << "     --- setting global rotation parameters to zero!" << std::endl;
+	dgrx=0; dgry = 0; dgrz = 0;
+	if(i == 0)
+	  {
+	    std::cout << "WARNING: you are reading an obsolete alignment parameters file" << std::endl
+		      << "     --- setting global rotation parameters to zero!" << std::endl;
+	  }
       }
     else
       {
 	std::stringstream str9(str);
 	str9 >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz >> dgrx >> dgry >> dgrz;
+      }
+
+    if(localVerbosity < 0)
+      {
+	std::cout  <<  hitsetkey << "  " << alpha  << "  " << beta  << "  " << gamma  << "  " << dx  << "  " << dy << "  "  << dz 
+		   << "  "  << dgrx << "  " << dgry  << "  " << dgrz  << std::endl;
       }
 
     // Perturbation translations and angles for stave and sensor
