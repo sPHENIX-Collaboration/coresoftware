@@ -53,7 +53,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void DitchEvent(const int eventno);
   void Resynchronize();
   void ClearAllEvents(const int eventno);
-  void SetPoolDepth(unsigned int d) { m_PoolDepth = d; }
+  void SetPoolDepth(unsigned int d) { m_DefaultPoolDepth = d; }
   int FillCemc(const unsigned int nEvents = 2);
   int MoveCemcToNodeTree();
   void AddCemcPacket(int eventno, CaloPacket *pkt);
@@ -94,43 +94,23 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
     unsigned int EventFoundCounter{0};
   };
 
-  struct MbdPacketInfo
+  struct CaloPacketInfo
   {
-    std::map<int, CaloPacket *> MbdSinglePacketMap;
+    std::map<int, CaloPacket *> CaloSinglePacketMap;
     std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
-
-  struct CemcPacketInfo
-  {
-    std::vector<CaloPacket *> CemcPacketVector;
-    unsigned int EventFoundCounter{0};
-  };
-
-  struct HcalPacketInfo
-  {
-    std::vector<CaloPacket *> HcalPacketVector;
-    unsigned int EventFoundCounter{0};
-  };
+  int FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name="NONE");
+  int ShiftEvents(std::map<int, CaloPacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name="NONE");
 
   struct LL1PacketInfo
   {
-    std::vector<LL1Packet *> LL1PacketVector;
-    unsigned int EventFoundCounter{0};
-  };
-
-  struct SEpdPacketInfo
-  {
-    std::map<int, CaloPacket *> SEpdSinglePacketMap;
+    std::map<int, LL1Packet *> LL1SinglePacketMap;
     std::map<int, uint64_t> BcoDiffMap;
     unsigned int EventFoundCounter{0};
   };
-  struct ZdcPacketInfo
-  {
-    std::map<int, CaloPacket *> ZdcSinglePacketMap;
-    std::map<int, uint64_t> BcoDiffMap;
-    unsigned int EventFoundCounter{0};
-  };
+  int FillNeedleLL1(std::map<int, LL1PacketInfo>::iterator begin, std::map<int, LL1PacketInfo>::iterator end, const std::string &name="NONE");
+  int ShiftEventsLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name="NONE");
 
   int m_RunNumber{0};
   int m_RefEventNo{std::numeric_limits<int>::min()};
@@ -157,17 +137,16 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   PHCompositeNode *m_topNode {nullptr};
   SinglePrdfInput *m_RefPrdfInput {nullptr};
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
-  std::map<int, MbdPacketInfo> m_MbdPacketMap;
-  std::map<int, CemcPacketInfo> m_CemcPacketMap;
-  std::map<int, HcalPacketInfo> m_HcalPacketMap;
+  std::map<int, CaloPacketInfo> m_MbdPacketMap;
+  std::map<int, CaloPacketInfo> m_CemcPacketMap;
+  std::map<int, CaloPacketInfo> m_HcalPacketMap;
   std::map<int, LL1PacketInfo> m_LL1PacketMap;
-  std::map<int, SEpdPacketInfo> m_SEpdPacketMap;
-  std::map<int, ZdcPacketInfo> m_ZdcPacketMap;
+  std::map<int, CaloPacketInfo> m_SEpdPacketMap;
+  std::map<int, CaloPacketInfo> m_ZdcPacketMap;
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;
   std::map<SinglePrdfInput *, SinglePrdfInputInfo> m_SinglePrdfInputInfo;
-  std::map<int, uint64_t> m_RefBcoDiffMap;
   std::vector<uint64_t> m_HayStack;
   std::map<int, std::vector<uint64_t>> m_NeedleMap;
 };
