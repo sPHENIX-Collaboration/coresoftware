@@ -217,46 +217,10 @@ int SingleTriggerInput::AdjustPacketMap(int pktid, int evtoffset)
 	{
 	std::cout << PHWHERE << " need to move packet " << (*pktiter)->getIdentifier() << std::endl;
 	}
-	m_PacketMap[newevent].push_back(std::move(*pktiter));
+//      trivial variables give no speed benefit from using std::move
+//	m_PacketMap[newevent].push_back(std::move(*pktiter));
+	m_PacketMap[newevent].push_back(*pktiter);
 	m_PacketMap[lastevent].erase(pktiter);
-//	std::move
-	break;
-      }
-    }
-  }
-  return 0;
-}
-
-int SingleTriggerInput::AdjustPacketMapGeneric(std::map<int, std::vector<OfflinePacket *>> &PacketMap, int pktid, int evtoffset, const std::string &name)
-{
-  if (Verbosity() > 1)
-  {
-  std::cout << PHWHERE << " adjusting local " << name 
-<< " packet map for packet " << pktid
-	    << " with offset " << evtoffset << std::endl;
-  }
-  std::vector<int> eventnumbers;
-  for (auto packetmapiter =  PacketMap.rbegin(); packetmapiter != PacketMap.rend(); ++packetmapiter )
-  {
-      eventnumbers.push_back(packetmapiter->first);
-  }
-
-    for (auto evtnumiter : eventnumbers)
-    {
-    int lastevent = evtnumiter;
-    int newevent = lastevent + evtoffset;
-//    for (auto pktiter : PacketMap[lastevent])
-    for (std::vector<OfflinePacket *>::iterator  pktiter =  PacketMap[lastevent].begin(); pktiter != PacketMap[lastevent].end(); ++pktiter )
-    {
-      if ((*pktiter)->getIdentifier() == pktid)
-      {
-	if (Verbosity() > 1)
-	{
-	std::cout << PHWHERE << " need to move packet " << (*pktiter)->getIdentifier() << std::endl;
-	}
-	PacketMap[newevent].push_back(std::move(*pktiter));
-	PacketMap[lastevent].erase(pktiter);
-//	std::move
 	break;
       }
     }

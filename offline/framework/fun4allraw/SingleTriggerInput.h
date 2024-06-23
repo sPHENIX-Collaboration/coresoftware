@@ -48,7 +48,6 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual bool ddump_enabled() const {return m_ddump_flag;}
   virtual void DefaultEventNumberOffset(const int i) {m_DefaultEventNumberOffset = i;}
   virtual int AdjustPacketMap(int pktid, int evtoffset);// {return;}
-  virtual int AdjustPacketMapGeneric(std::map<int, std::vector<OfflinePacket *>> &PacketMap, int pktid, int evtoffset, const std::string &name = "NONE");
 
 // these ones are used directly by the derived classes, maybe later
 // move to cleaner accessors
