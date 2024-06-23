@@ -3,7 +3,7 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/Gl1RawHitv2.h>
+#include <ffarawobjects/Gl1Packetv2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -101,14 +101,46 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
       packet->identify();
     }
 
-    // by default use previous bco clock for gtm bco
-    Gl1RawHit *newhit = new Gl1RawHitv2();
+    Gl1Packet *newhit = new Gl1Packetv2();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
-    newhit->set_bco(packet->lValue(0, "BCO"));
-    newhit->setEvtSequence(EventSequence);
-
     m_BeamClockFEE.insert(gtm_bco);
     m_FEEBclkMap.insert(gtm_bco);
+    newhit->setBCO(packet->lValue(0, "BCO"));
+    newhit->setHitFormat(packet->getHitFormat());
+    newhit->setIdentifier(packet->getIdentifier());
+    newhit->setEvtSequence(EventSequence);
+    newhit->setPacketNumber(packet->iValue(0));
+    newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
+    newhit->setTriggerInput(packet->lValue(0, "TriggerInput"));
+    newhit->setLiveVector(packet->lValue(0, "LiveVector"));
+    newhit->setScaledVector(packet->lValue(0, "ScaledVector"));
+    newhit->setGTMBusyVector(packet->lValue(0, "GTMBusyVector"));
+    for (int i = 0; i < 64; i++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+        newhit->setScaler(i, j, packet->lValue(i, j));
+      }
+    }
+    for (int i = 0; i < 12; i++)
+    {
+      newhit->setGl1pScaler(i, 0, packet->lValue(i, "GL1PRAW"));
+      newhit->setGl1pScaler(i, 1, packet->lValue(i, "GL1PLIVE"));
+      newhit->setGl1pScaler(i, 2, packet->lValue(i, "GL1PSCALED"));
+    }
+    if (Verbosity() > 2)
+    {
+      std::cout << PHWHERE << " Packet: " << packet->getIdentifier()
+                << " evtno: " << EventSequence
+                << ", bco: 0x" << std::hex << gtm_bco << std::dec
+                << ", bunch no: " << packet->lValue(0, "BunchNumber")
+                << std::endl;
+      std::cout << PHWHERE << " RB Packet: " << newhit->getIdentifier()
+                << " evtno: " << newhit->getEvtSequence()
+                << ", bco: 0x" << std::hex << newhit->getBCO() << std::dec
+                << ", bunch no: " << +newhit->getBunchNumber()
+                << std::endl;
+    }
     if (Verbosity() > 2)
     {
       std::cout << PHWHERE << "evtno: " << EventSequence
@@ -150,7 +182,7 @@ void SingleGl1PoolInput::Print(const std::string &what) const
       std::cout << PHWHERE << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
       for (auto feeiter : bcliter.second)
       {
-        std::cout << PHWHERE << "fee: " << feeiter->get_bco()
+        std::cout << PHWHERE << "fee: " << feeiter->getBCO()
                   << " at " << std::hex << feeiter << std::dec << std::endl;
       }
     }
@@ -276,10 +308,10 @@ void SingleGl1PoolInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode = new PHCompositeNode("GL1");
     dstNode->addNode(detNode);
   }
-  Gl1RawHit *gl1hitcont = findNode::getClass<Gl1RawHit>(detNode, "GL1RAWHIT");
+  Gl1Packet *gl1hitcont = findNode::getClass<Gl1Packet>(detNode, "GL1RAWHIT");
   if (!gl1hitcont)
   {
-    gl1hitcont = new Gl1RawHitv2();
+    gl1hitcont = new Gl1Packetv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, "GL1RAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
