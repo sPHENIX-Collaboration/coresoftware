@@ -30,6 +30,8 @@ class SiliconSeedsQA : public SubsysReco
   void createHistos();
   std::string getHistoPrefix() const;
 
+  std::string m_clusterContainerName = "TRKR_CLUSTER";
+  std::string m_actsgeometryName = "ActsGeometry";
   std::string m_trackMapName = "SvtxTrackMap";
   std::string m_vertexMapName = "SvtxVertexMap";
 };
