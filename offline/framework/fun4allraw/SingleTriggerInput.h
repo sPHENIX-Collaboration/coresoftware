@@ -9,9 +9,11 @@
 #include <fstream>
 #include <set>
 #include <string>
+#include <vector>
 
 class Eventiterator;
 class Fun4AllPrdfInputTriggerManager;
+class OfflinePacket;
 class Packet;
 class PHCompositeNode;
 
@@ -45,8 +47,16 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual void enable_ddump(int i = 1) {m_ddump_flag = i;}
   virtual bool ddump_enabled() const {return m_ddump_flag;}
   virtual void DefaultEventNumberOffset(const int i) {m_DefaultEventNumberOffset = i;}
-  virtual void AdjustPacketMap(int /*pktid*/, int /*evtoffset*/) {return;}
+  virtual int AdjustPacketMap(int pktid, int evtoffset);// {return;}
+  virtual int AdjustPacketMapGeneric(std::map<int, std::vector<OfflinePacket *>> &PacketMap, int pktid, int evtoffset, const std::string &name = "NONE");
 
+// these ones are used directly by the derived classes, maybe later
+// move to cleaner accessors
+ protected:
+  std::map<int, std::vector<OfflinePacket *>> m_PacketMap;
+
+
+// we have accessors for these here
  private:
   Eventiterator *m_EventIterator {nullptr};
   Fun4AllPrdfInputTriggerManager *m_TriggerInputMgr{nullptr};
