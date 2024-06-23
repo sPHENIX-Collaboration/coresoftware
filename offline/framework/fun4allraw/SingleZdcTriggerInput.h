@@ -28,7 +28,6 @@ class SingleZdcTriggerInput : public SingleTriggerInput
 
  private:
   Packet **plist{nullptr};
-  unsigned int m_NumSpecialEvents{0};
 
   std::set<int> m_EventNumber;
   std::set<int> m_EventStack;
