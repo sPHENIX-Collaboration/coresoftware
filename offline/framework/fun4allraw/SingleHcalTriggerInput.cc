@@ -175,7 +175,6 @@ void SingleHcalTriggerInput::FillPool(const unsigned int keep)
         TriggerInputManager()->AddHcalPacket(EventSequence, newhit);
       }
       m_PacketMap[EventSequence].push_back(newhit);
-      std::cout << "inserting " << EventSequence << " into m_EventStack" << std::endl;
       m_EventStack.insert(EventSequence);
       if (ddump_enabled())
       {
@@ -225,7 +224,6 @@ void SingleHcalTriggerInput::CleanupUsedPackets(const int eventno)
 
   for (auto iter : toclearevents)
   {
-    std::cout << "Deleting " << iter << " from  m_EventStack" << std::endl;
     m_EventStack.erase(iter);
     m_PacketMap.erase(iter);
   }
