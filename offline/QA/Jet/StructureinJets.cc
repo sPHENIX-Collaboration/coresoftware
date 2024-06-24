@@ -92,7 +92,7 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
   if (!jets)
   {
     std::cout
-        << "MyJetAnalysis::process_event - Error can not find DST Reco JetContainer node "
+        << "StructureInJets::process_event - Error can not find DST Reco JetContainer node "
         << m_recoJetName << std::endl;
     exit(-1);
   }

@@ -209,7 +209,7 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
     if (!jets)
     {
       std::cout
-          << "MyJetAnalysis::process_event - Error can not find DST Reco JetContainer node "
+          << "JetKinematicCheck::process_event - Error can not find DST Reco JetContainer node "
           << recoJetName << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }

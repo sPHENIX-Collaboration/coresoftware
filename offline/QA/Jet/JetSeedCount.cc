@@ -88,14 +88,14 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   if (!vertexmap)
   {
     std::cout
-        << "MyJetAnalysis::process_event - Error can not find global vertex  node "
+        << "JetKinematicCheck::process_event - Error can not find global vertex  node "
         << std::endl;
     exit(-1);
   }
   if (vertexmap->empty())
   {
     std::cout
-        << "MyJetAnalysis::process_event - global vertex node is empty "
+        << "JetKinematicCheck::process_event - global vertex node is empty "
         << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
