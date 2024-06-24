@@ -246,8 +246,26 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   tpc_length = tpcparam->get_double_param("tpc_length");
 
   diffusion_long = get_double_param("diffusion_long");
-  added_smear_sigma_long = get_double_param("added_smear_long");
   diffusion_trans = get_double_param("diffusion_trans");
+
+  if (m_use_diffusion_file)
+  {
+    double diff_long, diff_trans;
+    std::ifstream diff_file(m_diffusion_pars_file);
+    if (!diff_file.is_open())
+    {
+      std::cout << "In PHG4TpcElectronDrift: Option to use diffusion parameter file is enabled, but file is not found. Aborting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    diff_file >> diff_long >> diff_trans;
+    diffusion_long = diff_long;
+    diffusion_trans = diff_trans;
+    std::cout << " diffusion_long " << diffusion_long << " diffusion_trans " << diffusion_trans << std::endl; 
+
+  }
+  
+
+  added_smear_sigma_long = get_double_param("added_smear_long");
   if (zero_bfield)
   {
     diffusion_trans *= zero_bfield_diffusion_factor;

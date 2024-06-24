@@ -72,6 +72,10 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   //
   void set_flag_threshold_distortion(bool setflag, float setthreshold);
 
+  // set diffusion parameters from file
+  void SetUseFileDiffusionPars(const int flag) {m_use_diffusion_file = flag;}
+  void SetDiffusionParsFileName(const std::string &name) {m_diffusion_pars_file = name;}
+
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
 
@@ -141,6 +145,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   bool do_ElectronDriftQAHistos{false};
   bool do_getReachReadout{false};
   bool zero_bfield{false};
+  bool m_use_diffusion_file{false};
 
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
@@ -152,6 +157,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
+  std::string m_diffusion_pars_file;
 
   //! rng de-allocator
   class Deleter
