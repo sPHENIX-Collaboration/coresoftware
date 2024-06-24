@@ -536,13 +536,13 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 	    // calc peak position
 	    double hadc_sum = 0.0;
 	    double hibin_sum = 0.0;
-	    double hibin2_sum = 0.0;
+	    //	    double hibin2_sum = 0.0;
 	    
 	    for (int isum = -3; isum <= 3; isum++){
 	      float val = hist1d->GetBinContent(maxbin + isum);
 	      float center = hist1d->GetBinCenter(maxbin + isum);
 	      hibin_sum += center * val;
-	      hibin2_sum += center * center * val;
+	      //hibin2_sum += center * center * val;
 	      hadc_sum += val;
 #ifdef DEBUG
 	      if((*hiter).first == 210802&&timebin==383){
