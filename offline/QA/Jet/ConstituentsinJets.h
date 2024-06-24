@@ -22,6 +22,7 @@ class ConstituentsinJets : public SubsysReco
     public:
 
         ConstituentsinJets(
+            const std::string &moduleName = "ConstituentsInJets",
             const std::string &recojetname = "AntiKt_Tower_r04",
             const std::string &towBkgdName = "TowerInfoBackground_Sub2",
             const std::string &histTag = "AllTrig_AntiKt_Tower_R04"

@@ -19,8 +19,12 @@
 #include <boost/format.hpp>
 //____________________________________________________________________________..
 
-JetKinematicCheck::JetKinematicCheck(const std::string &recojetnameR02, const std::string &recojetnameR03, const std::string &recojetnameR04, const std::string &recojetnameR05)
-  : SubsysReco("JetKinematicCheck")
+JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
+                                     const std::string &recojetnameR02,
+                                     const std::string &recojetnameR03,
+                                     const std::string &recojetnameR04,
+                                     const std::string &recojetnameR05)
+  : SubsysReco(moduleName)
   , m_recoJetNameR02(recojetnameR02)
   , m_recoJetNameR03(recojetnameR03)
   , m_recoJetNameR04(recojetnameR04)

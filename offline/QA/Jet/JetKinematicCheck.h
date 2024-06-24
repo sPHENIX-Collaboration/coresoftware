@@ -18,7 +18,8 @@ class PHCompositeNode;
 class JetKinematicCheck : public SubsysReco
 {
  public:
-  JetKinematicCheck(const std::string &recojetnameR02 = "AntiKt_Tower_r02",
+  JetKinematicCheck(const std::string &moduleName = "JetKinematicCheck",
+                    const std::string &recojetnameR02 = "AntiKt_Tower_r02",
                     const std::string &recojetnameR03 = "AntiKt_Tower_r03",
                     const std::string &recojetnameR04 = "AntiKt_Tower_r04",
                     const std::string &recojetnameR05 = "AntiKt_Tower_r05");

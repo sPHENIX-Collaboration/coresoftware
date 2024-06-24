@@ -31,8 +31,8 @@
 #include <utility>
 
 //____________________________________________________________________________..
-StructureinJets::StructureinJets(const std::string& recojetname, const std::string& histTag, const std::string& outputfilename)
-  : SubsysReco("StructureinJets_" + recojetname)
+StructureinJets::StructureinJets(const std::string &moduleName, const std::string& recojetname, const std::string& histTag, const std::string& outputfilename)
+  : SubsysReco(moduleName)
   , m_recoJetName(recojetname)
   , m_histTag(histTag)
   , m_outputFileName(outputfilename)

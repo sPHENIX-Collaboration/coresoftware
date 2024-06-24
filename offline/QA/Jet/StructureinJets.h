@@ -21,7 +21,8 @@ class TH3;
 class StructureinJets : public SubsysReco
 {
  public:
-  StructureinJets(const std::string &recojetname = "AntiKt_Tower_r04",
+  StructureinJets(const std::string &moduleName = "StructureInJets",
+                  const std::string &recojetname = "AntiKt_Tower_r04",
                   const std::string &histTag = "AllTrig_AntiKt_Tower_r04",
                   const std::string &outputfilename = "tracksinjets.root");
 

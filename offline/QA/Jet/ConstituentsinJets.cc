@@ -42,8 +42,8 @@
 #include <map>
 #include <utility>
 
-ConstituentsinJets::ConstituentsinJets(const std::string &recojetname, const std::string &towBkgdName, const std::string &histTag)
-  : SubsysReco("ConstituentsinJets")
+ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std::string &recojetname, const std::string &towBkgdName, const std::string &histTag)
+  : SubsysReco(moduleName)
   , m_recoJetName(recojetname)
   , m_towBkgdName(towBkgdName)
   , m_histTag(histTag)
