@@ -80,7 +80,6 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     h_ntrack1d->Fill(trackmap->size());
 
     std::pair<int, int> ntrack_isfromvtx; // first: number of tracks associated to a vertex, second: number of tracks not associated to a vertex
-
     for (const auto &[key, track] : *trackmap)
     {
         if (!track)
