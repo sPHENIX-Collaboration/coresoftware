@@ -3,7 +3,8 @@
 
 #include "Fun4AllStreamingInputManager.h"
 
-#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
+#include <ffarawobjects/MvtxFeeIdInfov1.h>
+#include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
 
@@ -131,10 +132,12 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
           //          auto hbfSize = plist[i]->iValue(feeId, "NR_HBF");
           auto num_strobes = pool->iValue(feeId, "NR_STROBES");
           auto num_L1Trgs = pool->iValue(feeId, "NR_PHYS_TRG");
-          if(m_FeeGTML1BCOMap.find(i_fee) == m_FeeGTML1BCOMap.end())
-          {
-            m_FeeGTML1BCOMap[i_fee] = std::set<uint64_t>();
-          }
+// this should not be needed, the m_FeeGTML1BCOMap[i_fee].insert(l1Trg_bco)
+// will create the set if it doesn't exist
+          // if(m_FeeGTML1BCOMap.find(i_fee) == m_FeeGTML1BCOMap.end())
+          // {
+          //   m_FeeGTML1BCOMap[i_fee] = std::set<uint64_t>();
+          // }
           for (int iL1 = 0; iL1 < num_L1Trgs; ++iL1)
           {
             auto l1Trg_bco = pool->lValue(feeId, iL1, "L1_IR_BCO");
@@ -147,6 +150,7 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
           m_FeeStrobeMap[feeId] += num_strobes;
           for (int i_strb{0}; i_strb < num_strobes; ++i_strb)
           {
+            auto strb_detField = pool->iValue(feeId, i_strb, "TRG_DET_FIELD");
             auto strb_bco = pool->lValue(feeId, i_strb, "TRG_IR_BCO");
             auto strb_bc = pool->iValue(feeId, i_strb, "TRG_IR_BC");
             auto num_hits = pool->iValue(feeId, i_strb, "TRG_NR_HITS");
@@ -180,7 +184,7 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
             }
             if (StreamingInputManager())
             {
-              StreamingInputManager()->AddMvtxFeeId(strb_bco, feeId);
+              StreamingInputManager()->AddMvtxFeeIdInfo(strb_bco, feeId, strb_detField);
             }
             m_BeamClockFEE[strb_bco].insert(feeId);
             m_BclkStack.insert(strb_bco);
@@ -412,10 +416,10 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode, "MVTXRAWEVTHEADER");
+  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeader>(detNode, "MVTXRAWEVTHEADER");
   if (!mvtxEH)
   {
-    mvtxEH = new MvtxRawEvtHeaderv1();
+    mvtxEH = new MvtxRawEvtHeaderv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
     detNode->addNode(newNode);
   }

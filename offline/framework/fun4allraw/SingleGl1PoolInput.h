@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-class Gl1RawHit;
+class Gl1Packet;
 class PHCompositeNode;
 
 class SingleGl1PoolInput : public SingleStreamingInput
@@ -36,7 +36,7 @@ class SingleGl1PoolInput : public SingleStreamingInput
   std::map<unsigned int, uint64_t> m_packet_bco;
 
   std::set<uint64_t> m_BeamClockFEE;
-  std::map<uint64_t, std::vector<Gl1RawHit *>> m_Gl1RawHitMap;
+  std::map<uint64_t, std::vector<Gl1Packet *>> m_Gl1RawHitMap;
   std::set<uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
 };

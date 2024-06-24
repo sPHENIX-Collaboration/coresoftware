@@ -460,9 +460,9 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
   }
   GetArray(rs, "spinpatternblue", bpat, ncross);
   GetArray(rs, "spinpatternyellow", ypat, ncross);
-  GetArray(rs, "mbdvertexcut", mbd_vtxcut, ncross);
-  GetArray(rs, "mbdwithoutcut", mbd_nocut, ncross);
-  GetArray(rs, "zdcwithoutcut", zdc_nocut, ncross);
+  GetArray(rs, "mbdvtx", mbd_vtxcut, ncross);
+  GetArray(rs, "mbdns", mbd_nocut, ncross);
+  GetArray(rs, "zdcns", zdc_nocut, ncross);
   GetArray(rs, "badbunchqa", bad_bunch, ncross);
 
   for (int i = 0; i < ncross; i++)

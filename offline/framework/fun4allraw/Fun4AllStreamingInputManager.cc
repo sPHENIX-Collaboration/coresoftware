@@ -5,11 +5,12 @@
 #include "SingleMvtxPoolInput.h"
 #include "SingleStreamingInput.h"
 
-#include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
 #include <ffarawobjects/MicromegasRawHit.h>
 #include <ffarawobjects/MicromegasRawHitContainer.h>
+#include <ffarawobjects/MvtxFeeIdInfov1.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/MvtxRawHit.h>
 #include <ffarawobjects/MvtxRawHitContainer.h>
@@ -78,6 +79,10 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
     for (auto mvtxhititer : mapiter.second.MvtxRawHitVector)
     {
       delete mvtxhititer;
+    }
+    for ( auto mvtxFeeIdInfo : mapiter.second.MvtxFeeIdInfoVector )
+    {
+      delete mvtxFeeIdInfo;
     }
   }
   m_MvtxRawHitMap.clear();
@@ -461,7 +466,7 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
   }
 }
 
-void Fun4AllStreamingInputManager::AddGl1RawHit(uint64_t bclk, Gl1RawHit *hit)
+void Fun4AllStreamingInputManager::AddGl1RawHit(uint64_t bclk, Gl1Packet *hit)
 {
   if (Verbosity() > 1)
   {
@@ -481,14 +486,18 @@ void Fun4AllStreamingInputManager::AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit)
   m_MvtxRawHitMap[bclk].MvtxRawHitVector.push_back(hit);
 }
 
-void Fun4AllStreamingInputManager::AddMvtxFeeId(uint64_t bclk, uint16_t feeid)
+void Fun4AllStreamingInputManager::AddMvtxFeeIdInfo(uint64_t bclk, uint16_t feeid, uint32_t detField)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "Adding mvtx feeid to bclk 0x"
+    std::cout << "Adding mvtx feeid info to bclk 0x"
               << std::hex << bclk << std::dec << std::endl;
   }
-  m_MvtxRawHitMap[bclk].MvtxFeeIds.insert(feeid);
+  MvtxFeeIdInfo *feeidInfo = new MvtxFeeIdInfov1();
+  feeidInfo->set_bco(bclk);
+  feeidInfo->set_feeId(feeid);
+  feeidInfo->set_detField(detField);
+  m_MvtxRawHitMap[bclk].MvtxFeeIdInfoVector.push_back(feeidInfo);
 }
 
 void Fun4AllStreamingInputManager::AddMvtxL1TrgBco(uint64_t bclk, uint64_t lv1Bco)
@@ -567,7 +576,7 @@ int Fun4AllStreamingInputManager::FillGl1()
     return -1;
   }
   //    std::cout << "stashed gl1 BCOs: " << m_Gl1RawHitMap.size() << std::endl;
-  Gl1RawHit *gl1rawhit = findNode::getClass<Gl1RawHit>(m_topNode, "GL1RAWHIT");
+  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(m_topNode, "GL1RAWHIT");
   //  std::cout << "before filling m_Gl1RawHitMap size: " <<  m_Gl1RawHitMap.size() << std::endl;
   for (auto gl1hititer : m_Gl1RawHitMap.begin()->second.Gl1RawHitVector)
   {
@@ -575,9 +584,9 @@ int Fun4AllStreamingInputManager::FillGl1()
     {
       gl1hititer->identify();
     }
-    gl1rawhit->CopyFrom(gl1hititer);
-    MySyncManager()->CurrentEvent(gl1rawhit->getEvtSequence());
-    m_RefBCO = gl1hititer->get_bco();
+    gl1packet->FillFrom(gl1hititer);
+    MySyncManager()->CurrentEvent(gl1packet->getEvtSequence());
+    m_RefBCO = gl1hititer->getBCO();
     m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)
                                           //    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
   }
@@ -675,7 +684,7 @@ int Fun4AllStreamingInputManager::FillIntt()
           h_gl1taggedfee[p][fee]->Fill(refbcobitshift);
         }
       }
-     
+
     }
     bool thispacket = false;
 
@@ -687,7 +696,7 @@ int Fun4AllStreamingInputManager::FillIntt()
         thispacket = true;
         h_gl1tagged[p]->Fill(refbcobitshift);
       }
-      
+
     }
     if(thispacket == false)
     {
@@ -773,6 +782,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     {
       iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
     }
+    m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
     m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
     iret = FillMvtxPool();
@@ -846,10 +856,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   {
     h_taggedAll->Fill(refbcobitshift);
   }
-    auto mvtxRawHitInfoIt = m_MvtxRawHitMap.begin();
 
-  mvtxEvtHeader->AddFeeId(mvtxRawHitInfoIt->second.MvtxFeeIds);
-  mvtxEvtHeader->AddL1Trg(mvtxRawHitInfoIt->second.MvtxL1TrgBco);
   while (m_MvtxRawHitMap.begin()->first <= select_crossings - m_mvtx_bco_range)
   {
     if (Verbosity() > 2)
@@ -857,6 +864,18 @@ int Fun4AllStreamingInputManager::FillMvtx()
       std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
                 << " ref: 0x" << select_crossings << std::dec << std::endl;
     }
+    for ( auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector )
+    {
+      if (Verbosity() > 1)
+      {
+        mvtxFeeIdInfo->identify();
+      }
+      mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
+      delete mvtxFeeIdInfo;
+    }
+    m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
+    mvtxEvtHeader->AddL1Trg(m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco);
+
     for (auto mvtxhititer : m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
     {
       if (Verbosity() > 1)
@@ -964,7 +983,7 @@ int Fun4AllStreamingInputManager::FillTpc()
   assert(hm);
   TH1 *h_refbco = dynamic_cast<TH1 *>(hm->getHisto("h_TpcPoolQA_RefGL1BCO"));
   TH1 *h_taggedAll = dynamic_cast<TH1 *>(hm->getHisto("h_TpcPoolQA_TagBCOAllPackets"));
-  
+
   TH1 *h_gl1tagged[24][2];
   for (int i = 0; i < 24; i++)
   {

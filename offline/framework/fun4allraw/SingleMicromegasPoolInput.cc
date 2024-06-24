@@ -109,16 +109,16 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
 
-    RunNumber(evt->getRunNumber());
-    if (Verbosity() > 1)
-    {
-      evt->identify();
-    }
-
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
       continue;
+    }
+
+    RunNumber(evt->getRunNumber());
+    if (Verbosity() > 1)
+    {
+      evt->identify();
     }
 
     const int EventSequence = evt->getEvtSequence();
@@ -188,6 +188,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       {
         std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
         m_waveform_count_dropped[packet_id] += nwf;
+        bco_matching_information.cleanup();
         continue;
       }
 
