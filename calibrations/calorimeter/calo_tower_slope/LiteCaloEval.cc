@@ -22,10 +22,12 @@
 #include <TH2.h>
 #include <TH3.h>
 #include <TLatex.h>
+#include <TLegend.h>
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TTree.h>
-#include <TLegend.h>
+
+#include <boost/format.hpp>
 
 #include <cstdlib>
 #include <fstream>
@@ -542,8 +544,6 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
       }
     }
   }
-
-
 }
 
 void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
@@ -616,7 +616,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   corrPat->SetXTitle("#eta bin");
   corrPat->SetYTitle("#phi bin");
 
-  TH2F* h2_failQA  = new TH2F("h2_failQA", "", max_ieta, 0, max_ieta, max_iphi, 0, max_iphi);
+  TH2F *h2_failQA = new TH2F("h2_failQA", "", max_ieta, 0, max_ieta, max_iphi, 0, max_iphi);
 
   // 1d histo for gain shift values
   TH1F *gainvals = new TH1F("gainvals", "Towerslope Correction Values", 10000, 0, 10);
@@ -798,7 +798,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
           {
             cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], -1.0);
 
-            bool qa_res = spec_QA(cemc_hist_eta_phi[i][j], cleanEtaRef,true);
+            bool qa_res = spec_QA(cemc_hist_eta_phi[i][j], cleanEtaRef, true);
             if (qa_res == false)
             {
               std::cout << "failed QA " << i << "," << j << std::endl;
@@ -929,9 +929,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         f1->SetParameters(scaleP0, 1.0);
 
-
-	cemc_hist_eta_phi[i][j]->Fit("myexpo", "Q", "", fitmin, fitmax);
-  
+        cemc_hist_eta_phi[i][j]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
         f2f2 = (TF1 *) cemc_hist_eta_phi[i][j]->GetFunction("myexpo");
 
@@ -940,7 +938,6 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         {
           cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], 1.0);
         }
-
       }
 
       else if (calotype == LiteCaloEval::HCALOUT)
@@ -958,9 +955,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         f1->SetParameters(scaleP0, 1.0);
 
- 
-	hcal_out_eta_phi[i][j]->Fit("myexpo", "Q", "", fitmin, fitmax);
- 
+        hcal_out_eta_phi[i][j]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
         f2f2 = (TF1 *) hcal_out_eta_phi[i][j]->GetFunction("myexpo");
 
@@ -971,7 +966,6 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
             cleanEtaRef->Add((TH1F *) hcal_out_eta_phi[i][j], 1.0);
           }
         }
-
       }
 
       else if (calotype == LiteCaloEval::HCALIN)
@@ -990,18 +984,14 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         f1->SetParameters(scaleP0, 1.0);
 
-
-	hcal_in_eta_phi[i][j]->Fit("myexpo", "Q", "", fitmin, fitmax);
-
+        hcal_in_eta_phi[i][j]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
         f2f2 = (TF1 *) hcal_in_eta_phi[i][j]->GetFunction("myexpo");
-
 
         if (flag_fit_rings == true)
         {
           cleanEtaRef->Add((TH1F *) hcal_in_eta_phi[i][j], 1.0);
         }
-
       }
 
       float correction = f2f2->GetParameter(1);
@@ -1117,8 +1107,6 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   }
 
   f_temp->Close();
-
-
 }
 
 bool LiteCaloEval::chk_isChimney(int ieta, int iphi)
@@ -1162,7 +1150,7 @@ bool LiteCaloEval::spec_QA(TH1 *h_spec, TH1 *h_ref)
   }
 }
 
-void LiteCaloEval::plot_cemc(const std::string& path)
+void LiteCaloEval::plot_cemc(const std::string &path)
 {
   TH2F *h_fail = new TH2F("h_fail", "", 96, 0, 96, 256, 0, 256);
   TH2F *h_corrPat = new TH2F("corrPat", "", 96, 0, 96, 256, 0, 256);
@@ -1195,7 +1183,7 @@ void LiteCaloEval::plot_cemc(const std::string& path)
       }
       float calib = spec_QA(cemc_hist_eta_phi[ieta][iphi], eta_hist[ieta], true);
       h_expCalib->SetBinContent(ieta + 1, iphi + 1, calib);
-      if (!spec_QA(cemc_hist_eta_phi[ieta][iphi], eta_hist[ieta],true))
+      if (!spec_QA(cemc_hist_eta_phi[ieta][iphi], eta_hist[ieta], true))
       {
         h_fail->Fill(ieta, iphi);
         h_corrPat->SetBinContent(ieta + 1, iphi + 1, 0);
@@ -1219,10 +1207,10 @@ void LiteCaloEval::plot_cemc(const std::string& path)
 
   for (int ie = 0; ie < 96; ie++)
   {
-   std::string name1 = "h1_hits"    + std::to_string(ie);
-   std::string name2 = "h1_hits2_"  + std::to_string(ie);
+    std::string name1 = "h1_hits" + std::to_string(ie);
+    std::string name2 = "h1_hits2_" + std::to_string(ie);
 
-    h1_hits[ie] = new  TH1F(name1.c_str(), "", 200, min, max);
+    h1_hits[ie] = new TH1F(name1.c_str(), "", 200, min, max);
     h1_hits2[ie] = new TH1F(name2.c_str(), "", 200, min, max);
     for (int iphi = 0; iphi < 256; iphi++)
     {
@@ -1269,7 +1257,7 @@ void LiteCaloEval::plot_cemc(const std::string& path)
     h1_hits2[ie]->Draw("hist same");
     h1_hits2[ie]->SetLineColor(kBlue);
   }
-  c3->SaveAs((path+"/hits.pdf").c_str());
+  c3->SaveAs((path + "/hits.pdf").c_str());
 
   TLatex latex;
   latex.SetTextFont(42);
@@ -1292,9 +1280,9 @@ void LiteCaloEval::plot_cemc(const std::string& path)
       {
         // scale hist
         int bin = cemc_hist_eta_phi[ieta][iphi]->FindBin(0.2);
-        if (cemc_hist_eta_phi[ieta][iphi]->GetBinContent(bin) == 0) 
-         {
-           continue;
+        if (cemc_hist_eta_phi[ieta][iphi]->GetBinContent(bin) == 0)
+        {
+          continue;
         }
         cemc_hist_eta_phi[ieta][iphi]->Scale(1.0 / cemc_hist_eta_phi[ieta][iphi]->GetBinContent(bin) * pow(10, ie));
         // plot
@@ -1341,7 +1329,7 @@ void LiteCaloEval::plot_cemc(const std::string& path)
     latex.SetTextColor(kBlue);
     latex.DrawLatex(0.6, 0.79, "failed QA");
 
-    c1->SaveAs((path+"/tsc_spec"+ std::to_string(iplot)+".pdf").c_str());
+    c1->SaveAs((path + "/tsc_spec" + std::to_string(iplot) + ".pdf").c_str());
     delete c1;
   }
 
@@ -1361,7 +1349,7 @@ void LiteCaloEval::plot_cemc(const std::string& path)
 
   latex.SetTextColor(kBlack);
 
-  c4->SaveAs((path+"/expCalib.pdf").c_str());
+  c4->SaveAs((path + "/expCalib.pdf").c_str());
 
   h_hot->Write();
   h_hits->Write();
@@ -1372,14 +1360,13 @@ void LiteCaloEval::plot_cemc(const std::string& path)
   f_temp->Close();
 }
 
-
 void LiteCaloEval::draw_spectra()
 {
-  if(calotype == LiteCaloEval::NONE)
-    {
-      std::cout << "Did not enter correct calotype. Exiting macro..." << std::endl;
-      exit(-1);
-    }
+  if (calotype == LiteCaloEval::NONE)
+  {
+    std::cout << "Did not enter correct calotype. Exiting macro..." << std::endl;
+    exit(-1);
+  }
 
   TH1F *h = nullptr;
   std::string histName;
@@ -1392,332 +1379,331 @@ void LiteCaloEval::draw_spectra()
   float binWidthES;
   float binWidth;
 
-  //get targeted bin width of spectra
+  // get targeted bin width of spectra
   float targetBinWidth = get_spectra_binWidth();
 
   double xaxisRange = 2.0;
 
-  if(calotype == LiteCaloEval::HCALIN)
+  if (calotype == LiteCaloEval::HCALIN)
+  {
     xaxisRange = 1.0;
+  }
 
-  if(calotype == LiteCaloEval::HCALIN || calotype == LiteCaloEval::HCALOUT)
+  if (calotype == LiteCaloEval::HCALIN || calotype == LiteCaloEval::HCALOUT)
+  {
+    std::cout << "Drawing hcal tower spectra" << std::endl;
+
+    int starteta = 0;
+    int maxeta = 12;
+    int power = 23;
+
+    TCanvas *c = new TCanvas();
+    c->Divide(2);  // split canvas in two. Left pad holds ieta 0 - 11. Right holds 12-23
+    c->SetName("hcal_spectra");
+
+    int cntr = 1;  // allows histos to be separated by 10^2
+
+    // this for loop places you in left or right pad
+    for (int k = 1; k < 3; k++)
     {
+      c->cd(k);
+      gPad->SetLogy(1);
 
-      std::cout << "Drawing hcal tower spectra" << std::endl;
+      if (k == 2)
+      {
+        power = 47;
+        starteta = 12;
+        maxeta = 24;
+      }
 
-      int starteta = 0;
-      int maxeta = 12;
-      int power = 23;
-      
+      TLegend *t = new TLegend(0.5, 0.8, 0.75, 0.9);
+      t->AddEntry("", (boost::format("ieta %d - %d") % starteta % (maxeta - 1)).str().c_str());
+
+      // eta loop
+      for (int i = starteta; i < maxeta; i++)
+      {
+        // get eta slice histogram and overlay in red onto tower spectra
+        if (calotype == LiteCaloEval::HCALOUT)
+        {
+          etaSliceName = "hcalout_eta_" + std::to_string(i);
+        }
+        else if (calotype == LiteCaloEval::HCALIN)
+        {
+          etaSliceName = "hcalin_eta_" + std::to_string(i);
+        }
+
+        h_etaSlice = (TH1F *) f_temp->Get(etaSliceName.c_str());
+
+        if (!h_etaSlice)
+        {
+          std::cout << "ERROR! Could not get hcal eta slice histogram " << i << " ." << std::endl;
+          gSystem->Exit(1);
+          exit(1);
+        }
+
+        if (h_etaSlice->GetEntries() == 0.0)
+        {
+          std::cout << "WARNING! hcal eta slice " << i << " has no entries!" << std::endl;
+        }
+
+        binWidthES = h_etaSlice->GetBinWidth(2);
+
+        if (binWidthES > 0.0)
+        {
+          h_etaSlice->Rebin(targetBinWidth / binWidthES);
+        }
+
+        // phi loop
+        for (int j = 0; j < 64; j++)
+        {
+          if (calotype == LiteCaloEval::HCALOUT)
+          {
+            histName = "hcal_out_eta_" + std::to_string(i) + "_phi_" + std::to_string(j);
+          }
+          else if (calotype == LiteCaloEval::HCALIN)
+          {
+            histName = "hcal_in_eta_" + std::to_string(i) + "_phi_" + std::to_string(j);
+          }
+
+          h = (TH1F *) f_temp->Get(histName.c_str());
+
+          if (!h)
+          {
+            std::cout << "ERROR! Could not find tower " << histName << "." << std::endl;
+            gSystem->Exit(1);
+            exit(1);
+          }
+
+          if (h->GetEntries() == 0.0)
+          {
+            std::cout << "WARNING! No entries in hcal (" << i << "," << j << ").  Skipping this tower" << std::endl;
+            continue;
+          }
+
+          binWidth = h->GetBinWidth(2);
+
+          if (binWidth > 0.0)
+          {
+            h->Rebin(targetBinWidth / binWidth);
+          }
+
+          if (i == 0)
+          {
+            scale = pow(10, power - i);
+          }
+          else
+          {
+            scale = pow(10, power - i - cntr);
+          }
+
+          otherscale = h->GetBinContent(1);
+
+          h->Scale(h_etaSlice->Integral() / h->Integral());
+          h->Scale(scale / otherscale);
+          h->GetXaxis()->SetRangeUser(0., xaxisRange);
+          h->GetYaxis()->SetRangeUser(0.00001, 1e27);
+          h->Draw("same hist");
+
+          h = nullptr;
+
+        }  // phi loop
+
+        // draw the combined eta slice spectrum
+        h_etaSlice->Scale(scale / otherscale);
+        h_etaSlice->GetXaxis()->SetRangeUser(0., xaxisRange);
+        h_etaSlice->GetYaxis()->SetRangeUser(0.00001, 1e27);
+        h_etaSlice->SetLineColor(2);
+        h_etaSlice->SetLineWidth(3);
+        h_etaSlice->Draw("same hist");
+
+        h_etaSlice = nullptr;
+
+        if (i > 0)
+        {
+          cntr++;
+        }
+
+      }  // eta loop
+
+      t->Draw("same");
+      t = nullptr;
+      delete t;
+
+    }  // k loop
+
+    c->Write();
+    c = nullptr;
+    delete c;
+
+  }  // end hcal caloflag
+
+  if (calotype == LiteCaloEval::CEMC)
+  {
+    std::cout << "Drawing emcal tower spectra" << std::endl;
+
+    int starteta = 0;
+    int maxeta = 12;
+
+    for (int k = 1; k < 9; k++)
+    {
+      int power = 36;
+      int cntr = 3;  // cntr == 2 allows histos to be separated by 10^2, cntr == 3 gives separation by 10^3, etc.
+
+      if (k > 1)
+      {
+        // power = power + 24;
+        starteta = maxeta;
+        maxeta = maxeta + 12;
+      }
 
       TCanvas *c = new TCanvas();
-      c->Divide(2);//split canvas in two. Left pad holds ieta 0 - 11. Right holds 12-23
-      c->SetName("hcal_spectra");
-     
-      int cntr = 1;//allows histos to be separated by 10^2 
+      c->SetName((boost::format("emcal_eta%d_%d") % starteta % (maxeta - 1)).str().c_str());
+      gPad->SetLogy(1);
 
-      //this for loop places you in left or right pad
-      for(int k = 1; k < 3; k++)
-	{
-	  c->cd(k);
-	  gPad->SetLogy(1);	  
+      TLegend *t = new TLegend(0.5, 0.8, 0.75, 0.9);
+      t->AddEntry("", (boost::format("ieta %d - %d") % starteta % (maxeta - 1)).str().c_str());
 
-	  if(k == 2)
-	    {
-	      power = 47;
-	      starteta = 12;
-	      maxeta = 24;
-	    }
+      // eta loop
+      for (int i = starteta; i < maxeta; i++)
+      {
+        etaSliceName = "eta_" + std::to_string(i);
 
-	  TLegend *t = new TLegend(0.5,0.8,0.75,0.9);
-	  t->AddEntry("",Form("ieta %d - %d",starteta,maxeta - 1));
+        h_etaSlice = (TH1F *) f_temp->Get(etaSliceName.c_str());
 
-	  //eta loop
-	  for(int i = starteta; i < maxeta; i++)
-	    {
-	      //get eta slice histogram and overlay in red onto tower spectra
-	      if(calotype == LiteCaloEval::HCALOUT)
-		{
-		  etaSliceName = "hcalout_eta_" + std::to_string(i);
-		}
-	      else if (calotype == LiteCaloEval::HCALIN)
-		{
-		  etaSliceName = "hcalin_eta_" + std::to_string(i);
-		}
+        if (!h_etaSlice)
+        {
+          std::cout << "ERROR! Could not get emcal eta slice " << i << "." << std::endl;
+          gSystem->Exit(1);
+          exit(1);
+        }
 
-	      h_etaSlice = (TH1F *)f_temp->Get(etaSliceName.c_str());
+        if (h_etaSlice->GetEntries() == 0.0)
+        {
+          std::cout << "WARNING! emcal eta slice " << i << " has no entries!" << std::endl;
+        }
 
-	      if(!h_etaSlice)
-		{
-		  std::cout << "ERROR! Could not get hcal eta slice histogram " << i << " ." << std::endl;
-		  gSystem->Exit(1);
-		  exit(1);
-		}
+        binWidthES = h_etaSlice->GetBinWidth(10);
 
-	      if(h_etaSlice->GetEntries() == 0.0)
-		{
-		  std::cout << "WARNING! hcal eta slice " << i << " has no entries!" << std::endl;
-		}
+        if (binWidthES > 0.0)
+        {
+          h_etaSlice->Rebin(targetBinWidth / binWidthES);
+        }
 
-	      binWidthES = h_etaSlice->GetBinWidth(2);
-		  
-	      if(binWidthES > 0.0)
-		h_etaSlice->Rebin(targetBinWidth/binWidthES);
-		
+        // phi loop
+        for (int j = 0; j < 256; j++)
+        {
+          histName = "emc_ieta" + std::to_string(i) + "_phi" + std::to_string(j);
 
-	      //phi loop
-	      for(int j = 0; j < 64; j++)
-		{
-		  if(calotype == LiteCaloEval::HCALOUT)
-		    {
-		      histName = "hcal_out_eta_" + std::to_string(i) + "_phi_" + std::to_string(j);
-		    }
-		  else if (calotype == LiteCaloEval::HCALIN)
-		    {
-		      histName = "hcal_in_eta_" + std::to_string(i) + "_phi_" + std::to_string(j);
-		    }
+          h = (TH1F *) f_temp->Get(histName.c_str());
 
-		  h = (TH1F *)f_temp->Get(histName.c_str());
+          if (!h)
+          {
+            std::cout << "ERROR! Could not find " << histName << ". Exiting macro." << std::endl;
+            exit(-1);
+          }
+          if (h->GetEntries() == 0.0)
+          {
+            std::cout << "WARNING! No entries in emcal (" << i << "," << j << ").  Skipping this tower" << std::endl;
+            continue;
+          }
 
-		  if(!h)
-		    {
-		      std::cout << "ERROR! Could not find tower " << histName << "." << std::endl;
-		      gSystem->Exit(1);
-		      exit(1);
-		    }
+          binWidth = h->GetBinWidth(2);
 
-		  if(h->GetEntries() == 0.0)
-		    {
-		      std::cout << "WARNING! No entries in hcal (" << i << "," << j << ").  Skipping this tower" << std::endl;
-		      continue;
-		    }
+          if (binWidth > 0.0)
+          {
+            h->Rebin(targetBinWidth / binWidth);
+          }
 
-		  binWidth = h->GetBinWidth(2);
-		  
-		  if(binWidth > 0.0)
-		    h->Rebin(targetBinWidth/binWidth);
-		    
+          if (i == 0 || i % 12 == 0)
+          {
+            scale = pow(10, power);
+          }
+          else
+          {
+            scale = pow(10, power - cntr);
+          }
 
-		  if(i == 0)
-		    scale = pow(10,power-i);
-		  else
-		    scale = pow(10,power-i-cntr);
+          otherscale = h->GetBinContent(1);
+          h->Scale(h_etaSlice->Integral() / h->Integral());
+          h->Scale(scale / otherscale);
+          h->GetXaxis()->SetRangeUser(0., xaxisRange);
+          h->GetYaxis()->SetRangeUser(1e-3, 1e40);
+          h->Draw("same hist");
 
-		  otherscale = h->GetBinContent(1);
+        }  // phi loop
 
-		  h->Scale(h_etaSlice->Integral()/h->Integral());
-		  h->Scale(scale/otherscale);
-		  h->GetXaxis()->SetRangeUser(0., xaxisRange);
-		  h->GetYaxis()->SetRangeUser(0.00001,1e27);	      
-		  h->Draw("same hist");
+        h_etaSlice->Scale(scale / otherscale);
+        h_etaSlice->GetXaxis()->SetRangeUser(0., xaxisRange);
+        h_etaSlice->GetYaxis()->SetRangeUser(1e-3, 1e40);
+        h_etaSlice->SetLineColor(2);
+        h_etaSlice->SetLineWidth(3);
+        h_etaSlice->Draw("same hist");
 
-		  h = nullptr;
+        if (!(i % 12 == 0))
+        {
+          cntr += 3;  // cntr++ gives separation by 100, +=2 gives 1000
+        }
 
-		}//phi loop
+      }  // eta loop
 
-	      //draw the combined eta slice spectrum
-	      h_etaSlice->Scale(scale/otherscale);
-	      h_etaSlice->GetXaxis()->SetRangeUser(0., xaxisRange);
-	      h_etaSlice->GetYaxis()->SetRangeUser(0.00001, 1e27);
-	      h_etaSlice->SetLineColor(2);
-	      h_etaSlice->SetLineWidth(3);
-	      h_etaSlice->Draw("same hist");
-
-	      h_etaSlice = nullptr;
-
-	      if(i>0)
-		cntr++;	    
-
-	    }//eta loop
-
-	  t->Draw("same");	  
-	  t = nullptr;
-	  delete t;
-
-
-	}//k loop
-
+      t->Draw("same");
 
       c->Write();
-      c=nullptr;
+
+      t = nullptr;
+      delete t;
+
+      c = nullptr;
       delete c;
 
-    }//end hcal caloflag
+    }  // k loop
 
-
-  if(calotype == LiteCaloEval::CEMC)
-    {
-
-      std::cout << "Drawing emcal tower spectra" << std::endl;
-
-      int starteta = 0;
-      int maxeta = 12;
-        
-
-      for(int k = 1; k < 9; k++)
-	{
-	  int power = 36;    
-	  int cntr = 3; //cntr == 2 allows histos to be separated by 10^2, cntr == 3 gives separation by 10^3, etc.
-
-	  if(k > 1)
-	    {
-	      //power = power + 24;
-	      starteta = maxeta; 
-	      maxeta = maxeta + 12; 
-	    }
-
-	  TCanvas *c = new TCanvas();
-	  c->SetName(Form("emcal_eta%d_%d",starteta,maxeta-1));
-	  gPad->SetLogy(1);
-
-	  TLegend *t = new TLegend(0.5,0.8,0.75,0.9);
-	  t->AddEntry("",Form("ieta %d - %d",starteta,maxeta - 1));	  
-
-	  //eta loop
-	  for(int i = starteta; i < maxeta; i++)
-	    {
-        
-	      etaSliceName = "eta_" + std::to_string(i);
-
-	      h_etaSlice = (TH1F *)f_temp->Get(etaSliceName.c_str());
-
-	      if(!h_etaSlice)
-		{
-		  std::cout << "ERROR! Could not get emcal eta slice " << i << "." << std::endl;
-		  gSystem->Exit(1);
-		  exit(1);
-		}
-
-	      if(h_etaSlice->GetEntries() == 0.0)
-		{
-		  std::cout << "WARNING! emcal eta slice " << i << " has no entries!" << std::endl;
-		}
-
-	      binWidthES = h_etaSlice->GetBinWidth(10);
-		  
-	      if(binWidthES > 0.0)
-		h_etaSlice->Rebin(targetBinWidth/binWidthES);
-
-
-	      //phi loop
-	      for(int j = 0; j < 256; j++)
-		{
-
-		  histName = "emc_ieta" + std::to_string(i) + "_phi" + std::to_string(j);
-
-
-		  h = (TH1F *)f_temp->Get(histName.c_str());
-
-		  if(!h)
-		    {
-		      std::cout << "ERROR! Could not find " << histName << ". Exiting macro." << std::endl;
-		      exit(-1);
-		    }
-		  if(h->GetEntries() == 0.0)
-		    {
-		      std::cout << "WARNING! No entries in emcal (" << i << "," << j << ").  Skipping this tower" << std::endl;
-		      continue;
-		    }
-
-		  binWidth = h->GetBinWidth(2);
-		  
-		  if(binWidth > 0.0)
-		    h->Rebin(targetBinWidth/binWidth);
-
-		  if( i == 0 || i % 12 == 0)
-		    {
-		      scale = pow(10,power);
-		    }
-		  else
-		    {
-		      scale = pow(10,power-cntr);
-		    }		  
-
-		  otherscale = h->GetBinContent(1);
-		  h->Scale(h_etaSlice->Integral()/h->Integral());
-		  h->Scale(scale/otherscale);
-		  h->GetXaxis()->SetRangeUser(0., xaxisRange);
-		  h->GetYaxis()->SetRangeUser(1e-3,1e40);
-		  h->Draw("same hist");
-
-		}//phi loop
-
-
-	      h_etaSlice->Scale(scale/otherscale);
-	      h_etaSlice->GetXaxis()->SetRangeUser(0., xaxisRange);
-	      h_etaSlice->GetYaxis()->SetRangeUser(1e-3, 1e40);
-	      h_etaSlice->SetLineColor(2);
-	      h_etaSlice->SetLineWidth(3);
-	      h_etaSlice->Draw("same hist");
-
-
-	      if( !(i%12 == 0) )
-		cntr+=3; //cntr++ gives separation by 100, +=2 gives 1000
-
-	    }//eta loop
-
-	  t->Draw("same");
-
-	  c->Write();
-
-	  t=nullptr;
-	  delete t;
-
-	  c=nullptr;
-	  delete c;
-	
-	}//k loop
-
-    }//end emcal flag
-
+  }  // end emcal flag
 
   f_temp->Close();
 
-  std::cout << "Drawing histos is complete." << std::endl;   
+  std::cout << "Drawing histos is complete." << std::endl;
 
-}// end draw spectra f'n
-
+}  // end draw spectra f'n
 
 void LiteCaloEval::fit_info()
 {
-
   int eta;
   int phi;
   int badTowers = 0;
 
-  if(calotype == LiteCaloEval::HCALIN || calotype == LiteCaloEval::HCALOUT)
-    {
-      eta = 24;
-      phi = 64;
-    }
-  else if(calotype == LiteCaloEval::CEMC)
-    {
-      eta = 96;
-      phi = 256;
-    }
+  if (calotype == LiteCaloEval::HCALIN || calotype == LiteCaloEval::HCALOUT)
+  {
+    eta = 24;
+    phi = 64;
+  }
+  else if (calotype == LiteCaloEval::CEMC)
+  {
+    eta = 96;
+    phi = 256;
+  }
   else
-    {
-      std::cout << "calotype not set. Exiting." << std::endl;
-      exit(-1);
-    }
+  {
+    std::cout << "calotype not set. Exiting." << std::endl;
+    exit(-1);
+  }
 
-
-  TH2F *errMap = new TH2F("errMap","",eta,0,eta,phi,0,phi);
+  TH2F *errMap = new TH2F("errMap", "", eta, 0, eta, phi, 0, phi);
   errMap->GetXaxis()->SetTitle("#eta Bin");
   errMap->GetYaxis()->SetTitle("#phi Bin");
 
-  //make chi squared/ndf plots
-  TH1F *chi2 = new TH1F("chi2","",500,0,50);
+  // make chi squared/ndf plots
+  TH1F *chi2 = new TH1F("chi2", "", 500, 0, 50);
   chi2->GetXaxis()->SetTitle("#chi^{2} / NDF");
   chi2->GetYaxis()->SetTitle("Counts");
 
-  //make chi squared/ndf map
-  TH2F *chi2Map = new TH2F("chi2Map","",eta,0,eta,phi,0,phi);
+  // make chi squared/ndf map
+  TH2F *chi2Map = new TH2F("chi2Map", "", eta, 0, eta, phi, 0, phi);
   chi2Map->GetXaxis()->SetTitle("#eta Bin");
   chi2Map->GetYaxis()->SetTitle("#phi Bin");
-  
-  //map of tower with failed fits
-  TH2F *fitFail = new TH2F("fitFail","",eta,0,eta, phi,0,phi);
+
+  // map of tower with failed fits
+  TH2F *fitFail = new TH2F("fitFail", "", eta, 0, eta, phi, 0, phi);
   fitFail->GetXaxis()->SetTitle("#eta bin");
   fitFail->GetYaxis()->SetTitle("#phi bin");
 
@@ -1725,51 +1711,49 @@ void LiteCaloEval::fit_info()
   TH1F *htmp = nullptr;
   TF1 *fn = nullptr;
 
-  //phi loop
-  for(int i = 0; i < eta; i++)
+  // phi loop
+  for (int i = 0; i < eta; i++)
+  {
+    // eta loop
+    for (int j = 0; j < phi; j++)
     {
+      // for ohcal
+      if (calotype == LiteCaloEval::HCALOUT)
+      {
+        histname = (boost::format("hcal_out_eta_%d_phi_%d") % i % j).str();
+      }
 
-      //eta loop
-      for( int j = 0; j< phi; j++)
-	{
+      // ihcal
+      if (calotype == LiteCaloEval::HCALIN)
+      {
+        histname = (boost::format("hcal_in_eta_%d_phi_%d") % i % j).str();
+      }
 
-	  //for ohcal
-	  if(calotype == LiteCaloEval::HCALOUT)
-	    {	    
-	      histname = Form("hcal_out_eta_%d_phi_%d",i,j);
-	    }
+      // emcal
+      if (calotype == LiteCaloEval::CEMC)
+      {
+        histname = (boost::format("emc_ieta%d_phi%d") % i % j).str();
+      }
 
-	  //ihcal
-	  if(calotype == LiteCaloEval::HCALIN)
-	    {	     
-	      histname = Form("hcal_in_eta_%d_phi_%d",i,j);
-	    }
+      htmp = (TH1F *) f_temp->Get(histname.Data());
 
-	  //emcal
-	  if(calotype == LiteCaloEval::CEMC)
-	    {	     
-	      histname = Form("emc_ieta%d_phi%d",i,j);
-	    }
+      fn = (TF1 *) htmp->GetFunction("myexpo");
 
-	  htmp = (TH1F *)f_temp->Get(histname.Data());
+      errMap->SetBinContent(i + 1, j + 1, fn->GetParError(1));
 
-	  fn = (TF1 *)htmp->GetFunction("myexpo");
+      chi2->Fill(fn->GetChisquare() / fn->GetNDF());
 
-	  errMap->SetBinContent(i+1, j+1, fn->GetParError(1));
+      chi2Map->SetBinContent(i + 1, j + 1, fn->GetChisquare() / fn->GetNDF());
 
-	  chi2->Fill(fn->GetChisquare()/fn->GetNDF());
+      if (fn->GetChisquare() / fn->GetNDF() > 5)
+      {
+        fitFail->Fill(i, j);
+        badTowers++;
+      }
 
-	  chi2Map->SetBinContent(i+1,j+1,fn->GetChisquare()/fn->GetNDF());
+    }  // end inner forloop
 
-	  if(fn->GetChisquare()/fn->GetNDF() > 5)
-	    {
-	      fitFail->Fill(i,j);
-	      badTowers++;
-	    }
-
-	}//end inner forloop
-
-    }//end outer forloop
+  }  // end outer forloop
 
   std::cout << "Number of towers with bad chi2/ndf: " << badTowers << std::endl;
 
@@ -1790,7 +1774,6 @@ void LiteCaloEval::fit_info()
   fitFail = nullptr;
   delete fitFail;
 
- 
   f_temp->Close();
 
   std::cout << "Finished fit info" << std::endl;
