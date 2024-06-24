@@ -288,10 +288,22 @@ int Fun4AllSyncManager::skip(const int nevnts)
     // (technically it just decrements the local counter in the PHNodeIOManager)
     // giving it a negative argument will skip events
     // this is much faster than actually reading the events in
-    int iret = m_InManager[0]->PushBackEvents(Npushback);
-    for (unsigned int i = 1; i < m_InManager.size(); ++i)
+    int iret = 0;
+    bool first = true;
+    for (auto &iman : m_InManager)
     {
-      iret += m_InManager[i]->SkipForThisManager(nevnts);
+      if (iman->HasSyncObject())
+      {
+        if (first)
+        {
+          iret += iman->PushBackEvents(Npushback);
+          first = false;
+        }
+      }
+      else
+      {
+        iret += iman->SkipForThisManager(nevnts);
+      }
     }
     if (!iret)
     {

@@ -100,7 +100,7 @@ class LaserClusterv1 : public LaserCluster
 
   /// cluster sum adc
   unsigned int m_adc = 0xFFFFFFFF;
-
+  
   /// number of TPC clusters used to create this central mebrane cluster
   unsigned int m_nhits = UINT_MAX;
 
