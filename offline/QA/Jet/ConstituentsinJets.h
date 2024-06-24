@@ -23,6 +23,7 @@ class ConstituentsinJets : public SubsysReco
 
         ConstituentsinJets(
             const std::string &recojetname = "AntiKt_Tower_r04",
+            const std::string &towBkgdName = "TowerInfoBackground_Sub2",
             const std::string &histTag = "AllTrig_AntiKt_Tower_R04"
         );
         ~ConstituentsinJets() override {};
@@ -57,6 +58,7 @@ class ConstituentsinJets : public SubsysReco
 
         //! Input Node strings and histogram tags
         std::string m_recoJetName { "AntiKt_Tower_r04"};
+        std::string m_towBkgdName { "TowerInfoBackground_Sub2" };
         std::string m_histTag { "AllTrig_AntiKt_Tower_R04" };
         // std::string m_outputFileName{ "ConstituentsinJets.root"};
 

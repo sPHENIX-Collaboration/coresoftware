@@ -42,9 +42,10 @@
 #include <map>
 #include <utility>
 
-ConstituentsinJets::ConstituentsinJets(const std::string &recojetname, const std::string& histTag)
+ConstituentsinJets::ConstituentsinJets(const std::string &recojetname, const std::string &towBkgdName, const std::string &histTag)
   : SubsysReco("ConstituentsinJets")
   , m_recoJetName(recojetname)
+  , m_towBkgdName(towBkgdName)
   , m_histTag(histTag)
   // , m_outputFileName(outputfilename)  
   // these are all initialized but included here for clarity
@@ -206,7 +207,7 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   float background_v2 = 0;
   float background_Psi2 = 0;
   bool has_tower_background = false;
-  TowerBackground *towBack = findNode::getClass<TowerBackground>(topNode, "TowerInfoBackground_Sub2");
+  TowerBackground *towBack = findNode::getClass<TowerBackground>(topNode, m_towBkgdName);
   if(!towBack)
   {
     std::cout <<"ConstituentsinJets::process_event - Error can not find tower background node " << std::endl;  
