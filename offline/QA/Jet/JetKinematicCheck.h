@@ -20,7 +20,8 @@ class JetKinematicCheck : public SubsysReco
  public:
   JetKinematicCheck(const std::string &recojetnameR02 = "AntiKt_Tower_r02",
                     const std::string &recojetnameR03 = "AntiKt_Tower_r03",
-                    const std::string &recojetnameR04 = "AntiKt_Tower_r04");
+                    const std::string &recojetnameR04 = "AntiKt_Tower_r04",
+                    const std::string &recojetnameR05 = "AntiKt_Tower_r05");
 
   ~JetKinematicCheck() override;
 
@@ -36,6 +37,12 @@ class JetKinematicCheck : public SubsysReco
   {
     m_ptRange.first = low;
     m_ptRange.second = high;
+  }
+
+  // set histogram tag
+  void setHistTag(const std::string tag)
+  {
+    m_histTag = tag;
   }
 
   /** Called during initialization.
@@ -69,7 +76,8 @@ class JetKinematicCheck : public SubsysReco
   std::string m_recoJetNameR02;
   std::string m_recoJetNameR03;
   std::string m_recoJetNameR04;
-  std::string m_outputFileName;
+  std::string m_recoJetNameR05;
+  std::string m_histTag;
   std::pair<double, double> m_etaRange;
   std::pair<double, double> m_ptRange;
 
@@ -83,21 +91,27 @@ class JetKinematicCheck : public SubsysReco
   TH1 *jet_spectra_r02 = nullptr;
   TH1 *jet_spectra_r03 = nullptr;
   TH1 *jet_spectra_r04 = nullptr;
+  TH1 *jet_spectra_r05 = nullptr;
   TH2 *jet_eta_phi_r02 = nullptr;
   TH2 *jet_eta_phi_r03 = nullptr;
   TH2 *jet_eta_phi_r04 = nullptr;
+  TH2 *jet_eta_phi_r05 = nullptr;
   TH2 *jet_mass_pt_r02 = nullptr;
   TH1 *jet_mass_pt_1D_r02 = nullptr;
   TH2 *jet_mass_pt_r03 = nullptr;
   TH1 *jet_mass_pt_1D_r03 = nullptr;
   TH2 *jet_mass_pt_r04 = nullptr;
   TH1 *jet_mass_pt_1D_r04 = nullptr;
+  TH2 *jet_mass_pt_r05 = nullptr;
+  TH1 *jet_mass_pt_1D_r05 = nullptr;
   TH2 *jet_mass_eta_r02 = nullptr;
   TH1 *jet_mass_eta_1D_r02 = nullptr;
   TH2 *jet_mass_eta_r03 = nullptr;
   TH1 *jet_mass_eta_1D_r03 = nullptr;
   TH2 *jet_mass_eta_r04 = nullptr;
   TH1 *jet_mass_eta_1D_r04 = nullptr;
+  TH2 *jet_mass_eta_r05 = nullptr;
+  TH1 *jet_mass_eta_1D_r05 = nullptr;
 };
 
 #endif  // JETKINEMATICCHECK_H
