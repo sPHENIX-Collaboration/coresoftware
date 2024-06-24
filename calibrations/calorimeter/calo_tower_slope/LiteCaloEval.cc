@@ -1450,6 +1450,8 @@ void LiteCaloEval::draw_spectra()
 	      if(!h_etaSlice)
 		{
 		  std::cout << "ERROR! Could not get hcal eta slice histogram " << i << " ." << std::endl;
+		  gSystem->Exit(1);
+		  exit(1);
 		}
 
 	      if(h_etaSlice->GetEntries() == 0.0)
@@ -1480,6 +1482,8 @@ void LiteCaloEval::draw_spectra()
 		  if(!h)
 		    {
 		      std::cout << "ERROR! Could not find tower " << histName << "." << std::endl;
+		      gSystem->Exit(1);
+		      exit(1);
 		    }
 
 		  if(h->GetEntries() == 0.0)
@@ -1580,6 +1584,8 @@ void LiteCaloEval::draw_spectra()
 	      if(!h_etaSlice)
 		{
 		  std::cout << "ERROR! Could not get emcal eta slice " << i << "." << std::endl;
+		  gSystem->Exit(1);
+		  exit(1);
 		}
 
 	      if(h_etaSlice->GetEntries() == 0.0)
