@@ -70,10 +70,6 @@ int LL1Packetv1::iValue(const int /*n*/, const std::string &what) const
   {
     return getFibers();
   }
-  if (what == "FIBERS")
-  {
-    return getFibers();
-  }
   if (what == "SUMS")
   {
     return getSums();
@@ -211,7 +207,10 @@ void LL1Packetv1::dump_idll1_jet_emcal_mon1(std::ostream &os) const
   {
     os << std::dec << "BC : " << sample << std::endl;
     os << std::dec << "phibin --> ";
-    for (int ic = 0; ic < 32; ic++) os << std::dec << "\t" << ic;
+    for (int ic = 0; ic < 32; ic++)
+    {
+      os << std::dec << "\t" << ic;
+    }
     os << " " << std::endl;
     os << std::dec << "etabin\t||  \t" << std::endl;
     for (int ic = 0; ic < 12; ic++)
