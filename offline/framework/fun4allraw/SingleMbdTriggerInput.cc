@@ -3,8 +3,8 @@
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/CaloPacketv1.h>
 #include <ffarawobjects/CaloPacketContainerv1.h>
+#include <ffarawobjects/CaloPacketv1.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -29,7 +29,7 @@
 #include <set>
 #include <utility>  // for pair
 
-static const int NMBDPACKETS = 3;
+static const int NMBDPACKETS = 2 + 1;  // one spare to get an error from getPacketList
 
 SingleMbdTriggerInput::SingleMbdTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
@@ -41,6 +41,12 @@ SingleMbdTriggerInput::SingleMbdTriggerInput(const std::string &name)
 SingleMbdTriggerInput::~SingleMbdTriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
+  // some events are already in the m_EventStack but they haven't been put
+  // into the m_PacketMap
+  while (m_EventStack.begin() != m_EventStack.end())
+  {
+    m_EventStack.erase(m_EventStack.begin());
+  }
   delete[] plist;
 }
 
@@ -90,13 +96,16 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
     if (npackets >= NMBDPACKETS)
     {
       std::cout << PHWHERE << " Packets array size " << NMBDPACKETS
-		<< " too small for " << Name()
-		<< ", increase NMBDPACKETS and rebuild" << std::endl;
+                << " too small for " << Name()
+                << ", increase NMBDPACKETS and rebuild" << std::endl;
       exit(1);
     }
 
     for (int i = 0; i < npackets; i++)
     {
+      int packet_id = plist[i]->getIdentifier();
+      // The call to  EventNumberOffset(identifier) will initialize it to our default if it wasn't set already
+      int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
         plist[i]->identify();
@@ -105,77 +114,73 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
       uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
-      int nr_modules = plist[i]->iValue(0,"NRMODULES");
+      int nr_modules = plist[i]->iValue(0, "NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
       if (nr_modules > 3)
       {
-	std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
-	gSystem->Exit(1);
+        std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
+        gSystem->Exit(1);
       }
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
-      newhit->setEvtSequence(EventSequence);
+      newhit->setEvtSequence(CorrectedEventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
       newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
       newhit->setCalcOddChecksum(plist[i]->iValue(0, "CALCODDCHECKSUM"));
-      newhit->setModuleAddress(plist[i]->iValue(0,"MODULEADDRESS"));
-      newhit->setDetId(plist[i]->iValue(0,"DETID"));
+      newhit->setModuleAddress(plist[i]->iValue(0, "MODULEADDRESS"));
+      newhit->setDetId(plist[i]->iValue(0, "DETID"));
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
         newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
         newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
         newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
+        newhit->setChecksumLsb(ifem, plist[i]->iValue(ifem, "CHECKSUMLSB"));
+        newhit->setChecksumMsb(ifem, plist[i]->iValue(ifem, "CHECKSUMMSB"));
+        newhit->setCalcChecksumLsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
+        newhit->setCalcChecksumMsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
       }
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
-        newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
-        newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
-        newhit->setSuppressed(ipmt,plist[i]->iValue(ipmt,"SUPPRESSED"));
-        for (int isamp = 0; isamp < nr_samples; isamp++)
+        // store pre/post only for suppressed channels, the array in the packet routines is not
+        // initialized so reading pre/post for not zero suppressed channels returns garbage
+        bool isSuppressed = plist[i]->iValue(ipmt, "SUPPRESSED");
+        newhit->setSuppressed(ipmt, isSuppressed);
+        if (isSuppressed)
         {
-          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+          newhit->setPre(ipmt, plist[i]->iValue(ipmt, "PRE"));
+          newhit->setPost(ipmt, plist[i]->iValue(ipmt, "POST"));
+        }
+        else
+        {
+          for (int isamp = 0; isamp < nr_samples; isamp++)
+          {
+            newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+          }
         }
       }
- /*
-      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
-      newhit->setBCO(plist[i]->lValue(0, "CLOCK"));
-      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
-      newhit->setEvtSequence(EventSequence);
-      for (int ifem = 0; ifem < 2; ifem++)
-      {
-        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
-      }
-      for (int ipmt = 0; ipmt < 128; ipmt++)
-      {
-        for (int isamp = 0; isamp < 31; isamp++)
-        {
-          newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-        }
-      }
-*/
       if (Verbosity() > 2)
       {
-        std::cout << PHWHERE << "evtno: " << EventSequence
+        std::cout << PHWHERE << "corrected evtno: " << CorrectedEventSequence
+                  << ", original evtno: " << EventSequence
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
       if (TriggerInputManager())
       {
-        TriggerInputManager()->AddMbdPacket(EventSequence, newhit);
+        TriggerInputManager()->AddMbdPacket(CorrectedEventSequence, newhit);
       }
-      m_MbdPacketMap[EventSequence].push_back(newhit);
-      m_EventStack.insert(EventSequence);
+      m_PacketMap[CorrectedEventSequence].push_back(newhit);
+      m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
-	ddumppacket(plist[i]);
+        ddumppacket(plist[i]);
       }
       delete plist[i];
     }
@@ -186,7 +191,7 @@ void SingleMbdTriggerInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_MbdPacketMap)
+    for (const auto &bcliter : m_PacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
     }
@@ -203,7 +208,7 @@ void SingleMbdTriggerInput::Print(const std::string &what) const
 void SingleMbdTriggerInput::CleanupUsedPackets(const int eventno)
 {
   std::vector<int> toclearevents;
-  for (const auto &iter : m_MbdPacketMap)
+  for (const auto &iter : m_PacketMap)
   {
     if (iter.first <= eventno)
     {
@@ -222,7 +227,7 @@ void SingleMbdTriggerInput::CleanupUsedPackets(const int eventno)
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-    m_MbdPacketMap.erase(iter);
+    m_PacketMap.erase(iter);
   }
 }
 
@@ -241,21 +246,21 @@ bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     return false;
   }
-  if (m_MbdPacketMap.empty())
+  if (m_PacketMap.empty())
   {
     return true;
   }
 
-  int first_event = m_MbdPacketMap.begin()->first;
-  int last_event = m_MbdPacketMap.rbegin()->first;
+  int first_event = m_PacketMap.begin()->first;
+  int last_event = m_PacketMap.rbegin()->first;
   if (Verbosity() > 1)
   {
-    std::cout << "number of mbd events: " << m_MbdPacketMap.size() << std::endl;
+    std::cout << "number of mbd events: " << m_PacketMap.size() << std::endl;
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
   }
-  if (keep > 2 && m_MbdPacketMap.size() < keep)
+  if (keep > 2 && m_PacketMap.size() < keep)
   {
     return true;
   }

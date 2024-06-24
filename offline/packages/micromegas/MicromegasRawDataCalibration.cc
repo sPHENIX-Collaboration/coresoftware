@@ -72,9 +72,14 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
 
     for( int i=0; i<n_waveforms; ++i )
     {
-      auto channel = packet->iValue( i, "CHANNEL" );
-      int fee_id = m_mapping.get_old_fee_id(packet->iValue(i, "FEE"));
-      int samples = packet->iValue( i, "SAMPLES" );
+
+      const int type = packet->iValue(i, "TYPE");
+      if( type == MicromegasDefs::HEARTBEAT_T ) continue;
+
+      // get fee id, apply mapping to current fiber set, for backward compatibility
+      const auto channel = packet->iValue( i, "CHANNEL" );
+      const int fee_id = m_mapping.get_new_fee_id(packet->iValue(i, "FEE"));
+      const int samples = packet->iValue( i, "SAMPLES" );
       if( Verbosity() )
       {
         std::cout

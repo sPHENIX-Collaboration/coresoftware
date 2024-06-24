@@ -728,34 +728,33 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
     return seeds;
   }
 
-  std::cout << " B0 " << std::endl;
   int nsplit_chains = -1;
   
   // positions of the seed being following
   std::array<float, 4> phi, R, Z;
   keyLists grown_seeds;
 
-  std::cout << " B1 " << std::endl;
   while (seeds.size() > 0) {
-    std::cout << "Seeds size: " << ((int)seeds.size()) << std::endl;
     keyLists split_seeds {}; // to collect when using split tracks
     for (auto& seed : seeds) {
 
       // grow the seed to the maximum length allowed
       bool first_link = true; 
       bool done_growing = (seed.size() >= _max_clusters_per_seed);
-      keyList head_keys = { seed.back() }; // heads of the seed
+      keyList head_keys = { seed.back() };
+      /* keyList head_keys = { seed.back() }; // heads of the seed */
+                                           
       while (!done_growing) {
         // Get all bilinks which fit to the head of the chain
         unsigned int iL = TrkrDefs::getLayer(head_keys[0]) - _FIRST_LAYER_TPC;
-        keyList link_matches {};
+        keySet link_matches {};
         for (const auto& head_key : head_keys) {
             // also possible to sort the links and use a sorted search like:
             // auto matched_links = std::equal_range(bilinks[trackHead_layer].begin(), bilinks[trackHead_layer].end(), trackHead, CompKeyToBilink()); 
             // for (auto link = matched_links.first; link != matched_links.second; ++link)
           for (auto& link : bilinks[iL]) { // iL for "Index of Layer"
             if (link.first == head_key) { 
-              link_matches.push_back(link.second);
+              link_matches.insert(link.second);
             }
           }
         }

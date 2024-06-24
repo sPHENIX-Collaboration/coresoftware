@@ -100,7 +100,7 @@ class TrackResiduals : public SubsysReco
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcClusterMover m_clusterMover;
 
-  TpcDistortionCorrectionContainer *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
+  TpcDistortionCorrectionContainer *m_dccModuleEdge{nullptr}, *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
 
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
@@ -234,6 +234,9 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgx;
   std::vector<float> m_clusgy;
   std::vector<float> m_clusgz;
+  std::vector<float> m_clusgxunmoved;
+  std::vector<float> m_clusgyunmoved;
+  std::vector<float> m_clusgzunmoved;
   std::vector<float> m_clusgr;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;

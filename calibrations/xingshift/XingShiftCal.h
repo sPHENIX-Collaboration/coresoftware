@@ -95,6 +95,12 @@ class XingShiftCal : public SubsysReco
   int fillnumberYellow{0};
 
   uint64_t scalercounts[NTRIG][NBUNCHES]{};
+
+  int64_t mbdns[NBUNCHES]{0};
+  int64_t mbdvtx[NBUNCHES]{0};
+  int64_t zdcns[NBUNCHES]{0};
+
+
 };
 
 #endif  // XINGSHIFT_XINGSHIFTCAL_H

@@ -6,23 +6,24 @@
 
 #include "TpcCentralMembraneMatching.h"
 
+#include <trackbase/CMFlashDifferencev1.h>
+#include <trackbase/CMFlashDifferenceContainerv1.h>
+#include <trackbase/LaserClusterContainerv1.h>
+#include <trackbase/LaserClusterv1.h>
+#include <trackbase/TpcDefs.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <trackbase/CMFlashDifferenceContainerv1.h>
-#include <trackbase/CMFlashDifferencev1.h>
-#include <trackbase/LaserClusterContainerv1.h>
-#include <trackbase/LaserClusterv1.h>
-#include <trackbase/TpcDefs.h>
 
 #include <TF1.h>
 #include <TFile.h>
 #include <TGraph.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNtuple.h>
+#include <TTree.h>
 #include <TString.h>
 #include <TStyle.h>
 #include <TVector3.h>
@@ -165,7 +166,7 @@ void TpcCentralMembraneMatching::set_grid_dimensions(int phibins, int rbins)
 
 
 // get the average phi rotation using smoothed histograms
-double TpcCentralMembraneMatching::getPhiRotation_smoothed(TH1D* hitHist, TH1D* clustHist)
+double TpcCentralMembraneMatching::getPhiRotation_smoothed(TH1* hitHist, TH1* clustHist, bool side)
 {
   // smooth the truth and cluster histograms
   hitHist->Smooth();
@@ -178,7 +179,16 @@ double TpcCentralMembraneMatching::getPhiRotation_smoothed(TH1D* hitHist, TH1D* 
     -M_PI, M_PI, 2);
   f1->SetParNames("A", "shift");
   f1->SetParameters(1.0, 0.0);
-  //  f1->SetParLimits(1,-M_PI/18,M_PI/18);
+  f1->SetParLimits(1,-M_PI/18,M_PI/18);
+
+  if(side && m_recoRotation[1][1] != -999)
+  {
+    f1->SetParameter(1,m_recoRotation[1][1]);
+  }
+  if(!side && m_recoRotation[0][1] != -999)
+  {
+    f1->SetParameter(1,m_recoRotation[0][1]);
+  }
 
   f1->SetNpx(500);
 
@@ -190,17 +200,396 @@ double TpcCentralMembraneMatching::getPhiRotation_smoothed(TH1D* hitHist, TH1D* 
   return f1->GetParameter(1);
 }
 
-std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F* r_phi, bool side)
+void TpcCentralMembraneMatching::getRegionPhiRotation(bool side)
+{
+
+  TH1 *oddHist[3];
+  TH1 *evenHist[3];
+
+  TH1 *oddTruthHist[3];
+  TH1 *evenTruthHist[3];
+
+  for(int i=0; i<(int)m_reco_RPeaks[side].size(); i++){
+
+    int peak = reco_r_phi[side]->GetYaxis()->FindBin(m_reco_RPeaks[side][i]);
+
+    int region = 2;
+    if(m_reco_RPeaks[side][i] < 41)
+    {
+      region = 0;
+    }
+    else if(m_reco_RPeaks[side][i] < 58)
+    {
+      region = 1;
+    }
+
+    if(m_reco_RMatches[side][i] % 2 )
+    {
+      if(!oddHist[region])
+      {
+        oddHist[region] = (TH1*)reco_r_phi[side]->ProjectionX(Form("oddR%d_%d",region,side), peak-2, peak+2);
+      }
+      else
+      {
+        oddHist[region]->Add(reco_r_phi[side]->ProjectionX(Form("oddR%d_%d",region,side), peak-2, peak+2));
+      }
+    }
+    else
+    {
+      if(!evenHist[region])
+      {
+        evenHist[region] = (TH1*)reco_r_phi[side]->ProjectionX(Form("evenR%d_%d",region,side), peak-2, peak+2);
+      }
+      else
+      {
+        evenHist[region]->Add(reco_r_phi[side]->ProjectionX(Form("evenR%d_%d",region,side), peak-2, peak+2));
+      }
+    }
+
+
+  }
+
+
+  for(int i=0; i<(int)m_truth_RPeaks.size(); i++){
+
+    int peak = truth_r_phi[side]->GetYaxis()->FindBin(m_truth_RPeaks[i]);
+
+    int region = 2;
+    if(m_truth_RPeaks[i] < 41)
+    {
+      region = 0;
+    }
+    else if(m_truth_RPeaks[i] < 58)
+    {
+      region = 1;
+    }
+
+    if(i % 2)
+    {
+      if(!oddTruthHist[region])
+      {
+        oddTruthHist[region] = (TH1*)truth_r_phi[side]->ProjectionX(Form("oddTR%d_%d",region,side), peak-1, peak+1);
+      }
+      else
+      {
+        oddTruthHist[region]->Add(truth_r_phi[side]->ProjectionX(Form("oddTR%d_%d",region,side), peak-1, peak+1));
+      }
+    }
+    else
+    {
+      if(!evenTruthHist[region])
+      {
+        evenTruthHist[region] = (TH1*)truth_r_phi[side]->ProjectionX(Form("evenTR%d_%d",region,side), peak-1, peak+1);
+      }
+      else
+      {
+        evenTruthHist[region]->Add(truth_r_phi[side]->ProjectionX(Form("evenTR%d_%d",region,side), peak-1, peak+1));
+      }
+    }
+
+
+  }
+
+  int regions[3] {1,0,2};
+
+  double rotationEven[3] {-999,-999,-999};
+  double rotationOdd[3] {-999,-999,-999};
+
+  for(int region : regions)
+  {
+
+    TF1* fEven = new TF1(
+      "fEven", [&](double* x, double* p)
+      { return p[0] * evenTruthHist[region]->GetBinContent(evenTruthHist[region]->FindBin((x[0] - p[1]) > M_PI ? x[0] - p[1] - 2 * M_PI : x[0] - p[1])); },
+      -M_PI, M_PI, 2);
+    fEven->SetParNames("A", "shift");
+    fEven->SetParameters(1.0, 0.0);
+    fEven->SetParLimits(1,-M_PI/18,M_PI/18);
+    fEven->SetNpx(1000);
+
+    TF1* fOdd = new TF1(
+      "fOdd", [&](double* x, double* p)
+      { return p[0] * oddTruthHist[region]->GetBinContent(oddTruthHist[region]->FindBin((x[0] - p[1]) > M_PI ? x[0] - p[1] - 2 * M_PI : x[0] - p[1])); },
+      -M_PI, M_PI, 2);
+    fOdd->SetParNames("A", "shift");
+    fOdd->SetParameters(1.0, 0.0);
+    fOdd->SetParLimits(1,-M_PI/18,M_PI/18);
+    fOdd->SetNpx(1000);
+
+    if(region != 1)
+    {
+      if(rotationEven[1] != -999)
+      {
+        fEven->SetParameter(1,rotationEven[1]);
+      }
+
+      if(rotationOdd[1] != -999)
+      {
+        fOdd->SetParameter(1,rotationOdd[1]);
+      }
+    }
+
+    evenHist[region]->Fit("fEven", "IQ");
+    oddHist[region]->Fit("fOdd", "IQ");
+
+    rotationEven[region] = fEven->GetParameter(1);
+    rotationOdd[region] = fOdd->GetParameter(1);
+
+    m_recoRotation[side][region] = (rotationOdd[region] + rotationEven[region])/2.0;
+  }
+
+
+/*
+  int regions[3] {1,0,2};
+
+  for(int region : regions)
+  {
+
+    double evenMaxTruth = evenTruthHist[region]->GetMaximum();
+    double oddMaxTruth = oddTruthHist[region]->GetMaximum();
+
+    std::vector<double> evenTruthPeaks;
+    std::vector<double> oddTruthPeaks;
+
+    for(int i=2; i<oddTruthHist[region]->GetNbinsX(); i++)
+    {
+
+      if(evenTruthHist[region]->GetBinContent(i) > 0.15*evenMaxTruth)
+      {
+        evenTruthPeaks.push_back(evenTruthHist[region]->GetBinCenter(i));
+      }
+
+      if(oddTruthHist[region]->GetBinContent(i) > 0.15*oddMaxTruth)
+      {
+        oddTruthPeaks.push_back(oddTruthHist[region]->GetBinCenter(i));
+      }
+
+    }
+
+    double evenMax = evenHist[region]->GetMaximum();
+    double oddMax = oddHist[region]->GetMaximum();
+
+    std::vector<double> evenRecoPeaks;
+    std::vector<double> oddRecoPeaks;
+
+
+  }
+
+  double threshold = 0.02;
+  std::vector<std::vector<int>> groupPhi;
+
+  std::vector<double> finalEvenTruthPeaks;
+
+  for (int i = 0; i < (int) evenTruthPeaks.size(); i++)
+  {
+    std::vector<int> tmpPhi;
+    tmpPhi.push_back(i);
+
+    bool closePeak = false;
+    int currentPeak = -1;
+
+    for (int j = 0; j < (int) finalEvenTruthPeaks.size(); j++)
+    {
+      for (int k = 0; k < (int) groupPhi[j].size(); k++)
+      {
+        if (fabs(evenTruthPeaks[i] - evenTruthPeaks[groupPhi[j][k]]) <= threshold || fabs(evenTruthPeaks[i] - finalEvenTruthPeaks[j]) <= threshold)
+        {
+          closePeak = true;
+          currentPeak = j;
+          break;
+        }
+      }
+      if (closePeak)
+      {
+        break;
+      }
+    }
+
+    if (!closePeak)
+    {
+      finalEvenTruthPeaks.push_back(evenTruthPeaks[i]);
+      groupPhi.push_back(tmpPhi);
+      tmpPhi.clear();
+      continue;
+    }
+
+    groupPhi[currentPeak].push_back(i);
+    double num = 0.0;
+    double den = 0.0;
+    for (int j : groupPhi[currentPeak])
+    {
+      double rHeight = evenTruthHist[region]->GetBinContent(evenTruthHist[region]->FindBin(evenTruthPeaks[j]));
+      num += evenTruthPeaks[j] * rHeight;
+      den += rHeight;
+    }
+
+    finalEvenTruthPeaks[currentPeak] = num / den;
+  }
+
+  std::vector<double> finalOddTruthPeaks;
+  groupPhi.clear();
+
+  for (int i = 0; i < (int) oddTruthPeaks.size(); i++)
+  {
+    std::vector<int> tmpPhi;
+    tmpPhi.push_back(i);
+
+    bool closePeak = false;
+    int currentPeak = -1;
+
+    for (int j = 0; j < (int) finalOddTruthPeaks.size(); j++)
+    {
+      for (int k = 0; k < (int) groupPhi[j].size(); k++)
+      {
+        if (fabs(oddTruthPeaks[i] - oddTruthPeaks[groupPhi[j][k]]) <= threshold || fabs(oddTruthPeaks[i] - finalOddTruthPeaks[j]) <= threshold)
+        {
+          closePeak = true;
+          currentPeak = j;
+          break;
+        }
+      }
+      if (closePeak)
+      {
+        break;
+      }
+    }
+
+    if (!closePeak)
+    {
+      finalOddTruthPeaks.push_back(oddTruthPeaks[i]);
+      groupPhi.push_back(tmpPhi);
+      tmpPhi.clear();
+      continue;
+    }
+
+    groupPhi[currentPeak].push_back(i);
+    double num = 0.0;
+    double den = 0.0;
+    for (int j : groupPhi[currentPeak])
+    {
+      double rHeight = oddTruthHist[region]->GetBinContent(oddTruthHist[region]->FindBin(oddTruthPeaks[j]));
+      num += oddTruthPeaks[j] * rHeight;
+      den += rHeight;
+    }
+
+    finalOddTruthPeaks[currentPeak] = num / den;
+  }
+
+  //reco
+  std::vector<double> finalEvenRecoPeaks;
+  groupPhi.clear();
+
+  for (int i = 0; i < (int) evenRecoPeaks.size(); i++)
+  {
+    std::vector<int> tmpPhi;
+    tmpPhi.push_back(i);
+
+    bool closePeak = false;
+    int currentPeak = -1;
+
+    for (int j = 0; j < (int) finalEvenRecoPeaks.size(); j++)
+    {
+      for (int k = 0; k < (int) groupPhi[j].size(); k++)
+      {
+        if (fabs(evenRecoPeaks[i] - evenRecoPeaks[groupPhi[j][k]]) <= threshold || fabs(evenRecoPeaks[i] - finalEvenRecoPeaks[j]) <= threshold)
+        {
+          closePeak = true;
+          currentPeak = j;
+          break;
+        }
+      }
+      if (closePeak)
+      {
+        break;
+      }
+    }
+
+    if (!closePeak)
+    {
+      finalEvenRecoPeaks.push_back(evenRecoPeaks[i]);
+      groupPhi.push_back(tmpPhi);
+      tmpPhi.clear();
+      continue;
+    }
+
+    groupPhi[currentPeak].push_back(i);
+    double num = 0.0;
+    double den = 0.0;
+    for (int j : groupPhi[currentPeak])
+    {
+      double rHeight = evenHist[region]->GetBinContent(evenHist[region]->FindBin(evenRecoPeaks[j]));
+      num += evenRecoPeaks[j] * rHeight;
+      den += rHeight;
+    }
+
+    finalEvenRecoPeaks[currentPeak] = num / den;
+  }
+
+  std::vector<double> finalOddRecoPeaks;
+  groupPhi.clear();
+
+  for (int i = 0; i < (int) oddRecoPeaks.size(); i++)
+  {
+    std::vector<int> tmpPhi;
+    tmpPhi.push_back(i);
+
+    bool closePeak = false;
+    int currentPeak = -1;
+
+    for (int j = 0; j < (int) finalOddRecoPeaks.size(); j++)
+    {
+      for (int k = 0; k < (int) groupPhi[j].size(); k++)
+      {
+        if (fabs(oddRecoPeaks[i] - oddRecoPeaks[groupPhi[j][k]]) <= threshold || fabs(oddRecoPeaks[i] - finalOddRecoPeaks[j]) <= threshold)
+        {
+          closePeak = true;
+          currentPeak = j;
+          break;
+        }
+      }
+      if (closePeak)
+      {
+        break;
+      }
+    }
+
+    if (!closePeak)
+    {
+      finalOddRecoPeaks.push_back(oddRecoPeaks[i]);
+      groupPhi.push_back(tmpPhi);
+      tmpPhi.clear();
+      continue;
+    }
+
+    groupPhi[currentPeak].push_back(i);
+    double num = 0.0;
+    double den = 0.0;
+    for (int j : groupPhi[currentPeak])
+    {
+      double rHeight = oddHist[region]->GetBinContent(oddHist[region]->FindBin(oddRecoPeaks[j]));
+      num += oddRecoPeaks[j] * rHeight;
+      den += rHeight;
+    }
+
+    finalOddRecoPeaks[currentPeak] = num / den;
+  }
+  */
+
+}
+
+std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2* r_phi, bool side)
 {
   TH1D* proj = r_phi->ProjectionY("R_proj");
 
   if (side)
   {
-    m_global_RShift[1] = 0.0;
+    m_m[1] = 0.0;
+    m_b[1] = 0.0;
   }
   else
   {
-    m_global_RShift[0] = 0.0;
+    m_m[0] = 0.0;
+    m_b[0] = 0.0;
   }
 
   std::vector<double> rPeaks;
@@ -360,6 +749,8 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F* r_phi, bool
     std::cout << finalRHeights[finalRHeights.size() - 1] << "}" << std::endl;
   }
 
+
+  /*
   int middle_peak = -1;
   double closestPeak = 100000000.0;
   for (int i = 0; i < (int) finalRPeaks.size(); i++)
@@ -382,56 +773,147 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F* r_phi, bool
     }
   }
 
-  double bestSum = 100000000.0;
-  int match = 0;
+  */
 
-  std::vector<double> matches;
-
-  std::vector<std::vector<int>> NNMatches;
-
-  for (int i = middle_match - 3; i <= middle_match + 3; i++)
+  double first_NN = 100000000.0;
+  int first_match = -1;
+  for (int i = 0; i < (int) m_truth_RPeaks.size(); i++)
   {
-    double sum = 0.0;
-    double move = m_truth_RPeaks[i] - finalRPeaks[middle_peak];
-    std::vector<int> tmpMatches;
-    for (double finalRPeak : finalRPeaks)
+    if (fabs(finalRPeaks[0] - m_truth_RPeaks[i]) < first_NN)
     {
-      int minMatch = 0;
-      double minResidual = 1000000000.0;
-      for (int k = 0; k < (int) m_truth_RPeaks.size(); k++)
+      first_NN = fabs(finalRPeaks[0] - m_truth_RPeaks[i]);
+      first_match = i;
+    }
+  }
+
+  double last_NN = 100000000.0;
+  int last_match = -1;
+  for (int i = 0; i < (int) m_truth_RPeaks.size(); i++)
+  {
+    if (fabs(finalRPeaks[finalRPeaks.size()-1] - m_truth_RPeaks[i]) < last_NN)
+    {
+      last_NN = fabs(finalRPeaks[finalRPeaks.size()-1] - m_truth_RPeaks[i]);
+      last_match = i;
+    }
+  }
+
+  double bestSum = 100000000.0;
+  int match_i = 0;
+  int match_j = 0;
+
+
+
+  int minI = -3;
+  if(first_match + minI < 0)
+  {
+    minI = -first_match;
+  }
+
+  int maxJ = 3;
+  if(last_match + maxJ >= (int)m_truth_RPeaks.size())
+  {
+    maxJ = ((int)m_truth_RPeaks.size()) - 1 - last_match;
+  }
+
+  std::vector<std::vector<double>> matches(3-minI + 1,std::vector<double>(maxJ+3+1,-999.0));
+  std::vector<std::vector<std::vector<int>>> NNMatches(3-minI + 1,std::vector<std::vector<int>>(maxJ+3+1,std::vector<int>(finalRPeaks.size(),-1)));
+
+  for (int i = minI; i <= 3; i++)
+  {
+    for(int j = -3; j <= maxJ; j++){
+
+      bool goodPair = true;
+
+      if(m_fixShifts)
       {
-        if (fabs(finalRPeak + move - m_truth_RPeaks[k]) < minResidual)
+        if(m_fieldOn)
         {
-          minResidual = fabs(finalRPeak + move - m_truth_RPeaks[k]);
-          minMatch = k;
-          if (minResidual < 0.5)
+          if(i != -1 || j != -1)
           {
-            break;
+            goodPair = false;
+          }
+        }
+
+        if(!m_fieldOn)
+        {
+          if(i != 0 || j != 0)
+          {
+            goodPair = false;
           }
         }
       }
-      sum += fabs(finalRPeak + move - m_truth_RPeaks[minMatch]);
-      tmpMatches.push_back(minMatch);
-    }
-    NNMatches.push_back(tmpMatches);
-    matches.push_back(sum);
-    if (sum < bestSum)
-    {
-      bestSum = sum;
-      match = i - (middle_match - 3);
+
+      if(!goodPair)
+      {
+        continue;
+      }
+
+      double sum = 0.0;
+      double m = (m_truth_RPeaks[last_match + j] - m_truth_RPeaks[first_match + i]) / (finalRPeaks[finalRPeaks.size()-1] - finalRPeaks[0]);
+      double b = ((m_truth_RPeaks[first_match + i]*finalRPeaks[finalRPeaks.size()-1]) - (m_truth_RPeaks[last_match + j]*finalRPeaks[0])) / (finalRPeaks[finalRPeaks.size()-1] - finalRPeaks[0]);
+      //std::vector<int> tmpMatches;
+      int recoIndex = 0;
+      for (double finalRPeak : finalRPeaks)
+      {
+        int minMatch = 0;
+        double minResidual = 1000000000.0;
+        for (int k = 0; k < (int) m_truth_RPeaks.size(); k++)
+        {
+          double residual = fabs((m*finalRPeak + b) - m_truth_RPeaks[k]);
+          if(residual < minResidual)
+          {
+            minResidual = residual;
+            minMatch = k;
+            if (minResidual < 0.5)
+            {
+              break;
+            }
+          }
+        }
+        sum += fabs((m*finalRPeak + b) - m_truth_RPeaks[minMatch]);
+        //tmpMatches.push_back(minMatch);
+        NNMatches[i-minI][j+3][recoIndex] = minMatch;
+        recoIndex++;
+      }
+      //NNMatches.push_back(tmpMatches);
+      //matches.push_back(sum);
+      matches[i-minI][j+3] = sum;
+      if(m_savehistograms)
+      {
+        if(side)
+        {
+          m_matchResiduals[1]->Fill(i,j,sum);
+        }
+        else{
+          m_matchResiduals[0]->Fill(i,j,sum);
+        }
+      }
+      if (sum < bestSum)
+      {
+        bestSum = sum;
+        match_i = i - minI;
+        match_j = j + 3;
+      }
     }
   }
 
   if (Verbosity())
   {
-    std::cout << "best total residual = " << bestSum << "   at middle match " << match << std::endl;
+    std::cout << "best total residual = " << bestSum << "   at i " << match_i + minI << "   j " << match_j - 3 << std::endl;
     for (int i = 0; i < (int) matches.size(); i++)
     {
-      std::cout << "total Residual match=" << i << "   : " << matches[i] << std::endl;
+      for(int j=0; j < (int) matches[i].size(); j++)
+      {
+        if(matches[i][j] == -999.0)
+        {
+          continue;
+        }
+        std::cout << "total Residual match i=" << i + minI << "   j=" << j - 3 << "   : " << matches[i][j] << std::endl;
+      }
     }
   }
 
-  for (int& i : NNMatches[match])
+  for (int& i : NNMatches[match_i][match_j])
   {
     hitMatches.push_back(i);
   }
@@ -440,21 +922,38 @@ std::vector<int> TpcCentralMembraneMatching::doGlobalRMatching(TH2F* r_phi, bool
   {
     for (int i = 0; i < (int) NNMatches.size(); i++)
     {
-      double move = m_truth_RPeaks[i + (middle_match - 3)] - finalRPeaks[middle_peak];
-      for (int j = 0; j < (int) NNMatches[i].size(); j++)
+      for(int j=0; j < (int) NNMatches[i].size(); j++)
       {
-        std::cout << "shift " << i + (middle_match - 3) << "   Reco index " << j << "   recoR=" << finalRPeaks[j] << "   shifted R=" << finalRPeaks[j] + move << "   matchIndex=" << NNMatches[i][j] << "   truth R=" << m_truth_RPeaks[NNMatches[i][j]] << "   residual=" << finalRPeaks[j] + move - m_truth_RPeaks[NNMatches[i][j]] << std::endl;
+        if(matches[i][j] == -999.0)
+        {
+          continue;
+        }
+        double m = (m_truth_RPeaks[last_match + j - 3] - m_truth_RPeaks[first_match + i + minI]) / (finalRPeaks[finalRPeaks.size()-1] - finalRPeaks[0]);
+        double b = ((m_truth_RPeaks[first_match + i + minI]*finalRPeaks[finalRPeaks.size()-1]) - (m_truth_RPeaks[last_match + j - 3]*finalRPeaks[0])) / (finalRPeaks[finalRPeaks.size()-1] - finalRPeaks[0]);
+        for (int k = 0; k < (int) NNMatches[i][j].size(); k++)
+        {
+          std::cout << "i " << i + minI << "   j " << j - 3 << "   Reco index " << k << "   recoR=" << finalRPeaks[k] << "   shifted R=" << (m*finalRPeaks[k] + b) << "   matchIndex=" << NNMatches[i][j][k] << "   truth R=" << m_truth_RPeaks[NNMatches[i][j][k]] << "   residual=" << (m*finalRPeaks[k] + b) - m_truth_RPeaks[NNMatches[i][j][k]] << std::endl;
+        }
       }
     }
   }
 
+  double final_m = (m_truth_RPeaks[last_match + match_j - 3] - m_truth_RPeaks[first_match + match_i + minI]) / (finalRPeaks[finalRPeaks.size()-1] - finalRPeaks[0]);
+  double final_b = ((m_truth_RPeaks[first_match + match_i + minI]*finalRPeaks[finalRPeaks.size()-1]) - (m_truth_RPeaks[last_match + match_j - 3]*finalRPeaks[0])) / (finalRPeaks[finalRPeaks.size()-1] - finalRPeaks[0]);
+
   if (side)
   {
-    m_global_RShift[1] = m_truth_RPeaks[match + (middle_match - 3)] - finalRPeaks[middle_peak];
+    m_m[1] = final_m;
+    m_b[1] = final_b;
+    m_matchLow[1] = match_i + minI;
+    m_matchHigh[1] = match_j - 3;
   }
   else
   {
-    m_global_RShift[0] = m_truth_RPeaks[match + (middle_match - 3)] - finalRPeaks[middle_peak];
+    m_m[0] = final_m;
+    m_b[0] = final_b;
+    m_matchLow[0] = match_i + minI;
+    m_matchHigh[0] = match_j - 3;
   }
 
   return hitMatches;
@@ -523,7 +1022,36 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
 
     m_debugfile.reset(new TFile(m_debugfilename.c_str(), "RECREATE"));
-    match_ntup = new TNtuple("match_ntup", "Match NTuple", "event:truthR:truthPhi:recoR:recoPhi:recoZ:side:adc:nhits");
+    match_tree = new TTree("match_tree","Match TTree");
+
+    match_tree->Branch("event",&m_event_index );
+    match_tree->Branch("matched",&m_matched);
+    match_tree->Branch("truthIndex",&m_truthIndex );
+    match_tree->Branch("truthR",&m_truthR);
+    match_tree->Branch("truthPhi",&m_truthPhi);
+    match_tree->Branch("recoR",&m_recoR);
+    match_tree->Branch("recoPhi",&m_recoPhi);
+    match_tree->Branch("recoZ",&m_recoZ);
+    match_tree->Branch("side",&m_side);
+    match_tree->Branch("adc",&m_adc);
+    match_tree->Branch("nhits",&m_nhits);
+    match_tree->Branch("nLayers",&m_nLayers);
+    match_tree->Branch("nIPhi",&m_nIPhi);
+    match_tree->Branch("nIT",&m_nIT);
+    match_tree->Branch("layerSD",&m_layersSD);
+    match_tree->Branch("IPhiSD",&m_IPhiSD);
+    match_tree->Branch("ITSD",&m_ITSD);
+    match_tree->Branch("layerWeightedSD",&m_layersWeightedSD);
+    match_tree->Branch("IPhiWeightedSD",&m_IPhiWeightedSD);
+    match_tree->Branch("ITWeightedSD",&m_ITWeightedSD);
+    match_tree->Branch("lowShift",&m_lowShift);
+    match_tree->Branch("highShift",&m_highShift);
+    match_tree->Branch("phiRotation",&m_phiRotation);
+    match_tree->Branch("distanceToTruth",&m_distanceToTruth);
+
+    //match_ntup = new TNtuple("match_ntup", "Match NTuple", "event:truthR:truthPhi:truthIndex:recoR:recoPhi:recoZ:side:adc:nhits:nLayers:nIPhi:nIT");
+    m_matchResiduals[0] = new TH2F("matchResiduals_0","Matching Residuals TPC South;Shift of smallest R from NN match;Shift of largest R from NN match",7,-3.5,3.5,7,-3.5,3.5);
+    m_matchResiduals[1] = new TH2F("matchResiduals_1","Matching Residuals TPC North;Shift of smallest R from NN match;Shift of largest R from NN match",7,-3.5,3.5,7,-3.5,3.5);
   }
 
   truth_r_phi[0] = new TH2F("truth_r_phi_0", "truth r vs #phi side 0;#phi (rad); r (cm)", 360, -M_PI, M_PI, 500, 0, 100);
@@ -666,6 +1194,15 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
   std::vector<bool> reco_side;
   std::vector<unsigned int> reco_nhits;
   std::vector<unsigned int> reco_adc;
+  std::vector<unsigned int> reco_nLayers;
+  std::vector<unsigned int> reco_nIPhi;
+  std::vector<unsigned int> reco_nIT;
+  std::vector<float> reco_SDLayer;
+  std::vector<float> reco_SDIPhi;
+  std::vector<float> reco_SDIT;
+  std::vector<float> reco_SDWeightedLayer;
+  std::vector<float> reco_SDWeightedIPhi;
+  std::vector<float> reco_SDWeightedIT;
 
   // reset output distortion correction container histograms
   for (const auto& harray : {m_dcc_out->m_hDRint, m_dcc_out->m_hDPint, m_dcc_out->m_hDZint, m_dcc_out->m_hentries})
@@ -706,30 +1243,19 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     //std::cout << "cluster " << clusterIndex << " side=" << side << "   sideKey=" << sideKey << "   are they the same? " << (side == sideKey ? "true" : "false") << std::endl;
     // if(m_useOnly_nClus2 && nclus != 2) continue;
 
-    if (nhits < m_nHitsInCuster_minimum)
-    {
-      continue;
-    }
 
     nClus_gtMin++;
 
-    // const bool isRGap = cmclus->getIsRGap();
 
     // Do the static + average distortion corrections if the container was found
     Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
-    // Acts::Vector3 apos1(cmclus->getX1(), cmclus->getY1(), cmclus->getZ1());
-    // Acts::Vector3 apos2(cmclus->getX2(), cmclus->getY2(), cmclus->getZ2());
     if (m_dcc_in_static)
     {
       pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_static);
-      // apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_static );
-      // apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_static );
     }
     if (m_dcc_in_average)
     {
       pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_average);
-      // apos1 = m_distortionCorrection.get_corrected_position( apos1, m_dcc_in_average );
-      // apos2 = m_distortionCorrection.get_corrected_position( apos2, m_dcc_in_average );
     }
 
     TVector3 tmp_pos(pos[0], pos[1], pos[2]);
@@ -740,18 +1266,17 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
 
     reco_pos.push_back(tmp_pos);
     reco_side.push_back(side);
-    //pos1.push_back(tmp_pos1);
-    //pos2.push_back(tmp_pos2);
     reco_nhits.push_back(nhits);
     reco_adc.push_back(adc);
-    //adc1.push_back(0);
-    //adc2.push_back(0);
-    //layer1.push_back(0);
-    //layer2.push_back(0);
-    // adc1.push_back(cmclus->getAdc1());
-    // adc2.push_back(cmclus->getAdc2());
-    // layer1.push_back(cmclus->getLayer1());
-    // layer2.push_back(cmclus->getLayer2());
+    reco_nLayers.push_back(cmclus->getNLayers());
+    reco_nIPhi.push_back(cmclus->getNIPhi());
+    reco_nIT.push_back(cmclus->getNIT());
+    reco_SDLayer.push_back(cmclus->getSDLayer());
+    reco_SDIPhi.push_back(cmclus->getSDIPhi());
+    reco_SDIT.push_back(cmclus->getSDIT());
+    reco_SDWeightedLayer.push_back(cmclus->getSDWeightedLayer());
+    reco_SDWeightedIPhi.push_back(cmclus->getSDWeightedIPhi());
+    reco_SDWeightedIT.push_back(cmclus->getSDWeightedIT());
 
     if (side == 0)
     {
@@ -785,13 +1310,13 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
   }
 
   // get global phi rotation for each module
-  m_recoRotation[0][0] = getPhiRotation_smoothed(truth_r_phi[0]->ProjectionX("hR1", 151, 206), reco_r_phi[0]->ProjectionX("cR1_0", 151, 206));
-  m_recoRotation[0][1] = getPhiRotation_smoothed(truth_r_phi[0]->ProjectionX("hR2", 206, 290), reco_r_phi[0]->ProjectionX("cR2_0", 206, 290));
-  m_recoRotation[0][2] = getPhiRotation_smoothed(truth_r_phi[0]->ProjectionX("hR3", 290, 499), reco_r_phi[0]->ProjectionX("cR3_0", 290, 499));
+  m_recoRotation[0][1] = getPhiRotation_smoothed(truth_r_phi[0]->ProjectionX("hR2", 206, 290), reco_r_phi[0]->ProjectionX("cR2_0", 206, 290),0);
+  m_recoRotation[0][0] = getPhiRotation_smoothed(truth_r_phi[0]->ProjectionX("hR1", 151, 206), reco_r_phi[0]->ProjectionX("cR1_0", 151, 206),0);
+  m_recoRotation[0][2] = getPhiRotation_smoothed(truth_r_phi[0]->ProjectionX("hR3", 290, 499), reco_r_phi[0]->ProjectionX("cR3_0", 290, 499),0);
 
-  m_recoRotation[1][0] = getPhiRotation_smoothed(truth_r_phi[1]->ProjectionX("hR1", 151, 206), reco_r_phi[1]->ProjectionX("cR1_1", 151, 206));
-  m_recoRotation[1][1] = getPhiRotation_smoothed(truth_r_phi[1]->ProjectionX("hR2", 206, 290), reco_r_phi[1]->ProjectionX("cR2_1", 206, 290));
-  m_recoRotation[1][2] = getPhiRotation_smoothed(truth_r_phi[1]->ProjectionX("hR3", 290, 499), reco_r_phi[1]->ProjectionX("cR3_1", 290, 499));
+  m_recoRotation[1][1] = getPhiRotation_smoothed(truth_r_phi[1]->ProjectionX("hR2", 206, 290), reco_r_phi[1]->ProjectionX("cR2_1", 206, 290),1);
+  m_recoRotation[1][0] = getPhiRotation_smoothed(truth_r_phi[1]->ProjectionX("hR1", 151, 206), reco_r_phi[1]->ProjectionX("cR1_1", 151, 206),1);
+  m_recoRotation[1][2] = getPhiRotation_smoothed(truth_r_phi[1]->ProjectionX("hR3", 290, 499), reco_r_phi[1]->ProjectionX("cR3_1", 290, 499),1);
 
   m_reco_RMatches[0] = doGlobalRMatching(reco_r_phi[0], 0);
   m_reco_RMatches[1] = doGlobalRMatching(reco_r_phi[1], 1);
@@ -800,20 +1325,24 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
   {
     for (int i = 0; i < (int) m_reco_RMatches[0].size(); i++)
     {
-      std::cout << "side 0 cluster index " << i << "   hit match " << m_reco_RMatches[0][i] << "   recoPeak=" << m_reco_RPeaks[0][i] << "   shifted recoPeak=" << m_reco_RPeaks[0][i] + m_global_RShift[0] << "   truthPeak=" << m_truth_RPeaks[m_reco_RMatches[0][i]] << "   residual=" << m_truth_RPeaks[m_reco_RMatches[0][i]] - (m_reco_RPeaks[0][i] + m_global_RShift[0]) << std::endl;
+      std::cout << "side 0 cluster index " << i << "   hit match " << m_reco_RMatches[0][i] << "   recoPeak=" << m_reco_RPeaks[0][i] << "   shifted recoPeak=" << (m_m[0]*m_reco_RPeaks[0][i] + m_b[0]) << "   truthPeak=" << m_truth_RPeaks[m_reco_RMatches[0][i]] << "   residual=" << m_truth_RPeaks[m_reco_RMatches[0][i]] - (m_m[0]*m_reco_RPeaks[0][i] + m_b[0]) << std::endl;
     }
 
     for (int i = 0; i < (int) m_reco_RMatches[1].size(); i++)
     {
-      std::cout << "side 1 cluster index " << i << "   hit match " << m_reco_RMatches[1][i] << "   recoPeak=" << m_reco_RPeaks[1][i] << "   shifted recoPeak=" << m_reco_RPeaks[1][i] + m_global_RShift[1] << "   truthPeak=" << m_truth_RPeaks[m_reco_RMatches[1][i]] << "   residual=" << m_truth_RPeaks[m_reco_RMatches[1][i]] - (m_reco_RPeaks[1][i] + m_global_RShift[1]) << std::endl;
+      std::cout << "side 1 cluster index " << i << "   hit match " << m_reco_RMatches[1][i] << "   recoPeak=" << m_reco_RPeaks[1][i] << "   shifted recoPeak=" << (m_m[1]*m_reco_RPeaks[1][i] + m_b[1]) << "   truthPeak=" << m_truth_RPeaks[m_reco_RMatches[1][i]] << "   residual=" << m_truth_RPeaks[m_reco_RMatches[1][i]] - (m_m[1]*m_reco_RPeaks[1][i] + m_b[1]) << std::endl;
     }
   }
 
   int truth_index = 0;
   int nMatched = 0;
   std::vector<bool> truth_matched(m_truth_pos.size(),false);
+
+
+
   std::vector<bool> reco_matched(reco_pos.size(),false);
   std::vector<int> truth_matchedRecoIndex(m_truth_pos.size(),-1);
+  std::vector<int> reco_matchedTruthIndex(reco_pos.size(),-1);
 
   for (auto truth : m_truth_pos)
   {
@@ -846,7 +1375,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     for (auto reco : reco_pos)
     {
 
-      if(reco_matched[reco_index])
+      if(reco_matched[reco_index] || reco_nhits[reco_index] < m_nHitsInCuster_minimum)
       {
         reco_index++;
         continue;
@@ -855,6 +1384,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
       double rR = get_r(reco.X(), reco.Y());
       double rPhi = reco.Phi();
       bool side = reco_side[reco_index];
+
 
       int region = -1;
 
@@ -871,7 +1401,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
         region = 2;
       }
 
- 
+
       if(region != -1)
       {
         if(side)
@@ -884,20 +1414,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
         }
       }
 
-
       int clustRMatchIndex = -1;
       clustRMatchIndex = getClusterRMatch(rR,(int)(side ? 1 : 0));
       
-      /*
-      if (side)
-      {
-        clustRMatchIndex = getClusterRMatch(m_reco_RMatches[1], m_reco_RPeaks[1], rR);
-      }
-      else
-      {
-        clustRMatchIndex = getClusterRMatch(m_reco_RMatches[0], m_reco_RPeaks[0], rR);
-      }
-      */
 
       if (clustRMatchIndex == -1 || truthRIndex != clustRMatchIndex)
       {
@@ -932,6 +1451,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     {
       truth_matchedRecoIndex[truth_index] = recoMatchIndex;
       reco_matched[recoMatchIndex] = true;
+      reco_matchedTruthIndex[recoMatchIndex] = truth_index;
       nMatched++;
 
       if(Verbosity() > 2)
@@ -948,6 +1468,127 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
   } // end loop over truth
 
 
+  //loop again to find nearest neighbor for unmatched reco clusters
+  std::vector<float> reco_distToNN(reco_pos.size(),10000.0);
+  int recoIndex = 0;
+  for (auto reco : reco_pos)
+  {
+    double rR = get_r(reco.X(), reco.Y());
+    double rPhi = reco.Phi();
+    bool side = reco_side[recoIndex];
+
+
+    int region = -1;
+
+    if(rR < 41)
+    {
+      region = 0;
+    }
+    else if (rR >= 41 && rR < 58)
+    {
+      region = 1;
+    }
+    else if(rR >= 58)
+    {
+      region = 2;
+    }
+
+
+    if(region != -1)
+    {
+      if(side)
+      {
+        rPhi -= m_recoRotation[1][region];
+      }
+      else
+      {
+        rPhi -= m_recoRotation[0][region];
+      }
+    }
+
+    int clustRMatchIndex = -1;
+    clustRMatchIndex = getClusterRMatch(rR,(int)(side ? 1 : 0));
+
+    if (clustRMatchIndex == -1)
+    {
+      recoIndex++;
+      continue;
+    }
+
+    int truthMatchIndex = -1;
+    truth_index = 0;
+    for (auto truth : m_truth_pos)
+    {
+
+
+
+      double tR = get_r(truth.X(), truth.Y());
+      double tPhi = truth.Phi();
+      double tZ = truth.Z();
+
+      if(reco_matched[recoIndex])
+      {
+        if(reco_matchedTruthIndex[recoIndex] == truth_index)
+        {
+          reco_distToNN[recoIndex] = sqrt(pow(truth.X()-reco.X(),2) + pow(truth.Y()-reco.Y(),2));
+          break;
+        }
+        else
+        {
+          truth_index++;
+          continue;
+        }
+      }
+
+      int truthRIndex = -1;
+
+    // get which hit radial index this it
+      for (int k = 0; k < (int) m_truth_RPeaks.size(); k++)
+      {
+        if (std::abs(tR - m_truth_RPeaks[k]) < 0.5)
+        {
+          truthRIndex = k;
+          break;
+        }
+      }
+
+      if(truthRIndex == -1 || truthRIndex != clustRMatchIndex){
+        truth_index++;
+        continue;
+      }
+
+      if((!side  && tZ > 0) || (side && tZ < 0))
+      {
+        truth_index++;
+        continue;
+      }
+
+      auto dphi = delta_phi(tPhi - rPhi);
+      if(fabs(dphi) > m_phi_cut)
+      {
+        truth_index++;
+        continue;
+      }
+
+      float dist = sqrt(pow(tR*sin(tPhi) - rR*sin(rPhi),2) + pow(tR*cos(tPhi) - rR*cos(rPhi),2));
+
+      if(dist < reco_distToNN[recoIndex])
+      {
+        reco_distToNN[recoIndex] = dist;
+        truthMatchIndex = truth_index;
+      }
+
+      truth_index++;
+
+    }//end of truth loop
+
+    if(!reco_matched[recoIndex])
+    {
+      reco_matchedTruthIndex[recoIndex] = truthMatchIndex;
+    }
+    recoIndex++;
+  }
+
   // print some statistics:
   if (Verbosity())
   {
@@ -959,10 +1600,72 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     std::cout << "TpcCentralMembraneMatching::process_event - matched_pair size: " << nMatched << std::endl;
   }
 
+  if (m_savehistograms)
+  {
+    for(int i=0; i < (int) reco_pos.size(); i++){
+      m_matched = reco_matched[i];
+      m_truthR = m_truth_pos[reco_matchedTruthIndex[i]].Perp();
+      m_truthPhi = m_truth_pos[reco_matchedTruthIndex[i]].Phi();
+      m_distanceToTruth = sqrt(pow(m_truth_pos[reco_matchedTruthIndex[i]].Y() - reco_pos[i].Y(),2) + pow(m_truth_pos[reco_matchedTruthIndex[i]].X() - reco_pos[i].X(),2));
+      m_truthIndex = reco_matchedTruthIndex[i];
+      m_recoR = reco_pos[i].Perp();
+      m_recoPhi = reco_pos[i].Phi();
+      m_recoZ = reco_pos[i].Z();
+      m_side = reco_side[i];
+      m_adc = reco_adc[i];
+      m_nhits = reco_nhits[i];
+      m_nLayers = reco_nLayers[i];
+      m_nIPhi = reco_nIPhi[i];
+      m_nIT = reco_nIT[i];
+      m_layersSD = reco_SDLayer[i];
+      m_IPhiSD = reco_SDIPhi[i];
+      m_ITSD = reco_SDIT[i];
+      m_layersWeightedSD = reco_SDWeightedLayer[i];
+      m_IPhiWeightedSD = reco_SDWeightedIPhi[i];
+      m_ITWeightedSD = reco_SDWeightedIT[i];
+      if(m_side){
+        m_lowShift = m_matchLow[1];
+        m_highShift = m_matchHigh[1];
+      }
+      else{
+        m_lowShift = m_matchLow[0];
+        m_highShift = m_matchHigh[0];
+      }
+
+      int region = -1;
+
+      if(m_recoR < 41)
+      {
+        region = 0;
+      }
+      else if (m_recoR >= 41 && m_recoR < 58)
+      {
+        region = 1;
+      }
+      else if(m_recoR >= 58)
+      {
+        region = 2;
+      }
+
+      if(region == -1)
+      {
+        m_phiRotation = -999.0;
+      }
+      else
+      {
+        m_phiRotation = m_recoRotation[m_side][region];
+      }
+
+
+
+      match_tree->Fill();
+    }
+  }
+
   unsigned int ckey = 0;
   for (unsigned int i = 0; i < m_truth_pos.size(); i++)
   {
-    
+
     if(!truth_matched[i]) continue;
 
     //std::cout << "i=" << i << "   ckey=" << ckey << "   reco_index=" << truth_matchedRecoIndex[i] << std::endl;
@@ -992,11 +1695,6 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* /*topNode*/)
     }
 
     m_cm_flash_diffs->addDifferenceSpecifyKey(ckey, cmdiff);
-
-    if (m_savehistograms)
-    {
-      match_ntup->Fill(m_event_index, m_truth_pos[i].Perp(), m_truth_pos[i].Phi(), reco_pos[reco_index].Perp(), reco_pos[reco_index].Phi(), reco_pos[reco_index].Z(), reco_side[reco_index], reco_adc[reco_index], reco_nhits[reco_index]);
-    }
 
     // store cluster position
     const double clus_r = reco_pos[reco_index].Perp();
@@ -1124,11 +1822,14 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
   {
     m_debugfile->cd();
 
-    match_ntup->Write();
+    match_tree->Write();
+    //match_ntup->Write();
     truth_r_phi[0]->Write();
     truth_r_phi[1]->Write();
     reco_r_phi[0]->Write();
     reco_r_phi[1]->Write();
+    m_matchResiduals[0]->Write();
+    m_matchResiduals[1]->Write();
 
     m_debugfile->Close();
   }

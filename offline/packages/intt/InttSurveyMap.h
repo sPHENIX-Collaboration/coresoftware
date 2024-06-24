@@ -5,7 +5,14 @@
 
 #include <phool/PHObject.h>
 
+#ifdef __clang__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundefined-internal"
 #include <Eigen/Geometry>
+#pragma GCC diagnostic pop
+#else
+#include <Eigen/Geometry>
+#endif
 
 #include <cstddef>  // for size_t
 #include <iostream>

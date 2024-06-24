@@ -91,11 +91,7 @@ void mvtx_pool::setupLinks()
     // Skip FLX padding
     if ( *(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) == 0xFFFF )
     {
-      while ( (*(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) == 0xFFFF) &&\
-             payload_position < dlength)
-      {
-        payload_position += mvtx_utils::FLXWordLength;
-      }
+      payload_position += mvtx_utils::FLXWordLength;
     }
     else if ( (dlength - payload_position) >= static_cast<uint64_t>(2 * mvtx_utils::FLXWordLength) ) // at least FLX header and RDH
     {
@@ -105,7 +101,7 @@ void mvtx_pool::setupLinks()
         const size_t pageSizeInBytes = static_cast<size_t>((rdh.pageSize + 1) * mvtx_utils::FLXWordLength);
         if ( pageSizeInBytes > (dlength - payload_position) )
         {
-          break; // skip incomplete felix packet
+          break; // skip incomplete felix packet, return to fetch more data
         }
         else
         {
@@ -131,30 +127,29 @@ void mvtx_pool::setupLinks()
 
           if ( ! rdh.packetCounter ) // start HB
           {
-            if ( gbtLink.hbf_found )
+            if ( gbtLink.hbf_length )
             {
               log_error << "FLX: " << gbtLink.flxId << ", FeeId: " << gbtLink.feeId \
                 << ". Found new HBF before stop previous HBF. Previous HBF will be ignored." << std::endl;
-              gbtLink.cacheData(gbtLink.hbf_length, true);
+                gbtLink.cacheData(gbtLink.hbf_length, true);
             }
-            gbtLink.hbf_found = true;
             gbtLink.hbf_length = pageSizeInBytes;
+            gbtLink.hbf_error = false;
           }
           else
           {
-            gbtLink.hbf_length += pageSizeInBytes;
-          }
-
-          if ( rdh.stopBit ) // found HB end
-          {
-            if ( ! gbtLink.hbf_found )
+            if (! gbtLink.hbf_length )
             {
-              log_error << "FLX: " << gbtLink.flxId << ", FeeId: " << gbtLink.feeId \
-                << ". Stopping HBF without start. This block will be ignored." << std::endl;
-              gbtLink.cacheData(gbtLink.hbf_length, true);
+              log_error << "FLX: " << gbtLink.flxId << ", FeeId: " << gbtLink.feeId
+              << ". Found continuous HBF before start new HBF. data will be ignored." << std::endl;
+              gbtLink.hbf_error = true;
             }
-            gbtLink.hbf_found = false;
-            gbtLink.cacheData(gbtLink.hbf_length, false);
+            gbtLink.hbf_length += pageSizeInBytes;
+            if ( rdh.stopBit ) // found HB end
+            {
+              gbtLink.cacheData(gbtLink.hbf_length, gbtLink.hbf_error);
+              gbtLink.hbf_length = 0;
+            }
           }
           payload_position += pageSizeInBytes;
         }
@@ -282,6 +277,10 @@ int mvtx_pool::iValue(const int i_feeid, const int idx, const char *what)
   else if ( strcmp(what, "TRG_IR_BC") == 0 )
   {
     return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].ir.bc : -1;
+  }
+  else if ( strcmp(what, "TRG_DET_FIELD") == 0 )
+  {
+    return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].detectorField : -1;
   }
   else if ( strcmp(what, "TRG_NR_HITS") == 0)
   {

@@ -63,6 +63,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
   WaveformProcessing->set_processing_type(_processingtype);
   WaveformProcessing->set_softwarezerosuppression(m_bdosoftwarezerosuppression, m_nsoftwarezerosuppression);
+  if (m_setTimeLim)
+  {
+     WaveformProcessing->set_timeFitLim(m_timeLim_low,m_timeLim_high);
+  }
 
   if (m_dettype == CaloTowerDefs::CEMC)
   {
@@ -225,20 +229,15 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
       {
         adc_skip_mask = cdbttree->GetIntValue(pid, m_fieldname);
       }
-
       if (m_dettype == CaloTowerDefs::ZDC)
       {
-        if (nchannels < m_nchannels)
-        {
-          return Fun4AllReturnCodes::ABORTEVENT;
-        }
         nchannels = m_nchannels;
       }
       if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
       {
          return Fun4AllReturnCodes::ABORTEVENT;
       }
-     
+      
       for (int channel = 0; channel < nchannels; channel++)
       {
         if (skipChannel(channel, pid))

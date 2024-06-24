@@ -30,6 +30,10 @@ void CaloWaveformProcessing::initialize_processing()
     m_Fitter = new CaloWaveformFitting();
     m_Fitter->initialize_processing(url_template);
     m_Fitter->set_nthreads(get_nthreads());
+    if (m_setTimeLim)
+    {
+      m_Fitter->set_timeFitLim(m_timeLim_low,m_timeLim_high);
+    }
 
     if (_bdosoftwarezerosuppression == true)
       {
