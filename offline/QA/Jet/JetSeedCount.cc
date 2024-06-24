@@ -18,9 +18,11 @@
 
 #include <iostream>
 
-JetSeedCount::JetSeedCount(const std::string &recojetname, const std::string &truthjetname, const std::string &outputfilename)
-  : SubsysReco("JetSeedCount_" + recojetname + "_" + truthjetname)
+JetSeedCount::JetSeedCount(const std::string &moduleName, const std::string &recojetname, const std::string &rawSeedName, const std::string &subSeedName, const std::string &truthjetname, const std::string &outputfilename)
+  : SubsysReco(moduleName)
   , m_recoJetName(recojetname)
+  , m_rawSeedName(rawSeedName)
+  , m_subSeedName(subSeedName)
   , m_truthJetName(truthjetname)
   , m_outputFileName(outputfilename)
   , m_histTag("AllTrig_AntiKt_Tower_r04_Sub1")
@@ -60,7 +62,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   // std::cout << "JetSeedCount::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   ++m_event;
   // Calling Raw Jet Seeds
-  JetContainer *seedjetsraw = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
+  JetContainer *seedjetsraw = findNode::getClass<JetContainer>(topNode, m_rawSeedName);
   if (!seedjetsraw)
   {
     std::cout << "JetSeedCount::process_event - Error can not find DST raw seed jets" << std::endl;
@@ -68,7 +70,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   }
 
   // Calling Sub jet seeds
-  JetContainer *seedjetssub = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
+  JetContainer *seedjetssub = findNode::getClass<JetContainer>(topNode, m_subSeedName);
   if (!seedjetssub)
   {
     std::cout << "JetSeedCount::process_event - Error can not find DST sub seed jets" << std::endl;

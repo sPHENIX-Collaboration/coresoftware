@@ -19,7 +19,10 @@ class PHCompositeNode;
 class JetSeedCount : public SubsysReco
 {
  public:
-  JetSeedCount(const std::string &recojetname = "AntiKt_Tower_r04",
+  JetSeedCount(const std::string &moduleName = "JetSeedCount",
+               const std::string &recojetname = "AntiKt_Tower_r04",
+               const std::string &rawSeedName = "AntiKt_TowerInfo_HIRecoSeedsRaw_r02",
+               const std::string &subSeedName = "AntiKt_TowerInfo_HIRecoSeedsSub_r02",
                const std::string &truthjetname = "AntiKt_Truth_r04",
                const std::string &outputfilename = "myjetanalysis.root");
 
@@ -70,6 +73,8 @@ class JetSeedCount : public SubsysReco
   double z_vtx{std::numeric_limits<double>::quiet_NaN()};
 
   std::string m_recoJetName;
+  std::string m_rawSeedName;
+  std::string m_subSeedName;
   std::string m_truthJetName;
   std::string m_outputFileName;
   std::string m_histTag;
