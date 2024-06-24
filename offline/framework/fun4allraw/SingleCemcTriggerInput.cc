@@ -3,8 +3,8 @@
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/CaloPacketv1.h>
 #include <ffarawobjects/CaloPacketContainerv1.h>
+#include <ffarawobjects/CaloPacketv1.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -41,6 +41,12 @@ SingleCemcTriggerInput::SingleCemcTriggerInput(const std::string &name)
 SingleCemcTriggerInput::~SingleCemcTriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
+  // some events are already in the m_EventStack but they haven't been put
+  // into the m_PacketMap
+  while (m_EventStack.begin() != m_EventStack.end())
+  {
+    m_EventStack.erase(m_EventStack.begin());
+  }
   delete[] plist;
 }
 
@@ -86,12 +92,12 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, NCEMCPACKETS); // just in case we have more packets, they will not vanish silently
+    int npackets = evt->getPacketList(plist, NCEMCPACKETS);  // just in case we have more packets, they will not vanish silently
     if (npackets >= NCEMCPACKETS)
     {
       std::cout << PHWHERE << " Packets array size " << NCEMCPACKETS
-		<< " too small for " << Name()
-<< ", increase NCEMCPACKETS and rebuild" << std::endl;
+                << " too small for " << Name()
+                << ", increase NCEMCPACKETS and rebuild" << std::endl;
       exit(1);
       exit(1);
     }
@@ -105,26 +111,26 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
 
       // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
-      int nr_modules = plist[i]->iValue(0,"NRMODULES");
+      int nr_modules = plist[i]->iValue(0, "NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
-      if (nr_modules > newhit->getMaxNumModules() )
+      if (nr_modules > newhit->getMaxNumModules())
       {
-	std::cout << PHWHERE << " too many modules " <<  nr_modules << ", max is " 
-                  <<  newhit->getMaxNumModules() << ", need to adjust arrays" << std::endl;
-	gSystem->Exit(1);
+        std::cout << PHWHERE << " too many modules " << nr_modules << ", max is "
+                  << newhit->getMaxNumModules() << ", need to adjust arrays" << std::endl;
+        gSystem->Exit(1);
       }
       if (nr_channels > newhit->getMaxNumChannels())
       {
-	std::cout << PHWHERE << " too many channels " <<  nr_channels << ", max is " 
-                  <<  newhit->getMaxNumChannels() << ", need to adjust arrays" << std::endl;
-	gSystem->Exit(1);
+        std::cout << PHWHERE << " too many channels " << nr_channels << ", max is "
+                  << newhit->getMaxNumChannels() << ", need to adjust arrays" << std::endl;
+        gSystem->Exit(1);
       }
       if (nr_samples > newhit->getMaxNumSamples())
       {
-	std::cout << PHWHERE << " too many samples " <<  nr_samples << ", max is " 
-                  <<  newhit->getMaxNumSamples() << ", need to adjust arrays" << std::endl;
-	gSystem->Exit(1);
+        std::cout << PHWHERE << " too many samples " << nr_samples << ", max is "
+                  << newhit->getMaxNumSamples() << ", need to adjust arrays" << std::endl;
+        gSystem->Exit(1);
       }
 
       uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
@@ -140,36 +146,36 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
       newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
       newhit->setCalcOddChecksum(plist[i]->iValue(0, "CALCODDCHECKSUM"));
-      newhit->setModuleAddress(plist[i]->iValue(0,"MODULEADDRESS"));
-      newhit->setDetId(plist[i]->iValue(0,"DETID"));
+      newhit->setModuleAddress(plist[i]->iValue(0, "MODULEADDRESS"));
+      newhit->setDetId(plist[i]->iValue(0, "DETID"));
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
         newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
         newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
         newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
-        newhit->setChecksumLsb(ifem,plist[i]->iValue(ifem, "CHECKSUMLSB"));
-        newhit->setChecksumMsb(ifem,plist[i]->iValue(ifem, "CHECKSUMMSB"));
-        newhit->setCalcChecksumLsb(ifem,plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
-        newhit->setCalcChecksumMsb(ifem,plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
+        newhit->setChecksumLsb(ifem, plist[i]->iValue(ifem, "CHECKSUMLSB"));
+        newhit->setChecksumMsb(ifem, plist[i]->iValue(ifem, "CHECKSUMMSB"));
+        newhit->setCalcChecksumLsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
+        newhit->setCalcChecksumMsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
       }
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
         // store pre/post only for suppressed channels, the array in the packet routines is not
         // initialized so reading pre/post for not zero suppressed channels returns garbage
-        bool isSuppressed = plist[i]->iValue(ipmt,"SUPPRESSED");
-        newhit->setSuppressed(ipmt,isSuppressed);
-	if (isSuppressed)
-	{
-	  newhit->setPre(ipmt,plist[i]->iValue(ipmt,"PRE"));
-	  newhit->setPost(ipmt,plist[i]->iValue(ipmt,"POST"));
-	}
-	else
-	{
-	  for (int isamp = 0; isamp < nr_samples; isamp++)
-	  {
-	    newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
-	  }
-	}
+        bool isSuppressed = plist[i]->iValue(ipmt, "SUPPRESSED");
+        newhit->setSuppressed(ipmt, isSuppressed);
+        if (isSuppressed)
+        {
+          newhit->setPre(ipmt, plist[i]->iValue(ipmt, "PRE"));
+          newhit->setPost(ipmt, plist[i]->iValue(ipmt, "POST"));
+        }
+        else
+        {
+          for (int isamp = 0; isamp < nr_samples; isamp++)
+          {
+            newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+          }
+        }
       }
       if (Verbosity() > 2)
       {
@@ -181,11 +187,11 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       {
         TriggerInputManager()->AddCemcPacket(EventSequence, newhit);
       }
-      m_CemcPacketMap[EventSequence].push_back(newhit);
+      m_PacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
       if (ddump_enabled())
       {
-	ddumppacket(plist[i]);
+        ddumppacket(plist[i]);
       }
       delete plist[i];
     }
@@ -196,7 +202,7 @@ void SingleCemcTriggerInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_CemcPacketMap)
+    for (const auto &bcliter : m_PacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
     }
@@ -213,7 +219,7 @@ void SingleCemcTriggerInput::Print(const std::string &what) const
 void SingleCemcTriggerInput::CleanupUsedPackets(const int eventno)
 {
   std::vector<int> toclearevents;
-  for (const auto &iter : m_CemcPacketMap)
+  for (const auto &iter : m_PacketMap)
   {
     if (iter.first <= eventno)
     {
@@ -232,7 +238,7 @@ void SingleCemcTriggerInput::CleanupUsedPackets(const int eventno)
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-    m_CemcPacketMap.erase(iter);
+    m_PacketMap.erase(iter);
   }
 }
 
@@ -251,20 +257,20 @@ bool SingleCemcTriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     return false;
   }
-  if (m_CemcPacketMap.empty())
+  if (m_PacketMap.empty())
   {
     return true;
   }
 
-  int first_event = m_CemcPacketMap.begin()->first;
-  int last_event = m_CemcPacketMap.rbegin()->first;
+  int first_event = m_PacketMap.begin()->first;
+  int last_event = m_PacketMap.rbegin()->first;
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
   }
-  if (keep > 2 && m_CemcPacketMap.size() < keep)
+  if (keep > 2 && m_PacketMap.size() < keep)
   {
     return true;
   }
