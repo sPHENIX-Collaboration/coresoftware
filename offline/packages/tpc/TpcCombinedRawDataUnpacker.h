@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// //  -*- C++ -*-.
+// //  -*- C++ -*-. 
 #ifndef TPC_COMBINEDRAWDATAUNPACKER_H
 #define TPC_COMBINEDRAWDATAUNPACKER_H
 
