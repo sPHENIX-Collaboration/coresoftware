@@ -24,7 +24,9 @@ class SiliconSeedsQA : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
   int End(PHCompositeNode *topNode) override;
-
+  void setTrackMapName(const std::string &name) { m_trackMapName = name; }
+  void setVertexMapName(const std::string &name) { m_vertexMapName = name; }
+  
  private:
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack *track);
   void createHistos();
