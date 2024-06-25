@@ -29,10 +29,8 @@ class SingleCemcTriggerInput : public SingleTriggerInput
 
  private:
   Packet **plist{nullptr};
-  unsigned int m_NumSpecialEvents{0};
 
   std::set<int> m_EventNumber;
-  std::map<int, std::vector<OfflinePacket *>> m_CemcPacketMap;
   std::set<int> m_EventStack;
 };
 
