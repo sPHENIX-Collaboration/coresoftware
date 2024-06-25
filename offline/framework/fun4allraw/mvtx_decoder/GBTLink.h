@@ -54,8 +54,8 @@ struct GBTLink
 //                             Abort = 0x4,
 //                             ErrorPrinted = 0x1 << 7 };
 
-  static constexpr int RawBufferMargin = 5000000;                      // keep uploaded at least this amount
-  static constexpr int RawBufferSize = 10000000 + 2 * RawBufferMargin; // size in MB
+  static constexpr int RawBufferMargin = 500000;                      // keep uploaded at least this amount
+  static constexpr int RawBufferSize = 1000000 + 2 * RawBufferMargin; // size in MB
   static constexpr uint8_t MaxCablesPerLink = 3;
 
   CollectedDataStatus status = None;
