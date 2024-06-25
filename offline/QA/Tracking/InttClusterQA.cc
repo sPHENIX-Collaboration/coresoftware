@@ -84,6 +84,8 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
   auto h_clusPhi_incl = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%sclusterPhi_incl") % getHistoPrefix()).str()));
   auto h_clusPhi_l34 = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%sclusterPhi_l34") % getHistoPrefix()).str()));
   auto h_clusPhi_l56 = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%sclusterPhi_l56") % getHistoPrefix()).str()));
+  auto h_clusZ_clusPhi_l34 = dynamic_cast<TH2F *>(hm->getHisto((boost::format("%sclusterZ_clusPhi_l34") % getHistoPrefix()).str()));
+  auto h_clusZ_clusPhi_l56 = dynamic_cast<TH2F *>(hm->getHisto((boost::format("%sclusterZ_clusPhi_l56") % getHistoPrefix()).str()));
 
   for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::inttId))
   {
@@ -109,10 +111,12 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
         if (clayer == 3 || clayer == 4)
         {
           h_clusPhi_l34->Fill(phi);
+          h_clusZ_clusPhi_l34->Fill(globalpos(2), phi);
         }
         else if (clayer == 5 || clayer == 6)
         {
           h_clusPhi_l56->Fill(phi);
+          h_clusZ_clusPhi_l56->Fill(globalpos(2), phi);
         }
         
         m_totalClusters++;
@@ -134,10 +138,12 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
         if (clayer == 3 || clayer == 4)
         {
           h_clusPhi_l34->Fill(phi);
+          h_clusZ_clusPhi_l34->Fill(globalpos(2), phi);
         }
         else if (clayer == 5 || clayer == 6)
         {
           h_clusPhi_l56->Fill(phi);
+          h_clusZ_clusPhi_l56->Fill(globalpos(2), phi);
         }
       }
     }
@@ -193,6 +199,14 @@ void InttClusterQA::createHistos()
   h_clusPhi_l56->GetXaxis()->SetTitle("Cluster (outer) #phi [rad]");
   h_clusPhi_l56->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusPhi_l56);
+  auto h_clusZ_clusPhi_l34 = new TH2F((boost::format("%sclusterZ_clusPhi_l34") % getHistoPrefix()).str().c_str(),"INTT Cluster Z vs Cluster Phi", 55, cluszbin, 350, -3.5, 3.5);
+  h_clusZ_clusPhi_l34->GetXaxis()->SetTitle("Cluster (inner) Z [cm]");
+  h_clusZ_clusPhi_l34->GetYaxis()->SetTitle("Cluster (inner) #phi [rad]");
+  hm->registerHisto(h_clusZ_clusPhi_l34);
+  auto h_clusZ_clusPhi_l56 = new TH2F((boost::format("%sclusterZ_clusPhi_l56") % getHistoPrefix()).str().c_str(),"INTT Cluster Z vs Cluster Phi", 55, cluszbin, 350, -3.5, 3.5);
+  h_clusZ_clusPhi_l56->GetXaxis()->SetTitle("Cluster (outer) Z [cm]");
+  h_clusZ_clusPhi_l56->GetYaxis()->SetTitle("Cluster (outer) #phi [rad]");
+  hm->registerHisto(h_clusZ_clusPhi_l56);
 
   if (m_sensorInfo)
   {
