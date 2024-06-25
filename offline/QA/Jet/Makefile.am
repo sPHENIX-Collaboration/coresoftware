@@ -15,6 +15,7 @@ AM_CPPFLAGS = \
 
 pkginclude_HEADERS = \
   ConstituentsinJets.h \
+  JetQADefs.h \
   StructureinJets.h \
   TrksInJetQA.h \
   TrksInJetQAHist.h \
@@ -56,6 +57,7 @@ libjetqa_la_LIBADD = \
   -lg4jets \
   -lcentrality_io \
   -lparticleflow_io \
+  -lffarawobjects \
   -lfun4all \
   -lphool \
   -lg4eval \
