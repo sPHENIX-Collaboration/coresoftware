@@ -82,7 +82,6 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   TNtuple *m_ntup_hits = nullptr;
   TNtuple *m_ntup_hits_corr = nullptr;
   TFile *m_file{nullptr};
-  TFile *m_file_hits = nullptr;
   CDBTTree *m_cdbttree{nullptr};
   CDBInterface *m_cdb{nullptr};
 
