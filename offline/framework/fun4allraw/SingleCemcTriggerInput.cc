@@ -77,12 +77,12 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       }
       evt.reset(GetEventiterator()->getNextEvent());
     }
-    if (Verbosity() > 2)
+    if (Verbosity() > 21)
     {
       std::cout << PHWHERE << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
     RunNumber(evt->getRunNumber());
-    if (GetVerbosity() > 1)
+    if (Verbosity() > 21)
     {
       evt->identify();
     }
@@ -177,7 +177,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
           }
         }
       }
-      if (Verbosity() > 2)
+      if (Verbosity() > 21)
       {
         std::cout << PHWHERE << "evtno: " << EventSequence
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
@@ -185,7 +185,10 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       }
       if (TriggerInputManager())
       {
-        TriggerInputManager()->AddCemcPacket(EventSequence, newhit);
+	if (newhit->getIdentifier() == 6067)
+	{
+          TriggerInputManager()->AddCemcPacket(EventSequence, newhit);
+	}
       }
       m_PacketMap[EventSequence].push_back(newhit);
       m_EventStack.insert(EventSequence);
