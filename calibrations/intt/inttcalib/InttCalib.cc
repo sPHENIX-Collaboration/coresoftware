@@ -458,7 +458,7 @@ int InttCalib::MakeBcoMapCdb()
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  CDBTTree* cdbttree = new CDBTTree(m_hotmap_cdb_file);
+  CDBTTree* cdbttree = new CDBTTree(m_bcomap_cdb_file);
 
   int size = 0;
   for(auto const& [raw, bco] : m_bcopeaks)
