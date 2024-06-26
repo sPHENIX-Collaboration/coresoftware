@@ -324,6 +324,10 @@ TriggerDefs::TriggerId TriggerDefs::GetTriggerId(const std::string& trigger)
   {
     return TriggerDefs::TriggerId::cosmic_coinTId;
   }
+  else if (strcmp(trigger.c_str(), "PHYSICS") == 0)
+  {
+    return TriggerDefs::TriggerId::physicsTId;
+  }
 
   return TriggerDefs::TriggerId::noneTId;
 }

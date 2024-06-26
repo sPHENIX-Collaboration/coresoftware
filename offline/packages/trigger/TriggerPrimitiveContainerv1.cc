@@ -43,9 +43,9 @@ TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::Trig
     }
   else if (tid == TriggerDefs::pairTId)
     {
-      nprimitives = 16;
+      nprimitives = 32;
       m_primitiveid = TriggerDefs::PrimitiveId::pairPId;
-      nsums = 16;
+      nsums = 3;
     }
   else if (tid == TriggerDefs::mbdTId)
     {
