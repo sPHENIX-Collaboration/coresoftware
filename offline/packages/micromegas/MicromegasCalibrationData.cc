@@ -65,19 +65,26 @@ void MicromegasCalibrationData::read( const std::string& filename )
 
   // loop over registered fee ids
   MicromegasMapping mapping;
-  for( const auto& fee:mapping.get_fee_id_list() )
+  const auto fee_id_list( mapping.get_fee_id_list() );
+
+  // loop over all possible fee ids
+  static constexpr int m_fee_count_max = 26;
+  for( int fee_id = 0; fee_id < m_fee_count_max; ++ fee_id )
   {
+
+    // convert to new ids, for backward compatibility, and check if listed
+    int fee_id_new = mapping.get_new_fee_id( fee_id );
+    if( std::find(fee_id_list.begin(), fee_id_list.end(), fee_id_new) == fee_id_list.end() )
+    { continue; }
+
     // get corresponding hitset key
-    const auto hitsetkey = mapping.get_hitsetkey(fee);
+    const auto hitsetkey = mapping.get_hitsetkey(fee_id_new);
 
     // loop over channels
     for( int i = 0; i < m_nchannels_fee; ++i )
     {
-      // get matching strip id
-      const auto strip = mapping.get_physical_strip( fee, i );
-
       // read pedestal and rms
-      int channel = fee*m_nchannels_fee + i;
+      int channel = fee_id*m_nchannels_fee + i;
       double pedestal = cdbttree.GetDoubleValue( channel, m_pedestal_key, 0 );
       double rms = cdbttree.GetDoubleValue( channel, m_rms_key, 0 );
 
@@ -88,9 +95,10 @@ void MicromegasCalibrationData::read( const std::string& filename )
         const calibration_data_t calibration_data( pedestal, rms );
 
         // insert in fee,channel structure
-        m_raw_calibration_map[fee].at(i) = calibration_data;
+        m_raw_calibration_map[fee_id_new].at(i) = calibration_data;
 
         // also insert in hitsetkey, strip structure
+        const auto strip = mapping.get_physical_strip( fee_id_new, i );
         if( hitsetkey > 0 && strip >= 0 )
         { m_mapped_calibration_map[hitsetkey].at(strip) = calibration_data; }
       }

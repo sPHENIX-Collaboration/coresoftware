@@ -22,6 +22,7 @@ ROOTDICTS = \
   CaloPacketContainerv1_Dict.cc \
   Gl1Packet_Dict.cc \
   Gl1Packetv1_Dict.cc \
+  Gl1Packetv2_Dict.cc \
   Gl1RawHit_Dict.cc \
   Gl1RawHitv1_Dict.cc \
   Gl1RawHitv2_Dict.cc \
@@ -31,16 +32,23 @@ ROOTDICTS = \
   InttRawHitContainerv2_Dict.cc \
   InttRawHitv1_Dict.cc \
   InttRawHitv2_Dict.cc \
+  LL1Packet_Dict.cc \
+  LL1Packetv1_Dict.cc \
+  LL1PacketContainer_Dict.cc \
+  LL1PacketContainerv1_Dict.cc \
   MicromegasRawHit_Dict.cc \
   MicromegasRawHitContainer_Dict.cc \
   MicromegasRawHitContainerv1_Dict.cc \
   MicromegasRawHitv1_Dict.cc \
   MvtxRawHit_Dict.cc \
+  MvtxRawHitv1_Dict.cc \
   MvtxRawHitContainer_Dict.cc \
   MvtxRawHitContainerv1_Dict.cc \
-  MvtxRawHitv1_Dict.cc \
+  MvtxFeeIdInfo_Dict.cc \
+  MvtxFeeIdInfov1_Dict.cc \
   MvtxRawEvtHeader_Dict.cc \
   MvtxRawEvtHeaderv1_Dict.cc \
+  MvtxRawEvtHeaderv2_Dict.cc \
   OfflinePacket_Dict.cc \
   OfflinePacketv1_Dict.cc \
   TpcRawHit_Dict.cc \
@@ -56,6 +64,7 @@ nobase_dist_pcm_DATA = \
   CaloPacketContainerv1_Dict_rdict.pcm \
   Gl1Packet_Dict_rdict.pcm \
   Gl1Packetv1_Dict_rdict.pcm \
+  Gl1Packetv2_Dict_rdict.pcm \
   Gl1RawHit_Dict_rdict.pcm \
   Gl1RawHitv1_Dict_rdict.pcm \
   Gl1RawHitv2_Dict_rdict.pcm \
@@ -65,6 +74,10 @@ nobase_dist_pcm_DATA = \
   InttRawHitContainerv2_Dict_rdict.pcm \
   InttRawHitv1_Dict_rdict.pcm \
   InttRawHitv2_Dict_rdict.pcm \
+  LL1Packet_Dict_rdict.pcm \
+  LL1Packetv1_Dict_rdict.pcm \
+  LL1PacketContainer_Dict_rdict.pcm \
+  LL1PacketContainerv1_Dict_rdict.pcm \
   MicromegasRawHit_Dict_rdict.pcm \
   MicromegasRawHitContainer_Dict_rdict.pcm \
   MicromegasRawHitContainerv1_Dict_rdict.pcm \
@@ -73,8 +86,11 @@ nobase_dist_pcm_DATA = \
   MvtxRawHitv1_Dict_rdict.pcm \
   MvtxRawHitContainer_Dict_rdict.pcm \
   MvtxRawHitContainerv1_Dict_rdict.pcm \
+  MvtxFeeIdInfo_Dict_rdict.pcm \
+  MvtxFeeIdInfov1_Dict_rdict.pcm \
   MvtxRawEvtHeader_Dict_rdict.pcm \
   MvtxRawEvtHeaderv1_Dict_rdict.pcm \
+  MvtxRawEvtHeaderv2_Dict_rdict.pcm \
   OfflinePacket_Dict_rdict.pcm \
   OfflinePacketv1_Dict_rdict.pcm \
   TpcRawHit_Dict_rdict.pcm \
@@ -89,6 +105,7 @@ pkginclude_HEADERS = \
   CaloPacketContainerv1.h \
   Gl1Packet.h \
   Gl1Packetv1.h \
+  Gl1Packetv2.h \
   Gl1RawHit.h \
   Gl1RawHitv1.h \
   Gl1RawHitv2.h \
@@ -98,6 +115,10 @@ pkginclude_HEADERS = \
   InttRawHitContainerv2.h \
   InttRawHitv1.h \
   InttRawHitv2.h \
+  LL1Packet.h \
+  LL1Packetv1.h \
+  LL1PacketContainer.h \
+  LL1PacketContainerv1.h \
   MicromegasRawHit.h \
   MicromegasRawHitContainer.h \
   MicromegasRawHitContainerv1.h \
@@ -106,8 +127,11 @@ pkginclude_HEADERS = \
   MvtxRawHitv1.h \
   MvtxRawHitContainer.h \
   MvtxRawHitContainerv1.h \
+  MvtxFeeIdInfo.h \
+  MvtxFeeIdInfov1.h \
   MvtxRawEvtHeader.h \
   MvtxRawEvtHeaderv1.h \
+  MvtxRawEvtHeaderv2.h \
   OfflinePacket.h \
   OfflinePacketv1.h \
   TpcRawHit.h \
@@ -120,6 +144,7 @@ libffarawobjects_la_SOURCES = \
   CaloPacketv1.cc \
   CaloPacketContainerv1.cc \
   Gl1Packetv1.cc \
+  Gl1Packetv2.cc \
   Gl1RawHit.cc \
   Gl1RawHitv1.cc \
   Gl1RawHitv2.cc \
@@ -127,11 +152,15 @@ libffarawobjects_la_SOURCES = \
   InttRawHitContainerv2.cc \
   InttRawHitv1.cc \
   InttRawHitv2.cc \
+  LL1Packetv1.cc \
+  LL1PacketContainerv1.cc \
   MicromegasRawHitContainerv1.cc \
   MicromegasRawHitv1.cc \
-  MvtxRawHitContainerv1.cc \
   MvtxRawHitv1.cc \
+  MvtxRawHitContainerv1.cc \
+  MvtxFeeIdInfov1.cc \
   MvtxRawEvtHeaderv1.cc \
+  MvtxRawEvtHeaderv2.cc \
   OfflinePacket.cc \
   OfflinePacketv1.cc \
   TpcRawHitContainerv1.cc \

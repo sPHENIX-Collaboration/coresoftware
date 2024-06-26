@@ -10,10 +10,12 @@
 #include "MicromegasMapping.h"
 
 #include <fun4all/SubsysReco.h>
+#include <fun4allraw/MicromegasBcoMatchingInformation.h>
 #include <phool/PHObject.h>
 
 #include <TTree.h>
 
+#include <list>
 #include <map>
 #include <memory>
 #include <string>
@@ -70,13 +72,13 @@ class MicromegasRawDataEvaluation : public SubsysReco
     unsigned int packet_id = 0;
 
     /// ll1 bco
-    uint64_t lvl1_bco = 0;
-
-    /// ll1 bco
-    unsigned int lvl1_bco_masked = 0;
+    uint64_t gtm_bco = 0;
 
     /// fee bco
     unsigned int fee_bco = 0;
+
+    /// fee bco predicted (from gtm)
+    unsigned int fee_bco_predicted = 0;
 
     /// checksum and checksum error
     unsigned int checksum = 0;
@@ -117,10 +119,13 @@ class MicromegasRawDataEvaluation : public SubsysReco
     unsigned int packet_id = 0;
 
     /// ll1 bco
-    uint64_t lvl1_bco = 0;
+    uint64_t gtm_bco = 0;
 
     /// fee bco
     unsigned int fee_bco = 0;
+
+    /// fee bco predicted (from gtm)
+    unsigned int fee_bco_predicted = 0;
 
     /// checksum and checksum error
     unsigned int checksum = 0;
@@ -249,17 +254,21 @@ class MicromegasRawDataEvaluation : public SubsysReco
   //! main branch
   Container* m_container = nullptr;
 
-  //! match fee bco to lvl1 bco
-  using bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
+  //! map bco_information_t to packet id
+  using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation>;
+  bco_matching_information_map_t m_bco_matching_information_map;
 
-  //! map fee_id to bco maps
-  using fee_bco_matching_map_t = std::map<unsigned short, bco_matching_pair_t>;
-  fee_bco_matching_map_t m_fee_bco_matching_map;
-
-  /// map waveforms to bco
+  //! map waveforms to bco
   /** this is used to count how many waveforms are found for a given lvl1 bco */
   using bco_map_t = std::map<uint64_t, unsigned int>;
   bco_map_t m_bco_map;
+
+  //! keep track of total number of waveforms
+  std::map<int,uint64_t> m_waveform_count_total{};
+
+  //! keep track of dropped waveforms
+  std::map<int,uint64_t> m_waveform_count_dropped{};
+
 };
 
 #endif

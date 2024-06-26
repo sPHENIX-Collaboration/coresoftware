@@ -2,12 +2,13 @@
 #define CLUSKEYITER__H
 
 // an iterator to loop over all the TrkrClusters for a given track
-#include <set>
 #include <trackbase/TrkrDefs.h>
+#include <set>
 
 class SvtxTrack;
 
-struct ClusKeyIter {
+struct ClusKeyIter
+{
   typedef std::set<TrkrDefs::cluskey> ClusterKeySet;
   typedef ClusterKeySet::iterator ClusterKeyIter;
 
@@ -16,9 +17,9 @@ struct ClusKeyIter {
   SvtxTrack* track;
   bool in_silicon;
   bool has_tpc;
-  bool no_data; // neither a tpc nor a silicon seed
-  ClusterKeyIter iter             { };
-  ClusterKeyIter iter_end_silicon { };
+  bool no_data;  // neither a tpc nor a silicon seed
+  ClusterKeyIter iter{};
+  ClusterKeyIter iter_end_silicon{};
 
   ClusKeyIter begin();
   ClusKeyIter end();
@@ -27,7 +28,5 @@ struct ClusKeyIter {
   TrkrDefs::cluskey operator*();
   bool operator!=(const ClusKeyIter& rhs);
 };
-
-
 
 #endif

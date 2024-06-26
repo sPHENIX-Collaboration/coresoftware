@@ -4,17 +4,20 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
+
 #include <calotrigger/LL1Out.h>
 #include <calotrigger/LL1Outv1.h>
 #include <calotrigger/TriggerPrimitivev1.h>
 #include <calotrigger/TriggerPrimitiveContainerv1.h>
 #include <calotrigger/TriggerDefs.h>
+
+#include <qautils/QAHistManagerDef.h>
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-#include <qautils/QAHistManagerDef.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -36,8 +39,6 @@ TriggerValid::TriggerValid(const std::string& name)
   : SubsysReco(name)
 {
 }
-
-TriggerValid::~TriggerValid() = default;
 
 int TriggerValid::Init(PHCompositeNode* /*unused*/)
 {
@@ -214,7 +215,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 	      h_gl1_triggers->Fill(bit);
 	    }
 	}
-
+      
     }
   
   if (trigger_primitives_emcal)
@@ -431,7 +432,6 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
   float max_energy_emcal = 0.0;
   if (towers_emcal)
   {
-
     // go through the emulated 2x2 map for emcal
     for (auto& it : v_emcal_emu_2x2)
     {
@@ -446,10 +446,13 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         int iphi = sum_phi * 2 + itower / 2;
         TowerInfo* tower = towers_emcal->get_tower_at_key(TowerInfoDefs::encode_emcal(ieta, iphi));
         float offlineenergy = tower->get_energy();
-	if (!tower->get_isGood()) continue;
+        if (!tower->get_isGood())
+        {
+          continue;
+        }
         energy_sum += offlineenergy;
       }
-      h_emcal_2x2_energy_lutsum->Fill( it.second, energy_sum);
+      h_emcal_2x2_energy_lutsum->Fill(it.second, energy_sum);
     }
 
     // now the 8x8
@@ -467,7 +470,10 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
         int iphi = sum_phi * 8 + itower / 8;
         TowerInfo* tower = towers_emcal->get_tower_at_key(TowerInfoDefs::encode_emcal(ieta, iphi));
         float offlineenergy = tower->get_energy();
-	if (!tower->get_isGood()) continue;
+        if (!tower->get_isGood())
+        {
+          continue;
+        }
         energy_sum += offlineenergy;
       }
       if (energy_sum > max_energy_emcal) 
@@ -610,10 +616,5 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 	  h_gl1_photon_energy[j - 24]->Fill(max_energy_emcal);
 	}
     }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int TriggerValid::End(PHCompositeNode* /*topNode*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }

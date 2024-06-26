@@ -179,7 +179,10 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = m_raw_towers->encode_key(channel);
-    m_raw_towers->get_tower_at_channel(channel)->set_status(0);  // resetting status
+    //only reset what we will set
+    m_raw_towers->get_tower_at_channel(channel)->set_isHot(false); 
+    m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false); 
+    m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(false); 
 
     if (m_doHotChi2)
     {
@@ -195,6 +198,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
     float time = m_raw_towers->get_tower_at_channel(channel)->get_time_float();
+    float adc = m_raw_towers->get_tower_at_channel(channel)->get_energy();
 
     if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)
     {
@@ -208,7 +212,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (chi2 > badChi2_treshold)
+    if (chi2 > std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic))
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
     }

@@ -31,7 +31,7 @@ void LaserClusterContainerv1::identify(std::ostream& os) const
   return;
 }
 
-void LaserClusterContainerv1::addClusterSpecifyKey(const unsigned int key, LaserCluster* newclus)
+void LaserClusterContainerv1::addClusterSpecifyKey(const TrkrDefs::cluskey key, LaserCluster* newclus)
 {
   auto ret = m_clusmap.insert(std::make_pair(key, newclus));
   if ( !ret.second )
@@ -41,7 +41,7 @@ void LaserClusterContainerv1::addClusterSpecifyKey(const unsigned int key, Laser
   }
 }
 
-void LaserClusterContainerv1::removeCluster(unsigned int key)
+void LaserClusterContainerv1::removeCluster(TrkrDefs::cluskey key)
 { 
   auto clus = findCluster(key);
   delete clus;
@@ -54,7 +54,7 @@ LaserClusterContainerv1::getClusters() const
 { return std::make_pair(m_clusmap.cbegin(), m_clusmap.cend()); }
 
 LaserCluster*
-LaserClusterContainerv1::findCluster(unsigned int key) const
+LaserClusterContainerv1::findCluster(TrkrDefs::cluskey key) const
 {
   auto it = m_clusmap.find(key);
   return it == m_clusmap.end() ? nullptr:it->second;

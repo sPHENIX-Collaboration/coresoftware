@@ -1196,8 +1196,13 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 5)
       {
         std::cout << " new neighbor list has size " << new_neighbor_list.size() << ", but after removing duplicate elements: ";
-        new_neighbor_list.sort();
-        new_neighbor_list.unique();
+      }
+
+      new_neighbor_list.sort();
+      new_neighbor_list.unique();
+
+      if (Verbosity() > 5)
+      {
         std::cout << new_neighbor_list.size() << std::endl;
       }
 

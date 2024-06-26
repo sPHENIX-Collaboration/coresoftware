@@ -22,51 +22,16 @@
 
 #include <cassert>
 #include <fstream>
-#include <list>
 #include <memory>
 #include <set>
-
-namespace
-{
-  // streamer for lists
-  template <class T>
-  std::ostream& operator<<(std::ostream& out, const std::list<T>& list)
-  {
-    if (list.empty())
-    {
-      out << "{}";
-    }
-    else
-    {
-      out << "{ ";
-      bool first = true;
-      for (const auto& value : list)
-      {
-        if (!first)
-        {
-          out << ", ";
-        }
-        out << value;
-        first = false;
-      }
-      out << " }";
-    }
-    return out;
-  }
-
-  // get the difference between two BCO.
-  template<class T>
-  inline static constexpr T get_bco_diff( const T& first, const T& second )
-  { return first < second ? (second-first):(first-second); }
-
-}
 
 //_________________________________________________________
 void MicromegasRawDataEvaluation::Waveform::copy_from(const MicromegasRawDataEvaluation::Sample& sample)
 {
   packet_id = sample.packet_id;
-  lvl1_bco = sample.lvl1_bco;
+  gtm_bco = sample.gtm_bco;
   fee_bco = sample.fee_bco;
+  fee_bco_predicted = sample.fee_bco_predicted;
   checksum = sample.checksum;
   checksum_error = sample.checksum_error;
   fee_id = sample.fee_id;
@@ -131,7 +96,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
   m_container->Reset();
 
-  // temporary storage for samples and waveforms, sorted by lvl1 bco
+  // temporary storage for samples and waveforms, sorted by gtm bco
   std::multimap<uint64_t, Sample> sample_map;
   std::multimap<uint64_t, Waveform> waveform_map;
 
@@ -149,12 +114,15 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    // taggers
-    int n_tagger = packet->lValue(0, "N_TAGGER");
+    // get relevant bco matching information
+    auto& bco_matching_information = m_bco_matching_information_map[packet_id];
+    bco_matching_information.set_verbosity( Verbosity() );
 
-    // store tagged lvl1 bcos into a vector
-    using bco_list_t = std::list<uint64_t>;
-    bco_list_t main_bco_list;
+    // read gtm bco information
+    bco_matching_information.save_gtm_bco_information( packet.get() );
+
+    // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
+    const int n_tagger = packet->lValue(0, "N_TAGGER");
     for (int t = 0; t < n_tagger; t++)
     {
       TaggerInformation tagger;
@@ -171,50 +139,42 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
       {
         m_container->taggers.push_back(tagger);
       }
-
-      if (tagger.is_lvl1 && (m_flags & (EvalSample | EvalWaveform)))
-      {
-        // store bco
-        main_bco_list.push_back(tagger.bco);
-      }
     }
 
-    // get number of datasets (also call waveforms)
+    // get number of waveforms
     const auto n_waveform = packet->iValue(0, "NR_WF");
+    m_waveform_count_total[packet_id] += n_waveform;
 
     if (Verbosity())
     {
       std::cout << "MicromegasRawDataEvaluation::process_event -"
                 << " packet: " << packet_id
-                << " taggers: " << n_tagger
-                << " n_lvl1_bco: " << main_bco_list.size()
                 << " n_waveform: " << n_waveform
                 << std::endl;
-
-      if (!main_bco_list.empty())
-      {
-        std::cout << "MicromegasRawDataEvaluation::process_event -"
-                  << " packet: " << packet_id
-                  << " bco: " << std::hex << main_bco_list << std::dec
-                  << std::endl;
-      }
     }
+
+    // try find reference
+    if( !bco_matching_information.is_verified() )
+    { bco_matching_information.find_reference( packet.get() ); }
 
     if (m_flags & (EvalSample | EvalWaveform))
     {
-      // store available bco list for each fee
-      std::map<unsigned short, bco_list_t> bco_list_map;
-
       // keep track of orphans
       using fee_pair_t = std::pair<unsigned int, unsigned int>;
       std::set<fee_pair_t> orphans;
 
       for (int iwf = 0; iwf < n_waveform; ++iwf)
       {
+
+        const int type = packet->iValue(iwf, "TYPE");
+        if( type == MicromegasDefs::HEARTBEAT_T ) continue;
+
         // create running sample, assign packet, fee, layer and tile id
         Sample sample;
         sample.packet_id = packet_id;
-        sample.fee_id = packet->iValue(iwf, "FEE");
+
+        // get fee id, apply mapping to current fiber set, for backward compatibility
+        sample.fee_id = m_mapping.get_new_fee_id(packet->iValue(iwf, "FEE"));
         const auto hitsetkey = m_mapping.get_hitsetkey(sample.fee_id);
         sample.layer = TrkrDefs::getLayer( hitsetkey );
         sample.tile = MicromegasDefs::getTileId( hitsetkey );
@@ -232,72 +192,23 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
         // beam crossing
         sample.fee_bco = static_cast<uint32_t>(packet->iValue(iwf, "BCO"));
-        sample.lvl1_bco = 0;
-        sample.lvl1_bco_masked = 0;
+        sample.gtm_bco = 0;
 
-        // find bco matching map corresponding to fee
-        auto& bco_matching_pair = m_fee_bco_matching_map[sample.fee_id];
-
-        // find matching lvl1 bco
-        static constexpr unsigned int max_fee_bco_diff = 10;
-        if( get_bco_diff(sample.fee_bco,bco_matching_pair.first) < max_fee_bco_diff )
+        const auto result = bco_matching_information.find_gtm_bco( sample.fee_bco );
+        if(result)
         {
-          sample.lvl1_bco = bco_matching_pair.second;
-          sample.lvl1_bco_masked = ( bco_matching_pair.second & 0xFFFFFU );
+          sample.gtm_bco = result.value();
+          sample.fee_bco_predicted = bco_matching_information.get_predicted_fee_bco(sample.gtm_bco).value();
 
         } else {
 
-          // find bco list corresponding to fee, insert main list if not found
-          auto bco_list_iter = bco_list_map.lower_bound(sample.fee_id);
-          if (bco_list_iter == bco_list_map.end() || sample.fee_id < bco_list_iter->first)
-          {
-            bco_list_iter = bco_list_map.insert(bco_list_iter, std::make_pair(sample.fee_id, main_bco_list));
-          }
+          // increment count
+          ++m_waveform_count_dropped[packet_id];
 
-          // get local reference to fee's bco list
-          auto& bco_list = bco_list_iter->second;
-          if (!bco_list.empty())
-          {
-            if (Verbosity())
-            {
-              std::cout << "MicromegasRawDataEvaluation::process_event -"
-                        << " fee_id: " << sample.fee_id
-                        << " fee_bco: 0x" << std::hex << sample.fee_bco
-                        << " gtm_bco: 0x" << bco_list.front()
-                        << std::dec
-                        << std::endl;
-            }
-
-            // fee_bco is new. Assume it corresponds to the first available lvl1 bco
-            // update running fee_bco and lvl1_bco pair accordingly
-            const auto lvl1_bco = bco_list.front();
-            bco_matching_pair.first = sample.fee_bco;
-            bco_matching_pair.second = lvl1_bco;
-            sample.lvl1_bco = lvl1_bco;
-            sample.lvl1_bco_masked = ( lvl1_bco & 0xFFFFFU );
-
-            // remove bco from running list
-            bco_list.pop_front();
-          }
-          else
-          {
-            if (Verbosity() && orphans.insert(std::make_pair(sample.fee_id, sample.fee_bco)).second)
-            {
-              std::cout << "MicromegasRawDataEvaluation::process_event -"
-                        << " fee_id: " << sample.fee_id
-                        << " fee_bco: 0x" << std::hex << sample.fee_bco << std::dec
-                        << " gtm_bco: none"
-                        << std::endl;
-            }
-          }
         }
 
-        // checksum and checksum error
-        sample.checksum = packet->iValue(iwf, "CHECKSUM");
-        sample.checksum_error = packet->iValue(iwf, "CHECKSUMERROR");
-
-        // increment bco map
-        ++m_bco_map[sample.lvl1_bco];
+        // increment number of waveforms found for this gtm_bco
+        ++m_bco_map[sample.gtm_bco];
 
         // channel, sampa_channel, sampa address and strip
         sample.sampa_address = packet->iValue( iwf, "SAMPAADDRESS" );
@@ -319,7 +230,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
                     << " tile: " << sample.tile
                     << " layer: " << sample.layer
                     << " tile: " << sample.tile
-                    << " lvl1_bco: " << sample.lvl1_bco
+                    << " gtm_bco: " << sample.gtm_bco
                     << " fee_bco: " << sample.fee_bco
                     << " error: " << sample.checksum_error
                     << " channel: " << sample.channel
@@ -339,7 +250,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
           }
           sample.sample = is;
           sample.adc = adc;
-          sample_map.emplace(sample.lvl1_bco, sample);
+          sample_map.emplace(sample.gtm_bco, sample);
 
           if (sample.adc > sample_max.adc)
           {
@@ -358,18 +269,20 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
               waveform.sample_max < m_sample_max &&
               waveform.adc_max > pedestal + m_n_sigma * rms;
 
-          waveform_map.emplace(waveform.lvl1_bco, waveform);
+          waveform_map.emplace(waveform.gtm_bco, waveform);
         }
       }
     }
+
+    // cleanup
+    bco_matching_information.cleanup();
+
   }
 
   // copy all samples and waveform to container
   if (m_flags & EvalSample)
   {
     for (auto&& [lvl_bco, sample] : sample_map)
-    // clang-tidy suggests the std::move has no effect (trivially copyable type)
-    //    { m_container->samples.push_back(std::move(sample)); }
     {
       m_container->samples.push_back(sample);
     }
@@ -377,9 +290,7 @@ int MicromegasRawDataEvaluation::process_event(PHCompositeNode* topNode)
 
   if (m_flags & EvalWaveform)
   {
-    for (auto&& [lvl1_bco, waveform] : waveform_map)
-    // clang-tidy suggests the std::move has no effect (trivially copyable type)
-    //    { m_container->waveforms.push_back(std::move(waveform)); }
+    for (auto&& [gtm_bco, waveform] : waveform_map)
     {
       m_container->waveforms.push_back(waveform);
     }
@@ -406,14 +317,18 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/)
   {
     for (const auto& [bco, nwaveforms] : m_bco_map)
     {
-      std::cout << "MicromegasRawDataEvaluation::End - bco: " << bco << ", nwaveforms: " << nwaveforms << std::endl;
+      std::cout
+        << "MicromegasRawDataEvaluation::End - "
+        << " bco: 0x" << std::hex << bco << std::dec
+        << ", nwaveforms: " << nwaveforms
+        << std::endl;
     }
   }
 
   // print bco list, for offline processing
   if (Verbosity())
   {
-    std::cout << "const std::vector<uint64_t> lvl1_bco_list = {" << std::endl;
+    std::cout << "const std::vector<uint64_t> gtm_bco_list = {" << std::endl;
     bool first = true;
     int count = 0;
     for (const auto& [bco, nwaveforms] : m_bco_map)
@@ -433,6 +348,16 @@ int MicromegasRawDataEvaluation::End(PHCompositeNode* /*topNode*/)
     }
     std::cout << std::endl
               << "};" << std::endl;
+  }
+
+  for( const auto& [packet,counts]:m_waveform_count_total )
+  {
+    const auto& dropped = m_waveform_count_dropped[packet];
+    std::cout << "MicromegasRawDataEvaluation::End - packet: " << packet << std::endl;
+    std::cout << "MicromegasRawDataEvaluation::End - waveform_count_total: " << counts << std::endl;
+    std::cout << "MicromegasRawDataEvaluation::End - waveform_count_dropped: " << dropped << std::endl;
+    std::cout << "MicromegasRawDataEvaluation::End - ratio: " << double(dropped)/counts << std::endl;
+    std::cout << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

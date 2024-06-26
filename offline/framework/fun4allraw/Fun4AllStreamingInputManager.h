@@ -12,10 +12,11 @@
 #include <string>
 
 class SingleStreamingInput;
-class Gl1RawHit;
+class Gl1Packet;
 class InttRawHit;
 class MicromegasRawHit;
 class MvtxRawHit;
+class MvtxFeeIdInfo;
 class PHCompositeNode;
 class SyncObject;
 class TpcRawHit;
@@ -43,10 +44,10 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int FillMicromegas();
   int FillMvtx();
   int FillTpc();
-  void AddGl1RawHit(uint64_t bclk, Gl1RawHit *hit);
+  void AddGl1RawHit(uint64_t bclk, Gl1Packet *hit);
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit * /* hit */);
-  void AddMvtxFeeId(uint64_t bclk, uint16_t feeid);
+  void AddMvtxFeeIdInfo(uint64_t bclk, uint16_t feeid, uint32_t detField);
   void AddMvtxL1TrgBco(uint64_t bclk, uint64_t lv1Bco);
   void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
@@ -66,15 +67,15 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
  private:
   struct MvtxRawHitInfo
   {
-    std::set<uint16_t> MvtxFeeIds;
     std::set<uint64_t> MvtxL1TrgBco;
+    std::vector<MvtxFeeIdInfo *> MvtxFeeIdInfoVector;
     std::vector<MvtxRawHit *> MvtxRawHitVector;
     unsigned int EventFoundCounter{0};
   };
 
   struct Gl1RawHitInfo
   {
-    std::vector<Gl1RawHit *> Gl1RawHitVector;
+    std::vector<Gl1Packet *> Gl1RawHitVector;
     unsigned int EventFoundCounter{0};
   };
 
@@ -95,6 +96,8 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
     std::vector<TpcRawHit *> TpcRawHitVector;
     unsigned int EventFoundCounter{0};
   };
+  
+  void createQAHistos();
 
   SyncObject *m_SyncObject{nullptr};
   PHCompositeNode *m_topNode{nullptr};

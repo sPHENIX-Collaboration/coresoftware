@@ -111,6 +111,10 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
         fitter->Config().SetParamsSettings(3, params);
         fitter->Config().ParSettings(1).SetLimits(-1 * m_peakTimeTemp, size1 - m_peakTimeTemp);  // set lim on time par
+        if (m_setTimeLim) 
+        {
+          fitter->Config().ParSettings(1).SetLimits(m_timeLim_low, m_timeLim_high);
+        }
         fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
         ROOT::Fit::FitResult fitres = fitter->Result();
         double chi2min = fitres.MinFcnValue();
@@ -230,7 +234,8 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
     float amp = 0;
     float time = 0;
     float ped = 0;
-    if (nsamples == 2){
+    if (nsamples == 2)
+    {
       amp = v.at(1);
       time = -1;
       ped = v.at(0);
@@ -272,4 +277,186 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
     val.clear();
   }
   return fit_values;
+}
+
+std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(std::vector<std::vector<float>> chnlvector)
+{
+  std::vector<std::vector<float>> fit_values;
+  int nchnls = chnlvector.size();
+  for (int m = 0; m < nchnls; m++)
+  {
+    std::vector<float> v = chnlvector.at(m);
+    int nsamples = (int)v.size();
+
+    if (nsamples == 2)
+    {
+      fit_values.push_back({v.at(1) - v.at(0), -1, v.at(0), 0});
+      continue;
+    }
+    
+    std::vector<float> result = NyquistInterpolation(v);
+    fit_values.push_back(result);
+  }
+  return fit_values;
+
+}
+//mabye I can find a way to make it thread safe
+std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> &vec_signal_samples)
+{
+  // int N = (int) vec_signal_samples.size();
+  auto max_elem_iter = std::max_element(vec_signal_samples.begin(), vec_signal_samples.end());
+  int maxx = std::distance(vec_signal_samples.begin(), max_elem_iter);
+  float max = *max_elem_iter;
+
+  float maxpos = maxx;
+  float steplength = 0.5;
+
+  while (steplength > 0.001)
+  {
+    //use 1.5 instead of 1 to avoid the floating point error...
+    float starttime = maxpos - 1 * steplength;
+    float endtime = maxpos + 1.5 * steplength;
+    
+    for (float i = starttime; i < endtime; i += steplength)
+    {
+
+      float yval = max;
+      if(i != maxpos){ 
+        yval = psinc(i, vec_signal_samples);
+       
+      }
+      if (yval > max)
+      {
+        max = yval;
+        maxpos = i;
+      }
+    }
+    steplength /= 2;
+  }
+ 
+  float pedestal = 0;
+
+  if (maxpos > 5)
+  {
+    for (int i = 0; i < 3; i++)
+    {
+      pedestal += vec_signal_samples[i];
+    }
+    pedestal = pedestal / 3;
+  }
+  else if (maxpos > 4)
+  {
+    pedestal = (vec_signal_samples[0] + vec_signal_samples[1]) / 2;
+  }
+  //need more consideration for what is the most effieicnt
+  else
+  {
+    pedestal = max;
+    for (float i = maxpos - 5; i < maxpos; i += 0.1)
+    {
+      float yval = psinc(i, vec_signal_samples);
+      if (yval < pedestal)
+      {
+        pedestal = yval;
+      }
+    }
+  }
+  //calculate chi2 using the tempalte
+  float chi2 = 0;
+  double par[3] = {max - pedestal, maxpos - m_peakTimeTemp, pedestal};
+  for(int i = 0; i < (int)vec_signal_samples.size(); i++){
+    double xval[1] = {(double)i};
+    float diff = vec_signal_samples[i] - template_function(xval, par);
+    chi2 += diff*diff;
+  }
+  std::vector<float> val = {max - pedestal, maxpos, pedestal, chi2};
+  return val;
+}
+
+// for odd N
+double CaloWaveformFitting::Dkernelodd(double x, int N)
+{
+  double sum = 0;
+  for (int k = 0; k < (N + 1) / 2; k++)
+  {
+    sum += 2 * std::cos(2 * M_PI * k * x / N);
+  }
+  sum -= 1;
+  sum = sum / N;
+  return sum;
+}
+
+// for even N
+double CaloWaveformFitting::Dkernel(double x, int N)
+{
+  double sum = 0;
+  for (int k = 0; k < N / 2; k++)
+  {
+    sum += 2 * std::cos(2 * M_PI * k * x / N);
+  }
+  sum -= 1;
+  sum += std::cos(M_PI * x);
+  sum = sum / N;
+  return sum;
+}
+
+float CaloWaveformFitting::stablepsinc(float time, std::vector<float> &vec_signal_samples)
+{
+  int N = (int) vec_signal_samples.size();
+  float sum = 0;
+  if (N % 2 == 0)
+  {
+    for (int n = 0; n < N; n++)
+    {
+      sum += vec_signal_samples[n] * Dkernel(time - n, N);
+    }
+  }
+  else
+  {
+    for (int n = 0; n < N; n++)
+    {
+      sum += vec_signal_samples[n] * Dkernelodd(time - n, N);
+    }
+  }
+  return sum;
+}
+
+float CaloWaveformFitting::psinc(float time, std::vector<float> &vec_signal_samples)
+{
+  int N = (int) vec_signal_samples.size();
+
+  if (abs(std::round(time) - time) < 1e-6)
+  {
+ 
+    if (time < 0 || time >= N)
+    {
+      return stablepsinc(time, vec_signal_samples);
+    }
+    else
+    {
+      return vec_signal_samples.at(std::round(time));
+    }
+  }
+
+  float sum = 0;
+  if (N % 2 == 0)
+  {
+    for (int n = 0; n < N; n++)
+    {
+      double piu = M_PI * (time - n);
+      double piuN = piu / N;
+      sum += vec_signal_samples[n] * std::sin(piu) / (std::tan(piuN)) / N;
+    }
+  }
+  else
+  {
+    for (int n = 0; n < N; n++)
+    {
+      double piu = M_PI * (time - n);
+      double piuN = piu / N;
+      sum += vec_signal_samples[n] * std::sin(piu) / (std::sin(piuN)) / N;
+    }
+  }
+ 
+  return sum;
 }

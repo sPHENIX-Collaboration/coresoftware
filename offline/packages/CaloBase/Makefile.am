@@ -56,10 +56,12 @@ pkginclude_HEADERS = \
   TowerInfov1.h \
   TowerInfov2.h \
   TowerInfov3.h \
+  TowerInfov4.h \
   TowerInfoContainer.h \
   TowerInfoContainerv1.h \
   TowerInfoContainerv2.h \
-  TowerInfoContainerv3.h
+  TowerInfoContainerv3.h \
+  TowerInfoContainerv4.h
   
 
 ROOTDICTS = \
@@ -84,10 +86,12 @@ ROOTDICTS = \
   TowerInfov1_Dict.cc \
   TowerInfov2_Dict.cc \
   TowerInfov3_Dict.cc \
+  TowerInfov4_Dict.cc \
   TowerInfoContainer_Dict.cc \
   TowerInfoContainerv1_Dict.cc \
   TowerInfoContainerv2_Dict.cc \
-  TowerInfoContainerv3_Dict.cc
+  TowerInfoContainerv3_Dict.cc \
+  TowerInfoContainerv4_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -112,10 +116,12 @@ nobase_dist_pcm_DATA = \
   TowerInfov1_Dict_rdict.pcm \
   TowerInfov2_Dict_rdict.pcm \
   TowerInfov3_Dict_rdict.pcm \
+  TowerInfov4_Dict_rdict.pcm \
   TowerInfoContainer_Dict_rdict.pcm \
   TowerInfoContainerv1_Dict_rdict.pcm \
   TowerInfoContainerv2_Dict_rdict.pcm \
-  TowerInfoContainerv3_Dict_rdict.pcm
+  TowerInfoContainerv3_Dict_rdict.pcm \
+  TowerInfoContainerv4_Dict_rdict.pcm
 
 libcalo_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -139,11 +145,13 @@ libcalo_io_la_SOURCES = \
   TowerInfov1.cc \
   TowerInfov2.cc \
   TowerInfov3.cc \
+  TowerInfov4.cc \
   TowerInfoDefs.cc \
   TowerInfoContainer.cc \
   TowerInfoContainerv1.cc \
   TowerInfoContainerv2.cc \
-  TowerInfoContainerv3.cc
+  TowerInfoContainerv3.cc \
+  TowerInfoContainerv4.cc
 endif
 
 # Rule for generating table CINT dictionaries.

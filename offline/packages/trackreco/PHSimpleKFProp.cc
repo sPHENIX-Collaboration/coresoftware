@@ -427,6 +427,8 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   publishSeeds(unused_tracks);
 
   /// Remove tracks that are duplicates from the KFProp
+  if(m_ghostrejection)
+  {
   PHGhostRejection rejector(Verbosity());
   rejector.positionMap(globalPositions);
   rejector.trackSeedContainer(_track_map);
@@ -438,7 +440,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   {
     std::cout << "ghost rejection time " << timer.elapsed() << std::endl;
   }
-
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

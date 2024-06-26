@@ -96,7 +96,8 @@ class TrackFitUtils
   static Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
 
   static std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec,
-                                        std::vector<TrkrDefs::cluskey> cluskey_vec);
+                                        std::vector<TrkrDefs::cluskey> cluskey_vec,
+                                        bool use_intt = false);
   static void getTrackletClusters(ActsGeometry* _tGeometry,
                                   TrkrClusterContainer* _cluster_map,
                                   std::vector<Acts::Vector3>& global_vec,

@@ -18,19 +18,15 @@ class SingleGl1TriggerInput : public SingleTriggerInput
  public:
   explicit SingleGl1TriggerInput(const std::string &name);
   ~SingleGl1TriggerInput() override;
-  void FillPool(const unsigned int) override;
+  void FillPool(const unsigned int keep) override;
   void CleanupUsedPackets(const int eventno) override;
   void ClearCurrentEvent() override;
-  bool GetSomeMoreEvents();
+  bool GetSomeMoreEvents(const unsigned int keep);
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
-  //  void ConfigureStreamingInputManager() override;
 
  private:
-  unsigned int m_NumSpecialEvents{0};
-
   std::set<int> m_EventNumber;
-  std::map<int, std::vector<OfflinePacket *>> m_Gl1PacketMap;
   std::set<int> m_EventStack;
 };
 

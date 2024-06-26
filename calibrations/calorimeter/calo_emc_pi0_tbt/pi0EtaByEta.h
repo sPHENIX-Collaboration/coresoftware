@@ -55,6 +55,9 @@ class pi0EtaByEta : public SubsysReco
 
   TF1* fitHistogram(TH1* h);
   void fitEtaSlices(const std::string& infile, const std::string& outfile, const std::string& cdbFile);
+
+	void fitEtaPhiTowers(const std::string& infile, const std::string& fitOutFile, const std::string& cdbFile); // for tbt pi0 fit
+
   void set_use_pdc(bool state)
   {
     use_pdc = state;
@@ -83,6 +86,11 @@ class pi0EtaByEta : public SubsysReco
   void set_calibConvLev(float val)
   {
     convLev=val;
+    return;
+  }
+  void set_RunTowByTow(bool state) // to decide if we want to run tbt (default is false)
+  {
+    runTowByTow=state;
     return;
   }
 
@@ -123,6 +131,7 @@ class pi0EtaByEta : public SubsysReco
   std::vector<int> m_bbc_side;
 
   std::array<TH1*, 96> h_mass_eta_lt{};
+	std::array<std::array<TH1*, 256>, 96> h_mass_tbt_lt{};
 
   int _eventcounter{0};
   int _range{1};
@@ -134,7 +143,8 @@ class pi0EtaByEta : public SubsysReco
   bool dynMaskClus{false};
   bool doMix{false};
   bool use_pdc{false};
-
+  bool runTowByTow{false}; // default set not to run tbt
+  
   std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>* clusMix;
   TH1* h_nclus_bin{nullptr};
   const int NBinsClus = 10;
@@ -142,9 +152,10 @@ class pi0EtaByEta : public SubsysReco
   int NBinsVtx = 30;
   TH1* h_event{nullptr};
 
-  Fun4AllHistoManager* hm{nullptr};
   TFile* outfile{nullptr};
-  TH2* h_emcal_mbd_correlation{nullptr};
+  Fun4AllHistoManager* hm{nullptr};
+  
+	TH2* h_emcal_mbd_correlation{nullptr};
   TH2* h_ohcal_mbd_correlation{nullptr};
   TH2* h_ihcal_mbd_correlation{nullptr};
   TH2* h_emcal_hcal_correlation{nullptr};

@@ -3,7 +3,7 @@
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/Gl1Packetv1.h>
+#include <ffarawobjects/Gl1Packetv2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -35,9 +35,15 @@ SingleGl1TriggerInput::SingleGl1TriggerInput(const std::string &name)
 SingleGl1TriggerInput::~SingleGl1TriggerInput()
 {
   CleanupUsedPackets(std::numeric_limits<int>::max());
+  // some events are already in the m_EventStack but they haven't been put
+  // into the m_PacketMap
+  while (m_EventStack.begin() != m_EventStack.end())
+  {
+    m_EventStack.erase(m_EventStack.begin());
+  }
 }
 
-void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
+void SingleGl1TriggerInput::FillPool(const unsigned int keep)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -51,7 +57,7 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       return;
     }
   }
-  while (GetSomeMoreEvents())
+  while (GetSomeMoreEvents(keep))
   {
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
@@ -78,6 +84,12 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
       m_NumSpecialEvents++;
       continue;
     }
+    // static bool firstevent = true;
+    // if (firstevent)
+    // {
+    //   firstevent = false;
+    //   continue;
+    // }
     int EventSequence = evt->getEvtSequence();
     Packet *packet = evt->getPacket(14001);
 
@@ -87,7 +99,7 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     }
 
     // by default use previous bco clock for gtm bco
-    Gl1Packet *newhit = new Gl1Packetv1();
+    Gl1Packet *newhit = new Gl1Packetv2();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     newhit->setBCO(packet->lValue(0, "BCO"));
     newhit->setHitFormat(packet->getHitFormat());
@@ -96,14 +108,22 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     newhit->setPacketNumber(packet->iValue(0));
     newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
     newhit->setTriggerInput(packet->lValue(0, "TriggerInput"));
-    newhit->setTriggerVector(packet->lValue(0, "TriggerVector"));
-  for (int i = 0; i< 64; i++)
-  {
-    for (int j = 0; j<3; j++)
+    newhit->setLiveVector(packet->lValue(0, "LiveVector"));
+    newhit->setScaledVector(packet->lValue(0, "ScaledVector"));
+    newhit->setGTMBusyVector(packet->lValue(0, "GTMBusyVector"));
+    for (int i = 0; i < 64; i++)
     {
-      newhit->setScaler(i,j,packet->lValue(i,j));
+      for (int j = 0; j < 3; j++)
+      {
+        newhit->setScaler(i, j, packet->lValue(i, j));
+      }
     }
-  }
+    for (int i = 0; i < 12; i++)
+    {
+      newhit->setGl1pScaler(i, 0, packet->lValue(i, "GL1PRAW"));
+      newhit->setGl1pScaler(i, 1, packet->lValue(i, "GL1PLIVE"));
+      newhit->setGl1pScaler(i, 2, packet->lValue(i, "GL1PSCALED"));
+    }
     if (Verbosity() > 2)
     {
       std::cout << PHWHERE << " Packet: " << packet->getIdentifier()
@@ -121,7 +141,7 @@ void SingleGl1TriggerInput::FillPool(const unsigned int /*nbclks*/)
     {
       TriggerInputManager()->AddGl1Packet(EventSequence, newhit);
     }
-    m_Gl1PacketMap[EventSequence].push_back(newhit);
+    m_PacketMap[EventSequence].push_back(newhit);
     m_EventStack.insert(EventSequence);
     if (ddump_enabled())
     {
@@ -136,7 +156,7 @@ void SingleGl1TriggerInput::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "STORAGE")
   {
-    for (const auto &bcliter : m_Gl1PacketMap)
+    for (const auto &bcliter : m_PacketMap)
     {
       std::cout << PHWHERE << "Event: " << bcliter.first << std::endl;
     }
@@ -153,7 +173,7 @@ void SingleGl1TriggerInput::Print(const std::string &what) const
 void SingleGl1TriggerInput::CleanupUsedPackets(const int eventno)
 {
   std::vector<int> toclearevents;
-  for (const auto &iter : m_Gl1PacketMap)
+  for (const auto &iter : m_PacketMap)
   {
     if (iter.first <= eventno)
     {
@@ -172,7 +192,7 @@ void SingleGl1TriggerInput::CleanupUsedPackets(const int eventno)
   for (auto iter : toclearevents)
   {
     m_EventStack.erase(iter);
-    m_Gl1PacketMap.erase(iter);
+    m_PacketMap.erase(iter);
   }
 }
 
@@ -185,24 +205,28 @@ void SingleGl1TriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleGl1TriggerInput::GetSomeMoreEvents()
+bool SingleGl1TriggerInput::GetSomeMoreEvents(const unsigned int keep)
 {
   if (AllDone())
   {
     return false;
   }
-  if (m_Gl1PacketMap.empty())
+  if (m_PacketMap.empty())
   {
     return true;
   }
 
-  int first_event = m_Gl1PacketMap.begin()->first;
-  int last_event = m_Gl1PacketMap.rbegin()->first;
+  int first_event = m_PacketMap.begin()->first;
+  int last_event = m_PacketMap.rbegin()->first;
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "first event: " << first_event
               << " last event: " << last_event
               << std::endl;
+  }
+  if (keep > 2 && m_PacketMap.size() < keep)
+  {
+    return true;
   }
   if (first_event >= last_event)
   {
@@ -230,7 +254,7 @@ void SingleGl1TriggerInput::CreateDSTNode(PHCompositeNode *topNode)
   OfflinePacket *gl1hitcont = findNode::getClass<OfflinePacket>(detNode, "GL1Packet");
   if (!gl1hitcont)
   {
-    gl1hitcont = new Gl1Packetv1();
+    gl1hitcont = new Gl1Packetv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, "GL1Packet", "PHObject");
     detNode->addNode(newNode);
   }

@@ -12,18 +12,18 @@
 
 #include "AlignmentDefs.h"
 
-#include <fun4all/SubsysReco.h>
-
-#include <string>
-#include <vector>
-
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
 
+#include <fun4all/SubsysReco.h>
+
 #include <ActsExamples/EventData/Trajectories.hpp>
+
+#include <string>
+#include <vector>
 
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;

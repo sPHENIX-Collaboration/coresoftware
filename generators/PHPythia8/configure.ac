@@ -10,14 +10,9 @@ dnl   at least see them, so here we go for g++: -Wall
 dnl   make warnings fatal errors: -Werror
 dnl leaving this here in case we want to play with different compiler 
 dnl specific flags
- case $CXX in
-  clang++)
-   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-c11-extensions -Wextra"
-  ;;
-  *g++)
-   CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wextra "
-  ;;
- esac
+if test $ac_cv_prog_gxx = yes; then
+   CXXFLAGS="$CXXFLAGS -Wall -pedantic -Wextra -Werror -Wshadow"
+fi
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

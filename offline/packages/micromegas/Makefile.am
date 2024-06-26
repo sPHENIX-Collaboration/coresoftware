@@ -76,6 +76,7 @@ pkginclude_HEADERS = \
   MicromegasRawDataCalibration.h \
   MicromegasRawDataDecoder.h \
   MicromegasRawDataEvaluation.h \
+  MicromegasRawDataTimingEvaluation.h \
   MicromegasTile.h
 
 ROOTDICTS = \
@@ -87,6 +88,7 @@ nobase_dist_pcm_DATA = \
   CylinderGeomMicromegas_Dict_rdict.pcm \
   MicromegasCombinedDataEvaluation_Dict_rdict.pcm \
   MicromegasRawDataEvaluation_Dict_rdict.pcm \
+  MicromegasRawDataTimingEvaluation_Dict_rdict.pcm \
   MicromegasTile_Dict_rdict.pcm
 
 libmicromegas_io_la_SOURCES = \
@@ -113,10 +115,13 @@ libmicromegas_la_SOURCES = \
   MicromegasRawDataCalibration.cc \
   MicromegasRawDataDecoder.cc \
   MicromegasRawDataEvaluation.cc \
-  MicromegasRawDataEvaluation_Dict.cc
+  MicromegasRawDataEvaluation_Dict.cc \
+  MicromegasRawDataTimingEvaluation.cc \
+  MicromegasRawDataTimingEvaluation_Dict.cc
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \
+  -lfun4allraw \
   -lffarawobjects \
   -lphg4hit \
   -lSubsysReco

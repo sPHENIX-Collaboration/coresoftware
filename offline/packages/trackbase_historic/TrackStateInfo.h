@@ -1,9 +1,6 @@
 #ifndef TRACKBASEHISTORIC_TRACKSTATEINFO_H
 #define TRACKBASEHISTORIC_TRACKSTATEINFO_H
 
-//#include "SvtxTrackState.h"
-//#include "TrackSeed.h"
-
 #include <trackbase/TrkrDefs.h>
 
 #include <g4main/PHG4HitDefs.h>

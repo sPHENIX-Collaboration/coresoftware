@@ -121,7 +121,6 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
     svtxtrack->set_id(trackid);
     trackid++;
-
     /// If we've run the track matching
     if (m_trackSeedName.find("SvtxTrackSeed") != std::string::npos)
     {
@@ -142,7 +141,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
           svtxtrack->set_x(tpcseed->get_x());
           svtxtrack->set_y(tpcseed->get_y());
           svtxtrack->set_z(tpcseed->get_z());
-          svtxtrack->set_crossing(SHRT_MAX);
+          svtxtrack->set_crossing(std::numeric_limits<short int>::max());
         }
         else
         {
@@ -151,17 +150,15 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
           svtxtrack->set_y(siseed->get_y());
           svtxtrack->set_z(siseed->get_z());
           svtxtrack->set_crossing(siseed->get_crossing());
-          addKeys(svtxtrack, siseed);
+          
           svtxtrack->set_silicon_seed(siseed);
         }
-
         svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
-        if (m_fieldMap.find(".root") != std::string::npos)
+        if (!m_ConstField)
         {
-        
-          svtxtrack->set_px(trackSeed->get_pt() * std::cos(trackSeed->get_phi()));
-          svtxtrack->set_py(trackSeed->get_pt() * std::sin(trackSeed->get_phi()));
-          svtxtrack->set_pz(trackSeed->get_pz());
+          svtxtrack->set_px(tpcseed->get_pt() * std::cos(tpcseed->get_phi()));
+          svtxtrack->set_py(tpcseed->get_pt() * std::sin(tpcseed->get_phi()));
+          svtxtrack->set_pz(tpcseed->get_pz());
         }
         else
         {
@@ -246,13 +243,13 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
           svtxtrack->identify();
         }
       }
-      addKeys(svtxtrack, tpcseed);
       svtxtrack->set_tpc_seed(tpcseed);
     }
 
     else
     {
       /// Otherwise we are using an individual subdetectors container
+      svtxtrack->set_id(m_seedContainer->find(trackSeed));
 
       svtxtrack->set_x(trackSeed->get_x());
       svtxtrack->set_y(trackSeed->get_y());
@@ -286,7 +283,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       double Y0 = trackSeed->get_Y0();
       double Z0 = trackSeed->get_Z0();
       double slope = trackSeed->get_slope();
-      svtxtrack->set_crossing(0);
+      svtxtrack->set_crossing(trackSeed->get_crossing());
       std::vector<double> xy_error2;
       std::vector<double> rz_error2;
       std::vector<double> xy_residuals;

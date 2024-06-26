@@ -19,6 +19,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TTree.h>
 #include <map>
 #include <string>
 
@@ -29,6 +30,7 @@ class TrackSeedContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
+class TrkrClusterCrossingAssoc;
 
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
 
@@ -60,12 +62,22 @@ class PHActsSiliconSeeding : public SubsysReco
     m_seedAnalysis = seedAnalysis;
   }
 
-  void setRPhiSearchWindow(const float win)
+  void setinttRPhiSearchWindow(const float win)
   {
-    m_rPhiSearchWin = win;
-    std::cout << "Search window is " << m_rPhiSearchWin << std::endl;
+    m_inttrPhiSearchWin = win;
   }
-
+  void setinttZSearchWindow(const float& win)
+  {
+    m_inttzSearchWin = win;
+  }
+  void setmvtxRPhiSearchWindow(const float win)
+  {
+    m_mvtxrPhiSearchWin = win;
+  }
+  void setmvtxZSearchWindow(const float &win)
+  {
+    m_mvtxzSearchWin = win;
+  }
   /// For each MVTX+INTT seed, take the best INTT hits and form
   /// 1 silicon seed per MVTX seed
   void cleanSeeds(bool cleanSeeds)
@@ -172,10 +184,11 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
 
-  /// Projects circle fit to INTT radii to find possible INTT clusters
-  /// belonging to MVTX track stub
-  std::vector<TrkrDefs::cluskey> findInttMatches(
+  /// Projects circle fit to radii to find possible MVTX/INTT clusters
+  /// belonging to track stub
+  std::vector<TrkrDefs::cluskey> findMatches(
       std::vector<Acts::Vector3> &clusters,
+      std::vector<TrkrDefs::cluskey>& keys,
       TrackSeed &seed);
 
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters,
@@ -183,10 +196,33 @@ class PHActsSiliconSeeding : public SubsysReco
                                                    const double xProj[],
                                                    const double yProj[],
                                                    const double zProj[]);
+  short int getCrossingIntt(TrackSeed& si_track);
+  std::vector<short int> getInttCrossings(TrackSeed& si_track);
 
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
+  void clearTreeVariables();
+
+  TrkrClusterCrossingAssoc *_cluster_crossing_map = nullptr;
+  TTree *m_tree = nullptr;
+  int m_seedid = std::numeric_limits<int>::quiet_NaN();
+  std::vector<float> m_mvtxgx = {};
+  std::vector<float> m_mvtxgy = {};
+  std::vector<float> m_mvtxgz = {};
+  std::vector<float> m_mvtxgr = {};
+  float m_projgx = std::numeric_limits<float>::quiet_NaN();
+  float m_projgy = std::numeric_limits<float>::quiet_NaN();
+  float m_projgz = std::numeric_limits<float>::quiet_NaN();
+  float m_projgr = std::numeric_limits<float>::quiet_NaN();
+  float m_projlx = std::numeric_limits<float>::quiet_NaN();
+  float m_projlz = std::numeric_limits<float>::quiet_NaN();
+  float m_clusgx = std::numeric_limits<float>::quiet_NaN();
+  float m_clusgy = std::numeric_limits<float>::quiet_NaN();
+  float m_clusgz = std::numeric_limits<float>::quiet_NaN();
+  float m_clusgr = std::numeric_limits<float>::quiet_NaN();
+  float m_cluslx = std::numeric_limits<float>::quiet_NaN();
+  float m_cluslz = std::numeric_limits<float>::quiet_NaN();
 
   ActsGeometry *m_tGeometry = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
@@ -213,7 +249,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Limiting location of measurements (e.g. detector constraints)
   float m_rMax = 200. * Acts::UnitConstants::mm;
-  float m_rMin = 23. * Acts::UnitConstants::mm;
+  float m_rMin = 15. * Acts::UnitConstants::mm;
   float m_zMax = 500. * Acts::UnitConstants::mm;
   float m_zMin = -500. * Acts::UnitConstants::mm;
 
@@ -257,13 +293,11 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Maximum allowed transverse PCA for seed, cm
   double m_maxSeedPCA = 2.;
 
-  /// Doesn't change, we are building the INTT this way
-  const static unsigned int m_nInttLayers = 4;
-  double m_nInttLayerRadii[m_nInttLayers] = {0};
-
   /// Search window for phi to match intt clusters in cm
-  double m_rPhiSearchWin = 0.1;
-
+  double m_inttrPhiSearchWin = 0.1;
+  float m_inttzSearchWin = 0.8; // default to a half strip width
+  double m_mvtxrPhiSearchWin = 0.2;
+  float m_mvtxzSearchWin = 0.5;
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 

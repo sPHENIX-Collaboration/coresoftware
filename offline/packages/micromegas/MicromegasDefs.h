@@ -103,6 +103,7 @@ namespace MicromegasDefs
    * One might need to change this in the future when 5000 becomes used by a different subsystem
    */
   static constexpr int m_npackets = 3;
+  static constexpr int m_npackets_active = 2;
   static constexpr std::array<unsigned int,m_npackets> m_packet_ids = {5000, 5001, 5002};
 
   //! number of channels per fee board
@@ -114,8 +115,25 @@ namespace MicromegasDefs
   //! total number of channels
   static constexpr int m_nchannels_total = m_nfee*m_nchannels_fee;
 
+  //! maximum valid ADC
+  static constexpr uint16_t m_adc_max = 1024;
+
   //! mark invalid ADC values
   static constexpr uint16_t m_adc_invalid = 65000;
+
+
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  // TODO: should move to online_distribution
+  enum SampaDataType
+  {
+    HEARTBEAT_T = 0b000,
+    TRUNCATED_DATA_T = 0b001,
+    TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
+    NORMAL_DATA_T = 0b100,
+    LARGE_DATA_T = 0b101,
+    TRIG_EARLY_DATA_T = 0b110,
+    TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
 
 }
 

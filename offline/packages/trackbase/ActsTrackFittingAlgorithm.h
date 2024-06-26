@@ -6,26 +6,16 @@
 #include "ResidualOutlierFinder.h"
 
 #include <Acts/EventData/detail/CorrectedTransformationFreeToBound.hpp>
-#include <Acts/Geometry/TrackingGeometry.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wunused-value"
-#include <Acts/TrackFitting/KalmanFitter.hpp>
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
-#pragma GCC diagnostic pop
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
-#include <Acts/Propagator/MultiEigenStepperLoop.hpp>
-#pragma GCC diagnostic pop
-
 #include <Acts/EventData/SourceLink.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/EventData/VectorTrackContainer.hpp>
+
+#include <Acts/Geometry/TrackingGeometry.hpp>
+
+#include <Acts/Propagator/MultiEigenStepperLoop.hpp>
+
+#include <Acts/TrackFitting/KalmanFitter.hpp>
 
 #include <functional>
 #include <memory>

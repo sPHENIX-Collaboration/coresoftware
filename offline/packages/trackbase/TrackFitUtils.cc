@@ -243,7 +243,6 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const TrackFitUtils::po
   const double denominatoryx = (y2sum * npts - square(ysum));
   const double inva = (xysum * npts - xsum * ysum) / denominatoryx;
   const double invb = (y2sum * xsum - ysum * xysum) / denominatoryx;
-
   //! now determine which one minimizes the sum of residuals to return
   float sumresid = 0;
   float suminvresid = 0;
@@ -560,7 +559,8 @@ Acts::Vector2 TrackFitUtils::get_circle_point_pca(float radius, float x0, float 
 
 //_________________________________________________________________________________
 std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global_vec,
-                                              std::vector<TrkrDefs::cluskey> cluskey_vec)
+                                              std::vector<TrkrDefs::cluskey> cluskey_vec,
+                                              bool use_intt)
 {
   std::vector<float> fitpars;
 
@@ -583,6 +583,10 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
     }
   }
 
+if(use_intt)
+{
+  global_vec_noINTT = global_vec;
+}
   if (global_vec_noINTT.size() < 3)
   {
     return fitpars;
