@@ -5,6 +5,7 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <phool/PHTimer.h>
 
@@ -58,7 +59,7 @@ class LaserClusterizer : public SubsysReco
   void set_debug(bool debug) { m_debug = debug; }
   void set_debug_name(const std::string &name) { m_debugFileName = name; }
 
-  void set_pedestal(float val) { pedestal = val; }
+  void set_pedestal(float val) { m_pedestal = val; }
   void set_min_clus_size(float val) { min_clus_size = val; }
   void set_min_adc_sum(float val) { min_adc_sum = val; }
 
@@ -70,7 +71,6 @@ class LaserClusterizer : public SubsysReco
   LaserClusterContainerv1 *m_clusterlist = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
   PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
-  double pedestal = 74.4;
   double min_clus_size = 1;
   double min_adc_sum = 10;
   double m_pedestal = 74.4;
@@ -93,9 +93,6 @@ class LaserClusterizer : public SubsysReco
   TH1I *m_itHist_0 = nullptr;
   TH1I *m_itHist_1 = nullptr;
 
-  TH1D *m_tHist_0 = nullptr;
-  TH1D *m_tHist_1 = nullptr;
-
   int m_nClus = 0;
   double time_search = 0;
   double time_clus = 0;
@@ -103,7 +100,7 @@ class LaserClusterizer : public SubsysReco
   double time_all = 0;
 
   LaserClusterv1 *m_currentCluster = nullptr;
-  std::vector<LaserClusterv1 *> m_eventClusters;
+  LaserClusterContainerv1 *m_eventClusters = nullptr;
   std::vector<float> m_currentHit;
   std::vector<float> m_currentHit_hardware;
 

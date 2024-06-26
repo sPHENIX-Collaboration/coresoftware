@@ -5,7 +5,7 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <climits>
+#include <limits>
 #include <map>
 #include <string>
 #include <utility>
@@ -24,7 +24,7 @@ class InttClusterizer : public SubsysReco
 {
  public:
   InttClusterizer(const std::string &name = "InttClusterizer",
-                  unsigned int min_layer = 0, unsigned int max_layer = UINT_MAX);
+                  unsigned int min_layer = 0, unsigned int max_layer =  std::numeric_limits<unsigned int>::max());
   ~InttClusterizer() override {}
 
   //! run initialization

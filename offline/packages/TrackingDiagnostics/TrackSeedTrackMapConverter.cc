@@ -283,7 +283,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       double Y0 = trackSeed->get_Y0();
       double Z0 = trackSeed->get_Z0();
       double slope = trackSeed->get_slope();
-      svtxtrack->set_crossing(0);
+      svtxtrack->set_crossing(trackSeed->get_crossing());
       std::vector<double> xy_error2;
       std::vector<double> rz_error2;
       std::vector<double> xy_residuals;

@@ -3,7 +3,7 @@
 
 #include "PHPy6GenTrigger.h"
 
-#include <string>             // for string
+#include <string>  // for string
 
 namespace HepMC
 {

@@ -65,6 +65,7 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position(const Acts::Vector
 
   // if the phi correction hist units are cm, we must divide by r to get the dPhi in radians
   auto divisor = r;
+
   if (dcc->m_phi_hist_in_radians)
   {
     // if the phi correction hist units are radians, we must not divide by r.
@@ -88,7 +89,11 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position(const Acts::Vector
   }
   else if (dcc->m_dimensions == 2)
   {
-    const double zterm = (1. - std::abs(z) / 105.5);
+    double zterm = 1.0;
+
+    if (dcc->m_interpolate_z){
+      zterm=(1. - std::abs(z) / 105.5);
+    }
     if (dcc->m_hDPint[index] && (mask & COORD_PHI) && check_boundaries(dcc->m_hDPint[index], phi, r))
     {
       phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi, r) * zterm / divisor;
@@ -101,6 +106,7 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position(const Acts::Vector
     {
       z_new = z - dcc->m_hDZint[index]->Interpolate(phi, r) * zterm;
     }
+    
   }
 
   // update cluster

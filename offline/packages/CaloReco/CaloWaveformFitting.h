@@ -39,6 +39,13 @@ class CaloWaveformFitting
   {
     return _nthreads;
   }
+  void set_timeFitLim(float low,float high)
+  {
+    m_setTimeLim = true;
+    m_timeLim_low = low;
+    m_timeLim_high = high;
+    return;
+  }
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
@@ -61,12 +68,15 @@ class CaloWaveformFitting
   int _nthreads{1};
   int _nzerosuppresssamples{2};
   int _nsoftwarezerosuppression{40};
-  float _stepsize{0.001};
+//  float _stepsize{0.001};
   bool _bdosoftwarezerosuppression{false};
   bool _maxsoftwarezerosuppression{false};
   std::string m_template_input_file;
   std::string url_template;
   double m_peakTimeTemp = 0;
+  bool m_setTimeLim{false};
+  float m_timeLim_low{-3.0};
+  float m_timeLim_high{4.0};
 
   std::string url_onnx;
   std::string m_model_name;

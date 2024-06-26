@@ -147,8 +147,8 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    // get fee id, apply mapping to original set, used downstream
-    const int fee = m_mapping.get_old_fee_id(rawhit->get_fee());
+    // get fee id, apply mapping to current fiber set, for backward compatibility
+    const int fee = m_mapping.get_new_fee_id(rawhit->get_fee());
     const auto channel = rawhit->get_channel();
     const int samples = rawhit->get_samples();
 

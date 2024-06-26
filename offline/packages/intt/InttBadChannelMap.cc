@@ -62,7 +62,7 @@ bool InttBadChannelMap::IsBad(
     /*unused*/) const
 {
   std::cout << "InttBadChannelMap::IsBad\n"
-           << "\tUnplemented overload (InttMap::Online_s)" << std::endl;
+            << "\tUnplemented overload (InttMap::Online_s)" << std::endl;
   return false;
 }
 
@@ -71,7 +71,7 @@ bool InttBadChannelMap::IsBad(
     /*unused*/) const
 {
   std::cout << "InttBadChannelMap::IsBad\n"
-           << "\tUnplemented overload (InttMap::Offline_s)" << std::endl;
+            << "\tUnplemented overload (InttMap::Offline_s)" << std::endl;
   return false;
 }
 
@@ -80,7 +80,7 @@ bool InttBadChannelMap::IsBad(
     /*unused*/) const
 {
   std::cout << "InttBadChannelMap::IsBad\n"
-           << "\tUnplemented overload (InttMap::RawData_s)" << std::endl;
+            << "\tUnplemented overload (InttMap::RawData_s)" << std::endl;
   return false;
 }
 

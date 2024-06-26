@@ -114,7 +114,13 @@ int MicromegasRawDataDecoder::process_event(PHCompositeNode* topNode)
     }
     for (int iwf = 0; iwf < n_waveforms; ++iwf)
     {
-      const int fee = m_mapping.get_old_fee_id(packet->iValue(iwf, "FEE"));
+      // get fee id, apply mapping to current fiber set, for backward compatibility
+      const int fee = m_mapping.get_new_fee_id(packet->iValue(iwf, "FEE"));
+      const int type = packet->iValue(iwf, "TYPE");
+
+      // ignore heartbeat waveforms
+      if( type == MicromegasDefs::HEARTBEAT_T ) continue;
+
       const auto channel = packet->iValue(iwf, "CHANNEL");
       const int samples = packet->iValue(iwf, "SAMPLES");
 

@@ -1,8 +1,8 @@
 #ifndef FUN4ALLRAW_SINGLEMICROMEGASPOOLINPUT_H
 #define FUN4ALLRAW_SINGLEMICROMEGASPOOLINPUT_H
 
-#include "SingleStreamingInput.h"
 #include "MicromegasBcoMatchingInformation.h"
+#include "SingleStreamingInput.h"
 
 #include <array>
 #include <list>
@@ -35,19 +35,14 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
-  /// enable evaluation
-  void SetDoEvaluation(bool value)
-  { m_do_evaluation = value; }
+  //! save some statistics for BCO QA
+  void FillBcoQA(uint64_t /*gtm_bco*/);
 
-  /// output file name for evaluation histograms
-  void SetEvaluationOutputFilename(const std::string& outputfile)
-  { m_evaluation_filename = outputfile; }
-
-  //! save some statistics for BCO statistics
-  void FillBcoStatistics( uint64_t /*gtm_bco*/);
+  // write the initial histograms for QA manager
+  void createQAHistos();
 
  private:
-  std::array<Packet*,10> plist{};
+  std::array<Packet *, 10> plist{};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
@@ -78,26 +73,15 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
    */
   std::set<uint64_t> m_BclkStack;
 
-
   //! map bco_information_t to packet id
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation>;
   bco_matching_information_map_t m_bco_matching_information_map;
 
-  // keep track of total number of waveforms
-  uint64_t m_waveform_count_total = 0;
+  // keep track of total number of waveforms per packet
+  std::map<int,uint64_t> m_waveform_count_total{};
 
-  // keep track of dropped waveforms
-  uint64_t m_waveform_count_dropped = 0;
-
-  bool m_do_evaluation = false;
-  std::string m_evaluation_filename = "SingleMicromegasPoolInput.root";
-  std::unique_ptr<TFile> m_evaluation_file;
-
-  //!@name gtm bco statistics histogram
-  //@{
-  TH1* m_npacket_bco_hist = nullptr;
-  TH1* m_nwaveform_bco_hist = nullptr;
-  //@}
+  // keep track of dropped waveforms per packet
+  std::map<int,uint64_t> m_waveform_count_dropped{};
 
 };
 
