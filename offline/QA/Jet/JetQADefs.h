@@ -19,6 +19,7 @@
 #include <ffarawobjects/Gl1Packet.h>
 #include <iostream>
 #include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 
@@ -123,7 +124,7 @@ namespace JetQADefs
   // --------------------------------------------------------------------------
   //! Check if a particular trigger fired
   // --------------------------------------------------------------------------
-  bool DidTriggerFire(const GL1 trg, PHCompositeNode* topNode)
+  inline bool DidTriggerFire(const uint32_t trg, PHCompositeNode* topNode)
   {
 
     // grab GL1 packet from node tree
@@ -139,7 +140,7 @@ namespace JetQADefs
 
     // loop through bits and check if specified one is set
     bool didTrgFire = false;
-    for (uint64_t iTrg = 0; iTrg < NMaxTrgIndex(); iTrg++)
+    for (uint32_t iTrg = 0; iTrg < NMaxTrgIndex(); iTrg++)
     {
 
       // only consider specified trigger
@@ -155,7 +156,7 @@ namespace JetQADefs
     }  // end index loop
     return didTrgFire;
 
-  }  // end 'DidTriggerFire(GL1 PHCompositeNode*)'
+  }  // end 'DidTriggerFire(uint32_t, PHCompositeNode*)'
 
 }  // end JetQADefs namespace
 
