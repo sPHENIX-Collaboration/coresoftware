@@ -38,8 +38,8 @@ int SiliconSeedsQA::InitRun(PHCompositeNode * /*unused*/)
 //____________________________________________________________________________..
 int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
 {
-    auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
+    auto geometry = findNode::getClass<ActsGeometry>(topNode, m_actsgeometryName);
     auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
     auto vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
 
@@ -65,6 +65,10 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     auto h_dcazorigin_phi = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazorigin_phi").c_str()));
     auto h_dcazvtx_phi = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazvtx_phi").c_str()));
     auto h_ntrack_isfromvtx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrack_isfromvtx").c_str()));
+    auto h_trackpt_inclusive = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackpt").c_str()));
+    auto h_trackpt_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackpt_pos").c_str()));
+    auto h_trackpt_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackpt_neg").c_str()));
+    auto h_ntrack_IsPosCharge = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrack_IsPosCharge").c_str()));
 
     // vertex
     auto h_nvertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecovertices").c_str()));
@@ -80,6 +84,8 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     h_ntrack1d->Fill(trackmap->size());
 
     std::pair<int, int> ntrack_isfromvtx; // first: number of tracks associated to a vertex, second: number of tracks not associated to a vertex
+    std::pair<int, int> ntrack_isposcharge; // first: number of tracks with negative charge, second: number of tracks with positive charge
+
     for (const auto &[key, track] : *trackmap)
     {
         if (!track)
@@ -88,10 +94,10 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
         }
 
         auto ckeys = get_cluster_keys(track);
-        std::vector<Acts::Vector3> cluspos;
-        TrackFitUtils::getTrackletClusters(geometry, clustermap, cluspos, ckeys);
         float eta = track->get_eta();
         float phi = track->get_phi();
+        float pt = track->get_pt();
+        int charge = track->get_charge();
 
         int trkcrossing = track->get_crossing();
 
@@ -131,6 +137,15 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
         }
         ntrack_isfromvtx.second++;
 
+        if (charge > 0)
+        {
+            ntrack_isposcharge.second++;
+        }
+        else
+        {
+            ntrack_isposcharge.first++;
+        }
+
         Acts::Vector3 track_vtx(trackvtx->get_x(), trackvtx->get_y(), trackvtx->get_z());
         auto dcapair_vtx = TrackAnalysisUtils::get_dca(track, track_vtx);
 
@@ -144,10 +159,22 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
         h_dcaxyvtx_phi->Fill(phi, dcapair_vtx.first.first);
         h_dcazorigin_phi->Fill(phi, dcapair_origin.second.first);
         h_dcazvtx_phi->Fill(phi, dcapair_vtx.second.first);
+        h_trackpt_inclusive->Fill(pt);
+        if (charge > 0)
+        {
+            h_trackpt_pos->Fill(pt);
+        }
+        else
+        {
+            h_trackpt_neg->Fill(pt);
+        }
     }
 
     h_ntrack_isfromvtx->SetBinContent(1, h_ntrack_isfromvtx->GetBinContent(1) + ntrack_isfromvtx.first);
     h_ntrack_isfromvtx->SetBinContent(2, h_ntrack_isfromvtx->GetBinContent(2) + ntrack_isfromvtx.second);
+
+    h_ntrack_IsPosCharge->SetBinContent(1, h_ntrack_IsPosCharge->GetBinContent(1) + ntrack_isposcharge.first);
+    h_ntrack_IsPosCharge->SetBinContent(2, h_ntrack_IsPosCharge->GetBinContent(2) + ntrack_isposcharge.second);
 
     // vertex
     h_nvertex->Fill(vertexmap->size());
@@ -259,17 +286,37 @@ void SiliconSeedsQA::createHistos()
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi").c_str(), "DCA z origin vs phi;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi").c_str(), "DCA z origin vs phi;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 160, -20, 20);
         hm->registerHisto(h);
     }
 
     {
-        auto h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi").c_str(), "DCA z vertex vs phi;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+        auto h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi").c_str(), "DCA z vertex vs phi;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 160, -20, 20);
         hm->registerHisto(h);
     }
 
     {
         auto h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx").c_str(), "Num of tracks associated to a vertex;Is track associated to a vertex;Entries", 2, -0.5, 1.5);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "trackpt").c_str(), "Track p_{T};p_{T} [GeV/c];Entries", 100, 0, 10);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "trackpt_pos").c_str(), "Track p_{T} positive;Positive track p_{T} [GeV/c];Entries", 100, 0, 10);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "trackpt_neg").c_str(), "Track p_{T} negative;Negative track p_{T} [GeV/c];Entries", 100, 0, 10);
+        hm->registerHisto(h);
+    }
+
+    {
+        auto h = new TH1F(std::string(getHistoPrefix() + "ntrack_IsPosCharge").c_str(), "Num of tracks with positive charge;Is track positive charged;Entries", 2, -0.5, 1.5);
         hm->registerHisto(h);
     }
 
