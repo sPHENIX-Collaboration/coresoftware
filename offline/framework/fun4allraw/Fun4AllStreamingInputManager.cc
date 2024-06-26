@@ -891,6 +891,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
     }
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
+    m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
     m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
     // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
     if (m_MvtxRawHitMap.empty())
