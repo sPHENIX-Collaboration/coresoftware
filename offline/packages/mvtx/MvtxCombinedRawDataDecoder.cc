@@ -14,7 +14,7 @@
 
 #include <fun4all/Fun4AllServer.h>
 
-// #include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/MvtxRawHit.h>
@@ -163,17 +163,24 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     std::cout << "Have you built this yet?" << std::endl;
     exit(1);
   }
-
-  // auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+  // Could we just get the first strobe BCO instead of setting this to 0?
+  // Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
+  //  uint64_t gl1rawhitbco = gl1 ? gl1->get_bco() : 0;
   auto gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
-  if (!gl1 && (Verbosity() >= 4))
+  uint64_t gl1rawhitbco = 0;
+  if(gl1)
+  {
+    gl1rawhitbco = gl1->lValue(0, "BCO");
+  }
+  else{
+    auto oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+    gl1rawhitbco = oldgl1->get_bco();
+  }
+  if (gl1rawhitbco == 0 && (Verbosity() >= 4))
   {
     std::cout << PHWHERE << "Could not get gl1 raw hit" << std::endl;
   }
-  //Could we just get the first strobe BCO instead of setting this to 0?
-  //Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
-  // uint64_t gl1rawhitbco = gl1 ? gl1->get_bco() : 0;
-  uint64_t gl1rawhitbco = gl1 ? gl1->lValue(0, "BCO") : 0;
+
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
   auto lbshift = gl1rawhitbco << 24U;
