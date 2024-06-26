@@ -174,7 +174,10 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   }
   else{
     auto oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
-    gl1rawhitbco = oldgl1->get_bco();
+    if(oldgl1)
+    {
+      gl1rawhitbco = oldgl1->get_bco();
+    }
   }
   if (gl1rawhitbco == 0 && (Verbosity() >= 4))
   {
