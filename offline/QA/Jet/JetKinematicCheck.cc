@@ -32,7 +32,8 @@ JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
   , m_histTag("AllTrig")
   , m_etaRange(-1.1, 1.1)
   , m_ptRange(10, 100)
-
+  , m_doTrgSelect(false)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
 {
   if (Verbosity() > 1)
   {
@@ -200,6 +201,14 @@ int JetKinematicCheck::InitRun(PHCompositeNode * /*unused*/)
 //____________________________________________________________________________..
 int JetKinematicCheck::process_event(PHCompositeNode *topNode)
 {
+
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   std::vector<std::string> m_recoJetName_array = {m_recoJetNameR02, m_recoJetNameR03, m_recoJetNameR04};
   m_radii = {0.2, 0.3, 0.4};
   int n_radii = m_radii.size();

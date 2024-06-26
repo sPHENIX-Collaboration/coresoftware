@@ -91,6 +91,13 @@ int TrksInJetQA::process_event(PHCompositeNode* topNode)
     std::cout << "TrksInJetQA::process_event(PHCompositeNode* topNode) Processing Event" << std::endl;
   }
 
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   // run submodules
   if (m_config.doInJet)
   {

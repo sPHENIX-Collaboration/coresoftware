@@ -49,6 +49,8 @@ ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std:
   , m_histTag(histTag)
   // , m_outputFileName(outputfilename)  
   // these are all initialized but included here for clarity
+  , m_doTrgSelect(false)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_etaRange(-1.1, 1.1)
   , m_ptRange(1.0, 1000)
   , h1_ConstituentsinJets_total(nullptr)
@@ -174,6 +176,13 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   if(Verbosity() > 1)
   {
     std::cout << "ConstituentsinJets::process_event - Process event..." << std::endl;
+  }
+
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // get the jets

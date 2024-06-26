@@ -13,6 +13,8 @@
 
 #include <string>
 
+#include "JetQADefs.h"
+
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH2;
@@ -67,6 +69,13 @@ class StructureinJets : public SubsysReco
   bool writeToOutputFile() const { return writeToOutputFileFlag; }
   void writeToOutputFile(bool b) { writeToOutputFileFlag = b; }
 
+  // set trigger to require
+  void setTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
+  {
+    m_doTrgSelect = true;
+    m_trgToSelect = trig;
+  }
+
  private:
   std::string m_recoJetName;
   std::string m_histTag;
@@ -74,6 +83,8 @@ class StructureinJets : public SubsysReco
   float m_jetRadius{0.4};
   bool isAAFlag{false};
   bool writeToOutputFileFlag{false};
+  bool m_doTrgSelect{false};
+  uint32_t m_trgToSelect{JetQADefs::GL1::MBDNSJet1};
   std::string m_outputFileName;
   TH3 *m_h_track_vs_calo_pt{nullptr};
   TH2 *m_h_track_pt{nullptr};

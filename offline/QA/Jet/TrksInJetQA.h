@@ -36,6 +36,9 @@
 #include <utility>
 #include <vector>
 
+// jet qa utilities
+#include "JetQADefs.h"
+
 // TrksInJetQA definition -----------------------------------------------------
 
 class TrksInJetQA : public SubsysReco
@@ -55,6 +58,11 @@ class TrksInJetQA : public SubsysReco
   // setters
   void SetOutFileName(const std::string& name) { m_outFileName = name; }
   void SetHistSuffix(const std::string& suffix) { m_histSuffix = suffix; }
+  void SetTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
+  {
+    m_doTrgSelect = true;
+    m_trgToSelect = trig;
+  }
 
   // public methods
   void Configure(
@@ -77,6 +85,10 @@ class TrksInJetQA : public SubsysReco
   TFile* m_outFile = NULL;
   std::string m_outFileName = "tracksInJetsQA.root";
   Fun4AllHistoManager* m_manager = NULL;
+
+  // trigger selection
+  bool m_doTrgSelect = false;
+  uint32_t m_trgToSelect = JetQADefs::GL1::MBDNSJet1;
 
   // optional suffix for histograms
   std::optional<std::string> m_histSuffix = std::nullopt;

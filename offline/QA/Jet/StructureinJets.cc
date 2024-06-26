@@ -35,6 +35,8 @@ StructureinJets::StructureinJets(const std::string &moduleName, const std::strin
   : SubsysReco(moduleName)
   , m_recoJetName(recojetname)
   , m_histTag(histTag)
+  , m_doTrgSelect(false)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_outputFileName(outputfilename)
 {
   std::cout << "StructureinJets::StructureinJets(const std::string &name) Calling ctor" << std::endl;
@@ -87,6 +89,14 @@ int StructureinJets::InitRun(PHCompositeNode* /*topNode*/)
 int StructureinJets::process_event(PHCompositeNode* topNode)
 {
   // std::cout << "StructureinJets::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   // interface to reco jets
   JetContainer* jets = findNode::getClass<JetContainer>(topNode, m_recoJetName);
   if (!jets)

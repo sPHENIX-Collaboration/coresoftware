@@ -28,6 +28,8 @@ JetSeedCount::JetSeedCount(const std::string &moduleName, const std::string &rec
   , m_histTag("AllTrig_AntiKt_Tower_r04_Sub1")
   , m_etaRange(-1, 1)
   , m_ptRange(5, 100)
+  , m_doTrgSelect(false)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
 {
   // std::cout << "JetSeedCount::JetSeedCount(const std::string &name) Calling ctor" << std::endl;
 }
@@ -59,6 +61,14 @@ int JetSeedCount::InitRun(PHCompositeNode * /*topNode*/)
 //____________________________________________________________________________..
 int JetSeedCount::process_event(PHCompositeNode *topNode)
 {
+
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   // std::cout << "JetSeedCount::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   ++m_event;
   // Calling Raw Jet Seeds

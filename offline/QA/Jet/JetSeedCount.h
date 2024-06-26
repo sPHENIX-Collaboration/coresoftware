@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+#include "JetQADefs.h"
+
 class PHCompositeNode;
 
 class JetSeedCount : public SubsysReco
@@ -50,6 +52,12 @@ class JetSeedCount : public SubsysReco
   {
     m_histTag = tag;
   }
+  void
+  setTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
+  {
+    m_doTrgSelect = true;
+    m_trgToSelect = trig;
+  }
 
   int Init(PHCompositeNode *topNode) override;
 
@@ -81,6 +89,10 @@ class JetSeedCount : public SubsysReco
 
   std::pair<double, double> m_etaRange;
   std::pair<double, double> m_ptRange;
+
+  // trigger selection
+  bool m_doTrgSelect;
+  uint32_t m_trgToSelect;
 
   std::vector<double> m_RawEta;
   std::vector<double> m_RawPhi;

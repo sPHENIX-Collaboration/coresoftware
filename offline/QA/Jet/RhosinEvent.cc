@@ -30,6 +30,8 @@ RhosinEvent::RhosinEvent(const std::string &name, const std::string &tag)
   , m_do_area_rho(true)
   , m_mult_rho_node("TowerRho_MULT")
   , m_area_rho_node("TowerRho_AREA")
+  , m_doTrgSelect(false)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , h1_mult_rho(nullptr)
   , h1_mult_rho_sigma(nullptr)
   , h1_area_rho(nullptr)
@@ -113,6 +115,13 @@ int RhosinEvent::process_event(PHCompositeNode *topNode)
   if(Verbosity() > 1)
   {
     std::cout << "RhosinEvent::process_event - Process event..." << std::endl;
+  }
+
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
   }
 
   if(m_do_area_rho)

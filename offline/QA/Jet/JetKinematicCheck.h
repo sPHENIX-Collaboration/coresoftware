@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include "JetQADefs.h"
+
 class TH1;
 class TH2;
 class TH3;
@@ -44,6 +46,13 @@ class JetKinematicCheck : public SubsysReco
   void setHistTag(const std::string tag)
   {
     m_histTag = tag;
+  }
+
+  // specifies a trigger to require
+  void setTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
+  {
+    m_doTrgSelect = true;
+    m_trgToSelect = trig;
   }
 
   /** Called during initialization.
@@ -81,6 +90,10 @@ class JetKinematicCheck : public SubsysReco
   std::string m_histTag;
   std::pair<double, double> m_etaRange;
   std::pair<double, double> m_ptRange;
+
+  // trigger selection
+  bool m_doTrgSelect;
+  uint32_t m_trgToSelect;
 
   // reconstructed jets
   std::vector<float> m_eta;

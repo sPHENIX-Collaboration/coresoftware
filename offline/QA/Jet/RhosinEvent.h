@@ -9,6 +9,8 @@
 #include <utility>  // std::pair, std::make_pair
 #include <vector>
 
+#include "JetQADefs.h"
+
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH1;
@@ -39,6 +41,11 @@ class RhosinEvent : public SubsysReco
             m_do_area_rho = true;
             m_area_rho_node = name;
         }
+        void setTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
+        {
+          m_doTrgSelect = true;
+          m_trgToSelect = trig;
+        }
 
         // standard Fun4All functions
         int Init(PHCompositeNode *topNode) override;
@@ -56,6 +63,10 @@ class RhosinEvent : public SubsysReco
         bool m_do_area_rho{true};
         std::string m_mult_rho_node{"TowerRho_MULT"};
         std::string m_area_rho_node{"TowerRho_AREA"};
+
+        // trigger selection
+        bool m_doTrgSelect;
+        uint32_t m_trgToSelect;
 
         Fun4AllHistoManager* m_manager{nullptr};
         //histos
