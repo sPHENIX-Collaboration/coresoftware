@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <cmath>
 
 class PHCompositeNode;
 
