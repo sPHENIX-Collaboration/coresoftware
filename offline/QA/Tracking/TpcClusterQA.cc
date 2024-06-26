@@ -177,8 +177,8 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
     hist.cxposition_side0 = h_clusxposition_side0[region];
     hist.cxposition_side1 = h_clusxposition_side1[region];
 
-    hist.cyposition_side0 = h_clusxposition_side0[region];
-    hist.cyposition_side1 = h_clusxposition_side1[region];
+    hist.cyposition_side0 = h_clusyposition_side0[region];
+    hist.cyposition_side1 = h_clusyposition_side1[region];
 
     hist.czposition_side0 = h_cluszposition_side0[region];
     hist.czposition_side1 = h_cluszposition_side1[region];
