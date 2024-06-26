@@ -28,11 +28,17 @@ class LL1PacketContainerv1 : public LL1PacketContainer
   unsigned int get_npackets() override;
   LL1Packet *getPacket(unsigned int index) override;
   LL1Packet *getPacketbyId(int id) override;
+  void setEvtSequence(const int i) override {eventno = i;}
+  int getEvtSequence() const override {return eventno;}
+  void setStatus(const unsigned int ui) override {status = ui;}
+  unsigned int getStatus() const override {return status;}
 
  private:
   TClonesArray *LL1PacketsTCArray{nullptr};
+  int eventno{std::numeric_limits<int>::min()};
+  unsigned int status {0};
 
-  ClassDefOverride(LL1PacketContainerv1, 1)
+  ClassDefOverride(LL1PacketContainerv1, 2)
 };
 
 #endif
