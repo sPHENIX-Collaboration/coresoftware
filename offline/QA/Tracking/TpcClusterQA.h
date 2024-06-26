@@ -12,7 +12,8 @@
 
 class PHCompositeNode;
 class TpcDistortionCorrectionContainer;
-
+class TH2;
+class TH1;
 class TpcClusterQA : public SubsysReco
 {
  public:
@@ -53,6 +54,31 @@ class TpcClusterQA : public SubsysReco
   int m_event = 0;
   int m_totalClusters = 0;
   int m_clustersPerSector[24] = {0};
+
+  TH2 *h_totalclusters = nullptr;
+  TH2 *h_clusterssector = nullptr;
+  TH2 *h_hitpositions = nullptr;
+  TH1 *h_hitzpositions_side0 = nullptr;
+  TH1 *h_hitzpositions_side1 = nullptr;
+  TH1 *h_ntpc = nullptr;
+  
+  TH1 *h_phisize_side0[3] = {nullptr};
+  TH1 *h_phisize_side1[3] = {nullptr};
+  TH1 *h_zsize[3] = {nullptr};
+  TH1 *h_rphierror[3] = {nullptr};
+  TH1 *h_zerror[3] = {nullptr};
+  TH1 *h_clusedge[3] = {nullptr};
+  TH1 *h_clusoverlap[3] =  {nullptr};
+TH1 *  h_clusxposition_side0[3] = {nullptr};
+TH1 *h_clusxposition_side1[3] = {nullptr};
+TH1 *h_clusyposition_side0[3] = {nullptr};
+TH1 *h_clusyposition_side1[3] = {nullptr};
+TH1 *h_cluszposition_side0[3] = {nullptr};
+TH1 *h_cluszposition_side1[3] = {nullptr};
+TH1 *h_clusphisize1pt_side0[3] = {nullptr};
+TH1 *h_clusphisize1pt_side1[3] = {nullptr};
+TH1 *h_clusphisizegeq1pt_side0[3] = {nullptr};
+TH1 *h_clusphisizegeq1pt_side1[3] = {nullptr};
 };
 
 #endif  // QA_TRACKING_TPCCLUSTERQA_H
