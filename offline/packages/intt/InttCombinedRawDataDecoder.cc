@@ -11,6 +11,7 @@
 #include <trackbase/TrkrHitv2.h>
 
 #include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
 
@@ -183,18 +184,28 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     gSystem->Exit(1);
     exit(1);
   }
-  Gl1RawHit* gl1 = nullptr;
+  // Gl1RawHit* gl1 = nullptr;
+  Gl1Packet* gl1 = nullptr;
+  uint64_t gl1rawhitbco = 0;
   if (!m_runStandAlone)
   {
-    gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
-    if (!gl1)
+    gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+    if (gl1)
     {
-      std::cout << PHWHERE << " no gl1 container, exiting" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
+      gl1rawhitbco = gl1->lValue(0, "BCO");
+    }
+    else
+    {
+      auto oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+      if(!oldgl1)
+      {
+        std::cout << PHWHERE << " no gl1 container, exiting" << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
+      }
+      gl1rawhitbco = oldgl1->get_bco();
     }
   }
 
-  uint64_t gl1rawhitbco = m_runStandAlone ? 0 : gl1->get_bco();
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
   auto lbshift = gl1rawhitbco << 24U;  // clang-tidy: mark as unsigned

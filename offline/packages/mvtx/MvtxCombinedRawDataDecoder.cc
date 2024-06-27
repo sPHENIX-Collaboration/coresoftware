@@ -15,6 +15,7 @@
 #include <fun4all/Fun4AllServer.h>
 
 #include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/MvtxRawHit.h>
 #include <ffarawobjects/MvtxRawHitContainer.h>
@@ -162,15 +163,27 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     std::cout << "Have you built this yet?" << std::endl;
     exit(1);
   }
-
-  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
-  if (!gl1 && (Verbosity() >= 4))
+  // Could we just get the first strobe BCO instead of setting this to 0?
+  // Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
+  //  uint64_t gl1rawhitbco = gl1 ? gl1->get_bco() : 0;
+  auto gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  uint64_t gl1rawhitbco = 0;
+  if(gl1)
+  {
+    gl1rawhitbco = gl1->lValue(0, "BCO");
+  }
+  else{
+    auto oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+    if(oldgl1)
+    {
+      gl1rawhitbco = oldgl1->get_bco();
+    }
+  }
+  if (gl1rawhitbco == 0 && (Verbosity() >= 4))
   {
     std::cout << PHWHERE << "Could not get gl1 raw hit" << std::endl;
   }
-  //Could we just get the first strobe BCO instead of setting this to 0?
-  //Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
-  uint64_t gl1rawhitbco = gl1 ? gl1->get_bco() : 0;
+
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
   auto lbshift = gl1rawhitbco << 24U;
@@ -213,9 +226,14 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
 
-    uint64_t bcodiff = gl1 ? gl1bco - strobe : 0;
+    int bcodiff = gl1 ? gl1bco - strobe : 0;
     double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
     int index = std::floor(timeElapsed / m_strobeWidth);
+
+    if (index < -16 || index > 15)
+    {
+      continue; //Index is out of the 5-bit signed range
+    }
 
     if (Verbosity() >= 10)
     {
