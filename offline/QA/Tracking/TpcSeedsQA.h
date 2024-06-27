@@ -40,14 +40,20 @@ class TpcSeedsQA : public SubsysReco
   int EndRun(const int runnumber) override;
 
   int End(PHCompositeNode *topNode) override;
+
+  void setClusterContainerName(const std::string &name) { m_clusterContainerName = name; }
+  std::string getClusterContainerName() {return m_clusterContainerName;}
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
+  std::string getTrackMapName() {return m_trackMapName;}
   void setVertexMapName(const std::string &name) { m_vertexMapName = name; }
+  std::string gettVertexMapName() {return m_vertexMapName;}
   
  private:
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
   void createHistos();
   std::string getHistoPrefix() const;
 
+  std::string m_clusterContainerName{"TRKR_CLUSTER"};
   std::string m_trackMapName{"SvtxTrackMap"};
   std::string m_vertexMapName{"SvtxVertexMap"};
 
@@ -59,10 +65,20 @@ class TpcSeedsQA : public SubsysReco
   TH1* h_ntrack1d{nullptr};
   TH1* h_ntrack1d_pos{nullptr};
   TH1* h_ntrack1d_neg{nullptr};
+  TH1* h_ntrack1d_ptg1{nullptr};
+  TH1* h_ntrack1d_ptg1_pos{nullptr};
+  TH1* h_ntrack1d_ptg1_neg{nullptr};
+  TH1* h_pt{nullptr};
+  TH1* h_pt_pos{nullptr};
+  TH1* h_pt_neg{nullptr};
   TH2* h_ntrack_pos{nullptr};
   TH2* h_ntrack_neg{nullptr};
+  TH1* h_ntpc_fullpt_pos{nullptr};
+  TH1* h_ntpc_fullpt_neg{nullptr};
   TH1* h_ntpc_pos{nullptr};
   TH1* h_ntpc_neg{nullptr};
+  TH2* h_ntpc_quality_pos{nullptr};
+  TH2* h_ntpc_quality_neg{nullptr};
   TH1* h_ntpot_pos{nullptr};
   TH1* h_ntpot_neg{nullptr};
   TProfile2D* h_avgnclus_eta_phi_pos{nullptr};
