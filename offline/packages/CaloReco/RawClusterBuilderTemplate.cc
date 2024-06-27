@@ -624,10 +624,7 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
     cemcNode = new PHCompositeNode(detector);
     dstNode->addNode(cemcNode);
   }
-
-  _clusters = new RawClusterContainer();
   ClusterNodeName = "CLUSTER_" + detector;
-
   if (!m_outputnodename.empty())
   {
     ClusterNodeName = m_outputnodename;
@@ -636,7 +633,12 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
   {
     ClusterNodeName = "CLUSTERINFO_" + detector;
   }
-
+  _clusters = findNode::getClass<RawClusterContainer>(dstNode, ClusterNodeName);
+  if(!_clusters)
+  {
+    _clusters = new RawClusterContainer();
+  }
+  
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   cemcNode->addNode(clusterNode);
 }
