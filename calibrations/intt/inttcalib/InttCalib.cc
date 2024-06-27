@@ -206,33 +206,43 @@ int InttCalib::MakeHotMapCdb()
 
   CDBTTree* cdbttree = new CDBTTree(m_hotmap_cdb_file);
 
-  int size = 0;
-  for(InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
-  {
-    double hitrate = (double)m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / (double)m_evts;
-    InttMap::Offline_s ofl;
-    if(m_feemap.Convert(ofl, raw))
-    {
-       continue;
-    }
+  // Dummy calibration for now
+  // Mask exactly one channel, which we plan on masking at Felix level anyway
 
-    if(adjust_hitrate(ofl, hitrate))
-    {
-      continue;
-    }
+  cdbttree->SetIntValue(size, "felix_server",  3002);
+  cdbttree->SetIntValue(size, "felix_channel", 2);
+  cdbttree->SetIntValue(size, "chip",          14);
+  cdbttree->SetIntValue(size, "channel",       0);
 
-    if(m_min_hitrate < hitrate && hitrate < m_max_hitrate)
-    {
-       continue;
-    }
+  cdbttree->SetSingleIntValue("size", 1);
 
-    cdbttree->SetIntValue(size, "felix_server",  raw.pid - 3001);
-    cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-    cdbttree->SetIntValue(size, "chip",          raw.chp);
-    cdbttree->SetIntValue(size, "channel",       raw.chn);
-    ++size;
-  }
-  cdbttree->SetSingleIntValue("size", size);
+  // int size = 0;
+  // for(InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  // {
+  //   double hitrate = (double)m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / (double)m_evts;
+  //   InttMap::Offline_s ofl;
+  //   if(m_feemap.Convert(ofl, raw))
+  //   {
+  //      continue;
+  //   }
+
+  //   if(adjust_hitrate(ofl, hitrate))
+  //   {
+  //     continue;
+  //   }
+
+  //   if(m_min_hitrate < hitrate && hitrate < m_max_hitrate)
+  //   {
+  //      continue;
+  //   }
+
+  //   cdbttree->SetIntValue(size, "felix_server",  raw.pid - 3001);
+  //   cdbttree->SetIntValue(size, "felix_channel", raw.fee);
+  //   cdbttree->SetIntValue(size, "chip",          raw.chp);
+  //   cdbttree->SetIntValue(size, "channel",       raw.chn);
+  //   ++size;
+  // }
+  // cdbttree->SetSingleIntValue("size", size);
 
   cdbttree->Commit();
   cdbttree->CommitSingle();
