@@ -769,6 +769,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
               << " to 0x" << select_crossings - m_mvtx_bco_range
               << std::dec << std::endl;
   }
+
   // m_MvtxRawHitMap.empty() does not need to be checked here, FillMvtxPool returns non zero
   // if this map is empty which is handled above
   // All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
@@ -782,6 +783,14 @@ int Fun4AllStreamingInputManager::FillMvtx()
     {
       iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
     }
+    for (auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
+    {
+      if (Verbosity() > 1)
+      {
+        mvtxFeeIdInfo->identify();
+      }
+      delete mvtxFeeIdInfo;
+    }
     m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
     m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
@@ -793,6 +802,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       return iret;
     }
   }
+
   // again m_MvtxRawHitMap.empty() is handled by return of FillMvtxPool()
   if (Verbosity() > 2)
   {
