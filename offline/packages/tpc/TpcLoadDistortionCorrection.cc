@@ -51,7 +51,7 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   // look for distortion calibration object
   PHNodeIterator iter(topNode);
 
-  std::cout << "TpcLoadDistortionCorrection::InitRun - m_flags: (i,in_use,radians,interpolate_z):"
+  std::cout << "TpcLoadDistortionCorrection::InitRun - m_flags: (i,in_use,radians,interpolate_z):";
   for (int i=0; i<4; i++)
   {
     std::cout << "("<< i <<", "<<m_correction_in_use[i] << ", " << m_phi_hist_in_radians[i] << ", " << m_interpolate_z[i] << ")"<< std::endl;

@@ -37,7 +37,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
     DistortionType_ModuleEdge = 3
   };
 
-  const int nDistortionTypes = 4;
+  static const int nDistortionTypes = 4;
 
   //! correction filename
   void set_correction_filename(DistortionType i, const std::string& value)
