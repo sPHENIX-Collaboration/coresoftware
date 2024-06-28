@@ -83,8 +83,8 @@ class TpcSeedsQA : public SubsysReco
   TH1* h_ntpot_neg{nullptr};
   TProfile2D* h_avgnclus_eta_phi_pos{nullptr};
   TProfile2D* h_avgnclus_eta_phi_neg{nullptr};
-  TH1* h_trackcrossing_pos{nullptr};
-  TH1* h_trackcrossing_neg{nullptr};
+  //TH1* h_trackcrossing_pos{nullptr};
+  //TH1* h_trackcrossing_neg{nullptr};
   TH2* h_dcaxyorigin_phi_pos{nullptr};
   TH2* h_dcaxyorigin_phi_neg{nullptr};
   TH2* h_dcaxyvtx_phi_pos{nullptr};
@@ -104,7 +104,7 @@ class TpcSeedsQA : public SubsysReco
   TH2* h_vx_vy{nullptr};
   TH1* h_vz{nullptr};
   TH1* h_vt{nullptr};
-  TH1* h_vcrossing{nullptr};
+  //TH1* h_vcrossing{nullptr};
   TH1* h_vchi2dof{nullptr};
   TH1* h_ntrackpervertex{nullptr};
 };
