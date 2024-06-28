@@ -109,7 +109,7 @@ int InttCalib::process_event(PHCompositeNode* top_node)
   }
 
   ++m_evts;
-  if(Verbosity() && ((m_evts % 1000) == 0))
+  if((Verbosity() > 1) && ((m_evts % 1000) == 0))
   {
     std::cout << "Finished event: " << m_evts << std::endl;
   }
@@ -209,10 +209,10 @@ int InttCalib::MakeHotMapCdb()
   // Dummy calibration for now
   // Mask exactly one channel, which we plan on masking at Felix level anyway
 
-  cdbttree->SetIntValue(size, "felix_server",  3002);
-  cdbttree->SetIntValue(size, "felix_channel", 2);
-  cdbttree->SetIntValue(size, "chip",          14);
-  cdbttree->SetIntValue(size, "channel",       0);
+  cdbttree->SetIntValue(0, "felix_server",  3002);
+  cdbttree->SetIntValue(0, "felix_channel", 2);
+  cdbttree->SetIntValue(0, "chip",          14);
+  cdbttree->SetIntValue(0, "channel",       0);
 
   cdbttree->SetSingleIntValue("size", 1);
 
