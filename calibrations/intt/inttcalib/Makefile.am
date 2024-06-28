@@ -1,39 +1,29 @@
 AUTOMAKE_OPTIONS = foreign
 
-
-AM_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
-  -isystem`root-config --incdir`
+  -isystem$(ROOTSYS)/include
 
-lib_LTLIBRARIES = \
-    libinttbcofinder.la
-
-pkginclude_HEADERS = \
-  InttBCOFinder.h
-
-libinttbcofinder_la_SOURCES = \
-  InttBCOFinder.cc  
-
-libinttbcofinder_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -lcalo_io \
-  -lfun4all \
-  -lg4detectors_io \
-  -lphg4hit \
-  -lg4eval \
-  -lintt 
+  -L$(OFFLINE_MAIN)/lib64
 
+pkginclude_HEADERS = \
+  InttCalib.h
 
+lib_LTLIBRARIES = \
+  libinttcalib.la
 
+libinttcalib_la_SOURCES = \
+  InttCalib.cc
 
-################################################
-# linking tests
+libinttcalib_la_LIBADD = \
+  -lcdbobjects \
+  -lintt \
+  -lphool \
+  -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc
 
@@ -41,7 +31,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD = libinttbcofinder.la
+testexternals_LDADD   = libinttcalib.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
