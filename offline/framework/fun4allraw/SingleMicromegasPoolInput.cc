@@ -495,7 +495,6 @@ void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
   }
 
   // per packet statistics
-  auto h_packet_stat = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_packet_stat"));
   h_packet_stat->Fill( "Reference", 1 );
 
   for( const auto& packet_id:found_packets )
@@ -503,11 +502,9 @@ void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
   h_packet_stat->Fill( "All", found_packets.size()>= m_npackets_active );
 
   // how many packet_id found for this BCO
-  auto h_packet = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_npacket_bco"));
   h_packet->Fill(found_packets.size());
 
   // how many waveforms found for this BCO
-  auto h_waveform = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_nwaveform_bco"));
   h_waveform->Fill(n_waveforms);
 }
 //_______________________________________________________
@@ -536,4 +533,7 @@ void SingleMicromegasPoolInput::createQAHistos()
     h->SetFillColor(kYellow);
     hm->registerHisto(h);
   }
+  h_packet_stat = dynamic_cast<TH1*>(hm->getHisto("h_MicromegasBCOQA_packet_stat"));
+  h_packet = dynamic_cast<TH1*>(hm->getHisto("h_MicromegasBCOQA_npacket_bco"));
+  h_waveform = dynamic_cast<TH1*>(hm->getHisto("h_MicromegasBCOQA_nwaveform_bco"));
 }

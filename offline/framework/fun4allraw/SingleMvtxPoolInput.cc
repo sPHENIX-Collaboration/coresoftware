@@ -289,6 +289,7 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // {
   //   iter.second.clear();
   // }
+
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
