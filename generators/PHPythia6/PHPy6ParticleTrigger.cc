@@ -4,17 +4,15 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>       // for GenVertex, GenVertex::particles_in...
+#include <HepMC/GenVertex.h>  // for GenVertex, GenVertex::particles_in...
 #pragma GCC diagnostic pop
 
-#include <HepMC/GenParticle.h>     // for GenParticle
-#include <HepMC/SimpleVector.h>    // for FourVector
+#include <HepMC/GenParticle.h>   // for GenParticle
+#include <HepMC/SimpleVector.h>  // for FourVector
 
-#include <cmath>                  // for sqrt
-#include <cstdlib>                // for abs
+#include <cmath>    // for sqrt
+#include <cstdlib>  // for abs
 #include <iostream>
-
-using namespace std;
 
 //___________________________________________________________________________
 PHPy6ParticleTrigger::PHPy6ParticleTrigger(const std::string &name)
@@ -69,7 +67,7 @@ bool PHPy6ParticleTrigger::Apply(const HepMC::GenEvent *evt)
 
   //  for ( HepMC::GenEvent::particle_const_iterator p
   //          = evt->particles_begin(); p != evt->particles_end(); ++p ){
-  //    if ( (abs((*p)->pdg_id()) == 11) && ((*p)->status()==1) &&
+  //    if ( (std::abs((*p)->pdg_id()) == 11) && ((*p)->status()==1) &&
   //         ((*p)->momentum().pseudoRapidity() > eta_low) && ((*p)->momentum().pseudoRapidity() < eta_high) &&
   //         ( ) {
   //      if(((*p)->pdg_id()) == 11) n_em_found++;
@@ -91,74 +89,128 @@ bool PHPy6ParticleTrigger::Apply(const HepMC::GenEvent *evt)
   for (HepMC::GenEvent::particle_const_iterator p = evt->particles_begin(); p != evt->particles_end(); ++p)
   {
     // loop over all the trigger particle criteria
-    for (int j = 0; j < int(_theParticles.size()); j++)
+    for (int _theParticle : _theParticles)
     {
       double p_pT = sqrt(pow((*p)->momentum().px(), 2) + pow((*p)->momentum().py(), 2));
       double p_pAbs = sqrt(pow((*p)->momentum().px(), 2) + pow((*p)->momentum().py(), 2) + pow((*p)->momentum().pz(), 2));
-      if ((*p)->pdg_id() == _theParticles[j] &&
+      if ((*p)->pdg_id() == _theParticle &&
           (*p)->status() == 1)
-      {  //only stable particles
+      {  // only stable particles
 
         if (_doBothEtaCut && ((*p)->momentum().eta() < _theEtaLow ||
-                              (*p)->momentum().eta() > _theEtaHigh)) continue;
-        if (_doEtaLowCut && (*p)->momentum().eta() < _theEtaLow) continue;
-        if (_doEtaHighCut && (*p)->momentum().eta() > _theEtaHigh) continue;
+                              (*p)->momentum().eta() > _theEtaHigh))
+        {
+          continue;
+        }
+        if (_doEtaLowCut && (*p)->momentum().eta() < _theEtaLow)
+        {
+          continue;
+        }
+        if (_doEtaHighCut && (*p)->momentum().eta() > _theEtaHigh)
+        {
+          continue;
+        }
 
-        if (_doBothAbsEtaCut && (abs((*p)->momentum().eta()) < _theEtaLow ||
-                                 abs((*p)->momentum().eta()) > _theEtaHigh)) continue;
-        if (_doAbsEtaLowCut && abs((*p)->momentum().eta()) < _theEtaLow) continue;
-        if (_doAbsEtaHighCut && abs((*p)->momentum().eta()) > _theEtaHigh) continue;
+        if (_doBothAbsEtaCut && (std::abs((*p)->momentum().eta()) < _theEtaLow ||
+                                 std::abs((*p)->momentum().eta()) > _theEtaHigh))
+        {
+          continue;
+        }
+        if (_doAbsEtaLowCut && std::abs((*p)->momentum().eta()) < _theEtaLow)
+        {
+          continue;
+        }
+        if (_doAbsEtaHighCut && std::abs((*p)->momentum().eta()) > _theEtaHigh)
+        {
+          continue;
+        }
 
         if (_doBothPtCut && (p_pT < _thePtLow ||
-                             p_pT > _thePtHigh)) continue;
-        if (_doPtHighCut && p_pT > _thePtHigh) continue;
-        if (_doPtLowCut && p_pT < _thePtLow) continue;
+                             p_pT > _thePtHigh))
+        {
+          continue;
+        }
+        if (_doPtHighCut && p_pT > _thePtHigh)
+        {
+          continue;
+        }
+        if (_doPtLowCut && p_pT < _thePtLow)
+        {
+          continue;
+        }
 
         if (_doBothPCut && (p_pAbs < _thePLow ||
-                            p_pAbs > _thePHigh)) continue;
-        if (_doPHighCut && p_pAbs > _thePHigh) continue;
-        if (_doPLowCut && p_pAbs < _thePLow) continue;
+                            p_pAbs > _thePHigh))
+        {
+          continue;
+        }
+        if (_doPHighCut && p_pAbs > _thePHigh)
+        {
+          continue;
+        }
+        if (_doPLowCut && p_pAbs < _thePLow)
+        {
+          continue;
+        }
 
         if (_doBothPzCut && ((*p)->momentum().pz() < _thePzLow ||
-                             (*p)->momentum().pz() > _thePzHigh)) continue;
-        if (_doPzHighCut && (*p)->momentum().pz() > _thePzHigh) continue;
-        if (_doPzLowCut && (*p)->momentum().pz() < _thePzLow) continue;
+                             (*p)->momentum().pz() > _thePzHigh))
+        {
+          continue;
+        }
+        if (_doPzHighCut && (*p)->momentum().pz() > _thePzHigh)
+        {
+          continue;
+        }
+        if (_doPzLowCut && (*p)->momentum().pz() < _thePzLow)
+        {
+          continue;
+        }
 
         if (Verbosity() > 5)
         {
-          cout << "stable " << (*p)->pdg_id()
-               << "  pt: " << p_pT
-               << " pz: " << (*p)->momentum().pz()
-               << " p: " << p_pAbs
-               << " eta: " << (*p)->momentum().eta() << endl;
+          std::cout << "stable " << (*p)->pdg_id()
+                    << "  pt: " << p_pT
+                    << " pz: " << (*p)->momentum().pz()
+                    << " p: " << p_pAbs
+                    << " eta: " << (*p)->momentum().eta() << std::endl;
         }
 
         // loop over all partents to this particle
         bool passedParents = false;
-        for (int k = 0; k < int(_theParents.size()); k++)
+        for (int _theParent : _theParents)
         {
           // check Mothers
           for (HepMC::GenVertex::particles_in_const_iterator p_parent = (*p)->production_vertex()->particles_in_const_begin();
                p_parent != (*p)->production_vertex()->particles_in_const_end();
                ++p_parent)
           {
-            if (abs((*p_parent)->pdg_id()) == abs(_theParents[k]))
+            if (std::abs((*p_parent)->pdg_id()) == std::abs(_theParent))
             {
               passedParents = true;
-              if (Verbosity() > 5) cout << "found parent!" << endl;
+              if (Verbosity() > 5)
+              {
+                std::cout << "found parent!" << std::endl;
+              }
               break;
             }
-          }  //moms for loop
-          if (passedParents) break;
-        }  //parents for loop
+          }  // moms for loop
+          if (passedParents)
+          {
+            break;
+          }
+        }  // parents for loop
 
-        //If we made it here and it passes parents, success!
-        if (_theParents.size() == 0 || passedParents) return true;
+        // If we made it here and it passes parents, success!
+        if (_theParents.size() == 0 || passedParents)
+        {
+          return true;
+        }
 
-      }  //if _theParticles
+      }  // if _theParticles
     }    //_theParticles for loop
 
-  }  //pythia event for loop
+  }  // pythia event for loop
 
   return false;
 }
@@ -199,18 +251,26 @@ void PHPy6ParticleTrigger::SetPtHigh(double pt)
 {
   _thePtHigh = pt;
   if (_doPtLowCut)
+  {
     _doBothPtCut = true;
+  }
   else
+  {
     _doPtHighCut = true;
+  }
 }
 
 void PHPy6ParticleTrigger::SetPtLow(double pt)
 {
   _thePtLow = pt;
   if (_doPtHighCut)
+  {
     _doBothPtCut = true;
+  }
   else
+  {
     _doPtLowCut = true;
+  }
 }
 
 void PHPy6ParticleTrigger::SetPtHighLow(double ptHigh, double ptLow)
@@ -396,24 +456,40 @@ void PHPy6ParticleTrigger::SetPzHighLow(double pzHigh, double pzLow)
 
 void PHPy6ParticleTrigger::PrintConfig()
 {
-  cout << "---------------- PHPy6ParticleTrigger::PrintConfig --------------------" << endl;
-  cout << "   Particles: ";
-  for (int i = 0; i < int(_theParticles.size()); i++) cout << _theParticles[i] << "  ";
-  cout << endl;
+  std::cout << "---------------- PHPy6ParticleTrigger::PrintConfig --------------------" << std::endl;
+  std::cout << "   Particles: ";
+  for (int _theParticle : _theParticles)
+  {
+    std::cout << _theParticle << "  ";
+  }
+  std::cout << std::endl;
 
-  cout << "   Parents: ";
-  for (int i = 0; i < int(_theParents.size()); i++) cout << _theParents[i] << "  ";
-  cout << endl;
+  std::cout << "   Parents: ";
+  for (int _theParent : _theParents)
+  {
+    std::cout << _theParent << "  ";
+  }
+  std::cout << std::endl;
 
   if (_doEtaHighCut || _doEtaLowCut || _doBothEtaCut)
-    cout << "   doEtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << endl;
+  {
+    std::cout << "   doEtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << std::endl;
+  }
   if (_doAbsEtaHighCut || _doAbsEtaLowCut || _doBothAbsEtaCut)
-    cout << "   doAbsEtaCut:  " << _theEtaLow << " < |eta| < " << _theEtaHigh << endl;
+  {
+    std::cout << "   doAbsEtaCut:  " << _theEtaLow << " < |eta| < " << _theEtaHigh << std::endl;
+  }
   if (_doPtHighCut || _doPtLowCut || _doBothPtCut)
-    cout << "   doPtCut:  " << _thePtLow << " < pT < " << _thePtHigh << endl;
+  {
+    std::cout << "   doPtCut:  " << _thePtLow << " < pT < " << _thePtHigh << std::endl;
+  }
   if (_doPHighCut || _doPLowCut || _doBothPCut)
-    cout << "   doPCut:  " << _thePLow << " < p < " << _thePHigh << endl;
+  {
+    std::cout << "   doPCut:  " << _thePLow << " < p < " << _thePHigh << std::endl;
+  }
   if (_doPzHighCut || _doPzLowCut || _doBothPzCut)
-    cout << "   doPzCut:  " << _thePzLow << " < pz < " << _thePzHigh << endl;
-  cout << "-----------------------------------------------------------------------" << endl;
+  {
+    std::cout << "   doPzCut:  " << _thePzLow << " < pz < " << _thePzHigh << std::endl;
+  }
+  std::cout << "-----------------------------------------------------------------------" << std::endl;
 }

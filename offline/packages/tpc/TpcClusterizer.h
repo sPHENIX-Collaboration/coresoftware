@@ -66,7 +66,7 @@ class TpcClusterizer : public SubsysReco
     set_min_err_squared(0);
     set_min_clus_size(0);
     set_min_adc_sum(5);
-    set_remove_singles(false);
+    set_remove_singles(true);
     set_max_cluster_half_size_phi(10);
     set_max_cluster_half_size_z(20);
     set_fixed_window(3);

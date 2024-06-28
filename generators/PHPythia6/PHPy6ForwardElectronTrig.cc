@@ -6,14 +6,12 @@
 #include <HepMC/GenEvent.h>
 #pragma GCC diagnostic pop
 
-#include <HepMC/GenParticle.h>     // for GenParticle
-#include <HepMC/SimpleVector.h>    // for FourVector
+#include <HepMC/GenParticle.h>   // for GenParticle
+#include <HepMC/SimpleVector.h>  // for FourVector
 
-#include <cmath>                  // for sqrt
+#include <cmath>  // for sqrt
 #include <cstdlib>
 #include <iostream>
-
-using namespace std;
 
 //___________________________________________________________________________
 PHPy6ForwardElectronTrig::PHPy6ForwardElectronTrig(const std::string& name)
@@ -38,21 +36,36 @@ PHPy6ForwardElectronTrig::PHPy6ForwardElectronTrig(const std::string& name)
 
 void PHPy6ForwardElectronTrig::PrintConfig()
 {
-  cout << endl;
-  cout << "PHPy6ForwardElectronTrig Configuration: " << endl;
-  cout << " >=" << n_ep_required << " e+ required" << endl;
-  cout << " >=" << n_em_required << " e- required" << endl;
-  cout << " >=" << n_comb_required << " combined required" << endl;
-  cout << " Electron transverse momentum > " << pt_required << " GeV required" << endl;
-  cout << " " << eta_low << " < eta < " << eta_high << endl;
+  std::cout << std::endl;
+  std::cout << "PHPy6ForwardElectronTrig Configuration: " << std::endl;
+  std::cout << " >=" << n_ep_required << " e+ required" << std::endl;
+  std::cout << " >=" << n_em_required << " e- required" << std::endl;
+  std::cout << " >=" << n_comb_required << " combined required" << std::endl;
+  std::cout << " Electron transverse momentum > " << pt_required << " GeV required" << std::endl;
+  std::cout << " " << eta_low << " < eta < " << eta_high << std::endl;
 
-  if (RequireElectron) cout << " RequireElectron is set" << endl;
-  if (RequirePositron) cout << " RequirePositron is set" << endl;
-  if (RequireOR) cout << " RequireOR is set" << endl;
-  if (RequireAND) cout << " RequireAND is set" << endl;
-  if (RequireCOMBO) cout << " RequireCOMBINED is set" << endl;
+  if (RequireElectron)
+  {
+    std::cout << " RequireElectron is set" << std::endl;
+  }
+  if (RequirePositron)
+  {
+    std::cout << " RequirePositron is set" << std::endl;
+  }
+  if (RequireOR)
+  {
+    std::cout << " RequireOR is set" << std::endl;
+  }
+  if (RequireAND)
+  {
+    std::cout << " RequireAND is set" << std::endl;
+  }
+  if (RequireCOMBO)
+  {
+    std::cout << " RequireCOMBINED is set" << std::endl;
+  }
 
-  cout << endl;
+  std::cout << std::endl;
 }
 
 bool PHPy6ForwardElectronTrig::Apply(const HepMC::GenEvent* evt)
@@ -79,8 +92,14 @@ bool PHPy6ForwardElectronTrig::Apply(const HepMC::GenEvent* evt)
         ((*p)->momentum().pseudoRapidity() > eta_low) && ((*p)->momentum().pseudoRapidity() < eta_high) &&
         (sqrt(pow((*p)->momentum().px(), 2) + pow((*p)->momentum().py(), 2)) > pt_required))
     {
-      if (((*p)->pdg_id()) == 11) n_em_found++;
-      if (((*p)->pdg_id()) == -11) n_ep_found++;
+      if (((*p)->pdg_id()) == 11)
+      {
+        n_em_found++;
+      }
+      if (((*p)->pdg_id()) == -11)
+      {
+        n_ep_found++;
+      }
     }
   }
 

@@ -24,13 +24,9 @@ class SingleGl1TriggerInput : public SingleTriggerInput
   bool GetSomeMoreEvents(const unsigned int keep);
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
-  //  void ConfigureStreamingInputManager() override;
 
  private:
-  unsigned int m_NumSpecialEvents{0};
-
   std::set<int> m_EventNumber;
-  std::map<int, std::vector<OfflinePacket *>> m_Gl1PacketMap;
   std::set<int> m_EventStack;
 };
 

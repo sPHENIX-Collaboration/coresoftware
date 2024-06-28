@@ -438,7 +438,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
               measurements,
               m_clusterContainer,
               m_tGeometry,
-              _dcc_static, _dcc_average, _dcc_fluctuation,
+              _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
               this_crossing);
         }
         const auto tpcSourceLinks = makeSourceLinks.getSourceLinksClusterMover(
@@ -446,7 +446,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             measurements,
             m_clusterContainer,
             m_tGeometry,
-            _dcc_static, _dcc_average, _dcc_fluctuation,
+            _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
             this_crossing);
 
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
@@ -460,7 +460,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
               measurements,
               m_clusterContainer,
               m_tGeometry,
-              _dcc_static, _dcc_average, _dcc_fluctuation,
+              _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
               m_alignmentTransformationMapTransient,
               m_transient_id_set,
               this_crossing);
@@ -470,7 +470,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             measurements,
             m_clusterContainer,
             m_tGeometry,
-            _dcc_static, _dcc_average, _dcc_fluctuation,
+            _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
             m_alignmentTransformationMapTransient,
             m_transient_id_set,
             this_crossing);
@@ -1233,6 +1233,11 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
   }
 
   // tpc distortion corrections
+  _dcc_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
+  if (_dcc_module_edge)
+  {
+    std::cout << PHWHERE << "  found module edge TPC distortion correction container" << std::endl;
+  }
   _dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
   if (_dcc_static)
   {

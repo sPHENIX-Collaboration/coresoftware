@@ -51,6 +51,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 						  ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 						  TrkrClusterContainer*  clusterContainer,
 						  ActsGeometry* tGeometry,
+					          const TpcDistortionCorrectionContainer* dcc_module_edge,
 					          const TpcDistortionCorrectionContainer* dcc_static,
 					          const TpcDistortionCorrectionContainer* dcc_average,
 					          const TpcDistortionCorrectionContainer* dcc_fluctuation,
@@ -108,7 +109,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
     // we do this by modifying the fake surface transform, to move the cluster to the corrected position
     if (trkrid == TrkrDefs::tpcId)
     {
-      Acts::Vector3 global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, tGeometry, crossing, dcc_static, dcc_average, dcc_fluctuation);
+      Acts::Vector3 global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, tGeometry, crossing, dcc_module_edge, dcc_static, dcc_average, dcc_fluctuation);
       Acts::Vector3 global_in = tGeometry->getGlobalPosition(key, cluster);
 
       if(m_verbosity > 2)
@@ -269,6 +270,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 							  ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 							  TrkrClusterContainer*  clusterContainer,
 							  ActsGeometry* tGeometry,
+							  const TpcDistortionCorrectionContainer* dcc_module_edge,
 							  const TpcDistortionCorrectionContainer* dcc_static,
 							  const TpcDistortionCorrectionContainer* dcc_average,
 							  const TpcDistortionCorrectionContainer* dcc_fluctuation,
@@ -333,7 +335,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     
     if (trkrid == TrkrDefs::tpcId)
       {
-        global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, tGeometry, crossing, dcc_static, dcc_average, dcc_fluctuation);
+        global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, tGeometry, crossing, dcc_module_edge, dcc_static, dcc_average, dcc_fluctuation);
 
         if (m_verbosity > 1)
 	  {

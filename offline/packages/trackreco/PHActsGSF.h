@@ -97,6 +97,7 @@ class PHActsGSF : public SubsysReco
   std::set< Acts::GeometryIdentifier> m_transient_id_set;
   Acts::GeometryContext m_transient_geocontext;
 
+  TpcDistortionCorrectionContainer* m_dccModuleEdge = nullptr;
   TpcDistortionCorrectionContainer* m_dccStatic = nullptr;
   TpcDistortionCorrectionContainer* m_dccAverage = nullptr;
   TpcDistortionCorrectionContainer* m_dccFluctuation{nullptr};

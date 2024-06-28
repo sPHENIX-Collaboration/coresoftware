@@ -53,6 +53,7 @@ int ZdcCheck::process_event(PHCompositeNode *topNode)
     {
       std::cout << "Packet " << zdccont->getPacket(i)->getIdentifier()
 		<< " Evt no: " << zdccont->getPacket(i)->getEvtSequence() << std::endl;
+      zdccont->identify();
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;

@@ -69,6 +69,16 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_nHitsInCuster_minimum = minHits;
   }
 
+  void set_fixShifts(bool fixShifts)
+  {
+    m_fixShifts = fixShifts;
+  }
+
+  void set_fieldOn(bool fieldOn)
+  {
+    m_fieldOn = fieldOn;
+  }
+
   void set_grid_dimensions(int phibins, int rbins);
 
   //! run initialization
@@ -83,9 +93,11 @@ class TpcCentralMembraneMatching : public SubsysReco
  private:
   int GetNodes(PHCompositeNode *topNode);
 
-  double getPhiRotation_smoothed(TH1 *hitHist, TH1 *clustHist);
+  double getPhiRotation_smoothed(TH1 *hitHist, TH1 *clustHist, bool side);
 
   std::vector<int> doGlobalRMatching(TH2 *r_phi, bool pos);
+
+  void getRegionPhiRotation(bool side);
 
   int getClusterRMatch(double clusterR, int side);
   /// tpc distortion correction utility class
@@ -149,13 +161,14 @@ class TpcCentralMembraneMatching : public SubsysReco
   TTree *match_tree {nullptr};
 
   int m_event_index {0};
+  bool m_matched {false};
   int m_truthIndex {0};
   float m_truthR {0.0};
   float m_truthPhi {0.0};
   float m_recoR {0.0};
   float m_recoPhi {0.0};
   float m_recoZ {0.0};
-  bool m_side {0};
+  bool m_side {false};
   unsigned int m_adc {0};
   unsigned int m_nhits {0};
   unsigned int m_nLayers {0};
@@ -169,6 +182,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   float m_ITWeightedSD {0.0};
   int m_lowShift {0};
   int m_highShift {0};
+  float m_phiRotation {0.0};
+  float m_distanceToTruth {0.0};
 
 
 
@@ -274,6 +289,9 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   //@}
 
+  bool m_fixShifts {false};
+  bool m_fieldOn {true};
+
   std::vector<double> m_reco_RPeaks[2];
   double m_m[2];
   double m_b[2];
@@ -281,7 +299,7 @@ class TpcCentralMembraneMatching : public SubsysReco
   int m_matchHigh[2];
   std::vector<int> m_reco_RMatches[2];
 
-  double m_recoRotation[2][3];
+  double m_recoRotation[2][3] {{-999,-999,-999},{-999,-999,-999}};
 
 
 };

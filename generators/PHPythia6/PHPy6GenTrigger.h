@@ -30,10 +30,10 @@ class PHPy6GenTrigger
     return m_Name;
   }
 
-  std::vector<int> convertToInts(std::string s);
+  std::vector<int> convertToInts(const std::string& s);
 
   void Verbosity(int v) { m_Verbosity = v; }
-  int Verbosity() const {return m_Verbosity;}
+  int Verbosity() const { return m_Verbosity; }
 
  private:
   int m_Verbosity = 0;

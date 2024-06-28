@@ -12,7 +12,7 @@
 #include <string>
 
 class SingleStreamingInput;
-class Gl1RawHit;
+class Gl1Packet;
 class InttRawHit;
 class MicromegasRawHit;
 class MvtxRawHit;
@@ -44,7 +44,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int FillMicromegas();
   int FillMvtx();
   int FillTpc();
-  void AddGl1RawHit(uint64_t bclk, Gl1RawHit *hit);
+  void AddGl1RawHit(uint64_t bclk, Gl1Packet *hit);
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit * /* hit */);
   void AddMvtxFeeIdInfo(uint64_t bclk, uint16_t feeid, uint32_t detField);
@@ -75,7 +75,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
 
   struct Gl1RawHitInfo
   {
-    std::vector<Gl1RawHit *> Gl1RawHitVector;
+    std::vector<Gl1Packet *> Gl1RawHitVector;
     unsigned int EventFoundCounter{0};
   };
 

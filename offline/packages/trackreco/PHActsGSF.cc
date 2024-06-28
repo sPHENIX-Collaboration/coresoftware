@@ -204,7 +204,7 @@ int PHActsGSF::process_event(PHCompositeNode* topNode)
         measurements,
         m_clusterContainer,
         m_tGeometry,
-        m_dccStatic, m_dccAverage, m_dccFluctuation,
+        m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation,
         m_alignmentTransformationMapTransient,
         m_transient_id_set,
         crossing);
@@ -213,7 +213,7 @@ int PHActsGSF::process_event(PHCompositeNode* topNode)
         measurements,
         m_clusterContainer,
         m_tGeometry,
-        m_dccStatic, m_dccAverage, m_dccFluctuation,
+        m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation,
         m_alignmentTransformationMapTransient,
         m_transient_id_set,
         crossing);
@@ -451,6 +451,12 @@ int PHActsGSF::getNodes(PHCompositeNode* topNode)
   }
 
   // tpc distortion corrections
+  m_dccModuleEdge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
+  if (m_dccModuleEdge)
+  {
+    std::cout << PHWHERE << "  found module edge TPC distortion correction container" << std::endl;
+  }
+
   m_dccStatic = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
   if (m_dccStatic)
   {

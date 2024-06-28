@@ -25,14 +25,11 @@ class SingleZdcTriggerInput : public SingleTriggerInput
   bool GetSomeMoreEvents(const unsigned int keep);
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
-  void AdjustPacketMap(int pktid, int evtoffset) override;
 
  private:
   Packet **plist{nullptr};
-  unsigned int m_NumSpecialEvents{0};
 
   std::set<int> m_EventNumber;
-  std::map<int, std::vector<OfflinePacket *>> m_ZdcPacketMap;
   std::set<int> m_EventStack;
 };
 

@@ -73,7 +73,6 @@ libphnodedump_la_SOURCES = \
   DumpTrkrHitSetContainer.cc \
   DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
-  DumpVariableArray.cc \
   DumpObject.cc \
   PHNodeDump.cc
 
@@ -97,8 +96,8 @@ libphnodedump_la_LIBADD = \
   -lSubsysReco \
   -ltrackbase_historic_io \
   -ltrack_io \
-  -lphhepmc_io\
-  -lvararray
+  -lphhepmc_io
+
 
 
 noinst_PROGRAMS = \

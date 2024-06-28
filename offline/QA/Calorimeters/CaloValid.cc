@@ -576,6 +576,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     // return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  int hits = 0;
   if (bbcpmts)
   {
     int nPMTs = bbcpmts->get_npmt();
@@ -584,8 +585,12 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       MbdPmtHit* mbdpmt = bbcpmts->get_pmt(i);
       float pmtadc = mbdpmt->get_q();
       totalmbd += pmtadc;
+      if (pmtadc > 0.4) hits++;
     }
   }
+  auto h_mbd_hits= dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%smbd_hits") % getHistoPrefix()).c_str()));
+  h_mbd_hits->Fill(hits);
+  
   auto h_emcal_mbd_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%semcal_mbd_correlation") % getHistoPrefix()).c_str()));
   auto h_ihcal_mbd_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sihcal_mbd_correlation") % getHistoPrefix()).c_str()));
   auto h_ohcal_mbd_correlation = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%sohcal_mbd_correlation") % getHistoPrefix()).c_str()));
@@ -852,6 +857,11 @@ void CaloValid::createHistos()
   // create and register your histos (all types) here
   {
     auto h = new TH2F(boost::str(boost::format("%semcal_mbd_correlation") % getHistoPrefix()).c_str(), ";emcal;mbd", 100, 0, 1, 100, 0, 1);
+    h->SetDirectory(nullptr);
+    hm->registerHisto(h);
+  }
+  {
+    auto h = new TH1F(boost::str(boost::format("%smbd_hits") % getHistoPrefix()).c_str(), "mb hits", 100, 0, 100);
     h->SetDirectory(nullptr);
     hm->registerHisto(h);
   }

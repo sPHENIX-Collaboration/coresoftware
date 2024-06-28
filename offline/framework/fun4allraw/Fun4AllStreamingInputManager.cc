@@ -5,7 +5,7 @@
 #include "SingleMvtxPoolInput.h"
 #include "SingleStreamingInput.h"
 
-#include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
 #include <ffarawobjects/MicromegasRawHit.h>
@@ -466,7 +466,7 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
   }
 }
 
-void Fun4AllStreamingInputManager::AddGl1RawHit(uint64_t bclk, Gl1RawHit *hit)
+void Fun4AllStreamingInputManager::AddGl1RawHit(uint64_t bclk, Gl1Packet *hit)
 {
   if (Verbosity() > 1)
   {
@@ -576,7 +576,7 @@ int Fun4AllStreamingInputManager::FillGl1()
     return -1;
   }
   //    std::cout << "stashed gl1 BCOs: " << m_Gl1RawHitMap.size() << std::endl;
-  Gl1RawHit *gl1rawhit = findNode::getClass<Gl1RawHit>(m_topNode, "GL1RAWHIT");
+  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(m_topNode, "GL1RAWHIT");
   //  std::cout << "before filling m_Gl1RawHitMap size: " <<  m_Gl1RawHitMap.size() << std::endl;
   for (auto gl1hititer : m_Gl1RawHitMap.begin()->second.Gl1RawHitVector)
   {
@@ -584,9 +584,9 @@ int Fun4AllStreamingInputManager::FillGl1()
     {
       gl1hititer->identify();
     }
-    gl1rawhit->CopyFrom(gl1hititer);
-    MySyncManager()->CurrentEvent(gl1rawhit->getEvtSequence());
-    m_RefBCO = gl1hititer->get_bco();
+    gl1packet->FillFrom(gl1hititer);
+    MySyncManager()->CurrentEvent(gl1packet->getEvtSequence());
+    m_RefBCO = gl1hititer->getBCO();
     m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)
                                           //    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
   }
@@ -769,6 +769,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
               << " to 0x" << select_crossings - m_mvtx_bco_range
               << std::dec << std::endl;
   }
+
   // m_MvtxRawHitMap.empty() does not need to be checked here, FillMvtxPool returns non zero
   // if this map is empty which is handled above
   // All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
@@ -782,15 +783,26 @@ int Fun4AllStreamingInputManager::FillMvtx()
     {
       iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
     }
+    for (auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
+    {
+      if (Verbosity() > 1)
+      {
+        mvtxFeeIdInfo->identify();
+      }
+      delete mvtxFeeIdInfo;
+    }
     m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
+    m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
     m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
     iret = FillMvtxPool();
+
     if (iret)
     {
       return iret;
     }
   }
+
   // again m_MvtxRawHitMap.empty() is handled by return of FillMvtxPool()
   if (Verbosity() > 2)
   {
@@ -889,6 +901,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
     }
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
+    m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
     m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
     // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
     if (m_MvtxRawHitMap.empty())

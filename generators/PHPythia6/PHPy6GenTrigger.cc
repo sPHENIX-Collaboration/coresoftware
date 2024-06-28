@@ -3,15 +3,15 @@
 #include <sstream>
 
 //__________________________________________________________
-PHPy6GenTrigger::PHPy6GenTrigger(const std::string &name)
+PHPy6GenTrigger::PHPy6GenTrigger(const std::string& name)
   : m_Name(name)
 {
 }
 
 //__________________________________________________________
-PHPy6GenTrigger::~PHPy6GenTrigger() {}
+PHPy6GenTrigger::~PHPy6GenTrigger() = default;
 
-std::vector<int> PHPy6GenTrigger::convertToInts(std::string s)
+std::vector<int> PHPy6GenTrigger::convertToInts(const std::string& s)
 {
   std::vector<int> theVec;
   std::stringstream ss(s);
@@ -22,7 +22,10 @@ std::vector<int> PHPy6GenTrigger::convertToInts(std::string s)
     if (ss.peek() == ',' ||
         ss.peek() == ' ' ||
         ss.peek() == ':' ||
-        ss.peek() == ';') ss.ignore();
+        ss.peek() == ';')
+    {
+      ss.ignore();
+    }
   }
 
   return theVec;

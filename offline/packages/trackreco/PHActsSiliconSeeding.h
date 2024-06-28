@@ -249,7 +249,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Limiting location of measurements (e.g. detector constraints)
   float m_rMax = 200. * Acts::UnitConstants::mm;
-  float m_rMin = 23. * Acts::UnitConstants::mm;
+  float m_rMin = 15. * Acts::UnitConstants::mm;
   float m_zMax = 500. * Acts::UnitConstants::mm;
   float m_zMin = -500. * Acts::UnitConstants::mm;
 

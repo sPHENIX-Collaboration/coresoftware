@@ -83,10 +83,10 @@ class INTTXYvtx
   //////////////////////////////////////////////////////
   // read cluster and make cluster pair in vector
   void ProcessEvt(int event_i,
-                  std::vector<clu_info> temp_sPH_inner_nocolumn_vec,
-                  std::vector<clu_info> temp_sPH_outer_nocolumn_vec,
-                  std::vector<std::vector<double>> temp_sPH_nocolumn_vec,
-                  std::vector<std::vector<double>> temp_sPH_nocolumn_rz_vec,
+                  const std::vector<clu_info>& temp_sPH_inner_nocolumn_vec,
+                  const std::vector<clu_info>& temp_sPH_outer_nocolumn_vec,
+                  const std::vector<std::vector<double>>& temp_sPH_nocolumn_vec,
+                  const std::vector<std::vector<double>>& temp_sPH_nocolumn_rz_vec,
                   int NvtxMC,
                   double TrigZvtxMC,
                   bool PhiCheckTag,

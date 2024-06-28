@@ -906,8 +906,8 @@ void PHActsSiliconSeeding::configureSeeder()
   /// Maximum impact parameter must be smaller than rMin
   m_seedFinderCfg.impactMax = m_impactMax;
 
-  m_seedFinderCfg.rMinMiddle = 3. * Acts::UnitConstants::cm;
-  m_seedFinderCfg.rMaxMiddle = 3.7 * Acts::UnitConstants::cm;
+  m_seedFinderCfg.rMinMiddle = 2.5 * Acts::UnitConstants::cm;
+  m_seedFinderCfg.rMaxMiddle = 4.3 * Acts::UnitConstants::cm;
 
   /// Configurations for dealing with misalignment
   m_seedFinderCfg.zAlign = m_zalign;

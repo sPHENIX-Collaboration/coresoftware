@@ -15,7 +15,11 @@
 
 #define f2cFortran
 #define gFortran
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 #include "cfortran.h"
+#pragma GCC diagnostic pop
 
 using namespace boost;
 using namespace std;

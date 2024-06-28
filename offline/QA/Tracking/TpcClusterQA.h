@@ -35,7 +35,7 @@ class TpcClusterQA : public SubsysReco
   bool m_residQA = false;
 
   std::string m_trackMapName = "SvtxTrackMap";
-  TpcDistortionCorrectionContainer *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
+  TpcDistortionCorrectionContainer *m_dccModuleEdge{nullptr}, *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
   float m_px = std::numeric_limits<float>::quiet_NaN();
   float m_py = std::numeric_limits<float>::quiet_NaN();
   float m_pt = std::numeric_limits<float>::quiet_NaN();    

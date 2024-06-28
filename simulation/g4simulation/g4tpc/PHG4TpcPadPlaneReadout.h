@@ -33,7 +33,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   void UseGain(const int flagToUseGain);
   void SetUseModuleGainWeights(const int flag) {m_use_module_gain_weights = flag;}
-  void SetModuleGainWeightsFileName(std::string name) {m_tpc_module_gain_weights_file = name;}
+  void SetModuleGainWeightsFileName(const std::string &name) {m_tpc_module_gain_weights_file = name;}
   void ReadGain();
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
