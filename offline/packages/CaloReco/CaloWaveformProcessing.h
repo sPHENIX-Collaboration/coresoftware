@@ -68,6 +68,9 @@ class CaloWaveformProcessing : public SubsysReco
     return;
   }
 
+  void set_bitFlipRecovery(bool dobitfliprecovery) {
+    _dobitfliprecovery = dobitfliprecovery;
+  }
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
@@ -81,6 +84,7 @@ class CaloWaveformProcessing : public SubsysReco
   int _nthreads = 1;
   int _nsoftwarezerosuppression = 40;
   bool _bdosoftwarezerosuppression = false;
+  bool _dobitfliprecovery = false;
 
   std::string m_template_input_file;
   std::string url_template;

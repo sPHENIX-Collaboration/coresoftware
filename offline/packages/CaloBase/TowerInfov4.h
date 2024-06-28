@@ -42,6 +42,26 @@ class TowerInfov4 : public TowerInfo
   }
   float get_chi2() override { return (pow(1.08, (float) chi2) - 1.0); }
 
+  void set_bitfliprecovery(float _recovered) override 
+  {
+    if (_recovered == 0) 
+    {
+      recovered = false;
+    } 
+    else 
+    {
+      recovered = true;
+    }
+  }
+  float get_bitfliprecovery() override 
+  {
+    if (recovered == true) 
+    {
+      return 1;
+    } 
+    return 0;
+  }
+
   void set_isHot(bool isHot) override { set_status_bit(0, isHot); }
   bool get_isHot() const override { return get_status_bit(0); }
 
@@ -73,6 +93,7 @@ class TowerInfov4 : public TowerInfo
   short time = 0;
   uint8_t chi2 = 0;
   uint8_t status = 0;
+  bool recovered = false;
 
   void set_status_bit(int bit, bool value)
   {

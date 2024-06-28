@@ -84,6 +84,10 @@ class CaloTowerBuilder : public SubsysReco
     return;
   }
 
+  void set_bitFlipRecovery(bool dobitfliprecovery) {
+    m_dobitfliprecovery = dobitfliprecovery;
+  }
+
  private:
   int process_sim();
   bool skipChannel(int ich, int pid);
@@ -111,6 +115,7 @@ class CaloTowerBuilder : public SubsysReco
   bool m_setTimeLim{false};
   float m_timeLim_low{-3.0};
   float m_timeLim_high{4.0};
+  bool m_dobitfliprecovery{false};
 
   std::string m_fieldname;
   std::string m_calibName;
