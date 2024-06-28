@@ -653,7 +653,7 @@ int InttCalib::Reset(PHCompositeNode*)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void InttCalib::Print(const std::string &what) const
+void InttCalib::Print(std::string const&) const
 {
 }
 
