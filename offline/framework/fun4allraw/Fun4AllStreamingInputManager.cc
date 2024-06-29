@@ -1223,13 +1223,14 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
 
 int Fun4AllStreamingInputManager::FillMvtxPool()
 {
+  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_bco_range ? 0 : m_RefBCO - m_mvtx_bco_range;
   for (auto iter : m_MvtxInputVector)
   {
     if (Verbosity() > 3)
     {
       std::cout << "Fun4AllStreamingInputManager::FillMvtxPool - fill pool for " << iter->Name() << std::endl;
     }
-    iter->FillPool();
+    iter->FillPool(ref_bco_minus_range);
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();

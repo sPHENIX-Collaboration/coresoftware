@@ -23,7 +23,7 @@ class SingleMvtxPoolInput : public SingleStreamingInput
  public:
   explicit SingleMvtxPoolInput(const std::string &name);
   ~SingleMvtxPoolInput() override;
-  void FillPool(const unsigned int nevents = 1) override;
+  void FillPool(const uint64_t minBCO) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
