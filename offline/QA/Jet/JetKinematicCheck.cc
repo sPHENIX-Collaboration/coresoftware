@@ -12,6 +12,7 @@
 #include <jetbase/Jetv2.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -25,6 +26,7 @@ JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
                                      const std::string &recojetnameR04,
                                      const std::string &recojetnameR05)
   : SubsysReco(moduleName)
+  , m_moduleName(moduleName)
   , m_recoJetNameR02(recojetnameR02)
   , m_recoJetNameR03(recojetnameR03)
   , m_recoJetNameR04(recojetnameR04)
@@ -56,34 +58,44 @@ int JetKinematicCheck::Init(PHCompositeNode * /*unused*/)
   hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  // make sure module name is lower case
+  std::string smallModuleName = m_moduleName;
+  std::transform(
+    smallModuleName.begin(),
+    smallModuleName.end(),
+    smallModuleName.begin(),
+    ::tolower
+  );
+
   // construct histogram names
   std::vector<std::string> vecHistNames = {
-    "h_spectra_r02",
-    "h_spectra_r03",
-    "h_spectra_r04",
-    "h_spectra_r05",
-    "h_eta_phi_r02",
-    "h_eta_phi_r03",
-    "h_eta_phi_r04",
-    "h_eta_phi_r05",
-    "h_jet_mass_pt_r02",
-    "h_jet_mass_pt_r03",
-    "h_jet_mass_pt_r04",
-    "h_jet_mass_pt_r05",
-    "h_jet_mass_eta_r02",
-    "h_jet_mass_eta_r03",
-    "h_jet_mass_eta_r04",
-    "h_jet_mass_eta_r05",
-    "h_jet_mass_pt_1D_r02",
-    "h_jet_mass_pt_1D_r03",
-    "h_jet_mass_pt_1D_r04",
-    "h_jet_mass_pt_1D_r05",
-    "h_jet_mass_eta_1D_r02",
-    "h_jet_mass_eta_1D_r03",
-    "h_jet_mass_eta_1D_r04",
-    "h_jet_Mass_eta_1D_r05"
+    "spectra_r02",
+    "spectra_r03",
+    "spectra_r04",
+    "spectra_r05",
+    "etavsphi_r02",
+    "etavsphi_r03",
+    "etavsphi_r04",
+    "etavsphi_r05",
+    "jetmassvspt_r02",
+    "jetmassvspt_r03",
+    "jetmassvspt_r04",
+    "jetmassvspt_r05",
+    "jetmassvseta_r02",
+    "jetmassvseta_r03",
+    "jetmassvseta_r04",
+    "jetmassvseta_r05",
+    "jetmassvsptprofile_r02",
+    "jetmassvsptprofile_r03",
+    "jetmassvsptprofile_r04",
+    "jetmassvsptprofile_r05",
+    "jetmassvsetaprofile_r02",
+    "jetmassvsetaprofile_r03",
+    "jetmassvsetaprofile_r04",
+    "jetmassvsetaprofile_r05"
   };
   for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
+    vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
     vecHistNames[iHistName].append("_" + m_histTag);
   }
 

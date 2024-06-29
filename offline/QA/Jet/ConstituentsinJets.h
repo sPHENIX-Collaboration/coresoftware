@@ -64,7 +64,8 @@ class ConstituentsinJets : public SubsysReco
 
     private:
 
-        //! Input Node strings and histogram tags
+        //! Module name, input node strings, and histogram tags
+        std::string m_moduleName { "ConstituentsinJets" };
         std::string m_recoJetName { "AntiKt_Tower_r04"};
         std::string m_towBkgdName { "TowerInfoBackground_Sub2" };
         std::string m_histTag { "AllTrig_AntiKt_Tower_R04" };

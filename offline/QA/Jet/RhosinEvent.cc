@@ -17,13 +17,15 @@
 
 #include <TH1.h>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <cassert>
 #include <vector>
 
-RhosinEvent::RhosinEvent(const std::string &name, const std::string &tag)
-  : SubsysReco(name)
+RhosinEvent::RhosinEvent(const std::string &moduleName, const std::string &tag)
+  : SubsysReco(moduleName)
+  , m_moduleName(moduleName)
   , m_histTag(tag)
   // , m_name(outputfilename)
   , m_do_mult_rho(true)
@@ -72,14 +74,24 @@ int RhosinEvent::Init(PHCompositeNode * /*topNode*/)
         N_rho_area_bins[i] = (10.0/200.0)*i;
     }
 
+    // make sure module name is lower case
+    std::string smallModuleName = m_moduleName;
+    std::transform(
+      smallModuleName.begin(),
+      smallModuleName.end(),
+      smallModuleName.begin(),
+      ::tolower
+    );
+
     // construct histogram names
     std::vector<std::string> vecHistNames = {
-      "h1_mult_rho",
-      "h1_mult_rho_sigma",
-      "h1_area_rho",
-      "h1_area_rho_sigma"
+      "rhomult",
+      "sigmamult",
+      "rhoarea",
+      "sigmaarea"
     };
     for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
+      vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
       vecHistNames[iHistName].append("_" + m_histTag);
     }
 

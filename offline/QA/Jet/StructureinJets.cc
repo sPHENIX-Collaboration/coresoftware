@@ -23,6 +23,7 @@
 #include <TH3.h>
 #include <TVector3.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -33,6 +34,7 @@
 //____________________________________________________________________________..
 StructureinJets::StructureinJets(const std::string &moduleName, const std::string& recojetname, const std::string& histTag, const std::string& outputfilename)
   : SubsysReco(moduleName)
+  , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
   , m_histTag(histTag)
   , m_doTrgSelect(false)
@@ -58,12 +60,22 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
     PHTFileServer::get().open(m_outputFileName, "RECREATE");
   }
 
+  // make sure module name is lower case
+  std::string smallModuleName = m_moduleName;
+  std::transform(
+    smallModuleName.begin(),
+    smallModuleName.end(),
+    smallModuleName.begin(),
+    ::tolower
+  );
+
   // construct histogram names
   std::vector<std::string> vecHistNames = {
-    "h_track_vs_calo_pt",
-    "h_track_pt"
+    "trackvscalopt",
+    "trackpt"
   };
   for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
+    vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
     vecHistNames[iHistName].append("_" + m_histTag);
   }
 

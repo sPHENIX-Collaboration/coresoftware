@@ -17,7 +17,8 @@
 TrksInJetQA::TrksInJetQA(const std::string& name)
   : SubsysReco(name)
 {
-  /* nothing to do */
+
+  m_moduleName = name;
 
 }  // end ctor
 
@@ -190,27 +191,48 @@ void TrksInJetQA::InitHistograms()
     std::cout << "TrksInJetQA::InitHistograms() Initializing histograms..." << std::endl;
   }
 
-  // make labels
-  std::string inJetLabel = "InJet";
-  std::string inclusiveLabel = "Inclusive";
+  // make sure module name is lower case
+  std::string smallModuleName = m_moduleName;
+  std::transform(
+    smallModuleName.begin(),
+    smallModuleName.end(),
+    smallModuleName.begin(),
+    ::tolower
+  );
+
+  // histograms are always prefixed by the module name
+  std::string prefix = "h_";
+  prefix += "_";
+  prefix += smallModuleName;
+
+  // if additional prefix provided, add it
+  if (m_histPrefix.has_value())
+  {
+    prefix += m_histPrefix.value();
+    prefix += "_";
+  }
+
+  // make suffixes
+  std::string inJetSuffix = "InJet";
+  std::string inclusiveSuffix = "Inclusive";
   if (m_histSuffix.has_value())
   {
-    inJetLabel += "_";
-    inJetLabel += m_histSuffix.value();
-    inclusiveLabel += "_";
-    inclusiveLabel += m_histSuffix.value();
+    inJetSuffix += "_";
+    inJetSuffix += m_histSuffix.value();
+    inclusiveSuffix += "_";
+    inclusiveSuffix += m_histSuffix.value();
   }
 
   // initialize submodules, as needed
   if (m_config.doInJet)
   {
     m_inJet = std::make_unique<TrksInJetQAInJetFiller>(m_config, m_hist);
-    m_inJet->MakeHistograms(inJetLabel);
+    m_inJet->MakeHistograms(prefix, inJetSuffix);
   }
   if (m_config.doInclusive)
   {
     m_inclusive = std::make_unique<TrksInJetQAInclusiveFiller>(m_config, m_hist);
-    m_inclusive->MakeHistograms(inclusiveLabel);
+    m_inclusive->MakeHistograms(prefix, inclusiveSuffix);
   }
   return;
 

@@ -30,6 +30,7 @@
 #include <TFile.h>
 
 // c++ utilities
+#include <algorithm>
 #include <cassert>
 #include <optional>
 #include <string>
@@ -57,6 +58,7 @@ class TrksInJetQA : public SubsysReco
 
   // setters
   void SetOutFileName(const std::string& name) { m_outFileName = name; }
+  void SetHistPrefix(const std::string& prefix) { m_histPrefix = prefix; }
   void SetHistSuffix(const std::string& suffix) { m_histSuffix = suffix; }
   void SetTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
   {
@@ -83,6 +85,7 @@ class TrksInJetQA : public SubsysReco
   // io members
   //   - FIXME raw pointers should be smart ones!
   TFile* m_outFile = NULL;
+  std::string m_moduleName = "TrksInJetQA";
   std::string m_outFileName = "tracksInJetsQA.root";
   Fun4AllHistoManager* m_manager = NULL;
 
@@ -90,7 +93,8 @@ class TrksInJetQA : public SubsysReco
   bool m_doTrgSelect = false;
   uint32_t m_trgToSelect = JetQADefs::GL1::MBDNSJet1;
 
-  // optional suffix for histograms
+  // optional prefix, suffix for histograms
+  std::optional<std::string> m_histPrefix = std::nullopt;
   std::optional<std::string> m_histSuffix = std::nullopt;
 
   // submodules to run

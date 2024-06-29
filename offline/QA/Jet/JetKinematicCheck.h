@@ -83,6 +83,7 @@ class JetKinematicCheck : public SubsysReco
  private:
   Fun4AllHistoManager *hm{nullptr};
 
+  std::string m_moduleName;
   std::string m_recoJetNameR02;
   std::string m_recoJetNameR03;
   std::string m_recoJetNameR04;

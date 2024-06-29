@@ -77,6 +77,7 @@ class StructureinJets : public SubsysReco
   }
 
  private:
+  std::string m_moduleName;
   std::string m_recoJetName;
   std::string m_histTag;
   float m_trk_pt_cut{2};

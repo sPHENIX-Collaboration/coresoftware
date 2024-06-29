@@ -32,6 +32,7 @@
 #include <TH2.h>
 #include <TH1.h>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -44,6 +45,7 @@
 
 ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std::string &recojetname, const std::string &towBkgdName, const std::string &histTag)
   : SubsysReco(moduleName)
+  , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
   , m_towBkgdName(towBkgdName)
   , m_histTag(histTag)
@@ -97,19 +99,29 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
     const int N_calo_layers = 3;
     Double_t calo_layers_bins[N_calo_layers+1] = {0.5, 1.5, 2.5, 3.5}; // emcal, ihcal, ohcal
 
+    // make sure module name is lower case
+    std::string smallModuleName = m_moduleName;
+    std::transform(
+      smallModuleName.begin(),
+      smallModuleName.end(),
+      smallModuleName.begin(),
+      ::tolower
+    );
+
     // construct histogram names
     std::vector<std::string> vecHistNames = {
-      "h1_ConstituentsinJets_total",
-      "h1_ConstituentsinJets_IHCAL",
-      "h1_ConstituentsinJets_OHCAL",
-      "h1_ConstituentsinJets_CEMC",
-      "h2_ConstituentsinJets_vs_caloLayer",
-      "h1_jetFracE_IHCAL",
-      "h1_jetFracE_OHCAL",
-      "h1_jetFracE_CEMC",
-      "h2_jetFracE_vs_caloLayer"
+      "ncsts_total",
+      "ncsts_ihcal",
+      "ncsts_ohcal",
+      "ncsts_cemc",
+      "ncstsvscalolayer",
+      "efracjet_ihcal",
+      "efracjet_ohcal",
+      "efracjet_cemc",
+      "efracjetvscalolayer"
     };
     for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
+      vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
       vecHistNames[iHistName].append("_" + m_histTag);
     }
 

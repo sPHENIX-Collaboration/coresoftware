@@ -16,10 +16,12 @@
 #include <TH1.h>
 #include <TH2.h>
 
+#include <algorithm>
 #include <iostream>
 
 JetSeedCount::JetSeedCount(const std::string &moduleName, const std::string &recojetname, const std::string &rawSeedName, const std::string &subSeedName, const std::string &truthjetname, const std::string &outputfilename)
   : SubsysReco(moduleName)
+  , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
   , m_rawSeedName(rawSeedName)
   , m_subSeedName(subSeedName)
@@ -175,23 +177,33 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
     PHTFileServer::get().cd(m_outputFileName);
   }
 
+    // make sure module name is lower case
+    std::string smallModuleName = m_moduleName;
+    std::transform(
+      smallModuleName.begin(),
+      smallModuleName.end(),
+      smallModuleName.begin(),
+      ::tolower
+    );
+
   // construct histogram names
   std::vector<std::string> vecHistNames = {
-    "hRawSeedCount",
-    "hRawPt",
-    "hRawPt_All",
-    "hRawEtaVsPhi",
-    "hSubSeedCount",
-    "hSubPt",
-    "hSubPt_All",
-    "hSubEtaVsPhi",
-    "hRawSeedEnergyVsCent",
-    "hSubSeedEnergyVsCent",
-    "hCentMbd",
-    "hRawSeedVsCent",
-    "hSubSeedVsCent"
+    "rawseedcount",
+    "rawpt",
+    "rawptall",
+    "rawetavsphi",
+    "subseedcount",
+    "subpt",
+    "subptall",
+    "subetavsphi",
+    "rawseedenergyvscent",
+    "subseedenergyvscent",
+    "centmbd",
+    "rawseedvscent",
+    "subseedvscent"
   };
   for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
+    vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
     vecHistNames[iHistName].append("_" + m_histTag);
   }
 

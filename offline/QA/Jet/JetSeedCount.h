@@ -80,6 +80,7 @@ class JetSeedCount : public SubsysReco
   int m_seed_raw{std::numeric_limits<int>::max()};
   double z_vtx{std::numeric_limits<double>::quiet_NaN()};
 
+  std::string m_moduleName;
   std::string m_recoJetName;
   std::string m_rawSeedName;
   std::string m_subSeedName;

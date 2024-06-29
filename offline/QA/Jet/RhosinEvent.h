@@ -26,7 +26,7 @@ class RhosinEvent : public SubsysReco
     public:
 
         RhosinEvent(
-          const std::string &name = "RhosinEvent",
+          const std::string &moduleName = "RhosinEvent",
           const std::string &tag = "AllTrig"
         );
         ~RhosinEvent() override {};
@@ -55,7 +55,8 @@ class RhosinEvent : public SubsysReco
 
     private:
 
-        //! Input Node strings
+        //! Module name, and histogram tag
+        std::string m_moduleName{"RhosinEvent"};
         std::string m_histTag{"AllTrig"};
         // std::string m_outputFileName{"RhosinEvent.root"};
 
