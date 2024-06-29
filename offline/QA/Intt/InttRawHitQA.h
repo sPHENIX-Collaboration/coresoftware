@@ -115,8 +115,7 @@ protected:
   TH3D* hist_fee_bco_full_event_counter_diff_[ kFelix_num_ ]; // difference of event counter vs difference of bco full vs ladder vs felix, difference means ( val - Min( val(felix=Min(felix) ) ) )
 
   // 2D hists
-  //TH2I* hist_hitmap_[ kFelix_num_ ][ kFee_num_ ];
-  TProfile2D* hist_hitmap_[ kFelix_num_ ][ kFee_num_ ];
+  TH2I* hist_hitmap_[ kFelix_num_ ][ kFee_num_ ];
   
   // a simple 1D hists
   TH1D* hist_nhit_; // the number of INTTRAWHIT
@@ -143,8 +142,6 @@ protected:
   ///////////////////////////////////////////
   // functions
   ///////////////////////////////////////////
-  void ProcessHists(); //! Some processes for hits, like making 1D and 2D hists from 3D hists, are done
-  
   virtual std::vector < InttRawHit* > GetHits();
   
 private:

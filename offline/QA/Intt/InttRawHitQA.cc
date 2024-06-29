@@ -32,58 +32,6 @@ vector < InttRawHit* > InttRawHitQA::GetHits()
   return hits;
 }
 
-void InttRawHitQA::ProcessHists()
-{
-
-  //////////////////////////////////////////////////////////////////
-  // Normalization using the last event counter                   //
-  //////////////////////////////////////////////////////////////////
-  for( int felix=0; felix<InttQa::kFelix_num; felix++ )
-    {
-      hist_fee_chip_chan_[ felix ]			->Scale( 1.0 / event_counter_by_myself_ );
-      hist_fee_bco_full_event_counter_[ felix ]		->Scale( 1.0 / event_counter_by_myself_ );
-      hist_fee_bco_full_event_counter_diff_[ felix ]	->Scale( 1.0 / event_counter_by_myself_ );
-      hist_event_counter_[ felix ]			->Scale( 1.0 / event_counter_by_myself_ );
-      hist_event_counter_diff_[ felix ]			->Scale( 1.0 / event_counter_by_myself_ );
-    }
-  
-  hist_nhit_		->Scale( 1.0 / event_counter_by_myself_ ); 
-  hist_nhit_south_	->Scale( 1.0 / event_counter_by_myself_ ); 
-  hist_nhit_north_	->Scale( 1.0 / event_counter_by_myself_ ); 
-  hist_adc_		->Scale( 1.0 / event_counter_by_myself_ );
-  hist_bco_		->Scale( 1.0 / event_counter_by_myself_ ); 
-  hist_bco_full_	->Scale( 1.0 / event_counter_by_myself_ );
-
-  //////////////////////////////////////////////////////////////////
-  // pid dist                                                     //
-  //////////////////////////////////////////////////////////////////
-  for( int i=0; i<InttQa::kFelix_num; i++ )
-    {
-      hist_pid_->SetBinContent( i+1, hist_fee_chip_chan_[i]->GetEntries() );
-    }
-  hist_pid_->Scale( 1.0 / event_counter_by_myself_ );
-
-  for (int felix = 0; felix < InttQa::kFelix_num; felix++)
-    {
-      for (int ladder = 0; ladder < InttQa::kFee_num; ladder++)
-        {
-          int xbin = ladder + 1;
-          for (int ybin = 1; ybin <= hist_fee_chip_chan_[felix]->GetNbinsY(); ybin++)
-            {
-              for (int zbin = 1; zbin <= hist_fee_chip_chan_[felix]->GetNbinsZ(); zbin++)
-                {
-                  double content = hist_fee_chip_chan_[felix]->GetBinContent(xbin, ybin, zbin);
-                  double x = hist_fee_chip_chan_[felix]->GetYaxis()->GetBinCenter(ybin);
-                  double y = hist_fee_chip_chan_[felix]->GetZaxis()->GetBinCenter(zbin);
-
-                  hist_hitmap_[felix][ladder]->Fill(x, y, content);
-                }
-            }
-        }
-    }
-
-}
-
 int InttRawHitQA::Init(PHCompositeNode *)
 {
   return Fun4AllReturnCodes::EVENT_OK;
@@ -131,7 +79,7 @@ int InttRawHitQA::InitRun(PHCompositeNode *topNode)
       for( int ladder=0; ladder<InttQa::kFee_num; ladder++ )
 	{
 	  string name = getHistoPrefix() + "intt" + to_string( felix ) + "_" + to_string( ladder );
-          hist_hitmap_[ felix ][ ladder ] = dynamic_cast<TProfile2D *>(hm->getHisto(name.c_str()));
+          hist_hitmap_[ felix ][ ladder ] = dynamic_cast<TH2I *>(hm->getHisto(name.c_str()));
 	}
     }
 
@@ -155,7 +103,7 @@ void InttRawHitQA::createHistos()
   for( int felix=0; felix<InttQa::kFelix_num;felix++ )
     {
       string name = getHistoPrefix() + "intt" + to_string( felix );
-      string title = name + ";FELIX CH;Chip;Channel;Entries/event";
+      string title = name + ";FELIX CH;Chip;Channel;Entries";
       {
         auto h = new TH3D( name.c_str(), title.c_str(),
 		    InttQa::kFee_num, 0, InttQa::kFee_num,
@@ -165,7 +113,7 @@ void InttRawHitQA::createHistos()
       }
 
       string name_bco_event = name + "_ladder_bco_full_event_counter";
-      string title_bco_event = name + ";FELIX_CH;BCO full;Event Counter;Entries/event";
+      string title_bco_event = name + ";FELIX_CH;BCO full;Event Counter;Entries";
       {
         auto h = new TH3D( name_bco_event.c_str(), title_bco_event.c_str(),
 		    InttQa::kFee_num, 0, InttQa::kFee_num,
@@ -175,7 +123,7 @@ void InttRawHitQA::createHistos()
       }
      
       string name_bco_event_diff = name + "_ladder_bco_full_event_counter_diff";
-      string title_bco_event_diff = name + ";FELIX_CH;#Delta BCO full;#Delta Event Counter;Entries/event";
+      string title_bco_event_diff = name + ";FELIX_CH;#Delta BCO full;#Delta Event Counter;Entries";
       int max = 1000;
       {
         auto h = new TH3D( name_bco_event_diff.c_str(), title_bco_event_diff.c_str(),
@@ -186,14 +134,14 @@ void InttRawHitQA::createHistos()
       }
 
       string name_event_counter = name + "_event_counter";
-      string title_event_counter = name_event_counter + ";Event Counter;Entries/event";
+      string title_event_counter = name_event_counter + ";Event Counter;Entries";
       {
         auto h = new TH1D(name_event_counter.c_str(), title_event_counter.c_str(), 1e4, 0, 1e7);
         hm->registerHisto(h);
       }
  
       string name_event_counter_diff = name + "_event_counter_diff";
-      string title_event_counter_diff = name_event_counter_diff + ";Event Counter;Entries/event";
+      string title_event_counter_diff = name_event_counter_diff + ";Event Counter;Entries";
       {
         auto h = new TH1D(name_event_counter_diff.c_str(), title_event_counter_diff.c_str(), 2 * max / 100, -max, max);
         hm->registerHisto(h);
@@ -206,8 +154,8 @@ void InttRawHitQA::createHistos()
       for( int ladder=0; ladder<InttQa::kFee_num; ladder++ )
 	{
 	  string name = getHistoPrefix() + "intt" + to_string( felix ) + "_" + to_string( ladder );
-	  string title = name + ";Chip;Channel;Entries/event";
-          auto h = new TProfile2D( name.c_str(), title.c_str(),
+	  string title = name + ";Chip;Channel;Entries";
+          auto h = new TH2I( name.c_str(), title.c_str(),
 				InttQa::kChip_num, 1, InttQa::kChip_num,
 				InttQa::kChan_num, 0, InttQa::kChan_num );
           hm->registerHisto(h);
@@ -215,43 +163,43 @@ void InttRawHitQA::createHistos()
     }
 
   {
-    auto h = new TH1D( std::string(getHistoPrefix() + "nhit").c_str(), "#INTTRAWHIT per event;#hit;Entries/event", 1e4, 0, 1e4 );
+    auto h = new TH1D( std::string(getHistoPrefix() + "nhit").c_str(), "#INTTRAWHIT per event;#hit;Entries", 1e4, 0, 1e4 );
     InttQa::HistConfig( h );
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1D( std::string(getHistoPrefix() + "nhit_south").c_str(), "#INTTRAWHIT South;event;#hit/event", 1e4, 0, 1e7 );
+    auto h = new TH1D( std::string(getHistoPrefix() + "nhit_south").c_str(), "#INTTRAWHIT South;event;#hit", 1e4, 0, 1e7 );
     InttQa::HistConfig( h );
     hm->registerHisto(h);
   }
   
   {
-    auto h = new TH1D( std::string(getHistoPrefix() + "nhit_north").c_str(), "#INTTRAWHIT North;event;#hit/event", 1e4, 0, 1e7 );
+    auto h = new TH1D( std::string(getHistoPrefix() + "nhit_north").c_str(), "#INTTRAWHIT North;event;#hit", 1e4, 0, 1e7 );
     InttQa::HistConfig( h );
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1D ( std::string(getHistoPrefix() + "pid").c_str(), "Packet ID distribution;pid;Entries/event", InttQa::kFelix_num, InttQa::kFirst_pid, InttQa::kFirst_pid + InttQa::kFelix_num );
+    auto h = new TH1D ( std::string(getHistoPrefix() + "pid").c_str(), "Packet ID distribution;pid;Entries", InttQa::kFelix_num, InttQa::kFirst_pid, InttQa::kFirst_pid + InttQa::kFelix_num );
     InttQa::HistConfig( h );
     hm->registerHisto(h);
   }
   
   {
-    auto h = new TH1D( std::string(getHistoPrefix() + "adc").c_str(), "ADC distribution;ADC;Entries/event", 8, 0, 8 );
+    auto h = new TH1D( std::string(getHistoPrefix() + "adc").c_str(), "ADC distribution;ADC;Entries", 8, 0, 8 );
     InttQa::HistConfig( h );
     hm->registerHisto(h);
   }
   
   {
-    auto h = new TH1D( std::string(getHistoPrefix() + "bco").c_str(), "BCO distribution;BCO;Entries/event", InttQa::kBco_max+10, -5, InttQa::kBco_max+5 );
+    auto h = new TH1D( std::string(getHistoPrefix() + "bco").c_str(), "BCO distribution;BCO;Entries", InttQa::kBco_max+10, -5, InttQa::kBco_max+5 );
     InttQa::HistConfig( h );
     hm->registerHisto(h);
   }
   
   {
-    auto h = new TH1D( std::string(getHistoPrefix() + "bco_full").c_str(), "BCO full distribution;BCO full;Entries/event", 100, 0, TMath::Power( 2, 40 ) );
+    auto h = new TH1D( std::string(getHistoPrefix() + "bco_full").c_str(), "BCO full distribution;BCO full;Entries", 100, 0, TMath::Power( 2, 40 ) );
     InttQa::HistConfig( h );
     hm->registerHisto(h);
   }
@@ -286,7 +234,6 @@ int InttRawHitQA::process_event(PHCompositeNode *)
   // processes for each raw hit                                   //
   //////////////////////////////////////////////////////////////////
   // loop over all raw hits
-  bool found = false;
   for (unsigned int i = 0; i < hits.size(); i++)
   {
     auto hit = hits[i];
@@ -316,11 +263,13 @@ int InttRawHitQA::process_event(PHCompositeNode *)
 	last_event_counter_ = event_counter;
       }
 
+/*
     int bco_diff = 0;
     if( (bco_full & 0x7f )  > bco )
       bco_diff = int(bco_full & 0x7f ) - bco;
     else
       bco_diff = int(bco_full & 0x7f ) + (128 - bco);
+*/
         
     //////////////////////////////////////////////////////////////////
     // Filling hists                                                //
@@ -328,8 +277,12 @@ int InttRawHitQA::process_event(PHCompositeNode *)
 
     hist_fee_chip_chan_[felix]->Fill( felix_ch, chip, chan );
 
-    hist_adc_->Fill(hit->get_adc());
-    hist_bco_->Fill(hit->get_FPHX_BCO());
+    hist_hitmap_[felix][felix_ch]->Fill(chip, chan);
+
+    hist_pid_->AddBinContent(felix+1);
+
+    hist_adc_->Fill(adc);
+    hist_bco_->Fill(bco);
 
     hist_fee_bco_full_event_counter_[felix]
         ->Fill(felix_ch, // chip, chan );
@@ -360,7 +313,7 @@ int InttRawHitQA::process_event(PHCompositeNode *)
     previous_event_counter_ = last_event_counter_; // in the case of reasonable event counter
   else
     previous_event_counter_ = -1; // in the case of a crazy event counter
-  
+
   //cout << "-------------------------------------------------" << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -373,8 +326,6 @@ int InttRawHitQA::ResetEvent(PHCompositeNode *)
 
 int InttRawHitQA::EndRun(const int)
 {
-  this->ProcessHists();
-
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
