@@ -9,9 +9,9 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
-#include <trackbase/TrkrDefs.h>
 
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
@@ -77,16 +77,6 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
-
-  auto h_clusSize = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%sclusterSize") % getHistoPrefix()).str()));
-  auto h_clusPhi_incl = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%sclusterPhi_incl") % getHistoPrefix()).str()));
-  auto h_clusPhi_l34 = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%sclusterPhi_l34") % getHistoPrefix()).str()));
-  auto h_clusPhi_l56 = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%sclusterPhi_l56") % getHistoPrefix()).str()));
-  auto h_clusZ_clusPhi_l34 = dynamic_cast<TH2F *>(hm->getHisto((boost::format("%sclusterZ_clusPhi_l34") % getHistoPrefix()).str()));
-  auto h_clusZ_clusPhi_l56 = dynamic_cast<TH2F *>(hm->getHisto((boost::format("%sclusterZ_clusPhi_l56") % getHistoPrefix()).str()));
-
   for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::inttId))
   {
     int numclusters = 0;
@@ -96,9 +86,7 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
     auto sensor = InttDefs::getLadderZId(hsk);
 
     if (m_sensorInfo)
-    {  
-      auto h = dynamic_cast<TH2 *>(hm->getHisto( boost::str(boost::format("%sncluspersensor%i_%i_%i") %getHistoPrefix() %(((int) layer) - 3) %((int) ladderphiid) %((int) sensor)).c_str()));
-
+    {
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         const auto cluskey = iter->first;
@@ -106,7 +94,7 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
         auto globalpos = tGeometry->getGlobalPosition(cluskey, cluster);
         auto phi = atan2(globalpos(1), globalpos(0));
         auto clayer = TrkrDefs::getLayer(cluskey);
-        h->Fill(cluster->getLocalY(), cluster->getLocalX());
+        h_cluspersensor[(int) (layer) -3][(int) ladderphiid][(int) sensor]->Fill(cluster->getLocalY(), cluster->getLocalX());
         h_clusPhi_incl->Fill(phi);
         if (clayer == 3 || clayer == 4)
         {
@@ -118,7 +106,7 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
           h_clusPhi_l56->Fill(phi);
           h_clusZ_clusPhi_l56->Fill(globalpos(2), phi);
         }
-        
+
         m_totalClusters++;
         numclusters++;
       }
@@ -133,7 +121,7 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
         auto globalpos = tGeometry->getGlobalPosition(cluskey, cluster);
         auto phi = atan2(globalpos(1), globalpos(0));
         auto clayer = TrkrDefs::getLayer(cluskey);
-        h_clusSize->Fill(cluster->getSize()); 
+        h_clusSize->Fill(cluster->getSize());
         h_clusPhi_incl->Fill(phi);
         if (clayer == 3 || clayer == 4)
         {
@@ -148,15 +136,14 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
       }
     }
   }
- 
+
   TrkrHitSetContainer::ConstRange hitsetrange = trkrHitSetContainer->getHitSets(TrkrDefs::TrkrId::inttId);
 
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
   {
     int sensor_hits = hitsetitr->second->size();
-    float sensor_occupancy = (float) sensor_hits / (128.*26.);
-    auto h_occupancy = dynamic_cast<TH1F *>(hm->getHisto((boost::format("%ssensorOccupancy") % getHistoPrefix()).str()));
-    h_occupancy->Fill(100.*sensor_occupancy);
+    float sensor_occupancy = (float) sensor_hits / (128. * 26.);
+    h_occupancy->Fill(100. * sensor_occupancy);
   }
 
   m_event++;
@@ -165,7 +152,6 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
 }
 int InttClusterQA::EndRun(const int /*runnumber*/)
 {
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -179,31 +165,31 @@ void InttClusterQA::createHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto h_occupancy = new TH1F((boost::format("%ssensorOccupancy") % getHistoPrefix()).str().c_str(),"INTT Sensor Occupancy",100,0,5);
+  h_occupancy = new TH1F((boost::format("%ssensorOccupancy") % getHistoPrefix()).str().c_str(), "INTT Sensor Occupancy", 100, 0, 5);
   h_occupancy->GetXaxis()->SetTitle("Sensor Occupancy [%]");
   h_occupancy->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_occupancy);
-  auto h_clusSize = new TH1F((boost::format("%sclusterSize") % getHistoPrefix()).str().c_str(),"INTT Cluster Size",20,-0.5,19.5);
+  h_clusSize = new TH1F((boost::format("%sclusterSize") % getHistoPrefix()).str().c_str(), "INTT Cluster Size", 20, -0.5, 19.5);
   h_clusSize->GetXaxis()->SetTitle("Cluster Size");
   h_clusSize->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusSize);
-  auto h_clusPhi_incl = new TH1F((boost::format("%sclusterPhi_incl") % getHistoPrefix()).str().c_str(),"INTT Cluster Phi",320,-3.2,3.2);
+  h_clusPhi_incl = new TH1F((boost::format("%sclusterPhi_incl") % getHistoPrefix()).str().c_str(), "INTT Cluster Phi", 320, -3.2, 3.2);
   h_clusPhi_incl->GetXaxis()->SetTitle("Cluster (inner+outer) #phi [rad]");
   h_clusPhi_incl->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusPhi_incl);
-  auto h_clusPhi_l34 = new TH1F((boost::format("%sclusterPhi_l34") % getHistoPrefix()).str().c_str(),"INTT Cluster Phi",320,-3.2,3.2);
+  h_clusPhi_l34 = new TH1F((boost::format("%sclusterPhi_l34") % getHistoPrefix()).str().c_str(), "INTT Cluster Phi", 320, -3.2, 3.2);
   h_clusPhi_l34->GetXaxis()->SetTitle("Cluster (inner) #phi [rad]");
   h_clusPhi_l34->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusPhi_l34);
-  auto h_clusPhi_l56 = new TH1F((boost::format("%sclusterPhi_l56") % getHistoPrefix()).str().c_str(),"INTT Cluster Phi",320,-3.2,3.2);
+  h_clusPhi_l56 = new TH1F((boost::format("%sclusterPhi_l56") % getHistoPrefix()).str().c_str(), "INTT Cluster Phi", 320, -3.2, 3.2);
   h_clusPhi_l56->GetXaxis()->SetTitle("Cluster (outer) #phi [rad]");
   h_clusPhi_l56->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusPhi_l56);
-  auto h_clusZ_clusPhi_l34 = new TH2F((boost::format("%sclusterZ_clusPhi_l34") % getHistoPrefix()).str().c_str(),"INTT Cluster Z vs Cluster Phi", 55, cluszbin, 350, -3.5, 3.5);
+  h_clusZ_clusPhi_l34 = new TH2F((boost::format("%sclusterZ_clusPhi_l34") % getHistoPrefix()).str().c_str(), "INTT Cluster Z vs Cluster Phi", 55, cluszbin, 350, -3.5, 3.5);
   h_clusZ_clusPhi_l34->GetXaxis()->SetTitle("Cluster (inner) Z [cm]");
   h_clusZ_clusPhi_l34->GetYaxis()->SetTitle("Cluster (inner) #phi [rad]");
   hm->registerHisto(h_clusZ_clusPhi_l34);
-  auto h_clusZ_clusPhi_l56 = new TH2F((boost::format("%sclusterZ_clusPhi_l56") % getHistoPrefix()).str().c_str(),"INTT Cluster Z vs Cluster Phi", 55, cluszbin, 350, -3.5, 3.5);
+  h_clusZ_clusPhi_l56 = new TH2F((boost::format("%sclusterZ_clusPhi_l56") % getHistoPrefix()).str().c_str(), "INTT Cluster Z vs Cluster Phi", 55, cluszbin, 350, -3.5, 3.5);
   h_clusZ_clusPhi_l56->GetXaxis()->SetTitle("Cluster (outer) Z [cm]");
   h_clusZ_clusPhi_l56->GetYaxis()->SetTitle("Cluster (outer) #phi [rad]");
   hm->registerHisto(h_clusZ_clusPhi_l56);
@@ -217,12 +203,11 @@ void InttClusterQA::createHistos()
         //! 4 sensor on each ladder
         for (int sensor = 0; sensor < 4; sensor++)
         {
-          auto h = new TH2F( boost::str(boost::format("%sncluspersensor%i_%i_%i") %getHistoPrefix()
-	    			        %layer %ladder %sensor).c_str(),
-                            "INTT clusters per sensor", 100, -5, 5, 1000, -1, 1);
-          h->GetXaxis()->SetTitle("Local z [cm]");
-          h->GetYaxis()->SetTitle("Local rphi [cm]");
-          hm->registerHisto(h);
+          h_cluspersensor[layer][ladder][sensor] = new TH2F(boost::str(boost::format("%sncluspersensor%i_%i_%i") % getHistoPrefix() % layer % ladder % sensor).c_str(),
+                                                            "INTT clusters per sensor", 100, -5, 5, 1000, -1, 1);
+          h_cluspersensor[layer][ladder][sensor]->GetXaxis()->SetTitle("Local z [cm]");
+          h_cluspersensor[layer][ladder][sensor]->GetYaxis()->SetTitle("Local rphi [cm]");
+          hm->registerHisto(h_cluspersensor[layer][ladder][sensor]);
         }
       }
     }
