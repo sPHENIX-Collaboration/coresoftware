@@ -920,10 +920,13 @@ int Fun4AllPrdfInputTriggerManager::MoveCemcToNodeTree()
   }
   //  std::cout << "before filling m_CemcPacketMap size: " <<  m_CemcPacketMap.size() << std::endl;
   cemc->setEvtSequence(m_RefEventNo);
-  // if (m_CemcPacketMap.begin()->second.CaloSinglePacketMap.empty())
-  // {
-  //   std::cout << "Nada Eventa" << std::endl;
-  // }
+      if (Verbosity() > 1)
+      {
+  if (m_CemcPacketMap.begin()->second.CaloSinglePacketMap.empty())
+   {
+	std::cout << "Event " << m_RefEventNo << " is missing from CEMC" << std::endl;
+   }
+      }
   for (auto cemchititer : m_CemcPacketMap.begin()->second.CaloSinglePacketMap)
   {
     if (m_CemcPacketMap.begin()->first == m_RefEventNo)
@@ -933,13 +936,6 @@ int Fun4AllPrdfInputTriggerManager::MoveCemcToNodeTree()
         cemchititer.second->identify();
       }
       cemc->AddPacket(cemchititer.second);
-    }
-    else
-    {
-      if (Verbosity() > 1)
-      {
-	std::cout << "Event " << m_RefEventNo << " is missing from CEMC" << std::endl;
-      }
     }
   }
   for (auto iter : m_CemcInputVector)
@@ -958,10 +954,11 @@ void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "Adding cemc packet " << pkt->getEvtSequence() << " to eventno: "
+    std::cout << "Adding cemc packet from event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
   m_CemcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  std::cout << "Cemc packet map size: " << m_CemcPacketMap.size() << std::endl;
   return;
 }
 
@@ -1443,7 +1440,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 	  int shiftby = position-1;
 	  if (shiftby > 0)
 	  {
-	    eventoffset[iter.first] = position-1;
+	    eventoffset[iter.first] = shiftby;
 	  }
 	}
       }
@@ -1609,6 +1606,11 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
             std::cout << "Pushing 0x" << std::hex << diffbco << " into needle for packet " << std::dec << prev_packetid << std::endl;
           }
           m_NeedleMap[prev_packetid].push_back(diffbco);
+	  if (Verbosity() > 1)
+	  {
+	    std::cout << "Eventnumber " << nextIt->first << ", bco: 0x" << std::hex << pktiter.second->getBCO() 
+		      << ", diff: 0x" << diffbco << std::dec << std::endl;
+	  }
           bcodiffs.insert(diffbco);
         }
       }

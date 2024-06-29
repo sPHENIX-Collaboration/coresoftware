@@ -105,6 +105,13 @@ void SingleHcalTriggerInput::FillPool(const unsigned int keep)
 
     for (int i = 0; i < npackets; i++)
     {
+      int packet_id = plist[i]->getIdentifier();
+      // The call to  EventNumberOffset(identifier) will initialize it to our default (zero) if it wasn't set already
+      // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
+      // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
+      // and only when the pool gets refilled, this correction kicks in
+      // SO DO NOT BE CONFUSED when printing this out - seeing different events where this kicks in
+      int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
         plist[i]->identify();
@@ -126,7 +133,7 @@ void SingleHcalTriggerInput::FillPool(const unsigned int keep)
       newhit->setNrChannels(nr_channels);
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setEvtSequence(EventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
@@ -166,16 +173,17 @@ void SingleHcalTriggerInput::FillPool(const unsigned int keep)
       }
       if (Verbosity() > 2)
       {
-        std::cout << PHWHERE << "evtno: " << EventSequence
+        std::cout << PHWHERE << "corrected evtno: " << CorrectedEventSequence
+                  << ", original evtno: " << EventSequence
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
       if (TriggerInputManager())
       {
-        TriggerInputManager()->AddHcalPacket(EventSequence, newhit);
+        TriggerInputManager()->AddHcalPacket(CorrectedEventSequence, newhit);
       }
-      m_PacketMap[EventSequence].push_back(newhit);
-      m_EventStack.insert(EventSequence);
+      m_PacketMap[CorrectedEventSequence].push_back(newhit);
+      m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
         ddumppacket(plist[i]);

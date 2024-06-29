@@ -105,6 +105,10 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
     {
       int packet_id = plist[i]->getIdentifier();
       // The call to  EventNumberOffset(identifier) will initialize it to our default if it wasn't set already
+      // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
+      // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
+      // and only when the pool gets refilled, this correction kicks in
+      // SO DO NOT BE CONFUSED when printing this out - seeing different events where this kicks in
       int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
