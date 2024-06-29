@@ -43,7 +43,7 @@ SingleMvtxPoolInput::~SingleMvtxPoolInput()
   }
 }
 
-void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
+void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -150,9 +150,18 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
           for (int i_strb{0}; i_strb < num_strobes; ++i_strb)
           {
             auto strb_detField = pool->iValue(feeId, i_strb, "TRG_DET_FIELD");
-            auto strb_bco = pool->lValue(feeId, i_strb, "TRG_IR_BCO");
+            uint64_t strb_bco = pool->lValue(feeId, i_strb, "TRG_IR_BCO");
             auto strb_bc = pool->iValue(feeId, i_strb, "TRG_IR_BC");
             auto num_hits = pool->iValue(feeId, i_strb, "TRG_NR_HITS");
+
+            m_BeamClockFEE[strb_bco].insert(feeId);
+            m_BclkStack.insert(strb_bco);
+            m_FEEBclkMap[feeId] = strb_bco;
+            if (strb_bco < minBCO)
+            {
+              continue;
+            }
+
             if (Verbosity() > 4)
             {
               std::cout << "evtno: " << EventSequence << ", Fee: " << feeId;
@@ -182,9 +191,6 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
             {
               StreamingInputManager()->AddMvtxFeeIdInfo(strb_bco, feeId, strb_detField);
             }
-            m_BeamClockFEE[strb_bco].insert(feeId);
-            m_BclkStack.insert(strb_bco);
-            m_FEEBclkMap[feeId] = strb_bco;
           }
         }
       }
@@ -289,6 +295,7 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // {
   //   iter.second.clear();
   // }
+
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
