@@ -88,17 +88,18 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_chi2 = "fraction";
 
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_chi2);
-      if (use_directURL_chi2)
+  if (use_directURL_chi2)
   {
     calibdir = m_directURL_chi2;
   }
   if (!calibdir.empty())
   {
     m_cdbttree_chi2 = new CDBTTree(calibdir);
+    std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_chi2 << "  Doing isHot for frac bad chi2" << std::endl;
   }
   else
   {
-    std::cout << "CaloTowerStatus::::InitRun No masking file for domain " << m_calibName_chi2 << " found, not doing isHot" << std::endl;
+    std::cout << "CaloTowerStatus::InitRun No masking file for domain " << m_calibName_chi2 << " found, not doing isHot from isBadChi2" << std::endl;
     m_doHotChi2 = false;
   }
 
@@ -113,10 +114,11 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   if (!calibdir.empty())
   {
     m_cdbttree_time = new CDBTTree(calibdir);
+    std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_time << " not Doing isBadTime" << std::endl;
   }
   else
   {
-    std::cout << "CaloTowerStatus::::InitRun no timing info, " << m_calibName_time << " not found, not doing isHot" << std::endl;
+    std::cout << "CaloTowerStatus::InitRun no timing info, " << m_calibName_time << " not found, not doing isBadTime" << std::endl;
     m_doTime = false;
   }
 
@@ -135,10 +137,11 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   if (!calibdir.empty())
   {
     m_cdbttree_hotMap = new CDBTTree(calibdir);
+    std::cout << "CaloTowerStatus::InitRun hot map found " << m_calibName_hotMap << " Ddoing isHot" << std::endl;
   }
   else
   {
-    std::cout << "CaloTowerStatus::::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
+    std::cout << "CaloTowerStatus::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
     m_doHotMap = false;
   }
 
@@ -179,10 +182,10 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = m_raw_towers->encode_key(channel);
-    //only reset what we will set
-    m_raw_towers->get_tower_at_channel(channel)->set_isHot(false); 
-    m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false); 
-    m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(false); 
+    // only reset what we will set
+    m_raw_towers->get_tower_at_channel(channel)->set_isHot(false);
+    m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false);
+    m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(false);
 
     if (m_doHotChi2)
     {
