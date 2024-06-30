@@ -8,12 +8,13 @@
 
 #include <iostream>
 #include <map>
+#include <string>
 #include <vector>
 
 struct ladder_info
 {
   int FC;
-  TString Port;
+  std::string Port;
   int ROC;
   int Direction;  // note : 0 : south, 1 : north
   int bin_id = 0;
@@ -22,10 +23,10 @@ struct ladder_info
 struct full_ladder_info
 {
   int FC;
-  TString Port;
+  std::string Port;
   int ROC;
   int Direction;  // note : 0 : south, 1 : north
-  TString Ladder;
+  std::string Ladder;
 };
 
 struct ladder_pos
@@ -301,7 +302,7 @@ static std::map<TString, full_ladder_info> serverFC_toinfo_map{
     {"intt7_12", {12, "B3", 7, 1, "B1L115N"}},
     {"intt7_13", {13, "A1", 7, 1, "B1L015N"}}};
 
-const std::map<int, TString> layer_map = {
+const std::map<int, std::string> layer_map = {
     {0, "B0L0"},
     {1, "B0L1"},
     {2, "B1L0"},
@@ -312,13 +313,13 @@ class TH2INTT : public TH2Poly
  public:
   TH2INTT();
 
-  void SetSerFCSContent(const TString& server_FC, double content);  // note : TString
-  double GetSerFCSContent(const TString& server_FC);
+  void SetSerFCSContent(const std::string &server_FC, double content);  // note : TString
+  double GetSerFCSContent(const std::string &server_FC);
   void SetSerFCIContent(int server_id, int FC_id, double content);  // note : int, server_id, FC_id
   double GetSerFCIContent(int server_id, int FC_id);                // note : int, server_id, FC_id
 
-  void SetLadderSContent(const TString& ladder_name, double content);  // note : TString
-  double GetLadderSContent(const TString& ladder_name);
+  void SetLadderSContent(const std::string &ladder_name, double content);  // note : TString
+  double GetLadderSContent(const std::string &ladder_name);
   void SetLadderIContent(int barrel_id, int layer_id, int ladder_id, int side, double content);  // note : int, barrel_id, layer_id, ladder_id
   double GetLadderIContent(int barrel_id, int layer_id, int ladder_id, int side);                // note : int, barrel_id, layer_id, ladder_id
 

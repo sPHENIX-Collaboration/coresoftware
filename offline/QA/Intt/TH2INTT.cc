@@ -310,8 +310,9 @@ void TH2INTT::fill_ladder_toinfo_map_bin()
       for (int HL = 0; HL < n_ladder; HL++)
       {
         ladder_toinfo_map
-            [Form("%s%s%s",
-                  layer_map.at(layer).Data(),
+//	  [std::string(layer_map.at(layer)+index_word[HL]+side_word]
+[Form("%s%s%s",
+                  layer_map.at(layer).c_str(),
                   index_word[HL].Data(),
                   side_word.Data())]
                 .bin_id = bin_index;
@@ -327,12 +328,12 @@ void TH2INTT::fill_ladder_toinfo_map_bin()
   }
 }
 
-void TH2INTT::SetLadderSContent(const TString &ladder_name, double content)
+void TH2INTT::SetLadderSContent(const std::string &ladder_name, double content)
 {
   TH2Poly::SetBinContent(ladder_toinfo_map.at(ladder_name).bin_id, content);
 }
 
-void TH2INTT::SetSerFCSContent(const TString &server_FC, double content)
+void TH2INTT::SetSerFCSContent(const std::string &server_FC, double content)
 {
   TH2Poly::SetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at(server_FC).Ladder).bin_id, content);
 }
@@ -355,12 +356,12 @@ void TH2INTT::SetSerFCIContent(int server_id, int FC_id, double content)
   TH2Poly::SetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at(Form("intt%i_%i", server_id, FC_id)).Ladder).bin_id, content);
 }
 
-double TH2INTT::GetLadderSContent(const TString &ladder_name)
+double TH2INTT::GetLadderSContent(const std::string &ladder_name)
 {
   return TH2Poly::GetBinContent(ladder_toinfo_map.at(ladder_name).bin_id);
 }
 
-double TH2INTT::GetSerFCSContent(const TString &server_FC)
+double TH2INTT::GetSerFCSContent(const std::string &server_FC)
 {
   return TH2Poly::GetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at(server_FC).Ladder).bin_id);
 }
