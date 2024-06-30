@@ -110,12 +110,6 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       // and only when the pool gets refilled, this correction kicks in
       // SO DO NOT BE CONFUSED when printing this out - seeing different events where this kicks in
       int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
-	if (packet_id == 6067 || packet_id == 6091)
-	{
-      std::cout << "packet id" << packet_id << " EventSequence: " << EventSequence
-		<< " correction: " << EventNumberOffset(packet_id) << " CorrectedEventSequence: " << CorrectedEventSequence
-		<< std::endl;
-	}
       if (Verbosity() > 2)
       {
         plist[i]->identify();
@@ -198,13 +192,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       }
       if (TriggerInputManager())
       {
-	if (packet_id == 6067 || packet_id == 6091)
-	{
-	  std::cout << "Evt seq: " << CorrectedEventSequence << " packet: " << packet_id
-		    << ", bco: 0x" << std::hex << newhit->getBCO() << ", gtm: " << gtm_bco
-		    << std::dec << std::endl;
 	TriggerInputManager()->AddCemcPacket(CorrectedEventSequence, newhit);
-	}
       }
       m_PacketMap[CorrectedEventSequence].push_back(newhit);
       m_EventStack.insert(CorrectedEventSequence);
