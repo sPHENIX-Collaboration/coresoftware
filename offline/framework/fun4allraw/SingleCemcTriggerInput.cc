@@ -200,6 +200,9 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       {
 	if (packet_id == 6067 || packet_id == 6091)
 	{
+	  std::cout << "Evt seq: " << CorrectedEventSequence << " packet: " << packet_id
+		    << ", bco: 0x" << std::hex << newhit->getBCO() << ", gtm: " << gtm_bco
+		    << std::dec << std::endl;
 	TriggerInputManager()->AddCemcPacket(CorrectedEventSequence, newhit);
 	}
       }
