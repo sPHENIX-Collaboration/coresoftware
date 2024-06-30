@@ -28,6 +28,7 @@
 
 #include <TFile.h>
 #include <TH2.h>
+#include <TF1.h>
 #include <TSystem.h>
 
 #include <gsl/gsl_randist.h>
@@ -147,6 +148,14 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   //         for the single electron gain distribution -
   //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
   double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain);
+  if (m_usePolya)
+  {
+    int xmin = 0; int xmax = 5000;
+    TF1 *polya = new TF1("polya","pow((1+[0])*(x/[1]),[0])*exp(-(1 + [0]) * (x / [1]))",xmin,xmax);
+    polya->SetParameter(0,polyaTheta);
+    polya->SetParameter(1,averageGEMGain);
+    nelec = polya->GetRandom(xmin, xmax);
+  }
   // Put gain reading here
 
   return nelec;
@@ -164,6 +173,14 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(double weight)
   //         for the single electron gain distribution -
   //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
   double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain * weight);
+  if (m_usePolya)
+  {
+    int xmin = 0; int xmax = 5000;
+    TF1 *polya = new TF1("polya","pow((1+[0])*(x/[1]),[0])*exp(-(1 + [0]) * (x / [1]))",xmin,xmax);
+    polya->SetParameter(0,polyaTheta);
+    polya->SetParameter(1,averageGEMGain * weight);
+    nelec = polya->GetRandom(xmin, xmax);
+  }
   // Put gain reading here
 
   return nelec;
@@ -922,6 +939,7 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   from Ne/CF4 90/10 to Ne/CF4 50/50, and keep the average charge per particle per pad constant
   */
   set_default_double_param("gem_amplification", 1400);
+  set_default_double_param("polya_theta", 0.8);
   return;
 }
 
@@ -967,6 +985,7 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
         SectorPhi[2] * 12 / (double) NPhiBins[2]}};
 
   averageGEMGain = get_double_param("gem_amplification");
+  polyaTheta = get_double_param("polya_theta");
 
   for (int iregion = 0; iregion < 3; ++iregion)
   {
