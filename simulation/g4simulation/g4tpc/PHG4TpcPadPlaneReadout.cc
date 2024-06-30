@@ -150,10 +150,12 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   if (m_usePolya)
   { 
     double y;
+    double xmax = 5000;
+    double ymax = 0.376;
     while (true) 
     {
-      nelec = gsl_ran_flat(RandomGenerator, 0, 5000);
-      y = gsl_rng_uniform(RandomGenerator) * 0.376;
+      nelec = gsl_ran_flat(RandomGenerator, 0, xmax);
+      y = gsl_rng_uniform(RandomGenerator) * ymax;
       if (y <= pow((1 + polyaTheta) * (nelec / averageGEMGain), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / averageGEMGain)))
       {
         break;
@@ -181,10 +183,12 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(double weight)
   if (m_usePolya)
   {
     double y;
+    double xmax = 5000;
+    double ymax = 0.376;
     while (true) 
     {
-      nelec = gsl_ran_flat(RandomGenerator, 0, 5000);
-      y = gsl_rng_uniform(RandomGenerator) * 0.376;
+      nelec = gsl_ran_flat(RandomGenerator, 0, xmax);
+      y = gsl_rng_uniform(RandomGenerator) * ymax;
       if (y <= pow((1 + polyaTheta) * (nelec / q_bar), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / q_bar))) 
       {
         break;
