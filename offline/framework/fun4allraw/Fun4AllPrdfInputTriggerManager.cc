@@ -107,7 +107,6 @@ tryagain:
       // NOLINTNEXTLINE(hicpp-avoid-goto)
       goto tryagain;
     }
-    std::cout << "after clockdiff" << std::endl;
 //    Print("CEMCMAP");
   }
   MoveGl1ToNodeTree();
@@ -932,12 +931,6 @@ int Fun4AllPrdfInputTriggerManager::FillCemc(const unsigned int nEvents)
     std::cout << "we are done" << std::endl;
     return -1;
   }
-  std::cout << "FILLEvent number " << m_CemcPacketMap.begin()->first << std::endl;
-  for (auto cemchititer : m_CemcPacketMap.begin()->second.CaloSinglePacketMap)
-  {
-    std::cout << "FILLPacket " <<  cemchititer.second->getIdentifier() << std::hex
-	      << " bco: " <<  cemchititer.second->getBCO() << std::dec << std::endl;
-  }
   return 0;
 }
 
@@ -992,7 +985,7 @@ void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
               << eventno << std::endl;
   }
   m_CemcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
-  std::cout << "Cemc packet map size: " << m_CemcPacketMap.size() << std::endl;
+//  std::cout << "Cemc packet map size: " << m_CemcPacketMap.size() << std::endl;
   return;
 }
 
@@ -1400,13 +1393,6 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
   {
     FillNeedle(m_SEpdPacketMap.begin(), m_SEpdPacketMap.end(), "sepd");
   }
-  std::cout << "NeedleFILlEvent number " << m_CemcPacketMap.begin()->first << std::endl;
-  for (auto cemchititer : m_CemcPacketMap.begin()->second.CaloSinglePacketMap)
-  {
-    std::cout << "NeedleFILlPacket " <<  cemchititer.second->getIdentifier() << std::hex
-	      << " bco: " <<  cemchititer.second->getBCO() << std::dec << std::endl;
-  }
-
   return;
 }
 
@@ -1686,7 +1672,10 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
       }
       if (bcodiffs.size() > 1)
       {
-        std::cout << PHWHERE << " different bco diffs for " << name << " packets for event " << nextIt->first << std::endl;
+	if (Verbosity() > 1)
+	{
+	  std::cout << PHWHERE << " different bco diffs for " << name << " packets for event " << nextIt->first << std::endl;
+	}
       }
     }
   }

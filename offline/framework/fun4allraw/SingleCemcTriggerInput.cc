@@ -203,10 +203,6 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       delete plist[i];
     }
   }
-    std::cout << Name() << ": first event: " << m_PacketMap.begin()->first
-              << " last event: " << m_PacketMap.rbegin()->first << " size: " << m_PacketMap.size()
-	      << ", keep: " << keep
-              << std::endl;
 }
 
 void SingleCemcTriggerInput::Print(const std::string &what) const
