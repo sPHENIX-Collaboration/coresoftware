@@ -126,7 +126,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 		  m_module_gain_weight[side][region][sector] = weight;
 		  std::cout << " iside " << iside << " side " << side << " ir " << ir 
 			    << " region " << region << " isec " << isec
-		  	    << " sector " << sector << " weight " << weight << std::endl;
+			    << " sector " << sector << " weight " << weight << std::endl;
 		}
 	    }
 	}
@@ -150,10 +150,12 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   if (m_usePolya)
   { 
     double y;
-    while (true) {
+    while (true) 
+    {
       nelec = gsl_ran_flat(RandomGenerator, 0, 5000);
       y = gsl_rng_uniform(RandomGenerator) * 0.376;
-      if (y <= pow((1 + polyaTheta) * (nelec / averageGEMGain), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / averageGEMGain))) {
+      if (y <= pow((1 + polyaTheta) * (nelec / averageGEMGain), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / averageGEMGain)))
+      {
         break;
       }
     }
@@ -179,10 +181,12 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(double weight)
   if (m_usePolya)
   {
     double y;
-    while (true) {
+    while (true) 
+    {
       nelec = gsl_ran_flat(RandomGenerator, 0, 5000);
       y = gsl_rng_uniform(RandomGenerator) * 0.376;
-      if (y <= pow((1 + polyaTheta) * (nelec / q_bar), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / q_bar))) {
+      if (y <= pow((1 + polyaTheta) * (nelec / q_bar), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / q_bar))) 
+      {
         break;
       }
     }
