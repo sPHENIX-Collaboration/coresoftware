@@ -1,45 +1,17 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef INTTRAWHITQA_H
-#define INTTRAWHITQA_H
-
-#include "InttQaCommon.h"
-#include "TH2INTT.h"
-
-#include <trackbase/InttEventInfo.h>
-#include <trackbase/InttEventInfov1.h>
-
-#include <ffarawobjects/InttRawHit.h>
-#include <ffarawobjects/InttRawHitContainer.h>
+#ifndef QA_INTT_INTTRAWHITQA_H
+#define QA_INTT_INTTRAWHITQA_H
 
 // Fun4All libraries
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
-
-// ROOT libraries
-#include <TCanvas.h>
-#include <TFile.h>
-#include <TGraph.h>
-#include <TLegend.h>
-#include <TMath.h>
-#include <TPaletteAxis.h>
-#include <TPaveStats.h>
-#include <TProfile2D.h>
-#include <TStyle.h>
-
 // std libraries
-#include <algorithm>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
 #include <string>
 #include <vector>
 
+class InttRawHit;
+class InttRawHitContainer;
 class PHCompositeNode;
 class TH1;
 class TH2;

@@ -1,15 +1,13 @@
-#ifndef TH2INTT_h
-#define TH2INTT_h
+#ifndef QA_INTT_TH2INTT_H
+#define QA_INTT_TH2INTT_H
 
-#include <TArrow.h>
 #include <TH2Poly.h>
-#include <TLatex.h>
-#include <TLine.h>
 
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
+
+class TLine;
 
 struct ladder_info
 {
@@ -44,7 +42,7 @@ struct ladder_pos
   double y4;
 };
 
-static std::map<TString, ladder_info> ladder_toinfo_map{
+static std::map<std::string, ladder_info> ladder_toinfo_map{
     {"B1L101S", {0, "D2", 0, 0}},  // note : intt 0
     {"B0L101S", {1, "C1", 0, 0}},
     {"B1L001S", {2, "C2", 0, 0}},
@@ -173,7 +171,7 @@ static std::map<TString, ladder_info> ladder_toinfo_map{
     {"B1L115N", {12, "B3", 7, 1}},
     {"B1L015N", {13, "A1", 7, 1}}};
 
-static std::map<TString, full_ladder_info> serverFC_toinfo_map{
+static std::map<std::string, full_ladder_info> serverFC_toinfo_map{
     {"intt0_0", {0, "D2", 0, 0, "B1L101S"}},  // note : intt 0
     {"intt0_1", {1, "C1", 0, 0, "B0L101S"}},
     {"intt0_2", {2, "C2", 0, 0, "B1L001S"}},
@@ -323,10 +321,10 @@ class TH2INTT : public TH2Poly
   void SetLadderIContent(int barrel_id, int layer_id, int ladder_id, int side, double content);  // note : int, barrel_id, layer_id, ladder_id
   double GetLadderIContent(int barrel_id, int layer_id, int ladder_id, int side);                // note : int, barrel_id, layer_id, ladder_id
 
-  void Draw(Option_t* option = "") override;
+  void Draw(Option_t *option = "") override;
 
  private:
-  std::vector<TLine*> ladder_line;
+  std::vector<TLine *> ladder_line;
   void fill_ladder_line();
   void fill_ladder_pos_map();
   void fill_ladder_toinfo_map_bin();
@@ -334,11 +332,11 @@ class TH2INTT : public TH2Poly
   std::vector<double> px;
   std::vector<double> py;
 
-  TString index_word[16] = {"00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"};
+  std::string index_word[16] = {"00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"};
 
   // note : B0L0S, B0L1S, B1L0S, B1L1S
   // note : B0L0N, B0L1N, B1L0N, B1L1N
-  std::map<TString, std::vector<ladder_pos>> ladder_pos_map;
+  std::map<std::string, std::vector<ladder_pos>> ladder_pos_map;
 
   double south_x_offset = -10;
   double north_x_offset = 10;

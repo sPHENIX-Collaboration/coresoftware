@@ -1,12 +1,24 @@
 #include "InttRawHitQA.h"
+#include "InttQaCommon.h"  // for HistConfig, kFee_num
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
+
+#include <ffarawobjects/InttRawHit.h>           // for InttRawHit
+#include <ffarawobjects/InttRawHitContainer.h>  // for InttRawHitContainer
+
+#include <fun4all/Fun4AllHistoManager.h>  // for Fun4AllHistoManager
+#include <fun4all/Fun4AllReturnCodes.h>   // for EVENT_OK, ABORTEVENT
+
+#include <phool/getClass.h>  // for getClass
+#include <phool/phool.h>     // for PHWHERE
 
 #include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
 
+#include <cassert>
+#include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <string>
 
@@ -114,7 +126,7 @@ void InttRawHitQA::createHistos()
     {
       auto h = new TH3D(name_bco_event.c_str(), title_bco_event.c_str(),
                         InttQa::kFee_num, 0, InttQa::kFee_num,
-                        100, 0, TMath::Power(2, 40),
+                        100, 0, std::pow(2, 40),
                         1e4, 0, 1e7);
       hm->registerHisto(h);
     }
@@ -195,7 +207,7 @@ void InttRawHitQA::createHistos()
   }
 
   {
-    auto h = new TH1D(std::string(getHistoPrefix() + "bco_full").c_str(), "BCO full distribution;BCO full;Entries", 100, 0, TMath::Power(2, 40));
+    auto h = new TH1D(std::string(getHistoPrefix() + "bco_full").c_str(), "BCO full distribution;BCO full;Entries", 100, 0, std::pow(2, 40));
     InttQa::HistConfig(h);
     hm->registerHisto(h);
   }

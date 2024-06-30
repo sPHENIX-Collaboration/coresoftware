@@ -1,6 +1,15 @@
 #include "TH2INTT.h"
 
+#include <boost/format.hpp>
+
+#include <TArrow.h>  // for TArrow
+#include <TLatex.h>  // for TLatex
+#include <TLine.h>   // for TLine
+
+#include <algorithm>  // for max
 #include <cmath>
+#include <iostream>  // for operator<<, basic_...
+#include <memory>    // for allocator_traits<>...
 
 TH2INTT::TH2INTT()
   : TH2Poly()
@@ -296,7 +305,7 @@ void TH2INTT::fill_ladder_line()
 
 void TH2INTT::fill_ladder_toinfo_map_bin()
 {
-  TString side_word;
+  std::string side_word;
   int bin_index = 1;
 
   for (int arm = 0; arm < 2; arm++)  // note : arm, 0 for south, 1 for north
@@ -310,14 +319,10 @@ void TH2INTT::fill_ladder_toinfo_map_bin()
       for (int HL = 0; HL < n_ladder; HL++)
       {
         ladder_toinfo_map
-//	  [std::string(layer_map.at(layer)+index_word[HL]+side_word]
-[Form("%s%s%s",
-                  layer_map.at(layer).c_str(),
-                  index_word[HL].Data(),
-                  side_word.Data())]
+            [(boost::format("%s%s%s") % layer_map.at(layer) % index_word[HL] % side_word).str().c_str()]
                 .bin_id = bin_index;
 
-        // std::cout<<Form("%s%s%s",layer_map.at(layer).Data(),index_word[HL].Data(),side_word.Data())<<" "<<bin_index<<std::endl;
+        // std::cout<< (boost::format("%s%s%s") %layer_map.at(layer) %index_word[HL] %side_word).str() <<" "<<bin_index<<std::endl;
 
         bin_index += 1;
       }
@@ -346,14 +351,13 @@ void TH2INTT::SetLadderIContent(int barrel_id, int layer_id, int ladder_id, int 
     return;
   }
 
-  TString side_word = (side == 0) ? "S" : "N";
-  // std::cout<<Form("B%iL%i%s%s",barrel_id,ladder_id,index_word[ladder_id].Data(),side_word.Data())<<std::endl;
-  TH2Poly::SetBinContent(ladder_toinfo_map.at(Form("B%iL%i%s%s", barrel_id, layer_id, index_word[ladder_id].Data(), side_word.Data())).bin_id, content);
+  std::string side_word = (side == 0) ? "S" : "N";
+  TH2Poly::SetBinContent(ladder_toinfo_map.at((boost::format("B%iL%i%s%s") % barrel_id % layer_id % index_word[ladder_id] % side_word).str()).bin_id, content);
 }
 
 void TH2INTT::SetSerFCIContent(int server_id, int FC_id, double content)
 {
-  TH2Poly::SetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at(Form("intt%i_%i", server_id, FC_id)).Ladder).bin_id, content);
+  TH2Poly::SetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at((boost::format("intt%i_%i") % server_id % FC_id).str()).Ladder).bin_id, content);
 }
 
 double TH2INTT::GetLadderSContent(const std::string &ladder_name)
@@ -374,11 +378,12 @@ double TH2INTT::GetLadderIContent(int barrel_id, int layer_id, int ladder_id, in
     return 0;
   }
 
-  TString side_word = (side == 0) ? "S" : "N";
-  return TH2Poly::GetBinContent(ladder_toinfo_map.at(Form("B%iL%i%s%s", barrel_id, layer_id, index_word[ladder_id].Data(), side_word.Data())).bin_id);
+  std::string side_word = (side == 0) ? "S" : "N";
+  return TH2Poly::GetBinContent(ladder_toinfo_map.at((boost::format("B%iL%i%s%s") % barrel_id % layer_id % index_word[ladder_id] % side_word).str()).bin_id);
 }
 
 double TH2INTT::GetSerFCIContent(int server_id, int FC_id)
 {
-  return TH2Poly::GetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at(Form("intt%i_%i", server_id, FC_id)).Ladder).bin_id);
+  //  return TH2Poly::GetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at(Form("intt%i_%i", server_id, FC_id)).Ladder).bin_id);
+  return TH2Poly::GetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at((boost::format("intt%i_%i") % server_id % FC_id).str()).Ladder).bin_id);
 }
