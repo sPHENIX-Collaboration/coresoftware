@@ -120,9 +120,7 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
         plist[i]->identify();
       }
 
-      // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
-      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
       int nr_modules = plist[i]->iValue(0, "NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
@@ -131,6 +129,8 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
         std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
         gSystem->Exit(1);
       }
+
+      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);
@@ -138,7 +138,7 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
-      newhit->setEvtSequence(EventSequence);
+      newhit->setEvtSequence(CorrectedEventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
       newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
@@ -275,22 +275,26 @@ bool SingleZdcTriggerInput::GetSomeMoreEvents(const unsigned int keep)
     return true;
   }
 
-  int first_event = m_PacketMap.begin()->first;
-  int last_event = m_PacketMap.rbegin()->first;
-  if (Verbosity() > 1)
+  if (m_PacketMap.size() < 2) // at least 2 events in pool
   {
-    std::cout << "number of zdc events: " << m_PacketMap.size() << std::endl;
-    std::cout << PHWHERE << "first event: " << first_event
-              << " last event: " << last_event
-              << std::endl;
+    return true;
   }
-  if (keep > 2 && m_PacketMap.size() < keep)
+  unsigned int first_event = m_PacketMap.begin()->first;
+  unsigned int last_event = m_PacketMap.rbegin()->first;
+  if (keep > 2 && (last_event-first_event) < keep)
   {
     return true;
   }
   if (first_event >= last_event)
   {
     return true;
+  }
+  if (Verbosity() > 21)
+  {
+    std::cout << PHWHERE << Name() << ": first event: " << first_event
+              << " last event: " << last_event << " size: " << m_PacketMap.size()
+	      << ", keep: " << keep
+              << std::endl;
   }
   return false;
 }

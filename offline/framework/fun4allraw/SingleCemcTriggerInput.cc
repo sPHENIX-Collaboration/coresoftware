@@ -147,7 +147,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
       newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
-      newhit->setEvtSequence(EventSequence);
+      newhit->setEvtSequence(CorrectedEventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
       newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));

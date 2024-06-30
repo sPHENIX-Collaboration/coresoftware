@@ -123,7 +123,7 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
       uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
       // offline packet content
-      newhit->setEvtSequence(EventSequence);
+      newhit->setEvtSequence(CorrectedEventSequence);
       newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setBCO(gtm_bco);
@@ -242,22 +242,27 @@ bool SingleLL1TriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     return true;
   }
-
-  int first_event = m_PacketMap.begin()->first;
-  int last_event = m_PacketMap.rbegin()->first;
-  if (Verbosity() > 1)
+  if (m_PacketMap.size() < 2) // at least 2 events in pool
   {
-    std::cout << PHWHERE << "first event: " << first_event
-              << " last event: " << last_event
-              << std::endl;
+    return true;
   }
-  if (keep > 2 && m_PacketMap.size() < keep)
+
+  unsigned int first_event = m_PacketMap.begin()->first;
+  unsigned int last_event = m_PacketMap.rbegin()->first;
+  if (keep > 2 && (last_event-first_event) < keep)
   {
     return true;
   }
   if (first_event >= last_event)
   {
     return true;
+  }
+  if (Verbosity() > 21)
+  {
+    std::cout << PHWHERE << Name() << ": first event: " << first_event
+              << " last event: " << last_event << " size: " << m_PacketMap.size()
+	      << ", keep: " << keep
+              << std::endl;
   }
   return false;
 }
