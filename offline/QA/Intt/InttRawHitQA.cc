@@ -3,6 +3,10 @@
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
 
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+
 #include <iostream>
 #include <string>
 
@@ -25,7 +29,7 @@ std::vector<InttRawHit *> InttRawHitQA::GetHits()
   return hits;
 }
 
-int InttRawHitQA::Init(PHCompositeNode *)
+int InttRawHitQA::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -197,7 +201,7 @@ void InttRawHitQA::createHistos()
   }
 }
 
-int InttRawHitQA::process_event(PHCompositeNode *)
+int InttRawHitQA::process_event(PHCompositeNode * /*unused*/)
 {
   auto hits = this->GetHits();
 
@@ -206,7 +210,9 @@ int InttRawHitQA::process_event(PHCompositeNode *)
 
   // if no raw hit is found, skip this event
   if (raw_hit_num == 0)
+  {
     return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   event_counter_by_myself_++;
 
@@ -225,17 +231,17 @@ int InttRawHitQA::process_event(PHCompositeNode *)
   // processes for each raw hit                                   //
   //////////////////////////////////////////////////////////////////
   // loop over all raw hits
-  for (unsigned int i = 0; i < hits.size(); i++)
+  for (auto hit : hits)
   {
-    auto hit = hits[i];
-
     int felix = hit->get_packetid() - InttQa::kFirst_pid;
     int felix_ch = hit->get_fee();
 
     // uint16_t InttRawHit::get_chip_id
     int chip = hit->get_chip_id();
     if (chip > InttQa::kChip_num)
+    {
       chip = chip - InttQa::kChip_num;
+    }
 
     int chan = hit->get_channel_id();
     auto adc = hit->get_adc();
@@ -292,29 +298,37 @@ int InttRawHitQA::process_event(PHCompositeNode *)
         ->Fill(event_counter - event_counter_ref);
 
     if (felix < 4)
+    {
       hist_nhit_south_->Fill(event_counter);
+    }
     else
+    {
       hist_nhit_north_->Fill(event_counter);
+    }
   }
 
   is_first_event_ = false;
 
   if (last_event_counter_ - previous_event_counter_ < 1000)
+  {
     previous_event_counter_ = last_event_counter_;  // in the case of reasonable event counter
+  }
   else
+  {
     previous_event_counter_ = -1;  // in the case of a crazy event counter
+  }
 
   // cout << "-------------------------------------------------" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int InttRawHitQA::ResetEvent(PHCompositeNode *)
+int InttRawHitQA::ResetEvent(PHCompositeNode * /*unused*/)
 {
   // Intitialize for Clone hit counter
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int InttRawHitQA::EndRun(const int)
+int InttRawHitQA::EndRun(const int /*unused*/)
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -322,14 +336,14 @@ int InttRawHitQA::EndRun(const int)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int InttRawHitQA::End(PHCompositeNode *)
+int InttRawHitQA::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 std::string InttRawHitQA::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }
 
-int InttRawHitQA::Reset(PHCompositeNode *)
+int InttRawHitQA::Reset(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

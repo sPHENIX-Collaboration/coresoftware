@@ -6,7 +6,7 @@ TH2INTT::TH2INTT()
   : TH2Poly()
 {
   TH2Poly::Initialize(-23, 23., -10., 10., 25, 25);
-  TH2Poly::SetStats(0);
+  TH2Poly::SetStats(false);
   TH2INTT::fill_ladder_pos_map();
   TH2INTT::fill_ladder_line();
   TH2INTT::fill_ladder_toinfo_map_bin();
@@ -114,9 +114,9 @@ void TH2INTT::Draw(Option_t *option)
   // side_text -> DrawLatex(0.64, 0.83, "North" );
 
   // note : Draw the line
-  for (unsigned int i = 0; i < ladder_line.size(); i++)
+  for (auto &i : ladder_line)
   {
-    ladder_line[i]->Draw("lsame");
+    i->Draw("lsame");
   }
 }
 
@@ -327,12 +327,12 @@ void TH2INTT::fill_ladder_toinfo_map_bin()
   }
 }
 
-void TH2INTT::SetLadderSContent(TString ladder_name, double content)
+void TH2INTT::SetLadderSContent(const TString &ladder_name, double content)
 {
   TH2Poly::SetBinContent(ladder_toinfo_map.at(ladder_name).bin_id, content);
 }
 
-void TH2INTT::SetSerFCSContent(TString server_FC, double content)
+void TH2INTT::SetSerFCSContent(const TString &server_FC, double content)
 {
   TH2Poly::SetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at(server_FC).Ladder).bin_id, content);
 }
@@ -355,12 +355,12 @@ void TH2INTT::SetSerFCIContent(int server_id, int FC_id, double content)
   TH2Poly::SetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at(Form("intt%i_%i", server_id, FC_id)).Ladder).bin_id, content);
 }
 
-double TH2INTT::GetLadderSContent(TString ladder_name)
+double TH2INTT::GetLadderSContent(const TString &ladder_name)
 {
   return TH2Poly::GetBinContent(ladder_toinfo_map.at(ladder_name).bin_id);
 }
 
-double TH2INTT::GetSerFCSContent(TString server_FC)
+double TH2INTT::GetSerFCSContent(const TString &server_FC)
 {
   return TH2Poly::GetBinContent(ladder_toinfo_map.at(serverFC_toinfo_map.at(server_FC).Ladder).bin_id);
 }

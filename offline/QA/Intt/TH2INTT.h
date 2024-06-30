@@ -312,13 +312,13 @@ class TH2INTT : public TH2Poly
  public:
   TH2INTT();
 
-  void SetSerFCSContent(TString server_FC, double content);  // note : TString
-  double GetSerFCSContent(TString server_FC);
+  void SetSerFCSContent(const TString& server_FC, double content);  // note : TString
+  double GetSerFCSContent(const TString& server_FC);
   void SetSerFCIContent(int server_id, int FC_id, double content);  // note : int, server_id, FC_id
   double GetSerFCIContent(int server_id, int FC_id);                // note : int, server_id, FC_id
 
-  void SetLadderSContent(TString ladder_name, double content);  // note : TString
-  double GetLadderSContent(TString ladder_name);
+  void SetLadderSContent(const TString& ladder_name, double content);  // note : TString
+  double GetLadderSContent(const TString& ladder_name);
   void SetLadderIContent(int barrel_id, int layer_id, int ladder_id, int side, double content);  // note : int, barrel_id, layer_id, ladder_id
   double GetLadderIContent(int barrel_id, int layer_id, int ladder_id, int side);                // note : int, barrel_id, layer_id, ladder_id
 

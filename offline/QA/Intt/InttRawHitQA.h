@@ -11,8 +11,6 @@
 
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
-/* #include <ffarawobjects/InttRawHitContainerv2.h> */
-/* #include <ffarawobjects/InttRawHitv2.h> */
 
 // Fun4All libraries
 #include <fun4all/Fun4AllHistoManager.h>
@@ -27,9 +25,6 @@
 #include <TCanvas.h>
 #include <TFile.h>
 #include <TGraph.h>
-#include <TH1I.h>
-#include <TH2I.h>
-#include <TH3I.h>
 #include <TLegend.h>
 #include <TMath.h>
 #include <TPaletteAxis.h>
@@ -45,8 +40,10 @@
 #include <string>
 #include <vector>
 
-
 class PHCompositeNode;
+class TH1;
+class TH2;
+class TH3;
 
 class InttRawHitQA : public SubsysReco
 {
@@ -109,35 +106,35 @@ class InttRawHitQA : public SubsysReco
   ///////////////////////////////////////////
 
   // mother 3D hist
-  TH3D* hist_fee_chip_chan_[kFelix_num_];  // ch vs chip vs ladder vs felix
-  // TH3D* hist_fee_chip_chan_woclonehit_[ kFelix_num_ ]; // ch vs chip vs ladder vs felix ; without clonehit
-  TH3D* hist_fee_bco_full_event_counter_[kFelix_num_];       // event counter vs bco full vs ladder vs felix
-  TH3D* hist_fee_bco_full_event_counter_diff_[kFelix_num_];  // difference of event counter vs difference of bco full vs ladder vs felix, difference means ( val - Min( val(felix=Min(felix) ) ) )
+  TH3* hist_fee_chip_chan_[kFelix_num_]{nullptr};  // ch vs chip vs ladder vs felix
+  // TH3* hist_fee_chip_chan_woclonehit_[ kFelix_num_ ]; // ch vs chip vs ladder vs felix ; without clonehit
+  TH3* hist_fee_bco_full_event_counter_[kFelix_num_]{nullptr};       // event counter vs bco full vs ladder vs felix
+  TH3* hist_fee_bco_full_event_counter_diff_[kFelix_num_]{nullptr};  // difference of event counter vs difference of bco full vs ladder vs felix, difference means ( val - Min( val(felix=Min(felix) ) ) )
 
   // 2D hists
-  TH2I* hist_hitmap_[kFelix_num_][kFee_num_];
+  TH2* hist_hitmap_[kFelix_num_][kFee_num_]{{nullptr}};
 
   // a simple 1D hists
-  TH1D* hist_nhit_;        // the number of INTTRAWHIT
-  TH1D* hist_pid_;         // the number of hits for each FELIX server
-  TH1D* hist_nhit_south_;  // the number of INTTRAWHIT
-  TH1D* hist_nhit_north_;  // the number of INTTRAWHIT
+  TH1* hist_nhit_{nullptr};        // the number of INTTRAWHIT
+  TH1* hist_pid_{nullptr};         // the number of hits for each FELIX server
+  TH1* hist_nhit_south_{nullptr};  // the number of INTTRAWHIT
+  TH1* hist_nhit_north_{nullptr};  // the number of INTTRAWHIT
 
-  // TH1D* hist_fee_;
-  // TH1D* hist_chip_;
-  // TH1D* hist_chan_;
-  TH1D* hist_adc_;
-  TH1D* hist_bco_;       // FPHX BCO
-  TH1D* hist_bco_full_;  // BCO full
+  // TH1* hist_fee_;
+  // TH1* hist_chip_;
+  // TH1* hist_chan_;
+  TH1* hist_adc_{nullptr};
+  TH1* hist_bco_{nullptr};       // FPHX BCO
+  TH1* hist_bco_full_{nullptr};  // BCO full
 
   // felix vs event counter
-  TH1D* hist_event_counter_[kFelix_num_];
-  TH1D* hist_event_counter_diff_[kFelix_num_];
+  TH1* hist_event_counter_[kFelix_num_]{nullptr};
+  TH1* hist_event_counter_diff_[kFelix_num_]{nullptr};
 
   ///////////////////////////////////////////
   // nodes
   ///////////////////////////////////////////
-  InttRawHitContainer* node_inttrawhit_map_;
+  InttRawHitContainer* node_inttrawhit_map_{nullptr};
 
   ///////////////////////////////////////////
   // functions

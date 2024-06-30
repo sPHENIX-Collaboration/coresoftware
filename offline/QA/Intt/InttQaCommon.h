@@ -1,7 +1,7 @@
 #include <Rtypes.h>
 #include <TAxis.h>
-#include <TPaletteAxis.h>
 #include <TPad.h>
+#include <TPaletteAxis.h>
 #include <TPaveStats.h>
 
 #include <iostream>
@@ -84,7 +84,7 @@ namespace InttQa
     @param xmax A relative coordinate of maximum y, which can be from 0 to 1.
    */
   template <typename TH>
-    void DrawStats(TH* hist, double xmin, double ymin, double xmax, double ymax, int /*font = 4*/)
+  void DrawStats(TH* hist, double xmin, double ymin, double xmax, double ymax, int /*font = 4*/)
   {
     gPad->Update();
     TPaveStats* st = (TPaveStats*) hist->FindObject("stats");
