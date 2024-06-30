@@ -125,7 +125,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 		  weights_file >> side >> region >> sector >> weight;
 		  m_module_gain_weight[side][region][sector] = weight;
 		  std::cout << " iside " << iside << " side " << side << " ir " << ir 
-			    << " region " << region << " isec " << isec
+			    << " region " << region << " isec " << isec 
 			    << " sector " << sector << " weight " << weight << std::endl;
 		}
 	    }
