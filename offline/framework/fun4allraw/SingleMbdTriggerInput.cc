@@ -254,7 +254,7 @@ bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     return true;
   }
-  if (m_PacketMap.size() < 2) // at least 2 events in pool
+  if (m_PacketMap.size() < 2)  // at least 2 events in pool
   {
     return true;
   }
@@ -268,7 +268,7 @@ bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
               << " last event: " << last_event
               << std::endl;
   }
-  if (keep > 2 && (last_event-first_event) < keep)
+  if (keep > 2 && (last_event - first_event) < keep)
   {
     return true;
   }
@@ -280,7 +280,7 @@ bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     std::cout << PHWHERE << Name() << ": first event: " << first_event
               << " last event: " << last_event << " size: " << m_PacketMap.size()
-	      << ", keep: " << keep
+              << ", keep: " << keep
               << std::endl;
   }
   return false;

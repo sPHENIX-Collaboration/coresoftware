@@ -192,7 +192,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       }
       if (TriggerInputManager())
       {
-	TriggerInputManager()->AddCemcPacket(CorrectedEventSequence, newhit);
+        TriggerInputManager()->AddCemcPacket(CorrectedEventSequence, newhit);
       }
       m_PacketMap[CorrectedEventSequence].push_back(newhit);
       m_EventStack.insert(CorrectedEventSequence);
@@ -268,14 +268,14 @@ bool SingleCemcTriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     return true;
   }
-  if (m_PacketMap.size() < 2) // at least 2 events in pool
+  if (m_PacketMap.size() < 2)  // at least 2 events in pool
   {
     return true;
   }
 
   unsigned int first_event = m_PacketMap.begin()->first;
   unsigned int last_event = m_PacketMap.rbegin()->first;
-  if (keep > 2 && (last_event-first_event) < keep)
+  if (keep > 2 && (last_event - first_event) < keep)
   {
     return true;
   }
@@ -287,7 +287,7 @@ bool SingleCemcTriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     std::cout << PHWHERE << Name() << ": first event: " << first_event
               << " last event: " << last_event << " size: " << m_PacketMap.size()
-	      << ", keep: " << keep
+              << ", keep: " << keep
               << std::endl;
   }
   return false;
