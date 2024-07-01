@@ -260,7 +260,7 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   hSubPt_All->GetYaxis()->SetTitle("Number of Entries");
   for (double j : m_subpt_all)
   {
-    hSubPt->Fill(j);
+    hSubPt_All->Fill(j);
   }
 
   TH2 *hSubEtaVsPhi = new TH2F(vecHistNames[7].data(), "Sub. Seed Eta Vs Phi", 220, -1.1, 1.1, 628, -3.14, 3.14);
