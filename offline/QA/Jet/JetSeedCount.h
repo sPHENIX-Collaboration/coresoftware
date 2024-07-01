@@ -14,12 +14,17 @@
 #include <string>
 #include <vector>
 
+#include "JetQADefs.h"
+
 class PHCompositeNode;
 
 class JetSeedCount : public SubsysReco
 {
  public:
-  JetSeedCount(const std::string &recojetname = "AntiKt_Tower_r04",
+  JetSeedCount(const std::string &moduleName = "JetSeedCount",
+               const std::string &recojetname = "AntiKt_Tower_r04",
+               const std::string &rawSeedName = "AntiKt_TowerInfo_HIRecoSeedsRaw_r02",
+               const std::string &subSeedName = "AntiKt_TowerInfo_HIRecoSeedsSub_r02",
                const std::string &truthjetname = "AntiKt_Truth_r04",
                const std::string &outputfilename = "myjetanalysis.root");
 
@@ -41,6 +46,17 @@ class JetSeedCount : public SubsysReco
   setWriteToOutputFile(bool write)
   {
     m_writeToOutputFile = write;
+  }
+  void
+  setHistTag(const std::string &tag)
+  {
+    m_histTag = tag;
+  }
+  void
+  setTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
+  {
+    m_doTrgSelect = true;
+    m_trgToSelect = trig;
   }
 
   int Init(PHCompositeNode *topNode) override;
@@ -64,12 +80,20 @@ class JetSeedCount : public SubsysReco
   int m_seed_raw{std::numeric_limits<int>::max()};
   double z_vtx{std::numeric_limits<double>::quiet_NaN()};
 
+  std::string m_moduleName;
   std::string m_recoJetName;
+  std::string m_rawSeedName;
+  std::string m_subSeedName;
   std::string m_truthJetName;
   std::string m_outputFileName;
+  std::string m_histTag;
 
   std::pair<double, double> m_etaRange;
   std::pair<double, double> m_ptRange;
+
+  // trigger selection
+  bool m_doTrgSelect;
+  uint32_t m_trgToSelect;
 
   std::vector<double> m_RawEta;
   std::vector<double> m_RawPhi;

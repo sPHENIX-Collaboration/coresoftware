@@ -17,18 +17,23 @@
 
 #include <TH1.h>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <cassert>
 #include <vector>
 
-RhosinEvent::RhosinEvent(const std::string &name)
-  : SubsysReco(name)
+RhosinEvent::RhosinEvent(const std::string &moduleName, const std::string &tag)
+  : SubsysReco(moduleName)
+  , m_moduleName(moduleName)
+  , m_histTag(tag)
   // , m_name(outputfilename)
   , m_do_mult_rho(true)
   , m_do_area_rho(true)
   , m_mult_rho_node("TowerRho_MULT")
   , m_area_rho_node("TowerRho_AREA")
+  , m_doTrgSelect(false)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , h1_mult_rho(nullptr)
   , h1_mult_rho_sigma(nullptr)
   , h1_area_rho(nullptr)
@@ -68,21 +73,42 @@ int RhosinEvent::Init(PHCompositeNode * /*topNode*/)
     {
         N_rho_area_bins[i] = (10.0/200.0)*i;
     }
-    
-    h1_mult_rho = new TH1D("h1_mult_rho", "h1_mult_rho", N_rho_mult, N_rho_mult_bins);
+
+    // make sure module name is lower case
+    std::string smallModuleName = m_moduleName;
+    std::transform(
+      smallModuleName.begin(),
+      smallModuleName.end(),
+      smallModuleName.begin(),
+      ::tolower
+    );
+
+    // construct histogram names
+    std::vector<std::string> vecHistNames = {
+      "rhomult",
+      "sigmamult",
+      "rhoarea",
+      "sigmaarea"
+    };
+    for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
+      vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
+      vecHistNames[iHistName].append("_" + m_histTag);
+    }
+
+    h1_mult_rho = new TH1D(vecHistNames[0].data(), "h1_mult_rho", N_rho_mult, N_rho_mult_bins);
     h1_mult_rho->GetXaxis()->SetTitle("rho_M");
     h1_mult_rho->GetYaxis()->SetTitle("Counts");
 
-    h1_mult_rho_sigma = new TH1D("h1_mult_rho_sigma", "h1_mult_rho_sigma", N_rho_mult, N_rho_mult_bins);
+    h1_mult_rho_sigma = new TH1D(vecHistNames[1].data(), "h1_mult_rho_sigma", N_rho_mult, N_rho_mult_bins);
     h1_mult_rho_sigma->GetXaxis()->SetTitle("sigma_M");
     h1_mult_rho_sigma->GetYaxis()->SetTitle("Counts");
 
         
-    h1_area_rho = new TH1D("h1_area_rho", "h1_area_rho", N_rho_area, N_rho_area_bins);
+    h1_area_rho = new TH1D(vecHistNames[2].data(), "h1_area_rho", N_rho_area, N_rho_area_bins);
     h1_area_rho->GetXaxis()->SetTitle("rho_A");
     h1_area_rho->GetYaxis()->SetTitle("Counts");
 
-    h1_area_rho_sigma = new TH1D("h1_area_rho_sigma", "h1_area_rho_sigma", N_rho_area, N_rho_area_bins);
+    h1_area_rho_sigma = new TH1D(vecHistNames[3].data(), "h1_area_rho_sigma", N_rho_area, N_rho_area_bins);
     h1_area_rho_sigma->GetXaxis()->SetTitle("sigma_A");
     h1_area_rho_sigma->GetYaxis()->SetTitle("Counts");
 
@@ -101,6 +127,13 @@ int RhosinEvent::process_event(PHCompositeNode *topNode)
   if(Verbosity() > 1)
   {
     std::cout << "RhosinEvent::process_event - Process event..." << std::endl;
+  }
+
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
   }
 
   if(m_do_area_rho)

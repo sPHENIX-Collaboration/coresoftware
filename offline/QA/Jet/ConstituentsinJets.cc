@@ -32,6 +32,7 @@
 #include <TH2.h>
 #include <TH1.h>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -42,11 +43,16 @@
 #include <map>
 #include <utility>
 
-ConstituentsinJets::ConstituentsinJets(const std::string &recojetname )
-  : SubsysReco("ConstituentsinJets")
+ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std::string &recojetname, const std::string &towBkgdName, const std::string &histTag)
+  : SubsysReco(moduleName)
+  , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
+  , m_towBkgdName(towBkgdName)
+  , m_histTag(histTag)
   // , m_outputFileName(outputfilename)  
   // these are all initialized but included here for clarity
+  , m_doTrgSelect(false)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_etaRange(-1.1, 1.1)
   , m_ptRange(1.0, 1000)
   , h1_ConstituentsinJets_total(nullptr)
@@ -93,40 +99,66 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
     const int N_calo_layers = 3;
     Double_t calo_layers_bins[N_calo_layers+1] = {0.5, 1.5, 2.5, 3.5}; // emcal, ihcal, ohcal
 
+    // make sure module name is lower case
+    std::string smallModuleName = m_moduleName;
+    std::transform(
+      smallModuleName.begin(),
+      smallModuleName.end(),
+      smallModuleName.begin(),
+      ::tolower
+    );
+
+    // construct histogram names
+    std::vector<std::string> vecHistNames = {
+      "ncsts_total",
+      "ncsts_ihcal",
+      "ncsts_ohcal",
+      "ncsts_cemc",
+      "ncstsvscalolayer",
+      "efracjet_ihcal",
+      "efracjet_ohcal",
+      "efracjet_cemc",
+      "efracjetvscalolayer"
+    };
+    for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
+      vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
+      vecHistNames[iHistName].append("_" + m_histTag);
+    }
+
     // declare histograms and include x and y axis labels in the constructor
-    h1_ConstituentsinJets_total = new TH1D("h1_ConstituentsinJets_total", "Jet N constituents", N_const, N_const_bins);
+    h1_ConstituentsinJets_total = new TH1D(vecHistNames[0].data(), "Jet N constituents", N_const, N_const_bins);
     h1_ConstituentsinJets_total->GetXaxis()->SetTitle("N constituents");
     h1_ConstituentsinJets_total->GetYaxis()->SetTitle("Counts");
 
-    h1_ConstituentsinJets_IHCAL = new TH1D("h1_ConstituentsinJets_IHCAL", "Jet N constituents in IHCal", N_const, N_const_bins);
+    h1_ConstituentsinJets_IHCAL = new TH1D(vecHistNames[1].data(), "Jet N constituents in IHCal", N_const, N_const_bins);
     h1_ConstituentsinJets_IHCAL->GetXaxis()->SetTitle("N constituents");
     h1_ConstituentsinJets_IHCAL->GetYaxis()->SetTitle("Counts");
 
-    h1_ConstituentsinJets_OHCAL = new TH1D("h1_ConstituentsinJets_OHCAL", "Jet N constituents in OHCal", N_const, N_const_bins);
+    h1_ConstituentsinJets_OHCAL = new TH1D(vecHistNames[2].data(), "Jet N constituents in OHCal", N_const, N_const_bins);
     h1_ConstituentsinJets_OHCAL->GetXaxis()->SetTitle("N constituents");
     h1_ConstituentsinJets_OHCAL->GetYaxis()->SetTitle("Counts");
 
-    h1_ConstituentsinJets_CEMC = new TH1D("h1_ConstituentsinJets_CEMC", "Jet N constituents in CEMC", N_const, N_const_bins);
+    h1_ConstituentsinJets_CEMC = new TH1D(vecHistNames[3].data(), "Jet N constituents in CEMC", N_const, N_const_bins);
     h1_ConstituentsinJets_CEMC->GetXaxis()->SetTitle("N constituents");
     h1_ConstituentsinJets_CEMC->GetYaxis()->SetTitle("Counts");
 
-    h2_ConstituentsinJets_vs_caloLayer = new TH2D("h2_ConstituentsinJets_vs_caloLayer", "Jet N constituents vs Calo Layer", N_calo_layers, calo_layers_bins, N_const, N_const_bins);
+    h2_ConstituentsinJets_vs_caloLayer = new TH2D(vecHistNames[4].data(), "Jet N constituents vs Calo Layer", N_calo_layers, calo_layers_bins, N_const, N_const_bins);
     h2_ConstituentsinJets_vs_caloLayer->GetXaxis()->SetTitle("Calo Layer");
     h2_ConstituentsinJets_vs_caloLayer->GetYaxis()->SetTitle("N constituents");
 
-    h1_jetFracE_IHCAL = new TH1D("h1_jetFracE_IHCAL", "Jet E fraction in IHCal", N_frac, frac_bins);
+    h1_jetFracE_IHCAL = new TH1D(vecHistNames[5].data(), "Jet E fraction in IHCal", N_frac, frac_bins);
     h1_jetFracE_IHCAL->GetXaxis()->SetTitle("E fraction");
     h1_jetFracE_IHCAL->GetYaxis()->SetTitle("Counts");
 
-    h1_jetFracE_OHCAL = new TH1D("h1_jetFracE_OHCAL", "Jet E fraction in OHCal", N_frac, frac_bins);
+    h1_jetFracE_OHCAL = new TH1D(vecHistNames[6].data(), "Jet E fraction in OHCal", N_frac, frac_bins);
     h1_jetFracE_OHCAL->GetXaxis()->SetTitle("E fraction");
     h1_jetFracE_OHCAL->GetYaxis()->SetTitle("Counts");
 
-    h1_jetFracE_CEMC = new TH1D("h1_jetFracE_CEMC", "Jet E fraction in CEMC", N_frac, frac_bins);
+    h1_jetFracE_CEMC = new TH1D(vecHistNames[7].data(), "Jet E fraction in CEMC", N_frac, frac_bins);
     h1_jetFracE_CEMC->GetXaxis()->SetTitle("E fraction");
     h1_jetFracE_CEMC->GetYaxis()->SetTitle("Counts");
 
-    h2_jetFracE_vs_caloLayer = new TH2D("h2_jetFracE_vs_caloLayer", "Jet E fraction vs Calo Layer", N_calo_layers, calo_layers_bins, N_frac, frac_bins);
+    h2_jetFracE_vs_caloLayer = new TH2D(vecHistNames[8].data(), "Jet E fraction vs Calo Layer", N_calo_layers, calo_layers_bins, N_frac, frac_bins);
     h2_jetFracE_vs_caloLayer->GetXaxis()->SetTitle("Calo Layer");
     h2_jetFracE_vs_caloLayer->GetYaxis()->SetTitle("E fraction");
 
@@ -156,6 +188,13 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   if(Verbosity() > 1)
   {
     std::cout << "ConstituentsinJets::process_event - Process event..." << std::endl;
+  }
+
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // get the jets
@@ -189,7 +228,7 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   float background_v2 = 0;
   float background_Psi2 = 0;
   bool has_tower_background = false;
-  TowerBackground *towBack = findNode::getClass<TowerBackground>(topNode, "TowerInfoBackground_Sub2");
+  TowerBackground *towBack = findNode::getClass<TowerBackground>(topNode, m_towBkgdName);
   if(!towBack)
   {
     std::cout <<"ConstituentsinJets::process_event - Error can not find tower background node " << std::endl;  

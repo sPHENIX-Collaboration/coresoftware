@@ -9,6 +9,8 @@
 #include <utility>  // std::pair, std::make_pair
 #include <vector>
 
+#include "JetQADefs.h"
+
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH1;
@@ -23,7 +25,10 @@ class RhosinEvent : public SubsysReco
 
     public:
 
-        RhosinEvent(const std::string &name = "RhosinEvent");
+        RhosinEvent(
+          const std::string &moduleName = "RhosinEvent",
+          const std::string &tag = "AllTrig"
+        );
         ~RhosinEvent() override {};
 
         void add_mult_rho_node(const std::string &name)
@@ -36,6 +41,11 @@ class RhosinEvent : public SubsysReco
             m_do_area_rho = true;
             m_area_rho_node = name;
         }
+        void setTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
+        {
+          m_doTrgSelect = true;
+          m_trgToSelect = trig;
+        }
 
         // standard Fun4All functions
         int Init(PHCompositeNode *topNode) override;
@@ -45,13 +55,19 @@ class RhosinEvent : public SubsysReco
 
     private:
 
-        //! Input Node strings
+        //! Module name, and histogram tag
+        std::string m_moduleName{"RhosinEvent"};
+        std::string m_histTag{"AllTrig"};
         // std::string m_outputFileName{"RhosinEvent.root"};
 
         bool m_do_mult_rho{true};
         bool m_do_area_rho{true};
         std::string m_mult_rho_node{"TowerRho_MULT"};
         std::string m_area_rho_node{"TowerRho_AREA"};
+
+        // trigger selection
+        bool m_doTrgSelect;
+        uint32_t m_trgToSelect;
 
         Fun4AllHistoManager* m_manager{nullptr};
         //histos
