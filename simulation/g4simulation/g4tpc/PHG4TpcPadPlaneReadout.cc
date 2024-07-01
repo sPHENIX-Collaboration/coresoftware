@@ -28,7 +28,6 @@
 
 #include <TFile.h>
 #include <TH2.h>
-#include <TF1.h>
 #include <TSystem.h>
 
 #include <gsl/gsl_randist.h>
@@ -149,12 +148,19 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
   double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain);
   if (m_usePolya)
-  {
-    int xmin = 0; int xmax = 5000;
-    TF1 *polya = new TF1("polya","pow((1+[0])*(x/[1]),[0])*exp(-(1 + [0]) * (x / [1]))",xmin,xmax);
-    polya->SetParameter(0,polyaTheta);
-    polya->SetParameter(1,averageGEMGain);
-    nelec = polya->GetRandom(xmin, xmax);
+  { 
+    double y;
+    double xmax = 5000;
+    double ymax = 0.376;
+    while (true) 
+    {
+      nelec = gsl_ran_flat(RandomGenerator, 0, xmax);
+      y = gsl_rng_uniform(RandomGenerator) * ymax;
+      if (y <= pow((1 + polyaTheta) * (nelec / averageGEMGain), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / averageGEMGain)))
+      {
+        break;
+      }
+    }
   }
   // Put gain reading here
 
@@ -172,14 +178,22 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(double weight)
   // Bob A.: I like Tom's suggestion to use the exponential distribution as a first approximation
   //         for the single electron gain distribution -
   //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
-  double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain * weight);
+  double q_bar = averageGEMGain * weight;
+  double nelec = gsl_ran_exponential(RandomGenerator, q_bar);
   if (m_usePolya)
   {
-    int xmin = 0; int xmax = 5000;
-    TF1 *polya = new TF1("polya","pow((1+[0])*(x/[1]),[0])*exp(-(1 + [0]) * (x / [1]))",xmin,xmax);
-    polya->SetParameter(0,polyaTheta);
-    polya->SetParameter(1,averageGEMGain * weight);
-    nelec = polya->GetRandom(xmin, xmax);
+    double y;
+    double xmax = 5000;
+    double ymax = 0.376;
+    while (true) 
+    {
+      nelec = gsl_ran_flat(RandomGenerator, 0, xmax);
+      y = gsl_rng_uniform(RandomGenerator) * ymax;
+      if (y <= pow((1 + polyaTheta) * (nelec / q_bar), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / q_bar))) 
+      {
+        break;
+      }
+    }
   }
   // Put gain reading here
 
