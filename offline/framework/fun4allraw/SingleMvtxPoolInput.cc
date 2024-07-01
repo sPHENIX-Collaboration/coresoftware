@@ -365,6 +365,7 @@ bool SingleMvtxPoolInput::GetSomeMoreEvents()
   uint64_t lowest_bclk = m_MvtxRawHitMap.begin()->first;
   //  lowest_bclk += m_BcoRange;
   lowest_bclk += m_BcoRange;
+  std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
     if (bcliter.second <= lowest_bclk)
@@ -386,9 +387,14 @@ bool SingleMvtxPoolInput::GetSomeMoreEvents()
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_MvtxRawHitMap.begin()->first)
                   << std::dec << std::endl;
-        m_FEEBclkMap.erase(bcliter.first);
+        toerase.insert(bcliter.first);
+       
       }
     }
+  }
+  for(auto iter : toerase)
+  {
+    m_FEEBclkMap.erase(iter);
   }
   return false;
 
