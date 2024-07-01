@@ -23,6 +23,7 @@
 #include <TH3.h>
 #include <TVector3.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -31,9 +32,13 @@
 #include <utility>
 
 //____________________________________________________________________________..
-StructureinJets::StructureinJets(const std::string& recojetname, const std::string& outputfilename)
-  : SubsysReco("StructureinJets_" + recojetname)
+StructureinJets::StructureinJets(const std::string &moduleName, const std::string& recojetname, const std::string& histTag, const std::string& outputfilename)
+  : SubsysReco(moduleName)
+  , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
+  , m_histTag(histTag)
+  , m_doTrgSelect(false)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_outputFileName(outputfilename)
 {
   std::cout << "StructureinJets::StructureinJets(const std::string &name) Calling ctor" << std::endl;
@@ -48,12 +53,36 @@ StructureinJets::~StructureinJets()
 //____________________________________________________________________________..
 int StructureinJets::Init(PHCompositeNode* /*topNode*/)
 {
+
   std::cout << "StructureinJets::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  PHTFileServer::get().open(m_outputFileName, "RECREATE");
-  m_h_track_vs_calo_pt = new TH3F("m_h_track_vs_calo_pt", "", 100, 0, 100, 500, 0, 100, 10, 0, 100);
+  if (writeToOutputFileFlag)
+  {
+    PHTFileServer::get().open(m_outputFileName, "RECREATE");
+  }
+
+  // make sure module name is lower case
+  std::string smallModuleName = m_moduleName;
+  std::transform(
+    smallModuleName.begin(),
+    smallModuleName.end(),
+    smallModuleName.begin(),
+    ::tolower
+  );
+
+  // construct histogram names
+  std::vector<std::string> vecHistNames = {
+    "trackvscalopt",
+    "trackpt"
+  };
+  for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
+    vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
+    vecHistNames[iHistName].append("_" + m_histTag);
+  }
+
+  m_h_track_vs_calo_pt = new TH3F(vecHistNames[0].data(), "", 100, 0, 100, 500, 0, 100, 10, 0, 100);
   m_h_track_vs_calo_pt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
   m_h_track_vs_calo_pt->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
-  m_h_track_pt = new TH2F("m_h_track_pt", "", 100, 0, 100, 100, 0, 100);
+  m_h_track_pt = new TH2F(vecHistNames[1].data(), "", 100, 0, 100, 100, 0, 100);
   m_h_track_pt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
   m_h_track_pt->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
   m_manager->registerHisto(m_h_track_vs_calo_pt);
@@ -72,12 +101,20 @@ int StructureinJets::InitRun(PHCompositeNode* /*topNode*/)
 int StructureinJets::process_event(PHCompositeNode* topNode)
 {
   // std::cout << "StructureinJets::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   // interface to reco jets
   JetContainer* jets = findNode::getClass<JetContainer>(topNode, m_recoJetName);
   if (!jets)
   {
     std::cout
-        << "MyJetAnalysis::process_event - Error can not find DST Reco JetContainer node "
+        << "StructureInJets::process_event - Error can not find DST Reco JetContainer node "
         << m_recoJetName << std::endl;
     exit(-1);
   }
@@ -206,9 +243,17 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
     TH2* h_proj;
     for (int i = 0; i < m_h_track_vs_calo_pt->GetNbinsZ(); i++)
     {
+
+      // construct histogram name for projection
+      std::string name = m_h_track_vs_calo_pt->GetName();
+
       m_h_track_vs_calo_pt->GetZaxis()->SetRange(i + 1, i + 1);
       h_proj = (TH2*) m_h_track_vs_calo_pt->Project3D("yx");
-      h_proj->SetName((boost::format("h_track_vs_calo_%1.0f") % m_h_track_vs_calo_pt->GetZaxis()->GetBinLowEdge(i + 1)).str().c_str());
+      h_proj->SetName(
+        (
+          boost::format(name + "_%1.0f") % m_h_track_vs_calo_pt->GetZaxis()->GetBinLowEdge(i + 1)
+        ).str().c_str()
+      );
       if (writeToOutputFileFlag)
       {
         h_proj->Write();
