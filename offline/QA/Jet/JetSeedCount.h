@@ -58,6 +58,11 @@ class JetSeedCount : public SubsysReco
     m_doTrgSelect = true;
     m_trgToSelect = trig;
   }
+  void
+  setPPMode(const bool pp)
+  {
+    m_inPPMode = pp;
+  }
 
   int Init(PHCompositeNode *topNode) override;
 
@@ -73,7 +78,8 @@ class JetSeedCount : public SubsysReco
  private:
   Fun4AllHistoManager *m_manager{nullptr};
 
-  bool m_writeToOutputFile{false};
+  bool m_writeToOutputFile {false};
+  bool m_inPPMode {false};
 
   int m_event{0};
   int m_seed_sub{std::numeric_limits<int>::max()};

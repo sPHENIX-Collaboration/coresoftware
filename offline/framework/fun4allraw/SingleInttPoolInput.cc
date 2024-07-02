@@ -313,6 +313,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
     localbclk = m_InttRawHitMap.begin()->first;
   }
 
+  std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
     if (bcliter.second <= localbclk)
@@ -333,9 +334,13 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_InttRawHitMap.begin()->first)
                   << std::dec << std::endl;
-        m_FEEBclkMap.erase(bcliter.first);
+        toerase.insert(bcliter.first);
       }
     }
+  }
+  for(auto iter : toerase)
+  {
+    m_FEEBclkMap.erase(iter);
   }
   return false;
 }

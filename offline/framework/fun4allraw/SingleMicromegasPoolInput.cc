@@ -403,7 +403,7 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
   {
     return true;
   }
-
+  std::set<int> toerase;
   uint64_t lowest_bclk = m_MicromegasRawHitMap.begin()->first + m_BcoRange;
   for (auto bcliter : m_FEEBclkMap)
   {
@@ -426,9 +426,13 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_MicromegasRawHitMap.begin()->first)
                   << std::dec << std::endl;
-        m_FEEBclkMap.erase(bcliter.first);
+        toerase.insert(bcliter.first);
       }
     }
+  }
+  for(auto& fee: toerase)
+  {
+    m_FEEBclkMap.erase(fee);
   }
 
   return false;
