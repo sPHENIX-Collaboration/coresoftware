@@ -22,9 +22,9 @@ namespace PHG4MvtxDefs
   };
 
   static const double mvtxdat[kNLayers][kNPar] = {
-      {24.61, 25.23, 27.93, 9., 0.285, 12.},  // for each layer: rMin, rMid, rMax, NChip/Stave, phi0, nStaves
-      {31.98, 33.36, 36.25, 9., 0.199, 16.},
-      {39.93, 41.48, 44.26, 9., 0.166, 20.}};
+      {24.610, 25.230, 27.930, 9., 0.2382, 12.},  // for each layer: rMin, rMid, rMax, NChip/Stave, phi0, nStaves
+      {31.995, 33.360, 36.258, 9., 0.1937, 16.},
+      {39.930, 41.480, 44.260, 9., 0.1481, 20.}};
 
   static const int GLOBAL = -1;
   static const int ALPIDE_SEGMENTATION = -2;
