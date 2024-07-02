@@ -43,7 +43,7 @@ class JetKinematicCheck : public SubsysReco
   }
 
   // set histogram tag
-  void setHistTag(const std::string tag)
+  void setHistTag(const std::string &tag)
   {
     m_histTag = tag;
   }

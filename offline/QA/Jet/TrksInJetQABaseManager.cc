@@ -137,12 +137,11 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
       sHistName += "_";
       sHistName += suffix;
 
-      //const std::string sDoubleUnderscore("__");
+      // const std::string sDoubleUnderscore("__");
       std::regex_replace(
-        sHistName,
-        std::regex("__"),
-        "_"
-      );
+          sHistName,
+          std::regex("__"),
+          "_");
 
       // create histogram
       m_vecHist2D.at(iType).push_back(

@@ -63,12 +63,14 @@ int JetSeedCount::InitRun(PHCompositeNode * /*topNode*/)
 //____________________________________________________________________________..
 int JetSeedCount::process_event(PHCompositeNode *topNode)
 {
-
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
     bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
-    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
+    if (!hasTrigger)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
   // std::cout << "JetSeedCount::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
@@ -191,34 +193,33 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
     PHTFileServer::get().cd(m_outputFileName);
   }
 
-    // make sure module name is lower case
-    std::string smallModuleName = m_moduleName;
-    std::transform(
+  // make sure module name is lower case
+  std::string smallModuleName = m_moduleName;
+  std::transform(
       smallModuleName.begin(),
       smallModuleName.end(),
       smallModuleName.begin(),
-      ::tolower
-    );
+      ::tolower);
 
   // construct histogram names
   std::vector<std::string> vecHistNames = {
-    "rawseedcount",
-    "rawpt",
-    "rawptall",
-    "rawetavsphi",
-    "subseedcount",
-    "subpt",
-    "subptall",
-    "subetavsphi",
-    "rawseedenergyvscent",
-    "subseedenergyvscent",
-    "centmbd",
-    "rawseedvscent",
-    "subseedvscent"
-  };
-  for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
-    vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
-    vecHistNames[iHistName].append("_" + m_histTag);
+      "rawseedcount",
+      "rawpt",
+      "rawptall",
+      "rawetavsphi",
+      "subseedcount",
+      "subpt",
+      "subptall",
+      "subetavsphi",
+      "rawseedenergyvscent",
+      "subseedenergyvscent",
+      "centmbd",
+      "rawseedvscent",
+      "subseedvscent"};
+  for (auto &vecHistName : vecHistNames)
+  {
+    vecHistName.insert(0, "h_" + smallModuleName + "_");
+    vecHistName.append("_" + m_histTag);
   }
 
   TH1 *hRawSeedCount = new TH1F(vecHistNames[0].data(), "Raw Seed Count per Event", 100, 0.00, 50.00);
