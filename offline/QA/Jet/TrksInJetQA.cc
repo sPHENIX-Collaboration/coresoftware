@@ -16,10 +16,8 @@
 
 TrksInJetQA::TrksInJetQA(const std::string& name)
   : SubsysReco(name)
+  , m_moduleName(name)
 {
-
-  m_moduleName = name;
-
 }  // end ctor
 
 TrksInJetQA::~TrksInJetQA()
@@ -32,12 +30,8 @@ TrksInJetQA::~TrksInJetQA()
 
   // clean up any dangling pointers
   //   - FIXME use smart pointers instead!
-  if (m_outFile)
-  {
-    delete m_outFile;
-    m_outFile = nullptr;
-  }
-
+  // deleting null ptrs is legal, setting it to null is not needed in the dtor
+  delete m_outFile;
 }  // end dtor
 
 // public methods -------------------------------------------------------------
@@ -96,7 +90,10 @@ int TrksInJetQA::process_event(PHCompositeNode* topNode)
   if (m_doTrgSelect)
   {
     bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
-    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
+    if (!hasTrigger)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
   // run submodules
@@ -194,11 +191,10 @@ void TrksInJetQA::InitHistograms()
   // make sure module name is lower case
   std::string smallModuleName = m_moduleName;
   std::transform(
-    smallModuleName.begin(),
-    smallModuleName.end(),
-    smallModuleName.begin(),
-    ::tolower
-  );
+      smallModuleName.begin(),
+      smallModuleName.end(),
+      smallModuleName.begin(),
+      ::tolower);
 
   // histograms are always prefixed by the module name
   std::string prefix = "h_";
