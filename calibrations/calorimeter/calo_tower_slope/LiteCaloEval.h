@@ -108,6 +108,12 @@ class LiteCaloEval : public SubsysReco
 
   void fit_info();
 
+  void set_reqMinBias(bool status)
+  {
+    reqMinBias = status;
+    return;
+  }
+
  private:
   TFile *cal_output{nullptr};
 
@@ -139,6 +145,8 @@ class LiteCaloEval : public SubsysReco
   std::string _caloname;
   std::string _filename;
   std::string _inputnodename;
+
+  bool reqMinBias = true;
 
   int mode = 0;
 
