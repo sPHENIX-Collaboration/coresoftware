@@ -94,9 +94,9 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   }
   if (!calibdir.empty())
   {
+     m_cdbttree_chi2 = new CDBTTree(calibdir);
     if (Verbosity() > 0)
     {
-       m_cdbttree_chi2 = new CDBTTree(calibdir);
        std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_chi2 << "  Doing isHot for frac bad chi2" << std::endl;
     }
   }
