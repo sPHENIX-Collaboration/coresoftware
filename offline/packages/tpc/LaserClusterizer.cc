@@ -97,9 +97,10 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   {
     m_debugFile = new TFile(m_debugFileName.c_str(), "RECREATE");
   }
-
-  m_itHist_0 = new TH1I("m_itHist_0", "side 0;it", 360, -0.5, 359.5);
-  m_itHist_1 = new TH1I("m_itHist_1", "side 1;it", 360, -0.5, 359.5);
+float timeHistMax=m_time_samples_max;
+timeHistMax-=0.5;
+  m_itHist_0 = new TH1I("m_itHist_0", "side 0;it", m_time_samples_max, -0.5, timeHistMax);
+  m_itHist_1 = new TH1I("m_itHist_1", "side 1;it", m_time_samples_max, -0.5, timeHistMax);
 
   if (m_debug)
   {
