@@ -89,12 +89,16 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
     exit(-1);
   }
 
-  // Calling Centrality Info
-  CentralityInfo *cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
-  if (!cent_node)
+  // If not in pp mode, call Centrality Info
+  CentralityInfo* cent_node = nullptr;
+  if (!m_inPPMode)
   {
-    std::cout << "JetSeedCount::process_event - Error can not find CentralityInfo" << std::endl;
-    exit(-1);
+    cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+    if (!cent_node)
+    {
+      std::cout << "JetSeedCount::process_event - Error can not find CentralityInfo" << std::endl;
+      exit(-1);
+    }
   }
 
   // Z vertex info
@@ -117,9 +121,13 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   GlobalVertex *vtx = vertexmap->begin()->second;
   z_vtx = vtx->get_z();
 
-  // Saving Centrailty info
-  float cent_mbd = cent_node->get_centile(CentralityInfo::PROP::bimp);
-  m_centrality.push_back(cent_mbd);
+  // If not in pp mode, save centrailty info
+  float cent_mbd = std::numeric_limits<float>::max();
+  if (!m_inPPMode)
+  {
+    cent_mbd = cent_node->get_centile(CentralityInfo::PROP::bimp);
+    m_centrality.push_back(cent_mbd);
+  }
 
   // Raw Seed Count
   m_seed_raw = 0;
@@ -137,7 +145,10 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
       m_rawenergy.push_back(jet->get_e());
       m_RawEta.push_back(jet->get_eta());
       m_RawPhi.push_back(jet->get_phi());
-      m_rawcent.push_back(cent_mbd);
+      if (!m_inPPMode)
+      {
+        m_rawcent.push_back(cent_mbd);
+      }
       m_seed_raw++;
     }
   }
@@ -160,7 +171,10 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
       m_subenergy.push_back(jet->get_e());
       m_SubEta.push_back(jet->get_eta());
       m_SubPhi.push_back(jet->get_phi());
-      m_subcent.push_back(cent_mbd);
+      if (!m_inPPMode)
+      {
+        m_subcent.push_back(cent_mbd);
+      }
       m_seed_sub++;
     }
   }
@@ -214,6 +228,7 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   {
     hRawSeedCount->Fill(m_raw_count);
   }
+  m_manager->registerHisto(hRawSeedCount);
 
   TH1 *hRawPt = new TH1F(vecHistNames[1].data(), "Raw p_{T}", 1000, 0.00, 50.00);
   hRawPt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
@@ -222,6 +237,7 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   {
     hRawPt->Fill(j);
   }
+  m_manager->registerHisto(hRawPt);
 
   TH1 *hRawPt_All = new TH1F(vecHistNames[2].data(), "Raw p_{T} (all jet seeds)", 1000, 0.00, 50.00);
   hRawPt_All->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
@@ -230,6 +246,7 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   {
     hRawPt_All->Fill(j);
   }
+  m_manager->registerHisto(hRawPt_All);
 
   TH2 *hRawEtaVsPhi = new TH2F(vecHistNames[3].data(), "Raw Seed Eta Vs Phi", 220, -1.1, 1.1, 628, -3.14, 3.14);
   hRawEtaVsPhi->GetXaxis()->SetTitle("Jet #eta [Rads.]");
@@ -238,6 +255,7 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   {
     hRawEtaVsPhi->Fill(m_RawEta.at(j), m_RawPhi.at(j));
   }
+  m_manager->registerHisto(hRawEtaVsPhi);
 
   TH1 *hSubSeedCount = new TH1F(vecHistNames[4].data(), "Sub Seed Count per Event", 100, 0.00, 50.00);
   hSubSeedCount->GetXaxis()->SetTitle("Sub Seed Count per Event");
@@ -246,6 +264,7 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   {
     hSubSeedCount->Fill(m_sub_count);
   }
+  m_manager->registerHisto(hSubSeedCount);
 
   TH1 *hSubPt = new TH1F(vecHistNames[5].data(), "Sub. p_{T}", 1000, 0.00, 50.00);
   hSubPt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
@@ -254,14 +273,16 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   {
     hSubPt->Fill(j);
   }
+  m_manager->registerHisto(hSubPt);
 
   TH1 *hSubPt_All = new TH1F(vecHistNames[6].data(), "Sub. p_{T} (all jet seeds)", 1000, 0.00, 50.00);
   hSubPt_All->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
   hSubPt_All->GetYaxis()->SetTitle("Number of Entries");
   for (double j : m_subpt_all)
   {
-    hSubPt->Fill(j);
+    hSubPt_All->Fill(j);
   }
+  m_manager->registerHisto(hSubPt_All);
 
   TH2 *hSubEtaVsPhi = new TH2F(vecHistNames[7].data(), "Sub. Seed Eta Vs Phi", 220, -1.1, 1.1, 628, -3.14, 3.14);
   hSubEtaVsPhi->GetXaxis()->SetTitle("Jet #eta [Rads.]");
@@ -270,61 +291,56 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   {
     hSubEtaVsPhi->Fill(m_SubEta.at(j), m_SubPhi.at(j));
   }
-
-  TH2 *hRawSeedEnergyVsCent = new TH2F(vecHistNames[8].data(), "Raw Seed Energy Vs Centrality", 10.00, 0.00, 100.00, 100, 0.00, 50.00);
-  hRawSeedEnergyVsCent->GetXaxis()->SetTitle("Centrality");
-  hRawSeedEnergyVsCent->GetYaxis()->SetTitle("RawSeedEnergy");
-  for (int j = 0; j < (int) m_rawenergy.size(); j++)
-  {
-    hRawSeedEnergyVsCent->Fill(m_rawcent.at(j), m_rawenergy.at(j));
-  }
-
-  TH2 *hSubSeedEnergyVsCent = new TH2F(vecHistNames[9].data(), "Sub Seed Energy Vs Centrality", 10.00, 0.00, 100.00, 100, 0.00, 50.00);
-  hSubSeedEnergyVsCent->GetXaxis()->SetTitle("Centrality");
-  hSubSeedEnergyVsCent->GetYaxis()->SetTitle("SubSeedEnergy");
-  for (int j = 0; j < (int) m_subenergy.size(); j++)
-  {
-    hSubSeedEnergyVsCent->Fill(m_subcent.at(j), m_subenergy.at(j));
-  }
-
-  TH1 *hCentMbd = new TH1F(vecHistNames[10].data(), "hCentMbd", 10, 0.00, 100.00);
-  hCentMbd->GetXaxis()->SetTitle("Centrality (Mbd)");
-  hCentMbd->GetYaxis()->SetTitle("Number of Entries");
-  for (int j : m_centrality)
-  {
-    hCentMbd->Fill(j);
-  }
-
-  TH2 *hRawSeedVsCent = new TH2F(vecHistNames[10].data(), "Raw Seed Vs Centrality", 10, 0.00, 100.00, 101, -0.5, 100.5);
-  hRawSeedVsCent->GetXaxis()->SetTitle("Centrality");
-  hRawSeedVsCent->GetYaxis()->SetTitle("Raw Seed Count");
-  for (int j = 0; j < (int) m_raw_counts.size(); j++)
-  {
-    hRawSeedVsCent->Fill(m_centrality.at(j), m_raw_counts.at(j));
-  }
-
-  TH2 *hSubSeedVsCent = new TH2F(vecHistNames[12].data(), "Sub Seed Vs Centrality", 10, 0.00, 100.00, 101, -0.5, 100.5);
-  hSubSeedVsCent->GetXaxis()->SetTitle("Centrality");
-  hSubSeedVsCent->GetYaxis()->SetTitle("Sub Seed Count");
-  for (int j = 0; j < (int) m_sub_counts.size(); j++)
-  {
-    hSubSeedVsCent->Fill(m_centrality.at(j), m_sub_counts.at(j));
-  }
-
-  m_manager->registerHisto(hRawPt);
-  m_manager->registerHisto(hSubPt);
-  m_manager->registerHisto(hRawPt_All);
-  m_manager->registerHisto(hSubPt_All);
-  m_manager->registerHisto(hRawEtaVsPhi);
   m_manager->registerHisto(hSubEtaVsPhi);
-  m_manager->registerHisto(hRawSeedCount);
-  m_manager->registerHisto(hSubSeedCount);
-  m_manager->registerHisto(hRawSeedEnergyVsCent);
-  m_manager->registerHisto(hSubSeedEnergyVsCent);
-  m_manager->registerHisto(hCentMbd);
-  m_manager->registerHisto(hRawSeedVsCent);
-  m_manager->registerHisto(hSubSeedVsCent);
 
+  // If not in pp mode, plot quantities vs. centrality
+  if (!m_inPPMode)
+  {
+    TH2 *hRawSeedEnergyVsCent = new TH2F(vecHistNames[8].data(), "Raw Seed Energy Vs Centrality", 10.00, 0.00, 100.00, 100, 0.00, 50.00);
+    hRawSeedEnergyVsCent->GetXaxis()->SetTitle("Centrality");
+    hRawSeedEnergyVsCent->GetYaxis()->SetTitle("RawSeedEnergy");
+    for (int j = 0; j < (int) m_rawenergy.size(); j++)
+    {
+      hRawSeedEnergyVsCent->Fill(m_rawcent.at(j), m_rawenergy.at(j));
+    }
+    m_manager->registerHisto(hRawSeedEnergyVsCent);
+
+    TH2 *hSubSeedEnergyVsCent = new TH2F(vecHistNames[9].data(), "Sub Seed Energy Vs Centrality", 10.00, 0.00, 100.00, 100, 0.00, 50.00);
+    hSubSeedEnergyVsCent->GetXaxis()->SetTitle("Centrality");
+    hSubSeedEnergyVsCent->GetYaxis()->SetTitle("SubSeedEnergy");
+    for (int j = 0; j < (int) m_subenergy.size(); j++)
+    {
+      hSubSeedEnergyVsCent->Fill(m_subcent.at(j), m_subenergy.at(j));
+    }
+    m_manager->registerHisto(hSubSeedEnergyVsCent);
+
+    TH1 *hCentMbd = new TH1F(vecHistNames[10].data(), "hCentMbd", 10, 0.00, 100.00);
+    hCentMbd->GetXaxis()->SetTitle("Centrality (Mbd)");
+    hCentMbd->GetYaxis()->SetTitle("Number of Entries");
+    for (int j : m_centrality)
+    {
+      hCentMbd->Fill(j);
+    }
+    m_manager->registerHisto(hCentMbd);
+
+    TH2 *hRawSeedVsCent = new TH2F(vecHistNames[10].data(), "Raw Seed Vs Centrality", 10, 0.00, 100.00, 101, -0.5, 100.5);
+    hRawSeedVsCent->GetXaxis()->SetTitle("Centrality");
+    hRawSeedVsCent->GetYaxis()->SetTitle("Raw Seed Count");
+    for (int j = 0; j < (int) m_raw_counts.size(); j++)
+    {
+      hRawSeedVsCent->Fill(m_centrality.at(j), m_raw_counts.at(j));
+    }
+    m_manager->registerHisto(hRawSeedVsCent);
+
+    TH2 *hSubSeedVsCent = new TH2F(vecHistNames[12].data(), "Sub Seed Vs Centrality", 10, 0.00, 100.00, 101, -0.5, 100.5);
+    hSubSeedVsCent->GetXaxis()->SetTitle("Centrality");
+    hSubSeedVsCent->GetYaxis()->SetTitle("Sub Seed Count");
+    for (int j = 0; j < (int) m_sub_counts.size(); j++)
+    {
+      hSubSeedVsCent->Fill(m_centrality.at(j), m_sub_counts.at(j));
+    }
+    m_manager->registerHisto(hSubSeedVsCent);
+  }  // end if not in pp mode
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
