@@ -105,6 +105,13 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
 
     for (int i = 0; i < npackets; i++)
     {
+      int packet_id = plist[i]->getIdentifier();
+      // The call to  EventNumberOffset(identifier) will initialize it to our default (zero) if it wasn't set already
+      // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
+      // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
+      // and only when the pool gets refilled, this correction kicks in
+      // SO DO NOT BE CONFUSED when printing this out - seeing different events where this kicks in
+      int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
         plist[i]->identify();
@@ -116,8 +123,8 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
       uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
       // offline packet content
-      newhit->setEvtSequence(EventSequence);
-      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setEvtSequence(CorrectedEventSequence);
+      newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
@@ -152,16 +159,17 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
       //       newhit->dump();
       if (Verbosity() > 2)
       {
-        std::cout << PHWHERE << "evtno: " << EventSequence
+        std::cout << PHWHERE << "corrected evtno: " << CorrectedEventSequence
+                  << ", original evtno: " << EventSequence
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
       if (TriggerInputManager())
       {
-        TriggerInputManager()->AddLL1Packet(EventSequence, newhit);
+        TriggerInputManager()->AddLL1Packet(CorrectedEventSequence, newhit);
       }
-      m_PacketMap[EventSequence].push_back(newhit);
-      m_EventStack.insert(EventSequence);
+      m_PacketMap[CorrectedEventSequence].push_back(newhit);
+      m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
         ddumppacket(plist[i]);
@@ -234,22 +242,27 @@ bool SingleLL1TriggerInput::GetSomeMoreEvents(const unsigned int keep)
   {
     return true;
   }
-
-  int first_event = m_PacketMap.begin()->first;
-  int last_event = m_PacketMap.rbegin()->first;
-  if (Verbosity() > 1)
+  if (m_PacketMap.size() < 2)  // at least 2 events in pool
   {
-    std::cout << PHWHERE << "first event: " << first_event
-              << " last event: " << last_event
-              << std::endl;
+    return true;
   }
-  if (keep > 2 && m_PacketMap.size() < keep)
+
+  unsigned int first_event = m_PacketMap.begin()->first;
+  unsigned int last_event = m_PacketMap.rbegin()->first;
+  if (keep > 2 && (last_event - first_event) < keep)
   {
     return true;
   }
   if (first_event >= last_event)
   {
     return true;
+  }
+  if (Verbosity() > 21)
+  {
+    std::cout << PHWHERE << Name() << ": first event: " << first_event
+              << " last event: " << last_event << " size: " << m_PacketMap.size()
+              << ", keep: " << keep
+              << std::endl;
   }
   return false;
 }

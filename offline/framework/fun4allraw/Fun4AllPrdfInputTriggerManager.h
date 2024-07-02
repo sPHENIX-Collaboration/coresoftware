@@ -105,6 +105,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   };
   int FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name = "NONE");
   int ShiftEvents(std::map<int, CaloPacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name = "NONE");
+  int AdjustBcoDiff(std::map<int, CaloPacketInfo> &PacketInfoMap, int packetid, uint64_t bcodiff);
 
   struct LL1PacketInfo
   {
@@ -114,6 +115,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   };
   int FillNeedleLL1(std::map<int, LL1PacketInfo>::iterator begin, std::map<int, LL1PacketInfo>::iterator end, const std::string &name = "NONE");
   int ShiftEventsLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name = "NONE");
+  int AdjustBcoDiffLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, int packetid, uint64_t bcodiff);
 
   int m_RunNumber{0};
   int m_RefEventNo{std::numeric_limits<int>::min()};

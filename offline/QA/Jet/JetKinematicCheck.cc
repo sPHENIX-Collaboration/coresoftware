@@ -12,6 +12,7 @@
 #include <jetbase/Jetv2.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -19,14 +20,22 @@
 #include <boost/format.hpp>
 //____________________________________________________________________________..
 
-JetKinematicCheck::JetKinematicCheck(const std::string &recojetnameR02, const std::string &recojetnameR03, const std::string &recojetnameR04)
-  : SubsysReco("JetKinematicCheck")
+JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
+                                     const std::string &recojetnameR02,
+                                     const std::string &recojetnameR03,
+                                     const std::string &recojetnameR04,
+                                     const std::string &recojetnameR05)
+  : SubsysReco(moduleName)
+  , m_moduleName(moduleName)
   , m_recoJetNameR02(recojetnameR02)
   , m_recoJetNameR03(recojetnameR03)
   , m_recoJetNameR04(recojetnameR04)
+  , m_recoJetNameR05(recojetnameR05)
+  , m_histTag("AllTrig")
   , m_etaRange(-1.1, 1.1)
   , m_ptRange(10, 100)
-
+  , m_doTrgSelect(false)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
 {
   if (Verbosity() > 1)
   {
@@ -49,76 +58,139 @@ int JetKinematicCheck::Init(PHCompositeNode * /*unused*/)
   hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  // make sure module name is lower case
+  std::string smallModuleName = m_moduleName;
+  std::transform(
+      smallModuleName.begin(),
+      smallModuleName.end(),
+      smallModuleName.begin(),
+      ::tolower);
+
+  // construct histogram names
+  std::vector<std::string> vecHistNames = {
+      "spectra_r02",
+      "spectra_r03",
+      "spectra_r04",
+      "spectra_r05",
+      "etavsphi_r02",
+      "etavsphi_r03",
+      "etavsphi_r04",
+      "etavsphi_r05",
+      "jetmassvspt_r02",
+      "jetmassvspt_r03",
+      "jetmassvspt_r04",
+      "jetmassvspt_r05",
+      "jetmassvseta_r02",
+      "jetmassvseta_r03",
+      "jetmassvseta_r04",
+      "jetmassvseta_r05",
+      "jetmassvsptprofile_r02",
+      "jetmassvsptprofile_r03",
+      "jetmassvsptprofile_r04",
+      "jetmassvsptprofile_r05",
+      "jetmassvsetaprofile_r02",
+      "jetmassvsetaprofile_r03",
+      "jetmassvsetaprofile_r04",
+      "jetmassvsetaprofile_r05"};
+  for (auto &vecHistName : vecHistNames)
+  {
+    vecHistName.insert(0, "h_" + smallModuleName + "_");
+    vecHistName.append("_" + m_histTag);
+  }
+
   // initialize histograms
 
-  jet_spectra_r02 = new TH1D("h_spectra_r02", "", 19, 5, 100);
+  jet_spectra_r02 = new TH1D(vecHistNames[0].data(), "", 19, 5, 100);
   jet_spectra_r02->GetXaxis()->SetTitle("p_{T} [GeV/c]");
 
-  jet_spectra_r03 = new TH1D("h_spectra_r03", "", 19, 5, 100);
+  jet_spectra_r03 = new TH1D(vecHistNames[1].data(), "", 19, 5, 100);
   jet_spectra_r03->GetXaxis()->SetTitle("p_{T} [GeV/c]");
 
-  jet_spectra_r04 = new TH1D("h_spectra_r04", "", 19, 5, 100);
+  jet_spectra_r04 = new TH1D(vecHistNames[2].data(), "", 19, 5, 100);
   jet_spectra_r04->GetXaxis()->SetTitle("p_{T} [GeV/c]");
 
-  jet_eta_phi_r02 = new TH2D("h_eta_phi_r02", "", 24, -1.1, 1.1, 64, -M_PI, M_PI);
+  jet_spectra_r05 = new TH1D(vecHistNames[3].data(), "", 19, 5, 100);
+  jet_spectra_r05->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+
+  jet_eta_phi_r02 = new TH2D(vecHistNames[4].data(), "", 24, -1.1, 1.1, 64, -M_PI, M_PI);
   jet_eta_phi_r02->GetXaxis()->SetTitle("#eta");
   jet_eta_phi_r02->GetYaxis()->SetTitle("#Phi");
 
-  jet_eta_phi_r03 = new TH2D("h_eta_phi_r03", "", 24, -1.1, 1.1, 64, -M_PI, M_PI);
+  jet_eta_phi_r03 = new TH2D(vecHistNames[5].data(), "", 24, -1.1, 1.1, 64, -M_PI, M_PI);
   jet_eta_phi_r03->GetXaxis()->SetTitle("#eta");
   jet_eta_phi_r03->GetYaxis()->SetTitle("#Phi");
 
-  jet_eta_phi_r04 = new TH2D("h_eta_phi_r04", "", 24, -1.1, 1.1, 64, -M_PI, M_PI);
+  jet_eta_phi_r04 = new TH2D(vecHistNames[6].data(), "", 24, -1.1, 1.1, 64, -M_PI, M_PI);
   jet_eta_phi_r04->GetXaxis()->SetTitle("#eta");
   jet_eta_phi_r04->GetYaxis()->SetTitle("#Phi");
 
-  jet_mass_pt_r02 = new TH2D("h_jet_mass_pt_r02", "", 19, 5, 100, 15, 0, 15);
+  jet_eta_phi_r05 = new TH2D(vecHistNames[7].data(), "", 24, -1.1, 1.1, 64, -M_PI, M_PI);
+  jet_eta_phi_r05->GetXaxis()->SetTitle("#eta");
+  jet_eta_phi_r05->GetYaxis()->SetTitle("#Phi");
+
+  jet_mass_pt_r02 = new TH2D(vecHistNames[8].data(), "", 19, 5, 100, 15, 0, 15);
   jet_mass_pt_r02->GetXaxis()->SetTitle("p_{T} [GeV/c]");
   jet_mass_pt_r02->GetYaxis()->SetTitle("Jet Mass [GeV/c^{2}]");
 
-  jet_mass_pt_r03 = new TH2D("h_jet_mass_pt_r03", "", 19, 5, 100, 15, 0, 15);
+  jet_mass_pt_r03 = new TH2D(vecHistNames[9].data(), "", 19, 5, 100, 15, 0, 15);
   jet_mass_pt_r03->GetXaxis()->SetTitle("p_{T} [GeV/c]");
   jet_mass_pt_r03->GetYaxis()->SetTitle("Jet Mass [GeV/c^{2}]");
 
-  jet_mass_pt_r04 = new TH2D("h_jet_mass_pt_r04", "", 19, 5, 100, 15, 0, 15);
+  jet_mass_pt_r04 = new TH2D(vecHistNames[10].data(), "", 19, 5, 100, 15, 0, 15);
   jet_mass_pt_r04->GetXaxis()->SetTitle("p_{T} [GeV/c]");
   jet_mass_pt_r04->GetYaxis()->SetTitle("Jet Mass [GeV/c^{2}]");
 
-  jet_mass_eta_r02 = new TH2D("h_jet_mass_eta_r02", "", 24, -1.1, 1.1, 15, 0, 15);
+  jet_mass_pt_r05 = new TH2D(vecHistNames[11].data(), "", 19, 5, 100, 15, 0, 15);
+  jet_mass_pt_r05->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+  jet_mass_pt_r05->GetYaxis()->SetTitle("Jet Mass [GeV/c^{2}]");
+
+  jet_mass_eta_r02 = new TH2D(vecHistNames[12].data(), "", 24, -1.1, 1.1, 15, 0, 15);
   jet_mass_eta_r02->GetXaxis()->SetTitle("#eta");
   jet_mass_eta_r02->GetYaxis()->SetTitle("Jet Mass [GeV/c^{2}]");
 
-  jet_mass_eta_r03 = new TH2D("h_jet_mass_eta_r03", "", 24, -1.1, 1.1, 15, 0, 15);
+  jet_mass_eta_r03 = new TH2D(vecHistNames[13].data(), "", 24, -1.1, 1.1, 15, 0, 15);
   jet_mass_eta_r03->GetXaxis()->SetTitle("#eta");
   jet_mass_eta_r03->GetYaxis()->SetTitle("Jet Mass [GeV/c^{2}]");
 
-  jet_mass_eta_r04 = new TH2D("h_jet_mass_eta_r04", "", 24, -1.1, 1.1, 15, 0, 15);
+  jet_mass_eta_r04 = new TH2D(vecHistNames[14].data(), "", 24, -1.1, 1.1, 15, 0, 15);
   jet_mass_eta_r04->GetXaxis()->SetTitle("#eta");
   jet_mass_eta_r04->GetYaxis()->SetTitle("Jet Mass [GeV/c^{2}]");
 
-  jet_mass_pt_1D_r02 = new TH1D("h_jet_mass_pt_1D_r02", "", 19, 5, 100);
+  jet_mass_eta_r05 = new TH2D(vecHistNames[15].data(), "", 24, -1.1, 1.1, 15, 0, 15);
+  jet_mass_eta_r05->GetXaxis()->SetTitle("#eta");
+  jet_mass_eta_r05->GetYaxis()->SetTitle("Jet Mass [GeV/c^{2}]");
+
+  jet_mass_pt_1D_r02 = new TH1D(vecHistNames[16].data(), "", 19, 5, 100);
   jet_mass_pt_1D_r02->GetXaxis()->SetTitle("p_{T} [GeV/c]");
   jet_mass_pt_1D_r02->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
 
-  jet_mass_pt_1D_r03 = new TH1D("h_jet_mass_pt_1D_r03", "", 19, 5, 100);
+  jet_mass_pt_1D_r03 = new TH1D(vecHistNames[17].data(), "", 19, 5, 100);
   jet_mass_pt_1D_r03->GetXaxis()->SetTitle("p_{T} [GeV/c]");
   jet_mass_pt_1D_r03->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
 
-  jet_mass_pt_1D_r04 = new TH1D("h_jet_mass_pt_1D_r04", "", 19, 5, 100);
+  jet_mass_pt_1D_r04 = new TH1D(vecHistNames[18].data(), "", 19, 5, 100);
   jet_mass_pt_1D_r04->GetXaxis()->SetTitle("p_{T} [GeV/c]");
   jet_mass_pt_1D_r04->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
 
-  jet_mass_eta_1D_r02 = new TH2D("h_jet_mass_eta_1D_r02", "", 24, -1.1, 1.1, 15, 0, 15);
+  jet_mass_pt_1D_r05 = new TH1D(vecHistNames[19].data(), "", 19, 5, 100);
+  jet_mass_pt_1D_r05->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+  jet_mass_pt_1D_r05->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
+
+  jet_mass_eta_1D_r02 = new TH2D(vecHistNames[20].data(), "", 24, -1.1, 1.1, 15, 0, 15);
   jet_mass_eta_1D_r02->GetXaxis()->SetTitle("#eta");
   jet_mass_eta_1D_r02->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
 
-  jet_mass_eta_1D_r03 = new TH2D("h_jet_mass_eta_1D_r03", "", 24, -1.1, 1.1, 15, 0, 15);
+  jet_mass_eta_1D_r03 = new TH2D(vecHistNames[21].data(), "", 24, -1.1, 1.1, 15, 0, 15);
   jet_mass_eta_1D_r03->GetXaxis()->SetTitle("#eta");
   jet_mass_eta_1D_r03->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
 
-  jet_mass_eta_1D_r04 = new TH2D("h_jet_mass_eta_1D_r04", "", 24, -1.1, 1.1, 15, 0, 15);
+  jet_mass_eta_1D_r04 = new TH2D(vecHistNames[22].data(), "", 24, -1.1, 1.1, 15, 0, 15);
   jet_mass_eta_1D_r04->GetXaxis()->SetTitle("#eta");
   jet_mass_eta_1D_r04->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
+
+  jet_mass_eta_1D_r05 = new TH2D(vecHistNames[23].data(), "", 24, -1.1, 1.1, 15, 0, 15);
+  jet_mass_eta_1D_r05->GetXaxis()->SetTitle("#eta");
+  jet_mass_eta_1D_r05->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
 
   if (Verbosity() > 1)
   {
@@ -140,6 +212,16 @@ int JetKinematicCheck::InitRun(PHCompositeNode * /*unused*/)
 //____________________________________________________________________________..
 int JetKinematicCheck::process_event(PHCompositeNode *topNode)
 {
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+  }
+
   std::vector<std::string> m_recoJetName_array = {m_recoJetNameR02, m_recoJetNameR03, m_recoJetNameR04};
   m_radii = {0.2, 0.3, 0.4};
   int n_radii = m_radii.size();
@@ -153,7 +235,7 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
     if (!jets)
     {
       std::cout
-          << "MyJetAnalysis::process_event - Error can not find DST Reco JetContainer node "
+          << "JetKinematicCheck::process_event - Error can not find DST Reco JetContainer node "
           << recoJetName << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
@@ -228,8 +310,8 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg1->SetFillStyle(0);
   leg1->SetBorderSize(0);
   leg1->SetTextSize(0.06);
-  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]")% m_ptRange.first% m_ptRange.second).c_str(),"");
-  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%")% m_etaRange.first % m_etaRange.second).c_str(), "");
+  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_spectra_r02->SetMarkerStyle(8);
   jet_spectra_r02->SetMarkerColor(1);
   jet_spectra_r02->SetLineColor(1);
@@ -258,7 +340,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg3->SetFillStyle(0);
   leg3->SetBorderSize(0);
   leg3->SetTextSize(0.06);
-  leg3->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]")%  m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg3->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
   leg3->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_spectra_r04->SetMarkerStyle(8);
   jet_spectra_r04->SetMarkerColor(1);
@@ -296,7 +378,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg6->SetBorderSize(0);
   leg6->SetTextSize(0.06);
   leg6->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg6->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first %  m_etaRange.second).c_str(), "");
+  leg6->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_eta_phi_r04->SetStats(false);
   jet_eta_phi_r04->SetTitle("Jet Eta-Phi [R = 0.4]");
   jet_eta_phi_r04->GetListOfFunctions()->Add(leg6);
@@ -362,7 +444,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg11->SetFillStyle(0);
   leg11->SetBorderSize(0);
   leg11->SetTextSize(0.06);
-  leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first%  m_ptRange.second).c_str(), "");
+  leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
   leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_pt_r04->SetStats(false);
   jet_mass_pt_r04->SetTitle("Jet Mass vs p_{T} [R = 0.4]");
@@ -430,7 +512,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg16->SetBorderSize(0);
   leg16->SetTextSize(0.06);
   leg16->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg16->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first %  m_etaRange.second).c_str(), "");
+  leg16->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_eta_1D_r03 = (TH1D *) jet_mass_eta_r03->ProfileX();
   jet_mass_eta_1D_r03->SetStats(false);
   jet_mass_eta_1D_r03->SetTitle("Average Jet Mass vs #eta [R = 0.3]");
