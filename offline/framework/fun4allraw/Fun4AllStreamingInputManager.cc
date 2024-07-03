@@ -828,6 +828,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     {
       h_tagBcoFelixAllFees_mvtx[p]->Fill(refbcobitshift);
     }
+    (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearFeeGTML1BCOMap();
     bool thispacket = false;
     for (auto &gtmbco : gtml1bcoset)
     {
@@ -844,6 +845,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       {
         allpackets = false;
       }
+      (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearGtmL1BcoSet();
   }
   if(allpackets)
   {

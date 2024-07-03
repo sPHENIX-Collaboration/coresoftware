@@ -39,6 +39,14 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   std::set<int> &getFeeIdSet(const uint64_t &bco) { return m_BeamClockFEE[bco]; };
   std::set<uint64_t>& getGtmL1BcoSet() { return m_gtmL1BcoSetRef; }
   const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
+  void clearGtmL1BcoSet() { m_gtmL1BcoSetRef.clear(); }
+  void clearFeeGTML1BCOMap() { 
+    for(auto& [key, set] : m_FeeGTML1BCOMap)
+    {
+      set.clear();
+    }
+    m_FeeGTML1BCOMap.clear(); 
+  }
  protected:
   LinkId_t DecodeFeeid(const uint16_t &feeid)
   {
