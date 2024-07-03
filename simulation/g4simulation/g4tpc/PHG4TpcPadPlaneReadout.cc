@@ -28,6 +28,7 @@
 
 #include <TFile.h>
 #include <TH2.h>
+#include <TF1.h>
 #include <TSystem.h>
 
 #include <gsl/gsl_randist.h>
@@ -130,7 +131,68 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 		}
 	    }
 	}
-    }    
+    }  
+
+  if(m_useLangau)
+    {
+      int side, region, sector;
+      double par0; double par1; double par2; double par3;
+      std::ifstream pars_file(m_tpc_langau_pars_file);
+      if(!pars_file.is_open()) 
+	{
+	  std::cout << ".In PHG4TpcPadPlaneReadout: Option to use Langau parameters enabled, but parameter file not found. Aborting." << std::endl;
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+
+      for(int iside =0; iside < 2; ++iside)
+	{
+	  for(int isec = 0; isec < 12; ++isec)
+	    {
+	      for(int ir = 0; ir < 3; ++ir)
+		{
+		  pars_file >> side >> region >> sector >> par0 >> par1 >> par2 >> par3;
+		  flangau[side][region][sector] = new TF1(Form("flangau_%d_%d_%d",side,region,sector), [](double *x, double *par) 
+		  {
+		    Double_t invsq2pi = 0.3989422804014;
+		    Double_t mpshift  = -0.22278298;
+		    Double_t np = 100.0;
+		    Double_t sc =   5.0;
+		    Double_t xx;
+		    Double_t mpc;
+		    Double_t fland;
+		    Double_t sum = 0.0;
+		    Double_t xlow,xupp;
+		    Double_t step;
+		    Double_t i;
+		    mpc = par[1] - mpshift * par[0]; 
+		    xlow = x[0] - sc * par[3];
+		    xupp = x[0] + sc * par[3];
+		    step = (xupp-xlow) / np;
+		    for(i=1.0; i<=np/2; i++) 
+		    {
+		      xx = xlow + (i-.5) * step;
+		      fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+		      sum += fland * TMath::Gaus(x[0],xx,par[3]);
+		      
+		      xx = xupp - (i-.5) * step;
+		      fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+		      sum += fland * TMath::Gaus(x[0],xx,par[3]);
+		    }
+      
+		    return (par[2] * step * sum * invsq2pi / par[3]);
+		  }, 0, 5000, 4);
+
+
+		  flangau[side][region][sector]->SetParameters(par0,par1,par2,par3);
+		  //std::cout << " iside " << iside << " side " << side << " ir " << ir 
+		  //	    << " region " << region << " isec " << isec 
+		  //	    << " sector " << sector << " weight " << weight << std::endl;
+		}
+	    }
+	}
+    } 
+
+  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -199,6 +261,17 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(double weight)
 
   return nelec;
 }
+
+//_________________________________________________________
+double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(TF1 *f)
+{
+  double nelec = f->GetRandom(0,5000);
+  // Put gain reading here
+
+  return nelec;
+}
+
+
 
 void PHG4TpcPadPlaneReadout::MapToPadPlane(
     TpcClusterBuilder &tpc_truth_clusterer,
@@ -349,6 +422,38 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       //	<< original_nelec << " new nelec " << nelec << std::endl;
     }
 
+  if(m_useLangau)
+  {
+    double phistep = 30.0;
+    int sector = 0;
+    
+    if( (phi_gain*180.0/M_PI) >=15 && (phi_gain*180.0 / M_PI) < 345)
+    {
+      sector = 1 + (int) ( (phi_gain*180.0/M_PI - 15) / phistep);
+    } 
+    else
+    {
+      sector = 0;
+    }
+    
+    int this_region = -1;
+    for (int iregion = 0; iregion < 3; ++iregion)
+    {
+      if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion])
+      {
+	this_region = iregion;
+      }
+    }
+    if(this_region > -1) 
+    {
+      nelec = getSingleEGEMAmplification(flangau[side][this_region][sector]);
+    }
+    else 
+    {
+      nelec = getSingleEGEMAmplification();
+    }
+  }
+  
   // std::cout<<"PHG4TpcPadPlaneReadout::MapToPadPlane gain_weight = "<<gain_weight<<std::endl;
   /* pass_data.neff_electrons = nelec; */
 
