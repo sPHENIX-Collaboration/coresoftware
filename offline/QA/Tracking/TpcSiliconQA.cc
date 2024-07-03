@@ -40,27 +40,22 @@ int TpcSiliconQA::InitRun(PHCompositeNode * /*topNode*/)
 //____________________________________________________________________________..
 int TpcSiliconQA::process_event(PHCompositeNode *topNode)
 {
-  std::cout << __LINE__ << std::endl; 
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  std::cout << __LINE__ << std::endl; 
 
   auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
-  std::cout << __LINE__ << std::endl; 
   if (!silseedmap)
   {
     std::cout << "Silicon seed map not found, aborting event" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT; 
   }
   auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
-  std::cout << __LINE__ << std::endl; 
   if (!tpcseedmap)
   {
     std::cout << "TPC seed map not found, aborting event" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT; 
   }
   auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
-  std::cout << __LINE__ << std::endl; 
   if (!trackmap)
   {
     std::cout << "Track map not found, aborting event" << std::endl;
@@ -69,21 +64,15 @@ int TpcSiliconQA::process_event(PHCompositeNode *topNode)
 
   for (const auto& [key, track] : *trackmap)
   {
-  std::cout << __LINE__ << std::endl; 
     if (!track)
     {
       continue;
     }
-  std::cout << __LINE__ << std::endl; 
 
     m_crossing = (float) track->get_crossing();
-  std::cout << __LINE__ << std::endl; 
-  std::cout << m_crossing << std::endl; 
     h_crossing->Fill(m_crossing);
-  std::cout << __LINE__ << std::endl; 
 
     m_silseedx = std::numeric_limits<float>::quiet_NaN();
-  std::cout << __LINE__ << std::endl; 
     m_silseedy = std::numeric_limits<float>::quiet_NaN();
     m_silseedz = std::numeric_limits<float>::quiet_NaN();
     m_silseedphi = std::numeric_limits<float>::quiet_NaN();
@@ -94,14 +83,10 @@ int TpcSiliconQA::process_event(PHCompositeNode *topNode)
     m_tpcseedphi = std::numeric_limits<float>::quiet_NaN();
     m_tpcseedeta = std::numeric_limits<float>::quiet_NaN();
  
-  std::cout << __LINE__ << std::endl; 
     auto tpcseed = track->get_tpc_seed();
-  std::cout << __LINE__ << std::endl; 
     auto silseed = track->get_silicon_seed();
-  std::cout << __LINE__ << std::endl; 
     if (silseed && tpcseed)
     {
-  std::cout << __LINE__ << std::endl; 
       h_trackMatch->Fill(1);
       m_silseedx = silseed->get_x();
       m_silseedy = silseed->get_y();
@@ -113,19 +98,16 @@ int TpcSiliconQA::process_event(PHCompositeNode *topNode)
       m_tpcseedz = tpcseed->get_z();
       m_tpcseedphi = tpcseed->get_phi();
       m_tpcseedeta = tpcseed->get_eta();
-  std::cout << __LINE__ << std::endl; 
   
       h_phiDiff->Fill(m_tpcseedphi - m_silseedphi);
       h_etaDiff->Fill(m_tpcseedeta - m_silseedeta);
       h_xDiff->Fill(m_tpcseedx - m_silseedx);
       h_yDiff->Fill(m_tpcseedy - m_silseedy);
       h_zDiff->Fill(m_tpcseedz - m_silseedz);
-  std::cout << __LINE__ << std::endl; 
     }
     else
     {
       h_trackMatch->Fill(0);
-  std::cout << __LINE__ << std::endl; 
     }
   }
  
@@ -146,10 +128,8 @@ std::string TpcSiliconQA::getHistoPrefix() const
 
 void TpcSiliconQA::createHistos()
 {
-  std::cout << __LINE__ << std::endl; 
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  std::cout << __LINE__ << std::endl; 
  
   {
   h_crossing = new TH1F(std::string(getHistoPrefix() + "crossing").c_str(),
@@ -157,7 +137,6 @@ void TpcSiliconQA::createHistos()
   h_crossing->GetXaxis()->SetTitle("Track Crossing");
   h_crossing->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_crossing);
-  std::cout << __LINE__ << std::endl;
   }
   { 
   h_trackMatch = new TH1F(std::string(getHistoPrefix() + "trackMatch").c_str(),
@@ -165,7 +144,6 @@ void TpcSiliconQA::createHistos()
   h_trackMatch->GetXaxis()->SetTitle("1 - TPC+Sil Seed, 0 - Missing TPC and/or Sil");
   h_trackMatch->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_trackMatch);
-  std::cout << __LINE__ << std::endl; 
   }
   {
   h_phiDiff = new TH1F(std::string(getHistoPrefix() + "phiDiff").c_str(),
@@ -173,7 +151,6 @@ void TpcSiliconQA::createHistos()
   h_phiDiff->GetXaxis()->SetTitle("TPC Seed #phi - Silicon Seed #phi");
   h_phiDiff->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_phiDiff);
-  std::cout << __LINE__ << std::endl; 
   }
   {
   h_etaDiff = new TH1F(std::string(getHistoPrefix() + "etaDiff").c_str(),
@@ -181,7 +158,6 @@ void TpcSiliconQA::createHistos()
   h_etaDiff->GetXaxis()->SetTitle("TPC Seed #eta - Silicon Seed #eta");
   h_etaDiff->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_etaDiff);
-  std::cout << __LINE__ << std::endl; 
   }
   {
   h_xDiff = new TH1F(std::string(getHistoPrefix() + "xDiff").c_str(),
@@ -189,7 +165,6 @@ void TpcSiliconQA::createHistos()
   h_xDiff->GetXaxis()->SetTitle("TPC Seed x - Silicon Seed x [cm]");
   h_xDiff->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_xDiff);
-  std::cout << __LINE__ << std::endl; 
   }
   {
   h_yDiff = new TH1F(std::string(getHistoPrefix() + "yDiff").c_str(),
@@ -197,7 +172,6 @@ void TpcSiliconQA::createHistos()
   h_yDiff->GetXaxis()->SetTitle("TPC Seed y - Silicon Seed y [cm]");
   h_yDiff->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_yDiff);
-  std::cout << __LINE__ << std::endl; 
   }
   {
   h_zDiff = new TH1F(std::string(getHistoPrefix() + "zDiff").c_str(),
@@ -205,7 +179,6 @@ void TpcSiliconQA::createHistos()
   h_zDiff->GetXaxis()->SetTitle("TPC Seed z - Silicon Seed z [cm]");
   h_zDiff->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_zDiff);
-  std::cout << __LINE__ << std::endl; 
   } 
 
   return;
