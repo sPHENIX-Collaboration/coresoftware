@@ -314,9 +314,15 @@ int TpcSeedsQA::EndRun(const int /*runnumber*/)
 }
 
 //____________________________________________________________________________..
-int TpcSeedsQA::End(PHCompositeNode * /*unused*/) { return Fun4AllReturnCodes::EVENT_OK; }
+int TpcSeedsQA::End(PHCompositeNode * /*unused*/)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
-std::string TpcSeedsQA::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }
+std::string TpcSeedsQA::getHistoPrefix() const
+{
+  return std::string("h_") + Name() + std::string("_");
+}
 
 void TpcSeedsQA::createHistos()
 {
