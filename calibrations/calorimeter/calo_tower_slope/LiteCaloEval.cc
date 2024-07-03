@@ -6,12 +6,13 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
+#include <ffarawobjects/Gl1Packet.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <ffarawobjects/Gl1Packet.h>
 
 
 #include <RtypesCore.h>  // for Double_t
@@ -191,8 +192,8 @@ int LiteCaloEval::process_event(PHCompositeNode *topNode)
 
   if (gl1PacketInfo)
   {
-    ULong64_t triggervec = gl1PacketInfo->getScaledVector();
-    if (  ( triggervec >> 10 ) & 0x1U )
+    uint64_t triggervec = gl1PacketInfo->getScaledVector();
+    if (  ( triggervec >> 10U ) & 0x1U )
     {
       isMinBias = true;
     }
