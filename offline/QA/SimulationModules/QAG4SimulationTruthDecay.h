@@ -27,7 +27,7 @@ class QAG4SimulationTruthDecay : public SubsysReco
  public:
   QAG4SimulationTruthDecay(const std::string &name = "QAG4SimulationTruthDecay");
 
-  virtual ~QAG4SimulationTruthDecay();
+  virtual ~QAG4SimulationTruthDecay() = default;
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.
