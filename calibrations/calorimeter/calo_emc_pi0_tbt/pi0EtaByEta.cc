@@ -172,7 +172,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   if (gl1PacketInfo)
   {
     ULong64_t triggervec = gl1PacketInfo->getScaledVector();
-    if (  ( triggervec >> 10 ) & 0x1U )
+    if (  ( triggervec >> 10U ) & 0x1U )
     {
       isMinBias = true;
     }
