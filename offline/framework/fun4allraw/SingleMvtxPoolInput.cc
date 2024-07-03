@@ -3,6 +3,8 @@
 
 #include "Fun4AllStreamingInputManager.h"
 
+#include "MvtxRawDefs.h"
+
 #include <ffarawobjects/MvtxFeeIdInfov1.h>
 #include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
@@ -127,7 +129,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
         for (int i_fee{0}; i_fee < num_feeId; ++i_fee)
         {
           auto feeId = pool->iValue(i_fee, "FEEID");
-          auto link = DecodeFeeid(feeId);
+          auto link = MvtxRawDefs::decode_feeid(feeId);
           //          auto hbfSize = plist[i]->iValue(feeId, "NR_HBF");
           auto num_strobes = pool->iValue(feeId, "NR_STROBES");
           auto num_L1Trgs = pool->iValue(feeId, "NR_PHYS_TRG");
@@ -178,7 +180,8 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
               newhit->set_chip_bc(hit->bunchcounter);
               newhit->set_layer_id(link.layer);
               newhit->set_stave_id(link.stave);
-              newhit->set_chip_id(3 * link.gbtid + hit->chip_id);
+              newhit->set_chip_id(
+                  MvtxRawDefs::gbtChipId_to_staveChipId[link.gbtid][hit->chip_id]);
               newhit->set_row(hit->row_pos);
               newhit->set_col(hit->col_pos);
               if (StreamingInputManager())
@@ -388,7 +391,7 @@ bool SingleMvtxPoolInput::GetSomeMoreEvents()
                   << (highest_bclk - m_MvtxRawHitMap.begin()->first)
                   << std::dec << std::endl;
         toerase.insert(bcliter.first);
-       
+
       }
     }
   }

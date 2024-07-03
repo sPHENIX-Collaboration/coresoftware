@@ -2,6 +2,8 @@
 #define MVTXRAWDEFS_H
 
 #include <array>
+#include <cstdint>
+#include <map>
 
 namespace MvtxRawDefs
 {
@@ -69,16 +71,6 @@ namespace MvtxRawDefs
     {47, {5,1} },
   };
 
-  uint8_t getStaveIndex( const uint8_t& lyrId, const uint8_t& stvId )
-  {
-    return firstStaveIndex[lyrId] + stvId;
-  };
-
-  std::pair<uint8_t, uint8_t> const& get_flx_endpoint( const uint8_t& lyrId, const uint8_t& stvId )
-  {
-    return stave_felix_map.at( getStaveIndex(lyrId, stvId) );
-  }
-
   typedef struct linkId
   {
     uint32_t layer = 0xFF;
@@ -86,14 +78,10 @@ namespace MvtxRawDefs
     uint32_t gbtid = 0xFF;
   } linkId_t;
 
-  linkId_t decode_feeid( const uint16_t feeid )
-  {
-    linkId_t ret = {};
-    ret.layer = (feeid >> 12) & 0x7;
-    ret.stave = feeid & 0x1F;
-    ret.gbtid = (feeid >> 8) & 0x3;
-    return ret;
-  }
+  uint8_t getStaveIndex( const uint8_t& lyrId, const uint8_t& stvId );
+  std::pair<uint8_t, uint8_t> const& get_flx_endpoint( const uint8_t& lyrId, const uint8_t& stvId );
+
+  linkId_t decode_feeid( const uint16_t feeid );
 
 } // namespace MvtxRawDefs
 
