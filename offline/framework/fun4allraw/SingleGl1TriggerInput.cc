@@ -205,36 +205,6 @@ void SingleGl1TriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleGl1TriggerInput::GetSomeMoreEvents(const unsigned int keep)
-{
-  if (AllDone())
-  {
-    return false;
-  }
-  if (m_PacketMap.empty())
-  {
-    return true;
-  }
-
-  int first_event = m_PacketMap.begin()->first;
-  int last_event = m_PacketMap.rbegin()->first;
-  if (Verbosity() > 1)
-  {
-    std::cout << PHWHERE << "first event: " << first_event
-              << " last event: " << last_event
-              << std::endl;
-  }
-  if (keep > 2 && m_PacketMap.size() < keep)
-  {
-    return true;
-  }
-  if (first_event >= last_event)
-  {
-    return true;
-  }
-  return false;
-}
-
 void SingleGl1TriggerInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
@@ -259,12 +229,3 @@ void SingleGl1TriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode->addNode(newNode);
   }
 }
-
-// void SingleGl1TriggerInput::ConfigureStreamingInputManager()
-// {
-//   if (StreamingInputManager())
-//   {
-//     StreamingInputManager()->SetGl1BcoRange(m_BcoRange);
-//   }
-//   return;
-// }

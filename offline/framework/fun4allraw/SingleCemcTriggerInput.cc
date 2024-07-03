@@ -21,6 +21,7 @@
 
 #include <TSystem.h>
 
+#include <algorithm>
 #include <cstdint>   // for uint64_t
 #include <iostream>  // for operator<<, basic_ostream<...
 #include <iterator>  // for reverse_iterator
@@ -256,41 +257,6 @@ void SingleCemcTriggerInput::ClearCurrentEvent()
   //  std::cout << PHWHERE << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentevent);
   return;
-}
-
-bool SingleCemcTriggerInput::GetSomeMoreEvents(const unsigned int keep)
-{
-  if (AllDone())
-  {
-    return false;
-  }
-  if (m_PacketMap.empty())
-  {
-    return true;
-  }
-  if (m_PacketMap.size() < 2)  // at least 2 events in pool
-  {
-    return true;
-  }
-
-  unsigned int first_event = m_PacketMap.begin()->first;
-  unsigned int last_event = m_PacketMap.rbegin()->first;
-  if (keep > 2 && (last_event - first_event) < keep)
-  {
-    return true;
-  }
-  if (first_event >= last_event)
-  {
-    return true;
-  }
-  if (Verbosity() > 21)
-  {
-    std::cout << PHWHERE << Name() << ": first event: " << first_event
-              << " last event: " << last_event << " size: " << m_PacketMap.size()
-              << ", keep: " << keep
-              << std::endl;
-  }
-  return false;
 }
 
 void SingleCemcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
