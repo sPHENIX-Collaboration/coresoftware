@@ -244,48 +244,6 @@ void SingleMbdTriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
-{
-  if (AllDone())
-  {
-    return false;
-  }
-  if (m_PacketMap.empty())
-  {
-    return true;
-  }
-  if (m_PacketMap.size() < 2)  // at least 2 events in pool
-  {
-    return true;
-  }
-
-  unsigned int first_event = m_PacketMap.begin()->first;
-  unsigned int last_event = m_PacketMap.rbegin()->first;
-  if (Verbosity() > 1)
-  {
-    std::cout << "number of mbd events: " << m_PacketMap.size() << std::endl;
-    std::cout << PHWHERE << "first event: " << first_event
-              << " last event: " << last_event
-              << std::endl;
-  }
-  if (keep > 2 && (last_event - first_event) < keep)
-  {
-    return true;
-  }
-  if (first_event >= last_event)
-  {
-    return true;
-  }
-  if (Verbosity() > 21)
-  {
-    std::cout << PHWHERE << Name() << ": first event: " << first_event
-              << " last event: " << last_event << " size: " << m_PacketMap.size()
-              << ", keep: " << keep
-              << std::endl;
-  }
-  return false;
-}
-
 void SingleMbdTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
