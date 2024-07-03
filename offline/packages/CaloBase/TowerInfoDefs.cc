@@ -297,6 +297,15 @@ unsigned int TowerInfoDefs::get_epd_sector(unsigned int key)
   return sector;
 }
 // convert from epd key to r bin
+unsigned int TowerInfoDefs::get_epd_rbin(unsigned int key)
+{
+  unsigned int arm = get_epd_arm(key);
+  unsigned int sector = get_epd_sector(key);
+  unsigned int channel = key - (sector << 5U) - (arm << 9U);
+  unsigned int rbin = epd_rmap[channel];
+  return rbin;
+}
+// convert from epd key to phi bin
 unsigned int TowerInfoDefs::get_epd_phibin(unsigned int key)
 {
   int flip[24] = {1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1};
@@ -305,7 +314,7 @@ unsigned int TowerInfoDefs::get_epd_phibin(unsigned int key)
   unsigned int sector = get_epd_sector(key);
   unsigned int channel = key - (sector << 5U) - (arm << 9U);
   unsigned int phibin = epd_phimap[channel] + 2 * sector;
-    
+
   if (arm == 1)
   {
     phibin = phibin + flip[phibin];
@@ -317,6 +326,7 @@ unsigned int TowerInfoDefs::get_epd_phibin(unsigned int key)
 
   return phibin;
 }
+
 
 unsigned int TowerInfoDefs::encode_zdc(const unsigned int towerIndex)
 {
@@ -395,7 +405,6 @@ int TowerInfoDefs::get_veto_side(const unsigned int key)
   if (key & 2) return 0;
   return 1;
 }
-
 
 
 // 128 channels per side, goes 8 times and 8 charges and so on
