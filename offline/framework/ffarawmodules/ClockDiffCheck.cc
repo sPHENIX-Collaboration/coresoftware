@@ -123,9 +123,9 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       for (unsigned int i = 0; i < container->get_npackets(); i++)
       {
         unsigned int packetID = container->getPacket(i)->getIdentifier();
-        for (unsigned int j = 0; j < badPackets.size(); j++)
+        for (unsigned int badPacket : badPackets)
         {
-          if (badPackets.at(j) == packetID)
+          if (badPacket == packetID)
           {
             if (Verbosity() > 1)
             {
