@@ -38,7 +38,6 @@ class TpcSeedsQA : public SubsysReco
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int EndRun(const int runnumber) override;
-
   int End(PHCompositeNode *topNode) override;
 
   void setClusterContainerName(const std::string &name) { m_clusterContainerName = name; }

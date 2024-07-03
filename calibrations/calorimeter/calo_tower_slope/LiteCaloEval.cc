@@ -11,6 +11,8 @@
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <ffarawobjects/Gl1Packet.h>
+
 
 #include <RtypesCore.h>  // for Double_t
 #include <TCanvas.h>
@@ -178,6 +180,26 @@ int LiteCaloEval::process_event(PHCompositeNode *topNode)
   if (_ievent % 100 == 0)
   {
     std::cout << "LiteCaloEval::process_event(PHCompositeNode *topNode) Processing Event " << _ievent << std::endl;
+  }
+
+  //--------------------------- trigger and GL1-------------------------------//
+  bool isMinBias = true;
+  Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  if (!gl1PacketInfo)
+  {                                                                                    std::cout << PHWHERE << "CaloValid::process_event: GL1Packet node is missing" << std::endl;
+  }
+
+  if (gl1PacketInfo)
+  {
+    ULong64_t triggervec = gl1PacketInfo->getScaledVector();
+    if (  ( triggervec >> 10 ) & 0x1U )
+    {
+      isMinBias = true;
+    }
+  }
+  if (reqMinBias && isMinBias != true)
+  {
+      return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // raw tower container

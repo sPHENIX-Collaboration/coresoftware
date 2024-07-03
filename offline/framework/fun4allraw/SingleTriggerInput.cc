@@ -227,3 +227,27 @@ int SingleTriggerInput::AdjustPacketMap(int pktid, int evtoffset)
   }
   return 0;
 }
+
+bool SingleTriggerInput::GetSomeMoreEvents(const unsigned int keep)
+{
+  if (AllDone())
+  {
+    return false;
+  }
+  if (m_PacketMap.empty())
+  {
+    return true;
+  }
+  if (Verbosity() > 21)
+  {
+    std::cout << PHWHERE << Name() << ": first event: " << m_PacketMap.begin()->first
+              << " last event: " << m_PacketMap.rbegin()->first << " size: " << m_PacketMap.size()
+              << ", keep: " << keep
+              << std::endl;
+  }
+  if (m_PacketMap.size() < std::max(2U,keep))  // at least 2 events in pool
+  {
+    return true;
+  }
+  return false;
+}

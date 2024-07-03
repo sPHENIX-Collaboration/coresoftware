@@ -40,7 +40,6 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual Fun4AllPrdfInputTriggerManager *TriggerInputManager() { return m_TriggerInputMgr; }
   virtual void TriggerInputManager(Fun4AllPrdfInputTriggerManager *in) { m_TriggerInputMgr = in; }
   virtual void CreateDSTNode(PHCompositeNode *) { return; }
-  virtual void ConfigureStreamingInputManager() { return; }
   virtual void SubsystemEnum(const int id) { m_SubsystemEnum = id; }
   virtual int SubsystemEnum() const { return m_SubsystemEnum; }
   virtual void ddumppacket(Packet *pkt);
@@ -48,6 +47,7 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual bool ddump_enabled() const { return m_ddump_flag; }
   virtual void DefaultEventNumberOffset(const int i) { m_DefaultEventNumberOffset = i; }
   virtual int AdjustPacketMap(int pktid, int evtoffset);  // {return;}
+  virtual bool GetSomeMoreEvents(const unsigned int keep);
 
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors

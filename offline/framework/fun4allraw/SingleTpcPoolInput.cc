@@ -369,6 +369,7 @@ bool SingleTpcPoolInput::GetSomeMoreEvents()
 
   uint64_t lowest_bclk = m_TpcRawHitMap.begin()->first;
   lowest_bclk += m_BcoRange;
+  std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
     if (bcliter.second <= lowest_bclk)
@@ -390,9 +391,13 @@ bool SingleTpcPoolInput::GetSomeMoreEvents()
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_TpcRawHitMap.begin()->first)
                   << std::dec << std::endl;
-        m_FEEBclkMap.erase(bcliter.first);
+        toerase.insert(bcliter.first);
       }
     }
+  }
+  for(auto iter : toerase)
+  {
+    m_FEEBclkMap.erase(iter);
   }
   return false;
   // if (CheckPoolDepth(m_TpcRawHitMap.begin()->first))
