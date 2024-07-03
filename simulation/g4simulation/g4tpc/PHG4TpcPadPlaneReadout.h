@@ -115,7 +115,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
       {1,1,1,1,1,1,1,1,1,1,1,1} } 
   };
 
-  TF1 *flangau[2][3][12] = {nullptr};
+  TF1 *flangau[2][3][12] = {{{nullptr}}};
 
   
 };
