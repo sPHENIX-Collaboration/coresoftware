@@ -205,7 +205,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     for (int i = 0; i < 64; i++)
     {
       bool trig_decision = ((triggervec & 0x1U) == 0x1U);
-      if (trig_decision) h_triggerVec->Fill(i);
+      if (trig_decision) 
+      {
+        h_triggerVec->Fill(i);
+      }
       triggervec = (triggervec >> 1U) & 0xffffffffU;
     }
   }
@@ -545,7 +548,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       MbdPmtHit* mbdpmt = bbcpmts->get_pmt(i);
       float pmtadc = mbdpmt->get_q();
       totalmbd += pmtadc;
-      if (pmtadc > 0.4) hits++;
+      if (pmtadc > 0.4) 
+      {
+        hits++;
+      }
     }
   }
   h_mbd_hits->Fill(hits);
