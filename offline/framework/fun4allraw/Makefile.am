@@ -22,6 +22,7 @@ pkginclude_HEADERS = \
   Fun4AllStreamingInputManager.h \
   InputManagerType.h \
   MicromegasBcoMatchingInformation.h\
+	MvtxRawDefs.h \
   SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
