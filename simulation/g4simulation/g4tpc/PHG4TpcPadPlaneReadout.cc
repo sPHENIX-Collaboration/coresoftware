@@ -34,6 +34,8 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
+#include <boost/format.hpp>
+
 #include <cmath>
 #include <cstdlib>  // for getenv
 #include <iostream>
@@ -151,7 +153,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 	      for(int ir = 0; ir < 3; ++ir)
 		{
 		  pars_file >> side >> region >> sector >> par0 >> par1 >> par2 >> par3;
-		  flangau[side][region][sector] = new TF1(Form("flangau_%d_%d_%d",side,region,sector), [](double *x, double *par) 
+		  flangau[side][region][sector] = new TF1((boost::format("flangau_%d_%d_%d") % side % region % sector).str().c_str(), [](double *x, double *par) 
 		  {
 		    Double_t invsq2pi = 0.3989422804014;
 		    Double_t mpshift  = -0.22278298;
