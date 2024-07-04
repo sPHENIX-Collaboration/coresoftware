@@ -5,15 +5,11 @@
 
 #include <fun4all/SubsysReco.h>
 
-//#include <g4tpc/PHG4TpcPadPlane.h>
-//#include <g4tpc/PHG4TpcPadPlaneReadout.h>
-
+#include <cmath>  // for sin, asin, cos, floor, M_PI
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
-
-#include <cmath>      // for sin, asin, cos, floor, M_PI
 
 // Forward declerations
 class Fun4AllHistoManager;
@@ -81,9 +77,9 @@ class fillSpaceChargeMaps : public SubsysReco
   int _shiftElectrons = 0;
 
   double _freqKhz = 22;
-  //int _beamxing = 0;
+  // int _beamxing = 0;
   std::vector<int> _beamxing;
-  //std::vector<int> _beamxing_end;
+  // std::vector<int> _beamxing_end;
 
   int _evtstart = 0;
   int _fAvg = 0;
@@ -109,61 +105,61 @@ class fillSpaceChargeMaps : public SubsysReco
   static const int nFrames = 30;
   TH3 *_h_SC_prim[nFrames] = {nullptr};
   TH3 *_h_SC_ibf[nFrames] = {nullptr};
-  
-  //PHG4TpcPadPlaneReadout *padplane = nullptr;
-  //PHG4TpcCylinderGeomContainer *seggeo = nullptr;
 
-  float f = 0.5;                    //for now, just pick the middle of the hit.  Do better later.
-  float ns = 1e-9, s = 1.0;           // us=1e-6,ms=1e-3,
-  float mm = 1.0, cm = 10.0, m = 1000.0;  //um=1e-3,//changed to make 'cm' 1.0, for convenience.
-  float kHz = 1e3, MHz = 1e6;       //Hz=1,
+  // PHG4TpcPadPlaneReadout *padplane = nullptr;
+  // PHG4TpcCylinderGeomContainer *seggeo = nullptr;
+
+  float f = 0.5;                          // for now, just pick the middle of the hit.  Do better later.
+  float ns = 1e-9, s = 1.0;               // us=1e-6,ms=1e-3,
+  float mm = 1.0, cm = 10.0, m = 1000.0;  // um=1e-3,//changed to make 'cm' 1.0, for convenience.
+  float kHz = 1e3, MHz = 1e6;             // Hz=1,
   float V = 1.0;
-  //used two ways:  1) to apply units to variables when defined
-  //                2) to divide by certain units so that those variables are expressed in those units.
+  // used two ways:  1) to apply units to variables when defined
+  //                 2) to divide by certain units so that those variables are expressed in those units.
 
-  //float ionMobility=3.37*cm*cm/V/s;
+  // float ionMobility=3.37*cm*cm/V/s;
   float ionMobility = 1.65 * cm * cm / V / s;
   float vIon = ionMobility * 400 * V / cm;
-  //float vIon=16.0*um/us;
+  // float vIon=16.0*um/us;
   float mbRate = _freqKhz * kHz;
   float xingRate = 9.383 * MHz;
-  //float mean = mbRate/xingRate;
-  //float z_rdo=105.5*cm;
-  //float rmin=20*cm;
-  //float rmax=78*cm;
+  // float mean = mbRate/xingRate;
+  // float z_rdo=105.5*cm;
+  // float rmin=20*cm;
+  // float rmax=78*cm;
 
   double Ne_dEdx = 1.56 / cm;    // keV/cm
   double CF4_dEdx = 7.00 / cm;   // keV/cm
   double Ne_NTotal = 43 / cm;    // Number/cm
   double CF4_NTotal = 100 / cm;  // Number/cm
-  //double Tpc_NTot = 0.90 * Ne_NTotal + 0.10 * CF4_NTotal;
-  //double Tpc_dEdx = 0.90 * Ne_dEdx + 0.10 * CF4_dEdx;
+  // double Tpc_NTot = 0.90 * Ne_NTotal + 0.10 * CF4_NTotal;
+  // double Tpc_dEdx = 0.90 * Ne_dEdx + 0.10 * CF4_dEdx;
   double Tpc_NTot = 0.50 * Ne_NTotal + 0.50 * CF4_NTotal;
   double Tpc_dEdx = 0.50 * Ne_dEdx + 0.50 * CF4_dEdx;
 
-  //double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
-  double Tpc_ElectronsPerGeV = Tpc_NTot / Tpc_dEdx * 1e6;  //electrons per gev.
-  double phi_dead_bins[24] ={ 6.5314-2 * M_PI, 6.545-2 * M_PI, 
-                                  0.7718, 0.7854, 
-                                  1.2954, 1.309, 
-                                  1.819, 1.8326, 
-                                  2.3426, 2.3562, 
-                                  2.8662, 2.8798, 
-                                  3.3898, 3.4034, 
-                                  3.9134, 3.927, 
-                                  4.437, 4.4506, 
-                                  4.9606, 4.9742, 
-                                  5.4842, 5.4978, 
-                                  6.0078, 6.0214};
-  //int nr=159;
-  //int nphi=360;
-  //int nz=62*2;
+  // double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
+  double Tpc_ElectronsPerGeV = Tpc_NTot / Tpc_dEdx * 1e6;  // electrons per gev.
+  double phi_dead_bins[24] = {6.5314 - 2 * M_PI, 6.545 - 2 * M_PI,
+                              0.7718, 0.7854,
+                              1.2954, 1.309,
+                              1.819, 1.8326,
+                              2.3426, 2.3562,
+                              2.8662, 2.8798,
+                              3.3898, 3.4034,
+                              3.9134, 3.927,
+                              4.437, 4.4506,
+                              4.9606, 4.9742,
+                              5.4842, 5.4978,
+                              6.0078, 6.0214};
+  // int nr=159;
+  // int nphi=360;
+  // int nz=62*2;
 
-  //double hrstep=(rmax-rmin)/nr;
-  //double hphistep=2*pi/nphi;
-  //double hzstep=z_rdo/nz;
+  // double hrstep=(rmax-rmin)/nr;
+  // double hphistep=2*pi/nphi;
+  // double hzstep=z_rdo/nz;
 
-  //int nBeams = z_rdo/(vIon/xingRate); //numaber of beamcrossings to fill TPC
+  // int nBeams = z_rdo/(vIon/xingRate); //numaber of beamcrossings to fill TPC
 
   float _mbRate = 0;
   float _xingRate = 0;
