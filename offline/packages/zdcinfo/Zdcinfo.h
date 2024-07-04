@@ -16,9 +16,8 @@ class Zdcinfo : public PHObject
   virtual void set_zdc_energy(int /*arm*/, float /*zdc_e*/) { return; }
   virtual float get_zdc_energy(const int /*arm*/) const { return NAN; }
 
-
  protected:
-    Zdcinfo() {}
+  Zdcinfo() {}
 
  private:
   ClassDefOverride(Zdcinfo, 1);
