@@ -73,9 +73,9 @@ namespace MvtxRawDefs
 
   typedef struct linkId
   {
-    uint32_t layer = 0xFF;
-    uint32_t stave = 0xFF;
-    uint32_t gbtid = 0xFF;
+    uint32_t layer {0xFF};
+    uint32_t stave {0xFF};
+    uint32_t gbtid {0xFF};
   } linkId_t;
 
   uint8_t getStaveIndex( const uint8_t& lyrId, const uint8_t& stvId );

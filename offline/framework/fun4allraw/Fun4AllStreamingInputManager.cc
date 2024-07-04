@@ -651,7 +651,7 @@ int Fun4AllStreamingInputManager::FillIntt()
     }
   }
 
-  int refbcobitshift = m_RefBCO & 0x3F;
+  unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_intt->Fill(refbcobitshift);
   bool allpackets = true;
   for (size_t p = 0; p < m_InttInputVector.size(); p++)
@@ -798,7 +798,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
               << std::dec << std::endl;
   }
 
-  int refbcobitshift = m_RefBCO & 0x3F;
+  unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   bool allpackets = true;
   h_refbco_mvtx->Fill(refbcobitshift);
   for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
@@ -1009,7 +1009,7 @@ int Fun4AllStreamingInputManager::FillTpc()
     }
   }
 
-  int refbcobitshift = m_RefBCO & 0x3F;
+  unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_tpc->Fill(refbcobitshift);
   bool allpackets = true;
   for (size_t p = 0; p < m_TpcInputVector.size(); p++)
