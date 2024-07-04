@@ -1,6 +1,7 @@
 #include "Fun4AllStreamingInputManager.h"
 
 #include "InputManagerType.h"
+#include "MvtxRawDefs.h"
 #include "SingleMicromegasPoolInput.h"
 #include "SingleMvtxPoolInput.h"
 #include "SingleStreamingInput.h"
@@ -649,7 +650,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       return iret;
     }
   }
- 
+
   int refbcobitshift = m_RefBCO & 0x3F;
   h_refbco_intt->Fill(refbcobitshift);
   bool allpackets = true;
@@ -1361,7 +1362,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
       h_gl1tagged_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str()));
       for (int j = 0; j < 14; j++)
       {
-        
+
         h_gl1taggedfee_intt[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i_fee%i") % i % j).str().c_str()));
       }
       h_taggedAllFees_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str()));

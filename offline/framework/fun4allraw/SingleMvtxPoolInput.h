@@ -11,13 +11,6 @@ class MvtxRawHit;
 class Packet;
 class mvtx_pool;
 
-typedef struct linkId
-{
-  uint32_t layer = 0xFF;
-  uint32_t stave = 0xFF;
-  uint32_t gbtid = 0xFF;
-} LinkId_t;
-
 class SingleMvtxPoolInput : public SingleStreamingInput
 {
  public:
@@ -48,14 +41,6 @@ class SingleMvtxPoolInput : public SingleStreamingInput
     m_FeeGTML1BCOMap.clear(); 
   }
  protected:
-  LinkId_t DecodeFeeid(const uint16_t &feeid)
-  {
-    LinkId_t ret = {};
-    ret.layer = (feeid >> 12) & 0x7;
-    ret.stave = feeid & 0x1F;
-    ret.gbtid = (feeid >> 8) & 0x3;
-    return ret;
-  }
 
  private:
   Packet **plist{nullptr};
