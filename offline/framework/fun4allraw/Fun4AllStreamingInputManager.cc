@@ -803,7 +803,6 @@ int Fun4AllStreamingInputManager::FillMvtx()
   for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
   {
     auto gtml1bcoset = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getGtmL1BcoSet();
-    auto bcorange = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->GetBcoRange();
     auto gtml1bcoset_perfee = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getFeeGTML1BCOMap();
     bool allfees = true;
     for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
@@ -812,7 +811,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-        if (diff < bcorange)
+        if (diff < 3)
         {
           h_tagBcoFelixFee_mvtx[p][feeid]->Fill(refbcobitshift);
           thisfee = true;
@@ -828,11 +827,12 @@ int Fun4AllStreamingInputManager::FillMvtx()
     {
       h_tagBcoFelixAllFees_mvtx[p]->Fill(refbcobitshift);
     }
+    (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearFeeGTML1BCOMap();
     bool thispacket = false;
     for (auto &gtmbco : gtml1bcoset)
     {
       auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-      if (diff < bcorange)
+      if (diff < 3)
       {
         thispacket = true;
         h_tagBcoFelix_mvtx[p]->Fill(refbcobitshift);
@@ -844,6 +844,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       {
         allpackets = false;
       }
+      (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearGtmL1BcoSet();
   }
   if(allpackets)
   {
