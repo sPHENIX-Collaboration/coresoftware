@@ -69,7 +69,7 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     float chi2ndf = track->get_quality();
 
     int trkcrossing = track->get_crossing();
-    std::cout << "track crossing: " << trkcrossing << std::endl;
+    // std::cout << "track crossing: " << trkcrossing << std::endl;
 
     int nmaps = 0;
     int nintt = 0;
