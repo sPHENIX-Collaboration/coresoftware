@@ -10,6 +10,7 @@
 #include <Event/phenixTypes.h>
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -83,6 +84,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void ClockDiffFill();
   int ClockDiffCheck();
   void Resync(bool b = true) { m_resync_flag = b; }
+  void AddGl1DroppedEvent(int iev) { m_Gl1DroppedEvent.insert(iev); }
 
  private:
   struct SinglePrdfInputInfo
@@ -106,6 +108,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name = "NONE");
   int ShiftEvents(std::map<int, CaloPacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name = "NONE");
   int AdjustBcoDiff(std::map<int, CaloPacketInfo> &PacketInfoMap, int packetid, uint64_t bcodiff);
+  int DropFirstEvent(std::map<int, CaloPacketInfo> &PacketInfoMap);
 
   struct LL1PacketInfo
   {
@@ -116,6 +119,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillNeedleLL1(std::map<int, LL1PacketInfo>::iterator begin, std::map<int, LL1PacketInfo>::iterator end, const std::string &name = "NONE");
   int ShiftEventsLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name = "NONE");
   int AdjustBcoDiffLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, int packetid, uint64_t bcodiff);
+  int DropFirstEventLL1(std::map<int, LL1PacketInfo> &PacketInfoMap);
 
   int m_RunNumber{0};
   int m_RefEventNo{std::numeric_limits<int>::min()};
@@ -128,9 +132,11 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   bool m_resync_flag{false};
   unsigned int m_InitialPoolDepth = 10;
   unsigned int m_DefaultPoolDepth = 10;
-  unsigned int m_PoolDepth {m_InitialPoolDepth};
-  unsigned int m_Gl1PacketNumberEventNumberDiff {0};
+  unsigned int m_PoolDepth{m_InitialPoolDepth};
+  unsigned int m_Gl1PacketNumberEventNumberDiff{0};
+  std::set<int> m_Gl1DroppedEvent;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
+  std::vector<SingleTriggerInput *> m_NoGl1InputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
   std::vector<SingleTriggerInput *> m_CemcInputVector;
   std::vector<SingleTriggerInput *> m_HcalInputVector;

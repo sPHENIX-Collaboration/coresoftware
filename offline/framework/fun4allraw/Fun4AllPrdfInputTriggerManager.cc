@@ -65,7 +65,6 @@ tryagain:
   int iret = 0;
   if (m_gl1_registered_flag)  // Gl1 first to get the reference
   {
-    std::cout << "Filling Gl1 up to " << m_PoolDepth << " events" << std::endl;
     iret += FillGl1(m_PoolDepth);
   }
   if (m_mbd_registered_flag)  // Mbd next to get the reference if Gl1 is missing
@@ -78,7 +77,6 @@ tryagain:
   }
   if (m_cemc_registered_flag)  // Mbd first to get the reference
   {
-    std::cout << "Filling CEMC up to " << m_PoolDepth << " events" << std::endl;
     iret += FillCemc(m_PoolDepth);
   }
   if (m_zdc_registered_flag)  // Mbd first to get the reference
@@ -435,6 +433,11 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
     exit(1);
   }
   m_TriggerInputVector.push_back(prdfin);
+  // this is for convenience - we need to loop over all input managers except for the GL1
+  if (system != InputManagerType::GL1)
+  {
+    m_NoGl1InputVector.push_back(prdfin);
+  }
   if (Verbosity() > 3)
   {
     std::cout << "registering " << prdfin->Name()
@@ -692,20 +695,6 @@ int Fun4AllPrdfInputTriggerManager::MoveGl1ToNodeTree()
       gl1hititer.second->identify();
     }
     gl1packet->FillFrom(gl1hititer.second);
-    unsigned int gl1pktdiff = gl1packet->getPacketNumber() - m_RefEventNo;
-    if (m_Gl1PacketNumberEventNumberDiff == 0)
-    {
-      m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
-    }
-    else
-    {
-      if (m_Gl1PacketNumberEventNumberDiff != gl1pktdiff)
-      {
-    std::cout << "Event " <<  m_RefEventNo << " Packet Number: " << gl1packet->getPacketNumber()
-	      << " delta: " << m_RefEventNo - gl1packet->getPacketNumber() << std::endl;
-    m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
-      }
-    }
     // m_RefEventNo = gl1hititer->getEvtSequence();
     // gl1packet->setEvtSequence(m_RefEventNo);
   }
@@ -1420,7 +1409,6 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
     std::vector needle = iter.second;
     if (Verbosity() > 1)
     {
-  match_again:
       std::cout << PHWHERE << "Initial HayStack/Needle: " << iter.first
                 << " HayStack size: " << m_HayStack.size() << " Needle size: " << needle.size() << std::endl;
       for (auto &hayiter : m_HayStack)
@@ -1432,6 +1420,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
         std::cout << "needle: 0x" << std::hex << needleiter << std::dec << std::endl;
       }
     }
+  match_again:
     // If found, std::search returns an iterator to the first element of the subsequence
     auto it = std::search(m_HayStack.begin(), m_HayStack.end(), needle.begin(), needle.end());
     if (it != m_HayStack.end())  // haystack and needle have same size - we have a match
@@ -1492,6 +1481,43 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
         {
           //	  needle.pop_back(); already popped back
           goto match_again;
+        }
+        // here we have an event which doesn't match
+        // first check if the GL1 dropped an event
+        // The m_Gl1DroppedEvent set is filled by the GL1 input manager which compares the packet id and the event number
+        if (m_Gl1DroppedEvent.find(m_Gl1PacketMap.begin()->first) != m_Gl1DroppedEvent.end())  // dropped gl1 event
+        {
+          std::cout << "We have a dropped GL1 event" << std::endl;
+          m_Gl1DroppedEvent.erase(m_Gl1PacketMap.begin()->first);
+          if (!m_MbdPacketMap.empty())
+          {
+            DropFirstEvent(m_MbdPacketMap);
+          }
+          if (!m_LL1PacketMap.empty())
+          {
+            DropFirstEventLL1(m_LL1PacketMap);
+          }
+          if (!m_HcalPacketMap.empty())
+          {
+            DropFirstEvent(m_HcalPacketMap);
+          }
+          if (!m_CemcPacketMap.empty())
+          {
+            DropFirstEvent(m_CemcPacketMap);
+          }
+          if (!m_ZdcPacketMap.empty())
+          {
+            DropFirstEvent(m_ZdcPacketMap);
+          }
+          if (!m_SEpdPacketMap.empty())
+          {
+            DropFirstEvent(m_SEpdPacketMap);
+          }
+          for (auto inputiter : m_NoGl1InputVector)
+          {
+            inputiter->AdjustEventOffset(-1);
+          }
+          return -1;
         }
         // what is left is the event after the skip, let's make a crosscheck if the sum of the clockdiff of the previous 2 events does the trick
         if (Verbosity() > 1)
@@ -1596,12 +1622,12 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
   auto calomapbegin = begin;
   for (auto &pktiter : calomapbegin->second.CaloSinglePacketMap)
   {
-    std::cout << "Clearing Needle for packet " << pktiter.first << std::endl;
+    //    std::cout << "Clearing Needle for packet " << pktiter.first << std::endl;
     m_NeedleMap[pktiter.first].clear();
   }
-// this handles the first event where we do not have the bco diff to the previous event
-// for subsequent calls we take the bco diff for the first event in the needle from 
-// the cached bco diffs in the bco diffmap
+  // this handles the first event where we do not have the bco diff to the previous event
+  // for subsequent calls we take the bco diff for the first event in the needle from
+  // the cached bco diffs in the bco diffmap
   if (calomapbegin->second.BcoDiffMap.empty())  // This is for the first event, init bco diff to 0x0
   {
     for (auto &pktiter : calomapbegin->second.CaloSinglePacketMap)
@@ -1619,7 +1645,7 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
       m_NeedleMap[pktiter.first].push_back(calomapbegin->second.BcoDiffMap[pktiter.first]);
     }
   }
-     //      std::cout << PHWHERE << name <<" event: " <<  sepdhititer->first << std::endl;
+  //      std::cout << PHWHERE << name <<" event: " <<  sepdhititer->first << std::endl;
   for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
   {
     auto nextIt = std::next(sepdhititer);
@@ -1650,8 +1676,8 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
       {
         uint64_t prev_bco = pktiter.second->getBCO();
         int prev_packetid = pktiter.first;
-        std::cout << "event " << sepdhititer->first << " packet id: " << prev_packetid
-         	  << " prev_bco: 0x" << std::hex << prev_bco << std::dec << std::endl;
+        // std::cout << "event " << sepdhititer->first << " packet id: " << prev_packetid
+        //  	  << " prev_bco: 0x" << std::hex << prev_bco << std::dec << std::endl;
         auto currpkt = nextIt->second.CaloSinglePacketMap.find(prev_packetid);  //->find(prev_packetid);
         if (currpkt != nextIt->second.CaloSinglePacketMap.end())
         {
@@ -1863,6 +1889,62 @@ int Fun4AllPrdfInputTriggerManager::ShiftEventsLL1(std::map<int, LL1PacketInfo> 
       }
     }
   }
+  return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::DropFirstEvent(std::map<int, CaloPacketInfo> &PacketInfoMap)
+{
+  //  Print("CEMCMAP");
+  PacketInfoMap.erase(PacketInfoMap.begin());
+  // std::cout << "deleted first event, cemcmap now: " << std::endl;
+  // Print("CEMCMAP");
+
+  std::vector<int> events;
+  for (auto packetloop : PacketInfoMap)
+  {
+    events.push_back(packetloop.first);
+  }
+  for (auto evtiter : events)
+  {
+    //    std::cout << "moving event " << evtiter << " to " << (evtiter - 1) << std::endl;
+    auto nh = PacketInfoMap[evtiter];
+    //    PacketInfoMap.insert(std::make_pair(evtiter-1,std::move(nh)));
+    PacketInfoMap[evtiter - 1] = std::move(nh);
+    PacketInfoMap.erase(evtiter);
+    //    Print("CEMCMAP");
+  }
+  // std::cout << "before killing last entry" << std::endl;
+  // Print("CEMCMAP");
+  // std::cout << "That is it" << std::endl;
+  // Print("CEMCMAP");
+  return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::DropFirstEventLL1(std::map<int, LL1PacketInfo> &PacketInfoMap)
+{
+  //  Print("CEMCMAP");
+  PacketInfoMap.erase(PacketInfoMap.begin());
+  // std::cout << "deleted first event, cemcmap now: " << std::endl;
+  // Print("CEMCMAP");
+
+  std::vector<int> events;
+  for (auto packetloop : PacketInfoMap)
+  {
+    events.push_back(packetloop.first);
+  }
+  for (auto evtiter : events)
+  {
+    //    std::cout << "moving event " << evtiter << " to " << (evtiter - 1) << std::endl;
+    auto nh = PacketInfoMap[evtiter];
+    //    PacketInfoMap.insert(std::make_pair(evtiter-1,std::move(nh)));
+    PacketInfoMap[evtiter - 1] = std::move(nh);
+    PacketInfoMap.erase(evtiter);
+    //    Print("CEMCMAP");
+  }
+  // std::cout << "before killing last entry" << std::endl;
+  // Print("CEMCMAP");
+  // std::cout << "That is it" << std::endl;
+  // Print("CEMCMAP");
   return 0;
 }
 

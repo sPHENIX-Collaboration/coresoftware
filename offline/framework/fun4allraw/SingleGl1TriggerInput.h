@@ -25,6 +25,7 @@ class SingleGl1TriggerInput : public SingleTriggerInput
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
  private:
+  unsigned int m_Gl1PacketNumberEventNumberDiff{0};
 };
 
 #endif
