@@ -1420,6 +1420,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
     std::vector needle = iter.second;
     if (Verbosity() > 1)
     {
+  match_again:
       std::cout << PHWHERE << "Initial HayStack/Needle: " << iter.first
                 << " HayStack size: " << m_HayStack.size() << " Needle size: " << needle.size() << std::endl;
       for (auto &hayiter : m_HayStack)
@@ -1431,7 +1432,6 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
         std::cout << "needle: 0x" << std::hex << needleiter << std::dec << std::endl;
       }
     }
-  match_again:
     // If found, std::search returns an iterator to the first element of the subsequence
     auto it = std::search(m_HayStack.begin(), m_HayStack.end(), needle.begin(), needle.end());
     if (it != m_HayStack.end())  // haystack and needle have same size - we have a match
@@ -1599,43 +1599,27 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
     std::cout << "Clearing Needle for packet " << pktiter.first << std::endl;
     m_NeedleMap[pktiter.first].clear();
   }
-  // here we refill the needle for every packet with the cached BCO differences
-/*
-  for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
+// this handles the first event where we do not have the bco diff to the previous event
+// for subsequent calls we take the bco diff for the first event in the needle from 
+// the cached bco diffs in the bco diffmap
+  if (calomapbegin->second.BcoDiffMap.empty())  // This is for the first event, init bco diff to 0x0
   {
-    for (auto bcoiter : sepdhititer->second.BcoDiffMap)
+    for (auto &pktiter : calomapbegin->second.CaloSinglePacketMap)
     {
-      m_NeedleMap[bcoiter.first].push_back(bcoiter.second);
-      std::cout << "Pushing 0x" << std::hex << bcoiter.second << " into packet " << std::dec << bcoiter.first
-       		<< " for event " << calomapbegin->first << std::endl;
+      calomapbegin->second.BcoDiffMap[pktiter.first] = 0x0;
+      m_NeedleMap[pktiter.first].push_back(0x0);
+      // std::cout << "Startup: Pushing 0x0 into packet " << pktiter.first
+      // 		<< " for event " << sepdhititer->first << std::endl;
     }
   }
-*/
-  // here we calculate the bco diff to the previous event and update the cached bco difference
-  // only for events where we haven't done this yet (check of the bco diff map is empty)
-  auto sepdhititer1 = begin;
-//  for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
+  else
   {
-    if (sepdhititer1->second.BcoDiffMap.empty())  // This is for the first event, init bco diff to 0x0
+    for (auto &pktiter : calomapbegin->second.CaloSinglePacketMap)
     {
-      for (auto &pktiter : sepdhititer1->second.CaloSinglePacketMap)
-      {
-        sepdhititer1->second.BcoDiffMap[pktiter.first] = 0x0;
-        m_NeedleMap[pktiter.first].push_back(0x0);
-        // std::cout << "Startup: Pushing 0x0 into packet " << pktiter.first
-        // 		<< " for event " << sepdhititer->first << std::endl;
-      }
+      m_NeedleMap[pktiter.first].push_back(calomapbegin->second.BcoDiffMap[pktiter.first]);
     }
-  
-     else
-     {
-       for (auto &pktiter : sepdhititer1->second.CaloSinglePacketMap)
-       {
-       m_NeedleMap[pktiter.first].push_back(sepdhititer1->second.BcoDiffMap[pktiter.first]);
-       }
-   }
   }
-    //      std::cout << PHWHERE << name <<" event: " <<  sepdhititer->first << std::endl;
+     //      std::cout << PHWHERE << name <<" event: " <<  sepdhititer->first << std::endl;
   for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
   {
     auto nextIt = std::next(sepdhititer);
