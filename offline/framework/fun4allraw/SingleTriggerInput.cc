@@ -237,19 +237,19 @@ int SingleTriggerInput::AdjustEventOffset(int evtoffset)
               << " all packets with offset " << evtoffset << std::endl;
   }
   std::vector<int> eventnumbers;
-// needs separate cases so we don't overwrite existing entries
-  if (evtoffset < 0) // for negative offsets start at the beginning and move down (into empty space)
+  // needs separate cases so we don't overwrite existing entries
+  if (evtoffset < 0)  // for negative offsets start at the beginning and move down (into empty space)
   {
-    for (auto packetmapiter = m_PacketMap.begin(); packetmapiter != m_PacketMap.end(); ++packetmapiter)
+    for (auto &packetmapiter : m_PacketMap)
     {
-      eventnumbers.push_back(packetmapiter->first);
+      eventnumbers.push_back(packetmapiter.first);
     }
   }
-  else // for positive offsets start at the end and move up (into empty space)
+  else  // for positive offsets start at the end and move up (into empty space)
   {
-    for (auto packetmapiter = m_PacketMap.begin(); packetmapiter != m_PacketMap.end(); ++packetmapiter)
+    for (auto &packetmapiter : m_PacketMap)
     {
-      eventnumbers.push_back(packetmapiter->first);
+      eventnumbers.push_back(packetmapiter.first);
     }
   }
 
@@ -260,7 +260,7 @@ int SingleTriggerInput::AdjustEventOffset(int evtoffset)
     //    for (auto pktiter : m_PacketMap[lastevent])
     for (std::vector<OfflinePacket *>::iterator pktiter = m_PacketMap[lastevent].begin(); pktiter != m_PacketMap[lastevent].end(); ++pktiter)
     {
-//      if ((*pktiter)->getIdentifier() == pktid)
+      //      if ((*pktiter)->getIdentifier() == pktid)
       {
         if (Verbosity() > 1)
         {
@@ -298,7 +298,7 @@ bool SingleTriggerInput::GetSomeMoreEvents(const unsigned int keep)
               << ", keep: " << keep
               << std::endl;
   }
-  if (m_PacketMap.size() < std::max(2U,keep))  // at least 2 events in pool
+  if (m_PacketMap.size() < std::max(2U, keep))  // at least 2 events in pool
   {
     return true;
   }
