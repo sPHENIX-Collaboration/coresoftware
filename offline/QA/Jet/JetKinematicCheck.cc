@@ -222,8 +222,8 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
     }
   }
 
-  std::vector<std::string> m_recoJetName_array = {m_recoJetNameR02, m_recoJetNameR03, m_recoJetNameR04};
-  m_radii = {0.2, 0.3, 0.4};
+  std::vector<std::string> m_recoJetName_array = {m_recoJetNameR02, m_recoJetNameR03, m_recoJetNameR04, m_recoJetNameR05};
+  m_radii = {0.2, 0.3, 0.4, 0.5};
   int n_radii = m_radii.size();
 
   // Loop over each reco jet radii from array
@@ -277,6 +277,14 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
         jet_mass_pt_r04->Fill(jet->get_pt(), jet->get_mass());
         jet_mass_eta_r04->Fill(jet->get_eta(), jet->get_mass());
       }
+
+      else if (i == 3)
+      {
+        jet_spectra_r05->Fill(jet->get_pt());
+        jet_eta_phi_r05->Fill(jet->get_eta(), jet->get_phi());
+        jet_mass_pt_r05->Fill(jet->get_pt(), jet->get_mass());
+        jet_mass_eta_r05->Fill(jet->get_eta(), jet->get_mass());
+      }
     }
   }
 
@@ -310,8 +318,8 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg1->SetFillStyle(0);
   leg1->SetBorderSize(0);
   leg1->SetTextSize(0.06);
-  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]")% m_ptRange.first% m_ptRange.second).c_str(),"");
+  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%")% m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_spectra_r02->SetMarkerStyle(8);
   jet_spectra_r02->SetMarkerColor(1);
   jet_spectra_r02->SetLineColor(1);
@@ -340,7 +348,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg3->SetFillStyle(0);
   leg3->SetBorderSize(0);
   leg3->SetTextSize(0.06);
-  leg3->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg3->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]")%  m_ptRange.first % m_ptRange.second).c_str(), "");
   leg3->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_spectra_r04->SetMarkerStyle(8);
   jet_spectra_r04->SetMarkerColor(1);
@@ -350,57 +358,83 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   jet_spectra_r04->GetListOfFunctions()->Add(leg3);
   jet_spectra_r04->SetStats(false);
 
-  // for jet eta-phi [R02]
+  // for jet spectra [R05]
   TLegend *leg4 = new TLegend(.7, .9, .9, 1);
   leg4->SetFillStyle(0);
   leg4->SetBorderSize(0);
   leg4->SetTextSize(0.06);
-  leg4->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg4->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]")%  m_ptRange.first % m_ptRange.second).c_str(), "");
   leg4->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
-  jet_eta_phi_r02->SetStats(false);
-  jet_eta_phi_r02->SetTitle("Jet Eta-Phi [R = 0.2]");
-  jet_eta_phi_r02->GetListOfFunctions()->Add(leg4);
+  jet_spectra_r05->SetMarkerStyle(8);
+  jet_spectra_r05->SetMarkerColor(1);
+  jet_spectra_r05->SetLineColor(1);
+  jet_spectra_r05->SetTitle("Jet Spectra [R = 0.5]");
+  jet_spectra_r05->GetYaxis()->SetTitle("Counts");
+  jet_spectra_r05->GetListOfFunctions()->Add(leg4);
+  jet_spectra_r05->SetStats(false);
 
-  // for jet eta-phi [R03]
+  // for jet eta-phi [R02]
   TLegend *leg5 = new TLegend(.7, .9, .9, 1);
   leg5->SetFillStyle(0);
   leg5->SetBorderSize(0);
   leg5->SetTextSize(0.06);
   leg5->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
   leg5->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
-  jet_eta_phi_r03->SetStats(false);
-  jet_eta_phi_r03->SetTitle("Jet Eta-Phi [R = 0.3]");
-  jet_eta_phi_r03->GetListOfFunctions()->Add(leg5);
+  jet_eta_phi_r02->SetStats(false);
+  jet_eta_phi_r02->SetTitle("Jet Eta-Phi [R = 0.2]");
+  jet_eta_phi_r02->GetListOfFunctions()->Add(leg5);
 
-  // for jet eta-phi [R04]
+  // for jet eta-phi [R03]
   TLegend *leg6 = new TLegend(.7, .9, .9, 1);
   leg6->SetFillStyle(0);
   leg6->SetBorderSize(0);
   leg6->SetTextSize(0.06);
   leg6->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
   leg6->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
-  jet_eta_phi_r04->SetStats(false);
-  jet_eta_phi_r04->SetTitle("Jet Eta-Phi [R = 0.4]");
-  jet_eta_phi_r04->GetListOfFunctions()->Add(leg6);
+  jet_eta_phi_r03->SetStats(false);
+  jet_eta_phi_r03->SetTitle("Jet Eta-Phi [R = 0.3]");
+  jet_eta_phi_r03->GetListOfFunctions()->Add(leg6);
 
-  // for jet mass vs pt [R02]
+  // for jet eta-phi [R04]
   TLegend *leg7 = new TLegend(.7, .9, .9, 1);
   leg7->SetFillStyle(0);
   leg7->SetBorderSize(0);
   leg7->SetTextSize(0.06);
   leg7->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg7->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
-  jet_mass_pt_r02->SetStats(false);
-  jet_mass_pt_r02->SetTitle("Jet Mass vs p_{T} [R = 0.2]");
-  jet_mass_pt_r02->GetListOfFunctions()->Add(leg7);
+  leg7->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first %  m_etaRange.second).c_str(), "");
+  jet_eta_phi_r04->SetStats(false);
+  jet_eta_phi_r04->SetTitle("Jet Eta-Phi [R = 0.4]");
+  jet_eta_phi_r04->GetListOfFunctions()->Add(leg7);
 
-  // for average jet mass vs pt [R02]
+  // for jet eta-phi [R05]
   TLegend *leg8 = new TLegend(.7, .9, .9, 1);
   leg8->SetFillStyle(0);
   leg8->SetBorderSize(0);
   leg8->SetTextSize(0.06);
   leg8->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg8->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  leg8->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first %  m_etaRange.second).c_str(), "");
+  jet_eta_phi_r05->SetStats(false);
+  jet_eta_phi_r05->SetTitle("Jet Eta-Phi [R = 0.5]");
+  jet_eta_phi_r05->GetListOfFunctions()->Add(leg8);
+
+  // for jet mass vs pt [R02]
+  TLegend *leg9 = new TLegend(.7, .9, .9, 1);
+  leg9->SetFillStyle(0);
+  leg9->SetBorderSize(0);
+  leg9->SetTextSize(0.06);
+  leg9->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg9->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  jet_mass_pt_r02->SetStats(false);
+  jet_mass_pt_r02->SetTitle("Jet Mass vs p_{T} [R = 0.2]");
+  jet_mass_pt_r02->GetListOfFunctions()->Add(leg9);
+
+  // for average jet mass vs pt [R02]
+  TLegend *leg10 = new TLegend(.7, .9, .9, 1);
+  leg10->SetFillStyle(0);
+  leg10->SetBorderSize(0);
+  leg10->SetTextSize(0.06);
+  leg10->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg10->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_pt_1D_r02 = (TH1D *) jet_mass_pt_r02->ProfileX();
   jet_mass_pt_1D_r02->SetStats(false);
   jet_mass_pt_1D_r02->SetTitle("Average Jet Mass vs p_{T} [R = 0.2]");
@@ -409,26 +443,26 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   jet_mass_pt_1D_r02->SetMarkerStyle(8);
   jet_mass_pt_1D_r02->SetMarkerColor(1);
   jet_mass_pt_1D_r02->SetLineColor(1);
-  jet_mass_pt_1D_r02->GetListOfFunctions()->Add(leg8);
+  jet_mass_pt_1D_r02->GetListOfFunctions()->Add(leg10);
 
   // for jet mass vs pt [R03]
-  TLegend *leg9 = new TLegend(.7, .9, .9, 1);
-  leg9->SetFillStyle(0);
-  leg9->SetBorderSize(0);
-  leg9->SetTextSize(0.06);
-  leg9->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg9->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg11 = new TLegend(.7, .9, .9, 1);
+  leg11->SetFillStyle(0);
+  leg11->SetBorderSize(0);
+  leg11->SetTextSize(0.06);
+  leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_pt_r03->SetStats(false);
   jet_mass_pt_r03->SetTitle("Jet Mass vs p_{T} [R = 0.3]");
-  jet_mass_pt_r03->GetListOfFunctions()->Add(leg9);
+  jet_mass_pt_r03->GetListOfFunctions()->Add(leg11);
 
   // for average jet mass vs pt [R03]
-  TLegend *leg10 = new TLegend(.7, .9, .9, 1);
-  leg10->SetFillStyle(0);
-  leg10->SetBorderSize(0);
-  leg10->SetTextSize(0.06);
-  leg10->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg10->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg12 = new TLegend(.7, .9, .9, 1);
+  leg12->SetFillStyle(0);
+  leg12->SetBorderSize(0);
+  leg12->SetTextSize(0.06);
+  leg12->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg12->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_pt_1D_r03 = (TH1D *) jet_mass_pt_r03->ProfileX();
   jet_mass_pt_1D_r03->SetStats(false);
   jet_mass_pt_1D_r03->SetTitle("Average Jet Mass vs p_{T} [R = 0.3]");
@@ -437,26 +471,26 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   jet_mass_pt_1D_r03->SetMarkerStyle(8);
   jet_mass_pt_1D_r03->SetMarkerColor(1);
   jet_mass_pt_1D_r03->SetLineColor(1);
-  jet_mass_pt_1D_r03->GetListOfFunctions()->Add(leg10);
+  jet_mass_pt_1D_r03->GetListOfFunctions()->Add(leg12);
 
   // for jet mass vs pt [R04]
-  TLegend *leg11 = new TLegend(.7, .9, .9, 1);
-  leg11->SetFillStyle(0);
-  leg11->SetBorderSize(0);
-  leg11->SetTextSize(0.06);
-  leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg11->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg13 = new TLegend(.7, .9, .9, 1);
+  leg13->SetFillStyle(0);
+  leg13->SetBorderSize(0);
+  leg13->SetTextSize(0.06);
+  leg13->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first%  m_ptRange.second).c_str(), "");
+  leg13->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_pt_r04->SetStats(false);
   jet_mass_pt_r04->SetTitle("Jet Mass vs p_{T} [R = 0.4]");
-  jet_mass_pt_r04->GetListOfFunctions()->Add(leg11);
+  jet_mass_pt_r04->GetListOfFunctions()->Add(leg13);
 
   // for average jet mass vs pt [R04]
-  TLegend *leg12 = new TLegend(.7, .9, .9, 1);
-  leg12->SetFillStyle(0);
-  leg12->SetBorderSize(0);
-  leg12->SetTextSize(0.06);
-  leg12->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg12->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg14 = new TLegend(.7, .9, .9, 1);
+  leg14->SetFillStyle(0);
+  leg14->SetBorderSize(0);
+  leg14->SetTextSize(0.06);
+  leg14->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg14->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_pt_1D_r04 = (TH1D *) jet_mass_pt_r04->ProfileX();
   jet_mass_pt_1D_r04->SetStats(false);
   jet_mass_pt_1D_r04->SetTitle("Average Jet Mass vs p_{T} [R = 0.4]");
@@ -465,26 +499,54 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   jet_mass_pt_1D_r04->SetMarkerStyle(8);
   jet_mass_pt_1D_r04->SetMarkerColor(1);
   jet_mass_pt_1D_r04->SetLineColor(1);
-  jet_mass_pt_1D_r04->GetListOfFunctions()->Add(leg12);
+  jet_mass_pt_1D_r04->GetListOfFunctions()->Add(leg14);
+
+  // for jet mass vs pt [R05]
+  TLegend *leg15 = new TLegend(.7, .9, .9, 1);
+  leg15->SetFillStyle(0);
+  leg15->SetBorderSize(0);
+  leg15->SetTextSize(0.06);
+  leg15->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first%  m_ptRange.second).c_str(), "");
+  leg15->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  jet_mass_pt_r05->SetStats(false);
+  jet_mass_pt_r05->SetTitle("Jet Mass vs p_{T} [R = 0.5]");
+  jet_mass_pt_r05->GetListOfFunctions()->Add(leg15);
+
+  // for average jet mass vs pt [R05]
+  TLegend *leg16 = new TLegend(.7, .9, .9, 1);
+  leg16->SetFillStyle(0);
+  leg16->SetBorderSize(0);
+  leg16->SetTextSize(0.06);
+  leg16->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg16->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  jet_mass_pt_1D_r05 = (TH1D *) jet_mass_pt_r05->ProfileX();
+  jet_mass_pt_1D_r05->SetStats(false);
+  jet_mass_pt_1D_r05->SetTitle("Average Jet Mass vs p_{T} [R = 0.5]");
+  jet_mass_pt_1D_r05->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+  jet_mass_pt_1D_r05->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
+  jet_mass_pt_1D_r05->SetMarkerStyle(8);
+  jet_mass_pt_1D_r05->SetMarkerColor(1);
+  jet_mass_pt_1D_r05->SetLineColor(1);
+  jet_mass_pt_1D_r05->GetListOfFunctions()->Add(leg16);
 
   // for jet mass vs eta [R02]
-  TLegend *leg13 = new TLegend(.7, .9, .9, 1);
-  leg13->SetFillStyle(0);
-  leg13->SetBorderSize(0);
-  leg13->SetTextSize(0.06);
-  leg13->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg13->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg17 = new TLegend(.7, .9, .9, 1);
+  leg17->SetFillStyle(0);
+  leg17->SetBorderSize(0);
+  leg17->SetTextSize(0.06);
+  leg17->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg17->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_eta_r02->SetStats(false);
   jet_mass_eta_r02->SetTitle("Jet Mass vs #eta [R = 0.2]");
-  jet_mass_eta_r02->GetListOfFunctions()->Add(leg13);
+  jet_mass_eta_r02->GetListOfFunctions()->Add(leg17);
 
   // for average jet mass vs eta [R02]
-  TLegend *leg14 = new TLegend(.7, .9, .9, 1);
-  leg14->SetFillStyle(0);
-  leg14->SetBorderSize(0);
-  leg14->SetTextSize(0.06);
-  leg14->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg14->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg18 = new TLegend(.7, .9, .9, 1);
+  leg18->SetFillStyle(0);
+  leg18->SetBorderSize(0);
+  leg18->SetTextSize(0.06);
+  leg18->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg18->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_eta_1D_r02 = (TH1D *) jet_mass_eta_r02->ProfileX();
   jet_mass_eta_1D_r02->SetStats(false);
   jet_mass_eta_1D_r02->SetTitle("Average Jet Mass vs #eta [R = 0.2]");
@@ -493,26 +555,26 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   jet_mass_eta_1D_r02->SetMarkerStyle(8);
   jet_mass_eta_1D_r02->SetMarkerColor(1);
   jet_mass_eta_1D_r02->SetLineColor(1);
-  jet_mass_eta_1D_r02->GetListOfFunctions()->Add(leg14);
+  jet_mass_eta_1D_r02->GetListOfFunctions()->Add(leg18);
 
   // for jet mass vs eta [R03]
-  TLegend *leg15 = new TLegend(.7, .9, .9, 1);
-  leg15->SetFillStyle(0);
-  leg15->SetBorderSize(0);
-  leg15->SetTextSize(0.06);
-  leg15->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg15->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg19 = new TLegend(.7, .9, .9, 1);
+  leg19->SetFillStyle(0);
+  leg19->SetBorderSize(0);
+  leg19->SetTextSize(0.06);
+  leg19->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg19->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_eta_r03->SetStats(false);
   jet_mass_eta_r03->SetTitle("Jet Mass vs #eta [R = 0.3]");
-  jet_mass_eta_r03->GetListOfFunctions()->Add(leg15);
+  jet_mass_eta_r03->GetListOfFunctions()->Add(leg19);
 
   // for average jet mass vs eta [R03]
-  TLegend *leg16 = new TLegend(.7, .9, .9, 1);
-  leg16->SetFillStyle(0);
-  leg16->SetBorderSize(0);
-  leg16->SetTextSize(0.06);
-  leg16->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg16->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg20 = new TLegend(.7, .9, .9, 1);
+  leg20->SetFillStyle(0);
+  leg20->SetBorderSize(0);
+  leg20->SetTextSize(0.06);
+  leg20->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg20->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first %  m_etaRange.second).c_str(), "");
   jet_mass_eta_1D_r03 = (TH1D *) jet_mass_eta_r03->ProfileX();
   jet_mass_eta_1D_r03->SetStats(false);
   jet_mass_eta_1D_r03->SetTitle("Average Jet Mass vs #eta [R = 0.3]");
@@ -521,26 +583,26 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   jet_mass_eta_1D_r03->SetMarkerStyle(8);
   jet_mass_eta_1D_r03->SetMarkerColor(1);
   jet_mass_eta_1D_r03->SetLineColor(1);
-  jet_mass_eta_1D_r03->GetListOfFunctions()->Add(leg16);
+  jet_mass_eta_1D_r03->GetListOfFunctions()->Add(leg20);
 
   // for jet mass vs eta [R04]
-  TLegend *leg17 = new TLegend(.7, .9, .9, 1);
-  leg17->SetFillStyle(0);
-  leg17->SetBorderSize(0);
-  leg17->SetTextSize(0.06);
-  leg17->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg17->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg21 = new TLegend(.7, .9, .9, 1);
+  leg21->SetFillStyle(0);
+  leg21->SetBorderSize(0);
+  leg21->SetTextSize(0.06);
+  leg21->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg21->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_eta_r04->SetStats(false);
   jet_mass_eta_r04->SetTitle("Jet Mass vs #eta [R = 0.4]");
-  jet_mass_eta_r04->GetListOfFunctions()->Add(leg17);
+  jet_mass_eta_r04->GetListOfFunctions()->Add(leg21);
 
   // for average jet mass vs eta [R04]
-  TLegend *leg18 = new TLegend(.7, .9, .9, 1);
-  leg18->SetFillStyle(0);
-  leg18->SetBorderSize(0);
-  leg18->SetTextSize(0.06);
-  leg18->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg18->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  TLegend *leg22 = new TLegend(.7, .9, .9, 1);
+  leg22->SetFillStyle(0);
+  leg22->SetBorderSize(0);
+  leg22->SetTextSize(0.06);
+  leg22->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg22->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_eta_1D_r04 = (TH1D *) jet_mass_eta_r04->ProfileX();
   jet_mass_eta_1D_r04->SetStats(false);
   jet_mass_eta_1D_r04->SetTitle("Average Jet Mass vs #eta [R = 0.4]");
@@ -549,26 +611,60 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   jet_mass_eta_1D_r04->SetMarkerStyle(8);
   jet_mass_eta_1D_r04->SetMarkerColor(1);
   jet_mass_eta_1D_r04->SetLineColor(1);
-  jet_mass_eta_1D_r04->GetListOfFunctions()->Add(leg18);
+  jet_mass_eta_1D_r04->GetListOfFunctions()->Add(leg22);
+
+  // for jet mass vs eta [R05]
+  TLegend *leg23 = new TLegend(.7, .9, .9, 1);
+  leg23->SetFillStyle(0);
+  leg23->SetBorderSize(0);
+  leg23->SetTextSize(0.06);
+  leg23->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg23->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  jet_mass_eta_r05->SetStats(false);
+  jet_mass_eta_r05->SetTitle("Jet Mass vs #eta [R = 0.5]");
+  jet_mass_eta_r05->GetListOfFunctions()->Add(leg23);
+
+  // for average jet mass vs eta [R05]
+  TLegend *leg24 = new TLegend(.7, .9, .9, 1);
+  leg24->SetFillStyle(0);
+  leg24->SetBorderSize(0);
+  leg24->SetTextSize(0.06);
+  leg24->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg24->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
+  jet_mass_eta_1D_r05 = (TH1D *) jet_mass_eta_r05->ProfileX();
+  jet_mass_eta_1D_r05->SetStats(false);
+  jet_mass_eta_1D_r05->SetTitle("Average Jet Mass vs #eta [R = 0.5]");
+  jet_mass_eta_1D_r05->GetXaxis()->SetTitle("#eta");
+  jet_mass_eta_1D_r05->GetYaxis()->SetTitle("Average Jet Mass [GeV/c^{2}]");
+  jet_mass_eta_1D_r05->SetMarkerStyle(8);
+  jet_mass_eta_1D_r05->SetMarkerColor(1);
+  jet_mass_eta_1D_r05->SetLineColor(1);
+  jet_mass_eta_1D_r05->GetListOfFunctions()->Add(leg24);
 
   hm->registerHisto(jet_spectra_r02);
   hm->registerHisto(jet_spectra_r03);
   hm->registerHisto(jet_spectra_r04);
+  hm->registerHisto(jet_spectra_r05);
   hm->registerHisto(jet_eta_phi_r02);
   hm->registerHisto(jet_eta_phi_r03);
   hm->registerHisto(jet_eta_phi_r04);
+  hm->registerHisto(jet_eta_phi_r05);
   hm->registerHisto(jet_mass_pt_r02);
   hm->registerHisto(jet_mass_pt_r03);
   hm->registerHisto(jet_mass_pt_r04);
+  hm->registerHisto(jet_mass_pt_r05);
   hm->registerHisto(jet_mass_pt_1D_r02);
   hm->registerHisto(jet_mass_pt_1D_r03);
   hm->registerHisto(jet_mass_pt_1D_r04);
+  hm->registerHisto(jet_mass_pt_1D_r05);
   hm->registerHisto(jet_mass_eta_r02);
   hm->registerHisto(jet_mass_eta_r03);
   hm->registerHisto(jet_mass_eta_r04);
+  hm->registerHisto(jet_mass_eta_r05);
   hm->registerHisto(jet_mass_eta_1D_r02);
   hm->registerHisto(jet_mass_eta_1D_r03);
   hm->registerHisto(jet_mass_eta_1D_r04);
+  hm->registerHisto(jet_mass_eta_1D_r05);
 
   if (Verbosity() > 1)
   {
