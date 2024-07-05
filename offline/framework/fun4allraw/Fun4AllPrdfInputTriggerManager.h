@@ -128,7 +128,8 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   bool m_resync_flag{false};
   unsigned int m_InitialPoolDepth = 10;
   unsigned int m_DefaultPoolDepth = 10;
-  unsigned int m_PoolDepth = m_InitialPoolDepth;
+  unsigned int m_PoolDepth {m_InitialPoolDepth};
+  unsigned int m_Gl1PacketNumberEventNumberDiff {0};
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
   std::vector<SingleTriggerInput *> m_CemcInputVector;
