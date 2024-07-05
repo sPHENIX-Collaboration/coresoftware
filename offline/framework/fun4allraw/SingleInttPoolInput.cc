@@ -90,6 +90,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
       {
         std::cout << "End run flag for INTT found, remaining INTT data is corrupted" << std::endl;
         delete evt;
+        AllDone(1);
         return;
       }
       delete evt;
