@@ -88,10 +88,20 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "No acts geometry on node tree, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  
+  int numclusters = 0;
+  for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
+  {
+    auto range = clusterContainer->getClusters(hsk);
+    for (auto iter = range.first; iter != range.second; ++iter)
+    {
+      numclusters++;
+    }
+  }
 
   for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
   {
-    int numclusters = 0;
+    int numclusters_chip = 0;
     auto range = clusterContainer->getClusters(hsk);
     auto layer = TrkrDefs::getLayer(hsk);
     auto stave = MvtxDefs::getStaveId(hsk);
@@ -108,6 +118,7 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
         auto clayer = TrkrDefs::getLayer(cluskey);
         h_clusperchip[(int) layer][(int) stave][(int) chip]->Fill(cluster->getLocalY(), cluster->getLocalX());
         h_clusSize->Fill(cluster->getSize());
+        h_clusSize_nClus->Fill(numclusters,cluster->getSize());
         h_clusPhi_incl->Fill(phi);
         if (clayer == 0)
         {
@@ -125,10 +136,10 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
           h_clusZ_clusPhi_l2->Fill(globalpos(2), phi);
         }
         m_totalClusters++;
-        numclusters++;
+        numclusters_chip++;
       }
 
-      m_nclustersPerChip[(int) layer][(int) stave][(int) chip] += numclusters;
+      m_nclustersPerChip[(int) layer][(int) stave][(int) chip] += numclusters_chip;
     }
     else
     {
@@ -140,6 +151,7 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
         auto phi = atan2(globalpos(1), globalpos(0));
         auto clayer = TrkrDefs::getLayer(cluskey);
         h_clusSize->Fill(cluster->getSize());
+        h_clusSize_nClus->Fill(numclusters,cluster->getSize());
         h_clusPhi_incl->Fill(phi);
         if (clayer == 0)
         {
@@ -234,6 +246,10 @@ void MvtxClusterQA::createHistos()
   h_strobe->GetXaxis()->SetTitle("Strobe BCO - GL1 BCO");
   h_strobe->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_strobe);
+  h_clusSize_nClus = new TH2F((boost::format("%sclusSize_nCLus") % getHistoPrefix()).str().c_str(),"MVTX Cluster Size vs Number of Clusters",800,-0.5,799.5,25,-0.5,24.5);
+  h_clusSize_nClus->GetXaxis()->SetTitle("Number of Clusters");
+  h_clusSize_nClus->GetYaxis()->SetTitle("Cluster Size");
+  hm->registerHisto(h_clusSize_nClus);
 
   if (m_chipInfo)
   {
