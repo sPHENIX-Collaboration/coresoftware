@@ -7,7 +7,9 @@ DumpPacket::~DumpPacket()
   for (auto &iter: m_PacketDumpFile)
   {
     iter.second->close();
+    delete iter.second;
   }
+  m_PacketDumpFile.clear();
   return;
 }
 
