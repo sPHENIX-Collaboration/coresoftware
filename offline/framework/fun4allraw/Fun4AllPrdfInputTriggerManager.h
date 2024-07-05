@@ -48,9 +48,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void UpdateDroppedPacket(const int packetid);
   void AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin);
   void SetReferenceClock(const int evtno, const int bclk);
-  void SetReferenceInputMgr(SinglePrdfInput *inp) { m_RefPrdfInput = inp; }
-  void CreateBclkOffsets();
-  uint64_t CalcDiffBclk(const uint64_t bclk1, const uint64_t bclk2);
   void DitchEvent(const int eventno);
   void ClearAllEvents(const int eventno);
   void SetPoolDepth(unsigned int d) { m_DefaultPoolDepth = d; }
@@ -87,10 +84,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void AddGl1DroppedEvent(int iev) { m_Gl1DroppedEvent.insert(iev); }
 
  private:
-  struct SinglePrdfInputInfo
-  {
-    uint64_t bclkoffset{0};
-  };
 
   struct Gl1PacketInfo
   {
@@ -133,7 +126,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   unsigned int m_InitialPoolDepth = 10;
   unsigned int m_DefaultPoolDepth = 10;
   unsigned int m_PoolDepth{m_InitialPoolDepth};
-  unsigned int m_Gl1PacketNumberEventNumberDiff{0};
   std::set<int> m_Gl1DroppedEvent;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
   std::vector<SingleTriggerInput *> m_NoGl1InputVector;
@@ -146,7 +138,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::vector<SingleTriggerInput *> m_ZdcInputVector;
   SyncObject *m_SyncObject{nullptr};
   PHCompositeNode *m_topNode{nullptr};
-  SinglePrdfInput *m_RefPrdfInput{nullptr};
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, CaloPacketInfo> m_MbdPacketMap;
   std::map<int, CaloPacketInfo> m_CemcPacketMap;
@@ -157,7 +148,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;
-  std::map<SinglePrdfInput *, SinglePrdfInputInfo> m_SinglePrdfInputInfo;
   std::vector<uint64_t> m_HayStack;
   std::map<int, std::vector<uint64_t>> m_NeedleMap;
 };
