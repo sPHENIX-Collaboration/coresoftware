@@ -42,6 +42,7 @@ class MvtxClusterQA : public SubsysReco
 
   TH1 *h_occupancy{nullptr};
   TH1 *h_clusSize{nullptr};
+  TH2 *h_clusSize_nClus{nullptr};
   TH1 *h_clusPhi_incl{nullptr};
   TH1 *h_clusPhi_l0{nullptr};
   TH1 *h_clusPhi_l1{nullptr};
