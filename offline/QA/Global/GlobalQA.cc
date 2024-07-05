@@ -83,10 +83,6 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   {
     std::cout << _eventcounter << std::endl;
   }
-  //  std::cout << "In process_towers" << std::endl;
-  auto hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
-
   // MBD vertex
   MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   MbdVertex *bvertex = nullptr;
@@ -102,8 +98,8 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       mbd_zvtx = bvertex->get_z();
     }
   }
-  h_mbd_zvtx->Fill(mbd_zvtx);
-  h_mbd_zvtx_wide->Fill(mbd_zvtx);
+  h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
+  h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
 
   //--------------------------- trigger and GL1-------------------------------//
   Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
@@ -114,12 +110,12 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   /*
     if (gl1PacketInfo)
     {
-     auto h_triggerVec = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%striggerVec") % getHistoPrefix()).c_str()));
+     auto h_GlobalQA_triggerVec = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%striggerVec") % getHistoPrefix()).c_str()));
       uint64_t triggervec = gl1PacketInfo->getTriggerVector();
       for (int i = 0; i < 64; i++)
       {
         bool trig_decision = ((triggervec & 0x1U) == 0x1U);
-        if (trig_decision) h_triggerVec->Fill(i);
+        if (trig_decision) h_GlobalQA_triggerVec->Fill(i);
         triggervec = (triggervec >> 1U) & 0xffffffffU;
       }
     }
@@ -156,9 +152,9 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
         }
       }
     }
-    h_zdc_zvtx->Fill(999);
-    h_zdc_energy_s->Fill(totalzdcsouthcalib);
-    h_zdc_energy_n->Fill(totalzdcnorthcalib);
+    h_GlobalQA_zdc_zvtx->Fill(999);
+    h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
+    h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
   }
 
   //--------------------------- MBD ----------------------------------------//
@@ -306,20 +302,18 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     calc_zvtx = 999;
   }
 
-  h_calc_zvtx->Fill(calc_zvtx);
-  h_calc_zvtx_wide->Fill(calc_zvtx);
-  h_mbd_charge_s->Fill(tot_charge_s);
-  h_mbd_charge_n->Fill(tot_charge_n);
-  h_mbd_nhit_s->Fill(hits_s);
-  h_mbd_nhit_n->Fill(hits_n);
+  h_GlobalQA_calc_zvtx->Fill(calc_zvtx);
+  h_GlobalQA_calc_zvtx_wide->Fill(calc_zvtx);
+  h_GlobalQA_mbd_charge_s->Fill(tot_charge_s);
+  h_GlobalQA_mbd_charge_n->Fill(tot_charge_n);
+  h_GlobalQA_mbd_nhit_s->Fill(hits_s);
+  h_GlobalQA_mbd_nhit_n->Fill(hits_n);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int GlobalQA::End(PHCompositeNode * /*topNode*/)
 {
-  auto hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -329,28 +323,28 @@ void GlobalQA::createHistos()
   assert(hm);
 
   // MBD QA
-  h_mbd_zvtx = new TH1D("h_mbd_zvtx", ";zvtx [cm]", 100, -50, 50);
-  h_mbd_zvtx_wide = new TH1D("h_mbd_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
-  h_calc_zvtx = new TH1D("h_calc_zvtx", ";zvtx [cm]", 100, -50, 50);
-  h_calc_zvtx_wide = new TH1D("h_calc_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
-  h_mbd_charge_s = new TH1D("h_mbd_charge_s", ";charge", 100, 0, 10);
-  h_mbd_charge_n = new TH1D("h_mbd_charge_n", ";charge", 100, 0, 10);
-  h_mbd_nhit_s = new TH1D("h_mbd_nhit_s", ";nhit", 30, -0.5, 29.5);
-  h_mbd_nhit_n = new TH1D("h_mbd_nhit_n", ";nhit", 30, -0.5, 29.5);
-  hm->registerHisto(h_mbd_zvtx);
-  hm->registerHisto(h_mbd_zvtx_wide);
-  hm->registerHisto(h_calc_zvtx);
-  hm->registerHisto(h_calc_zvtx_wide);
-  hm->registerHisto(h_mbd_charge_s);
-  hm->registerHisto(h_mbd_charge_n);
-  hm->registerHisto(h_mbd_nhit_s);
-  hm->registerHisto(h_mbd_nhit_n);
+  h_GlobalQA_mbd_zvtx = new TH1D("h_GlobalQA_mbd_zvtx", ";zvtx [cm]", 100, -50, 50);
+  h_GlobalQA_mbd_zvtx_wide = new TH1D("h_GlobalQA_mbd_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";zvtx [cm]", 100, -50, 50);
+  h_GlobalQA_calc_zvtx_wide = new TH1D("h_GlobalQA_calc_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_mbd_charge_s = new TH1D("h_GlobalQA_mbd_charge_s", ";charge", 100, 0, 10);
+  h_GlobalQA_mbd_charge_n = new TH1D("h_GlobalQA_mbd_charge_n", ";charge", 100, 0, 10);
+  h_GlobalQA_mbd_nhit_s = new TH1D("h_GlobalQA_mbd_nhit_s", ";nhit", 30, -0.5, 29.5);
+  h_GlobalQA_mbd_nhit_n = new TH1D("h_GlobalQA_mbd_nhit_n", ";nhit", 30, -0.5, 29.5);
+  hm->registerHisto(h_GlobalQA_mbd_zvtx);
+  hm->registerHisto(h_GlobalQA_mbd_zvtx_wide);
+  hm->registerHisto(h_GlobalQA_calc_zvtx);
+  hm->registerHisto(h_GlobalQA_calc_zvtx_wide);
+  hm->registerHisto(h_GlobalQA_mbd_charge_s);
+  hm->registerHisto(h_GlobalQA_mbd_charge_n);
+  hm->registerHisto(h_GlobalQA_mbd_nhit_s);
+  hm->registerHisto(h_GlobalQA_mbd_nhit_n);
 
   // ZDC QA
-  h_zdc_zvtx = new TH1D("h_zdc_zvtx", ";zvtx [cm]", 100, -300, 300);
-  h_zdc_energy_s = new TH1D("h_zdc_energy_s", ";Energy [Gev]", 100, 0, 700);
-  h_zdc_energy_n = new TH1D("h_zdc_energy_n", ";Energy [Gev]", 100, 0, 700);
-  hm->registerHisto(h_zdc_zvtx);
-  hm->registerHisto(h_zdc_energy_s);
-  hm->registerHisto(h_zdc_energy_n);
+  h_GlobalQA_zdc_zvtx = new TH1D("h_GlobalQA_zdc_zvtx", ";zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_zdc_energy_s = new TH1D("h_GlobalQA_zdc_energy_s", ";Energy [Gev]", 100, 0, 700);
+  h_GlobalQA_zdc_energy_n = new TH1D("h_GlobalQA_zdc_energy_n", ";Energy [Gev]", 100, 0, 700);
+  hm->registerHisto(h_GlobalQA_zdc_zvtx);
+  hm->registerHisto(h_GlobalQA_zdc_energy_s);
+  hm->registerHisto(h_GlobalQA_zdc_energy_n);
 }

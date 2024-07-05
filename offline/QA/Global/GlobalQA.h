@@ -44,18 +44,18 @@ class GlobalQA : public SubsysReco
   int Getpeaktime(TH1* h);
   void createHistos();
 
-  TH1* h_mbd_zvtx = nullptr;
-  TH1* h_mbd_zvtx_wide = nullptr;
-  TH1* h_calc_zvtx = nullptr;
-  TH1* h_calc_zvtx_wide = nullptr;
-  TH1* h_mbd_charge_s = nullptr;
-  TH1* h_mbd_charge_n = nullptr;
-  TH1* h_mbd_nhit_s = nullptr;
-  TH1* h_mbd_nhit_n = nullptr;
+  TH1* h_GlobalQA_mbd_zvtx = nullptr;
+  TH1* h_GlobalQA_mbd_zvtx_wide = nullptr;
+  TH1* h_GlobalQA_calc_zvtx = nullptr;
+  TH1* h_GlobalQA_calc_zvtx_wide = nullptr;
+  TH1* h_GlobalQA_mbd_charge_s = nullptr;
+  TH1* h_GlobalQA_mbd_charge_n = nullptr;
+  TH1* h_GlobalQA_mbd_nhit_s = nullptr;
+  TH1* h_GlobalQA_mbd_nhit_n = nullptr;
   
-  TH1* h_zdc_zvtx = nullptr;
-  TH1* h_zdc_energy_s = nullptr;
-  TH1* h_zdc_energy_n = nullptr;
+  TH1* h_GlobalQA_zdc_zvtx = nullptr;
+  TH1* h_GlobalQA_zdc_energy_s = nullptr;
+  TH1* h_GlobalQA_zdc_energy_n = nullptr;
 
   int _eventcounter{0};
   int _range{1};
