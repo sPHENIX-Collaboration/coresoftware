@@ -65,6 +65,7 @@ tryagain:
   int iret = 0;
   if (m_gl1_registered_flag)  // Gl1 first to get the reference
   {
+    std::cout << "Filling Gl1 up to " << m_PoolDepth << " events" << std::endl;
     iret += FillGl1(m_PoolDepth);
   }
   if (m_mbd_registered_flag)  // Mbd next to get the reference if Gl1 is missing
@@ -77,6 +78,7 @@ tryagain:
   }
   if (m_cemc_registered_flag)  // Mbd first to get the reference
   {
+    std::cout << "Filling CEMC up to " << m_PoolDepth << " events" << std::endl;
     iret += FillCemc(m_PoolDepth);
   }
   if (m_zdc_registered_flag)  // Mbd first to get the reference
@@ -690,6 +692,20 @@ int Fun4AllPrdfInputTriggerManager::MoveGl1ToNodeTree()
       gl1hititer.second->identify();
     }
     gl1packet->FillFrom(gl1hititer.second);
+    unsigned int gl1pktdiff = gl1packet->getPacketNumber() - m_RefEventNo;
+    if (m_Gl1PacketNumberEventNumberDiff == 0)
+    {
+      m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
+    }
+    else
+    {
+      if (m_Gl1PacketNumberEventNumberDiff != gl1pktdiff)
+      {
+    std::cout << "Event " <<  m_RefEventNo << " Packet Number: " << gl1packet->getPacketNumber()
+	      << " delta: " << m_RefEventNo - gl1packet->getPacketNumber() << std::endl;
+    m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
+      }
+    }
     // m_RefEventNo = gl1hititer->getEvtSequence();
     // gl1packet->setEvtSequence(m_RefEventNo);
   }
@@ -981,7 +997,7 @@ void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "Adding cemc packet from event " << pkt->getEvtSequence() << " to eventno: "
+    std::cout << "Adding cemc packet " << pkt->getIdentifier() << " from event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
   m_CemcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
@@ -1580,35 +1596,48 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
   auto calomapbegin = begin;
   for (auto &pktiter : calomapbegin->second.CaloSinglePacketMap)
   {
-    //    std::cout << "Clearing Needle for packet " << pktiter.first << std::endl;
+    std::cout << "Clearing Needle for packet " << pktiter.first << std::endl;
     m_NeedleMap[pktiter.first].clear();
   }
   // here we refill the needle for every packet with the cached BCO differences
+/*
   for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
   {
     for (auto bcoiter : sepdhititer->second.BcoDiffMap)
     {
       m_NeedleMap[bcoiter.first].push_back(bcoiter.second);
-      // std::cout << "Pushing 0x" << std::hex << bcoiter.second << " into packet " << std::dec << bcoiter.first
-      // 		<< " for event " << calomapbegin->first << std::endl;
+      std::cout << "Pushing 0x" << std::hex << bcoiter.second << " into packet " << std::dec << bcoiter.first
+       		<< " for event " << calomapbegin->first << std::endl;
     }
   }
+*/
   // here we calculate the bco diff to the previous event and update the cached bco difference
   // only for events where we haven't done this yet (check of the bco diff map is empty)
-  for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
+  auto sepdhititer1 = begin;
+//  for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
   {
-    if (sepdhititer->second.BcoDiffMap.empty())  // This is for the first event, init bco diff to 0x0
+    if (sepdhititer1->second.BcoDiffMap.empty())  // This is for the first event, init bco diff to 0x0
     {
-      for (auto &pktiter : sepdhititer->second.CaloSinglePacketMap)
+      for (auto &pktiter : sepdhititer1->second.CaloSinglePacketMap)
       {
-        sepdhititer->second.BcoDiffMap[pktiter.first] = 0x0;
+        sepdhititer1->second.BcoDiffMap[pktiter.first] = 0x0;
         m_NeedleMap[pktiter.first].push_back(0x0);
         // std::cout << "Startup: Pushing 0x0 into packet " << pktiter.first
         // 		<< " for event " << sepdhititer->first << std::endl;
       }
     }
-
+  
+     else
+     {
+       for (auto &pktiter : sepdhititer1->second.CaloSinglePacketMap)
+       {
+       m_NeedleMap[pktiter.first].push_back(sepdhititer1->second.BcoDiffMap[pktiter.first]);
+       }
+   }
+  }
     //      std::cout << PHWHERE << name <<" event: " <<  sepdhititer->first << std::endl;
+  for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
+  {
     auto nextIt = std::next(sepdhititer);
     if (nextIt != end)
     {
@@ -1637,8 +1666,8 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
       {
         uint64_t prev_bco = pktiter.second->getBCO();
         int prev_packetid = pktiter.first;
-        // std::cout << "event " << sepdhititer->first << " packet id: " << prev_packetid
-        // 	  << " prev_bco: 0x" << std::hex << prev_bco << std::dec << std::endl;
+        std::cout << "event " << sepdhititer->first << " packet id: " << prev_packetid
+         	  << " prev_bco: 0x" << std::hex << prev_bco << std::dec << std::endl;
         auto currpkt = nextIt->second.CaloSinglePacketMap.find(prev_packetid);  //->find(prev_packetid);
         if (currpkt != nextIt->second.CaloSinglePacketMap.end())
         {
