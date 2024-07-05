@@ -1415,6 +1415,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
         if (needle.size() >= 1)
         {
           //	  needle.pop_back(); already popped back
+          // NOLINTNEXTLINE(hicpp-avoid-goto)
           goto match_again;
         }
         // here we have an event which doesn't match
@@ -1835,7 +1836,8 @@ int Fun4AllPrdfInputTriggerManager::DropFirstEvent(std::map<int, CaloPacketInfo>
   // Print("CEMCMAP");
 
   std::vector<int> events;
-  for (auto packetloop : PacketInfoMap)
+  events.reserve(PacketInfoMap.size());
+for (const auto& packetloop : PacketInfoMap)
   {
     events.push_back(packetloop.first);
   }
@@ -1863,7 +1865,8 @@ int Fun4AllPrdfInputTriggerManager::DropFirstEventLL1(std::map<int, LL1PacketInf
   // Print("CEMCMAP");
 
   std::vector<int> events;
-  for (auto packetloop : PacketInfoMap)
+  events.reserve(PacketInfoMap.size());
+for (const auto& packetloop : PacketInfoMap)
   {
     events.push_back(packetloop.first);
   }
