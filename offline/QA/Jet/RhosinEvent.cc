@@ -90,7 +90,7 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
   for (auto& vecHistName : vecHistNames)
   {
     vecHistName.insert(0, "h_" + smallModuleName + "_");
-    vecHistName.append("_" + m_histTag);
+    if (!m_histTag.empty()) vecHistNames[iHistName].append("_" + m_histTag);
   }
 
   h1_mult_rho = new TH1D(vecHistNames[0].data(), "h1_mult_rho", N_rho_mult, N_rho_mult_bins);
