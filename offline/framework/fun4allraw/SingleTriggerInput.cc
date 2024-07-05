@@ -25,6 +25,7 @@ SingleTriggerInput::~SingleTriggerInput()
   for (auto &openfiles : m_PacketDumpFile)
   {
     openfiles.second->close();
+    delete openfiles.second;
   }
   m_PacketDumpFile.clear();
   delete m_EventIterator;
@@ -224,6 +225,58 @@ int SingleTriggerInput::AdjustPacketMap(int pktid, int evtoffset)
         break;
       }
     }
+  }
+  return 0;
+}
+
+int SingleTriggerInput::AdjustEventOffset(int evtoffset)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << PHWHERE << " adjusting local " << Name()
+              << " all packets with offset " << evtoffset << std::endl;
+  }
+  std::vector<int> eventnumbers;
+// needs separate cases so we don't overwrite existing entries
+  if (evtoffset < 0) // for negative offsets start at the beginning and move down (into empty space)
+  {
+    for (auto packetmapiter = m_PacketMap.begin(); packetmapiter != m_PacketMap.end(); ++packetmapiter)
+    {
+      eventnumbers.push_back(packetmapiter->first);
+    }
+  }
+  else // for positive offsets start at the end and move up (into empty space)
+  {
+    for (auto packetmapiter = m_PacketMap.begin(); packetmapiter != m_PacketMap.end(); ++packetmapiter)
+    {
+      eventnumbers.push_back(packetmapiter->first);
+    }
+  }
+
+  for (auto evtnumiter : eventnumbers)
+  {
+    int lastevent = evtnumiter;
+    int newevent = lastevent + evtoffset;
+    //    for (auto pktiter : m_PacketMap[lastevent])
+    for (std::vector<OfflinePacket *>::iterator pktiter = m_PacketMap[lastevent].begin(); pktiter != m_PacketMap[lastevent].end(); ++pktiter)
+    {
+//      if ((*pktiter)->getIdentifier() == pktid)
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << PHWHERE << " need to move packet " << (*pktiter)->getIdentifier() << std::endl;
+        }
+        //      trivial variables give no speed benefit from using std::move
+        //	m_PacketMap[newevent].push_back(std::move(*pktiter));
+        m_PacketMap[newevent].push_back(*pktiter);
+        m_PacketMap[lastevent].erase(pktiter);
+        break;
+      }
+    }
+  }
+  for (auto evtnumiter : m_EventNumberOffset)
+  {
+    evtnumiter.second += evtoffset;
   }
   return 0;
 }
