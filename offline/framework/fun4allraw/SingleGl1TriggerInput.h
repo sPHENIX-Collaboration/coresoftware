@@ -25,8 +25,6 @@ class SingleGl1TriggerInput : public SingleTriggerInput
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
  private:
-  std::set<int> m_EventNumber;
-  std::set<int> m_EventStack;
 };
 
 #endif

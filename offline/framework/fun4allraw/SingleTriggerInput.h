@@ -54,6 +54,8 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
  protected:
   std::map<int, std::vector<OfflinePacket *>> m_PacketMap;
   unsigned int m_NumSpecialEvents{0};
+  std::set<int> m_EventNumber;
+  std::set<int> m_EventStack;
 
   // we have accessors for these here
  private:
