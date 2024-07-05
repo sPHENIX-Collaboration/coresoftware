@@ -84,7 +84,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void AddGl1DroppedEvent(int iev) { m_Gl1DroppedEvent.insert(iev); }
 
  private:
-
   struct Gl1PacketInfo
   {
     std::map<int, Gl1Packet *> Gl1SinglePacketMap;

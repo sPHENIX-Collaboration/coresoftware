@@ -1837,7 +1837,7 @@ int Fun4AllPrdfInputTriggerManager::DropFirstEvent(std::map<int, CaloPacketInfo>
 
   std::vector<int> events;
   events.reserve(PacketInfoMap.size());
-for (const auto& packetloop : PacketInfoMap)
+  for (const auto &packetloop : PacketInfoMap)
   {
     events.push_back(packetloop.first);
   }
@@ -1866,7 +1866,7 @@ int Fun4AllPrdfInputTriggerManager::DropFirstEventLL1(std::map<int, LL1PacketInf
 
   std::vector<int> events;
   events.reserve(PacketInfoMap.size());
-for (const auto& packetloop : PacketInfoMap)
+  for (const auto &packetloop : PacketInfoMap)
   {
     events.push_back(packetloop.first);
   }
