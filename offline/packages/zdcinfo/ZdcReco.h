@@ -42,6 +42,8 @@ class ZdcReco : public SubsysReco
    std::string m_calibName;
    bool m_overrideCalibName{false};
    bool m_overrideFieldName{false};
+   bool smd_north_fired{false};
+   bool smd_south_fired{false};
    std::vector<float> vsmdadc;
    std::vector<float> vsmdtime;
    std::vector<float> vzdcadc;
@@ -50,10 +52,14 @@ class ZdcReco : public SubsysReco
    float smd_pos[4] = {0.0f};
    float radius_south{0.};
    float radius_north{0.};
-   float _sumS{0.};
-   float _sumN{0.};
    float _zdc1_e{65.0};
    float _zdc2_e{20.0};
+   float _sumS{0.};
+   float _sumN{0.};
+   int _nhor{0};
+   int _nver{0};
+   int _shor{0};
+   int _sver{0};
 };
 
 #endif  // ZDCRECO_H
