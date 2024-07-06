@@ -27,9 +27,6 @@ class SingleCemcTriggerInput : public SingleTriggerInput
 
  private:
   Packet **plist{nullptr};
-
-  std::set<int> m_EventNumber;
-  std::set<int> m_EventStack;
 };
 
 #endif

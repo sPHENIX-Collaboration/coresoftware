@@ -10,6 +10,7 @@
 #include <Event/phenixTypes.h>
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -47,9 +48,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void UpdateDroppedPacket(const int packetid);
   void AddBeamClock(const int evtno, const int bclk, SinglePrdfInput *prdfin);
   void SetReferenceClock(const int evtno, const int bclk);
-  void SetReferenceInputMgr(SinglePrdfInput *inp) { m_RefPrdfInput = inp; }
-  void CreateBclkOffsets();
-  uint64_t CalcDiffBclk(const uint64_t bclk1, const uint64_t bclk2);
   void DitchEvent(const int eventno);
   void ClearAllEvents(const int eventno);
   void SetPoolDepth(unsigned int d) { m_DefaultPoolDepth = d; }
@@ -83,13 +81,9 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   void ClockDiffFill();
   int ClockDiffCheck();
   void Resync(bool b = true) { m_resync_flag = b; }
+  void AddGl1DroppedEvent(int iev) { m_Gl1DroppedEvent.insert(iev); }
 
  private:
-  struct SinglePrdfInputInfo
-  {
-    uint64_t bclkoffset{0};
-  };
-
   struct Gl1PacketInfo
   {
     std::map<int, Gl1Packet *> Gl1SinglePacketMap;
@@ -106,6 +100,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillNeedle(std::map<int, CaloPacketInfo>::iterator begin, std::map<int, CaloPacketInfo>::iterator end, const std::string &name = "NONE");
   int ShiftEvents(std::map<int, CaloPacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name = "NONE");
   int AdjustBcoDiff(std::map<int, CaloPacketInfo> &PacketInfoMap, int packetid, uint64_t bcodiff);
+  int DropFirstEvent(std::map<int, CaloPacketInfo> &PacketInfoMap);
 
   struct LL1PacketInfo
   {
@@ -116,6 +111,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int FillNeedleLL1(std::map<int, LL1PacketInfo>::iterator begin, std::map<int, LL1PacketInfo>::iterator end, const std::string &name = "NONE");
   int ShiftEventsLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, std::map<int, int> &eventoffset, const std::string &name = "NONE");
   int AdjustBcoDiffLL1(std::map<int, LL1PacketInfo> &PacketInfoMap, int packetid, uint64_t bcodiff);
+  int DropFirstEventLL1(std::map<int, LL1PacketInfo> &PacketInfoMap);
 
   int m_RunNumber{0};
   int m_RefEventNo{std::numeric_limits<int>::min()};
@@ -128,8 +124,10 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   bool m_resync_flag{false};
   unsigned int m_InitialPoolDepth = 10;
   unsigned int m_DefaultPoolDepth = 10;
-  unsigned int m_PoolDepth = m_InitialPoolDepth;
+  unsigned int m_PoolDepth{m_InitialPoolDepth};
+  std::set<int> m_Gl1DroppedEvent;
   std::vector<SingleTriggerInput *> m_TriggerInputVector;
+  std::vector<SingleTriggerInput *> m_NoGl1InputVector;
   std::vector<SingleTriggerInput *> m_Gl1InputVector;
   std::vector<SingleTriggerInput *> m_CemcInputVector;
   std::vector<SingleTriggerInput *> m_HcalInputVector;
@@ -139,7 +137,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::vector<SingleTriggerInput *> m_ZdcInputVector;
   SyncObject *m_SyncObject{nullptr};
   PHCompositeNode *m_topNode{nullptr};
-  SinglePrdfInput *m_RefPrdfInput{nullptr};
   std::map<int, Gl1PacketInfo> m_Gl1PacketMap;
   std::map<int, CaloPacketInfo> m_MbdPacketMap;
   std::map<int, CaloPacketInfo> m_CemcPacketMap;
@@ -150,7 +147,6 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, int> m_DroppedPacketMap;
   std::map<int, std::vector<std::pair<int, SinglePrdfInput *>>> m_ClockCounters;
   std::map<int, int> m_RefClockCounters;
-  std::map<SinglePrdfInput *, SinglePrdfInputInfo> m_SinglePrdfInputInfo;
   std::vector<uint64_t> m_HayStack;
   std::map<int, std::vector<uint64_t>> m_NeedleMap;
 };

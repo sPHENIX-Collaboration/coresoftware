@@ -101,11 +101,33 @@ void SingleGl1TriggerInput::FillPool(const unsigned int keep)
     // by default use previous bco clock for gtm bco
     Gl1Packet *newhit = new Gl1Packetv2();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
+    unsigned int packetnumber = packet->iValue(0);
+    unsigned int gl1pktdiff = packetnumber - EventSequence;
+    if (m_Gl1PacketNumberEventNumberDiff == 0)  // startup
+    {
+      m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
+    }
+    else
+    {
+      if (m_Gl1PacketNumberEventNumberDiff != gl1pktdiff)
+      {
+        if (TriggerInputManager())
+        {
+          TriggerInputManager()->AddGl1DroppedEvent(EventSequence);
+        }
+
+        std::cout << Name() << ": Found dropped Event at event " << EventSequence
+                  << " with Packet Number: " << packetnumber << std::endl;
+        m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
+      }
+    }
+
     newhit->setBCO(packet->lValue(0, "BCO"));
     newhit->setHitFormat(packet->getHitFormat());
     newhit->setIdentifier(packet->getIdentifier());
     newhit->setEvtSequence(EventSequence);
-    newhit->setPacketNumber(packet->iValue(0));
+    newhit->setPacketNumber(packetnumber);
+
     newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
     newhit->setTriggerInput(packet->lValue(0, "TriggerInput"));
     newhit->setLiveVector(packet->lValue(0, "LiveVector"));

@@ -27,9 +27,6 @@ class SingleLL1TriggerInput : public SingleTriggerInput
 
  private:
   Packet **plist{nullptr};
-
-  std::set<int> m_EventNumber;
-  std::set<int> m_EventStack;
 };
 
 #endif

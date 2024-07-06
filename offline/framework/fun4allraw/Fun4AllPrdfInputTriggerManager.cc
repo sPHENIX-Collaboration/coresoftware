@@ -433,6 +433,11 @@ void Fun4AllPrdfInputTriggerManager::registerTriggerInput(SingleTriggerInput *pr
     exit(1);
   }
   m_TriggerInputVector.push_back(prdfin);
+  // this is for convenience - we need to loop over all input managers except for the GL1
+  if (system != InputManagerType::GL1)
+  {
+    m_NoGl1InputVector.push_back(prdfin);
+  }
   if (Verbosity() > 3)
   {
     std::cout << "registering " << prdfin->Name()
@@ -467,71 +472,6 @@ void Fun4AllPrdfInputTriggerManager::UpdateDroppedPacket(const int packetid)
 void Fun4AllPrdfInputTriggerManager::SetReferenceClock(const int evtno, const int bclk)
 {
   m_RefClockCounters[evtno] = bclk;
-}
-
-void Fun4AllPrdfInputTriggerManager::CreateBclkOffsets()
-{
-  if (!m_RefPrdfInput)
-  {
-    std::cout << PHWHERE << " No reference input manager given" << std::endl;
-    exit(1);
-  }
-  std::map<SinglePrdfInput *, std::map<int, int>> clockcounters;
-  for (const auto &iter : m_ClockCounters)
-  {
-    int refclock = m_RefClockCounters[iter.first];
-    for (auto veciter : iter.second)
-    {
-      int diffclk = CalcDiffBclk(veciter.first, refclock);
-      if (Verbosity() > 1)
-      {
-        std::cout << "diffclk for " << veciter.second->Name() << ": " << std::hex
-                  << diffclk << ", clk: 0x" << veciter.first
-                  << ", refclk: 0x" << refclock << std::dec << std::endl;
-      }
-      auto clkiter = clockcounters.find(veciter.second);
-      if (clkiter == clockcounters.end())
-      {
-        std::map<int, int> mymap;
-        clkiter = clockcounters.insert(std::make_pair(veciter.second, mymap)).first;
-      }
-      clkiter->second[diffclk]++;
-    }
-  }
-  // now loop over the clock counter diffs for each input manager and find the majority vote
-  for (const auto &iter : clockcounters)
-  {
-    int imax = -1;
-    int diffmax = std::numeric_limits<int>::max();
-    for (auto initer : iter.second)
-    {
-      if (Verbosity() > 0)
-      {
-        std::cout << iter.first->Name() << " initer.second " << initer.second << std::hex
-                  << " initer.first: " << initer.first << std::dec << std::endl;
-      }
-      if (initer.second > imax)
-      {
-        diffmax = initer.first;
-        imax = initer.second;
-      }
-      m_SinglePrdfInputInfo[iter.first].bclkoffset = diffmax;
-    }
-  }
-  for (auto iter : m_SinglePrdfInputInfo)
-  {
-    if (Verbosity() > 0)
-    {
-      std::cout << "prdf mgr " << iter.first->Name() << " clkdiff: 0x" << std::hex
-                << iter.second.bclkoffset << std::dec << std::endl;
-    }
-  }
-}
-
-uint64_t Fun4AllPrdfInputTriggerManager::CalcDiffBclk(const uint64_t bclk1, const uint64_t bclk2)
-{
-  uint64_t diffclk = (bclk2 - bclk1) & 0xFFFFU;
-  return diffclk;
 }
 
 void Fun4AllPrdfInputTriggerManager::DitchEvent(const int eventno)
@@ -981,7 +921,7 @@ void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "Adding cemc packet from event " << pkt->getEvtSequence() << " to eventno: "
+    std::cout << "Adding cemc packet " << pkt->getIdentifier() << " from event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
   m_CemcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
@@ -1475,7 +1415,45 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
         if (needle.size() >= 1)
         {
           //	  needle.pop_back(); already popped back
+          // NOLINTNEXTLINE(hicpp-avoid-goto)
           goto match_again;
+        }
+        // here we have an event which doesn't match
+        // first check if the GL1 dropped an event
+        // The m_Gl1DroppedEvent set is filled by the GL1 input manager which compares the packet id and the event number
+        if (m_Gl1DroppedEvent.find(m_Gl1PacketMap.begin()->first) != m_Gl1DroppedEvent.end())  // dropped gl1 event
+        {
+          std::cout << "We have a dropped GL1 event" << std::endl;
+          m_Gl1DroppedEvent.erase(m_Gl1PacketMap.begin()->first);
+          if (!m_MbdPacketMap.empty())
+          {
+            DropFirstEvent(m_MbdPacketMap);
+          }
+          if (!m_LL1PacketMap.empty())
+          {
+            DropFirstEventLL1(m_LL1PacketMap);
+          }
+          if (!m_HcalPacketMap.empty())
+          {
+            DropFirstEvent(m_HcalPacketMap);
+          }
+          if (!m_CemcPacketMap.empty())
+          {
+            DropFirstEvent(m_CemcPacketMap);
+          }
+          if (!m_ZdcPacketMap.empty())
+          {
+            DropFirstEvent(m_ZdcPacketMap);
+          }
+          if (!m_SEpdPacketMap.empty())
+          {
+            DropFirstEvent(m_SEpdPacketMap);
+          }
+          for (auto inputiter : m_NoGl1InputVector)
+          {
+            inputiter->AdjustEventOffset(-1);
+          }
+          return -1;
         }
         // what is left is the event after the skip, let's make a crosscheck if the sum of the clockdiff of the previous 2 events does the trick
         if (Verbosity() > 1)
@@ -1583,32 +1561,29 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
     //    std::cout << "Clearing Needle for packet " << pktiter.first << std::endl;
     m_NeedleMap[pktiter.first].clear();
   }
-  // here we refill the needle for every packet with the cached BCO differences
-  for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
+  // this handles the first event where we do not have the bco diff to the previous event
+  // for subsequent calls we take the bco diff for the first event in the needle from
+  // the cached bco diffs in the bco diffmap
+  if (calomapbegin->second.BcoDiffMap.empty())  // This is for the first event, init bco diff to 0x0
   {
-    for (auto bcoiter : sepdhititer->second.BcoDiffMap)
+    for (auto &pktiter : calomapbegin->second.CaloSinglePacketMap)
     {
-      m_NeedleMap[bcoiter.first].push_back(bcoiter.second);
-      // std::cout << "Pushing 0x" << std::hex << bcoiter.second << " into packet " << std::dec << bcoiter.first
-      // 		<< " for event " << calomapbegin->first << std::endl;
+      calomapbegin->second.BcoDiffMap[pktiter.first] = 0x0;
+      m_NeedleMap[pktiter.first].push_back(0x0);
+      // std::cout << "Startup: Pushing 0x0 into packet " << pktiter.first
+      // 		<< " for event " << sepdhititer->first << std::endl;
     }
   }
-  // here we calculate the bco diff to the previous event and update the cached bco difference
-  // only for events where we haven't done this yet (check of the bco diff map is empty)
+  else
+  {
+    for (auto &pktiter : calomapbegin->second.CaloSinglePacketMap)
+    {
+      m_NeedleMap[pktiter.first].push_back(calomapbegin->second.BcoDiffMap[pktiter.first]);
+    }
+  }
+  //      std::cout << PHWHERE << name <<" event: " <<  sepdhititer->first << std::endl;
   for (auto sepdhititer = begin; sepdhititer != end; ++sepdhititer)
   {
-    if (sepdhititer->second.BcoDiffMap.empty())  // This is for the first event, init bco diff to 0x0
-    {
-      for (auto &pktiter : sepdhititer->second.CaloSinglePacketMap)
-      {
-        sepdhititer->second.BcoDiffMap[pktiter.first] = 0x0;
-        m_NeedleMap[pktiter.first].push_back(0x0);
-        // std::cout << "Startup: Pushing 0x0 into packet " << pktiter.first
-        // 		<< " for event " << sepdhititer->first << std::endl;
-      }
-    }
-
-    //      std::cout << PHWHERE << name <<" event: " <<  sepdhititer->first << std::endl;
     auto nextIt = std::next(sepdhititer);
     if (nextIt != end)
     {
@@ -1638,7 +1613,7 @@ int Fun4AllPrdfInputTriggerManager::FillNeedle(std::map<int, CaloPacketInfo>::it
         uint64_t prev_bco = pktiter.second->getBCO();
         int prev_packetid = pktiter.first;
         // std::cout << "event " << sepdhititer->first << " packet id: " << prev_packetid
-        // 	  << " prev_bco: 0x" << std::hex << prev_bco << std::dec << std::endl;
+        //  	  << " prev_bco: 0x" << std::hex << prev_bco << std::dec << std::endl;
         auto currpkt = nextIt->second.CaloSinglePacketMap.find(prev_packetid);  //->find(prev_packetid);
         if (currpkt != nextIt->second.CaloSinglePacketMap.end())
         {
@@ -1850,6 +1825,64 @@ int Fun4AllPrdfInputTriggerManager::ShiftEventsLL1(std::map<int, LL1PacketInfo> 
       }
     }
   }
+  return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::DropFirstEvent(std::map<int, CaloPacketInfo> &PacketInfoMap)
+{
+  //  Print("CEMCMAP");
+  PacketInfoMap.erase(PacketInfoMap.begin());
+  // std::cout << "deleted first event, cemcmap now: " << std::endl;
+  // Print("CEMCMAP");
+
+  std::vector<int> events;
+  events.reserve(PacketInfoMap.size());
+  for (const auto &packetloop : PacketInfoMap)
+  {
+    events.push_back(packetloop.first);
+  }
+  for (auto evtiter : events)
+  {
+    //    std::cout << "moving event " << evtiter << " to " << (evtiter - 1) << std::endl;
+    auto nh = PacketInfoMap[evtiter];
+    //    PacketInfoMap.insert(std::make_pair(evtiter-1,std::move(nh)));
+    PacketInfoMap[evtiter - 1] = std::move(nh);
+    PacketInfoMap.erase(evtiter);
+    //    Print("CEMCMAP");
+  }
+  // std::cout << "before killing last entry" << std::endl;
+  // Print("CEMCMAP");
+  // std::cout << "That is it" << std::endl;
+  // Print("CEMCMAP");
+  return 0;
+}
+
+int Fun4AllPrdfInputTriggerManager::DropFirstEventLL1(std::map<int, LL1PacketInfo> &PacketInfoMap)
+{
+  //  Print("CEMCMAP");
+  PacketInfoMap.erase(PacketInfoMap.begin());
+  // std::cout << "deleted first event, cemcmap now: " << std::endl;
+  // Print("CEMCMAP");
+
+  std::vector<int> events;
+  events.reserve(PacketInfoMap.size());
+  for (const auto &packetloop : PacketInfoMap)
+  {
+    events.push_back(packetloop.first);
+  }
+  for (auto evtiter : events)
+  {
+    //    std::cout << "moving event " << evtiter << " to " << (evtiter - 1) << std::endl;
+    auto nh = PacketInfoMap[evtiter];
+    //    PacketInfoMap.insert(std::make_pair(evtiter-1,std::move(nh)));
+    PacketInfoMap[evtiter - 1] = std::move(nh);
+    PacketInfoMap.erase(evtiter);
+    //    Print("CEMCMAP");
+  }
+  // std::cout << "before killing last entry" << std::endl;
+  // Print("CEMCMAP");
+  // std::cout << "That is it" << std::endl;
+  // Print("CEMCMAP");
   return 0;
 }
 
