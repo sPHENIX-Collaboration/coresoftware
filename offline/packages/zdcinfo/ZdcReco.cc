@@ -102,6 +102,10 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
   radius_south = 0.;
   _sumS = 0.;
   _sumN = 0.;
+  _nhor = 0;
+  _nver = 0;
+  _shor = 0;
+  _sver = 0;
 
   TowerInfoContainer *zdc_towerinfo = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");
   if (!zdc_towerinfo)
@@ -174,6 +178,11 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
         if (vsmdtime[j] > 9.0 && vsmdtime[j] < 14.0)
         {
           smd_adc[j] = vsmdadc[j];
+          if(vsmdadc[j] > 10.0)
+          {
+            if(j <= 7) _nhor++;
+            if(j >= 8 && j <= 14) _nver++;
+          }
         }
         else
         {
@@ -185,6 +194,11 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
         if (vsmdtime[j] > 6.0 && vsmdtime[j] < 12.0)
         {
           smd_adc[j] = vsmdadc[j];
+          if(vsmdadc[j] > 10.0)
+          {
+            if(j >= 16 && j <= 23) _shor++;
+            if(j >= 24 && j <= 30) _sver++;
+          }
         }
         else
         {
@@ -192,14 +206,15 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
         }
       }
     }
-
     // get smd position
     CompSmdPos();
 
-    radius_north = std::sqrt(smd_pos[1] * smd_pos[1] + smd_pos[0] * smd_pos[0]);
-    radius_south = std::sqrt(smd_pos[3] * smd_pos[3] + smd_pos[2] * smd_pos[2]);
+    if(_nver > 1 && _nhor > 1) smd_north_fired = true;
+    if(_sver > 1 && _shor > 1) smd_south_fired = true;
 
-  
+    if(smd_north_fired) radius_north = std::sqrt(smd_pos[1] * smd_pos[1] + smd_pos[0] * smd_pos[0]);
+    if(smd_south_fired) radius_south = std::sqrt(smd_pos[3] * smd_pos[3] + smd_pos[2] * smd_pos[2]);
+
     // apply time cuts per zdc and get sums
     for (int i = 0; i < zsize; i++)
     {
@@ -210,23 +225,26 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
       {
         if (arm == 0)
         {
-          if (vzdcadc[0] > _zdc1_e && vzdcadc[2] > _zdc2_e && radius_south < 2.0)
+          if (vzdcadc[0] > _zdc1_e && vzdcadc[2] > _zdc2_e && (radius_south > 0.0 && radius_south < 2.0))
           {
             _sumS = vzdcadc[0] * cdbttree->GetFloatValue(0, m_fieldname) + vzdcadc[2] * cdbttree->GetFloatValue(2, m_fieldname) + vzdcadc[4] * cdbttree->GetFloatValue(4, m_fieldname);
           }
         }
         else if (arm == 1)
         {
-          if (vzdcadc[8] > _zdc1_e && vzdcadc[10] > _zdc2_e && radius_north < 2.0)
+          if (vzdcadc[8] > _zdc1_e && vzdcadc[10] > _zdc2_e && (radius_north > 0.0 && radius_north < 2.0))
           {
             _sumN = vzdcadc[8] * cdbttree->GetFloatValue(8, m_fieldname) + vzdcadc[10] * cdbttree->GetFloatValue(10, m_fieldname) + vzdcadc[12] * cdbttree->GetFloatValue(12, m_fieldname);
           }
         }
       }
     }
-
+    
     m_zdcinfo->set_zdc_energy(0, _sumS);
     m_zdcinfo->set_zdc_energy(1, _sumN);
+    m_zdcinfo->set_radius(0, radius_south);
+    m_zdcinfo->set_radius(1, radius_north);
+
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -238,6 +256,8 @@ void ZdcReco::ResetMe()
   vsmdtime.clear();
   vzdcadc.clear();
   vzdctime.clear();
+  smd_north_fired = false;
+  smd_south_fired = false;
 }
 
 int ZdcReco::End(PHCompositeNode * /*topNode*/)
