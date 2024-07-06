@@ -131,6 +131,12 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
       float zdc_e = _tower->get_energy();
       float zdc_time = _tower->get_time_float();
 
+      if (TowerInfoDefs::isZDC(ch))
+      {
+        vzdcadc.push_back(zdc_e);
+        vzdctime.push_back(zdc_time);
+      }
+
       if (TowerInfoDefs::isSMD(ch))
       {
         vsmdadc.push_back(zdc_e);
@@ -144,6 +150,17 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
     {
       std::cout << "smd channel mapping error" << std::endl;
       if (vsmdtime.size() != 32)
+      {
+        exit(1);
+      }
+    }
+
+    // check zdc mapping
+    int zsize = vzdcadc.size();
+    if (zsize != 16)
+    {
+      std::cout << "zdc channel mapping error" << std::endl;
+      if (vzdctime.size() != 16)
       {
         exit(1);
       }
@@ -182,31 +199,7 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
     radius_north = std::sqrt(smd_pos[1] * smd_pos[1] + smd_pos[0] * smd_pos[0]);
     radius_south = std::sqrt(smd_pos[3] * smd_pos[3] + smd_pos[2] * smd_pos[2]);
 
-    // get zdc info
-    for (unsigned int ch = 0; ch < ntowers; ch++)
-    {
-      TowerInfo *_tower = zdc_towerinfo->get_tower_at_channel(ch);
-      float zdc_e = _tower->get_energy();
-      float zdc_time = _tower->get_time_float();
-
-      if (TowerInfoDefs::isZDC(ch))
-      {
-        vzdcadc.push_back(zdc_e);
-        vzdctime.push_back(zdc_time);
-      }
-    }
-
-    // check zdc mapping
-    int zsize = vzdcadc.size();
-    if (zsize != 16)
-    {
-      std::cout << "zdc channel mapping error" << std::endl;
-      if (vzdctime.size() != 16)
-      {
-        exit(1);
-      }
-    }
-
+  
     // apply time cuts per zdc and get sums
     for (int i = 0; i < zsize; i++)
     {
@@ -217,14 +210,14 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
       {
         if (arm == 0)
         {
-          if (vzdcadc[0] > 65.0 && vzdcadc[2] > 20.0 && radius_south < 2.0)
+          if (vzdcadc[0] > _zdc1_e && vzdcadc[2] > _zdc2_e && radius_south < 2.0)
           {
             _sumS = vzdcadc[0] * cdbttree->GetFloatValue(0, m_fieldname) + vzdcadc[2] * cdbttree->GetFloatValue(2, m_fieldname) + vzdcadc[4] * cdbttree->GetFloatValue(4, m_fieldname);
           }
         }
         else if (arm == 1)
         {
-          if (vzdcadc[8] > 65.0 && vzdcadc[10] > 20.0 && radius_north < 2.0)
+          if (vzdcadc[8] > _zdc1_e && vzdcadc[10] > _zdc2_e && radius_north < 2.0)
           {
             _sumN = vzdcadc[8] * cdbttree->GetFloatValue(8, m_fieldname) + vzdcadc[10] * cdbttree->GetFloatValue(10, m_fieldname) + vzdcadc[12] * cdbttree->GetFloatValue(12, m_fieldname);
           }
