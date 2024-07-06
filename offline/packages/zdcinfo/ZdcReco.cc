@@ -126,6 +126,7 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
     if (ntowers != 52)
     {
       std::cout << "ZdcReco::process_event -  zdc size mismatch" << std::endl;
+      exit(1);
     }
 
     // get smd info
