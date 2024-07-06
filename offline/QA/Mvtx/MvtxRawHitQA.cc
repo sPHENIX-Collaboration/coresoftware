@@ -104,17 +104,28 @@ int MvtxRawHitQA::process_event(PHCompositeNode * /*unused*/)
   }
 
   // if no raw hit is found, skip this event
-  if( raw_hit_num == 0 )
+  if( raw_hit_num == 0 ) 
+  {
     return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   int nhit_layer0=0;
   int nhit_layer1=0;
   int nhit_layer2=0;
   for (int i=0; i<(int)raw_hit_num; i++)
   {
-    if (layers[i]==0) nhit_layer0++;
-    if (layers[i]==1) nhit_layer1++;
-    if (layers[i]==2) nhit_layer2++;
+    if (layers[i]==0)
+    {
+      nhit_layer0++;
+    }
+    if (layers[i]==1)
+    {
+      nhit_layer1++;
+    }
+    if (layers[i]==2)
+    {
+      nhit_layer2++;
+    }
   }
   h_nhits_per_chip_layer0->Fill((double)nhit_layer0 / 12.);
   h_nhits_per_chip_layer1->Fill((double)nhit_layer0 / 16.);
@@ -130,9 +141,18 @@ int MvtxRawHitQA::process_event(PHCompositeNode * /*unused*/)
 
   for (int i=0; i<(int)raw_hit_num; i++)
   {
-    if (layers[i]==0) h_nhits_stave_chip_layer0->Fill(chips[i],staves[i]);
-    if (layers[i]==1) h_nhits_stave_chip_layer1->Fill(chips[i],staves[i]);
-    if (layers[i]==2) h_nhits_stave_chip_layer2->Fill(chips[i],staves[i]);
+    if (layers[i]==0)
+    {
+      h_nhits_stave_chip_layer0->Fill(chips[i],staves[i]);
+    }
+    if (layers[i]==1)
+    {
+      h_nhits_stave_chip_layer1->Fill(chips[i],staves[i]);
+    }
+    if (layers[i]==2)
+    {
+      h_nhits_stave_chip_layer2->Fill(chips[i],staves[i]);
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
