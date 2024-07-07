@@ -244,7 +244,7 @@ void SiliconSeedsQA::createHistos()
   }
 
   {
-    h_trackcrossing = new TH1F(std::string(getHistoPrefix() + "trackcrossing").c_str(), "Track beam bunch crossing;Track crossing;Entries", 20, -10, 10);
+    h_trackcrossing = new TH1F(std::string(getHistoPrefix() + "trackcrossing").c_str(), "Track beam bunch crossing;Track crossing;Entries", 110, -10, 100);
     hm->registerHisto(h_trackcrossing);
   }
 
