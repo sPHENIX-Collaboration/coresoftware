@@ -66,8 +66,10 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     float phi = track->get_phi();
     float pt = track->get_pt();
     int charge = track->get_charge();
+    float chi2ndf = track->get_quality();
 
     int trkcrossing = track->get_crossing();
+    // std::cout << "track crossing: " << trkcrossing << std::endl;
 
     int nmaps = 0;
     int nintt = 0;
@@ -99,7 +101,6 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     auto trackvtx = vertexmap->get(track->get_vertex_id());
     if (!trackvtx)
     {
-      // std::cout << "No vertex found for track " << track->get_id() << std::endl;
       ntrack_isfromvtx.first++;
       continue;
     }
@@ -123,6 +124,7 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     h_nmaps_nintt->Fill(nmaps, nintt);
     h_avgnclus_eta_phi->Fill(eta, phi, nmaps + nintt);
     h_trackcrossing->Fill(trkcrossing);
+    h_trackchi2ndf->Fill(chi2ndf);
     h_dcaxyorigin_phi->Fill(phi, dcapair_origin.first.first);
     h_dcaxyvtx_phi->Fill(phi, dcapair_vtx.first.first);
     h_dcazorigin_phi->Fill(phi, dcapair_origin.second.first);
@@ -242,8 +244,13 @@ void SiliconSeedsQA::createHistos()
   }
 
   {
-    h_trackcrossing = new TH1F(std::string(getHistoPrefix() + "trackcrossing").c_str(), "Track beam bunch crossing;Track crossing;Entries", 100, -100, 300);
+    h_trackcrossing = new TH1F(std::string(getHistoPrefix() + "trackcrossing").c_str(), "Track beam bunch crossing;Track crossing;Entries", 110, -10, 100);
     hm->registerHisto(h_trackcrossing);
+  }
+
+  {
+    h_trackchi2ndf = new TH1F(std::string(getHistoPrefix() + "trackchi2ndf").c_str(), "Track chi2/ndof;Track #chi2/ndof;Entries", 100, 0, 20);
+    hm->registerHisto(h_trackchi2ndf);
   }
 
   {
