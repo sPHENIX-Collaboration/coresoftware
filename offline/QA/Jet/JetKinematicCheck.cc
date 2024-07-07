@@ -95,7 +95,7 @@ int JetKinematicCheck::Init(PHCompositeNode * /*unused*/)
   for (auto &vecHistName : vecHistNames)
   {
     vecHistName.insert(0, "h_" + smallModuleName + "_");
-    if (!m_histTag.empty()) vecHistNames[iHistName].append("_" + m_histTag);
+    if (!m_histTag.empty()) vecHistName.append("_" + m_histTag);
   }
 
   // initialize histograms
