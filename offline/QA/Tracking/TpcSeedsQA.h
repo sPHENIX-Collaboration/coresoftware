@@ -149,7 +149,6 @@ class TpcSeedsQA : public SubsysReco
   float m_py = std::numeric_limits<float>::quiet_NaN();
   float m_pt = std::numeric_limits<float>::quiet_NaN();
   int m_ntpc = std::numeric_limits<int>::quiet_NaN();
-  int m_ntpc_phisize1 = std::numeric_limits<int>::quiet_NaN();
   std::vector<float> m_clusgz;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clusphisize;

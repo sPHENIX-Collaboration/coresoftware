@@ -389,7 +389,6 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
       m_pt = std::sqrt(m_px * m_px + m_py * m_py);
 
       m_ntpc = 0;
-      m_ntpc_phisize1 = 0;
       m_region.clear();
       m_clusgz.clear();
       m_cluslayer.clear();
@@ -478,8 +477,8 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
         }
       }
 
-      for (auto it = phihistos.begin(); it != phihistos.end(); ++it) {
-        it->second.Clear();
+      for (const auto& pair : phihistos) {
+        pair->second.Clear();
       }
 
       for (int cl = 0; cl < nClus; cl++)
@@ -493,8 +492,14 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
             {
               continue;
             }
-            if (m_clusphisize[cl] == 1 && m_cluszsize[cl] > 1) hiter->second.ntpc_side0_phisize1++;
-            if (m_clusphisize[cl] >= 1 && m_cluszsize[cl] > 1) hiter->second.ntpc_side0++;
+            if (m_clusphisize[cl] == 1 && m_cluszsize[cl] > 1)
+            {
+              hiter->second.ntpc_side0_phisize1++;
+            }
+            if (m_clusphisize[cl] >= 1 && m_cluszsize[cl] > 1)
+            {
+              hiter->second.ntpc_side0++;
+            }
           }
           else if (m_clusgz[cl] > 0.)
           {
@@ -503,8 +508,14 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
             {
               continue;
             }
-            if (m_clusphisize[cl] == 1 && m_cluszsize[cl] > 1) hiter->second.ntpc_side1_phisize1++;
-            if (m_clusphisize[cl] >= 1 && m_cluszsize[cl] > 1) hiter->second.ntpc_side1++;
+            if (m_clusphisize[cl] == 1 && m_cluszsize[cl] > 1)
+            {
+              hiter->second.ntpc_side1_phisize1++;
+            }
+            if (m_clusphisize[cl] >= 1 && m_cluszsize[cl] > 1)
+            {
+              hiter->second.ntpc_side1++;
+            }
           }
         }
       }
