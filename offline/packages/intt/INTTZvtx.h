@@ -169,6 +169,7 @@ class INTTZvtx
         TH1F* evt_phi_diff_1D                {nullptr}; // ProcessEvt
         TH2F* evt_phi_diff_inner_phi         {nullptr}; // ProcessEvt
         TH2F* evt_inner_outer_phi            {nullptr}; // ProcessEvt
+        TH2F* phi_diff_inner_phi             {nullptr}; // ProcessEvt
 
         // for QA
         TH1F* avg_event_zvtx                 {nullptr}; // Fill: ProcessEvt, Draw: PrintPlot
@@ -196,7 +197,6 @@ class INTTZvtx
         TH1F* peak_group_detail_ratio_hist   {nullptr}; // Fill: ProcessEvt, Draw: PrintPlot
         TH1F* N_group_detail_hist            {nullptr}; // Fill: ProcessEvt, Draw: PrintPlot
 
-        TH2F* phi_diff_inner_phi         {nullptr}; // ProcessEvt
         TH2F* dca_inner_phi              {nullptr}; // ProcessEvt
         
         std::vector<TH1*> m_v_qahist{};
@@ -507,6 +507,12 @@ void INTTZvtx::InitHist()
       evt_phi_diff_1D -> GetXaxis() -> SetTitle("Inner - Outer [degree]");
       evt_phi_diff_1D -> GetYaxis() -> SetTitle("Entry");
       evt_phi_diff_1D -> GetXaxis() -> SetNdivisions(505);
+
+      phi_diff_inner_phi = new TH2F("phi_diff_inner_phi","All evt phi_diff_inner_phi",361,0,361,100,-1.5,1.5);
+      phi_diff_inner_phi -> GetXaxis() -> SetTitle("Inner phi [degree]");
+      phi_diff_inner_phi -> GetYaxis() -> SetTitle("Inner - Outer [degree]");
+      phi_diff_inner_phi -> GetXaxis() -> SetNdivisions(505);
+      m_v_qahist.push_back(phi_diff_inner_phi);
     }
 
 
@@ -664,12 +670,6 @@ void INTTZvtx::InitHist()
       N_group_detail_hist -> GetYaxis() -> SetTitle("Entry");
       N_group_detail_hist -> GetXaxis() -> SetNdivisions(505);
       m_v_qahist.push_back(N_group_detail_hist);
-
-      phi_diff_inner_phi = new TH2F("phi_diff_inner_phi","All evt phi_diff_inner_phi",361,0,361,100,-1.5,1.5);
-      phi_diff_inner_phi -> GetXaxis() -> SetTitle("Inner phi [degree]");
-      phi_diff_inner_phi -> GetYaxis() -> SetTitle("Inner - Outer [degree]");
-      phi_diff_inner_phi -> GetXaxis() -> SetNdivisions(505);
-      m_v_qahist.push_back(phi_diff_inner_phi);
 
       dca_inner_phi = new TH2F("dca_inner_phi","All dca_inner_phi", 90,0,360,100,-10.,10);
       dca_inner_phi -> GetXaxis() -> SetTitle("Inner phi [degree]");
@@ -1000,7 +1000,9 @@ bool INTTZvtx::ProcessEvt(
                             inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.x, inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.y,
                             beam_origin.first, beam_origin.second
                         );   
-                        dca_inner_phi->Fill(Clus_InnerPhi_Offset, DCA_sign);
+                        if(m_enable_qa){
+                          dca_inner_phi->Fill(Clus_InnerPhi_Offset, DCA_sign);
+                        }
 
                         if (DCA_cut.first < DCA_sign && DCA_sign < DCA_cut.second){
                             good_pair_count += 1;
