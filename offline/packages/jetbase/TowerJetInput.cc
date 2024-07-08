@@ -24,7 +24,7 @@
 
 TowerJetInput::TowerJetInput(Jet::SRC input, const std::string &prefix)
   : m_input(input)
-  , m_towerNodePrefix(std::move(prefix))
+  , m_towerNodePrefix(prefix)
 {
 }
 
@@ -76,7 +76,10 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 
   if (vertexmap->empty())
   {
-    if(Verbosity() > 0) std::cout << "TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex." << std::endl;
+    if (Verbosity() > 0)
+    {
+      std::cout << "TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex." << std::endl;
+    }
     return std::vector<Jet *>();
   }
   m_use_towerinfo = false;
@@ -411,18 +414,18 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     return std::vector<Jet *>();
   }
 
-  if (std::abs(vtxz) > 1e3) //code crashes with very large z vertex, so skip these events
+  if (std::abs(vtxz) > 1e3)  // code crashes with very large z vertex, so skip these events
+  {
+    static bool once = true;
+    if (once)
     {
-      static bool once = true;
-      if (once)
-	{
-	  once = false;
+      once = false;
 
-	  std::cout << "TowerJetInput::get_input - WARNING - vertex is "<<vtxz<<". Drop all tower inputs (further vertex warning will be suppressed)." << std::endl;
-	}
-
-      return std::vector<Jet *>();
+      std::cout << "TowerJetInput::get_input - WARNING - vertex is " << vtxz << ". Drop all tower inputs (further vertex warning will be suppressed)." << std::endl;
     }
+
+    return std::vector<Jet *>();
+  }
 
   std::vector<Jet *> pseudojets;
   if (m_use_towerinfo)

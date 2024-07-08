@@ -11,19 +11,12 @@ class MvtxRawHit;
 class Packet;
 class mvtx_pool;
 
-typedef struct linkId
-{
-  uint32_t layer = 0xFF;
-  uint32_t stave = 0xFF;
-  uint32_t gbtid = 0xFF;
-} LinkId_t;
-
 class SingleMvtxPoolInput : public SingleStreamingInput
 {
  public:
   explicit SingleMvtxPoolInput(const std::string &name);
   ~SingleMvtxPoolInput() override;
-  void FillPool(const unsigned int nevents = 1) override;
+  void FillPool(const uint64_t minBCO) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
@@ -39,15 +32,15 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   std::set<int> &getFeeIdSet(const uint64_t &bco) { return m_BeamClockFEE[bco]; };
   std::set<uint64_t>& getGtmL1BcoSet() { return m_gtmL1BcoSetRef; }
   const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
- protected:
-  LinkId_t DecodeFeeid(const uint16_t &feeid)
-  {
-    LinkId_t ret = {};
-    ret.layer = (feeid >> 12) & 0x7;
-    ret.stave = feeid & 0x1F;
-    ret.gbtid = (feeid >> 8) & 0x3;
-    return ret;
+  void clearGtmL1BcoSet() { m_gtmL1BcoSetRef.clear(); }
+  void clearFeeGTML1BCOMap() { 
+    for(auto& [key, set] : m_FeeGTML1BCOMap)
+    {
+      set.clear();
+    }
+    m_FeeGTML1BCOMap.clear(); 
   }
+ protected:
 
  private:
   Packet **plist{nullptr};

@@ -354,11 +354,58 @@ namespace
     }
     return;
   }
+  
+  int is_hit_isolated(int iphi, int it,int NPhiBinsMax, int NTBinsMax , const std::vector<std::vector<unsigned short>> &adcval)
+  {
+    //check isolated hits
+    // const int NPhiBinsMax = (int) my_data.phibins;
+    //const int NTBinsMax = (int) my_data.tbins;
+    
+    
+    int isosum = 0;
+    int isophimin = iphi-1;
+    if(isophimin<0){isophimin = 0;}
+    int isophimax = iphi+1;
+    if(!(isophimax<NPhiBinsMax)){isophimax = NPhiBinsMax-1;}
+    int isotmin = it-1;
+    if(isotmin<0){isotmin = 0;}
+    int isotmax = it+1;
+    if(!(isotmax<NTBinsMax)){isotmax = NTBinsMax-1;}
+    for(int isophi = isophimin;isophi<=isophimax;isophi++){ 
+      for(int isot = isotmin;isot<=isotmax;isot++){
+	if(isophi==iphi&&isot==it){continue;}
+	/*
+	std::cout <<" isominphi: " << isophimin 
+		  << "phi: " << isophi
+		  <<" isomaxphi: " << isophimax
+		  <<" maxphi: " << NPhiBinsMax
+		  <<" isomint: " << isotmin
+		  << " t: " << isot
+		  <<" isomaxt: " << isotmax
+		  << " maxt: " << NTBinsMax
+		  << std::endl;
+	*/
+	isosum+= adcval[isophi][isot];
+	/*
+	std::cout << "adc " << adcval[isophi][isot]
+		  << " isosum " << isosum
+		  << " done" 
+		  << std::endl;
+	*/
+      }
+    }
+    int isiso = 0;
+    if(isosum==0){
+      isiso = 1;
+    }
+    return isiso;
+  }
 
   void get_cluster(int phibin, int tbin, const thread_data &my_data, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list, int &touch, int &edge)
   {
     // search along phi at the peak in t
-
+    //    const int NPhiBinsMax = (int) my_data.phibins;
+    //const int NTBinsMax = (int) my_data.tbins;
     int tup = 0;
     int tdown = 0;
     find_t_range(phibin, tbin, my_data, adcval, tdown, tup, touch, edge);
@@ -370,6 +417,11 @@ namespace
       for (int iphi = (phibin - phidown); iphi <= (phibin + phiup); iphi++){
         if (adcval[iphi][it] > 0 && adcval[iphi][it] != USHRT_MAX)
         {
+	  if (my_data.do_singles){
+	    if(is_hit_isolated(iphi,it, (int) my_data.phibins,(int) my_data.tbins, adcval)){
+	      continue;
+	    }
+	  }  
           ihit hit;
           hit.iphi = iphi;
           hit.it = it;
@@ -853,7 +905,7 @@ namespace
         }
       }
     }
-
+    /*
     if (my_data->do_singles)
     {
       for (auto ahit : all_hit_map)
@@ -873,7 +925,7 @@ namespace
         }
       }
     }
-
+    */
     // std::cout << "done filling " << std::endl;
     while (all_hit_map.size() > 0)
     {
@@ -886,6 +938,15 @@ namespace
       ihit hiHit = iter->second;
       int iphi = hiHit.iphi;
       int it = hiHit.it;
+      unsigned short edge = hiHit.edge;
+      double adc = hiHit.adc;
+      if (my_data->do_singles){
+	if(is_hit_isolated(iphi,it, (int) my_data->phibins,(int) my_data->tbins,adcval)){
+	  remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
+	  continue;
+	}
+      }
+     
       // put all hits in the all_hit_map (sorted by adc)
       // start with highest adc hit
       //  -> cluster around it and get vector of hits
@@ -926,6 +987,11 @@ namespace
 	  //std::cout << " stepdown size after " << ihit_list.size() << std::endl;
 	  my_data->FixedWindow = window_cache;
 	}
+      }
+      if(ihit_list.size()<=1){
+	remove_hits(ihit_list, all_hit_map, adcval);
+	ihit_list.clear();
+	remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
       }
       // -> calculate cluster parameters
       // -> add hits to truth association

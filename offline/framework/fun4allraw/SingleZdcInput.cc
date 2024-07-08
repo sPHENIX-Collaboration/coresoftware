@@ -1,7 +1,6 @@
 #include "SingleZdcInput.h"
 
 #include "Fun4AllPrdfInputPoolManager.h"
-#include "Fun4AllPrdfInputTriggerManager.h"
 
 #include <frog/FROG.h>
 
@@ -15,14 +14,6 @@
 #include <limits>
 
 SingleZdcInput::SingleZdcInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
-  : SinglePrdfInput(name, inman)
-{
-  plist = new Packet *[100];
-  m_PacketEventNumberOffset = new int[100]{};
-  rollover.fill(0);
-  previous_eventnumber.fill(std::numeric_limits<int>::min());
-}
-SingleZdcInput::SingleZdcInput(const std::string &name, Fun4AllPrdfInputTriggerManager *inman)
   : SinglePrdfInput(name, inman)
 {
   plist = new Packet *[100];
@@ -263,11 +254,6 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
             {
               InputMgr()->UpdateDroppedPacket(pktiter->getIdentifier());
             }
-            else
-            {
-              TriggerInputMgr()->UpdateDroppedPacket(pktiter->getIdentifier());
-            }
-
             delete pktiter;
           }
         }
@@ -277,20 +263,11 @@ void SingleZdcInput::FillPool(const unsigned int nevents)
     {
       InputMgr()->AddBeamClock(common_event_number, common_beam_clock, this);
     }
-    else
-    {
-      TriggerInputMgr()->AddBeamClock(common_event_number, common_beam_clock, this);
-    }
-
     if (ReferenceFlag())
     {
       if (InputMgr())
       {
         InputMgr()->SetReferenceClock(common_event_number, common_beam_clock);
-      }
-      else
-      {
-        TriggerInputMgr()->SetReferenceClock(common_event_number, common_beam_clock);
       }
     }
     m_PacketMap.clear();

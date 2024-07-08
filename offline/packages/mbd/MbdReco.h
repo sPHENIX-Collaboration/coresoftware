@@ -31,12 +31,14 @@ class MbdReco : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void SetCalPass(const int calpass) { _calpass = calpass; }
+  void SetMbdTrigOnly(const int m) { _mbdonly = m; }
 
  private:
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
   int _simflag{0};
   int _calpass{0};
+  int _mbdonly{0};  // only use mbd triggers
 
   float m_tres = 0.05;
   std::unique_ptr<TF1> m_gaussian = nullptr;

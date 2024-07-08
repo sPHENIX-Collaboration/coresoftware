@@ -18,11 +18,11 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
+#include <trackbase_historic/TrackSeed.h>
 
-#include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -225,7 +225,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   assert(hm);
 
   if (m_svtxEvalStack)
+  {
     m_svtxEvalStack->next_event(topNode);
+  }
 
   SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
   assert(trackeval);
@@ -364,11 +366,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   // loop over reco tracks to fill norm histogram for track matching
   if (m_trackMap)
   {
-    for (SvtxTrackMap::Iter iter = m_trackMap->begin();
-         iter != m_trackMap->end();
-         ++iter)
+    for (auto &iter : *m_trackMap)
     {
-      SvtxTrack *track = iter->second;
+      SvtxTrack *track = iter.second;
       if (!track)
       {
         continue;
@@ -396,9 +396,13 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
           const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
           if (trackerID == TrkrDefs::mvtxId)
+          {
             ++MVTX_hits;
+          }
           else if (trackerID == TrkrDefs::inttId)
+          {
             ++INTT_hits;
+          }
         }
       }
       if (tpcseed)
@@ -408,7 +412,10 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
           const auto &cluster_key = *cluster_iter;
           const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
-          if (trackerID == TrkrDefs::tpcId) ++TPC_hits;
+          if (trackerID == TrkrDefs::tpcId)
+          {
+            ++TPC_hits;
+          }
         }
       }
 
@@ -467,10 +474,16 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     {
       // only analyze subset of particle with proper embedding IDs
       int candidate_embedding_id = trutheval->get_embed(g4particle);
-      if (candidate_embedding_id <= m_embed_id_cut) candidate_embedding_id = -1;
+      if (candidate_embedding_id <= m_embed_id_cut)
+      {
+        candidate_embedding_id = -1;
+      }
 
       // skip if no match
-      if (m_embeddingIDs.find(candidate_embedding_id) == m_embeddingIDs.end()) continue;
+      if (m_embeddingIDs.find(candidate_embedding_id) == m_embeddingIDs.end())
+      {
+        continue;
+      }
     }
 
     double gpx = g4particle->get_px();
@@ -496,7 +509,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     else
     {
       if (Verbosity())
+      {
         std::cout << "QAG4SimulationTracking::process_event - ignore particle eta = " << geta << std::endl;
+      }
       continue;
     }
 
@@ -520,7 +535,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     else
     {
       if (Verbosity())
+      {
         std::cout << "QAG4SimulationTracking::process_event - invalid particle ID = " << pid << std::endl;
+      }
       continue;
     }
     h_norm->Fill("Truth Track", 1);
@@ -558,20 +575,26 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
           {
             match_found = true;
             if (Verbosity())
+            {
               std::cout << "QAG4SimulationTracking::process_event - found unique match for g4 particle " << g4particle->get_track_id() << std::endl;
+            }
           }
           else
           {
             if (Verbosity())
+            {
               std::cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
                         << ". The track belong to g4 particle " << g4particle_matched->get_track_id() << std::endl;
+            }
           }
         }  //        if (g4particle_matched)
         else
         {
           if (Verbosity())
+          {
             std::cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
                       << ". The track belong to no g4 particle!" << std::endl;
+          }
         }
       }
 
@@ -584,7 +607,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         float dca3dz = NAN;
         float dca3dxysigma = NAN;
         float dca3dzsigma = NAN;
-	get_dca(track, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
+        get_dca(track, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
 
         double px = track->get_px();
         double py = track->get_py();
@@ -620,9 +643,13 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
             h_nClus_layer->Fill(layer);
             if (trackerID == TrkrDefs::mvtxId)
+            {
               ++MVTX_hits;
+            }
             else if (trackerID == TrkrDefs::inttId)
+            {
               ++INTT_hits;
+            }
           }
         }
 
@@ -635,7 +662,10 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
             const auto layer = TrkrDefs::getLayer(cluster_key);
 
             h_nClus_layer->Fill(layer);
-            if (trackerID == TrkrDefs::tpcId) ++TPC_hits;
+            if (trackerID == TrkrDefs::tpcId)
+            {
+              ++TPC_hits;
+            }
           }
         }
 
@@ -661,12 +691,14 @@ void QAG4SimulationTracking::get_dca(SvtxTrack *track, float &dca3dxy,
                                      float &dca3dz, float &dca3dxysigma,
                                      float &dca3dzsigma)
 {
-  
   auto vtxid = track->get_vertex_id();
   auto glVertex = m_vertexMap->get(vtxid);
-  if (!glVertex) return;
+  if (!glVertex)
+  {
+    return;
+  }
   Acts::Vector3 vert(glVertex->get_x(), glVertex->get_y(), glVertex->get_z());
-  auto pair = TrackAnalysisUtils::get_dca(track,vert);
+  auto pair = TrackAnalysisUtils::get_dca(track, vert);
   dca3dxy = pair.first.first;
   dca3dxysigma = pair.first.second;
   dca3dz = pair.second.first;
@@ -733,38 +765,53 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
     m_hit_truth_map->getG4Hits(hitset_key, hit_key, g4hit_map);
 
     // find corresponding g4 hist
-    for (auto truth_iter = g4hit_map.begin(); truth_iter != g4hit_map.end(); ++truth_iter)
+    for (auto &truth_iter : g4hit_map)
     {
-      const auto g4hit_key = truth_iter->second.second;
+      const auto g4hit_key = truth_iter.second.second;
       PHG4Hit *g4hit = nullptr;
 
       switch (TrkrDefs::getTrkrId(hitset_key))
       {
       case TrkrDefs::mvtxId:
         assert(m_g4hits_mvtx);
-        if (m_g4hits_mvtx) g4hit = m_g4hits_mvtx->findHit(g4hit_key);
+        if (m_g4hits_mvtx)
+        {
+          g4hit = m_g4hits_mvtx->findHit(g4hit_key);
+        }
         break;
 
       case TrkrDefs::inttId:
         assert(m_g4hits_intt);
-        if (m_g4hits_intt) g4hit = m_g4hits_intt->findHit(g4hit_key);
+        if (m_g4hits_intt)
+        {
+          g4hit = m_g4hits_intt->findHit(g4hit_key);
+        }
         break;
 
       case TrkrDefs::tpcId:
         assert(m_g4hits_tpc);
-        if (m_g4hits_tpc) g4hit = m_g4hits_tpc->findHit(g4hit_key);
+        if (m_g4hits_tpc)
+        {
+          g4hit = m_g4hits_tpc->findHit(g4hit_key);
+        }
         break;
 
       case TrkrDefs::micromegasId:
         assert(m_g4hits_micromegas);
-        if (m_g4hits_micromegas) g4hit = m_g4hits_micromegas->findHit(g4hit_key);
+        if (m_g4hits_micromegas)
+        {
+          g4hit = m_g4hits_micromegas->findHit(g4hit_key);
+        }
         break;
 
       default:
         break;
       }
 
-      if (g4hit) out.insert(g4hit);
+      if (g4hit)
+      {
+        out.insert(g4hit);
+      }
     }
   }
 

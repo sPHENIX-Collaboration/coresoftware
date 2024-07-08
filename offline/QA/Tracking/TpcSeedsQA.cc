@@ -35,7 +35,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
 {
   createHistos();
 
-  clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
@@ -53,16 +53,27 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   h_ntrack1d = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d").c_str()));
   h_ntrack1d_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_pos").c_str()));
   h_ntrack1d_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_neg").c_str()));
+  h_ntrack1d_ptg1 = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_ptg1").c_str()));
+  h_ntrack1d_ptg1_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_pos").c_str()));
+  h_ntrack1d_ptg1_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_neg").c_str()));
+  h_pt = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "pt").c_str()));
+  h_pt_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "pt_pos").c_str()));
+  h_pt_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "pt_neg").c_str()));
   h_ntrack_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks_pos").c_str()));
   h_ntrack_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks_neg").c_str()));
+
+  h_ntpc_fullpt_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_fullpt_pos").c_str()));
+  h_ntpc_fullpt_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_fullpt_neg").c_str()));
   h_ntpc_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_pos").c_str()));
   h_ntpc_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_neg").c_str()));
+  h_ntpc_quality_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_quality_pos").c_str()));
+  h_ntpc_quality_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_quality_neg").c_str()));
   h_ntpot_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpot_pos").c_str()));
   h_ntpot_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpot_neg").c_str()));
   h_avgnclus_eta_phi_pos = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi_pos").c_str()));
   h_avgnclus_eta_phi_neg = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg").c_str()));
-  h_trackcrossing_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_pos").c_str()));
-  h_trackcrossing_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_neg").c_str()));
+  //h_trackcrossing_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_pos").c_str()));
+  //h_trackcrossing_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_neg").c_str()));
   h_dcaxyorigin_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_pos").c_str()));
   h_dcaxyorigin_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_neg").c_str()));
   h_dcaxyvtx_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi_pos").c_str()));
@@ -83,7 +94,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   h_vx_vy = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "vx_vy").c_str()));
   h_vz = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vz").c_str()));
   h_vt = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vt").c_str()));
-  h_vcrossing = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexcrossing").c_str()));
+  //h_vcrossing = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexcrossing").c_str()));
   h_vchi2dof = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexchi2dof").c_str()));
   h_ntrackpervertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrackspervertex").c_str()));
 
@@ -100,6 +111,8 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
 
   int ntrack1d_pos = 0;
   int ntrack1d_neg = 0;
+  int ntrack1d_ptg1_pos = 0;
+  int ntrack1d_ptg1_neg = 0;
 
   for (const auto &[key, track] : *trackmap)
   {
@@ -109,13 +122,21 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     }
 
     int charge = track->get_charge();
+    float quality = track->get_quality();
+    float pt = track->get_pt();
+
+    h_pt->Fill(pt);
     if (charge == 1)
     {
       ntrack1d_pos++;
+      if (pt>1) ntrack1d_ptg1_pos++;
+      h_pt_pos->Fill(pt);
     }
     else if (charge == -1)
     {
       ntrack1d_neg++;
+      if (pt>1) ntrack1d_ptg1_neg++;
+      h_pt_neg->Fill(pt);
     }
 
     auto ckeys = get_cluster_keys(track);
@@ -124,7 +145,7 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     float eta = track->get_eta();
     float phi = track->get_phi();
 
-    int trkcrossing = track->get_crossing();
+    //int trkcrossing = track->get_crossing();
 
     int nmaps = 0;
     int nintt = 0;
@@ -170,7 +191,7 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
       {
         ntrack_isfromvtx_pos.first++;
       }
-      else if (charge == 1)
+      else if (charge == -1)
       {
         ntrack_isfromvtx_neg.first++;
       }
@@ -195,29 +216,42 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
 
     if (charge == 1)
     {
-      h_ntrack_pos->Fill(eta, phi);
-      h_ntpc_pos->Fill(ntpc);
-      h_ntpot_pos->Fill(nmms);
-      h_avgnclus_eta_phi_pos->Fill(eta, phi, ntpc);
-      h_trackcrossing_pos->Fill(trkcrossing);
+      h_ntpc_fullpt_pos->Fill(ntpc);
       h_dcaxyorigin_phi_pos->Fill(phi, dcapair_origin.first.first);
       h_dcazorigin_phi_pos->Fill(phi, dcapair_origin.second.first);
-      h_cluster_phisize1_fraction_pos->Fill((double) ntpc_phisize1 / (double) ntpc);
+      if (pt>1)
+      {
+        h_ntrack_pos->Fill(eta, phi);
+        h_ntpc_pos->Fill(ntpc);
+        h_ntpot_pos->Fill(nmms);
+        h_ntpc_quality_pos->Fill(ntpc,quality);
+        h_avgnclus_eta_phi_pos->Fill(eta, phi, ntpc);
+        //h_trackcrossing_pos->Fill(trkcrossing);
+        h_cluster_phisize1_fraction_pos->Fill((double) ntpc_phisize1 / (double) ntpc);
+      }
     }
     else if (charge == -1)
     {
-      h_ntrack_neg->Fill(eta, phi);
-      h_ntpc_neg->Fill(ntpc);
-      h_ntpot_neg->Fill(nmms);
-      h_avgnclus_eta_phi_neg->Fill(eta, phi, ntpc);
-      h_trackcrossing_neg->Fill(trkcrossing);
+      h_ntpc_fullpt_neg->Fill(ntpc);
       h_dcaxyorigin_phi_neg->Fill(phi, dcapair_origin.first.first);
       h_dcazorigin_phi_neg->Fill(phi, dcapair_origin.second.first);
-      h_cluster_phisize1_fraction_neg->Fill((double) ntpc_phisize1 / (double) ntpc);
+      if (pt>1)
+      {
+        h_ntrack_neg->Fill(eta, phi);
+        h_ntpc_neg->Fill(ntpc);
+        h_ntpot_neg->Fill(nmms);
+        h_ntpc_quality_neg->Fill(ntpc,quality);
+        h_avgnclus_eta_phi_neg->Fill(eta, phi, ntpc);
+        //h_trackcrossing_neg->Fill(trkcrossing);
+        h_cluster_phisize1_fraction_neg->Fill((double) ntpc_phisize1 / (double) ntpc);
+      }
     }
   }
   h_ntrack1d_pos->Fill(ntrack1d_pos);
   h_ntrack1d_neg->Fill(ntrack1d_neg);
+  h_ntrack1d_ptg1_pos->Fill(ntrack1d_ptg1_pos);
+  h_ntrack1d_ptg1_neg->Fill(ntrack1d_ptg1_neg);
+  h_ntrack1d_ptg1->Fill(ntrack1d_ptg1_pos + ntrack1d_ptg1_neg);
 
   h_ntrack_isfromvtx_pos->SetBinContent(1, h_ntrack_isfromvtx_pos->GetBinContent(1) + ntrack_isfromvtx_pos.first);
   h_ntrack_isfromvtx_pos->SetBinContent(2, h_ntrack_isfromvtx_pos->GetBinContent(2) + ntrack_isfromvtx_pos.second);
@@ -239,7 +273,7 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     float vt = vertex->get_t0();
     float vchi2 = vertex->get_chisq();
     int vndof = vertex->get_ndof();
-    int vcrossing = vertex->get_beam_crossing();
+    //int vcrossing = vertex->get_beam_crossing();
 
     // std::cout << "vertex (x,y,z,t,chi2,ndof,crossing)=(" << vx << "," << vy << "," << vz << "," << vt << "," << vchi2 << "," << vndof << "," << vcrossing << ")" << std::endl;
 
@@ -249,7 +283,7 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     h_vz->Fill(vz);
     h_vt->Fill(vt);
     h_vchi2dof->Fill(float(vchi2 / vndof));
-    h_vcrossing->Fill(vcrossing);
+    //h_vcrossing->Fill(vcrossing);
 
     h_ntrackpervertex->Fill(vertex->size_tracks());
   }
@@ -280,9 +314,15 @@ int TpcSeedsQA::EndRun(const int /*runnumber*/)
 }
 
 //____________________________________________________________________________..
-int TpcSeedsQA::End(PHCompositeNode * /*unused*/) { return Fun4AllReturnCodes::EVENT_OK; }
+int TpcSeedsQA::End(PHCompositeNode * /*unused*/)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
-std::string TpcSeedsQA::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }
+std::string TpcSeedsQA::getHistoPrefix() const
+{
+  return std::string("h_") + Name() + std::string("_");
+}
 
 void TpcSeedsQA::createHistos()
 {
@@ -290,22 +330,42 @@ void TpcSeedsQA::createHistos()
   assert(hm);
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_pos").c_str(), "TPC clusters per positive track;Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
+    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_fullpt_pos").c_str(), "TPC clusters per positive track;Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_neg").c_str(), "TPC clusters per negative track;Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
+    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_fullpt_neg").c_str(), "TPC clusters per negative track;Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpot_pos").c_str(), "TPOT clusters per positive track;Number of TPOT clusters per positive track;Entries", 2, -0.5, 1.5);
+    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_pos").c_str(), "TPC clusters per positive track (pT>1GeV);Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpot_neg").c_str(), "TPOT clusters per negative track;Number of TPOT clusters per negative track;Entries", 2, -0.5, 1.5);
+    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_neg").c_str(), "TPC clusters per negative track (pT>1GeV);Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TH1F(std::string(getHistoPrefix() + "ntpot_pos").c_str(), "TPOT clusters per positive track (pT>1GeV);Number of TPOT clusters per positive track;Entries", 2, -0.5, 1.5);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TH1F(std::string(getHistoPrefix() + "ntpot_neg").c_str(), "TPOT clusters per negative track (pT>1GeV);Number of TPOT clusters per negative track;Entries", 2, -0.5, 1.5);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "ntpc_quality_pos").c_str(), "Number of TPC clusters per positive track (pT>1GeV);Number of TPC clusters per positive track;Quality", 55, -0.5, 54.5, 100, 0, 10);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "ntpc_quality_neg").c_str(), "Number of TPC clusters per negative track (pT>1GeV);Number of TPC clusters per negative track;Quality", 55, -0.5, 54.5, 100, 0, 10);
     hm->registerHisto(h);
   }
 
@@ -325,34 +385,64 @@ void TpcSeedsQA::createHistos()
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_pos").c_str(), "Number of reconstructed positive tracks;#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
+    auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_ptg1").c_str(), "Number of reconstructed tracks (pT>1GeV);Number of TPC tracklets;Entries", 50, 0, 200);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_neg").c_str(), "Number of reconstructed negative tracks;#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
+    auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_pos").c_str(), "Number of reconstructed positive tracks (pT>1GeV);Number of positive TPC tracklets;Entries", 50, 0, 200);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_pos").c_str(), "Average number of clusters per positive track;#eta;#phi [rad];Average number of clusters per positive track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
+    auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_neg").c_str(), "Number of reconstructed negative tracks (pT>1GeV);Number of negative TPC tracklets;Entries", 50, 0, 200);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg").c_str(), "Average number of clusters per negative track;#eta;#phi [rad];Average number of clusters per negative track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
+    auto h = new TH1F(std::string(getHistoPrefix() + "pt").c_str(), "p_{T} distribution of reconstructed tracks;Track p_{T};Entries", 100, 0, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "trackcrossing_pos").c_str(), "Positive track beam bunch crossing;Positive track crossing;Entries", 100, -100, 300);
+    auto h = new TH1F(std::string(getHistoPrefix() + "pt_pos").c_str(), "p_{T} distribution of reconstructed positive tracks;Track p_{T};Entries", 100, 0, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "trackcrossing_neg").c_str(), "Negative track beam bunch crossing;Negative track crossing;Entries", 100, -100, 300);
+    auto h = new TH1F(std::string(getHistoPrefix() + "pt_neg").c_str(), "p_{T} distribution of reconstructed negative tracks;Track p_{T};Entries", 100, 0, 10);
     hm->registerHisto(h);
   }
+
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_pos").c_str(), "Number of reconstructed positive tracks (pT>1GeV);#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_neg").c_str(), "Number of reconstructed negative tracks (pT>1GeV);#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_pos").c_str(), "Average number of clusters per positive track (pT>1GeV);#eta;#phi [rad];Average number of clusters per positive track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg").c_str(), "Average number of clusters per negative track (pT>1GeV);#eta;#phi [rad];Average number of clusters per negative track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
+    hm->registerHisto(h);
+  }
+
+//  {
+//    auto h = new TH1F(std::string(getHistoPrefix() + "trackcrossing_pos").c_str(), "Positive track beam bunch crossing (pT>1GeV);Positive track crossing;Entries", 100, -100, 300);
+//    hm->registerHisto(h);
+//  }
+
+//  {
+//    auto h = new TH1F(std::string(getHistoPrefix() + "trackcrossing_neg").c_str(), "Negative track beam bunch crossing (pT>1GeV);Negative track crossing;Entries", 100, -100, 300);
+//    hm->registerHisto(h);
+//  }
 
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_pos").c_str(), "DCA xy origin vs phi for positive track;#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
@@ -405,12 +495,12 @@ void TpcSeedsQA::createHistos()
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_pos").c_str(), "Fraction of TPC clusters per positive track with phi size of 1;Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
+    auto h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_pos").c_str(), "Fraction of TPC clusters per positive track with phi size of 1 (pT>1GeV);Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_neg").c_str(), "Fraction of TPC clusters per negative track with phi size of 1;Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
+    auto h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_neg").c_str(), "Fraction of TPC clusters per negative track with phi size of 1 (pT>1GeV);Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
     hm->registerHisto(h);
   }
 
@@ -445,10 +535,10 @@ void TpcSeedsQA::createHistos()
     hm->registerHisto(h);
   }
 
-  {
-    auto h = new TH1F(std::string(getHistoPrefix() + "vertexcrossing").c_str(), "Vertex beam bunch crossing;Vertex crossing;Entries", 100, -100, 300);
-    hm->registerHisto(h);
-  }
+//  {
+//    auto h = new TH1F(std::string(getHistoPrefix() + "vertexcrossing").c_str(), "Vertex beam bunch crossing;Vertex crossing;Entries", 100, -100, 300);
+//    hm->registerHisto(h);
+//  }
 
   {
     auto h = new TH1F(std::string(getHistoPrefix() + "vertexchi2dof").c_str(), "Vertex chi2/ndof;Vertex #chi2/ndof;Entries", 100, 0, 20);

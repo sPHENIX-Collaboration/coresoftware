@@ -1,21 +1,20 @@
 // Tell emacs that this is a C++ source
-// //  -*- C++ -*-. 
+// //  -*- C++ -*-.
 #ifndef TPC_COMBINEDRAWDATAUNPACKER_H
 #define TPC_COMBINEDRAWDATAUNPACKER_H
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>
-#include <memory>
-#include <climits>
+#include <limits>
 #include <map>
+#include <string>
 #include <vector>
 
 class PHCompositeNode;
 class CDBTTree;
 class CDBInterface;
-class TFile;
 class TH2I;
+class TFile;
 class TNtuple;
 
 class TpcCombinedRawDataUnpacker : public SubsysReco
@@ -41,39 +40,43 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   }
   struct chan_info
   {
-    unsigned int fee = UINT_MAX;
-    float ped   = -1;
+    unsigned int fee = std::numeric_limits<unsigned int>::max();
+    float ped = -1;
     float width = -1;
-
   };
-  unsigned int get_rx(unsigned int layer){
-    return (layer - 7)/16;
+  unsigned int get_rx(unsigned int layer)
+  {
+    return (layer - 7) / 16;
   }
 
-  unsigned int create_fee_key(unsigned int side,unsigned int sector, unsigned int rx, unsigned int fee){ 
-    unsigned int key = rx; 
-    key += side*10;
-    key += sector*100;
+  unsigned int create_fee_key(unsigned int side, unsigned int sector, unsigned int rx, unsigned int fee)
+  {
+    unsigned int key = rx;
+    key += side * 10;
+    key += sector * 100;
     key += fee * 10000;
     return key;
   }
-  void unpack_fee_key(unsigned int &side, unsigned int &sector, unsigned int &rx, unsigned int &fee, unsigned int fee_key){ 
-    rx = fee_key%10; 
-    side = (fee_key%100)/10;
-    sector = ((fee_key - side*10 -rx)/100)/100;
-    fee = fee_key/10000;
+  void unpack_fee_key(unsigned int &side, unsigned int &sector, unsigned int &rx, unsigned int &fee, unsigned int fee_key)
+  {
+    rx = fee_key % 10;
+    side = (fee_key % 100) / 10;
+    sector = ((fee_key - side * 10 - rx) / 100) / 100;
+    fee = fee_key / 10000;
     return;
   }
-  unsigned int create_pad_key(unsigned int side,unsigned int layer, unsigned int padnum){ 
-    unsigned int key = side; 
-    key += layer*10;
-    key += padnum*1000;
+  unsigned int create_pad_key(unsigned int side, unsigned int layer, unsigned int padnum)
+  {
+    unsigned int key = side;
+    key += layer * 10;
+    key += padnum * 1000;
     return key;
   }
-  void unpack_pad_key(unsigned int &side, unsigned int &layer, unsigned int &pad_num, unsigned int pad_key){ 
-    side= pad_key%10; 
-    layer = (pad_key%1000)/10;
-    pad_num = (pad_key - layer*10 -side)/1000;
+  void unpack_pad_key(unsigned int &side, unsigned int &layer, unsigned int &pad_num, unsigned int pad_key)
+  {
+    side = pad_key % 10;
+    layer = (pad_key % 1000) / 10;
+    pad_num = (pad_key - layer * 10 - side) / 1000;
     return;
   }
 
@@ -85,7 +88,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   CDBTTree *m_cdbttree{nullptr};
   CDBInterface *m_cdb{nullptr};
 
-  int m_presampleShift = 40; // number of presamples shifted to line up t0
+  int m_presampleShift = 40;  // number of presamples shifted to line up t0
   int _ievent{0};
   int startevt{-1};
   int endevt{9999999};
@@ -102,9 +105,9 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   int pedestal_offset{30};
   std::string m_TpcRawNodeName{"TPCRAWHIT"};
   std::string outfile_name;
-  std::map<unsigned int, chan_info> chan_map;//stays in place
-  std::map<unsigned int, TH2I *> feeadc_map;//histos reset after each event
-  std::map<unsigned int, std::vector<float>> feebaseline_map;//cleared after each event
+  std::map<unsigned int, chan_info> chan_map;                  // stays in place
+  std::map<unsigned int, TH2I *> feeadc_map;                   // histos reset after each event
+  std::map<unsigned int, std::vector<float>> feebaseline_map;  // cleared after each event
 };
 
 #endif  // TPC_COMBINEDRAWDATAUNPACKER_H

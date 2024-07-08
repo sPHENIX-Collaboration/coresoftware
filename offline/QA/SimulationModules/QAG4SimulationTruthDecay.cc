@@ -51,9 +51,6 @@ QAG4SimulationTruthDecay::QAG4SimulationTruthDecay(const std::string &name)
 }
 
 //____________________________________________________________________________..
-QAG4SimulationTruthDecay::~QAG4SimulationTruthDecay() {}
-
-//____________________________________________________________________________..
 int QAG4SimulationTruthDecay::Init(PHCompositeNode *topNode)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
@@ -344,7 +341,10 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
   // assert(h_track_4_mass);
 
   ++m_event_number;
-  if (m_decay_pdg_id == 0) getMotherPDG(topNode);
+  if (m_decay_pdg_id == 0)
+  {
+    getMotherPDG(topNode);
+  }
   std::vector<int> motherBarcodes = getDecayFinderMothers(topNode);
 
   if (motherBarcodes.size() == 1)
@@ -426,9 +426,15 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
           daughter_y = daughter_vtx->get_y();
           daughter_z = daughter_vtx->get_z();
 
-          if (m_track_pT[trackCounter] < m_pt_min) m_accept_pT = false;
+          if (m_track_pT[trackCounter] < m_pt_min)
+          {
+            m_accept_pT = false;
+          }
           bool in_eta_range = isInRange(m_track_eta[trackCounter], m_eta_min, m_eta_max);
-          if (!in_eta_range) m_accept_eta = false;
+          if (!in_eta_range)
+          {
+            m_accept_eta = false;
+          }
 
           ++trackCounter;
         }
@@ -442,20 +448,20 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
     float diff_percent_pz = fabs(m_delta_pz / m_mother_pz) * 100.;
     float diff_percent_pE = fabs(m_delta_pE / m_mother_pE) * 100.;
 
-    m_accept_px_1percent = diff_percent_px <= 1. ? 1 : 0;
-    m_accept_py_1percent = diff_percent_py <= 1. ? 1 : 0;
-    m_accept_pz_1percent = diff_percent_pz <= 1. ? 1 : 0;
-    m_accept_pE_1percent = diff_percent_pE <= 1. ? 1 : 0;
+    m_accept_px_1percent = diff_percent_px <= 1. ? true : false;
+    m_accept_py_1percent = diff_percent_py <= 1. ? true : false;
+    m_accept_pz_1percent = diff_percent_pz <= 1. ? true : false;
+    m_accept_pE_1percent = diff_percent_pE <= 1. ? true : false;
 
-    m_accept_px_5percent = diff_percent_px <= 5. ? 1 : 0;
-    m_accept_py_5percent = diff_percent_py <= 5. ? 1 : 0;
-    m_accept_pz_5percent = diff_percent_pz <= 5. ? 1 : 0;
-    m_accept_pE_5percent = diff_percent_pE <= 5. ? 1 : 0;
+    m_accept_px_5percent = diff_percent_px <= 5. ? true : false;
+    m_accept_py_5percent = diff_percent_py <= 5. ? true : false;
+    m_accept_pz_5percent = diff_percent_pz <= 5. ? true : false;
+    m_accept_pE_5percent = diff_percent_pE <= 5. ? true : false;
 
-    m_accept_px_15percent = diff_percent_px <= 15. ? 1 : 0;
-    m_accept_py_15percent = diff_percent_py <= 15. ? 1 : 0;
-    m_accept_pz_15percent = diff_percent_pz <= 15. ? 1 : 0;
-    m_accept_pE_15percent = diff_percent_pE <= 15. ? 1 : 0;
+    m_accept_px_15percent = diff_percent_px <= 15. ? true : false;
+    m_accept_py_15percent = diff_percent_py <= 15. ? true : false;
+    m_accept_pz_15percent = diff_percent_pz <= 15. ? true : false;
+    m_accept_pE_15percent = diff_percent_pE <= 15. ? true : false;
 
     m_mother_decayLength = sqrt(pow(daughter_x - mother_x, 2) + pow(daughter_y - mother_y, 2) + pow(daughter_z - mother_z, 2));
     float mother_p = sqrt(pow(m_mother_px, 2) + pow(m_mother_py, 2) + pow(m_mother_pz, 2));
@@ -463,7 +469,10 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
 
     if (m_write_nTuple)
     {
-      if (candidateCounter == 1) initializeBranches();
+      if (candidateCounter == 1)
+      {
+        initializeBranches();
+      }
       m_tree->Fill();
     }
     if (m_write_QAHists)
@@ -662,9 +671,9 @@ std::vector<int> QAG4SimulationTruthDecay::getDecayFinderMothers(PHCompositeNode
 
   m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, node_name.c_str());
 
-  for (DecayFinderContainer_v1::Iter iter = m_decayMap->begin(); iter != m_decayMap->end(); ++iter)
+  for (auto &iter : *m_decayMap)
   {
-    Decay decay = iter->second;
+    Decay decay = iter.second;
     m_nTracks = decay.size() - 1;
     m_motherBarcodes.push_back(decay[0].first.second);
   }

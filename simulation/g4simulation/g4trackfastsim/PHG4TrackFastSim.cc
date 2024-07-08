@@ -14,14 +14,14 @@
 #include <phgenfit/Track.h>
 #include <phgeom/PHGeomUtility.h>
 
+#include <globalvertex/SvtxVertexMap_v1.h>
+#include <globalvertex/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_FastSim_v1.h>
-#include <globalvertex/SvtxVertexMap_v1.h>
-#include <globalvertex/SvtxVertex_v1.h>
 
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
@@ -84,20 +84,18 @@ namespace genfit
   class AbsTrackRep;
 }  // namespace genfit
 
-#define LogDebug(exp) \
-  if (Verbosity()) std::cout << "PHG4TrackFastSim (DEBUG): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-#define LogError(exp) \
-  std::cout << "PHG4TrackFastSim (ERROR): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-#define LogWarning(exp) \
-  std::cout << "PHG4TrackFastSim (WARNING): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-
-using namespace std;
+// NOLINTNEXTLINE(bugprone-macro-parentheses)
+#define LogDebug(exp) if (Verbosity()) std::cout << "PHG4TrackFastSim (DEBUG): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
+// NOLINTNEXTLINE(bugprone-macro-parentheses)
+#define LogError(exp) std::cout << "PHG4TrackFastSim (ERROR): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
+// NOLINTNEXTLINE(bugprone-macro-parentheses)
+#define LogWarning(exp) std::cout << "PHG4TrackFastSim (WARNING): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
 
 // names of our implemented calorimeters where the projections are done
 // at 1/2 of their depth, not at the surface
 // this is used to avoid user added projections with identical names
-set<string> reserved_cylinder_projection_names{"CEMC", "HCALIN", "HCALOUT", "BECAL"};
-set<string> reserved_zplane_projection_names{"FEMC", "FHCAL", "EEMC", "EHCAL", "LFHCAL"};
+std::set<std::string> reserved_cylinder_projection_names{"CEMC", "HCALIN", "HCALOUT", "BECAL"};
+std::set<std::string> reserved_zplane_projection_names{"FEMC", "FHCAL", "EEMC", "EHCAL", "LFHCAL"};
 
 PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   : SubsysReco(name)
@@ -160,7 +158,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
 
   if (!m_Fitter)
   {
-    cerr << PHWHERE << endl;
+    std::cout << PHWHERE << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -168,31 +166,31 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
 
   // tower geometry for track states
 
-  for (map<string, pair<int, double>>::iterator iter = m_ProjectionsMap.begin(); iter != m_ProjectionsMap.end(); ++iter)
+  for (auto& iter : m_ProjectionsMap)
   {
-    if (isfinite(iter->second.second))
+    if (isfinite(iter.second.second))
     {
       continue;
     }
-    switch (iter->second.first)
+    switch (iter.second.first)
     {
     case DETECTOR_TYPE::Cylinder:
     {
-      string nodename = "TOWERGEOM_" + iter->first;
+      std::string nodename = "TOWERGEOM_" + iter.first;
       RawTowerGeomContainer* geo = findNode::getClass<RawTowerGeomContainer>(topNode, nodename);
       if (geo)
       {
-        iter->second.second = geo->get_radius();
+        iter.second.second = geo->get_radius();
       }
       break;
     }
     case DETECTOR_TYPE::Vertical_Plane:
     {
-      string towergeonodename = "TOWERGEOM_" + iter->first;
+      std::string towergeonodename = "TOWERGEOM_" + iter.first;
       RawTowerGeomContainer* towergeo = findNode::getClass<RawTowerGeomContainer>(topNode, towergeonodename);
       if (!towergeo)
       {
-        cout << PHWHERE << " ERROR: Can't find node " << towergeonodename << endl;
+        std::cout << PHWHERE << " ERROR: Can't find node " << towergeonodename << std::endl;
         return Fun4AllReturnCodes::ABORTEVENT;
       }
 
@@ -202,12 +200,12 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
       RawTowerGeomContainer::ConstIterator twr_iter = twr_range.first;
       RawTowerGeom* temp_geo = twr_iter->second;
 
-      //Changed by Barak on 12/10/19
-      iter->second.second = temp_geo->get_center_z();
+      // Changed by Barak on 12/10/19
+      iter.second.second = temp_geo->get_center_z();
       break;
     }
     default:
-      cout << "invalid state reference: " << iter->second.first << endl;
+      std::cout << "invalid state reference: " << iter.second.first << std::endl;
       gSystem->Exit(1);
     }
   }
@@ -215,17 +213,16 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
   if (m_DoVertexingFlag)
   {
     m_RaveVertexFactory = new genfit::GFRaveVertexFactory(Verbosity(), true);
-    //m_RaveVertexFactory->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
+    // m_RaveVertexFactory->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
     if (!m_RaveVertexFactory)
     {
-      cout << PHWHERE << " no Vertex Finder" << endl;
+      std::cout << PHWHERE << " no Vertex Finder" << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
     m_RaveVertexFactory->setMethod(m_VertexingMethod);
-    //m_RaveVertexFactory->setBeamspot();
+    // m_RaveVertexFactory->setBeamspot();
 
-    //m_RaveVertexFactory = new PHRaveVertexFactory(Verbosity());
-
+    // m_RaveVertexFactory = new PHRaveVertexFactory(Verbosity());
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -245,7 +242,9 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
   m_EventCnt++;
 
   if (Verbosity() >= 2)
+  {
     std::cout << "PHG4TrackFastSim::process_event: " << m_EventCnt << ".\n";
+  }
 
   //	if(_clustermap_out)
   //		_clustermap_out->empty();
@@ -260,7 +259,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  vector<PHGenFit::Track*> rf_tracks;
+  std::vector<PHGenFit::Track*> rf_tracks;
 
   PHG4VtxPoint* truthVtx = m_TruthContainer->GetPrimaryVtx(m_TruthContainer->GetPrimaryVertexIndex());
   TVector3 vtxPoint(truthVtx->get_x(), truthVtx->get_y(), truthVtx->get_z());
@@ -308,7 +307,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
       measurements.push_back(vtx_meas);
     }
 
-    unique_ptr<SvtxTrack> svtx_track_out(new SvtxTrack_FastSim_v1());
+    std::unique_ptr<SvtxTrack> svtx_track_out(new SvtxTrack_FastSim_v1());
     PseudoPatternRecognition(particle,
                              measurements,
                              svtx_track_out.get(),
@@ -319,34 +318,34 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
     {
       if (Verbosity() >= 2)
       {
-        //LogWarning("measurements.size() < 3");
+        // LogWarning("measurements.size() < 3");
         std::cout << "event: " << m_EventCnt << " : measurements.size() < 3"
                   << "\n";
       }
       // Delete the measurements
       // We need to also delete the underlying genfit::AbsMeasurement object
-      for (unsigned int im = 0; im < measurements.size(); im++)
+      for (auto& measurement : measurements)
       {
-        delete measurements[im]->getMeasurement();
-        delete measurements[im];
+        delete measurement->getMeasurement();
+        delete measurement;
       }
       continue;
     }
 
     //! Build TrackRep from particle assumption
     /*!
-	   * mu+:	-13
-	   * mu-:	13
-	   * pi+:	211
-	   * pi-:	-211
-	   * e-:	11
-	   * e+:	-11
-	   */
-    //int pid = 13; //
-    //SMART(genfit::AbsTrackRep) rep = NEW(genfit::RKTrackRep)(pid);
+     * mu+:	-13
+     * mu-:	13
+     * pi+:	211
+     * pi-:	-211
+     * e-:	11
+     * e+:	-11
+     */
+    // int pid = 13; //
+    // SMART(genfit::AbsTrackRep) rep = NEW(genfit::RKTrackRep)(pid);
     genfit::AbsTrackRep* rep = new genfit::RKTrackRep(m_PrimaryAssumptionPid);
 
-    //rep->setDebugLvl(1); //DEBUG
+    // rep->setDebugLvl(1); //DEBUG
 
     //! Initialize track with seed from pattern recognition
 
@@ -356,11 +355,11 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
     // all be cleanly deleted at the end
     rf_tracks.push_back(track);
 
-    //LogDEBUG;
+    // LogDEBUG;
     //! Add measurements to track
     track->addMeasurements(measurements);
 
-    //LogDEBUG;
+    // LogDEBUG;
     //! Fit the track
     int fitting_err = m_Fitter->processTrack(track, false);
 
@@ -368,7 +367,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
     {
       if (Verbosity() >= 2)
       {
-        //LogWarning("measurements.size() < 3");
+        // LogWarning("measurements.size() < 3");
         std::cout << "event: " << m_EventCnt
                   << " : fitting_err != 0, next track."
                   << "\n";
@@ -395,17 +394,17 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
 
   }  // Loop all primary particles
 
-  //vertex finding
+  // vertex finding
   if (m_DoVertexingFlag)
   {
     if (!m_RaveVertexFactory)
     {
-      cout << __PRETTY_FUNCTION__ << "Failed to init vertex finder" << endl;
+      std::cout << __PRETTY_FUNCTION__ << "Failed to init vertex finder" << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
     if (!m_SvtxVertexMap)
     {
-      cout << __PRETTY_FUNCTION__ << "Failed to init vertex map" << endl;
+      std::cout << __PRETTY_FUNCTION__ << "Failed to init vertex map" << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
@@ -413,15 +412,15 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
     //    m_RaveVertexFactory->setMethod("kalman-smoothing:1");
     //    m_RaveVertexFactory->setBeamspot();
 
-    vector<genfit::GFRaveVertex*> rave_vertices;
+    std::vector<genfit::GFRaveVertex*> rave_vertices;
     if (rf_tracks.size() >= 2)
     {
       try
       {
-        vector<genfit::Track*> rf_gf_tracks;
-        for (std::vector<PHGenFit::Track*>::iterator it = rf_tracks.begin(); it != rf_tracks.end(); ++it)
+        std::vector<genfit::Track*> rf_gf_tracks;
+        for (auto& rf_track : rf_tracks)
         {
-          genfit::Track* track = (*it)->getGenFitTrack();
+          genfit::Track* track = rf_track->getGenFitTrack();
 
           if (Verbosity())
           {
@@ -430,26 +429,30 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
 
             track->getFittedState().getPosMomCov(pos, mom, cov);
 
-            cout << "Track getCharge = " << track->getFitStatus()->getCharge() << " getChi2 = " << track->getFitStatus()->getChi2() << " getNdf = " << track->getFitStatus()->getNdf() << endl;
+            std::cout << "Track getCharge = " << track->getFitStatus()->getCharge() << " getChi2 = " << track->getFitStatus()->getChi2() << " getNdf = " << track->getFitStatus()->getNdf() << std::endl;
             pos.Print();
             mom.Print();
             cov.Print();
           }
           if (track->getFitStatus()->getNdf() > m_VertexMinNdf)
+          {
             rf_gf_tracks.push_back(track);
+          }
         }
         m_RaveVertexFactory->findVertices(&rave_vertices, rf_gf_tracks);
       }
       catch (...)
       {
         if (Verbosity() > 1)
+        {
           std::cout << PHWHERE << "GFRaveVertexFactory::findVertices failed!";
+        }
       }
     }
 
     if (Verbosity())
     {
-      cout << __PRETTY_FUNCTION__ << __LINE__ << " rf_tracks = " << rf_tracks.size() << " rave_vertices = " << rave_vertices.size() << endl;
+      std::cout << __PRETTY_FUNCTION__ << __LINE__ << " rf_tracks = " << rf_tracks.size() << " rave_vertices = " << rave_vertices.size() << std::endl;
     }
     FillSvtxVertexMap(rave_vertices, gf_track_map);
   }
@@ -457,18 +460,19 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
   //! add tracks to event display
   if (m_DoEvtDisplayFlag)
   {
-    vector<genfit::Track*> rf_gf_tracks;
-    for (std::vector<PHGenFit::Track*>::iterator it = rf_tracks.begin(); it != rf_tracks.end(); ++it)
+    std::vector<genfit::Track*> rf_gf_tracks;
+    rf_gf_tracks.reserve(rf_tracks.size());
+    for (auto& rf_track : rf_tracks)
     {
-      rf_gf_tracks.push_back((*it)->getGenFitTrack());
+      rf_gf_tracks.push_back(rf_track->getGenFitTrack());
     }
     m_Fitter->getEventDisplay()->addEvent(rf_gf_tracks);
   }
   else
   {
-    for (std::vector<PHGenFit::Track*>::iterator it = rf_tracks.begin(); it != rf_tracks.end(); ++it)
+    for (auto& rf_track : rf_tracks)
     {
-      delete (*it);
+      delete rf_track;
     }
     rf_tracks.clear();
   }
@@ -493,7 +497,7 @@ bool PHG4TrackFastSim::FillSvtxVertexMap(
   {
     if (!rave_vtx)
     {
-      cerr << PHWHERE << endl;
+      std::cout << PHWHERE << std::endl;
       return false;
     }
 
@@ -515,7 +519,7 @@ bool PHG4TrackFastSim::FillSvtxVertexMap(
 
     for (unsigned int i = 0; i < rave_vtx->getNTracks(); i++)
     {
-      //TODO improve speed
+      // TODO improve speed
       const genfit::Track* rave_track =
           rave_vtx->getParameters(i)->getTrack();
       //      for(auto iter : gf_track_map) {
@@ -538,7 +542,7 @@ bool PHG4TrackFastSim::FillSvtxVertexMap(
       LogError("!m_SvtxVertexMap");
     }
 
-  }  //loop over RAVE vertices
+  }  // loop over RAVE vertices
 
   return true;
 }
@@ -551,7 +555,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
   PHCompositeNode* dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << " DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << " DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   PHNodeIterator iter_dst(dstNode);
@@ -565,7 +569,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
     dstNode->addNode(tb_node);
     if (Verbosity() > 0)
     {
-      cout << m_SubTopnodeName << " node added" << endl;
+      std::cout << m_SubTopnodeName << " node added" << std::endl;
     }
   }
 
@@ -575,7 +579,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
   //			_clustermap_out, _clustermap_out_name, "PHObject");
   //	tb_node->addNode(clusters_node);
   //	if (Verbosity() > 0)
-  //		cout << _clustermap_out_name <<" node added" << endl;
+  //		std::cout << _clustermap_out_name <<" node added" << std::endl;
 
   m_SvtxTrackMapOut = findNode::getClass<SvtxTrackMap>(topNode, m_TrackmapOutNodeName);
   if (!m_SvtxTrackMapOut)
@@ -586,7 +590,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
     tb_node->addNode(tracks_node);
     if (Verbosity() > 0)
     {
-      cout << m_TrackmapOutNodeName << " node added" << endl;
+      std::cout << m_TrackmapOutNodeName << " node added" << std::endl;
     }
   }
 
@@ -598,7 +602,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
     tb_node->addNode(vertexes_node);
     if (Verbosity() > 0)
     {
-      cout << "Svtx/SvtxVertexMap node added" << endl;
+      std::cout << "Svtx/SvtxVertexMap node added" << std::endl;
     }
   }
 
@@ -610,33 +614,33 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
   assert(m_Parameter);
   PHNodeIterator iter(topNode);
 
-  //DST objects
-  //Truth container
+  // DST objects
+  // Truth container
   m_TruthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_TruthContainer)
   {
-    cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
-         << endl;
+    std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
+         << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  for (unsigned int i = 0; i < m_PHG4HitsNames.size(); i++)
+  for (auto& m_PHG4HitsName : m_PHG4HitsNames)
   {
-    PHG4HitContainer* phg4hit = findNode::getClass<PHG4HitContainer>(topNode, m_PHG4HitsNames[i]);
+    PHG4HitContainer* phg4hit = findNode::getClass<PHG4HitContainer>(topNode, m_PHG4HitsName);
     if (!phg4hit)
     {
-      cout << PHWHERE << m_PHG4HitsNames[i]
-           << " node not found on node tree" << endl;
+      std::cout << PHWHERE << m_PHG4HitsName
+           << " node not found on node tree" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
     if (Verbosity() > 0)
     {
-      cout << "PHG4TrackFastSim::GetNodes - node added: " << m_PHG4HitsNames[i] << endl;
+      std::cout << "PHG4TrackFastSim::GetNodes - node added: " << m_PHG4HitsName << std::endl;
     }
     m_PHG4HitContainer.push_back(phg4hit);
 
-    m_Parameter->set_int_param(m_PHG4HitsNames[i], phg4hit->GetID());
+    m_Parameter->set_int_param(m_PHG4HitsName, phg4hit->GetID());
   }
 
   // Update Kalman filter parameter node
@@ -657,12 +661,12 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
   }
   if (Verbosity())
   {
-    cout << __PRETTY_FUNCTION__ << " : ";
+    std::cout << __PRETTY_FUNCTION__ << " : ";
     m_Parameter->identify();
   }
-  m_Parameter->SaveToNodeTree(runNode, Name() + string("_Parameter"));
+  m_Parameter->SaveToNodeTree(runNode, Name() + std::string("_Parameter"));
 
-  //checks
+  // checks
   assert(m_PHG4HitsNames.size() == m_PHG4HitContainer.size());
   assert(m_phg4_detector_type.size() == m_PHG4HitContainer.size());
   assert(m_phg4_detector_radres.size() == m_PHG4HitContainer.size());
@@ -674,16 +678,16 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
   //	_clustermap_out = findNode::getClass<SvtxClusterMap>(topNode,
   //			_clustermap_out_name);
   //	if (!_clustermap_out && m_EventCnt < 2) {
-  //		cout << PHWHERE << _clustermap_out_name << " node not found on node tree"
-  //				<< endl;
+  //		std::cout << PHWHERE << _clustermap_out_name << " node not found on node tree"
+  //				<< std::endl;
   //		return Fun4AllReturnCodes::ABORTEVENT;
   //	}
 
   m_SvtxTrackMapOut = findNode::getClass<SvtxTrackMap>(topNode, m_TrackmapOutNodeName);
   if (!m_SvtxTrackMapOut && m_EventCnt < 2)
   {
-    cout << PHWHERE << m_TrackmapOutNodeName
-         << " node not found on node tree" << endl;
+    std::cout << PHWHERE << m_TrackmapOutNodeName
+         << " node not found on node tree" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -739,11 +743,11 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
   if (Verbosity())
   {
     std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - DEBUG: "
-              << "searching for hits from  " << m_PHG4HitContainer.size() << " PHG4Hit nodes" << endl;
+              << "searching for hits from  " << m_PHG4HitContainer.size() << " PHG4Hit nodes" << std::endl;
   }
 
   // order measurement with g4hit time via stl multimap
-  multimap<double, PHGenFit::Measurement*> ordered_measurements;
+  std::multimap<double, PHGenFit::Measurement*> ordered_measurements;
 
   for (unsigned int ilayer = 0; ilayer < m_PHG4HitContainer.size(); ilayer++)
   {
@@ -820,9 +824,9 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
               return Fun4AllReturnCodes::ABORTEVENT;
             }
             //            meas_out.push_back(meas);
-            ordered_measurements.insert(make_pair(hit->get_avg_t(), meas));
+            ordered_measurements.insert(std::make_pair(hit->get_avg_t(), meas));
             track_out->add_g4hit_id(m_PHG4HitContainer[ilayer]->GetID(), hit->get_hit_id());
-            //meas->getMeasurement()->Print(); //DEBUG
+            // meas->getMeasurement()->Print(); //DEBUG
           }
         }
       }
@@ -844,17 +848,17 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
   {
     std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - meas_out.size = " << meas_out.size() << " for "
               << "particle: "
-              << endl;
+              << std::endl;
     particle->identify();
 
     std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - seed_pos = "
-              << seed_pos.x() << ", " << seed_pos.y() << ". " << seed_pos.z() << endl;
+              << seed_pos.x() << ", " << seed_pos.y() << ". " << seed_pos.z() << std::endl;
     std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - seed_pos = "
-              << seed_mom.x() << ", " << seed_mom.y() << ". " << seed_mom.z() << endl;
+              << seed_mom.x() << ", " << seed_mom.y() << ". " << seed_mom.z() << std::endl;
     std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - seed_cov = "
               << sqrt(seed_cov[0][0]) << ", " << sqrt(seed_cov[1][1]) << ". " << sqrt(seed_cov[2][2])
               << ","
-              << sqrt(seed_cov[3][3]) << ", " << sqrt(seed_cov[4][4]) << ". " << sqrt(seed_cov[5][5]) << endl;
+              << sqrt(seed_cov[3][3]) << ", " << sqrt(seed_cov[4][4]) << ". " << sqrt(seed_cov[5][5]) << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -872,7 +876,7 @@ bool PHG4TrackFastSim::MakeSvtxTrack(SvtxTrack* out_track,
   double ndf = phgf_track->get_ndf();
 
   double pathlenth_from_first_meas = -999999;
-  unique_ptr<genfit::MeasuredStateOnPlane> gf_state(new genfit::MeasuredStateOnPlane());
+  std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state(new genfit::MeasuredStateOnPlane());
 
   //  if (_detector_type == Vertical_Plane)
   //  {
@@ -894,7 +898,7 @@ bool PHG4TrackFastSim::MakeSvtxTrack(SvtxTrack* out_track,
 
   if (Verbosity() > 1)
   {
-    cout << __PRETTY_FUNCTION__ << __LINE__ << " pathlenth_orig_from_first_meas = " << pathlenth_orig_from_first_meas << endl;
+    std::cout << __PRETTY_FUNCTION__ << __LINE__ << " pathlenth_orig_from_first_meas = " << pathlenth_orig_from_first_meas << std::endl;
   }
   if (pathlenth_orig_from_first_meas < -999990)
   {
@@ -908,11 +912,11 @@ bool PHG4TrackFastSim::MakeSvtxTrack(SvtxTrack* out_track,
 
   out_track->set_truth_track_id(truth_track_id);
   /*!
-	 * TODO: check the definition
-	 *  1/p, u'/z', v'/z', u, v
-	 *  u is defined as mom X beam line at POCA
-	 *  so u is the dca2d direction
-	 */
+   * TODO: check the definition
+   *  1/p, u'/z', v'/z', u, v
+   *  u is defined as mom X beam line at POCA
+   *  so u is the dca2d direction
+   */
   double dca2d = gf_state->getState()[3];
   out_track->set_dca2d(dca2d);
   out_track->set_dca2d_error(gf_state->getCov()[3][3]);
@@ -943,18 +947,18 @@ bool PHG4TrackFastSim::MakeSvtxTrack(SvtxTrack* out_track,
   out_track->begin_states()->second->set_name("ORIGIN");
 
   // make the projections for all detector types
-  for (map<string, pair<int, double>>::iterator iter = m_ProjectionsMap.begin(); iter != m_ProjectionsMap.end(); ++iter)
+  for (auto& iter : m_ProjectionsMap)
   {
-    switch (iter->second.first)
+    switch (iter.second.first)
     {
     case DETECTOR_TYPE::Cylinder:
-      pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, iter->second.second, TVector3(0., 0., 0.), TVector3(0., 0., 1.), nmeas - 1);
+      pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, iter.second.second, TVector3(0., 0., 0.), TVector3(0., 0., 1.), nmeas - 1);
       break;
     case DETECTOR_TYPE::Vertical_Plane:
-      pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., iter->second.second), TVector3(0, 0., 1.), nmeas - 1);
+      pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., iter.second.second), TVector3(0, 0., 1.), nmeas - 1);
       break;
     default:
-      cout << "how in the world did you get here??????" << endl;
+      std::cout << "how in the world did you get here??????" << std::endl;
       gSystem->Exit(1);
     }
     if (pathlenth_from_first_meas < -999990)
@@ -970,7 +974,7 @@ bool PHG4TrackFastSim::MakeSvtxTrack(SvtxTrack* out_track,
     state->set_py(gf_state->getMom().y());
     state->set_pz(gf_state->getMom().z());
 
-    state->set_name(iter->first);
+    state->set_name(iter.first);
     for (int i = 0; i < 6; i++)
     {
       for (int j = i; j < 6; j++)
@@ -1017,7 +1021,7 @@ PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementVerticalPlane
   //	u.Print();
   //	v.Print();
 
-  //dynamic_cast<PHGenFit::PlanarMeasurement*> (meas)->getMeasurement()->Print();
+  // dynamic_cast<PHGenFit::PlanarMeasurement*> (meas)->getMeasurement()->Print();
 
   return meas;
 }
@@ -1053,7 +1057,7 @@ PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementCylinder(
   //	u.Print();
   //	v.Print();
 
-  //dynamic_cast<PHGenFit::PlanarMeasurement*> (meas)->getMeasurement()->Print();
+  // dynamic_cast<PHGenFit::PlanarMeasurement*> (meas)->getMeasurement()->Print();
 
   return meas;
 }
@@ -1089,26 +1093,26 @@ void PHG4TrackFastSim::add_state_name(const std::string& stateName)
 {
   if (reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
   {
-    m_ProjectionsMap.insert(make_pair(stateName, make_pair(DETECTOR_TYPE::Vertical_Plane, NAN)));
+    m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, NAN)));
   }
   else if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end())
   {
-    m_ProjectionsMap.insert(make_pair(stateName, make_pair(DETECTOR_TYPE::Cylinder, NAN)));
+    m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Cylinder, NAN)));
   }
   else
   {
-    cout << PHWHERE << " Invalid stateName " << stateName << endl;
-    cout << endl
-         << "These are implemented for cylinders" << endl;
-    for (auto iter : reserved_cylinder_projection_names)
+    std::cout << PHWHERE << " Invalid stateName " << stateName << std::endl;
+    std::cout << std::endl
+         << "These are implemented for cylinders" << std::endl;
+    for (const auto& iter : reserved_cylinder_projection_names)
     {
-      cout << iter << endl;
+      std::cout << iter << std::endl;
     }
-    cout << endl
-         << "These are implemented are for zplanes" << endl;
-    for (auto iter : reserved_zplane_projection_names)
+    std::cout << std::endl
+         << "These are implemented are for zplanes" << std::endl;
+    for (const auto& iter : reserved_zplane_projection_names)
     {
-      cout << iter << endl;
+      std::cout << iter << std::endl;
     }
     gSystem->Exit(1);
   }
@@ -1120,12 +1124,12 @@ void PHG4TrackFastSim::add_cylinder_state(const std::string& stateName, const do
   if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end() ||
       reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
   {
-    cout << PHWHERE << ": " << stateName << " is a reserved name, used a different name for your cylinder projection" << endl;
+    std::cout << PHWHERE << ": " << stateName << " is a reserved name, used a different name for your cylinder projection" << std::endl;
     gSystem->Exit(1);
   }
   if (m_ProjectionsMap.find(stateName) != m_ProjectionsMap.end())
   {
-    cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << endl;
+    std::cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << std::endl;
     gSystem->Exit(1);
   }
   m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Cylinder, radius)));
@@ -1137,12 +1141,12 @@ void PHG4TrackFastSim::add_zplane_state(const std::string& stateName, const doub
   if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end() ||
       reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
   {
-    cout << PHWHERE << ": " << stateName << " is  a reserved name, used different name for your zplane projection" << endl;
+    std::cout << PHWHERE << ": " << stateName << " is  a reserved name, used different name for your zplane projection" << std::endl;
     gSystem->Exit(1);
   }
   if (m_ProjectionsMap.find(stateName) != m_ProjectionsMap.end())
   {
-    cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << endl;
+    std::cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << std::endl;
     gSystem->Exit(1);
   }
   m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, zplane)));

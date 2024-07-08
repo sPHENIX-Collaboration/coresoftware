@@ -105,15 +105,17 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
     {
       int packet_id = plist[i]->getIdentifier();
       // The call to  EventNumberOffset(identifier) will initialize it to our default if it wasn't set already
+      // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
+      // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
+      // and only when the pool gets refilled, this correction kicks in
+      // SO DO NOT BE CONFUSED when printing this out - seeing different events where this kicks in
       int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
         plist[i]->identify();
       }
 
-      // by default use previous bco clock for gtm bco
       CaloPacket *newhit = new CaloPacketv1();
-      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
       int nr_modules = plist[i]->iValue(0, "NRMODULES");
       int nr_channels = plist[i]->iValue(0, "CHANNELS");
       int nr_samples = plist[i]->iValue(0, "SAMPLES");
@@ -122,6 +124,8 @@ void SingleMbdTriggerInput::FillPool(const unsigned int keep)
         std::cout << PHWHERE << " too many modules, need to adjust arrays" << std::endl;
         gSystem->Exit(1);
       }
+
+      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);
@@ -240,37 +244,6 @@ void SingleMbdTriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleMbdTriggerInput::GetSomeMoreEvents(const unsigned int keep)
-{
-  if (AllDone())
-  {
-    return false;
-  }
-  if (m_PacketMap.empty())
-  {
-    return true;
-  }
-
-  int first_event = m_PacketMap.begin()->first;
-  int last_event = m_PacketMap.rbegin()->first;
-  if (Verbosity() > 1)
-  {
-    std::cout << "number of mbd events: " << m_PacketMap.size() << std::endl;
-    std::cout << PHWHERE << "first event: " << first_event
-              << " last event: " << last_event
-              << std::endl;
-  }
-  if (keep > 2 && m_PacketMap.size() < keep)
-  {
-    return true;
-  }
-  if (first_event >= last_event)
-  {
-    return true;
-  }
-  return false;
-}
-
 void SingleMbdTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
@@ -295,12 +268,3 @@ void SingleMbdTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode->addNode(newNode);
   }
 }
-
-// void SingleMbdTriggerInput::ConfigureStreamingInputManager()
-// {
-//   if (StreamingInputManager())
-//   {
-//     StreamingInputManager()->SetMbdBcoRange(m_BcoRange);
-//   }
-//   return;
-// }

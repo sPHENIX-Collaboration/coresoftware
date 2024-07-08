@@ -24,9 +24,17 @@ class ZdcReco : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode * /*topNode*/) override;
   void ResetMe();
+  void set_zdc1_cut(const float &f)
+  {
+    _zdc1_e = f;
+  }
+  void set_zdc2_cut(const float &g)
+  {
+    _zdc2_e = g;
+  }
   
  private:
-  void CompSmdPos();
+   void CompSmdPos();
    CDBTTree *cdbttree{ nullptr};
    Zdcinfo *m_zdcinfo{nullptr};
    std::string m_Detector = "ZDC"; 
@@ -44,7 +52,8 @@ class ZdcReco : public SubsysReco
    float radius_north{0.};
    float _sumS{0.};
    float _sumN{0.};
-  
+   float _zdc1_e{65.0};
+   float _zdc2_e{20.0};
 };
 
 #endif  // ZDCRECO_H
