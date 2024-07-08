@@ -477,8 +477,8 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
         }
       }
 
-      for (const auto& pair : phihistos) {
-        pair->second.Clear();
+      for (auto& pair : phihistos) {
+        pair.second.Clear();
       }
 
       for (int cl = 0; cl < nClus; cl++)
