@@ -51,20 +51,20 @@ int ZdcReco::InitRun(PHCompositeNode *topNode) {
   }
 
   PHNodeIterator node_itr(topNode);
-  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(
-      node_itr.findFirst("PHCompositeNode", "RUN"));
-  if (!runNode) {
-    std::cout << PHWHERE << "RUN Node not found - that is fatal" << std::endl;
-    gSystem->Exit(1);
-    exit(1);
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(
+      node_itr.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode) {
+    std::cout << "PHComposite node created: DST" << std::endl;
+    dstNode = new PHCompositeNode("DST");
+    topNode->addNode(dstNode);
   }
 
-  PHNodeIterator runiter(runNode);
+  PHNodeIterator nodeItr(dstNode);
   PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(
-      runiter.findFirst("PHCompositeNode", m_Detector));
+      nodeItr.findFirst("PHCompositeNode", m_Detector));
   if (!DetNode) {
     DetNode = new PHCompositeNode(m_Detector);
-    runNode->addNode(DetNode);
+    dstNode->addNode(DetNode);
   }
 
   m_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
