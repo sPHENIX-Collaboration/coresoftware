@@ -260,7 +260,14 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
   }
 
   // Get the raw gl1 data from event combined DST
-  m_gl1raw = findNode::getClass<Gl1Packet>(topNode, "Gl1Packet");
+  m_gl1raw = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  /*
+  if ( !m_gl1raw )
+  {
+    cout << PHWHERE << " Gl1Packet node not found on node tree" << endl;
+  }
+  */
+  
 
   // MbdPmtContainer
   m_mbdpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
