@@ -379,7 +379,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4AssemblyVolume* av)
   int nDaughters = av->TotalImprintedVolumes();
   for (int i = 0; i < nDaughters; ++i, ++it)
   {
-    //  std::cout <<"SetDisplayProperty - AV["<<i<<"] = "<<(*it)->GetName()<<std::endl;
+    std::cout <<"SetDisplayProperty - AV["<<i<<"] = "<<(*it)->GetName()<<std::endl;
     G4VPhysicalVolume* pv = (*it);
 
     G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
