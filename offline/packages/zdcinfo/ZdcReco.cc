@@ -157,10 +157,12 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
         if (vsmdtime[j] > 9.0 && vsmdtime[j] < 14.0) {
           smd_adc[j] = vsmdadc[j];
           if (vsmdadc[j] > 10.0) {
-            if (j <= 7)
+            if (j <= 7) {
               _nhor++;
-            if (j >= 8 && j <= 14)
+            }
+            if (j >= 8 && j <= 14) {
               _nver++;
+            }
           }
         } else {
           smd_adc[j] = 0.0;
@@ -169,10 +171,12 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
         if (vsmdtime[j] > 6.0 && vsmdtime[j] < 12.0) {
           smd_adc[j] = vsmdadc[j];
           if (vsmdadc[j] > 10.0) {
-            if (j >= 16 && j <= 23)
+            if (j >= 16 && j <= 23) {
               _shor++;
-            if (j >= 24 && j <= 30)
+            }
+            if (j >= 24 && j <= 30) {
               _sver++;
+            }
           }
         } else {
           smd_adc[j] = 0.0;
@@ -182,17 +186,21 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
     // get smd position
     CompSmdPos();
 
-    if (_nver > 1 && _nhor > 1)
+    if (_nver > 1 && _nhor > 1) {
       smd_north_fired = true;
-    if (_sver > 1 && _shor > 1)
+    }
+    if (_sver > 1 && _shor > 1) {
       smd_south_fired = true;
+    }
 
-    if (smd_north_fired)
+    if (smd_north_fired) {
       radius_north =
           std::sqrt(smd_pos[1] * smd_pos[1] + smd_pos[0] * smd_pos[0]);
-    if (smd_south_fired)
+    }
+    if (smd_south_fired) {
       radius_south =
           std::sqrt(smd_pos[3] * smd_pos[3] + smd_pos[2] * smd_pos[2]);
+    }
 
     // apply time cuts per zdc and get sums
     for (int i = 0; i < zsize; i++) {
