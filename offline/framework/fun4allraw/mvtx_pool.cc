@@ -91,11 +91,7 @@ void mvtx_pool::setupLinks()
     // Skip FLX padding
     if ( *(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) == 0xFFFF )
     {
-      while ( (*(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) == 0xFFFF) &&\
-             payload_position < dlength)
-      {
-        payload_position += mvtx_utils::FLXWordLength;
-      }
+      payload_position += mvtx_utils::FLXWordLength;
     }
     else if ( (dlength - payload_position) >= static_cast<uint64_t>(2 * mvtx_utils::FLXWordLength) ) // at least FLX header and RDH
     {
@@ -105,7 +101,7 @@ void mvtx_pool::setupLinks()
         const size_t pageSizeInBytes = static_cast<size_t>((rdh.pageSize + 1) * mvtx_utils::FLXWordLength);
         if ( pageSizeInBytes > (dlength - payload_position) )
         {
-          break; // skip incomplete felix packet
+          break; // skip incomplete felix packet, return to fetch more data
         }
         else
         {
@@ -131,30 +127,29 @@ void mvtx_pool::setupLinks()
 
           if ( ! rdh.packetCounter ) // start HB
           {
-            if ( gbtLink.hbf_found )
+            if ( gbtLink.hbf_length )
             {
               log_error << "FLX: " << gbtLink.flxId << ", FeeId: " << gbtLink.feeId \
                 << ". Found new HBF before stop previous HBF. Previous HBF will be ignored." << std::endl;
-              gbtLink.cacheData(gbtLink.hbf_length, true);
+                gbtLink.cacheData(gbtLink.hbf_length, true);
             }
-            gbtLink.hbf_found = true;
             gbtLink.hbf_length = pageSizeInBytes;
+            gbtLink.hbf_error = false;
           }
           else
           {
-            gbtLink.hbf_length += pageSizeInBytes;
-          }
-
-          if ( rdh.stopBit ) // found HB end
-          {
-            if ( ! gbtLink.hbf_found )
+            if (! gbtLink.hbf_length )
             {
-              log_error << "FLX: " << gbtLink.flxId << ", FeeId: " << gbtLink.feeId \
-                << ". Stopping HBF without start. This block will be ignored." << std::endl;
-              gbtLink.cacheData(gbtLink.hbf_length, true);
+              log_error << "FLX: " << gbtLink.flxId << ", FeeId: " << gbtLink.feeId
+              << ". Found continuous HBF before start new HBF. data will be ignored." << std::endl;
+              gbtLink.hbf_error = true;
             }
-            gbtLink.hbf_found = false;
-            gbtLink.cacheData(gbtLink.hbf_length, false);
+            gbtLink.hbf_length += pageSizeInBytes;
+            if ( rdh.stopBit ) // found HB end
+            {
+              gbtLink.cacheData(gbtLink.hbf_length, gbtLink.hbf_error);
+              gbtLink.hbf_length = 0;
+            }
           }
           payload_position += pageSizeInBytes;
         }
@@ -249,7 +244,7 @@ int mvtx_pool::iValue(const int n, const char *what)
     }
     else if ( strcmp(what, "NR_HITS") == 0 )  // the number of datasets
     {
-      return mGBTLinks[lnkId].hit_vector.size();
+      return -1;
     }
     else
     {
@@ -283,9 +278,13 @@ int mvtx_pool::iValue(const int i_feeid, const int idx, const char *what)
   {
     return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].ir.bc : -1;
   }
+  else if ( strcmp(what, "TRG_DET_FIELD") == 0 )
+  {
+    return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].detectorField : -1;
+  }
   else if ( strcmp(what, "TRG_NR_HITS") == 0)
   {
-    return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].n_hits : -1;
+    return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].hit_vector.size() : -1;
   }
   else
   {
@@ -312,27 +311,25 @@ int mvtx_pool::iValue(const int i_feeid, const int i_trg, const int i_hit, const
   }
   uint32_t lnkId =  mFeeId2LinkID[feeId].entry;
 
-  uint32_t hit_global_id = mGBTLinks[lnkId].mTrgData[trg].first_hit_pos + hit;
-
   if ( strcmp(what, "HIT_CHIP_ID") == 0 )
   {
-    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].n_hits) ) ? \
-                     mGBTLinks[lnkId].hit_vector[hit_global_id]->chip_id : -1;
+    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
+                     mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->chip_id : -1;
   }
   else if ( strcmp(what, "HIT_BC") == 0 )
   {
-    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].n_hits) ) ? \
-                     mGBTLinks[lnkId].hit_vector[hit_global_id]->bunchcounter : -1;
+    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
+                     mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->bunchcounter : -1;
   }
   else if ( strcmp(what, "HIT_ROW") == 0 )
   {
-    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].n_hits) ) ? \
-                     mGBTLinks[lnkId].hit_vector[hit_global_id]->row_pos : -1;
+    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
+                     mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->row_pos : -1;
   }
   else if ( strcmp(what, "HIT_COL") == 0 )
   {
-    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].n_hits) ) ? \
-                     mGBTLinks[lnkId].hit_vector[hit_global_id]->col_pos : -1;
+    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
+                     mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->col_pos : -1;
   }
   else
   {
@@ -342,6 +339,12 @@ int mvtx_pool::iValue(const int i_feeid, const int i_trg, const int i_hit, const
   return 0;
 }
 
+
+//_________________________________________________
+std::vector<mvtx::mvtx_hit *> &mvtx_pool::get_hits(const int feeId, const int i_strb)
+{
+  return mGBTLinks[mFeeId2LinkID[feeId].entry].mTrgData[i_strb].hit_vector;
+}
 
 //_________________________________________________
 long long int mvtx_pool::lValue(const int i_feeid, const int idx, const char *what)

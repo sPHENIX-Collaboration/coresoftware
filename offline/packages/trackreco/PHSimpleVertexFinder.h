@@ -44,6 +44,8 @@ class PHSimpleVertexFinder : public SubsysReco
   void setTrackPtCut(const double cut) { _track_pt_cut = cut; }
   // void setUseTrackCovariance(bool set) {_use_track_covariance = set;}
   void setOutlierPairCut(const double cut) { _outlier_cut = cut; }
+  void setTrackMapName(const std::string &name) { _track_map_name = name; }
+  void setVertexMapName(const std::string &name) { _vertex_map_name = name; }
 
  private:
   int GetNodes(PHCompositeNode *topNode);
@@ -73,7 +75,8 @@ class PHSimpleVertexFinder : public SubsysReco
   unsigned int _nmvtx_required = 3;
   double _track_pt_cut = 0.0;
   double _outlier_cut = 0.015;
-
+  std::string _track_map_name = "SvtxTrackMap";
+  std::string _vertex_map_name = "SvtxVertexMap";
   std::multimap<unsigned int, unsigned int> _vertex_track_map;
   using matrix_t = Eigen::Matrix<double, 3, 3>;
   std::multimap<unsigned int, std::pair<unsigned int, double>> _track_pair_map;

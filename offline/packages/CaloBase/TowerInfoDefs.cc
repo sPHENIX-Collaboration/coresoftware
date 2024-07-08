@@ -329,96 +329,13 @@ unsigned int TowerInfoDefs::encode_zdc(const unsigned int towerIndex)
     exit(1);
   }
   unsigned int key = towerIndex;
-  /*
-  // 3 bits: one for pos/neg z and 2 for the 3 modules
-  unsigned int key;
-  if (towerIndex == 0) key = 0;
-  if (towerIndex == 1) key = 1;
-  if (towerIndex == 2) key = 2;
-  // negative side
-  if (towerIndex == 3)
-  {
-    key = 1 << 2;
-    key += 0;
-  }
-  if (towerIndex == 4)
-  {
-    key = 1 << 2;
-    key += 1;
-  }
-  if (towerIndex == 5)
-  {
-    key = 1 << 2;
-    key += 2;
-  }
-  */
   return key;
 }
 
-// convert from channel number to smd tower key
-unsigned int TowerInfoDefs::encode_smd(const unsigned int towerIndex)
-{
-  // 3 bits: one for pos/neg z and 2 for the 3 modules
-  if (towerIndex > 29)
-  {
-    std::cout << "Attempting to access smd channel with invalid number " << towerIndex << std::endl;
-    exit(1);
-  }
-  unsigned int Xpos[2] = {0, 6};
-  unsigned int Ypos[2] = {7, 14};
-  unsigned int Xneg[2] = {15, 23};
-  unsigned int Yneg[2] = {22, 29};
-  unsigned int xyBit = 0;
-  unsigned int fingerIndex = UINT_MAX;
-  unsigned int sideBit = 0;
-  if (towerIndex >= Xpos[0] && towerIndex <= Xpos[1])
-  {
-    xyBit = 0;
-    fingerIndex = towerIndex - Xpos[0];
-    sideBit = 1;
-  }
-  if (towerIndex >= Ypos[0] && towerIndex <= Ypos[1])
-  {
-    xyBit = 1;
-    fingerIndex = towerIndex - Ypos[0];
-    sideBit = 1;
-  }
-  if (towerIndex >= Xneg[0] && towerIndex <= Xneg[1])
-  {
-    xyBit = 0;
-    fingerIndex = towerIndex - Xneg[0];
-    sideBit = 0;
-  }
-  if (towerIndex >= Yneg[0] && towerIndex <= Yneg[1])
-  {
-    xyBit = 1;
-    fingerIndex = towerIndex - Yneg[0];
-    sideBit = 0;
-  }
-  unsigned int key = (sideBit << 4) + (xyBit << 3) + fingerIndex;
-  //    key += (sideBit << 4) + (xyBit << 3) + fingerIndex;
-  return key;
-}
-
-unsigned int TowerInfoDefs::decode_smd(const unsigned int key)
-{
-  unsigned int index = 999;
-  for (unsigned int i = 0; i < 30; i++)
-  {
-    if (encode_smd(i) == key)
-    {
-      index = i;
-      break;
-    }
-  }
-  return index;
-}
-
-// convert from zdc tower key to channel number
 unsigned int TowerInfoDefs::decode_zdc(const unsigned int key)
 {
   unsigned int index = 999;
-  for (unsigned int i = 0; i < 16; i++)
+  for (unsigned int i = 0; i < 52; i++)
   {
     if (encode_zdc(i) == key)
     {
@@ -429,6 +346,17 @@ unsigned int TowerInfoDefs::decode_zdc(const unsigned int key)
   return index;
 }
 
+bool TowerInfoDefs::isZDC(const unsigned int towerIndex)
+{
+  bool is_zdc = false;
+    
+  if(towerIndex < 16)
+  {
+     is_zdc = true;
+  }
+    return is_zdc;
+}
+
 // get zdc side, 0 = south, 1 = north
 int TowerInfoDefs::get_zdc_side(const unsigned int key)
 {
@@ -436,23 +364,42 @@ int TowerInfoDefs::get_zdc_side(const unsigned int key)
   return 0;
 }
 
-// convert from calorimeter key to smd side
+bool TowerInfoDefs::isSMD(const unsigned int towerIndex)
+{
+  bool is_smd = false;
+    
+  if( (towerIndex > 17 && towerIndex < 34) || (towerIndex > 35 && towerIndex < 52))
+  {
+     is_smd = true;
+  }
+    return is_smd;
+}
+
+// get smd side, 0 = south, 1 = north
 int TowerInfoDefs::get_smd_side(const unsigned int key)
 {
-  if (key & (1 << 4)) return 1;
-  return -1;
+  if (key < 34) return 1;
+  return 0;
 }
-// convert from calorimeter key to smd xy bin
-int TowerInfoDefs::get_smd_xy(const unsigned int key)
+
+bool TowerInfoDefs::isVeto(const unsigned int towerIndex)
 {
-  if (key & (1 << 3)) return 0;
+  bool is_veto = false;
+    
+  if( (towerIndex > 15 && towerIndex < 18) || (towerIndex > 33 && towerIndex < 36))
+  {
+      is_veto = true;
+  }
+    return is_veto;
+}
+// get veto side, 0 = south, 1 = north
+int TowerInfoDefs::get_veto_side(const unsigned int key)
+{
+  if (key & 2) return 0;
   return 1;
 }
-// convert from calorimeter key to smd finger
-int TowerInfoDefs::get_smd_finger_index(const unsigned int key)
-{
-  return key & 7;
-}
+
+
 
 // 128 channels per side, goes 8 times and 8 charges and so on
 unsigned int TowerInfoDefs::encode_mbd(const unsigned int pmtIndex)

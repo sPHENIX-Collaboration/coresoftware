@@ -76,7 +76,6 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
   // Write to a new map on the node tree that contains (crossing, trackid) pairs for all tracks
   // Later, will add to it a map  containing (crossing, vertexid)
 
-  _track_vertex_crossing_map->Clear();
   std::set<short int> crossings;
   for (const auto &[trackkey, track] : *_track_map)
   {
@@ -384,13 +383,13 @@ int PHSimpleVertexFinder::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(svtxNode);
   }
 
-  _svtx_vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  _svtx_vertex_map = findNode::getClass<SvtxVertexMap>(topNode, _vertex_map_name);
 
   if (!_svtx_vertex_map)
   {
     _svtx_vertex_map = new SvtxVertexMap_v1;
     PHIODataNode<PHObject> *vertexNode = new PHIODataNode<PHObject>(
-        _svtx_vertex_map, "SvtxVertexMap", "PHObject");
+        _svtx_vertex_map, _vertex_map_name, "PHObject");
 
     svtxNode->addNode(vertexNode);
   }
@@ -409,10 +408,10 @@ int PHSimpleVertexFinder::CreateNodes(PHCompositeNode *topNode)
 }
 int PHSimpleVertexFinder::GetNodes(PHCompositeNode *topNode)
 {
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
   {
-    std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;
+    std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << _track_map_name << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

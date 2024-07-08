@@ -107,12 +107,12 @@ class RawClusterBuilderTopo : public SubsysReco
   // utility functions to express IHCal<->EMCal overlap in phi
   int get_first_matching_EMCal_phi_from_IHCal(int index_hcal_phi)
   {
-    return ((68 + 4 * (index_hcal_phi - 32) + _EMCAL_NPHI) % _EMCAL_NPHI);
+    return (4*index_hcal_phi + 5) % _EMCAL_NPHI;
   }
 
   int get_matching_HCal_phi_from_EMCal(int index_emcal_phi)
   {
-    return ((32 + (index_emcal_phi - 68 + _EMCAL_NPHI) / 4) % _HCAL_NPHI);
+    return ((index_emcal_phi + 251)/4) % _HCAL_NPHI;
   }
 
   std::vector<int> get_adjacent_towers_by_ID(int ID);

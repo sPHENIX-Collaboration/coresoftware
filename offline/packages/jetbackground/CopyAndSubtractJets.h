@@ -38,12 +38,21 @@ class CopyAndSubtractJets : public SubsysReco
   {
     m_use_towerinfo = use_towerinfo;
   }
+  void set_towerNodePrefix(const std::string &prefix)
+  {
+    m_towerNodePrefix = prefix;
+    return;
+  }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
 
   bool _use_flow_modulation{false};
   bool m_use_towerinfo{false};
+  std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
+  std::string EMTowerName;
+  std::string IHTowerName;
+  std::string OHTowerName;
 };
 
 #endif

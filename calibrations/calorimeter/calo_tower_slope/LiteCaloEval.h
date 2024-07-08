@@ -87,24 +87,34 @@ class LiteCaloEval : public SubsysReco
   /// Getters
   float getFitMax() { return fitmax; }
   float getFitMin() { return fitmin; }
+  float get_spectra_binWidth() { return binwidth; }
 
   void setInputTowerNodeName(const std::string &inpNodenm)
   {
     _inputnodename = inpNodenm;
   }
 
-  float spec_QA(TH1* h_spec,TH1* h_ref,bool retFloat);
-  bool spec_QA(TH1* h_spec,TH1* h_ref);
+  float spec_QA(TH1 *h_spec, TH1 *h_ref, bool retFloat);
+  bool spec_QA(TH1 *h_spec, TH1 *h_ref);
 
-  void plot_cemc(const std::string& path);
+  void plot_cemc(const std::string &path);
 
-  void set_doQA(bool status=true)
+  void set_doQA(bool status = true)
   {
     doQA = status;
   }
 
+  void draw_spectra();
+
+  void fit_info();
+
+  void set_reqMinBias(bool status)
+  {
+    reqMinBias = status;
+    return;
+  }
+
  private:
- 
   TFile *cal_output{nullptr};
 
   TH1 *hcal_out_eta_phi[24][64] = {};
@@ -135,6 +145,8 @@ class LiteCaloEval : public SubsysReco
   std::string _caloname;
   std::string _filename;
   std::string _inputnodename;
+
+  bool reqMinBias = true;
 
   int mode = 0;
 

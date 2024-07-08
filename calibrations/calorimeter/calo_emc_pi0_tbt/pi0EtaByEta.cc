@@ -13,6 +13,8 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 
+#include <ffarawobjects/Gl1Packet.h>
+
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -159,6 +161,28 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   float nClus_ptCut = 0.5;
   int max_nClusCount = 300;
 
+   //--------------------------- trigger and GL1-------------------------------//
+  bool isMinBias = true;
+  Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  if (!gl1PacketInfo)
+  {
+    std::cout << PHWHERE << "CaloValid::process_event: GL1Packet node is missing" << std::endl;
+  }
+
+  if (gl1PacketInfo)
+  {
+    uint64_t triggervec = gl1PacketInfo->getScaledVector();
+    if (  ( triggervec >> 10U ) & 0x1U )
+    {
+      isMinBias = true;
+    }
+  }
+ 
+  if (reqMinBias && isMinBias != true)  
+  {
+      return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   //----------------------------------get vertex------------------------------------------------------//
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
@@ -200,7 +224,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     }
   }
 
-  std::string cluster_node_name = "CLUSTERINFO_CEMC";
+  std::string cluster_node_name = "CLUSTERINFO_CEMC2";
 	
   if (use_pdc)
   {

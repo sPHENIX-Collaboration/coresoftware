@@ -6,47 +6,43 @@
 #include <iostream>
 #include <utility>
 
-
 ParticleFlowElementContainer::ConstRange
-ParticleFlowElementContainer::getParticleFlowElements(void) const
+ParticleFlowElementContainer::getParticleFlowElements() const
 {
-  return make_pair( _pflowElementMap.begin(), _pflowElementMap.end() );
+  return make_pair(_pflowElementMap.begin(), _pflowElementMap.end());
 }
 
 ParticleFlowElementContainer::Range
-ParticleFlowElementContainer::getParticleFlowElements(void)
+ParticleFlowElementContainer::getParticleFlowElements()
 {
-  return make_pair( _pflowElementMap.begin(), _pflowElementMap.end() );
+  return make_pair(_pflowElementMap.begin(), _pflowElementMap.end());
 }
 
-void
-ParticleFlowElementContainer::AddParticleFlowElement( int index , ParticleFlowElement *pflowElement )
+void ParticleFlowElementContainer::AddParticleFlowElement(int index, ParticleFlowElement *pflowElement)
 {
-
   _pflowElementMap[index] = pflowElement;
-
 }
 
 ParticleFlowElement *
-ParticleFlowElementContainer::getParticleFlowElement( int index ) 
+ParticleFlowElementContainer::getParticleFlowElement(int index)
 {
-  ConstIterator it = _pflowElementMap.find( index );
+  ConstIterator it = _pflowElementMap.find(index);
   if (it != _pflowElementMap.end())
   {
     return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 const ParticleFlowElement *
-ParticleFlowElementContainer::getParticleFlowElement( int index ) const
+ParticleFlowElementContainer::getParticleFlowElement(int index) const
 {
-  ConstIterator it = _pflowElementMap.find( index );
+  ConstIterator it = _pflowElementMap.find(index);
   if (it != _pflowElementMap.end())
   {
     return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 int ParticleFlowElementContainer::isValid() const
@@ -67,4 +63,3 @@ void ParticleFlowElementContainer::identify(std::ostream &os) const
 {
   os << "ParticleFlowElementContainer, number of elements: " << size() << std::endl;
 }
-

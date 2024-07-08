@@ -74,6 +74,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_tpc_sector_fixed(unsigned int region, unsigned int sector, unsigned int side);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_ntuplefile_name(const std::string& file) { ntuple_outfilename = file; }
+  void set_vertex_param_fixed(unsigned int param){ fixed_vertex_params.insert(param);}
 
   void set_fitted_subsystems(bool si, bool tpc, bool full)
   {
@@ -133,6 +134,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool is_mvtx_layer_fixed(unsigned int layer, unsigned int stave);
   bool is_intt_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
+  bool is_vertex_param_fixed(unsigned int param);
 
   void getLocalDerivativesXY(const Surface& surf, const Acts::Vector3& global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
 
@@ -165,6 +167,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   std::set<unsigned int> fixed_intt_layers;
   std::set<unsigned int> fixed_sectors;
   std::set<std::pair<unsigned int, unsigned int>> fixed_layer_params;
+  std::set<unsigned int> fixed_vertex_params;
 
   // set default groups to lowest level
   AlignmentDefs::mvtxGrp mvtx_grp = AlignmentDefs::mvtxGrp::snsr;

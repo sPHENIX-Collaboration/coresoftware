@@ -29,8 +29,8 @@ class CaloTowerBuilder : public SubsysReco
 
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  int process_rawdata(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
-  int process_offline(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  int process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  
 
   void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
@@ -76,9 +76,17 @@ class CaloTowerBuilder : public SubsysReco
   {
     m_UseOfflinePacketFlag = f;
   }
+  void set_timeFitLim(float low,float high)
+  {
+    m_setTimeLim = true;
+    m_timeLim_low = low;
+    m_timeLim_high = high;
+    return;
+  }
 
  private:
   int process_sim();
+  bool skipChannel(int ich, int pid);
   CaloWaveformProcessing *WaveformProcessing{nullptr};
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
@@ -100,6 +108,9 @@ class CaloTowerBuilder : public SubsysReco
   std::string m_inputNodePrefix{"WAVEFORM_"};
   std::string m_outputNodePrefix{"TOWERS_"};
   std::string TowerNodeName;
+  bool m_setTimeLim{false};
+  float m_timeLim_low{-3.0};
+  float m_timeLim_high{4.0};
 
   std::string m_fieldname;
   std::string m_calibName;

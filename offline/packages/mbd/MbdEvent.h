@@ -24,6 +24,7 @@ class TF1;
 class TCanvas;
 #ifndef ONLINE
 class CaloPacketContainer;
+class Gl1Packet;
 #endif
 
 class MbdEvent
@@ -34,7 +35,7 @@ class MbdEvent
 
   int SetRawData(Event *event, MbdPmtContainer *mbdpmts);
 #ifndef ONLINE
-  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *mbdpmts);
+  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *mbdpmts, Gl1Packet *gl1raw);
 #endif
   int Calculate(MbdPmtContainer *mbdpmts, MbdOut *mbdout);
   int InitRun();
@@ -160,6 +161,9 @@ class MbdEvent
   // pedestals (hists are in MbdSig)
   int CalcPedCalib();
 
+  //
+  void ClusterEarliest(std::vector<float> &times, double& mean, double& rms, double& rmin, double& rmax);
+ 
   TCanvas *ac{nullptr};  // for plots used during debugging
 
   // debug stuff

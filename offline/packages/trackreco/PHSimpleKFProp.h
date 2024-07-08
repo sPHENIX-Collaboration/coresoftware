@@ -56,6 +56,7 @@ class PHSimpleKFProp : public SubsysReco
       _fieldDir = -1;
     }
   }
+  void ghostRejection() { m_ghostrejection = false; }
   void magFieldFile(const std::string& fname) { m_magField = fname; }
   void set_max_window(double s) { _max_dist = s; }
   void useConstBField(bool opt) { _use_const_field = opt; }
@@ -71,7 +72,7 @@ class PHSimpleKFProp : public SubsysReco
 
  private:
   bool _use_truth_clusters = false;
-
+  bool m_ghostrejection = true;
   /// fetch node pointers
   int get_nodes(PHCompositeNode* topNode);
   std::vector<double> radii;

@@ -81,10 +81,18 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
     {
       evt->identify();
     }
+
     // not interested in special events, really
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
+      if(evt->getEvtType() == ENDRUNEVENT)
+      {
+        std::cout << "End run flag for INTT found, remaining INTT data is corrupted" << std::endl;
+        delete evt;
+        AllDone(1);
+        return;
+      }
       delete evt;
       continue;
     }
@@ -132,7 +140,14 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
           std::cout << "Number of Hits: " << num_hits << " for packet "
                     << pool->getIdentifier() << std::endl;
         }
-        std::set<uint64_t> bclk_set;
+        
+        int numBCOs = pool->iValue(0, "NR_BCOS");
+        for (int j = 0; j < numBCOs; j++)
+        {
+          auto bco = pool->lValue(j, "BCOLIST");
+          m_BclkStack.insert(bco);
+        }
+
         for (int j = 0; j < num_hits; j++)
         {
           InttRawHit *newhit = new InttRawHitv2();
@@ -152,7 +167,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
           newhit->set_event_counter(pool->iValue(j, "EVENT_COUNTER"));
 
           gtm_bco += m_Rollover[FEE];
-          bclk_set.insert(gtm_bco);
+          
           if (gtm_bco < m_PreviousClock[FEE])
           {
             m_Rollover[FEE] += 0x10000000000;
@@ -176,7 +191,6 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
             StreamingInputManager()->AddInttRawHit(gtm_bco, newhit);
           }
           m_InttRawHitMap[gtm_bco].push_back(newhit);
-          m_BclkStack.insert(gtm_bco);
         }
         //	    Print("FEEBCLK");
       }
@@ -307,6 +321,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
     localbclk = m_InttRawHitMap.begin()->first;
   }
 
+  std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
     if (bcliter.second <= localbclk)
@@ -327,9 +342,13 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_InttRawHitMap.begin()->first)
                   << std::dec << std::endl;
-        m_FEEBclkMap.erase(bcliter.first);
+        toerase.insert(bcliter.first);
       }
     }
+  }
+  for(auto iter : toerase)
+  {
+    m_FEEBclkMap.erase(iter);
   }
   return false;
 }

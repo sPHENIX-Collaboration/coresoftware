@@ -88,18 +88,25 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_chi2 = "fraction";
 
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_chi2);
-      if (use_directURL_chi2)
+  if (use_directURL_chi2)
   {
     calibdir = m_directURL_chi2;
   }
   if (!calibdir.empty())
   {
-    m_cdbttree_chi2 = new CDBTTree(calibdir);
+     m_cdbttree_chi2 = new CDBTTree(calibdir);
+    if (Verbosity() > 0)
+    {
+       std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_chi2 << "  Doing isHot for frac bad chi2" << std::endl;
+    }
   }
   else
   {
-    std::cout << "CaloTowerStatus::::InitRun No masking file for domain " << m_calibName_chi2 << " found, not doing isHot" << std::endl;
     m_doHotChi2 = false;
+    if (Verbosity() > 0)
+    {
+      std::cout << "CaloTowerStatus::InitRun No masking file for domain " << m_calibName_chi2 << " found, not doing isHot from isBadChi2" << std::endl;
+    }
   }
 
   m_calibName_time = m_detector + "_meanTime";
@@ -113,11 +120,18 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   if (!calibdir.empty())
   {
     m_cdbttree_time = new CDBTTree(calibdir);
+    if (Verbosity() > 0)
+    {
+      std::cout << "CaloTowerStatus::InitRun Found " << m_calibName_time << " not Doing isBadTime" << std::endl;
+    }
   }
   else
   {
-    std::cout << "CaloTowerStatus::::InitRun no timing info, " << m_calibName_time << " not found, not doing isHot" << std::endl;
     m_doTime = false;
+    if (Verbosity() > 1)
+    {
+      std::cout << "CaloTowerStatus::InitRun no timing info, " << m_calibName_time << " not found, not doing isBadTime" << std::endl;
+    }
   }
 
   m_calibName_hotMap = m_detector + "nome";
@@ -135,11 +149,23 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   if (!calibdir.empty())
   {
     m_cdbttree_hotMap = new CDBTTree(calibdir);
+    if (Verbosity() > 1)
+    {
+      std::cout << "CaloTowerStatus::Init " << m_detector << "  hot map found " << m_calibName_hotMap << " Ddoing isHot" << std::endl;
+    }
   }
   else
   {
-    std::cout << "CaloTowerStatus::::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
     m_doHotMap = false;
+    if (Verbosity() > 1)
+    {
+      std::cout << "CaloTowerStatus::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
+    }
+  }
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "CaloTowerStatus::Init " << m_detector << "  doing time status =" <<  std::boolalpha << m_doTime << "  doing hotBadChi2=" <<  std::boolalpha << m_doHotChi2 << " doing hot map=" << std::boolalpha << m_doHotMap << std::endl;
   }
 
   PHNodeIterator iter(topNode);
@@ -179,7 +205,10 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = m_raw_towers->encode_key(channel);
-    m_raw_towers->get_tower_at_channel(channel)->set_status(0);  // resetting status
+    // only reset what we will set
+    m_raw_towers->get_tower_at_channel(channel)->set_isHot(false);
+    m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false);
+    m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(false);
 
     if (m_doHotChi2)
     {
@@ -195,6 +224,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
     float time = m_raw_towers->get_tower_at_channel(channel)->get_time_float();
+    float adc = m_raw_towers->get_tower_at_channel(channel)->get_energy();
 
     if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)
     {
@@ -208,7 +238,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (chi2 > badChi2_treshold)
+    if (chi2 > std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic))
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
     }
@@ -222,7 +252,7 @@ void CaloTowerStatus::CreateNodeTree(PHCompositeNode *topNode)
   m_raw_towers = findNode::getClass<TowerInfoContainer>(topNode, RawTowerNodeName);
   if (!m_raw_towers)
   {
-    std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
+    std::cout << Name() << "::" << m_detector.c_str() << "::" << __PRETTY_FUNCTION__
               << " " << RawTowerNodeName << " Node missing, doing bail out!"
               << std::endl;
     throw std::runtime_error(

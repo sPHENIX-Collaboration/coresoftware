@@ -113,6 +113,7 @@ namespace
     bool do_wedge_emulation = true;
     bool do_singles = true;
     bool do_split = true;
+    int FixedWindow = 0;
     unsigned short phibins = 0;
     unsigned short phioffset = 0;
     unsigned short tbins = 0;
@@ -171,8 +172,22 @@ namespace
   {
     const int FitRangeT = (int) my_data.maxHalfSizeT;
     const int NTBinsMax = (int) my_data.tbins;
+    const int FixedWindow = (int) my_data.FixedWindow;
     tup = 0;
     tdown = 0;
+    if(FixedWindow!=0){
+      tup = FixedWindow;
+      tdown = FixedWindow;
+      if(tbin+tup >= NTBinsMax){
+	tup = NTBinsMax-tbin-1;
+	edge++;
+      }
+      if((tbin-tdown) <= 0){
+	tdown = tbin;
+	edge++;
+      }
+      return;
+    }
     for (int it = 0; it < FitRangeT; it++)
     {
       int ct = tbin + it;
@@ -249,8 +264,22 @@ namespace
   {
     int FitRangePHI = (int) my_data.maxHalfSizePhi;
     int NPhiBinsMax = (int) my_data.phibins;
+    const int FixedWindow = (int) my_data.FixedWindow;
     phidown = 0;
     phiup = 0;
+    if(FixedWindow!=0){
+      phiup = FixedWindow;
+      phidown = FixedWindow;
+      if(phibin+phiup >= NPhiBinsMax){
+	phiup = NPhiBinsMax-phibin-1;
+	edge++;
+      }
+      if(phibin-phidown <= 0){
+	phidown = phibin;
+	edge++;
+      }
+      return;
+    }
     for (int iphi = 0; iphi < FitRangePHI; iphi++)
     {
       int cphi = phibin + iphi;
@@ -325,28 +354,78 @@ namespace
     }
     return;
   }
+  
+  int is_hit_isolated(int iphi, int it,int NPhiBinsMax, int NTBinsMax , const std::vector<std::vector<unsigned short>> &adcval)
+  {
+    //check isolated hits
+    // const int NPhiBinsMax = (int) my_data.phibins;
+    //const int NTBinsMax = (int) my_data.tbins;
+    
+    
+    int isosum = 0;
+    int isophimin = iphi-1;
+    if(isophimin<0){isophimin = 0;}
+    int isophimax = iphi+1;
+    if(!(isophimax<NPhiBinsMax)){isophimax = NPhiBinsMax-1;}
+    int isotmin = it-1;
+    if(isotmin<0){isotmin = 0;}
+    int isotmax = it+1;
+    if(!(isotmax<NTBinsMax)){isotmax = NTBinsMax-1;}
+    for(int isophi = isophimin;isophi<=isophimax;isophi++){ 
+      for(int isot = isotmin;isot<=isotmax;isot++){
+	if(isophi==iphi&&isot==it){continue;}
+	/*
+	std::cout <<" isominphi: " << isophimin 
+		  << "phi: " << isophi
+		  <<" isomaxphi: " << isophimax
+		  <<" maxphi: " << NPhiBinsMax
+		  <<" isomint: " << isotmin
+		  << " t: " << isot
+		  <<" isomaxt: " << isotmax
+		  << " maxt: " << NTBinsMax
+		  << std::endl;
+	*/
+	isosum+= adcval[isophi][isot];
+	/*
+	std::cout << "adc " << adcval[isophi][isot]
+		  << " isosum " << isosum
+		  << " done" 
+		  << std::endl;
+	*/
+      }
+    }
+    int isiso = 0;
+    if(isosum==0){
+      isiso = 1;
+    }
+    return isiso;
+  }
 
   void get_cluster(int phibin, int tbin, const thread_data &my_data, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list, int &touch, int &edge)
   {
     // search along phi at the peak in t
-
+    //    const int NPhiBinsMax = (int) my_data.phibins;
+    //const int NTBinsMax = (int) my_data.tbins;
     int tup = 0;
     int tdown = 0;
     find_t_range(phibin, tbin, my_data, adcval, tdown, tup, touch, edge);
     // now we have the t extent of the cluster, go find the phi edges
-
-    for (int it = tbin - tdown; it <= tbin + tup; it++)
-    {
+    for (int it = tbin - tdown; it <= (tbin + tup); it++){
       int phiup = 0;
       int phidown = 0;
       find_phi_range(phibin, it, my_data, adcval, phidown, phiup, touch, edge);
-      for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++)
-      {
+      for (int iphi = (phibin - phidown); iphi <= (phibin + phiup); iphi++){
         if (adcval[iphi][it] > 0 && adcval[iphi][it] != USHRT_MAX)
         {
+	  if (my_data.do_singles){
+	    if(is_hit_isolated(iphi,it, (int) my_data.phibins,(int) my_data.tbins, adcval)){
+	      continue;
+	    }
+	  }  
           ihit hit;
           hit.iphi = iphi;
           hit.it = it;
+
           hit.adc = adcval[iphi][it];
           if (touch > 0)
           {
@@ -426,35 +505,23 @@ namespace
 
     for (auto iter : ihit_list)
     {
-      double adc = iter.adc;
-
-      if (adc <= 0)
-      {
-        continue;
-      }
-      if (adc > max_adc)
-      {
-        max_adc = adc;
-      }
       int iphi = iter.iphi + my_data.phioffset;
       int it = iter.it + my_data.toffset;
-      if (iphi > phibinhi)
-      {
-        phibinhi = iphi;
-      }
-      if (iphi < phibinlo)
-      {
-        phibinlo = iphi;
-      }
-      if (it > tbinhi)
-      {
-        tbinhi = it;
-      }
-      if (it < tbinlo)
-      {
-        tbinlo = it;
-      }
+      double adc = iter.adc;
+      
+      if (adc <= 0){ continue; }
 
+      if (adc > max_adc) { max_adc = adc; }
+
+      if (iphi > phibinhi){ phibinhi = iphi; }
+
+      if (iphi < phibinlo) { phibinlo = iphi; }
+
+      if (it > tbinhi) { tbinhi = it; }
+
+      if (it < tbinlo) { tbinlo = it; }
+
+      // if(it==it_center){ yg_sum += adc; }
       // update phi sums
       //	double phi_center = my_data.layergeom->get_phicenter(iphi);
 
@@ -486,6 +553,7 @@ namespace
         }
       }
 
+
       // capture the hitkeys for all adc values above a certain threshold
       TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
       // if(adc>5)
@@ -508,6 +576,7 @@ namespace
       hitkeyvec.clear();
       return;  // skip obvious noise "clusters"
     }
+
     // This is the global position
     double clusiphi = iphi_sum / adc_sum;
     double clusphi = my_data.layergeom->get_phi(clusiphi);
@@ -552,6 +621,7 @@ namespace
 
     char tsize = tbinhi - tbinlo + 1;
     char phisize = phibinhi - phibinlo + 1;
+    // std::cout << "phisize: "  << (int) phisize << " phibinhi " << phibinhi << " phibinlo " << phibinlo << std::endl;
     // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
     // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
     //    - N is the number of electrons that drift to the readout plane
@@ -835,7 +905,7 @@ namespace
         }
       }
     }
-
+    /*
     if (my_data->do_singles)
     {
       for (auto ahit : all_hit_map)
@@ -855,7 +925,7 @@ namespace
         }
       }
     }
-
+    */
     // std::cout << "done filling " << std::endl;
     while (all_hit_map.size() > 0)
     {
@@ -868,6 +938,15 @@ namespace
       ihit hiHit = iter->second;
       int iphi = hiHit.iphi;
       int it = hiHit.it;
+      unsigned short edge = hiHit.edge;
+      double adc = hiHit.adc;
+      if (my_data->do_singles){
+	if(is_hit_isolated(iphi,it, (int) my_data->phibins,(int) my_data->tbins,adcval)){
+	  remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
+	  continue;
+	}
+      }
+     
       // put all hits in the all_hit_map (sorted by adc)
       // start with highest adc hit
       //  -> cluster around it and get vector of hits
@@ -876,6 +955,44 @@ namespace
       int nedge = 0;
       get_cluster(iphi, it, *my_data, adcval, ihit_list, ntouch, nedge);
 
+      if(my_data->FixedWindow>0){
+	//get cluster dimensions and check if they hit the window boundaries
+	int wphibinhi = -1;
+	int wphibinlo = 666666;
+	int wtbinhi = -1;
+	int wtbinlo = 666666;
+	for (auto witer : ihit_list){
+	  int wiphi = witer.iphi + my_data->phioffset;
+	  int wit = witer.it + my_data->toffset;
+	  double wadc = witer.adc;      
+	  if (wadc <= 0){ continue; }
+	  if (wiphi > wphibinhi){ wphibinhi = wiphi; }
+	  if (wiphi < wphibinlo) { wphibinlo = wiphi; }
+	  if (wit > wtbinhi) { wtbinhi = wit; }
+	  if (wit < wtbinlo) { wtbinlo = wit; }
+	}
+	char wtsize = wtbinhi - wtbinlo + 1;
+	char wphisize = wphibinhi - wphibinlo + 1;
+
+	//check if we have a super big cluster and switch from fixed window to step down
+	if(ihit_list.size()>(0.5*pow((2*my_data->FixedWindow+1),2))||
+	   wphisize>=(2*my_data->FixedWindow+1)||
+	   wtsize>=(2*my_data->FixedWindow+1)){
+	  int window_cache = my_data->FixedWindow;
+	  //std::cout << " fixed size before " << ihit_list.size() << " | " << pow((2*my_data->FixedWindow+1),2) << std::endl;
+	  my_data->FixedWindow = 0;
+	  //reset hit list and try again without fixed window
+	  ihit_list.clear();
+	  get_cluster(iphi, it, *my_data, adcval, ihit_list, ntouch, nedge);
+	  //std::cout << " stepdown size after " << ihit_list.size() << std::endl;
+	  my_data->FixedWindow = window_cache;
+	}
+      }
+      if(ihit_list.size()<=1){
+	remove_hits(ihit_list, all_hit_map, adcval);
+	ihit_list.clear();
+	remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
+      }
       // -> calculate cluster parameters
       // -> add hits to truth association
       // remove hits from all_hit_map
@@ -1216,6 +1333,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.sampa_tbias = m_sampa_tbias;
       thread_pair.data.verbosity = Verbosity();
       thread_pair.data.do_split = do_split;
+      thread_pair.data.FixedWindow = do_fixed_window;
       thread_pair.data.min_err_squared = min_err_squared;
       thread_pair.data.min_clus_size = min_clus_size;
       thread_pair.data.min_adc_sum = min_adc_sum;

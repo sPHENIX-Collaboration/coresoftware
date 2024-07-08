@@ -35,8 +35,6 @@ void InttVertexv1::identify(std::ostream& os) const
   return;
 }
 
-
-
 int InttVertexv1::isValid() const
 {
   if (_id == std::numeric_limits<unsigned int>::max())
@@ -63,7 +61,6 @@ int InttVertexv1::isValid() const
   return 1;
 }
 
-
 void InttVertexv1::set_error(unsigned int i, unsigned int j, float value)
 {
   _err[covar_index(i, j)] = value;
@@ -83,4 +80,3 @@ unsigned int InttVertexv1::covar_index(unsigned int i, unsigned int j) const
   }
   return i + 1 + (j + 1) * (j) / 2 - 1;
 }
-
