@@ -47,6 +47,7 @@ class SiliconSeedsQA : public SubsysReco
   TH2 *h_nmaps_nintt = nullptr;
   TProfile2D *h_avgnclus_eta_phi = nullptr;
   TH1 *h_trackcrossing = nullptr;
+  TH1 *h_trackchi2ndf = nullptr;
   TH2 *h_dcaxyorigin_phi = nullptr;
   TH2 *h_dcaxyvtx_phi = nullptr;
   TH2 *h_dcazorigin_phi = nullptr;
