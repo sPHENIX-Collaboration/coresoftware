@@ -98,6 +98,10 @@ void mvtx_pool::setupLinks()
       if ( *(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) == 0xAB01 )
       {
         rdh.decode(&payload[payload_position]);
+        if ( ! rdh.checkRDH(true) )
+        {
+          continue;
+        }
         const size_t pageSizeInBytes = static_cast<size_t>((rdh.pageSize + 1) * mvtx_utils::FLXWordLength);
         if ( pageSizeInBytes > (dlength - payload_position) )
         {
