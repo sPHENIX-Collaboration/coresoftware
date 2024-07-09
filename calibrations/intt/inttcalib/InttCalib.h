@@ -87,6 +87,8 @@ class InttCalib : public SubsysReco
 
   std::map<InttMap::RawData_s, int[128], InttMap::RawDataWildcardComparator> m_bcorates;
   std::map<InttMap::RawData_s, int,      InttMap::RawDataWildcardComparator> m_bcopeaks;
+
+  bool m_do_nothing = false;
 };
 
 #endif // INTTCALIB_H
