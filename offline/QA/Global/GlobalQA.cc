@@ -101,7 +101,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
 
   //--------------------------- trigger and GL1-------------------------------//
-  bool scaledBits[64] = {0};
+  bool scaledBits[64] = {false};
   Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   if (!gl1PacketInfo)
   {
