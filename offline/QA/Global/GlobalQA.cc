@@ -100,6 +100,14 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   }
   h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
   h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
+  if (mbd_zvtx == -999) 
+  {
+    h_GlobalQA_mbd_zvtxq->Fill(0);
+  }
+  else 
+  {
+    h_GlobalQA_mbd_zvtxq->Fill(1);
+  }
 
   //--------------------------- trigger and GL1-------------------------------//
   Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
@@ -323,6 +331,7 @@ void GlobalQA::createHistos()
   assert(hm);
 
   // MBD QA
+  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Has zvtx?;percentage", 2, -0.5,1.5);
   h_GlobalQA_mbd_zvtx = new TH1D("h_GlobalQA_mbd_zvtx", ";zvtx [cm]", 100, -50, 50);
   h_GlobalQA_mbd_zvtx_wide = new TH1D("h_GlobalQA_mbd_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
   h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";zvtx [cm]", 100, -50, 50);
@@ -332,6 +341,7 @@ void GlobalQA::createHistos()
   h_GlobalQA_mbd_nhit_s = new TH1D("h_GlobalQA_mbd_nhit_s", ";nhit", 30, -0.5, 29.5);
   h_GlobalQA_mbd_nhit_n = new TH1D("h_GlobalQA_mbd_nhit_n", ";nhit", 30, -0.5, 29.5);
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
+  hm->registerHisto(h_GlobalQA_mbd_zvtxq);
   hm->registerHisto(h_GlobalQA_mbd_zvtx_wide);
   hm->registerHisto(h_GlobalQA_calc_zvtx);
   hm->registerHisto(h_GlobalQA_calc_zvtx_wide);
