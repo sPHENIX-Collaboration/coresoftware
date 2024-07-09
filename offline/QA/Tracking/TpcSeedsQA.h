@@ -15,9 +15,9 @@
 /* #include <TH2.h> */
 /* #include <TProfile2D.h> */
 
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
 class ActsGeometry;
 class PHCompositeNode;
@@ -42,28 +42,19 @@ class TpcSeedsQA : public SubsysReco
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int EndRun(const int runnumber) override;
-  int End(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode* topNode) override;
 
-  void setClusterContainerName(const std::string &name) { m_clusterContainerName = name; }
-  std::string getClusterContainerName() {return m_clusterContainerName;}
-  void setActsGeomName(const std::string &name) {m_actsGeomName = name;}
-  std::string getActsGeomName() {return m_actsGeomName;}
-  void setG4GeomName(const std::string &name) {m_g4GeomName = name;}
-  std::string getG4GeomName() {return m_g4GeomName;}
-  void setTrackMapName(const std::string &name) { m_trackMapName = name; }
-  std::string getTrackMapName() {return m_trackMapName;}
-  void setVertexMapName(const std::string &name) { m_vertexMapName = name; }
-  std::string gettVertexMapName() {return m_vertexMapName;}
-  void setTpcSeedMapName(const std::string &name) { m_tpcseedMapName = name; }
-  std::string gettTpcSeedMapName() {return m_tpcseedMapName;}
-  void setSvtxSeedMapName(const std::string &name) { m_svtxseedMapName = name; }
-  std::string gettSvtxSeedMapName() {return m_svtxseedMapName;}
+  void setClusterContainerName(const std::string& name) { m_clusterContainerName = name; }
+  std::string getClusterContainerName() { return m_clusterContainerName; }
+  void setActsGeomName(const std::string& name) { m_actsGeomName = name; }
+  std::string getActsGeomName() { return m_actsGeomName; }
+  void setG4GeomName(const std::string& name) { m_g4GeomName = name; }
+  std::string getG4GeomName() { return m_g4GeomName; }
+  void setTrackMapName(const std::string& name) { m_trackMapName = name; }
+  std::string getTrackMapName() { return m_trackMapName; }
+  void setVertexMapName(const std::string& name) { m_vertexMapName = name; }
+  std::string gettVertexMapName() { return m_vertexMapName; }
 
-  void makeResidQAHistos(bool value)
-  {
-    m_residQA = value;
-  }
- 
  private:
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
   void createHistos();
@@ -71,23 +62,17 @@ class TpcSeedsQA : public SubsysReco
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
 
-  bool m_residQA = false;
-
   std::string m_clusterContainerName{"TRKR_CLUSTER"};
   std::string m_actsGeomName{"ActsGeometry"};
   std::string m_g4GeomName{"CYLINDERCELLGEOM_SVTX"};
   std::string m_trackMapName{"SvtxTrackMap"};
   std::string m_vertexMapName{"SvtxVertexMap"};
-  std::string m_tpcseedMapName{"TpcTrackSeedContainer"};
-  std::string m_svtxseedMapName{"SvtxTrackSeedContainer"};
 
   TrkrClusterContainer* clustermap{nullptr};
   ActsGeometry* actsgeom{nullptr};
   PHG4TpcCylinderGeomContainer* g4geom{nullptr};
   SvtxTrackMap* trackmap{nullptr};
   SvtxVertexMap* vertexmap{nullptr};
-  TrackSeedContainer* tpcseedmap{nullptr};
-  TrackSeedContainer* svtxseedmap{nullptr};
 
   TH1* h_ntrack1d{nullptr};
   TH1* h_ntrack1d_pos{nullptr};
@@ -110,8 +95,8 @@ class TpcSeedsQA : public SubsysReco
   TH1* h_ntpot_neg{nullptr};
   TProfile2D* h_avgnclus_eta_phi_pos{nullptr};
   TProfile2D* h_avgnclus_eta_phi_neg{nullptr};
-  //TH1* h_trackcrossing_pos{nullptr};
-  //TH1* h_trackcrossing_neg{nullptr};
+  // TH1* h_trackcrossing_pos{nullptr};
+  // TH1* h_trackcrossing_neg{nullptr};
   TH2* h_dcaxyorigin_phi_pos{nullptr};
   TH2* h_dcaxyorigin_phi_neg{nullptr};
   TH2* h_dcaxyvtx_phi_pos{nullptr};
@@ -131,17 +116,17 @@ class TpcSeedsQA : public SubsysReco
   TH2* h_vx_vy{nullptr};
   TH1* h_vz{nullptr};
   TH1* h_vt{nullptr};
-  //TH1* h_vcrossing{nullptr};
+  // TH1* h_vcrossing{nullptr};
   TH1* h_vchi2dof{nullptr};
   TH1* h_ntrackpervertex{nullptr};
 
   TH1* h_cluster_phisize1_fraction_side0[3] = {nullptr};
   TH1* h_cluster_phisize1_fraction_side1[3] = {nullptr};
 
-  TH1 *h_clusphisize1pt_side0[3] = {nullptr};
-  TH1 *h_clusphisize1pt_side1[3] = {nullptr};
-  TH1 *h_clusphisizegeq1pt_side0[3] = {nullptr};
-  TH1 *h_clusphisizegeq1pt_side1[3] = {nullptr};
+  TH1* h_clusphisize1pt_side0[3] = {nullptr};
+  TH1* h_clusphisize1pt_side1[3] = {nullptr};
+  TH1* h_clusphisizegeq1pt_side0[3] = {nullptr};
+  TH1* h_clusphisizegeq1pt_side1[3] = {nullptr};
 
   TpcDistortionCorrectionContainer *m_dccModuleEdge{nullptr}, *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
 
@@ -157,26 +142,26 @@ class TpcSeedsQA : public SubsysReco
 
   struct PhiHistoList
   {
-    TH1 *cphisize1pT_side0 = nullptr;
-    TH1 *cphisize1pT_side1 = nullptr;
-    TH1 *cphisizegeq1pT_side0 = nullptr;
-    TH1 *cphisizegeq1pT_side1 = nullptr;
-    int ntpc_side0=0;
-    int ntpc_side0_phisize1=0;
-    int ntpc_side1=0;
-    int ntpc_side1_phisize1=0;
+    TH1* cphisize1pT_side0 = nullptr;
+    TH1* cphisize1pT_side1 = nullptr;
+    TH1* cphisizegeq1pT_side0 = nullptr;
+    TH1* cphisizegeq1pT_side1 = nullptr;
+    int ntpc_side0 = 0;
+    int ntpc_side0_phisize1 = 0;
+    int ntpc_side1 = 0;
+    int ntpc_side1_phisize1 = 0;
 
-    void Clear() {
-        ntpc_side0 = 0;
-        ntpc_side0_phisize1 = 0;
-        ntpc_side1 = 0;
-        ntpc_side1_phisize1 = 0;
+    void Clear()
+    {
+      ntpc_side0 = 0;
+      ntpc_side0_phisize1 = 0;
+      ntpc_side1 = 0;
+      ntpc_side1_phisize1 = 0;
     }
   };
 
   using PhiHistoMap = std::map<int, PhiHistoList>;
   PhiHistoMap phihistos;
-
 };
 
 #endif  // TPCSEEDSQA_H
