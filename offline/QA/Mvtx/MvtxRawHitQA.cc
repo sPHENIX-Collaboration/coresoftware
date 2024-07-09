@@ -30,8 +30,7 @@ int MvtxRawHitQA::InitRun(PHCompositeNode *topNode)
 
   if (!rawhitcont)
   {
-    std::cout << PHWHERE << "Missing node(s), can't continue" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    std::cout << PHWHERE << "Missing MvtxRawHitContainer node!!!" << std::endl;
   }
 
   auto hm = QAHistManagerDef::getHistoManager();
@@ -80,27 +79,31 @@ int MvtxRawHitQA::process_event(PHCompositeNode * /*unused*/)
   rows.clear();
   cols.clear();
 
-  auto raw_hit_num = rawhitcont->get_nhits();
-  for (unsigned int i = 0; i < raw_hit_num; i++)
+  unsigned int raw_hit_num = 0;
+  if (rawhitcont)
   {
-    auto hit = rawhitcont->get_hit(i);
-    auto bco = hit->get_bco();
-    auto strobe_bc = hit->get_strobe_bc();
-    auto chip_bc = hit->get_chip_bc();
-    auto layer = hit->get_layer_id();
-    auto stave = hit->get_stave_id();
-    auto chip = hit->get_chip_id();
-    auto row = hit->get_row();
-    auto col = hit->get_col();
-    hits.push_back( hit );
-    bcos.push_back( bco );
-    strobe_bcs.push_back( strobe_bc );
-    chip_bcs.push_back( chip_bc );
-    layers.push_back( layer );
-    staves.push_back( stave );
-    chips.push_back( chip );
-    rows.push_back( row );
-    cols.push_back( col );
+    raw_hit_num = rawhitcont->get_nhits();
+    for (unsigned int i = 0; i < raw_hit_num; i++)
+    {
+      auto hit = rawhitcont->get_hit(i);
+      auto bco = hit->get_bco();
+      auto strobe_bc = hit->get_strobe_bc();
+      auto chip_bc = hit->get_chip_bc();
+      auto layer = hit->get_layer_id();
+      auto stave = hit->get_stave_id();
+      auto chip = hit->get_chip_id();
+      auto row = hit->get_row();
+      auto col = hit->get_col();
+      hits.push_back( hit );
+      bcos.push_back( bco );
+      strobe_bcs.push_back( strobe_bc );
+      chip_bcs.push_back( chip_bc );
+      layers.push_back( layer );
+      staves.push_back( stave );
+      chips.push_back( chip );
+      rows.push_back( row );
+      cols.push_back( col );
+    }
   }
 
   // if no raw hit is found, skip this event
