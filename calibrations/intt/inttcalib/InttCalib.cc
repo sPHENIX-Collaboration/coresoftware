@@ -215,7 +215,7 @@ int InttCalib::MakeHotMapCdb()
 {
   if(m_hotmap_cdb_file.empty())
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   CDBTTree* cdbttree = new CDBTTree(m_hotmap_cdb_file);
@@ -269,7 +269,7 @@ int InttCalib::MakeHotMapPng()
 {
   if(m_hotmap_png_file.empty())
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // Canvas
@@ -479,7 +479,7 @@ int InttCalib::MakeBcoMapCdb()
 {
   if(m_bcomap_cdb_file.empty())
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   CDBTTree* cdbttree = new CDBTTree(m_bcomap_cdb_file);
@@ -505,7 +505,7 @@ int InttCalib::MakeBcoMapPng()
 {
   if(m_bcomap_png_file.empty())
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // Canvas
