@@ -28,7 +28,7 @@ PHRawDataNode::~PHRawDataNode()
   setData(nullptr);
 }
 
-bool PHRawDataNode::write(PHIOManager* IOManager, const std::string&)
+bool PHRawDataNode::write(PHIOManager* IOManager, const std::string& /*unused*/)
 {
   PHRawOManager* rawOManager = dynamic_cast<PHRawOManager*>(IOManager);
   bool bret = false;

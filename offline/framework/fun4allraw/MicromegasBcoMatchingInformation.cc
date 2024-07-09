@@ -44,14 +44,75 @@ namespace
     return o;
   }
 
+  template <class T>
+  std::ostream& operator<<(std::ostream& o, const std::vector<T>& list)
+  {
+    if (list.empty())
+    {
+      o << "{}";
+    }
+    else
+    {
+      const bool is_hex = (o.flags()&std::ios_base::hex);
+      o << "{ ";
+      bool first = true;
+      for (const auto& value : list)
+      {
+        if (!first)
+        {
+          o << ", ";
+        }
+        if( is_hex )
+        { o << "0x"; }
+        o << value;
+        first = false;
+      }
+      o << " }";
+    }
+    return o;
+  }
+
   // get the difference between two BCO.
   template<class T>
     inline static constexpr T get_bco_diff( const T& first, const T& second )
   { return first < second ? (second-first):(first-second); }
 
+  // define limit for matching two fee_bco
+  static constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
+
+  // define limit for matching two fee_bco
+  static constexpr unsigned int m_max_fee_bco_diff = 10;
+
+  // define limit for matching fee_bco to fee_bco_predicted
+  static constexpr unsigned int m_max_gtm_bco_diff = 100;
+
+  // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
+  static constexpr unsigned int m_max_matching_data_size = 50;
+
   //! copied from micromegas/MicromegasDefs.h, not available here
   static constexpr int m_nchannels_fee = 256;
 
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum SampaDataType
+  {
+    HEARTBEAT_T = 0b000,
+    TRUNCATED_DATA_T = 0b001,
+    TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
+    NORMAL_DATA_T = 0b100,
+    LARGE_DATA_T = 0b101,
+    TRIG_EARLY_DATA_T = 0b110,
+    TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
+
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum ModeBitType
+  {
+    BX_COUNTER_SYNC_T = 0,
+    ELINK_HEARTBEAT_T = 1,
+    SAMPA_EVENT_TRIGGER_T = 2,
+    CLEAR_LV1_LAST_T = 6,
+    CLEAR_LV1_ENDAT_T = 7
+  };
 }
 
 // this is the clock multiplier from lvl1 to fee clock
@@ -70,39 +131,18 @@ std::optional<uint32_t> MicromegasBcoMatchingInformation::get_predicted_fee_bco(
     (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
 
   // convert to fee bco, and truncate to 20 bits
-  const uint64_t fee_bco_predicted = m_fee_bco_first + m_multiplier*(gtm_bco_difference);
+  const uint64_t fee_bco_predicted = m_fee_bco_first + get_adjusted_multiplier()*gtm_bco_difference;
   return  uint32_t(fee_bco_predicted & 0xFFFFFU);
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet )
+void MicromegasBcoMatchingInformation::print_gtm_bco_information() const
 {
-  // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
-  const int n_tagger = packet->lValue(0, "N_TAGGER");
-  for (int t = 0; t < n_tagger; t++)
+  if(!m_gtm_bco_list.empty())
   {
-    bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
-    if (is_lvl1)
-    {
-      uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
-      m_gtm_bco_list.push_back(gtm_bco);
-    }
-  }
-
-  if(verbosity() && !m_gtm_bco_list.empty())
-  {
-    // get packet id
-    const int packet_id = packet->getIdentifier();
 
     std::cout
       << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
-      << " packet: " << packet_id
-      << " n_tagger: " << n_tagger
-      << std::endl;
-
-    std::cout
-      << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
-      << " packet: " << packet_id
       << " gtm_bco: " << std::hex << m_gtm_bco_list << std::dec
       << std::endl;
 
@@ -118,7 +158,6 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
 
       std::cout
         << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
-        << " packet: " << packet_id
         << " fee_bco_predicted: " << std::hex << fee_bco_predicted_list << std::dec
         << std::endl;
     }
@@ -126,7 +165,77 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet 
 }
 
 //___________________________________________________
+void MicromegasBcoMatchingInformation::save_gtm_bco_information( Packet* packet )
+{
+  // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
+  const int n_tagger = packet->lValue(0, "N_TAGGER");
+  for (int t = 0; t < n_tagger; ++t)
+  {
+    // save level1 trigger bco
+    const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+    if (is_lvl1)
+    {
+      const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+      m_gtm_bco_list.push_back(gtm_bco);
+    }
+
+    // also save hearbeat bco
+    const bool is_modebit = static_cast<uint8_t>(packet->lValue(t, "IS_MODEBIT"));
+    if( is_modebit )
+    {
+      // get modebits
+      uint64_t modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
+      if( modebits&(1<<ELINK_HEARTBEAT_T) )
+      {
+        const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+        m_gtm_bco_list.push_back(gtm_bco);
+      }
+    }
+  }
+}
+
+//___________________________________________________
 bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
+{
+  if( find_reference_from_modebits( packet ) ) return true;
+  if( find_reference_from_data( packet ) ) return true;
+  return false;
+}
+
+//___________________________________________________
+bool MicromegasBcoMatchingInformation::find_reference_from_modebits( Packet* packet )
+{
+  // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
+  const int n_tagger = packet->lValue(0, "N_TAGGER");
+  for (int t = 0; t < n_tagger; ++t)
+  {
+    const bool is_modebit = static_cast<uint8_t>(packet->lValue(t, "IS_MODEBIT"));
+    if( is_modebit )
+    {
+      // get modebits
+      uint64_t modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
+      if( modebits&(1<<BX_COUNTER_SYNC_T) )
+      {
+        std::cout << "MicromegasBcoMatchingInformation::find_reference_from_modebits"
+          << " - packet: " << packet->getIdentifier()
+          << " found reference from modebits"
+          << std::endl;
+
+        // get BCO and assign
+        const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
+        m_gtm_bco_first = gtm_bco;
+        m_fee_bco_first = 0;
+        m_verified = true;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+//___________________________________________________
+bool MicromegasBcoMatchingInformation::find_reference_from_data( Packet* packet )
 {
   // store gtm bco and diff to previous in an array
   std::vector<uint64_t> gtm_bco_list;
@@ -141,12 +250,16 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
         (gtm_bco -  gtm_bco_list.back()):
         (gtm_bco + (1ULL<<40U) - gtm_bco_list.back());
 
-      gtm_bco_diff_list.push_back(m_multiplier*gtm_bco_difference);
+      gtm_bco_diff_list.push_back(get_adjusted_multiplier()*gtm_bco_difference);
     }
 
     // append to list
     gtm_bco_list.push_back( gtm_bco );
   }
+
+  // print all differences
+  if( verbosity() )
+  { std::cout << "MicromegasBcoMatchingInformation::find_reference_from_data - gtm_bco_diff_list: " << gtm_bco_diff_list << std::endl; }
 
   uint32_t fee_bco_prev = 0;
   bool has_fee_bco_prev = false;
@@ -155,6 +268,14 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
   const int n_waveform = packet->iValue(0, "NR_WF");
   for (int iwf = 0; iwf < n_waveform; ++iwf)
   {
+
+    // check type
+    const unsigned short type = packet->iValue(iwf, "TYPE" );
+
+    // skip heartbeat waveforms
+    if( type == HEARTBEAT_T ) continue;
+
+    // check channel
     const unsigned short channel = packet->iValue( iwf, "CHANNEL" );
 
     // bound check
@@ -175,30 +296,39 @@ bool MicromegasBcoMatchingInformation::find_reference( Packet* packet )
     if( fee_bco_diff < m_max_fee_bco_diff )
     { continue; }
 
-    // loop for matching diff in gtm_bco array
+    std::cout << "MicromegasBcoMatchingInformation::find_reference_from_data - fee_bco_diff: " << fee_bco_diff << std::endl;
+
+    // look for matching diff in gtm_bco array
     for( size_t i = 0; i < gtm_bco_diff_list.size(); ++i )
     {
-      if( get_bco_diff( gtm_bco_diff_list[i], fee_bco_diff ) < m_max_fee_bco_diff )
-      {
-        m_verified = true;
-        m_gtm_bco_first = gtm_bco_list[i];
-        m_fee_bco_first = fee_bco_prev;
 
-        if( verbosity() )
+      uint64_t sum = 0;
+      for( size_t j=i; j<gtm_bco_diff_list.size(); ++j )
+      {
+        sum += gtm_bco_diff_list[j];
+        if( get_bco_diff( sum, fee_bco_diff ) < m_max_fee_bco_diff )
         {
-          std::cout << "MicromegasBcoMatchingInformation::find_reference - matching is verified" << std::endl;
-          std::cout
-            << "MicromegasBcoMatchingInformation::find_reference -"
-            << " m_gtm_bco_first: " << std::hex << m_gtm_bco_first << std::dec
-            << std::endl;
-          std::cout
-            << "MicromegasBcoMatchingInformation::find_reference -"
-            << " m_fee_bco_first: " << std::hex << m_fee_bco_first << std::dec
-            << std::endl;
+          m_verified = true;
+          m_gtm_bco_first = gtm_bco_list[i];
+          m_fee_bco_first = fee_bco_prev;
+
+          if( verbosity() )
+          {
+            std::cout << "MicromegasBcoMatchingInformation::find_reference_from_data - matching is verified" << std::endl;
+            std::cout
+              << "MicromegasBcoMatchingInformation::find_reference_from_data -"
+              << " m_gtm_bco_first: " << std::hex << m_gtm_bco_first << std::dec
+              << std::endl;
+            std::cout
+              << "MicromegasBcoMatchingInformation::find_reference_from_data -"
+              << " m_fee_bco_first: " << std::hex << m_fee_bco_first << std::dec
+              << std::endl;
+          }
+          return true;
         }
-        return true;
       }
     }
+
     // update previous fee_bco
     fee_bco_prev = fee_bco;
   }
@@ -228,7 +358,7 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t
 
   } else {
 
-    // find element for which predicted fee_bco is the closest to request
+    // find element for which predicted fee_bco matches fee_bco, within limit
     const auto iter = std::find_if(
       m_gtm_bco_list.begin(),
       m_gtm_bco_list.end(),
@@ -241,13 +371,13 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t
       const auto gtm_bco = *iter;
       if (verbosity())
       {
-        const auto predicted_fee_bco = get_predicted_fee_bco(gtm_bco).value();
-        const auto fee_bco_diff = get_bco_diff(predicted_fee_bco, fee_bco);
+        const auto fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
+        const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
 
         std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco -"
           << std::hex
           << " fee_bco: 0x" << fee_bco
-          << " predicted: 0x" << predicted_fee_bco
+          << " predicted: 0x" << fee_bco_predicted
           << " gtm_bco: 0x" << gtm_bco
           << std::dec
           << " difference: " << fee_bco_diff
@@ -259,6 +389,9 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t
 
       // remove gtm bco from runing list
       m_gtm_bco_list.erase(iter);
+
+      // update clock adjustment
+      update_multiplier_adjustment( gtm_bco, fee_bco );
 
       return gtm_bco;
     } else {
@@ -302,4 +435,53 @@ void MicromegasBcoMatchingInformation::cleanup()
 
   // clear orphans
   m_orphans.clear();
+}
+
+
+//___________________________________________________
+double MicromegasBcoMatchingInformation::get_adjusted_multiplier() const
+{ return m_multiplier + m_multiplier_adjustment; }
+
+//___________________________________________________
+void MicromegasBcoMatchingInformation::update_multiplier_adjustment( uint64_t gtm_bco, uint32_t fee_bco )
+{
+  // check that references are valid
+  if( !m_verified ) return;
+
+  // skip if trivial
+  if( gtm_bco == m_gtm_bco_first ) return;
+
+  const uint32_t fee_bco_predicted = get_predicted_fee_bco( gtm_bco ).value();
+  const double delta_fee_bco = double(fee_bco)-double(fee_bco_predicted);
+  const double gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
+    (gtm_bco - m_gtm_bco_first):
+    (gtm_bco + (1ULL<<40U) - m_gtm_bco_first);
+
+  m_multiplier_adjustment_numerator += gtm_bco_difference*delta_fee_bco;
+  m_multiplier_adjustment_denominator += gtm_bco_difference*gtm_bco_difference;
+  ++m_multiplier_adjustment_count;
+
+  if( verbosity() )
+  {
+
+    const auto default_precision{std::cout.precision()};
+    std::cout << "MicromegasBcoMatchingInformation::update_multiplier_adjustment -"
+      << " m_multiplier_adjustment_count: " << m_multiplier_adjustment_count
+      << std::setprecision(10)
+      << " m_multiplier: " << get_adjusted_multiplier()
+      << " adjustment: " << m_multiplier_adjustment_numerator/m_multiplier_adjustment_denominator
+      << " m_multiplier_adjusted: " << get_adjusted_multiplier() + m_multiplier_adjustment_numerator/m_multiplier_adjustment_denominator
+      << std::setprecision(default_precision)
+      << std::endl;
+  }
+
+  // update multiplier
+  if( m_multiplier_adjustment_count > m_max_multiplier_adjustment_count )
+  {
+    m_multiplier_adjustment += m_multiplier_adjustment_numerator/m_multiplier_adjustment_denominator;
+    m_multiplier_adjustment_numerator = 0;
+    m_multiplier_adjustment_denominator = 0;
+    m_multiplier_adjustment_count = 0;
+  }
+
 }

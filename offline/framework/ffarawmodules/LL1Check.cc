@@ -47,7 +47,7 @@ int LL1Check::process_event(PHCompositeNode *topNode)
       {
 	ddumppacket(ll1cont->getPacket(i));
       }
-      ll1cont->getPacket(i)->identify();
+//      ll1cont->getPacket(i)->identify();
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;

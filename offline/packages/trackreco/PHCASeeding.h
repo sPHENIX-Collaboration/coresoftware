@@ -69,11 +69,12 @@ class PHCASeeding : public PHTrackSeeding
    using point = bg::model::point<float, 2, bg::cs::cartesian>;
    using box = bg::model::box<point>;
    using pointKey = std::pair<point, TrkrDefs::cluskey>; // phi and z in the key
-   using coordKey = std::pair<std::array<float, 2>, TrkrDefs::cluskey>; // just use phi and eta, no longer needs the layer
+   using coordKey = std::pair<std::array<float, 2>, TrkrDefs::cluskey>; // just use phi and Z, no longer needs the layer
 
    using keyList = std::vector<TrkrDefs::cluskey>;
    using keyLists = std::vector<keyList>;
    using keyListPerLayer = std::array<keyList, _NLAYERS_TPC>;
+   using keySet = std::set<TrkrDefs::cluskey>;
 
    using keyLink = std::pair<TrkrDefs::cluskey, TrkrDefs::cluskey>;
    using keyLinks = std::vector<keyLink>;
@@ -83,6 +84,7 @@ class PHCASeeding : public PHTrackSeeding
 
    std::array<float, 55> dZ_per_layer;
    std::array<float, 55> dphi_per_layer;
+
 
    PHCASeeding(
       const std::string& name = "PHCASeeding",
@@ -100,6 +102,7 @@ class PHCASeeding : public PHTrackSeeding
       );
 
   ~PHCASeeding() override {}
+  void SetSplitSeeds(bool opt=true) { _split_seeds=opt; }
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up)
   {
     _start_layer = layer_low;
@@ -151,7 +154,6 @@ class PHCASeeding : public PHTrackSeeding
 
  private:
   bool _save_clus_proc = false;
-
   TFile* _f_clustering_process = nullptr;
   int _tupout_count = -1;
   int _n_tupchains  = -1;
@@ -245,6 +247,7 @@ class PHCASeeding : public PHTrackSeeding
   double _xy_outlier_threshold = 0.1;
   double _fieldDir = -1;
   bool _use_const_field = false;
+  bool _split_seeds = true;
   float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
   bool _pp_mode = false;

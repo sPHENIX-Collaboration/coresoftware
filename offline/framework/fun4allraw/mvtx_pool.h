@@ -3,6 +3,7 @@
 
 #include "mvtx_decoder/PayLoadCont.h"
 #include "mvtx_decoder/GBTLink.h"
+#include "mvtx_decoder/StrobeData.h"
 
 #include <set>
 #include <unordered_map>
@@ -26,11 +27,14 @@ class  mvtx_pool {
 
   long long int lValue(const int, const int, const char* what);
 
+  std::vector<mvtx::mvtx_hit *>& get_hits(const int feeId,
+                               const int i_strb);
+
  protected:
   int mvtx_decode();
   bool m_is_decoded = false;
 
-    struct dumpEntry
+  struct dumpEntry
   {
     int entry = -1;
   };

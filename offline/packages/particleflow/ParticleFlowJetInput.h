@@ -10,8 +10,7 @@
 #include <jetbase/JetInput.h>
 
 // finally system includes
-#include <iostream>    // for cout, ostream
-
+#include <iostream>  // for cout, ostream
 
 // forward declarations
 class PHCompositeNode;
@@ -28,7 +27,6 @@ class ParticleFlowJetInput : public JetInput
 
  private:
   int _verbosity = 0;
-
 };
 
 #endif

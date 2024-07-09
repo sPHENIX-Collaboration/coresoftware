@@ -3,7 +3,10 @@
 
 #include "Fun4AllStreamingInputManager.h"
 
-#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
+#include "MvtxRawDefs.h"
+
+#include <ffarawobjects/MvtxFeeIdInfov1.h>
+#include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
 
@@ -42,7 +45,7 @@ SingleMvtxPoolInput::~SingleMvtxPoolInput()
   }
 }
 
-void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
+void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -126,23 +129,41 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
         for (int i_fee{0}; i_fee < num_feeId; ++i_fee)
         {
           auto feeId = pool->iValue(i_fee, "FEEID");
-          auto link = DecodeFeeid(feeId);
+          auto link = MvtxRawDefs::decode_feeid(feeId);
           //          auto hbfSize = plist[i]->iValue(feeId, "NR_HBF");
           auto num_strobes = pool->iValue(feeId, "NR_STROBES");
           auto num_L1Trgs = pool->iValue(feeId, "NR_PHYS_TRG");
+// this should not be needed, the m_FeeGTML1BCOMap[i_fee].insert(l1Trg_bco)
+// will create the set if it doesn't exist
+          // if(m_FeeGTML1BCOMap.find(i_fee) == m_FeeGTML1BCOMap.end())
+          // {
+          //   m_FeeGTML1BCOMap[i_fee] = std::set<uint64_t>();
+          // }
           for (int iL1 = 0; iL1 < num_L1Trgs; ++iL1)
           {
             auto l1Trg_bco = pool->lValue(feeId, iL1, "L1_IR_BCO");
             //            auto l1Trg_bc  = plist[i]->iValue(feeId, iL1, "L1_IR_BC");
+            m_FeeGTML1BCOMap[i_fee].insert(l1Trg_bco);
             gtmL1BcoSet.emplace(l1Trg_bco);
+            m_gtmL1BcoSetRef.emplace(l1Trg_bco);
           }
 
           m_FeeStrobeMap[feeId] += num_strobes;
           for (int i_strb{0}; i_strb < num_strobes; ++i_strb)
           {
-            auto strb_bco = pool->lValue(feeId, i_strb, "TRG_IR_BCO");
+            auto strb_detField = pool->iValue(feeId, i_strb, "TRG_DET_FIELD");
+            uint64_t strb_bco = pool->lValue(feeId, i_strb, "TRG_IR_BCO");
             auto strb_bc = pool->iValue(feeId, i_strb, "TRG_IR_BC");
             auto num_hits = pool->iValue(feeId, i_strb, "TRG_NR_HITS");
+
+            m_BeamClockFEE[strb_bco].insert(feeId);
+            m_BclkStack.insert(strb_bco);
+            m_FEEBclkMap[feeId] = strb_bco;
+            if (strb_bco < minBCO)
+            {
+              continue;
+            }
+
             if (Verbosity() > 4)
             {
               std::cout << "evtno: " << EventSequence << ", Fee: " << feeId;
@@ -150,21 +171,19 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
               std::cout << " GBT: " << link.gbtid << ", bco: 0x" << std::hex << strb_bco << std::dec;
               std::cout << ", n_hits: " << num_hits << std::endl;
             }
-            for (int i_hit{0}; i_hit < num_hits; ++i_hit)
+            auto hits = pool->get_hits(feeId, i_strb);
+            for ( auto&& hit : hits )
             {
-              auto chip_bc = pool->iValue(feeId, i_strb, i_hit, "HIT_BC");
-              auto chip_id = pool->iValue(feeId, i_strb, i_hit, "HIT_CHIP_ID");
-              auto chip_row = pool->iValue(feeId, i_strb, i_hit, "HIT_ROW");
-              auto chip_col = pool->iValue(feeId, i_strb, i_hit, "HIT_COL");
               MvtxRawHit *newhit = new MvtxRawHitv1();
               newhit->set_bco(strb_bco);
               newhit->set_strobe_bc(strb_bc);
-              newhit->set_chip_bc(chip_bc);
+              newhit->set_chip_bc(hit->bunchcounter);
               newhit->set_layer_id(link.layer);
               newhit->set_stave_id(link.stave);
-              newhit->set_chip_id(3 * link.gbtid + chip_id);
-              newhit->set_row(chip_row);
-              newhit->set_col(chip_col);
+              newhit->set_chip_id(
+                  MvtxRawDefs::gbtChipId_to_staveChipId[link.gbtid][hit->chip_id]);
+              newhit->set_row(hit->row_pos);
+              newhit->set_col(hit->col_pos);
               if (StreamingInputManager())
               {
                 StreamingInputManager()->AddMvtxRawHit(strb_bco, newhit);
@@ -173,11 +192,8 @@ void SingleMvtxPoolInput::FillPool(const unsigned int /*nbclks*/)
             }
             if (StreamingInputManager())
             {
-              StreamingInputManager()->AddMvtxFeeId(strb_bco, feeId);
+              StreamingInputManager()->AddMvtxFeeIdInfo(strb_bco, feeId, strb_detField);
             }
-            m_BeamClockFEE[strb_bco].insert(feeId);
-            m_BclkStack.insert(strb_bco);
-            m_FEEBclkMap[feeId] = strb_bco;
           }
         }
       }
@@ -288,9 +304,15 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
     m_BclkStack.erase(iter);
     m_BeamClockFEE.erase(iter);
     m_MvtxRawHitMap.erase(iter);
-    gtmL1BcoSet.erase(iter);
     m_FeeStrobeMap.erase(iter);
+    m_gtmL1BcoSetRef.erase(iter);
+
+    for (auto &[feeid, gtmbcoset] : m_FeeGTML1BCOMap)
+    {
+      gtmbcoset.erase(iter);
+    }
   }
+
 }
 
 bool SingleMvtxPoolInput::CheckPoolDepth(const uint64_t bclk)
@@ -346,6 +368,7 @@ bool SingleMvtxPoolInput::GetSomeMoreEvents()
   uint64_t lowest_bclk = m_MvtxRawHitMap.begin()->first;
   //  lowest_bclk += m_BcoRange;
   lowest_bclk += m_BcoRange;
+  std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
     if (bcliter.second <= lowest_bclk)
@@ -367,9 +390,14 @@ bool SingleMvtxPoolInput::GetSomeMoreEvents()
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_MvtxRawHitMap.begin()->first)
                   << std::dec << std::endl;
-        m_FEEBclkMap.erase(bcliter.first);
+        toerase.insert(bcliter.first);
+
       }
     }
+  }
+  for(auto iter : toerase)
+  {
+    m_FEEBclkMap.erase(iter);
   }
   return false;
 
@@ -400,10 +428,10 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeaderv1>(detNode, "MVTXRAWEVTHEADER");
+  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeader>(detNode, "MVTXRAWEVTHEADER");
   if (!mvtxEH)
   {
-    mvtxEH = new MvtxRawEvtHeaderv1();
+    mvtxEH = new MvtxRawEvtHeaderv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
     detNode->addNode(newNode);
   }

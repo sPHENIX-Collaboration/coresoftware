@@ -38,10 +38,14 @@ MicromegasRawDataTimingEvaluation::MicromegasRawDataTimingEvaluation(const std::
 //_____________________________________________________________________
 int MicromegasRawDataTimingEvaluation::Init(PHCompositeNode* /*topNode*/)
 {
-
-  std::cout << "MicromegasRawDataTimingEvaluation::Init -"
-    << " MicromegasBcoMatchingInformation::multiplier: " << MicromegasBcoMatchingInformation::multiplier()
-    << std::endl;
+  {
+    const auto default_precision{std::cout.precision()};
+    std::cout << "MicromegasRawDataTimingEvaluation::Init -"
+      << std::setprecision(10)
+      << " MicromegasBcoMatchingInformation::multiplier: " << MicromegasBcoMatchingInformation::get_gtm_clock_multiplier()
+      << std::setprecision(default_precision)
+      << std::endl;
+    }
 
   m_evaluation_file.reset(new TFile(m_evaluation_filename.c_str(), "RECREATE"));
   m_evaluation_tree = new TTree("T", "T");
@@ -95,14 +99,16 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
 
     // get number of waveforms
     const auto n_waveform = packet->iValue(0, "NR_WF");
-    m_waveform_count_total += n_waveform;
+    m_waveform_count_total[packet_id] += n_waveform;
 
     if (Verbosity())
     {
-      std::cout << "MicromegasRawDataTimingEvaluation::process_event -"
-                << " packet: " << packet_id
-                << " n_waveform: " << n_waveform
-                << std::endl;
+      std::cout
+        << "MicromegasRawDataTimingEvaluation::process_event -"
+        << " packet: " << packet_id
+        << " n_waveform: " << n_waveform
+        << std::endl;
+      bco_matching_information.print_gtm_bco_information();
     }
 
     // try find reference
@@ -113,7 +119,8 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
     if( !bco_matching_information.is_verified() )
     {
       std::cout << "MicromegasRawDataTimingEvaluation::process_event - bco_matching not verified, dropping packet" << std::endl;
-      m_waveform_count_dropped += n_waveform;
+      m_waveform_count_dropped[packet_id] += n_waveform;
+      bco_matching_information.cleanup();
       continue;
     }
 
@@ -123,6 +130,7 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
       waveform.packet_id = packet_id;
       waveform.fee_id = packet->iValue(iwf, "FEE");
       waveform.channel = packet->iValue( iwf, "CHANNEL" );
+      waveform.type = packet->iValue(iwf, "TYPE");
 
       // bound check
       if( waveform.channel >= MicromegasDefs::m_nchannels_fee )
@@ -141,13 +149,16 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
         // found matching gtm
         waveform.gtm_bco = result.value();
 
+        // also save predicted bco
+        waveform.fee_bco_predicted = bco_matching_information.get_predicted_fee_bco( waveform.gtm_bco ).value();
+
       } else {
 
         // invalid
         waveform.gtm_bco = 0;
 
         // increment drop count
-        ++m_waveform_count_dropped;
+        ++m_waveform_count_dropped[packet_id];
 
       }
 
@@ -215,11 +226,14 @@ int MicromegasRawDataTimingEvaluation::End(PHCompositeNode* /*topNode*/)
               << "};" << std::endl;
   }
 
-  if( Verbosity() )
+  for( const auto& [packet,counts]:m_waveform_count_total )
   {
-    std::cout << "MicromegasRawDataTimingEvaluation::End - waveform_count_total: " << m_waveform_count_total << std::endl;
-    std::cout << "MicromegasRawDataTimingEvaluation::End - waveform_count_dropped: " << m_waveform_count_dropped << std::endl;
-    std::cout << "MicromegasRawDataTimingEvaluation::End - ratio: " << double(m_waveform_count_dropped)/m_waveform_count_total << std::endl;
+    const auto& dropped = m_waveform_count_dropped[packet];
+    std::cout << "MicromegasRawDataTimingEvaluation::End - packet: " << packet << std::endl;
+    std::cout << "MicromegasRawDataTimingEvaluation::End - waveform_count_total: " << counts << std::endl;
+    std::cout << "MicromegasRawDataTimingEvaluation::End - waveform_count_dropped: " << dropped << std::endl;
+    std::cout << "MicromegasRawDataTimingEvaluation::End - ratio: " << double(dropped)/counts << std::endl;
+    std::cout << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

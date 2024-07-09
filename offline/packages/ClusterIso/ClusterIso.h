@@ -13,9 +13,9 @@ class PHCompositeNode;
 class RawTowerGeom;
 
 /** \Brief Tool to find isolation energy of each EMCal cluster.
- * 
+ *
  * This tool finds isoET of clusters by summing towers energy
- * in a cone of radius R around the cluster and subtracting 
+ * in a cone of radius R around the cluster and subtracting
  * the cluster from the sum
  */
 
@@ -38,21 +38,26 @@ class ClusterIso : public SubsysReco
   //! returns coneSize*10 as an int
   /*const*/ int getConeSize();
   /*const*/ CLHEP::Hep3Vector getVertex();
+  void set_use_towerinfo(bool usetowerinfo)
+  {
+    m_use_towerinfo = usetowerinfo;
+  };
 
  private:
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
-  float m_eTCut;     ///< The minimum required transverse energy in a cluster for ClusterIso to be run
-  float m_coneSize;  ///< Size of the cone used to isolate a given cluster
-  float m_vx;        ///< Correct vertex x coordinate
-  float m_vy;        ///< Correct vertex y coordinate
-  float m_vz;        ///< Correct vertex z coordinate
+  float m_eTCut{};     ///< The minimum required transverse energy in a cluster for ClusterIso to be run
+  float m_coneSize{};  ///< Size of the cone used to isolate a given cluster
+  float m_vx;          ///< Correct vertex x coordinate
+  float m_vy;          ///< Correct vertex y coordinate
+  float m_vz;          ///< Correct vertex z coordinate
   bool m_do_subtracted;
   bool m_do_unsubtracted;
+  bool m_use_towerinfo = true;
 };
 
 /** \Brief Function to find delta R between 2 objects
  *
- * Takes the eta and phi of each object and returns the difference 
+ * Takes the eta and phi of each object and returns the difference
  * of the etas and phis added in quadrature. Used to find towers
  * inside a cone of delta R around a cluster.
  */
@@ -60,8 +65,8 @@ inline /*const*/ float deltaR(float eta1, float eta2, float phi1, float phi2)
 {
   float deta = eta1 - eta2;
   float dphi = phi1 - phi2;
-  if (dphi > M_PI) dphi -= 2 * M_PI;       //corrects to keep range -pi to pi
-  if (dphi < -1 * M_PI) dphi += 2 * M_PI;  //corrects to keep range -pi to pi
+  if (dphi > M_PI) dphi -= 2 * M_PI;       // corrects to keep range -pi to pi
+  if (dphi < -1 * M_PI) dphi += 2 * M_PI;  // corrects to keep range -pi to pi
   return sqrt(deta * deta + dphi * dphi);
 }
 

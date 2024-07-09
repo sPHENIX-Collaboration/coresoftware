@@ -153,23 +153,23 @@ else
 sub creatfilelists
 {
     my $run = shift;
-foreach my $ds (sort keys %dsttype)
-{
-    $getfiles->execute($run,$ds);
-    if ($getfiles->rows == 0)
+    foreach my $ds (sort keys %dsttype)
     {
-	print "no run $run for dst type $ds and dataset $dataset\n";
-	exit(1);
+	$getfiles->execute($run,$ds);
+	if ($getfiles->rows == 0)
+	{
+	    print "no run $run for dst type $ds and dataset $dataset\n";
+	    next;
+	}
+	my $filename = sprintf("%s-%08d.list",lc $ds, $run);
+	print "creating list for run $run --> $filename\n";
+	open(F,">$filename");
+	while (my @res = $getfiles->fetchrow_array())
+	{
+	    print F "$res[0]\n";
+	}
+	close(F);
     }
-    my $filename = sprintf("%s-%08d.list",lc $ds, $run);
-    print "creating list for run $run --> $filename\n";
-    open(F,">$filename");
-    while (my @res = $getfiles->fetchrow_array())
-    {
-	print F "$res[0]\n";
-    }
-    close(F);
-}
 }
 
 sub printtags
@@ -211,8 +211,9 @@ sub printruns
     }
     if (defined $dataset)
     {
-	my $getruns =  $dbh->prepare("select distinct(runnumber) from datasets where dataset = '$dataset' order by runnumber\n");
+	my $getruns =  $dbh->prepare("select distinct(runnumber) from datasets where dataset = '$dataset' and dsttype='$ARGV[0]' order by runnumber\n");
 	$getruns->execute();
+#	print "cmd: select distinct(runnumber) from datasets where dataset = '$dataset' and dsttype='$ARGV[0]' order by runnumber\n";
 	if ($getruns->rows == 0)
 	{
 	    print "no run found for dataset $dataset\n";

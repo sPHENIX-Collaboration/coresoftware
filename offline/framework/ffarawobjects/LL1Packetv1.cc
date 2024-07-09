@@ -66,6 +66,18 @@ int LL1Packetv1::iValue(const int /*n*/, const std::string &what) const
   {
     return getMonitor();
   }
+  if (what == "FIBERS")
+  {
+    return getFibers();
+  }
+  if (what == "SUMS")
+  {
+    return getSums();
+  }
+  if (what == "FEMWORDS")
+  {
+    return getFemWords();
+  }
 
   std::cout << "invalid selection " << what << std::endl;
   return std::numeric_limits<int>::min();
@@ -163,47 +175,44 @@ void LL1Packetv1::dump_idll1_emcal_mon3(std::ostream &os) const
   for (int ch = 0; ch < 24; ch++)
   {
     os << std::dec << "Fiber: " << ch << std::endl;
-    for (int ic = 0; ic < 16; ic++)
+    for (int ic = 0; ic < iValue(0, "SUMS"); ic++)
     {
       os << std::dec << " Sum " << ic << " |";
       for (int is = 0; is < iValue(0, "SAMPLES"); is++)
       {
-        os << std::hex << " " << iValue(is, ch * 16 + ic);
+        os << std::hex << " " << iValue(is, ch * iValue(0, "SUMS") + ic);
       }
 
       os << " |" << std::endl;
       os << "-------------------------------------------------------------- " << std::endl;
     }
   }
-  for (int is = 0; is < iValue(0, "SAMPLES"); is++)
+  for (int ic = 0; ic < iValue(0, "TRIGGERWORDS"); ic++)
   {
-    os << std::dec << "Sample: " << is << std::endl;
-    for (int ic = 0; ic < 2; ic++)
+    os << std::dec << "SUM " << ic << std::endl;
+    for (int is = 0; is < iValue(0, "SAMPLES"); is++)
     {
-      for (int ie = 0; ie < 12; ie++)
-      {
-        os << std::hex << " " << iValue(is, 24 * 16 + ic * 12 + ie);
-      }
-
-      os << " |" << std::endl;
-      os << "-------------------------------------------------------------- " << std::endl;
+      os << std::hex << " " << iValue(is, iValue(0, "FEMWORDS") + ic);
     }
+    os << " |" << std::endl;
+    os << "-------------------------------------------------------------- " << std::endl;
   }
 }
+
 void LL1Packetv1::dump_idll1_jet_emcal_mon1(std::ostream &os) const
 {
   os << " -------------- " << (iValue(0, "MONITOR") ? "HCAL Data Map" : "EMCAL Data Map") << " -------------- " << std::endl;
-  os << "samples: " <<  iValue(0, "SAMPLES") << std::endl;
+
   for (int sample = 0; sample < iValue(0, "SAMPLES"); sample++)
   {
     os << std::dec << "BC : " << sample << std::endl;
-    os << std::dec << "\t phibin --> " << std::endl;
-    os << std::dec << "etabin\t||  \t" << std::endl;
+    os << std::dec << "phibin --> ";
     for (int ic = 0; ic < 32; ic++)
     {
       os << std::dec << "\t" << ic;
     }
     os << " " << std::endl;
+    os << std::dec << "etabin\t||  \t" << std::endl;
     for (int ic = 0; ic < 12; ic++)
     {
       os << std::dec << ic << "\t||";
@@ -223,7 +232,7 @@ void LL1Packetv1::dump_idll1_jet_emcal_mon1(std::ostream &os) const
     {
       for (int ie = 0; ie < 32; ie++)
       {
-        os << std::hex << " " << iValue(is, 12 * 32 + ic * 32 + ie);
+        os << std::hex << " " << iValue(is, iValue(0, "FEMWORDS") + ic * 32 + ie);
       }
 
       os << " |" << std::endl;

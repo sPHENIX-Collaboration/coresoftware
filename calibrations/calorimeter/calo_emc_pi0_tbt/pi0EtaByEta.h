@@ -96,12 +96,19 @@ class pi0EtaByEta : public SubsysReco
 
   void set_massTargetHistFile(const std::string& file);
   bool checkOutput(const std::string& file);
+  void set_reqMinBias(bool status)
+  {
+    reqMinBias = status;
+    return;
+  }
 
 
  protected:
   int Getpeaktime(TH1* h);
   std::string detector;
   std::string outfilename;
+
+  bool reqMinBias = true;
 
   float pt1BaseClusCut = 1.3;
   float pt2BaseClusCut = 0.7;
