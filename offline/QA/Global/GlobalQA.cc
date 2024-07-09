@@ -11,6 +11,9 @@
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
 
+#include <zdcinfo/ZdcReco.h>
+#include <zdcinfo/Zdcinfo.h>
+
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/MbdVertex.h>
@@ -99,6 +102,14 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   }
   h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
   h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
+  if (mbd_zvtx == -999) 
+  {
+    h_GlobalQA_mbd_zvtxq->Fill(0);
+  }
+  else 
+  {
+    h_GlobalQA_mbd_zvtxq->Fill(1);
+  }
 
   //--------------------------- trigger and GL1-------------------------------//
   bool scaledBits[64] = {false};
@@ -124,36 +135,13 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
 
   // ------------------------------------- ZDC -----------------------------------------//
   {
-    TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
-    float totalzdcsouthcalib = 0;
-    float totalzdcnorthcalib = 0;
-    if (towers)
+    Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+    float totalzdcsouthcalib = 0.;
+    float totalzdcnorthcalib = 0.;
+    if (_zdcinfo)
     {
-      // auto hzdctime = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%szdctime") % getHistoPrefix()).c_str()));
-      int size = towers->size();  // online towers should be the same!
-      for (int channel = 0; channel < size; channel++)
-      {
-        TowerInfo *tower = towers->get_tower_at_channel(channel);
-        float offlineenergy = tower->get_energy();
-        // int _time = towers->get_tower_at_channel(channel)->get_time();
-        // hzdctime_cut->Fill(_time);
-        if (channel == 0 || channel == 2 || channel == 4)
-        {
-          totalzdcsouthcalib += offlineenergy;
-        }
-        if (channel == 8 || channel == 10 || channel == 12)
-        {
-          totalzdcnorthcalib += offlineenergy;
-        }
-        if (channel == 0 || channel == 2 || channel == 4 || channel == 8 || channel == 10 || channel == 12)
-        {
-          // if (_time > (max_zdc_t - _range) && _time < (max_zdc_t + _range))
-          //{
-          //   totalzdc += offlineenergy;
-          // hzdctime->Fill(_time);
-          //}
-        }
-      }
+       totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
+       totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
     }
     h_GlobalQA_zdc_zvtx->Fill(999);
     h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
@@ -362,6 +350,7 @@ void GlobalQA::createHistos()
   assert(hm);
 
   // MBD QA
+  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Has zvtx?;percentage", 2, -0.5,1.5);
   h_GlobalQA_mbd_zvtx = new TH1D("h_GlobalQA_mbd_zvtx", ";zvtx [cm]", 100, -50, 50);
   h_GlobalQA_mbd_zvtx_wide = new TH1D("h_GlobalQA_mbd_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
   h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";zvtx [cm]", 100, -50, 50);
@@ -371,6 +360,7 @@ void GlobalQA::createHistos()
   h_GlobalQA_mbd_nhit_s = new TH1D("h_GlobalQA_mbd_nhit_s", ";nhit", 30, -0.5, 29.5);
   h_GlobalQA_mbd_nhit_n = new TH1D("h_GlobalQA_mbd_nhit_n", ";nhit", 30, -0.5, 29.5);
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
+  hm->registerHisto(h_GlobalQA_mbd_zvtxq);
   hm->registerHisto(h_GlobalQA_mbd_zvtx_wide);
   hm->registerHisto(h_GlobalQA_calc_zvtx);
   hm->registerHisto(h_GlobalQA_calc_zvtx_wide);
@@ -381,8 +371,8 @@ void GlobalQA::createHistos()
 
   // ZDC QA
   h_GlobalQA_zdc_zvtx = new TH1D("h_GlobalQA_zdc_zvtx", ";zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_zdc_energy_s = new TH1D("h_GlobalQA_zdc_energy_s", ";Energy [Gev]", 100, 0, 700);
-  h_GlobalQA_zdc_energy_n = new TH1D("h_GlobalQA_zdc_energy_n", ";Energy [Gev]", 100, 0, 700);
+  h_GlobalQA_zdc_energy_s = new TH1D("h_GlobalQA_zdc_energy_s", ";Energy [Gev]", 100, 10, 340);
+  h_GlobalQA_zdc_energy_n = new TH1D("h_GlobalQA_zdc_energy_n", ";Energy [Gev]", 100, 10, 340);
   hm->registerHisto(h_GlobalQA_zdc_zvtx);
   hm->registerHisto(h_GlobalQA_zdc_energy_s);
   hm->registerHisto(h_GlobalQA_zdc_energy_n);
