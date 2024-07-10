@@ -1,5 +1,9 @@
 #include "AlignmentDefs.h"
+
 #include <trackbase/TpcDefs.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/TrkrDefs.h>  // for cluskey, getTrkrId, tpcId
 
 void AlignmentDefs::getMvtxGlobalLabels(const Surface& surf, int glbl_label[], AlignmentDefs::mvtxGrp grp)
 {
@@ -50,6 +54,32 @@ void AlignmentDefs::getInttGlobalLabels(const Surface& surf, int glbl_label[], A
   }
 
   int label_base = getLabelBase(id, 0, group);
+  for (int i = 0; i < NGL; ++i)
+  {
+    glbl_label[i] = label_base + i;
+  }
+}
+void AlignmentDefs::getInttGlobalLabels(const Surface& surf, TrkrDefs::cluskey cluskey, int glbl_label[], AlignmentDefs::inttGrp grp)
+{
+  Acts::GeometryIdentifier id = surf->geometryId();
+  int group = 0;
+  switch (grp)
+  {
+  case AlignmentDefs::inttGrp::chp:
+    group = 4;
+    break;
+  case AlignmentDefs::inttGrp::lad:
+    group = 5;
+    break;
+  case AlignmentDefs::inttGrp::inttlyr:
+    group = 6;
+    break;
+  case AlignmentDefs::inttGrp::inttbrl:
+    group = 7;
+    break;
+  }
+
+  int label_base = getLabelBase(id, cluskey, group);
   for (int i = 0; i < NGL; ++i)
   {
     glbl_label[i] = label_base + i;
@@ -210,6 +240,11 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
       stave = (sensor - breakat) / 2;  // staves 0 -> (nstaves/layer) -1
     }
 
+    // temporary fix for geometry issue in INTT
+    // wroks for grp = 5 and grp= 6 only, so far
+    stave = InttDefs::getLadderPhiId(cluskey);
+    layer =  TrkrDefs::getLayer(cluskey);
+
     if (group == 4)
     {
       // every sensor has a different label
@@ -220,11 +255,12 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
     {
       // layer and stave, assign all sensors to the stave number
       label_base += layer * 1000000 + stave * 10000;
-      /*
+
       std::cout << "    "  << id << std::endl;
-      std::cout << "    label_base " << label_base << " volume " << volume << " acts_layer " << acts_layer
-                << " layer " << layer << " breakat " << breakat << " stave " << stave << " sensor " << sensor << std::endl;
-      */
+      std::cout << "    label_base " << label_base << " volume " << volume << " base_layer_map->second " <<   base_layer_map.find(volume)->second  
+		<< " acts_layer " << acts_layer << " layer " << layer << " breakat " << breakat << " stave " << stave << " sensor " << sensor 
+		<< std::endl;
+
       return label_base;
     }
     if (group == 6)
