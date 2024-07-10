@@ -28,6 +28,7 @@
 #include <phool/phool.h>  // for PHWHERE
 
 #include <ffarawobjects/Gl1Packet.h>
+#include <ffaobjects/EventHeader.h>
 
 #include <TH1.h>
 #include <TH2.h>
@@ -85,7 +86,22 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   {
     std::cout << _eventcounter << std::endl;
   }
-  // MBD vertex
+
+  //---------------------------Event header--------------------------------//
+  EventHeader *eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  int event_number = 0;
+  if (eventheader)
+  {
+    if (eventheader->isValid())
+    {
+      event_number = eventheader->get_EvtSequence();
+    }
+  }
+  else{
+    std::cout << "GlobalQA::process_event()  No event header" << std::endl;
+  }
+
+  //--------------------------- MBD vertex------------------------------//
   MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   MbdVertex *bvertex = nullptr;
   float mbd_zvtx = -999;
@@ -102,11 +118,11 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   }
   h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
   h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
-  if (mbd_zvtx == -999) 
+  if (mbd_zvtx == -999)
   {
     h_GlobalQA_mbd_zvtxq->Fill(0);
   }
-  else 
+  else
   {
     h_GlobalQA_mbd_zvtxq->Fill(1);
   }
@@ -140,8 +156,8 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     float totalzdcnorthcalib = 0.;
     if (_zdcinfo)
     {
-       totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
-       totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
+      totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
+      totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
     }
     h_GlobalQA_zdc_zvtx->Fill(999);
     h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
@@ -300,10 +316,10 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   h_GlobalQA_mbd_nhit_s->Fill(hits_s);
   h_GlobalQA_mbd_nhit_n->Fill(hits_n);
 
-  //---------------------------- Trigger / alignment -------------------------------------//
 
+  //---------------------------- Trigger / alignment -------------------------------------//
   float leading_cluster_ecore = 0;
-  int evtNum_overK = _eventcounter / 1000;
+  int evtNum_overK = event_number / 1000;
 
   RawClusterContainer *clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
   if (clusterContainer)
@@ -331,7 +347,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       {
         h_ldClus_trig[i]->Fill(leading_cluster_ecore);
         pr_evtNum_ldClus_trig[i]->Fill(evtNum_overK, leading_cluster_ecore);
-        pr_ldClus_trig->Fill(i,leading_cluster_ecore);
+        pr_ldClus_trig->Fill(i, leading_cluster_ecore);
       }
     }
   }
@@ -350,7 +366,7 @@ void GlobalQA::createHistos()
   assert(hm);
 
   // MBD QA
-  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Has zvtx?;percentage", 2, -0.5,1.5);
+  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Has zvtx?;percentage", 2, -0.5, 1.5);
   h_GlobalQA_mbd_zvtx = new TH1D("h_GlobalQA_mbd_zvtx", ";zvtx [cm]", 100, -50, 50);
   h_GlobalQA_mbd_zvtx_wide = new TH1D("h_GlobalQA_mbd_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
   h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";zvtx [cm]", 100, -50, 50);
@@ -379,7 +395,7 @@ void GlobalQA::createHistos()
 
   h_GlobalQA_triggerVec = new TH1F("h_GlobalQA_triggerVec", "", 64, 0, 64);
   hm->registerHisto(h_GlobalQA_triggerVec);
-  pr_ldClus_trig = new TProfile("pr_GlobalQA_ldClus_trig", "", 64, 0, 64,0,10);
+  pr_ldClus_trig = new TProfile("pr_GlobalQA_ldClus_trig", "", 64, 0, 64, 0, 10);
   hm->registerHisto(pr_ldClus_trig);
 
   for (int i = 0; i < 64; i++)
