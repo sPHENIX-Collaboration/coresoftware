@@ -53,6 +53,7 @@ class GlobalQA : public SubsysReco
   TH1* h_GlobalQA_mbd_charge_n = nullptr;
   TH1* h_GlobalQA_mbd_nhit_s = nullptr;
   TH1* h_GlobalQA_mbd_nhit_n = nullptr;
+  TH1* h_GlobalQA_mbd_zvtxq = nullptr;
   
   TH1* h_GlobalQA_zdc_zvtx = nullptr;
   TH1* h_GlobalQA_zdc_energy_s = nullptr;
