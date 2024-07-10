@@ -176,7 +176,7 @@ FastJetAlgo::jets_to_pseudojets(std::vector<Jet*>& particles)
 
     // Ignore particles with negative/small energies
     
-    if (particles[ipart]->get_e() <= 0.01)
+    if (particles[ipart]->get_e() < m_opt.constituent_min_E)
     {
       continue;
     }
