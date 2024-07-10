@@ -42,22 +42,26 @@ int InttCalib::InitRun(PHCompositeNode* /*unused*/)
     }
   }
 
-  if (m_survey.LoadFromCDB("InttSurveyMap"))
+  m_do_nothing = false;
+
+  if(m_survey.LoadFromCDB("InttSurveyMap"))
   {
     std::cout << PHWHERE << "\n"
               << "\tCould not load 'InttSurveyMap' from CDB\n"
-              << "\tExiting" << std::endl;
-    gSystem->Exit(1);
-    exit(1);
+              << "\tModule will do nothing" << std::endl;
+	m_do_nothing = true;
+    // gSystem->Exit(1);
+    // exit(1);
   }
 
   if (m_feemap.LoadFromCDB("InttFeeMap"))
   {
     std::cout << PHWHERE << "\n"
               << "\tCould not load 'InttFeeMap' from CDB\n"
-              << "\tExiting" << std::endl;
-    gSystem->Exit(1);
-    exit(1);
+              << "\tModule will do nothing" << std::endl;
+	m_do_nothing = true;
+    // gSystem->Exit(1);
+    // exit(1);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -65,15 +69,21 @@ int InttCalib::InitRun(PHCompositeNode* /*unused*/)
 
 int InttCalib::process_event(PHCompositeNode* top_node)
 {
+  if(m_do_nothing)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   InttRawHitContainer* intt_raw_hit_container = findNode::getClass<InttRawHitContainer>(top_node, "INTTRAWHIT");
   if (!intt_raw_hit_container)
   {
     std::cout << PHWHERE << "\n"
               << "\tCould not get 'INTTRAWHIT' from node tree\n"
-              << "\tExiting" << std::endl;
-    gSystem->Exit(1);
-    exit(1);
-    return Fun4AllReturnCodes::ABORTEVENT;
+              << "\tModule will do nothing" << std::endl;
+	m_do_nothing = true;
+    // gSystem->Exit(1);
+    // exit(1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   for (size_t n = 0, N = intt_raw_hit_container->get_nhits(); n < N; ++n)
@@ -81,11 +91,7 @@ int InttCalib::process_event(PHCompositeNode* top_node)
     InttRawHit* intt_raw_hit = intt_raw_hit_container->get_hit(n);
     if (!intt_raw_hit)
     {
-      std::cout << PHWHERE << "\n"
-                << "\tInttRawHit is nullptr but in range of InttRawHitContainer::get_nhits\n"
-                << "\tExiting" << std::endl;
-      gSystem->Exit(1);
-      exit(1);
+		continue;
     }
 
     InttMap::RawData_s raw{
@@ -113,6 +119,14 @@ int InttCalib::process_event(PHCompositeNode* top_node)
 
 int InttCalib::EndRun(int const run_number)
 {
+  if(m_do_nothing)
+  {
+    std::cout << PHWHERE << "\n"
+              << "\tMember 'm_do_nothing' set\n"
+              << "\tDoing nothing" << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   m_run_num = run_number;
 
   ConfigureHotMap();
@@ -190,7 +204,7 @@ int InttCalib::MakeHotMapCdb()
 {
   if (m_hotmap_cdb_file.empty())
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   CDBTTree* cdbttree = new CDBTTree(m_hotmap_cdb_file);
@@ -244,7 +258,7 @@ int InttCalib::MakeHotMapPng()
 {
   if (m_hotmap_png_file.empty())
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // Canvas
@@ -449,7 +463,7 @@ int InttCalib::MakeBcoMapCdb()
 {
   if (m_bcomap_cdb_file.empty())
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   CDBTTree* cdbttree = new CDBTTree(m_bcomap_cdb_file);
@@ -475,7 +489,7 @@ int InttCalib::MakeBcoMapPng()
 {
   if (m_bcomap_png_file.empty())
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // Canvas
