@@ -191,6 +191,7 @@ void PHG4MicromegasDetector::create_materials() const
     mmg_FR4->AddMaterial(G4_H, 0.03650);
     mmg_FR4->AddMaterial(G4_O, 0.28120);
     mmg_FR4->AddMaterial(G4_Si, 0.24680);
+    // std::cout << "PHG4MicromegasDetector::create_materials - mmg_FR4 rad lenght: " << mmg_FR4->GetRadlen()/cm << " cm" << std::endl;
   }
 
   // Kapton
@@ -511,6 +512,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile(int tileid, M
   auto tile_logic = new G4LogicalVolume(tile_solid, world_material, "invisible_" + tilename + "_logic");
   GetDisplayAction()->AddVolume(tile_logic, G4Colour::Grey());
 
+  double radLenFraction = 0;
+
   /* we loop over registered layers and create volumes for each as daughter of the tile volume */
   auto current_radius_local = -tile_thickness / 2;
   for (const auto& [type, name] : layer_stack)
@@ -541,6 +544,9 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile(int tileid, M
     const G4ThreeVector center((current_radius_local + thickness / 2), y_offset, z_offset);
     auto component_phys = new G4PVPlacement(nullptr, center, component_logic, cname + "_phys", tile_logic, false, 0, OverlapCheck());
 
+    // update radiation length fraction
+    radLenFraction += thickness/material->GetRadlen();
+
     if (type == Component::Gas2)
     {
       // store active volume
@@ -561,6 +567,9 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile(int tileid, M
     // update radius
     current_radius_local += thickness;
   }
+
+  if( Verbosity() )
+  { std::cout << "PHG4MicromegasDetector::construct_micromegas_tile - tile id: " << tileid << " is_z: " << is_z << " radLenFraction: " << radLenFraction << std::endl; }
 
   if (is_z)
   {
