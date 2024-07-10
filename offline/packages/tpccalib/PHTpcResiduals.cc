@@ -344,7 +344,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // make sure cluster is from TPC
     const auto detId = TrkrDefs::getTrkrId(cluskey);
-    if (detId != TrkrDefs::tpcId) continue;
+    if (detId != TrkrDefs::tpcId)
+    {
+      continue;
+    }
 
     const auto cluster = m_clusterContainer->findCluster(cluskey);
     const auto surface = m_tGeometry->maps().getSurface(cluskey, cluster);
@@ -455,17 +458,29 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
 
     const double erp = square(clusRPhiErr) + square(trackRPhiErr);
-    if (std::isnan(erp)) continue;
+    if (std::isnan(erp))
+    {
+      continue;
+    }
 
     const double ez = square(clusZErr) + square(trackZErr);
-    if (std::isnan(ez)) continue;
+    if (std::isnan(ez))
+    {
+      continue;
+    }
 
     // Calculate residuals
     const double drphi = clusR * deltaPhi(clusPhi - trackPhi);
-    if (std::isnan(drphi)) continue;
+    if (std::isnan(drphi))
+    {
+      continue;
+    }
 
     const double dz = clusZ - trackZ;
-    if (std::isnan(dz)) continue;
+    if (std::isnan(dz))
+    {
+      continue;
+    }
 
     if (Verbosity() > 3)
     {
@@ -480,10 +495,16 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     const double trackPZ = trackStateParams.momentum()(2);
 
     const double trackAlpha = -trackPPhi / trackPR;
-    if (std::isnan(trackAlpha)) continue;
+    if (std::isnan(trackAlpha))
+    {
+      continue;
+    }
 
     const double trackBeta = -trackPZ / trackPR;
-    if (std::isnan(trackBeta)) continue;
+    if (std::isnan(trackBeta))
+    {
+      continue;
+    }
 
     if (Verbosity() > 3)
     {
@@ -504,7 +525,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       std::cout << "Bin index found is " << index << std::endl;
     }
 
-    if (index < 0) continue;
+    if (index < 0)
+    {
+      continue;
+    }
 
     if (Verbosity() > 3)
     {
@@ -542,7 +566,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     m_matrix_container->add_to_lhs(index, 1, 1, 1. / ez);
     m_matrix_container->add_to_lhs(index, 1, 2, trackBeta / ez);
 
-    m_matrix_container->add_to_lhs(index, 2, 0, clusR*trackAlpha / erp);
+    m_matrix_container->add_to_lhs(index, 2, 0, clusR * trackAlpha / erp);
     m_matrix_container->add_to_lhs(index, 2, 1, trackBeta / ez);
     m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
 

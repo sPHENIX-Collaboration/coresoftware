@@ -1,6 +1,7 @@
 #include "TPCPedestalCalibration.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -13,7 +14,6 @@
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
 
-#include <TMath.h>
 #include <TFile.h>
 #include <TTree.h>
 
@@ -34,7 +34,6 @@ TPCPedestalCalibration::TPCPedestalCalibration(const std::string &name)
 {
   // reserve memory for max ADC samples
   m_adcSamples.resize(1024, 0);
-
   for(int fee_no=0;fee_no<26;fee_no++)
   {
     for(int channel_no=0;channel_no<256;channel_no++)
@@ -48,7 +47,7 @@ TPCPedestalCalibration::TPCPedestalCalibration(const std::string &name)
 
 }
 
-int TPCPedestalCalibration::InitRun(PHCompositeNode *)
+int TPCPedestalCalibration::InitRun(PHCompositeNode * /*unused*/)
 {
   m_cdbttree = new CDBTTree(m_fname);  
 
@@ -118,7 +117,7 @@ int TPCPedestalCalibration::process_event(PHCompositeNode *topNode)
       bool dead = false;
       for(int adc_sam_no=0;adc_sam_no<m_nSamples;adc_sam_no++)
       {
-        if (m_adcSamples[adc_sam_no] == 0 || TMath::IsNaN(float(m_adcSamples[adc_sam_no])))
+        if (m_adcSamples[adc_sam_no] == 0 || std::isnan(float(m_adcSamples[adc_sam_no])))
         {
           m_aliveArrayFeeChannel[m_fee][m_Channel]=0;
         }
@@ -197,7 +196,7 @@ void TPCPedestalCalibration::CDBInsert()
 }
 
 //____________________________________________________________________________..
-int TPCPedestalCalibration::End(PHCompositeNode *topNode)
+int TPCPedestalCalibration::End(PHCompositeNode * /*topNode*/)
 {
   m_cdbttree->Commit();
   if (Verbosity())

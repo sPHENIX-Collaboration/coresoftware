@@ -41,24 +41,24 @@ TrksInJetQABaseFiller::TrksInJetQABaseFiller(
 
 // public methods -------------------------------------------------------------
 
-void TrksInJetQABaseFiller::MakeHistograms(const std::string& label)
+void TrksInJetQABaseFiller::MakeHistograms(const std::string& prefix, const std::string& suffix)
 {
   // initialize relevant submodules
   if (m_config.doHitQA)
   {
-    m_hitManager->MakeHistograms(label);
+    m_hitManager->MakeHistograms(prefix, suffix);
   }
   if (m_config.doClustQA)
   {
-    m_clustManager->MakeHistograms(label);
+    m_clustManager->MakeHistograms(prefix, suffix);
   }
   if (m_config.doTrackQA)
   {
-    m_trackManager->MakeHistograms(label);
+    m_trackManager->MakeHistograms(prefix, suffix);
   }
   if (m_config.doJetQA)
   {
-    m_jetManager->MakeHistograms(label);
+    m_jetManager->MakeHistograms(prefix, suffix);
   }
   return;
 

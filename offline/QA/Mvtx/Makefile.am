@@ -1,38 +1,37 @@
 AUTOMAKE_OPTIONS = foreign
 
-
-AM_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
-  -isystem`root-config --incdir`
+  -isystem$(ROOTSYS)/include
 
-lib_LTLIBRARIES = \
-    libintthitmap.la
-
-pkginclude_HEADERS = \
-  InttHitMap.h
-
-libintthitmap_la_SOURCES = \
-  InttChannelClassifier.cc \
-  InttHitMap.cc  
-
-libintthitmap_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -lcalo_io \
-  -lfun4all \
-  -lg4detectors_io \
-  -lphg4hit \
-  -lg4eval \
-  -lintt
+  -L$(OFFLINE_MAIN)/lib64
 
+pkginclude_HEADERS = \
+  MvtxRawHitQA.h
 
-################################################
-# linking tests
+lib_LTLIBRARIES = \
+  libmvtxrawhitqa.la
+
+libmvtxrawhitqa_la_SOURCES = \
+  MvtxRawHitQA.cc
+
+libmvtxrawhitqa_la_LIBADD = \
+  -lphool \
+  -lSubsysReco \
+  -lg4tpc \
+  -lg4intt \
+  -lg4mvtx \
+  -lmicromegas_io \
+  -lmvtx_io \
+  -lintt_io \
+  -ltrack_io \
+  -ltrackbase_historic_io \
+  -ltrack_reco \
+  -lqautils
 
 BUILT_SOURCES = testexternals.cc
 
@@ -40,7 +39,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD = libintthitmap.la
+testexternals_LDADD   = libmvtxrawhitqa.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

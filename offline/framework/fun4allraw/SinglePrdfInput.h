@@ -14,14 +14,12 @@
 
 class Eventiterator;
 class Fun4AllPrdfInputPoolManager;
-class Fun4AllPrdfInputTriggerManager;
 class Packet;
 
 class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
 {
  public:
   explicit SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman);
-  explicit SinglePrdfInput(const std::string &name, Fun4AllPrdfInputTriggerManager *inman);
   ~SinglePrdfInput() override;
   Eventiterator *GetEventIterator() { return m_EventIterator; }
   virtual void FillPool(const unsigned int nevents);
@@ -34,7 +32,6 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   void EventNumberOffset(const int i) { m_EventNumberOffset = i; }  // if beam clk are out of sync, tweak this one
   int EventNumberOffset() const { return m_EventNumberOffset; }
   Fun4AllPrdfInputPoolManager *InputMgr() { return m_InputMgr; }
-  Fun4AllPrdfInputTriggerManager *TriggerInputMgr() { return m_TriggerInputMgr; }
   void MakeReference(const bool b);
   bool ReferenceFlag() const { return m_MeReferenceFlag; }
 
@@ -49,7 +46,6 @@ class SinglePrdfInput : public Fun4AllBase, public InputFileHandler
   };
   Eventiterator *m_EventIterator = nullptr;
   Fun4AllPrdfInputPoolManager *m_InputMgr = nullptr;
-  Fun4AllPrdfInputTriggerManager *m_TriggerInputMgr = nullptr;
   Packet **plist = nullptr;
   unsigned int m_NumSpecialEvents = 0;
   int m_EventNumberOffset = 1;               // packet event counters start at 0 but we start with event number 1

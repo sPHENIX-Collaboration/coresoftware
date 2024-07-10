@@ -661,6 +661,11 @@ Double_t MbdSig::MBDTDC(const Int_t max_samp)
 
   f_time = y[max_samp];
 
+  if ( y[2]>100. )
+  {
+    f_time = 0.;
+  }
+
   /*
   if ( _ch==128 )
   {
@@ -798,6 +803,7 @@ void MbdSig::Print()
 void MbdSig::PadUpdate()
 {
   // Make sure TCanvas is created externally!
+  //std::cout << PHWHERE << " PadUpdate\t_verbose = " << _verbose << std::endl;
   if ( _verbose>5 )
   {
     gPad->Modified();
@@ -928,14 +934,15 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
     TF1::RejectPoint();
   }
 
-  _verbose = 0;
+  //_verbose = 0;
   return f;
 }
 
 // sampmax>0 means fit to the peak near sampmax
 int MbdSig::FitTemplate( const Int_t sampmax )
 {
-  _verbose = 0;	// uncomment to see fits
+  //_verbose = 100;	// uncomment to see fits
+  //_verbose = 12;        // don't see pedestal fits
   if (_verbose > 0)
   {
     cout << "Fitting ch " << _ch << endl;
@@ -969,14 +976,17 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   {
     f_ampl = 0.;
     f_time = std::numeric_limits<Float_t>::quiet_NaN();
-    if ( _verbose>10 )
+    if ( _verbose>20 )
     {
+      // for checking pedestal
       std::cout << "skipping, ymax < 20" << std::endl;
       gSubPulse->Draw("ap");
       gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
       gPad->SetGridy(1);
       PadUpdate();
     }
+
+    _verbose = 0;
     return 1;
   }
 
@@ -993,12 +1003,14 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   }
   else
   {
-    std::cout << "doing fit" << std::endl;
+    std::cout << "doing fit " << _verbose << std::endl;
     gSubPulse->Fit(template_fcn, "R");
     gSubPulse->Draw("ap");
     gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
     gPad->SetGridy(1);
+    std::cout << "doing fit2 " << _verbose << std::endl;
     PadUpdate();
+    std::cout << "doing fit3 " << _verbose << std::endl;
     //gSubPulse->Print("ALL");
   }
 
@@ -1046,7 +1058,6 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   f_ampl = template_fcn->GetParameter(0);
   f_time = template_fcn->GetParameter(1);
 
-  //std::cout << "FitTemplate " << _ch << "\t" << f_ampl << "\t" << f_time << endl;
   if (_verbose > 0 && fabs(f_ampl) > 0.)
   //if ( f_time<0 || f_time>30 )
   {

@@ -21,6 +21,7 @@
 
 #include <TSystem.h>
 
+#include <algorithm>
 #include <cstdint>   // for uint64_t
 #include <iostream>  // for operator<<, basic_ostream<...
 #include <iterator>  // for reverse_iterator
@@ -77,12 +78,12 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       }
       evt.reset(GetEventiterator()->getNextEvent());
     }
-    if (Verbosity() > 2)
+    if (Verbosity() > 21)
     {
       std::cout << PHWHERE << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
     RunNumber(evt->getRunNumber());
-    if (GetVerbosity() > 1)
+    if (Verbosity() > 21)
     {
       evt->identify();
     }
@@ -99,11 +100,17 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
                 << " too small for " << Name()
                 << ", increase NCEMCPACKETS and rebuild" << std::endl;
       exit(1);
-      exit(1);
     }
 
     for (int i = 0; i < npackets; i++)
     {
+      int packet_id = plist[i]->getIdentifier();
+      // The call to  EventNumberOffset(identifier) will initialize it to our default (zero) if it wasn't set already
+      // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
+      // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
+      // and only when the pool gets refilled, this correction kicks in
+      // SO DO NOT BE CONFUSED when printing this out - seeing different events where this kicks in
+      int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
         plist[i]->identify();
@@ -139,9 +146,9 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       newhit->setNrChannels(nr_channels);
       newhit->setBCO(gtm_bco);
       newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
-      newhit->setIdentifier(plist[i]->getIdentifier());
+      newhit->setIdentifier(packet_id);
       newhit->setHitFormat(plist[i]->getHitFormat());
-      newhit->setEvtSequence(EventSequence);
+      newhit->setEvtSequence(CorrectedEventSequence);
       newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
       newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
       newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
@@ -177,18 +184,19 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
           }
         }
       }
-      if (Verbosity() > 2)
+      if (Verbosity() > 21)
       {
-        std::cout << PHWHERE << "evtno: " << EventSequence
+        std::cout << PHWHERE << "corrected evtno: " << CorrectedEventSequence
+                  << ", original evtno: " << EventSequence
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
       if (TriggerInputManager())
       {
-        TriggerInputManager()->AddCemcPacket(EventSequence, newhit);
+        TriggerInputManager()->AddCemcPacket(CorrectedEventSequence, newhit);
       }
-      m_PacketMap[EventSequence].push_back(newhit);
-      m_EventStack.insert(EventSequence);
+      m_PacketMap[CorrectedEventSequence].push_back(newhit);
+      m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
         ddumppacket(plist[i]);
@@ -249,36 +257,6 @@ void SingleCemcTriggerInput::ClearCurrentEvent()
   //  std::cout << PHWHERE << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentevent);
   return;
-}
-
-bool SingleCemcTriggerInput::GetSomeMoreEvents(const unsigned int keep)
-{
-  if (AllDone())
-  {
-    return false;
-  }
-  if (m_PacketMap.empty())
-  {
-    return true;
-  }
-
-  int first_event = m_PacketMap.begin()->first;
-  int last_event = m_PacketMap.rbegin()->first;
-  if (Verbosity() > 1)
-  {
-    std::cout << PHWHERE << "first event: " << first_event
-              << " last event: " << last_event
-              << std::endl;
-  }
-  if (keep > 2 && m_PacketMap.size() < keep)
-  {
-    return true;
-  }
-  if (first_event >= last_event)
-  {
-    return true;
-  }
-  return false;
 }
 
 void SingleCemcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)

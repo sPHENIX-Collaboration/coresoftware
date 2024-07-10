@@ -48,7 +48,7 @@ class TrksInJetQABaseFiller
   virtual ~TrksInJetQABaseFiller() = default;
 
   // public methods
-  void MakeHistograms(const std::string& label = "");
+  void MakeHistograms(const std::string& prefix = "", const std::string& suffix = "");
   void SaveHistograms(TFile* outFile, const std::string& outDirName);
   void GrabHistograms(std::vector<TH1D*>& vecOutHist1D, std::vector<TH2D*>& vecOutHist2D);
 

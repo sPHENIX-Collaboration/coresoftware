@@ -38,7 +38,7 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   {
     return delBadPkts;
   }
-  
+
  private:
   bool delBadPkts = false;
   std::map<unsigned int, std::tuple<uint64_t, uint64_t, uint64_t, TH1 *, bool>> m_PacketStuffMap;

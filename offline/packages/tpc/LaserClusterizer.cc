@@ -97,9 +97,10 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   {
     m_debugFile = new TFile(m_debugFileName.c_str(), "RECREATE");
   }
-
-  m_itHist_0 = new TH1I("m_itHist_0", "side 0;it", 360, -0.5, 359.5);
-  m_itHist_1 = new TH1I("m_itHist_1", "side 1;it", 360, -0.5, 359.5);
+float timeHistMax=m_time_samples_max;
+timeHistMax-=0.5;
+  m_itHist_0 = new TH1I("m_itHist_0", "side 0;it", m_time_samples_max, -0.5, timeHistMax);
+  m_itHist_1 = new TH1I("m_itHist_1", "side 1;it", m_time_samples_max, -0.5, timeHistMax);
 
   if (m_debug)
   {
@@ -234,21 +235,21 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     double itMeanContent_0 = 0.0;
     double itMeanContent_1 = 0.0;
 
-    for (int i = 1; i <= 360; i++)
+    for (int i = 1; i <= m_time_samples_max; i++)
     {
       itMeanContent_0 += m_itHist_0->GetBinContent(i);
       itMeanContent_1 += m_itHist_1->GetBinContent(i);
     }
 
-    itMeanContent_0 = itMeanContent_0 / 360.0;
-    itMeanContent_1 = itMeanContent_1 / 360.0;
+    itMeanContent_0 = 1.0*itMeanContent_0 / m_time_samples_max;
+    itMeanContent_1 = 1.0*itMeanContent_1 / m_time_samples_max;
 
-    m_itHist_0->GetXaxis()->SetRange(200, 360);
+    m_itHist_0->GetXaxis()->SetRange(200, m_time_samples_max-0.5);
     double itMax_0 = m_itHist_0->GetBinCenter(m_itHist_0->GetMaximumBin());
     double itMaxContent_0 = m_itHist_0->GetMaximum();
     m_itHist_0->GetXaxis()->SetRange(0, 0);
 
-    m_itHist_1->GetXaxis()->SetRange(200, 360);
+    m_itHist_1->GetXaxis()->SetRange(200, m_time_samples_max-0.5);
     double itMax_1 = m_itHist_1->GetBinCenter(m_itHist_1->GetMaximumBin());
     double itMaxContent_1 = m_itHist_1->GetMaximum();
     m_itHist_1->GetXaxis()->SetRange(0, 0);
