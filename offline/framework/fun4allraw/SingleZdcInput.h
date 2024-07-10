@@ -19,7 +19,6 @@ class SingleZdcInput : public SinglePrdfInput
 {
  public:
   explicit SingleZdcInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman);
-  explicit SingleZdcInput(const std::string &name, Fun4AllPrdfInputTriggerManager *inman);
   ~SingleZdcInput() override;
   void FillPool(const unsigned int nevents) override;
 
