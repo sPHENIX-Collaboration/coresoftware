@@ -81,10 +81,18 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
     {
       evt->identify();
     }
+
     // not interested in special events, really
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
+      if(evt->getEvtType() == ENDRUNEVENT)
+      {
+        std::cout << "End run flag for INTT found, remaining INTT data is corrupted" << std::endl;
+        delete evt;
+        AllDone(1);
+        return;
+      }
       delete evt;
       continue;
     }

@@ -8,6 +8,9 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
+#include <zdcinfo/ZdcReco.h>
+#include <zdcinfo/Zdcinfo.h>
+
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
 
@@ -394,33 +397,12 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   }
 
   {
-    TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
-    if (towers)
+    Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+    if (_zdcinfo)
     {
-      int size = towers->size();  // online towers should be the same!
-      for (int channel = 0; channel < size; channel++)
-      {
-        TowerInfo* tower = towers->get_tower_at_channel(channel);
-        float offlineenergy = tower->get_energy();
-        int _time = towers->get_tower_at_channel(channel)->get_time();
-        h_zdctime_cut->Fill(_time);
-        if (channel == 0 || channel == 2 || channel == 4)
-        {
-          totalzdcsouthcalib += offlineenergy;
-        }
-        if (channel == 8 || channel == 10 || channel == 12)
-        {
-          totalzdcnorthcalib += offlineenergy;
-        }
-        if (channel == 0 || channel == 2 || channel == 4 || channel == 8 || channel == 10 || channel == 12)
-        {
-          if (_time > (max_zdc_t - _range) && _time < (max_zdc_t + _range))
-          {
-            totalzdc += offlineenergy;
-            h_zdctime->Fill(_time);
-          }
-        }
-      }
+        totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
+        totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
+        totalzdc = totalzdcsouthcalib + totalzdcnorthcalib;
     }
   }
 
@@ -434,6 +416,12 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       {
         TowerInfo* tower = towers->get_tower_at_channel(channel);
         float offlineenergy = tower->get_energy();
+        int _time = towers->get_tower_at_channel(channel)->get_time();
+        h_zdctime_cut->Fill(_time);
+        if (_time > (max_zdc_t - _range) && _time < (max_zdc_t + _range))
+        {
+            h_zdctime->Fill(_time);
+        }
         if (channel == 0 || channel == 2 || channel == 4)
         {
           totalzdcsouthraw += offlineenergy;
@@ -996,12 +984,12 @@ void CaloValid::createHistos()
     hm->registerHisto(h_zdcNorthraw);
   }
   {
-    h_zdcSouthcalib = new TH1D(boost::str(boost::format("%szdcSouthcalib") % getHistoPrefix()).c_str(), "hzdcSouthcalib", 1500, 0, 15000);
+    h_zdcSouthcalib = new TH1D(boost::str(boost::format("%szdcSouthcalib") % getHistoPrefix()).c_str(), "hzdcSouthcalib", 100, 10, 340);
     h_zdcSouthcalib->SetDirectory(nullptr);
     hm->registerHisto(h_zdcSouthcalib);
   }
   {
-    h_zdcNorthcalib = new TH1D(boost::str(boost::format("%szdcNorthcalib") % getHistoPrefix()).c_str(), "hzdcNorthcalib", 1500, 0, 15000);
+    h_zdcNorthcalib = new TH1D(boost::str(boost::format("%szdcNorthcalib") % getHistoPrefix()).c_str(), "hzdcNorthcalib", 100, 10, 340);
     h_zdcNorthcalib->SetDirectory(nullptr);
     hm->registerHisto(h_zdcNorthcalib);
   }

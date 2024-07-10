@@ -117,15 +117,18 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
   for (const auto &nodeiter : nodenames)
   {
     CaloPacketContainer *container = findNode::getClass<CaloPacketContainer>(topNode, nodeiter);
-
+    if (!container)
+    {
+      continue;
+    }
     if (delBadPkts)
     {
       for (unsigned int i = 0; i < container->get_npackets(); i++)
       {
         unsigned int packetID = container->getPacket(i)->getIdentifier();
-        for (unsigned int j = 0; j < badPackets.size(); j++)
+        for (unsigned int badPacket : badPackets)
         {
-          if (badPackets.at(j) == packetID)
+          if (badPacket == packetID)
           {
             if (Verbosity() > 1)
             {
@@ -190,7 +193,12 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
           {
             if (packet->iValue(j, "FEMEVTNR") != bestEvt && bestEvt != -1 && packet->getIdentifier() != 6057)  // this packet has jitter on the FEM clocks, so we don't drop it
             {
-              std::cout << "found different FEM clock for packet " << packet->getIdentifier() << std::endl;
+	      static int icnt = 0;
+	      if (icnt < 1000)
+	      {
+		std::cout << "found different FEM clock for packet " << packet->getIdentifier() << std::endl;
+		icnt++;
+	      }
               if (delBadPkts)
               {
                 container->deletePacket(packet);

@@ -22,6 +22,7 @@ pkginclude_HEADERS = \
   Fun4AllStreamingInputManager.h \
   InputManagerType.h \
   MicromegasBcoMatchingInformation.h\
+	MvtxRawDefs.h \
   SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
@@ -78,6 +79,7 @@ libfun4allraw_la_SOURCES = \
   mvtx_pool.cc \
   tpc_pool.cc \
   MicromegasBcoMatchingInformation.cc\
+	MvtxRawDefs.cc \
   SingleCemcTriggerInput.cc \
   SingleGl1PoolInput.cc \
   SingleGl1TriggerInput.cc \

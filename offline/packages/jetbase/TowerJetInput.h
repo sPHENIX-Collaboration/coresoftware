@@ -26,7 +26,7 @@ class TowerJetInput : public JetInput
  private:
   Jet::SRC m_input;
   RawTowerDefs::CalorimeterId geocaloid{RawTowerDefs::CalorimeterId::NONE};
-  bool m_use_towerinfo = false;
+  bool m_use_towerinfo {false};
   std::string m_towerNodePrefix;
   std::string towerName;
 };

@@ -211,7 +211,7 @@ void TrksInJetQA::InitHistograms()
   // make suffixes
   std::string inJetSuffix = "InJet";
   std::string inclusiveSuffix = "Inclusive";
-  if (m_histSuffix.has_value())
+  if (m_histSuffix.has_value() && !m_histSuffix.value().empty())
   {
     inJetSuffix += "_";
     inJetSuffix += m_histSuffix.value();

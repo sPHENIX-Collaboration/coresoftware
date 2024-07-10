@@ -255,6 +255,10 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
     RdhExt_t rdh = {};
     uint8_t* rdh_start = data.getPtr() + dataOffset;
     rdh.decode(rdh_start);
+    if (! rdh.checkRDH(true) )
+    {
+      continue;
+    }
 
     size_t pagesize = (rdh.pageSize + 1) * FLXWordLength;
     const size_t nFlxWords = (pagesize - (2 * FLXWordLength)) / FLXWordLength;

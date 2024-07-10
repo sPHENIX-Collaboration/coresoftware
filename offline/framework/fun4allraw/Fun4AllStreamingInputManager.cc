@@ -1,6 +1,7 @@
 #include "Fun4AllStreamingInputManager.h"
 
 #include "InputManagerType.h"
+#include "MvtxRawDefs.h"
 #include "SingleMicromegasPoolInput.h"
 #include "SingleMvtxPoolInput.h"
 #include "SingleStreamingInput.h"
@@ -649,8 +650,8 @@ int Fun4AllStreamingInputManager::FillIntt()
       return iret;
     }
   }
- 
-  int refbcobitshift = m_RefBCO & 0x3F;
+
+  unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_intt->Fill(refbcobitshift);
   bool allpackets = true;
   for (size_t p = 0; p < m_InttInputVector.size(); p++)
@@ -797,13 +798,12 @@ int Fun4AllStreamingInputManager::FillMvtx()
               << std::dec << std::endl;
   }
 
-  int refbcobitshift = m_RefBCO & 0x3F;
+  unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   bool allpackets = true;
   h_refbco_mvtx->Fill(refbcobitshift);
   for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
   {
     auto gtml1bcoset = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getGtmL1BcoSet();
-    auto bcorange = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->GetBcoRange();
     auto gtml1bcoset_perfee = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getFeeGTML1BCOMap();
     bool allfees = true;
     for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
@@ -812,7 +812,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-        if (diff < bcorange)
+        if (diff < 3)
         {
           h_tagBcoFelixFee_mvtx[p][feeid]->Fill(refbcobitshift);
           thisfee = true;
@@ -828,11 +828,12 @@ int Fun4AllStreamingInputManager::FillMvtx()
     {
       h_tagBcoFelixAllFees_mvtx[p]->Fill(refbcobitshift);
     }
+    (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearFeeGTML1BCOMap();
     bool thispacket = false;
     for (auto &gtmbco : gtml1bcoset)
     {
       auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-      if (diff < bcorange)
+      if (diff < 3)
       {
         thispacket = true;
         h_tagBcoFelix_mvtx[p]->Fill(refbcobitshift);
@@ -844,6 +845,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       {
         allpackets = false;
       }
+      (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearGtmL1BcoSet();
   }
   if(allpackets)
   {
@@ -1007,7 +1009,7 @@ int Fun4AllStreamingInputManager::FillTpc()
     }
   }
 
-  int refbcobitshift = m_RefBCO & 0x3F;
+  unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_tpc->Fill(refbcobitshift);
   bool allpackets = true;
   for (size_t p = 0; p < m_TpcInputVector.size(); p++)
@@ -1360,7 +1362,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
       h_gl1tagged_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str()));
       for (int j = 0; j < 14; j++)
       {
-        
+
         h_gl1taggedfee_intt[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i_fee%i") % i % j).str().c_str()));
       }
       h_taggedAllFees_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str()));
