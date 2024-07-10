@@ -38,7 +38,7 @@ libg4dst_la_LDFLAGS = \
   -lphgeom_io \
   -lphhepmc_io \
   -ltpc_io \
-  -llibtpccalib_io \
+  -ltpccalib_io \
   -ltrack_reco_io \
   -ltrackbase_historic_io \
   -lzdcinfo_io
