@@ -116,6 +116,14 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
       return std::vector<Jet *>();
     }
   }
+  else if (m_Input == Jet::ECAL_HCAL_TOPO_CLUSTER)
+  {
+    clusters = findNode::getClass<RawClusterContainer>(topNode, "TOPOCLUSTER_ALLCALO");
+    if (!clusters)
+    {
+      return std::vector<Jet *>();
+    }
+  }
   else if (m_Input == Jet::FEMC_CLUSTER)
   {
     clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_FEMC");
