@@ -104,7 +104,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   //--------------------------- MBD vertex------------------------------//
   MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   MbdVertex *bvertex = nullptr;
-  float mbd_zvtx = -999;
+  float mbd_zvtx =std::numeric_limits<float>::quiet_NaN(); 
   if (mbdmap)
   {
     for (MbdVertexMap::ConstIter mbditer = mbdmap->begin(); mbditer != mbdmap->end(); ++mbditer)
@@ -118,13 +118,13 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   }
   h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
   h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
-  if (mbd_zvtx == -999)
+  if (!std::isfinite(mbd_zvtx) )
   {
-    h_GlobalQA_mbd_zvtxq->Fill(0);
+    h_GlobalQA_mbd_zvtxq->SetBinContent(1,h_GlobalQA_mbd_zvtxq->GetBinContent(1)+1);
   }
   else
   {
-    h_GlobalQA_mbd_zvtxq->Fill(1);
+    h_GlobalQA_mbd_zvtxq->Fill(2,h_GlobalQA_mbd_zvtxq->GetBinContent(2)+1);
   }
 
   //--------------------------- trigger and GL1-------------------------------//
