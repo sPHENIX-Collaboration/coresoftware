@@ -7,7 +7,6 @@ void TowerInfov2::Reset()
   _chi2 = 0;
   _pedestal = 0;
   _status = 0;
-  _recovered = 0;
 }
 
 void TowerInfov2::Clear(Option_t* )
@@ -16,7 +15,6 @@ void TowerInfov2::Clear(Option_t* )
   _chi2 = 0;
   _pedestal = 0;
   _status = 0;
-  _recovered = 0;
 }
 
 void TowerInfov2::copy_tower(TowerInfo* tower)
@@ -26,7 +24,6 @@ void TowerInfov2::copy_tower(TowerInfo* tower)
   set_energy(tower->get_energy());
   set_chi2(tower->get_chi2());
   set_pedestal(tower->get_pedestal());
-  set_bitfliprecovery(tower->get_bitfliprecovery());
   set_status(tower->get_status());
   return;
 }

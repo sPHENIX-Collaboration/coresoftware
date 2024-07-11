@@ -24,8 +24,6 @@ class TowerInfo : public PHObject
   virtual float get_chi2() { return NAN; }
   virtual void set_pedestal(float /*pedestal*/) { return; }
   virtual float get_pedestal() { return NAN; }
-  virtual void set_bitfliprecovery(float /*recovered*/) { return; }
-  virtual float get_bitfliprecovery() { return NAN; }
   virtual void set_isHot(bool /*isHot*/) { return; }
   virtual bool get_isHot() const { return false; }
   virtual void set_isBadTime(bool /*isBadTime*/) { return; }
@@ -38,6 +36,8 @@ class TowerInfo : public PHObject
   virtual bool get_isNoCalib() const { return false; }
   virtual void set_isZS(bool /*isZS*/) { return; }
   virtual bool get_isZS() const { return false; }
+  virtual void set_isRecovered(bool /*isRecovered*/) { return; }
+  virtual bool get_isRecovered() const { return false; }
   virtual bool get_isGood() const { return true; }
   virtual uint8_t get_status() const { return 0; }
   virtual void set_status(uint8_t /*status*/) { return; }

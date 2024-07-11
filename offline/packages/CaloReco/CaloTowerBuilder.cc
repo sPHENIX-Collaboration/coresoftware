@@ -178,7 +178,14 @@ int CaloTowerBuilder::process_sim()
     towerinfo->set_time_float(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
     towerinfo->set_chi2(processed_waveforms.at(i).at(3));
-    towerinfo->set_bitfliprecovery(processed_waveforms.at(i).at(4));
+    if (processed_waveforms.at(i).at(4) == 0) 
+    {
+      towerinfo->set_isRecovered(false);
+    }
+    else
+    {
+      towerinfo->set_isRecovered(true);
+    }
     int n_samples = waveforms.at(i).size();
     if (n_samples == m_nzerosuppsamples)
     {
@@ -385,7 +392,14 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     towerinfo->set_time_float(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
     towerinfo->set_chi2(processed_waveforms.at(i).at(3));
-    towerinfo->set_bitfliprecovery(processed_waveforms.at(i).at(4));
+    if (processed_waveforms.at(i).at(4) == 0) 
+    {
+      towerinfo->set_isRecovered(false);
+    }
+    else
+    {
+      towerinfo->set_isRecovered(true);
+    }
     int n_samples = waveforms.at(i).size();
     if (n_samples == m_nzerosuppsamples)
     {

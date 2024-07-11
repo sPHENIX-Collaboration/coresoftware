@@ -121,20 +121,19 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         ROOT::Fit::FitResult fitres = fitter->Result();
         double chi2min = fitres.MinFcnValue();
         chi2min /= size1 - 3;  // divide by the number of dof
-        if (chi2min > _chi2threshold && f->GetParameter(2) < _bfr_highpedestalthreshold && _dobitfliprecovery) 
+        if (chi2min > _chi2threshold && (f->GetParameter(2) < _bfr_highpedestalthreshold || pedestal < _bfr_highpedestalthreshold) && (f->GetParameter(2) > _bfr_lowpedestalthreshold || pedestal > _bfr_lowpedestalthreshold) && _dobitfliprecovery) 
         {
           std::vector<float> rv; // temporary recovered waveform
           for (int i = 0; i < size1; i++)
           {
             rv.push_back(v.at(i));
           }
-
           int bits[3] = {8192,4096,2048};
           for (int b = 0; b < 3; b++) 
           {
             for (int i = 0; i < size1; i++) 
             {
-              if (int(rv.at(i)) % bits[b] != int(rv.at(i)) && int(rv.at(i)) % bits[b] > _bfr_lowpedestalthreshold) 
+              if ((int(rv.at(i)) & bits[b]) && (int(rv.at(i)) % bits[b] > _bfr_lowpedestalthreshold)) 
               {
                 rv.at(i) = rv.at(i) - bits[b];
               }
@@ -183,7 +182,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           ROOT::Fit::FitResult recover_fitres = recoverFitter->Result();
           double recover_chi2min = recover_fitres.MinFcnValue();
           recover_chi2min /= size1-3; // divide by the number of dof
-          if (recover_chi2min < _chi2lowthreshold) {
+          if (recover_chi2min < _chi2lowthreshold && recover_f->GetParameter(2) < _bfr_highpedestalthreshold && recover_f->GetParameter(2) > _bfr_lowpedestalthreshold) {
             for (int i = 0; i < size1; i++)
             {
               v.at(i) = rv.at(i);

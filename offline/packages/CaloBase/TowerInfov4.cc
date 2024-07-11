@@ -6,7 +6,6 @@ void TowerInfov4::Reset()
   energy = NAN;
   time = 0;
   chi2 = 0;
-  recovered = 0;
   status = 0;
 }
 
@@ -15,7 +14,6 @@ void TowerInfov4::Clear(Option_t* )
   time = 0;
   energy = 0;
   chi2 = 0;
-  recovered = 0;
   status = 0;
 }
 
@@ -24,7 +22,6 @@ void TowerInfov4::copy_tower(TowerInfo* tower)
   set_time_float(tower->get_time_float());
   set_energy(tower->get_energy());
   set_chi2(tower->get_chi2());
-  set_bitfliprecovery(tower->get_bitfliprecovery());
   set_status(tower->get_status());
   return;
 }
