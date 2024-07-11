@@ -128,6 +128,18 @@ class TpcSeedsQA : public SubsysReco
   TH1* h_clusphisizegeq1pt_side0[3] = {nullptr};
   TH1* h_clusphisizegeq1pt_side1[3] = {nullptr};
 
+  TH2* h_cluster_phisize1_fraction_pt_side0[3] = {nullptr};
+  TH2* h_cluster_phisize1_fraction_pt_side1[3] = {nullptr};
+
+  TH1* h_cluster_phisize1_fraction_mean_side0[3] = {nullptr};
+  TH1* h_cluster_phisize1_fraction_mean_side1[3] = {nullptr};
+
+  double frac_side0_pt[3][4] = {0};
+  double frac_side1_pt[3][4] = {0};
+
+  double num_track_side0_pt[3][4] = {0};
+  double num_track_side1_pt[3][4] = {0};
+
   TpcDistortionCorrectionContainer *m_dccModuleEdge{nullptr}, *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
 
   float m_px = std::numeric_limits<float>::quiet_NaN();

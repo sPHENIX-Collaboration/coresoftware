@@ -516,12 +516,35 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
 
     for (auto &region : {0, 1, 2})
     {
-      double frac_side0 = (double) phihistos[region].ntpc_side0_phisize1 / (double) phihistos[region].ntpc_side0;
-      h_cluster_phisize1_fraction_side0[region]->Fill(frac_side0);
+      if (phihistos[region].ntpc_side0 > 0)
+      {
+        double frac_side0 = (double) phihistos[region].ntpc_side0_phisize1 / (double) phihistos[region].ntpc_side0;
+        h_cluster_phisize1_fraction_side0[region]->Fill(frac_side0);
+        h_cluster_phisize1_fraction_pt_side0[region]->Fill(m_pt, frac_side0);
 
-      double frac_side1 = (double) phihistos[region].ntpc_side1_phisize1 / (double) phihistos[region].ntpc_side1;
-      h_cluster_phisize1_fraction_side1[region]->Fill(frac_side1);
+        int index_pt_side0 = h_cluster_phisize1_fraction_mean_side0[region]->FindBin(m_pt) - 1;
+        if (index_pt_side0<h_cluster_phisize1_fraction_mean_side0[region]->GetNbinsX())
+        {
+          frac_side0_pt[region][index_pt_side0] += frac_side0;
+          num_track_side0_pt[region][index_pt_side0]++;
+        }
+      }
+
+      if (phihistos[region].ntpc_side1 > 0)
+      {
+        double frac_side1 = (double) phihistos[region].ntpc_side1_phisize1 / (double) phihistos[region].ntpc_side1;
+        h_cluster_phisize1_fraction_side1[region]->Fill(frac_side1);
+        h_cluster_phisize1_fraction_pt_side1[region]->Fill(m_pt, frac_side1);
+
+        int index_pt_side1 = h_cluster_phisize1_fraction_mean_side1[region]->FindBin(m_pt) - 1;
+        if (index_pt_side1<h_cluster_phisize1_fraction_mean_side1[region]->GetNbinsX())
+        {
+          frac_side1_pt[region][index_pt_side1] += frac_side1;
+          num_track_side1_pt[region][index_pt_side1]++;
+        }
+      }
     }
+
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -543,6 +566,22 @@ std::vector<TrkrDefs::cluskey> TpcSeedsQA::get_cluster_keys(SvtxTrack *track)
 //____________________________________________________________________________..
 int TpcSeedsQA::EndRun(const int /*runnumber*/)
 {
+
+  for (auto &region : {0, 1, 2})
+  {
+    for (auto &index_pt : {0, 1, 2, 3})
+    {
+      if (num_track_side0_pt[region][index_pt]>0)
+      {
+        h_cluster_phisize1_fraction_mean_side0[region]->SetBinContent(index_pt+1,frac_side0_pt[region][index_pt] / num_track_side0_pt[region][index_pt]);
+      }
+      if (num_track_side1_pt[region][index_pt]>0)
+      {
+        h_cluster_phisize1_fraction_mean_side1[region]->SetBinContent(index_pt+1,frac_side1_pt[region][index_pt] / num_track_side1_pt[region][index_pt]);
+      }
+    }
+  }
+
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
@@ -817,5 +856,29 @@ void TpcSeedsQA::createHistos()
                                                          (boost::format("Fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 100, 0, 1);
     h_cluster_phisize1_fraction_side1[region]->GetXaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_side1[region]);
+
+    h_cluster_phisize1_fraction_pt_side0[region] = new TH2F((boost::format("%sclusphisize1frac_pt_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                                                         (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
+    h_cluster_phisize1_fraction_pt_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_pt_side0[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_pt_side0[region]);
+
+    h_cluster_phisize1_fraction_pt_side1[region] = new TH2F((boost::format("%sclusphisize1frac_pt_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                                                         (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
+    h_cluster_phisize1_fraction_pt_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_pt_side1[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_pt_side1[region]);
+
+    h_cluster_phisize1_fraction_mean_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                                                         (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_side0[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_side0[region]);
+
+    h_cluster_phisize1_fraction_mean_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                                                         (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_side1[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_side1[region]);
   }
 }
