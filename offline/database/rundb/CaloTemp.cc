@@ -48,6 +48,13 @@ CaloTemp::CaloTemp(const std::string& name, const std::string& filename)
   , outfilename(filename)
   , temphist(true)
 {
+  runnumber = -9999;
+  second = -9999;
+  minute = -9999;
+  hour = -9999;
+  day = -9999;
+  month = -9999;
+  year = -9999;
 }
 
 CaloTemp::~CaloTemp()
