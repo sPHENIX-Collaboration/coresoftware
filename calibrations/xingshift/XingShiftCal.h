@@ -35,6 +35,7 @@ class XingShiftCal : public SubsysReco
   int CalculateCrossingShift(int &xingshift, uint64_t counts[NTRIG][NBUNCHES], bool &success);
   int WriteToCDB(const std::string &fname);
   int CommitToSpinDB();
+  int SpinDBQA();
   std::string SQLArrayConstF(float x, int n);
 
  private:
