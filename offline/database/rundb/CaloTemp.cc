@@ -134,7 +134,19 @@ int CaloTemp::InitRun(PHCompositeNode* topNode)
     std::cout << "runtime " << runtime << std::endl;
   }
 
-  sscanf(runtime.c_str(), "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+  // change to uniform string deliminators
+  string output_runtime = runtime;
+  for (char& c : output_runtime) 
+  {
+    if (c == '-' || c == ':') 
+    {
+      c = ' ';
+    }
+  }
+
+  std::istringstream iss(output_runtime);
+  iss >> year >> month >> day >> hour >> minute >> second;
+  
   tree->Fill();
 
   return 0;

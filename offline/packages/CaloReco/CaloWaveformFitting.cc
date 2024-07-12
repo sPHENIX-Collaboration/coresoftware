@@ -124,18 +124,19 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         if (chi2min > _chi2threshold && (f->GetParameter(2) < _bfr_highpedestalthreshold || pedestal < _bfr_highpedestalthreshold) && (f->GetParameter(2) > _bfr_lowpedestalthreshold || pedestal > _bfr_lowpedestalthreshold) && _dobitfliprecovery) 
         {
           std::vector<float> rv; // temporary recovered waveform
+          rv.reserve(size1);
           for (int i = 0; i < size1; i++)
           {
             rv.push_back(v.at(i));
           }
-          int bits[3] = {8192,4096,2048};
-          for (int b = 0; b < 3; b++) 
+          unsigned int bits[3] = {8192,4096,2048};
+          for (auto bit : bits) 
           {
             for (int i = 0; i < size1; i++) 
             {
-              if ((int(rv.at(i)) & bits[b]) && (int(rv.at(i)) % bits[b] > _bfr_lowpedestalthreshold)) 
+              if (((unsigned int)rv.at(i) & bit) && ((unsigned int)rv.at(i) % bit > _bfr_lowpedestalthreshold)) 
               {
-                rv.at(i) = rv.at(i) - bits[b];
+                rv.at(i) = rv.at(i) - bit;
               }
             }
           }
