@@ -31,10 +31,15 @@
 #include <phool/PHNode.h>                           // for PHNode
 #include <phool/PHNodeIterator.h>                   // for PHNodeIterator
 #include <phool/PHObject.h>                         // for PHObject
+#include <phool/PHRandomSeed.h>
 
 #include <Eigen/Dense>
 
 #include <TVector3.h>
+#include <TVector2.h>
+
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
 #include <cassert>
 #include <cmath>
@@ -84,7 +89,11 @@ namespace
 //_______________________________________________________________________________
 MicromegasClusterizer::MicromegasClusterizer(const std::string &name )
   : SubsysReco(name)
-{}
+{
+  const uint seed = PHRandomSeed();
+  m_rng.reset(gsl_rng_alloc(gsl_rng_mt19937));
+  gsl_rng_set(m_rng.get(), seed);
+}
 
 //_____________________________________________________________________
 int MicromegasClusterizer::Init(PHCompositeNode* /*topNode*/ )
@@ -92,6 +101,8 @@ int MicromegasClusterizer::Init(PHCompositeNode* /*topNode*/ )
   // print configuration
   std::cout << "MicromegasClusterizer::Init - m_use_default_pedestal: " << m_use_default_pedestal << std::endl;
   std::cout << "MicromegasClusterizer::Init - m_default_pedestal: " << m_default_pedestal << std::endl;
+  std::cout << "MicromegasClusterizer::Init - m_added_smear_sigma_z: " << m_added_smear_sigma_z << "cm" << std::endl;
+  std::cout << "MicromegasClusterizer::Init - m_added_smear_sigma_rphi: " << m_added_smear_sigma_rphi << "cm" << std::endl;
   std::cout
     << "MicromegasClusterizer::Init -"
     << " m_calibration_filename: "
@@ -330,6 +341,24 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       local_coordinates *= (1./weight_sum);
 
+      // add additional smearing
+      switch( segmentation_type )
+      {
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+        {
+          if(m_added_smear_sigma_rphi>0)
+          { local_coordinates += TVector2(gsl_ran_gaussian(m_rng.get(), m_added_smear_sigma_rphi), 0); }
+          break;
+        }
+
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+        {
+          if(m_added_smear_sigma_z>0)
+          { local_coordinates += TVector2(0, gsl_ran_gaussian(m_rng.get(), m_added_smear_sigma_z)); }
+          break;
+        }
+      }
+
       // dimension and error in r, rphi and z coordinates
       static const float invsqrt12 = 1./std::sqrt(12);
       static constexpr float error_scale_phi = 1.6;
@@ -347,7 +376,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         {
           if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
           else coord_error_sq *= square(error_scale_phi);
-          error_sq_x = coord_error_sq;
+          error_sq_x = coord_error_sq + square(m_added_smear_sigma_rphi);
           error_sq_y = square(strip_length*invsqrt12);
           break;
         }
@@ -357,7 +386,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
           if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
           else coord_error_sq *= square(error_scale_z);
           error_sq_x = square(strip_length*invsqrt12);
-          error_sq_y = coord_error_sq;
+          error_sq_y = coord_error_sq + square(m_added_smear_sigma_z);
           break;
         }
       }
@@ -390,7 +419,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       // eliminate single strip clusters
       if(segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_PHI)
           {
-	    if(m_drop_single_strips && cluster->getPhiSize() < 2) 
+	    if(m_drop_single_strips && cluster->getPhiSize() < 2)
 	      { continue; }
 
 	    trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );

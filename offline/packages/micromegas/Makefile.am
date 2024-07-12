@@ -124,6 +124,8 @@ libmicromegas_la_LIBADD = \
   -lfun4allraw \
   -lffarawobjects \
   -lphg4hit \
+  -lgsl \
+  -lgslcblas \
   -lSubsysReco
 
 %_Dict.cc: %.h %LinkDef.h
