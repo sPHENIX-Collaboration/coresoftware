@@ -207,7 +207,7 @@ void PHActsTrackProjection::getClusterProperties(double phi,
     if(Verbosity() > 1)
     {
       std::cout << PHWHERE
-                << "Calo cluster container for " << m_caloNames.at(caloLayer)
+                << "Calo cluster container "
                 << "not found. getClusterProperties will not return any information."
                 << std::endl;
     }
