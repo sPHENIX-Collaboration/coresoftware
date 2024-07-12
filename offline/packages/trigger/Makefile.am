@@ -38,6 +38,7 @@ pkginclude_HEADERS = \
   LL1Out.h \
   LL1Outv1.h \
   CaloTriggerEmulator.h \
+  MBDTriggerEmulator.h \
   LL1PacketGetter.h \
   TriggerDefs.h \
   TriggerPrimitive.h \
@@ -86,6 +87,7 @@ libcalotrigger_io_la_SOURCES = \
 libcalotrigger_la_SOURCES = \
   LL1PacketGetter.cc \
   CaloTriggerEmulator.cc \
+  MBDTriggerEmulator.cc \
   CaloTriggerSim.cc \
   MinimumBiasClassifier.cc
 

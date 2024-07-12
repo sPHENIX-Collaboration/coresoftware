@@ -57,7 +57,7 @@ class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
   TriggerDefs::DetectorId m_detectorid = TriggerDefs::DetectorId::noneDId;
   TriggerDefs::PrimitiveId m_primitiveid = TriggerDefs::PrimitiveId::nonePId;
 
-  Map _primitives;
+  Map _primitives{};
 
   ClassDefOverride(TriggerPrimitiveContainerv1, 1);
 };
