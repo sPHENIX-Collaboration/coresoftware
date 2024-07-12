@@ -33,6 +33,8 @@ libg4micromegas_la_LIBADD = \
   -lSubsysReco \
   -lg4detectors \
   -lg4testbench \
+  -lgsl \
+  -lgslcblas \
   -lmicromegas_io
 
 BUILT_SOURCES = testexternals.cc
