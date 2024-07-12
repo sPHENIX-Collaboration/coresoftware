@@ -191,10 +191,6 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
-      if (TriggerInputManager())
-      {
-        TriggerInputManager()->AddCemcPacket(CorrectedEventSequence, newhit);
-      }
       m_PacketMap[CorrectedEventSequence].push_back(newhit);
       m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
@@ -203,6 +199,26 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       }
       delete plist[i];
     }
+      if (TriggerInputManager())
+      {
+	for (auto evtiter : m_PacketMap)
+	{
+	  for (auto pktiter : evtiter.second)
+	    {
+	      CaloPacket *calpacket = dynamic_cast<CaloPacket *> (pktiter);
+	      if (calpacket)
+	      {
+	      TriggerInputManager()->AddCemcPacket(evtiter.first, calpacket);
+	      }
+	      else
+	      {
+		std::cout << PHWHERE << " dynamic cast from offline to calo packet failed??? here is its identify():" << std::endl;
+		pktiter->identify();
+	      }
+	    }
+	}
+      }
+
   }
 }
 

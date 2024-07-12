@@ -919,12 +919,28 @@ int Fun4AllPrdfInputTriggerManager::MoveCemcToNodeTree()
 
 void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
 {
+  if (pkt == nullptr)
+  {
+    std::cout << PHWHERE << " got null ptr to add packet, not doing this" << std::endl;
+    return;
+  }
   if (Verbosity() > 1)
   {
     std::cout << "Adding cemc packet " << pkt->getIdentifier() << " from event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
-  m_CemcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  auto ret = m_CemcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  if (ret.second)
+  {
+    std::cout << "inserting packet " << pkt->getIdentifier() << " for event " <<  pkt->getEvtSequence()
+	      << " was successful" << std::endl;
+  }
+  else
+  {
+    std::cout << "inserting packet " << pkt->getIdentifier() << " for event " <<  pkt->getEvtSequence()
+	      << " failed - duplicate?" << std::endl;
+  }
+
   //  std::cout << "Cemc packet map size: " << m_CemcPacketMap.size() << std::endl;
   return;
 }

@@ -24,6 +24,7 @@ class SingleCemcTriggerInput : public SingleTriggerInput
   void ClearCurrentEvent() override;
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
+  int CheckFEMClocks();
 
  private:
   Packet **plist{nullptr};
