@@ -38,6 +38,8 @@
 #include <TSystem.h>
 #include <TTree.h>
 
+#include <boost/format.hpp>
+
 #include <algorithm>
 
 // To change:
@@ -171,8 +173,8 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
     std::cout << " ****************************************** " << std::endl;
     for (auto& E : recoData)
     {
-      std::cout << Form(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f)", std::get<RECOid>(E),
-                        std::get<RECOphi>(E), std::get<RECOeta>(E), std::get<RECOpt>(E))
+      std::cout << (boost::format(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f)") %(std::get<RECOid>(E))
+		    %(std::get<RECOphi>(E)) %(std::get<RECOeta>(E)) %(std::get<RECOpt>(E))).str()
                 << std::endl;
     }
     std::cout << " ****end*listing*********************** " << std::endl;
@@ -204,9 +206,9 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
     for (auto& _pair : m_TrkrTruthTrackContainer->getMap())
     {
       auto& track = _pair.second;
-      std::cout << Form(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f nclus: %i)", track->getTrackid(),
-                        track->getPhi(), track->getPseudoRapidity(), track->getPt(),
-                        (int) track->getClusters().size())
+      std::cout << (boost::format(" id:%2i  (phi:eta:pt) (%5.2f:%5.2f:%5.2f nclus: %i)") %track->getTrackid()
+                        %track->getPhi() %track->getPseudoRapidity() %track->getPt()
+		    %((int) track->getClusters().size())).str()
                 << std::endl;
     }
     std::cout << " ----end-listing-truth-tracks---------- " << std::endl;
@@ -232,9 +234,9 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
 
     if (Verbosity() > 80)
     {
-      std::cout << Form(" T(%i)  find box(%5.2f:%5.2f:%5.2f)",
-                        (int) track->getTrackid(), track->getPhi(),
-                        track->getPseudoRapidity(), track->getPt());
+      std::cout << (boost::format(" T(%i)  find box(%5.2f:%5.2f:%5.2f)")
+		    %((int) track->getTrackid()) %track->getPhi()
+		    %track->getPseudoRapidity() %track->getPt()).str();
       for (auto& id_reco : match_indices.first)
       {
         std::cout << "->IB(" << id_reco << ")";
@@ -272,9 +274,9 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
     // re-print all the tracks with the matches with the fit values
     for (auto match : m_EmbRecoMatchContainer->getMatches())
     {
-      std::cout << Form(" Match id(%2i->%2i) nClusMatch-nClusTrue-nClusReco (%2i:%2i:%2i)",
-                        match->idTruthTrack(), match->idRecoTrack(),
-                        match->nClustersMatched(), match->nClustersTruth(), match->nClustersReco())
+      std::cout << (boost::format(" Match id(%2i->%2i) nClusMatch-nClusTrue-nClusReco (%2i:%2i:%2i)")
+                        %match->idTruthTrack() %match->idRecoTrack()
+		    %match->nClustersMatched() %match->nClustersTruth() %match->nClustersReco()).str()
                 << std::endl;
     }
     std::cout << " --END--print-all-stored-matches----" << std::endl;
@@ -626,14 +628,14 @@ void TruthRecoTrackMatching::match_tracks_in_box(
       if (Verbosity() > 100)
       {
         auto truth_track = m_TrkrTruthTrackContainer->getTruthTrack(id_true);
-        std::cout << Form(
+        std::cout << (boost::format(
                          "possmatch:(phi,eta,pT:id) true(%5.2f,%5.2f,%4.2f:%2i) reco(%5.2f,%5.2f,%4.2f:%2i) "
-                         "nCl(match:true:reco:nomatch)(%2i-%2i-%2i-%2i)",
-                         truth_track->getPhi(), truth_track->getPseudoRapidity(), truth_track->getPt(),
-                         (int) truth_track->getTrackid(),
-                         reco_track->get_phi(), reco_track->get_eta(), reco_track->get_pt(),
-                         ipair->second,
-                         (int) nclus_match, (int) nclus_true, (int) nclus_reco, (int) nclus_nomatch)
+                         "nCl(match:true:reco:nomatch)(%2i-%2i-%2i-%2i)")
+                         %truth_track->getPhi() %truth_track->getPseudoRapidity() %truth_track->getPt()
+		      %((int) truth_track->getTrackid())
+                         %reco_track->get_phi() %reco_track->get_eta() %reco_track->get_pt()
+                         %ipair->second
+		      %((int) nclus_match) %((int) nclus_true) %((int) nclus_reco) %((int) nclus_nomatch)).str()
                   << std::endl;
       }
       if (nclus_match >= m_nmincluster_match && (static_cast<float>(nclus_match) / nclus_true >= m_nmincluster_ratio))
@@ -660,7 +662,7 @@ void TruthRecoTrackMatching::match_tracks_in_box(
     {
       /* auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[std::get<PM_idtrue>(match)]; */
       /* auto index_trut = truth_track->getTrackid(); */
-      std::cout << Form(" pair(%2i):  %2i-%2i-%2i-<%2i>-%2i ", i++, (int) std::get<PM_nmatch>(match), (int) std::get<PM_ntrue>(match), (int) std::get<PM_nreco>(match), (int) std::get<PM_idtrue>(match), (int) std::get<PM_idreco>(match)) << std::endl;
+      std::cout << (boost::format(" pair(%2i):  %2i-%2i-%2i-<%2i>-%2i ") %(i++) %((int) std::get<PM_nmatch>(match)) %((int) std::get<PM_ntrue>(match)) %((int) std::get<PM_nreco>(match)) %((int) std::get<PM_idtrue>(match)) %((int) std::get<PM_idreco>(match))).str() << std::endl;
     }
   }
 
