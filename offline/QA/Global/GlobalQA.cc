@@ -124,7 +124,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   }
   else
   {
-    h_GlobalQA_mbd_zvtxq->Fill(2,h_GlobalQA_mbd_zvtxq->GetBinContent(2)+1);
+    h_GlobalQA_mbd_zvtxq->SetBinContent(2,h_GlobalQA_mbd_zvtxq->GetBinContent(2)+1);
   }
 
   //--------------------------- trigger and GL1-------------------------------//
