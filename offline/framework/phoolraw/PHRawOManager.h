@@ -42,7 +42,7 @@ class oBuffer;
 class PHRawOManager : public PHIOManager
 {
  public:
-  PHRawOManager();
+  PHRawOManager() = default;
   PHRawOManager(const std::string &, const int run = 0, const int bufl = 100000, const int evtl = -1, const int complvl = 3);
   virtual ~PHRawOManager();
 
@@ -55,13 +55,13 @@ class PHRawOManager : public PHIOManager
   virtual void print() const;
 
  private:
-  int filedesc;
-  PHDWORD *memBuffer;
-  oBuffer *fileBuffer;
-  int runNumber;
-  int bufferSize;
-  int eventLength;
-  int compressionLevel;
+  int filedesc {-1};
+  PHDWORD *memBuffer {nullptr};
+  oBuffer *fileBuffer {nullptr};
+  int runNumber {0};
+  int bufferSize {0};
+  int eventLength {0};
+  int compressionLevel {0};
 };
 
 #endif

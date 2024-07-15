@@ -978,35 +978,14 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             fx_hit[n_hit::nhitphibin] = (float) TpcDefs::getPad(hit_key);
             fx_hit[n_hit::nhittbin] = (float) TpcDefs::getTBin(hit_key);
             fx_hit[n_hit::nhitphi] = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
-	    double m_sampa_tbias = 39.6;  // ns
-	    /*	    double surfaceZCenter = 52.89;                                 // this is where G4 thinks the surface center is in cm
-	    double zdriftlength = (fx_hit[n_hit::nhittbin]+ m_sampa_tbias)*AdcClockPeriod * m_tGeometry->get_drift_velocity();  // cm
-	    double zloc = surfaceZCenter - zdriftlength;                   // local z relative to surface center (for north side):
-	    unsigned int side = TpcDefs::getSide(hitset_key);
-	    if (side == 0)
-	      {
-		zloc = -zloc;
-	      }
-	    //            double NZBinsSide = 249;  // physical z bins per TPC side
-	    // double m_tdriftmax = AdcClockPeriod * NZBinsSide;
-            double clusz = zloc;//((m_tdriftmax * m_tGeometry->get_drift_velocity())* 107.0 / 105.0) - zdriftlength;
-	    */
-	    double zdriftlength = (fx_hit[n_hit::nhittbin]+ m_sampa_tbias)* m_tGeometry->get_drift_velocity() * AdcClockPeriod;
-            // convert z drift length to z position in the TPC
-            //		cout << " tbin: " << tbin << " vdrift " <<m_tGeometry->get_drift_velocity() << " l drift: " << zdriftlength  <<endl;
-            double NZBinsSide = 360-76;  // physical z bins per TPC side
-            double m_tdriftmax = AdcClockPeriod * NZBinsSide;
-            double clusz = (m_tdriftmax * m_tGeometry->get_drift_velocity()) - zdriftlength;
+            float phi = GeoLayer_local->get_phicenter(TpcDefs::getPad(hit_key));
+            float clockperiod = GeoLayer_local->get_zstep();
+            auto glob = m_tGeometry->getGlobalPositionTpc(hitset_key, hit_key, phi, radius, clockperiod);
             
-            if (fx_hit[n_hit::nhitzelem] == 0)
-            {
-              clusz = -clusz;
-            }
-            fx_hit[n_hit::nhitz] = clusz;
+            fx_hit[n_hit::nhitz] = glob.z();
             fx_hit[n_hit::nhitr] = radius;
-            float phi_center = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
-            fx_hit[n_hit::nhitx] = radius * cos(phi_center);
-            fx_hit[n_hit::nhity] = radius * sin(phi_center);
+            fx_hit[n_hit::nhitx] = glob.x();
+            fx_hit[n_hit::nhity] = glob.y();
           }
 
           float* hit_data = new float[n_info::infosize + n_event::evsize + n_hit::hitsize];
@@ -1578,10 +1557,13 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
 
   int vertexID = track->get_vertex_id();
   fX[n_track::ntrkvertexID] = vertexID;
-
+  
   if (vertexID >= 0&& vertexmap !=0)
   {
-
+    if(vertexmap->size()>100000){
+      cout << "too many vtx's" << endl;
+    }
+    /*
     auto vertexit = vertexmap->find(vertexID);
     if (vertexit != vertexmap->end())
       {
@@ -1602,7 +1584,10 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
 	fX[n_track::ntrkdca3dzsigma] = dcapair.second.second;
 	
       }
+    */
+
   }
+  
   fX[n_track::ntrkcharge] = track->get_charge();
   float px = track->get_px();
   float py = track->get_py();
@@ -1647,8 +1632,22 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
       float adc = cluster->getAdc();
       PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
       float thick = GeoLayer_local->get_thickness();
-
-      dedxlist.push_back(adc/thick);
+      
+      float r = GeoLayer_local->get_radius();
+      float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+      float beta = atan(tpcseed->get_slope());
+      float alphacorr = cos(alpha);
+      if(alphacorr<0||alphacorr>4){
+	alphacorr=4;
+      }
+      float betacorr = cos(beta);
+      if(betacorr<0||betacorr>4){
+	betacorr=4;
+      }
+      adc/=thick;
+      adc*=alphacorr;
+      adc*=betacorr;
+      dedxlist.push_back(adc);
       sort(dedxlist.begin(), dedxlist.end());
     }
     int trunc_min = 0;
@@ -1698,6 +1697,7 @@ void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_k
   float tbin = std::numeric_limits<float>::quiet_NaN();
   float locx = cluster->getLocalX();
   float locy = cluster->getLocalY();
+
   if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
   {
     int side_tpc = TpcDefs::getSide(cluster_key);

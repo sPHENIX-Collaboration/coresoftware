@@ -27,25 +27,23 @@ class TH2;
 class TVector3;
 class TNtuple;
 
-class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterface
+class TpcDirectLaserReconstruction : public SubsysReco, public PHParameterInterface
 {
-
-  public:
-
+ public:
   /// constructor
-  TpcDirectLaserReconstruction( const std::string& = "TpcDirectLaserReconstruction" );
+  TpcDirectLaserReconstruction(const std::string & = "TpcDirectLaserReconstruction");
 
   /// global initialization
-  int Init(PHCompositeNode*) override;
+  int Init(PHCompositeNode *) override;
 
   /// run initialization
-  int InitRun(PHCompositeNode*) override;
+  int InitRun(PHCompositeNode *) override;
 
   /// event processing
-  int process_event(PHCompositeNode*) override;
+  int process_event(PHCompositeNode *) override;
 
   /// end of processing
-  int End(PHCompositeNode*) override;
+  int End(PHCompositeNode *) override;
 
   /// parameters
   void SetDefaultParameters() override;
@@ -54,29 +52,36 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /**
    * this is the file where space charge matrix container is stored
    */
-  void set_outputfile( const std::string& filename )
-  { m_outputfile = filename; }
+  void set_outputfile(const std::string &filename)
+  {
+    m_outputfile = filename;
+  }
 
   /// set to true to store evaluation histograms and ntuples
-  void set_savehistograms( bool value ) { m_savehistograms = value; }
+  void set_savehistograms(bool value) { m_savehistograms = value; }
 
   /// output file name for evaluation histograms
   void set_histogram_outputfile(const std::string &outputfile)
-  {m_histogramfilename = outputfile;}
+  {
+    m_histogramfilename = outputfile;
+  }
 
   /// set grid dimensions
-  void set_grid_dimensions( int phibins, int rbins, int zbins );
+  void set_grid_dimensions(int phibins, int rbins, int zbins);
 
   void set_max_zrange(float length)
-  {m_max_zrange = length;}
+  {
+    m_max_zrange = length;
+  }
 
   void set_max_dca(float length)
-  {m_max_dca = length;}
+  {
+    m_max_dca = length;
+  }
 
-  private:
-
+ private:
   /// load nodes
-  int load_nodes( PHCompositeNode* );
+  int load_nodes(PHCompositeNode *);
 
   /// create evaluation histograms
   void create_histograms();
@@ -85,24 +90,24 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   void process_tracks();
 
   /// process track
-  void process_track( SvtxTrack* );
+  void process_track(SvtxTrack *);
 
   /// get relevant cell for a given hit
-  int get_cell_index( const TVector3& ) const;
+  int get_cell_index(const TVector3 &) const;
 
   /// get the GEM module where cluster hit
-  int Locate(float r , float phi , float z);
+  int Locate(float r, float phi, float z);
 
-  float GetRelPhi( float xorig, float yorig, float x, float y, float phiorig );
+  float GetRelPhi(float xorig, float yorig, float x, float y, float phiorig);
 
-  float GetRelTheta( float xorig, float yorig, float zorig, float x, float y, float z, float thetaorig, float phiorig );
+  float GetRelTheta(float xorig, float yorig, float zorig, float x, float y, float z, float thetaorig, float phiorig);
 
   bool sameSign(float num1, float num2);
 
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
-  float m_max_zrange = 10.0; // cm
+  float m_max_zrange = 10.0;  // cm
 
   ///@name selection parameters
   //@{
@@ -141,9 +146,9 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   ActsTransformations m_transformer;
 
   /// tracks
-  SvtxTrackMap* m_track_map = nullptr;
-  
-  TrkrHitSetContainer* m_hit_map = nullptr;
+  SvtxTrackMap *m_track_map = nullptr;
+
+  TrkrHitSetContainer *m_hit_map = nullptr;
 
   //@}
 
@@ -154,7 +159,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   std::unique_ptr<TFile> m_histogramfile = nullptr;
 
   /// dca vs layer number
-  TH2* h_dca_layer = nullptr;
+  TH2 *h_dca_layer = nullptr;
 
   /// delta rphi vs layer number
   TH2 *h_deltarphi_layer_south = nullptr;
@@ -179,7 +184,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   TH1 *h_adc_sum_ratio_true = nullptr;
   TH1 *h_adc_sum_ratio = nullptr;
 
-//_______________________________________
+  //_______________________________________
 
   TH1 *h_num_sum = nullptr;
   TH1 *h_num_sum_reco = nullptr;
@@ -187,14 +192,14 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   TH1 *h_num_sum_ratio_true = nullptr;
   TH1 *h_num_sum_ratio = nullptr;
 
-//_______________________________________
+  //_______________________________________
 
   TH2 *h_adc_vs_DCA_true = nullptr;
   TH2 *h_adc_sum_ratio_lasrangle = nullptr;
   TH2 *h_num_sum_ratio_lasrangle = nullptr;
-   
-  //TNtuple *h_origins = nullptr;
-  //TNtuple *h_assoc_hits = nullptr;
+
+  // TNtuple *h_origins = nullptr;
+  // TNtuple *h_assoc_hits = nullptr;
   TNtuple *h_bright_hits_laser1 = nullptr;
   TNtuple *h_bright_hits_laser2 = nullptr;
   TNtuple *h_bright_hits_laser3 = nullptr;
@@ -219,18 +224,17 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   TH2 *h_relangle_theta_lasrangle = nullptr;
   TH2 *h_relangle_phi_lasrangle = nullptr;
 
-  TH2* h_xy = nullptr;
-  TH2* h_xz = nullptr;
-  TH2* h_xy_pca = nullptr;
-  TH2* h_xz_pca = nullptr;
-  TH2* h_dca_path = nullptr;
-  TH2* h_zr = nullptr;
-  TH2* h_zr_pca = nullptr;
-  TH2* h_dz_z = nullptr;
-  //TNtuple *h_clusters = nullptr;
+  TH2 *h_xy = nullptr;
+  TH2 *h_xz = nullptr;
+  TH2 *h_xy_pca = nullptr;
+  TH2 *h_xz_pca = nullptr;
+  TH2 *h_dca_path = nullptr;
+  TH2 *h_zr = nullptr;
+  TH2 *h_zr_pca = nullptr;
+  TH2 *h_dz_z = nullptr;
+  // TNtuple *h_clusters = nullptr;
 
   //@}
-
 };
 
 #endif

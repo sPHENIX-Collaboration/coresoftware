@@ -62,7 +62,36 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster
 
   return global;
 }
+Acts::Vector3 ActsGeometry::getGlobalPositionTpc(const TrkrDefs::hitsetkey& hitsetkey,
+const TrkrDefs::hitkey& hitkey, const float& phi, const float& rad,
+const float& clockPeriod)
+{
+  Acts::Vector3 glob;
+  const auto trkrid = TrkrDefs::getTrkrId(hitsetkey);
+  if (trkrid != TrkrDefs::tpcId)
+  {
+    std::cout << "ActsGeometry::getGlobalPositionTpc -  this is the wrong global transform for silicon or MM's clusters! Returning zero" << std::endl;
+    return glob;
+  }
 
+  auto tbin = TpcDefs::getTBin(hitkey);
+  double surfaceZCenter = 52.89;                 // this is where G4 thinks the surface center is in cm
+  double zdriftlength = tbin * clockPeriod * _drift_velocity;  // cm
+  double zloc = surfaceZCenter - zdriftlength;                   // local z relative to surface center (for north side):
+  unsigned int side = TpcDefs::getSide(hitsetkey);
+  if (side == 0)
+  {
+    zloc = -zloc;
+  }
+  
+  auto x = rad * std::cos(phi);
+  auto y = rad * std::sin(phi);
+  auto z = surfaceZCenter + zloc;
+  glob.x() = x;
+  glob.y() = y;
+  glob.z() = z;
+  return glob;
+}
 Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrCluster* cluster)
 {
   Acts::Vector3 glob;

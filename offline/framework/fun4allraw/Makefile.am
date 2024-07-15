@@ -22,6 +22,7 @@ pkginclude_HEADERS = \
   Fun4AllStreamingInputManager.h \
   InputManagerType.h \
   MicromegasBcoMatchingInformation.h\
+	MvtxRawDefs.h \
   SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
@@ -47,7 +48,8 @@ decoderinclude_HEADERS = \
   mvtx_decoder/mvtx_utils.h \
   mvtx_decoder/PayLoadCont.h \
   mvtx_decoder/PayLoadSG.h \
-  mvtx_decoder/PixelData.h
+  mvtx_decoder/PixelData.h \
+	mvtx_decoder/StrobeData.h
 
 lib_LTLIBRARIES = \
   libmvtx_decoder.la \
@@ -55,12 +57,13 @@ lib_LTLIBRARIES = \
 
 # source for mvtx decoder library
 libmvtx_decoder_la_SOURCES =\
+  mvtx_decoder/DecodingStat.cc \
+  mvtx_decoder/GBTLink.cc \
+  mvtx_decoder/GBTWord.cc \
   mvtx_decoder/InteractionRecord.cc \
   mvtx_decoder/PayLoadCont.cc \
   mvtx_decoder/PixelData.cc \
-  mvtx_decoder/GBTWord.cc \
-  mvtx_decoder/DecodingStat.cc \
-  mvtx_decoder/GBTLink.cc
+	mvtx_decoder/StrobeData.cc
 
 libfun4allraw_la_SOURCES = \
   Fun4AllEventOutStream.cc \
@@ -76,6 +79,7 @@ libfun4allraw_la_SOURCES = \
   mvtx_pool.cc \
   tpc_pool.cc \
   MicromegasBcoMatchingInformation.cc\
+	MvtxRawDefs.cc \
   SingleCemcTriggerInput.cc \
   SingleGl1PoolInput.cc \
   SingleGl1TriggerInput.cc \

@@ -161,6 +161,9 @@ class MbdEvent
   // pedestals (hists are in MbdSig)
   int CalcPedCalib();
 
+  //
+  void ClusterEarliest(std::vector<float> &times, double& mean, double& rms, double& rmin, double& rmax);
+ 
   TCanvas *ac{nullptr};  // for plots used during debugging
 
   // debug stuff

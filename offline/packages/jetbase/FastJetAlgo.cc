@@ -173,7 +173,10 @@ FastJetAlgo::jets_to_pseudojets(std::vector<Jet*>& particles)
     // fastjet performs strangely with exactly (px,py,pz,E) =
     // (0,0,0,0) inputs, such as placeholder towers or those with
     // zero'd out energy after CS. this catch also in FastJetAlgoSub
-    if (particles[ipart]->get_e() == 0.)
+
+    // Ignore particles with negative/small energies
+    
+    if (particles[ipart]->get_e() < m_opt.constituent_min_E)
     {
       continue;
     }
@@ -347,6 +350,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
 
     // if SoftDrop enabled, and jets have > 5 GeV (do not waste time
     // on very low-pT jets), run SD and pack output into jet properties
+    // remove jets that have negative energies 
     if (m_opt.doSoftDrop && fastjets[ijet].perp() > 5)
     {
       fastjet::contrib::SoftDrop sd(m_opt.SD_beta, m_opt.SD_zcut);

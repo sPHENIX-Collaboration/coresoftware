@@ -11,6 +11,8 @@
 #include <TLine.h>
 #include <TTree.h>
 
+#include <boost/format.hpp>
+
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
@@ -98,7 +100,7 @@ INTTZvtx::INTTZvtx(const std::string& runType,
   out_LB_cut_peak_ratio = -1;
 
   out_LB_geo_mean = -1;
-  out_good_zvtx_tag = 0;
+  out_good_zvtx_tag = false;
 
   MC_true_zvtx = -9999.;
 
@@ -114,12 +116,27 @@ INTTZvtx::INTTZvtx(const std::string& runType,
 INTTZvtx::~INTTZvtx()
 {
   // histos for z-vertex calculation
-  if (evt_possible_z != nullptr) delete evt_possible_z;
-  if (line_breakdown_hist != nullptr) delete line_breakdown_hist;
-  if (gaus_fit != nullptr) delete gaus_fit;
-  if (zvtx_finder != nullptr) delete zvtx_finder;
+  if (evt_possible_z != nullptr)
+  {
+    delete evt_possible_z;
+  }
+  if (line_breakdown_hist != nullptr)
+  {
+    delete line_breakdown_hist;
+  }
+  if (gaus_fit != nullptr)
+  {
+    delete gaus_fit;
+  }
+  if (zvtx_finder != nullptr)
+  {
+    delete zvtx_finder;
+  }
 
-  if (z_range_gr != nullptr) delete z_range_gr;
+  if (z_range_gr != nullptr)
+  {
+    delete z_range_gr;
+  }
 
   if (draw_event_display)
   {
@@ -129,12 +146,22 @@ INTTZvtx::~INTTZvtx()
     delete evt_phi_diff_1D;
     delete evt_phi_diff_inner_phi;
     delete evt_inner_outer_phi;
+    delete phi_diff_inner_phi;
 
     delete c2;
     // all the pads related to c2 are automatically deleted
-    if (temp_event_xy != nullptr) delete temp_event_xy;
-    if (temp_event_rz != nullptr) delete temp_event_rz;
-    if (z_range_gr_draw != nullptr) delete z_range_gr_draw;
+    if (temp_event_xy != nullptr)
+    {
+      delete temp_event_xy;
+    }
+    if (temp_event_rz != nullptr)
+    {
+      delete temp_event_rz;
+    }
+    if (z_range_gr_draw != nullptr)
+    {
+      delete z_range_gr_draw;
+    }
   }
 
   if (m_enable_qa)
@@ -183,9 +210,9 @@ void INTTZvtx::Characterize_Pad(TPad* pad, float left, float right, float top, f
 
 void INTTZvtx::Init()
 {
-  if (!std::filesystem::exists(out_folder_directory.c_str()))
+  if (!std::filesystem::exists(out_folder_directory))
   {
-    system(Form("mkdir %s", out_folder_directory.c_str()));
+    std::filesystem::create_directory(out_folder_directory);
   }
 
   InitCanvas();
@@ -195,7 +222,7 @@ void INTTZvtx::Init()
 
   if (draw_event_display)
   {
-    c2->Print(Form("%s/temp_event_display.pdf(", out_folder_directory.c_str()));
+    c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
   }
 
   m_initialized = true;
@@ -246,6 +273,11 @@ void INTTZvtx::InitHist()
     evt_phi_diff_1D->GetXaxis()->SetTitle("Inner - Outer [degree]");
     evt_phi_diff_1D->GetYaxis()->SetTitle("Entry");
     evt_phi_diff_1D->GetXaxis()->SetNdivisions(505);
+
+    phi_diff_inner_phi = new TH2F("phi_diff_inner_phi", "All evt phi_diff_inner_phi", 361, 0, 361, 100, -1.5, 1.5);
+    phi_diff_inner_phi->GetXaxis()->SetTitle("Inner phi [degree]");
+    phi_diff_inner_phi->GetYaxis()->SetTitle("Inner - Outer [degree]");
+    phi_diff_inner_phi->GetXaxis()->SetNdivisions(505);
   }
 
   if (m_enable_qa)
@@ -404,12 +436,6 @@ void INTTZvtx::InitHist()
     N_group_detail_hist->GetXaxis()->SetNdivisions(505);
     m_v_qahist.push_back(N_group_detail_hist);
 
-    phi_diff_inner_phi = new TH2F("phi_diff_inner_phi", "All evt phi_diff_inner_phi", 361, 0, 361, 100, -1.5, 1.5);
-    phi_diff_inner_phi->GetXaxis()->SetTitle("Inner phi [degree]");
-    phi_diff_inner_phi->GetYaxis()->SetTitle("Inner - Outer [degree]");
-    phi_diff_inner_phi->GetXaxis()->SetNdivisions(505);
-    m_v_qahist.push_back(phi_diff_inner_phi);
-
     dca_inner_phi = new TH2F("dca_inner_phi", "All dca_inner_phi", 90, 0, 360, 100, -10., 10);
     dca_inner_phi->GetXaxis()->SetTitle("Inner phi [degree]");
     dca_inner_phi->GetYaxis()->SetTitle("dca [mm]");
@@ -424,41 +450,41 @@ void INTTZvtx::InitCanvas()
   {
     c2 = new TCanvas("", "", 4000, 1600);
     c2->cd();
-    pad_xy = new TPad(Form("pad_xy"), "", 0.0, 0.5, 0.2, 1.0);
-    Characterize_Pad(pad_xy, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    pad_xy = new TPad("pad_xy", "", 0.0, 0.5, 0.2, 1.0);
+    Characterize_Pad(pad_xy, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_xy->Draw();
 
-    pad_rz = new TPad(Form("pad_rz"), "", 0.2, 0.5, 0.40, 1.0);
-    Characterize_Pad(pad_rz, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    pad_rz = new TPad("pad_rz", "", 0.2, 0.5, 0.40, 1.0);
+    Characterize_Pad(pad_rz, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_rz->Draw();
 
-    pad_z = new TPad(Form("pad_z"), "", 0.40, 0.5, 0.6, 1.0);
-    Characterize_Pad(pad_z, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    pad_z = new TPad("pad_z", "", 0.40, 0.5, 0.6, 1.0);
+    Characterize_Pad(pad_z, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_z->Draw();
 
-    pad_z_hist = new TPad(Form("pad_z_hist"), "", 0.6, 0.5, 0.8, 1.0);
-    Characterize_Pad(pad_z_hist, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    pad_z_hist = new TPad("pad_z_hist", "", 0.6, 0.5, 0.8, 1.0);
+    Characterize_Pad(pad_z_hist, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_z_hist->Draw();
 
-    pad_z_line = new TPad(Form("pad_z_line"), "", 0.8, 0.5, 1, 1.0);
-    Characterize_Pad(pad_z_line, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    pad_z_line = new TPad("pad_z_line", "", 0.8, 0.5, 1, 1.0);
+    Characterize_Pad(pad_z_line, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_z_line->Draw();
 
-    pad_phi_diff = new TPad(Form("pad_phi_diff"), "", 0.0, 0.0, 0.2, 0.5);
-    Characterize_Pad(pad_phi_diff, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    pad_phi_diff = new TPad("pad_phi_diff", "", 0.0, 0.0, 0.2, 0.5);
+    Characterize_Pad(pad_phi_diff, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_phi_diff->Draw();
 
-    pad_track_phi = new TPad(Form("pad_track_phi"), "", 0.2, 0.0, 0.40, 0.5);
-    Characterize_Pad(pad_track_phi, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    pad_track_phi = new TPad("pad_track_phi", "", 0.2, 0.0, 0.40, 0.5);
+    Characterize_Pad(pad_track_phi, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_track_phi->Draw();
 
-    pad_inner_outer_phi = new TPad(Form("pad_inner_outer_phi"), "", 0.4, 0.0, 0.60, 0.5);
-    Characterize_Pad(pad_inner_outer_phi, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    pad_inner_outer_phi = new TPad("pad_inner_outer_phi", "", 0.4, 0.0, 0.60, 0.5);
+    Characterize_Pad(pad_inner_outer_phi, 0.15, 0.1, 0.1, 0.2, false, 0);
     pad_inner_outer_phi->SetLogz(1);
     pad_inner_outer_phi->Draw();
 
-    pad_phi_diff_1D = new TPad(Form("pad_phi_diff_1D"), "", 0.6, 0.0, 0.80, 0.5);
-    Characterize_Pad(pad_phi_diff_1D, 0.15, 0.1, 0.1, 0.2, 0, 0);
+    pad_phi_diff_1D = new TPad("pad_phi_diff_1D", "", 0.6, 0.0, 0.80, 0.5);
+    Characterize_Pad(pad_phi_diff_1D, 0.15, 0.1, 0.1, 0.2, false, 0);
     // pad_phi_diff_1D -> SetLogz(1);
     pad_phi_diff_1D->Draw();
   }
@@ -474,7 +500,7 @@ void INTTZvtx::InitTreeOut()
 {
   if (m_enable_qa)
   {
-    out_file = new TFile(Form("%s/INTT_zvtx.root", out_folder_directory.c_str()), "RECREATE");
+    out_file = new TFile((boost::format("%s/INTT_zvtx.root") % out_folder_directory).str().c_str(), "RECREATE");
     tree_out = new TTree("tree_Z", "INTT Z info.");
 
     tree_out->Branch("eID", &out_eID);
@@ -594,7 +620,7 @@ bool INTTZvtx::ProcessEvt(
   out_LB_cut_peak_ratio = -1;
 
   out_LB_geo_mean = -1;
-  out_good_zvtx_tag = 0;
+  out_good_zvtx_tag = false;
 
   MC_true_zvtx = TrigZvtxMC * 10.;
 
@@ -659,8 +685,7 @@ bool INTTZvtx::ProcessEvt(
     {
       tree_out->Fill();
     }
-    printf("In INTTZvtx class, event : %i, return low clu continue, NClus : %ld %lu %lu\n", event_i, total_NClus,
-           temp_sPH_inner_nocolumn_vec.size(), temp_sPH_outer_nocolumn_vec.size());
+    std::cout << (boost::format("In INTTZvtx class, event : %i, return low clu continue, NClus : %ld %lu %lu\n") % event_i % total_NClus % temp_sPH_inner_nocolumn_vec.size() % temp_sPH_outer_nocolumn_vec.size()).str();
     return false;
   }
 
@@ -671,23 +696,23 @@ bool INTTZvtx::ProcessEvt(
   // note : false means the cluster is not used
   double Clus_InnerPhi_Offset = 0;  // note : the vertex in XY is not at zero, so the "offset" moves the offset back to the orign which is (0,0)
   double Clus_OuterPhi_Offset = 0;  // note : the vertex in XY is not at zero, so the "offset" moves the offset back to the orign which is (0,0)
-  for (unsigned int inner_i = 0; inner_i < temp_sPH_inner_nocolumn_vec.size(); inner_i++)
+  for (auto& inner_i : temp_sPH_inner_nocolumn_vec)
   {
-    Clus_InnerPhi_Offset = (temp_sPH_inner_nocolumn_vec[inner_i].y - beam_origin.second < 0)
-                               ? atan2(temp_sPH_inner_nocolumn_vec[inner_i].y - beam_origin.second,
-                                       temp_sPH_inner_nocolumn_vec[inner_i].x - beam_origin.first) *
+    Clus_InnerPhi_Offset = (inner_i.y - beam_origin.second < 0)
+                               ? atan2(inner_i.y - beam_origin.second,
+                                       inner_i.x - beam_origin.first) *
                                          (180. / TMath::Pi()) +
                                      360
-                               : atan2(temp_sPH_inner_nocolumn_vec[inner_i].y - beam_origin.second,
-                                       temp_sPH_inner_nocolumn_vec[inner_i].x - beam_origin.first) *
+                               : atan2(inner_i.y - beam_origin.second,
+                                       inner_i.x - beam_origin.first) *
                                      (180. / TMath::Pi());
 
     // std::cout<<"inner clu phi : "<<Clus_InnerPhi_Offset<<" origin: "<< temp_sPH_inner_nocolumn_vec[inner_i].phi <<std::endl;
     // std::cout<<" ("<<Clus_InnerPhi_Offset<<", "<< temp_sPH_inner_nocolumn_vec[inner_i].phi<<")" <<std::endl;
     //
-    inner_clu_phi_map[int(Clus_InnerPhi_Offset)].push_back({false, temp_sPH_inner_nocolumn_vec[inner_i]});
+    inner_clu_phi_map[int(Clus_InnerPhi_Offset)].push_back({false, inner_i});
 
-    if (temp_sPH_inner_nocolumn_vec[inner_i].z > 0)
+    if (inner_i.z > 0)
     {
       out_N_cluster_north += 1;
     }
@@ -697,20 +722,20 @@ bool INTTZvtx::ProcessEvt(
     }
   }
   //--std::cout<<"--2--"<<std::endl;
-  for (unsigned int outer_i = 0; outer_i < temp_sPH_outer_nocolumn_vec.size(); outer_i++)
+  for (auto& outer_i : temp_sPH_outer_nocolumn_vec)
   {
-    Clus_OuterPhi_Offset = (temp_sPH_outer_nocolumn_vec[outer_i].y - beam_origin.second < 0)
-                               ? atan2(temp_sPH_outer_nocolumn_vec[outer_i].y - beam_origin.second,
-                                       temp_sPH_outer_nocolumn_vec[outer_i].x - beam_origin.first) *
+    Clus_OuterPhi_Offset = (outer_i.y - beam_origin.second < 0)
+                               ? atan2(outer_i.y - beam_origin.second,
+                                       outer_i.x - beam_origin.first) *
                                          (180. / TMath::Pi()) +
                                      360
-                               : atan2(temp_sPH_outer_nocolumn_vec[outer_i].y - beam_origin.second,
-                                       temp_sPH_outer_nocolumn_vec[outer_i].x - beam_origin.first) *
+                               : atan2(outer_i.y - beam_origin.second,
+                                       outer_i.x - beam_origin.first) *
                                      (180. / TMath::Pi());
 
-    outer_clu_phi_map[int(Clus_OuterPhi_Offset)].push_back({false, temp_sPH_outer_nocolumn_vec[outer_i]});
+    outer_clu_phi_map[int(Clus_OuterPhi_Offset)].push_back({false, outer_i});
 
-    if (temp_sPH_outer_nocolumn_vec[outer_i].z > 0)
+    if (outer_i.z > 0)
     {
       out_N_cluster_north += 1;
     }
@@ -786,7 +811,9 @@ bool INTTZvtx::ProcessEvt(
                 outer_clu_phi_map[true_scan_i][outer_phi_clu_i].second.x, outer_clu_phi_map[true_scan_i][outer_phi_clu_i].second.y,
                 inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.x, inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.y,
                 beam_origin.first, beam_origin.second);
-            dca_inner_phi->Fill(Clus_InnerPhi_Offset, DCA_sign);
+            if (m_enable_qa) {
+              dca_inner_phi->Fill(Clus_InnerPhi_Offset, DCA_sign);
+            }
 
             if (DCA_cut.first < DCA_sign && DCA_sign < DCA_cut.second)
             {
@@ -934,7 +961,10 @@ bool INTTZvtx::ProcessEvt(
     }
 
     //--std::cout<<"--6--"<<std::endl;
-    if (z_range_gr != nullptr) delete z_range_gr;
+    if (z_range_gr != nullptr)
+    {
+      delete z_range_gr;
+    }
     z_range_gr = new TGraphErrors(eff_N_comb.size(),
                                   &eff_N_comb[0], &eff_z_mid[0],
                                   &eff_N_comb_e[0], &eff_z_range[0]);
@@ -1065,7 +1095,10 @@ bool INTTZvtx::ProcessEvt(
     // drawing event display & QA histograms
     if (draw_event_display)
     {
-      if (temp_event_xy != nullptr) delete temp_event_xy;
+      if (temp_event_xy != nullptr)
+      {
+        delete temp_event_xy;
+      }
       temp_event_xy = new TGraph(temp_sPH_nocolumn_vec[0].size(),
                                  &temp_sPH_nocolumn_vec[0][0], &temp_sPH_nocolumn_vec[1][0]);
       temp_event_xy->SetTitle("INTT event display X-Y plane");
@@ -1077,7 +1110,10 @@ bool INTTZvtx::ProcessEvt(
       temp_event_xy->SetMarkerColor(2);
       temp_event_xy->SetMarkerSize(1);
 
-      if (temp_event_rz != nullptr) delete temp_event_rz;
+      if (temp_event_rz != nullptr)
+      {
+        delete temp_event_rz;
+      }
       temp_event_rz = new TGraph(temp_sPH_nocolumn_rz_vec[0].size(),
                                  &temp_sPH_nocolumn_rz_vec[0][0], &temp_sPH_nocolumn_rz_vec[1][0]);
       temp_event_rz->SetTitle("INTT event display r-Z plane");
@@ -1098,10 +1134,7 @@ bool INTTZvtx::ProcessEvt(
       temp_event_xy->Draw("ap");
       // temp_event_xy -> Draw("p");
       draw_text->DrawLatex(0.2, 0.85,
-                           Form("eID : %i, inner Ncluster : %zu, outer Ncluster : %zu",
-                                event_i,
-                                temp_sPH_inner_nocolumn_vec.size(),
-                                temp_sPH_outer_nocolumn_vec.size()));
+                           (boost::format("eID : %i, inner Ncluster : %zu, outer Ncluster : %zu") % event_i % temp_sPH_inner_nocolumn_vec.size() % temp_sPH_outer_nocolumn_vec.size()).str().c_str());
 
       //--std::cout<<"--9--"<<std::endl;
       // note : --------------------------------------------------------------------------------------------------------------------------
@@ -1111,13 +1144,16 @@ bool INTTZvtx::ProcessEvt(
       // eff_sig_range_line -> DrawLine(temp_event_zvtx_info[0],-150,temp_event_zvtx_info[0],150);
       coord_line->DrawLine(0, -150, 0, 150);
       coord_line->DrawLine(-500, 0, 500, 0);
-      draw_text->DrawLatex(0.2, 0.85, Form("Negative radius : Clu_{outer} > 180^{0}"));
-      // draw_text -> DrawLatex(0.2, 0.81, Form("EffSig avg : %.2f mm",temp_event_zvtx_info[0]));
+      draw_text->DrawLatex(0.2, 0.85, "Negative radius : Clu_{outer} > 180^{0}");
+      // draw_text -> DrawLatex(0.2, 0.81, (boost::format("EffSig avg : %.2f mm",temp_event_zvtx_info[0]));
 
       // note : --------------------------------------------------------------------------------------------------------------------------
       // std::cout<<"test tag 2-5"<<std::endl;
       pad_z->cd();
-      if (z_range_gr_draw != nullptr) delete z_range_gr_draw;
+      if (z_range_gr_draw != nullptr)
+      {
+        delete z_range_gr_draw;
+      }
       z_range_gr_draw = new TGraphErrors(N_comb.size(), &N_comb[0], &z_mid[0], &N_comb_e[0], &z_range[0]);
       z_range_gr_draw->GetYaxis()->SetRangeUser(-650, 650);
       z_range_gr_draw->GetXaxis()->SetTitle("Index");
@@ -1129,9 +1165,9 @@ bool INTTZvtx::ProcessEvt(
                                    z_range_gr_draw->GetXaxis()->GetXmax(), N_group_info[2]);
       eff_sig_range_line->DrawLine(z_range_gr_draw->GetXaxis()->GetXmin(), N_group_info[3],
                                    z_range_gr_draw->GetXaxis()->GetXmax(), N_group_info[3]);
-      draw_text->DrawLatex(0.2, 0.82, Form("#color[2]{Event Zvtx %.2f mm, error : #pm%.2f}", zvtx_finder->GetParameter(0), zvtx_finder->GetParError(0)));
-      draw_text->DrawLatex(0.2, 0.78, Form("#color[2]{Width density : %.6f}", (width_density_par)));
-      draw_text->DrawLatex(0.2, 0.74, Form("#color[2]{Width (%.0f%%) : %.2f to %.2f mm #rightarrow %.2f mm}", Integrate_portion * 100., temp_event_zvtx_info[2], temp_event_zvtx_info[1], fabs(temp_event_zvtx_info[2] - temp_event_zvtx_info[1]) / 2.));
+      draw_text->DrawLatex(0.2, 0.82, (boost::format("#color[2]{Event Zvtx %.2f mm, error : #pm%.2f}") % zvtx_finder->GetParameter(0) % zvtx_finder->GetParError(0)).str().c_str());
+      draw_text->DrawLatex(0.2, 0.78, (boost::format("#color[2]{Width density : %.6f}") % (width_density_par)).str().c_str());
+      draw_text->DrawLatex(0.2, 0.74, (boost::format("#color[2]{Width (%.0f%%) : %.2f to %.2f mm #rightarrow %.2f mm}") % (Integrate_portion * 100.) % temp_event_zvtx_info[2] % temp_event_zvtx_info[1] % (std::fabs(temp_event_zvtx_info[2] - temp_event_zvtx_info[1]) / 2.)).str().c_str());
 
       // z_range_gr_draw -> Draw("p same");
       zvtx_finder->Draw("lsame");
@@ -1145,9 +1181,9 @@ bool INTTZvtx::ProcessEvt(
                                    evt_possible_z->GetBinContent(evt_possible_z->GetMaximumBin()) / 2.,
                                    evt_possible_z->GetXaxis()->GetXmax(),
                                    evt_possible_z->GetBinContent(evt_possible_z->GetMaximumBin()) / 2.);
-      draw_text->DrawLatex(0.2, 0.82, Form("N group : %.0f", N_group_info[0]));
-      draw_text->DrawLatex(0.2, 0.78, Form("Main peak ratio : %.2f", N_group_info[1]));
-      draw_text->DrawLatex(0.2, 0.74, Form("good z tag : %i", good_zvtx_tag));
+      draw_text->DrawLatex(0.2, 0.82, (boost::format("N group : %.0f") % N_group_info[0]).str().c_str());
+      draw_text->DrawLatex(0.2, 0.78, (boost::format("Main peak ratio : %.2f") % N_group_info[1]).str().c_str());
+      draw_text->DrawLatex(0.2, 0.74, (boost::format("good z tag : %i") % good_zvtx_tag).str().c_str());
 
       // note : --------------------------------------------------------------------------------------------------------------------------
       pad_z_line->cd();
@@ -1164,11 +1200,11 @@ bool INTTZvtx::ProcessEvt(
                                      final_selection_widthD, line_breakdown_hist->GetMaximum());
       final_fit_range_line->DrawLine(final_selection_widthU, line_breakdown_hist->GetMinimum(),
                                      final_selection_widthU, line_breakdown_hist->GetMaximum());
-      draw_text->DrawLatex(0.2, 0.82, Form("Gaus mean %.2f mm", loose_offset_peak));
-      draw_text->DrawLatex(0.2, 0.78, Form("Width : %.2f mm", tight_offset_width));
-      draw_text->DrawLatex(0.2, 0.74, Form("Reduced #chi2 : %.3f", gaus_fit->GetChisquare() / double(gaus_fit->GetNDF())));
-      draw_text->DrawLatex(0.2, 0.70, Form("Norm. entry / Width : %.6f mm", gaus_ratio));
-      draw_text->DrawLatex(0.2, 0.66, Form("LB Geo mean : %.3f mm", out_LB_geo_mean));
+      draw_text->DrawLatex(0.2, 0.82, (boost::format("Gaus mean %.2f mm") % loose_offset_peak).str().c_str());
+      draw_text->DrawLatex(0.2, 0.78, (boost::format("Width : %.2f mm") % tight_offset_width).str().c_str());
+      draw_text->DrawLatex(0.2, 0.74, (boost::format("Reduced #chi2 : %.3f") % (gaus_fit->GetChisquare() / double(gaus_fit->GetNDF()))).str().c_str());
+      draw_text->DrawLatex(0.2, 0.70, (boost::format("Norm. entry / Width : %.6f mm") % gaus_ratio).str().c_str());
+      draw_text->DrawLatex(0.2, 0.66, (boost::format("LB Geo mean : %.3f mm") % out_LB_geo_mean).str().c_str());
 
       if (N_group_info_detail[0] != -1)
       {
@@ -1176,13 +1212,13 @@ bool INTTZvtx::ProcessEvt(
                                      line_breakdown_hist->GetBinContent(line_breakdown_hist->GetMaximumBin()) / 2.,
                                      line_breakdown_hist->GetXaxis()->GetXmax(),
                                      line_breakdown_hist->GetBinContent(line_breakdown_hist->GetMaximumBin()) / 2.);
-        draw_text->DrawLatex(0.2, 0.62, Form("N group : %.0f", N_group_info_detail[0]));
-        draw_text->DrawLatex(0.2, 0.58, Form("Main peak ratio : %.2f", N_group_info_detail[1]));
+        draw_text->DrawLatex(0.2, 0.62, (boost::format("N group : %.0f") % N_group_info_detail[0]).str().c_str());
+        draw_text->DrawLatex(0.2, 0.58, (boost::format("Main peak ratio : %.2f") % N_group_info_detail[1]).str().c_str());
       }
 
       if (run_type == "MC")
       {
-        draw_text->DrawLatex(0.2, 0.54, Form("True MCz : %.3f mm", TrigZvtxMC * 10.));
+        draw_text->DrawLatex(0.2, 0.54, (boost::format("True MCz : %.3f mm") % (TrigZvtxMC * 10.)).str().c_str());
       }
 
       // note : --------------------------------------------------------------------------------------------------------------------------
@@ -1204,22 +1240,22 @@ bool INTTZvtx::ProcessEvt(
 
       if (draw_event_display && (event_i % print_rate) == 0 /*&& good_zvtx_tag == true*/)
       {
-        c2->Print(Form("%s/temp_event_display.pdf", out_folder_directory.c_str()));
+        c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
       }
       else if (draw_event_display && (final_zvtx > 0 || final_zvtx < -450))
       {
         std::cout << "In INTTZvtx class, event :" << event_i << " weird zvtx " << std::endl;
-        c2->Print(Form("%s/temp_event_display.pdf", out_folder_directory.c_str()));
+        c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
       }
       else if (draw_event_display && run_type == "MC" && fabs(final_zvtx - (TrigZvtxMC * 10.)) > 2. && total_NClus > 3000)
       {
         std::cout << "In INTTZvtx class, event :" << event_i << " High NClus, poor Z : " << fabs(final_zvtx - (TrigZvtxMC * 10.)) << std::endl;
-        c2->Print(Form("%s/temp_event_display.pdf", out_folder_directory.c_str()));
+        c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
       }
       else if (draw_event_display && run_type == "MC" && fabs(final_zvtx - (TrigZvtxMC * 10.)) > 2.)
       {
         std::cout << "In INTTZvtx class, event :" << event_i << " low NClus, poor Z : " << fabs(final_zvtx - (TrigZvtxMC * 10.)) << std::endl;
-        c2->Print(Form("%s/temp_event_display.pdf", out_folder_directory.c_str()));
+        c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
       }
 
       // std::cout<<"--12--"<<std::endl;
@@ -1258,7 +1294,10 @@ bool INTTZvtx::ProcessEvt(
   std::cout << "evt : " << event_i << ", good pair count : " << N_comb.size() << " " << good_pair_count << std::endl;
 
   //--std::cout<<"--14 0--"<<std::endl;
-  if (m_enable_qa) tree_out->Fill();
+  if (m_enable_qa)
+  {
+    tree_out->Fill();
+  }
   //--std::cout<<"--14--"<<std::endl;
 
   return true;
@@ -1329,7 +1368,7 @@ void INTTZvtx::PrintPlots()
 
   if (draw_event_display)
   {
-    c2->Print(Form("%s/temp_event_display.pdf)", out_folder_directory.c_str()));
+    c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
     c2->Clear();
   }
 
@@ -1345,7 +1384,7 @@ void INTTZvtx::PrintPlots()
     ltx->SetTextAlign(31);
 
     std::string plot_text = (run_type == "MC") ? "Simulation" : "Work-in-progress";
-    std::string inttlabel_text = Form("#it{#bf{sPHENIX INTT}} %s", plot_text.c_str());
+    std::string inttlabel_text = (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str();
 
     // note : ---------------------------------------------------------------------------------------
 
@@ -1364,38 +1403,38 @@ void INTTZvtx::PrintPlots()
 
     eff_sig_range_line->DrawLine(avg_event_zvtx_info[1], 0, avg_event_zvtx_info[1], avg_event_zvtx->GetMaximum());
     eff_sig_range_line->DrawLine(avg_event_zvtx_info[2], 0, avg_event_zvtx_info[2], avg_event_zvtx->GetMaximum());
-    draw_text->DrawLatex(0.21, 0.87, Form("EffSig min : %.2f mm", avg_event_zvtx_info[1]));
-    draw_text->DrawLatex(0.21, 0.83, Form("EffSig max : %.2f mm", avg_event_zvtx_info[2]));
-    draw_text->DrawLatex(0.21, 0.79, Form("EffSig avg : %.2f mm", avg_event_zvtx_info[0]));
-    c1->Print(Form("%s/avg_event_zvtx.pdf", out_folder_directory.c_str()));
+    draw_text->DrawLatex(0.21, 0.87, (boost::format("EffSig min : %.2f mm") % avg_event_zvtx_info[1]).str().c_str());
+    draw_text->DrawLatex(0.21, 0.83, (boost::format("EffSig max : %.2f mm") % avg_event_zvtx_info[2]).str().c_str());
+    draw_text->DrawLatex(0.21, 0.79, (boost::format("EffSig avg : %.2f mm") % avg_event_zvtx_info[0]).str().c_str());
+    c1->Print((boost::format("%s/avg_event_zvtx.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     width_density->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/width_density.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/width_density.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     ES_width->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/ES_width.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/ES_width.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     ES_width_ratio->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/ES_width_ratio.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/ES_width_ratio.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     zvtx_evt_fitError->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/zvtx_evt_fitError.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/zvtx_evt_fitError.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
@@ -1424,13 +1463,13 @@ void INTTZvtx::PrintPlots()
       gaus_fit_2->Draw("lsame");
       eff_sig_range_line->DrawLine(Z_resolution_vec_info[1], 0, Z_resolution_vec_info[1], Z_resolution->GetMaximum());
       eff_sig_range_line->DrawLine(Z_resolution_vec_info[2], 0, Z_resolution_vec_info[2], Z_resolution->GetMaximum());
-      draw_text->DrawLatex(0.21, 0.87, Form("EffSig min : %.2f mm", Z_resolution_vec_info[1]));
-      draw_text->DrawLatex(0.21, 0.83, Form("EffSig max : %.2f mm", Z_resolution_vec_info[2]));
-      draw_text->DrawLatex(0.21, 0.79, Form("EffSig avg : %.2f mm", Z_resolution_vec_info[0]));
-      draw_text->DrawLatex(0.21, 0.71, Form("Gaus mean  : %.2f mm", gaus_fit_2->GetParameter(1)));
-      draw_text->DrawLatex(0.21, 0.67, Form("Gaus width : %.2f mm", fabs(gaus_fit_2->GetParameter(2))));
+      draw_text->DrawLatex(0.21, 0.87, (boost::format("EffSig min : %.2f mm") % Z_resolution_vec_info[1]).str().c_str());
+      draw_text->DrawLatex(0.21, 0.83, (boost::format("EffSig max : %.2f mm") % Z_resolution_vec_info[2]).str().c_str());
+      draw_text->DrawLatex(0.21, 0.79, (boost::format("EffSig avg : %.2f mm") % Z_resolution_vec_info[0]).str().c_str());
+      draw_text->DrawLatex(0.21, 0.71, (boost::format("Gaus mean  : %.2f mm") % gaus_fit_2->GetParameter(1)).str().c_str());
+      draw_text->DrawLatex(0.21, 0.67, (boost::format("Gaus width : %.2f mm") % fabs(gaus_fit_2->GetParameter(2))).str().c_str());
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-      c1->Print(Form("%s/Z_resolution.pdf", out_folder_directory.c_str()));
+      c1->Print((boost::format("%s/Z_resolution.pdf") % out_folder_directory).str().c_str());
       c1->Clear();
 
       MC_z_diff_peak = gaus_fit_2->GetParameter(1);
@@ -1445,7 +1484,7 @@ void INTTZvtx::PrintPlots()
     {
       Z_resolution_Nclu->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-      c1->Print(Form("%s/Z_resolution_Nclu.pdf", out_folder_directory.c_str()));
+      c1->Print((boost::format("%s/Z_resolution_Nclu.pdf") % out_folder_directory).str().c_str());
       c1->Clear();
     }
     // note : ---------------------------------------------------------------------------------------
@@ -1454,7 +1493,7 @@ void INTTZvtx::PrintPlots()
     {
       Z_resolution_pos->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-      c1->Print(Form("%s/Z_resolution_pos.pdf", out_folder_directory.c_str()));
+      c1->Print((boost::format("%s/Z_resolution_pos.pdf") % out_folder_directory).str().c_str());
       c1->Clear();
     }
     // note : ---------------------------------------------------------------------------------------
@@ -1463,99 +1502,99 @@ void INTTZvtx::PrintPlots()
     {
       Z_resolution_pos_cut->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-      c1->Print(Form("%s/Z_resolution_pos_cut.pdf", out_folder_directory.c_str()));
+      c1->Print((boost::format("%s/Z_resolution_pos_cut.pdf") % out_folder_directory).str().c_str());
       c1->Clear();
     }
     // note : ---------------------------------------------------------------------------------------
 
     zvtx_evt_fitError_corre->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/zvtx_evt_fitError_corre.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/zvtx_evt_fitError_corre.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     zvtx_evt_nclu_corre->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/zvtx_evt_nclu_corre.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/zvtx_evt_nclu_corre.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     zvtx_evt_width_corre->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/zvtx_evt_width_corre.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/zvtx_evt_width_corre.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     gaus_width_Nclu->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/gaus_width_Nclu.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/gaus_width_Nclu.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     gaus_rchi2_Nclu->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/gaus_rchi2_Nclu.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/gaus_rchi2_Nclu.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     final_fit_width->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/final_fit_width.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/final_fit_width.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     N_track_candidate_Nclu->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/N_track_candidate_Nclu.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/N_track_candidate_Nclu.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     peak_group_width_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/peak_group_width_hist.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/peak_group_width_hist.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     peak_group_ratio_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/peak_group_ratio_hist.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/peak_group_ratio_hist.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     N_group_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/N_group_hist.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/N_group_hist.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     peak_group_detail_width_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/peak_group_detail_width_hist.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/peak_group_detail_width_hist.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     peak_group_detail_ratio_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/peak_group_detail_ratio_hist.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/peak_group_detail_ratio_hist.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     N_group_detail_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print(Form("%s/N_group_detail_hist.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/N_group_detail_hist.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     line_breakdown_gaus_ratio_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
 
-    c1->Print(Form("%s/line_breakdown_gaus_ratio_hist.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/line_breakdown_gaus_ratio_hist.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
@@ -1569,12 +1608,12 @@ void INTTZvtx::PrintPlots()
     line_breakdown_gaus_width_hist->Draw("hist");
     gaus_fit->Draw("lsame");
 
-    draw_text->DrawLatex(0.2, 0.82, Form("Gaus mean %.2f mm", gaus_fit->GetParameter(1)));
-    draw_text->DrawLatex(0.2, 0.78, Form("Width : %.2f mm", fabs(gaus_fit->GetParameter(2))));
-    draw_text->DrawLatex(0.2, 0.74, Form("Reduced #chi2 : %.3f", gaus_fit->GetChisquare() / double(gaus_fit->GetNDF())));
+    draw_text->DrawLatex(0.2, 0.82, (boost::format("Gaus mean %.2f mm") % gaus_fit->GetParameter(1)).str().c_str());
+    draw_text->DrawLatex(0.2, 0.78, (boost::format("Width : %.2f mm") % fabs(gaus_fit->GetParameter(2))).str().c_str());
+    draw_text->DrawLatex(0.2, 0.74, (boost::format("Reduced #chi2 : %.3f") % (gaus_fit->GetChisquare() / double(gaus_fit->GetNDF()))).str().c_str());
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
 
-    c1->Print(Form("%s/line_breakdown_gaus_width_hist.pdf", out_folder_directory.c_str()));
+    c1->Print((boost::format("%s/line_breakdown_gaus_width_hist.pdf") % out_folder_directory).str().c_str());
     c1->Clear();
 
     delete ltx;

@@ -12,7 +12,7 @@
 #include <string>
 
 class SingleStreamingInput;
-class Gl1RawHit;
+class Gl1Packet;
 class InttRawHit;
 class MicromegasRawHit;
 class MvtxRawHit;
@@ -20,6 +20,7 @@ class MvtxFeeIdInfo;
 class PHCompositeNode;
 class SyncObject;
 class TpcRawHit;
+class TH1;
 
 class Fun4AllStreamingInputManager : public Fun4AllInputManager
 {
@@ -44,7 +45,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int FillMicromegas();
   int FillMvtx();
   int FillTpc();
-  void AddGl1RawHit(uint64_t bclk, Gl1RawHit *hit);
+  void AddGl1RawHit(uint64_t bclk, Gl1Packet *hit);
   void AddInttRawHit(uint64_t bclk, InttRawHit *hit);
   void AddMicromegasRawHit(uint64_t /* bclk */, MicromegasRawHit * /* hit */);
   void AddMvtxFeeIdInfo(uint64_t bclk, uint16_t feeid, uint32_t detField);
@@ -75,7 +76,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
 
   struct Gl1RawHitInfo
   {
-    std::vector<Gl1RawHit *> Gl1RawHitVector;
+    std::vector<Gl1Packet *> Gl1RawHitVector;
     unsigned int EventFoundCounter{0};
   };
 
@@ -131,6 +132,23 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   std::map<uint64_t, MvtxRawHitInfo> m_MvtxRawHitMap;
   std::map<uint64_t, TpcRawHitInfo> m_TpcRawHitMap;
   std::map<int, std::map<int, uint64_t>> m_InttPacketFeeBcoMap;
+
+  // QA histos
+  TH1 *h_refbco_mvtx{nullptr};
+  TH1 *h_taggedAllFelixes_mvtx{nullptr};
+  TH1 *h_tagBcoFelix_mvtx[6]{nullptr};
+  TH1 *h_tagBcoFelixAllFees_mvtx[6]{nullptr};
+  TH1 *h_tagBcoFelixFee_mvtx[6][12]{{nullptr}};
+
+  TH1 *h_refbco_intt{nullptr};
+  TH1 *h_taggedAll_intt{nullptr};
+  TH1 *h_gl1tagged_intt[8]{nullptr};
+  TH1 *h_taggedAllFees_intt[8]{nullptr};
+  TH1 *h_gl1taggedfee_intt[8][14]{{nullptr}};
+
+  TH1 *h_gl1tagged_tpc[24][2]{{nullptr}};
+  TH1 *h_refbco_tpc{nullptr};
+  TH1 *h_taggedAll_tpc{nullptr};
 };
 
 #endif /* FUN4ALL_FUN4ALLSTREAMINGINPUTMANAGER_H */

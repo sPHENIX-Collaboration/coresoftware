@@ -110,14 +110,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
     {
       continue;
     }
-
-    // returns SHRT_MAX if no INTT clusters in silicon seed
-    short int crossing = getCrossingIntt(_tracklet_si);
-    if (_use_intt_crossing)
-    {
-      _tracklet_si->set_crossing(crossing);
-    }  // flag is for testing only, use_intt_crossing should always be true!
-
+    auto crossing = _tracklet_si->get_crossing();
     if (Verbosity() > 8)
     {
       std::cout << " silicon stub: " << trackid << " eta " << _tracklet_si->get_eta() << " pt " << _tracklet_si->get_pt() << " si z " << _tracklet_si->get_z() << " crossing " << crossing << std::endl;
@@ -540,106 +533,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
   }
 
   return;
-}
-
-short int PHSiliconTpcTrackMatching::getCrossingIntt(TrackSeed *si_track)
-{
-  // If the Si track contains an INTT hit, use it to get the bunch crossing offset
-
-  std::vector<short int> intt_crossings = getInttCrossings(si_track);
-
-  bool keep_it = true;
-  short int crossing_keep = 0;
-  if (intt_crossings.size() == 0)
-  {
-    keep_it = false;
-  }
-  else
-  {
-    crossing_keep = intt_crossings[0];
-    for (unsigned int ic = 1; ic < intt_crossings.size(); ++ic)
-    {
-      if (intt_crossings[ic] != crossing_keep)
-      {
-        if (Verbosity() > 1)
-        {
-          std::cout << " Warning: INTT crossings not all the same "
-                    << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " keep the first one in the list" << std::endl;
-        }
-      }
-    }
-  }
-
-  if (keep_it)
-  {
-    return crossing_keep;
-  }
-
-  return SHRT_MAX;
-}
-
-std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(TrackSeed *si_track)
-{
-  std::vector<short int> intt_crossings;
-
-  // If the Si track contains an INTT hit, use it to get the bunch crossing offset
-  // loop over associated clusters to get keys for silicon cluster
-  for (TrackSeed::ConstClusterKeyIter iter = si_track->begin_cluster_keys();
-       iter != si_track->end_cluster_keys();
-       ++iter)
-  {
-    TrkrDefs::cluskey cluster_key = *iter;
-    const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-
-    if (Verbosity() > 1)
-    {
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
-
-      if (trkrid == TrkrDefs::mvtxId)
-      {
-        TrkrCluster *cluster = _cluster_map->findCluster(cluster_key);
-        if (!cluster)
-        {
-          continue;
-        }
-
-        Acts::Vector3 global = _tGeometry->getGlobalPosition(cluster_key, cluster);
-
-        std::cout << "Checking  si Track " << _track_map_silicon->find(si_track) << " cluster " << cluster_key
-                  << " in layer " << layer << " position " << global(0) << "  " << global(1) << "  " << global(2)
-                  << " eta " << si_track->get_eta() << std::endl;
-      }
-      else
-      {
-        std::cout << "Checking  si Track " << _track_map_silicon->find(si_track) << " cluster " << cluster_key
-                  << " in layer " << layer << " with eta " << si_track->get_eta() << std::endl;
-      }
-    }
-
-    if (trkrid == TrkrDefs::inttId)
-    {
-      TrkrCluster *cluster = _cluster_map->findCluster(cluster_key);
-      if (!cluster)
-      {
-        continue;
-      }
-
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
-
-      // get the bunch crossings for all hits in this cluster
-      auto crossings = _cluster_crossing_map->getCrossings(cluster_key);
-      for (auto iter1 = crossings.first; iter1 != crossings.second; ++iter1)
-      {
-        if (Verbosity() > 1)
-        {
-          std::cout << "                si Track " << _track_map_silicon->find(si_track) << " cluster " << iter1->first << " layer " << layer << " crossing " << iter1->second << std::endl;
-        }
-        intt_crossings.push_back(iter1->second);
-      }
-    }
-  }
-
-  return intt_crossings;
 }
 
 void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int, unsigned int> &tpc_matches)

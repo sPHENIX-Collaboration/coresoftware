@@ -16,9 +16,8 @@
 
 TrksInJetQA::TrksInJetQA(const std::string& name)
   : SubsysReco(name)
+  , m_moduleName(name)
 {
-  /* nothing to do */
-
 }  // end ctor
 
 TrksInJetQA::~TrksInJetQA()
@@ -31,12 +30,8 @@ TrksInJetQA::~TrksInJetQA()
 
   // clean up any dangling pointers
   //   - FIXME use smart pointers instead!
-  if (m_outFile)
-  {
-    delete m_outFile;
-    m_outFile = nullptr;
-  }
-
+  // deleting null ptrs is legal, setting it to null is not needed in the dtor
+  delete m_outFile;
 }  // end dtor
 
 // public methods -------------------------------------------------------------
@@ -89,6 +84,16 @@ int TrksInJetQA::process_event(PHCompositeNode* topNode)
   if (m_config.doDebug && (m_config.verbose > 2))
   {
     std::cout << "TrksInJetQA::process_event(PHCompositeNode* topNode) Processing Event" << std::endl;
+  }
+
+  // if needed, check if selected trigger fired
+  if (m_doTrgSelect)
+  {
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    if (!hasTrigger)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
   // run submodules
@@ -183,27 +188,47 @@ void TrksInJetQA::InitHistograms()
     std::cout << "TrksInJetQA::InitHistograms() Initializing histograms..." << std::endl;
   }
 
-  // make labels
-  std::string inJetLabel = "InJet";
-  std::string inclusiveLabel = "Inclusive";
-  if (m_histSuffix.has_value())
+  // make sure module name is lower case
+  std::string smallModuleName = m_moduleName;
+  std::transform(
+      smallModuleName.begin(),
+      smallModuleName.end(),
+      smallModuleName.begin(),
+      ::tolower);
+
+  // histograms are always prefixed by the module name
+  std::string prefix = "h_";
+  prefix += "_";
+  prefix += smallModuleName;
+
+  // if additional prefix provided, add it
+  if (m_histPrefix.has_value())
   {
-    inJetLabel += "_";
-    inJetLabel += m_histSuffix.value();
-    inclusiveLabel += "_";
-    inclusiveLabel += m_histSuffix.value();
+    prefix += m_histPrefix.value();
+    prefix += "_";
+  }
+
+  // make suffixes
+  std::string inJetSuffix = "InJet";
+  std::string inclusiveSuffix = "Inclusive";
+  if (m_histSuffix.has_value() && !m_histSuffix.value().empty())
+  {
+    inJetSuffix += "_";
+    inJetSuffix += m_histSuffix.value();
+    inclusiveSuffix += "_";
+    inclusiveSuffix += m_histSuffix.value();
   }
 
   // initialize submodules, as needed
   if (m_config.doInJet)
   {
     m_inJet = std::make_unique<TrksInJetQAInJetFiller>(m_config, m_hist);
-    m_inJet->MakeHistograms(inJetLabel);
+    m_inJet->MakeHistograms(prefix, inJetSuffix);
   }
   if (m_config.doInclusive)
   {
     m_inclusive = std::make_unique<TrksInJetQAInclusiveFiller>(m_config, m_hist);
-    m_inclusive->MakeHistograms(inclusiveLabel);
+    m_inclusive->MakeHistograms(prefix, inclusiveSuffix);
   }
   return;
 

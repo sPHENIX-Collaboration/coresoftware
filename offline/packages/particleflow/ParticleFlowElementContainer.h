@@ -22,12 +22,11 @@ class ParticleFlowElementContainer : public PHObject
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
-  
-  ParticleFlowElementContainer( )
-    {
-      
-    }
-  
+
+  ParticleFlowElementContainer()
+  {
+  }
+
   ~ParticleFlowElementContainer() override {}
 
   void Reset() override;
