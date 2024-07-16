@@ -270,7 +270,8 @@ void TrackSeed_v2::circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vec
 
   /// Set the charge
   const auto& firstpos = positions_2d.at(0);
-  const auto& secondpos = positions_2d.at(1);
+  unsigned int positions_size = positions_2d.size();
+  const auto& secondpos = positions_2d.at(positions_size -1);
 
   // these angles must be calculated relative to the seed PCA, not the coordinate origin 
   // get the seed PCA
