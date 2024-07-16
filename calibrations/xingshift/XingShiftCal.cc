@@ -830,13 +830,14 @@ int XingShiftCal::CommitToSpinDB()
 
 
   // ========== Do spin db qa here =========== //
-  SpinDBQA();
+  //SpinDBQA();
   // ========================================= //
 
 
   return 0;
 }
 
+/*
 int XingShiftCal::SpinDBQA()
 {
 
@@ -965,7 +966,7 @@ int XingShiftCal::SpinDBQA()
 
 }
 
-
+*/
 std::string XingShiftCal::SQLArrayConstF(float x, int n)
 {
   std::ostringstream s;

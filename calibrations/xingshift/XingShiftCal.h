@@ -13,7 +13,7 @@ class Packet;
 
 class XingShiftCal : public SubsysReco
 {
-  static const int NTRIG = 16;
+  static const int NTRIG = 8;
   static const int NBUNCHES = 120;
 
  public:
