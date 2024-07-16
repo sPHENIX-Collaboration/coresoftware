@@ -979,7 +979,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
 }
 
 void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* track,
-                                           std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global,
+                                           const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global,
                                            PHCompositeNode* topNode)
 {
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -993,19 +993,25 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
   // loop over global vectors and get this cluster
   Acts::Vector3 clusglob(0, 0, 0);
-  for (auto pair : global)
+  for (const auto& pair : global)
   {
     auto thiskey = pair.first;
     clusglob = pair.second;
-    if (thiskey == ckey) break;
+    if (thiskey == ckey)
+    {
+      break;
+    }
   }
 
   Acts::Vector3 clusglob_moved(0, 0, 0);
-  for (auto pair : global_moved)
+  for (const auto& pair : global_moved)
   {
     auto thiskey = pair.first;
     clusglob_moved = pair.second;
-    if (thiskey == ckey) break;
+    if (thiskey == ckey)
+    {
+      break;
+    }
   }
 
   if (Verbosity() > 1)
@@ -1261,7 +1267,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 }
 
 void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTrack* track,
-                                              std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global,
+                                              const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global,
                                               PHCompositeNode* topNode)
 {
   // The input map global contains the corrected cluster positions - NOT moved back to the surfacer.
@@ -1281,18 +1287,24 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
 
   // loop over global vectors and get this cluster
   Acts::Vector3 clusglob(0, 0, 0);
-  for (auto pair : global)
+  for (const auto& pair : global)
   {
     auto thiskey = pair.first;
     clusglob = pair.second;
-    if (thiskey == ckey) break;
+    if (thiskey == ckey)
+    {
+      break;
+    }
   }
   Acts::Vector3 clusglob_moved(0, 0, 0);
-  for (auto pair : global_moved)
+  for (const auto& pair : global_moved)
   {
     auto thiskey = pair.first;
     clusglob_moved = pair.second;
-    if (thiskey == ckey) break;
+    if (thiskey == ckey)
+    {
+      break;
+    }
   }
 
   switch (TrkrDefs::getTrkrId(ckey))
