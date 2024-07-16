@@ -33,6 +33,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 
 #include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
@@ -127,6 +128,7 @@ int TrackResiduals::InitRun(PHCompositeNode* topNode)
 }
 void TrackResiduals::clearClusterStateVectors()
 {
+
   m_cluskeys.clear();
   m_clusphisize.clear();
   m_cluszsize.clear();
@@ -239,8 +241,32 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   }
   else
   {
-    m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
-    m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
+    Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    if (!gl1PacketInfo)
+    {
+      m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
+      m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
+    }
+    m_firedTriggers.clear();
+
+    if (gl1PacketInfo)
+    {
+      m_gl1BunchCrossing = gl1PacketInfo->getBunchNumber();
+      uint64_t triggervec = gl1PacketInfo->getTriggerVector();
+      m_bco = gl1PacketInfo->getBCO();
+      auto lbshift = m_bco << 24U;
+      m_bcotr = lbshift >> 24U;
+      for (int i = 0; i < 64; i++)
+      {
+        bool trig_decision = ((triggervec & 0x1U) == 0x1U);
+        if (trig_decision)
+        {
+          m_firedTriggers.push_back(i);
+        }
+        triggervec = (triggervec >> 1U) & 0xffffffffU;
+      }
+    }
+  
   }
   if (Verbosity() > 1)
   {
@@ -1514,6 +1540,8 @@ void TrackResiduals::createBranches()
   m_vertextree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_vertextree->Branch("segment", &m_segment, "m_segment/I");
   m_vertextree->Branch("event", &m_event, "m_event/I");
+  m_vertextree->Branch("firedTriggers", &m_firedTriggers);
+  m_vertextree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
   m_vertextree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_vertextree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_vertextree->Branch("vertexid", &m_vertexid, "m_vertexid/I");
@@ -1593,6 +1621,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_tree->Branch("segment", &m_segment, "m_segment/I");
   m_tree->Branch("event", &m_event, "m_event/I");
+  m_tree->Branch("firedTriggers", &m_firedTriggers);
+  m_tree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");
   m_tree->Branch("tpcid", &m_tpcid, "m_tpcid/I");
   m_tree->Branch("silid", &m_silid, "m_silid/I");

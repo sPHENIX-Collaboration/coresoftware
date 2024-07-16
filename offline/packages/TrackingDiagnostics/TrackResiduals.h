@@ -115,6 +115,9 @@ class TrackResiduals : public SubsysReco
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
   int m_runnumber = std::numeric_limits<int>::quiet_NaN();
+  std::vector<int> m_firedTriggers;
+  uint64_t m_gl1BunchCrossing = std::numeric_limits<uint64_t>::quiet_NaN();
+
   //! Track level quantities
   uint64_t m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
   uint64_t m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
