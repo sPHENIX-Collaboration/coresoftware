@@ -554,7 +554,8 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     global_vec.push_back(pos);
   }
 
-  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
+  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, false);
+  // auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
   m_xyint = std::numeric_limits<float>::quiet_NaN();
   m_xyslope = std::numeric_limits<float>::quiet_NaN();
   if (fitpars.size() > 0)

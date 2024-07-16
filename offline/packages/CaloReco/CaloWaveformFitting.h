@@ -47,6 +47,10 @@ class CaloWaveformFitting
     return;
   }
 
+  void set_bitFlipRecovery(bool dobitfliprecovery) {
+    _dobitfliprecovery = dobitfliprecovery;
+  }
+
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
   std::vector<std::vector<float>> calo_processing_fast(std::vector<std::vector<float>> chnlvector);
@@ -77,6 +81,11 @@ class CaloWaveformFitting
   bool m_setTimeLim{false};
   float m_timeLim_low{-3.0};
   float m_timeLim_high{4.0};
+  float _chi2threshold = 100000;
+  float _chi2lowthreshold = 10000;
+  bool _dobitfliprecovery = false;
+  float _bfr_lowpedestalthreshold = 1200;
+  float _bfr_highpedestalthreshold = 4000;
 
   std::string url_onnx;
   std::string m_model_name;
