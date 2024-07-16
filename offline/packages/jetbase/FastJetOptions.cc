@@ -45,6 +45,9 @@ FastJetOptions& FastJetOptions::update(std::vector<FastJetOptItem> input)
         use_constituent_min_pt = true;
         constituent_min_pt = next_val(i, input);
       }
+      else if (item.opt == CONSTITUENT_MIN_E) {
+        constituent_min_E = next_val(i, input);
+      }
       else if (item.opt == DO_SOFTDROP)
       {
         doSoftDrop = true;

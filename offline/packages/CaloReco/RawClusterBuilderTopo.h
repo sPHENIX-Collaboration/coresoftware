@@ -79,6 +79,15 @@ class RawClusterBuilderTopo : public SubsysReco
     _R_shower = R_shower;
   }
 
+  void set_use_only_good_towers(bool b)
+  {
+    _only_good_towers = b;
+  }
+  bool get_use_only_good_towers()
+  {
+    return _only_good_towers;
+  }
+
  private:
   void CreateNodes(PHCompositeNode *topNode);
 
@@ -216,6 +225,8 @@ class RawClusterBuilderTopo : public SubsysReco
   bool _do_split;
   float _local_max_minE_LAYER[3]{};
   float _R_shower;
+
+  bool _only_good_towers;
 
   std::string ClusterNodeName;
 };

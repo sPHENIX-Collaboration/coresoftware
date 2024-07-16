@@ -60,6 +60,9 @@ class TowerInfov4 : public TowerInfo
   void set_isZS(bool isZS) override { set_status_bit(5, isZS); }
   bool get_isZS() const override { return get_status_bit(5); }
 
+  void set_isRecovered(bool isRecovered) override { set_status_bit(6, isRecovered); }
+  bool get_isRecovered() const override { return get_status_bit(6); }
+
   bool get_isGood() const override { return !((bool) status); }
 
   uint8_t get_status() const override { return status; }

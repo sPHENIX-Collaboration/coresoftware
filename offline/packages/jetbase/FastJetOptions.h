@@ -25,6 +25,8 @@ enum FastJetOptEnum
 
   ,
   CONSTITUENT_MIN_PT  // optional, not set
+  ,
+  CONSTITUENT_MIN_E // default 0
 
   ,
   DO_SOFTDROP  // optional; off
@@ -118,6 +120,8 @@ struct FastJetOptions
 
   bool use_constituent_min_pt = false;
   float constituent_min_pt = 0.;
+
+  float constituent_min_E = 0.;
 
   bool save_jet_components = true;
 

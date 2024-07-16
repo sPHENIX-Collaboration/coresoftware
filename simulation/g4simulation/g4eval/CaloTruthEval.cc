@@ -1,11 +1,11 @@
 #include "CaloTruthEval.h"
 
-#include <phool/getClass.h>
-
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+
+#include <phool/getClass.h>
 
 #include <cassert>
 #include <cmath>
@@ -254,12 +254,7 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Shower* shower)
   {
     assert(shower);
   }
-  else if (!shower)
-  {
-    ++_errors;
-    return std::set<PHG4Hit*>();
-  }
-  else if (!_g4hits)
+  else if (!shower || !_g4hits)
   {
     ++_errors;
     return std::set<PHG4Hit*>();
