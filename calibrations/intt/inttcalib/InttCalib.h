@@ -14,12 +14,16 @@
 #include <string>
 
 class PHCompositeNode;
+class TF1;
+class TH1D;
 
 class InttCalib : public SubsysReco
 {
  public:
   InttCalib(std::string const& = "InttCalib");
   ~InttCalib() override = default;
+
+  int Init();
 
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
@@ -33,10 +37,18 @@ class InttCalib : public SubsysReco
   void SetBcoMapCdbFile(std::string const& file) { m_bcomap_cdb_file = file; }
   void SetBcoMapPngFile(std::string const& file) { m_bcomap_png_file = file; }
 
+  int SaveHitrates();
+  int LoadHitrates();
+
   /// For debugging
-  void Debug() const;
+  void Debug();
+
 
  private:
+  int ConfigureHotMap_v2();
+  int MakeHotMapCdb_v2();
+  int MakeHotMapPng_v2();
+
   int ConfigureHotMap();
   int MakeHotMapCdb();
   int MakeHotMapPng();
@@ -45,13 +57,16 @@ class InttCalib : public SubsysReco
   int MakeBcoMapCdb();
   int MakeBcoMapPng();
 
+  int ConfigureHist(TH1D*&, TF1*&, std::map<double, int> const&, std::string const&);
   int adjust_hitrate(InttMap::Offline_s const&, double&) const;
+
   Color_t GetFeeColor(int) const;
 
   int m_evts{0};
   int m_run_num{0};
 
   double static constexpr m_NUM_CHANNELS = 8 * 14 * 26 * 128;
+  double static constexpr m_NUM_SIGMA = 3.0;
 
   double m_min_hitrate{0.0};
   double m_min_fraction{0.0};
@@ -67,8 +82,14 @@ class InttCalib : public SubsysReco
   InttSurveyMapv1 m_survey;
   Eigen::Vector3d m_vertex{0.0, 0.0, 0.0};
 
-  std::array<std::array<std::array<std::array<std::array<int, 129>, 128>, 26>, 14>, 8> m_hitmap{};
-  // m_hitmap[8][14][26][128][129]
+  // int m_hitmap[8][14][26][128][129]
+  std::array<std::array<std::array<std::array<std::array<double, 129>, 128>, 26>, 14>, 8> m_hitmap{};
+
+  // TH1D* m_hist[8][14]
+  std::array<TH1D*, 5> m_hist{};
+  std::array<TF1*, 5> m_fit{};
+  std::array<double, 5> m_min{};
+  std::array<double, 5> m_max{};
 
   std::map<double, double> m_hitrates;
   std::map<double, double> m_invcdf;
