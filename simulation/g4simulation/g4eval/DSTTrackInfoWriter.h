@@ -14,14 +14,14 @@
 #include <trackbase_historic/TrackInfoContainer_v1.h>
 #include <trackbase_historic/TrackStateInfo_v1.h>
 
+#include <TClonesArray.h>
+#include <TFile.h>
+#include <TTree.h>
+
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
-
-#include <TClonesArray.h>
-#include <TFile.h>
-#include <TTree.h>
 
 class PHG4Hit;
 class PHG4HitContainer;

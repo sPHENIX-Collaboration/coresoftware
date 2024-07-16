@@ -73,7 +73,7 @@ class Fun4AllBase
   std::string m_ThisName;
 
   /// The verbosity level. 0 means not verbose at all.
-  int m_Verbosity = VERBOSITY_QUIET;
+  uint64_t m_Verbosity = VERBOSITY_QUIET;
 };
 
 #endif

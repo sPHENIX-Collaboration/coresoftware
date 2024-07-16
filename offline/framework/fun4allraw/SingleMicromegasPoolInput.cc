@@ -403,7 +403,7 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
   {
     return true;
   }
-
+  std::set<int> toerase;
   uint64_t lowest_bclk = m_MicromegasRawHitMap.begin()->first + m_BcoRange;
   for (auto bcliter : m_FEEBclkMap)
   {
@@ -426,9 +426,13 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_MicromegasRawHitMap.begin()->first)
                   << std::dec << std::endl;
-        m_FEEBclkMap.erase(bcliter.first);
+        toerase.insert(bcliter.first);
       }
     }
+  }
+  for(auto& fee: toerase)
+  {
+    m_FEEBclkMap.erase(fee);
   }
 
   return false;
@@ -495,7 +499,6 @@ void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
   }
 
   // per packet statistics
-  auto h_packet_stat = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_packet_stat"));
   h_packet_stat->Fill( "Reference", 1 );
 
   for( const auto& packet_id:found_packets )
@@ -503,11 +506,9 @@ void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
   h_packet_stat->Fill( "All", found_packets.size()>= m_npackets_active );
 
   // how many packet_id found for this BCO
-  auto h_packet = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_npacket_bco"));
   h_packet->Fill(found_packets.size());
 
   // how many waveforms found for this BCO
-  auto h_waveform = dynamic_cast<TH1 *>(hm->getHisto("h_MicromegasBCOQA_nwaveform_bco"));
   h_waveform->Fill(n_waveforms);
 }
 //_______________________________________________________
@@ -536,4 +537,7 @@ void SingleMicromegasPoolInput::createQAHistos()
     h->SetFillColor(kYellow);
     hm->registerHisto(h);
   }
+  h_packet_stat = dynamic_cast<TH1*>(hm->getHisto("h_MicromegasBCOQA_packet_stat"));
+  h_packet = dynamic_cast<TH1*>(hm->getHisto("h_MicromegasBCOQA_npacket_bco"));
+  h_waveform = dynamic_cast<TH1*>(hm->getHisto("h_MicromegasBCOQA_nwaveform_bco"));
 }

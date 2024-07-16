@@ -292,8 +292,21 @@ float TrackResiduals::calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* cluste
     float adc = cluster->getAdc();
     PHG4TpcCylinderGeom* GeoLayer_local = tpcGeom->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();
-
-    dedxlist.push_back(adc / thick);
+    float r = GeoLayer_local->get_radius();
+    float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+    float beta = atan(tpcseed->get_slope());
+    float alphacorr = cos(alpha);
+    if(alphacorr<0||alphacorr>4){
+      alphacorr=4;
+    }
+    float betacorr = cos(beta);
+    if(betacorr<0||betacorr>4){
+      betacorr=4;
+    }
+    adc/=thick;
+    adc*=alphacorr;
+    adc*=betacorr;
+    dedxlist.push_back(adc);
     sort(dedxlist.begin(), dedxlist.end());
   }
   int trunc_min = 0;
@@ -541,7 +554,8 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     global_vec.push_back(pos);
   }
 
-  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
+  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, false);
+  // auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
   m_xyint = std::numeric_limits<float>::quiet_NaN();
   m_xyslope = std::numeric_limits<float>::quiet_NaN();
   if (fitpars.size() > 0)

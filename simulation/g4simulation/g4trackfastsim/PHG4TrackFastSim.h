@@ -24,9 +24,9 @@
 
 #include <climits>  // for UINT_MAX
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 class PHG4Hit;
 class PHG4HitContainer;
@@ -66,13 +66,13 @@ class PHG4TrackFastSim : public SubsysReco
   //! dtor
   ~PHG4TrackFastSim() override;
 
-  //!Initialization Run, called for initialization of a run
+  //! Initialization Run, called for initialization of a run
   int InitRun(PHCompositeNode*) override;
 
-  //!Process Event, called for each event
+  //! Process Event, called for each event
   int process_event(PHCompositeNode*) override;
 
-  //!End, write and close files
+  //! End, write and close files
   int End(PHCompositeNode*) override;
 
   bool is_do_evt_display() const
@@ -235,18 +235,18 @@ class PHG4TrackFastSim : public SubsysReco
   typedef std::map<const genfit::Track*, unsigned int> GenFitTrackMap;
 
   /*!
-	 * Create needed nodes.
-	 */
+   * Create needed nodes.
+   */
   int CreateNodes(PHCompositeNode*);
 
   /*!
-	 * Get all the all the required nodes off the node tree.
-	 */
+   * Get all the all the required nodes off the node tree.
+   */
   int GetNodes(PHCompositeNode*);
 
   /*!
-	 *
-	 */
+   *
+   */
   int PseudoPatternRecognition(const PHG4Particle* particle,
                                std::vector<PHGenFit::Measurement*>& meas_out,
                                SvtxTrack* track_out,
@@ -262,15 +262,15 @@ class PHG4TrackFastSim : public SubsysReco
   PHGenFit::Measurement* VertexMeasurement(const TVector3& vtx, double dxy, double dz);
 
   /*!
-	 * Make SvtxTrack from PHGenFit::Track
-	 */
+   * Make SvtxTrack from PHGenFit::Track
+   */
   bool MakeSvtxTrack(SvtxTrack* track_out, const PHGenFit::Track* phgf_track_in,
                      const unsigned int truth_track_id = UINT_MAX,
                      const unsigned int nmeas = 0, const TVector3& vtx = TVector3(0.0, 0.0, 0.0));
 
   /*
-  * Fill SvtxVertexMap from GFRaveVertexes and Tracks
-  */
+   * Fill SvtxVertexMap from GFRaveVertexes and Tracks
+   */
   bool FillSvtxVertexMap(const std::vector<genfit::GFRaveVertex*>& rave_vertices,
                          const GenFitTrackMap& gf_tracks);
 
@@ -280,8 +280,8 @@ class PHG4TrackFastSim : public SubsysReco
   gsl_rng* m_RandomGenerator;
 
   /*!
-	 *	GenFit fitter interface
-	 */
+   *	GenFit fitter interface
+   */
   PHGenFit::Fitter* m_Fitter;
   genfit::GFRaveVertexFactory* m_RaveVertexFactory;
 
@@ -309,12 +309,12 @@ class PHG4TrackFastSim : public SubsysReco
   std::string m_VertexingMethod;
 
   /*!
-	 * Available choices:
-	 * KalmanFitter
-	 * KalmanFitterRefTrack
-	 * DafSimple
-	 * DafRef
-	 */
+   * Available choices:
+   * KalmanFitter
+   * KalmanFitterRefTrack
+   * DafSimple
+   * DafRef
+   */
   std::string m_FitAlgoName;
 
   double m_VertexMinNdf;
@@ -332,8 +332,8 @@ class PHG4TrackFastSim : public SubsysReco
   bool m_DoEvtDisplayFlag;
 
   /*!
-	 * For PseudoPatternRecognition function.
-	 */
+   * For PseudoPatternRecognition function.
+   */
 
   bool m_UseVertexInFittingFlag;
 

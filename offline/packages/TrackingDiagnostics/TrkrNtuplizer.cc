@@ -1557,10 +1557,13 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
 
   int vertexID = track->get_vertex_id();
   fX[n_track::ntrkvertexID] = vertexID;
-
+  
   if (vertexID >= 0&& vertexmap !=0)
   {
-
+    if(vertexmap->size()>100000){
+      cout << "too many vtx's" << endl;
+    }
+    /*
     auto vertexit = vertexmap->find(vertexID);
     if (vertexit != vertexmap->end())
       {
@@ -1581,7 +1584,10 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
 	fX[n_track::ntrkdca3dzsigma] = dcapair.second.second;
 	
       }
+    */
+
   }
+  
   fX[n_track::ntrkcharge] = track->get_charge();
   float px = track->get_px();
   float py = track->get_py();
@@ -1626,8 +1632,22 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
       float adc = cluster->getAdc();
       PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
       float thick = GeoLayer_local->get_thickness();
-
-      dedxlist.push_back(adc/thick);
+      
+      float r = GeoLayer_local->get_radius();
+      float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+      float beta = atan(tpcseed->get_slope());
+      float alphacorr = cos(alpha);
+      if(alphacorr<0||alphacorr>4){
+	alphacorr=4;
+      }
+      float betacorr = cos(beta);
+      if(betacorr<0||betacorr>4){
+	betacorr=4;
+      }
+      adc/=thick;
+      adc*=alphacorr;
+      adc*=betacorr;
+      dedxlist.push_back(adc);
       sort(dedxlist.begin(), dedxlist.end());
     }
     int trunc_min = 0;
@@ -1677,6 +1697,7 @@ void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_k
   float tbin = std::numeric_limits<float>::quiet_NaN();
   float locx = cluster->getLocalX();
   float locy = cluster->getLocalY();
+
   if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
   {
     int side_tpc = TpcDefs::getSide(cluster_key);

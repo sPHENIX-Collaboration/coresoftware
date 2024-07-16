@@ -68,7 +68,7 @@ pkginclude_HEADERS = \
   ClusKeyIter.h \
   TrackClusEvaluator.h \
   TrkrClusterIsMatcher.h \
-	TrkrClusLoc.h \
+  TrkrClusLoc.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \

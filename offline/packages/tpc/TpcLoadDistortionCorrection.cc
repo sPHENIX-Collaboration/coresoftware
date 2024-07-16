@@ -51,8 +51,12 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   // look for distortion calibration object
   PHNodeIterator iter(topNode);
 
-  std::cout << "TpcLoadDistortionCorrection::InitRun - m_phi_hist_in_radians: " << m_phi_hist_in_radians << std::endl;
-
+  std::cout << "TpcLoadDistortionCorrection::InitRun - m_flags: (i,in_use,radians,interpolate_z):";
+  for (int i=0; i<4; i++)
+  {
+    std::cout << "("<< i <<", "<<m_correction_in_use[i] << ", " << m_phi_hist_in_radians[i] << ", " << m_interpolate_z[i] << ")"<< std::endl;
+  }
+  
   /// Get the RUN node and check
   auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
@@ -105,10 +109,10 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     assert(distortion_correction_object->m_dimensions == 2 || distortion_correction_object->m_dimensions == 3);
 
     // assign whether phi corrections (DP) should be read as radians or mm
-    distortion_correction_object->m_phi_hist_in_radians = m_phi_hist_in_radians;
+    distortion_correction_object->m_phi_hist_in_radians = m_phi_hist_in_radians[i];
 
     // assign whether 2D corrections should be interpolated to zero at readout or not (has no effect on 3D corrections)
-    distortion_correction_object->m_interpolate_z = m_interpolate_z;
+    distortion_correction_object->m_interpolate_z = m_interpolate_z[i];
 
     if (Verbosity())
     {

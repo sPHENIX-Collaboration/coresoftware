@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 class SvtxTrack;
 class RawCluster;
@@ -39,36 +40,36 @@ class ParticleFlowElement : public PHObject
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
   virtual void set_id(unsigned int) { return; }
 
-  virtual ParticleFlowElement::PFLOWTYPE get_type() const {return ParticleFlowElement::PFLOWTYPE::UNASSIGNED; }
-  virtual void set_type( ParticleFlowElement::PFLOWTYPE ) { return; }
+  virtual ParticleFlowElement::PFLOWTYPE get_type() const { return ParticleFlowElement::PFLOWTYPE::UNASSIGNED; }
+  virtual void set_type(ParticleFlowElement::PFLOWTYPE) { return; }
 
-  virtual float get_px() const { return NAN; }
+  virtual float get_px() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_px(float) { return; }
 
-  virtual float get_py() const { return NAN; }
+  virtual float get_py() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_py(float) { return; }
 
-  virtual float get_pz() const { return NAN; }
+  virtual float get_pz() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_pz(float) { return; }
 
-  virtual float get_e() const { return NAN; }
+  virtual float get_e() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_e(float) { return; }
 
   virtual SvtxTrack* get_track() const { return nullptr; }
   virtual void set_track(SvtxTrack*) { return; }
-  
+
   virtual std::vector<RawCluster*> get_eclusters() const { return std::vector<RawCluster*>(); }
   virtual void set_eclusters(const std::vector<RawCluster*>&) { return; }
-  
+
   virtual RawCluster* get_hcluster() const { return nullptr; }
   virtual void set_hcluster(RawCluster*) { return; }
 
-  virtual float get_p() const { return NAN; }
-  virtual float get_pt() const { return NAN; }
-  virtual float get_et() const { return NAN; }
-  virtual float get_eta() const { return NAN; }
-  virtual float get_phi() const { return NAN; }
-  virtual float get_mass() const { return NAN; }
+  virtual float get_p() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_pt() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_et() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_eta() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_phi() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_mass() const { return std::numeric_limits<float>::quiet_NaN(); }
 
   ClassDefOverride(ParticleFlowElement, 1);
 };

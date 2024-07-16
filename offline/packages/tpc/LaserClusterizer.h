@@ -62,9 +62,11 @@ class LaserClusterizer : public SubsysReco
   void set_pedestal(float val) { m_pedestal = val; }
   void set_min_clus_size(float val) { min_clus_size = val; }
   void set_min_adc_sum(float val) { min_adc_sum = val; }
+  void set_max_time_samples(int val) { m_time_samples_max = val; }
 
  private:
   int m_event = -1;
+  int m_time_samples_max=360;
 
   TrkrHitSetContainer *m_hits = nullptr;
   RawHitSetContainer *m_rawhits = nullptr;
