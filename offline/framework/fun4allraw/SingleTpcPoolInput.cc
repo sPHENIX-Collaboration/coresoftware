@@ -175,7 +175,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
 
         // Temp remedy as we set the time window as 425 for now (extended from previous 360
         // due to including of diffused laser flush)
-        const uint16_t samples = 425;
+        const uint16_t samples = m_max_tpc_time_samples;
 
         newhit->set_samples(samples);
 
