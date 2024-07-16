@@ -489,7 +489,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       int glbl_label[AlignmentDefs::NGL];
       if (layer < 3)
       {
-        AlignmentDefs::getMvtxGlobalLabels(surf, glbl_label, mvtx_grp);
+        AlignmentDefs::getMvtxGlobalLabels(surf, cluskey, glbl_label, mvtx_grp);
       }
       else if (layer > 2 && layer < 7)
       {
@@ -641,30 +641,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         }
       }
 
-      /*
-      // add some cluster cuts
-      if (residual(0) > 1.0)
-      {
-        continue;  // 2 mm cut
-      }
-      if (residual(1) > 1.0)
-      {
-        continue;  // 2 mm cut
-      }
-      */
-
       if (!isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
       {
-	if(layer > 2 && layer < 7)
-	  { 
-	    unsigned int phiid = InttDefs::getLadderPhiId(cluskey_vec[ivec]);
-	    unsigned int zid = InttDefs::getLadderZId(cluskey_vec[ivec]);
-	    double radius = sqrt(global(0)*global(0)+global(1)*global(1));
-
-	    std::cout << " layer " << layer << " phiid " << phiid << " zid " << zid << " glbl_label " << glbl_label[0] << "  " << glbl_label[1] << "  " << glbl_label[2] 
-		      << "  " << glbl_label[3] << "  " << glbl_label[4] << "  " << glbl_label[5] << " radius " << radius << std::endl; 
-	  }
-
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
       }
       //if (!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
@@ -712,7 +690,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       
 
       }
-      if (Verbosity() > -1)
+      if (Verbosity() > 1)
       {
         std::cout << "vertex info for track " << trackid << " with charge " << newTrack.get_charge() << std::endl;
 

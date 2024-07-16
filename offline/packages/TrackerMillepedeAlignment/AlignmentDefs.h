@@ -56,6 +56,7 @@ namespace AlignmentDefs
 
   int getTpcRegion(int layer);
   void getMvtxGlobalLabels(const Surface& surf, int glbl_label[], mvtxGrp grp);
+  void getMvtxGlobalLabels(const Surface& surf, TrkrDefs::cluskey cluskey, int glbl_label[], mvtxGrp grp);
   void getInttGlobalLabels(const Surface& surf, int glbl_label[], inttGrp grp);
   void getInttGlobalLabels(const Surface& surf, TrkrDefs::cluskey cluskey, int glbl_label[], inttGrp grp);
   void getTpcGlobalLabels(const Surface& surf, TrkrDefs::cluskey cluskey, int glbl_label[], tpcGrp grp);
