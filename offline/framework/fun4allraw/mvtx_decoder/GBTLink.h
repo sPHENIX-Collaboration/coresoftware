@@ -257,6 +257,8 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
     rdh.decode(rdh_start);
     if (! rdh.checkRDH(true) )
     {
+      dataOffset = currRawPiece->size;
+      ++hbf_count;
       continue;
     }
 

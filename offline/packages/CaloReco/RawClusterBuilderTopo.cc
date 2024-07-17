@@ -354,6 +354,8 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   _do_split = true;
   _R_shower = 0.025;
 
+  _only_good_towers = true;
+
   _local_max_minE_LAYER[0] = 1;
   _local_max_minE_LAYER[1] = 1;
   _local_max_minE_LAYER[2] = 1;
@@ -493,6 +495,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     for (unsigned int iEM = 0; iEM < towerinfosEM->size(); iEM++)
     {
       towerInfo = towerinfosEM->get_tower_at_channel(iEM);
+      if(_only_good_towers && (!towerInfo->get_isGood()))
+      {
+        continue;
+      }
       unsigned int towerinfo_key = towerinfosEM->encode_key(iEM);
       int ti_ieta = towerinfosEM->getTowerEtaBin(towerinfo_key);
       int ti_iphi = towerinfosEM->getTowerPhiBin(towerinfo_key);
@@ -533,6 +539,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     for (unsigned int iIH = 0; iIH < towerinfosIH->size(); iIH++)
     {
       towerInfo = towerinfosIH->get_tower_at_channel(iIH);
+      if(_only_good_towers && (!towerInfo->get_isGood()))
+      {
+        continue;
+      }
       unsigned int towerinfo_key = towerinfosIH->encode_key(iIH);
       int ti_ieta = towerinfosIH->getTowerEtaBin(towerinfo_key);
       int ti_iphi = towerinfosIH->getTowerPhiBin(towerinfo_key);
@@ -568,6 +578,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     for (unsigned int iOH = 0; iOH < towerinfosOH->size(); iOH++)
     {
       towerInfo = towerinfosOH->get_tower_at_channel(iOH);
+      if(_only_good_towers && (!towerInfo->get_isGood()))
+      {
+        continue;
+      }
       unsigned int towerinfo_key = towerinfosOH->encode_key(iOH);
       int ti_ieta = towerinfosOH->getTowerEtaBin(towerinfo_key);
       int ti_iphi = towerinfosOH->getTowerPhiBin(towerinfo_key);

@@ -202,6 +202,17 @@ void PHActsTrackProjection::getClusterProperties(double phi,
                                                  double& minE)
 {
   double minR = DBL_MAX;
+  if(!m_clusterContainer)
+  {
+    if(Verbosity() > 1)
+    {
+      std::cout << PHWHERE
+                << "Calo cluster container "
+                << "not found. getClusterProperties will not return any information."
+                << std::endl;
+    }
+    return;
+  }
   auto clusterMap = m_clusterContainer->getClustersMap();
   for (const auto& [key, cluster] : clusterMap)
   {
@@ -283,7 +294,7 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,
 
   m_towerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, towerGeoNodeName.c_str());
 
-  m_towerContainer = findNode::getClass<TowerInfoContainerv1>(topNode, towerNodeName.c_str());
+  m_towerContainer = findNode::getClass<TowerInfoContainer>(topNode, towerNodeName.c_str());
 
   m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, clusterNodeName.c_str());
 
@@ -294,7 +305,15 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,
     m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, nodeName.c_str());
   }
 
-  if (!m_towerGeomContainer or !m_towerContainer or !m_clusterContainer)
+  if((!m_clusterContainer) && (Verbosity() > 1))
+  {
+    std::cout << PHWHERE
+              << "Calo cluster container for " << m_caloNames.at(caloLayer)
+              << "not found on node tree. Track projections to calos WILL be filled."
+              << std::endl;
+  }
+
+  if (!m_towerGeomContainer or !m_towerContainer)
   {
     if (m_calosAvailable)
     {
@@ -359,9 +378,9 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
         Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
                                                          caloRadius,
                                                          halfZ);
-    std::shared_ptr<Acts::CylinderSurface> outer_surf = 
-        Acts::Surface::makeShared<Acts::CylinderSurface>(transform, 
-                                                         caloOuterRadius, 
+    std::shared_ptr<Acts::CylinderSurface> outer_surf =
+        Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
+                                                         caloOuterRadius,
                                                          halfZOuter);
     if (Verbosity() > 1)
     {

@@ -18,6 +18,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <boost/format.hpp>
+
 #include <iostream>
 
 //____________________________________________________________________________..
@@ -25,9 +27,6 @@ FillTruthRecoMatchMap::FillTruthRecoMatchMap(const std::string &name)
   : SubsysReco(name)
 {
 }
-
-//____________________________________________________________________________..
-FillTruthRecoMatchMap::~FillTruthRecoMatchMap() = default;
 
 //____________________________________________________________________________..
 int FillTruthRecoMatchMap::Init(PHCompositeNode *topNode)
@@ -162,12 +161,10 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
 
     if (Verbosity() > 20)
     {
-      printf("EmbRecoMatch: gtrackID(%2i) id_reco(%2i) nclusters:match(%i),gtrack(%2i),reco(%2i)\n",
-             gtrackID, (int) id_reco, (int) n_match, (int) n_truth, (int) n_reco);
-      printf("   -> in SvtxPHG4ParticleMap {id_reco->{weight->id_true}} = {%2i->{%5.2f->%2i}}\n",
-             (int) id_reco, weight_RtoT, (int) gtrackID);
-      printf("   -> in PHG4ParticleSvtxMap {id_true->{weight->id_reco}} = {%2i->{%5.2f->%2i}}\n",
-             gtrackID, weight_TtoR, (int) id_reco);
+      std::cout << (boost::format("EmbRecoMatch: gtrackID(%2i) id_reco(%2i) nclusters:match(%i),gtrack(%2i),reco(%2i)") % gtrackID % ((int) id_reco) % ((int) n_match) % ((int) n_truth) % ((int) n_reco)).str()
+                << std::endl;
+      std::cout << (boost::format("   -> in SvtxPHG4ParticleMap {id_reco->{weight->id_true}} = {%2i->{%5.2f->%2i}}") % ((int) id_reco) % weight_RtoT % ((int) gtrackID)).str() << std::endl;
+      std::cout << (boost::format("   -> in PHG4ParticleSvtxMap {id_true->{weight->id_reco}} = {%2i->{%5.2f->%2i}}") % gtrackID % weight_TtoR % ((int) id_reco)).str() << std::endl;
     }
   }
 
@@ -190,18 +187,18 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
     std::cout << " --BEGIN-- Contents of SvtxPHG4ParticleMap: " << std::endl;
     for (auto &iter : *m_SvtxPHG4ParticleMap)
     {
-      printf("    { %2i ", (int) iter.first);  // id_reco
+      std::cout << (boost::format("    { %2i ") % ((int) iter.first)).str();  // id_reco
       auto n_matches = iter.second.size();
       long unsigned int cnt_matches = 0;
       for (const auto &matches : iter.second)
       {
         if (cnt_matches == 0)
         {
-          printf("-> { %5.2f -> ", matches.first);
+          std::cout << (boost::format("-> { %5.2f -> ") % matches.first).str();
         }
         else
         {
-          printf("         -> { %5.2f -> ", matches.first);
+          std::cout << (boost::format("         -> { %5.2f -> ") % matches.first).str();
         }
         auto size = matches.second.size();
         long unsigned int i = 0;
@@ -209,21 +206,21 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
         {
           if (i < size - 1)
           {
-            printf("%2i, ", id_true);
+            std::cout << (boost::format("%2i, ") % id_true).str();
           }
           else
           {
-            printf("%2i }", id_true);
+            std::cout << (boost::format("%2i }") % id_true).str();
           }
           ++i;
         }  // end matches cnt
         if (cnt_matches < (n_matches - 1))
         {
-          printf(",\n");
+          std::cout << "," << std::endl;
         }
         else
         {
-          printf("}\n");
+          std::cout << "}" << std::endl;
         }
         ++cnt_matches;
       }
@@ -234,18 +231,18 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
     std::cout << " --BEGIN-- Contents of PHG4ParticleToRecoMap: " << std::endl;
     for (auto &iter : *m_PHG4ParticleSvtxMap)
     {
-      printf("    { %2i ", iter.first);  // id_true
+      std::cout << (boost::format("    { %2i ") % iter.first).str();  // id_true
       auto n_matches = iter.second.size();
       long unsigned int cnt_matches = 0;
       for (const auto &matches : iter.second)
       {
         if (cnt_matches == 0)
         {
-          printf("-> { %5.2f -> ", matches.first);
+          std::cout << (boost::format("-> { %5.2f -> ") % matches.first).str();
         }
         else
         {
-          printf("         -> { %5.2f -> ", matches.first);
+          std::cout << (boost::format("         -> { %5.2f -> ") % matches.first).str();
         }
         auto size = matches.second.size();
         long unsigned int i = 0;
@@ -253,21 +250,21 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
         {
           if (i < size - 1)
           {
-            printf("%2i, ", id_reco);
+            std::cout << (boost::format("%2i, ") % id_reco).str();
           }
           else
           {
-            printf("%2i }", id_reco);
+            std::cout << (boost::format("%2i }") % id_reco).str();
           }
           ++i;
         }  // end matches cnt
         if (cnt_matches < (n_matches - 1))
         {
-          printf(",\n");
+          std::cout << "," << std::endl;
         }
         else
         {
-          printf("}\n");
+          std::cout << "}" << std::endl;
         }
         ++cnt_matches;
       }

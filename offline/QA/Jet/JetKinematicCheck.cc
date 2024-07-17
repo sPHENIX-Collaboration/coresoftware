@@ -95,7 +95,10 @@ int JetKinematicCheck::Init(PHCompositeNode * /*unused*/)
   for (auto &vecHistName : vecHistNames)
   {
     vecHistName.insert(0, "h_" + smallModuleName + "_");
-    if (!m_histTag.empty()) vecHistName.append("_" + m_histTag);
+    if (!m_histTag.empty())
+    {
+      vecHistName.append("_" + m_histTag);
+    }
   }
 
   // initialize histograms
@@ -318,8 +321,8 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg1->SetFillStyle(0);
   leg1->SetBorderSize(0);
   leg1->SetTextSize(0.06);
-  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]")% m_ptRange.first% m_ptRange.second).c_str(),"");
-  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%")% m_etaRange.first % m_etaRange.second).c_str(), "");
+  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg1->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_spectra_r02->SetMarkerStyle(8);
   jet_spectra_r02->SetMarkerColor(1);
   jet_spectra_r02->SetLineColor(1);
@@ -348,7 +351,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg3->SetFillStyle(0);
   leg3->SetBorderSize(0);
   leg3->SetTextSize(0.06);
-  leg3->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]")%  m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg3->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
   leg3->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_spectra_r04->SetMarkerStyle(8);
   jet_spectra_r04->SetMarkerColor(1);
@@ -363,7 +366,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg4->SetFillStyle(0);
   leg4->SetBorderSize(0);
   leg4->SetTextSize(0.06);
-  leg4->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]")%  m_ptRange.first % m_ptRange.second).c_str(), "");
+  leg4->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
   leg4->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_spectra_r05->SetMarkerStyle(8);
   jet_spectra_r05->SetMarkerColor(1);
@@ -401,7 +404,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg7->SetBorderSize(0);
   leg7->SetTextSize(0.06);
   leg7->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg7->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first %  m_etaRange.second).c_str(), "");
+  leg7->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_eta_phi_r04->SetStats(false);
   jet_eta_phi_r04->SetTitle("Jet Eta-Phi [R = 0.4]");
   jet_eta_phi_r04->GetListOfFunctions()->Add(leg7);
@@ -412,7 +415,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg8->SetBorderSize(0);
   leg8->SetTextSize(0.06);
   leg8->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg8->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first %  m_etaRange.second).c_str(), "");
+  leg8->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_eta_phi_r05->SetStats(false);
   jet_eta_phi_r05->SetTitle("Jet Eta-Phi [R = 0.5]");
   jet_eta_phi_r05->GetListOfFunctions()->Add(leg8);
@@ -478,7 +481,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg13->SetFillStyle(0);
   leg13->SetBorderSize(0);
   leg13->SetTextSize(0.06);
-  leg13->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first%  m_ptRange.second).c_str(), "");
+  leg13->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
   leg13->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_pt_r04->SetStats(false);
   jet_mass_pt_r04->SetTitle("Jet Mass vs p_{T} [R = 0.4]");
@@ -506,7 +509,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg15->SetFillStyle(0);
   leg15->SetBorderSize(0);
   leg15->SetTextSize(0.06);
-  leg15->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first%  m_ptRange.second).c_str(), "");
+  leg15->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
   leg15->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_pt_r05->SetStats(false);
   jet_mass_pt_r05->SetTitle("Jet Mass vs p_{T} [R = 0.5]");
@@ -574,7 +577,7 @@ int JetKinematicCheck::End(PHCompositeNode * /*unused*/)
   leg20->SetBorderSize(0);
   leg20->SetTextSize(0.06);
   leg20->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < p_{T} < %2% [GeV/c]") % m_ptRange.first % m_ptRange.second).c_str(), "");
-  leg20->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first %  m_etaRange.second).c_str(), "");
+  leg20->AddEntry((TObject *) nullptr, boost::str(boost::format("%1% < #eta < %2%") % m_etaRange.first % m_etaRange.second).c_str(), "");
   jet_mass_eta_1D_r03 = (TH1D *) jet_mass_eta_r03->ProfileX();
   jet_mass_eta_1D_r03->SetStats(false);
   jet_mass_eta_1D_r03->SetTitle("Average Jet Mass vs #eta [R = 0.3]");
