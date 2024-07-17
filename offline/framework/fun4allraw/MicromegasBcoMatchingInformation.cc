@@ -93,6 +93,9 @@ namespace
   //! copied from micromegas/MicromegasDefs.h, not available here
   static constexpr int m_nchannels_fee = 256;
 
+  //! max number of dropped waveforms before re-synching
+  static constexpr uint32_t m_waveform_count_dropped_max = 100;
+
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
   {
@@ -399,26 +402,41 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t
       return gtm_bco;
     } else {
 
-      if(verbosity() && m_orphans.insert(fee_bco).second)
+      if( m_orphans.insert(fee_bco).second)
       {
 
-        // find element for which predicted fee_bco is the closest to request
-        const auto iter2 = std::min_element(
-          m_gtm_bco_list.begin(),
-          m_gtm_bco_list.end(),
-          [this, fee_bco]( const uint64_t& first, const uint64_t& second )
-          { return get_bco_diff( get_predicted_fee_bco(first).value(), fee_bco ) <  get_bco_diff( get_predicted_fee_bco(second).value(), fee_bco ); } );
+        if( verbosity() )
+        {
+          // find element for which predicted fee_bco is the closest to request
+          const auto iter2 = std::min_element(
+            m_gtm_bco_list.begin(),
+            m_gtm_bco_list.end(),
+            [this, fee_bco]( const uint64_t& first, const uint64_t& second )
+            { return get_bco_diff( get_predicted_fee_bco(first).value(), fee_bco ) <  get_bco_diff( get_predicted_fee_bco(second).value(), fee_bco ); } );
 
-        const int fee_bco_diff = (iter2 != m_gtm_bco_list.end()) ?
-          get_bco_diff( get_predicted_fee_bco(*iter2).value(), fee_bco ):-1;
+          const int fee_bco_diff = (iter2 != m_gtm_bco_list.end()) ?
+            get_bco_diff( get_predicted_fee_bco(*iter2).value(), fee_bco ):-1;
 
-        std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco -"
-          << std::hex
-          << " fee_bco: 0x" << fee_bco
-          << std::dec
-          << " gtm_bco: none"
-          << " difference: " << fee_bco_diff
-          << std::endl;
+          std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco -"
+            << std::hex
+            << " fee_bco: 0x" << fee_bco
+            << std::dec
+            << " gtm_bco: none"
+            << " difference: " << fee_bco_diff
+            << std::endl;
+        }
+
+        // increment number of dropped fee
+        ++m_waveform_count_dropped;
+
+        // check against max allowed value
+        if( m_waveform_count_dropped > m_waveform_count_dropped_max )
+        {
+          m_waveform_count_dropped = 0;
+          m_verified = false;
+          std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco - too many dropped waveforms, forcing re-synchronization" << std::endl;
+        }
+
       }
       return std::nullopt;
     }
