@@ -94,6 +94,9 @@ class MicromegasBcoMatchingInformation
   //! verified
   bool m_verified = false;
 
+  //! keep track of number of unassociated GTM bco
+  uint32_t m_waveform_count_dropped = 0;
+  
   //! first lvl1 bco (40 bits)
   uint64_t m_gtm_bco_first = 0;
 
