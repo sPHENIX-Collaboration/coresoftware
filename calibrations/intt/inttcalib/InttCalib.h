@@ -21,7 +21,7 @@ class InttCalib : public SubsysReco
 {
  public:
   InttCalib(std::string const& = "InttCalib");
-  ~InttCalib() override = default;
+  ~InttCalib() override;
 
   int Init();
 
@@ -57,14 +57,17 @@ class InttCalib : public SubsysReco
   int MakeBcoMapCdb();
   int MakeBcoMapPng();
 
-  int ConfigureHist(TH1D*&, TF1*&, std::map<double, int> const&, std::string const&);
+  int ConfigureHist(TH1D*&, TF1*&, std::map<double, int> const&, std::string const&, std::string const&);
   int adjust_hitrate(InttMap::Offline_s const&, double&) const;
+  int GetIndex(InttMap::RawData_s const&, InttMap::Offline_s const&) const;
 
   Color_t GetFeeColor(int) const;
 
   int m_evts{0};
   int m_run_num{0};
 
+  // int static const m_MAX_INDEX = 32;
+  int static const m_MAX_INDEX = 8;
   double static constexpr m_NUM_CHANNELS = 8 * 14 * 26 * 128;
   double static constexpr m_NUM_SIGMA = 3.0;
 
@@ -86,10 +89,10 @@ class InttCalib : public SubsysReco
   std::array<std::array<std::array<std::array<std::array<double, 129>, 128>, 26>, 14>, 8> m_hitmap{};
 
   // TH1D* m_hist[8][14]
-  std::array<TH1D*, 5> m_hist{};
-  std::array<TF1*, 5> m_fit{};
-  std::array<double, 5> m_min{};
-  std::array<double, 5> m_max{};
+  std::array<TH1D*, m_MAX_INDEX> m_hist{};
+  std::array<TF1*, m_MAX_INDEX> m_fit{};
+  std::array<double, m_MAX_INDEX> m_min{};
+  std::array<double, m_MAX_INDEX> m_max{};
 
   std::map<double, double> m_hitrates;
   std::map<double, double> m_invcdf;
