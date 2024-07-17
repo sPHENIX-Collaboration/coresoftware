@@ -34,6 +34,18 @@ InttCalib::InttCalib(const std::string& name)
 {
 }
 
+InttCalib::~InttCalib()
+{
+  for(auto& hist : m_hist)
+  {
+    delete hist;
+  }
+  for(auto& fit : m_fit)
+  {
+    delete fit;
+  }
+}
+
 int InttCalib::Init()
 {
   m_evts = 0;
@@ -147,101 +159,50 @@ int InttCalib::EndRun(int const run_number)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int InttCalib::SaveHitrates()
-{
-  TFile* file = TFile::Open("/sphenix/user/jbertaux/hitrates.root", "RECREATE");
-  if(!file)
-  {
-    std::cerr << "\n" << PHWHERE << "\n\tfile\n" << std::endl;
-	return 1;
-  }
-  file->cd();
-  TTree* tree = new TTree("hitrate_tree", "hitrate_tree");
-  tree->SetDirectory(file);
-
-  InttMap::RawData_s raw;
-  tree->Branch("pid", &raw.pid);
-  tree->Branch("fee", &raw.fee);
-  tree->Branch("chp", &raw.chp);
-  tree->Branch("chn", &raw.chn);
-
-  double hitrate;
-  tree->Branch("hitrate", &hitrate);
-
-  for(raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
-  {
-    hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-	tree->Fill();
-  }
-
-  tree->Write();
-  file->Write();
-  file->Close();
-
-  return 0;
-}
-
-int InttCalib::LoadHitrates()
-{
-  TFile* file = TFile::Open("/sphenix/user/jbertaux/hitrates.root", "READ");
-  if(!file)
-  {
-    std::cerr << "\n" << PHWHERE << "\n\tfile\n" << std::endl;
-	return 1;
-  }
-
-  TTree* tree = dynamic_cast<TTree*>(file->Get("hitrate_tree"));
-  if(!tree)
-  {
-    std::cerr << "\n" << PHWHERE << "\n\ttree\n" << std::endl;
-	return 1;
-  }
-
-  InttMap::RawData_s raw;
-  tree->SetBranchAddress("pid", &raw.pid);
-  tree->SetBranchAddress("fee", &raw.fee);
-  tree->SetBranchAddress("chp", &raw.chp);
-  tree->SetBranchAddress("chn", &raw.chn);
-
-  double hitrate;
-  tree->SetBranchAddress("hitrate", &hitrate);
-
-  for(Int_t n = 0, N = tree->GetEntriesFast(); n < N; ++n)
-  {
-    tree->GetEntry(n);
-    m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] = hitrate;
-  }
-
-  m_evts = 1.0;
-
-  return 0;
-}
 
 int InttCalib::ConfigureHotMap_v2()
 {
-  std::map<double, int> hitrate_pdf[5];
-  std::string name[5] = {"inner_a", "inner_b", "outer_a", "outer_b", "entire"};
+  std::map<double, int> hitrate_pdf[m_MAX_INDEX];
+  std::string name[m_MAX_INDEX], title[m_MAX_INDEX];
+  for(int i = 0; i < m_MAX_INDEX; ++i)
+  {
+    name[i] = (boost::format("intt%01d") % (i / 4)).str();
+	title[i] = name[i];
+	switch(i % 4)
+	{
+    case 0:
+      name[i] += "_inner_a";
+	  break;
+    case 1:
+      name[i] += "_inner_b";
+	  break;
+    case 2:
+      name[i] += "_outer_a";
+	  break;
+    case 3:
+      name[i] += "_outer_b";
+	  break;
+	}
+  }
 
   for(InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
   {
     double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
 
-    int index = 0;
-	index += (ofl.layer < 5) ? 0 : 2; // +2 for outer
-	index += (ofl.ladder_z % 2) ? 0 : 1; // +1 for type B
+    int index = GetIndex(raw, ofl);
 
 	++hitrate_pdf[index][hitrate];
-	++hitrate_pdf[4][hitrate];
   }
 
-  for(int i = 4; i >= 0; --i)
+  for(int i = 0; i < m_MAX_INDEX; ++i)
   {
     ConfigureHist (
       m_hist[i],
       m_fit[i],
       hitrate_pdf[i],
-      name[i]
+      name[i],
+      title[i]
     );
 
 	double mean = m_fit[i]->GetParameter(1);
@@ -270,9 +231,7 @@ int InttCalib::MakeHotMapCdb_v2()
     double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
 
-    int index = 0;
-	index += (ofl.layer < 5) ? 0 : 2; // +2 for outer
-	index += (ofl.ladder_z % 2) ? 0 : 1; // +1 for type B
+    int index = GetIndex(raw, ofl);
 
 	if(m_min[index] < hitrate && hitrate < m_max[index])
 	{
@@ -296,69 +255,131 @@ int InttCalib::MakeHotMapCdb_v2()
 
 int InttCalib::MakeHotMapPng_v2()
 {
-  std::string name[5] = {"inner_a", "inner_b", "outer_a", "outer_b", "entire"};
-
-  // make png
+  // canvas
+  gStyle->SetOptStat(0);
   TCanvas* cnvs = new TCanvas (
-    "cnvs",   //
-    "cnvs",   //
+    "hitrate_cnvs",   //
+    "hitrate_cnvs",   //
     1280, 720 //
   );
 
-  cnvs->cd();
-  TPad* hist_pad = new TPad (
-    "hist_pad", "hist_pad",
-    0.0, 0.0,
-	0.8, 1.0
-  );
-  hist_pad->SetFillStyle(4000);
-  hist_pad->Range(0.0, 0.0, 1.0, 1.0);
-  hist_pad->Draw();
-
-  hist_pad->cd();
-  for(int i = 4; i >= 0; --i)
+  for (int j = 0; j < 8; ++j)
   {
-	m_hist[i]->SetLineColor(5 - i);
-	m_hist[i]->SetLineWidth(2);
-	m_hist[i]->Draw("same");
+    std::string name = (boost::format("hist_pad_%01d") % j).str();
 
-	m_fit[i]->SetLineColor(5 - i);
-	m_fit[i]->SetLineWidth(2);
-	m_fit[i]->Draw("same");
+    cnvs->cd();
+    TPad* hist_pad = new TPad(                                            //
+        name.c_str(), name.c_str(),                                       //
+        (j % 4 + 0.0) / 4.0 * 0.9 + 0.0, (1.0 - j / 4) / 2.0 * 0.9 + 0.1, //
+        (j % 4 + 1.0) / 4.0 * 0.9 + 0.0, (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
+	);
 
-    double y_max = m_hist[4]->GetBinContent(m_hist[4]->GetMaximumBin());
+    hist_pad->SetFillStyle(4000);
+    hist_pad->Range(0.0, 0.0, 1.0, 1.0);
+    hist_pad->SetLogy();
+    hist_pad->Draw();
 
-	TLine line;
-	line.SetLineColor(5 - i);
-	line.SetLineWidth(2);
-    line.DrawLine(m_min[i], 0, m_min[i], y_max);
-    line.DrawLine(m_max[i], 0, m_max[i], y_max);
+    hist_pad->cd();
+    double x_max = 0, y_max = 0;
+    for(int i = j * 4; i < (j + 1) * 4; ++i)
+    {
+      m_hist[i]->SetLineColor(GetFeeColor(i - j * 4));
+      m_hist[i]->SetLineWidth(2);
+
+      m_fit[i]->SetLineColor(GetFeeColor(i - j * 4));
+      m_fit[i]->SetLineWidth(2);
+
+      double temp_max;
+
+      temp_max = m_hist[i]->GetBinContent(m_hist[i]->GetMaximumBin());
+      if(y_max < temp_max)y_max = temp_max;
+
+      temp_max = m_hist[i]->GetXaxis()->GetBinLowEdge(m_hist[i]->GetXaxis()->GetNbins() - 1);
+      temp_max += m_hist[i]->GetXaxis()->GetBinWidth(m_hist[i]->GetXaxis()->GetNbins() - 1);
+      if(x_max < temp_max)x_max = temp_max;
+    }
+    y_max *= 10;
+
+    for(int i = j * 4; i < (j + 1) * 4; ++i)
+    {
+      m_hist[i]->GetXaxis()->SetRangeUser(0, x_max);
+      m_hist[i]->GetYaxis()->SetRangeUser(1, y_max);
+      m_hist[i]->Draw("same");
+      m_fit[i]->Draw("same");
+
+      TLine line;
+      line.SetLineColor(GetFeeColor(i - j * 4));
+      line.SetLineWidth(2);
+      line.DrawLine(m_min[i], 0, m_min[i], y_max);
+      line.DrawLine(m_max[i], 0, m_max[i], y_max);
+    }
   }
 
   cnvs->cd();
-  TPad* lgnd_pad = new TPad (
-    "lgnd_pad", "lgnd_pad",
-    0.8, 0.0,
+  TPad* legend_pad = new TPad (
+    "legend_pad", "legend_pad",
+    0.9, 0.1,
 	1.0, 1.0
   );
-  lgnd_pad->SetFillStyle(4000);
-  lgnd_pad->Range(0.0, 0.0, 1.0, 1.0);
-  lgnd_pad->Draw();
+  legend_pad->SetFillStyle(4000);
+  legend_pad->Range(0.0, 0.0, 1.0, 1.0);
+  legend_pad->Draw();
 
-  lgnd_pad->cd();
-  for(int i = 4; i >= 0; --i)
+  legend_pad->cd();
+  for(int i = 0; i < 4; ++i)
   {
     TText text;
-	text.SetTextColor(5 - i);
+	text.SetTextColor(GetFeeColor(i));
 	text.SetTextAlign(22);
-	text.SetTextSize(0.2);
-	text.DrawText(0.5, 0.1 + i * 0.2, name[i].c_str());
+	text.SetTextSize(0.15);
+	std::string title = m_hist[i]->GetName();
+	text.DrawText(0.5, (2.0 * i + 1.0) / (2.0 * 4), title.substr(6, 7).c_str());
   }
+
+  // count how many are cold/hot
+  double n_hot = 0, n_cold = 0, n_total = 0;
+  for(InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  {
+    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+
+    int index = GetIndex(raw, ofl);
+
+	if(!(m_min[index] < hitrate))++n_hot;
+    if(!(hitrate < m_max[index]))++n_cold;
+	++n_total;
+  }
+
+  cnvs->cd();
+  TPad* caption_pad = new TPad (
+    "caption_pad", "caption_pad",
+    0.0, 0.0,
+	1.0, 0.1
+  );
+  caption_pad->SetFillStyle(4000);
+  caption_pad->Range(0.0, 0.0, 1.0, 1.0);
+  caption_pad->Draw();
+
+  caption_pad->cd();
+  TText caption;
+  caption.SetTextColor(kBlack);
+  caption.SetTextAlign(22);
+  caption.SetTextSize(0.25);
+  caption.DrawText(0.5, 0.75, (boost::format("Run: %08d Events: %d") % m_run_num % m_evts).str().c_str());
+  caption.DrawText(0.5, 0.50, (boost::format("Fraction Cold: %.3lf%%") % (n_cold * 100 / n_total)).str().c_str());
+  caption.DrawText(0.5, 0.25, (boost::format("Fraction Hot: %.3lf%%") % (n_hot * 100 / n_total)).str().c_str());
 
   cnvs->Update();
   cnvs->Show();
 
-  return 0;
+  if (!m_hotmap_png_file.empty())
+  {
+    cnvs->SaveAs(m_hotmap_png_file.c_str());
+  }
+
+  delete cnvs;
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int InttCalib::ConfigureHotMap()
@@ -562,7 +583,7 @@ int InttCalib::MakeHotMapPng()
       "hitrate_cdf_pad", "hitrate_cdf_pad",  //
       0.5, 0.2, 1.0, 1.0                     //
   );
-  hitrate_cdf_pad->SetLogy();
+  // hitrate_cdf_pad->SetLogy();
   hitrate_cdf_pad->SetFillStyle(4000);  // transparent
   hitrate_cdf_pad->Range(0.0, 0.0, 1.0, 1.0);
   hitrate_cdf_pad->Draw();
@@ -868,7 +889,77 @@ void InttCalib::Debug()
   MakeHotMapPng_v2();
 }
 
-int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const& hitrate_map, std::string const& name)
+int InttCalib::SaveHitrates()
+{
+  TFile* file = TFile::Open("/sphenix/user/jbertaux/hitrates.root", "RECREATE");
+  if(!file)
+  {
+    std::cerr << "\n" << PHWHERE << "\n\tfile\n" << std::endl;
+	return 1;
+  }
+  file->cd();
+  TTree* tree = new TTree("hitrate_tree", "hitrate_tree");
+  tree->SetDirectory(file);
+
+  InttMap::RawData_s raw;
+  tree->Branch("pid", &raw.pid);
+  tree->Branch("fee", &raw.fee);
+  tree->Branch("chp", &raw.chp);
+  tree->Branch("chn", &raw.chn);
+
+  double hitrate;
+  tree->Branch("hitrate", &hitrate);
+
+  for(raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  {
+    hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+	tree->Fill();
+  }
+
+  tree->Write();
+  file->Write();
+  file->Close();
+
+  return 0;
+}
+
+int InttCalib::LoadHitrates()
+{
+  TFile* file = TFile::Open("/sphenix/user/jbertaux/hitrates.root", "READ");
+  if(!file)
+  {
+    std::cerr << "\n" << PHWHERE << "\n\tfile\n" << std::endl;
+	return 1;
+  }
+
+  TTree* tree = dynamic_cast<TTree*>(file->Get("hitrate_tree"));
+  if(!tree)
+  {
+    std::cerr << "\n" << PHWHERE << "\n\ttree\n" << std::endl;
+	return 1;
+  }
+
+  InttMap::RawData_s raw;
+  tree->SetBranchAddress("pid", &raw.pid);
+  tree->SetBranchAddress("fee", &raw.fee);
+  tree->SetBranchAddress("chp", &raw.chp);
+  tree->SetBranchAddress("chn", &raw.chn);
+
+  double hitrate;
+  tree->SetBranchAddress("hitrate", &hitrate);
+
+  for(Int_t n = 0, N = tree->GetEntriesFast(); n < N; ++n)
+  {
+    tree->GetEntry(n);
+    m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] = hitrate;
+  }
+
+  m_evts = 1.0;
+
+  return 0;
+}
+
+int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const& hitrate_map, std::string const& name, std::string const& title)
 {
   // quartiles (less sentive to outliers, better to configure with)
   double N_entries = 0.0;
@@ -931,8 +1022,8 @@ int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const
   // Make hist
   delete hist;
   hist = new TH1D (           //
-    (name + "_hist").c_str(), //
-    (name + "_hist").c_str(), //
+    (name + " hitrates").c_str(), //
+    title.c_str(), //
 	n_edges - 1, bins         //
   );
   delete[] bins;
@@ -949,7 +1040,7 @@ int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const
   fit = new TF1 (            //
     (name + "_fit").c_str(), //
 	"gaus",                  //
-	lower, upper             //
+	std::next(hitrate_map.begin())->first, upper             //
   );
 
   fit->SetParameter(0, N_entries);                   // normalization
@@ -987,6 +1078,15 @@ int InttCalib::adjust_hitrate(InttMap::Offline_s const& ofl, double& hitrate) co
   return 0;
 }
 
+int InttCalib::GetIndex(InttMap::RawData_s const& raw, InttMap::Offline_s const& ofl) const
+{
+	int index = 0;
+	index += (raw.pid - 3001) * 4;
+	index += (ofl.layer < 5) ? 0 : 2; // +2 for outer
+	index += (ofl.ladder_z % 2) ? 0 : 1; // +1 for type B
+	return index;
+}
+
 Color_t InttCalib::GetFeeColor(int fee) const
 {
   switch (fee % 7)
@@ -996,9 +1096,9 @@ Color_t InttCalib::GetFeeColor(int fee) const
   case 2:
     return kGreen;
   case 3:
-    return kYellow;
-  case 4:
     return kBlue;
+  case 4:
+    return kOrange;
   case 5:
     return kMagenta;
   case 6:
