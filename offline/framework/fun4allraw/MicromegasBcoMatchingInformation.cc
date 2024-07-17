@@ -127,7 +127,7 @@ double MicromegasBcoMatchingInformation::m_multiplier = 4.262916255;
 std::optional<uint32_t> MicromegasBcoMatchingInformation::get_predicted_fee_bco( uint64_t gtm_bco ) const
 {
   // check proper initialization
-  if( !m_verified ) { return std::nullopt; }
+  if( !is_verified() ) { return std::nullopt; }
 
   // get gtm bco difference with proper rollover accounting
   const uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ?
@@ -151,7 +151,7 @@ void MicromegasBcoMatchingInformation::print_gtm_bco_information() const
       << std::endl;
 
     // also print predicted fee bco
-    if( m_verified )
+    if( is_verified() )
     {
       std::list<uint32_t> fee_bco_predicted_list;
       std::transform(
@@ -231,7 +231,7 @@ bool MicromegasBcoMatchingInformation::find_reference_from_modebits( Packet* pac
         const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
         m_gtm_bco_first = gtm_bco;
         m_fee_bco_first = 0;
-        m_verified = true;
+        m_verified_from_modebits = true;
         return true;
       }
     }
@@ -314,7 +314,7 @@ bool MicromegasBcoMatchingInformation::find_reference_from_data( Packet* packet 
         sum += gtm_bco_diff_list[j];
         if( get_bco_diff( sum, fee_bco_diff ) < m_max_fee_bco_diff )
         {
-          m_verified = true;
+          m_verified_from_data = true;
           m_gtm_bco_first = gtm_bco_list[i];
           m_fee_bco_first = fee_bco_prev;
 
@@ -346,7 +346,7 @@ bool MicromegasBcoMatchingInformation::find_reference_from_data( Packet* packet 
 std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t fee_bco )
 {
   // make sure the bco matching is properly initialized
-  if( !m_verified )
+  if( !is_verified() )
   {
     return std::nullopt;
   }
@@ -433,7 +433,7 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco( uint32_t
         if( m_waveform_count_dropped > m_waveform_count_dropped_max )
         {
           m_waveform_count_dropped = 0;
-          m_verified = false;
+          m_verified_from_data = false;
           std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco - too many dropped waveforms, forcing re-synchronization" << std::endl;
         }
 
@@ -467,7 +467,7 @@ double MicromegasBcoMatchingInformation::get_adjusted_multiplier() const
 void MicromegasBcoMatchingInformation::update_multiplier_adjustment( uint64_t gtm_bco, uint32_t fee_bco )
 {
   // check that references are valid
-  if( !m_verified ) return;
+  if( !is_verified() ) return;
 
   // skip if trivial
   if( gtm_bco == m_gtm_bco_first ) return;
