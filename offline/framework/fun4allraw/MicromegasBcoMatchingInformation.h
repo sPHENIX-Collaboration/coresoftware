@@ -31,7 +31,7 @@ class MicromegasBcoMatchingInformation
 
   //! true if matching information is verified
   bool is_verified() const
-  { return m_verified; }
+  { return m_verified_from_modebits||m_verified_from_data; }
 
   //! get predicted fee_bco from gtm_bco
   std::optional<uint32_t> get_predicted_fee_bco( uint64_t ) const;
@@ -92,11 +92,13 @@ class MicromegasBcoMatchingInformation
   unsigned int m_verbosity = 0;
 
   //! verified
-  bool m_verified = false;
+  bool m_verified_from_modebits = false;
+
+  bool m_verified_from_data = false;
 
   //! keep track of number of unassociated GTM bco
   uint32_t m_waveform_count_dropped = 0;
-  
+
   //! first lvl1 bco (40 bits)
   uint64_t m_gtm_bco_first = 0;
 
