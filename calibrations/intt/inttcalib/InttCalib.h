@@ -23,8 +23,6 @@ class InttCalib : public SubsysReco
   InttCalib(std::string const& = "InttCalib");
   ~InttCalib() override;
 
-  int Init();
-
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
 
