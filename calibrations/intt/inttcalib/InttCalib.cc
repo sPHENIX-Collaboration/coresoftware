@@ -46,7 +46,7 @@ InttCalib::~InttCalib()
   }
 }
 
-int InttCalib::Init()
+int InttCalib::InitRun(PHCompositeNode* /*unused*/)
 {
   m_evts = 0;
   for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
@@ -80,11 +80,6 @@ int InttCalib::Init()
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int InttCalib::InitRun(PHCompositeNode* /*unused*/)
-{
-  return Init();
 }
 
 int InttCalib::process_event(PHCompositeNode* top_node)
@@ -894,7 +889,7 @@ int InttCalib::MakeBcoMapPng()
 
 void InttCalib::Debug()
 {
-  Init();
+  InitRun(nullptr);
   LoadHitrates();
 
   ConfigureHotMap_v2();
