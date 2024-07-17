@@ -33,6 +33,9 @@ class MicromegasClusterizer : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode*) override;
 
+  /// end of processing
+  int End(PHCompositeNode*) override;
+
   /// set default pedestal
   void set_default_pedestal( double value )
   { m_default_pedestal = value; }
@@ -94,6 +97,10 @@ class MicromegasClusterizer : public SubsysReco
   //! random generator that conform with sPHENIX standard
   /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
   std::unique_ptr<gsl_rng, Deleter> m_rng;
+
+  /// keep track of number of clusters per hitsetid
+  using clustercountmap_t = std::map<TrkrDefs::hitsetkey, int>;
+  clustercountmap_t m_clustercounts;
 
 };
 
