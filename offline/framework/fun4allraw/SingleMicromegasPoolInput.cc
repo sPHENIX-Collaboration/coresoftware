@@ -517,27 +517,24 @@ void SingleMicromegasPoolInput::createQAHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto h_npacket_bco_hist = new TH1I( "h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Matching BCO tagger count; GL1 trigger count", 10, 0, 10 );
-  auto h_nwaveform_bco_hist = new TH1I( "h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Matching Waveform count; GL1 trigger count", 4100, 0, 4100 );
+  h_packet = new TH1I( "h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Matching BCO tagger count; GL1 trigger count", 10, 0, 10 );
+  h_waveform = new TH1I( "h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Matching Waveform count; GL1 trigger count", 4100, 0, 4100 );
 
   /*
    * first bin is the number of requested GL1 BCO, for reference
    * next two bins is the number of times the GL1 BCO is found in the taggers list for a given packet_id
    * last bin is the sum
    */
-  auto h_packet_stat_hist = new TH1I( "h_MicromegasBCOQA_packet_stat", "Matching Tagger count per packet; packet id; GL1 trigger count", m_npackets_active+2, 0, m_npackets_active+2 );
-  h_packet_stat_hist->GetXaxis()->SetBinLabel(1, "Reference" );
-  h_packet_stat_hist->GetXaxis()->SetBinLabel(2, "5001" );
-  h_packet_stat_hist->GetXaxis()->SetBinLabel(3, "5002" );
-  h_packet_stat_hist->GetXaxis()->SetBinLabel(4, "All" );
+  h_packet_stat = new TH1I( "h_MicromegasBCOQA_packet_stat", "Matching Tagger count per packet; packet id; GL1 trigger count", m_npackets_active+2, 0, m_npackets_active+2 );
+  h_packet_stat->GetXaxis()->SetBinLabel(1, "Reference" );
+  h_packet_stat->GetXaxis()->SetBinLabel(2, "5001" );
+  h_packet_stat->GetXaxis()->SetBinLabel(3, "5002" );
+  h_packet_stat->GetXaxis()->SetBinLabel(4, "All" );
 
-  for( const auto& h:std::initializer_list<TH1*>{h_npacket_bco_hist, h_nwaveform_bco_hist, h_packet_stat_hist} )
+  for( const auto& h:std::initializer_list<TH1*>{h_packet, h_waveform, h_packet_stat} )
   {
     h->SetFillStyle(1001);
     h->SetFillColor(kYellow);
     hm->registerHisto(h);
   }
-  h_packet_stat = dynamic_cast<TH1*>(hm->getHisto("h_MicromegasBCOQA_packet_stat"));
-  h_packet = dynamic_cast<TH1*>(hm->getHisto("h_MicromegasBCOQA_npacket_bco"));
-  h_waveform = dynamic_cast<TH1*>(hm->getHisto("h_MicromegasBCOQA_nwaveform_bco"));
 }
