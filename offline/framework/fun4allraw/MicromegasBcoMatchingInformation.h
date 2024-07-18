@@ -17,8 +17,7 @@ class Packet;
 
 class MicromegasBcoMatchingInformation
 {
-  public:
-
+ public:
   //! constructor
   MicromegasBcoMatchingInformation() = default;
 
@@ -27,18 +26,24 @@ class MicromegasBcoMatchingInformation
 
   //! verbosity
   int verbosity() const
-  { return m_verbosity; }
+  {
+    return m_verbosity;
+  }
 
   //! true if matching information is verified
   bool is_verified() const
-  { return m_verified; }
+  {
+    return m_verified_from_modebits || m_verified_from_data;
+  }
 
   //! get predicted fee_bco from gtm_bco
-  std::optional<uint32_t> get_predicted_fee_bco( uint64_t ) const;
+  std::optional<uint32_t> get_predicted_fee_bco(uint64_t) const;
 
   //! multiplier
   static double get_gtm_clock_multiplier()
-  { return m_multiplier; }
+  {
+    return m_multiplier;
+  }
 
   //! print gtm bco information
   void print_gtm_bco_information() const;
@@ -49,41 +54,44 @@ class MicromegasBcoMatchingInformation
   //@{
 
   //! verbosity
-  void set_verbosity( int value )
-  { m_verbosity = value; }
+  void set_verbosity(int value)
+  {
+    m_verbosity = value;
+  }
 
   /// set gtm clock multiplier
-  static void set_gtm_clock_multiplier( double value )
-  { m_multiplier = value; }
+  static void set_gtm_clock_multiplier(double value)
+  {
+    m_multiplier = value;
+  }
 
   //! save all GTM BCO clocks from packet data
-  void save_gtm_bco_information( Packet* );
+  void save_gtm_bco_information(Packet*);
 
   //! find clock references used to match FEE and GTM BCO clock from packet data
-  bool find_reference( Packet* );
+  bool find_reference(Packet*);
 
   /**
    * matching information is verified if at least one match
    * between gtm_bco and fee_bco is found
    */
   //! find gtm bco matching a given fee
-  std::optional<uint64_t> find_gtm_bco( uint32_t /*fee_gtm*/ );
+  std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
 
   //! cleanup
   void cleanup();
 
   //@}
 
-  private:
-
+ private:
   //! find reference from modebits
-  bool find_reference_from_modebits( Packet* );
+  bool find_reference_from_modebits(Packet*);
 
   //! find reference from data
-  bool find_reference_from_data( Packet* );
+  bool find_reference_from_data(Packet*);
 
   //! update multiplier adjustment
-  void update_multiplier_adjustment( uint64_t /* gtm_bco */, uint32_t /* fee_bco */ );
+  void update_multiplier_adjustment(uint64_t /* gtm_bco */, uint32_t /* fee_bco */);
 
   //! get adjusted multiplier
   double get_adjusted_multiplier() const;
@@ -92,7 +100,12 @@ class MicromegasBcoMatchingInformation
   unsigned int m_verbosity = 0;
 
   //! verified
-  bool m_verified = false;
+  bool m_verified_from_modebits = false;
+
+  bool m_verified_from_data = false;
+
+  //! keep track of number of unassociated GTM bco
+  uint32_t m_waveform_count_dropped = 0;
 
   //! first lvl1 bco (40 bits)
   uint64_t m_gtm_bco_first = 0;
@@ -124,7 +137,6 @@ class MicromegasBcoMatchingInformation
 
   //! running count for multiplier adjustment
   unsigned int m_multiplier_adjustment_count = 0;
-
 };
 
 #endif
