@@ -145,6 +145,7 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
 
 int Fun4AllStreamingInputManager::run(const int /*nevents*/)
 {
+  
   int iret = 0;
   if (m_gl1_registered_flag)  // Gl1 first to get the reference
   {
@@ -633,11 +634,14 @@ int Fun4AllStreamingInputManager::FillIntt()
   }
   while (m_InttRawHitMap.begin()->first < m_RefBCO - m_intt_negative_bco)
   {
+    if(Verbosity() > 2)
+    {
     std::cout << "Intt BCO: 0x" << std::hex << m_InttRawHitMap.begin()->first
               << " corrected for negative offset: 0x" << m_InttRawHitMap.begin()->first + m_intt_negative_bco
               << " smaller than GL1 BCO: 0x" << m_RefBCO
               << " corrected for range: 0x" << select_crossings
               << ", ditching this bco" << std::dec << std::endl;
+    }
     for (auto iter : m_InttInputVector)
     {
       iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
@@ -925,9 +929,12 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   // if this map is empty which is handled above
   while (m_MicromegasRawHitMap.begin()->first < m_RefBCO - m_micromegas_negative_bco)
   {
+    if(Verbosity() > 2)
+    {
     std::cout << "Micromegas BCO: 0x" << std::hex << m_MicromegasRawHitMap.begin()->first
               << " smaller than GL1 BCO: 0x" << m_RefBCO
               << ", ditching this bco" << std::dec << std::endl;
+    }
     for (auto iter : m_MicromegasInputVector)
     {
       iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first);

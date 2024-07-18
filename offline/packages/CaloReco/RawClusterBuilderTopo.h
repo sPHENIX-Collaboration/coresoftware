@@ -47,6 +47,10 @@ class RawClusterBuilderTopo : public SubsysReco
     _sigma_peri = peri;
   }
 
+  void set_absE(bool allow) {
+    _use_absE = allow;
+  }
+
   void allow_corner_neighbor(bool allow)
   {
     _allow_corner_neighbor = allow;
@@ -218,6 +222,7 @@ class RawClusterBuilderTopo : public SubsysReco
   float _sigma_peri;
 
   bool _allow_corner_neighbor;
+  bool _use_absE;
 
   bool _enable_HCal;
   bool _enable_EMCal;

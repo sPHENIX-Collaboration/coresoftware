@@ -88,7 +88,10 @@ class PHActsTrkFitter : public SubsysReco
   {
     m_useMicromegas = value;
   }
-
+  void ignoreSilicon()
+  {
+    m_ignoreSilicon = true;
+  }
   void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
   {
     m_fillSvtxTrackStates = fillSvtxTrackStates;
@@ -197,6 +200,9 @@ class PHActsTrkFitter : public SubsysReco
 
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
+  
+  /// bool to ignore the silicon clusters in the fit
+  bool m_ignoreSilicon = false;
 
   /// A bool to use the chi2 outlier finder in the track fitting
   bool m_useOutlierFinder = false;
