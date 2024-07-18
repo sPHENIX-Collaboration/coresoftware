@@ -98,9 +98,6 @@ namespace
   //! copied from micromegas/MicromegasDefs.h, not available here
   static constexpr int m_nchannels_fee = 256;
 
-  //! max number of dropped waveforms before re-synching
-  static constexpr uint32_t m_waveform_count_dropped_max = 100;
-
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
   {
@@ -422,17 +419,6 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco(uint32_t 
                     << " gtm_bco: none"
                     << " difference: " << fee_bco_diff
                     << std::endl;
-        }
-
-        // increment number of dropped fee
-        ++m_waveform_count_dropped;
-
-        // check against max allowed value
-        if (m_waveform_count_dropped > m_waveform_count_dropped_max)
-        {
-          m_waveform_count_dropped = 0;
-          m_verified_from_data = false;
-          std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco - too many dropped waveforms, forcing re-synchronization" << std::endl;
         }
       }
       return std::nullopt;
