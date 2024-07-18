@@ -205,20 +205,6 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information(Packet* packet)
 }
 
 //___________________________________________________
-bool MicromegasBcoMatchingInformation::find_reference(Packet* packet)
-{
-  if (find_reference_from_modebits(packet))
-  {
-    return true;
-  }
-  if (find_reference_from_data(packet))
-  {
-    return true;
-  }
-  return false;
-}
-
-//___________________________________________________
 bool MicromegasBcoMatchingInformation::find_reference_from_modebits(Packet* packet)
 {
   // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco

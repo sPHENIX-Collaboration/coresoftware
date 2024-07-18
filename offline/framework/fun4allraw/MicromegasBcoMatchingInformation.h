@@ -31,6 +31,10 @@ class MicromegasBcoMatchingInformation
   }
 
   //! true if matching information is verified
+  /**
+   * matching information is verified if at least one match
+   * between gtm_bco and fee_bco is found
+   */
   bool is_verified() const
   {
     return m_verified_from_modebits || m_verified_from_data;
@@ -65,16 +69,15 @@ class MicromegasBcoMatchingInformation
     m_multiplier = value;
   }
 
+  //! find reference from modebits
+  bool find_reference_from_modebits(Packet*);
+
+  //! find reference from data
+  bool find_reference_from_data(Packet*);
+
   //! save all GTM BCO clocks from packet data
   void save_gtm_bco_information(Packet*);
 
-  //! find clock references used to match FEE and GTM BCO clock from packet data
-  bool find_reference(Packet*);
-
-  /**
-   * matching information is verified if at least one match
-   * between gtm_bco and fee_bco is found
-   */
   //! find gtm bco matching a given fee
   std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
 
@@ -84,11 +87,6 @@ class MicromegasBcoMatchingInformation
   //@}
 
  private:
-  //! find reference from modebits
-  bool find_reference_from_modebits(Packet*);
-
-  //! find reference from data
-  bool find_reference_from_data(Packet*);
 
   //! update multiplier adjustment
   void update_multiplier_adjustment(uint64_t /* gtm_bco */, uint32_t /* fee_bco */);
