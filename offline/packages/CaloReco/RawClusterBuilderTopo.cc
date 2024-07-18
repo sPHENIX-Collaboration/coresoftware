@@ -270,11 +270,11 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
       // assigned only to one cluster, easy
       clusters[the_pair.first]->addTower(this_key, this_E);
       clusters_E[the_pair.first] = clusters_E[the_pair.first] + this_E;
-      clusters_absE[the_pair.first] = clusters_absE[the_pair.first] + fabs( this_E );
+      clusters_absE[the_pair.first] = clusters_absE[the_pair.first] + std::fabs( this_E );
       // calculate position mean using absolute energy as weights
-      clusters_x[the_pair.first] = clusters_x[the_pair.first] + fabs( this_E ) * tower_geom->get_center_x();
-      clusters_y[the_pair.first] = clusters_y[the_pair.first] + fabs( this_E ) * tower_geom->get_center_y();
-      clusters_z[the_pair.first] = clusters_z[the_pair.first] + fabs( this_E ) * tower_geom->get_center_z();
+      clusters_x[the_pair.first] = clusters_x[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_x();
+      clusters_y[the_pair.first] = clusters_y[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_y();
+      clusters_z[the_pair.first] = clusters_z[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_z();
 
       if (Verbosity() > 5)
       {
@@ -295,17 +295,17 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
       }
       clusters[the_pair.first]->addTower(this_key, this_E * frac1);
       clusters_E[the_pair.first] = clusters_E[the_pair.first] + this_E * frac1;
-      clusters_absE[the_pair.first] = clusters_absE[the_pair.first] + fabs( this_E ) * frac1;
-      clusters_x[the_pair.first] = clusters_x[the_pair.first] + fabs( this_E ) * tower_geom->get_center_x() * frac1;
-      clusters_y[the_pair.first] = clusters_y[the_pair.first] + fabs( this_E ) * tower_geom->get_center_y() * frac1;
-      clusters_z[the_pair.first] = clusters_z[the_pair.first] + fabs( this_E ) * tower_geom->get_center_z() * frac1;
+      clusters_absE[the_pair.first] = clusters_absE[the_pair.first] + std::fabs( this_E ) * frac1;
+      clusters_x[the_pair.first] = clusters_x[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_x() * frac1;
+      clusters_y[the_pair.first] = clusters_y[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_y() * frac1;
+      clusters_z[the_pair.first] = clusters_z[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_z() * frac1;
 
       clusters[the_pair.second]->addTower(this_key, this_E * (1 - frac1));
       clusters_E[the_pair.second] = clusters_E[the_pair.second] + this_E * (1 - frac1);
-      clusters_absE[the_pair.second] = clusters_absE[the_pair.second] + fabs( this_E ) * (1 - frac1);
-      clusters_x[the_pair.second] = clusters_x[the_pair.second] + fabs( this_E ) * tower_geom->get_center_x() * (1 - frac1);
-      clusters_y[the_pair.second] = clusters_y[the_pair.second] + fabs( this_E ) * tower_geom->get_center_y() * (1 - frac1);
-      clusters_z[the_pair.second] = clusters_z[the_pair.second] + fabs( this_E ) * tower_geom->get_center_z() * (1 - frac1);
+      clusters_absE[the_pair.second] = clusters_absE[the_pair.second] + std::fabs( this_E ) * (1 - frac1);
+      clusters_x[the_pair.second] = clusters_x[the_pair.second] + std::fabs( this_E ) * tower_geom->get_center_x() * (1 - frac1);
+      clusters_y[the_pair.second] = clusters_y[the_pair.second] + std::fabs( this_E ) * tower_geom->get_center_y() * (1 - frac1);
+      clusters_z[the_pair.second] = clusters_z[the_pair.second] + std::fabs( this_E ) * tower_geom->get_center_z() * (1 - frac1);
     }
   }
 
@@ -530,7 +530,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       _EMTOWERMAP_KEY_ETA_PHI[ieta][iphi] = key;
 
       // use fabs() here for simplicity - if we're not using abs E, negative towers are already excluded
-      if ( fabs( this_E ) >= _sigma_seed * _noise_LAYER[2] )
+      if ( std::fabs( this_E ) >= _sigma_seed * _noise_LAYER[2] )
       {
         int ID = get_ID(2, ieta, iphi);
         list_of_seeds.emplace_back(ID, this_E);
@@ -574,7 +574,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       _TOWERMAP_E_LAYER_ETA_PHI[0][ieta][iphi] = this_E;
       _TOWERMAP_KEY_LAYER_ETA_PHI[0][ieta][iphi] = key;
 
-      if ( fabs( this_E ) >= _sigma_seed * _noise_LAYER[0] )
+      if ( std::fabs( this_E ) >= _sigma_seed * _noise_LAYER[0] )
       {
         int ID = get_ID(0, ieta, iphi);
         list_of_seeds.emplace_back(ID, this_E);
@@ -613,7 +613,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       _TOWERMAP_E_LAYER_ETA_PHI[1][ieta][iphi] = this_E;
       _TOWERMAP_KEY_LAYER_ETA_PHI[1][ieta][iphi] = key;
 
-      if ( fabs( this_E ) >= _sigma_seed * _noise_LAYER[1] )
+      if ( std::fabs( this_E ) >= _sigma_seed * _noise_LAYER[1] )
       {
         int ID = get_ID(1, ieta, iphi);
         list_of_seeds.emplace_back(ID, this_E);
@@ -731,7 +731,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         }
 
         // if tower has < 2*sigma energy, continue
-	if ( fabs(get_E_from_ID(this_adjacent_tower_ID)) < _sigma_grow * _noise_LAYER[test_layer] )
+	if ( std::fabs(get_E_from_ID(this_adjacent_tower_ID)) < _sigma_grow * _noise_LAYER[test_layer] )
         {
           if (Verbosity() > 10)
           {
@@ -814,7 +814,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         }
 
         // if tower has < 0*sigma energy, continue
-	if ( fabs(get_E_from_ID(this_adjacent_tower_ID)) < _sigma_peri * _noise_LAYER[test_layer] )
+	if ( std::fabs(get_E_from_ID(this_adjacent_tower_ID)) < _sigma_peri * _noise_LAYER[test_layer] )
         {
           if (Verbosity() > 10)
           {
