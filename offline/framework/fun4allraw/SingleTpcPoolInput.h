@@ -44,7 +44,6 @@ class SingleTpcPoolInput : public SingleStreamingInput
   std::map<uint64_t, std::vector<TpcRawHit *>> m_TpcRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
-  std::map<int, std::set<uint64_t>> m_BclkStackPacketMap;
 };
 
 #endif

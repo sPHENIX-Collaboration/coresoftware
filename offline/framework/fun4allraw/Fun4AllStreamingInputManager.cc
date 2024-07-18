@@ -656,8 +656,10 @@ int Fun4AllStreamingInputManager::FillIntt()
   bool allpackets = true;
   for (size_t p = 0; p < m_InttInputVector.size(); p++)
   {
-    auto bcl_stack = m_InttInputVector[p]->BclkStack();
+    auto bcl_stack = m_InttInputVector[p]->BclkStackMap();
     auto feebclstack = m_InttInputVector[p]->BeamClockFEE();
+    int packet_id = bcl_stack.begin()->first;
+    int histo_to_fill = (packet_id % 10) - 1;
     for (auto &[bcl, feeidset] : feebclstack)
     {
       auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
@@ -665,33 +667,35 @@ int Fun4AllStreamingInputManager::FillIntt()
       {
         if(feeidset.size() == 14)
         {
-          h_taggedAllFees_intt[p]->Fill(refbcobitshift);
+          h_taggedAllFees_intt[histo_to_fill]->Fill(refbcobitshift);
         }
         for (auto &fee : feeidset)
         {
-          h_gl1taggedfee_intt[p][fee]->Fill(refbcobitshift);
+          h_gl1taggedfee_intt[histo_to_fill][fee]->Fill(refbcobitshift);
         }
       }
 
     }
     bool thispacket = false;
 
-    for (auto& gtmbco : bcl_stack)
+    for (auto& [packetid, gtmbcoset] : bcl_stack)
     {
+        for(auto& gtmbco : gtmbcoset)
+        {
       auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
       if (diff <2) // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
       {
         thispacket = true;
-        h_gl1tagged_intt[p]->Fill(refbcobitshift);
+        h_gl1tagged_intt[histo_to_fill]->Fill(refbcobitshift);
       }
-
+        }
     }
     if(thispacket == false)
     {
       allpackets = false;
     }
   }
-  if(allpackets)
+  if(allpackets && m_InttInputVector.size() == 8)
   {
     h_taggedAll_intt->Fill(refbcobitshift);
   }
@@ -847,7 +851,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
       (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearGtmL1BcoSet();
   }
-  if(allpackets)
+  if(allpackets && m_MvtxInputVector.size() == 6)
   {
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
@@ -1035,7 +1039,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       packetnum++;
     }
   }
-if(allpackets)
+if(allpackets && m_TpcInputVector.size() == 24)
 {
   h_taggedAll_tpc->Fill(refbcobitshift);
 }
