@@ -803,55 +803,40 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
 
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
-  bool allpackets = true;
   h_refbco_mvtx->Fill(refbcobitshift);
+  std::map<int, std::set<int>> taggedPacketsFEEs;
   for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
   {
-    auto gtml1bcoset = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getGtmL1BcoSet();
     auto gtml1bcoset_perfee = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getFeeGTML1BCOMap();
-    bool allfees = true;
     for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
     {
-      bool thisfee = false;
+      auto link = MvtxRawDefs::decode_feeid(feeid);
+      auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
+      int packetid = felix * 2 + endpoint;
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
         if (diff < 3)
         {
-          h_tagBcoFelixFee_mvtx[p][feeid]->Fill(refbcobitshift);
-          thisfee = true;
+          taggedPacketsFEEs[packetid].insert(feeid);
+
+          h_tagBcoFelixFee_mvtx[packetid][feeid]->Fill(refbcobitshift);
           break;
         }
       }
-      if(thisfee == false)
-      {
-        allfees = false;
-      }
     }
-    if(allfees)
-    {
-      h_tagBcoFelixAllFees_mvtx[p]->Fill(refbcobitshift);
-    }
+  
     (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearFeeGTML1BCOMap();
-    bool thispacket = false;
-    for (auto &gtmbco : gtml1bcoset)
-    {
-      auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-      if (diff < 3)
-      {
-        thispacket = true;
-        h_tagBcoFelix_mvtx[p]->Fill(refbcobitshift);
-        /// just check if there is at least one bco within the range
-        break;
-      }
-      }
-      if(thispacket == false)
-      {
-        allpackets = false;
-      }
-      (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearGtmL1BcoSet();
   }
-  if(allpackets && m_MvtxInputVector.size() == 6)
+  for(auto& [pid, feeset] : taggedPacketsFEEs)
+  {
+    h_tagBcoFelix_mvtx[pid]->Fill(refbcobitshift);
+    if (feeset.size() == 12)
+    {
+        h_tagBcoFelixAllFees_mvtx[pid]->Fill(refbcobitshift);
+    }
+  }
+  if(taggedPacketsFEEs.size() == 12)
   {
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
@@ -1325,7 +1310,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
         hm->registerHisto(h2);
       }
   }
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 12; i++)
   {
     {
     auto h = new TH1I((boost::format("h_MvtxPoolQA_TagBCO_felix%i") %i).str().c_str(), "MVTX trigger tagged BCO", 1000, 0, 1000);
@@ -1374,7 +1359,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
 
     h_refbco_mvtx = dynamic_cast<TH1 *>(hm->getHisto("h_MvtxPoolQA_RefGL1BCO"));
     h_taggedAllFelixes_mvtx = dynamic_cast<TH1 *>(hm->getHisto("h_MvtxPoolQA_TagBCOAllFelixs"));
-    for(int i=0; i<6; i++)
+    for(int i=0; i<12; i++)
     {
       h_tagBcoFelix_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % i).str().c_str()));
       h_tagBcoFelixAllFees_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCOAllFees_Felix%i") % i).str().c_str()));

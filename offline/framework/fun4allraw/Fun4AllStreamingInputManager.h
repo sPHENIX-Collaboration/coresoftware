@@ -136,9 +136,9 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   // QA histos
   TH1 *h_refbco_mvtx{nullptr};
   TH1 *h_taggedAllFelixes_mvtx{nullptr};
-  TH1 *h_tagBcoFelix_mvtx[6]{nullptr};
-  TH1 *h_tagBcoFelixAllFees_mvtx[6]{nullptr};
-  TH1 *h_tagBcoFelixFee_mvtx[6][12]{{nullptr}};
+  TH1 *h_tagBcoFelix_mvtx[12]{nullptr};
+  TH1 *h_tagBcoFelixAllFees_mvtx[12]{nullptr};
+  TH1 *h_tagBcoFelixFee_mvtx[12][12]{{nullptr}};
 
   TH1 *h_refbco_intt{nullptr};
   TH1 *h_taggedAll_intt{nullptr};

@@ -29,10 +29,7 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
-  std::set<int> &getFeeIdSet(const uint64_t &bco) { return m_BeamClockFEE[bco]; };
-  std::set<uint64_t>& getGtmL1BcoSet() { return m_gtmL1BcoSetRef; }
   const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
-  void clearGtmL1BcoSet() { m_gtmL1BcoSetRef.clear(); }
   void clearFeeGTML1BCOMap() { 
     for(auto& [key, set] : m_FeeGTML1BCOMap)
     {
@@ -54,7 +51,6 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
   std::set<uint64_t> gtmL1BcoSet;  // GTM L1 BCO
-  std::set<uint64_t> m_gtmL1BcoSetRef;
   std::map<int, std::set<uint64_t>> m_FeeGTML1BCOMap;
   std::map<int, mvtx_pool *> poolmap;
 };

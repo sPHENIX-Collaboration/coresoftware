@@ -147,10 +147,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
         {
           auto bco = pool->lValue(j, "BCOLIST");
           m_BclkStack.insert(bco);
-          if (m_BclkStackPacketMap.find(packet_id) == m_BclkStackPacketMap.end())
-          {
-            m_BclkStackPacketMap.insert(std::make_pair(packet_id, std::set<uint64_t>()));
-          }
+      
           m_BclkStackPacketMap[packet_id].insert(bco);
         }
 
