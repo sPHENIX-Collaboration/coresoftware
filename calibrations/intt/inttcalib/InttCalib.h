@@ -41,7 +41,6 @@ class InttCalib : public SubsysReco
   /// For debugging
   void Debug();
 
-
  private:
   int ConfigureHotMap_v2();
   int MakeHotMapCdb_v2();
@@ -96,7 +95,7 @@ class InttCalib : public SubsysReco
   std::map<double, double> m_invcdf;
 
   std::map<InttMap::RawData_s, int[128], InttMap::RawDataWildcardComparator> m_bcorates;
-  std::map<InttMap::RawData_s, int,      InttMap::RawDataWildcardComparator> m_bcopeaks;
+  std::map<InttMap::RawData_s, int, InttMap::RawDataWildcardComparator> m_bcopeaks;
 
   bool m_do_nothing = false;
 };
