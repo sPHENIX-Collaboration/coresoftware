@@ -9,6 +9,7 @@
 class PHCompositeNode;
 class TH1;
 class TH2;
+class TProfile;
 
 class GlobalQA : public SubsysReco
 {
@@ -52,10 +53,16 @@ class GlobalQA : public SubsysReco
   TH1* h_GlobalQA_mbd_charge_n = nullptr;
   TH1* h_GlobalQA_mbd_nhit_s = nullptr;
   TH1* h_GlobalQA_mbd_nhit_n = nullptr;
+  TH1* h_GlobalQA_mbd_zvtxq = nullptr;
   
   TH1* h_GlobalQA_zdc_zvtx = nullptr;
   TH1* h_GlobalQA_zdc_energy_s = nullptr;
   TH1* h_GlobalQA_zdc_energy_n = nullptr;
+  TH1* h_ldClus_trig[64] = {nullptr};
+  TProfile *pr_evtNum_ldClus_trig[64] = {nullptr};
+
+  TH1 *h_GlobalQA_triggerVec{nullptr};
+  TProfile *pr_ldClus_trig{nullptr};
 
   int _eventcounter{0};
   int _range{1};

@@ -47,6 +47,10 @@ class RawClusterBuilderTopo : public SubsysReco
     _sigma_peri = peri;
   }
 
+  void set_absE(bool allow) {
+    _use_absE = allow;
+  }
+
   void allow_corner_neighbor(bool allow)
   {
     _allow_corner_neighbor = allow;
@@ -77,6 +81,15 @@ class RawClusterBuilderTopo : public SubsysReco
   void set_R_shower(float R_shower)
   {
     _R_shower = R_shower;
+  }
+
+  void set_use_only_good_towers(bool b)
+  {
+    _only_good_towers = b;
+  }
+  bool get_use_only_good_towers()
+  {
+    return _only_good_towers;
   }
 
  private:
@@ -209,6 +222,7 @@ class RawClusterBuilderTopo : public SubsysReco
   float _sigma_peri;
 
   bool _allow_corner_neighbor;
+  bool _use_absE;
 
   bool _enable_HCal;
   bool _enable_EMCal;
@@ -216,6 +230,8 @@ class RawClusterBuilderTopo : public SubsysReco
   bool _do_split;
   float _local_max_minE_LAYER[3]{};
   float _R_shower;
+
+  bool _only_good_towers;
 
   std::string ClusterNodeName;
 };

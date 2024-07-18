@@ -11,10 +11,13 @@
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
 
-#include <globalvertex/MbdVertex.h>
-#include <globalvertex/MbdVertexMapv1.h>
+#include <zdcinfo/ZdcReco.h>
+#include <zdcinfo/Zdcinfo.h>
+
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/MbdVertex.h>
+#include <globalvertex/MbdVertexMapv1.h>
 
 #include <qautils/QAHistManagerDef.h>
 
@@ -22,29 +25,31 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
-#include <phool/phool.h> // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <ffarawobjects/Gl1Packet.h>
+#include <ffaobjects/EventHeader.h>
 
 #include <TH1.h>
 #include <TH2.h>
 #include <TLorentzVector.h>
-#include <TProfile2D.h>
+#include <TProfile.h>
 #include <TSystem.h>
 
 #include <boost/format.hpp>
 
 #include <cassert>
-#include <cmath> // for log10, pow, sqrt, abs, M_PI
+#include <cmath>  // for log10, pow, sqrt, abs, M_PI
 #include <cstdint>
-#include <iostream> // for operator<<, endl, basic_...
+#include <iostream>  // for operator<<, endl, basic_...
 #include <limits>
-#include <map> // for operator!=, _Rb_tree_con...
+#include <map>  // for operator!=, _Rb_tree_con...
 #include <string>
-#include <utility> // for pair
+#include <utility>  // for pair
 
 GlobalQA::GlobalQA(const std::string &name)
-    : SubsysReco(name), detector("HCALIN")
+  : SubsysReco(name)
+  , detector("HCALIN")
 {
   evtcount = 0;
 }
@@ -70,8 +75,6 @@ int GlobalQA::Init(PHCompositeNode * /*unused*/)
 int GlobalQA::process_event(PHCompositeNode *topNode)
 {
   _eventcounter++;
-  // if (_eventcounter % 1000 == 0) std::cout << "Processing event " << _eventcounter << std::endl;
-  //   std::cout << "In process_event" << std::endl;
   process_towers(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -83,10 +86,25 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   {
     std::cout << _eventcounter << std::endl;
   }
-  // MBD vertex
+
+  //---------------------------Event header--------------------------------//
+  EventHeader *eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  int event_number = 0;
+  if (eventheader)
+  {
+    if (eventheader->isValid())
+    {
+      event_number = eventheader->get_EvtSequence();
+    }
+  }
+  else{
+    std::cout << "GlobalQA::process_event()  No event header" << std::endl;
+  }
+
+  //--------------------------- MBD vertex------------------------------//
   MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   MbdVertex *bvertex = nullptr;
-  float mbd_zvtx = -999;
+  float mbd_zvtx =std::numeric_limits<float>::quiet_NaN(); 
   if (mbdmap)
   {
     for (MbdVertexMap::ConstIter mbditer = mbdmap->begin(); mbditer != mbdmap->end(); ++mbditer)
@@ -100,57 +118,46 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   }
   h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
   h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
+  if (!std::isfinite(mbd_zvtx) )
+  {
+    h_GlobalQA_mbd_zvtxq->SetBinContent(1,h_GlobalQA_mbd_zvtxq->GetBinContent(1)+1);
+  }
+  else
+  {
+    h_GlobalQA_mbd_zvtxq->SetBinContent(2,h_GlobalQA_mbd_zvtxq->GetBinContent(2)+1);
+  }
 
   //--------------------------- trigger and GL1-------------------------------//
+  bool scaledBits[64] = {false};
   Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   if (!gl1PacketInfo)
   {
     std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing" << std::endl;
   }
-  /*
-    if (gl1PacketInfo)
-    {
-     auto h_GlobalQA_triggerVec = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%striggerVec") % getHistoPrefix()).c_str()));
-      uint64_t triggervec = gl1PacketInfo->getTriggerVector();
-      for (int i = 0; i < 64; i++)
-      {
-        bool trig_decision = ((triggervec & 0x1U) == 0x1U);
-        if (trig_decision) h_GlobalQA_triggerVec->Fill(i);
-        triggervec = (triggervec >> 1U) & 0xffffffffU;
-      }
-    }
-  */
+  if (gl1PacketInfo)
   {
-    TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
-    float totalzdcsouthcalib = 0;
-    float totalzdcnorthcalib = 0;
-    if (towers)
+    uint64_t triggervec = gl1PacketInfo->getScaledVector();
+    for (int i = 0; i < 64; i++)
     {
-      // auto hzdctime = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%szdctime") % getHistoPrefix()).c_str()));
-      int size = towers->size(); // online towers should be the same!
-      for (int channel = 0; channel < size; channel++)
+      bool trig_decision = ((triggervec & 0x1U) == 0x1U);
+      scaledBits[i] = trig_decision;
+      if (trig_decision)
       {
-        TowerInfo *tower = towers->get_tower_at_channel(channel);
-        float offlineenergy = tower->get_energy();
-        // int _time = towers->get_tower_at_channel(channel)->get_time();
-        // hzdctime_cut->Fill(_time);
-        if (channel == 0 || channel == 2 || channel == 4)
-        {
-          totalzdcsouthcalib += offlineenergy;
-        }
-        if (channel == 8 || channel == 10 || channel == 12)
-        {
-          totalzdcnorthcalib += offlineenergy;
-        }
-        if (channel == 0 || channel == 2 || channel == 4 || channel == 8 || channel == 10 || channel == 12)
-        {
-          // if (_time > (max_zdc_t - _range) && _time < (max_zdc_t + _range))
-          //{
-          //   totalzdc += offlineenergy;
-          // hzdctime->Fill(_time);
-          //}
-        }
+        h_GlobalQA_triggerVec->Fill(i);
       }
+      triggervec = (triggervec >> 1U) & 0xffffffffU;
+    }
+  }
+
+  // ------------------------------------- ZDC -----------------------------------------//
+  {
+    Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+    float totalzdcsouthcalib = 0.;
+    float totalzdcnorthcalib = 0.;
+    if (_zdcinfo)
+    {
+      totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
+      totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
     }
     h_GlobalQA_zdc_zvtx->Fill(999);
     h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
@@ -309,6 +316,42 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   h_GlobalQA_mbd_nhit_s->Fill(hits_s);
   h_GlobalQA_mbd_nhit_n->Fill(hits_n);
 
+
+  //---------------------------- Trigger / alignment -------------------------------------//
+  float leading_cluster_ecore = 0;
+  int evtNum_overK = event_number / 1000;
+
+  RawClusterContainer *clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
+  if (clusterContainer)
+  {
+    RawClusterContainer::ConstRange clusterEnd = clusterContainer->getClusters();
+    RawClusterContainer::ConstIterator clusterIter;
+    RawClusterContainer::ConstIterator clusterIter2;
+
+    for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
+    {
+      RawCluster *recoCluster = clusterIter->second;
+
+      CLHEP::Hep3Vector vertex(0, 0, 0);
+      CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+
+      float clusE = E_vec_cluster.mag();
+      if (clusE > leading_cluster_ecore)
+      {
+        leading_cluster_ecore = clusE;
+      }
+    }
+    for (int i = 0; i < 64; i++)
+    {
+      if (scaledBits[i])
+      {
+        h_ldClus_trig[i]->Fill(leading_cluster_ecore);
+        pr_evtNum_ldClus_trig[i]->Fill(evtNum_overK, leading_cluster_ecore);
+        pr_ldClus_trig->Fill(i, leading_cluster_ecore);
+      }
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -323,6 +366,7 @@ void GlobalQA::createHistos()
   assert(hm);
 
   // MBD QA
+  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Has zvtx?;percentage", 2, -0.5, 1.5);
   h_GlobalQA_mbd_zvtx = new TH1D("h_GlobalQA_mbd_zvtx", ";zvtx [cm]", 100, -50, 50);
   h_GlobalQA_mbd_zvtx_wide = new TH1D("h_GlobalQA_mbd_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
   h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";zvtx [cm]", 100, -50, 50);
@@ -332,6 +376,7 @@ void GlobalQA::createHistos()
   h_GlobalQA_mbd_nhit_s = new TH1D("h_GlobalQA_mbd_nhit_s", ";nhit", 30, -0.5, 29.5);
   h_GlobalQA_mbd_nhit_n = new TH1D("h_GlobalQA_mbd_nhit_n", ";nhit", 30, -0.5, 29.5);
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
+  hm->registerHisto(h_GlobalQA_mbd_zvtxq);
   hm->registerHisto(h_GlobalQA_mbd_zvtx_wide);
   hm->registerHisto(h_GlobalQA_calc_zvtx);
   hm->registerHisto(h_GlobalQA_calc_zvtx_wide);
@@ -342,9 +387,22 @@ void GlobalQA::createHistos()
 
   // ZDC QA
   h_GlobalQA_zdc_zvtx = new TH1D("h_GlobalQA_zdc_zvtx", ";zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_zdc_energy_s = new TH1D("h_GlobalQA_zdc_energy_s", ";Energy [Gev]", 100, 0, 700);
-  h_GlobalQA_zdc_energy_n = new TH1D("h_GlobalQA_zdc_energy_n", ";Energy [Gev]", 100, 0, 700);
+  h_GlobalQA_zdc_energy_s = new TH1D("h_GlobalQA_zdc_energy_s", ";Energy [Gev]", 100, 10, 340);
+  h_GlobalQA_zdc_energy_n = new TH1D("h_GlobalQA_zdc_energy_n", ";Energy [Gev]", 100, 10, 340);
   hm->registerHisto(h_GlobalQA_zdc_zvtx);
   hm->registerHisto(h_GlobalQA_zdc_energy_s);
   hm->registerHisto(h_GlobalQA_zdc_energy_n);
+
+  h_GlobalQA_triggerVec = new TH1F("h_GlobalQA_triggerVec", "", 64, 0, 64);
+  hm->registerHisto(h_GlobalQA_triggerVec);
+  pr_ldClus_trig = new TProfile("pr_GlobalQA_ldClus_trig", "", 64, 0, 64, 0, 10);
+  hm->registerHisto(pr_ldClus_trig);
+
+  for (int i = 0; i < 64; i++)
+  {
+    h_ldClus_trig[i] = new TH1F(boost::str(boost::format("h_GlobalQA_ldClus_trig%d") % i).c_str(), "", 100, 0, 10);
+    hm->registerHisto(h_ldClus_trig[i]);
+    pr_evtNum_ldClus_trig[i] = new TProfile(boost::str(boost::format("pr_GlobalQA_evtNum_ldClus_trig%d") % i).c_str(), "", 100000, 0, 100000, 0, 10);
+    hm->registerHisto(pr_evtNum_ldClus_trig[i]);
+  }
 }

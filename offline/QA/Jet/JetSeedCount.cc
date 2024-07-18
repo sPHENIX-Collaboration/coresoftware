@@ -92,7 +92,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   }
 
   // If not in pp mode, call Centrality Info
-  CentralityInfo* cent_node = nullptr;
+  CentralityInfo *cent_node = nullptr;
   if (!m_inPPMode)
   {
     cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
@@ -219,7 +219,10 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   for (auto &vecHistName : vecHistNames)
   {
     vecHistName.insert(0, "h_" + smallModuleName + "_");
-    vecHistName.append("_" + m_histTag);
+    if (!m_histTag.empty())
+    {
+      vecHistName.append("_" + m_histTag);
+    }
   }
 
   TH1 *hRawSeedCount = new TH1F(vecHistNames[0].data(), "Raw Seed Count per Event", 100, 0.00, 50.00);

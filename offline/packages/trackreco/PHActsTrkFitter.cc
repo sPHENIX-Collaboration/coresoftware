@@ -433,6 +433,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       {
         if (siseed)
         {
+          if(!m_ignoreSilicon)
+          {
           sourceLinks = makeSourceLinks.getSourceLinksClusterMover(
               siseed,
               measurements,
@@ -440,6 +442,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
               m_tGeometry,
               _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
               this_crossing);
+          }
         }
         const auto tpcSourceLinks = makeSourceLinks.getSourceLinksClusterMover(
             tpcseed,
@@ -455,15 +458,18 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       {
         if (siseed)
         {
-          sourceLinks = makeSourceLinks.getSourceLinks(
-              siseed,
-              measurements,
-              m_clusterContainer,
-              m_tGeometry,
-              _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
-              m_alignmentTransformationMapTransient,
-              m_transient_id_set,
-              this_crossing);
+          if (!m_ignoreSilicon)
+          {
+            sourceLinks = makeSourceLinks.getSourceLinks(
+                siseed,
+                measurements,
+                m_clusterContainer,
+                m_tGeometry,
+                _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
+                m_alignmentTransformationMapTransient,
+                m_transient_id_set,
+                this_crossing);
+          }
         }
         const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
             tpcseed,
@@ -488,7 +494,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         position(1) = siseed->get_y() * Acts::UnitConstants::cm;
         position(2) = siseed->get_z() * Acts::UnitConstants::cm;
       }
-      if(!siseed || !is_valid(position))
+      if(!siseed || !is_valid(position) || m_ignoreSilicon)
       {
         position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
         position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;

@@ -74,7 +74,10 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
   for (auto& vecHistName : vecHistNames)
   {
     vecHistName.insert(0, "h_" + smallModuleName + "_");
-    vecHistName.append("_" + m_histTag);
+    if (!m_histTag.empty())
+    {
+      vecHistName.append("_" + m_histTag);
+    }
   }
 
   m_h_track_vs_calo_pt = new TH3F(vecHistNames[0].data(), "", 100, 0, 100, 500, 0, 100, 10, 0, 100);

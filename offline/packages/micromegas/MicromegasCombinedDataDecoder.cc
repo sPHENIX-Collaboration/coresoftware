@@ -269,7 +269,7 @@ int MicromegasCombinedDataDecoder::End(PHCompositeNode* /*topNode*/)
   {
     for (const auto& [hitsetkey, count] : m_hitcounts)
     {
-      std::cout << "MicromegasCombinedDataDecoder::End - hitsetkey: " << hitsetkey << ", count: " << count << std::endl;
+      std::cout << "MicromegasCombinedDataDecoder::End - hitsetkey: " << hitsetkey << ", hit count: " << count << std::endl;
     }
   }
 
