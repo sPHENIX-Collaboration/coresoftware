@@ -191,10 +191,11 @@ int TrackSeed_v2::get_charge() const
 float TrackSeed_v2::get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const
 {
   const auto [x, y] = findRoot();
+  // This is the angle of the tangent to the circle
+  // The argument is the slope of the tangent (inverse of slope of radial line at tangent)
   float phi = std::atan2(-1 * (m_X0 - x), (m_Y0 - y));
   Acts::Vector3 pos0 = positions.find(*(m_cluster_keys.begin()))->second;
   Acts::Vector3 pos1 = positions.find(*(std::next(m_cluster_keys.begin(), 1)))->second;
-  /// convert to the angle of the tangent to the circle
   // we need to know if the track proceeds clockwise or CCW around the circle
   double dx0 = pos0(0) - m_X0;
   double dy0 = pos0(1) - m_Y0;
@@ -269,10 +270,16 @@ void TrackSeed_v2::circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vec
 
   /// Set the charge
   const auto& firstpos = positions_2d.at(0);
-  const auto& secondpos = positions_2d.at(1);
+  unsigned int positions_size = positions_2d.size();
+  const auto& secondpos = positions_2d.at(positions_size -1);
 
-  const auto firstphi = atan2(firstpos.second, firstpos.first);
-  const auto secondphi = atan2(secondpos.second, secondpos.first);
+  // these angles must be calculated relative to the seed PCA, not the coordinate origin 
+  // get the seed PCA
+  auto xy = findRoot();
+
+  const auto firstphi = atan2(firstpos.second-xy.second, firstpos.first-xy.first);
+  const auto secondphi = atan2(secondpos.second-xy.second, secondpos.first-xy.first);
+
   auto dphi = secondphi - firstphi;
   if (dphi > M_PI)
   {
