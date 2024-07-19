@@ -837,7 +837,7 @@ int XingShiftCal::CommitToSpinDB()
   return 0;
 }
 
-/*
+
 int XingShiftCal::SpinDBQA()
 {
 
@@ -868,8 +868,9 @@ int XingShiftCal::SpinDBQA()
     return 0;
   }
 
-  // check if this run already exists in spin_oncal
+  // check if this run already exists in spin_oncal and get badrun value if it exists
   bool runExists = false;
+  int prevbadrunval = 0;
   std::ostringstream sqlSpinSelect;
   sqlSpinSelect << "SELECT runnumber, qa_level FROM " << dbtable
                 << " WHERE runnumber = " << runnumber
@@ -898,6 +899,11 @@ int XingShiftCal::SpinDBQA()
   {
     if (true)
     {
+      prevbadrunval = rsSpin->getInt("badrun");
+      if (rsSpin->wasNull()) {
+        std::cout << "badrun is NULL. Setting to 0 for qa check. "<< std::endl;
+        prevbadrunval = 0;
+      }
       std::cout << "run " << runnumber << " exists in " << dbtable
                 << ", ready to do QA" << std::endl;
     }
@@ -914,46 +920,65 @@ int XingShiftCal::SpinDBQA()
 
   int badrunQA = 0;
 
-  // =========== Do bad run QA here =============
-  // if conditions pass: badrunQA = 0
-  // if conditions fail (bad run): badrunQA = 1
-
-  //if (spin pattern does not match known MCR pattern or pc spin pattern does not match intended spin pattern within < 10 bunches)
-  //if (crossing shift != 0)
-  //if (polarization <= 0 || > 1.00) //makes sure polarization from CNI aren't garbage values
-
-  // ============================================
-
-  
-  if (runExists)
+  if (prevbadrunval > 0)
   {
-
-    sql << "UPDATE " << dbtable
-        << " SET badrun = " << badrunQA << ", "
-	<< " WHERE runnumber = " << runnumber
-        << " AND qa_level = " << qa_level
-        << ";";
-  }
-
-  // exec sql
-  odbc::Statement *stmtSpin = conSpin->createStatement();
-  try
-  {
-    stmtSpin->executeUpdate(sql.str());
-  }
-  catch (odbc::SQLException &e)
-  {
-    std::cout << PHWHERE
-              << " Exception caught at XingShiftCal::SpinDBQA when insert badrunQA into spin DB" << std::endl;
-    std::cout << "Message: " << e.getMessage() << std::endl;
-    commitSuccessSpinDB = 0;
+    std::cout << "badrun is already > 0. No additional qa is performed." << std:: endl;
     if (conSpin)
     {
       delete conSpin;
       conSpin = nullptr;
     }
-    return 0;
+    return 0;  
   }
+  else
+  {
+    // =========== Do bad run QA here =============
+    // if (conditions pass && previously existing badRunQA != 1): badrunQA = 0
+    // if (conditions fail (bad run)): badrunQA = 1
+
+    //if (spin pattern does not match known MCR pattern or pc spin pattern does not match intended spin pattern within < 10 bunches)
+    //if (crossing shift != 0)
+    //if (polarization <= 0 || > 1.00) //makes sure polarization from CNI aren't garbage values
+    
+    // ============================================
+    
+  }
+  
+
+  
+  if (runExists)
+  {
+    // prepare insert sql
+    std::ostringstream sql;
+    sql << "UPDATE " << dbtable
+        << " SET badrun = " << badrunQA << ", "
+	<< " WHERE runnumber = " << runnumber
+        << " AND qa_level = " << qa_level
+        << ";";
+
+    // exec sql
+    odbc::Statement *stmtSpin = conSpin->createStatement();
+    try
+    {
+      stmtSpin->executeUpdate(sql.str());
+    }
+    catch (odbc::SQLException &e)
+    {
+      std::cout << PHWHERE
+		<< " Exception caught at XingShiftCal::SpinDBQA when insert badrunQA into spin DB" << std::endl;
+      std::cout << "Message: " << e.getMessage() << std::endl;
+      commitSuccessSpinDB = 0;
+      if (conSpin)
+      {
+	delete conSpin;
+	conSpin = nullptr;
+      }
+      return 0;
+    }
+
+  }
+
+  
   
 
   if (conSpin)
@@ -963,10 +988,10 @@ int XingShiftCal::SpinDBQA()
   }
 
 
-
+  return 0;
 }
 
-*/
+
 std::string XingShiftCal::SQLArrayConstF(float x, int n)
 {
   std::ostringstream s;
