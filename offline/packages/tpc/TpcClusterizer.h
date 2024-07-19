@@ -55,7 +55,8 @@ class TpcClusterizer : public SubsysReco
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size; }
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size; }
 
-  void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; };
+  void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; }
+  void set_nzbins(int val){NZBinsSide = val; is_reco = true;}
   void set_rawdata_reco()
   {
     set_do_hit_association(false);
@@ -90,6 +91,7 @@ class TpcClusterizer : public SubsysReco
   bool do_read_raw = false;
   bool do_singles = false;
   bool do_split = true;
+  bool is_reco = false;
   int do_fixed_window = 0;
   double pedestal = 74.4;
   double seed_threshold = 5;
