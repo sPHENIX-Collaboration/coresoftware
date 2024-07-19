@@ -811,7 +811,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     {
       continue;
     }
-    if(diff > m_RefBCO + m_mvtx_bco_range) 
+    if(diff > (m_RefBCO + m_mvtx_bco_range)/2.) 
     {
       break;
     }
@@ -847,23 +847,27 @@ for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
       if (diff < 3)
       {
         taggedPacketsFEEs[packetid].insert(feeid);
-
-        h_tagBcoFelixFee_mvtx[packetid][(int) (feecounter / 2)]->Fill(refbcobitshift);
         break;
       }
     }
     feecounter++;
   }
 
-  (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearFeeGTML1BCOMap();
+  (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearFeeGTML1BCOMap(m_MvtxRawHitMap.begin()->first);
   }
+  int allfeestagged = 0;
   for (auto &[pid, feeset] : taggedPacketsFEEs)
   {
     h_tagBcoFelix_mvtx[pid]->Fill(refbcobitshift);
     if (feeset.size() == 12)
     {
-        h_tagBcoFelixAllFees_mvtx[pid]->Fill(refbcobitshift);
+      allfeestagged++;
+      h_tagBcoFelixAllFees_mvtx[pid]->Fill(refbcobitshift);
     }
+  }
+  if(allfeestagged == 12)
+  {
+    h_taggedAllFelixesAllFees_mvtx->Fill(refbcobitshift);
   }
   if(taggedPacketsFEEs.size() == 12)
   {
@@ -1312,6 +1316,12 @@ void Fun4AllStreamingInputManager::createQAHistos()
     hm->registerHisto(h);
   }
   {
+    auto h = new TH1I("h_MvtxPoolQA_TagBCOAllFelixsAllFees", "MVTX trigger tagged BCO all felixes and fees", 1000, 0, 1000);
+    h->GetXaxis()->SetTitle("GL1 BCO");
+    hm->registerHisto(h);
+    h_taggedAllFelixesAllFees_mvtx = h;
+  }
+  {
     auto h = new TH1I("h_TpcPoolQA_TagBCOAllPackets", "TPC trigger tagged BCO all servers", 1000,
                       0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
@@ -1357,13 +1367,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_all->GetXaxis()->SetTitle("GL1 BCO");
     h_all->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h_all);
-    for (int j = 0; j < 12; j++)
-    {
-      auto h = new TH1I((boost::format("h_MvtxPoolQA_TagBCO_felix%i_fee%i") % i % j).str().c_str(), "MVTX trigger tagged BCO per FEE", 1000, 0, 1000);
-      h->GetXaxis()->SetTitle("GL1 BCO");
-      h->SetTitle((boost::format("Felix %i FEE %i") % i % j).str().c_str());
-      hm->registerHisto(h);
-  }
+
   }
     for (int i = 0; i < 24; i++)
     {
@@ -1405,10 +1409,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
     {
       h_tagBcoFelix_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % i).str().c_str()));
       h_tagBcoFelixAllFees_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCOAllFees_Felix%i") % i).str().c_str()));
-      for (int j = 0; j < 12; j++)
-      {
-        h_tagBcoFelixFee_mvtx[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i_fee%i") % i % j).str().c_str()));
-      }
+ 
     }
 
     for (int i = 0; i < 24; i++)

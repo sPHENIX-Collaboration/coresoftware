@@ -25,17 +25,21 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
   void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
-  unsigned int GetBcoRange() const { return m_BcoRange; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
   const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
-  void clearFeeGTML1BCOMap() { 
+  void clearFeeGTML1BCOMap(const uint64_t& bclk) { 
     for(auto& [key, set] : m_FeeGTML1BCOMap)
     {
-      set.clear();
+      for(auto& ll1bclk : set)
+      {
+        if(ll1bclk < bclk)
+        {
+          set.erase(ll1bclk);
+        }
+      }
     }
-    m_FeeGTML1BCOMap.clear(); 
   }
  protected:
 
