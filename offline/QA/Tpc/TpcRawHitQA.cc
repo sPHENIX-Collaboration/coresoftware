@@ -87,7 +87,7 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
   }
 
   float nhit_sectors[24] = {0}; 
-  float nhit_sectors_fees[24][26] = {0}; 
+  float nhit_sectors_fees[24][26] = {{0}}; 
   
   for (int i=0; i < (int)raw_hit_num; i++)
   {
