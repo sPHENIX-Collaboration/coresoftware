@@ -81,7 +81,7 @@ Fun4AllStreamingInputManager::~Fun4AllStreamingInputManager()
     {
       delete mvtxhititer;
     }
-    for ( auto mvtxFeeIdInfo : mapiter.second.MvtxFeeIdInfoVector )
+    for (auto mvtxFeeIdInfo : mapiter.second.MvtxFeeIdInfoVector)
     {
       delete mvtxFeeIdInfo;
     }
@@ -446,7 +446,7 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
     break;
   case InputManagerType::MICROMEGAS:
     m_micromegas_registered_flag = true;
-    static_cast<SingleMicromegasPoolInput*>(evtin)->createQAHistos();
+    static_cast<SingleMicromegasPoolInput *>(evtin)->createQAHistos();
     m_MicromegasInputVector.push_back(evtin);
     break;
   case InputManagerType::GL1:
@@ -654,7 +654,7 @@ int Fun4AllStreamingInputManager::FillIntt()
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_intt->Fill(refbcobitshift);
   bool allpackets = true;
-  for (auto & p : m_InttInputVector)
+  for (auto &p : m_InttInputVector)
   {
     auto bcl_stack = p->BclkStackMap();
     auto feebclstack = p->BeamClockFEE();
@@ -663,9 +663,9 @@ int Fun4AllStreamingInputManager::FillIntt()
     for (auto &[bcl, feeidset] : feebclstack)
     {
       auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-      if (diff <2)  // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
+      if (diff < 2)  // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
       {
-        if(feeidset.size() == 14)
+        if (feeidset.size() == 14)
         {
           h_taggedAllFees_intt[histo_to_fill]->Fill(refbcobitshift);
         }
@@ -674,28 +674,27 @@ int Fun4AllStreamingInputManager::FillIntt()
           h_gl1taggedfee_intt[histo_to_fill][fee]->Fill(refbcobitshift);
         }
       }
-
     }
     bool thispacket = false;
 
-    for (auto& [packetid, gtmbcoset] : bcl_stack)
+    for (auto &[packetid, gtmbcoset] : bcl_stack)
     {
-        for(auto& gtmbco : gtmbcoset)
-        {
-      auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-      if (diff <2) // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
+      for (auto &gtmbco : gtmbcoset)
       {
-        thispacket = true;
-        h_gl1tagged_intt[histo_to_fill]->Fill(refbcobitshift);
-      }
+        auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
+        if (diff < 2)  // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
+        {
+          thispacket = true;
+          h_gl1tagged_intt[histo_to_fill]->Fill(refbcobitshift);
         }
+      }
     }
-    if(thispacket == false)
+    if (thispacket == false)
     {
       allpackets = false;
     }
   }
-  if(allpackets && m_InttInputVector.size() == 8)
+  if (allpackets && m_InttInputVector.size() == 8)
   {
     h_taggedAll_intt->Fill(refbcobitshift);
   }
@@ -807,18 +806,18 @@ int Fun4AllStreamingInputManager::FillMvtx()
   for (auto &[strbbco, mvtxrawhitinfo] : m_MvtxRawHitMap)
   {
     auto diff = (m_RefBCO > strbbco) ? m_RefBCO - strbbco : strbbco - m_RefBCO;
-    if(diff>m_mvtx_bco_range)
+    if (diff > m_mvtx_bco_range)
     {
       continue;
     }
-    if(diff > (m_RefBCO + m_mvtx_bco_range)/2.) 
+    if (diff > (m_RefBCO + m_mvtx_bco_range) / 2.)
     {
       break;
     }
-    for(auto feeidinfo : mvtxrawhitinfo.MvtxFeeIdInfoVector)
+    for (auto feeidinfo : mvtxrawhitinfo.MvtxFeeIdInfoVector)
     {
       auto feeId = feeidinfo->get_feeId();
-   
+
       auto link = MvtxRawDefs::decode_feeid(feeId);
       auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
       int packetid = felix * 2 + endpoint;
@@ -828,32 +827,32 @@ int Fun4AllStreamingInputManager::FillMvtx()
     break;
   }
 
-std::map<int, std::set<int>> taggedPacketsFEEs;
-for (auto & p : m_MvtxInputVector)
-{
-  auto gtml1bcoset_perfee = static_cast<SingleMvtxPoolInput *>(p)->getFeeGTML1BCOMap();
-  int feecounter = 0;
-  for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
+  std::map<int, std::set<int>> taggedPacketsFEEs;
+  for (auto &p : m_MvtxInputVector)
   {
-    auto link = MvtxRawDefs::decode_feeid(feeid);
-    auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
-    int packetid = felix * 2 + endpoint;
-    for (auto &gtmbco : gtmbcoset)
+    auto gtml1bcoset_perfee = static_cast<SingleMvtxPoolInput *>(p)->getFeeGTML1BCOMap();
+    int feecounter = 0;
+    for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
     {
-      auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-
-      h_bcoGL1LL1diff[packetid]->Fill(diff);
-
-      if (diff < 3)
+      auto link = MvtxRawDefs::decode_feeid(feeid);
+      auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
+      int packetid = felix * 2 + endpoint;
+      for (auto &gtmbco : gtmbcoset)
       {
-        taggedPacketsFEEs[packetid].insert(feeid);
-        break;
-      }
-    }
-    feecounter++;
-  }
+        auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
 
-  (static_cast<SingleMvtxPoolInput *>(p))->clearFeeGTML1BCOMap(m_MvtxRawHitMap.begin()->first);
+        h_bcoGL1LL1diff[packetid]->Fill(diff);
+
+        if (diff < 3)
+        {
+          taggedPacketsFEEs[packetid].insert(feeid);
+          break;
+        }
+      }
+      feecounter++;
+    }
+
+    (static_cast<SingleMvtxPoolInput *>(p))->clearFeeGTML1BCOMap(m_MvtxRawHitMap.begin()->first);
   }
   int allfeestagged = 0;
   for (auto &[pid, feeset] : taggedPacketsFEEs)
@@ -865,11 +864,11 @@ for (auto & p : m_MvtxInputVector)
       h_tagBcoFelixAllFees_mvtx[pid]->Fill(refbcobitshift);
     }
   }
-  if(allfeestagged == 12)
+  if (allfeestagged == 12)
   {
     h_taggedAllFelixesAllFees_mvtx->Fill(refbcobitshift);
   }
-  if(taggedPacketsFEEs.size() == 12)
+  if (taggedPacketsFEEs.size() == 12)
   {
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
@@ -880,7 +879,7 @@ for (auto & p : m_MvtxInputVector)
       std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
                 << " ref: 0x" << select_crossings << std::dec << std::endl;
     }
-    for ( auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector )
+    for (auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
     {
       if (Verbosity() > 1)
       {
@@ -964,7 +963,9 @@ int Fun4AllStreamingInputManager::FillMicromegas()
 
   // fill all BCO statistics
   for (const auto &iter : m_MicromegasInputVector)
-  { static_cast<SingleMicromegasPoolInput*>(iter)->FillBcoQA(m_RefBCO); }
+  {
+    static_cast<SingleMicromegasPoolInput *>(iter)->FillBcoQA(m_RefBCO);
+  }
 
   while ((m_MicromegasRawHitMap.begin()->first) <= select_crossings - m_micromegas_negative_bco)
   {
@@ -1049,17 +1050,17 @@ int Fun4AllStreamingInputManager::FillTpc()
           h_gl1tagged_tpc[p][packetnum]->Fill(refbcobitshift);
         }
       }
-      if(thispacket == false)
+      if (thispacket == false)
       {
         allpackets = false;
       }
       packetnum++;
     }
   }
-if(allpackets && m_TpcInputVector.size() == 24)
-{
-  h_taggedAll_tpc->Fill(refbcobitshift);
-}
+  if (allpackets && m_TpcInputVector.size() == 24)
+  {
+    h_taggedAll_tpc->Fill(refbcobitshift);
+  }
   // again m_TpcRawHitMap.empty() is handled by return of FillTpcPool()
   while (m_TpcRawHitMap.begin()->first <= select_crossings - m_tpc_negative_bco)
   {
@@ -1333,30 +1334,30 @@ void Fun4AllStreamingInputManager::createQAHistos()
   // intt has 8 prdfs, one per felix
   for (int i = 0; i < 8; i++)
   {
-      auto h = new TH1I((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str(), "INTT trigger tagged BCO", 1000, 0, 1000);
-      h->GetXaxis()->SetTitle("GL1 BCO");
-      h->SetTitle((boost::format("EBDC %i") % i).str().c_str());
-      hm->registerHisto(h);
+    auto h = new TH1I((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str(), "INTT trigger tagged BCO", 1000, 0, 1000);
+    h->GetXaxis()->SetTitle("GL1 BCO");
+    h->SetTitle((boost::format("EBDC %i") % i).str().c_str());
+    hm->registerHisto(h);
 
-      auto h_all = new TH1I((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") %i ).str().c_str(), "INTT trigger tagged BCO all servers", 1000, 0, 1000);
-      h_all->GetXaxis()->SetTitle("GL1 BCO");
-      h_all->SetTitle("GL1 Reference BCO");
-      hm->registerHisto(h_all);
-      for (int j = 0; j<14; j++)
-      {
-        auto h2 = new TH1I((boost::format("h_InttPoolQA_TagBCO_server%i_fee%i") % i % j).str().c_str(), "INTT trigger tagged BCO per FEE", 1000, 0, 1000);
-        h2->GetXaxis()->SetTitle("GL1 BCO");
-        h2->SetTitle((boost::format("EBDC %i FEE %i") % i % j).str().c_str());
-        hm->registerHisto(h2);
-      }
+    auto h_all = new TH1I((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str(), "INTT trigger tagged BCO all servers", 1000, 0, 1000);
+    h_all->GetXaxis()->SetTitle("GL1 BCO");
+    h_all->SetTitle("GL1 Reference BCO");
+    hm->registerHisto(h_all);
+    for (int j = 0; j < 14; j++)
+    {
+      auto h2 = new TH1I((boost::format("h_InttPoolQA_TagBCO_server%i_fee%i") % i % j).str().c_str(), "INTT trigger tagged BCO per FEE", 1000, 0, 1000);
+      h2->GetXaxis()->SetTitle("GL1 BCO");
+      h2->SetTitle((boost::format("EBDC %i FEE %i") % i % j).str().c_str());
+      hm->registerHisto(h2);
+    }
   }
   for (int i = 0; i < 12; i++)
   {
     {
-    auto h = new TH1I((boost::format("h_MvtxPoolQA_TagBCO_felix%i") %i).str().c_str(), "MVTX trigger tagged BCO", 1000, 0, 1000);
-    h->GetXaxis()->SetTitle("GL1 BCO");
-    h->SetTitle((boost::format("Felix %i") % i).str().c_str());
-    hm->registerHisto(h);
+      auto h = new TH1I((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % i).str().c_str(), "MVTX trigger tagged BCO", 1000, 0, 1000);
+      h->GetXaxis()->SetTitle("GL1 BCO");
+      h->SetTitle((boost::format("Felix %i") % i).str().c_str());
+      hm->registerHisto(h);
     }
     {
       auto h = new TH1I((boost::format("h_MvtxPoolQA_TagStBco_felix%i") % i).str().c_str(), "", 1000, 0, 1000);
@@ -1367,59 +1368,56 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_all->GetXaxis()->SetTitle("GL1 BCO");
     h_all->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h_all);
-
   }
-    for (int i = 0; i < 24; i++)
+  for (int i = 0; i < 24; i++)
+  {
+    for (int j = 0; j < 2; j++)
     {
-      for (int j = 0; j < 2; j++)
       {
-        {
-          auto h = new TH1I((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str().c_str(), "TPC trigger tagged BCO", 1000, 0, 1000);
-          h->GetXaxis()->SetTitle("GL1 BCO");
-          h->SetTitle((boost::format("Packet %i and packet %i") % i % j).str().c_str());
-          hm->registerHisto(h);
-        }
+        auto h = new TH1I((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str().c_str(), "TPC trigger tagged BCO", 1000, 0, 1000);
+        h->GetXaxis()->SetTitle("GL1 BCO");
+        h->SetTitle((boost::format("Packet %i and packet %i") % i % j).str().c_str());
+        hm->registerHisto(h);
       }
     }
+  }
 
-  for(int i=0; i<12; i++)
+  for (int i = 0; i < 12; i++)
   {
     h_bcoGL1LL1diff[i] = new TH1I((boost::format("h_MvtxPoolQA_GL1LL1BCODiff_packet%i") % i).str().c_str(), "MVTX BCO diff;|GL1 BCO - LL1 BCO|", 5000, 0, 5000);
     hm->registerHisto(h_bcoGL1LL1diff[i]);
     h_bcoLL1Strobediff[i] = new TH1I((boost::format("h_MvtxPoolQA_LL1StrobeBCODiff_packet%i") % i).str().c_str(), "MVTX BCO diff; |LL1 BCO - Strobe BCO|", 100000, 0, 100000);
     hm->registerHisto(h_bcoLL1Strobediff[i]);
   }
-    // Get the global pointers
-    h_refbco_intt = dynamic_cast<TH1 *>(hm->getHisto("h_InttPoolQA_RefGL1BCO"));
-    h_taggedAll_intt = dynamic_cast<TH1 *>(hm->getHisto("h_InttPoolQA_TagBCOAllServers"));
-    for (int i = 0; i < 8; i++)
+  // Get the global pointers
+  h_refbco_intt = dynamic_cast<TH1 *>(hm->getHisto("h_InttPoolQA_RefGL1BCO"));
+  h_taggedAll_intt = dynamic_cast<TH1 *>(hm->getHisto("h_InttPoolQA_TagBCOAllServers"));
+  for (int i = 0; i < 8; i++)
+  {
+    h_gl1tagged_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str()));
+    for (int j = 0; j < 14; j++)
     {
-      h_gl1tagged_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str()));
-      for (int j = 0; j < 14; j++)
-      {
-
-        h_gl1taggedfee_intt[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i_fee%i") % i % j).str().c_str()));
-      }
-      h_taggedAllFees_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str()));
+      h_gl1taggedfee_intt[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i_fee%i") % i % j).str().c_str()));
     }
+    h_taggedAllFees_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str()));
+  }
 
-    h_refbco_mvtx = dynamic_cast<TH1 *>(hm->getHisto("h_MvtxPoolQA_RefGL1BCO"));
-    h_taggedAllFelixes_mvtx = dynamic_cast<TH1 *>(hm->getHisto("h_MvtxPoolQA_TagBCOAllFelixs"));
-    for(int i=0; i<12; i++)
+  h_refbco_mvtx = dynamic_cast<TH1 *>(hm->getHisto("h_MvtxPoolQA_RefGL1BCO"));
+  h_taggedAllFelixes_mvtx = dynamic_cast<TH1 *>(hm->getHisto("h_MvtxPoolQA_TagBCOAllFelixs"));
+  for (int i = 0; i < 12; i++)
+  {
+    h_tagBcoFelix_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % i).str().c_str()));
+    h_tagBcoFelixAllFees_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCOAllFees_Felix%i") % i).str().c_str()));
+  }
+
+  for (int i = 0; i < 24; i++)
+  {
+    for (int j = 0; j < 2; j++)
     {
-      h_tagBcoFelix_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % i).str().c_str()));
-      h_tagBcoFelixAllFees_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCOAllFees_Felix%i") % i).str().c_str()));
- 
+      h_gl1tagged_tpc[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str()));
     }
+  }
 
-    for (int i = 0; i < 24; i++)
-    {
-      for (int j = 0; j < 2; j++)
-      {
-        h_gl1tagged_tpc[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str()));
-      }
-    }
-
-    h_refbco_tpc = dynamic_cast<TH1 *>(hm->getHisto("h_TpcPoolQA_RefGL1BCO"));
-    h_taggedAll_tpc = dynamic_cast<TH1 *>(hm->getHisto("h_TpcPoolQA_TagBCOAllPackets"));
+  h_refbco_tpc = dynamic_cast<TH1 *>(hm->getHisto("h_TpcPoolQA_RefGL1BCO"));
+  h_taggedAll_tpc = dynamic_cast<TH1 *>(hm->getHisto("h_TpcPoolQA_TagBCOAllPackets"));
 }
