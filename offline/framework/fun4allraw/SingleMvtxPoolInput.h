@@ -30,14 +30,20 @@ class SingleMvtxPoolInput : public SingleStreamingInput
 
   const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
   void clearFeeGTML1BCOMap(const uint64_t& bclk) { 
-    for(auto& [key, set] : m_FeeGTML1BCOMap)
+    std::set<uint64_t> toerase;
+    for (auto &[key, set] : m_FeeGTML1BCOMap)
     {
       for(auto& ll1bclk : set)
       {
-        if(ll1bclk < bclk)
+        if(ll1bclk <= bclk)
         {
-          set.erase(ll1bclk);
+          // to avoid invalid reads
+          toerase.insert(ll1bclk);
         }
+      }
+      for(auto& bclk_to_erase : toerase)
+      {
+        set.erase(bclk_to_erase);
       }
     }
   }
