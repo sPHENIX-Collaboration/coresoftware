@@ -654,10 +654,10 @@ int Fun4AllStreamingInputManager::FillIntt()
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_intt->Fill(refbcobitshift);
   bool allpackets = true;
-  for (size_t p = 0; p < m_InttInputVector.size(); p++)
+  for (auto & p : m_InttInputVector)
   {
-    auto bcl_stack = m_InttInputVector[p]->BclkStackMap();
-    auto feebclstack = m_InttInputVector[p]->BeamClockFEE();
+    auto bcl_stack = p->BclkStackMap();
+    auto feebclstack = p->BeamClockFEE();
     int packet_id = bcl_stack.begin()->first;
     int histo_to_fill = (packet_id % 10) - 1;
     for (auto &[bcl, feeidset] : feebclstack)
@@ -829,9 +829,9 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
 
 std::map<int, std::set<int>> taggedPacketsFEEs;
-for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
+for (auto & p : m_MvtxInputVector)
 {
-  auto gtml1bcoset_perfee = static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p])->getFeeGTML1BCOMap();
+  auto gtml1bcoset_perfee = static_cast<SingleMvtxPoolInput *>(p)->getFeeGTML1BCOMap();
   int feecounter = 0;
   for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
   {
@@ -853,7 +853,7 @@ for (size_t p = 0; p < m_MvtxInputVector.size(); p++)
     feecounter++;
   }
 
-  (static_cast<SingleMvtxPoolInput *>(m_MvtxInputVector[p]))->clearFeeGTML1BCOMap(m_MvtxRawHitMap.begin()->first);
+  (static_cast<SingleMvtxPoolInput *>(p))->clearFeeGTML1BCOMap(m_MvtxRawHitMap.begin()->first);
   }
   int allfeestagged = 0;
   for (auto &[pid, feeset] : taggedPacketsFEEs)
