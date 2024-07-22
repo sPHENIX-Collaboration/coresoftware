@@ -29,6 +29,7 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
   const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
+
   void clearFeeGTML1BCOMap(const uint64_t& bclk) {
     std::set<uint64_t> toerase;
     for (auto &[key, set] : m_FeeGTML1BCOMap)
