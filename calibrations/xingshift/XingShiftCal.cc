@@ -19,7 +19,6 @@
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
-#include <odbc++/resultsetmetadata.h>
 #include <odbc++/statement.h>
 #include <odbc++/types.h>
 
