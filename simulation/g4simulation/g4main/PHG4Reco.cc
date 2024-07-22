@@ -1045,6 +1045,39 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   alt_sPHENIX_tpc_gas->AddMaterial(CF4, alt_den_CF4 * alt_CF4_frac / alt_den_sphenix_tpc_gas);
   alt_sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), alt_den_G4_Ar * alt_G4_Ar_frac / alt_den_sphenix_tpc_gas);
 
+  G4double tpcGasTemperature = (273.15 + 15.0) * kelvin;
+  G4double tpcGasPressure = 1 * atmosphere;
+
+  G4Material *N2 = new G4Material("N2", denisty = 1.25 * mg / cm3, ncomponents = 1, kStateGas, tpcGasTemperature, tpcGasPressure);
+  N2->AddElement(G4NistManager::Instance()->FindOrBuildElement("N"), natoms = 2);
+
+  //Create isobutane as only butane is in the standard G4Material list (they have different densities)
+  //https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
+  G4Material *isobutane = new G4Material("isobutane", density = 2.51 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
+  isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 4); //Could use AddElement(PHG4Detector::GetDetectorElement("C", true), 4); instead?
+  isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 10);
+
+  double Ar_frac_July24 = 0.55;
+  double CF4_frac_July24 = 0.35;
+  double N2_frac_July24 = 0.05;
+  double isobutane_frac_July24 = 0.05;
+
+  const double den_Ar_July24 = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity();
+  const double den_CF4_July24 = CF4->GetDensity();
+  const double den_N2_July24 = N2->GetDensity();
+  const double den_isobutane_July24 = isobutane->GetDensity();
+
+  const double den_sphenix_tpc_gas_July24 = den_Ar_July24 * Ar_frac_July24
+                                          + den_CF4_July24 * CF4_frac_July24
+                                          + den_N2_July24 * N2_frac_July24
+                                          + den_isobutane_July24 + isobutane_frac_July24;
+
+  G4Material *sPHENIX_tpc_gas_July24 = new G4Material("sPHENIX_TPC_Gas_ArCF4N2Isobutane", den_sphenix_tpc_gas_July24, ncomponents = 4, kStateGas);
+  sPHENIX_tpc_gas_July24->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), (den_Ar_July24 * Ar_frac_July24) / den_sphenix_tpc_gas_July24);
+  sPHENIX_tpc_gas_July24->AddMaterial(CF4, (den_CF4_July24 * CF4_frac_July24) / den_sphenix_tpc_gas_July24);
+  sPHENIX_tpc_gas_July24->AddMaterial(N2, (den_N2_July24 * N2_frac_July24) / den_sphenix_tpc_gas_July24);
+  sPHENIX_tpc_gas_July24->AddMaterial(isobutane_frac_July24, (den_isobutane_July24 + isobutane_frac_July24) / den_sphenix_tpc_gas_July24);
+
   // define P10 Gas which will be used for TPC Benchmarking
   G4Material *P10 =
       new G4Material("P10", density = 1.74 * mg / cm3, ncomponents = 3);  // @ 0K, 1atm
