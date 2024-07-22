@@ -3,7 +3,7 @@
 
 #include <phool/PHObject.h>
 
-#include <cmath>
+#include <limits>
 
 class TowerInfo : public PHObject
 {
@@ -15,15 +15,15 @@ class TowerInfo : public PHObject
   virtual void set_time(short /*t*/) { return; }
   virtual short get_time() { return -1; }
   virtual void set_energy(float /*energy*/) { return; }
-  virtual float get_energy() { return NAN; }
+  virtual float get_energy() { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void copy_tower(TowerInfo* /*tower*/) { return; }
   // methods in v2
   virtual void set_time_float(float /*t*/) { return; }
-  virtual float get_time_float() { return NAN; }
+  virtual float get_time_float() { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void set_chi2(float /*chi2*/) { return; }
-  virtual float get_chi2() { return NAN; }
+  virtual float get_chi2() { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void set_pedestal(float /*pedestal*/) { return; }
-  virtual float get_pedestal() { return NAN; }
+  virtual float get_pedestal() { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void set_isHot(bool /*isHot*/) { return; }
   virtual bool get_isHot() const { return false; }
   virtual void set_isBadTime(bool /*isBadTime*/) { return; }

@@ -4,9 +4,9 @@
 #include "TowerInfoContainer.h"
 #include "TowerInfov3.h"
 
-#include <phool/PHObject.h>
-
 #include <TClonesArray.h>
+
+class PHObject;
 
 class TowerInfoContainerv3 : public TowerInfoContainer
 {

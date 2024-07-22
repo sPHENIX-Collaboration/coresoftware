@@ -4,9 +4,12 @@
 #include "TowerInfoContainer.h"
 #include "TowerInfov2.h"
 
-#include <phool/PHObject.h>
-
 #include <TClonesArray.h>
+
+#include <iostream>
+
+class PHObject;
+
 // this is basically a copy of TowerInfoContainerv1.h, but with TowerInfov2...
 class TowerInfoContainerv2 : public TowerInfoContainer
 {

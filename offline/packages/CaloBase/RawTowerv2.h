@@ -13,7 +13,7 @@
 class RawTowerv2 : public RawTowerv1
 {
  public:
-  RawTowerv2();
+  RawTowerv2() = default;
   RawTowerv2(const RawTower& tower);
   RawTowerv2(RawTowerDefs::keytype id);
   RawTowerv2(const unsigned int ieta, const unsigned int iphi);

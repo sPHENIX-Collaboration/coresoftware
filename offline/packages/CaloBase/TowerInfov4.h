@@ -1,8 +1,9 @@
 #ifndef TOWERINFOV4_H
 #define TOWERINFOV4_H
 
-#include "TowerInfo.h"
 #include "TowerInfov1.h"
+
+#include <cmath>
 
 class TowerInfov4 : public TowerInfo
 {

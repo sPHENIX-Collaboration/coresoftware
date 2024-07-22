@@ -6,8 +6,8 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
-#include <cmath>
 #include <iostream>
+#include <limits>
 
 class RawTowerGeom : public PHObject
 {
@@ -93,67 +93,67 @@ class RawTowerGeom : public PHObject
   virtual double get_center_x() const
   {
     PHOOL_VIRTUAL_WARN("get_center_x()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_center_y() const
   {
     PHOOL_VIRTUAL_WARN("get_center_y()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_center_z() const
   {
     PHOOL_VIRTUAL_WARN("get_center_z()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_size_x() const
   {
     PHOOL_VIRTUAL_WARN("get_size_x()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_size_y() const
   {
     PHOOL_VIRTUAL_WARN("get_size_y()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_size_z() const
   {
     PHOOL_VIRTUAL_WARN("get_size_z()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_volume() const
   {
     PHOOL_VIRTUAL_WARN("get_volume()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_center_radius() const
   {
     PHOOL_VIRTUAL_WARN("get_center_radius()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_eta() const
   {
     PHOOL_VIRTUAL_WARN("get_eta()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_theta() const
   {
     PHOOL_VIRTUAL_WARN("get_theta()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual double get_phi() const
   {
     PHOOL_VIRTUAL_WARN("get_phi()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual void set_tower_type(int)
@@ -170,12 +170,12 @@ class RawTowerGeom : public PHObject
   virtual double get_roty() const
   {
     PHOOL_VIRTUAL_WARN("get_roty()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   virtual double get_rotz() const
   {
     PHOOL_VIRTUAL_WARN("get_rotz()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   virtual void set_roty(double)

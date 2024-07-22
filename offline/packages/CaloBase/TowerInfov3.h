@@ -1,7 +1,6 @@
 #ifndef TOWERINFOV3_H
 #define TOWERINFOV3_H
 
-#include "TowerInfo.h"
 #include "TowerInfov2.h"
 
 #include <cstdint> // For int16_t
