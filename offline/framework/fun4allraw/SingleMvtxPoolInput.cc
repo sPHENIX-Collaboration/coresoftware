@@ -293,9 +293,12 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
 
   for (auto iter : toclearbclk)
   {
+    // these two are the culprits
     m_BclkStack.erase(iter);
     m_BeamClockFEE[iter].clear();
     m_BeamClockFEE.erase(iter);
+
+    m_MvtxRawHitMap[iter].clear();
     m_MvtxRawHitMap.erase(iter);
     m_FeeStrobeMap.erase(iter);
 
@@ -304,6 +307,20 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
       gtmbcoset.erase(iter);
     }
   }
+  std::cout << "Sizes are"<<std::endl;
+  std::cout << "  " << m_BclkStack.size() << ", " << m_BeamClockFEE.size()
+	    << ", " << m_MvtxRawHitMap.size() << ", " << m_FeeStrobeMap.size() 
+	    << ", " << m_FeeGTML1BCOMap.size() << std::endl;
+
+  for(auto [bbclk, hitvec] : m_MvtxRawHitMap)
+    {
+      std::cout << "hitvec size " << hitvec.size() << std::endl;
+    }
+  for(auto [ feeid, gtmbcoset] : m_FeeGTML1BCOMap)
+    {
+      std::cout << "gtmbcoset size " << gtmbcoset.size() << std::endl;
+    }
+
 }
 
 bool SingleMvtxPoolInput::CheckPoolDepth(const uint64_t bclk)
