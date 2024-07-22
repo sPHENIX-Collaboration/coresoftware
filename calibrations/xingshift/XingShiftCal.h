@@ -5,6 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <map>
 #include <cstdint>
 #include <string>
 
@@ -45,8 +46,8 @@ class XingShiftCal : public SubsysReco
   //  Packet *pYellSpin {nullptr};
   Packet *pBluePol{nullptr};
   Packet *pYellPol{nullptr};
-  //  Packet *pBlueAsym {nullptr};
-  //  Packet *pYellAsym {nullptr};
+  Packet *pBlueAsym {nullptr};
+  Packet *pYellAsym {nullptr};
   Packet *pBlueIntPattern{nullptr};
   Packet *pYellIntPattern{nullptr};
   Packet *pBluePolPattern{nullptr};
@@ -59,12 +60,13 @@ class XingShiftCal : public SubsysReco
   int evtcap{50000};
   int done{0};
 
-  //  const int packet_BLUESPIN  {14902};
-  //  const int packet_YELLSPIN  {14903};
+
+  const int packet_BLUESPIN  {14902};
+  const int packet_YELLSPIN  {14903};
   const int packet_BLUEPOL{14905};
-  //  const int packet_BLUEASYM  {14906};
+  const int packet_BLUEASYM  {14906};
   const int packet_YELLPOL{14907};
-  //  const int packet_YELLASYM  {14908};
+  const int packet_YELLASYM  {14908};
   const int packet_BLUEINTPATTERN{14910};
   const int packet_BLUEPOLPATTERN{14911};
   const int packet_YELLINTPATTERN{14912};
@@ -87,6 +89,9 @@ class XingShiftCal : public SubsysReco
   int blueFillPattern[NBUNCHES]{0};
   int yellFillPattern[NBUNCHES]{0};
 
+  int bluePcSpinPattern[NBUNCHES]{0};
+  int yellPcSpinPattern[NBUNCHES]{0};
+
   float polBlue{0};
   float polBlueErr{0};
   float polYellow{0};
@@ -100,6 +105,11 @@ class XingShiftCal : public SubsysReco
   int64_t mbdns[NBUNCHES]{0};
   int64_t mbdvtx[NBUNCHES]{0};
   int64_t zdcns[NBUNCHES]{0};
+
+
+  std::map<std::string, std::string> preset_pattern_blue;
+  std::map<std::string, std::string> preset_pattern_yellow;
+
 
 
 };
