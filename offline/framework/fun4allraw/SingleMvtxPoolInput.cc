@@ -147,14 +147,13 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
             uint64_t strb_bco = pool->lValue(feeId, i_strb, "TRG_IR_BCO");
             auto strb_bc = pool->iValue(feeId, i_strb, "TRG_IR_BC");
             auto num_hits = pool->iValue(feeId, i_strb, "TRG_NR_HITS");
-
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
             if (strb_bco < minBCO)
             {
               continue;
             }
-
+            
             if (Verbosity() > 4)
             {
               std::cout << "evtno: " << EventSequence << ", Fee: " << feeId;
@@ -276,10 +275,8 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
     }
   }
 
-
   for (auto iter : toclearbclk)
   {
-    // these two are the culprits
     m_BclkStack.erase(iter);
     m_MvtxRawHitMap[iter].clear();
     m_MvtxRawHitMap.erase(iter);
@@ -290,19 +287,6 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
       gtmbcoset.erase(iter);
     }
   }
-  std::cout << "Sizes are"<<std::endl;
-  std::cout << "  " << m_BclkStack.size()
-	    << ", " << m_MvtxRawHitMap.size() << ", " << m_FeeStrobeMap.size() 
-	    << ", " << m_FeeGTML1BCOMap.size() << std::endl;
-
-  for(auto [bbclk, hitvec] : m_MvtxRawHitMap)
-    {
-      std::cout << "hitvec size " << hitvec.size() << std::endl;
-    }
-  for(auto [ feeid, gtmbcoset] : m_FeeGTML1BCOMap)
-    {
-      std::cout << "gtmbcoset size " << gtmbcoset.size() << std::endl;
-    }
 
 }
 
