@@ -44,6 +44,9 @@
 #include <stdexcept>  // for runtime_error
 #include <string>
 #include <utility>
+#include <TSystem.h>
+#include<TStyle.h>
+
 
 pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
   : SubsysReco(name)
@@ -52,7 +55,7 @@ pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
 {
   h_mass_eta_lt.fill(nullptr);
 	
-	for (auto& row : h_mass_tbt_lt){row.fill(nullptr);} // fill all ~24K towers as nullptr
+  if (runTowByTow) {for (auto& row : h_mass_tbt_lt){row.fill(nullptr);}}
 
   clusMix = new std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>();
 }
@@ -79,15 +82,20 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
     std::string histoname = "h_mass_eta_lt" + std::to_string(i);
     h_mass_eta_lt[i] = new TH1F(histoname.c_str(), "", 50, 0, 0.5);
 
-		if (runTowByTow)
-		{
-			for (int j = 0; j < 256; j++)
-			{
-				std::string histoname_tbt = "h_mass_tbt_lt_" + std::to_string(i) + "_" + std::to_string(j);
-				h_mass_tbt_lt[i][j] = new TH1F(histoname_tbt.c_str(), "", 50, 0, 0.5);
-			}
-		}
-  }
+    if (runTowByTow)
+     {
+      for (int j = 0; j < 256; j++)
+       {
+	std::string histoname_tbt = "h_mass_tbt_lt_" + std::to_string(i) + "_" + std::to_string(j);
+	h_mass_tbt_lt[i][j] = new TH1F(histoname_tbt.c_str(), "", 50, 0, 0.5);
+       }
+     }
+   }
+
+  // 3D hist to save inv mass for all towers
+  if (runTBTCompactMode){
+    h_ieta_iphi_invmass = new TH3F("h_ieta_iphi_invmass", "", 96, 0, 96, 256, 0, 256, 50, 0.0, 0.5);
+   } 
 
   h_cemc_etaphi = new TH2F("h_cemc_etaphi", "", 96, 0, 96, 256, 0, 256);
   h_cemc_etaphi_noCalib = new TH2F("h_cemc_etaphi_noCalib", "", 96, 0, 96, 256, 0, 256);
@@ -416,13 +424,15 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
         h_InvMass->Fill(pi0.M());
       }
       h_pipT_Nclus_mass->Fill(pi0.Pt(), nClusCount, pi0.M());
-      if (lt_eta > 95) // this will ignore certain etabins (should we do same for phibins as well)
+      if (lt_eta > 95)
       {
         continue;
       }
       h_mass_eta_lt[lt_eta]->Fill(pi0.M());
+	
+      if (runTBTCompactMode) {h_ieta_iphi_invmass->Fill(lt_eta, lt_phi, pi0.M());} // fill 3D hist for inv mass
 			
-			if (runTowByTow){h_mass_tbt_lt[lt_eta][lt_phi]->Fill(pi0.M());} // fill all towers
+      if (runTowByTow){h_mass_tbt_lt[lt_eta][lt_phi]->Fill(pi0.M());} // fill 1D inv mass hist for all towers
 
       h_InvMass_Nclus[nClusBin]->Fill(pi0.M());
     }
@@ -491,12 +501,12 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
 int pi0EtaByEta::End(PHCompositeNode* /*topNode*/)
 {	
-	outfile->cd();
+   outfile->cd();
 
-	outfile->Write();
-	outfile->Close();
-	delete outfile;
-	hm->dumpHistos(outfilename, "UPDATE");
+   outfile->Write();
+   outfile->Close();
+   delete outfile;
+   hm->dumpHistos(outfilename, "UPDATE");
 
   return 0;
 }
@@ -684,64 +694,64 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
   TH2F* h_M_tbt[96][256];
   for (int i = 0; i < 96; i++)
   {
-		for (int j = 0; j < 256; j++)
-		{
-			std::string histoname = "h_mass_tbt_lt_" + std::to_string(i) + "_" + std::to_string(j);
-			h_M_tbt[i][j] = (TH2F*) fin->Get(histoname.c_str());
-			h_M_tbt[i][j]->Scale(1. / h_M_tbt[i][j]->Integral(), "width");
-		}
-  }
+    for (int j = 0; j < 256; j++)
+     {
+       std::string histoname = "h_mass_tbt_lt_" + std::to_string(i) + "_" + std::to_string(j);
+       h_M_tbt[i][j] = (TH2F*) fin->Get(histoname.c_str());
+       h_M_tbt[i][j]->Scale(1. / h_M_tbt[i][j]->Integral(), "width");
+     }
+   }
 	
   TF1* fitFunOut[96][256];
 
 	
   for (int i = 0; i < 96; i++)
-  {
-		for (int j = 0; j < 256; j++)
-		{
-			if (!h_M_tbt[i][j])
-			{
-				std::cout << "pi0EtaByEta::fitEtaPhiTowers null hist" << std::endl;
-			}
-			if (h_M_tbt[i][j]->GetEntries() == 0)
-			{
-				continue;
-			}
+   {
+    for (int j = 0; j < 256; j++)
+     {
+      if (!h_M_tbt[i][j])
+       {
+	 std::cout << "pi0EtaByEta::fitEtaPhiTowers null hist" << std::endl;
+       }
+      if (h_M_tbt[i][j]->GetEntries() == 0)
+       {
+	continue;
+       }
 
-			fitFunOut[i][j] = fitHistogram(h_M_tbt[i][j]);
-			std::string funcname = "f_pi0_tbt_" + std::to_string(i) + "_" + std::to_string(j);
-			fitFunOut[i][j]->SetName(funcname.c_str());
-			float mass_val_out = fitFunOut[i][j]->GetParameter(1);
-			float mass_err_out = fitFunOut[i][j]->GetParError(1);
-			h_peak_tbt->SetBinContent(i + 1, j + 1, mass_val_out);
-			
-			if (isnan(h_M_tbt[i][j]->GetEntries()))
-			{
-				h_peak_tbt->SetBinError(i + 1, j + 1, 0);
-				continue;
-			}
-		
-			h_peak_tbt->SetBinError(i + 1, j + 1, mass_err_out);
+      fitFunOut[i][j] = fitHistogram(h_M_tbt[i][j]);
+      std::string funcname = "f_pi0_tbt_" + std::to_string(i) + "_" + std::to_string(j);
+      fitFunOut[i][j]->SetName(funcname.c_str());
+      float mass_val_out = fitFunOut[i][j]->GetParameter(1);
+      float mass_err_out = fitFunOut[i][j]->GetParError(1);
+      h_peak_tbt->SetBinContent(i + 1, j + 1, mass_val_out);
+	
+      if (isnan(h_M_tbt[i][j]->GetEntries()))
+       {
+	h_peak_tbt->SetBinError(i + 1, j + 1, 0);
+	continue;
+       }
+	
+      h_peak_tbt->SetBinError(i + 1, j + 1, mass_err_out);
 
-			h_sigma_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(2));
-			h_sigma_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(2));
+      h_sigma_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(2));
+      h_sigma_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(2));
 			
-			h_p3_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(3));
-			h_p3_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(3));
+      h_p3_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(3));
+      h_p3_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(3));
 			
-			h_p4_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(4));
-			h_p4_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(4));
+      h_p4_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(4));
+      h_p4_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(4));
 			
-			h_p5_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(5));
-			h_p5_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(5));
+      h_p5_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(5));
+      h_p5_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(5));
 			
-			h_p6_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(6));
-			h_p6_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(6));
+      h_p6_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(6));
+      h_p6_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(6));
 			
-			h_p0_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(0));
-			h_p0_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(0));
-		}
-	}
+      h_p0_tbt->SetBinContent(i + 1, j + 1, fitFunOut[i][j]->GetParameter(0));
+      h_p0_tbt->SetBinError(i + 1, j + 1, fitFunOut[i][j]->GetParError(0));
+    }
+  }
 	
 
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile.c_str());
@@ -779,23 +789,23 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
   TFile* fit_out = new TFile(fitOutFile.c_str(), "recreate");
   fit_out->cd();
 
-	for (auto& row : h_M_tbt) 
-	{
+  for (auto& row : h_M_tbt) 
+   {
     for (auto& _hist : row) 
-		{
+     {
       _hist->Write();
       delete _hist;
-    }
-	}
+     }
+   }
  
-	for (auto& row : h_M_tbt) 
-	{
+  for (auto& row : fitFunOut) 
+   {
     for (auto& _hist : row) 
-		{
+     {
       _hist->Write();
       delete _hist;
-    }
-	}
+     }
+  }
 
   h_p3_tbt->Write();
   h_p4_tbt->Write();
@@ -878,5 +888,62 @@ void pi0EtaByEta::set_massTargetHistFile(const std::string& file)
   {
     std::cout << "pi0EtaByEta::set_massTargetHistFile  No mass hist found" << std::endl;
   }
+  return;
+}
+
+// this will split one 3D Hist into 24576 1D hist that contain inv mass distribution for all towers 
+void pi0EtaByEta::Split3DHist(const std::string& infile, const std::string& out_file)
+{
+
+  // First we will copy all the content of input file to output file
+  if (gSystem->CopyFile(infile.c_str(), out_file.c_str(), kTRUE) != 0) {
+    std::cerr << "Error copying file from " << infile << " to " << out_file << std::endl;
+    return;
+   }
+
+  // Then, we will open the output file after update
+  TFile* ofile = new TFile(out_file.c_str(), "UPDATE");
+  if (!ofile) {
+    std::cerr << "Error opening file: " << out_file << std::endl;
+    return;
+   }
+
+  // We will extract 3D hist from updated output file
+  h_ieta_iphi_invmass = (TH3F*) ofile->Get("h_ieta_iphi_invmass");
+  if (!h_ieta_iphi_invmass) {
+    std::cerr << "Error: 3D Histogram not found in file: " << out_file << std::endl;
+    ofile->Close();
+    return;
+   }
+
+  // Loop over ieta and iphi ranges (x and y axis)
+  for (int bineta = 1; bineta <= 96; ++bineta) {
+    for (int binphi = 1; binphi <= 256; ++binphi){
+				
+      // Loop over third axis in 3D Hist and then fill it into 1D hist
+      for (int binz = 1; binz <= h_ieta_iphi_invmass->GetNbinsZ(); ++binz) {
+
+        float content = h_ieta_iphi_invmass->GetBinContent(bineta, binphi, binz);
+        h_mass_tbt_lt[bineta-1][binphi-1]->SetBinContent(binz, content);
+      }
+    }
+  }
+	
+  // Now we will update all the histogram in the output file
+  ofile->cd();
+	
+  for (auto& i : h_mass_tbt_lt)
+    {
+      for (auto& j : i) 
+	{
+	  j->Write();
+	  delete j;
+	}
+    }
+	
+  ofile->Close();
+
+	std::cout << "Splitting 3D Hist Completed." << std::endl;
+
   return;
 }
