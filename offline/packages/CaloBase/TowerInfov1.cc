@@ -14,7 +14,7 @@ void TowerInfov1::Reset()
   _energy = std::numeric_limits<float>::signaling_NaN();
 }
 
-void TowerInfov1::Clear(Option_t*  /*unused*/)
+void TowerInfov1::Clear(Option_t* /*unused*/)
 {
   _time = 0;
   _energy = 0;

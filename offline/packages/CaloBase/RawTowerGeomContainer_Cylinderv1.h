@@ -23,7 +23,7 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
   void
   identify(std::ostream& os = std::cout) const override;
 
-// cppcheck-suppress virtualCallInConstructor
+  // cppcheck-suppress virtualCallInConstructor
   void Reset() override;
 
   double
@@ -82,8 +82,8 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
   set_phibounds(const int ibin, const std::pair<double, double>& bounds) override;
 
  protected:
-  double radius {std::numeric_limits<double>::signaling_NaN()};
-  double thickness {std::numeric_limits<double>::signaling_NaN()};
+  double radius{std::numeric_limits<double>::signaling_NaN()};
+  double thickness{std::numeric_limits<double>::signaling_NaN()};
 
   typedef std::pair<double, double> bound_t;
   typedef std::vector<bound_t> bound_map_t;

@@ -56,7 +56,7 @@ RawTowerContainer::AddTower(RawTowerDefs::keytype key, RawTower *twr)
   if (RawTowerDefs::decode_caloid(key) != _caloid)
   {
     std::cout << "RawTowerContainer::AddTower - Error - adding tower to wrong container! Container CaloID = "
-         << _caloid << ", requested CaloID = " << RawTowerDefs::decode_caloid(key) << " based on key " << key << std::endl;
+              << _caloid << ", requested CaloID = " << RawTowerDefs::decode_caloid(key) << " based on key " << key << std::endl;
     exit(2);
   }
 

@@ -11,7 +11,7 @@ void TowerInfov4::Reset()
   status = 0;
 }
 
-void TowerInfov4::Clear(Option_t*  /*unused*/)
+void TowerInfov4::Clear(Option_t* /*unused*/)
 {
   time = 0;
   energy = 0;

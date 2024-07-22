@@ -274,7 +274,7 @@ class RawCluster : public PHObject
   //! getters
   virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
   virtual float get_property_float(const PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::signaling_NaN(); }
-  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return  std::numeric_limits<int>::min(); }
+  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return std::numeric_limits<int>::min(); }
   virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   //! setters
   virtual void set_property(const PROPERTY /*prop_id*/, const float /*value*/) { return; }

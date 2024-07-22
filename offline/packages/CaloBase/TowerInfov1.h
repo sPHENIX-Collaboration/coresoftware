@@ -21,8 +21,8 @@ class TowerInfov1 : public TowerInfo
   void copy_tower(TowerInfo* tower) override;
 
  private:
-  short _time {0};
-  float _energy {0};
+  short _time{0};
+  float _energy{0};
 
   ClassDefOverride(TowerInfov1, 1);
 };

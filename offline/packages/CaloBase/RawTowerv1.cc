@@ -67,7 +67,7 @@ void RawTowerv1::identify(std::ostream& os) const
     os << "RawTowerv1: etabin: " << get_bineta() << ", phibin: " << get_binphi()
        << " energy=" << get_energy() << std::endl;
   }
-    return;
+  return;
 }
 
 void RawTowerv1::add_ecell(const CellKeyType g4cellid,

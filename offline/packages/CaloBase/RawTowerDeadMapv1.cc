@@ -27,7 +27,7 @@ void RawTowerDeadMapv1::addDeadTower(RawTowerDefs::keytype key)
   if (RawTowerDefs::decode_caloid(key) != _caloid)
   {
     std::cout << "RawTowerDeadMapv1::addDeadTower - Error - adding tower to wrong container! Container CaloID = "
-         << _caloid << ", requested CaloID = " << RawTowerDefs::decode_caloid(key) << " based on key " << key << std::endl;
+              << _caloid << ", requested CaloID = " << RawTowerDefs::decode_caloid(key) << " based on key " << key << std::endl;
     exit(2);
   }
   m_DeadTowers.insert(key);
