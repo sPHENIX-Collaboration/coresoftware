@@ -1023,61 +1023,6 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   SilverEpoxyGlue_INTT->AddMaterial(Epoxy, fractionmass = 0.79);
   SilverEpoxyGlue_INTT->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ag"), fractionmass = 0.21);
 
-  // this here is very close but makes more sense since it uses Ne and CF4
-  double G4_Ne_frac = 0.5;
-  double CF4_frac = 0.5;
-  const double den_G4_Ne = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ne")->GetDensity();
-  const double den_CF4_2 = CF4->GetDensity();
-  const double den_sphenix_tpc_gas = den_G4_Ne * G4_Ne_frac + den_CF4_2 * CF4_frac;
-  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
-  sPHENIX_tpc_gas->AddMaterial(CF4, den_CF4_2 * CF4_frac / den_sphenix_tpc_gas);
-  sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ne"), den_G4_Ne * G4_Ne_frac / den_sphenix_tpc_gas);
-
-  // Due to supply issues, we are now expecting to use Ar CF4.
-  // The fractions are tuned to produce very similar drift speed
-  // and other parameters as the original NeCF4 mixture.
-  double alt_G4_Ar_frac = 0.6;
-  double alt_CF4_frac = 0.4;
-  const double alt_den_G4_Ar = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity();
-  const double alt_den_CF4 = CF4->GetDensity();
-  const double alt_den_sphenix_tpc_gas = alt_den_G4_Ar * alt_G4_Ar_frac + alt_den_CF4 * alt_CF4_frac;
-  G4Material *alt_sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas_ArCF4", alt_den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
-  alt_sPHENIX_tpc_gas->AddMaterial(CF4, alt_den_CF4 * alt_CF4_frac / alt_den_sphenix_tpc_gas);
-  alt_sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), alt_den_G4_Ar * alt_G4_Ar_frac / alt_den_sphenix_tpc_gas);
-
-  G4double tpcGasTemperature = (273.15 + 15.0) * kelvin;
-  G4double tpcGasPressure = 1 * atmosphere;
-
-  G4Material *N2 = new G4Material("N2", density = 1.25 * mg / cm3, ncomponents = 1, kStateGas, tpcGasTemperature, tpcGasPressure);
-  N2->AddElement(G4NistManager::Instance()->FindOrBuildElement("N"), natoms = 2);
-
-  //Create isobutane as only butane is in the standard G4Material list (they have different densities)
-  //https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
-  G4Material *isobutane = new G4Material("isobutane", density = 2.51 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
-  isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 4); //Could use AddElement(PHG4Detector::GetDetectorElement("C", true), 4); instead?
-  isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 10);
-
-  double Ar_frac_July24 = 0.75;
-  double CF4_frac_July24 = 0.20;
-  //double N2_frac_July24 = 0.00;
-  double isobutane_frac_July24 = 0.05;
-
-  const double den_Ar = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity();
-  const double den_CF4 = CF4->GetDensity();
-  //const double den_N2 = N2->GetDensity();
-  const double den_isobutane = isobutane->GetDensity();
-
-  const double den_sphenix_tpc_gas_July24 = (den_Ar * Ar_frac_July24)
-                                          + (den_CF4 * CF4_frac_July24)
-                                          //+ (den_N2 * N2_frac_July24)
-                                          + (den_isobutane * isobutane_frac_July24);
-
-  G4Material *sPHENIX_tpc_gas_July24 = new G4Material("sPHENIX_TPC_Gas_ArCF4Isobutane", den_sphenix_tpc_gas_July24, ncomponents = 3, kStateGas);
-  sPHENIX_tpc_gas_July24->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), (den_Ar * Ar_frac_July24) / den_sphenix_tpc_gas_July24);
-  sPHENIX_tpc_gas_July24->AddMaterial(CF4, (den_CF4 * CF4_frac_July24) / den_sphenix_tpc_gas_July24);
-  //sPHENIX_tpc_gas_July24->AddMaterial(N2, (den_N2 * N2_frac_July24) / den_sphenix_tpc_gas_July24);
-  sPHENIX_tpc_gas_July24->AddMaterial(isobutane, (den_isobutane * isobutane_frac_July24) / den_sphenix_tpc_gas_July24);
-
   // define P10 Gas which will be used for TPC Benchmarking
   G4Material *P10 =
       new G4Material("P10", density = 1.74 * mg / cm3, ncomponents = 3);  // @ 0K, 1atm

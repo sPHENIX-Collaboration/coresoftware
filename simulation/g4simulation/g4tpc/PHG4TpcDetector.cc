@@ -21,6 +21,7 @@
 
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4NistManager.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
@@ -114,11 +115,56 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   add_geometry_node();
 }
 
+void PHG4TpcDetector::CreateTpcGasMixture()
+{
+  G4double density;
+  G4int ncomponents, natoms;
+
+  G4double tpcGasTemperature = (273.15 + m_Params->get_double_param("TPC_gas_temperature")) * kelvin;
+  G4double tpcGasPressure = m_Params->get_double_param("TPC_gas_pressure") * atmosphere;
+
+  G4Material *CF4 = new G4Material("CF4", density = 3.72 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
+  CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 1);
+  CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), natoms = 4);
+
+  G4Material *N2 = new G4Material("N2", density = 1.25 * mg / cm3, ncomponents = 1, kStateGas, tpcGasTemperature, tpcGasPressure);
+  N2->AddElement(G4NistManager::Instance()->FindOrBuildElement("N"), natoms = 2);
+
+  //Create isobutane as only butane is in the standard G4Material list (they have different densities)
+  //https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
+  G4Material *isobutane = new G4Material("isobutane", density = 2.51 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
+  isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 4); //Could use AddElement(PHG4Detector::GetDetectorElement("C", true), 4); instead?
+  isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 10);
+
+  double Ar_frac = m_Params->get_double_param("Ar_frac");
+  double CF4_frac = m_Params->get_double_param("CF4_frac");
+  double N2_frac = m_Params->get_double_param("N2_frac");
+  double isobutane_frac = m_Params->get_double_param("isobutane_frac");
+
+  const double Ar_den = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity();
+  const double CF4_den = CF4->GetDensity();
+  const double N2_den = N2->GetDensity();
+  const double isobutane_den = isobutane->GetDensity();
+
+  const double sphenix_tpc_gas_den = (Ar_den * Ar_frac)
+                                   + (CF4_den * CF4_frac)
+                                   + (N2_den * N2_frac)
+                                   + (isobutane_den * isobutane_frac);
+
+  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", sphenix_tpc_gas_den, ncomponents = 4, kStateGas, tpcGasTemperature, tpcGasPressure);
+  sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), (Ar_den * Ar_frac) / sphenix_tpc_gas_den);
+  sPHENIX_tpc_gas->AddMaterial(CF4, (CF4_den * CF4_frac) / sphenix_tpc_gas_den);
+  sPHENIX_tpc_gas->AddMaterial(N2, (N2_den * N2_frac) / sphenix_tpc_gas_den);
+  sPHENIX_tpc_gas->AddMaterial(isobutane, (isobutane_den * isobutane_frac) / sphenix_tpc_gas_den);
+}
+
 int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
 {
   static std::map<int, std::string> tpcgasvolname =
       {{PHG4TpcDefs::North, "tpc_gas_north"},
        {PHG4TpcDefs::South, "tpc_gas_south"}};
+
+  CreateTpcGasMixture();
 
   // Window / central membrane
   double tpc_window_thickness = m_Params->get_double_param("window_thickness") * cm;
@@ -204,7 +250,7 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
   G4VSolid *tpc_gas = new G4Tubs("tpc_gas", m_Params->get_double_param("gas_inner_radius") * cm, m_Params->get_double_param("gas_outer_radius") * cm, tpc_half_length / 2., 0., 2 * M_PI);
 
   G4LogicalVolume *tpc_gas_logic = new G4LogicalVolume(tpc_gas,
-                                                       GetDetectorMaterial(m_Params->get_string_param("tpc_gas")),
+                                                       GetDetectorMaterial("sPHENIX_TPC_Gas"),
                                                        "tpc_gas");
 
   tpc_gas_logic->SetUserLimits(m_G4UserLimits);

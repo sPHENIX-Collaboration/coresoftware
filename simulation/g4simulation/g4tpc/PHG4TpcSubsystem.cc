@@ -149,8 +149,6 @@ void PHG4TpcSubsystem::SetDefaultParameters()
 
   set_default_double_param("steplimits", 1);  // 1cm by default
 
-  set_default_string_param("tpc_gas", "sPHENIX_TPC_Gas");
-
   // material budget:
   // Cu (all layers): 0.5 oz cu per square foot, 1oz == 0.0347mm --> 0.5 oz ==  0.00347cm/2.
   // Kapton insulation 18 layers of * 5mil = 18*0.0127=0.2286
@@ -228,4 +226,11 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_int_param("ntpc_phibins_inner", 1128);  // 94 * 12
   set_default_int_param("ntpc_phibins_mid", 1536);    // 128 * 12
   set_default_int_param("ntpc_phibins_outer", 2304);  // 192 * 12
+
+  set_default_double_param("TPC_gas_temperature", 15.0); //in celcius
+  set_default_double_param("TPC_gas_pressure", 1.0); //in atmospheres
+  set_default_double_param("Ar_frac", 0.75); // mg / cm2
+  set_default_double_param("CF4_frac", 0.20); // mg / cm2
+  set_default_double_param("N2_frac", 0.00); // mg / cm2
+  set_default_double_param("isobutane_frac", 0.05); // mg / cm2
 }
