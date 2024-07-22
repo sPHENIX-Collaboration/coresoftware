@@ -976,7 +976,7 @@ int Fun4AllPrdfInputTriggerManager::FillLL1(const unsigned int nEvents)
   }
   if (m_LL1PacketMap.empty())
   {
-    std::cout << "we are done" << std::endl;
+    std::cout << "LL1 event stack empty, we are done" << std::endl;
     return -1;
   }
   return 0;
@@ -1726,10 +1726,13 @@ int Fun4AllPrdfInputTriggerManager::FillNeedleLL1(std::map<int, LL1PacketInfo>::
           uint64_t curr_bco = currpkt->second->getBCO();
           uint64_t diffbco = curr_bco - prev_bco;
           nextIt->second.BcoDiffMap[prev_packetid] = diffbco;
-          std::cout << PHWHERE << name << " packet " << prev_packetid << ", prev_bco 0x: " << std::hex
-                    << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
-                    << diffbco << std::dec << std::endl;
-          std::cout << "Pushing 0x" << std::hex << diffbco << " into needle for packet " << std::dec << prev_packetid << std::endl;
+	  if (Verbosity() > 11)
+	  {
+	    std::cout << PHWHERE << name << " packet " << prev_packetid << ", prev_bco 0x: " << std::hex
+		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
+		      << diffbco << std::dec << std::endl;
+	    std::cout << "Pushing 0x" << std::hex << diffbco << " into needle for packet " << std::dec << prev_packetid << std::endl;
+	  }
           m_NeedleMap[prev_packetid].push_back(diffbco);
           bcodiffs.insert(diffbco);
         }

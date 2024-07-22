@@ -11,17 +11,24 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  TpcChanQA.h
+  TpcChanQA.h \
+  TpcRawHitQA.h
 
 lib_LTLIBRARIES = \
   libtpcqa.la
 
 libtpcqa_la_SOURCES = \
-  TpcChanQA.cc
+  TpcChanQA.cc \
+  TpcRawHitQA.cc
 
 libtpcqa_la_LIBADD = \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
+  -lg4tpc \
+  -ltrack_io \
+  -ltrackbase_historic_io \
+  -ltrack_reco \
+  -lqautils
 
 BUILT_SOURCES = testexternals.cc
 
