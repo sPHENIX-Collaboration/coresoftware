@@ -148,7 +148,6 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
             auto strb_bc = pool->iValue(feeId, i_strb, "TRG_IR_BC");
             auto num_hits = pool->iValue(feeId, i_strb, "TRG_NR_HITS");
 
-            m_BeamClockFEE[strb_bco].insert(feeId);
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
             if (strb_bco < minBCO)
@@ -221,17 +220,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
 void SingleMvtxPoolInput::Print(const std::string &what) const
 {
   // TODO: adapt to MVTX case
-  if (what == "ALL" || what == "FEE")
-  {
-    for (const auto &bcliter : m_BeamClockFEE)
-    {
-      std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (const auto feeiter : bcliter.second)
-      {
-        std::cout << "FEM: " << feeiter << std::endl;
-      }
-    }
-  }
+
   if (what == "ALL" || what == "FEEBCLK")
   {
     for (auto bcliter : m_FEEBclkMap)
@@ -286,18 +275,12 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
       break;
     }
   }
-  // for (auto iter :  m_BeamClockFEE)
-  // {
-  //   iter.second.clear();
-  // }
+
 
   for (auto iter : toclearbclk)
   {
     // these two are the culprits
     m_BclkStack.erase(iter);
-    m_BeamClockFEE[iter].clear();
-    m_BeamClockFEE.erase(iter);
-
     m_MvtxRawHitMap[iter].clear();
     m_MvtxRawHitMap.erase(iter);
     m_FeeStrobeMap.erase(iter);
@@ -308,7 +291,7 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
     }
   }
   std::cout << "Sizes are"<<std::endl;
-  std::cout << "  " << m_BclkStack.size() << ", " << m_BeamClockFEE.size()
+  std::cout << "  " << m_BclkStack.size()
 	    << ", " << m_MvtxRawHitMap.size() << ", " << m_FeeStrobeMap.size() 
 	    << ", " << m_FeeGTML1BCOMap.size() << std::endl;
 
@@ -359,7 +342,6 @@ void SingleMvtxPoolInput::ClearCurrentEvent()
   //  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentbclk);
   // m_BclkStack.erase(currentbclk);
-  // m_BeamClockFEE.erase(currentbclk);
   return;
 }
 
