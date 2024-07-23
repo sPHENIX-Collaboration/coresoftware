@@ -1,9 +1,5 @@
 #include "TowerInfoContainerv1.h"
-#include "TowerInfoDefs.h"
 #include "TowerInfov1.h"
-
-#include <phool/PHObject.h>
-#include <phool/phool.h>
 
 #include <TClonesArray.h>
 
@@ -50,6 +46,7 @@ TowerInfoContainerv1::~TowerInfoContainerv1()
 }
 
 TowerInfoContainerv1::TowerInfoContainerv1(const TowerInfoContainerv1& source)
+  : TowerInfoContainer(source)
 {
   _detector = source.get_detectorid();
   _clones = new TClonesArray("TowerInfov1", source.size());

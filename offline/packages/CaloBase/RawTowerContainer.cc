@@ -5,8 +5,6 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace std;
-
 void RawTowerContainer::compress(const double emin)
 {
   if (emin <= 0)  // no need to loop through the map if we don't apply a cut
@@ -33,13 +31,13 @@ void RawTowerContainer::compress(const double emin)
 RawTowerContainer::ConstRange
 RawTowerContainer::getTowers() const
 {
-  return make_pair(_towers.begin(), _towers.end());
+  return std::make_pair(_towers.begin(), _towers.end());
 }
 
 RawTowerContainer::Range
 RawTowerContainer::getTowers()
 {
-  return make_pair(_towers.begin(), _towers.end());
+  return std::make_pair(_towers.begin(), _towers.end());
 }
 
 RawTowerContainer::ConstIterator
@@ -57,8 +55,8 @@ RawTowerContainer::AddTower(RawTowerDefs::keytype key, RawTower *twr)
 {
   if (RawTowerDefs::decode_caloid(key) != _caloid)
   {
-    cout << "RawTowerContainer::AddTower - Error - adding tower to wrong container! Container CaloID = "
-         << _caloid << ", requested CaloID = " << RawTowerDefs::decode_caloid(key) << " based on key " << key << endl;
+    std::cout << "RawTowerContainer::AddTower - Error - adding tower to wrong container! Container CaloID = "
+              << _caloid << ", requested CaloID = " << RawTowerDefs::decode_caloid(key) << " based on key " << key << std::endl;
     exit(2);
   }
 
