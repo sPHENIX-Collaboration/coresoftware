@@ -982,9 +982,11 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
       if(thiskey == ckey) break;
     }
 
-  if(Verbosity() > 1)
+  unsigned int layer = TrkrDefs::getLayer(ckey);
+
+if(Verbosity() > 1)
     {
-      std::cout << "Called :fillClusterBranchesKF for ckey " << ckey << " trackid " << track->get_id() << " clusglob x " << clusglob(0) << " y " << clusglob(1) << " z " << clusglob(2) <<  std::endl;
+      std::cout << "Called :fillClusterBranchesKF for ckey " << ckey << " layer " << layer << " trackid " << track->get_id() << " clusglob x " << clusglob(0) << " y " << clusglob(1) << " z " << clusglob(2) <<  std::endl;
     }
 
   switch (TrkrDefs::getTrkrId(ckey))
@@ -1021,8 +1023,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
   if(!state)
     {
-      // drop clusters for which there is no state
-      return;
+      if(Verbosity() > 1)  {  std::cout << "   no state for cluster " << ckey << "  in layer " << layer << std::endl; }
     }
   
   m_cluskeys.push_back(ckey);
@@ -1094,13 +1095,6 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
   m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));
 
-  if (Verbosity() > 1)
-  {
-    std::cout << "Track state/clus in layer "
-              << (unsigned int) TrkrDefs::getLayer(ckey) << " with pos "
-              << clusglob_moved.transpose() << std::endl;
-  }
-
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
   auto misalignnorm = -1 * surf->normal(geometry->geometry().getGeoContext());
   auto misrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
@@ -1164,39 +1158,55 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   m_clusgyideal.push_back(ideal_glob.y());
   m_clusgzideal.push_back(ideal_glob.z());
 
-  Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
-  Acts::Vector2 stateloc;
-  auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
-                                    stateglob * Acts::UnitConstants::cm,
-                                    misalignnorm);
+  if(state)
+    {
+      Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
+      Acts::Vector2 stateloc;
+      auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
+					stateglob * Acts::UnitConstants::cm,
+					misalignnorm);
+      
+      if (result.ok())
+	{
+	  stateloc = result.value() / Acts::UnitConstants::cm;
+	}
+      else
+	{
+	  //! manual transform for tpc
+	  Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * (stateglob * Acts::UnitConstants::cm);
+	  loct /= Acts::UnitConstants::cm;
+	  stateloc(0) = loct(0);
+	  stateloc(1) = loct(1);
+	}
 
-  if (result.ok())
-  {
-    stateloc = result.value() / Acts::UnitConstants::cm;
-  }
+      const auto actscov =
+	transformer.rotateSvtxTrackCovToActs(state);
+
+      m_statelx.push_back(stateloc(0));
+      m_statelz.push_back(stateloc(1));
+      m_stateelx.push_back(std::sqrt(actscov(Acts::eBoundLoc0, Acts::eBoundLoc0)) / Acts::UnitConstants::cm);
+      m_stateelz.push_back(std::sqrt(actscov(Acts::eBoundLoc1, Acts::eBoundLoc1)) / Acts::UnitConstants::cm);
+      m_stategx.push_back(state->get_x());
+      m_stategy.push_back(state->get_y());
+      m_stategz.push_back(state->get_z());
+      m_statepx.push_back(state->get_px());
+      m_statepy.push_back(state->get_py());
+      m_statepz.push_back(state->get_pz());
+      m_statepl.push_back(state->get_pathlength());
+    }
   else
-  {
-    //! manual transform for tpc
-    Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * (stateglob * Acts::UnitConstants::cm);
-    loct /= Acts::UnitConstants::cm;
-    stateloc(0) = loct(0);
-    stateloc(1) = loct(1);
-  }
-
-  const auto actscov =
-      transformer.rotateSvtxTrackCovToActs(state);
-
-  m_statelx.push_back(stateloc(0));
-  m_statelz.push_back(stateloc(1));
-  m_stateelx.push_back(std::sqrt(actscov(Acts::eBoundLoc0, Acts::eBoundLoc0)) / Acts::UnitConstants::cm);
-  m_stateelz.push_back(std::sqrt(actscov(Acts::eBoundLoc1, Acts::eBoundLoc1)) / Acts::UnitConstants::cm);
-  m_stategx.push_back(state->get_x());
-  m_stategy.push_back(state->get_y());
-  m_stategz.push_back(state->get_z());
-  m_statepx.push_back(state->get_px());
-  m_statepy.push_back(state->get_py());
-  m_statepz.push_back(state->get_pz());
-  m_statepl.push_back(state->get_pathlength());
+    {
+      // cluster has no corresponding state, set state variables to NaNs
+      m_statelx.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_statelz.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_stategx.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_stategy.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_stategz.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_statepx.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_statepy.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_statepz.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_statepl.push_back(std::numeric_limits<float>::quiet_NaN());
+    }
 
   if(Verbosity() > 2)
     {
