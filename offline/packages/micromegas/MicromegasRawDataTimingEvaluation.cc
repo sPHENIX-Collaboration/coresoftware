@@ -111,9 +111,18 @@ int MicromegasRawDataTimingEvaluation::process_event(PHCompositeNode* topNode)
       bco_matching_information.print_gtm_bco_information();
     }
 
-    // try find reference
-    if( !bco_matching_information.is_verified() )
-    { bco_matching_information.find_reference( packet.get() ); }
+    // find reference from modebits, using BX_COUNTER_SYNC_T
+    /*
+     * This needs to be done even if the bco matching information is already verified
+     * because any BX_COUNTER_SYNC_T event will break past references
+     */
+    bco_matching_information.find_reference_from_modebits(packet.get());
+
+    // if bco matching information is not verified, try find reference from data
+    if (!bco_matching_information.is_verified())
+    {
+      bco_matching_information.find_reference_from_data(packet.get());
+    }
 
     // drop packet if not found
     if( !bco_matching_information.is_verified() )

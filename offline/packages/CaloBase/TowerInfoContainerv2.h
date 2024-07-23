@@ -4,9 +4,12 @@
 #include "TowerInfoContainer.h"
 #include "TowerInfov2.h"
 
-#include <phool/PHObject.h>
-
 #include <TClonesArray.h>
+
+#include <iostream>
+
+class PHObject;
+
 // this is basically a copy of TowerInfoContainerv1.h, but with TowerInfov2...
 class TowerInfoContainerv2 : public TowerInfoContainer
 {
@@ -30,7 +33,7 @@ class TowerInfoContainerv2 : public TowerInfoContainer
   unsigned int decode_key(unsigned int tower_key) override;
 
   size_t size() const override { return _clones->GetEntries(); }
-  DETECTOR get_detectorid() const override {return _detector;}
+  DETECTOR get_detectorid() const override { return _detector; }
 
  protected:
   TClonesArray *_clones = nullptr;

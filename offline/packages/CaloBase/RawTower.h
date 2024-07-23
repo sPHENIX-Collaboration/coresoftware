@@ -6,10 +6,9 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
-#include <climits>
-#include <cmath>
 #include <cstddef>  // for size_t
 #include <iostream>
+#include <limits>
 #include <map>
 #include <string>  // for string
 #include <utility>
@@ -129,7 +128,7 @@ class RawTower : public PHObject
   virtual float get_time() const
   {
     PHOOL_VIRTUAL_WARN("get_time()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   //! Time stamp assigned to the tower. Depending on the tower maker, it could be rise time or peak time.
   virtual void set_time(const float)
@@ -175,18 +174,18 @@ class RawTower : public PHObject
     prop_cerenkov_gammas = 2,
 
     //! max limit in order to fit into 8 bit unsigned number
-    prop_MAX_NUMBER = UCHAR_MAX
+    prop_MAX_NUMBER = std::numeric_limits<unsigned char>::max()
   };
 
   virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
-  virtual double get_property(const PROPERTY /*prop_id*/) const { return NAN; }
+  virtual double get_property(const PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void set_property(const PROPERTY /*prop_id*/, const double /*value*/) { return; }
   static const std::string get_property_info(PROPERTY prop_id);
 
  protected:
   RawTower() {}
 
-  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
+  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_property_nocheck(const PROPERTY /*prop_id*/, const unsigned int) { return; }
 
   ClassDefOverride(RawTower, 1)

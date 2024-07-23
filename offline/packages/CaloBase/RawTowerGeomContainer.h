@@ -6,11 +6,9 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
-#include <cmath>
-#include <cstddef>
 #include <iostream>
+#include <limits>
 #include <map>
-#include <type_traits>
 #include <utility>
 
 class RawTowerGeom;
@@ -45,7 +43,7 @@ class RawTowerGeomContainer : public PHObject
   virtual RawTowerGeom *get_tower_geometry(RawTowerDefs::keytype)
   {
     PHOOL_VIRTUAL_WARN("get_tower_geometry()");
-    return NULL;
+    return nullptr;
   }
 
   //! return all tower geometries
@@ -68,47 +66,47 @@ class RawTowerGeomContainer : public PHObject
   virtual double get_radius() const
   {
     PHOOL_VIRTUAL_WARN("get_radius()");
-    return NAN;
+    return std::numeric_limits<double>::signaling_NaN();
   }
   virtual double get_thickness() const
   {
     PHOOL_VIRTUAL_WARN("get_thickness()");
-    return NAN;
+    return std::numeric_limits<double>::signaling_NaN();
   }
   virtual int get_phibins() const
   {
     PHOOL_VIRTUAL_WARN("get_phibins()");
     return -1;
   }
-  //  virtual double get_phistep() const {PHOOL_VIRTUAL_WARN("get_phistep()"); return NAN;}
-  //  virtual double get_phimin() const {PHOOL_VIRTUAL_WARN("get_phimin()"); return NAN;}
+  //  virtual double get_phistep() const {PHOOL_VIRTUAL_WARN("get_phistep()"); return std::numeric_limits<double>::signaling_NaN();}
+  //  virtual double get_phimin() const {PHOOL_VIRTUAL_WARN("get_phimin()"); return std::numeric_limits<double>::signaling_NaN();}
   virtual int get_etabins() const
   {
     PHOOL_VIRTUAL_WARN("get_etabins()");
     return -1;
   }
-  //  virtual double get_etastep() const {PHOOL_VIRTUAL_WARN("get_etastep()"); return NAN;}
-  //  virtual double get_etamin() const {PHOOL_VIRTUAL_WARN("get_etamin()"); return NAN;}
+  //  virtual double get_etastep() const {PHOOL_VIRTUAL_WARN("get_etastep()"); return std::numeric_limits<double>::signaling_NaN();}
+  //  virtual double get_etamin() const {PHOOL_VIRTUAL_WARN("get_etamin()"); return std::numeric_limits<double>::signaling_NaN();}
 
   virtual std::pair<double, double> get_phibounds(const int /*ibin*/) const
   {
     PHOOL_VIRTUAL_WARN("get_phibounds(const int)");
-    return std::make_pair(NAN, NAN);
+    return std::make_pair(std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN());
   }
   virtual std::pair<double, double> get_etabounds(const int /*ibin*/) const
   {
     PHOOL_VIRTUAL_WARN("get_etabounds(const int)");
-    return std::make_pair(NAN, NAN);
+    return std::make_pair(std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN());
   }
   virtual double get_etacenter(const int /*ibin*/) const
   {
     PHOOL_VIRTUAL_WARN("get_etacenter(const int)");
-    return NAN;
+    return std::numeric_limits<double>::signaling_NaN();
   }
   virtual double get_phicenter(const int /*ibin*/) const
   {
     PHOOL_VIRTUAL_WARN("get_phicenter(const int)");
-    return NAN;
+    return std::numeric_limits<double>::signaling_NaN();
   }
 
   virtual int get_etabin(const double /*eta*/) const
