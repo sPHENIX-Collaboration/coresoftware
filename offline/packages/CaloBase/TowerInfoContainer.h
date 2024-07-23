@@ -1,12 +1,14 @@
 #ifndef TOWERINFOCONTAINER_H
 #define TOWERINFOCONTAINER_H
 
-#include "TowerInfo.h"
-
 #include <phool/PHObject.h>
 
-#include <climits>
+#include <cstddef>
+#include <iostream>
+#include <limits>
 #include <map>
+
+class TowerInfo;
 
 class TowerInfoContainer : public PHObject
 {
@@ -34,8 +36,8 @@ class TowerInfoContainer : public PHObject
   virtual TowerInfo* get_tower_at_key(int /*key*/) { return nullptr; }
   virtual size_t size() const { return 0; }
 
-  virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int decode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return std::numeric_limits<unsigned int>::max(); }
+  virtual unsigned int decode_key(unsigned int /*towerIndex*/) { return std::numeric_limits<unsigned int>::max(); }
 
   virtual unsigned int encode_epd(unsigned int /*towerIndex*/);
   virtual unsigned int encode_hcal(unsigned int /*towerIndex*/);
@@ -52,7 +54,7 @@ class TowerInfoContainer : public PHObject
   virtual unsigned int getTowerPhiBin(unsigned int /*towerIndex*/);
   virtual unsigned int getTowerEtaBin(unsigned int /*towerIndex*/);
 
-  virtual DETECTOR get_detectorid() const {return DETECTOR_INVALID;}
+  virtual DETECTOR get_detectorid() const { return DETECTOR_INVALID; }
 
  private:
   ClassDefOverride(TowerInfoContainer, 1);
