@@ -69,6 +69,12 @@ ParticleFlowReco::ParticleFlowReco(const std::string &name)
 }
 
 //____________________________________________________________________________..
+int ParticleFlowReco_x::InitRun(PHCompositeNode *topNode)
+{
+  return CreateNode(topNode);
+}
+
+//____________________________________________________________________________..
 int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
