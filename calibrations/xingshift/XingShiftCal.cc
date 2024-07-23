@@ -1016,7 +1016,7 @@ int XingShiftCal::SpinDBQA()
   }
 
   int badrunQA = 0;
-
+  
   if (prevbadrunval > 0)
   {
     std::cout << "SPINDBQA: badrunqa is already > 0. No additional qa is performed." << std:: endl;

@@ -14,7 +14,7 @@ class Packet;
 
 class XingShiftCal : public SubsysReco
 {
-  static const int NTRIG = 8;
+  static const int NTRIG = 6;
   static const int NBUNCHES = 120;
 
  public:
@@ -61,8 +61,8 @@ class XingShiftCal : public SubsysReco
   int done{0};
 
 
-  const int packet_BLUESPIN  {14902};
-  const int packet_YELLSPIN  {14903};
+  //const int packet_BLUESPIN  {14902};
+  //const int packet_YELLSPIN  {14903};
   const int packet_BLUEPOL{14905};
   const int packet_BLUEASYM  {14906};
   const int packet_YELLPOL{14907};
