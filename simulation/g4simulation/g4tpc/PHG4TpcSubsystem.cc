@@ -200,7 +200,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("window_surface2_thickness", 0.0127);  // 127  um 2nd shell thickness be default
 
   // for geonode initialization
-  set_default_double_param("drift_velocity", 8.0e-03);
+  set_default_double_param("drift_velocity", 7.55e-03);
 
   set_default_int_param("ntpc_layers_inner", 16);
   set_default_int_param("ntpc_layers_mid", 16);
@@ -229,8 +229,8 @@ void PHG4TpcSubsystem::SetDefaultParameters()
 
   set_default_double_param("TPC_gas_temperature", 15.0); //in celcius
   set_default_double_param("TPC_gas_pressure", 1.0); //in atmospheres
-  set_default_double_param("Ar_frac", 0.75); // mg / cm2
-  set_default_double_param("CF4_frac", 0.20); // mg / cm2
-  set_default_double_param("N2_frac", 0.00); // mg / cm2
-  set_default_double_param("isobutane_frac", 0.05); // mg / cm2
+  set_default_double_param("Ar_frac", 0.75); 
+  set_default_double_param("CF4_frac", 0.20);
+  set_default_double_param("N2_frac", 0.00);
+  set_default_double_param("isobutane_frac", 0.05);
 }
