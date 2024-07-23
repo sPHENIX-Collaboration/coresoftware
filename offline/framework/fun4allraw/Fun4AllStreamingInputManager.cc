@@ -814,7 +814,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     {
       continue;
     }
-    if (diff > (m_RefBCO + m_mvtx_bco_range) / 2.)
+    if(diff > (m_RefBCO + m_mvtx_bco_range)) 
     {
       break;
     }
@@ -867,6 +867,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       allfeestagged++;
       h_tagBcoFelixAllFees_mvtx[pid]->Fill(refbcobitshift);
     }
+    feeset.clear();
   }
   if (allfeestagged == 12)
   {
@@ -876,6 +877,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   {
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
+  taggedPacketsFEEs.clear();
   while (m_MvtxRawHitMap.begin()->first <= select_crossings - m_mvtx_bco_range)
   {
     if (Verbosity() > 2)
