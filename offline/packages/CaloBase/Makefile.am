@@ -13,7 +13,7 @@ libcalo_io_la_LDFLAGS = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 # List of shared libraries to produce
@@ -62,7 +62,6 @@ pkginclude_HEADERS = \
   TowerInfoContainerv2.h \
   TowerInfoContainerv3.h \
   TowerInfoContainerv4.h
-  
 
 ROOTDICTS = \
   RawCluster_Dict.cc \

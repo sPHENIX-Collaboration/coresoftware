@@ -11,32 +11,30 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  TpcChanQA.h \
-  TpcRawHitQA.h
+  QAKFParticle.h
 
 lib_LTLIBRARIES = \
-  libtpcqa.la
+  libkfparticleqa.la
 
-libtpcqa_la_SOURCES = \
-  TpcChanQA.cc \
-  TpcRawHitQA.cc
+libkfparticleqa_la_SOURCES = \
+  QAKFParticle.cc
 
-libtpcqa_la_LIBADD = \
-  -lphool \
+libkfparticleqa_io_la_LIBADD = \
+  -lKFParticle \
   -lSubsysReco \
-  -lg4tpc \
-  -ltrack_io \
-  -ltrackbase_historic_io \
-  -ltrack_reco \
-  -lqautils
+  -lqautils \
+  -lphool
+
 
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals
+  testexternals 
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libtpcqa.la
+
+testexternals_io_SOURCES = testexternals.cc
+testexternals_io_LDADD = libkfparticleqa.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
