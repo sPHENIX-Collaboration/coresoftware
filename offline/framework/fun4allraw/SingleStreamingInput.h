@@ -47,6 +47,9 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual const std::map<int, std::set<uint64_t>>& BclkStackMap() const { return m_BclkStackPacketMap; }
   virtual const std::set<uint64_t>& BclkStack() const { return m_BclkStack; }
   virtual const std::map<uint64_t, std::set<int>>& BeamClockFEE() const { return m_BeamClockFEE; }
+ 
+ protected:
+  std::map<int, std::set<uint64_t>> m_BclkStackPacketMap;
 
  private:
   Eventiterator *m_EventIterator{nullptr};
@@ -61,7 +64,6 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
-  std::map<int, std::set<uint64_t>> m_BclkStackPacketMap;
 };
 
 #endif
