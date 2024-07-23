@@ -39,6 +39,10 @@ void CaloWaveformProcessing::initialize_processing()
       {
 	m_Fitter->set_softwarezerosuppression(_bdosoftwarezerosuppression,_nsoftwarezerosuppression);
       }
+      if (_dobitfliprecovery)
+      {
+        m_Fitter->set_bitFlipRecovery(_dobitfliprecovery);
+      }
   }
   else if (m_processingtype == CaloWaveformProcessing::ONNX)
   {

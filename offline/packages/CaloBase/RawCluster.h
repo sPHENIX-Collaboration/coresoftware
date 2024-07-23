@@ -9,10 +9,9 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
-#include <climits>
-#include <cmath>  // def of NAN
 #include <cstddef>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <string>  // for string
 #include <type_traits>
@@ -51,7 +50,7 @@ class RawCluster : public PHObject
   virtual float get_energy() const
   {
     PHOOL_VIRTUAL_WARN("get_energy()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   //! Tower operations
   virtual size_t getNTowers() const
@@ -76,24 +75,24 @@ class RawCluster : public PHObject
   virtual CLHEP::Hep3Vector get_position() const
   {
     PHOOL_VIRTUAL_WARN("get_position()");
-    return CLHEP::Hep3Vector(NAN, NAN, NAN);
+    return CLHEP::Hep3Vector(std::numeric_limits<float>::signaling_NaN(), std::numeric_limits<float>::signaling_NaN(), std::numeric_limits<float>::signaling_NaN());
   }
   //
   //!  access to intrinsic cylindrical coordinate system
   virtual float get_phi() const
   {
     PHOOL_VIRTUAL_WARN("get_phi()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   virtual float get_r() const
   {
     PHOOL_VIRTUAL_WARN("get_r()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   virtual float get_z() const
   {
     PHOOL_VIRTUAL_WARN("get_z()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   //
 
@@ -115,13 +114,13 @@ class RawCluster : public PHObject
    *  virtual float get_eta() const
    *  {
    *    PHOOL_VIRTUAL_WARN("get_eta()");
-   *    return NAN;
+   *    return std::numeric_limits<float>::signaling_NaN();
    *  }
    *  //! convert cluster E_T given a user chosen z-location
    *  virtual float get_et() const
    *  {
    *    PHOOL_VIRTUAL_WARN("get_et()");
-   *    return NAN;
+   *    return std::numeric_limits<float>::signaling_NaN();
    *  }
    */
 
@@ -129,12 +128,12 @@ class RawCluster : public PHObject
   virtual float get_x() const
   {
     PHOOL_VIRTUAL_WARN("get_x()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   virtual float get_y() const
   {
     PHOOL_VIRTUAL_WARN("get_y()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   //
   //! access additional optional properties
@@ -142,31 +141,31 @@ class RawCluster : public PHObject
   virtual float get_ecore() const
   {
     PHOOL_VIRTUAL_WARN("get_ecore()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   //! reduced chi2 for EM shower
   virtual float get_chi2() const
   {
     PHOOL_VIRTUAL_WARN("get_chi2()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   //! cluster template probability for EM shower
   virtual float get_prob() const
   {
     PHOOL_VIRTUAL_WARN("get_prob()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   //! isolation ET default
   virtual float get_et_iso() const
   {
     PHOOL_VIRTUAL_WARN("get_et_iso()");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
   //! isolation ET the radius and hueristic can be specified
   virtual float get_et_iso(const int /*radiusx10*/, bool /*subtracted*/, bool /*clusterTower*/) const
   {
     PHOOL_VIRTUAL_WARN("get_et_iso(const int radiusx10, bool subtracted, bool clusterTower)");
-    return NAN;
+    return std::numeric_limits<float>::signaling_NaN();
   }
 
   //  //! truth cluster's PHG4Particle ID
@@ -261,7 +260,7 @@ class RawCluster : public PHObject
     //    prop_truth_flavor = 101,
 
     //! max limit in order to fit into 8 bit unsigned number
-    prop_MAX_NUMBER = UCHAR_MAX
+    prop_MAX_NUMBER = std::numeric_limits<unsigned char>::max()
   };
 
   enum PROPERTY_TYPE
@@ -274,9 +273,9 @@ class RawCluster : public PHObject
 
   //! getters
   virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
-  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return NAN; }
-  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return INT_MIN; }
-  virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
+  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return std::numeric_limits<int>::min(); }
+  virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   //! setters
   virtual void set_property(const PROPERTY /*prop_id*/, const float /*value*/) { return; }
   virtual void set_property(const PROPERTY /*prop_id*/, const int /*value*/) { return; }

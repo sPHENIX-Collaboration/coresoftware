@@ -5,8 +5,8 @@
 
 #include "RawTowerDefs.h"
 
-#include <cmath>
 #include <iostream>
+#include <limits>
 
 class RawTowerGeomv1 : public RawTowerGeom
 {
@@ -51,11 +51,11 @@ class RawTowerGeomv1 : public RawTowerGeom
   double get_theta() const override;
 
  protected:
-  RawTowerDefs::keytype _towerid = ~0;  // 0xFFFFFF.. independant of type
+  RawTowerDefs::keytype _towerid{std::numeric_limits<RawTowerDefs::keytype>::max()};
 
-  double _center_x = NAN;
-  double _center_y = NAN;
-  double _center_z = NAN;
+  double _center_x{std::numeric_limits<double>::signaling_NaN()};
+  double _center_y{std::numeric_limits<double>::signaling_NaN()};
+  double _center_z{std::numeric_limits<double>::signaling_NaN()};
   ClassDefOverride(RawTowerGeomv1, 4)
 };
 
