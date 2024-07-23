@@ -2,31 +2,17 @@
 
 #include <phool/phool.h>
 
-#include <climits>
-#include <cmath>
 #include <cstdlib>
 #include <limits>
 #include <string>
 
-using namespace std;
-
-RawClusterv1::RawClusterv1()
-  : RawCluster()
-  , clusterid(0)
-  , _energy(numeric_limits<float>::signaling_NaN())
-  , _r(numeric_limits<float>::signaling_NaN())
-  , _phi(numeric_limits<float>::signaling_NaN())
-  , _z(numeric_limits<float>::signaling_NaN())
-{
-}
-
 void RawClusterv1::Reset()
 {
   clusterid = 0;
-  _z = (numeric_limits<float>::signaling_NaN());
-  _r = (numeric_limits<float>::signaling_NaN());
-  _phi = (numeric_limits<float>::signaling_NaN());
-  _energy = (numeric_limits<float>::signaling_NaN());
+  _z = std::numeric_limits<float>::signaling_NaN();
+  _r = std::numeric_limits<float>::signaling_NaN();
+  _phi = std::numeric_limits<float>::signaling_NaN();
+  _energy = std::numeric_limits<float>::signaling_NaN();
   prop_map.clear();
   towermap.clear();
 }
@@ -35,8 +21,8 @@ void RawClusterv1::addTower(const RawClusterDefs::keytype twrid, const float eto
 {
   if (towermap.find(twrid) != towermap.end())
   {
-    cout << "tower 0x" << hex << twrid << ", dec: " << dec
-         << twrid << " already exists, that is bad" << endl;
+    std::cout << "tower 0x" << std::hex << twrid << ", dec: " << std::dec
+              << twrid << " already exists, that is bad" << std::endl;
     exit(1);
   }
   towermap[twrid] = etower;
@@ -50,7 +36,7 @@ void RawClusterv1::identify(std::ostream& os) const
   for (auto i : prop_map)
   {
     PROPERTY prop_id = static_cast<PROPERTY>(i.first);
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     os << "\t" << prop_id << ":\t" << property_info.first << " = \t";
     switch (property_info.second)
     {
@@ -67,7 +53,7 @@ void RawClusterv1::identify(std::ostream& os) const
       os << " unknown type ";
       break;
     }
-    os << endl;
+    os << std::endl;
   }
 }
 
@@ -95,10 +81,10 @@ float RawClusterv1::get_property_float(const PROPERTY prop_id) const
 {
   if (!check_property(prop_id, type_float))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_float) << endl;
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_float) << std::endl;
     exit(1);
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
@@ -108,17 +94,17 @@ float RawClusterv1::get_property_float(const PROPERTY prop_id) const
     return u_property(i->second).fdata;
   }
 
-  return NAN;
+  return std::numeric_limits<float>::signaling_NaN();
 }
 
 int RawClusterv1::get_property_int(const PROPERTY prop_id) const
 {
   if (!check_property(prop_id, type_int))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_int) << endl;
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_int) << std::endl;
     exit(1);
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
@@ -128,7 +114,7 @@ int RawClusterv1::get_property_int(const PROPERTY prop_id) const
     return u_property(i->second).idata;
   }
 
-  return INT_MIN;
+  return std::numeric_limits<int>::min();
 }
 
 unsigned int
@@ -136,10 +122,10 @@ RawClusterv1::get_property_uint(const PROPERTY prop_id) const
 {
   if (!check_property(prop_id, type_uint))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_uint) << endl;
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_uint) << std::endl;
     exit(1);
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
@@ -149,17 +135,17 @@ RawClusterv1::get_property_uint(const PROPERTY prop_id) const
     return u_property(i->second).uidata;
   }
 
-  return UINT_MAX;
+  return std::numeric_limits<unsigned int>::max();
 }
 
 void RawClusterv1::set_property(const PROPERTY prop_id, const float value)
 {
   if (!check_property(prop_id, type_float))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_float) << endl;
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_float) << std::endl;
     exit(1);
   }
   prop_map[prop_id] = u_property(value).get_storage();
@@ -169,10 +155,10 @@ void RawClusterv1::set_property(const PROPERTY prop_id, const int value)
 {
   if (!check_property(prop_id, type_int))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_int) << endl;
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_int) << std::endl;
     exit(1);
   }
   prop_map[prop_id] = u_property(value).get_storage();
@@ -182,10 +168,10 @@ void RawClusterv1::set_property(const PROPERTY prop_id, const unsigned int value
 {
   if (!check_property(prop_id, type_uint))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_uint) << endl;
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_uint) << std::endl;
     exit(1);
   }
   prop_map[prop_id] = u_property(value).get_storage();
@@ -253,7 +239,7 @@ RawClusterv1::get_property_nocheck(const PROPERTY prop_id) const
   {
     return iter->second;
   }
-  return UINT_MAX;
+  return std::numeric_limits<unsigned int>::max();
 }
 
 float RawClusterv1::get_et_iso(const int radiusx10 = 3, bool subtracted = false, bool clusterTower = true) const
@@ -280,7 +266,7 @@ float RawClusterv1::get_et_iso(const int radiusx10 = 3, bool subtracted = false,
       default:
         std::string warning = "get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - radius:" + std::to_string(radiusx10) + " has not been defined";
         PHOOL_VIRTUAL_WARN(warning.c_str());
-        r = NAN;
+        r = std::numeric_limits<float>::signaling_NaN();
         break;
       }
     }
@@ -303,7 +289,7 @@ float RawClusterv1::get_et_iso(const int radiusx10 = 3, bool subtracted = false,
       default:
         std::string warning = "get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - radius:" + std::to_string(radiusx10) + " has not been defined";
         PHOOL_VIRTUAL_WARN(warning.c_str());
-        r = NAN;
+        r = std::numeric_limits<float>::signaling_NaN();
         break;
       }
     }
@@ -311,7 +297,7 @@ float RawClusterv1::get_et_iso(const int radiusx10 = 3, bool subtracted = false,
   else
   {
     PHOOL_VIRTUAL_WARN("get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - nonclusterTower algorithms have not been defined");
-    r = NAN;
+    r = std::numeric_limits<float>::signaling_NaN();
   }
   return r;
 }

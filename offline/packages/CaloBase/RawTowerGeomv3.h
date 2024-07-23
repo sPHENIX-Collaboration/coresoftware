@@ -5,8 +5,8 @@
 
 #include "RawTowerDefs.h"
 
-#include <cmath>
 #include <iostream>
+#include <limits>
 
 class RawTowerGeomv3 : public RawTowerGeom
 {
@@ -80,15 +80,15 @@ class RawTowerGeomv3 : public RawTowerGeom
  protected:
   RawTowerDefs::keytype _towerid = ~0;  // complement = 0xFFFFF... independent of integer type (32/64/... bits)
 
-  double _center_x = NAN;
-  double _center_y = NAN;
-  double _center_z = NAN;
+  double _center_x{std::numeric_limits<double>::signaling_NaN()};
+  double _center_y{std::numeric_limits<double>::signaling_NaN()};
+  double _center_z{std::numeric_limits<double>::signaling_NaN()};
 
-  double _size_x = NAN;
-  double _size_y = NAN;
-  double _size_z = NAN;
+  double _size_x{std::numeric_limits<double>::signaling_NaN()};
+  double _size_y{std::numeric_limits<double>::signaling_NaN()};
+  double _size_z{std::numeric_limits<double>::signaling_NaN()};
 
-  int _tower_type = -1;
+  int _tower_type{-1};
 
   ClassDefOverride(RawTowerGeomv3, 4)
 };

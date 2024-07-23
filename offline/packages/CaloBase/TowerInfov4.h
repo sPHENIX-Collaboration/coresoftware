@@ -1,8 +1,9 @@
 #ifndef TOWERINFOV4_H
 #define TOWERINFOV4_H
 
-#include "TowerInfo.h"
 #include "TowerInfov1.h"
+
+#include <cmath>
 
 class TowerInfov4 : public TowerInfo
 {
@@ -18,7 +19,7 @@ class TowerInfov4 : public TowerInfo
   float get_energy() override { return energy; }
 
   void set_time(short t) override { time = (t * 1000); }
-  short get_time() override { return ((float) time)/ 1000; }
+  short get_time() override { return ((float) time) / 1000; }
 
   void set_time_float(float t) override { time = t * 1000; }
   float get_time_float() override { return time / 1000.; }
