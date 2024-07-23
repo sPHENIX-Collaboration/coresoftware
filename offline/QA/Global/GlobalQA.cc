@@ -6,6 +6,7 @@
 #include <calobase/RawClusterUtility.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
+#include <calobase/TowerInfov2.h>
 #include <calobase/TowerInfoContainer.h>
 
 #include <mbd/MbdPmtContainer.h>
@@ -101,32 +102,6 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     std::cout << "GlobalQA::process_event()  No event header" << std::endl;
   }
 
-  //--------------------------- MBD vertex------------------------------//
-  MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-  MbdVertex *bvertex = nullptr;
-  float mbd_zvtx =std::numeric_limits<float>::quiet_NaN(); 
-  if (mbdmap)
-  {
-    for (MbdVertexMap::ConstIter mbditer = mbdmap->begin(); mbditer != mbdmap->end(); ++mbditer)
-    {
-      bvertex = mbditer->second;
-    }
-    if (bvertex)
-    {
-      mbd_zvtx = bvertex->get_z();
-    }
-  }
-  h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
-  h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
-  if (!std::isfinite(mbd_zvtx) )
-  {
-    h_GlobalQA_mbd_zvtxq->SetBinContent(1,h_GlobalQA_mbd_zvtxq->GetBinContent(1)+1);
-  }
-  else
-  {
-    h_GlobalQA_mbd_zvtxq->Fill(2,h_GlobalQA_mbd_zvtxq->GetBinContent(2)+1);
-  }
-
   //--------------------------- trigger and GL1-------------------------------//
   bool scaledBits[64] = {false};
   Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
@@ -134,9 +109,10 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   {
     std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing" << std::endl;
   }
+  uint64_t triggervec = 0;
   if (gl1PacketInfo)
   {
-    uint64_t triggervec = gl1PacketInfo->getScaledVector();
+    triggervec = gl1PacketInfo->getScaledVector();
     for (int i = 0; i < 64; i++)
     {
       bool trig_decision = ((triggervec & 0x1U) == 0x1U);
@@ -148,177 +124,239 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       triggervec = (triggervec >> 1U) & 0xffffffffU;
     }
   }
-
-  // ------------------------------------- ZDC -----------------------------------------//
+  triggervec = gl1PacketInfo->getLiveVector();
+  if ((triggervec >> 10) & 1)
   {
-    Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
-    float totalzdcsouthcalib = 0.;
-    float totalzdcnorthcalib = 0.;
-    if (_zdcinfo)
+    //--------------------------- MBD vertex------------------------------//
+    MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+    MbdVertex *bvertex = nullptr;
+    float mbd_zvtx =std::numeric_limits<float>::quiet_NaN(); 
+    if (mbdmap)
     {
-      totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
-      totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
-    }
-    h_GlobalQA_zdc_zvtx->Fill(999);
-    h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
-    h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
-  }
-
-  //--------------------------- MBD ----------------------------------------//
-  MbdPmtContainer *bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
-  if (!bbcpmts)
-  {
-    std::cout << "GlobalQA::process_event: Could not find MbdPmtContainer," << std::endl;
-    // return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  int hits = 0;
-  int hits_n = 0;
-  int hits_s = 0;
-  int hits_n_t = 0;
-  int hits_s_t = 0;
-  std::vector<float> time_sum_s = {};
-  std::vector<float> time_sum_n = {};
-  float sum_s = 0.;
-  float sum_n = 0.;
-  float sum_s2 = 0.;
-  float sum_n2 = 0.;
-  float tot_charge_s = 0.;
-  float tot_charge_n = 0.;
-
-  float charge_thresh = 0.4;
-  if (bbcpmts)
-  {
-    int nPMTs = bbcpmts->get_npmt();
-    for (int i = 0; i < nPMTs; i++)
-    {
-      MbdPmtHit *mbdpmt = bbcpmts->get_pmt(i);
-      float q = mbdpmt->get_q();
-      float t = mbdpmt->get_time();
-      if (i < 64)
+      for (MbdVertexMap::ConstIter mbditer = mbdmap->begin(); mbditer != mbdmap->end(); ++mbditer)
       {
-        tot_charge_s += q;
-        if (q > charge_thresh)
-        {
-          hits_s++;
+        bvertex = mbditer->second;
+      }
+      if (bvertex)
+      {
+        mbd_zvtx = bvertex->get_z();
+      }
+    }
+    h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
+    h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
+    if (!std::isfinite(mbd_zvtx) )
+    {
+      h_GlobalQA_mbd_zvtxq->SetBinContent(1,h_GlobalQA_mbd_zvtxq->GetBinContent(1)+1);
+    }
+    else
+    {
+      h_GlobalQA_mbd_zvtxq->SetBinContent(2,h_GlobalQA_mbd_zvtxq->GetBinContent(2)+1);
+    }
+  }
+
+  
+  {
+    // ------------------------------------- ZDC -----------------------------------------//
+    {
+      Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+      TowerInfoContainer *_zdc_towerinfo = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
+      float totalzdcsouthcalib = 0.;
+      float totalzdcnorthcalib = 0.;
+      float zdc_E[6] = {0};
+      float zdc_t[6] = {0};
+      float zdc_zvtx = 9999;
+      if (_zdcinfo)
+      {
+        totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
+        totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
+        if (_zdcinfo->get_radius(0) < 2 && _zdcinfo->get_radius(1) < 2) 
+        { 
+          for (int ichan = 0; ichan < 16; ichan++)
+          {
+            TowerInfov2 *tower = (TowerInfov2*) _zdc_towerinfo->get_tower_at_channel(ichan);
+            if (ichan % 2 == 0 && ichan < 13)
+            {
+              zdc_E[ichan / 2] = tower->get_energy();
+              zdc_t[ichan / 2] = tower->get_energy();
+            }
+          }
+          float es = zdc_E[0] + zdc_E[1] + zdc_E[2];
+          float ets = zdc_E[0] * zdc_t[0] + zdc_E[1] * zdc_t[1] + zdc_E[2] * zdc_t[2];
+          float ts = ets / es;
+
+          float en = zdc_E[3] + zdc_E[4] + zdc_E[5];
+          float etn = zdc_E[3] * zdc_t[3] + zdc_E[4] * zdc_t[4] + zdc_E[5] * zdc_t[5];
+          float tn = etn / en;
+
+          zdc_zvtx = 3e+10 * (ts - tn) * TSAMPLE / 2.0;
         }
-        if (i == 56 || isnan(t))
+      }
+      h_GlobalQA_zdc_zvtx->Fill(zdc_zvtx);
+      h_GlobalQA_zdc_zvtx_wide->Fill(zdc_zvtx);
+      h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
+      h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
+    }
+  }
+
+  if ((triggervec >> 10 ) & 1) 
+  {
+    //--------------------------- MBD ----------------------------------------//
+    MbdPmtContainer *bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
+    if (!bbcpmts)
+    {
+      std::cout << "GlobalQA::process_event: Could not find MbdPmtContainer," << std::endl;
+      // return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+    int hits = 0;
+    int hits_n = 0;
+    int hits_s = 0;
+    int hits_n_t = 0;
+    int hits_s_t = 0;
+    std::vector<float> time_sum_s = {};
+    std::vector<float> time_sum_n = {};
+    float sum_s = 0.;
+    float sum_n = 0.;
+    float sum_s2 = 0.;
+    float sum_n2 = 0.;
+    float tot_charge_s = 0.;
+    float tot_charge_n = 0.;
+
+    float charge_thresh = 0.4;
+    if (bbcpmts)
+    {
+      int nPMTs = bbcpmts->get_npmt();
+      for (int i = 0; i < nPMTs; i++)
+      {
+        MbdPmtHit *mbdpmt = bbcpmts->get_pmt(i);
+        float q = mbdpmt->get_q();
+        float t = mbdpmt->get_time();
+        if (i < 64)
         {
-          continue;
+          tot_charge_s += q;
+          if (q > charge_thresh)
+          {
+            hits_s++;
+          }
+          if (i == 56 || isnan(t))
+          {
+            continue;
+          }
+          hits_s_t++;
+          time_sum_s.push_back(t);
+          sum_s += t;
+          sum_s2 += t * t;
         }
-        hits_s_t++;
-        time_sum_s.push_back(t);
-        sum_s += t;
-        sum_s2 += t * t;
-      }
-      else if (i >= 64)
-      {
-        tot_charge_n += q;
-        if (q > charge_thresh)
+        else if (i >= 64)
         {
-          hits_n++;
+          tot_charge_n += q;
+          if (q > charge_thresh)
+          {
+            hits_n++;
+          }
+          if (i == 120 || isnan(t))
+          {
+            continue;
+          }
+          hits_n_t++;
+          time_sum_n.push_back(t);
+          sum_n += t;
+          sum_n2 += t * t;
         }
-        if (i == 120 || isnan(t))
+
+        // float pmtadc = mbdpmt->get_q();
+        if (q > 0.4)
         {
-          continue;
+          hits++;
         }
-        hits_n_t++;
-        time_sum_n.push_back(t);
-        sum_n += t;
-        sum_n2 += t * t;
       }
+    }
 
-      // float pmtadc = mbdpmt->get_q();
-      if (q > 0.4)
+    // Calculating the zvtx
+    std::sort(time_sum_n.begin(), time_sum_n.end());
+    std::sort(time_sum_s.begin(), time_sum_s.end());
+    unsigned length_s = time_sum_s.size();
+    unsigned length_n = time_sum_n.size();
+    float mean_north = 999;
+    float mean_south = 999;
+    int central_cut = 4;
+    float sigma_cut = 1.5;
+
+    if (hits_s_t >= central_cut)
+    {
+      mean_south = sum_s / static_cast<float>(hits_s_t);
+      float rms_s = sqrt(sum_s2 / static_cast<float>(hits_s_t) - TMath::Power(mean_south, 2));
+      int nhit_s_center = 0;
+      float sum_s_center = 0.;
+
+      for (unsigned int is = 0; is < length_s; is++)
       {
-        hits++;
+        if (fabs(time_sum_s.at(is) - mean_south) < sigma_cut * rms_s)
+        {
+          sum_s_center += time_sum_s.at(is);
+          nhit_s_center++;
+        }
       }
-    }
-  }
 
-  // Calculating the zvtx
-  std::sort(time_sum_n.begin(), time_sum_n.end());
-  std::sort(time_sum_s.begin(), time_sum_s.end());
-  unsigned length_s = time_sum_s.size();
-  unsigned length_n = time_sum_n.size();
-  float mean_north = 999;
-  float mean_south = 999;
-  int central_cut = 4;
-  float sigma_cut = 1.5;
-
-  if (hits_s_t >= central_cut)
-  {
-    mean_south = sum_s / static_cast<float>(hits_s_t);
-    float rms_s = sqrt(sum_s2 / static_cast<float>(hits_s_t) - TMath::Power(mean_south, 2));
-    int nhit_s_center = 0;
-    float sum_s_center = 0.;
-
-    for (unsigned int is = 0; is < length_s; is++)
-    {
-      if (fabs(time_sum_s.at(is) - mean_south) < sigma_cut * rms_s)
+      if (nhit_s_center > 0)
       {
-        sum_s_center += time_sum_s.at(is);
-        nhit_s_center++;
+        float mean_south_center = sum_s_center / static_cast<float>(nhit_s_center);
+        mean_south = mean_south_center;
       }
     }
-
-    if (nhit_s_center > 0)
+    else if (hits_s >= 2 && (hits_s_t >= 1))
     {
-      float mean_south_center = sum_s_center / static_cast<float>(nhit_s_center);
-      mean_south = mean_south_center;
+      mean_south = sum_s / static_cast<float>(hits_s_t);
     }
-  }
-  else if (hits_s >= 2 && (hits_s_t >= 1))
-  {
-    mean_south = sum_s / static_cast<float>(hits_s_t);
-  }
 
-  if (hits_n_t >= central_cut)
-  {
-    mean_north = sum_n / static_cast<float>(hits_n_t);
-    float rms_n = sqrt(sum_n2 / static_cast<float>(hits_n_t) - TMath::Power(mean_north, 2));
-    int nhit_n_center = 0;
-    float sum_n_center = 0.;
-
-    for (unsigned int ino = 0; ino < length_n; ino++)
+    if (hits_n_t >= central_cut)
     {
-      if (fabs(time_sum_n.at(ino) - mean_north) < sigma_cut * rms_n)
+      mean_north = sum_n / static_cast<float>(hits_n_t);
+      float rms_n = sqrt(sum_n2 / static_cast<float>(hits_n_t) - TMath::Power(mean_north, 2));
+      int nhit_n_center = 0;
+      float sum_n_center = 0.;
+
+      for (unsigned int ino = 0; ino < length_n; ino++)
       {
-        sum_n_center += time_sum_n.at(ino);
-        nhit_n_center++;
+        if (fabs(time_sum_n.at(ino) - mean_north) < sigma_cut * rms_n)
+        {
+          sum_n_center += time_sum_n.at(ino);
+          nhit_n_center++;
+        }
+      }
+
+      if (nhit_n_center > 0)
+      {
+        float mean_north_center = sum_n_center / static_cast<float>(nhit_n_center);
+        mean_north = mean_north_center;
       }
     }
-
-    if (nhit_n_center > 0)
+    else if (hits_n >= 2 && hits_n_t >= 1)
     {
-      float mean_north_center = sum_n_center / static_cast<float>(nhit_n_center);
-      mean_north = mean_north_center;
+      mean_north = sum_n / static_cast<float>(hits_n_t);
     }
-  }
-  else if (hits_n >= 2 && hits_n_t >= 1)
-  {
-    mean_north = sum_n / static_cast<float>(hits_n_t);
-  }
-  float calc_zvtx;
-  if (mean_north != 999 && mean_south != 999)
-  {
-    calc_zvtx = 15 * (mean_south - mean_north);
-  }
-  else
-  {
-    calc_zvtx = 999;
-  }
+    float calc_zvtx;
+    if (mean_north != 999 && mean_south != 999)
+    {
+      calc_zvtx = 15 * (mean_south - mean_north);
+    }
+    else
+    {
+      calc_zvtx = 999;
+    }
 
-  h_GlobalQA_calc_zvtx->Fill(calc_zvtx);
-  h_GlobalQA_calc_zvtx_wide->Fill(calc_zvtx);
-  h_GlobalQA_mbd_charge_s->Fill(tot_charge_s);
-  h_GlobalQA_mbd_charge_n->Fill(tot_charge_n);
-  h_GlobalQA_mbd_nhit_s->Fill(hits_s);
-  h_GlobalQA_mbd_nhit_n->Fill(hits_n);
-
+    h_GlobalQA_calc_zvtx->Fill(calc_zvtx);
+    h_GlobalQA_calc_zvtx_wide->Fill(calc_zvtx);
+    h_GlobalQA_mbd_charge_s->Fill(tot_charge_s);
+    h_GlobalQA_mbd_charge_n->Fill(tot_charge_n);
+    h_GlobalQA_mbd_nhit_s->Fill(hits_s);
+    h_GlobalQA_mbd_nhit_n->Fill(hits_n);
+  }
 
   //---------------------------- Trigger / alignment -------------------------------------//
   float leading_cluster_ecore = 0;
+  float leading_cluster_eta = 0;
+  float leading_cluster_phi = 0;
   int evtNum_overK = event_number / 1000;
 
   RawClusterContainer *clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
@@ -336,15 +374,20 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
 
       float clusE = E_vec_cluster.mag();
+      float clusEta = E_vec_cluster.pseudoRapidity();
+      float clusPhi = E_vec_cluster.phi();
       if (clusE > leading_cluster_ecore)
       {
         leading_cluster_ecore = clusE;
+        leading_cluster_eta = clusEta;
+        leading_cluster_phi = clusPhi;
       }
     }
     for (int i = 0; i < 64; i++)
     {
       if (scaledBits[i])
       {
+        h_GlobalQA_edist[i]->Fill(leading_cluster_eta, leading_cluster_phi);
         h_ldClus_trig[i]->Fill(leading_cluster_ecore);
         pr_evtNum_ldClus_trig[i]->Fill(evtNum_overK, leading_cluster_ecore);
         pr_ldClus_trig->Fill(i, leading_cluster_ecore);
@@ -387,12 +430,15 @@ void GlobalQA::createHistos()
 
   // ZDC QA
   h_GlobalQA_zdc_zvtx = new TH1D("h_GlobalQA_zdc_zvtx", ";zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_zdc_zvtx_wide = new TH1D("h_GlobalQA_zdc_zvtx_wide", ";zvtx [cm]", 100, -1000, 1000);
   h_GlobalQA_zdc_energy_s = new TH1D("h_GlobalQA_zdc_energy_s", ";Energy [Gev]", 100, 10, 340);
   h_GlobalQA_zdc_energy_n = new TH1D("h_GlobalQA_zdc_energy_n", ";Energy [Gev]", 100, 10, 340);
   hm->registerHisto(h_GlobalQA_zdc_zvtx);
+  hm->registerHisto(h_GlobalQA_zdc_zvtx_wide);
   hm->registerHisto(h_GlobalQA_zdc_energy_s);
   hm->registerHisto(h_GlobalQA_zdc_energy_n);
 
+  // Trigger QA
   h_GlobalQA_triggerVec = new TH1F("h_GlobalQA_triggerVec", "", 64, 0, 64);
   hm->registerHisto(h_GlobalQA_triggerVec);
   pr_ldClus_trig = new TProfile("pr_GlobalQA_ldClus_trig", "", 64, 0, 64, 0, 10);
@@ -400,6 +446,8 @@ void GlobalQA::createHistos()
 
   for (int i = 0; i < 64; i++)
   {
+    h_GlobalQA_edist[i] = new TH2F(boost::str(boost::format("h_GlobalQA_edist_trig%d") % i).c_str(), "", 64, -1.2, 1.2, 128, -3.1415, 3.1415);
+    hm->registerHisto(h_GlobalQA_edist[i]);
     h_ldClus_trig[i] = new TH1F(boost::str(boost::format("h_GlobalQA_ldClus_trig%d") % i).c_str(), "", 100, 0, 10);
     hm->registerHisto(h_ldClus_trig[i]);
     pr_evtNum_ldClus_trig[i] = new TProfile(boost::str(boost::format("pr_GlobalQA_evtNum_ldClus_trig%d") % i).c_str(), "", 100000, 0, 100000, 0, 10);

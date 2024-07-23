@@ -44,6 +44,7 @@ class GlobalQA : public SubsysReco
   int evtcount = 0;
   int Getpeaktime(TH1* h);
   void createHistos();
+  float TSAMPLE = 1.0 / (9.4e+6 * 6);
 
   TH1* h_GlobalQA_mbd_zvtx = nullptr;
   TH1* h_GlobalQA_mbd_zvtx_wide = nullptr;
@@ -56,8 +57,11 @@ class GlobalQA : public SubsysReco
   TH1* h_GlobalQA_mbd_zvtxq = nullptr;
   
   TH1* h_GlobalQA_zdc_zvtx = nullptr;
+  TH1* h_GlobalQA_zdc_zvtx_wide = nullptr;
   TH1* h_GlobalQA_zdc_energy_s = nullptr;
   TH1* h_GlobalQA_zdc_energy_n = nullptr;
+  
+  TH2 * h_GlobalQA_edist[64] = {nullptr};
   TH1* h_ldClus_trig[64] = {nullptr};
   TProfile *pr_evtNum_ldClus_trig[64] = {nullptr};
 
