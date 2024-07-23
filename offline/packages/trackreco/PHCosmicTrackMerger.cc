@@ -109,7 +109,10 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
       for (auto &pos : globTr1.second)
       {
         float clusr = r(pos.x(), pos.y());
-        if (pos.y() < 0) clusr *= -1;
+        if (pos.y() < 0) 
+        {
+          clusr *= -1;
+        }
         tr1_rz_pts.push_back(std::make_pair(pos.z(), clusr));
         tr1_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
       }
@@ -158,7 +161,10 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
       for (auto &pos : globTr2.second)
       {
         float clusr = r(pos.x(), pos.y());
-        if (pos.y() < 0) clusr *= -1;
+        if (pos.y() < 0) 
+        {
+          clusr *= -1;
+        }
         tr2_rz_pts.push_back(std::make_pair(pos.z(), clusr));
         tr2_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
       }
@@ -225,18 +231,22 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
 
     //! remove any obvious outlier clusters from the track that were mistakenly
     //! picked up by the seeder
-    if (m_iter == 1)
+    if (m_removeOutliers)
     {
-      getBestClustersPerLayer(tpcseed1);
+      if (m_iter == 1)
+      {
+        getBestClustersPerLayer(tpcseed1);
+        if (silseed1)
+        {
+          getBestClustersPerLayer(silseed1);
+        }
+      }
+
+      removeOutliers(tpcseed1);
       if (silseed1)
       {
-        getBestClustersPerLayer(silseed1);
+        removeOutliers(silseed1);
       }
-    }
-    removeOutliers(tpcseed1);
-    if (silseed1)
-    {
-      removeOutliers(silseed1);
     }
   }
   if (Verbosity() > 3)
@@ -288,7 +298,7 @@ void PHCosmicTrackMerger::getBestClustersPerLayer(TrackSeed *seed)
     tr_rz_pts.push_back(std::make_pair(pos.z(), clusr));
     tr_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
   }
-
+ 
   auto xyParams = TrackFitUtils::line_fit(tr_xy_pts);
   auto rzParams = TrackFitUtils::line_fit(tr_rz_pts);
   std::map<int, std::pair<float, float>> bestLayerDcasxy, bestLayerDcasrz;
@@ -412,9 +422,15 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
   for (const auto &pos : glob.second)
   {
     float clusr = r(pos.x(), pos.y());
-    if (pos.y() < 0) clusr *= -1;
+    if (pos.y() < 0)
+    {
+      clusr *= -1;
+    } 
     // skip tpot clusters, as they are always bad in 1D due to 1D resolution
-    if (fabs(clusr) > 80.) continue;
+    if (fabs(clusr) > 80.) 
+    {
+      continue;
+    }
     tr_rz_pts.push_back(std::make_pair(pos.z(), clusr));
     tr_xy_pts.push_back(std::make_pair(pos.x(), pos.y()));
   }

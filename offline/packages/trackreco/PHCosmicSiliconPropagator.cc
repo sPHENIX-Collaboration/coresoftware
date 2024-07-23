@@ -209,7 +209,11 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
       {
         continue;
       }
-
+      for(auto& pos : tpcClusPos)
+      {
+        std::cout << pos.transpose() << std::endl;
+      }
+      
       std::vector<TrkrDefs::cluskey> ckeys;
       nClusters = TrackFitUtils::addClusters(fitparams, _dca_xy_cut, _tgeometry, _cluster_map,
                                              newClusPos, ckeys, 0, 56);
@@ -220,14 +224,12 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
         auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
         auto pca = TrackFitUtils::get_helix_pca(fitparams, clusglob);
         float dcaz = (pca - clusglob).z();
-
         if (std::fabs(dcaz) < _dca_z_cut)
         {
           newClusKeys.push_back(key);
         }
       }
     }
-
     //! only keep long seeds
     if ((tpcClusKeys.size() + newClusKeys.size() > 25))
     {
