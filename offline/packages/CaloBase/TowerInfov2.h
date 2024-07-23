@@ -1,8 +1,9 @@
 #ifndef TOWERINFOV2_H
 #define TOWERINFOV2_H
 
-#include "TowerInfo.h"
 #include "TowerInfov1.h"
+
+#include <cstdint>
 
 class TowerInfov2 : public TowerInfov1
 {

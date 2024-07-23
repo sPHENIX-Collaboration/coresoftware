@@ -1,15 +1,17 @@
-#include "TowerInfo.h"
 #include "TowerInfov4.h"
+#include "TowerInfo.h"
+
+#include <limits>
 
 void TowerInfov4::Reset()
 {
-  energy = NAN;
+  energy = std::numeric_limits<float>::signaling_NaN();
   time = 0;
   chi2 = 0;
   status = 0;
 }
 
-void TowerInfov4::Clear(Option_t* )
+void TowerInfov4::Clear(Option_t* /*unused*/)
 {
   time = 0;
   energy = 0;

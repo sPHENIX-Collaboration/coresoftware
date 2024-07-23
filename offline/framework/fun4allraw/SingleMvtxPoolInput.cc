@@ -11,7 +11,6 @@
 #include <ffarawobjects/MvtxRawHitv1.h>
 
 #include <frog/FROG.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
@@ -25,7 +24,6 @@
 #include <cassert>
 #include <memory>
 #include <set>
-
 SingleMvtxPoolInput::SingleMvtxPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
@@ -59,6 +57,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
       return;
     }
   }
+
   //  std::set<uint64_t> saved_beamclocks;
   while (GetSomeMoreEvents())
   {
@@ -130,24 +129,17 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
         {
           auto feeId = pool->iValue(i_fee, "FEEID");
           auto link = MvtxRawDefs::decode_feeid(feeId);
+
           //          auto hbfSize = plist[i]->iValue(feeId, "NR_HBF");
           auto num_strobes = pool->iValue(feeId, "NR_STROBES");
           auto num_L1Trgs = pool->iValue(feeId, "NR_PHYS_TRG");
-// this should not be needed, the m_FeeGTML1BCOMap[i_fee].insert(l1Trg_bco)
-// will create the set if it doesn't exist
-          // if(m_FeeGTML1BCOMap.find(i_fee) == m_FeeGTML1BCOMap.end())
-          // {
-          //   m_FeeGTML1BCOMap[i_fee] = std::set<uint64_t>();
-          // }
           for (int iL1 = 0; iL1 < num_L1Trgs; ++iL1)
           {
             auto l1Trg_bco = pool->lValue(feeId, iL1, "L1_IR_BCO");
             //            auto l1Trg_bc  = plist[i]->iValue(feeId, iL1, "L1_IR_BC");
-            m_FeeGTML1BCOMap[i_fee].insert(l1Trg_bco);
+            m_FeeGTML1BCOMap[feeId].insert(l1Trg_bco);
             gtmL1BcoSet.emplace(l1Trg_bco);
-            m_gtmL1BcoSetRef.emplace(l1Trg_bco);
           }
-
           m_FeeStrobeMap[feeId] += num_strobes;
           for (int i_strb{0}; i_strb < num_strobes; ++i_strb)
           {
@@ -172,7 +164,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
               std::cout << ", n_hits: " << num_hits << std::endl;
             }
             auto hits = pool->get_hits(feeId, i_strb);
-            for ( auto&& hit : hits )
+            for (auto &&hit : hits)
             {
               MvtxRawHit *newhit = new MvtxRawHitv1();
               newhit->set_bco(strb_bco);
@@ -302,17 +294,16 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
+    m_BeamClockFEE[iter].clear();
     m_BeamClockFEE.erase(iter);
     m_MvtxRawHitMap.erase(iter);
     m_FeeStrobeMap.erase(iter);
-    m_gtmL1BcoSetRef.erase(iter);
 
     for (auto &[feeid, gtmbcoset] : m_FeeGTML1BCOMap)
     {
       gtmbcoset.erase(iter);
     }
   }
-
 }
 
 bool SingleMvtxPoolInput::CheckPoolDepth(const uint64_t bclk)
@@ -391,11 +382,10 @@ bool SingleMvtxPoolInput::GetSomeMoreEvents()
                   << (highest_bclk - m_MvtxRawHitMap.begin()->first)
                   << std::dec << std::endl;
         toerase.insert(bcliter.first);
-
       }
     }
   }
-  for(auto iter : toerase)
+  for (auto iter : toerase)
   {
     m_FEEBclkMap.erase(iter);
   }
