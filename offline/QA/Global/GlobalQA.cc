@@ -123,9 +123,6 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       }
       triggervec = (triggervec >> 1U) & 0xffffffffU;
     }
-  }
-  if (!gl1PacketInfo)
-  {
     triggervec = gl1PacketInfo->getLiveVector();
   }
   if ((triggervec >> 0xAU) & 0x1U)
