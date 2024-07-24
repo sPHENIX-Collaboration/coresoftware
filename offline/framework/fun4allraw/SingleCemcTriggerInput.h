@@ -25,9 +25,11 @@ class SingleCemcTriggerInput : public SingleTriggerInput
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
   int CheckFEMClocks();
-
+  void CleanupUsedLocalPackets(const int eventno);
+ 
  private:
   Packet **plist{nullptr};
+  std::map<int, std::vector<OfflinePacket *>> m_LocalPacketMap;
 };
 
 #endif

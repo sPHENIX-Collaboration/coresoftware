@@ -37,10 +37,12 @@ SingleCemcTriggerInput::SingleCemcTriggerInput(const std::string &name)
 {
   SubsystemEnum(InputManagerType::CEMC);
   plist = new Packet *[NCEMCPACKETS];  // 16 packets for the cemc in each file
+  LocalPoolDepth(3);
 }
 
 SingleCemcTriggerInput::~SingleCemcTriggerInput()
 {
+  CleanupUsedLocalPackets(std::numeric_limits<int>::max());
   CleanupUsedPackets(std::numeric_limits<int>::max());
   // some events are already in the m_EventStack but they haven't been put
   // into the m_PacketMap
@@ -105,6 +107,11 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
     for (int i = 0; i < npackets; i++)
     {
       int packet_id = plist[i]->getIdentifier();
+      if (packet_id != 6002)
+      {
+	delete plist[i];
+	continue;
+      }
       // The call to  EventNumberOffset(identifier) will initialize it to our default (zero) if it wasn't set already
       // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
       // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
@@ -191,7 +198,8 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
                   << ", bco: 0x" << std::hex << gtm_bco << std::dec
                   << std::endl;
       }
-      m_PacketMap[CorrectedEventSequence].push_back(newhit);
+//      m_PacketMap[CorrectedEventSequence].push_back(newhit);
+      m_LocalPacketMap[CorrectedEventSequence].push_back(newhit);
       m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
@@ -199,26 +207,31 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       }
       delete plist[i];
     }
-      if (TriggerInputManager())
+    while (m_LocalPacketMap.size() > LocalPoolDepth())
+    {
+      auto nh = m_LocalPacketMap.begin()->second;
+      m_PacketMap[m_LocalPacketMap.begin()->first] = std::move(nh);
+      m_LocalPacketMap.erase(m_LocalPacketMap.begin());
+    }
+    if (TriggerInputManager())
+    {
+      for (auto evtiter : m_PacketMap)
       {
-	for (auto evtiter : m_PacketMap)
+	for (auto pktiter : evtiter.second)
 	{
-	  for (auto pktiter : evtiter.second)
-	    {
-	      CaloPacket *calpacket = dynamic_cast<CaloPacket *> (pktiter);
-	      if (calpacket)
-	      {
-	      TriggerInputManager()->AddCemcPacket(evtiter.first, calpacket);
-	      }
-	      else
-	      {
-		std::cout << PHWHERE << " dynamic cast from offline to calo packet failed??? here is its identify():" << std::endl;
-		pktiter->identify();
-	      }
-	    }
+	  CaloPacket *calpacket = dynamic_cast<CaloPacket *> (pktiter);
+	  if (calpacket)
+	  {
+	    TriggerInputManager()->AddCemcPacket(evtiter.first, calpacket);
+	  }
+	  else
+	  {
+	    std::cout << PHWHERE << " dynamic cast from offline to calo packet failed??? here is its identify():" << std::endl;
+	    pktiter->identify();
+	  }
 	}
       }
-
+    }
   }
 }
 
@@ -237,6 +250,31 @@ void SingleCemcTriggerInput::Print(const std::string &what) const
     {
       std::cout << PHWHERE << "stacked event: " << iter << std::endl;
     }
+  }
+}
+
+void SingleCemcTriggerInput::CleanupUsedLocalPackets(const int eventno)
+{
+  std::vector<int> toclearevents;
+  for (const auto &iter : m_LocalPacketMap)
+  {
+    if (iter.first <= eventno)
+    {
+      for (auto pktiter : iter.second)
+      {
+        delete pktiter;
+      }
+      toclearevents.push_back(iter.first);
+    }
+    else
+    {
+      break;
+    }
+  }
+  for (auto iter : toclearevents)
+  {
+    m_EventStack.erase(iter);
+    m_PacketMap.erase(iter);
   }
 }
 
