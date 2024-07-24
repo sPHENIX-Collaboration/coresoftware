@@ -175,7 +175,7 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
     h1_hits[ie] = new TH1F((std::string("h1_hits") + std::to_string(ie)).c_str(), "", 200, min, max);
     h1_hits2[ie] = new TH1F((std::string("h1_hits2_") + std::to_string(ie)).c_str(), "", 200, min, max);
     std::vector<float> vals;
-    for (int iphi = 0; iphi < 256; iphi++)
+    for (int iphi = 0; iphi < Nphi; iphi++)
     {
       float val = h_hits->GetBinContent(ie + 1, iphi + 1);
       h1_hits[ie]->Fill(val);
@@ -231,11 +231,15 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
 
   CDBTTree *cdbttree_out = new CDBTTree(f_cdbout_name.c_str());
   std::string m_fieldname_out = "status";
-  for (int i = 0; i < 96; i++)
+  for (int i = 0; i < Neta; i++)
   {
-    for (int j = 0; j < 256; j++)
+    for (int j = 0; j < Nphi; j++)
     {
       unsigned int key = TowerInfoDefs::encode_emcal(i, j);
+      if (Neta == 24)
+      {
+        key = TowerInfoDefs::encode_hcal(i, j);
+      }
       int val = h_hot->GetBinContent(i + 1, j + 1);
       float sigma = h_heatSigma->GetBinContent(i + 1, j + 1);
       cdbttree_out->SetIntValue(key, m_fieldname_out, val);
