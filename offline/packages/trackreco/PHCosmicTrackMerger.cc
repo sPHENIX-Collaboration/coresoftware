@@ -77,7 +77,7 @@ int PHCosmicTrackMerger::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
+return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
@@ -87,6 +87,7 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
   {
     std::cout << "Seed container size " << m_seeds->size() << std::endl;
   }
+ 
   for (auto tr1it = m_seeds->begin(); tr1it != m_seeds->end();
        ++tr1it)
   {
@@ -190,14 +191,14 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode *)
       std::vector<TrkrDefs::cluskey> ckeyUnion;
       std::set_intersection(globTr1.first.begin(), globTr1.first.end(),
                             globTr2.first.begin(), globTr2.first.end(), std::back_inserter(ckeyUnion));
-
+     
       if (
           //! check on common cluskeys
           (ckeyUnion.size() > 10) or
-          //! check if xy/rz line fits are similar
-          (fabs(tr1xyslope - tr2xyslope) < 0.5 &&
-           //! rz line fits are swapped in sign because they are WRT (0,0,0)
-           fabs(tr1rzslope - tr2rzslope * -1) < 0.5))
+          (m_zeroField and fabs(tr1xyslope - tr2xyslope) < 0.5 and fabs(tr1rzslope - tr2rzslope * -1) < 0.5)
+          or
+          (!m_zeroField and fabs(tr1xyslope - tr2xyslope) < 0.03 and (fabs(tr1rzslope - tr2rzslope* -1) < 1))
+      )
       {
         if (Verbosity() > 3)
         {
