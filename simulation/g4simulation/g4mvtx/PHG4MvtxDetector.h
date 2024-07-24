@@ -3,6 +3,8 @@
 #ifndef G4MVTX_PHG4MVTXDETECTOR_H
 #define G4MVTX_PHG4MVTXDETECTOR_H
 
+#include <trackbase/TrkrDefs.h>
+
 #include <g4main/PHG4Detector.h>
 
 #include <array>
@@ -11,6 +13,7 @@
 #include <set>
 #include <string>
 #include <tuple>  // for tuple
+#include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
@@ -64,6 +67,9 @@ class PHG4MvtxDetector : public PHG4Detector
   // calculated quantities
   double get_phistep(int lay) const { return 2.0 * M_PI / m_N_staves[lay]; }
 
+  // For modified geometry
+  void SetMvtxModGeoParams();
+
   PHG4MvtxDisplayAction* m_DisplayAction{nullptr};
   const PHParametersContainer* m_ParamsContainer{nullptr};
 
@@ -88,6 +94,13 @@ class PHG4MvtxDetector : public PHG4Detector
   std::array<double, n_Layers> m_nominal_radius{};
   std::array<double, n_Layers> m_nominal_phitilt{};
   std::array<double, n_Layers> m_nominal_phi0{};
+
+  // For modified geometry
+  bool useModGeo = true;
+  std::string mvtxAlignmentParamsFile = "/sphenix/user/hjheng/sPHENIXRepo/calibrations/Tracking/MVTX/mvtxAlignmentParamsFile-20240724.txt";
+  std::map<TrkrDefs::hitsetkey, std::tuple<double, double, double, double, double, double>> m_ModGeoParams; // alpha, beta, gamma, dx, dy, dz
+  std::map<std::pair<int, int>, std::vector<std::tuple<double, double, double, double, double, double>>> m_ModGeoParamsMap; // key: (layer, stave), value: vector of tuples of alpha, beta, gamma, dx, dy, dz
+  std::map<std::pair<int, int>, std::tuple<double, double, double, double, double, double>> m_ModGeoParamsMapAverage; // key: (layer, stave), value: tuple of average alpha, beta, gamma, dx, dy, dz
 };
 
 #endif
