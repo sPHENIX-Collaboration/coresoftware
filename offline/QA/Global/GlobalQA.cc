@@ -124,8 +124,11 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       triggervec = (triggervec >> 1U) & 0xffffffffU;
     }
   }
-  triggervec = gl1PacketInfo->getLiveVector();
-  if ((triggervec >> 10) & 1)
+  if (!gl1PacketInfo)
+  {
+    triggervec = gl1PacketInfo->getLiveVector();
+  }
+  if ((triggervec >> 0xAU) & 0x1U)
   {
     //--------------------------- MBD vertex------------------------------//
     MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
@@ -174,7 +177,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
           for (int ichan = 0; ichan < 16; ichan++)
           {
             TowerInfov2 *tower = (TowerInfov2*) _zdc_towerinfo->get_tower_at_channel(ichan);
-            if (ichan % 2 == 0 && ichan < 13)
+            if (ichan % 2 == 0 && ichan < 11)
             {
               zdc_E[ichan / 2] = tower->get_energy();
               zdc_t[ichan / 2] = tower->get_energy();
@@ -198,7 +201,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     }
   }
 
-  if ((triggervec >> 10 ) & 1) 
+  if ((triggervec >> 0xAU ) & 0x1U) 
   {
     //--------------------------- MBD ----------------------------------------//
     MbdPmtContainer *bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
