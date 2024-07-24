@@ -88,10 +88,6 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_chi2 = "fraction";
 
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_chi2);
-  if (use_directURL_chi2)
-  {
-    calibdir = m_directURL_chi2;
-  }
   if (!calibdir.empty())
   {
      m_cdbttree_chi2 = new CDBTTree(calibdir);
@@ -102,10 +98,19 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   }
   else
   {
-    m_doHotChi2 = false;
-    if (Verbosity() > 0)
+    if (use_directURL_chi2)
     {
-      std::cout << "CaloTowerStatus::InitRun No masking file for domain " << m_calibName_chi2 << " found, not doing isHot from isBadChi2" << std::endl;
+      calibdir = m_directURL_chi2;
+      std::cout << "CaloTowerStatus::InitRun: Using default hotBadChi2" << calibdir << std::endl;
+      m_cdbttree_chi2 = new CDBTTree(calibdir);
+    }
+    else 
+    {
+      m_doHotChi2 = false;
+      if (Verbosity() > 0)
+      {
+        std::cout << "CaloTowerStatus::InitRun No masking file for domain " << m_calibName_chi2 << " found, not doing isHot from isBadChi2" << std::endl;
+      }
     }
   }
 
@@ -113,10 +118,6 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_time = "time";
 
   calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
-  if (use_directURL_time)
-  {
-    calibdir = m_directURL_time;
-  }
   if (!calibdir.empty())
   {
     m_cdbttree_time = new CDBTTree(calibdir);
@@ -127,10 +128,19 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   }
   else
   {
-    m_doTime = false;
-    if (Verbosity() > 1)
+    if (use_directURL_time)
     {
-      std::cout << "CaloTowerStatus::InitRun no timing info, " << m_calibName_time << " not found, not doing isBadTime" << std::endl;
+      calibdir = m_directURL_time;
+      std::cout << "CaloTowerStatus::InitRun: Using default time  " << calibdir << std::endl;
+      m_cdbttree_time = new CDBTTree(calibdir);
+    }
+    else
+    {
+      m_doTime = false;
+      if (Verbosity() > 1)
+      {
+        std::cout << "CaloTowerStatus::InitRun no timing info, " << m_calibName_time << " not found, not doing isBadTime" << std::endl;
+      }
     }
   }
 
@@ -142,10 +152,6 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   m_fieldname_hotMap = "status";
 
   calibdir = CDBInterface::instance()->getUrl(m_calibName_hotMap);
-  if (use_directURL_hotMap)
-  {
-    calibdir = m_directURL_hotMap;
-  }
   if (!calibdir.empty())
   {
     m_cdbttree_hotMap = new CDBTTree(calibdir);
@@ -156,11 +162,20 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   }
   else
   {
-    m_doHotMap = false;
-    if (Verbosity() > 1)
+    if (use_directURL_hotMap)
     {
-      std::cout << "CaloTowerStatus::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
+      calibdir = m_directURL_hotMap;
+      std::cout << "CaloTowerStatus::InitRun: Using default map " << calibdir << std::endl;
+      m_cdbttree_hotMap = new CDBTTree(calibdir);
     }
+    else
+    {
+      m_doHotMap = false;
+      if (Verbosity() > 1)
+      {
+        std::cout << "CaloTowerStatus::InitRun hot map info, " << m_calibName_hotMap << " not found, not doing isHot" << std::endl;
+      }
+    }  
   }
 
   if (Verbosity() > 0)
