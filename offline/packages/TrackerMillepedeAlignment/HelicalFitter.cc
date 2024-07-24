@@ -270,7 +270,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       // this associates silicon clusters and adds them to the vectors
       ntpc = cluskey_vec.size();
       nsilicon = TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec, 0, 6);
-      if (nsilicon < 3)
+      if (nsilicon < 5)
       {
         continue;  // discard this TPC seed, did not get a good match to silicon
       }
@@ -645,7 +645,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
       }
-      //if (!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
       if (!isnan(residual(1)) && clus_sigma(1) < 1.0)
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeY, AlignmentDefs::NGL, glbl_derivativeY, glbl_label, residual(1), errinf * clus_sigma(1));

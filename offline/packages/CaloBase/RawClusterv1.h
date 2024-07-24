@@ -6,9 +6,11 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <utility>
 
@@ -17,7 +19,7 @@ class PHObject;
 class RawClusterv1 : public RawCluster
 {
  public:
-  RawClusterv1();
+  RawClusterv1() = default;
   ~RawClusterv1() override {}
 
   void Reset() override;
@@ -165,16 +167,16 @@ class RawClusterv1 : public RawCluster
   //
  protected:
   //! cluster ID
-  RawClusterDefs::keytype clusterid;
+  RawClusterDefs::keytype clusterid{0};
   //! total energy
-  float _energy;
+  float _energy{std::numeric_limits<float>::signaling_NaN()};
   //! Tower operations
   TowerMap towermap;
 
   //! location of cluster in cylindrical coordinate
-  float _r;
-  float _phi;
-  float _z;
+  float _r{std::numeric_limits<float>::signaling_NaN()};
+  float _phi{std::numeric_limits<float>::signaling_NaN()};
+  float _z{std::numeric_limits<float>::signaling_NaN()};
 
   ClassDefOverride(RawClusterv1, 3)
 };

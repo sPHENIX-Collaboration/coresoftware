@@ -1,9 +1,6 @@
 #include "RawTowerv1.h"
 
-#include <cmath>
 #include <iostream>
-
-using namespace std;
 
 RawTowerv1::RawTowerv1(const RawTower& tower)
 {
@@ -47,7 +44,7 @@ RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid,
 void RawTowerv1::Reset()
 {
   energy = 0;
-  time = NAN;
+  time = std::numeric_limits<float>::signaling_NaN();
   ecells.clear();
   eshowers.clear();
 }
@@ -60,17 +57,17 @@ int RawTowerv1::isValid() const
 void RawTowerv1::identify(std::ostream& os) const
 {
   RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(towerid);
-  switch (caloid)
+  if (caloid == RawTowerDefs::LFHCAL)
   {
-  case RawTowerDefs::LFHCAL:
     os << "RawTowerv1: etabin: " << get_bineta() << ", phibin: " << get_binphi() << ", l-bin: " << get_binl()
        << " energy=" << get_energy() << std::endl;
-    return;
-  default:
+  }
+  else
+  {
     os << "RawTowerv1: etabin: " << get_bineta() << ", phibin: " << get_binphi()
        << " energy=" << get_energy() << std::endl;
-    return;
   }
+  return;
 }
 
 void RawTowerv1::add_ecell(const CellKeyType g4cellid,
@@ -101,25 +98,25 @@ void RawTowerv1::add_eshower(const int g4showerid, const float eshower)
 int RawTowerv1::get_bineta() const
 {
   RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(towerid);
-  switch (caloid)
+  if (caloid == RawTowerDefs::LFHCAL)
   {
-  case RawTowerDefs::LFHCAL:
     return RawTowerDefs::decode_index1v2(towerid);
-  default:
+  }
+  else
+  {
     return RawTowerDefs::decode_index1(towerid);
   }
-  return -1;
 }
 
 int RawTowerv1::get_binphi() const
 {
   RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(towerid);
-  switch (caloid)
+  if (caloid == RawTowerDefs::LFHCAL)
   {
-  case RawTowerDefs::LFHCAL:
     return RawTowerDefs::decode_index2v2(towerid);
-  default:
+  }
+  else
+  {
     return RawTowerDefs::decode_index2(towerid);
   }
-  return -1;
 }
