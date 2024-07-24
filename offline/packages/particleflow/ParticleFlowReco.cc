@@ -69,7 +69,7 @@ ParticleFlowReco::ParticleFlowReco(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int ParticleFlowReco_x::InitRun(PHCompositeNode *topNode)
+int ParticleFlowReco::InitRun(PHCompositeNode *topNode)
 {
   return CreateNode(topNode);
 }
