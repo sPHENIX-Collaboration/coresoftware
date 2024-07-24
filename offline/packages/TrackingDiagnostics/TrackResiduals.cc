@@ -127,7 +127,6 @@ int TrackResiduals::InitRun(PHCompositeNode* topNode)
   Fun4AllServer* se = Fun4AllServer::instance();
   m_runnumber = se->RunNumber();
 
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 void TrackResiduals::clearClusterStateVectors()
@@ -585,14 +584,14 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     yzpoints.push_back(std::make_pair(pos.z(), pos.y()));
     global_vec.push_back(pos);
   }
- 
+
   auto yzLineParams = TrackFitUtils::line_fit(yzpoints);
   auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, false);
   // auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
   m_xyint = std::numeric_limits<float>::quiet_NaN();
   m_xyslope = std::numeric_limits<float>::quiet_NaN();
   m_yzint = std::get<1>(yzLineParams);
-  m_yzslope =  std::get<0>(yzLineParams);
+  m_yzslope = std::get<0>(yzLineParams);
   if (fitpars.size() > 0)
   {
     m_R = fitpars[0];
