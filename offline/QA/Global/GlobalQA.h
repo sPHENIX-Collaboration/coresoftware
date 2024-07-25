@@ -46,6 +46,7 @@ class GlobalQA : public SubsysReco
   void createHistos();
   float TSAMPLE = 1.0 / (9.4e+6 * 6);
 
+  // MBD histos
   TH1* h_GlobalQA_mbd_zvtx = nullptr;
   TH1* h_GlobalQA_mbd_zvtx_wide = nullptr;
   TH1* h_GlobalQA_calc_zvtx = nullptr;
@@ -56,16 +57,19 @@ class GlobalQA : public SubsysReco
   TH1* h_GlobalQA_mbd_nhit_n = nullptr;
   TH1* h_GlobalQA_mbd_zvtxq = nullptr;
   
+  // ZDC histos
   TH1* h_GlobalQA_zdc_zvtx = nullptr;
   TH1* h_GlobalQA_zdc_zvtx_wide = nullptr;
   TH1* h_GlobalQA_zdc_energy_s = nullptr;
   TH1* h_GlobalQA_zdc_energy_n = nullptr;
   
-  TH2 * h_GlobalQA_edist[64] = {nullptr};
+  // Trigger histos
+  TH1 *h_GlobalQA_triggerVec{nullptr};
+  TH2 *h_GlobalQA_edist[64] = {nullptr};
   TH1* h_ldClus_trig[64] = {nullptr};
   TProfile *pr_evtNum_ldClus_trig[64] = {nullptr};
-
-  TH1 *h_GlobalQA_triggerVec{nullptr};
+  TProfile *pr_GlobalQA_rejection[64] = {nullptr};
+  TProfile *pr_GlobalQA_livetime[64] = {nullptr};
   TProfile *pr_ldClus_trig{nullptr};
 
   int _eventcounter{0};
