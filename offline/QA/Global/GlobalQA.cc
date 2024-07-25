@@ -104,6 +104,9 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
 
   //--------------------------- trigger and GL1-------------------------------//
   bool scaledBits[64] = {false};
+  long long int raw[64] = { 0 };
+  long long int live[64] = { 0 };
+  //long long int scaled[64] = { 0 };
   Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   if (!gl1PacketInfo)
   {
@@ -117,6 +120,11 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     {
       bool trig_decision = ((triggervec & 0x1U) == 0x1U);
       scaledBits[i] = trig_decision;
+      
+      raw[i] = gl1PacketInfo->lValue(i, 0);
+      live[i] = gl1PacketInfo->lValue(i, 1);
+      //scaled[i] = gl1PacketInfo->lValue(i, 2);
+
       if (trig_decision)
       {
         h_GlobalQA_triggerVec->Fill(i);
@@ -174,10 +182,10 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
           for (int ichan = 0; ichan < 16; ichan++)
           {
             TowerInfov2 *tower = (TowerInfov2*) _zdc_towerinfo->get_tower_at_channel(ichan);
-            if (ichan % 2 == 0 && ichan < 11)
+            if (ichan % 2 == 0 && (ichan + 2) % 8 != 0)
             {
               zdc_E[ichan / 2] = tower->get_energy();
-              zdc_t[ichan / 2] = tower->get_energy();
+              zdc_t[ichan / 2] = tower->get_time_float();
             }
           }
           float es = zdc_E[0] + zdc_E[1] + zdc_E[2];
@@ -369,6 +377,10 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
     {
       RawCluster *recoCluster = clusterIter->second;
+      if (recoCluster->get_chi2() > 2)
+      {
+        continue;
+      }
 
       CLHEP::Hep3Vector vertex(0, 0, 0);
       CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
@@ -391,6 +403,11 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
         h_ldClus_trig[i]->Fill(leading_cluster_ecore);
         pr_evtNum_ldClus_trig[i]->Fill(evtNum_overK, leading_cluster_ecore);
         pr_ldClus_trig->Fill(i, leading_cluster_ecore);
+        if (raw[i] > 0) 
+        {
+          pr_GlobalQA_rejection[i]->Fill(evtNum_overK, (float)raw[10]/(float)raw[i]);
+          pr_GlobalQA_livetime[i]->Fill(evtNum_overK, (float)live[i]/(float)raw[i]);
+        }
       }
     }
   }
@@ -429,8 +446,8 @@ void GlobalQA::createHistos()
   hm->registerHisto(h_GlobalQA_mbd_nhit_n);
 
   // ZDC QA
-  h_GlobalQA_zdc_zvtx = new TH1D("h_GlobalQA_zdc_zvtx", ";zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_zdc_zvtx_wide = new TH1D("h_GlobalQA_zdc_zvtx_wide", ";zvtx [cm]", 100, -1000, 1000);
+  h_GlobalQA_zdc_zvtx = new TH1D("h_GlobalQA_zdc_zvtx", ";zvtx [cm]", 100, -1000, 1000);
+  h_GlobalQA_zdc_zvtx_wide = new TH1D("h_GlobalQA_zdc_zvtx_wide", ";zvtx [cm]", 100, -2000, 2000);
   h_GlobalQA_zdc_energy_s = new TH1D("h_GlobalQA_zdc_energy_s", ";Energy [Gev]", 100, 10, 340);
   h_GlobalQA_zdc_energy_n = new TH1D("h_GlobalQA_zdc_energy_n", ";Energy [Gev]", 100, 10, 340);
   hm->registerHisto(h_GlobalQA_zdc_zvtx);
@@ -440,17 +457,21 @@ void GlobalQA::createHistos()
 
   // Trigger QA
   h_GlobalQA_triggerVec = new TH1F("h_GlobalQA_triggerVec", "", 64, 0, 64);
-  hm->registerHisto(h_GlobalQA_triggerVec);
   pr_ldClus_trig = new TProfile("pr_GlobalQA_ldClus_trig", "", 64, 0, 64, 0, 10);
-  hm->registerHisto(pr_ldClus_trig);
-
   for (int i = 0; i < 64; i++)
   {
     h_GlobalQA_edist[i] = new TH2F(boost::str(boost::format("h_GlobalQA_edist_trig%d") % i).c_str(), "", 64, -1.2, 1.2, 128, -3.1415, 3.1415);
-    hm->registerHisto(h_GlobalQA_edist[i]);
-    h_ldClus_trig[i] = new TH1F(boost::str(boost::format("h_GlobalQA_ldClus_trig%d") % i).c_str(), "", 100, 0, 10);
-    hm->registerHisto(h_ldClus_trig[i]);
+    h_ldClus_trig[i] = new TH1F(boost::str(boost::format("h_GlobalQA_ldClus_trig%d") % i).c_str(), "", 18, 1, 10);
     pr_evtNum_ldClus_trig[i] = new TProfile(boost::str(boost::format("pr_GlobalQA_evtNum_ldClus_trig%d") % i).c_str(), "", 100000, 0, 100000, 0, 10);
+    pr_GlobalQA_rejection[i] = new TProfile(boost::str(boost::format("pr_GlobalQA_rejection_trig%d") % i).c_str(), "", 100000, 0, 100000, 0, 50000);
+    pr_GlobalQA_livetime[i] = new TProfile(boost::str(boost::format("pr_GlobalQA_livetime_trig%d") % i).c_str(), "", 100000, 0, 100000, 0, 10);
+    
+    hm->registerHisto(h_GlobalQA_edist[i]);
+    hm->registerHisto(h_ldClus_trig[i]);
     hm->registerHisto(pr_evtNum_ldClus_trig[i]);
-  }
+    hm->registerHisto(pr_GlobalQA_rejection[i]);
+    hm->registerHisto(pr_GlobalQA_livetime[i]);
+  } 
+  hm->registerHisto(h_GlobalQA_triggerVec);
+  hm->registerHisto(pr_ldClus_trig);
 }
