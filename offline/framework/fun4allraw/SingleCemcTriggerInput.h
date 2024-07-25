@@ -28,6 +28,7 @@ class SingleCemcTriggerInput : public SingleTriggerInput
   void CleanupUsedLocalPackets(const int eventno);
  
  private:
+  void CheckFEMClock();
   Packet **plist{nullptr};
   std::map<int, std::vector<OfflinePacket *>> m_LocalPacketMap;
 };

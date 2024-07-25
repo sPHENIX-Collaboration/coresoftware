@@ -107,11 +107,11 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
     for (int i = 0; i < npackets; i++)
     {
       int packet_id = plist[i]->getIdentifier();
-      if (packet_id != 6002)
-      {
-	delete plist[i];
-	continue;
-      }
+      // if (packet_id > 6002)
+      // {
+      // 	delete plist[i];
+      // 	continue;
+      // }
       // The call to  EventNumberOffset(identifier) will initialize it to our default (zero) if it wasn't set already
       // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
       // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
@@ -199,6 +199,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
                   << std::endl;
       }
 //      m_PacketMap[CorrectedEventSequence].push_back(newhit);
+      std::cout << "Pushing event " << CorrectedEventSequence << " into local packet map" << std::endl;
       m_LocalPacketMap[CorrectedEventSequence].push_back(newhit);
       m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
@@ -207,9 +208,11 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       }
       delete plist[i];
     }
+    CheckFEMClock();
     while (m_LocalPacketMap.size() > LocalPoolDepth())
     {
       auto nh = m_LocalPacketMap.begin()->second;
+      std::cout << "Pushing event " << m_LocalPacketMap.begin()->first << " from local packet map to packet map" << std::endl;
       m_PacketMap[m_LocalPacketMap.begin()->first] = std::move(nh);
       m_LocalPacketMap.erase(m_LocalPacketMap.begin());
     }
@@ -222,6 +225,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
 	  CaloPacket *calpacket = dynamic_cast<CaloPacket *> (pktiter);
 	  if (calpacket)
 	  {
+	    std::cout << "pushing event " << evtiter.first << " to combiner" << std::endl;
 	    TriggerInputManager()->AddCemcPacket(evtiter.first, calpacket);
 	  }
 	  else
@@ -336,4 +340,68 @@ void SingleCemcTriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cemcpacketcont, "CEMCPackets", "PHObject");
     detNode->addNode(newNode);
   }
+}
+
+void SingleCemcTriggerInput::CheckFEMClock()
+{
+  for (auto &iter : m_LocalPacketMap)
+  {
+    std::cout << "Event " << iter.first << std::endl;
+    std::map<int, uint64_t> pktbcomap;
+    uint64_t ref_femclk = std::numeric_limits<uint64_t>::max();
+    std::map<uint64_t, int> bcocount;
+    for (auto pktiter : iter.second)
+    {
+      for (int i = 0; i < pktiter->iValue(0, "NRMODULES"); i++)
+      {
+	uint64_t femclk = pktiter->iValue(i,"FEMCLOCK");
+        bcocount[femclk]++;
+	if (ref_femclk == std::numeric_limits<uint64_t>::max())
+	{
+	  ref_femclk = femclk;
+	}
+	else
+	{
+	  if (ref_femclk != femclk)
+	  {
+	    std::cout << "Event " << iter.first << " FEM Clock mismatch for packet " << pktiter->getIdentifier() << std::endl;
+	    std::cout << "ref fem clk: 0x" << std::hex << ref_femclk << ", femclk: 0x"
+		      << femclk << std::dec << std::endl;
+	  }
+	}
+      }
+      pktbcomap[pktiter->getIdentifier()] = ref_femclk;
+    }
+    std::cout << "Map size " << bcocount.size() << std::endl;
+    if (bcocount.size() < 2)
+    {
+      std::cout << "all good" << std::endl;
+    }
+    else
+    {
+      std::cout << "Found two bcos" << std::endl;
+      for (auto bcoiter: bcocount)
+      {
+	std::cout << "bco 0x" << bcoiter.first << " shows up " << std::dec << bcoiter.second << std::endl;
+      }
+    }
+    ref_femclk = std::numeric_limits<uint64_t>::max();    
+    for (auto mapiter: pktbcomap)
+    {
+      if (ref_femclk == std::numeric_limits<uint64_t>::max())
+      {
+	ref_femclk = mapiter.second;
+      }
+      else
+      {
+	if (ref_femclk != mapiter.second)
+	{
+	  std::cout << "FEM clocks differ" << std::endl;
+	  std::cout << "ref clk: 0x" << std::hex << ref_femclk << ", fem clk: 0x" << mapiter.second
+		    << std::dec << std::endl;
+	}
+      }
+    }
+  }
+  return;
 }
