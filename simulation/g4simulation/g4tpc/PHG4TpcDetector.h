@@ -17,7 +17,9 @@ class PHCompositeNode;
 class PHG4TpcDisplayAction;
 class PHG4Subsystem;
 class PHParameters;
-
+class CDBTTree;
+class CDBInterface;
+ 
 class PHG4TpcDetector : public PHG4Detector
 {
  public:
@@ -58,6 +60,11 @@ class PHG4TpcDetector : public PHG4Detector
   std::set<G4VPhysicalVolume *> m_ActiveVolumeSet;
 
   std::string m_SuperDetectorName;
+
+  CDBTTree *m_cdbttree = nullptr;
+  CDBInterface *m_cdb = nullptr;
+
+
 };
 
 #endif
