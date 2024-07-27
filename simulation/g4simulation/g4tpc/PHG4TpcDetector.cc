@@ -541,7 +541,7 @@ void PHG4TpcDetector::add_geometry_node()
         m_Params->get_int_param("ntpc_phibins_outer")}};
 
 
-const int NLayers = 16*3;
+  constexpr int NLayers {16*3};
   std::array< std::vector<double>, NLayers > pad_phi;
   std::array< std::vector<int>, NLayers > pad_num;
   int Nfee = 26;
@@ -592,13 +592,11 @@ const int NLayers = 16*3;
   std::array<std::vector<double>, NSides> sector_min_Phi;
   std::array<std::vector<double>, NSides> sector_max_Phi;
 
-  std::array<double, 3> phi_bin_width_cdb;
-
-  for (int iregion = 0; iregion < 3; ++iregion)
+// this initializes the array to 0, caveat: this doesn't work with any other value
+  std::array<double, 3> phi_bin_width_cdb{0};
+// the unsigned long avoids a clang-tidy warning about a mismatched type for an array index
+  for (unsigned long iregion = 0; iregion < 3; ++iregion)
   {
-    // int zside = 0;
-    phi_bin_width_cdb[iregion] = 0;
-
     for (int zside = 0; zside < 2; zside++)
     {
       sector_R_bias[zside].clear();
