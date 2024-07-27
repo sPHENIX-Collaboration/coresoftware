@@ -10,12 +10,17 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
+#include <cdbobjects/CDBTTree.h>
+
+#include <ffamodules/CDBInterface.h>
+
+#include <phparameter/PHParameters.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
-#include <phparameter/PHParameters.h>
 
 #include <TSystem.h>
 
@@ -27,10 +32,6 @@
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
-
-#include <cdbobjects/CDBTTree.h>
-#include <ffamodules/CDBInterface.h>
 
 #include <algorithm>  // for max, copy
 #include <cassert>
@@ -39,10 +40,8 @@
 #include <iostream>  // for basic_ostream::operator<<
 #include <map>       // for map
 #include <numeric>   // Include the numeric header for the iota function
-#include <sstream>
 
 class G4VSolid;
-class PHCompositeNode;
 
 //_______________________________________________________________
 PHG4TpcDetector::PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
@@ -477,8 +476,7 @@ void PHG4TpcDetector::add_geometry_node()
     runNode->addNode(newNode);
   }
 
-  m_cdb = CDBInterface::instance();
-  std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
+  std::string calibdir = CDBInterface::instance()->getUrl("TPC_FEE_CHANNEL_MAP");
   if (calibdir[0] == '/')
   {
     // use generic CDBTree to load
