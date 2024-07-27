@@ -29,8 +29,8 @@
 #include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
+#include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
-#include <cdbobjects/CDBTTree.h> 
 
 #include <algorithm>  // for max, copy
 #include <cassert>
@@ -38,8 +38,8 @@
 #include <cstdlib>   // for exit
 #include <iostream>  // for basic_ostream::operator<<
 #include <map>       // for map
+#include <numeric>   // Include the numeric header for the iota function
 #include <sstream>
-#include <numeric> // Include the numeric header for the iota function
 
 class G4VSolid;
 class PHCompositeNode;
@@ -489,7 +489,7 @@ void PHG4TpcDetector::add_geometry_node()
   {
     std::cout << "PHG4TpcPadPlaneReadout::InitRun No calibration file found" << std::endl;
     exit(1);
-  } 
+  }
 
   const std::array<int, 3> NTpcLayers =
       {{m_Params->get_int_param("ntpc_layers_inner"),
@@ -534,54 +534,57 @@ void PHG4TpcDetector::add_geometry_node()
   std::cout << PHWHERE << "MaxT " << MaxT << " TBinWidth " << TBinWidth << " extended readout time "
             << extended_readout_time << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
 
-
   const std::array<int, 3> NPhiBins =
       {{m_Params->get_int_param("ntpc_phibins_inner"),
         m_Params->get_int_param("ntpc_phibins_mid"),
         m_Params->get_int_param("ntpc_phibins_outer")}};
 
-
-  constexpr int NLayers {16*3};
-  std::array< std::vector<double>, NLayers > pad_phi;
-  std::array< std::vector<int>, NLayers > pad_num;
+  constexpr int NLayers{16 * 3};
+  std::array<std::vector<double>, NLayers> pad_phi;
+  std::array<std::vector<int>, NLayers> pad_num;
   int Nfee = 26;
   int Nch = 256;
-  for(int f=0;f<Nfee;f++){
-    for(int ch=0;ch<Nch;ch++){
+  for (int f = 0; f < Nfee; f++)
+  {
+    for (int ch = 0; ch < Nch; ch++)
+    {
       unsigned int key = 256 * (f) + ch;
       std::string varname = "layer";
-      int l = m_cdbttree->GetIntValue(key,varname);
-      if (l>6){
-        int v_layer = l-7;
-        varname = "phi";// + to_string(key);
-        pad_phi[v_layer].push_back(m_cdbttree->GetDoubleValue(key,varname));
-        varname = "pad";// + to_string(key);
-        pad_num[v_layer].push_back(m_cdbttree->GetIntValue(key,varname));      
+      int l = m_cdbttree->GetIntValue(key, varname);
+      if (l > 6)
+      {
+        int v_layer = l - 7;
+        varname = "phi";  // + to_string(key);
+        pad_phi[v_layer].push_back(m_cdbttree->GetDoubleValue(key, varname));
+        varname = "pad";  // + to_string(key);
+        pad_num[v_layer].push_back(m_cdbttree->GetIntValue(key, varname));
       }
     }
   }
 
   // Sorting phi wrt pad number
-  for (size_t layer = 0; layer < NLayers; ++layer) {
+  for (size_t layer = 0; layer < NLayers; ++layer)
+  {
     // Create a vector of indices
     std::vector<size_t> indices(pad_num[layer].size());
-    std::iota(indices.begin(), indices.end(), 0); // Fill with 0, 1, 2, ..., n-1
+    std::iota(indices.begin(), indices.end(), 0);  // Fill with 0, 1, 2, ..., n-1
     // Define a custom comparator based on the values in the pad vector
-    auto comparator = [&](size_t i, size_t j) {
-        return pad_num[layer][i] < pad_num[layer][j];
+    auto comparator = [&](size_t i, size_t j)
+    {
+      return pad_num[layer][i] < pad_num[layer][j];
     };
     // Sort the indices vector based on the values in the pad vector
     std::sort(indices.begin(), indices.end(), comparator);
     // Rearrange phi vector according to the sorted indices
-     std::vector<double> sorted_phi(pad_phi[layer].size());
-    for (size_t i = 0; i < pad_num[layer].size(); ++i) {
-        sorted_phi[i] = pad_phi[layer][indices[i]];
+    std::vector<double> sorted_phi(pad_phi[layer].size());
+    for (size_t i = 0; i < pad_num[layer].size(); ++i)
+    {
+      sorted_phi[i] = pad_phi[layer][indices[i]];
     }
 
     // Replace the original phi vector with the sorted one
-     pad_phi[layer] = sorted_phi;
-   }
-
+    pad_phi[layer] = sorted_phi;
+  }
 
   // should move to a common file
   static constexpr int NSides = 2;
@@ -592,9 +595,9 @@ void PHG4TpcDetector::add_geometry_node()
   std::array<std::vector<double>, NSides> sector_min_Phi;
   std::array<std::vector<double>, NSides> sector_max_Phi;
 
-// this initializes the array to 0, caveat: this doesn't work with any other value
+  // this initializes the array to 0, caveat: this doesn't work with any other value
   std::array<double, 3> phi_bin_width_cdb{0};
-// the unsigned long avoids a clang-tidy warning about a mismatched type for an array index
+  // the unsigned long avoids a clang-tidy warning about a mismatched type for an array index
   for (unsigned long iregion = 0; iregion < 3; ++iregion)
   {
     for (int zside = 0; zside < 2; zside++)
@@ -603,8 +606,8 @@ void PHG4TpcDetector::add_geometry_node()
       sector_Phi_bias[zside].clear();
       sector_min_Phi[zside].clear();
       sector_max_Phi[zside].clear();
- 
-     // int eff_layer = 0;
+
+      // int eff_layer = 0;
       for (int isector = 0; isector < NSectors; ++isector)  // 12 sectors
       {
         // no bias per default
@@ -612,9 +615,9 @@ void PHG4TpcDetector::add_geometry_node()
         sector_R_bias[zside].push_back(0);
         sector_Phi_bias[zside].push_back(0);
 
-        phi_bin_width_cdb[iregion]= std::abs(pad_phi[iregion*16][4]-pad_phi[iregion*16][3]);
-        double sec_max_phi = pad_phi[iregion*16][NPhiBins[iregion]/12-1] + phi_bin_width_cdb[iregion]/2.;
-        double sec_min_phi = pad_phi[iregion*16][0] - phi_bin_width_cdb[iregion]/2.;
+        phi_bin_width_cdb[iregion] = std::abs(pad_phi[iregion * 16][4] - pad_phi[iregion * 16][3]);
+        double sec_max_phi = pad_phi[iregion * 16][NPhiBins[iregion] / 12 - 1] + phi_bin_width_cdb[iregion] / 2.;
+        double sec_min_phi = pad_phi[iregion * 16][0] - phi_bin_width_cdb[iregion] / 2.;
         double sec_phi_cdb = sec_max_phi - sec_min_phi;
         double sec_gap = (2 * M_PI - sec_phi_cdb * 12) / 12;
         sec_max_phi = M_PI - sec_phi_cdb / 2 - sec_gap - 2 * M_PI / 12 * isector;  // * (isector+1) ;

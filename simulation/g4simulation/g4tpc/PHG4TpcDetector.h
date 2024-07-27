@@ -19,7 +19,7 @@ class PHG4Subsystem;
 class PHParameters;
 class CDBTTree;
 class CDBInterface;
- 
+
 class PHG4TpcDetector : public PHG4Detector
 {
  public:
@@ -63,8 +63,6 @@ class PHG4TpcDetector : public PHG4Detector
 
   CDBTTree *m_cdbttree = nullptr;
   CDBInterface *m_cdb = nullptr;
-
-
 };
 
 #endif
