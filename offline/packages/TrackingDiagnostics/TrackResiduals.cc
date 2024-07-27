@@ -1043,6 +1043,7 @@ if(Verbosity() > 1)
     break;
   case TrkrDefs::micromegasId:
     m_nmms++;
+    m_tileid = MicromegasDefs::getTileId(ckey);
     break;
   }
 
@@ -1339,6 +1340,7 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
     break;
   case TrkrDefs::micromegasId:
     m_nmms++;
+    m_tileid = MicromegasDefs::getTileId(ckey);
     break;
   }
 
@@ -1693,6 +1695,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("nintt", &m_nintt, "m_nintt/I");
   m_tree->Branch("ntpc", &m_ntpc, "m_ntpc/I");
   m_tree->Branch("nmms", &m_nmms, "m_nmms/I");
+  m_tree->Branch("tile", &m_tileid, "m_tileid/I");
   m_tree->Branch("vertexid", &m_vertexid, "m_vertexid/I");
   m_tree->Branch("vertex_crossing", &m_vertex_crossing, "m_vertex_crossing/I");
   m_tree->Branch("vx", &m_vx, "m_vx/F");
