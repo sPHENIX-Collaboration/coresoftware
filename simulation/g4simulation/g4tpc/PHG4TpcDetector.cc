@@ -39,6 +39,7 @@
 #include <cstdlib>   // for exit
 #include <iostream>  // for basic_ostream::operator<<
 #include <map>       // for map
+#include <memory>
 #include <numeric>   // Include the numeric header for the iota function
 
 class G4VSolid;
@@ -464,6 +465,7 @@ void PHG4TpcDetector ::CreateCompositeMaterial(
 //_______________________________________________________________
 void PHG4TpcDetector::add_geometry_node()
 {
+  std::unique_ptr<CDBTTree> cdbttree;
   // create PHG4TpcCylinderGeomContainer and put on node tree
   const std::string geonode_name = "CYLINDERCELLGEOM_SVTX";
   auto geonode = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode(), geonode_name);
@@ -477,11 +479,11 @@ void PHG4TpcDetector::add_geometry_node()
   }
 
   std::string calibdir = CDBInterface::instance()->getUrl("TPC_FEE_CHANNEL_MAP");
-  if (calibdir[0] == '/')
+  if (! calibdir.empty())
   {
     // use generic CDBTree to load
-    m_cdbttree = new CDBTTree(calibdir);
-    m_cdbttree->LoadCalibrations();
+    cdbttree = std::unique_ptr<CDBTTree>(new CDBTTree(calibdir));
+    cdbttree->LoadCalibrations();
   }
   else
   {
@@ -548,14 +550,14 @@ void PHG4TpcDetector::add_geometry_node()
     {
       unsigned int key = 256 * (f) + ch;
       std::string varname = "layer";
-      int l = m_cdbttree->GetIntValue(key, varname);
+      int l = cdbttree->GetIntValue(key, varname);
       if (l > 6)
       {
         int v_layer = l - 7;
         varname = "phi";  // + to_string(key);
-        pad_phi[v_layer].push_back(m_cdbttree->GetDoubleValue(key, varname));
+        pad_phi[v_layer].push_back(cdbttree->GetDoubleValue(key, varname));
         varname = "pad";  // + to_string(key);
-        pad_num[v_layer].push_back(m_cdbttree->GetIntValue(key, varname));
+        pad_num[v_layer].push_back(cdbttree->GetIntValue(key, varname));
       }
     }
   }

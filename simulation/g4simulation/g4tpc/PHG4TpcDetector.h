@@ -50,7 +50,6 @@ class PHG4TpcDetector : public PHG4Detector
   PHG4TpcDisplayAction *m_DisplayAction {nullptr};
   PHParameters *m_Params {nullptr};
   G4UserLimits *m_G4UserLimits {nullptr};
-  CDBTTree *m_cdbttree {nullptr};
   int m_ActiveFlag {0};
   int m_AbsorberActiveFlag {0};
   double m_InnerCageRadius = std::numeric_limits<double>::signaling_NaN();
