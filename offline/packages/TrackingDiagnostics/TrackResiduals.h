@@ -56,6 +56,7 @@ class TrackResiduals : public SubsysReco
   void segment(const int seg) { m_segment = seg; }
   void linefitAll() { m_linefitTPCOnly = false; }
   void failedTree() { m_doFailedSeeds = true; }
+  void setSegment(const int segment) { m_segment = segment; }
 
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
