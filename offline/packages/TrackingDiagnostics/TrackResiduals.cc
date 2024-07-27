@@ -43,6 +43,7 @@
 #include <globalvertex/SvtxVertexMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
@@ -123,6 +124,8 @@ int TrackResiduals::InitRun(PHCompositeNode* topNode)
   auto tpccellgeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   m_clusterMover.initialize_geometry(tpccellgeo);
   m_clusterMover.set_verbosity(0);
+  Fun4AllServer* se = Fun4AllServer::instance();
+  m_runnumber = se->RunNumber();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -568,6 +571,7 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     }
     clusPos.push_back(pos);
   }
+  TrackFitUtils::position_vector_t yzpoints;
 
   for (auto& pos : clusPos)
   {
@@ -577,13 +581,17 @@ void TrackResiduals::circleFitClusters(std::vector<TrkrDefs::cluskey>& keys,
     {
       continue;
     }
+    yzpoints.push_back(std::make_pair(pos.z(), pos.y()));
     global_vec.push_back(pos);
   }
 
+  auto yzLineParams = TrackFitUtils::line_fit(yzpoints);
   auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, false);
   // auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
   m_xyint = std::numeric_limits<float>::quiet_NaN();
   m_xyslope = std::numeric_limits<float>::quiet_NaN();
+  m_yzint = std::get<1>(yzLineParams);
+  m_yzslope = std::get<0>(yzLineParams);
   if (fitpars.size() > 0)
   {
     m_R = fitpars[0];

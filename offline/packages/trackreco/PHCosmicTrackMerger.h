@@ -38,6 +38,7 @@ class PHCosmicTrackMerger : public SubsysReco
   void dca_xycut(const float cut) { m_dcaxycut = cut; }
   void dca_rzcut(const float cut) { m_dcarzcut = cut; }
   void iter(const int it) { m_iter = it; }
+  void removeOutliers() { m_removeOutliers = true; }
 
  private:
   void addKeys(TrackSeed *toAddTo, TrackSeed *toAdd);
@@ -55,6 +56,7 @@ class PHCosmicTrackMerger : public SubsysReco
   float m_dcarzcut = 2.;   // cm
   bool m_zeroField = false;
   int m_iter = 0;
+  bool m_removeOutliers = false;
 };
 
 #endif  // PHCOSMICTRACKMERGER_H

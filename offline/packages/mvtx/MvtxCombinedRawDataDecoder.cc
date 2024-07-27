@@ -117,24 +117,31 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   getStrobeLength();
 
   // Mask Hot MVTX Pixels
-  std::string database = CDBInterface::instance()->getUrl(
-      "MVTX_HotPixelMap");  // This is specifically for MVTX Hot Pixels
-  CDBTTree *cdbttree = new CDBTTree(database);
-  int NPixel = -1;
-  NPixel = cdbttree->GetSingleIntValue("TotalHotPixels");
+  // std::string database = CDBInterface::instance()->getUrl(
+  //     "MVTX_HotPixelMap");  // This is specifically for MVTX Hot Pixels
+  // CDBTTree *cdbttree = new CDBTTree(database);
+  // int NPixel = -1;
+  // NPixel = cdbttree->GetSingleIntValue("TotalHotPixels");
 
-  for (int i = 0; i < NPixel; i++)
+  // for (int i = 0; i < NPixel; i++)
+  // {
+  //   int Layer = cdbttree->GetIntValue(i, "layer");
+  //   int Stave = cdbttree->GetIntValue(i, "stave");
+  //   int Chip = cdbttree->GetIntValue(i, "chip");
+  //   int Col = cdbttree->GetIntValue(i, "col");
+  //   int Row = cdbttree->GetIntValue(i, "row");
+
+  //   TrkrDefs::hitsetkey HotPixelHitKey =
+  //       MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
+  //   TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
+  //   m_hotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
+  // }
+
+  // Load the hot pixel map from the CDB
+  if(m_doOfflineMasking)
   {
-    int Layer = cdbttree->GetIntValue(i, "layer");
-    int Stave = cdbttree->GetIntValue(i, "stave");
-    int Chip = cdbttree->GetIntValue(i, "chip");
-    int Col = cdbttree->GetIntValue(i, "col");
-    int Row = cdbttree->GetIntValue(i, "row");
-
-    TrkrDefs::hitsetkey HotPixelHitKey =
-        MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
-    TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
-    m_hotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
+    m_hot_pixel_mask = new MvtxPixelMask();
+    m_hot_pixel_mask->load_from_CDB();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -266,17 +273,31 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    const TrkrDefs::hitsetkey hitsetkeymask =
-        MvtxDefs::genHitSetKey(layer, stave, chip, 0);
-
-    if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(),
-                  std::make_pair(hitsetkeymask, hitkey)) ==
-        m_hotPixelMap.end())
-    {
-      // create hit and insert in hitset
+  if(m_doOfflineMasking)
+  {
+    if (!m_hot_pixel_mask->is_masked(mvtx_hit))
+    { // Check if the pixel is masked
       hit = new TrkrHitv2;
       hitset_it->second->addHitSpecificKey(hitkey, hit);
     }
+  }
+  else
+  {
+    hit = new TrkrHitv2;
+    hitset_it->second->addHitSpecificKey(hitkey, hit);
+  }
+    // const TrkrDefs::hitsetkey hitsetkeymask =
+    //     MvtxDefs::genHitSetKey(layer, stave, chip, 0);
+
+    // if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(),
+    //               std::make_pair(hitsetkeymask, hitkey)) ==
+    //     m_hotPixelMap.end())
+    // {
+      // create hit and insert in hitset
+      // hit = new TrkrHitv2;
+      // hitset_it->second->addHitSpecificKey(hitkey, hit);
+    // }
+
   }
 
   mvtx_event_header->set_strobe_BCO(strobe);
