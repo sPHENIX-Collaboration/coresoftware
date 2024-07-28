@@ -514,24 +514,10 @@ int SingleCemcTriggerInput::ShiftEvents(int pktid, int offset)
 	std::cout << "moving packet " << (packet)->getIdentifier() << " from position " << i
 		  << " from event " << evtnumiter << " to event " << newevent << std::endl;
 	ipos = i;
-//	m_LocalPacketMap[newevent].push_back(packet);
-//        m_LocalPacketMap[evtnumiter].erase(pktiter);
-//        saveiter = pktiter;
+	m_LocalPacketMap[newevent].push_back(packet);
+        pktmapiter.erase(pktmapiter.begin() + i);
 	break;
       }
-    }
-    std::cout << " deleting ipos: " << ipos << std::endl;
-     auto it = pktmapiter.begin() + ipos;
-// m_LocalPacketMap[newevent].push_back(std::move(*it));
-//    m_LocalPacketMap[evtnumiter].erase(it);
-     for (auto iter: pktmapiter)
-     {
-       std::cout << "packet before erase: " << iter->getIdentifier() << std::endl;
-     }
-    pktmapiter.erase(it);
-    for (auto iter: pktmapiter)
-    {
-       std::cout << "packet after erase: " << iter->getIdentifier() << std::endl;
     }
     for (auto iter: m_LocalPacketMap[evtnumiter])
     {

@@ -1364,6 +1364,11 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
   for (auto &iter : m_NeedleMap)
   {
     std::vector needle = iter.second;
+    if (iter.first == 6001)
+    {
+      std::cout << "skipping needle matching for packet 6001" << std::endl;
+      continue;
+    }
     if (Verbosity() > 1)
     {
       std::cout << PHWHERE << "Initial HayStack/Needle: " << iter.first
