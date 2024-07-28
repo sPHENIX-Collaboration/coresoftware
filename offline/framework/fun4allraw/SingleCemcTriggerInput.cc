@@ -214,11 +214,57 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
        }
     while (m_LocalPacketMap.size() > LocalPoolDepth())
     {
+      std::set<int> events;
       auto nh = m_LocalPacketMap.begin()->second;
       std::cout << "Pushing event " << m_LocalPacketMap.begin()->first << " from local packet map to packet map" << std::endl;
+      events.insert(m_LocalPacketMap.begin()->first);
       m_PacketMap[m_LocalPacketMap.begin()->first] = std::move(nh);
       m_LocalPacketMap.erase(m_LocalPacketMap.begin());
+// copy reference bco if we have a FEM problem
+      if (FEMClockProblemFlag())
+      {
+	std::vector<OfflinePacket *> badpackets;
+	uint64_t refbco = std::numeric_limits<uint64_t>::max();
+	uint64_t fallbackrefbco = std::numeric_limits<uint64_t>::max();
+//	auto iter = m_PacketMap.begin();
+	for (auto iter : m_PacketMap)
+	{
+	  if (events.find(iter.first) == events.end() )
+	  {
+	    std::cout << "event " << iter.first << " already bco treated" << std::endl;
+	    continue;
+	  }
+	  for (auto pktiter : iter.second)
+	  {
+	    if (pktiter->getIdentifier() == ClockReferencePacket())
+	    {
+	      refbco = pktiter->getBCO();
+	    }
+	    else if (m_BadBCOPacketSet.find(pktiter->getIdentifier()) == m_BadBCOPacketSet.end())
+	    {
+	      fallbackrefbco = pktiter->getBCO(); // all bcos are identical so we can pcik any for fallback
+	    }
+	    else
+	    {
+	      std::cout << "found bad packet " << pktiter->getIdentifier() << std::endl;
+	      badpackets.push_back(pktiter);
+	    }
+	  }
+	if (refbco  == std::numeric_limits<uint64_t>::max())
+	{
+	  std::cout << "crap that didn't work, could not locate reference packet" << std::endl;
+	  refbco = fallbackrefbco;
+	}
+	for (auto pktiter : badpackets)
+	{
+	  std::cout << "event " << iter.first << " Setting packet " << pktiter->getIdentifier() << " to bco " << std::hex
+		    << refbco << std::dec << std::endl;
+	  pktiter->setBCO(refbco);
+	}
+	}
+      }
     }
+    Print("PACKETMAP");
     if (TriggerInputManager())
     {
       for (auto evtiter : m_PacketMap)
@@ -262,10 +308,25 @@ void SingleCemcTriggerInput::Print(const std::string &what) const
   {
     for (auto &iter : m_LocalPacketMap)
     {
-      std::cout << "Event " << iter.first << std::endl;
+      std::cout << "LocalMap Event " << iter.first << std::endl;
       for (auto pktiter : iter.second)
       {
-	std::cout << "Packet " << pktiter->getIdentifier() << std::endl;
+	std::cout << "Packet " << pktiter->getIdentifier() 
+		  << ", BCO: " << std::hex << pktiter->getBCO() << std::dec
+		  << ", FEM: " << std::hex << pktiter->iValue(0,"FEMCLOCK") << std::dec << std::endl;
+      }
+    }
+  }
+  if (what == "PACKETMAP")
+  {
+    for (auto &iter : m_PacketMap)
+    {
+      std::cout << "PacketMap Event " << iter.first << std::endl;
+      for (auto pktiter : iter.second)
+      {
+	std::cout << "Packet " << pktiter->getIdentifier() 
+		  << ", BCO: " << std::hex << pktiter->getBCO() << std::dec
+		  << ", FEM: " << std::hex << pktiter->iValue(0,"FEMCLOCK") << std::dec << std::endl;
       }
     }
   }
@@ -291,8 +352,9 @@ void SingleCemcTriggerInput::CleanupUsedLocalPackets(const int eventno)
   }
   for (auto iter : toclearevents)
   {
-    m_EventStack.erase(iter);
-    m_PacketMap.erase(iter);
+// std::set::erase returns number of elements deleted if the key does not exist, it just returns 0
+    m_EventStack.erase(iter); 
+    m_LocalPacketMap.erase(iter);
   }
 }
 
@@ -317,6 +379,7 @@ void SingleCemcTriggerInput::CleanupUsedPackets(const int eventno)
 
   for (auto iter : toclearevents)
   {
+// std::set::erase returns number of elements deleted if the key does not exist, it just returns 0
     m_EventStack.erase(iter);
     m_PacketMap.erase(iter);
   }
@@ -373,8 +436,11 @@ void SingleCemcTriggerInput::CheckFEMClock()
       {
 	uint64_t femclk = pktiter->iValue(i,"FEMCLOCK");
         bcocount[femclk]++;
-	std::cout << "packet id: " << pktiter->getIdentifier() << "packet clock: 0x" << std::hex << pktiter->iValue(0, "CLOCK")
-		  << "FEMClock: 0x" << femclk <<  std::dec << std::endl;
+	if (Verbosity() > 21)
+	{
+	std::cout << "packet id: " << pktiter->getIdentifier() << " packet clock: 0x" << std::hex << pktiter->iValue(0, "CLOCK")
+		  << " FEMClock: 0x" << femclk <<  std::dec << std::endl;
+	}
 	femclockset.insert(femclk);
 	if (ref_femclk == std::numeric_limits<uint64_t>::max())
 	{
@@ -408,6 +474,8 @@ void SingleCemcTriggerInput::CheckFEMClock()
       return;
     }
     std::cout << "FEM clocks are off, found " << bcocount.size() << " different ones, here we go ..." << std::endl;
+// set our FEM Clock Problem flag, since we need to copy clocks in the Fill loop
+    SetFEMClockProblemFlag();
 // find good bco (which will give us the haystack) and bad packets
     std::cout << "LocalPacketMap size: " << m_LocalPacketMap.size()
 	      << ", pool depth: " << LocalPoolDepth() << std::endl;
@@ -420,7 +488,6 @@ void SingleCemcTriggerInput::CheckFEMClock()
 // first find the reference bco (majority of packets until I get the Master from JeaBeom
   uint64_t goodfembco = std::numeric_limits<uint64_t>::max();
  unsigned int maxnumpackets = 0;
- std::set<int> badpacketset;
        for (auto bcoiter: bcocount)
        {
  	if (bcoiter.second > maxnumpackets)
@@ -433,18 +500,19 @@ void SingleCemcTriggerInput::CheckFEMClock()
        int refpacketid = *pktbcomap.find(goodfembco)->second.begin();
        std::cout << "Use packet " << refpacketid << " for reference bco 0x" 
 		 << std::hex << goodfembco << std::dec << std::endl;
+       SetClockReferencePacket(refpacketid);
        pktbcomap.erase(goodfembco);
        for (auto badpktmapiter : pktbcomap)
        {
 	 for (auto badpktiter : badpktmapiter.second)
 	 {
 	   std::cout << "bad packet " << badpktiter << std::endl;
-	   badpacketset.insert(badpktiter);
+	   m_BadBCOPacketSet.insert(badpktiter);
 	 }
        }
   std::vector<uint64_t> HayStack;
   std::map<int, std::vector<uint64_t>> NeedleMap;
-
+  m_EventRefBCO.clear(); // this is used if we need to reshuffle the BCO
   for (auto iter = m_LocalPacketMap.begin(); iter != m_LocalPacketMap.end(); ++iter)
   {
     std::cout << "handling Event " << iter->first << std::endl;
@@ -455,8 +523,9 @@ void SingleCemcTriggerInput::CheckFEMClock()
 	// just pick the first one, we have already checked that they are identical
 	uint64_t femclk = pktiter->iValue(0,"FEMCLOCK");
 	HayStack.push_back(femclk);
+        m_EventRefBCO[iter->first] = pktiter->getBCO();
       }
-      else if (badpacketset.find(pktiter->getIdentifier()) != badpacketset.end())
+      else if (m_BadBCOPacketSet.find(pktiter->getIdentifier()) != m_BadBCOPacketSet.end())
       {
 	uint64_t femclk = pktiter->iValue(0,"FEMCLOCK");
 	NeedleMap[pktiter->getIdentifier()].push_back(femclk);
@@ -504,16 +573,25 @@ int SingleCemcTriggerInput::ShiftEvents(int pktid, int offset)
   for (auto evtnumiter : eventnumbers)
   {
     auto &pktmapiter =  m_LocalPacketMap[evtnumiter];
+
     int newevent = evtnumiter + offset;
-    unsigned int ipos = 0;
     for (unsigned int i =  0; i < pktmapiter.size(); ++i)
     {
       auto packet = pktmapiter[i];
-      if ((packet)->getIdentifier() == pktid)
+      if (packet->getIdentifier() == pktid)
       {
-	std::cout << "moving packet " << (packet)->getIdentifier() << " from position " << i
+	std::cout << "moving packet " << packet->getIdentifier() << " from position " << i
 		  << " from event " << evtnumiter << " to event " << newevent << std::endl;
-	ipos = i;
+	auto bcotmpiter = m_EventRefBCO.find(newevent);
+	if (bcotmpiter != m_EventRefBCO.end())
+	{
+	packet->setBCO(bcotmpiter->second);
+	}
+	else
+	{
+	  packet->setBCO(std::numeric_limits<uint64_t>::max());
+	}
+
 	m_LocalPacketMap[newevent].push_back(packet);
         pktmapiter.erase(pktmapiter.begin() + i);
 	break;
