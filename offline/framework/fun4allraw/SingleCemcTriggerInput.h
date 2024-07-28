@@ -29,6 +29,7 @@ class SingleCemcTriggerInput : public SingleTriggerInput
  
  private:
   void CheckFEMClock();
+  int ShiftEvents(int pktid, int offset);
   Packet **plist{nullptr};
   std::map<int, std::vector<OfflinePacket *>> m_LocalPacketMap;
 };

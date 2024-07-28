@@ -932,13 +932,19 @@ void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
   auto ret = m_CemcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
   if (ret.second)
   {
-    std::cout << "inserting packet " << pkt->getIdentifier() << " for event " <<  pkt->getEvtSequence()
-	      << " was successful" << std::endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " <<  pkt->getEvtSequence()
+		<< " was successful" << std::endl;
+    }
   }
   else
   {
-    std::cout << "inserting packet " << pkt->getIdentifier() << " for event " <<  pkt->getEvtSequence()
-	      << " failed - duplicate?" << std::endl;
+    if (Verbosity() > 3)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " <<  pkt->getEvtSequence()
+		<< " failed - duplicate?" << std::endl;
+    }
   }
 
   //  std::cout << "Cemc packet map size: " << m_CemcPacketMap.size() << std::endl;
