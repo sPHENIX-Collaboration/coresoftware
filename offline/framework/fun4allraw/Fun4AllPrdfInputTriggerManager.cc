@@ -934,16 +934,16 @@ void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
   {
     if (Verbosity() > 1)
     {
-      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " <<  pkt->getEvtSequence()
-		<< " was successful" << std::endl;
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " was successful" << std::endl;
     }
   }
   else
   {
     if (Verbosity() > 3)
     {
-      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " <<  pkt->getEvtSequence()
-		<< " failed - duplicate?" << std::endl;
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " failed - duplicate?" << std::endl;
     }
   }
 
@@ -1370,7 +1370,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
     {
       if (Verbosity() > 1)
       {
-	std::cout << "Packet with FEM clock issue, not doing needle matching for packet " << iter.first << std::endl;
+        std::cout << "Packet with FEM clock issue, not doing needle matching for packet " << iter.first << std::endl;
       }
       continue;
     }
@@ -1742,13 +1742,13 @@ int Fun4AllPrdfInputTriggerManager::FillNeedleLL1(std::map<int, LL1PacketInfo>::
           uint64_t curr_bco = currpkt->second->getBCO();
           uint64_t diffbco = curr_bco - prev_bco;
           nextIt->second.BcoDiffMap[prev_packetid] = diffbco;
-	  if (Verbosity() > 11)
-	  {
-	    std::cout << PHWHERE << name << " packet " << prev_packetid << ", prev_bco 0x: " << std::hex
-		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
-		      << diffbco << std::dec << std::endl;
-	    std::cout << "Pushing 0x" << std::hex << diffbco << " into needle for packet " << std::dec << prev_packetid << std::endl;
-	  }
+          if (Verbosity() > 11)
+          {
+            std::cout << PHWHERE << name << " packet " << prev_packetid << ", prev_bco 0x: " << std::hex
+                      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
+                      << diffbco << std::dec << std::endl;
+            std::cout << "Pushing 0x" << std::hex << diffbco << " into needle for packet " << std::dec << prev_packetid << std::endl;
+          }
           m_NeedleMap[prev_packetid].push_back(diffbco);
           bcodiffs.insert(diffbco);
         }

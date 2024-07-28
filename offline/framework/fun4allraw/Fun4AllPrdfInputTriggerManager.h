@@ -82,7 +82,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int ClockDiffCheck();
   void Resync(bool b = true) { m_resync_flag = b; }
   void AddGl1DroppedEvent(int iev) { m_Gl1DroppedEvent.insert(iev); }
-  void AddFEMProblemPacket(int i) {m_FEMClockPackets.insert(i);}
+  void AddFEMProblemPacket(int i) { m_FEMClockPackets.insert(i); }
 
  private:
   struct Gl1PacketInfo
