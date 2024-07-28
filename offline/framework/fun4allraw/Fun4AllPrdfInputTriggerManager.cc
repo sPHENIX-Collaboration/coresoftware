@@ -1361,15 +1361,20 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 {
   std::map<int, int> eventoffset;
+  static unsigned int count = 0;
+  count++;
   for (auto &iter : m_NeedleMap)
   {
     std::vector needle = iter.second;
-    if (iter.first == 6001)
+    if (count < 2 && m_FEMClockPackets.find(iter.first) != m_FEMClockPackets.end())
     {
-      std::cout << "skipping needle matching for packet 6001" << std::endl;
+      if (Verbosity() > 1)
+      {
+	std::cout << "Packet with FEM clock issue, not doing needle matching for packet " << iter.first << std::endl;
+      }
       continue;
     }
-    if (Verbosity() > 1)
+    if (Verbosity() > 1 && iter.first < 6003)
     {
       std::cout << PHWHERE << "Initial HayStack/Needle: " << iter.first
                 << " HayStack size: " << m_HayStack.size() << " Needle size: " << needle.size() << std::endl;
@@ -1390,7 +1395,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
       int position = std::distance(m_HayStack.begin(), it);
       if (position > 0)
       {
-        if (Verbosity() > 1)
+        if (Verbosity() > 1 && iter.first < 6003)
         {
           std::cout << "need to change evt offset of packet " << iter.first << " by "
                     << position << " counts" << std::endl;
@@ -1399,7 +1404,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
       }
       else
       {
-        if (Verbosity() > 1)
+        if (Verbosity() > 1 && iter.first < 6003)
         {
           std::cout << "position: " << position << " All good for packet " << iter.first << " with bcodiff " << std::hex << *needle.begin()
                     << " match with " << *m_HayStack.begin() << std::dec << std::endl;

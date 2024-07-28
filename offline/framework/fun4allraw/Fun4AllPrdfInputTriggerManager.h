@@ -82,6 +82,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   int ClockDiffCheck();
   void Resync(bool b = true) { m_resync_flag = b; }
   void AddGl1DroppedEvent(int iev) { m_Gl1DroppedEvent.insert(iev); }
+  void AddFEMProblemPacket(int i) {m_FEMClockPackets.insert(i);}
 
  private:
   struct Gl1PacketInfo
@@ -149,6 +150,7 @@ class Fun4AllPrdfInputTriggerManager : public Fun4AllInputManager
   std::map<int, int> m_RefClockCounters;
   std::vector<uint64_t> m_HayStack;
   std::map<int, std::vector<uint64_t>> m_NeedleMap;
+  std::set<int> m_FEMClockPackets;
 };
 
 #endif /* FUN4ALL_FUN4ALLPRDFINPUTPOOLMANAGER_H */
