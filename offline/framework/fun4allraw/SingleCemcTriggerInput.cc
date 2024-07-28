@@ -503,25 +503,40 @@ int SingleCemcTriggerInput::ShiftEvents(int pktid, int offset)
   }
   for (auto evtnumiter : eventnumbers)
   {
-    auto pktmapiter =  m_LocalPacketMap[evtnumiter];
+    auto &pktmapiter =  m_LocalPacketMap[evtnumiter];
     int newevent = evtnumiter + offset;
     unsigned int ipos = 0;
-    for (auto pktiter =  pktmapiter.begin(); pktiter != pktmapiter.end(); ++pktiter)
+    for (unsigned int i =  0; i < pktmapiter.size(); ++i)
     {
-      if ((*pktiter)->getIdentifier() == pktid)
+      auto packet = pktmapiter[i];
+      if ((packet)->getIdentifier() == pktid)
       {
-	std::cout << "moving packet " << (*pktiter)->getIdentifier()
+	std::cout << "moving packet " << (packet)->getIdentifier() << " from position " << i
 		  << " from event " << evtnumiter << " to event " << newevent << std::endl;
-//	m_LocalPacketMap[newevent].push_back(std::move(*pktiter));
+	ipos = i;
+//	m_LocalPacketMap[newevent].push_back(packet);
 //        m_LocalPacketMap[evtnumiter].erase(pktiter);
 //        saveiter = pktiter;
 	break;
       }
-      ipos++;
     }
-    auto it = pktmapiter.begin() + ipos;
-m_LocalPacketMap[newevent].push_back(std::move(*it));
+    std::cout << " deleting ipos: " << ipos << std::endl;
+     auto it = pktmapiter.begin() + ipos;
+// m_LocalPacketMap[newevent].push_back(std::move(*it));
 //    m_LocalPacketMap[evtnumiter].erase(it);
+     for (auto iter: pktmapiter)
+     {
+       std::cout << "packet before erase: " << iter->getIdentifier() << std::endl;
+     }
+    pktmapiter.erase(it);
+    for (auto iter: pktmapiter)
+    {
+       std::cout << "packet after erase: " << iter->getIdentifier() << std::endl;
+    }
+    for (auto iter: m_LocalPacketMap[evtnumiter])
+    {
+      std::cout << "local packetmap after erase: " << iter->getIdentifier() << std::endl;
+    }
   }
   Print("LOCALMAP");
   return 0;
