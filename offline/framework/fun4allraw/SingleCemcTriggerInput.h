@@ -33,6 +33,7 @@ class SingleCemcTriggerInput : public SingleTriggerInput
 
  private:
   void CheckFEMClock();
+  void CheckFEMEventNumber();
   int ShiftEvents(int pktid, int offset);
   int m_ClockReferencePacket{0};
   bool m_FEMClockProblemFlag{false};

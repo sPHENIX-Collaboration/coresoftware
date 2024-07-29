@@ -204,7 +204,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
     }
     if (m_LocalPacketMap.size() >= LocalPoolDepth())
     {
-      CheckFEMClock();
+      CheckFEMEventNumber();
     }
     while (m_LocalPacketMap.size() > LocalPoolDepth())
     {
@@ -638,4 +638,170 @@ int SingleCemcTriggerInput::ShiftEvents(int pktid, int offset)
   }
   //  Print("LOCALMAP");
   return 0;
+}
+
+void SingleCemcTriggerInput::CheckFEMEventNumber()
+{
+  // lets check in the first event if this is actually needed
+  auto first_event = m_LocalPacketMap.begin();
+  //    std::cout << "Event " << first_event->first << std::endl;
+  std::map<int, std::set<int>> pktevtnummap;
+  int ref_femevtnum = std::numeric_limits<int>::max();
+  std::map<int, unsigned int> evtnumcount;
+  for (auto pktiter : first_event->second)
+  {
+    //      std::cout << "packet id: " << pktiter->getIdentifier() << " size: " <<  first_event->second.size() << std::endl;
+    std::set<int> femevtnumset;
+    for (int i = 0; i < pktiter->iValue(0, "NRMODULES"); i++)
+    {
+      int femevtnum = pktiter->iValue(i, "FEMEVTNR");
+      evtnumcount[femevtnum]++;
+      if (Verbosity() > 21)
+      {
+        std::cout << "packet id: " << pktiter->getIdentifier() << " packet clock: 0x" << std::hex << pktiter->iValue(0, "CLOCK")
+                  << " FEM EvtNo: " << std::dec << femevtnum << std::endl;
+      }
+      femevtnumset.insert(femevtnum);
+      if (ref_femevtnum == std::numeric_limits<int>::max())
+      {
+        ref_femevtnum = femevtnum;
+      }
+      else
+      {
+        if (ref_femevtnum != femevtnum)
+        {
+          if (Verbosity() > 1)
+          {
+            std::cout << "Event " << first_event->first << " FEM Clock mismatch for packet " << pktiter->getIdentifier() << std::endl;
+            std::cout << "ref fem evt: " << ref_femevtnum << ", femevtnum: "
+                      << femevtnum <<  std::endl;
+          }
+        }
+      }
+      if (femevtnumset.size() > 1)
+      {
+        static int count = 0;
+        if (count < 1000)
+        {
+          std::cout << PHWHERE << " FEM Clocks differ for packet " << pktiter->getIdentifier()
+                    << ", found " << femevtnumset.size() << " different ones" << std::endl;
+          for (auto &iter : femevtnumset)
+          {
+            std::cout << "0x" << std::hex << iter << std::dec << std::endl;
+          }
+          count++;
+        }
+      }
+    }
+    pktevtnummap[*femevtnumset.begin()].insert(pktiter->getIdentifier());
+  }
+  //    std::cout << "Map size " << evtnumcount.size() << std::endl;
+  if (evtnumcount.size() < 2)
+  {
+    //      std::cout << "all good" << std::endl;
+    return;
+  }
+  static int count = 0;
+  if (count < 1000)
+  {
+    std::cout << PHWHERE << " FEM clocks are off, found " << evtnumcount.size() << " different ones, here we go ..." << std::endl;
+    count++;
+  }
+  // set our FEM Clock Problem flag, since we need to copy clocks in the Fill loop
+  SetFEMClockProblemFlag();
+  // find good bco (which will give us the haystack) and bad packets
+  if (Verbosity() > 1)
+  {
+    std::cout << "LocalPacketMap size: " << m_LocalPacketMap.size()
+              << ", pool depth: " << LocalPoolDepth() << std::endl;
+  }
+  if (m_LocalPacketMap.size() < LocalPoolDepth())
+  {
+    // std::cout << "cache is not deep enough, this should never happen, size of local packet map: "
+    // 		<< m_LocalPacketMap.size() << ", pool depth: " << LocalPoolDepth() << std::endl;
+    return;
+  }
+  // first find the reference bco (majority of packets until I get the Master from JeaBeom
+  int goodfemevtnum = std::numeric_limits<int>::max();
+  unsigned int maxnumpackets = 0;
+  for (auto bcoiter : evtnumcount)
+  {
+    if (bcoiter.second > maxnumpackets)
+    {
+      maxnumpackets = bcoiter.second;
+      goodfemevtnum = bcoiter.first;
+    }
+    // 	std::cout << "bco 0x" << std::hex << bcoiter.first << " shows up " << std::dec << bcoiter.second << std::endl;
+  }
+  int refpacketid = *pktevtnummap.find(goodfemevtnum)->second.begin();
+  if (Verbosity() > 1)
+  {
+    std::cout << "Use packet " << refpacketid << " for reference bco 0x"
+              << std::hex << goodfemevtnum << std::dec << std::endl;
+  }
+  SetClockReferencePacket(refpacketid);
+  pktevtnummap.erase(goodfemevtnum);
+  for (const auto &badpktmapiter : pktevtnummap)
+  {
+    for (auto badpktiter : badpktmapiter.second)
+    {
+      //	   std::cout << "bad packet " << badpktiter << std::endl;
+      if (TriggerInputManager())
+      {
+        TriggerInputManager()->AddFEMProblemPacket(badpktiter);
+      }
+      m_BadBCOPacketSet.insert(badpktiter);
+    }
+  }
+  std::vector<int> HayStack;
+  std::map<int, std::vector<int>> NeedleMap;
+  m_EventRefBCO.clear();  // this is used if we need to reshuffle the BCO
+  for (auto &iter : m_LocalPacketMap)
+  {
+    //    std::cout << "handling Event " << iter->first << std::endl;
+    for (auto pktiter : iter.second)
+    {
+      if (pktiter->getIdentifier() == refpacketid)
+      {
+        // just pick the first one, we have already checked that they are identical
+        int femevtnum = pktiter->iValue(0, "FEMEVTNR");
+        HayStack.push_back(femevtnum);
+        m_EventRefBCO[iter.first] = pktiter->getBCO();
+      }
+      else if (m_BadBCOPacketSet.find(pktiter->getIdentifier()) != m_BadBCOPacketSet.end())
+      {
+        int femevtnum = pktiter->iValue(0, "FEMEVTNR");
+        NeedleMap[pktiter->getIdentifier()].push_back(femevtnum);
+      }
+    }
+  }
+  if (Verbosity() > 1)
+  {
+    for (auto evtno : HayStack)
+    {
+      std::cout << "Haystack : " << evtno << std::endl;
+    }
+  }
+  for (const auto &needleiter : NeedleMap)
+  {
+    std::vector needle = needleiter.second;
+    needle.pop_back();
+    if (Verbosity() > 1)
+    {
+      std::cout << "Packet " << needleiter.first << std::endl;
+      for (auto evtno : needle)
+      {
+        std::cout << "Needle: " << evtno << std::endl;
+      }
+    }
+    auto it = std::search(HayStack.begin(), HayStack.end(), needle.begin(), needle.end());
+    if (it != HayStack.end())  // found the needle in the haystack at offset position
+    {
+      int position = std::distance(HayStack.begin(), it);
+      //     std::cout << "found needle at " << position << std::endl;
+      AdjustEventNumberOffset(needleiter.first, position);
+      ShiftEvents(needleiter.first, position);
+    }
+  }
+  return;
 }
