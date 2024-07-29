@@ -828,12 +828,33 @@ int Fun4AllPrdfInputTriggerManager::MoveHcalToNodeTree()
 
 void Fun4AllPrdfInputTriggerManager::AddHcalPacket(int eventno, CaloPacket *pkt)
 {
+  if (pkt == nullptr)
+  {
+    std::cout << PHWHERE << " got null ptr to add packet, not doing this" << std::endl;
+    return;
+  }
   if (Verbosity() > 1)
   {
-    std::cout << "Adding hcal packet " << pkt->getEvtSequence() << " to eventno: "
+    std::cout << "Adding hcal packet " << pkt->getIdentifier() << " from event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
-  m_HcalPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  auto ret = m_HcalPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  if (ret.second)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " was successful" << std::endl;
+    }
+  }
+  else
+  {
+    if (Verbosity() > 3)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " failed - duplicate?" << std::endl;
+    }
+  }
   return;
 }
 
@@ -1374,7 +1395,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
       }
       continue;
     }
-    if (Verbosity() > 1 && iter.first < 6003)
+    if (Verbosity() > 1)
     {
       std::cout << PHWHERE << "Initial HayStack/Needle: " << iter.first
                 << " HayStack size: " << m_HayStack.size() << " Needle size: " << needle.size() << std::endl;
@@ -1395,7 +1416,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
       int position = std::distance(m_HayStack.begin(), it);
       if (position > 0)
       {
-        if (Verbosity() > 1 && iter.first < 6003)
+        if (Verbosity() > 1)
         {
           std::cout << "need to change evt offset of packet " << iter.first << " by "
                     << position << " counts" << std::endl;
@@ -1404,7 +1425,7 @@ int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
       }
       else
       {
-        if (Verbosity() > 1 && iter.first < 6003)
+        if (Verbosity() > 1)
         {
           std::cout << "position: " << position << " All good for packet " << iter.first << " with bcodiff " << std::hex << *needle.begin()
                     << " match with " << *m_HayStack.begin() << std::dec << std::endl;

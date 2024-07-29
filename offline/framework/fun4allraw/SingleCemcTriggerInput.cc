@@ -107,11 +107,6 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
     for (int i = 0; i < npackets; i++)
     {
       int packet_id = plist[i]->getIdentifier();
-      if (packet_id > 6005)
-      {
-        delete plist[i];
-        continue;
-      }
       // The call to  EventNumberOffset(identifier) will initialize it to our default (zero) if it wasn't set already
       // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
       // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
