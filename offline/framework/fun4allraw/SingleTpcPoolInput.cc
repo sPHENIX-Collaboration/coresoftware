@@ -68,6 +68,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
       std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
     RunNumber(evt->getRunNumber());
+    SetRunParameters(RunNumber());
     if (GetVerbosity() > 1)
     {
       evt->identify();
@@ -441,6 +442,22 @@ void SingleTpcPoolInput::ConfigureStreamingInputManager()
   {
     StreamingInputManager()->SetTpcBcoRange(m_BcoRange);
     StreamingInputManager()->SetTpcNegativeBco(m_NegativeBco);
+  }
+  return;
+}
+
+void SingleTpcPoolInput::SetRunParameters(const int runnumber)
+{
+  if (m_max_tpc_time_samples == std::numeric_limits<unsigned int>::max())
+  {
+    if (runnumber < 41624)
+    {
+      m_max_tpc_time_samples = 420;
+    }
+    else
+    {
+      m_max_tpc_time_samples = 425;
+    }
   }
   return;
 }
