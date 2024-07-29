@@ -49,7 +49,8 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual int AdjustPacketMap(int pktid, int evtoffset);
   virtual bool GetSomeMoreEvents(const unsigned int keep);
   virtual int AdjustEventOffset(int evtoffset);  // {return;}
-
+  virtual void LocalPoolDepth(unsigned int i) {m_LocalPoolDepth = i;}
+  virtual unsigned int LocalPoolDepth() const {return m_LocalPoolDepth;}
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
  protected:
@@ -68,6 +69,7 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   int m_AllDone{0};
   int m_SubsystemEnum{0};
   int m_DefaultEventNumberOffset{0};
+  unsigned int m_LocalPoolDepth{0};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
