@@ -177,7 +177,9 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
             if (TowerInfoDefs::isZDC(ichan)) {
               int mod = ichan % 2;
               if (mod != 0)
+              {
                 continue;
+              }
               if ((ichan != 6) && (ichan != 14)) {
                 zdc_E[index] = tower->get_energy();
                 zdc_t[index] = tower->get_time_float();
