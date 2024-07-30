@@ -24,9 +24,23 @@ class SingleZdcTriggerInput : public SingleTriggerInput
   void ClearCurrentEvent() override;
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
+  int CheckFEMClocks();
+  void CleanupUsedLocalPackets(const int eventno);
+  void SetFEMClockProblemFlag(bool b = true) { m_FEMClockProblemFlag = b; }
+  bool FEMClockProblemFlag() const { return m_FEMClockProblemFlag; }
+  void SetClockReferencePacket(const int i) { m_ClockReferencePacket = i; }
+  int ClockReferencePacket() const { return m_ClockReferencePacket; }
 
  private:
+  void CheckFEMEventNumber();
+  int ShiftEvents(int pktid, int offset);
+  int m_ClockReferencePacket{0};
+  bool m_FEMClockProblemFlag{false};
   Packet **plist{nullptr};
+  std::set<int> m_BadBCOPacketSet;
+  std::map<int, std::vector<OfflinePacket *>> m_LocalPacketMap;
+  std::map<int, std::vector<OfflinePacket *>> m_LocalPacketMap_Unchecked;
+  std::map<int, uint64_t> m_EventRefBCO;
 };
 
 #endif
