@@ -185,12 +185,11 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       {
         totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
         totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
-        
-        if (_zdcinfo->get_radius(0) < 2 && _zdcinfo->get_radius(1) < 2)
-        {
+        if (_zdcinfo->get_radius(0) < 2 && _zdcinfo->get_radius(1) < 2) 
+        { 
           for (unsigned int ichan = 0; ichan < ntowers; ichan++)
           {
-            TowerInfov2 *tower = (TowerInfov2*) _zdc_towerinfo->get_tower_at_channel(ichan);
+            TowerInfo *tower = _zdc_towerinfo->get_tower_at_channel(ichan);
             if (TowerInfoDefs::isZDC(ichan))
             {
               int mod = ichan%2;
@@ -211,6 +210,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
           float en = zdc_E[3] + zdc_E[4] + zdc_E[5];
           float etn = zdc_E[3] * zdc_t[3] + zdc_E[4] * zdc_t[4] + zdc_E[5] * zdc_t[5];
           float tn = etn / en;
+
           zdc_zvtx = 3e+10 * (ts - tn) * TSAMPLE / 2.0;
         }
       }
