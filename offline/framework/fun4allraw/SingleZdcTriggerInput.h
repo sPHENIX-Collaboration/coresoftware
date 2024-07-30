@@ -24,7 +24,6 @@ class SingleZdcTriggerInput : public SingleTriggerInput
   void ClearCurrentEvent() override;
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
-  int CheckFEMClocks();
   void CleanupUsedLocalPackets(const int eventno);
   void SetFEMClockProblemFlag(bool b = true) { m_FEMClockProblemFlag = b; }
   bool FEMClockProblemFlag() const { return m_FEMClockProblemFlag; }
