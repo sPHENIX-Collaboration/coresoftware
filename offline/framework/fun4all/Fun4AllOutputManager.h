@@ -106,6 +106,8 @@ class Fun4AllOutputManager : public Fun4AllBase
   bool ApplyFileRule() const { return m_UseFileRuleFlag; }
   void SetNEvents(const unsigned int nevt);
   unsigned int GetNEvents() const { return m_MaxEvents; }
+  void FileRule(const std::string &newrule) {m_FileRule = newrule;}
+  const std::string FileRule() const {return m_FileRule;}
 
  protected:
   /*!
@@ -136,6 +138,9 @@ class Fun4AllOutputManager : public Fun4AllBase
 
   //! last output file name which was closed
   std::string m_LastClosedFileName;
+
+  //! file rule when writing multiple segments (-<runnumber>-segment)
+  std::string m_FileRule {"-%08d-%05d"};
 
   //! vector of event selectors modules
   std::vector<std::string> m_EventSelectorsVector;

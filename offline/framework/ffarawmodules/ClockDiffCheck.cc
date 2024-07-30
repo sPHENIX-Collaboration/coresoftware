@@ -193,14 +193,19 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
           {
             if (packet->iValue(j, "FEMEVTNR") != bestEvt && bestEvt != -1 && packet->getIdentifier() != 6057)  // this packet has jitter on the FEM clocks, so we don't drop it
             {
-	      static int icnt = 0;
-	      if (icnt < 1000)
-	      {
-		std::cout << "found different FEM clock for packet " << packet->getIdentifier() << std::endl;
-		icnt++;
-	      }
+              static int icnt = 0;
+              if (icnt < 1000)
+              {
+                std::cout << "found different FEM clock for packet " << packet->getIdentifier() << std::endl;
+                icnt++;
+              }
               if (delBadPkts)
               {
+                if (Verbosity() > 1)
+                {
+                  std::cout << "deleting packet " << packet->getIdentifier()
+                            << " with fem clock mismatch" << std::endl;
+                }
                 container->deletePacket(packet);
               }
               break;
