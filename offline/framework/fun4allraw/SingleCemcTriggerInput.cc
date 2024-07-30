@@ -168,8 +168,6 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
         femclk =  plist[i]->iValue(ifem, "FEMCLOCK");
         femclkmap[femclk]++;
         femevtmap[femevt]++;
-//        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
-//        newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
         newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
         newhit->setChecksumLsb(ifem, plist[i]->iValue(ifem, "CHECKSUMLSB"));
         newhit->setChecksumMsb(ifem, plist[i]->iValue(ifem, "CHECKSUMMSB"));

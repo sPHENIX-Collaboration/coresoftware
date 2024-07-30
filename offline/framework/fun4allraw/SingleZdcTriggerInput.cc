@@ -583,7 +583,7 @@ void SingleZdcTriggerInput::CheckFEMEventNumber()
         {
           if (Verbosity() > 1)
           {
-            std::cout << "Event " << first_event->first << " FEM Clock mismatch for packet " << pktiter->getIdentifier() << std::endl;
+            std::cout << "Event " << first_event->first << " FEM Event Number mismatch for packet " << pktiter->getIdentifier() << std::endl;
             std::cout << "ref fem evt: " << ref_femevtnum << ", femevtnum: "
                       << femevtnum <<  std::endl;
           }
@@ -594,11 +594,11 @@ void SingleZdcTriggerInput::CheckFEMEventNumber()
         static int count = 0;
         if (count < 1000)
         {
-          std::cout << PHWHERE << " FEM Clocks differ for packet " << pktiter->getIdentifier()
+          std::cout << PHWHERE << " FEM Event Numbers differ for packet " << pktiter->getIdentifier()
                     << ", found " << femevtnumset.size() << " different ones" << std::endl;
           for (auto &iter : femevtnumset)
           {
-            std::cout << "0x" << std::hex << iter << std::dec << std::endl;
+            std::cout << iter << std::endl;
           }
           count++;
         }
