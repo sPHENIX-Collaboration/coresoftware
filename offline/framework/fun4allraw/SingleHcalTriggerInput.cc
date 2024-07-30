@@ -672,7 +672,7 @@ void SingleHcalTriggerInput::CheckFEMEventNumber()
           {
             std::cout << "Event " << first_event->first << " FEM Event Number  mismatch for packet " << pktiter->getIdentifier() << std::endl;
             std::cout << "ref fem evt: " << ref_femevtnum << ", femevtnum: "
-                      << femevtnum <<  std::endl;
+                      << femevtnum << std::endl;
           }
         }
       }

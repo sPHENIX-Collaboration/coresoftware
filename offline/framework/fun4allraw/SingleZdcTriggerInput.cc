@@ -198,11 +198,11 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       }
       if (packet_id == std::clamp(packet_id, 9000, 9999))
       {
-	m_LocalPacketMap[CorrectedEventSequence].push_back(newhit);
+        m_LocalPacketMap[CorrectedEventSequence].push_back(newhit);
       }
       else
       {
-	m_LocalPacketMap_Unchecked[CorrectedEventSequence].push_back(newhit);
+        m_LocalPacketMap_Unchecked[CorrectedEventSequence].push_back(newhit);
       }
       m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
@@ -277,16 +277,14 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
     while (m_LocalPacketMap_Unchecked.size() > LocalPoolDepth())
     {
       auto &pktmapiter = m_LocalPacketMap_Unchecked.begin()->second;
-      for (unsigned int i = 0; i < pktmapiter.size(); ++i)
+      for (auto packet : pktmapiter)
       {
-	auto packet = pktmapiter[i];
-	m_PacketMap[m_LocalPacketMap_Unchecked.begin()->first].push_back(packet);
+        m_PacketMap[m_LocalPacketMap_Unchecked.begin()->first].push_back(packet);
       }
       pktmapiter.clear();
       m_LocalPacketMap_Unchecked.erase(m_LocalPacketMap_Unchecked.begin());
-
     }
-//    Print("PACKETMAP");
+    //    Print("PACKETMAP");
     if (TriggerInputManager())
     {
       for (const auto &evtiter : m_PacketMap)
@@ -294,18 +292,18 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
         for (auto pktiter : evtiter.second)
         {
           CaloPacket *calpacket = dynamic_cast<CaloPacket *>(pktiter);
-	  int packet_id = calpacket->getIdentifier();
+          int packet_id = calpacket->getIdentifier();
           if (calpacket)
           {
-	    if (packet_id == std::clamp(packet_id, 9000, 9999))
-	    {
-	      TriggerInputManager()->AddSEpdPacket(evtiter.first, calpacket);
-	    }
-	    else
-	    {
-	      TriggerInputManager()->AddZdcPacket(evtiter.first, calpacket);
-	    }
-	  }
+            if (packet_id == std::clamp(packet_id, 9000, 9999))
+            {
+              TriggerInputManager()->AddSEpdPacket(evtiter.first, calpacket);
+            }
+            else
+            {
+              TriggerInputManager()->AddZdcPacket(evtiter.first, calpacket);
+            }
+          }
           else
           {
             static int count = 0;
@@ -351,7 +349,7 @@ void SingleZdcTriggerInput::Print(const std::string &what) const
                   << ", FEM: " << std::hex << pktiter->iValue(0, "FEMCLOCK") << std::dec
                   << ", EVTNR: " << pktiter->iValue(0, "FEMEVTNR") << std::endl;
       }
-    std::cout << "END OF LOCALMAP PRINTOUT" << std::endl;
+      std::cout << "END OF LOCALMAP PRINTOUT" << std::endl;
     }
   }
   if (what == "PACKETMAP")
@@ -585,7 +583,7 @@ void SingleZdcTriggerInput::CheckFEMEventNumber()
           {
             std::cout << "Event " << first_event->first << " FEM Event Number mismatch for packet " << pktiter->getIdentifier() << std::endl;
             std::cout << "ref fem evt: " << ref_femevtnum << ", femevtnum: "
-                      << femevtnum <<  std::endl;
+                      << femevtnum << std::endl;
           }
         }
       }

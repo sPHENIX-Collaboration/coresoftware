@@ -157,15 +157,15 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       newhit->setCalcOddChecksum(plist[i]->iValue(0, "CALCODDCHECKSUM"));
       newhit->setModuleAddress(plist[i]->iValue(0, "MODULEADDRESS"));
       newhit->setDetId(plist[i]->iValue(0, "DETID"));
-// 2 Cemc packets have counter problems, one for the event number (6024), the other for the clock counter (6057)
-      std::map<int,unsigned int> femevtmap;
-      std::map<int,unsigned int> femclkmap;
+      // 2 Cemc packets have counter problems, one for the event number (6024), the other for the clock counter (6057)
+      std::map<int, unsigned int> femevtmap;
+      std::map<int, unsigned int> femclkmap;
       unsigned int femevt = std::numeric_limits<unsigned int>::max();
       unsigned int femclk = std::numeric_limits<unsigned int>::max();
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
-	femevt =  plist[i]->iValue(ifem, "FEMEVTNR");
-        femclk =  plist[i]->iValue(ifem, "FEMCLOCK");
+        femevt = plist[i]->iValue(ifem, "FEMEVTNR");
+        femclk = plist[i]->iValue(ifem, "FEMCLOCK");
         femclkmap[femclk]++;
         femevtmap[femevt]++;
         newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
@@ -174,54 +174,54 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
         newhit->setCalcChecksumLsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
         newhit->setCalcChecksumMsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
       }
-// if FEM clocks are different, find 2 out of 3 and set all of them to the majority
-      if (femclkmap.size() > 1) // more than one entry
+      // if FEM clocks are different, find 2 out of 3 and set all of them to the majority
+      if (femclkmap.size() > 1)  // more than one entry
       {
-	if (femclkmap.size() >= 3)
-	{
-	  femclk = std::numeric_limits<int>::max();
-	}
-	else
-	{
-	  unsigned int imax = 0;
-	  for (auto &iter : femclkmap)
-	  {
-	    if (imax < iter.second)
-	    {
-	      imax = iter.second;
-	      femclk = iter.first;
-	    }
-	  }
-	}
+        if (femclkmap.size() >= 3)
+        {
+          femclk = std::numeric_limits<int>::max();
+        }
+        else
+        {
+          unsigned int imax = 0;
+          for (auto &iter : femclkmap)
+          {
+            if (imax < iter.second)
+            {
+              imax = iter.second;
+              femclk = iter.first;
+            }
+          }
+        }
       }
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
-	newhit->setFemClock(ifem,femclk);
+        newhit->setFemClock(ifem, femclk);
       }
 
-// if FEM Event Nums are different, find 2 out of 3 and set all of them to the majority
-      if (femevtmap.size() > 1) // more than one entry
+      // if FEM Event Nums are different, find 2 out of 3 and set all of them to the majority
+      if (femevtmap.size() > 1)  // more than one entry
       {
-	if (femevtmap.size() >= 3)
-	{
-	  femevt = std::numeric_limits<int>::max();
-	}
-	else
-	{
-	  unsigned int imax = 0;
-	  for (auto &iter : femevtmap)
-	  {
-	    if (imax < iter.second)
-	    {
-	      imax = iter.second;
-	      femevt = iter.first;
-	    }
-	  }
-	}
+        if (femevtmap.size() >= 3)
+        {
+          femevt = std::numeric_limits<int>::max();
+        }
+        else
+        {
+          unsigned int imax = 0;
+          for (auto &iter : femevtmap)
+          {
+            if (imax < iter.second)
+            {
+              imax = iter.second;
+              femevt = iter.first;
+            }
+          }
+        }
       }
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
-	newhit->setFemEvtSequence(ifem,femevt);
+        newhit->setFemEvtSequence(ifem, femevt);
       }
 
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
@@ -731,7 +731,7 @@ void SingleCemcTriggerInput::CheckFEMEventNumber()
           {
             std::cout << "Event " << first_event->first << " FEM Evt Num mismatch for packet " << pktiter->getIdentifier() << std::endl;
             std::cout << "ref fem evt: " << ref_femevtnum << ", femevtnum: "
-                      << femevtnum <<  std::endl;
+                      << femevtnum << std::endl;
           }
         }
       }
