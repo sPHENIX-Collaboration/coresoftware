@@ -157,16 +157,75 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       newhit->setCalcOddChecksum(plist[i]->iValue(0, "CALCODDCHECKSUM"));
       newhit->setModuleAddress(plist[i]->iValue(0, "MODULEADDRESS"));
       newhit->setDetId(plist[i]->iValue(0, "DETID"));
+// 2 Cemc packets have counter problems, one for the event number (6024), the other for the clock counter (6057)
+      std::map<int,unsigned int> femevtmap;
+      std::map<int,unsigned int> femclkmap;
+      unsigned int femevt = std::numeric_limits<unsigned int>::max();
+      unsigned int femclk = std::numeric_limits<unsigned int>::max();
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
-        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
-        newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
+	femevt =  plist[i]->iValue(ifem, "FEMEVTNR");
+        femclk =  plist[i]->iValue(ifem, "FEMCLOCK");
+        femclkmap[femclk]++;
+        femevtmap[femevt]++;
+//        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
+//        newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
         newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
         newhit->setChecksumLsb(ifem, plist[i]->iValue(ifem, "CHECKSUMLSB"));
         newhit->setChecksumMsb(ifem, plist[i]->iValue(ifem, "CHECKSUMMSB"));
         newhit->setCalcChecksumLsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
         newhit->setCalcChecksumMsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
       }
+// if FEM clocks are different, find 2 out of 3 and set all of them to the majority
+      if (femclkmap.size() > 1) // more than one entry
+      {
+	if (femclkmap.size() >= 3)
+	{
+	  femclk = std::numeric_limits<int>::max();
+	}
+	else
+	{
+	  unsigned int imax = 0;
+	  for (auto &iter : femclkmap)
+	  {
+	    if (imax < iter.second)
+	    {
+	      imax = iter.second;
+	      femclk = iter.first;
+	    }
+	  }
+	}
+      }
+      for (int ifem = 0; ifem < nr_modules; ifem++)
+      {
+	newhit->setFemClock(ifem,femclk);
+      }
+
+// if FEM Event Nums are different, find 2 out of 3 and set all of them to the majority
+      if (femevtmap.size() > 1) // more than one entry
+      {
+	if (femevtmap.size() >= 3)
+	{
+	  femevt = std::numeric_limits<int>::max();
+	}
+	else
+	{
+	  unsigned int imax = 0;
+	  for (auto &iter : femevtmap)
+	  {
+	    if (imax < iter.second)
+	    {
+	      imax = iter.second;
+	      femevt = iter.first;
+	    }
+	  }
+	}
+      }
+      for (int ifem = 0; ifem < nr_modules; ifem++)
+      {
+	newhit->setFemEvtSequence(ifem,femevt);
+      }
+
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
         // store pre/post only for suppressed channels, the array in the packet routines is not
@@ -672,7 +731,7 @@ void SingleCemcTriggerInput::CheckFEMEventNumber()
         {
           if (Verbosity() > 1)
           {
-            std::cout << "Event " << first_event->first << " FEM Clock mismatch for packet " << pktiter->getIdentifier() << std::endl;
+            std::cout << "Event " << first_event->first << " FEM Evt Num mismatch for packet " << pktiter->getIdentifier() << std::endl;
             std::cout << "ref fem evt: " << ref_femevtnum << ", femevtnum: "
                       << femevtnum <<  std::endl;
           }
@@ -683,11 +742,11 @@ void SingleCemcTriggerInput::CheckFEMEventNumber()
         static int count = 0;
         if (count < 1000)
         {
-          std::cout << PHWHERE << " FEM Clocks differ for packet " << pktiter->getIdentifier()
+          std::cout << PHWHERE << " FEM Evt Nums differ for packet " << pktiter->getIdentifier()
                     << ", found " << femevtnumset.size() << " different ones" << std::endl;
           for (auto &iter : femevtnumset)
           {
-            std::cout << "0x" << std::hex << iter << std::dec << std::endl;
+            std::cout << iter << std::endl;
           }
           count++;
         }
