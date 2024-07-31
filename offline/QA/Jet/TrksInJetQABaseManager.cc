@@ -34,10 +34,10 @@ TrksInJetQABaseManager::~TrksInJetQABaseManager()
 
 // public methods -------------------------------------------------------------
 
-void TrksInJetQABaseManager::MakeHistograms(const std::string& label)
+void TrksInJetQABaseManager::MakeHistograms(const std::string& prefix, const std::string& suffix)
 {
   DefineHistograms();
-  BuildHistograms(label);
+  BuildHistograms(prefix, suffix);
   return;
 
 }  // end 'MakeHistograms(std::string)'
@@ -94,7 +94,7 @@ void TrksInJetQABaseManager::GrabHistograms(
 
 // private methods ------------------------------------------------------------
 
-void TrksInJetQABaseManager::BuildHistograms(const std::string& label)
+void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const std::string& suffix)
 {
   // build 1d histograms
   m_vecHist1D.resize(m_vecHistTypes.size());
@@ -103,11 +103,13 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& label)
     for (HistDef1D histDef1D : m_vecHistDef1D)
     {
       // make name
-      std::string sHistName("h");
+      std::string sHistName("h_");
+      sHistName += prefix;
+      sHistName += "_";
       sHistName += m_vecHistTypes.at(iType);
       sHistName += std::get<0>(histDef1D);
       sHistName += "_";
-      sHistName += label;
+      sHistName += suffix;
 
       // create histogram
       m_vecHist1D.at(iType).push_back(
@@ -127,11 +129,19 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& label)
     for (HistDef2D histDef2D : m_vecHistDef2D)
     {
       // make name
-      std::string sHistName("h");
+      std::string sHistName("h_");
+      sHistName += prefix;
+      sHistName += "_";
       sHistName += m_vecHistTypes.at(iType);
       sHistName += std::get<0>(histDef2D);
       sHistName += "_";
-      sHistName += label;
+      sHistName += suffix;
+
+      // const std::string sDoubleUnderscore("__");
+      std::regex_replace(
+          sHistName,
+          std::regex("__"),
+          "_");
 
       // create histogram
       m_vecHist2D.at(iType).push_back(

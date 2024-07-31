@@ -278,11 +278,13 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       // also store adc value
       unsigned int adc_sum = 0;
       unsigned int max_adc = 0;
-      unsigned int strip_count = 0;
+      const unsigned int strip_count = std::distance(range.first,range.second);
+      if(m_drop_single_strips && strip_count < 2)
+      { continue; }
+
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
       {
-        ++strip_count;
         // get hit key
         const auto hitkey = hit_it->first;
         const auto hit = hit_it->second;
@@ -370,43 +372,47 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       cluster->setLocalY(local_coordinates.Y());
       cluster->setPhiError(sqrt(error_sq_x));
       cluster->setZError(sqrt(error_sq_y));
+
       // store cluster size
       switch( segmentation_type )
+      {
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
         {
-	case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-          {
-            cluster->setPhiSize(strip_count);
-            cluster->setZSize(1);
-            break;
-          }
-
-	case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-          {
-            cluster->setPhiSize(1);
-            cluster->setZSize(strip_count);
-            break;
-          }
+          cluster->setPhiSize(strip_count);
+          cluster->setZSize(1);
+          break;
         }
 
-      // eliminate single strip clusters
-      if(segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_PHI)
-          {
-	    if(m_drop_single_strips && cluster->getPhiSize() < 2) 
-	      { continue; }
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+        {
+          cluster->setPhiSize(1);
+          cluster->setZSize(strip_count);
+          break;
+        }
+      }
 
-	    trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-	  }
+      trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
 
-      if(segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_Z)
-          {
-	    if(m_drop_single_strips && cluster->getZSize() < 2)
-	      { continue; }
+      // increment counter
+      ++m_clustercounts[hitsetkey];
 
-	    trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
-	  }
     }
 
   }
   // done
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_____________________________________________________________________
+int MicromegasClusterizer::End(PHCompositeNode* /*topNode*/)
+{
+  // if( Verbosity() )
+  {
+    for (const auto& [hitsetkey, count] : m_clustercounts)
+    {
+      std::cout << "MicromegasClusterizer::End - hitsetkey: " << hitsetkey << ", cluster count: " << count << std::endl;
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }

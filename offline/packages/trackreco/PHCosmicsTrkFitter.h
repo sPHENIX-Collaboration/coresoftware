@@ -30,7 +30,6 @@
 #include <TFile.h>
 #include <TTree.h>
 
-#include <trackbase/alignmentTransformationContainer.h>
 
 class MakeActsGeometry;
 class SvtxTrack;
@@ -187,6 +186,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   SvtxTrackMap* m_seedTracks = nullptr;
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  TpcDistortionCorrectionContainer* _dcc_module_edge{nullptr};
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
   TpcDistortionCorrectionContainer* _dcc_average{nullptr};
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};

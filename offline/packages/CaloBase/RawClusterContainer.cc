@@ -2,21 +2,18 @@
 
 #include "RawCluster.h"
 
-#include <cstdlib>
 #include <iostream>
-
-using namespace std;
 
 RawClusterContainer::ConstRange
 RawClusterContainer::getClusters() const
 {
-  return make_pair(_clusters.begin(), _clusters.end());
+  return std::make_pair(_clusters.begin(), _clusters.end());
 }
 
 RawClusterContainer::Range
 RawClusterContainer::getClusters()
 {
-  return make_pair(_clusters.begin(), _clusters.end());
+  return std::make_pair(_clusters.begin(), _clusters.end());
 }
 
 RawClusterContainer::ConstIterator

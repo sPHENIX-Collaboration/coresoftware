@@ -1,6 +1,8 @@
 #include "TowerInfoContainer.h"
 #include "TowerInfoDefs.h"
 
+#include <ostream>
+
 void TowerInfoContainer::identify(std::ostream& os) const
 {
   os << "TowerInfoContainer Base Class " << std::endl;

@@ -147,7 +147,8 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    const int fee = rawhit->get_fee();
+    // get fee id, apply mapping to current fiber set, for backward compatibility
+    const int fee = m_mapping.get_new_fee_id(rawhit->get_fee());
     const auto channel = rawhit->get_channel();
     const int samples = rawhit->get_samples();
 
@@ -268,7 +269,7 @@ int MicromegasCombinedDataDecoder::End(PHCompositeNode* /*topNode*/)
   {
     for (const auto& [hitsetkey, count] : m_hitcounts)
     {
-      std::cout << "MicromegasCombinedDataDecoder::End - hitsetkey: " << hitsetkey << ", count: " << count << std::endl;
+      std::cout << "MicromegasCombinedDataDecoder::End - hitsetkey: " << hitsetkey << ", hit count: " << count << std::endl;
     }
   }
 

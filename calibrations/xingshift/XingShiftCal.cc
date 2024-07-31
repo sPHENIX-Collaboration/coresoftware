@@ -16,7 +16,6 @@
 #include <TH1.h>
 
 #include <boost/format.hpp>
-
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
@@ -39,6 +38,8 @@ XingShiftCal::XingShiftCal(const std::string &name, const int poverwriteSpinEntr
       j = 0;
     }
   }
+
+
   std::cout << "XingShiftCal::XingShiftCal(const std::string &name) Calling ctor" << std::endl;
 }
 
@@ -50,7 +51,23 @@ XingShiftCal::~XingShiftCal()
 int XingShiftCal::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << "XingShiftCal::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  
+  preset_pattern_blue["111x111_P1"] = "+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+*********";
+  preset_pattern_yellow["111x111_P1"] = "++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++-*********";
+  preset_pattern_blue["111x111_P2"] = "-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-*********";
+  preset_pattern_yellow["111x111_P2"] = "++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++-*********";
+  preset_pattern_blue["111x111_P3"] = "+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+*********";
+  preset_pattern_yellow["111x111_P3"] = "--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--+*********";
+  preset_pattern_blue["111x111_P4"] = "-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-*********";
+  preset_pattern_yellow["111x111_P4"] = "--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--+*********";
+  preset_pattern_blue["111x111_P5"] = "++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++-*********";
+  preset_pattern_yellow["111x111_P5"] = "+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+*********";
+  preset_pattern_blue["111x111_P6"] = "--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--+*********";
+  preset_pattern_yellow["111x111_P6"] = "+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+--+-++-+-+-+--+-+-+-++-+*********";
+  preset_pattern_blue["111x111_P7"] = "++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++-*********";
+  preset_pattern_yellow["111x111_P7"] = "-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-*********";
+  preset_pattern_blue["111x111_P8"] = "--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--++--+*********";
+  preset_pattern_yellow["111x111_P8"] = "-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-++-+--+-+-+-++-+-+-+--+-*********";
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -82,6 +99,9 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     pYellIntPattern = evt->getPacket(packet_YELLINTPATTERN);
     pBluePolPattern = evt->getPacket(packet_BLUEPOLPATTERN);
     pYellPolPattern = evt->getPacket(packet_YELLPOLPATTERN);
+
+    pBlueAsym = evt->getPacket(packet_BLUEASYM);
+    pYellAsym = evt->getPacket(packet_YELLASYM);
 
     pBlueFillNumber = evt->getPacket(packet_BLUEFILLNUMBER);
     pYellFillNumber = evt->getPacket(packet_YELLFILLNUMBER);
@@ -147,7 +167,80 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     }
     //=======================================================================//
 
-    //============== Set fill number histogram ==============//
+
+     //============== Get pC spin patterns from buckets ==============//
+
+    // Get bunch asymmetries for measured spin pattern
+    // there are 360 buckets for 120 bunches
+    if (pBlueAsym)
+    {
+      for (int i = 0; i < 360; i += 3)
+      {
+        float blueAsyms = pBlueAsym->iValue(i) / 10000.0;
+        float blueAsymsErr = pBlueAsym->iValue(i + 360) / 10000.0;
+
+        float bluebot = blueAsyms - blueAsymsErr;
+        float bluetop = blueAsyms + blueAsymsErr;
+
+        if (blueAsyms != 0 || bluebot != 0 || bluetop != 0)
+        {
+          if (bluebot > 0 && bluetop > 0)
+          {
+	    bluePcSpinPattern[i / 3] = 1;
+          }
+          else if (bluebot < 0 && bluetop < 0)
+          {
+            bluePcSpinPattern[i / 3] = -1;
+          }
+          else if (bluebot <= 0 && bluetop >= 0)
+          {
+            bluePcSpinPattern[i / 3] = 0;
+          }
+        }
+        else
+        {
+          bluePcSpinPattern[i / 3] = 10;
+        }
+      }
+      delete pBlueAsym;
+    }
+
+    if (pYellAsym)
+    {
+      for (int i = 0; i < 360; i += 3)
+      {
+        float yellAsyms = pYellAsym->iValue(i) / 10000.0;
+        float yellAsymsErr = pYellAsym->iValue(i + 360) / 10000.0;
+
+        float yellbot = yellAsyms - yellAsymsErr;
+        float yelltop = yellAsyms + yellAsymsErr;
+
+        if (yellAsyms != 0 || yellbot != 0 || yelltop != 0)
+        {
+          if (yellbot > 0 && yelltop > 0)
+          {
+            yellPcSpinPattern[i / 3] = 1;
+          }
+          else if (yellbot < 0 && yelltop < 0)
+          {
+            yellPcSpinPattern[i / 3] = -1;
+          }
+          else if (yellbot <= 0 && yelltop >= 0)
+          {
+            yellPcSpinPattern[i / 3] = 0;
+          }
+        }
+        else
+        {
+          yellPcSpinPattern[i / 3] = 10;
+        }
+      }
+      delete pYellAsym;
+    }
+    //=======================================================================//
+
+
+    //============== Get fill number ==============//
     fillnumberBlue = 0;
     fillnumberYellow = 0;
     if (pBlueFillNumber)
@@ -166,6 +259,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
   {
     p = evt->getPacket(packet_GL1);
     int bunchnr = p->lValue(0, "BunchNumber");
+    
     for (int i = 0; i < NTRIG; i++)
     {
       // 2nd arg of lValue: 0 is raw trigger count, 1 is live trigger count, 2 is scaled trigger count
@@ -230,6 +324,7 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
   const std::string cdbfname = (boost::format("SPIN-%08d_crossingshiftCDBTTree.root") % runnumber).str();
   WriteToCDB(cdbfname);
   CommitToSpinDB();
+  
 
   if (commitSuccessCDB)
   {
@@ -423,8 +518,76 @@ int XingShiftCal::CommitToSpinDB()
 
   // prepare values for db
   unsigned int qa_level = 0xffff;
-  
 
+
+  //=============== connect to daq db to get gl1p scalers ===============
+  std::string daqdbname = "daq";
+  std::string daqdbowner = "phnxrc";
+  std::string daqdbpasswd = "";
+
+  odbc::Connection *conDAQ = nullptr;
+  try
+  {
+    conDAQ = odbc::DriverManager::getConnection(daqdbname.c_str(), daqdbowner.c_str(), daqdbpasswd.c_str());
+  }
+  catch (odbc::SQLException &eDAQ)
+  {
+    std::cout << PHWHERE
+              << " Exception caught at XingShiftCal::CommitPatternToSpinDB when connecting to DAQ DB" << std::endl;
+    std::cout << "Message: " << eDAQ.getMessage() << std::endl;
+    //commitSuccessDAQDB = 0;
+    if (conDAQ)
+    {
+      delete conDAQ;
+      conDAQ = nullptr;
+    }
+    return 0;
+  }
+
+  std::ostringstream sqlGL1PSelect;
+  sqlGL1PSelect << "SELECT index, bunch, scaled FROM gl1_pscalers"
+                << " WHERE runnumber = " << runnumber
+                << ";";
+  odbc::Statement *stmtGL1PSelect = conDAQ->createStatement();
+  odbc::ResultSet *rsGL1P = nullptr;
+  try
+  {
+    rsGL1P = stmtGL1PSelect->executeQuery(sqlGL1PSelect.str());
+  }
+  catch (odbc::SQLException &eGL1P)
+  {
+    std::cout << PHWHERE
+              << " Exception caught at XingShiftCal::CommitPatternToSpinDB when querying DAQ DB" << std::endl;
+    std::cout << "Message: " << eGL1P.getMessage() << std::endl;
+    //commitSuccessSpinDB = 0;
+    if (conDAQ)
+    {
+      delete conDAQ;
+      conDAQ = nullptr;
+    }
+    return 0;
+  }
+
+
+  while (rsGL1P->next()) {
+    int index = rsGL1P->getInt("index");
+    int bunch = rsGL1P->getInt("bunch");
+    //MBD NS
+    if (index == 0)
+    {
+      mbdns[bunch] = rsGL1P->getInt("scaled");
+    }
+    else if (index == 1)
+    {
+      mbdvtx[bunch] = rsGL1P->getInt("scaled");
+    }
+    else if (index == 5)
+    {
+      zdcns[bunch] = rsGL1P->getInt("scaled");
+    }
+
+  }
+  // =======================================================
   
 
   // if (verbosity) {
@@ -461,7 +624,44 @@ int XingShiftCal::CommitToSpinDB()
     }
   }
 
-  // connect to spin db
+  if (true)
+  {
+    for (int i = 0; i < 3; i++)
+    {
+      if (i == 0)
+      {
+	std::cout << "mbdns = {";
+      }
+      else if (i == 1)
+      {
+	std::cout << "mbdvtx = {";
+      }
+      else if (i == 2)
+      {
+	std::cout << "zdcns = {";
+      }
+      for (int icross = 0; icross < NBUNCHES; icross++)
+      {
+        if (i == 0)
+        {
+          std::cout << mbdns[icross] << ",";
+        }
+        else if (i == 1)
+        {
+          std::cout << mbdvtx[icross] << ",";
+        }
+	else if (i == 2)
+	{
+	  std::cout << zdcns[icross] << ",";
+	}	
+      }
+      std::cout << "\b}\n";
+    }  
+  }
+
+
+
+  //================ connect to spin db ====================
   std::string dbname = "spinDB_write";
   std::string dbowner = "phnxrc";
   std::string dbpasswd = "";
@@ -577,6 +777,39 @@ int XingShiftCal::CommitToSpinDB()
     }
     sql << "}'";
 
+    sql << ", mbdns = '{";
+    for (int icross = 0; icross < NBUNCHES; icross++)
+    {
+      sql << mbdns[icross];
+      if (icross < NBUNCHES - 1)
+      {
+        sql << ",";
+      }
+    }
+    sql << "}'";
+
+    sql << ", mbdvtx = '{";
+    for (int icross = 0; icross < NBUNCHES; icross++)
+    {
+      sql << mbdvtx[icross];
+      if (icross < NBUNCHES - 1)
+      {
+        sql << ",";
+      }
+    }
+    sql << "}'";
+
+    sql << ", zdcns = '{";
+    for (int icross = 0; icross < NBUNCHES; icross++)
+    {
+      sql << zdcns[icross];
+      if (icross < NBUNCHES - 1)
+      {
+        sql << ",";
+      }
+    }
+    sql << "}'";
+
     sql << " WHERE runnumber = " << runnumber
         << " AND qa_level = " << qa_level
         << ";";
@@ -584,7 +817,7 @@ int XingShiftCal::CommitToSpinDB()
   else
   {
     sql << "INSERT INTO " << dbtable;
-    sql << " (runnumber, fillnumber, polarblue, polarblueerror, polaryellow, polaryellowerror, crossingshift, spinpatternblue, spinpatternyellow, qa_level) VALUES (";
+    sql << " (runnumber, fillnumber, polarblue, polarblueerror, polaryellow, polaryellowerror, crossingshift, spinpatternblue, spinpatternyellow, mbdns, mbdvtx, zdcns, qa_level) VALUES (";
     sql << runnumber << ", "
         << fillnumberBlue << ", "
         << SQLArrayConstF(polBlue, NBUNCHES) << ", "
@@ -612,6 +845,37 @@ int XingShiftCal::CommitToSpinDB()
       }
     }
     sql << "}'";
+    sql << ", '{";
+    for (int icross = 0; icross < NBUNCHES; icross++)
+    {
+      sql << mbdns[icross];
+      if (icross < NBUNCHES - 1)
+      {
+        sql << ",";
+      }
+    }
+    sql << "}'";
+    sql << ", '{";
+    for (int icross = 0; icross < NBUNCHES; icross++)
+    {
+      sql << mbdvtx[icross];
+      if (icross < NBUNCHES - 1)
+      {
+        sql << ",";
+      }
+    }
+    sql << "}'";
+    sql << ", '{";
+    for (int icross = 0; icross < NBUNCHES; icross++)
+    {
+      sql << zdcns[icross];
+      if (icross < NBUNCHES - 1)
+      {
+        sql << ",";
+      }
+    }
+    sql << "}'";
+
     sql << ", " << qa_level << ");";
   }
   if (true /*verbosity*/)
@@ -643,13 +907,326 @@ int XingShiftCal::CommitToSpinDB()
   // if (verbosity) cout<<"spin db done"<<endl;
   commitSuccessSpinDB = 1;
 
+  if (conDAQ)
+  {
+    delete conDAQ;
+    conDAQ = nullptr;
+  }
+
   if (conSpin)
   {
     delete conSpin;
     conSpin = nullptr;
   }
+
+
+  // ========== Do spin db qa here =========== //
+  SpinDBQA();
+  // ========================================= //
+
+
   return 0;
 }
+
+
+int XingShiftCal::SpinDBQA()
+{
+
+  // prepare values for db
+  unsigned int qa_level = 0xffff;
+
+  //================ connect to spin db ====================
+  std::string dbname = "spinDB";
+  std::string dbowner = "phnxrc";
+  std::string dbpasswd = "";
+  std::string dbtable = "spin";
+  odbc::Connection *conSpin = nullptr;
+  try
+  {
+    conSpin = odbc::DriverManager::getConnection(dbname.c_str(), dbowner.c_str(), dbpasswd.c_str());
+  }
+  catch (odbc::SQLException &e)
+  {
+    std::cout << PHWHERE
+              << " Exception caught at XingShiftCal::CommitPatternToSpinDB when connecting to spin DB" << std::endl;
+    std::cout << "Message: " << e.getMessage() << std::endl;
+    commitSuccessSpinDB = 0;
+    if (conSpin)
+    {
+      delete conSpin;
+      conSpin = nullptr;
+    }
+    return 0;
+  }
+
+  // check if this run already exists in spin_oncal and get badrun value if it exists
+  bool runExists = false;
+  int prevbadrunval = 0;
+  std::ostringstream sqlSpinSelect;
+  sqlSpinSelect << "SELECT runnumber, qa_level, badrunqa FROM " << dbtable
+                << " WHERE runnumber = " << runnumber
+                << " AND qa_level = " << qa_level
+                << ";";
+
+  std::cout << "SELECT runnumber, qa_level, badrunqa FROM " << dbtable
+                << " WHERE runnumber = " << runnumber
+                << " AND qa_level = " << qa_level
+	    << ";" << std::endl;
+  
+  odbc::Statement *stmtSpinSelect = conSpin->createStatement();
+  odbc::ResultSet *rsSpin = nullptr;
+  try
+  {
+    rsSpin = stmtSpinSelect->executeQuery(sqlSpinSelect.str());
+  }
+  catch (odbc::SQLException &e)
+  {
+    std::cout << PHWHERE
+              << " Exception caught at XingShiftCal::SpinDBQA when querying spin DB" << std::endl;
+    std::cout << "Message: " << e.getMessage() << std::endl;
+    if (conSpin)
+    {
+      delete conSpin;
+      conSpin = nullptr;
+    }
+    return 0;
+  }
+  if (rsSpin->next())
+  {
+    prevbadrunval = rsSpin->getInt("badrunqa");
+    if (rsSpin->wasNull()) 
+    {
+      std::cout << "SPINDBQA: badrunqa is NULL. Setting to 0 for qa check. "<< std::endl;
+      prevbadrunval = 0;
+    }
+    if (true)
+    {
+      std::cout << "run " << runnumber << " exists in " << dbtable
+                << ", ready to do QA" << std::endl;
+    }
+    runExists = true;
+  }
+  else
+  {
+    if (true)
+    {
+      std::cout << "run " << runnumber << " NOT exists in " << dbtable
+                << ", no QA" << std::endl;
+    }
+  }
+
+  int badrunQA = 0;
+  
+  if (prevbadrunval > 0)
+  {
+    std::cout << "SPINDBQA: badrunqa is already > 0. No additional qa is performed." << std:: endl;
+    if (conSpin)
+    {
+      delete conSpin;
+      conSpin = nullptr;
+    }
+    return 0;  
+  }
+  else
+  {
+    // =========== Do bad run QA here =============
+    // if (conditions pass && previously existing badRunQA != 1): badrunQA = 0
+    // if (conditions fail (bad run)): badrunQA = 1
+
+    //if spin pattern does not match known MCR pattern
+    std::string scdev_blue = "";
+    std::string scdev_yell = "";
+    for (int crossing = 0; crossing < 120; crossing++)
+    {
+      int ibluespin = blueSpinPattern[crossing];
+      int iyellspin = yellSpinPattern[crossing];
+      if (ibluespin == 1)
+      {
+	scdev_blue.push_back('+');
+      }
+      else if (ibluespin == -1)
+      {
+	scdev_blue.push_back('-');
+      }
+      else
+      {
+	scdev_blue.push_back('*');
+      }
+
+      if (iyellspin == 1)
+      {
+	scdev_yell.push_back('+');
+      }
+      else if (iyellspin == -1)
+      {
+	scdev_yell.push_back('-');
+      }
+      else
+      {
+	scdev_yell.push_back('*');
+      }
+    }
+    //std::string scdev_blue = TH1_to_string(hspinpatternBlue);
+    //std::string scdev_yell = TH1_to_string(hspinpatternYellow);
+    std::string pattern_name = "UNKNOWN";
+    
+    for (std::map<std::string, std::string>::const_iterator ii = preset_pattern_blue.begin(); ii != preset_pattern_blue.end(); ++ii)
+    {
+      std::string key = (*ii).first;
+      if (preset_pattern_blue[key] == scdev_blue && preset_pattern_yellow[key] == scdev_yell)
+      {
+	pattern_name = key;
+      }
+    }
+
+    if (pattern_name == "UNKNOWN")
+    {
+      badrunQA = 1;
+      std::cout << "SPINDBQA: Pattern is unidentified from known CDEV pattern. Setting bad run." << std::endl;
+    }
+
+
+    //if pc spin pattern does not match intended spin pattern within < 10 bunches
+    int mismatches = 0;
+    std::string spin_pattern_blue = "";
+    std::string spin_pattern_yell = "";
+    for (int crossing = 0; crossing < 120; crossing++)
+    {
+      int spin_cdev_blue = blueSpinPattern[crossing];
+      int spin_cdev_yell = yellSpinPattern[crossing];
+      int spin_pC_blue = bluePcSpinPattern[crossing];
+      int spin_pC_yell = yellPcSpinPattern[crossing];
+
+      if(spin_pC_blue==-1 || spin_pC_blue==1)
+      {
+	if (spin_cdev_blue != spin_pC_blue && !(spin_cdev_blue == 0 && spin_pC_blue == 10))
+	{
+	  mismatches += 1;
+	}
+      }
+
+      if(spin_pC_yell==-1 || spin_pC_yell==1)
+      {
+	if (spin_cdev_yell != spin_pC_yell && !(spin_cdev_blue == 0 && spin_pC_blue == 10))
+	{
+	  mismatches += 1;
+	}
+      } 
+    }
+
+    if (mismatches > 10)
+    {
+      badrunQA = 1;
+      std::cout << "SPINDBQA: CDEV pattern has > 10 mismatched bunches from pC polarimeter. Setting bad run." << std::endl;
+    }
+
+    //if crossing shift != 0
+    int xing_correction_offset = -999;
+    if (success)
+    {
+      xing_correction_offset = xingshift;
+    }
+
+    if (xing_correction_offset != 0)
+    {
+      badrunQA = 1;
+      std::cout << "SPINDBQA: Crossing shift does not equal 0. Setting bad run." << std::endl;
+    }
+
+    //if polarization <= 0 || > 1.00 //makes sure polarization from CNI aren't garbage values
+    if (polBlue <= 0.0 || polBlue > 100.0)
+    {
+      badrunQA = 1;
+      std::cout << "SPINDBQA: Blue beam polarization is unknown. Setting bad run." << std::endl;
+    }
+    if (polYellow <= 0.0 || polYellow > 100.0)
+    {
+      badrunQA = 1;
+      std::cout << "SPINDBQA: Yellow beam polarization is unknown. Setting bad run." << std::endl;
+    }
+      
+    // ============================================
+    
+  }
+  
+
+  //================ connect to spin db write ====================
+  dbname = "spinDB_write";
+  dbowner = "phnxrc";
+  dbpasswd = "";
+  dbtable = "spin";
+  conSpin = nullptr;
+  if (runExists)
+  {
+
+    try
+    {
+      conSpin = odbc::DriverManager::getConnection(dbname.c_str(), dbowner.c_str(), dbpasswd.c_str());
+    }
+    catch (odbc::SQLException &e)
+    {
+      std::cout << PHWHERE
+		<< " Exception caught at XingShiftCal::CommitPatternToSpinDB when connecting to spin DB" << std::endl;
+      std::cout << "Message: " << e.getMessage() << std::endl;
+      commitSuccessSpinDB = 0;
+      if (conSpin)
+      {
+	delete conSpin;
+	conSpin = nullptr;
+      }
+      return 0;
+    }
+
+
+    std::cout << "UPDATE " << dbtable
+        << " SET badrunqa = " << badrunQA
+	<< " WHERE runnumber = " << runnumber
+        << " AND qa_level = " << qa_level
+	      << ";" << std::endl;
+
+    // prepare insert sql
+    std::ostringstream sql;
+    sql << "UPDATE " << dbtable
+        << " SET badrunqa = " << badrunQA
+	<< " WHERE runnumber = " << runnumber
+        << " AND qa_level = " << qa_level
+        << ";";
+
+    // exec sql
+    odbc::Statement *stmtSpin = conSpin->createStatement();
+    try
+    {
+      stmtSpin->executeUpdate(sql.str());
+    }
+    catch (odbc::SQLException &e)
+    {
+      std::cout << PHWHERE
+		<< " Exception caught at XingShiftCal::SpinDBQA when insert badrunqa into spin DB" << std::endl;
+      std::cout << "Message: " << e.getMessage() << std::endl;
+      commitSuccessSpinDB = 0;
+      if (conSpin)
+      {
+	delete conSpin;
+	conSpin = nullptr;
+      }
+      return 0;
+    }
+
+  }
+
+  
+  
+
+  if (conSpin)
+  {
+    delete conSpin;
+    conSpin = nullptr;
+  }
+
+
+  return 0;
+}
+
 
 std::string XingShiftCal::SQLArrayConstF(float x, int n)
 {
@@ -679,3 +1256,4 @@ void XingShiftCal::Print(const std::string &what) const
 {
   std::cout << "XingShiftCal::Print(const std::string &what) const Printing info for " << what << std::endl;
 }
+

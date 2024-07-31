@@ -432,51 +432,57 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if (m_use_clustermover)
       {
         if (siseed)
-        {
-          sourceLinks = makeSourceLinks.getSourceLinksClusterMover(
-              siseed,
-              measurements,
-              m_clusterContainer,
-              m_tGeometry,
-              _dcc_static, _dcc_average, _dcc_fluctuation,
-              this_crossing);
-        }
+	  {
+	    if(!m_ignoreSilicon)
+	      {
+		sourceLinks = makeSourceLinks.getSourceLinksClusterMover(
+									 siseed,
+									 measurements,
+									 m_clusterContainer,
+									 m_tGeometry,
+									 _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
+									 this_crossing);
+	      }
+	  }
         const auto tpcSourceLinks = makeSourceLinks.getSourceLinksClusterMover(
-            tpcseed,
-            measurements,
-            m_clusterContainer,
-            m_tGeometry,
-            _dcc_static, _dcc_average, _dcc_fluctuation,
-            this_crossing);
-
+									       tpcseed,
+									       measurements,
+									       m_clusterContainer,
+									       m_tGeometry,
+									       _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
+									       this_crossing);
+	
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
       }
       else
-      {
-        if (siseed)
-        {
-          sourceLinks = makeSourceLinks.getSourceLinks(
-              siseed,
-              measurements,
-              m_clusterContainer,
-              m_tGeometry,
-              _dcc_static, _dcc_average, _dcc_fluctuation,
-              m_alignmentTransformationMapTransient,
-              m_transient_id_set,
-              this_crossing);
-        }
-        const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
-            tpcseed,
-            measurements,
-            m_clusterContainer,
-            m_tGeometry,
-            _dcc_static, _dcc_average, _dcc_fluctuation,
-            m_alignmentTransformationMapTransient,
-            m_transient_id_set,
-            this_crossing);
-        sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
-      }
-
+	{
+	  if (siseed)
+	    {
+	      if (!m_ignoreSilicon)
+		{
+		  sourceLinks = makeSourceLinks.getSourceLinks(
+							       siseed,
+							       measurements,
+							       m_clusterContainer,
+							       m_tGeometry,
+							       _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
+							       m_alignmentTransformationMapTransient,
+							       m_transient_id_set,
+							       this_crossing);
+		}
+	    }
+	  const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
+								     tpcseed,
+								     measurements,
+								     m_clusterContainer,
+								     m_tGeometry,
+								     _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
+								     m_alignmentTransformationMapTransient,
+								     m_transient_id_set,
+								     this_crossing);
+	  sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+	}
+      
       // copy transient map for this track into transient geoContext
       m_transient_geocontext = m_alignmentTransformationMapTransient;
 
@@ -488,7 +494,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         position(1) = siseed->get_y() * Acts::UnitConstants::cm;
         position(2) = siseed->get_z() * Acts::UnitConstants::cm;
       }
-      if(!siseed || !is_valid(position))
+      if(!siseed || !is_valid(position) || m_ignoreSilicon)
       {
         position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
         position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
@@ -496,7 +502,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
       if (!is_valid(position))
       {
-        if(Verbosity() > 4)
+       if(Verbosity() > 4)
         {
           std::cout << "Invalid position of " << position.transpose() << std::endl;
         }
@@ -1233,6 +1239,11 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
   }
 
   // tpc distortion corrections
+  _dcc_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
+  if (_dcc_module_edge)
+  {
+    std::cout << PHWHERE << "  found module edge TPC distortion correction container" << std::endl;
+  }
   _dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
   if (_dcc_static)
   {

@@ -28,6 +28,7 @@ SingleTpcPoolInput::SingleTpcPoolInput(const std::string &name)
 {
   SubsystemEnum(InputManagerType::TPC);
   plist = new Packet *[NTPCPACKETS];
+  m_rawHitContainerName = "TPCRAWHIT";
 }
 
 SingleTpcPoolInput::~SingleTpcPoolInput()
@@ -118,6 +119,11 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
           }
           // store
           previous_bco = gtm_bco;
+          if (m_BclkStackPacketMap.find(packet_id) == m_BclkStackPacketMap.end())
+          {
+            m_BclkStackPacketMap.insert(std::make_pair(packet_id, std::set<uint64_t>()));
+          }
+          m_BclkStackPacketMap[packet_id].insert(gtm_bco);
         }
       }
 
@@ -168,8 +174,9 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         // samples
         // const uint16_t samples = packet->iValue(wf, "SAMPLES");
 
-        // Temp remedy as we set the time window as 360 for now
-        const uint16_t samples = 360;
+        // Temp remedy as we set the time window as 425 for now (extended from previous 360
+        // due to including of diffused laser flush)
+        const uint16_t samples = m_max_tpc_time_samples;
 
         newhit->set_samples(samples);
 
@@ -213,9 +220,11 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         m_BclkStack.insert(gtm_bco);
         //	}
       }
+
       delete packet;
     }
   }
+  
   //    Print("HITS");
   //  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
 }
@@ -298,12 +307,15 @@ void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // {
   //   iter.second.clear();
   // }
-
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
     m_BeamClockFEE.erase(iter);
     m_TpcRawHitMap.erase(iter);
+    for (auto &[packetid, bclkset] : m_BclkStackPacketMap)
+    {
+      bclkset.erase(iter);
+    }
   }
 }
 
@@ -358,6 +370,7 @@ bool SingleTpcPoolInput::GetSomeMoreEvents()
 
   uint64_t lowest_bclk = m_TpcRawHitMap.begin()->first;
   lowest_bclk += m_BcoRange;
+  std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
     if (bcliter.second <= lowest_bclk)
@@ -379,9 +392,13 @@ bool SingleTpcPoolInput::GetSomeMoreEvents()
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_TpcRawHitMap.begin()->first)
                   << std::dec << std::endl;
-        m_FEEBclkMap.erase(bcliter.first);
+        toerase.insert(bcliter.first);
       }
     }
+  }
+  for(auto iter : toerase)
+  {
+    m_FEEBclkMap.erase(iter);
   }
   return false;
   // if (CheckPoolDepth(m_TpcRawHitMap.begin()->first))
@@ -410,11 +427,11 @@ void SingleTpcPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode = new PHCompositeNode("TPC");
     dstNode->addNode(detNode);
   }
-  TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode, "TPCRAWHIT");
+  TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode, m_rawHitContainerName);
   if (!tpchitcont)
   {
     tpchitcont = new TpcRawHitContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, "TPCRAWHIT", "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
 }

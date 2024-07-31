@@ -12,7 +12,7 @@ if test $ac_cv_prog_gxx = yes; then
    CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wshadow -Werror"
 fi
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-unknown-warning-option"
+CINTDEFS=" -noIncludePaths  -inlineInputHeader"
 AC_SUBST(CINTDEFS)
 
 AC_ARG_ENABLE(online,

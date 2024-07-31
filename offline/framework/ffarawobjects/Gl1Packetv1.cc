@@ -67,10 +67,19 @@ long long Gl1Packetv1::lValue(const int /*i*/, const std::string &what) const
   {
     return getTriggerInput();
   }
-  if (what == "TriggerVector")
+  if (what == "LiveVector")
   {
-    return getTriggerVector();
+    return getLiveVector();
   }
+  if (what == "TriggerVector")  // compatibility
+  {
+    return getLiveVector();
+  }
+  if (what == "ScaledVector")  // to avoid the "not implemented" warning
+  {
+    return 0;
+  }
+
   if (what == "BunchNumber")
   {
     return getBunchNumber();
@@ -81,6 +90,8 @@ long long Gl1Packetv1::lValue(const int /*i*/, const std::string &what) const
 
 void Gl1Packetv1::dump(std::ostream &os) const
 {
+  // to avoid confusion, we continue to call it "Trigger Vector" here. 
+
   os << "packet nr:       " << iValue(0) << std::endl;
   os << "Beam Clock:      "
      << "0x" << std::hex << lValue(0, "BCO") << std::dec << "   " << lValue(0, "BCO") << std::endl;

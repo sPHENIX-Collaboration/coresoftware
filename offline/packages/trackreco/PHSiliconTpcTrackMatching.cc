@@ -26,6 +26,8 @@
 #include <phool/phool.h>
 
 #include <TF1.h>
+#include <TFile.h>
+#include <TNtuple.h>
 
 #include <climits>   // for UINT_MAX
 #include <cmath>     // for fabs, sqrt
@@ -51,7 +53,12 @@ PHSiliconTpcTrackMatching::~PHSiliconTpcTrackMatching() = default;
 int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 {
   UpdateParametersWithMacro();
-
+  if(_test_windows)
+  {
+  _file = new TFile("track_match.root", "RECREATE");
+  _tree = new TNtuple("track_match", "track_match",
+                      "event:siphi:sieta:six:siy:siz:tpcphi:tpceta:tpcx:tpcy:tpcz:tpcid:siid");
+  }
   // put these in the output file
   cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta "
        << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_crossing " << _use_intt_crossing << endl;
@@ -103,14 +110,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
     {
       continue;
     }
-
-    // returns SHRT_MAX if no INTT clusters in silicon seed
-    short int crossing = getCrossingIntt(_tracklet_si);
-    if (_use_intt_crossing)
-    {
-      _tracklet_si->set_crossing(crossing);
-    }  // flag is for testing only, use_intt_crossing should always be true!
-
+    auto crossing = _tracklet_si->get_crossing();
     if (Verbosity() > 8)
     {
       std::cout << " silicon stub: " << trackid << " eta " << _tracklet_si->get_eta() << " pt " << _tracklet_si->get_pt() << " si z " << _tracklet_si->get_z() << " crossing " << crossing << std::endl;
@@ -179,7 +179,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
 
     cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;
   }
-
+  m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -263,6 +263,12 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
 
 int PHSiliconTpcTrackMatching::End(PHCompositeNode * /*unused*/)
 {
+  if(_test_windows)
+  {
+  _file->cd();
+  _tree->Write();
+  _file->Close();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -322,8 +328,8 @@ int PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode *topNode)
     _svtx_seed_map = new TrackSeedContainer_v1();
     PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(_svtx_seed_map, "SvtxTrackSeedContainer", "PHObject");
     svtxNode->addNode(node);
-  } 
-  
+  }
+
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
@@ -397,6 +403,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       {
         mag = 6.0;
       }
+      mag = 1.0;
     }
 
     if (Verbosity() > 3)
@@ -421,9 +428,21 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       {
         continue;
       }
-
       bool eta_match = false;
       double si_eta = _tracklet_si->get_eta();
+      double si_phi = _tracklet_si->get_phi();
+
+      double si_x = _tracklet_si->get_x();
+      double si_y = _tracklet_si->get_y();
+      double si_z = _tracklet_si->get_z();
+      unsigned int siid = phtrk_iter_si;
+  if(_test_windows)
+  {
+      _tree->Fill((float) m_event,
+                  (float) si_phi, (float) si_eta, (float) si_x, (float) si_y, (float) si_z,
+                  (float) tpc_phi, (float) tpc_eta, (float) tpc_x, (float) tpc_y, (float) tpc_z,
+                  (float) siid, (float) tpcid);
+  }
       if (fabs(tpc_eta - si_eta) < _eta_search_win * mag)
       {
         eta_match = true;
@@ -432,10 +451,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       {
         continue;
       }
-      unsigned int siid = phtrk_iter_si;
-      double si_x = _tracklet_si->get_x();
-      double si_y = _tracklet_si->get_y();
-      double si_z = _tracklet_si->get_z();
+
       bool position_match = false;
       if (_pp_mode)
       {
@@ -460,7 +476,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       }
 
       bool phi_match = false;
-      double si_phi = _tracklet_si->get_phi();
       if (fabs(tpc_phi - si_phi) < _phi_search_win * mag)
       {
         phi_match = true;
@@ -518,106 +533,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
   }
 
   return;
-}
-
-short int PHSiliconTpcTrackMatching::getCrossingIntt(TrackSeed *si_track)
-{
-  // If the Si track contains an INTT hit, use it to get the bunch crossing offset
-
-  std::vector<short int> intt_crossings = getInttCrossings(si_track);
-
-  bool keep_it = true;
-  short int crossing_keep = 0;
-  if (intt_crossings.size() == 0)
-  {
-    keep_it = false;
-  }
-  else
-  {
-    crossing_keep = intt_crossings[0];
-    for (unsigned int ic = 1; ic < intt_crossings.size(); ++ic)
-    {
-      if (intt_crossings[ic] != crossing_keep)
-      {
-        if (Verbosity() > 1)
-        {
-          std::cout << " Warning: INTT crossings not all the same "
-                    << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " keep the first one in the list" << std::endl;
-        }
-      }
-    }
-  }
-
-  if (keep_it)
-  {
-    return crossing_keep;
-  }
-
-  return SHRT_MAX;
-}
-
-std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(TrackSeed *si_track)
-{
-  std::vector<short int> intt_crossings;
-
-  // If the Si track contains an INTT hit, use it to get the bunch crossing offset
-  // loop over associated clusters to get keys for silicon cluster
-  for (TrackSeed::ConstClusterKeyIter iter = si_track->begin_cluster_keys();
-       iter != si_track->end_cluster_keys();
-       ++iter)
-  {
-    TrkrDefs::cluskey cluster_key = *iter;
-    const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-
-    if (Verbosity() > 1)
-    {
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
-
-      if (trkrid == TrkrDefs::mvtxId)
-      {
-        TrkrCluster *cluster = _cluster_map->findCluster(cluster_key);
-        if (!cluster)
-        {
-          continue;
-        }
-
-        Acts::Vector3 global = _tGeometry->getGlobalPosition(cluster_key, cluster);
-
-        std::cout << "Checking  si Track " << _track_map_silicon->find(si_track) << " cluster " << cluster_key
-                  << " in layer " << layer << " position " << global(0) << "  " << global(1) << "  " << global(2)
-                  << " eta " << si_track->get_eta() << std::endl;
-      }
-      else
-      {
-        std::cout << "Checking  si Track " << _track_map_silicon->find(si_track) << " cluster " << cluster_key
-                  << " in layer " << layer << " with eta " << si_track->get_eta() << std::endl;
-      }
-    }
-
-    if (trkrid == TrkrDefs::inttId)
-    {
-      TrkrCluster *cluster = _cluster_map->findCluster(cluster_key);
-      if (!cluster)
-      {
-        continue;
-      }
-
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
-
-      // get the bunch crossings for all hits in this cluster
-      auto crossings = _cluster_crossing_map->getCrossings(cluster_key);
-      for (auto iter1 = crossings.first; iter1 != crossings.second; ++iter1)
-      {
-        if (Verbosity() > 1)
-        {
-          std::cout << "                si Track " << _track_map_silicon->find(si_track) << " cluster " << iter1->first << " layer " << layer << " crossing " << iter1->second << std::endl;
-        }
-        intt_crossings.push_back(iter1->second);
-      }
-    }
-  }
-
-  return intt_crossings;
 }
 
 void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int, unsigned int> &tpc_matches)

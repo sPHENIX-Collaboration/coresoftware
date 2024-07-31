@@ -26,15 +26,17 @@ class SingleTpcPoolInput : public SingleStreamingInput
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNode(PHCompositeNode *topNode) override;
   void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
+  void SetMaxTpcTimeSamples(const unsigned int i) { m_max_tpc_time_samples = i; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
+  const std::map<int, std::set<uint64_t>> &BclkStackMap() const override { return m_BclkStackPacketMap; }
 
  private:
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
-
+  unsigned int m_max_tpc_time_samples = 425;
   //! map bco to packet
   std::map<unsigned int, uint64_t> m_packet_bco;
 

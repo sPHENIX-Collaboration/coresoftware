@@ -56,6 +56,7 @@ class MakeSourceLinks
 			       ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 			       TrkrClusterContainer*  cluster_container,
 			       ActsGeometry* tGeometry,
+			       const TpcDistortionCorrectionContainer* dcc_module_edge,
 			       const TpcDistortionCorrectionContainer* dcc_static,
 			       const TpcDistortionCorrectionContainer* dcc_average,
 			       const TpcDistortionCorrectionContainer* dcc_fluctuation,
@@ -73,6 +74,7 @@ SourceLinkVec getSourceLinksClusterMover(
 							  ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 							  TrkrClusterContainer*  clusterContainer,
 							  ActsGeometry* tGeometry,
+							  const TpcDistortionCorrectionContainer* dcc_module_edge,
 							  const TpcDistortionCorrectionContainer* dcc_static,
 							  const TpcDistortionCorrectionContainer* dcc_average,
 							  const TpcDistortionCorrectionContainer* dcc_fluctuation,
@@ -86,9 +88,6 @@ SourceLinkVec getSourceLinksClusterMover(
 
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
   TpcClusterMover _clusterMover;
-  
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
   
   ClusterErrorPara _ClusErrPara;
   

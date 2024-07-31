@@ -48,7 +48,10 @@ void ClusterJetInput::identify(std::ostream &os)
 
 std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (m_Verbosity > 0) std::cout << "ClusterJetInput::process_event -- entered" << std::endl;
+  if (m_Verbosity > 0)
+  {
+    std::cout << "ClusterJetInput::process_event -- entered" << std::endl;
+  }
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
@@ -113,6 +116,14 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
       return std::vector<Jet *>();
     }
   }
+  else if (m_Input == Jet::ECAL_HCAL_TOPO_CLUSTER)
+  {
+    clusters = findNode::getClass<RawClusterContainer>(topNode, "TOPOCLUSTER_ALLCALO");
+    if (!clusters)
+    {
+      return std::vector<Jet *>();
+    }
+  }
   else if (m_Input == Jet::FEMC_CLUSTER)
   {
     clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_FEMC");
@@ -164,7 +175,10 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back(jet);
   }
 
-  if (m_Verbosity > 0) std::cout << "ClusterJetInput::process_event -- exited" << std::endl;
+  if (m_Verbosity > 0)
+  {
+    std::cout << "ClusterJetInput::process_event -- exited" << std::endl;
+  }
 
   return pseudojets;
 }

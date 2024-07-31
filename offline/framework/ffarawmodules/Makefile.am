@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -19,8 +19,10 @@ pkginclude_HEADERS = \
   Gl1Check.h \
   HcalCheck.h \
   InttCheck.h \
+  LL1Check.h \
   MbdCheck.h \
   StreamingCheck.h \
+  SEpdCheck.h \
   TpcCheck.h \
   ZdcCheck.h
 
@@ -36,7 +38,9 @@ libffarawmodules_la_SOURCES = \
   Gl1Check.cc \
   HcalCheck.cc \
   InttCheck.cc \
+  LL1Check.cc \
   MbdCheck.cc \
+  SEpdCheck.cc \
   StreamingCheck.cc \
   TpcCheck.cc \
   ZdcCheck.cc

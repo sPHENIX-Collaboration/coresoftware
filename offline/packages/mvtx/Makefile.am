@@ -20,22 +20,29 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   MvtxClusterizer.h \
   MvtxHitPruner.h \
+  MvtxNoiseMap.h \
   MvtxCombinedRawDataDecoder.h \
   CylinderGeom_Mvtx.h \
-  SegmentationAlpide.h
+  SegmentationAlpide.h \
+  MvtxPixelDefs.h \
+  MvtxPixelMask.h
 
 ROOTDICTS = \
-  CylinderGeom_Mvtx_Dict.cc
+  CylinderGeom_Mvtx_Dict.cc \
+  MvtxNoiseMap_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  CylinderGeom_Mvtx_Dict_rdict.pcm
+  CylinderGeom_Mvtx_Dict_rdict.pcm \
+	MvtxNoiseMap_Dict_rdict.pcm
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
   MvtxClusterizer.cc \
   MvtxHitPruner.cc \
-  MvtxCombinedRawDataDecoder.cc
+  MvtxCombinedRawDataDecoder.cc \
+  MvtxPixelDefs.cc \
+  MvtxPixelMask.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
@@ -49,6 +56,7 @@ libmvtx_la_LIBADD = \
 libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeom_Mvtx.cc \
+  MvtxNoiseMap.cc \
   SegmentationAlpide.cc
 
 libmvtx_io_la_LIBADD = \

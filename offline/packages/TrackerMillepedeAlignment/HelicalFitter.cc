@@ -61,8 +61,8 @@ HelicalFitter::HelicalFitter(const std::string& name)
   vertexPosition(0) = 0;
   vertexPosition(1) = 0;
 
-  vtx_sigma(0) = 0.01;
-  vtx_sigma(1) = 0.01;
+  vtx_sigma(0) = 0.1;
+  vtx_sigma(1) = 0.1;
 }
 
 //____________________________________________________________________________..
@@ -152,19 +152,33 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
   if (Verbosity() > 0)
   {
-    cout << PHWHERE
-         << " TPC seed map size " << _track_map_tpc->size()
-         << " Silicon seed map size " << _track_map_silicon->size()
-         << endl;
+    if(_track_map_tpc)
+    {
+      std::cout << PHWHERE
+                << " TPC seed map size " << _track_map_tpc->size() << std::endl;
+    }
+    if(_track_map_silicon){
+      std::cout << " Silicon seed map size " << _track_map_silicon->size()
+                << std::endl;
+    }
   }
 
-  if (_track_map_silicon->size() == 0 && _track_map_tpc->size() == 0)
+  if (fitsilicon && _track_map_silicon != nullptr)
   {
-    return Fun4AllReturnCodes::EVENT_OK;
+    if(_track_map_silicon->size() == 0)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+  if (fittpc && _track_map_tpc != nullptr)
+  {
+    if (_track_map_tpc->size() == 0){
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
-  // Decide whether we want to make a helical fit for silicon or TPC
-  unsigned int maxtracks = 0;
+    // Decide whether we want to make a helical fit for silicon or TPC
+    unsigned int maxtracks = 0;
   unsigned int nsilicon = 0;
   unsigned int ntpc = 0;
   unsigned int nclus = 0;
@@ -175,22 +189,22 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   std::vector<TrackSeed> cumulative_someseed;
   std::vector<SvtxTrack_v4> cumulative_newTrack;
 
-  if (fittpc)
+  if (fittpc && _track_map_tpc != nullptr)
   {
     maxtracks = _track_map_tpc->size();
   }
-  if (fitsilicon)
+  if (fitsilicon && _track_map_silicon != nullptr)
   {
     maxtracks = _track_map_silicon->size();
   }
   for (unsigned int trackid = 0; trackid < maxtracks; ++trackid)
   {
     TrackSeed* tracklet = nullptr;
-    if (fitsilicon)
+    if (fitsilicon && _track_map_silicon != nullptr)
     {
       tracklet = _track_map_silicon->get(trackid);
     }
-    else if (fittpc)
+    else if (fittpc && _track_map_tpc != nullptr)
     {
       tracklet = _track_map_tpc->get(trackid);
     }
@@ -204,6 +218,22 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     // Get a vector of cluster keys from the tracklet
     getTrackletClusterList(tracklet, cluskey_vec);
+    if(cluskey_vec.size() < 4)
+    {
+      continue;
+    }
+    int nintt = 0;
+    for (auto& key : cluskey_vec)
+    {
+      if(TrkrDefs::getTrkrId(key) == TrkrDefs::inttId)
+      {
+        nintt++;
+      }
+    }
+    if(fitsilicon && nintt<2)
+    {
+      continue;
+    }
     // store cluster global positions in a vector global_vec and cluskey_vec
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
 
@@ -240,7 +270,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       // this associates silicon clusters and adds them to the vectors
       ntpc = cluskey_vec.size();
       nsilicon = TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec, 0, 6);
-      if (nsilicon < 3)
+      if (nsilicon < 5)
       {
         continue;  // discard this TPC seed, did not get a good match to silicon
       }
@@ -258,7 +288,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       // fit the full track now
       fitpars.clear();
-      fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec);  // do helical fit
+      fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec, use_intt_zfit);  // do helical fit
       if (fitpars.size() == 0)
       {
         continue;  // discard this track, fit failed
@@ -459,11 +489,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       int glbl_label[AlignmentDefs::NGL];
       if (layer < 3)
       {
-        AlignmentDefs::getMvtxGlobalLabels(surf, glbl_label, mvtx_grp);
+        AlignmentDefs::getMvtxGlobalLabels(surf, cluskey, glbl_label, mvtx_grp);
       }
       else if (layer > 2 && layer < 7)
       {
-        AlignmentDefs::getInttGlobalLabels(surf, glbl_label, intt_grp);
+        AlignmentDefs::getInttGlobalLabels(surf, cluskey, glbl_label, intt_grp);
       }
       else if (layer < 55)
       {
@@ -611,21 +641,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         }
       }
 
-      // add some cluster cuts
-      if (residual(0) > 0.2)
-      {
-        continue;  // 2 mm cut
-      }
-      if (residual(1) > 0.2)
-      {
-        continue;  // 2 mm cut
-      }
-
       if (!isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
       }
-      if (!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
+      if (!isnan(residual(1)) && clus_sigma(1) < 1.0)
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeY, AlignmentDefs::NGL, glbl_derivativeY, glbl_label, residual(1), errinf * clus_sigma(1));
       }
@@ -657,7 +677,19 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     if (use_event_vertex)
     {
-      if (Verbosity() > 3)
+      for(int p = 0; p<3; p++)
+      {
+
+      
+      if(is_vertex_param_fixed(p))
+      {
+        glblvtx_derivativeX[p] = 0;
+        glblvtx_derivativeY[p] = 0;
+      }
+      
+
+      }
+      if (Verbosity() > 1)
       {
         std::cout << "vertex info for track " << trackid << " with charge " << newTrack.get_charge() << std::endl;
 
@@ -686,19 +718,21 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         }
       }
 
+      /*
       // add some track cuts
-      if (fabs(newTrack.get_z() - event_vtx(2)) > 0.2)
+      if (fabs(newTrack.get_z() - event_vtx(2)) > 1)
       {
         continue;  // 2 mm cut
       }
-      if (fabs(newTrack.get_x()) > 0.2)
+      if (fabs(newTrack.get_x()) > 1)
       {
         continue;  // 2 mm cut
       }
-      if (fabs(newTrack.get_y()) > 0.2)
+      if (fabs(newTrack.get_y()) > 1)
       {
         continue;  // 2 mm cut
       }
+      */
 
       if (!isnan(vtx_residual(0)))
       {
@@ -900,14 +934,14 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
   //---------------------------------
 
   _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, _silicon_track_map_name);
-  if (!_track_map_silicon)
+  if (!_track_map_silicon && (fitsilicon || fitfulltrack))
   {
     cerr << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _track_map_tpc = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
-  if (!_track_map_tpc)
+  if (!_track_map_tpc && (fittpc || fitfulltrack))
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -1027,7 +1061,7 @@ void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<Trkr
 
 std::vector<float> HelicalFitter::fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec)
 {
-  return TrackFitUtils::fitClusters(global_vec, std::move(cluskey_vec));  // do helical fit
+  return TrackFitUtils::fitClusters(global_vec, std::move(cluskey_vec), use_intt_zfit);  // do helical fit
 }
 
 Acts::Vector2 HelicalFitter::getClusterError(TrkrCluster* cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global)
@@ -1319,7 +1353,16 @@ unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std:
 {
   return TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec, 0, 6);
 }
-
+bool HelicalFitter::is_vertex_param_fixed(unsigned int param)
+{
+  bool ret = false;
+  auto it = fixed_vertex_params.find(param);
+  if(it != fixed_vertex_params.end())
+  {
+    ret = true;
+  }
+  return ret;
+}
 bool HelicalFitter::is_intt_layer_fixed(unsigned int layer)
 {
   bool ret = false;

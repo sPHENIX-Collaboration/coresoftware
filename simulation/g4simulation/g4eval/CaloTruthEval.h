@@ -124,15 +124,15 @@ class CaloTruthEval
 
   std::string _caloname;
   int _caloid;
-  PHG4TruthInfoContainer* _truthinfo = nullptr;
-  PHG4HitContainer* _g4hits = nullptr;
-  int _g4hit_container_id = -1;
+  PHG4TruthInfoContainer* _truthinfo{nullptr};
+  PHG4HitContainer* _g4hits{nullptr};
+  int _g4hit_container_id{-1};
 
-  bool _strict = false;
-  int _verbosity = 1;
-  unsigned int _errors = 0;
+  bool _strict{false};
+  int _verbosity{1};
+  unsigned int _errors{0};
 
-  bool _do_cache = true;
+  bool _do_cache{true};
   std::map<PHG4Particle*, float> _cache_get_shower_energy_deposit;
   std::map<PHG4Shower*, std::set<PHG4Hit*> > _cache_all_truth_hits_g4shower;
   std::map<PHG4Particle*, std::set<PHG4Hit*> > _cache_all_truth_hits_g4particle;

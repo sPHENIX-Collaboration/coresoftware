@@ -158,7 +158,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
         ++n_neighbor;
 
         assert(m_calibTowers);
-	unsigned int towerkey = (ieta << 16U) + iphi;
+	unsigned int towerkey = ((unsigned int) (ieta) << 16U) + iphi;
 	TowerInfo *neighTower = m_calibTowers->get_tower_at_key(towerkey);
         // RawTower *neighTower = m_calibTowers->getTower(ieta, iphi);
         if (neighTower == nullptr) 
@@ -178,7 +178,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
       if (n_neighbor > 0 and E_SumNeighbor != 0)
       {
 
-	unsigned int deadtowerkey = (bineta << 16U) + binphi;
+	unsigned int deadtowerkey = ((unsigned int) (bineta) << 16U) + binphi;
 
         TowerInfo *deadTower = m_calibTowers->get_tower_at_key(deadtowerkey);
 

@@ -25,8 +25,10 @@ libcalovalid_la_LIBADD = \
   -lfun4all \
   -lglobalvertex_io \
   -lmbd_io \
+  -lzdcinfo_io \
   -lphool \
   -lSubsysReco \
+  -lffarawobjects \
   -lqautils
 
 ################################################

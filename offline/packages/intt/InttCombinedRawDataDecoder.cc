@@ -11,6 +11,7 @@
 #include <trackbase/TrkrHitv2.h>
 
 #include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
 
@@ -24,10 +25,10 @@
 
 #include <TSystem.h>
 
-#include <cstdlib>   // for exit
-#include <filesystem>// for filesystem::exist
-#include <iostream>  // for operator<<, endl, bas...
-#include <map>       // for _Rb_tree_iterator
+#include <cstdlib>     // for exit
+#include <filesystem>  // for filesystem::exist
+#include <iostream>    // for operator<<, endl, bas...
+#include <map>         // for _Rb_tree_iterator
 
 InttCombinedRawDataDecoder::InttCombinedRawDataDecoder(std::string const& name)
   : SubsysReco(name)
@@ -96,7 +97,7 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   // Check if INTT event header already exists
   if (m_writeInttEventHeader)
   {
-    auto inttNode = dynamic_cast<PHCompositeNode *>(trkr_itr.findFirst("PHCompositeNode", "INTT"));
+    auto inttNode = dynamic_cast<PHCompositeNode*>(trkr_itr.findFirst("PHCompositeNode", "INTT"));
     if (!inttNode)
     {
       inttNode = new PHCompositeNode("INTT");
@@ -125,30 +126,35 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   }
 
   ///////////////////////////////////////
-  std::cout<<"calibinfo DAC : "<<m_calibinfoDAC.first<<" "<<(m_calibinfoDAC.second==CDB?"CDB":"FILE")<<std::endl;
+  std::cout << "calibinfo DAC : " << m_calibinfoDAC.first << " " << (m_calibinfoDAC.second == CDB ? "CDB" : "FILE") << std::endl;
   m_dacmap.Verbosity(Verbosity());
-  if(m_calibinfoDAC.second == CDB){
-     m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
-  } else {
-     m_dacmap.LoadFromFile(m_calibinfoDAC.first);
+  if (m_calibinfoDAC.second == CDB)
+  {
+    m_dacmap.LoadFromCDB(m_calibinfoDAC.first);
   }
-  
-  ///////////////////////////////////////
-  std::cout<<"calibinfo BCO : "<<m_calibinfoBCO.first<<" "<<(m_calibinfoBCO.second==CDB?"CDB":"FILE")<<std::endl;
-  m_bcomap.Verbosity(Verbosity());
-  if(m_calibinfoBCO.second == CDB){
-     m_bcomap.LoadFromCDB(m_calibinfoBCO.first);
-  } else {
-     m_bcomap.LoadFromFile(m_calibinfoBCO.first);
+  else
+  {
+    m_dacmap.LoadFromFile(m_calibinfoDAC.first);
   }
 
+  ///////////////////////////////////////
+  std::cout << "calibinfo BCO : " << m_calibinfoBCO.first << " " << (m_calibinfoBCO.second == CDB ? "CDB" : "FILE") << std::endl;
+  m_bcomap.Verbosity(Verbosity());
+  if (m_calibinfoBCO.second == CDB)
+  {
+    m_bcomap.LoadFromCDB(m_calibinfoBCO.first);
+  }
+  else
+  {
+    m_bcomap.LoadFromFile(m_calibinfoBCO.first);
+  }
 
   ///////////////////////////////////////
   //
-  std::cout<<"Intt BadChannelMap : size = "<<m_HotChannelSet.size()<<"  ";
-  std::cout<<(( m_HotChannelSet.size() >0 ) ? "hotchannel loaded " : "emtpy. hotchannel is not loaded");
-  std::cout<<std::endl;
-  
+  std::cout << "Intt BadChannelMap : size = " << m_HotChannelSet.size() << "  ";
+  std::cout << ((m_HotChannelSet.size() > 0) ? "hotchannel loaded " : "emtpy. hotchannel is not loaded");
+  std::cout << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -178,28 +184,45 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     gSystem->Exit(1);
     exit(1);
   }
-  Gl1RawHit* gl1 = nullptr;
+  // Gl1RawHit* gl1 = nullptr;
+  Gl1Packet* gl1 = nullptr;
+  uint64_t gl1rawhitbco = 0;
   if (!m_runStandAlone)
   {
-    gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
-    if (!gl1)
+    gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+    if (gl1)
     {
-      std::cout << PHWHERE << " no gl1 container, exiting" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
+      gl1rawhitbco = gl1->lValue(0, "BCO");
+    }
+    else
+    {
+      auto oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+      if(!oldgl1)
+      {
+        std::cout << PHWHERE << " no gl1 container, exiting" << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
+      }
+      gl1rawhitbco = oldgl1->get_bco();
     }
   }
 
-  uint64_t gl1rawhitbco = m_runStandAlone ? 0 : gl1->get_bco();
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
-  auto lbshift = gl1rawhitbco << 24U; // clang-tidy: mark as unsigned
-  auto gl1bco = lbshift >> 24U; // clang-tidy: mark as unsigned
+  auto lbshift = gl1rawhitbco << 24U;  // clang-tidy: mark as unsigned
+  auto gl1bco = lbshift >> 24U;        // clang-tidy: mark as unsigned
 
   if (m_writeInttEventHeader)
   {
     intt_event_header = findNode::getClass<InttEventInfo>(topNode, "INTTEVENTHEADER");
     assert(intt_event_header);
-    intt_event_header->set_bco_full(inttcont->get_hit(0)->get_bco());
+    if (inttcont->get_nhits() > 0)
+    {
+      intt_event_header->set_bco_full(inttcont->get_hit(0)->get_bco());
+    }
+    else
+    {
+      intt_event_header->set_bco_full(0);
+    }
   }
 
   TrkrDefs::hitsetkey hit_set_key = 0;
@@ -222,21 +245,21 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     int adc = intthit->get_adc();
     // amp = intthit->get_amplitude();
     uint64_t bco_full = intthit->get_bco();
-    int      bco      = intthit->get_FPHX_BCO();
+    int bco = intthit->get_FPHX_BCO();
 
     ////////////////////////
     // bad channel filter
     if (m_HotChannelSet.find(raw) != m_HotChannelSet.end())
     {
-      //std::cout<<"hotchan removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
+      // std::cout<<"hotchan removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
       continue;
     }
-    
+
     ////////////////////////
     // bco filter
     if (m_bcomap.IsBad(raw, bco_full, bco))
     {
-      //std::cout<<"bad bco removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
+      // std::cout<<"bad bco removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
       continue;
     }
 
@@ -280,7 +303,6 @@ int InttCombinedRawDataDecoder::LoadHotChannelMapLocal(std::string const& filena
     std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
     return 1;
   }
-
 
   CDBTTree cdbttree(filename);
   // need to checkt for error exception

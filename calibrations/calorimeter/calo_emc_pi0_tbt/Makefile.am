@@ -15,6 +15,7 @@ AM_LDFLAGS = \
   -lglobalvertex_io \
   -lcalo_io \
   -lcdbobjects \
+  -lffarawobjects \
   -lSubsysReco
 
 libcalibCaloEmc_pi0_la_SOURCES = \

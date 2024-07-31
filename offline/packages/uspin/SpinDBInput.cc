@@ -306,9 +306,9 @@ int SpinDBInput::InitializeRunRow(SpinDBContent spin_cont)
   InitializeArray(runnum, qa_level, "polaryellowerrorsys", ncross);
   InitializeArray(runnum, qa_level, "spinpatternblue", ncross);
   InitializeArray(runnum, qa_level, "spinpatternyellow", ncross);
-  InitializeArray(runnum, qa_level, "mbdvertexcut", ncross);
-  InitializeArray(runnum, qa_level, "mbdwithoutcut", ncross);
-  InitializeArray(runnum, qa_level, "zdcnocut", ncross);
+  InitializeArray(runnum, qa_level, "mbdvtx", ncross);
+  InitializeArray(runnum, qa_level, "mbdns", ncross);
+  InitializeArray(runnum, qa_level, "zdcns", ncross);
   InitializeArray(runnum, qa_level, "badbunchqa", ncross);
 
   InitializeValue(runnum, qa_level, "transversxblue");
@@ -481,15 +481,15 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
   }
   if (cmbd_vtxcut)
   {
-    UpdateArray(runnum, qa_level, "mbdvertexcut", mbd_vtxcut, ncross);
+    UpdateArray(runnum, qa_level, "mbdvtx", mbd_vtxcut, ncross);
   }
   if (cmbd_nocut)
   {
-    UpdateArray(runnum, qa_level, "mbdwithoutcut", mbd_nocut, ncross);
+    UpdateArray(runnum, qa_level, "mbdns", mbd_nocut, ncross);
   }
   if (czdc_nocut)
   {
-    UpdateArray(runnum, qa_level, "zdcnocut", zdc_nocut, ncross);
+    UpdateArray(runnum, qa_level, "zdcns", zdc_nocut, ncross);
   }
   if (cbad_bunch)
   {

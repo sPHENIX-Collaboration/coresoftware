@@ -47,6 +47,10 @@ class RawClusterBuilderTopo : public SubsysReco
     _sigma_peri = peri;
   }
 
+  void set_absE(bool allow) {
+    _use_absE = allow;
+  }
+
   void allow_corner_neighbor(bool allow)
   {
     _allow_corner_neighbor = allow;
@@ -79,6 +83,15 @@ class RawClusterBuilderTopo : public SubsysReco
     _R_shower = R_shower;
   }
 
+  void set_use_only_good_towers(bool b)
+  {
+    _only_good_towers = b;
+  }
+  bool get_use_only_good_towers()
+  {
+    return _only_good_towers;
+  }
+
  private:
   void CreateNodes(PHCompositeNode *topNode);
 
@@ -107,12 +120,12 @@ class RawClusterBuilderTopo : public SubsysReco
   // utility functions to express IHCal<->EMCal overlap in phi
   int get_first_matching_EMCal_phi_from_IHCal(int index_hcal_phi)
   {
-    return ((68 + 4 * (index_hcal_phi - 32) + _EMCAL_NPHI) % _EMCAL_NPHI);
+    return (4*index_hcal_phi + 5) % _EMCAL_NPHI;
   }
 
   int get_matching_HCal_phi_from_EMCal(int index_emcal_phi)
   {
-    return ((32 + (index_emcal_phi - 68 + _EMCAL_NPHI) / 4) % _HCAL_NPHI);
+    return ((index_emcal_phi + 251)/4) % _HCAL_NPHI;
   }
 
   std::vector<int> get_adjacent_towers_by_ID(int ID);
@@ -209,6 +222,7 @@ class RawClusterBuilderTopo : public SubsysReco
   float _sigma_peri;
 
   bool _allow_corner_neighbor;
+  bool _use_absE;
 
   bool _enable_HCal;
   bool _enable_EMCal;
@@ -216,6 +230,8 @@ class RawClusterBuilderTopo : public SubsysReco
   bool _do_split;
   float _local_max_minE_LAYER[3]{};
   float _R_shower;
+
+  bool _only_good_towers;
 
   std::string ClusterNodeName;
 };

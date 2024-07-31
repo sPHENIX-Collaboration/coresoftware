@@ -2,9 +2,9 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -isystem$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -21,13 +21,16 @@ pkginclude_HEADERS = \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
   InputManagerType.h \
+  MicromegasBcoMatchingInformation.h\
+	MvtxRawDefs.h \
   SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
   SingleHcalTriggerInput.h \
+  SingleLL1TriggerInput.h \
   SingleMbdTriggerInput.h \
-  SingleInttPoolInput.h \
   SingleMicromegasPoolInput.h \
+  SingleInttPoolInput.h \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
   SingleStreamingInput.h \
@@ -45,7 +48,8 @@ decoderinclude_HEADERS = \
   mvtx_decoder/mvtx_utils.h \
   mvtx_decoder/PayLoadCont.h \
   mvtx_decoder/PayLoadSG.h \
-  mvtx_decoder/PixelData.h
+  mvtx_decoder/PixelData.h \
+	mvtx_decoder/StrobeData.h
 
 lib_LTLIBRARIES = \
   libmvtx_decoder.la \
@@ -53,12 +57,13 @@ lib_LTLIBRARIES = \
 
 # source for mvtx decoder library
 libmvtx_decoder_la_SOURCES =\
+  mvtx_decoder/DecodingStat.cc \
+  mvtx_decoder/GBTLink.cc \
+  mvtx_decoder/GBTWord.cc \
   mvtx_decoder/InteractionRecord.cc \
   mvtx_decoder/PayLoadCont.cc \
   mvtx_decoder/PixelData.cc \
-  mvtx_decoder/GBTWord.cc \
-  mvtx_decoder/DecodingStat.cc \
-  mvtx_decoder/GBTLink.cc
+	mvtx_decoder/StrobeData.cc
 
 libfun4allraw_la_SOURCES = \
   Fun4AllEventOutStream.cc \
@@ -73,11 +78,14 @@ libfun4allraw_la_SOURCES = \
   intt_pool.cc \
   mvtx_pool.cc \
   tpc_pool.cc \
+  MicromegasBcoMatchingInformation.cc\
+	MvtxRawDefs.cc \
   SingleCemcTriggerInput.cc \
   SingleGl1PoolInput.cc \
   SingleGl1TriggerInput.cc \
   SingleHcalTriggerInput.cc \
   SingleInttPoolInput.cc \
+  SingleLL1TriggerInput.cc \
   SingleMbdTriggerInput.cc \
   SingleMicromegasPoolInput.cc \
   SingleMvtxPoolInput.cc \
@@ -93,7 +101,8 @@ libfun4allraw_la_LIBADD = \
   -lffarawobjects \
   -lfun4all \
   -lEvent \
-  -lphoolraw
+  -lphoolraw \
+  -lqautils
 
 BUILT_SOURCES = testexternals.cc
 

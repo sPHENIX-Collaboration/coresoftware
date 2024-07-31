@@ -1,0 +1,54 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef TPCRAWHITQA_H
+#define TPCRAWHITQA_H
+
+#include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrDefs.h>
+
+#include <tpc/TpcMap.h>
+
+#include <ffarawobjects/TpcRawHitContainer.h>
+#include <ffarawobjects/TpcRawHit.h>
+
+#include <TH1.h>
+#include <TH2.h>
+#include <TProfile2D.h>
+
+#include <string>
+#include <vector>
+
+class TpcRawHitQA : public SubsysReco
+{
+ public:
+  TpcRawHitQA(const std::string& name = "TpcRawHitQA");
+
+  ~TpcRawHitQA() override = default;
+
+  int InitRun(PHCompositeNode* topNode) override;
+  int process_event(PHCompositeNode* topNode) override;
+  int EndRun(const int runnumber) override;
+
+  int End(PHCompositeNode *topNode) override;
+  
+ private:
+  void createHistos();
+  std::string getHistoPrefix() const;
+
+  TpcMap M;
+
+  TpcRawHitContainer* rawhitcont{nullptr};
+
+  TH1* h_nhits_sectors[24]{nullptr};
+  TH2* h_nhits_sectors_fees[24]{nullptr};
+  TH1* h_nhits_sam[24][3]{{nullptr}};
+  TH1* h_adc[24][3]{{nullptr}};
+  TH1* h_bco{nullptr};
+  TH2* h_xy_N{nullptr};
+  TH2* h_xy_S{nullptr};
+
+  int FEE_R[26]{2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
+  int FEE_map[26]{4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
+};
+
+#endif  // TPCRAWHITQA_H

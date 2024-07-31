@@ -15,6 +15,7 @@
 #include <fun4all/Fun4AllServer.h>
 
 #include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/MvtxRawEvtHeader.h>
 #include <ffarawobjects/MvtxRawHit.h>
 #include <ffarawobjects/MvtxRawHitContainer.h>
@@ -24,10 +25,13 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
+
 #include <algorithm>
+#include <array>
 #include <cassert>
 
 //_________________________________________________________
@@ -102,31 +106,42 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 
   mvtx_raw_event_header =
       findNode::getClass<MvtxRawEvtHeader>(topNode, m_MvtxRawEvtHeaderNodeName);
+
+  Fun4AllServer *se = Fun4AllServer::instance();
+
   if (!mvtx_raw_event_header)
   {
-    Fun4AllServer* se = Fun4AllServer::instance();
     se->unregisterSubsystem(this);
   }
 
+  getStrobeLength();
+
   // Mask Hot MVTX Pixels
-  std::string database = CDBInterface::instance()->getUrl(
-      "MVTX_HotPixelMap");  // This is specifically for MVTX Hot Pixels
-  CDBTTree *cdbttree = new CDBTTree(database);
-  int NPixel = -1;
-  NPixel = cdbttree->GetSingleIntValue("TotalHotPixels");
+  // std::string database = CDBInterface::instance()->getUrl(
+  //     "MVTX_HotPixelMap");  // This is specifically for MVTX Hot Pixels
+  // CDBTTree *cdbttree = new CDBTTree(database);
+  // int NPixel = -1;
+  // NPixel = cdbttree->GetSingleIntValue("TotalHotPixels");
 
-  for (int i = 0; i < NPixel; i++)
+  // for (int i = 0; i < NPixel; i++)
+  // {
+  //   int Layer = cdbttree->GetIntValue(i, "layer");
+  //   int Stave = cdbttree->GetIntValue(i, "stave");
+  //   int Chip = cdbttree->GetIntValue(i, "chip");
+  //   int Col = cdbttree->GetIntValue(i, "col");
+  //   int Row = cdbttree->GetIntValue(i, "row");
+
+  //   TrkrDefs::hitsetkey HotPixelHitKey =
+  //       MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
+  //   TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
+  //   m_hotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
+  // }
+
+  // Load the hot pixel map from the CDB
+  if(m_doOfflineMasking)
   {
-    int Layer = cdbttree->GetIntValue(i, "layer");
-    int Stave = cdbttree->GetIntValue(i, "stave");
-    int Chip = cdbttree->GetIntValue(i, "chip");
-    int Col = cdbttree->GetIntValue(i, "col");
-    int Row = cdbttree->GetIntValue(i, "row");
-
-    TrkrDefs::hitsetkey HotPixelHitKey =
-        MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
-    TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
-    m_hotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
+    m_hot_pixel_mask = new MvtxPixelMask();
+    m_hot_pixel_mask->load_from_CDB();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -155,15 +170,27 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     std::cout << "Have you built this yet?" << std::endl;
     exit(1);
   }
-
-  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
-  if (!gl1 && (Verbosity() >= 4))
+  // Could we just get the first strobe BCO instead of setting this to 0?
+  // Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
+  //  uint64_t gl1rawhitbco = gl1 ? gl1->get_bco() : 0;
+  auto gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  uint64_t gl1rawhitbco = 0;
+  if(gl1)
+  {
+    gl1rawhitbco = gl1->lValue(0, "BCO");
+  }
+  else{
+    auto oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+    if(oldgl1)
+    {
+      gl1rawhitbco = oldgl1->get_bco();
+    }
+  }
+  if (gl1rawhitbco == 0 && (Verbosity() >= 4))
   {
     std::cout << PHWHERE << "Could not get gl1 raw hit" << std::endl;
   }
-  //Could we just get the first strobe BCO instead of setting this to 0?
-  //Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
-  uint64_t gl1rawhitbco = gl1 ? gl1->get_bco() : 0;
+
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
   auto lbshift = gl1rawhitbco << 24U;
@@ -206,9 +233,14 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
 
-    uint64_t bcodiff = gl1 ? gl1bco - strobe : 0;
+    int bcodiff = gl1 ? gl1bco - strobe : 0;
     double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
     int index = std::floor(timeElapsed / m_strobeWidth);
+
+    if (index < -16 || index > 15)
+    {
+      continue; //Index is out of the 5-bit signed range
+    }
 
     if (Verbosity() >= 10)
     {
@@ -241,17 +273,31 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    const TrkrDefs::hitsetkey hitsetkeymask =
-        MvtxDefs::genHitSetKey(layer, stave, chip, 0);
-
-    if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(),
-                  std::make_pair(hitsetkeymask, hitkey)) ==
-        m_hotPixelMap.end())
-    {
-      // create hit and insert in hitset
+  if(m_doOfflineMasking)
+  {
+    if (!m_hot_pixel_mask->is_masked(mvtx_hit))
+    { // Check if the pixel is masked
       hit = new TrkrHitv2;
       hitset_it->second->addHitSpecificKey(hitkey, hit);
     }
+  }
+  else
+  {
+    hit = new TrkrHitv2;
+    hitset_it->second->addHitSpecificKey(hitkey, hit);
+  }
+    // const TrkrDefs::hitsetkey hitsetkeymask =
+    //     MvtxDefs::genHitSetKey(layer, stave, chip, 0);
+
+    // if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(),
+    //               std::make_pair(hitsetkeymask, hitkey)) ==
+    //     m_hotPixelMap.end())
+    // {
+      // create hit and insert in hitset
+      // hit = new TrkrHitv2;
+      // hitset_it->second->addHitSpecificKey(hitkey, hit);
+    // }
+
   }
 
   mvtx_event_header->set_strobe_BCO(strobe);
@@ -285,4 +331,45 @@ void MvtxCombinedRawDataDecoder::removeDuplicates(
     end = remove(it + 1, end, *it);
   }
   v.erase(end, v.end());
+}
+
+void MvtxCombinedRawDataDecoder::getStrobeLength()
+{
+  recoConsts *rc = recoConsts::instance();
+  int m_runNumber = rc->get_IntFlag("RUNNUMBER");
+
+  std::string executable_command = "psql -h sphnxdaqdbreplica daq --csv -c \"SELECT strobe FROM mvtx_strobe WHERE hostname = \'mvtx0\' AND runnumber = ";
+  executable_command += std::to_string(m_runNumber);
+  executable_command += ";\" | tail -n 1";
+
+  std::string strobe_query = exec(executable_command.c_str());
+
+  try
+  {
+    m_strobeWidth = stof(strobe_query);
+  }
+  catch (std::invalid_argument const& ex)
+  {
+    if (Verbosity() >= 1)
+    {
+      std::cout << PHWHERE << ":: Run number " << m_runNumber << " has no strobe length in the DAQ database, using " << m_strobeWidth << " microseconds" << std::endl;
+    }
+  }
+}
+
+// https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+std::string MvtxCombinedRawDataDecoder::exec(const char *cmd)
+{
+  std::array<char, 128> buffer = {};
+  std::string result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe)
+  {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+  {
+    result += buffer.data();
+  }
+  return result;
 }

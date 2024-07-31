@@ -17,11 +17,13 @@ class TpcDistortionCorrectionContainer
   //! constructor
   TpcDistortionCorrectionContainer() = default;
 
-  //! flag to tell us whether to read z data or just interpolate
+  //! flag to tell us whether to read z data or just 2d data
   int m_dimensions = 3;
 
   //! set the phi histogram to be interpreted as radians rather than mm
   bool m_phi_hist_in_radians = true;
+  //! flag to tell us how to handle 2d corrections: interpolate to 0 at readout or assume the correction has no z dependence
+  bool m_interpolate_z = true;
 
   //!@name space charge distortion histograms
   //@{
