@@ -28,6 +28,7 @@ SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
 {
   SubsystemEnum(InputManagerType::INTT);
   plist = new Packet *[1];
+  m_rawHitContainerName = "INTTRAWHIT";
 }
 
 SingleInttPoolInput::~SingleInttPoolInput()
@@ -383,11 +384,11 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode = new PHCompositeNode("INTT");
     dstNode->addNode(detNode);
   }
-  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, "INTTRAWHIT");
+  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, m_rawHitContainerName);
   if (!intthitcont)
   {
     intthitcont = new InttRawHitContainerv2();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
 }
