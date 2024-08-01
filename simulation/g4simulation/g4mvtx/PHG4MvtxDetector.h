@@ -54,6 +54,8 @@ class PHG4MvtxDetector : public PHG4Detector
 
   void FillSupportLVArray(G4LogicalVolume* lv) { m_SupportLV.insert(lv); }
 
+  bool IsModGeometry() const { return useModGeo; }
+
  private:
   void AddGeometryNode();
   int ConstructMvtx(G4LogicalVolume* sandwich);

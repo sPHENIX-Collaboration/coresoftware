@@ -66,13 +66,23 @@ namespace ServiceProperties
   double cableRotate[3] = {10., 5., 5.};  // Rotate the cables to line up with the staves in deg
 }  // namespace ServiceProperties
 
+// For modified geometry - global displacement
+namespace mvtxmodgeometry
+{
+  double globaldisplace_x = 5.0 * mm;
+  double globaldisplace_y = 0.0 * mm;
+  double globaldisplace_z = 0.0 * mm;
+}
+
 using namespace ServiceProperties;
+using namespace mvtxmodgeometry;
 
 //________________________________________________________________________________
 PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDetector *detector, PHG4MvtxDisplayAction *dispAct, bool overlapCheck)
   : m_Detector(detector)
   , m_DisplayAction(dispAct)
   , m_overlapCheck(overlapCheck)
+  , useModGeo_support(detector->IsModGeometry())
 {
 }
 
@@ -1160,6 +1170,9 @@ G4AssemblyVolume *PHG4MvtxSupport::buildLayerCables(const int &lay)
 //________________________________________________________________________________
 void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
 {
+  std::cout << "PHG4MvtxSupport::ConstructMvtxSupport - constructing support structure" << std::endl;
+  std::cout << " Using modified geometry? " << useModGeo_support << std::endl;
+
   CreateMvtxSupportMaterials();
   m_avSupport = new G4AssemblyVolume();
 
