@@ -613,6 +613,10 @@ int Fun4AllStreamingInputManager::FillIntt()
   // unsigned int alldone = 0;
   //     std::cout << "stashed intt BCOs: " << m_InttRawHitMap.size() << std::endl;
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(m_topNode, "INTTRAWHIT");
+  if(!inttcont)
+  {
+    inttcont = findNode::getClass<InttRawHitContainer>(m_topNode, (*(m_InttInputVector.begin()))->getHitContainerName());
+  }
   //  std::cout << "before filling m_InttRawHitMap size: " <<  m_InttRawHitMap.size() << std::endl;
   // !m_InttRawHitMap.empty() is implicitely handled and the check is expensive
   // FillInttPool() contains this check already and will return non zero
@@ -744,9 +748,13 @@ int Fun4AllStreamingInputManager::FillMvtx()
   MvtxRawHitContainer *mvtxcont = findNode::getClass<MvtxRawHitContainer>(m_topNode, "MVTXRAWHIT");
   if (!mvtxcont)
   {
-    std::cout << "ERROR: MVTXRAWHIT node not found, exit. " << std::endl;
-    gSystem->Exit(1);
-    exit(1);
+    mvtxcont = findNode::getClass<MvtxRawHitContainer>(m_topNode, (*(m_MvtxInputVector.begin()))->getHitContainerName());
+    if(!mvtxcont)
+    {
+      std::cout << "ERROR: MVTXRAWHIT node not found, exit. " << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
   }
   // std::cout << "before filling m_MvtxRawHitMap size: " <<  m_MvtxRawHitMap.size() << std::endl;
   uint64_t select_crossings = m_mvtx_bco_range;
@@ -932,6 +940,10 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   }
 
   auto container = findNode::getClass<MicromegasRawHitContainer>(m_topNode, "MICROMEGASRAWHIT");
+  if(!container)
+  {
+    container = findNode::getClass<MicromegasRawHitContainer>(m_topNode, (*(m_MicromegasInputVector.begin()))->getHitContainerName());
+  }
   uint64_t select_crossings = m_micromegas_bco_range;
   if (m_RefBCO == 0)
   {
@@ -1008,6 +1020,11 @@ int Fun4AllStreamingInputManager::FillTpc()
   }
 
   TpcRawHitContainer *tpccont = findNode::getClass<TpcRawHitContainer>(m_topNode, "TPCRAWHIT");
+  if(!tpccont)
+  {
+    /// if we set the node name and are running over single prdfs, thre is only one prdf in the vector
+    tpccont = findNode::getClass<TpcRawHitContainer>(m_topNode, (*(m_TpcInputVector.begin()))->getHitContainerName());
+  }
   //  std::cout << "before filling m_TpcRawHitMap size: " <<  m_TpcRawHitMap.size() << std::endl;
   uint64_t select_crossings = m_tpc_bco_range;
   if (m_RefBCO == 0)
