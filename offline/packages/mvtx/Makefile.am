@@ -23,7 +23,9 @@ pkginclude_HEADERS = \
   MvtxNoiseMap.h \
   MvtxCombinedRawDataDecoder.h \
   CylinderGeom_Mvtx.h \
-  SegmentationAlpide.h
+  SegmentationAlpide.h \
+  MvtxPixelDefs.h \
+  MvtxPixelMask.h
 
 ROOTDICTS = \
   CylinderGeom_Mvtx_Dict.cc \
@@ -38,7 +40,9 @@ nobase_dist_pcm_DATA = \
 libmvtx_la_SOURCES = \
   MvtxClusterizer.cc \
   MvtxHitPruner.cc \
-  MvtxCombinedRawDataDecoder.cc
+  MvtxCombinedRawDataDecoder.cc \
+  MvtxPixelDefs.cc \
+  MvtxPixelMask.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
