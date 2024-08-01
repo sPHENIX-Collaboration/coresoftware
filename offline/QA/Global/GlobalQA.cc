@@ -149,63 +149,62 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
   }
 
 
-  {
+  if ((triggervec >> 0x3U) & 0x1U) {
     // ------------------------------------- ZDC
     // -----------------------------------------//
-    {
-      Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
-      TowerInfoContainer *_zdc_towerinfo =
-          findNode::getClass<TowerInfoContainer>(topNode,
-                                                 "TOWERINFO_CALIB_ZDC");
-      unsigned int ntowers = _zdc_towerinfo->size();
-      if (ntowers != 52) {
-        std::cout << "ZDC container has unexpected size - exiting now!"
-                  << std::endl;
-        exit(1);
-      }
-      float totalzdcsouthcalib = 0.;
-      float totalzdcnorthcalib = 0.;
-      float zdc_E[6] = {0};
-      float zdc_t[6] = {0};
-      float zdc_zvtx = 9999;
-      int index = 0;
-      if (_zdcinfo) {
-        totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
-        totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
-        if (_zdcinfo->get_radius(0) < 2 && _zdcinfo->get_radius(1) < 2) {
-          for (unsigned int ichan = 0; ichan < ntowers; ichan++) {
-            TowerInfo *tower = _zdc_towerinfo->get_tower_at_channel(ichan);
-            if (TowerInfoDefs::isZDC(ichan)) {
-              int mod = ichan % 2;
-              if (mod != 0)
-              {
-                continue;
-              }
-              if ((ichan != 6) && (ichan != 14)) {
-                zdc_E[index] = tower->get_energy();
-                zdc_t[index] = tower->get_time_float();
-                index++;
-              }
+
+    Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+    TowerInfoContainer *_zdc_towerinfo =
+      findNode::getClass<TowerInfoContainer>(topNode,
+          "TOWERINFO_CALIB_ZDC");
+    unsigned int ntowers = _zdc_towerinfo->size();
+    if (ntowers != 52) {
+      std::cout << "ZDC container has unexpected size - exiting now!"
+        << std::endl;
+      exit(1);
+    }
+    float totalzdcsouthcalib = 0.;
+    float totalzdcnorthcalib = 0.;
+    float zdc_E[6] = {0};
+    float zdc_t[6] = {0};
+    float zdc_zvtx = 9999;
+    int index = 0;
+    if (_zdcinfo) {
+      totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
+      totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
+      if (_zdcinfo->get_radius(0) < 2 && _zdcinfo->get_radius(1) < 2) {
+        for (unsigned int ichan = 0; ichan < ntowers; ichan++) {
+          TowerInfo *tower = _zdc_towerinfo->get_tower_at_channel(ichan);
+          if (TowerInfoDefs::isZDC(ichan)) {
+            int mod = ichan % 2;
+            if (mod != 0)
+            {
+              continue;
+            }
+            if ((ichan != 6) && (ichan != 14)) {
+              zdc_E[index] = tower->get_energy();
+              zdc_t[index] = tower->get_time_float();
+              index++;
             }
           }
-
-          float es = zdc_E[0] + zdc_E[1] + zdc_E[2];
-          float ets =
-              zdc_E[0] * zdc_t[0] + zdc_E[1] * zdc_t[1] + zdc_E[2] * zdc_t[2];
-          float ts = ets / es;
-
-          float en = zdc_E[3] + zdc_E[4] + zdc_E[5];
-          float etn =
-              zdc_E[3] * zdc_t[3] + zdc_E[4] * zdc_t[4] + zdc_E[5] * zdc_t[5];
-          float tn = etn / en;
-
-          zdc_zvtx = 3e+10 * (ts - tn) * TSAMPLE / 2.0;
-
-          h_GlobalQA_zdc_zvtx->Fill(zdc_zvtx);
-          h_GlobalQA_zdc_zvtx_wide->Fill(zdc_zvtx);
-          h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
-          h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
         }
+
+        float es = zdc_E[0] + zdc_E[1] + zdc_E[2];
+        float ets =
+          zdc_E[0] * zdc_t[0] + zdc_E[1] * zdc_t[1] + zdc_E[2] * zdc_t[2];
+        float ts = ets / es;
+
+        float en = zdc_E[3] + zdc_E[4] + zdc_E[5];
+        float etn =
+          zdc_E[3] * zdc_t[3] + zdc_E[4] * zdc_t[4] + zdc_E[5] * zdc_t[5];
+        float tn = etn / en;
+
+        zdc_zvtx = 3e+10 * (ts - tn) * TSAMPLE / 2.0;
+
+        h_GlobalQA_zdc_zvtx->Fill(zdc_zvtx);
+        h_GlobalQA_zdc_zvtx_wide->Fill(zdc_zvtx);
+        h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
+        h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
       }
     }
   }
