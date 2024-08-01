@@ -139,6 +139,7 @@ void TrackResiduals::clearClusterStateVectors()
   m_idealsurfcenterz.clear();
   m_idealsurfnormx.clear();
   m_clsector.clear();
+  m_clside.clear();
   m_idealsurfnormy.clear();
   m_idealsurfnormz.clear();
   m_missurfcenterx.clear();
@@ -1042,6 +1043,7 @@ if(Verbosity() > 1)
   case TrkrDefs::tpcId:
     m_ntpc++;
     m_clsector.push_back(TpcDefs::getSectorId(ckey));
+    m_clside.push_back(TpcDefs::getSide(ckey));
     break;
   case TrkrDefs::micromegasId:
     m_nmms++;
@@ -1340,6 +1342,7 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   case TrkrDefs::tpcId:
     m_ntpc++;
     m_clsector.push_back(TpcDefs::getSectorId(ckey));
+    m_clside.push_back(TpcDefs::getSide(ckey));
     break;
   case TrkrDefs::micromegasId:
     m_nmms++;
@@ -1734,6 +1737,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgxunmoved", &m_clusgxunmoved);
   m_tree->Branch("clusgyunmoved", &m_clusgyunmoved);
   m_tree->Branch("clusgzunmoved", &m_clusgzunmoved);
+  m_tree->Branch("clussector", &m_clsector);
+  m_tree->Branch("clusside", &m_clside);
   m_tree->Branch("clusAdc", &m_clusAdc);
   m_tree->Branch("clusMaxAdc", &m_clusMaxAdc);
   m_tree->Branch("cluslayer", &m_cluslayer);
