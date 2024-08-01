@@ -25,6 +25,8 @@ class ParticleFlowReco : public SubsysReco
 
   ~ParticleFlowReco() override = default;
 
+  int InitRun(PHCompositeNode *topNode) override;
+
   int process_event(PHCompositeNode *topNode) override;
 
   void set_energy_match_Nsigma(float Nsigma)
