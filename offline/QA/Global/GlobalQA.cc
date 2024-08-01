@@ -131,7 +131,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       }
       triggervec = (triggervec >> 1U) & 0xffffffffU;
     }
-    triggervec = gl1PacketInfo->getLiveVector();
+    triggervec = gl1PacketInfo->getScaledVector();
   }
   if ((triggervec >> 0xAU) & 0x1U)
   {
@@ -163,29 +163,38 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   }
 
   
+  if ((triggervec >> 0x3U) & 0x1U)
   {
     // ------------------------------------- ZDC -----------------------------------------//
+
+    Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+    TowerInfoContainer *_zdc_towerinfo = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
+    float totalzdcsouthcalib = 0.;
+    float totalzdcnorthcalib = 0.;
+    float zdc_E[6] = {0};
+    float zdc_t[6] = {0};
+    float zdc_zvtx = 9999;
+    if (_zdcinfo)
     {
-      Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
-      TowerInfoContainer *_zdc_towerinfo = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
-      float totalzdcsouthcalib = 0.;
-      float totalzdcnorthcalib = 0.;
-      float zdc_E[6] = {0};
-      float zdc_t[6] = {0};
-      float zdc_zvtx = 9999;
-      if (_zdcinfo)
-      {
+      if (_zdcinfo->get_radius(0) < 2 && _zdcinfo->get_radius(1) < 2)  
+      { 
         totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
         totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
-        if (_zdcinfo->get_radius(0) < 2 && _zdcinfo->get_radius(1) < 2) 
-        { 
+        if (totalzdcsouthcalib > 30 || totalzdcnorthcalib > 30)
+        {
+          int iarr = 0;
           for (int ichan = 0; ichan < 16; ichan++)
           {
             TowerInfov2 *tower = (TowerInfov2*) _zdc_towerinfo->get_tower_at_channel(ichan);
+            if (tower->get_time() < 4 || tower->get_time() > 10)
+            {
+              continue;
+            }
             if (ichan % 2 == 0 && (ichan + 2) % 8 != 0)
             {
-              zdc_E[ichan / 2] = tower->get_energy();
-              zdc_t[ichan / 2] = tower->get_time_float();
+              zdc_E[iarr] = tower->get_energy();
+              zdc_t[iarr] = tower->get_time_float();
+              iarr++;
             }
           }
           float es = zdc_E[0] + zdc_E[1] + zdc_E[2];
@@ -197,12 +206,13 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
           float tn = etn / en;
 
           zdc_zvtx = 3e+10 * (ts - tn) * TSAMPLE / 2.0;
+
+          h_GlobalQA_zdc_zvtx->Fill(zdc_zvtx);
+          h_GlobalQA_zdc_zvtx_wide->Fill(zdc_zvtx);
+          h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
+          h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
         }
       }
-      h_GlobalQA_zdc_zvtx->Fill(zdc_zvtx);
-      h_GlobalQA_zdc_zvtx_wide->Fill(zdc_zvtx);
-      h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
-      h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
     }
   }
 
@@ -426,15 +436,15 @@ void GlobalQA::createHistos()
   assert(hm);
 
   // MBD QA
-  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Has zvtx?;percentage", 2, -0.5, 1.5);
-  h_GlobalQA_mbd_zvtx = new TH1D("h_GlobalQA_mbd_zvtx", ";zvtx [cm]", 100, -50, 50);
-  h_GlobalQA_mbd_zvtx_wide = new TH1D("h_GlobalQA_mbd_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";zvtx [cm]", 100, -50, 50);
-  h_GlobalQA_calc_zvtx_wide = new TH1D("h_GlobalQA_calc_zvtx_wide", ";zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_mbd_charge_s = new TH1D("h_GlobalQA_mbd_charge_s", ";charge", 100, 0, 10);
-  h_GlobalQA_mbd_charge_n = new TH1D("h_GlobalQA_mbd_charge_n", ";charge", 100, 0, 10);
-  h_GlobalQA_mbd_nhit_s = new TH1D("h_GlobalQA_mbd_nhit_s", ";nhit", 30, -0.5, 29.5);
-  h_GlobalQA_mbd_nhit_n = new TH1D("h_GlobalQA_mbd_nhit_n", ";nhit", 30, -0.5, 29.5);
+  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Scaled Trigger 10: MBD Coincidence    Has zvtx?;percentage", 2, -0.5, 1.5);
+  h_GlobalQA_mbd_zvtx = new TH1D("h_GlobalQA_mbd_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
+  h_GlobalQA_mbd_zvtx_wide = new TH1D("h_GlobalQA_mbd_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
+  h_GlobalQA_calc_zvtx_wide = new TH1D("h_GlobalQA_calc_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_mbd_charge_s = new TH1D("h_GlobalQA_mbd_charge_s", ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
+  h_GlobalQA_mbd_charge_n = new TH1D("h_GlobalQA_mbd_charge_n", ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
+  h_GlobalQA_mbd_nhit_s = new TH1D("h_GlobalQA_mbd_nhit_s", ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
+  h_GlobalQA_mbd_nhit_n = new TH1D("h_GlobalQA_mbd_nhit_n", ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
   hm->registerHisto(h_GlobalQA_mbd_zvtxq);
   hm->registerHisto(h_GlobalQA_mbd_zvtx_wide);
@@ -446,10 +456,10 @@ void GlobalQA::createHistos()
   hm->registerHisto(h_GlobalQA_mbd_nhit_n);
 
   // ZDC QA
-  h_GlobalQA_zdc_zvtx = new TH1D("h_GlobalQA_zdc_zvtx", ";zvtx [cm]", 100, -1000, 1000);
-  h_GlobalQA_zdc_zvtx_wide = new TH1D("h_GlobalQA_zdc_zvtx_wide", ";zvtx [cm]", 100, -2000, 2000);
-  h_GlobalQA_zdc_energy_s = new TH1D("h_GlobalQA_zdc_energy_s", ";Energy [Gev]", 100, 10, 340);
-  h_GlobalQA_zdc_energy_n = new TH1D("h_GlobalQA_zdc_energy_n", ";Energy [Gev]", 100, 10, 340);
+  h_GlobalQA_zdc_zvtx = new TH1D("h_GlobalQA_zdc_zvtx", ";Scaled Trigger 3: ZDC Coincidence    zvtx [cm]", 100, -1000, 1000);
+  h_GlobalQA_zdc_zvtx_wide = new TH1D("h_GlobalQA_zdc_zvtx_wide", ";Scaled Trigger 3: ZDC Coincidence    zvtx [cm]", 100, -2000, 2000);
+  h_GlobalQA_zdc_energy_s = new TH1D("h_GlobalQA_zdc_energy_s", ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 340);
+  h_GlobalQA_zdc_energy_n = new TH1D("h_GlobalQA_zdc_energy_n", ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 340);
   hm->registerHisto(h_GlobalQA_zdc_zvtx);
   hm->registerHisto(h_GlobalQA_zdc_zvtx_wide);
   hm->registerHisto(h_GlobalQA_zdc_energy_s);
