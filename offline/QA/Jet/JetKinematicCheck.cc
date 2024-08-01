@@ -32,6 +32,7 @@ JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
   , m_recoJetNameR04(recojetnameR04)
   , m_recoJetNameR05(recojetnameR05)
   , m_histTag("AllTrig")
+  , m_restrictEtaRange(true)
   , m_etaRange(-1.1, 1.1)
   , m_ptRange(10, 100)
   , m_doTrgSelect(false)
@@ -232,6 +233,18 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
   // Loop over each reco jet radii from array
   for (int i = 0; i < n_radii; i++)
   {
+
+    // update eta range based on resolution parameter
+    std::pair<float, float> etaRangeUse;
+    if (m_restrictEtaRange)
+    {
+      etaRangeUse = {m_etaRange.first + m_radii[i], m_etaRange.second - m_radii[i]};
+    }
+    else
+    {
+      etaRangeUse = {m_etaRange.first, m_etaRange.second};
+    }
+
     std::string recoJetName = m_recoJetName_array[i];
 
     JetContainer *jets = findNode::getClass<JetContainer>(topNode, recoJetName);
@@ -246,7 +259,7 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
     // loop over jets
     for (auto jet : *jets)
     {
-      bool eta_cut = (jet->get_eta() >= m_etaRange.first) and (jet->get_eta() <= m_etaRange.second);
+      bool eta_cut = (jet->get_eta() >= etaRangeUse.first) and (jet->get_eta() <= etaRangeUse.second);
       bool pt_cut = (jet->get_pt() >= m_ptRange.first) and (jet->get_pt() <= m_ptRange.second);
       if ((not eta_cut) or (not pt_cut))
       {
