@@ -68,7 +68,7 @@ void PHGhostRejection::cut_on_pt_nclus(std::vector<TrackSeed_v2>& seeds) {
         else
         { in_2 = true; }
 
-        if ((in_0 && (in_1 || in_2)) || (in_1 && in_2))
+        if ((in_0+in_1+in_2)>1)
         {
           in_two_sectors = true;
           break;

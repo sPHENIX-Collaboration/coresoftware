@@ -42,9 +42,13 @@ class PHGhostRejection
   void cut_ghosts(std::vector<float>& trackChi2, std::vector<TrackSeed_v2>& seeds);
 
   std::vector<bool> m_rejected {}; // id
- private:
   bool checkClusterSharing(TrackSeed& tr1, TrackSeed& tr2);
 
+  void set_min_pt_cut(float _ptmin) { _min_pt_cut = _ptmin; }
+  void set_must_span_sectors(bool _setting) { _must_span_sectors = _setting; }
+  void set_min_clusters (int _val) { _min_clusters = _val; }
+
+ private:
   double _phi_cut = 0.01;
   double _eta_cut = 0.004;
   double _x_cut = 0.3;
