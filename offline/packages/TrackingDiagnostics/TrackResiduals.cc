@@ -783,8 +783,8 @@ int TrackResiduals::End(PHCompositeNode* /*unused*/)
   {
     m_hittree->Write();
   }
-  m_vertextree->Write();
-  m_failedfits->Write();
+  // m_vertextree->Write();
+  // m_failedfits->Write();
   m_outfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -2026,7 +2026,10 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
         }
       }
     }
-    m_tree->Fill();
+
+    if( m_nmms>0 || !m_doMicromegasOnly )
+    { m_tree->Fill(); }
+
   }  // end loop over tracks
 
   if (m_doFailedSeeds)
