@@ -199,12 +199,15 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   
   bool flagDoSD =  true;
   if (xA < -999)
+  {
     flagDoSD = false;
+  }
   
   xA = 0;
   yA = 0;
   zA = 0;
 
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int ix = xC + 0.5;  // tower #
   if (ix < 0 || ix >= fNx)
   {
@@ -212,6 +215,7 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
     return;
   }
 
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iy = yC + 0.5;  // tower #
   if (iy < 0 || iy >= fNy)
   {
@@ -385,6 +389,7 @@ int BEmcRec::FindClusters()
         int* LenCltmp = new int[MaxLen];
         CopyVector(LenCl, LenCltmp, MaxLen);
         delete[] LenCl;
+// NOLINTNEXTLINE(bugprone-implicit-widening-of-multiplication-result)
         LenCl = new int[MaxLen * 2];
         ZeroVector(LenCl, MaxLen * 2);
         CopyVector(LenCltmp, LenCl, MaxLen);
@@ -660,7 +665,9 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
     xcg -= float(fNx);
   }
 
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int ixcg = int(xcg + 0.5);
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iycg = int(ycg + 0.5);
   float ddx = fabs(xcg - ixcg);
   float ddy = fabs(ycg - iycg);
@@ -806,7 +813,9 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
   float zz, yy, yz;
   Momenta(&HitList, etot, zcg, ycg, zz, yy, yz, thresh);
 
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iz0cg = int(zcg + 0.5);
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iy0cg = int(ycg + 0.5);
   float ddz = fabs(zcg - iz0cg);
   float ddy = fabs(ycg - iy0cg);
