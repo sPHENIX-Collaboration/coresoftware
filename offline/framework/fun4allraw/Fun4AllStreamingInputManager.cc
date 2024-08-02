@@ -740,9 +740,13 @@ int Fun4AllStreamingInputManager::FillMvtx()
   MvtxRawEvtHeader *mvtxEvtHeader = findNode::getClass<MvtxRawEvtHeader>(m_topNode, "MVTXRAWEVTHEADER");
   if (!mvtxEvtHeader)
   {
+    mvtxEvtHeader = findNode::getClass<MvtxRawEvtHeader>(m_topNode, (static_cast<SingleMvtxPoolInput *>(*(m_MvtxInputVector.begin())))->getRawEventHeaderName());
+    if(!mvtxEvtHeader)
+    {
     std::cout << "ERROR: MVTXRAWEVTHEADER node not found, exit. " << std::endl;
     gSystem->Exit(1);
     exit(1);
+    }
   }
 
   MvtxRawHitContainer *mvtxcont = findNode::getClass<MvtxRawHitContainer>(m_topNode, "MVTXRAWHIT");
