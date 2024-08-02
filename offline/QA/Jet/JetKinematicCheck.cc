@@ -253,7 +253,7 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
       std::cout
           << "JetKinematicCheck::process_event - Error can not find DST Reco JetContainer node "
           << recoJetName << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
+      return Fun4AllReturnCodes::EVENT_OK;
     }
 
     // loop over jets

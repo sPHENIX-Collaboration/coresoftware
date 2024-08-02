@@ -126,7 +126,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
           << "JetSeedCount::process_event - global vertex node is empty "
           << std::endl;
     }
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   GlobalVertex *vtx = vertexmap->begin()->second;
