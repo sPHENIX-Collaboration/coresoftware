@@ -125,8 +125,10 @@ void PHGhostRejection::cut_ghosts(std::vector<float>& trackChi2, std::vector<Tra
       }
 
       auto& track2 = seeds[trid2];
-      float delta_phi = fabs(track1phi - track2.get_phi());
-      if (delta_phi > 2 * M_PI) delta_phi = fabs(delta_phi - 2 * M_PI);
+      double delta_phi = fabs(track1phi - track2.get_phi());
+      if (delta_phi > 2 * M_PI) {
+        delta_phi = fabs(delta_phi - 2 * M_PI);
+      }
       if (delta_phi < _phi_cut &&
           std::fabs(track1eta - track2.get_eta()) < _eta_cut &&
           std::fabs(track1x - track2.get_x()) < _x_cut &&
@@ -146,7 +148,7 @@ void PHGhostRejection::cut_ghosts(std::vector<float>& trackChi2, std::vector<Tra
 
   for (auto set_it : matches_set)
   {
-    if (m_rejected[set_it]) continue; // already rejected
+    if (m_rejected[set_it]) { continue; } // already rejected
     auto match_list = matches.equal_range(set_it);
 
     auto tr1 = seeds[set_it];
