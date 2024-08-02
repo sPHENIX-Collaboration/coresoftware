@@ -142,13 +142,13 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
     InttRawHit *hit = rawhitmap->get_hit(ihit);
 
     int      ifelix = hit->get_packetid() - 3001;
-    int      bco    = hit->get_FPHX_BCO(); // 7bit
+    uint     bco    = hit->get_FPHX_BCO(); // 7bit
     uint64_t bcofull= (hit->get_bco()&0xFFFFFFFFFFULL); // 7bit
 
-    int ladder = hit->get_fee();        // 0-13 (4bit)
-    int chip   = (hit->get_chip_id()-1)%26;    // 0-26 (5bit)
-    int chan   = hit->get_channel_id(); // 0-127 (7bit)
-    int adc    = hit->get_adc();        // 3bit
+    uint ladder = hit->get_fee();        // 0-13 (4bit)
+    uint chip   = (hit->get_chip_id()-1)%26;    // 0-26 (5bit)
+    uint chan   = hit->get_channel_id(); // 0-127 (7bit)
+    uint adc    = hit->get_adc();        // 3bit
 
     // check the difference between strobeBCO(bcofull) and gl1BCO
     int64_t bcogl1diff = bcofull - bco_gl1;
@@ -156,12 +156,12 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
     h_bcogl1diff_felix[ifelix]->Fill(bcogl1diff);
 
     // lad[25-22]+chip[21-17]+chan[16-10]+adc[9-7]+bco[6-0]
-    uint key = ((ladder&0xFu)<<22u)|((chip&0x1Fu)<<17u)|((chan&0x7Fu)<<10u)|((adc&0x7u)<<7u)|(bco&0x7Fu) ;
+    uint key = ((ladder&0xFU)<<22U)|((chip&0x1FU)<<17U)|((chan&0x7FU)<<10U)|((adc&0x7U)<<7U)|(bco&0x7FU) ;
 
     if(vUnique[ifelix].find(key)==vUnique[ifelix].end()) {
       vUnique[ifelix].insert(key);
 
-      uint chipbcokey = ((ladder&0xFu)<<22u)|((chip&0x1Fu)<<17u)|(bco&0x7Fu) ;
+      uint chipbcokey = ((ladder&0xFU)<<22U)|((chip&0x1FU)<<17U)|(bco&0x7FU) ;
       vchipbco[ifelix].insert(std::make_pair(chipbcokey, ihit)); // no ADC info
 
       h_bco[ifelix]->Fill(ladder*26 + chip+0.5, bco+0.5);
@@ -177,7 +177,7 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
   for(int ifelix=0; ifelix<8; ifelix++){
    
     for(auto val : vchipbco[ifelix]){
-      int bco = (val.first)&0x7F;
+      uint bco = (val.first)&0x7FU;
       h_bco_felix[ifelix]->Fill(bco);
 
       InttRawHit *hit = rawhitmap->get_hit(val.second);
@@ -211,8 +211,8 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
   // all felix combined analysis
   map<int, int> vbcodiff_all;
 
-  for(int ifelix=0; ifelix<8; ifelix++){
-    for(auto& val : vbcodiff_felix[ifelix]){
+  for(auto & ifelix : vbcodiff_felix){
+    for(auto& val : ifelix){
       int bcointtgl1_diff = val.first;
       //int count           = val.second;
 
