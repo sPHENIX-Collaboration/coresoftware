@@ -53,6 +53,7 @@ CaloTowerCalib::CaloTowerCalib(const std::string &name)
 CaloTowerCalib::~CaloTowerCalib()
 {
   delete cdbttree;
+  delete cdbttree_time;
   if (Verbosity() > 0)
   {
     std::cout << "CaloTowerCalib::~CaloTowerCalib() Calling dtor" << std::endl;
@@ -288,11 +289,15 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     }
     if(m_dotimecalib)
     {
-      float raw_time = caloinfo_raw->get_time();
+      bool isZS = caloinfo_raw->get_isZS();
+      //timing is not useful for ZS towers
+      if(!isZS)
+      {
+      //I realized that there is no point to do timing calibration for the towerinfov1 object since the resolution is not enough...
+      float raw_time = caloinfo_raw->get_time_float();
       float meantime = cdbttree_time->GetFloatValue(key, m_fieldname_time);
       _calib_towers->get_tower_at_channel(channel)->set_time_float(raw_time - meantime);
-      //just in case we are still using v1...
-      _calib_towers->get_tower_at_channel(channel)->set_time(raw_time - meantime);
+      }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
