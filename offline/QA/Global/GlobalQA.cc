@@ -8,7 +8,7 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
-#include <calobase/TowerInfov2.h>
+#include <calobase/TowerInfo.h>
 
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
@@ -19,7 +19,7 @@
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/MbdVertex.h>
-#include <globalvertex/MbdVertexMapv1.h>
+#include <globalvertex/MbdVertexMap.h>
 
 #include <qautils/QAHistManagerDef.h>
 
