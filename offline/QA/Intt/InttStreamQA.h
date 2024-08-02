@@ -25,7 +25,7 @@ class InttStreamQA : public SubsysReco
   InttStreamQA(const std::string &name = "InttStreamQA");
 
   // Destructor
-  virtual ~InttStreamQA();
+  virtual ~InttStreamQA()=default;
 
   /// SubsysReco initialize processing method
   int Init(PHCompositeNode *);

@@ -19,6 +19,7 @@
 
 #include <set>
 #include <map>
+#include <sstream>
 
 using namespace std;
 
@@ -34,9 +35,9 @@ InttStreamQA::InttStreamQA(const std::string &name)
 /**
  * Destructor of module
  */
-InttStreamQA::~InttStreamQA()
-{
-}
+//InttStreamQA::~InttStreamQA()
+//{
+//}
 
 /**
  * Initialize the module and prepare looping over events
@@ -105,8 +106,8 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
   }
  
   // to 40bit
-  bco_gl1  &= 0xFFFFFFFFFF;
-  bcointt  &= 0xFFFFFFFFFF;
+  bco_gl1  &= 0xFFFFFFFFFFULL;
+  bcointt  &= 0xFFFFFFFFFFULL;
 
   uint64_t bcodiff = bcointt - prebcointt;
 
@@ -119,8 +120,11 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
   int64_t diff_inttgl1 = bcointt - bco_gl1;
   h_bcointtgl1_diff->Fill(diff_inttgl1);
 
-  cout<<event<<"   bco : intt:0x"<<hex<<bcointt<<", diff 0x"<<bcodiff
-             <<" : "<<dec<<" "<<evtcnt<<" "<<diff_inttgl1<<" gl1:0x"<<hex<<bco_gl1<<dec<<endl;
+  if (Verbosity() > 5)
+  {
+    cout<<event<<"   bco : intt:0x"<<hex<<bcointt<<", diff 0x"<<bcodiff
+               <<" : "<<dec<<" "<<evtcnt<<" "<<diff_inttgl1<<" gl1:0x"<<hex<<bco_gl1<<dec<<endl;
+  }
 
   event++;
 
@@ -139,7 +143,7 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
 
     int      ifelix = hit->get_packetid() - 3001;
     int      bco    = hit->get_FPHX_BCO(); // 7bit
-    uint64_t bcofull= (hit->get_bco()&0xFFFFFFFFFF); // 7bit
+    uint64_t bcofull= (hit->get_bco()&0xFFFFFFFFFFULL); // 7bit
 
     int ladder = hit->get_fee();        // 0-13 (4bit)
     int chip   = (hit->get_chip_id()-1)%26;    // 0-26 (5bit)
@@ -152,12 +156,12 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
     h_bcogl1diff_felix[ifelix]->Fill(bcogl1diff);
 
     // lad[25-22]+chip[21-17]+chan[16-10]+adc[9-7]+bco[6-0]
-    uint key = ((ladder&0xF)<<22)|((chip&0x1F)<<17)|((chan&0x7F)<<10)|((adc&0x7)<<7)|(bco&0x7F) ;
+    uint key = ((ladder&0xFu)<<22u)|((chip&0x1Fu)<<17u)|((chan&0x7Fu)<<10u)|((adc&0x7u)<<7u)|(bco&0x7Fu) ;
 
     if(vUnique[ifelix].find(key)==vUnique[ifelix].end()) {
       vUnique[ifelix].insert(key);
 
-      uint chipbcokey = ((ladder&0xF)<<22)|((chip&0x1F)<<17)|(bco&0x7F) ;
+      uint chipbcokey = ((ladder&0xFu)<<22u)|((chip&0x1Fu)<<17u)|(bco&0x7Fu) ;
       vchipbco[ifelix].insert(std::make_pair(chipbcokey, ihit)); // no ADC info
 
       h_bco[ifelix]->Fill(ladder*26 + chip+0.5, bco+0.5);
@@ -178,7 +182,7 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
 
       InttRawHit *hit = rawhitmap->get_hit(val.second);
 
-      uint64_t bcofull= (hit->get_bco()&0xFFFFFFFFFF); // 7bit
+      uint64_t bcofull= (hit->get_bco()&0xFFFFFFFFFFULL); // 7bit
 
       // stream mode
       //uint64_t bcofull_reco = bco + bcointt;
@@ -210,9 +214,9 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
   for(int ifelix=0; ifelix<8; ifelix++){
     for(auto& val : vbcodiff_felix[ifelix]){
       int bcointtgl1_diff = val.first;
-      int count           = val.second;
+      //int count           = val.second;
 
-      cout<<"             recobco diff : "<<bcointtgl1_diff<<" "<<count<<" "<<ifelix<<endl;
+      //cout<<"             recobco diff : "<<bcointtgl1_diff<<" "<<count<<" "<<ifelix<<endl;
 
       auto bco_all_itr = vbcodiff_all.find(bcointtgl1_diff);
       if(bco_all_itr==vbcodiff_all.end()) {
@@ -284,29 +288,47 @@ void InttStreamQA::createHistos(){
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  string sname, stitle;
+  ostringstream strname, strtitle;
   for(int i=0; i<8; i++){
-    h_bco[i] = new TH2F((getHistoPrefix()+Form("bco_%d", i)).c_str(), Form("bco_%d;bco;ladder*chip", i), 26*14, 0, 26*14, 140, -7, 133);
-    h_hit[i] = new TH2F((getHistoPrefix()+Form("hit_%d", i)).c_str(), Form("hit_%d;bco;ladder*chip", i), 26*14, 0, 26*14, 128,  0, 128);
+    sname    = (getHistoPrefix() + "bco_" + to_string(i));
+    stitle   = ("bco_" + to_string(i) + ";bco;ladder*chip");
+    h_bco[i] = new TH2F(sname.c_str(), stitle.c_str(), 26*14, 0, 26*14, 140, -7, 133);
     hm->registerHisto(h_bco[i]);
+
+    sname = (getHistoPrefix() + "hit_" + to_string(i));
+    stitle= ("hit_" + to_string(i) + ";bco;ladder*chip");
+    h_hit[i] = new TH2F(sname.c_str(), stitle.c_str(), 26*14, 0, 26*14, 128,  0, 128);
     hm->registerHisto(h_hit[i]);
 
    
     // RecoBCO - GL1BCO
-    h_bcoreco_diff[i]     = new TH1F((getHistoPrefix()+Form("bcoreco_diff_%d", i)).c_str(),     Form("bcoreco diff_%d", i),     540, -270, 270);
-    h_bcoreco_evt_diff[i] = new TH1F((getHistoPrefix()+Form("bcoreco_evt_diff_%d", i)).c_str(), Form("bcoreco evt diff_%d", i), 540, -270, 270);
+    sname = (getHistoPrefix() + "bcoreco_diff_" + to_string(i));
+    stitle= ("bcoreco diff_" + to_string(i));
+    h_bcoreco_diff[i]     = new TH1F(sname.c_str(),     stitle.c_str(),     540, -270, 270);
     hm->registerHisto(h_bcoreco_diff[i]);
+
+    sname = (getHistoPrefix() + "bcoreco_evt_diff_" + to_string(i));
+    stitle= ("bcoreco evt diff_" + to_string(i));
+    h_bcoreco_evt_diff[i] = new TH1F(sname.c_str(), stitle.c_str(), 540, -270, 270);
     hm->registerHisto(h_bcoreco_evt_diff[i]);
 
     // RecoBCO - StrobeBCO, same as FPHX BCO
-    h_bcorecointt_diff[i] = new TH1F((getHistoPrefix()+Form("bcorecointt_diff_%d", i)).c_str(), Form("bcoreco intt diff_%d", i), 540, -270, 270);
+    sname = (getHistoPrefix() + "bcorecointt_diff_" + to_string(i));
+    stitle= ("bcoreco intt diff_" + to_string(i));
+    h_bcorecointt_diff[i] = new TH1F(sname.c_str(), stitle.c_str(), 540, -270, 270);
     hm->registerHisto(h_bcorecointt_diff[i]);
 
     // ChipBCO
-    h_bco_felix[i]= new TH1F((getHistoPrefix()+Form("bco_felix_%d", i)).c_str(), Form("bcofelix_%d", i), 128,  0, 128);
+    sname = (getHistoPrefix() + "bco_felix_" + to_string(i));
+    stitle= ("bco_felix_" + to_string(i));
+    h_bco_felix[i]= new TH1F(sname.c_str(), stitle.c_str(), 128,  0, 128);
     hm->registerHisto(h_bco_felix[i]);
 
     // StrobeBCO - GL1BCO
-    h_bcogl1diff_felix[i]= new TH1F((getHistoPrefix()+Form("bcogl1diff_felix_%d", i)).c_str(), Form("bcogl1diff_felix_%d", i), 1024, -512, 512);
+    sname = (getHistoPrefix() + "bcogl1diff_felix_" + to_string(i));
+    stitle= ("bcogl1diff_felix_" + to_string(i));
+    h_bcogl1diff_felix[i]= new TH1F(sname.c_str(), stitle.c_str(), 1024, -512, 512);
     hm->registerHisto(h_bcogl1diff_felix[i]);
 
 
@@ -317,13 +339,15 @@ void InttStreamQA::createHistos(){
     //hm->registerHisto(h_bunch_strb[i]);
 
     // RecoBCO - Gl1BCO, vs  bunch, to see the peak
-    h_bunch_evt_bcodiff[i] = new TH2F((getHistoPrefix()+Form("bunch_evt_bcodiff_%d", i)).c_str(), Form("bunch @ strobe_%d", i),
-                                      750, -250, 500, 150, -15, 135);
+    sname = (getHistoPrefix() + "bunch_evt_bcodiff_" + to_string(i));
+    stitle= ("bunch @ strobe_" + to_string(i));
+    h_bunch_evt_bcodiff[i] = new TH2F(sname.c_str(), stitle.c_str(), 750, -250, 500, 150, -15, 135);
     hm->registerHisto(h_bunch_evt_bcodiff[i]);
 
     //ChipBCO vs Bunch to check the linear correlation
-    h_bunch_bco[i] = new TH2F((getHistoPrefix()+Form("bunch_bco_%d", i)).c_str(), Form("bunch vs BCO %d", i),
-                                      150, 0, 150, 150, -15, 135);
+    sname = (getHistoPrefix() + "bunch_bco_" + to_string(i));
+    stitle= ("bunch vs BCO " + to_string(i));
+    h_bunch_bco[i] = new TH2F(sname.c_str(), stitle.c_str(), 150, 0, 150, 150, -15, 135);
     hm->registerHisto(h_bunch_bco[i]);
 
     // StrobeBCO - Prev StrobeBCO
