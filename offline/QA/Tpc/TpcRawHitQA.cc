@@ -196,7 +196,6 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
     h_nhits_sectors[s]->Fill(nhit_sectors[s]);
     for (int f = 0; f < 26; f++)
     {
-      std::cout << nhit_sectors_fees[s][f] << std::endl;
       h_nhits_sectors_fees[s]->Fill(f, nhit_sectors_fees[s][f]);
     }
   }
