@@ -112,7 +112,7 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
 
   int evtcnt= (rawhitmap->get_nhits()>0)
                            ? rawhitmap->get_hit(0)->get_event_counter()
-                           : std::numeric_limits<uint64_t>::max();
+                           : std::numeric_limits<int>::max();
 
   //////////////////////////////
 
