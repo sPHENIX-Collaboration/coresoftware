@@ -1504,17 +1504,17 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer)
 {
-  PHGhostRejection rejector(Verbosity());
-  
-  // reject low-pt tracks & low-ncluster tracks
-  rejector.cut_on_pt_nclus(seeds);
 
+  // testing with presets for rejection
+  PHGhostRejection rejector(Verbosity(), seeds);
+  rejector.set_min_pt_cut(0.2);
+  rejector.set_must_span_sectors(true);
+  rejector.set_min_clusters(8);
+  
   for (unsigned int itrack=0; itrack < seeds.size(); ++itrack) 
   {
-    // skip tracks with low-pt values
-    if (rejector.m_rejected[itrack]) {
-      continue;
-    }
+    // cut tracks with too-few clusters (or that don;t span a sector boundary, if desired)
+    if (rejector.cut_from_clusters(itrack)) { continue; }
 
     auto& seed = seeds[itrack];
     /// The ALICEKF gives a better charge determination at high pT
@@ -1535,15 +1535,16 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
   // now do the ghost rejection *before* publishing the seeds to the _track_map
   timer.stop();
   timer.restart();
-  rejector.cut_ghosts(trackChi2, seeds);
+
+  rejector.find_ghosts(trackChi2);
   if (Verbosity() > 2)
   {
-    std::cout << "ghost rejection time " << timer.elapsed() << std::endl;
+    std::cout << "ghost rejection find time " << timer.elapsed() << std::endl;
   }
 
   for (unsigned int itrack=0; itrack < seeds.size(); ++itrack) 
   {
-    if (rejector.m_rejected[itrack]) { 
+    if (rejector.is_rejected(itrack)) {
       if (Verbosity() > 0)
       {
         std::cout << " Seed " << ((int)itrack) << " rejected. Not getting published." << std::endl;

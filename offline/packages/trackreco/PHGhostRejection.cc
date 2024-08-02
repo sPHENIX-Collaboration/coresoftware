@@ -22,82 +22,85 @@
 PHGhostRejection::~PHGhostRejection() = default;
 
 //____________________________________________________________________________..
-void PHGhostRejection::cut_on_pt_nclus(std::vector<TrackSeed_v2>& seeds) {
-  if (m_rejected.size() == 0) 
+bool PHGhostRejection::cut_from_clusters(int itrack) {
+  const auto& track = seeds[itrack];
+  unsigned int nclusters = track.size_cluster_keys();
+  if (nclusters < _min_clusters) 
   {
-    m_rejected = std::vector<bool> (seeds.size(), false);
-  }
-  for (unsigned int id = 0; id != seeds.size(); ++id)
+    m_rejected[itrack] = true;
+    if (m_verbosity > 3) {
+      std::cout << " rejecting track ID (" << ((int)itrack) 
+        <<") because n-clusters(" << ((int)nclusters) <<")" << std::endl;
+    }
+    return true;
+  } 
+  if (_must_span_sectors)
   {
-    TrackSeed& track = seeds[id];
-
-    // BEGIN: Eliminate low interest tracks
-    if ( (track.size_cluster_keys() < _min_clusters)
-      || (track.get_pt() < _min_pt_cut))
+    // check that there are clusters in at least 2 of the three layers of sectors
+    bool in_two_sectors = false;
+    bool in_0 = false;
+    bool in_1 = false;
+    bool in_2 = false;
+    if (m_verbosity > 3)
     {
-      if (m_verbosity > 3) {
-        std::cout << " rejecting track ID (" << ((int)id) <<") for n-clusters(" << ((int)track.size_cluster_keys()) <<") or pt(" << track.get_pt() <<")" << std::endl;
-      }
-      m_rejected[id] = true;
-    } 
-    else if (_must_span_sectors)
+      std::cout << " layers in track: ";
+    }
+    for (auto key = track.begin_cluster_keys();
+        key != track.end_cluster_keys();
+        ++key)
     {
-      // check that there are clusters in at least 2 of the three layers of sectors
-      bool in_two_sectors = false;
-      bool in_0 = false;
-      bool in_1 = false;
-      bool in_2 = false;
-      if (m_verbosity > 3)
+      unsigned int layer = TrkrDefs::getLayer(*key);
+      if (m_verbosity > 4)
       {
-        std::cout << " layers in track: ";
+        std::cout << ((int) layer) << " ";
       }
-      for (auto key = track.begin_cluster_keys();
-           key != track.end_cluster_keys();
-           ++key)
-      {
-        unsigned int layer = TrkrDefs::getLayer(*key);
-        if (m_verbosity > 3)
-        {
-          std::cout << ((int) layer) << " ";
-        }
 
-        if (layer < 23)
-        { in_0 = true; }
-        else if (layer < 40)
-        { in_1 = true; }
-        else
-        { in_2 = true; }
+      if (layer < 23)
+      { in_0 = true; }
+      else if (layer < 40)
+      { in_1 = true; }
+      else
+      { in_2 = true; }
 
-        if ((in_0+in_1+in_2)>1)
-        {
-          in_two_sectors = true;
-          break;
-        }
-      }
-      if (m_verbosity > 3)
-      { std::cout << std::endl; }
-      if (!in_two_sectors)
+      if ((in_0+in_1+in_2)>1)
       {
-        m_rejected[id] = true;
-        if (m_verbosity > 1) {
-          std::cout << " Cutting track ID " << ((int)id) << "  because only has clusters in " << (in_0 ? "inner sector  (layers <23)" : in_1 ? "middle sector  (layers 23-39)"
-              : "outer   (layers >40) ")
-            << std::endl;
-        }
+        in_two_sectors = true;
+        break;
       }
     }
+    if (m_verbosity > 3)
+    { std::cout << std::endl; }
+    if (!in_two_sectors)
+    {
+      m_rejected[itrack] = true;
+      if (m_verbosity > 1) {
+        std::cout << " Cutting track ID " << ((int)itrack) 
+          << "  because only has clusters in " 
+          << (in_0 ? "inner sector  (layers <23)" 
+            : in_1 ? "middle sector  (layers 23-39)"
+            : "outer   (layers >40) ")
+          << std::endl;
+      }
+      return true;
+    }
   }
+  return false;
 }
 
-void PHGhostRejection::cut_ghosts(std::vector<float>& trackChi2, std::vector<TrackSeed_v2>& seeds)
+void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
 {
   if (m_verbosity > 0)
   {
     std::cout << "PHGhostRejection beginning track map size " << seeds.size() << std::endl;
   }
-  if (m_rejected.size() == 0) 
-  {
-    m_rejected = std::vector<bool> (seeds.size(), false);
+
+  // cut now pt tracks
+  if (_min_pt>0.) {
+    for (unsigned int i=0;i<seeds.size();++i) {
+      if (seeds[i].get_pt() < _min_pt) {
+        m_rejected[i] = true;
+      }
+    }
   }
 
   // Elimate low-interest track, and try to eliminate repeated tracks
@@ -170,9 +173,7 @@ void PHGhostRejection::cut_ghosts(std::vector<float>& trackChi2, std::vector<Tra
       auto tr2 = seeds[it->second];
 
       // Check that these two tracks actually share the same clusters, if not skip this pair
-
       bool is_same_track = checkClusterSharing(tr1, tr2);
-
       if (!is_same_track)
       {
         continue;
