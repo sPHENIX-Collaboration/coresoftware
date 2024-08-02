@@ -48,6 +48,12 @@ class JetKinematicCheck : public SubsysReco
     m_histTag = tag;
   }
 
+  // restrict eta range by rJet
+  void setRestrictEtaRange(const bool restrictEtaRange = true)
+  {
+    m_restrictEtaRange = restrictEtaRange;
+  }
+
   // specifies a trigger to require
   void setTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
   {
@@ -89,6 +95,9 @@ class JetKinematicCheck : public SubsysReco
   std::string m_recoJetNameR04;
   std::string m_recoJetNameR05;
   std::string m_histTag;
+
+  // cuts
+  bool m_restrictEtaRange;
   std::pair<double, double> m_etaRange;
   std::pair<double, double> m_ptRange;
 

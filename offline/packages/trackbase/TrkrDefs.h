@@ -53,8 +53,7 @@ namespace TrkrDefs
     mvtxId = 0,
     inttId = 1,
     tpcId = 2,
-    micromegasId = 3,
-    ttl = 4,
+    micromegasId = 3
   };
 
   //! Standard names for trackers
@@ -63,8 +62,7 @@ namespace TrkrDefs
       {mvtxId, "MVTX"},
       {inttId, "INTT"},
       {tpcId, "TPC"},
-      {micromegasId, "MICROMEGAS"},
-      {ttl, "TTL"}
+      {micromegasId, "MICROMEGAS"}
   };
 
   /// Print the bits for each key type
