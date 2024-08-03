@@ -211,10 +211,10 @@ class PHCASeeding : public PHTrackSeeding
    */
   Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
   std::pair<PositionMap, keyListPerLayer> FillGlobalPositions();
-  std::pair<keyLinks, keyLinkPerLayer> CreateBiLinks(PositionMap& globalPositions, const keyListPerLayer& ckeys); 
+  std::pair<keyLinks, keyLinkPerLayer> CreateBiLinks(const PositionMap& globalPositions, const keyListPerLayer& ckeys); 
   PHCASeeding::keyLists FollowBiLinks( const keyLinks& trackSeedPairs, const keyLinkPerLayer& bilinks, const PositionMap& globalPositions) const;
-  std::vector<coordKey> FillTree(bgi::rtree<pointKey,bgi::quadratic<16>>&, const keyList&, PositionMap&, int layer);
-  int FindSeedsWithMerger(PositionMap&, const keyListPerLayer&);
+  std::vector<coordKey> FillTree(bgi::rtree<pointKey,bgi::quadratic<16>>&, const keyList&, const PositionMap&, int layer);
+  int FindSeedsWithMerger(const PositionMap&, const keyListPerLayer&);
 
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double zmin, double phimax, double zmax, std::vector<pointKey>& returned_values) const;
   std::vector<TrackSeed_v2> RemoveBadClusters(const std::vector<keyList>& seeds, const PositionMap& globalPositions) const;
