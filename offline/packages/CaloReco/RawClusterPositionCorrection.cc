@@ -148,7 +148,8 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() >= Fun4AllBase::VERBOSITY_SOME)
   {
-    if (iEvent % 100 == 0) std::cout << "Progress: " << iEvent << std::endl;
+    if (iEvent % 100 == 0) { std::cout << "Progress: " << iEvent << std::endl;
+}
     ++iEvent;
   }
 
@@ -242,7 +243,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
         int iphi = RawTowerDefs::decode_index2(toweriter->first);  // index2 is phi in CYL
         int ieta = RawTowerDefs::decode_index1(toweriter->first);  // index1 is eta in CYL
-        unsigned int towerkey = iphi + (ieta << 16U);
+        unsigned int towerkey = iphi + ((unsigned int) (ieta) << 16U);
 
         assert(_towerinfos);
 
@@ -295,7 +296,8 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     }
 
     float avgphi = phimult / phisum;
-    if (isnan(avgphi)) continue;
+    if (isnan(avgphi)) { continue;
+}
 
     float avgeta = etamult / etasum;
 
@@ -306,7 +308,8 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
     avgphi = fmod(avgphi, nphibin);
 
-    if (avgphi >= 255.5) avgphi -= bins_phi;
+    if (avgphi >= 255.5) { avgphi -= bins_phi;
+}
 
     avgphi = fmod(avgphi + 0.5, 8) - 0.5;  // wrapping [-0.5, 255.5] to [-0.5, 7.5]
     int etabin = -99;
@@ -365,7 +368,8 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
       int etaBin = pdcCorrFlat -> GetYaxis() -> FindBin(clusEta);
       float pdcCalib =  pdcCorrFlat -> GetBinContent(ecoreBin, etaBin);
       //float pdcCalib = pdcCorrFlat->GetBinContent(ecoreBin);
-      if (pdcCalib < 0.1) pdcCalib = 1;
+      if (pdcCalib < 0.1) { pdcCalib = 1;
+}
 
       recalibcluster->set_ecore(recalibcluster->get_ecore() / pdcCalib);
     }

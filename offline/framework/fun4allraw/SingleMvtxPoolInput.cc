@@ -28,6 +28,7 @@ SingleMvtxPoolInput::SingleMvtxPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
   plist = new Packet *[2];
+  m_rawHitContainerName = "MVTXRAWHIT";
 }
 
 SingleMvtxPoolInput::~SingleMvtxPoolInput()
@@ -401,19 +402,19 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     dstNode->addNode(detNode);
   }
 
-  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeader>(detNode, "MVTXRAWEVTHEADER");
+  MvtxRawEvtHeader *mvtxEH = findNode::getClass<MvtxRawEvtHeader>(detNode, m_rawEventHeaderName);
   if (!mvtxEH)
   {
     mvtxEH = new MvtxRawEvtHeaderv2();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mvtxEH, "MVTXRAWEVTHEADER", "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mvtxEH, m_rawEventHeaderName, "PHObject");
     detNode->addNode(newNode);
   }
 
-  MvtxRawHitContainer *mvtxhitcont = findNode::getClass<MvtxRawHitContainer>(detNode, "MVTXRAWHIT");
+  MvtxRawHitContainer *mvtxhitcont = findNode::getClass<MvtxRawHitContainer>(detNode, m_rawHitContainerName);
   if (!mvtxhitcont)
   {
     mvtxhitcont = new MvtxRawHitContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mvtxhitcont, "MVTXRAWHIT", "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(mvtxhitcont, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
 }

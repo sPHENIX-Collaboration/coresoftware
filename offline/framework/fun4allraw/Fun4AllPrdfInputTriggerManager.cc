@@ -1140,14 +1140,34 @@ int Fun4AllPrdfInputTriggerManager::MoveZdcToNodeTree()
 
 void Fun4AllPrdfInputTriggerManager::AddZdcPacket(int eventno, CaloPacket *pkt)
 {
+  if (pkt == nullptr)
+  {
+    std::cout << PHWHERE << " got null ptr to add packet, not doing this" << std::endl;
+    return;
+  }
   if (Verbosity() > 1)
   {
     std::cout << "AddZdcPacket: Adding zdc packet " << pkt->getIdentifier()
-              << " for event " << pkt->getEvtSequence() << " to eventno: "
+              << " from event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
-  auto &iter = m_ZdcPacketMap[eventno];
-  iter.CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  auto ret = m_ZdcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  if (ret.second)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " was successful" << std::endl;
+    }
+  }
+  else
+  {
+    if (Verbosity() > 3)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " failed - duplicate?" << std::endl;
+    }
+  }
   return;
 }
 
@@ -1223,7 +1243,23 @@ void Fun4AllPrdfInputTriggerManager::AddSEpdPacket(int eventno, CaloPacket *pkt)
               << eventno << std::endl;
   }
   //  auto &iter = m_SEpdPacketMap[eventno];
-  m_SEpdPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  auto ret = m_SEpdPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  if (ret.second)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " was successful" << std::endl;
+    }
+  }
+  else
+  {
+    if (Verbosity() > 3)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " failed - duplicate?" << std::endl;
+    }
+  }
   return;
 }
 

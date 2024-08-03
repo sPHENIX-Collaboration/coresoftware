@@ -55,6 +55,7 @@ SingleMicromegasPoolInput::SingleMicromegasPoolInput(const std::string& name)
   : SingleStreamingInput(name)
 {
   SubsystemEnum(InputManagerType::MICROMEGAS);
+  m_rawHitContainerName = "MICROMEGASRAWHIT";
 }
 
 //______________________________________________________________
@@ -464,11 +465,11 @@ void SingleMicromegasPoolInput::CreateDSTNode(PHCompositeNode* topNode)
     dstNode->addNode(detNode);
   }
 
-  auto container = findNode::getClass<MicromegasRawHitContainer>(detNode, "MICROMEGASRAWHIT");
+  auto container = findNode::getClass<MicromegasRawHitContainer>(detNode, m_rawHitContainerName);
   if (!container)
   {
     container = new MicromegasRawHitContainerv1();
-    auto newNode = new PHIODataNode<PHObject>(container, "MICROMEGASRAWHIT", "PHObject");
+    auto newNode = new PHIODataNode<PHObject>(container, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
 }
