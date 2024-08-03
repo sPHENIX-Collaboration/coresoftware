@@ -41,7 +41,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
   {
     m_calibinfoBCO = std::pair<std::string, CalibRef>(calibname, calibref);
   }
-
+  void useRawHitNodeName(const std::string& name) { m_InttRawNodeName = name; }
   void runInttStandalone(bool runAlone) { m_runStandAlone = runAlone; }
 
   void writeInttEventHeader(bool write) { m_writeInttEventHeader = write; }

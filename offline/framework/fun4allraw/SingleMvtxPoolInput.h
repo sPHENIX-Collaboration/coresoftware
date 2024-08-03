@@ -28,6 +28,8 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
   void setRawEventHeaderName(const std::string &name) { m_rawEventHeaderName = name; }
+  std::string getRawEventHeaderName() const { return m_rawEventHeaderName; }
+  
   const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
 
   void clearFeeGTML1BCOMap(const uint64_t& bclk) {
