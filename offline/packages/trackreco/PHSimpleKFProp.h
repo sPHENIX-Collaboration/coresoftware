@@ -71,6 +71,11 @@ class PHSimpleKFProp : public SubsysReco
   void set_pp_mode(bool mode) { _pp_mode = mode; }
   enum class PropagationDirection { Outward, Inward };
 
+  void setArgonFraction(double frac) { Ar_frac = frac; };
+  void setCF4Fraction(double frac) { CF4_frac = frac; };
+  void setNitrogenFraction(double frac) { N2_frac = frac; };
+  void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
+
  private:
   bool _use_truth_clusters = false;
   bool m_ghostrejection = true;
@@ -172,6 +177,11 @@ class PHSimpleKFProp : public SubsysReco
   std::array<double, 3> _fixed_clus_err = {.2, .2, .5};
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
+
+  double Ar_frac = 0.75;
+  double CF4_frac = 0.20;
+  double N2_frac = 0.00;
+  double isobutane_frac = 0.05;
 
 };
 

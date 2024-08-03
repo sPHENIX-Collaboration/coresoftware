@@ -118,6 +118,10 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 
   fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, _field_map.get(), _fieldDir,
                                      _min_clusters_per_track, _max_sin_phi, Verbosity());
+  fitter->setArgonFraction(Ar_frac);
+  fitter->setCF4Fraction(CF4_frac);
+  fitter->setNitrogenFraction(N2_frac);
+  fitter->setIsobutaneFraction(isobutane_frac);
   fitter->useConstBField(_use_const_field);
   fitter->setConstBField(_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
@@ -1101,6 +1105,10 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   // get track parameters
   GPUTPCTrackParam kftrack{};
   kftrack.InitParam();
+  kftrack.setArgonFraction(Ar_frac);
+  kftrack.setCF4Fraction(CF4_frac);
+  kftrack.setNitrogenFraction(N2_frac);
+  kftrack.setIsobutaneFraction(isobutane_frac);
 
   float track_phi = atan2(track_y, track_x);
   if (Verbosity()>1)

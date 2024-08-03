@@ -348,8 +348,22 @@ bool GPUTPCTrackParam::TransportToXWithMaterial(double x, GPUTPCTrackLinearisati
 
 //  const double kRho = 1.025e-3f;  // 0.9e-3;
 //  const double kRadLen = 29.532f; // 28.94;
-  const double kRho = 2.485e-3f;
-  const double kRadLen = 23.552f;
+  double Ar_nEff = Ar_frac * Ar_Rho / Ar_mA; //Scaled effective number of particles in mix (Avogadro's number and density scale cancel in the ratio with total particles)
+  double CF4_nEff = CF4_frac * CF4_Rho / CF4_mA;
+  double N2_nEff = N2_frac * N2_Rho / N2_mA;
+  double isobutane_nEff = isobutane_frac * isobutane_Rho / isobutane_mA;
+  double nEff = Ar_nEff + CF4_nEff + N2_nEff + isobutane_nEff;
+
+  // these are for the sPHENIX TPC gas mixture
+  const double kRho = Ar_frac * Ar_Rho
+                    + CF4_frac * CF4_Rho
+                    + N2_frac * N2_Rho
+                    + isobutane_frac * isobutane_Rho;
+
+  const double kRadLen = (1/nEff) * ((Ar_nEff * Ar_RadLen)
+                                  +  (CF4_nEff * CF4_RadLen)
+                                  +  (N2_nEff * N2_RadLen)
+                                  +  (isobutane_nEff * isobutane_RadLen));
   const double kRhoOverRadLen = kRho / kRadLen;
   double dl;
 
@@ -447,12 +461,43 @@ double GPUTPCTrackParam::BetheBlochGas(double bg)
 //  const double mI = 140.e-9f;
 //  const double mZA = 0.49555f;
 
+  double Ar_nEff = Ar_frac * Ar_Rho / Ar_mA; //Scaled effective number of particles in mix (Avogadro's number and density scale cancel in the ratio with total particles)
+  double CF4_nEff = CF4_frac * CF4_Rho / CF4_mA;
+  double N2_nEff = N2_frac * N2_Rho / N2_mA;
+  double isobutane_nEff = isobutane_frac * isobutane_Rho / isobutane_mA;
+  double nEff = Ar_nEff + CF4_nEff + N2_nEff + isobutane_nEff;
+
   // these are for the sPHENIX TPC gas mixture
-  const double rho = 2.485e-3f;
-  const double x0 = 2.f;
-  const double x1 = 4.f;
-  const double mI = 11.6e-9f;
-  const double mZA = 0.46158f; 
+//  const double rho = 2.485e-3f;
+//  const double x0 = 2.f;
+//  const double x1 = 4.f;
+//  const double mI = 11.6e-9f;
+//  const double mZA = 0.46158f; 
+
+  const double rho = Ar_frac * Ar_Rho
+                   + CF4_frac * CF4_Rho
+                   + N2_frac * N2_Rho
+                   + isobutane_frac * isobutane_Rho;
+
+  const double x0 = (1/nEff) * ((Ar_nEff * Ar_x0)
+                             +  (CF4_nEff * CF4_x0)
+                             +  (N2_nEff * N2_x0)
+                             +  (isobutane_nEff * isobutane_x0));
+
+  const double x1 = (1/nEff) * ((Ar_nEff * Ar_x1)
+                             +  (CF4_nEff * CF4_x1)
+                             +  (N2_nEff * N2_x1)
+                             +  (isobutane_nEff * isobutane_x1));
+
+  const double mI = (1/nEff) * ((Ar_nEff * Ar_mI)
+                             +  (CF4_nEff * CF4_mI)
+                             +  (N2_nEff * N2_mI)
+                             +  (isobutane_nEff * isobutane_mI));
+
+  const double mZA = (1/nEff) * ((Ar_nEff * Ar_mZA)
+                              +  (CF4_nEff * CF4_mZA)
+                              +  (N2_nEff * N2_mZA)
+                              +  (isobutane_nEff * isobutane_mZA));
   return BetheBlochGeant(bg, rho, x0, x1, mI, mZA);
 }
 

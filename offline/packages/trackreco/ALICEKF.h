@@ -50,6 +50,11 @@ class ALICEKF
   explicit ALICEKF(const ALICEKF&) = delete;
   ALICEKF& operator=(const ALICEKF&) = delete;
 
+  void setArgonFraction(double frac) { Ar_frac = frac; };
+  void setCF4Fraction(double frac) { CF4_frac = frac; };
+  void setNitrogenFraction(double frac) { N2_frac = frac; };
+  void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
+
   bool TransportAndRotate(double old_radius, double new_radius, double& phi, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp) const;
   bool FilterStep(TrkrDefs::cluskey ckey, std::vector<TrkrDefs::cluskey>& keys, double& current_phi, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp, const PositionMap& globalPositions) const;
 
@@ -83,6 +88,11 @@ class ALICEKF
   float _const_field = 1.4;
   bool _use_fixed_clus_error = true;
   std::array<double,3> _fixed_clus_error = {.2,.2,.5};
+
+  double Ar_frac = 0.75;
+  double CF4_frac = 0.20;
+  double N2_frac = 0.00;
+  double isobutane_frac = 0.05;
 
 };
 
