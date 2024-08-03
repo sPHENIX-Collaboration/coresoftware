@@ -101,28 +101,33 @@ bool ALICEKF::TransportAndRotate(double old_radius, double new_radius, double& p
 {
   const double transport_spacing = .05;
   const int Ndivisions = floor(fabs(new_radius-old_radius)/transport_spacing);
-  if(Verbosity()>2) std::cout << "old_radius: " << old_radius << ", new_radius: " << new_radius << std::endl;
-  if(Verbosity()>2) std::cout << "Ndivisions: " << Ndivisions << std::endl;
+  if(Verbosity()>2) { std::cout << "old_radius: " << old_radius << ", new_radius: " << new_radius << std::endl;
+}
+  if(Verbosity()>2) { std::cout << "Ndivisions: " << Ndivisions << std::endl;
+}
   for(int i=1; i<=Ndivisions+1; i++)
   {
     if(std::isnan(kftrack.GetX()) ||
        std::isnan(kftrack.GetY()) ||
        std::isnan(kftrack.GetZ()))
     {
-      if(Verbosity()>0) std::cout << "position is NaN, exiting" << std::endl;
+      if(Verbosity()>0) { std::cout << "position is NaN, exiting" << std::endl;
+}
       return false;
     }
 
     if(new_radius > 78. || fabs(kftrack.GetZ()) > 105.5)
     {
-      if(Verbosity()>1) std::cout << "outside TPC, exiting" << std::endl;
+      if(Verbosity()>1) { std::cout << "outside TPC, exiting" << std::endl;
+}
       return false;
     }
 
     double r_div;
-    if(i==Ndivisions+1) r_div = new_radius;
-    else if(old_radius<new_radius) r_div = old_radius + transport_spacing*i;
-    else r_div = old_radius - transport_spacing*i;
+    if(i==Ndivisions+1) { r_div = new_radius;
+    } else if(old_radius<new_radius) { r_div = old_radius + transport_spacing*i;
+    } else { r_div = old_radius - transport_spacing*i;
+}
 
     // track state position relative to radial direction
     const double tX = kftrack.GetX();
@@ -140,7 +145,8 @@ bool ALICEKF::TransportAndRotate(double old_radius, double new_radius, double& p
     // transport to radius
     if(!kftrack.TransportToXWithMaterial(r_div, fp, Bz, 1.))
     {
-      if(Verbosity()>1) std::cout << "transport failed" << std::endl;
+      if(Verbosity()>1) { std::cout << "transport failed" << std::endl;
+}
       return false;
     }
 
@@ -153,7 +159,8 @@ bool ALICEKF::TransportAndRotate(double old_radius, double new_radius, double& p
     const double alpha = new_phi - phi;
     if(!kftrack.Rotate(alpha,1.))
     {
-      if(Verbosity()>1) std::cout << "rotate failed" << std::endl;
+      if(Verbosity()>1) { std::cout << "rotate failed" << std::endl;
+}
       return false;
     }
     phi = new_phi;
@@ -179,7 +186,8 @@ bool ALICEKF::FilterStep(TrkrDefs::cluskey ckey, keylist& keys, double& current_
      std::isnan(kftrack.GetY()) ||
      std::isnan(kftrack.GetZ()))
   {
-    if(Verbosity()>0) std::cout << "position is NaN, exiting" << std::endl;
+    if(Verbosity()>0) { std::cout << "position is NaN, exiting" << std::endl;
+}
     return false;
   }
 
@@ -199,7 +207,7 @@ bool ALICEKF::FilterStep(TrkrDefs::cluskey ckey, keylist& keys, double& current_
     std::cout << "track position: (" << tx << ", " << ty << ", " << tz << ")" << std::endl;
   }
 
-  const auto cluster_pos = globalPositions.at(ckey);
+  const auto& cluster_pos = globalPositions.at(ckey);
   const double cx = cluster_pos(0);
   const double cy = cluster_pos(1);
   const double cz = cluster_pos(2);
@@ -225,7 +233,8 @@ bool ALICEKF::FilterStep(TrkrDefs::cluskey ckey, keylist& keys, double& current_
       return false;
     }
 
-    if(Verbosity()>1) std::cout << "track turned around near X=" << kftrack.GetX() << std::endl;
+    if(Verbosity()>1) { std::cout << "track turned around near X=" << kftrack.GetX() << std::endl;
+}
 
     // TransportAndRotate failure indicates that track has turned around before it reaches next layer
     // The track parameters don't update in that last step, so we're likely somewhere between two layers
@@ -236,24 +245,31 @@ bool ALICEKF::FilterStep(TrkrDefs::cluskey ckey, keylist& keys, double& current_
     double end_tx = kftrack.GetX()*cos(current_phi)-kftrack.GetY()*sin(current_phi);
     double end_ty = kftrack.GetX()*sin(current_phi)+kftrack.GetY()*cos(current_phi);
     double end_tz = kftrack.GetZ();
-    if(Verbosity()>1) std::cout << "current parameters: pt=" << pt << ", (x, y, z) = (" << end_tx << ", " << end_ty << ", " << end_tz << ")" << std::endl;
+    if(Verbosity()>1) { std::cout << "current parameters: pt=" << pt << ", (x, y, z) = (" << end_tx << ", " << end_ty << ", " << end_tz << ")" << std::endl;
+}
     // pt[GeV] = 0.3 B[T] R[m]
     double R = 100.*pt/(0.3*get_Bz(end_tx,end_ty,end_tz));
-    if(Verbosity()>2) std::cout << "R=" << R << std::endl;
+    if(Verbosity()>2) { std::cout << "R=" << R << std::endl;
+}
     double pX = pt*kftrack.GetCosPhi();
     double pY = pt*kftrack.GetSinPhi();
-    if(Verbosity()>2) std::cout << "(pX, pY) = (" << pX << ", " << pY << ")" << std::endl;
+    if(Verbosity()>2) { std::cout << "(pX, pY) = (" << pX << ", " << pY << ")" << std::endl;
+}
     double px = pX*cos(current_phi)-pY*sin(current_phi);
     double py = pX*sin(current_phi)+pY*cos(current_phi);
     double tangent_phi = atan2(py,px);
     double center_phi;
-    if(kftrack.GetQPt()>0) center_phi = tangent_phi + M_PI/2.;
-    else center_phi = tangent_phi - M_PI/2.;
-    if(center_phi>M_PI) center_phi -= 2.*M_PI;
-    if(center_phi<-M_PI) center_phi += 2.*M_PI;
+    if(kftrack.GetQPt()>0) { center_phi = tangent_phi + M_PI/2.;
+    } else { center_phi = tangent_phi - M_PI/2.;
+}
+    if(center_phi>M_PI) { center_phi -= 2.*M_PI;
+}
+    if(center_phi<-M_PI) { center_phi += 2.*M_PI;
+}
     double xc = end_tx - R*cos(center_phi);
     double yc = end_ty - R*sin(center_phi);
-    if(Verbosity()>2) std::cout << "(xc, yc) = (" << xc << ", " << yc << ")" << std::endl;
+    if(Verbosity()>2) { std::cout << "(xc, yc) = (" << xc << ", " << yc << ")" << std::endl;
+}
     auto circle_output = TrackFitUtils::circle_circle_intersection(sqrt(pow(kftrack.GetX(),2.)+pow(kftrack.GetY(),2.)),R,xc,yc);
     // pick the furthest point from current track position
     double new_tx;
@@ -262,7 +278,8 @@ bool ALICEKF::FilterStep(TrkrDefs::cluskey ckey, keylist& keys, double& current_
     double yplus = std::get<1>(circle_output);
     double xminus = std::get<2>(circle_output);
     double yminus = std::get<3>(circle_output);
-    if(Verbosity()>1) std::cout << "circle-circle intersection: (" << xplus << ", " << yplus << "), (" << xminus << ", " << yminus << ")" << std::endl;
+    if(Verbosity()>1) { std::cout << "circle-circle intersection: (" << xplus << ", " << yplus << "), (" << xminus << ", " << yminus << ")" << std::endl;
+}
 
     if(sqrt(pow(end_tx-xplus,2.)+pow(end_ty-yplus,2.))>sqrt(pow(end_tx-xminus,2.)+pow(end_ty-yminus,2.)))
     {
@@ -282,8 +299,10 @@ bool ALICEKF::FilterStep(TrkrDefs::cluskey ckey, keylist& keys, double& current_
     double new_tY = -new_tx*sin(rot_phi)+new_ty*cos(rot_phi);
     double new_centerphi = atan2(new_ty-yc,new_tx-xc);
     double dcenterphi = new_centerphi-center_phi;
-    if(dcenterphi>M_PI) dcenterphi = 2.*M_PI - dcenterphi;
-    if(dcenterphi<-M_PI) dcenterphi = 2.*M_PI + dcenterphi;
+    if(dcenterphi>M_PI) { dcenterphi = 2.*M_PI - dcenterphi;
+}
+    if(dcenterphi<-M_PI) { dcenterphi = 2.*M_PI + dcenterphi;
+}
     double ds = R*fabs(dcenterphi);
     double dz = kftrack.GetDzDs()*ds;
 
@@ -354,7 +373,8 @@ bool ALICEKF::FilterStep(TrkrDefs::cluskey ckey, keylist& keys, double& current_
     std::cout << "cosPhi = " << kftrack.GetCosPhi() << std::endl;
     std::cout << "dzds = " << kftrack.GetDzDs() << std::endl;
   }
-  if(!filter_success) keys.erase(std::find(keys.begin(),keys.end(),ckey));
+  if(!filter_success) { keys.erase(std::find(keys.begin(),keys.end(),ckey));
+}
   return true;
 }
 
@@ -474,7 +494,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     }
 */
     GPUTPCTrackLinearisation trackLine(trackSeed);
-    GPUTPCTrackParam::GPUTPCTrackFitParam fp;
+    GPUTPCTrackParam::GPUTPCTrackFitParam fp{};
     trackSeed.CalculateFitParameters(fp);
 
     LogDebug(std::endl << std::endl << "------------------------" << std::endl << "seed size: " << trackKeyChain.size() << std::endl << std::endl << std::endl);
@@ -485,17 +505,19 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     {
       if(!FilterStep(*clusterkey,outputKeyChain,current_phi,trackSeed,fp,globalPositions))
       {
-        if(Verbosity()>0) std::cout << "Kalman filter failed, exiting" << std::endl;
+        if(Verbosity()>0) { std::cout << "Kalman filter failed, exiting" << std::endl; }
         filter_failed = true;
         break;
       }
     }
-    if(filter_failed) continue;
+    if(filter_failed) { continue;
+}
     if(Verbosity()>0) {std::cout << "finished track\n";}
 
     double track_phi = atan2(y,x);
 
-    if(Verbosity()>1) std::cout << "final QPt = " << trackSeed.GetQPt() << std::endl;
+    if(Verbosity()>1) { std::cout << "final QPt = " << trackSeed.GetQPt() << std::endl;
+}
 
     double track_pt = fabs(1./trackSeed.GetQPt());
     #if defined(_DEBUG_)
@@ -525,16 +547,20 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     // double StartEta = -log(tan(atan(z0/sqrt(x0*x0+y0*y0))));
 //    if(aborted) continue;
 //    double track_pt = fabs( 1./(trackSeed.GetQPt()));
-    if(checknan(track_pt,"pT",nseeds)) continue;
+    if(checknan(track_pt,"pT",nseeds)) { continue;
+}
 //    double track_pterr = sqrt(trackSeed.GetErr2QPt())/(trackSeed.GetQPt()*trackSeed.GetQPt());
-    if(checknan(track_pterr,"pT err",nseeds)) continue;
+    if(checknan(track_pterr,"pT err",nseeds)) { continue;
+}
     LogDebug("Track pterr = " << track_pterr << std::endl);
     double track_x = trackSeed.GetX()*cos(track_phi)-trackSeed.GetY()*sin(track_phi);
     double track_y = trackSeed.GetX()*sin(track_phi)+trackSeed.GetY()*cos(track_phi);
     double track_z = trackSeed.GetZ();
-    if(checknan(track_z,"z",nseeds)) continue;
+    if(checknan(track_z,"z",nseeds)) { continue;
+}
     double track_zerr = sqrt(trackSeed.GetErr2Z());
-    if(checknan(track_zerr,"zerr",nseeds)) continue;
+    if(checknan(track_zerr,"zerr",nseeds)) { continue;
+}
     auto lcluster = _cluster_map->findCluster(trackKeyChain.back());
     const auto& lclusterglob = globalPositions.at(trackKeyChain.back());
     const float lclusterrad = sqrt(lclusterglob(0)*lclusterglob(0) + lclusterglob(1)*lclusterglob(1));
@@ -543,23 +569,27 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     // phi error assuming error in track radial coordinate is zero
     double track_phierr = sqrt(pow(last_cluster_phierr,2)+(pow(trackSeed.GetX(),2)*trackSeed.GetErr2Y()) / 
       pow(pow(trackSeed.GetX(),2)+pow(trackSeed.GetY(),2),2));
-    if(checknan(track_phierr,"phierr",nseeds)) continue;
+    if(checknan(track_phierr,"phierr",nseeds)) { continue;
+}
     LogDebug("Track phi = " << atan2(track_py,track_px) << std::endl);
     LogDebug("Track phierr = " << track_phierr << std::endl);
     double track_curvature = trackSeed.GetKappa(_Bzconst*get_Bz(track_x,track_y,track_z));
-    if(checknan(track_curvature,"curvature",nseeds)) continue;
+    if(checknan(track_curvature,"curvature",nseeds)) { continue;
+}
     double track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bzconst*get_Bz(track_x,track_y,track_z);
-    if(checknan(track_curverr,"curvature error",nseeds)) continue;
+    if(checknan(track_curverr,"curvature error",nseeds)) { continue;
+}
     TrackSeed_v2 track;
 //    track.set_vertex_id(_vertex_ids[best_vtx]);
-    for (unsigned int j = 0; j < outputKeyChain.size(); ++j)
+    for (unsigned long j : outputKeyChain)
     {
-      track.insert_cluster_key(outputKeyChain.at(j));
+      track.insert_cluster_key(j);
     }
   
     int track_charge = 0;
-    if(trackSeed.GetQPt()<0) track_charge = -1 * trackSeed.GetSignCosPhi();// * _fieldDir;
-    else track_charge = 1 * trackSeed.GetSignCosPhi();// * _fieldDir;
+    if(trackSeed.GetQPt()<0) { track_charge = -1 * trackSeed.GetSignCosPhi();// * _fieldDir;
+    } else { track_charge = 1 * trackSeed.GetSignCosPhi();// * _fieldDir;
+}
     
     double sinphi = sin(track_phi); // who had the idea to use s here?????
     double c = cos(track_phi);
@@ -574,7 +604,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     //if(Verbosity()>0) std::cout << "z " << track.get_z() << "\n";
     //if(checknan(p,"ALICE sinPhi",nseeds)) continue;
     double d = trackSeed.GetDzDs();
-    if(checknan(d,"ALICE dz/ds",nseeds)) continue;
+    if(checknan(d,"ALICE dz/ds",nseeds)) { continue;
+}
      
     /// Shows the transformation between ALICE and sPHENIX coordinates
     //double pY = track_pt*p;
@@ -589,9 +620,11 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     bool cov_nan = false;
     for(int i=0;i<15;i++)
     {
-      if(checknan(cov[i],"covariance element "+std::to_string(i),nseeds)) cov_nan = true;
+      if(checknan(cov[i],"covariance element "+std::to_string(i),nseeds)) { cov_nan = true;
+}
     }
-    if(cov_nan) continue;
+    if(cov_nan) { continue;
+}
     // make this into an actual Eigen matrix
     Eigen::Matrix<double,5,5> ecov;
     ecov(0,0)=cov[0];
@@ -758,7 +791,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
 //  f->cd();
 //  ntp->Write();
 //  f->Close();
-  if(Verbosity()>0) std::cout << "number of seeds: " << nseeds << "\n";
+  if(Verbosity()>0) { std::cout << "number of seeds: " << nseeds << "\n";
+}
 
   return std::make_pair(seeds_vector, alice_seeds_vector);
 
@@ -777,7 +811,7 @@ void ALICEKF::repairCovariance(Eigen::Matrix<double,6,6>& cov) const
   Eigen::Matrix<double,6,6> repaircov = cov;
   // find closest positive definite matrix
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,6,6>> solver(repaircov);
-  Eigen::Matrix<double,6,1> D = solver.eigenvalues();
+  const Eigen::Matrix<double,6,1>& D = solver.eigenvalues();
   Eigen::Matrix<double,6,6> Q = solver.eigenvectors();
   Eigen::Matrix<double,6,1> Dp = D.cwiseMax(1e-15);
   Eigen::Matrix<double,6,6> Z = Q*Dp.asDiagonal()*Q.transpose();
