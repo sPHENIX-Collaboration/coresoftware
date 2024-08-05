@@ -22,13 +22,13 @@
 #include <boost/format.hpp>
 
 //____________________________________________________________________________..
-TpcSiliconQA::TpcSiliconQA(const std::string &name)
+TpcSiliconQA::TpcSiliconQA(const std::string& name)
   : SubsysReco(name)
 {
 }
 
 //____________________________________________________________________________..
-int TpcSiliconQA::InitRun(PHCompositeNode * /*topNode*/)
+int TpcSiliconQA::InitRun(PHCompositeNode* /*topNode*/)
 {
   createHistos();
 
@@ -36,7 +36,7 @@ int TpcSiliconQA::InitRun(PHCompositeNode * /*topNode*/)
 }
 
 //____________________________________________________________________________..
-int TpcSiliconQA::process_event(PHCompositeNode *topNode)
+int TpcSiliconQA::process_event(PHCompositeNode* topNode)
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -45,31 +45,37 @@ int TpcSiliconQA::process_event(PHCompositeNode *topNode)
   if (!silseedmap)
   {
     std::cout << "Silicon seed map not found, aborting event" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT; 
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
   auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!tpcseedmap)
   {
     std::cout << "TPC seed map not found, aborting event" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT; 
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   for (const auto& silseed : *silseedmap)
   {
-    if (!silseed) continue;
+    if (!silseed)
+    {
+      continue;
+    }
 
     m_crossing = (float) silseed->get_crossing();
     h_crossing->Fill(m_crossing);
-    
+
     m_silseedx = silseed->get_x();
     m_silseedy = silseed->get_y();
     m_silseedz = silseed->get_z();
     m_silseedphi = silseed->get_phi();
     m_silseedeta = silseed->get_eta();
 
-    for (const auto& tpcseed : *tpcseedmap) 
+    for (const auto& tpcseed : *tpcseedmap)
     {
-      if (!tpcseed) continue;      
+      if (!tpcseed)
+      {
+        continue;
+      }
 
       m_tpcseedx = tpcseed->get_x();
       m_tpcseedy = tpcseed->get_y();
@@ -108,14 +114,13 @@ int TpcSiliconQA::process_event(PHCompositeNode *topNode)
       h_zDiff[3]->Fill(m_tpcseedz - m_silseedz);
     }
   }
- 
+
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TpcSiliconQA::EndRun(const int /*runnumber*/)
 {
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -138,6 +143,15 @@ void TpcSiliconQA::createHistos()
     h_crossing->GetYaxis()->SetTitle("Entries");
     hm->registerHisto(h_crossing);
   }
+  /*
+  {
+    h_trackMatch = new TH1F(std::string(getHistoPrefix() + "trackMatch").c_str(),
+                        "TPC and Silicon Seed Exist", 2, -0.5, 1.5);
+    h_trackMatch->GetXaxis()->SetTitle("1 - TPC+Sil Seed, 0 - Missing TPC and/or Sil");
+    h_trackMatch->GetYaxis()->SetTitle("Entries");
+    hm->registerHisto(h_trackMatch);
+  }
+  */
   int i = 0;
   for (const std::string& name : cutNames)
   {
