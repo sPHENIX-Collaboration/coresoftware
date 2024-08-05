@@ -4,6 +4,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <vector> 
 
 // Forward declarations
 class PHCompositeNode;
@@ -73,6 +74,7 @@ private:
   TProfile *pr_GlobalQA_rejection[64] = {nullptr};
   TProfile *pr_GlobalQA_livetime[64] = {nullptr};
   TProfile *pr_ldClus_trig{nullptr};
+  std::vector<int> trigOfInterest = {3,10,11,21,22,23,25,26,27};
 
   int _eventcounter{0};
   int _range{1};

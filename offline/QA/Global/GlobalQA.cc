@@ -380,10 +380,13 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     }
     for (int i = 0; i < 64; i++) {
       if (scaledBits[i]) {
+        pr_ldClus_trig->Fill(i, leading_cluster_ecore);
+        if (!(std::find(trigOfInterest.begin(), trigOfInterest.end(), i) != trigOfInterest.end())) {
+         continue;
+        }
         h_GlobalQA_edist[i]->Fill(leading_cluster_eta, leading_cluster_phi);
         h_ldClus_trig[i]->Fill(leading_cluster_ecore);
         pr_evtNum_ldClus_trig[i]->Fill(evtNum_overK, leading_cluster_ecore);
-        pr_ldClus_trig->Fill(i, leading_cluster_ecore);
         if (raw[i] > 0) {
           pr_GlobalQA_rejection[i]->Fill(evtNum_overK,
                                          (float)raw[10] / (float)raw[i]);
@@ -453,6 +456,9 @@ void GlobalQA::createHistos() {
   pr_ldClus_trig =
       new TProfile("pr_GlobalQA_ldClus_trig", "", 64, 0, 64, 0, 10);
   for (int i = 0; i < 64; i++) {
+    if (!(std::find(trigOfInterest.begin(), trigOfInterest.end(), i) != trigOfInterest.end())) {
+     continue;
+    }
     h_GlobalQA_edist[i] = new TH2F(
         boost::str(boost::format("h_GlobalQA_edist_trig%d") % i).c_str(), "",
         64, -1.2, 1.2, 128, -3.1415, 3.1415);
