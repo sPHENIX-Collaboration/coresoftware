@@ -17,11 +17,11 @@
 
 using namespace std;
 
-void doCompression(ofstream &myfile, TString filename);
+void doCompression(ofstream &myfile, const TString& filename);
 Float_t computeSd(Float_t* avg, Int_t n_entries, TTree* t, Float_t* gen_);
 
 void output_before_vs_after(
- TString filename, 
+ const TString& filename,
  vector<UShort_t>* order, 
  vector<Float_t>* dict, 
  Int_t n_entries, 
@@ -44,7 +44,7 @@ void compress_clu_res_float32(std::string &filename)
  logFile.close();
 }
 
-void doCompression(ofstream &myfile, TString filename)
+void doCompression(ofstream &myfile, const TString& filename)
 {
  TFile *f = new TFile(filename,"read");
  TTree *t = (TTree*)f->Get("ntp_trkres");
@@ -117,7 +117,7 @@ Float_t computeSd(Float_t* avg, Int_t n_entries, TTree* t, Float_t* gen_)
   return sqrt((sumSquared / (Double_t) n_entries) - _avg * _avg);
 }
 
-void output_before_vs_after(TString filename, vector<UShort_t>* order, vector<Float_t>* dict, Int_t n_entries, TTree* t, Float_t* gen_) 
+void output_before_vs_after(const TString& filename, vector<UShort_t>* order, vector<Float_t>* dict, Int_t n_entries, TTree* t, Float_t* gen_)
 {
   ofstream myfile;
   myfile.open(filename);

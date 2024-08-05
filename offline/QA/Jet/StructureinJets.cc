@@ -1,7 +1,7 @@
 #include "StructureinJets.h"
 
-#include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
 
 #include <jetbase/Jet.h>
@@ -32,7 +32,7 @@
 #include <utility>
 
 //____________________________________________________________________________..
-StructureinJets::StructureinJets(const std::string &moduleName, const std::string& recojetname, const std::string& histTag, const std::string& outputfilename)
+StructureinJets::StructureinJets(const std::string& moduleName, const std::string& recojetname, const std::string& histTag, const std::string& outputfilename)
   : SubsysReco(moduleName)
   , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
@@ -53,7 +53,6 @@ StructureinJets::~StructureinJets()
 //____________________________________________________________________________..
 int StructureinJets::Init(PHCompositeNode* /*topNode*/)
 {
-
   std::cout << "StructureinJets::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   if (writeToOutputFileFlag)
   {
@@ -63,20 +62,22 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
   // make sure module name is lower case
   std::string smallModuleName = m_moduleName;
   std::transform(
-    smallModuleName.begin(),
-    smallModuleName.end(),
-    smallModuleName.begin(),
-    ::tolower
-  );
+      smallModuleName.begin(),
+      smallModuleName.end(),
+      smallModuleName.begin(),
+      ::tolower);
 
   // construct histogram names
   std::vector<std::string> vecHistNames = {
-    "trackvscalopt",
-    "trackpt"
-  };
-  for (size_t iHistName = 0; iHistName < vecHistNames.size(); ++iHistName) {
-    vecHistNames[iHistName].insert(0, "h_" + smallModuleName + "_");
-    vecHistNames[iHistName].append("_" + m_histTag);
+      "trackvscalopt",
+      "trackpt"};
+  for (auto& vecHistName : vecHistNames)
+  {
+    vecHistName.insert(0, "h_" + smallModuleName + "_");
+    if (!m_histTag.empty())
+    {
+      vecHistName.append("_" + m_histTag);
+    }
   }
 
   m_h_track_vs_calo_pt = new TH3F(vecHistNames[0].data(), "", 100, 0, 100, 500, 0, 100, 10, 0, 100);
@@ -106,7 +107,10 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
   if (m_doTrgSelect)
   {
     bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
-    if (!hasTrigger) return Fun4AllReturnCodes::EVENT_OK;
+    if (!hasTrigger)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
   // interface to reco jets
@@ -225,7 +229,6 @@ int StructureinJets::EndRun(const int runnumber)
 //____________________________________________________________________________..
 int StructureinJets::End(PHCompositeNode* /*topNode*/)
 {
-
   // if flag is true, write to output file
   // otherwise rely on histogram manager
   if (writeToOutputFileFlag)
@@ -243,17 +246,16 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
     TH2* h_proj;
     for (int i = 0; i < m_h_track_vs_calo_pt->GetNbinsZ(); i++)
     {
-
       // construct histogram name for projection
       std::string name = m_h_track_vs_calo_pt->GetName();
 
       m_h_track_vs_calo_pt->GetZaxis()->SetRange(i + 1, i + 1);
       h_proj = (TH2*) m_h_track_vs_calo_pt->Project3D("yx");
       h_proj->SetName(
-        (
-          boost::format(name + "_%1.0f") % m_h_track_vs_calo_pt->GetZaxis()->GetBinLowEdge(i + 1)
-        ).str().c_str()
-      );
+          (
+              boost::format(name + "_%1.0f") % m_h_track_vs_calo_pt->GetZaxis()->GetBinLowEdge(i + 1))
+              .str()
+              .c_str());
       if (writeToOutputFileFlag)
       {
         h_proj->Write();

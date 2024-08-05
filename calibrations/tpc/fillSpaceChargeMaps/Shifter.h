@@ -1,4 +1,4 @@
-//Shifter code
+// Shifter code
 #ifndef FILLSPACECHARGEMAPS_SHIFTER_H
 #define FILLSPACECHARGEMAPS_SHIFTER_H
 
@@ -14,7 +14,7 @@ class Shifter
   explicit Shifter(const std::string &truthfilename, const std::string &correctionfilename = "");
 
   TVector3 Shift(const TVector3 &position);
-  TVector3 ShiftForward(const TVector3 &position);  //only shift with forward histogram
+  TVector3 ShiftForward(const TVector3 &position);  // only shift with forward histogram
   TVector3 ShiftBack(const TVector3 &position);     //
   TFile *forward = nullptr;
   TFile *back = nullptr;

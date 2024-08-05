@@ -11,13 +11,6 @@ class MvtxRawHit;
 class Packet;
 class mvtx_pool;
 
-typedef struct linkId
-{
-  uint32_t layer = 0xFF;
-  uint32_t stave = 0xFF;
-  uint32_t gbtid = 0xFF;
-} LinkId_t;
-
 class SingleMvtxPoolInput : public SingleStreamingInput
 {
  public:
@@ -32,36 +25,45 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
   void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
-  unsigned int GetBcoRange() const { return m_BcoRange; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
-
-  std::set<int> &getFeeIdSet(const uint64_t &bco) { return m_BeamClockFEE[bco]; };
-  std::set<uint64_t>& getGtmL1BcoSet() { return m_gtmL1BcoSetRef; }
+  void setRawEventHeaderName(const std::string &name) { m_rawEventHeaderName = name; }
+  std::string getRawEventHeaderName() const { return m_rawEventHeaderName; }
+  
   const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
- protected:
-  LinkId_t DecodeFeeid(const uint16_t &feeid)
-  {
-    LinkId_t ret = {};
-    ret.layer = (feeid >> 12) & 0x7;
-    ret.stave = feeid & 0x1F;
-    ret.gbtid = (feeid >> 8) & 0x3;
-    return ret;
+
+  void clearFeeGTML1BCOMap(const uint64_t& bclk) {
+    std::set<uint64_t> toerase;
+    for (auto &[key, set] : m_FeeGTML1BCOMap)
+    {
+      for(auto& ll1bclk : set)
+      {
+        if(ll1bclk <= bclk)
+        {
+          // to avoid invalid reads
+          toerase.insert(ll1bclk);
+        }
+      }
+      for(auto& bclk_to_erase : toerase)
+      {
+        set.erase(bclk_to_erase);
+      }
+    }
   }
+ protected:
 
  private:
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
+  std::string m_rawEventHeaderName = "MVTXRAWEVTHEADER";
 
-  std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MvtxRawHit *>> m_MvtxRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
   std::set<uint64_t> gtmL1BcoSet;  // GTM L1 BCO
-  std::set<uint64_t> m_gtmL1BcoSetRef;
   std::map<int, std::set<uint64_t>> m_FeeGTML1BCOMap;
   std::map<int, mvtx_pool *> poolmap;
 };

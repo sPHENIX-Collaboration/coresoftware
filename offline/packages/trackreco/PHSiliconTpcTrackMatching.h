@@ -34,6 +34,12 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_y_search_window(const double win) { _y_search_win = win; }
   void set_z_search_window(const double win) { _z_search_win = win; }
 
+  float get_phi_search_window() const { return _phi_search_win; }
+  float get_eta_search_window() const { return _eta_search_win; }
+  float get_x_search_window() const { return _x_search_win; }
+  float get_y_search_window() const { return _y_search_win; }
+  float get_z_search_window() const { return _z_search_win; }
+  
   void set_match_window_function_pars(const double a, const double b, const double ptmin)
   {
     _match_function_a = a;

@@ -37,6 +37,7 @@
 #include <iostream>
 #include <string>
 
+// NOLINTNEXTLINE(bugprone-exception-escape)
 int main()
 {
   using boost::property_tree::ptree;

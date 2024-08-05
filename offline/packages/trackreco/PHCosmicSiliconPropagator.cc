@@ -213,27 +213,34 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
       std::vector<TrkrDefs::cluskey> ckeys;
       nClusters = TrackFitUtils::addClusters(fitparams, _dca_xy_cut, _tgeometry, _cluster_map,
                                              newClusPos, ckeys, 0, 56);
+      TrackFitUtils::position_vector_t yzpoints;
+      for (auto& globPos : tpcClusPos)
+      {
+        yzpoints.push_back(std::make_pair(globPos.y(), globPos.z()));
+      }
 
+      auto yzLineParams = TrackFitUtils::line_fit(yzpoints);
+      float yzslope = std::get<0>(yzLineParams);
+      float yzint = std::get<1>(yzLineParams);
       for (auto& key : ckeys)
       {
         auto cluster = _cluster_map->findCluster(key);
         auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
-        auto pca = TrackFitUtils::get_helix_pca(fitparams, clusglob);
-        float dcaz = (pca - clusglob).z();
 
-        if (std::fabs(dcaz) < _dca_z_cut)
+        float projz = clusglob.y() * yzslope + yzint;
+
+        if (std::fabs(projz - clusglob.z()) < _dca_z_cut)
         {
           newClusKeys.push_back(key);
         }
       }
     }
-
     //! only keep long seeds
     if ((tpcClusKeys.size() + newClusKeys.size() > 25))
     {
       std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
       std::map<TrkrDefs::cluskey, Acts::Vector3> silposmap, tpcposmap;
-      for(auto& key : tpcClusKeys)
+      for (auto& key : tpcClusKeys)
       {
         auto cluster = _cluster_map->findCluster(key);
         auto clusglob = _tgeometry->getGlobalPosition(key, cluster);

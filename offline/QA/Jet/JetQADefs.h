@@ -12,17 +12,15 @@
 #ifndef JETQADEFS_H
 #define JETQADEFS_H
 
+#include <ffarawobjects/Gl1Packet.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 #include <bitset>
 #include <boost/dynamic_bitset.hpp>
 #include <cassert>
 #include <cmath>
-#include <ffarawobjects/Gl1Packet.h>
 #include <iostream>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-
 
 // ----------------------------------------------------------------------------
 //! Namespace to hold misc. definitions for the Jet QA
@@ -69,7 +67,7 @@ namespace JetQADefs
    *  | 29    | Photon 2 (no MBD coincidence) |
    *  | 30    | Photon 3 (no MBD coincidence) |
    *  | 31    | Photon 4 (no MBD coincidence) |
-   */ 
+   */
   enum GL1
   {
     Clock = 0,
@@ -104,8 +102,6 @@ namespace JetQADefs
     Photon4 = 31
   };
 
-
-
   // constants ----------------------------------------------------------------
 
   // --------------------------------------------------------------------------
@@ -117,8 +113,6 @@ namespace JetQADefs
     return nMaxTrgIndex;
   }
 
-
-
   // methods ------------------------------------------------------------------
 
   // --------------------------------------------------------------------------
@@ -126,23 +120,21 @@ namespace JetQADefs
   // --------------------------------------------------------------------------
   inline bool DidTriggerFire(const uint32_t trg, PHCompositeNode* topNode)
   {
-
     // grab GL1 packet from node tree
     Gl1Packet* packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
     if (!packet)
     {
       std::cerr << PHWHERE << ": PANIC: not able to grab GL1 packet! aborting!" << std::endl;
-      assert(packet);
+      exit(1);
     }
 
     // grab trigger bits
-    boost::dynamic_bitset<> triggers(NMaxTrgIndex(), packet -> getTriggerInput());
+    boost::dynamic_bitset<> triggers(NMaxTrgIndex(), packet->getTriggerInput());
 
     // loop through bits and check if specified one is set
     bool didTrgFire = false;
     for (uint32_t iTrg = 0; iTrg < NMaxTrgIndex(); iTrg++)
     {
-
       // only consider specified trigger
       if (iTrg != trg) continue;
 
@@ -158,7 +150,7 @@ namespace JetQADefs
 
   }  // end 'DidTriggerFire(uint32_t, PHCompositeNode*)'
 
-}  // end JetQADefs namespace
+}  // namespace JetQADefs
 
 #endif
 

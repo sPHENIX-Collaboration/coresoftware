@@ -31,6 +31,10 @@ InttRawHitQA::InttRawHitQA(const std::string &name)
 std::vector<InttRawHit *> InttRawHitQA::GetHits()
 {
   std::vector<InttRawHit *> hits;
+  if(node_inttrawhit_map_ == nullptr)
+  {
+    return hits;
+  }
   auto raw_hit_num = node_inttrawhit_map_->get_nhits();
   for (unsigned int i = 0; i < raw_hit_num; i++)
   {
@@ -59,7 +63,6 @@ int InttRawHitQA::InitRun(PHCompositeNode *topNode)
   if (!node_inttrawhit_map_)
   {
     std::cout << PHWHERE << node_name_inttrawhit << " node is missing." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   auto hm = QAHistManagerDef::getHistoManager();
@@ -221,7 +224,7 @@ int InttRawHitQA::process_event(PHCompositeNode * /*unused*/)
   hist_nhit_->Fill(raw_hit_num);
 
   // if no raw hit is found, skip this event
-  if (raw_hit_num == 0)
+  if (raw_hit_num == 0 || node_inttrawhit_map_ == nullptr)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }

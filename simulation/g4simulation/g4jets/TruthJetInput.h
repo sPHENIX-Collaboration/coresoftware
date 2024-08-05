@@ -1,8 +1,8 @@
 #ifndef G4JET_TRUTHJETINPUT_H
 #define G4JET_TRUTHJETINPUT_H
 
-#include <jetbase/JetInput.h>
 #include <jetbase/Jet.h>
+#include <jetbase/JetInput.h>
 
 #include <iostream>  // for cout, ostream
 #include <vector>

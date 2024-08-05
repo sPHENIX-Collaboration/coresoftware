@@ -28,6 +28,7 @@ SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
 {
   SubsystemEnum(InputManagerType::INTT);
   plist = new Packet *[1];
+  m_rawHitContainerName = "INTTRAWHIT";
 }
 
 SingleInttPoolInput::~SingleInttPoolInput()
@@ -81,10 +82,18 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
     {
       evt->identify();
     }
+
     // not interested in special events, really
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
+      if(evt->getEvtType() == ENDRUNEVENT)
+      {
+        std::cout << "End run flag for INTT found, remaining INTT data is corrupted" << std::endl;
+        delete evt;
+        AllDone(1);
+        return;
+      }
       delete evt;
       continue;
     }
@@ -124,6 +133,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
     for (auto iter : poolmap)
     {
       intt_pool *pool = iter.second;  // less typing
+      auto packet_id = pool->getIdentifier();
       if (pool->depth_ok())
       {
         int num_hits = pool->iValue(0, "NR_HITS");
@@ -138,6 +148,8 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
         {
           auto bco = pool->lValue(j, "BCOLIST");
           m_BclkStack.insert(bco);
+      
+          m_BclkStackPacketMap[packet_id].insert(bco);
         }
 
         for (int j = 0; j < num_hits; j++)
@@ -227,6 +239,13 @@ void SingleInttPoolInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STACK")
   {
+    for(auto& [packetid, bclkstack] : m_BclkStackPacketMap)
+    {
+      for(auto& bclk : bclkstack)
+      {
+        std::cout << "stacked bclk: 0x" << std::hex << bclk << std::dec << std::endl;
+      }
+    }
     for (auto iter : m_BclkStack)
     {
       std::cout << "stacked bclk: 0x" << std::hex << iter << std::dec << std::endl;
@@ -255,6 +274,10 @@ void SingleInttPoolInput::CleanupUsedPackets(const uint64_t bclk)
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
+    for(auto& [packetid , bclkstack] : m_BclkStackPacketMap)
+    {
+      bclkstack.erase(iter);
+    }
     m_BeamClockFEE.erase(iter);
     m_InttRawHitMap.erase(iter);
   }
@@ -285,7 +308,7 @@ bool SingleInttPoolInput::CheckPoolDepth(const uint64_t bclk)
 void SingleInttPoolInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
-  uint64_t currentbclk = *m_BclkStack.begin();
+  uint64_t currentbclk = *(m_BclkStackPacketMap.begin()->second).begin();
   //  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentbclk);
   // m_BclkStack.erase(currentbclk);
@@ -313,6 +336,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
     localbclk = m_InttRawHitMap.begin()->first;
   }
 
+  std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
     if (bcliter.second <= localbclk)
@@ -333,9 +357,13 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_InttRawHitMap.begin()->first)
                   << std::dec << std::endl;
-        m_FEEBclkMap.erase(bcliter.first);
+        toerase.insert(bcliter.first);
       }
     }
+  }
+  for(auto iter : toerase)
+  {
+    m_FEEBclkMap.erase(iter);
   }
   return false;
 }
@@ -356,11 +384,11 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode = new PHCompositeNode("INTT");
     dstNode->addNode(detNode);
   }
-  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, "INTTRAWHIT");
+  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, m_rawHitContainerName);
   if (!intthitcont)
   {
     intthitcont = new InttRawHitContainerv2();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
 }

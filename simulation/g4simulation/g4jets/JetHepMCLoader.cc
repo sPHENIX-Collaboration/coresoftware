@@ -2,7 +2,7 @@
 
 /*!
  * \file JetHepMCLoader.C
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -35,11 +35,7 @@
 #include <TH2.h>
 #include <TNamed.h>  // for TNamed
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <HepMC/GenEvent.h>      // for GenEvent, GenEvent::particl...
-#pragma GCC diagnostic pop
-
+#include <HepMC/GenEvent.h>  // for GenEvent, GenEvent::particl...
 #include <HepMC/GenParticle.h>   // for GenParticle
 #include <HepMC/SimpleVector.h>  // for FourVector
 #include <HepMC/Units.h>         // for conversion_factor, GEV
@@ -127,7 +123,10 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
 
     PHHepMCGenEvent *genevt = genevtmap->get(src.m_embeddingID);
 
-    if (genevt == nullptr) continue;
+    if (genevt == nullptr)
+    {
+      continue;
+    }
 
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
@@ -169,7 +168,7 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
 
       if (part->status() == src.m_tagStatus and part->pdg_id() == src.m_tagPID)
       {
-        Jet *jet = jets->add_jet(); // returns a new Jetv2
+        Jet *jet = jets->add_jet();  // returns a new Jetv2
 
         jet->set_px(part->momentum().px() * mom_factor);
         jet->set_py(part->momentum().py() * mom_factor);

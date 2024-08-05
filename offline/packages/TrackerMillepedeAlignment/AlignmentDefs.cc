@@ -1,5 +1,9 @@
 #include "AlignmentDefs.h"
+
 #include <trackbase/TpcDefs.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/TrkrDefs.h>  // for cluskey, getTrkrId, tpcId
 
 void AlignmentDefs::getMvtxGlobalLabels(const Surface& surf, int glbl_label[], AlignmentDefs::mvtxGrp grp)
 {
@@ -16,13 +20,39 @@ void AlignmentDefs::getMvtxGlobalLabels(const Surface& surf, int glbl_label[], A
   case AlignmentDefs::mvtxGrp::mvtxlyr:
     group = 2;
     break;
-
   case AlignmentDefs::mvtxGrp::clamshl:
     group = 3;
     break;
   }
 
   int label_base = getLabelBase(id, 0, group);
+  for (int i = 0; i < NGL; ++i)
+  {
+    glbl_label[i] = label_base + i;
+  }
+}
+
+void AlignmentDefs::getMvtxGlobalLabels(const Surface& surf, TrkrDefs::cluskey cluskey, int glbl_label[], AlignmentDefs::mvtxGrp grp)
+{
+  Acts::GeometryIdentifier id = surf->geometryId();
+  int group = 0;
+  switch (grp)
+  {
+  case AlignmentDefs::mvtxGrp::snsr:
+    group = 0;
+    break;
+  case AlignmentDefs::mvtxGrp::stv:
+    group = 1;
+    break;
+  case AlignmentDefs::mvtxGrp::mvtxlyr:
+    group = 2;
+    break;
+  case AlignmentDefs::mvtxGrp::clamshl:
+    group = 3;
+    break;
+  }
+
+  int label_base = getLabelBase(id, cluskey, group);
   for (int i = 0; i < NGL; ++i)
   {
     glbl_label[i] = label_base + i;
@@ -50,6 +80,32 @@ void AlignmentDefs::getInttGlobalLabels(const Surface& surf, int glbl_label[], A
   }
 
   int label_base = getLabelBase(id, 0, group);
+  for (int i = 0; i < NGL; ++i)
+  {
+    glbl_label[i] = label_base + i;
+  }
+}
+void AlignmentDefs::getInttGlobalLabels(const Surface& surf, TrkrDefs::cluskey cluskey, int glbl_label[], AlignmentDefs::inttGrp grp)
+{
+  Acts::GeometryIdentifier id = surf->geometryId();
+  int group = 0;
+  switch (grp)
+  {
+  case AlignmentDefs::inttGrp::chp:
+    group = 4;
+    break;
+  case AlignmentDefs::inttGrp::lad:
+    group = 5;
+    break;
+  case AlignmentDefs::inttGrp::inttlyr:
+    group = 6;
+    break;
+  case AlignmentDefs::inttGrp::inttbrl:
+    group = 7;
+    break;
+  }
+
+  int label_base = getLabelBase(id, cluskey, group);
   for (int i = 0; i < NGL; ++i)
   {
     glbl_label[i] = label_base + i;
@@ -129,170 +185,141 @@ int AlignmentDefs::getMvtxClamshell(int layer, int stave)
     }
   }
 
-  std::cout << " AlignemntDefs::getMvtxClamshell: did not find stave " << stave << std::endl;
+  std::cout << " AlignmentDefs::getMvtxClamshell: did not find stave " << stave << std::endl;
   return 0;
 }
 
 int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey cluskey, int group)
 {
-  unsigned int volume = id.volume();
-  unsigned int acts_layer = id.layer();
-  unsigned int layer = base_layer_map.find(volume)->second + acts_layer / 2 - 1;
-  unsigned int sensor = id.sensitive() - 1;  // Acts starts at 1
+  int layer =  TrkrDefs::getLayer(cluskey);
 
   int label_base = 1;  // Mille wants to start at 1
 
   // decide what level of grouping we want
   if (layer < 3)
-  {
-    if (group == 0)
     {
-      // every sensor has a different label
-      int stave = sensor / nsensors_stave[layer];
-      label_base += layer * 1000000 + stave * 10000 + sensor * 10;
-      return label_base;
-    }
-    if (group == 1)
-    {
-      // layer and stave, assign all sensors to the stave number
-      int stave = sensor / nsensors_stave[layer];
-      label_base += layer * 1000000 + stave * 10000;
-      /*
-        std::cout << id << std::endl;
-        std::cout << "    label_base " << label_base << " volume " << volume << " acts_layer " << acts_layer
-        << " layer " << layer << " stave " << stave << " sensor " << sensor << std::endl;
-      */
-      return label_base;
-    }
-    if (group == 2)
-    {
-      // layer only, assign all sensors to sensor 0 in each clamshell
-      int stave = sensor / nsensors_stave[layer];
-      int clamshell = getMvtxClamshell(layer, stave);
-      label_base += layer * 1000000 + clamshell * 10000;
-      //	std::cout << " mvtx group 2 layer " << layer << " sensor " << sensor << " stave " << stave
-      //	  << " clamshell " << clamshell << " label_base " << label_base << std::endl;
+      int stave = MvtxDefs::getStaveId(cluskey);
+      int sensor = MvtxDefs::getChipId(cluskey);
 
-      return label_base;
-    }
-    if (group == 3)
-    {
-      // group by half-barrel, or clamshell
-      // Assume for now low staves are in clamshell 0 - check!!!
-      int stave = sensor / nsensors_stave[layer];
-      int breakat = nstaves_layer_mvtx[layer] / 2;
-      int clamshell = 1;
-      if (stave < breakat)
-      {
-        clamshell = 0;
-      }
-      label_base += 0 * 1000000 + clamshell * 10000;
-      //	std::cout << " mvtx group 3 layer " << layer << " sensor " << sensor << " clamshell " << clamshell << " label_base " << label_base << std::endl;
+      if (group == 0)
+	{
+	  // every sensor has a different label
+	  label_base += layer * 1000000 + stave * 10000 + sensor * 10;
+	  return label_base;
+	}
+      if (group == 1)
+	{
+	  // layer and stave, assign all sensors to the stave number
+	  label_base += layer * 1000000 + stave * 10000;
+	  //	  std::cout << "     label base = " << label_base << " layer " << layer << " stave " << stave << " sensor " << sensor << std::endl;
+	  return label_base;
+	}
+      if (group == 2)
+	{
+	  // layer only, assign all sensors to sensor 0 in each clamshell
+	  int clamshell = getMvtxClamshell(layer, stave);
+	  label_base += layer * 1000000 + clamshell * 10000;
 
-      return label_base;
+
+	  return label_base;
+	}
+      if (group == 3)
+	{
+	  // group by half-barrel, or clamshell
+	  // Assume for now low staves are in clamshell 0 - check!!!
+	  int breakat = nstaves_layer_mvtx[layer] / 2;
+	  int clamshell = 1;
+	  if (stave < breakat)
+	    {
+	      clamshell = 0;
+	    }
+	  label_base += 0 * 1000000 + clamshell * 10000;
+
+	  return label_base;
+	}
     }
-  }
   else if (layer > 2 && layer < 7)
-  {
-    // calculating the stave number from the sensor is different between the INTT and MVTX
-    // There are 4 sensors/stave, but they are mapped to staves in a strange way
-    // sensors 1-> (nstaves/layer)*2 are in staves 1->nstaves/layer in pairs
-    // sensors (nstaves/layer * 2) +1->nstaves/layer)*2 are in staves 1->nstaves/layer in pairs
+    {
+      // get label base from hitsetkey
+      int stave = InttDefs::getLadderPhiId(cluskey);
+      int sensor = InttDefs::getLadderZId(cluskey);  
 
-    int stave;
-    unsigned int breakat = nstaves_layer_intt[layer - 3] * 2;
-    if (sensor < breakat)
-    {
-      stave = sensor / 2;  // staves 0 -> (nstaves/layer) -1
+      if (group == 4)
+	{
+	  // every sensor has a different label
+	  label_base += layer * 1000000 + stave * 10000 + sensor * 10;
+	  return label_base;
+	}
+      if (group == 5)
+	{
+	  // layer and stave, assign all sensors to the stave number
+	  label_base += layer * 1000000 + stave * 10000;
+	  return label_base;
+	}
+      if (group == 6)
+	{
+	  // layer only, assign all sensors to sensor 0 for this layer
+	  label_base += layer * 1000000 + 0;
+	  return label_base;
+	}
+      if (group == 7)
+	{
+	  // entire INTT
+	  // assign all sensors to layer 3
+	  label_base += 3 * 1000000 + 0;
+	  return label_base;
+	}
     }
-    else
-    {
-      stave = (sensor - breakat) / 2;  // staves 0 -> (nstaves/layer) -1
-    }
-
-    if (group == 4)
-    {
-      // every sensor has a different label
-      label_base += layer * 1000000 + stave * 10000 + sensor * 10;
-      return label_base;
-    }
-    if (group == 5)
-    {
-      // layer and stave, assign all sensors to the stave number
-      label_base += layer * 1000000 + stave * 10000;
-      /*
-      std::cout << "    "  << id << std::endl;
-      std::cout << "    label_base " << label_base << " volume " << volume << " acts_layer " << acts_layer
-                << " layer " << layer << " breakat " << breakat << " stave " << stave << " sensor " << sensor << std::endl;
-      */
-      return label_base;
-    }
-    if (group == 6)
-    {
-      // layer only, assign all sensors to sensor 0 for this layer
-      label_base += layer * 1000000 + 0;
-      return label_base;
-    }
-    if (group == 7)
-    {
-      // entire INTT
-      // assign all sensors to layer 3
-      label_base += 3 * 1000000 + 0;
-      return label_base;
-    }
-  }
   else if (layer > 6 && layer < 55)
-  {
-    if (group == 8)
     {
-      // want every hitset (layer, sector, side) to have a separate label
-      // each group of 12 subsurfaces (sensors) is in a single hitset
-      int hitset = sensor / 12;  // 0-11 on side 0, 12-23 on side 1
-      label_base += layer * 1000000 + hitset * 10000;
-      return label_base;
-    }
-    if (group == 9)
-    {
-      // group all tpc layers in each region and sector, assign layer 7 and side and sector number to all layers and hitsets
-      int side = TpcDefs::getSide(cluskey);
-      int sector = TpcDefs::getSectorId(cluskey);
-      ;
-      int region = getTpcRegion(layer);  // inner, mid, outer
+      unsigned int sensor = id.sensitive() - 1;  // Acts starts at 1
 
-      // for a given layer there are only 12 sectors x 2 sides
-      // The following gives the sectors in the inner, mid, outer regions unique group labels
-      label_base += 7 * 1000000 + (region * 24 + side * 12 + sector) * 10000;
-      /*
-      std::cout << " sensor " << sensor << " sector " << sector << " region " << region
-                << " side " << side << " label base " << label_base << std::endl;
-      std::cout << " Volume " << volume << " acts_layer " << acts_layer << " base_layer " <<  base_layer_map.find(volume)->second << " layer " << layer << std::endl;
-      */
+      if (group == 8)
+	{
+	  // want every hitset (layer, sector, side) to have a separate label
+	  // each group of 12 subsurfaces (sensors) is in a single hitset
+	  int hitset = sensor / 12;  // 0-11 on side 0, 12-23 on side 1
+	  label_base += layer * 1000000 + hitset * 10000;
+	  return label_base;
+	}
+      if (group == 9)
+	{
+	  // group all tpc layers in each region and sector, assign layer 7 and side and sector number to all layers and hitsets
+	  int side = TpcDefs::getSide(cluskey);
+	  int sector = TpcDefs::getSectorId(cluskey);
 
-      return label_base;
+	  int region = getTpcRegion(layer);  // inner, mid, outer
+
+	  // for a given layer there are only 12 sectors x 2 sides
+	  // The following gives the sectors in the inner, mid, outer regions unique group labels
+	  label_base += 7 * 1000000 + (region * 24 + side * 12 + sector) * 10000;
+	  return label_base;
+	}
+      if (group == 10)
+	{
+	  // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
+	  label_base += 7 * 1000000 + 0;
+	  return label_base;
+	}
     }
-    if (group == 10)
-    {
-      // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
-      label_base += 7 * 1000000 + 0;
-      return label_base;
-    }
-  }
   else
-  {
-    if (group == 11)
     {
-      // every tile has different label
-      int tile = sensor;
-      label_base += layer * 1000000 + tile * 10000 + sensor * 10;
-      return label_base;
+      unsigned int sensor = id.sensitive() - 1;  // Acts starts at 1
+
+      if (group == 11)
+	{
+	  // every tile has different label
+	  int tile = sensor;
+	  label_base += layer * 1000000 + tile * 10000 + sensor * 10;
+	  return label_base;
+	}
+      if (group == 12)
+	{
+	  // assign layer 55 and tile 0 to all
+	  label_base += 55 * 1000000 + 0;
+	  return label_base;
+	}
     }
-    if (group == 12)
-    {
-      // assign layer 55 and tile 0 to all
-      label_base += 55 * 1000000 + 0;
-      return label_base;
-    }
-  }
   return -1;
 }
 

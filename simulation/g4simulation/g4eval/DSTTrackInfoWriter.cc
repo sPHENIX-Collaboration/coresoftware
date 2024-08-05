@@ -38,16 +38,17 @@
 #include <trackbase_historic/TrackStateInfo_v1.h>
 #include <trackbase_historic/ActsTransformations.h>
 
+#include <TClonesArray.h>
+#include <TFile.h>
+#include <TLine.h>
+#include <TTree.h>
+
 #include <algorithm>
 #include <bitset>
 #include <cassert>
 #include <iostream>
 #include <numeric>
 
-#include <TClonesArray.h>
-#include <TFile.h>
-#include <TLine.h>
-#include <TTree.h>
 //_____________________________________________________________________
 
 //_____________________________________________________________________
@@ -130,7 +131,8 @@ int DSTTrackInfoWriter::process_event(PHCompositeNode* topNode)
     std::cout << "Return codes  start" << Fun4AllReturnCodes::EVENT_OK << std::endl;
   }
   // cleanup output container
-  if (m_track_info_container) m_track_info_container->Reset();
+  if (m_track_info_container) { m_track_info_container->Reset();
+}
   if (Verbosity() > 1)
   {
     std::cout << "Evalutate track info" << std::endl;

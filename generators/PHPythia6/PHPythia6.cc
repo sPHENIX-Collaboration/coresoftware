@@ -395,7 +395,7 @@ int PHPythia6::process_event(PHCompositeNode * /*topNode*/)
     HepMC::PdfInfo pdfinfo;
     pdfinfo.set_x1(pypars.pari[33 - 1]);
     pdfinfo.set_x2(pypars.pari[34 - 1]);
-    pdfinfo.set_scalePDF(pypars.pari[22 - 1]);
+    pdfinfo.set_scalePDF(pypars.pari[21 - 1]);
     pdfinfo.set_id1(pypars.msti[15 - 1]);
     pdfinfo.set_id2(pypars.msti[16 - 1]);
     evt->set_pdf_info(pdfinfo);

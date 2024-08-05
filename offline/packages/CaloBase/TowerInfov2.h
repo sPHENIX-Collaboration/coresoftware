@@ -1,8 +1,9 @@
 #ifndef TOWERINFOV2_H
 #define TOWERINFOV2_H
 
-#include "TowerInfo.h"
 #include "TowerInfov1.h"
+
+#include <cstdint>
 
 class TowerInfov2 : public TowerInfov1
 {
@@ -42,7 +43,10 @@ class TowerInfov2 : public TowerInfov1
   void set_isZS(bool isZS) override { set_status_bit(5, isZS); }
   bool get_isZS() const override { return get_status_bit(5); }
 
-  bool get_isGood() const override { return !((bool) _status); }
+  void set_isRecovered(bool isRecovered) override { set_status_bit(6, isRecovered); }
+  bool get_isRecovered() const override { return get_status_bit(6); }
+
+  bool get_isGood() const override { return !(get_isHot() || get_isBadChi2() || get_isNoCalib()); }
 
   uint8_t get_status() const override { return _status; }
 

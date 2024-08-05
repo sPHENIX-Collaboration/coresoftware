@@ -1,11 +1,8 @@
 #include "TowerInfoDefs.h"
 #include "RawTowerDefs.h"
 
-#include <bitset>
-#include <climits>
 #include <cstdlib>
 #include <iostream>
-#include <string>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -238,11 +235,11 @@ unsigned int TowerInfoDefs::getCaloTowerEtaBin(const unsigned int key)
 
 unsigned int TowerInfoDefs::encode_epd(const unsigned int towerIndex)  // convert from tower index to key
 {
-  int channels_per_sector = 31;
-  int supersector = channels_per_sector * 12;
+  constexpr unsigned int channels_per_sector = 31;
+  constexpr unsigned int supersector = channels_per_sector * 12;
   unsigned int supersectornumber = towerIndex / supersector;
-  int sector = ((towerIndex % supersector)) / channels_per_sector;
-  int channel = ((towerIndex % supersector)) % channels_per_sector;
+  unsigned int sector = ((towerIndex % supersector)) / channels_per_sector;
+  unsigned int channel = ((towerIndex % supersector)) % channels_per_sector;
   unsigned int key = channel + (sector << 5U) + (supersectornumber << 9U);
   return key;
 }
@@ -308,11 +305,18 @@ unsigned int TowerInfoDefs::get_epd_rbin(unsigned int key)
 // convert from epd key to phi bin
 unsigned int TowerInfoDefs::get_epd_phibin(unsigned int key)
 {
+  int flip[24] = {1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1};
   unsigned int arm = get_epd_arm(key);
   unsigned int rbin = get_epd_rbin(key);
   unsigned int sector = get_epd_sector(key);
   unsigned int channel = key - (sector << 5U) - (arm << 9U);
   unsigned int phibin = epd_phimap[channel] + 2 * sector;
+    
+  if (arm == 1)
+  {
+    phibin = phibin + flip[phibin];
+  }
+    
   if (rbin == 0)
   {
     phibin = sector;
@@ -349,57 +353,64 @@ unsigned int TowerInfoDefs::decode_zdc(const unsigned int key)
 bool TowerInfoDefs::isZDC(const unsigned int towerIndex)
 {
   bool is_zdc = false;
-    
-  if(towerIndex < 16)
+
+  if (towerIndex < 16)
   {
-     is_zdc = true;
+    is_zdc = true;
   }
-    return is_zdc;
+  return is_zdc;
 }
 
 // get zdc side, 0 = south, 1 = north
 int TowerInfoDefs::get_zdc_side(const unsigned int key)
 {
-  if (key & 8) return 1;
+  if (key & 8U)
+  {
+    return 1;
+  }
   return 0;
 }
 
 bool TowerInfoDefs::isSMD(const unsigned int towerIndex)
 {
   bool is_smd = false;
-    
-  if( (towerIndex > 17 && towerIndex < 34) || (towerIndex > 35 && towerIndex < 52))
+
+  if ((towerIndex > 17 && towerIndex < 34) || (towerIndex > 35 && towerIndex < 52))
   {
-     is_smd = true;
+    is_smd = true;
   }
-    return is_smd;
+  return is_smd;
 }
 
 // get smd side, 0 = south, 1 = north
 int TowerInfoDefs::get_smd_side(const unsigned int key)
 {
-  if (key < 34) return 1;
+  if (key < 34)
+  {
+    return 1;
+  }
   return 0;
 }
 
 bool TowerInfoDefs::isVeto(const unsigned int towerIndex)
 {
   bool is_veto = false;
-    
-  if( (towerIndex > 15 && towerIndex < 18) || (towerIndex > 33 && towerIndex < 36))
+
+  if ((towerIndex > 15 && towerIndex < 18) || (towerIndex > 33 && towerIndex < 36))
   {
-      is_veto = true;
+    is_veto = true;
   }
-    return is_veto;
+  return is_veto;
 }
 // get veto side, 0 = south, 1 = north
 int TowerInfoDefs::get_veto_side(const unsigned int key)
 {
-  if (key & 2) return 0;
+  if (key & 2U)
+  {
+    return 0;
+  }
   return 1;
 }
-
-
 
 // 128 channels per side, goes 8 times and 8 charges and so on
 unsigned int TowerInfoDefs::encode_mbd(const unsigned int pmtIndex)
@@ -407,18 +418,21 @@ unsigned int TowerInfoDefs::encode_mbd(const unsigned int pmtIndex)
   unsigned int arm = pmtIndex / 128;
   unsigned int type = (pmtIndex % 16) / 8;
   unsigned int channel = (pmtIndex % 8) + ((pmtIndex / 16) * 8);
-  if (channel > 63) channel -= 64;
+  if (channel > 63)
+  {
+    channel -= 64;
+  }
 
-  unsigned int key = (arm << 7) | (type << 6) | channel;
+  unsigned int key = (arm << 7U) | (type << 6U) | channel;
 
   return key;
 }
 
 unsigned int TowerInfoDefs::decode_mbd(const unsigned int key)
 {
-  unsigned int arm = (key >> 7) & 0x1;
-  unsigned int type = (key >> 6) & 0x1;
-  unsigned int channel = key & 0x3f;
+  unsigned int arm = (key >> 7U) & 0x1U;
+  unsigned int type = (key >> 6U) & 0x1U;
+  unsigned int channel = key & 0x3fU;
 
   unsigned int index = (arm * 128) + (type * 8) + (channel % 8) + (channel / 8) * 16;
 
@@ -427,7 +441,7 @@ unsigned int TowerInfoDefs::decode_mbd(const unsigned int key)
 
 unsigned int TowerInfoDefs::get_mbd_arm(const unsigned int key)
 {
-  return (key >> 7) & 0x1;
+  return (key >> 7U) & 0x1U;
 }
 
 unsigned int TowerInfoDefs::get_mbd_side(const unsigned int key)
@@ -437,12 +451,12 @@ unsigned int TowerInfoDefs::get_mbd_side(const unsigned int key)
 
 unsigned int TowerInfoDefs::get_mbd_type(const unsigned int key)
 {
-  return (key >> 6) & 0x1;
+  return (key >> 6U) & 0x1U;
 }
 
 unsigned int TowerInfoDefs::get_mbd_channel(const unsigned int key)
 {
-  return key & 0x3f;
+  return key & 0x3fU;
 }
 
 // convienent for interface to geometry class

@@ -1,14 +1,9 @@
 #include "RawTowerv2.h"
 
-#include <climits>  // for UCHAR_MAX
-#include <cmath>
 #include <iostream>
+#include <limits>
 #include <string>   // for operator<<, string
 #include <utility>  // for pair
-
-using namespace std;
-
-RawTowerv2::RawTowerv2() = default;
 
 RawTowerv2::RawTowerv2(const RawTower& tower)
   : RawTowerv1(tower)
@@ -16,7 +11,7 @@ RawTowerv2::RawTowerv2(const RawTower& tower)
   // This is a generic copy of ALL properties a hit has
   // do not add explicit copies, they will be added to
   // the new hits with their default value increasing memory use
-  for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
+  for (unsigned int ic = 0; ic < std::numeric_limits<unsigned char>::max(); ic++)
   {
     PROPERTY prop_id = static_cast<PROPERTY>(ic);
     if (tower.has_property(prop_id))
@@ -61,8 +56,8 @@ void RawTowerv2::identify(std::ostream& os) const
   for (auto i : prop_map)
   {
     PROPERTY prop_id = static_cast<PROPERTY>(i.first);
-    const string property_info = get_property_info(prop_id);
-    cout << "\t" << prop_id << ":\t" << property_info << " = \t" << get_property(prop_id) << endl;
+    const std::string property_info = get_property_info(prop_id);
+    std::cout << "\t" << prop_id << ":\t" << property_info << " = \t" << get_property(prop_id) << std::endl;
   }
 }
 
@@ -82,7 +77,7 @@ RawTowerv2::get_property(const PROPERTY prop_id) const
     return i->second;
   }
 
-  return NAN;
+  return std::numeric_limits<double>::signaling_NaN();
 }
 
 void RawTowerv2::set_property(const PROPERTY prop_id, const double value)
