@@ -61,6 +61,12 @@ class CaloTowerCalib : public SubsysReco
     m_directURL = url;
   }
 
+  void set_directURL_timecalib(const std::string &url)
+  {
+    m_giveDirectURL_time = true;
+    m_directURL_time = url;
+  }
+
   void set_use_TowerInfov2(bool use) { m_use_TowerInfov2 = use; }
 
  private:
@@ -70,6 +76,8 @@ class CaloTowerCalib : public SubsysReco
   TowerInfoContainer::DETECTOR m_DETECTOR;
   std::string m_fieldname;
   std::string m_calibName;
+  std::string m_fieldname_time;
+  std::string m_calibName_time;
   bool m_overrideCalibName{false};
   bool m_overrideFieldName{false};
   std::string m_inputNodePrefix{"TOWERS_"};
@@ -82,7 +90,12 @@ class CaloTowerCalib : public SubsysReco
   bool m_giveDirectURL = false;
   std::string m_directURL = "";
 
+  bool m_giveDirectURL_time = false;
+  std::string m_directURL_time = "";
+  bool m_dotimecalib = true;
+
   CDBTTree *cdbttree = nullptr;
+  CDBTTree *cdbttree_time = nullptr;
   int m_runNumber;
 };
 
