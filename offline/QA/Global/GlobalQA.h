@@ -65,17 +65,8 @@ private:
   TH1 *h_GlobalQA_zdc_zvtx_wide = nullptr;
   TH1 *h_GlobalQA_zdc_energy_s = nullptr;
   TH1 *h_GlobalQA_zdc_energy_n = nullptr;
-
-  // Trigger histos
-  TH1 *h_GlobalQA_triggerVec{nullptr};
-  TH2 *h_GlobalQA_edist[64] = {nullptr};
-  TH1 *h_ldClus_trig[64] = {nullptr};
-  TProfile *pr_evtNum_ldClus_trig[64] = {nullptr};
-  TProfile *pr_GlobalQA_rejection[64] = {nullptr};
-  TProfile *pr_GlobalQA_livetime[64] = {nullptr};
-  TProfile *pr_ldClus_trig{nullptr};
-  std::vector<int> trigOfInterest = {3,10,11,21,22,23,25,26,27};
-
+  TH1* h_GlobalQA_triggerVec{nullptr};
+  
   int _eventcounter{0};
   int _range{1};
 
