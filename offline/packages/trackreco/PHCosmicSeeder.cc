@@ -75,7 +75,7 @@ int PHCosmicSeeder::InitRun(PHCompositeNode* topNode)
 int PHCosmicSeeder::process_event(PHCompositeNode*)
 {
   PHCosmicSeeder::PositionMap clusterPositions;
-  for (const auto& hitsetkey : m_clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+  for (const auto& hitsetkey : m_clusterContainer->getHitSetKeys(m_trackerId))
   {
     auto range = m_clusterContainer->getClusters(hitsetkey);
     for (auto citer = range.first; citer != range.second; ++citer)
