@@ -19,7 +19,7 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 {
  public:
   HcalRawTowerBuilder(const std::string &name = "HcalRawTowerBuilder");
-  ~HcalRawTowerBuilder() override {}
+  ~HcalRawTowerBuilder() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -52,11 +52,10 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   };
   enum ProcessTowerType
   {
-    kRawTowerOnly= 0,
+    kRawTowerOnly = 0,
     kTowerInfoOnly = 1,
-    kBothTowers =2
+    kBothTowers = 2
   };
-
 
   int get_tower_energy_src() const
   {
@@ -85,7 +84,7 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   void set_tower_decal_factor(const int etabin, const int phibin, const double d);
   void Print(const std::string &what = "ALL") const override;
 
-  void set_towerinfo(HcalRawTowerBuilder::ProcessTowerType UseTowerInfo )
+  void set_towerinfo(HcalRawTowerBuilder::ProcessTowerType UseTowerInfo)
   {
     m_UseTowerInfo = UseTowerInfo;
   }
@@ -96,16 +95,14 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   void SetTowerDecalFactors();
   void set_tower_decal_factor_real(const int etabin, const int phibin, const double d);
 
-  RawTowerContainer *m_Towers = nullptr;
-  RawTowerGeomContainer *m_RawTowerGeom = nullptr;
+  RawTowerContainer *m_Towers {nullptr};
+  RawTowerGeomContainer *m_RawTowerGeom {nullptr};
 
-  double m_Emin = NAN;
-  int m_ChkEnergyConservationFlag = 0;
-  int m_TowerEnergySrc = enu_tower_energy_src::unknown;
-  int m_NcellToTower = -1;
-  HcalRawTowerBuilder::ProcessTowerType m_UseTowerInfo = HcalRawTowerBuilder::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
-
-
+  double m_Emin {std::numeric_limits<double>::quiet_NaN()};
+  int m_ChkEnergyConservationFlag {0};
+  int m_TowerEnergySrc {enu_tower_energy_src::unknown};
+  int m_NcellToTower {-1};
+  HcalRawTowerBuilder::ProcessTowerType m_UseTowerInfo {HcalRawTowerBuilder::ProcessTowerType::kBothTowers};  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
 
   std::string m_OutputDetector;
   std::string m_InputDetector;
