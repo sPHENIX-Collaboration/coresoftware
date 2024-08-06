@@ -26,12 +26,20 @@ double CaloWaveformFitting::template_function(double *x, double *par)
   return v1;
 }
 
+CaloWaveformFitting::~CaloWaveformFitting()
+{
+  delete h_template;
+}
+
 void CaloWaveformFitting::initialize_processing(const std::string &templatefile)
 {
   TFile *fin = TFile::Open(templatefile.c_str());
   assert(fin);
   assert(fin->IsOpen());
   h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
+  h_template->SetDirectory(nullptr);
+  fin->Close();
+  delete fin;
   m_peakTimeTemp = h_template->GetBinCenter(h_template->GetMaximumBin());
   t = new ROOT::TThreadExecutor(_nthreads);
 }
@@ -58,6 +66,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       v.push_back(v.at(1) - v.at(0));  // returns peak sample - pedestal sample
       v.push_back(-1);                 // set time to -1 to indicate zero suppressed
       v.push_back(v.at(0));
+      v.push_back(0);
       v.push_back(0);
     }
     else
@@ -92,6 +101,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         v.push_back(-1);
         v.push_back(v.at(0));
         v.push_back(0);
+        v.push_back(0);
       }
       else
       {
@@ -119,12 +129,103 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         ROOT::Fit::FitResult fitres = fitter->Result();
         double chi2min = fitres.MinFcnValue();
         chi2min /= size1 - 3;  // divide by the number of dof
-        for (int i = 0; i < 3; i++)
+        if (chi2min > _chi2threshold && (f->GetParameter(2) < _bfr_highpedestalthreshold || pedestal < _bfr_highpedestalthreshold) && (f->GetParameter(2) > _bfr_lowpedestalthreshold || pedestal > _bfr_lowpedestalthreshold) && _dobitfliprecovery) 
         {
-          v.push_back(f->GetParameter(i));
-        }
+          std::vector<float> rv; // temporary recovered waveform
+          rv.reserve(size1);
+          for (int i = 0; i < size1; i++)
+          {
+            rv.push_back(v.at(i));
+          }
+          unsigned int bits[3] = {8192,4096,2048};
+          for (auto bit : bits) 
+          {
+            for (int i = 0; i < size1; i++) 
+            {
+              if (((unsigned int)rv.at(i) & bit) && ((unsigned int)rv.at(i) % bit > _bfr_lowpedestalthreshold)) 
+              {
+                rv.at(i) = rv.at(i) - bit;
+              }
+            }
+          }
+          for (int i = 0; i < size1; i++)
+          {
+            h->SetBinContent(i + 1, rv.at(i));
+            h->SetBinError(i + 1, 1);
+          }
 
-        v.push_back(chi2min);
+          maxheight = 0;
+          maxbin = 0;
+          for (int i = 0; i < size1; i++)
+          {
+            if (rv.at(i) > maxheight)
+            {
+              maxheight = rv.at(i);
+              maxbin = i;
+            }
+          }
+          if (maxbin > 4)
+          {
+            pedestal = 0.5 * (rv.at(maxbin - 4) + rv.at(maxbin - 5));
+          }
+          else if (maxbin > 3)
+          {
+            pedestal = (rv.at(maxbin - 4));
+          }
+          else
+          {
+            pedestal = 0.5 * (rv.at(size1 - 3) + rv.at(size1 - 2));
+          }
+          
+          auto recover_f = new TF1(std::string("recover_f_" + std::to_string((int) round(v.at(size1)))).c_str(), this, &CaloWaveformFitting::template_function, 0, 31, 3, "CaloWaveformFitting", "template_function");
+          ROOT::Math::WrappedMultiTF1 *recoverFitFunction = new ROOT::Math::WrappedMultiTF1(*recover_f, 3);
+          ROOT::Fit::BinData recoverData(rv.size() - 1, 1);
+          ROOT::Fit::FillData(recoverData, h);
+          ROOT::Fit::Chi2Function *recoverEPChi2 = new ROOT::Fit::Chi2Function(recoverData, *recoverFitFunction);
+          ROOT::Fit::Fitter *recoverFitter = new ROOT::Fit::Fitter();
+          recoverFitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
+          double recover_params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
+          recoverFitter->Config().SetParamsSettings(3, recover_params);
+          recoverFitter->Config().ParSettings(1).SetLimits(-1*m_peakTimeTemp, size1-m_peakTimeTemp);// set lim on time par 
+          recoverFitter->FitFCN(*recoverEPChi2, nullptr, recoverData.Size(), true);
+          ROOT::Fit::FitResult recover_fitres = recoverFitter->Result();
+          double recover_chi2min = recover_fitres.MinFcnValue();
+          recover_chi2min /= size1-3; // divide by the number of dof
+          if (recover_chi2min < _chi2lowthreshold && recover_f->GetParameter(2) < _bfr_highpedestalthreshold && recover_f->GetParameter(2) > _bfr_lowpedestalthreshold) {
+            for (int i = 0; i < size1; i++)
+            {
+              v.at(i) = rv.at(i);
+            }
+            for (int i = 0; i < 3; i++)
+            {
+              v.push_back(recover_f->GetParameter(i));
+            }
+            v.push_back(recover_chi2min);
+            v.push_back(1);
+          }
+          else 
+          {
+            for (int i = 0; i < 3; i++)
+            {
+              v.push_back(f->GetParameter(i));
+            }
+            v.push_back(chi2min);
+            v.push_back(0);
+          }
+          recover_f->Delete();
+          delete recoverFitFunction;
+          delete recoverFitter;
+          delete recoverEPChi2;
+        } 
+        else 
+        {
+          for (int i = 0; i < 3; i++)
+          {
+            v.push_back(f->GetParameter(i));
+          }
+          v.push_back(chi2min);
+          v.push_back(0);
+        }
         h->Delete();
         f->Delete();
         delete fitFunction;
@@ -142,7 +243,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
   {
     std::vector<float> tv = chnlvector.at(i);
     int size2 = tv.size();
-    for (int q = 4; q > 0; q--)
+    for (int q = 5; q > 0; q--)
     {
       fit_params_tmp.push_back(tv.at(size2 - q));
     }
@@ -272,7 +373,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
       }
     }
     amp -= ped;
-    std::vector<float> val = {amp, time, ped, 0};
+    std::vector<float> val = {amp, time, ped, 0, 0};
     fit_values.push_back(val);
     val.clear();
   }
@@ -290,7 +391,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(std
 
     if (nsamples == 2)
     {
-      fit_values.push_back({v.at(1) - v.at(0), -1, v.at(0), 0});
+      fit_values.push_back({v.at(1) - v.at(0), -1, v.at(0), 0, 0});
       continue;
     }
     
@@ -369,7 +470,7 @@ std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> 
     float diff = vec_signal_samples[i] - template_function(xval, par);
     chi2 += diff*diff;
   }
-  std::vector<float> val = {max - pedestal, maxpos, pedestal, chi2};
+  std::vector<float> val = {max - pedestal, maxpos, pedestal, chi2, 0};
   return val;
 }
 

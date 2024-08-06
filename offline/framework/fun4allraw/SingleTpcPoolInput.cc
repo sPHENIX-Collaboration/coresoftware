@@ -28,6 +28,7 @@ SingleTpcPoolInput::SingleTpcPoolInput(const std::string &name)
 {
   SubsystemEnum(InputManagerType::TPC);
   plist = new Packet *[NTPCPACKETS];
+  m_rawHitContainerName = "TPCRAWHIT";
 }
 
 SingleTpcPoolInput::~SingleTpcPoolInput()
@@ -175,7 +176,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
 
         // Temp remedy as we set the time window as 425 for now (extended from previous 360
         // due to including of diffused laser flush)
-        const uint16_t samples = 425;
+        const uint16_t samples = m_max_tpc_time_samples;
 
         newhit->set_samples(samples);
 
@@ -426,11 +427,11 @@ void SingleTpcPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode = new PHCompositeNode("TPC");
     dstNode->addNode(detNode);
   }
-  TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode, "TPCRAWHIT");
+  TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode, m_rawHitContainerName);
   if (!tpchitcont)
   {
     tpchitcont = new TpcRawHitContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, "TPCRAWHIT", "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
 }

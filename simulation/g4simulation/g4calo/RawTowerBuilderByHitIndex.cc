@@ -61,7 +61,7 @@ int RawTowerBuilderByHitIndex::InitRun(PHCompositeNode *topNode)
   catch (std::exception &e)
   {
     std::cout << e.what() << std::endl;
-    //exit(1);
+    // exit(1);
   }
 
   try
@@ -71,7 +71,7 @@ int RawTowerBuilderByHitIndex::InitRun(PHCompositeNode *topNode)
   catch (std::exception &e)
   {
     std::cout << e.what() << std::endl;
-    //exit(1);
+    // exit(1);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -97,7 +97,10 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
     PHG4Hit *g4hit_i = hiter->second;
 
     // Don't include hits with zero energy
-    if (g4hit_i->get_edep() <= 0 && g4hit_i->get_edep() != -1) continue;
+    if (g4hit_i->get_edep() <= 0 && g4hit_i->get_edep() != -1)
+    {
+      continue;
+    }
 
     /* encode CaloTowerID from j, k index of tower / hit and calorimeter ID */
     RawTowerDefs::keytype calotowerid = RawTowerDefs::encode_towerid(m_CaloId,
@@ -113,7 +116,7 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
       m_Towers->AddTower(tower->get_id(), tower);
     }
 
-    tower->add_ecell((g4hit_i->get_index_j() << 16U) + g4hit_i->get_index_k(), g4hit_i->get_light_yield());
+    tower->add_ecell(((unsigned int) (g4hit_i->get_index_j()) << 16U) + g4hit_i->get_index_k(), g4hit_i->get_light_yield());
     tower->set_energy(tower->get_energy() + g4hit_i->get_light_yield());
     tower->add_eshower(g4hit_i->get_shower_id(), g4hit_i->get_edep());
   }
@@ -295,30 +298,42 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
 
   parit = m_GlobalParameterMap.find("Gx0");
   if (parit != m_GlobalParameterMap.end())
+  {
     m_GlobalPlaceInX = parit->second;
+  }
 
   parit = m_GlobalParameterMap.find("Gy0");
   if (parit != m_GlobalParameterMap.end())
+  {
     m_GlobalPlaceInY = parit->second;
+  }
 
   parit = m_GlobalParameterMap.find("Gz0");
   if (parit != m_GlobalParameterMap.end())
+  {
     m_GlobalPlaceInZ = parit->second;
+  }
 
   parit = m_GlobalParameterMap.find("Grot_x");
   if (parit != m_GlobalParameterMap.end())
+  {
     m_RotInX = parit->second;
+  }
 
   parit = m_GlobalParameterMap.find("Grot_y");
   if (parit != m_GlobalParameterMap.end())
+  {
     m_RotInY = parit->second;
+  }
 
   parit = m_GlobalParameterMap.find("Grot_z");
   if (parit != m_GlobalParameterMap.end())
+  {
     m_RotInZ = parit->second;
+  }
 
-  /* Correct tower geometries for global calorimter translation / rotation 
-  * after reading parameters from file */
+  /* Correct tower geometries for global calorimter translation / rotation
+   * after reading parameters from file */
   RawTowerGeomContainer::ConstRange all_towers = m_Geoms->get_tower_geometries();
 
   for (RawTowerGeomContainer::ConstIterator it = all_towers.first;

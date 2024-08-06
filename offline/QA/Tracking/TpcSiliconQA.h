@@ -28,7 +28,6 @@ class TpcSiliconQA : public SubsysReco
  private:
   void createHistos();
 
-  std::string m_trackMapName = "SvtxTrackMap"; 
   float m_crossing = std::numeric_limits<float>::quiet_NaN();
   float m_silseedx = std::numeric_limits<float>::quiet_NaN();
   float m_silseedy = std::numeric_limits<float>::quiet_NaN();
@@ -45,7 +44,6 @@ class TpcSiliconQA : public SubsysReco
   int m_event = 0;
 
   TH1 *h_crossing = nullptr;
-  TH1 *h_trackMatch = nullptr;
   TH1 *h_phiDiff = nullptr;
   TH1 *h_etaDiff = nullptr;
   TH1 *h_xDiff = nullptr;

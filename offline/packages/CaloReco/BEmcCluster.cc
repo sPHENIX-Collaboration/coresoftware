@@ -200,7 +200,9 @@ float EmcCluster::GetE4()
   int ix0, iy0, isx, isy;
 
   fOwner->Momenta(&fHitList, et, xcg, ycg, xx, yy, xy);
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   ix0 = int(xcg + 0.5);
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   iy0 = int(ycg + 0.5);
 
   isx = 1;
@@ -237,7 +239,9 @@ float EmcCluster::GetE9()
   }
 
   fOwner->Momenta(&fHitList, et, xcg, ycg, xx, yy, xy);
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   ix0 = int(xcg + 0.5);
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   iy0 = int(ycg + 0.5);
   ich = iy0 * fOwner->GetNx() + ix0;
 

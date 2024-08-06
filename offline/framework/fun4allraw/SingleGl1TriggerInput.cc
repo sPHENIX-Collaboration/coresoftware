@@ -116,8 +116,13 @@ void SingleGl1TriggerInput::FillPool(const unsigned int keep)
           TriggerInputManager()->AddGl1DroppedEvent(EventSequence);
         }
 
-        std::cout << Name() << ": Found dropped Event at event " << EventSequence
-                  << " with Packet Number: " << packetnumber << std::endl;
+	static int icnt = 0;
+	if (icnt < 1000)
+	{
+	  std::cout << Name() << ": Found dropped Event at event " << EventSequence
+		    << " with Packet Number: " << packetnumber << std::endl;
+	  icnt++;
+	}
         m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
       }
     }

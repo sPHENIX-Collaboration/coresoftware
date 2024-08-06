@@ -38,7 +38,10 @@ JetSeedCount::JetSeedCount(const std::string &moduleName, const std::string &rec
 
 int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
 {
-  std::cout << "JetSeedCount::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "JetSeedCount::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  }
   if (m_writeToOutputFile)
   {
     std::cout << "Opening output file named " << m_outputFileName << std::endl;
@@ -56,7 +59,10 @@ int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
 //____________________________________________________________________________..
 int JetSeedCount::InitRun(PHCompositeNode * /*topNode*/)
 {
-  std::cout << "JetSeedCount::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "JetSeedCount::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -92,7 +98,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   }
 
   // If not in pp mode, call Centrality Info
-  CentralityInfo* cent_node = nullptr;
+  CentralityInfo *cent_node = nullptr;
   if (!m_inPPMode)
   {
     cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
@@ -108,16 +114,19 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   if (!vertexmap)
   {
     std::cout
-        << "JetKinematicCheck::process_event - Error can not find global vertex  node "
+        << "JetSeedCount::process_event - Error can not find global vertex  node "
         << std::endl;
     exit(-1);
   }
   if (vertexmap->empty())
   {
-    std::cout
-        << "JetKinematicCheck::process_event - global vertex node is empty "
-        << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    if (Verbosity() > 1)
+    {
+      std::cout
+          << "JetSeedCount::process_event - global vertex node is empty "
+          << std::endl;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   GlobalVertex *vtx = vertexmap->begin()->second;
@@ -187,7 +196,10 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int JetSeedCount::End(PHCompositeNode * /*topNode*/)
 {
-  std::cout << "JetSeedCount::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "JetSeedCount::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  }
   if (m_writeToOutputFile)
   {
     PHTFileServer::get().cd(m_outputFileName);
@@ -219,7 +231,10 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   for (auto &vecHistName : vecHistNames)
   {
     vecHistName.insert(0, "h_" + smallModuleName + "_");
-    vecHistName.append("_" + m_histTag);
+    if (!m_histTag.empty())
+    {
+      vecHistName.append("_" + m_histTag);
+    }
   }
 
   TH1 *hRawSeedCount = new TH1F(vecHistNames[0].data(), "Raw Seed Count per Event", 100, 0.00, 50.00);

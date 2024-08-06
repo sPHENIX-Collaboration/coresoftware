@@ -51,7 +51,7 @@ class FillTruthRecoMatchMap : public SubsysReco
  public:
   FillTruthRecoMatchMap(const std::string &name = "FillTruthRecoMatchMap");
 
-  virtual ~FillTruthRecoMatchMap();
+  virtual ~FillTruthRecoMatchMap() = default;
 
   int Init(PHCompositeNode *) override;
   int InitRun(PHCompositeNode *topNode) override;

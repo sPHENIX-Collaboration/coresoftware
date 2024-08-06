@@ -33,6 +33,8 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   void doBaselineCorr(bool val) { m_do_baseline_corr = val; }
   void set_presampleShift(int b) { m_presampleShift = b; }
   void skipNevent(int b) { startevt = b; }
+  void useRawHitNodeName(const std::string &name) { m_TpcRawNodeName = name; }
+
   void event_range(int a, int b)
   {
     startevt = a;

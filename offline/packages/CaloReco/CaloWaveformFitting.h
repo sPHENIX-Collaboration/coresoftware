@@ -10,7 +10,7 @@ class CaloWaveformFitting
 {
  public:
   CaloWaveformFitting() = default;
-  ~CaloWaveformFitting() = default;
+  ~CaloWaveformFitting();
 
   void set_template_file(const std::string &template_input_file)
   {
@@ -47,6 +47,10 @@ class CaloWaveformFitting
     return;
   }
 
+  void set_bitFlipRecovery(bool dobitfliprecovery) {
+    _dobitfliprecovery = dobitfliprecovery;
+  }
+
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
   std::vector<std::vector<float>> calo_processing_fast(std::vector<std::vector<float>> chnlvector);
@@ -63,21 +67,27 @@ class CaloWaveformFitting
   float stablepsinc(float t, std::vector<float> &vec_signal_samples);
 
   float psinc(float t, std::vector<float> &vec_signal_samples);
-  TProfile *h_template = nullptr;
   double template_function(double *x, double *par);
+
+  TProfile *h_template {nullptr};
+  double m_peakTimeTemp {0};
   int _nthreads{1};
   int _nzerosuppresssamples{2};
   int _nsoftwarezerosuppression{40};
 //  float _stepsize{0.001};
-  bool _bdosoftwarezerosuppression{false};
-  bool _maxsoftwarezerosuppression{false};
-  std::string m_template_input_file;
-  std::string url_template;
-  double m_peakTimeTemp = 0;
-  bool m_setTimeLim{false};
   float m_timeLim_low{-3.0};
   float m_timeLim_high{4.0};
+  float _chi2threshold {100000};
+  float _chi2lowthreshold {10000};
+  float _bfr_lowpedestalthreshold {1200};
+  float _bfr_highpedestalthreshold {4000};
+  bool _bdosoftwarezerosuppression{false};
+  bool _maxsoftwarezerosuppression{false};
+  bool m_setTimeLim{false};
+  bool _dobitfliprecovery {false};
 
+  std::string m_template_input_file;
+  std::string url_template;
   std::string url_onnx;
   std::string m_model_name;
 };

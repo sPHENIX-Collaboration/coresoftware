@@ -67,6 +67,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
   {
      WaveformProcessing->set_timeFitLim(m_timeLim_low,m_timeLim_high);
   }
+  if (m_dobitfliprecovery)
+  {
+    WaveformProcessing->set_bitFlipRecovery(m_dobitfliprecovery);
+  }
 
   if (m_dettype == CaloTowerDefs::CEMC)
   {
@@ -174,6 +178,14 @@ int CaloTowerBuilder::process_sim()
     towerinfo->set_time_float(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
     towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+    if (processed_waveforms.at(i).at(4) == 0) 
+    {
+      towerinfo->set_isRecovered(false);
+    }
+    else
+    {
+      towerinfo->set_isRecovered(true);
+    }
     int n_samples = waveforms.at(i).size();
     if (n_samples == m_nzerosuppsamples)
     {
@@ -380,6 +392,14 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     towerinfo->set_time_float(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
     towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+    if (processed_waveforms.at(i).at(4) == 0) 
+    {
+      towerinfo->set_isRecovered(false);
+    }
+    else
+    {
+      towerinfo->set_isRecovered(true);
+    }
     int n_samples = waveforms.at(i).size();
     if (n_samples == m_nzerosuppsamples)
     {

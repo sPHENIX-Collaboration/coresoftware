@@ -114,6 +114,10 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     {
       unsigned int trackkey = (*iter).second;
       SvtxTrack *track = _track_map->get(trackkey);
+      if(!track)
+      {
+        continue;
+      }
       crossing_tracks->insertWithKey(track, trackkey);
     }
 

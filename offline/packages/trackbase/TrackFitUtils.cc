@@ -582,15 +582,15 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
       global_vec_noINTT.push_back(global_vec[ivec]);
     }
   }
-
-if(use_intt)
-{
-  global_vec_noINTT = global_vec;
-}
+  //  std::cout << " use_intt = " << use_intt << std::endl;
+  if(use_intt)
+    {
+      global_vec_noINTT = global_vec;
+    }
   if (global_vec_noINTT.size() < 3)
-  {
-    return fitpars;
-  }
+    {
+      return fitpars;
+    }
   std::tuple<double, double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
 
   fitpars.push_back(std::get<0>(circle_fit_pars));

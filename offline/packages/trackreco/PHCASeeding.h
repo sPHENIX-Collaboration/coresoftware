@@ -269,6 +269,12 @@ class PHCASeeding : public PHTrackSeeding
   std::unique_ptr<PHTimer> t_makeseeds;
   /* std::array<bgi::rtree<pointKey, bgi::quadratic<16>>, _NLAYERS_TPC> _rtrees; */
   std::array<bgi::rtree<pointKey,bgi::quadratic<16>>, 3> _rtrees; // need three layers at a time
+
+  double Ar_frac = 0.75;
+  double CF4_frac = 0.20;
+  double N2_frac = 0.00;
+  double isobutane_frac = 0.05;
+
 };
 
 #endif

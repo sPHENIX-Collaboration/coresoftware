@@ -210,6 +210,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   TFile* fout{nullptr};
 
   bool use_event_vertex{false};
+  bool use_intt_zfit{true};
 
   int event{0};
 

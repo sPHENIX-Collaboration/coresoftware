@@ -85,6 +85,11 @@ class PrelimDistortionCorrection : public SubsysReco
   double _max_sin_phi = 1.;
   bool _pp_mode = false;
 
+  void setArgonFraction(double frac) { Ar_frac = frac; };
+  void setCF4Fraction(double frac) { CF4_frac = frac; };
+  void setNitrogenFraction(double frac) { N2_frac = frac; };
+  void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
+
   TrkrClusterContainer *_cluster_map = nullptr;
 
   TrackSeedContainer *_track_map = nullptr;
@@ -151,6 +156,11 @@ class PrelimDistortionCorrection : public SubsysReco
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
+
+  double Ar_frac = 0.75;
+  double CF4_frac = 0.20;
+  double N2_frac = 0.00;
+  double isobutane_frac = 0.05;
 
 };
 

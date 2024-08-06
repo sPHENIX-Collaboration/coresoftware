@@ -35,12 +35,9 @@ class MvtxRawHitQA : public SubsysReco
 
   MvtxRawHitContainer* rawhitcont{nullptr};
 
-  TH1* h_nhits_per_chip_layer0{nullptr};
-  TH1* h_nhits_per_chip_layer1{nullptr};
-  TH1* h_nhits_per_chip_layer2{nullptr};
-  TH1* h_chipocc_layer0{nullptr};
-  TH1* h_chipocc_layer1{nullptr};
-  TH1* h_chipocc_layer2{nullptr};
+  TH1* h_nhits_layer0{nullptr};
+  TH1* h_nhits_layer1{nullptr};
+  TH1* h_nhits_layer2{nullptr};
   TH1* h_bco{nullptr};
   TH1* h_strobe_bc{nullptr};
   TH1* h_chip_bc{nullptr};

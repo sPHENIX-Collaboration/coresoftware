@@ -224,6 +224,7 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
   // build a RawCluster for output
   std::vector<RawCluster *> clusters;
   std::vector<float> clusters_E;
+  std::vector<float> clusters_absE;
   std::vector<float> clusters_x;
   std::vector<float> clusters_y;
   std::vector<float> clusters_z;
@@ -232,6 +233,7 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
   {
     clusters.push_back(new RawClusterv1());
     clusters_E.push_back(0);
+    clusters_absE.push_back(0);
     clusters_x.push_back(0);
     clusters_y.push_back(0);
     clusters_z.push_back(0);
@@ -268,9 +270,11 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
       // assigned only to one cluster, easy
       clusters[the_pair.first]->addTower(this_key, this_E);
       clusters_E[the_pair.first] = clusters_E[the_pair.first] + this_E;
-      clusters_x[the_pair.first] = clusters_x[the_pair.first] + this_E * tower_geom->get_center_x();
-      clusters_y[the_pair.first] = clusters_y[the_pair.first] + this_E * tower_geom->get_center_y();
-      clusters_z[the_pair.first] = clusters_z[the_pair.first] + this_E * tower_geom->get_center_z();
+      clusters_absE[the_pair.first] = clusters_absE[the_pair.first] + std::fabs( this_E );
+      // calculate position mean using absolute energy as weights
+      clusters_x[the_pair.first] = clusters_x[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_x();
+      clusters_y[the_pair.first] = clusters_y[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_y();
+      clusters_z[the_pair.first] = clusters_z[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_z();
 
       if (Verbosity() > 5)
       {
@@ -283,7 +287,7 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
       float dR1 = calculate_dR(tower_geom->get_eta(), pseudocluster_eta[the_pair.first], tower_geom->get_phi(), pseudocluster_phi[the_pair.first]) / _R_shower;
       float dR2 = calculate_dR(tower_geom->get_eta(), pseudocluster_eta[the_pair.second], tower_geom->get_phi(), pseudocluster_phi[the_pair.second]) / _R_shower;
       float r = std::exp(dR1 - dR2);
-      float frac1 = pseudocluster_sumE[the_pair.first] / (pseudocluster_sumE[the_pair.first] + r * pseudocluster_sumE[the_pair.second]);
+      float frac1 = fabs( pseudocluster_sumE[the_pair.first] ) / ( fabs( pseudocluster_sumE[the_pair.first] ) + r * fabs( pseudocluster_sumE[the_pair.second] ) );
 
       if (Verbosity() > 5)
       {
@@ -291,15 +295,17 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
       }
       clusters[the_pair.first]->addTower(this_key, this_E * frac1);
       clusters_E[the_pair.first] = clusters_E[the_pair.first] + this_E * frac1;
-      clusters_x[the_pair.first] = clusters_x[the_pair.first] + this_E * tower_geom->get_center_x() * frac1;
-      clusters_y[the_pair.first] = clusters_y[the_pair.first] + this_E * tower_geom->get_center_y() * frac1;
-      clusters_z[the_pair.first] = clusters_z[the_pair.first] + this_E * tower_geom->get_center_z() * frac1;
+      clusters_absE[the_pair.first] = clusters_absE[the_pair.first] + std::fabs( this_E ) * frac1;
+      clusters_x[the_pair.first] = clusters_x[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_x() * frac1;
+      clusters_y[the_pair.first] = clusters_y[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_y() * frac1;
+      clusters_z[the_pair.first] = clusters_z[the_pair.first] + std::fabs( this_E ) * tower_geom->get_center_z() * frac1;
 
       clusters[the_pair.second]->addTower(this_key, this_E * (1 - frac1));
       clusters_E[the_pair.second] = clusters_E[the_pair.second] + this_E * (1 - frac1);
-      clusters_x[the_pair.second] = clusters_x[the_pair.second] + this_E * tower_geom->get_center_x() * (1 - frac1);
-      clusters_y[the_pair.second] = clusters_y[the_pair.second] + this_E * tower_geom->get_center_y() * (1 - frac1);
-      clusters_z[the_pair.second] = clusters_z[the_pair.second] + this_E * tower_geom->get_center_z() * (1 - frac1);
+      clusters_absE[the_pair.second] = clusters_absE[the_pair.second] + std::fabs( this_E ) * (1 - frac1);
+      clusters_x[the_pair.second] = clusters_x[the_pair.second] + std::fabs( this_E ) * tower_geom->get_center_x() * (1 - frac1);
+      clusters_y[the_pair.second] = clusters_y[the_pair.second] + std::fabs( this_E ) * tower_geom->get_center_y() * (1 - frac1);
+      clusters_z[the_pair.second] = clusters_z[the_pair.second] + std::fabs( this_E ) * tower_geom->get_center_z() * (1 - frac1);
     }
   }
 
@@ -309,9 +315,9 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
   {
     clusters[cl]->set_energy(clusters_E[cl]);
 
-    float mean_x = clusters_x[cl] / clusters_E[cl];
-    float mean_y = clusters_y[cl] / clusters_E[cl];
-    float mean_z = clusters_z[cl] / clusters_E[cl];
+    float mean_x = clusters_x[cl] / clusters_absE[cl];
+    float mean_y = clusters_y[cl] / clusters_absE[cl];
+    float mean_z = clusters_z[cl] / clusters_absE[cl];
 
     clusters[cl]->set_r(std::sqrt(mean_y * mean_y + mean_x * mean_x));
     clusters[cl]->set_phi(std::atan2(mean_y, mean_x));
@@ -346,6 +352,7 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   _sigma_grow = 2.0;
   _sigma_peri = 0.0;
 
+  _use_absE = true;
   _allow_corner_neighbor = true;
 
   _enable_HCal = true;
@@ -353,6 +360,8 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
 
   _do_split = true;
   _R_shower = 0.025;
+
+  _only_good_towers = true;
 
   _local_max_minE_LAYER[0] = 1;
   _local_max_minE_LAYER[1] = 1;
@@ -379,6 +388,7 @@ int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
     std::cout << "RawClusterBuilderTopo::InitRun: initialized with sigma_noise in EMCal / IHCal / OHCal = " << _noise_LAYER[2] << " / " << _noise_LAYER[0] << " / " << _noise_LAYER[1] << std::endl;
     std::cout << "RawClusterBuilderTopo::InitRun: initialized with noise multiples for seeding / growth / perimeter ( S / N / P ) = " << _sigma_seed << " / " << _sigma_grow << " / " << _sigma_peri << std::endl;
     std::cout << "RawClusterBuilderTopo::InitRun: initialized with allow_corner_neighbor = " << _allow_corner_neighbor << " (in HCal)" << std::endl;
+    std::cout << "RawClusterBuilderTopo::InitRun: initialized with use_absE = " << _use_absE << std::endl;
     std::cout << "RawClusterBuilderTopo::InitRun: initialized with do_split = " << _do_split << " , R_shower = " << _R_shower << " (angular units) " << std::endl;
     std::cout << "RawClusterBuilderTopo::InitRun: initialized with minE for local max in EMCal / IHCal / OHCal = " << _local_max_minE_LAYER[2] << " / " << _local_max_minE_LAYER[0] << " / " << _local_max_minE_LAYER[1] << std::endl;
   }
@@ -388,6 +398,7 @@ int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
 
 int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 {
+
   TowerInfoContainer *towerinfosEM = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
   TowerInfoContainer *towerinfosIH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
   TowerInfoContainer *towerinfosOH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
@@ -493,6 +504,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     for (unsigned int iEM = 0; iEM < towerinfosEM->size(); iEM++)
     {
       towerInfo = towerinfosEM->get_tower_at_channel(iEM);
+      if(_only_good_towers && (!towerInfo->get_isGood()))
+      {
+        continue;
+      }
       unsigned int towerinfo_key = towerinfosEM->encode_key(iEM);
       int ti_ieta = towerinfosEM->getTowerEtaBin(towerinfo_key);
       int ti_iphi = towerinfosEM->getTowerPhiBin(towerinfo_key);
@@ -504,7 +519,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       int iphi = _geom_containers[2]->get_phibin(tower_geom->get_phi());
       float this_E = towerInfo->get_energy();
 
-      if (this_E < 1.E-10)
+      // if not using abs E, short circuit all negative towers right here (same for IHCal, OHCal below)
+      if ( !_use_absE && this_E < 1.E-10)
       {
         continue;
       }
@@ -513,7 +529,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       _EMTOWERMAP_E_ETA_PHI[ieta][iphi] = this_E;
       _EMTOWERMAP_KEY_ETA_PHI[ieta][iphi] = key;
 
-      if (this_E > _sigma_seed * _noise_LAYER[2])
+      // use fabs() here for simplicity - if we're not using abs E, negative towers are already excluded
+      if ( std::fabs( this_E ) >= _sigma_seed * _noise_LAYER[2] )
       {
         int ID = get_ID(2, ieta, iphi);
         list_of_seeds.emplace_back(ID, this_E);
@@ -533,6 +550,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     for (unsigned int iIH = 0; iIH < towerinfosIH->size(); iIH++)
     {
       towerInfo = towerinfosIH->get_tower_at_channel(iIH);
+      if(_only_good_towers && (!towerInfo->get_isGood()))
+      {
+        continue;
+      }
       unsigned int towerinfo_key = towerinfosIH->encode_key(iIH);
       int ti_ieta = towerinfosIH->getTowerEtaBin(towerinfo_key);
       int ti_iphi = towerinfosIH->getTowerPhiBin(towerinfo_key);
@@ -544,7 +565,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       int iphi = _geom_containers[0]->get_phibin(tower_geom->get_phi());
       float this_E = towerInfo->get_energy();
 
-      if (this_E < 1.E-10)
+      if ( !_use_absE && this_E < 1.E-10)
       {
         continue;
       }
@@ -553,7 +574,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       _TOWERMAP_E_LAYER_ETA_PHI[0][ieta][iphi] = this_E;
       _TOWERMAP_KEY_LAYER_ETA_PHI[0][ieta][iphi] = key;
 
-      if (this_E > _sigma_seed * _noise_LAYER[0])
+      if ( std::fabs( this_E ) >= _sigma_seed * _noise_LAYER[0] )
       {
         int ID = get_ID(0, ieta, iphi);
         list_of_seeds.emplace_back(ID, this_E);
@@ -568,6 +589,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     for (unsigned int iOH = 0; iOH < towerinfosOH->size(); iOH++)
     {
       towerInfo = towerinfosOH->get_tower_at_channel(iOH);
+      if(_only_good_towers && (!towerInfo->get_isGood()))
+      {
+        continue;
+      }
       unsigned int towerinfo_key = towerinfosOH->encode_key(iOH);
       int ti_ieta = towerinfosOH->getTowerEtaBin(towerinfo_key);
       int ti_iphi = towerinfosOH->getTowerPhiBin(towerinfo_key);
@@ -579,7 +604,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       int iphi = _geom_containers[1]->get_phibin(tower_geom->get_phi());
       float this_E = towerInfo->get_energy();
 
-      if (this_E < 1.E-10)
+      if ( !_use_absE && this_E < 1.E-10)
       {
         continue;
       }
@@ -588,7 +613,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       _TOWERMAP_E_LAYER_ETA_PHI[1][ieta][iphi] = this_E;
       _TOWERMAP_KEY_LAYER_ETA_PHI[1][ieta][iphi] = key;
 
-      if (this_E > _sigma_seed * _noise_LAYER[1])
+      if ( std::fabs( this_E ) >= _sigma_seed * _noise_LAYER[1] )
       {
         int ID = get_ID(1, ieta, iphi);
         list_of_seeds.emplace_back(ID, this_E);
@@ -706,7 +731,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         }
 
         // if tower has < 2*sigma energy, continue
-        if (get_E_from_ID(this_adjacent_tower_ID) < _sigma_grow * _noise_LAYER[test_layer])
+	if ( std::fabs(get_E_from_ID(this_adjacent_tower_ID)) < _sigma_grow * _noise_LAYER[test_layer] )
         {
           if (Verbosity() > 10)
           {
@@ -789,7 +814,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         }
 
         // if tower has < 0*sigma energy, continue
-        if (get_E_from_ID(this_adjacent_tower_ID) < _sigma_peri * _noise_LAYER[test_layer])
+	if ( std::fabs(get_E_from_ID(this_adjacent_tower_ID)) < _sigma_peri * _noise_LAYER[test_layer] )
         {
           if (Verbosity() > 10)
           {
@@ -868,7 +893,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(tower_ID);
       int neighbors_in_cluster = 0;
 
-      // check for higher neighbox
+      // check for higher neighbor
       bool has_higher_neighbor = false;
       for (int this_adjacent_tower_ID : adjacent_tower_IDs)
       {
@@ -1266,7 +1291,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         pseudocluster_sumE[the_pair.first] += get_E_from_ID(this_ID);
         float this_eta = _geom_containers[get_ilayer_from_ID(this_ID)]->get_etacenter(get_ieta_from_ID(this_ID));
         float this_phi = _geom_containers[get_ilayer_from_ID(this_ID)]->get_phicenter(get_iphi_from_ID(this_ID));
-        // float this_phi = ( get_ilayer_from_ID( this_ID ) == 2 ? geomEM->get_phicenter( get_iphi_from_ID( this_ID ) ) : geomOH->get_phicenter( get_iphi_from_ID( this_ID ) ) );
+
         pseudocluster_sumeta[the_pair.first] += this_eta;
         pseudocluster_sumphi[the_pair.first] += this_phi;
         pseudocluster_ntower[the_pair.first] += 1;
@@ -1331,7 +1356,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         }
       }
 
-      // now figure out which pseudoclustes this shared tower is adjacent to...
+      // now figure out which pseudoclusters this shared tower is adjacent to...
       int highest_pseudocluster_index = -1;
       int second_highest_pseudocluster_index = -1;
 
