@@ -1149,6 +1149,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
       // create new svtx state and add to track
       auto state = create_track_state(pathlength, &gf_state);
+      state.set_cluskey(cluster_key);
       out_track->insert_state(&state);
     }
   }
