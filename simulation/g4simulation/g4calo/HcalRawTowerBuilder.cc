@@ -1,6 +1,6 @@
 #include "HcalRawTowerBuilder.h"
 
-#include <calobase/RawTower.h>               // for RawTower
+#include <calobase/RawTower.h>  // for RawTower
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>           // for convert_name_...
 #include <calobase/RawTowerGeom.h>           // for RawTowerGeom
@@ -30,11 +30,11 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>    // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>     // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 
@@ -44,7 +44,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <memory>   // for allocator_tra...
+#include <memory>  // for allocator_tra...
 #include <stdexcept>
 #include <utility>  // for make_pair, pair
 
@@ -171,7 +171,10 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
     int tempi = i + 1;
-    if (tempi >= get_int_param(PHG4HcalDefs::n_towers)) tempi -= get_int_param(PHG4HcalDefs::n_towers);
+    if (tempi >= get_int_param(PHG4HcalDefs::n_towers))
+    {
+      tempi -= get_int_param(PHG4HcalDefs::n_towers);
+    }
     m_RawTowerGeom->set_phibounds(tempi, range);
   }
   // double etalowbound = -1.1;
@@ -538,12 +541,12 @@ void HcalRawTowerBuilder::SetDefaultParameters()
   set_default_int_param("etabins", 24);
 
   set_default_double_param("emin", 1.e-6);
-  set_default_double_param(PHG4HcalDefs::outerrad, NAN);
-  set_default_double_param(PHG4HcalDefs::innerrad, NAN);
+  set_default_double_param(PHG4HcalDefs::outerrad, std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param(PHG4HcalDefs::innerrad, std::numeric_limits<double>::quiet_NaN());
 
   set_default_double_param("scinti_eta_coverage_neg", 1.1);
   set_default_double_param("scinti_eta_coverage_pos", 1.1);
-  set_default_double_param("phistart", NAN);
+  set_default_double_param("phistart", std::numeric_limits<double>::quiet_NaN());
 }
 
 void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
@@ -587,9 +590,9 @@ void HcalRawTowerBuilder::set_cell_decal_factor(const int etabin, const int phib
 
 void HcalRawTowerBuilder::SetTowerDecalFactors()
 {
-  for (auto iter = m_TowerDecalFactors.begin(); iter != m_TowerDecalFactors.end(); ++iter)
+  for (auto &m_TowerDecalFactor : m_TowerDecalFactors)
   {
-    set_tower_decal_factor_real(iter->first.first, iter->first.second, iter->second);
+    set_tower_decal_factor_real(m_TowerDecalFactor.first.first, m_TowerDecalFactor.first.second, m_TowerDecalFactor.second);
   }
 }
 
