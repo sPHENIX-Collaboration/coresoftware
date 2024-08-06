@@ -123,35 +123,39 @@ void PHG4TpcDetector::CreateTpcGasMixture()
   G4double tpcGasTemperature = (273.15 + m_Params->get_double_param("TPC_gas_temperature")) * kelvin;
   G4double tpcGasPressure = m_Params->get_double_param("TPC_gas_pressure") * atmosphere;
 
-  G4Material *CF4 = new G4Material("CF4", density = 3.72 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
+  G4Material *CF4 = new G4Material("CF4", density = 3.78 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
   CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 1);
   CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), natoms = 4);
 
-  G4Material *N2 = new G4Material("N2", density = 1.25 * mg / cm3, ncomponents = 1, kStateGas, tpcGasTemperature, tpcGasPressure);
+  G4Material *N2 = new G4Material("N2", density = 1.165 * mg / cm3, ncomponents = 1, kStateGas, tpcGasTemperature, tpcGasPressure);
   N2->AddElement(G4NistManager::Instance()->FindOrBuildElement("N"), natoms = 2);
 
   //Create isobutane as only butane is in the standard G4Material list (they have different densities)
   //https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
-  G4Material *isobutane = new G4Material("isobutane", density = 2.51 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
+  G4Material *isobutane = new G4Material("isobutane", density = 2.59 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
   isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 4); //Could use AddElement(PHG4Detector::GetDetectorElement("C", true), 4); instead?
   isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 10);
 
+  double Ne_frac = m_Params->get_double_param("Ne_frac");
   double Ar_frac = m_Params->get_double_param("Ar_frac");
   double CF4_frac = m_Params->get_double_param("CF4_frac");
   double N2_frac = m_Params->get_double_param("N2_frac");
   double isobutane_frac = m_Params->get_double_param("isobutane_frac");
 
+  const double Ne_den = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ne")->GetDensity();
   const double Ar_den = G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar")->GetDensity();
   const double CF4_den = CF4->GetDensity();
   const double N2_den = N2->GetDensity();
   const double isobutane_den = isobutane->GetDensity();
 
-  const double sphenix_tpc_gas_den = (Ar_den * Ar_frac)
+  const double sphenix_tpc_gas_den = (Ne_den * Ne_frac)
+                                   + (Ar_den * Ar_frac)
                                    + (CF4_den * CF4_frac)
                                    + (N2_den * N2_frac)
                                    + (isobutane_den * isobutane_frac);
 
-  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", sphenix_tpc_gas_den, ncomponents = 4, kStateGas, tpcGasTemperature, tpcGasPressure);
+  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", sphenix_tpc_gas_den, ncomponents = 5, kStateGas);//, tpcGasTemperature, tpcGasPressure);
+  sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ne"), (Ne_den * Ne_frac) / sphenix_tpc_gas_den);
   sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), (Ar_den * Ar_frac) / sphenix_tpc_gas_den);
   sPHENIX_tpc_gas->AddMaterial(CF4, (CF4_den * CF4_frac) / sphenix_tpc_gas_den);
   sPHENIX_tpc_gas->AddMaterial(N2, (N2_den * N2_frac) / sphenix_tpc_gas_den);
