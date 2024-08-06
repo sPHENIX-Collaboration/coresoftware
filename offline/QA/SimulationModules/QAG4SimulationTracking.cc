@@ -118,6 +118,17 @@ int QAG4SimulationTracking::Init(PHCompositeNode * /*topNode*/)
   hm->registerHisto(h);
 
   // reco pT histogram
+  h = new TH2F(TString(get_histo_prefix()) + "nReco_pTGen_nclus",
+               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c]", 200, 0.1, 50.5, 51, -0.5, 50.5);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+
+  h = new TH2F(TString(get_histo_prefix()) + "nReco_pTGen_pTreco",
+               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];Reco p_{T} [GeV]/c]", 200, 0.1, 50.5, 200, 0.1, 50.5);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  QAHistManagerDef::useLogBins(h->GetYaxis());
+  hm->registerHisto(h);
+
   h = new TH1F(TString(get_histo_prefix()) + "nReco_pTGen",
                "Reco tracks at truth p_{T};Truth p_{T} [GeV/c]", 200, 0.1, 50.5);
   QAHistManagerDef::useLogBins(h->GetXaxis());
@@ -265,6 +276,12 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   // reco histogram plotted at gen pT
   TH1 *h_nReco_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nReco_pTGen"));
   assert(h_nReco_pTGen);
+
+  TH2 *h_nReco_pTGen_nclus = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "nReco_pTGen_nclus"));
+  assert(h_nReco_pTGen_nclus);
+
+  TH2 *h_nReco_pTGen_pTreco = dynamic_cast<TH2 *>(hm->getHisto(get_histo_prefix() + "nReco_pTGen_pTreco"));
+  assert(h_nReco_pTGen_pTreco);
 
   // reco histogram plotted at gen pT
   TH1 *h_nMVTX_nReco_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nMVTX_nReco_pTGen"));
@@ -668,6 +685,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
             }
           }
         }
+        h_nReco_pTGen_nclus->Fill(gpt, (float) TPC_hits); 
+        h_nReco_pTGen_pTreco->Fill(gpt, pt); 
+
 
         if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
         {
