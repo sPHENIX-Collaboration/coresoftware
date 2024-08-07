@@ -773,6 +773,9 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
 //____________________________________________________________________________..
 int TrackResiduals::End(PHCompositeNode* /*unused*/)
 {
+
+  std::cout << "TrackResiduals::End - m_goodtracks: " << m_goodtracks << std::endl;
+
   m_outfile->cd();
   m_tree->Write();
   if (m_doClusters)
@@ -1071,7 +1074,7 @@ if(Verbosity() > 1)
     {
       if(Verbosity() > 1)  {  std::cout << "   no state for cluster " << ckey << "  in layer " << layer << std::endl; }
     }
-  
+
   m_cluskeys.push_back(ckey);
 
   //! have cluster and state, fill vectors
@@ -1213,7 +1216,7 @@ if(Verbosity() > 1)
       auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
 					stateglob * Acts::UnitConstants::cm,
 					misalignnorm);
-      
+
       if (result.ok())
 	{
 	  stateloc = result.value() / Acts::UnitConstants::cm;
@@ -1809,6 +1812,7 @@ void TrackResiduals::createBranches()
 
 void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
 {
+
   auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   auto tpcGeom =
@@ -1820,7 +1824,6 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
   auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
   std::set<unsigned int> tpc_seed_ids;
-
   for (const auto& [key, track] : *trackmap)
   {
     if (!track)
@@ -1966,6 +1969,12 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
 
       // add the global positions to a vector to give to the cluster mover
       global_raw.emplace_back(std::make_pair(ckey, global));
+
+      std::cout << "TrackResiduals::fillResidualTreeKF -"
+        << " track id: " << m_trackid
+        << " layer: " << (int) TrkrDefs::getLayer(ckey)
+        << " position: " << global.x() << "," << global.y() << "," << global.z()
+        << std::endl;
     }
 
     // move the cluster positions back to the original readout surface in the fillClusterBranchesKF method
@@ -2029,6 +2038,11 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
 
     if( m_nmms>0 || !m_doMicromegasOnly )
     { m_tree->Fill(); }
+
+
+    // count good tracks
+    if( m_pt>0.2 && m_quality<100 && m_ntpc>20 && m_nmaps>2 && m_nintt>1 && m_nmms>0 )
+    { ++m_goodtracks; }
 
   }  // end loop over tracks
 
