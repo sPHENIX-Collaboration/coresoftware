@@ -143,7 +143,7 @@ int emcNoisyTowerFinder::ResetEvent(PHCompositeNode * /*topNode*/)
 void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilename, const std::string &inHist)
 {
   //TH2F *h_hits_eta_phi_adc = nullptr;
-  bool isListFile = (infilename.substr(infilename.find_last_of(".") + 1) == "txt" || infilename.substr(infilename.find_last_of(".") + 1) == "list");
+  bool isListFile = (infilename.substr(infilename.rfind(".") + 1) == "txt" || infilename.substr(infilename.rfind(".") + 1) == "list");
 
   if (isListFile)
   {
@@ -167,7 +167,7 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
       if (!h_hits_eta_phi_adc)
       {
         h_hits_eta_phi_adc = (TH2F *) tempHist->Clone();
-        h_hits_eta_phi_adc->SetDirectory(0);  // Detach from the file to keep it in memory
+        h_hits_eta_phi_adc->SetDirectory(nullptr);  // Detach from the file to keep it in memory
       }
       else
       {
@@ -192,7 +192,7 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
       delete fin;
       return;
     }
-    h_hits_eta_phi_adc->SetDirectory(0);  // Detach from the file to keep it in memory
+    h_hits_eta_phi_adc->SetDirectory(nullptr);  // Detach from the file to keep it in memory
     delete fin;
   }
 
