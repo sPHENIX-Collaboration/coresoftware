@@ -53,7 +53,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrackState.h>  // for SvtxTrackState
-#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackState_v2.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -108,10 +108,10 @@ namespace
     return x * x;
   }
 
-  // convert gf state to SvtxTrackState_v1
-  SvtxTrackState_v1 create_track_state(float pathlength, const genfit::MeasuredStateOnPlane* gf_state)
+  // convert gf state to SvtxTrackState_v2
+  SvtxTrackState_v2 create_track_state(float pathlength, const genfit::MeasuredStateOnPlane* gf_state)
   {
-    SvtxTrackState_v1 out(pathlength);
+    SvtxTrackState_v2 out(pathlength);
     out.set_x(gf_state->getPos().x());
     out.set_y(gf_state->getPos().y());
     out.set_z(gf_state->getPos().z());
@@ -834,7 +834,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     so that the track state list is never empty. Note that insert_state, despite taking a pointer as argument,
     does not take ownership of the state
     */
-    SvtxTrackState_v1 first(0.0);
+    SvtxTrackState_v2 first(0.0);
     out_track->insert_state(&first);
   }
 
@@ -1031,6 +1031,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
     // create new svtx state and add to track
     auto state = create_track_state(pathlength, gf_state);
+
     out_track->insert_state(&state);
 
 #ifdef _DEBUG_
