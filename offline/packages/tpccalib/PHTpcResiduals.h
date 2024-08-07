@@ -17,7 +17,6 @@
 
 class PHCompositeNode;
 class SvtxTrack;
-class SvtxTrackState;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
