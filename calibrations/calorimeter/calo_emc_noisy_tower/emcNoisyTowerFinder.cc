@@ -143,7 +143,7 @@ int emcNoisyTowerFinder::ResetEvent(PHCompositeNode * /*topNode*/)
 void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilename, const std::string &inHist)
 {
   //TH2F *h_hits_eta_phi_adc = nullptr;
-  bool isListFile = (infilename.substr(infilename.rfind(".") + 1) == "txt" || infilename.substr(infilename.rfind(".") + 1) == "list");
+  bool isListFile = (infilename.substr(infilename.rfind('.') + 1) == "txt" || infilename.substr(infilename.rfind('.') + 1) == "list");
 
   if (isListFile)
   {
