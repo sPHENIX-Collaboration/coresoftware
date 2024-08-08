@@ -254,10 +254,61 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
   added_smear_sigma_trans = get_double_param("added_smear_trans");
   drift_velocity = get_double_param("drift_velocity");
+
+  // Data on gasses @20 C and 760 Torr from the following source:
+  // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
+  // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
+  // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
+
+  double Ne_dEdx = 1.56; // keV/cm
+  double Ne_NTotal = 43; // Number/cm
+  double Ne_frac = tpcparam->get_double_param("Ne_frac");
+
+  double Ar_dEdx = 2.44; // keV/cm
+  double Ar_NTotal = 94; // Number/cm
+  double Ar_frac = tpcparam->get_double_param("Ar_frac");
+
+  double CF4_dEdx = 7; // keV/cm
+  double CF4_NTotal = 100; // Number/cm
+  double CF4_frac = tpcparam->get_double_param("CF4_frac");
+
+  double N2_dEdx = 2.127;   // keV/cm https://pdg.lbl.gov/2024/AtomicNuclearProperties/HTML/nitrogen_gas.html
+  double N2_NTotal = 25;    // Number/cm (probably not right but has a very small impact)
+  double N2_frac = tpcparam->get_double_param("N2_frac");
+
+  double isobutane_dEdx = 5.93;   // keV/cm
+  double isobutane_NTotal = 195;    // Number/cm
+  double isobutane_frac = tpcparam->get_double_param("isobutane_frac");
+
+  if (m_use_PDG_gas_params)
+  {
+    Ne_dEdx = 1.446;
+    Ne_NTotal = 40;
+
+    Ar_dEdx = 2.525;
+    Ar_NTotal = 97;
+
+    CF4_dEdx = 6.382;
+    CF4_NTotal = 120; 
+  }
+
+  double Tpc_NTot = (Ne_NTotal * Ne_frac)
+                  + (Ar_NTotal * Ar_frac)
+                  + (CF4_NTotal * CF4_frac)
+                  + (N2_NTotal * N2_frac)
+                  + (isobutane_NTotal * isobutane_frac);
+
+  double Tpc_dEdx = (Ne_dEdx * Ne_frac)
+                  + (Ar_dEdx * Ar_frac)
+                  + (CF4_dEdx * CF4_frac)
+                  + (N2_dEdx * N2_frac)
+                  + (isobutane_dEdx * isobutane_frac);
+
+  electrons_per_gev = (Tpc_NTot / Tpc_dEdx) * 1e6; 
+
   // min_time to max_time is the time window for accepting drifted electrons after the trigger
   min_time = 0.0;
   max_time = get_double_param("max_time") + get_double_param("extended_readout_time");
-  electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
@@ -894,32 +945,28 @@ void PHG4TpcElectronDrift::set_seed(const unsigned int seed)
 
 void PHG4TpcElectronDrift::SetDefaultParameters()
 {
-  // Data on gasses @20 C and 760 Torr from the following source:
-  // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
-  // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
-  // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
-  static constexpr double Ne_dEdx = 1.56;   // keV/cm
-  static constexpr double CF4_dEdx = 7.00;  // keV/cm
-  // double Ne_NPrimary = 12;    // Number/cm
-  // double CF4_NPrimary = 51;   // Number/cm
-  static constexpr double Ne_NTotal = 43;    // Number/cm
-  static constexpr double CF4_NTotal = 100;  // Number/cm
-  static constexpr double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
-  static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
-  static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
-  set_default_double_param("diffusion_long", 0.012);   // cm/SQRT(cm)
-  set_default_double_param("diffusion_trans", 0.004);  // cm/SQRT(cm)
-  set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
+  //longitudinal diffusion for 50:50 Ne:CF4 is 0.012, transverse is 0.004, drift velocity is 0.008
+  //longitudinal diffusion for 60:40 Ar:CF4 is 0.012, transverse is 0.004, drift velocity is 0.008 (chosen to be the same at 50/50 Ne:CF4)
+  //longitudinal diffusion for 65:25:10 Ar:CF4:N2 is 0.013613, transverse is 0.005487, drift velocity is 0.006965
+  //longitudinal diffusion for 75:20:05 Ar:CF4:i-C4H10 is 0.014596, transverse is 0.005313, drift velocity is 0.007550
+
+  set_default_double_param("diffusion_long", 0.014596);   // cm/SQRT(cm)
+  set_default_double_param("diffusion_trans", 0.005313);  // cm/SQRT(cm)
+  set_default_double_param("drift_velocity", 0.00755);  // cm/ns
+  set_default_double_param("Ne_frac", 0.00); 
+  set_default_double_param("Ar_frac", 0.75); 
+  set_default_double_param("CF4_frac", 0.20);
+  set_default_double_param("N2_frac", 0.00);
+  set_default_double_param("isobutane_frac", 0.05);
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm
-  set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
   set_default_double_param("max_time", 13200.);              // ns
   set_default_double_param("extended_readout_time", 7000.);  // ns
 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution
-  set_default_double_param("added_smear_trans", 0.085);  // cm
-  set_default_double_param("added_smear_long", 0.105);   // cm
+  set_default_double_param("added_smear_trans", 0.0);  // cm (used to be 0.085 before sims got better)
+  set_default_double_param("added_smear_long", 0.0);   // cm (used to be 0.105 before sims got better)
 
   return;
 }

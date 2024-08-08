@@ -407,6 +407,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     double alice_z0 = z0;
     // Initialize track and linearisation
     GPUTPCTrackParam trackSeed;
+    trackSeed.setNeonFraction(Ne_frac);
     trackSeed.setArgonFraction(Ar_frac);
     trackSeed.setCF4Fraction(CF4_frac);
     trackSeed.setNitrogenFraction(N2_frac);

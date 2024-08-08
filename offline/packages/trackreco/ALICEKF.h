@@ -50,6 +50,7 @@ class ALICEKF
   explicit ALICEKF(const ALICEKF&) = delete;
   ALICEKF& operator=(const ALICEKF&) = delete;
 
+  void setNeonFraction(double frac) { Ne_frac = frac; };
   void setArgonFraction(double frac) { Ar_frac = frac; };
   void setCF4Fraction(double frac) { CF4_frac = frac; };
   void setNitrogenFraction(double frac) { N2_frac = frac; };
@@ -89,6 +90,7 @@ class ALICEKF
   bool _use_fixed_clus_error = true;
   std::array<double,3> _fixed_clus_error = {.2,.2,.5};
 
+  double Ne_frac = 0.00;
   double Ar_frac = 0.75;
   double CF4_frac = 0.20;
   double N2_frac = 0.00;
