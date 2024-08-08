@@ -27,7 +27,9 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
-
+  void setRawEventHeaderName(const std::string &name) { m_rawEventHeaderName = name; }
+  std::string getRawEventHeaderName() const { return m_rawEventHeaderName; }
+  
   const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
 
   void clearFeeGTML1BCOMap(const uint64_t& bclk) {
@@ -55,6 +57,7 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
+  std::string m_rawEventHeaderName = "MVTXRAWEVTHEADER";
 
   std::map<uint64_t, std::vector<MvtxRawHit *>> m_MvtxRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;

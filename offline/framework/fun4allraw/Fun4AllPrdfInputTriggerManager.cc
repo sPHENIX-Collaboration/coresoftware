@@ -828,12 +828,33 @@ int Fun4AllPrdfInputTriggerManager::MoveHcalToNodeTree()
 
 void Fun4AllPrdfInputTriggerManager::AddHcalPacket(int eventno, CaloPacket *pkt)
 {
+  if (pkt == nullptr)
+  {
+    std::cout << PHWHERE << " got null ptr to add packet, not doing this" << std::endl;
+    return;
+  }
   if (Verbosity() > 1)
   {
-    std::cout << "Adding hcal packet " << pkt->getEvtSequence() << " to eventno: "
+    std::cout << "Adding hcal packet " << pkt->getIdentifier() << " from event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
-  m_HcalPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  auto ret = m_HcalPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  if (ret.second)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " was successful" << std::endl;
+    }
+  }
+  else
+  {
+    if (Verbosity() > 3)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " failed - duplicate?" << std::endl;
+    }
+  }
   return;
 }
 
@@ -919,12 +940,34 @@ int Fun4AllPrdfInputTriggerManager::MoveCemcToNodeTree()
 
 void Fun4AllPrdfInputTriggerManager::AddCemcPacket(int eventno, CaloPacket *pkt)
 {
+  if (pkt == nullptr)
+  {
+    std::cout << PHWHERE << " got null ptr to add packet, not doing this" << std::endl;
+    return;
+  }
   if (Verbosity() > 1)
   {
     std::cout << "Adding cemc packet " << pkt->getIdentifier() << " from event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
-  m_CemcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  auto ret = m_CemcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  if (ret.second)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " was successful" << std::endl;
+    }
+  }
+  else
+  {
+    if (Verbosity() > 3)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " failed - duplicate?" << std::endl;
+    }
+  }
+
   //  std::cout << "Cemc packet map size: " << m_CemcPacketMap.size() << std::endl;
   return;
 }
@@ -1097,14 +1140,34 @@ int Fun4AllPrdfInputTriggerManager::MoveZdcToNodeTree()
 
 void Fun4AllPrdfInputTriggerManager::AddZdcPacket(int eventno, CaloPacket *pkt)
 {
+  if (pkt == nullptr)
+  {
+    std::cout << PHWHERE << " got null ptr to add packet, not doing this" << std::endl;
+    return;
+  }
   if (Verbosity() > 1)
   {
     std::cout << "AddZdcPacket: Adding zdc packet " << pkt->getIdentifier()
-              << " for event " << pkt->getEvtSequence() << " to eventno: "
+              << " from event " << pkt->getEvtSequence() << " to eventno: "
               << eventno << std::endl;
   }
-  auto &iter = m_ZdcPacketMap[eventno];
-  iter.CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  auto ret = m_ZdcPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  if (ret.second)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " was successful" << std::endl;
+    }
+  }
+  else
+  {
+    if (Verbosity() > 3)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " failed - duplicate?" << std::endl;
+    }
+  }
   return;
 }
 
@@ -1180,7 +1243,23 @@ void Fun4AllPrdfInputTriggerManager::AddSEpdPacket(int eventno, CaloPacket *pkt)
               << eventno << std::endl;
   }
   //  auto &iter = m_SEpdPacketMap[eventno];
-  m_SEpdPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  auto ret = m_SEpdPacketMap[eventno].CaloSinglePacketMap.insert(std::make_pair(pkt->getIdentifier(), pkt));
+  if (ret.second)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " was successful" << std::endl;
+    }
+  }
+  else
+  {
+    if (Verbosity() > 3)
+    {
+      std::cout << "inserting packet " << pkt->getIdentifier() << " for event " << pkt->getEvtSequence()
+                << " failed - duplicate?" << std::endl;
+    }
+  }
   return;
 }
 
@@ -1339,9 +1418,19 @@ void Fun4AllPrdfInputTriggerManager::ClockDiffFill()
 int Fun4AllPrdfInputTriggerManager::ClockDiffCheck()
 {
   std::map<int, int> eventoffset;
+  static unsigned int count = 0;
+  count++;
   for (auto &iter : m_NeedleMap)
   {
     std::vector needle = iter.second;
+    if (count < 2 && m_FEMClockPackets.find(iter.first) != m_FEMClockPackets.end())
+    {
+      if (Verbosity() > 1)
+      {
+        std::cout << "Packet with FEM clock issue, not doing needle matching for packet " << iter.first << std::endl;
+      }
+      continue;
+    }
     if (Verbosity() > 1)
     {
       std::cout << PHWHERE << "Initial HayStack/Needle: " << iter.first
@@ -1710,13 +1799,13 @@ int Fun4AllPrdfInputTriggerManager::FillNeedleLL1(std::map<int, LL1PacketInfo>::
           uint64_t curr_bco = currpkt->second->getBCO();
           uint64_t diffbco = curr_bco - prev_bco;
           nextIt->second.BcoDiffMap[prev_packetid] = diffbco;
-	  if (Verbosity() > 11)
-	  {
-	    std::cout << PHWHERE << name << " packet " << prev_packetid << ", prev_bco 0x: " << std::hex
-		      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
-		      << diffbco << std::dec << std::endl;
-	    std::cout << "Pushing 0x" << std::hex << diffbco << " into needle for packet " << std::dec << prev_packetid << std::endl;
-	  }
+          if (Verbosity() > 11)
+          {
+            std::cout << PHWHERE << name << " packet " << prev_packetid << ", prev_bco 0x: " << std::hex
+                      << prev_bco << ", curr_bco: 0x" << curr_bco << ", diff: 0x"
+                      << diffbco << std::dec << std::endl;
+            std::cout << "Pushing 0x" << std::hex << diffbco << " into needle for packet " << std::dec << prev_packetid << std::endl;
+          }
           m_NeedleMap[prev_packetid].push_back(diffbco);
           bcodiffs.insert(diffbco);
         }

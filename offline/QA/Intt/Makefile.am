@@ -12,6 +12,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   InttRawHitQA.h \
+  InttStreamQA.h \
   InttQaCommon.h \
   TH2INTT.h
 
@@ -20,6 +21,7 @@ lib_LTLIBRARIES = \
 
 libinttrawhitqa_la_SOURCES = \
   InttRawHitQA.cc \
+  InttStreamQA.cc \
   TH2INTT.cc
 
 libinttrawhitqa_la_LIBADD = \

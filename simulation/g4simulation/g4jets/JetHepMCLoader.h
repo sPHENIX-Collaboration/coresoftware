@@ -2,7 +2,7 @@
 
 /*!
  * \file JetHepMCLoader.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -44,7 +44,7 @@ class JetHepMCLoader : public SubsysReco
  public:
   //! \param[in] jetInputCategory is the DST PHCompositeNode name that list the output jet maps, e.g. sHijing_HIJFRG for sHijing HIJFRG truth jets
   JetHepMCLoader(const std::string &jetInputCategory);
-  ~JetHepMCLoader() override {}
+  ~JetHepMCLoader() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

@@ -13,12 +13,6 @@ BEmcRecCEMC::BEmcRecCEMC()
   SetCylindricalGeometry();
 }
 
-BEmcRecCEMC::~BEmcRecCEMC()
-{
-  // you can delete null pointers
-  //  delete _emcprof;
-}
-
 void BEmcRecCEMC::LoadProfile(const std::string& fname)
 {
   //  std::cout << "Infor from BEmcRecCEMC::LoadProfile(): no external file used for shower profile evaluation in CEMC" << std::endl;
@@ -397,6 +391,7 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   }
 
   // Correct for phi bias within module of 8 towers
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int ix8 = int(x + 0.5) / 8;
   float x8 = x + 0.5 - ix8 * 8 - 4;  // from -4 to +4
   float dx = 0.10 * x8 / 4.;

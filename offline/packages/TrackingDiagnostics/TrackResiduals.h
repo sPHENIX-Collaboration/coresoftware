@@ -56,6 +56,7 @@ class TrackResiduals : public SubsysReco
   void segment(const int seg) { m_segment = seg; }
   void linefitAll() { m_linefitTPCOnly = false; }
   void failedTree() { m_doFailedSeeds = true; }
+  void setSegment(const int segment) { m_segment = segment; }
 
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
@@ -161,7 +162,8 @@ class TrackResiduals : public SubsysReco
   float m_Y0 = std::numeric_limits<float>::quiet_NaN();
   float m_dcaxy = std::numeric_limits<float>::quiet_NaN();
   float m_dcaz = std::numeric_limits<float>::quiet_NaN();
-
+  float m_tracklength = std::numeric_limits<float>::quiet_NaN();
+  
   float m_silseedx = std::numeric_limits<float>::quiet_NaN();
   float m_silseedy = std::numeric_limits<float>::quiet_NaN();
   float m_silseedz = std::numeric_limits<float>::quiet_NaN();
@@ -241,6 +243,8 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgyunmoved;
   std::vector<float> m_clusgzunmoved;
   std::vector<float> m_clusgr;
+  std::vector<int> m_clsector;
+  std::vector<int> m_clside;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clussize;
   std::vector<int> m_clusphisize;

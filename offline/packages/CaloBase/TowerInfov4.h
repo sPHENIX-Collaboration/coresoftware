@@ -64,7 +64,7 @@ class TowerInfov4 : public TowerInfo
   void set_isRecovered(bool isRecovered) override { set_status_bit(6, isRecovered); }
   bool get_isRecovered() const override { return get_status_bit(6); }
 
-  bool get_isGood() const override { return !((bool) status); }
+  bool get_isGood() const override { return !(get_isHot() || get_isBadChi2() || get_isNoCalib()); }
 
   uint8_t get_status() const override { return status; }
 
