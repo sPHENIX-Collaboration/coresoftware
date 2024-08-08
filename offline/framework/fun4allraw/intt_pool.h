@@ -26,11 +26,11 @@ class intt_pool
   virtual unsigned int rawValue(const int fee, const int index);
 
   virtual int iValue(const int hit, const int field);
+
   virtual int iValue(const int hit, const char *what);
-  virtual int iValue(const int, const int, const char *what);
+
   virtual long long lValue(const int hit, const int field);
   virtual long long lValue(const int hit, const char *what);
-  virtual long long lValue(const int, const int, const char * what);
 
   // void  dump ( std::ostream& os = std::cout);
   virtual unsigned int min_depth() const;  // the lowest vector length
@@ -81,12 +81,7 @@ class intt_pool
   std::array<unsigned int, MAX_FEECOUNT> last_index{};
   std::map<unsigned int, uint64_t> last_bco;
   std::string name;
-  std::set<unsigned int> FEE_List;
   std::set<unsigned long long> BCO_List;
-  // a list of FEEs with data belonging to a given BCO
-  std::map<unsigned long long, std::set<unsigned int>> FEEs_by_BCO;
-  // a list of BCOs with data belonging to a given FEE
-  std::map<unsigned int, std::set<unsigned long long>> BCOs_by_FEE;
 
 };
 
