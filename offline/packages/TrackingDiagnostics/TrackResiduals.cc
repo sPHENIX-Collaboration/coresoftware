@@ -773,9 +773,6 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
 //____________________________________________________________________________..
 int TrackResiduals::End(PHCompositeNode* /*unused*/)
 {
-
-  std::cout << "TrackResiduals::End - m_goodtracks: " << m_goodtracks << std::endl;
-
   m_outfile->cd();
   m_tree->Write();
   if (m_doClusters)
@@ -1969,12 +1966,6 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
 
       // add the global positions to a vector to give to the cluster mover
       global_raw.emplace_back(std::make_pair(ckey, global));
-
-      std::cout << "TrackResiduals::fillResidualTreeKF -"
-        << " track id: " << m_trackid
-        << " layer: " << (int) TrkrDefs::getLayer(ckey)
-        << " position: " << global.x() << "," << global.y() << "," << global.z()
-        << std::endl;
     }
 
     // move the cluster positions back to the original readout surface in the fillClusterBranchesKF method
@@ -2038,11 +2029,6 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
 
     if( m_nmms>0 || !m_doMicromegasOnly )
     { m_tree->Fill(); }
-
-
-    // count good tracks
-    if( m_pt>0.2 && m_quality<100 && m_ntpc>20 && m_nmaps>2 && m_nintt>1 && m_nmms>0 )
-    { ++m_goodtracks; }
 
   }  // end loop over tracks
 
