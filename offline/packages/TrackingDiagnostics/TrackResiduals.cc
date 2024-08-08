@@ -786,8 +786,8 @@ int TrackResiduals::End(PHCompositeNode* /*unused*/)
   {
     m_hittree->Write();
   }
-  // m_vertextree->Write();
-  // m_failedfits->Write();
+  m_vertextree->Write();
+  m_failedfits->Write();
   m_outfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
