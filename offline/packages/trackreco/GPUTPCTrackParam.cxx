@@ -348,6 +348,7 @@ bool GPUTPCTrackParam::TransportToXWithMaterial(double x, GPUTPCTrackLinearisati
 
 //  const double kRho = 1.025e-3f;  // 0.9e-3;
 //  const double kRadLen = 29.532f; // 28.94;
+  double Ne_nEff = Ne_frac * Ne_Rho / Ne_mA;
   double Ar_nEff = Ar_frac * Ar_Rho / Ar_mA; //Scaled effective number of particles in mix (Avogadro's number and density scale cancel in the ratio with total particles)
   double CF4_nEff = CF4_frac * CF4_Rho / CF4_mA;
   double N2_nEff = N2_frac * N2_Rho / N2_mA;
@@ -355,12 +356,14 @@ bool GPUTPCTrackParam::TransportToXWithMaterial(double x, GPUTPCTrackLinearisati
   double nEff = Ar_nEff + CF4_nEff + N2_nEff + isobutane_nEff;
 
   // these are for the sPHENIX TPC gas mixture
-  const double kRho = Ar_frac * Ar_Rho
+  const double kRho = Ne_frac * Ne_Rho
+                    + Ar_frac * Ar_Rho
                     + CF4_frac * CF4_Rho
                     + N2_frac * N2_Rho
                     + isobutane_frac * isobutane_Rho;
 
-  const double kRadLen = (1/nEff) * ((Ar_nEff * Ar_RadLen)
+  const double kRadLen = (1/nEff) * ((Ne_nEff * Ne_RadLen)
+                                  +  (Ar_nEff * Ar_RadLen)
                                   +  (CF4_nEff * CF4_RadLen)
                                   +  (N2_nEff * N2_RadLen)
                                   +  (isobutane_nEff * isobutane_RadLen));
@@ -461,7 +464,8 @@ double GPUTPCTrackParam::BetheBlochGas(double bg)
 //  const double mI = 140.e-9f;
 //  const double mZA = 0.49555f;
 
-  double Ar_nEff = Ar_frac * Ar_Rho / Ar_mA; //Scaled effective number of particles in mix (Avogadro's number and density scale cancel in the ratio with total particles)
+  double Ne_nEff = Ne_frac * Ne_Rho / Ne_mA; //scaled effective number of particles in mix (avogadro's number and density scale cancel in the ratio with total particles)
+  double Ar_nEff = Ar_frac * Ar_Rho / Ar_mA; //scaled effective number of particles in mix (avogadro's number and density scale cancel in the ratio with total particles)
   double CF4_nEff = CF4_frac * CF4_Rho / CF4_mA;
   double N2_nEff = N2_frac * N2_Rho / N2_mA;
   double isobutane_nEff = isobutane_frac * isobutane_Rho / isobutane_mA;
@@ -474,27 +478,32 @@ double GPUTPCTrackParam::BetheBlochGas(double bg)
 //  const double mI = 11.6e-9f;
 //  const double mZA = 0.46158f; 
 
-  const double rho = Ar_frac * Ar_Rho
+  const double rho = Ne_frac * Ne_Rho
+                   + Ar_frac * Ar_Rho
                    + CF4_frac * CF4_Rho
                    + N2_frac * N2_Rho
                    + isobutane_frac * isobutane_Rho;
 
-  const double x0 = (1/nEff) * ((Ar_nEff * Ar_x0)
+  const double x0 = (1/nEff) * ((Ne_nEff * Ne_x0)
+                             +  (Ar_nEff * Ar_x0)
                              +  (CF4_nEff * CF4_x0)
                              +  (N2_nEff * N2_x0)
                              +  (isobutane_nEff * isobutane_x0));
 
-  const double x1 = (1/nEff) * ((Ar_nEff * Ar_x1)
+  const double x1 = (1/nEff) * ((Ne_nEff * Ne_x1)
+                             +  (Ar_nEff * Ar_x1)
                              +  (CF4_nEff * CF4_x1)
                              +  (N2_nEff * N2_x1)
                              +  (isobutane_nEff * isobutane_x1));
 
-  const double mI = (1/nEff) * ((Ar_nEff * Ar_mI)
+  const double mI = (1/nEff) * ((Ne_nEff * Ne_mI)
+                             +  (Ar_nEff * Ar_mI)
                              +  (CF4_nEff * CF4_mI)
                              +  (N2_nEff * N2_mI)
                              +  (isobutane_nEff * isobutane_mI));
 
-  const double mZA = (1/nEff) * ((Ar_nEff * Ar_mZA)
+  const double mZA = (1/nEff) * ((Ne_nEff * Ne_mZA)
+                              +  (Ar_nEff * Ar_mZA)
                               +  (CF4_nEff * CF4_mZA)
                               +  (N2_nEff * N2_mZA)
                               +  (isobutane_nEff * isobutane_mZA));

@@ -60,6 +60,12 @@ class PrelimDistortionCorrection : public SubsysReco
   { _use_truth_clusters = truth; }
   void SetIteration(int iter){_n_iteration = iter;}
   void set_pp_mode(bool mode) {_pp_mode = mode;}
+
+  void setNeonFraction(double frac) { Ne_frac = frac; };
+  void setArgonFraction(double frac) { Ar_frac = frac; };
+  void setCF4Fraction(double frac) { CF4_frac = frac; };
+  void setNitrogenFraction(double frac) { N2_frac = frac; };
+  void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
  
  private:
 
@@ -84,11 +90,6 @@ class PrelimDistortionCorrection : public SubsysReco
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
   bool _pp_mode = false;
-
-  void setArgonFraction(double frac) { Ar_frac = frac; };
-  void setCF4Fraction(double frac) { CF4_frac = frac; };
-  void setNitrogenFraction(double frac) { N2_frac = frac; };
-  void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
 
   TrkrClusterContainer *_cluster_map = nullptr;
 
@@ -157,6 +158,7 @@ class PrelimDistortionCorrection : public SubsysReco
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
 
+  double Ne_frac = 0.00;
   double Ar_frac = 0.75;
   double CF4_frac = 0.20;
   double N2_frac = 0.00;

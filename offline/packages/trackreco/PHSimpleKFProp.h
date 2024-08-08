@@ -71,6 +71,7 @@ class PHSimpleKFProp : public SubsysReco
   void set_pp_mode(bool mode) { _pp_mode = mode; }
   enum class PropagationDirection { Outward, Inward };
 
+  void setNeonFraction(double frac) { Ne_frac = frac; };
   void setArgonFraction(double frac) { Ar_frac = frac; };
   void setCF4Fraction(double frac) { CF4_frac = frac; };
   void setNitrogenFraction(double frac) { N2_frac = frac; };
@@ -178,6 +179,7 @@ class PHSimpleKFProp : public SubsysReco
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
 
+  double Ne_frac = 0.00;
   double Ar_frac = 0.75;
   double CF4_frac = 0.20;
   double N2_frac = 0.00;

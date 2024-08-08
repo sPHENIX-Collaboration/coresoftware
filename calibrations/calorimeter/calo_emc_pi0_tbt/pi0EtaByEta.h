@@ -153,7 +153,7 @@ class pi0EtaByEta : public SubsysReco
   int _range{1};
 
   float _vz{0.};
-  float target_pi0_mass{0.152};
+  float target_pi0_mass{0.141};
 
   bool m_vtxCut{false};
   bool dynMaskClus{false};

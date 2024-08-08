@@ -26,12 +26,20 @@ double CaloWaveformFitting::template_function(double *x, double *par)
   return v1;
 }
 
+CaloWaveformFitting::~CaloWaveformFitting()
+{
+  delete h_template;
+}
+
 void CaloWaveformFitting::initialize_processing(const std::string &templatefile)
 {
   TFile *fin = TFile::Open(templatefile.c_str());
   assert(fin);
   assert(fin->IsOpen());
   h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
+  h_template->SetDirectory(nullptr);
+  fin->Close();
+  delete fin;
   m_peakTimeTemp = h_template->GetBinCenter(h_template->GetMaximumBin());
   t = new ROOT::TThreadExecutor(_nthreads);
 }

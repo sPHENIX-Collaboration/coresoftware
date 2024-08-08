@@ -56,9 +56,9 @@ class RawTowerDigitizer : public SubsysReco
 
   enum ProcessTowerType
   {
-    kRawTowerOnly= 0,
+    kRawTowerOnly = 0,
     kTowerInfoOnly = 1,
-    kBothTowers =2
+    kBothTowers = 2
   };
 
   enu_digi_algorithm
@@ -201,7 +201,7 @@ class RawTowerDigitizer : public SubsysReco
     m_UseConditionsDB = setUseCondDB;
   }
 
-  void set_towerinfo(RawTowerDigitizer::ProcessTowerType UseTowerInfo )
+  void set_towerinfo(RawTowerDigitizer::ProcessTowerType UseTowerInfo)
   {
     m_UseTowerInfo = UseTowerInfo;
   }
@@ -220,70 +220,65 @@ class RawTowerDigitizer : public SubsysReco
   RawTower *sipm_photon_digitization(RawTower *sim_tower);
   TowerInfo *sipm_photon_digitization(TowerInfo *sim_tower);
 
-  enu_digi_algorithm m_DigiAlgorithm = kNo_digitization;
+  enu_digi_algorithm m_DigiAlgorithm {kNo_digitization};
 
-  RawTowerContainer *m_SimTowers = nullptr;
-  RawTowerContainer *m_RawTowers = nullptr;
+  RawTowerContainer *m_SimTowers {nullptr};
+  RawTowerContainer *m_RawTowers {nullptr};
 
-  TowerInfoContainer *m_SimTowerInfos = nullptr;
-  TowerInfoContainer *m_RawTowerInfos = nullptr;
+  TowerInfoContainer *m_SimTowerInfos {nullptr};
+  TowerInfoContainer *m_RawTowerInfos {nullptr};
 
+  RawTowerGeomContainer *m_RawTowerGeom {nullptr};
+  RawTowerDeadMap *m_DeadMap {nullptr};
 
+  std::string m_Detector {"NONE"};
 
-  RawTowerGeomContainer *m_RawTowerGeom = nullptr;
-  RawTowerDeadMap *m_DeadMap = nullptr;
-
-  std::string m_Detector = "NONE";
-
-  std::string m_SimTowerNodePrefix = "SIM";
-  std::string m_RawTowerNodePrefix = "RAW";
+  std::string m_SimTowerNodePrefix {"SIM"};
+  std::string m_RawTowerNodePrefix {"RAW"};
 
   //! photon electron yield per GeV of visible energy
-  double m_PhotonElecYieldVisibleGeV = NAN;
+  double m_PhotonElecYieldVisibleGeV {std::numeric_limits<double>::quiet_NaN()};
 
   //! photon electron per ADC unit
-  double m_PhotonElecADC = NAN;
+  double m_PhotonElecADC {std::numeric_limits<double>::quiet_NaN()};
 
   //! pedstal central in unit of ADC
-  double m_PedstalCentralADC = NAN;
+  double m_PedstalCentralADC {std::numeric_limits<double>::quiet_NaN()};
 
   //! pedstal width in unit of ADC
-  double m_PedstalWidthADC = NAN;
+  double m_PedstalWidthADC {std::numeric_limits<double>::quiet_NaN()};
 
   //! pedestal from file
-  bool m_pedestalFile = false;
+  bool m_pedestalFile {false};
 
   //! zero suppression in unit of ADC
-  double m_ZeroSuppressionADC = -1000;
+  double m_ZeroSuppressionADC {-1000};
 
   //! zero suppression from file
-  bool m_ZeroSuppressionFile = false;
+  bool m_ZeroSuppressionFile {false};
 
   //! tower type to act on
-  int m_TowerType = -1;
+  int m_TowerType {-1};
 
-  unsigned int m_Seed = 0;
+  unsigned int m_Seed {0};
 
   // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
   // ! sPHENIX EMCal default, 4x Hamamatsu S12572-015P MPPC [sPHENIX TDR]
-  unsigned int m_SiPMEffectivePixel = 40000 * 4;
+  unsigned int m_SiPMEffectivePixel {40000 * 4};
 
   PHParameters _tower_params;
 
-  gsl_rng *m_RandomGenerator = nullptr;
+  gsl_rng *m_RandomGenerator {nullptr};
 
   // calo calibs decal stuff JEF Feb 2022
-  bool m_DoDecal = false;
-  bool m_DecalInverse = false;
-  bool m_Decal = true;
+  bool m_DoDecal {false};
+  bool m_DecalInverse {false};
+  bool m_Decal {true};
   std::string m_DecalFileName;
-  bool m_UseConditionsDB = false;
-  CDBTTree *m_CDBTTree = nullptr;
+  bool m_UseConditionsDB {false};
+  CDBTTree *m_CDBTTree {nullptr};
 
-
-  RawTowerDigitizer::ProcessTowerType m_UseTowerInfo = RawTowerDigitizer::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
-
-
+  RawTowerDigitizer::ProcessTowerType m_UseTowerInfo {RawTowerDigitizer::ProcessTowerType::kBothTowers};  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
 };
 
 #endif /* G4CALO_RAWTOWERDIGITIZER_H */
