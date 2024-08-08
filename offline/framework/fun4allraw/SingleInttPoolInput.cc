@@ -87,7 +87,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
-      if(evt->getEvtType() == ENDRUNEVENT)
+      if (evt->getEvtType() == ENDRUNEVENT)
       {
         std::cout << "End run flag for INTT found, remaining INTT data is corrupted" << std::endl;
         delete evt;
@@ -142,16 +142,26 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
           std::cout << "Number of Hits: " << num_hits << " for packet "
                     << pool->getIdentifier() << std::endl;
         }
-        
+
         int numBCOs = pool->iValue(0, "NR_BCOS");
         for (int j = 0; j < numBCOs; j++)
         {
           auto bco = pool->lValue(j, "BCOLIST");
           m_BclkStack.insert(bco);
-      
+
           m_BclkStackPacketMap[packet_id].insert(bco);
         }
-
+        int nFEEs = pool->iValue(0, "UNIQUE_FEES");
+        for (int j = 0; j < nFEEs; j++)
+        {
+          int fee = pool->iValue(j, "FEE_ID");
+          int nbcos = pool->iValue(j, "FEE_BCOS");
+          for (int k = 0; k < nbcos; k++)
+          {
+            auto bco = pool->lValue(fee, k, "BCOVAL");
+            m_FeeGTML1BCOMap[fee].insert(bco);
+          }
+        }
         for (int j = 0; j < num_hits; j++)
         {
           InttRawHit *newhit = new InttRawHitv2();
@@ -171,7 +181,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
           newhit->set_event_counter(pool->iValue(j, "EVENT_COUNTER"));
 
           gtm_bco += m_Rollover[FEE];
-          
+
           if (gtm_bco < m_PreviousClock[FEE])
           {
             m_Rollover[FEE] += 0x10000000000;
@@ -239,9 +249,9 @@ void SingleInttPoolInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STACK")
   {
-    for(auto& [packetid, bclkstack] : m_BclkStackPacketMap)
+    for (auto &[packetid, bclkstack] : m_BclkStackPacketMap)
     {
-      for(auto& bclk : bclkstack)
+      for (auto &bclk : bclkstack)
       {
         std::cout << "stacked bclk: 0x" << std::hex << bclk << std::dec << std::endl;
       }
@@ -274,7 +284,7 @@ void SingleInttPoolInput::CleanupUsedPackets(const uint64_t bclk)
   for (auto iter : toclearbclk)
   {
     m_BclkStack.erase(iter);
-    for(auto& [packetid , bclkstack] : m_BclkStackPacketMap)
+    for (auto &[packetid, bclkstack] : m_BclkStackPacketMap)
     {
       bclkstack.erase(iter);
     }
@@ -361,7 +371,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
       }
     }
   }
-  for(auto iter : toerase)
+  for (auto iter : toerase)
   {
     m_FEEBclkMap.erase(iter);
   }
