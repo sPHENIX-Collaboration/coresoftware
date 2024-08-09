@@ -29,29 +29,8 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
   void setRawEventHeaderName(const std::string &name) { m_rawEventHeaderName = name; }
   std::string getRawEventHeaderName() const { return m_rawEventHeaderName; }
-  
-  const std::map<int, std::set<uint64_t>>& getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
 
-  void clearFeeGTML1BCOMap(const uint64_t& bclk) {
-    std::set<uint64_t> toerase;
-    for (auto &[key, set] : m_FeeGTML1BCOMap)
-    {
-      for(auto& ll1bclk : set)
-      {
-        if(ll1bclk <= bclk)
-        {
-          // to avoid invalid reads
-          toerase.insert(ll1bclk);
-        }
-      }
-      for(auto& bclk_to_erase : toerase)
-      {
-        set.erase(bclk_to_erase);
-      }
-    }
-  }
  protected:
-
  private:
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
@@ -64,7 +43,6 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   std::map<int, uint64_t> m_FeeStrobeMap;
   std::set<uint64_t> m_BclkStack;
   std::set<uint64_t> gtmL1BcoSet;  // GTM L1 BCO
-  std::map<int, std::set<uint64_t>> m_FeeGTML1BCOMap;
   std::map<int, mvtx_pool *> poolmap;
 };
 

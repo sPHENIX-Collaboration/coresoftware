@@ -154,7 +154,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
             {
               continue;
             }
-            
+
             if (Verbosity() > 4)
             {
               std::cout << "evtno: " << EventSequence << ", Fee: " << feeId;
@@ -288,7 +288,6 @@ void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
       gtmbcoset.erase(iter);
     }
   }
-
 }
 
 bool SingleMvtxPoolInput::CheckPoolDepth(const uint64_t bclk)
