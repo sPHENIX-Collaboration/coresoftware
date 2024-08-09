@@ -58,6 +58,8 @@ class TrackResiduals : public SubsysReco
   void failedTree() { m_doFailedSeeds = true; }
   void setSegment(const int segment) { m_segment = segment; }
 
+  void set_doMicromegasOnly( bool value ) { m_doMicromegasOnly = value; }
+
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
                              TrkrCluster *cluster, ActsGeometry *geometry);
@@ -98,6 +100,7 @@ class TrackResiduals : public SubsysReco
   bool m_doHits = false;
   bool m_zeroField = false;
   bool m_doFailedSeeds = false;
+
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcClusterMover m_clusterMover;
 
@@ -112,6 +115,8 @@ class TrackResiduals : public SubsysReco
   bool m_convertSeeds = false;
   bool m_linefitTPCOnly = true;
   bool m_dropClustersNoState = false;
+
+  bool m_doMicromegasOnly = false;
 
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
@@ -167,7 +172,7 @@ class TrackResiduals : public SubsysReco
   float m_dcaxy = std::numeric_limits<float>::quiet_NaN();
   float m_dcaz = std::numeric_limits<float>::quiet_NaN();
   float m_tracklength = std::numeric_limits<float>::quiet_NaN();
-  
+
   float m_silseedx = std::numeric_limits<float>::quiet_NaN();
   float m_silseedy = std::numeric_limits<float>::quiet_NaN();
   float m_silseedz = std::numeric_limits<float>::quiet_NaN();
