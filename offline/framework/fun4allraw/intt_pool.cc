@@ -421,7 +421,16 @@ int intt_pool::next()
   }
   intt_hits.clear();
   BCO_List.clear();
-
+  for(auto& [bco,feelist] : FEEs_by_BCO)
+  {
+    feelist.clear();
+  }
+  for(auto& [fee, bcolist] : BCOs_by_FEE)
+  {
+    bcolist.clear();
+  }
+  FEEs_by_BCO.clear();
+  BCOs_by_FEE.clear();
   return 0;
 }
 
