@@ -2039,11 +2039,6 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     if( m_nmms>0 || !m_doMicromegasOnly )
     { m_tree->Fill(); }
 
-
-    // count good tracks
-    if( m_pt>0.2 && m_quality<100 && m_ntpc>20 && m_nmaps>2 && m_nintt>1 && m_nmms>0 )
-    { ++m_goodtracks; }
-
   }  // end loop over tracks
 
   if (m_doFailedSeeds)

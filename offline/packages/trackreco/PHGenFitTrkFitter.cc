@@ -1005,6 +1005,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
   const auto gftrack = phgf_track->getGenFitTrack();
   const auto rep = gftrack->getCardinalRep();
+
+  std::cout << "PHGenFitTrkFitter - measurements: " << gftrack->getNumPointsWithMeasurement() << std::endl;
+  std::cout << "PHGenFitTrkFitter - cluster keys: " << phgf_track->get_cluster_keys().size() << std::endl;
+
   for (unsigned int id = 0; id < gftrack->getNumPointsWithMeasurement(); ++id)
   {
     genfit::TrackPoint* trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, gftrack->getCardinalRep());

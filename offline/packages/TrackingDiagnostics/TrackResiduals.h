@@ -118,10 +118,6 @@ class TrackResiduals : public SubsysReco
 
   bool m_doMicromegasOnly = false;
 
-
-  /// count number of good tracks, for debugging
-  int m_goodtracks = 0;
-
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
   int m_runnumber = std::numeric_limits<int>::quiet_NaN();

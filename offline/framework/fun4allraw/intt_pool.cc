@@ -638,8 +638,8 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
                << last_bco[fee] << ", current: 0x" << BCO
                << std::dec << std::endl;
       }
-      std::cout << Name() << " pushing back hit for FEE " << fee << " with BCO 0x" << std::hex << BCO << std::dec
-           << " chip " << hit->chip_id << " channel " << hit->channel_id << " hit length now " << intt_hits.size() << ", last bco: 0x" << std::hex << last_bco[fee] << std::dec << std::endl;
+      // std::cout << Name() << " pushing back hit for FEE " << fee << " with BCO 0x" << std::hex << BCO << std::dec
+      //      << " chip " << hit->chip_id << " channel " << hit->channel_id << " hit length now " << intt_hits.size() << ", last bco: 0x" << std::hex << last_bco[fee] << std::dec << std::endl;
       last_bco[fee] = BCO;
     }
     intt_hits.push_back(hit);
