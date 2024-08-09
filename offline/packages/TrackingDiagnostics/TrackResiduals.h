@@ -140,9 +140,13 @@ class TrackResiduals : public SubsysReco
   float m_ndf = std::numeric_limits<float>::quiet_NaN();
   int m_nhits = std::numeric_limits<int>::quiet_NaN();
   int m_nmaps = std::numeric_limits<int>::quiet_NaN();
+  int m_nmapsstate = std::numeric_limits<int>::quiet_NaN();
   int m_nintt = std::numeric_limits<int>::quiet_NaN();
+  int m_ninttstate = std::numeric_limits<int>::quiet_NaN();
   int m_ntpc = std::numeric_limits<int>::quiet_NaN();
+  int m_ntpcstate = std::numeric_limits<int>::quiet_NaN();
   int m_nmms = std::numeric_limits<int>::quiet_NaN();
+  int m_nmmsstate = std::numeric_limits<int>::quiet_NaN();
   unsigned int m_vertexid = std::numeric_limits<unsigned int>::quiet_NaN();
   int m_vertex_crossing = std::numeric_limits<int>::quiet_NaN();
   float m_vx = std::numeric_limits<float>::quiet_NaN();
