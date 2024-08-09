@@ -1829,8 +1829,14 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       continue;
     }
     m_trackid = track->get_id();
-
     m_crossing = track->get_crossing();
+
+//     std::cout << "TrackResiduals::fillResidualTreeKF -"
+//       << " track id: " << m_trackid
+//       << " crossing: " << m_crossing
+//       << std::endl;
+
+
     m_crossing_estimate = SHRT_MAX;
     m_px = track->get_px();
     m_py = track->get_py();
@@ -1968,11 +1974,11 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       // add the global positions to a vector to give to the cluster mover
       global_raw.emplace_back(std::make_pair(ckey, global));
 
-      std::cout << "TrackResiduals::fillResidualTreeKF -"
-        << " track id: " << m_trackid
-        << " layer: " << (int) TrkrDefs::getLayer(ckey)
-        << " position: " << global.x() << "," << global.y() << "," << global.z()
-        << std::endl;
+//       std::cout << "TrackResiduals::fillResidualTreeKF -"
+//         << " track id: " << m_trackid
+//         << " layer: " << (int) TrkrDefs::getLayer(ckey)
+//         << " position: " << global.x() << "," << global.y() << "," << global.z()
+//         << std::endl;
     }
 
     // move the cluster positions back to the original readout surface in the fillClusterBranchesKF method
