@@ -774,8 +774,6 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
 int TrackResiduals::End(PHCompositeNode* /*unused*/)
 {
 
-  std::cout << "TrackResiduals::End - m_goodtracks: " << m_goodtracks << std::endl;
-
   m_outfile->cd();
   m_tree->Write();
   if (m_doClusters)
