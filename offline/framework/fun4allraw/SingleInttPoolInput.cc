@@ -155,7 +155,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
         for (int j = 0; j < nFEEs; j++)
         {
           int fee = pool->iValue(j, "FEE_ID");
-          int nbcos = pool->iValue(j, "FEE_BCOS");
+          int nbcos = pool->iValue(fee, "FEE_BCOS");
           for (int k = 0; k < nbcos; k++)
           {
             auto bco = pool->lValue(fee, k, "BCOVAL");
