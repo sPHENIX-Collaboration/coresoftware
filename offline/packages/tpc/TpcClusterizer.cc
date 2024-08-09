@@ -1339,7 +1339,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.min_adc_sum = min_adc_sum;
       unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
       unsigned short NPhiBinsSector = NPhiBins / 12;
-      unsigned short NTBins = (unsigned short) layergeom->get_zbins();
+      unsigned short NTBins = 0;
+      if(is_reco){
+	NTBins = NZBinsSide;
+      }else{
+	NTBins = (unsigned short) layergeom->get_zbins();
+      }
       unsigned short NTBinsSide = NTBins;
       unsigned short NTBinsMin = 0;
       unsigned short PhiOffset = NPhiBinsSector * sector;
