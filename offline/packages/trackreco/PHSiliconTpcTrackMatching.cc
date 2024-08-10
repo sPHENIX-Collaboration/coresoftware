@@ -289,7 +289,7 @@ int PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode *topNode)
   if (!_track_map_silicon)
   {
     cerr << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    //return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
@@ -328,6 +328,15 @@ int PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode *topNode)
     _svtx_seed_map = new TrackSeedContainer_v1();
     PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(_svtx_seed_map, "SvtxTrackSeedContainer", "PHObject");
     svtxNode->addNode(node);
+
+    // create a dummy SiliconTrackSeedContainer
+    if (!_track_map_silicon)
+    {
+      _track_map_silicon = new TrackSeedContainer_v1();
+      PHIODataNode<PHObject>* trackNode =
+          new PHIODataNode<PHObject>(_track_map_silicon, _silicon_track_map_name, "PHObject");
+      svtxNode->addNode(trackNode);
+    }
   }
 
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
