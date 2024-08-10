@@ -73,7 +73,7 @@ void SingleInttEventInput::FillPool(const uint64_t minBCO)
       }
       evt = GetEventiterator()->getNextEvent();
     }
-//    if (Verbosity() > 2)
+    if (Verbosity() > 2)
     {
       std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
@@ -137,11 +137,22 @@ void SingleInttEventInput::FillPool(const uint64_t minBCO)
        }
        if (skipthis)
        {
+	 if (Verbosity() > 1)
+	 {
 	 std::cout << "largest bco: 0x" << std::hex << largest_bco << ", minbco 0x" << minBCO 
 		   << std::dec << ", evtno: " << EventSequence << std::endl;
+	 }
        }
-       if (! skipthis)
+       else
        {
+	 if (bfirst)
+	 {
+	   std::cout << Name() << ": Found first event with bco > minbco, " << std::endl;
+	   std::cout << "rcdaq Event " << EventSequence << ", largest bco: 0x" 
+		     << std::hex << largest_bco << ", minimum requested bco: 0x"
+		     << minBCO << std::dec << std::endl;
+	   bfirst = false;
+	 }
 	 for (int j = 0; j < num_hits; j++)
 	 {
 	   uint64_t gtm_bco = plist[i]->lValue(j, "BCO");
@@ -177,7 +188,7 @@ void SingleInttEventInput::FillPool(const uint64_t minBCO)
 	   m_PreviousClock[FEE] = gtm_bco;
 	   m_BeamClockFEE[gtm_bco].insert(FEE);
 	   m_FEEBclkMap[FEE] = gtm_bco;
-//	   if (Verbosity() > 2)
+	   if (Verbosity() > 2)
 	   {
 	     std::cout << "evtno: " << EventSequence
 		       << ", hits: " << j
@@ -321,11 +332,11 @@ bool SingleInttEventInput::GetSomeMoreEvents(const uint64_t ibclk)
   {
     return false;
   }
-  if (poolmap.empty())
-  {
-//      std::cout << "GetSomeMoreEvents poolmap empty, ret true" << std::endl;
-    return true;
-  }
+//   if (poolmap.empty())
+//   {
+// //      std::cout << "GetSomeMoreEvents poolmap empty, ret true" << std::endl;
+//     return true;
+//   }
     // for (auto iter : poolmap)
     // {
     //   if (!iter.second->depth_ok())

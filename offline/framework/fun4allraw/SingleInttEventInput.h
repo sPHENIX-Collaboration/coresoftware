@@ -39,6 +39,7 @@ class SingleInttEventInput : public SingleStreamingInput
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
+  bool bfirst {true};
 
   std::array<uint64_t, 14> m_PreviousClock{};
   std::array<uint64_t, 14> m_Rollover{};
