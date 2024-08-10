@@ -184,7 +184,7 @@ int LiteCaloEval::process_event(PHCompositeNode *topNode)
   }
 
   //--------------------------- trigger and GL1-------------------------------//
-  bool isMinBias = true;
+  bool isMinBias = false;
   Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   if (!gl1PacketInfo)
   {                                                                                    std::cout << PHWHERE << "CaloValid::process_event: GL1Packet node is missing" << std::endl;
