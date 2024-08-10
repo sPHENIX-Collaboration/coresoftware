@@ -104,7 +104,30 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     {
       exit(1);
     }
+    bool skipthis = true;
 
+    for (int i = 0 ; i< npackets; i++)
+    {
+       int numBCOs = plist[i]->iValue(0, "NR_BCOS");
+       for (int j = 0; j < numBCOs; j++)
+       {
+	 uint64_t bco = plist[i]->lValue(j, "BCOLIST");
+	 if (bco < minBCO)
+	 {
+	   continue;
+	 }
+	 skipthis = false;
+       }
+    }
+    if (skipthis)
+    {
+      for (int i = 0 ; i< npackets; i++)
+      {
+	delete plist[i];
+      }
+      delete evt;
+      continue;
+    }
     for (int i = 0; i < npackets; i++)
     {
       if (Verbosity() > 2)
@@ -143,7 +166,6 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
         }
         
        int numBCOs = pool->iValue(0, "NR_BCOS");
-       bool skipthis = true;
        uint64_t largest_bco = 0;
          for (int j = 0; j < numBCOs; j++)
          {
