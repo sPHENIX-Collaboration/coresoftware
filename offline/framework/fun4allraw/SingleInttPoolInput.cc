@@ -184,8 +184,11 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
          }
 	 if (skipthis)
 	 {
-	   std::cout << "largest bco: 0x" << std::hex << largest_bco << ", minbco 0x" << minBCO 
-		     << std::dec << ", evtno: " << EventSequence << std::endl;
+	   if (Verbosity() > 1)
+	   {
+	     std::cout << "largest bco: 0x" << std::hex << largest_bco << ", minbco 0x" << minBCO
+		       << std::dec << ", evtno: " << EventSequence << std::endl;
+	   }
 	 }
 	 else
 	 {
@@ -408,7 +411,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
       else
       {
         std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
-                  << " with stuck bclk: " << std::hex << bcliter.second
+                  << " with stuck bclk: 0x" << std::hex << bcliter.second
                   << " current bco range: 0x" << m_InttRawHitMap.begin()->first
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_InttRawHitMap.begin()->first)
