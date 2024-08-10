@@ -1,5 +1,5 @@
-#ifndef FUN4ALLRAW_SINGLEINTTPOOLINPUT_H
-#define FUN4ALLRAW_SINGLEINTTPOOLINPUT_H
+#ifndef FUN4ALLRAW_SINGLEINTTEVENTINPUT_H
+#define FUN4ALLRAW_SINGLEINTTEVENTINPUT_H
 
 #include "SingleStreamingInput.h"
 
@@ -15,11 +15,11 @@ class Packet;
 class PHCompositeNode;
 class intt_pool;
 
-class SingleInttPoolInput : public SingleStreamingInput
+class SingleInttEventInput : public SingleStreamingInput
 {
  public:
-  explicit SingleInttPoolInput(const std::string &name);
-  ~SingleInttPoolInput() override;
+  explicit SingleInttEventInput(const std::string &name);
+  ~SingleInttEventInput() override;
   void FillPool(const uint64_t minBCO) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
@@ -39,6 +39,7 @@ class SingleInttPoolInput : public SingleStreamingInput
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
+  bool bfirst {true};
 
   std::array<uint64_t, 14> m_PreviousClock{};
   std::array<uint64_t, 14> m_Rollover{};
