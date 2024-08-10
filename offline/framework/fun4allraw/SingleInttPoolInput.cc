@@ -44,7 +44,7 @@ SingleInttPoolInput::~SingleInttPoolInput()
   }
 }
 
-void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
+void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -143,20 +143,43 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
                     << pool->getIdentifier() << std::endl;
         }
         
-        int numBCOs = pool->iValue(0, "NR_BCOS");
-        for (int j = 0; j < numBCOs; j++)
-        {
-          auto bco = pool->lValue(j, "BCOLIST");
-          m_BclkStack.insert(bco);
-      
-          m_BclkStackPacketMap[packet_id].insert(bco);
-        }
-
+       int numBCOs = pool->iValue(0, "NR_BCOS");
+       bool skipthis = true;
+       uint64_t largest_bco = 0;
+         for (int j = 0; j < numBCOs; j++)
+         {
+           uint64_t bco = pool->lValue(j, "BCOLIST");
+	   if (largest_bco < bco)
+	   {
+	     largest_bco = bco;
+	   }
+	   if (bco < minBCO)
+	   {
+	     continue;
+	   }
+	   skipthis = true;
+           m_BclkStack.insert(bco);
+           m_BclkStackPacketMap[packet_id].insert(bco);
+         }
+	 if (skipthis)
+	 {
+	   std::cout << "largest bco: 0x" << std::hex << largest_bco << ", minbco 0x" << minBCO 
+		     << std::dec << ", evtno: " << EventSequence << std::endl;
+	 }
+	 if (! skipthis)
+	 {
         for (int j = 0; j < num_hits; j++)
         {
+          uint64_t gtm_bco = pool->lValue(j, "BCO");
+	  if (gtm_bco < minBCO)
+	  {
+	    // std::cout << "dropping hit with bco 0x" << std::hex
+	    // 	      << gtm_bco << ", min bco: 0x" << minBCO
+	    // 	      << std::endl;
+	     continue;
+	  }
           InttRawHit *newhit = new InttRawHitv2();
           int FEE = pool->iValue(j, "FEE");
-          uint64_t gtm_bco = pool->lValue(j, "BCO");
           newhit->set_packetid(pool->getIdentifier());
           newhit->set_fee(FEE);
           newhit->set_bco(gtm_bco);
@@ -187,6 +210,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
                       << ", nr_hits: " << num_hits
                       << ", FEE: " << FEE
                       << ", bco: 0x" << std::hex << gtm_bco << std::dec
+		      << ", min bco: 0x" << std::hex << minBCO << std::dec
                       << ", channel: " << newhit->get_channel_id()
                       << ", evt_counter: " << newhit->get_event_counter() << std::endl;
           }
@@ -196,6 +220,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
           }
           m_InttRawHitMap[gtm_bco].push_back(newhit);
         }
+	 }
         //	    Print("FEEBCLK");
       }
       pool->next();
@@ -324,13 +349,23 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   }
   if (poolmap.empty())
   {
+//      std::cout << "GetSomeMoreEvents poolmap empty, ret true" << std::endl;
     return true;
   }
+    // for (auto iter : poolmap)
+    // {
+    //   if (!iter.second->depth_ok())
+    //   {
+    //   std::cout << "GetSomeMoreEvents depth not ok, ret true" << std::endl;
+    // 	return true;
+    //   }
+    // }
   uint64_t localbclk = ibclk;
   if (ibclk == 0)
   {
     if (m_InttRawHitMap.empty())
     {
+//      std::cout << "GetSomeMoreEvents hitmap empty, ret true" << std::endl;
       return true;
     }
     localbclk = m_InttRawHitMap.begin()->first;
@@ -365,6 +400,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   {
     m_FEEBclkMap.erase(iter);
   }
+//  std::cout << "GetSomeMoreEvents ret false" << std::endl;
   return false;
 }
 

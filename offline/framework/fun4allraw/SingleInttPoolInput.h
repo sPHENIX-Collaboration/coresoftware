@@ -20,7 +20,7 @@ class SingleInttPoolInput : public SingleStreamingInput
  public:
   explicit SingleInttPoolInput(const std::string &name);
   ~SingleInttPoolInput() override;
-  void FillPool(const unsigned int) override;
+  void FillPool(const uint64_t minBCO) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
