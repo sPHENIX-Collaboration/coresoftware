@@ -108,8 +108,6 @@ void SingleInttEventInput::FillPool(const uint64_t minBCO)
     for (int i = 0 ; i< npackets; i++)
     {
       int packet_id = plist[i]->getIdentifier();
-//      if (pool->depth_ok())
-      {
         int num_hits = plist[i]->iValue(0, "NR_HITS");
         if (Verbosity() > 1)
         {
@@ -206,10 +204,10 @@ void SingleInttEventInput::FillPool(const uint64_t minBCO)
 	   m_InttRawHitMap[gtm_bco].push_back(newhit);
 	 }
        }
+       delete plist[i];
        //	    Print("FEEBCLK");
-      }
-//      pool->next();
     }
+      delete evt;
   }
 }
 
