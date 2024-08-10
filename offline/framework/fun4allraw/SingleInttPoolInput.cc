@@ -82,7 +82,6 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     {
       evt->identify();
     }
-
     // not interested in special events, really
     if (evt->getEvtType() != DATAEVENT)
     {
@@ -157,7 +156,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 	   {
 	     continue;
 	   }
-	   skipthis = true;
+	   skipthis = false;
            m_BclkStack.insert(bco);
            m_BclkStackPacketMap[packet_id].insert(bco);
          }
@@ -166,7 +165,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 	   std::cout << "largest bco: 0x" << std::hex << largest_bco << ", minbco 0x" << minBCO 
 		     << std::dec << ", evtno: " << EventSequence << std::endl;
 	 }
-	 if (! skipthis)
+	 else
 	 {
         for (int j = 0; j < num_hits; j++)
         {
