@@ -18,7 +18,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackState_v2.h>
 
 #include <trackreco/ActsPropagator.h>
 
@@ -588,7 +588,7 @@ void PHTpcResiduals::addTrackState(SvtxTrack* track, TrkrDefs::cluskey key, floa
   /* this is essentially a copy of the code from trackbase_historic/ActsTransformations::fillSvtxTrackStates */
 
   // create track state
-  SvtxTrackState_v1 state(pathlength);
+  SvtxTrackState_v2 state(pathlength);
 
   // save global position
   const auto global = params.position(m_tGeometry->geometry().getGeoContext());
@@ -613,7 +613,7 @@ void PHTpcResiduals::addTrackState(SvtxTrack* track, TrkrDefs::cluskey key, floa
   }
 
   state.set_name(std::to_string((TrkrDefs::cluskey) key));
-
+  state.set_cluskey(key);
   track->insert_state(&state);
 }
 
@@ -689,6 +689,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
   }
 
   // tpc distortion corrections
+  m_dcc_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
   m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
   m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
   m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
@@ -710,7 +711,12 @@ Acts::Vector3 PHTpcResiduals::getGlobalPosition(TrkrDefs::cluskey key, TrkrClust
     globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
 
     // apply distortion corrections
-    if (m_dcc_static)
+    if(m_dcc_module_edge)
+    {
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_module_edge );
+    }
+
+     if (m_dcc_static)
     {
       globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_static);
     }

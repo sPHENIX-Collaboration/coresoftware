@@ -140,6 +140,7 @@ class PHTpcResiduals : public SubsysReco
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   // distortion corrections
+  TpcDistortionCorrectionContainer *m_dcc_module_edge = nullptr;
   TpcDistortionCorrectionContainer *m_dcc_static = nullptr;
   TpcDistortionCorrectionContainer *m_dcc_average = nullptr;
   TpcDistortionCorrectionContainer *m_dcc_fluctuation = nullptr;

@@ -1071,7 +1071,7 @@ if(Verbosity() > 1)
     {
       if(Verbosity() > 1)  {  std::cout << "   no state for cluster " << ckey << "  in layer " << layer << std::endl; }
     }
-  
+
   m_cluskeys.push_back(ckey);
 
   //! have cluster and state, fill vectors
@@ -1213,7 +1213,7 @@ if(Verbosity() > 1)
       auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
 					stateglob * Acts::UnitConstants::cm,
 					misalignnorm);
-      
+
       if (result.ok())
 	{
 	  stateloc = result.value() / Acts::UnitConstants::cm;
@@ -1809,6 +1809,7 @@ void TrackResiduals::createBranches()
 
 void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
 {
+
   auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   auto tpcGeom =
@@ -1820,7 +1821,6 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
   auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
   std::set<unsigned int> tpc_seed_ids;
-
   for (const auto& [key, track] : *trackmap)
   {
     if (!track)
@@ -2026,7 +2026,10 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
         }
       }
     }
-    m_tree->Fill();
+
+    if( m_nmms>0 || !m_doMicromegasOnly )
+    { m_tree->Fill(); }
+
   }  // end loop over tracks
 
   if (m_doFailedSeeds)

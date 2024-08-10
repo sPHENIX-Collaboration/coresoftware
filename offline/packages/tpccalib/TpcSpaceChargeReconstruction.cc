@@ -493,8 +493,6 @@ void TpcSpaceChargeReconstruction::process_track(SvtxTrack* track)
   assert(crossing != SHRT_MAX);
 
   // running track state
-  auto state_iter = track->begin_states();
-
   // loop over clusters
   for (const auto& cluster_key : get_cluster_keys(track))
   {
@@ -524,26 +522,24 @@ void TpcSpaceChargeReconstruction::process_track(SvtxTrack* track)
     double cluster_rphi_error = cluster->getRPhiError();
     double cluster_z_error = cluster->getZError();
 
-    /*
-     * as instructed by Christof, it should not be necessary to cut on small
-     * cluster errors any more with clusters of version 4 or higher
-     */
-
-    // find track state that is the closest to cluster
-    /* this assumes that both clusters and states are sorted along r */
-    float dr_min = -1;
-    for (auto iter = state_iter; iter != track->end_states(); ++iter)
+    // find track state that match cluster
+    bool found = false;
+    auto state_iter = track->begin_states();
+    for(; state_iter != track->end_states(); ++state_iter)
     {
-      const auto dr = std::abs(cluster_r - get_r(iter->second->get_x(), iter->second->get_y()));
-      if (dr_min < 0 || dr < dr_min)
+      const auto& [pathlengh, state] = *state_iter;
+      if( state->get_cluskey() == cluster_key )
       {
-        state_iter = iter;
-        dr_min = dr;
-      }
-      else
-      {
+        found = true;
         break;
       }
+    }
+
+    if( !found )
+    {
+      if( Verbosity() )
+      { std::cout << "TpcSpaceChargeReconstruction::process_track - could not find track state for layer: " <<  (int) TrkrDefs::getLayer(cluster_key) << std::endl; }
+      continue;
     }
 
     // get relevant track state

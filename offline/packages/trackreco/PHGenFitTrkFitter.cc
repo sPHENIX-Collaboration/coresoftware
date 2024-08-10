@@ -53,7 +53,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrackState.h>  // for SvtxTrackState
-#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackState_v2.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -108,10 +108,17 @@ namespace
     return x * x;
   }
 
-  // convert gf state to SvtxTrackState_v1
-  SvtxTrackState_v1 create_track_state(float pathlength, const genfit::MeasuredStateOnPlane* gf_state)
+  // square
+  template <class T>
+  inline static T get_r(const T& x, const T& y)
   {
-    SvtxTrackState_v1 out(pathlength);
+    return std::sqrt( square(x)+square(y));
+  }
+
+  // convert gf state to SvtxTrackState_v2
+  SvtxTrackState_v2 create_track_state(float pathlength, const genfit::MeasuredStateOnPlane* gf_state)
+  {
+    SvtxTrackState_v2 out(pathlength);
     out.set_x(gf_state->getPos().x());
     out.set_y(gf_state->getPos().y());
     out.set_z(gf_state->getPos().z());
@@ -559,7 +566,6 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition(TrkrDefs::cluskey key, TrkrCl
  * fit track with SvtxTrack as input seed.
  * \param intrack Input SvtxTrack
  */
-// PHGenFit::Track* PHGenFitTrkFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
 std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* topNode, const SvtxTrack* intrack)
 {
   // std::shared_ptr<PHGenFit::Track> empty_track(nullptr);
@@ -627,8 +633,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
     const auto cluster = m_clustermap->findCluster(cluster_key);
     const auto globalPosition = getGlobalPosition(cluster_key, cluster, crossing);
-
-    const float r = sqrt(square(globalPosition.x()) + square(globalPosition.y()));
+    const float r = get_r(globalPosition.x(), globalPosition.y());
     m_r_cluster_id.emplace(r, cluster_key);
     if (Verbosity() > 10)
     {
@@ -733,6 +738,10 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
     }
 
+    // assign cluster key to measurement
+    meas->set_cluster_key( cluster_key );
+
+    // add to list
     measurements.push_back(meas.release());
   }
 
@@ -834,7 +843,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     so that the track state list is never empty. Note that insert_state, despite taking a pointer as argument,
     does not take ownership of the state
     */
-    SvtxTrackState_v1 first(0.0);
+    SvtxTrackState_v2 first(0.0);
     out_track->insert_state(&first);
   }
 
@@ -992,6 +1001,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
   const auto gftrack = phgf_track->getGenFitTrack();
   const auto rep = gftrack->getCardinalRep();
+
+  std::cout << "PHGenFitTrkFitter - measurements: " << gftrack->getNumPointsWithMeasurement() << std::endl;
+  std::cout << "PHGenFitTrkFitter - cluster keys: " << phgf_track->get_cluster_keys().size() << std::endl;
+
   for (unsigned int id = 0; id < gftrack->getNumPointsWithMeasurement(); ++id)
   {
     genfit::TrackPoint* trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, gftrack->getCardinalRep());
@@ -1031,6 +1044,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
     // create new svtx state and add to track
     auto state = create_track_state(pathlength, gf_state);
+
+    // get matching cluster key from phgf_track and assign to state
+    state.set_cluskey(phgf_track->get_cluster_keys()[id]);
+
     out_track->insert_state(&state);
 
 #ifdef _DEBUG_
@@ -1149,6 +1166,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
       // create new svtx state and add to track
       auto state = create_track_state(pathlength, &gf_state);
+      state.set_cluskey(cluster_key);
       out_track->insert_state(&state);
     }
   }
