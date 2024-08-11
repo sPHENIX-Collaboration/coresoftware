@@ -21,35 +21,12 @@
 #include <map>
 #include <sstream>
 
-using namespace std;
-
-
 /**
  * Constructor of module
  */
 InttStreamQA::InttStreamQA(const std::string &name)
   : SubsysReco(name)
 {
-}
-
-/**
- * Destructor of module
- */
-//InttStreamQA::~InttStreamQA()
-//{
-//}
-
-/**
- * Initialize the module and prepare looping over events
- */
-int InttStreamQA::Init(PHCompositeNode * /*topNode*/)
-{
-  if (Verbosity() > 5)
-  {
-    std::cout << "Beginning Init in InttStreamQA" << std::endl;
-  }
-
-  return 0;
 }
 
 int InttStreamQA::InitRun(PHCompositeNode* /*topNode*/)
@@ -86,7 +63,7 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
 
   InttRawHitContainer* rawhitmap = findNode::getClass<InttRawHitContainer>(topNode, "INTTRAWHIT");
   if(rawhitmap==nullptr) {
-    cout<<"rawhit  is null"<<endl;
+    std::cout<<"rawhit  is null"<<std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
@@ -98,10 +75,10 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
   static uint64_t prebcointt  = 0;
 
   if( bco_gl1 == std::numeric_limits<uint64_t>::max() ){
-    cout<<"StreamQA bco is max. not valid"<<endl;
+    std::cout<<"StreamQA bco is max. not valid"<<std::endl;
   }
   if( bcointt == std::numeric_limits<uint64_t>::max() ){
-    cout<<"StreamQA inttbco is max. no intt data valid. skip nth: "<<nskip<<endl;
+    std::cout<<"StreamQA inttbco is max. no intt data valid. skip nth: "<<nskip<<std::endl;
     nskip++;
   }
  
@@ -122,8 +99,8 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
 
   if (Verbosity() > 5)
   {
-    cout<<event<<"   bco : intt:0x"<<hex<<bcointt<<", diff 0x"<<bcodiff
-               <<" : "<<dec<<" "<<evtcnt<<" "<<diff_inttgl1<<" gl1:0x"<<hex<<bco_gl1<<dec<<endl;
+    std::cout<<event<<"   bco : intt:0x"<<std::hex<<bcointt<<", diff 0x"<<bcodiff
+               <<" : "<<std::dec<<" "<<evtcnt<<" "<<diff_inttgl1<<" gl1:0x"<<std::hex<<bco_gl1<<std::dec<<std::endl;
   }
 
   event++;
@@ -133,8 +110,8 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
   h_bunch_gl1->Fill(bunch_gl1);
   
 
-  set<uint> vUnique[8];
-  map<uint, int> vchipbco[8]; // key, ihit
+  std::set<uint> vUnique[8];
+  std::map<uint, int> vchipbco[8]; // key, ihit
 
   // loop rawhits to remove copy hit
   uint nhit = rawhitmap->get_nhits();
@@ -152,15 +129,15 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
 
     // check the difference between strobeBCO(bcofull) and gl1BCO
     int64_t bcogl1diff = bcofull - bco_gl1;
-    //cout<<"bco-gl1diff " <<bcogl1diff<<endl;
+    //std::cout<<"bco-gl1diff " <<bcogl1diff<<std::endl;
     h_bcogl1diff_felix[ifelix]->Fill(bcogl1diff);
 
     // lad[25-22]+chip[21-17]+chan[16-10]+adc[9-7]+bco[6-0]
     uint key = ((ladder&0xFU)<<22U)|((chip&0x1FU)<<17U)|((chan&0x7FU)<<10U)|((adc&0x7U)<<7U)|(bco&0x7FU) ;
 
-    if(vUnique[ifelix].find(key)==vUnique[ifelix].end()) {
-      vUnique[ifelix].insert(key);
-
+    auto ret =  vUnique[ifelix].insert(key);
+    if (ret.second) // insertion successfull --> entry did not exist
+    {
       uint chipbcokey = ((ladder&0xFU)<<22U)|((chip&0x1FU)<<17U)|(bco&0x7FU) ;
       vchipbco[ifelix].insert(std::make_pair(chipbcokey, ihit)); // no ADC info
 
@@ -168,12 +145,12 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
       h_hit[ifelix]->Fill(ladder*26 + chip+0.5, chan+0.5);
     }
 
-    //cout<<"    hit : "<<ihit<<" "<<ifelix<<" 0x"<<hex<<bco<<dec<<endl;
+    //std::cout<<"    hit : "<<ihit<<" "<<ifelix<<" 0x"<<std::hex<<bco<<std::dec<<std::endl;
   }
 
   ////////////////////////////
   // felix by felix analysis
-  map<int, int> vbcodiff_felix[8];
+  std::map<int, int> vbcodiff_felix[8];
   for(int ifelix=0; ifelix<8; ifelix++){
    
     for(auto val : vchipbco[ifelix]){
@@ -199,7 +176,7 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
 
       auto bco_itr = vbcodiff_felix[ifelix].find(bcointtgl1_diff);
       if(bco_itr==vbcodiff_felix[ifelix].end()) {
-        vbcodiff_felix[ifelix].insert(make_pair(bcointtgl1_diff,1));
+        vbcodiff_felix[ifelix].insert(std::make_pair(bcointtgl1_diff,1));
         h_bcoreco_evt_diff[ifelix]->Fill(bcointtgl1_diff); // event by event for each felix
       } else {
         bco_itr->second += 1;
@@ -209,18 +186,18 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
 
   ////////////////////////////
   // all felix combined analysis
-  map<int, int> vbcodiff_all;
+  std::map<int, int> vbcodiff_all;
 
   for(auto & ifelix : vbcodiff_felix){
     for(auto& val : ifelix){
       int bcointtgl1_diff = val.first;
       //int count           = val.second;
 
-      //cout<<"             recobco diff : "<<bcointtgl1_diff<<" "<<count<<" "<<ifelix<<endl;
+      //std::cout<<"             recobco diff : "<<bcointtgl1_diff<<" "<<count<<" "<<ifelix<<std::endl;
 
       auto bco_all_itr = vbcodiff_all.find(bcointtgl1_diff);
       if(bco_all_itr==vbcodiff_all.end()) {
-        vbcodiff_all.insert(make_pair(bcointtgl1_diff,1));
+        vbcodiff_all.insert(std::make_pair(bcointtgl1_diff,1));
         h_bcoreco_evt_diff_all->Fill(bcointtgl1_diff);
         
         if(bcointtgl1_diff==23) // should use variable
@@ -288,46 +265,45 @@ void InttStreamQA::createHistos(){
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  string sname, stitle;
-  ostringstream strname, strtitle;
+  std::string sname, stitle;
   for(int i=0; i<8; i++){
-    sname    = (getHistoPrefix() + "bco_" + to_string(i));
-    stitle   = ("bco_" + to_string(i) + ";bco;ladder*chip");
+    sname    = (getHistoPrefix() + "bco_" + std::to_string(i));
+    stitle   = ("bco_" + std::to_string(i) + ";bco;ladder*chip");
     h_bco[i] = new TH2F(sname.c_str(), stitle.c_str(), 26*14, 0, 26*14, 140, -7, 133);
     hm->registerHisto(h_bco[i]);
 
-    sname = (getHistoPrefix() + "hit_" + to_string(i));
-    stitle= ("hit_" + to_string(i) + ";bco;ladder*chip");
+    sname = (getHistoPrefix() + "hit_" + std::to_string(i));
+    stitle= ("hit_" + std::to_string(i) + ";bco;ladder*chip");
     h_hit[i] = new TH2F(sname.c_str(), stitle.c_str(), 26*14, 0, 26*14, 128,  0, 128);
     hm->registerHisto(h_hit[i]);
 
    
     // RecoBCO - GL1BCO
-    sname = (getHistoPrefix() + "bcoreco_diff_" + to_string(i));
-    stitle= ("bcoreco diff_" + to_string(i));
+    sname = (getHistoPrefix() + "bcoreco_diff_" + std::to_string(i));
+    stitle= ("bcoreco diff_" + std::to_string(i));
     h_bcoreco_diff[i]     = new TH1F(sname.c_str(),     stitle.c_str(),     540, -270, 270);
     hm->registerHisto(h_bcoreco_diff[i]);
 
-    sname = (getHistoPrefix() + "bcoreco_evt_diff_" + to_string(i));
-    stitle= ("bcoreco evt diff_" + to_string(i));
+    sname = (getHistoPrefix() + "bcoreco_evt_diff_" + std::to_string(i));
+    stitle= ("bcoreco evt diff_" + std::to_string(i));
     h_bcoreco_evt_diff[i] = new TH1F(sname.c_str(), stitle.c_str(), 540, -270, 270);
     hm->registerHisto(h_bcoreco_evt_diff[i]);
 
     // RecoBCO - StrobeBCO, same as FPHX BCO
-    sname = (getHistoPrefix() + "bcorecointt_diff_" + to_string(i));
-    stitle= ("bcoreco intt diff_" + to_string(i));
+    sname = (getHistoPrefix() + "bcorecointt_diff_" + std::to_string(i));
+    stitle= ("bcoreco intt diff_" + std::to_string(i));
     h_bcorecointt_diff[i] = new TH1F(sname.c_str(), stitle.c_str(), 540, -270, 270);
     hm->registerHisto(h_bcorecointt_diff[i]);
 
     // ChipBCO
-    sname = (getHistoPrefix() + "bco_felix_" + to_string(i));
-    stitle= ("bco_felix_" + to_string(i));
+    sname = (getHistoPrefix() + "bco_felix_" + std::to_string(i));
+    stitle= ("bco_felix_" + std::to_string(i));
     h_bco_felix[i]= new TH1F(sname.c_str(), stitle.c_str(), 128,  0, 128);
     hm->registerHisto(h_bco_felix[i]);
 
     // StrobeBCO - GL1BCO
-    sname = (getHistoPrefix() + "bcogl1diff_felix_" + to_string(i));
-    stitle= ("bcogl1diff_felix_" + to_string(i));
+    sname = (getHistoPrefix() + "bcogl1diff_felix_" + std::to_string(i));
+    stitle= ("bcogl1diff_felix_" + std::to_string(i));
     h_bcogl1diff_felix[i]= new TH1F(sname.c_str(), stitle.c_str(), 1024, -512, 512);
     hm->registerHisto(h_bcogl1diff_felix[i]);
 
@@ -339,14 +315,14 @@ void InttStreamQA::createHistos(){
     //hm->registerHisto(h_bunch_strb[i]);
 
     // RecoBCO - Gl1BCO, vs  bunch, to see the peak
-    sname = (getHistoPrefix() + "bunch_evt_bcodiff_" + to_string(i));
-    stitle= ("bunch @ strobe_" + to_string(i));
+    sname = (getHistoPrefix() + "bunch_evt_bcodiff_" + std::to_string(i));
+    stitle= ("bunch @ strobe_" + std::to_string(i));
     h_bunch_evt_bcodiff[i] = new TH2F(sname.c_str(), stitle.c_str(), 750, -250, 500, 150, -15, 135);
     hm->registerHisto(h_bunch_evt_bcodiff[i]);
 
     //ChipBCO vs Bunch to check the linear correlation
-    sname = (getHistoPrefix() + "bunch_bco_" + to_string(i));
-    stitle= ("bunch vs BCO " + to_string(i));
+    sname = (getHistoPrefix() + "bunch_bco_" + std::to_string(i));
+    stitle= ("bunch vs BCO " + std::to_string(i));
     h_bunch_bco[i] = new TH2F(sname.c_str(), stitle.c_str(), 150, 0, 150, 150, -15, 135);
     hm->registerHisto(h_bunch_bco[i]);
 

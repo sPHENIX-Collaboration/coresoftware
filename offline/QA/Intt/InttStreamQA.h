@@ -28,9 +28,6 @@ class InttStreamQA : public SubsysReco
   virtual ~InttStreamQA()=default;
 
   /// SubsysReco initialize processing method
-  int Init(PHCompositeNode *);
-  
-  /// SubsysReco initialize processing method
   int InitRun(PHCompositeNode *);
 
   /// SubsysReco event processing method
@@ -43,14 +40,11 @@ class InttStreamQA : public SubsysReco
  private:
   void createHistos();
   std::string getHistoPrefix() const;
-
-
- protected:
    TH2* h_bco[8]{nullptr};
    TH2* h_hit[8]{nullptr};
 
    TH1* h_bco_felix[8]{nullptr}; // FPHX bco
-   TH1* h_bco_all{nullptr};
+//   TH1* h_bco_all{nullptr};
    TH1* h_bcogl1diff_felix[8]{nullptr}; // bcofull - gl1bco for all hits
 
    TH1* h_bcoreco_diff[8]{nullptr};
@@ -60,15 +54,15 @@ class InttStreamQA : public SubsysReco
    TH1* h_bcorecointt_diff[8]{nullptr};
    TH1* h_bcointtgl1_diff{nullptr};
 
-   TH1* h_bunch[8]{nullptr};
+//   TH1* h_bunch[8]{nullptr};
    TH1* h_bunch_all{nullptr};
    TH1* h_bunch_gl1{nullptr};
 
-   TH1* h_bunch_strb[8]{nullptr};
+//   TH1* h_bunch_strb[8]{nullptr};
    TH2* h_bunch_evt_bcodiff[8]{nullptr};
    TH2* h_bunch_bco[8]{nullptr};
 
-   TH1* h_bcoprediff[8]{nullptr};
+//   TH1* h_bcoprediff[8]{nullptr};
 };
 
 #endif
