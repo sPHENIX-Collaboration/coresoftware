@@ -292,9 +292,9 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
         for (auto pktiter : evtiter.second)
         {
           CaloPacket *calpacket = dynamic_cast<CaloPacket *>(pktiter);
-          int packet_id = calpacket->getIdentifier();
           if (calpacket)
           {
+	    int packet_id = calpacket->getIdentifier();
             if (packet_id == std::clamp(packet_id, 9000, 9999))
             {
               TriggerInputManager()->AddSEpdPacket(evtiter.first, calpacket);
