@@ -4,7 +4,7 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/SubsysReco.h>           // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 
@@ -12,7 +12,7 @@
 #include <TNtuple.h>
 
 #include <sstream>
-#include <utility>                        // for pair
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -31,7 +31,7 @@ G4EdepNtuple::~G4EdepNtuple()
   delete hm;
 }
 
-int G4EdepNtuple::Init(PHCompositeNode *)
+int G4EdepNtuple::Init(PHCompositeNode * /*unused*/)
 {
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
@@ -74,7 +74,7 @@ int G4EdepNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4EdepNtuple::End(PHCompositeNode */*topNode*/)
+int G4EdepNtuple::End(PHCompositeNode * /*topNode*/)
 {
   outfile->cd();
   ntup->Write();

@@ -6,21 +6,21 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/SubsysReco.h>           // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>           // for PHIODataNode
-#include <phool/PHNodeIterator.h>         // for PHNodeIterator
-#include <phool/PHObject.h>               // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <TH1.h>
 #include <TH2.h>
 #include <TSystem.h>
 
-#include <iostream>                       // for operator<<, endl, basic_ost...
-#include <map>                            // for _Rb_tree_const_iterator
-#include <utility>                        // for pair
+#include <iostream>  // for operator<<, endl, basic_ost...
+#include <map>       // for _Rb_tree_const_iterator
+#include <utility>   // for pair
 
 using namespace std;
 
@@ -69,8 +69,8 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
   if (g4hits)
   {
     PHG4HitContainer::ConstRange hit_range = g4hits->getHits();
-    //shower_z->Reset();
-    //  cout << "Number of Hits: " << g4hits->size() << endl;
+    // shower_z->Reset();
+    //   cout << "Number of Hits: " << g4hits->size() << endl;
     for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
     {
       PHG4Hit *inhit = hit_iter->second;
@@ -88,8 +88,8 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
   if (g4hits)
   {
     PHG4HitContainer::ConstRange hit_range = g4hits->getHits();
-    //shower_z->Reset();
-    //  cout << "Number of Hits: " << g4hits->size() << endl;
+    // shower_z->Reset();
+    //   cout << "Number of Hits: " << g4hits->size() << endl;
     for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
     {
       PHG4Hit *inhit = hit_iter->second;
@@ -120,7 +120,7 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4HitTTree::End(PHCompositeNode */*topNode*/)
+int G4HitTTree::End(PHCompositeNode * /*topNode*/)
 {
   hm->dumpHistos("HitHistos.root");
   delete hm;
