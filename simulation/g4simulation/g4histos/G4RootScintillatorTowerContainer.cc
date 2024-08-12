@@ -4,19 +4,12 @@
 
 #include <TClonesArray.h>
 
-#include <cmath>                     // for NAN
-#include <ostream>                    // for basic_ostream::operator<<, oper...
-
-using namespace std;
+#include <limits>
+#include <ostream>  // for basic_ostream::operator<<, oper...
 
 static const int NMAX = 1000;
 
 G4RootScintillatorTowerContainer::G4RootScintillatorTowerContainer()
-  : idet(-1)
-  , etotal(NAN)
-  , eion(NAN)
-  , leakage(NAN)
-  , event(0)
 {
   SnglTowers = new TClonesArray("G4RootScintillatorTower", NMAX);
 }
@@ -29,8 +22,8 @@ G4RootScintillatorTowerContainer::~G4RootScintillatorTowerContainer()
 
 void G4RootScintillatorTowerContainer::Reset()
 {
-  etotal = NAN;
-  leakage = NAN;
+  etotal = std::numeric_limits<float>::quiet_NaN();
+  leakage = std::numeric_limits<float>::quiet_NaN();
   event = 0;
   SnglTowers->Clear();
   if (SnglTowers->GetSize() > NMAX)
@@ -49,12 +42,12 @@ G4RootScintillatorTowerContainer::AddTower(double towerenergy, int ieta, int iph
   {
     SnglTowers->Expand(SnglTowers->GetSize() + 10000);
   }
-  new (cl[nextindex]) G4RootScintillatorTower(towerenergy,ieta,iphi);
+  new (cl[nextindex]) G4RootScintillatorTower(towerenergy, ieta, iphi);
   return (static_cast<G4RootScintillatorTower *>(cl[nextindex]));
 }
 
-void G4RootScintillatorTowerContainer::identify(ostream &os) const
+void G4RootScintillatorTowerContainer::identify(std::ostream &os) const
 {
-  os << "Number of Hits: " << SnglTowers->GetLast() << endl;
+  os << "Number of Hits: " << SnglTowers->GetLast() << std::endl;
   return;
 }
