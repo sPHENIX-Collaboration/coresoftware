@@ -103,8 +103,8 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   {
     m_debugFile = new TFile(m_debugFileName.c_str(), "RECREATE");
   }
-float timeHistMax=m_time_samples_max;
-timeHistMax-=0.5;
+  float timeHistMax=m_time_samples_max;
+  timeHistMax-=0.5;
   m_itHist_0 = new TH1I("m_itHist_0", "side 0;it", m_time_samples_max, -0.5, timeHistMax);
   m_itHist_1 = new TH1I("m_itHist_1", "side 1;it", m_time_samples_max, -0.5, timeHistMax);
 
@@ -327,7 +327,9 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
           continue;
         }
 
+	//std::cout << "iphi: " << iphi << std::endl;
         double phi = layergeom->get_phi(iphi);
+	//std::cout << "phi: " << phi << std::endl;
         double zdriftlength = layergeom->get_zcenter(it) * m_tGeometry->get_drift_velocity();
 
         float x = r * cos(phi);
