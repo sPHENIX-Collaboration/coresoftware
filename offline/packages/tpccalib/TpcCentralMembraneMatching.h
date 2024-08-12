@@ -310,7 +310,7 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   bool m_fixShifts{false};
   bool m_fieldOn{true};
-  bool m_doFancy{true};
+  bool m_doFancy{false};
   bool m_doHadd{false};
 
   std::vector<double> m_reco_RPeaks[2];
