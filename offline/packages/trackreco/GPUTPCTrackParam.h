@@ -128,6 +128,7 @@ class GPUTPCTrackParam
 
    void Print() const;
 
+   void setNeonFraction(double frac) { Ne_frac = frac; };
    void setArgonFraction(double frac) { Ar_frac = frac; };
    void setCF4Fraction(double frac) { CF4_frac = frac; };
    void setNitrogenFraction(double frac) { N2_frac = frac; };
@@ -154,6 +155,15 @@ class GPUTPCTrackParam
   //https://doi.org/10.1016/0092-640X(84)90002-0
   //https://pdg.lbl.gov/2024/AtomicNuclearProperties/index.html
   //https://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
+
+  double Ne_frac = 0.00;
+  double Ne_Rho = 0.839e-3; // g/cm3, density
+  double Ne_RadLen = 28.93; // g/cm2, radiation length
+  double Ne_x0 = 2.0735; // 1st Bethe-Bloch pole
+  double Ne_x1 = 4.6421; //2nd Bethe-Bloch pole
+  double Ne_mI = 137; //eV, mean excitation
+  double Ne_mZA = 0.4955; // Mean atomic number / mass number
+  double Ne_mA = 20.18; // Mean amass number
 
   double Ar_frac = 0.75;
   double Ar_Rho = 1.662e-3; // g/cm3, density

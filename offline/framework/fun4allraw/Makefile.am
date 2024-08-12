@@ -30,6 +30,7 @@ pkginclude_HEADERS = \
   SingleLL1TriggerInput.h \
   SingleMbdTriggerInput.h \
   SingleMicromegasPoolInput.h \
+  SingleInttEventInput.h \
   SingleInttPoolInput.h \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
@@ -76,14 +77,14 @@ libfun4allraw_la_SOURCES = \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
   intt_pool.cc \
-  mvtx_pool.cc \
-  tpc_pool.cc \
   MicromegasBcoMatchingInformation.cc\
-	MvtxRawDefs.cc \
+  mvtx_pool.cc \
+  MvtxRawDefs.cc \
   SingleCemcTriggerInput.cc \
   SingleGl1PoolInput.cc \
   SingleGl1TriggerInput.cc \
   SingleHcalTriggerInput.cc \
+  SingleInttEventInput.cc \
   SingleInttPoolInput.cc \
   SingleLL1TriggerInput.cc \
   SingleMbdTriggerInput.cc \
@@ -94,7 +95,8 @@ libfun4allraw_la_SOURCES = \
   SingleTpcPoolInput.cc \
   SingleTriggerInput.cc \
   SingleZdcInput.cc \
-  SingleZdcTriggerInput.cc
+  SingleZdcTriggerInput.cc \
+  tpc_pool.cc
 
 libfun4allraw_la_LIBADD = \
   libmvtx_decoder.la \

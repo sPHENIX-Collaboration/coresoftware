@@ -6,21 +6,21 @@
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>                         // for PHIODataNode
-#include <phool/PHNode.h>                               // for PHNode
-#include <phool/PHNodeIterator.h>                       // for PHNodeIterator
-#include <phool/PHObject.h>                             // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <TH1.h>
 #include <TSystem.h>
 
-#include <iostream>                                     // for operator<<, endl
-#include <map>                                          // for _Rb_tree_cons...
-#include <utility>                                      // for pair
+#include <iostream>  // for operator<<, endl
+#include <map>       // for _Rb_tree_cons...
+#include <utility>   // for pair
 
 using namespace std;
 
@@ -83,7 +83,7 @@ int G4ScintillatorSlatTTree::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4ScintillatorSlatTTree::End(PHCompositeNode */*topNode*/)
+int G4ScintillatorSlatTTree::End(PHCompositeNode * /*topNode*/)
 {
   hm->dumpHistos(_histofilename);
   delete hm;
