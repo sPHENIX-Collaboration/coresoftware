@@ -45,7 +45,6 @@
 
 CaloValid::CaloValid(const std::string& name)
   : SubsysReco(name)
-  , detector("HCALIN")
 {
 }
 
