@@ -104,22 +104,23 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     {
       exit(1);
     }
-    bool skipthis = true;
-
-    for (int i = 0; i < npackets; i++)
+    if (m_SkipEarlyEvents)
     {
-      int numBCOs = plist[i]->iValue(0, "NR_BCOS");
-      for (int j = 0; j < numBCOs; j++)
+      for (int i = 0; i < npackets; i++)
       {
-        uint64_t bco = plist[i]->lValue(j, "BCOLIST");
-        if (bco < minBCO)
-        {
-          continue;
-        }
-        skipthis = false;
+	int numBCOs = plist[i]->iValue(0, "NR_BCOS");
+	for (int j = 0; j < numBCOs; j++)
+	{
+	  uint64_t bco = plist[i]->lValue(j, "BCOLIST");
+	  if (bco < minBCO)
+	  {
+	    continue;
+	  }
+	  m_SkipEarlyEvents = false;
+	}
       }
     }
-    if (skipthis)
+    if (m_SkipEarlyEvents)
     {
       for (int i = 0; i < npackets; i++)
       {
@@ -167,6 +168,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 
         int numBCOs = pool->iValue(0, "NR_BCOS");
         uint64_t largest_bco = 0;
+        bool skipthis{true};
         for (int j = 0; j < numBCOs; j++)
         {
           uint64_t bco = pool->lValue(j, "BCOLIST");
@@ -192,17 +194,6 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
         }
         else
         {
-          int nFEEs = pool->iValue(0, "UNIQUE_FEES");
-          for (int j = 0; j < nFEEs; j++)
-          {
-            int fee = pool->iValue(j, "FEE_ID");
-            int nbcos = pool->iValue(fee, "FEE_BCOS");
-            for (int k = 0; k < nbcos; k++)
-            {
-              auto bco = pool->lValue(fee, k, "BCOVAL");
-              m_FeeGTML1BCOMap[fee].insert(bco);
-            }
-          }
           for (int j = 0; j < num_hits; j++)
           {
             uint64_t gtm_bco = pool->lValue(j, "BCO");
@@ -227,7 +218,6 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
             newhit->set_full_FPHX(pool->iValue(j, "FULL_FPHX"));
             newhit->set_full_ROC(pool->iValue(j, "FULL_ROC"));
             newhit->set_event_counter(pool->iValue(j, "EVENT_COUNTER"));
-
             gtm_bco += m_Rollover[FEE];
 
             if (gtm_bco < m_PreviousClock[FEE])

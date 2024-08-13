@@ -5,7 +5,7 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 
 /* class TowerInfo; */
 

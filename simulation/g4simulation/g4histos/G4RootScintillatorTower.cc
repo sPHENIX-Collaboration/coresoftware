@@ -13,13 +13,11 @@ G4RootScintillatorTower::G4RootScintillatorTower()
 {
 }
 
-
-G4RootScintillatorTower::G4RootScintillatorTower(double towerenergy,int ieta, int iphi)
+G4RootScintillatorTower::G4RootScintillatorTower(double towerenergy, int ieta, int iphi)
   : row(iphi)
   , column(ieta)
   , energy(towerenergy)
 {
-
 }
 
 void G4RootScintillatorTower::Reset()

@@ -1,11 +1,11 @@
 #include "G4TowerNtuple.h"
 
+#include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainerv1.h>
-#include <calobase/RawTowerGeomContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/SubsysReco.h>              // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 
@@ -13,10 +13,10 @@
 #include <TH1.h>
 #include <TNtuple.h>
 
-#include <cmath>                             // for isfinite
-#include <iostream>                          // for operator<<, basic_ostream
+#include <cmath>     // for isfinite
+#include <iostream>  // for operator<<, basic_ostream
 #include <sstream>
-#include <utility>                           // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 using namespace std;
 
@@ -36,7 +36,7 @@ G4TowerNtuple::~G4TowerNtuple()
   delete hm;
 }
 
-int G4TowerNtuple::Init(PHCompositeNode *)
+int G4TowerNtuple::Init(PHCompositeNode * /*unused*/)
 {
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
@@ -68,44 +68,43 @@ int G4TowerNtuple::process_event(PHCompositeNode *topNode)
       cout << "no geometry node " << geonodename.str() << " for " << *iter << endl;
       continue;
     }
-    
-    
+
     TowerInfoContainer *towers = findNode::getClass<TowerInfoContainerv1>(topNode, nodename.str());
     if (towers)
+    {
+      double esum = 0;
+      unsigned int nchannels = towers->size();
+      for (unsigned int channel = 0; channel < nchannels; channel++)
       {
-	double esum = 0;
- 	unsigned int nchannels = towers->size();
-	for (unsigned int channel = 0; channel < nchannels;channel++)
-	  {
-	    TowerInfo *tower =towers->get_tower_at_channel(channel);
-	    double energy = tower->get_energy();
-	    if (!isfinite(energy))
-	      {
-		cout << "invalid energy: " << energy << endl;
-	      }
-	    esum += energy;
-	    unsigned int towerkey = towers->encode_key(channel);
-	    int etabin = towers->getTowerEtaBin(towerkey);
-	    int phibin = towers->getTowerPhiBin(towerkey);
+        TowerInfo *tower = towers->get_tower_at_channel(channel);
+        double energy = tower->get_energy();
+        if (!isfinite(energy))
+        {
+          cout << "invalid energy: " << energy << endl;
+        }
+        esum += energy;
+        unsigned int towerkey = towers->encode_key(channel);
+        int etabin = towers->getTowerEtaBin(towerkey);
+        int phibin = towers->getTowerPhiBin(towerkey);
 
-	    // to search the map fewer times, cache the geom object until the layer changes
-	    double phi = towergeom->get_phicenter(phibin);
-	    double eta = towergeom->get_etacenter(etabin);
-	    ntup->Fill(detid,
-		       phi,
-		       eta,
-		       energy);
-	  }
-	for (eiter = eloss.begin(); eiter != eloss.end(); ++eiter)
-	  {
-	    (*eiter)->Fill(esum);
-	  }
+        // to search the map fewer times, cache the geom object until the layer changes
+        double phi = towergeom->get_phicenter(phibin);
+        double eta = towergeom->get_etacenter(etabin);
+        ntup->Fill(detid,
+                   phi,
+                   eta,
+                   energy);
       }
+      for (eiter = eloss.begin(); eiter != eloss.end(); ++eiter)
+      {
+        (*eiter)->Fill(esum);
+      }
+    }
   }
   return 0;
 }
 
-int G4TowerNtuple::End(PHCompositeNode */*topNode*/)
+int G4TowerNtuple::End(PHCompositeNode * /*topNode*/)
 {
   outfile->cd();
   ntup->Write();
