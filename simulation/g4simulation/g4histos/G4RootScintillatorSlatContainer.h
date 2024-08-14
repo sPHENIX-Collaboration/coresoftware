@@ -3,7 +3,8 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
+#include <limits>
 
 class PHG4ScintillatorSlat;
 class G4RootScintillatorSlat;
@@ -35,14 +36,13 @@ class G4RootScintillatorSlatContainer : public PHObject
   void set_event(const int i) { event = i; }
   int get_event() const { return event; }
 
-
  protected:
-  int idet;
-  float etotal;
-  float eion;
-  float leakage;
-  int event;
-  TClonesArray* SnglSlats;
+  int idet{std::numeric_limits<int>::min()};
+  float etotal{std::numeric_limits<float>::quiet_NaN()};
+  float eion{std::numeric_limits<float>::quiet_NaN()};
+  float leakage{std::numeric_limits<float>::quiet_NaN()};
+  int event{0};
+  TClonesArray* SnglSlats{nullptr};
 
   ClassDefOverride(G4RootScintillatorSlatContainer, 1)
 };

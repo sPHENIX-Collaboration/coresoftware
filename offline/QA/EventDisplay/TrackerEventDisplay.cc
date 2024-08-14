@@ -1,11 +1,11 @@
 #include "TrackerEventDisplay.h"
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrackFitUtils.h>
 
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 
@@ -34,26 +34,18 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <memory>  // for shared_ptr
 #include <set>     // for _Rb_tree_cons...
 #include <utility>
 #include <vector>
 
-using namespace std;
-
-TrackerEventDisplay::TrackerEventDisplay(const string& /*name*/, const string& filename, const string& runnumber, const string& date)
+TrackerEventDisplay::TrackerEventDisplay(const std::string& /*name*/, const std::string& filename, const std::string& runnumber, const std::string& date)
   : SubsysReco("TrackerEventDisplay")
-  , _hit(true)
-  , _cluster(false)
-  , _ievent(0)
   , _filename(filename)
   , _runnumber(runnumber)
   , _date(date)
-{
-}
-
-TrackerEventDisplay::~TrackerEventDisplay()
 {
 }
 
@@ -61,11 +53,6 @@ int TrackerEventDisplay::Init(PHCompositeNode* /*topNode*/)
 {
   _ievent = 0;
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int TrackerEventDisplay::InitRun(PHCompositeNode*)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -80,9 +67,9 @@ int TrackerEventDisplay::End(PHCompositeNode* /*topNode*/)
 {
   if (Verbosity() > 1)
   {
-    cout << "========================= TrackerEventDisplay::End() ============================" << endl;
-    cout << " " << _ievent << " events of output written to: " << _filename << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "========================= TrackerEventDisplay::End() ============================" << std::endl;
+    std::cout << " " << _ievent << " events of output written to: " << _filename << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -92,7 +79,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
   {
-    cout << "TrackerEventDisplay::makeJsonFile() entered" << endl;
+    std::cout << "TrackerEventDisplay::makeJsonFile() entered" << std::endl;
   }
 
   ActsGeometry* tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
@@ -117,33 +104,37 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
 
   if (_hit)
   {
-    bool firstHit = true;   
+    bool firstHit = true;
 
-    outdata.open((_filename+"_event"+std::to_string(_ievent)+"_hits.json").c_str(),std::ofstream::out | std::ofstream::trunc);
-  
-    if( !outdata ) 
-    { // file couldn't be opened
-      cerr << "ERROR: file could not be opened" << endl;
+    outdata.open((_filename + "_event" + std::to_string(_ievent) + "_hits.json").c_str(), std::ofstream::out | std::ofstream::trunc);
+
+    if (!outdata)
+    {  // file couldn't be opened
+      std::cout << "ERROR: file could not be opened" << std::endl;
       exit(1);
     }
-  
-    outdata << "{\n    \"EVENT\": {\n        \"runid\":" << _runnumber << ", \n        \"evtid\": 1, \n        \"time\": 0, \n \"timeStr\": \"2023-08-23, 15:23:30 EST\", \n       \"type\": \"Cosmics\", \n        \"s_nn\": 0, \n        \"B\": 0.0,\n        \"pv\": [0,0,0],\n  \"runstats\": [ \n  \"sPHENIX Time Projection Chamber\", \"" << _date << ", Run " << _runnumber << " - Event " << _ievent << "\", \"All Hits in Event\"] \n   },\n" << endl;
 
-    outdata << "    \"META\": {\n       \"HITS\": {\n          \"INNERTRACKER\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 2,\n              \"color\": 16777215\n              } \n          },\n" << endl;
-    outdata << "          \"TRACKHITS\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 2,\n              \"transparent\": 0.5,\n              \"color\": 16777215\n              } \n          },\n" << endl;
-    outdata << "    \"JETS\": {\n        \"type\": \"JET\",\n        \"options\": {\n            \"rmin\": 0,\n            \"rmax\": 78,\n            \"emin\": 0,\n            \"emax\": 30,\n            \"color\": 16777215,\n            \"transparent\": 0.5 \n        }\n    }\n        }\n    }\n," << endl;
-    outdata << "    \"HITS\": {\n        \"CEMC\":[{\"eta\": 0, \"phi\": 0, \"e\": 0}\n            ],\n        \"HCALIN\": [{\"eta\": 0, \"phi\": 0, \"e\": 0}\n            ],\n        \"HCALOUT\": [{\"eta\": 0, \"phi\": 0, \"e\": 0}\n \n            ],\n\n" << endl;
+    outdata << "{\n    \"EVENT\": {\n        \"runid\":" << _runnumber << ", \n        \"evtid\": 1, \n        \"time\": 0, \n \"timeStr\": \"2023-08-23, 15:23:30 EST\", \n       \"type\": \"Cosmics\", \n        \"s_nn\": 0, \n        \"B\": 0.0,\n        \"pv\": [0,0,0],\n  \"runstats\": [ \n  \"sPHENIX Time Projection Chamber\", \"" << _date << ", Run " << _runnumber << " - Event " << _ievent << "\", \"All Hits in Event\"] \n   },\n"
+            << std::endl;
+
+    outdata << "    \"META\": {\n       \"HITS\": {\n          \"INNERTRACKER\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 2,\n              \"color\": 16777215\n              } \n          },\n"
+            << std::endl;
+    outdata << "          \"TRACKHITS\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 2,\n              \"transparent\": 0.5,\n              \"color\": 16777215\n              } \n          },\n"
+            << std::endl;
+    outdata << "    \"JETS\": {\n        \"type\": \"JET\",\n        \"options\": {\n            \"rmin\": 0,\n            \"rmax\": 78,\n            \"emin\": 0,\n            \"emax\": 30,\n            \"color\": 16777215,\n            \"transparent\": 0.5 \n        }\n    }\n        }\n    }\n," << std::endl;
+    outdata << "    \"HITS\": {\n        \"CEMC\":[{\"eta\": 0, \"phi\": 0, \"e\": 0}\n            ],\n        \"HCALIN\": [{\"eta\": 0, \"phi\": 0, \"e\": 0}\n            ],\n        \"HCALOUT\": [{\"eta\": 0, \"phi\": 0, \"e\": 0}\n \n            ],\n\n"
+            << std::endl;
     outdata << "    \"TRACKHITS\": [\n\n ";
-    
+
     auto m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
     if (Verbosity() >= 1)
     {
-      cout << "Filling hit json" << endl;
+      std::cout << "Filling hit json" << std::endl;
     }
     // need things off of the DST...
     TrkrHitSetContainer* hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
- 
+
     if (hitmap)
     {
       TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
@@ -153,7 +144,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
       {
         const TrkrDefs::hitsetkey hitset_key = iter->first;
         TrkrHitSet* hitset = iter->second;
-	      // get all hits for this hitset
+        // get all hits for this hitset
         TrkrHitSet::ConstRange hitrangei = hitset->getHits();
         for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
              hitr != hitrangei.second;
@@ -161,35 +152,35 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
         {
           TrkrDefs::hitkey hit_key = hitr->first;
           TrkrHit* hit = hitr->second;
-          //float event = _ievent;
-          //float hitID = hit_key;
-          //float e = hit->getEnergy();
+          // float event = _ievent;
+          // float hitID = hit_key;
+          // float e = hit->getEnergy();
           float adc = hit->getAdc();
           float layer_local = TrkrDefs::getLayer(hitset_key);
-          //float sector = TpcDefs::getSectorId(hitset_key);
+          // float sector = TpcDefs::getSectorId(hitset_key);
           float side = TpcDefs::getSide(hitset_key);
-          //float cellID = 0;
-          //float ecell = hit->getAdc();
+          // float cellID = 0;
+          // float ecell = hit->getAdc();
 
-          float phibin = NAN;
-          float tbin = NAN;
-          //float phi = NAN;
-	  float phi_center = NAN;
-          float x = NAN;
-          float y = NAN;
-          float z = NAN;
-        
+          float phibin = std::numeric_limits<float>::quiet_NaN();
+          float tbin = std::numeric_limits<float>::quiet_NaN();
+          // float phi = std::numeric_limits<float>::quiet_NaN();
+          float phi_center = std::numeric_limits<float>::quiet_NaN();
+          float x = std::numeric_limits<float>::quiet_NaN();
+          float y = std::numeric_limits<float>::quiet_NaN();
+          float z = std::numeric_limits<float>::quiet_NaN();
+
           if (TrkrDefs::getTrkrId(hitset_key) == TrkrDefs::TrkrId::tpcId)
           {
             PHG4TpcCylinderGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
- 	    double radius = GeoLayer_local->get_radius();
+            double radius = GeoLayer_local->get_radius();
             phibin = (float) TpcDefs::getPad(hit_key);
             tbin = (float) TpcDefs::getTBin(hit_key);
-            //phi = GeoLayer_local->get_phicenter(phibin);
+            // phi = GeoLayer_local->get_phicenter(phibin);
 
             double zdriftlength = tbin * m_tGeometry->get_drift_velocity() * AdcClockPeriod;
             // convert z drift length to z position in the TPC
-            //		cout << " tbin: " << tbin << " vdrift " <<m_tGeometry->get_drift_velocity() << " l drift: " << zdriftlength  <<endl;
+            //		std::cout << " tbin: " << tbin << " vdrift " <<m_tGeometry->get_drift_velocity() << " l drift: " << zdriftlength  <<std::endl;
             unsigned short NTBins = (unsigned short) GeoLayer_local->get_zbins();
             double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
             double clusz = (m_tdriftmax * m_tGeometry->get_drift_velocity()) - zdriftlength;
@@ -199,13 +190,19 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
             }
             z = clusz;
             phi_center = GeoLayer_local->get_phicenter(phibin);
-	    x = radius * cos(phi_center);
-	    y = radius * sin(phi_center);
-   
-            stringstream spts;
+            x = radius * cos(phi_center);
+            y = radius * sin(phi_center);
 
-            if (firstHit) firstHit = false;
-            else spts << ",";
+            std::stringstream spts;
+
+            if (firstHit)
+            {
+              firstHit = false;
+            }
+            else
+            {
+              spts << ",";
+            }
 
             spts << "{ \"x\": ";
             spts << x;
@@ -216,7 +213,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
             spts << ", \"e\": ";
             spts << adc;
             spts << "}";
-     
+
             outdata << (boost::format("%1%") % spts.str());
             spts.clear();
             spts.str("");
@@ -224,12 +221,14 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
         }
       }
     }
-    outdata << "],\n    \"JETS\": [\n         ]\n    }," << endl;
-    outdata << "\"TRACKS\": {" << endl;
-    outdata <<"\""<<"INNERTRACKER"<<"\": [";
-    outdata << "]" << endl;
-    outdata << "}" << endl;
-    outdata << "}" << endl;
+    outdata << "],\n    \"JETS\": [\n         ]\n    }," << std::endl;
+    outdata << "\"TRACKS\": {" << std::endl;
+    outdata << "\""
+            << "INNERTRACKER"
+            << "\": [";
+    outdata << "]" << std::endl;
+    outdata << "}" << std::endl;
+    outdata << "}" << std::endl;
     outdata.close();
   }
 
@@ -239,29 +238,33 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
 
   if (_cluster)
   {
-    bool firstHit = true;   
-    
-    outdata.open((_filename+"_event"+std::to_string(_ievent)+"_clusters.json").c_str(),std::ofstream::out | std::ofstream::trunc);
-  
-    if( !outdata ) 
-    { // file couldn't be opened
-      cerr << "ERROR: file could not be opened" << endl;
+    bool firstHit = true;
+
+    outdata.open((_filename + "_event" + std::to_string(_ievent) + "_clusters.json").c_str(), std::ofstream::out | std::ofstream::trunc);
+
+    if (!outdata)
+    {  // file couldn't be opened
+      std::cout << "ERROR: file could not be opened" << std::endl;
       exit(1);
     }
-  
-    outdata << "{\n    \"EVENT\": {\n        \"runid\":" << _runnumber << ", \n        \"evtid\": 1, \n        \"time\": 0, \n \"timeStr\": \"2023-08-23, 15:23:30 EST\", \n       \"type\": \"Cosmics\", \n        \"s_nn\": 0, \n        \"B\": 0.0,\n        \"pv\": [0,0,0],\n  \"runstats\": [ \n  \"sPHENIX Time Projection Chamber\", \"" << _date << ", Run " << _runnumber << " - Event " << _ievent << "\", \"All Clusters in Event\"] \n   },\n" << endl;
 
-    outdata << "    \"META\": {\n       \"HITS\": {\n          \"INNERTRACKER\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 2,\n              \"color\": 16777215\n              } \n          },\n" << endl;
-    outdata << "          \"TRACKHITS\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 2,\n              \"transparent\": 0.5,\n              \"color\": 16777215\n              } \n          },\n" << endl;
-    outdata << "    \"JETS\": {\n        \"type\": \"JET\",\n        \"options\": {\n            \"rmin\": 0,\n            \"rmax\": 78,\n            \"emin\": 0,\n            \"emax\": 30,\n            \"color\": 16777215,\n            \"transparent\": 0.5 \n        }\n    }\n        }\n    }\n," << endl;
-    outdata << "    \"HITS\": {\n        \"CEMC\":[{\"eta\": 0, \"phi\": 0, \"e\": 0}\n            ],\n        \"HCALIN\": [{\"eta\": 0, \"phi\": 0, \"e\": 0}\n            ],\n        \"HCALOUT\": [{\"eta\": 0, \"phi\": 0, \"e\": 0}\n \n            ],\n\n" << endl;
+    outdata << "{\n    \"EVENT\": {\n        \"runid\":" << _runnumber << ", \n        \"evtid\": 1, \n        \"time\": 0, \n \"timeStr\": \"2023-08-23, 15:23:30 EST\", \n       \"type\": \"Cosmics\", \n        \"s_nn\": 0, \n        \"B\": 0.0,\n        \"pv\": [0,0,0],\n  \"runstats\": [ \n  \"sPHENIX Time Projection Chamber\", \"" << _date << ", Run " << _runnumber << " - Event " << _ievent << "\", \"All Clusters in Event\"] \n   },\n"
+            << std::endl;
+
+    outdata << "    \"META\": {\n       \"HITS\": {\n          \"INNERTRACKER\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 2,\n              \"color\": 16777215\n              } \n          },\n"
+            << std::endl;
+    outdata << "          \"TRACKHITS\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 2,\n              \"transparent\": 0.5,\n              \"color\": 16777215\n              } \n          },\n"
+            << std::endl;
+    outdata << "    \"JETS\": {\n        \"type\": \"JET\",\n        \"options\": {\n            \"rmin\": 0,\n            \"rmax\": 78,\n            \"emin\": 0,\n            \"emax\": 30,\n            \"color\": 16777215,\n            \"transparent\": 0.5 \n        }\n    }\n        }\n    }\n," << std::endl;
+    outdata << "    \"HITS\": {\n        \"CEMC\":[{\"eta\": 0, \"phi\": 0, \"e\": 0}\n            ],\n        \"HCALIN\": [{\"eta\": 0, \"phi\": 0, \"e\": 0}\n            ],\n        \"HCALOUT\": [{\"eta\": 0, \"phi\": 0, \"e\": 0}\n \n            ],\n\n"
+            << std::endl;
     outdata << "    \"TRACKHITS\": [\n\n ";
-    
+
     if (Verbosity() > 1)
     {
-      cout << "Filling cluster json " << endl;
+      std::cout << "Filling cluster json " << std::endl;
     }
-    
+
     // need things off of the DST...
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
     if (!clustermap)
@@ -273,11 +276,11 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
     {
       if (clustermap != nullptr)
       {
-        cout << "got clustermap" << endl;
+        std::cout << "got clustermap" << std::endl;
       }
       else
       {
-        cout << "no clustermap" << endl;
+        std::cout << "no clustermap" << std::endl;
       }
     }
 
@@ -290,7 +293,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
         {
           TrkrDefs::cluskey cluster_key = iter->first;
           TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-         
+
           Acts::Vector3 cglob;
           cglob = tgeometry->getGlobalPosition(cluster_key, cluster);
           float x = cglob(0);
@@ -298,10 +301,16 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
           float z = cglob(2);
           float adc = cluster->getAdc();
 
-          stringstream spts;  
-  
-          if (firstHit) firstHit = false;
-          else spts << ",";
+          std::stringstream spts;
+
+          if (firstHit)
+          {
+            firstHit = false;
+          }
+          else
+          {
+            spts << ",";
+          }
 
           spts << "{ \"x\": ";
           spts << x;
@@ -315,16 +324,18 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
 
           outdata << (boost::format("%1%") % spts.str());
           spts.clear();
-          spts.str(""); 
+          spts.str("");
         }
       }
     }
-    outdata << "],\n    \"JETS\": [\n         ]\n    }," << endl;
-    outdata << "\"TRACKS\": {" << endl;
-    outdata <<"\""<<"INNERTRACKER"<<"\": [";
-    outdata << "]" << endl;
-    outdata << "}" << endl;
-    outdata << "}" << endl;
+    outdata << "],\n    \"JETS\": [\n         ]\n    }," << std::endl;
+    outdata << "\"TRACKS\": {" << std::endl;
+    outdata << "\""
+            << "INNERTRACKER"
+            << "\": [";
+    outdata << "]" << std::endl;
+    outdata << "}" << std::endl;
+    outdata << "}" << std::endl;
     outdata.close();
   }
   return;
