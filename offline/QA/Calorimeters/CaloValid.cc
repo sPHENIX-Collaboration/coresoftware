@@ -26,6 +26,7 @@
 
 #include <TH1.h>
 #include <TH2.h>
+#include <TH3.h>
 #include <TLorentzVector.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
@@ -83,7 +84,6 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
 int CaloValid::process_event(PHCompositeNode* topNode)
 {
   _eventcounter++;
-  //  std::cout << "In process_event" << std::endl;
   process_towers(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -153,7 +153,6 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   bool scaledBits[64] = {false};
   long long int raw[64] = {0};
   long long int live[64] = {0};
-  // long long int scaled[64] = { 0 };
   Gl1Packet* gl1PacketInfo =
       findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   if (!gl1PacketInfo)
@@ -172,7 +171,6 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
       raw[i] = gl1PacketInfo->lValue(i, 0);
       live[i] = gl1PacketInfo->lValue(i, 1);
-      // scaled[i] = gl1PacketInfo->lValue(i, 2);
 
       if (trig_decision)
       {
@@ -221,10 +219,14 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         {
           h_cemc_etaphi_time->Fill(ieta, iphi, _timef);
           h_cemc_etaphi->Fill(ieta, iphi);
+        for (int i = 0; i < 64; i++)
+        { 
           if (isGood && (scaledBits[10] || scaledBits[11]))
           {
             h_cemc_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
-          }
+            h3_emc_eta_phi_trig->Fill(ieta, iphi, i);
+	  }
+        }
           if (tower->get_isBadChi2())
           {
             h_cemc_etaphi_badChi2->Fill(ieta, iphi, 1);
@@ -283,11 +285,16 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         {
           h_ihcal_etaphi->Fill(ieta, iphi);
           h_ihcal_etaphi_time->Fill(ieta, iphi, _timef);
+        
+        for (int i = 0; i < 64; i++)
+        {    
           if (isGood && (scaledBits[10] || scaledBits[11]))
           {
             h_ihcal_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
-          }
-          if (tower->get_isBadChi2())
+            h3_ihc_eta_phi_trig->Fill(ieta, iphi, i);
+	  }
+        } 
+         if (tower->get_isBadChi2())
           {
             h_ihcal_etaphi_badChi2->Fill(ieta, iphi, 1);
           }
@@ -295,6 +302,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           {
             h_ihcal_etaphi_badChi2->Fill(ieta, iphi, 0);
           }
+        
         }
       }
     }
@@ -338,10 +346,15 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         {
           h_ohcal_etaphi->Fill(ieta, iphi);
           h_ohcal_etaphi_time->Fill(ieta, iphi, _timef);
+         
+        for (int i = 0; i < 64; i++)
+        {  
           if (isGood && (scaledBits[10] || scaledBits[11]))
           {
             h_ohcal_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
+            h3_ohc_eta_phi_trig->Fill(ieta, iphi, i);
           }
+        }
           if (tower->get_isBadChi2())
           {
             h_ohcal_etaphi_badChi2->Fill(ieta, iphi, 1);
@@ -1038,4 +1051,12 @@ void CaloValid::createHistos()
   }
   hm->registerHisto(h_triggerVec);
   hm->registerHisto(pr_ldClus_trig);
+
+// Creating the 3D Occupancy Histograms for Minimum Bias Triggers
+   h3_emc_eta_phi_trig = new TH3F("h3_emc_eta_phi_trig", "EMC eta-phi with triggers;eta;phi;trigger index", 96, 0, 96, 256, 0, 256, 64, 0, 64);
+   hm->registerHisto(h3_emc_eta_phi_trig);
+   h3_ihc_eta_phi_trig = new TH3F("h3_ihc_eta_phi_trig", "IHC eta-phi with triggers;eta;phi;trigger index", 24, 0, 24, 64, 0, 64, 64, 0, 64);
+   hm->registerHisto(h3_ihc_eta_phi_trig);
+   h3_ohc_eta_phi_trig = new TH3F("h3_ohc_eta_phi_trig", "OHC eta-phi with triggers;eta;phi;trigger index", 24, 0, 24, 64, 0, 64, 64, 0, 64); 
+   hm->registerHisto(h3_ohc_eta_phi_trig);
 }

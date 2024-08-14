@@ -10,6 +10,7 @@
 class PHCompositeNode;
 class TH1;
 class TH2;
+class TH3;
 class TProfile2D;
 class TProfile;
 
@@ -113,6 +114,11 @@ class CaloValid : public SubsysReco
   TProfile *pr_livetime[64] = {nullptr};
   TProfile *pr_ldClus_trig{nullptr};
   std::vector<int> trigOfInterest = {3,10,11,21,22,23,25,26,27};
+
+  // 3D Occupancy Histograms
+  TH3* h3_emc_eta_phi_trig{nullptr};
+  TH3* h3_ihc_eta_phi_trig{nullptr};
+  TH3* h3_ohc_eta_phi_trig{nullptr};
 
   int _eventcounter{0};
   int _range{1};
