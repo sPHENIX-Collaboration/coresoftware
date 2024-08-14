@@ -184,6 +184,17 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
           m_BclkStack.insert(bco);
           m_BclkStackPacketMap[packet_id].insert(bco);
         }
+        int nFEEs = pool->iValue(0, "UNIQUE_FEES");
+        for (int j = 0; j < nFEEs; j++)
+        {
+          int fee = pool->iValue(j, "FEE_ID");
+          int nbcos = pool->iValue(fee, "FEE_BCOS");
+          for (int k = 0; k < nbcos; k++)
+          {
+            auto bco = pool->lValue(fee, k, "BCOVAL");
+            m_FeeGTML1BCOMap[fee].insert(bco);
+          }
+        }
         if (skipthis)
         {
           if (Verbosity() > 1)
