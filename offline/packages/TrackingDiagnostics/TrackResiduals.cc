@@ -227,6 +227,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   auto inttGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   auto mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
 
+
   if (!mmGeom)
   {
     mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
@@ -297,6 +298,8 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   }
 
   fillVertexTree(topNode);
+
+  fillEventTree(topNode);
 
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -785,6 +788,7 @@ int TrackResiduals::End(PHCompositeNode* /*unused*/)
   }
   m_vertextree->Write();
   m_failedfits->Write();
+  m_eventtree->Write();
   m_outfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1546,6 +1550,23 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
 }
 void TrackResiduals::createBranches()
 {
+
+  m_eventtree = new TTree("eventtree", "A tree with all hits");
+  m_eventtree->Branch("run", &m_runnumber, "m_runnumber/I");
+  m_eventtree->Branch("segment", &m_segment, "m_segment/I");
+  m_eventtree->Branch("event", &m_event, "m_event/I");
+  m_eventtree->Branch("gl1bco", &m_bco, "m_bco/I");
+  m_eventtree->Branch("nmvtx", &m_nmvtx_all,"m_nmvtx_all/I");
+  m_eventtree->Branch("nintt", &m_nintt_all,"m_nintt_all/I");
+  m_eventtree->Branch("nhittpc0", &m_ntpc_hits0,"m_ntpc_hits0/I");
+  m_eventtree->Branch("nhittpc1", &m_ntpc_hits1,"m_ntpc_hits1/I");
+  m_eventtree->Branch("nclustpc0", &m_ntpc_clus0,"m_ntpc_clus0/I");
+  m_eventtree->Branch("nclustpc1", &m_ntpc_clus1,"m_ntpc_clus1/I");
+  m_eventtree->Branch("nmms", &m_nmms_all,"m_nmms_all/I");
+  m_eventtree->Branch("nsiseed", &m_nsiseed,"m_nsiseed/I");
+  m_eventtree->Branch("ntpcseed", &m_ntpcseed,"m_ntpcseed/I");
+  m_eventtree->Branch("ntracks", &m_ntracks_all,"m_ntracks_all/I");
+
   m_failedfits = new TTree("failedfits", "tree with seeds from failed Acts fits");
   m_failedfits->Branch("run", &m_runnumber, "m_runnumber/I");
   m_failedfits->Branch("segment", &m_segment, "m_segment/I");
@@ -2033,6 +2054,86 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
   {
     fillFailedSeedTree(topNode, tpc_seed_ids);
   }
+}
+void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
+{
+  auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+  auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  auto hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+
+  m_ntpc_hits0 = 0;
+  m_ntpc_hits1 = 0;
+  m_ntpc_clus0 = 0;
+  m_ntpc_clus1 = 0;
+  m_nmvtx_all = 0;
+  m_nintt_all = 0;
+  m_nmms_all = 0;
+  m_nsiseed = 0;
+  m_ntpcseed = 0;
+
+  m_nsiseed = silseedmap->size();
+  m_ntpcseed  =  tpcseedmap->size();
+  m_ntracks_all = trackmap->size();
+
+  // Hits
+  TrkrHitSetContainer::ConstRange tpc_hitsets = hitmap->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (TrkrHitSetContainer::ConstIterator hitsetiter = tpc_hitsets.first;
+       hitsetiter != tpc_hitsets.second;
+       ++hitsetiter)
+  {
+    TrkrDefs::hitsetkey hitsetkey = hitsetiter->first;
+    TrkrHitSet* hitset = hitsetiter->second;
+
+    int thisside = TpcDefs::getSide(hitsetkey);
+    if(thisside ==0){
+      m_ntpc_hits0 += hitset->size();
+    }
+    if(thisside ==1){
+      m_ntpc_hits1 += hitset->size();
+    }
+  }
+
+  for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
+	TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
+  {
+    for (const auto& hitsetkey : clustermap->getHitSetKeys(det))
+    {
+      auto range = clustermap->getClusters(hitsetkey);
+      int nclus = std::distance(range.first,range.second);
+      int tpcside = TrkrDefs::getZElement(hitsetkey);
+      switch (det){
+      case TrkrDefs::TrkrId::mvtxId:
+	m_nmvtx_all += nclus;
+	break;
+      case TrkrDefs::TrkrId::inttId:
+	m_nintt_all += nclus;
+	break;
+      case TrkrDefs::TrkrId::tpcId:
+	if(tpcside ==0){
+	  m_ntpc_clus0 += nclus;
+	}
+	if(tpcside ==1){
+	  m_ntpc_clus1 += nclus;
+	}
+	break;
+      case TrkrDefs::TrkrId::micromegasId:
+	m_nmms_all += nclus;
+	break;
+      default:
+	break;
+      }
+    }
+  }
+  std::cout << " m_event:" <<  m_event << std::endl;
+  std::cout << " m_ntpc_clus0:" <<  m_ntpc_clus0 << std::endl;
+  std::cout << " m_ntpc_clus1: " <<  m_ntpc_clus1 << std::endl;
+  std::cout << " m_nmvtx_all:" <<  m_nmvtx_all << std::endl;
+  std::cout << " m_nintt_all: " << m_nintt_all << std::endl;
+  std::cout << " m_nmms_all: " <<  m_nmms_all << std::endl;
+
+  m_eventtree->Fill();
 }
 
 void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
