@@ -53,6 +53,7 @@ CaloTowerCalib::CaloTowerCalib(const std::string &name)
 CaloTowerCalib::~CaloTowerCalib()
 {
   delete cdbttree;
+  delete cdbttree_time;
   if (Verbosity() > 0)
   {
     std::cout << "CaloTowerCalib::~CaloTowerCalib() Calling dtor" << std::endl;
@@ -208,6 +209,36 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   {
     cdbttree = new CDBTTree(m_directURL);
   }
+  //time calibration getting the CDB
+  m_calibName_time = m_detector + "_meanTime";
+  m_fieldname_time = "time";
+
+  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
+  if (!calibdir.empty())
+  {
+    cdbttree_time = new CDBTTree(calibdir);
+    if (Verbosity() > 0)
+    {
+      std::cout << "CaloTowerCalib:InitRun Found " << m_calibName_time << " not doing time calibration" << std::endl;
+    }
+  }
+  else
+  {
+    if (m_giveDirectURL_time)
+    {
+      calibdir = m_directURL_time;
+      std::cout << "CaloTowerCalib::InitRun: Using setted url " << calibdir << std::endl;
+      cdbttree_time = new CDBTTree(calibdir);
+    }
+    else
+    {
+      m_dotimecalib = false;
+      if (Verbosity() > 0)
+      {
+        std::cout << "CaloTowerCalib::InitRun no timing info, " << m_calibName_time << " not found, not doing time calibration" << std::endl;
+      }
+    }
+  }
 
   PHNodeIterator iter(topNode);
 
@@ -251,9 +282,22 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     float raw_amplitude = caloinfo_raw->get_energy();
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
+   
     if (calibconst == 0)
     {
       _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
+    }
+    if(m_dotimecalib)
+    {
+      bool isZS = caloinfo_raw->get_isZS();
+      //timing is not useful for ZS towers
+      if(!isZS)
+      {
+      //I realized that there is no point to do timing calibration for the towerinfov1 object since the resolution is not enough...
+      float raw_time = caloinfo_raw->get_time_float();
+      float meantime = cdbttree_time->GetFloatValue(key, m_fieldname_time);
+      _calib_towers->get_tower_at_channel(channel)->set_time_float(raw_time - meantime);
+      }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;

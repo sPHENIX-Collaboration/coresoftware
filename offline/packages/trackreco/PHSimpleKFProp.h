@@ -69,6 +69,13 @@ class PHSimpleKFProp : public SubsysReco
   }
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
+  enum class PropagationDirection { Outward, Inward };
+
+  void setNeonFraction(double frac) { Ne_frac = frac; };
+  void setArgonFraction(double frac) { Ar_frac = frac; };
+  void setCF4Fraction(double frac) { CF4_frac = frac; };
+  void setNitrogenFraction(double frac) { N2_frac = frac; };
+  void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
 
  private:
   bool _use_truth_clusters = false;
@@ -83,7 +90,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<double> _vertex_yerr;
   std::vector<double> _vertex_zerr;
   std::vector<double> _vertex_ids;
-  double _Bzconst = 10 * 0.000299792458f;
+  double _Bzconst = 10. * 0.000299792458f;
   // double _Bz = 1.4*_Bzconst;
   double _max_dist = .05;
   size_t _min_clusters_per_track = 3;
@@ -115,7 +122,14 @@ class PHSimpleKFProp : public SubsysReco
 
   PositionMap PrepareKDTrees();
 
-  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, Eigen::Matrix<double, 6, 6>& xyzCov, const PositionMap& globalPositions) const;
+  bool TransportAndRotate(double old_layer, double new_layer, double& phi, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp) const;
+
+  bool PropagateStep(unsigned int& current_layer, double& current_phi, PropagationDirection& direction, std::vector<TrkrDefs::cluskey>& propagated_track, std::vector<TrkrDefs::cluskey>& ckeys, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp, const PositionMap& globalPositions) const;
+
+  // TrackSeed objects store clusters in order of increasing cluster key (std::set<TrkrDefs::cluskey>),
+  // which means we have to have a way to directly pass a list of clusters in order to extend looping tracks
+  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const;
+  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, std::vector<TrkrDefs::cluskey>& ckeys, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const;
   std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
   template <typename T>
   struct KDPointCloud
@@ -156,13 +170,21 @@ class PHSimpleKFProp : public SubsysReco
   void publishSeeds(const std::vector<TrackSeed_v2>&);
   //   void MoveToVertex();
 
+  int _max_propagation_steps = 200;
   std::string m_magField;
   bool _use_const_field = false;
   float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
-  std::array<double, 3> _fixed_clus_err = {.1, .1, .1};
+  std::array<double, 3> _fixed_clus_err = {.2, .2, .5};
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
+
+  double Ne_frac = 0.00;
+  double Ar_frac = 0.75;
+  double CF4_frac = 0.20;
+  double N2_frac = 0.00;
+  double isobutane_frac = 0.05;
+
 };
 
 #endif

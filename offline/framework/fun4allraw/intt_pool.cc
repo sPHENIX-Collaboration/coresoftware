@@ -24,9 +24,9 @@ enum ITEM
   F_DATAWORD
 };
 
-intt_pool::intt_pool(const unsigned int depth, const unsigned int low_mark)
+  intt_pool::intt_pool(const unsigned int depth, const unsigned int low_mark)
   : _required_depth(depth)
-  , _low_mark(low_mark)
+    , _low_mark(low_mark)
 {
   // last_index.fill(0);
   for (int fee = 0; fee < MAX_FEECOUNT; fee++)
@@ -81,6 +81,49 @@ unsigned int intt_pool::rawValue(const int fee, const int index)
   return fee_data[fee][index];
 }
 
+int intt_pool::iValue(const int i, const int j, const char * what)
+{
+
+  // so here we have the index i of the BCO, and the position j of that FEE
+  if ( strcmp(what,"FEELIST") == 0)
+  {
+
+    unsigned long long BCO = lValue(i,"BCOLIST");
+    if ( BCO == 0) 
+    {
+      return -1;
+    }
+    unsigned int uj = j;
+    if ( j < 0 || uj >=FEEs_by_BCO[BCO].size() )
+    {
+      return -1;
+    }
+    auto it = FEEs_by_BCO[BCO].cbegin();
+    for (unsigned int k = 0; k< uj; k++) 
+    {
+      ++it;
+    }
+    return *it;
+  }
+
+  int fee = i;
+  int index=j;
+
+  if ( fee < 0 || fee >= MAX_FEECOUNT) 
+  {
+    return 0;
+  }
+
+  if ( index < 0 || (unsigned int) index >= fee_data[fee].size() ) 
+  {
+    return 0;
+  }
+
+  intt_decode();
+  return fee_data[fee][index];
+}
+
+
 int intt_pool::iValue(const int fee, const char *what)
 {
 
@@ -94,6 +137,48 @@ int intt_pool::iValue(const int fee, const char *what)
     }
     return fee_data[fee].size();
   }
+  
+  unsigned int ibco = fee; // it's not a fee, it's just an index for this one
+  if ( strcmp(what,"NR_FEES") == 0)
+  {
+    unsigned long long BCO = lValue(ibco, "BCOLIST");
+    if ( BCO == 0) 
+    {
+      return 0;
+    }
+    return FEEs_by_BCO[BCO].size();
+  }
+  
+  if (strcmp(what, "UNIQUE_FEES") == 0)
+  {
+    return FEE_List.size();
+  }
+  
+  if (strcmp(what, "FEE_ID") == 0)
+  {
+    unsigned int ufee = fee;
+    if (ufee > FEE_List.size())
+    {
+      return -1;
+    }
+    auto it = FEE_List.begin();
+    for (unsigned int k = 0; k < ufee; k++)
+    {
+      ++it;
+    }
+    return *it;
+  }
+  
+  if (strcmp(what, "FEE_BCOS") == 0)
+  {
+    if (fee < 0 || fee >= MAX_FEECOUNT)
+    {
+      return 0;
+    }
+    return BCOs_by_FEE[fee].size();
+  }
+
+  //
 
   int hit = fee;
 
@@ -103,9 +188,9 @@ int intt_pool::iValue(const int fee, const char *what)
   }
 
   if ( strcmp(what,"NR_BCOS") == 0)
-    {
-      return BCO_List.size();
-    }
+  {
+    return BCO_List.size();
+  }
 
   if (strcmp(what, "ADC") == 0)
   {
@@ -176,13 +261,13 @@ long long intt_pool::lValue(const int hit, const int field)
   // NOLINTNEXTLINE(hicpp-multiway-paths-covered)
   switch (field)
   {
-  case F_BCO:
-    return intt_hits[hit]->bco;
-    break;
+    case F_BCO:
+      return intt_hits[hit]->bco;
+      break;
 
-  default:
-    coutfl << "Unknown field " << field << std::endl;
-    break;
+    default:
+      coutfl << "Unknown field " << field << std::endl;
+      break;
   }
 
   return 0;
@@ -199,13 +284,42 @@ long long intt_pool::lValue(const int hit, const char *what)
 
   unsigned int i= hit; //  size() is unsigned
   if ( strcmp(what,"BCOLIST") == 0)
+  {
+    if ( hit < 0 || i >= BCO_List.size())
     {
-      if ( hit < 0 || i >= BCO_List.size()) return 0;
-      auto it = BCO_List.cbegin();
-      for (unsigned int j = 0; j< i; j++) ++it;
-      return *it;
+      return 0;
     }
+    auto it = BCO_List.cbegin();
+    for (unsigned int j = 0; j< i; j++) 
+    {
+      ++it;
+    }
+    return *it;
+  }
 
+  return 0;
+}
+
+long long intt_pool::lValue(const int fee, const int i, const char *what)
+{
+  unsigned int ui= i; //  size() is unsigned
+  if ( strcmp(what,"BCOVAL") == 0)
+  {
+    if (BCOs_by_FEE[fee].size() == 0)
+    {
+      return -1;
+    }
+    if (ui > BCOs_by_FEE[fee].size())
+    {
+      return -1;
+    }
+    auto it = BCOs_by_FEE[fee].cbegin();
+    for (unsigned int j = 0; j < ui; j++)
+    {
+      ++it;
+    }
+    return *it;
+  }
   return 0;
 }
 
@@ -234,49 +348,49 @@ int intt_pool::iValue(const int hit, const int field)
 
   switch (field)
   {
-  case F_FEE:
-    return intt_hits[hit]->fee;
-    break;
+    case F_FEE:
+      return intt_hits[hit]->fee;
+      break;
 
-  case F_CHANNEL_ID:
-    return intt_hits[hit]->channel_id;
-    break;
+    case F_CHANNEL_ID:
+      return intt_hits[hit]->channel_id;
+      break;
 
-  case F_CHIP_ID:
-    return intt_hits[hit]->chip_id;
-    break;
+    case F_CHIP_ID:
+      return intt_hits[hit]->chip_id;
+      break;
 
-  case F_ADC:
-    return intt_hits[hit]->adc;
-    break;
+    case F_ADC:
+      return intt_hits[hit]->adc;
+      break;
 
-  case F_FPHX_BCO:
-    return intt_hits[hit]->FPHX_BCO;
-    break;
+    case F_FPHX_BCO:
+      return intt_hits[hit]->FPHX_BCO;
+      break;
 
-  case F_FULL_FPHX:
-    return intt_hits[hit]->full_FPHX;
-    break;
+    case F_FULL_FPHX:
+      return intt_hits[hit]->full_FPHX;
+      break;
 
-  case F_FULL_ROC:
-    return intt_hits[hit]->full_ROC;
-    break;
+    case F_FULL_ROC:
+      return intt_hits[hit]->full_ROC;
+      break;
 
-  case F_AMPLITUDE:
-    return intt_hits[hit]->amplitude;
-    break;
+    case F_AMPLITUDE:
+      return intt_hits[hit]->amplitude;
+      break;
 
-  case F_EVENT_COUNTER:
-    return intt_hits[hit]->event_counter;
-    break;
+    case F_EVENT_COUNTER:
+      return intt_hits[hit]->event_counter;
+      break;
 
-  case F_DATAWORD:
-    return intt_hits[hit]->word;
-    break;
+    case F_DATAWORD:
+      return intt_hits[hit]->word;
+      break;
 
-  default:
-    coutfl << "Unknown field " << field << std::endl;
-    break;
+    default:
+      coutfl << "Unknown field " << field << std::endl;
+      break;
   }
 
   return 0;
@@ -287,8 +401,8 @@ bool intt_pool::depth_ok() const
   if (verbosity > 5)
   {
     std::cout << "current Pool depth " << min_depth()
-              << " required depth: " << _required_depth
-              << std::endl;
+      << " required depth: " << _required_depth
+      << std::endl;
   }
   return (min_depth() >= _required_depth);
 }
@@ -307,7 +421,16 @@ int intt_pool::next()
   }
   intt_hits.clear();
   BCO_List.clear();
-
+  for(auto& [bco,feelist] : FEEs_by_BCO)
+  {
+    feelist.clear();
+  }
+  for(auto& [fee, bcolist] : BCOs_by_FEE)
+  {
+    bcolist.clear();
+  }
+  FEEs_by_BCO.clear();
+  BCOs_by_FEE.clear();
   return 0;
 }
 
@@ -611,7 +734,10 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
   event_counter |= ((l & 0xffffU) << 16U);
   event_counter |= ((l >> 16U) & 0xffffU);
 
+  FEE_List.insert(fee);
   BCO_List.insert(BCO);
+  FEEs_by_BCO[BCO].insert(fee);
+  BCOs_by_FEE[fee].insert(BCO);
 
   int count = 0;
   for (unsigned int i = 3; i < hitlist.size(); i++)
@@ -635,11 +761,13 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
       if (last_bco[fee] > BCO)
       {
         coutfl << "fee " << fee << " old bco : 0x" << std::hex
-               << last_bco[fee] << ", current: 0x" << BCO
-               << std::dec << std::endl;
+          << last_bco[fee] << ", current: 0x" << BCO
+          << std::dec << std::endl;
       }
-      std::cout << Name() << " pushing back hit for FEE " << fee << " with BCO 0x" << std::hex << BCO << std::dec
-           << " chip " << hit->chip_id << " channel " << hit->channel_id << " hit length now " << intt_hits.size() << ", last bco: 0x" << std::hex << last_bco[fee] << std::dec << std::endl;
+
+      // std::cout << Name() << " pushing back hit for FEE " << fee << " with BCO 0x" << std::hex << BCO << std::dec
+      //      << " chip " << hit->chip_id << " channel " << hit->channel_id << " hit length now " << intt_hits.size() << ", last bco: 0x" << std::hex << last_bco[fee] << std::dec << std::endl;
+
       last_bco[fee] = BCO;
     }
     intt_hits.push_back(hit);
@@ -656,7 +784,16 @@ void intt_pool::dump(OSTREAM &os)
   //  os << "number_of_hits: " << iValue(0, "NR_HITS") << std::endl;
   intt_decode();
   //  identify(os);
-
+  os << " Number of unique FEEs: " << iValue(0, "UNIQUE_FEES") << std::endl;
+  for ( int b = 0; b < iValue(0, "UNIQUE_FEES"); b++)
+  {
+    os << "FEE " << std::setw(3) << iValue(b, "FEE_ID") << ":  0x";
+    for ( int i = 0; i < iValue(iValue(b, "FEE_ID"), "FEE_BCOS"); i++)
+    {
+      os << std::setw(3) << std::hex << lValue(iValue(b, "FEE_ID"), i, "BCOVAL") << std::dec <<     " ";
+    }
+    os << std::endl;
+  }
   os << "  Number of hits: " << iValue(0, "NR_HITS") << std::endl;
 
   //  std::vector::<intt_hit*>::const_iterator hit_itr;
@@ -666,17 +803,17 @@ void intt_pool::dump(OSTREAM &os)
   for (int i = 0; i < iValue(0, "NR_HITS"); i++)
   {
     os << std::setw(4) << i << " "
-       << std::setw(5) << iValue(i, F_FEE) << " "
-       << std::hex << std::setw(11) << lValue(i, F_BCO) << std::dec << "   "
-       << std::hex << std::setw(2) << "0x" << iValue(i, F_FPHX_BCO) << std::dec << "   "
-       << std::setw(5) << iValue(i, F_CHIP_ID) << " "
-       << std::setw(9) << iValue(i, F_CHANNEL_ID) << "     "
-       << std::setw(5) << iValue(i, F_ADC) << " "
-       << std::setw(5) << iValue(i, F_FULL_FPHX) << " "
-       << std::setw(9) << iValue(i, F_FULL_ROC)
-       << std::setw(8) << iValue(i, F_AMPLITUDE)
-       << "     "
-       << "0x" << std::setw(8) << std::hex << std::setfill('0') << iValue(i, F_DATAWORD)
-       << std::setfill(' ') << std::dec << std::endl;
+      << std::setw(5) << iValue(i, F_FEE) << " "
+      << std::hex << std::setw(11) << lValue(i, F_BCO) << std::dec << "   "
+      << std::hex << std::setw(2) << "0x" << iValue(i, F_FPHX_BCO) << std::dec << "   "
+      << std::setw(5) << iValue(i, F_CHIP_ID) << " "
+      << std::setw(9) << iValue(i, F_CHANNEL_ID) << "     "
+      << std::setw(5) << iValue(i, F_ADC) << " "
+      << std::setw(5) << iValue(i, F_FULL_FPHX) << " "
+      << std::setw(9) << iValue(i, F_FULL_ROC)
+      << std::setw(8) << iValue(i, F_AMPLITUDE)
+      << "     "
+      << "0x" << std::setw(8) << std::hex << std::setfill('0') << iValue(i, F_DATAWORD)
+      << std::setfill(' ') << std::dec << std::endl;
   }
 }

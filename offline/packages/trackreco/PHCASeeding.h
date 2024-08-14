@@ -145,6 +145,12 @@ class PHCASeeding : public PHTrackSeeding
   void setFixedClusterError(int i, double val) { _fixed_clus_err.at(i) = val; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
 
+  void setNeonFraction(double frac) { Ne_frac = frac; };
+  void setArgonFraction(double frac) { Ar_frac = frac; };
+  void setCF4Fraction(double frac) { CF4_frac = frac; };
+  void setNitrogenFraction(double frac) { N2_frac = frac; };
+  void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
+
  protected:
   int Setup(PHCompositeNode* topNode) override;
   int Process(PHCompositeNode* topNode) override;
@@ -269,6 +275,13 @@ class PHCASeeding : public PHTrackSeeding
   std::unique_ptr<PHTimer> t_makeseeds;
   /* std::array<bgi::rtree<pointKey, bgi::quadratic<16>>, _NLAYERS_TPC> _rtrees; */
   std::array<bgi::rtree<pointKey,bgi::quadratic<16>>, 3> _rtrees; // need three layers at a time
+
+  double Ne_frac = 0.00;
+  double Ar_frac = 0.75;
+  double CF4_frac = 0.20;
+  double N2_frac = 0.00;
+  double isobutane_frac = 0.05;
+
 };
 
 #endif

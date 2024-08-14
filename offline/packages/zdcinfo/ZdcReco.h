@@ -25,6 +25,7 @@ public:
   void ResetMe();
   void set_zdc1_cut(const float &f) { _zdc1_e = f; }
   void set_zdc2_cut(const float &g) { _zdc2_e = g; }
+  void set_smd_threshold(const float &d) { _smd_e = d; }
 
 private:
   void CompSmdPos();
@@ -47,6 +48,7 @@ private:
   float radius_north{0.};
   float _zdc1_e{65.0};
   float _zdc2_e{20.0};
+  float _smd_e{5.0};
   float _sumS{0.};
   float _sumN{0.};
   int _nhor{0};

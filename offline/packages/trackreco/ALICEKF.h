@@ -21,7 +21,7 @@
 #include <utility>
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
-using TrackSeedAliceSeedMap = std::pair<std::vector<TrackSeed_v2>, std::vector<Eigen::Matrix<double,6,6>>>;
+using TrackSeedAliceSeedMap = std::pair<std::vector<TrackSeed_v2>, std::vector<GPUTPCTrackParam>>;
 
 class ALICEKF
 {
@@ -50,6 +50,15 @@ class ALICEKF
   explicit ALICEKF(const ALICEKF&) = delete;
   ALICEKF& operator=(const ALICEKF&) = delete;
 
+  void setNeonFraction(double frac) { Ne_frac = frac; };
+  void setArgonFraction(double frac) { Ar_frac = frac; };
+  void setCF4Fraction(double frac) { CF4_frac = frac; };
+  void setNitrogenFraction(double frac) { N2_frac = frac; };
+  void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
+
+  bool TransportAndRotate(double old_radius, double new_radius, double& phi, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp) const;
+  bool FilterStep(TrkrDefs::cluskey ckey, std::vector<TrkrDefs::cluskey>& keys, double& current_phi, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp, const PositionMap& globalPositions) const;
+
   TrackSeedAliceSeedMap ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions, std::vector<float>& trackChi2) const;
   bool covIsPosDef(Eigen::Matrix<double,6,6>& cov) const;
   void repairCovariance(Eigen::Matrix<double,6,6>& cov) const;
@@ -73,13 +82,19 @@ class ALICEKF
   { return _v; }
   
   int _v = 0;
-  double _Bzconst = 10*0.000299792458f;
+  double _Bzconst = 10.*0.000299792458f;
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
   bool _use_const_field = false;
   float _const_field = 1.4;
   bool _use_fixed_clus_error = true;
-  std::array<double,3> _fixed_clus_error = {.1,.1,.1};
+  std::array<double,3> _fixed_clus_error = {.2,.2,.5};
+
+  double Ne_frac = 0.00;
+  double Ar_frac = 0.75;
+  double CF4_frac = 0.20;
+  double N2_frac = 0.00;
+  double isobutane_frac = 0.05;
 
 };
 

@@ -970,6 +970,11 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   }
 
   fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, field_map.get(), _fieldDir, _min_clusters_per_track, _max_sin_phi, Verbosity());
+  fitter->setNeonFraction(Ne_frac);
+  fitter->setArgonFraction(Ar_frac);
+  fitter->setCF4Fraction(CF4_frac);
+  fitter->setNitrogenFraction(N2_frac);
+  fitter->setIsobutaneFraction(isobutane_frac);
   fitter->useConstBField(_use_const_field);
   fitter->setConstBField(_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
