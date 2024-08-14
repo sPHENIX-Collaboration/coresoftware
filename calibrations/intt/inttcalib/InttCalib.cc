@@ -115,8 +115,9 @@ int InttCalib::process_event(PHCompositeNode* top_node)
         .chp = (intt_raw_hit->get_chip_id() + 25) % 26,  //
         .chn = intt_raw_hit->get_channel_id(),           //
     };
-
-    int bco_diff = ((intt_raw_hit->get_bco() & 0x7fU) - intt_raw_hit->get_FPHX_BCO() + 128) % 128;
+  //old convention 
+ //int bco_diff = ((intt_raw_hit->get_bco() & 0x7fU) - intt_raw_hit->get_FPHX_BCO() + 128) % 128;
+  int bco_diff = (intt_raw_hit->get_FPHX_BCO() -  (intt_raw_hit->get_bco() & 0x7fU) + 128) % 128; 
 
     ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco_diff];
     ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128];
