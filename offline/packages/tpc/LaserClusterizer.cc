@@ -279,7 +279,10 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
     if (itMaxContent_0 / itMeanContent_0 < 7 || itMaxContent_1 / itMeanContent_1 < 7)
     {
-      m_clusterTree->Fill();
+      if(m_debug)
+      {
+	m_clusterTree->Fill();
+      }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
