@@ -53,7 +53,7 @@ int InttCalib::InitRun(PHCompositeNode* /*unused*/)
   {
     for (int bco = 0; bco < 129; ++bco)
     {
-      m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] = 0;
+      m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco] = 0;
     }
   }
 
@@ -681,23 +681,6 @@ int InttCalib::ConfigureBcoMap()
 
   for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl;
-    if (m_feemap.Convert(ofl, raw))
-    {
-      continue;
-    }
-
-    if (adjust_hitrate(ofl, hitrate))
-    {
-      continue;
-    }
-
-    if (hitrate <= m_min_hitrate || m_max_hitrate <= hitrate)
-    {
-      continue;
-    }
-
     for (int bco = 0; bco < 128; ++bco)
     {
       m_bcorates[raw][bco] += m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco];
