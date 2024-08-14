@@ -36,7 +36,6 @@ class CaloValid : public SubsysReco
   int process_towers(PHCompositeNode*);
   int process_clusters(PHCompositeNode*);
 
-  void Detector(const std::string& name) { detector = name; }
   void set_timing_cut_width(const int& t) { _range = t; }
 
   void set_debug(bool debug) { m_debug = debug; }
@@ -120,7 +119,6 @@ class CaloValid : public SubsysReco
 
   bool m_debug{false};
 
-  std::string detector;
   std::string m_outputFileName;
   std::string OutputFileName;
 };
