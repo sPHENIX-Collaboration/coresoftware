@@ -677,10 +677,12 @@ int Fun4AllStreamingInputManager::FillIntt()
     auto feebclstack = p->getFeeGTML1BCOMap();
     int packet_id = bcl_stack.begin()->first;
     int histo_to_fill = (packet_id % 10) - 1;
+    
     std::set<int> feeidset;
     int fee = 0;
     for (auto &[feeid, gtmbcoset] : feebclstack)
     {
+      
       for (auto &bcl : gtmbcoset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
@@ -692,15 +694,16 @@ int Fun4AllStreamingInputManager::FillIntt()
       }
       fee++;
     }
+    
     if (feeidset.size() == 14)
     {
       allpacketsallfees++;
-      unsigned mask = (1 << 40) - 1;
-      h_taggedAllFees_intt[histo_to_fill]->Fill(m_RefBCO & mask);
+      h_taggedAllFees_intt[histo_to_fill]->Fill(refbcobitshift);
+      
     }
     feeidset.clear();
     bool thispacket = false;
-    p->clearFeeGTML1BCOMap(m_InttRawHitMap.begin()->first);
+    p->clearFeeGTML1BCOMap(*(bcl_stack.begin()->second.begin()));
 
     for (auto &[packetid, gtmbcoset] : bcl_stack)
     {
@@ -871,6 +874,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   {
     auto gtml1bcoset_perfee = p->getFeeGTML1BCOMap();
     int feecounter = 0;
+    uint64_t lowestbco = std::numeric_limits<uint64_t>::max();
     for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
     {
       auto link = MvtxRawDefs::decode_feeid(feeid);
@@ -879,7 +883,9 @@ int Fun4AllStreamingInputManager::FillMvtx()
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-
+        if(gtmbco < lowestbco){
+          lowestbco = gtmbco;
+        }
         h_bcoGL1LL1diff[packetid]->Fill(diff);
 
         if (diff < 3)
@@ -891,7 +897,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       feecounter++;
     }
 
-    p->clearFeeGTML1BCOMap(m_MvtxRawHitMap.begin()->first);
+    p->clearFeeGTML1BCOMap(lowestbco);
   }
   int allfeestagged = 0;
   for (auto &[pid, feeset] : taggedPacketsFEEs)
