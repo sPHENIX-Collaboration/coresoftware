@@ -48,7 +48,7 @@
 #include <Acts/Geometry/TrackingGeometry.hpp>
 
 #include <CLHEP/Vector/ThreeVector.h>
-#include <cmath.h>
+#include <cmath>
 #include <vector>
 
 #include <TFile.h>
