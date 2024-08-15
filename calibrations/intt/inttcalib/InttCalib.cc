@@ -128,7 +128,13 @@ int InttCalib::process_event(PHCompositeNode* top_node)
   {
     std::cout << "Finished event: " << m_evts << std::endl;
   }
-
+  if(m_evts == m_evts_bco)
+  {
+    ConfigureBcoMap();
+    MakeBcoMapCdb();
+    MakeBcoMapPng();
+    m_do_make_bco = false;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -147,10 +153,12 @@ int InttCalib::EndRun(int const run_number)
   ConfigureHotMap_v2();
   MakeHotMapCdb_v2();
   MakeHotMapPng_v2();
-
-  ConfigureBcoMap();
-  MakeBcoMapCdb();
-  MakeBcoMapPng();
+  if(m_do_make_bco)
+  {
+    ConfigureBcoMap();
+    MakeBcoMapCdb();
+    MakeBcoMapPng();
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
