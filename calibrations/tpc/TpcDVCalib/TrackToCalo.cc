@@ -202,13 +202,16 @@ int TrackToCalo::process_event(PHCompositeNode *topNode)
   RawClusterContainer::Range begin_end_EMC = rawClusterContainer->getClusters();
   RawClusterContainer::Iterator clusIter_EMC;
 
+std::cout<<"nclus = "<<rawClusterContainer->size()<<std::endl;
   /// Loop over the EMCal clusters
   for (clusIter_EMC = begin_end_EMC.first; clusIter_EMC != begin_end_EMC.second; ++clusIter_EMC)
   {
     cluster = clusIter_EMC->second;
 
+std::cout<<"energy = "<<cluster->get_energy()<<std::endl;
     if(cluster->get_energy() < m_emcal_e_low_cut)
     {
+std::cout<<"energy too low"<<std::endl;
       continue;
     }
 

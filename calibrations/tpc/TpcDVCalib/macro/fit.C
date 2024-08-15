@@ -12,6 +12,7 @@
 
 #include <cdbobjects/CDBTTree.h>
 
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libcdbobjects.so)
 
 std::vector<float> vec_peak_pos_val;
@@ -54,17 +55,17 @@ void fit_dz(const char* filename = "data.root",
 
     // Define the parameters for the Gaussian
     RooRealVar mean("mean", "mean of gaussian", data.mean(x), xmin, xmax);
-    RooRealVar sigma("sigma", "width of gaussian", data.sigma(x), 0, xmax);
+    RooRealVar sigma("sigma", "width of gaussian", data.sigma(x), 0.001, (xmax-xmin)/2);
 
     // Create the Gaussian PDF
     RooGaussian gauss("gauss", "gaussian PDF", x, mean, sigma);
-    RooRealVar ngauss("ngauss","number of gaussian",0.5*data.sumEntries(),0,data.sumEntries());
+    RooRealVar ngauss("ngauss","number of gaussian",0.01*data.sumEntries(),0,data.sumEntries());
 
     // Define the parameters for the linear background
     RooRealVar a0("a0", "constant", 0, -10, 10);
     RooRealVar a1("a1", "slope", 0, -1, 1);
     RooPolynomial poly("poly", "linear background", x, RooArgList(a1, a0));
-    RooRealVar npoly("npoly","number of poly",0.5*data.sumEntries(),0,data.sumEntries());
+    RooRealVar npoly("npoly","number of poly",0.2*data.sumEntries(),0,data.sumEntries());
 
     // Combine the Gaussian and the polynomial into a single PDF
     RooAddPdf model("model", "gauss + poly", RooArgList(gauss, poly), RooArgList(ngauss, npoly));
@@ -111,10 +112,28 @@ void fit_dz(const char* filename = "data.root",
     canvas->SetBottomMargin(0.15);
     frame->Draw();
     pt->Draw();
-    canvas->SaveAs(outfile);
 
+    std::string dirName = "figure/" + std::to_string(runnumber);
+    std::string command = "ls " + dirName + " 2>/dev/null";
+    int result = system(command.c_str());
+
+    if (result != 0) {
+        std::string mkdirCommand = "mkdir -p " + std::string(dirName);
+        int mkdirResult = system(mkdirCommand.c_str());
+
+        if (mkdirResult == 0) {
+            std::cout << "Directory '" << dirName << "' created successfully." << std::endl;
+        } else {
+            std::cerr << "Failed to create directory '" << dirName << "'." << std::endl;
+        }
+    } else {
+        std::cout << "Directory '" << dirName << "' already exists." << std::endl;
+    }
+
+    canvas->SaveAs(outfile);
     delete canvas;
 */
+
     file->Close();
     delete file;
 
@@ -143,10 +162,10 @@ void fit(int runnumber)
     vec_peak_pos_err.clear();
     vec_trkr_z_val.clear();
     vec_trkr_z_err.clear();
-    float z_min = -130;
-    float z_max = 130;
+    float z_min = -140;
+    float z_max = 140;
     float z_range = z_max - z_min;
-    int nstep = 26;
+    int nstep = 14;
     float z_stepsize = z_range / nstep;
     for (int i=0; i<nstep; i++)
     {

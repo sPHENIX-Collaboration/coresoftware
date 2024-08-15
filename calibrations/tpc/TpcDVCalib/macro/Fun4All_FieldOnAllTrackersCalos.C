@@ -34,6 +34,7 @@
 #include <iostream>
 #include <filesystem>
 
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libffamodules.so)
 R__LOAD_LIBRARY(libmvtx.so)
