@@ -7,6 +7,9 @@
 #include "RooPlot.h"
 #include "TCanvas.h"
 
+#include <stdio.h>
+#include <iostream>
+
 #include <cdbobjects/CDBTTree.h>
 
 R__LOAD_LIBRARY(libcdbobjects.so)

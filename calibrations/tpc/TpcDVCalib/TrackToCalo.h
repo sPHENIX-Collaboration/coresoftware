@@ -54,7 +54,7 @@ class TrackToCalo : public SubsysReco
   void EMcalRadiusUser(bool use) {m_use_emcal_radius = use;}
   void setEMcalRadius(float r) {m_emcal_radius_user = r;}
 
-  void setRawClusContEMName(std::string name) {m_RawClusCont_EM_name = name;}
+  void setRawClusContEMName(const std::string& name) {m_RawClusCont_EM_name = name;}
 
   void setTrackPtLowCut(float pt) {m_track_pt_low_cut = pt;}
   void setEmcalELowCut(float e) {m_emcal_e_low_cut = e;}
