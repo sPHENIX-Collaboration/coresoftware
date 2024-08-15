@@ -12,7 +12,7 @@ source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
 
 echo "sPHENIX environment setup finished"
 
-nEvents=-1
+nEvents=1000
 
 count=1
 total=$#

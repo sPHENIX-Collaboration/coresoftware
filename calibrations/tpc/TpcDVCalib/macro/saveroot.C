@@ -28,7 +28,7 @@ void saveroot(int runnumber)
   tree->SetBranchAddress("_emcal_phi", &_emcal_phi);
   tree->SetBranchAddress("_emcal_z", &_emcal_z);
 
-  TFile* outputfile = new TFile(Form("%d.root",runnumber),"recreate");
+  TFile* outputfile = new TFile(Form("root/%d.root",runnumber),"recreate");
   TTree* outtree = new TTree("tree","");
 
   float m_dphi, m_dz, m_calo_z, m_track_z;

@@ -7,6 +7,10 @@
 #include "RooPlot.h"
 #include "TCanvas.h"
 
+#include <cdbobjects/CDBTTree.h>
+
+R__LOAD_LIBRARY(libcdbobjects.so)
+
 std::vector<float> vec_peak_pos_val;
 std::vector<float> vec_peak_pos_err;
 
@@ -114,6 +118,17 @@ void fit_dz(const char* filename = "data.root",
     system("rm tmp.root");
 }
 
+void CDBTTreeWrite(const std::string &fname = "test.root", float dv=0.007)
+{
+  CDBTTree *cdbttree = new CDBTTree(fname);
+  cdbttree->SetSingleFloatValue("tpc_drift_velocity",dv); // unit: cm/ns
+  cdbttree->CommitSingle();
+  cdbttree->Print();
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+  //gSystem->Exit(0);
+}
+
 void fit(int runnumber)
 {
     gStyle->SetOptStat(0);
@@ -136,7 +151,7 @@ void fit(int runnumber)
       float z_cut_max = z_min + (i+1) * z_stepsize;
       vec_trkr_z_val.push_back((z_cut_min+z_cut_max)/2);
       vec_trkr_z_err.push_back((z_cut_max-z_cut_min)/2);
-      fit_dz(Form("%d.root",runnumber), "tree", "dz", Form("fabs(dphi)<0.1 && track_z>%f && track_z<%f",z_cut_min,z_cut_max), Form("figure/%d/dz_fit_cuttrkrz_%d.pdf",runnumber,i), Form("Run %d, Track Z#in[%.0f,%.0f] cm",runnumber,z_cut_min,z_cut_max),runnumber);
+      fit_dz(Form("root/%d.root",runnumber), "tree", "dz", Form("fabs(dphi)<0.1 && track_z>%f && track_z<%f",z_cut_min,z_cut_max), Form("figure/%d/dz_fit_cuttrkrz_%d.pdf",runnumber,i), Form("Run %d, Track Z#in[%.0f,%.0f] cm",runnumber,z_cut_min,z_cut_max),runnumber);
     }
 
     TCanvas *c1 = new TCanvas("c1", "Fitting Example", 800, 600);
@@ -150,13 +165,13 @@ void fit(int runnumber)
     graph->GetYaxis()->SetRangeUser(-50,20);
 
     TF1 *fitFunc1 = new TF1("fitFunc1", "[0] + [1]*x", z_min, -10);
-    fitFunc1->SetParameters(vec_trkr_z_val.at(nstep/2 - 2), (vec_trkr_z_val.at(nstep/2 - 2) - vec_trkr_z_val.at(0)) / (vec_peak_pos_val.at(nstep/2 - 2) - vec_peak_pos_val.at(0)));
+    fitFunc1->SetParameters(vec_trkr_z_val.at(nstep/2 - 2), (vec_peak_pos_val.at(nstep/2 - 2) - vec_peak_pos_val.at(0)) / (vec_trkr_z_val.at(nstep/2 - 2) - vec_trkr_z_val.at(0)));
     fitFunc1->SetParLimits(0, -20, 20);
     fitFunc1->SetParLimits(1, -1, 1);
     graph->Fit(fitFunc1, "R");
 
     TF1 *fitFunc2 = new TF1("fitFunc2", "[0] + [1]*x", 10, z_max);
-    fitFunc2->SetParameters(vec_trkr_z_val.at(nstep - 1), (vec_trkr_z_val.at(nstep - 1) - vec_trkr_z_val.at(nstep/2 + 2)) / (vec_peak_pos_val.at(nstep - 1) - vec_peak_pos_val.at(nstep/2 + 2)));
+    fitFunc2->SetParameters(vec_trkr_z_val.at(nstep/2 + 2), (vec_peak_pos_val.at(nstep - 1) - vec_peak_pos_val.at(nstep/2 + 2)) / (vec_trkr_z_val.at(nstep - 1) - vec_trkr_z_val.at(nstep/2 + 2)));
     fitFunc2->SetParLimits(0, -20, 20);
     fitFunc2->SetParLimits(1, -1, 1);
     graph->Fit(fitFunc2, "R");
@@ -213,4 +228,6 @@ void fit(int runnumber)
 
     c1->Update();
     c1->SaveAs(Form("./figure/dz_fit_trkrz_Run%d.pdf",runnumber));
+
+    CDBTTreeWrite(Form("cdbttree/tpc_drift_velocity_%d.root",runnumber), (float) driftvelo_new);
 }

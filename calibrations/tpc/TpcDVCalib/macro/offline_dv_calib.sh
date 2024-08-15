@@ -17,4 +17,6 @@ cd $path
 root -b -q -l saveroot.C\($runnumber\)
 
 mkdir figure
+mkdir root
+mkdir cdbttree
 root -b -q -l fit.C\($runnumber\)

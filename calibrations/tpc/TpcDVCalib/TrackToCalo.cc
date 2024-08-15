@@ -48,7 +48,7 @@
 #include <Acts/Geometry/TrackingGeometry.hpp>
 
 #include <CLHEP/Vector/ThreeVector.h>
-#include <math.h>
+#include <cmath.h>
 #include <vector>
 
 #include <TFile.h>
@@ -77,25 +77,15 @@ int TrackToCalo::Init(PHCompositeNode *topNode)
 {
   std::cout << topNode << std::endl;
   std::cout << "TrackToCalo::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-std::cout<<__LINE__<<std::endl;
   delete _outfile;
-std::cout<<__LINE__<<std::endl;
   _outfile = new TFile(_outfilename.c_str(), "RECREATE");
-std::cout<<__LINE__<<std::endl;
   delete _tree;
-std::cout<<__LINE__<<std::endl;
   _tree = new TTree("tree", "A tree with track/calo info");
-std::cout<<__LINE__<<std::endl;
   _tree->Branch("_track_phi_emc", &_track_phi_emc);
-std::cout<<__LINE__<<std::endl;
   _tree->Branch("_track_z_emc", &_track_z_emc);
-std::cout<<__LINE__<<std::endl;
   _tree->Branch("_emcal_phi", &_emcal_phi);
-std::cout<<__LINE__<<std::endl;
   _tree->Branch("_emcal_z", &_emcal_z);
-std::cout<<__LINE__<<std::endl;
   cnt=0;
-std::cout<<__LINE__<<std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
