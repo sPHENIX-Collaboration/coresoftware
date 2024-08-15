@@ -37,6 +37,7 @@
 #include <boost/format.hpp>
 
 #include <TH1.h>
+#include <TH2.h>
 #include <TSystem.h>
 
 #include <algorithm>  // for max
@@ -694,7 +695,8 @@ int Fun4AllStreamingInputManager::FillIntt()
     if (feeidset.size() == 14)
     {
       allpacketsallfees++;
-      h_taggedAllFees_intt[histo_to_fill]->Fill(refbcobitshift);
+      unsigned mask = (1 << 40) - 1;
+      h_taggedAllFees_intt[histo_to_fill]->Fill(m_RefBCO & mask);
     }
     feeidset.clear();
     bool thispacket = false;
@@ -716,12 +718,13 @@ int Fun4AllStreamingInputManager::FillIntt()
     {
       allpackets = false;
     }
+    
   }
-  if (allpackets && m_InttInputVector.size() == 8)
+  if (allpackets)
   {
     h_taggedAll_intt->Fill(refbcobitshift);
   }
-  if (allpacketsallfees == 8)
+  if (allpacketsallfees == (int) m_InttInputVector.size())
   {
     h_taggedAllFee_intt->Fill(refbcobitshift);
   }
@@ -905,7 +908,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   {
     h_taggedAllFelixesAllFees_mvtx->Fill(refbcobitshift);
   }
-  if (taggedPacketsFEEs.size() == 12)
+  if (taggedPacketsFEEs.size() == m_MvtxInputVector.size())
   {
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
@@ -1100,6 +1103,9 @@ int Fun4AllStreamingInputManager::FillTpc()
   {
     auto bcl_stack = m_TpcInputVector[p]->BclkStackMap();
     int packetnum = 0;
+    int histo_to_fill = (bcl_stack.begin()->first - 4000) / 10;
+    
+    
     for (auto &[packetid, bclset] : bcl_stack)
     {
       bool thispacket = false;
@@ -1109,7 +1115,7 @@ int Fun4AllStreamingInputManager::FillTpc()
         if (diff < 5)
         {
           thispacket = true;
-          h_gl1tagged_tpc[p][packetnum]->Fill(refbcobitshift);
+          h_gl1tagged_tpc[histo_to_fill][packetnum]->Fill(refbcobitshift);
         }
       }
       if (thispacket == false)
@@ -1119,7 +1125,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       packetnum++;
     }
   }
-  if (allpackets && m_TpcInputVector.size() == 24)
+  if (allpackets)
   {
     h_taggedAll_tpc->Fill(refbcobitshift);
   }
@@ -1400,6 +1406,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
   }
   h_tagStBcoFEE_mvtx = new TH1I("h_MvtxPoolQA_TagStBcoFEEs", "", 10000, 0, 10000);
   hm->registerHisto(h_tagStBcoFEE_mvtx);
+
   // intt has 8 prdfs, one per felix
   for (int i = 0; i < 8; i++)
   {
@@ -1408,7 +1415,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h->SetTitle((boost::format("EBDC %i") % i).str().c_str());
     hm->registerHisto(h);
 
-    auto h_all = new TH1I((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str(), "INTT trigger tagged BCO all servers", 1000, 0, 1000);
+    auto h_all = new TH1I((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str(), "INTT trigger tagged BCO all servers", 1000000, 1000000, 2000000);
     h_all->GetXaxis()->SetTitle("GL1 BCO");
     h_all->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h_all);
