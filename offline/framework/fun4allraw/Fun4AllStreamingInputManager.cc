@@ -37,7 +37,6 @@
 #include <boost/format.hpp>
 
 #include <TH1.h>
-#include <TH2.h>
 #include <TSystem.h>
 
 #include <algorithm>  // for max
@@ -915,7 +914,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   {
     h_taggedAllFelixesAllFees_mvtx->Fill(refbcobitshift);
   }
-  if (taggedPacketsFEEs.size() == m_MvtxInputVector.size())
+  if (taggedPacketsFEEs.size() == 12)
   {
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
@@ -1426,7 +1425,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h->SetTitle((boost::format("EBDC %i") % i).str().c_str());
     hm->registerHisto(h);
 
-    auto h_all = new TH1I((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str(), "INTT trigger tagged BCO all servers", 1000000, 1000000, 2000000);
+    auto h_all = new TH1I((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str(), "INTT trigger tagged BCO all servers", 1000, 1000, 1000);
     h_all->GetXaxis()->SetTitle("GL1 BCO");
     h_all->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h_all);
