@@ -2126,13 +2126,15 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
       }
     }
   }
+  if(Verbosity() > 1)
+  {
   std::cout << " m_event:" <<  m_event << std::endl;
   std::cout << " m_ntpc_clus0:" <<  m_ntpc_clus0 << std::endl;
   std::cout << " m_ntpc_clus1: " <<  m_ntpc_clus1 << std::endl;
   std::cout << " m_nmvtx_all:" <<  m_nmvtx_all << std::endl;
   std::cout << " m_nintt_all: " << m_nintt_all << std::endl;
   std::cout << " m_nmms_all: " <<  m_nmms_all << std::endl;
-
+  }
   m_eventtree->Fill();
 }
 
