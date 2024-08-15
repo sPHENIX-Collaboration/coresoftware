@@ -703,7 +703,10 @@ int Fun4AllStreamingInputManager::FillIntt()
     }
     feeidset.clear();
     bool thispacket = false;
-    p->clearFeeGTML1BCOMap(*(bcl_stack.begin()->second.begin()));
+    // we just want to erase anything that is well before the current GL1
+    // so make an arbitrary cut of 40000.
+    p->clearFeeGTML1BCOMap(m_RefBCO - 40000);
+    p->clearPacketBClkStackMap(packet_id, m_RefBCO - 40000);
 
     for (auto &[packetid, gtmbcoset] : bcl_stack)
     {
@@ -874,7 +877,6 @@ int Fun4AllStreamingInputManager::FillMvtx()
   {
     auto gtml1bcoset_perfee = p->getFeeGTML1BCOMap();
     int feecounter = 0;
-    uint64_t lowestbco = std::numeric_limits<uint64_t>::max();
     for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
     {
       auto link = MvtxRawDefs::decode_feeid(feeid);
@@ -883,9 +885,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-        if(gtmbco < lowestbco){
-          lowestbco = gtmbco;
-        }
+     
         h_bcoGL1LL1diff[packetid]->Fill(diff);
 
         if (diff < 3)
@@ -896,8 +896,9 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
       feecounter++;
     }
-
-    p->clearFeeGTML1BCOMap(lowestbco);
+    // we just want to erase anything that is well before the current GL1
+    // so make an arbitrary cut of 40000.
+    p->clearFeeGTML1BCOMap(m_RefBCO - 40000);
   }
   int allfeestagged = 0;
   for (auto &[pid, feeset] : taggedPacketsFEEs)
@@ -1128,6 +1129,10 @@ int Fun4AllStreamingInputManager::FillTpc()
       {
         allpackets = false;
       }
+      // we just want to erase anything that is well away from the current GL1
+      // so make an arbitrary cut of 40000.
+      m_TpcInputVector[p]->clearPacketBClkStackMap(packetid, m_RefBCO - 40000);
+
       packetnum++;
     }
   }
