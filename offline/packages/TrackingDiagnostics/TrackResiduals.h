@@ -66,6 +66,7 @@ class TrackResiduals : public SubsysReco
   void clearClusterStateVectors();
   void createBranches();
   float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
+  void fillEventTree(PHCompositeNode *topNode);
   void fillClusterTree(TrkrClusterContainer *clusters, ActsGeometry *geometry);
   void fillHitTree(TrkrHitSetContainer *hitmap, ActsGeometry *geometry,
                    PHG4TpcCylinderGeomContainer *tpcGeom, PHG4CylinderGeomContainer *mvtxGeom,
@@ -92,6 +93,7 @@ class TrackResiduals : public SubsysReco
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
   TTree *m_clustree = nullptr;
+  TTree *m_eventtree = nullptr;
   TTree *m_hittree = nullptr;
   TTree *m_vertextree = nullptr;
   TTree *m_failedfits = nullptr;
@@ -123,6 +125,18 @@ class TrackResiduals : public SubsysReco
   int m_runnumber = std::numeric_limits<int>::quiet_NaN();
   std::vector<int> m_firedTriggers;
   uint64_t m_gl1BunchCrossing = std::numeric_limits<uint64_t>::quiet_NaN();
+
+  //! Event level quantities
+  int m_nmvtx_all = std::numeric_limits<int>::quiet_NaN();
+  int m_nintt_all = std::numeric_limits<int>::quiet_NaN();
+  int m_ntpc_hits0 = std::numeric_limits<int>::quiet_NaN();
+  int m_ntpc_hits1 = std::numeric_limits<int>::quiet_NaN();
+  int m_ntpc_clus0 = std::numeric_limits<int>::quiet_NaN();
+  int m_ntpc_clus1 = std::numeric_limits<int>::quiet_NaN();
+  int m_nmms_all  = std::numeric_limits<int>::quiet_NaN();
+  int m_nsiseed   = std::numeric_limits<int>::quiet_NaN();
+  int m_ntpcseed  = std::numeric_limits<int>::quiet_NaN();
+  int m_ntracks_all = std::numeric_limits<int>::quiet_NaN();
 
   //! Track level quantities
   uint64_t m_bco = std::numeric_limits<uint64_t>::quiet_NaN();

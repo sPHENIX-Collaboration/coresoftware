@@ -44,14 +44,53 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual int SubsystemEnum() const { return m_SubsystemEnum; }
   void MaxBclkDiff(uint64_t ui) { m_MaxBclkSpread = ui; }
   uint64_t MaxBclkDiff() const { return m_MaxBclkSpread; }
-  virtual const std::map<int, std::set<uint64_t>>& BclkStackMap() const { return m_BclkStackPacketMap; }
-  virtual const std::set<uint64_t>& BclkStack() const { return m_BclkStack; }
-  virtual const std::map<uint64_t, std::set<int>>& BeamClockFEE() const { return m_BeamClockFEE; }
+  virtual const std::map<int, std::set<uint64_t>> &BclkStackMap() const { return m_BclkStackPacketMap; }
+  virtual const std::set<uint64_t> &BclkStack() const { return m_BclkStack; }
+  virtual const std::map<uint64_t, std::set<int>> &BeamClockFEE() const { return m_BeamClockFEE; }
   void setHitContainerName(const std::string &name) { m_rawHitContainerName = name; }
   std::string getHitContainerName() const { return m_rawHitContainerName; }
+  const std::map<int, std::set<uint64_t>> &getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
+
+  void clearPacketBClkStackMap(const int &packetid, const uint64_t& bclk)
+  {
+    std::set<uint64_t> to_erase;
+    auto set = m_BclkStackPacketMap.find(packetid)->second;
+      for(auto& bclk_to_erase : set)
+      {
+        if(bclk_to_erase <= bclk)
+        {
+          to_erase.insert(bclk_to_erase);
+        }
+      }
+      for(auto& bclk_to_erase : to_erase)
+      {
+        set.erase(bclk_to_erase);
+      }
+    }
+  
+  void clearFeeGTML1BCOMap(const uint64_t &bclk)
+  {
+    std::set<uint64_t> toerase;
+    for (auto &[key, set] : m_FeeGTML1BCOMap)
+    {
+      for (auto &ll1bclk : set)
+      {
+        if (ll1bclk <= bclk)
+        {
+          // to avoid invalid reads
+          toerase.insert(ll1bclk);
+        }
+      }
+      for (auto &bclk_to_erase : toerase)
+      {
+        set.erase(bclk_to_erase);
+      }
+    }
+  }
 
  protected:
   std::map<int, std::set<uint64_t>> m_BclkStackPacketMap;
+  std::map<int, std::set<uint64_t>> m_FeeGTML1BCOMap;
   std::string m_rawHitContainerName = "";
 
  private:

@@ -21,7 +21,6 @@ class PHCompositeNode;
 class SyncObject;
 class TpcRawHit;
 class TH1;
-
 class Fun4AllStreamingInputManager : public Fun4AllInputManager
 {
  public:
@@ -97,7 +96,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
     std::vector<TpcRawHit *> TpcRawHitVector;
     unsigned int EventFoundCounter{0};
   };
-  
+
   void createQAHistos();
 
   SyncObject *m_SyncObject{nullptr};
@@ -144,9 +143,10 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   TH1 *h_tagStBcoFelix_mvtx[12]{nullptr};
   TH1 *h_tagBcoFelixAllFees_mvtx[12]{nullptr};
   TH1 *h_tagStBcoFEE_mvtx{nullptr};
-  
+
   TH1 *h_refbco_intt{nullptr};
   TH1 *h_taggedAll_intt{nullptr};
+  TH1 *h_taggedAllFee_intt{nullptr};
   TH1 *h_gl1tagged_intt[8]{nullptr};
   TH1 *h_taggedAllFees_intt[8]{nullptr};
   TH1 *h_gl1taggedfee_intt[8][14]{{nullptr}};

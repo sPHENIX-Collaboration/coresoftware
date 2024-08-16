@@ -1,22 +1,22 @@
 #include "G4SnglTree.h"
 
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>        // for PHG4HitContainer, PHG4Hit...
+#include <g4main/PHG4HitContainer.h>  // for PHG4HitContainer, PHG4Hit...
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <fun4all/SubsysReco.h>             // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 
 #include <TFile.h>
 #include <TTree.h>
 
-#include <cmath>                           // for atan2, sqrt
-#include <cstring>                         // for strcmp
-#include <iostream>                         // for ostringstream, operator<<
+#include <cmath>     // for atan2, sqrt
+#include <cstring>   // for strcmp
+#include <iostream>  // for ostringstream, operator<<
 #include <sstream>
-#include <utility>                          // for pair
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -29,7 +29,7 @@ G4SnglTree::G4SnglTree(const std::string &name, const std::string &filename)
 {
 }
 
-int G4SnglTree::Init(PHCompositeNode *)
+int G4SnglTree::Init(PHCompositeNode * /*unused*/)
 {
   outfile = new TFile(_filename.c_str(), "RECREATE");
   g4tree = new TTree("mG4EvtTree", "g4tree");
@@ -104,19 +104,19 @@ int G4SnglTree::process_event(PHCompositeNode *topNode)
     nodename << "G4HIT_" << *iter;
     PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
 
-    if (!strcmp("G4HIT_CEMC", nodename.str().c_str()))  //CEMC scintillator
+    if (!strcmp("G4HIT_CEMC", nodename.str().c_str()))  // CEMC scintillator
     {
       mG4EvtTree.cemcactLayers = process_hit(hits, "G4HIT_CEMC", detid, nhits);
     }
-    else if (!strcmp("G4HIT_ABSORBER_CEMC", nodename.str().c_str()))  //CEMC Aabsorber G4_W
+    else if (!strcmp("G4HIT_ABSORBER_CEMC", nodename.str().c_str()))  // CEMC Aabsorber G4_W
     {
       mG4EvtTree.cemcabsLayers = process_hit(hits, "G4HIT_ABSORBER_CEMC", detid, nhits);
     }
-    else if (!strcmp("G4HIT_HCAL", nodename.str().c_str()))  //HCAL Active scintilltor
+    else if (!strcmp("G4HIT_HCAL", nodename.str().c_str()))  // HCAL Active scintilltor
     {
       mG4EvtTree.hcalactLayers = process_hit(hits, "G4HIT_HCAL", detid, nhits);
     }
-    else if (!strcmp("G4HIT_ABSORBER_HCAL", nodename.str().c_str()))  //HCAL Aabsorber steel
+    else if (!strcmp("G4HIT_ABSORBER_HCAL", nodename.str().c_str()))  // HCAL Aabsorber steel
     {
       mG4EvtTree.hcalabsLayers = process_hit(hits, "G4HIT_ABSORBER_HCAL", detid, nhits);
     }
@@ -124,12 +124,15 @@ int G4SnglTree::process_event(PHCompositeNode *topNode)
 
   mG4EvtTree.nhits = nhits;
 
-  if (g4tree) g4tree->Fill();
+  if (g4tree)
+  {
+    g4tree->Fill();
+  }
 
   return 0;
 }
 
-int G4SnglTree::End(PHCompositeNode */*topNode*/)
+int G4SnglTree::End(PHCompositeNode * /*topNode*/)
 {
   outfile->cd();
   g4tree->Write();
@@ -178,13 +181,21 @@ int G4SnglTree::process_hit(PHG4HitContainer *hits, const string &dName, int det
     {
       nLayers = edepiter->first - 1;
       if (!strcmp("G4HIT_CEMC", dName.c_str()))
+      {
         mG4EvtTree.cemcactESum[nLayers] = edepiter->second;
+      }
       else if (!strcmp("G4HIT_ABSORBER_CEMC", dName.c_str()))
+      {
         mG4EvtTree.cemcabsESum[nLayers] = edepiter->second;
+      }
       else if (!strcmp("G4HIT_HCAL", dName.c_str()))
+      {
         mG4EvtTree.hcalactESum[nLayers] = edepiter->second;
+      }
       else if (!strcmp("G4HIT_ABSORBER_HCAL", dName.c_str()))
+      {
         mG4EvtTree.hcalabsESum[nLayers] = edepiter->second;
+      }
     }
   }
 

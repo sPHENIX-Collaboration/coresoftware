@@ -53,7 +53,7 @@ int InttCalib::InitRun(PHCompositeNode* /*unused*/)
   {
     for (int bco = 0; bco < 129; ++bco)
     {
-      m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] = 0;
+      m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco] = 0;
     }
   }
 
@@ -115,8 +115,9 @@ int InttCalib::process_event(PHCompositeNode* top_node)
         .chp = (intt_raw_hit->get_chip_id() + 25) % 26,  //
         .chn = intt_raw_hit->get_channel_id(),           //
     };
-
-    int bco_diff = ((intt_raw_hit->get_bco() & 0x7fU) - intt_raw_hit->get_FPHX_BCO() + 128) % 128;
+  //old convention 
+ //int bco_diff = ((intt_raw_hit->get_bco() & 0x7fU) - intt_raw_hit->get_FPHX_BCO() + 128) % 128;
+  int bco_diff = (intt_raw_hit->get_FPHX_BCO() -  (intt_raw_hit->get_bco() & 0x7fU) + 128) % 128; 
 
     ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco_diff];
     ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128];
@@ -127,7 +128,13 @@ int InttCalib::process_event(PHCompositeNode* top_node)
   {
     std::cout << "Finished event: " << m_evts << std::endl;
   }
-
+  if(m_evts == m_evts_bco)
+  {
+    ConfigureBcoMap();
+    MakeBcoMapCdb();
+    MakeBcoMapPng();
+    m_do_make_bco = false;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -146,10 +153,12 @@ int InttCalib::EndRun(int const run_number)
   ConfigureHotMap_v2();
   MakeHotMapCdb_v2();
   MakeHotMapPng_v2();
-
-  ConfigureBcoMap();
-  MakeBcoMapCdb();
-  MakeBcoMapPng();
+  if(m_do_make_bco)
+  {
+    ConfigureBcoMap();
+    MakeBcoMapCdb();
+    MakeBcoMapPng();
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -681,23 +690,6 @@ int InttCalib::ConfigureBcoMap()
 
   for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl;
-    if (m_feemap.Convert(ofl, raw))
-    {
-      continue;
-    }
-
-    if (adjust_hitrate(ofl, hitrate))
-    {
-      continue;
-    }
-
-    if (hitrate <= m_min_hitrate || m_max_hitrate <= hitrate)
-    {
-      continue;
-    }
-
     for (int bco = 0; bco < 128; ++bco)
     {
       m_bcorates[raw][bco] += m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco];
