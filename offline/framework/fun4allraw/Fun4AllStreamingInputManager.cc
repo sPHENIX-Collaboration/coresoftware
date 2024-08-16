@@ -676,12 +676,11 @@ int Fun4AllStreamingInputManager::FillIntt()
     auto feebclstack = p->getFeeGTML1BCOMap();
     int packet_id = bcl_stack.begin()->first;
     int histo_to_fill = (packet_id % 10) - 1;
-    
+
     std::set<int> feeidset;
     int fee = 0;
     for (auto &[feeid, gtmbcoset] : feebclstack)
     {
-      
       for (auto &bcl : gtmbcoset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
@@ -693,12 +692,11 @@ int Fun4AllStreamingInputManager::FillIntt()
       }
       fee++;
     }
-    
+
     if (feeidset.size() == 14)
     {
       allpacketsallfees++;
       h_taggedAllFees_intt[histo_to_fill]->Fill(refbcobitshift);
-      
     }
     feeidset.clear();
     bool thispacket = false;
@@ -723,7 +721,6 @@ int Fun4AllStreamingInputManager::FillIntt()
     {
       allpackets = false;
     }
-    
   }
   if (allpackets)
   {
@@ -884,7 +881,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-     
+
         h_bcoGL1LL1diff[packetid]->Fill(diff);
 
         if (diff < 3)
@@ -1105,13 +1102,12 @@ int Fun4AllStreamingInputManager::FillTpc()
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_tpc->Fill(refbcobitshift);
   bool allpackets = true;
-  for (size_t p = 0; p < m_TpcInputVector.size(); p++)
+  for (auto &p : m_TpcInputVector)
   {
-    auto bcl_stack = m_TpcInputVector[p]->BclkStackMap();
+    auto bcl_stack = p->BclkStackMap();
     int packetnum = 0;
     int histo_to_fill = (bcl_stack.begin()->first - 4000) / 10;
-    
-    
+
     for (auto &[packetid, bclset] : bcl_stack)
     {
       bool thispacket = false;
@@ -1130,7 +1126,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       }
       // we just want to erase anything that is well away from the current GL1
       // so make an arbitrary cut of 40000.
-      m_TpcInputVector[p]->clearPacketBClkStackMap(packetid, m_RefBCO - 40000);
+      p->clearPacketBClkStackMap(packetid, m_RefBCO - 40000);
 
       packetnum++;
     }
@@ -1217,7 +1213,6 @@ void Fun4AllStreamingInputManager::SetMvtxBcoRange(const unsigned int i)
 
 int Fun4AllStreamingInputManager::FillInttPool()
 {
-  
   uint64_t ref_bco_minus_range = 0;
   if (m_RefBCO > m_intt_negative_bco)
   {
@@ -1230,7 +1225,7 @@ int Fun4AllStreamingInputManager::FillInttPool()
       std::cout << "Fun4AllStreamingInputManager::FillInttPool - fill pool for " << iter->Name() << std::endl;
     }
     iter->FillPool(ref_bco_minus_range);
-    //iter->FillPool();
+    // iter->FillPool();
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();
