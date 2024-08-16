@@ -311,13 +311,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       std::cout << " tpcid " << tpcid << " siid " << siid << std::endl;
     }
 
-    /// A track seed is made for every tpc seed. Not every tpc seed
-    /// has a silicon match, we skip those cases completely in pp running
-    if (m_pp_mode && siid == std::numeric_limits<unsigned int>::max())
-    {
-      continue;
-    }
-
     // get the INTT crossing number
     auto siseed = m_siliconSeeds->get(siid);
     short crossing = SHRT_MAX;
@@ -330,6 +323,20 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       crossing = 0;
     }
 
+    // Can't do SC case without INTT crossing
+    if (m_fitSiliconMMs && (crossing == SHRT_MAX))
+    {
+      continue;
+    }
+
+    /// A track seed is made for every tpc seed. Not every tpc seed has a silicon match
+    if (m_pp_mode && siid == std::numeric_limits<unsigned int>::max())
+    {
+      // do not skip TPC only tracks, just set crossing to the nominal zero
+      crossing = 0;
+    }
+
+    /*
     // if the crossing was not determined at all in pp running, skip this case completely
     if (m_pp_mode && crossing == SHRT_MAX && crossing_estimate == SHRT_MAX)
     {
@@ -340,16 +347,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
       continue;
     }
+    */
 
     if (Verbosity() > 1)
     {
       std::cout << "tpc and si id " << tpcid << ", " << siid << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
-    }
-
-    // Can't do SC case without INTT crossing
-    if (m_fitSiliconMMs && (crossing == SHRT_MAX))
-    {
-      continue;
     }
 
     auto tpcseed = m_tpcSeeds->get(tpcid);
