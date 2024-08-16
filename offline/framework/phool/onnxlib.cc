@@ -35,3 +35,29 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
 
   return outputTensorValuesN;
 }
+
+std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &input, int N, int Nx, int Ny, int Nz, int Nreturn)
+{
+  // Define the memory information for ONNX Runtime
+  Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault);
+
+  Ort::AllocatorWithDefaultOptions allocator;
+
+  std::vector<int64_t> inputDims = {N, Nx, Ny, Nz};
+  std::vector<int64_t> outputDimsN = {N, Nreturn};
+
+  std::vector<float> outputTensorValues(N * Nreturn);
+
+  std::vector<Ort::Value> inputTensors, outputTensors;
+
+  inputTensors.push_back(Ort::Value::CreateTensor<float>(memoryInfo, input.data(), N * Nx * Ny * Nz, inputDims.data(), inputDims.size()));
+
+  outputTensors.push_back(Ort::Value::CreateTensor<float>(memoryInfo, outputTensorValues.data(), N * Nreturn, outputDimsN.data(), outputDimsN.size()));
+
+
+  std::vector<const char *> inputNames{session->GetInputName(0, allocator)};
+  std::vector<const char *> outputNames{session->GetOutputName(0, allocator)};
+  session->Run(Ort::RunOptions{nullptr}, inputNames.data(), inputTensors.data(), 1, outputNames.data(), outputTensors.data(), 1);
+  return outputTensorValues;
+}
+
