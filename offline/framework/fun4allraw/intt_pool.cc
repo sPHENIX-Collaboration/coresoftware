@@ -42,12 +42,13 @@ intt_pool::intt_pool(const unsigned int depth, const unsigned int low_mark)
 
 intt_pool::~intt_pool()
 {
-  if (_allocated_size) delete [] packetData;
+  if (_allocated_size) { delete [] packetData;
+}
 }
 
 int intt_pool::addPacket(Packet *p)
 {
-  int fee, i;
+//  int fee, i;
 
   if (_myPacketid == -1)
   {
@@ -74,7 +75,8 @@ int intt_pool::addPacket(Packet *p)
   
 
   int nw;
-  int status  = p->fillIntArray( (int *) &packetData[writeindex], p->getDataLength(), &nw,  "DATA");
+//  int status  = p->fillIntArray( (int *) &packetData[writeindex], p->getDataLength(), &nw,  "DATA");
+  p->fillIntArray( (int *) &packetData[writeindex], p->getDataLength(), &nw,  "DATA");
 
   writeindex += nw;
   //coutfl << "status = " << status << " nw: " << nw << " writeindex = " << writeindex << endl;
@@ -303,9 +305,11 @@ long long intt_pool::lValue(const int hit, const char *what)
   unsigned int i= hit; //  size() is unsigned
   if ( strcmp(what,"BCOLIST") == 0)
     {
-      if ( hit < 0 || i >= BCO_List.size()) return 0;
+      if ( hit < 0 || i >= BCO_List.size()) { return 0;
+}
       auto it = BCO_List.cbegin();
-      for (unsigned int j = 0; j< i; j++) ++it;
+      for (unsigned int j = 0; j< i; j++) { ++it;
+}
       return *it;
     }
 
@@ -467,7 +471,8 @@ int intt_pool::next()
 int intt_pool::intt_decode ()
 {
 
-  if ( _is_decoded) return 0;
+  if ( _is_decoded) { return 0;
+}
   _is_decoded = 1;
 
 
@@ -497,8 +502,8 @@ int intt_pool::intt_decode ()
 	}
 
       
-      unsigned short fee = ( buffer[index] >> 20 ) & 0xf;
-      unsigned short len = ( (buffer[index] >> 16) & 0xf) >>1;
+      unsigned short fee = ( buffer[index] >> 20U ) & 0xfU;
+      unsigned short len = ( (buffer[index] >> 16U) & 0xfU) >>1U;
       // coutfl << "found start at index " << index << " values " << hex << buffer[index+1] << dec << " fee: " << fee << " len: " << len << " BCO: 0x" << hex << calcBCO(&buffer[index+1]) << dec <<endl;
       index++;
 
@@ -566,8 +571,6 @@ int intt_pool::intt_decode ()
 	    }
 	}
 
-      unsigned int j;
-
       // for ( j = 0;  j <  fee_data[fee].size(); j++)
       //  	{
       //  	  coutfl << "fee " << fee << "  " << j << " found code 0x" << hex << fee_data[fee][j] << dec << endl;
@@ -578,7 +581,7 @@ int intt_pool::intt_decode ()
       int header_found = 0;
       
       std::vector<unsigned int> hitlist;
-      j = 0;
+      int j = 0;
       
 
       while ( j < end_here )
@@ -597,7 +600,8 @@ int intt_pool::intt_decode ()
 	  // push back the cdae word, the BCO, and event counter
 	  if ( end_here -j >=3 )
 	    {
-	      for ( int k = 0; k < 3; k++) hitlist.push_back(fee_data[fee][j++]);
+	      for ( int k = 0; k < 3; k++) { hitlist.push_back(fee_data[fee][j++]);
+}
 	    }
 	  else
 	    {

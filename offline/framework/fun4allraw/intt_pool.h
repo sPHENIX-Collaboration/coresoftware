@@ -18,6 +18,10 @@ class  intt_pool  {
 
 public:
   intt_pool( const unsigned int required_depth=30000, const unsigned int low_mark =1000);
+  // delete copy ctor and assignment operator (cppcheck)
+  explicit intt_pool(const intt_pool &) = delete;
+  intt_pool &operator=(const intt_pool &) = delete;
+
   virtual ~intt_pool();
 
   virtual int addPacket( Packet *p);
@@ -92,7 +96,7 @@ protected:
   std::vector<unsigned int> fee_data[MAX_FEECOUNT];
   std::vector<intt_hit *> intt_hits;
 
-  std::array<unsigned int,MAX_FEECOUNT> last_index;
+  std::array<unsigned int,MAX_FEECOUNT> last_index{};
   std::map<unsigned int, uint64_t> last_bco;
   std::string name;
 
