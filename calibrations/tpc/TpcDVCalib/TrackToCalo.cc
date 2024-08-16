@@ -194,7 +194,7 @@ int TrackToCalo::process_event(PHCompositeNode *topNode)
     }
     else
     {
-      _track_phi_emc.push_back(atan2(thisState->get_y(), thisState->get_x()));
+      _track_phi_emc.push_back(std::atan2(thisState->get_y(), thisState->get_x()));
       _track_z_emc.push_back(thisState->get_z());
     }
   }
@@ -215,7 +215,7 @@ std::cout<<"energy too low"<<std::endl;
       continue;
     }
 
-    _emcal_phi.push_back( atan2(cluster->get_y(), cluster->get_x()) );
+    _emcal_phi.push_back( std::atan2(cluster->get_y(), cluster->get_x()) );
     radius_scale = caloRadiusEMCal / sqrt( pow(cluster->get_x(),2) + pow(cluster->get_y(),2) );
     _emcal_z.push_back( radius_scale*cluster->get_z() );
   }
