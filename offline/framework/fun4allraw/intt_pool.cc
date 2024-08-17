@@ -479,7 +479,7 @@ int intt_pool::intt_decode ()
 
 
   unsigned int payload_length = writeindex - _low_mark;
-  coutfl << " payload_length:  " << payload_length << " writeindex " << writeindex << endl;
+//  coutfl << " payload_length:  " << payload_length << " writeindex " << writeindex << endl;
 
   unsigned int index = currentpos;
   
