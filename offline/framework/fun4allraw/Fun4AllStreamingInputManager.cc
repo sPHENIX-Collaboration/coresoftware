@@ -1420,7 +1420,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h->SetTitle((boost::format("EBDC %i") % i).str().c_str());
     hm->registerHisto(h);
 
-    auto h_all = new TH1I((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str(), "INTT trigger tagged BCO all servers", 1000, 1000, 1000);
+    auto h_all = new TH1I((boost::format("h_InttPoolQA_TagBCOAllFees_Server%i") % i).str().c_str(), "INTT trigger tagged BCO all servers", 1000, 0, 1000);
     h_all->GetXaxis()->SetTitle("GL1 BCO");
     h_all->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h_all);
