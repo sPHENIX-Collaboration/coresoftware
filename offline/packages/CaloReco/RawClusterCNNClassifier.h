@@ -23,7 +23,7 @@ class RawClusterCNNClassifier : public SubsysReco
   void Print(const std::string &what = "ALL") const override;
 
  private:
-  Ort::Session *onnxmodule;
+  Ort::Session *onnxmodule{nullptr};
   const int inputDimx = 5;
   const int inputDimy = 5;
   const int inputDimz = 1;
