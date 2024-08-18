@@ -6,6 +6,7 @@
 #include <GlobalVariables.C>
 #include <Trkr_Clustering.C>
 #include <Trkr_RecoInit.C>
+#include <Trkr_TpcReadoutInit.C>
 #include <Trkr_Reco.C>
 #include <G4_Global.C>
 
@@ -84,6 +85,13 @@ void Fun4All_FieldOnAllTrackersCalos(
 
   Enable::DSTOUT = false;
 
+  TpcReadoutInit( runnumber );
+  std::cout<< " run: " << runnumber
+	   << " samples: " << TRACKING::reco_tpc_maxtime_sample
+	   << " pre: " << TRACKING::reco_tpc_time_presample
+	   << " vdrift: " << G4TPC::tpc_drift_velocity_reco
+	   << std::endl;
+
   //Create the server
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(verbosity);
@@ -139,6 +147,12 @@ void Fun4All_FieldOnAllTrackersCalos(
       // tpc drift velocity = 0.00625 cm/ns
       dz_separation_0 = -0.23335280*2*105;
     }
+    else if (DriftVelocityCorrTag==3)
+    {
+      // recommened drift velocity correction for Ar/CF4/ISO gas in 111x111 run after 08/013/2024
+      // tpc drift velocity = 0.00710 cm/ns
+      dz_separation_0 = -0.12908879*2*105;
+    }
     else
     {
       // for other cases which has not already been calibrated
@@ -157,6 +171,9 @@ void Fun4All_FieldOnAllTrackersCalos(
   //G4MAGNET::magfield = "0.01";
   G4MAGNET::magfield_tracking = G4MAGNET::magfield;
   G4MAGNET::magfield_rescale = 1;
+
+  G4TRACKING::convert_seeds_to_svtxtracks = convertSeeds;
+  std::cout << "Converting to seeds : " << G4TRACKING::convert_seeds_to_svtxtracks << std::endl;
 
   TRACKING::pp_mode = false;
 
@@ -233,7 +250,6 @@ void Fun4All_FieldOnAllTrackersCalos(
   se->registerSubsystem(seeder);
 
   // expand stubs in the TPC using simple kalman filter
-
   auto cprop = new PHSimpleKFProp("PHSimpleKFProp");
   cprop->set_field_dir(G4MAGNET::magfield_rescale);
   if (ConstField)
@@ -284,9 +300,6 @@ void Fun4All_FieldOnAllTrackersCalos(
    * End Track Seeding
    */
 
-  G4TRACKING::convert_seeds_to_svtxtracks = convertSeeds;
-  std::cout << "Converting to seeds : " << G4TRACKING::convert_seeds_to_svtxtracks << std::endl;
-
   /*
    * Either converts seeds to tracks with a straight line/helix fit
    * or run the full Acts track kalman filter fit
@@ -313,7 +326,7 @@ void Fun4All_FieldOnAllTrackersCalos(
     auto deltazcorr = new PHTpcDeltaZCorrection;
     deltazcorr->Verbosity(verbosity);
     se->registerSubsystem(deltazcorr);
-  
+
     // perform final track fit with ACTS
     auto actsFit = new PHActsTrkFitter;
     actsFit->Verbosity(verbosity);
@@ -338,10 +351,14 @@ void Fun4All_FieldOnAllTrackersCalos(
   finder->setTrackPtCut(-99999.);
   finder->setBeamLineCut(1);
   finder->setTrackQualityCut(1000000000);
-  finder->setRequireMVTX(false);
   if (!doTpcOnlyTracking)
   {
+    finder->setRequireMVTX(true);
     finder->setNmvtxRequired(3);
+  }
+  else
+  {
+    finder->setRequireMVTX(false);
   }
   finder->setOutlierPairCut(0.1);
   se->registerSubsystem(finder);
@@ -395,6 +412,7 @@ void Fun4All_FieldOnAllTrackersCalos(
 
   se->run(nEvents);
   se->End();
+  se->PrintTimer();
 
   ifstream file_ana(outputAnaFile.c_str(), ios::binary | ios::ate);
   if (file_ana.good() && (file_ana.tellg() > 100))
@@ -418,8 +436,8 @@ void Fun4All_FieldOnAllTrackersCalos(
     system(moveOutput.c_str());
   }
 
-  std::cout << "All done" << std::endl;
   delete se;
+  std::cout << "All done" << std::endl;
   gSystem->Exit(0);
 
   return;
