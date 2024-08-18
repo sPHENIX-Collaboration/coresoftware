@@ -39,9 +39,7 @@ RawClusterCNNClassifier::RawClusterCNNClassifier(const std::string &name)
 {
 }
 
-RawClusterCNNClassifier::~RawClusterCNNClassifier()
-{
-}
+RawClusterCNNClassifier::~RawClusterCNNClassifier() = default;
 
 
 int RawClusterCNNClassifier::Init(PHCompositeNode */*topNode*/)
@@ -127,7 +125,9 @@ int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
         //find the N by N tower around the max tower
         std::vector<float> input;
         //resize to inputDimx * inputDimy
-        input.resize(inputDimx * inputDimy);
+        int vectorSize = inputDimx * inputDimy;
+        input.resize(vectorSize, 0);
+
         if (maxtowerE > 0)
         {
           int xlength = int((inputDimx - 1) / 2);
@@ -142,8 +142,8 @@ int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
             {
               int mappediphi = iphi;
 
-              if (mappediphi < 0) mappediphi += 256;
-              if (mappediphi > 255) mappediphi -= 256;
+              if (mappediphi < 0){ mappediphi += 256; }
+              if (mappediphi > 255){ mappediphi -= 256; }
               unsigned int towerinfokey = TowerInfoDefs::encode_emcal(ieta, mappediphi);
               TowerInfo *towerinfo = emcTowerContainer->get_tower_at_key(towerinfokey);
               if (!towerinfo)
