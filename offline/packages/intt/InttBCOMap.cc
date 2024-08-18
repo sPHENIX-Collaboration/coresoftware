@@ -86,11 +86,13 @@ int InttBCOMap::LoadFromCDBTTree(CDBTTree &cdbttree)
 }
 bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, uint64_t const &bco_full, const int &bco)
 {
-  int bco_diff = (bco_full & 0x7FU) - bco;
-  if (bco_diff < 0)
-  {
-    bco_diff += 128;
-  }
+  // Definition of BCO difference was changed in Aug/2024
+  int bco_diff = (bco - (bco_full & 0x7fU)  + 128) % 128;
+  //  int bco_diff = (bco_full & 0x7FU) - bco;
+  // if (bco_diff < 0)
+  // {
+  //   bco_diff += 128;
+  // }
   //////////////////////////////////////////////////////////////////////////////
   // Hits belongs to [peak+1,peak-1] (3BCO region) will survive after BCO cut //
   //////////////////////////////////////////////////////////////////////////////
