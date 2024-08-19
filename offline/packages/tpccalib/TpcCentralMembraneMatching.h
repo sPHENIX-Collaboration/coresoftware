@@ -214,7 +214,7 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
-  double m_phi_cut{0.05};
+  double m_phi_cut{0.025};
 
   ///@name distortion correction histograms
   //@{

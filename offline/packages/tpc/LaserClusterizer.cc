@@ -277,7 +277,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     double itMaxContent_1 = m_itHist_1->GetMaximum();
     m_itHist_1->GetXaxis()->SetRange(0, 0);
 
-    if (itMaxContent_0 / itMeanContent_0 < 7 || itMaxContent_1 / itMeanContent_1 < 7)
+    if (itMaxContent_0 / itMeanContent_0 < 7 && itMaxContent_1 / itMeanContent_1 < 7)
     {
       if(m_debug)
       {
