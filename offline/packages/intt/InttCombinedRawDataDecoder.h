@@ -63,7 +63,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
   InttDacMap m_dacmap;
   InttBCOMap m_bcomap;
 
-  int m_inttFeeOffset = 0;
+  int m_inttFeeOffset = 23;
   bool m_outputBcoDiff = false;
 
 };

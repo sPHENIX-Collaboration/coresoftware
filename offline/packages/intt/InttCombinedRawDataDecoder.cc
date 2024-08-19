@@ -265,17 +265,21 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
     ofl = InttNameSpace::ToOffline(raw);
     hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);  // col, row <trackbase/InttDefs.h>
-    int time_bucket = m_runStandAlone ? 0 : intthit->get_bco() - gl1bco;
-    time_bucket = (intthit->get_FPHX_BCO() - (gl1bco & 0x7fU) - m_inttFeeOffset + 128) % 128;
+    int time_bucket = 0;
+    if(!m_runStandAlone)
+      {
+	time_bucket =  intthit->get_FPHX_BCO() + intthit->get_bco() - gl1bco -  m_inttFeeOffset;
+      }
     hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, time_bucket);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);
 
     if(m_outputBcoDiff)
       {
-	int bco_diff = (intthit->get_FPHX_BCO() -  (intthit->get_bco() & 0x7fU) + 128) % 128;
+	int bco_diff = intthit->get_FPHX_BCO() +  intthit->get_bco() - gl1bco;
 	std::cout << " bco: " << " fee " << intthit->get_fee() 
-		  << " getbco&0x7fU " <<  (intthit->get_bco() & 0x7fU) 
+		  << " getbco " <<  intthit->get_bco() 
+		  << " (getbco-gl1bco) " << intthit->get_bco() - gl1bco 
 		  << "  intthit->get_FPHX_BCO() " <<  intthit->get_FPHX_BCO()
 		  << " bcodiff " << bco_diff 
 		  << " time_bucket " << time_bucket 
