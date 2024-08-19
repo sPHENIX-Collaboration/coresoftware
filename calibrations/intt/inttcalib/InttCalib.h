@@ -62,6 +62,7 @@ class InttCalib : public SubsysReco
 
   int m_evts{0};
   int m_run_num{0};
+  int m_evts_bco = 30000;
 
   // int static const m_MAX_INDEX = 32;
   int static const m_MAX_INDEX = 8;
@@ -98,6 +99,7 @@ class InttCalib : public SubsysReco
   std::map<InttMap::RawData_s, int, InttMap::RawDataWildcardComparator> m_bcopeaks;
 
   bool m_do_nothing = false;
+  bool m_do_make_bco = true;
 };
 
 #endif  // INTTCALIB_H

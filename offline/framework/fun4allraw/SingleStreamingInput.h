@@ -51,6 +51,23 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   std::string getHitContainerName() const { return m_rawHitContainerName; }
   const std::map<int, std::set<uint64_t>> &getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
 
+  void clearPacketBClkStackMap(const int &packetid, const uint64_t& bclk)
+  {
+    std::set<uint64_t> to_erase;
+    auto set = m_BclkStackPacketMap.find(packetid)->second;
+      for(auto& bclk_to_erase : set)
+      {
+        if(bclk_to_erase <= bclk)
+        {
+          to_erase.insert(bclk_to_erase);
+        }
+      }
+      for(auto& bclk_to_erase : to_erase)
+      {
+        set.erase(bclk_to_erase);
+      }
+    }
+  
   void clearFeeGTML1BCOMap(const uint64_t &bclk)
   {
     std::set<uint64_t> toerase;
