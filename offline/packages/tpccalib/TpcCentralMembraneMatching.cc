@@ -1069,20 +1069,17 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
    */
   auto save_truth_position = [&](TVector3 source)
   {
-    source.SetZ(+1);
-    source.SetX(-1*source.X());
-    source.RotateZ(-8*M_PI/9);
+    source.SetZ(-1);
+    source.RotateZ(-M_PI / 18);
     m_truth_pos.push_back(source);
-    
+    truth_r_phi[0]->Fill(source.Phi(), source.Perp());
+
+    source.SetZ(+1);
+    source.RotateZ(M_PI / 18);
+    source.SetX(-1*source.X());
+    m_truth_pos.push_back(source);    
     truth_r_phi[1]->Fill(source.Phi(), source.Perp());
 
-    source.SetZ(-1);
-    source.RotateZ(8*M_PI/9);
-    source.SetX(-1*source.X());
-    source.RotateZ(M_PI / 18);
-    m_truth_pos.push_back(source);
-
-    truth_r_phi[0]->Fill(source.Phi(), source.Perp());
   };
 
   // inner region extended is the 8 layers inside 30 cm
@@ -1096,15 +1093,21 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
         dummyPos.RotateZ(k * phi_petal);
         save_truth_position(dummyPos);
         //int truth_index_1 = k*10000 + j*100 + i;
-        int truth_index_1 = k*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
+        //int truth_index_1 = k*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
+        int truth_index_1;
         int truth_index_0;
         if(k<=8)
         {
          truth_index_0 = (26-k)*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
+	 truth_index_1 = (8-k)*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
        }
-       else truth_index_0 = (44-k)*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
-       m_truth_index.push_back(truth_index_1);
+	else
+	{
+	  truth_index_0 = (44-k)*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
+	  truth_index_1 = (26-k)*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
+	}
        m_truth_index.push_back(truth_index_0);
+       m_truth_index.push_back(truth_index_1);
 
        if (Verbosity() > 2)
        {
@@ -1131,15 +1134,21 @@ for (int j = 0; j < nRadii; ++j)
       dummyPos.RotateZ(k * phi_petal);
       save_truth_position(dummyPos);
       //int truth_index_1 = k*10000 + (j+8)*100 + i;
-      int truth_index_1 = k*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
+      //int truth_index_1 = k*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
+      int truth_index_1;
       int truth_index_0;
       if(k<=8)
       {
         truth_index_0 = (26-k)*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
+        truth_index_1 = (8-k)*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
       }
-      else truth_index_0 = (44-k)*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
-      m_truth_index.push_back(truth_index_1);
+      else
+      {
+	truth_index_0 = (44-k)*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
+	truth_index_1 = (26-k)*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
+      }
       m_truth_index.push_back(truth_index_0);
+      m_truth_index.push_back(truth_index_1);
 
       if (Verbosity() > 2)
       {
@@ -1165,15 +1174,21 @@ for (int j = 0; j < nRadii; ++j)
       dummyPos.RotateZ(k * phi_petal);
       save_truth_position(dummyPos);
       //int truth_index_1 = k*10000 + (j+16)*100 + i;
-      int truth_index_1 = k*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
+      //int truth_index_1 = k*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
+      int truth_index_1;
       int truth_index_0;
       if(k<=8)
       {
         truth_index_0 = (26-k)*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
+        truth_index_1 = (8-k)*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
       }
-      else truth_index_0 = (44-k)*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
-      m_truth_index.push_back(truth_index_1);
+      else
+      {
+	truth_index_0 = (44-k)*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
+	truth_index_1 = (26-k)*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
+      }
       m_truth_index.push_back(truth_index_0);
+      m_truth_index.push_back(truth_index_1);
 
       if (Verbosity() > 2)
       {
@@ -1199,15 +1214,21 @@ for (int j = 0; j < nRadii; ++j)
       dummyPos.RotateZ(k * phi_petal);
       save_truth_position(dummyPos);
       //int truth_index_1 = k*10000 + (j+24)*100 + i;
-      int truth_index_1 = k*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
+      //int truth_index_1 = k*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
+      int truth_index_1;
       int truth_index_0;
       if(k<=8)
       {
         truth_index_0 = (26-k)*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
+        truth_index_1 = (8-k)*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
       }
-      else truth_index_0 = (44-k)*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
-      m_truth_index.push_back(truth_index_1);
+      else
+      {
+	truth_index_0 = (44-k)*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
+	truth_index_1 = (26-k)*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
+      }
       m_truth_index.push_back(truth_index_0);
+      m_truth_index.push_back(truth_index_1);
 
       if (Verbosity() > 2)
       {
