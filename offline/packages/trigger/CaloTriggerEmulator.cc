@@ -64,11 +64,20 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
   // TODO: to CDB the LUTs from the database
 
   // reset variables
+  for (unsigned int i = 0; i < 1024; i++)
+    {
+      m_l1_8x8_table[i] = i;
+      if (i >= 0xff) 
+	{
+	  m_l1_8x8_table[i] = 0xff;
+	}
+    }
 
   for (unsigned int i = 0; i < 1024; i++)
     {
       m_l1_adc_table[i] = (i) & 0x3ffU;
     }
+
   for (unsigned int i = 0; i < 4096; i++)
     {
       m_l1_slewing_table[i] = (i) & 0x3ffU;
@@ -1126,7 +1135,6 @@ int CaloTriggerEmulator::process_sim()
     {
       std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
     }
-    unsigned int peak_sub_ped;
 
     std::vector<int> wave;
     // for each waveform, clauclate the peak - pedestal given the sub-delay setting
@@ -1138,7 +1146,6 @@ int CaloTriggerEmulator::process_sim()
     for (unsigned int iwave = 0; iwave < (unsigned int) m_waveforms_hcalout->size(); iwave++)
     {
       std::vector<unsigned int> v_peak_sub_ped;
-      peak_sub_ped = 0;
       TowerInfo *tower = m_waveforms_hcalout->get_tower_at_channel(iwave);
       unsigned int key = TowerInfoDefs::encode_hcal(iwave);
       if (tower->get_isZS())
@@ -1152,25 +1159,24 @@ int CaloTriggerEmulator::process_sim()
       {
 	for (int i = sample_start; i < sample_end; i++)
 	{
-	  unsigned int subtraction = 0;
-	  int16_t maxim = tower->get_waveform_value(i);
-	  if (m_use_max)
+	  int16_t maxim = (tower->get_waveform_value(i) > tower->get_waveform_value(i+1) ? tower->get_waveform_value(i) : tower->get_waveform_value(i+1));
+	  maxim = (maxim > tower->get_waveform_value(i+2) ? maxim : tower->get_waveform_value(i+2));
+	  uint16_t sam = 0;
+	  if (i >= m_trig_sub_delay)
 	    {
-	      int16_t max1 =  std::max(tower->get_waveform_value(i), tower->get_waveform_value(i+1));
-	      maxim =  std::max(max1, tower->get_waveform_value(i+2));
+	      sam = i - m_trig_sub_delay;
 	    }
-	  if (maxim - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0)) > 0)
-	  {
-	    subtraction = maxim - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0));
-	  }
 	  else
-	  {
-	    subtraction = 0;
-	  }
+	    {
+	      sam = 0;
+	    }
+	  unsigned int sub = 0;
+	  if (maxim > tower->get_waveform_value(sam))
+	    {
+	      sub = ((maxim - tower->get_waveform_value(sam)) & 0x3fffU);
+	    }
 
-	  peak_sub_ped = (((unsigned int) subtraction) & 0x3fffU);
-	
-	  v_peak_sub_ped.push_back(peak_sub_ped);
+	  v_peak_sub_ped.push_back(sub);
 	}
       }
       // save in global.
@@ -1191,7 +1197,6 @@ int CaloTriggerEmulator::process_sim()
     {
       std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ihcal" << std::endl;
     }
-    unsigned int peak_sub_ped;
 
     std::vector<unsigned int> wave;
 
@@ -1199,7 +1204,6 @@ int CaloTriggerEmulator::process_sim()
     for (unsigned int iwave = 0; iwave < (unsigned int) m_waveforms_hcalin->size(); iwave++)
     {
       std::vector<unsigned int> v_peak_sub_ped;
-      peak_sub_ped = 0;
       TowerInfo *tower = m_waveforms_hcalin->get_tower_at_channel(iwave);
       unsigned int key = TowerInfoDefs::encode_hcal(iwave);
       if (tower->get_isZS())
@@ -1213,27 +1217,25 @@ int CaloTriggerEmulator::process_sim()
       {
 	for (int i = sample_start; i < sample_end; i++)
 	{
-	  int16_t maxim = tower->get_waveform_value(i);
-	  if (m_use_max)
+	  int16_t maxim = (tower->get_waveform_value(i) > tower->get_waveform_value(i+1) ? tower->get_waveform_value(i) : tower->get_waveform_value(i+1));
+	  maxim = (maxim > tower->get_waveform_value(i+2) ? maxim : tower->get_waveform_value(i+2));
+	  uint16_t sam = 0;
+	  if (i >= m_trig_sub_delay)
 	    {
-	      int16_t max1 =  std::max(tower->get_waveform_value(i), tower->get_waveform_value(i+1));
-	      maxim =  std::max(max1, tower->get_waveform_value(i+2));
+	      sam = i - m_trig_sub_delay;
+	    }
+	  else
+	    {
+	      sam = 0;
+	    }
+	  unsigned int sub = 0;
+	  if (maxim > tower->get_waveform_value(sam))
+	    {
+	      sub = ((maxim - tower->get_waveform_value(sam)) & 0x3fffU);
 	    }
 
-	  int subtraction = maxim - tower->get_waveform_value((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0));
+	  v_peak_sub_ped.push_back(sub);
 
-	  if (subtraction < 0)
-	  {
-	    subtraction = 0;
-	  }
-	  
-	  peak_sub_ped = (((unsigned int) subtraction) & 0x3fffU);
-	  if (Verbosity() >= 10 && peak_sub_ped > 16)
-	    {
-	      std::cout << __FILE__ << "::" << __FUNCTION__ << ":: hcalin peak " << iwave << " = "<< peak_sub_ped << std::endl;
-	    }
-
-	  v_peak_sub_ped.push_back(peak_sub_ped);
 	}
       }
       // save in global.
@@ -1561,11 +1563,11 @@ int CaloTriggerEmulator::process_organizer()
 	// bit shift by 16 (divide by the 16 towers) to get an 8 bit energy sum.
 	for (unsigned int &it_s : *t_sum)
 	  {
-	    // unsigned int sumshift = ((it_s >> 0x1U) & 0xfffU);
-	    // unsigned int sum_lower = ( sumshift & 0x7fU );
-	    // unsigned int sum_higher = ( ( sumshift >> 0x7U ) > 0 ? 0x1U : 0x0U );
-	    // it_s = sum_lower + ((sum_higher << 0x7U) & 0xffU);
-	    it_s = (it_s >> 4U);
+	    //unsigned int sumshift = ((it_s >> 0x2U) & 0x3ffU);
+	    //unsigned int sum_lower = ( sumshift & 0x7fU );
+	    //unsigned int sum_higher = ( ( sumshift >> 0x7U ) > 0 ? 0x1U : 0x0U );
+	    //it_s = m_l1_8x8_table[sumshift];
+	    if (it_s > 0xffU) it_s = 0xffU;
 	  }
       }
   }
@@ -1783,7 +1785,7 @@ int CaloTriggerEmulator::process_organizer()
 	      {
 		unsigned int sum_hcal = m_primitives_hcal_ll1->get_primitive_at_key(hcal_pkey)->get_sum_at_key(hcal_skey)->at(i);
 		unsigned int sum_emcal = m_primitives_emcal_ll1->get_primitive_at_key(emcal_pkey)->get_sum_at_key(emcal_skey)->at(i);
-		it_s = ((sum_hcal + sum_emcal) >> 1U);
+		it_s = ((sum_hcal >> 1U) + (sum_emcal >> 1U)) & 0xffU;
 		i++;
 	      }
 	  }

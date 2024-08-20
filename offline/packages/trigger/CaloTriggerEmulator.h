@@ -134,6 +134,7 @@ class CaloTriggerEmulator : public SubsysReco
 
   bool CheckFiberMasks(TriggerDefs::TriggerPrimKey key);
   void LoadFiberMasks();
+  void SetIsData(bool isd) { m_isdata = isd; }
   bool CheckChannelMasks(TriggerDefs::TriggerSumKey key);
 
   void identify();
@@ -208,6 +209,7 @@ class CaloTriggerEmulator : public SubsysReco
 
   unsigned int m_l1_hcal_table[4096]{};
   unsigned int m_l1_adc_table[1024]{};
+  unsigned int m_l1_8x8_table[1024]{};
   unsigned int m_l1_slewing_table[4096]{};
 
   std::map<unsigned int, TH1I*> h_emcal_lut{};
