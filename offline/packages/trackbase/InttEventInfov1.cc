@@ -1,5 +1,5 @@
 #include "InttEventInfov1.h"
-/
+
 InttEventInfov1::InttEventInfov1()
 {
   bco_full = 0;
