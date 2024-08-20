@@ -95,7 +95,12 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
     }
     int EventSequence = evt->getEvtSequence();
     Packet *packet = evt->getPacket(14001);
-
+    if (!packet)
+    {
+      std::cout << PHWHERE << "Packet 14001 is null ptr" << std::endl;
+      evt->identify();
+      continue;
+    }
     if (Verbosity() > 1)
     {
       packet->identify();
