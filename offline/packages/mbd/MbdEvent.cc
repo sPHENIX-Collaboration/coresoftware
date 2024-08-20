@@ -628,7 +628,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
 
       // calpass 2, uncal_mbd. template fit. make sure qgain = 1, tq_t0 = 0
  
-      if (m_ampl[ifeech] < _mbdcal->get_qgain(pmtch) * 0.25)
+      if ( (m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000) )
       {
         // m_t0[ifeech] = -9999.;
         m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -672,7 +672,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
       */
     }
-    else
+    else  // not a good time hit
     {
       m_pmtq[pmtch] = 0.;
       m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -943,11 +943,11 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       std::cout << "bbcn " << m_bbcn[0] << "\t" << m_bbcn[1] << std::endl;
       std::cout << "bbcq " << m_bbcq[0] << "\t" << m_bbcq[1] << std::endl;
     }
-    m_bbcz = (m_bbct[0] - m_bbct[1]) * TMath::C() * 1e-7 / 2.0;  // in cm
-    m_bbct0 = (m_bbct[0] + m_bbct[1]) / 2.0;
+    m_bbcz = (m_bbct[0] - m_bbct[1]) * TMath::C() * 1e-7 / 2.0;   // in cm
+    m_bbct0 = (m_bbct[0] + m_bbct[1]) / 2.0;                      // in ns
 
-    // correct z-vertex
-    // m_bbcz += bz_offset;
+    // correct t0
+    m_bbct0 -= _mbdcal->get_t0corr();
 
     // hard code these for now
     // need study to determine muliplicity dependence
