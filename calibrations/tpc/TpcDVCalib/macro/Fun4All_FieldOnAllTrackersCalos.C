@@ -61,8 +61,7 @@ void Fun4All_FieldOnAllTrackersCalos(
         "run46730_calo.list"}, 
     std::string outDir = "./",
     bool doTpcOnlyTracking = true,
-    bool doDriftVelocityCorr = true,
-    int DriftVelocityCorrTag = 0,
+    float initial_driftvelocity = 0.00710,
     bool doEMcalRadiusCorr = true,
     const bool convertSeeds = false)
 {
@@ -126,44 +125,8 @@ void Fun4All_FieldOnAllTrackersCalos(
   ingeo->AddFile(geofile);
   se->registerInputManager(ingeo);
 
-  double dz_separation_0;
-  if (doDriftVelocityCorr)
-  {
-    if (DriftVelocityCorrTag==0)
-    {
-      // recommened drift velocity correction for Ar/CF4/N2 gas
-      // tpc drift velocity = 0.00701 cm/ns
-      dz_separation_0 = -0.14*2*105;
-    }
-    else if (DriftVelocityCorrTag==1)
-    {
-      // recommened drift velocity correction for Ar/CF4/ISO gas in early time, like 6x6, 28x28, 56x56 before 08/09/2024
-      // tpc drift velocity = 0.00731 cm/ns
-      dz_separation_0 = -0.10332944*2*105;
-    }
-    else if (DriftVelocityCorrTag==2)
-    {
-      // recommened drift velocity correction for Ar/CF4/ISO gas in 111x111 run after 08/09/2024
-      // tpc drift velocity = 0.00625 cm/ns
-      dz_separation_0 = -0.23335280*2*105;
-    }
-    else if (DriftVelocityCorrTag==3)
-    {
-      // recommened drift velocity correction for Ar/CF4/ISO gas in 111x111 run after 08/013/2024
-      // tpc drift velocity = 0.00710 cm/ns
-      dz_separation_0 = -0.12908879*2*105;
-    }
-    else
-    {
-      // for other cases which has not already been calibrated
-      dz_separation_0 = 0;
-    }
-  }
-  else
-  {
-    dz_separation_0 = 0;
-  }
-  G4TPC::tpc_drift_velocity_reco = (8.0 / 1000) * 107.0 / 105.0 * (1+ dz_separation_0 / 2. / 105.); //cm/ns
+  //G4TPC::tpc_drift_velocity_reco = (8.0 / 1000) * 107.0 / 105.0 * (1+ dz_separation_0 / 2. / 105.); //cm/ns
+  G4TPC::tpc_drift_velocity_reco = initial_driftvelocity; //cm/ns
   G4TPC::ENABLE_MODULE_EDGE_CORRECTIONS = true;
   //to turn on the default static corrections, enable the two lines below
   //G4TPC::ENABLE_STATIC_CORRECTIONS = true;

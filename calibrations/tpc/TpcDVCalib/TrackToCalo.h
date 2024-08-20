@@ -51,6 +51,8 @@ class TrackToCalo : public SubsysReco
 
   void ResetTreeVectors();
 
+  float PiRange(float deltaPhi);
+
   void EMcalRadiusUser(bool use) {m_use_emcal_radius = use;}
   void setEMcalRadius(float r) {m_emcal_radius_user = r;}
 
@@ -69,6 +71,13 @@ class TrackToCalo : public SubsysReco
    std::vector<float> _track_z_emc;
    std::vector<float> _emcal_phi;
    std::vector<float> _emcal_z;
+
+   float m_dphi;
+   float m_dz;
+   float m_calo_z;
+   float m_calo_phi;
+   float m_track_z;
+   float m_track_phi;
 
    std::string m_RawClusCont_EM_name = "TOPOCLUSTER_EMCAL";
 
