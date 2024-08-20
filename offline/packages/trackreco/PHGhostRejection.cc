@@ -128,7 +128,7 @@ void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
       }
 
       auto& track2 = seeds[trid2];
-      float delta_phi = fabs(track1phi - track2.get_phi());
+      auto delta_phi = fabs(track1phi - track2.get_phi());
       if (delta_phi > 2 * M_PI) {
         delta_phi = fabs(delta_phi - 2 * M_PI);
       }
