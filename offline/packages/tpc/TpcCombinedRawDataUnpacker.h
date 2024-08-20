@@ -31,7 +31,13 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   void set_pedestalSigmaCut(float b) { m_ped_sig_cut = b; }
   void do_noise_rejection(bool b) { m_do_noise_rejection = b; }
   void doBaselineCorr(bool val) { m_do_baseline_corr = val; }
+  void doZSEmulation(bool val) { m_do_zs_emulation = val; }
+  void ReadZeroSuppressedData() { 
+    m_do_zs_emulation = true;
+    m_zs_threshold = 10;
+  }
   void set_presampleShift(int b) { m_presampleShift = b; }
+  void set_zs_threshold(int b) { m_zs_threshold = b; }
   void skipNevent(int b) { startevt = b; }
   void useRawHitNodeName(const std::string &name) { m_TpcRawNodeName = name; }
 
@@ -104,7 +110,9 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   bool m_do_zerosup{true};
   bool m_do_noise_rejection{true};
   bool m_do_baseline_corr{false};
+  bool m_do_zs_emulation{false};
   int pedestal_offset{30};
+  int m_zs_threshold{30};
   std::string m_TpcRawNodeName{"TPCRAWHIT"};
   std::string outfile_name;
   std::map<unsigned int, chan_info> chan_map;                  // stays in place

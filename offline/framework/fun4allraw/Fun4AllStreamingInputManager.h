@@ -21,7 +21,6 @@ class PHCompositeNode;
 class SyncObject;
 class TpcRawHit;
 class TH1;
-
 class Fun4AllStreamingInputManager : public Fun4AllInputManager
 {
  public:
