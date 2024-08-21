@@ -1,5 +1,5 @@
 #include "TriggerRunInfoReco.h"
-#include "TriggerRunInfo.h"
+#include "TriggerRunInfov1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -33,7 +33,7 @@ int TriggerRunInfoReco::Init(PHCompositeNode *topNode)
   }
 
   // Create the TriggerRunInfo object and add it to the RUN node
-  TriggerRunInfo *triggerRunInfo = new TriggerRunInfo();
+  TriggerRunInfo *triggerRunInfo = new TriggerRunInfov1();
   PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(triggerRunInfo, "TriggerRunInfo", "PHObject");
   runNode->addNode(newNode);
 

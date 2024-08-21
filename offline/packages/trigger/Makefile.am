@@ -43,8 +43,9 @@ pkginclude_HEADERS = \
   CaloTriggerEmulator.h \
   LL1PacketGetter.h \
   TriggerDefs.h \
-  TriggerRunInfo.h \
   TriggerRunInfoReco.h \
+  TriggerRunInfo.h \
+  TriggerRunInfov1.h \
   TriggerPrimitive.h \
   TriggerPrimitivev1.h \
   TriggerPrimitiveContainer.h \
@@ -54,8 +55,9 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   LL1Out_Dict.cc \
   LL1Outv1_Dict.cc \
-  TriggerPrimitive_Dict.cc \
   TriggerRunInfo_Dict.cc \
+  TriggerRunInfov1_Dict.cc \
+  TriggerPrimitive_Dict.cc \
   TriggerPrimitivev1_Dict.cc \
   TriggerPrimitiveContainer_Dict.cc \
   TriggerPrimitiveContainerv1_Dict.cc \
@@ -67,6 +69,7 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TriggerRunInfo_Dict_rdict.pcm \
+  TriggerRunInfov1_Dict_rdict.pcm \
   CaloTriggerInfo_Dict_rdict.pcm \
   CaloTriggerInfov1_Dict_rdict.pcm \
   MinimumBiasInfo_Dict_rdict.pcm \
@@ -80,6 +83,8 @@ nobase_dist_pcm_DATA = \
 
 libcalotrigger_io_la_SOURCES = \
   $(ROOTDICTS) \
+  TriggerRunInfo.cc \
+  TriggerRunInfov1.cc \
   LL1Out.cc \
   LL1Outv1.cc \
   TriggerPrimitive.cc \

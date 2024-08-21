@@ -1,3 +1,6 @@
+#ifndef __TRIGGERRUNINFO_H__
+#define __TRIGGERRUNINFO_H__
+
 #include <phool/PHObject.h>
 
 #include <iostream>
@@ -8,39 +11,20 @@
 class TriggerRunInfo  : public PHObject
 {
 public:
-    TriggerRunInfo() : trigger_names{}, trigger_bits{}, trigger_prescales{} {}
+  TriggerRunInfo() = default;
+  ///
+  virtual ~TriggerRunInfo() override = default;
 
-    void setTrigger(int index, const std::string& name, int bit, int prescale) {
-        if (index >= 0 && index < 64) {
-            trigger_names[index] = name;
-            trigger_bits[index] = bit;
-            trigger_prescales[index] = prescale;
-        } else {
-            std::cerr << "Index out of bounds: " << index << std::endl;
-        }
-    }
+  void identify(std::ostream& os = std::cout) const override;
 
-    int getPrescaleByName(const std::string& name) const {
-        for (int i = 0; i < 64; ++i) {
-            if (trigger_names[i] == name) {
-                return trigger_prescales[i];
-            }
-        }
-        std::cerr << "Trigger name not found: " << name << std::endl;
-        return 0;
-    }
+  virtual void setTrigger(int , const std::string&, int, int)  {return;}
 
-    void printTriggers() const {
-        for (int i = 0; i < 64; ++i) {
-            std::cout << "Trigger " << i << ": Name = " << trigger_names[i]
-                      << ", Bit = " << trigger_bits[i]
-                      << ", Prescale = " << trigger_prescales[i] << std::endl;
-        }
-    }
+  virtual int getPrescaleByName(const std::string&) const {return 0;}       
 
-private:
-    std::array<std::string, 64> trigger_names;
-    std::array<int, 64> trigger_bits;
-    std::array<int, 64> trigger_prescales;
+
+ private:  // so the ClassDef does not show up with doc++
+  ClassDefOverride(TriggerRunInfo, 1);
+
 };
 
+#endif
