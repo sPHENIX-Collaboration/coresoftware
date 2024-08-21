@@ -261,8 +261,14 @@ void TrackToCalo::ResetTreeVectors()
 
 float TrackToCalo::PiRange(float deltaPhi)
 {
-  if(deltaPhi > M_PI) deltaPhi -= 2*M_PI;
-  if(deltaPhi < -M_PI) deltaPhi += 2*M_PI;
+  if(deltaPhi > M_PI) 
+  {
+    deltaPhi -= 2*M_PI;
+  }
+  if(deltaPhi < -M_PI)
+  {
+    deltaPhi += 2*M_PI;
+  }
 
   return deltaPhi;
 }

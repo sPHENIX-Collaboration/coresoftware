@@ -174,7 +174,6 @@ void fit(int runnumber)
       float z_cut_min = z_min + i * z_stepsize;
       float z_cut_max = z_min + (i+1) * z_stepsize;
       int status = fit_dz(Form("Reconstructed/%d/TrackCalo_*_ana.root",runnumber), "tree", "dz", Form("fabs(dphi)<0.1 && track_z>%f && track_z<%f && fabs(dz)<20",z_cut_min,z_cut_max), Form("figure/%d/dz_fit_cuttrkrz_%d.pdf",runnumber,i), Form("Run %d, Track Z#in[%.0f,%.0f] cm",runnumber,z_cut_min,z_cut_max),runnumber);
-      //int status = fit_dz(Form("Reconstructed/%d/TrackCalo_*_ana.root",runnumber), "tree", "dz", Form("fabs(dphi)<0.1 && track_z>%f && track_z<%f",z_cut_min,z_cut_max), Form("figure/%d/dz_fit_cuttrkrz_%d.pdf",runnumber,i), Form("Run %d, Track Z#in[%.0f,%.0f] cm",runnumber,z_cut_min,z_cut_max),runnumber);
       if (status==1)
       {
         vec_trkr_z_val.push_back((z_cut_min+z_cut_max)/2);

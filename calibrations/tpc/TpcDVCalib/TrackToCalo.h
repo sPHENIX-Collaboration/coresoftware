@@ -72,12 +72,12 @@ class TrackToCalo : public SubsysReco
    std::vector<float> _emcal_phi;
    std::vector<float> _emcal_z;
 
-   float m_dphi;
-   float m_dz;
-   float m_calo_z;
-   float m_calo_phi;
-   float m_track_z;
-   float m_track_phi;
+   float m_dphi = 0.0;
+   float m_dz = 0.0;
+   float m_calo_z = 0.0;
+   float m_calo_phi = 0.0;
+   float m_track_z = 0.0;
+   float m_track_phi = 0.0;
 
    std::string m_RawClusCont_EM_name = "TOPOCLUSTER_EMCAL";
 
