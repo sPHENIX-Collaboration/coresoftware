@@ -81,10 +81,12 @@ int TrackToCalo::Init(PHCompositeNode *topNode)
   _outfile = new TFile(_outfilename.c_str(), "RECREATE");
   delete _tree;
   _tree = new TTree("tree", "A tree with track/calo info");
-  _tree->Branch("_track_phi_emc", &_track_phi_emc);
-  _tree->Branch("_track_z_emc", &_track_z_emc);
-  _tree->Branch("_emcal_phi", &_emcal_phi);
-  _tree->Branch("_emcal_z", &_emcal_z);
+  _tree->Branch("calo_z",&m_calo_z,"calo_z/F");
+  _tree->Branch("calo_phi",&m_calo_phi,"calo_phi/F");
+  _tree->Branch("track_z",&m_track_z,"track_z/F");
+  _tree->Branch("track_phi",&m_track_phi,"track_phi/F");
+  _tree->Branch("dphi",&m_dphi,"dphi/F");
+  _tree->Branch("dz",&m_dz,"dz/F");
   cnt=0;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -217,7 +219,24 @@ int TrackToCalo::process_event(PHCompositeNode *topNode)
     _emcal_z.push_back( radius_scale*cluster->get_z() );
   }
 
-  _tree->Fill();
+  for(unsigned int itrack = 0; itrack < _track_phi_emc.size(); itrack++)
+  {
+    if(isnan(_track_phi_emc.at(itrack)) || isnan(_track_z_emc.at(itrack)))
+    {
+      continue;
+    }
+
+    for(unsigned int iem = 0; iem < _emcal_z.size(); iem++)
+    {
+      m_calo_z = _emcal_z.at(iem);
+      m_track_z = _track_z_emc.at(itrack);
+      m_calo_phi = _emcal_phi.at(iem);
+      m_track_phi = _track_phi_emc.at(itrack);
+      m_dphi = PiRange(_track_phi_emc.at(itrack) - _emcal_phi.at(iem));
+      m_dz = _track_z_emc.at(itrack) - _emcal_z.at(iem);
+      _tree->Fill();
+    }
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -238,4 +257,18 @@ void TrackToCalo::ResetTreeVectors()
   _track_z_emc.clear();
   _emcal_phi.clear();
   _emcal_z.clear();
+}
+
+float TrackToCalo::PiRange(float deltaPhi)
+{
+  if(deltaPhi > M_PI) 
+  {
+    deltaPhi -= 2*M_PI;
+  }
+  if(deltaPhi < -M_PI)
+  {
+    deltaPhi += 2*M_PI;
+  }
+
+  return deltaPhi;
 }
