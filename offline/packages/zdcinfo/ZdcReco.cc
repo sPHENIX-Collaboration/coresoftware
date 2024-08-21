@@ -259,7 +259,6 @@ void ZdcReco::ResetMe() {
   vsmdtime.clear();
   vzdcadc.clear();
   vzdctime.clear();
-  vzinfo.clear();
   smd_north_fired = false;
   smd_south_fired = false;
 }
