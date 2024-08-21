@@ -94,6 +94,9 @@ namespace MicromegasDefs
    s*/
   uint8_t getTileId(TrkrDefs::cluskey);
 
+  //! number of TPOT tiles
+  static constexpr int m_ntiles = 8;
+
   //! TPOT packet ids
   /**
    * note: TPOT only uses 2 packets.
