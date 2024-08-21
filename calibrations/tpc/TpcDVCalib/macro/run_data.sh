@@ -14,7 +14,7 @@ echo "sPHENIX environment setup finished"
 
 nEvents=1000
 
-count=1
+count=0
 total=$#
 
 inputFiles="{"
@@ -28,7 +28,6 @@ do
 done
 inputFiles=${inputFiles::-1}
 inputFiles+="}"
-DVoption="${!#}"
 echo running: run_data.sh $*
-root.exe -q -b Fun4All_FieldOnAllTrackersCalos.C\($nEvents,${inputFiles},\".\",true,true,${DVoption}\)
+root.exe -q -b Fun4All_FieldOnAllTrackersCalos.C\($nEvents,${inputFiles}\)
 echo Script done
