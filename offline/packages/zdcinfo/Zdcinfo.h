@@ -17,7 +17,9 @@ class Zdcinfo : public PHObject
   virtual float get_zdc_energy(const int /*arm*/) const { return NAN; }
   virtual void set_radius(int /*arm*/, float /*_r*/) { return; }
   virtual float get_radius(const int /*arm*/) const { return NAN; }
-
+  virtual void set_zvertex(float /*_z*/) { return; }
+  virtual float get_zvertex() const { return NAN; }
+ 
  protected:
   Zdcinfo() {}
 
