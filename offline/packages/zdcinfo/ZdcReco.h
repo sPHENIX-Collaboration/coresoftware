@@ -38,19 +38,25 @@ private:
   bool m_overrideFieldName{false};
   bool smd_north_fired{false};
   bool smd_south_fired{false};
+  std::vector<float> vzinfo;
   std::vector<float> vsmdadc;
   std::vector<float> vsmdtime;
   std::vector<float> vzdcadc;
   std::vector<float> vzdctime;
   float smd_adc[32] = {0.0f};
   float smd_pos[4] = {0.0f};
-  float radius_south{0.};
-  float radius_north{0.};
+  float _radius_south{0.};
+  float _radius_north{0.};
+  const double _t{17.623}; //convert to ns
+  const double _c{29.9792}; //speed of light in cm/ns
+  float _z_vertex{0.};
   float _zdc1_e{65.0};
   float _zdc2_e{20.0};
   float _smd_e{5.0};
   float _sumS{0.};
   float _sumN{0.};
+  float _sumSt{0.};
+  float _sumNt{0.};
   int _nhor{0};
   int _nver{0};
   int _shor{0};
