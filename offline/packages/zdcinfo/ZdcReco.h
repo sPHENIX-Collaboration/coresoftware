@@ -38,7 +38,6 @@ private:
   bool m_overrideFieldName{false};
   bool smd_north_fired{false};
   bool smd_south_fired{false};
-  std::vector<float> vzinfo;
   std::vector<float> vsmdadc;
   std::vector<float> vsmdtime;
   std::vector<float> vzdcadc;
