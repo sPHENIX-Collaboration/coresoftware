@@ -44,20 +44,19 @@ Initialdir     = /sphenix/u/xyu3/hftg01
 Executable     = $(Initialdir)/run_data.sh
 
 RunNumber      = 51103
-DVCorrTag      = 2
 
 # The argument to pass to the executable.
 #tracking firt then calo, only one tracking file
-Arguments      = "./runList/trackrunlist/run$(RunNumber)_$INT(Process,%04d).txt ./runList/run$(RunNumber)_calo.list $(DVCorrTag)"
+Arguments      = "./runList/trackrunlist/run$(RunNumber)_$INT(Process,%04d).txt ./runList/run$(RunNumber)_calo.list"
 
 # The job's stdout is sent to this file.
-Output         = $(Initialdir)/condorJob/log/job-Data-$(RunNumber).$(Cluster).$(Process).out
+Output         = $(Initialdir)/condorJob/job-Data-$(RunNumber).$(Cluster).$(Process).out
 
 # The job's stderr is sent to this file.
-Error          = $(Initialdir)/condorJob/log/job-Data-$(RunNumber).$(Cluster).$(Process).err
+Error          = $(Initialdir)/condorJob/job-Data-$(RunNumber).$(Cluster).$(Process).err
 
 # The condor log file for this job, useful when debugging.
-Log            = $(Initialdir)/condorJob/log/job-Data-$(RunNumber).$(Cluster).$(Process).log
+Log            = $(Initialdir)/condorJob/job-Data-$(RunNumber).$(Cluster).$(Process).log
 
 #should_transfer_files   = YES
 #when_to_transfer_output = ON_EXIT_OR_EVICT
