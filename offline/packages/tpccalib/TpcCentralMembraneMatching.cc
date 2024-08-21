@@ -1730,8 +1730,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
       if(match_localTruth == -1)
       {
-	//reco_index++;
-	//continue;
+	reco_index++;
+	continue;
       }
 
       truth_NNRecoIndex[match_localTruth].push_back(reco_index);
