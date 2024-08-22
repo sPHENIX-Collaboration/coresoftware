@@ -387,6 +387,8 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
        */
       const TVector3 world_intersection_planar(x, y, z);
 
+      // std::cout << "PHMicromegasTpcTrackMatching::process_event - layer: " << layer << " tile: " << tileid << " position: " << x << ", " << y << ", " << z << std::endl;
+
       // convert to tile local reference frame, apply SC correction
       const auto local_intersection_planar = layergeom->get_local_from_world_coords(tileid, _tGeometry, world_intersection_planar);
 
