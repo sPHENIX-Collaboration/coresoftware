@@ -1,8 +1,10 @@
 #ifndef __TRIGGERRUNINFOV1_H_
 #define __TRIGGERRUNINFOV1_H_
 
-#include <phool/PHObject.h>
 #include "TriggerRunInfo.h"
+
+#include <phool/PHObject.h>
+
 #include <iostream>
 #include <string>
 #include <array>

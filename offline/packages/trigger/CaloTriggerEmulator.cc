@@ -27,6 +27,8 @@
 #include <phool/phool.h>
 
 #include <TFile.h>
+#include <TH1.h>
+#include <TNtuple.h>
 
 #include <bitset>
 #include <cassert>
@@ -40,15 +42,6 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
   , m_trigger("NONE")
 {
   // initialize all important parameters
-
-  m_nevent = 0;
-  m_npassed = 0;
-  m_isdata = false;
-  // default nsamples is 31;
-  m_nsamples = 31;
-
-  // for MBD, this is the peak sample in run-23 data
-  m_idx = 12;
 
   // default values for the lookup tables.
   // TODO: to CDB the LUTs from the database
