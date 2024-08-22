@@ -118,7 +118,7 @@ class TrackResiduals : public SubsysReco
   bool m_convertSeeds = false;
   bool m_linefitTPCOnly = true;
   bool m_dropClustersNoState = false;
-  int m_min_cluster_size = 0;
+  unsigned int m_min_cluster_size = 0;
 
   bool m_doMicromegasOnly = false;
 
