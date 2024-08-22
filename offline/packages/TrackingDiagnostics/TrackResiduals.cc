@@ -676,6 +676,8 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
 void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
                                      ActsGeometry* geometry)
 {
+  if (clusters->size()< m_min_cluster_size)
+    return;
   for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
                     TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
   {
