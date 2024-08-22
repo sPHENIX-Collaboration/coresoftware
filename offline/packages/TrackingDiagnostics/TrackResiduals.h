@@ -55,7 +55,7 @@ class TrackResiduals : public SubsysReco
   void runnumber(const int run) { m_runnumber = run; }
   void segment(const int seg) { m_segment = seg; }
   void linefitAll() { m_linefitTPCOnly = false; }
-  void setClusterMinSize(int size) { m_min_cluster_size = size; }
+  void setClusterMinSize(unsigned int size) { m_min_cluster_size = size; }
   void failedTree() { m_doFailedSeeds = true; }
   void setSegment(const int segment) { m_segment = segment; }
 
