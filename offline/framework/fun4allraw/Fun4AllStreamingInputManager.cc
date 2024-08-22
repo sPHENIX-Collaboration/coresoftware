@@ -428,7 +428,21 @@ std::string Fun4AllStreamingInputManager::GetString(const std::string &what) con
 void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *evtin, InputManagerType::enu_subsystem system)
 {
   evtin->StreamingInputManager(this);
-  evtin->CreateDSTNode(m_topNode);
+  // if the streaming flag is set, we only want the first event from the GL1 to
+  // get the starting BCO of that run which enables us to dump all the junk which
+  // is taken before the run starts in the streaming systems. But we don't want the
+  // GL1 in the output, so we do not create its dst node if running in streaming
+  if (system == InputManagerType::GL1)
+  {
+    if (!m_StreamingFlag)
+    {
+      evtin->CreateDSTNode(m_topNode);
+    }
+  }
+  else
+  {
+    evtin->CreateDSTNode(m_topNode);
+  }
   evtin->ConfigureStreamingInputManager();
   switch (system)
   {
@@ -437,7 +451,6 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
     m_MvtxInputVector.push_back(evtin);
     break;
   case InputManagerType::INTT:
-    std::cout << "registering " << evtin->Name() << std::endl;
     m_intt_registered_flag = true;
     m_InttInputVector.push_back(evtin);
     break;
@@ -586,18 +599,39 @@ int Fun4AllStreamingInputManager::FillGl1()
     {
       gl1hititer->identify();
     }
-    gl1packet->FillFrom(gl1hititer);
-    MySyncManager()->CurrentEvent(gl1packet->getEvtSequence());
+    if (!m_StreamingFlag)  // if streaming flag is set, the gl1packet is a nullptr
+    {
+      gl1packet->FillFrom(gl1hititer);
+      MySyncManager()->CurrentEvent(gl1packet->getEvtSequence());
+    }
     m_RefBCO = gl1hititer->getBCO();
     m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)
                                           //    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
   }
-  for (auto iter : m_Gl1InputVector)
+  // if we run streaming, we only need the first gl1 bco to skip over all the junk
+  // which is taken before the daq actually starts. But once we have the first event
+  // and set the refBCO to the beginning of the run, we don't want the gl1 anymore
+  // so we delete its input manager(s) and unregister it
+  // deleting it also deletes all its allocated memory, so we don't have to worry
+  // about clearing all gl1 related maps
+  if (m_StreamingFlag)
   {
-    iter->CleanupUsedPackets(m_Gl1RawHitMap.begin()->first);
+    for (auto iter : m_Gl1InputVector)
+    {
+      delete iter;
+    }
+      m_gl1_registered_flag = false;
+      m_Gl1InputVector.clear();
   }
-  m_Gl1RawHitMap.begin()->second.Gl1RawHitVector.clear();
-  m_Gl1RawHitMap.erase(m_Gl1RawHitMap.begin());
+  else
+  {
+    for (auto iter : m_Gl1InputVector)
+    {
+      iter->CleanupUsedPackets(m_Gl1RawHitMap.begin()->first);
+    }
+    m_Gl1RawHitMap.begin()->second.Gl1RawHitVector.clear();
+    m_Gl1RawHitMap.erase(m_Gl1RawHitMap.begin());
+  }
   // std::cout << "size  m_Gl1RawHitMap: " <<  m_Gl1RawHitMap.size()
   // 	    << std::endl;
   return 0;
@@ -631,7 +665,6 @@ int Fun4AllStreamingInputManager::FillIntt()
   if (m_RefBCO == 0)
   {
     m_RefBCO = m_InttRawHitMap.begin()->first;
-    //    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
   }
   select_crossings += m_RefBCO;
   if (Verbosity() > 2)
@@ -650,6 +683,7 @@ int Fun4AllStreamingInputManager::FillIntt()
                 << " corrected for negative offset: 0x" << m_InttRawHitMap.begin()->first + m_intt_negative_bco
                 << " smaller than GL1 BCO: 0x" << m_RefBCO
                 << " corrected for range: 0x" << select_crossings
+                << std::dec << " diff: " << (m_RefBCO - m_InttRawHitMap.begin()->first)
                 << ", ditching this bco" << std::dec << std::endl;
     }
     for (auto iter : m_InttInputVector)
@@ -731,13 +765,16 @@ int Fun4AllStreamingInputManager::FillIntt()
     h_taggedAllFee_intt->Fill(refbcobitshift);
   }
 
+  //  std::cout << "Checking diff " << (m_InttRawHitMap.begin()->first - (select_crossings - m_intt_negative_bco)) << std::endl;
   while (m_InttRawHitMap.begin()->first <= select_crossings - m_intt_negative_bco)
   {
     for (auto intthititer : m_InttRawHitMap.begin()->second.InttRawHitVector)
     {
       if (Verbosity() > 1)
       {
-        intthititer->identify();
+        std::cout << "Adding intt hit with bco 0x" << std::hex
+                  << intthititer->get_bco() << std::dec << std::endl;
+        //        intthititer->identify();
       }
       inttcont->AddHit(intthititer);
     }
