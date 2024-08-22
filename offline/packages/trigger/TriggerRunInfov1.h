@@ -20,6 +20,10 @@ public:
   
   int getPrescaleByName(const std::string& name) const override ;
 
+  int getPrescaleByBit(int triggerbit) const override ;
+
+  uint32_t getTriggerBitByName(const std::string& name) const override ;
+
   void identify(std::ostream& os = std::cout) const override;
 
 private:

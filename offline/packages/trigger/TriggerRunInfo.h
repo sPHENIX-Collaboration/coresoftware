@@ -20,6 +20,9 @@ public:
   virtual void setTrigger(int , const std::string&, int, int)  {return;}
 
   virtual int getPrescaleByName(const std::string&) const {return 0;}       
+  virtual int getPrescaleByBit(int) const { return 0; }
+
+  virtual uint32_t getTriggerBitByName(const std::string&) const {return 0;}       
 
 
  private:  // so the ClassDef does not show up with doc++
