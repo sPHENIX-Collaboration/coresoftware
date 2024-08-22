@@ -619,8 +619,9 @@ int Fun4AllStreamingInputManager::FillGl1()
     for (auto iter : m_Gl1InputVector)
     {
       delete iter;
-      m_gl1_registered_flag = false;
     }
+      m_gl1_registered_flag = false;
+      m_Gl1InputVector.clear();
   }
   else
   {
