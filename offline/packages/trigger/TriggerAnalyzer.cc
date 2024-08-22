@@ -28,13 +28,13 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode *topNode)
 bool TriggerAnalyzer::didTriggerFire(const std::string& triggername)
 {
   uint32_t bit = triggerruninfo->getTriggerBitByName(triggername);
-  return (((gl1_scaledvec >> bit) & 0x1) == 0x1);
+  return (((gl1_scaledvec >> bit) & 0x1U) == 0x1U);
 }
 
 bool TriggerAnalyzer::didTriggerFire(int triggerbit)
 {
   uint32_t bit = (uint32_t) triggerbit;
-  return (((gl1_scaledvec >> bit) & 0x1) == 0x1);
+  return (((gl1_scaledvec >> bit) & 0x1U) == 0x1U);
 
 }
 
@@ -51,13 +51,13 @@ int TriggerAnalyzer::getTriggerPrescale(int triggerbit)
 bool TriggerAnalyzer::checkRawTrigger(const std::string& triggername)
 {
   uint32_t bit = triggerruninfo->getTriggerBitByName(triggername);
-  return (((gl1_livevec >> bit) & 0x1) == 0x1);
+  return (((gl1_livevec >> bit) & 0x1U) == 0x1U);
   
 }
 
 bool TriggerAnalyzer::checkRawTrigger(int triggerbit)
 {
   uint32_t bit = (uint32_t) triggerbit;
-  return (((gl1_livevec >> bit) & 0x1) == 0x1);
+  return (((gl1_livevec >> bit) & 0x1U) == 0x1U);
 }
 
