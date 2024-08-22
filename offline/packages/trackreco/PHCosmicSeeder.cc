@@ -122,7 +122,6 @@ int PHCosmicSeeder::process_event(PHCompositeNode*)
   }
   auto chainedSeeds = chainSeeds(finalSeeds, clusterPositions);
   // auto chainedSeeds = finalSeeds;
-
   if (Verbosity() > 1)
   {
     std::cout << "Total seeds found is " << chainedSeeds.size() << std::endl;
@@ -256,7 +255,7 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       float pdiff3 = fabs((seed1.rzintercept - seed2.rzintercept) / longestrzint);
       float pdiff4 = fabs((seed1.rzslope - seed2.rzslope) / longestrzslope);
       if (pdiff < 1. && pdiff2 < 1. && pdiff3 < 1. && pdiff4 < 1.)
-      { 
+      {
         seedsToDelete.insert(j);
         for (auto& key : seed2.ckeys)
         {
@@ -335,7 +334,7 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
       }
     }
   }
-  if (Verbosity() > 2)
+  if (Verbosity() > 4)
   {
     std::cout << "seeds to delete size is " << seedsToDelete.size() << std::endl;
   }
@@ -435,14 +434,19 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       // only look at the cluster that is within 2cm of the doublet clusters
       float dist1 = (pos1 - pos).norm();
       float dist2 = (pos2 - pos).norm();
+      float dist12_check = 2.;
+      if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
+      {
+        dist12_check = 1.
+      }
       if (dist1 < dist2)
       {
-        if (dist1 > 1)
+        if (dist1 > dist12_check)
           continue;
       }
       else
       {
-        if (dist2 > 1)
+        if (dist2 > dist12_check)
           continue;
       }
 
