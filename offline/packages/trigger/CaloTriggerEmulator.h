@@ -136,12 +136,9 @@ class CaloTriggerEmulator : public SubsysReco
   bool m_default_lut_hcalin{false};
   bool m_default_lut_hcalout{false};
   bool m_default_lut_emcal{false};
-  bool m_default_lut_mbd{false};
-
   bool m_force_hcalin{false};
   bool m_force_hcalout{false};
   bool m_force_emcal{false};
-  bool m_force_mbd{false};
 
   //! Waveform conatiner
   TowerInfoContainer *m_waveforms_hcalin{nullptr};
@@ -222,9 +219,7 @@ class CaloTriggerEmulator : public SubsysReco
   bool m_single_threshold{true};
   unsigned int m_threshold{1};
   unsigned int m_threshold_calo[4] = {0};
-  bool m_isdata{false};
   int m_nsamples{31};
-  int m_idx{12};  // for MBD, this is the peak sample in run-23 data
 
   std::vector<unsigned int> m_masks_fiber;
   std::vector<unsigned int> m_masks_channel;
