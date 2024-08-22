@@ -5,9 +5,9 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
-#include <phool/PHObject.h> 
 
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
@@ -82,9 +82,9 @@ int TriggerRunInfoReco::fetchTriggerPrescales(int runnumber, TriggerRunInfo *tri
   int prescales[64];
   std::string names[64];
   for (int i = 0; i < 64; i++)
-    {
-      names[i] = "unknown"+std::to_string(i);
-    }
+  {
+    names[i] = "unknown" + std::to_string(i);
+  }
 
   if (resultSet && resultSet->next())
   {
@@ -115,13 +115,12 @@ int TriggerRunInfoReco::fetchTriggerPrescales(int runnumber, TriggerRunInfo *tri
   }
 
   for (int bit = 0; bit < 64; bit++)
-    {
-      triggerRunInfo->setTrigger(bit,names[bit],bit, prescales[bit]);
-    }
+  {
+    triggerRunInfo->setTrigger(bit, names[bit], bit, prescales[bit]);
+  }
 
   delete resultSet;
   delete stmt;
   delete dbConnection;
   return 0;
 }
-

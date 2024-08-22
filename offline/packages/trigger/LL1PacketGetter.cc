@@ -154,7 +154,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
     unsigned int clk;
     unsigned int evt;
     int nsamples;
-    //int monitor;
+    // int monitor;
     for (int pid = m_packet_low; pid <= m_packet_high; pid++)
     {
       Packet *packet = _event->getPacket(pid);
@@ -164,7 +164,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
         evt = packet->iValue(0, "EVTNR");
         clk = packet->iValue(0, "CLOCK");
         nsamples = packet->iValue(0, "SAMPLES");
-        //monitor = packet->iValue(0, "MONITOR");
+        // monitor = packet->iValue(0, "MONITOR");
 
         if (!m_no_ll1out)
         {
@@ -180,37 +180,34 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
           return Fun4AllReturnCodes::DISCARDEVENT;
         }
 
-	TriggerDefs::PrimitiveId primid = TriggerDefs::GetPrimitiveId(m_trigger);
-	if (primid == TriggerDefs::PrimitiveId::nonePId)
-	{
-	  primid = TriggerDefs::GetPrimitiveId(m_ll1);
-	}
+        TriggerDefs::PrimitiveId primid = TriggerDefs::GetPrimitiveId(m_trigger);
+        if (primid == TriggerDefs::PrimitiveId::nonePId)
+        {
+          primid = TriggerDefs::GetPrimitiveId(m_ll1);
+        }
 
         for (int iprim = 0; iprim < m_nprimitives; iprim++)
         {
-
-	  
           primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, m_nprimitives * (pid - m_packet_low) + iprim);
 
           _trigger_primitive = m_trigger_primitives->get_primitive_at_key(primkey);
 
           for (int channel = 0; channel < m_nchannels_per_primitive; channel++)
           {
-	    sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, m_nprimitives * (pid - m_packet_low) + iprim, channel);
-	    
+            sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, m_nprimitives * (pid - m_packet_low) + iprim, channel);
+
             _sum = _trigger_primitive->get_sum_at_key(sumkey);
             for (int samp = 0; samp < nsamples; samp++)
             {
               if (pid == 13002)
-	      {
-		_sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim*2 + channel/12 + 32*(channel%12))));
-	      }
-	      else
-	      {
-		_sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim * m_nchannels_per_primitive + channel)));
-	      }
+              {
+                _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim * 2 + channel / 12 + 32 * (channel % 12))));
+              }
+              else
+              {
+                _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim * m_nchannels_per_primitive + channel)));
+              }
             }
-
           }
         }
 
@@ -218,8 +215,8 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
         {
           for (int channel = 0; channel < ntriggerwords; channel++)
           {
-	    std::vector<unsigned int>* sum = m_ll1out->get_word(((unsigned int) (channel % 32) & 0xffffU) + (((unsigned int) (channel / 32) & 0xffffU) << 16U));
-	    
+            std::vector<unsigned int> *sum = m_ll1out->get_word(((unsigned int) (channel % 32) & 0xffffU) + (((unsigned int) (channel / 32) & 0xffffU) << 16U));
+
             for (int samp = 0; samp < nsamples; samp++)
             {
               sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives * m_nchannels_per_primitive + channel)));
@@ -232,11 +229,10 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
           TriggerDefs::PrimitiveId prid = TriggerDefs::PrimitiveId::jetPId;
           TriggerDefs::DetectorId did = TriggerDefs::DetectorId::emcalDId;
 
-	  
           primkey = TriggerDefs::getTriggerPrimKey(tid, did, prid, pid - m_packet_low);
 
           _trigger_primitive = new TriggerPrimitivev1(primkey);
-	  
+
           for (int channel = 0; channel < 24; channel++)
           {
             sumkey = TriggerDefs::getTriggerSumKey(tid, did, prid, pid - m_packet_low, channel);
