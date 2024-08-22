@@ -22,4 +22,3 @@ class TriggerRunInfoReco : public SubsysReco
 };
 
 #endif /* FFAMODULES_TRIGGERRUNINFORECO_H */
-

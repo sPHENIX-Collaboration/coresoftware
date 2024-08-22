@@ -3,28 +3,26 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>
-#include <string>
 #include <array>
 #include <cstdint>
+#include <iostream>
+#include <string>
 
-class TriggerRunInfo  : public PHObject
+class TriggerRunInfo : public PHObject
 {
-public:
+ public:
   TriggerRunInfo() = default;
   ///
   virtual ~TriggerRunInfo() override = default;
 
   void identify(std::ostream& os = std::cout) const override;
 
-  virtual void setTrigger(int , const std::string&, int, int)  {return;}
+  virtual void setTrigger(int, const std::string&, int, int) { return; }
 
-  virtual int getPrescaleByName(const std::string&) const {return 0;}       
-
+  virtual int getPrescaleByName(const std::string&) const { return 0; }
 
  private:  // so the ClassDef does not show up with doc++
   ClassDefOverride(TriggerRunInfo, 1);
-
 };
 
 #endif

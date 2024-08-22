@@ -17,7 +17,7 @@ class MinimumBiasInfov1 : public MinimumBiasInfo
 
   int isValid() const override { return 1; }
 
-  PHObject* CloneMe() const override { return new MinimumBiasInfov1(*this); }
+  PHObject *CloneMe() const override { return new MinimumBiasInfov1(*this); }
 
   void CopyTo(MinimumBiasInfo *mbinfo) override;
 

@@ -3,4 +3,3 @@
 #pragma link C++ class TriggerRunInfo + ;
 
 #endif /* __CINT__ */
-

@@ -80,7 +80,7 @@ class CaloTriggerEmulator : public SubsysReco
   void setHcalinLUTFile(const std::string &filename) { m_hcalin_lutname = filename; }
   void setHcaloutLUTFile(const std::string &filename) { m_hcalout_lutname = filename; }
 
-  void useMax(bool max) { m_use_max= max; }
+  void useMax(bool max) { m_use_max = max; }
 
   void useEMCALDefaultLUT(bool def) { m_default_lut_emcal = def; }
   void useHCALINDefaultLUT(bool def) { m_default_lut_hcalin = def; }
@@ -163,16 +163,14 @@ class CaloTriggerEmulator : public SubsysReco
 
   TriggerPrimitiveContainer *m_primitives_emcal_ll1{nullptr};
 
-
   unsigned int m_l1_adc_table[1024]{};
   unsigned int m_l1_adc_table_time[1024]{};
   unsigned int m_l1_slewing_table[4096]{};
   unsigned int m_l1_hcal_table[4096]{};
 
-
-  std::map<unsigned int, TH1*> h_emcal_lut;
-  std::map<unsigned int, TH1*> h_hcalin_lut;
-  std::map<unsigned int, TH1*> h_hcalout_lut;
+  std::map<unsigned int, TH1 *> h_emcal_lut;
+  std::map<unsigned int, TH1 *> h_hcalin_lut;
+  std::map<unsigned int, TH1 *> h_hcalout_lut;
 
   CDBHistos *cdbttree_emcal{nullptr};
   CDBHistos *cdbttree_hcalin{nullptr};
@@ -208,10 +206,10 @@ class CaloTriggerEmulator : public SubsysReco
 
   unsigned int m_nhit1, m_nhit2, m_timediff1, m_timediff2, m_timediff3;
 
-  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_emcal;
-  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_mbd;
-  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_hcalin;
-  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_hcalout;
+  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_emcal;
+  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_mbd;
+  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_hcalin;
+  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_hcalout;
 
   //! Verbosity.
   int m_nevent{0};
@@ -225,8 +223,8 @@ class CaloTriggerEmulator : public SubsysReco
   unsigned int m_threshold{1};
   unsigned int m_threshold_calo[4] = {0};
   bool m_isdata{false};
-  int m_nsamples {31};
-  int m_idx{12};// for MBD, this is the peak sample in run-23 data
+  int m_nsamples{31};
+  int m_idx{12};  // for MBD, this is the peak sample in run-23 data
 
   std::vector<unsigned int> m_masks_fiber;
   std::vector<unsigned int> m_masks_channel;
