@@ -437,7 +437,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       float dist12_check = 2.;
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
       {
-        dist12_check = 1.
+        dist12_check = 1.;
       }
       if (dist1 < dist2)
       {
