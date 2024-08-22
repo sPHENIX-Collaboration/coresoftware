@@ -452,7 +452,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
 
       float predy = dub.xyslope * pos.x() + dub.xyintercept;
       float predr = dub.rzslope * pos.z() + dub.rzintercept;
-      if (Verbosity() > 3)
+      if (Verbosity() > 2)
       {
         std::cout << "testing ckey " << key << " with box dca "
                   << predy << ", " << pos.transpose() << " and " << predr << ", " << r(pos.x(), pos.y())
