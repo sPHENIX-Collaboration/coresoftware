@@ -151,7 +151,10 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
   m_event = eventHeader->get_EvtSequence();
 
-  std::cout << "LaserClusterizer::process_event working on event " << m_event << std::endl;
+  if(Verbosity() > 1)
+  {
+    std::cout << "LaserClusterizer::process_event working on event " << m_event << std::endl;
+  }
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -450,7 +453,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     m_clusterTree->Fill();
   }
 
-  if (Verbosity())
+  if (Verbosity()>2)
   {
     std::cout << "rtree search time: " << t_search->get_accumulated_time() / 1000. << " sec" << std::endl;
     std::cout << "clustering time: " << t_clus->get_accumulated_time() / 1000. << " sec" << std::endl;
