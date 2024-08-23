@@ -1507,9 +1507,10 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
 
   // testing with presets for rejection
   PHGhostRejection rejector(Verbosity(), seeds);
-  /* rejector.set_min_pt_cut(0.2); */
-  /* rejector.set_must_span_sectors(true); */
-  /* rejector.set_min_clusters(8); */
+  // if desired, set the ghost rejection here list following:
+  // rejector.set_min_pt_cut(0.2);
+  // rejector.set_must_span_sectors(true);
+  // rejector.set_min_clusters(8);
   
   for (unsigned int itrack=0; itrack < seeds.size(); ++itrack) 
   {
