@@ -16,66 +16,63 @@ TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::Trig
 
   // Make the primitives.
   int nprimitives = 0;
-  
+
   int nsums = 0;
-  
 
   if (tid == TriggerDefs::noneTId)
+  {
+    if (did == TriggerDefs::DetectorId::emcalDId)
     {
-      if (did == TriggerDefs::DetectorId::emcalDId)
-	{
-	  nprimitives = 384;
-	}
-      else if (did == TriggerDefs::DetectorId::hcalinDId || did == TriggerDefs::DetectorId::hcaloutDId || did == TriggerDefs::DetectorId::hcalDId)
-	{
-	  nprimitives = 24;
-	}
-      m_primitiveid = TriggerDefs::PrimitiveId::calPId;
-      nsums = 16;
+      nprimitives = 384;
     }
+    else if (did == TriggerDefs::DetectorId::hcalinDId || did == TriggerDefs::DetectorId::hcaloutDId || did == TriggerDefs::DetectorId::hcalDId)
+    {
+      nprimitives = 24;
+    }
+    m_primitiveid = TriggerDefs::PrimitiveId::calPId;
+    nsums = 16;
+  }
   else if (tid == TriggerDefs::jetTId || tid == TriggerDefs::photonTId)
-    {
-      nprimitives = 16;
+  {
+    nprimitives = 16;
 
-      m_primitiveid = TriggerDefs::PrimitiveId::jetPId;
-      nsums = 24;
- 
-    }
+    m_primitiveid = TriggerDefs::PrimitiveId::jetPId;
+    nsums = 24;
+  }
   else if (tid == TriggerDefs::pairTId)
-    {
-      nprimitives = 16;
-      m_primitiveid = TriggerDefs::PrimitiveId::pairPId;
-      nsums = 16;
-    }
+  {
+    nprimitives = 16;
+    m_primitiveid = TriggerDefs::PrimitiveId::pairPId;
+    nsums = 16;
+  }
   else if (tid == TriggerDefs::mbdTId)
-    {
-      nprimitives = 4;
-      m_primitiveid = TriggerDefs::PrimitiveId::mbdPId;
-      nsums = 13;
-    }
+  {
+    nprimitives = 4;
+    m_primitiveid = TriggerDefs::PrimitiveId::mbdPId;
+    nsums = 13;
+  }
   // add a primitive for all primitives
-  for (int ip = 0 ;ip < nprimitives; ip++)
+  for (int ip = 0; ip < nprimitives; ip++)
+  {
+    TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(m_triggerid, m_detectorid, m_primitiveid, ip);
+    TriggerPrimitive* primitive = new TriggerPrimitivev1(primkey);
+    for (int is = 0; is < nsums; is++)
     {
-      TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(m_triggerid, m_detectorid, m_primitiveid, ip);
-      TriggerPrimitive *primitive = new TriggerPrimitivev1(primkey);
-      for (int is = 0; is < nsums; is++)
-	{ 
-	  TriggerDefs::TriggerSumKey sumkey = TriggerDefs::getTriggerSumKey(m_triggerid, m_detectorid, m_primitiveid, ip, is);
-	  std::vector<unsigned int> *t_sum = new std::vector<unsigned int>();
-	  primitive->add_sum(sumkey, t_sum);
-	}
-      add_primitive(primkey, primitive);
+      TriggerDefs::TriggerSumKey sumkey = TriggerDefs::getTriggerSumKey(m_triggerid, m_detectorid, m_primitiveid, ip, is);
+      std::vector<unsigned int>* t_sum = new std::vector<unsigned int>();
+      primitive->add_sum(sumkey, t_sum);
     }
+    add_primitive(primkey, primitive);
+  }
   return;
 }
 
-TriggerPrimitiveContainerv1::~TriggerPrimitiveContainerv1()
-= default;
+TriggerPrimitiveContainerv1::~TriggerPrimitiveContainerv1() = default;
 
 //______________________________________
 void TriggerPrimitiveContainerv1::Reset()
 {
-  for ( const auto &primitive : _primitives)
+  for (const auto& primitive : _primitives)
   {
     primitive.second->Reset();
   }
