@@ -98,8 +98,6 @@ class LaserClusterizer : public SubsysReco
   TH1I *m_itHist_0 = nullptr;
   TH1I *m_itHist_1 = nullptr;
 
-  bool m_skipEmpty = false;
-
   int m_nClus = 0;
   double time_search = 0;
   double time_clus = 0;
