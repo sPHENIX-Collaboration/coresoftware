@@ -67,9 +67,9 @@ class PHGhostRejection
 
   // cuts on minimally interesting tracks -- 
   // here to remove noise
-  double _min_pt = 0.2;
-  bool   _must_span_sectors = true;
-  size_t _min_clusters = 6;
+  double _min_pt = 0.0;
+  bool   _must_span_sectors = false;
+  size_t _min_clusters = 3;
 
 
   /* TrackSeedContainer *m_trackMap = nullptr; */
