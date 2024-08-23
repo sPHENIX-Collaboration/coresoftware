@@ -31,6 +31,7 @@ class MbdCalib
   float get_qgain(const int ipmt) const { return _qfit_mpv[ipmt]; }
   float get_tq0(const int ipmt) const { return _tqfit_t0mean[ipmt]; }
   float get_tt0(const int ipmt) const { return _ttfit_t0mean[ipmt]; }
+  float get_t0corr() const { return _t0corrmean; }
   float get_ped(const int ifeech) const { return _pedmean[ifeech]; }
   float get_pedrms(const int ifeech) const { return _pedsigma[ifeech]; }
   int   get_sampmax(const int ifeech) const { return _sampmax[ifeech]; }
@@ -72,6 +73,7 @@ class MbdCalib
   int Download_Gains(const std::string& dbfile);
   int Download_TQT0(const std::string& dbfile);
   int Download_TTT0(const std::string& dbfile);
+  int Download_T0Corr(const std::string& dbfile);
   int Download_Ped(const std::string& dbfile);
   int Download_SampMax(const std::string& dbfile);
   int Download_Shapes(const std::string& dbfile);
@@ -83,6 +85,7 @@ class MbdCalib
   int Write_CDB_SampMax(const std::string& dbfile);
   int Write_CDB_TTT0(const std::string& dbfile);
   int Write_CDB_TQT0(const std::string& dbfile);
+  int Write_CDB_T0Corr(const std::string& dbfile);
   int Write_CDB_Ped(const std::string& dbfile);
   int Write_CDB_Shapes(const std::string& dbfile);
   int Write_CDB_TimeCorr(const std::string& dbfile);
@@ -94,10 +97,12 @@ class MbdCalib
   int Write_SampMax(const std::string& dbfile);
   int Write_TQT0(const std::string& dbfile);
   int Write_TTT0(const std::string& dbfile);
+  int Write_T0Corr(const std::string& dbfile);
   int Write_Ped(const std::string& dbfile);
 
   void Reset_TQT0();
   void Reset_TTT0();
+  void Reset_T0Corr();
   void Reset_Ped();
   void Reset_Gains();
 
@@ -146,6 +151,12 @@ class MbdCalib
   std::array<float, MbdDefs::MBD_N_PMT> _tqfit_t0meanerr{};
   std::array<float, MbdDefs::MBD_N_PMT> _tqfit_t0sigma{};
   std::array<float, MbdDefs::MBD_N_PMT> _tqfit_t0sigmaerr{};
+
+  // Overall T0 offset
+  Float_t _t0corrmean{ 0. };
+  Float_t _t0corrmeanerr{ 0. };
+  Float_t _t0corrsigma{ std::numeric_limits<float>::quiet_NaN() };
+  Float_t _t0corrsigmaerr{ std::numeric_limits<float>::quiet_NaN() };
 
   // Pedestals
   std::array<float, MbdDefs::MBD_N_FEECH> _pedmean{};

@@ -63,6 +63,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int FillMicromegasPool();
   int FillMvtxPool();
   int FillTpcPool();
+  void Streaming(bool b = true) { m_StreamingFlag = b; }
 
  private:
   struct MvtxRawHitInfo
@@ -118,6 +119,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_intt_registered_flag{false};
   bool m_micromegas_registered_flag{false};
   bool m_mvtx_registered_flag{false};
+  bool m_StreamingFlag{false};
   bool m_tpc_registered_flag{false};
 
   std::vector<SingleStreamingInput *> m_Gl1InputVector;

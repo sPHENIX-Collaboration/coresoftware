@@ -36,9 +36,9 @@ class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override;
 
-  void setTriggerId(TriggerDefs::TriggerId triggerid) override { m_triggerid = triggerid ; };
-  void setDetectorId(TriggerDefs::DetectorId detectorid) override { m_detectorid = detectorid ; };
-  void setPrimitiveId(TriggerDefs::PrimitiveId primitiveid) override { m_primitiveid = primitiveid ; };
+  void setTriggerId(TriggerDefs::TriggerId triggerid) override { m_triggerid = triggerid; };
+  void setDetectorId(TriggerDefs::DetectorId detectorid) override { m_detectorid = detectorid; };
+  void setPrimitiveId(TriggerDefs::PrimitiveId primitiveid) override { m_primitiveid = primitiveid; };
 
   TriggerPrimitive* get_primitive_at_key(TriggerDefs::TriggerPrimKey /* index */) override;
 

@@ -46,6 +46,10 @@ class InttCombinedRawDataDecoder : public SubsysReco
 
   void writeInttEventHeader(bool write) { m_writeInttEventHeader = write; }
 
+  void set_inttFeeOffset(int offset) { m_inttFeeOffset = offset; }
+  void set_outputBcoDiff(bool flag) {m_outputBcoDiff = flag; }
+  void set_triggeredMode(bool flag) {m_triggeredMode = flag; }
+
  private:
   InttEventInfo* intt_event_header = nullptr;
   std::string m_InttRawNodeName = "INTTRAWHIT";
@@ -59,6 +63,11 @@ class InttCombinedRawDataDecoder : public SubsysReco
 
   InttDacMap m_dacmap;
   InttBCOMap m_bcomap;
+
+  int m_inttFeeOffset = 23;   //23 is the offset for INTT in streaming mode
+  bool m_outputBcoDiff = false;
+  bool m_triggeredMode = false;
+
 };
 
 #endif  // INTT_COMBINEDRAWDATADECODER_H
