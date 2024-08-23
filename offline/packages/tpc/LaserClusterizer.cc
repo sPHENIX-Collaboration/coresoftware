@@ -308,7 +308,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
            hitr != hitrangei.second;
            ++hitr)
       {
-        float_t fadc = (hitr->second->getAdc()) - m_pedestal;  // proper int rounding +0.5
+        float_t fadc = (hitr->second->getAdc()) - m_adc_threshold;  // proper int rounding +0.5
         unsigned short adc = 0;
         if (fadc > 0)
         {
