@@ -574,10 +574,14 @@ int TpcSeedsQA::EndRun(const int /*runnumber*/)
       if (num_track_side0_pt[region][index_pt]>0)
       {
         h_cluster_phisize1_fraction_mean_side0[region]->SetBinContent(index_pt+1,frac_side0_pt[region][index_pt] / num_track_side0_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_numerator_side0[region]->SetBinContent(index_pt+1,frac_side0_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_denominator_side0[region]->SetBinContent(index_pt+1,num_track_side0_pt[region][index_pt]);
       }
       if (num_track_side1_pt[region][index_pt]>0)
       {
         h_cluster_phisize1_fraction_mean_side1[region]->SetBinContent(index_pt+1,frac_side1_pt[region][index_pt] / num_track_side1_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_numerator_side1[region]->SetBinContent(index_pt+1,frac_side1_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_denominator_side1[region]->SetBinContent(index_pt+1,num_track_side1_pt[region][index_pt]);
       }
     }
   }
@@ -880,5 +884,30 @@ void TpcSeedsQA::createHistos()
     h_cluster_phisize1_fraction_mean_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_side1[region]);
+
+    h_cluster_phisize1_fraction_mean_numerator_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_numerator_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                                                         (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_numerator_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_numerator_side0[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_numerator_side0[region]);
+
+    h_cluster_phisize1_fraction_mean_numerator_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_numerator_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                                                         (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_numerator_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_numerator_side1[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_numerator_side1[region]);
+
+    h_cluster_phisize1_fraction_mean_denominator_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_denominator_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                                                         (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_denominator_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_denominator_side0[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_denominator_side0[region]);
+
+    h_cluster_phisize1_fraction_mean_denominator_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_denominator_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                                                         (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_denominator_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_denominator_side1[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_denominator_side1[region]);
+
   }
 }
