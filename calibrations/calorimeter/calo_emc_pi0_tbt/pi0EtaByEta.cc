@@ -176,15 +176,18 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   {
     std::cout << PHWHERE << "CaloValid::process_event: GL1Packet node is missing" << std::endl;
   }
-
+   
+  bool scaledBits[64] = {false};
   if (gl1PacketInfo)
   {
     uint64_t triggervec = gl1PacketInfo->getScaledVector();
-    if (  ( triggervec >> 10U ) & 0x1U )
+    for (bool & scaledBit : scaledBits)
     {
-      isMinBias = true;
+      scaledBit = (triggervec & 0x1U) == 0x1U;
+      triggervec = (triggervec >> 1U) & 0xffffffffU;
     }
   }
+  isMinBias = scaledBits[10] || scaledBits[11];
  
   if (reqMinBias && isMinBias != true)  
   {
