@@ -19,14 +19,9 @@ enum PHTreeType
 };
 
 // General purpose functions
-void PHMessage(const std::string&, int, const std::string&);
 
 #define PHWHERE __FILE__ << ":" << __LINE__ << ": "
-#define PHMESSAGE(x)                          \
-  do                                          \
-  {                                           \
-    std::cout << PHWHERE << (x) << std::endl; \
-  } while (0)
+
 #define PHOOL_VIRTUAL_WARNING                                                     \
   do                                                                              \
   {                                                                               \
