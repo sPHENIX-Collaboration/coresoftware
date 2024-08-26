@@ -89,7 +89,8 @@ bool PHRawOManager::setFile(const std::string& setFile, const int setRun, const 
 
   if (filedesc < 0)
   {
-    PHMessage("PHRawOManager::setFile", PHError, "could not open file");
+    std::cout << PHWHERE << " could not open file "
+	      << filename << std::endl;;
     return false;
   }
   memBuffer = new PHDWORD[bufferSize];
