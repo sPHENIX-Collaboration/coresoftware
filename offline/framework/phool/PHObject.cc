@@ -8,7 +8,7 @@
 
 class TObject;
 
-PHObject*
+PHObject *
 PHObject::CloneMe() const
 {
   std::cout << PHWHERE << " CloneMe() not implemented by " << this->GetName()
@@ -16,14 +16,14 @@ PHObject::CloneMe() const
   return nullptr;
 }
 
-PHObject*
+PHObject *
 PHObject::clone() const
 {
   std::cout << PHWHERE << " clone() is obsolete" << std::endl;
   return nullptr;
 }
 
-void PHObject::identify(std::ostream& os) const
+void PHObject::identify(std::ostream &os) const
 {
   os << "identify yourself: I am a PHObject object detailed identify not implemented by "
      << this->GetName() << std::endl;
@@ -56,27 +56,25 @@ int PHObject::isValid() const
   return 0;
 }
 
-
-
-void PHObject::CopyFrom(const PHObject */*obj*/)
+void PHObject::CopyFrom(const PHObject * /*obj*/)
 {
   std::cout << PHWHERE
             << " CopyFrom(const PHObject *obj) is not implemented by "
-	    << this->GetName() << std::endl;
+            << this->GetName() << std::endl;
   gSystem->Exit(1);
 }
 
-PHObject *PHObject::Clone(const char */*newname*/) const
+PHObject *PHObject::Clone(const char * /*newname*/) const
 {
   std::cout << PHWHERE << this->GetName()
-	  << "is overriding the TObject::Clone method which is not supported"  << std::endl;
+            << "is overriding the TObject::Clone method which is not supported" << std::endl;
   gSystem->Exit(1);
   return nullptr;
 }
 
-void PHObject::Copy (TObject &/*object*/) const
+void PHObject::Copy(TObject & /*object*/) const
 {
-std::cout << PHWHERE << this->GetName()
-	  << "is overriding the TObject::Copy method which is not supported"  << std::endl;
+  std::cout << PHWHERE << this->GetName()
+            << "is overriding the TObject::Copy method which is not supported" << std::endl;
   gSystem->Exit(1);
 }

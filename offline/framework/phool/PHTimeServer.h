@@ -51,7 +51,6 @@ class PHTimeServer
     }
 
    private:
-
     std::shared_ptr<PHTimer> _timer;
     unsigned short _uid;
   };

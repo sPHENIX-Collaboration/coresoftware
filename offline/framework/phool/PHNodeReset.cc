@@ -12,7 +12,10 @@
 
 void PHNodeReset::perform(PHNode* node)
 {
-  if (node->getResetFlag() != true) return;
+  if (node->getResetFlag() != true)
+  {
+    return;
+  }
   if (verbosity > 0)
   {
     std::cout << "PHNodeReset: Resetting " << node->getName() << std::endl;
