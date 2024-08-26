@@ -6,13 +6,6 @@
 
 #include <iostream>
 
-//  Global type definitions
-enum PHMessageType
-{
-  PHError,
-  PHWarning,
-  PHHullo
-};
 enum PHAccessType
 {
   PHReadOnly,

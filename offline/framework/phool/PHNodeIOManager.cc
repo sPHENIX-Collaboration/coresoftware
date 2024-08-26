@@ -276,8 +276,7 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   // pas?
   if (!tree)
   {
-    PHMessage("PHNodeIOManager::readEventFromFile", PHError,
-              "Tree not initialized.");
+    std::cout << PHWHERE << " Tree not initialized" << std::endl;
     return false;
   }
 
@@ -335,8 +334,8 @@ int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string& obje
   }
   else
   {
-    PHMessage("PHNodeIOManager::readSpecific", PHError,
-              "Unknown object name");
+    std::cout << PHWHERE << "Cannot find "
+	      << objectName << " in TBranch" << std::endl;
   }
   return 0;
 }
