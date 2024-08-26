@@ -43,14 +43,8 @@ PHRawOManager::~PHRawOManager()
 
 void PHRawOManager::closeFile()
 {
-  if (fileBuffer)
-  {
-    delete fileBuffer;
-  }
-  if (memBuffer)
-  {
-    delete memBuffer;
-  }
+  delete fileBuffer;
+  delete memBuffer;
   fileBuffer = nullptr;
   memBuffer = nullptr;
   if (filedesc >= 0)
@@ -125,7 +119,7 @@ bool PHRawOManager::write(PHRawDataNode* node)
                                                                node->getWordLength(), node->getHitFormat());
     if (bytesAddedToBuffer <= 0)
     {
-      PHMessage("PHRawOManager::write", PHError, "Zero bytes added to buffer");
+      std::cout << PHWHERE << " Zero bytes added to buffer" << std::endl;
       return false;
     }
     return true;
