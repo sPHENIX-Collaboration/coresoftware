@@ -6,6 +6,7 @@
 #include <fun4all/SubsysReco.h>
 /* #include <trackbase/ActsGeometry.h> */
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TpcDefs.h>
 
 /* #include <trackbase/TrkrClusterContainer.h> */
 /* #include <trackbase/TrkrCluster.h> */
@@ -26,11 +27,13 @@ class SvtxTrackMap;
 class TH1;
 class TH2;
 class TrkrClusterContainer;
+class TProfile;
 class TProfile2D;
 class SvtxVertexMap;
 class TrackSeedContainer;
 class TpcDistortionCorrectionContainer;
 class PHG4TpcCylinderGeomContainer;
+class TrackSeed;
 
 class TpcSeedsQA : public SubsysReco
 {
@@ -54,6 +57,7 @@ class TpcSeedsQA : public SubsysReco
   std::string getTrackMapName() { return m_trackMapName; }
   void setVertexMapName(const std::string& name) { m_vertexMapName = name; }
   std::string gettVertexMapName() { return m_vertexMapName; }
+  float calc_dedx(TrackSeed *tpcseed);
 
  private:
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
@@ -120,6 +124,12 @@ class TpcSeedsQA : public SubsysReco
   TH1* h_vchi2dof{nullptr};
   TH1* h_ntrackpervertex{nullptr};
 
+  TH2* h_dedx{nullptr};
+  TH1* h_mip_dedx{nullptr};
+
+  TH2* h_adc_sector[3] = {nullptr};
+  TProfile* h_onepad_frac[3] = {nullptr};
+
   TH1* h_cluster_phisize1_fraction_side0[3] = {nullptr};
   TH1* h_cluster_phisize1_fraction_side1[3] = {nullptr};
 
@@ -150,7 +160,12 @@ class TpcSeedsQA : public SubsysReco
 
   float m_px = std::numeric_limits<float>::quiet_NaN();
   float m_py = std::numeric_limits<float>::quiet_NaN();
+  float m_pz = std::numeric_limits<float>::quiet_NaN();
   float m_pt = std::numeric_limits<float>::quiet_NaN();
+  float m_ptot  = std::numeric_limits<float>::quiet_NaN();
+  float m_charge  = std::numeric_limits<float>::quiet_NaN();
+  float m_dedx = std::numeric_limits<float>::quiet_NaN();
+
   int m_ntpc = std::numeric_limits<int>::quiet_NaN();
   std::vector<float> m_clusgz;
   std::vector<int> m_cluslayer;
