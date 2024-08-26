@@ -2111,6 +2111,8 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
   m_ntracks_all = trackmap->size();
 
   // Hits
+  if(m_doHits)
+  {
   TrkrHitSetContainer::ConstRange tpc_hitsets = hitmap->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitsetiter = tpc_hitsets.first;
        hitsetiter != tpc_hitsets.second;
@@ -2127,7 +2129,7 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
       m_ntpc_hits1 += hitset->size();
     }
   }
-
+  }
   for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
 	TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
   {
