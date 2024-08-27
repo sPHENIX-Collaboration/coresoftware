@@ -5,10 +5,21 @@
 #include <phool/PHNode.h>
 #include <phool/getClass.h>
 
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
+int TpcSeedFilter::InitRun(PHCompositeNode* topNode)
+{
+  _trackseeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  if (!_trackseeds)
+  {
+    std::cerr << PHWHERE << " ERROR: Can't find TrackSeedContainer " << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 int TpcSeedFilter::process_event(PHCompositeNode* topNode)
 {
@@ -21,35 +32,24 @@ int TpcSeedFilter::process_event(PHCompositeNode* topNode)
     topNode->print(); 
   }
 
-  // Get the map of all the input seeds
-  SvtxTrackMap* seeds = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  if (!seeds)
-  {
-    std::cout << "Could not locate SvtxTrackMap node when running "
-              << "\"TpcSeedFilter\" module." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   // iterate through the seeds and remove the ones that fail the cuts
-  for (SvtxTrackMap::Iter track_pair = seeds->begin();
-      track_pair != seeds->end(); ++track_pair)
-  {
-    auto& track = track_pair->second;
-    if (track == nullptr) continue;
+  for (unsigned int iseed = 0; iseed < _trackseeds->size(); ++iseed) {
+    TrackSeed* seed = _trackseeds->get(iseed);
+    if (seed == nullptr) continue;
     
     if (
-        ( _cut_on_min_pt && (track->get_pt() < _min_pt))
-     || ( _cut_on_max_pt && (track->get_pt() > _max_pt))
-     || ( _cut_on_min_eta && (track->get_eta() < _min_eta))
-     || ( _cut_on_max_eta && (track->get_eta() > _max_eta))
-     || ( track->size_cluster_keys() < _nclus_min )
+        ( _cut_on_min_pt  && (seed->get_pt()  < _min_pt))
+     || ( _cut_on_max_pt  && (seed->get_pt()  > _max_pt))
+     || ( _cut_on_min_eta && (seed->get_eta() < _min_eta))
+     || ( _cut_on_max_eta && (seed->get_eta() > _max_eta))
+     || ( seed->size_cluster_keys() < _nclus_min )
      ) {
       if (Verbosity() > 4) {
-        std::cout << " Cutting track: id(" << static_cast<int>(track_pair->first)
-          << ")  nclusters: " // << std::static_cast<int>(track->size_cluster_keys() 
-          << "   pt: " << track->get_pt() << "  eta: " << track->get_eta() << std::endl;
+        std::cout << " Cutting track seed: id(" << iseed
+          << ")  nclusters: " << static_cast<int>(seed->size_cluster_keys())
+          << "   pt: " << seed->get_pt() << "  eta: " << seed->get_eta() << std::endl;
       }
-      seeds->erase(track_pair->first);
+      _trackseeds->erase(iseed);
       continue;
     }
     if (_must_span_sectors) {
@@ -58,8 +58,8 @@ int TpcSeedFilter::process_event(PHCompositeNode* topNode)
       bool in_1 = false;
       bool in_2 = false;
       unsigned int sec_cnt = 0;
-      for (auto key = track->begin_cluster_keys();
-          key != track->end_cluster_keys();
+      for (auto key = seed->begin_cluster_keys();
+          key != seed->end_cluster_keys();
           ++key)
       {
         unsigned int layer = TrkrDefs::getLayer(*key);
@@ -84,18 +84,18 @@ int TpcSeedFilter::process_event(PHCompositeNode* topNode)
           sec_cnt += 1;
         }
 
-        if (sec_cnt >= _min_radial_sectors) break;
+        if (sec_cnt >= _min_radial_sectors)  
+        { break; }
       }
       if (sec_cnt < _min_radial_sectors) {
-        //cut the track
-        seeds->erase(track_pair->first);
+        _trackseeds->erase(iseed);
 
         if (Verbosity() > 4) {
-          std::cout << " Cutting track: id(" << static_cast<int>(track_pair->first)
+          std::cout << " Cutting track seed: id(" << static_cast<int>(iseed)
             << ") :  clusters only in ";
-          if (in_0) std::cout << " inner ";
-          if (in_1) std::cout << " middle ";
-          if (in_2) std::cout << " outer ";
+          if (in_0) { std::cout << " inner "; }
+          if (in_1) { std::cout << " middle "; }
+          if (in_2) { std::cout << " outer "; }
           std::cout << " radial sectors but needs at least " 
             << static_cast<int>(_min_radial_sectors) << std::endl;
         }
@@ -104,7 +104,7 @@ int TpcSeedFilter::process_event(PHCompositeNode* topNode)
     }
   }
   if (Verbosity()>5) {
-    std::cout << " Done cutting on QA for tracks." << std::endl;
+    std::cout << " Done seed on QA for tracks." << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

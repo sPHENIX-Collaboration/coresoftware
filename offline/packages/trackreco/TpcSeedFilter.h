@@ -12,9 +12,10 @@
 // This module, if put in an anayslis chain, will filter through the TpcSeeds (tracks made
 // of clusters in the TPC) and null out any tracks that don't pass the set cuts
 
-class SvtxTrack;
-class SvtxTrackMap;
+/* class SvtxTrack; */
+/* class SvtxTrackMap; */
 class PHCompositeNode;
+class TrackSeedContainer;
 
 class TpcSeedFilter : public SubsysReco
 {
@@ -23,6 +24,8 @@ class TpcSeedFilter : public SubsysReco
   //--------------------------------------------------
  public:
   int process_event(PHCompositeNode* topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+
   TpcSeedFilter( // Criteria to match a TrkrClusterContainer and track
       /*-----------------------------------------------------------------------------------
       * Input criteria for Truth Track (with nT clusters) to reco track (with nR clusters) :
@@ -84,6 +87,7 @@ class TpcSeedFilter : public SubsysReco
     bool  _cut_on_max_pt  {false};
     bool  _cut_on_min_eta {false};
     bool  _cut_on_max_eta {false};
+    TrackSeedContainer *_trackseeds = nullptr;
 };
 
 #endif
