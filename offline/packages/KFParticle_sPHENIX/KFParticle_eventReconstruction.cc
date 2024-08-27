@@ -434,6 +434,14 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
             {
               intParticleMass = kfp_Tools_evtReco.getParticleMass((Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i]);
               intParticlePDG = (Int_t) daughterTracks[i].GetQ() * PDGIDofFirstParticleInCombination[i];
+              // pi+ pdgid = 211, pi- pdgid = -211
+              // e+ pdgid = -11, e- pdgid = 11
+              // mu+ pdgid = -13, mu- pdgid = 13
+              // tau+ pdgid = -15, tau- pdgid = 15
+              if (abs(intParticlePDG) == 11 || abs(intParticlePDG) == 13 || abs(intParticlePDG) == 15)
+              {
+                intParticlePDG *= -1;
+              }
             }
             else if ((Int_t) daughterTracks[i].GetQ() == 0)
             {
