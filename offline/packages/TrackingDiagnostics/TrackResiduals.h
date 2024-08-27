@@ -48,6 +48,7 @@ class TrackResiduals : public SubsysReco
   void trackmapName(const std::string &name) { m_trackMapName = name; }
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
+  void noEventTree() {m_doEventTree = false;}
   void ppmode() { m_ppmode = true; }
   void convertSeeds(bool flag) { m_convertSeeds = flag; }
   void dropClustersNoState(bool flag) { m_dropClustersNoState = flag; }
@@ -101,6 +102,7 @@ class TrackResiduals : public SubsysReco
 
   bool m_doClusters = false;
   bool m_doHits = false;
+  bool m_doEventTree = true;
   bool m_zeroField = false;
   bool m_doFailedSeeds = false;
 
