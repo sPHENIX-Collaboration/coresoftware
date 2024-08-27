@@ -34,6 +34,7 @@
 #include <TProfile2D.h>
 
 #include <boost/format.hpp>
+#include <cmath>
 
 //____________________________________________________________________________..
 TpcSeedsQA::TpcSeedsQA(const std::string &name)
@@ -198,13 +199,13 @@ float TpcSeedsQA::calc_dedx(TrackSeed* tpcseed)
     float thick = GeoLayer_local->get_thickness();
     float r = GeoLayer_local->get_radius();
     float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
-    float beta = atan(tpcseed->get_slope());
-    float alphacorr = cos(alpha);
+    float beta = std::atan(tpcseed->get_slope());
+    float alphacorr = std::cos(alpha);
     if (alphacorr < 0 || alphacorr > 4)
     {
       alphacorr = 4;
     }
-    float betacorr = cos(beta);
+    float betacorr = std::cos(beta);
     if (betacorr < 0 || betacorr > 4)
     {
       betacorr = 4;
