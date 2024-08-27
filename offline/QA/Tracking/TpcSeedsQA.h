@@ -5,8 +5,8 @@
 
 #include <fun4all/SubsysReco.h>
 /* #include <trackbase/ActsGeometry.h> */
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrDefs.h>
 
 /* #include <trackbase/TrkrClusterContainer.h> */
 /* #include <trackbase/TrkrCluster.h> */
@@ -57,7 +57,7 @@ class TpcSeedsQA : public SubsysReco
   std::string getTrackMapName() { return m_trackMapName; }
   void setVertexMapName(const std::string& name) { m_vertexMapName = name; }
   std::string gettVertexMapName() { return m_vertexMapName; }
-  float calc_dedx(TrackSeed *tpcseed);
+  float calc_dedx(TrackSeed* tpcseed);
 
  private:
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
@@ -162,8 +162,8 @@ class TpcSeedsQA : public SubsysReco
   float m_py = std::numeric_limits<float>::quiet_NaN();
   float m_pz = std::numeric_limits<float>::quiet_NaN();
   float m_pt = std::numeric_limits<float>::quiet_NaN();
-  float m_ptot  = std::numeric_limits<float>::quiet_NaN();
-  float m_charge  = std::numeric_limits<float>::quiet_NaN();
+  float m_ptot = std::numeric_limits<float>::quiet_NaN();
+  float m_charge = std::numeric_limits<float>::quiet_NaN();
   float m_dedx = std::numeric_limits<float>::quiet_NaN();
 
   int m_ntpc = std::numeric_limits<int>::quiet_NaN();

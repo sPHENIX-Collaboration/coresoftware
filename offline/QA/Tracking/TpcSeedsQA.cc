@@ -178,7 +178,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-float TpcSeedsQA::calc_dedx(TrackSeed* tpcseed)
+float TpcSeedsQA::calc_dedx(TrackSeed *tpcseed)
 {
   std::vector<TrkrDefs::cluskey> clusterKeys;
   clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
@@ -193,9 +193,9 @@ float TpcSeedsQA::calc_dedx(TrackSeed* tpcseed)
       continue;  // the micromegas clusters are added to the TPC seeds
     }
     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-    TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+    TrkrCluster *cluster = clustermap->findCluster(cluster_key);
     float adc = cluster->getAdc();
-    PHG4TpcCylinderGeom* GeoLayer_local = g4geom->GetLayerCellGeom(layer_local);
+    PHG4TpcCylinderGeom *GeoLayer_local = g4geom->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();
     float r = GeoLayer_local->get_radius();
     float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
@@ -440,8 +440,8 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     m_py = track->get_py();
     m_pz = track->get_pz();
     m_pt = std::sqrt(m_px * m_px + m_py * m_py);
-    m_ptot = std::sqrt(m_px * m_px + m_py * m_py + m_pz+m_pz);
-    TrackSeed* tpcseed = track->get_tpc_seed();
+    m_ptot = std::sqrt(m_px * m_px + m_py * m_py + m_pz + m_pz);
+    TrackSeed *tpcseed = track->get_tpc_seed();
     m_charge = track->get_charge();
     m_dedx = calc_dedx(tpcseed);
 
@@ -452,8 +452,10 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     m_clusphisize.clear();
     m_cluszsize.clear();
 
-    for (const auto &ckey : get_cluster_keys(track)){
-      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId){
+    for (const auto &ckey : get_cluster_keys(track))
+    {
+      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
+      {
         m_ntpc++;
       }
     }
@@ -474,35 +476,39 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
       switch (TrkrDefs::getTrkrId(ckey))
       {
       case TrkrDefs::tpcId:
-	const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(ckey));
-	int region = it->second;
-	m_region.push_back(region);
-	m_clusgz.push_back(clusglob.z());
-	m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
-	m_clusphisize.push_back(cluster->getPhiSize());
-	m_cluszsize.push_back(cluster->getZSize());
-	int this_sector = (int)TpcDefs::getSectorId(ckey);
-	int this_side = (int)TpcDefs::getSide(ckey);
-	int is_onepad = 0;
-	if(cluster->getPhiSize()<=1){
-	  is_onepad = 1;
-	}
-	if(m_ntpc>30&&cluster->getPhiSize()>1&&m_dedx<1500&&m_pt>1.0&&m_pt<50){
-	  h_adc_sector[region]->Fill((this_sector+1)*(2*(this_side-0.5)),cluster->getAdc());
-	}
-	if(m_ntpc>30&&m_dedx<1000&&m_pt>1.0&&m_pt<50&&m_charge<0){
-	  h_onepad_frac[region]->Fill((this_sector+1)*(2*(this_side-0.5)),is_onepad);
-	}
+        const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(ckey));
+        int region = it->second;
+        m_region.push_back(region);
+        m_clusgz.push_back(clusglob.z());
+        m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
+        m_clusphisize.push_back(cluster->getPhiSize());
+        m_cluszsize.push_back(cluster->getZSize());
+        int this_sector = (int) TpcDefs::getSectorId(ckey);
+        int this_side = (int) TpcDefs::getSide(ckey);
+        int is_onepad = 0;
+        if (cluster->getPhiSize() <= 1)
+        {
+          is_onepad = 1;
+        }
+        if (m_ntpc > 30 && cluster->getPhiSize() > 1 && m_dedx < 1500 && m_pt > 1.0 && m_pt < 50)
+        {
+          h_adc_sector[region]->Fill((this_sector + 1) * (2 * (this_side - 0.5)), cluster->getAdc());
+        }
+        if (m_ntpc > 30 && m_dedx < 1000 && m_pt > 1.0 && m_pt < 50 && m_charge < 0)
+        {
+          h_onepad_frac[region]->Fill((this_sector + 1) * (2 * (this_side - 0.5)), is_onepad);
+        }
         break;
       }
     }
 
-    if(m_pt<4&&m_ntpc>30)
-      {
-	h_dedx->Fill(m_charge*m_ptot,m_dedx);
-      }
-    
-    if(m_pt>0.5&&m_pt<4&&m_ntpc>30&&m_charge<0&&m_dedx<1000&&m_dedx>50){
+    if (m_pt < 4 && m_ntpc > 30)
+    {
+      h_dedx->Fill(m_charge * m_ptot, m_dedx);
+    }
+
+    if (m_pt > 0.5 && m_pt < 4 && m_ntpc > 30 && m_charge < 0 && m_dedx < 1000 && m_dedx > 50)
+    {
       h_mip_dedx->Fill(m_dedx);
     }
 
@@ -614,7 +620,7 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
         h_cluster_phisize1_fraction_pt_side0[region]->Fill(m_pt, frac_side0);
 
         int index_pt_side0 = h_cluster_phisize1_fraction_mean_side0[region]->FindBin(m_pt) - 1;
-        if (index_pt_side0<h_cluster_phisize1_fraction_mean_side0[region]->GetNbinsX())
+        if (index_pt_side0 < h_cluster_phisize1_fraction_mean_side0[region]->GetNbinsX())
         {
           frac_side0_pt[region][index_pt_side0] += frac_side0;
           num_track_side0_pt[region][index_pt_side0]++;
@@ -628,14 +634,13 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
         h_cluster_phisize1_fraction_pt_side1[region]->Fill(m_pt, frac_side1);
 
         int index_pt_side1 = h_cluster_phisize1_fraction_mean_side1[region]->FindBin(m_pt) - 1;
-        if (index_pt_side1<h_cluster_phisize1_fraction_mean_side1[region]->GetNbinsX())
+        if (index_pt_side1 < h_cluster_phisize1_fraction_mean_side1[region]->GetNbinsX())
         {
           frac_side1_pt[region][index_pt_side1] += frac_side1;
           num_track_side1_pt[region][index_pt_side1]++;
         }
       }
     }
-
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -657,22 +662,21 @@ std::vector<TrkrDefs::cluskey> TpcSeedsQA::get_cluster_keys(SvtxTrack *track)
 //____________________________________________________________________________..
 int TpcSeedsQA::EndRun(const int /*runnumber*/)
 {
-
   for (auto &region : {0, 1, 2})
   {
     for (auto &index_pt : {0, 1, 2, 3})
     {
-      if (num_track_side0_pt[region][index_pt]>0)
+      if (num_track_side0_pt[region][index_pt] > 0)
       {
-        h_cluster_phisize1_fraction_mean_side0[region]->SetBinContent(index_pt+1,frac_side0_pt[region][index_pt] / num_track_side0_pt[region][index_pt]);
-        h_cluster_phisize1_fraction_mean_numerator_side0[region]->SetBinContent(index_pt+1,frac_side0_pt[region][index_pt]);
-        h_cluster_phisize1_fraction_mean_denominator_side0[region]->SetBinContent(index_pt+1,num_track_side0_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_side0[region]->SetBinContent(index_pt + 1, frac_side0_pt[region][index_pt] / num_track_side0_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_numerator_side0[region]->SetBinContent(index_pt + 1, frac_side0_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_denominator_side0[region]->SetBinContent(index_pt + 1, num_track_side0_pt[region][index_pt]);
       }
-      if (num_track_side1_pt[region][index_pt]>0)
+      if (num_track_side1_pt[region][index_pt] > 0)
       {
-        h_cluster_phisize1_fraction_mean_side1[region]->SetBinContent(index_pt+1,frac_side1_pt[region][index_pt] / num_track_side1_pt[region][index_pt]);
-        h_cluster_phisize1_fraction_mean_numerator_side1[region]->SetBinContent(index_pt+1,frac_side1_pt[region][index_pt]);
-        h_cluster_phisize1_fraction_mean_denominator_side1[region]->SetBinContent(index_pt+1,num_track_side1_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_side1[region]->SetBinContent(index_pt + 1, frac_side1_pt[region][index_pt] / num_track_side1_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_numerator_side1[region]->SetBinContent(index_pt + 1, frac_side1_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_denominator_side1[region]->SetBinContent(index_pt + 1, num_track_side1_pt[region][index_pt]);
       }
     }
   }
@@ -921,26 +925,26 @@ void TpcSeedsQA::createHistos()
   }
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "dedx").c_str(),
-		      "Num of tracks per vertex;Number of tracks per vertex;Entries",
-		      500,-2,2,500,0,3000);
+                      "Num of tracks per vertex;Number of tracks per vertex;Entries",
+                      500, -2, 2, 500, 0, 3000);
     hm->registerHisto(h);
   }
-  
+
   {
     auto h = new TH1F(std::string(getHistoPrefix() + "mip_dedx").c_str(),
-		      "dEdx of MIPs",
-		      100,0,1000);
+                      "dEdx of MIPs",
+                      100, 0, 1000);
     hm->registerHisto(h);
   }
 
   for (auto &region : {0, 1, 2})
   {
-    h_adc_sector[region]  = new TH2F((boost::format("%sadc_sector_%i") % getHistoPrefix() % region).str().c_str(),
-				     (boost::format("ADC spectrum per, region_%i") % region).str().c_str(),25,-12.5,12.5,50,0,1500);
+    h_adc_sector[region] = new TH2F((boost::format("%sadc_sector_%i") % getHistoPrefix() % region).str().c_str(),
+                                    (boost::format("ADC spectrum per, region_%i") % region).str().c_str(), 25, -12.5, 12.5, 50, 0, 1500);
     hm->registerHisto(h_adc_sector[region]);
 
     h_onepad_frac[region] = new TProfile((boost::format("%sonepad_frac_%i") % getHistoPrefix() % region).str().c_str(),
-					 (boost::format("TPC Cluster Phi Size == 1 fraction per sector, region_%i") % region).str().c_str(),25,-12.5,12.5);
+                                         (boost::format("TPC Cluster Phi Size == 1 fraction per sector, region_%i") % region).str().c_str(), 25, -12.5, 12.5);
     hm->registerHisto(h_onepad_frac[region]);
 
     h_clusphisize1pt_side0[region] = new TH1F((boost::format("%sclusphisize1pT_side0_%i") % getHistoPrefix() % region).str().c_str(),
@@ -974,52 +978,51 @@ void TpcSeedsQA::createHistos()
     hm->registerHisto(h_cluster_phisize1_fraction_side1[region]);
 
     h_cluster_phisize1_fraction_pt_side0[region] = new TH2F((boost::format("%sclusphisize1frac_pt_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
+                                                            (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
     h_cluster_phisize1_fraction_pt_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_pt_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_pt_side0[region]);
 
     h_cluster_phisize1_fraction_pt_side1[region] = new TH2F((boost::format("%sclusphisize1frac_pt_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
+                                                            (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
     h_cluster_phisize1_fraction_pt_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_pt_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_pt_side1[region]);
 
     h_cluster_phisize1_fraction_mean_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+                                                              (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_side0[region]);
 
     h_cluster_phisize1_fraction_mean_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+                                                              (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_side1[region]);
 
     h_cluster_phisize1_fraction_mean_numerator_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_numerator_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+                                                                        (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_numerator_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_numerator_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_numerator_side0[region]);
 
     h_cluster_phisize1_fraction_mean_numerator_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_numerator_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+                                                                        (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_numerator_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_numerator_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_numerator_side1[region]);
 
     h_cluster_phisize1_fraction_mean_denominator_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_denominator_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+                                                                          (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_denominator_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_denominator_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_denominator_side0[region]);
 
     h_cluster_phisize1_fraction_mean_denominator_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_denominator_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+                                                                          (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_denominator_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_denominator_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_denominator_side1[region]);
-
   }
 }
