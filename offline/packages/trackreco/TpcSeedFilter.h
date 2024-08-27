@@ -41,7 +41,7 @@ class TpcSeedFilter : public SubsysReco
       *   - cut on cluster values? (small clusters, etc...)
       *   - cut on 
       *--------------------------------------------------------*/
-        unsigned int _nclus_min_ = 10
+        unsigned int _nclus_min_ = 0
       , unsigned int _min_radial_sectors_ = 1
       , float _min_pt_  = -1.0  // no cut default
       , float _max_pt_  = -1.0  // no cut default
@@ -69,11 +69,13 @@ class TpcSeedFilter : public SubsysReco
     if (_min_radial_sectors > 1) { _must_span_sectors = true; }
   };
   
-  void setcut_min_pt(float val) { _min_pt = val; _cut_on_min_pt = true; };
-  void setcut_max_pt(float val) { _max_pt = val; _cut_on_max_pt = true; };
+  void set_min_pt(float val) { _min_pt = val; _cut_on_min_pt = true; };
+  void set_max_pt(float val) { _max_pt = val; _cut_on_max_pt = true; };
 
-  void setcut_min_eta(float val) { _min_eta = val; _cut_on_min_eta = true; };
-  void setcut_max_eta(float val) { _max_eta = val; _cut_on_max_eta = true; };
+  void set_min_eta(float val) { _min_eta = val; _cut_on_min_eta = true; };
+  void set_max_eta(float val) { _max_eta = val; _cut_on_max_eta = true; };
+
+  void set_min_nclusters(unsigned int n) { _nclus_min = n; };
 
  private:
     unsigned int   _nclus_min;

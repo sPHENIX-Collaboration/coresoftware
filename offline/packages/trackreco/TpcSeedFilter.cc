@@ -49,6 +49,9 @@ int TpcSeedFilter::process_event(PHCompositeNode* topNode)
           << ")  nclusters: " << static_cast<int>(seed->size_cluster_keys())
           << "   pt: " << seed->get_pt() << "  eta: " << seed->get_eta() << std::endl;
       }
+      if (Verbosity() > 10) {
+        std::cout << " Cuts are: " << _cut_on_min_pt << " " << _cut_on_max_pt << " " << _cut_on_min_eta << " " << _cut_on_max_eta << " " << _nclus_min << std::endl;
+      }
       _trackseeds->erase(iseed);
       continue;
     }
