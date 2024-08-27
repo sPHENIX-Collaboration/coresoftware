@@ -17,6 +17,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <phool/PHTimer.h>
+
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <Eigen/Core>
@@ -56,7 +58,7 @@ class PHSimpleKFProp : public SubsysReco
       _fieldDir = -1;
     }
   }
-  void ghostRejection() { m_ghostrejection = false; }
+  void ghostRejection(bool set_value=true) { m_ghostrejection = set_value; }
   void magFieldFile(const std::string& fname) { m_magField = fname; }
   void set_max_window(double s) { _max_dist = s; }
   void useConstBField(bool opt) { _use_const_field = opt; }
@@ -166,7 +168,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>, 3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions);
+  void rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer);
   void publishSeeds(const std::vector<TrackSeed_v2>&);
   //   void MoveToVertex();
 
