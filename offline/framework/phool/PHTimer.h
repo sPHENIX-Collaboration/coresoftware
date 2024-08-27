@@ -12,8 +12,8 @@
 #include <unistd.h>
 #include <exception>
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 
 #define rdtsc(low, high)       \
   __asm__ __volatile__("rdtsc" \
@@ -87,7 +87,7 @@ class PHTimer
     }
     else
     {
-      os <<  _name << ": timer never started.\n";
+      os << _name << ": timer never started.\n";
     }
     PRINT(os, "**");
   }
@@ -183,7 +183,7 @@ class PHTimer
     double _period;
 
     //! read pc frequency from cpuinfo place
-    void set_cpu_freq(const std::string &cpuinfopath = "/proc/cpuinfo");
+    void set_cpu_freq(const std::string& cpuinfopath = "/proc/cpuinfo");
   };
 
   //! used to store high precision time using two integers
