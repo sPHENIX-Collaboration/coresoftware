@@ -678,7 +678,9 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
                                      ActsGeometry* geometry)
 {
   if (clusters->size()< m_min_cluster_size)
+  {
     return;
+  }
   for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
                     TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
   {
@@ -691,14 +693,16 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
         auto key = iter->first;
         auto cluster = clusters->findCluster(key);
         Acts::Vector3 glob;
-        if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
-        {
-          glob = geometry->getGlobalPosition(key, cluster);  // corrections make no sense if crossing is not known
-        }
-        else
-        {
-          glob = geometry->getGlobalPosition(key, cluster);
-        }
+        // NOT IMPLEMENTED YET
+        // if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+        // {
+        //   glob = geometry->getGlobalPosition(key, cluster);  // corrections make no sense if crossing is not known
+        // }
+        // else
+        // {
+        //   glob = geometry->getGlobalPosition(key, cluster);
+        // }
+        glob = geometry->getGlobalPosition(key, cluster);
         m_sclusgx = glob.x();
         m_sclusgy = glob.y();
         m_sclusgz = glob.z();
