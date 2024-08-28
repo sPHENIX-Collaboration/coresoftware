@@ -298,8 +298,10 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
   fillVertexTree(topNode);
 
-  fillEventTree(topNode);
-
+  if (m_doEventTree)
+  {
+    fillEventTree(topNode);
+  }
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -675,6 +677,10 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
 void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
                                      ActsGeometry* geometry)
 {
+  if (clusters->size()< m_min_cluster_size)
+  {
+    return;
+  }
   for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
                     TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
   {
@@ -687,14 +693,16 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
         auto key = iter->first;
         auto cluster = clusters->findCluster(key);
         Acts::Vector3 glob;
-        if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
-        {
-          glob = geometry->getGlobalPosition(key, cluster);  // corrections make no sense if crossing is not known
-        }
-        else
-        {
-          glob = geometry->getGlobalPosition(key, cluster);
-        }
+        // NOT IMPLEMENTED YET
+        // if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+        // {
+        //   glob = geometry->getGlobalPosition(key, cluster);  // corrections make no sense if crossing is not known
+        // }
+        // else
+        // {
+        //   glob = geometry->getGlobalPosition(key, cluster);
+        // }
+        glob = geometry->getGlobalPosition(key, cluster);
         m_sclusgx = glob.x();
         m_sclusgy = glob.y();
         m_sclusgz = glob.z();
@@ -791,7 +799,10 @@ int TrackResiduals::End(PHCompositeNode* /*unused*/)
   }
   m_vertextree->Write();
   m_failedfits->Write();
-  m_eventtree->Write();
+  if (m_doEventTree)
+  {
+    m_eventtree->Write();
+  }
   m_outfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1573,21 +1584,24 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
 }
 void TrackResiduals::createBranches()
 {
-  m_eventtree = new TTree("eventtree", "A tree with all hits");
-  m_eventtree->Branch("run", &m_runnumber, "m_runnumber/I");
-  m_eventtree->Branch("segment", &m_segment, "m_segment/I");
-  m_eventtree->Branch("event", &m_event, "m_event/I");
-  m_eventtree->Branch("gl1bco", &m_bco, "m_bco/I");
-  m_eventtree->Branch("nmvtx", &m_nmvtx_all, "m_nmvtx_all/I");
-  m_eventtree->Branch("nintt", &m_nintt_all, "m_nintt_all/I");
-  m_eventtree->Branch("nhittpc0", &m_ntpc_hits0, "m_ntpc_hits0/I");
-  m_eventtree->Branch("nhittpc1", &m_ntpc_hits1, "m_ntpc_hits1/I");
-  m_eventtree->Branch("nclustpc0", &m_ntpc_clus0, "m_ntpc_clus0/I");
-  m_eventtree->Branch("nclustpc1", &m_ntpc_clus1, "m_ntpc_clus1/I");
-  m_eventtree->Branch("nmms", &m_nmms_all, "m_nmms_all/I");
-  m_eventtree->Branch("nsiseed", &m_nsiseed, "m_nsiseed/I");
-  m_eventtree->Branch("ntpcseed", &m_ntpcseed, "m_ntpcseed/I");
-  m_eventtree->Branch("ntracks", &m_ntracks_all, "m_ntracks_all/I");
+  if (m_doEventTree)
+  {
+    m_eventtree = new TTree("eventtree", "A tree with all hits");
+    m_eventtree->Branch("run", &m_runnumber, "m_runnumber/I");
+    m_eventtree->Branch("segment", &m_segment, "m_segment/I");
+    m_eventtree->Branch("event", &m_event, "m_event/I");
+    m_eventtree->Branch("gl1bco", &m_bco, "m_bco/I");
+    m_eventtree->Branch("nmvtx", &m_nmvtx_all, "m_nmvtx_all/I");
+    m_eventtree->Branch("nintt", &m_nintt_all, "m_nintt_all/I");
+    m_eventtree->Branch("nhittpc0", &m_ntpc_hits0, "m_ntpc_hits0/I");
+    m_eventtree->Branch("nhittpc1", &m_ntpc_hits1, "m_ntpc_hits1/I");
+    m_eventtree->Branch("nclustpc0", &m_ntpc_clus0, "m_ntpc_clus0/I");
+    m_eventtree->Branch("nclustpc1", &m_ntpc_clus1, "m_ntpc_clus1/I");
+    m_eventtree->Branch("nmms", &m_nmms_all, "m_nmms_all/I");
+    m_eventtree->Branch("nsiseed", &m_nsiseed, "m_nsiseed/I");
+    m_eventtree->Branch("ntpcseed", &m_ntpcseed, "m_ntpcseed/I");
+    m_eventtree->Branch("ntracks", &m_ntracks_all, "m_ntracks_all/I");
+  }
 
   m_failedfits = new TTree("failedfits", "tree with seeds from failed Acts fits");
   m_failedfits->Branch("run", &m_runnumber, "m_runnumber/I");
@@ -2167,16 +2181,19 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
       }
     }
   }
-  if (Verbosity() > 1)
+  if (m_doEventTree)
   {
-    std::cout << " m_event:" << m_event << std::endl;
-    std::cout << " m_ntpc_clus0:" << m_ntpc_clus0 << std::endl;
-    std::cout << " m_ntpc_clus1: " << m_ntpc_clus1 << std::endl;
-    std::cout << " m_nmvtx_all:" << m_nmvtx_all << std::endl;
-    std::cout << " m_nintt_all: " << m_nintt_all << std::endl;
-    std::cout << " m_nmms_all: " << m_nmms_all << std::endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << " m_event:" << m_event << std::endl;
+      std::cout << " m_ntpc_clus0:" << m_ntpc_clus0 << std::endl;
+      std::cout << " m_ntpc_clus1: " << m_ntpc_clus1 << std::endl;
+      std::cout << " m_nmvtx_all:" << m_nmvtx_all << std::endl;
+      std::cout << " m_nintt_all: " << m_nintt_all << std::endl;
+      std::cout << " m_nmms_all: " << m_nmms_all << std::endl;
+    }
+    m_eventtree->Fill();
   }
-  m_eventtree->Fill();
 }
 
 void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
