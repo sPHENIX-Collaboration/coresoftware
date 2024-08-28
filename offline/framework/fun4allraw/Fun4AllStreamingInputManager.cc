@@ -485,7 +485,6 @@ void Fun4AllStreamingInputManager::AddGl1RawHit(uint64_t bclk, Gl1Packet *hit)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "gl1 bclock is " << bclk << std::endl;
     std::cout << "Adding gl1 hit to bclk 0x"
               << std::hex << bclk << std::dec << std::endl;
   }
@@ -551,9 +550,8 @@ void Fun4AllStreamingInputManager::AddTpcRawHit(uint64_t bclk, TpcRawHit *hit)
 {
   if (Verbosity() > 1)
   {
-    std::cout << "adding tpchit " << bclk << std::endl;
     std::cout << "Adding tpc hit to bclk 0x"
-              << std::dec << bclk << std::dec << std::endl;
+              << std::hex << bclk << std::dec << std::endl;
   }
   m_TpcRawHitMap[bclk].TpcRawHitVector.push_back(hit);
 }
@@ -1088,13 +1086,11 @@ int Fun4AllStreamingInputManager::FillMicromegas()
 
 int Fun4AllStreamingInputManager::FillTpc()
 {
-  std::cout << "Ref BCO: " << m_RefBCO << std::endl;
   int iret = FillTpcPool();
   if (iret)
   {
     return iret;
   }
-  std::cout << "first tpc bco " << m_TpcRawHitMap.begin()->first << std::endl;
   TpcRawHitContainer *tpccont = findNode::getClass<TpcRawHitContainer>(m_topNode, "TPCRAWHIT");
   if (!tpccont)
   {
@@ -1116,15 +1112,12 @@ int Fun4AllStreamingInputManager::FillTpc()
   select_crossings += m_RefBCO;
   if (Verbosity() > 2)
   {
-    /*
+    
     std::cout << "select TPC crossings"
               << " from 0x" << std::hex << m_RefBCO - m_tpc_negative_bco
               << " to 0x" << select_crossings - m_tpc_negative_bco
-              << std::dec << std::endl;*/
-      std::cout << "Select TPC crossings from " << m_RefBCO - m_tpc_negative_bco
-                << " to " << select_crossings - m_tpc_negative_bco << std::endl;
-    std::cout << "Ref is " << m_RefBCO << std::endl;
-    std::cout << "tpcraw hit first fill is " << m_TpcRawHitMap.begin()->first << std::endl;
+              << std::dec << std::endl;
+
   }
   // m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
   // if this map is empty which is handled above
