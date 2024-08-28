@@ -36,7 +36,7 @@ SingleTpcPoolInput::~SingleTpcPoolInput()
   delete[] plist;
 }
 
-void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
+void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -51,7 +51,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
     }
   }
   //  std::set<uint64_t> saved_beamclocks;
-  while (GetSomeMoreEvents())
+  while (GetSomeMoreEvents(0))
   {
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
@@ -88,6 +88,34 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
                 << ", increase NTPCPACKETS and rebuild" << std::endl;
       exit(1);
     }
+    if (m_skipEarlyEvents)
+    {
+      for (int i = 0; i < npackets; i++)
+      {
+        int numBCOs = plist[i]->lValue(0, "N_TAGGER");
+        for (int j = 0; j < numBCOs; j++)
+        {
+          const auto is_lvl1 = static_cast<uint8_t>(plist[i]->lValue(j, "IS_LEVEL1_TRIGGER"));
+          if (is_lvl1)
+          {
+            uint64_t bco = plist[i]->lValue(j, "BCO");
+            if (bco < minBCO)
+            {
+              continue;
+            }
+            m_skipEarlyEvents = false;
+          }
+        }
+      }
+    }
+    if (m_skipEarlyEvents)
+    {
+      for (int i = 0; i < npackets; i++)
+      {
+        delete plist[i];
+      }
+      continue;
+    }
     for (int i = 0; i < npackets; i++)
     {
       // keep pointer to local packet
@@ -106,6 +134,8 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
       uint64_t gtm_bco = previous_bco;
 
       uint64_t m_nTaggerInFrame = packet->lValue(0, "N_TAGGER");
+      bool skipthis = true;
+      uint64_t largest_bco = 0;
       for (uint64_t t = 0; t < m_nTaggerInFrame; t++)
       {
         // only store gtm_bco for level1 type of taggers (not ENDDAT)
@@ -113,11 +143,20 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         if (is_lvl1)
         {
           gtm_bco = packet->lValue(t, "BCO");
+          if(largest_bco < gtm_bco)
+          {
+            largest_bco = gtm_bco;
+          }
+          if(gtm_bco < minBCO)
+          {
+            continue;
+          }
           if (Verbosity() > 0)
           {
             std::cout << "bco: 0x" << std::hex << gtm_bco << std::dec << std::endl;
           }
           // store
+          skipthis = false;
           previous_bco = gtm_bco;
           if (m_BclkStackPacketMap.find(packet_id) == m_BclkStackPacketMap.end())
           {
@@ -126,7 +165,16 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
           m_BclkStackPacketMap[packet_id].insert(gtm_bco);
         }
       }
-
+      if(skipthis)
+      {
+        if(Verbosity() > 1)
+        {
+          std::cout << "Largest bco: 0x"<<std::hex << largest_bco << ", minbco 0x"
+          << minBCO <<std::dec << ", evtno: " << EventSequence << std::endl;
+        }
+      }
+      else
+      {
       int m_nWaveFormInFrame = packet->iValue(0, "NR_WF");
       static int once = 0;
       for (int wf = 0; wf < m_nWaveFormInFrame; wf++)
@@ -220,11 +268,11 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
         m_BclkStack.insert(gtm_bco);
         //	}
       }
-
+      }
       delete packet;
     }
   }
-  
+
   //    Print("HITS");
   //  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
 }
@@ -353,7 +401,7 @@ void SingleTpcPoolInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleTpcPoolInput::GetSomeMoreEvents()
+bool SingleTpcPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
 {
   if (AllDone())
   {
@@ -363,13 +411,20 @@ bool SingleTpcPoolInput::GetSomeMoreEvents()
   {
     return true;
   }
+  uint64_t localbclk = ibclk;
+  if(ibclk == 0)
+  {
+    if(m_TpcRawHitMap.empty())
+    {
+      return true;
+    }
+    localbclk = m_TpcRawHitMap.begin()->first;
+  }
 
-  uint64_t lowest_bclk = m_TpcRawHitMap.begin()->first;
-  lowest_bclk += m_BcoRange;
   std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
-    if (bcliter.second <= lowest_bclk)
+    if (bcliter.second <= localbclk)
     {
       uint64_t highest_bclk = m_TpcRawHitMap.rbegin()->first;
       if ((highest_bclk - m_TpcRawHitMap.begin()->first) < MaxBclkDiff())
@@ -392,7 +447,7 @@ bool SingleTpcPoolInput::GetSomeMoreEvents()
       }
     }
   }
-  for(auto iter : toerase)
+  for (auto iter : toerase)
   {
     m_FEEBclkMap.erase(iter);
   }
