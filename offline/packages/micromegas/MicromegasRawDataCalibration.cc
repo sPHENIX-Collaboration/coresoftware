@@ -52,7 +52,6 @@ int MicromegasRawDataCalibration::process_event(PHCompositeNode *topNode)
   if(event->getEvtType() >= 8)
   { return Fun4AllReturnCodes::DISCARDEVENT; }
 
-
   // loop over TPOT packets
   for( const auto& packet_id:MicromegasDefs::m_packet_ids )
   {
