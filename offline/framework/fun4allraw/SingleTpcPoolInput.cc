@@ -6,8 +6,6 @@
 #include <ffarawobjects/TpcRawHitContainerv1.h>
 #include <ffarawobjects/TpcRawHitv1.h>
 
-#include <frog/FROG.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
@@ -21,19 +19,11 @@
 #include <memory>
 #include <set>
 
-const int NTPCPACKETS = 3;
-
 SingleTpcPoolInput::SingleTpcPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
   SubsystemEnum(InputManagerType::TPC);
-  plist = new Packet *[NTPCPACKETS];
   m_rawHitContainerName = "TPCRAWHIT";
-}
-
-SingleTpcPoolInput::~SingleTpcPoolInput()
-{
-  delete[] plist;
 }
 
 void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
@@ -79,26 +69,18 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, NTPCPACKETS);
-
-    if (npackets >= NTPCPACKETS)
-    {
-      std::cout << PHWHERE << " Packets array size " << NTPCPACKETS
-                << " too small for " << Name()
-                << ", increase NTPCPACKETS and rebuild" << std::endl;
-      exit(1);
-    }
+    std::vector<Packet *> pktvec = evt->getPacketVector();
     if (m_skipEarlyEvents)
     {
-      for (int i = 0; i < npackets; i++)
+      for (auto packet : pktvec)
       {
-        int numBCOs = plist[i]->lValue(0, "N_TAGGER");
+        int numBCOs = packet->lValue(0, "N_TAGGER");
         for (int j = 0; j < numBCOs; j++)
         {
-          const auto is_lvl1 = static_cast<uint8_t>(plist[i]->lValue(j, "IS_LEVEL1_TRIGGER"));
+          const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(j, "IS_LEVEL1_TRIGGER"));
           if (is_lvl1)
           {
-            uint64_t bco = plist[i]->lValue(j, "BCO");
+            uint64_t bco = packet->lValue(j, "BCO");
             if (bco < minBCO)
             {
               continue;
@@ -110,17 +92,14 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
     }
     if (m_skipEarlyEvents)
     {
-      for (int i = 0; i < npackets; i++)
+      for (auto packet : pktvec)
       {
-        delete plist[i];
+        delete packet;
       }
       continue;
     }
-    for (int i = 0; i < npackets; i++)
+    for (auto packet : pktvec)
     {
-      // keep pointer to local packet
-      auto &packet = plist[i];
-
       // get packet id
       const auto packet_id = packet->getIdentifier();
 
@@ -143,11 +122,11 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
         if (is_lvl1)
         {
           gtm_bco = packet->lValue(t, "BCO");
-          if(largest_bco < gtm_bco)
+          if (largest_bco < gtm_bco)
           {
             largest_bco = gtm_bco;
           }
-          if(gtm_bco < minBCO)
+          if (gtm_bco < minBCO)
           {
             continue;
           }
@@ -165,109 +144,109 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
           m_BclkStackPacketMap[packet_id].insert(gtm_bco);
         }
       }
-      if(skipthis)
+      if (skipthis)
       {
-        if(Verbosity() > 1)
+        if (Verbosity() > 1)
         {
-          std::cout << "Largest bco: 0x"<<std::hex << largest_bco << ", minbco 0x"
-          << minBCO <<std::dec << ", evtno: " << EventSequence << std::endl;
+          std::cout << "Largest bco: 0x" << std::hex << largest_bco << ", minbco 0x"
+                    << minBCO << std::dec << ", evtno: " << EventSequence << std::endl;
         }
       }
       else
       {
-      int m_nWaveFormInFrame = packet->iValue(0, "NR_WF");
-      static int once = 0;
-      for (int wf = 0; wf < m_nWaveFormInFrame; wf++)
-      {
-        if (m_TpcRawHitMap[gtm_bco].size() > 20000)
+        int m_nWaveFormInFrame = packet->iValue(0, "NR_WF");
+        static int once = 0;
+        for (int wf = 0; wf < m_nWaveFormInFrame; wf++)
         {
-          if (!once)
+          if (m_TpcRawHitMap[gtm_bco].size() > 20000)
           {
-            std::cout << "too many hits" << std::endl;
-          }
-          once++;
-          continue;
-        }
-        else
-        {
-          if (once)
-          {
-            std::cout << "many more hits: " << once << std::endl;
-          }
-          once = 0;
-        }
-
-        if (packet->iValue(wf, "CHECKSUMERROR") == 1)
-        {
-          continue;
-        }
-
-        TpcRawHit *newhit = new TpcRawHitv1();
-        int FEE = packet->iValue(wf, "FEE");
-        newhit->set_bco(packet->iValue(wf, "BCO"));
-
-        // store gtm bco in hit
-        newhit->set_gtm_bco(gtm_bco);
-
-        newhit->set_packetid(packet->getIdentifier());
-        newhit->set_fee(FEE);
-        newhit->set_channel(packet->iValue(wf, "CHANNEL"));
-        newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
-        newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
-
-        //         // checksum and checksum error
-        //         newhit->set_checksum( packet->iValue(iwf, "CHECKSUM") );
-        //         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
-
-        // samples
-        // const uint16_t samples = packet->iValue(wf, "SAMPLES");
-
-        // Temp remedy as we set the time window as 425 for now (extended from previous 360
-        // due to including of diffused laser flush)
-        const uint16_t samples = m_max_tpc_time_samples;
-
-        newhit->set_samples(samples);
-
-        // adc values
-        for (uint16_t is = 0; is < samples; ++is)
-        {
-          uint16_t adval = packet->iValue(wf, is);
-
-          // This is temporary fix for decoder change. Will be changed again for real ZS data decoding.
-          // if(adval >= 64000){ newhit->set_samples(is); break;}
-
-          // With this, the hit is unseen from clusterizer
-          if (adval >= 64000)
-          {
-            newhit->set_adc(is, 0);
+            if (!once)
+            {
+              std::cout << "too many hits" << std::endl;
+            }
+            once++;
+            continue;
           }
           else
           {
-            newhit->set_adc(is, adval);
+            if (once)
+            {
+              std::cout << "many more hits: " << once << std::endl;
+            }
+            once = 0;
           }
-        }
 
-        m_BeamClockFEE[gtm_bco].insert(FEE);
-        m_FEEBclkMap[FEE] = gtm_bco;
-        if (Verbosity() > 2)
-        {
-          std::cout << "evtno: " << EventSequence
-                    << ", hits: " << wf
-                    << ", num waveforms: " << m_nWaveFormInFrame
-                    << ", bco: 0x" << std::hex << gtm_bco << std::dec
-                    << ", FEE: " << FEE << std::endl;
+          if (packet->iValue(wf, "CHECKSUMERROR") == 1)
+          {
+            continue;
+          }
+
+          TpcRawHit *newhit = new TpcRawHitv1();
+          int FEE = packet->iValue(wf, "FEE");
+          newhit->set_bco(packet->iValue(wf, "BCO"));
+
+          // store gtm bco in hit
+          newhit->set_gtm_bco(gtm_bco);
+
+          newhit->set_packetid(packet->getIdentifier());
+          newhit->set_fee(FEE);
+          newhit->set_channel(packet->iValue(wf, "CHANNEL"));
+          newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
+          newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
+
+          //         // checksum and checksum error
+          //         newhit->set_checksum( packet->iValue(iwf, "CHECKSUM") );
+          //         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
+
+          // samples
+          // const uint16_t samples = packet->iValue(wf, "SAMPLES");
+
+          // Temp remedy as we set the time window as 425 for now (extended from previous 360
+          // due to including of diffused laser flush)
+          const uint16_t samples = m_max_tpc_time_samples;
+
+          newhit->set_samples(samples);
+
+          // adc values
+          for (uint16_t is = 0; is < samples; ++is)
+          {
+            uint16_t adval = packet->iValue(wf, is);
+
+            // This is temporary fix for decoder change. Will be changed again for real ZS data decoding.
+            // if(adval >= 64000){ newhit->set_samples(is); break;}
+
+            // With this, the hit is unseen from clusterizer
+            if (adval >= 64000)
+            {
+              newhit->set_adc(is, 0);
+            }
+            else
+            {
+              newhit->set_adc(is, adval);
+            }
+          }
+
+          m_BeamClockFEE[gtm_bco].insert(FEE);
+          m_FEEBclkMap[FEE] = gtm_bco;
+          if (Verbosity() > 2)
+          {
+            std::cout << "evtno: " << EventSequence
+                      << ", hits: " << wf
+                      << ", num waveforms: " << m_nWaveFormInFrame
+                      << ", bco: 0x" << std::hex << gtm_bco << std::dec
+                      << ", FEE: " << FEE << std::endl;
+          }
+          //          packet->convert();
+          // if (m_TpcRawHitMap[gtm_bco].size() < 50000)
+          // {
+          if (StreamingInputManager())
+          {
+            StreamingInputManager()->AddTpcRawHit(gtm_bco, newhit);
+          }
+          m_TpcRawHitMap[gtm_bco].push_back(newhit);
+          m_BclkStack.insert(gtm_bco);
+          //	}
         }
-        //          packet->convert();
-        // if (m_TpcRawHitMap[gtm_bco].size() < 50000)
-        // {
-        if (StreamingInputManager())
-        {
-          StreamingInputManager()->AddTpcRawHit(gtm_bco, newhit);
-        }
-        m_TpcRawHitMap[gtm_bco].push_back(newhit);
-        m_BclkStack.insert(gtm_bco);
-        //	}
-      }
       }
       delete packet;
     }
@@ -412,9 +391,9 @@ bool SingleTpcPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
     return true;
   }
   uint64_t localbclk = ibclk;
-  if(ibclk == 0)
+  if (ibclk == 0)
   {
-    if(m_TpcRawHitMap.empty())
+    if (m_TpcRawHitMap.empty())
     {
       return true;
     }
