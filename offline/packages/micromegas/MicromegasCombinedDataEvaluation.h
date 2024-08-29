@@ -54,10 +54,10 @@ class MicromegasCombinedDataEvaluation : public SubsysReco
   /** This removes faulty channels for which calibration has failed */
   void set_min_adc(double value) { m_min_adc = value; }
 
-  /// set min sample for noise estimation
+  /// set min sample for signal estimation
   void set_sample_min(int value) { m_sample_min = value; }
 
-  /// set min sample for noise estimation
+  /// set min sample for signal estimation
   void set_sample_max(int value) { m_sample_max = value; }
 
   /// output file name for evaluation histograms
