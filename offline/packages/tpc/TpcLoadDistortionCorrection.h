@@ -48,7 +48,8 @@ class TpcLoadDistortionCorrection : public SubsysReco
   }
 
   //! set the scale factor to be applied to the correction
-  void set_scale_factor(int i, float value){
+  void set_scale_factor(int i, float value)
+  {
     m_use_scalefactor[i] = true;
     m_scalefactor[i] = value;
   }
@@ -89,9 +90,9 @@ class TpcLoadDistortionCorrection : public SubsysReco
   //! flag to indicate correction in use
   bool m_correction_in_use[nDistortionTypes] = {false, false, false,false};
 
-//! flag and scalefactor to apply to correction
-  m_use_scalefactor[nDistortionTypes] = {false,false,false,false};
-  m_scalefactor[nDistortionTypes] = {1.0,1.0,1.0,1.0};
+  //! flag and scalefactor to apply to correction
+  bool m_use_scalefactor[nDistortionTypes] = {false,false,false,false};
+  float m_scalefactor[nDistortionTypes] = {1.0,1.0,1.0,1.0};
 
   //! set the phi histogram to be interpreted as radians rather than mm
   bool m_phi_hist_in_radians[nDistortionTypes] = {true,true,true,true};
