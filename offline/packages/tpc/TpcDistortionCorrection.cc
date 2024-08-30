@@ -113,5 +113,12 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position(const Acts::Vector
   const auto x_new = r_new * std::cos(phi_new);
   const auto y_new = r_new * std::sin(phi_new);
 
+if (dcc->m_use_scalefactor)
+  {
+    x_new *= dcc->m_scalefactor;
+    y_new *= dcc->m_scalefactor;
+    z_new *= dcc->m_scalefactor;
+  }
+
   return {x_new, y_new, z_new};
 }
