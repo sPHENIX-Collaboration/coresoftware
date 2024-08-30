@@ -172,22 +172,6 @@ int InttCalib::ConfigureHotMap_v3()
     // name[i] = (boost::format("intt%01d") % (i / 4)).str();
     name[i] = (boost::format("intt%01d") % i).str();
     title[i] = name[i];
-
-    // switch(i % 4)
-    // {
-    // case 0:
-    //   name[i] += "_inner_a";
-    //   break;
-    // case 1:
-    //   name[i] += "_inner_b";
-    //   break;
-    // case 2:
-    //   name[i] += "_outer_a";
-    //   break;
-    // case 3:
-    //   name[i] += "_outer_b";
-    //   break;
-    // }
   }
 
   for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
@@ -204,7 +188,6 @@ int InttCalib::ConfigureHotMap_v3()
   for (int i = 0; i < m_MAX_INDEX; ++i)
   {
     ConfigureHist_v2(
-        // ConfigureHist(
         m_hist[i],
         m_fit[i],
         hitrate_pdf[i],
@@ -1300,17 +1283,7 @@ int InttCalib::ConfigureHist_v2(TH1D*& hist, TF1*& fit, std::map<double, int> co
 
   size_t mid_index = map_size / 2;
   double middle_key = 0.;
-  double third_last_key = 0.;
-  if (map_size >= 3)
-  {
-    auto it = hitrate_map.end();
-    std::advance(it, -3);
-    third_last_key = it->first;
-  }
-  else
-  {
-    std::cout << "The map does not have enough elements." << std::endl;
-  }
+
   auto it = hitrate_map.begin();
   std::advance(it, mid_index);
   middle_key = it->first;
@@ -1341,7 +1314,6 @@ int InttCalib::ConfigureHist_v2(TH1D*& hist, TF1*& fit, std::map<double, int> co
       "gaus",                          //
       middle_key / 10, middle_key * 5  //
   );
-  std::cout << name << " : " << std::next(hitrate_map.begin())->first << " , " << third_last_key << std::endl;
 
   if (Verbosity())
   {
