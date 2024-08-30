@@ -143,7 +143,17 @@ void TpcSiliconQA::createHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  std::stringstream stream1, stream2, stream3, stream4;
+  stream1 << std::fixed << std::setprecision(2) << m_xcut;
+  stream2 << std::fixed << std::setprecision(2) << m_ycut;
+  stream3 << std::fixed << std::setprecision(2) << m_etacut;
+  stream4 << std::fixed << std::setprecision(2) << m_phicut;
+
   std::vector<std::string> cutNames = {"", "_xyCut", "_etaCut", "_phiCut"};
+  std::vector<std::string> cutVals = {"", 
+                         std::string("|xdiff| < " + stream1.str() + ", |ydiff| < " + stream2.str()),
+                         std::string("xy cuts and |etadiff| < " + stream3.str()), 
+                         std::string("xy, eta cuts and |phidiff| < " + stream4.str())};
 
   {
     h_crossing = new TH1F(std::string(getHistoPrefix() + "crossing").c_str(),
@@ -152,20 +162,12 @@ void TpcSiliconQA::createHistos()
     h_crossing->GetYaxis()->SetTitle("Entries");
     hm->registerHisto(h_crossing);
   }
-  /*
-  {
-    h_trackMatch = new TH1F(std::string(getHistoPrefix() + "trackMatch").c_str(),
-                        "TPC and Silicon Seed Exist", 2, -0.5, 1.5);
-    h_trackMatch->GetXaxis()->SetTitle("1 - TPC+Sil Seed, 0 - Missing TPC and/or Sil");
-    h_trackMatch->GetYaxis()->SetTitle("Entries");
-    hm->registerHisto(h_trackMatch);
-  }
-  */
   int i = 0;
   for (const std::string& name : cutNames)
   {
+    std::string histoTitle = std::string(cutVals[i]);
     h_phiDiff[i] = new TH1F(std::string(getHistoPrefix() + "phiDiff" + name).c_str(),
-                            "TPC-Silicon #phi Difference", 100, -0.5, 0.5);
+                            histoTitle.c_str(), 100, -0.5, 0.5);
     h_phiDiff[i]->GetXaxis()->SetTitle("TPC Seed #phi - Silicon Seed #phi");
     h_phiDiff[i]->GetYaxis()->SetTitle("Entries");
     hm->registerHisto(h_phiDiff[i]);
@@ -174,8 +176,9 @@ void TpcSiliconQA::createHistos()
   i = 0;
   for (const std::string& name : cutNames)
   {
+    std::string histoTitle = std::string(cutVals[i]);
     h_etaDiff[i] = new TH1F(std::string(getHistoPrefix() + "etaDiff" + name).c_str(),
-                            "TPC-Silicon #eta Difference", 100, -0.1, 0.1);
+                            histoTitle.c_str(), 100, -0.1, 0.1);
     h_etaDiff[i]->GetXaxis()->SetTitle("TPC Seed #eta - Silicon Seed #eta");
     h_etaDiff[i]->GetYaxis()->SetTitle("Entries");
     hm->registerHisto(h_etaDiff[i]);
@@ -184,8 +187,9 @@ void TpcSiliconQA::createHistos()
   i = 0;
   for (const std::string& name : cutNames)
   {
+    std::string histoTitle = std::string(cutVals[i]);
     h_xDiff[i] = new TH1F(std::string(getHistoPrefix() + "xDiff" + name).c_str(),
-                          "TPC-Silicon x Difference", 100, -2, 2);
+                          histoTitle.c_str(), 100, -2, 2);
     h_xDiff[i]->GetXaxis()->SetTitle("TPC Seed x - Silicon Seed x [cm]");
     h_xDiff[i]->GetYaxis()->SetTitle("Entries");
     hm->registerHisto(h_xDiff[i]);
@@ -194,8 +198,9 @@ void TpcSiliconQA::createHistos()
   i = 0;
   for (const std::string& name : cutNames)
   {
+    std::string histoTitle = std::string(cutVals[i]);
     h_yDiff[i] = new TH1F(std::string(getHistoPrefix() + "yDiff" + name).c_str(),
-                          "TPC-Silicon y Difference", 100, -2, 2);
+                          histoTitle.c_str(), 100, -2, 2);
     h_yDiff[i]->GetXaxis()->SetTitle("TPC Seed y - Silicon Seed y [cm]");
     h_yDiff[i]->GetYaxis()->SetTitle("Entries");
     hm->registerHisto(h_yDiff[i]);
@@ -204,8 +209,9 @@ void TpcSiliconQA::createHistos()
   i = 0;
   for (const std::string& name : cutNames)
   {
+    std::string histoTitle = std::string(cutVals[i]);
     h_zDiff[i] = new TH1F(std::string(getHistoPrefix() + "zDiff" + name).c_str(),
-                          "TPC-Silicon z Difference", 500, -100, 100);
+                          histoTitle.c_str(), 500, -100, 100);
     h_zDiff[i]->GetXaxis()->SetTitle("TPC Seed z - Silicon Seed z [cm]");
     h_zDiff[i]->GetYaxis()->SetTitle("Entries");
     hm->registerHisto(h_zDiff[i]);
