@@ -33,7 +33,6 @@ KFParticle_nTuple::KFParticle_nTuple()
   , m_truth_matching(false)
   , m_detector_info(false)
   , m_calo_info(false)
-  , m_use_intermediate_name(true)
   , m_get_charge_conjugate_nTuple(false)
   , m_use_fake_pv_nTuple(false)
   , m_tree(nullptr)
@@ -128,15 +127,7 @@ void KFParticle_nTuple::initializeBranches()
   {
     for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
     {
-      std::string intermediate_name;
-      if (!m_use_intermediate_name)
-      {
-        intermediate_name = "intermediate_" + std::to_string(i + 1);
-      }
-      else
-      {
-        intermediate_name = m_intermediate_name_ntuple[i];
-      }
+      std::string intermediate_name = m_intermediate_name_ntuple[i];
 
       // Note, TBranch will not allow the leaf to contain a forward slash as it is used to define the branch type. Causes problems with J/psi
       for (auto const& [badString, goodString] : forbiddenStrings)

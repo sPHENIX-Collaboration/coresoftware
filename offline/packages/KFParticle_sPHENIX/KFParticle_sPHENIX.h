@@ -90,8 +90,6 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_mother_name_Tools = mother_name;
   }
 
-  void useIntermediateName() { m_use_intermediate_name = true; }
-
   void hasIntermediateStates()
   {
     m_has_intermediates = true;
@@ -209,10 +207,9 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void allowZeroMassTracks() { m_allowZeroMassTracks = true; }
 
-  void extraolateTracksToSV()
+  void dontExtraolateTracksToSV()
   {
-    m_extrapolateTracksToSV = true;
-    m_extrapolateTracksToSV_nTuple = true;
+    m_extrapolateTracksToSV = m_extrapolateTracksToSV_nTuple = false;
   }
 
   void constrainIntermediateMasses() { m_constrain_int_mass = true; }
@@ -289,13 +286,13 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void saveDST() { m_save_dst = true; }
 
-  void saveTrackContainer() { m_write_track_container = true; }
+  void dontSaveTrackContainer() { m_write_track_container = false; }
 
-  void saveParticleContainer() { m_write_particle_container = true; }
+  void dontSaveParticleContainer() { m_write_particle_container = false; }
 
   void setContainerName(const std::string &name) { m_container_name = name; }
 
-  void saveOutput() { m_save_output = true; }
+  void dontSaveOutput() { m_save_output = false; }
 
   void setOutputName(const std::string &name) { m_outfile_name = name; }
 
