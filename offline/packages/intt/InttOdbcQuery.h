@@ -4,8 +4,8 @@
 class InttOdbcQuery
 {
 public:
-  InttOdbcQuery();
-  ~InttOdbcQuery();
+  InttOdbcQuery() = default;
+  ~InttOdbcQuery() = default;
 
   int Verbosity() {return m_verbosity;}
   int Verbosity(int verbosity) {return m_verbosity = verbosity;}

@@ -17,16 +17,6 @@
 #include <chrono>
 #include <thread>
 
-InttOdbcQuery::InttOdbcQuery()
-{
-  //...
-}
-
-InttOdbcQuery::~InttOdbcQuery()
-{
-  //...
-}
-
 int InttOdbcQuery::Query(int runnumber)
 {
   m_query_successful = false;
