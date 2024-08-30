@@ -92,6 +92,10 @@ void set_scale_factor(int i, float value){
   //! flag to indicate correction in use
   bool m_correction_in_use[nDistortionTypes] = {false, false, false,false};
 
+//! flag and scalefactor to apply to correction
+  m_use_scalefactor[nDistortionTypes] = {false,false,false,false};
+  m_scalefactor[nDistortionTypes] = {1.0,1.0,1.0,1.0};
+
   //! set the phi histogram to be interpreted as radians rather than mm
   bool m_phi_hist_in_radians[nDistortionTypes] = {true,true,true,true};
   bool m_interpolate_z[nDistortionTypes] = {true,true,true,true};
