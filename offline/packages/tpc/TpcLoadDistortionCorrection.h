@@ -47,14 +47,11 @@ class TpcLoadDistortionCorrection : public SubsysReco
     m_correction_in_use[i] = true;
   }
 
-//! set the scale factor to be applied to the correction
-void set_scale_factor(int i, float value){
-  m_use_scalefactor[i] = true;
-  m_scalefactor[i] = value;
-}
-
-  
-}
+  //! set the scale factor to be applied to the correction
+  void set_scale_factor(int i, float value){
+    m_use_scalefactor[i] = true;
+    m_scalefactor[i] = value;
+  }
 
   //! set the phi histogram to be interpreted as radians.
   void set_read_phi_as_radians(bool flag)
