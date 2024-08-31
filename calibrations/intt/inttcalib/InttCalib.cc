@@ -197,7 +197,7 @@ int InttCalib::ConfigureHotMap_v3()
     int nBins = m_hist[i]->GetNbinsX();
     double xMin = m_hist[i]->GetXaxis()->GetXmin();
     double xMax = m_hist[i]->GetXaxis()->GetXmax();
-    m_hist_half[i] = new TH1D(Form("half_hist_%d", i), "New Histogram with Same Binning", nBins, xMin, xMax);
+    m_hist_half[i] = new TH1D((boost::format("half_hist_%d") %i).str().c_str(), "New Histogram with Same Binning", nBins, xMin, xMax);
 
     double mean = m_fit[i]->GetParameter(1);
     double sigma = m_fit[i]->GetParameter(2);
