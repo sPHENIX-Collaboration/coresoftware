@@ -49,7 +49,6 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  h_bco = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "bco").c_str()));
   h_xy_N = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_North").c_str()));
   h_xy_S = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_South").c_str()));
 
@@ -60,12 +59,10 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
 int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
 {
   // std::vector < TpcRawHit* > hits;
-  std::vector<uint64_t> bcos;
   std::vector<int> sectors;
   std::vector<uint16_t> fees;
 
   // hits.clear();
-  bcos.clear();
   sectors.clear();
   fees.clear();
 
@@ -76,7 +73,6 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
     for (unsigned int i = 0; i < raw_hit_num; i++)
     {
       auto hit = rawhitcont->get_hit(i);
-      uint64_t bco = hit->get_gtm_bco();
       uint16_t sam = hit->get_samples();
       int32_t packet_id = hit->get_packetid();
       int ep = (packet_id - 4000) % 10;
@@ -170,7 +166,6 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
       }
 
       // hits.push_back( hit );
-      bcos.push_back(bco);
       sectors.push_back(sector);
       fees.push_back(fee);
     }
@@ -187,7 +182,6 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
 
   for (int i = 0; i < (int) raw_hit_num; i++)
   {
-    h_bco->Fill(bcos[i]);
     nhit_sectors[sectors[i]]++;
     nhit_sectors_fees[sectors[i]][fees[i]]++;
   }
@@ -226,18 +220,18 @@ void TpcRawHitQA::createHistos()
   {
     {
       auto h = new TH1F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s)).c_str(),
-                        std::string("Number of Hits in Sector " + std::to_string(s) + ";Number of Hits;Entries").c_str(), 100, 0, 10000);
+                        std::string("Number of Hits in Sector " + std::to_string(s) + ";Number of Hits/Event;Entries").c_str(), 100, 0, 10000);
       hm->registerHisto(h);
     }
     {
       auto h = new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees").c_str(),
-                        std::string("Sector " + std::to_string(s) + " Fee Hit Distribution;FEE;Number of Hits").c_str(), 26, -0.5, 25.5, 100, 0, 1000);
+                        std::string("Sector " + std::to_string(s) + " Fee Hit Distribution;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 100, 0, 1000);
       hm->registerHisto(h);
     }
     for (int r = 0; r < 3; r++)
     {
       auto h = new TH1F(std::string(getHistoPrefix() + "nhits_sample_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str(),
-                        std::string("Sector " + std::to_string(s) + " Sample Time Distribution;Time Bin [1/20 MHz];Entries").c_str(), 400, -0.5, 399.5);
+                        std::string("Sector " + std::to_string(s) + " Sample Time Distribution;Time Bin [1/20 MHz];Number of Total Hits").c_str(), 1051, -0.5, 1050.5);
       hm->registerHisto(h);
       auto h2 = new TH1F(std::string(getHistoPrefix() + "adc_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str(),
                          std::string("Sector " + std::to_string(s) + " ADC Distribution;ADC-pedestal [ADU];Entries").c_str(), 281, -100, 1024);
@@ -245,10 +239,6 @@ void TpcRawHitQA::createHistos()
     }
   }
 
-  {
-    auto h = new TH1F(std::string(getHistoPrefix() + "bco").c_str(), "BCO distribution;BCO;Entries", 100, 0, TMath::Power(2, 40));
-    hm->registerHisto(h);
-  }
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "xyPos_North").c_str(), "Hit XY distribution (North);X [mm];Y [mm]", 400, -800, 800, 400, -800, 800);
     hm->registerHisto(h);

@@ -64,9 +64,16 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
     if (size1 == _nzerosuppresssamples)
     {
       v.push_back(v.at(1) - v.at(0));  // returns peak sample - pedestal sample
-      v.push_back(-1);                 // set time to -1 to indicate zero suppressed
+      v.push_back(-20);                 // set time to -20 to indicate zero suppressed
       v.push_back(v.at(0));
-      v.push_back(0);
+      if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
+      { 
+        v.push_back(1000000);
+      } 
+      else 
+      {
+        v.push_back(0);
+      }
       v.push_back(0);
     }
     else
@@ -98,9 +105,16 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       if ( (_bdosoftwarezerosuppression && v.at(6) - v.at(0) < _nsoftwarezerosuppression) || (_maxsoftwarezerosuppression && maxheight-pedestal  < _nsoftwarezerosuppression)  )
       {
         v.push_back(v.at(6) - v.at(0));
-        v.push_back(-1);
+        v.push_back(-20);
         v.push_back(v.at(0));
-        v.push_back(0);
+        if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
+        { 
+          v.push_back(1000000);
+        } 
+        else 
+        {
+          v.push_back(0);
+        }
         v.push_back(0);
       }
       else
@@ -335,11 +349,16 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
     float amp = 0;
     float time = 0;
     float ped = 0;
+    float chi2 = 0;
     if (nsamples == 2)
     {
       amp = v.at(1);
-      time = -1;
+      time = -20;
       ped = v.at(0);
+      if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
+      { 
+        chi2 = 1000000;
+      } 
     }
     else if (nsamples >= 3)
     {
@@ -373,7 +392,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
       }
     }
     amp -= ped;
-    std::vector<float> val = {amp, time, ped, 0, 0};
+    std::vector<float> val = {amp, time, ped, chi2, 0};
     fit_values.push_back(val);
     val.clear();
   }
@@ -391,7 +410,12 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(std
 
     if (nsamples == 2)
     {
-      fit_values.push_back({v.at(1) - v.at(0), -1, v.at(0), 0, 0});
+      float chi2 = 0;
+      if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
+      { 
+        chi2 = 1000000;
+      }
+      fit_values.push_back({v.at(1) - v.at(0), -20, v.at(0), chi2, 0});
       continue;
     }
     

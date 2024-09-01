@@ -43,14 +43,8 @@ PHRawOManager::~PHRawOManager()
 
 void PHRawOManager::closeFile()
 {
-  if (fileBuffer)
-  {
-    delete fileBuffer;
-  }
-  if (memBuffer)
-  {
-    delete memBuffer;
-  }
+  delete fileBuffer;
+  delete memBuffer;
   fileBuffer = nullptr;
   memBuffer = nullptr;
   if (filedesc >= 0)
@@ -89,7 +83,8 @@ bool PHRawOManager::setFile(const std::string& setFile, const int setRun, const 
 
   if (filedesc < 0)
   {
-    PHMessage("PHRawOManager::setFile", PHError, "could not open file");
+    std::cout << PHWHERE << " could not open file "
+	      << filename << std::endl;;
     return false;
   }
   memBuffer = new PHDWORD[bufferSize];
@@ -124,7 +119,7 @@ bool PHRawOManager::write(PHRawDataNode* node)
                                                                node->getWordLength(), node->getHitFormat());
     if (bytesAddedToBuffer <= 0)
     {
-      PHMessage("PHRawOManager::write", PHError, "Zero bytes added to buffer");
+      std::cout << PHWHERE << " Zero bytes added to buffer" << std::endl;
       return false;
     }
     return true;

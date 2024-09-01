@@ -250,7 +250,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (std::fabs(time - mean_time) > time_cut && m_doTime)
+    if (!m_raw_towers->get_tower_at_channel(channel)->get_isZS() && std::fabs(time - mean_time) > time_cut && m_doTime)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
     }

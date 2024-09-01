@@ -9,6 +9,7 @@
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer, TrkrId
 
 #include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
 #include <cmath>     // for sqrt, fabs, atan2, cos
@@ -18,69 +19,124 @@
 #include <utility>   // for pair, make_pair
 
 //____________________________________________________________________________..
-PHGhostRejection::PHGhostRejection(unsigned int verbosity)
-  : m_verbosity(verbosity)
-{
-}
-
-//____________________________________________________________________________..
 PHGhostRejection::~PHGhostRejection() = default;
 
 //____________________________________________________________________________..
-void PHGhostRejection::rejectGhostTracks(std::vector<float>& trackChi2)
-{
-  if (!m_trackMap || m_positions.size() == 0)
+bool PHGhostRejection::cut_from_clusters(int itrack) {
+  const auto& track = seeds[itrack];
+  unsigned int nclusters = track.size_cluster_keys();
+  if (nclusters < _min_clusters) 
   {
-    std::cout << "Missing containers, will not run TPC seed ghost rejection"
-              << std::endl;
-    return;
-  }
+    m_rejected[itrack] = true;
+    if (m_verbosity > 3) {
+      std::cout << " rejecting track ID (" << ((int)itrack) 
+        <<") because n-clusters(" << ((int)nclusters) <<")" << std::endl;
+    }
+    return true;
+  } 
+  if (_must_span_sectors)
+  {
+    // check that there are clusters in at least 2 of the three layers of sectors
+    bool in_two_sectors = false;
+    bool in_0 = false;
+    bool in_1 = false;
+    bool in_2 = false;
+    if (m_verbosity > 3)
+    {
+      std::cout << " layers in track: ";
+    }
+    for (auto key = track.begin_cluster_keys();
+        key != track.end_cluster_keys();
+        ++key)
+    {
+      unsigned int layer = TrkrDefs::getLayer(*key);
+      if (m_verbosity > 4)
+      {
+        std::cout << ((int) layer) << " ";
+      }
 
+      if (layer < 23)
+      { in_0 = true; }
+      else if (layer < 40)
+      { in_1 = true; }
+      else
+      { in_2 = true; }
+
+      if ((in_0+in_1+in_2)>1)
+      {
+        in_two_sectors = true;
+        break;
+      }
+    }
+    if (m_verbosity > 3)
+    { std::cout << std::endl; }
+    if (!in_two_sectors)
+    {
+      m_rejected[itrack] = true;
+      if (m_verbosity > 1) {
+        std::cout << " Cutting track ID " << ((int)itrack) 
+          << "  because only has clusters in " 
+          << (in_0 ? "inner sector  (layers <23)" 
+            : in_1 ? "middle sector  (layers 23-39)"
+            : "outer   (layers >40) ")
+          << std::endl;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
+{
   if (m_verbosity > 0)
   {
-    std::cout << "PHGhostRejection beginning track map size " << m_trackMap->size() << std::endl;
+    std::cout << "PHGhostRejection beginning track map size " << seeds.size() << std::endl;
   }
 
-  // Try to eliminate repeated tracks
+  // cut now pt tracks
+  if (_min_pt>0.) {
+    for (unsigned int i=0;i<seeds.size();++i) {
+      if (seeds[i].get_pt() < _min_pt) {
+        m_rejected[i] = true;
+      }
+    }
+  }
 
+  // Elimate low-interest track, and try to eliminate repeated tracks
   std::set<unsigned int> matches_set;
   std::multimap<unsigned int, unsigned int> matches;
 
   for (unsigned int trid1 = 0;
-       trid1 != m_trackMap->size();
+       trid1 != seeds.size();
        ++trid1)
   {
-    TrackSeed* track1 = m_trackMap->get(trid1);
-    if (!track1)
-    {
-      continue;
-    }
-    // float track1phi = track1->get_phi(m_positions);
-    float track1phi = track1->get_phi();
-    float track1x = track1->get_x();
-    float track1y = track1->get_y();
-    float track1z = track1->get_z();
-    float track1eta = track1->get_eta();
+    if (m_rejected[trid1]) { continue; }
+    TrackSeed& track1 = seeds[trid1];
+    float track1phi = track1.get_phi();
+    float track1x = track1.get_x();
+    float track1y = track1.get_y();
+    float track1z = track1.get_z();
+    float track1eta = track1.get_eta();
     for (unsigned int trid2 = trid1;
-         trid2 != m_trackMap->size();
+         trid2 != seeds.size();
          ++trid2)
     {
-      if (trid1 == trid2)
+      if (m_rejected[trid2] ||  (trid1 == trid2))
       {
         continue;
       }
 
-      TrackSeed* track2 = m_trackMap->get(trid2);
-      if (!track2)
-      {
-        continue;
+      auto& track2 = seeds[trid2];
+      auto delta_phi = fabs(static_cast<double>(track1phi - track2.get_phi()));
+      if (delta_phi > 2 * M_PI) {
+        delta_phi = fabs(static_cast<double>(delta_phi - 2 * M_PI)); // address clang-tidy float->double promotion warning
       }
-      // if(fabs( track1phi - track2->get_phi(m_positions)) < _phi_cut &&
-      if (std::fabs(track1phi - track2->get_phi()) < _phi_cut &&
-          std::fabs(track1eta - track2->get_eta()) < _eta_cut &&
-          std::fabs(track1x - track2->get_x()) < _x_cut &&
-          std::fabs(track1y - track2->get_y()) < _y_cut &&
-          std::fabs(track1z - track2->get_z()) < _z_cut)
+      if (delta_phi < _phi_cut &&
+          std::fabs(track1eta - track2.get_eta()) < _eta_cut &&
+          std::fabs(track1x - track2.get_x()) < _x_cut &&
+          std::fabs(track1y - track2.get_y()) < _y_cut &&
+          std::fabs(track1z - track2.get_z()) < _z_cut)
       {
         matches_set.insert(trid1);
         matches.insert(std::pair(trid1, trid2));
@@ -93,18 +149,12 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float>& trackChi2)
     }
   }
 
-  std::set<unsigned int> ghost_reject_list;
-
   for (auto set_it : matches_set)
   {
-    if (ghost_reject_list.find(set_it) != ghost_reject_list.end())
-    {
-      continue;  // already rejected
-    }
-
+    if (m_rejected[set_it]) { continue; } // already rejected
     auto match_list = matches.equal_range(set_it);
 
-    auto tr1 = m_trackMap->get(set_it);
+    auto tr1 = seeds[set_it];
     double best_qual = trackChi2.at(set_it);
     unsigned int best_track = set_it;
 
@@ -120,12 +170,10 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float>& trackChi2)
         std::cout << "    match of track " << it->first << " to track " << it->second << std::endl;
       }
 
-      auto tr2 = m_trackMap->get(it->second);
+      auto tr2 = seeds[it->second];
 
       // Check that these two tracks actually share the same clusters, if not skip this pair
-
-      bool is_same_track = checkClusterSharing(tr1, set_it,
-                                               tr2, it->second);
+      bool is_same_track = checkClusterSharing(tr1, tr2);
       if (!is_same_track)
       {
         continue;
@@ -136,10 +184,10 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float>& trackChi2)
       if (m_verbosity > 1)
       {
         std::cout << "       Compare: best quality " << best_qual << " track 2 quality " << tr2_qual << std::endl;
-        std::cout << "       tr1: phi " << tr1->get_phi() << " eta " << tr1->get_eta()
-                  << " x " << tr1->get_x() << " y " << tr1->get_y() << " z " << tr1->get_z() << std::endl;
-        std::cout << "       tr2: phi " << tr2->get_phi() << " eta " << tr2->get_eta()
-                  << " x " << tr2->get_x() << " y " << tr2->get_y() << " z " << tr2->get_z() << std::endl;
+        std::cout << "       tr1: phi " << tr1.get_phi() << " eta " << tr1.get_eta()
+                  << " x " << tr1.get_x() << " y " << tr1.get_y() << " z " << tr1.get_z() << std::endl;
+        std::cout << "       tr2: phi " << tr2.get_phi() << " eta " << tr2.get_eta()
+                  << " x " << tr2.get_x() << " y " << tr2.get_y() << " z " << tr2.get_z() << std::endl;
       }
 
       if (tr2_qual < best_qual)
@@ -147,8 +195,9 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float>& trackChi2)
         if (m_verbosity > 1)
         {
           std::cout << "       --------- Track " << it->second << " has better quality, erase track " << best_track << std::endl;
+          std::cout << " rejecting track ID " << ((int)best_track) << "  because it is a ghost " << std::endl;
         }
-        ghost_reject_list.insert(best_track);
+        m_rejected[best_track] = true;
         best_qual = tr2_qual;
         best_track = it->second;
       }
@@ -157,8 +206,9 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float>& trackChi2)
         if (m_verbosity > 1)
         {
           std::cout << "       --------- Track " << best_track << " has better quality, erase track " << it->second << std::endl;
+          std::cout << " rejecting track ID " << ((int)best_track) << "  because it is a ghost " << std::endl;
         }
-        ghost_reject_list.insert(it->second);
+        m_rejected[it->second] = true;
       }
     }
     if (m_verbosity > 1)
@@ -168,88 +218,45 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float>& trackChi2)
   }
 
   // delete ghost tracks
-  for (auto it : ghost_reject_list)
-  {
-    if (m_verbosity > 1)
-    {
-      std::cout << " erasing track ID " << it << std::endl;
-    }
-
-    m_trackMap->erase(it);
-  }
-
-  if (m_verbosity > 0)
-  {
-    std::cout << "Track map size after deleting ghost tracks: " << m_trackMap->size() << std::endl;
-  }
-
-  return;
-}
-
-bool PHGhostRejection::checkClusterSharing(TrackSeed* tr1, unsigned int trid1,
-                                           TrackSeed* tr2, unsigned int trid2)
-{
-  // Check that tr1 and tr2 share many clusters
-
-  bool is_same_track = false;
-
-  std::multimap<TrkrDefs::cluskey, unsigned int> cluskey_map;
-  std::vector<TrkrDefs::cluskey> clusterkeys;
-
-  for (TrackSeed::ConstClusterKeyIter key_iter = tr1->begin_cluster_keys();
-       key_iter != tr1->end_cluster_keys();
-       ++key_iter)
-  {
-    TrkrDefs::cluskey cluster_key = *key_iter;
-    if (m_verbosity > 2)
-    {
-      std::cout << " track id: " << trid1 << " adding clusterkey " << cluster_key << std::endl;
-    }
-    cluskey_map.insert(std::make_pair(cluster_key, trid1));
-    clusterkeys.push_back(cluster_key);
-  }
-
-  for (TrackSeed::ConstClusterKeyIter key_iter = tr2->begin_cluster_keys();
-       key_iter != tr2->end_cluster_keys();
-       ++key_iter)
-  {
-    TrkrDefs::cluskey cluster_key = *key_iter;
-    if (m_verbosity > 2)
-    {
-      std::cout << " track id: " << trid2 << " adding clusterkey " << cluster_key << std::endl;
-    }
-    cluskey_map.insert(std::make_pair(cluster_key, trid2));
-  }
-
-  unsigned int nclus = clusterkeys.size();
-
-  unsigned int nclus_used = 0;
-  for (TrkrDefs::cluskey& cluskey : clusterkeys)
-  {
-    if (cluskey_map.count(cluskey) > 0)
-    {
-      nclus_used++;
-    }
-  }
-
-  if ((float) nclus_used / (float) nclus > 0.5)
-  {
-    is_same_track = true;
-  }
-
   if (m_verbosity > 1)
   {
-    std::cout << " tr1 " << trid1 << " tr2 " << trid2 << " nclus_used " << nclus_used << " nclus " << nclus << std::endl;
-  }
-  if (m_verbosity > 0)
-  {
-    if (!is_same_track)
+    for (unsigned int it=0 ; it<m_rejected.size(); ++it)
     {
-      std::cout << "   ***** not the same track! ********"
-                << " tr1 " << trid1 << " tr2 "
-                << trid2 << " nclus_used " << nclus_used << " nclus " << nclus << std::endl;
+      if (m_rejected[it]) {
+        std::cout << " rejecting track ID " << it << std::endl;
+      }
     }
   }
 
-  return is_same_track;
+  if (m_verbosity > 0)
+  {
+    int n_ghost = std::count(m_rejected.begin(), m_rejected.end(), true);
+    std::cout << " Track list sizes: n_init(" << ((int)m_rejected.size()) <<") - n_ghost("<<n_ghost << ") = n_good(" << (m_rejected.size()-n_ghost) << ")" << std::endl;
+  }
+}
+
+// there is no check, at this point, about which is the best chi2 track
+bool PHGhostRejection::checkClusterSharing(TrackSeed& tr1, TrackSeed& tr2)
+{
+  // count shared clusters that tr1 and tr2 share many clusters
+  size_t nclus_tr1 = tr1.size_cluster_keys();
+  size_t nclus_tr2 = tr2.size_cluster_keys();
+  size_t n_shared_clus = 0;
+
+  for (auto key_tr1 = tr1.begin_cluster_keys();
+       key_tr1 != tr1.end_cluster_keys();
+       ++key_tr1)
+  {
+    if (tr2.find_cluster_key(*key_tr1) != tr2.end_cluster_keys())
+    {
+      ++n_shared_clus;
+    }
+  }
+
+  if (m_verbosity > 2)
+  {
+    std::cout << " N-clusters tr1: " << nclus_tr1 << " N-clusters tr2: " << nclus_tr2 << " N-clusters shared: " << n_shared_clus << std::endl;
+  }
+  size_t nreq = 2 * n_shared_clus + 1;
+  return (nreq > nclus_tr1) || (nreq > nclus_tr2);
 }

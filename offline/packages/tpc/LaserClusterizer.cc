@@ -151,7 +151,10 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
   m_event = eventHeader->get_EvtSequence();
 
-  std::cout << "LaserClusterizer::process_event working on event " << m_event << std::endl;
+  if(Verbosity() > 1)
+  {
+    std::cout << "LaserClusterizer::process_event working on event " << m_event << std::endl;
+  }
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -305,7 +308,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
            hitr != hitrangei.second;
            ++hitr)
       {
-        float_t fadc = (hitr->second->getAdc()) - m_pedestal;  // proper int rounding +0.5
+        float_t fadc = (hitr->second->getAdc()) - m_adc_threshold;  // proper int rounding +0.5
         unsigned short adc = 0;
         if (fadc > 0)
         {
@@ -450,7 +453,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     m_clusterTree->Fill();
   }
 
-  if (Verbosity())
+  if (Verbosity()>2)
   {
     std::cout << "rtree search time: " << t_search->get_accumulated_time() / 1000. << " sec" << std::endl;
     std::cout << "clustering time: " << t_clus->get_accumulated_time() / 1000. << " sec" << std::endl;
@@ -543,9 +546,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
         double adc = iterKey.first;
 	
 	bool foundLayer = false;
-	for(int i=0; i<(int)usedLayer.size(); i++)
+	for(float i : usedLayer)
 	{
-	  if(coords[0] == usedLayer[i])
+	  if(coords[0] == i)
 	  {
 	    foundLayer = true;
 	    break;
@@ -558,9 +561,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
 	}
 
 	bool foundIPhi = false;
-	for(int i=0; i<(int)usedIPhi.size(); i++)
+	for(float i : usedIPhi)
 	{
-	  if(coords[1] == usedIPhi[i])
+	  if(coords[1] == i)
 	  {
 	    foundIPhi = true;
 	    break;
@@ -573,9 +576,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
 	}
 
 	bool foundIT = false;
-	for(int i=0; i<(int)usedIT.size(); i++)
+	for(float i : usedIT)
 	{
-	  if(coords[2] == usedIT[i])
+	  if(coords[2] == i)
 	  {
 	    foundIT = true;
 	    break;

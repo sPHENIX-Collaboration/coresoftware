@@ -11,6 +11,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  BcoRangeCheck.h \
   CemcCheck.h \
   ClockDiffCheck.h \
   DumpPacket.h \
@@ -19,10 +20,12 @@ pkginclude_HEADERS = \
   Gl1Check.h \
   HcalCheck.h \
   InttCheck.h \
+  InttGl1Check.h \
   LL1Check.h \
   MbdCheck.h \
   StreamingCheck.h \
   SEpdCheck.h \
+  TpcBcoDump.h \
   TpcCheck.h \
   ZdcCheck.h
 
@@ -30,6 +33,7 @@ lib_LTLIBRARIES = \
   libffarawmodules.la
 
 libffarawmodules_la_SOURCES = \
+  BcoRangeCheck.cc \
   CemcCheck.cc \
   ClockDiffCheck.cc \
   DumpPacket.cc \
@@ -38,10 +42,12 @@ libffarawmodules_la_SOURCES = \
   Gl1Check.cc \
   HcalCheck.cc \
   InttCheck.cc \
+  InttGl1Check.cc \
   LL1Check.cc \
   MbdCheck.cc \
   SEpdCheck.cc \
   StreamingCheck.cc \
+  TpcBcoDump.cc \
   TpcCheck.cc \
   ZdcCheck.cc
 

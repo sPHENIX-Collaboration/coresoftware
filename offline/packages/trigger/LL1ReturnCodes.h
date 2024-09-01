@@ -6,6 +6,9 @@ Return codes
 #define LL1RETURNCODE
 #include <string>
 
-const std::string LL1_INVALID_NAME = "N/A";
+namespace LL1ReturnCode
+{
+  const std::string LL1_INVALID_NAME = "N/A";
+}
 
 #endif

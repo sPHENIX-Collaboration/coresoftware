@@ -183,7 +183,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
     }
   }
 
-  SvtxTrackMap* originalTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  SvtxTrackMap* originalTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_origin_track_map_node_name.c_str());
   KFParticle* daughterArray = &daughters[0];
 
   for (unsigned int k = 0; k < daughters.size(); ++k)

@@ -108,16 +108,16 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     {
       for (int i = 0; i < npackets; i++)
       {
-	int numBCOs = plist[i]->iValue(0, "NR_BCOS");
-	for (int j = 0; j < numBCOs; j++)
-	{
-	  uint64_t bco = plist[i]->lValue(j, "BCOLIST");
-	  if (bco < minBCO)
-	  {
-	    continue;
-	  }
-	  m_SkipEarlyEvents = false;
-	}
+        int numBCOs = plist[i]->iValue(0, "NR_BCOS");
+        for (int j = 0; j < numBCOs; j++)
+        {
+          uint64_t bco = plist[i]->lValue(j, "BCOLIST");
+          if (bco < minBCO)
+          {
+            continue;
+          }
+          m_SkipEarlyEvents = false;
+        }
       }
     }
     if (m_SkipEarlyEvents)

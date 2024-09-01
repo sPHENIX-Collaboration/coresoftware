@@ -34,8 +34,6 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual bool CheckPoolDepth(const uint64_t bclk);
   virtual void ClearCurrentEvent();
   virtual Eventiterator *GetEventiterator() const { return m_EventIterator; }
-  /* virtual Fun4AllEvtInputPoolManager *InputManager() { return m_InputMgr; } */
-  /* virtual void InputManager(Fun4AllEvtInputPoolManager *in) { m_InputMgr = in; } */
   virtual Fun4AllStreamingInputManager *StreamingInputManager() { return m_StreamingInputMgr; }
   virtual void StreamingInputManager(Fun4AllStreamingInputManager *in) { m_StreamingInputMgr = in; }
   virtual void CreateDSTNode(PHCompositeNode *) { return; }

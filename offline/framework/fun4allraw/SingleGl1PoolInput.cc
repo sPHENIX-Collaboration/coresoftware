@@ -321,12 +321,3 @@ void SingleGl1PoolInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode->addNode(newNode);
   }
 }
-
-// void SingleGl1PoolInput::ConfigureStreamingInputManager()
-// {
-//   if (StreamingInputManager())
-//   {
-//     StreamingInputManager()->SetGl1BcoRange(m_BcoRange);
-//   }
-//   return;
-// }

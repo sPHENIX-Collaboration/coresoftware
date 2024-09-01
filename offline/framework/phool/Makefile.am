@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem`root-config --incdir`
 
 AM_LDFLAGS = \
@@ -49,7 +49,6 @@ libphool_la_SOURCES = \
   $(ROOTDICTS) \
   PHCompositeNode.cc \
   PHFlag.cc \
-  PHMessage.cc \
   PHNode.cc \
   PHNodeIOManager.cc \
   PHNodeIntegrate.cc \

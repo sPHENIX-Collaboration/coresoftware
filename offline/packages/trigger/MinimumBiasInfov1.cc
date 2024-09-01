@@ -10,7 +10,7 @@ void MinimumBiasInfov1::identify(std::ostream& os) const
   return;
 }
 
-void MinimumBiasInfov1::CopyTo(MinimumBiasInfo *mbinfo)
+void MinimumBiasInfov1::CopyTo(MinimumBiasInfo* mbinfo)
 {
   mbinfo->setIsAuAuMinimumBias(isAuAuMinimumBias());
 }
