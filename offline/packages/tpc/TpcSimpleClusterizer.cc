@@ -534,7 +534,7 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
 
   if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
   {
-    printf("\n mutex init failed\n");
+    std::cout << std::endl << " mutex init failed" << std::endl;
     return 1;
   }
 

@@ -25,6 +25,7 @@ pkginclude_HEADERS = \
   MbdCheck.h \
   StreamingCheck.h \
   SEpdCheck.h \
+  TpcBcoDump.h \
   TpcCheck.h \
   ZdcCheck.h
 
@@ -46,6 +47,7 @@ libffarawmodules_la_SOURCES = \
   MbdCheck.cc \
   SEpdCheck.cc \
   StreamingCheck.cc \
+  TpcBcoDump.cc \
   TpcCheck.cc \
   ZdcCheck.cc
 
