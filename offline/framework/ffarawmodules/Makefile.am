@@ -17,6 +17,7 @@ pkginclude_HEADERS = \
   DumpPacket.h \
   EventCombiner.h \
   EventNumberCheck.h \
+  Gl1BcoDump.h \
   Gl1Check.h \
   HcalCheck.h \
   InttCheck.h \
@@ -39,6 +40,7 @@ libffarawmodules_la_SOURCES = \
   DumpPacket.cc \
   EventCombiner.cc \
   EventNumberCheck.cc \
+  Gl1BcoDump.cc \
   Gl1Check.cc \
   HcalCheck.cc \
   InttCheck.cc \
