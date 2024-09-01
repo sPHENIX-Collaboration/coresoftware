@@ -50,6 +50,7 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
   if (!evt)
   {
     std::cout << "No Event found" << std::endl;
+    exit(1);
   }
   //  evt->identify();
   int EventSequence = evt->getEvtSequence();
@@ -58,10 +59,7 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
   for (auto packet : pktvec)
   {
     int packetid = packet->getIdentifier();
-    if (lastbco.find(packetid) == lastbco.end())
-    {
-      lastbco[packetid] = 0;
-    }
+    lastbco.insert(std::make_pair(packetid,0));
     int numBCOs = packet->lValue(0, "N_TAGGER");
     for (int j = 0; j < numBCOs; j++)
     {
