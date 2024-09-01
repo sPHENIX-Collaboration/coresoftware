@@ -20,6 +20,7 @@
 
 #include <Event/Event.h>
 #include <Event/Eventiterator.h>  // for Eventiterator
+#include <Event/EventTypes.h>
 #include <Event/fileEventiterator.h>
 
 #include <cassert>
@@ -129,13 +130,14 @@ readagain:
   {
     m_Event = m_EventIterator->getNextEvent();
   }
-  PrdfNode->setData(m_Event);
-  if (!m_Event)
+  if (!m_Event || m_Event->getEvtType() == ENDRUNEVENT)
   {
+    PrdfNode->setData(nullptr);
     fileclose();
     // NOLINTNEXTLINE(hicpp-avoid-goto)
     goto readagain;
   }
+  PrdfNode->setData(m_Event);
   if (Verbosity() > 1)
   {
     std::cout << Name() << " PRDF run " << m_Event->getRunNumber() << ", evt no: " << m_Event->getEvtSequence() << std::endl;
