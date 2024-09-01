@@ -21,14 +21,4 @@ float Zdcinfov1::get_radius(int arm) const
   return m_radius[arm];
 }
 
-void Zdcinfov1::set_zvertex(float _z)
-{
-  m_zvertex = _z;
-}
-
-float Zdcinfov1::get_zvertex() const
-{
-  return m_zvertex;
-}
-
 
