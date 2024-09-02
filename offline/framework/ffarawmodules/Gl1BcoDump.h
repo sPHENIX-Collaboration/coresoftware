@@ -13,7 +13,7 @@
 class Fun4AllInputManager;
 class PHCompositeNode;
 class TFile;
-class TNtuple;
+class TTree;
 
 class Gl1BcoDump : public SubsysReco
 {
@@ -32,9 +32,13 @@ class Gl1BcoDump : public SubsysReco
 
  private:
   TFile *outTfile{nullptr};
-  TNtuple *ntup{nullptr};
+  TTree *ntup{nullptr};
   uint64_t lastbco{0};
   std::string outfilename;
+  int m_id {0};
+  int m_evt {0};
+  uint64_t m_bco {0};
+  int64_t m_bcodiff {0};
 };
 
 #endif  // FFARAWMODULES_GL1BCODUMP_H

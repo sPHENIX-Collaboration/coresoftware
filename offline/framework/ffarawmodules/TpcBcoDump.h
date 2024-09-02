@@ -13,7 +13,7 @@
 class Fun4AllInputManager;
 class PHCompositeNode;
 class TFile;
-class TNtuple;
+class TTree;
 
 class TpcBcoDump : public SubsysReco
 {
@@ -32,9 +32,14 @@ class TpcBcoDump : public SubsysReco
 
  private:
   TFile *outTfile{nullptr};
-  TNtuple *ntup{nullptr};
+  TTree *ntup = nullptr;
   std::map<int, uint64_t> lastbco;
   std::string outfilename;
+
+  int m_id {0};
+  int m_evt {0};
+  uint64_t m_bco {0};
+  int64_t m_bcodiff {0};
 };
 
 #endif  // FFARAWMODULES_TPCBCODUMP_H
