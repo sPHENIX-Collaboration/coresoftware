@@ -15,8 +15,8 @@
 #include <Event/packet.h>
 
 #include <TFile.h>
-#include <TNtuple.h>
 #include <TSystem.h>
+#include <TTree.h>
 
 #include <iostream>  // for operator<<, endl, basic_ost...
 #include <set>
@@ -86,7 +86,7 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
         uint64_t prevbco = lastbco[mapiter.first];
         if (prevbco > 0 && prevbco != bco)
         {
-          uint64_t diffbco = bco - prevbco;
+          int64_t diffbco = bco - prevbco;
 
           m_id = mapiter.first;
           m_evt = EventSequence;

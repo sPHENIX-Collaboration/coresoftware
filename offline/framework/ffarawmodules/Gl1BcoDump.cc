@@ -15,8 +15,8 @@
 #include <Event/packet.h>
 
 #include <TFile.h>
-#include <TNtuple.h>
 #include <TSystem.h>
+#include <TTree.h>
 
 #include <iostream>  // for operator<<, endl, basic_ost...
 #include <set>
@@ -39,7 +39,11 @@ int Gl1BcoDump::InitRun(PHCompositeNode * /*topNode*/)
   }
 
   outTfile = new TFile(outfilename.c_str(), "RECREATE");
-  ntup = new TNtuple("bco", "bco", "id:evt:bco:bcodiff");
+  ntup = new TTree("bco", "bco");
+  ntup->Branch("id",&m_id);
+  ntup->Branch("evt",&m_evt);
+  ntup->Branch("bco",&m_bco);
+  ntup->Branch("bcodiff",&m_bcodiff);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -64,8 +68,12 @@ int Gl1BcoDump::process_event(PHCompositeNode *topNode)
   uint64_t bco = (uint64_t) packet->lValue(0, "BCO") & 0xFFFFFFFFFFU;
   if (lastbco > 0)
   {
-    int diffbco = bco - lastbco;
-    ntup->Fill(14001, EventSequence, bco, diffbco);
+    int64_t diffbco = bco - lastbco;
+    m_id = 14001;
+    m_evt = EventSequence;
+    m_bco = bco;
+    m_bcodiff = diffbco;
+    ntup->Fill();
   }
   lastbco = bco;
   delete packet;
