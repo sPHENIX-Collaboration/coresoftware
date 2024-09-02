@@ -39,7 +39,11 @@ int TpcBcoDump::InitRun(PHCompositeNode * /*topNode*/)
   }
 
   outTfile = new TFile(outfilename.c_str(), "RECREATE");
-  ntup = new TNtuple("bco", "bco", "id:evt:bco:bcodiff");
+  ntup = new TTree("bco", "bco");
+  ntup->Branch("id",&m_id);
+  ntup->Branch("evt",&m_evt);
+  ntup->Branch("bco",&m_bco);
+  ntup->Branch("bcodiff",&m_bcodiff);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -82,8 +86,14 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
         uint64_t prevbco = lastbco[mapiter.first];
         if (prevbco > 0 && prevbco != bco)
         {
-          int diffbco = bco - prevbco;
-          ntup->Fill(mapiter.first, EventSequence, bco, diffbco);
+          uint64_t diffbco = bco - prevbco;
+
+          m_id = mapiter.first;
+          m_evt = EventSequence;
+          m_bco = bco; 
+          m_bcodiff = diffbco; 
+
+          ntup->Fill();
         }
         lastbco[mapiter.first] = bco;
       }
