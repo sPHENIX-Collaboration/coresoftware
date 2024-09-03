@@ -25,8 +25,8 @@ class PHIODataNode : public PHDataNode<T>
   PHIODataNode(T *, const std::string &, const std::string &);
   virtual ~PHIODataNode() {}
   typedef PHTypedNodeIterator<T> iterator;
-  void BufferSize(int size) {buffersize = size;}
-  void SplitLevel(int split) {splitlevel = split;}
+  void BufferSize(int size) { buffersize = size; }
+  void SplitLevel(int split) { splitlevel = split; }
 
  protected:
   bool write(PHIOManager *, const std::string & = "") override;

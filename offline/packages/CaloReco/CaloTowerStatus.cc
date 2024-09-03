@@ -162,6 +162,11 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   }
   else
   {
+    if (m_doAbortNoHotMap)
+    {
+      std::cout << "CaloTowerStatus::InitRun: No hot map.. exiting" << std::endl;
+      gSystem->Exit(1);
+    }
     if (use_directURL_hotMap)
     {
       calibdir = m_directURL_hotMap;
@@ -245,7 +250,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
-    if (std::fabs(time - mean_time) > time_cut && m_doTime)
+    if (!m_raw_towers->get_tower_at_channel(channel)->get_isZS() && std::fabs(time - mean_time) > time_cut && m_doTime)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
     }

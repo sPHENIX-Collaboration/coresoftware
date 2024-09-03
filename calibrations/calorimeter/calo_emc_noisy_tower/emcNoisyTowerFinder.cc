@@ -19,6 +19,11 @@
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
+
 // ROOT
 #include <TFile.h>
 #include <TH1F.h>
@@ -137,19 +142,65 @@ int emcNoisyTowerFinder::ResetEvent(PHCompositeNode * /*topNode*/)
 //__________________________
 void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilename, const std::string &inHist)
 {
-  TFile *fin = new TFile(infilename.c_str());
-  if (!fin)
+  //TH2F *h_hits_eta_phi_adc = nullptr;
+  bool isListFile = (infilename.substr(infilename.rfind('.') + 1) == "txt" || infilename.substr(infilename.rfind('.') + 1) == "list");
+
+  if (isListFile)
   {
-    std::cout << "emcNoisyTowerFinder::FindHot: input file not found " << infilename.c_str() << std::endl;
-    return;
+    std::ifstream fileList(infilename.c_str());
+    std::string line;
+    while (std::getline(fileList, line))
+    {
+      TFile *fin = new TFile(line.c_str());
+      if (!fin || fin->IsZombie())
+      {
+        std::cout << "emcNoisyTowerFinder::FindHot: input file not found or is corrupted " << line.c_str() << std::endl;
+        continue;
+      }
+      TH2F *tempHist = (TH2F *) fin->Get(inHist.c_str());
+      if (!tempHist)
+      {
+        std::cout << "emcNoisyTowerFinder::FindHot: input hist not found in file " << line.c_str() << std::endl;
+        delete fin;
+        continue;
+      }
+      if (!h_hits_eta_phi_adc)
+      {
+        h_hits_eta_phi_adc = (TH2F *) tempHist->Clone();
+        h_hits_eta_phi_adc->SetDirectory(nullptr);  // Detach from the file to keep it in memory
+      }
+      else
+      {
+        h_hits_eta_phi_adc->Add(tempHist);
+      }
+      delete fin;
+    }
+    fileList.close();
   }
-  h_hits_eta_phi_adc = (TH2F *) fin->Get(inHist.c_str());
-  if (!h_hits_eta_phi_adc)
+  else
   {
-    std::cout << "emcNoisyTowerFinder::FindHot: input hist not found " << inHist.c_str() << std::endl;
-    return;
+    TFile *fin = new TFile(infilename.c_str());
+    if (!fin || fin->IsZombie())
+    {
+      std::cout << "emcNoisyTowerFinder::FindHot: input file not found or is corrupted " << infilename.c_str() << std::endl;
+      return;
+    }
+    h_hits_eta_phi_adc = (TH2F *) fin->Get(inHist.c_str());
+    if (!h_hits_eta_phi_adc)
+    {
+      std::cout << "emcNoisyTowerFinder::FindHot: input hist not found " << inHist.c_str() << std::endl;
+      delete fin;
+      return;
+    }
+    h_hits_eta_phi_adc->SetDirectory(nullptr);  // Detach from the file to keep it in memory
+    delete fin;
   }
 
+  if (!h_hits_eta_phi_adc)
+  {
+    std::cout << "emcNoisyTowerFinder::FindHot: no valid histogram found" << std::endl;
+    return;
+  }
   TH2F *h_hits = h_hits_eta_phi_adc;
 
   TFile *fout = new TFile(outfilename.c_str(), "recreate");

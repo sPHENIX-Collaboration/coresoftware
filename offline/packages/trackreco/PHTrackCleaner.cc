@@ -108,21 +108,40 @@ int PHTrackCleaner::process_event(PHCompositeNode * /*topNode*/)
       {
         if (_pp_mode)
         {
-          // skip tracks with no assigned crossing number in pp mode
           if (_track->get_crossing() == SHRT_MAX)
           {
-            if (Verbosity() > 0)
-            {
-              std::cout << "     skip  track ID " << track_id << " crossing " << _track->get_crossing() << " chisq " << _track->get_chisq()
-                        << " ndf " << _track->get_ndf() << std::endl;
-            }
+	    // Tracks with no assigned crossing number in pp mode
+	    if (_track->get_chisq() / _track->get_ndf() < min_chisq_df && _track->get_ndf() > min_ndf && _track->get_ndf() != UINT_MAX)
+	      {
+		best_id = track_id;
+		best_ndf = _track->get_ndf();	    
+		double qual = _track->get_chisq() / _track->get_ndf();
 
-            continue;
+		if (qual < quality_cut * 2)
+		  {
+		    // keep this TPC only track
+		    track_keep_list.insert(best_id);
+		    ok_track++;
+		    if (qual < quality_cut)
+		      {
+			good_track++;
+		      }
+
+		    if (Verbosity() > 1)
+		      {
+			std::cout << "        keep unmatched track tpc_id " << tpc_id << " given best_id " << best_id 
+				  << " best_ndf " << best_ndf << " chisq/ndf " << qual << std::endl;			
+		      }		    
+		  }
+	      }
+	    
+	    continue;
           }
+
         }
-
+	
         // Find the remaining track with the best chisq/ndf
-
+	
         unsigned int si_index = UINT_MAX;
         auto si_seed = _track->get_silicon_seed();
         if (si_seed)

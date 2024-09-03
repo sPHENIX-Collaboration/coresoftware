@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+class EventHeader;
 class LaserClusterContainerv1;
 class LaserClusterv1;
 class PHCompositeNode;
@@ -59,7 +60,7 @@ class LaserClusterizer : public SubsysReco
   void set_debug(bool debug) { m_debug = debug; }
   void set_debug_name(const std::string &name) { m_debugFileName = name; }
 
-  void set_pedestal(float val) { m_pedestal = val; }
+  void set_adc_threshold(float val) { m_adc_threshold = val; }
   void set_min_clus_size(float val) { min_clus_size = val; }
   void set_min_adc_sum(float val) { min_adc_sum = val; }
   void set_max_time_samples(int val) { m_time_samples_max = val; }
@@ -68,6 +69,8 @@ class LaserClusterizer : public SubsysReco
   int m_event = -1;
   int m_time_samples_max=360;
 
+  EventHeader *eventHeader{nullptr};
+
   TrkrHitSetContainer *m_hits = nullptr;
   RawHitSetContainer *m_rawhits = nullptr;
   LaserClusterContainerv1 *m_clusterlist = nullptr;
@@ -75,7 +78,7 @@ class LaserClusterizer : public SubsysReco
   PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
   double min_clus_size = 1;
   double min_adc_sum = 10;
-  double m_pedestal = 74.4;
+  double m_adc_threshold = 74.4;
 
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;  // ns

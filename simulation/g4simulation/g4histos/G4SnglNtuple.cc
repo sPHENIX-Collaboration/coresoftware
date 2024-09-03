@@ -15,19 +15,13 @@
 #include <TNtuple.h>
 
 #include <cmath>  // for atan2, sqrt
+#include <limits>
 #include <sstream>
 #include <utility>  // for pair
 
-using namespace std;
-
 G4SnglNtuple::G4SnglNtuple(const std::string &name, const std::string &filename)
   : SubsysReco(name)
-  , nblocks(0)
-  , hm(nullptr)
   , _filename(filename)
-  , ntup(nullptr)
-  , ntup_e(nullptr)
-  , outfile(nullptr)
 {
 }
 
@@ -37,7 +31,7 @@ G4SnglNtuple::~G4SnglNtuple()
   delete hm;
 }
 
-int G4SnglNtuple::Init(PHCompositeNode *)
+int G4SnglNtuple::Init(PHCompositeNode * /*unused*/)
 {
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
@@ -55,13 +49,13 @@ int G4SnglNtuple::process_event(PHCompositeNode *topNode)
 {
   // get the primary particle which did this to us....
   PHG4TruthInfoContainer *truthInfoList = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-  double px = NAN;
-  double py = NAN;
-  double pz = NAN;
-  double e = NAN;
-  double pt = NAN;
-  double phi = NAN;
-  double theta = NAN;
+  double px = std::numeric_limits<double>::quiet_NaN();
+  double py = std::numeric_limits<double>::quiet_NaN();
+  double pz = std::numeric_limits<double>::quiet_NaN();
+  double e = std::numeric_limits<double>::quiet_NaN();
+  double pt = std::numeric_limits<double>::quiet_NaN();
+  double phi = std::numeric_limits<double>::quiet_NaN();
+  double theta = std::numeric_limits<double>::quiet_NaN();
   if (truthInfoList)
   {
     const PHG4TruthInfoContainer::Range primRange = truthInfoList->GetPrimaryParticleRange();
@@ -73,12 +67,12 @@ int G4SnglNtuple::process_event(PHCompositeNode *topNode)
     phi = atan2(py, px);
     theta = atan2(pt, pz);
   }
-  ostringstream nodename;
-  set<string>::const_iterator iter;
-  vector<TH1 *>::const_iterator eiter;
+  std::ostringstream nodename;
+  std::set<std::string>::const_iterator iter;
+  std::vector<TH1 *>::const_iterator eiter;
 
-  map<int, double> layer_edep_map;
-  map<int, double>::const_iterator edepiter;
+  std::map<int, double> layer_edep_map;
+  std::map<int, double>::const_iterator edepiter;
 
   for (iter = _node_postfix.begin(); iter != _node_postfix.end(); ++iter)
   {
@@ -120,7 +114,7 @@ int G4SnglNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4SnglNtuple::End(PHCompositeNode */*topNode*/)
+int G4SnglNtuple::End(PHCompositeNode * /*topNode*/)
 {
   outfile->cd();
   ntup->Write();

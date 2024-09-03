@@ -307,7 +307,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = m_vtx_map_node_name_nTuple = vtx_map_node_name; }
 
   /// Use alternate vertex and track fitters
-  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = trk_map_node_name; }
+  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = m_origin_track_map_node_name = trk_map_node_name; }
 
   void magFieldFile(const std::string &fname) { m_magField = fname; }
 

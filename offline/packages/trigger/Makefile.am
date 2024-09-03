@@ -2,8 +2,9 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
-  -isystem`root-config --incdir`
+  -isystem$(OFFLINE_MAIN)/include  \
+  -isystem`root-config --incdir` \
+  -isystem$(OPT_SPHENIX)/include
 
 lib_LTLIBRARIES = \
    libcalotrigger_io.la \
@@ -15,12 +16,14 @@ AM_LDFLAGS = \
 
 libcalotrigger_io_la_LIBADD = \
   -lphool \
+  -lodbc++ \
   -lcalo_io \
   -lmbd_io
 
 libcalotrigger_la_LIBADD = \
   libcalotrigger_io.la \
   -lmbd_io \
+  -lodbc++ \
   -lglobalvertex \
   -lcalo_reco \
   -lffamodules \
@@ -37,9 +40,13 @@ pkginclude_HEADERS = \
   LL1Defs.h \
   LL1Out.h \
   LL1Outv1.h \
+  TriggerAnalyzer.h \
   CaloTriggerEmulator.h \
   LL1PacketGetter.h \
   TriggerDefs.h \
+  TriggerRunInfoReco.h \
+  TriggerRunInfo.h \
+  TriggerRunInfov1.h \
   TriggerPrimitive.h \
   TriggerPrimitivev1.h \
   TriggerPrimitiveContainer.h \
@@ -49,6 +56,8 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   LL1Out_Dict.cc \
   LL1Outv1_Dict.cc \
+  TriggerRunInfo_Dict.cc \
+  TriggerRunInfov1_Dict.cc \
   TriggerPrimitive_Dict.cc \
   TriggerPrimitivev1_Dict.cc \
   TriggerPrimitiveContainer_Dict.cc \
@@ -60,6 +69,8 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  TriggerRunInfo_Dict_rdict.pcm \
+  TriggerRunInfov1_Dict_rdict.pcm \
   CaloTriggerInfo_Dict_rdict.pcm \
   CaloTriggerInfov1_Dict_rdict.pcm \
   MinimumBiasInfo_Dict_rdict.pcm \
@@ -73,6 +84,8 @@ nobase_dist_pcm_DATA = \
 
 libcalotrigger_io_la_SOURCES = \
   $(ROOTDICTS) \
+  TriggerRunInfo.cc \
+  TriggerRunInfov1.cc \
   LL1Out.cc \
   LL1Outv1.cc \
   TriggerPrimitive.cc \
@@ -84,7 +97,9 @@ libcalotrigger_io_la_SOURCES = \
   MinimumBiasInfov1.cc
 
 libcalotrigger_la_SOURCES = \
+  TriggerRunInfoReco.cc \
   LL1PacketGetter.cc \
+  TriggerAnalyzer.cc\
   CaloTriggerEmulator.cc \
   CaloTriggerSim.cc \
   MinimumBiasClassifier.cc

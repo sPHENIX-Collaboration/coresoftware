@@ -1,11 +1,6 @@
 // One-stop header
 // Must include first to avoid conflict with "ClassDef" in Rtypes.h
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <torch/script.h>
-#pragma GCC diagnostic pop
 
 #include "TpcClusterizer.h"
 
@@ -46,6 +41,7 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+
 
 #include <TMatrixFfwd.h>    // for TMatrixF
 #include <TMatrixT.h>       // for TMatrixT, ope...
@@ -1290,7 +1286,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
   if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
   {
-    printf("\n mutex init failed\n");
+    std::cout << std::endl << " mutex init failed" << std::endl;
     return 1;
   }
   int count = 0;
@@ -1339,7 +1335,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.min_adc_sum = min_adc_sum;
       unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
       unsigned short NPhiBinsSector = NPhiBins / 12;
-      unsigned short NTBins = (unsigned short) layergeom->get_zbins();
+      unsigned short NTBins = 0;
+      if(is_reco){
+	NTBins = NZBinsSide;
+      }else{
+	NTBins = (unsigned short) layergeom->get_zbins();
+      }
       unsigned short NTBinsSide = NTBins;
       unsigned short NTBinsMin = 0;
       unsigned short PhiOffset = NPhiBinsSector * sector;

@@ -265,10 +265,48 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
     ofl = InttNameSpace::ToOffline(raw);
     hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);  // col, row <trackbase/InttDefs.h>
-    int time_bucket = m_runStandAlone ? 0 : intthit->get_bco() - gl1bco;
+    int time_bucket = 0;
+    if(!m_runStandAlone)
+      {
+	if(m_triggeredMode)
+	  {
+	    time_bucket = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) - m_inttFeeOffset + 128) % 128;
+	  }
+	else    // streamed mode
+	  {
+	    // For triggered events with the INTT in streaming mode:
+	    //   The BCO corresponding to a given FPHX_BCO is:
+	    //               intthit->get_FPHX_BCO() + intthit->get_bco() - m_inttFeeOffset
+	    //   The bunch crossing relative to the trigger BCO is then:
+	    //               (intthit->get_FPHX_BCO() + intthit->get_bco() - m_inttFeeOffset) - gl1bco
+	    
+	    time_bucket =  intthit->get_FPHX_BCO() + intthit->get_bco() - gl1bco -  m_inttFeeOffset;
+	  }
+      }
     hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, time_bucket);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
     hit = hit_set_container_itr->second->getHit(hit_key);
+
+    if(m_outputBcoDiff)
+      {
+	int bco_diff = 0;
+	if(m_triggeredMode)
+	  {
+	    bco_diff = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) + 128) % 128;
+	  }
+	else
+	  {
+	    bco_diff =  intthit->get_FPHX_BCO() + intthit->get_bco() - gl1bco;
+	  }
+
+	std::cout << " bco: " << " fee " << intthit->get_fee() 
+		  << " rawhitbco " <<  intthit->get_bco() 
+		  << " gl1bco " << gl1bco 
+		  << "  intthit->get_FPHX_BCO() " <<  intthit->get_FPHX_BCO()
+		  << " bcodiff " << bco_diff 
+		  << " time_bucket " << time_bucket 
+		  << std::endl;
+      }
 
     if (hit)
     {

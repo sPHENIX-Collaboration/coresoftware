@@ -138,6 +138,8 @@ void TrackResiduals::clearClusterStateVectors()
   m_idealsurfcentery.clear();
   m_idealsurfcenterz.clear();
   m_idealsurfnormx.clear();
+  m_clsector.clear();
+  m_clside.clear();
   m_idealsurfnormy.clear();
   m_idealsurfnormz.clear();
   m_missurfcenterx.clear();
@@ -296,6 +298,10 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
   fillVertexTree(topNode);
 
+  if (m_doEventTree)
+  {
+    fillEventTree(topNode);
+  }
   m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -419,9 +425,13 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
     m_tpcseedcharge = tpcseed->get_qOverR() > 0 ? 1 : -1;
     m_dedx = calc_dedx(tpcseed, clustermap, tpcGeo);
     m_nmaps = 0;
+    m_nmapsstate = 0;
     m_nintt = 0;
+    m_ninttstate = 0;
     m_ntpc = 0;
+    m_ntpcstate = 0;
     m_nmms = 0;
+    m_nmmsstate = 0;
     clearClusterStateVectors();
     for (auto tseed : {silseed, tpcseed})
     {
@@ -667,6 +677,10 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
 void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
                                      ActsGeometry* geometry)
 {
+  if (clusters->size()< m_min_cluster_size)
+  {
+    return;
+  }
   for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
                     TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
   {
@@ -679,14 +693,16 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
         auto key = iter->first;
         auto cluster = clusters->findCluster(key);
         Acts::Vector3 glob;
-        if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
-        {
-          glob = geometry->getGlobalPosition(key, cluster);  // corrections make no sense if crossing is not known
-        }
-        else
-        {
-          glob = geometry->getGlobalPosition(key, cluster);
-        }
+        // NOT IMPLEMENTED YET
+        // if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+        // {
+        //   glob = geometry->getGlobalPosition(key, cluster);  // corrections make no sense if crossing is not known
+        // }
+        // else
+        // {
+        //   glob = geometry->getGlobalPosition(key, cluster);
+        // }
+        glob = geometry->getGlobalPosition(key, cluster);
         m_sclusgx = glob.x();
         m_sclusgy = glob.y();
         m_sclusgz = glob.z();
@@ -783,6 +799,10 @@ int TrackResiduals::End(PHCompositeNode* /*unused*/)
   }
   m_vertextree->Write();
   m_failedfits->Write();
+  if (m_doEventTree)
+  {
+    m_eventtree->Write();
+  }
   m_outfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1022,13 +1042,12 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
     }
   }
 
-
   unsigned int layer = TrkrDefs::getLayer(ckey);
 
-if(Verbosity() > 1)
-    {
-      std::cout << "Called :fillClusterBranchesKF for ckey " << ckey << " layer " << layer << " trackid " << track->get_id() << " clusglob x " << clusglob(0) << " y " << clusglob(1) << " z " << clusglob(2) <<  std::endl;
-    }
+  if (Verbosity() > 1)
+  {
+    std::cout << "Called :fillClusterBranchesKF for ckey " << ckey << " layer " << layer << " trackid " << track->get_id() << " clusglob x " << clusglob(0) << " y " << clusglob(1) << " z " << clusglob(2) << std::endl;
+  }
 
   switch (TrkrDefs::getTrkrId(ckey))
   {
@@ -1040,6 +1059,8 @@ if(Verbosity() > 1)
     break;
   case TrkrDefs::tpcId:
     m_ntpc++;
+    m_clsector.push_back(TpcDefs::getSectorId(ckey));
+    m_clside.push_back(TpcDefs::getSide(ckey));
     break;
   case TrkrDefs::micromegasId:
     m_nmms++;
@@ -1063,11 +1084,32 @@ if(Verbosity() > 1)
     }
   }
 
-  if(!state)
+  if (!state)
+  {
+    if (Verbosity() > 1)
     {
-      if(Verbosity() > 1)  {  std::cout << "   no state for cluster " << ckey << "  in layer " << layer << std::endl; }
+      std::cout << "   no state for cluster " << ckey << "  in layer " << layer << std::endl;
     }
-  
+  }
+  else
+  {
+    switch (TrkrDefs::getTrkrId(ckey))
+    {
+    case TrkrDefs::mvtxId:
+      m_nmapsstate++;
+      break;
+    case TrkrDefs::inttId:
+      m_ninttstate++;
+      break;
+    case TrkrDefs::tpcId:
+      m_ntpcstate++;
+      break;
+    case TrkrDefs::micromegasId:
+      m_nmmsstate++;
+      break;
+    }
+  }
+
   m_cluskeys.push_back(ckey);
 
   //! have cluster and state, fill vectors
@@ -1202,55 +1244,55 @@ if(Verbosity() > 1)
   m_clusgyideal.push_back(ideal_glob.y());
   m_clusgzideal.push_back(ideal_glob.z());
 
-  if(state)
+  if (state)
+  {
+    Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
+    Acts::Vector2 stateloc;
+    auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
+                                      stateglob * Acts::UnitConstants::cm,
+                                      misalignnorm);
+
+    if (result.ok())
     {
-      Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
-      Acts::Vector2 stateloc;
-      auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
-					stateglob * Acts::UnitConstants::cm,
-					misalignnorm);
-      
-      if (result.ok())
-	{
-	  stateloc = result.value() / Acts::UnitConstants::cm;
-	}
-      else
-	{
-	  //! manual transform for tpc
-	  Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * (stateglob * Acts::UnitConstants::cm);
-	  loct /= Acts::UnitConstants::cm;
-	  stateloc(0) = loct(0);
-	  stateloc(1) = loct(1);
-	}
-
-      const auto actscov =
-	transformer.rotateSvtxTrackCovToActs(state);
-
-      m_statelx.push_back(stateloc(0));
-      m_statelz.push_back(stateloc(1));
-      m_stateelx.push_back(std::sqrt(actscov(Acts::eBoundLoc0, Acts::eBoundLoc0)) / Acts::UnitConstants::cm);
-      m_stateelz.push_back(std::sqrt(actscov(Acts::eBoundLoc1, Acts::eBoundLoc1)) / Acts::UnitConstants::cm);
-      m_stategx.push_back(state->get_x());
-      m_stategy.push_back(state->get_y());
-      m_stategz.push_back(state->get_z());
-      m_statepx.push_back(state->get_px());
-      m_statepy.push_back(state->get_py());
-      m_statepz.push_back(state->get_pz());
-      m_statepl.push_back(state->get_pathlength());
+      stateloc = result.value() / Acts::UnitConstants::cm;
     }
+    else
+    {
+      //! manual transform for tpc
+      Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * (stateglob * Acts::UnitConstants::cm);
+      loct /= Acts::UnitConstants::cm;
+      stateloc(0) = loct(0);
+      stateloc(1) = loct(1);
+    }
+
+    const auto actscov =
+        transformer.rotateSvtxTrackCovToActs(state);
+
+    m_statelx.push_back(stateloc(0));
+    m_statelz.push_back(stateloc(1));
+    m_stateelx.push_back(std::sqrt(actscov(Acts::eBoundLoc0, Acts::eBoundLoc0)) / Acts::UnitConstants::cm);
+    m_stateelz.push_back(std::sqrt(actscov(Acts::eBoundLoc1, Acts::eBoundLoc1)) / Acts::UnitConstants::cm);
+    m_stategx.push_back(state->get_x());
+    m_stategy.push_back(state->get_y());
+    m_stategz.push_back(state->get_z());
+    m_statepx.push_back(state->get_px());
+    m_statepy.push_back(state->get_py());
+    m_statepz.push_back(state->get_pz());
+    m_statepl.push_back(state->get_pathlength());
+  }
   else
-    {
-      // cluster has no corresponding state, set state variables to NaNs
-      m_statelx.push_back(std::numeric_limits<float>::quiet_NaN());
-      m_statelz.push_back(std::numeric_limits<float>::quiet_NaN());
-      m_stategx.push_back(std::numeric_limits<float>::quiet_NaN());
-      m_stategy.push_back(std::numeric_limits<float>::quiet_NaN());
-      m_stategz.push_back(std::numeric_limits<float>::quiet_NaN());
-      m_statepx.push_back(std::numeric_limits<float>::quiet_NaN());
-      m_statepy.push_back(std::numeric_limits<float>::quiet_NaN());
-      m_statepz.push_back(std::numeric_limits<float>::quiet_NaN());
-      m_statepl.push_back(std::numeric_limits<float>::quiet_NaN());
-    }
+  {
+    // cluster has no corresponding state, set state variables to NaNs
+    m_statelx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statelz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_stategx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_stategy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_stategz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepx.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepy.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepz.push_back(std::numeric_limits<float>::quiet_NaN());
+    m_statepl.push_back(std::numeric_limits<float>::quiet_NaN());
+  }
 
   if (Verbosity() > 2)
   {
@@ -1337,6 +1379,8 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
     break;
   case TrkrDefs::tpcId:
     m_ntpc++;
+    m_clsector.push_back(TpcDefs::getSectorId(ckey));
+    m_clside.push_back(TpcDefs::getSide(ckey));
     break;
   case TrkrDefs::micromegasId:
     m_nmms++;
@@ -1540,6 +1584,25 @@ void TrackResiduals::fillStatesWithLineFit(const TrkrDefs::cluskey& key,
 }
 void TrackResiduals::createBranches()
 {
+  if (m_doEventTree)
+  {
+    m_eventtree = new TTree("eventtree", "A tree with all hits");
+    m_eventtree->Branch("run", &m_runnumber, "m_runnumber/I");
+    m_eventtree->Branch("segment", &m_segment, "m_segment/I");
+    m_eventtree->Branch("event", &m_event, "m_event/I");
+    m_eventtree->Branch("gl1bco", &m_bco, "m_bco/I");
+    m_eventtree->Branch("nmvtx", &m_nmvtx_all, "m_nmvtx_all/I");
+    m_eventtree->Branch("nintt", &m_nintt_all, "m_nintt_all/I");
+    m_eventtree->Branch("nhittpc0", &m_ntpc_hits0, "m_ntpc_hits0/I");
+    m_eventtree->Branch("nhittpc1", &m_ntpc_hits1, "m_ntpc_hits1/I");
+    m_eventtree->Branch("nclustpc0", &m_ntpc_clus0, "m_ntpc_clus0/I");
+    m_eventtree->Branch("nclustpc1", &m_ntpc_clus1, "m_ntpc_clus1/I");
+    m_eventtree->Branch("nmms", &m_nmms_all, "m_nmms_all/I");
+    m_eventtree->Branch("nsiseed", &m_nsiseed, "m_nsiseed/I");
+    m_eventtree->Branch("ntpcseed", &m_ntpcseed, "m_ntpcseed/I");
+    m_eventtree->Branch("ntracks", &m_ntracks_all, "m_ntracks_all/I");
+  }
+
   m_failedfits = new TTree("failedfits", "tree with seeds from failed Acts fits");
   m_failedfits->Branch("run", &m_runnumber, "m_runnumber/I");
   m_failedfits->Branch("segment", &m_segment, "m_segment/I");
@@ -1680,6 +1743,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("tpcseedeta", &m_tpcseedeta, "m_tpcseedeta/F");
   m_tree->Branch("tpcseedcharge", &m_tpcseedcharge, "m_tpcseedcharge/I");
   m_tree->Branch("dedx", &m_dedx, "m_dedx/F");
+  m_tree->Branch("tracklength", &m_tracklength, "m_tracklength/F");
   m_tree->Branch("px", &m_px, "m_px/F");
   m_tree->Branch("py", &m_py, "m_py/F");
   m_tree->Branch("pz", &m_pz, "m_pz/F");
@@ -1692,9 +1756,13 @@ void TrackResiduals::createBranches()
   m_tree->Branch("ndf", &m_ndf, "m_ndf/F");
   m_tree->Branch("nhits", &m_nhits, "m_nhits/I");
   m_tree->Branch("nmaps", &m_nmaps, "m_nmaps/I");
+  m_tree->Branch("nmapsstate", &m_nmapsstate, "m_nmapsstate/I");
   m_tree->Branch("nintt", &m_nintt, "m_nintt/I");
+  m_tree->Branch("ninttstate", &m_ninttstate, "m_ninttstate/I");
   m_tree->Branch("ntpc", &m_ntpc, "m_ntpc/I");
+  m_tree->Branch("ntpcstate", &m_ntpcstate, "m_ntpcstate/I");
   m_tree->Branch("nmms", &m_nmms, "m_nmms/I");
+  m_tree->Branch("nmmsstate", &m_nmmsstate, "m_nmmsstate/I");
   m_tree->Branch("tile", &m_tileid, "m_tileid/I");
   m_tree->Branch("vertexid", &m_vertexid, "m_vertexid/I");
   m_tree->Branch("vertex_crossing", &m_vertex_crossing, "m_vertex_crossing/I");
@@ -1730,6 +1798,8 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgxunmoved", &m_clusgxunmoved);
   m_tree->Branch("clusgyunmoved", &m_clusgyunmoved);
   m_tree->Branch("clusgzunmoved", &m_clusgzunmoved);
+  m_tree->Branch("clussector", &m_clsector);
+  m_tree->Branch("clusside", &m_clside);
   m_tree->Branch("clusAdc", &m_clusAdc);
   m_tree->Branch("clusMaxAdc", &m_clusMaxAdc);
   m_tree->Branch("cluslayer", &m_cluslayer);
@@ -1811,7 +1881,6 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
   auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
   std::set<unsigned int> tpc_seed_ids;
-
   for (const auto& [key, track] : *trackmap)
   {
     if (!track)
@@ -1840,9 +1909,13 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     m_ndf = track->get_ndf();
 
     m_nmaps = 0;
+    m_nmapsstate = 0;
     m_nintt = 0;
+    m_ninttstate = 0;
     m_ntpc = 0;
+    m_ntpcstate = 0;
     m_nmms = 0;
+    m_nmmsstate = 0;
     m_silid = std::numeric_limits<unsigned int>::quiet_NaN();
     m_tpcid = std::numeric_limits<unsigned int>::quiet_NaN();
     m_silseedx = std::numeric_limits<float>::quiet_NaN();
@@ -2017,12 +2090,109 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
         }
       }
     }
-    m_tree->Fill();
+
+    if (m_nmms > 0 || !m_doMicromegasOnly)
+    {
+      m_tree->Fill();
+    }
+
   }  // end loop over tracks
 
   if (m_doFailedSeeds)
   {
     fillFailedSeedTree(topNode, tpc_seed_ids);
+  }
+}
+void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
+{
+  auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+  auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  auto hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+
+  m_ntpc_hits0 = 0;
+  m_ntpc_hits1 = 0;
+  m_ntpc_clus0 = 0;
+  m_ntpc_clus1 = 0;
+  m_nmvtx_all = 0;
+  m_nintt_all = 0;
+  m_nmms_all = 0;
+  m_nsiseed = 0;
+  m_ntpcseed = 0;
+
+  m_nsiseed = silseedmap->size();
+  m_ntpcseed = tpcseedmap->size();
+  m_ntracks_all = trackmap->size();
+
+  // Hits
+  if (m_doHits)
+  {
+    TrkrHitSetContainer::ConstRange tpc_hitsets = hitmap->getHitSets(TrkrDefs::TrkrId::tpcId);
+    for (TrkrHitSetContainer::ConstIterator hitsetiter = tpc_hitsets.first;
+         hitsetiter != tpc_hitsets.second;
+         ++hitsetiter)
+    {
+      TrkrDefs::hitsetkey hitsetkey = hitsetiter->first;
+      TrkrHitSet* hitset = hitsetiter->second;
+
+      int thisside = TpcDefs::getSide(hitsetkey);
+      if (thisside == 0)
+      {
+        m_ntpc_hits0 += hitset->size();
+      }
+      if (thisside == 1)
+      {
+        m_ntpc_hits1 += hitset->size();
+      }
+    }
+  }
+  for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
+                    TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
+  {
+    for (const auto& hitsetkey : clustermap->getHitSetKeys(det))
+    {
+      auto range = clustermap->getClusters(hitsetkey);
+      int nclus = std::distance(range.first, range.second);
+      int tpcside = TrkrDefs::getZElement(hitsetkey);
+      switch (det)
+      {
+      case TrkrDefs::TrkrId::mvtxId:
+        m_nmvtx_all += nclus;
+        break;
+      case TrkrDefs::TrkrId::inttId:
+        m_nintt_all += nclus;
+        break;
+      case TrkrDefs::TrkrId::tpcId:
+        if (tpcside == 0)
+        {
+          m_ntpc_clus0 += nclus;
+        }
+        if (tpcside == 1)
+        {
+          m_ntpc_clus1 += nclus;
+        }
+        break;
+      case TrkrDefs::TrkrId::micromegasId:
+        m_nmms_all += nclus;
+        break;
+      default:
+        break;
+      }
+    }
+  }
+  if (m_doEventTree)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << " m_event:" << m_event << std::endl;
+      std::cout << " m_ntpc_clus0:" << m_ntpc_clus0 << std::endl;
+      std::cout << " m_ntpc_clus1: " << m_ntpc_clus1 << std::endl;
+      std::cout << " m_nmvtx_all:" << m_nmvtx_all << std::endl;
+      std::cout << " m_nintt_all: " << m_nintt_all << std::endl;
+      std::cout << " m_nmms_all: " << m_nmms_all << std::endl;
+    }
+    m_eventtree->Fill();
   }
 }
 
@@ -2202,6 +2372,8 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
 
     // get the fully corrected cluster global positions
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
+    float minR = std::numeric_limits<float>::max();
+    float maxR = 0;
     for (const auto& ckey : get_cluster_keys(track))
     {
       auto cluster = clustermap->findCluster(ckey);
@@ -2214,8 +2386,16 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       }
       // add the global positions to a vector to give to the cluster mover
       global_raw.emplace_back(std::make_pair(ckey, global));
+      if (r(global.x(), global.y()) < minR)
+      {
+        minR = r(global.x(), global.y());
+      }
+      if (r(global.x(), global.y()) > maxR)
+      {
+        maxR = r(global.x(), global.y());
+      }
     }
-
+    m_tracklength = maxR - minR;
     // ---- we move the global positions back to the surface in fillClusterBranchesSeeds
 
     if (!m_doAlignment)

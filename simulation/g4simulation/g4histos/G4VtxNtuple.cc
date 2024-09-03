@@ -25,7 +25,7 @@ G4VtxNtuple::~G4VtxNtuple()
   delete hm;
 }
 
-int G4VtxNtuple::Init(PHCompositeNode *)
+int G4VtxNtuple::Init(PHCompositeNode * /*unused*/)
 {
   hm = new Fun4AllHistoManager(Name());
   ntup = new TNtuple("vtxntup", "G4Vtxs", "vx:vy:vz");
@@ -44,7 +44,7 @@ int G4VtxNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4VtxNtuple::End(PHCompositeNode */*topNode*/)
+int G4VtxNtuple::End(PHCompositeNode * /*topNode*/)
 {
   hm->dumpHistos(m_FileName, "RECREATE");
   return 0;

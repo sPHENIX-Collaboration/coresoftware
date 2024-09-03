@@ -99,6 +99,13 @@ int MbdCalib::Download_All()
     }
     Download_TQT0(tq_t0_url);
 
+    std::string t0corr_url = _cdb->getUrl("MBD_T0CORR");
+    if ( Verbosity() > 0 )
+    {
+      std::cout << "t0corr_url " << t0corr_url << std::endl;
+    }
+    Download_T0Corr(t0corr_url);
+
     std::string ped_url = _cdb->getUrl("MBD_PED");
     if (Verbosity() > 0)
     {
@@ -147,6 +154,9 @@ int MbdCalib::Download_All()
 
     std::string tt_t0_file = bbc_caldir + "/mbd_tt_t0.calib";
     Download_TTT0(tt_t0_file);
+
+    std::string t0corr_file = bbc_caldir + "/mbd_t0corr.calib";
+    Download_T0Corr(t0corr_file);
 
     std::string ped_file = bbc_caldir + "/mbd_ped.calib";
     Download_Ped(ped_file);
@@ -389,6 +399,76 @@ int MbdCalib::Download_TTT0(const std::string& dbase_location)
   }
 
   if ( std::isnan(_ttfit_t0mean[0]) )
+  {
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    _status = -1;
+    return _status;
+  }
+
+  return 1;
+}
+
+
+int MbdCalib::Download_T0Corr(const std::string& dbase_location)
+{
+  // Reset All Values
+  _t0corrmean = 0.;
+  _t0corrmeanerr = 0.;
+  _t0corrsigma = 0.;
+  _t0corrsigmaerr = 0.;
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "Opening " << dbase_location << std::endl;
+  }
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
+  {
+    CDBTTree* cdbttree = new CDBTTree(dbase_location);
+    if ( cdbttree == nullptr )
+    {
+      std::cerr << "T0Corr not found, skipping" << std::endl;
+      _status = -1;
+      return _status;
+    }
+    cdbttree->LoadCalibrations();
+
+    _t0corrmean = cdbttree->GetSingleFloatValue("t0meancorr");
+    _t0corrmeanerr = cdbttree->GetSingleFloatValue("t0meancorrerr");
+    _t0corrsigma = cdbttree->GetSingleFloatValue("t0corrsigma");
+    _t0corrsigmaerr = cdbttree->GetSingleFloatValue("t0corrsigmaerr");
+
+    if (Verbosity() > 0)
+    {
+      std::cout << "T0Corr\t" << _t0corrmean << std::endl;
+    }
+    delete cdbttree;
+  }
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
+  {
+    std::ifstream infile(dbase_location);
+    if (!infile.is_open())
+    {
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
+      _status = -3;
+      return _status;
+    }
+
+    infile >> _t0corrmean >> _t0corrmeanerr >> _t0corrsigma >> _t0corrsigmaerr;
+
+    if (Verbosity() > 0)
+    {
+      std::cout << "T0Corr\t" << _t0corrmean << "\t" << _t0corrmeanerr
+          << "\t" << _t0corrsigma << "\t" << _t0corrsigmaerr << std::endl;
+    }
+    infile.close();
+  }
+
+  if ( std::isnan(_t0corrmean) )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -1210,6 +1290,49 @@ int MbdCalib::Write_TQT0(const std::string& dbfile)
 }
 
 #ifndef ONLINE
+int MbdCalib::Write_CDB_T0Corr(const std::string& dbfile)
+{
+  CDBTTree* cdbttree{ nullptr };
+
+  std::cout << "Creating " << dbfile << std::endl;
+  cdbttree = new CDBTTree( dbfile );
+  cdbttree->SetSingleIntValue("version", 1);
+  cdbttree->CommitSingle();
+
+  std::cout << "T0Corr" << std::endl;
+  for (size_t ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
+  {
+    // store in a CDBTree
+    cdbttree->SetSingleFloatValue("ttfit_t0corrmean", _t0corrmean);
+    cdbttree->SetSingleFloatValue("ttfit_t0corrmeanerr", _t0corrmeanerr);
+    cdbttree->SetSingleFloatValue("ttfit_t0corrsigma", _t0corrsigma);
+    cdbttree->SetSingleFloatValue("ttfit_t0corrsigmaerr", _t0corrsigmaerr);
+
+    std::cout << "T0Corr\t" << cdbttree->GetSingleFloatValue("_t0corrmean") << std::endl;
+  }
+
+  cdbttree->Commit();
+  // cdbttree->Print();
+
+  // for now we create the tree after reading it
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+
+  return 1;
+}
+#endif
+
+int MbdCalib::Write_T0Corr(const std::string& dbfile)
+{
+  std::ofstream cal_t0corr_file;
+  cal_t0corr_file.open(dbfile);
+  cal_t0corr_file << _t0corrmean << "\t" << _t0corrmeanerr << "\t" << _t0corrsigma << "\t" << _t0corrsigmaerr << std::endl;
+  cal_t0corr_file.close();
+
+  return 1;
+}
+
+#ifndef ONLINE
 int MbdCalib::Write_CDB_Ped(const std::string& dbfile)
 {
   CDBTTree* cdbttree{ nullptr };
@@ -1554,6 +1677,14 @@ void MbdCalib::Reset_TQT0()
   _tqfit_t0meanerr.fill( 0. );
   _tqfit_t0sigma.fill(std::numeric_limits<float>::quiet_NaN());
   _tqfit_t0sigmaerr.fill(std::numeric_limits<float>::quiet_NaN());
+}
+
+void MbdCalib::Reset_T0Corr()
+{
+  _t0corrmean = 0;
+  _t0corrmeanerr = 0.;
+  _t0corrsigma = std::numeric_limits<float>::quiet_NaN();
+  _t0corrsigmaerr = std::numeric_limits<float>::quiet_NaN();
 }
 
 void MbdCalib::Reset_Ped()
