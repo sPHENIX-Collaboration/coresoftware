@@ -27,11 +27,13 @@ libzdcinfo_la_LIBADD = \
 pkginclude_HEADERS = \
   Zdcinfo.h \
   Zdcinfov1.h \
+  Zdcinfov2.h \
   ZdcReco.h
 
 ROOTDICTS = \
   Zdcinfo_Dict.cc \
-  Zdcinfov1_Dict.cc 
+  Zdcinfov1_Dict.cc \
+  Zdcinfov2_Dict.cc 
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -41,7 +43,9 @@ nobase_dist_pcm_DATA = \
 libzdcinfo_io_la_SOURCES = \
   $(ROOTDICTS) \
   Zdcinfo.cc \
-  Zdcinfov1.cc 
+  Zdcinfov1.cc \
+  Zdcinfov2.cc 
+
 
 libzdcinfo_la_SOURCES = \
   ZdcReco.cc

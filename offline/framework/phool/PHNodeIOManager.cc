@@ -276,8 +276,7 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   // pas?
   if (!tree)
   {
-    PHMessage("PHNodeIOManager::readEventFromFile", PHError,
-              "Tree not initialized.");
+    std::cout << PHWHERE << " Tree not initialized" << std::endl;
     return false;
   }
 
@@ -335,8 +334,8 @@ int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string& obje
   }
   else
   {
-    PHMessage("PHNodeIOManager::readSpecific", PHError,
-              "Unknown object name");
+    std::cout << PHWHERE << "Cannot find "
+	      << objectName << " in TBranch" << std::endl;
   }
   return 0;
 }
@@ -362,7 +361,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   if (!tree)
   {
     std::cout << PHWHERE << "PHNodeIOManager::reconstructNodeTree : Root Tree "
-         << TreeName << " not found in file " << file->GetName() << std::endl;
+              << TreeName << " not found in file " << file->GetName() << std::endl;
     return nullptr;
   }
 
@@ -403,7 +402,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   // full 'path' of composite-nodes in the original node tree. We
   // split the name and reconstruct the tree.
   std::string delimeters = phooldefs::branchpathdelim + phooldefs::legacypathdelims;  // add old backslash for backward compat
-  for (i = 0; i < (size_t)(branchArray->GetEntriesFast()); i++)
+  for (i = 0; i < (size_t) (branchArray->GetEntriesFast()); i++)
   {
     std::string branchname = (*branchArray)[i]->GetName();
     std::vector<std::string> splitvec;
@@ -436,7 +435,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
       std::cout << PHWHERE << std::endl;
       std::cout << "Missing Class: " << branchClassName << std::endl;
       std::cout << "Did you forget to load the shared library which contains "
-           << branchClassName << "?" << std::endl;
+                << branchClassName << "?" << std::endl;
     }
     // it does not make sense to continue - the code coredumps
     // later if a class is not loaded
@@ -457,15 +456,15 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
       if (oldclass != branchClassName)
       {
         std::cout << "You only have to worry if you get this message when reading parallel files"
-             << std::endl
-             << "if you get this when opening the 2nd, 3rd,... file" << std::endl
-             << "It looks like your objects are not of the same version in these files" << std::endl;
+                  << std::endl
+                  << "if you get this when opening the 2nd, 3rd,... file" << std::endl
+                  << "It looks like your objects are not of the same version in these files" << std::endl;
         std::cout << PHWHERE << "Found object " << oldobject->ClassName()
-             << " in node tree but the  file "
-             << filename << " contains a " << branchClassName
-             << " object. The object will be replaced without harming you" << std::endl;
+                  << " in node tree but the  file "
+                  << filename << " contains a " << branchClassName
+                  << " object. The object will be replaced without harming you" << std::endl;
         std::cout << "CAVEAT: If you use local copies of pointers to data nodes" << std::endl
-             << "instead of searching the node tree you are in trouble now" << std::endl;
+                  << "instead of searching the node tree you are in trouble now" << std::endl;
         delete newIODataNode;
         TObject* newTObject = static_cast<TObject*>(thisClass->New());
         newIODataNode = new PHIODataNode<TObject>(newTObject, (*splitvec.rbegin()).c_str());
@@ -480,8 +479,8 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     else
     {
       std::cout << PHWHERE << branchClassName.c_str()
-           << " inherits neither from PHTable nor from PHObject"
-           << " setting type to PHObject" << std::endl;
+                << " inherits neither from PHTable nor from PHObject"
+                << " setting type to PHObject" << std::endl;
       newIODataNode->setObjectType("PHObject");
     }
     thisBranch->SetAddress(&(newIODataNode->data));
@@ -541,14 +540,20 @@ bool PHNodeIOManager::SetCompressionSetting(const int level)
 uint64_t
 PHNodeIOManager::GetBytesWritten()
 {
-  if (file) return file->GetBytesWritten();
+  if (file)
+  {
+    return file->GetBytesWritten();
+  }
   return 0.;
 }
 
 uint64_t
 PHNodeIOManager::GetFileSize()
 {
-  if (file) return file->GetSize();
+  if (file)
+  {
+    return file->GetSize();
+  }
   return 0.;
 }
 
@@ -567,7 +572,7 @@ int PHNodeIOManager::FillBranchMap()
     if (treetmp)
     {
       TObjArray* branchArray = treetmp->GetListOfBranches();
-      for (size_t i = 0; i < (size_t)(branchArray->GetEntriesFast()); i++)
+      for (size_t i = 0; i < (size_t) (branchArray->GetEntriesFast()); i++)
       {
         TBranch* thisBranch = (TBranch*) ((*branchArray)[i]);
         std::string branchName = (*branchArray)[i]->GetName();
@@ -577,7 +582,7 @@ int PHNodeIOManager::FillBranchMap()
     else
     {
       std::cout << PHWHERE << " No Root Tree " << TreeName
-           << " on file " << filename << std::endl;
+                << " on file " << filename << std::endl;
       return -1;
     }
   }
@@ -591,7 +596,7 @@ bool PHNodeIOManager::NodeExist(const std::string& nodename)
     FillBranchMap();
   }
   std::string delimeters = phooldefs::branchpathdelim + phooldefs::legacypathdelims;  // add old backslash for backward compat
-  for (auto & fBranche : fBranches)
+  for (auto& fBranche : fBranches)
   {
     std::vector<std::string> splitvec;
     boost::split(splitvec, fBranche.first, boost::is_any_of(delimeters));

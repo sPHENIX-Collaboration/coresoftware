@@ -51,8 +51,8 @@ class LL1Outv1 : public LL1Out
 
   bool passesThreshold(int ith) override;
 
-  std::vector<TriggerDefs::TriggerSumKey> getTriggeredSums() override { return m_triggered_sums;}
-  std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives() override { return m_triggered_primitives;}
+  std::vector<TriggerDefs::TriggerSumKey> getTriggeredSums() override { return m_triggered_sums; }
+  std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives() override { return m_triggered_primitives; }
 
   void addTriggeredSum(TriggerDefs::TriggerSumKey sk) override;
   void addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk) override;

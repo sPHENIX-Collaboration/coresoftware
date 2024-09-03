@@ -58,10 +58,8 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
 
   outputTensors.push_back(Ort::Value::CreateTensor<float>(memoryInfo, outputTensorValues.data(), outputlen, outputDimsN.data(), outputDimsN.size()));
 
-
   std::vector<const char *> inputNames{session->GetInputName(0, allocator)};
   std::vector<const char *> outputNames{session->GetOutputName(0, allocator)};
   session->Run(Ort::RunOptions{nullptr}, inputNames.data(), inputTensors.data(), 1, outputNames.data(), outputTensors.data(), 1);
   return outputTensorValues;
 }
-

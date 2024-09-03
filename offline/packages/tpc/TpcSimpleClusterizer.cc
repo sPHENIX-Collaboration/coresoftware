@@ -516,10 +516,10 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
-    {
-      printf("\n mutex init failed\n");
-      return 1;
-    }
+  {
+    std::cout << std::endl << " mutex init failed" << std::endl;
+    return 1;
+  }
 
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
