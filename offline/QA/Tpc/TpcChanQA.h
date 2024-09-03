@@ -13,6 +13,7 @@ class PHCompositeNode;
 class TFile;
 class TH1;
 class TH2;
+class Fun4AllHistoManager;
 //
 
 class TpcChanQA : public SubsysReco  // Inherit public parts of SubsysReco
@@ -51,6 +52,15 @@ class TpcChanQA : public SubsysReco  // Inherit public parts of SubsysReco
   int m_nWaveformInFrame{0};  // Number of waveforms in a frame
   int m_Channel{0};           // Channel number
   int m_nSamples{0};          // Number of samples in waveform
+
+  void createHistos();
+  std::string getHistoPrefix() const;
+
+  std::string m_fname; // Name of file given to program
+  std::string sectorNum; // Sector number associated with data file
+  TFile *m_file = nullptr; // File being processed
+  //TH1F *h_channel_hits = nullptr; // Histogram of hits per channel
+  //TH2F *h_channel_ADCs = nullptr; // Histogram of ADC counts per channel
 
   std::vector<int> m_packets;
   std::vector<unsigned short> m_adcSamples;  // ADC values in waveform
