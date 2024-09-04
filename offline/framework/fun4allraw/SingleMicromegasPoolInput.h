@@ -12,7 +12,6 @@
 #include <string>
 #include <vector>
 
-class Fun4AllEvtInputPoolManager;
 class MicromegasRawHit;
 class Packet;
 

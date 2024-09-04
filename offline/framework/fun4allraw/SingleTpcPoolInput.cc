@@ -14,7 +14,6 @@
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
-#include <Event/fileEventiterator.h>
 
 #include <memory>
 #include <set>
@@ -66,6 +65,12 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
+      if(evt->getEvtType() == ENDRUNEVENT)
+      {
+        std::cout << "End run flag for " << Name() << " found, remaining TPC data is corrupted" << std::endl;
+        AllDone(1);
+        return;
+      }
       continue;
     }
     int EventSequence = evt->getEvtSequence();
