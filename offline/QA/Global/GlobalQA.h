@@ -56,9 +56,19 @@ private:
   TH1 *h_GlobalQA_calc_zvtx_wide = nullptr;
   TH1 *h_GlobalQA_mbd_charge_s = nullptr;
   TH1 *h_GlobalQA_mbd_charge_n = nullptr;
+
+  TH1 *h_GlobalQA_mbd_charge_sum = nullptr;     //MBD north + south charge sum
+  TH2 *h2_GlobalQA_mbd_charge_sum = nullptr;    // North charge vs south charge
+
   TH1 *h_GlobalQA_mbd_nhit_s = nullptr;
   TH1 *h_GlobalQA_mbd_nhit_n = nullptr;
+
+  TH2 *h2_GlobalQA_mbd_nhit_on_S_and_N = nullptr; //Number of event that have hits on South & North   
+
   TH1 *h_GlobalQA_mbd_zvtxq = nullptr;
+
+
+
 
   // ZDC histos
   TH1 *h_GlobalQA_zdc_zvtx = nullptr;
@@ -67,7 +77,8 @@ private:
   TH1 *h_GlobalQA_zdc_energy_n = nullptr;
   TH1* h_GlobalQA_triggerVec{nullptr};
   
-  int _eventcounter{0};
+  int _eventcounter{0}; // num events processed
+
   int _range{1};
 
   bool m_debug{false};
@@ -78,3 +89,4 @@ private:
 };
 
 #endif
+
