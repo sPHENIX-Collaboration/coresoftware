@@ -46,7 +46,6 @@
 #include <map> // for operator!=, _Rb_tree_con...
 #include <string>
 #include <utility> // for pair
-using namespace std;
 
 GlobalQA::GlobalQA(const std::string &name)
   : SubsysReco(name), detector("HCALIN") {
@@ -85,8 +84,9 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
   //--------------------------- trigger and GL1-------------------------------//
   Gl1Packet *gl1PacketInfo =
     findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-  if (!gl1PacketInfo) std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"<< std::endl;
-
+  if (!gl1PacketInfo) {
+    std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"<< std::endl;
+  }
      _eventcounter++;
 
   uint64_t triggervec = 0;
@@ -217,7 +217,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 
     float charge_thresh = 0.4;
     if (bbcpmts) {
-      int nPMTs = bbcpmts->get_npmt(); cout<< "nPMTs" << nPMTs<<endl;
+      int nPMTs = bbcpmts->get_npmt(); 
       for (int i = 0; i < nPMTs; i++) {
         MbdPmtHit *mbdpmt = bbcpmts->get_pmt(i);
         float q = mbdpmt->get_q();
@@ -328,15 +328,6 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     h_GlobalQA_mbd_charge_sum->Fill(tot_charge_s+tot_charge_n);
     h2_GlobalQA_mbd_charge_sum->Fill(tot_charge_n, tot_charge_s);
     h2_GlobalQA_mbd_nhit_on_S_and_N->Fill(hits_s, hits_n);
-   
-
-    cout<< "bqs = "<<tot_charge_s<<"\t"<< "bqn = "<<tot_charge_n<<endl;
-
-
-
-
-
-   
 
   }
 
@@ -346,7 +337,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 
 int GlobalQA::End(PHCompositeNode * /*topNode*/) {
    
-   cout << "GlobalQA::End(PHCompositeNode *topNode) scaling MBD histograms" << endl;
+   std::cout << "GlobalQA::End(PHCompositeNode *topNode) scaling MBD histograms" <<std::endl;
 
    Double_t nevents = h_GlobalQA_mbd_charge_sum->Integral();
    h_GlobalQA_mbd_charge_sum->Fill(-1000,nevents); // underflow bin keeps track of nevents
@@ -354,7 +345,7 @@ int GlobalQA::End(PHCompositeNode * /*topNode*/) {
     h_GlobalQA_mbd_charge_sum ->Scale( norm );
     h2_GlobalQA_mbd_charge_sum ->Scale( norm );
 
-    cout << "Nevents processed integral " << _eventcounter << "\t" << nevents << "\t" << nevents/_eventcounter << endl;
+    std::cout << "Nevents processed integral " << _eventcounter << "\t" << nevents << "\t" << nevents/_eventcounter <<std::endl;
 
 
   return Fun4AllReturnCodes::EVENT_OK;
