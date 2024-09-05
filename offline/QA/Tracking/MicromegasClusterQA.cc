@@ -202,12 +202,12 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
       const int detid = tile+MicromegasDefs::m_ntiles*layer;
 
       // get reference detector id. It corresponds to the same tile, but on the other layer
-      const int detid_ref = detid > MicromegasDefs::m_ntiles ?
+      const int detid_ref = detid >= MicromegasDefs::m_ntiles ?
         detid-MicromegasDefs::m_ntiles:
         detid+MicromegasDefs::m_ntiles;
 
       // check if there is exactly one good cluster in the reference detector
-      if(good_cluster_count[detid_ref]==1)
+      if(good_cluster_count[detid_ref]==1 && cluster_count[detid_ref]==1)
       {
         // fill curent detector ref count
         m_h_clustercount_ref->Fill(detid);
