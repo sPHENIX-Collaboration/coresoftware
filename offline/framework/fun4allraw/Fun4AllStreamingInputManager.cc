@@ -1156,6 +1156,10 @@ int Fun4AllStreamingInputManager::FillTpc()
         {
           thispacket = true;
           h_gl1tagged_tpc[histo_to_fill][packetnum]->Fill(refbcobitshift);
+        } else if (diff < 256) // endat tagger
+        {
+          thispacket = true;
+          h_gl1tagged_tpc[histo_to_fill][packetnum]->Fill(refbcobitshift);
         }
       }
       if (thispacket == false)
