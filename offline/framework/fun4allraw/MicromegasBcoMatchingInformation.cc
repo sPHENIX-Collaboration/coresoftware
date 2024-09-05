@@ -149,7 +149,7 @@ void MicromegasBcoMatchingInformation::print_gtm_bco_information() const
   if (!m_gtm_bco_list.empty())
   {
     std::cout
-        << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
+        << "MicromegasBcoMatchingInformation::print_gtm_bco_information -"
         << " gtm_bco: " << std::hex << m_gtm_bco_list << std::dec
         << std::endl;
 
@@ -165,7 +165,7 @@ void MicromegasBcoMatchingInformation::print_gtm_bco_information() const
           { return get_predicted_fee_bco(gtm_bco).value(); });
 
       std::cout
-          << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
+          << "MicromegasBcoMatchingInformation::print_gtm_bco_information -"
           << " fee_bco_predicted: " << std::hex << fee_bco_predicted_list << std::dec
           << std::endl;
     }
