@@ -31,8 +31,8 @@ class TpcBcoDump : public SubsysReco
   void OutFileName(const std::string &name) { outfilename = name; }
 
  private:
-  TFile *outTfile{nullptr};
-  TTree *ntup = nullptr;
+  TFile *outfile{nullptr};
+  TTree *ttree = nullptr;
   std::map<int, uint64_t> lastbco;
   std::string outfilename;
 

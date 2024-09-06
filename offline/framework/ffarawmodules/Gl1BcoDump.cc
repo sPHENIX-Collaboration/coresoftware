@@ -38,12 +38,12 @@ int Gl1BcoDump::InitRun(PHCompositeNode * /*topNode*/)
     gSystem->Exit(1);
   }
 
-  outTfile = new TFile(outfilename.c_str(), "RECREATE");
-  ntup = new TTree("bco", "bco");
-  ntup->Branch("id",&m_id);
-  ntup->Branch("evt",&m_evt);
-  ntup->Branch("bco",&m_bco);
-  ntup->Branch("bcodiff",&m_bcodiff);
+  outfile = new TFile(outfilename.c_str(), "RECREATE");
+  ttree = new TTree("bco", "bco");
+  ttree->Branch("id",&m_id);
+  ttree->Branch("evt",&m_evt);
+  ttree->Branch("bco",&m_bco);
+  ttree->Branch("bcodiff",&m_bcodiff);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -73,7 +73,7 @@ int Gl1BcoDump::process_event(PHCompositeNode *topNode)
     m_evt = EventSequence;
     m_bco = bco;
     m_bcodiff = diffbco;
-    ntup->Fill();
+    ttree->Fill();
   }
   lastbco = bco;
   delete packet;
@@ -83,9 +83,9 @@ int Gl1BcoDump::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int Gl1BcoDump::End(PHCompositeNode * /*topNode*/)
 {
-  outTfile->cd();
-  ntup->Write();
-  outTfile->Close();
-  delete outTfile;
+  outfile->cd();
+  ttree->Write();
+  outfile->Close();
+  delete outfile;
   return Fun4AllReturnCodes::EVENT_OK;
 }

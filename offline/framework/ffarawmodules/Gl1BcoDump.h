@@ -31,8 +31,8 @@ class Gl1BcoDump : public SubsysReco
   void OutFileName(const std::string &name) { outfilename = name; }
 
  private:
-  TFile *outTfile{nullptr};
-  TTree *ntup{nullptr};
+  TFile *outfile{nullptr};
+  TTree *ttree{nullptr};
   uint64_t lastbco{0};
   std::string outfilename;
   int m_id {0};
