@@ -173,6 +173,10 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_allowZeroMassTracks {false};
 
+  bool m_use_2D_matching_tools {false};
+
+  float m_min_radial_SV = -1.;
+
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
   SvtxVertexMap *m_dst_vertexmap {nullptr};
