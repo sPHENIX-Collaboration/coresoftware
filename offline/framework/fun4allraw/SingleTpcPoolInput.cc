@@ -124,7 +124,9 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
       {
         // only store gtm_bco for level1 type of taggers (not ENDDAT)
         const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
-        if (is_lvl1)
+       
+        const auto is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
+        if (is_lvl1 || is_endat)
         {
           gtm_bco = packet->lValue(t, "BCO");
           if (largest_bco < gtm_bco)

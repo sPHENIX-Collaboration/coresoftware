@@ -65,6 +65,7 @@ class TpcSeedsQA : public SubsysReco
   std::string getHistoPrefix() const;
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
+  std::pair<float, float> cal_tpc_eta_min_max(float vtxz);
 
   std::string m_clusterContainerName{"TRKR_CLUSTER"};
   std::string m_actsGeomName{"ActsGeometry"};
@@ -101,8 +102,10 @@ class TpcSeedsQA : public SubsysReco
   TProfile2D* h_avgnclus_eta_phi_neg{nullptr};
   // TH1* h_trackcrossing_pos{nullptr};
   // TH1* h_trackcrossing_neg{nullptr};
-  TH2* h_dcaxyorigin_phi_pos{nullptr};
-  TH2* h_dcaxyorigin_phi_neg{nullptr};
+  TH2* h_dcaxyorigin_phi_north_pos{nullptr};
+  TH2* h_dcaxyorigin_phi_south_pos{nullptr};
+  TH2* h_dcaxyorigin_phi_north_neg{nullptr};
+  TH2* h_dcaxyorigin_phi_south_neg{nullptr};
   TH2* h_dcaxyvtx_phi_pos{nullptr};
   TH2* h_dcaxyvtx_phi_neg{nullptr};
   TH2* h_dcazorigin_phi_pos{nullptr};
