@@ -15,7 +15,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
 {
  public:
   /// Constructor
-  KFParticle_nTuple();
+  KFParticle_nTuple() = default;
 
   /// Destructor
   ~KFParticle_nTuple() override = default;
@@ -37,25 +37,25 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters);
 
  protected:
-  bool m_has_intermediates_nTuple;
-  bool m_extrapolateTracksToSV_nTuple;
-  bool m_constrain_to_vertex_nTuple;
-  bool m_get_all_PVs;
+  bool m_has_intermediates_nTuple {false};
+  bool m_extrapolateTracksToSV_nTuple{true};
+  bool m_constrain_to_vertex_nTuple {false};
+  bool m_get_all_PVs {false};
   // int m_num_intermediate_states_nTuple;
   // int m_num_tracks_from_intermediate_nTuple[99];
   std::vector<int> m_num_tracks_from_intermediate_nTuple;
-  bool m_truth_matching;
-  bool m_detector_info;
-  bool m_calo_info;
+  bool m_truth_matching {false};
+  bool m_detector_info {false};
+  bool m_calo_info {false};
   std::string m_mother_name;
   // std::string m_vtx_map_node_name_nTuple;
-  bool m_use_intermediate_name;
-  bool m_get_charge_conjugate_nTuple;
-  bool m_use_fake_pv_nTuple;
+  bool m_use_intermediate_name {false};
+  bool m_get_charge_conjugate_nTuple {false};
+  bool m_use_fake_pv_nTuple {false};
   std::vector<std::string> m_intermediate_name_ntuple;
 
  private:
-  TTree *m_tree;
+  TTree *m_tree {nullptr};
 
   float m_calculated_mother_mass = -1;
   float m_calculated_mother_mass_err = -1;
