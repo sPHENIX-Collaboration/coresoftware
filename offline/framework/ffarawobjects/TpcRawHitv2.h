@@ -1,5 +1,5 @@
-#ifndef FUN4ALLRAW_TPCRAWTHITV1_H
-#define FUN4ALLRAW_TPCRAWTHITV1_H
+#ifndef FUN4ALLRAW_TPCRAWTHITV2_H
+#define FUN4ALLRAW_TPCRAWTHITV2_H
 
 #include "TpcRawHit.h"
 
@@ -7,13 +7,14 @@
 
 #include <cassert>
 #include <limits>
+#include <map>
 
-class TpcRawHitv1 : public TpcRawHit
+class TpcRawHitv2 : public TpcRawHit
 {
  public:
-  TpcRawHitv1() = default;
-  TpcRawHitv1(TpcRawHit *tpchit);
-  ~TpcRawHitv1() override = default;
+  TpcRawHitv2() = default;
+  TpcRawHitv2(TpcRawHit *tpchit);
+  ~TpcRawHitv2() override = default;
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -56,22 +57,14 @@ class TpcRawHitv1 : public TpcRawHit
   {
     // assign
     samples = val;
-
-    // resize adc vector
-    adc.resize(val, 0);
   }
 
-  uint16_t get_adc(uint16_t sample) const override
-  {
-    assert(sample < adc.size());
-    return adc[sample];
-  }
+  uint16_t get_adc(const uint16_t sample) const override;
 
   // cppcheck-suppress virtualCallInConstructor
-  void set_adc(uint16_t sample, uint16_t val) override
+  void set_adc(const uint16_t sample, const uint16_t val) override
   {
-    assert(sample < adc.size());
-    adc[sample] = val;
+    adcmap[sample] = val;
   }
 
  private:
@@ -85,9 +78,9 @@ class TpcRawHitv1 : public TpcRawHit
   uint16_t samples = std::numeric_limits<uint16_t>::max();
 
   //! adc value for each sample
-  std::vector<uint16_t> adc;
+  std::map<uint16_t, uint16_t> adcmap;
 
-  ClassDefOverride(TpcRawHitv1, 1)
+  ClassDefOverride(TpcRawHitv2, 1)
 };
 
 #endif
