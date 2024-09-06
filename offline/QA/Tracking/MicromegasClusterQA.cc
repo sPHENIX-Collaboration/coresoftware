@@ -39,7 +39,7 @@ namespace
   template<class T> class range_adaptor
   {
     public:
-    range_adaptor( const T& range ):m_range(range){}
+    explicit range_adaptor( const T& range ):m_range(range){}
     const typename T::first_type& begin() {return m_range.first;}
     const typename T::second_type& end() {return m_range.second;}
     private:
