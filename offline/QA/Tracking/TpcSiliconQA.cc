@@ -89,7 +89,7 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
       h_yDiff[0]->Fill(m_tpcseedy - m_silseedy);
       h_zDiff[0]->Fill(m_tpcseedz - m_silseedz);
   
-      if (m_tpcseedz > 0 && m_silseedz > 0)
+      if (m_tpcseedeta > 0 && m_silseedeta > 0)
       {
         h_phiDiff[4]->Fill(m_tpcseedphi - m_silseedphi);
         h_etaDiff[4]->Fill(m_tpcseedeta - m_silseedeta);
@@ -97,7 +97,7 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
         h_yDiff[4]->Fill(m_tpcseedy - m_silseedy);
         h_zDiff[4]->Fill(m_tpcseedz - m_silseedz);
       }
-      else if (m_tpcseedz < 0 && m_silseedz < 0)
+      else if (m_tpcseedeta < 0 && m_silseedeta < 0)
       {
         h_phiDiff[5]->Fill(m_tpcseedphi - m_silseedphi);
         h_etaDiff[5]->Fill(m_tpcseedeta - m_silseedeta);
@@ -139,7 +139,7 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
       h_yDiff[3]->Fill(m_tpcseedy - m_silseedy);
       h_zDiff[3]->Fill(m_tpcseedz - m_silseedz);
       
-      if (m_tpcseedz > 0 && m_silseedz > 0)
+      if (m_tpcseedeta > 0 && m_silseedeta > 0)
       {
         h_phiDiff[6]->Fill(m_tpcseedphi - m_silseedphi);
         h_etaDiff[6]->Fill(m_tpcseedeta - m_silseedeta);
@@ -147,7 +147,7 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
         h_yDiff[6]->Fill(m_tpcseedy - m_silseedy);
         h_zDiff[6]->Fill(m_tpcseedz - m_silseedz);
       }
-      else if (m_tpcseedz < 0 && m_silseedz < 0)
+      else if (m_tpcseedeta < 0 && m_silseedeta < 0)
       {
         h_phiDiff[7]->Fill(m_tpcseedphi - m_silseedphi);
         h_etaDiff[7]->Fill(m_tpcseedeta - m_silseedeta);
