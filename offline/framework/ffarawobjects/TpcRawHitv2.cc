@@ -2,27 +2,27 @@
 
 TpcRawHitv2::TpcRawHitv2(TpcRawHit *tpchit)
 {
-  set_bco(tpchit->get_bco());
-  set_gtm_bco(tpchit->get_gtm_bco());
-  set_packetid(tpchit->get_packetid());
-  set_fee(tpchit->get_fee());
-  set_channel(tpchit->get_channel());
-  set_sampaaddress(tpchit->get_sampaaddress());
-  set_sampachannel(tpchit->get_sampachannel());
-  set_type(tpchit->get_type());
-  set_userword(tpchit->get_userword());
-  set_checksum(tpchit->get_checksum());
-  set_parity(tpchit->get_parity());
-  set_checksumerror(tpchit->get_checksumerror());
-  set_parityerror(tpchit->get_parityerror());
-  set_samples(tpchit->get_samples());
+  TpcRawHitv2::set_bco(tpchit->get_bco());
+  TpcRawHitv2::set_gtm_bco(tpchit->get_gtm_bco());
+  TpcRawHitv2::set_packetid(tpchit->get_packetid());
+  TpcRawHitv2::set_fee(tpchit->get_fee());
+  TpcRawHitv2::set_channel(tpchit->get_channel());
+  TpcRawHitv2::set_sampaaddress(tpchit->get_sampaaddress());
+  TpcRawHitv2::set_sampachannel(tpchit->get_sampachannel());
+  TpcRawHitv2::set_type(tpchit->get_type());
+  TpcRawHitv2::set_userword(tpchit->get_userword());
+  TpcRawHitv2::set_checksum(tpchit->get_checksum());
+  TpcRawHitv2::set_parity(tpchit->get_parity());
+  TpcRawHitv2::set_checksumerror(tpchit->get_checksumerror());
+  TpcRawHitv2::set_parityerror(tpchit->get_parityerror());
+  TpcRawHitv2::set_samples(tpchit->get_samples());
 
   for (size_t i = 0; i < tpchit->get_samples(); ++i)
   {
     uint16_t adcval = tpchit->get_adc(i);
     if (adcval > 0)
     {
-      set_adc(i, tpchit->get_adc(i));
+      TpcRawHitv2::set_adc(i, tpchit->get_adc(i));
     }
   }
 }
