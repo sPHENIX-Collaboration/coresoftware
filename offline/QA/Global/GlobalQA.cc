@@ -87,7 +87,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
   if (!gl1PacketInfo) {
     std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"<< std::endl;
   }
-     _eventcounter++;
+  _eventcounter++;
 
   uint64_t triggervec = 0;
   if (gl1PacketInfo) {
@@ -336,16 +336,16 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 }
 
 int GlobalQA::End(PHCompositeNode * /*topNode*/) {
-   
-   std::cout << "GlobalQA::End(PHCompositeNode *topNode) scaling MBD histograms" <<std::endl;
 
-   Double_t nevents = h_GlobalQA_mbd_charge_sum->Integral();
-   h_GlobalQA_mbd_charge_sum->Fill(-1000,nevents); // underflow bin keeps track of nevents
-    Double_t norm = 1.0/nevents;
-    h_GlobalQA_mbd_charge_sum ->Scale( norm );
-    h2_GlobalQA_mbd_charge_sum ->Scale( norm );
+  std::cout << "GlobalQA::End(PHCompositeNode *topNode) scaling MBD histograms" <<std::endl;
 
-    std::cout << "Nevents processed integral " << _eventcounter << "\t" << nevents << "\t" << nevents/_eventcounter <<std::endl;
+  Double_t nevents = h_GlobalQA_mbd_charge_sum->Integral();
+  h_GlobalQA_mbd_charge_sum->Fill(-1000,nevents); // underflow bin keeps track of nevents
+  Double_t norm = 1.0/nevents;
+  h_GlobalQA_mbd_charge_sum ->Scale( norm );
+  h2_GlobalQA_mbd_charge_sum ->Scale( norm );
+
+  std::cout << "Nevents processed integral " << _eventcounter << "\t" << nevents << "\t" << nevents/_eventcounter <<std::endl;
 
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -381,8 +381,8 @@ void GlobalQA::createHistos() {
     new TH2F("h2_GlobalQA_mbd_charge_sum ","North MBDQ vs South MBDQ; N_MBDQ; S_MBDQ",100,0,10,100,0,10);// North charge vs south charge
   h2_GlobalQA_mbd_nhit_on_S_and_N =
     new TH2F("h2_GlobalQA_mbd_nhit_on_S_and_N"," number of event that have hits on MBDSouth & MBDNorth; South MBD Nhits; North MBD Nhits ", 70,0.,70,70,0.,70); //Number of event that have hits on South & North
-   
- 
+
+
 
 
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
@@ -397,7 +397,7 @@ void GlobalQA::createHistos() {
   hm->registerHisto(h_GlobalQA_mbd_charge_sum);
   hm->registerHisto(h2_GlobalQA_mbd_charge_sum);
   hm->registerHisto(h2_GlobalQA_mbd_nhit_on_S_and_N);
- 
+
 
   // ZDC QA
   h_GlobalQA_zdc_zvtx = 
