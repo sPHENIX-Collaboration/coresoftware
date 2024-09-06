@@ -21,14 +21,14 @@ class Gl1Packet : public OfflinePacketv1
   virtual uint64_t getTriggerInput() const { return 0; }
   virtual void setLiveVector(const uint64_t /*i*/) { return; }
   virtual uint64_t getLiveVector() const { return 0; }
-  virtual void setTriggerVector(const uint64_t /*i*/) { return; }  //deprecated
-  virtual uint64_t getTriggerVector() const { return 0; }          //deprecated
+  virtual void setTriggerVector(const uint64_t /*i*/) { return; }  // deprecated
+  virtual uint64_t getTriggerVector() const { return 0; }          // deprecated
   virtual void setScaledVector(const uint64_t /*i*/) { return; }
   virtual uint64_t getScaledVector() const { return 0; }
   virtual void setGTMBusyVector(const uint64_t /*i*/) { return; }
   virtual uint64_t getGTMBusyVector() const { return 0; }
 
-  virtual void FillFrom(const Gl1Packet * /*pkt*/) { return; }
+  virtual void FillFrom(const Gl1Packet* /*pkt*/) { return; }
 
  private:
   ClassDefOverride(Gl1Packet, 1)

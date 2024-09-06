@@ -67,15 +67,40 @@ class TpcRawHitv2 : public TpcRawHit
     adcmap[sample] = val;
   }
 
+  uint16_t get_type() const override { return type; }
+  void set_type(const uint16_t i) override { type = i; }
+
+  uint16_t get_userword() const override { return userword; }
+  void set_userword(const uint16_t i) override { userword = i; }
+
+  uint16_t get_checksum() const override { return checksum; }
+  void set_checksum(const uint16_t i) override { checksum = i; }
+
+  uint16_t get_parity() const override { return data_parity; }
+  void set_parity(const uint16_t i) override { data_parity = i; }
+
+  bool get_checksumerror() const override { return checksumerror; }
+  void set_checksumerror(const bool b) override { checksumerror = b; }
+
+  bool get_parityerror() const override { return parityerror; }
+  void set_parityerror(const bool b) override { parityerror = b; }
+
  private:
-  uint64_t bco = std::numeric_limits<uint64_t>::max();
-  uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
-  int32_t packetid = std::numeric_limits<int32_t>::max();
-  uint16_t fee = std::numeric_limits<uint16_t>::max();
-  uint16_t channel = std::numeric_limits<uint16_t>::max();
-  uint16_t sampaaddress = std::numeric_limits<uint16_t>::max();
-  uint16_t sampachannel = std::numeric_limits<uint16_t>::max();
-  uint16_t samples = std::numeric_limits<uint16_t>::max();
+  uint64_t bco{std::numeric_limits<uint64_t>::max()};
+  uint64_t gtm_bco{std::numeric_limits<uint64_t>::max()};
+  int32_t packetid{std::numeric_limits<int32_t>::max()};
+  uint16_t fee{std::numeric_limits<uint16_t>::max()};
+  uint16_t channel{std::numeric_limits<uint16_t>::max()};
+  uint16_t sampaaddress{std::numeric_limits<uint16_t>::max()};
+  uint16_t sampachannel{std::numeric_limits<uint16_t>::max()};
+  uint16_t samples{std::numeric_limits<uint16_t>::max()};
+  uint16_t type{std::numeric_limits<uint16_t>::max()};
+  uint16_t userword{std::numeric_limits<uint16_t>::max()};
+  uint16_t checksum{std::numeric_limits<uint16_t>::max()};
+  uint16_t data_parity{std::numeric_limits<uint16_t>::max()};
+
+  bool checksumerror{true};
+  bool parityerror{true};
 
   //! adc value for each sample
   std::map<uint16_t, uint16_t> adcmap;

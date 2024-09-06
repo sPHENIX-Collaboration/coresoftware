@@ -23,7 +23,7 @@ void MvtxRawEvtHeaderv2::Reset()
   m_MvtxFeeIdInfoTCArray->Expand(NMVTXFEEID);
 }
 
-void MvtxRawEvtHeaderv2::identify(std::ostream& os) const
+void MvtxRawEvtHeaderv2::identify(std::ostream &os) const
 {
   os << "MvtxRawEvtHeaderv2" << std::endl;
   os << "Feeids in the event:  " << m_MvtxFeeIdInfoTCArray->GetEntriesFast() << std::endl;
@@ -32,7 +32,7 @@ void MvtxRawEvtHeaderv2::identify(std::ostream& os) const
 
 int MvtxRawEvtHeaderv2::isValid() const
 {
-  return ( m_MvtxL1TrgSet.size() || m_MvtxFeeIdInfoTCArray->GetEntriesFast() );
+  return (m_MvtxL1TrgSet.size() || m_MvtxFeeIdInfoTCArray->GetEntriesFast());
 }
 
 MvtxFeeIdInfo *MvtxRawEvtHeaderv2::AddFeeIdInfo()
@@ -57,7 +57,7 @@ MvtxFeeIdInfo *MvtxRawEvtHeaderv2::get_feeIdInfo(unsigned int index)
   return (MvtxFeeIdInfo *) m_MvtxFeeIdInfoTCArray->At(index);
 }
 
-void MvtxRawEvtHeaderv2::AddL1Trg(const std::set<uint64_t>& mvtxL1TrgSet)
+void MvtxRawEvtHeaderv2::AddL1Trg(const std::set<uint64_t> &mvtxL1TrgSet)
 {
   m_MvtxL1TrgSet.insert(mvtxL1TrgSet.cbegin(), mvtxL1TrgSet.cend());
 }

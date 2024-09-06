@@ -58,4 +58,3 @@ InttRawHit *InttRawHitContainerv2::get_hit(unsigned int index)
 {
   return (InttRawHit *) InttRawHitsTCArray->At(index);
 }
-

@@ -9,6 +9,12 @@ TpcRawHitv2::TpcRawHitv2(TpcRawHit *tpchit)
   set_channel(tpchit->get_channel());
   set_sampaaddress(tpchit->get_sampaaddress());
   set_sampachannel(tpchit->get_sampachannel());
+  set_type(tpchit->get_type());
+  set_userword(tpchit->get_userword());
+  set_checksum(tpchit->get_checksum());
+  set_parity(tpchit->get_parity());
+  set_checksumerror(tpchit->get_checksumerror());
+  set_parityerror(tpchit->get_parityerror());
   set_samples(tpchit->get_samples());
 
   for (size_t i = 0; i < tpchit->get_samples(); ++i)

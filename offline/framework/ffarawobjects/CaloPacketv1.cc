@@ -282,12 +282,11 @@ void CaloPacketv1::dump(std::ostream &os) const
     break;
   default:
     std::cout << PHWHERE << "unknown hit format: "
-	      << getHitFormat() << std::endl;
+              << getHitFormat() << std::endl;
     gSystem->Exit(1);
   }
   return;
 }
-
 
 void CaloPacketv1::dump_iddigitizer(std::ostream &os) const
 {
@@ -321,49 +320,48 @@ void CaloPacketv1::dump_iddigitizer(std::ostream &os) const
   }
   os << std::endl;
 
-  char oldFill=os.fill('0');
+  char oldFill = os.fill('0');
 
   os << "FEM Checksum LSB:   ";
-  for ( int i = 0; i < iValue(0,"NRMODULES"); i++)
-    {
-      os <<  "0x" << std::hex <<  std::setw(4) << iValue(i,"CHECKSUMLSB") << "  "  << std::dec;
-    }
+  for (int i = 0; i < iValue(0, "NRMODULES"); i++)
+  {
+    os << "0x" << std::hex << std::setw(4) << iValue(i, "CHECKSUMLSB") << "  " << std::dec;
+  }
   os << std::endl;
 
   os << "FEM Checksum MSB:   ";
-  for ( int i = 0; i < iValue(0,"NRMODULES"); i++)
-    {
-      os <<  "0x" << std::hex << std::setw(4) << iValue(i,"CHECKSUMMSB")  << "  "<< std::dec;
-    }
+  for (int i = 0; i < iValue(0, "NRMODULES"); i++)
+  {
+    os << "0x" << std::hex << std::setw(4) << iValue(i, "CHECKSUMMSB") << "  " << std::dec;
+  }
   os << std::endl;
 
   os.fill(oldFill);
   os << std::endl;
 
-  for ( int c = 0; c < _nchannels; c++)
+  for (int c = 0; c < _nchannels; c++)
+  {
+    if (iValue(c, "SUPPRESSED"))
     {
-      if (  iValue(c,"SUPPRESSED") )
-	{
-	  os << std::setw(4) << c << " |-";
-	}
-      else
-	{
-	  os << std::setw(4) << c << " | ";
-	}
-
-	  
-      os << std::hex;
-
-      os << std::setw(6) << iValue(c, "PRE");
-      os << std::setw(6) << iValue(c, "POST") << " | " ;
-
-      if ( ! iValue(c,"SUPPRESSED") )
-	{
-	  for ( int s = 0; s < _nsamples; s++)
-	    {
-	      os << std::setw(6) << iValue(s,c);
-	    }
-	}
-      os << std::dec << std::endl;
+      os << std::setw(4) << c << " |-";
     }
+    else
+    {
+      os << std::setw(4) << c << " | ";
+    }
+
+    os << std::hex;
+
+    os << std::setw(6) << iValue(c, "PRE");
+    os << std::setw(6) << iValue(c, "POST") << " | ";
+
+    if (!iValue(c, "SUPPRESSED"))
+    {
+      for (int s = 0; s < _nsamples; s++)
+      {
+        os << std::setw(6) << iValue(s, c);
+      }
+    }
+    os << std::dec << std::endl;
+  }
 }
