@@ -40,10 +40,10 @@ int TpcBcoDump::InitRun(PHCompositeNode * /*topNode*/)
 
   outfile = new TFile(outfilename.c_str(), "RECREATE");
   ttree = new TTree("bco", "bco");
-  ttree->Branch("id",&m_id);
-  ttree->Branch("evt",&m_evt);
-  ttree->Branch("bco",&m_bco);
-  ttree->Branch("bcodiff",&m_bcodiff);
+  ttree->Branch("id", &m_id);
+  ttree->Branch("evt", &m_evt);
+  ttree->Branch("bco", &m_bco);
+  ttree->Branch("bcodiff", &m_bcodiff);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -63,7 +63,7 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
   for (auto packet : pktvec)
   {
     int packetid = packet->getIdentifier();
-    lastbco.insert(std::make_pair(packetid,0));
+    lastbco.insert(std::make_pair(packetid, 0));
     int numBCOs = packet->lValue(0, "N_TAGGER");
     for (int j = 0; j < numBCOs; j++)
     {
@@ -90,8 +90,8 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
 
           m_id = mapiter.first;
           m_evt = EventSequence;
-          m_bco = bco; 
-          m_bcodiff = diffbco; 
+          m_bco = bco;
+          m_bcodiff = diffbco;
 
           ttree->Fill();
         }

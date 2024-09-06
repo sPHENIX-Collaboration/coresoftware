@@ -40,10 +40,10 @@ int Gl1BcoDump::InitRun(PHCompositeNode * /*topNode*/)
 
   outfile = new TFile(outfilename.c_str(), "RECREATE");
   ttree = new TTree("bco", "bco");
-  ttree->Branch("id",&m_id);
-  ttree->Branch("evt",&m_evt);
-  ttree->Branch("bco",&m_bco);
-  ttree->Branch("bcodiff",&m_bcodiff);
+  ttree->Branch("id", &m_id);
+  ttree->Branch("evt", &m_evt);
+  ttree->Branch("bco", &m_bco);
+  ttree->Branch("bcodiff", &m_bcodiff);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

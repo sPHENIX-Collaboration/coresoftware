@@ -32,7 +32,7 @@ class InttBcoDump : public SubsysReco
 
  private:
   TFile *outfile{nullptr};
-  TTree *ttree {nullptr};
+  TTree *ttree{nullptr};
   std::map<int, uint64_t> lastbco;
   std::map<uint64_t, int> bcoTaggedFees;
   std::string outfilename;

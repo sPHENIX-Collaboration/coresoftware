@@ -37,9 +37,9 @@ int InttBcoDump::InitRun(PHCompositeNode * /*topNode*/)
     std::cout << "no output filename given" << std::endl;
     gSystem->Exit(1);
   }
-  
+
   outfile = new TFile(outfilename.c_str(), "RECREATE");
-  outfile->SetCompressionSettings(505); // ZSTD
+  outfile->SetCompressionSettings(505);  // ZSTD
   ttree = new TTree("bco", "bco");
   ttree->Branch("id", &m_id);
   ttree->Branch("evt", &m_evt);
