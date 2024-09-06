@@ -124,6 +124,8 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
       {
         // only store gtm_bco for level1 type of taggers (not ENDDAT)
         const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
+       
+        const auto is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
         if (is_lvl1)
         {
           gtm_bco = packet->lValue(t, "BCO");
@@ -148,6 +150,15 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
           }
           m_BclkStackPacketMap[packet_id].insert(gtm_bco);
         }
+          if(is_endat)
+          {
+            auto endatbco = packet->lValue(t, "BCO");
+            if (m_BclkStackPacketMap.find(packet_id) == m_BclkStackPacketMap.end())
+            {
+              m_BclkStackPacketMap.insert(std::make_pair(packet_id, std::set<uint64_t>()));
+            }
+            m_BclkStackPacketMap[packet_id].insert(endatbco);
+          }
       }
       if (skipthis)
       {

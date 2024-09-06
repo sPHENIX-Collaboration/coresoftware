@@ -54,11 +54,11 @@ class TpcSiliconQA : public SubsysReco
   int m_event = 0;
 
   TH1 *h_crossing = nullptr;
-  TH1 *h_phiDiff[4] = {nullptr};
-  TH1 *h_etaDiff[4] = {nullptr};
-  TH1 *h_xDiff[4] = {nullptr};
-  TH1 *h_yDiff[4] = {nullptr};
-  TH1 *h_zDiff[4] = {nullptr}; 
+  TH1 *h_phiDiff[8] = {nullptr};
+  TH1 *h_etaDiff[8] = {nullptr};
+  TH1 *h_xDiff[8] = {nullptr};
+  TH1 *h_yDiff[8] = {nullptr};
+  TH1 *h_zDiff[8] = {nullptr}; 
 };
 
 #endif  // QA_TRACKING_TPCSILICONQA_H
