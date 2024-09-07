@@ -15,11 +15,7 @@
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
 
-#include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
-
 #include <TFile.h>
-#include <TProfile2D.h>
 #include <TSystem.h>
 #include <TTree.h>
 
@@ -36,18 +32,21 @@ InttBcoDump::InttBcoDump(const std::string &name)
 //____________________________________________________________________________..
 int InttBcoDump::InitRun(PHCompositeNode * /*topNode*/)
 {
-  auto hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
+  if (outfilename.empty())
+  {
+    std::cout << "no output filename given" << std::endl;
+    gSystem->Exit(1);
+  }
 
-  ntup = new TTree("bco", "bco");
-  ntup->Branch("id", &m_id);
-  ntup->Branch("evt", &m_evt);
-  ntup->Branch("nfees", &m_nfees);
-  ntup->Branch("bco", &m_bco);
-  ntup->Branch("bcodiff", &m_bcodiff);
-
-  hm->registerHisto(ntup);
-
+  outfile = new TFile(outfilename.c_str(), "RECREATE");
+  outfile->SetCompressionSettings(505);  // ZSTD
+  ttree = new TTree("bco", "bco");
+  ttree->Branch("id", &m_id);
+  ttree->Branch("evt", &m_evt);
+  ttree->Branch("nfees", &m_nfees);
+  ttree->Branch("bco", &m_bco);
+  ttree->Branch("bcodiff", &m_bcodiff);
+  ttree->SetAutoFlush(100000);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -104,7 +103,7 @@ int InttBcoDump::process_event(PHCompositeNode *topNode)
           m_nfees = bcoTaggedFees[bco];
           m_bcodiff = diffbco;
 
-          ntup->Fill();
+          ttree->Fill();
         }
         lastbco[mapiter.first] = bco;
       }
@@ -117,5 +116,9 @@ int InttBcoDump::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int InttBcoDump::End(PHCompositeNode * /*topNode*/)
 {
+  outfile->cd();
+  ttree->Write();
+  outfile->Close();
+  delete outfile;
   return Fun4AllReturnCodes::EVENT_OK;
 }

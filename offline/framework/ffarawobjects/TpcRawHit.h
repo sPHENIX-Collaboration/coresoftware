@@ -35,11 +35,29 @@ class TpcRawHit : public PHObject
   virtual uint16_t get_samples() const { return std::numeric_limits<uint16_t>::max(); }
   virtual void set_samples(const uint16_t) { return; }
 
-  virtual uint16_t get_adc(size_t /*sample*/) const { return std::numeric_limits<uint16_t>::max(); }
-  virtual void set_adc(size_t /*sample*/, const uint16_t) { return; }
+  virtual uint16_t get_adc(const uint16_t /*sample*/) const { return std::numeric_limits<uint16_t>::max(); }
+  virtual void set_adc(const uint16_t /*sample*/, const uint16_t) { return; }
+
+  virtual uint16_t get_type() const { return std::numeric_limits<uint16_t>::max(); }
+  virtual void set_type(const uint16_t) { return; }
+
+  virtual uint16_t get_userword() const { return std::numeric_limits<uint16_t>::max(); }
+  virtual void set_userword(const uint16_t) { return; }
+
+  virtual uint16_t get_checksum() const { return std::numeric_limits<uint16_t>::max(); }
+  virtual void set_checksum(const uint16_t /*i*/) { return; }
+
+  virtual uint16_t get_parity() const { return std::numeric_limits<uint16_t>::max(); }
+  virtual void set_parity(const uint16_t /*i*/) { return; }
+
+  virtual bool get_checksumerror() const { return false; }
+  virtual void set_checksumerror(const bool /*b*/) { return; }
+
+  virtual bool get_parityerror() const { return false; }
+  virtual void set_parityerror(const bool /*b*/) { return; }
 
  private:
-  ClassDefOverride(TpcRawHit, 1)
+  ClassDefOverride(TpcRawHit, 0)
 };
 
 #endif
