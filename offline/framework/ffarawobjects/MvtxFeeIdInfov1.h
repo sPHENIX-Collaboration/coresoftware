@@ -10,12 +10,12 @@ class MvtxFeeIdInfov1 : public MvtxFeeIdInfo
  public:
   MvtxFeeIdInfov1() {}
   MvtxFeeIdInfov1(MvtxFeeIdInfo* info);
-  ~MvtxFeeIdInfov1() override {};
+  ~MvtxFeeIdInfov1() override{};
 
   /** identify Function from PHObject
       @param os Output Stream
    */
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   uint16_t get_feeId() const override { return m_feeId; }
   // cppcheck-suppress virtualCallInConstructor
@@ -29,11 +29,10 @@ class MvtxFeeIdInfov1 : public MvtxFeeIdInfo
   // cppcheck-suppress virtualCallInConstructor
   void set_bco(const uint64_t val) override { m_bco = val; }
 
-
  protected:
-  uint16_t m_feeId    = std::numeric_limits<uint16_t>::max();
+  uint16_t m_feeId = std::numeric_limits<uint16_t>::max();
   uint32_t m_detField = std::numeric_limits<uint32_t>::max();
-  uint64_t m_bco      = std::numeric_limits<uint64_t>::max();
+  uint64_t m_bco = std::numeric_limits<uint64_t>::max();
 
   ClassDefOverride(MvtxFeeIdInfov1, 1)
 };

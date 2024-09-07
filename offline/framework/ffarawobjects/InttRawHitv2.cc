@@ -1,7 +1,7 @@
 #include "InttRawHitv2.h"
 
 InttRawHitv2::InttRawHitv2(InttRawHit *intthit)
- : InttRawHitv1(intthit)
+  : InttRawHitv1(intthit)
 {
   InttRawHitv2::set_event_counter(intthit->get_event_counter());
 }

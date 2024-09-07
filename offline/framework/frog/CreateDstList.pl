@@ -29,7 +29,7 @@ my %ignore_datasets = (
     "rawdata" => 1
     );
 
-my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
+my $dbh = DBI->connect("dbi:ODBC:FileCatalog_read") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
 
 if (defined $printtags)
