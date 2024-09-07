@@ -198,7 +198,10 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
             }
           }
 
-          if (have_duplicate_track) continue;
+          if (have_duplicate_track)
+	  {
+	    continue;
+	  }
 
           // If there are daughter tracks coming from the mother not an intermediate, need to ensure that the intermeditate decay tracks aren't used again
           std::vector<int> goodTrackIndexAdv_withoutIntermediates = goodTrackIndexAdv;
@@ -243,7 +246,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
             for (auto& uniqueCombination : uniqueCombinations)
             {
-              for (auto element_of_intermediate : m_intermediate_name)
+              for (const auto& element_of_intermediate : m_intermediate_name)
               {
                 uniqueCombination.insert(begin(uniqueCombination), kfp_Tools_evtReco.getParticleID(element_of_intermediate));
               }
@@ -253,7 +256,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
           {
             std::vector<int> m_intermediate_id;
             m_intermediate_id.clear();
-            for (auto element_of_intermediate : m_intermediate_name)
+            for (const auto& element_of_intermediate : m_intermediate_name)
             {
               m_intermediate_id.push_back(kfp_Tools_evtReco.getParticleID(element_of_intermediate));
             }

@@ -21,6 +21,7 @@ KFParticle_Container::KFParticle_Container()
 {
 }
 
+// NOLINTNEXTLINE(bugprone-copy-constructor-init)
 KFParticle_Container::KFParticle_Container(const KFParticle_Container& kfparticlemap)
   : m_kfpmap()
 {
