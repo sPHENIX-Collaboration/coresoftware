@@ -4,10 +4,22 @@
 #define QA_TRACKING_MICROMEGASCLUSTERQA_H_
 
 #include <fun4all/SubsysReco.h>
+#include <micromegas/MicromegasDefs.h>
+#include <micromegas/MicromegasMapping.h>
+#include <micromegas/MicromegasCalibrationData.h>
 
+#include <array>
 #include <map>
 #include <set>
 #include <string>
+
+class ActsGeometry;
+class TrkrHitSetContainer;
+class TrkrClusterContainer;
+class TrkrClusterHitAssoc;
+
+class TH1;
+class TH2;
 
 class PHCompositeNode;
 
@@ -22,14 +34,75 @@ class MicromegasClusterQA : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
 
- private:
+  /// set default pedestal
+  void set_default_pedestal( double value )
+  { m_default_pedestal = value; }
+
+  /// set whether default pedestal is used or not
+  void set_use_default_pedestal( bool value )
+  { m_use_default_pedestal = value; }
+
+  /// calibration file
+  void set_calibration_file( const std::string& value )
+  { m_calibration_filename = value; }
+
+  private:
   void createHistos();
 
+  /// micromegas mapping
+  MicromegasMapping m_mapping;
+
+  /// per detector reference cluster count histogram
+  /*! used for standalone efficiency calculation */
+  TH1* m_h_clustercount_ref = nullptr;
+
+  /// per detector found cluster count histogram
+  /** used for standalone efficiency calculation */
+  TH1* m_h_clustercount_found = nullptr;
+
   std::string getHistoPrefix() const;
-  std::map<int, int> m_layerTileMap;
-  int m_event = 0;
-  int m_totalClusters = 0;
-  int m_nclustersPerTile[2][8] = {{0}};
+
+  /// Acts tracking geometry for surface lookup
+  ActsGeometry *m_tGeometry = nullptr;
+
+  //! hits
+  TrkrHitSetContainer* m_hitsetcontainer = nullptr;
+
+  //! clusters
+  TrkrClusterContainer* m_cluster_map = nullptr;
+
+  //! cluster to hit association
+  TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
+
+  /// first micromegas layer
+  /* this is updated on the fly from geometry object */
+  int m_firstlayer = 55;
+
+  /// number of layers
+  int m_nlayers = 2;
+
+  /// keep track of detector names
+  std::vector<std::string> m_detector_names;
+
+
+  ///@name calibration filename
+  //@{
+
+  /// if true, use default pedestal to get hit charge. Relies on calibration data otherwise
+  bool m_use_default_pedestal = true;
+
+  /// default pedestal
+  double m_default_pedestal = 74.6;
+
+  /// calibration filename
+  std::string m_calibration_filename;
+
+  /// calibration data
+  MicromegasCalibrationData m_calibration_data;
+
+  //@}
+
+
 };
 
 #endif  // MicromegasClusterQA_H

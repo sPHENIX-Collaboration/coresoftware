@@ -82,10 +82,20 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   // keep track of dropped waveforms per packet
   std::map<int,uint64_t> m_waveform_count_dropped{};
 
-  // QA histograms
+  //!@name QA histograms
+  //@{
+
+  //! keeps track of how often a given (or all) packets are found for a given BCO
   TH1 *h_packet_stat{nullptr};
+
+  //! keeps track of how many packets are found for a given BCO
   TH1 *h_packet{nullptr};
+
+  //! keeps track of how many waveforms are found for a given BCO
   TH1 *h_waveform{nullptr};
+
+  //@}
+
 };
 
 #endif

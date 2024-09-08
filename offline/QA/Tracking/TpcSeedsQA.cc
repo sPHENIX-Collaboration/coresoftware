@@ -1077,8 +1077,8 @@ std::pair<float, float> TpcSeedsQA::cal_tpc_eta_min_max(float vtxz)
   float HalfZ = 2110. / 2.;
   float theta_max = std::atan2(R, HalfZ - vtxz);
   float theta_min = std::atan2(R, -(vtxz + HalfZ));
-  float eta_max = -log(std::tan(theta_max / 2));
-  float eta_min = -log(std::tan(theta_min / 2));
+  float eta_max = -std::log(std::tan(theta_max / 2));
+  float eta_min = -std::log(std::tan(theta_min / 2));
   std::pair<float, float> min_max = std::make_pair(eta_min, eta_max);
   return min_max;
 }

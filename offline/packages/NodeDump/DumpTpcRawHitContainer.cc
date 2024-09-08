@@ -35,8 +35,15 @@ int DumpTpcRawHitContainer::process_Node(PHNode *myNode)
       *fout << "gtm_bco: " << rawhit->get_gtm_bco() << std::endl;
       *fout << "packetid: " << rawhit->get_packetid() << std::endl;
       *fout << "fee: " << rawhit->get_fee() << std::endl;
+      *fout << "channel:" << rawhit->get_channel() << std::endl;
       *fout << "sampaaddress: " << rawhit->get_sampaaddress() << std::endl;
       *fout << "sampachannel: " << rawhit->get_sampachannel() << std::endl;
+      *fout << "type:" << rawhit->get_type() << std::endl;
+      *fout << "userword:" << rawhit->get_userword() << std::endl;
+      *fout << "checksum:" << rawhit->get_checksum() << std::endl;
+      *fout << "checksumerror:" << rawhit->get_checksumerror() << std::endl;
+      *fout << "parity:" << rawhit->get_parity() << std::endl;
+      *fout << "parityerror:" << rawhit->get_parityerror() << std::endl;
       auto nsamples = rawhit->get_samples();
       *fout << "samples: " << rawhit->get_samples() << std::endl;
       for (auto isamp = 0; isamp < nsamples; isamp++)
