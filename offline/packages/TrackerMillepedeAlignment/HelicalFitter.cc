@@ -50,6 +50,10 @@
 
 using namespace std;
 
+// The derivative formulae used in this code follow the derivation in the ATLAS paper
+// Global chi^2 approach to the Alignment of the ATLAS Silicon Tracking Detectors
+// ATL-INDET-PUB-2005-002, 11 October 2005
+
 //____________________________________________________________________________..
 HelicalFitter::HelicalFitter(const std::string& name)
   : SubsysReco(name)
@@ -104,9 +108,9 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
   {
     // fout = new TFile("HF_ntuple.root","recreate");
     fout = new TFile(ntuple_outfilename.c_str(), "recreate");
-    ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+    ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdr:dXdrphi:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdr:dYdrphi:dYdz");
 
-    track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
+    track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdr:dXdrphi:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdr:dYdrphi:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
   }
 
   // print grouping setup to log file:
@@ -218,7 +222,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     // Get a vector of cluster keys from the tracklet
     getTrackletClusterList(tracklet, cluskey_vec);
-    if(cluskey_vec.size() < 4)
+    if(cluskey_vec.size() < 3)
     {
       continue;
     }
@@ -230,9 +234,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         nintt++;
       }
     }
+
+    std::cout << " nintt " << nintt << std::endl;
     if(fitsilicon && nintt<2)
     {
-      continue;
+      //continue;
     }
     // store cluster global positions in a vector global_vec and cluskey_vec
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
@@ -351,7 +357,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       continue;
     }
-    if ((fitsilicon || fitfulltrack) && nsilicon < 4)
+    if ((fitsilicon || fitfulltrack) && nsilicon < 3)
     {
       if (Verbosity() > 1)
       {
@@ -717,22 +723,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
           std::cout << i << ", ";
         }
       }
-
-      /*
-      // add some track cuts
-      if (fabs(newTrack.get_z() - event_vtx(2)) > 1)
-      {
-        continue;  // 2 mm cut
-      }
-      if (fabs(newTrack.get_x()) > 1)
-      {
-        continue;  // 2 mm cut
-      }
-      if (fabs(newTrack.get_y()) > 1)
-      {
-        continue;  // 2 mm cut
-      }
-      */
 
       if (!isnan(vtx_residual(0)))
       {
@@ -1215,17 +1205,36 @@ void HelicalFitter::getLocalVtxDerivativesXY(SvtxTrack& track, const Acts::Vecto
 
 void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 global, const Acts::Vector3& fitpoint, const std::vector<float>& fitpars, float glbl_derivativeX[6], float glbl_derivativeY[6], unsigned int layer)
 {
-  Acts::Vector3 unitx(1, 0, 0);
-  Acts::Vector3 unity(0, 1, 0);
-  Acts::Vector3 unitz(0, 0, 1);
-
   // calculate projX and projY vectors once for the optimum fit parameters
   std::pair<Acts::Vector3, Acts::Vector3> tangent = get_helix_tangent(fitpars, std::move(global));  // should this be global, not fitpoint?
 
   Acts::Vector3 projX(0, 0, 0), projY(0, 0, 0);
   get_projectionXY(surf, tangent, projX, projY);
 
-  // translations
+  // translations in polar coordinates, unit vectors must be in polar coordinates
+  //   -- There is an implicit assumption here that unitrphi is a length
+  // unit vector in r is the surface normal
+  Acts::Vector3 unitr = -surf->normal(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 center = surf->center(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  float phi = atan2(center(1), center(0));
+  Acts::Vector3 unitrphi(-sin(phi), cos(phi), 0.0);
+  Acts::Vector3 unitz(0, 0, 1); 
+
+  glbl_derivativeX[3] = unitr.dot(projX);
+  glbl_derivativeX[4] = unitrphi.dot(projX);
+  glbl_derivativeX[5] = unitz.dot(projX);
+
+  glbl_derivativeY[3] = unitr.dot(projY);
+  glbl_derivativeY[4] = unitrphi.dot(projY);
+  glbl_derivativeY[5] = unitz.dot(projY);
+
+  /*
+  // translations in cartesian coordinates
+  // Unit vectors in the global cartesian frame
+  Acts::Vector3 unitx(1, 0, 0);
+  Acts::Vector3 unity(0, 1, 0);
+  Acts::Vector3 unitz(0, 0, 1);
+
   glbl_derivativeX[3] = unitx.dot(projX);
   glbl_derivativeX[4] = unity.dot(projX);
   glbl_derivativeX[5] = unitz.dot(projX);
@@ -1233,6 +1242,8 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   glbl_derivativeY[3] = unitx.dot(projY);
   glbl_derivativeY[4] = unity.dot(projY);
   glbl_derivativeY[5] = unitz.dot(projY);
+  */
+
 
   /*
   // note: the global derivative sign should be reversed from the ATLAS paper
@@ -1248,8 +1259,17 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   // rotations
   // need center of sensor to intersection point
   Acts::Vector3 sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;  // convert to cm
-  Acts::Vector3 OM = fitpoint - sensorCenter;                                                                   // this effectively reverses the sign from the ATLAS paper
+  Acts::Vector3 OM = fitpoint - sensorCenter;              // this effectively reverses the sign from the ATLAS paper
 
+  glbl_derivativeX[0] = (unitr.cross(OM)).dot(projX);
+  glbl_derivativeX[1] = (unitrphi.cross(OM)).dot(projX);
+  glbl_derivativeX[2] = (unitz.cross(OM)).dot(projX);
+
+  glbl_derivativeY[0] = (unitr.cross(OM)).dot(projY);
+  glbl_derivativeY[1] = (unitrphi.cross(OM)).dot(projY);
+  glbl_derivativeY[2] = (unitz.cross(OM)).dot(projY);
+
+  /*
   glbl_derivativeX[0] = (unitx.cross(OM)).dot(projX);
   glbl_derivativeX[1] = (unity.cross(OM)).dot(projX);
   glbl_derivativeX[2] = (unitz.cross(OM)).dot(projX);
@@ -1257,6 +1277,7 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   glbl_derivativeY[0] = (unitx.cross(OM)).dot(projY);
   glbl_derivativeY[1] = (unity.cross(OM)).dot(projY);
   glbl_derivativeY[2] = (unitz.cross(OM)).dot(projY);
+  */
 
   if (Verbosity() > 1)
   {
@@ -1308,7 +1329,10 @@ void HelicalFitter::get_projectionXY(const Surface& surf, const std::pair<Acts::
   Acts::Vector3 tanvec = tangent.second;
   // get the plane of the surface
   Acts::Vector3 sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;  // convert to cm
-  // sensorNormal is the Z vector
+
+  // We need the three unit vectors in the sensor local frame, transformed to the global frame 
+  //====================================================================
+  // sensorNormal is the Z vector in the global frame
   Acts::Vector3 Z = -surf->normal(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
   // get surface X and Y unit vectors in global frame
   // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
@@ -1318,9 +1342,13 @@ void HelicalFitter::get_projectionXY(const Surface& surf, const std::pair<Acts::
   Acts::Vector3 yloc(0.0, 1.0, 0.0);
   Acts::Vector3 yglob = surf->transform(_tGeometry->geometry().getGeoContext()) * (yloc * Acts::UnitConstants::cm);
   yglob /= Acts::UnitConstants::cm;
+  // These are the local frame unit vectors transformed to the global frame  
   Acts::Vector3 X = (xglob - sensorCenter) / (xglob - sensorCenter).norm();
   Acts::Vector3 Y = (yglob - sensorCenter) / (yglob - sensorCenter).norm();
+
   // see equation 31 of the ATLAS paper (and discussion) for this
+  // The unit vector in the local frame transformed to the global frame (X), 
+  // minus Z scaled by the track vector overlap with X, divided by the track vector overlap with Z.
   projX = X - (tanvec.dot(X) / tanvec.dot(Z)) * Z;
   projY = Y - (tanvec.dot(Y) / tanvec.dot(Z)) * Z;
   return;
