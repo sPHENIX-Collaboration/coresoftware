@@ -158,7 +158,7 @@ class TpcSeedsQA : public SubsysReco
 
   TNtuple* nt_sector_event_summary = {nullptr};
 
-  int m_bco;
+  int m_bco = 0;;
   int m_event = 0;
   int m_segment = 0;
 
