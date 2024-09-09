@@ -29,8 +29,7 @@
 
 //____________________________________________________________________________..
 TpcChanQA::TpcChanQA(const std::string &name)
-  : SubsysReco("TpcChanQA")
-  , m_fname(name)
+  : SubsysReco(name)
 {
   // reserves memory for max ADC samples
   m_adcSamples.resize(1024, 0);
@@ -58,10 +57,6 @@ int TpcChanQA::InitRun(PHCompositeNode * /*unused*/)
   }
 
   createHistos();
-
-  // Creates data file and checks whether it was successfully opened
-  m_file = TFile::Open(m_fname.c_str(), "recreate");
-  assert(m_file->IsOpen());
 
   // Define histograms initialized in header file
   std::string name = "h_channel_hits_sec" + sectorNum;
@@ -98,8 +93,6 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
   assert(hm);
 
   // Reference histograms initialized in header file to histos in HistoManager
-  auto h_channel_hits = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
-  auto h_channel_ADCs = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
   //
   
   // Loop over packets in event
@@ -150,34 +143,11 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//____________________________________________________________________________..
-int TpcChanQA::End(PHCompositeNode * /*unused*/)
-{
 
-  // Set histogram directory to 0 so data is saved after closing file
-  h_channel_hits->SetDirectory(nullptr);
-  h_channel_ADCs->SetDirectory(nullptr);
-
-  // Write histograms to file
-  m_file->cd();
-  h_channel_hits->Write();
-  h_channel_ADCs->Write();
-
-  std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName() << std::endl;
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 //____________________________________________________________________________..
 int TpcChanQA::End(PHCompositeNode *)
 {
-
-std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName() << std::endl;
-
-  m_file->ls();
-
-  // Close the file
-  m_file->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
