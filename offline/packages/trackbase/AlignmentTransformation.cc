@@ -46,7 +46,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
   // Define Parsing Variables
   TrkrDefs::hitsetkey hitsetkey = 0;
-  float alpha = 0.0, beta = 0.0, gamma = 0.0, dr = 0.0, dphi = 0.0, dz = 0.0;
+  float alpha = 0.0, beta = 0.0, gamma = 0.0, dr = 0.0, rdphi = 0.0, dz = 0.0;
 
   // load alignment constants file
   std::ifstream datafile;
@@ -75,7 +75,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
   int fileLines = 1824;
   for (int i = 0; i < fileLines; i++)
   {
-    // guard against reading in old 5 parameter files
+    // guard against reading in bad parameter files
     std::string str; 
     std::getline(datafile, str);
     std::stringstream ss(str);
@@ -88,7 +88,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
     if(count == 7)
       {
 	std::stringstream str6(str);
-	str6 >>  hitsetkey >> alpha >> beta >> gamma >> dr >> dphi >> dz;
+	str6 >>  hitsetkey >> alpha >> beta >> gamma >> dr >> rdphi >> dz;
       }
     else
       {
@@ -98,14 +98,14 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
     if(localVerbosity > 0)
       {
-	std::cout  <<  hitsetkey << "  " << alpha  << "  " << beta  << "  " << gamma  << "  " << dr  << "  " << dphi << "  "  << dz 
+	std::cout  <<  hitsetkey << "  " << alpha  << "  " << beta  << "  " << gamma  << "  " << dr  << "  " << rdphi << "  "  << dz 
 		   << std::endl;  
       }
 
     // Perturbation translations and angles for stave and sensor
     Eigen::Vector3d sensorAngles(alpha, beta, gamma);
-    Eigen::Vector3d sensorAnglesGlobal(0.0, 0.0 , dphi);
-    Eigen::Vector3d millepedeTranslation(dr, 0.0, dz);
+    Eigen::Vector3d sensorAnglesGlobal(0.0, 0.0 , 0.0);
+    Eigen::Vector3d millepedeTranslation(dr, rdphi, dz);
 
     unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey);  // specify between detectors
 
@@ -273,10 +273,12 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
   mpRotationAffine.translation() = nullTranslation;
 
   // Create alignment global coordinates rotation matrix
-  // This now just applies the dphi alignment parameter
+  // This now just applies the rdphi alignment parameter
+  float idealRadius = sqrt(actsTranslationPart(0)*actsTranslationPart(0)+actsTranslationPart(1)*actsTranslationPart(1));
+  float dphi = millepedeTranslation(1) / idealRadius;
   Eigen::AngleAxisd grx(sensorAnglesGlobal(0), Eigen::Vector3d::UnitX());
   Eigen::AngleAxisd gry(sensorAnglesGlobal(1), Eigen::Vector3d::UnitY());
-  Eigen::AngleAxisd grz(sensorAnglesGlobal(2), Eigen::Vector3d::UnitZ());
+  Eigen::AngleAxisd grz(dphi, Eigen::Vector3d::UnitZ());
   Eigen::Quaternion<double> gqr = grz * gry * grx;
   Eigen::Matrix3d millepedeRotationGlobal = gqr.matrix();
 

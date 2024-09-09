@@ -235,7 +235,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
     }
 
-    std::cout << " nintt " << nintt << std::endl;
     if(fitsilicon && nintt<2)
     {
       //continue;
