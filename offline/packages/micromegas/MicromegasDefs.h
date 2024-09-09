@@ -94,6 +94,9 @@ namespace MicromegasDefs
    s*/
   uint8_t getTileId(TrkrDefs::cluskey);
 
+  //! number of TPOT tiles
+  static constexpr int m_ntiles = 8;
+
   //! TPOT packet ids
   /**
    * note: TPOT only uses 2 packets.
@@ -109,6 +112,9 @@ namespace MicromegasDefs
   //! number of channels per fee board
   static constexpr int m_nchannels_fee = 256;
 
+  //! number of sampa chips per fee board
+  static constexpr int m_nsampa_fee = 8;
+
   //! number of fee boards
   static constexpr int m_nfee = 16;
 
@@ -120,7 +126,6 @@ namespace MicromegasDefs
 
   //! mark invalid ADC values
   static constexpr uint16_t m_adc_invalid = 65000;
-
 
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   // TODO: should move to online_distribution

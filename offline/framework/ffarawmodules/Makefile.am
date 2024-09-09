@@ -21,6 +21,7 @@ pkginclude_HEADERS = \
   Gl1Check.h \
   HcalCheck.h \
   InttCheck.h \
+  InttBcoDump.h \
   InttGl1Check.h \
   LL1Check.h \
   MbdCheck.h \
@@ -43,6 +44,7 @@ libffarawmodules_la_SOURCES = \
   Gl1BcoDump.cc \
   Gl1Check.cc \
   HcalCheck.cc \
+  InttBcoDump.cc \
   InttCheck.cc \
   InttGl1Check.cc \
   LL1Check.cc \
