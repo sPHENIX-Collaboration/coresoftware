@@ -713,7 +713,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
         float meanAdc = 0;
         if (nCluster > 0)
         {
-          meanAdc = madc[iside][iregion][isector] / nclus[iside][iregion][isector];
+          meanAdc = madc[iside][iregion][isector] / (nCluster*1.);
         }
         nt_sector_event_summary->Fill(m_event, m_segment, m_bco, iside, iregion, isector, nCluster, meanAdc);
       }
