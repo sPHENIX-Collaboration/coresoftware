@@ -212,7 +212,18 @@ int PHG4MvtxDetector::ConstructMvtx(G4LogicalVolume *trackerenvelope)
         std::cout << std::endl;
     }
 
-    SetMvtxModGeoParams();
+    if (run == 2024)
+    {
+        SetMvtxModGeoParams_run2024();
+    }   
+    else if (run == 2025)
+    {
+        SetMvtxModGeoParams_run2025();
+    }
+    else
+    {
+        std::cout << "PHG4MvtxDetector::ConstructMvtx - ERROR - unknown run number " << run << std::endl;
+    }
     
     //===================================
     // Import the stave physical volume here
@@ -534,13 +545,12 @@ void PHG4MvtxDetector::FindSensor(G4LogicalVolume *lv)
     }
 }
 
-void PHG4MvtxDetector::SetMvtxModGeoParams()
+void PHG4MvtxDetector::SetMvtxModGeoParams_run2024() // For Run2024 p+p 
 {
-    // Print out the content of the text file mvtxAlignmentParamsFile line by line
-    std::ifstream file(mvtxAlignmentParamsFile);
+    std::ifstream file(mvtxAlignmentParamsFile_run2024);
     if (!file.is_open())
     {
-        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams - ERROR - Could not open file " << mvtxAlignmentParamsFile << std::endl;
+        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - ERROR - Could not open file " << mvtxAlignmentParamsFile_run2024 << std::endl;
         return;
     }
     else
@@ -554,7 +564,7 @@ void PHG4MvtxDetector::SetMvtxModGeoParams()
             double alpha, beta, gamma, dx, dy, dz;
             if (!(iss >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz))
             {
-                std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams - ERROR - Could not read line " << line << std::endl;
+                std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - ERROR - Could not read line " << line << std::endl;
                 continue;
             }
             else
@@ -579,7 +589,7 @@ void PHG4MvtxDetector::SetMvtxModGeoParams()
                     std::get<5>(m_ModGeoParamsMapAverage[layer_stave]) += dz;
                 }
                 
-                std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams - Read hitsetkey " << hitsetkey << " layer " << unsigned(layer) << " stave " << unsigned(stave) << " chip " << unsigned(chip) << " alpha " << alpha << " beta " << beta << " gamma " << gamma << " dx " << dx << " dy " << dy << " dz " << dz << std::endl;
+                std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - Read hitsetkey " << hitsetkey << " layer " << unsigned(layer) << " stave " << unsigned(stave) << " chip " << unsigned(chip) << " alpha " << alpha << " beta " << beta << " gamma " << gamma << " dx " << dx << " dy " << dy << " dz " << dz << std::endl;
             }
             m_ModGeoParams[hitsetkey] = std::make_tuple(alpha, beta, gamma, dx, dy, dz);
 
@@ -600,19 +610,25 @@ void PHG4MvtxDetector::SetMvtxModGeoParams()
     // check if the two maps m_ModGeoParamsMap and m_ModGeoParamsMapAverage has the same size
     if (m_ModGeoParamsMap.size() != m_ModGeoParamsMapAverage.size())
     {
-        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams - ERROR - The two maps m_ModGeoParamsMap and m_ModGeoParamsMapAverage have different sizes" << std::endl;
+        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - ERROR - The two maps m_ModGeoParamsMap and m_ModGeoParamsMapAverage have different sizes" << std::endl;
     }
 
     // debug: print out the content of the map m_ModGeoParamsMap 
     for (const auto& layer_stave : m_ModGeoParamsMap)
     {
-        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams - layer " << unsigned(layer_stave.first.first) << " stave " << unsigned(layer_stave.first.second) << std::endl;
+        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - layer " << unsigned(layer_stave.first.first) << " stave " << unsigned(layer_stave.first.second) << std::endl;
         for (const auto& params : layer_stave.second)
         {
-            std::cout << "-----PHG4MvtxDetector::SetMvtxModGeoParams - alpha " << std::get<0>(params) << " beta " << std::get<1>(params) << " gamma " << std::get<2>(params) << " dx " << std::get<3>(params) << " dy " << std::get<4>(params) << " dz " << std::get<5>(params) << std::endl;
+            std::cout << "-----PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - alpha " << std::get<0>(params) << " beta " << std::get<1>(params) << " gamma " << std::get<2>(params) << " dx " << std::get<3>(params) << " dy " << std::get<4>(params) << " dz " << std::get<5>(params) << std::endl;
         }
 
         // print out the average alignment parameters
-        std::cout << "-- PHG4MvtxDetector::SetMvtxModGeoParams - Average alignment parameters -- " << "alpha " << std::get<0>(m_ModGeoParamsMapAverage[layer_stave.first]) << " beta " << std::get<1>(m_ModGeoParamsMapAverage[layer_stave.first]) << " gamma " << std::get<2>(m_ModGeoParamsMapAverage[layer_stave.first]) << " dx " << std::get<3>(m_ModGeoParamsMapAverage[layer_stave.first]) << " dy " << std::get<4>(m_ModGeoParamsMapAverage[layer_stave.first]) << " dz " << std::get<5>(m_ModGeoParamsMapAverage[layer_stave.first]) << std::endl;
+        if (unsigned(layer_stave.first.first) < 3)
+          std::cout << "-- PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - Average alignment parameters (L" << unsigned(layer_stave.first.first) << "_" << unsigned(layer_stave.first.second) << ") -- " << "(alpha,beta,gamma,dx,dy,dz)=(" << std::get<0>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<1>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<2>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<3>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<4>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<5>(m_ModGeoParamsMapAverage[layer_stave.first]) << ")" << std::endl;
     }
+}
+
+void PHG4MvtxDetector::SetMvtxModGeoParams_run2025() // For Run2025 Au+Au
+{
+    std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2025 - ERROR - To be implemented" << std::endl;
 }

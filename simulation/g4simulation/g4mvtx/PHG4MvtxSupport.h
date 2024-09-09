@@ -52,6 +52,8 @@ class PHG4MvtxSupport
   bool m_overlapCheck{false};
 
   bool useModGeo_support{false};
+
+  int useModGeo_run{0};
 };
 
 #endif
