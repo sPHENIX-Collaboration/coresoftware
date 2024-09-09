@@ -1,4 +1,4 @@
-#include "TpcBcoDump.h"
+#include "InttBcoDump.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
@@ -12,6 +12,7 @@
 #include <phool/getClass.h>
 
 #include <Event/Event.h>
+#include <Event/EventTypes.h>
 #include <Event/packet.h>
 
 #include <TFile.h>
@@ -24,13 +25,12 @@
 #include <vector>   // for vector
 
 //____________________________________________________________________________..
-TpcBcoDump::TpcBcoDump(const std::string &name)
+InttBcoDump::InttBcoDump(const std::string &name)
   : SubsysReco(name)
 {
 }
-
 //____________________________________________________________________________..
-int TpcBcoDump::InitRun(PHCompositeNode * /*topNode*/)
+int InttBcoDump::InitRun(PHCompositeNode * /*topNode*/)
 {
   if (outfilename.empty())
   {
@@ -39,16 +39,19 @@ int TpcBcoDump::InitRun(PHCompositeNode * /*topNode*/)
   }
 
   outfile = new TFile(outfilename.c_str(), "RECREATE");
+  outfile->SetCompressionSettings(505);  // ZSTD
   ttree = new TTree("bco", "bco");
   ttree->Branch("id", &m_id);
   ttree->Branch("evt", &m_evt);
+  ttree->Branch("nfees", &m_nfees);
   ttree->Branch("bco", &m_bco);
   ttree->Branch("bcodiff", &m_bcodiff);
+  ttree->SetAutoFlush(100000);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int TpcBcoDump::process_event(PHCompositeNode *topNode)
+int InttBcoDump::process_event(PHCompositeNode *topNode)
 {
   Event *evt = findNode::getClass<Event>(topNode, "PRDF");
   if (!evt)
@@ -56,27 +59,33 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
     std::cout << "No Event found" << std::endl;
     exit(1);
   }
+  if (evt->getEvtType() == ENDRUNEVENT)
+  {
+    std::cout << "End run flag for INTT found, remaining INTT data is corrupted" << std::endl;
+    delete evt;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
   //  evt->identify();
   int EventSequence = evt->getEvtSequence();
   std::vector<Packet *> pktvec = evt->getPacketVector();
   std::map<int, std::set<uint64_t>> bcoset;
   for (auto packet : pktvec)
   {
-    int packetid = packet->getIdentifier();
-    lastbco.insert(std::make_pair(packetid, 0));
-    int numBCOs = packet->lValue(0, "N_TAGGER");
-    for (int j = 0; j < numBCOs; j++)
+    int nbcos = packet->iValue(0, "NR_BCOS");
+    for (int i = 0; i < nbcos; i++)
     {
-      const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(j, "IS_LEVEL1_TRIGGER"));
-      if (is_lvl1)
+      uint64_t bco = packet->lValue(i, "BCOLIST");
+      int nfees = packet->iValue(i, "NR_FEES");
+      bcoTaggedFees[bco] = nfees;
+      for (int j = 0; j < nfees; j++)
       {
-        uint64_t bco = packet->lValue(j, "BCO");
-        bcoset[packetid].insert(bco);
+        int fee = packet->iValue(i, j, "FEELIST");
+        bcoset[fee].insert(bco);
       }
     }
+
     delete packet;
   }
-
   for (auto &mapiter : bcoset)
   {
     if (!mapiter.second.empty())
@@ -91,6 +100,7 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
           m_id = mapiter.first;
           m_evt = EventSequence;
           m_bco = bco;
+          m_nfees = bcoTaggedFees[bco];
           m_bcodiff = diffbco;
 
           ttree->Fill();
@@ -99,11 +109,12 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
       }
     }
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int TpcBcoDump::End(PHCompositeNode * /*topNode*/)
+int InttBcoDump::End(PHCompositeNode * /*topNode*/)
 {
   outfile->cd();
   ttree->Write();
