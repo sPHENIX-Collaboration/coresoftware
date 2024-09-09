@@ -32,9 +32,9 @@
 
 #include <TH2.h>
 #include <TH2F.h>
+#include <TNtuple.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
-#include <TNtuple.h>
 
 #include <boost/format.hpp>
 #include <cmath>
@@ -248,7 +248,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
   }
   else
   {
-    Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
     if (!gl1PacketInfo)
     {
       m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
@@ -555,13 +555,13 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
         {
           h_onepad_frac[region]->Fill((this_sector + 1) * (2 * (this_side - 0.5)), is_onepad);
         }
-	nclus[this_side][region][this_sector] +=1;
-	madc[this_side][region][this_sector] += cluster->getAdc();
+        nclus[this_side][region][this_sector] += 1;
+        madc[this_side][region][this_sector] += cluster->getAdc();
         break;
       }
     }
 
-    if (m_ptot>0.2 && m_ptot < 4 && m_ntpc > 30)
+    if (m_ptot > 0.2 && m_ptot < 4 && m_ntpc > 30)
     {
       h_dedx->Fill(m_charge * m_ptot, m_dedx);
     }
@@ -702,16 +702,20 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
     }
   }
 
-  for(int iside = 0;iside<2;iside++){
-    for(int iregion = 0;iregion<3;iregion++){
-      for(int isector = 0;isector<12;isector++){
-	//"event:segment:bco:side:region:sector:ncluster:meanadc"
-	int nCluster = nclus[iside][iregion][isector];
-	float meanAdc = 0;
-	if(nCluster>0){
-	  meanAdc = madc[iside][iregion][isector]/nclus[iside][iregion][isector];
-	}
-	nt_sector_event_summary->Fill(m_event,m_segment,m_bco,iside ,iregion,isector,nCluster,meanAdc);
+  for (int iside = 0; iside < 2; iside++)
+  {
+    for (int iregion = 0; iregion < 3; iregion++)
+    {
+      for (int isector = 0; isector < 12; isector++)
+      {
+        //"event:segment:bco:side:region:sector:ncluster:meanadc"
+        int nCluster = nclus[iside][iregion][isector];
+        float meanAdc = 0;
+        if (nCluster > 0)
+        {
+          meanAdc = madc[iside][iregion][isector] / nclus[iside][iregion][isector];
+        }
+        nt_sector_event_summary->Fill(m_event, m_segment, m_bco, iside, iregion, isector, nCluster, meanAdc);
       }
     }
   }
@@ -1116,8 +1120,8 @@ std::pair<float, float> TpcSeedsQA::cal_tpc_eta_min_max(float vtxz)
   float HalfZ = 2110. / 2.;
   float theta_max = std::atan2(R, HalfZ - vtxz);
   float theta_min = std::atan2(R, -(vtxz + HalfZ));
-  float eta_max = -log(std::tan(theta_max / 2));
-  float eta_min = -log(std::tan(theta_min / 2));
+  float eta_max = -std::log(std::tan(theta_max / 2));
+  float eta_min = -std::log(std::tan(theta_min / 2));
   std::pair<float, float> min_max = std::make_pair(eta_min, eta_max);
   return min_max;
 }
