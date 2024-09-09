@@ -269,8 +269,8 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
   int ntrack1d_ptg1_pos = 0;
   int ntrack1d_ptg1_neg = 0;
 
-  int nclus[2][3][12] = {0};
-  int madc[2][3][12] = {0};
+  int nclus[2][3][12] = {{{0}}};
+  int madc[2][3][12] = {{{0}}};
   for (const auto &[key, track] : *trackmap)
   {
     if (!track)
