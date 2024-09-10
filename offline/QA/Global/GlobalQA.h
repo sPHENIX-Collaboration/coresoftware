@@ -58,12 +58,12 @@ class GlobalQA : public SubsysReco {
     TH1 *h_GlobalQA_mbd_charge_n = nullptr;
 
     TH1 *h_GlobalQA_mbd_charge_sum = nullptr;     //MBD north + south charge sum
-    TH2 *h2_GlobalQA_mbd_charge_sum = nullptr;    // North charge vs south charge
+    TH2 *h2_GlobalQA_mbd_charge_NS_correlation = nullptr;    // North charge vs south charge
 
     TH1 *h_GlobalQA_mbd_nhit_s = nullptr;
     TH1 *h_GlobalQA_mbd_nhit_n = nullptr;
 
-    TH2 *h2_GlobalQA_mbd_nhit_on_S_and_N = nullptr; //Number of event that have hits on South & North   
+    TH2 *h2_GlobalQA_mbd_nhits_NS_correlation = nullptr; //Number of event that have hits on South & North   
 
     TH1 *h_GlobalQA_mbd_zvtxq = nullptr;
 

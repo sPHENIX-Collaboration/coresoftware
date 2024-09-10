@@ -326,8 +326,8 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 
 
     h_GlobalQA_mbd_charge_sum->Fill(tot_charge_s+tot_charge_n);
-    h2_GlobalQA_mbd_charge_sum->Fill(tot_charge_n, tot_charge_s);
-    h2_GlobalQA_mbd_nhit_on_S_and_N->Fill(hits_s, hits_n);
+    h2_GlobalQA_mbd_charge_NS_correlation->Fill(tot_charge_n, tot_charge_s);
+    h2_GlobalQA_mbd_nhits_NS_correlation->Fill(hits_s, hits_n);
 
   }
 
@@ -337,16 +337,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 
 int GlobalQA::End(PHCompositeNode * /*topNode*/) {
 
-  std::cout << "GlobalQA::End(PHCompositeNode *topNode) scaling MBD histograms" <<std::endl;
-
-  Double_t nevents = h_GlobalQA_mbd_charge_sum->Integral();
-  h_GlobalQA_mbd_charge_sum->Fill(-1000,nevents); // underflow bin keeps track of nevents
-  Double_t norm = 1.0/nevents;
-  h_GlobalQA_mbd_charge_sum ->Scale( norm );
-  h2_GlobalQA_mbd_charge_sum ->Scale( norm );
-
-  std::cout << "Nevents processed integral " << _eventcounter << "\t" << nevents << "\t" << nevents/_eventcounter <<std::endl;
-
+ 
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -377,10 +368,10 @@ void GlobalQA::createHistos() {
 
   h_GlobalQA_mbd_charge_sum =
     new TH1F("h_GlobalQA_mbd_charge_sum "," MBDQ north sum+ MBDQ south charge sum; MBDQn+MBDQs",100,0.,10); //MBDQ north sum+ MBDQ south charge sum
-  h2_GlobalQA_mbd_charge_sum =
-    new TH2F("h2_GlobalQA_mbd_charge_sum ","North MBDQ vs South MBDQ; N_MBDQ; S_MBDQ",100,0,10,100,0,10);// North charge vs south charge
-  h2_GlobalQA_mbd_nhit_on_S_and_N =
-    new TH2F("h2_GlobalQA_mbd_nhit_on_S_and_N"," number of event that have hits on MBDSouth & MBDNorth; South MBD Nhits; North MBD Nhits ", 70,0.,70,70,0.,70); //Number of event that have hits on South & North
+  h2_GlobalQA_mbd_charge_NS_correlation =
+    new TH2F("h2_GlobalQA_mbd_charge_NS_correlation ","North MBDQ vs South MBDQ; N_MBDQ; S_MBDQ",100,0,10,100,0,10);// North charge vs south charge
+  h2_GlobalQA_mbd_nhits_NS_correlation =
+    new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation"," number of event that have hits on MBDSouth & MBDNorth; South MBD Nhits; North MBD Nhits ", 70,0.,70,70,0.,70); //Number of event that have hits on South & North
 
 
 
@@ -395,8 +386,8 @@ void GlobalQA::createHistos() {
   hm->registerHisto(h_GlobalQA_mbd_nhit_s);
   hm->registerHisto(h_GlobalQA_mbd_nhit_n);
   hm->registerHisto(h_GlobalQA_mbd_charge_sum);
-  hm->registerHisto(h2_GlobalQA_mbd_charge_sum);
-  hm->registerHisto(h2_GlobalQA_mbd_nhit_on_S_and_N);
+  hm->registerHisto(h2_GlobalQA_mbd_charge_NS_correlation);
+  hm->registerHisto(h2_GlobalQA_mbd_nhits_NS_correlation);
 
 
   // ZDC QA
