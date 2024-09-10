@@ -143,9 +143,6 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
     // detector id
     const int detid = tile + MicromegasDefs::m_ntiles*(layer-m_firstlayer);
 
-    // get profile histogram
-    const auto h_profile = dynamic_cast<TH2 *>(hm->getHisto((boost::format("%sncluspertile%i_%i") % getHistoPrefix()%(layer-m_firstlayer)%tile).str()));
-
     // get clusters
     const auto cluster_range = m_cluster_map->getClusters(hitsetkey);
     cluster_count[detid] = std::distance( cluster_range.first, cluster_range.second );
@@ -153,9 +150,6 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
     // loop over clusters
     for( const auto& [ckey,cluster]:range_adaptor(cluster_range))
     {
-      // fill profile
-      h_profile->Fill(cluster->getLocalY(), cluster->getLocalX());
-
       // find associated hits
       const auto hit_range = m_cluster_hit_map->getHits(ckey);
 
@@ -251,20 +245,6 @@ void MicromegasClusterQA::createHistos()
   // register
   hm->registerHisto(m_h_clustercount_ref);
   hm->registerHisto(m_h_clustercount_found);
-
-  // cluster positions vs tile
-  for( int layer = 0; layer < m_nlayers; ++layer )
-  {
-    for (int tile = 0; tile < MicromegasDefs::m_ntiles; tile++)
-    {
-      auto h = new TH2F(
-        (boost::format("%sncluspertile%i_%i") % getHistoPrefix() % layer% tile).str().c_str(),
-        "Micromegas clusters per tile", 2000, -30, 30, 2000, -20, 20);
-      h->GetXaxis()->SetTitle("Local x [cm]");
-      h->GetYaxis()->SetTitle("Local y [cm]");
-      hm->registerHisto(h);
-    }
-  }
 
   return;
 }
