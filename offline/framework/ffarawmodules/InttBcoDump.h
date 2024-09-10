@@ -27,12 +27,15 @@ class InttBcoDump : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   int End(PHCompositeNode *topNode) override;
-  //  int ResetEvent(PHCompositeNode *topNode) override;
+
+  void OutFileName(const std::string &name) { outfilename = name; }
 
  private:
-  TTree *ntup = nullptr;
+  TFile *outfile{nullptr};
+  TTree *ttree{nullptr};
   std::map<int, uint64_t> lastbco;
   std::map<uint64_t, int> bcoTaggedFees;
+  std::string outfilename;
   int m_id{0};
   int m_evt{0};
   uint64_t m_bco{0};

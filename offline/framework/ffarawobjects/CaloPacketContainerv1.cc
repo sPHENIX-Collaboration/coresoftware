@@ -27,7 +27,7 @@ void CaloPacketContainerv1::identify(std::ostream &os) const
 {
   os << "CaloPacketContainerv1" << std::endl;
   os << "containing " << CaloPacketsTCArray->GetEntriesFast() << " Calo Packets" << std::endl;
-  for (int i=0 ; i<=CaloPacketsTCArray->GetLast(); i++)
+  for (int i = 0; i <= CaloPacketsTCArray->GetLast(); i++)
   {
     CaloPacket *calopkt = static_cast<CaloPacket *>(CaloPacketsTCArray->At(i));
     if (calopkt)
@@ -69,7 +69,7 @@ CaloPacket *CaloPacketContainerv1::getPacket(unsigned int index)
 
 CaloPacket *CaloPacketContainerv1::getPacketbyId(int id)
 {
-  for (int i=0 ; i<=CaloPacketsTCArray->GetLast(); i++)
+  for (int i = 0; i <= CaloPacketsTCArray->GetLast(); i++)
   {
     CaloPacket *pkt = (CaloPacket *) CaloPacketsTCArray->At(i);
     if (pkt->getIdentifier() == id)
@@ -83,17 +83,17 @@ CaloPacket *CaloPacketContainerv1::getPacketbyId(int id)
 void CaloPacketContainerv1::deletePacketAt(int index)
 {
   if (CaloPacketsTCArray->At(index))
-    {
-      CaloPacketsTCArray->RemoveAt(index);
-      CaloPacketsTCArray->Compress();
-    }
+  {
+    CaloPacketsTCArray->RemoveAt(index);
+    CaloPacketsTCArray->Compress();
+  }
 }
 
 void CaloPacketContainerv1::deletePacket(CaloPacket *packet)
 {
   if (packet)
-    {
-      CaloPacketsTCArray->Remove(packet);
-      CaloPacketsTCArray->Compress();
-    }
+  {
+    CaloPacketsTCArray->Remove(packet);
+    CaloPacketsTCArray->Compress();
+  }
 }

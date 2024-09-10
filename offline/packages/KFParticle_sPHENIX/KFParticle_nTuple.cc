@@ -25,20 +25,6 @@ class PHNode;
 /// Create necessary objects
 KFParticle_Tools kfpTupleTools;
 
-KFParticle_nTuple::KFParticle_nTuple()
-  : m_has_intermediates_nTuple(false)
-  , m_extrapolateTracksToSV_nTuple(true)
-  , m_constrain_to_vertex_nTuple(false)
-  , m_get_all_PVs(false)
-  , m_truth_matching(false)
-  , m_detector_info(false)
-  , m_calo_info(false)
-  , m_get_charge_conjugate_nTuple(false)
-  , m_use_fake_pv_nTuple(false)
-  , m_tree(nullptr)
-{
-}  // Constructor
-
 void KFParticle_nTuple::initializeVariables()
 {
   // m_calculated_mother_cov = -99;

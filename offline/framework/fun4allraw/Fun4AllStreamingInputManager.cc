@@ -1152,11 +1152,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       for (auto &bcl : bclset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-        if (diff < 5)
-        {
-          thispacket = true;
-          h_gl1tagged_tpc[histo_to_fill][packetnum]->Fill(refbcobitshift);
-        } else if (diff < 256) // endat tagger
+        if (diff < 256)
         {
           thispacket = true;
           h_gl1tagged_tpc[histo_to_fill][packetnum]->Fill(refbcobitshift);

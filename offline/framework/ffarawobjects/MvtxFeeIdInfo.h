@@ -24,4 +24,4 @@ class MvtxFeeIdInfo : public PHObject
   ClassDefOverride(MvtxFeeIdInfo, 1)
 };
 
-#endif //FUN4ALLRAW_MVTXFEEIDINFO
+#endif  // FUN4ALLRAW_MVTXFEEIDINFO
