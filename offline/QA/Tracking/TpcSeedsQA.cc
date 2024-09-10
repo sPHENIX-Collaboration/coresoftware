@@ -146,6 +146,8 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   h_dedx = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dedx").c_str()));
   h_mip_dedx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "mip_dedx").c_str()));
 
+  nt_sector_event_summary = dynamic_cast<TNtuple *>(hm->getHisto(std::string(getHistoPrefix() + "sector_event_summary").c_str()));
+
   // TPC has 3 regions, inner, mid and outer
   std::vector<int> region_layer_low = {7, 23, 39};
   std::vector<int> region_layer_high = {22, 38, 54};
@@ -497,7 +499,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
     m_py = track->get_py();
     m_pz = track->get_pz();
     m_pt = std::sqrt(m_px * m_px + m_py * m_py);
-    m_ptot = std::sqrt(m_px * m_px + m_py * m_py + m_pz + m_pz);
+    m_ptot = std::sqrt(m_px * m_px + m_py * m_py + m_pz * m_pz);
     TrackSeed *tpcseed = track->get_tpc_seed();
     m_charge = track->get_charge();
     m_dedx = calc_dedx(tpcseed);
@@ -1022,6 +1024,12 @@ void TpcSeedsQA::createHistos()
                       "dEdx of MIPs",
                       100, 0, 1000);
     hm->registerHisto(h);
+  }
+
+  {
+    auto nt = new TNtuple(std::string(getHistoPrefix() + "sector_event_summary").c_str(),
+		      "sector_event_summary","event:segment:bco:side:region:sector:ncluster:meanadc");
+    hm->registerHisto(nt);
   }
 
   for (auto &region : {0, 1, 2})
