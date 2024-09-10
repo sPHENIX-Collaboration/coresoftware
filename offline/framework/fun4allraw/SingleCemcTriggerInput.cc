@@ -95,7 +95,7 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
     for (auto packet : pktvec)
     {
       int packet_id = packet->getIdentifier();
-// for testing we need only one packet to keep blabbering at minimum
+      // for testing we need only one packet to keep blabbering at minimum
       // if (packet_id != 6105)
       // {
       // 	delete packet;
