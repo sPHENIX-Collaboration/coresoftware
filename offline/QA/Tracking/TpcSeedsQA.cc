@@ -22,6 +22,8 @@
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
+#include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/Gl1RawHit.h>
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -30,6 +32,7 @@
 
 #include <TH2.h>
 #include <TH2F.h>
+#include <TNtuple.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
 
@@ -143,6 +146,8 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   h_dedx = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dedx").c_str()));
   h_mip_dedx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "mip_dedx").c_str()));
 
+  nt_sector_event_summary = dynamic_cast<TNtuple *>(hm->getHisto(std::string(getHistoPrefix() + "sector_event_summary").c_str()));
+
   // TPC has 3 regions, inner, mid and outer
   std::vector<int> region_layer_low = {7, 23, 39};
   std::vector<int> region_layer_high = {22, 38, 54};
@@ -236,8 +241,26 @@ float TpcSeedsQA::calc_dedx(TrackSeed *tpcseed)
 }
 
 //____________________________________________________________________________..
-int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
+int TpcSeedsQA::process_event(PHCompositeNode *topNode)
 {
+  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+  if (gl1)
+  {
+    m_bco = gl1->get_bco();
+  }
+  else
+  {
+    Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    if (!gl1PacketInfo)
+    {
+      m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
+    }
+    if (gl1PacketInfo)
+    {
+      m_bco = gl1PacketInfo->getBCO();
+    }
+  }
+
   h_ntrack1d->Fill(trackmap->size());
 
   std::pair<int, int> ntrack_isfromvtx_pos;  // first: number of tracks not associated to a vertex, second: number of tracks associated to a vertex
@@ -248,6 +271,8 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
   int ntrack1d_ptg1_pos = 0;
   int ntrack1d_ptg1_neg = 0;
 
+  int nclus[2][3][12] = {{{0}}};
+  int madc[2][3][12] = {{{0}}};
   for (const auto &[key, track] : *trackmap)
   {
     if (!track)
@@ -474,7 +499,7 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     m_py = track->get_py();
     m_pz = track->get_pz();
     m_pt = std::sqrt(m_px * m_px + m_py * m_py);
-    m_ptot = std::sqrt(m_px * m_px + m_py * m_py + m_pz + m_pz);
+    m_ptot = std::sqrt(m_px * m_px + m_py * m_py + m_pz * m_pz);
     TrackSeed *tpcseed = track->get_tpc_seed();
     m_charge = track->get_charge();
     m_dedx = calc_dedx(tpcseed);
@@ -532,16 +557,18 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
         {
           h_onepad_frac[region]->Fill((this_sector + 1) * (2 * (this_side - 0.5)), is_onepad);
         }
+        nclus[this_side][region][this_sector] += 1;
+        madc[this_side][region][this_sector] += cluster->getAdc();
         break;
       }
     }
 
-    if (m_pt < 4 && m_ntpc > 30)
+    if (m_ptot > 0.2 && m_ptot < 4 && m_ntpc > 30)
     {
       h_dedx->Fill(m_charge * m_ptot, m_dedx);
     }
 
-    if (m_pt > 0.5 && m_pt < 4 && m_ntpc > 30 && m_charge < 0 && m_dedx < 1000 && m_dedx > 50)
+    if (m_ptot > 1.0 && m_pt < 4 && m_ntpc > 30 && m_charge < 0 && m_dedx < 1000 && m_dedx > 50)
     {
       h_mip_dedx->Fill(m_dedx);
     }
@@ -677,6 +704,24 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     }
   }
 
+  for (int iside = 0; iside < 2; iside++)
+  {
+    for (int iregion = 0; iregion < 3; iregion++)
+    {
+      for (int isector = 0; isector < 12; isector++)
+      {
+        //"event:segment:bco:side:region:sector:ncluster:meanadc"
+        int nCluster = nclus[iside][iregion][isector];
+        float meanAdc = 0;
+        if (nCluster > 0)
+        {
+          meanAdc = madc[iside][iregion][isector] / (nCluster*1.);
+        }
+        nt_sector_event_summary->Fill(m_event, m_segment, m_bco, iside, iregion, isector, nCluster, meanAdc);
+      }
+    }
+  }
+  m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -979,6 +1024,12 @@ void TpcSeedsQA::createHistos()
                       "dEdx of MIPs",
                       100, 0, 1000);
     hm->registerHisto(h);
+  }
+
+  {
+    auto nt = new TNtuple(std::string(getHistoPrefix() + "sector_event_summary").c_str(),
+		      "sector_event_summary","event:segment:bco:side:region:sector:ncluster:meanadc");
+    hm->registerHisto(nt);
   }
 
   for (auto &region : {0, 1, 2})

@@ -306,13 +306,13 @@ int KFParticle_Tools::calcMinIP(const KFParticle &track, const std::vector<KFPar
 
     if (m_use_2D_matching_tools) 
     {
-      ip.push_back(track.GetDistanceFromVertex(PV));
-      track.GetDeviationFromVertex(PV);
+      ip.push_back(abs(track.GetDistanceFromVertexXY(PV)));
+      track.GetDeviationFromVertexXY(PV);
     }
     else
     {
-      ip.push_back(abs(track.GetDistanceFromVertexXY(PV)));
-      track.GetDeviationFromVertexXY(PV);
+      ip.push_back(track.GetDistanceFromVertex(PV));
+      track.GetDeviationFromVertex(PV);
     }
 
     if (thisIPchi2 < 0)
