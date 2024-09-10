@@ -47,7 +47,10 @@ class MicromegasClusterQA : public SubsysReco
   { m_calibration_filename = value; }
 
   private:
-  void createHistos();
+
+  void create_histograms();
+
+  std::string get_histogram_prefix() const;
 
   /// micromegas mapping
   MicromegasMapping m_mapping;
@@ -59,8 +62,6 @@ class MicromegasClusterQA : public SubsysReco
   /// per detector found cluster count histogram
   /** used for standalone efficiency calculation */
   TH1* m_h_clustercount_found = nullptr;
-
-  std::string getHistoPrefix() const;
 
   /// Acts tracking geometry for surface lookup
   ActsGeometry *m_tGeometry = nullptr;
@@ -83,7 +84,6 @@ class MicromegasClusterQA : public SubsysReco
 
   /// keep track of detector names
   std::vector<std::string> m_detector_names;
-
 
   ///@name calibration filename
   //@{
