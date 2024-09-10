@@ -3,8 +3,8 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/TpcRawHitContainerv1.h>
-#include <ffarawobjects/TpcRawHitv1.h>
+#include <ffarawobjects/TpcRawHitContainerv2.h>
+#include <ffarawobjects/TpcRawHitv2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -65,7 +65,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
-      if(evt->getEvtType() == ENDRUNEVENT)
+      if (evt->getEvtType() == ENDRUNEVENT)
       {
         std::cout << "End run flag for " << Name() << " found, remaining TPC data is corrupted" << std::endl;
         AllDone(1);
@@ -80,11 +80,14 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
       for (auto packet : pktvec)
       {
         int numBCOs = packet->lValue(0, "N_TAGGER");
+        bool bco_set = false;
         for (int j = 0; j < numBCOs; j++)
         {
           const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(j, "IS_LEVEL1_TRIGGER"));
-          if (is_lvl1)
+          const auto is_endat = static_cast<uint8_t>(packet->lValue(j, "IS_ENDAT"));
+          if ((is_lvl1 || is_endat) && !bco_set)
           {
+            bco_set = true;
             uint64_t bco = packet->lValue(j, "BCO");
             if (bco < minBCO)
             {
@@ -120,12 +123,16 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
       uint64_t m_nTaggerInFrame = packet->lValue(0, "N_TAGGER");
       bool skipthis = true;
       uint64_t largest_bco = 0;
+      bool bco_set = false;
       for (uint64_t t = 0; t < m_nTaggerInFrame; t++)
       {
         // only store gtm_bco for level1 type of taggers (not ENDDAT)
         const auto is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
-        if (is_lvl1)
+
+        const auto is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
+        if ((is_lvl1 || is_endat) && !bco_set)
         {
+          bco_set = true;
           gtm_bco = packet->lValue(t, "BCO");
           if (largest_bco < gtm_bco)
           {
@@ -180,13 +187,13 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
             }
             once = 0;
           }
-
-          if (packet->iValue(wf, "CHECKSUMERROR") == 1)
+          bool checksumerror = (packet->iValue(wf, "CHECKSUMERROR") > 0);
+          if (checksumerror)
           {
             continue;
           }
-
-          TpcRawHit *newhit = new TpcRawHitv1();
+          bool parityerror = (packet->iValue(wf, "DATAPARITYERROR") > 0);
+          TpcRawHit *newhit = new TpcRawHitv2();
           int FEE = packet->iValue(wf, "FEE");
           newhit->set_bco(packet->iValue(wf, "BCO"));
 
@@ -197,8 +204,13 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
           newhit->set_fee(FEE);
           newhit->set_channel(packet->iValue(wf, "CHANNEL"));
           newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
-          newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
-
+          newhit->set_sampachannel(packet->iValue(wf, "SAMPACHANNEL"));
+          newhit->set_type(packet->iValue(wf, "TYPE"));
+          newhit->set_userword(packet->iValue(wf, "USERWORD"));
+          newhit->set_parity(packet->iValue(wf, "DATAPARITY"));
+          newhit->set_checksum(packet->iValue(wf, "CHECKSUM"));
+          newhit->set_checksumerror(checksumerror);
+          newhit->set_parityerror(parityerror);
           //         // checksum and checksum error
           //         newhit->set_checksum( packet->iValue(iwf, "CHECKSUM") );
           //         newhit->set_checksum_error( packet->iValue(iwf, "CHECKSUMERROR") );
@@ -221,11 +233,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
             // if(adval >= 64000){ newhit->set_samples(is); break;}
 
             // With this, the hit is unseen from clusterizer
-            if (adval >= 64000)
-            {
-              newhit->set_adc(is, 0);
-            }
-            else
+            if (adval <= 64000)
             {
               newhit->set_adc(is, adval);
             }
@@ -465,7 +473,7 @@ void SingleTpcPoolInput::CreateDSTNode(PHCompositeNode *topNode)
   TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode, m_rawHitContainerName);
   if (!tpchitcont)
   {
-    tpchitcont = new TpcRawHitContainerv1();
+    tpchitcont = new TpcRawHitContainerv2();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }

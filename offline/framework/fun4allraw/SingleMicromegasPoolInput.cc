@@ -156,7 +156,8 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       for (int t = 0; t < n_tagger; ++t)
       {
         const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
-        if (is_lvl1)
+        const bool is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
+        if (is_lvl1||is_endat)
         {
           const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
           m_BeamClockPacket[gtm_bco].insert(packet_id);

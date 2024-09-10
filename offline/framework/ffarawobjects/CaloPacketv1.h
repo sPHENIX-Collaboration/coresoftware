@@ -19,9 +19,9 @@ class CaloPacketv1 : public CaloPacket
   void Reset() override;
   void identify(std::ostream &os = std::cout) const override;
 
-  int getMaxNumChannels() const override {return MAX_NUM_CHANNELS;}
-  int getMaxNumSamples() const override {return MAX_NUM_SAMPLES;}
-  int getMaxNumModules() const override {return MAX_NUM_MODULES;}
+  int getMaxNumChannels() const override { return MAX_NUM_CHANNELS; }
+  int getMaxNumSamples() const override { return MAX_NUM_SAMPLES; }
+  int getMaxNumModules() const override { return MAX_NUM_MODULES; }
 
   void setFemClock(int i, uint32_t clk) override { femclock.at(i) = clk; }
   uint32_t getFemClock(int i) const override { return femclock.at(i); }
@@ -29,15 +29,15 @@ class CaloPacketv1 : public CaloPacket
   int getFemEvtSequence(int i) const override { return femevt.at(i); }
   void setFemSlot(int i, int islot) override { femslot.at(i) = islot; }
   int getFemSlot(int i) const override { return femslot.at(i); }
-  void setChecksumLsb(int i, int ival) override {checksumlsb.at(i) = ival; }
-  int getChecksumLsb(int i) const override {return checksumlsb.at(i); }
-  void setChecksumMsb(int i, int ival) override {checksummsb.at(i) = ival; }
-  int getChecksumMsb(int i) const override {return checksummsb.at(i); }
+  void setChecksumLsb(int i, int ival) override { checksumlsb.at(i) = ival; }
+  int getChecksumLsb(int i) const override { return checksumlsb.at(i); }
+  void setChecksumMsb(int i, int ival) override { checksummsb.at(i) = ival; }
+  int getChecksumMsb(int i) const override { return checksummsb.at(i); }
 
-  void setCalcChecksumLsb(int i, int ival) override {calcchecksumlsb.at(i) = ival; }
-  int getCalcChecksumLsb(int i) const override {return calcchecksumlsb.at(i); }
-  void setCalcChecksumMsb(int i, int ival) override {calcchecksummsb.at(i) = ival; }
-  int getCalcChecksumMsb(int i) const override {return calcchecksummsb.at(i); }
+  void setCalcChecksumLsb(int i, int ival) override { calcchecksumlsb.at(i) = ival; }
+  int getCalcChecksumLsb(int i) const override { return calcchecksumlsb.at(i); }
+  void setCalcChecksumMsb(int i, int ival) override { calcchecksummsb.at(i) = ival; }
+  int getCalcChecksumMsb(int i) const override { return calcchecksummsb.at(i); }
 
   void setNrChannels(int i) override { NrChannels = i; }
   int getNrChannels() const override { return NrChannels; }
@@ -57,12 +57,12 @@ class CaloPacketv1 : public CaloPacket
   int getModuleAddress() const override { return module_address; }
   void setDetId(int i) override { detid = i; }
   int getDetId() const override { return detid; }
-  bool getSuppressed(int channel) const override {return isZeroSuppressed.at(channel);}
-  void setSuppressed(int channel, bool bb) override {isZeroSuppressed.at(channel) = bb;}
-  void setPre(int channel, uint32_t ival) override {pre.at(channel) = ival;}
-  uint32_t getPre(int channel) const override {return pre.at(channel);}
-  void setPost(int channel, uint32_t ival) override {post.at(channel) = ival;}
-  uint32_t getPost(int channel) const override {return post.at(channel);}
+  bool getSuppressed(int channel) const override { return isZeroSuppressed.at(channel); }
+  void setSuppressed(int channel, bool bb) override { isZeroSuppressed.at(channel) = bb; }
+  void setPre(int channel, uint32_t ival) override { pre.at(channel) = ival; }
+  uint32_t getPre(int channel) const override { return pre.at(channel); }
+  void setPost(int channel, uint32_t ival) override { post.at(channel) = ival; }
+  uint32_t getPost(int channel) const override { return post.at(channel); }
 
   void setSample(int ipmt, int isamp, uint32_t val) override { samples.at(isamp).at(ipmt) = val; }
   uint32_t getSample(int ipmt, int isamp) const override { return samples.at(isamp).at(ipmt); }
@@ -86,17 +86,17 @@ class CaloPacketv1 : public CaloPacket
   int detid{0};
 
   std::array<uint32_t, MAX_NUM_MODULES> femclock{};
-  std::array<uint32_t, MAX_NUM_MODULES> femevt {};
-  std::array<uint32_t, MAX_NUM_MODULES> femslot {};
-  std::array<uint32_t, MAX_NUM_MODULES> checksumlsb {};
-  std::array<uint32_t, MAX_NUM_MODULES> checksummsb {};
-  std::array<uint32_t, MAX_NUM_MODULES> calcchecksumlsb {};
-  std::array<uint32_t, MAX_NUM_MODULES> calcchecksummsb {};
+  std::array<uint32_t, MAX_NUM_MODULES> femevt{};
+  std::array<uint32_t, MAX_NUM_MODULES> femslot{};
+  std::array<uint32_t, MAX_NUM_MODULES> checksumlsb{};
+  std::array<uint32_t, MAX_NUM_MODULES> checksummsb{};
+  std::array<uint32_t, MAX_NUM_MODULES> calcchecksumlsb{};
+  std::array<uint32_t, MAX_NUM_MODULES> calcchecksummsb{};
 
-  std::array<std::array<uint32_t, MAX_NUM_CHANNELS>, MAX_NUM_SAMPLES> samples {};
-  std::array<bool,MAX_NUM_CHANNELS> isZeroSuppressed {};
-  std::array<uint32_t, MAX_NUM_CHANNELS> pre {};
-  std::array<uint32_t, MAX_NUM_CHANNELS> post {};
+  std::array<std::array<uint32_t, MAX_NUM_CHANNELS>, MAX_NUM_SAMPLES> samples{};
+  std::array<bool, MAX_NUM_CHANNELS> isZeroSuppressed{};
+  std::array<uint32_t, MAX_NUM_CHANNELS> pre{};
+  std::array<uint32_t, MAX_NUM_CHANNELS> post{};
 
  private:
   ClassDefOverride(CaloPacketv1, 2)

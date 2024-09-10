@@ -88,6 +88,23 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
       h_xDiff[0]->Fill(m_tpcseedx - m_silseedx);
       h_yDiff[0]->Fill(m_tpcseedy - m_silseedy);
       h_zDiff[0]->Fill(m_tpcseedz - m_silseedz);
+  
+      if (m_tpcseedeta > 0 && m_silseedeta > 0)
+      {
+        h_phiDiff[4]->Fill(m_tpcseedphi - m_silseedphi);
+        h_etaDiff[4]->Fill(m_tpcseedeta - m_silseedeta);
+        h_xDiff[4]->Fill(m_tpcseedx - m_silseedx);
+        h_yDiff[4]->Fill(m_tpcseedy - m_silseedy);
+        h_zDiff[4]->Fill(m_tpcseedz - m_silseedz);
+      }
+      else if (m_tpcseedeta < 0 && m_silseedeta < 0)
+      {
+        h_phiDiff[5]->Fill(m_tpcseedphi - m_silseedphi);
+        h_etaDiff[5]->Fill(m_tpcseedeta - m_silseedeta);
+        h_xDiff[5]->Fill(m_tpcseedx - m_silseedx);
+        h_yDiff[5]->Fill(m_tpcseedy - m_silseedy);
+        h_zDiff[5]->Fill(m_tpcseedz - m_silseedz);
+      }
 
       if (abs(m_tpcseedx - m_silseedx) > m_xcut || abs(m_tpcseedy - m_silseedy) > m_ycut)
       {
@@ -121,6 +138,23 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
       h_xDiff[3]->Fill(m_tpcseedx - m_silseedx);
       h_yDiff[3]->Fill(m_tpcseedy - m_silseedy);
       h_zDiff[3]->Fill(m_tpcseedz - m_silseedz);
+      
+      if (m_tpcseedeta > 0 && m_silseedeta > 0)
+      {
+        h_phiDiff[6]->Fill(m_tpcseedphi - m_silseedphi);
+        h_etaDiff[6]->Fill(m_tpcseedeta - m_silseedeta);
+        h_xDiff[6]->Fill(m_tpcseedx - m_silseedx);
+        h_yDiff[6]->Fill(m_tpcseedy - m_silseedy);
+        h_zDiff[6]->Fill(m_tpcseedz - m_silseedz);
+      }
+      else if (m_tpcseedeta < 0 && m_silseedeta < 0)
+      {
+        h_phiDiff[7]->Fill(m_tpcseedphi - m_silseedphi);
+        h_etaDiff[7]->Fill(m_tpcseedeta - m_silseedeta);
+        h_xDiff[7]->Fill(m_tpcseedx - m_silseedx);
+        h_yDiff[7]->Fill(m_tpcseedy - m_silseedy);
+        h_zDiff[7]->Fill(m_tpcseedz - m_silseedz);
+      }
     }
   }
 
@@ -149,11 +183,15 @@ void TpcSiliconQA::createHistos()
   stream3 << std::fixed << std::setprecision(2) << m_etacut;
   stream4 << std::fixed << std::setprecision(2) << m_phicut;
 
-  std::vector<std::string> cutNames = {"", "_xyCut", "_etaCut", "_phiCut"};
-  std::vector<std::string> cutVals = {"", 
-                         std::string("|xdiff| < " + stream1.str() + ", |ydiff| < " + stream2.str()),
+  std::vector<std::string> cutNames = {"", "_xyCut", "_etaCut", "_phiCut", "North", "South", "NorthAllCuts", "SouthAllCuts"};
+  std::vector<std::string> cutVals = {"All Track Seeds", 
+                         std::string("|xdiff| < " + stream1.str() + "cm , |ydiff| < " + stream2.str() + "cm"),
                          std::string("xy cuts and |etadiff| < " + stream3.str()), 
-                         std::string("xy, eta cuts and |phidiff| < " + stream4.str())};
+                         std::string("xy, eta cuts and |phidiff| < " + stream4.str()),
+                         "All Track Seeds (North Only)",
+                         "All Track Seeds (South Only)",
+                         "North All Cuts (x,y,eta,phi)",
+                         "South All Cuts (x,y,eta,phi)"};
 
   {
     h_crossing = new TH1F(std::string(getHistoPrefix() + "crossing").c_str(),

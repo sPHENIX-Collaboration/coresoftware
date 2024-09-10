@@ -13,7 +13,7 @@ sub fill_nocombine_files;
 sub print_single_types;
 sub print_runs;
 
-my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
+my $dbh = DBI->connect("dbi:ODBC:FileCatalog_read") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
 
 my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\' and dsttype <> 'beam' and dsttype <> 'cosmic' and dataset = 'mdc2'");
