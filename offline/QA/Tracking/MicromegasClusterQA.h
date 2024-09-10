@@ -55,13 +55,22 @@ class MicromegasClusterQA : public SubsysReco
   /// micromegas mapping
   MicromegasMapping m_mapping;
 
+  /// per detector cluster multiplicity distribution
+  TH2* m_h_cluster_multiplicity = nullptr;
+
+  /// per detector cluster size distribution
+  TH2* m_h_cluster_size = nullptr;
+
+  /// per detector cluster charge distribution
+  TH2* m_h_cluster_charge = nullptr;
+
   /// per detector reference cluster count histogram
   /*! used for standalone efficiency calculation */
-  TH1* m_h_clustercount_ref = nullptr;
+  TH1* m_h_cluster_count_ref = nullptr;
 
   /// per detector found cluster count histogram
   /** used for standalone efficiency calculation */
-  TH1* m_h_clustercount_found = nullptr;
+  TH1* m_h_cluster_count_found = nullptr;
 
   /// Acts tracking geometry for surface lookup
   ActsGeometry *m_tGeometry = nullptr;
