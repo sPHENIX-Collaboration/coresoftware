@@ -34,7 +34,6 @@
 //_____________________________________________________________________
 namespace
 {
-
   //! range adaptor to be able to use range-based for loop
   template<class T> class range_adaptor
   {
@@ -101,7 +100,7 @@ int MicromegasClusterQA::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  createHistos();
+  create_histograms();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -221,19 +220,19 @@ int MicromegasClusterQA::EndRun(const int /*runnumber*/)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //____________________________________________________________________________..
-std::string MicromegasClusterQA::getHistoPrefix() const
+std::string MicromegasClusterQA::get_histogram_prefix() const
 { return std::string("h_") + Name() + std::string("_"); }
 
 //____________________________________________________________________________..
-void MicromegasClusterQA::createHistos()
+void MicromegasClusterQA::create_histograms()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // cluster count histograms
   const int n_detectors = m_detector_names.size();
-  m_h_clustercount_ref = new TH1F( (boost::format("%sclustercount_ref") % getHistoPrefix()).str().c_str(), "reference cluster count", n_detectors, 0, n_detectors );
-  m_h_clustercount_found = new TH1F( (boost::format("%sclustercount_found") % getHistoPrefix()).str().c_str(), "found cluster count", n_detectors, 0, n_detectors );
+  m_h_clustercount_ref = new TH1F( (boost::format("%sclustercount_ref") % get_histogram_prefix()).str().c_str(), "reference cluster count", n_detectors, 0, n_detectors );
+  m_h_clustercount_found = new TH1F( (boost::format("%sclustercount_found") % get_histogram_prefix()).str().c_str(), "found cluster count", n_detectors, 0, n_detectors );
 
   // cluster positions vs tile
   for( int i = 0; i < n_detectors; ++i )
