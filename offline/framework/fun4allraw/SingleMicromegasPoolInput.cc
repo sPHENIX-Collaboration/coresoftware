@@ -547,6 +547,7 @@ void SingleMicromegasPoolInput::createQAHistos()
   h_packet_stat->GetXaxis()->SetBinLabel(2, "5001" );
   h_packet_stat->GetXaxis()->SetBinLabel(3, "5002" );
   h_packet_stat->GetXaxis()->SetBinLabel(4, "All" );
+  h_packet_stat->GetYaxis()->SetTitle( "trigger count" );
 
   // total number of waveform per packet
   h_waveform_count_total = new TH1F( "h_MicromegasBCOQA_waveform_count_total", "Total number of waveforms per packet", m_npackets_active, 0, m_npackets_active );
