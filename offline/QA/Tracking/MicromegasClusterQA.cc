@@ -30,7 +30,6 @@
 
 #include <boost/format.hpp>
 
-
 //_____________________________________________________________________
 namespace
 {
@@ -44,6 +43,11 @@ namespace
     private:
     T m_range;
   };
+
+  static constexpr int m_max_cluster_count = 10;
+  static constexpr int m_max_cluster_size = 15;
+  static constexpr double m_max_cluster_charge = 5e3;
+
 }
 
 //____________________________________________________________________________..
@@ -146,14 +150,18 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
     const auto cluster_range = m_cluster_map->getClusters(hitsetkey);
     cluster_count[detid] = std::distance( cluster_range.first, cluster_range.second );
 
+    // fill multiplicity histogram
+    m_h_cluster_multiplicity->Fill( detid, cluster_count[detid]);
+
     // loop over clusters
     for( const auto& [ckey,cluster]:range_adaptor(cluster_range))
     {
       // find associated hits
       const auto hit_range = m_cluster_hit_map->getHits(ckey);
 
-      // store cluster size
-      // const int cluster_size = std::distance( hit_range.first, hit_range.second );
+      // store cluster size and fill cluster size histogram
+      const int cluster_size = std::distance( hit_range.first, hit_range.second );
+      m_h_cluster_size->Fill( detid, cluster_size);
 
       // calculate cluster charge
       double cluster_charge = 0;
@@ -174,6 +182,9 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
           m_calibration_data.get_pedestal_mapped(hitsetkey, strip);
         cluster_charge += (adc-pedestal);
       }
+
+      // fill cluster charge histogram
+      m_h_cluster_charge->Fill(detid, cluster_charge);
 
       // increment good clusters
       /*
@@ -203,11 +214,11 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
       if(good_cluster_count[detid_ref]==1 && cluster_count[detid_ref]==1)
       {
         // fill curent detector ref count
-        m_h_clustercount_ref->Fill(detid);
+        m_h_cluster_count_ref->Fill(detid);
 
         // if there is one or more cluster in the current detector, also fill good count
         if(cluster_count[detid])
-        { m_h_clustercount_found->Fill(detid); }
+        { m_h_cluster_count_found->Fill(detid); }
       }
     }
   }
@@ -231,19 +242,24 @@ void MicromegasClusterQA::create_histograms()
 
   // cluster count histograms
   const int n_detectors = m_detector_names.size();
-  m_h_clustercount_ref = new TH1F( (boost::format("%sclustercount_ref") % get_histogram_prefix()).str().c_str(), "reference cluster count", n_detectors, 0, n_detectors );
-  m_h_clustercount_found = new TH1F( (boost::format("%sclustercount_found") % get_histogram_prefix()).str().c_str(), "found cluster count", n_detectors, 0, n_detectors );
+  m_h_cluster_count_ref = new TH1F( (boost::format("%sclustercount_ref") % get_histogram_prefix()).str().c_str(), "reference cluster count", n_detectors, 0, n_detectors );
+  m_h_cluster_count_found = new TH1F( (boost::format("%sclustercount_found") % get_histogram_prefix()).str().c_str(), "found cluster count", n_detectors, 0, n_detectors );
 
-  // cluster positions vs tile
+  // cluster multiplicity, size and charge distributions
+  m_h_cluster_multiplicity = new TH2F( (boost::format("%scluster_multiplicity") % get_histogram_prefix()).str().c_str(), "cluster multiplicity", n_detectors, 0, n_detectors, m_max_cluster_count, 0, m_max_cluster_count );
+  m_h_cluster_size = new TH2F( (boost::format("%scluster_size") % get_histogram_prefix()).str().c_str(), "cluster size", n_detectors, 0, n_detectors, m_max_cluster_size, 0, m_max_cluster_size );
+  m_h_cluster_charge = new TH2F( (boost::format("%scluster_charge") % get_histogram_prefix()).str().c_str(), "cluster charge", n_detectors, 0, n_detectors, 100, 0, m_max_cluster_charge );
+
+  // assign bin labels
   for( int i = 0; i < n_detectors; ++i )
   {
-    m_h_clustercount_ref->GetXaxis()->SetBinLabel(i+1, m_detector_names[i].c_str());
-    m_h_clustercount_found->GetXaxis()->SetBinLabel(i+1, m_detector_names[i].c_str());
+    for( const auto& h:std::initializer_list<TH1*>({m_h_cluster_count_ref, m_h_cluster_count_found, m_h_cluster_multiplicity, m_h_cluster_size, m_h_cluster_charge}))
+    { h->GetXaxis()->SetBinLabel(i+1, m_detector_names[i].c_str()); }
   }
 
   // register
-  hm->registerHisto(m_h_clustercount_ref);
-  hm->registerHisto(m_h_clustercount_found);
+  for( const auto& h:std::initializer_list<TH1*>({m_h_cluster_count_ref, m_h_cluster_count_found, m_h_cluster_multiplicity, m_h_cluster_size, m_h_cluster_charge}))
+  { hm->registerHisto(h); }
 
   return;
 }
