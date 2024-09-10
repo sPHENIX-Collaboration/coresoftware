@@ -559,6 +559,7 @@ void SingleMicromegasPoolInput::createQAHistos()
   {
     h->GetXaxis()->SetBinLabel(1, "5001" );
     h->GetXaxis()->SetBinLabel(2, "5002" );
+    h->GetXaxis()->SetTitle( "packet id" );
   }
 
   // register all histograms to histogram manager
