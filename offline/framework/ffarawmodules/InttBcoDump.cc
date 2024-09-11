@@ -80,12 +80,16 @@ int InttBcoDump::process_event(PHCompositeNode *topNode)
       for (int j = 0; j < nfees; j++)
       {
         int fee = packet->iValue(i, j, "FEELIST");
+        lastbco.insert(std::make_pair(fee, 0));
+
         bcoset[fee].insert(bco);
       }
     }
 
     delete packet;
   }
+  pktvec.clear();
+
   for (auto &mapiter : bcoset)
   {
     if (!mapiter.second.empty())
@@ -107,9 +111,12 @@ int InttBcoDump::process_event(PHCompositeNode *topNode)
         }
         lastbco[mapiter.first] = bco;
       }
-    }
+      mapiter.second.clear();
+    } 
   }
-
+  bcoset.clear();
+  bcoTaggedFees.clear();
+  lastbco.clear();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
