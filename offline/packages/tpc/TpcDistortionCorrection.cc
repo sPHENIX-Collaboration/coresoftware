@@ -72,19 +72,24 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position(const Acts::Vector
     divisor = 1.0;
   }
 
+  //get the corrections from the histograms
+  auto dphi=phi; //to inherit the same type
+  auto dr=r;
+  auto dz=z;
+
   if (dcc->m_dimensions == 3)
   {
     if (dcc->m_hDPint[index] && (mask & COORD_PHI) && check_boundaries(dcc->m_hDPint[index], phi, r, z))
     {
-      phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi, r, z) / divisor;
+      dphi=dcc->m_hDPint[index]->Interpolate(phi, r, z) / divisor;
     }
     if (dcc->m_hDRint[index] && (mask & COORD_R) && check_boundaries(dcc->m_hDRint[index], phi, r, z))
     {
-      r_new = r - dcc->m_hDRint[index]->Interpolate(phi, r, z);
+      dr=dcc->m_hDRint[index]->Interpolate(phi, r, z);
     }
     if (dcc->m_hDZint[index] && (mask & COORD_Z) && check_boundaries(dcc->m_hDZint[index], phi, r, z))
     {
-      z_new = z - dcc->m_hDZint[index]->Interpolate(phi, r, z);
+      dz=dcc->m_hDZint[index]->Interpolate(phi, r, z);
     }
   }
   else if (dcc->m_dimensions == 2)
@@ -96,18 +101,30 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position(const Acts::Vector
     }
     if (dcc->m_hDPint[index] && (mask & COORD_PHI) && check_boundaries(dcc->m_hDPint[index], phi, r))
     {
-      phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi, r) * zterm / divisor;
+      dphi=dcc->m_hDPint[index]->Interpolate(phi, r) * zterm / divisor;
     }
     if (dcc->m_hDRint[index] && (mask & COORD_R) && check_boundaries(dcc->m_hDRint[index], phi, r))
     {
-      r_new = r - dcc->m_hDRint[index]->Interpolate(phi, r) * zterm;
+      dr=dcc->m_hDRint[index]->Interpolate(phi, r) * zterm;
     }
     if (dcc->m_hDZint[index] && (mask & COORD_Z) && check_boundaries(dcc->m_hDZint[index], phi, r))
     {
-      z_new = z - dcc->m_hDZint[index]->Interpolate(phi, r) * zterm;
+      dz=dcc->m_hDZint[index]->Interpolate(phi, r) * zterm;
     }
     
   }
+
+//if we are scaling, apply the scale factor to each correction
+if(dcc->m_use_scalefactor)
+  {
+    dphi *= dcc->m_scalefactor;
+    dr *= dcc->m_scalefactor;
+    dz *= dcc->m_scalefactor;
+  }
+
+  phi_new=phi-dphi;
+  r_new=r-dr;
+  z_new=z-dz;
 
   // update cluster
   const auto x_new = r_new * std::cos(phi_new);
