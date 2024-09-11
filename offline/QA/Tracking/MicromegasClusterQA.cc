@@ -253,12 +253,12 @@ void MicromegasClusterQA::create_histograms()
   // assign bin labels
   for( int i = 0; i < n_detectors; ++i )
   {
-    for( TH1* h:(std::initializer_list<TH1*>&&){m_h_cluster_count_ref, m_h_cluster_count_found, m_h_cluster_multiplicity, m_h_cluster_size, m_h_cluster_charge})
+    for( TH1* h:std::vector<TH1*>({m_h_cluster_count_ref, m_h_cluster_count_found, m_h_cluster_multiplicity, m_h_cluster_size, m_h_cluster_charge}))
     { h->GetXaxis()->SetBinLabel(i+1, m_detector_names[i].c_str()); }
   }
 
   // register
-  for( TH1* h:(std::initializer_list<TH1*>&&){m_h_cluster_count_ref, m_h_cluster_count_found, m_h_cluster_multiplicity, m_h_cluster_size, m_h_cluster_charge})
+  for( TH1* h:std::vector<TH1*>({m_h_cluster_count_ref, m_h_cluster_count_found, m_h_cluster_multiplicity, m_h_cluster_size, m_h_cluster_charge}))
   { hm->registerHisto(h); }
 
   return;
