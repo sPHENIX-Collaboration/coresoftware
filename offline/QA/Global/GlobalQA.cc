@@ -337,6 +337,14 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 
 int GlobalQA::End(PHCompositeNode * /*topNode*/) {
 
+  std::cout << "GlobalQA::End(PHCompositeNode *topNode) scaling MBD histograms" <<std::endl;
+
+  Double_t nevents = h_GlobalQA_mbd_charge_sum->Integral();
+  h_GlobalQA_mbd_charge_sum->Fill(-1000,nevents); // underflow bin keeps track of nevents
+  Double_t norm = 1.0/nevents;
+  h_GlobalQA_mbd_charge_sum ->Scale( norm );
+  h2_GlobalQA_mbd_charge_NS_correlation->Scale( norm );
+
  
 
   return Fun4AllReturnCodes::EVENT_OK;
