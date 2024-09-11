@@ -91,6 +91,10 @@ void SingleCemcTriggerInput::FillPool(const unsigned int keep)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
+    if (EventSequence < SkipToEvent())
+    {
+      continue;
+    }
     std::vector<Packet *> pktvec = evt->getPacketVector();
     for (auto packet : pktvec)
     {

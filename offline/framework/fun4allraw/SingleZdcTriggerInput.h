@@ -4,7 +4,6 @@
 #include "SingleTriggerInput.h"
 
 #include <cstdint>
-#include <list>
 #include <map>
 #include <set>
 #include <string>
@@ -35,7 +34,6 @@ class SingleZdcTriggerInput : public SingleTriggerInput
   int ShiftEvents(int pktid, int offset);
   int m_ClockReferencePacket{0};
   bool m_FEMClockProblemFlag{false};
-  Packet **plist{nullptr};
   std::set<int> m_BadBCOPacketSet;
   std::map<int, std::vector<OfflinePacket *>> m_LocalPacketMap;
   std::map<int, std::vector<OfflinePacket *>> m_LocalPacketMap_Unchecked;
