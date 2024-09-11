@@ -48,7 +48,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
   }
 
   //! set the scale factor to be applied to the correction
-  void set_scale_factor(int i, float value)
+  void set_scale_factor(DistortionType i, float value)
   {
     m_use_scalefactor[i] = true;
     m_scalefactor[i] = value;
