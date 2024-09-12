@@ -365,7 +365,7 @@ void GlobalQA::createHistos() {
     new TH1D("h_GlobalQA_mbd_nhit_n", ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
 
   h_GlobalQA_mbd_charge_sum =
-    new TH1F("h_GlobalQA_mbd_charge_sum "," MBDQ north sum+ MBDQ south charge sum; MBDQn+MBDQs",100,0.,10); //MBDQ north sum+ MBDQ south charge sum
+    new TH1F("h_GlobalQA_mbd_charge_sum "," MBDQ north sum+ MBDQ south charge sum; MBDQn+MBDQs",100,0.,20); //MBDQ north sum+ MBDQ south charge sum
   h2_GlobalQA_mbd_charge_NS_correlation =
     new TH2F("h2_GlobalQA_mbd_charge_NS_correlation ","North MBDQ vs South MBDQ; N_MBDQ; S_MBDQ",100,0,10,100,0,10);// North charge vs south charge
   h2_GlobalQA_mbd_nhits_NS_correlation =
@@ -394,9 +394,9 @@ void GlobalQA::createHistos() {
   h_GlobalQA_zdc_zvtx_wide = 
     new TH1D("h_GlobalQA_zdc_zvtx_wide", ";Scaled Trigger 3: ZDC Coincidence    zvtx [cm]", 100, -2000, 2000);
   h_GlobalQA_zdc_energy_s = 
-    new TH1D("h_GlobalQA_zdc_energy_s", ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 340);
+    new TH1D("h_GlobalQA_zdc_energy_s", ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
   h_GlobalQA_zdc_energy_n = 
-    new TH1D("h_GlobalQA_zdc_energy_n", ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 340);
+    new TH1D("h_GlobalQA_zdc_energy_n", ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
   hm->registerHisto(h_GlobalQA_zdc_zvtx);
   hm->registerHisto(h_GlobalQA_zdc_zvtx_wide);
   hm->registerHisto(h_GlobalQA_zdc_energy_s);
