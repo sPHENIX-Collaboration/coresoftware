@@ -29,17 +29,10 @@
 #include <set>
 #include <utility>  // for pair
 
-// we have so far 7 packets in the "zdc" file (zdc + smd),
-// this number needs to be npackets+1
-// so it doesn't trigger the warning and exit.
-
-static const int NZDCPACKETS = 7;
-
 SingleZdcTriggerInput::SingleZdcTriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
   SubsystemEnum(InputManagerType::ZDC);
-  plist = new Packet *[NZDCPACKETS];  // two packets for the zdc file
   LocalPoolDepth(3);
 }
 
@@ -53,7 +46,6 @@ SingleZdcTriggerInput::~SingleZdcTriggerInput()
   {
     m_EventStack.erase(m_EventStack.begin());
   }
-  delete[] plist;
 }
 
 void SingleZdcTriggerInput::FillPool(const unsigned int keep)
@@ -98,19 +90,14 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, NZDCPACKETS + 1);
-    if (npackets >= NZDCPACKETS + 1)
+    if (EventSequence < SkipToEvent())
     {
-      std::cout << PHWHERE << " Packets array size " << NZDCPACKETS
-                << " too small for " << Name()
-                << ", increase NZDCPACKETS and rebuild" << std::endl;
-      gSystem->Exit(1);
-      exit(1);
+      continue;
     }
-
-    for (int i = 0; i < npackets; i++)
+    std::vector<Packet *> pktvec = evt->getPacketVector();
+    for (auto packet : pktvec)
     {
-      int packet_id = plist[i]->getIdentifier();
+      int packet_id = packet->getIdentifier();
       // The call to  EventNumberOffset(identifier) will initialize it to our default if it wasn't set already
       // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
       // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
@@ -119,13 +106,13 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
-        plist[i]->identify();
+        packet->identify();
       }
 
       CaloPacket *newhit = new CaloPacketv1();
-      int nr_modules = plist[i]->iValue(0, "NRMODULES");
-      int nr_channels = plist[i]->iValue(0, "CHANNELS");
-      int nr_samples = plist[i]->iValue(0, "SAMPLES");
+      int nr_modules = packet->iValue(0, "NRMODULES");
+      int nr_channels = packet->iValue(0, "CHANNELS");
+      int nr_samples = packet->iValue(0, "SAMPLES");
       if (nr_modules > newhit->getMaxNumModules())
       {
         std::cout << PHWHERE << " too many modules " << nr_modules << ", max is "
@@ -145,47 +132,47 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
         gSystem->Exit(1);
       }
 
-      uint64_t gtm_bco = plist[i]->lValue(0, "CLOCK");
+      uint64_t gtm_bco = packet->lValue(0, "CLOCK");
       newhit->setNrModules(nr_modules);
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);
       newhit->setBCO(gtm_bco);
-      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
+      newhit->setPacketEvtSequence(packet->iValue(0, "EVTNR"));
       newhit->setIdentifier(packet_id);
-      newhit->setHitFormat(plist[i]->getHitFormat());
+      newhit->setHitFormat(packet->getHitFormat());
       newhit->setEvtSequence(CorrectedEventSequence);
-      newhit->setEvenChecksum(plist[i]->iValue(0, "EVENCHECKSUM"));
-      newhit->setCalcEvenChecksum(plist[i]->iValue(0, "CALCEVENCHECKSUM"));
-      newhit->setOddChecksum(plist[i]->iValue(0, "ODDCHECKSUM"));
-      newhit->setCalcOddChecksum(plist[i]->iValue(0, "CALCODDCHECKSUM"));
-      newhit->setModuleAddress(plist[i]->iValue(0, "MODULEADDRESS"));
-      newhit->setDetId(plist[i]->iValue(0, "DETID"));
+      newhit->setEvenChecksum(packet->iValue(0, "EVENCHECKSUM"));
+      newhit->setCalcEvenChecksum(packet->iValue(0, "CALCEVENCHECKSUM"));
+      newhit->setOddChecksum(packet->iValue(0, "ODDCHECKSUM"));
+      newhit->setCalcOddChecksum(packet->iValue(0, "CALCODDCHECKSUM"));
+      newhit->setModuleAddress(packet->iValue(0, "MODULEADDRESS"));
+      newhit->setDetId(packet->iValue(0, "DETID"));
       for (int ifem = 0; ifem < nr_modules; ifem++)
       {
-        newhit->setFemClock(ifem, plist[i]->iValue(ifem, "FEMCLOCK"));
-        newhit->setFemEvtSequence(ifem, plist[i]->iValue(ifem, "FEMEVTNR"));
-        newhit->setFemSlot(ifem, plist[i]->iValue(ifem, "FEMSLOT"));
-        newhit->setChecksumLsb(ifem, plist[i]->iValue(ifem, "CHECKSUMLSB"));
-        newhit->setChecksumMsb(ifem, plist[i]->iValue(ifem, "CHECKSUMMSB"));
-        newhit->setCalcChecksumLsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMLSB"));
-        newhit->setCalcChecksumMsb(ifem, plist[i]->iValue(ifem, "CALCCHECKSUMMSB"));
+        newhit->setFemClock(ifem, packet->iValue(ifem, "FEMCLOCK"));
+        newhit->setFemEvtSequence(ifem, packet->iValue(ifem, "FEMEVTNR"));
+        newhit->setFemSlot(ifem, packet->iValue(ifem, "FEMSLOT"));
+        newhit->setChecksumLsb(ifem, packet->iValue(ifem, "CHECKSUMLSB"));
+        newhit->setChecksumMsb(ifem, packet->iValue(ifem, "CHECKSUMMSB"));
+        newhit->setCalcChecksumLsb(ifem, packet->iValue(ifem, "CALCCHECKSUMLSB"));
+        newhit->setCalcChecksumMsb(ifem, packet->iValue(ifem, "CALCCHECKSUMMSB"));
       }
       for (int ipmt = 0; ipmt < nr_channels; ipmt++)
       {
         // store pre/post only for suppressed channels, the array in the packet routines is not
         // initialized so reading pre/post for not zero suppressed channels returns garbage
-        bool isSuppressed = plist[i]->iValue(ipmt, "SUPPRESSED");
+        bool isSuppressed = packet->iValue(ipmt, "SUPPRESSED");
         newhit->setSuppressed(ipmt, isSuppressed);
         if (isSuppressed)
         {
-          newhit->setPre(ipmt, plist[i]->iValue(ipmt, "PRE"));
-          newhit->setPost(ipmt, plist[i]->iValue(ipmt, "POST"));
+          newhit->setPre(ipmt, packet->iValue(ipmt, "PRE"));
+          newhit->setPost(ipmt, packet->iValue(ipmt, "POST"));
         }
         else
         {
           for (int isamp = 0; isamp < nr_samples; isamp++)
           {
-            newhit->setSample(ipmt, isamp, plist[i]->iValue(isamp, ipmt));
+            newhit->setSample(ipmt, isamp, packet->iValue(isamp, ipmt));
           }
         }
       }
@@ -207,9 +194,9 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
       m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
-        ddumppacket(plist[i]);
+        ddumppacket(packet);
       }
-      delete plist[i];
+      delete packet;
     }
     if (m_LocalPacketMap.size() >= LocalPoolDepth())
     {
@@ -294,7 +281,7 @@ void SingleZdcTriggerInput::FillPool(const unsigned int keep)
           CaloPacket *calpacket = dynamic_cast<CaloPacket *>(pktiter);
           if (calpacket)
           {
-	    int packet_id = calpacket->getIdentifier();
+            int packet_id = calpacket->getIdentifier();
             if (packet_id == std::clamp(packet_id, 9000, 9999))
             {
               TriggerInputManager()->AddSEpdPacket(evtiter.first, calpacket);
