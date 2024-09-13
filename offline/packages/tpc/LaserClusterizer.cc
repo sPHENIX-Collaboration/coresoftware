@@ -1,5 +1,7 @@
 #include "LaserClusterizer.h"
 
+#include "LaserEventInfo.h"
+
 #include <trackbase/LaserCluster.h>
 #include <trackbase/LaserClusterContainer.h>
 #include <trackbase/LaserClusterContainerv1.h>
@@ -78,8 +80,7 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   }
 
 
-
-
+  
   // Create the Cluster node if required
   auto laserclusters = findNode::getClass<LaserClusterContainerv1>(dstNode, "LASER_CLUSTER");
   if (!laserclusters)
@@ -154,6 +155,13 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
   if(Verbosity() > 1)
   {
     std::cout << "LaserClusterizer::process_event working on event " << m_event << std::endl;
+  }
+
+  m_laserEventInfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
+  if(!m_laserEventInfo)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node LaserEventInfo" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   PHNodeIterator iter(topNode);
@@ -233,6 +241,8 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
   if (!do_read_raw)
   {
+    //comment out manual check for laser event since new class
+    /*
     for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
          hitsetitr != hitsetrange.second;
          ++hitsetitr)
@@ -288,6 +298,13 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
       }
       return Fun4AllReturnCodes::EVENT_OK;
     }
+  
+    */
+
+    if(!m_laserEventInfo->isLaserEvent())
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
 
     for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
          hitsetitr != hitsetrange.second;
@@ -323,12 +340,12 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
         int it = TpcDefs::getTBin(hitr->first);
 
         //if (side == 0 && fabs(it - itMax_0) > 10)
-	if (side == 0 && fabs(it - itMax_0) > 3)
+	if (side == 0 && fabs(it - m_laserEventInfo->getPeakSample(0)) > 3)
         {
           continue;
         }
         //if (side == 1 && fabs(it - itMax_1) > 10)
-        if (side == 1 && fabs(it - itMax_1) > 3)
+        if (side == 1 && fabs(it - m_laserEventInfo->getPeakSample(1)) > 3)
         {
           continue;
         }
