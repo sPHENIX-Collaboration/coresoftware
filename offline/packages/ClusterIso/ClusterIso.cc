@@ -153,7 +153,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
   std::string RawCemcClusterNodeName = "CLUSTER_CEMC";
   if (m_use_towerinfo)
   {
-    RawCemcClusterNodeName = m_cluster_node_name;
+    RawCemcClusterNodeName = "CLUSTERINFO_CEMC";
   }
 
   if (m_do_subtracted)
@@ -404,7 +404,6 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
             for (unsigned int channel = 0; channel < ntowers; channel++)
             {
               TowerInfo *tower = towersEM3old->get_tower_at_channel(channel);
-              if(!IsAcceptableTower(tower)) continue;
               unsigned int towerkey = towersEM3old->encode_key(channel);
               int ieta = towersEM3old->getTowerEtaBin(towerkey);
               int iphi = towersEM3old->getTowerPhiBin(towerkey);
@@ -428,7 +427,6 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
             for (unsigned int channel = 0; channel < ntowers; channel++)
             {
               TowerInfo *tower = towersIH3->get_tower_at_channel(channel);
-              if(!IsAcceptableTower(tower)) continue;
               unsigned int towerkey = towersIH3->encode_key(channel);
               int ieta = towersIH3->getTowerEtaBin(towerkey);
               int iphi = towersIH3->getTowerPhiBin(towerkey);
@@ -452,7 +450,6 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
             for (unsigned int channel = 0; channel < ntowers; channel++)
             {
               TowerInfo *tower = towersOH3->get_tower_at_channel(channel);
-              if(!IsAcceptableTower(tower)) continue;
               unsigned int towerkey = towersOH3->encode_key(channel);
               int ieta = towersOH3->getTowerEtaBin(towerkey);
               int iphi = towersOH3->getTowerPhiBin(towerkey);
@@ -488,28 +485,4 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 int ClusterIso::End(PHCompositeNode * /*topNode*/)
 {
   return 0;
-}
-
-bool ClusterIso::IsAcceptableTower(TowerInfo *tower)
-{
-  if (tower->get_isBadTime())
-  {
-    return false;
-  }
-
-  if (tower->get_isHot())
-  {
-    return false;
-  }
-
-  if (tower->get_isBadChi2())
-  {
-    return false;
-  }
-
-  if (tower->get_isNotInstr())
-  {
-    return false;
-  }
-  return true;
 }
