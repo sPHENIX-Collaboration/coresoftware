@@ -5,7 +5,6 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
-#include <calobase/TowerInfo.h>
 
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
@@ -29,12 +28,14 @@
 #include <ffaobjects/EventHeader.h>
 #include <ffarawobjects/Gl1Packet.h>
 
+#include <cdbobjects/CDBTTree.h> // for CDBTTree
+#include <ffamodules/CDBInterface.h>
+
 #include <TH1.h>
 #include <TH2.h>
 #include <TLorentzVector.h>
 #include <TProfile.h>
 #include <TSystem.h>
-
 
 #include <boost/format.hpp>
 
@@ -48,15 +49,41 @@
 #include <utility> // for pair
 
 GlobalQA::GlobalQA(const std::string &name)
-  : SubsysReco(name), detector("HCALIN") {
-    evtcount = 0;
-  }
+    : SubsysReco(name), detector("HCALIN") {
+  evtcount = 0;
+}
 
 GlobalQA::~GlobalQA() = default;
 
 int GlobalQA::Init(PHCompositeNode * /*unused*/) {
   if (m_debug) {
     std::cout << "In GlobalQA::Init" << std::endl;
+  }
+
+  if (!m_overrideSEPDMapName) {
+    m_sEPDMapName = "SEPD_CHANNELMAP";
+  }
+  if (!m_overrideSEPDFieldName) {
+    m_sEPDfieldname = "epd_channel_map";
+  }
+  std::string calibdir = CDBInterface::instance()->getUrl(m_sEPDMapName);
+  if (!calibdir.empty()) {
+    cdbttree = new CDBTTree(calibdir);
+  } else {
+    std::cout << "GlobalQA::::InitRun No SEPD mapping file for domain "
+              << m_sEPDMapName << " found" << std::endl;
+    exit(1);
+  }
+  v.clear();
+  for (int i = 0; i < 768; i++) {
+
+    int keymap = cdbttree->GetIntValue(i, m_sEPDfieldname);
+    if (keymap == 999) {
+      continue;
+    }
+
+    key = TowerInfoDefs::encode_epd(keymap);
+    v.push_back(key);
   }
 
   createHistos();
@@ -79,13 +106,12 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     std::cout << _eventcounter << std::endl;
   }
 
-
-
   //--------------------------- trigger and GL1-------------------------------//
   Gl1Packet *gl1PacketInfo =
-    findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+      findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   if (!gl1PacketInfo) {
-    std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"<< std::endl;
+    std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"
+              << std::endl;
   }
   _eventcounter++;
 
@@ -103,16 +129,15 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     triggervec = gl1PacketInfo->getScaledVector();
   }
 
-
   if ((triggervec >> 0xAU) & 0x1U) {
     //--------------------------- MBD vertex------------------------------//
     MbdVertexMap *mbdmap =
-      findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+        findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
     MbdVertex *bvertex = nullptr;
     float mbd_zvtx = std::numeric_limits<float>::quiet_NaN();
     if (mbdmap) {
       for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
-          mbditer != mbdmap->end(); ++mbditer) {
+           mbditer != mbdmap->end(); ++mbditer) {
         bvertex = mbditer->second;
       }
       if (bvertex) {
@@ -130,80 +155,72 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     }
   }
 
+  //--------------------------- sEPD ------------------------------//
+  TowerInfoContainer *_sepd_towerinfo =
+      findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
+  unsigned int ntowers = 0;
+  if (_sepd_towerinfo)
+    ntowers = _sepd_towerinfo->size();
+  if (ntowers != 744) {
+    std::cout << "sEPD container has unexpected size - exiting now!"
+              << std::endl;
+    exit(1);
+  }
+  float sepdsouthadcsum = 0.;
+  float sepdnorthadcsum = 0.;
+
+  if (_sepd_towerinfo) {
+    for (unsigned int i = 0; i < ntowers; i++) {
+      float _time = _sepd_towerinfo->get_tower_at_channel(i)->get_time_float();
+      float _e = _sepd_towerinfo->get_tower_at_channel(i)->get_energy();
+      int arm = TowerInfoDefs::get_epd_arm(v[i]);
+      if (_time > 0.) {
+        h_GlobalQA_sEPD_tile[i]->Fill(_e);
+
+        if (arm == 0) {
+          sepdsouthadcsum += _e;
+        } else if (arm == 1) {
+          sepdnorthadcsum += _e;
+        }
+      }
+    }
+
+    h_GlobalQA_sEPD_adcsum_s->Fill(sepdsouthadcsum);
+    h_GlobalQA_sEPD_adcsum_n->Fill(sepdnorthadcsum);
+    h2_GlobalQA_sEPD_adcsum_ns->Fill(sepdnorthadcsum, sepdsouthadcsum);
+  }
 
   if ((triggervec >> 0x3U) & 0x1U) {
     // ------------------------------------- ZDC
     // -----------------------------------------//
 
     Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
-    TowerInfoContainer *_zdc_towerinfo =
-      findNode::getClass<TowerInfoContainer>(topNode,
-          "TOWERINFO_CALIB_ZDC");
-    unsigned int ntowers = _zdc_towerinfo->size();
-    if (ntowers != 52) {
-      std::cout << "ZDC container has unexpected size - exiting now!"
-        << std::endl;
-      exit(1);
-    }
     float totalzdcsouthcalib = 0.;
     float totalzdcnorthcalib = 0.;
-    float zdc_E[6] = {0};
-    float zdc_t[6] = {0};
-    float zdc_zvtx = 9999;
-    int index = 0;
     if (_zdcinfo) {
       totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
       totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
-      if (_zdcinfo->get_radius(0) < 2 && _zdcinfo->get_radius(1) < 2) {
-        for (unsigned int ichan = 0; ichan < ntowers; ichan++) {
-          TowerInfo *tower = _zdc_towerinfo->get_tower_at_channel(ichan);
-          if (TowerInfoDefs::isZDC(ichan)) {
-            int mod = ichan % 2;
-            if (mod != 0)
-            {
-              continue;
-            }
-            if ((ichan != 6) && (ichan != 14)) {
-              zdc_E[index] = tower->get_energy();
-              zdc_t[index] = tower->get_time_float();
-              index++;
-            }
-          }
-        }
-
-        float es = zdc_E[0] + zdc_E[1] + zdc_E[2];
-        float ets =
-          zdc_E[0] * zdc_t[0] + zdc_E[1] * zdc_t[1] + zdc_E[2] * zdc_t[2];
-        float ts = ets / es;
-
-        float en = zdc_E[3] + zdc_E[4] + zdc_E[5];
-        float etn =
-          zdc_E[3] * zdc_t[3] + zdc_E[4] * zdc_t[4] + zdc_E[5] * zdc_t[5];
-        float tn = etn / en;
-
-        zdc_zvtx = 3e+10 * (ts - tn) * TSAMPLE / 2.0;
-
-        h_GlobalQA_zdc_zvtx->Fill(zdc_zvtx);
-        h_GlobalQA_zdc_zvtx_wide->Fill(zdc_zvtx);
-        h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
-        h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
-      }
+      zdc_zvtx = _zdcinfo->get_zvertex();
+      h_GlobalQA_zdc_zvtx->Fill(zdc_zvtx);
+      h_GlobalQA_zdc_zvtx_wide->Fill(zdc_zvtx);
+      h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
+      h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
     }
   }
 
   if ((triggervec >> 0xAU) & 0x1U) {
     //--------------------------- MBD ----------------------------------------//
     MbdPmtContainer *bbcpmts =
-      findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
+        findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
     if (!bbcpmts) {
       std::cout << "GlobalQA::process_event: Could not find MbdPmtContainer,"
-        << std::endl;
+                << std::endl;
       // return Fun4AllReturnCodes::ABORTEVENT;
     }
 
     int hits = 0;
-    int hits_n = 0;//bnn
-    int hits_s = 0; //bns
+    int hits_n = 0; // bnn
+    int hits_s = 0; // bns
     int hits_n_t = 0;
     int hits_s_t = 0;
     std::vector<float> time_sum_s = {};
@@ -212,12 +229,12 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     float sum_n = 0.;
     float sum_s2 = 0.;
     float sum_n2 = 0.;
-    float tot_charge_s = 0.;//bqs
-    float tot_charge_n = 0.;//bqn
+    float tot_charge_s = 0.; // bqs
+    float tot_charge_n = 0.; // bqn
 
     float charge_thresh = 0.4;
     if (bbcpmts) {
-      int nPMTs = bbcpmts->get_npmt(); 
+      int nPMTs = bbcpmts->get_npmt();
       for (int i = 0; i < nPMTs; i++) {
         MbdPmtHit *mbdpmt = bbcpmts->get_pmt(i);
         float q = mbdpmt->get_q();
@@ -268,7 +285,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     if (hits_s_t >= central_cut) {
       mean_south = sum_s / static_cast<float>(hits_s_t);
       float rms_s = sqrt(sum_s2 / static_cast<float>(hits_s_t) -
-          TMath::Power(mean_south, 2));
+                         TMath::Power(mean_south, 2));
       int nhit_s_center = 0;
       float sum_s_center = 0.;
 
@@ -281,7 +298,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 
       if (nhit_s_center > 0) {
         float mean_south_center =
-          sum_s_center / static_cast<float>(nhit_s_center);
+            sum_s_center / static_cast<float>(nhit_s_center);
         mean_south = mean_south_center;
       }
     } else if (hits_s >= 2 && (hits_s_t >= 1)) {
@@ -291,7 +308,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     if (hits_n_t >= central_cut) {
       mean_north = sum_n / static_cast<float>(hits_n_t);
       float rms_n = sqrt(sum_n2 / static_cast<float>(hits_n_t) -
-          TMath::Power(mean_north, 2));
+                         TMath::Power(mean_north, 2));
       int nhit_n_center = 0;
       float sum_n_center = 0.;
 
@@ -304,7 +321,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 
       if (nhit_n_center > 0) {
         float mean_north_center =
-          sum_n_center / static_cast<float>(nhit_n_center);
+            sum_n_center / static_cast<float>(nhit_n_center);
         mean_north = mean_north_center;
       }
     } else if (hits_n >= 2 && hits_n_t >= 1) {
@@ -323,14 +340,10 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     h_GlobalQA_mbd_charge_n->Fill(tot_charge_n);
     h_GlobalQA_mbd_nhit_s->Fill(hits_s);
     h_GlobalQA_mbd_nhit_n->Fill(hits_n);
-
-
-    h_GlobalQA_mbd_charge_sum->Fill(tot_charge_s+tot_charge_n);
+    h_GlobalQA_mbd_charge_sum->Fill(tot_charge_s + tot_charge_n);
     h2_GlobalQA_mbd_charge_NS_correlation->Fill(tot_charge_n, tot_charge_s);
     h2_GlobalQA_mbd_nhits_NS_correlation->Fill(hits_s, hits_n);
-
   }
-
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -345,34 +358,45 @@ void GlobalQA::createHistos() {
   assert(hm);
 
   // MBD QA
-  h_GlobalQA_mbd_zvtxq = 
-    new TH1D("h_GlobalQA_mbd_zvtxq", ";Scaled Trigger 10: MBD Coincidence    Has zvtx?;percentage", 2, -0.5, 1.5);
-  h_GlobalQA_mbd_zvtx = 
-    new TH1D("h_GlobalQA_mbd_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
-  h_GlobalQA_mbd_zvtx_wide = 
-    new TH1D("h_GlobalQA_mbd_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_calc_zvtx = 
-    new TH1D("h_GlobalQA_calc_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
-  h_GlobalQA_calc_zvtx_wide = 
-    new TH1D("h_GlobalQA_calc_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_mbd_charge_s = 
-    new TH1D("h_GlobalQA_mbd_charge_s", ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
-  h_GlobalQA_mbd_charge_n = 
-    new TH1D("h_GlobalQA_mbd_charge_n", ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
-  h_GlobalQA_mbd_nhit_s = 
-    new TH1D("h_GlobalQA_mbd_nhit_s", ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
-  h_GlobalQA_mbd_nhit_n = 
-    new TH1D("h_GlobalQA_mbd_nhit_n", ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
-
-  h_GlobalQA_mbd_charge_sum =
-    new TH1F("h_GlobalQA_mbd_charge_sum "," MBDQ north sum+ MBDQ south charge sum; MBDQn+MBDQs",100,0.,20); //MBDQ north sum+ MBDQ south charge sum
-  h2_GlobalQA_mbd_charge_NS_correlation =
-    new TH2F("h2_GlobalQA_mbd_charge_NS_correlation ","North MBDQ vs South MBDQ; N_MBDQ; S_MBDQ",100,0,10,100,0,10);// North charge vs south charge
+  h_GlobalQA_mbd_zvtxq =
+      new TH1D("h_GlobalQA_mbd_zvtxq",
+               ";Scaled Trigger 10: MBD Coincidence    Has zvtx?;percentage", 2,
+               -0.5, 1.5);
+  h_GlobalQA_mbd_zvtx = new TH1D(
+      "h_GlobalQA_mbd_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]",
+      100, -50, 50);
+  h_GlobalQA_mbd_zvtx_wide = new TH1D(
+      "h_GlobalQA_mbd_zvtx_wide",
+      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_calc_zvtx = new TH1D(
+      "h_GlobalQA_calc_zvtx",
+      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
+  h_GlobalQA_calc_zvtx_wide = new TH1D(
+      "h_GlobalQA_calc_zvtx_wide",
+      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_mbd_charge_s =
+      new TH1D("h_GlobalQA_mbd_charge_s",
+               ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
+  h_GlobalQA_mbd_charge_n =
+      new TH1D("h_GlobalQA_mbd_charge_n",
+               ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
+  h_GlobalQA_mbd_nhit_s =
+      new TH1D("h_GlobalQA_mbd_nhit_s",
+               ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
+  h_GlobalQA_mbd_nhit_n =
+      new TH1D("h_GlobalQA_mbd_nhit_n",
+               ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
+  h_GlobalQA_mbd_charge_sum = new TH1F(
+      "h_GlobalQA_mbd_charge_sum ",
+      " MBDQ north sum+ MBDQ south charge sum; MBDQn+MBDQs", 100, 0., 20);
+  h2_GlobalQA_mbd_charge_NS_correlation = new TH2F(
+      "h2_GlobalQA_mbd_charge_NS_correlation ",
+      "North MBDQ vs South MBDQ; N_MBDQ; S_MBDQ", 100, 0, 10, 100, 0, 10);
   h2_GlobalQA_mbd_nhits_NS_correlation =
-    new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation"," number of event that have hits on MBDSouth & MBDNorth; South MBD Nhits; North MBD Nhits ", 70,0.,70,70,0.,70); //Number of event that have hits on South & North
-
-
-
+      new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation",
+               " number of event that have hits on MBDSouth & MBDNorth; South "
+               "MBD Nhits; North MBD Nhits ",
+               70, 0., 70, 70, 0., 70);
 
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
   hm->registerHisto(h_GlobalQA_mbd_zvtxq);
@@ -387,23 +411,45 @@ void GlobalQA::createHistos() {
   hm->registerHisto(h2_GlobalQA_mbd_charge_NS_correlation);
   hm->registerHisto(h2_GlobalQA_mbd_nhits_NS_correlation);
 
+  // sEPD QA
+
+  h_GlobalQA_sEPD_adcsum_s =
+      new TH1D("h_GlobalQA_sEPD_adcsum_s", "; sEPD ADC SUM", 100, -10, 50000);
+  h_GlobalQA_sEPD_adcsum_n =
+      new TH1D("h_GlobalQA_sEPD_adcsum_n", "; sEPD ADC SUM", 100, -10, 50000);
+  h2_GlobalQA_sEPD_adcsum_ns = new TH2D(
+      "h2_GlobalQA_sEPD_adcsum_ns", " sEPD South ADC SUM ; sEPD North ADC SUM",
+      100, -10, 50000, 100, -10, 50000);
+
+  for (int tile = 0; tile < 744; tile++) {
+    h_GlobalQA_sEPD_tile[tile] = new TH1D(
+        boost::str(boost::format("h_GlobalQA_sEPD_tile%d") % tile).c_str(), "",
+        1000, -20000, 20000);
+    hm->registerHisto(h_GlobalQA_sEPD_tile[tile]);
+  }
+  hm->registerHisto(h_GlobalQA_sEPD_adcsum_s);
+  hm->registerHisto(h_GlobalQA_sEPD_adcsum_n);
+  hm->registerHisto(h2_GlobalQA_sEPD_adcsum_ns);
 
   // ZDC QA
-  h_GlobalQA_zdc_zvtx = 
-    new TH1D("h_GlobalQA_zdc_zvtx", ";Scaled Trigger 3: ZDC Coincidence    zvtx [cm]", 100, -1000, 1000);
-  h_GlobalQA_zdc_zvtx_wide = 
-    new TH1D("h_GlobalQA_zdc_zvtx_wide", ";Scaled Trigger 3: ZDC Coincidence    zvtx [cm]", 100, -2000, 2000);
-  h_GlobalQA_zdc_energy_s = 
-    new TH1D("h_GlobalQA_zdc_energy_s", ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
-  h_GlobalQA_zdc_energy_n = 
-    new TH1D("h_GlobalQA_zdc_energy_n", ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
+  h_GlobalQA_zdc_zvtx = new TH1D(
+      "h_GlobalQA_zdc_zvtx", ";Scaled Trigger 3: ZDC Coincidence    zvtx [cm]",
+      100, -1000, 1000);
+  h_GlobalQA_zdc_zvtx_wide = new TH1D(
+      "h_GlobalQA_zdc_zvtx_wide",
+      ";Scaled Trigger 3: ZDC Coincidence    zvtx [cm]", 100, -2000, 2000);
+  h_GlobalQA_zdc_energy_s = new TH1D(
+      "h_GlobalQA_zdc_energy_s",
+      ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
+  h_GlobalQA_zdc_energy_n = new TH1D(
+      "h_GlobalQA_zdc_energy_n",
+      ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
   hm->registerHisto(h_GlobalQA_zdc_zvtx);
   hm->registerHisto(h_GlobalQA_zdc_zvtx_wide);
   hm->registerHisto(h_GlobalQA_zdc_energy_s);
   hm->registerHisto(h_GlobalQA_zdc_energy_n);
 
-  h_GlobalQA_triggerVec = new TH1F("h_GlobalQA_triggerVec", "", 64, 0, 64);
+  h_GlobalQA_triggerVec = new TH1F("h_GlobalQA_triggerVec", "", 65, -0.5, 64.5);
   h_GlobalQA_triggerVec->SetDirectory(nullptr);
   hm->registerHisto(h_GlobalQA_triggerVec);
 }
-
