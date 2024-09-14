@@ -333,6 +333,7 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
 
   float totalE = 0;
 
+  // I will hard code the EMCal dim here for now hoping no one will read this :)
   int totalphibins = 256;
   auto dphiwrap = [totalphibins](float towerphi, float maxiphi)
   {
@@ -351,7 +352,6 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
     float eta = RawTowerDefs::decode_index1(towerkey);
     float phi = RawTowerDefs::decode_index2(towerkey);
     float deta = eta - maxtowerieta;
-    // I will hard code the EMCal dim here for now hoping no one will read this :)
 
     float dphi = dphiwrap(phi, maxtoweriphi);
     if (E > tower_thresh)
@@ -368,8 +368,8 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
   deta2 /= totalE - deta1 * deta1;
   dphi2 /= totalE - dphi1 * dphi1;
   // find the index of the center 4 towers
-  int centertowerieta = int(deta1 + 0.5);
-  int centertoweriphi = int(dphi1 + 0.5);
+  int centertowerieta = std::floor(deta1 + 0.5);
+  int centertoweriphi = std::floor(dphi1 + 0.5);
   int etashift = (deta1 - centertowerieta) < 0 ? -1 : 1;
   int phishift = (dphi1 - centertoweriphi) < 0 ? -1 : 1;
 
@@ -391,6 +391,7 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
   int phi1 = wraptowerphi(centertoweriphi + maxtoweriphi);
   int phi2 = wraptowerphi(centertoweriphi + phishift + maxtoweriphi);
 
+
   auto gettowerenergy = [totalphibins, tower_thresh, this](int ieta, int phi) -> float
   {
     if (phi < 0)
@@ -401,7 +402,7 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
     {
       return phi - totalphibins;
     }
-    RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::EHCAL, ieta, phi);
+    RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta, phi);
     if (towermap.find(key) != towermap.end())
     {
       if (towermap.at(key) > tower_thresh)
@@ -414,15 +415,16 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
 
   float e1 = gettowerenergy(eta1, phi1);
   float e2 = gettowerenergy(eta1, phi2);
-  float e3 = gettowerenergy(eta2, phi1);
-  float e4 = gettowerenergy(eta2, phi2);
+  float e3 = gettowerenergy(eta2, phi2);
+  float e4 = gettowerenergy(eta2, phi1);
+
+
 
   float e1t = (e1 + e2 + e3 + e4) / totalE;
   float e2t = (e1 + e2 - e3 - e4) / totalE;
   float e3t = (e1 - e2 - e3 + e4) / totalE;
   float e4t = (e3) / totalE;
 
-  // e1t, e2t, e3t, e4t, e1, e2, e3, e4, deta1 + maxtowerieta, dphi1 + maxtoweriphi, deta2, dphi2, e1, e2, e3, e4, totalE
 
   std::vector<float> v = {e1t, e2t, e3t, e4t, deta1 + maxtowerieta, dphi1 + maxtoweriphi, deta2, dphi2, e1, e2, e3, e4, totalE};
   return v;
