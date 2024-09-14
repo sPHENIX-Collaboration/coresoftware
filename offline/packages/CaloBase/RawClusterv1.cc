@@ -301,3 +301,129 @@ float RawClusterv1::get_et_iso(const int radiusx10 = 3, bool subtracted = false,
   }
   return r;
 }
+
+std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
+{
+  // loop over towermap
+  RawTowerDefs::keytype maxtowerkey = 0;
+  float maxtowerE = 0;
+  for (const auto& iter : towermap)
+  {
+    if (iter.second > maxtowerE)
+    {
+      maxtowerE = iter.second;
+      maxtowerkey = iter.first;
+    }
+  }
+
+  // check if towermap is empty
+  if (towermap.empty() || maxtowerE == 0)
+  {
+    std::vector<float> v;
+    return v;
+  }
+  int maxtowerieta = RawTowerDefs::decode_index1(maxtowerkey);
+  int maxtoweriphi = RawTowerDefs::decode_index2(maxtowerkey);
+  // energy weighted avg eta and phi
+  float deta1 = 0;
+  float dphi1 = 0;
+  // energy weighted second moment in eta and phi
+  float deta2 = 0;
+  float dphi2 = 0;
+
+  float totalE = 0;
+
+  int totalphibins = 256;
+  auto dphiwrap = [totalphibins](float towerphi, float maxiphi)
+  {
+    float idphi = towerphi - maxiphi;
+    float idphiwrap = totalphibins - std::abs(idphi);
+    if (std::abs(idphiwrap) < std::abs(idphi))
+    {
+      return (idphi > 0) ? -idphiwrap : idphiwrap;
+    }
+    return idphi;
+  };
+  for (const auto& iter : towermap)
+  {
+    RawTowerDefs::keytype towerkey = iter.first;
+    float E = iter.second;
+    float eta = RawTowerDefs::decode_index1(towerkey);
+    float phi = RawTowerDefs::decode_index2(towerkey);
+    float deta = eta - maxtowerieta;
+    // I will hard code the EMCal dim here for now hoping no one will read this :)
+
+    float dphi = dphiwrap(phi, maxtoweriphi);
+    if (E > tower_thresh)
+    {
+      totalE += E;
+      deta1 += E * deta;
+      dphi1 += E * dphi;
+      deta2 += E * deta * deta;
+      dphi2 += E * dphi * dphi;
+    }
+  }
+  deta1 /= totalE;
+  dphi1 /= totalE;
+  deta2 /= totalE - deta1 * deta1;
+  dphi2 /= totalE - dphi1 * dphi1;
+  // find the index of the center 4 towers
+  int centertowerieta = int(deta1 + 0.5);
+  int centertoweriphi = int(dphi1 + 0.5);
+  int etashift = (deta1 - centertowerieta) < 0 ? -1 : 1;
+  int phishift = (dphi1 - centertoweriphi) < 0 ? -1 : 1;
+
+  auto wraptowerphi = [totalphibins](int phi) -> int
+  {
+    if (phi < 0)
+    {
+      return phi + totalphibins;
+    }
+    if (phi >= totalphibins)
+    {
+      return phi - totalphibins;
+    }
+    return phi;
+  };
+
+  int eta1 = centertowerieta + maxtowerieta;
+  int eta2 = centertowerieta + etashift + maxtowerieta;
+  int phi1 = wraptowerphi(centertoweriphi + maxtoweriphi);
+  int phi2 = wraptowerphi(centertoweriphi + phishift + maxtoweriphi);
+
+  auto gettowerenergy = [totalphibins, tower_thresh, this](int ieta, int phi) -> float
+  {
+    if (phi < 0)
+    {
+      return phi + totalphibins;
+    }
+    if (phi >= totalphibins)
+    {
+      return phi - totalphibins;
+    }
+    RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::EHCAL, ieta, phi);
+    if (towermap.find(key) != towermap.end())
+    {
+      if (towermap.at(key) > tower_thresh)
+      {
+        return towermap.at(key);
+      }
+    }
+    return 0;
+  };
+
+  float e1 = gettowerenergy(eta1, phi1);
+  float e2 = gettowerenergy(eta1, phi2);
+  float e3 = gettowerenergy(eta2, phi1);
+  float e4 = gettowerenergy(eta2, phi2);
+
+  float e1t = (e1 + e2 + e3 + e4) / totalE;
+  float e2t = (e1 + e2 - e3 - e4) / totalE;
+  float e3t = (e1 - e2 - e3 + e4) / totalE;
+  float e4t = (e3) / totalE;
+
+  // e1t, e2t, e3t, e4t, e1, e2, e3, e4, deta1 + maxtowerieta, dphi1 + maxtoweriphi, deta2, dphi2, e1, e2, e3, e4, totalE
+
+  std::vector<float> v = {e1t, e2t, e3t, e4t, deta1 + maxtowerieta, dphi1 + maxtoweriphi, deta2, dphi2, e1, e2, e3, e4, totalE};
+  return v;
+}
