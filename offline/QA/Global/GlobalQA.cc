@@ -160,8 +160,9 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     TowerInfoContainer *_sepd_towerinfo =
         findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
     unsigned int ntowers = 0;
-    if (_sepd_towerinfo)
+    if (_sepd_towerinfo) {
       ntowers = _sepd_towerinfo->size();
+    }
     if (ntowers != 744) {
       std::cout << "sEPD container has unexpected size - exiting now!"
                 << std::endl;
@@ -191,7 +192,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 
       h_GlobalQA_sEPD_adcsum_s->Fill(sepdsouthadcsum);
       h_GlobalQA_sEPD_adcsum_n->Fill(sepdnorthadcsum);
-      h2_GlobalQA_sEPD_adcsum_ns->Fill(sepdnorthadcsum, sepdsouthadcsum);
+      h2_GlobalQA_sEPD_adcsum_ns->Fill(sepdsouthadcsum, sepdnorthadcsum);
     }
   }
 
@@ -224,8 +225,8 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     }
 
     int hits = 0;
-    int hits_n = 0; // bnn
-    int hits_s = 0; // bns
+    int hits_n = 0;
+    int hits_s = 0;
     int hits_n_t = 0;
     int hits_s_t = 0;
     std::vector<float> time_sum_s = {};
@@ -234,8 +235,8 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     float sum_n = 0.;
     float sum_s2 = 0.;
     float sum_n2 = 0.;
-    float tot_charge_s = 0.; // bqs
-    float tot_charge_n = 0.; // bqn
+    float tot_charge_s = 0.;
+    float tot_charge_n = 0.;
 
     float charge_thresh = 0.4;
     if (bbcpmts) {
@@ -269,9 +270,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
           sum_n += t;
           sum_n2 += t * t;
         }
-
-        // float pmtadc = mbdpmt->get_q();
-        if (q > 0.4) {
+        if (q > charge_thresh) {
           hits++;
         }
       }
@@ -346,7 +345,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     h_GlobalQA_mbd_nhit_s->Fill(hits_s);
     h_GlobalQA_mbd_nhit_n->Fill(hits_n);
     h_GlobalQA_mbd_charge_sum->Fill(tot_charge_s + tot_charge_n);
-    h2_GlobalQA_mbd_charge_NS_correlation->Fill(tot_charge_n, tot_charge_s);
+    h2_GlobalQA_mbd_charge_NS_correlation->Fill(tot_charge_s, tot_charge_n);
     h2_GlobalQA_mbd_nhits_NS_correlation->Fill(hits_s, hits_n);
   }
 
@@ -391,16 +390,20 @@ void GlobalQA::createHistos() {
   h_GlobalQA_mbd_nhit_n =
       new TH1D("h_GlobalQA_mbd_nhit_n",
                ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
-  h_GlobalQA_mbd_charge_sum = new TH1F(
-      "h_GlobalQA_mbd_charge_sum ",
-      " MBDQ north sum+ MBDQ south charge sum; MBDQn+MBDQs", 100, 0., 20);
+
+  h_GlobalQA_mbd_charge_sum =
+      new TH1F("h_GlobalQA_mbd_charge_sum ", " ; MBD total charge ; counts",
+               100, 0., 20);
+
   h2_GlobalQA_mbd_charge_NS_correlation = new TH2F(
-      "h2_GlobalQA_mbd_charge_NS_correlation ",
-      "North MBDQ vs South MBDQ; N_MBDQ; S_MBDQ", 100, 0, 10, 100, 0, 10);
+      "h2_GlobalQA_mbd_charge_NS_correlation",
+      "MBD NS charge correlation ; total charge (south); total charge (north)",
+      100, 0, 10, 100, 0, 10);
+
   h2_GlobalQA_mbd_nhits_NS_correlation =
       new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation",
-               " number of event that have hits on MBDSouth & MBDNorth; South "
-               "MBD Nhits; North MBD Nhits ",
+               "MBD NS number of hits correlation ; number of hits (south); "
+               "number of hits (north)",
                70, 0., 70, 70, 0., 70);
 
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
@@ -417,21 +420,25 @@ void GlobalQA::createHistos() {
   hm->registerHisto(h2_GlobalQA_mbd_nhits_NS_correlation);
 
   // sEPD QA
+  h_GlobalQA_sEPD_adcsum_s = new TH1D(
+      "h_GlobalQA_sEPD_adcsum_s", " ; sEPD ADC sum ; counts", 100, -10, 50000);
 
-  h_GlobalQA_sEPD_adcsum_s =
-      new TH1D("h_GlobalQA_sEPD_adcsum_s", "; sEPD ADC SUM", 100, -10, 50000);
-  h_GlobalQA_sEPD_adcsum_n =
-      new TH1D("h_GlobalQA_sEPD_adcsum_n", "; sEPD ADC SUM", 100, -10, 50000);
-  h2_GlobalQA_sEPD_adcsum_ns = new TH2D(
-      "h2_GlobalQA_sEPD_adcsum_ns", " sEPD South ADC SUM ; sEPD North ADC SUM",
-      100, -10, 50000, 100, -10, 50000);
+  h_GlobalQA_sEPD_adcsum_n = new TH1D(
+      "h_GlobalQA_sEPD_adcsum_n", " ; sEPD ADC sum ; counts", 100, -10, 50000);
+
+  h2_GlobalQA_sEPD_adcsum_ns =
+      new TH2D("h2_GlobalQA_sEPD_adcsum_ns",
+               "sEPD NS ADC sum correlation ; ADC sum (south); ADC sum (north)",
+               100, -10, 50000, 100, -10, 50000);
 
   for (int tile = 0; tile < 744; tile++) {
     h_GlobalQA_sEPD_tile[tile] = new TH1D(
         boost::str(boost::format("h_GlobalQA_sEPD_tile%d") % tile).c_str(), "",
         1000, -20000, 20000);
+
     hm->registerHisto(h_GlobalQA_sEPD_tile[tile]);
   }
+
   hm->registerHisto(h_GlobalQA_sEPD_adcsum_s);
   hm->registerHisto(h_GlobalQA_sEPD_adcsum_n);
   hm->registerHisto(h2_GlobalQA_sEPD_adcsum_ns);
