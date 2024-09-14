@@ -155,39 +155,44 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     }
   }
 
-  //--------------------------- sEPD ------------------------------//
-  TowerInfoContainer *_sepd_towerinfo =
-      findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
-  unsigned int ntowers = 0;
-  if (_sepd_towerinfo)
-    ntowers = _sepd_towerinfo->size();
-  if (ntowers != 744) {
-    std::cout << "sEPD container has unexpected size - exiting now!"
-              << std::endl;
-    exit(1);
-  }
-  float sepdsouthadcsum = 0.;
-  float sepdnorthadcsum = 0.;
+  if ((triggervec >> 0xAU) & 0x1U) {
+    //--------------------------- sEPD ------------------------------//
+    TowerInfoContainer *_sepd_towerinfo =
+        findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
+    unsigned int ntowers = 0;
+    if (_sepd_towerinfo)
+      ntowers = _sepd_towerinfo->size();
+    if (ntowers != 744) {
+      std::cout << "sEPD container has unexpected size - exiting now!"
+                << std::endl;
+      exit(1);
+    }
+    float sepdsouthadcsum = 0.;
+    float sepdnorthadcsum = 0.;
+    if (_sepd_towerinfo) {
+      for (unsigned int i = 0; i < ntowers; i++) {
+        float _time =
+            _sepd_towerinfo->get_tower_at_channel(i)->get_time_float();
+        float _e = _sepd_towerinfo->get_tower_at_channel(i)->get_energy();
+        int arm = TowerInfoDefs::get_epd_arm(v[i]);
+        if (_time > 0.) {
+          h_GlobalQA_sEPD_tile[i]->Fill(_e);
 
-  if (_sepd_towerinfo) {
-    for (unsigned int i = 0; i < ntowers; i++) {
-      float _time = _sepd_towerinfo->get_tower_at_channel(i)->get_time_float();
-      float _e = _sepd_towerinfo->get_tower_at_channel(i)->get_energy();
-      int arm = TowerInfoDefs::get_epd_arm(v[i]);
-      if (_time > 0.) {
-        h_GlobalQA_sEPD_tile[i]->Fill(_e);
-
-        if (arm == 0) {
-          sepdsouthadcsum += _e;
-        } else if (arm == 1) {
-          sepdnorthadcsum += _e;
+          if (arm == 0) {
+            sepdsouthadcsum += _e;
+          } else if (arm == 1) {
+            if (i != 29) // problematic channel
+            {
+              sepdnorthadcsum += _e;
+            }
+          }
         }
       }
-    }
 
-    h_GlobalQA_sEPD_adcsum_s->Fill(sepdsouthadcsum);
-    h_GlobalQA_sEPD_adcsum_n->Fill(sepdnorthadcsum);
-    h2_GlobalQA_sEPD_adcsum_ns->Fill(sepdnorthadcsum, sepdsouthadcsum);
+      h_GlobalQA_sEPD_adcsum_s->Fill(sepdsouthadcsum);
+      h_GlobalQA_sEPD_adcsum_n->Fill(sepdnorthadcsum);
+      h2_GlobalQA_sEPD_adcsum_ns->Fill(sepdnorthadcsum, sepdsouthadcsum);
+    }
   }
 
   if ((triggervec >> 0x3U) & 0x1U) {
