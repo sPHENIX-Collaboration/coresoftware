@@ -103,7 +103,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   // 1 - use BbcReco ZVtx
   // 2 - use NO zvertex (zvtx = 0)
 
-  float m_min_cluster_e{0.5};
+  float m_min_cluster_e{0.0};
 
   std::string m_inputnodename;
   std::string m_outputnodename;
