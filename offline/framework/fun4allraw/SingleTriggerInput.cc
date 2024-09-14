@@ -298,7 +298,7 @@ bool SingleTriggerInput::GetSomeMoreEvents(const unsigned int keep)
               << ", keep: " << keep
               << std::endl;
   }
-// how many events should be stored upstream (keep) plus number of events kept locally
+  // how many events should be stored upstream (keep) plus number of events kept locally
   if (m_PacketMap.size() < std::max(2U, keep + m_LocalPoolDepth))  // at least 2 events in pool
   {
     return true;

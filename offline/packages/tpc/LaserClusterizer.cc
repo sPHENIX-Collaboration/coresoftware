@@ -286,7 +286,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
       {
 	m_clusterTree->Fill();
       }
-      return Fun4AllReturnCodes::ABORTEVENT;
+      return Fun4AllReturnCodes::EVENT_OK;
     }
 
     for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
@@ -308,13 +308,13 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
            hitr != hitrangei.second;
            ++hitr)
       {
-        float_t fadc = (hitr->second->getAdc()) - m_adc_threshold;  // proper int rounding +0.5
+        float_t fadc = hitr->second->getAdc();  // proper int rounding +0.5
         unsigned short adc = 0;
-        if (fadc > 0)
+        if (fadc > m_adc_threshold)
         {
           adc = (unsigned short) fadc;
         }
-        if (adc <= 0)
+        if (adc <= m_adc_threshold)
         {
           continue;
         }
@@ -546,9 +546,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
         double adc = iterKey.first;
 	
 	bool foundLayer = false;
-	for(int i=0; i<(int)usedLayer.size(); i++)
+	for(float i : usedLayer)
 	{
-	  if(coords[0] == usedLayer[i])
+	  if(coords[0] == i)
 	  {
 	    foundLayer = true;
 	    break;
@@ -561,9 +561,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
 	}
 
 	bool foundIPhi = false;
-	for(int i=0; i<(int)usedIPhi.size(); i++)
+	for(float i : usedIPhi)
 	{
-	  if(coords[1] == usedIPhi[i])
+	  if(coords[1] == i)
 	  {
 	    foundIPhi = true;
 	    break;
@@ -576,9 +576,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
 	}
 
 	bool foundIT = false;
-	for(int i=0; i<(int)usedIT.size(); i++)
+	for(float i : usedIT)
 	{
-	  if(coords[2] == usedIT[i])
+	  if(coords[2] == i)
 	  {
 	    foundIT = true;
 	    break;

@@ -5,8 +5,8 @@
 
 #include <fun4all/SubsysReco.h>
 /* #include <trackbase/ActsGeometry.h> */
-#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TpcDefs.h>
 
 /* #include <trackbase/TrkrClusterContainer.h> */
 /* #include <trackbase/TrkrCluster.h> */
@@ -29,6 +29,7 @@ class TH2;
 class TrkrClusterContainer;
 class TProfile;
 class TProfile2D;
+class TNtuple;
 class SvtxVertexMap;
 class TrackSeedContainer;
 class TpcDistortionCorrectionContainer;
@@ -58,6 +59,8 @@ class TpcSeedsQA : public SubsysReco
   void setVertexMapName(const std::string& name) { m_vertexMapName = name; }
   std::string gettVertexMapName() { return m_vertexMapName; }
   float calc_dedx(TrackSeed* tpcseed);
+  void setSegment(const int segment) { m_segment = segment; }
+  void segment(const int seg) { m_segment = seg; }
 
  private:
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
@@ -65,6 +68,7 @@ class TpcSeedsQA : public SubsysReco
   std::string getHistoPrefix() const;
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
+  std::pair<float, float> cal_tpc_eta_min_max(float vtxz);
 
   std::string m_clusterContainerName{"TRKR_CLUSTER"};
   std::string m_actsGeomName{"ActsGeometry"};
@@ -101,8 +105,10 @@ class TpcSeedsQA : public SubsysReco
   TProfile2D* h_avgnclus_eta_phi_neg{nullptr};
   // TH1* h_trackcrossing_pos{nullptr};
   // TH1* h_trackcrossing_neg{nullptr};
-  TH2* h_dcaxyorigin_phi_pos{nullptr};
-  TH2* h_dcaxyorigin_phi_neg{nullptr};
+  TH2* h_dcaxyorigin_phi_north_pos{nullptr};
+  TH2* h_dcaxyorigin_phi_south_pos{nullptr};
+  TH2* h_dcaxyorigin_phi_north_neg{nullptr};
+  TH2* h_dcaxyorigin_phi_south_neg{nullptr};
   TH2* h_dcaxyvtx_phi_pos{nullptr};
   TH2* h_dcaxyvtx_phi_neg{nullptr};
   TH2* h_dcazorigin_phi_pos{nullptr};
@@ -149,6 +155,12 @@ class TpcSeedsQA : public SubsysReco
 
   TH1* h_cluster_phisize1_fraction_mean_denominator_side0[3] = {nullptr};
   TH1* h_cluster_phisize1_fraction_mean_denominator_side1[3] = {nullptr};
+
+  TNtuple* nt_sector_event_summary = {nullptr};
+
+  int m_bco = 0;;
+  int m_event = 0;
+  int m_segment = 0;
 
   double frac_side0_pt[3][4] = {{0}};
   double frac_side1_pt[3][4] = {{0}};

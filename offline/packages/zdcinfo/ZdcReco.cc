@@ -88,8 +88,11 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
   //---------------------------------
 
   ResetMe();
-  radius_north = std::numeric_limits<float>::quiet_NaN();
-  radius_south = std::numeric_limits<float>::quiet_NaN();
+  _z_vertex =  std::numeric_limits<float>::quiet_NaN();
+  _radius_north = std::numeric_limits<float>::quiet_NaN();
+  _radius_south = std::numeric_limits<float>::quiet_NaN();
+  _sumSt = 0.;
+  _sumNt = 0.;
   _sumS = 0.;
   _sumN = 0.;
   _nhor = 0;
@@ -123,8 +126,8 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
       float zdc_time = _tower->get_time_float();
 
       if (TowerInfoDefs::isZDC(ch)) {
-        vzdcadc.push_back(zdc_e);
-        vzdctime.push_back(zdc_time);
+          vzdcadc.push_back(zdc_e);
+          vzdctime.push_back(zdc_time);
       }
 
       if (TowerInfoDefs::isSMD(ch)) {
@@ -194,6 +197,16 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
       smd_south_fired = true;
     }
 
+   if (smd_north_fired) {
+      _radius_north =
+          std::sqrt(smd_pos[1] * smd_pos[1] + smd_pos[0] * smd_pos[0]);
+    }
+    if (smd_south_fired) {
+      _radius_south =
+          std::sqrt(smd_pos[3] * smd_pos[3] + smd_pos[2] * smd_pos[2]);
+    }
+
+
     // apply time cuts per zdc and get sums
     for (int i = 0; i < zsize; i++) {
       unsigned int key = TowerInfoDefs::encode_zdc(i);
@@ -205,30 +218,37 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
             _sumS = vzdcadc[0] * cdbttree->GetFloatValue(0, m_fieldname) +
                     vzdcadc[2] * cdbttree->GetFloatValue(2, m_fieldname) +
                     vzdcadc[4] * cdbttree->GetFloatValue(4, m_fieldname);
+            _sumSt = vzdcadc[0] * cdbttree->GetFloatValue(0, m_fieldname) * vzdctime[0] +
+                     vzdcadc[2] * cdbttree->GetFloatValue(2, m_fieldname) * vzdctime[2] +
+                     vzdcadc[4] * cdbttree->GetFloatValue(4, m_fieldname) * vzdctime[4];
           }
         } else if (arm == 1) {
           if (vzdcadc[8] > _zdc1_e && vzdcadc[10] > _zdc2_e) {
             _sumN = vzdcadc[8] * cdbttree->GetFloatValue(8, m_fieldname) +
                     vzdcadc[10] * cdbttree->GetFloatValue(10, m_fieldname) +
                     vzdcadc[12] * cdbttree->GetFloatValue(12, m_fieldname);
+            _sumNt = vzdcadc[8] * cdbttree->GetFloatValue(8, m_fieldname) * vzdctime[8] +
+                     vzdcadc[10] * cdbttree->GetFloatValue(10, m_fieldname) * vzdctime[10] +
+                     vzdcadc[12] * cdbttree->GetFloatValue(12, m_fieldname) * vzdctime[12];
           }
         }
       }
     }
+      
 
-    if (smd_north_fired) {
-      radius_north =
-          std::sqrt(smd_pos[1] * smd_pos[1] + smd_pos[0] * smd_pos[0]);
-    }
-    if (smd_south_fired) {
-      radius_south =
-          std::sqrt(smd_pos[3] * smd_pos[3] + smd_pos[2] * smd_pos[2]);
-    }
-
+      //in ns
+    double south_time_weighted = (_sumSt / _sumS) * _t;
+    double north_time_weighted = (_sumNt / _sumN) * _t;
+    double time_diff_ns_weighted = south_time_weighted - north_time_weighted;
+    _z_vertex = time_diff_ns_weighted * 0.5 * _c;
+      
+     
     m_zdcinfo->set_zdc_energy(0, _sumS);
     m_zdcinfo->set_zdc_energy(1, _sumN);
-    m_zdcinfo->set_radius(0, radius_south);
-    m_zdcinfo->set_radius(1, radius_north);
+    m_zdcinfo->set_radius(0, _radius_south);
+    m_zdcinfo->set_radius(1, _radius_north);
+    m_zdcinfo->set_zvertex(_z_vertex);
+      
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

@@ -57,7 +57,7 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   {
   _file = new TFile("track_match.root", "RECREATE");
   _tree = new TNtuple("track_match", "track_match",
-                      "event:siphi:sieta:six:siy:siz:tpcphi:tpceta:tpcx:tpcy:tpcz:tpcid:siid");
+                      "event:sicrossing:siq:siphi:sieta:six:siy:siz:sipx:sipy:sipz:tpcq:tpcphi:tpceta:tpcx:tpcy:tpcz:tpcpx:tpcpy:tpcpz:tpcid:siid");
   }
   // put these in the output file
   cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta "
@@ -416,6 +416,11 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     double tpc_y = _tracklet_tpc->get_y();
     double tpc_z = _tracklet_tpc->get_z();
 
+    double tpc_px = _tracklet_tpc->get_px();
+    double tpc_py = _tracklet_tpc->get_py();
+    double tpc_pz = _tracklet_tpc->get_pz();
+	int tpc_q = _tracklet_tpc->get_charge();
+
     bool matched = false;
 
     // Now search the silicon track list for a match in eta and phi
@@ -435,6 +440,14 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       double si_x = _tracklet_si->get_x();
       double si_y = _tracklet_si->get_y();
       double si_z = _tracklet_si->get_z();
+
+      double si_px = _tracklet_si->get_px();
+      double si_py = _tracklet_si->get_py();
+      double si_pz = _tracklet_si->get_pz();
+
+
+	  int si_crossing = _tracklet_si->get_crossing();
+	  int si_q = _tracklet_si->get_charge();
       unsigned int siid = phtrk_iter_si;
   if(_test_windows)
   {
@@ -442,6 +455,9 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
                   (float) si_phi, (float) si_eta, (float) si_x, (float) si_y, (float) si_z,
                   (float) tpc_phi, (float) tpc_eta, (float) tpc_x, (float) tpc_y, (float) tpc_z,
                   (float) siid, (float) tpcid);
+
+	  _tree->Fill((int) si_crossing, (int) si_q, (float) si_px, (float) si_py, (float) si_pz,
+                  (int) tpc_q,  (float) tpc_px, (float) tpc_py, (float) tpc_pz);
   }
       if (fabs(tpc_eta - si_eta) < _eta_search_win * mag)
       {
@@ -515,11 +531,12 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       // temporary!
       if (_test_windows)
       {
-        cout << " Try_silicon:  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi
+        cout << " Try_silicon: crossing" << si_crossing <<  "  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi <<  "   si_q" << si_q << "   tpc_q" << tpc_q
              << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " tpc_x " << tpc_x << " tpc_y " << tpc_y << " tpc_z " << tpc_z
              << " dx " << tpc_x - si_x << " dy " << tpc_y - si_y << " dz " << tpc_z - si_z
-             << endl;
+			 << endl;
       }
+	
     }
     // if no match found, keep tpc seed for fitting
     if (!matched)

@@ -42,6 +42,8 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
   {
     h_nhits_sectors[s] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s)).c_str()));
     h_nhits_sectors_fees[s] = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees").c_str()));
+    h_nhits_sectors_laser[s] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_laser").c_str()));
+    h_nhits_sectors_fees_laser[s] = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees_laser").c_str()));
     for (int r = 0; r < 3; r++)
     {
       h_nhits_sam[s][r] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sample_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str()));
@@ -49,7 +51,6 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  h_bco = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "bco").c_str()));
   h_xy_N = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_North").c_str()));
   h_xy_S = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_South").c_str()));
 
@@ -60,14 +61,13 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
 int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
 {
   // std::vector < TpcRawHit* > hits;
-  std::vector<uint64_t> bcos;
   std::vector<int> sectors;
   std::vector<uint16_t> fees;
 
-  // hits.clear();
-  bcos.clear();
-  sectors.clear();
-  fees.clear();
+  float nhit_sectors[24] = {0};
+  float nhit_sectors_fees[24][26] = {{0}};
+  float nhit_sectors_laser[24] = {0};
+  float nhit_sectors_fees_laser[24][26] = {{0}};
 
   unsigned int raw_hit_num = 0;
   if (rawhitcont)
@@ -76,7 +76,6 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
     for (unsigned int i = 0; i < raw_hit_num; i++)
     {
       auto hit = rawhitcont->get_hit(i);
-      uint64_t bco = hit->get_gtm_bco();
       uint16_t sam = hit->get_samples();
       int32_t packet_id = hit->get_packetid();
       int ep = (packet_id - 4000) % 10;
@@ -104,49 +103,52 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
         phi = M.getPhi(feeM, channel) + (18 - sector) * M_PI / 6;
       }
 
-      std::vector<int> values;
-      values.reserve(sam);
-      for (int sampleN = 0; sampleN < sam; sampleN++)
-      {
-        values.push_back((int) hit->get_adc(sampleN));
-      }
-      std::sort(values.begin(), values.end());
-      size_t size = values.size();
-      float median;
-      if (size % 2 == 0)
-      {
-        median = (values[size / 2 - 1] + values[size / 2]) / 2.0;
-      }
-      else
-      {
-        median = values[size / 2];
-      }
-      std::vector<int> selectedValues;
-      for (int value : values)
-      {
-        if (value >= median - 40 && value <= median + 40)
-        {
-          selectedValues.push_back(value);
-        }
-      }
-
+      float median = 60;
       float stdDev = 3;
-      if (selectedValues.size() > 0)
+      if (longPresample)
       {
-        float mean = 0.0;
-        for (int value : selectedValues)
+        std::vector<int> values;
+        values.reserve(sam);
+        for (int sampleN = 0; sampleN < sam; sampleN++)
         {
-          mean += value;
+          values.push_back((int) hit->get_adc(sampleN));
         }
-        mean /= selectedValues.size();
-        float sumSquares = 0.0;
-        for (int value : selectedValues)
+        std::sort(values.begin(), values.end());
+        size_t size = values.size();
+        if (size % 2 == 0)
         {
-          float diff = value - mean;
-          sumSquares += std::pow(diff, 2);
+          median = (values[size / 2 - 1] + values[size / 2]) / 2.0;
         }
-        float variance = sumSquares / selectedValues.size();
-        stdDev = std::sqrt(variance);
+        else
+        {
+          median = values[size / 2];
+        }
+        std::vector<int> selectedValues;
+        for (int value : values)
+        {
+          if (value >= median - 40 && value <= median + 40)
+          {
+            selectedValues.push_back(value);
+          }
+        }
+
+        if (selectedValues.size() > 0)
+        {
+          float mean = 0.0;
+          for (int value : selectedValues)
+          {
+            mean += value;
+          }
+          mean /= selectedValues.size();
+          float sumSquares = 0.0;
+          for (int value : selectedValues)
+          {
+            float diff = value - mean;
+            sumSquares += std::pow(diff, 2);
+          }
+          float variance = sumSquares / selectedValues.size();
+          stdDev = std::sqrt(variance);
+        }
       }
 
       for (int sampleN = 0; sampleN < sam; sampleN++)
@@ -166,13 +168,16 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
           h_xy_S->Fill(R * cos(phi), R * sin(phi));
         }
         h_nhits_sam[sector][region - 1]->Fill(sampleN);
-        h_adc[sector][region - 1]->Fill(adc);
+        h_adc[sector][region - 1]->Fill(adc-median);
+        if (sampleN >= 400 && sampleN <= 430)
+        {
+          nhit_sectors_laser[sector]++;
+          nhit_sectors_fees_laser[sector][fee]++;
+          continue;
+        }
+        nhit_sectors[sector]++;
+        nhit_sectors_fees[sector][fee]++;
       }
-
-      // hits.push_back( hit );
-      bcos.push_back(bco);
-      sectors.push_back(sector);
-      fees.push_back(fee);
     }
   }
 
@@ -182,21 +187,14 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  float nhit_sectors[24] = {0};
-  float nhit_sectors_fees[24][26] = {{0}};
-
-  for (int i = 0; i < (int) raw_hit_num; i++)
-  {
-    h_bco->Fill(bcos[i]);
-    nhit_sectors[sectors[i]]++;
-    nhit_sectors_fees[sectors[i]][fees[i]]++;
-  }
   for (int s = 0; s < 24; s++)
   {
     h_nhits_sectors[s]->Fill(nhit_sectors[s]);
+    h_nhits_sectors_laser[s]->Fill(nhit_sectors_laser[s]);
     for (int f = 0; f < 26; f++)
     {
       h_nhits_sectors_fees[s]->Fill(f, nhit_sectors_fees[s][f]);
+      h_nhits_sectors_fees_laser[s]->Fill(f, nhit_sectors_fees_laser[s][f]);
     }
   }
 
@@ -226,18 +224,28 @@ void TpcRawHitQA::createHistos()
   {
     {
       auto h = new TH1F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s)).c_str(),
-                        std::string("Number of Hits in Sector " + std::to_string(s) + ";Number of Hits;Entries").c_str(), 100, 0, 10000);
+                        std::string("Number of Hits in Sector " + std::to_string(s) + ";Number of Hits/Event;Entries").c_str(), 100, 0, 30000);
       hm->registerHisto(h);
     }
     {
       auto h = new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees").c_str(),
-                        std::string("Sector " + std::to_string(s) + " Fee Hit Distribution;FEE;Number of Hits").c_str(), 26, -0.5, 25.5, 100, 0, 1000);
+                        std::string("Sector " + std::to_string(s) + " Fee Hit Distribution;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 100, 0, 3000);
+      hm->registerHisto(h);
+    }
+    {
+      auto h = new TH1F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_laser").c_str(),
+                        std::string("Laser Hits in Sector " + std::to_string(s) + ";Number of Hits/Event;Entries").c_str(), 100, 0, 1000);
+      hm->registerHisto(h);
+    }
+    {
+      auto h = new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees_laser").c_str(),
+                        std::string("Sector " + std::to_string(s) + " Fee Laser Hits;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 100, 0, 500);
       hm->registerHisto(h);
     }
     for (int r = 0; r < 3; r++)
     {
       auto h = new TH1F(std::string(getHistoPrefix() + "nhits_sample_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str(),
-                        std::string("Sector " + std::to_string(s) + " Sample Time Distribution;Time Bin [1/20 MHz];Entries").c_str(), 400, -0.5, 399.5);
+                        std::string("Sector " + std::to_string(s) + " Sample Time Distribution;Time Bin [1/20 MHz];Number of Total Hits").c_str(), 1051, -0.5, 1050.5);
       hm->registerHisto(h);
       auto h2 = new TH1F(std::string(getHistoPrefix() + "adc_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str(),
                          std::string("Sector " + std::to_string(s) + " ADC Distribution;ADC-pedestal [ADU];Entries").c_str(), 281, -100, 1024);
@@ -245,10 +253,6 @@ void TpcRawHitQA::createHistos()
     }
   }
 
-  {
-    auto h = new TH1F(std::string(getHistoPrefix() + "bco").c_str(), "BCO distribution;BCO;Entries", 100, 0, TMath::Power(2, 40));
-    hm->registerHisto(h);
-  }
   {
     auto h = new TH2F(std::string(getHistoPrefix() + "xyPos_North").c_str(), "Hit XY distribution (North);X [mm];Y [mm]", 400, -800, 800, 400, -800, 800);
     hm->registerHisto(h);

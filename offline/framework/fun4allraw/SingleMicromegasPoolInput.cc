@@ -156,7 +156,8 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       for (int t = 0; t < n_tagger; ++t)
       {
         const bool is_lvl1 = static_cast<uint8_t>(packet->lValue(t, "IS_LEVEL1_TRIGGER"));
-        if (is_lvl1)
+        const bool is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
+        if (is_lvl1||is_endat)
         {
           const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
           m_BeamClockPacket[gtm_bco].insert(packet_id);
@@ -166,7 +167,10 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
       // loop over waveforms
       const int nwf = packet->iValue(0, "NR_WF");
+
+      // increment counter and histogram
       m_waveform_count_total[packet_id] += nwf;
+      h_waveform_count_total->Fill( std::to_string(packet_id).c_str(), nwf );
 
       if (Verbosity())
       {
@@ -196,6 +200,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       {
         std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
         m_waveform_count_dropped[packet_id] += nwf;
+        h_waveform_count_dropped->Fill( std::to_string(packet_id).c_str(), nwf );
         bco_matching_information.cleanup();
         continue;
       }
@@ -226,8 +231,9 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
         else
         {
-          // increment count
+          // increment counter and histogram
           ++m_waveform_count_dropped[packet_id];
+          h_waveform_count_dropped->Fill( std::to_string(packet_id).c_str(), 1 );
 
           // skip the waverform
           continue;
@@ -525,21 +531,41 @@ void SingleMicromegasPoolInput::createQAHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  h_packet = new TH1I( "h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Matching BCO tagger count; GL1 trigger count", 10, 0, 10 );
-  h_waveform = new TH1I( "h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Matching Waveform count; GL1 trigger count", 4100, 0, 4100 );
+  // number of packets found with BCO from felix matching reference BCO
+  h_packet = new TH1F( "h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Matching BCO tagger count; GL1 trigger count", 10, 0, 10 );
+
+  // number of waveforms found with BCO from felix matching reference BCO
+  h_waveform = new TH1F( "h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Matching Waveform count; GL1 trigger count", 4100, 0, 4100 );
 
   /*
    * first bin is the number of requested GL1 BCO, for reference
    * next two bins is the number of times the GL1 BCO is found in the taggers list for a given packet_id
    * last bin is the sum
    */
-  h_packet_stat = new TH1I( "h_MicromegasBCOQA_packet_stat", "Matching Tagger count per packet; packet id; GL1 trigger count", m_npackets_active+2, 0, m_npackets_active+2 );
+  h_packet_stat = new TH1F( "h_MicromegasBCOQA_packet_stat", "Matching Tagger count per packet; packet id; GL1 trigger count", m_npackets_active+2, 0, m_npackets_active+2 );
   h_packet_stat->GetXaxis()->SetBinLabel(1, "Reference" );
   h_packet_stat->GetXaxis()->SetBinLabel(2, "5001" );
   h_packet_stat->GetXaxis()->SetBinLabel(3, "5002" );
   h_packet_stat->GetXaxis()->SetBinLabel(4, "All" );
+  h_packet_stat->GetYaxis()->SetTitle( "trigger count" );
 
-  for( const auto& h:std::initializer_list<TH1*>{h_packet, h_waveform, h_packet_stat} )
+  // total number of waveform per packet
+  h_waveform_count_total = new TH1F( "h_MicromegasBCOQA_waveform_count_total", "Total number of waveforms per packet", m_npackets_active, 0, m_npackets_active );
+
+  // number of dropped waveform per packet
+  h_waveform_count_dropped = new TH1F( "h_MicromegasBCOQA_waveform_count_dropped", "Number of dropped waveforms per packet", m_npackets_active, 0, m_npackets_active );
+
+  // define axis
+  for( const auto& h:std::initializer_list<TH1*>{h_waveform_count_total, h_waveform_count_dropped} )
+  {
+    h->GetXaxis()->SetBinLabel(1, "5001" );
+    h->GetXaxis()->SetBinLabel(2, "5002" );
+    h->GetYaxis()->SetTitle( "waveform count" );
+    h->GetXaxis()->SetTitle( "packet id" );
+  }
+
+  // register all histograms to histogram manager
+  for( const auto& h:std::initializer_list<TH1*>{h_packet, h_waveform, h_packet_stat, h_waveform_count_total, h_waveform_count_dropped} )
   {
     h->SetFillStyle(1001);
     h->SetFillColor(kYellow);
