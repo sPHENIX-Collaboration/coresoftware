@@ -42,38 +42,62 @@ RawClusterCNNClassifier::RawClusterCNNClassifier(const std::string &name)
 RawClusterCNNClassifier::~RawClusterCNNClassifier() = default;
 
 
-int RawClusterCNNClassifier::Init(PHCompositeNode */*topNode*/)
+int RawClusterCNNClassifier::Init(PHCompositeNode *topNode)
 {
     //init the onnx model
-    std::string modelPath = "/sphenix/u/shuhang98/core_patch/coresoftware/offline/packages/CaloReco/functional_model.onnx";
-    onnxmodule = onnxSession(modelPath);
+    onnxmodule = onnxSession(m_modelPath);
+
+    if(m_inputNodeName == m_outputNodeName)
+    {
+      std::cout<<"RawClusterCNNClassifier::Init: inputNodeName and outputNodeName are the same, setting inplace to true"<<std::endl;
+      inplace = true;
+    }
+    CreateNodes(topNode);
+
     return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
 {
     //get the cluster container
-    
-    std::string clusterNodeName = "CLUSTERINFO_CEMC";
+    std::string clusterNodeName = m_inputNodeName;
     RawClusterContainer *clusterContainer = findNode::getClass<RawClusterContainer>(topNode, clusterNodeName);
     if (!clusterContainer)
     {
-        std::cout << "Could not locate cluster node " << clusterNodeName << std::endl;
-        return Fun4AllReturnCodes::ABORTEVENT;
-    }
-    //I trained the model with the info from towerinfo container, raw tower should also work
-    std::string towerNodeName = "TOWERINFO_CALIB_CEMC";
-    TowerInfoContainer *emcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, towerNodeName);
-    if (!emcTowerContainer)
-    {
-        std::cout << "Could not locate tower node " << towerNodeName << std::endl;
+        std::cout << "RawClusterCNNClassifier::process_event::Could not locate input cluster node " << clusterNodeName << std::endl;
         return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-    RawClusterContainer::ConstRange clusterEnd = clusterContainer->getClusters();
-    RawClusterContainer::ConstIterator clusterIter;
-    for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; ++clusterIter) {
-    RawCluster *recoCluster = clusterIter->second;
+    if(inplace){
+      _clusters = clusterContainer;
+    }
+    else{
+      _clusters->Reset();
+      RawClusterContainer::Map clusterMap = clusterContainer->getClustersMap();
+      for(auto& clusterPair : clusterMap) {
+        RawCluster* recoCluster = clusterPair.second;
+        float clusterE = recoCluster->get_energy();
+        if(clusterE < m_min_cluster_e){
+          continue;
+        }
+        RawCluster* newCluster = new RawCluster(*recoCluster);
+        _clusters->AddCluster(newCluster);
+      }
+    }
+
+
+    //I trained the model with the info from towerinfo container, raw tower should also work
+    std::string towerNodeName = m_towerNodeName;
+    TowerInfoContainer *emcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, towerNodeName);
+    if (!emcTowerContainer)
+    {
+        std::cout << "RawClusterCNNClassifier::process_event Could not locate tower node " << towerNodeName << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+    RawClusterContainer::Map clusterMap = _clusters->getClustersMap();
+    for (auto& clusterPair : clusterMap) {
+    RawCluster* recoCluster = clusterPair.second;
     //reset the prob inplace
     recoCluster->set_prob(-1);
     CLHEP::Hep3Vector vertex(0, 0, 0);
@@ -83,16 +107,16 @@ int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
     {
         continue;
     }
-    const RawCluster::TowerConstRange tower_begin_end =
-            recoCluster->get_towers();
+    const RawCluster::TowerMap tower_map =
+            recoCluster->get_towermap();
 
     int maxtowerE = 0;
     int maxtowerieta = -1;
     int maxtoweriphi = -1;
 
-    for (RawCluster::TowerConstIterator tower_iter = tower_begin_end.first;
-             tower_iter != tower_begin_end.second; ++tower_iter) {
-          RawTowerDefs::keytype tower_key = tower_iter->first;
+    for (auto tower_iter : tower_map)
+    {
+          RawTowerDefs::keytype tower_key = tower_iter.first;
          
           // get ieta iphi
           int ix = RawTowerDefs::decode_index2(tower_key); // iphi?
@@ -178,4 +202,36 @@ void RawClusterCNNClassifier::Print(const std::string &what) const
 {
     std::cout << "RawClusterCNNClassifier::Print(const std::string &what) const Printing info for " << what << std::endl;
     return;
+}
+
+void RawClusterCNNClassifier::CreateNodes(PHCompositeNode *topNode)
+{
+  PHNodeIterator iter(topNode);
+
+  // Grab the CEMC node
+  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    throw std::runtime_error("Failed to find DST node in EmcRawTowerBuilder::CreateNodes");
+  }
+
+  // Get the _det_name subnode
+  PHCompositeNode *cemcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "CEMC"));
+
+  // Check that it is there
+  if (!cemcNode)
+  {
+    cemcNode = new PHCompositeNode("CEMC");
+    dstNode->addNode(cemcNode);
+  }
+  std::string clusterNodeName = m_outputNodeName;
+  _clusters = findNode::getClass<RawClusterContainer>(dstNode, clusterNodeName);
+  if(!_clusters)
+  {
+    _clusters = new RawClusterContainer();
+    PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, clusterNodeName, "PHObject");
+    cemcNode->addNode(clusterNode);
+  }
+
 }
