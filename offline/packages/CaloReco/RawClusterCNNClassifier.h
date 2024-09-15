@@ -46,7 +46,7 @@ class RawClusterCNNClassifier : public SubsysReco
 
   std::string m_inputNodeName{"CLUSTERINFO_CEMC"};
   std::string m_outputNodeName{"CLUSTERINFO_CEMC_CNN"};
-  std::string m_towerNodeName{"TOWER_CALIB_CEMC"};
+  std::string m_towerNodeName{"TOWERINFO_CALIB_CEMC"};
 
   bool inplace{false};
 

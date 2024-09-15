@@ -6,6 +6,7 @@ I trained a crappy CNN to classify EMCal clusters as photon or not photon. S.Li 
 #include "RawClusterCNNClassifier.h"
 
 #include <calobase/RawCluster.h>
+#include <calobase/RawClusterv1.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 #include <calobase/RawTower.h>
@@ -75,12 +76,14 @@ int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
       _clusters->Reset();
       RawClusterContainer::Map clusterMap = clusterContainer->getClustersMap();
       for(auto& clusterPair : clusterMap) {
-        RawCluster* recoCluster = clusterPair.second;
+        //cast to RawClusterv1
+
+        RawCluster* recoCluster = (clusterPair.second);
         float clusterE = recoCluster->get_energy();
         if(clusterE < m_min_cluster_e){
           continue;
         }
-        RawCluster* newCluster = new RawCluster(*recoCluster);
+        RawCluster* newCluster = (RawCluster*)recoCluster->CloneMe();
         _clusters->AddCluster(newCluster);
       }
     }
