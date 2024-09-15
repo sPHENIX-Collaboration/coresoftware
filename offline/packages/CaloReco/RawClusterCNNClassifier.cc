@@ -19,7 +19,6 @@ I trained a crappy CNN to classify EMCal clusters as photon or not photon. S.Li 
 #include <calobase/TowerInfoDefs.h>
 
 #include <ffaobjects/EventHeader.h>
-#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <phool/PHCompositeNode.h>
@@ -73,7 +72,6 @@ int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
     RawClusterContainer::Map clusterMap = clusterContainer->getClustersMap();
     for (auto &clusterPair : clusterMap)
     {
-      // cast to RawClusterv1
 
       RawCluster *recoCluster = (clusterPair.second);
       float clusterE = recoCluster->get_energy();
