@@ -94,6 +94,13 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   //! keeps track of how many waveforms are found for a given BCO
   TH1 *h_waveform{nullptr};
 
+  //! total number of waveforms per packet
+  TH1 *h_waveform_count_total{nullptr};
+
+  //! total number of dropped waveforms per packet
+  /*! waveforms are dropped when their FEE-BCO cannot be associated to any global BCO */
+  TH1 *h_waveform_count_dropped{nullptr};
+
   //@}
 
 };
