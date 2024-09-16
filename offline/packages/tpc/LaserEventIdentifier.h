@@ -6,8 +6,8 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <LaserEventInfo.h>
-#include <LaserEventInfov1.h>
+#include <tpc/LaserEventInfo.h>
+#include <tpc/LaserEventInfov1.h>
 
 
 #include <TFile.h>
