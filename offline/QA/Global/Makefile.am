@@ -29,6 +29,7 @@ libglobalQA_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lffarawobjects \
+  -lcdbobjects \
   -lqautils
 
 ################################################

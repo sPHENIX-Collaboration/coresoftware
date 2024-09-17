@@ -1,10 +1,11 @@
 #ifndef GLOBALQA_GLOBALQA_H
 #define GLOBALQA_GLOBALQA_H
 
+#include <cdbobjects/CDBTTree.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-#include <vector> 
+#include <vector>
 
 // Forward declarations
 class PHCompositeNode;
@@ -17,7 +18,7 @@ public:
   //! constructor
   GlobalQA(const std::string &name =
                "GlobalQA"); // const std::string &filename = "testQA.root");
-                            // //int nevents = 100);
+  // //int nevents = 100);
 
   //! destructor
   ~GlobalQA() override;
@@ -47,7 +48,6 @@ private:
   int evtcount = 0;
   int Getpeaktime(TH1 *h);
   void createHistos();
-  float TSAMPLE = 1.0 / (9.4e+6 * 6);
 
   // MBD histos
   TH1 *h_GlobalQA_mbd_zvtx = nullptr;
@@ -56,17 +56,34 @@ private:
   TH1 *h_GlobalQA_calc_zvtx_wide = nullptr;
   TH1 *h_GlobalQA_mbd_charge_s = nullptr;
   TH1 *h_GlobalQA_mbd_charge_n = nullptr;
+  TH1 *h_GlobalQA_mbd_charge_sum = nullptr;
+  TH2 *h2_GlobalQA_mbd_charge_NS_correlation = nullptr;
   TH1 *h_GlobalQA_mbd_nhit_s = nullptr;
   TH1 *h_GlobalQA_mbd_nhit_n = nullptr;
+  TH2 *h2_GlobalQA_mbd_nhits_NS_correlation = nullptr;
   TH1 *h_GlobalQA_mbd_zvtxq = nullptr;
+
+  // sEPD
+  std::string m_sEPDMapName;
+  std::string m_sEPDfieldname;
+  bool m_overrideSEPDMapName{false};
+  bool m_overrideSEPDFieldName{false};
+  CDBTTree *cdbttree{nullptr};
+  unsigned int key = 999;
+  std::vector<unsigned int> v;
+  TH1 *h_GlobalQA_sEPD_tile[744] = {nullptr};
+  TH1 *h_GlobalQA_sEPD_adcsum_s{nullptr};
+  TH1 *h_GlobalQA_sEPD_adcsum_n{nullptr};
+  TH2 *h2_GlobalQA_sEPD_adcsum_ns{nullptr};
 
   // ZDC histos
   TH1 *h_GlobalQA_zdc_zvtx = nullptr;
   TH1 *h_GlobalQA_zdc_zvtx_wide = nullptr;
   TH1 *h_GlobalQA_zdc_energy_s = nullptr;
   TH1 *h_GlobalQA_zdc_energy_n = nullptr;
-  TH1* h_GlobalQA_triggerVec{nullptr};
-  
+  TH1 *h_GlobalQA_triggerVec{nullptr};
+  float zdc_zvtx{std::numeric_limits<float>::quiet_NaN()};
+
   int _eventcounter{0};
   int _range{1};
 
