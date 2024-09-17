@@ -35,7 +35,6 @@ LaserEventIdentifier::LaserEventIdentifier(const std::string &name)
 
 int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
 {
-
   // get node containing the digitized hits
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hits)
@@ -45,7 +44,7 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
   }
 
   m_geom_container =
-    findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!m_geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -72,7 +71,7 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
 
   PHNodeIterator dstiter(dstNode);
   PHCompositeNode *DetNode =
-    dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
   if (!DetNode)
   {
     DetNode = new PHCompositeNode("TRKR");
@@ -88,14 +87,13 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
   {
     m_debugFile = new TFile(m_debugFileName.c_str(), "RECREATE");
   }
-  float timeHistMax=m_time_samples_max;
-  timeHistMax-=0.5;
+  float timeHistMax = m_time_samples_max;
+  timeHistMax -= 0.5;
   m_itHist_0 = new TH1I("m_itHist_0", "side 0;it", m_time_samples_max, -0.5, timeHistMax);
   m_itHist_1 = new TH1I("m_itHist_1", "side 1;it", m_time_samples_max, -0.5, timeHistMax);
 
   if (m_debug)
   {
-
     m_hitTree = new TTree("hitTree", "hitTree");
     m_hitTree->Branch("itHist_0", &m_itHist_0);
     m_hitTree->Branch("itHist_1", &m_itHist_1);
@@ -104,16 +102,13 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
     m_hitTree->Branch("peakSample_1", &peakSample1);
     m_hitTree->Branch("peakWidth_0", &peakWidth0);
     m_hitTree->Branch("peakWidth_1", &peakWidth1);
-
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
 {
-
   m_laserEventInfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
   if (!m_laserEventInfo)
   {
@@ -131,18 +126,18 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
 
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-	 hitr != hitrangei.second;
-	 ++hitr)
+         hitr != hitrangei.second;
+         ++hitr)
     {
       int it = TpcDefs::getTBin(hitr->first);
 
       if (side == 0)
       {
-	m_itHist_0->Fill(it);
+        m_itHist_0->Fill(it);
       }
       else
       {
-	m_itHist_1->Fill(it);
+        m_itHist_1->Fill(it);
       }
     }
   }
@@ -156,31 +151,31 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     itMeanContent_1 += m_itHist_1->GetBinContent(i);
   }
 
-  itMeanContent_0 = 1.0*itMeanContent_0 / m_time_samples_max;
-  itMeanContent_1 = 1.0*itMeanContent_1 / m_time_samples_max;
+  itMeanContent_0 = 1.0 * itMeanContent_0 / m_time_samples_max;
+  itMeanContent_1 = 1.0 * itMeanContent_1 / m_time_samples_max;
 
-  m_itHist_0->GetXaxis()->SetRange(320, m_time_samples_max-0.5);
+  m_itHist_0->GetXaxis()->SetRange(320, m_time_samples_max - 0.5);
   double itMax_0 = m_itHist_0->GetBinCenter(m_itHist_0->GetMaximumBin());
   double itMaxContent_0 = m_itHist_0->GetMaximum();
   m_itHist_0->GetXaxis()->SetRange(0, 0);
 
-  m_itHist_1->GetXaxis()->SetRange(320, m_time_samples_max-0.5);
+  m_itHist_1->GetXaxis()->SetRange(320, m_time_samples_max - 0.5);
   double itMax_1 = m_itHist_1->GetBinCenter(m_itHist_1->GetMaximumBin());
   double itMaxContent_1 = m_itHist_1->GetMaximum();
   m_itHist_1->GetXaxis()->SetRange(0, 0);
 
-  TF1 *f0 = new TF1("f0","gausn(0)");
-  f0->SetParameters(itMaxContent_0,itMax_0,1);
-  f0->SetParLimits(1,itMax_0-2,itMax_0+2);
-  m_itHist_0->Fit(f0,"B");
+  TF1 *f0 = new TF1("f0", "gausn(0)");
+  f0->SetParameters(itMaxContent_0, itMax_0, 1);
+  f0->SetParLimits(1, itMax_0 - 2, itMax_0 + 2);
+  m_itHist_0->Fit(f0, "B");
 
-  TF1 *f1 = new TF1("f1","gausn(0)");
-  f1->SetParameters(itMaxContent_1,itMax_1,1);
-  f1->SetParLimits(1,itMax_1-2,itMax_1+2);
-  m_itHist_1->Fit(f1,"B");
+  TF1 *f1 = new TF1("f1", "gausn(0)");
+  f1->SetParameters(itMaxContent_1, itMax_1, 1);
+  f1->SetParLimits(1, itMax_1 - 2, itMax_1 + 2);
+  m_itHist_1->Fit(f1, "B");
 
   if (itMaxContent_0 / itMeanContent_0 < 7 && itMaxContent_1 / itMeanContent_1 < 7 && itMaxContent_0 < 1000 && itMaxContent_1 < 1000)
-  {    
+  {
     m_laserEventInfo->setIsLaserEvent(false);
 
     isLaserEvent = false;
@@ -193,9 +188,9 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   {
     m_laserEventInfo->setIsLaserEvent(true);
     m_laserEventInfo->setPeakSample(0, (int) itMax_0);
-    m_laserEventInfo->setPeakWidth(0,f0->GetParameter(2));
+    m_laserEventInfo->setPeakWidth(0, f0->GetParameter(2));
     m_laserEventInfo->setPeakSample(1, (int) itMax_1);
-    m_laserEventInfo->setPeakWidth(1,f1->GetParameter(2));
+    m_laserEventInfo->setPeakWidth(1, f1->GetParameter(2));
 
     isLaserEvent = true;
     peakSample0 = (int) itMax_0;
@@ -204,31 +199,24 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     peakWidth1 = f1->GetParameter(2);
   }
 
-
-  if(m_debug)
+  if (m_debug)
   {
-
     m_hitTree->Fill();
   }
   return Fun4AllReturnCodes::EVENT_OK;
-
-
 }
-
 
 int LaserEventIdentifier::ResetEvent(PHCompositeNode * /*topNode*/)
 {
-
   m_itHist_0->Reset();
   m_itHist_1->Reset();
 
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 int LaserEventIdentifier::End(PHCompositeNode * /*topNode*/)
 {
-  if(m_debug)
+  if (m_debug)
   {
     m_debugFile->cd();
     m_hitTree->Write();
