@@ -62,8 +62,7 @@ class PHTypedNodeIterator : public PHNodeIterator
 };
 
 template <class T>
-T&
-    PHTypedNodeIterator<T>::operator*()
+T& PHTypedNodeIterator<T>::operator*()
 {
   return *(myIODataNode->getData());
 }

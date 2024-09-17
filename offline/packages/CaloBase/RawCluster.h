@@ -168,6 +168,12 @@ class RawCluster : public PHObject
     return std::numeric_limits<float>::signaling_NaN();
   }
 
+  virtual std::vector<float> get_shower_shapes(float /*tower_thresh*/) const
+  {
+    PHOOL_VIRTUAL_WARN("get_shower_shapes(float tower_thresh)");
+    return std::vector<float>();
+  }
+
   //  //! truth cluster's PHG4Particle ID
   //  virtual int get_truth_track_ID() const
   //  {

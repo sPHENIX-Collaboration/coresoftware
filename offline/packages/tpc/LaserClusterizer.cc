@@ -552,6 +552,51 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
       if (iterKey.second.first == spechitkey)
       {
         double adc = iterKey.first;
+	
+	bool foundLayer = false;
+	for(float i : usedLayer)
+	{
+	  if(coords[0] == i)
+	  {
+	    foundLayer = true;
+	    break;
+	  }
+	}
+	
+	if (!foundLayer)
+	{
+	  usedLayer.push_back(coords[0]);
+	}
+
+	bool foundIPhi = false;
+	for(float i : usedIPhi)
+	{
+	  if(coords[1] == i)
+	  {
+	    foundIPhi = true;
+	    break;
+	  }
+	}
+	
+	if (!foundIPhi)
+	{
+	  usedIPhi.push_back(coords[1]);
+	}
+
+	bool foundIT = false;
+	for(float i : usedIT)
+	{
+	  if(coords[2] == i)
+	  {
+	    foundIT = true;
+	    break;
+	  }
+	}
+	
+	if (!foundIT)
+	{
+	  usedIT.push_back(coords[2]);
+	}
 
         bool foundLayer = false;
         for (float i : usedLayer)

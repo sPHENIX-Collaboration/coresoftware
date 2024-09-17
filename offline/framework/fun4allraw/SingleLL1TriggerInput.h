@@ -4,7 +4,6 @@
 #include "SingleTriggerInput.h"
 
 #include <cstdint>
-#include <list>
 #include <map>
 #include <set>
 #include <string>
@@ -26,7 +25,6 @@ class SingleLL1TriggerInput : public SingleTriggerInput
   void CreateDSTNode(PHCompositeNode *topNode) override;
 
  private:
-  Packet **plist{nullptr};
 };
 
 #endif

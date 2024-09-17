@@ -1229,8 +1229,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	    TVector2 vin(cpos.x(),cpos.y());
 	    TVector2 vout;
 	    int corrside = 0;//TpcDefs::getSide(corrkey);
-	    if(cpos.z()>0)
+	    if(cpos.z()>0) {
 	      corrside=1;
+}
 	    vout.SetMagPhi(clusr,vin.Phi()-drphi[corrside][corrlayer]);
 	    Acts::Vector3 point(vout.X(),vout.Y(),cpos.z());
 	    clusterPositionsVtx2.insert(vtxit2+n, point);
@@ -1558,7 +1559,7 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   int vertexID = track->get_vertex_id();
   fX[n_track::ntrkvertexID] = vertexID;
   
-  if (vertexID >= 0&& vertexmap !=0)
+  if (vertexID >= 0&& vertexmap !=nullptr)
   {
     if(vertexmap->size()>100000){
       cout << "too many vtx's" << endl;
@@ -1621,8 +1622,7 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
 		       tpcseed->end_cluster_keys());
 
     std::vector<float> dedxlist;
-    for (unsigned int i = 0; i < clusterKeys.size(); i++){
-      TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
+    for (unsigned long cluster_key : clusterKeys){
       unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
       if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId){
 	  continue;
@@ -1669,8 +1669,7 @@ float TrkrNtuplizer::get_n1pix(TrackSeed *tpcseed){
 		       tpcseed->end_cluster_keys());
 
     float n1pix = 0;
-    for (unsigned int i = 0; i < clusterKeys.size(); i++){
-      TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
+    for (unsigned long cluster_key : clusterKeys){
       TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
       if(cluster->getPhiSize()==1){
 	n1pix++;

@@ -22,6 +22,8 @@
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
+#include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/Gl1RawHit.h>
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -29,10 +31,13 @@
 #include <phool/getClass.h>
 
 #include <TH2.h>
+#include <TH2F.h>
+#include <TNtuple.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
 
 #include <boost/format.hpp>
+#include <cmath>
 
 //____________________________________________________________________________..
 TpcSeedsQA::TpcSeedsQA(const std::string &name)
@@ -113,8 +118,10 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   h_avgnclus_eta_phi_neg = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg").c_str()));
   // h_trackcrossing_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_pos").c_str()));
   // h_trackcrossing_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_neg").c_str()));
-  h_dcaxyorigin_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_pos").c_str()));
-  h_dcaxyorigin_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_neg").c_str()));
+  h_dcaxyorigin_phi_north_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_pos").c_str()));
+  h_dcaxyorigin_phi_south_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_pos").c_str()));
+  h_dcaxyorigin_phi_north_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_neg").c_str()));
+  h_dcaxyorigin_phi_south_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_neg").c_str()));
   h_dcaxyvtx_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi_pos").c_str()));
   h_dcaxyvtx_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi_neg").c_str()));
   h_dcazorigin_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazorigin_phi_pos").c_str()));
@@ -136,6 +143,10 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   // h_vcrossing = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexcrossing").c_str()));
   h_vchi2dof = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexchi2dof").c_str()));
   h_ntrackpervertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrackspervertex").c_str()));
+  h_dedx = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dedx").c_str()));
+  h_mip_dedx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "mip_dedx").c_str()));
+
+  nt_sector_event_summary = dynamic_cast<TNtuple *>(hm->getHisto(std::string(getHistoPrefix() + "sector_event_summary").c_str()));
 
   // TPC has 3 regions, inner, mid and outer
   std::vector<int> region_layer_low = {7, 23, 39};
@@ -174,9 +185,82 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//____________________________________________________________________________..
-int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
+float TpcSeedsQA::calc_dedx(TrackSeed *tpcseed)
 {
+  std::vector<TrkrDefs::cluskey> clusterKeys;
+  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+                     tpcseed->end_cluster_keys());
+
+  std::vector<float> dedxlist;
+  for (unsigned long cluster_key : clusterKeys)
+  {
+    auto detid = TrkrDefs::getTrkrId(cluster_key);
+    if (detid != TrkrDefs::TrkrId::tpcId)
+    {
+      continue;  // the micromegas clusters are added to the TPC seeds
+    }
+    unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+    TrkrCluster *cluster = clustermap->findCluster(cluster_key);
+    float adc = cluster->getAdc();
+    PHG4TpcCylinderGeom *GeoLayer_local = g4geom->GetLayerCellGeom(layer_local);
+    float thick = GeoLayer_local->get_thickness();
+    float r = GeoLayer_local->get_radius();
+    float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+    float beta = std::atan(tpcseed->get_slope());
+    float alphacorr = std::cos(alpha);
+    if (alphacorr < 0 || alphacorr > 4)
+    {
+      alphacorr = 4;
+    }
+    float betacorr = std::cos(beta);
+    if (betacorr < 0 || betacorr > 4)
+    {
+      betacorr = 4;
+    }
+    adc /= thick;
+    adc *= alphacorr;
+    adc *= betacorr;
+    dedxlist.push_back(adc);
+    sort(dedxlist.begin(), dedxlist.end());
+  }
+  int trunc_min = 0;
+  if (dedxlist.size() < 1)
+  {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+  int trunc_max = (int) dedxlist.size() * 0.7;
+  float sumdedx = 0;
+  int ndedx = 0;
+  for (int j = trunc_min; j <= trunc_max; j++)
+  {
+    sumdedx += dedxlist.at(j);
+    ndedx++;
+  }
+  sumdedx /= ndedx;
+  return sumdedx;
+}
+
+//____________________________________________________________________________..
+int TpcSeedsQA::process_event(PHCompositeNode *topNode)
+{
+  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+  if (gl1)
+  {
+    m_bco = gl1->get_bco();
+  }
+  else
+  {
+    Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    if (!gl1PacketInfo)
+    {
+      m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
+    }
+    if (gl1PacketInfo)
+    {
+      m_bco = gl1PacketInfo->getBCO();
+    }
+  }
+
   h_ntrack1d->Fill(trackmap->size());
 
   std::pair<int, int> ntrack_isfromvtx_pos;  // first: number of tracks not associated to a vertex, second: number of tracks associated to a vertex
@@ -187,6 +271,8 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
   int ntrack1d_ptg1_pos = 0;
   int ntrack1d_ptg1_neg = 0;
 
+  int nclus[2][3][12] = {{{0}}};
+  int madc[2][3][12] = {{{0}}};
   for (const auto &[key, track] : *trackmap)
   {
     if (!track)
@@ -296,12 +382,28 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     if (charge == 1)
     {
       h_ntpc_fullpt_pos->Fill(ntpc);
-      h_dcaxyorigin_phi_pos->Fill(phi, dcapair_origin.first.first);
+      if (dcapair_origin.second.first > 0)
+      {
+        h_dcaxyorigin_phi_north_pos->Fill(phi, dcapair_origin.first.first);
+      }
+      else if (dcapair_origin.second.first <= 0)
+      {
+        h_dcaxyorigin_phi_south_pos->Fill(phi, dcapair_origin.first.first);
+      }
       h_dcazorigin_phi_pos->Fill(phi, dcapair_origin.second.first);
       if (pt > 1)
       {
         h_ntrack_pos->Fill(eta, phi);
-        h_ntpc_pos->Fill(ntpc);
+        if (trackvtx)
+        {
+          float vz = trackvtx->get_z();
+          float eta_min = cal_tpc_eta_min_max(vz).first;
+          float eta_max = cal_tpc_eta_min_max(vz).second;
+          if (eta > eta_min && eta < eta_max)
+          {
+            h_ntpc_pos->Fill(ntpc);
+          }
+        }
         h_ntpot_pos->Fill(nmms);
         h_ntpc_quality_pos->Fill(ntpc, quality);
         h_avgnclus_eta_phi_pos->Fill(eta, phi, ntpc);
@@ -312,12 +414,28 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     else if (charge == -1)
     {
       h_ntpc_fullpt_neg->Fill(ntpc);
-      h_dcaxyorigin_phi_neg->Fill(phi, dcapair_origin.first.first);
+      if (dcapair_origin.second.first > 0)
+      {
+        h_dcaxyorigin_phi_north_neg->Fill(phi, dcapair_origin.first.first);
+      }
+      else if (dcapair_origin.second.first <= 0)
+      {
+        h_dcaxyorigin_phi_south_neg->Fill(phi, dcapair_origin.first.first);
+      }
       h_dcazorigin_phi_neg->Fill(phi, dcapair_origin.second.first);
       if (pt > 1)
       {
         h_ntrack_neg->Fill(eta, phi);
-        h_ntpc_neg->Fill(ntpc);
+        if (trackvtx)
+        {
+          float vz = trackvtx->get_z();
+          float eta_min = cal_tpc_eta_min_max(vz).first;
+          float eta_max = cal_tpc_eta_min_max(vz).second;
+          if (eta > eta_min && eta < eta_max)
+          {
+            h_ntpc_neg->Fill(ntpc);
+          }
+        }
         h_ntpot_neg->Fill(nmms);
         h_ntpc_quality_neg->Fill(ntpc, quality);
         h_avgnclus_eta_phi_neg->Fill(eta, phi, ntpc);
@@ -379,7 +497,12 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     }
     m_px = track->get_px();
     m_py = track->get_py();
+    m_pz = track->get_pz();
     m_pt = std::sqrt(m_px * m_px + m_py * m_py);
+    m_ptot = std::sqrt(m_px * m_px + m_py * m_py + m_pz * m_pz);
+    TrackSeed *tpcseed = track->get_tpc_seed();
+    m_charge = track->get_charge();
+    m_dedx = calc_dedx(tpcseed);
 
     m_ntpc = 0;
     m_region.clear();
@@ -387,6 +510,15 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
     m_cluslayer.clear();
     m_clusphisize.clear();
     m_cluszsize.clear();
+
+    for (const auto &ckey : get_cluster_keys(track))
+    {
+      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
+      {
+        m_ntpc++;
+      }
+    }
+
     for (const auto &ckey : get_cluster_keys(track))
     {
       TrkrCluster *cluster = clustermap->findCluster(ckey);
@@ -403,16 +535,42 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
       switch (TrkrDefs::getTrkrId(ckey))
       {
       case TrkrDefs::tpcId:
-        m_ntpc++;
+        const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(ckey));
+        int region = it->second;
+        m_region.push_back(region);
+        m_clusgz.push_back(clusglob.z());
+        m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
+        m_clusphisize.push_back(cluster->getPhiSize());
+        m_cluszsize.push_back(cluster->getZSize());
+        int this_sector = (int) TpcDefs::getSectorId(ckey);
+        int this_side = (int) TpcDefs::getSide(ckey);
+        int is_onepad = 0;
+        if (cluster->getPhiSize() <= 1)
+        {
+          is_onepad = 1;
+        }
+        if (m_ntpc > 30 && cluster->getPhiSize() > 1 && m_dedx < 1500 && m_pt > 1.0 && m_pt < 50)
+        {
+          h_adc_sector[region]->Fill((this_sector + 1) * (2 * (this_side - 0.5)), cluster->getAdc());
+        }
+        if (m_ntpc > 30 && m_dedx < 1000 && m_pt > 1.0 && m_pt < 50 && m_charge < 0)
+        {
+          h_onepad_frac[region]->Fill((this_sector + 1) * (2 * (this_side - 0.5)), is_onepad);
+        }
+        nclus[this_side][region][this_sector] += 1;
+        madc[this_side][region][this_sector] += cluster->getAdc();
         break;
       }
-      const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(ckey));
-      int region = it->second;
-      m_region.push_back(region);
-      m_clusgz.push_back(clusglob.z());
-      m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
-      m_clusphisize.push_back(cluster->getPhiSize());
-      m_cluszsize.push_back(cluster->getZSize());
+    }
+
+    if (m_ptot > 0.2 && m_ptot < 4 && m_ntpc > 30)
+    {
+      h_dedx->Fill(m_charge * m_ptot, m_dedx);
+    }
+
+    if (m_ptot > 1.0 && m_pt < 4 && m_ntpc > 30 && m_charge < 0 && m_dedx < 1000 && m_dedx > 50)
+    {
+      h_mip_dedx->Fill(m_dedx);
     }
 
     // if (m_pt > 1)
@@ -523,7 +681,7 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
         h_cluster_phisize1_fraction_pt_side0[region]->Fill(m_pt, frac_side0);
 
         int index_pt_side0 = h_cluster_phisize1_fraction_mean_side0[region]->FindBin(m_pt) - 1;
-        if (index_pt_side0<h_cluster_phisize1_fraction_mean_side0[region]->GetNbinsX())
+        if (index_pt_side0 < h_cluster_phisize1_fraction_mean_side0[region]->GetNbinsX())
         {
           frac_side0_pt[region][index_pt_side0] += frac_side0;
           num_track_side0_pt[region][index_pt_side0]++;
@@ -537,16 +695,33 @@ int TpcSeedsQA::process_event(PHCompositeNode * /*unused*/)
         h_cluster_phisize1_fraction_pt_side1[region]->Fill(m_pt, frac_side1);
 
         int index_pt_side1 = h_cluster_phisize1_fraction_mean_side1[region]->FindBin(m_pt) - 1;
-        if (index_pt_side1<h_cluster_phisize1_fraction_mean_side1[region]->GetNbinsX())
+        if (index_pt_side1 < h_cluster_phisize1_fraction_mean_side1[region]->GetNbinsX())
         {
           frac_side1_pt[region][index_pt_side1] += frac_side1;
           num_track_side1_pt[region][index_pt_side1]++;
         }
       }
     }
-
   }
 
+  for (int iside = 0; iside < 2; iside++)
+  {
+    for (int iregion = 0; iregion < 3; iregion++)
+    {
+      for (int isector = 0; isector < 12; isector++)
+      {
+        //"event:segment:bco:side:region:sector:ncluster:meanadc"
+        int nCluster = nclus[iside][iregion][isector];
+        float meanAdc = 0;
+        if (nCluster > 0)
+        {
+          meanAdc = madc[iside][iregion][isector] / (nCluster*1.);
+        }
+        nt_sector_event_summary->Fill(m_event, m_segment, m_bco, iside, iregion, isector, nCluster, meanAdc);
+      }
+    }
+  }
+  m_event++;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -566,18 +741,21 @@ std::vector<TrkrDefs::cluskey> TpcSeedsQA::get_cluster_keys(SvtxTrack *track)
 //____________________________________________________________________________..
 int TpcSeedsQA::EndRun(const int /*runnumber*/)
 {
-
   for (auto &region : {0, 1, 2})
   {
     for (auto &index_pt : {0, 1, 2, 3})
     {
-      if (num_track_side0_pt[region][index_pt]>0)
+      if (num_track_side0_pt[region][index_pt] > 0)
       {
-        h_cluster_phisize1_fraction_mean_side0[region]->SetBinContent(index_pt+1,frac_side0_pt[region][index_pt] / num_track_side0_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_side0[region]->SetBinContent(index_pt + 1, frac_side0_pt[region][index_pt] / num_track_side0_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_numerator_side0[region]->SetBinContent(index_pt + 1, frac_side0_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_denominator_side0[region]->SetBinContent(index_pt + 1, num_track_side0_pt[region][index_pt]);
       }
-      if (num_track_side1_pt[region][index_pt]>0)
+      if (num_track_side1_pt[region][index_pt] > 0)
       {
-        h_cluster_phisize1_fraction_mean_side1[region]->SetBinContent(index_pt+1,frac_side1_pt[region][index_pt] / num_track_side1_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_side1[region]->SetBinContent(index_pt + 1, frac_side1_pt[region][index_pt] / num_track_side1_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_numerator_side1[region]->SetBinContent(index_pt + 1, frac_side1_pt[region][index_pt]);
+        h_cluster_phisize1_fraction_mean_denominator_side1[region]->SetBinContent(index_pt + 1, num_track_side1_pt[region][index_pt]);
       }
     }
   }
@@ -615,12 +793,12 @@ void TpcSeedsQA::createHistos()
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_pos").c_str(), "TPC clusters per positive track (pT>1GeV);Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
+    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_pos").c_str(), "TPC clusters per positive track (pT>1GeV,eta cut);Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_neg").c_str(), "TPC clusters per negative track (pT>1GeV);Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
+    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_neg").c_str(), "TPC clusters per negative track (pT>1GeV,eta cut);Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
     hm->registerHisto(h);
   }
 
@@ -720,12 +898,22 @@ void TpcSeedsQA::createHistos()
   //  }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_pos").c_str(), "DCA xy origin vs phi for positive track;#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_pos").c_str(), "DCA xy origin vs phi for positive track (dcaz>0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_neg").c_str(), "DCA xy origin vs phi for negative track;#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_pos").c_str(), "DCA xy origin vs phi for positive track (dcaz<0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_neg").c_str(), "DCA xy origin vs phi for negative track (dcaz>0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_neg").c_str(), "DCA xy origin vs phi for negative track (dcaz<0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
@@ -824,9 +1012,36 @@ void TpcSeedsQA::createHistos()
     auto h = new TH1F(std::string(getHistoPrefix() + "ntrackspervertex").c_str(), "Num of tracks per vertex;Number of tracks per vertex;Entries", 50, 0, 50);
     hm->registerHisto(h);
   }
+  {
+    auto h = new TH2F(std::string(getHistoPrefix() + "dedx").c_str(),
+                      "Num of tracks per vertex;Number of tracks per vertex;Entries",
+                      500, -2, 2, 500, 0, 3000);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto h = new TH1F(std::string(getHistoPrefix() + "mip_dedx").c_str(),
+                      "dEdx of MIPs",
+                      100, 0, 1000);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto nt = new TNtuple(std::string(getHistoPrefix() + "sector_event_summary").c_str(),
+		      "sector_event_summary","event:segment:bco:side:region:sector:ncluster:meanadc");
+    hm->registerHisto(nt);
+  }
 
   for (auto &region : {0, 1, 2})
   {
+    h_adc_sector[region] = new TH2F((boost::format("%sadc_sector_%i") % getHistoPrefix() % region).str().c_str(),
+                                    (boost::format("ADC spectrum per, region_%i") % region).str().c_str(), 25, -12.5, 12.5, 50, 0, 1500);
+    hm->registerHisto(h_adc_sector[region]);
+
+    h_onepad_frac[region] = new TProfile((boost::format("%sonepad_frac_%i") % getHistoPrefix() % region).str().c_str(),
+                                         (boost::format("TPC Cluster Phi Size == 1 fraction per sector, region_%i") % region).str().c_str(), 25, -12.5, 12.5);
+    hm->registerHisto(h_onepad_frac[region]);
+
     h_clusphisize1pt_side0[region] = new TH1F((boost::format("%sclusphisize1pT_side0_%i") % getHistoPrefix() % region).str().c_str(),
                                               (boost::format("TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
     h_clusphisize1pt_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
@@ -858,27 +1073,63 @@ void TpcSeedsQA::createHistos()
     hm->registerHisto(h_cluster_phisize1_fraction_side1[region]);
 
     h_cluster_phisize1_fraction_pt_side0[region] = new TH2F((boost::format("%sclusphisize1frac_pt_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
+                                                            (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
     h_cluster_phisize1_fraction_pt_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_pt_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_pt_side0[region]);
 
     h_cluster_phisize1_fraction_pt_side1[region] = new TH2F((boost::format("%sclusphisize1frac_pt_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
+                                                            (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
     h_cluster_phisize1_fraction_pt_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_pt_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_pt_side1[region]);
 
     h_cluster_phisize1_fraction_mean_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+                                                              (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_side0[region]);
 
     h_cluster_phisize1_fraction_mean_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+                                                              (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_side1[region]);
+
+    h_cluster_phisize1_fraction_mean_numerator_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_numerator_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                                                                        (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_numerator_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_numerator_side0[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_numerator_side0[region]);
+
+    h_cluster_phisize1_fraction_mean_numerator_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_numerator_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                                                                        (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_numerator_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_numerator_side1[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_numerator_side1[region]);
+
+    h_cluster_phisize1_fraction_mean_denominator_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_denominator_side0_%i") % getHistoPrefix() % region).str().c_str(),
+                                                                          (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_denominator_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_denominator_side0[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_denominator_side0[region]);
+
+    h_cluster_phisize1_fraction_mean_denominator_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_denominator_side1_%i") % getHistoPrefix() % region).str().c_str(),
+                                                                          (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_denominator_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
+    h_cluster_phisize1_fraction_mean_denominator_side1[region]->GetYaxis()->SetTitle("Fraction");
+    hm->registerHisto(h_cluster_phisize1_fraction_mean_denominator_side1[region]);
   }
+}
+
+std::pair<float, float> TpcSeedsQA::cal_tpc_eta_min_max(float vtxz)
+{
+  float R = 780.;
+  float HalfZ = 2110. / 2.;
+  float theta_max = std::atan2(R, HalfZ - vtxz);
+  float theta_min = std::atan2(R, -(vtxz + HalfZ));
+  float eta_max = -std::log(std::tan(theta_max / 2));
+  float eta_min = -std::log(std::tan(theta_min / 2));
+  std::pair<float, float> min_max = std::make_pair(eta_min, eta_max);
+  return min_max;
 }

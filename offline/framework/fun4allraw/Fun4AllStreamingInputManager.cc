@@ -1091,7 +1091,6 @@ int Fun4AllStreamingInputManager::FillTpc()
   {
     return iret;
   }
-
   TpcRawHitContainer *tpccont = findNode::getClass<TpcRawHitContainer>(m_topNode, "TPCRAWHIT");
   if (!tpccont)
   {
@@ -1113,10 +1112,12 @@ int Fun4AllStreamingInputManager::FillTpc()
   select_crossings += m_RefBCO;
   if (Verbosity() > 2)
   {
+    
     std::cout << "select TPC crossings"
               << " from 0x" << std::hex << m_RefBCO - m_tpc_negative_bco
               << " to 0x" << select_crossings - m_tpc_negative_bco
               << std::dec << std::endl;
+
   }
   // m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
   // if this map is empty which is handled above
@@ -1151,7 +1152,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       for (auto &bcl : bclset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-        if (diff < 5)
+        if (diff < 256)
         {
           thispacket = true;
           h_gl1tagged_tpc[histo_to_fill][packetnum]->Fill(refbcobitshift);
@@ -1292,13 +1293,19 @@ int Fun4AllStreamingInputManager::FillInttPool()
 
 int Fun4AllStreamingInputManager::FillTpcPool()
 {
+  uint64_t ref_bco_minus_range = 0;
+  if(m_RefBCO > m_tpc_negative_bco)
+  {
+    ref_bco_minus_range = m_RefBCO - m_tpc_negative_bco;
+  }
+
   for (auto iter : m_TpcInputVector)
   {
     if (Verbosity() > 0)
     {
       std::cout << "Fun4AllStreamingInputManager::FillTpcPool - fill pool for " << iter->Name() << std::endl;
     }
-    iter->FillPool();
+    iter->FillPool(ref_bco_minus_range);
     if (m_RunNumber == 0)
     {
       m_RunNumber = iter->RunNumber();

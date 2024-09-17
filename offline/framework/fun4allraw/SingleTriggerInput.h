@@ -6,6 +6,7 @@
 
 #include <cstdint>  // for uint64_t
 #include <fstream>
+#include <limits>
 #include <map>
 #include <set>
 #include <string>
@@ -48,9 +49,14 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual void DefaultEventNumberOffset(const int i) { m_DefaultEventNumberOffset = i; }
   virtual int AdjustPacketMap(int pktid, int evtoffset);
   virtual bool GetSomeMoreEvents(const unsigned int keep);
-  virtual int AdjustEventOffset(int evtoffset);  // {return;}
-  virtual void LocalPoolDepth(unsigned int i) {m_LocalPoolDepth = i;}
-  virtual unsigned int LocalPoolDepth() const {return m_LocalPoolDepth;}
+  virtual int AdjustEventOffset(int evtoffset);
+  virtual void LocalPoolDepth(unsigned int i) { m_LocalPoolDepth = i; }
+  virtual unsigned int LocalPoolDepth() const { return m_LocalPoolDepth; }
+  virtual void SkipToEvent(const int i) { m_SkipToEvent = i; }
+  virtual int SkipToEvent() const { return m_SkipToEvent; }
+  virtual void LastEvent(const int i) { m_LastEvent = i; }
+  virtual int LastEvent() const { return m_LastEvent; }
+
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
  protected:
@@ -69,6 +75,8 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   int m_AllDone{0};
   int m_SubsystemEnum{0};
   int m_DefaultEventNumberOffset{0};
+  int m_SkipToEvent{0};  // we may have negative event numbers but lets not go there right now
+  int m_LastEvent{std::numeric_limits<int>::max()};
   unsigned int m_LocalPoolDepth{0};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<int, uint64_t> m_FEEBclkMap;

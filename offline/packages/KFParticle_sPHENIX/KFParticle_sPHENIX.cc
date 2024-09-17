@@ -148,7 +148,9 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  createDecay(topNode, mother, vertex_kfparticle, daughters, intermediates, nPVs, multiplicity);
+  multiplicity = check_trackmap->size();
+
+  createDecay(topNode, mother, vertex_kfparticle, daughters, intermediates, nPVs);
 
   if (!m_has_intermediates_sPHENIX)
   {
@@ -300,7 +302,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   if (checkForCC == "[]CC")
   {
     manipulateDecayDescriptor = manipulateDecayDescriptor.substr(1, manipulateDecayDescriptor.size() - 4);
-    getChargeConjugate(true);
+    getChargeConjugate();
   }
 
   // Find the initial particle
@@ -448,7 +450,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
 
   if (intermediates_name.size() > 0)
   {
-    hasIntermediateStates(true);
+    hasIntermediateStates();
     setIntermediateStates(intermediate_list);
     setNumberOfIntermediateStates(intermediates_name.size());
     setNumberTracksFromIntermeditateState(m_nTracksFromIntermediates);
