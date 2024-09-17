@@ -1,8 +1,11 @@
 // Include necessary files
 #include "TpcChanQA.h"
 
+#include <qautils/QAHistManagerDef.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -16,15 +19,14 @@
 #include <TH1.h>
 #include <TH2.h>
 
+#include <boost/format.hpp>
+
 #include <cassert>
 #include <cstddef>
 #include <memory>
-
-#include <qautils/QAHistManagerDef.h>
-#include <boost/format.hpp>
-
 #include <iostream>
 #include <string>
+
 //
 
 //____________________________________________________________________________..
@@ -146,7 +148,7 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
 
 
 //____________________________________________________________________________..
-int TpcChanQA::End(PHCompositeNode *)
+int TpcChanQA::End(PHCompositeNode * /*unused*/)
 {
 
   return Fun4AllReturnCodes::EVENT_OK;
