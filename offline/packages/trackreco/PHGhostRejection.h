@@ -13,6 +13,8 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase_historic/TrackSeed_v2.h>
+
 
 #include <map>
 #include <string>
@@ -21,37 +23,58 @@
 class PHCompositeNode;
 class TrackSeedContainer;
 class TrkrCluster;
-class TrackSeed;
 class TrkrClusterContainer;
 
 class PHGhostRejection
 {
  public:
-  PHGhostRejection() {}
-  PHGhostRejection(unsigned int verbosity);
+  /* PHGhostRejection() {} */
+  PHGhostRejection(unsigned int verbosity, std::vector<TrackSeed_v2>& _seeds) 
+    : m_verbosity { verbosity }
+    , seeds { _seeds }
+    , m_rejected { std::vector<bool> (seeds.size(), false) }
+  {};
 
   ~PHGhostRejection();
 
-  void rejectGhostTracks(std::vector<float> &trackChi2);
+  std::vector<bool> rejectGhostTracks(std::vector<float> &trackChi2, std::vector<TrackSeed_v2>& seeds);
   void verbosity(int verb) { m_verbosity = verb; }
-  void trackSeedContainer(TrackSeedContainer *seeds) { m_trackMap = seeds; }
-  void positionMap(std::map<TrkrDefs::cluskey, Acts::Vector3> &map) { m_positions = map; }
+
+  // cut because too few clusters or not spanning sector boundary
+  // interally updates m_rejected
+  bool cut_from_clusters(int itrack); 
+
+  // cut on the ghosts: note that this also ignores all seeds failing
+  // ``cut_from_clusters'' and uses the pt_cut
+  void find_ghosts(std::vector<float>& trackChi2);
+  bool is_rejected(int itrack) { return m_rejected[itrack]; };
+
+  bool checkClusterSharing(TrackSeed& tr1, TrackSeed& tr2);
+
+  void set_min_pt_cut(float _ptmin) { _min_pt= _ptmin; }
+  void set_must_span_sectors(bool _setting) { _must_span_sectors = _setting; }
+  void set_min_clusters (int _val) { _min_clusters = _val; }
 
  private:
-  bool checkClusterSharing(TrackSeed *tr1, unsigned int trid1,
-                           TrackSeed *tr2, unsigned int trid2);
-
+  unsigned int m_verbosity;
+  std::vector<TrackSeed_v2>& seeds;
+  std::vector<bool> m_rejected {}; // id
   double _phi_cut = 0.01;
   double _eta_cut = 0.004;
   double _x_cut = 0.3;
   double _y_cut = 0.3;
   double _z_cut = 0.4;
-  //  int _n_iteration = 0;
-  unsigned int m_verbosity = 0;
 
-  TrackSeedContainer *m_trackMap = nullptr;
+  // cuts on minimally interesting tracks -- 
+  // here to remove noise
+  double _min_pt = 0.0;
+  bool   _must_span_sectors = false;
+  size_t _min_clusters = 3;
 
-  std::map<TrkrDefs::cluskey, Acts::Vector3> m_positions;
+
+  /* TrackSeedContainer *m_trackMap = nullptr; */
+
+  /* std::map<TrkrDefs::cluskey, Acts::Vector3> m_positions; */
 };
 
 #endif  // PHGHOSTREJECTION_H

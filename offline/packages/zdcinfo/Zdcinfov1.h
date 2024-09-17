@@ -1,17 +1,11 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef ZDCINFOV1_H
-#define ZDCINFOV1_H
+#ifndef ZDCINFO_ZDCINFOV1_H
+#define ZDCINFO_ZDCINFOV1_H
 
 #include "Zdcinfo.h"
 
-#include <cstddef>  // for size_t
-#include <iostream>
 #include <limits>
-#include <utility>  // for pair, make_pair
-#include <vector>
-
-class PHObject;
 
 class Zdcinfov1 : public Zdcinfo
 {

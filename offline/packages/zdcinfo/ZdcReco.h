@@ -1,14 +1,18 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef ZDCRECO_H
-#define ZDCRECO_H
+#ifndef ZDCINFO_ZDCRECO_H
+#define ZDCINFO_ZDCRECO_H
 
 //===========================================================
 /// \author Ejiro Umaka
 //===========================================================
 
 #include <cdbobjects/CDBTTree.h>
+
 #include <fun4all/SubsysReco.h>
+
+#include <gsl/gsl_const_cgsm.h>
+
 #include <string> // for string
 #include <vector> // for vector
 
@@ -23,9 +27,9 @@ public:
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode * /*topNode*/) override;
   void ResetMe();
-  void set_zdc1_cut(const float &f) { _zdc1_e = f; }
-  void set_zdc2_cut(const float &g) { _zdc2_e = g; }
-  void set_smd_threshold(const float &d) { _smd_e = d; }
+  void set_zdc1_cut(const float f) { _zdc1_e = f; }
+  void set_zdc2_cut(const float g) { _zdc2_e = g; }
+  void set_smd_threshold(const float d) { _smd_e = d; }
 
 private:
   void CompSmdPos();
@@ -42,15 +46,20 @@ private:
   std::vector<float> vsmdtime;
   std::vector<float> vzdcadc;
   std::vector<float> vzdctime;
-  float smd_adc[32] = {0.0f};
-  float smd_pos[4] = {0.0f};
-  float radius_south{0.};
-  float radius_north{0.};
+  float smd_adc[32] {0.0};
+  float smd_pos[4] {0.0};
+  float _radius_south{0.};
+  float _radius_north{0.};
+  const double _t{17.623}; //convert to ns
+  const double _c{GSL_CONST_CGSM_SPEED_OF_LIGHT/1.e9}; //speed of light in cm/ns
+  float _z_vertex{0.};
   float _zdc1_e{65.0};
   float _zdc2_e{20.0};
   float _smd_e{5.0};
   float _sumS{0.};
   float _sumN{0.};
+  float _sumSt{0.};
+  float _sumNt{0.};
   int _nhor{0};
   int _nver{0};
   int _shor{0};

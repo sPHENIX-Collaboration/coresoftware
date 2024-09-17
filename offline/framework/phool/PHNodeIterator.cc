@@ -9,7 +9,7 @@
 //-----------------------------------------------------------------------------
 #include "PHNodeIterator.h"
 
-#include "PHCompositeNode.h" 
+#include "PHCompositeNode.h"
 #include "PHNode.h"
 #include "PHNodeOperation.h"
 #include "PHPointerListIterator.h"
@@ -50,8 +50,8 @@ void PHNodeIterator::print()
   currentNode->print();
 }
 
-PHNode*
-PHNodeIterator::findFirst(const std::string& requiredType, const std::string& requiredName)
+// NOLINTNEXTLINE(misc-no-recursion)
+PHNode* PHNodeIterator::findFirst(const std::string& requiredType, const std::string& requiredName)
 {
   PHPointerListIterator<PHNode> iter(currentNode->subNodes);
   PHNode* thisNode;
@@ -67,15 +67,18 @@ PHNodeIterator::findFirst(const std::string& requiredType, const std::string& re
       {
         PHNodeIterator nodeIter(static_cast<PHCompositeNode*>(thisNode));
         PHNode* nodeFoundInSubTree = nodeIter.findFirst(requiredType.c_str(), requiredName.c_str());
-        if (nodeFoundInSubTree) return nodeFoundInSubTree;
+        if (nodeFoundInSubTree)
+        {
+          return nodeFoundInSubTree;
+        }
       }
     }
   }
   return nullptr;
 }
 
-PHNode*
-PHNodeIterator::findFirst(const std::string& requiredName)
+// NOLINTNEXTLINE(misc-no-recursion)
+PHNode* PHNodeIterator::findFirst(const std::string& requiredName)
 {
   PHPointerListIterator<PHNode> iter(currentNode->subNodes);
   PHNode* thisNode;
@@ -118,7 +121,7 @@ bool PHNodeIterator::cd(const std::string& pathString)
     bool pathFound;
     PHNode* subNode;
     int i = 0;
-    for (const auto & iter : splitpath)
+    for (const auto& iter : splitpath)
     {
       i++;
       if (iter == "..")
@@ -159,6 +162,7 @@ bool PHNodeIterator::addNode(PHNode* newNode)
   return currentNode->addNode(newNode);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void PHNodeIterator::forEach(PHNodeOperation& operation)
 {
   operation(currentNode);

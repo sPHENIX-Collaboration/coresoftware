@@ -114,6 +114,11 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     // assign whether 2D corrections should be interpolated to zero at readout or not (has no effect on 3D corrections)
     distortion_correction_object->m_interpolate_z = m_interpolate_z[i];
 
+    //assign whether the correction should be scaled, and if so, by how much
+    distortion_correction_object->m_use_scalefactor = m_use_scalefactor[i];
+    distortion_correction_object->m_scalefactor = m_scalefactor[i];
+
+
     if (Verbosity())
     {
       for (const auto& h : {

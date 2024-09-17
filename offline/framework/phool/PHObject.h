@@ -22,11 +22,11 @@ class PHObject : public TObject
   virtual PHObject* CloneMe() const;
 
   virtual PHObject* clone() const final;
-  PHObject *Clone(const char *newname = "") const final;
-  void 	Copy(TObject &object) const final;
+  PHObject* Clone(const char* newname = "") const final;
+  void Copy(TObject& object) const final;
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
   virtual void identify(std::ostream& os = std::cout) const;
 
@@ -38,7 +38,7 @@ class PHObject : public TObject
 
   virtual int Integrate() const { return 0; }
   virtual int Integrate(PHObject* /*obj*/) { return -1; }
-  virtual void CopyFrom(const PHObject *obj);
+  virtual void CopyFrom(const PHObject* obj);
 
  private:
   ClassDefOverride(PHObject, 0)  // no I/O

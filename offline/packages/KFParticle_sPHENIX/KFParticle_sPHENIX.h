@@ -90,14 +90,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_mother_name_Tools = mother_name;
   }
 
-  void useIntermediateName(bool use_intermediate_name) { m_use_intermediate_name = use_intermediate_name; }
-
-  void hasIntermediateStates(bool has_intermediates)
+  void hasIntermediateStates()
   {
-    m_has_intermediates = has_intermediates;
-    m_has_intermediates_nTuple = has_intermediates;
-    m_has_intermediates_sPHENIX = has_intermediates;
-    m_has_intermediates_DST = has_intermediates;
+    m_has_intermediates = true;
+    m_has_intermediates_nTuple = true;
+    m_has_intermediates_sPHENIX = true;
+    m_has_intermediates_DST = true;
   }
 
   void setNumberOfTracks(int num_tracks)
@@ -121,10 +119,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_num_intermediate_states_nTuple = n_intermediates;
   }
 
-  void getChargeConjugate(bool get_charge_conjugate)
+  void getChargeConjugate()
   {
-    m_get_charge_conjugate_nTuple = get_charge_conjugate;
-    m_get_charge_conjugate = get_charge_conjugate;
+    m_get_charge_conjugate_nTuple = true;
+    m_get_charge_conjugate = true;
   }
 
   void setDaughters(std::vector<std::pair<std::string, int> /*unused*/> daughter_list)
@@ -180,6 +178,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumVertexchi2nDOF(float vertexchi2nDOF) { m_vertex_chi2ndof = vertexchi2nDOF; }
 
+  void setMinimumRadialSV(float min_rad_sv) { m_min_radial_SV = min_rad_sv; }
+
   void setFlightDistancechi2(float fdchi2) { m_fdchi2 = fdchi2; }
 
   void setMinDIRA(float dira_min) { m_dira_min = dira_min; }
@@ -192,28 +192,27 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumMotherVertexVolume(float vertexvol) { m_mother_vertex_volume = vertexvol; }
 
-  void constrainToPrimaryVertex(bool constrain_to_vertex)
+  void constrainToPrimaryVertex()
   {
-    m_constrain_to_vertex = constrain_to_vertex;
-    m_constrain_to_vertex_nTuple = constrain_to_vertex;
-    m_constrain_to_vertex_sPHENIX = constrain_to_vertex;
+    m_constrain_to_vertex = true;
+    m_constrain_to_vertex_nTuple = true;
+    m_constrain_to_vertex_sPHENIX = true;
   }
 
-  void useFakePrimaryVertex(bool use_fake)
+  void useFakePrimaryVertex()
   {
-    m_use_fake_pv = use_fake;
-    m_use_fake_pv_nTuple = use_fake;
+    m_use_fake_pv = true;
+    m_use_fake_pv_nTuple = true;
   }
 
-  void allowZeroMassTracks(bool allow) { m_allowZeroMassTracks = allow; }
+  void allowZeroMassTracks() { m_allowZeroMassTracks = true; }
 
-  void extraolateTracksToSV(bool extrapolate)
+  void dontExtraolateTracksToSV()
   {
-    m_extrapolateTracksToSV = extrapolate;
-    m_extrapolateTracksToSV_nTuple = extrapolate;
+    m_extrapolateTracksToSV = m_extrapolateTracksToSV_nTuple = false;
   }
 
-  void constrainIntermediateMasses(bool constrain_int_mass) { m_constrain_int_mass = constrain_int_mass; }
+  void constrainIntermediateMasses() { m_constrain_int_mass = true; }
 
   void setIntermediateMassRange(std::vector<std::pair<float, float> /*unused*/> intermediate_mass_range)
   {
@@ -268,7 +267,9 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (unsigned int i = 0; i < intermediate_max_vertexvol.size(); ++i) m_intermediate_vertex_volume.push_back(intermediate_max_vertexvol[i]);
   }
 
-  void useMVA(bool require_mva) { m_require_mva = require_mva; }
+  void use2Dmatching(){ m_use_2D_matching_tools = true; }
+
+  void useMVA() { m_require_mva = true; }
 
   void setNumMVAPars(unsigned int nPars) { m_nPars = nPars; }
 
@@ -283,31 +284,31 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMVACutValue(float cut_value) { m_mva_cut_value = cut_value; }
 
-  void saveDST(bool save) { m_save_dst = save; }
+  void saveDST() { m_save_dst = true; }
 
-  void saveTrackContainer(bool save) { m_write_track_container = save; }
+  void dontSaveTrackContainer() { m_write_track_container = false; }
 
-  void saveParticleContainer(bool save) { m_write_particle_container = save; }
+  void dontSaveParticleContainer() { m_write_particle_container = false; }
 
   void setContainerName(const std::string &name) { m_container_name = name; }
 
-  void saveOutput(bool save) { m_save_output = save; }
+  void dontSaveOutput() { m_save_output = false; }
 
   void setOutputName(const std::string &name) { m_outfile_name = name; }
 
-  void doTruthMatching(bool truth) { m_truth_matching = truth; }
+  void doTruthMatching() { m_truth_matching = true; }
 
-  void getDetectorInfo(bool detinfo) { m_detector_info = detinfo; }
+  void getDetectorInfo() { m_detector_info = true; }
 
-  void getCaloInfo(bool caloinfo) { m_calo_info = caloinfo; }
+  void getCaloInfo() { m_calo_info = true; }
 
-  void getAllPVInfo(bool pvinfo) { m_get_all_PVs = pvinfo; }
+  void getAllPVInfo() { m_get_all_PVs = true; }
 
   /// Use alternate vertex and track fitters
   void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = m_vtx_map_node_name_nTuple = vtx_map_node_name; }
 
   /// Use alternate vertex and track fitters
-  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = trk_map_node_name; }
+  void setTrackMapNodeName(const std::string &trk_map_node_name) { m_trk_map_node_name = m_trk_map_node_name_nTuple = m_origin_track_map_node_name = trk_map_node_name; }
 
   void magFieldFile(const std::string &fname) { m_magField = fname; }
 

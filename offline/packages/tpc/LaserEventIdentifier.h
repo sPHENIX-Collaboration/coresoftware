@@ -6,9 +6,6 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <tpc/LaserEventInfo.h>
-#include <tpc/LaserEventInfov1.h>
-
 
 #include <TFile.h>
 #include <TH1I.h>
@@ -19,7 +16,7 @@ class TrkrHitSet;
 class TrkrHitSetContainer;
 class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
-
+class LaserEventInfo;
 class LaserEventIdentifier : public SubsysReco
 {
  public:

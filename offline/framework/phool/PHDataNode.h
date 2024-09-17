@@ -29,7 +29,8 @@ class PHDataNode : public PHNode
   }
 
  protected:
-  union tobjcast {
+  union tobjcast
+  {
     T* data;
     TObject* tobj;
   };

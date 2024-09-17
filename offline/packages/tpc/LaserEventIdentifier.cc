@@ -1,6 +1,5 @@
 #include "LaserEventIdentifier.h"
 
-#include "LaserEventInfo.h"
 #include "LaserEventInfov1.h"
 
 #include <trackbase/TpcDefs.h>
@@ -187,10 +186,10 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   else
   {
     m_laserEventInfo->setIsLaserEvent(true);
-    m_laserEventInfo->setPeakSample(0, (int) itMax_0);
-    m_laserEventInfo->setPeakWidth(0, f0->GetParameter(2));
-    m_laserEventInfo->setPeakSample(1, (int) itMax_1);
-    m_laserEventInfo->setPeakWidth(1, f1->GetParameter(2));
+    m_laserEventInfo->setPeakSample(false, (int) itMax_0);
+    m_laserEventInfo->setPeakWidth(false, f0->GetParameter(2));
+    m_laserEventInfo->setPeakSample(true, (int) itMax_1);
+    m_laserEventInfo->setPeakWidth(true, f1->GetParameter(2));
 
     isLaserEvent = true;
     peakSample0 = (int) itMax_0;

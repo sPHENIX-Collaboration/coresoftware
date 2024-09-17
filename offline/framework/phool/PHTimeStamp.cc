@@ -52,7 +52,7 @@ void PHTimeStamp::set(const int year, const int month, const int day,
     setTics(0);
     return;
   }
-  tm newTime;
+  tm newTime{};
   newTime.tm_year = year - 1900;
   newTime.tm_mon = month - 1;
   newTime.tm_mday = day;
@@ -71,7 +71,7 @@ void PHTimeStamp::set(const int year, const int month, const int day,
 void PHTimeStamp::set(const char *timeString)
 {
 #ifndef WIN32
-  tm newTime;
+  tm newTime{};
   strptime(timeString, "%A %h %d %H:%M:%S %Y", &newTime);
   setTics(mktime(&newTime));
 #endif
@@ -179,7 +179,10 @@ char *PHTimeStamp::formatTimeString() const
 
   char *u = strtok(timeString, " ");
 
-  if (u) strcpy(line, u);
+  if (u)
+  {
+    strcpy(line, u);
+  }
 
   while ((u = strtok(nullptr, " ")))
   {

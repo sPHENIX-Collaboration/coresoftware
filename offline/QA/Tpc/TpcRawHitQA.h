@@ -30,7 +30,12 @@ class TpcRawHitQA : public SubsysReco
   int EndRun(const int runnumber) override;
 
   int End(PHCompositeNode *topNode) override;
-  
+
+  void setPresample(bool value)
+  {
+    longPresample = value;
+  } 
+ 
  private:
   void createHistos();
   std::string getHistoPrefix() const;
@@ -41,14 +46,17 @@ class TpcRawHitQA : public SubsysReco
 
   TH1* h_nhits_sectors[24]{nullptr};
   TH2* h_nhits_sectors_fees[24]{nullptr};
+  TH1* h_nhits_sectors_laser[24]{nullptr};
+  TH2* h_nhits_sectors_fees_laser[24]{nullptr};
   TH1* h_nhits_sam[24][3]{{nullptr}};
   TH1* h_adc[24][3]{{nullptr}};
-  TH1* h_bco{nullptr};
   TH2* h_xy_N{nullptr};
   TH2* h_xy_S{nullptr};
 
   int FEE_R[26]{2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
   int FEE_map[26]{4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
+ 
+  bool longPresample = false;
 };
 
 #endif  // TPCRAWHITQA_H
