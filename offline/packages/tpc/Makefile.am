@@ -36,6 +36,9 @@ lib_LTLIBRARIES = \
 
 pkginclude_HEADERS = \
   LaserClusterizer.h \
+  LaserEventInfo.h \
+  LaserEventInfov1.h \
+  LaserEventIdentifier.h \
   TrainingHitsContainer.h \
   TrainingHits.h \
   Tpc3DClusterizer.h \
@@ -54,11 +57,15 @@ pkginclude_HEADERS = \
   TpcSimpleClusterizer.h
 
 ROOTDICTS = \
+  LaserEventInfo_Dict.cc \
+  LaserEventInfov1_Dict.cc \
   TrainingHitsContainer_Dict.cc \
   TrainingHits_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  LaserEventInfo_Dict_rdict.pcm \
+  LaserEventInfov1_Dict_rdict.pcm \
   TrainingHitsContainer_Dict_rdict.pcm \
   TrainingHits_Dict_rdict.pcm
 
@@ -69,6 +76,8 @@ dist_mydata_DATA = \
 # sources for tpc library
 libtpc_la_SOURCES = \
   LaserClusterizer.cc \
+  LaserEventInfov1.cc \
+  LaserEventIdentifier.cc \
   TpcRawDataTree.cc \
   Tpc3DClusterizer.cc \
   TpcClusterCleaner.cc \
@@ -91,12 +100,14 @@ libtpc_la_LIBADD = \
   -ltorch \
   -lmicromegas_io \
   -lfun4all \
+  -lphool \
   -lSpectrum \
   -lpthread
 
 # sources for io library
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
+  LaserEventInfov1.cc \
   TrainingHitsContainer.cc \
   TrainingHits.cc
 
