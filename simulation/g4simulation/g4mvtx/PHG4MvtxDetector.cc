@@ -607,10 +607,15 @@ void PHG4MvtxDetector::SetMvtxModGeoParams_run2024() // For Run2024 p+p
         std::get<5>(layer_stave.second) /= m_ModGeoParamsMap[layer_stave.first].size();
     }
 
-    // check if the two maps m_ModGeoParamsMap and m_ModGeoParamsMapAverage has the same size
-    if (m_ModGeoParamsMap.size() != m_ModGeoParamsMapAverage.size())
+    int n_allstaves = 0;
+    for (unsigned short ilayer = 0; ilayer < n_Layers; ++ilayer)
     {
-        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - ERROR - The two maps m_ModGeoParamsMap and m_ModGeoParamsMapAverage have different sizes" << std::endl;
+        n_allstaves += m_N_staves[ilayer];
+    }
+
+    if (m_ModGeoParamsMap.size() != n_allstaves || m_ModGeoParamsMapAverage.size() != n_allstaves)
+    {
+        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - ERROR - The number of staves in the maps m_ModGeoParamsMap and m_ModGeoParamsMapAverage is not equal to " << n_allstaves << std::endl;
     }
 
     // debug: print out the content of the map m_ModGeoParamsMap 
@@ -626,9 +631,20 @@ void PHG4MvtxDetector::SetMvtxModGeoParams_run2024() // For Run2024 p+p
         if (unsigned(layer_stave.first.first) < 3)
           std::cout << "-- PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - Average alignment parameters (L" << unsigned(layer_stave.first.first) << "_" << unsigned(layer_stave.first.second) << ") -- " << "(alpha,beta,gamma,dx,dy,dz)=(" << std::get<0>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<1>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<2>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<3>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<4>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<5>(m_ModGeoParamsMapAverage[layer_stave.first]) << ")" << std::endl;
     }
+
+    file.close();
 }
 
 void PHG4MvtxDetector::SetMvtxModGeoParams_run2025() // For Run2025 Au+Au
 {
     std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2025 - ERROR - To be implemented" << std::endl;
+    // For now, fill the map with zeros
+    for (unsigned short ilayer = 0; ilayer < n_Layers; ++ilayer)
+    {
+        for (unsigned short istave = 0; istave < m_N_staves[ilayer]; ++istave)
+        {
+            std::pair layer_stave = std::make_pair(ilayer, istave);
+            m_ModGeoParamsMapAverage[layer_stave] = std::make_tuple(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        }
+    }
 }
