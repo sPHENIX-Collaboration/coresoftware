@@ -24,6 +24,7 @@
 #include <vector>
 
 class EventHeader;
+class LaserEventInfo;
 class LaserClusterContainerv1;
 class LaserClusterv1;
 class PHCompositeNode;
@@ -70,6 +71,8 @@ class LaserClusterizer : public SubsysReco
   int m_time_samples_max=360;
 
   EventHeader *eventHeader{nullptr};
+
+  LaserEventInfo *m_laserEventInfo = nullptr;
 
   TrkrHitSetContainer *m_hits = nullptr;
   RawHitSetContainer *m_rawhits = nullptr;
