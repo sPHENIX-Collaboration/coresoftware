@@ -173,7 +173,7 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   f1->SetParLimits(1, itMax_1 - 2, itMax_1 + 2);
   m_itHist_1->Fit(f1, "B");
 
-  if (itMaxContent_0 / itMeanContent_0 < 7 && itMaxContent_1 / itMeanContent_1 < 7 && itMaxContent_0 < 1000 && itMaxContent_1 < 1000)
+  if ((itMaxContent_0 / itMeanContent_0 < 7 || itMaxContent_0 < 1000) && (itMaxContent_1 / itMeanContent_1 < 7 && || itMaxContent_1 < 1000))
   {
     m_laserEventInfo->setIsLaserEvent(false);
 
