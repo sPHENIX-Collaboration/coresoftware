@@ -24,7 +24,13 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   explicit SingleMicromegasPoolInput(const std::string &name = "SingleMicromegasPoolInput");
   ~SingleMicromegasPoolInput() override;
   void FillPool(const unsigned int nevents = 1) override;
-  void CleanupUsedPackets(const uint64_t bclk) override;
+
+  void CleanupUsedPackets(const uint64_t bclk) override
+  { CleanupUsedPackets_with_qa(bclk,false); }
+
+  //! specialized verion of cleaning up packets, with an extra flag about wheter the cleanup hits are dropped or not
+  void CleanupUsedPackets_with_qa(const uint64_t bclk, bool /*dropped */);
+
   void ClearCurrentEvent() override;
   bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
