@@ -13,6 +13,7 @@
 #include <ffarawobjects/TpcRawHit.h>
 #include <ffarawobjects/TpcRawHitContainer.h>
 
+#include <cmath>
 #include <string>
 #include <vector>
 
