@@ -510,10 +510,10 @@ void GlobalQA::createHistos() {
       ";Scaled Trigger 3: ZDC Coincidence    zvtx [cm]", 100, -2000, 2000);
   h_GlobalQA_zdc_energy_s = new TH1D(
       "h_GlobalQA_zdc_energy_s",
-      ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
+      ";Scaled Trigger 3: ZDC Coincidence    Energy [GeV]", 100, 10, 510);
   h_GlobalQA_zdc_energy_n = new TH1D(
       "h_GlobalQA_zdc_energy_n",
-      ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
+      ";Scaled Trigger 3: ZDC Coincidence    Energy [GeV]", 100, 10, 510);
   hm->registerHisto(h_GlobalQA_zdc_zvtx);
   hm->registerHisto(h_GlobalQA_zdc_zvtx_wide);
   hm->registerHisto(h_GlobalQA_zdc_energy_s);
