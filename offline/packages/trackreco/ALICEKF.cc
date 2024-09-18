@@ -116,7 +116,7 @@ bool ALICEKF::TransportAndRotate(double old_radius, double new_radius, double& p
       return false;
     }
 
-    if(new_radius > 78. || fabs(kftrack.GetZ()) > 105.5)
+    if(new_radius > 78.)
     {
       if(Verbosity()>1) { std::cout << "outside TPC, exiting" << std::endl;
 }

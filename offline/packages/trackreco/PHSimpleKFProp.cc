@@ -597,7 +597,7 @@ bool PHSimpleKFProp::TransportAndRotate(double old_radius, double new_radius, do
       return false;
     }
 
-    if(new_radius > 78. || fabs(kftrack.GetZ()) > 105.5)
+    if(new_radius > 78.)
     {
       if(Verbosity()>1) { std::cout << "outside TPC, exiting" << std::endl;
 }
@@ -847,7 +847,7 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
     Acts::Vector3 proj_pt(uncorr_tx,uncorr_ty,uncorr_tz);
 
     const double proj_radius = sqrt(square(uncorr_tx) + square(uncorr_ty));
-    if (proj_radius > 78.0 || abs(tz) > 105.5)
+    if (proj_radius > 78.0)
     {
       // projection is bad, no cluster will be found
       return false;
