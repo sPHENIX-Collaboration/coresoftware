@@ -137,7 +137,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 
 double PHSimpleKFProp::get_Bz(double x, double y, double z) const
 {
-  if (_use_const_field)
+  if (_use_const_field || fabs(z) > 105.5)
   {
     return _const_field;
   }
