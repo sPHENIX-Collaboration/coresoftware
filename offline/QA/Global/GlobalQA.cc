@@ -35,6 +35,7 @@
 #include <TH2.h>
 #include <TLorentzVector.h>
 #include <TProfile.h>
+#include <TProfile2D.h>
 #include <TSystem.h>
 
 #include <boost/format.hpp>
@@ -86,6 +87,21 @@ int GlobalQA::Init(PHCompositeNode * /*unused*/) {
     v.push_back(key);
   }
 
+  if (!m_overrideSEPDADCName) {
+    m_sEPDADCName = "SEPD_ADC_CHANNELS";
+  }
+  if (!m_overrideSEPDADCFieldName) {
+    m_sEPDADCfieldname = "towerinfo_to_adc_channel";
+  }
+  std::string ADCdir = CDBInterface::instance()->getUrl(m_sEPDADCName);
+  if (!ADCdir.empty()) {
+    cdbttree2 = new CDBTTree(ADCdir);
+  } else {
+    std::cout << "GlobalQA::::InitRun No SEPD ADC file for domain "
+              << m_sEPDADCName << " found" << std::endl;
+    exit(1);
+  }
+
   createHistos();
 
   if (m_debug) {
@@ -113,7 +129,6 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"
               << std::endl;
   }
-  _eventcounter++;
 
   uint64_t triggervec = 0;
   if (gl1PacketInfo) {
@@ -168,6 +183,21 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
                 << std::endl;
       exit(1);
     }
+
+    if (_eventcounter == 1) {
+      for (unsigned int i = 0; i < 744; i++) {
+        float rbin = (float)(TowerInfoDefs::get_epd_rbin(v[i]));
+        float phibin = (float)(TowerInfoDefs::get_epd_phibin(v[i]));
+        int adc_channel = cdbttree2->GetIntValue(i, m_sEPDADCfieldname);
+        int arm = TowerInfoDefs::get_epd_arm(v[i]);
+        if (arm == 0) {
+          h2_GlobalQA_sEPD_ADC_channel_south->Fill(rbin, phibin, adc_channel);
+        } else if (arm == 1) {
+          h2_GlobalQA_sEPD_ADC_channel_north->Fill(rbin, phibin, adc_channel);
+        }
+      }
+    }
+
     float sepdsouthadcsum = 0.;
     float sepdnorthadcsum = 0.;
     if (_sepd_towerinfo) {
@@ -176,15 +206,20 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
             _sepd_towerinfo->get_tower_at_channel(i)->get_time_float();
         float _e = _sepd_towerinfo->get_tower_at_channel(i)->get_energy();
         int arm = TowerInfoDefs::get_epd_arm(v[i]);
+        float rbin = (float)(TowerInfoDefs::get_epd_rbin(v[i]));
+        float phibin = (float)(TowerInfoDefs::get_epd_phibin(v[i]));
+
         if (_time > 0.) {
           h_GlobalQA_sEPD_tile[i]->Fill(_e);
-
-          if (arm == 0) {
-            sepdsouthadcsum += _e;
-          } else if (arm == 1) {
-            if (i != 29) // problematic channel
-            {
+          if ((i != 29) && (i != 153) &&
+              (i != 649)) // skip problematic channels
+          {
+            if (arm == 0) {
+              sepdsouthadcsum += _e;
+              h2Profile_GlobalQA_sEPD_tiles_south->Fill(rbin, phibin, _e);
+            } else if (arm == 1) {
               sepdnorthadcsum += _e;
+              h2Profile_GlobalQA_sEPD_tiles_north->Fill(rbin, phibin, _e);
             }
           }
         }
@@ -421,20 +456,39 @@ void GlobalQA::createHistos() {
 
   // sEPD QA
   h_GlobalQA_sEPD_adcsum_s = new TH1D(
-      "h_GlobalQA_sEPD_adcsum_s", " ; sEPD ADC sum ; counts", 100, -10, 50000);
+      "h_GlobalQA_sEPD_adcsum_s", " ; sEPD ADC sum ; Counts", 100, -10, 50000);
 
   h_GlobalQA_sEPD_adcsum_n = new TH1D(
-      "h_GlobalQA_sEPD_adcsum_n", " ; sEPD ADC sum ; counts", 100, -10, 50000);
+      "h_GlobalQA_sEPD_adcsum_n", " ; sEPD ADC sum ; Counts", 100, -10, 50000);
 
   h2_GlobalQA_sEPD_adcsum_ns =
       new TH2D("h2_GlobalQA_sEPD_adcsum_ns",
                "sEPD NS ADC sum correlation ; ADC sum (south); ADC sum (north)",
                100, -10, 50000, 100, -10, 50000);
 
+  h2Profile_GlobalQA_sEPD_tiles_north =
+      new TProfile2D("h2Profile_GlobalQA_sEPD_tiles_north",
+                     "sEPD Tile Mean Energy (north); #eta; #phi", 16, -0.5,
+                     15.5, 24, -0.5, 23.5);
+
+  h2Profile_GlobalQA_sEPD_tiles_south =
+      new TProfile2D("h2Profile_GlobalQA_sEPD_tiles_south",
+                     "sEPD Tile Mean Energy (south); #eta; #phi", 16, -0.5,
+                     15.5, 24, -0.5, 23.5);
+
+  h2_GlobalQA_sEPD_ADC_channel_south =
+      new TH2D("h2_GlobalQA_sEPD_ADC_channel_south",
+               "h2_GlobalQA_sEPD_ADC_channel_south ; #eta; #phi", 16, -0.5,
+               15.5, 24, -0.5, 23.5);
+  h2_GlobalQA_sEPD_ADC_channel_north =
+      new TH2D("h2_GlobalQA_sEPD_ADC_channel_north",
+               "h2_GlobalQA_sEPD_ADC_channel_north ; #eta; #phi", 16, -0.5,
+               15.5, 24, -0.5, 23.5);
+
   for (int tile = 0; tile < 744; tile++) {
     h_GlobalQA_sEPD_tile[tile] = new TH1D(
         boost::str(boost::format("h_GlobalQA_sEPD_tile%d") % tile).c_str(), "",
-        1000, -20000, 20000);
+        20016, -15.5, 20000.5);
 
     hm->registerHisto(h_GlobalQA_sEPD_tile[tile]);
   }
@@ -442,6 +496,10 @@ void GlobalQA::createHistos() {
   hm->registerHisto(h_GlobalQA_sEPD_adcsum_s);
   hm->registerHisto(h_GlobalQA_sEPD_adcsum_n);
   hm->registerHisto(h2_GlobalQA_sEPD_adcsum_ns);
+  hm->registerHisto(h2Profile_GlobalQA_sEPD_tiles_south);
+  hm->registerHisto(h2Profile_GlobalQA_sEPD_tiles_north);
+  hm->registerHisto(h2_GlobalQA_sEPD_ADC_channel_south);
+  hm->registerHisto(h2_GlobalQA_sEPD_ADC_channel_north);
 
   // ZDC QA
   h_GlobalQA_zdc_zvtx = new TH1D(
