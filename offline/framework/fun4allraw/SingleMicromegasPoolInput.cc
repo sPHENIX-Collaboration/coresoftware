@@ -61,25 +61,38 @@ SingleMicromegasPoolInput::SingleMicromegasPoolInput(const std::string& name)
 //______________________________________________________________
 SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
 {
+
+  std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - runnumber: " << RunNumber() << std::endl;
   for( const auto& [packet,counts]:m_waveform_count_total )
   {
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - packet: " << packet << std::endl;
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_total: " << counts << std::endl;
+    const auto dropped_bco =  m_waveform_count_dropped_bco[packet];
+    const auto dropped_pool =  m_waveform_count_dropped_pool[packet];
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput -"
+      << " packet: " << packet
+      << " wf_total: " << counts
+      << " wf_dropped_bco: " << dropped_bco
+      << " wf_dropped_pool: " << dropped_pool
+      << " ratio_bco: " << double(dropped_bco)/counts
+      << " ratio_pool: " << double(dropped_pool)/counts
+      << std::endl;
 
-    {
-      const auto& dropped = m_waveform_count_dropped_bco[packet];
-      std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped (bco): " << dropped << std::endl;
-      std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio (bco): " << double(dropped)/counts << std::endl;
-    }
-
-    {
-      const auto& dropped = m_waveform_count_dropped_pool[packet];
-      std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped (pool): " << dropped << std::endl;
-      std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio (pool): " << double(dropped)/counts << std::endl;
-    }
-
-    std::cout << std::endl;
   }
+
+  std::cout << std::endl;
+
+  // drop per fee statistics
+  for( const auto& [fee,counts]:m_fee_waveform_count_total )
+  {
+    const auto dropped_bco =  m_fee_waveform_count_dropped_bco[fee];
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput -"
+      << " fee: " << fee
+      << " wf_total: " << counts
+      << " wf_dropped_bco: " << dropped_bco
+      << " ratio_bco: " << double(dropped_bco)/counts
+      << std::endl;
+
+  }
+
 }
 
 //______________________________________________________________
@@ -218,6 +231,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       {
         // get fee id
         const int fee_id = packet->iValue(wf, "FEE");
+        ++m_fee_waveform_count_total[fee_id];
 
         // get checksum_error and check
         const auto checksum_error = packet->iValue(wf, "CHECKSUMERROR");
@@ -242,6 +256,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         {
           // increment counter and histogram
           ++m_waveform_count_dropped_bco[packet_id];
+          ++m_fee_waveform_count_dropped_bco[fee_id];
           h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1 );
 
           // skip the waverform
