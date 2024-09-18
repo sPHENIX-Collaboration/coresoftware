@@ -63,11 +63,21 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
 {
   for( const auto& [packet,counts]:m_waveform_count_total )
   {
-    const auto& dropped = m_waveform_count_dropped[packet];
     std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - packet: " << packet << std::endl;
     std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_total: " << counts << std::endl;
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped: " << dropped << std::endl;
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio: " << double(dropped)/counts << std::endl;
+
+    {
+      const auto& dropped = m_waveform_count_dropped_bco[packet];
+      std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped (bco): " << dropped << std::endl;
+      std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio (bco): " << double(dropped)/counts << std::endl;
+    }
+
+    {
+      const auto& dropped = m_waveform_count_dropped_pool[packet];
+      std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - waveform_count_dropped (pool): " << dropped << std::endl;
+      std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - ratio (pool): " << double(dropped)/counts << std::endl;
+    }
+
     std::cout << std::endl;
   }
 }
@@ -199,8 +209,8 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       if (!bco_matching_information.is_verified())
       {
         std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
-        m_waveform_count_dropped[packet_id] += nwf;
-        h_waveform_count_dropped->Fill( std::to_string(packet_id).c_str(), nwf );
+        m_waveform_count_dropped_bco[packet_id] += nwf;
+        h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), nwf );
         bco_matching_information.cleanup();
         continue;
       }
@@ -232,8 +242,8 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         else
         {
           // increment counter and histogram
-          ++m_waveform_count_dropped[packet_id];
-          h_waveform_count_dropped->Fill( std::to_string(packet_id).c_str(), 1 );
+          ++m_waveform_count_dropped_bco[packet_id];
+          h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1 );
 
           // skip the waverform
           continue;
@@ -552,11 +562,14 @@ void SingleMicromegasPoolInput::createQAHistos()
   // total number of waveform per packet
   h_waveform_count_total = new TH1F( "h_MicromegasBCOQA_waveform_count_total", "Total number of waveforms per packet", m_npackets_active, 0, m_npackets_active );
 
-  // number of dropped waveform per packet
-  h_waveform_count_dropped = new TH1F( "h_MicromegasBCOQA_waveform_count_dropped", "Number of dropped waveforms per packet", m_npackets_active, 0, m_npackets_active );
+  // number of dropped waveform per packet due to bco mismatch
+  h_waveform_count_dropped_bco = new TH1F( "h_MicromegasBCOQA_waveform_count_dropped_bco", "Number of dropped waveforms per packet (bco)", m_npackets_active, 0, m_npackets_active );
+
+  // number of dropped waveform per packet due to fun4all pool mismatch
+  h_waveform_count_dropped_pool = new TH1F( "h_MicromegasBCOQA_waveform_count_dropped_pool", "Number of dropped waveforms per packet (pool)", m_npackets_active, 0, m_npackets_active );
 
   // define axis
-  for( const auto& h:std::initializer_list<TH1*>{h_waveform_count_total, h_waveform_count_dropped} )
+  for( const auto& h:std::initializer_list<TH1*>{h_waveform_count_total, h_waveform_count_dropped_bco, h_waveform_count_dropped_pool} )
   {
     h->GetXaxis()->SetBinLabel(1, "5001" );
     h->GetXaxis()->SetBinLabel(2, "5002" );
@@ -565,7 +578,7 @@ void SingleMicromegasPoolInput::createQAHistos()
   }
 
   // register all histograms to histogram manager
-  for( const auto& h:std::initializer_list<TH1*>{h_packet, h_waveform, h_packet_stat, h_waveform_count_total, h_waveform_count_dropped} )
+  for( const auto& h:std::initializer_list<TH1*>{h_packet, h_waveform, h_packet_stat, h_waveform_count_total, h_waveform_count_dropped_bco, h_waveform_count_dropped_pool} )
   {
     h->SetFillStyle(1001);
     h->SetFillColor(kYellow);
