@@ -170,6 +170,22 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     }
   }
 
+
+  //--------------------------- sEPD ------------------------------//
+  if (_eventcounter == 1) {
+      for (unsigned int i = 0; i < 744; i++) {
+        float rbin = (float)(TowerInfoDefs::get_epd_rbin(v[i]));
+        float phibin = (float)(TowerInfoDefs::get_epd_phibin(v[i]));
+        int adc_channel = cdbttree2->GetIntValue(i, m_sEPDADCfieldname);
+        int arm = TowerInfoDefs::get_epd_arm(v[i]);
+        if (arm == 0) {
+          h2_GlobalQA_sEPD_ADC_channel_south->Fill(rbin, phibin, adc_channel);
+        } else if (arm == 1) {
+          h2_GlobalQA_sEPD_ADC_channel_north->Fill(rbin, phibin, adc_channel);
+        }
+      }
+    }
+
   if ((triggervec >> 0xAU) & 0x1U) {
     //--------------------------- sEPD ------------------------------//
     TowerInfoContainer *_sepd_towerinfo =
@@ -182,20 +198,6 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
       std::cout << "sEPD container has unexpected size - exiting now!"
                 << std::endl;
       exit(1);
-    }
-
-    if (_eventcounter == 1) {
-      for (unsigned int i = 0; i < 744; i++) {
-        float rbin = (float)(TowerInfoDefs::get_epd_rbin(v[i]));
-        float phibin = (float)(TowerInfoDefs::get_epd_phibin(v[i]));
-        int adc_channel = cdbttree2->GetIntValue(i, m_sEPDADCfieldname);
-        int arm = TowerInfoDefs::get_epd_arm(v[i]);
-        if (arm == 0) {
-          h2_GlobalQA_sEPD_ADC_channel_south->Fill(rbin, phibin, adc_channel);
-        } else if (arm == 1) {
-          h2_GlobalQA_sEPD_ADC_channel_north->Fill(rbin, phibin, adc_channel);
-        }
-      }
     }
 
     float sepdsouthadcsum = 0.;
@@ -510,10 +512,10 @@ void GlobalQA::createHistos() {
       ";Scaled Trigger 3: ZDC Coincidence    zvtx [cm]", 100, -2000, 2000);
   h_GlobalQA_zdc_energy_s = new TH1D(
       "h_GlobalQA_zdc_energy_s",
-      ";Scaled Trigger 3: ZDC Coincidence    Energy [GeV]", 100, 10, 510);
+      ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
   h_GlobalQA_zdc_energy_n = new TH1D(
       "h_GlobalQA_zdc_energy_n",
-      ";Scaled Trigger 3: ZDC Coincidence    Energy [GeV]", 100, 10, 510);
+      ";Scaled Trigger 3: ZDC Coincidence    Energy [Gev]", 100, 10, 510);
   hm->registerHisto(h_GlobalQA_zdc_zvtx);
   hm->registerHisto(h_GlobalQA_zdc_zvtx_wide);
   hm->registerHisto(h_GlobalQA_zdc_energy_s);
