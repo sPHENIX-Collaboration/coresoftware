@@ -1037,11 +1037,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
       << std::dec << std::endl;
   }
 
-  // cleanup all data that corresponds too early BCO
-  /*
-   * m_MicromegasRawHitMap.empty() does not need to be checked here, FillMicromegasPool returns non zero
-   * if this map is empty which is handled above
-   */
+  // cleanup all data that correspond too early BCO. Said data is effectively dropped
   while (m_MicromegasRawHitMap.begin()->first < first_bco)
   {
     if (Verbosity() > 2)
@@ -1053,10 +1049,9 @@ int Fun4AllStreamingInputManager::FillMicromegas()
     }
 
     for (auto iter : m_MicromegasInputVector)
-    {
-      iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first);
-    }
+    { static_cast<SingleMicromegasPoolInput*>(iter)->CleanupUsedPackets_with_qa(m_MicromegasRawHitMap.begin()->first, true); }
 
+    // also cleanup internal map
     m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
     m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
     iret = FillMicromegasPool();
@@ -1085,6 +1080,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
       iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first);
     }
 
+    // also cleanup internal map
     m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
     m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
     if (m_MicromegasRawHitMap.empty())

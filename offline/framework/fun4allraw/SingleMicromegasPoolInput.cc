@@ -355,15 +355,23 @@ void SingleMicromegasPoolInput::Print(const std::string& what) const
 }
 
 //____________________________________________________________________________
-void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
+void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, bool dropped)
 {
   for (const auto& iter : m_MicromegasRawHitMap)
   {
     if (iter.first <= bclk)
     {
-      for (auto pktiter : iter.second)
+      for (auto rawhit : iter.second)
       {
-        delete pktiter;
+        // increment dropped statistics
+        if( dropped )
+        {
+          // increment counter and histogram
+          ++m_waveform_count_dropped_pool[rawhit->get_packetid()];
+          h_waveform_count_dropped_pool->Fill( std::to_string(rawhit->get_packetid()).c_str(), 1 );
+        }
+
+        delete rawhit;
       }
     }
     else
@@ -410,7 +418,6 @@ void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk)
 void SingleMicromegasPoolInput::ClearCurrentEvent()
 {
   std::cout << "SingleMicromegasPoolInput::ClearCurrentEvent." << std::endl;
-
   uint64_t currentbclk = *m_BclkStack.begin();
   CleanupUsedPackets(currentbclk);
   return;
