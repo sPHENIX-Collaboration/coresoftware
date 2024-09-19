@@ -274,6 +274,18 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const std::vector<Acts:
 }
 
 //_________________________________________________________________________________
+TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xy(const std::vector<Acts::Vector3>& positions)
+{
+  position_vector_t positions_2d;
+  for (const auto& position : positions)
+  {
+    positions_2d.emplace_back(position.x(), position.y());
+  }
+
+  return line_fit(positions_2d);
+}
+
+//_________________________________________________________________________________
 TrackFitUtils::circle_circle_intersection_output_t TrackFitUtils::circle_circle_intersection(double r1, double r2, double x2, double y2)
 {
   const double D = square(r1) - square(r2) + square(x2) + square(y2);
@@ -603,6 +615,49 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
 }
 
 //_________________________________________________________________________________
+std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3>& global_vec,
+						       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt)
+{
+  std::vector<float> fitpars;
+
+  // make the helical fit using TrackFitUtils
+  if (global_vec.size() < 3)
+  {
+    return fitpars;
+  }
+  std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
+
+  // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
+  std::vector<Acts::Vector3> global_vec_noINTT;
+  for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
+  {
+    unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
+
+    if (trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
+    {
+      global_vec_noINTT.push_back(global_vec[ivec]);
+    }
+  }
+  //  std::cout << " use_intt = " << use_intt << std::endl;
+  if(use_intt)
+    {
+      global_vec_noINTT = global_vec;
+    }
+  if (global_vec_noINTT.size() < 3)
+    {
+      return fitpars;
+    }
+  std::tuple<double, double> rz_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
+
+  fitpars.push_back(std::get<0>(xy_fit_pars));
+  fitpars.push_back(std::get<1>(xy_fit_pars));
+  fitpars.push_back(std::get<0>(rz_fit_pars));
+  fitpars.push_back(std::get<1>(rz_fit_pars));
+
+  return fitpars;
+}
+
+//_________________________________________________________________________________
 void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
                                         TrkrClusterContainer* _cluster_map,
                                         std::vector<Acts::Vector3>& global_vec,
@@ -633,6 +688,21 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
     global_vec.push_back(global);
 
   }  // end loop over clusters for this track
+}
+
+//_________________________________________
+Acts::Vector2 TrackFitUtils::get_line_point_pca(double slope, double intercept, Acts::Vector3 global)
+{
+  // return closest point (in xy) on the line to the point global  
+  Acts::Vector2 point(global(0), global(1));
+  Acts::Vector2 posref(0, intercept);       // arbitrary point on the line
+  Acts::Vector2 arb_point(2.0, slope*2.0 + intercept); // second arbitrary point on line 
+  Acts::Vector2 tangent = arb_point - posref;
+  tangent = tangent/tangent.norm();   // line direction
+
+  Acts::Vector2 pca = posref + ((point - posref).dot(tangent))*tangent;
+
+  return pca;
 }
 
 //_________________________________________________________________________________

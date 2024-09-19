@@ -51,6 +51,7 @@ class TrackFitUtils
 
   /// convenient overload
   static line_fit_output_t line_fit(const std::vector<Acts::Vector3>&);
+  static line_fit_output_t line_fit_xy(const std::vector<Acts::Vector3>& positions);
 
   /// circle-circle intersection output. (xplus, yplus, xminus, yminus)
   using circle_circle_intersection_output_t = std::tuple<double, double, double, double>;
@@ -112,6 +113,11 @@ class TrackFitUtils
                                                    const Acts::Vector3& sensorCenter, const Acts::Vector3& sensorNormal);
   static std::vector<double> getLineClusterResiduals(position_vector_t& rz_pts, float slope, float intercept);
   static std::vector<double> getCircleClusterResiduals(position_vector_t& xy_pts, float R, float X0, float Y0);
+
+  static Acts::Vector2 get_line_point_pca(double slope, double intercept, Acts::Vector3 global);
+  static std::vector<float> fitClustersZeroField(std::vector<Acts::Vector3>& global_vec,
+						       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt);
+
 };
 
 #endif

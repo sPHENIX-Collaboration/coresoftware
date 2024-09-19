@@ -326,9 +326,11 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
   if (localVerbosity)
   {
     Acts::Transform3 actstransform = actsTranslationAffine * actsRotationAffine;
-    Acts::Transform3 mptransform = mpTranslationAffine * mpRotationAffine;
 
     std::cout << "newMakeTransform" << std::endl;
+    std::cout << "Input translation: " << std::endl << millepedeTranslation << std::endl;
+    std::cout << "Input sensorAngles: " << std::endl << sensorAngles << std::endl;
+    std::cout << "Input sensorAnglesGlobal: " << std::endl << sensorAnglesGlobal << std::endl;
     std::cout << "mpRotationAffine: " << std::endl
               << mpRotationAffine.matrix() << std::endl;
     std::cout << "mpRotationGlobalAffine: " << std::endl
@@ -340,9 +342,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
     std::cout << "actsTranslationAffine: " << std::endl
               << actsTranslationAffine.matrix() << std::endl;
     std::cout << "full acts transform " << std::endl
-              << actstransform.matrix() << std::endl
-              << "full mp transform " << std::endl
-              << mptransform.matrix() << std::endl;
+              << actstransform.matrix() << std::endl;
     std::cout << "mpTranslationAffine: " << std::endl
 	      << mpTranslationAffine.matrix() << std::endl;
     std::cout << "Overall transform: " << std::endl
