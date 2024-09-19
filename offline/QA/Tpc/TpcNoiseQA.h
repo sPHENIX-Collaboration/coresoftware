@@ -19,7 +19,6 @@
 
 // Call classes to be used in code
 class PHCompositeNode;
-class TFile;
 class TH2;
 class Fun4AllHistoManager;
 //
@@ -53,7 +52,6 @@ class TpcNoiseQA : public SubsysReco  // Inherit public parts of SubsysReco
  private:
   TpcMap M;
 
-  TFile *m_file{nullptr};         // File being processed
   TH2 *h_NPol_Ped_Mean{nullptr};  // Histogram of pedestal values on North Side
   TH2 *h_NPol_Ped_RMS{nullptr};   // Histogram of RMS values on North Side
   TH2 *h_SPol_Ped_Mean{nullptr};  // Histogram of pedestal values on South Side
