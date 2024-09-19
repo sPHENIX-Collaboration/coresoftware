@@ -59,10 +59,6 @@ int TpcChanQA::InitRun(PHCompositeNode * /*unused*/)
 
   createHistos();
 
-  // Creates data file and checks whether it was successfully opened
-  m_file = TFile::Open(m_fname.c_str(), "recreate");
-  assert(m_file->IsOpen());
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
