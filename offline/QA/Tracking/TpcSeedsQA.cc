@@ -250,7 +250,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
   }
   else
   {
-    Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
     if (!gl1PacketInfo)
     {
       m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
