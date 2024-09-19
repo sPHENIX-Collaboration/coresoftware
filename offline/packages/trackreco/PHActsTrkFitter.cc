@@ -53,9 +53,6 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
-#include <TDatabasePDG.h>
-#include <TSystem.h>
-
 #include <cmath>
 #include <filesystem>
 #include <iostream>
