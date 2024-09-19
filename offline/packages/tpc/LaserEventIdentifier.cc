@@ -173,17 +173,8 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   f1->SetParLimits(1, itMax_1 - 2, itMax_1 + 2);
   m_itHist_1->Fit(f1, "B");
 
-  if (itMaxContent_0 / itMeanContent_0 < 7 && itMaxContent_1 / itMeanContent_1 < 7 && itMaxContent_0 < 1000 && itMaxContent_1 < 1000)
-  {
-    m_laserEventInfo->setIsLaserEvent(false);
 
-    isLaserEvent = false;
-    peakSample0 = -999;
-    peakSample1 = -999;
-    peakWidth0 = -999;
-    peakWidth1 = -999;
-  }
-  else
+  if ((itMaxContent_0 / itMeanContent_0 >= 7 && itMaxContent_0 > 1000) || (itMaxContent_1 / itMeanContent_1 >= 7 && itMaxContent_1 < 1000))
   {
     m_laserEventInfo->setIsLaserEvent(true);
     m_laserEventInfo->setPeakSample(false, (int) itMax_0);
@@ -196,6 +187,16 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     peakSample1 = (int) itMax_1;
     peakWidth0 = f0->GetParameter(2);
     peakWidth1 = f1->GetParameter(2);
+  }
+  else
+  {
+    m_laserEventInfo->setIsLaserEvent(false);
+
+    isLaserEvent = false;
+    peakSample0 = -999;
+    peakSample1 = -999;
+    peakWidth0 = -999;
+    peakWidth1 = -999;
   }
 
   if (m_debug)
