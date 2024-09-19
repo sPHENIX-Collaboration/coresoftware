@@ -373,20 +373,12 @@ void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, 
     }
   }
 
-  // cleanup bco stack
-  for (auto iter = m_BclkStack.begin(); iter != m_BclkStack.end() && (*iter)<=bclk; iter=m_BclkStack.erase(iter))
-  {}
+  // cleanup bco stacks
+  /* it erases all elements for which the bco is no greater than the provided one */
+  m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
+  m_BeamClockFEE.erase(m_BeamClockFEE.begin(), m_BeamClockFEE.upper_bound(bclk));
+  m_BeamClockPacket.erase(m_BeamClockPacket.begin(), m_BeamClockPacket.upper_bound(bclk));
 
-  // generic map cleanup
-  auto cleanup = [bclk](auto&& map)
-  {
-    for (auto iter = map.begin(); iter != map.end() && iter->first<=bclk;iter = map.erase(iter))
-    {}
-  };
-
-  // cleanup list of FEE and packets found for a given bco
-  cleanup(m_BeamClockFEE);
-  cleanup(m_BeamClockPacket);
 }
 
 //_______________________________________________________
