@@ -256,10 +256,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         {
           // increment counter and histogram
           ++m_waveform_count_dropped_bco[packet_id];
-<<<<<<< HEAD
           ++m_fee_waveform_count_dropped_bco[fee_id];
-=======
->>>>>>> master
           h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1 );
 
           // skip the waverform
