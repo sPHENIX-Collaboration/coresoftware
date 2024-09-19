@@ -13,8 +13,7 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
 
-#include <tpc/TpcDistortionCorrectionContainer.h>
-#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -46,17 +45,14 @@ class PHTpcClusterMover : public SubsysReco
 
  /// acts transformation object
   ActsTransformations _transformer;
-  
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
 
-  double _z_start=0.0; 
-  double _y_start=0.0; 
-  double _x_start=0.0; 
+  double _z_start=0.0;
+  double _y_start=0.0;
+  double _x_start=0.0;
 
-  double _z_proj=0.0; 
-  double _y_proj=0.0; 
-  double _x_proj=0.0; 
+  double _z_proj=0.0;
+  double _y_proj=0.0;
+  double _x_proj=0.0;
 
   // range of TPC layers to use in projection to micromegas
 
@@ -64,10 +60,12 @@ class PHTpcClusterMover : public SubsysReco
 
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
-  TrkrClusterContainer *_cluster_map{nullptr};						    
-  TrkrClusterContainer *_corrected_cluster_map{nullptr};						    
+  TrkrClusterContainer *_cluster_map{nullptr};
+  TrkrClusterContainer *_corrected_cluster_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
-  TpcDistortionCorrectionContainer* _dcc{nullptr};
+
+  /// global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   double layer_radius[48] = {0};
 //  double inner_tpc_min_radius = 30.0;
