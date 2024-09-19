@@ -16,9 +16,8 @@
 #include "ALICEKF.h"
 #include "PHTrackSeeding.h"  // for PHTrackSeeding
 
-#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
-#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey
 
 #include <phool/PHTimer.h>  // for PHTimer
@@ -48,6 +47,7 @@
 #include <TFile.h>
 #include <TNtuple.h>
 
+class ActsGeometry;
 class PHCompositeNode;
 class PHTimer;
 class SvtxTrack_v3;
@@ -113,15 +113,15 @@ class PHCASeeding : public PHTrackSeeding
     _neighbor_z_width = z_width;
     _neighbor_phi_width = phi_width;
   }
-  void SetClusAdd_delta_window(float _dzdr_cutoff, float _dphidr2_cutoff) 
+  void SetClusAdd_delta_window(float _dzdr_cutoff, float _dphidr2_cutoff)
   {
     _clusadd_delta_dzdr_window = _dzdr_cutoff;
     _clusadd_delta_dphidr2_window = _dphidr2_cutoff;
   }
   void SetMinHitsPerCluster(unsigned int minHits) { _min_nhits_per_cluster = minHits; }
   void SetMinClustersPerTrack(unsigned int minClus) { _min_clusters_per_track = minClus; }
-  void SetNClustersPerSeedRange(unsigned int minClus, unsigned int maxClus) 
-  { _min_clusters_per_seed = minClus;  _max_clusters_per_seed = maxClus; 
+  void SetNClustersPerSeedRange(unsigned int minClus, unsigned int maxClus)
+  { _min_clusters_per_seed = minClus;  _max_clusters_per_seed = maxClus;
     if (_min_clusters_per_seed < 3) {
       std::cout << " Error in SetNClustersPerSeedRange: " << __FILE__
         << " min value cannot be less than three." << std::endl;
@@ -217,7 +217,7 @@ class PHCASeeding : public PHTrackSeeding
    */
   Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
   std::pair<PositionMap, keyListPerLayer> FillGlobalPositions();
-  std::pair<keyLinks, keyLinkPerLayer> CreateBiLinks(const PositionMap& globalPositions, const keyListPerLayer& ckeys); 
+  std::pair<keyLinks, keyLinkPerLayer> CreateBiLinks(const PositionMap& globalPositions, const keyListPerLayer& ckeys);
   PHCASeeding::keyLists FollowBiLinks( const keyLinks& trackSeedPairs, const keyLinkPerLayer& bilinks, const PositionMap& globalPositions) const;
   std::vector<coordKey> FillTree(bgi::rtree<pointKey,bgi::quadratic<16>>&, const keyList&, const PositionMap&, int layer);
   int FindSeedsWithMerger(const PositionMap&, const keyListPerLayer&);
@@ -262,10 +262,10 @@ class PHCASeeding : public PHTrackSeeding
   std::string m_magField;
 
   /// acts geometry
-  ActsGeometry* tGeometry{nullptr};
+  ActsGeometry* m_tGeometry{nullptr};
 
-  /// distortion correction container
-  TpcDistortionCorrectionContainer* m_dcc = nullptr;
+  /// global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   std::unique_ptr<ALICEKF> fitter;
 
