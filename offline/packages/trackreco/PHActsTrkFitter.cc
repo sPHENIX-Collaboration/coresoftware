@@ -107,6 +107,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.verbosity(Verbosity());
   m_alignStates.fieldMap(m_fieldMap);
 
+  // detect const field
   std::istringstream stringline(m_fieldMap);
   stringline >> fieldstrength;
   if (!stringline.fail())  // it is a float
