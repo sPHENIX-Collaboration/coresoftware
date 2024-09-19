@@ -211,7 +211,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
         m_waveform_count_dropped_bco[packet_id] += nwf;
         h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), nwf );
-        // bco_matching_information.cleanup();
         continue;
       }
 
@@ -299,9 +298,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
         m_MicromegasRawHitMap[gtm_bco].push_back(newhit.release());
       }
-
-      // cleanup
-      // bco_matching_information.cleanup();
     }
   }
 }
