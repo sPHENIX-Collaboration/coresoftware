@@ -223,7 +223,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
         m_waveform_count_dropped_bco[packet_id] += nwf;
         h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), nwf );
-        bco_matching_information.cleanup();
+        // bco_matching_information.cleanup();
         continue;
       }
 
@@ -315,7 +315,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       }
 
       // cleanup
-      bco_matching_information.cleanup();
+      // bco_matching_information.cleanup();
     }
   }
 }
@@ -392,6 +392,10 @@ void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, 
   m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
   m_BeamClockFEE.erase(m_BeamClockFEE.begin(), m_BeamClockFEE.upper_bound(bclk));
   m_BeamClockPacket.erase(m_BeamClockPacket.begin(), m_BeamClockPacket.upper_bound(bclk));
+
+  // cleanup matching information
+  for( auto&& bco_matching:m_bco_matching_information_map )
+  { bco_matching.second.cleanup(bclk); }
 
 }
 
