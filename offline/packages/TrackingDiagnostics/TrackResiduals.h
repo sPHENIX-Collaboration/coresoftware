@@ -62,6 +62,8 @@ class TrackResiduals : public SubsysReco
 
   void set_doMicromegasOnly( bool value ) { m_doMicromegasOnly = value; }
 
+  void set_rejectLaserEvent( bool value ) { m_rejectLaserEvent = value; }
+
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
                              TrkrCluster *cluster, ActsGeometry *geometry);
@@ -123,6 +125,8 @@ class TrackResiduals : public SubsysReco
   unsigned int m_min_cluster_size = 0;
 
   bool m_doMicromegasOnly = false;
+
+  bool m_rejectLaserEvent = true;
 
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();

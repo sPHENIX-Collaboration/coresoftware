@@ -2,18 +2,18 @@
 
 TpcRawHitv1::TpcRawHitv1(TpcRawHit *tpchit)
 {
-  set_bco(tpchit->get_bco());
-  set_gtm_bco(tpchit->get_gtm_bco());
-  set_packetid(tpchit->get_packetid());
-  set_fee(tpchit->get_fee());
-  set_channel(tpchit->get_channel());
-  set_sampaaddress(tpchit->get_sampaaddress());
-  set_sampachannel(tpchit->get_sampachannel());
-  set_samples(tpchit->get_samples());
+  TpcRawHitv1::set_bco(tpchit->get_bco());
+  TpcRawHitv1::set_gtm_bco(tpchit->get_gtm_bco());
+  TpcRawHitv1::set_packetid(tpchit->get_packetid());
+  TpcRawHitv1::set_fee(tpchit->get_fee());
+  TpcRawHitv1::set_channel(tpchit->get_channel());
+  TpcRawHitv1::set_sampaaddress(tpchit->get_sampaaddress());
+  TpcRawHitv1::set_sampachannel(tpchit->get_sampachannel());
+  TpcRawHitv1::set_samples(tpchit->get_samples());
 
   for (size_t i = 0; i < tpchit->get_samples(); ++i)
   {
-    set_adc(i, tpchit->get_adc(i));
+    TpcRawHitv1::set_adc(i, tpchit->get_adc(i));
   }
 }
 

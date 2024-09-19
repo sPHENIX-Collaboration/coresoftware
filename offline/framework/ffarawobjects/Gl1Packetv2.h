@@ -25,11 +25,11 @@ class Gl1Packetv2 : public Gl1Packet
   uint64_t getTriggerInput() const override { return TriggerInput; }
 
   void setLiveVector(const uint64_t i) override { LiveVector = i; }
-  void setTriggerVector(const uint64_t i) override { setLiveVector(i); } // backward compatibility
+  void setTriggerVector(const uint64_t i) override { setLiveVector(i); }  // backward compatibility
   uint64_t getLiveVector() const override { return LiveVector; }
-  uint64_t getTriggerVector() const override { return getLiveVector(); } // backward compatibility
+  uint64_t getTriggerVector() const override { return getLiveVector(); }  // backward compatibility
 
-  void setScaledVector(const uint64_t i) override { ScaledVector =i;}
+  void setScaledVector(const uint64_t i) override { ScaledVector = i; }
   uint64_t getScaledVector() const override { return ScaledVector; }
 
   void setGTMBusyVector(const uint64_t i) override { GTMBusyVector = i; }

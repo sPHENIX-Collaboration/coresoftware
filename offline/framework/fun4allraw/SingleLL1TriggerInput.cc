@@ -29,15 +29,10 @@
 #include <set>
 #include <utility>  // for pair
 
-// it is 8 packets for the ll1, this number needs to be npackets+1
-// so it doesn't trigger the warning and exit. Setting it to 10
-static const int NLL1PACKETS = 19;
-
 SingleLL1TriggerInput::SingleLL1TriggerInput(const std::string &name)
   : SingleTriggerInput(name)
 {
   SubsystemEnum(InputManagerType::LL1);
-  plist = new Packet *[NLL1PACKETS];  // eight packets for the ll1 in each file
 }
 
 SingleLL1TriggerInput::~SingleLL1TriggerInput()
@@ -49,7 +44,6 @@ SingleLL1TriggerInput::~SingleLL1TriggerInput()
   {
     m_EventStack.erase(m_EventStack.begin());
   }
-  delete[] plist;
 }
 
 void SingleLL1TriggerInput::FillPool(const unsigned int keep)
@@ -94,18 +88,14 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, NLL1PACKETS);
-    if (npackets >= NLL1PACKETS)
+    if (EventSequence < SkipToEvent())
     {
-      std::cout << PHWHERE << " Packets array size " << NLL1PACKETS
-                << " too small for " << Name()
-                << ", increase NLL1PACKETS and rebuild" << std::endl;
-      exit(1);
+      continue;
     }
-
-    for (int i = 0; i < npackets; i++)
+    std::vector<Packet *> pktvec = evt->getPacketVector();
+    for (auto packet : pktvec)
     {
-      int packet_id = plist[i]->getIdentifier();
+      int packet_id = packet->getIdentifier();
       // The call to  EventNumberOffset(identifier) will initialize it to our default (zero) if it wasn't set already
       // if we encounter a misalignemt, the Fun4AllPrdfInputTriggerManager will adjust this. But the event
       // number of the adjustment depends on its pooldepth. Events in its pools will be moved to the correct slots
@@ -114,30 +104,30 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
       int CorrectedEventSequence = EventSequence + EventNumberOffset(packet_id);
       if (Verbosity() > 2)
       {
-        plist[i]->identify();
+        packet->identify();
       }
 
       // by default use previous bco clock for gtm bco
       LL1Packet *newhit = new LL1Packetv1();
-      int nr_channels = plist[i]->iValue(0, "CHANNELS");
-      int nr_samples = plist[i]->iValue(0, "SAMPLES");
-      uint64_t gtm_bco = plist[i]->iValue(0, "CLOCK");
+      int nr_channels = packet->iValue(0, "CHANNELS");
+      int nr_samples = packet->iValue(0, "SAMPLES");
+      uint64_t gtm_bco = packet->iValue(0, "CLOCK");
       // offline packet content
       newhit->setEvtSequence(CorrectedEventSequence);
       newhit->setIdentifier(packet_id);
-      newhit->setHitFormat(plist[i]->getHitFormat());
+      newhit->setHitFormat(packet->getHitFormat());
       newhit->setBCO(gtm_bco);
-      newhit->setPacketEvtSequence(plist[i]->iValue(0, "EVTNR"));
+      newhit->setPacketEvtSequence(packet->iValue(0, "EVTNR"));
       // ll1 packet additions
       newhit->setNrSamples(nr_samples);
       newhit->setNrChannels(nr_channels);
-      newhit->setTriggerWords(plist[i]->iValue(0, "TRIGGERWORDS"));
-      newhit->setSlotNr(plist[i]->iValue(0, "SLOTNR"));
-      newhit->setCardNr(plist[i]->iValue(0, "CARDNR"));
-      newhit->setMonitor(plist[i]->iValue(0, "MONITOR"));
-      newhit->setFemWords(plist[i]->iValue(0, "FEMWORDS"));
-      newhit->setFibers(plist[i]->iValue(0, "FIBERS"));
-      newhit->setSums(plist[i]->iValue(0, "SUMS"));
+      newhit->setTriggerWords(packet->iValue(0, "TRIGGERWORDS"));
+      newhit->setSlotNr(packet->iValue(0, "SLOTNR"));
+      newhit->setCardNr(packet->iValue(0, "CARDNR"));
+      newhit->setMonitor(packet->iValue(0, "MONITOR"));
+      newhit->setFemWords(packet->iValue(0, "FEMWORDS"));
+      newhit->setFibers(packet->iValue(0, "FIBERS"));
+      newhit->setSums(packet->iValue(0, "SUMS"));
       for (int ichan = 0; ichan < nr_channels; ichan++)
       {
         for (int isamp = 0; isamp < nr_samples; isamp++)
@@ -151,7 +141,7 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
           }
           else
           {
-            newhit->setSample(ichan, isamp, plist[i]->iValue(isamp, ichan));
+            newhit->setSample(ichan, isamp, packet->iValue(isamp, ichan));
           }
         }
       }
@@ -172,9 +162,9 @@ void SingleLL1TriggerInput::FillPool(const unsigned int keep)
       m_EventStack.insert(CorrectedEventSequence);
       if (ddump_enabled())
       {
-        ddumppacket(plist[i]);
+        ddumppacket(packet);
       }
-      delete plist[i];
+      delete packet;
     }
   }
 }
