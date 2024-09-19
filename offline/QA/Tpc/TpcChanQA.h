@@ -5,15 +5,14 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>
-
 #include <string>
 #include <vector>
 
 // Call classes to be used in code
 class PHCompositeNode;
+class TFile;
+class TH1;
+class TH2;
 class Fun4AllHistoManager;
 //
 

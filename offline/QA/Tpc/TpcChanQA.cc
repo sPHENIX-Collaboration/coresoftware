@@ -30,7 +30,7 @@
 
 //____________________________________________________________________________..
 TpcChanQA::TpcChanQA(const std::string &name)
-  : SubsysReco("TpcChanQA"), m_fname(name)
+  : SubsysReco(name)
 {
   // reserves memory for max ADC samples
   m_adcSamples.resize(1024, 0);
@@ -143,18 +143,6 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-  // Write histograms to file
-  m_file->cd();
-  h_channel_hits->Write();
-  h_channel_ADCs->Write();
-
-std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName() << std::endl;
-
-  m_file->ls();
-
-  // Close the file
-  m_file->Close();
 
 //____________________________________________________________________________..
 int TpcChanQA::End(PHCompositeNode * /*unused*/)
