@@ -20,9 +20,10 @@ pkginclude_HEADERS = \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
+  intt_pool.h \
   InputManagerType.h \
   MicromegasBcoMatchingInformation.h\
-	MvtxRawDefs.h \
+  MvtxRawDefs.h \
   SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
@@ -50,7 +51,7 @@ decoderinclude_HEADERS = \
   mvtx_decoder/PayLoadCont.h \
   mvtx_decoder/PayLoadSG.h \
   mvtx_decoder/PixelData.h \
-	mvtx_decoder/StrobeData.h
+  mvtx_decoder/StrobeData.h
 
 lib_LTLIBRARIES = \
   libmvtx_decoder.la \
@@ -64,7 +65,7 @@ libmvtx_decoder_la_SOURCES =\
   mvtx_decoder/InteractionRecord.cc \
   mvtx_decoder/PayLoadCont.cc \
   mvtx_decoder/PixelData.cc \
-	mvtx_decoder/StrobeData.cc
+  mvtx_decoder/StrobeData.cc
 
 libfun4allraw_la_SOURCES = \
   Fun4AllEventOutStream.cc \

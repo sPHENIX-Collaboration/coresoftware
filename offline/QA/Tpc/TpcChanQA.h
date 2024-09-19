@@ -36,6 +36,7 @@ class TpcChanQA : public SubsysReco  // Inherit public parts of SubsysReco
   // called at the end of the run when processing is over
   int End(PHCompositeNode *topNode) override;
 
+  void set_filename(const std::string &fname) { m_fname = fname; }
   // Define function that stores packets to a vector
   void AddPacket(int packet)
   {
@@ -44,7 +45,6 @@ class TpcChanQA : public SubsysReco  // Inherit public parts of SubsysReco
 
   // List of private members
  private:
-  TFile *m_file{nullptr};        // File being processed
   TH1 *h_channel_hits{nullptr};  // Histogram of hits per channel
   TH2 *h_channel_ADCs{nullptr};  // Histogram of ADC counts per channel
 

@@ -1,8 +1,11 @@
 // Include necessary files
 #include "TpcChanQA.h"
 
+#include <qautils/QAHistManagerDef.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -12,19 +15,17 @@
 #include <Event/Event.h>
 #include <Event/packet.h>
 
-#include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
+
+#include <boost/format.hpp>
 
 #include <cassert>
 #include <cstddef>
 #include <memory>
-
-#include <qautils/QAHistManagerDef.h>
-#include <boost/format.hpp>
-
 #include <iostream>
 #include <string>
+
 //
 
 //____________________________________________________________________________..
@@ -143,14 +144,6 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//____________________________________________________________________________..
-int TpcChanQA::End(PHCompositeNode * /*unused*/)
-{
-
-  // Set histogram directory to 0 so data is saved after closing file
-  h_channel_hits->SetDirectory(nullptr);
-  h_channel_ADCs->SetDirectory(nullptr);
-
   // Write histograms to file
   m_file->cd();
   h_channel_hits->Write();
@@ -162,6 +155,10 @@ std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName
 
   // Close the file
   m_file->Close();
+
+//____________________________________________________________________________..
+int TpcChanQA::End(PHCompositeNode * /*unused*/)
+{
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
