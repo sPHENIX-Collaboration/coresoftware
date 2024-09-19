@@ -21,13 +21,20 @@ class TpcGlobalPositionWrapper
 {
   public:
 
-  // constructor
+  //! constructor
   explicit TpcGlobalPositionWrapper() = default;
 
-  // load relevant nodes from tree
+  //! load relevant nodes from tree
   void loadNodes(PHCompositeNode* /*topnode*/);
 
-  // get distortion corrected global position
+  //! apply all loaded distortion corrections to a given position
+  Acts::Vector3 applyDistortionCorrections( Acts::Vector3 /*source*/ ) const;
+
+  //! get distortion corrected global position from cluster
+  /**
+   * first converts cluster position local coordinate to global coordinates
+   * then, for TPC clusters only, applies crossing correction, and distortion corrections
+   */
   Acts::Vector3 getGlobalPositionDistortionCorrected(const TrkrDefs::cluskey&, TrkrCluster*, short int /*crossing*/ ) const;
 
   private:

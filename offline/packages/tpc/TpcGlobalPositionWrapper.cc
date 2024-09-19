@@ -45,8 +45,42 @@ void TpcGlobalPositionWrapper::loadNodes( PHCompositeNode* topNode )
 }
 
 //____________________________________________________________________________________________________________________
+Acts::Vector3 TpcGlobalPositionWrapper::applyDistortionCorrections(Acts::Vector3 global ) const
+{
+  // apply distortion corrections
+  if (m_dcc_module_edge)
+  {
+    global = m_distortionCorrection.get_corrected_position(global, m_dcc_module_edge);
+  }
+
+  if (m_dcc_static)
+  {
+    global = m_distortionCorrection.get_corrected_position(global, m_dcc_static);
+  }
+
+  if (m_dcc_average)
+  {
+    global = m_distortionCorrection.get_corrected_position(global, m_dcc_average);
+  }
+
+  if (m_dcc_fluctuation)
+  {
+    global = m_distortionCorrection.get_corrected_position(global, m_dcc_fluctuation);
+  }
+
+  return global;
+}
+
+//____________________________________________________________________________________________________________________
 Acts::Vector3 TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(const TrkrDefs::cluskey& key, TrkrCluster* cluster, short int crossing ) const
 {
+
+  if( !m_tGeometry )
+  {
+    std::cout << "TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected - m_tGeometry not set" << std::endl;
+    return {0,0,0};
+  }
+
   // get global position from acts
   Acts::Vector3 global = m_tGeometry->getGlobalPosition(key, cluster);
 
@@ -65,25 +99,7 @@ Acts::Vector3 TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(con
     global.z() = m_crossingCorrection.correctZ(global.z(), TpcDefs::getSide(key), crossing);
 
     // apply distortion corrections
-    if (m_dcc_module_edge)
-    {
-      global = m_distortionCorrection.get_corrected_position(global, m_dcc_module_edge);
-    }
-
-    if (m_dcc_static)
-    {
-      global = m_distortionCorrection.get_corrected_position(global, m_dcc_static);
-    }
-
-    if (m_dcc_average)
-    {
-      global = m_distortionCorrection.get_corrected_position(global, m_dcc_average);
-    }
-
-    if (m_dcc_fluctuation)
-    {
-      global = m_distortionCorrection.get_corrected_position(global, m_dcc_fluctuation);
-    }
+    global = applyDistortionCorrections(global);
   }
 
   return global;
