@@ -371,61 +371,36 @@ void SingleMicromegasPoolInput::Print(const std::string& what) const
 //____________________________________________________________________________
 void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, bool dropped)
 {
-  for (const auto& iter : m_MicromegasRawHitMap)
+
+  // delete all raw hits associated to bco smaller than reference, and remove from map
+  for(auto iter = m_MicromegasRawHitMap.begin(); iter != m_MicromegasRawHitMap.end() && (iter->first <= bclk); iter = m_MicromegasRawHitMap.erase(iter))
   {
-    if (iter.first <= bclk)
+    for (const auto& rawhit : iter->second)
     {
-      for (auto rawhit : iter.second)
+      if( dropped )
       {
-        // increment dropped statistics
-        if( dropped )
-        {
-          // increment counter and histogram
-          ++m_waveform_count_dropped_pool[rawhit->get_packetid()];
-          h_waveform_count_dropped_pool->Fill( std::to_string(rawhit->get_packetid()).c_str(), 1 );
-        }
-
-        delete rawhit;
+        // increment dropped waveform counter and histogram
+        ++m_waveform_count_dropped_pool[rawhit->get_packetid()];
+        h_waveform_count_dropped_pool->Fill( std::to_string(rawhit->get_packetid()).c_str(), 1 );
       }
-    }
-    else
-    {
-      break;
+      delete rawhit;
     }
   }
 
-  // cleanup block stat
-  for (auto iter = m_BclkStack.begin(); iter != m_BclkStack.end();)
-  {
-    if (*iter <= bclk)
-    {
-      iter = m_BclkStack.erase(iter);
-    }
-    else
-    {
-      break;
-    }
-  }
+  // cleanup bco stack
+  for (auto iter = m_BclkStack.begin(); iter != m_BclkStack.end() && (*iter)<bclk; iter=m_BclkStack.erase(iter))
+  {}
 
   // generic map cleanup
   auto cleanup = [bclk](auto&& map)
   {
-    for (auto iter = map.begin(); iter != map.end();)
-    {
-      if (iter->first <= bclk)
-      {
-        iter = map.erase(iter);
-      }
-      else
-      {
-        break;
-      }
-    }
+    for (auto iter = map.begin(); iter != map.end() && iter->first <= bclk;iter = map.erase(iter))
+    {}
   };
 
+  // cleanup list of FEE and packets found for a given bco
   cleanup(m_BeamClockFEE);
   cleanup(m_BeamClockPacket);
-  cleanup(m_MicromegasRawHitMap);
 }
 
 //_______________________________________________________
