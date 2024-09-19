@@ -5,8 +5,7 @@
 
 #include "AlignmentDefs.h"
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
@@ -37,8 +36,6 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 {
  public:
   HelicalFitter(const std::string& name = "HelicalFitter");
-
-  ~HelicalFitter() override;
 
   void SetDefaultParameters() override;
 
@@ -154,10 +151,11 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, const Acts::Vector3& event_vertex, Acts::Vector3 PCA);
   Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, const Acts::Vector3& event_vtx, const Acts::Vector3& PCA);
 
+  //! cluster z correction
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-  TpcDistortionCorrectionContainer* _dcc_static{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_average{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
+
+  //! global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   bool test_output = false;
 
