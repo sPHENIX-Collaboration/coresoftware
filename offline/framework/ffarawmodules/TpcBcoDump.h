@@ -31,15 +31,15 @@ class TpcBcoDump : public SubsysReco
   void OutFileName(const std::string &name) { outfilename = name; }
 
  private:
-  TFile *outTfile{nullptr};
-  TTree *ntup = nullptr;
+  TFile *outfile{nullptr};
+  TTree *ttree = nullptr;
   std::map<int, uint64_t> lastbco;
   std::string outfilename;
 
-  int m_id {0};
-  int m_evt {0};
-  uint64_t m_bco {0};
-  int64_t m_bcodiff {0};
+  int m_id{0};
+  int m_evt{0};
+  uint64_t m_bco{0};
+  int64_t m_bcodiff{0};
 };
 
 #endif  // FFARAWMODULES_TPCBCODUMP_H

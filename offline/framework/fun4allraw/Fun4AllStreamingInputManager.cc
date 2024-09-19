@@ -1017,35 +1017,41 @@ int Fun4AllStreamingInputManager::FillMicromegas()
       exit(1);
     }
   }
-  uint64_t select_crossings = m_micromegas_bco_range;
+
+  // get reference BCO from Micromegas data stream if not set already
   if (m_RefBCO == 0)
   {
     m_RefBCO = m_MicromegasRawHitMap.begin()->first;
   }
-  select_crossings += m_RefBCO;
+
+  // define bco range
+  const uint64_t first_bco = m_RefBCO - m_micromegas_negative_bco;
+  const uint64_t last_bco = m_RefBCO + m_micromegas_bco_range - m_micromegas_negative_bco;
   if (Verbosity() > 2)
   {
-    std::cout << "select MicroMegas crossings"
-              << " from 0x" << std::hex << m_RefBCO - m_micromegas_bco_range
-              << " to 0x" << select_crossings - m_micromegas_bco_range
-              << " for ref BCO " << m_RefBCO
-              << std::dec << std::endl;
+    std::cout
+      << "Fun4AllStreamingInputManager::FillMicromegas - select Micromegas crossings"
+      << " from 0x" << std::hex << first_bco
+      << " to 0x" << last_bco
+      << " for ref BCO " << m_RefBCO
+      << std::dec << std::endl;
   }
 
-  // m_MicromegasRawHitMap.empty() does not need to be checked here, FillMicromegasPool returns non zero
-  // if this map is empty which is handled above
-  while (m_MicromegasRawHitMap.begin()->first < m_RefBCO - m_micromegas_negative_bco)
+  // cleanup all data that correspond too early BCO. Said data is effectively dropped
+  while (m_MicromegasRawHitMap.begin()->first < first_bco)
   {
     if (Verbosity() > 2)
     {
-      std::cout << "Micromegas BCO: 0x" << std::hex << m_MicromegasRawHitMap.begin()->first
-                << " smaller than GL1 BCO: 0x" << m_RefBCO
-                << ", ditching this bco" << std::dec << std::endl;
+      std::cout
+        << "Micromegas BCO: 0x" << std::hex << m_MicromegasRawHitMap.begin()->first
+        << " smaller than GL1 BCO: 0x" << first_bco
+        << ", ditching this bco" << std::dec << std::endl;
     }
+
     for (auto iter : m_MicromegasInputVector)
-    {
-      iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first);
-    }
+    { static_cast<SingleMicromegasPoolInput*>(iter)->CleanupUsedPackets_with_qa(m_MicromegasRawHitMap.begin()->first, true); }
+
+    // also cleanup internal map
     m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
     m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
     iret = FillMicromegasPool();
@@ -1061,7 +1067,8 @@ int Fun4AllStreamingInputManager::FillMicromegas()
     static_cast<SingleMicromegasPoolInput *>(iter)->FillBcoQA(m_RefBCO);
   }
 
-  while ((m_MicromegasRawHitMap.begin()->first) <= select_crossings - m_micromegas_negative_bco)
+  // store relevant hits
+  while ((m_MicromegasRawHitMap.begin()->first) <= last_bco)
   {
     for (const auto &hititer : m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
     {
@@ -1073,6 +1080,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
       iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first);
     }
 
+    // also cleanup internal map
     m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
     m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
     if (m_MicromegasRawHitMap.empty())
@@ -1112,7 +1120,7 @@ int Fun4AllStreamingInputManager::FillTpc()
   select_crossings += m_RefBCO;
   if (Verbosity() > 2)
   {
-    
+
     std::cout << "select TPC crossings"
               << " from 0x" << std::hex << m_RefBCO - m_tpc_negative_bco
               << " to 0x" << select_crossings - m_tpc_negative_bco
@@ -1152,11 +1160,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       for (auto &bcl : bclset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-        if (diff < 5)
-        {
-          thispacket = true;
-          h_gl1tagged_tpc[histo_to_fill][packetnum]->Fill(refbcobitshift);
-        } else if (diff < 256) // endat tagger
+        if (diff < 256)
         {
           thispacket = true;
           h_gl1tagged_tpc[histo_to_fill][packetnum]->Fill(refbcobitshift);

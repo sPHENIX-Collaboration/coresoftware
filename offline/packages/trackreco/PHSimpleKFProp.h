@@ -58,7 +58,7 @@ class PHSimpleKFProp : public SubsysReco
       _fieldDir = -1;
     }
   }
-  void ghostRejection(bool set_value=true) { m_ghostrejection = set_value; }
+  void ghostRejection(bool set_value = true) { m_ghostrejection = set_value; }
   void magFieldFile(const std::string& fname) { m_magField = fname; }
   void set_max_window(double s) { _max_dist = s; }
   void useConstBField(bool opt) { _use_const_field = opt; }
@@ -71,7 +71,11 @@ class PHSimpleKFProp : public SubsysReco
   }
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
-  enum class PropagationDirection { Outward, Inward };
+  enum class PropagationDirection
+  {
+    Outward,
+    Inward
+  };
 
   void setNeonFraction(double frac) { Ne_frac = frac; };
   void setArgonFraction(double frac) { Ar_frac = frac; };
@@ -186,7 +190,6 @@ class PHSimpleKFProp : public SubsysReco
   double CF4_frac = 0.20;
   double N2_frac = 0.00;
   double isobutane_frac = 0.05;
-
 };
 
 #endif

@@ -90,7 +90,7 @@ long long Gl1Packetv1::lValue(const int /*i*/, const std::string &what) const
 
 void Gl1Packetv1::dump(std::ostream &os) const
 {
-  // to avoid confusion, we continue to call it "Trigger Vector" here. 
+  // to avoid confusion, we continue to call it "Trigger Vector" here.
 
   os << "packet nr:       " << iValue(0) << std::endl;
   os << "Beam Clock:      "

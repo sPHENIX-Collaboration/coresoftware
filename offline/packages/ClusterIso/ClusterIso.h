@@ -11,6 +11,7 @@
 
 class PHCompositeNode;
 class RawTowerGeom;
+class TowerInfo;
 
 /** \Brief Tool to find isolation energy of each EMCal cluster.
  *
@@ -43,8 +44,14 @@ class ClusterIso : public SubsysReco
     m_use_towerinfo = usetowerinfo;
   };
 
+  void set_cluster_node_name(const std::string& name)
+  {
+    m_cluster_node_name = name;
+  }
+
  private:
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
+  bool IsAcceptableTower(TowerInfo* tower);
   float m_eTCut{};     ///< The minimum required transverse energy in a cluster for ClusterIso to be run
   float m_coneSize{};  ///< Size of the cone used to isolate a given cluster
   float m_vx;          ///< Correct vertex x coordinate
@@ -53,6 +60,7 @@ class ClusterIso : public SubsysReco
   bool m_do_subtracted;
   bool m_do_unsubtracted;
   bool m_use_towerinfo = true;
+  std::string m_cluster_node_name = "CLUSTERINFO_CEMC";
 };
 
 /** \Brief Function to find delta R between 2 objects

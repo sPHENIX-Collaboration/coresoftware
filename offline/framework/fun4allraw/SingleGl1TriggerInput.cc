@@ -85,6 +85,16 @@ void SingleGl1TriggerInput::FillPool(const unsigned int keep)
       continue;
     }
     int EventSequence = evt->getEvtSequence();
+    if (EventSequence < SkipToEvent())
+    {
+      continue;
+    }
+    if (EventSequence > LastEvent())
+    {
+      std::cout << Name() << ": Last event " << LastEvent() << std::endl;
+      AllDone(1);
+      return;
+    }
     Packet *packet = evt->getPacket(14001);
     if (!packet)
     {
@@ -115,13 +125,13 @@ void SingleGl1TriggerInput::FillPool(const unsigned int keep)
           TriggerInputManager()->AddGl1DroppedEvent(EventSequence);
         }
 
-	static int icnt = 0;
-	if (icnt < 1000)
-	{
-	  std::cout << Name() << ": Found dropped Event at event " << EventSequence
-		    << " with Packet Number: " << packetnumber << std::endl;
-	  icnt++;
-	}
+        static int icnt = 0;
+        if (icnt < 1000)
+        {
+          std::cout << Name() << ": Found dropped Event at event " << EventSequence
+                    << " with Packet Number: " << packetnumber << std::endl;
+          icnt++;
+        }
         m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
       }
     }
