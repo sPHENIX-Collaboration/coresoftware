@@ -36,6 +36,7 @@
 #include <ffarawobjects/Gl1RawHit.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
+#include <tpc/LaserEventInfo.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -226,6 +227,27 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   auto mvtxGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   auto inttGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   auto mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
+  auto laserEventInfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
+
+  if (m_rejectLaserEvent)
+  {
+    if (!laserEventInfo)
+    {
+      std::cout << "Missing LaserEventInfo node, can't continue" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    else
+    {
+      if (laserEventInfo->isLaserEvent())
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << "This is a laser event!" << std::endl;
+        }
+        return Fun4AllReturnCodes::EVENT_OK;
+      }
+    }
+  }
 
   if (!mmGeom)
   {
