@@ -388,13 +388,13 @@ void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, 
   }
 
   // cleanup bco stack
-  for (auto iter = m_BclkStack.begin(); iter != m_BclkStack.end() && (*iter)<bclk; iter=m_BclkStack.erase(iter))
+  for (auto iter = m_BclkStack.begin(); iter != m_BclkStack.end() && (*iter)<=bclk; iter=m_BclkStack.erase(iter))
   {}
 
   // generic map cleanup
   auto cleanup = [bclk](auto&& map)
   {
-    for (auto iter = map.begin(); iter != map.end() && iter->first <= bclk;iter = map.erase(iter))
+    for (auto iter = map.begin(); iter != map.end() && iter->first<=bclk;iter = map.erase(iter))
     {}
   };
 
