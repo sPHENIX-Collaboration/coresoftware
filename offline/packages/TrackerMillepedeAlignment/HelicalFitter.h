@@ -25,7 +25,6 @@ class TrkrClusterContainer;
 class TF1;
 class TNtuple;
 class TFile;
-class TpcDistortionCorrectionContainer;
 class Mille;
 class SvtxTrackSeed;
 class SvtxTrackMap;
@@ -172,9 +171,6 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   AlignmentDefs::inttGrp intt_grp = AlignmentDefs::inttGrp::chp;
   AlignmentDefs::tpcGrp tpc_grp = AlignmentDefs::tpcGrp::htst;
   AlignmentDefs::mmsGrp mms_grp = AlignmentDefs::mmsGrp::tl;
-
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
 
   //  TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer* _track_map_tpc{nullptr};
