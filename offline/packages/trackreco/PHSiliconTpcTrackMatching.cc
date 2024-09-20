@@ -113,7 +113,9 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
     auto crossing = _tracklet_si->get_crossing();
     if (Verbosity() > 8)
     {
-      std::cout << " silicon stub: " << trackid << " eta " << _tracklet_si->get_eta() << " pt " << _tracklet_si->get_pt() << " si z " << _tracklet_si->get_z() << " crossing " << crossing << std::endl;
+      std::cout << " silicon stub: " << trackid << " eta " << _tracklet_si->get_eta() 
+		<< " pt " << _tracklet_si->get_pt() << " si z " << _tracklet_si->get_z() 
+		<< " crossing " << crossing << std::endl;
     }
 
     if (Verbosity() > 1)
