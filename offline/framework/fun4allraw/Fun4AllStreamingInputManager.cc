@@ -718,7 +718,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       for (auto &bcl : gtmbcoset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-        if (diff < 120)  // diff is 1 strobe length of 120 crossings
+        if (diff < 120) { // diff is 1 strobe length of 120 crossings
           h_gl1taggedfee_intt[histo_to_fill][fee]->Fill(refbcobitshift);
           feeidset.insert(feeid);
           // this fee was tagged, go to the next one
