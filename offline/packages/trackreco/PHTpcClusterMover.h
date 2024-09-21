@@ -30,33 +30,30 @@ class TrkrClusterContainer;
 class PHTpcClusterMover : public SubsysReco
 {
  public:
-
   PHTpcClusterMover(const std::string &name = "PHTpcClusterMover");
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-
  private:
-
-  int GetNodes(PHCompositeNode* topNode);
+  int GetNodes(PHCompositeNode *topNode);
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xref, double yref, double &x, double &y);
 
- /// acts transformation object
+  /// acts transformation object
   ActsTransformations _transformer;
 
-  double _z_start=0.0;
-  double _y_start=0.0;
-  double _x_start=0.0;
+  double _z_start{0.0};
+  double _y_start{0.0};
+  double _x_start{0.0};
 
-  double _z_proj=0.0;
-  double _y_proj=0.0;
-  double _x_proj=0.0;
+  double _z_proj{0.0};
+  double _y_proj{0.0};
+  double _x_proj{0.0};
 
   // range of TPC layers to use in projection to micromegas
 
-  PHG4TpcCylinderGeomContainer* _tpc_geom_container = nullptr;
+  PHG4TpcCylinderGeomContainer *_tpc_geom_container{nullptr};
 
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
@@ -67,16 +64,15 @@ class PHTpcClusterMover : public SubsysReco
   /// global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
 
-  double layer_radius[48] = {0};
-//  double inner_tpc_min_radius = 30.0;
-//  double mid_tpc_min_radius = 40.0;
-//  double outer_tpc_min_radius = 60.0;
-//  double outer_tpc_max_radius = 77.0;
+  double layer_radius[48]{0};
+  //  double inner_tpc_min_radius = 30.0;
+  //  double mid_tpc_min_radius = 40.0;
+  //  double outer_tpc_min_radius = 60.0;
+  //  double outer_tpc_max_radius = 77.0;
 
-//  double inner_tpc_spacing = 0.0;
-//  double mid_tpc_spacing = 0.0;
-//  double outer_tpc_spacing = 0.0;
-
+  //  double inner_tpc_spacing = 0.0;
+  //  double mid_tpc_spacing = 0.0;
+  //  double outer_tpc_spacing = 0.0;
 };
 
-#endif // PHTPCCLUSTERMOVER_H
+#endif  // PHTPCCLUSTERMOVER_H
