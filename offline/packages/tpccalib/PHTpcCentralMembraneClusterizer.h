@@ -3,8 +3,7 @@
 #ifndef TPCCALIB_PHTPCCENTRALMEMBRANECLUSTERIZER_H
 #define TPCCALIB_PHTPCCENTRALMEMBRANECLUSTERIZER_H
 
-#include <tpc/TpcDistortionCorrection.h>
-#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
@@ -62,19 +61,17 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   //! end of process
   int End(PHCompositeNode *topNode);
 
- protected:
  private:
   int GetNodes(PHCompositeNode *topNode);
 
   std::string _track_map_name;
 
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
+  // global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   TrkrClusterContainer *_cluster_map{nullptr};
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
   PHG4TpcCylinderGeomContainer *_geom_container{nullptr};
-  TpcDistortionCorrectionContainer *_dcc{nullptr};
 
   ///@name counters
   //@{

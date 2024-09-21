@@ -9,9 +9,8 @@
  */
 
 #include <fun4all/SubsysReco.h>
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
-#include <trackbase_historic/ActsTransformations.h>
+
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #if defined(__CLING__)
 // needed, it crashes on Ubuntu using singularity with local cvmfs install
@@ -33,8 +32,6 @@ namespace PHGenFit
 #include <string>
 #include <vector>
 
-class TClonesArray;
-
 namespace genfit
 {
   class GFRaveVertex;
@@ -51,7 +48,6 @@ namespace PHGenFit
 class ActsGeometry;
 class PHCompositeNode;
 class SvtxTrackMap;
-class TpcDistortionCorrectionContainer;
 class TrkrClusterContainer;
 class TrackSeedContainer;
 
@@ -151,12 +147,6 @@ class PHGenFitTrkFitter : public SubsysReco
   //! Create New nodes
   int CreateNodes(PHCompositeNode*);
 
-  /// get global position for a given cluster
-  /**
-   * uses ActsTransformation to convert cluster local position into global coordinates
-   */
-  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing);
-
   /*
    * fit track with SvtxTrack as input seed.
    * \param intrack Input SvtxTrack
@@ -212,17 +202,8 @@ class PHGenFitTrkFitter : public SubsysReco
   //! Output Node pointers
   SvtxTrackMap* m_trackMap = nullptr;
 
-  // crossing z correction
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-
-  // distortion corrections
-  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
-  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
-  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
-
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection m_distortionCorrection;
-
+  //! tpc global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 };
 
 #endif
