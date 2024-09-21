@@ -166,12 +166,12 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   TF1 *f0 = new TF1("f0", "gausn(0)");
   f0->SetParameters(itMaxContent_0, itMax_0, 1);
   f0->SetParLimits(1, itMax_0 - 2, itMax_0 + 2);
-  m_itHist_0->Fit(f0, "B");
+  m_itHist_0->Fit(f0, "Bq0");
 
   TF1 *f1 = new TF1("f1", "gausn(0)");
   f1->SetParameters(itMaxContent_1, itMax_1, 1);
   f1->SetParLimits(1, itMax_1 - 2, itMax_1 + 2);
-  m_itHist_1->Fit(f1, "B");
+  m_itHist_1->Fit(f1, "Bq0");
 
 
   if ((itMaxContent_0 / itMeanContent_0 >= 7 && itMaxContent_0 > 1000) || (itMaxContent_1 / itMeanContent_1 >= 7 && itMaxContent_1 > 1000))
