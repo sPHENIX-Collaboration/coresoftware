@@ -718,10 +718,11 @@ int Fun4AllStreamingInputManager::FillIntt()
       for (auto &bcl : gtmbcoset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-        if (diff < 2)  // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
-        {
+        if (diff < 120) { // diff is 1 strobe length of 120 crossings
           h_gl1taggedfee_intt[histo_to_fill][fee]->Fill(refbcobitshift);
           feeidset.insert(feeid);
+          // this fee was tagged, go to the next one
+          break;
         }
       }
       fee++;
@@ -744,10 +745,11 @@ int Fun4AllStreamingInputManager::FillIntt()
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-        if (diff < 2)  // diff is within 1 bco since gl1 and intt are offset by 1 sometimes
+        if (diff < 120)  //diff is 1 strobe length of 120 crossings
         {
           thispacket = true;
           h_gl1tagged_intt[histo_to_fill]->Fill(refbcobitshift);
+          break;
         }
       }
     }

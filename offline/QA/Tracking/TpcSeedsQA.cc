@@ -53,7 +53,6 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   actsgeom = findNode::getClass<ActsGeometry>(topNode, m_actsGeomName);
   g4geom = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, m_g4GeomName);
-  ;
   trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
 
@@ -69,26 +68,8 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_dccModuleEdge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
-  if (m_dccModuleEdge)
-  {
-    std::cout << PHWHERE << "  found module edge TPC distortion correction container" << std::endl;
-  }
-  m_dccStatic = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  if (m_dccStatic)
-  {
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl;
-  }
-  m_dccAverage = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  if (m_dccAverage)
-  {
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl;
-  }
-  m_dccFluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
-  if (m_dccFluctuation)
-  {
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl;
-  }
+  // global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
 
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -250,7 +231,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
   }
   else
   {
-    Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
     if (!gl1PacketInfo)
     {
       m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
@@ -522,16 +503,8 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
     for (const auto &ckey : get_cluster_keys(track))
     {
       TrkrCluster *cluster = clustermap->findCluster(ckey);
-      Acts::Vector3 clusglob;
-      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId)
-      {
-        clusglob = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(ckey, cluster, actsgeom, track->get_crossing(),
-                                                                                  m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation);  // NEED TO DEFINE THESE
-      }
-      else
-      {
-        clusglob = actsgeom->getGlobalPosition(ckey, cluster);
-      }
+      const Acts::Vector3 clusglob = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, track->get_crossing());
+
       switch (TrkrDefs::getTrkrId(ckey))
       {
       case TrkrDefs::tpcId:

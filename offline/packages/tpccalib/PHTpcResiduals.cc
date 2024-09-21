@@ -393,7 +393,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // calculate residuals with respect to cluster
     // Get all the relevant information for residual calculation
-    const auto globClusPos = getGlobalPosition(cluskey, cluster, crossing);
+    const auto globClusPos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluskey, cluster, crossing);
     const double clusR = get_r(globClusPos(0), globClusPos(1));
     const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));
     const double clusZ = globClusPos(2);
@@ -668,6 +668,7 @@ int PHTpcResiduals::createNodes(PHCompositeNode* /*topNode*/)
 //_______________________________________________________________________________
 int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
 {
+  // clusters
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterContainer)
   {
@@ -675,6 +676,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // geometry
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
@@ -682,6 +684,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // tracks
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconMMTrackMap");
   if (!m_trackMap)
   {
@@ -689,53 +692,13 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  // tpc distortion corrections
-  m_dcc_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
-  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
+  // tpc global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//_________________________________________________________________________________
-Acts::Vector3 PHTpcResiduals::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const
-{
-  // get global position from Acts transform
-  auto globalPosition = m_tGeometry->getGlobalPosition(key, cluster);
-
-  // for the TPC calculate the proper z based on crossing and side
-  const auto trkrid = TrkrDefs::getTrkrId(key);
-  if (trkrid == TrkrDefs::tpcId)
-  {
-    const auto side = TpcDefs::getSide(key);
-    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
-
-    // apply distortion corrections
-    if(m_dcc_module_edge)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_module_edge );
-    }
-
-     if (m_dcc_static)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_static);
-    }
-
-    if (m_dcc_average)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_average);
-    }
-
-    if (m_dcc_fluctuation)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_fluctuation);
-    }
-  }
-
-  return globalPosition;
-}
-
+//____________________________________________________________________________
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
 {
   m_matrix_container->set_grid_dimensions(phiBins, rBins, zBins);

@@ -258,21 +258,10 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
       outer_clusters.insert(std::make_pair(layer, tpc_clus));
       clusters.push_back(tpc_clus);
-      // make necessary corrections to the global position
-      unsigned int side = TpcDefs::getSide(cluster_key);
-      const Acts::Vector3 global = getGlobalPosition(cluster_key, tpc_clus, crossing, side);
-      clusGlobPos.push_back(global);
 
-      if (Verbosity() > 10)
-      {
-        auto global_raw = _tGeometry->getGlobalPosition(cluster_key, tpc_clus);
-        std::cout
-            << "  TPC cluster key " << cluster_key << " in layer " << layer << " side " << side << " crossing " << crossing
-            << " with local position " << tpc_clus->getLocalX() << "  " << tpc_clus->getLocalY() << std::endl;
-        std::cout << " raw global position " << global_raw[0] << " " << global_raw[1] << " " << global_raw[2]
-                  << " corrected global position " << global[0] << " " << global[1] << " " << global[2]
-                  << std::endl;
-      }
+      // make necessary corrections to the global position
+      clusGlobPos.push_back( m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, tpc_clus, crossing) );
+
     }
 
     // need at least 3 clusters to fit a circle
@@ -541,53 +530,9 @@ int PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  // tpc distortion corrections
-  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  if (m_dcc_static)
-  {
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl;
-  }
-
-  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  if (m_dcc_average)
-  {
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl;
-  }
-
-  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
-  if (m_dcc_fluctuation)
-  {
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl;
-  }
+  // global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::Vector3 PHMicromegasTpcTrackMatching::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side)
-{
-  auto globalPosition = _tGeometry->getGlobalPosition(key, cluster);
-  const auto trkrid = TrkrDefs::getTrkrId(key);
-  if (trkrid == TrkrDefs::tpcId)
-  {
-    // ADF: for streaming mode, will need a crossing z correction here
-    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
-
-    // apply distortion corrections
-    if (m_dcc_static)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_static);
-    }
-
-    if (m_dcc_average)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_average);
-    }
-
-    if (m_dcc_fluctuation)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_fluctuation);
-    }
-  }
-
-  return globalPosition;
-}

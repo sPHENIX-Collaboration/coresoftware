@@ -12,6 +12,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   TpcChanQA.h \
+  TpcNoiseQA.h \
   TpcRawHitQA.h
 
 lib_LTLIBRARIES = \
@@ -19,6 +20,7 @@ lib_LTLIBRARIES = \
 
 libtpcqa_la_SOURCES = \
   TpcChanQA.cc \
+  TpcNoiseQA.cc \
   TpcRawHitQA.cc
 
 libtpcqa_la_LIBADD = \

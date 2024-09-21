@@ -451,13 +451,12 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       unsigned int siid = phtrk_iter_si;
   if(_test_windows)
   {
-      _tree->Fill((float) m_event,
-                  (float) si_phi, (float) si_eta, (float) si_x, (float) si_y, (float) si_z,
-                  (float) tpc_phi, (float) tpc_eta, (float) tpc_x, (float) tpc_y, (float) tpc_z,
-                  (float) siid, (float) tpcid);
-
-	  _tree->Fill((int) si_crossing, (int) si_q, (float) si_px, (float) si_py, (float) si_pz,
-                  (int) tpc_q,  (float) tpc_px, (float) tpc_py, (float) tpc_pz);
+    float data[] = {(float) m_event, (float) si_crossing, (float) si_q,
+                    (float) si_phi, (float) si_eta, (float) si_x, (float) si_y, (float) si_z, (float) si_px, (float) si_py, (float) si_pz,
+                    (float) tpc_q, (float) tpc_phi, (float) tpc_eta, (float) tpc_x, (float) tpc_y, (float) tpc_z,
+                    (float) tpc_px, (float) tpc_py, (float) tpc_pz,
+                    (float) tpcid, (float) siid};
+    _tree->Fill(data);
   }
       if (fabs(tpc_eta - si_eta) < _eta_search_win * mag)
       {

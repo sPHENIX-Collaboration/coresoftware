@@ -7,11 +7,9 @@
  */
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ClusterErrorPara.h>
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Definitions/Algebra.hpp>
@@ -21,8 +19,6 @@
 #include <memory>
 
 // forward declaration
-class ActsGeometry;
-
 class SvtxTrack;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
@@ -114,13 +110,6 @@ class TpcSpaceChargeReconstruction : public SubsysReco, public PHParameterInterf
   /// create evaluation histograms
   void create_histograms();
 
-  /// get global position for a given cluster
-  /**
-   * uses ActsTransformation to convert cluster local position into global coordinates
-   * incorporates TPC distortion correction, if present
-   */
-  Acts::Vector3 get_global_position(TrkrDefs::cluskey, TrkrCluster*, short int /* crossing */) const;
-
   /// process tracks
   void process_tracks();
 
@@ -133,9 +122,6 @@ class TpcSpaceChargeReconstruction : public SubsysReco, public PHParameterInterf
   /// get relevant cell for a given cluster
   int get_cell_index(const Acts::Vector3&);
 
-  /// local event counter
-  int m_event = 0;
-
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
@@ -144,9 +130,6 @@ class TpcSpaceChargeReconstruction : public SubsysReco, public PHParameterInterf
 
   /// minimum pT required for track to be considered in residuals calculation (GeV/c)
   double m_min_pt = 0.5;
-
-  /// acts geometry
-  ActsGeometry* m_tgeometry = nullptr;
 
   ///@name selection parameters
   //@{
@@ -158,9 +141,6 @@ class TpcSpaceChargeReconstruction : public SubsysReco, public PHParameterInterf
   float m_max_tbeta = 1.5;
   float m_max_dz = 0.5;
   //@}
-
-  /// cluster error parametrisation
-  ClusterErrorPara m_cluster_error_parametrization;
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
@@ -192,22 +172,14 @@ class TpcSpaceChargeReconstruction : public SubsysReco, public PHParameterInterf
   TH2_map_t m_h_dz_beta;
   //@}
 
-  ///@name nodes
-  //@{
+  //! tracks
   SvtxTrackMap* m_track_map = nullptr;
+
+  //! clusters
   TrkrClusterContainer* m_cluster_map = nullptr;
 
-  // crossing z correction
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-
-  // distortion corrections
-  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
-  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
-  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
-
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection m_distortionCorrection;
-  //@}
+  //! tpc global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 };
 
 #endif
