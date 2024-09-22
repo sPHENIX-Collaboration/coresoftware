@@ -84,6 +84,9 @@ class MicromegasBcoMatchingInformation
   //! cleanup
   void cleanup();
 
+  //! cleanup
+  void cleanup(uint64_t /*ref_bco*/);
+
   //@}
 
  private:

@@ -1050,12 +1050,13 @@ int Fun4AllStreamingInputManager::FillMicromegas()
         << ", ditching this bco" << std::dec << std::endl;
     }
 
-    for (auto iter : m_MicromegasInputVector)
-    { static_cast<SingleMicromegasPoolInput*>(iter)->CleanupUsedPackets_with_qa(m_MicromegasRawHitMap.begin()->first, true); }
+    for (const auto& poolinput : m_MicromegasInputVector)
+    { static_cast<SingleMicromegasPoolInput*>(poolinput)->CleanupUsedPackets_with_qa(m_MicromegasRawHitMap.begin()->first, true); }
 
-    // also cleanup internal map
-    m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
+    // remove
     m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
+
+    // fill pools again
     iret = FillMicromegasPool();
     if (iret)
     {
@@ -1069,25 +1070,17 @@ int Fun4AllStreamingInputManager::FillMicromegas()
     static_cast<SingleMicromegasPoolInput *>(iter)->FillBcoQA(m_RefBCO);
   }
 
-  // store relevant hits
-  while ((m_MicromegasRawHitMap.begin()->first) <= last_bco)
+  // store hits relevant for this trigger and cleanup
+  for( auto iter = m_MicromegasRawHitMap.begin(); iter != m_MicromegasRawHitMap.end() && iter->first <= last_bco;  iter = m_MicromegasRawHitMap.erase(iter))
   {
-    for (const auto &hititer : m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector)
+    for (const auto &hititer : iter->second.MicromegasRawHitVector)
     {
       container->AddHit(hititer);
     }
 
-    for (const auto &iter : m_MicromegasInputVector)
+    for (const auto &poolinput : m_MicromegasInputVector)
     {
-      iter->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first);
-    }
-
-    // also cleanup internal map
-    m_MicromegasRawHitMap.begin()->second.MicromegasRawHitVector.clear();
-    m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
-    if (m_MicromegasRawHitMap.empty())
-    {
-      break;
+      poolinput->CleanupUsedPackets(iter->first);
     }
   }
 
