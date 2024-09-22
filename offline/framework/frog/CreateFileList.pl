@@ -74,6 +74,7 @@ my %pileupdesc = (
     "3" => "10kHz for Au+Au",
     "4" => "1MHz for pp 100us streaming",
     "5" => "2MHz for pp 20us streaming",
+    ">5" => "pileup rate in kHz"
     );
 
 my $nEvents;
@@ -170,11 +171,10 @@ elsif ($pileup == 5)
 {
     $pp_pileupstring = sprintf("2MHz");
 }
-
 else
 {
-    print "invalid pileup option $pileup\n";
-    exit(1);
+    $pp_pileupstring = sprintf("%dkHz",$pileup);
+    $AuAu_pileupstring = sprintf("%dkHz",$pileup);
 }
 
 my $embedok = 0;
