@@ -3,6 +3,8 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
     libcalotemp.la
 
+bin_PROGRAMS = testODBC
+
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
@@ -19,6 +21,9 @@ pkginclude_HEADERS = \
 
 libcalotemp_la_SOURCES = \
   CaloTemp.cc 
+
+testODBC_SOURCES = testODBC.cc
+testODBC_LDADD = libcalotemp.la
 
 libcalotemp_la_LDFLAGS = \
   -L$(libdir) \
