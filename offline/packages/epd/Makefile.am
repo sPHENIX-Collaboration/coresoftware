@@ -19,12 +19,10 @@ libepd_io_la_LIBADD = \
 
 libepd_la_LIBADD = \
   libepd_io.la \
-  -lfun4all \
-  -lcalo_io \
   -lcdbobjects \
-  -lglobalvertex_io \
-  -ltrackbase_historic_io
-
+  -lfun4all \
+  -lglobalvertex_io 
+ 
 pkginclude_HEADERS = \
   EPDDefs.h \
   EpdGeom.h \
