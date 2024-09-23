@@ -2091,21 +2091,21 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
   m_dcc_in_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
   if (m_dcc_in_module_edge)
   {
-    std::cout << "TpcCentralMembraneMatching:   found TPC distortion correction container module edge" << std::endl;
+    std::cout << "TpcCentralMembraneMatching::GetNodes - found TPC distortion correction container module edge" << std::endl;
   }
 
   // input tpc distortion correction static
   m_dcc_in_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
   if (m_dcc_in_static)
   {
-    std::cout << "TpcCentralMembraneMatching:   found TPC distortion correction container static" << std::endl;
+    std::cout << "TpcCentralMembraneMatching::GetNodes - found TPC distortion correction container static" << std::endl;
   }
 
   // input tpc distortion correction average
   m_dcc_in_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
   if (m_dcc_in_average)
   {
-    std::cout << "TpcCentralMembraneMatching:   found TPC distortion correction container average" << std::endl;
+    std::cout << "TpcCentralMembraneMatching::GetNodes - found TPC distortion correction container average" << std::endl;
   }
 
   PHNodeIterator iter(topNode);

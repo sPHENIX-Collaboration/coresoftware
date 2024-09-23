@@ -45,7 +45,7 @@ void TpcGlobalPositionWrapper::loadNodes( PHCompositeNode* topNode )
 }
 
 //____________________________________________________________________________________________________________________
-Acts::Vector3 TpcGlobalPositionWrapper::applyDistortionCorrections(Acts::Vector3 global ) const
+Acts::Vector3 TpcGlobalPositionWrapper::applyDistortionCorrections(Acts::Vector3 global) const
 {
   // apply distortion corrections
   if (m_dcc_module_edge)
