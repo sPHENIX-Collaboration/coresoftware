@@ -636,6 +636,13 @@ int Fun4AllServer::process_event()
         std::cout << "Fun4AllServer::Abort Run by " << Subsystem.first->Name() << std::endl;
         return Fun4AllReturnCodes::ABORTRUN;
       }
+      else if (RetCodes[icnt] == Fun4AllReturnCodes::ABORTPROCESSING)
+      {
+        eventbad = 1;
+        retcodesmap[Fun4AllReturnCodes::ABORTPROCESSING]++;
+        std::cout << "Fun4AllServer::Abort Processing by " << Subsystem.first->Name() << std::endl;
+        return Fun4AllReturnCodes::ABORTPROCESSING;
+      }
       else
       {
         std::cout << "Fun4AllServer::Unknown return code: "
@@ -1457,7 +1464,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
                 << (icnt + 1) << " from run " << runnumber << std::endl;
     }
 
-    if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)
+    if (icnt == 0 && Verbosity() > VERBOSITY_QUIET)
     {
       // increase verbosity for the first event in verbose modes
       int iverb = Verbosity();
@@ -1466,7 +1473,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
 
     iret = process_event();
 
-    if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)
+    if (icnt == 0 && Verbosity() > VERBOSITY_QUIET)
     {
       // increase verbosity for the first event in verbose modes
       int iverb = Verbosity();

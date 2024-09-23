@@ -6,6 +6,7 @@
 // In general negative return codes signal some fatal condition where continuing is just a waste of cpu
 
 // SubsysReco module return codes:
+// ABORTPROCESSING: Aborts processing of events and proceeds to call EndRun and End
 // ABORTRUN: signals that processing should be aborted for this run, the process will exit with a non zero exit
 // ABORTEVENT: abort reconstruction of the current event, reset everything and process the next event
 // EVENT_OK: generic good return
@@ -22,6 +23,7 @@ namespace Fun4AllReturnCodes
 {
   enum
   {
+    ABORTPROCESSING = -4,
     ABORTRUN = -2,
     ABORTEVENT = -1,
     EVENT_OK = 0,

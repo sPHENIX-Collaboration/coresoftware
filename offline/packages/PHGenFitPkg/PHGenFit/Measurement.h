@@ -14,49 +14,48 @@
 
 namespace PHGenFit
 {
-class Measurement
-{
- public:
-  //!ctor
-  Measurement()
-    : _measurement(NULL)
-    , _clusterID(UINT_MAX){};
-
-  //!dtor
-  virtual ~Measurement() {}
-
-  //!
-  genfit::AbsMeasurement* getMeasurement()
+  class Measurement
   {
-    return _measurement;
-  }
+   public:
+    //! ctor
+    Measurement()
+      : _measurement(NULL)
+      , _clusterID(UINT_MAX){};
 
-  // old tracking
-  unsigned int get_cluster_ID() const
-  {
-    return _clusterID;
-  }
-  void set_cluster_ID(unsigned int clusterId)
-  {
-    _clusterID = clusterId;
-  }
+    //! dtor
+    virtual ~Measurement() {}
 
-  // new tracking
-  TrkrDefs::cluskey get_cluster_key() const
-  {
-    return _clusterkey;
-  }
-  void set_cluster_key(TrkrDefs::cluskey clusterkey)
-  {
-    _clusterkey = clusterkey;
-  }
+    //!
+    genfit::AbsMeasurement* getMeasurement()
+    {
+      return _measurement;
+    }
 
- protected:
-  genfit::AbsMeasurement* _measurement;
-  unsigned int _clusterID;
-  TrkrDefs::cluskey _clusterkey;
+    // old tracking
+    unsigned int get_cluster_ID() const
+    {
+      return _clusterID;
+    }
+    void set_cluster_ID(unsigned int clusterId)
+    {
+      _clusterID = clusterId;
+    }
 
-};
+    // new tracking
+    TrkrDefs::cluskey get_cluster_key() const
+    {
+      return _clusterkey;
+    }
+    void set_cluster_key(TrkrDefs::cluskey clusterkey)
+    {
+      _clusterkey = clusterkey;
+    }
+
+   protected:
+    genfit::AbsMeasurement* _measurement;
+    unsigned int _clusterID;
+    TrkrDefs::cluskey _clusterkey;
+  };
 }  // namespace PHGenFit
 
 #endif
