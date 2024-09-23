@@ -50,9 +50,6 @@ PHActsGSF::PHActsGSF(const std::string& name)
 }
 
 //____________________________________________________________________________..
-PHActsGSF::~PHActsGSF() = default;
-
-//____________________________________________________________________________..
 int PHActsGSF::InitRun(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
@@ -199,24 +196,28 @@ int PHActsGSF::process_event(PHCompositeNode* topNode)
         m_transient_id_set,
         m_tGeometry);
 
+    // TPC source links
     auto sourceLinks = makeSourceLinks.getSourceLinks(
         tpcseed,
         measurements,
         m_clusterContainer,
         m_tGeometry,
-        m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation,
+        m_globalPositionWrapper,
         m_alignmentTransformationMapTransient,
         m_transient_id_set,
         crossing);
+
+    // silicon source links
     auto silSourceLinks = makeSourceLinks.getSourceLinks(
         silseed,
         measurements,
         m_clusterContainer,
         m_tGeometry,
-        m_dccModuleEdge, m_dccStatic, m_dccAverage, m_dccFluctuation,
+        m_globalPositionWrapper,
         m_alignmentTransformationMapTransient,
         m_transient_id_set,
         crossing);
+
     // copy transient map for this track into transient geoContext
     m_transient_geocontext = m_alignmentTransformationMapTransient;
 
@@ -403,6 +404,7 @@ void PHActsGSF::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexTy
   transformer.fillSvtxTrackStates(mj, tracktip, track, m_transient_geocontext);
 }
 
+//____________________________________________________________________________..
 std::vector<TrkrDefs::cluskey> PHActsGSF::get_cluster_keys(SvtxTrack* track)
 {
   std::vector<TrkrDefs::cluskey> out;
@@ -427,8 +429,10 @@ int PHActsGSF::End(PHCompositeNode* /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//____________________________________________________________________________..
 int PHActsGSF::getNodes(PHCompositeNode* topNode)
 {
+  // track map
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
@@ -436,6 +440,7 @@ int PHActsGSF::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // cluster map
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterContainer)
   {
@@ -443,6 +448,7 @@ int PHActsGSF::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // acts geometry
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
@@ -450,31 +456,10 @@ int PHActsGSF::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  // tpc distortion corrections
-  m_dccModuleEdge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
-  if (m_dccModuleEdge)
-  {
-    std::cout << PHWHERE << "  found module edge TPC distortion correction container" << std::endl;
-  }
+  // global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
 
-  m_dccStatic = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  if (m_dccStatic)
-  {
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl;
-  }
-
-  m_dccAverage = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  if (m_dccAverage)
-  {
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl;
-  }
-
-  m_dccFluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
-  if (m_dccFluctuation)
-  {
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl;
-  }
-
+  // vertex map
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!m_vertexMap)
   {

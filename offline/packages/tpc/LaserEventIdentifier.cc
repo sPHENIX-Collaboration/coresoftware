@@ -166,24 +166,15 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   TF1 *f0 = new TF1("f0", "gausn(0)");
   f0->SetParameters(itMaxContent_0, itMax_0, 1);
   f0->SetParLimits(1, itMax_0 - 2, itMax_0 + 2);
-  m_itHist_0->Fit(f0, "B");
+  m_itHist_0->Fit(f0, "Bq0");
 
   TF1 *f1 = new TF1("f1", "gausn(0)");
   f1->SetParameters(itMaxContent_1, itMax_1, 1);
   f1->SetParLimits(1, itMax_1 - 2, itMax_1 + 2);
-  m_itHist_1->Fit(f1, "B");
+  m_itHist_1->Fit(f1, "Bq0");
 
-  if (itMaxContent_0 / itMeanContent_0 < 7 && itMaxContent_1 / itMeanContent_1 < 7 && itMaxContent_0 < 1000 && itMaxContent_1 < 1000)
-  {
-    m_laserEventInfo->setIsLaserEvent(false);
 
-    isLaserEvent = false;
-    peakSample0 = -999;
-    peakSample1 = -999;
-    peakWidth0 = -999;
-    peakWidth1 = -999;
-  }
-  else
+  if ((itMaxContent_0 / itMeanContent_0 >= 7 && itMaxContent_0 > 1000) || (itMaxContent_1 / itMeanContent_1 >= 7 && itMaxContent_1 > 1000))
   {
     m_laserEventInfo->setIsLaserEvent(true);
     m_laserEventInfo->setPeakSample(false, (int) itMax_0);
@@ -196,6 +187,20 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     peakSample1 = (int) itMax_1;
     peakWidth0 = f0->GetParameter(2);
     peakWidth1 = f1->GetParameter(2);
+    if(m_rejectEvent)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+  else
+  {
+    m_laserEventInfo->setIsLaserEvent(false);
+
+    isLaserEvent = false;
+    peakSample0 = -999;
+    peakSample1 = -999;
+    peakWidth0 = -999;
+    peakWidth1 = -999;
   }
 
   if (m_debug)
