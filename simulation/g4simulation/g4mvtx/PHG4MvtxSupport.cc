@@ -66,27 +66,13 @@ namespace ServiceProperties
   double cableRotate[3] = {10., 5., 5.};  // Rotate the cables to line up with the staves in deg
 }  // namespace ServiceProperties
 
-// For modified geometry - global displacement
-namespace mvtxmodgeometry
-{
-  double globaldisplace_x_2024 = 0.6295504185416666 * cm;
-  double globaldisplace_y_2024 = -0.10687406249999996 * cm;
-  double globaldisplace_z_2024 = -0.6662887916666663 * cm;
-  double globaldisplace_x_2025 = 0.0 * mm;
-  double globaldisplace_y_2025 = 0.0 * mm;
-  double globaldisplace_z_2025 = 0.0 * mm;
-}
-
 using namespace ServiceProperties;
-using namespace mvtxmodgeometry;
 
 //________________________________________________________________________________
 PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDetector *detector, PHG4MvtxDisplayAction *dispAct, bool overlapCheck)
   : m_Detector(detector)
   , m_DisplayAction(dispAct)
   , m_overlapCheck(overlapCheck)
-  , useModGeo_support(detector->IsModGeometry())
-  , useModGeo_run(detector->get_run())
 {
 }
 
@@ -305,29 +291,8 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
 
   // Finally put everything in the mother volume
   zpos = (sEndWheelSNHolesZdist / 2) - (sEndWStepHoleZpos + sEndWStepHoleZdist);
-  // Modified geometry
-  double globdx = 0. * cm;
-  double globdy = 0. * cm;
-  double globdz = 0. * cm;
-  if (useModGeo_run == 2024)
-  {
-    globdx = globaldisplace_x_2024;
-    globdy = globaldisplace_y_2024;
-    globdz = globaldisplace_z_2024;
-  }
-  else if (useModGeo_run == 2025)
-  {
-    globdx = globaldisplace_x_2025;
-    globdy = globaldisplace_y_2025;
-    globdz = globaldisplace_z_2025;
-  }
-
-  double xpos_endWheelNvol = (useModGeo_support) ? globdx : 0. * cm;
-  double ypos_endWheelNvol = (useModGeo_support) ? globdy : 0. * cm;
-  double zpos_endWheelNvol = (useModGeo_support) ? globdz + zpos : zpos;
   Ra.set(0., 0., 0.);
-  // Ta.set(0, 0, zpos);
-  Ta.set(xpos_endWheelNvol, ypos_endWheelNvol, zpos_endWheelNvol);
+  Ta.set(0, 0, zpos);
   endWheel->AddPlacedVolume(endWheelNvol, Ta, &Ra);
 
   dphi = std::atan(ypos / xpos);
@@ -339,12 +304,8 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
     double phi = phi0 * rad;
     phi += j * sEndWNStepHolePhi[lay] * deg;
     phi -= sEndWNStepHoleTilt[lay];
-    // xpos = rpos * cos(phi); // Ideal geometry
-    // ypos = rpos * sin(phi); // Ideal geometry
-    // Modified geometry
-    xpos = rpos * cos(phi) + ((useModGeo_support) ? globdx : 0. * cm);
-    ypos = rpos * sin(phi) + ((useModGeo_support) ? globdy : 0. * cm);
-    zpos = zpos + ((useModGeo_support) ? globdz : 0. * cm);
+    xpos = rpos * cos(phi);
+    ypos = rpos * sin(phi);
     Ra.set(0., 0., dphi - phi);
     Ta.set(xpos, ypos, zpos);
     endWheel->AddPlacedVolume(stepNShLogVol, Ta, &Ra);
@@ -497,30 +458,8 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
 
   // Finally put everything in the mother volume
   zpos = (sEndWheelSNHolesZdist / 2) - (sEndWStepHoleZpos + sEndWStepHoleZdist);
-  // Modified geometry
-  double globdx = 0. * cm;
-  double globdy = 0. * cm;
-  double globdz = 0. * cm;
-  if (useModGeo_run == 2024)
-  {
-    globdx = globaldisplace_x_2024;
-    globdy = globaldisplace_y_2024;
-    globdz = globaldisplace_z_2024;
-  }
-  else if (useModGeo_run == 2025)
-  {
-    globdx = globaldisplace_x_2025;
-    globdy = globaldisplace_y_2025;
-    globdz = globaldisplace_z_2025;
-  }
-  // Modified geometry
-  double xpos_endWheelSvol = (useModGeo_support) ? globdx : 0. * cm;
-  double ypos_endWheelSvol = (useModGeo_support) ? globdy : 0. * cm;
-  double zpos_endWheelSvol = (useModGeo_support) ? globdz + zpos : zpos;
-  
   Ra.set(0., M_PI * rad, 0.);
-  // Ta.set(0, 0, -zpos);
-  Ta.set(xpos_endWheelSvol, ypos_endWheelSvol, -zpos_endWheelSvol);
+  Ta.set(0, 0, -zpos);
   endWheel->AddPlacedVolume(endWheelSvol, Ta, &Ra);
 
   dphi = std::atan(ypos / xpos);
@@ -1221,9 +1160,6 @@ G4AssemblyVolume *PHG4MvtxSupport::buildLayerCables(const int &lay)
 //________________________________________________________________________________
 void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
 {
-  std::cout << "PHG4MvtxSupport::ConstructMvtxSupport - constructing support structure" << std::endl;
-  std::cout << " Using modified geometry? " << useModGeo_support << std::endl;
-
   CreateMvtxSupportMaterials();
   m_avSupport = new G4AssemblyVolume();
 

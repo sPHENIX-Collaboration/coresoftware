@@ -5,8 +5,8 @@
 #include "PHG4MvtxSupport.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -88,6 +88,9 @@ PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
         m_nominal_phi0[ilayer] = params->get_double_param("phi0");
         m_SupportActiveFlag += m_IsLayerSupportActive[ilayer];
     }
+
+    if (apply_misalignment)
+        LoadMvtxStaveAlignmentParameters();
 
     if (Verbosity() > 0)
     {
@@ -179,7 +182,7 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume *logicWorld)
     const G4int numZPlanes = 4;
     const G4double zPlane[numZPlanes] = {mvtxGeomDef::wrap_SBCyl_Z, mvtxGeomDef::wrap_CYSSHead_Z, mvtxGeomDef::wrap_CYSSNose_Z, mvtxGeomDef::wrap_CYSSFlgN_Z};
 
-    const G4double rInner[numZPlanes] = {mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
+    const G4double rInner[numZPlanes] = {mvtxGeomDef::wrap_rmin - 0.6 * mm, mvtxGeomDef::wrap_rmin - 0.6 * mm, mvtxGeomDef::wrap_rmin - 0.6 * mm, mvtxGeomDef::wrap_rmin - 0.6 * mm};
 
     const G4double rOuter[numZPlanes] = {mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_smallCylR, mvtxGeomDef::wrap_smallCylR};
 
@@ -191,6 +194,17 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
     G4RotationMatrix Ra;
     G4ThreeVector Ta;
+
+    if (apply_misalignment)
+    {
+        if (Verbosity() > 1)
+            std::cout << "PHG4MvtxDetector::Apply Global Displacement to the MVTX_Wrapper: " << m_GlobalDisplacementX << " " << m_GlobalDisplacementY << " " << m_GlobalDisplacementZ << std::endl;
+
+        Ta.setX(m_GlobalDisplacementX);
+        Ta.setY(m_GlobalDisplacementY);
+        Ta.setZ(m_GlobalDisplacementZ);
+    }
+
     G4Transform3D Tr(Ra, Ta);
     new G4PVPlacement(Tr, logicMVTX, "MVTX_Wrapper", logicWorld, false, 0, false);
 
@@ -212,19 +226,6 @@ int PHG4MvtxDetector::ConstructMvtx(G4LogicalVolume *trackerenvelope)
         std::cout << std::endl;
     }
 
-    if (run == 2024)
-    {
-        SetMvtxModGeoParams_run2024();
-    }   
-    else if (run == 2025)
-    {
-        SetMvtxModGeoParams_run2025();
-    }
-    else
-    {
-        std::cout << "PHG4MvtxDetector::ConstructMvtx - ERROR - unknown run number " << run << std::endl;
-    }
-    
     //===================================
     // Import the stave physical volume here
     //===================================
@@ -287,8 +288,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume *av_ITSUSt
         {
             std::cout << " Calculated N_staves for layer " /*<< layer*/
                       << " layer_nominal_radius " << layer_nominal_radius << " ITS arcstep " << arcstep << " circumference divided by arcstep  " << numstaves << " N_staves " << N_staves << std::endl;
-            std::cout << "A radius for this layer of " << (double)N_staves * arcstep / (2.0 * M_PI) + 0.01 << " or " << (double)(N_staves + 1) * arcstep / (2.0 * M_PI) + 0.01
-                      << " would produce  perfect stave spacing" << std::endl;
+            std::cout << "A radius for this layer of " << (double)N_staves * arcstep / (2.0 * M_PI) + 0.01 << " or " << (double)(N_staves + 1) * arcstep / (2.0 * M_PI) + 0.01 << " would produce  perfect stave spacing" << std::endl;
         }
     }
 
@@ -308,12 +308,6 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume *av_ITSUSt
 
     for (int iphi = 0; iphi < N_staves; iphi++)
     {
-        std::pair<int, int> p_layerstave = std::make_pair(layer, iphi);
-        std::tuple<double, double, double, double, double, double> shift_layerstave = m_ModGeoParamsMapAverage[p_layerstave];
-        double dx = (useModGeo) ? std::get<3>(shift_layerstave) : 0.0;
-        double dy = (useModGeo) ? std::get<4>(shift_layerstave) : 0.0;
-        double dz = (useModGeo) ? std::get<5>(shift_layerstave) : 0.0;
-
         // Place the ladder segment envelopes at the correct z and phi
         // This is the azimuthal angle at which we place the stave
         // phi0 is the azimuthal offset for the first stave
@@ -331,24 +325,14 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume *av_ITSUSt
         // note - if this is layer 0-2, phitilt is the additional tilt for clearance. Otherwise it is zero
         Ra.rotateZ(phi_rotation + phi_offset + phitilt);
         // Then translated as follows
-        float ideal_x = layer_nominal_radius * cos(phi_rotation);
-        float ideal_y = layer_nominal_radius * sin(phi_rotation);
-        float ideal_z = z_location;
-        float x = ideal_x + dx;
-        float y = ideal_y + dy;
-        float z = ideal_z + dz;
 
-        Ta.setX(x);
-        Ta.setY(y);
-        Ta.setZ(z);
+        Ta.setX(layer_nominal_radius * cos(phi_rotation));
+        Ta.setY(layer_nominal_radius * sin(phi_rotation));
+        Ta.setZ(z_location);
 
         if (Verbosity() > 0)
         {
-            // std::cout << " iphi " << iphi << " phi_rotation " << phi_rotation << " x " << layer_nominal_radius * cos(phi_rotation) << " y " << layer_nominal_radius * sin(phi_rotation) << " z "
-            //           << z_location << std::endl;
-            std::cout << " iphi " << iphi << " phi_rotation " << phi_rotation << std::endl;
-            std::cout << " Ideal position (x,y,z)=(" << ideal_x << "," << ideal_y << "," << ideal_z << ")" << std::endl;
-            std::cout << " Shifted position (x,y,z)=(" << x << "," << y << "," << z << ")" << std::endl;
+            std::cout << " iphi " << iphi << " phi_rotation " << phi_rotation << " x " << layer_nominal_radius * cos(phi_rotation) << " y " << layer_nominal_radius * sin(phi_rotation) << " z " << z_location << std::endl;
         }
         G4Transform3D Tr(Ra, Ta);
 
@@ -460,8 +444,7 @@ void PHG4MvtxDetector::AddGeometryNode()
         // before putting into the geom object
         for (unsigned short ilayer = 0; ilayer < n_Layers; ++ilayer)
         {
-            CylinderGeom_Mvtx *mygeom =
-                new CylinderGeom_Mvtx(ilayer, m_N_staves[ilayer], m_nominal_radius[ilayer] / cm, get_phistep(ilayer) / rad, m_nominal_phitilt[ilayer] / rad, m_nominal_phi0[ilayer] / rad);
+            CylinderGeom_Mvtx *mygeom = new CylinderGeom_Mvtx(ilayer, m_N_staves[ilayer], m_nominal_radius[ilayer] / cm, get_phistep(ilayer) / rad, m_nominal_phitilt[ilayer] / rad, m_nominal_phi0[ilayer] / rad);
             geo->AddLayerGeom(ilayer, mygeom);
         } // loop per layers
         if (Verbosity())
@@ -545,12 +528,12 @@ void PHG4MvtxDetector::FindSensor(G4LogicalVolume *lv)
     }
 }
 
-void PHG4MvtxDetector::SetMvtxModGeoParams_run2024() // For Run2024 p+p 
+void PHG4MvtxDetector::LoadMvtxStaveAlignmentParameters()
 {
-    std::ifstream file(mvtxAlignmentParamsFile_run2024);
+    std::ifstream file(mvtxStaveAlignParamsFile);
     if (!file.is_open())
     {
-        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - ERROR - Could not open file " << mvtxAlignmentParamsFile_run2024 << std::endl;
+        std::cout << "PHG4MvtxDetector::LoadMvtxStaveAlignmentParameters - ERROR - Could not open file " << mvtxStaveAlignParamsFile << std::endl;
         return;
     }
     else
@@ -558,93 +541,32 @@ void PHG4MvtxDetector::SetMvtxModGeoParams_run2024() // For Run2024 p+p
         std::string line;
         while (std::getline(file, line))
         {
-            // The first element of the line is the hitsetkey, the following six elemens are the alignment parameters alpha, beta, gamma, dx, dy, dz
             std::istringstream iss(line);
-            TrkrDefs::hitsetkey hitsetkey;
-            double alpha, beta, gamma, dx, dy, dz;
-            if (!(iss >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz))
+            int layer, stave;
+            double alpha, beta, gamma, x, y, z;
+            if (!(iss >> layer >> stave >> alpha >> beta >> gamma >> x >> y >> z))
             {
-                std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - ERROR - Could not read line " << line << std::endl;
+                std::cout << "PHG4MvtxDetector::LoadMvtxStaveAlignmentParameters - ERROR - Could not read line " << line << std::endl;
                 continue;
             }
             else
             {
-                uint8_t layer = TrkrDefs::getLayer(hitsetkey);
-                uint8_t stave = MvtxDefs::getStaveId(hitsetkey);
-                uint8_t chip = MvtxDefs::getChipId(hitsetkey);
-                std::pair layer_stave = std::make_pair(layer, stave);
-                m_ModGeoParamsMap[layer_stave].push_back(std::make_tuple(alpha, beta, gamma, dx, dy, dz));
-
-                if (m_ModGeoParamsMapAverage.find(layer_stave) == m_ModGeoParamsMapAverage.end())
-                {
-                    m_ModGeoParamsMapAverage[layer_stave] = std::make_tuple(alpha, beta, gamma, dx, dy, dz);
-                }
-                else
-                {
-                    std::get<0>(m_ModGeoParamsMapAverage[layer_stave]) += alpha;
-                    std::get<1>(m_ModGeoParamsMapAverage[layer_stave]) += beta;
-                    std::get<2>(m_ModGeoParamsMapAverage[layer_stave]) += gamma;
-                    std::get<3>(m_ModGeoParamsMapAverage[layer_stave]) += dx;
-                    std::get<4>(m_ModGeoParamsMapAverage[layer_stave]) += dy;
-                    std::get<5>(m_ModGeoParamsMapAverage[layer_stave]) += dz;
-                }
-                
-                std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - Read hitsetkey " << hitsetkey << " layer " << unsigned(layer) << " stave " << unsigned(stave) << " chip " << unsigned(chip) << " alpha " << alpha << " beta " << beta << " gamma " << gamma << " dx " << dx << " dy " << dy << " dz " << dz << std::endl;
+                m_GlobalDisplacementX += x;
+                m_GlobalDisplacementY += y;
+                m_GlobalDisplacementZ += z;
             }
-            m_ModGeoParams[hitsetkey] = std::make_tuple(alpha, beta, gamma, dx, dy, dz);
-
         }
     }
 
-    // Calculate the average alignment parameters for each layer and stave
-    for (auto& layer_stave : m_ModGeoParamsMapAverage)
+    int Ntotstaves = 0;
+    for (size_t i = 0; i < m_N_staves.size(); i++)
     {
-        std::get<0>(layer_stave.second) /= m_ModGeoParamsMap[layer_stave.first].size();
-        std::get<1>(layer_stave.second) /= m_ModGeoParamsMap[layer_stave.first].size();
-        std::get<2>(layer_stave.second) /= m_ModGeoParamsMap[layer_stave.first].size();
-        std::get<3>(layer_stave.second) /= m_ModGeoParamsMap[layer_stave.first].size();
-        std::get<4>(layer_stave.second) /= m_ModGeoParamsMap[layer_stave.first].size();
-        std::get<5>(layer_stave.second) /= m_ModGeoParamsMap[layer_stave.first].size();
+        Ntotstaves += m_N_staves[i];
     }
 
-    int n_allstaves = 0;
-    for (unsigned short ilayer = 0; ilayer < n_Layers; ++ilayer)
-    {
-        n_allstaves += m_N_staves[ilayer];
-    }
-
-    if (m_ModGeoParamsMap.size() != n_allstaves || m_ModGeoParamsMapAverage.size() != n_allstaves)
-    {
-        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - ERROR - The number of staves in the maps m_ModGeoParamsMap and m_ModGeoParamsMapAverage is not equal to " << n_allstaves << std::endl;
-    }
-
-    // debug: print out the content of the map m_ModGeoParamsMap 
-    for (const auto& layer_stave : m_ModGeoParamsMap)
-    {
-        std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - layer " << unsigned(layer_stave.first.first) << " stave " << unsigned(layer_stave.first.second) << std::endl;
-        for (const auto& params : layer_stave.second)
-        {
-            std::cout << "-----PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - alpha " << std::get<0>(params) << " beta " << std::get<1>(params) << " gamma " << std::get<2>(params) << " dx " << std::get<3>(params) << " dy " << std::get<4>(params) << " dz " << std::get<5>(params) << std::endl;
-        }
-
-        // print out the average alignment parameters
-        if (unsigned(layer_stave.first.first) < 3)
-          std::cout << "-- PHG4MvtxDetector::SetMvtxModGeoParams_run2024 - Average alignment parameters (L" << unsigned(layer_stave.first.first) << "_" << unsigned(layer_stave.first.second) << ") -- " << "(alpha,beta,gamma,dx,dy,dz)=(" << std::get<0>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<1>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<2>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<3>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<4>(m_ModGeoParamsMapAverage[layer_stave.first]) << "," << std::get<5>(m_ModGeoParamsMapAverage[layer_stave.first]) << ")" << std::endl;
-    }
+    m_GlobalDisplacementX /= Ntotstaves;
+    m_GlobalDisplacementY /= Ntotstaves;
+    m_GlobalDisplacementZ /= Ntotstaves;
 
     file.close();
-}
-
-void PHG4MvtxDetector::SetMvtxModGeoParams_run2025() // For Run2025 Au+Au
-{
-    std::cout << "PHG4MvtxDetector::SetMvtxModGeoParams_run2025 - ERROR - To be implemented" << std::endl;
-    // For now, fill the map with zeros
-    for (unsigned short ilayer = 0; ilayer < n_Layers; ++ilayer)
-    {
-        for (unsigned short istave = 0; istave < m_N_staves[ilayer]; ++istave)
-        {
-            std::pair layer_stave = std::make_pair(ilayer, istave);
-            m_ModGeoParamsMapAverage[layer_stave] = std::make_tuple(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-        }
-    }
 }

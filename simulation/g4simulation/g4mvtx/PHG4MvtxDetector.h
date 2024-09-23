@@ -53,10 +53,6 @@ class PHG4MvtxDetector : public PHG4Detector
   int get_stave(int stv_index) const;
 
   void FillSupportLVArray(G4LogicalVolume* lv) { m_SupportLV.insert(lv); }
-  
-  // For modified geometry
-  bool IsModGeometry() const { return useModGeo; }
-  int get_run() const { return run; }
 
  private:
   void AddGeometryNode();
@@ -71,9 +67,8 @@ class PHG4MvtxDetector : public PHG4Detector
   // calculated quantities
   double get_phistep(int lay) const { return 2.0 * M_PI / m_N_staves[lay]; }
 
-  // For modified geometry
-  void SetMvtxModGeoParams_run2024();
-  void SetMvtxModGeoParams_run2025();
+  // For modified geometry (per-stave misalignment)
+  void LoadMvtxStaveAlignmentParameters();
 
   PHG4MvtxDisplayAction* m_DisplayAction{nullptr};
   const PHParametersContainer* m_ParamsContainer{nullptr};
@@ -101,14 +96,13 @@ class PHG4MvtxDetector : public PHG4Detector
   std::array<double, n_Layers> m_nominal_phi0{};
 
   // For modified geometry
-  bool useModGeo = true; // TODO: add a switch/variable in macro
-  int run = 2024; // TODO: add a switch/variable in macro
-  // std::string mvtxAlignmentParamsFile_run2024 = "/sphenix/user/hjheng/sPHENIXRepo/calibrations/Tracking/MVTX/mvtxAlignmentParamsFile-20240724.txt";
-  std::string mvtxAlignmentParamsFile_run2024 = "/sphenix/user/frawley/production/macros/TrackingProduction/july29_repo_localAlignmentParamsFile.txt"; // Run2024 p+p
-  // std::string mvtxAlignmentParamsFile_run2025 = ""; // Run2025 placeholder
-  std::map<TrkrDefs::hitsetkey, std::tuple<double, double, double, double, double, double>> m_ModGeoParams; // alpha, beta, gamma, dx, dy, dz
-  std::map<std::pair<int, int>, std::vector<std::tuple<double, double, double, double, double, double>>> m_ModGeoParamsMap; // key: (layer, stave), value: vector of tuples of alpha, beta, gamma, dx, dy, dz
+  bool apply_misalignment = true; // TODO: add a switch/variable in macro
+  int run = 2024; // TODO: add a switch/variable in macro 
+  std::string mvtxStaveAlignParamsFile = "./MvtxStaveAlignmentParameters_Run2024.txt"; //TODO: either put this text file in CDB or create CDBTree)
   std::map<std::pair<int, int>, std::tuple<double, double, double, double, double, double>> m_ModGeoParamsMapAverage; // key: (layer, stave), value: tuple of average alpha, beta, gamma, dx, dy, dz
+  double m_GlobalDisplacementX = 0.0;
+  double m_GlobalDisplacementY = 0.0;
+  double m_GlobalDisplacementZ = 0.0;
 };
 
 #endif
