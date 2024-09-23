@@ -3,8 +3,7 @@
 #ifndef TRACKRECO_PHMICROMEGASTPCTRACKMATCHING_H
 #define TRACKRECO_PHMICROMEGASTPCTRACKMATCHING_H
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <trackbase/TrkrDefs.h>
 
@@ -53,7 +52,6 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   int GetNodes(PHCompositeNode* topNode);
 
   void copyMicromegasClustersToCorrectedMap();
-  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side);
 
   //! number of layers in the micromegas
   static constexpr unsigned int _n_mm_layers{2};
@@ -86,20 +84,12 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   PHG4CylinderGeomContainer* _geomContainerMicromegas{nullptr};
   TrkrClusterIterationMapv1* _iteration_map{nullptr};
   int _n_iteration{0};
-  //  std::string _track_map_name = "TpcTrackSeedContainer";
 
+  //! acts geometry
   ActsGeometry* _tGeometry{nullptr};
 
-  // crossing z correction
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-
-  // distortion corrections
-  TpcDistortionCorrectionContainer* m_dcc_static{nullptr};
-  TpcDistortionCorrectionContainer* m_dcc_average{nullptr};
-  TpcDistortionCorrectionContainer* m_dcc_fluctuation{nullptr};
-
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection m_distortionCorrection;
+  //! tpc global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   //! true to printout actual residuals for testing
   bool _test_windows{false};

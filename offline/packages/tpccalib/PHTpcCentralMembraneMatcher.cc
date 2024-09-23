@@ -498,6 +498,12 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode* /*topNode*/)
     Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
     Acts::Vector3 apos1(cmclus->getX1(), cmclus->getY1(), cmclus->getZ1());
     Acts::Vector3 apos2(cmclus->getX2(), cmclus->getY2(), cmclus->getZ2());
+    if (m_dcc_in_module_edge)
+    {
+      pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_module_edge);
+      apos1 = m_distortionCorrection.get_corrected_position(apos1, m_dcc_in_module_edge);
+      apos2 = m_distortionCorrection.get_corrected_position(apos2, m_dcc_in_module_edge);
+    }
     if (m_dcc_in_static)
     {
       pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_static);
@@ -1038,6 +1044,13 @@ int PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   {
     std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // input tpc distortion correction module edge
+  m_dcc_in_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
+  if (m_dcc_in_module_edge)
+  {
+    std::cout << "TpcCentralMembraneMatching:   found TPC distortion correction container module edge" << std::endl;
   }
 
   // input tpc distortion correction static

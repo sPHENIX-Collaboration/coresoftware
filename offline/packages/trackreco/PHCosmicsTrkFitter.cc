@@ -44,7 +44,8 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
-#include <TDatabasePDG.h>
+#include <TTree.h>
+#include <TFile.h>
 #include <TVector3.h>
 
 #include <cmath>
@@ -100,18 +101,18 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_alignStates.distortionContainers(_dcc_static, _dcc_average, _dcc_fluctuation);
-  m_alignStates.actsGeometry(m_tGeometry);
-  m_alignStates.clusters(m_clusterContainer);
-  m_alignStates.stateMap(m_alignmentStateMap);
+  // configure alignStates
+  m_alignStates.loadNodes(topNode);
   m_alignStates.verbosity(Verbosity());
+  m_alignStates.fieldMap(m_fieldMap);
+
+  // detect const field
   std::istringstream stringline(m_fieldMap);
   stringline >> fieldstrength;
   if (!stringline.fail())  // it is a float
   {
     m_ConstField = true;
   }
-  m_alignStates.fieldMap(m_fieldMap);
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
       m_tGeometry->geometry().tGeometry,
@@ -290,25 +291,28 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     if (siseed)
     {
+      // silicon source links
       sourceLinks = makeSourceLinks.getSourceLinks(
-          siseed,
-          measurements,
-          m_clusterContainer,
-          m_tGeometry,
-          _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
-          m_alignmentTransformationMapTransient,
-          m_transient_id_set,
-          crossing);
-    }
-    const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
-        tpcseed,
+        siseed,
         measurements,
         m_clusterContainer,
         m_tGeometry,
-        _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
+        m_globalPositionWrapper,
         m_alignmentTransformationMapTransient,
         m_transient_id_set,
         crossing);
+    }
+
+    // tpc source links
+    const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
+      tpcseed,
+      measurements,
+      m_clusterContainer,
+      m_tGeometry,
+      m_globalPositionWrapper,
+      m_alignmentTransformationMapTransient,
+      m_transient_id_set,
+      crossing);
 
     sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
 
@@ -829,6 +833,7 @@ int PHCosmicsTrkFitter::createNodes(PHCompositeNode* topNode)
 
 int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
+  // tpc seeds
   m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!m_tpcSeeds)
   {
@@ -837,6 +842,7 @@ int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // silicon seeds
   m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   if (!m_siliconSeeds)
   {
@@ -845,6 +851,7 @@ int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // clusters
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterContainer)
   {
@@ -853,6 +860,7 @@ int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // acts geometry
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
@@ -862,6 +870,7 @@ int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // tracks
   m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
   if (!m_seedMap)
   {
@@ -870,27 +879,8 @@ int PHCosmicsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  // tpc distortion corrections
-  _dcc_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
-  if (_dcc_module_edge)
-  {
-    std::cout << PHWHERE << "  found module edge TPC distortion correction container" << std::endl;
-  }
-  _dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  if (_dcc_static)
-  {
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl;
-  }
-  _dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  if (_dcc_average)
-  {
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl;
-  }
-  _dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
-  if (_dcc_fluctuation)
-  {
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl;
-  }
+  // tpc global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

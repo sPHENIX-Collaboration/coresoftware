@@ -38,7 +38,7 @@ namespace
 
 void MakeSourceLinks::initialize(PHG4TpcCylinderGeomContainer* cellgeo)
 {
-  // get the TPC layer radii from the geometry object  
+  // get the TPC layer radii from the geometry object
   if (cellgeo)
   {
     _clusterMover.initialize_geometry(cellgeo);
@@ -47,17 +47,16 @@ void MakeSourceLinks::initialize(PHG4TpcCylinderGeomContainer* cellgeo)
 }
 
   //___________________________________________________________________________________
-SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
-						  ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-						  TrkrClusterContainer*  clusterContainer,
-						  ActsGeometry* tGeometry,
-					          const TpcDistortionCorrectionContainer* dcc_module_edge,
-					          const TpcDistortionCorrectionContainer* dcc_static,
-					          const TpcDistortionCorrectionContainer* dcc_average,
-					          const TpcDistortionCorrectionContainer* dcc_fluctuation,
-						  alignmentTransformationContainer* transformMapTransient,
-						   std::set< Acts::GeometryIdentifier>& transient_id_set,
-						  short int crossing)
+SourceLinkVec MakeSourceLinks::getSourceLinks(
+  TrackSeed* track,
+  ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
+  TrkrClusterContainer*  clusterContainer,
+  ActsGeometry* tGeometry,
+  const TpcGlobalPositionWrapper& globalPositionWrapper,
+  alignmentTransformationContainer* transformMapTransient,
+  std::set< Acts::GeometryIdentifier>& transient_id_set,
+  short int crossing
+  )
 {
   if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinks " << std::endl; }
 
@@ -66,7 +65,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
   if (m_pp_mode && crossing == SHRT_MAX)
   {
     // Need to skip this in the pp case, for AuAu it should not happen
-    if(m_verbosity > 1) 
+    if(m_verbosity > 1)
       { std::cout << "Seed has no crossing, and in pp mode: skip this seed" << std::endl; }
 
     return sourcelinks;
@@ -109,19 +108,19 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
     // we do this by modifying the fake surface transform, to move the cluster to the corrected position
     if (trkrid == TrkrDefs::tpcId)
     {
-      Acts::Vector3 global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, tGeometry, crossing, dcc_module_edge, dcc_static, dcc_average, dcc_fluctuation);
+      Acts::Vector3 global = globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, crossing );
       Acts::Vector3 global_in = tGeometry->getGlobalPosition(key, cluster);
 
       if(m_verbosity > 2)
-	{
-	  std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
-		    << " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
-		    << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - global_in(2) 
-		    << std::endl;
-	}
+      {
+        std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2)
+          << " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
+          << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - global_in(2)
+          << std::endl;
+      }
 
-      // Make an afine transform that implements the correction as a translation 
-      auto correction_translation = (global - global_in) * 10.0;  // need mm
+      // Make an afine transform that implements the correction as a translation
+      auto correction_translation = (global - global_in)*Acts::UnitConstants::cm;
       Acts::Vector3 correction_rotation(0,0,0);   // null rotation
       Acts::Transform3 tcorr = tGeometry->makeAffineTransform(correction_rotation, correction_translation);
 
@@ -137,8 +136,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 				  check_local2d,
 				  Acts::Vector3(1,1,1));
       if(m_verbosity > 2)
-	{ 
-      std::cout << "Check global from transient transform BEFORE via surface method " << check_before_pos_surf(0)/10.0 << "  " 
+	{
+      std::cout << "Check global from transient transform BEFORE via surface method " << check_before_pos_surf(0)/10.0 << "  "
 		<< "  " << check_before_pos_surf(1)/10.0 << "  " << check_before_pos_surf(2)/10.0 << std::endl;
 	}
       // replace the the default alignment transform with the corrected one
@@ -153,7 +152,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 				  Acts::Vector3(1,1,1));
       if(m_verbosity > 2)
 	{
-      std::cout << "Check global from transient transform AFTER via surface method " << check_after_pos_surf(0)/10.0 << "  " 
+      std::cout << "Check global from transient transform AFTER via surface method " << check_after_pos_surf(0)/10.0 << "  "
 		<< "  " << check_after_pos_surf(1)/10.0 << "  " << check_after_pos_surf(2)/10.0 << std::endl;
 	}
       //      std::cout << " Print ideal transform matrix from surface object: " << std::endl
@@ -162,15 +161,15 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
       //	<< surf->transform(temp_transient_geocontext).matrix() << std::endl;
 
     }  // end TPC specific treatment
-    
-    // corrected TPC transforms are installed, capture the cluster key    
+
+    // corrected TPC transforms are installed, capture the cluster key
     cluster_vec.push_back(key);
 
   }  // end loop over clusters here
 
   Acts::GeometryContext transient_geocontext;
   transient_geocontext =  transformMapTransient;
-  
+
   // loop over cluster_vec and make source links
   for(auto& cluskey : cluster_vec)
     {
@@ -182,33 +181,33 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 			<< (unsigned int) TrkrDefs::getLayer(cluskey) << std::endl;
 	    }
 	  continue;
-	}      
+	}
 
       // get local coordinates (TPC time needs conversion to cm)
       auto cluster = clusterContainer->findCluster(cluskey);
       Acts::Vector2 localPos = tGeometry->getLocalCoords(cluskey, cluster);   //  cm
 
       Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
-      
+
       Acts::ActsVector<2> loc;
       loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;   // mm
       loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
-      
-      std::array<Acts::BoundIndices, 2> indices = 
+
+      std::array<Acts::BoundIndices, 2> indices =
         {Acts::BoundIndices::eBoundLoc0, Acts::BoundIndices::eBoundLoc1};
       Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
 
       // get errors
-      Acts::Vector3 global = tGeometry->getGlobalPosition(cluskey, cluster);      
+      Acts::Vector3 global = tGeometry->getGlobalPosition(cluskey, cluster);
       double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
       auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, cluskey);
       cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
       cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
       cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
       cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
-      
+
       ActsSourceLink::Index index = measurements.size();
-      
+
       SourceLink sl(surf->geometryId(), index, cluskey);
       Acts::SourceLink actsSL{sl};
       Acts::Measurement<Acts::BoundIndices, 2> meas(actsSL, indices, loc, cov);
@@ -229,14 +228,14 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(TrackSeed* track,
 		    << localPos(0) << ", " << localPos(1)
 		    << std::endl << std::endl;
 	}
-      
+
       sourcelinks.push_back(actsSL);
       measurements.push_back(meas);
     }
- 
+
   SLTrackTimer.stop();
   auto SLTime = SLTrackTimer.get_accumulated_time();
- 
+
   if (m_verbosity > 1)
     {
       std::cout << "PHActsTrkFitter Source Links generation time:  "
@@ -266,18 +265,15 @@ void MakeSourceLinks::resetTransientTransformMap(
 
 //___________________________________________________________________________________
 SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
-							  TrackSeed* track,
-							  ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
-							  TrkrClusterContainer*  clusterContainer,
-							  ActsGeometry* tGeometry,
-							  const TpcDistortionCorrectionContainer* dcc_module_edge,
-							  const TpcDistortionCorrectionContainer* dcc_static,
-							  const TpcDistortionCorrectionContainer* dcc_average,
-							  const TpcDistortionCorrectionContainer* dcc_fluctuation,
-							  short int crossing
-							  )
+  TrackSeed* track,
+  ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
+  TrkrClusterContainer*  clusterContainer,
+  ActsGeometry* tGeometry,
+  const TpcGlobalPositionWrapper& globalPositionWrapper,
+  short int crossing
+  )
 {
-  if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinksClusterMover  for seed  " 
+  if(m_verbosity > 1) { std::cout << "Entering MakeSourceLinks::getSourceLinksClusterMover  for seed  "
 				  << " with crossing " << crossing
 				  << std::endl; }
 
@@ -286,7 +282,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
   if (m_pp_mode && crossing == SHRT_MAX)
   {
     // Need to skip this in the pp case, for AuAu it should not happen
-    if(m_verbosity > 1) 
+    if(m_verbosity > 1)
       { std::cout << "Seed has no crossing, and in pp mode: skip this seed" << std::endl; }
 
     return sourcelinks;
@@ -330,41 +326,31 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset
     // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks
-    Acts::Vector3 global = tGeometry->getGlobalPosition(key, cluster);
-    Acts::Vector3 global_in = global;
-    
+    const Acts::Vector3 global =  globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, crossing );
     if (trkrid == TrkrDefs::tpcId)
+    {
+      if (m_verbosity > 1)
       {
-        global = TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(key, cluster, tGeometry, crossing, dcc_module_edge, dcc_static, dcc_average, dcc_fluctuation);
-
-        if (m_verbosity > 1)
-	  {
-	    std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
-		      << " corr glob (unmoved) " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
-		      << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - global_in(2) 
-		      << std::endl;
-	  }
+        const Acts::Vector3 global_in =  tGeometry->getGlobalPosition(key, cluster);
+        std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2)
+          << " corr glob (unmoved) " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
+          << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - global_in(2)
+          << std::endl;
       }
+    }
 
-    if (m_verbosity > 1)
-      {
-	std::cout << " AGAIN: global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2) 
-		  << " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
-		  << std::endl;
-      }
-    
     // add the global positions to a vector to give to the cluster mover
     global_raw.emplace_back(std::make_pair(key, global));
-    
+
   }  // end loop over clusters here
 
   // move the cluster positions back to the original readout surface
   auto global_moved = _clusterMover.processTrack(global_raw);
 
-if (m_verbosity > 1)
-    {
-      std::cout << "Cluster global positions after mover puts them on readout surface:" << std::endl;
-    }
+  if (m_verbosity > 1)
+  {
+    std::cout << "Cluster global positions after mover puts them on readout surface:" << std::endl;
+  }
 
   // loop over global positions returned by cluster mover
   for(auto& [cluskey, global] : global_moved)
@@ -434,21 +420,21 @@ if (m_verbosity > 1)
     {
       std::cout << "Cluster " << cluskey << " cluster global after mover: " << global(0)/10.0 << "  " << global(1)/10.0 << "  " << global(2)/10.0 << std::endl;
       std::cout << " stored: cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
-      Acts::Vector2 localTest = tGeometry->getLocalCoords(cluskey, cluster);   //  cm  
+      Acts::Vector2 localTest = tGeometry->getLocalCoords(cluskey, cluster);   //  cm
       std::cout << " localTest from getLocalCoords: " << localTest(0) << "  " << localTest(1) << std::endl;
       std::cout << " new from inverse transform of cluster global after mover:     local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
       Acts::Vector3 globalTest = surf->localToGlobal(tGeometry->geometry().getGeoContext(), localTest*Acts::UnitConstants::cm, normal);
-      std::cout << " global from localTest: " << globalTest(0)/10.0 << "  " << globalTest(1)/10.0 << "  " << globalTest(2)/10.0 << std::endl; 
+      std::cout << " global from localTest: " << globalTest(0)/10.0 << "  " << globalTest(1)/10.0 << "  " << globalTest(2)/10.0 << std::endl;
       Acts::Vector3 globalNew = surf->localToGlobal(tGeometry->geometry().getGeoContext(), localPos*Acts::UnitConstants::cm, normal);
-      std::cout << " global from new local: " << globalNew(0)/10.0 << "  " << globalNew(1)/10.0 << "  " << globalNew(2)/10.0 << std::endl; 
+      std::cout << " global from new local: " << globalNew(0)/10.0 << "  " << globalNew(1)/10.0 << "  " << globalNew(2)/10.0 << std::endl;
     }
 
     Acts::ActsVector<2> loc;
     loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
     loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
-    std::array<Acts::BoundIndices, 2> indices = 
+    std::array<Acts::BoundIndices, 2> indices =
       {Acts::BoundIndices::eBoundLoc0, Acts::BoundIndices::eBoundLoc1};
-    
+
     Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
 
     double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
