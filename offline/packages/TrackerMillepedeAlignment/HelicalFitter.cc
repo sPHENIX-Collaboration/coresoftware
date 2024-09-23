@@ -66,9 +66,6 @@ HelicalFitter::HelicalFitter(const std::string& name)
 }
 
 //____________________________________________________________________________..
-HelicalFitter::~HelicalFitter() = default;
-
-//____________________________________________________________________________..
 int HelicalFitter::InitRun(PHCompositeNode* topNode)
 {
   UpdateParametersWithMacro();
@@ -680,13 +677,13 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       for(int p = 0; p<3; p++)
       {
 
-      
+
       if(is_vertex_param_fixed(p))
       {
         glblvtx_derivativeX[p] = 0;
         glblvtx_derivativeY[p] = 0;
       }
-      
+
 
       }
       if (Verbosity() > 1)
@@ -961,6 +958,9 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1001,22 +1001,10 @@ void HelicalFitter::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, shor
 {
   // make all corrections to global position of TPC cluster
   unsigned int side = TpcDefs::getSide(cluster_key);
-  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
-  global[2] = z;
+  global.z() = m_clusterCrossingCorrection.correctZ(global.z(), side, crossing);
 
   // apply distortion corrections
-  if (_dcc_static)
-  {
-    global = _distortionCorrection.get_corrected_position(global, _dcc_static);
-  }
-  if (_dcc_average)
-  {
-    global = _distortionCorrection.get_corrected_position(global, _dcc_average);
-  }
-  if (_dcc_fluctuation)
-  {
-    global = _distortionCorrection.get_corrected_position(global, _dcc_fluctuation);
-  }
+  global = m_globalPositionWrapper.applyDistortionCorrections(global);
 }
 
 void HelicalFitter::getTrackletClusters(TrackSeed* tracklet, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec)

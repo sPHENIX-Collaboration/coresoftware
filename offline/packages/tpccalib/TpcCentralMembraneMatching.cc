@@ -1084,7 +1084,7 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     source.SetZ(+1);
     source.RotateZ(M_PI / 18);
     source.SetX(-1*source.X());
-    m_truth_pos.push_back(source);    
+    m_truth_pos.push_back(source);
     truth_r_phi[1]->Fill(source.Phi(), source.Perp());
 
   };
@@ -1453,7 +1453,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     }
 
 
-    
+
 
     for (const auto& truth : m_truth_pos)
     {
@@ -1573,7 +1573,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     }  // end loop over truth
 
     // loop again to find nearest neighbor for unmatched reco clusters
-    
+
     int recoIndex = 0;
     for (const auto& reco : reco_pos)
     {
@@ -1765,7 +1765,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
       reco_index++;
     } // end reco loop
-  
+
     truth_index = 0;
     for(const auto& truthIndex : truth_NNRecoIndex)
     {
@@ -1844,7 +1844,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       m_IPhiWeightedSD = reco_SDWeightedIPhi[i];
       m_ITWeightedSD = reco_SDWeightedIT[i];
 
-      
+
       if (m_side)
       {
         m_lowShift = m_matchLow[1];
@@ -1995,7 +1995,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   if(!m_useHeader){
     m_event_index++;
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -2079,8 +2079,6 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
   // Get Objects off of the Node Tree
   //---------------------------------
 
-
-
   // m_corrected_CMcluster_map  = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER");
   m_corrected_CMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
   if (!m_corrected_CMcluster_map)
@@ -2088,8 +2086,6 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
     std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-
 
   // input tpc distortion correction module edge
   m_dcc_in_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");

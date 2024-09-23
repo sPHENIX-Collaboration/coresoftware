@@ -112,6 +112,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   // local coord conversion below
   auto tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
+  // load nodes relevant for global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
+
   if (!tgeometry)
   {
     std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue." << std::endl;
@@ -632,11 +635,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
         double rad_lyr_boundary = rad1 + layer_dr / 2.0;
 
         // We have to (temporarily) use distortion corrected cluster positions to determine which stripe this came from
-        Acts::Vector3 dist_pos(pos[i].X(), pos[i].Y(), pos[i].Z());
-        if (_dcc)
-        {
-          dist_pos = _distortionCorrection.get_corrected_position(dist_pos, _dcc);
-        }
+        const Acts::Vector3 dist_pos = m_globalPositionWrapper.applyDistortionCorrections({pos[i].X(), pos[i].Y(), pos[i].Z()});
         double dist_r = sqrt(dist_pos[0] * dist_pos[0] + dist_pos[1] * dist_pos[1]);
         double cmclus_dr = _cmclus_dr_outer;
 
@@ -884,13 +883,6 @@ int PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode *topNode)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  // tpc distortion correction
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainer");
-  if (_dcc)
-  {
-    std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl;
   }
 
   _corrected_CMcluster_map = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER");

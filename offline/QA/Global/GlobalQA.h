@@ -12,6 +12,7 @@ class PHCompositeNode;
 class TH1;
 class TH2;
 class TProfile;
+class TProfile2D;
 
 class GlobalQA : public SubsysReco {
 public:
@@ -68,13 +69,22 @@ private:
   std::string m_sEPDfieldname;
   bool m_overrideSEPDMapName{false};
   bool m_overrideSEPDFieldName{false};
+  std::string m_sEPDADCName;
+  std::string m_sEPDADCfieldname;
+  bool m_overrideSEPDADCName{false};
+  bool m_overrideSEPDADCFieldName{false};
   CDBTTree *cdbttree{nullptr};
+  CDBTTree *cdbttree2{nullptr};
   unsigned int key = 999;
   std::vector<unsigned int> v;
   TH1 *h_GlobalQA_sEPD_tile[744] = {nullptr};
   TH1 *h_GlobalQA_sEPD_adcsum_s{nullptr};
   TH1 *h_GlobalQA_sEPD_adcsum_n{nullptr};
   TH2 *h2_GlobalQA_sEPD_adcsum_ns{nullptr};
+  TH2 *h2_GlobalQA_sEPD_ADC_channel_north{nullptr};
+  TH2 *h2_GlobalQA_sEPD_ADC_channel_south{nullptr};
+  TProfile2D *h2Profile_GlobalQA_sEPD_tiles_north{nullptr};
+  TProfile2D *h2Profile_GlobalQA_sEPD_tiles_south{nullptr};
 
   // ZDC histos
   TH1 *h_GlobalQA_zdc_zvtx = nullptr;

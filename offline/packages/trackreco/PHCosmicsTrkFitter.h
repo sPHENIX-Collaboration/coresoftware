@@ -7,15 +7,11 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsSourceLink.h>
 #include <trackbase/ActsTrackFittingAlgorithm.h>
 #include <trackbase/ClusterErrorPara.h>
-#include <trackbase/alignmentTransformationContainer.h>
 
-#include <tpc/TpcClusterMover.h>
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
@@ -27,19 +23,18 @@
 #include <memory>
 #include <string>
 
-#include <TFile.h>
-#include <TTree.h>
-
-
-class MakeActsGeometry;
+class alignmentTransformationContainer;
+class ActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
-class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
 class PHG4TpcCylinderGeomContainer;
+
+class TFile;
+class TTree;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
@@ -185,17 +180,10 @@ class PHCosmicsTrkFitter : public SubsysReco
   std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
   SvtxTrackMap* m_seedTracks = nullptr;
 
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-  TpcDistortionCorrectionContainer* _dcc_module_edge{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_static{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_average{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
+  //! tpc global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
-  /// tpc distortion correction utility class
-  //  TpcDistortionCorrection _distortionCorrection;
-
-  // cluster mover utility class
-  //  TpcClusterMover _clusterMover;
+  //! cluster error parametrization
   ClusterErrorPara _ClusErrPara;
 
   std::set<int> m_ignoreLayer;
