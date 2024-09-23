@@ -77,8 +77,8 @@ namespace PHGenFit
     {
       _fitter = new genfit::KalmanFitterRefTrack();
     }
-    // NOLINTNEXTLINE(bugprone-branch-clone)
     else if (fitter_choice.compare("KalmanFitter") == 0)
+// NOLINTNEXTLINE(bugprone-branch-clone)
     {
       _fitter = new genfit::KalmanFitter();
     }
@@ -91,6 +91,7 @@ namespace PHGenFit
       _fitter = new genfit::DAF(true);
     }
     else
+// NOLINTNEXTLINE(bugprone-branch-clone)
     {
       _fitter = new genfit::KalmanFitter();
     }
