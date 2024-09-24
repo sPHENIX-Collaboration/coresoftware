@@ -433,13 +433,6 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
     m_FEEBclkMap.erase(fee);
   }
 
-  // print how many BCO are in the stack
-  std::cout << "SingleMicromegasPoolInput::GetSomeMoreEvents -"
-    << " m_MicromegasRawHitMap: " << m_MicromegasRawHitMap.size()
-    << " m_BeamClockPacket: " << m_BeamClockPacket.size()
-    << " m_BeamClockFEE: " << m_BeamClockFEE.size()
-    << std::endl;
-
   return false;
 }
 
