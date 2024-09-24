@@ -302,43 +302,47 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     unsigned int tpcid = track->get_tpc_seed_index();
     unsigned int siid = track->get_silicon_seed_index();
-    short int crossing_estimate = track->get_crossing_estimate();  // geometric crossing estimate
 
-    if (Verbosity() > 3)
-    {
-      std::cout << " tpcid " << tpcid << " siid " << siid << std::endl;
-    }
-
-    // get the INTT crossing number
+    // capture the input crossing value, and set crossing parameters
+    //==============================
+    short silicon_crossing =  SHRT_MAX;  
     auto siseed = m_siliconSeeds->get(siid);
-    short crossing = SHRT_MAX;
-    if (siseed)
-    {
-      // get the INTT crossing
-      crossing = siseed->get_crossing();
-    }
-    else if (!m_pp_mode)
-    {
-      // crossing always assumed to be zero if pp_mode = false
-      crossing = 0;
-    }
+    if(siseed) 
+      {
+	silicon_crossing = siseed->get_crossing(); 
+      }
+    short crossing = silicon_crossing;
+    short int crossing_estimate = crossing;
 
-    // Can't do SC case without INTT crossing
-    if (m_fitSiliconMMs && (crossing == SHRT_MAX))
-    {
-      continue;
-    }
+    if(m_enable_crossing_estimate)
+      {
+	crossing_estimate = track->get_crossing_estimate();  // geometric crossing estimate from matcher
+     }
+    //===============================
 
-    /// A track seed is made for every tpc seed. Not every tpc seed has a silicon match
-    if (m_pp_mode && siid == std::numeric_limits<unsigned int>::max())
-    {
-      // do not skip TPC only tracks, just set crossing to the nominal zero
-      crossing = 0;
-    }
 
+    // must have silicon seed with valid crossing if we are doing a SC calibration fit
+    if (m_fitSiliconMMs)
+      {
+	if( (siid == std::numeric_limits<unsigned int>::max()) || (silicon_crossing == SHRT_MAX))
+	  {
+	    continue;
+	  }
+      }
+
+    // do not skip TPC only tracks, just set crossing to the nominal zero
+    if(!siseed)
+      {
+	crossing = 0;
+      }
+    
     if (Verbosity() > 1)
     {
-      std::cout << "tpc and si id " << tpcid << ", " << siid << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
+      if(siseed)
+	{
+	  std::cout << "tpc and si id " << tpcid << ", " << siid << " silicon_crossing " << silicon_crossing 
+		    << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
+	}
     }
 
     auto tpcseed = m_tpcSeeds->get(tpcid);
@@ -354,14 +358,20 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     {
       if (siseed)
       {
-        std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
+        std::cout << "    silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
+	std::cout << "    tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
       }
-      std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
     }
 
     PHTimer trackTimer("TrackTimer");
     trackTimer.stop();
     trackTimer.restart();
+
+    if (Verbosity() > 1 && siseed)
+    {
+      std::cout << " m_pp_mode " << m_pp_mode << " m_enable_crossing_estimate " << m_enable_crossing_estimate 
+		<< " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
+    }
 
     short int this_crossing = crossing;
     bool use_estimate = false;
@@ -369,31 +379,38 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     std::vector<float> chisq_ndf;
     std::vector<SvtxTrack_v4> svtx_vec;
 
-    if (Verbosity() > 1)
-    {
-      std::cout << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
-    }
-
-    if (crossing == SHRT_MAX)
-    {
-      // this only happens if there is a silicon seed but no assigned INTT crossing
-      // If there is no INTT crossing, start with the crossing_estimate value, vary up and down, fit, and choose the best chisq/ndf
-      use_estimate = true;
-      nvary = max_bunch_search;
-      if (Verbosity() > 1)
+    if(m_pp_mode)
       {
-        std::cout << " No INTT crossing: use crossing_estimate " << crossing_estimate << " with nvary " << nvary << std::endl;
+	if (m_enable_crossing_estimate && crossing == SHRT_MAX)
+	  {
+	    // this only happens if there is a silicon seed but no assigned INTT crossing, and only in pp_mode
+	    // If there is no INTT crossing, start with the crossing_estimate value, vary up and down, fit, and choose the best chisq/ndf
+	    use_estimate = true;
+	    nvary = max_bunch_search;
+	    if (Verbosity() > 1)
+	      {
+		std::cout << " No INTT crossing: use crossing_estimate " << crossing_estimate << " with nvary " << nvary << std::endl;
+	      }
+	  }
+	else
+	  {
+	    // use INTT crossing
+	    crossing_estimate = crossing;
+	  }
       }
-    }
     else
-    {
-      // use INTT crossing
-      crossing_estimate = crossing;
-    }
+      {
+	// non pp mode, we want only crossing zero, veto others
+	if(siseed && silicon_crossing != 0)
+	  {
+	    continue;
+	  }
+	crossing_estimate = crossing;
+      }
 
     // Fit this track assuming either:
     //    crossing = INTT value, if it exists (uses nvary = 0)
-    //    crossing = crossing_estimate +/- max_bunch_search, if no INTT value exists
+    //    crossing = crossing_estimate +/- max_bunch_search, if no INTT value exists and m_enable_crossing_estimate flag is set.
 
     for (short int ivary = -nvary; ivary <= nvary; ++ivary)
     {
