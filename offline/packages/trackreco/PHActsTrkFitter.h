@@ -118,6 +118,7 @@ class PHActsTrkFitter : public SubsysReco
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
+  void set_enable_geometric_crossing_estimate(bool flag) { m_enable_crossing_estimate = flag ; }
   void set_use_clustermover(bool use) { m_use_clustermover = use; }
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
 
@@ -245,6 +246,8 @@ class PHActsTrkFitter : public SubsysReco
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
   bool m_commissioning = false;
+
+  bool m_enable_crossing_estimate = false;
 
   PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
 
