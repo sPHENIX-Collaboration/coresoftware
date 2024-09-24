@@ -1,5 +1,5 @@
-#ifndef __TpcTimeFrameBuilderV4_H__
-#define __TpcTimeFrameBuilderV4_H__
+#ifndef __TpcTimeFrameBuilder_H__
+#define __TpcTimeFrameBuilder_H__
 
 #include <algorithm>
 #include <cstdint>
@@ -15,11 +15,11 @@ class Packet;
 class TpcRawHit;
 class TH2I;
 
-class TpcTimeFrameBuilderV4
+class TpcTimeFrameBuilder
 {
  public:
-  explicit TpcTimeFrameBuilderV4(const int packet_id);
-  virtual ~TpcTimeFrameBuilderV4();
+  explicit TpcTimeFrameBuilder(const int packet_id);
+  virtual ~TpcTimeFrameBuilder();
 
   int ProcessPacket(Packet *);
   bool isMoreDataRequired() const;
