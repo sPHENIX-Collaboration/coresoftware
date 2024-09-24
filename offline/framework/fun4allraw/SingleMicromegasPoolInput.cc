@@ -397,10 +397,14 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
   {
     return false;
   }
-  if (m_MicromegasRawHitMap.empty())
+
+  // check minimum pool size
+  if (m_MicromegasRawHitMap.size() < m_BcoPoolSize)
   {
     return true;
   }
+
+  // make sure that the latest BCO received by each FEEs is past the current BCO
   std::set<int> toerase;
   uint64_t lowest_bclk = m_MicromegasRawHitMap.begin()->first + m_BcoRange;
   for (auto bcliter : m_FEEBclkMap)
@@ -428,6 +432,13 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
   {
     m_FEEBclkMap.erase(fee);
   }
+
+  // print how many BCO are in the stack
+  std::cout << "SingleMicromegasPoolInput::GetSomeMoreEvents -"
+    << " m_MicromegasRawHitMap: " << m_MicromegasRawHitMap.size()
+    << " m_BeamClockPacket: " << m_BeamClockPacket.size()
+    << " m_BeamClockFEE: " << m_BeamClockFEE.size()
+    << std::endl;
 
   return false;
 }
