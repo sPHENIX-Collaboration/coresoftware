@@ -948,7 +948,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
     // correct t0
     m_bbct0 -= _mbdcal->get_t0corr();
-    std::cout << "correcting m_bbct0 with " << _mbdcal->get_t0corr() << std::endl;
+    //std::cout << "correcting m_bbct0 with " << _mbdcal->get_t0corr() << std::endl;
 
     // hard code these for now
     // need study to determine muliplicity dependence
