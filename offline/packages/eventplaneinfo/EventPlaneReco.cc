@@ -106,7 +106,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
     TowerInfoContainer *epd_towerinfo =
         findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SEPD");
     if (!epd_towerinfo) {
-      std::cout << PHWHERE << "::ERROR - cannot find TOWERINFO_CALIB_EPD"
+      std::cout << PHWHERE << "::ERROR - cannot find TOWERINFO_CALIB_SEPD"
                 << std::endl;
       exit(-1);
     }
