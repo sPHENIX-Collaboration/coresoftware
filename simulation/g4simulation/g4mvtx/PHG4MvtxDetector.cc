@@ -1,5 +1,7 @@
 #include "PHG4MvtxDetector.h"
 
+#include "PHG4MvtxMisalignment.h"
+
 #include "PHG4MvtxDefs.h"
 #include "PHG4MvtxDisplayAction.h"
 #include "PHG4MvtxSupport.h"
@@ -90,7 +92,15 @@ PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
     }
 
     if (apply_misalignment)
-        LoadMvtxStaveAlignmentParameters();
+    {   
+        std::cout << "PHG4MvtxDetector constructor: Apply Misalignment, get global displacement" << std::endl;
+        PHG4MvtxMisalignment *m_MvtxMisalignment = new PHG4MvtxMisalignment();
+        std::vector<double> v_globaldisplacement = m_MvtxMisalignment->get_GlobalDisplacement();
+        m_GlobalDisplacementX = v_globaldisplacement[0];
+        m_GlobalDisplacementY = v_globaldisplacement[1];
+        m_GlobalDisplacementZ = v_globaldisplacement[2];
+        delete m_MvtxMisalignment;
+    }
 
     if (Verbosity() > 0)
     {
@@ -526,47 +536,4 @@ void PHG4MvtxDetector::FindSensor(G4LogicalVolume *lv)
         }
         FindSensor(worldLogical);
     }
-}
-
-void PHG4MvtxDetector::LoadMvtxStaveAlignmentParameters()
-{
-    std::ifstream file(mvtxStaveAlignParamsFile);
-    if (!file.is_open())
-    {
-        std::cout << "PHG4MvtxDetector::LoadMvtxStaveAlignmentParameters - ERROR - Could not open file " << mvtxStaveAlignParamsFile << std::endl;
-        return;
-    }
-    else
-    {
-        std::string line;
-        while (std::getline(file, line))
-        {
-            std::istringstream iss(line);
-            int layer, stave;
-            double alpha, beta, gamma, x, y, z;
-            if (!(iss >> layer >> stave >> alpha >> beta >> gamma >> x >> y >> z))
-            {
-                std::cout << "PHG4MvtxDetector::LoadMvtxStaveAlignmentParameters - ERROR - Could not read line " << line << std::endl;
-                continue;
-            }
-            else
-            {
-                m_GlobalDisplacementX += x;
-                m_GlobalDisplacementY += y;
-                m_GlobalDisplacementZ += z;
-            }
-        }
-    }
-
-    int Ntotstaves = 0;
-    for (size_t i = 0; i < m_N_staves.size(); i++)
-    {
-        Ntotstaves += m_N_staves[i];
-    }
-
-    m_GlobalDisplacementX /= Ntotstaves;
-    m_GlobalDisplacementY /= Ntotstaves;
-    m_GlobalDisplacementZ /= Ntotstaves;
-
-    file.close();
 }

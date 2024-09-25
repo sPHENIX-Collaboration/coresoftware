@@ -8,11 +8,11 @@
 #include <g4main/PHG4Detector.h>
 
 #include <array>
-#include <cmath>  // for M_PI
+#include <cmath>
 #include <map>
 #include <set>
 #include <string>
-#include <tuple>  // for tuple
+#include <tuple>
 #include <vector>
 
 class G4AssemblyVolume;
@@ -22,6 +22,7 @@ class PHCompositeNode;
 class PHG4MvtxDisplayAction;
 class PHG4Subsystem;
 class PHParametersContainer;
+class PHG4MvtxMisalignment;
 
 class PHG4MvtxDetector : public PHG4Detector
 {
@@ -69,9 +70,6 @@ class PHG4MvtxDetector : public PHG4Detector
   // calculated quantities
   double get_phistep(int lay) const { return 2.0 * M_PI / m_N_staves[lay]; }
 
-  // For modified geometry (per-stave misalignment)
-  void LoadMvtxStaveAlignmentParameters();
-
   PHG4MvtxDisplayAction* m_DisplayAction{nullptr};
   const PHParametersContainer* m_ParamsContainer{nullptr};
 
@@ -99,9 +97,6 @@ class PHG4MvtxDetector : public PHG4Detector
 
   // For modified geometry
   bool apply_misalignment = true; // TODO: add a switch/variable in macro
-  int run = 2024; // TODO: add a switch/variable in macro 
-  std::string mvtxStaveAlignParamsFile = "./MvtxStaveAlignmentParameters_Run2024.txt"; //TODO: either put this text file in CDB or create CDBTree)
-  std::map<std::pair<int, int>, std::tuple<double, double, double, double, double, double>> m_ModGeoParamsMapAverage; // key: (layer, stave), value: tuple of average alpha, beta, gamma, dx, dy, dz
   double m_GlobalDisplacementX = 0.0;
   double m_GlobalDisplacementY = 0.0;
   double m_GlobalDisplacementZ = 0.0;
