@@ -5,7 +5,6 @@
 void Eventplaneinfov1::identify(std::ostream& os) const
 {
   os << "---------Eventplaneinfov1------------------" << std::endl;
-  os << "\t second order event plane angle is " << get_psi(2) << std::endl;
   return;
 }
 

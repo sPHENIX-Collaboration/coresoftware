@@ -40,7 +40,7 @@ EpdReco::EpdReco(const std::string &name) : SubsysReco(name) {}
 int EpdReco::InitRun(PHCompositeNode *topNode) {
 
   if (!m_overrideCalibName) {
-    m_calibName = "sEPD_NMIP_CALIB";
+    m_calibName = "SEPD_NMIP_CALIB";
   }
   if (!m_overrideFieldName) {
     m_fieldname = "sepd_calib";
@@ -140,21 +140,6 @@ int EpdReco::process_event(PHCompositeNode *topNode) {
 
 int EpdReco::End(PHCompositeNode * /*topNode*/) {
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int EpdReco::Getrmap(int rindex) {
-  static const int rmap[31] = {0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,
-                               6,  6,  7,  7,  8,  8,  9,  9,  10, 10, 11,
-                               11, 12, 12, 13, 13, 14, 14, 15, 15};
-
-  return rmap[rindex];
-}
-
-int EpdReco::Getphimap(int phiindex) {
-  static const int phimap[31] = {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-                                 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
-
-  return phimap[phiindex];
 }
 
 float EpdReco::GetTilePhi(int thisphi) {
