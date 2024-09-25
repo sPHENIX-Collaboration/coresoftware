@@ -40,6 +40,9 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
+  //! define minimum pool size in terms of how many BCO are stored
+  void SetBcoPoolSize(const unsigned int value) { m_BcoPoolSize = value; }
+
   //! save some statistics for BCO QA
   void FillBcoQA(uint64_t /*gtm_bco*/);
 
@@ -51,6 +54,9 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
+
+  //! minimum number of BCO required in Micromegas Pools
+  unsigned int m_BcoPoolSize{1};
 
   //! store list of packets that have data for a given beam clock
   /**
