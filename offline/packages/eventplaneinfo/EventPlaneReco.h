@@ -26,9 +26,9 @@ public:
   void ResetMe();
   void set_sepd_epreco(bool sepdEpReco) { _sepdEpReco = sepdEpReco; }
   void set_mbd_epreco(bool mbdEpReco) { _mbdEpReco = mbdEpReco; }
-  void set_sEPD_Mip_cut(const float &e) { _epd_e = e; }
-  void set_MBD_Min_Qcut(const float &f) { _mbd_e = f; }
-  void set_Ep_orders(const unsigned int &n) { m_MaxOrder = n; }
+  void set_sEPD_Mip_cut(const float e) { _epd_e = e; }
+  void set_MBD_Min_Qcut(const float f) { _mbd_e = f; }
+  void set_Ep_orders(const unsigned int n) { m_MaxOrder = n; }
 
 private:
   int CreateNodes(PHCompositeNode *topNode);
@@ -52,7 +52,7 @@ private:
   bool m_overrideSEPDMapName{false};
   bool m_overrideSEPDFieldName{false};
   std::vector<unsigned int> vkey;
-  unsigned int key = 999;
+  unsigned int key{999};
   CDBTTree *cdbttree{nullptr};
 };
 
