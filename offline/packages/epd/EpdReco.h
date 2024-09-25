@@ -34,8 +34,6 @@ private:
   bool m_overrideFieldName{false};
   std::string m_Detector = "SEPD";
   std::string m_TowerInfoNodeName_calib = "TOWERINFO_CALIB_SEPD";
-  int Getrmap(int rindex);
-  int Getphimap(int phiindex);
   float GetTilePhi(int thisphi);
   float GetTilePhi0(int thisphi0);
   float GetTileR(int thisr);
