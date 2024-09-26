@@ -155,8 +155,14 @@ class MbdCalib
   // Overall T0 offset
   Float_t _t0corrmean{ 0. };
   Float_t _t0corrmeanerr{ 0. };
-  Float_t _t0corrsigma{ std::numeric_limits<float>::quiet_NaN() };
-  Float_t _t0corrsigmaerr{ std::numeric_limits<float>::quiet_NaN() };
+  std::array<float, MbdDefs::MBD_N_ARMS> _t0corr_fitmean{};
+  std::array<float, MbdDefs::MBD_N_ARMS> _t0corr_fitmeanerr{};
+  std::array<float, MbdDefs::MBD_N_ARMS> _t0corr_fitsigma{};
+  std::array<float, MbdDefs::MBD_N_ARMS> _t0corr_fitsigmaerr{};
+  std::array<float, MbdDefs::MBD_N_ARMS> _t0corr_hmean{};
+  std::array<float, MbdDefs::MBD_N_ARMS> _t0corr_hmeanerr{};
+  std::array<float, MbdDefs::MBD_N_ARMS> _t0corr_hstddev{};
+  std::array<float, MbdDefs::MBD_N_ARMS> _t0corr_hstddeverr{};
 
   // Pedestals
   std::array<float, MbdDefs::MBD_N_FEECH> _pedmean{};
