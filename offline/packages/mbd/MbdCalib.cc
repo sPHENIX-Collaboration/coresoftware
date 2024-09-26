@@ -423,7 +423,10 @@ int MbdCalib::Download_T0Corr(const std::string& dbase_location)
   _t0corr_hstddev.fill(std::numeric_limits<float>::quiet_NaN());
   _t0corr_hstddeverr.fill(std::numeric_limits<float>::quiet_NaN());
 
-  if ( dbase_location.size()==0 ) return 0;
+  if ( dbase_location.size()==0 )
+  {
+    return 0;
+  }
 
   if (Verbosity() > 0)
   {
