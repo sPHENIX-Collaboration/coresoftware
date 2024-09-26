@@ -789,7 +789,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
     if (_verbose >= 10 && !isnan(t_pmt) )
     {
-      std::cout << ipmt << "\t" << t_pmt << std::endl;
+      std::cout << ipmt << "\t" << t_pmt << "\t" << q_pmt << std::endl;
     }
 
     if (fabs(t_pmt) < 25. && q_pmt > 0.)
@@ -948,6 +948,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
     // correct t0
     m_bbct0 -= _mbdcal->get_t0corr();
+    //std::cout << "correcting m_bbct0 with " << _mbdcal->get_t0corr() << std::endl;
 
     // hard code these for now
     // need study to determine muliplicity dependence
