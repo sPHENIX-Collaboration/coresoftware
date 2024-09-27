@@ -78,11 +78,11 @@ int InttOdbcQuery::Query(int runnumber)
   odbc::Statement* statement = dbcon->createStatement();
 
   int iret = 0;
-  iret |= QueryStreaming(statement, runnumber);
-  iret |= QueryType(statement, runnumber);
+  iret += (QueryStreaming(statement, runnumber) != 0);
+  iret += (QueryType(statement, runnumber) != 0);
   for(int which_intt = 0; which_intt < 8; ++which_intt)
   {
-    iret |= QueryFiles(statement, runnumber, which_intt);
+    iret += (QueryFiles(statement, runnumber, which_intt) != 0);
   }
   //...
 
@@ -98,10 +98,15 @@ int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
 {
   odbc::ResultSet* result_set = nullptr;
 
+  std::string sched_data;
   try
   {
     std::string sql = "SELECT sched_data FROM gtm_scheduler WHERE vgtm=1 AND sched_entry = 1 AND runnumber = " + std::to_string(runnumber) + ";";
     result_set = ((odbc::Statement*)statement)->executeQuery(sql);
+    if(result_set && result_set->next())
+    {
+      sched_data = result_set->getString("sched_data");
+    }
   }
   catch (odbc::SQLException &e)
   {
@@ -111,35 +116,7 @@ int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
     delete result_set;
     return 1;
   }
-
-  if(!result_set || !result_set->next())
-  {
-    std::cerr << PHWHERE << "\n"
-              << "\tResult Set is NULL" << std::endl;
-    delete result_set;
-    return 1;
-  }
-
-  std::string sched_data;
-  try
-  {
-    sched_data = result_set->getString("sched_data");
-  }
-  catch (odbc::SQLException &e)
-  {
-    std::cerr << PHWHERE << "\n"
-              << "\tSQL Exception:\n"
-              << "\t" << e.getMessage() << std::endl;
-    delete result_set;
-    return 1;
-  }
-
   delete result_set;
-
-  if(m_verbosity)
-  {
-    std::cout << "\tsched_data: '" << sched_data << "'" << std::endl;
-  }
 
   if(std::string{"{17,55,24,54}"} == sched_data)
   {
@@ -158,6 +135,11 @@ int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
     return 1;
   }
 
+  if(m_verbosity)
+  {
+    std::cout << "\tsched_data: '" << sched_data << "'" << std::endl;
+  }
+
   return 0;
 }
 
@@ -170,6 +152,10 @@ int InttOdbcQuery::QueryType(void* statement, int runnumber)
   {
     std::string sql = "SELECT runtype FROM run WHERE runnumber = " + std::to_string(runnumber) + ";";
     result_set = ((odbc::Statement*)statement)->executeQuery(sql);
+    if(result_set && result_set->next())
+    {
+      m_type = result_set->getString("runtype");
+    }
   }
   catch (odbc::SQLException &e)
   {
@@ -179,46 +165,38 @@ int InttOdbcQuery::QueryType(void* statement, int runnumber)
     delete result_set;
     return 1;
   }
-
-  if(!result_set || !result_set->next())
-  {
-    std::cerr << PHWHERE << "\n"
-              << "\tResult Set is NULL" << std::endl;
-    delete result_set;
-    return 1;
-  }
-
-  try
-  {
-    m_type = result_set->getString("runtype");
-  }
-  catch (odbc::SQLException &e)
-  {
-    std::cerr << PHWHERE << "\n"
-              << "\tSQL Exception:\n"
-              << "\t" << e.getMessage() << std::endl;
-    delete result_set;
-    return 1;
-  }
+  delete result_set;
 
   if(m_verbosity)
   {
     std::cout << "\trun type: " << m_type << std::endl;
   }
 
-  delete result_set;
   return 0;
 }
 
 int InttOdbcQuery::QueryFiles(void* statement, int runnumber, int which_intt)
 {
   odbc::ResultSet* result_set = nullptr;
+
   m_file_set[which_intt].clear();
+  std::string path = runnumber < 43263 ? "/sphenix/lustre01/sphnxpro/commissioning/INTT/" : "/sphenix/lustre01/sphnxpro/physics/INTT/"; // I don't like this either
 
   try
   {
-    std::string sql = "SELECT filename FROM filelist WHERE filename LIKE '%%intt" + std::to_string(which_intt) + "%%' AND runnumber = " + std::to_string(runnumber) + ";";
+    std::string sql = "SELECT filename, transferred_to_sdcc FROM filelist WHERE filename LIKE '%%intt" + std::to_string(which_intt) + "%%' AND runnumber = " + std::to_string(runnumber) + ";";
     result_set = ((odbc::Statement*)statement)->executeQuery(sql);
+    for(; result_set && result_set->next();)
+    {
+      std::string file = result_set->getString("filename");
+      if(!result_set->getBoolean("transferred_to_sdcc"))
+      {
+        std::cerr << PHWHERE << "\n"
+                  << "\tFile " << file << " not transferred to sdcc" << std::endl;
+        continue;
+      }
+      m_file_set[which_intt].insert(path + std::string(std::filesystem::path(file).filename()));
+    }
   }
   catch (odbc::SQLException &e)
   {
@@ -228,27 +206,7 @@ int InttOdbcQuery::QueryFiles(void* statement, int runnumber, int which_intt)
     delete result_set;
     return 1;
   }
-
-  std::string path = runnumber < 43263 ? "/sphenix/lustre01/sphnxpro/commissioning/INTT/" : "/sphenix/lustre01/sphnxpro/physics/INTT/";
-
-  for(; result_set && result_set->next();)
-  {
-    std::string file;
-    try
-    {
-      file = result_set->getString("filename");
-    }
-    catch (odbc::SQLException &e)
-    {
-      std::cerr << PHWHERE << "\n"
-                << "\tSQL Exception:\n"
-                << "\t" << e.getMessage() << std::endl;
-      continue;
-    }
-
-    file = path + std::string{std::filesystem::path(file).filename()};
-    m_file_set[which_intt].insert(file);
-  }
+  delete result_set;
 
   if(m_verbosity)
   {
@@ -259,7 +217,6 @@ int InttOdbcQuery::QueryFiles(void* statement, int runnumber, int which_intt)
     }
   }
 
-  delete result_set;
   return 0;
 }
 
