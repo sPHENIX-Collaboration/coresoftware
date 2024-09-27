@@ -22,6 +22,7 @@ libtriggervalid_la_SOURCES = \
 libtriggervalid_la_LIBADD = \
   -lcalo_io \
   -lcalotrigger_io \
+  -lfun4allraw \
   -lfun4all \
   -lphool \
   -lSubsysReco \

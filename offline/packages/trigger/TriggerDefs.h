@@ -27,7 +27,8 @@ namespace TriggerDefs
     pairTId = 3,
     cosmicTId = 4,
     cosmic_coinTId = 5,
-    photonTId = 6
+    photonTId = 6,
+    physicsTId = 7
   } TriggerId;
 
   typedef enum
