@@ -14,12 +14,7 @@
 #include "mvtx_decoder/DecodingStat.h"
 #include "mvtx_decoder/GBTWord.h"
 #include "mvtx_decoder/InteractionRecord.h"
-
-//#include "MVTXDecoder/RUDecodeData.h"
-//#include "MVTXDecoder/RUInfo.h"
-//#include "MVTXDecoder/RAWDataHeader.h"
-//#include "MVTXDecoder/RDHUtils.h"
-//#include "MVTXDecoder/PhysTrigger.h"
+#include "mvtx_decoder/StrobeData.h"
 
 #include <iostream>
 #include <memory>
@@ -40,35 +35,6 @@ namespace mvtx
 {
   using namespace mvtx_utils;
 
-  struct TRGData
-  {
-    InteractionRecord ir = {};
-    bool hasCDW = false;
-    GBTCalibDataWord calWord = {};
-    size_t first_hit_pos = 0;
-    size_t n_hits = 0;
-    uint32_t detectorField = 0;
-
-    TRGData(uint64_t orb, uint16_t b) : ir(orb, b) {};
-
-    void clear()
-    {
-      ir.clear();
-      hasCDW = false;
-      calWord = {};
-      first_hit_pos = 0;
-      n_hits = 0;
-    }
-  };
-
-  typedef struct mvtx_hit
-  {
-    uint8_t chip_id = 0xf;
-    uint16_t bunchcounter = 0xFFFF;
-    uint16_t row_pos = 0xFFFF;
-    uint16_t col_pos = 0xFFFF;
-  } mvtx_hit;
-
 /// support for the GBT single link data
 struct GBTLink
 {
@@ -88,8 +54,8 @@ struct GBTLink
 //                             Abort = 0x4,
 //                             ErrorPrinted = 0x1 << 7 };
 
-  static constexpr int RawBufferMargin = 5000000;                      // keep uploaded at least this amount
-  static constexpr int RawBufferSize = 10000000 + 2 * RawBufferMargin; // size in MB
+  static constexpr int RawBufferMargin = 500000;                      // keep uploaded at least this amount
+  static constexpr int RawBufferSize = 1000000 + 2 * RawBufferMargin; // size in MB
   static constexpr uint8_t MaxCablesPerLink = 3;
 
   CollectedDataStatus status = None;
@@ -115,9 +81,7 @@ struct GBTLink
   PayLoadSG rawData;         // scatter-gatter buffer for cached CRU pages, each starting with RDH
   size_t dataOffset = 0;     //
   std::vector<InteractionRecord> mL1TrgTime;
-  std::vector<TRGData> mTrgData;
-
-  std::vector<mvtx_hit *> hit_vector = {};
+  std::vector<StrobeData> mTrgData;
 
   //------------------------------------------------------------------------
   GBTLink() = default;
@@ -157,7 +121,7 @@ struct GBTLink
     hit->bunchcounter = bc;
     getRowCol(reg, addr, hit->row_pos, hit->col_pos);
 
-	  hit_vector.push_back(hit);
+    mTrgData.back().hit_vector.push_back(hit);
   }
 
   void check_APE(const uint8_t& chipId, const uint8_t& dataC)
@@ -291,6 +255,12 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
     RdhExt_t rdh = {};
     uint8_t* rdh_start = data.getPtr() + dataOffset;
     rdh.decode(rdh_start);
+    if (! rdh.checkRDH(true) )
+    {
+      dataOffset = currRawPiece->size;
+      ++hbf_count;
+      continue;
+    }
 
     size_t pagesize = (rdh.pageSize + 1) * FLXWordLength;
     const size_t nFlxWords = (pagesize - (2 * FLXWordLength)) / FLXWordLength;
@@ -437,8 +407,6 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
 
         if ( prev_evt_complete )
         {
-          auto&& trgData = mTrgData.back();
-          trgData.first_hit_pos = hit_vector.size();
           for( auto&& itr = cableData.begin(); itr != cableData.end(); ++itr)
           {
             if (!itr->isEmpty())
@@ -446,7 +414,6 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
               decode_lane(std::distance(cableData.begin(), itr), *itr);
             }
           }
-          trgData.n_hits = hit_vector.size() - trgData.first_hit_pos;
           prev_evt_complete = false;
           header_found = false;
 //          trailer_found = false;

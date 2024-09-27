@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include
+  -isystem$(OFFLINE_MAIN)/include
 
 lib_LTLIBRARIES = \
    libg4dst.la
@@ -19,9 +19,10 @@ libg4dst_la_LDFLAGS = \
   -leventplaneinfo_io \
   -lffaobjects \
   -lffarawobjects \
-  -lg4mbd_io \
   -lg4detectors_io \
+  -lg4eval_io \
   -lg4intt_io \
+  -lg4mbd_io \
   -lg4tracking_io \
   -lglobalvertex_io \
   -lintt_io \
@@ -37,8 +38,10 @@ libg4dst_la_LDFLAGS = \
   -lphgeom_io \
   -lphhepmc_io \
   -ltpc_io \
+  -ltpccalib_io \
   -ltrack_reco_io \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lzdcinfo_io
 
 libg4dst_la_SOURCES = \
    g4dst.cc

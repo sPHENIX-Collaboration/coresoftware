@@ -5,13 +5,15 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -isystem$(OFFLINE_MAIN)/include  \
-  -isystem$(ROOTSYS)/include
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include \
+  -isystem$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
   -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OPT_SPHENIX)/lib
 
 if USE_ONLINE
 
@@ -46,6 +48,7 @@ pkginclude_HEADERS = \
   InttFelixMap.h \
   InttMap.h \
   InttMapping.h \
+  InttOdbcQuery.h \
   InttSurveyMap.h \
   InttSurveyMapv1.h \
   InttXYVertexFinder.h \
@@ -102,6 +105,7 @@ libintt_la_SOURCES = \
   InttFeeMapv1.cc \
   InttFelixMap.cc \
   InttMapping.cc \
+  InttOdbcQuery.cc \
   InttMap.cc \
   InttSurveyMap.cc \
   InttSurveyMapv1.cc \
@@ -116,6 +120,7 @@ libintt_la_LIBADD = \
   -lcdbobjects \
   -lCLHEP \
   -lffarawobjects \
+  -lodbc++ \
   -lphg4hit \
   -lSubsysReco
 

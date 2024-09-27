@@ -70,10 +70,10 @@ class TPCPedestalCalibration : public SubsysReco
   int m_Channel = 0;
   std::vector<unsigned short> m_adcSamples; 
 
-  float m_aveADCFeeChannel[26][256];
-  float m_stdADCFeeChannel[26][256];
-  float m_countsADCFeeChannel[26][256];
-  int m_aliveArrayFeeChannel[26][256];
+  float m_aveADCFeeChannel[26][256]{};
+  float m_stdADCFeeChannel[26][256]{};
+  float m_countsADCFeeChannel[26][256]{};
+  int m_aliveArrayFeeChannel[26][256]{};
 
   std::string m_username = "test";
   bool m_firstBCO = true;

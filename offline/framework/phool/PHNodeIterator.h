@@ -8,7 +8,7 @@
 //#include "PHCompositeNode.h"
 #include "PHPointerList.h"
 
-#include <string> 
+#include <string>
 
 class PHCompositeNode;
 class PHNode;

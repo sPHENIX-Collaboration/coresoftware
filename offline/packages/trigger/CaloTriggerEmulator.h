@@ -1,20 +1,14 @@
 #ifndef TRIGGER_CALOTRIGGEREMULATOR_H
 #define TRIGGER_CALOTRIGGEREMULATOR_H
 
-#include "LL1Outv1.h"
+//#include "LL1Outv1.h"
 #include "TriggerDefs.h"
-#include "TriggerPrimitiveContainerv1.h"
-#include "TriggerPrimitivev1.h"
 
 #include <fun4all/SubsysReco.h>
 
-#include <TEfficiency.h>
-#include <TH2.h>
-#include <TProfile.h>
-#include <TTree.h>
-#include <TNtuple.h>
-
 #include <cstdint>
+#include <map>
+#include <vector>
 
 // Forward declarations
 class CDBHistos;
@@ -28,11 +22,11 @@ class CaloPacketContainer;
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TFile;
+class TH1;
 class TNtuple;
 class TTree;
 class TProfile;
 class TEfficiency;
-class TH2D;
 
 class CaloTriggerEmulator : public SubsysReco
 {
@@ -90,7 +84,7 @@ class CaloTriggerEmulator : public SubsysReco
   void setHcalinLUTFile(const std::string &filename) { m_hcalin_lutname = filename; }
   void setHcaloutLUTFile(const std::string &filename) { m_hcalout_lutname = filename; }
 
-  void useMax(bool max) { m_use_max= max; }
+  void useMax(bool max) { m_use_max = max; }
 
   void useEMCALDefaultLUT(bool def) { m_default_lut_emcal = def; }
   void useHCALINDefaultLUT(bool def) { m_default_lut_hcalin = def; }
@@ -139,7 +133,7 @@ class CaloTriggerEmulator : public SubsysReco
 
   void identify();
 
- protected:
+ private:
   std::string m_ll1_nodename;
   std::string m_prim_nodename;
   std::string m_waveform_nodename;

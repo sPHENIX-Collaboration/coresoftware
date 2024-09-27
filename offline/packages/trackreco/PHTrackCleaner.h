@@ -46,7 +46,7 @@ class PHTrackCleaner : public SubsysReco
   TrackSeedContainer *_silicon_seed_map{nullptr};
 
   double min_ndf = 25;
-  float quality_cut = 15.0;
+  float quality_cut = 150.0;
   bool _pp_mode = false;
 };
 

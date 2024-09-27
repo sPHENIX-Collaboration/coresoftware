@@ -75,6 +75,11 @@ class CaloTowerStatus : public SubsysReco
     use_directURL_chi2 = true;
     return;
   }
+  void set_doAbortNoHotMap(bool status = true)
+  {
+    m_doAbortNoHotMap = status;
+    return;
+  }
 
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
@@ -86,6 +91,7 @@ class CaloTowerStatus : public SubsysReco
   bool m_doHotChi2{true};
   bool m_doTime{true};
   bool m_doHotMap{true};
+  bool m_doAbortNoHotMap{false};
 
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 

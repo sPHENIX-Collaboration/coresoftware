@@ -1229,8 +1229,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	    TVector2 vin(cpos.x(),cpos.y());
 	    TVector2 vout;
 	    int corrside = 0;//TpcDefs::getSide(corrkey);
-	    if(cpos.z()>0)
+	    if(cpos.z()>0) {
 	      corrside=1;
+}
 	    vout.SetMagPhi(clusr,vin.Phi()-drphi[corrside][corrlayer]);
 	    Acts::Vector3 point(vout.X(),vout.Y(),cpos.z());
 	    clusterPositionsVtx2.insert(vtxit2+n, point);
@@ -1557,10 +1558,13 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
 
   int vertexID = track->get_vertex_id();
   fX[n_track::ntrkvertexID] = vertexID;
-
-  if (vertexID >= 0&& vertexmap !=0)
+  
+  if (vertexID >= 0&& vertexmap !=nullptr)
   {
-
+    if(vertexmap->size()>100000){
+      cout << "too many vtx's" << endl;
+    }
+    /*
     auto vertexit = vertexmap->find(vertexID);
     if (vertexit != vertexmap->end())
       {
@@ -1581,7 +1585,10 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
 	fX[n_track::ntrkdca3dzsigma] = dcapair.second.second;
 	
       }
+    */
+
   }
+  
   fX[n_track::ntrkcharge] = track->get_charge();
   float px = track->get_px();
   float py = track->get_py();
@@ -1615,8 +1622,7 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
 		       tpcseed->end_cluster_keys());
 
     std::vector<float> dedxlist;
-    for (unsigned int i = 0; i < clusterKeys.size(); i++){
-      TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
+    for (unsigned long cluster_key : clusterKeys){
       unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
       if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId){
 	  continue;
@@ -1626,8 +1632,22 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
       float adc = cluster->getAdc();
       PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
       float thick = GeoLayer_local->get_thickness();
-
-      dedxlist.push_back(adc/thick);
+      
+      float r = GeoLayer_local->get_radius();
+      float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+      float beta = atan(tpcseed->get_slope());
+      float alphacorr = cos(alpha);
+      if(alphacorr<0||alphacorr>4){
+	alphacorr=4;
+      }
+      float betacorr = cos(beta);
+      if(betacorr<0||betacorr>4){
+	betacorr=4;
+      }
+      adc/=thick;
+      adc*=alphacorr;
+      adc*=betacorr;
+      dedxlist.push_back(adc);
       sort(dedxlist.begin(), dedxlist.end());
     }
     int trunc_min = 0;
@@ -1649,8 +1669,7 @@ float TrkrNtuplizer::get_n1pix(TrackSeed *tpcseed){
 		       tpcseed->end_cluster_keys());
 
     float n1pix = 0;
-    for (unsigned int i = 0; i < clusterKeys.size(); i++){
-      TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
+    for (unsigned long cluster_key : clusterKeys){
       TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
       if(cluster->getPhiSize()==1){
 	n1pix++;
@@ -1677,6 +1696,7 @@ void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_k
   float tbin = std::numeric_limits<float>::quiet_NaN();
   float locx = cluster->getLocalX();
   float locy = cluster->getLocalY();
+
   if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
   {
     int side_tpc = TpcDefs::getSide(cluster_key);

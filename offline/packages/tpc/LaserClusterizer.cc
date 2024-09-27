@@ -1,5 +1,7 @@
 #include "LaserClusterizer.h"
 
+#include "LaserEventInfo.h"
+
 #include <trackbase/LaserCluster.h>
 #include <trackbase/LaserClusterContainer.h>
 #include <trackbase/LaserClusterContainerv1.h>
@@ -14,6 +16,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
+#include <ffaobjects/EventHeader.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -97,13 +100,13 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   {
     m_debugFile = new TFile(m_debugFileName.c_str(), "RECREATE");
   }
-
-  m_itHist_0 = new TH1I("m_itHist_0", "side 0;it", 360, -0.5, 359.5);
-  m_itHist_1 = new TH1I("m_itHist_1", "side 1;it", 360, -0.5, 359.5);
+  float timeHistMax = m_time_samples_max;
+  timeHistMax -= 0.5;
+  m_itHist_0 = new TH1I("m_itHist_0", "side 0;it", m_time_samples_max, -0.5, timeHistMax);
+  m_itHist_1 = new TH1I("m_itHist_1", "side 1;it", m_time_samples_max, -0.5, timeHistMax);
 
   if (m_debug)
   {
-
     m_clusterTree = new TTree("clusterTree", "clusterTree");
     m_clusterTree->Branch("event", &m_event);
     m_clusterTree->Branch("clusters", &m_eventClusters);
@@ -132,9 +135,26 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
 
 int LaserClusterizer::process_event(PHCompositeNode *topNode)
 {
-  ++m_event;
+  eventHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  if (!eventHeader)
+  {
+    std::cout << PHWHERE << " EventHeader Node missing, doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
-  std::cout << "LaserClusterizer::process_event working on event " << m_event << std::endl;
+  m_event = eventHeader->get_EvtSequence();
+
+  if (Verbosity() > 1)
+  {
+    std::cout << "LaserClusterizer::process_event working on event " << m_event << std::endl;
+  }
+
+  m_laserEventInfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
+  if (!m_laserEventInfo)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node LaserEventInfo" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -190,6 +210,13 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  m_eventClusters = nullptr;
+  m_nClus = 0;
+  time_search = 0;
+  time_clus = 0;
+  time_erase = 0;
+  time_all = 0;
+
   TrkrHitSetContainer::ConstRange hitsetrange;
   RawHitSetContainer::ConstRange rawhitsetrange;
   if (!do_read_raw)
@@ -206,6 +233,8 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
   if (!do_read_raw)
   {
+    // comment out manual check for laser event since new class
+    /*
     for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
          hitsetitr != hitsetrange.second;
          ++hitsetitr)
@@ -234,28 +263,39 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     double itMeanContent_0 = 0.0;
     double itMeanContent_1 = 0.0;
 
-    for (int i = 1; i <= 360; i++)
+    for (int i = 1; i <= m_time_samples_max; i++)
     {
       itMeanContent_0 += m_itHist_0->GetBinContent(i);
       itMeanContent_1 += m_itHist_1->GetBinContent(i);
     }
 
-    itMeanContent_0 = itMeanContent_0 / 360.0;
-    itMeanContent_1 = itMeanContent_1 / 360.0;
+    itMeanContent_0 = 1.0*itMeanContent_0 / m_time_samples_max;
+    itMeanContent_1 = 1.0*itMeanContent_1 / m_time_samples_max;
 
-    m_itHist_0->GetXaxis()->SetRange(200, 360);
+    m_itHist_0->GetXaxis()->SetRange(320, m_time_samples_max-0.5);
     double itMax_0 = m_itHist_0->GetBinCenter(m_itHist_0->GetMaximumBin());
     double itMaxContent_0 = m_itHist_0->GetMaximum();
     m_itHist_0->GetXaxis()->SetRange(0, 0);
 
-    m_itHist_1->GetXaxis()->SetRange(200, 360);
+    m_itHist_1->GetXaxis()->SetRange(320, m_time_samples_max-0.5);
     double itMax_1 = m_itHist_1->GetBinCenter(m_itHist_1->GetMaximumBin());
     double itMaxContent_1 = m_itHist_1->GetMaximum();
     m_itHist_1->GetXaxis()->SetRange(0, 0);
 
-    if (itMaxContent_0 / itMeanContent_0 < 1.5 || itMaxContent_1 / itMeanContent_1 < 1.5)
+    if (itMaxContent_0 / itMeanContent_0 < 7 && itMaxContent_1 / itMeanContent_1 < 7)
     {
-      return Fun4AllReturnCodes::ABORTEVENT;
+      if(m_debug)
+      {
+        m_clusterTree->Fill();
+      }
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+
+    */
+
+    if (!m_laserEventInfo->isLaserEvent())
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
     }
 
     for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
@@ -277,13 +317,13 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
            hitr != hitrangei.second;
            ++hitr)
       {
-        float_t fadc = (hitr->second->getAdc()) - m_pedestal;  // proper int rounding +0.5
+        float_t fadc = hitr->second->getAdc();  // proper int rounding +0.5
         unsigned short adc = 0;
-        if (fadc > 0)
+        if (fadc > m_adc_threshold)
         {
           adc = (unsigned short) fadc;
         }
-        if (adc <= 0)
+        if (adc <= m_adc_threshold)
         {
           continue;
         }
@@ -291,16 +331,20 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
         int iphi = TpcDefs::getPad(hitr->first);
         int it = TpcDefs::getTBin(hitr->first);
 
-        if (side == 0 && fabs(it - itMax_0) > 10)
+        // if (side == 0 && fabs(it - itMax_0) > 10)
+        if (side == 0 && fabs(it - m_laserEventInfo->getPeakSample(false)) > 3)
         {
           continue;
         }
-        if (side == 1 && fabs(it - itMax_1) > 10)
+        // if (side == 1 && fabs(it - itMax_1) > 10)
+        if (side == 1 && fabs(it - m_laserEventInfo->getPeakSample(true)) > 3)
         {
           continue;
         }
 
+        // std::cout << "iphi: " << iphi << std::endl;
         double phi = layergeom->get_phi(iphi);
+        // std::cout << "phi: " << phi << std::endl;
         double zdriftlength = layergeom->get_zcenter(it) * m_tGeometry->get_drift_velocity();
 
         float x = r * cos(phi);
@@ -402,7 +446,6 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
   if (m_debug)
   {
-
     m_eventClusters = m_clusterlist;
     m_nClus = (int) m_eventClusters->size();
   }
@@ -418,7 +461,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     m_clusterTree->Fill();
   }
 
-  if (Verbosity())
+  if (Verbosity() > 2)
   {
     std::cout << "rtree search time: " << t_search->get_accumulated_time() / 1000. << " sec" << std::endl;
     std::cout << "clustering time: " << t_clus->get_accumulated_time() / 1000. << " sec" << std::endl;
@@ -486,7 +529,7 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
     int side = TpcDefs::getSide(spechitkey.second);
     // unsigned int sector= TpcDefs::getSectorId(spechitkey.second);
 
-    if(side)
+    if (side)
     {
       meanSide++;
     }
@@ -511,9 +554,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
         double adc = iterKey.first;
 	
 	bool foundLayer = false;
-	for(int i=0; i<(int)usedLayer.size(); i++)
+	for(float i : usedLayer)
 	{
-	  if(coords[0] == usedLayer[i])
+	  if(coords[0] == i)
 	  {
 	    foundLayer = true;
 	    break;
@@ -526,9 +569,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
 	}
 
 	bool foundIPhi = false;
-	for(int i=0; i<(int)usedIPhi.size(); i++)
+	for(float i : usedIPhi)
 	{
-	  if(coords[1] == usedIPhi[i])
+	  if(coords[1] == i)
 	  {
 	    foundIPhi = true;
 	    break;
@@ -541,9 +584,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
 	}
 
 	bool foundIT = false;
-	for(int i=0; i<(int)usedIT.size(); i++)
+	for(float i : usedIT)
 	{
-	  if(coords[2] == usedIT[i])
+	  if(coords[2] == i)
 	  {
 	    foundIT = true;
 	    break;
@@ -554,7 +597,6 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
 	{
 	  usedIT.push_back(coords[2]);
 	}
-
 
         clus->addHit();
         clus->setHitLayer(clus->getNhits() - 1, coords[0]);
@@ -573,9 +615,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
         iphiSum += coords[1] * adc;
         itSum += coords[2] * adc;
 
-	meanLayer += coords[0];
-	meanIPhi += coords[1];
-	meanIT += coords[2];
+        meanLayer += coords[0];
+        meanIPhi += coords[1];
+        meanIT += coords[2];
 
         adcSum += adc;
 
@@ -612,9 +654,9 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
     }
   }
 
-  meanLayer = meanLayer/nHits;
-  meanIPhi = meanIPhi/nHits;
-  meanIT = meanIT/nHits;
+  meanLayer = meanLayer / nHits;
+  meanIPhi = meanIPhi / nHits;
+  meanIT = meanIT / nHits;
 
   double sigmaLayer = 0.0;
   double sigmaIPhi = 0.0;
@@ -624,14 +666,15 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   double sigmaWeightedIPhi = 0.0;
   double sigmaWeightedIT = 0.0;
 
-  for(int i=0; i < (int) clus->getNhits(); i++){
-    sigmaLayer += pow(clus->getHitLayer(i) - meanLayer,2);
-    sigmaIPhi += pow(clus->getHitIPhi(i) - meanIPhi,2);
-    sigmaIT += pow(clus->getHitIT(i) - meanIT,2);
+  for (int i = 0; i < (int) clus->getNhits(); i++)
+  {
+    sigmaLayer += pow(clus->getHitLayer(i) - meanLayer, 2);
+    sigmaIPhi += pow(clus->getHitIPhi(i) - meanIPhi, 2);
+    sigmaIT += pow(clus->getHitIT(i) - meanIT, 2);
 
-    sigmaWeightedLayer += clus->getHitAdc(i)*pow(clus->getHitLayer(i) - (layerSum / adcSum),2);
-    sigmaWeightedIPhi += clus->getHitAdc(i)*pow(clus->getHitIPhi(i) - (iphiSum / adcSum),2);
-    sigmaWeightedIT += clus->getHitAdc(i)*pow(clus->getHitIT(i) - (itSum / adcSum),2);
+    sigmaWeightedLayer += clus->getHitAdc(i) * pow(clus->getHitLayer(i) - (layerSum / adcSum), 2);
+    sigmaWeightedIPhi += clus->getHitAdc(i) * pow(clus->getHitIPhi(i) - (iphiSum / adcSum), 2);
+    sigmaWeightedIT += clus->getHitAdc(i) * pow(clus->getHitIT(i) - (itSum / adcSum), 2);
   }
 
   clus->setAdc(adcSum);
@@ -656,7 +699,7 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   if (m_debug)
   {
     m_currentCluster = (LaserClusterv1 *) clus->CloneMe();
-    //m_eventClusters.push_back((LaserClusterv1 *) m_currentCluster->CloneMe());
+    // m_eventClusters.push_back((LaserClusterv1 *) m_currentCluster->CloneMe());
   }
 }
 

@@ -20,7 +20,7 @@ class SingleInttPoolInput : public SingleStreamingInput
  public:
   explicit SingleInttPoolInput(const std::string &name);
   ~SingleInttPoolInput() override;
-  void FillPool(const unsigned int) override;
+  void FillPool(const uint64_t minBCO) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
@@ -31,21 +31,22 @@ class SingleInttPoolInput : public SingleStreamingInput
   void SetBcoRange(const unsigned int value) { m_BcoRange = value; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
-  const std::set<uint64_t>& BclkStack() const override { return m_BclkStack; }
-  const std::map<uint64_t, std::set<int>>& BeamClockFEE() const override { return m_BeamClockFEE; }
+  const std::set<uint64_t> &BclkStack() const override { return m_BclkStack; }
+  const std::map<uint64_t, std::set<int>> &BeamClockFEE() const override { return m_BeamClockFEE; }
 
  private:
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
-
+  bool m_SkipEarlyEvents{true};
   std::array<uint64_t, 14> m_PreviousClock{};
   std::array<uint64_t, 14> m_Rollover{};
   std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<InttRawHit *>> m_InttRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
+
   std::map<int, intt_pool *> poolmap;
 };
 

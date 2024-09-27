@@ -36,27 +36,27 @@ double RawTowerGeomv3::get_phi() const
 int RawTowerGeomv3::get_bineta() const
 {
   RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(_towerid);
-  switch (caloid)
+  if (caloid == RawTowerDefs::LFHCAL)
   {
-  case RawTowerDefs::LFHCAL:
     return RawTowerDefs::decode_index1v2(_towerid);
-  default:
+  }
+  else
+  {
     return RawTowerDefs::decode_index1(_towerid);
   }
-  return -1;
 }
 
 int RawTowerGeomv3::get_binphi() const
 {
   RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(_towerid);
-  switch (caloid)
+  if (caloid == RawTowerDefs::LFHCAL)
   {
-  case RawTowerDefs::LFHCAL:
     return RawTowerDefs::decode_index2v2(_towerid);
-  default:
+  }
+  else
+  {
     return RawTowerDefs::decode_index2(_towerid);
   }
-  return -1;
 }
 
 void RawTowerGeomv3::identify(std::ostream& os) const

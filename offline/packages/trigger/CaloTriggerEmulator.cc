@@ -33,6 +33,8 @@
 #include <phool/phool.h>
 
 #include <TFile.h>
+#include <TH1.h>
+#include <TNtuple.h>
 
 #include <bitset>
 #include <cassert>
@@ -95,7 +97,7 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
     unsigned int key = TowerInfoDefs::encode_hcal(i);
     h_hcalin_lut[key] = nullptr;
   }
-  for (int i = 0; i <1536;i++)
+  for (int i = 0; i < 1536; i++)
   {
     unsigned int key = TowerInfoDefs::encode_hcal(i);
     h_hcalout_lut[key] = nullptr;
@@ -239,21 +241,19 @@ bool CaloTriggerEmulator::CheckFiberMasks(TriggerDefs::TriggerPrimKey key)
 
 void CaloTriggerEmulator::LoadFiberMasks()
 {
-
   TFile *fin = new TFile(m_optmask_file.c_str(), "r");
-  TNtuple *tn_keys = (TNtuple*) fin->Get("tn_optmask");
+  TNtuple *tn_keys = (TNtuple *) fin->Get("tn_optmask");
   float key;
   tn_keys->SetBranchAddress("primkey", &key);
   for (int i = 0; i < tn_keys->GetEntries(); i++)
-    {
-      tn_keys->GetEntry(i);
-      unsigned int primkey = static_cast<unsigned int>((int)key);
-      m_masks_fiber.push_back(primkey);
-    }
-  
+  {
+    tn_keys->GetEntry(i);
+    unsigned int primkey = static_cast<unsigned int>((int) key);
+    m_masks_fiber.push_back(primkey);
+  }
+
   fin->Close();
   delete fin;
-
 }
 
 // setting the trigger type
@@ -434,15 +434,15 @@ int CaloTriggerEmulator::Download_Calibrations()
       cdbttree_adcmask = new CDBTTree(calibdir.c_str());
     }
   if (!m_optmask_file.empty())
-    {
-      LoadFiberMasks();
-    }
+  {
+    LoadFiberMasks();
+  }
 
   if (m_do_emcal && !m_default_lut_emcal)
   {
     if (!m_emcal_lutname.empty())
     {
-      cdbttree_emcal = new CDBHistos(m_emcal_lutname);      
+      cdbttree_emcal = new CDBHistos(m_emcal_lutname);
     }
     else
     {
@@ -459,16 +459,16 @@ int CaloTriggerEmulator::Download_Calibrations()
     }
 
     if (cdbttree_emcal)
-      {
-	cdbttree_emcal->LoadCalibrations();
+    {
+      cdbttree_emcal->LoadCalibrations();
 
-	for (int i = 0; i < 24576;i++)
-	  {
-	    std::string histoname = "h_emcal_lut_" + std::to_string(i);
-	    unsigned int key = TowerInfoDefs::encode_emcal(i);
-	    h_emcal_lut[key] = (TH1I*) cdbttree_emcal->getHisto(histoname.c_str());
-	  }
+      for (int i = 0; i < 24576; i++)
+      {
+        std::string histoname = "h_emcal_lut_" + std::to_string(i);
+        unsigned int key = TowerInfoDefs::encode_emcal(i);
+        h_emcal_lut[key] = (TH1I *) cdbttree_emcal->getHisto(histoname.c_str());
       }
+    }
   }
   if (m_do_hcalin && !m_default_lut_hcalin)
   {
@@ -490,17 +490,16 @@ int CaloTriggerEmulator::Download_Calibrations()
       }
     }
     if (cdbttree_hcalin)
+    {
+      cdbttree_hcalin->LoadCalibrations();
+
+      for (int i = 0; i < 1536; i++)
       {
-	cdbttree_hcalin->LoadCalibrations();
-
-	for (int i = 0; i < 1536;i++)
-	  {
-	    std::string histoname = "h_hcalin_lut_" + std::to_string(i);
-	    unsigned int key = TowerInfoDefs::encode_hcal(i);
-	    h_hcalin_lut[key] = (TH1I*) cdbttree_hcalin->getHisto(histoname.c_str());
-	  }
+        std::string histoname = "h_hcalin_lut_" + std::to_string(i);
+        unsigned int key = TowerInfoDefs::encode_hcal(i);
+        h_hcalin_lut[key] = (TH1I *) cdbttree_hcalin->getHisto(histoname.c_str());
       }
-
+    }
   }
   if (m_do_hcalout && !m_default_lut_hcalout)
   {
@@ -522,17 +521,16 @@ int CaloTriggerEmulator::Download_Calibrations()
       }
     }
     if (cdbttree_hcalout)
+    {
+      cdbttree_hcalout->LoadCalibrations();
+
+      for (int i = 0; i < 1536; i++)
       {
-	cdbttree_hcalout->LoadCalibrations();
-
-	for (int i = 0; i < 1536;i++)
-	  {
-	    std::string histoname = "h_hcalout_lut_" + std::to_string(i);
-	    unsigned int key = TowerInfoDefs::encode_hcal(i);
-	    h_hcalout_lut[key] = (TH1I*) cdbttree_hcalout->getHisto(histoname.c_str());
-	  }
+        std::string histoname = "h_hcalout_lut_" + std::to_string(i);
+        unsigned int key = TowerInfoDefs::encode_hcal(i);
+        h_hcalout_lut[key] = (TH1I *) cdbttree_hcalout->getHisto(histoname.c_str());
       }
-
+    }
   }
   return 0;
 }
@@ -1096,10 +1094,10 @@ int CaloTriggerEmulator::process_sim()
       unsigned int key = TowerInfoDefs::encode_emcal(iwave);
       if (tower->get_isZS())
       {
-	for (int i = sample_start; i < sample_end; i++)
-	{
-	  v_peak_sub_ped.push_back(0);
-	}
+        for (int i = sample_start; i < sample_end; i++)
+        {
+          v_peak_sub_ped.push_back(0);
+        }
       }
       else
       {
@@ -1150,10 +1148,10 @@ int CaloTriggerEmulator::process_sim()
       unsigned int key = TowerInfoDefs::encode_hcal(iwave);
       if (tower->get_isZS())
       {
-	for (int i = sample_start; i < sample_end; i++)
-	{
-	  v_peak_sub_ped.push_back(0);
-	}
+        for (int i = sample_start; i < sample_end; i++)
+        {
+          v_peak_sub_ped.push_back(0);
+        }
       }
       else
       {
@@ -1208,10 +1206,10 @@ int CaloTriggerEmulator::process_sim()
       unsigned int key = TowerInfoDefs::encode_hcal(iwave);
       if (tower->get_isZS())
       {
-	for (int i = sample_start; i < sample_end; i++)
-	{
-	  v_peak_sub_ped.push_back(0);
-	}
+        for (int i = sample_start; i < sample_end; i++)
+        {
+          v_peak_sub_ped.push_back(0);
+        }
       }
       else
       {
@@ -1296,9 +1294,8 @@ int CaloTriggerEmulator::process_primitives()
         TriggerDefs::TriggerSumKey sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId("NONE"), TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("EMCAL"), ip, isum);
 
         // calculate sums for all samples, hense the vector.
-	std::vector<unsigned int> *t_sum = primitive->get_sum_at_key(sumkey);
-	t_sum->clear();
-
+        std::vector<unsigned int> *t_sum = primitive->get_sum_at_key(sumkey);
+        t_sum->clear();
 
         // check to mask channel (if fiber masked, automatically mask the channel)
         bool mask_channel = mask || CheckChannelMasks(sumkey);
@@ -1306,7 +1303,7 @@ int CaloTriggerEmulator::process_primitives()
         {
           sum = 0;
           unsigned int temp_sum = 0;
-          
+
           // if masked, just fill with 0s
           if (!mask_channel)
           {
@@ -1327,11 +1324,10 @@ int CaloTriggerEmulator::process_primitives()
               temp_sum += (tmp & 0xffU);
             }
             sum = ((temp_sum & 0x3ffU) >> 2U) & 0xffU;
-	    if (Verbosity() >= 10 && sum >= 1)
-	      {
-		std::cout << __FILE__ << "::" << __FUNCTION__ << ":: emcal sum " << sumkey << " = "<< sum << std::endl;
-	      }
-	    
+            if (Verbosity() >= 10 && sum >= 1)
+            {
+              std::cout << __FILE__ << "::" << __FUNCTION__ << ":: emcal sum " << sumkey << " = " << sum << std::endl;
+            }
           }
 	  if (Verbosity())
 	    {
@@ -1363,7 +1359,7 @@ int CaloTriggerEmulator::process_primitives()
       for (int isum = 0; isum < m_n_sums; isum++)
       {
         TriggerDefs::TriggerSumKey sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId("NONE"), TriggerDefs::GetDetectorId("HCALOUT"), TriggerDefs::GetPrimitiveId("HCALOUT"), ip, isum);
-	std::vector<unsigned int> *t_sum = primitive->get_sum_at_key(sumkey);
+        std::vector<unsigned int> *t_sum = primitive->get_sum_at_key(sumkey);
         mask |= CheckChannelMasks(sumkey);
         for (int is = 0; is < nsample; is++)
         {
@@ -1375,9 +1371,9 @@ int CaloTriggerEmulator::process_primitives()
             {
               unsigned int key = TriggerDefs::GetTowerInfoKey(TriggerDefs::GetDetectorId("HCAL"), ip, isum, j);
               unsigned int lut_input = (m_peak_sub_ped_hcalout[key].at(is) >> 4U) & 0x3ffU;
-	      unsigned int tmp = 0;
-	      if (m_default_lut_hcalout)
-	      {
+              unsigned int tmp = 0;
+              if (m_default_lut_hcalout)
+              {
                 tmp = (m_l1_adc_table[lut_input] >> 2U);
               }
               else
@@ -1388,10 +1384,10 @@ int CaloTriggerEmulator::process_primitives()
               temp_sum += (tmp & 0xffU);
             }
             sum = ((temp_sum & 0x3ffU) >> 2U) & 0xffU;
-	    if (Verbosity() >= 10 && sum >= 1)
-	      {
-		std::cout << __FILE__ << "::" << __FUNCTION__ << ":: hcalout sum " << sumkey << " = "<< sum << std::endl;
-	      }
+            if (Verbosity() >= 10 && sum >= 1)
+            {
+              std::cout << __FILE__ << "::" << __FUNCTION__ << ":: hcalout sum " << sumkey << " = " << sum << std::endl;
+            }
           }
           t_sum->push_back(sum);
         }
@@ -1411,7 +1407,6 @@ int CaloTriggerEmulator::process_primitives()
 
     for (i = 0; i < m_n_primitives; i++, ip++)
     {
-
       TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId("NONE"), TriggerDefs::GetDetectorId("HCALIN"), TriggerDefs::GetPrimitiveId("HCALIN"), ip);
       TriggerPrimitive *primitive = m_primitives_hcalin->get_primitive_at_key(primkey);
       unsigned int sum;
@@ -1419,7 +1414,7 @@ int CaloTriggerEmulator::process_primitives()
       for (int isum = 0; isum < m_n_sums; isum++)
       {
         TriggerDefs::TriggerSumKey sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId("NONE"), TriggerDefs::GetDetectorId("HCALIN"), TriggerDefs::GetPrimitiveId("HCALIN"), ip, isum);
-	std::vector<unsigned int> *t_sum= primitive->get_sum_at_key(sumkey);
+        std::vector<unsigned int> *t_sum = primitive->get_sum_at_key(sumkey);
         mask |= CheckChannelMasks(sumkey);
         for (int is = 0; is < nsample; is++)
         {
@@ -1431,7 +1426,7 @@ int CaloTriggerEmulator::process_primitives()
             {
               unsigned int key = TriggerDefs::GetTowerInfoKey(TriggerDefs::GetDetectorId("HCAL"), ip, isum, j);
               unsigned int lut_input = (m_peak_sub_ped_hcalin[key].at(is) >> 4U) & 0x3ffU;
-	      unsigned int tmp = 0;
+              unsigned int tmp = 0;
               if (m_default_lut_hcalin)
               {
                 tmp = (m_l1_adc_table[lut_input] >> 2U);
@@ -1444,10 +1439,10 @@ int CaloTriggerEmulator::process_primitives()
               temp_sum += (tmp & 0x3ffU);
             }
             sum = ((temp_sum & 0xfffU) >> 2U) & 0xffU;
-	    if (Verbosity() >= 10 && sum >= 1)
-	      {
-		std::cout << __FILE__ << "::" << __FUNCTION__ << ":: hcalin sum " << sumkey << " = "<< sum << std::endl;
-	      }
+            if (Verbosity() >= 10 && sum >= 1)
+            {
+              std::cout << __FILE__ << "::" << __FUNCTION__ << ":: hcalin sum " << sumkey << " = " << sum << std::endl;
+            }
           }
           t_sum->push_back(sum);
         }
@@ -1892,7 +1887,9 @@ int CaloTriggerEmulator::process_trigger()
     m_triggerid = TriggerDefs::TriggerId::jetTId;
     std::vector<unsigned int> *trig_bits = m_ll1out_jet->GetTriggerBits();
     std::vector<unsigned int> jet_map[32][9]{};
-    for (auto & ie : jet_map)
+    for (auto &ie : jet_map)
+    {
+      for (auto &ip : ie)
       {
       for (auto & ip : ie)
 	{

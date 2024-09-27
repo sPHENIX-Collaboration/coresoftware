@@ -4,9 +4,9 @@
 #include "TriggerPrimitiveContainerv1.h"
 #include "TriggerPrimitivev1.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
-#include <algorithm>
 
 LL1Outv1::LL1Outv1()
   : m_trigger_key(TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(m_trigger_type)))
@@ -24,31 +24,30 @@ LL1Outv1::LL1Outv1(const std::string& triggertype, const std::string& ll1type)
 
   int ntriggerwords = 0;
   if (m_triggerid == TriggerDefs::TriggerId::jetTId || m_triggerid == TriggerDefs::TriggerId::photonTId)
-    {
-      ntriggerwords = 384;
-    }
-  else if (m_triggerid == TriggerDefs::TriggerId::pairTId )
-    {
-      ntriggerwords = 0;
-    }
-  else if (m_triggerid == TriggerDefs::TriggerId::mbdTId )
-    {
-      ntriggerwords = 8;
-    }
+  {
+    ntriggerwords = 384;
+  }
+  else if (m_triggerid == TriggerDefs::TriggerId::pairTId)
+  {
+    ntriggerwords = 0;
+  }
+  else if (m_triggerid == TriggerDefs::TriggerId::mbdTId)
+  {
+    ntriggerwords = 8;
+  }
 
   for (int channel = 0; channel < ntriggerwords; channel++)
+  {
+    std::vector<unsigned int>* sum = new std::vector<unsigned int>();
+    if (m_triggerid == TriggerDefs::TriggerId::jetTId || m_triggerid == TriggerDefs::TriggerId::photonTId)
     {
-      std::vector<unsigned int>* sum = new std::vector<unsigned int>();
-      if (m_triggerid == TriggerDefs::TriggerId::jetTId || m_triggerid == TriggerDefs::TriggerId::photonTId)
-	{
-	  LL1Outv1::add_word(((unsigned int) (channel % 32) & 0xffffU) + (((unsigned int) (channel / 32) & 0xffffU) << 16U), sum);
-	}
-      if (m_triggerid == TriggerDefs::TriggerId::mbdTId)
-	{
-	  LL1Outv1::add_word(channel, sum);
-	}
-
+      LL1Outv1::add_word(((unsigned int) (channel % 32) & 0xffffU) + (((unsigned int) (channel / 32) & 0xffffU) << 16U), sum);
     }
+    if (m_triggerid == TriggerDefs::TriggerId::mbdTId)
+    {
+      LL1Outv1::add_word(channel, sum);
+    }
+  }
 }
 
 LL1Outv1::~LL1Outv1()
@@ -59,11 +58,10 @@ LL1Outv1::~LL1Outv1()
   m_trigger_bits->clear();
   m_triggered_sums.clear();
   m_triggered_primitives.clear();
-  for (auto &word : m_trigger_words)
+  for (auto& word : m_trigger_words)
   {
     word.second->clear();
   }
-  
 }
 
 //______________________________________
@@ -72,7 +70,7 @@ void LL1Outv1::Reset()
   m_trigger_bits->clear();
   m_triggered_sums.clear();
   m_triggered_primitives.clear();
-  for (auto &word : m_trigger_words)
+  for (auto& word : m_trigger_words)
   {
     word.second->clear();
   }
@@ -132,10 +130,10 @@ bool LL1Outv1::passesTrigger()
 bool LL1Outv1::passesThreshold(int ith)
 {
   if (!ith)
-    {
-      return passesTrigger();
-    }
-  
+  {
+    return passesTrigger();
+  }
+
   for (unsigned int& trigger_bit : *m_trigger_bits)
   {
     if (((trigger_bit >> (uint16_t) (ith - 1)) & 0x1U) == 0x1U)

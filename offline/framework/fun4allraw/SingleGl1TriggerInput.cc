@@ -84,15 +84,24 @@ void SingleGl1TriggerInput::FillPool(const unsigned int keep)
       m_NumSpecialEvents++;
       continue;
     }
-    // static bool firstevent = true;
-    // if (firstevent)
-    // {
-    //   firstevent = false;
-    //   continue;
-    // }
     int EventSequence = evt->getEvtSequence();
+    if (EventSequence < SkipToEvent())
+    {
+      continue;
+    }
+    if (EventSequence > LastEvent())
+    {
+      std::cout << Name() << ": Last event " << LastEvent() << std::endl;
+      AllDone(1);
+      return;
+    }
     Packet *packet = evt->getPacket(14001);
-
+    if (!packet)
+    {
+      std::cout << PHWHERE << "Packet 14001 is null ptr" << std::endl;
+      evt->identify();
+      continue;
+    }
     if (Verbosity() > 1)
     {
       packet->identify();
@@ -101,11 +110,38 @@ void SingleGl1TriggerInput::FillPool(const unsigned int keep)
     // by default use previous bco clock for gtm bco
     Gl1Packet *newhit = new Gl1Packetv2();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
+    unsigned int packetnumber = packet->iValue(0);
+    unsigned int gl1pktdiff = packetnumber - EventSequence;
+    if (m_Gl1PacketNumberEventNumberDiff == 0)  // startup
+    {
+      m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
+    }
+    else
+    {
+      if (m_Gl1PacketNumberEventNumberDiff != gl1pktdiff)
+      {
+        if (TriggerInputManager())
+        {
+          TriggerInputManager()->AddGl1DroppedEvent(EventSequence);
+        }
+
+        static int icnt = 0;
+        if (icnt < 1000)
+        {
+          std::cout << Name() << ": Found dropped Event at event " << EventSequence
+                    << " with Packet Number: " << packetnumber << std::endl;
+          icnt++;
+        }
+        m_Gl1PacketNumberEventNumberDiff = gl1pktdiff;
+      }
+    }
+
     newhit->setBCO(packet->lValue(0, "BCO"));
     newhit->setHitFormat(packet->getHitFormat());
     newhit->setIdentifier(packet->getIdentifier());
     newhit->setEvtSequence(EventSequence);
-    newhit->setPacketNumber(packet->iValue(0));
+    newhit->setPacketNumber(packetnumber);
+
     newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
     newhit->setTriggerInput(packet->lValue(0, "TriggerInput"));
     newhit->setLiveVector(packet->lValue(0, "LiveVector"));
@@ -205,36 +241,6 @@ void SingleGl1TriggerInput::ClearCurrentEvent()
   return;
 }
 
-bool SingleGl1TriggerInput::GetSomeMoreEvents(const unsigned int keep)
-{
-  if (AllDone())
-  {
-    return false;
-  }
-  if (m_PacketMap.empty())
-  {
-    return true;
-  }
-
-  int first_event = m_PacketMap.begin()->first;
-  int last_event = m_PacketMap.rbegin()->first;
-  if (Verbosity() > 1)
-  {
-    std::cout << PHWHERE << "first event: " << first_event
-              << " last event: " << last_event
-              << std::endl;
-  }
-  if (keep > 2 && m_PacketMap.size() < keep)
-  {
-    return true;
-  }
-  if (first_event >= last_event)
-  {
-    return true;
-  }
-  return false;
-}
-
 void SingleGl1TriggerInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
@@ -259,12 +265,3 @@ void SingleGl1TriggerInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode->addNode(newNode);
   }
 }
-
-// void SingleGl1TriggerInput::ConfigureStreamingInputManager()
-// {
-//   if (StreamingInputManager())
-//   {
-//     StreamingInputManager()->SetGl1BcoRange(m_BcoRange);
-//   }
-//   return;
-// }

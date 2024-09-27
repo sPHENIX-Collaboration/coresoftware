@@ -99,6 +99,13 @@ int MbdCalib::Download_All()
     }
     Download_TQT0(tq_t0_url);
 
+    std::string t0corr_url = _cdb->getUrl("MBD_T0CORR");
+    if ( Verbosity() > 0 )
+    {
+      std::cout << "t0corr_url " << t0corr_url << std::endl;
+    }
+    Download_T0Corr(t0corr_url);
+
     std::string ped_url = _cdb->getUrl("MBD_PED");
     if (Verbosity() > 0)
     {
@@ -147,6 +154,9 @@ int MbdCalib::Download_All()
 
     std::string tt_t0_file = bbc_caldir + "/mbd_tt_t0.calib";
     Download_TTT0(tt_t0_file);
+
+    std::string t0corr_file = bbc_caldir + "/mbd_t0corr.calib";
+    Download_T0Corr(t0corr_file);
 
     std::string ped_file = bbc_caldir + "/mbd_ped.calib";
     Download_Ped(ped_file);
@@ -389,6 +399,104 @@ int MbdCalib::Download_TTT0(const std::string& dbase_location)
   }
 
   if ( std::isnan(_ttfit_t0mean[0]) )
+  {
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    _status = -1;
+    return _status;
+  }
+
+  return 1;
+}
+
+
+int MbdCalib::Download_T0Corr(const std::string& dbase_location)
+{
+  // Reset All Values
+  _t0corrmean = 0.;
+  _t0corrmeanerr = 0.;
+  _t0corr_fitmean.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_fitmeanerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_fitsigma.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_fitsigmaerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_hmean.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_hmeanerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_hstddev.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_hstddeverr.fill(std::numeric_limits<float>::quiet_NaN());
+
+  if ( dbase_location.size()==0 )
+  {
+    return 0;
+  }
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "Opening " << dbase_location << std::endl;
+  }
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
+  {
+    CDBTTree* cdbttree = new CDBTTree(dbase_location);
+    if ( cdbttree == nullptr )
+    {
+      std::cerr << "T0Corr not found, skipping" << std::endl;
+      _status = -1;
+      return _status;
+    }
+    cdbttree->LoadCalibrations();
+
+    _t0corrmean = cdbttree->GetSingleFloatValue("t0meancorr");
+    _t0corrmeanerr = cdbttree->GetSingleFloatValue("t0meancorrerr");
+    _t0corr_fitmean[0] = cdbttree->GetSingleFloatValue("t0corr_fitmean0");
+    _t0corr_fitmeanerr[0] = cdbttree->GetSingleFloatValue("t0corr_fitmeanerr0");
+    _t0corr_fitsigma[0] = cdbttree->GetSingleFloatValue("t0corr_fitsigma0");
+    _t0corr_fitsigmaerr[0] = cdbttree->GetSingleFloatValue("t0corr_fitsigmaerr0");
+    _t0corr_fitmean[1] = cdbttree->GetSingleFloatValue("t1corr_fitmean1");
+    _t0corr_fitmeanerr[1] = cdbttree->GetSingleFloatValue("t1corr_fitmeanerr1");
+    _t0corr_fitsigma[1] = cdbttree->GetSingleFloatValue("t1corr_fitsigma1");
+    _t0corr_fitsigmaerr[1] = cdbttree->GetSingleFloatValue("t1corr_fitsigmaerr1");
+    _t0corr_hmean[0] = cdbttree->GetSingleFloatValue("t0corr_hmean0");
+    _t0corr_hmeanerr[0] = cdbttree->GetSingleFloatValue("t0corr_hmeanerr0");
+    _t0corr_hstddev[0] = cdbttree->GetSingleFloatValue("t0corr_hstddev0");
+    _t0corr_hstddeverr[0] = cdbttree->GetSingleFloatValue("t0corr_hstddeverr0");
+    _t0corr_hmean[1] = cdbttree->GetSingleFloatValue("t1corr_hmean1");
+    _t0corr_hmeanerr[1] = cdbttree->GetSingleFloatValue("t1corr_hmeanerr1");
+    _t0corr_hstddev[1] = cdbttree->GetSingleFloatValue("t1corr_hstddev1");
+    _t0corr_hstddeverr[1] = cdbttree->GetSingleFloatValue("t1corr_hstddeverr1");
+
+    if (Verbosity() > 0)
+    {
+      std::cout << "T0Corr\t" << _t0corrmean << std::endl;
+    }
+    delete cdbttree;
+  }
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
+  {
+    std::ifstream infile(dbase_location);
+    if (!infile.is_open())
+    {
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
+      _status = -3;
+      return _status;
+    }
+
+    infile >> _t0corrmean >> _t0corrmeanerr
+      >> _t0corr_fitmean[0] >> _t0corr_fitmeanerr[0] >> _t0corr_fitsigma[0] >> _t0corr_fitsigmaerr[0]
+      >> _t0corr_fitmean[1] >> _t0corr_fitmeanerr[1] >> _t0corr_fitsigma[1] >> _t0corr_fitsigmaerr[1]
+      >> _t0corr_hmean[0] >> _t0corr_hmeanerr[0] >> _t0corr_hstddev[0] >> _t0corr_hstddeverr[0]
+      >> _t0corr_hmean[1] >> _t0corr_hmeanerr[1] >> _t0corr_hstddev[1] >> _t0corr_hstddeverr[1];
+
+    if (Verbosity() > 0)
+    {
+      std::cout << "T0Corr\t" << _t0corrmean << "\t" << _t0corrmeanerr << std::endl;
+    }
+    infile.close();
+  }
+
+  if ( std::isnan(_t0corrmean) )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -1210,6 +1318,65 @@ int MbdCalib::Write_TQT0(const std::string& dbfile)
 }
 
 #ifndef ONLINE
+int MbdCalib::Write_CDB_T0Corr(const std::string& dbfile)
+{
+  CDBTTree* cdbttree{ nullptr };
+
+  std::cout << "Creating " << dbfile << std::endl;
+  cdbttree = new CDBTTree( dbfile );
+  cdbttree->SetSingleIntValue("version", 1);
+
+  std::cout << "T0Corr" << std::endl;
+
+  // store in a CDBTree
+  cdbttree->SetSingleFloatValue("_t0corrmean", _t0corrmean);
+  cdbttree->SetSingleFloatValue("_t0corrmeanerr", _t0corrmeanerr);
+  cdbttree->SetSingleFloatValue("_t0corr_fitmean0", _t0corr_fitmean[0]);
+  cdbttree->SetSingleFloatValue("_t0corr_fitmeanerr0", _t0corr_fitmeanerr[0]);
+  cdbttree->SetSingleFloatValue("_t0corr_fitsigma0", _t0corr_fitsigma[0]);
+  cdbttree->SetSingleFloatValue("_t0corr_fitsigmaerr0", _t0corr_fitsigmaerr[0]);
+  cdbttree->SetSingleFloatValue("_t0corr_fitmean1", _t0corr_fitmean[1]);
+  cdbttree->SetSingleFloatValue("_t0corr_fitmeanerr1", _t0corr_fitmeanerr[1]);
+  cdbttree->SetSingleFloatValue("_t0corr_fitsigma1", _t0corr_fitsigma[1]);
+  cdbttree->SetSingleFloatValue("_t0corr_fitsigmaerr1", _t0corr_fitsigmaerr[1]);
+  cdbttree->SetSingleFloatValue("_t0corr_hmean0", _t0corr_hmean[0]);
+  cdbttree->SetSingleFloatValue("_t0corr_hmeanerr0", _t0corr_hmeanerr[0]);
+  cdbttree->SetSingleFloatValue("_t0corr_hstddev0", _t0corr_hstddev[0]);
+  cdbttree->SetSingleFloatValue("_t0corr_hstddeverr0", _t0corr_hstddeverr[0]);
+  cdbttree->SetSingleFloatValue("_t0corr_hmean1", _t0corr_hmean[1]);
+  cdbttree->SetSingleFloatValue("_t0corr_hmeanerr1", _t0corr_hmeanerr[1]);
+  cdbttree->SetSingleFloatValue("_t0corr_hstddev1", _t0corr_hstddev[1]);
+  cdbttree->SetSingleFloatValue("_t0corr_hstddeverr1", _t0corr_hstddeverr[1]);
+
+  std::cout << "T0Corr\t" << cdbttree->GetSingleFloatValue("_t0corrmean") << std::endl;
+
+  cdbttree->CommitSingle();
+  //cdbttree->Commit();
+  //cdbttree->Print();
+
+  // for now we create the tree after reading it
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+
+  return 1;
+}
+#endif
+
+int MbdCalib::Write_T0Corr(const std::string& dbfile)
+{
+  std::ofstream cal_t0corr_file;
+  cal_t0corr_file.open(dbfile);
+  cal_t0corr_file << _t0corrmean << "\t" << _t0corrmeanerr << std::endl;
+  cal_t0corr_file << _t0corr_fitmean[0] << "\t" << _t0corr_fitmeanerr[0] << "\t" << _t0corr_fitsigma[0] << "\t" << _t0corr_fitsigmaerr[0] << std::endl;
+  cal_t0corr_file << _t0corr_fitmean[1] << "\t" << _t0corr_fitmeanerr[1] << "\t" << _t0corr_fitsigma[1] << "\t" << _t0corr_fitsigmaerr[1] << std::endl;
+  cal_t0corr_file << _t0corr_hmean[0] << "\t" << _t0corr_hmeanerr[0] << "\t" << _t0corr_hstddev[0] << "\t" << _t0corr_hstddeverr[0] << std::endl;
+  cal_t0corr_file << _t0corr_hmean[1] << "\t" << _t0corr_hmeanerr[1] << "\t" << _t0corr_hstddev[1] << "\t" << _t0corr_hstddeverr[1] << std::endl;
+  cal_t0corr_file.close();
+
+  return 1;
+}
+
+#ifndef ONLINE
 int MbdCalib::Write_CDB_Ped(const std::string& dbfile)
 {
   CDBTTree* cdbttree{ nullptr };
@@ -1217,7 +1384,6 @@ int MbdCalib::Write_CDB_Ped(const std::string& dbfile)
   std::cout << "Creating " << dbfile << std::endl;
   cdbttree = new CDBTTree( dbfile );
   cdbttree->SetSingleIntValue("version", 1);
-  cdbttree->CommitSingle();
 
   std::cout << "Ped" << std::endl;
   for (size_t ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
@@ -1233,6 +1399,7 @@ int MbdCalib::Write_CDB_Ped(const std::string& dbfile)
       std::cout << ifeech << "\t" << cdbttree->GetFloatValue(ifeech, "pedmean") << std::endl;
     }
   }
+  cdbttree->CommitSingle();
 
   cdbttree->Commit();
   // cdbttree->Print();
@@ -1556,6 +1723,20 @@ void MbdCalib::Reset_TQT0()
   _tqfit_t0sigmaerr.fill(std::numeric_limits<float>::quiet_NaN());
 }
 
+void MbdCalib::Reset_T0Corr()
+{
+  _t0corrmean = 0.;
+  _t0corrmeanerr = 0.;
+  _t0corr_fitmean.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_fitmeanerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_fitsigma.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_fitsigmaerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_hmean.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_hmeanerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_hstddev.fill(std::numeric_limits<float>::quiet_NaN());
+  _t0corr_hstddeverr.fill(std::numeric_limits<float>::quiet_NaN());
+}
+
 void MbdCalib::Reset_Ped()
 {
   _tqfit_t0mean.fill( 0. );
@@ -1582,6 +1763,7 @@ void MbdCalib::Reset()
   Reset_TQT0();
   Reset_Ped();
   Reset_Gains();
+  Reset_T0Corr();
 
   _sampmax.fill(-1);
 }

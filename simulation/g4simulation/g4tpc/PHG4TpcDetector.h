@@ -37,6 +37,7 @@ class PHG4TpcDetector : public PHG4Detector
   const std::string SuperDetector() const { return m_SuperDetectorName; }
 
  private:
+  void CreateTpcGasMixture();
   int ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTpcExternalSupports(G4LogicalVolume *logicWorld);

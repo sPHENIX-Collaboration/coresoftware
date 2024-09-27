@@ -16,7 +16,7 @@
 PHCompositeNode::PHCompositeNode(const std::string& n)
   : PHNode(n, "PHCompositeNode")
 {
- type = "PHCompositeNode";
+  type = "PHCompositeNode";
 }
 
 PHCompositeNode::~PHCompositeNode()
@@ -43,7 +43,7 @@ bool PHCompositeNode::addNode(PHNode* newNode)
     if (thisNode->getName() == newNode->getName())
     {
       std::cout << PHWHERE << "Node " << newNode->getName()
-           << " already exists" << std::endl;
+                << " already exists" << std::endl;
       return false;
     }
   }

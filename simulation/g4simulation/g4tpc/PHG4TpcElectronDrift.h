@@ -82,6 +82,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; };
   void set_zero_bfield_flag(bool flag) { zero_bfield = flag; };
   void set_zero_bfield_diffusion_factor(double f) { zero_bfield_diffusion_factor = f; };
+  void use_PDG_gas_params() { m_use_PDG_gas_params = true; }
   ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
 
  private:
@@ -141,6 +142,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   bool do_ElectronDriftQAHistos{false};
   bool do_getReachReadout{false};
   bool zero_bfield{false};
+  bool m_use_PDG_gas_params{false};
 
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;

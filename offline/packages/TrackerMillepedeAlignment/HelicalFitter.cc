@@ -61,12 +61,9 @@ HelicalFitter::HelicalFitter(const std::string& name)
   vertexPosition(0) = 0;
   vertexPosition(1) = 0;
 
-  vtx_sigma(0) = 0.01;
-  vtx_sigma(1) = 0.01;
+  vtx_sigma(0) = 0.1;
+  vtx_sigma(1) = 0.1;
 }
-
-//____________________________________________________________________________..
-HelicalFitter::~HelicalFitter() = default;
 
 //____________________________________________________________________________..
 int HelicalFitter::InitRun(PHCompositeNode* topNode)
@@ -270,7 +267,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       // this associates silicon clusters and adds them to the vectors
       ntpc = cluskey_vec.size();
       nsilicon = TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec, 0, 6);
-      if (nsilicon < 3)
+      if (nsilicon < 5)
       {
         continue;  // discard this TPC seed, did not get a good match to silicon
       }
@@ -288,7 +285,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       // fit the full track now
       fitpars.clear();
-      fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec);  // do helical fit
+      fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec, use_intt_zfit);  // do helical fit
       if (fitpars.size() == 0)
       {
         continue;  // discard this track, fit failed
@@ -489,11 +486,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       int glbl_label[AlignmentDefs::NGL];
       if (layer < 3)
       {
-        AlignmentDefs::getMvtxGlobalLabels(surf, glbl_label, mvtx_grp);
+        AlignmentDefs::getMvtxGlobalLabels(surf, cluskey, glbl_label, mvtx_grp);
       }
       else if (layer > 2 && layer < 7)
       {
-        AlignmentDefs::getInttGlobalLabels(surf, glbl_label, intt_grp);
+        AlignmentDefs::getInttGlobalLabels(surf, cluskey, glbl_label, intt_grp);
       }
       else if (layer < 55)
       {
@@ -641,21 +638,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         }
       }
 
-      // add some cluster cuts
-      if (residual(0) > 1.0)
-      {
-        continue;  // 2 mm cut
-      }
-      if (residual(1) > 1.0)
-      {
-        continue;  // 2 mm cut
-      }
-
       if (!isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
       }
-      if (!isnan(residual(1)) && clus_sigma(1) < 1.0 && trkrid != TrkrDefs::inttId)
+      if (!isnan(residual(1)) && clus_sigma(1) < 1.0)
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeY, AlignmentDefs::NGL, glbl_derivativeY, glbl_label, residual(1), errinf * clus_sigma(1));
       }
@@ -690,16 +677,16 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       for(int p = 0; p<3; p++)
       {
 
-      
+
       if(is_vertex_param_fixed(p))
       {
         glblvtx_derivativeX[p] = 0;
         glblvtx_derivativeY[p] = 0;
       }
-      
+
 
       }
-      if (Verbosity() > -1)
+      if (Verbosity() > 1)
       {
         std::cout << "vertex info for track " << trackid << " with charge " << newTrack.get_charge() << std::endl;
 
@@ -728,6 +715,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         }
       }
 
+      /*
       // add some track cuts
       if (fabs(newTrack.get_z() - event_vtx(2)) > 1)
       {
@@ -741,6 +729,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       {
         continue;  // 2 mm cut
       }
+      */
 
       if (!isnan(vtx_residual(0)))
       {
@@ -969,6 +958,9 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1009,22 +1001,10 @@ void HelicalFitter::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, shor
 {
   // make all corrections to global position of TPC cluster
   unsigned int side = TpcDefs::getSide(cluster_key);
-  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
-  global[2] = z;
+  global.z() = m_clusterCrossingCorrection.correctZ(global.z(), side, crossing);
 
   // apply distortion corrections
-  if (_dcc_static)
-  {
-    global = _distortionCorrection.get_corrected_position(global, _dcc_static);
-  }
-  if (_dcc_average)
-  {
-    global = _distortionCorrection.get_corrected_position(global, _dcc_average);
-  }
-  if (_dcc_fluctuation)
-  {
-    global = _distortionCorrection.get_corrected_position(global, _dcc_fluctuation);
-  }
+  global = m_globalPositionWrapper.applyDistortionCorrections(global);
 }
 
 void HelicalFitter::getTrackletClusters(TrackSeed* tracklet, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec)
@@ -1069,7 +1049,7 @@ void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<Trkr
 
 std::vector<float> HelicalFitter::fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec)
 {
-  return TrackFitUtils::fitClusters(global_vec, std::move(cluskey_vec));  // do helical fit
+  return TrackFitUtils::fitClusters(global_vec, std::move(cluskey_vec), use_intt_zfit);  // do helical fit
 }
 
 Acts::Vector2 HelicalFitter::getClusterError(TrkrCluster* cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global)

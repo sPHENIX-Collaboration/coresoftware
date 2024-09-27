@@ -18,7 +18,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackState_v2.h>
 
 #include <trackreco/ActsPropagator.h>
 
@@ -344,7 +344,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // make sure cluster is from TPC
     const auto detId = TrkrDefs::getTrkrId(cluskey);
-    if (detId != TrkrDefs::tpcId) continue;
+    if (detId != TrkrDefs::tpcId)
+    {
+      continue;
+    }
 
     const auto cluster = m_clusterContainer->findCluster(cluskey);
     const auto surface = m_tGeometry->maps().getSurface(cluskey, cluster);
@@ -389,7 +392,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // calculate residuals with respect to cluster
     // Get all the relevant information for residual calculation
-    const auto globClusPos = getGlobalPosition(cluskey, cluster, crossing);
+    const auto globClusPos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluskey, cluster, crossing);
     const double clusR = get_r(globClusPos(0), globClusPos(1));
     const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));
     const double clusZ = globClusPos(2);
@@ -455,17 +458,29 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
 
     const double erp = square(clusRPhiErr) + square(trackRPhiErr);
-    if (std::isnan(erp)) continue;
+    if (std::isnan(erp))
+    {
+      continue;
+    }
 
     const double ez = square(clusZErr) + square(trackZErr);
-    if (std::isnan(ez)) continue;
+    if (std::isnan(ez))
+    {
+      continue;
+    }
 
     // Calculate residuals
     const double drphi = clusR * deltaPhi(clusPhi - trackPhi);
-    if (std::isnan(drphi)) continue;
+    if (std::isnan(drphi))
+    {
+      continue;
+    }
 
     const double dz = clusZ - trackZ;
-    if (std::isnan(dz)) continue;
+    if (std::isnan(dz))
+    {
+      continue;
+    }
 
     if (Verbosity() > 3)
     {
@@ -480,10 +495,16 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     const double trackPZ = trackStateParams.momentum()(2);
 
     const double trackAlpha = -trackPPhi / trackPR;
-    if (std::isnan(trackAlpha)) continue;
+    if (std::isnan(trackAlpha))
+    {
+      continue;
+    }
 
     const double trackBeta = -trackPZ / trackPR;
-    if (std::isnan(trackBeta)) continue;
+    if (std::isnan(trackBeta))
+    {
+      continue;
+    }
 
     if (Verbosity() > 3)
     {
@@ -504,7 +525,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       std::cout << "Bin index found is " << index << std::endl;
     }
 
-    if (index < 0) continue;
+    if (index < 0)
+    {
+      continue;
+    }
 
     if (Verbosity() > 3)
     {
@@ -542,7 +566,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     m_matrix_container->add_to_lhs(index, 1, 1, 1. / ez);
     m_matrix_container->add_to_lhs(index, 1, 2, trackBeta / ez);
 
-    m_matrix_container->add_to_lhs(index, 2, 0, clusR*trackAlpha / erp);
+    m_matrix_container->add_to_lhs(index, 2, 0, clusR * trackAlpha / erp);
     m_matrix_container->add_to_lhs(index, 2, 1, trackBeta / ez);
     m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
 
@@ -564,7 +588,7 @@ void PHTpcResiduals::addTrackState(SvtxTrack* track, TrkrDefs::cluskey key, floa
   /* this is essentially a copy of the code from trackbase_historic/ActsTransformations::fillSvtxTrackStates */
 
   // create track state
-  SvtxTrackState_v1 state(pathlength);
+  SvtxTrackState_v2 state(pathlength);
 
   // save global position
   const auto global = params.position(m_tGeometry->geometry().getGeoContext());
@@ -589,7 +613,7 @@ void PHTpcResiduals::addTrackState(SvtxTrack* track, TrkrDefs::cluskey key, floa
   }
 
   state.set_name(std::to_string((TrkrDefs::cluskey) key));
-
+  state.set_cluskey(key);
   track->insert_state(&state);
 }
 
@@ -643,6 +667,7 @@ int PHTpcResiduals::createNodes(PHCompositeNode* /*topNode*/)
 //_______________________________________________________________________________
 int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
 {
+  // clusters
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterContainer)
   {
@@ -650,6 +675,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // geometry
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
@@ -657,6 +683,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // tracks
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconMMTrackMap");
   if (!m_trackMap)
   {
@@ -664,47 +691,13 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  // tpc distortion corrections
-  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
+  // tpc global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//_________________________________________________________________________________
-Acts::Vector3 PHTpcResiduals::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const
-{
-  // get global position from Acts transform
-  auto globalPosition = m_tGeometry->getGlobalPosition(key, cluster);
-
-  // for the TPC calculate the proper z based on crossing and side
-  const auto trkrid = TrkrDefs::getTrkrId(key);
-  if (trkrid == TrkrDefs::tpcId)
-  {
-    const auto side = TpcDefs::getSide(key);
-    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
-
-    // apply distortion corrections
-    if (m_dcc_static)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_static);
-    }
-
-    if (m_dcc_average)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_average);
-    }
-
-    if (m_dcc_fluctuation)
-    {
-      globalPosition = m_distortionCorrection.get_corrected_position(globalPosition, m_dcc_fluctuation);
-    }
-  }
-
-  return globalPosition;
-}
-
+//____________________________________________________________________________
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
 {
   m_matrix_container->set_grid_dimensions(phiBins, rBins, zBins);

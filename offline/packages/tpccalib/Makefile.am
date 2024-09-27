@@ -25,6 +25,7 @@ libtpccalib_io_la_LIBADD = \
 libtpccalib_la_LIBADD = \
   libtpccalib_io.la \
   -lFROG \
+  -lffaobjects \
   -lphool \
   -lSubsysReco \
   -lg4detectors_io \
@@ -41,8 +42,6 @@ pkginclude_HEADERS = \
   TpcSpaceChargeReconstruction.h \
   TpcSpaceChargeReconstructionHelper.h \
   PHTpcResiduals.h \
-  PHTpcCentralMembraneClusterizer.h \
-  PHTpcCentralMembraneMatcher.h \
   TpcCentralMembraneMatching.h
 
 
@@ -57,7 +56,7 @@ nobase_dist_pcm_DATA = \
 
 libtpccalib_io_la_SOURCES = \
   $(ROOTDICTS) \
-  TpcSpaceChargeMatrixContainerv1.cc 
+  TpcSpaceChargeMatrixContainerv1.cc
 
 libtpccalib_la_SOURCES = \
   TpcDirectLaserReconstruction.cc \
@@ -65,8 +64,6 @@ libtpccalib_la_SOURCES = \
   TpcSpaceChargeReconstruction.cc \
   TpcSpaceChargeReconstructionHelper.cc \
   PHTpcResiduals.cc \
-  PHTpcCentralMembraneClusterizer.cc \
-  PHTpcCentralMembraneMatcher.cc \
   TpcCentralMembraneMatching.cc
 
 # Rule for generating table CINT dictionaries.

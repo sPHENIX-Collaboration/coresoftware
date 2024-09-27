@@ -14,10 +14,10 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <epd/EPDDefs.h>
 #include <ffaobjects/EventHeaderv1.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <epd/EPDDefs.h>
 
 #include <iostream>  // for operator<<, basic_ostream
 #include <map>       // for _Rb_tree_const_iterator
@@ -34,7 +34,9 @@ PHG4CentralityReco::PHG4CentralityReco(const std::string &name)
 int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() >= 1)
+  {
     std::cout << "PHG4CentralityReco::InitRun : enter " << std::endl;
+  }
 
   try
   {
@@ -48,11 +50,15 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
 
   auto bhits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
   if (!bhits)
+  {
     std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_BBC, will not use MBD centrality" << std::endl;
+  }
 
   auto ehits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_EPD");
   if (!ehits)
+  {
     std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_EPD, will not use sEPD centrality" << std::endl;
+  }
 
   if (_centrality_calibration_params.exist_string_param("description"))
   {
@@ -71,7 +77,9 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
       {
         _cent_cal_epd[_centrality_calibration_params.get_double_param(s1.str().c_str())] = n;
         if (Verbosity() >= 2)
+        {
           std::cout << "PHG4CentralityReco::InitRun : sEPD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s1.str().c_str()) << std::endl;
+        }
       }
     }
     for (int n = 0; n < 101; n++)
@@ -82,7 +90,9 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
       {
         _cent_cal_mbd[_centrality_calibration_params.get_double_param(s2.str().c_str())] = n;
         if (Verbosity() >= 2)
+        {
           std::cout << "PHG4CentralityReco::InitRun : MBD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s2.str().c_str()) << std::endl;
+        }
       }
     }
     for (int n = 0; n < 101; n++)
@@ -93,7 +103,9 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
       {
         _cent_cal_bimp[_centrality_calibration_params.get_double_param(s3.str().c_str())] = n;
         if (Verbosity() >= 2)
+        {
           std::cout << "PHG4CentralityReco::InitRun : b (impact parameter) centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s3.str().c_str()) << std::endl;
+        }
       }
     }
   }
@@ -114,12 +126,16 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     _bimp = event_header->get_floatval("bimp");
 
     if (Verbosity() >= 5)
+    {
       std::cout << "PHG4CentralityReco::process_event : Hijing impact parameter b = " << _bimp << std::endl;
+    }
   }
   else
   {
     if (Verbosity() >= 5)
+    {
       std::cout << "PHG4CentralityReco::process_event : No Hijing impact parameter info, setting b = 101" << std::endl;
+    }
   }
 
   _mbd_N = 0;
@@ -136,21 +152,29 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
       if ((it->second->get_t(0) > -50) && (it->second->get_t(1) < 50))
       {
         _mbd_NS += it->second->get_edep();
-        int id = it->second->get_layer();
-        if ((id & 0x40) == 0)
+        unsigned int id = it->second->get_layer();
+        if ((id & 0x40U) == 0)
+        {
           _mbd_N += it->second->get_edep();
+        }
         else
+        {
           _mbd_S += it->second->get_edep();
+        }
       }
     }
 
     if (Verbosity() >= 5)
+    {
       std::cout << "PHG4CentralityReco::process_event : MBD Sum Charge N / S / N+S = " << _mbd_N << " / " << _mbd_S << " / " << _mbd_NS << std::endl;
+    }
   }
   else
   {
     if (Verbosity() >= 5)
+    {
       std::cout << "PHG4CentralityReco::process_event : No MBD info, setting all Sum Charges = 0" << std::endl;
+    }
   }
 
   _epd_N = 0;
@@ -163,30 +187,42 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
   {
     auto erange = ehits->getHits();
     for (auto it = erange.first; it != erange.second; ++it)
+    {
       if ((it->second->get_t(0) > -50) && (it->second->get_t(1) < 50))
       {
         _epd_NS += it->second->get_edep();
 
-	int sim_tileid = (it->second->get_hit_id() >> PHG4HitDefs::hit_idbits);
-	int this_arm = EPDDefs::get_arm(sim_tileid);
-	
-	if (this_arm == 1)
-	  _epd_N += it->second->get_edep();
-	else
-	  _epd_S += it->second->get_edep();
+        int sim_tileid = (it->second->get_hit_id() >> PHG4HitDefs::hit_idbits);
+        int this_arm = EPDDefs::get_arm(sim_tileid);
+
+        if (this_arm == 1)
+        {
+          _epd_N += it->second->get_edep();
+        }
+        else
+        {
+          _epd_S += it->second->get_edep();
+        }
       }
+    }
 
     if (Verbosity() >= 5)
+    {
       std::cout << "PHG4CentralityReco::process_event : sEPD Sum Energy N / S / N+S = " << _epd_N << " / " << _epd_S << " / " << _epd_NS << std::endl;
+    }
   }
   else
   {
     if (Verbosity() >= 5)
+    {
       std::cout << "PHG4CentralityReco::process_event : No sEPD info, setting all Sum Energies = 0" << std::endl;
+    }
   }
 
   if (Verbosity() >= 1)
+  {
     std::cout << "PHG4CentralityReco::process_event : summary MBD (N, S, N+S) = (" << _mbd_N << ", " << _mbd_S << ", " << _mbd_NS << "), sEPD (N, S, N+S) = (" << _epd_N << ", " << _epd_S << ", " << _epd_NS << ")" << std::endl;
+  }
 
   if (_do_centrality_calibration)
   {
@@ -196,10 +232,10 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     int low_epd_centile = -1;
     int high_epd_centile = -1;
 
-    for (std::map<float, int>::iterator it = _cent_cal_epd.begin(); it != _cent_cal_epd.end(); ++it)
+    for (auto &it : _cent_cal_epd)
     {
-      float signal = it->first;
-      int cent = it->second;
+      float signal = it.first;
+      int cent = it.second;
 
       if (signal < _epd_NS && signal > low_epd_val)
       {
@@ -218,13 +254,17 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     {
       _epd_cent = (low_epd_centile + high_epd_centile) / 2.0;
       if (Verbosity() >= 10)
+      {
         std::cout << "PHG4CentralityReco::process_event : lower EPD value is " << low_epd_val << " (" << low_epd_centile << "%), higher is " << high_epd_val << " (" << high_epd_centile << "%), assigning " << _epd_cent << "%" << std::endl;
+      }
     }
     else
     {
       _epd_cent = 101;
       if (Verbosity() >= 5)
+      {
         std::cout << "PHG4CentralityReco::process_event : not able to map EPD value to a centrality. debug info = " << low_epd_val << "/" << low_epd_centile << "/" << high_epd_val << "/" << high_epd_centile << std::endl;
+      }
     }
 
     // MBD centrality
@@ -233,10 +273,10 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     int low_mbd_centile = -1;
     int high_mbd_centile = -1;
 
-    for (std::map<float, int>::iterator it = _cent_cal_mbd.begin(); it != _cent_cal_mbd.end(); ++it)
+    for (auto &it : _cent_cal_mbd)
     {
-      float signal = it->first;
-      int cent = it->second;
+      float signal = it.first;
+      int cent = it.second;
 
       if (signal < _mbd_NS && signal > low_mbd_val)
       {
@@ -255,13 +295,17 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     {
       _mbd_cent = (low_mbd_centile + high_mbd_centile) / 2.0;
       if (Verbosity() >= 10)
+      {
         std::cout << "PHG4CentralityReco::process_event : lower MBD value is " << low_mbd_val << " (" << low_mbd_centile << "%), higher is " << high_mbd_val << " (" << high_mbd_centile << "%), assigning " << _mbd_cent << "%" << std::endl;
+      }
     }
     else
     {
       _mbd_cent = 101;
       if (Verbosity() >= 5)
+      {
         std::cout << "PHG4CentralityReco::process_event : not able to map MBD value to a centrality. debug info = " << low_mbd_val << "/" << low_mbd_centile << "/" << high_mbd_val << "/" << high_mbd_centile << std::endl;
+      }
     }
 
     // b (impact parameter) centrality
@@ -270,10 +314,10 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     int low_bimp_centile = -1;
     int high_bimp_centile = -1;
 
-    for (std::map<float, int>::iterator it = _cent_cal_bimp.begin(); it != _cent_cal_bimp.end(); ++it)
+    for (auto &it : _cent_cal_bimp)
     {
-      float signal = it->first;
-      int cent = it->second;
+      float signal = it.first;
+      int cent = it.second;
 
       if (signal < _bimp && signal > low_bimp_val)
       {
@@ -292,13 +336,17 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     {
       _bimp_cent = (low_bimp_centile + high_bimp_centile) / 2.0;
       if (Verbosity() >= 10)
+      {
         std::cout << "PHG4CentralityReco::process_event : lower b value is " << low_bimp_val << " (" << low_bimp_centile << "%), higher is " << high_bimp_val << " (" << high_bimp_centile << "%), assigning " << _bimp_cent << "%" << std::endl;
+      }
     }
     else
     {
       _bimp_cent = 101;
       if (Verbosity() >= 5)
+      {
         std::cout << "PHG4CentralityReco::process_event : not able to map b value to a centrality. debug info = " << low_bimp_val << "/" << low_bimp_centile << "/" << high_bimp_val << "/" << high_bimp_centile << std::endl;
+      }
     }
 
   }  // close centrality calibration

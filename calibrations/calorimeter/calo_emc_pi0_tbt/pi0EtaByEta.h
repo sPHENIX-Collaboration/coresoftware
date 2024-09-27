@@ -58,7 +58,9 @@ class pi0EtaByEta : public SubsysReco
 
 	void fitEtaPhiTowers(const std::string& infile, const std::string& fitOutFile, const std::string& cdbFile); // for tbt pi0 fit
 
-  void set_use_pdc(bool state)
+  void Split3DHist(const std::string& infile, const std::string& outfile);
+
+	void set_use_pdc(bool state)
   {
     use_pdc = state;
     return;
@@ -88,20 +90,34 @@ class pi0EtaByEta : public SubsysReco
     convLev=val;
     return;
   }
-  void set_RunTowByTow(bool state) // to decide if we want to run tbt (default is false)
+  void set_RunTowByTow(bool state) // to decide if we want to run tbt (default is true)
   {
     runTowByTow=state;
     return;
   }
 
+	void set_RunTBTCompactMode(bool state) // to decide if we want to run in TBT in compact mode (default is true)
+  {
+    runTBTCompactMode=state;
+    return;
+  }
+
+
   void set_massTargetHistFile(const std::string& file);
   bool checkOutput(const std::string& file);
+  void set_reqMinBias(bool status)
+  {
+    reqMinBias = status;
+    return;
+  }
 
 
  protected:
   int Getpeaktime(TH1* h);
   std::string detector;
   std::string outfilename;
+
+  bool reqMinBias = true;
 
   float pt1BaseClusCut = 1.3;
   float pt2BaseClusCut = 0.7;
@@ -137,14 +153,15 @@ class pi0EtaByEta : public SubsysReco
   int _range{1};
 
   float _vz{0.};
-  float target_pi0_mass{0.152};
+  float target_pi0_mass{0.141};
 
   bool m_vtxCut{false};
   bool dynMaskClus{false};
   bool doMix{false};
   bool use_pdc{false};
-  bool runTowByTow{false}; // default set not to run tbt
-  
+  bool runTowByTow{true}; // default set not to run tbt
+  bool runTBTCompactMode{true}; // default set to run in compact mode 
+
   std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>* clusMix;
   TH1* h_nclus_bin{nullptr};
   const int NBinsClus = 10;
@@ -176,6 +193,7 @@ class pi0EtaByEta : public SubsysReco
   TH2* h_hcalout_etaphi_wQA{nullptr};
   TH1* h_totalzdc_e{nullptr};
   TH3* h_pipT_Nclus_mass{nullptr};
+	TH3* h_ieta_iphi_invmass{nullptr};
 
   TProfile2D* h_cemc_etaphi_time{nullptr};
   TProfile2D* h_hcalin_etaphi_time{nullptr};

@@ -20,8 +20,10 @@ pkginclude_HEADERS = \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
+  intt_pool.h \
   InputManagerType.h \
   MicromegasBcoMatchingInformation.h\
+  MvtxRawDefs.h \
   SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
@@ -29,6 +31,7 @@ pkginclude_HEADERS = \
   SingleLL1TriggerInput.h \
   SingleMbdTriggerInput.h \
   SingleMicromegasPoolInput.h \
+  SingleInttEventInput.h \
   SingleInttPoolInput.h \
   SingleMvtxPoolInput.h \
   SinglePrdfInput.h \
@@ -47,7 +50,8 @@ decoderinclude_HEADERS = \
   mvtx_decoder/mvtx_utils.h \
   mvtx_decoder/PayLoadCont.h \
   mvtx_decoder/PayLoadSG.h \
-  mvtx_decoder/PixelData.h
+  mvtx_decoder/PixelData.h \
+  mvtx_decoder/StrobeData.h
 
 lib_LTLIBRARIES = \
   libmvtx_decoder.la \
@@ -55,12 +59,13 @@ lib_LTLIBRARIES = \
 
 # source for mvtx decoder library
 libmvtx_decoder_la_SOURCES =\
+  mvtx_decoder/DecodingStat.cc \
+  mvtx_decoder/GBTLink.cc \
+  mvtx_decoder/GBTWord.cc \
   mvtx_decoder/InteractionRecord.cc \
   mvtx_decoder/PayLoadCont.cc \
   mvtx_decoder/PixelData.cc \
-  mvtx_decoder/GBTWord.cc \
-  mvtx_decoder/DecodingStat.cc \
-  mvtx_decoder/GBTLink.cc
+  mvtx_decoder/StrobeData.cc
 
 libfun4allraw_la_SOURCES = \
   Fun4AllEventOutStream.cc \
@@ -73,13 +78,14 @@ libfun4allraw_la_SOURCES = \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
   intt_pool.cc \
-  mvtx_pool.cc \
-  tpc_pool.cc \
   MicromegasBcoMatchingInformation.cc\
+  mvtx_pool.cc \
+  MvtxRawDefs.cc \
   SingleCemcTriggerInput.cc \
   SingleGl1PoolInput.cc \
   SingleGl1TriggerInput.cc \
   SingleHcalTriggerInput.cc \
+  SingleInttEventInput.cc \
   SingleInttPoolInput.cc \
   SingleLL1TriggerInput.cc \
   SingleMbdTriggerInput.cc \
@@ -90,7 +96,8 @@ libfun4allraw_la_SOURCES = \
   SingleTpcPoolInput.cc \
   SingleTriggerInput.cc \
   SingleZdcInput.cc \
-  SingleZdcTriggerInput.cc
+  SingleZdcTriggerInput.cc \
+  tpc_pool.cc
 
 libfun4allraw_la_LIBADD = \
   libmvtx_decoder.la \

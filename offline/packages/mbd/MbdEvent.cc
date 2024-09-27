@@ -357,8 +357,9 @@ int MbdEvent::SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, 
   if ( _calpass>0 && gl1raw != nullptr )
   {
     const uint64_t MBDTRIGS = 0x7c00;  // MBDNS trigger bits
-    uint64_t trigvec = gl1raw->getTriggerVector();  // raw trigger only
-    if ( (trigvec&MBDTRIGS) == 0 )
+    //uint64_t trigvec = gl1raw->getTriggerVector();  // raw trigger only
+    uint64_t strig = gl1raw->getScaledVector();  // scaled trigger only
+    if ( (strig&MBDTRIGS) == 0 )
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -627,7 +628,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
 
       // calpass 2, uncal_mbd. template fit. make sure qgain = 1, tq_t0 = 0
  
-      if (m_ampl[ifeech] < _mbdcal->get_qgain(pmtch) * 0.25)
+      if ( (m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000) )
       {
         // m_t0[ifeech] = -9999.;
         m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -671,7 +672,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
       */
     }
-    else
+    else  // not a good time hit
     {
       m_pmtq[pmtch] = 0.;
       m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -786,9 +787,9 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     float t_pmt = bbcpmt->get_time();  // hit time of pmt
     float q_pmt = bbcpmt->get_q();     // charge in pmt
 
-    if (_verbose >= 10)
+    if (_verbose >= 10 && !isnan(t_pmt) )
     {
-      std::cout << ipmt << "\t" << t_pmt << std::endl;
+      std::cout << ipmt << "\t" << t_pmt << "\t" << q_pmt << std::endl;
     }
 
     if (fabs(t_pmt) < 25. && q_pmt > 0.)
@@ -820,8 +821,8 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   if (_verbose >= 10)
   {
     std::cout << "nhits " << m_bbcn[0] << "\t" << m_bbcn[1] << std::endl;
+    // std::cout << "bbcte " << m_bbcte[0] << "\t" << m_bbcte[1] << std::endl;
   }
-  // std::cout << "bbcte " << m_bbcte[0] << "\t" << m_bbcte[1] << std::endl;
 
   for (int iarm = 0; iarm < 2; iarm++)
   {
@@ -838,13 +839,22 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     float earliest = hit_times[iarm].at(0);
     float latest = hit_times[iarm].back();
     // std::cout << "earliest" << iarm << "\t" << earliest << std::endl;
+ 
+    // Cluster earliest hits
+    double mean, rms, rmin, rmax;
+    ClusterEarliest( hit_times[iarm], mean, rms, rmin, rmax );
 
     gausfit[iarm]->SetParameter(0, 5);
+    gausfit[iarm]->SetParameter(1, mean);
+    gausfit[iarm]->SetParameter(2, rms);
+    gausfit[iarm]->SetRange(rmin,rmax);
     // gausfit[iarm]->SetParameter(1, earliest);
     // gausfit[iarm]->SetRange(6, earliest + 5 * 0.05);
+    /*
     gausfit[iarm]->SetParameter(1, hevt_bbct[iarm]->GetMean());
     gausfit[iarm]->SetParameter(2, hevt_bbct[iarm]->GetRMS());
     gausfit[iarm]->SetRange(hevt_bbct[iarm]->GetMean() - 5, hevt_bbct[iarm]->GetMean() + 5);
+    */
 
     if (_verbose)
     {
@@ -859,14 +869,18 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     hevt_bbct[iarm]->Fit(gausfit[iarm], "BNQLR");
 
     // m_bbct[iarm] = m_bbct[iarm] / m_bbcn[iarm];
-    m_bbct[iarm] = gausfit[iarm]->GetParameter(1);
+    //m_bbct[iarm] = gausfit[iarm]->GetParameter(1);  // gaus fit
+    m_bbct[iarm] = mean;
+
     m_bbcte[iarm] = earliest;
     m_bbctl[iarm] = latest;
 
+    /*
     if ( m_bbcn[iarm]==1 )
     {
       m_bbct[iarm] = earliest;
     }
+    */
 
     //_bbcout->set_arm(iarm, m_bbcn[iarm], m_bbcq[iarm], m_bbct[iarm]);
 
@@ -876,7 +890,10 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       hevt_bbct[iarm]->GetXaxis()->SetRangeUser(tepmt[iarm] - 3., tlpmt[iarm] + 3.);
       // hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-20,20);
       hevt_bbct[iarm]->Draw();
-      gausfit[iarm]->Draw("same");
+      if ( m_bbcn[iarm]>1 )
+      {
+        gausfit[iarm]->Draw("same");
+      }
       gPad->Modified();
       gPad->Update();
       if (iarm == 1)
@@ -926,11 +943,12 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       std::cout << "bbcn " << m_bbcn[0] << "\t" << m_bbcn[1] << std::endl;
       std::cout << "bbcq " << m_bbcq[0] << "\t" << m_bbcq[1] << std::endl;
     }
-    m_bbcz = (m_bbct[0] - m_bbct[1]) * TMath::C() * 1e-7 / 2.0;  // in cm
-    m_bbct0 = (m_bbct[0] + m_bbct[1]) / 2.0;
+    m_bbcz = (m_bbct[0] - m_bbct[1]) * TMath::C() * 1e-7 / 2.0;   // in cm
+    m_bbct0 = (m_bbct[0] + m_bbct[1]) / 2.0;                      // in ns
 
-    // correct z-vertex
-    // m_bbcz += bz_offset;
+    // correct t0
+    m_bbct0 -= _mbdcal->get_t0corr();
+    //std::cout << "correcting m_bbct0 with " << _mbdcal->get_t0corr() << std::endl;
 
     // hard code these for now
     // need study to determine muliplicity dependence
@@ -947,7 +965,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
     // if (_verbose > 10)
     // if ( _verbose && mybbz[_syncevt]< -40. )
-    if (_verbose>1000)
+    if (_verbose>20)
     {
       std::cout << "bbcz " << m_bbcz << std::endl;
       std::string junk;
@@ -992,6 +1010,54 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   return 1;
 }
 
+
+// get the values for the earliest cluster
+void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& rms, double& rmin, double& rmax)
+{
+  //_verbose = 0;
+
+  rmin = times[0];
+  rmax = times[0];
+
+  double npts = 0.;
+  double sum = 0.;
+  double sum2 = 0.;
+  mean = times[0];
+  for ( size_t it = 0; it<times.size(); it++ )
+  {
+    if ( _verbose )
+    {
+      std::cout << "C " << times[it] << std::endl;
+    }
+    double dt = fabs( times[it] - mean );
+    if ( dt > 0.060*3.0 )
+    {
+      break;
+    }
+
+    sum += times[it];
+    sum2 += (times[it]*times[it]);
+
+    mean = sum/(it+1.0);
+    npts += 1.0;
+
+    rmax = times[it];
+  }
+
+  if ( npts>1.0 )
+  {
+    rms = sqrt( sum2/npts - mean*mean );
+  }
+  else
+  {
+    rms = 0.;
+  }
+
+  if ( _verbose )
+  {
+    std::cout << "CLUSTER " << mean << "\t" << rms << "\t" << npts << "\t" << rmin << "\t" << rmax << std::endl;
+  }
+}
 
 // Store data for sampmax calibration (to correct ADC sample offsets by channel)
 int MbdEvent::FillSampMaxCalib()

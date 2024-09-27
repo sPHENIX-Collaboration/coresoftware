@@ -3,12 +3,13 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
+#include <limits>
 
 class G4RootRawTower : public PHObject
 {
  public:
-  G4RootRawTower();
+  G4RootRawTower() = default;
   G4RootRawTower(const float ieta, const float iphi, const float e);
   ~G4RootRawTower() override {}
 
@@ -21,9 +22,9 @@ class G4RootRawTower : public PHObject
   float get_energy() const { return energy; }
 
  protected:
-  float eta;
-  float phi;
-  float energy;
+  float eta{std::numeric_limits<float>::quiet_NaN()};
+  float phi{std::numeric_limits<float>::quiet_NaN()};
+  float energy{std::numeric_limits<float>::quiet_NaN()};
 
   ClassDefOverride(G4RootRawTower, 1)
 };

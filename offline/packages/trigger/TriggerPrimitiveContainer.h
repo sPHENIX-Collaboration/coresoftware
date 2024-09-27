@@ -28,7 +28,7 @@ class TriggerPrimitiveContainer : public PHObject
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override { return 1; }
 
-  virtual void setTriggerId(TriggerDefs::TriggerId /*triggerid*/) { return;}
+  virtual void setTriggerId(TriggerDefs::TriggerId /*triggerid*/) { return; }
   virtual void setDetectorId(TriggerDefs::DetectorId /*detectorid*/) { return; }
   virtual void setPrimitiveId(TriggerDefs::PrimitiveId /*primitiveid*/) { return; }
 

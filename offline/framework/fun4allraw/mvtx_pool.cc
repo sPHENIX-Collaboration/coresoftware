@@ -98,6 +98,12 @@ void mvtx_pool::setupLinks()
       if ( *(reinterpret_cast<uint16_t*>(&payload[payload_position] + 30)) == 0xAB01 )
       {
         rdh.decode(&payload[payload_position]);
+        if ( ! rdh.checkRDH(true) )
+        {
+          // In case of corrupt RDH, skip felix word and continue to next
+          payload_position += mvtx_utils::FLXWordLength;
+          continue;
+        }
         const size_t pageSizeInBytes = static_cast<size_t>((rdh.pageSize + 1) * mvtx_utils::FLXWordLength);
         if ( pageSizeInBytes > (dlength - payload_position) )
         {
@@ -244,7 +250,7 @@ int mvtx_pool::iValue(const int n, const char *what)
     }
     else if ( strcmp(what, "NR_HITS") == 0 )  // the number of datasets
     {
-      return mGBTLinks[lnkId].hit_vector.size();
+      return -1;
     }
     else
     {
@@ -284,7 +290,7 @@ int mvtx_pool::iValue(const int i_feeid, const int idx, const char *what)
   }
   else if ( strcmp(what, "TRG_NR_HITS") == 0)
   {
-    return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].n_hits : -1;
+    return (index < mGBTLinks[lnkId].mTrgData.size()) ? mGBTLinks[lnkId].mTrgData[index].hit_vector.size() : -1;
   }
   else
   {
@@ -311,27 +317,25 @@ int mvtx_pool::iValue(const int i_feeid, const int i_trg, const int i_hit, const
   }
   uint32_t lnkId =  mFeeId2LinkID[feeId].entry;
 
-  uint32_t hit_global_id = mGBTLinks[lnkId].mTrgData[trg].first_hit_pos + hit;
-
   if ( strcmp(what, "HIT_CHIP_ID") == 0 )
   {
-    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].n_hits) ) ? \
-                     mGBTLinks[lnkId].hit_vector[hit_global_id]->chip_id : -1;
+    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
+                     mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->chip_id : -1;
   }
   else if ( strcmp(what, "HIT_BC") == 0 )
   {
-    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].n_hits) ) ? \
-                     mGBTLinks[lnkId].hit_vector[hit_global_id]->bunchcounter : -1;
+    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
+                     mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->bunchcounter : -1;
   }
   else if ( strcmp(what, "HIT_ROW") == 0 )
   {
-    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].n_hits) ) ? \
-                     mGBTLinks[lnkId].hit_vector[hit_global_id]->row_pos : -1;
+    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
+                     mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->row_pos : -1;
   }
   else if ( strcmp(what, "HIT_COL") == 0 )
   {
-    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].n_hits) ) ? \
-                     mGBTLinks[lnkId].hit_vector[hit_global_id]->col_pos : -1;
+    return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
+                     mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->col_pos : -1;
   }
   else
   {
@@ -341,6 +345,12 @@ int mvtx_pool::iValue(const int i_feeid, const int i_trg, const int i_hit, const
   return 0;
 }
 
+
+//_________________________________________________
+std::vector<mvtx::mvtx_hit *> &mvtx_pool::get_hits(const int feeId, const int i_strb)
+{
+  return mGBTLinks[mFeeId2LinkID[feeId].entry].mTrgData[i_strb].hit_vector;
+}
 
 //_________________________________________________
 long long int mvtx_pool::lValue(const int i_feeid, const int idx, const char *what)

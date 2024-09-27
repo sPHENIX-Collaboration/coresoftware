@@ -19,6 +19,11 @@
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
+
 // ROOT
 #include <TFile.h>
 #include <TH1F.h>
@@ -137,27 +142,77 @@ int emcNoisyTowerFinder::ResetEvent(PHCompositeNode * /*topNode*/)
 //__________________________
 void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilename, const std::string &inHist)
 {
-  TFile *fin = new TFile(infilename.c_str());
-  if (!fin)
+  //TH2F *h_hits_eta_phi_adc = nullptr;
+  bool isListFile = (infilename.substr(infilename.rfind('.') + 1) == "txt" || infilename.substr(infilename.rfind('.') + 1) == "list");
+
+  if (isListFile)
   {
-    std::cout << "emcNoisyTowerFinder::FindHot: input file not found " << infilename.c_str() << std::endl;
-    return;
+    std::ifstream fileList(infilename.c_str());
+    std::string line;
+    while (std::getline(fileList, line))
+    {
+      TFile *fin = new TFile(line.c_str());
+      if (!fin || fin->IsZombie())
+      {
+        std::cout << "emcNoisyTowerFinder::FindHot: input file not found or is corrupted " << line.c_str() << std::endl;
+        continue;
+      }
+      TH2F *tempHist = (TH2F *) fin->Get(inHist.c_str());
+      if (!tempHist)
+      {
+        std::cout << "emcNoisyTowerFinder::FindHot: input hist not found in file " << line.c_str() << std::endl;
+        delete fin;
+        continue;
+      }
+      if (!h_hits_eta_phi_adc)
+      {
+        h_hits_eta_phi_adc = (TH2F *) tempHist->Clone();
+        h_hits_eta_phi_adc->SetDirectory(nullptr);  // Detach from the file to keep it in memory
+      }
+      else
+      {
+        h_hits_eta_phi_adc->Add(tempHist);
+      }
+      delete fin;
+    }
+    fileList.close();
   }
-  h_hits_eta_phi_adc = (TH2F *) fin->Get(inHist.c_str());
-  if (!h_hits_eta_phi_adc)
+  else
   {
-    std::cout << "emcNoisyTowerFinder::FindHot: input hist not found " << inHist.c_str() << std::endl;
-    return;
+    TFile *fin = new TFile(infilename.c_str());
+    if (!fin || fin->IsZombie())
+    {
+      std::cout << "emcNoisyTowerFinder::FindHot: input file not found or is corrupted " << infilename.c_str() << std::endl;
+      return;
+    }
+    h_hits_eta_phi_adc = (TH2F *) fin->Get(inHist.c_str());
+    if (!h_hits_eta_phi_adc)
+    {
+      std::cout << "emcNoisyTowerFinder::FindHot: input hist not found " << inHist.c_str() << std::endl;
+      delete fin;
+      return;
+    }
+    h_hits_eta_phi_adc->SetDirectory(nullptr);  // Detach from the file to keep it in memory
+    delete fin;
   }
 
+  if (!h_hits_eta_phi_adc)
+  {
+    std::cout << "emcNoisyTowerFinder::FindHot: no valid histogram found" << std::endl;
+    return;
+  }
   TH2F *h_hits = h_hits_eta_phi_adc;
 
   TFile *fout = new TFile(outfilename.c_str(), "recreate");
 
   TH2F *h_hot = new TH2F("h_hot", "", Neta, 0, Neta, Nphi, 0, Nphi);
+  TH2F *h_hitClean;  // = new TH2F("h_hitClean", "", Neta, 0, Neta, Nphi, 0, Nphi);
   TH2F *h_heatSigma = new TH2F("h_heatSigma", "", Neta, 0, Neta, Nphi, 0, Nphi);
+  TH1F *h_perMedian = new TH1F("h_perMedian", "", 500, 0, 5);
   TH1F *h1_hits[Neta];
   TH1F *h1_hits2[Neta];
+  h_hits->Write();
+  h_hitClean = (TH2F *) h_hits->Clone("h_hitClean");
 
   float max = h_hits->GetBinContent(h_hits->GetMaximumBin());
   float min = h_hits->GetMinimum();
@@ -170,39 +225,44 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
   {
     h1_hits[ie] = new TH1F((std::string("h1_hits") + std::to_string(ie)).c_str(), "", 200, min, max);
     h1_hits2[ie] = new TH1F((std::string("h1_hits2_") + std::to_string(ie)).c_str(), "", 200, min, max);
-    for (int iphi = 0; iphi < 256; iphi++)
+    std::vector<float> vals;
+    for (int iphi = 0; iphi < Nphi; iphi++)
     {
-      h1_hits[ie]->Fill(h_hits->GetBinContent(ie + 1, iphi + 1));
+      float val = h_hits->GetBinContent(ie + 1, iphi + 1);
+      h1_hits[ie]->Fill(val);
+      vals.push_back(val);
     }
 
+    float median = findMedian(vals);
     float mean = h1_hits[ie]->GetMean();
     float std = h1_hits[ie]->GetStdDev();
     for (int iphi = 0; iphi < Nphi; iphi++)
     {
       float val = h_hits->GetBinContent(ie + 1, iphi + 1);
-      if (std::fabs(mean - val) / std > 3)
+      if (val / median > 5 || val / median < 0.1)
       {
         continue;
       }
       h1_hits2[ie]->Fill(val);
     }
-    mean = h1_hits[ie]->GetMean();
-    std = h1_hits[ie]->GetStdDev();
+    mean = h1_hits2[ie]->GetMean();
+    std = h1_hits2[ie]->GetStdDev();
     for (int iphi = 0; iphi < Nphi; iphi++)
     {
       h_hot->SetBinContent(ie + 1, iphi + 1, 0);
       float val = h_hits->GetBinContent(ie + 1, iphi + 1);
+      h_perMedian->Fill(val / median);
       float sigma = (val - mean) / std;
       h_heatSigma->SetBinContent(ie + 1, iphi + 1, sigma);
       if (sigma > sigma_bad_thresh)  // hot tower
       {
         h_hot->SetBinContent(ie + 1, iphi + 1, 2);
-        h_hits->SetBinContent(ie + 1, iphi + 1, 0);
+        h_hitClean->SetBinContent(ie + 1, iphi + 1, 0);
       }
-      if (sigma < -1 * sigma_bad_thresh || val < mean * percent_cold_thresh)  // cold tower
+      if ((sigma < -1 * sigma_bad_thresh || val < mean * percent_cold_thresh) && val != 0)  // cold tower
       {
         h_hot->SetBinContent(ie + 1, iphi + 1, 3);
-        h_hits->SetBinContent(ie + 1, iphi + 1, 0);
+        h_hitClean->SetBinContent(ie + 1, iphi + 1, 0);
       }
       if (val == 0)  // dead tower
       {
@@ -210,6 +270,8 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
       }
     }
   }
+  h_hitClean->Write();
+
   fout->Write();
 
   ////////////////////////////////////////////
@@ -220,11 +282,15 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
 
   CDBTTree *cdbttree_out = new CDBTTree(f_cdbout_name.c_str());
   std::string m_fieldname_out = "status";
-  for (int i = 0; i < 96; i++)
+  for (int i = 0; i < Neta; i++)
   {
-    for (int j = 0; j < 256; j++)
+    for (int j = 0; j < Nphi; j++)
     {
       unsigned int key = TowerInfoDefs::encode_emcal(i, j);
+      if (Neta == 24)
+      {
+        key = TowerInfoDefs::encode_hcal(i, j);
+      }
       int val = h_hot->GetBinContent(i + 1, j + 1);
       float sigma = h_heatSigma->GetBinContent(i + 1, j + 1);
       cdbttree_out->SetIntValue(key, m_fieldname_out, val);
@@ -268,3 +334,23 @@ int emcNoisyTowerFinder::EndRun(int runnumber)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________
+
+float emcNoisyTowerFinder::findMedian(const std::vector<float> &arr)
+{
+  if (arr.empty())
+  {
+    return std::numeric_limits<float>::quiet_NaN();  // Return NaN if the array is empty
+  }
+  std::vector<float> sortedArr = arr;
+  std::sort(sortedArr.begin(), sortedArr.end());
+
+  size_t n = sortedArr.size();
+  if (n % 2 == 0)
+  {
+    return (sortedArr[n / 2 - 1] + sortedArr[n / 2]) / 2.0;
+  }
+  else
+  {
+    return sortedArr[n / 2];
+  }
+}

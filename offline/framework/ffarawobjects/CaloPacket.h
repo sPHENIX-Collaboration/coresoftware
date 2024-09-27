@@ -16,9 +16,9 @@ class CaloPacket : public OfflinePacketv1
   }
   ~CaloPacket() override = default;
 
-  virtual int getMaxNumChannels() const {return 0;}
-virtual int getMaxNumSamples() const {return 0;}
-virtual int getMaxNumModules() const {return 0;}
+  virtual int getMaxNumChannels() const { return 0; }
+  virtual int getMaxNumSamples() const { return 0; }
+  virtual int getMaxNumModules() const { return 0; }
 
   virtual void setFemClock(int /*i*/, uint32_t /*clk*/) { return; }
   virtual uint32_t getFemClock(int /*i*/) const { return std::numeric_limits<uint32_t>::max(); }
@@ -26,14 +26,14 @@ virtual int getMaxNumModules() const {return 0;}
   virtual int getFemEvtSequence(int /*i*/) const { return std::numeric_limits<int>::max(); }
   virtual void setFemSlot(int /*i*/, int /*j*/) { return; }
   virtual int getFemSlot(int /*i*/) const { return std::numeric_limits<int>::max(); }
-  virtual void setChecksumLsb(int, int) {return; }
-  virtual int getChecksumLsb(int) const {return 0; }
-  virtual void setChecksumMsb(int, int)  {return; }
-  virtual int getChecksumMsb(int) const  {return 0; }
-  virtual void setCalcChecksumLsb(int, int) {return; }
-  virtual int getCalcChecksumLsb(int) const {return 0;}
-  virtual void setCalcChecksumMsb(int, int) {return;}
-  virtual int getCalcChecksumMsb(int) const {return 0;}
+  virtual void setChecksumLsb(int, int) { return; }
+  virtual int getChecksumLsb(int) const { return 0; }
+  virtual void setChecksumMsb(int, int) { return; }
+  virtual int getChecksumMsb(int) const { return 0; }
+  virtual void setCalcChecksumLsb(int, int) { return; }
+  virtual int getCalcChecksumLsb(int) const { return 0; }
+  virtual void setCalcChecksumMsb(int, int) { return; }
+  virtual int getCalcChecksumMsb(int) const { return 0; }
 
   virtual void setSample(int /*ipmt*/, int /*ichan*/, uint32_t /*val*/) { return; }
   virtual uint32_t getSample(int /*ipmt*/, int /*ichan*/) const { return std::numeric_limits<uint32_t>::max(); }
@@ -57,12 +57,12 @@ virtual int getMaxNumModules() const {return 0;}
   virtual int getModuleAddress() const { return std::numeric_limits<int>::max(); }
   virtual void setDetId(int /*i*/) { return; }
   virtual int getDetId() const { return std::numeric_limits<int>::max(); }
-  virtual void setSuppressed(int /*channel*/, bool /*bb*/) {return;}
-  virtual bool getSuppressed(int /*channel*/) const {return false;}
-  virtual void setPre(int /*channel*/, uint32_t /*ival*/) {return;}
-  virtual uint32_t getPre(int /*channel*/) const {return  std::numeric_limits<uint32_t>::max();}
-  virtual void setPost(int /*channel*/, uint32_t /*ival*/) {return;}
-  virtual uint32_t getPost(int /*channel*/) const {return  std::numeric_limits<uint32_t>::max();}
+  virtual void setSuppressed(int /*channel*/, bool /*bb*/) { return; }
+  virtual bool getSuppressed(int /*channel*/) const { return false; }
+  virtual void setPre(int /*channel*/, uint32_t /*ival*/) { return; }
+  virtual uint32_t getPre(int /*channel*/) const { return std::numeric_limits<uint32_t>::max(); }
+  virtual void setPost(int /*channel*/, uint32_t /*ival*/) { return; }
+  virtual uint32_t getPost(int /*channel*/) const { return std::numeric_limits<uint32_t>::max(); }
 
  private:
   ClassDefOverride(CaloPacket, 1)

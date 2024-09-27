@@ -1,8 +1,9 @@
 #ifndef TOWERINFOV4_H
 #define TOWERINFOV4_H
 
-#include "TowerInfo.h"
 #include "TowerInfov1.h"
+
+#include <cmath>
 
 class TowerInfov4 : public TowerInfo
 {
@@ -18,7 +19,7 @@ class TowerInfov4 : public TowerInfo
   float get_energy() override { return energy; }
 
   void set_time(short t) override { time = (t * 1000); }
-  short get_time() override { return ((float) time)/ 1000; }
+  short get_time() override { return ((float) time) / 1000; }
 
   void set_time_float(float t) override { time = t * 1000; }
   float get_time_float() override { return time / 1000.; }
@@ -60,7 +61,10 @@ class TowerInfov4 : public TowerInfo
   void set_isZS(bool isZS) override { set_status_bit(5, isZS); }
   bool get_isZS() const override { return get_status_bit(5); }
 
-  bool get_isGood() const override { return !((bool) status); }
+  void set_isRecovered(bool isRecovered) override { set_status_bit(6, isRecovered); }
+  bool get_isRecovered() const override { return get_status_bit(6); }
+
+  bool get_isGood() const override { return !(get_isHot() || get_isBadChi2() || get_isNoCalib()); }
 
   uint8_t get_status() const override { return status; }
 

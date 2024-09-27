@@ -2,15 +2,13 @@
 #define TRACKRECO_PHTPCRESIDUALS_H
 
 #include <fun4all/SubsysReco.h>
-#include <tpc/TpcDistortionCorrection.h>
-#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 #include <trackbase/ActsGeometry.h>
-#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
 
-#include <Acts/Utilities/Result.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/Utilities/Result.hpp>
 
 #include <memory>
 #include <optional>
@@ -35,9 +33,7 @@ class TTree;
  */
 class PHTpcResiduals : public SubsysReco
 {
-
  public:
-
   PHTpcResiduals(const std::string &name = "PHTpcResiduals");
   ~PHTpcResiduals() override = default;
 
@@ -49,72 +45,79 @@ class PHTpcResiduals : public SubsysReco
   ///@name Option for setting distortion correction calculation limits
   //@{
   void setMaxTrackAlpha(float maxTAlpha)
-  { m_maxTAlpha = maxTAlpha;}
+  {
+    m_maxTAlpha = maxTAlpha;
+  }
 
   void setMaxTrackBeta(float maxTBeta)
-  { m_maxTBeta = maxTBeta; }
+  {
+    m_maxTBeta = maxTBeta;
+  }
 
   void setMaxTrackResidualDrphi(float maxResidualDrphi)
-  { m_maxResidualDrphi = maxResidualDrphi;}
+  {
+    m_maxResidualDrphi = maxResidualDrphi;
+  }
 
   void setMaxTrackResidualDz(float maxResidualDz)
-  { m_maxResidualDz = maxResidualDz; }
+  {
+    m_maxResidualDz = maxResidualDz;
+  }
   //@}
 
   /// track min pT
-  void setMinPt( double value )
-  { m_minPt = value; }
+  void setMinPt(double value)
+  {
+    m_minPt = value;
+  }
 
   /// Grid dimensions
   void setGridDimensions(const int phiBins, const int rBins, const int zBins);
 
   /// set to true to store evaluation histograms and ntuples
-  void setSavehistograms( bool ) {}
+  void setSavehistograms(bool) {}
 
   /// output file name for evaluation histograms
-  void setHistogramOutputfile(const std::string&) {}
+  void setHistogramOutputfile(const std::string &) {}
 
   /// output file name for storing the space charge reconstruction matrices
   void setOutputfile(const std::string &outputfile)
-  {m_outputfile = outputfile;}
+  {
+    m_outputfile = outputfile;
+  }
 
   /// require micromegas to be present when extrapolating tracks to the TPC
-  void setUseMicromegas( bool value )
-  { m_useMicromegas = value; }
+  void setUseMicromegas(bool value)
+  {
+    m_useMicromegas = value;
+  }
 
-  private:
-
+ private:
   using BoundTrackParam =
-    const Acts::BoundTrackParameters;
+      const Acts::BoundTrackParameters;
 
   /// pairs path length and track parameters
-  using BoundTrackParamPair = std::pair<float,BoundTrackParam>;
+  using BoundTrackParamPair = std::pair<float, BoundTrackParam>;
 
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
-  /// get global position for a given cluster
-  /**
-   * uses ActsTransformation to convert cluster local position into global coordinates
-   */
-  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing) const;
-
   int processTracks(PHCompositeNode *topNode);
 
-  bool checkTrack(SvtxTrack* track) const;
-  void processTrack(SvtxTrack* track);
+  bool checkTrack(SvtxTrack *track) const;
+  void processTrack(SvtxTrack *track);
 
   /// fill track state from bound track parameters
-  void addTrackState( SvtxTrack* track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters& params );
+  void addTrackState(SvtxTrack *track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters &params);
 
   /// Gets distortion cell for identifying bins in TPC
-  int getCell(const Acts::Vector3& loc);
+  int getCell(const Acts::Vector3 &loc);
 
   //! create ACTS track parameters from Svtx track
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* ) const;
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack *) const;
 
   //! create ACTS track parameters from Svtx track state
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack*, SvtxTrackState* ) const;
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack *, SvtxTrackState *) const;
 
   /// acts transformation
   ActsTransformations m_transformer;
@@ -125,37 +128,26 @@ class PHTpcResiduals : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
 
-  // crossing z correction
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-
-  // distortion corrections
-  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
-  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
-  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
-
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection m_distortionCorrection;
+  //! tpc global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   float m_maxTAlpha = 0.6;
-  float m_maxResidualDrphi = 0.5; // cm
+  float m_maxResidualDrphi = 0.5;  // cm
   float m_maxTBeta = 1.5;
-  float m_maxResidualDz = 0.5; // cm
+  float m_maxResidualDz = 0.5;  // cm
 
   static constexpr float m_phiMin = 0;
   static constexpr float m_phiMax = 2. * M_PI;
 
-  static constexpr float m_rMin = 20; // cm
-  static constexpr float m_rMax = 78; // cm
+  static constexpr float m_rMin = 20;  // cm
+  static constexpr float m_rMax = 78;  // cm
 
   static constexpr int m_minClusCount = 10;
 
   /// Tpc geometry
   static constexpr unsigned int m_nLayersTpc = 48;
-  static constexpr float m_zMin = -105.5; // cm
-  static constexpr float m_zMax = 105.5;  // cm
-
-  /// cluster error parametrisation
-  ClusterErrorPara m_cluster_error_parametrization;
+  static constexpr float m_zMin = -105.5;  // cm
+  static constexpr float m_zMax = 105.5;   // cm
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
@@ -180,8 +172,6 @@ class PHTpcResiduals : public SubsysReco
   int m_total_clusters = 0;
   int m_accepted_clusters = 0;
   //@}
-
 };
 
 #endif
-

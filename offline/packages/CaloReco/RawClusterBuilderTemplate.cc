@@ -351,7 +351,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   bemc->SetProbNoiseParam(fProbNoiseParam);
   bemc->SetProfileProb(bProfProb);
 
-  _clusters->Reset(); // make sure cluster container is empty before filling it with new clusters 
+  _clusters->Reset();  // make sure cluster container is empty before filling it with new clusters
 
   // Define vector of towers in EmcModule format to input into BEmc
   EmcModule vhit;
@@ -485,6 +485,10 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     {
       // Cluster energy
       ecl = pp->GetTotalEnergy();
+      if (ecl < m_min_cluster_e)
+      {
+        continue;
+      }
       ecore = pp->GetECoreCorrected();
       // 3x3 energy around center of gravity
       // e9 = pp->GetE9();
@@ -624,10 +628,7 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
     cemcNode = new PHCompositeNode(detector);
     dstNode->addNode(cemcNode);
   }
-
-  _clusters = new RawClusterContainer();
   ClusterNodeName = "CLUSTER_" + detector;
-
   if (!m_outputnodename.empty())
   {
     ClusterNodeName = m_outputnodename;
@@ -636,6 +637,11 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
   {
     ClusterNodeName = "CLUSTERINFO_" + detector;
   }
+  _clusters = findNode::getClass<RawClusterContainer>(dstNode, ClusterNodeName);
+  if (!_clusters)
+  {
+    _clusters = new RawClusterContainer();
+  }
 
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   cemcNode->addNode(clusterNode);
@@ -643,29 +649,29 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
 
 bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower)
 {
-  if(tower->get_energy() < _min_tower_e)
+  if (tower->get_energy() < _min_tower_e)
   {
     return false;
   }
 
-  if(m_do_tower_selection)
+  if (m_do_tower_selection)
   {
-    if(tower->get_isBadTime())
+    if (tower->get_isBadTime())
     {
       return false;
     }
 
-    if(tower->get_isHot())
+    if (tower->get_isHot())
     {
       return false;
     }
 
-    if(tower->get_isBadChi2())
+    if (tower->get_isBadChi2())
     {
       return false;
     }
 
-    if(tower->get_isNotInstr())
+    if (tower->get_isNotInstr())
     {
       return false;
     }
@@ -675,7 +681,7 @@ bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower)
 
 bool RawClusterBuilderTemplate::IsAcceptableTower(RawTower *tower)
 {
-  if(tower->get_energy() < _min_tower_e)
+  if (tower->get_energy() < _min_tower_e)
   {
     return false;
   }

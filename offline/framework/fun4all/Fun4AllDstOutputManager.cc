@@ -275,7 +275,8 @@ int Fun4AllDstOutputManager::outfile_open_first_write()
     {
       fullpath = p.parent_path();
     }
-    std::string runseg = boost::str(boost::format("-%08d-%04d") % runnumber % m_CurrentSegment);
+    std::string runseg = (boost::format("-%08d-%05d") % runnumber % m_CurrentSegment).str();
+//    std::string runseg = (boost::format(FileRule()) % runnumber % m_CurrentSegment).str();
     std::string newfile = fullpath + std::string("/") + m_FileNameStem + runseg + std::string(p.extension());
     OutFileName(newfile);
     m_CurrentSegment++;

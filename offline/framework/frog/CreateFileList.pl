@@ -11,8 +11,9 @@ use List::Util qw(shuffle);
 sub commonfiletypes;
 sub fill_nocombine_files;
 sub print_single_types;
+sub print_runs;
 
-my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
+my $dbh = DBI->connect("dbi:ODBC:FileCatalog_read") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
 
 my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\' and dsttype <> 'beam' and dsttype <> 'cosmic' and dataset = 'mdc2'");
@@ -73,6 +74,7 @@ my %pileupdesc = (
     "3" => "10kHz for Au+Au",
     "4" => "1MHz for pp 100us streaming",
     "5" => "2MHz for pp 20us streaming",
+    ">5" => "pileup rate in kHz"
     );
 
 my $nEvents;
@@ -80,7 +82,7 @@ my $start_segment;
 my $last_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 7;
+my $runnumber;
 my $verbose;
 my $nopileup;
 my $embed;
@@ -136,7 +138,12 @@ my $AuAu_pileupstring;
 my $pp_pileupstring;
 my $pAu_pileupstring;
 my $pileupstring;
-
+if (! defined $runnumber && $#newargs >= 0)
+{
+    print "\nyou need to give a runnumber with -run <runnumber>\n";
+    print_runs();
+    exit(1);
+}
 if (defined $embed && defined $nopileup)
 {
     print "--embed and --nopileup flags do not work together, it does not make sense\n";
@@ -164,11 +171,10 @@ elsif ($pileup == 5)
 {
     $pp_pileupstring = sprintf("2MHz");
 }
-
 else
 {
-    print "invalid pileup option $pileup\n";
-    exit(1);
+    $pp_pileupstring = sprintf("%dkHz",$pileup);
+    $AuAu_pileupstring = sprintf("%dkHz",$pileup);
 }
 
 my $embedok = 0;
@@ -725,7 +731,7 @@ if ($#ARGV < 0)
 	print "-n     : <number of events>\n";
 	print "-nopileup : without pileup\n";
 	print "-rand  : randomize segments used\n";
-	print "-run   : runnumber (default = $runnumber)\n";
+	print "-run   : runnumber (mandatory, no default anymore)\n";
 	print "-s     : starting segment (remember first segment is 0)\n";
 	print "\n-type  : production type\n";
 	foreach my $pd (sort { $a <=> $b } keys %proddesc)
@@ -1169,4 +1175,17 @@ sub print_special_types
     {
 	    print "$name\n";
     }
+}
+
+sub print_runs
+{
+    my $getrunnumbers = $dbh->prepare("select distinct(runnumber) from datasets where dataset = 'mdc2' order by runnumber");
+    $getrunnumbers->execute();
+    print "Available Runs (check our wiki for more details for each runnumber):\n";
+    while(my @res = $getrunnumbers->fetchrow_array())
+    {
+	print "$res[0]\n";
+    }
+    print "NB: Not all DSTs are available for all runs\n";
+    $getrunnumbers->finish();
 }
