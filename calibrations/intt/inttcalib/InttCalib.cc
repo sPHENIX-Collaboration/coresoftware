@@ -74,8 +74,11 @@ int InttCalib::InitRun(PHCompositeNode * /*unused*/) {
     // exit(1);
   }
   for (int i = 0; i < 8; i++) {
-    m_bunch[i] = new TH2D(Form("hist_%d", i), Form("Hist_%d", i), 200, -50, 150,
-                          200, -50, 150);
+    m_bunch[i] = new TH2D (
+      (boost::format("hist_%01d") % i).str().c_str(),
+      (boost::format("Hist_%01d") % i).str().c_str(),
+      200, -50, 150,
+      200, -50, 150);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -87,7 +90,7 @@ int InttCalib::process_event(PHCompositeNode *top_node) {
   }
 
   Gl1Packet *gl1 = findNode::getClass<Gl1Packet>(top_node, "GL1RAWHIT");
-  uint64_t gl1_bco = (gl1 != nullptr) ? (gl1->getBCO() & 0xFFFFFFFFFF)
+  uint64_t gl1_bco = (gl1 != nullptr) ? (gl1->getBCO() & 0xFFFFFFFFFFU)
                                       : std::numeric_limits<uint64_t>::max();
   int gl1_bunch = (gl1 != nullptr) ? gl1->getBunchNumber() : -1;
   if (false) {
@@ -150,10 +153,14 @@ int InttCalib::process_event(PHCompositeNode *top_node) {
     // Not use the hit from abort gap region
     if (m_streaming && ((intt_raw_hit->get_FPHX_BCO() > 116) ||
                         (intt_raw_hit->get_FPHX_BCO() < 5)))
+    {
       bco_diff = -999;
+    }
 
     if (bco_diff > -1)
+    {
       ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco_diff];
+    }
     ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128];
     m_bunch[raw.pid - 3001]->Fill(gl1_bunch, intt_raw_hit->get_FPHX_BCO());
   }
@@ -438,12 +445,14 @@ int InttCalib::MakeHotMapPng_v3() {
                       // (j % 4 + 0.0) / 4.0 * 0.9 + 0.0, (1.0 - j / 4) / 2.0 *
                       // 0.9 + 0.1, // (j % 4 + 1.0) / 4.0 * 0.9 + 0.0, (2.0 - j
                       // / 4) / 2.0 * 0.9 + 0.1  //
-                      // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0,
-        (1.0 - j / 4) / 2.0 * 0.9 +
-            0.1, //
                  // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, (2.0 - j / 4) / 2.0 * 0.9 + 0.1 //
+        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (1.0 - j / 4) / 2.0 * 0.9 + 0.1, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
     );
 
     hist_pad->SetFillStyle(4000);
@@ -571,12 +580,14 @@ int InttCalib::MakeHotMapPng_v2() {
                       // (j % 4 + 0.0) / 4.0 * 0.9 + 0.0, (1.0 - j / 4) / 2.0 *
                       // 0.9 + 0.1, // (j % 4 + 1.0) / 4.0 * 0.9 + 0.0, (2.0 - j
                       // / 4) / 2.0 * 0.9 + 0.1  //
-                      // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0,
-        (1.0 - j / 4) / 2.0 * 0.9 +
-            0.1, //
                  // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, (2.0 - j / 4) / 2.0 * 0.9 + 0.1 //
+        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (1.0 - j / 4) / 2.0 * 0.9 + 0.1, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
     );
 
     hist_pad->SetFillStyle(4000);
@@ -1214,7 +1225,7 @@ int InttCalib::MakeBcoMapPng() {
   // Iterate through the map and create the output text
   for (const auto &entry : maskedLadders) {
     maskedText << "INTT " << entry.first << "(FC "; // Fee numbering starts at 1
-    for (auto j = 0u; j < entry.second.size(); ++j) {
+    for (auto j = 0U; j < entry.second.size(); ++j) {
       maskedText << entry.second[j];
       if (j != entry.second.size() - 1) {
         maskedText << ","; // Add commas between FC values
@@ -1513,7 +1524,9 @@ InttCalib::CalculateStandardDeviation(const std::vector<int> &data) {
   int count = 0;
   for (int i : data) {
     if (i == 0)
+    {
       continue; // do not include maksed ladder for std calculation
+    }
     sumSquaredDiffs += (i - mean) * (i - mean);
     count++;
   }
