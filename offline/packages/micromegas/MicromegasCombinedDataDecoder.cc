@@ -24,6 +24,17 @@
 #include <cassert>
 #include <memory>
 
+namespace
+{
+  /*
+   * returns true if a given channel for a given FEE is permanently masked
+   * for now all channels from 128 to 255, for FEE 8 (SCOZ) are masked
+   */
+  bool channel_is_permanently_masked( int fee_id, int channel )
+  { return fee_id==8 && channel>=128; }
+
+}
+
 //_________________________________________________________
 MicromegasCombinedDataDecoder::MicromegasCombinedDataDecoder(const std::string& name)
   : SubsysReco(name)
@@ -151,6 +162,12 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
     const int fee = m_mapping.get_new_fee_id(rawhit->get_fee());
     const auto channel = rawhit->get_channel();
     const int samples = rawhit->get_samples();
+
+    // check if channel is permanently masked
+    if( channel_is_permanently_masked(fee, channel ))
+    {
+      continue;
+    }
 
     // map fee and channel to physical hitsetid and physical strip
     // get hitset key matching this fee
