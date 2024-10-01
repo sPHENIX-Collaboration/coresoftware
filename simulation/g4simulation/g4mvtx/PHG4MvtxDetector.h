@@ -96,7 +96,7 @@ class PHG4MvtxDetector : public PHG4Detector
   std::array<double, n_Layers> m_nominal_phi0{};
 
   // For modified geometry
-  bool apply_misalignment = false; 
+  bool apply_misalignment = false;
   double m_GlobalDisplacementX = 0.0;
   double m_GlobalDisplacementY = 0.0;
   double m_GlobalDisplacementZ = 0.0;

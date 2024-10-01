@@ -5,17 +5,17 @@
 
 #include <array>
 #include <cmath>
+#include <cstdio>
+#include <fstream>
+#include <iostream>
 #include <map>
+#include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <tuple>
-#include <vector>
-#include <cstdio>
-#include <iostream>
-#include <fstream>
-#include <memory>
-#include <sstream>
 #include <utility>
+#include <vector>
 
 class PHG4MvtxMisalignment
 {
@@ -26,13 +26,12 @@ class PHG4MvtxMisalignment
   std::vector<double> get_GlobalDisplacement();
 
  private:
-  std::string mvtxStaveAlignParamsFile = "./MvtxStaveAlignmentParameters_Run2024.txt"; //TODO: either put this text file in CDB or create CDBTree)
+  std::string mvtxStaveAlignParamsFile = "./MvtxStaveAlignmentParameters_Run2024.txt";  // TODO: either put this text file in CDB or create CDBTree)
   double m_GlobalDisplacementX = 0.;
   double m_GlobalDisplacementY = 0.;
   double m_GlobalDisplacementZ = 0.;
 
   void LoadMvtxStaveAlignmentParameters();
-
 };
 
 #endif

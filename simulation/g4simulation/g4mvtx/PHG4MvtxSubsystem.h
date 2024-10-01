@@ -45,7 +45,7 @@ class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
 
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
-  void Apply_Misalignment (bool b) {m_ApplyMisalignment = b;}
+  void Apply_Misalignment(bool b) { m_ApplyMisalignment = b; }
 
  private:
   void SetDefaultParameters() override;

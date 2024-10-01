@@ -49,7 +49,7 @@ class PHG4MvtxSupport
   G4AssemblyVolume *m_avBarrelCable{nullptr};
   std::array<G4AssemblyVolume *, PHG4MvtxDefs::kNLayers> m_avLayerCable{nullptr, nullptr, nullptr};
 
-  bool m_overlapCheck {false};
+  bool m_overlapCheck{false};
 };
 
 #endif
