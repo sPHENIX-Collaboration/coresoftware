@@ -1,4 +1,4 @@
-#include "SingleTpcPoolInput.h"
+#include "SingleTpcTimeFrameInput.h"
 #include "TpcTimeFrameBuilder.h"
 
 #include "Fun4AllStreamingInputManager.h"
@@ -24,14 +24,14 @@
 
 const int NTPCPACKETS = 3;
 
-SingleTpcPoolInput::SingleTpcPoolInput(const std::string &name)
+SingleTpcTimeFrameInput::SingleTpcTimeFrameInput(const std::string &name)
   : SingleStreamingInput(name)
 {
   SubsystemEnum(InputManagerType::TPC);
   plist = new Packet *[NTPCPACKETS];
 }
 
-SingleTpcPoolInput::~SingleTpcPoolInput()
+SingleTpcTimeFrameInput::~SingleTpcTimeFrameInput()
 {
   delete[] plist;
 
@@ -48,7 +48,7 @@ SingleTpcPoolInput::~SingleTpcPoolInput()
   }
 }
 
-void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
+void SingleTpcTimeFrameInput::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -255,7 +255,7 @@ void SingleTpcPoolInput::FillPool(const unsigned int /*nbclks*/)
   //  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
 }
 
-void SingleTpcPoolInput::Print(const std::string &what) const
+void SingleTpcTimeFrameInput::Print(const std::string &what) const
 {
   // if (what == "ALL" || what == "FEE")
   // {
@@ -306,7 +306,7 @@ void SingleTpcPoolInput::Print(const std::string &what) const
   // }
 }
 
-void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
+void SingleTpcTimeFrameInput::CleanupUsedPackets(const uint64_t bclk)
 {
   if (Verbosity() > 2)
   {
@@ -348,7 +348,7 @@ void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
   // }
 }
 
-// bool SingleTpcPoolInput::CheckPoolDepth(const uint64_t bclk)
+// bool SingleTpcTimeFrameInput::CheckPoolDepth(const uint64_t bclk)
 // {
 //   // if (m_FEEBclkMap.size() < 10)
 //   // {
@@ -375,9 +375,9 @@ void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
 //   return true;
 // }
 
-void SingleTpcPoolInput::ClearCurrentEvent()
+void SingleTpcTimeFrameInput::ClearCurrentEvent()
 {
-  std::cout << "SingleTpcPoolInput::ClearCurrentEvent() - deprecated " << std::endl;
+  std::cout << "SingleTpcTimeFrameInput::ClearCurrentEvent() - deprecated " << std::endl;
   exit(1);
 
   // // called interactively, to get rid of the current event
@@ -389,7 +389,7 @@ void SingleTpcPoolInput::ClearCurrentEvent()
   return;
 }
 
-// bool SingleTpcPoolInput::GetSomeMoreEvents()
+// bool SingleTpcTimeFrameInput::GetSomeMoreEvents()
 // {
 //   if (AllDone())
 //   {
@@ -438,7 +438,7 @@ void SingleTpcPoolInput::ClearCurrentEvent()
 //   // return true;
 // }
 
-void SingleTpcPoolInput::CreateDSTNode(PHCompositeNode *topNode)
+void SingleTpcTimeFrameInput::CreateDSTNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -463,7 +463,7 @@ void SingleTpcPoolInput::CreateDSTNode(PHCompositeNode *topNode)
   }
 }
 
-void SingleTpcPoolInput::ConfigureStreamingInputManager()
+void SingleTpcTimeFrameInput::ConfigureStreamingInputManager()
 {
   if (StreamingInputManager())
   {
