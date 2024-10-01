@@ -73,7 +73,7 @@ class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
   std::string m_HitNodeName;
   std::string m_SupportNodeName;
 
-  bool m_ApplyMisalignment{true};
+  bool m_ApplyMisalignment{false};
 };
 
 #endif

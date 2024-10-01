@@ -222,7 +222,7 @@ class MakeActsGeometry : public SubsysReco
   const float m_inttbarrelcenter_survey_y = -2.886627321428573 / 10.;
 
   // Switch for applying misalignment for mvtx
-  bool m_mvtxapplymisalign = true;
+  bool m_mvtxapplymisalign = false;
   std::vector<double> v_globaldisplacement = {0., 0., 0.};
 
   bool m_useField = true;
