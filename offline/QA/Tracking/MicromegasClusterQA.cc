@@ -30,11 +30,9 @@
 
 #include <boost/format.hpp>
 
-
 //_____________________________________________________________________
 namespace
 {
-
   //! range adaptor to be able to use range-based for loop
   template<class T> class range_adaptor
   {
@@ -45,6 +43,11 @@ namespace
     private:
     T m_range;
   };
+
+  static constexpr int m_max_cluster_count = 10;
+  static constexpr int m_max_cluster_size = 15;
+  static constexpr double m_max_cluster_charge = 5e3;
+
 }
 
 //____________________________________________________________________________..
@@ -101,7 +104,7 @@ int MicromegasClusterQA::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  createHistos();
+  create_histograms();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -143,24 +146,22 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
     // detector id
     const int detid = tile + MicromegasDefs::m_ntiles*(layer-m_firstlayer);
 
-    // get profile histogram
-    const auto h_profile = dynamic_cast<TH2 *>(hm->getHisto((boost::format("%sncluspertile%i_%i") % getHistoPrefix()%(layer-m_firstlayer)%tile).str()));
-
     // get clusters
     const auto cluster_range = m_cluster_map->getClusters(hitsetkey);
     cluster_count[detid] = std::distance( cluster_range.first, cluster_range.second );
 
+    // fill multiplicity histogram
+    m_h_cluster_multiplicity->Fill( detid, cluster_count[detid]);
+
     // loop over clusters
     for( const auto& [ckey,cluster]:range_adaptor(cluster_range))
     {
-      // fill profile
-      h_profile->Fill(cluster->getLocalY(), cluster->getLocalX());
-
       // find associated hits
       const auto hit_range = m_cluster_hit_map->getHits(ckey);
 
-      // store cluster size
-      // const int cluster_size = std::distance( hit_range.first, hit_range.second );
+      // store cluster size and fill cluster size histogram
+      const int cluster_size = std::distance( hit_range.first, hit_range.second );
+      m_h_cluster_size->Fill( detid, cluster_size);
 
       // calculate cluster charge
       double cluster_charge = 0;
@@ -181,6 +182,9 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
           m_calibration_data.get_pedestal_mapped(hitsetkey, strip);
         cluster_charge += (adc-pedestal);
       }
+
+      // fill cluster charge histogram
+      m_h_cluster_charge->Fill(detid, cluster_charge);
 
       // increment good clusters
       /*
@@ -210,11 +214,11 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
       if(good_cluster_count[detid_ref]==1 && cluster_count[detid_ref]==1)
       {
         // fill curent detector ref count
-        m_h_clustercount_ref->Fill(detid);
+        m_h_cluster_count_ref->Fill(detid);
 
         // if there is one or more cluster in the current detector, also fill good count
         if(cluster_count[detid])
-        { m_h_clustercount_found->Fill(detid); }
+        { m_h_cluster_count_found->Fill(detid); }
       }
     }
   }
@@ -227,44 +231,35 @@ int MicromegasClusterQA::EndRun(const int /*runnumber*/)
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //____________________________________________________________________________..
-std::string MicromegasClusterQA::getHistoPrefix() const
+std::string MicromegasClusterQA::get_histogram_prefix() const
 { return std::string("h_") + Name() + std::string("_"); }
 
 //____________________________________________________________________________..
-void MicromegasClusterQA::createHistos()
+void MicromegasClusterQA::create_histograms()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // cluster count histograms
   const int n_detectors = m_detector_names.size();
-  m_h_clustercount_ref = new TH1F( (boost::format("%sclustercount_ref") % getHistoPrefix()).str().c_str(), "reference cluster count", n_detectors, 0, n_detectors );
-  m_h_clustercount_found = new TH1F( (boost::format("%sclustercount_found") % getHistoPrefix()).str().c_str(), "found cluster count", n_detectors, 0, n_detectors );
+  m_h_cluster_count_ref = new TH1F( (boost::format("%sclustercount_ref") % get_histogram_prefix()).str().c_str(), "reference cluster count", n_detectors, 0, n_detectors );
+  m_h_cluster_count_found = new TH1F( (boost::format("%sclustercount_found") % get_histogram_prefix()).str().c_str(), "found cluster count", n_detectors, 0, n_detectors );
 
-  // cluster positions vs tile
+  // cluster multiplicity, size and charge distributions
+  m_h_cluster_multiplicity = new TH2F( (boost::format("%scluster_multiplicity") % get_histogram_prefix()).str().c_str(), "cluster multiplicity", n_detectors, 0, n_detectors, m_max_cluster_count, 0, m_max_cluster_count );
+  m_h_cluster_size = new TH2F( (boost::format("%scluster_size") % get_histogram_prefix()).str().c_str(), "cluster size", n_detectors, 0, n_detectors, m_max_cluster_size, 0, m_max_cluster_size );
+  m_h_cluster_charge = new TH2F( (boost::format("%scluster_charge") % get_histogram_prefix()).str().c_str(), "cluster charge", n_detectors, 0, n_detectors, 100, 0, m_max_cluster_charge );
+
+  // assign bin labels
   for( int i = 0; i < n_detectors; ++i )
   {
-    m_h_clustercount_ref->GetXaxis()->SetBinLabel(i+1, m_detector_names[i].c_str());
-    m_h_clustercount_found->GetXaxis()->SetBinLabel(i+1, m_detector_names[i].c_str());
+    for( TH1* h:std::vector<TH1*>({m_h_cluster_count_ref, m_h_cluster_count_found, m_h_cluster_multiplicity, m_h_cluster_size, m_h_cluster_charge}))
+    { h->GetXaxis()->SetBinLabel(i+1, m_detector_names[i].c_str()); }
   }
 
   // register
-  hm->registerHisto(m_h_clustercount_ref);
-  hm->registerHisto(m_h_clustercount_found);
-
-  // cluster positions vs tile
-  for( int layer = 0; layer < m_nlayers; ++layer )
-  {
-    for (int tile = 0; tile < MicromegasDefs::m_ntiles; tile++)
-    {
-      auto h = new TH2F(
-        (boost::format("%sncluspertile%i_%i") % getHistoPrefix() % layer% tile).str().c_str(),
-        "Micromegas clusters per tile", 2000, -30, 30, 2000, -20, 20);
-      h->GetXaxis()->SetTitle("Local x [cm]");
-      h->GetYaxis()->SetTitle("Local y [cm]");
-      hm->registerHisto(h);
-    }
-  }
+  for( TH1* h:std::vector<TH1*>({m_h_cluster_count_ref, m_h_cluster_count_found, m_h_cluster_multiplicity, m_h_cluster_size, m_h_cluster_charge}))
+  { hm->registerHisto(h); }
 
   return;
 }

@@ -980,6 +980,11 @@ int TpcCentralMembraneMatching::getClusterRMatch(double clusterR, int side)
 //____________________________________________________________________________..
 int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
 {
+  if(!m_fieldOn)
+  {
+    m_useHeader = false;
+  }
+
   if (m_savehistograms)
   {
     static constexpr float max_dr = 5.0;
@@ -1024,6 +1029,8 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     match_tree->Branch("recoR", &m_recoR);
     match_tree->Branch("recoPhi", &m_recoPhi);
     match_tree->Branch("recoZ", &m_recoZ);
+    match_tree->Branch("rawR", &m_rawR);
+    match_tree->Branch("rawPhi", &m_rawPhi);
     match_tree->Branch("side", &m_side);
     match_tree->Branch("adc", &m_adc);
     match_tree->Branch("nhits", &m_nhits);
@@ -1077,7 +1084,7 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     source.SetZ(+1);
     source.RotateZ(M_PI / 18);
     source.SetX(-1*source.X());
-    m_truth_pos.push_back(source);    
+    m_truth_pos.push_back(source);
     truth_r_phi[1]->Fill(source.Phi(), source.Perp());
 
   };
@@ -1252,6 +1259,7 @@ return ret;
 int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 {
   std::vector<TVector3> reco_pos;
+  std::vector<TVector3> raw_pos;
   std::vector<bool> reco_side;
   std::vector<unsigned int> reco_nhits;
   std::vector<unsigned int> reco_adc;
@@ -1272,9 +1280,16 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  if(m_useHeader && eventHeader->get_EvtSequence() == 0)
+  {
+    m_useHeader = false;
+  }
 
 
-  m_event_index = eventHeader->get_EvtSequence();
+  if(m_useHeader)
+  {
+    m_event_index = eventHeader->get_EvtSequence();
+  }
 
   if (Verbosity())
   {
@@ -1291,7 +1306,10 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
     if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 100)
     {
-      //m_event_index++;
+      if(!m_useHeader)
+      {
+	m_event_index++;
+      }
       return Fun4AllReturnCodes::EVENT_OK;
     }
   }
@@ -1338,10 +1356,12 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     }
 
     TVector3 tmp_pos(pos[0], pos[1], pos[2]);
+    TVector3 tmp_raw(cmclus->getX(), cmclus->getY(), cmclus->getZ());
 
     // if(nclus == 1 && isRGap) continue;
 
     reco_pos.push_back(tmp_pos);
+    raw_pos.push_back(tmp_raw);
     reco_side.push_back(side);
     reco_nhits.push_back(nhits);
     reco_adc.push_back(adc);
@@ -1382,7 +1402,10 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
   if (nClus_gtMin < 25)
   {
-    //m_event_index++;
+    if(!m_useHeader)
+    {
+      m_event_index++;
+    }
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
@@ -1430,7 +1453,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     }
 
 
-    
+
 
     for (const auto& truth : m_truth_pos)
     {
@@ -1550,7 +1573,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     }  // end loop over truth
 
     // loop again to find nearest neighbor for unmatched reco clusters
-    
+
     int recoIndex = 0;
     for (const auto& reco : reco_pos)
     {
@@ -1742,7 +1765,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
       reco_index++;
     } // end reco loop
-  
+
     truth_index = 0;
     for(const auto& truthIndex : truth_NNRecoIndex)
     {
@@ -1806,6 +1829,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       m_recoR = reco_pos[i].Perp();
       m_recoPhi = reco_pos[i].Phi();
       m_recoZ = reco_pos[i].Z();
+      m_rawR = raw_pos[i].Perp();
+      m_rawPhi = raw_pos[i].Phi();
       m_side = reco_side[i];
       m_adc = reco_adc[i];
       m_nhits = reco_nhits[i];
@@ -1819,7 +1844,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       m_IPhiWeightedSD = reco_SDWeightedIPhi[i];
       m_ITWeightedSD = reco_SDWeightedIT[i];
 
-      
+
       if (m_side)
       {
         m_lowShift = m_matchLow[1];
@@ -1967,7 +1992,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     }
   }
 
-  //m_event_index++;
+  if(!m_useHeader){
+    m_event_index++;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -2052,8 +2079,6 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
   // Get Objects off of the Node Tree
   //---------------------------------
 
-
-
   // m_corrected_CMcluster_map  = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER");
   m_corrected_CMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
   if (!m_corrected_CMcluster_map)
@@ -2062,27 +2087,25 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-
-
   // input tpc distortion correction module edge
   m_dcc_in_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
   if (m_dcc_in_module_edge)
   {
-    std::cout << "TpcCentralMembraneMatching:   found TPC distortion correction container module edge" << std::endl;
+    std::cout << "TpcCentralMembraneMatching::GetNodes - found TPC distortion correction container module edge" << std::endl;
   }
 
   // input tpc distortion correction static
   m_dcc_in_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
   if (m_dcc_in_static)
   {
-    std::cout << "TpcCentralMembraneMatching:   found TPC distortion correction container static" << std::endl;
+    std::cout << "TpcCentralMembraneMatching::GetNodes - found TPC distortion correction container static" << std::endl;
   }
 
   // input tpc distortion correction average
   m_dcc_in_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
   if (m_dcc_in_average)
   {
-    std::cout << "TpcCentralMembraneMatching:   found TPC distortion correction container average" << std::endl;
+    std::cout << "TpcCentralMembraneMatching::GetNodes - found TPC distortion correction container average" << std::endl;
   }
 
   PHNodeIterator iter(topNode);

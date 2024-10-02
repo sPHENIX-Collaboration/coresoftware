@@ -92,6 +92,12 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_doHadd = hadd;
   }
 
+  void set_event_sequence(int seq)
+  {
+    m_event_sequence = seq;
+    m_event_index = 100*seq;
+  }
+
   void set_grid_dimensions(int phibins, int rbins);
 
   //! run initialization
@@ -105,7 +111,7 @@ class TpcCentralMembraneMatching : public SubsysReco
 
  private:
   EventHeader *eventHeader{nullptr};
-  
+
   int GetNodes(PHCompositeNode *topNode);
 
   double getPhiRotation_smoothed(TH1 *hitHist, TH1 *clustHist, bool side);
@@ -115,20 +121,23 @@ class TpcCentralMembraneMatching : public SubsysReco
   void getRegionPhiRotation(bool side);
 
   int getClusterRMatch(double clusterR, int side);
-  /// tpc distortion correction utility class
+
+  //! tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
 
-  // CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
+  //! CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
   LaserClusterContainer *m_corrected_CMcluster_map{nullptr};
   CMFlashDifferenceContainer *m_cm_flash_diffs{nullptr};
 
-  /// static distortion container
+  //!@name distortion correction containers
+  //@{
   /** used in input to correct CM clusters before calculating residuals */
   TpcDistortionCorrectionContainer *m_dcc_in_module_edge{nullptr};
   TpcDistortionCorrectionContainer *m_dcc_in_static{nullptr};
   TpcDistortionCorrectionContainer *m_dcc_in_average{nullptr};
+  //@}
 
-  /// fluctuation distortion container
+  //! fluctuation distortion container
   /** used in output to write fluctuation distortions */
   TpcDistortionCorrectionContainer *m_dcc_out{nullptr};
 
@@ -176,7 +185,10 @@ class TpcCentralMembraneMatching : public SubsysReco
   //  TNtuple *match_ntup {nullptr};
   TTree *match_tree{nullptr};
 
+  bool m_useHeader{true};
+
   int m_event_index{0};
+  int m_event_sequence{0};
   bool m_matched{false};
   int m_truthIndex{0};
   float m_truthR{0.0};
@@ -184,6 +196,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   float m_recoR{0.0};
   float m_recoPhi{0.0};
   float m_recoZ{0.0};
+  float m_rawR{0.0};
+  float m_rawPhi{0.0};
   bool m_side{false};
   unsigned int m_adc{0};
   unsigned int m_nhits{0};

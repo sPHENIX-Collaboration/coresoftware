@@ -24,7 +24,13 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   explicit SingleMicromegasPoolInput(const std::string &name = "SingleMicromegasPoolInput");
   ~SingleMicromegasPoolInput() override;
   void FillPool(const unsigned int nevents = 1) override;
-  void CleanupUsedPackets(const uint64_t bclk) override;
+
+  void CleanupUsedPackets(const uint64_t bclk) override
+  { CleanupUsedPackets_with_qa(bclk,false); }
+
+  //! specialized verion of cleaning up packets, with an extra flag about wheter the cleanup hits are dropped or not
+  void CleanupUsedPackets_with_qa(const uint64_t bclk, bool /*dropped */);
+
   void ClearCurrentEvent() override;
   bool GetSomeMoreEvents();
   void Print(const std::string &what = "ALL") const override;
@@ -33,6 +39,9 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   void SetBcoRange(const unsigned int value) { m_BcoRange = value; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
+
+  //! define minimum pool size in terms of how many BCO are stored
+  void SetBcoPoolSize(const unsigned int value) { m_BcoPoolSize = value; }
 
   //! save some statistics for BCO QA
   void FillBcoQA(uint64_t /*gtm_bco*/);
@@ -45,6 +54,9 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
+
+  //! minimum number of BCO required in Micromegas Pools
+  unsigned int m_BcoPoolSize{1};
 
   //! store list of packets that have data for a given beam clock
   /**
@@ -79,8 +91,11 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   // keep track of total number of waveforms per packet
   std::map<int,uint64_t> m_waveform_count_total{};
 
-  // keep track of dropped waveforms per packet
-  std::map<int,uint64_t> m_waveform_count_dropped{};
+  // keep track of dropped waveforms per packet, due to BCO mismatched
+  std::map<int,uint64_t> m_waveform_count_dropped_bco{};
+
+  // keep track of dropped waveforms per packet, due to fun4all pool mismatch
+  std::map<int,uint64_t> m_waveform_count_dropped_pool{};
 
   //!@name QA histograms
   //@{
@@ -97,9 +112,12 @@ class SingleMicromegasPoolInput : public SingleStreamingInput
   //! total number of waveforms per packet
   TH1 *h_waveform_count_total{nullptr};
 
-  //! total number of dropped waveforms per packet
+  //! total number of dropped waveforms per packet due to bco mismatch
   /*! waveforms are dropped when their FEE-BCO cannot be associated to any global BCO */
-  TH1 *h_waveform_count_dropped{nullptr};
+  TH1 *h_waveform_count_dropped_bco{nullptr};
+
+  //! total number of dropped waveforms per packet due to fun4all pool mismatch
+  TH1 *h_waveform_count_dropped_pool{nullptr};
 
   //@}
 
