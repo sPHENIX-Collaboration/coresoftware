@@ -305,44 +305,43 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     // capture the input crossing value, and set crossing parameters
     //==============================
-    short silicon_crossing =  SHRT_MAX;  
+    short silicon_crossing = SHRT_MAX;
     auto siseed = m_siliconSeeds->get(siid);
-    if(siseed) 
-      {
-	silicon_crossing = siseed->get_crossing(); 
-      }
+    if (siseed)
+    {
+      silicon_crossing = siseed->get_crossing();
+    }
     short crossing = silicon_crossing;
     short int crossing_estimate = crossing;
 
-    if(m_enable_crossing_estimate)
-      {
-	crossing_estimate = track->get_crossing_estimate();  // geometric crossing estimate from matcher
-     }
+    if (m_enable_crossing_estimate)
+    {
+      crossing_estimate = track->get_crossing_estimate();  // geometric crossing estimate from matcher
+    }
     //===============================
-
 
     // must have silicon seed with valid crossing if we are doing a SC calibration fit
     if (m_fitSiliconMMs)
+    {
+      if ((siid == std::numeric_limits<unsigned int>::max()) || (silicon_crossing == SHRT_MAX))
       {
-	if( (siid == std::numeric_limits<unsigned int>::max()) || (silicon_crossing == SHRT_MAX))
-	  {
-	    continue;
-	  }
+        continue;
       }
+    }
 
     // do not skip TPC only tracks, just set crossing to the nominal zero
-    if(!siseed)
-      {
-	crossing = 0;
-      }
-    
+    if (!siseed)
+    {
+      crossing = 0;
+    }
+
     if (Verbosity() > 1)
     {
-      if(siseed)
-	{
-	  std::cout << "tpc and si id " << tpcid << ", " << siid << " silicon_crossing " << silicon_crossing 
-		    << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
-	}
+      if (siseed)
+      {
+        std::cout << "tpc and si id " << tpcid << ", " << siid << " silicon_crossing " << silicon_crossing
+                  << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
+      }
     }
 
     auto tpcseed = m_tpcSeeds->get(tpcid);
@@ -359,7 +358,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if (siseed)
       {
         std::cout << "    silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
-	std::cout << "    tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
+        std::cout << "    tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
       }
     }
 
@@ -369,8 +368,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     if (Verbosity() > 1 && siseed)
     {
-      std::cout << " m_pp_mode " << m_pp_mode << " m_enable_crossing_estimate " << m_enable_crossing_estimate 
-		<< " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
+      std::cout << " m_pp_mode " << m_pp_mode << " m_enable_crossing_estimate " << m_enable_crossing_estimate
+                << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
     }
 
     short int this_crossing = crossing;
@@ -379,34 +378,34 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     std::vector<float> chisq_ndf;
     std::vector<SvtxTrack_v4> svtx_vec;
 
-    if(m_pp_mode)
+    if (m_pp_mode)
+    {
+      if (m_enable_crossing_estimate && crossing == SHRT_MAX)
       {
-	if (m_enable_crossing_estimate && crossing == SHRT_MAX)
-	  {
-	    // this only happens if there is a silicon seed but no assigned INTT crossing, and only in pp_mode
-	    // If there is no INTT crossing, start with the crossing_estimate value, vary up and down, fit, and choose the best chisq/ndf
-	    use_estimate = true;
-	    nvary = max_bunch_search;
-	    if (Verbosity() > 1)
-	      {
-		std::cout << " No INTT crossing: use crossing_estimate " << crossing_estimate << " with nvary " << nvary << std::endl;
-	      }
-	  }
-	else
-	  {
-	    // use INTT crossing
-	    crossing_estimate = crossing;
-	  }
+        // this only happens if there is a silicon seed but no assigned INTT crossing, and only in pp_mode
+        // If there is no INTT crossing, start with the crossing_estimate value, vary up and down, fit, and choose the best chisq/ndf
+        use_estimate = true;
+        nvary = max_bunch_search;
+        if (Verbosity() > 1)
+        {
+          std::cout << " No INTT crossing: use crossing_estimate " << crossing_estimate << " with nvary " << nvary << std::endl;
+        }
       }
+      else
+      {
+        // use INTT crossing
+        crossing_estimate = crossing;
+      }
+    }
     else
+    {
+      // non pp mode, we want only crossing zero, veto others
+      if (siseed && silicon_crossing != 0)
       {
-	// non pp mode, we want only crossing zero, veto others
-	if(siseed && silicon_crossing != 0)
-	  {
-	    continue;
-	  }
-	crossing_estimate = crossing;
+        continue;
       }
+      crossing_estimate = crossing;
+    }
 
     // Fit this track assuming either:
     //    crossing = INTT value, if it exists (uses nvary = 0)
@@ -433,9 +432,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       // loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
       // does nothing if m_transient_id_set is empty
       makeSourceLinks.resetTransientTransformMap(
-        m_alignmentTransformationMapTransient,
-        m_transient_id_set,
-        m_tGeometry);
+          m_alignmentTransformationMapTransient,
+          m_transient_id_set,
+          m_tGeometry);
 
       // make source links using cluster mover
       if (m_use_clustermover)
@@ -444,22 +443,22 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         {
           // silicon source links
           sourceLinks = makeSourceLinks.getSourceLinksClusterMover(
-            siseed,
+              siseed,
+              measurements,
+              m_clusterContainer,
+              m_tGeometry,
+              m_globalPositionWrapper,
+              this_crossing);
+        }
+
+        // tpc source links
+        const auto tpcSourceLinks = makeSourceLinks.getSourceLinksClusterMover(
+            tpcseed,
             measurements,
             m_clusterContainer,
             m_tGeometry,
             m_globalPositionWrapper,
             this_crossing);
-        }
-
-        // tpc source links
-        const auto tpcSourceLinks = makeSourceLinks.getSourceLinksClusterMover(
-          tpcseed,
-          measurements,
-          m_clusterContainer,
-          m_tGeometry,
-          m_globalPositionWrapper,
-          this_crossing);
 
         // add silicon seeds
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
@@ -470,7 +469,19 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         {
           // silicon source links
           sourceLinks = makeSourceLinks.getSourceLinks(
-            siseed,
+              siseed,
+              measurements,
+              m_clusterContainer,
+              m_tGeometry,
+              m_globalPositionWrapper,
+              m_alignmentTransformationMapTransient,
+              m_transient_id_set,
+              this_crossing);
+        }
+
+        // tpc source links
+        const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
+            tpcseed,
             measurements,
             m_clusterContainer,
             m_tGeometry,
@@ -478,18 +489,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             m_alignmentTransformationMapTransient,
             m_transient_id_set,
             this_crossing);
-        }
-
-        // tpc source links
-        const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
-          tpcseed,
-          measurements,
-          m_clusterContainer,
-          m_tGeometry,
-          m_globalPositionWrapper,
-          m_alignmentTransformationMapTransient,
-          m_transient_id_set,
-          this_crossing);
 
         // insert silicons
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
@@ -506,7 +505,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         position(1) = siseed->get_y() * Acts::UnitConstants::cm;
         position(2) = siseed->get_z() * Acts::UnitConstants::cm;
       }
-      if(!siseed || !is_valid(position) || m_ignoreSilicon)
+      if (!siseed || !is_valid(position) || m_ignoreSilicon)
       {
         position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
         position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
@@ -514,7 +513,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
       if (!is_valid(position))
       {
-       if(Verbosity() > 4)
+        if (Verbosity() > 4)
         {
           std::cout << "Invalid position of " << position.transpose() << std::endl;
         }
@@ -568,7 +567,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::Vector3 momentum(px, py, pz);
       if (!is_valid(momentum))
       {
-        if(Verbosity() > 4)
+        if (Verbosity() > 4)
         {
           std::cout << "Invalid momentum of " << momentum.transpose() << std::endl;
         }
@@ -665,7 +664,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
           if (ivary != nvary)
           {
-            if(Verbosity() > 3)
+            if (Verbosity() > 3)
             {
               std::cout << "Skipping track fit for trial variation" << std::endl;
             }
