@@ -375,6 +375,7 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume *&lv)
   return 0;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void PHG4MvtxDetector::SetDisplayProperty(G4AssemblyVolume *av)
 {
   //  std::cout <<"SetDisplayProperty - G4AssemblyVolume w/ TotalImprintedVolumes "<<av->TotalImprintedVolumes()
