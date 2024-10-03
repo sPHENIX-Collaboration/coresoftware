@@ -707,12 +707,44 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
     }
     
   }
-  for(int i=0; i<7; i++)
+  for(int ilayer=0; ilayer<7; ilayer++)
   {
-    if(minResidLayer[i] < std::numeric_limits<float>::max())
+    if(minResidLayer[ilayer] < std::numeric_limits<float>::max())
     {
-      matchedClusters.push_back(minResidckey[i]);
-      clusters.push_back(minResidGlobPos[i]);
+      if(layer < 3)
+      {
+        matchedClusters.push_back(minResidckey[ilayer]);
+        clusters.push_back(minResidGlobPos[ilayer]);
+      }
+      else // need to check which layer is smaller in two intt half layer
+      {
+        if(ilayer==3)
+        {
+          if(minResidLayer[3] < minResidLayer[4])
+          {
+            matchedClusters.push_back(minResidckey[3]);
+            clusters.push_back(minResidGlobPos[3]);
+          }
+          else
+          {
+            matchedClusters.push_back(minResidckey[4]);
+            clusters.push_back(minResidGlobPos[4]);
+          }
+        }
+        else if(ilayer==5)
+        {
+          if(minResidLayer[5] < minResidLayer[6])
+          {
+            matchedClusters.push_back(minResidckey[5]);
+            clusters.push_back(minResidGlobPos[5]);
+          }
+          else
+          {
+            matchedClusters.push_back(minResidckey[6]);
+            clusters.push_back(minResidGlobPos[6]);
+          }
+        }
+      }
     }
   }
 
