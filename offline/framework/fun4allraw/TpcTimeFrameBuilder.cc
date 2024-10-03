@@ -245,6 +245,9 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet *packet)
           m_feeData[fee_id].push_back(dma_word_data.data[i]);
         }
         h_norm->Fill("DMA_WORD_FEE", 1);
+
+        // immediate fee buffer processing to reduce memory consuption
+        process_fee_data(fee_id);
       }
       else
       {
@@ -265,11 +268,6 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet *packet)
       // not FEE data, e.g. GTM data or other stream, to be decoded
       h_norm->Fill("DMA_WORD_INVALID", 1);
     }
-  }
-
-  for (int fee_id = 0; fee_id < MAX_FEECOUNT; ++fee_id)
-  {
-    process_fee_data(fee_id);
   }
 
   // sanity check for the timeframe size
@@ -348,94 +346,103 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       break;
     }
 
+    fee_payload payload;
     // continue the decoding
-    const uint16_t adc_length = data_buffer[0] - HEADER_LENGTH;  // this is indeed the number of 10-bit words in this packet
-    // const uint16_t data_parity = data_buffer[4] >> 9;
-    const uint16_t sampa_address = (data_buffer[4] >> 5) & 0xf;
-    const uint16_t sampa_channel = data_buffer[4] & 0x1f;
-    const uint16_t channel = data_buffer[4] & 0x1ff;
-    // const uint16_t type = (data_buffer[3] >> 7) & 0x7;
-    // const uint16_t user_word = data_buffer[3] & 0x7f;
-    const uint16_t bx_timestamp = ((data_buffer[6] & 0x3ff) << 10) | (data_buffer[5] & 0x3ff);
+    payload.adc_length = data_buffer[0] - HEADER_LENGTH;  // this is indeed the number of 10-bit words in this packet
+    payload.data_parity = data_buffer[4] >> 9;
+    payload.sampa_address = (data_buffer[4] >> 5) & 0xf;
+    payload.sampa_channel = data_buffer[4] & 0x1f;
+    payload.channel = data_buffer[4] & 0x1ff;
+    payload.type = (data_buffer[3] >> 7) & 0x7;
+    payload.user_word = data_buffer[3] & 0x7f;
+    payload.bx_timestamp = ((data_buffer[6] & 0x3ff) << 10) | (data_buffer[5] & 0x3ff);
+
+    payload.data_crc = data_buffer[pkt_length - 1];
+    payload.calc_crc = crc16(fee, 0, pkt_length - 1);
+    if (payload.data_crc != payload.calc_crc)
+    {
+      if (m_verbosity > 2)
+      {
+        cout << __PRETTY_FUNCTION__ << " : CRC error in FEE "
+             << fee << " at position " << pkt_length - 1
+             << ": data_crc = " << payload.data_crc 
+             << " calc_crc = " << payload.calc_crc << endl;
+      }
+      m_hFEEDataStream->Fill(fee, "CRCError", 1);
+      // continue;
+    }
+
+    payload.adc_data.resize(payload.adc_length);
+    for (size_t i = 0; i < payload.adc_length; i++)
+    {
+      payload.adc_data[i] = data_buffer[HEADER_LENGTH + i];
+    }
 
     if (m_verbosity > 1)
     {
       cout << __PRETTY_FUNCTION__ << " : received data packet "
            << " pkt_length = " << pkt_length
-           << " adc_length = " << adc_length
-           << " sampa_address = " << sampa_address
-           << " sampa_channel = " << sampa_channel
-           << " channel = " << channel
-           << " bx_timestamp = " << bx_timestamp
+           << " adc_length = " << payload.adc_length
+           << " sampa_address = " << payload.sampa_address
+           << " sampa_channel = " << payload.sampa_channel
+           << " channel = " << payload.channel
+           << " bx_timestamp = " << payload.bx_timestamp
 
            << endl;
     }
 
     // gtm_bco matching
-    uint64_t gtm_bco = matchFEE2GTMBCO(bx_timestamp);
+    // uint64_t gtm_bco = matchFEE2GTMBCO(bx_timestamp);
 
-    // valid packet in the buffer, create a new hit
-    TpcRawHit *hit = new TpcRawHitv2();
-    m_timeFrameMap[gtm_bco].push_back(hit);
+    // // valid packet in the buffer, create a new hit
+    // TpcRawHit *hit = new TpcRawHitv2();
+    // m_timeFrameMap[gtm_bco].push_back(hit);
 
-    hit->set_bco(bx_timestamp);
-    hit->set_gtm_bco(gtm_bco);
-    hit->set_packetid(m_packet_id);
-    hit->set_fee(fee);
-    hit->set_channel(channel);
-    hit->set_sampaaddress(sampa_address);
-    hit->set_sampachannel(sampa_channel);
-    m_hFEEDataStream->Fill(fee, "RawHit", 1);
+    // hit->set_bco(bx_timestamp);
+    // hit->set_gtm_bco(gtm_bco);
+    // hit->set_packetid(m_packet_id);
+    // hit->set_fee(fee);
+    // hit->set_channel(channel);
+    // hit->set_sampaaddress(sampa_address);
+    // hit->set_sampachannel(sampa_channel);
+    // m_hFEEDataStream->Fill(fee, "RawHit", 1);
 
-    const uint16_t data_crc = data_buffer[pkt_length - 1];
-    const uint16_t calc_crc = crc16(fee, 0, pkt_length - 1);
-    if (data_crc != calc_crc)
-    {
-      if (m_verbosity > 2)
-      {
-        cout << __PRETTY_FUNCTION__ << " : CRC error in FEE " << fee << " at position " << pkt_length - 1 << ": data_crc = " << data_crc << " calc_crc = " << calc_crc << endl;
-      }
-      m_hFEEDataStream->Fill(fee, "CRCError", 1);
-      continue;
-    }
-
-    size_t pos = HEADER_LENGTH;
     // Format is (N sample) (start time), (1st sample)... (Nth sample)
-    while (pos < pkt_length)
-    {
-      const uint16_t &nsamp = data_buffer[pos++];
-      const uint16_t &start_t = data_buffer[pos++];
+    // while (pos < pkt_length)
+    // {
+    //   const uint16_t &nsamp = data_buffer[pos++];
+    //   const uint16_t &start_t = data_buffer[pos++];
 
-      if (pos + nsamp >= pkt_length)
-      {
-        if (m_verbosity > 1)
-        {
-          cout << __PRETTY_FUNCTION__ << ": WARNING : nsamp: " << nsamp
-               << ", pos: " << pos
-               << " > pkt_length: " << pkt_length << ", format error" << endl;
-        }
-        m_hFEEDataStream->Fill(fee, "HitFormatError", 1);
+    //   if (pos + nsamp >= pkt_length)
+    //   {
+    //     if (m_verbosity > 1)
+    //     {
+    //       cout << __PRETTY_FUNCTION__ << ": WARNING : nsamp: " << nsamp
+    //            << ", pos: " << pos
+    //            << " > pkt_length: " << pkt_length << ", format error" << endl;
+    //     }
+    //     m_hFEEDataStream->Fill(fee, "HitFormatError", 1);
 
-        delete hit;
+    //     delete hit;
 
-        break;
-      }
+    //     break;
+    //   }
 
-      for (int j = 0; j < nsamp; j++)
-      {
-        hit->set_adc(start_t + j, data_buffer[pos++]);
+    //   for (int j = 0; j < nsamp; j++)
+    //   {
+    //     hit->set_adc(start_t + j, data_buffer[pos++]);
 
-        // an exception to deal with the last sample that is missing in the current hit format
-        if (pos + 1 == pkt_length)
-        {
-          m_hFEEDataStream->Fill(fee, "MissingLastADC", 1);
-          break;
-        }
-      }
+    //     // an exception to deal with the last sample that is missing in the current hit format
+    //     if (pos + 1 == pkt_length)
+    //     {
+    //       m_hFEEDataStream->Fill(fee, "MissingLastADC", 1);
+    //       break;
+    //     }
+    //   }
 
-      // an exception to deal with the last sample that is missing in the current hit format
-      if (pos + 1 == pkt_length) break;
-    }
+    //   // an exception to deal with the last sample that is missing in the current hit format
+    //   if (pos + 1 == pkt_length) break;
+    // }
 
     data_buffer.erase(data_buffer.begin(), data_buffer.begin() + pkt_length);
     m_hFEEDataStream->Fill(fee, "WordValid", pkt_length);
