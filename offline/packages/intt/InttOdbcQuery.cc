@@ -78,12 +78,11 @@ int InttOdbcQuery::Query(int runnumber)
   odbc::Statement* statement = dbcon->createStatement();
 
   int iret = 0;
-  iret += (QueryStreaming(statement, runnumber) != 0);
-  iret += (QueryType(statement, runnumber) != 0);
-  for(int which_intt = 0; which_intt < 8; ++which_intt)
-  {
-    iret += (QueryFiles(statement, runnumber, which_intt) != 0);
-  }
+  /// Order matters here--file list queries use m_type, and GL1 file list query uses m_is_streaming
+  iret = QueryStreaming(statement, runnumber) || iret;
+  iret = QueryType(     statement, runnumber) || iret;
+  iret = QueryGl1Files( statement, runnumber) || iret;
+  iret = QueryInttFiles(statement, runnumber) || iret;
   //...
 
   m_query_successful = (iret == 0);
@@ -97,6 +96,7 @@ int InttOdbcQuery::Query(int runnumber)
 int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
 {
   odbc::ResultSet* result_set = nullptr;
+  m_is_streaming = false;
 
   std::string sched_data;
   try
@@ -175,27 +175,114 @@ int InttOdbcQuery::QueryType(void* statement, int runnumber)
   return 0;
 }
 
-int InttOdbcQuery::QueryFiles(void* statement, int runnumber, int which_intt)
+
+int InttOdbcQuery::QueryGl1Files(void* statement, int runnumber)
+{
+  int iret = QueryFiles(statement, runnumber, m_gl1_files, "gl1", m_gl1_path);
+  if (iret)
+  {
+    return iret;
+  }
+
+  if(!m_verbosity)
+  {
+    return 0;
+  }
+
+  if (!m_gl1_files.size() && m_is_streaming)
+  {
+    std::cerr << PHWHERE << "\n"
+              << "\tNo gl1 files found" << std::endl;
+    return 1;
+  }
+
+  std::cout << "\tgl1 files:" << std::endl;
+  for(auto const& file : m_gl1_files)
+  {
+    std::cout << "\t\t" << file << std::endl;
+  }
+
+  return 0;
+}
+
+int InttOdbcQuery::QueryInttFiles(void* statement, int runnumber)
+{
+  int iret = 0;
+  for(int i = 0; i < 8; ++i)
+  {
+    iret = QueryFiles(statement, runnumber, m_intt_files[i], "intt" + std::to_string(i), m_intt_path) || iret;
+  }
+
+  if (iret)
+  {
+    return iret;
+  }
+
+  for(int i = 0; i < 8; ++i)
+  {
+    if (m_intt_files[i].size())
+	{
+      continue;
+	}
+    std::cerr << PHWHERE << "\n"
+              << "\tNo files found for intt" << std::to_string(i) << std::endl;
+	iret = 1;
+  }
+
+  if (iret)
+  {
+    return iret;
+  }
+
+  if(!m_verbosity)
+  {
+    return 0;
+  }
+
+  for(int i = 0; i < 8; ++i)
+  {
+    std::cout << "\tintt" + std::to_string(i) + " files:" << std::endl;
+    for(auto const& file : m_intt_files[i])
+	{
+      std::cout << "\t\t" << file << std::endl;
+	}
+  }
+
+  return 0;
+}
+
+int InttOdbcQuery::QueryFiles(void* statement, int runnumber, std::set<std::string>& files, std::string const& file_name, std::string const& file_path)
 {
   odbc::ResultSet* result_set = nullptr;
 
-  m_file_set[which_intt].clear();
-  std::string path = runnumber < 43263 ? "/sphenix/lustre01/sphnxpro/commissioning/INTT/" : "/sphenix/lustre01/sphnxpro/physics/INTT/"; // I don't like this either
+  files.clear();
 
   try
   {
-    std::string sql = "SELECT filename, transferred_to_sdcc FROM filelist WHERE filename LIKE '%%intt" + std::to_string(which_intt) + "%%' AND runnumber = " + std::to_string(runnumber) + ";";
+    std::string sql = "SELECT filename, transferred_to_sdcc FROM filelist WHERE filename LIKE '%%" + file_name + "%%' AND runnumber = " + std::to_string(runnumber) + ";";
     result_set = ((odbc::Statement*)statement)->executeQuery(sql);
     for(; result_set && result_set->next();)
     {
-      std::string file = result_set->getString("filename");
+      std::string file = file_path + m_type + "/" + std::string(std::filesystem::path(result_set->getString("filename")).filename());
+
       if(!result_set->getBoolean("transferred_to_sdcc"))
       {
-        std::cerr << PHWHERE << "\n"
-                  << "\tFile " << file << " not transferred to sdcc" << std::endl;
+        if(1 < m_verbosity)
+        {
+          std::cout << PHWHERE << "\n"
+                    << "\tNote: Segment " << file << " not transferred to sdcc" << std::endl;
+        }
         continue;
       }
-      m_file_set[which_intt].insert(path + std::string(std::filesystem::path(file).filename()));
+
+      if(!std::filesystem::exists(file))
+      {
+        std::cerr << PHWHERE << "\n"
+                  << "\tFile " << file << " does not exist" << std::endl;
+        continue;
+      }
+
+      files.insert(file_path + m_type + "/" + std::string(std::filesystem::path(file).filename()));
     }
   }
   catch (odbc::SQLException &e)
@@ -208,15 +295,5 @@ int InttOdbcQuery::QueryFiles(void* statement, int runnumber, int which_intt)
   }
   delete result_set;
 
-  if(m_verbosity)
-  {
-    std::cout << "\tintt" + std::to_string(which_intt) + " files:" << std::endl;
-    for(auto const& file : m_file_set[which_intt])
-    {
-      std::cout << "\t\t" << file << std::endl;
-    }
-  }
-
   return 0;
 }
-
