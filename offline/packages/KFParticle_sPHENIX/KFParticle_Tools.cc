@@ -44,6 +44,8 @@
 #include <Rtypes.h>
 #include <TDatabasePDG.h>
 #include <TMatrixD.h>
+#include "KFParticle_truthAndDetTools.h"
+
 #include <TMatrixDfwd.h>  // for TMatrixD
 #include <TMatrixT.h>     // for TMatrixT, operator*
 
@@ -56,6 +58,8 @@
 #include <iterator>   // for end
 #include <map>        // for _Rb_tree_iterator, map
 #include <memory>     // for allocator_traits<>::va...
+
+KFParticle_truthAndDetTools toolSet;
 
 /// KFParticle constructor
 KFParticle_Tools::KFParticle_Tools()
@@ -716,6 +720,22 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       calculated_pt >= min_pt && daughterMassCheck && chargeCheck && calculateEllipsoidVolume(mother) <= max_vertex_volume)
   {
     goodCandidate = true;
+  }
+
+  if (goodCandidate && m_require_bunch_crossing_match)
+  {
+    std::vector<int> crossings;
+    for (int i = 0; i < nTracks; ++i)
+    {
+      SvtxTrack *thisTrack = toolSet.getTrack(vDaughters[i].Id(), m_dst_trackmap);
+      crossings.push_back(thisTrack->get_crossing());
+      removeDuplicates(crossings);
+
+      if (crossings.size() !=1)
+      {
+        goodCandidate = false;
+      }
+    }
   }
 
   // Check the requirements of an intermediate states against this mother and re-do goodCandidate
