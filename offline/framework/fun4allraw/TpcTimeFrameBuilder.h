@@ -14,6 +14,7 @@
 class Packet;
 class TpcRawHit;
 class TH2I;
+class TH1;
 
 class TpcTimeFrameBuilder
 {
@@ -29,35 +30,49 @@ class TpcTimeFrameBuilder
 
  protected:
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream
-  static const size_t DAM_DMA_WORD_BYTE_LENGTH = 16;
+  static const size_t DAM_DMA_WORD_LENGTH = 16;
 
-  static const uint16_t FEE_PACKET_MAGIC_KEY_4 = 0xfe;
+  static const uint16_t  FEE_PACKET_MAGIC_KEY_1 = 0xfe;
+  static const uint16_t  FEE_PACKET_MAGIC_KEY_2 = 0xed;
 
   static const uint16_t FEE_MAGIC_KEY = 0xba00;
   static const uint16_t GTM_MAGIC_KEY = 0xbb00;
   static const uint16_t GTM_LVL1_ACCEPT_MAGIC_KEY = 0xbbf0;
   static const uint16_t GTM_ENDAT_MAGIC_KEY = 0xbbf1;
+  static const uint16_t GTM_MODEBIT_MAGIC_KEY = 0xbbf2;
 
-  static const uint16_t MAX_FEECOUNT = 26;      // that many FEEs
-  static const uint16_t MAX_CHANNELS = 8 * 32;  // that many channels per FEE
-  static const uint16_t HEADER_LENGTH = 5;
+  static const uint16_t  MAX_FEECOUNT = 26;   // that many FEEs
+  static const uint16_t  MAX_CHANNELS   = 8*32; // that many channels per FEE
+//  static const uint16_t  HEADER_LENGTH  = 5;
+  static const uint16_t  HEADER_LENGTH  = 7;
 
   uint16_t reverseBits(const uint16_t x) const;
   uint16_t crc16(const uint32_t fee, const uint32_t index, const int l) const;
+  uint16_t check_data_parity(const unsigned int fee, const unsigned int index, const int  l) const;
 
-  int decode_gtm_data(uint16_t gtm[DAM_DMA_WORD_BYTE_LENGTH]);
+  //! DMA word structure
+  struct dma_word
+  {
+    uint16_t dma_header;
+    uint16_t data[DAM_DMA_WORD_LENGTH-1];
+  };
+
+  int decode_gtm_data(const dma_word & gtm_word);
   int process_fee_data(unsigned int fee_id);
 
-  struct gtm_payload
-  {
-    uint16_t pkt_type;
-    bool is_endat;
-    bool is_lvl1;
-    uint64_t bco;
-    uint32_t lvl1_count;
-    uint32_t endat_count;
-    uint64_t last_bco;
-    uint8_t modebits;
+
+
+  struct gtm_payload {
+      uint16_t pkt_type;
+      bool is_endat;
+      bool is_lvl1;
+      bool is_modebit;
+      unsigned long long bco;
+      unsigned int lvl1_count;
+      unsigned int endat_count;
+      unsigned long long last_bco;
+      unsigned char modebits;
+      unsigned char userbits;
   };
 
   std::vector<std::deque<uint16_t>> m_feeData;
@@ -105,6 +120,9 @@ class TpcTimeFrameBuilder
   static const int kFEEDataTransmissionWindow = 1000000; // 100ms for very large non-ZS data at 10Hz
 
   TH2I * m_hFEEDataStream = nullptr;
+  TH1 * h_PacketLength = nullptr;
+  TH1 * h_PacketLength_Padding = nullptr;
+  TH1 * h_PacketLength_Residual = nullptr;
 
 };
 

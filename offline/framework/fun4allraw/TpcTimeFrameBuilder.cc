@@ -51,9 +51,21 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   h->GetXaxis()->LabelsOption("v");
   hm->registerHisto(h);
 
-  h = new TH1I(TString(m_HistoPrefix.c_str()) + "_PacketLength",  //
-               TString(m_HistoPrefix.c_str()) + " PacketLength;PacketLength [16bit Words];Count", 1000, .5, 5e6);
-  hm->registerHisto(h);
+  h_PacketLength = new TH1I(TString(m_HistoPrefix.c_str()) + "_PacketLength",  //
+                            TString(m_HistoPrefix.c_str()) + " PacketLength;PacketLength [32bit Words];Count", 1000, .5, 5e6);
+  hm->registerHisto(h_PacketLength);
+
+  h_PacketLength_Residual = new TH1I(TString(m_HistoPrefix.c_str()) + "_PacketLength_Residual",  //
+                                     TString(m_HistoPrefix.c_str()) +
+                                         " PacketLength that does not fit into DMA transfer;PacketLength [16bit Words];Count",
+                                     16, -.5, 15.5);
+  hm->registerHisto(h_PacketLength_Residual);
+
+  h_PacketLength_Padding = new TH1I(TString(m_HistoPrefix.c_str()) + "_PacketLength_Padding",  //
+                                    TString(m_HistoPrefix.c_str()) +
+                                        " padding within PacketLength;PacketLength [32bit Words];Count",
+                                    16, -.5, 15.5);
+  hm->registerHisto(h_PacketLength_Padding);
 
   m_hFEEDataStream = new TH2I(TString(m_HistoPrefix.c_str()) + "_FEE_DataStream_WordCount",  //
                               TString(m_HistoPrefix.c_str()) +
@@ -160,12 +172,12 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet *packet)
     return 0;
   }
 
-  if (packet->getHitFormat() != IDTPCFEEV3)
+  if (packet->getHitFormat() != IDTPCFEEV4)
   {
-    cout << __PRETTY_FUNCTION__ << " Error : expect packet format " << IDTPCFEEV3
+    cout << __PRETTY_FUNCTION__ << " Error : expect packet format " << IDTPCFEEV4
          << " but received packet format " << packet->getHitFormat() << ":" << endl;
     packet->identify();
-    assert(packet->getHitFormat() == IDTPCFEEV3);
+    assert(packet->getHitFormat() == IDTPCFEEV4);
     return 0;
   }
 
@@ -190,71 +202,74 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet *packet)
   assert(h_norm);
   h_norm->Fill("Packet", 1);
 
-  int l = packet->getDataLength() + 16;
-  l *= 2;  // int to uint16
-  vector<uint16_t> buffer(l);
+  int data_length = packet->getDataLength();  // 32bit length
+  assert(h_PacketLength);
+  h_PacketLength->Fill(data_length);
+
+  int data_padding = packet->getPadding();  // 32bit padding
+  assert(h_PacketLength_Padding);
+  h_PacketLength_Padding->Fill(data_padding);
+  if (data_padding != 0)
+  {
+    cout << __PRETTY_FUNCTION__ << " : Warning : suspecious padding "
+         << data_padding << " in packet " << m_packet_id << endl;
+  }
+
+  size_t dma_words_buffer = data_length * 2 / DAM_DMA_WORD_LENGTH + 1;
+  vector<dma_word> buffer(dma_words_buffer);
 
   int l2 = 0;
-
-  packet->fillIntArray(reinterpret_cast<int *>(buffer.data()), l, &l2, "DATA");
-  l2 -= packet->getPadding();
+  packet->fillIntArray(reinterpret_cast<int *>(buffer.data()), data_length + DAM_DMA_WORD_LENGTH / 2, &l2, "DATA");
+  assert(l2 <= data_length);
+  l2 -= data_padding;
   assert(l2 >= 0);
-  unsigned int payload_length = 2 * (unsigned int) l2;  // int to uint16
 
-  TH1D *h_PacketLength = dynamic_cast<TH1D *>(hm->getHisto(
-      m_HistoPrefix + "_PacketLength"));
-  assert(h_PacketLength);
-  h_PacketLength->Fill(payload_length);
+  size_t dma_words = l2 * 2 / DAM_DMA_WORD_LENGTH;
+  assert(dma_words <= buffer.size());
+  assert(h_PacketLength_Residual);
+  h_PacketLength_Residual->Fill((l2 * 2) % DAM_DMA_WORD_LENGTH);
 
   // demultiplexer
-  unsigned int index = 0;
-  while (index < payload_length)
+  for (size_t index = 0; index < dma_words; ++index)
   {
-    if ((buffer[index] & 0xFF00) == FEE_MAGIC_KEY)
+    const dma_word &dma_word_data = buffer[index];
+
+    if ((dma_word_data.dma_header & 0xFF00) == FEE_MAGIC_KEY)
     {
-      unsigned int fee_id = buffer[index] & 0xff;
-      ++index;
+      unsigned int fee_id = dma_word_data.dma_header & 0xff;
+
       if (fee_id < MAX_FEECOUNT)
       {
-        for (unsigned int i = 0; i < DAM_DMA_WORD_BYTE_LENGTH - 1; i++)
+        for (unsigned int i = 0; i < DAM_DMA_WORD_LENGTH - 1; i++)
         {
-          // watch out for any data corruption
-          if (index >= payload_length)
-          {
-            cout << __PRETTY_FUNCTION__ << " : Error : unexpected reach at payload length at position " << index << endl;
-            break;
-          }
-          m_feeData[fee_id].push_back(buffer[index++]);
+          m_feeData[fee_id].push_back(dma_word_data.data[i]);
         }
         h_norm->Fill("DMA_WORD_FEE", 1);
-        process_fee_data(fee_id);
       }
       else
       {
         cout << __PRETTY_FUNCTION__ << " : Error : Invalid FEE ID " << fee_id << " at position " << index << endl;
-        index += DAM_DMA_WORD_BYTE_LENGTH - 1;
+        index += DAM_DMA_WORD_LENGTH - 1;
         h_norm->Fill("DMA_WORD_FEE_INVALID", 1);
       }
     }
-    else if ((buffer[index] & 0xFF00) == GTM_MAGIC_KEY)
+    else if ((dma_word_data.dma_header & 0xFF00) == GTM_MAGIC_KEY)
     {
-      // watch out for any data corruption
-      if (index + DAM_DMA_WORD_BYTE_LENGTH > payload_length)
-      {
-        cout << __PRETTY_FUNCTION__ << " : Error : unexpected reach at payload length at position " << index << endl;
-        break;
-      }
-      decode_gtm_data(&buffer[index]);
-      index += DAM_DMA_WORD_BYTE_LENGTH;
+      decode_gtm_data(dma_word_data);
       h_norm->Fill("DMA_WORD_GTM", 1);
     }
     else
     {
-      cout << __PRETTY_FUNCTION__ << " : Error : Unknown data type at position " << index << ": " << hex << buffer[index] << dec << endl;
+      cout << __PRETTY_FUNCTION__ << " : Error : Unknown data type at position " << index << ": "
+           << hex << buffer[index].dma_header << dec << endl;
       // not FEE data, e.g. GTM data or other stream, to be decoded
-      index += DAM_DMA_WORD_BYTE_LENGTH;
       h_norm->Fill("DMA_WORD_INVALID", 1);
     }
+  }
+
+  for (int fee_id = 0; fee_id < MAX_FEECOUNT; ++fee_id)
+  {
+    process_fee_data(fee_id);
   }
 
   // sanity check for the timeframe size
@@ -291,54 +306,57 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
   assert(fee < m_feeData.size());
   auto &data_buffer = m_feeData[fee];
 
-  while (HEADER_LENGTH < data_buffer.size())
+  while (HEADER_LENGTH <= data_buffer.size())
   {
     // packet loop
-    if (data_buffer[4] != FEE_PACKET_MAGIC_KEY_4)
+    if (data_buffer[1] != FEE_PACKET_MAGIC_KEY_1)
     {
       if (m_verbosity > 1)
       {
-        cout << __PRETTY_FUNCTION__ << " : Error : Invalid FEE magic key at position 4 " << data_buffer[4] << endl;
+        cout << __PRETTY_FUNCTION__ << " : Error : Invalid FEE magic key at position 1 " << data_buffer[1] << endl;
       }
       m_hFEEDataStream->Fill(fee, "WordSkipped", 1);
       data_buffer.pop_front();
       continue;
     }
-    assert(data_buffer[4] == FEE_PACKET_MAGIC_KEY_4);
+    assert(data_buffer[1] == FEE_PACKET_MAGIC_KEY_1);
 
-    //valid packet
-    const uint16_t &pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
-
-    if (pkt_length < HEADER_LENGTH)
+    if (data_buffer[2] != FEE_PACKET_MAGIC_KEY_2)
     {
-      cout << __PRETTY_FUNCTION__ << " : Error : invalid data packet "
-           << " pkt_length = " << pkt_length
-           << endl;
-      data_buffer.pop_front();
+      if (m_verbosity > 1)
+      {
+        cout << __PRETTY_FUNCTION__ << " : Error : Invalid FEE magic key at position 2 " << data_buffer[2] << endl;
+      }
       m_hFEEDataStream->Fill(fee, "WordSkipped", 1);
+      data_buffer.pop_front();
       continue;
     }
+    assert(data_buffer[2] == FEE_PACKET_MAGIC_KEY_2);
 
-    if (pkt_length >= data_buffer.size())
+    // valid packet
+    const uint16_t &pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
+    if (pkt_length > data_buffer.size())
     {
       if (m_verbosity > 2)
       {
-        cout << __PRETTY_FUNCTION__ << " : packet over boundary, skip decoding and wait for more data: "
+        cout << __PRETTY_FUNCTION__ << " : packet over buffer boundary for now, skip decoding and wait for more data: "
                                        " pkt_length = "
              << pkt_length
              << " data_buffer.size() = " << data_buffer.size()
              << endl;
       }
-
-      return Fun4AllReturnCodes::EVENT_OK;
+      break;
     }
 
     // continue the decoding
     const uint16_t adc_length = data_buffer[0] - HEADER_LENGTH;  // this is indeed the number of 10-bit words in this packet
-    const uint16_t sampa_address = (data_buffer[1] >> 5) & 0xf;
-    const uint16_t sampa_channel = data_buffer[1] & 0x1f;
-    const uint16_t channel = data_buffer[1] & 0x1ff;
-    const uint16_t bx_timestamp = ((data_buffer[3] & 0x1ff) << 11) | ((data_buffer[2] & 0x3ff) << 1) | (data_buffer[1] >> 9);
+    // const uint16_t data_parity = data_buffer[4] >> 9;
+    const uint16_t sampa_address = (data_buffer[4] >> 5) & 0xf;
+    const uint16_t sampa_channel = data_buffer[4] & 0x1f;
+    const uint16_t channel = data_buffer[4] & 0x1ff;
+    // const uint16_t type = (data_buffer[3] >> 7) & 0x7;
+    // const uint16_t user_word = data_buffer[3] & 0x7f;
+    const uint16_t bx_timestamp = ((data_buffer[6] & 0x3ff) << 10) | (data_buffer[5] & 0x3ff);
 
     if (m_verbosity > 1)
     {
@@ -353,7 +371,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
            << endl;
     }
 
-    //gtm_bco matching
+    // gtm_bco matching
     uint64_t gtm_bco = matchFEE2GTMBCO(bx_timestamp);
 
     // valid packet in the buffer, create a new hit
@@ -385,25 +403,27 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     // Format is (N sample) (start time), (1st sample)... (Nth sample)
     while (pos < pkt_length)
     {
-      int nsamp = data_buffer[pos++];
-      int start_t = data_buffer[pos++];
+      const uint16_t &nsamp = data_buffer[pos++];
+      const uint16_t &start_t = data_buffer[pos++];
 
       if (pos + nsamp >= pkt_length)
       {
-        if (m_verbosity > 2)
+        if (m_verbosity > 1)
         {
           cout << __PRETTY_FUNCTION__ << ": WARNING : nsamp: " << nsamp
                << ", pos: " << pos
                << " > pkt_length: " << pkt_length << ", format error" << endl;
         }
         m_hFEEDataStream->Fill(fee, "HitFormatError", 1);
+
+        delete hit;
+
         break;
       }
 
-      vector<uint16_t> waveform;
       for (int j = 0; j < nsamp; j++)
       {
-        waveform.push_back(data_buffer[pos++]);
+        hit->set_adc(start_t + j, data_buffer[pos++]);
 
         // an exception to deal with the last sample that is missing in the current hit format
         if (pos + 1 == pkt_length)
@@ -412,7 +432,6 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
           break;
         }
       }
-      hit->add_wavelet(start_t, waveform);
 
       // an exception to deal with the last sample that is missing in the current hit format
       if (pos + 1 == pkt_length) break;
@@ -479,25 +498,29 @@ uint64_t TpcTimeFrameBuilder::matchFEE2GTMBCO(uint16_t fee_bco)
   return gtm_bco;
 }
 
-int TpcTimeFrameBuilder::decode_gtm_data(uint16_t dat[16])
+int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word &gtm_word)
 {
-  unsigned char *gtm = reinterpret_cast<unsigned char *>(dat);
+  const unsigned char *gtm = reinterpret_cast<const unsigned char *>(&gtm_word);
+
   gtm_payload payload;
 
-  payload.pkt_type = gtm[0] | ((uint16_t) gtm[1] << 8);
-  if (payload.pkt_type != GTM_LVL1_ACCEPT_MAGIC_KEY && payload.pkt_type != GTM_ENDAT_MAGIC_KEY)
+  payload.pkt_type = gtm[0] | ((unsigned short) gtm[1] << 8);
+  //    if (payload.pkt_type != GTM_LVL1_ACCEPT_MAGIC_KEY && payload.pkt_type != GTM_ENDAT_MAGIC_KEY)
+  if (payload.pkt_type != GTM_LVL1_ACCEPT_MAGIC_KEY && payload.pkt_type != GTM_ENDAT_MAGIC_KEY && payload.pkt_type != GTM_MODEBIT_MAGIC_KEY)
   {
     return -1;
   }
 
   payload.is_lvl1 = payload.pkt_type == GTM_LVL1_ACCEPT_MAGIC_KEY;
   payload.is_endat = payload.pkt_type == GTM_ENDAT_MAGIC_KEY;
+  payload.is_modebit = payload.pkt_type == GTM_MODEBIT_MAGIC_KEY;
 
   payload.bco = ((unsigned long long) gtm[2] << 0) | ((unsigned long long) gtm[3] << 8) | ((unsigned long long) gtm[4] << 16) | ((unsigned long long) gtm[5] << 24) | ((unsigned long long) gtm[6] << 32) | (((unsigned long long) gtm[7]) << 40);
   payload.lvl1_count = ((unsigned int) gtm[8] << 0) | ((unsigned int) gtm[9] << 8) | ((unsigned int) gtm[10] << 16) | ((unsigned int) gtm[11] << 24);
   payload.endat_count = ((unsigned int) gtm[12] << 0) | ((unsigned int) gtm[13] << 8) | ((unsigned int) gtm[14] << 16) | ((unsigned int) gtm[15] << 24);
   payload.last_bco = ((unsigned long long) gtm[16] << 0) | ((unsigned long long) gtm[17] << 8) | ((unsigned long long) gtm[18] << 16) | ((unsigned long long) gtm[19] << 24) | ((unsigned long long) gtm[20] << 32) | (((unsigned long long) gtm[21]) << 40);
   payload.modebits = gtm[22];
+  payload.userbits = gtm[23];
 
   constexpr uint64_t bco_limit = 1ULL << GTMBCObits;
   assert(payload.bco > bco_limit);

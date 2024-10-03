@@ -1,5 +1,5 @@
-#ifndef FUN4ALLRAW_SINGLETPCPOOLINPUT_H
-#define FUN4ALLRAW_SINGLETPCPOOLINPUT_H
+#ifndef FUN4ALLRAW_SingleTpcTimeFrameInput_H
+#define FUN4ALLRAW_SingleTpcTimeFrameInput_H
 
 #include "SingleStreamingInput.h"
 
@@ -15,11 +15,11 @@ class Packet;
 class TpcTimeFrameBuilder;
 
 //! Provide TpcTimeFrameBuilder as a unified interface for Fun4AllStreamingInputManager
-class SingleTpcPoolInput : public SingleStreamingInput
+class SingleTpcTimeFrameInput : public SingleStreamingInput
 {
  public:
-  explicit SingleTpcPoolInput(const std::string &name);
-  ~SingleTpcPoolInput() override;
+  explicit SingleTpcTimeFrameInput(const std::string &name);
+  ~SingleTpcTimeFrameInput() override;
   void FillPool(const unsigned int) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   // bool CheckPoolDepth(const uint64_t bclk) override;
