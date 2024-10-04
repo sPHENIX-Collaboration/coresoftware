@@ -109,8 +109,9 @@ for (auto packet : pktvec)
 	std::cout << __PRETTY_FUNCTION__ << " : decoding packet " << packet << std::endl;
       }
 
-    int ep = (packet-4000) % 10;
-    int sector = (packet - 4000 - ep)/10;
+    int32_t packet_id = packet->get_packetid();
+    int ep = (packet_id-4000) % 10;
+    int sector = (packet_id - 4000 - ep)/10;
     if(sector>11) side=1;
     else side=0;
 
@@ -174,7 +175,7 @@ for(int fee_no=0;fee_no<26;fee_no++){
     if(mod_arr[fee_no]==3) feeM += 14;
     key = 256 * (feeM) + channel_no;
     R = M.getR(feeM, channel_no);
-    phi = pow(-1,side)*M.getPhi(feeM, channel_no) + (stoi(sector) - side*12.0)* M_PI / 6.0;
+    phi = pow(-1,side)*M.getPhi(feeM, channel_no) + (sector - side*12.0)* M_PI / 6.0;
 
     if(phi<0.0) phi = phi + 2.0*M_PI; 
 
