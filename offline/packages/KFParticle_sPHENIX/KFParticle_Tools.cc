@@ -729,12 +729,13 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     {
       SvtxTrack *thisTrack = toolSet.getTrack(vDaughters[i].Id(), m_dst_trackmap);
       crossings.push_back(thisTrack->get_crossing());
-      removeDuplicates(crossings);
+    }
 
-      if (crossings.size() !=1)
-      {
-        goodCandidate = false;
-      }
+    removeDuplicates(crossings);
+
+    if (crossings.size() !=1)
+    {
+      goodCandidate = false;
     }
   }
 
