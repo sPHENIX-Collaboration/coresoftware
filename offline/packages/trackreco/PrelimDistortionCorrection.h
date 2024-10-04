@@ -56,9 +56,7 @@ class PrelimDistortionCorrection : public SubsysReco
   void setConstBField(float b) { _const_field = b; }
   void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
-  void use_truth_clusters(bool truth)
-  { _use_truth_clusters = truth; }
-  void SetIteration(int iter){_n_iteration = iter;}
+  void use_truth_clusters(bool truth) { _use_truth_clusters = truth; }
   void set_pp_mode(bool mode) {_pp_mode = mode;}
 
   void setNeonFraction(double frac) { Ne_frac = frac; };
@@ -66,14 +64,17 @@ class PrelimDistortionCorrection : public SubsysReco
   void setCF4Fraction(double frac) { CF4_frac = frac; };
   void setNitrogenFraction(double frac) { N2_frac = frac; };
   void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
- 
+
  private:
+
+  //! put refitted seeds on map
+  void publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap &positions);
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
 
   bool _use_truth_clusters = false;
-  
+
   /// fetch node pointers
   int get_nodes(PHCompositeNode *topNode);
   std::vector<double> radii;
@@ -96,67 +97,24 @@ class PrelimDistortionCorrection : public SubsysReco
   TrackSeedContainer *_track_map = nullptr;
 
   std::unique_ptr<PHField> _field_map = nullptr;
-  
+
   /// acts geometry
   ActsGeometry *_tgeometry = nullptr;
 
-  /// distortion correction container
-  TpcDistortionCorrectionContainer* m_dcc = nullptr;
+  //!@name distortion correction containers
+  //@{
+  /** used in input to correct CM clusters before calculating residuals */
+  TpcDistortionCorrectionContainer *m_dcc_module_edge{nullptr};
+  TpcDistortionCorrectionContainer *m_dcc_static{nullptr};
+  TpcDistortionCorrectionContainer *m_dcc_average{nullptr};
+  //@}
 
-  /// get global position for a given cluster
-  /**
-   * uses ActsTransformation to convert cluster local position into global coordinates
-   * incorporates TPC distortion correction, if present
-   */
-  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
-
-  PositionMap PrepareKDTrees();
-
-  template <typename T>
-  struct KDPointCloud
-  {
-    KDPointCloud<T>(){}
-    std::vector<std::vector<T>> pts;
-    inline size_t kdtree_get_point_count() const
-    {
-      return pts.size();
-    }
-    inline T kdtree_distance(const T* p1, const size_t idx_p2, size_t /*size*/) const
-    {
-      const T d0 = p1[0] - pts[idx_p2][0];
-      const T d1 = p1[1] - pts[idx_p2][1];
-      const T d2 = p1[2] - pts[idx_p2][2];
-      return d0 * d0 + d1 * d1 + d2 * d2;
-    }
-    inline T kdtree_get_pt(const size_t idx, int dim) const
-    {
-      if (dim == 0)
-        return pts[idx][0];
-      else if (dim == 1)
-        return pts[idx][1];
-      else
-        return pts[idx][2];
-    }
-    template <class BBOX>
-    bool kdtree_get_bbox(BBOX& /*bb*/) const
-    {
-      return false;
-    }
-  };
-  std::vector<std::shared_ptr<KDPointCloud<double>>> _ptclouds;
-  std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
-  double get_Bz(double x, double y, double z) const;
-  void publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap &positions);
-  void publishSeeds(const std::vector<TrackSeed_v2>&);
-//   void MoveToVertex();
 
   bool _use_const_field = false;
   float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
-  TrkrClusterIterationMapv1* _iteration_map = nullptr;
-  int _n_iteration = 0;
 
   double Ne_frac = 0.00;
   double Ar_frac = 0.75;

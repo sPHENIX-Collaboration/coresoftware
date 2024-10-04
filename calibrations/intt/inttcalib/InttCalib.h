@@ -12,10 +12,12 @@
 #include <array>
 #include <map>
 #include <string>
+#include <utility>
 
 class PHCompositeNode;
 class TF1;
 class TH1D;
+class TH2D;
 
 class InttCalib : public SubsysReco
 {
@@ -34,7 +36,9 @@ class InttCalib : public SubsysReco
 
   void SetBcoMapCdbFile(std::string const& file) { m_bcomap_cdb_file = file; }
   void SetBcoMapPngFile(std::string const& file) { m_bcomap_png_file = file; }
-
+  void SetStreamingMode(bool mode) { m_streaming = mode; }
+  void SetBcoMaximumEvent(int mext) {m_evts_bco = mext; }
+  void SetRunNumber(int runnum) { m_run_num = runnum; }
   int SaveHitrates();
   int LoadHitrates();
 
@@ -63,12 +67,13 @@ class InttCalib : public SubsysReco
   int ConfigureHist_v2(TH1D*&, TF1*&, std::map<double, int> const&, std::string const&, std::string const&);
   int adjust_hitrate(InttMap::Offline_s const&, double&) const;
   int GetIndex(InttMap::RawData_s const&, InttMap::Offline_s const&) const;
-  double CalculateStandardDeviation(const std::vector<int>& data);
+  std::pair<double, double> CalculateStandardDeviation(const std::vector<int>& data);
   Color_t GetFeeColor(int) const;
 
   int m_evts{0};
   int m_run_num{0};
-  int m_bco_stdDev{0};  
+  double m_bco_stdDev{0};  
+  double m_bco_mean{0};  
   int m_evts_bco = 50000;
 
   // int static const m_MAX_INDEX = 32;
@@ -102,6 +107,7 @@ class InttCalib : public SubsysReco
   std::array<double, m_MAX_INDEX> m_half_min{};
   std::array<double, m_MAX_INDEX> m_half_max{};
 
+  std::array<TH2D*, m_MAX_INDEX> m_bunch{};
   std::map<double, double> m_hitrates;
   std::map<double, double> m_invcdf;
 
@@ -109,6 +115,7 @@ class InttCalib : public SubsysReco
   std::map<InttMap::RawData_s, int, InttMap::RawDataWildcardComparator> m_bcopeaks;
 
   bool m_do_nothing = false;
+  bool m_streaming = false;
   bool m_do_make_bco = true;
 };
 

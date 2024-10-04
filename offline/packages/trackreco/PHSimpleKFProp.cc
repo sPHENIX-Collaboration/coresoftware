@@ -161,36 +161,19 @@ double PHSimpleKFProp::get_Bz(double x, double y, double z) const
 
 int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
 {
-  //---------------------------------
-  // Get Objects off of the Node Tree
-  //---------------------------------
 
-  _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if (!_tgeometry)
+  // acts geometry
+  m_tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!m_tgeometry)
   {
     std::cout << "No Acts tracking geometry, exiting." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  // tpc distortion corrections
-  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  if (m_dcc_static)
-  {
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl;
-  }
+  // tpc global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
 
-  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  if (m_dcc_average)
-  {
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl;
-  }
-
-  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
-  if (m_dcc_fluctuation)
-  {
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl;
-  }
-
+  // clusters
   if (_use_truth_clusters)
   {
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
@@ -205,6 +188,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // tracks
   _track_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!_track_map)
   {
@@ -212,6 +196,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // tpc grometry
   PHG4TpcCylinderGeomContainer* geom_container =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
@@ -493,25 +478,9 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 Acts::Vector3 PHSimpleKFProp::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
   // get global position from Acts transform
-  auto globalpos = _tgeometry->getGlobalPosition(key, cluster);
-  const auto trkrid = TrkrDefs::getTrkrId(key);
-  if (trkrid == TrkrDefs::tpcId && !_pp_mode)
-  {
-    if (m_dcc_static)
-    {
-      globalpos = m_distortionCorrection.get_corrected_position(globalpos, m_dcc_static);
-    }
-    if (m_dcc_average)
-    {
-      globalpos = m_distortionCorrection.get_corrected_position(globalpos, m_dcc_average);
-    }
-    if (m_dcc_fluctuation)
-    {
-      globalpos = m_distortionCorrection.get_corrected_position(globalpos, m_dcc_fluctuation);
-    }
-  }
-
-  return globalpos;
+  return _pp_mode ?
+    m_tgeometry->getGlobalPosition(key, cluster):
+    m_globalPositionWrapper.getGlobalPositionDistortionCorrected( key, cluster, 0 );
 }
 
 PositionMap PHSimpleKFProp::PrepareKDTrees()
@@ -906,7 +875,7 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   }
 
   // account for distortions
-  if (!_pp_mode && (m_dcc_static || m_dcc_average || m_dcc_fluctuation))
+  if(!_pp_mode)
   {
     if (Verbosity() > 1)
     {
@@ -937,31 +906,10 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
       std::cout << "distortion correction for (" << tx << ", " << ty << ", " << tz << "), layer " << next_layer << ", radius " << proj_radius << std::endl;
     }
 
-    if (m_dcc_static)
-    {
-      if (Verbosity() > 2)
-      {
-        std::cout << "static correction" << std::endl;
-      }
-      proj_pt = m_distortionCorrection.get_corrected_position(proj_pt, m_dcc_static);
-    }
-    if (m_dcc_average)
-    {
-      if (Verbosity() > 2)
-      {
-        std::cout << "average correction" << std::endl;
-      }
-      proj_pt = m_distortionCorrection.get_corrected_position(proj_pt, m_dcc_average);
-    }
-    if (m_dcc_fluctuation)
-    {
-      if (Verbosity() > 2)
-      {
-        std::cout << "fluctuation correction" << std::endl;
-      }
-      proj_pt = m_distortionCorrection.get_corrected_position(proj_pt, m_dcc_fluctuation);
-    }
+    // apply distortion corrections
+    proj_pt = m_globalPositionWrapper.applyDistortionCorrections(proj_pt);
 
+    // calculate radius
     const double dist_radius = sqrt(square(proj_pt[0]) + square(proj_pt[1]));
 
     if (Verbosity() > 2)

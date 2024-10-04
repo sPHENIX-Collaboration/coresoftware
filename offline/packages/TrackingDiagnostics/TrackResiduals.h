@@ -4,9 +4,8 @@
 #define TRACKRESIDUALS_H
 
 #include <tpc/TpcClusterMover.h>
-#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
-#include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -62,8 +61,6 @@ class TrackResiduals : public SubsysReco
 
   void set_doMicromegasOnly( bool value ) { m_doMicromegasOnly = value; }
 
-  void set_rejectLaserEvent( bool value ) { m_rejectLaserEvent = value; }
-
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
                              TrkrCluster *cluster, ActsGeometry *geometry);
@@ -83,10 +80,8 @@ class TrackResiduals : public SubsysReco
   void fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTrack* track,
                                 const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> &global,
                                 PHCompositeNode *topNode);
-  void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
-                       TrkrClusterContainer *clusters, const short int &crossing);
-  void circleFitClusters(std::vector<TrkrDefs::cluskey> &keys, ActsGeometry *geometry,
-                         TrkrClusterContainer *clusters, const short int &crossing);
+  void lineFitClusters(std::vector<TrkrDefs::cluskey> &keys, TrkrClusterContainer *clusters, const short int &crossing);
+  void circleFitClusters(std::vector<TrkrDefs::cluskey> &keys, TrkrClusterContainer *clusters, const short int &crossing);
   void fillStatesWithCircleFit(const TrkrDefs::cluskey &key, TrkrCluster *cluster,
                                Acts::Vector3 &glob, ActsGeometry *geometry);
   void fillVertexTree(PHCompositeNode *topNode);
@@ -108,10 +103,8 @@ class TrackResiduals : public SubsysReco
   bool m_zeroField = false;
   bool m_doFailedSeeds = false;
 
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcClusterMover m_clusterMover;
-
-  TpcDistortionCorrectionContainer *m_dccModuleEdge{nullptr}, *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
@@ -125,8 +118,6 @@ class TrackResiduals : public SubsysReco
   unsigned int m_min_cluster_size = 0;
 
   bool m_doMicromegasOnly = false;
-
-  bool m_rejectLaserEvent = true;
 
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();

@@ -111,7 +111,7 @@ class TpcCentralMembraneMatching : public SubsysReco
 
  private:
   EventHeader *eventHeader{nullptr};
-  
+
   int GetNodes(PHCompositeNode *topNode);
 
   double getPhiRotation_smoothed(TH1 *hitHist, TH1 *clustHist, bool side);
@@ -121,20 +121,23 @@ class TpcCentralMembraneMatching : public SubsysReco
   void getRegionPhiRotation(bool side);
 
   int getClusterRMatch(double clusterR, int side);
-  /// tpc distortion correction utility class
+
+  //! tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
 
-  // CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
+  //! CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
   LaserClusterContainer *m_corrected_CMcluster_map{nullptr};
   CMFlashDifferenceContainer *m_cm_flash_diffs{nullptr};
 
-  /// static distortion container
+  //!@name distortion correction containers
+  //@{
   /** used in input to correct CM clusters before calculating residuals */
   TpcDistortionCorrectionContainer *m_dcc_in_module_edge{nullptr};
   TpcDistortionCorrectionContainer *m_dcc_in_static{nullptr};
   TpcDistortionCorrectionContainer *m_dcc_in_average{nullptr};
+  //@}
 
-  /// fluctuation distortion container
+  //! fluctuation distortion container
   /** used in output to write fluctuation distortions */
   TpcDistortionCorrectionContainer *m_dcc_out{nullptr};
 

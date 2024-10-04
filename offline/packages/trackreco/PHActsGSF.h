@@ -7,9 +7,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
-#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <trackbase/ActsSourceLink.h>
 #include <trackbase/ActsTrackFittingAlgorithm.h>
@@ -46,9 +44,9 @@ using SourceLinkVec = std::vector<Acts::SourceLink>;
 class PHActsGSF : public SubsysReco
 {
  public:
-  PHActsGSF(const std::string& name = "PHActsGSF");
 
-  ~PHActsGSF() override;
+  //! constructor
+  PHActsGSF(const std::string& name = "PHActsGSF");
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
@@ -90,18 +88,14 @@ class PHActsGSF : public SubsysReco
   TrkrClusterContainer* m_clusterContainer = nullptr;
   SvtxTrackMap* m_trackMap = nullptr;
   SvtxVertexMap* m_vertexMap = nullptr;
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
 //  alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
-  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;  
+  alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
   std::set< Acts::GeometryIdentifier> m_transient_id_set;
   Acts::GeometryContext m_transient_geocontext;
 
-  TpcDistortionCorrectionContainer* m_dccModuleEdge = nullptr;
-  TpcDistortionCorrectionContainer* m_dccStatic = nullptr;
-  TpcDistortionCorrectionContainer* m_dccAverage = nullptr;
-  TpcDistortionCorrectionContainer* m_dccFluctuation{nullptr};
-//  TpcDistortionCorrection m_distortionCorrection;
+  // Tpc Global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   std::string m_trackMapName = "SvtxTrackMap";
   std::string _seed_track_map_name = "SeedTrackMap";

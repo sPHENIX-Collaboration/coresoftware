@@ -29,8 +29,7 @@
 
 //____________________________________________________________________________..
 TpcNoiseQA::TpcNoiseQA(const std::string &name)
-  : SubsysReco("TpcNoiseQA")
-  , m_fname(name)
+  : SubsysReco(name)
 {
 // reserves memory for max ADC samples
 m_adcSamples.resize(1024, 0);
@@ -42,9 +41,9 @@ M.setMapNames("AutoPad-R1-RevA.sch.ChannelMapping.csv", "AutoPad-R2-RevA-Pads.sc
 int TpcNoiseQA::InitRun(PHCompositeNode * /*unused*/)
 {
 
-  // Creates data file and checks whether it was successfully opened
-  m_file = TFile::Open(m_fname.c_str(), "recreate");
-  assert(m_file->IsOpen());
+  // // Creates data file and checks whether it was successfully opened
+  // m_file = TFile::Open(m_fname.c_str(), "recreate");
+  // assert(m_file->IsOpen());
   
   //double r_bins_new[r_bins_N + 1];
   for(int i=0; i< r_bins_N + 1;i++){
@@ -214,25 +213,25 @@ for(int fee_no=0;fee_no<26;fee_no++){
 int TpcNoiseQA::End(PHCompositeNode * /*unused*/)
 {
 
-  // Set histogram directory to 0 so data is saved after closing file
-  h_NPol_Ped_Mean->SetDirectory(nullptr);
-  h_NPol_Ped_RMS->SetDirectory(nullptr);
-  h_SPol_Ped_Mean->SetDirectory(nullptr);
-  h_SPol_Ped_RMS->SetDirectory(nullptr);
+  // // Set histogram directory to 0 so data is saved after closing file
+  // h_NPol_Ped_Mean->SetDirectory(nullptr);
+  // h_NPol_Ped_RMS->SetDirectory(nullptr);
+  // h_SPol_Ped_Mean->SetDirectory(nullptr);
+  // h_SPol_Ped_RMS->SetDirectory(nullptr);
 
-  // Write histograms to file
-  m_file->cd();
-  h_NPol_Ped_Mean->Write();
-  h_NPol_Ped_RMS->Write();
-  h_SPol_Ped_Mean->Write();
-  h_SPol_Ped_RMS->Write();
+  // // Write histograms to file
+  // m_file->cd();
+  // h_NPol_Ped_Mean->Write();
+  // h_NPol_Ped_RMS->Write();
+  // h_SPol_Ped_Mean->Write();
+  // h_SPol_Ped_RMS->Write();
 
-  std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName() << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName() << std::endl;
 
-  m_file->ls();
+  // m_file->ls();
 
-  // Close the file
-  m_file->Close();
+  // // Close the file
+  // m_file->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -12,18 +12,15 @@
 #include <iostream>
 #include <sstream>
 
-/// For retrying connections
-#include <random>
-#include <chrono>
-#include <thread>
+#include <filesystem>
+#include <random> // For retrying connections
+#include <chrono> // For retrying connections
+#include <thread> // For retrying connections
 
 int InttOdbcQuery::Query(int runnumber)
 {
   m_query_successful = false;
 
-  /// Replace the following block with Singleton accessor? Something like:
-  /// odbc::Connection* dbcon = ODBInterface::instance()->getConnection();
-  /// Then ODBInterface implements the following 
   std::random_device ran_dev;
   std::seed_seq seeds {ran_dev(), ran_dev(), ran_dev()}; //...
   std::mt19937_64 mersenne_twister(seeds);
@@ -47,21 +44,21 @@ int InttOdbcQuery::Query(int runnumber)
     }
 
     if(dbcon)
-	{
+    {
       ++num_tries;
       break;
-	}
+    }
 
     int sleep_time_ms = uniform(mersenne_twister);
     std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_ms));
-	total_slept_ms += sleep_time_ms;
+    total_slept_ms += sleep_time_ms;
 
-	if(1 < m_verbosity)
-	{
+    if(1 < m_verbosity)
+    {
       std::cout << PHWHERE << "\n"
                 << "\tConnection unsuccessful\n"
                 << "\tSleeping for addtional " << sleep_time_ms << " ms" << std::endl;
-	}
+    }
   }
 
   if(m_verbosity)
@@ -69,9 +66,6 @@ int InttOdbcQuery::Query(int runnumber)
     std::cout << PHWHERE << "\n"
               << "\tConnection successful (" << num_tries << " attempts, " << total_slept_ms << " ms)" << std::endl;
   }
-  /// Replace the above block with Singleton accessor? Something like:
-  /// odbc::Connection* dbcon = ODBInterface::instance()->getConnection();
-  /// Then ODBInterface implements the above
 
   if(!dbcon)
   {
@@ -81,67 +75,148 @@ int InttOdbcQuery::Query(int runnumber)
     return 1;
   }
 
-  std::string sql = "select sched_data from  gtm_scheduler where vgtm=1 and sched_entry = 1 and runnumber = " + std::to_string(runnumber) + ";";
+  odbc::Statement* statement = dbcon->createStatement();
 
-  odbc::Statement *statement = dbcon->createStatement();
-  odbc::ResultSet *result_set = statement->executeQuery(sql);
-  std::string sched_data;
-
-  if(result_set && result_set->next())
+  int iret = 0;
+  iret += (QueryStreaming(statement, runnumber) != 0);
+  iret += (QueryType(statement, runnumber) != 0);
+  for(int which_intt = 0; which_intt < 8; ++which_intt)
   {
-	try
+    iret += (QueryFiles(statement, runnumber, which_intt) != 0);
+  }
+  //...
+
+  m_query_successful = (iret == 0);
+
+  delete statement;
+  delete dbcon;
+
+  return iret;
+}
+
+int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
+{
+  odbc::ResultSet* result_set = nullptr;
+
+  std::string sched_data;
+  try
+  {
+    std::string sql = "SELECT sched_data FROM gtm_scheduler WHERE vgtm=1 AND sched_entry = 1 AND runnumber = " + std::to_string(runnumber) + ";";
+    result_set = ((odbc::Statement*)statement)->executeQuery(sql);
+    if(result_set && result_set->next())
     {
-      /// This can throw an odbc::SQLException if, for example, the column name is mistyped
-      /// (you'll never guess how I figured that one out...)
       sched_data = result_set->getString("sched_data");
     }
-    catch (odbc::SQLException &e)
-    {
-      std::cerr << PHWHERE << "\n"
-                << "\tSQL Exception:\n"
-                << "\t" << e.getMessage() << std::endl;
-      delete result_set;
-      delete statement;
-      delete dbcon;
-    
-      return 1;
-    }
   }
-
-  if(m_verbosity)
+  catch (odbc::SQLException &e)
   {
-    std::cout << PHWHERE << "\n"
-              << "\tsched_data: '" << sched_data << "'" << std::endl;
+    std::cerr << PHWHERE << "\n"
+              << "\tSQL Exception:\n"
+              << "\t" << e.getMessage() << std::endl;
+    delete result_set;
+    return 1;
   }
+  delete result_set;
 
   if(std::string{"{17,55,24,54}"} == sched_data)
   {
     /// Streaming
-    m_query_successful = true;
     m_is_streaming = true;
   }
   else if (std::string{"{0,54,91,53}"} == sched_data)
   {
     /// Triggered
-    m_query_successful = true;
     m_is_streaming = false;
   }
+  else
+  {
+    std::cerr << PHWHERE << "\n"
+              << "\tUnexpected value for sched_data: '" << sched_data << "'" << std::endl;
+    return 1;
+  }
 
-  delete result_set;
-  delete statement;
-  delete dbcon;
+  if(m_verbosity)
+  {
+    std::cout << "\tsched_data: '" << sched_data << "'" << std::endl;
+  }
 
   return 0;
 }
 
-bool InttOdbcQuery::IsStreaming()
+int InttOdbcQuery::QueryType(void* statement, int runnumber)
 {
-  if(!m_query_successful)
+  odbc::ResultSet* result_set = nullptr;
+  m_type = "";
+
+  try
+  {
+    std::string sql = "SELECT runtype FROM run WHERE runnumber = " + std::to_string(runnumber) + ";";
+    result_set = ((odbc::Statement*)statement)->executeQuery(sql);
+    if(result_set && result_set->next())
+    {
+      m_type = result_set->getString("runtype");
+    }
+  }
+  catch (odbc::SQLException &e)
   {
     std::cerr << PHWHERE << "\n"
-              << "\tCall is not preceeded by successful database connection and query\n"
-              << "\tValue returned will not necessarily be correct" << std::endl;
+              << "\tSQL Exception:\n"
+              << "\t" << e.getMessage() << std::endl;
+    delete result_set;
+    return 1;
+  }
+  delete result_set;
+
+  if(m_verbosity)
+  {
+    std::cout << "\trun type: " << m_type << std::endl;
   }
 
-  return m_is_streaming;
+  return 0;
 }
+
+int InttOdbcQuery::QueryFiles(void* statement, int runnumber, int which_intt)
+{
+  odbc::ResultSet* result_set = nullptr;
+
+  m_file_set[which_intt].clear();
+  std::string path = runnumber < 43263 ? "/sphenix/lustre01/sphnxpro/commissioning/INTT/" : "/sphenix/lustre01/sphnxpro/physics/INTT/"; // I don't like this either
+
+  try
+  {
+    std::string sql = "SELECT filename, transferred_to_sdcc FROM filelist WHERE filename LIKE '%%intt" + std::to_string(which_intt) + "%%' AND runnumber = " + std::to_string(runnumber) + ";";
+    result_set = ((odbc::Statement*)statement)->executeQuery(sql);
+    for(; result_set && result_set->next();)
+    {
+      std::string file = result_set->getString("filename");
+      if(!result_set->getBoolean("transferred_to_sdcc"))
+      {
+        std::cerr << PHWHERE << "\n"
+                  << "\tFile " << file << " not transferred to sdcc" << std::endl;
+        continue;
+      }
+      m_file_set[which_intt].insert(path + std::string(std::filesystem::path(file).filename()));
+    }
+  }
+  catch (odbc::SQLException &e)
+  {
+    std::cerr << PHWHERE << "\n"
+              << "\tSQL Exception:\n"
+              << "\t" << e.getMessage() << std::endl;
+    delete result_set;
+    return 1;
+  }
+  delete result_set;
+
+  if(m_verbosity)
+  {
+    std::cout << "\tintt" + std::to_string(which_intt) + " files:" << std::endl;
+    for(auto const& file : m_file_set[which_intt])
+    {
+      std::cout << "\t\t" << file << std::endl;
+    }
+  }
+
+  return 0;
+}
+

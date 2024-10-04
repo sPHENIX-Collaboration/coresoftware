@@ -4,17 +4,9 @@
 #define TPCSEEDSQA_H
 
 #include <fun4all/SubsysReco.h>
-/* #include <trackbase/ActsGeometry.h> */
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TpcDefs.h>
-
-/* #include <trackbase/TrkrClusterContainer.h> */
-/* #include <trackbase/TrkrCluster.h> */
-/* #include <trackbase_historic/SvtxTrackMap.h> */
-/* #include <globalvertex/SvtxVertexMap.h> */
-/* #include <TH1.h> */
-/* #include <TH2.h> */
-/* #include <TProfile2D.h> */
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <set>
 #include <string>
@@ -32,7 +24,6 @@ class TProfile2D;
 class TNtuple;
 class SvtxVertexMap;
 class TrackSeedContainer;
-class TpcDistortionCorrectionContainer;
 class PHG4TpcCylinderGeomContainer;
 class TrackSeed;
 
@@ -168,7 +159,8 @@ class TpcSeedsQA : public SubsysReco
   double num_track_side0_pt[3][4] = {{0}};
   double num_track_side1_pt[3][4] = {{0}};
 
-  TpcDistortionCorrectionContainer *m_dccModuleEdge{nullptr}, *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
+  //! global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   float m_px = std::numeric_limits<float>::quiet_NaN();
   float m_py = std::numeric_limits<float>::quiet_NaN();

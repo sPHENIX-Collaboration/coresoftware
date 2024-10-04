@@ -11,7 +11,7 @@
 #include "nanoflann.hpp"
 
 // PHENIX includes
-#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <trackbase/TrkrDefs.h>
 
@@ -31,7 +31,6 @@
 class ActsGeometry;
 class PHCompositeNode;
 class PHField;
-class TpcDistortionCorrectionContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 class SvtxTrackMap;
@@ -111,13 +110,10 @@ class PHSimpleKFProp : public SubsysReco
   std::unique_ptr<PHField> _field_map = nullptr;
 
   /// acts geometry
-  ActsGeometry* _tgeometry = nullptr;
+  ActsGeometry* m_tgeometry = nullptr;
 
-  /// distortion correction container
-  TpcDistortionCorrection m_distortionCorrection;
-  TpcDistortionCorrectionContainer* m_dcc_static{nullptr};
-  TpcDistortionCorrectionContainer* m_dcc_average{nullptr};
-  TpcDistortionCorrectionContainer* m_dcc_fluctuation{nullptr};
+  /// global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   /// get global position for a given cluster
   /**
@@ -174,7 +170,6 @@ class PHSimpleKFProp : public SubsysReco
   double get_Bz(double x, double y, double z) const;
   void rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer);
   void publishSeeds(const std::vector<TrackSeed_v2>&);
-  //   void MoveToVertex();
 
   int _max_propagation_steps = 200;
   std::string m_magField;

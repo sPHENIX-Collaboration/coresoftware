@@ -211,7 +211,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
         m_waveform_count_dropped_bco[packet_id] += nwf;
         h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), nwf );
-        bco_matching_information.cleanup();
         continue;
       }
 
@@ -299,9 +298,6 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
         m_MicromegasRawHitMap[gtm_bco].push_back(newhit.release());
       }
-
-      // cleanup
-      bco_matching_information.cleanup();
     }
   }
 }
@@ -357,61 +353,32 @@ void SingleMicromegasPoolInput::Print(const std::string& what) const
 //____________________________________________________________________________
 void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, bool dropped)
 {
-  for (const auto& iter : m_MicromegasRawHitMap)
-  {
-    if (iter.first <= bclk)
-    {
-      for (auto rawhit : iter.second)
-      {
-        // increment dropped statistics
-        if( dropped )
-        {
-          // increment counter and histogram
-          ++m_waveform_count_dropped_pool[rawhit->get_packetid()];
-          h_waveform_count_dropped_pool->Fill( std::to_string(rawhit->get_packetid()).c_str(), 1 );
-        }
 
-        delete rawhit;
-      }
-    }
-    else
+  // delete all raw hits associated to bco smaller than reference, and remove from map
+  for(auto iter = m_MicromegasRawHitMap.begin(); iter != m_MicromegasRawHitMap.end() && (iter->first <= bclk); iter = m_MicromegasRawHitMap.erase(iter))
+  {
+    for (const auto& rawhit : iter->second)
     {
-      break;
+      if( dropped )
+      {
+        // increment dropped waveform counter and histogram
+        ++m_waveform_count_dropped_pool[rawhit->get_packetid()];
+        h_waveform_count_dropped_pool->Fill( std::to_string(rawhit->get_packetid()).c_str(), 1 );
+      }
+      delete rawhit;
     }
   }
 
-  // cleanup block stat
-  for (auto iter = m_BclkStack.begin(); iter != m_BclkStack.end();)
-  {
-    if (*iter <= bclk)
-    {
-      iter = m_BclkStack.erase(iter);
-    }
-    else
-    {
-      break;
-    }
-  }
+  // cleanup bco stacks
+  /* it erases all elements for which the bco is no greater than the provided one */
+  m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
+  m_BeamClockFEE.erase(m_BeamClockFEE.begin(), m_BeamClockFEE.upper_bound(bclk));
+  m_BeamClockPacket.erase(m_BeamClockPacket.begin(), m_BeamClockPacket.upper_bound(bclk));
 
-  // generic map cleanup
-  auto cleanup = [bclk](auto&& map)
-  {
-    for (auto iter = map.begin(); iter != map.end();)
-    {
-      if (iter->first <= bclk)
-      {
-        iter = map.erase(iter);
-      }
-      else
-      {
-        break;
-      }
-    }
-  };
+  // cleanup matching information
+  for( auto&& bco_matching:m_bco_matching_information_map )
+  { bco_matching.second.cleanup(bclk); }
 
-  cleanup(m_BeamClockFEE);
-  cleanup(m_BeamClockPacket);
-  cleanup(m_MicromegasRawHitMap);
 }
 
 //_______________________________________________________
@@ -430,10 +397,14 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
   {
     return false;
   }
-  if (m_MicromegasRawHitMap.empty())
+
+  // check minimum pool size
+  if (m_MicromegasRawHitMap.size() < m_BcoPoolSize)
   {
     return true;
   }
+
+  // make sure that the latest BCO received by each FEEs is past the current BCO
   std::set<int> toerase;
   uint64_t lowest_bclk = m_MicromegasRawHitMap.begin()->first + m_BcoRange;
   for (auto bcliter : m_FEEBclkMap)
@@ -443,10 +414,6 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
       uint64_t highest_bclk = m_MicromegasRawHitMap.rbegin()->first;
       if ((highest_bclk - m_MicromegasRawHitMap.begin()->first) < MaxBclkDiff())
       {
-        // std::cout << "FEE " << bcliter.first << " bclk: "
-        // 		<< std::hex << bcliter.second << ", req: " << lowest_bclk
-        // 		 << " low: 0x" <<  m_MicromegasRawHitMap.begin()->first << ", high: " << highest_bclk << ", delta: " << std::dec << (highest_bclk-m_MicromegasRawHitMap.begin()->first)
-        // 		<< std::dec << std::endl;
         return true;
       }
       else
