@@ -382,14 +382,19 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       m_silseedx = silseed->get_x();
       m_silseedy = silseed->get_y();
       m_silseedz = silseed->get_z();
+      m_silseedpx = silseed->get_px();
+      m_silseedpy = silseed->get_py();
+      m_silseedpz = silseed->get_pz();
       crossing = silseed->get_crossing();
     }
-    else
-    {
+    
       m_tpcseedx = tpcseed->get_x();
       m_tpcseedy = tpcseed->get_y();
       m_tpcseedz = tpcseed->get_z();
-    }
+    m_silseedphi = std::atan2(m_silseedpy, m_silseedpx);
+    m_silseedeta = std::atanh(m_silseedpz / std::sqrt(m_silseedpx * m_silseedpx + m_silseedpy * m_silseedpy + m_silseedpz * m_silseedpz));
+    m_tpcseedphi = std::atan2(m_tpcseedpy, m_tpcseedpx);
+    m_tpcseedeta = std::atanh(m_tpcseedpz / std::sqrt(m_tpcseedpx * m_tpcseedpx + m_tpcseedpy * m_tpcseedpy + m_tpcseedpz * m_tpcseedpz));
 
     if (m_zeroField)
     {
@@ -426,8 +431,9 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       {
         auto ckey = *it;
         auto cluster = clustermap->findCluster(ckey);
-        const Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, crossing );
         const auto local = geometry->getLocalCoords(ckey, cluster);
+
+        const Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, crossing );
         m_cluslx.push_back(local.x());
         m_cluslz.push_back(local.y());
         m_clusgx.push_back(global.x());
@@ -1557,12 +1563,19 @@ void TrackResiduals::createBranches()
   m_failedfits->Branch("silseedx", &m_silseedx, "m_silseedx/F");
   m_failedfits->Branch("silseedy", &m_silseedy, "m_silseedy/F");
   m_failedfits->Branch("silseedz", &m_silseedz, "m_silseedz/F");
+  m_failedfits->Branch("silseedpx", &m_silseedpx, "m_silseedpx/F");
+  m_failedfits->Branch("silseedpy", &m_silseedpy, "m_silseedpy/F");
+  m_failedfits->Branch("silseedpz", &m_silseedpz, "m_silseedpz/F");
+  m_failedfits->Branch("silseedphi", &m_silseedphi, "m_silseedphi/F");
+  m_failedfits->Branch("silseedeta", &m_silseedeta, "m_silseedeta/F");
   m_failedfits->Branch("tpcseedx", &m_tpcseedx, "m_tpcseedx/F");
   m_failedfits->Branch("tpcseedy", &m_tpcseedy, "m_tpcseedy/F");
   m_failedfits->Branch("tpcseedz", &m_tpcseedz, "m_tpcseedz/F");
   m_failedfits->Branch("tpcseedpx", &m_tpcseedpx, "m_tpcseedpx/F");
   m_failedfits->Branch("tpcseedpy", &m_tpcseedpy, "m_tpcseedpy/F");
   m_failedfits->Branch("tpcseedpz", &m_tpcseedpz, "m_tpcseedpz/F");
+  m_failedfits->Branch("tpcseedphi", &m_tpcseedphi, "m_tpcseedphi/F");
+  m_failedfits->Branch("tpcseedeta", &m_tpcseedeta, "m_tpcseedeta/F");
   m_failedfits->Branch("tpcseedcharge", &m_tpcseedcharge, "m_tpcseedcharge/I");
   m_failedfits->Branch("dedx", &m_dedx, "m_dedx/F");
   m_failedfits->Branch("nmaps", &m_nmaps, "m_nmaps/I");
