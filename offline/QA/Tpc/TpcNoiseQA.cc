@@ -109,9 +109,18 @@ for (auto packet : pktvec)
 	std::cout << __PRETTY_FUNCTION__ << " : decoding packet " << packet << std::endl;
       }
 
-    int32_t packet_id = packet->get_packetid();
+    if (!packet)
+    {
+      if (Verbosity())
+      {
+        std::cout << __PRETTY_FUNCTION__ << " : missing packet " << packet << std::endl;
+      }
+      continue;
+    }
+
+    int32_t packet_id = packet->getIdentifier();
     int ep = (packet_id-4000) % 10;
-    int sector = (packet_id - 4000 - ep)/10;
+    sector = (packet_id - 4000 - ep)/10;
     if(sector>11) side=1;
     else side=0;
 
