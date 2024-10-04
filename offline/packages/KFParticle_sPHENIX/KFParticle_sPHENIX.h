@@ -305,6 +305,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
 
+  void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
+
   void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
 
   /// Use alternate vertex and track fitters

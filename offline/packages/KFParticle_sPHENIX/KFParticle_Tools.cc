@@ -207,6 +207,11 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   {
     m_dst_track = iter.second;
 
+    if (m_bunch_crossing_zero_only && (m_dst_track->get_crossing() != 0))
+    {
+      continue;
+    }
+
     // First check if we have the required number of MVTX and TPC hits
     TrackSeed *tpcseed = m_dst_track->get_tpc_seed();
     TrackSeed *silseed = m_dst_track->get_silicon_seed();

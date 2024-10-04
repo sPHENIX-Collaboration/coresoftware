@@ -177,6 +177,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float m_min_radial_SV = -1.;
 
+  bool m_bunch_crossing_zero_only {false};  
+
   bool m_require_bunch_crossing_match {true};
 
   std::string m_vtx_map_node_name;
