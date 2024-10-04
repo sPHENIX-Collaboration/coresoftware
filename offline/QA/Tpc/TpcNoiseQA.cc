@@ -245,7 +245,7 @@ void TpcNoiseQA::createHistos()
   }
 
   {
-    auto h = new TH2F(boost::str(boost::format("%sSPol_Ped_Mean") % getHistoPrefix() % sectorNum.c_str()).c_str(),";x;y",(2*r_bins_N + nphi + 1), r_bins_new,(2*r_bins_N + nphi + 1), r_bins_new);
+    auto h = new TH2F(boost::str(boost::format("%sSPol_Ped_Mean") % getHistoPrefix()).c_str(),";x;y",(2*r_bins_N + nphi + 1), r_bins_new,(2*r_bins_N + nphi + 1), r_bins_new);
     hm->registerHisto(h);
   }
 
