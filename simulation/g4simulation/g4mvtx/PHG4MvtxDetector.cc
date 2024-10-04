@@ -394,6 +394,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4AssemblyVolume *av)
   }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume *lv)
 {
   std::string material_name(lv->GetMaterial()->GetName());
@@ -516,6 +517,7 @@ void PHG4MvtxDetector::FillPVArray(G4AssemblyVolume *av)
   }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void PHG4MvtxDetector::FindSensor(G4LogicalVolume *lv)
 {
   int nDaughters = lv->GetNoDaughters();
