@@ -174,7 +174,7 @@ for(int fee_no=0;fee_no<26;fee_no++){
     if(mod_arr[fee_no]==3) feeM += 14;
     key = 256 * (feeM) + channel_no;
     R = M.getR(feeM, channel_no);
-    phi = pow(-1,side)*M.getPhi(feeM, channel_no) + (stoi(sectorNum) - side*12.0)* M_PI / 6.0;
+    phi = pow(-1,side)*M.getPhi(feeM, channel_no) + (stoi(sector) - side*12.0)* M_PI / 6.0;
 
     if(phi<0.0) phi = phi + 2.0*M_PI; 
 
@@ -235,12 +235,12 @@ void TpcNoiseQA::createHistos()
 
   // Create and register histos in HistoManager
   {
-    auto h = new TH2F(boost::str(boost::format("%sNPol_Ped_Mean") % getHistoPrefix() % sectorNum.c_str()).c_str(),";x;y",(2*r_bins_N + nphi + 1), r_bins_new,(2*r_bins_N + nphi + 1), r_bins_new);
+    auto h = new TH2F(boost::str(boost::format("%sNPol_Ped_Mean") % getHistoPrefix()).c_str(),";x;y",(2*r_bins_N + nphi + 1), r_bins_new,(2*r_bins_N + nphi + 1), r_bins_new);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(boost::str(boost::format("%sNPol_Ped_RMS") % getHistoPrefix() % sectorNum.c_str()).c_str(),";x;y",(2*r_bins_N + nphi + 1), r_bins_new,(2*r_bins_N + nphi + 1), r_bins_new);
+    auto h = new TH2F(boost::str(boost::format("%sNPol_Ped_RMS") % getHistoPrefix()).c_str(),";x;y",(2*r_bins_N + nphi + 1), r_bins_new,(2*r_bins_N + nphi + 1), r_bins_new);
     hm->registerHisto(h);
   }
 
@@ -250,7 +250,7 @@ void TpcNoiseQA::createHistos()
   }
 
   {
-    auto h = new TH2F(boost::str(boost::format("%sSPol_Ped_RMS") % getHistoPrefix() % sectorNum.c_str()).c_str(),";x;y",(2*r_bins_N + nphi + 1), r_bins_new,(2*r_bins_N + nphi + 1), r_bins_new);
+    auto h = new TH2F(boost::str(boost::format("%sSPol_Ped_RMS") % getHistoPrefix()).c_str(),";x;y",(2*r_bins_N + nphi + 1), r_bins_new,(2*r_bins_N + nphi + 1), r_bins_new);
     hm->registerHisto(h);
   }
 }
