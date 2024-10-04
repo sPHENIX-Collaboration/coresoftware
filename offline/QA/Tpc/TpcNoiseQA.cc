@@ -99,26 +99,30 @@ int TpcNoiseQA::process_event(PHCompositeNode *topNode)
   h_SPol_Ped_RMS = dynamic_cast<TH2F*>(hm->getHisto(boost::str(boost::format("%sSPol_Ped_RMS") % getHistoPrefix()).c_str()));
 //
 
+  int sector=0;
+
   std::vector<Packet *> pktvec = _event->getPacketVector();
 
 // Loop over packets in event
 for (auto packet : pktvec)
   {
+
+    int32_t packet_id = packet->getIdentifier();
+
     if (Verbosity())
       {
-	std::cout << __PRETTY_FUNCTION__ << " : decoding packet " << packet << std::endl;
+	std::cout << __PRETTY_FUNCTION__ << " : decoding packet " << packet_id << std::endl;
       }
 
     if (!packet)
     {
       if (Verbosity())
       {
-        std::cout << __PRETTY_FUNCTION__ << " : missing packet " << packet << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " : missing packet " << packet_id << std::endl;
       }
       continue;
     }
 
-    int32_t packet_id = packet->getIdentifier();
     int ep = (packet_id-4000) % 10;
     sector = (packet_id - 4000 - ep)/10;
     if(sector>11) side=1;

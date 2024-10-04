@@ -80,8 +80,7 @@ TpcMap M;
   double pedMean{0.0};
   double pedStdi{0.0};
   
-  int side{0};                // Face of the TPC (0==North && 1==South)
-  int sector{0};              // Sector of TPC in ebdc coordinates  
+  int side{0};                // Face of the TPC (0==North && 1==South) 
   int m_nWaveformInFrame{0};  // Number of waveforms in a frame
   int m_Channel{0};           // Channel number
   int m_nSamples{0};          // Number of samples in waveform
