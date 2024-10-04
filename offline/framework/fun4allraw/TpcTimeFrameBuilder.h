@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <utility>
 
 class Packet;
 class TpcRawHit;
@@ -45,6 +46,7 @@ class TpcTimeFrameBuilder
   static const uint16_t MAX_CHANNELS = 8 * 32;  // that many channels per FEE
                                                 //  static const uint16_t  HEADER_LENGTH  = 5;
   static const uint16_t HEADER_LENGTH = 7;
+  static const uint16_t MAX_PACKET_LENGTH = 1025;
 
   uint16_t reverseBits(const uint16_t x) const;
   uint16_t crc16(const uint32_t fee, const uint32_t index, const int l) const;
@@ -77,7 +79,7 @@ class TpcTimeFrameBuilder
 
   struct fee_payload
   {
-    uint16_t adc_length = 0;  // this is indeed the number of 10-bit words in this packet
+    uint16_t adc_length = 0;  
     uint16_t data_parity = 0;
     uint16_t sampa_address = 0;
     uint16_t sampa_channel = 0;
@@ -89,7 +91,7 @@ class TpcTimeFrameBuilder
     uint16_t data_crc = 0;
     uint16_t calc_crc = 0;
     
-    std::vector<uint16_t> adc_data;
+    std::vector< std::pair< uint16_t , std::vector<uint16_t> > > waveforms;
   };
 
   std::vector<std::deque<uint16_t>> m_feeData;

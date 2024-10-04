@@ -74,6 +74,7 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   i = 1;
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "WordValid");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "WordSkipped");
+  m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "InvalidLength");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "RawHit");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitFormatError");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "MissingLastHit");
@@ -333,7 +334,18 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 
     // valid packet
     const uint16_t &pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
-    if (pkt_length > data_buffer.size())
+    if (pkt_length > MAX_PACKET_LENGTH)
+    {
+      if (m_verbosity > 1)
+      {
+        cout << __PRETTY_FUNCTION__ << " : Error : Invalid FEE pkt_length " << pkt_length << endl;
+      }
+      m_hFEEDataStream->Fill(fee, "InvalidLength", 1);
+      data_buffer.pop_front();
+      continue;
+    }
+
+    if (pkt_length + 1U > data_buffer.size())
     {
       if (m_verbosity > 2)
       {
@@ -357,25 +369,19 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     payload.user_word = data_buffer[3] & 0x7f;
     payload.bx_timestamp = ((data_buffer[6] & 0x3ff) << 10) | (data_buffer[5] & 0x3ff);
 
-    payload.data_crc = data_buffer[pkt_length - 1];
-    payload.calc_crc = crc16(fee, 0, pkt_length - 1);
+    payload.data_crc = data_buffer[pkt_length];
+    payload.calc_crc = crc16(fee, 0, pkt_length);
     if (payload.data_crc != payload.calc_crc)
     {
       if (m_verbosity > 2)
       {
         cout << __PRETTY_FUNCTION__ << " : CRC error in FEE "
              << fee << " at position " << pkt_length - 1
-             << ": data_crc = " << payload.data_crc 
+             << ": data_crc = " << payload.data_crc
              << " calc_crc = " << payload.calc_crc << endl;
       }
       m_hFEEDataStream->Fill(fee, "CRCError", 1);
       // continue;
-    }
-
-    payload.adc_data.resize(payload.adc_length);
-    for (size_t i = 0; i < payload.adc_length; i++)
-    {
-      payload.adc_data[i] = data_buffer[HEADER_LENGTH + i];
     }
 
     if (m_verbosity > 1)
@@ -408,41 +414,35 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     // m_hFEEDataStream->Fill(fee, "RawHit", 1);
 
     // Format is (N sample) (start time), (1st sample)... (Nth sample)
-    // while (pos < pkt_length)
-    // {
-    //   const uint16_t &nsamp = data_buffer[pos++];
-    //   const uint16_t &start_t = data_buffer[pos++];
+    size_t pos = HEADER_LENGTH;
+    while (pos < pkt_length)
+    {
+      const uint16_t &nsamp = data_buffer[pos++];
+      const uint16_t &start_t = data_buffer[pos++];
 
-    //   if (pos + nsamp >= pkt_length)
-    //   {
-    //     if (m_verbosity > 1)
-    //     {
-    //       cout << __PRETTY_FUNCTION__ << ": WARNING : nsamp: " << nsamp
-    //            << ", pos: " << pos
-    //            << " > pkt_length: " << pkt_length << ", format error" << endl;
-    //     }
-    //     m_hFEEDataStream->Fill(fee, "HitFormatError", 1);
+      if (pos + nsamp >= pkt_length)
+      {
+        if (m_verbosity > 1)
+        {
+          cout << __PRETTY_FUNCTION__ << ": WARNING : nsamp: " << nsamp
+               << ", pos: " << pos
+               << " > pkt_length: " << pkt_length << ", format error" << endl;
+        }
+        m_hFEEDataStream->Fill(fee, "HitFormatError", 1);
 
-    //     delete hit;
+        break;
+      }
 
-    //     break;
-    //   }
+      std::vector<uint16_t> adc(nsamp);
+      for (int j = 0; j < nsamp; j++)
+      {
+        adc[j] = data_buffer[pos++];
+      }
+      payload.waveforms.push_back(std::make_pair(start_t, std::move(adc)));
 
-    //   for (int j = 0; j < nsamp; j++)
-    //   {
-    //     hit->set_adc(start_t + j, data_buffer[pos++]);
-
-    //     // an exception to deal with the last sample that is missing in the current hit format
-    //     if (pos + 1 == pkt_length)
-    //     {
-    //       m_hFEEDataStream->Fill(fee, "MissingLastADC", 1);
-    //       break;
-    //     }
-    //   }
-
-    //   // an exception to deal with the last sample that is missing in the current hit format
-    //   if (pos + 1 == pkt_length) break;
-    // }
+      //   // an exception to deal with the last sample that is missing in the current hit format
+      //   if (pos + 1 == pkt_length) break;
+    }
 
     data_buffer.erase(data_buffer.begin(), data_buffer.begin() + pkt_length);
     m_hFEEDataStream->Fill(fee, "WordValid", pkt_length);
