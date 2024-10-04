@@ -436,10 +436,15 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume *lv)
 void PHG4MvtxDetector::AddGeometryNode()
 {
   int active = 0;
-  for (auto &isAct : m_IsLayerActive)
+  // for (auto &isAct : m_IsLayerActive)
+  // {
+  //   active |= isAct;
+  // }
+  if (std::any_of(m_IsLayerActive.begin(), m_IsLayerActive.end(), [](int isAct) { return isAct != 0; }))
   {
-    active |= isAct;
+    active = 1;
   }
+  
   if (active)  // At least one layer is active
   {
     //    ostringstream geonode;
