@@ -149,6 +149,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_daughter_pt_err[max_tracks] = {0};
   float m_calculated_daughter_jt[max_tracks] = {0};
   char m_calculated_daughter_q[max_tracks] = {0};
+  int m_calculated_daughter_bunch_crossing[max_tracks] = {0};
   float m_calculated_daughter_eta[max_tracks] = {0};
   float m_calculated_daughter_rapidity[max_tracks] = {0};
   float m_calculated_daughter_theta[max_tracks] = {0};
