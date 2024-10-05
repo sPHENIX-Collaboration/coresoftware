@@ -12,7 +12,12 @@
 #include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
+
+#pragma GCC diagnostic push // needed for local Act compilation
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #include <Acts/TrackFitting/GaussianSumFitter.hpp>
+#pragma GCC diagnostic pop
+
 #include <Acts/TrackFitting/GsfMixtureReduction.hpp>
 #include <Acts/Utilities/Helpers.hpp>
 

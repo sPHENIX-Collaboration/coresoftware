@@ -10,10 +10,12 @@
 #include <Acts/EventData/SourceLink.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/EventData/VectorTrackContainer.hpp>
-
 #include <Acts/Geometry/TrackingGeometry.hpp>
 
+#pragma GCC diagnostic push // needed for local Act compilation
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #include <Acts/Propagator/MultiEigenStepperLoop.hpp>
+#pragma GCC diagnostic pop
 
 #include <Acts/TrackFitting/KalmanFitter.hpp>
 
