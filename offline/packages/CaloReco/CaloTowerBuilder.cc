@@ -175,7 +175,7 @@ int CaloTowerBuilder::process_sim()
       int pre = towerinfo->get_waveform_value(0);
       //this is always safe since towerinfo v3 has 31 samples
       int post = towerinfo->get_waveform_value(6);
-      if((post - pre) < zs_threshold)
+      if((post - pre) <= zs_threshold)
       {
         //zero suppressed
         fillwaveform = false;
