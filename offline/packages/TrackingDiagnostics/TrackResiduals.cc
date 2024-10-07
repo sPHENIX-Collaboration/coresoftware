@@ -367,14 +367,14 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       continue;
     }
     m_trackid = svtxseedmap->find(seed);
-    auto tpcseedindex = seed->get_tpc_seed_index();
-    if (tpc_seed_ids.find(tpcseedindex) != tpc_seed_ids.end())
+    m_tpcid = seed->get_tpc_seed_index();
+    if (tpc_seed_ids.find(m_tpcid) != tpc_seed_ids.end())
     {
       continue;
     }
-    auto siliconseedindex = seed->get_silicon_seed_index();
-    auto tpcseed = tpcseedmap->get(tpcseedindex);
-    auto silseed = silseedmap->get(siliconseedindex);
+    m_silid = seed->get_silicon_seed_index();
+    auto tpcseed = tpcseedmap->get(m_tpcid);
+    auto silseed = silseedmap->get(m_silid);
 
     int crossing = SHRT_MAX;
     if (silseed)
@@ -1559,6 +1559,8 @@ void TrackResiduals::createBranches()
   m_failedfits->Branch("run", &m_runnumber, "m_runnumber/I");
   m_failedfits->Branch("segment", &m_segment, "m_segment/I");
   m_failedfits->Branch("trackid", &m_trackid, "m_trackid/I");
+  m_failedfits->Branch("tpcid", &m_tpcid, "m_tpcid/I");
+  m_failedfits->Branch("silid", &m_silid, "m_silid/I");
   m_failedfits->Branch("event", &m_event, "m_event/I");
   m_failedfits->Branch("silseedx", &m_silseedx, "m_silseedx/F");
   m_failedfits->Branch("silseedy", &m_silseedy, "m_silseedy/F");
