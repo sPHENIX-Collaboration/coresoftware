@@ -125,7 +125,7 @@ class CaloTowerBuilder : public SubsysReco
   CaloTowerDefs::BuilderType m_buildertype{CaloTowerDefs::kPRDFTowerv1};
   CaloWaveformProcessing::process _processingtype{CaloWaveformProcessing::NONE};
   std::string m_detector{"CEMC"};
-  std::string m_inputNodePrefix{"PEDESTAL_"};
+  std::string m_inputNodePrefix{"WAVEFORM_"};
   std::string m_outputNodePrefix{"TOWERS_"};
   std::string TowerNodeName;
   bool m_setTimeLim{false};
