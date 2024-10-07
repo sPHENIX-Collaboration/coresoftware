@@ -711,7 +711,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
   {
     if(minResidLayer[ilayer] < std::numeric_limits<float>::max())
     {
-      if(layer < 3)
+      if(ilayer < 3)
       {
         matchedClusters.push_back(minResidckey[ilayer]);
         clusters.push_back(minResidGlobPos[ilayer]);
