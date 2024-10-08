@@ -1,6 +1,7 @@
 #include "ZdcReco.h"
 #include "Zdcinfo.h"
 #include "Zdcinfov1.h"
+#include "Zdcinfov2.h"
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -69,7 +70,7 @@ int ZdcReco::InitRun(PHCompositeNode *topNode) {
 
   m_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
   if (!m_zdcinfo) {
-    m_zdcinfo = new Zdcinfov1();
+    m_zdcinfo = new Zdcinfov2();
     PHIODataNode<PHObject> *newNode =
         new PHIODataNode<PHObject>(m_zdcinfo, "Zdcinfo", "PHObject");
     DetNode->addNode(newNode);
@@ -88,9 +89,11 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
   //---------------------------------
 
   ResetMe();
-  _z_vertex =  std::numeric_limits<float>::quiet_NaN();
+  _z_vertex = std::numeric_limits<float>::quiet_NaN();
   _radius_north = std::numeric_limits<float>::quiet_NaN();
   _radius_south = std::numeric_limits<float>::quiet_NaN();
+  _sumSden = 0.;
+  _sumNden = 0.;
   _sumSt = 0.;
   _sumNt = 0.;
   _sumS = 0.;
@@ -119,15 +122,14 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
       exit(1);
     }
 
-    // get smd info
+    // get zdc-smd info
     for (unsigned int ch = 0; ch < ntowers; ch++) {
       TowerInfo *_tower = zdc_towerinfo->get_tower_at_channel(ch);
       float zdc_e = _tower->get_energy();
       float zdc_time = _tower->get_time_float();
-
       if (TowerInfoDefs::isZDC(ch)) {
-          vzdcadc.push_back(zdc_e);
-          vzdctime.push_back(zdc_time);
+        vzdcadc.push_back(zdc_e);
+        vzdctime.push_back(zdc_time);
       }
 
       if (TowerInfoDefs::isSMD(ch)) {
@@ -197,7 +199,7 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
       smd_south_fired = true;
     }
 
-   if (smd_north_fired) {
+    if (smd_north_fired) {
       _radius_north =
           std::sqrt(smd_pos[1] * smd_pos[1] + smd_pos[0] * smd_pos[0]);
     }
@@ -206,49 +208,69 @@ int ZdcReco::process_event(PHCompositeNode *topNode) {
           std::sqrt(smd_pos[3] * smd_pos[3] + smd_pos[2] * smd_pos[2]);
     }
 
-
     // apply time cuts per zdc and get sums
     for (int i = 0; i < zsize; i++) {
       unsigned int key = TowerInfoDefs::encode_zdc(i);
       int arm = TowerInfoDefs::get_zdc_side(key);
 
       if (vzdctime[i] > 5.0 && vzdctime[i] < 9.0) {
+
         if (arm == 0) {
+
+          if (vzdcadc[6] > 50.) {
+            _sumSt = vzdcadc[0] * cdbttree->GetFloatValue(0, m_fieldname) *
+                         vzdctime[0] +
+                     vzdcadc[2] * cdbttree->GetFloatValue(2, m_fieldname) *
+                         vzdctime[2] +
+                     vzdcadc[4] * cdbttree->GetFloatValue(4, m_fieldname) *
+                         vzdctime[4];
+
+            _sumSden = vzdcadc[0] * cdbttree->GetFloatValue(0, m_fieldname) +
+                       vzdcadc[2] * cdbttree->GetFloatValue(2, m_fieldname) +
+                       vzdcadc[4] * cdbttree->GetFloatValue(4, m_fieldname);
+          }
+
           if (vzdcadc[0] > _zdc1_e && vzdcadc[2] > _zdc2_e) {
             _sumS = vzdcadc[0] * cdbttree->GetFloatValue(0, m_fieldname) +
                     vzdcadc[2] * cdbttree->GetFloatValue(2, m_fieldname) +
                     vzdcadc[4] * cdbttree->GetFloatValue(4, m_fieldname);
-            _sumSt = vzdcadc[0] * cdbttree->GetFloatValue(0, m_fieldname) * vzdctime[0] +
-                     vzdcadc[2] * cdbttree->GetFloatValue(2, m_fieldname) * vzdctime[2] +
-                     vzdcadc[4] * cdbttree->GetFloatValue(4, m_fieldname) * vzdctime[4];
           }
+
         } else if (arm == 1) {
+
+          if (vzdcadc[14] > 50.) {
+            _sumNt = vzdcadc[8] * cdbttree->GetFloatValue(8, m_fieldname) *
+                         vzdctime[8] +
+                     vzdcadc[10] * cdbttree->GetFloatValue(10, m_fieldname) *
+                         vzdctime[10] +
+                     vzdcadc[12] * cdbttree->GetFloatValue(12, m_fieldname) *
+                         vzdctime[12];
+
+            _sumNden = vzdcadc[8] * cdbttree->GetFloatValue(8, m_fieldname) +
+                       vzdcadc[10] * cdbttree->GetFloatValue(10, m_fieldname) +
+                       vzdcadc[12] * cdbttree->GetFloatValue(12, m_fieldname);
+          }
+
           if (vzdcadc[8] > _zdc1_e && vzdcadc[10] > _zdc2_e) {
             _sumN = vzdcadc[8] * cdbttree->GetFloatValue(8, m_fieldname) +
                     vzdcadc[10] * cdbttree->GetFloatValue(10, m_fieldname) +
                     vzdcadc[12] * cdbttree->GetFloatValue(12, m_fieldname);
-            _sumNt = vzdcadc[8] * cdbttree->GetFloatValue(8, m_fieldname) * vzdctime[8] +
-                     vzdcadc[10] * cdbttree->GetFloatValue(10, m_fieldname) * vzdctime[10] +
-                     vzdcadc[12] * cdbttree->GetFloatValue(12, m_fieldname) * vzdctime[12];
           }
         }
       }
     }
-      
 
-      //in ns
-    double south_time_weighted = (_sumSt / _sumS) * _t;
-    double north_time_weighted = (_sumNt / _sumN) * _t;
+    // in ns
+    double south_time_weighted = (_sumSt / _sumSden) * _t;
+    double north_time_weighted = (_sumNt / _sumNden) * _t;
     double time_diff_ns_weighted = south_time_weighted - north_time_weighted;
     _z_vertex = time_diff_ns_weighted * 0.5 * _c;
-      
-     
+
     m_zdcinfo->set_zdc_energy(0, _sumS);
     m_zdcinfo->set_zdc_energy(1, _sumN);
     m_zdcinfo->set_radius(0, _radius_south);
     m_zdcinfo->set_radius(1, _radius_north);
     m_zdcinfo->set_zvertex(_z_vertex);
-      
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

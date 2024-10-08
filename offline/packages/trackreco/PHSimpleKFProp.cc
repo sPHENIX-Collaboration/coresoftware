@@ -137,7 +137,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 
 double PHSimpleKFProp::get_Bz(double x, double y, double z) const
 {
-  if (_use_const_field)
+  if (_use_const_field || fabs(z) > 105.5)
   {
     return _const_field;
   }
@@ -161,36 +161,19 @@ double PHSimpleKFProp::get_Bz(double x, double y, double z) const
 
 int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
 {
-  //---------------------------------
-  // Get Objects off of the Node Tree
-  //---------------------------------
 
-  _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if (!_tgeometry)
+  // acts geometry
+  m_tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!m_tgeometry)
   {
     std::cout << "No Acts tracking geometry, exiting." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  // tpc distortion corrections
-  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  if (m_dcc_static)
-  {
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl;
-  }
+  // tpc global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
 
-  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  if (m_dcc_average)
-  {
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl;
-  }
-
-  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
-  if (m_dcc_fluctuation)
-  {
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl;
-  }
-
+  // clusters
   if (_use_truth_clusters)
   {
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
@@ -205,6 +188,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // tracks
   _track_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!_track_map)
   {
@@ -212,6 +196,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // tpc grometry
   PHG4TpcCylinderGeomContainer* geom_container =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
@@ -255,8 +240,10 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     std::cout << "prepared KD trees" << std::endl;
   }
 
-  if(Verbosity()) { std::cout << "number of TPC seeds: " << _track_map->size() << std::endl;
-}
+  if (Verbosity())
+  {
+    std::cout << "number of TPC seeds: " << _track_map->size() << std::endl;
+  }
 
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
@@ -326,7 +313,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       {
         continue;
       }
-      //track->set_qOverR(seedpair.first.at(0).get_qOverR());
+      // track->set_qOverR(seedpair.first.at(0).get_qOverR());
       if (Verbosity())
       {
         std::cout << "is tpc track" << std::endl;
@@ -343,30 +330,30 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       auto preseed = PropagateTrack(track, PropagationDirection::Inward, seedpair.second.at(0), globalPositions);
       std::vector<std::vector<TrkrDefs::cluskey>> p;
       p.push_back(preseed);
-      //std::vector<float> pchi2;
-      //auto kfpair_preseed = fitter->ALICEKalmanFilter(p, false, globalPositions, pchi2);
-      //if(kfpair_preseed.first.size()==0 || kfpair_preseed.second.size()==0) continue;
+      // std::vector<float> pchi2;
+      // auto kfpair_preseed = fitter->ALICEKalmanFilter(p, false, globalPositions, pchi2);
+      // if(kfpair_preseed.first.size()==0 || kfpair_preseed.second.size()==0) continue;
 
-      //std::map<TrkrDefs::cluskey,Acts::Vector3> pmap;
-      //for(auto& cl : preseed) pmap.insert(std::make_pair(cl,globalPositions.at(cl)));
+      // std::map<TrkrDefs::cluskey,Acts::Vector3> pmap;
+      // for(auto& cl : preseed) pmap.insert(std::make_pair(cl,globalPositions.at(cl)));
 
-      //kfpair_preseed.first.at(0).circleFitByTaubin(pmap,7,55);
-      //kfpair_preseed.first.at(0).lineFit(pmap,7,55);
-      //float pseed_intermediate_phi = kfpair_preseed.first.at(0).get_phi(pmap);
-      //kfpair_preseed.first.at(0).set_phi(pseed_intermediate_phi);
+      // kfpair_preseed.first.at(0).circleFitByTaubin(pmap,7,55);
+      // kfpair_preseed.first.at(0).lineFit(pmap,7,55);
+      // float pseed_intermediate_phi = kfpair_preseed.first.at(0).get_phi(pmap);
+      // kfpair_preseed.first.at(0).set_phi(pseed_intermediate_phi);
 
-      //auto preseed_final = PropagateTrack(&kfpair_preseed.first.at(0), PropagationDirection::Outward, kfpair_preseed.second.at(0), globalPositions);
+      // auto preseed_final = PropagateTrack(&kfpair_preseed.first.at(0), PropagationDirection::Outward, kfpair_preseed.second.at(0), globalPositions);
 
       if (Verbosity())
       {
         std::cout << "preseed size " << preseed.size() << std::endl;
       }
 
-//      if (preseed.size() > 40)
-//      {
-//        new_chains.push_back(preseed);
-//        continue;
-//      }
+      //      if (preseed.size() > 40)
+      //      {
+      //        new_chains.push_back(preseed);
+      //        continue;
+      //      }
 
       std::vector<std::vector<TrkrDefs::cluskey>> kl;
       kl.push_back(preseed);
@@ -382,7 +369,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         continue;
       }
 
-      std::reverse(kl.at(0).begin(),kl.at(0).end());
+      std::reverse(kl.at(0).begin(), kl.at(0).end());
 
       auto pretrack = prepair.first.at(0);
       std::vector<TrkrDefs::cluskey> dumvec2;
@@ -400,29 +387,34 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       pretrack.lineFit(pretrackClusPositions, 7, 55);
       float pretrackphi = pretrack.get_phi(pretrackClusPositions);
       pretrack.set_phi(pretrackphi);  // make phi persistent
-      //pretrack.set_qOverR(prepair.first.at(0).get_qOverR());
+      // pretrack.set_qOverR(prepair.first.at(0).get_qOverR());
 
-      //auto intermediate_seed = PropagateTrack(&pretrack, PropagationDirection::Inward, prepair.second.at(0), globalPositions);
-      //std::vector<std::vector<TrkrDefs::cluskey>> iseed;
-      //iseed.push_back(intermediate_seed);
-      //std::vector<float> iseedchi2;
-      //auto kfpair_intermediate = fitter->ALICEKalmanFilter(iseed, false, globalPositions, iseedchi2);
+      // auto intermediate_seed = PropagateTrack(&pretrack, PropagationDirection::Inward, prepair.second.at(0), globalPositions);
+      // std::vector<std::vector<TrkrDefs::cluskey>> iseed;
+      // iseed.push_back(intermediate_seed);
+      // std::vector<float> iseedchi2;
+      // auto kfpair_intermediate = fitter->ALICEKalmanFilter(iseed, false, globalPositions, iseedchi2);
 
-      //if(kfpair_intermediate.first.size()==0 || kfpair_intermediate.second.size()==0) continue;
+      // if(kfpair_intermediate.first.size()==0 || kfpair_intermediate.second.size()==0) continue;
 
-      //std::map<TrkrDefs::cluskey,Acts::Vector3> imap;
-      //for(auto& cl : intermediate_seed) imap.insert(std::make_pair(cl,globalPositions.at(cl)));
-      //kfpair_intermediate.first.at(0).circleFitByTaubin(imap,7,55);
-      //kfpair_intermediate.first.at(0).lineFit(imap,7,55);
-      //float kfpairiphi = kfpair_intermediate.first.at(0).get_phi(imap);
-      //kfpair_intermediate.first.at(0).set_phi(kfpairiphi);
+      // std::map<TrkrDefs::cluskey,Acts::Vector3> imap;
+      // for(auto& cl : intermediate_seed) imap.insert(std::make_pair(cl,globalPositions.at(cl)));
+      // kfpair_intermediate.first.at(0).circleFitByTaubin(imap,7,55);
+      // kfpair_intermediate.first.at(0).lineFit(imap,7,55);
+      // float kfpairiphi = kfpair_intermediate.first.at(0).get_phi(imap);
+      // kfpair_intermediate.first.at(0).set_phi(kfpairiphi);
 
       prepair.second.at(0).SetDzDs(-prepair.second.at(0).GetDzDs());
       auto finalchain = PropagateTrack(&pretrack, kl.at(0), PropagationDirection::Outward, prepair.second.at(0), globalPositions);
 
-      if(finalchain.size()>kl.at(0).size()) { new_chains.push_back(finalchain);
-      } else { new_chains.push_back(kl.at(0));
-}
+      if (finalchain.size() > kl.at(0).size())
+      {
+        new_chains.push_back(finalchain);
+      }
+      else
+      {
+        new_chains.push_back(kl.at(0));
+      }
 
       timer.stop();
 
@@ -448,8 +440,10 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   timer.restart();
 
   std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions);
-  if(Verbosity()>1) { std::cout << "clean_chains size: " << clean_chains.size() << std::endl;
-}
+  if (Verbosity() > 1)
+  {
+    std::cout << "clean_chains size: " << clean_chains.size() << std::endl;
+  }
   timer.stop();
 
   timer.stop();
@@ -467,10 +461,12 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   timer.restart();
   //  Move ghost rejection into publishSeeds, so that we don't publish
   //  rejected seeds
-  if (m_ghostrejection) 
+  if (m_ghostrejection)
   {
     rejectAndPublishSeeds(seeds.first, globalPositions, trackChi2, timer);
-  } else {
+  }
+  else
+  {
     publishSeeds(seeds.first);
   }
 
@@ -482,25 +478,9 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 Acts::Vector3 PHSimpleKFProp::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
   // get global position from Acts transform
-  auto globalpos = _tgeometry->getGlobalPosition(key, cluster);
-  const auto trkrid = TrkrDefs::getTrkrId(key);
-  if (trkrid == TrkrDefs::tpcId && !_pp_mode)
-  {
-    if (m_dcc_static)
-    {
-      globalpos = m_distortionCorrection.get_corrected_position(globalpos, m_dcc_static);
-    }
-    if (m_dcc_average)
-    {
-      globalpos = m_distortionCorrection.get_corrected_position(globalpos, m_dcc_average);
-    }
-    if (m_dcc_fluctuation)
-    {
-      globalpos = m_distortionCorrection.get_corrected_position(globalpos, m_dcc_fluctuation);
-    }
-  }
-
-  return globalpos;
+  return _pp_mode ?
+    m_tgeometry->getGlobalPosition(key, cluster):
+    m_globalPositionWrapper.getGlobalPositionDistortionCorrected( key, cluster, 0 );
 }
 
 PositionMap PHSimpleKFProp::PrepareKDTrees()
@@ -557,13 +537,13 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
   _kdtrees.resize(kdhits.size());
   for (size_t l = 0; l < kdhits.size(); ++l)
   {
-    if (Verbosity()>1)
+    if (Verbosity() > 1)
     {
       std::cout << "l: " << l << std::endl;
     }
     _ptclouds[l] = std::make_shared<KDPointCloud<double>>();
     _ptclouds[l]->pts.resize(kdhits[l].size());
-    if (Verbosity()>1)
+    if (Verbosity() > 1)
     {
       std::cout << "resized to " << kdhits[l].size() << std::endl;
     }
@@ -580,38 +560,56 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
 
 bool PHSimpleKFProp::TransportAndRotate(double old_radius, double new_radius, double& phi, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp) const
 {
-  if(Verbosity()>2) { std::cout << "old_radius " << old_radius << ", new_radius " << new_radius << std::endl;
-}
-  const float transport_spacing = .05; // max radial distance between transport points
-  const int Ndivisions = floor(fabs(new_radius-old_radius)/transport_spacing);
-  if(Verbosity()>2) { std::cout << "Ndivisions: " << Ndivisions << std::endl;
-}
-  for(int i=1; i<=Ndivisions+1; i++)
+  if (Verbosity() > 2)
   {
-    if(std::isnan(kftrack.GetX()) || 
-       std::isnan(kftrack.GetY()) ||
-       std::isnan(kftrack.GetZ()))
+    std::cout << "old_radius " << old_radius << ", new_radius " << new_radius << std::endl;
+  }
+  const float transport_spacing = .05;  // max radial distance between transport points
+  const int Ndivisions = floor(fabs(new_radius - old_radius) / transport_spacing);
+  if (Verbosity() > 2)
+  {
+    std::cout << "Ndivisions: " << Ndivisions << std::endl;
+  }
+  for (int i = 1; i <= Ndivisions + 1; i++)
+  {
+    if (std::isnan(kftrack.GetX()) ||
+        std::isnan(kftrack.GetY()) ||
+        std::isnan(kftrack.GetZ()))
     {
-      if(Verbosity()>1) { std::cout << "position is NaN, exiting" << std::endl;
-}
+      if (Verbosity() > 1)
+      {
+        std::cout << "position is NaN, exiting" << std::endl;
+      }
       return false;
     }
 
-    if(new_radius > 78. || fabs(kftrack.GetZ()) > 105.5)
+    if (new_radius > 78.)
     {
-      if(Verbosity()>1) { std::cout << "outside TPC, exiting" << std::endl;
-}
+      if (Verbosity() > 1)
+      {
+        std::cout << "outside TPC, exiting" << std::endl;
+      }
       return false;
     }
 
     double r_div;
-    if(i==Ndivisions+1) { r_div = new_radius;
-    } else if(old_radius<new_radius) { r_div = old_radius + transport_spacing*i;
-    } else { r_div = old_radius - transport_spacing*i;
-}
+    if (i == Ndivisions + 1)
+    {
+      r_div = new_radius;
+    }
+    else if (old_radius < new_radius)
+    {
+      r_div = old_radius + transport_spacing * i;
+    }
+    else
+    {
+      r_div = old_radius - transport_spacing * i;
+    }
 
-    if(Verbosity()>2) { std::cout << "transporting to intermediate radius " << r_div << std::endl;
-}
+    if (Verbosity() > 2)
+    {
+      std::cout << "transporting to intermediate radius " << r_div << std::endl;
+    }
 
     // track state position relative to radial direction
     const double tX = kftrack.GetX();
@@ -619,33 +617,37 @@ bool PHSimpleKFProp::TransportAndRotate(double old_radius, double new_radius, do
     const double tz = kftrack.GetZ();
 
     // track state global position (including tz above)
-    const double tx = tX*cos(phi) - tY*sin(phi);
-    const double ty = tX*sin(phi) + tY*cos(phi);
+    const double tx = tX * cos(phi) - tY * sin(phi);
+    const double ty = tX * sin(phi) + tY * cos(phi);
 
-    const double Bz = _Bzconst * get_Bz(tx,ty,tz);
+    const double Bz = _Bzconst * get_Bz(tx, ty, tz);
 
     kftrack.CalculateFitParameters(fp);
 
     // transport to radius
-    if(!kftrack.TransportToXWithMaterial(r_div, fp, Bz, 1.))
+    if (!kftrack.TransportToXWithMaterial(r_div, fp, Bz, 1.))
     {
-      if(Verbosity()>1) { std::cout << "transport failed" << std::endl;
-}
+      if (Verbosity() > 1)
+      {
+        std::cout << "transport failed" << std::endl;
+      }
       return false;
     }
     // rotate track state reference frame
     const double new_tX = kftrack.GetX();
     const double new_tY = kftrack.GetY();
 
-    const double new_tx = new_tX*cos(phi) - new_tY*sin(phi);
-    const double new_ty = new_tX*sin(phi) + new_tY*cos(phi);
-    const double new_phi = atan2(new_ty,new_tx);
+    const double new_tx = new_tX * cos(phi) - new_tY * sin(phi);
+    const double new_ty = new_tX * sin(phi) + new_tY * cos(phi);
+    const double new_phi = atan2(new_ty, new_tx);
     const double alpha = new_phi - phi;
 
-    if(!kftrack.Rotate(alpha,1.))
+    if (!kftrack.Rotate(alpha, 1.))
     {
-      if(Verbosity()>1) { std::cout << "rotate failed" << std::endl;
-}
+      if (Verbosity() > 1)
+      {
+        std::cout << "rotate failed" << std::endl;
+      }
       return false;
     }
     phi = new_phi;
@@ -653,11 +655,11 @@ bool PHSimpleKFProp::TransportAndRotate(double old_radius, double new_radius, do
 
   const double final_tX = kftrack.GetX();
   const double final_tY = kftrack.GetY();
-  const double final_tx = final_tX*cos(phi) - final_tY*sin(phi);
-  const double final_ty = final_tX*sin(phi) + final_tY*cos(phi);
+  const double final_tx = final_tX * cos(phi) - final_tY * sin(phi);
+  const double final_ty = final_tX * sin(phi) + final_tY * cos(phi);
   const double final_tz = kftrack.GetZ();
 
-  if(Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "track position after transport: (" << final_tx << ", " << final_ty << ", " << final_tz << ")" << std::endl;
   }
@@ -667,35 +669,50 @@ bool PHSimpleKFProp::TransportAndRotate(double old_radius, double new_radius, do
 bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_phi, PropagationDirection& direction, std::vector<TrkrDefs::cluskey>& propagated_track, std::vector<TrkrDefs::cluskey>& ckeys, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp, const PositionMap& globalPositions) const
 {
   // give up if position vector is NaN (propagation failed)
-  if(std::isnan(kftrack.GetX()) ||
-     std::isnan(kftrack.GetY()) ||
-     std::isnan(kftrack.GetZ()))
+  if (std::isnan(kftrack.GetX()) ||
+      std::isnan(kftrack.GetY()) ||
+      std::isnan(kftrack.GetZ()))
   {
-    if(Verbosity()>1) { std::cout << "position is NaN, exiting loop" << std::endl;
-}
+    if (Verbosity() > 1)
+    {
+      std::cout << "position is NaN, exiting loop" << std::endl;
+    }
     return false;
   }
 
-  if(Verbosity()>1) { std::cout << "current layer: " << current_layer << std::endl;
-}
-  if(Verbosity()>5) { std::cout << "original seed size: " << ckeys.size() << std::endl;
-}
+  if (Verbosity() > 1)
+  {
+    std::cout << "current layer: " << current_layer << std::endl;
+  }
+  if (Verbosity() > 5)
+  {
+    std::cout << "original seed size: " << ckeys.size() << std::endl;
+  }
 
   // CosPhi is the projection of the pt onto the radial direction
   // based on the sign of CosPhi, decide whether to propagate outward or inward
   int next_layer;
-  if(direction == PropagationDirection::Outward) { next_layer = current_layer + 1;
-  } else { next_layer = current_layer - 1;
-}
+  if (direction == PropagationDirection::Outward)
+  {
+    next_layer = current_layer + 1;
+  }
+  else
+  {
+    next_layer = current_layer - 1;
+  }
 
-  if(Verbosity()>1) { std::cout << "next layer: " << next_layer << std::endl;
-}
+  if (Verbosity() > 1)
+  {
+    std::cout << "next layer: " << next_layer << std::endl;
+  }
 
   // give up if next layer is outside the TPC (propagation complete)
-  if(next_layer < 7 || next_layer > 54)
+  if (next_layer < 7 || next_layer > 54)
   {
-    if(Verbosity()>1) { std::cout << "reached end of TPC, exiting loop" << std::endl;
-}
+    if (Verbosity() > 1)
+    {
+      std::cout << "reached end of TPC, exiting loop" << std::endl;
+    }
     return false;
   }
 
@@ -705,67 +722,86 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   const double tz = kftrack.GetZ();
 
   // track state global position (including tz above)
-  const double tx = tX*cos(current_phi) - tY*sin(current_phi);
-  const double ty = tX*sin(current_phi) + tY*cos(current_phi);
+  const double tx = tX * cos(current_phi) - tY * sin(current_phi);
+  const double ty = tX * sin(current_phi) + tY * cos(current_phi);
 
-  if(Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << std::endl;
     std::cout << "track position: (" << tx << ", " << ty << ", " << tz << ")" << std::endl;
   }
 
-  if(Verbosity()>1)
+  if (Verbosity() > 1)
   {
-    std::cout << "transporting to radius: " << radii[next_layer-7] << std::endl;
+    std::cout << "transporting to radius: " << radii[next_layer - 7] << std::endl;
   }
 
-  if(!TransportAndRotate(kftrack.GetX(),radii[next_layer-7],current_phi,kftrack,fp))
+  if (!TransportAndRotate(kftrack.GetX(), radii[next_layer - 7], current_phi, kftrack, fp))
   {
-    if(std::isnan(kftrack.GetX()) ||
-       std::isnan(kftrack.GetY()) ||
-       std::isnan(kftrack.GetZ()))
+    if (std::isnan(kftrack.GetX()) ||
+        std::isnan(kftrack.GetY()) ||
+        std::isnan(kftrack.GetZ()))
     {
       return false;
     }
 
-    if(Verbosity()>1) { std::cout << "track turned around near X=" << kftrack.GetX() << std::endl;
-}
+    if (Verbosity() > 1)
+    {
+      std::cout << "track turned around near X=" << kftrack.GetX() << std::endl;
+    }
 
     // TransportAndRotate failure indicates that track has turned around before it reaches next layer
     // The track parameters don't update in that last step, so we're likely somewhere between two layers
     // So, first, we turn the track around ourselves, setting it to its next intersection at its current radius
 
     // basically circle project in xy, linear project in z
-    double pt = 1./fabs(kftrack.GetQPt());
-    double end_tx = kftrack.GetX()*cos(current_phi)-kftrack.GetY()*sin(current_phi);
-    double end_ty = kftrack.GetX()*sin(current_phi)+kftrack.GetY()*cos(current_phi);
+    double pt = 1. / fabs(kftrack.GetQPt());
+    double end_tx = kftrack.GetX() * cos(current_phi) - kftrack.GetY() * sin(current_phi);
+    double end_ty = kftrack.GetX() * sin(current_phi) + kftrack.GetY() * cos(current_phi);
     double end_tz = kftrack.GetZ();
-    if(Verbosity()>1) { std::cout << "current parameters: pt=" << pt << ", (x, y, z) = (" << end_tx << ", " << end_ty << ", " << end_tz << ")" << std::endl;
-}
+    if (Verbosity() > 1)
+    {
+      std::cout << "current parameters: pt=" << pt << ", (x, y, z) = (" << end_tx << ", " << end_ty << ", " << end_tz << ")" << std::endl;
+    }
     // pt[GeV] = 0.3 B[T] R[m]
-    double R = 100.*pt/(0.3*get_Bz(end_tx,end_ty,end_tz));
-    if(Verbosity()>1) { std::cout << "R=" << R << std::endl;
-}
-    double pX = pt*kftrack.GetCosPhi();
-    double pY = pt*kftrack.GetSinPhi();
-    if(Verbosity()>1) { std::cout << "(pX, pY) = (" << pX << ", " << pY << ")" << std::endl;
-}
-    double px = pX*cos(current_phi)-pY*sin(current_phi);
-    double py = pX*sin(current_phi)+pY*cos(current_phi);
-    double tangent_phi = atan2(py,px);
+    double R = 100. * pt / (0.3 * get_Bz(end_tx, end_ty, end_tz));
+    if (Verbosity() > 1)
+    {
+      std::cout << "R=" << R << std::endl;
+    }
+    double pX = pt * kftrack.GetCosPhi();
+    double pY = pt * kftrack.GetSinPhi();
+    if (Verbosity() > 1)
+    {
+      std::cout << "(pX, pY) = (" << pX << ", " << pY << ")" << std::endl;
+    }
+    double px = pX * cos(current_phi) - pY * sin(current_phi);
+    double py = pX * sin(current_phi) + pY * cos(current_phi);
+    double tangent_phi = atan2(py, px);
     double center_phi;
-    if(kftrack.GetQPt()>0) { center_phi = tangent_phi + M_PI/2.;
-    } else { center_phi = tangent_phi - M_PI/2.;
-}
-    if(center_phi>M_PI) { center_phi -= 2.*M_PI;
-}
-    if(center_phi<-M_PI) { center_phi += 2.*M_PI;
-}
-    double xc = end_tx - R*cos(center_phi);
-    double yc = end_ty - R*sin(center_phi);
-    if(Verbosity()>1) { std::cout << "(xc, yc) = (" << xc << ", " << yc << ")" << std::endl;
-}
-    auto circle_output = TrackFitUtils::circle_circle_intersection(sqrt(pow(kftrack.GetX(),2.)+pow(kftrack.GetY(),2.)),R,xc,yc);
+    if (kftrack.GetQPt() > 0)
+    {
+      center_phi = tangent_phi + M_PI / 2.;
+    }
+    else
+    {
+      center_phi = tangent_phi - M_PI / 2.;
+    }
+    if (center_phi > M_PI)
+    {
+      center_phi -= 2. * M_PI;
+    }
+    if (center_phi < -M_PI)
+    {
+      center_phi += 2. * M_PI;
+    }
+    double xc = end_tx - R * cos(center_phi);
+    double yc = end_ty - R * sin(center_phi);
+    if (Verbosity() > 1)
+    {
+      std::cout << "(xc, yc) = (" << xc << ", " << yc << ")" << std::endl;
+    }
+    auto circle_output = TrackFitUtils::circle_circle_intersection(sqrt(pow(kftrack.GetX(), 2.) + pow(kftrack.GetY(), 2.)), R, xc, yc);
     // pick the furthest point from current track position
     double new_tx;
     double new_ty;
@@ -773,10 +809,12 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
     double yplus = std::get<1>(circle_output);
     double xminus = std::get<2>(circle_output);
     double yminus = std::get<3>(circle_output);
-    if(Verbosity()>1) { std::cout << "circle-circle intersection: (" << xplus << ", " << yplus << "), (" << xminus << ", " << yminus << ")" << std::endl;
-}
+    if (Verbosity() > 1)
+    {
+      std::cout << "circle-circle intersection: (" << xplus << ", " << yplus << "), (" << xminus << ", " << yminus << ")" << std::endl;
+    }
 
-    if(sqrt(pow(end_tx-xplus,2.)+pow(end_ty-yplus,2.))>sqrt(pow(end_tx-xminus,2.)+pow(end_ty-yminus,2.)))
+    if (sqrt(pow(end_tx - xplus, 2.) + pow(end_ty - yplus, 2.)) > sqrt(pow(end_tx - xminus, 2.) + pow(end_ty - yminus, 2.)))
     {
       new_tx = xplus;
       new_ty = yplus;
@@ -787,49 +825,59 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
       new_ty = yminus;
     }
 
-    if(Verbosity()>1) { std::cout << "track now at (" << new_tx << ", " << new_ty << ")" << std::endl;
-}
-    double rot_phi = atan2(new_ty,new_tx);
-    //double rot_alpha = rot_phi - current_phi;
-    
+    if (Verbosity() > 1)
+    {
+      std::cout << "track now at (" << new_tx << ", " << new_ty << ")" << std::endl;
+    }
+    double rot_phi = atan2(new_ty, new_tx);
+    // double rot_alpha = rot_phi - current_phi;
+
     // new track point is existing track point rotated by alpha
-    double new_tX = new_tx*cos(rot_phi)+new_ty*sin(rot_phi);
-    double new_tY = -new_tx*sin(rot_phi)+new_ty*cos(rot_phi);
-    double new_centerphi = atan2(new_ty-yc,new_tx-xc);
-    double dcenterphi = new_centerphi-center_phi;
-    if(dcenterphi>M_PI) { dcenterphi = 2.*M_PI - dcenterphi;
-}
-    if(dcenterphi<-M_PI) { dcenterphi = 2.*M_PI + dcenterphi;
-}
-    double ds = R*fabs(dcenterphi);
-    double dz = kftrack.GetDzDs()*ds;
+    double new_tX = new_tx * cos(rot_phi) + new_ty * sin(rot_phi);
+    double new_tY = -new_tx * sin(rot_phi) + new_ty * cos(rot_phi);
+    double new_centerphi = atan2(new_ty - yc, new_tx - xc);
+    double dcenterphi = new_centerphi - center_phi;
+    if (dcenterphi > M_PI)
+    {
+      dcenterphi = 2. * M_PI - dcenterphi;
+    }
+    if (dcenterphi < -M_PI)
+    {
+      dcenterphi = 2. * M_PI + dcenterphi;
+    }
+    double ds = R * fabs(dcenterphi);
+    double dz = kftrack.GetDzDs() * ds;
 
     current_phi = rot_phi;
     kftrack.SetX(new_tX);
     kftrack.SetY(new_tY);
-    kftrack.SetZ(end_tz+dz);
+    kftrack.SetZ(end_tz + dz);
 
     kftrack.SetSignCosPhi(-kftrack.GetSignCosPhi());
 
     // now finish transport back down to current layer
-    if(!TransportAndRotate(kftrack.GetX(),radii[current_layer-7],current_phi,kftrack,fp))
+    if (!TransportAndRotate(kftrack.GetX(), radii[current_layer - 7], current_phi, kftrack, fp))
     {
       return false;
     }
 
-    if(direction == PropagationDirection::Outward) { direction = PropagationDirection::Inward;
-    } else { direction = PropagationDirection::Outward;
-}
+    if (direction == PropagationDirection::Outward)
+    {
+      direction = PropagationDirection::Inward;
+    }
+    else
+    {
+      direction = PropagationDirection::Outward;
+    }
 
     // track landed in same layer for this step
     next_layer = current_layer;
   }
-  
-  // account for distortions
-  if(!_pp_mode && (m_dcc_static || m_dcc_average || m_dcc_fluctuation))
-  {
 
-    if(Verbosity()>1)
+  // account for distortions
+  if(!_pp_mode)
+  {
+    if (Verbosity() > 1)
     {
       std::cout << "doing distortion correction" << std::endl;
     }
@@ -840,64 +888,52 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
 
     const double uncorr_tX = kftrack.GetX();
     const double uncorr_tY = kftrack.GetY();
-    const double uncorr_tx = uncorr_tX*cos(current_phi) - uncorr_tY*sin(current_phi);
-    const double uncorr_ty = uncorr_tX*sin(current_phi) + uncorr_tY*cos(current_phi);
+    const double uncorr_tx = uncorr_tX * cos(current_phi) - uncorr_tY * sin(current_phi);
+    const double uncorr_ty = uncorr_tX * sin(current_phi) + uncorr_tY * cos(current_phi);
     const double uncorr_tz = kftrack.GetZ();
 
-    Acts::Vector3 proj_pt(uncorr_tx,uncorr_ty,uncorr_tz);
+    Acts::Vector3 proj_pt(uncorr_tx, uncorr_ty, uncorr_tz);
 
     const double proj_radius = sqrt(square(uncorr_tx) + square(uncorr_ty));
-    if (proj_radius > 78.0 || abs(tz) > 105.5)
+    if (proj_radius > 78.0)
     {
       // projection is bad, no cluster will be found
       return false;
     }
 
-    if(Verbosity()>2) { std::cout << "distortion correction for (" << tx << ", " << ty << ", " << tz << "), layer " << next_layer << ", radius " << proj_radius << std::endl;
-}
-
-    if (m_dcc_static)
+    if (Verbosity() > 2)
     {
-      if(Verbosity()>2) { std::cout << "static correction" << std::endl;
-}
-      proj_pt = m_distortionCorrection.get_corrected_position(proj_pt, m_dcc_static);
-    }
-    if (m_dcc_average)
-    {
-      if(Verbosity()>2) { std::cout << "average correction" << std::endl;
-}
-      proj_pt = m_distortionCorrection.get_corrected_position(proj_pt, m_dcc_average);
-    }
-    if (m_dcc_fluctuation)
-    {
-      if(Verbosity()>2) { std::cout << "fluctuation correction" << std::endl;
-}
-      proj_pt = m_distortionCorrection.get_corrected_position(proj_pt, m_dcc_fluctuation);
+      std::cout << "distortion correction for (" << tx << ", " << ty << ", " << tz << "), layer " << next_layer << ", radius " << proj_radius << std::endl;
     }
 
+    // apply distortion corrections
+    proj_pt = m_globalPositionWrapper.applyDistortionCorrections(proj_pt);
+
+    // calculate radius
     const double dist_radius = sqrt(square(proj_pt[0]) + square(proj_pt[1]));
 
-    if(Verbosity()>2) { std::cout << "after correction: (" << proj_pt[0] << ", " << proj_pt[1] << ", " << proj_pt[2] << "), radius " << dist_radius << std::endl;
-}
+    if (Verbosity() > 2)
+    {
+      std::cout << "after correction: (" << proj_pt[0] << ", " << proj_pt[1] << ", " << proj_pt[2] << "), radius " << dist_radius << std::endl;
+    }
 
-    if(!TransportAndRotate(kftrack.GetX(),dist_radius,current_phi,kftrack,fp))
+    if (!TransportAndRotate(kftrack.GetX(), dist_radius, current_phi, kftrack, fp))
     {
       return false;
     }
 
-    if(std::isnan(kftrack.GetX()) ||
-       std::isnan(kftrack.GetY()) ||
-       std::isnan(kftrack.GetZ()))
+    if (std::isnan(kftrack.GetX()) ||
+        std::isnan(kftrack.GetY()) ||
+        std::isnan(kftrack.GetZ()))
     {
       return false;
     }
-
   }
 
   const double new_tX = kftrack.GetX();
   const double new_tY = kftrack.GetY();
-  const double new_tx = new_tX*cos(current_phi) - new_tY*sin(current_phi);
-  const double new_ty = new_tX*sin(current_phi) + new_tY*cos(current_phi);
+  const double new_tx = new_tX * cos(current_phi) - new_tY * sin(current_phi);
+  const double new_ty = new_tX * sin(current_phi) + new_tY * cos(current_phi);
   const double new_tz = kftrack.GetZ();
 
   // search for closest available cluster within window
@@ -906,10 +942,12 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   std::vector<double> distance_out(1);
   int n_results = _kdtrees[next_layer]->knnSearch(&query_pt[0], 1, &index_out[0], &distance_out[0]);
   // if no results, then no cluster to add, but propagation is not necessarily done
-  if(!n_results)
+  if (!n_results)
   {
-    if(Verbosity()>1) { std::cout << "no clusters found in search window, moving on" << std::endl;
-}
+    if (Verbosity() > 1)
+    {
+      std::cout << "no clusters found in search window, moving on" << std::endl;
+    }
     current_layer = next_layer;
     return true;
   }
@@ -921,18 +959,18 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   const double cand_y = candidate_globalpos(1);
   const double cand_z = candidate_globalpos(2);
 
-  if(Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "found closest cluster candidate at (" << cand_x << ", " << cand_y << ", " << cand_z << ")" << std::endl;
   }
 
   // get cluster and track state position errors
   const double tYerr = sqrt(kftrack.GetCov(0));
-  const double txerr = fabs(tYerr*sin(current_phi));
-  const double tyerr = fabs(tYerr*cos(current_phi));
+  const double txerr = fabs(tYerr * sin(current_phi));
+  const double tyerr = fabs(tYerr * cos(current_phi));
   const double tzerr = sqrt(kftrack.GetCov(5));
 
-  if(Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "track state position errors: (" << txerr << ", " << tyerr << ", " << tzerr << ")" << std::endl;
   }
@@ -941,51 +979,53 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   const double cand_yerr = sqrt(fitter->getClusterError(clusterCandidate, closest_ckey, candidate_globalpos, 1, 1));
   const double cand_zerr = sqrt(fitter->getClusterError(clusterCandidate, closest_ckey, candidate_globalpos, 2, 2));
 
-  if(Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "cluster position errors: (" << cand_xerr << ", " << cand_yerr << ", " << cand_zerr << ")" << std::endl;
   }
 
   // add cluster if its position is within error-based window
-  if(fabs(new_tx-cand_x) < _max_dist * sqrt(txerr*txerr + cand_xerr*cand_xerr) &&
-     fabs(new_ty-cand_y) < _max_dist * sqrt(tyerr*tyerr + cand_yerr*cand_yerr) &&
-     fabs(new_tz-cand_z) < _max_dist * sqrt(tzerr*tzerr + cand_zerr*cand_zerr))
+  if (fabs(new_tx - cand_x) < _max_dist * sqrt(txerr * txerr + cand_xerr * cand_xerr) &&
+      fabs(new_ty - cand_y) < _max_dist * sqrt(tyerr * tyerr + cand_yerr * cand_yerr) &&
+      fabs(new_tz - cand_z) < _max_dist * sqrt(tzerr * tzerr + cand_zerr * cand_zerr))
   {
-    if(Verbosity()>1) { std::cout << "added cluster" << std::endl;
-}
+    if (Verbosity() > 1)
+    {
+      std::cout << "added cluster" << std::endl;
+    }
     propagated_track.push_back(closest_ckey);
 
     // don't re-filter clusters that are already in original seed
-    if(std::find(ckeys.begin(),ckeys.end(),closest_ckey) == ckeys.end())
+    if (std::find(ckeys.begin(), ckeys.end(), closest_ckey) == ckeys.end())
     {
-      const double cand_Y = -cand_x*sin(current_phi) + cand_y*cos(current_phi);
+      const double cand_Y = -cand_x * sin(current_phi) + cand_y * cos(current_phi);
       const double cand_xycov2 = fitter->getClusterError(clusterCandidate, closest_ckey, candidate_globalpos, 0, 1);
-      const double cand_Yerr2 = cand_xerr*cand_xerr*sin(current_phi)*sin(current_phi) + cand_xycov2*sin(current_phi)*cos(current_phi) + cand_yerr*cand_yerr*cos(current_phi)*cos(current_phi);
-      const double cand_zerr2 = cand_zerr*cand_zerr;
+      const double cand_Yerr2 = cand_xerr * cand_xerr * sin(current_phi) * sin(current_phi) + cand_xycov2 * sin(current_phi) * cos(current_phi) + cand_yerr * cand_yerr * cos(current_phi) * cos(current_phi);
+      const double cand_zerr2 = cand_zerr * cand_zerr;
 
-      if(Verbosity()>1)
+      if (Verbosity() > 1)
       {
         std::cout << "Filtering cluster with Y=" << cand_Y << ", z=" << cand_z << ", Yerr2=" << cand_Yerr2 << ", zerr2=" << cand_zerr2 << std::endl;
       }
 
       kftrack.Filter(cand_Y, cand_z, cand_Yerr2, cand_zerr2, _max_sin_phi);
     }
-//    else
-//    {
-//      kftrack.SetX(cand_x*cos(current_phi)+cand_y*sin(current_phi));
-//      kftrack.SetY(-cand_x*sin(current_phi)+cand_y*cos(current_phi));
-//      kftrack.SetZ(cand_z);
-//    }
+    //    else
+    //    {
+    //      kftrack.SetX(cand_x*cos(current_phi)+cand_y*sin(current_phi));
+    //      kftrack.SetY(-cand_x*sin(current_phi)+cand_y*cos(current_phi));
+    //      kftrack.SetZ(cand_z);
+    //    }
   }
-  
+
   // update layer
   current_layer = next_layer;
 
-  if(Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "track current parameters:" << std::endl;
     std::cout << "(X, Y, Z) = (" << kftrack.GetX() << ", " << kftrack.GetY() << ", " << kftrack.GetZ() << ")" << std::endl;
-    std::cout << "pt = " << 1./fabs(kftrack.GetQPt()) << std::endl;
+    std::cout << "pt = " << 1. / fabs(kftrack.GetQPt()) << std::endl;
     std::cout << "sinPhi = " << kftrack.GetSinPhi() << std::endl;
     std::cout << "cosPhi = " << kftrack.GetCosPhi() << std::endl;
     std::cout << "dzds = " << kftrack.GetDzDs() << std::endl;
@@ -1002,18 +1042,17 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   std::vector<TrkrDefs::cluskey> ckeys;
   std::copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(ckeys));
 
-  if(direction == PropagationDirection::Inward)
+  if (direction == PropagationDirection::Inward)
   {
-    std::reverse(ckeys.begin(),ckeys.end());
+    std::reverse(ckeys.begin(), ckeys.end());
   }
 
-  return PropagateTrack(track,ckeys,direction,aliceSeed,globalPositions);
-} 
+  return PropagateTrack(track, ckeys, direction, aliceSeed, globalPositions);
+}
 
 std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, std::vector<TrkrDefs::cluskey>& ckeys, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const
 {
-
-  if(direction == PropagationDirection::Inward)
+  if (direction == PropagationDirection::Inward)
   {
     aliceSeed.SetDzDs(-aliceSeed.GetDzDs());
   }
@@ -1022,15 +1061,17 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   double track_y = track->get_y();
   double track_z = track->get_z();
 
-  if(Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "layers:" << std::endl;
-    for(auto& c : ckeys) { std::cout << (int)TrkrDefs::getLayer(c) << ", ";
-}
+    for (auto& c : ckeys)
+    {
+      std::cout << (int) TrkrDefs::getLayer(c) << ", ";
+    }
     std::cout << std::endl;
   }
 
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "track (x,y,z) = (" << track_x << ", " << track_y << ", " << track_z << ")" << std::endl;
   }
@@ -1053,7 +1094,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     track_pz = track->get_pz();
   }
 
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "track (px,py,pz) = (" << track_px << ", " << track_py << ", " << track_pz << ")" << std::endl;
   }
@@ -1110,11 +1151,11 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   track_y = trkGlobPos.at(0)(1);
   track_z = trkGlobPos.at(0)(2);
 
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "new track (x,y,z) = " << track_x << ", " << track_y << ", " << track_z << ")" << std::endl;
   }
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "new track (px,py,pz) = " << track_px << ", " << track_py << ", " << track_pz << ")" << std::endl;
   }
@@ -1122,7 +1163,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   //    }
 
   double track_pt = sqrt(track_px * track_px + track_py * track_py);
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "track pt: " << track_pt << std::endl;
   }
@@ -1137,7 +1178,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   kftrack.setIsobutaneFraction(isobutane_frac);
 
   float track_phi = atan2(track_y, track_x);
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "track phi: " << track_phi << std::endl;
     std::cout << "track charge: " << track->get_charge() << std::endl;
@@ -1149,91 +1190,92 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 
   kftrack.SetSignCosPhi(track_pX / track_pt);
   kftrack.SetSinPhi(track_pY / track_pt);
-  kftrack.SetDzDs(track_pz / sqrt(track_pt*track_pt+track_pz*track_pz));
+  kftrack.SetDzDs(track_pz / sqrt(track_pt * track_pt + track_pz * track_pz));
 
-  if(Verbosity()>1) { std::cout << "track pX = " << track_pX << ", pY = " << track_pY << ", CosPhi = " << track_pX / track_pt << ", signCosPhi = " << kftrack.GetSignCosPhi() << std::endl;
-}
-/*
-  // Y = y
-  // Z = z
-  // SinPhi = py/sqrt(px^2+py^2)
-  // DzDs = pz/sqrt(px^2+py^2)
-  // QPt = 1/sqrt(px^2+py^2)
-
-  const double track_pt3 = std::pow(track_pt, 3.);
-
-  Eigen::Matrix<double, 6, 5> Jrot;
-  Jrot(0, 0) = 0;  // dY/dx
-  Jrot(1, 0) = 1;  // dY/dy
-  Jrot(2, 0) = 0;  // dY/dz
-  Jrot(3, 0) = 0;  // dY/dpx
-  Jrot(4, 0) = 0;  // dY/dpy
-  Jrot(5, 0) = 0;  // dY/dpz
-
-  Jrot(0, 1) = 0;  // dZ/dx
-  Jrot(1, 1) = 0;  // dZ/dy
-  Jrot(2, 1) = 1;  // dZ/dz
-  Jrot(3, 1) = 0;  // dZ/dpx
-  Jrot(4, 1) = 0;  // dZ/dpy
-  Jrot(5, 1) = 0;  // dZ/dpz
-
-  Jrot(0, 2) = 0;                                 // dSinPhi/dx
-  Jrot(1, 2) = 0;                                 // dSinPhi/dy
-  Jrot(2, 2) = 0;                                 // dSinPhi/dz
-  Jrot(3, 2) = -track_py * track_px / track_pt3;  // dSinPhi/dpx
-  Jrot(4, 2) = track_px * track_px / track_pt3;   // dSinPhi/dpy
-  Jrot(5, 2) = 0;                                 // dSinPhi/dpz
-
-  Jrot(0, 3) = 0;                                 // dDzDs/dx
-  Jrot(1, 3) = 0;                                 // dDzDs/dy
-  Jrot(2, 3) = 0;                                 // dDzDs/dz
-  Jrot(3, 3) = -track_px * track_pz / track_pt3;  // dDzDs/dpx
-  Jrot(4, 3) = -track_py * track_pz / track_pt3;  // dDzDs/dpy
-  Jrot(5, 3) = 1. / track_pt;                     // dDzDs/dpz
-
-  Jrot(0, 4) = 0;                      // dQPt/dx
-  Jrot(1, 4) = 0;                      // dQPt/dy
-  Jrot(2, 4) = 0;                      // dQPt/dz
-  Jrot(3, 4) = -track_px / track_pt3;  // dQPt/dpx
-  Jrot(4, 4) = -track_py / track_pt3;  // dQPt/dpy
-  Jrot(5, 4) = 0;                      // dQPt/dpz
-
-  Eigen::Matrix<double, 5, 5> kfCov = Jrot.transpose() * xyzCov * Jrot;
-
-  int ctr = 0;
-  for (int i = 0; i < 5; i++)
+  if (Verbosity() > 1)
   {
-    for (int j = 0; j < 5; j++)
+    std::cout << "track pX = " << track_pX << ", pY = " << track_pY << ", CosPhi = " << track_pX / track_pt << ", signCosPhi = " << kftrack.GetSignCosPhi() << std::endl;
+  }
+  /*
+    // Y = y
+    // Z = z
+    // SinPhi = py/sqrt(px^2+py^2)
+    // DzDs = pz/sqrt(px^2+py^2)
+    // QPt = 1/sqrt(px^2+py^2)
+
+    const double track_pt3 = std::pow(track_pt, 3.);
+
+    Eigen::Matrix<double, 6, 5> Jrot;
+    Jrot(0, 0) = 0;  // dY/dx
+    Jrot(1, 0) = 1;  // dY/dy
+    Jrot(2, 0) = 0;  // dY/dz
+    Jrot(3, 0) = 0;  // dY/dpx
+    Jrot(4, 0) = 0;  // dY/dpy
+    Jrot(5, 0) = 0;  // dY/dpz
+
+    Jrot(0, 1) = 0;  // dZ/dx
+    Jrot(1, 1) = 0;  // dZ/dy
+    Jrot(2, 1) = 1;  // dZ/dz
+    Jrot(3, 1) = 0;  // dZ/dpx
+    Jrot(4, 1) = 0;  // dZ/dpy
+    Jrot(5, 1) = 0;  // dZ/dpz
+
+    Jrot(0, 2) = 0;                                 // dSinPhi/dx
+    Jrot(1, 2) = 0;                                 // dSinPhi/dy
+    Jrot(2, 2) = 0;                                 // dSinPhi/dz
+    Jrot(3, 2) = -track_py * track_px / track_pt3;  // dSinPhi/dpx
+    Jrot(4, 2) = track_px * track_px / track_pt3;   // dSinPhi/dpy
+    Jrot(5, 2) = 0;                                 // dSinPhi/dpz
+
+    Jrot(0, 3) = 0;                                 // dDzDs/dx
+    Jrot(1, 3) = 0;                                 // dDzDs/dy
+    Jrot(2, 3) = 0;                                 // dDzDs/dz
+    Jrot(3, 3) = -track_px * track_pz / track_pt3;  // dDzDs/dpx
+    Jrot(4, 3) = -track_py * track_pz / track_pt3;  // dDzDs/dpy
+    Jrot(5, 3) = 1. / track_pt;                     // dDzDs/dpz
+
+    Jrot(0, 4) = 0;                      // dQPt/dx
+    Jrot(1, 4) = 0;                      // dQPt/dy
+    Jrot(2, 4) = 0;                      // dQPt/dz
+    Jrot(3, 4) = -track_px / track_pt3;  // dQPt/dpx
+    Jrot(4, 4) = -track_py / track_pt3;  // dQPt/dpy
+    Jrot(5, 4) = 0;                      // dQPt/dpz
+
+    Eigen::Matrix<double, 5, 5> kfCov = Jrot.transpose() * xyzCov * Jrot;
+
+    int ctr = 0;
+    for (int i = 0; i < 5; i++)
     {
-      if (i >= j)
+      for (int j = 0; j < 5; j++)
       {
-        kftrack.SetCov(ctr, kfCov(i, j));
-        ctr++;
+        if (i >= j)
+        {
+          kftrack.SetCov(ctr, kfCov(i, j));
+          ctr++;
+        }
       }
     }
-  }
-*/
+  */
   std::vector<TrkrDefs::cluskey> propagated_track;
 
   kftrack.SetX(track_x * cos(track_phi) + track_y * sin(track_phi));
   kftrack.SetY(-track_x * sin(track_phi) + track_y * cos(track_phi));
   kftrack.SetZ(track_z);
 
-  if (kftrack.GetSignCosPhi() < 0) {
+  if (kftrack.GetSignCosPhi() < 0)
+  {
     kftrack.SetSinPhi(-kftrack.GetSinPhi());
     kftrack.SetDzDs(-kftrack.GetDzDs());
-    //kftrack.SetQPt(-kftrack.GetQPt());
-    kftrack.SetCov(3,-kftrack.GetCov(3));
-    kftrack.SetCov(4,-kftrack.GetCov(4));
-    kftrack.SetCov(6,-kftrack.GetCov(6));
-    kftrack.SetCov(7,-kftrack.GetCov(7));
-    kftrack.SetCov(10,-kftrack.GetCov(10));
-    kftrack.SetCov(11,-kftrack.GetCov(11));
+    // kftrack.SetQPt(-kftrack.GetQPt());
+    kftrack.SetCov(3, -kftrack.GetCov(3));
+    kftrack.SetCov(4, -kftrack.GetCov(4));
+    kftrack.SetCov(6, -kftrack.GetCov(6));
+    kftrack.SetCov(7, -kftrack.GetCov(7));
+    kftrack.SetCov(10, -kftrack.GetCov(10));
+    kftrack.SetCov(11, -kftrack.GetCov(11));
   }
 
-
-
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "initial track params:" << std::endl;
     std::cout << "X: " << kftrack.GetX() << std::endl;
@@ -1250,7 +1292,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     std::cout << std::endl;
   }
 
-
   // get layer for each cluster
   std::vector<unsigned int> layers;
   std::transform(ckeys.begin(), ckeys.end(), std::back_inserter(layers), [](const TrkrDefs::cluskey& key)
@@ -1258,7 +1299,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 
   double old_phi = track_phi;
   unsigned int old_layer = TrkrDefs::getLayer(ckeys[0]);
-  if (Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "first layer: " << old_layer << std::endl;
     std::cout << "cluster (x,y,z) = (" << globalPositions.at(ckeys[0])(0) << ", " << globalPositions.at(ckeys[0])(1) << ", " << globalPositions.at(ckeys[0])(2) << ")" << std::endl;
@@ -1270,19 +1311,27 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   GPUTPCTrackParam::GPUTPCTrackFitParam fp{};
   aliceSeed.CalculateFitParameters(fp);
 
-  for(int step = 0; step <= _max_propagation_steps; ++step)
+  for (int step = 0; step <= _max_propagation_steps; ++step)
   {
-    if(Verbosity()>1) { std::cout << std::endl << "------------------------" << std::endl << "step " << step << std::endl;
-}
-    if(!PropagateStep(old_layer,old_phi,direction,propagated_track,ckeys,aliceSeed,fp,globalPositions)) { break;
-}
+    if (Verbosity() > 1)
+    {
+      std::cout << std::endl
+                << "------------------------" << std::endl
+                << "step " << step << std::endl;
+    }
+    if (!PropagateStep(old_layer, old_phi, direction, propagated_track, ckeys, aliceSeed, fp, globalPositions))
+    {
+      break;
+    }
   }
 
-  if(Verbosity()>1)
+  if (Verbosity() > 1)
   {
     std::cout << "propagated track has " << propagated_track.size() << " clusters, at layers: ";
-    for(auto c : propagated_track) { std::cout << (int)TrkrDefs::getLayer(c) << ", ";
-}
+    for (auto c : propagated_track)
+    {
+      std::cout << (int) TrkrDefs::getLayer(c) << ", ";
+    }
     std::cout << std::endl;
   }
   return propagated_track;
@@ -1346,18 +1395,20 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer)
 {
-
   // testing with presets for rejection
   PHGhostRejection rejector(Verbosity(), seeds);
   // If you want to reject tracks (before they are are made) can set them here:
   // rejector.set_min_pt_cut(0.2);
   // rejector.set_must_span_sectors(true);
   // rejector.set_min_clusters(8);
-  
-  for (unsigned int itrack=0; itrack < seeds.size(); ++itrack) 
+
+  for (unsigned int itrack = 0; itrack < seeds.size(); ++itrack)
   {
     // cut tracks with too-few clusters (or that don;t span a sector boundary, if desired)
-    if (rejector.cut_from_clusters(itrack)) { continue; }
+    if (rejector.cut_from_clusters(itrack))
+    {
+      continue;
+    }
 
     auto& seed = seeds[itrack];
     /// The ALICEKF gives a better charge determination at high pT
@@ -1384,14 +1435,15 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
     std::cout << "ghost rejection find time " << timer.elapsed() << std::endl;
   }
 
-  for (unsigned int itrack=0; itrack < seeds.size(); ++itrack) 
+  for (unsigned int itrack = 0; itrack < seeds.size(); ++itrack)
   {
-    if (rejector.is_rejected(itrack)) {
+    if (rejector.is_rejected(itrack))
+    {
       if (Verbosity() > 0)
       {
-        std::cout << " Seed " << ((int)itrack) << " rejected. Not getting published." << std::endl;
+        std::cout << " Seed " << ((int) itrack) << " rejected. Not getting published." << std::endl;
       }
-      continue; 
+      continue;
     }
     auto& seed = seeds[itrack];
     _track_map->insert(&seed);
@@ -1399,7 +1451,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
     int q = seed.get_charge();
     if (Verbosity() > 0)
     {
-      std::cout << "Publishing seed " << ((int)itrack)
+      std::cout << "Publishing seed " << ((int) itrack)
                 << " q " << q
                 << " qOverR " << fabs(seed.get_qOverR()) * q
                 << " x " << seed.get_x()
@@ -1409,7 +1461,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
                 << " eta " << seed.get_eta()
                 << " phi " << seed.get_phi()
                 << std::endl;
-    } 
+    }
   }
 }
 

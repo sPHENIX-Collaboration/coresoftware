@@ -4,17 +4,9 @@
 #define TPCSEEDSQA_H
 
 #include <fun4all/SubsysReco.h>
-/* #include <trackbase/ActsGeometry.h> */
-#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
-
-/* #include <trackbase/TrkrClusterContainer.h> */
-/* #include <trackbase/TrkrCluster.h> */
-/* #include <trackbase_historic/SvtxTrackMap.h> */
-/* #include <globalvertex/SvtxVertexMap.h> */
-/* #include <TH1.h> */
-/* #include <TH2.h> */
-/* #include <TProfile2D.h> */
+#include <trackbase/TpcDefs.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <set>
 #include <string>
@@ -29,9 +21,9 @@ class TH2;
 class TrkrClusterContainer;
 class TProfile;
 class TProfile2D;
+class TNtuple;
 class SvtxVertexMap;
 class TrackSeedContainer;
-class TpcDistortionCorrectionContainer;
 class PHG4TpcCylinderGeomContainer;
 class TrackSeed;
 
@@ -58,6 +50,8 @@ class TpcSeedsQA : public SubsysReco
   void setVertexMapName(const std::string& name) { m_vertexMapName = name; }
   std::string gettVertexMapName() { return m_vertexMapName; }
   float calc_dedx(TrackSeed* tpcseed);
+  void setSegment(const int segment) { m_segment = segment; }
+  void segment(const int seg) { m_segment = seg; }
 
  private:
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
@@ -153,13 +147,20 @@ class TpcSeedsQA : public SubsysReco
   TH1* h_cluster_phisize1_fraction_mean_denominator_side0[3] = {nullptr};
   TH1* h_cluster_phisize1_fraction_mean_denominator_side1[3] = {nullptr};
 
+  TNtuple* nt_sector_event_summary = {nullptr};
+
+  int m_bco = 0;;
+  int m_event = 0;
+  int m_segment = 0;
+
   double frac_side0_pt[3][4] = {{0}};
   double frac_side1_pt[3][4] = {{0}};
 
   double num_track_side0_pt[3][4] = {{0}};
   double num_track_side1_pt[3][4] = {{0}};
 
-  TpcDistortionCorrectionContainer *m_dccModuleEdge{nullptr}, *m_dccStatic{nullptr}, *m_dccAverage{nullptr}, *m_dccFluctuation{nullptr};
+  //! global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   float m_px = std::numeric_limits<float>::quiet_NaN();
   float m_py = std::numeric_limits<float>::quiet_NaN();

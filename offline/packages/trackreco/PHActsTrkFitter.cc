@@ -53,9 +53,6 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
-#include <TDatabasePDG.h>
-#include <TSystem.h>
-
 #include <cmath>
 #include <filesystem>
 #include <iostream>
@@ -102,18 +99,19 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_alignStates.distortionContainers(_dcc_static, _dcc_average, _dcc_fluctuation);
-  m_alignStates.actsGeometry(m_tGeometry);
-  m_alignStates.clusters(m_clusterContainer);
-  m_alignStates.stateMap(m_alignmentStateMap);
+  // configure alignStates
+  m_alignStates.loadNodes(topNode);
   m_alignStates.verbosity(Verbosity());
+  m_alignStates.fieldMap(m_fieldMap);
+
+  // detect const field
   std::istringstream stringline(m_fieldMap);
   stringline >> fieldstrength;
   if (!stringline.fail())  // it is a float
   {
     m_ConstField = true;
   }
-  m_alignStates.fieldMap(m_fieldMap);
+
   auto level = Acts::Logging::FATAL;
   if (Verbosity() > 5)
   {
@@ -304,43 +302,47 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     unsigned int tpcid = track->get_tpc_seed_index();
     unsigned int siid = track->get_silicon_seed_index();
-    short int crossing_estimate = track->get_crossing_estimate();  // geometric crossing estimate
 
-    if (Verbosity() > 3)
-    {
-      std::cout << " tpcid " << tpcid << " siid " << siid << std::endl;
-    }
-
-    // get the INTT crossing number
+    // capture the input crossing value, and set crossing parameters
+    //==============================
+    short silicon_crossing =  SHRT_MAX;  
     auto siseed = m_siliconSeeds->get(siid);
-    short crossing = SHRT_MAX;
-    if (siseed)
-    {
-      // get the INTT crossing
-      crossing = siseed->get_crossing();
-    }
-    else if (!m_pp_mode)
-    {
-      // crossing always assumed to be zero if pp_mode = false
-      crossing = 0;
-    }
+    if(siseed) 
+      {
+	silicon_crossing = siseed->get_crossing(); 
+      }
+    short crossing = silicon_crossing;
+    short int crossing_estimate = crossing;
 
-    // Can't do SC case without INTT crossing
-    if (m_fitSiliconMMs && (crossing == SHRT_MAX))
-    {
-      continue;
-    }
+    if(m_enable_crossing_estimate)
+      {
+	crossing_estimate = track->get_crossing_estimate();  // geometric crossing estimate from matcher
+     }
+    //===============================
 
-    /// A track seed is made for every tpc seed. Not every tpc seed has a silicon match
-    if (m_pp_mode && siid == std::numeric_limits<unsigned int>::max())
-    {
-      // do not skip TPC only tracks, just set crossing to the nominal zero
-      crossing = 0;
-    }
 
+    // must have silicon seed with valid crossing if we are doing a SC calibration fit
+    if (m_fitSiliconMMs)
+      {
+	if( (siid == std::numeric_limits<unsigned int>::max()) || (silicon_crossing == SHRT_MAX))
+	  {
+	    continue;
+	  }
+      }
+
+    // do not skip TPC only tracks, just set crossing to the nominal zero
+    if(!siseed)
+      {
+	crossing = 0;
+      }
+    
     if (Verbosity() > 1)
     {
-      std::cout << "tpc and si id " << tpcid << ", " << siid << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
+      if(siseed)
+	{
+	  std::cout << "tpc and si id " << tpcid << ", " << siid << " silicon_crossing " << silicon_crossing 
+		    << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
+	}
     }
 
     auto tpcseed = m_tpcSeeds->get(tpcid);
@@ -356,14 +358,20 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     {
       if (siseed)
       {
-        std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
+        std::cout << "    silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
+	std::cout << "    tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
       }
-      std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
     }
 
     PHTimer trackTimer("TrackTimer");
     trackTimer.stop();
     trackTimer.restart();
+
+    if (Verbosity() > 1 && siseed)
+    {
+      std::cout << " m_pp_mode " << m_pp_mode << " m_enable_crossing_estimate " << m_enable_crossing_estimate 
+		<< " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
+    }
 
     short int this_crossing = crossing;
     bool use_estimate = false;
@@ -371,31 +379,38 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     std::vector<float> chisq_ndf;
     std::vector<SvtxTrack_v4> svtx_vec;
 
-    if (Verbosity() > 1)
-    {
-      std::cout << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
-    }
-
-    if (crossing == SHRT_MAX)
-    {
-      // this only happens if there is a silicon seed but no assigned INTT crossing
-      // If there is no INTT crossing, start with the crossing_estimate value, vary up and down, fit, and choose the best chisq/ndf
-      use_estimate = true;
-      nvary = max_bunch_search;
-      if (Verbosity() > 1)
+    if(m_pp_mode)
       {
-        std::cout << " No INTT crossing: use crossing_estimate " << crossing_estimate << " with nvary " << nvary << std::endl;
+	if (m_enable_crossing_estimate && crossing == SHRT_MAX)
+	  {
+	    // this only happens if there is a silicon seed but no assigned INTT crossing, and only in pp_mode
+	    // If there is no INTT crossing, start with the crossing_estimate value, vary up and down, fit, and choose the best chisq/ndf
+	    use_estimate = true;
+	    nvary = max_bunch_search;
+	    if (Verbosity() > 1)
+	      {
+		std::cout << " No INTT crossing: use crossing_estimate " << crossing_estimate << " with nvary " << nvary << std::endl;
+	      }
+	  }
+	else
+	  {
+	    // use INTT crossing
+	    crossing_estimate = crossing;
+	  }
       }
-    }
     else
-    {
-      // use INTT crossing
-      crossing_estimate = crossing;
-    }
+      {
+	// non pp mode, we want only crossing zero, veto others
+	if(siseed && silicon_crossing != 0)
+	  {
+	    continue;
+	  }
+	crossing_estimate = crossing;
+      }
 
     // Fit this track assuming either:
     //    crossing = INTT value, if it exists (uses nvary = 0)
-    //    crossing = crossing_estimate +/- max_bunch_search, if no INTT value exists
+    //    crossing = crossing_estimate +/- max_bunch_search, if no INTT value exists and m_enable_crossing_estimate flag is set.
 
     for (short int ivary = -nvary; ivary <= nvary; ++ivary)
     {
@@ -418,63 +433,68 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       // loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
       // does nothing if m_transient_id_set is empty
       makeSourceLinks.resetTransientTransformMap(
-          m_alignmentTransformationMapTransient,
-          m_transient_id_set,
-          m_tGeometry);
+        m_alignmentTransformationMapTransient,
+        m_transient_id_set,
+        m_tGeometry);
+
+      // make source links using cluster mover
       if (m_use_clustermover)
       {
-        if (siseed)
-	  {
-	    if(!m_ignoreSilicon)
-	      {
-		sourceLinks = makeSourceLinks.getSourceLinksClusterMover(
-									 siseed,
-									 measurements,
-									 m_clusterContainer,
-									 m_tGeometry,
-									 _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
-									 this_crossing);
-	      }
-	  }
+        if (siseed && !m_ignoreSilicon)
+        {
+          // silicon source links
+          sourceLinks = makeSourceLinks.getSourceLinksClusterMover(
+            siseed,
+            measurements,
+            m_clusterContainer,
+            m_tGeometry,
+            m_globalPositionWrapper,
+            this_crossing);
+        }
+
+        // tpc source links
         const auto tpcSourceLinks = makeSourceLinks.getSourceLinksClusterMover(
-									       tpcseed,
-									       measurements,
-									       m_clusterContainer,
-									       m_tGeometry,
-									       _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
-									       this_crossing);
-	
+          tpcseed,
+          measurements,
+          m_clusterContainer,
+          m_tGeometry,
+          m_globalPositionWrapper,
+          this_crossing);
+
+        // add silicon seeds
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
       }
       else
-	{
-	  if (siseed)
-	    {
-	      if (!m_ignoreSilicon)
-		{
-		  sourceLinks = makeSourceLinks.getSourceLinks(
-							       siseed,
-							       measurements,
-							       m_clusterContainer,
-							       m_tGeometry,
-							       _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
-							       m_alignmentTransformationMapTransient,
-							       m_transient_id_set,
-							       this_crossing);
-		}
-	    }
-	  const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
-								     tpcseed,
-								     measurements,
-								     m_clusterContainer,
-								     m_tGeometry,
-								     _dcc_module_edge, _dcc_static, _dcc_average, _dcc_fluctuation,
-								     m_alignmentTransformationMapTransient,
-								     m_transient_id_set,
-								     this_crossing);
-	  sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
-	}
-      
+      {
+        if (siseed && !m_ignoreSilicon)
+        {
+          // silicon source links
+          sourceLinks = makeSourceLinks.getSourceLinks(
+            siseed,
+            measurements,
+            m_clusterContainer,
+            m_tGeometry,
+            m_globalPositionWrapper,
+            m_alignmentTransformationMapTransient,
+            m_transient_id_set,
+            this_crossing);
+        }
+
+        // tpc source links
+        const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
+          tpcseed,
+          measurements,
+          m_clusterContainer,
+          m_tGeometry,
+          m_globalPositionWrapper,
+          m_alignmentTransformationMapTransient,
+          m_transient_id_set,
+          this_crossing);
+
+        // insert silicons
+        sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+      }
+
       // copy transient map for this track into transient geoContext
       m_transient_geocontext = m_alignmentTransformationMapTransient;
 
@@ -1189,6 +1209,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // tpc seeds
   m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!m_tpcSeeds)
   {
@@ -1197,6 +1218,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // silicon seeds
   m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   if (!m_siliconSeeds)
   {
@@ -1205,6 +1227,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // clusters
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterContainer)
   {
@@ -1213,6 +1236,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // acts geometry
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
@@ -1222,6 +1246,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // track seeds
   m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
   if (!m_seedMap)
   {
@@ -1230,27 +1255,8 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  // tpc distortion corrections
-  _dcc_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
-  if (_dcc_module_edge)
-  {
-    std::cout << PHWHERE << "  found module edge TPC distortion correction container" << std::endl;
-  }
-  _dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  if (_dcc_static)
-  {
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl;
-  }
-  _dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  if (_dcc_average)
-  {
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl;
-  }
-  _dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
-  if (_dcc_fluctuation)
-  {
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl;
-  }
+  // tpc global position wrapper
+  m_globalPositionWrapper.loadNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

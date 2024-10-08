@@ -17,6 +17,7 @@ namespace MbdDefs
 
   const int MBD_N_PMT = 128;
   const int MBD_N_FEECH = 256;
+  const int MBD_N_ARMS = 2;
   const int BBC_N_PMT = 128;
   const int BBC_N_FEECH = 256;
   const int MAX_SAMPLES = 31;

@@ -37,7 +37,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
     DistortionType_ModuleEdge = 3
   };
 
-  static const int nDistortionTypes = 4;
+  static constexpr int nDistortionTypes = 4;
 
   //! correction filename
   void set_correction_filename(DistortionType i, const std::string& value)
@@ -45,6 +45,13 @@ class TpcLoadDistortionCorrection : public SubsysReco
     if (i < 0 || i >= nDistortionTypes) return;
     m_correction_filename[i] = value;
     m_correction_in_use[i] = true;
+  }
+
+  //! set the scale factor to be applied to the correction
+  void set_scale_factor(DistortionType i, float value)
+  {
+    m_use_scalefactor[i] = true;
+    m_scalefactor[i] = value;
   }
 
   //! set the phi histogram to be interpreted as radians.
@@ -64,7 +71,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
   void set_interpolate_2D_to_zero(int i, bool flag)
   {
     m_interpolate_z[i] = flag;
-  } 
+  }
 
   //! node name
   void set_node_name(const std::string& value)
@@ -77,18 +84,27 @@ class TpcLoadDistortionCorrection : public SubsysReco
   }
 
  private:
+
   //! correction filename
-  std::string m_correction_filename[nDistortionTypes] = {"", "", "",""};
+  std::array<std::string,nDistortionTypes> m_correction_filename = {};
 
   //! flag to indicate correction in use
-  bool m_correction_in_use[nDistortionTypes] = {false, false, false,false};
+  std::array<bool,nDistortionTypes> m_correction_in_use = {};
+
+  //! flag and scalefactor to apply to correction
+  std::array<bool,nDistortionTypes> m_use_scalefactor = {};
+
+  //! scale factors
+  std::array<float,nDistortionTypes> m_scalefactor = {1.0,1.0,1.0,1.0};
 
   //! set the phi histogram to be interpreted as radians rather than mm
-  bool m_phi_hist_in_radians[nDistortionTypes] = {true,true,true,true};
-  bool m_interpolate_z[nDistortionTypes] = {true,true,true,true};
+  std::array<bool,nDistortionTypes> m_phi_hist_in_radians = {true,true,true,true};
+
+  //! z interpolation
+  std::array<bool,nDistortionTypes> m_interpolate_z = {true,true,true,true};
 
   //! distortion object node name
-  std::string m_node_name[nDistortionTypes] = {"TpcDistortionCorrectionContainerStatic", "TpcDistortionCorrectionContainerAverage", "TpcDistortionCorrectionContainerFluctuation","TpcDistortionCorrectionContainerModuleEdge"};
+  std::array<std::string,nDistortionTypes> m_node_name = {"TpcDistortionCorrectionContainerStatic", "TpcDistortionCorrectionContainerAverage", "TpcDistortionCorrectionContainerFluctuation","TpcDistortionCorrectionContainerModuleEdge"};
 };
 
 #endif
