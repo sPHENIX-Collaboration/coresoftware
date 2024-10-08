@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <deque>
 #include <functional>
+#include <set>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -89,6 +90,7 @@ class TpcTimeFrameBuilder
     uint16_t type = 0;
     uint16_t user_word = 0;
     uint32_t bx_timestamp = 0;
+    uint64_t gtm_bco = 0;
 
     uint16_t data_crc = 0;
     uint16_t calc_crc = 0;
@@ -183,6 +185,28 @@ class TpcTimeFrameBuilder
 
     //@}
 
+    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+    enum SampaDataType
+    {
+      HEARTBEAT_T = 0b000,
+      TRUNCATED_DATA_T = 0b001,
+      TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
+      NORMAL_DATA_T = 0b100,
+      LARGE_DATA_T = 0b101,
+      TRIG_EARLY_DATA_T = 0b110,
+      TRIG_EARLY_LARGE_DATA_T = 0b111,
+    };
+
+    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+    enum ModeBitType
+    {
+      BX_COUNTER_SYNC_T = 0,
+      ELINK_HEARTBEAT_T = 1,
+      SAMPA_EVENT_TRIGGER_T = 2,
+      CLEAR_LV1_LAST_T = 6,
+      CLEAR_LV1_ENDAT_T = 7
+    };
+
   private:
 
     //! update multiplier adjustment
@@ -246,28 +270,6 @@ class TpcTimeFrameBuilder
     //! copied from micromegas/MicromegasDefs.h, not available here
     static constexpr int m_nchannels_fee = 256;
 
-    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
-    enum SampaDataType
-    {
-      HEARTBEAT_T = 0b000,
-      TRUNCATED_DATA_T = 0b001,
-      TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
-      NORMAL_DATA_T = 0b100,
-      LARGE_DATA_T = 0b101,
-      TRIG_EARLY_DATA_T = 0b110,
-      TRIG_EARLY_LARGE_DATA_T = 0b111,
-    };
-
-    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
-    enum ModeBitType
-    {
-      BX_COUNTER_SYNC_T = 0,
-      ELINK_HEARTBEAT_T = 1,
-      SAMPA_EVENT_TRIGGER_T = 2,
-      CLEAR_LV1_LAST_T = 6,
-      CLEAR_LV1_ENDAT_T = 7
-    };
-
     // get the difference between two BCO.
     template <class T>
     inline static constexpr T get_bco_diff(const T& first, const T& second)
@@ -281,39 +283,8 @@ class TpcTimeFrameBuilder
 
   };
 
-
   //! map bco_information_t to packet id
   BcoMatchingInformation m_bcoMatchingInformation;
-
-
-
-  // //! GTM Matcher Strategy, order by reliability
-  // enum enu_gtmMatcherStrategy
-  // {
-  //   //! if knowing nothing, simply matching FEE waveform to the last level1 tagger
-  //   kLastLv1Tagger = 0,
-  //   //! tracking FEE BCO to GTM BCO sync
-  //   kFEEWaveformBCOSync = 1,
-  //   //! tracking FEE heartbeat to GTM BCO sync
-  //   kFEEHeartBeatSync = 2
-  // };
-  // enu_gtmMatcherStrategy m_gtmMatcherStrategy = kLastLv1Tagger;
-  // uint64_t matchFEE2GTMBCO(uint16_t fee_bco);
-
-  // const static int GTMBCObits = 40;
-  // const static uint64_t GTMBCOmask_ValidBits = (1ULL << GTMBCObits) - 1;
-  // const static uint64_t GTMBCOmask_RollOverCounts = std::numeric_limits<uint64_t>::max() - GTMBCOmask_ValidBits;
-  // uint64_t m_GTMBCORollOverCounter = 0;
-  // uint64_t m_GTMBCOLastReading = 0;
-  // //! roll over corrected GTM BCO -> GTM payload data
-  // std::map<uint64_t, gtm_payload> m_gtmData;
-  // // //! FEE ID -> last roll over corrected GTM BCO
-  // // std::map<unsigned int, uint64_t> m_feeLastGTMBCO;
-
-  // //! errors allowed in match FEE BCO to GTM BCO
-  // static const int kFEEBCOMatchWindow = 5;
-  // //! time used to transmit all FEE data to PCIe in GTM BCO time
-  // static const int kFEEDataTransmissionWindow = 1000000;  // 100ms for very large non-ZS data at 10Hz
 
   TH2I *m_hFEEDataStream = nullptr;
   TH1 *h_PacketLength = nullptr;
