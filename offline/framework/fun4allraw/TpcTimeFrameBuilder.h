@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <list>
+#include <optional>
 
 class Packet;
 class TpcRawHit;
@@ -27,8 +29,8 @@ class TpcTimeFrameBuilder
   bool isMoreDataRequired() const;
   void CleanupUsedPackets(const uint64_t bclk);
 
-  void setVerbosity(const int i) { m_verbosity = i; }
-
+  void setVerbosity(const int i);
+  
  protected:
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream
   static const size_t DAM_DMA_WORD_LENGTH = 16;
@@ -86,7 +88,7 @@ class TpcTimeFrameBuilder
     uint16_t channel = 0;
     uint16_t type = 0;
     uint16_t user_word = 0;
-    uint16_t bx_timestamp = 0;
+    uint32_t bx_timestamp = 0;
 
     uint16_t data_crc = 0;
     uint16_t calc_crc = 0;
@@ -108,35 +110,210 @@ class TpcTimeFrameBuilder
 
   // -------------------------
   // GTM Matcher
+  // Initially developped by Hugo Pereira Da Costa as `MicromegasBcoMatchingInformation`
   // -------------------------
-
-  //! GTM Matcher Strategy, order by reliability
-  enum enu_gtmMatcherStrategy
+  class BcoMatchingInformation
   {
-    //! if knowing nothing, simply matching FEE waveform to the last level1 tagger
-    kLastLv1Tagger = 0,
-    //! tracking FEE BCO to GTM BCO sync
-    kFEEWaveformBCOSync = 1,
-    //! tracking FEE heartbeat to GTM BCO sync
-    kFEEHeartBeatSync = 2
+  public:
+    //! constructor
+    BcoMatchingInformation() = default;
+
+    //!@name accessor
+    //@{
+
+    //! verbosity
+    int verbosity() const
+    {
+      return m_verbosity;
+    }
+
+    //! true if matching information is verified
+    /**
+     * matching information is verified if at least one match
+     * between gtm_bco and fee_bco is found
+     */
+    bool is_verified() const
+    {
+      return m_verified_from_modebits || m_verified_from_data;
+    }
+
+    //! get predicted fee_bco from gtm_bco
+    std::optional<uint32_t> get_predicted_fee_bco(uint64_t) const;
+
+    //! multiplier
+    double get_gtm_clock_multiplier()
+    {
+      return m_multiplier;
+    }
+
+    //! print gtm bco information
+    void print_gtm_bco_information() const;
+
+    //@}
+
+    //!@name modifiers
+    //@{
+
+    //! verbosity
+    void set_verbosity(int value)
+    {
+      m_verbosity = value;
+    }
+
+    /// set gtm clock multiplier
+    void set_gtm_clock_multiplier(double value)
+    {
+      m_multiplier = value;
+    }
+
+    //! find reference from data
+    bool find_reference_heartbeat(const fee_payload & HeartBeatPacket);
+
+    //! save all GTM BCO clocks from packet data
+    void save_gtm_bco_information(const gtm_payload & gtm_tagger);
+
+    //! find gtm bco matching a given fee
+    std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
+
+    //! cleanup
+    void cleanup();
+
+    //! cleanup
+    void cleanup(uint64_t /*ref_bco*/);
+
+    //@}
+
+  private:
+
+    //! update multiplier adjustment
+    void update_multiplier_adjustment(uint64_t /* gtm_bco */, uint32_t /* fee_bco */);
+
+    //! get adjusted multiplier
+    double get_adjusted_multiplier() const;
+
+    //! verbosity
+    unsigned int m_verbosity = 0;
+
+    //! verified
+    bool m_verified_from_modebits = false;
+
+    bool m_verified_from_data = false;
+
+    //! first lvl1 bco (40 bits)
+    uint64_t m_gtm_bco_first = 0;
+
+    //! first fee bco (20 bits)
+    uint32_t m_fee_bco_first = 0;
+
+    //! list of available bco
+    std::list<uint64_t> m_gtm_bco_list;
+
+    //! matching between fee bco and lvl1 bco
+    using m_bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
+    std::list<m_bco_matching_pair_t> m_bco_matching_list;
+
+    //! keep track or  fee_bco for which no gtm_bco is found
+    std::set<uint32_t> m_orphans;
+
+    //! adjustment to multiplier
+    double m_multiplier_adjustment = 0;
+
+    //! running numerator for multiplier adjustment
+    double m_multiplier_adjustment_numerator = 0;
+
+    //! running denominator for multiplier adjustment
+    double m_multiplier_adjustment_denominator = 0;
+
+    //! running count for multiplier adjustment
+    unsigned int m_multiplier_adjustment_count = 0;
+
+
+
+    // define limit for matching two fee_bco
+    static constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
+
+    // define limit for matching two fee_bco
+    static constexpr unsigned int m_max_fee_bco_diff = 10;
+
+    // define limit for matching gtm_bco from lvl1 to enddat
+
+    // define limit for matching fee_bco to fee_bco_predicted
+    static constexpr unsigned int m_max_gtm_bco_diff = 100;
+
+  //   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
+    static constexpr unsigned int m_max_matching_data_size = 50;
+
+    //! copied from micromegas/MicromegasDefs.h, not available here
+    static constexpr int m_nchannels_fee = 256;
+
+    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+    enum SampaDataType
+    {
+      HEARTBEAT_T = 0b000,
+      TRUNCATED_DATA_T = 0b001,
+      TRUNCATED_TRIG_EARLY_DATA_T = 0b011,
+      NORMAL_DATA_T = 0b100,
+      LARGE_DATA_T = 0b101,
+      TRIG_EARLY_DATA_T = 0b110,
+      TRIG_EARLY_LARGE_DATA_T = 0b111,
+    };
+
+    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+    enum ModeBitType
+    {
+      BX_COUNTER_SYNC_T = 0,
+      ELINK_HEARTBEAT_T = 1,
+      SAMPA_EVENT_TRIGGER_T = 2,
+      CLEAR_LV1_LAST_T = 6,
+      CLEAR_LV1_ENDAT_T = 7
+    };
+
+    // get the difference between two BCO.
+    template <class T>
+    inline static constexpr T get_bco_diff(const T& first, const T& second)
+    {
+      return first < second ? (second - first) : (first - second);
+    }
+
+    // this is the clock multiplier from lvl1 to fee clock
+    // Tested with Run24 data. Could be changable in future runs
+    double m_multiplier = 4.262916255;
+
   };
-  enu_gtmMatcherStrategy m_gtmMatcherStrategy = kLastLv1Tagger;
-  uint64_t matchFEE2GTMBCO(uint16_t fee_bco);
 
-  const static int GTMBCObits = 40;
-  const static uint64_t GTMBCOmask_ValidBits = (1ULL << GTMBCObits) - 1;
-  const static uint64_t GTMBCOmask_RollOverCounts = std::numeric_limits<uint64_t>::max() - GTMBCOmask_ValidBits;
-  uint64_t m_GTMBCORollOverCounter = 0;
-  uint64_t m_GTMBCOLastReading = 0;
-  //! roll over corrected GTM BCO -> GTM payload data
-  std::map<uint64_t, gtm_payload> m_gtmData;
-  // //! FEE ID -> last roll over corrected GTM BCO
-  // std::map<unsigned int, uint64_t> m_feeLastGTMBCO;
 
-  //! errors allowed in match FEE BCO to GTM BCO
-  static const int kFEEBCOMatchWindow = 5;
-  //! time used to transmit all FEE data to PCIe in GTM BCO time
-  static const int kFEEDataTransmissionWindow = 1000000;  // 100ms for very large non-ZS data at 10Hz
+  //! map bco_information_t to packet id
+  BcoMatchingInformation m_bcoMatchingInformation;
+
+
+
+  // //! GTM Matcher Strategy, order by reliability
+  // enum enu_gtmMatcherStrategy
+  // {
+  //   //! if knowing nothing, simply matching FEE waveform to the last level1 tagger
+  //   kLastLv1Tagger = 0,
+  //   //! tracking FEE BCO to GTM BCO sync
+  //   kFEEWaveformBCOSync = 1,
+  //   //! tracking FEE heartbeat to GTM BCO sync
+  //   kFEEHeartBeatSync = 2
+  // };
+  // enu_gtmMatcherStrategy m_gtmMatcherStrategy = kLastLv1Tagger;
+  // uint64_t matchFEE2GTMBCO(uint16_t fee_bco);
+
+  // const static int GTMBCObits = 40;
+  // const static uint64_t GTMBCOmask_ValidBits = (1ULL << GTMBCObits) - 1;
+  // const static uint64_t GTMBCOmask_RollOverCounts = std::numeric_limits<uint64_t>::max() - GTMBCOmask_ValidBits;
+  // uint64_t m_GTMBCORollOverCounter = 0;
+  // uint64_t m_GTMBCOLastReading = 0;
+  // //! roll over corrected GTM BCO -> GTM payload data
+  // std::map<uint64_t, gtm_payload> m_gtmData;
+  // // //! FEE ID -> last roll over corrected GTM BCO
+  // // std::map<unsigned int, uint64_t> m_feeLastGTMBCO;
+
+  // //! errors allowed in match FEE BCO to GTM BCO
+  // static const int kFEEBCOMatchWindow = 5;
+  // //! time used to transmit all FEE data to PCIe in GTM BCO time
+  // static const int kFEEDataTransmissionWindow = 1000000;  // 100ms for very large non-ZS data at 10Hz
 
   TH2I *m_hFEEDataStream = nullptr;
   TH1 *h_PacketLength = nullptr;
