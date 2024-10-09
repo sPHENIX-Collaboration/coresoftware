@@ -26,6 +26,7 @@ using namespace std;
 TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   : m_packet_id(packet_id)
   , m_HistoPrefix("TpcTimeFrameBuilder_Packet" + to_string(packet_id))
+  , m_bcoMatchingInformation_vec(MAX_FEECOUNT)
 {
   m_feeData.resize(MAX_FEECOUNT);
 
@@ -86,6 +87,9 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "PacketClockSyncOK");
   assert(i <= 20);
   hm->registerHisto(m_hFEEDataStream);
+
+
+
 }
 
 TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
@@ -103,7 +107,9 @@ TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
 void TpcTimeFrameBuilder::setVerbosity(const int i)
 {
   m_verbosity = i;
-  m_bcoMatchingInformation.set_verbosity(i);
+
+  for (auto & bcoMatchingInformation : m_bcoMatchingInformation_vec)
+    bcoMatchingInformation.set_verbosity(i);
 }
 
 bool TpcTimeFrameBuilder::isMoreDataRequired() const
@@ -395,6 +401,10 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       // continue;
     }
 
+
+    assert(fee < m_bcoMatchingInformation_vec.size());
+    auto & m_bcoMatchingInformation = m_bcoMatchingInformation_vec[fee];
+
     // gtm_bco matching
     if (payload.type == m_bcoMatchingInformation.HEARTBEAT_T)
     {
@@ -530,8 +540,11 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
   // uint64_t rollover_corrected_bco = (m_GTMBCORollOverCounter << GTMBCObits) + payload.bco;
   // m_gtmData[rollover_corrected_bco] = payload;
 
-  m_bcoMatchingInformation.save_gtm_bco_information(payload);
-
+  
+  for (auto & bcoMatchingInformation : m_bcoMatchingInformation_vec)
+  {
+    bcoMatchingInformation.save_gtm_bco_information(payload);
+  }
   return 0;
 }
 

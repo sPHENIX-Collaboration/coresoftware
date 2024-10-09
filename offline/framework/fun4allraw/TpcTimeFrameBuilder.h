@@ -284,7 +284,7 @@ class TpcTimeFrameBuilder
   };
 
   //! map bco_information_t to packet id
-  BcoMatchingInformation m_bcoMatchingInformation;
+  std::vector<BcoMatchingInformation> m_bcoMatchingInformation_vec;
 
   TH2I *m_hFEEDataStream = nullptr;
   TH1 *h_PacketLength = nullptr;
