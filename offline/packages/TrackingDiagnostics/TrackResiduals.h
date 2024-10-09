@@ -192,9 +192,9 @@ class TrackResiduals : public SubsysReco
   float m_silseedpx = std::numeric_limits<float>::quiet_NaN();
   float m_silseedpy = std::numeric_limits<float>::quiet_NaN();
   float m_silseedpz = std::numeric_limits<float>::quiet_NaN();
-  int m_silseedcharge = std::numeric_limits<int>::quiet_NaN();
-  float m_silseedphi = std::numeric_limits<float>::quiet_NaN();
   float m_silseedeta = std::numeric_limits<float>::quiet_NaN();
+  float m_silseedphi = std::numeric_limits<float>::quiet_NaN();
+  int m_silseedcharge = std::numeric_limits<int>::quiet_NaN();
   float m_tpcseedx = std::numeric_limits<float>::quiet_NaN();
   float m_tpcseedy = std::numeric_limits<float>::quiet_NaN();
   float m_tpcseedz = std::numeric_limits<float>::quiet_NaN();
