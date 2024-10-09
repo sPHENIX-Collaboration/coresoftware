@@ -90,6 +90,17 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
 
 
 
+  m_hFEEChannelPacketCount = new TH1I(TString(m_HistoPrefix.c_str()) + "_FEEChannelPacketCount",  //
+                                    TString(m_HistoPrefix.c_str()) +
+                                        " Count of waveform packet per channel;FEE*256 + Channel;Count",
+                                    MAX_FEECOUNT * MAX_CHANNELS, -.5, MAX_FEECOUNT * MAX_CHANNELS - .5);
+  hm->registerHisto(m_hFEEChannelPacketCount);
+
+  m_hFEESAMPAADC = new TH2I(TString(m_HistoPrefix.c_str()) + "_FEE_SAMPA_ADC",  //
+                              TString(m_HistoPrefix.c_str()) +
+                                  " ADC distribution in 2D;ADC Time Bin [0...1023];FEE*8+SAMPA;Sum ADC",
+                              MAX_PACKET_LENGTH, -.5, MAX_PACKET_LENGTH - .5, MAX_FEECOUNT*MAX_SAMPA, -.5, MAX_FEECOUNT*MAX_SAMPA - .5);
+  hm->registerHisto(m_hFEESAMPAADC);
 }
 
 TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
@@ -411,6 +422,10 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       m_bcoMatchingInformation.find_reference_heartbeat(payload);
       m_hFEEDataStream->Fill(fee, "PacketHeartBeat", 1);
     }
+    else
+    {
+      m_hFEEChannelPacketCount->Fill(fee * MAX_CHANNELS + payload.channel, 1);
+    }
 
     // if bco matching information is still not verified, drop the packet
     if (not m_bcoMatchingInformation.is_verified())
@@ -485,10 +500,13 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         break;
       }
 
+      const unsigned int fee_sampa_address = fee * MAX_SAMPA + payload.sampa_address;
       std::vector<uint16_t> adc(nsamp);
       for (int j = 0; j < nsamp; j++)
       {
         adc[j] = data_buffer[pos++];
+
+        m_hFEESAMPAADC->Fill(start_t + j,  fee_sampa_address, adc[j]);
       }
       payload.waveforms.push_back(std::make_pair(start_t, std::move(adc)));
 

@@ -17,8 +17,8 @@
 
 class Packet;
 class TpcRawHit;
-class TH2I;
 class TH1;
+class TH2;
 
 class TpcTimeFrameBuilder
 {
@@ -46,7 +46,8 @@ class TpcTimeFrameBuilder
   static const uint16_t GTM_MODEBIT_MAGIC_KEY = 0xbbf2;
 
   static const uint16_t MAX_FEECOUNT = 26;      // that many FEEs
-  static const uint16_t MAX_CHANNELS = 8 * 32;  // that many channels per FEE
+  static const uint16_t MAX_SAMPA = 8;      // that many FEEs
+  static const uint16_t MAX_CHANNELS = MAX_SAMPA * 32;  // that many channels per FEE
                                                 //  static const uint16_t  HEADER_LENGTH  = 5;
   static const uint16_t HEADER_LENGTH = 7;
   static const uint16_t MAX_PACKET_LENGTH = 1025;
@@ -286,7 +287,10 @@ class TpcTimeFrameBuilder
   //! map bco_information_t to packet id
   std::vector<BcoMatchingInformation> m_bcoMatchingInformation_vec;
 
-  TH2I *m_hFEEDataStream = nullptr;
+  TH2 *m_hFEEDataStream = nullptr;
+  TH1 *m_hFEEChannelPacketCount = nullptr;
+  TH2 *m_hFEESAMPAADC = nullptr;
+
   TH1 *h_PacketLength = nullptr;
   TH1 *h_PacketLength_Padding = nullptr;
   TH1 *h_PacketLength_Residual = nullptr;
