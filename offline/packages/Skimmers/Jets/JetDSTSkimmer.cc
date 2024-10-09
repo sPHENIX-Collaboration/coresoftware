@@ -1,5 +1,5 @@
 
-#include "JetDSTSlimmer.h"
+#include "JetDSTSkimmer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -17,23 +17,23 @@
 #include <phool/getClass.h>
 
 //____________________________________________________________________________..
-JetDSTSlimmer::JetDSTSlimmer(const std::string &name)
+JetDSTSkimmer::JetDSTSkimmer(const std::string &name)
   : SubsysReco(name)
 {
 }
 
 // default destructor
-JetDSTSlimmer::~JetDSTSlimmer() = default;
+JetDSTSkimmer::~JetDSTSkimmer() = default;
 
 //____________________________________________________________________________..
-int JetDSTSlimmer::process_event(PHCompositeNode *topNode)
+int JetDSTSkimmer::process_event(PHCompositeNode *topNode)
 {
   // here we are basically going to see if the max cluster pT or max jet pT is above a certain threshold, otherwise we will abort the event
   // jet loop
   JetContainer *_jets = findNode::getClass<JetContainer>(topNode, m_JetNodeName);
   if (!_jets)
   {
-    std::cout << "JetDSTSlimmer::process_event - Error - Can't find Jet Node " << m_JetNodeName << " therefore no selection can be made" << std::endl;
+    std::cout << "JetDSTSkimmer::process_event - Error - Can't find Jet Node " << m_JetNodeName << " therefore no selection can be made" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   float maxjetpt = 0;
@@ -48,7 +48,7 @@ int JetDSTSlimmer::process_event(PHCompositeNode *topNode)
   RawClusterContainer *_clusters = findNode::getClass<RawClusterContainer>(topNode, m_ClusterNodeName);
   if (!_clusters)
   {
-    std::cout << "JetDSTSlimmer::process_event - Error - Can't find Cluster Node " << m_ClusterNodeName << " therefore no selection can be made" << std::endl;
+    std::cout << "JetDSTSkimmer::process_event - Error - Can't find Cluster Node " << m_ClusterNodeName << " therefore no selection can be made" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   float maxclusterpt = 0;
@@ -74,7 +74,7 @@ int JetDSTSlimmer::process_event(PHCompositeNode *topNode)
     // verbose output, verbose 2 also will show the event abortion by this module
     if (Verbosity() > 1)
     {
-      std::cout << "JetDSTSlimmer::process_event - Event Rejected - Max Jet pT: " << maxjetpt << " Max Cluster pT: " << maxclusterpt << std::endl;
+      std::cout << "JetDSTSkimmer::process_event - Event Rejected - Max Jet pT: " << maxjetpt << " Max Cluster pT: " << maxclusterpt << std::endl;
     }
   }
   if (isBackground)
@@ -82,7 +82,7 @@ int JetDSTSlimmer::process_event(PHCompositeNode *topNode)
     keepEvent = false;
     if (Verbosity() > 1)
     {
-      std::cout << "JetDSTSlimmer::process_event - Event Rejected - Background Event" << std::endl;
+      std::cout << "JetDSTSkimmer::process_event - Event Rejected - Background Event" << std::endl;
     }
   }
   if (!keepEvent)
@@ -93,7 +93,7 @@ int JetDSTSlimmer::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-bool JetDSTSlimmer::isBackgroundEvent()
+bool JetDSTSkimmer::isBackgroundEvent()
 {
   // place holder for identifying background events
   return false;

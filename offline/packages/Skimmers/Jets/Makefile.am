@@ -11,15 +11,15 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  JetDSTSlimmer.h
+  JetDSTSkimmer.h
 
 lib_LTLIBRARIES = \
-  libJetDSTSlimmer.la
+  libJetDSTSkimmer.la
 
-libJetDSTSlimmer_la_SOURCES = \
-  JetDSTSlimmer.cc
+libJetDSTSkimmer_la_SOURCES = \
+  JetDSTSkimmer.cc
 
-libJetDSTSlimmer_la_LIBADD = \
+libJetDSTSkimmer_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lcalo_io \
@@ -32,7 +32,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libJetDSTSlimmer.la
+testexternals_LDADD   = libJetDSTSkimmer.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

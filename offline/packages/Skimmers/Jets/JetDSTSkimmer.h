@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef JETDSTSLIMMER_H
-#define JETDSTSLIMMER_H
+#ifndef JETDSTSKIMMER_H
+#define JETDSTSKIMMER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -9,13 +9,13 @@
 
 class PHCompositeNode;
 
-class JetDSTSlimmer : public SubsysReco
+class JetDSTSkimmer : public SubsysReco
 {
  public:
 
-  JetDSTSlimmer(const std::string &name = "JetDSTSlimmer");
+  JetDSTSkimmer(const std::string &name = "JetDSTSkimmer");
 
-  ~JetDSTSlimmer() override;
+  ~JetDSTSkimmer() override;
 
   int process_event(PHCompositeNode *topNode) override;
 
@@ -32,4 +32,4 @@ class JetDSTSlimmer : public SubsysReco
     bool isBackgroundEvent();
 };
 
-#endif // JETDSTSLIMMER_H
+#endif // JETDSTSKIMMER_H
