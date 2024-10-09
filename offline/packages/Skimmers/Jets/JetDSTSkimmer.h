@@ -15,7 +15,8 @@ class JetDSTSkimmer : public SubsysReco
 
   JetDSTSkimmer(const std::string &name = "JetDSTSkimmer");
 
-  ~JetDSTSkimmer() override;
+// please declare default dtor/ctors in the header file
+  ~JetDSTSkimmer() override = default;
 
   int process_event(PHCompositeNode *topNode) override;
 
@@ -23,13 +24,13 @@ class JetDSTSkimmer : public SubsysReco
   void SetMinClusterPt(float minClusterPt) { m_minClusterPt = minClusterPt; }
 
  private:
+    bool isBackgroundEvent();
+
     float m_minJetPt{10};
     float m_minClusterPt{5};
     
     std::string m_JetNodeName{"AntiKt_Tower_r04_Sub1"};
     std::string m_ClusterNodeName{"CEMC_CALO_CLUSTER"};
-
-    bool isBackgroundEvent();
 };
 
 #endif // JETDSTSKIMMER_H

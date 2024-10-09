@@ -2,19 +2,18 @@
 #include "JetDSTSkimmer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 
+#include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
-#include <jetbase/JetMap.h>
-#include <jetbase/Jetv1.h>
-#include <jetbase/Jetv2.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
-#include <calobase/RawClusterUtility.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+
+#include <iostream>                        // for operator<<, basic_ostream
+#include <map>                             // for operator!=, _Rb_tree_iterator
+#include <utility>                         // for pair
 
 //____________________________________________________________________________..
 JetDSTSkimmer::JetDSTSkimmer(const std::string &name)
@@ -22,22 +21,19 @@ JetDSTSkimmer::JetDSTSkimmer(const std::string &name)
 {
 }
 
-// default destructor
-JetDSTSkimmer::~JetDSTSkimmer() = default;
-
 //____________________________________________________________________________..
 int JetDSTSkimmer::process_event(PHCompositeNode *topNode)
 {
   // here we are basically going to see if the max cluster pT or max jet pT is above a certain threshold, otherwise we will abort the event
   // jet loop
-  JetContainer *_jets = findNode::getClass<JetContainer>(topNode, m_JetNodeName);
-  if (!_jets)
+  JetContainer *jets = findNode::getClass<JetContainer>(topNode, m_JetNodeName);
+  if (!jets)
   {
     std::cout << "JetDSTSkimmer::process_event - Error - Can't find Jet Node " << m_JetNodeName << " therefore no selection can be made" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   float maxjetpt = 0;
-  for (auto jet : *_jets)
+  for (auto jet : *jets)
   {
     if (jet->get_pt() > maxjetpt)
     {
