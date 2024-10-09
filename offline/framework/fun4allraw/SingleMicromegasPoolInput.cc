@@ -75,9 +75,7 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
       << " ratio_bco: " << double(dropped_bco)/counts
       << " ratio_pool: " << double(dropped_pool)/counts
       << std::endl;
-
   }
-
   std::cout << std::endl;
 
   // drop per fee statistics
@@ -91,6 +89,17 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
       << " ratio_bco: " << double(dropped_bco)/counts
       << std::endl;
 
+  }
+  std::cout << std::endl;
+
+  // also printout adjusted multipliers
+  for( const auto& [packet_id, bco_matching]:m_bco_matching_information_map )
+  {
+    const auto old_precision = std::cout.precision();
+    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput -"
+      << " packet: " << packet_id
+      << " multiplier: " <<  std::setprecision(9) << bco_matching.get_adjusted_multiplier() << std::setprecision(old_precision)
+      << std::endl;
   }
 
 }
