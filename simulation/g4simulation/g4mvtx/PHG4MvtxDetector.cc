@@ -193,7 +193,7 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume *logicWorld)
   const G4int numZPlanes = 4;
   const G4double zPlane[numZPlanes] = {mvtxGeomDef::wrap_SBCyl_Z, mvtxGeomDef::wrap_CYSSHead_Z, mvtxGeomDef::wrap_CYSSNose_Z, mvtxGeomDef::wrap_CYSSFlgN_Z};
 
-  const G4double rInner[numZPlanes] = {mvtxGeomDef::wrap_rmin + 0.822 * mm, mvtxGeomDef::wrap_rmin + 0.822 * mm, mvtxGeomDef::wrap_rmin + 0.822 * mm, mvtxGeomDef::wrap_rmin + 0.822 * mm};
+  const G4double rInner[numZPlanes] = (apply_misalignment) ? {mvtxGeomDef::wrap_rmin + 0.822 * mm, mvtxGeomDef::wrap_rmin + 0.822 * mm, mvtxGeomDef::wrap_rmin + 0.822 * mm, mvtxGeomDef::wrap_rmin + 0.822 * mm} : {mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
 
   const G4double rOuter[numZPlanes] = {mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_smallCylR, mvtxGeomDef::wrap_smallCylR};
 
