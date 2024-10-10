@@ -143,6 +143,8 @@ class MakeActsGeometry : public SubsysReco
   {
     m_nSurfPhi = value;
   }
+
+  void set_mvtx_applymisalign(bool b) { m_mvtxapplymisalign = b; }
   void set_intt_survey(bool surv) { m_inttSurvey = surv; }
 
  private:
@@ -218,6 +220,10 @@ class MakeActsGeometry : public SubsysReco
   bool m_inttSurvey = true;
   const float m_inttbarrelcenter_survey_x = 0.4026857142857132 / 10.;
   const float m_inttbarrelcenter_survey_y = -2.886627321428573 / 10.;
+
+  // Switch for applying misalignment for mvtx
+  bool m_mvtxapplymisalign = false;
+  std::vector<double> v_globaldisplacement = {0., 0., 0.};
 
   bool m_useField = true;
   std::map<uint8_t, double> m_misalignmentFactor;

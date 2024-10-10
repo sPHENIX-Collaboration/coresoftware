@@ -3,14 +3,17 @@
 #ifndef G4MVTX_PHG4MVTXDETECTOR_H
 #define G4MVTX_PHG4MVTXDETECTOR_H
 
+#include <trackbase/TrkrDefs.h>
+
 #include <g4main/PHG4Detector.h>
 
 #include <array>
-#include <cmath>  // for M_PI
+#include <cmath>
 #include <map>
 #include <set>
 #include <string>
-#include <tuple>  // for tuple
+#include <tuple>
+#include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
@@ -19,6 +22,7 @@ class PHCompositeNode;
 class PHG4MvtxDisplayAction;
 class PHG4Subsystem;
 class PHParametersContainer;
+class PHG4MvtxMisalignment;
 
 class PHG4MvtxDetector : public PHG4Detector
 {
@@ -50,6 +54,8 @@ class PHG4MvtxDetector : public PHG4Detector
   int get_stave(int stv_index) const;
 
   void FillSupportLVArray(G4LogicalVolume* lv) { m_SupportLV.insert(lv); }
+
+  void ApplyMisalignment(bool b) { apply_misalignment = b; };
 
  private:
   void AddGeometryNode();
@@ -88,6 +94,12 @@ class PHG4MvtxDetector : public PHG4Detector
   std::array<double, n_Layers> m_nominal_radius{};
   std::array<double, n_Layers> m_nominal_phitilt{};
   std::array<double, n_Layers> m_nominal_phi0{};
+
+  // For modified geometry
+  bool apply_misalignment = false;
+  double m_GlobalDisplacementX = 0.0;
+  double m_GlobalDisplacementY = 0.0;
+  double m_GlobalDisplacementZ = 0.0;
 };
 
 #endif

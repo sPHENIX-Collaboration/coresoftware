@@ -33,29 +33,28 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 {
  public:
   explicit PHG4MvtxHitReco(
-      const std::string &name = "PHG4MvtxHitReco",
-      const std::string &detector = "MVTX");
+      const std::string& name = "PHG4MvtxHitReco",
+      const std::string& detector = "MVTX");
 
   ~PHG4MvtxHitReco() override;
 
   //! module initialization
-  int InitRun(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode* topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode* topNode) override;
 
-  void Detector(const std::string &d) { m_detector = d; }
+  void Detector(const std::string& d) { m_detector = d; }
 
   //! TODO keep it for backward compatibily. remove after PR merged
-  //In the future use the relevant set parameter function
+  // In the future use the relevant set parameter function
   void set_timing_window(const int detid, const double tmin, const double tmax);
 
   //! parameters
   void SetDefaultParameters() override;
 
  private:
-
-  void makePixelMask(hitMask &aMask, const std::string& dbName, const std::string& totalPixelsToMask);
+  void makePixelMask(hitMask& aMask, const std::string& dbName, const std::string& totalPixelsToMask);
 
   std::pair<double, double> generate_alpide_pulse(const double energy_deposited);
 
@@ -71,7 +70,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   double m_tmax;
   double m_strobe_width;
   double m_strobe_separation;
-  //double crossing_period = 106.0;
+  // double crossing_period = 106.0;
   double m_extended_readout_time = 0.0;
 
   bool m_in_sphenix_srdo = false;
@@ -80,41 +79,41 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   {
    public:
     //! delection operation
-    void operator()(gsl_rng *rng) const { gsl_rng_free(rng); }
+    void operator()(gsl_rng* rng) const { gsl_rng_free(rng); }
   };
 
   std::unique_ptr<gsl_rng, Deleter> m_rng;
 
   // needed for clustering truth tracks
-  private:
-  TrkrTruthTrackContainer* m_truthtracks     { nullptr }; // output truth tracks
-  TrkrClusterContainer*    m_truthclusters   { nullptr }; // output clusters indexed to TrkrDefs::cluskeys in m_truthtracks
-  PHG4TruthInfoContainer*  m_truthinfo       { nullptr };
-  int                      m_trkid           { -1      };
-  bool                     m_is_emb          { false   };
-  TrkrTruthTrack*          m_current_track   { nullptr };
-  const int                m_cluster_version { 4 };
-  TrkrHitSetContainer*     m_truth_hits; // generate and delete a container for each truth track
-  std::map<TrkrDefs::hitsetkey,unsigned int> m_hitsetkey_cnt {}; // counter for making ckeys form hitsetkeys
+ private:
+  TrkrTruthTrackContainer* m_truthtracks{nullptr};  // output truth tracks
+  TrkrClusterContainer* m_truthclusters{nullptr};   // output clusters indexed to TrkrDefs::cluskeys in m_truthtracks
+  PHG4TruthInfoContainer* m_truthinfo{nullptr};
+  int m_trkid{-1};
+  bool m_is_emb{false};
+  TrkrTruthTrack* m_current_track{nullptr};
+  const int m_cluster_version{4};
+  TrkrHitSetContainer* m_truth_hits;                              // generate and delete a container for each truth track
+  std::map<TrkrDefs::hitsetkey, unsigned int> m_hitsetkey_cnt{};  // counter for making ckeys form hitsetkeys
 
   hitMask m_deadPixelMap;
   hitMask m_hotPixelMap;
 
-  PHG4Hit* prior_g4hit { nullptr }; // used to check for jumps in g4hits for loopers;
-  void addtruthhitset ( TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons );
-  void truthcheck_g4hit       ( PHG4Hit*,        PHCompositeNode* topNode );
-  void cluster_truthhits      ( PHCompositeNode* topNode          );
-  void end_event_truthcluster ( PHCompositeNode* topNode          );
+  PHG4Hit* prior_g4hit{nullptr};  // used to check for jumps in g4hits for loopers;
+  void addtruthhitset(TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons);
+  void truthcheck_g4hit(PHG4Hit*, PHCompositeNode* topNode);
+  void cluster_truthhits(PHCompositeNode* topNode);
+  void end_event_truthcluster(PHCompositeNode* topNode);
 
-  double m_pixel_thresholdrat { 0.01 };
-  float  max_g4hitstep        { 3.5  };
-  bool  record_ClusHitsVerbose { false };
+  double m_pixel_thresholdrat{0.01};
+  float max_g4hitstep{3.5};
+  bool record_ClusHitsVerbose{false};
 
-  public:
-  void set_pixel_thresholdrat (double val) { m_pixel_thresholdrat = val; };
+ public:
+  void set_pixel_thresholdrat(double val) { m_pixel_thresholdrat = val; };
 
-  void set_ClusHitsVerbose(bool set=true) { record_ClusHitsVerbose = set; };
-  ClusHitsVerbosev1* mClusHitsVerbose { nullptr };
+  void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; };
+  ClusHitsVerbosev1* mClusHitsVerbose{nullptr};
 };
 
 #endif

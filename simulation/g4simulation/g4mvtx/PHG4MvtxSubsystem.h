@@ -45,6 +45,8 @@ class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
 
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
+  void Apply_Misalignment(bool b) { m_ApplyMisalignment = b; }
+
  private:
   void SetDefaultParameters() override;
   static double radii2Turbo(double rMin, double rMid, double rMax, double sensW)
@@ -70,6 +72,8 @@ class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
   std::string detector_type;
   std::string m_HitNodeName;
   std::string m_SupportNodeName;
+
+  bool m_ApplyMisalignment{false};
 };
 
 #endif
