@@ -26,6 +26,9 @@ class TowerInfoSimv2 : public TowerInfoSimv1
   EdepMap _hitedeps;
   ShowerEdepMap _showeredeps;
 
+  static const int nsample = 31;
+  int16_t _waveform[nsample] = {0}; // Initializes the entire array to zero
+
   ClassDefOverride(TowerInfoSimv2, 1);
   // Inherit other methods and properties from TowerInfoSimv1
 };
