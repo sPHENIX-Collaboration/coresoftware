@@ -199,6 +199,14 @@ class TpcTimeFrameBuilder
     };
 
     /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+    // Standard scheduler /home/phnxrc/operations/TPC/schedulers/standard_beam.scheduler
+    // 0        100    0    0
+    // 1          0    0    0     0:0x01 # FEE SAMPA BX Counter Sync
+    // 2          0    0    0     0:0x40 # DAM    Clear GTM Last Level-1
+    // 3          0    0    0     0:0x80 # DAM    Clear GTM Level-1 and Endat Counters
+    // 4          0    0    0
+    // 5        256    0    0
+    // 6          0    1    5     0:0x02 #FEE    SAMPA E-Link Heartbeat
     enum ModeBitType
     {
       BX_COUNTER_SYNC_T = 0,

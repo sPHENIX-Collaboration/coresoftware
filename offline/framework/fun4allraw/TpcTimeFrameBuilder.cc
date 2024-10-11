@@ -34,7 +34,8 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   assert(hm);
 
   TH1* h = new TH1D(TString(m_HistoPrefix.c_str()) + "_Normalization",  //
-                    TString(m_HistoPrefix.c_str()) + " Normalization;Items;Count", 10, .5, 10.5);
+                    TString(m_HistoPrefix.c_str()) + " Normalization;Items;Count",
+                    20, .5, 20.5);
   int i = 1;
   h->GetXaxis()->SetBinLabel(i++, "Packet");
   h->GetXaxis()->SetBinLabel(i++, "Lv1-Taggers");
@@ -47,8 +48,9 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   h->GetXaxis()->SetBinLabel(i++, "DMA_WORD_FEE_INVALID");
   h->GetXaxis()->SetBinLabel(i++, "DMA_WORD_INVALID");
 
-  h->GetYaxis()->SetBinLabel(i++, "TimeFrameSizeLimitError");
-  assert(i <= 10);
+  h->GetXaxis()->SetBinLabel(i++, "TimeFrameSizeLimitError");
+
+  assert(i <= 20);
   h->GetXaxis()->LabelsOption("v");
   hm->registerHisto(h);
 
@@ -88,18 +90,16 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   assert(i <= 20);
   hm->registerHisto(m_hFEEDataStream);
 
-
-
   m_hFEEChannelPacketCount = new TH1I(TString(m_HistoPrefix.c_str()) + "_FEEChannelPacketCount",  //
-                                    TString(m_HistoPrefix.c_str()) +
-                                        " Count of waveform packet per channel;FEE*256 + Channel;Count",
-                                    MAX_FEECOUNT * MAX_CHANNELS, -.5, MAX_FEECOUNT * MAX_CHANNELS - .5);
+                                      TString(m_HistoPrefix.c_str()) +
+                                          " Count of waveform packet per channel;FEE*256 + Channel;Count",
+                                      MAX_FEECOUNT * MAX_CHANNELS, -.5, MAX_FEECOUNT * MAX_CHANNELS - .5);
   hm->registerHisto(m_hFEEChannelPacketCount);
 
   m_hFEESAMPAADC = new TH2I(TString(m_HistoPrefix.c_str()) + "_FEE_SAMPA_ADC",  //
-                              TString(m_HistoPrefix.c_str()) +
-                                  " ADC distribution in 2D;ADC Time Bin [0...1023];FEE*8+SAMPA;Sum ADC",
-                              MAX_PACKET_LENGTH, -.5, MAX_PACKET_LENGTH - .5, MAX_FEECOUNT*MAX_SAMPA, -.5, MAX_FEECOUNT*MAX_SAMPA - .5);
+                            TString(m_HistoPrefix.c_str()) +
+                                " ADC distribution in 2D;ADC Time Bin [0...1023];FEE*8+SAMPA;Sum ADC",
+                            MAX_PACKET_LENGTH, -.5, MAX_PACKET_LENGTH - .5, MAX_FEECOUNT * MAX_SAMPA, -.5, MAX_FEECOUNT * MAX_SAMPA - .5);
   hm->registerHisto(m_hFEESAMPAADC);
 }
 
@@ -119,7 +119,7 @@ void TpcTimeFrameBuilder::setVerbosity(const int i)
 {
   m_verbosity = i;
 
-  for (auto & bcoMatchingInformation : m_bcoMatchingInformation_vec)
+  for (auto& bcoMatchingInformation : m_bcoMatchingInformation_vec)
     bcoMatchingInformation.set_verbosity(i);
 }
 
@@ -193,6 +193,12 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t bclk)
 
 int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
 {
+  if (m_verbosity > 1)
+  {
+    std::cout << "TpcTimeFrameBuilder::ProcessPacket: " << m_packet_id
+              << " Entry " << std::endl;
+  }
+
   if (!packet)
   {
     cout << __PRETTY_FUNCTION__ << " Error : Invalid packet, doing nothing" << endl;
@@ -217,7 +223,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
     return 0;
   }
 
-  if (m_verbosity)
+  if (m_verbosity > 1)
   {
     cout << __PRETTY_FUNCTION__ << " : received packet ";
     packet->identify();
@@ -253,14 +259,47 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
   assert(l2 >= 0);
 
   size_t dma_words = l2 * 2 / DAM_DMA_WORD_LENGTH;
+  size_t dma_residual = (l2 * 2) % DAM_DMA_WORD_LENGTH;
   assert(dma_words <= buffer.size());
   assert(h_PacketLength_Residual);
-  h_PacketLength_Residual->Fill((l2 * 2) % DAM_DMA_WORD_LENGTH);
+  h_PacketLength_Residual->Fill(dma_residual);
+  if (dma_residual > 0)
+  {
+    cout << __PRETTY_FUNCTION__ << " : Warning : mismatch of RCDAQ data to DMA transfer. Dropping mismatched data: "
+         << dma_residual << " in packet " << m_packet_id << ". Dropping residual data : " << endl;
+
+    assert(dma_words + 1 < buffer.size());
+    const dma_word& last_dma_word_data = buffer[dma_words + 1];
+    const uint16_t* last_dma_word = reinterpret_cast<const uint16_t*>(&last_dma_word_data);
+
+    for (size_t i = 0; i < dma_residual; ++i)
+    {
+      cout << " 0x" << hex << last_dma_word[i] << dec;
+    }
+    cout << endl;
+  }
+
+  if (m_verbosity > 1)
+  {
+    cout << __PRETTY_FUNCTION__ << " : packet" << m_packet_id << endl
+         << "   data_length = " << data_length << endl
+         << "   data_padding = " << data_padding << endl
+         << "   dma_words_buffer = " << dma_words_buffer << endl
+         << "   l2 = " << l2 << endl
+         << "   dma_words = " << dma_words << endl;
+  }
 
   // demultiplexer
   for (size_t index = 0; index < dma_words; ++index)
   {
     const dma_word& dma_word_data = buffer[index];
+
+    if (m_verbosity > 2)
+    {
+      cout << __PRETTY_FUNCTION__ << " : processing DMA word " 
+      << index <<"/"<<dma_words << " with header 0x" 
+      << hex << dma_word_data.dma_header << dec << endl;
+    }
 
     if ((dma_word_data.dma_header & 0xFF00) == FEE_MAGIC_KEY)
     {
@@ -325,7 +364,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 {
   assert(m_hFEEDataStream);
 
-  if (m_verbosity)
+  if (m_verbosity > 1)
   {
     cout << __PRETTY_FUNCTION__ << " : processing FEE " << fee << " with " << m_feeData[fee].size() << " words" << endl;
   }
@@ -340,7 +379,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     {
       if (m_verbosity > 1)
       {
-        cout << __PRETTY_FUNCTION__ << " : Error : Invalid FEE magic key at position 1 " << data_buffer[1] << endl;
+        cout << __PRETTY_FUNCTION__ << " : Error : Invalid FEE magic key at position 1 0x" << hex << data_buffer[1] << dec << endl;
       }
       m_hFEEDataStream->Fill(fee, "WordSkipped", 1);
       data_buffer.pop_front();
@@ -352,7 +391,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     {
       if (m_verbosity > 1)
       {
-        cout << __PRETTY_FUNCTION__ << " : Error : Invalid FEE magic key at position 2 " << data_buffer[2] << endl;
+        cout << __PRETTY_FUNCTION__ << " : Error : Invalid FEE magic key at position 2 0x" << hex << data_buffer[2] << dec << endl;
       }
       m_hFEEDataStream->Fill(fee, "WordSkipped", 1);
       data_buffer.pop_front();
@@ -411,14 +450,18 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       m_hFEEDataStream->Fill(fee, "CRCError", 1);
       // continue;
     }
-
-
     assert(fee < m_bcoMatchingInformation_vec.size());
-    auto & m_bcoMatchingInformation = m_bcoMatchingInformation_vec[fee];
+    auto& m_bcoMatchingInformation = m_bcoMatchingInformation_vec[fee];
 
     // gtm_bco matching
     if (payload.type == m_bcoMatchingInformation.HEARTBEAT_T)
     {
+      if (m_verbosity > 1)
+      {
+        cout << __PRETTY_FUNCTION__
+             << " : received heartbeat packet from FEE " << fee << endl;
+      }
+
       m_bcoMatchingInformation.find_reference_heartbeat(payload);
       m_hFEEDataStream->Fill(fee, "PacketHeartBeat", 1);
     }
@@ -453,18 +496,18 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       }
     }
 
-    if (m_verbosity > 1)
+    if (m_verbosity > 2)
     {
       cout << __PRETTY_FUNCTION__ << " : received data packet "
-           << " pkt_length = " << pkt_length
-           << " adc_length = " << payload.adc_length
-           << " sampa_address = " << payload.sampa_address
-           << " sampa_channel = " << payload.sampa_channel
-           << " channel = " << payload.channel
-           << " bx_timestamp = " << payload.bx_timestamp
-           << " bco = " << payload.gtm_bco
-
-           << endl;
+           << " pkt_length = " << pkt_length << endl
+           << " adc_length = " << payload.adc_length << endl
+           << " sampa_address = " << payload.sampa_address << endl
+           << " sampa_channel = " << payload.sampa_channel << endl
+           << " channel = " << payload.channel << endl
+           << " bx_timestamp = 0x" << hex << payload.bx_timestamp << dec << endl
+           << " bco = 0x" << hex << payload.gtm_bco << dec << endl
+           << " data_crc = 0x" << hex << payload.data_crc << dec << endl
+           << " calc_crc = 0x" << hex << payload.calc_crc << dec << endl;
     }
 
     // // valid packet in the buffer, create a new hit
@@ -506,7 +549,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       {
         adc[j] = data_buffer[pos++];
 
-        m_hFEESAMPAADC->Fill(start_t + j,  fee_sampa_address, adc[j]);
+        m_hFEESAMPAADC->Fill(start_t + j, fee_sampa_address, adc[j]);
       }
       payload.waveforms.push_back(std::make_pair(start_t, std::move(adc)));
 
@@ -524,6 +567,11 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 
 int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gtm_word)
 {
+  if (m_verbosity > 2)
+  {
+    cout << __PRETTY_FUNCTION__ << " : processing GTM data " << endl;
+  }
+
   const unsigned char* gtm = reinterpret_cast<const unsigned char*>(&gtm_word);
 
   gtm_payload payload;
@@ -558,8 +606,22 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
   // uint64_t rollover_corrected_bco = (m_GTMBCORollOverCounter << GTMBCObits) + payload.bco;
   // m_gtmData[rollover_corrected_bco] = payload;
 
-  
-  for (auto & bcoMatchingInformation : m_bcoMatchingInformation_vec)
+  if (m_verbosity > 2)
+  {
+    cout << " GTM data : "
+         << " pkt_type = " << payload.pkt_type << endl
+         << " is_lvl1 = " << payload.is_lvl1 << endl
+         << " is_endat = " << payload.is_endat << endl
+         << " is_modebit = " << payload.is_modebit << endl
+         << " bco = 0x" << hex << payload.bco << dec << endl
+         << " lvl1_count = " << payload.lvl1_count << endl
+         << " endat_count = " << payload.endat_count << endl
+         << " last_bco = 0x" << hex << payload.last_bco << dec << endl
+         << " modebits =  0x" << hex << (int) payload.modebits << dec << endl
+         << " userbits =  0x" << hex << (int) payload.userbits << dec << endl;
+  }
+
+  for (auto& bcoMatchingInformation : m_bcoMatchingInformation_vec)
   {
     bcoMatchingInformation.save_gtm_bco_information(payload);
   }
@@ -745,15 +807,19 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
 
     if (modebits & (1U << BX_COUNTER_SYNC_T))
     {
-      std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_from_modebits"
-                << " found reference from modebits"
-                << std::endl;
-
       // get BCO and assign
       const uint64_t& gtm_bco = gtm_tagger.bco;
       m_gtm_bco_first = gtm_bco;
       m_fee_bco_first = 0;
       m_verified_from_modebits = true;
+
+      if (m_verbosity)
+      {
+        std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_from_modebits"
+                  << " found reference from modebits BX_COUNTER_SYNC_T"
+                  << "at gtm_bco = 0x" << hex << gtm_bco << dec
+                  << std::endl;
+      }
     }
   }
 }

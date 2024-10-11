@@ -20,7 +20,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
  public:
   explicit SingleTpcTimeFrameInput(const std::string &name);
   ~SingleTpcTimeFrameInput() override;
-  void FillPool(const unsigned int) override;
+  void FillPool(const uint64_t minBCO) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   // bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
@@ -32,6 +32,8 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
  private:
+  const int NTPCPACKETS = 3;
+
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};

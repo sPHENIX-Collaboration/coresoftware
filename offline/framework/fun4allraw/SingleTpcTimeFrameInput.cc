@@ -22,8 +22,6 @@
 #include <memory>
 #include <set>
 
-const int NTPCPACKETS = 3;
-
 SingleTpcTimeFrameInput::SingleTpcTimeFrameInput(const std::string &name)
   : SingleStreamingInput(name)
 {
@@ -48,16 +46,39 @@ SingleTpcTimeFrameInput::~SingleTpcTimeFrameInput()
   }
 }
 
-void SingleTpcTimeFrameInput::FillPool(const unsigned int /*nbclks*/)
+void SingleTpcTimeFrameInput::FillPool(const uint64_t minBCO)
 {
+  if (Verbosity() > 0)
+  {
+    std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
+              << " Entry with minBCO = " << minBCO << std::endl;
+  }
+
   if (AllDone())  // no more files and all events read
   {
+    if (Verbosity() > 1)
+    {
+      std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
+                << " AllDone for minBCO " << minBCO << std::endl;
+    }
+
     return;
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
+    if (Verbosity() > 1)
+    {
+      std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
+                << " GetEventiterator == null for minBCO " << minBCO << std::endl;
+    }
+
     if (!OpenNextFile())
     {
+      if (Verbosity() > 1)
+      {
+        std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
+                  << " OpenNextFile() quit for minBCO " << minBCO << std::endl;
+      }
       AllDone(1);
       return;
     }
@@ -66,6 +87,12 @@ void SingleTpcTimeFrameInput::FillPool(const unsigned int /*nbclks*/)
   bool require_more_data = true;
   while (require_more_data)
   {
+    if (Verbosity() > 3)
+    {
+      std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
+                << " require_more_data for minBCO " << minBCO << std::endl;
+    }
+
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
     {
