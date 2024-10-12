@@ -170,7 +170,7 @@ class TpcTimeFrameBuilder
     }
 
     //! find reference from data
-    bool find_reference_heartbeat(const fee_payload & HeartBeatPacket);
+    std::optional<uint64_t> find_reference_heartbeat(const fee_payload & HeartBeatPacket);
 
     //! save all GTM BCO clocks from packet data
     void save_gtm_bco_information(const gtm_payload & gtm_tagger);
@@ -184,6 +184,10 @@ class TpcTimeFrameBuilder
     //! cleanup
     void cleanup(uint64_t /*ref_bco*/);
 
+    double get_multiplier_adjustment() const
+    {
+      return m_multiplier_adjustment;
+    }
     //@}
 
     /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
@@ -239,10 +243,13 @@ class TpcTimeFrameBuilder
     uint32_t m_fee_bco_first = 0;
 
     //! list of available bco
-    std::list<uint64_t> m_gtm_bco_list;
+    std::list<uint64_t> m_gtm_bco_trig_list;
+
+    //! list of available bco
+    std::list<uint64_t> m_gtm_bco_heartbeat_list;
 
     //! matching between fee bco and lvl1 bco
-    using m_bco_matching_pair_t = std::pair<unsigned int, uint64_t>;
+    using m_bco_matching_pair_t = std::pair<uint32_t, uint64_t>;
     std::list<m_bco_matching_pair_t> m_bco_matching_list;
 
     //! keep track or  fee_bco for which no gtm_bco is found
@@ -261,6 +268,8 @@ class TpcTimeFrameBuilder
     unsigned int m_multiplier_adjustment_count = 0;
 
 
+    // define limit for matching two lvl1 and EnDAT tagger BCOs
+    static constexpr int m_max_lv1_endat_bco_diff = 10;
 
     // define limit for matching two fee_bco
     static constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
@@ -271,10 +280,10 @@ class TpcTimeFrameBuilder
     // define limit for matching gtm_bco from lvl1 to enddat
 
     // define limit for matching fee_bco to fee_bco_predicted
-    static constexpr unsigned int m_max_gtm_bco_diff = 100;
+    static constexpr unsigned int m_max_gtm_bco_diff = 10;
 
   //   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
-    static constexpr unsigned int m_max_matching_data_size = 50;
+    static constexpr unsigned int m_max_matching_data_size = 10;
 
     //! copied from micromegas/MicromegasDefs.h, not available here
     static constexpr int m_nchannels_fee = 256;
@@ -298,6 +307,7 @@ class TpcTimeFrameBuilder
   TH2 *m_hFEEDataStream = nullptr;
   TH1 *m_hFEEChannelPacketCount = nullptr;
   TH2 *m_hFEESAMPAADC = nullptr;
+  TH2 *m_hFEEClockAdjustment = nullptr;
 
   TH1 *h_PacketLength = nullptr;
   TH1 *h_PacketLength_Padding = nullptr;
