@@ -135,7 +135,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool is_vertex_param_fixed(unsigned int param);
 
   void getLocalDerivativesXY(const Surface& surf, const Acts::Vector3& global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
-  void getLocalDerivativesZeroFieldXY(const Surface& surf, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
+  void getLocalDerivativesZeroFieldXY(const Surface& surf,  const Acts::Vector3& global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
 
   void getLocalVtxDerivativesXY(SvtxTrack& track, const Acts::Vector3& track_vtx, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5]);
   void getLocalVtxDerivativesZeroFieldXY(SvtxTrack& track, const Acts::Vector3& event_vtx, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5]);
@@ -153,6 +153,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void get_dca_zero_field(SvtxTrack& track, float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, const Acts::Vector3& event_vertex);
 
   std::pair<Acts::Vector3, Acts::Vector3> get_line(const std::vector<float>& fitpars);
+  std::pair<Acts::Vector3, Acts::Vector3> get_line_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_line_surface_intersection(const Surface& surf, std::vector<float>& fitpars);
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, const Acts::Vector3& event_vertex);
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, const Acts::Vector3& event_vertex, Acts::Vector3 PCA);

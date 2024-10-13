@@ -418,7 +418,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	someseed.set_Z0(fitpars[3]);
 	someseed.set_slope(fitpars[2]);
 
-	auto tangent=get_line(fitpars);
+	auto tangent=get_line_tangent(fitpars, global_vec[0]);
 	newTrack.set_x(track_vtx(0));
 	newTrack.set_y(track_vtx(1));
 	newTrack.set_z(track_vtx(2));
@@ -541,7 +541,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       std::pair<Acts::Vector3, Acts::Vector3> tangent;
       if(straight_line_fit)
 	{
-	  tangent = get_line(fitpars);
+	  tangent = get_line_tangent(fitpars, global);
 	}
       else
 	{
@@ -612,8 +612,14 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       // These derivatives are for the local parameters
       float lcl_derivativeX[AlignmentDefs::NLC] = {0., 0., 0., 0., 0.};
       float lcl_derivativeY[AlignmentDefs::NLC] = {0., 0., 0., 0., 0.};
-
-      getLocalDerivativesXY(surf, global, fitpars, lcl_derivativeX, lcl_derivativeY, layer);
+      if(straight_line_fit)
+	{
+	  getLocalDerivativesZeroFieldXY(surf, global, fitpars, lcl_derivativeX, lcl_derivativeY, layer);
+	}
+      else
+	{
+	  getLocalDerivativesXY(surf, global, fitpars, lcl_derivativeX, lcl_derivativeY, layer);
+	}
 
       // The global derivs dimensions are [alpha/beta/gamma](x/y/z)
       float glbl_derivativeX[AlignmentDefs::NGL];
@@ -926,7 +932,7 @@ Acts::Vector3 HelicalFitter::get_line_surface_intersection(const Surface& surf, 
   Acts::Vector3 tangent = arb_point2 - arb_point;   // direction of line
   */
 
-  auto line = get_line(fitpars);
+  auto line = get_line(fitpars);  // do not need the direction
   auto arb_point = line.first;
   auto tangent = line.second;  
 
@@ -969,6 +975,40 @@ Acts::Vector3 HelicalFitter::get_line_vtx(Acts::Vector3 event_vtx, const std::ve
   Acts::Vector3 line_vtx(pca2d(0), pca2d(1), fitpars[3]);
 
   return line_vtx;
+}
+
+std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_tangent(const std::vector<float>& fitpars, Acts::Vector3 global)
+{
+  // Get the rough direction of the line from the global vector, which is a point on the line
+  float phi = atan2(global(1),global(0));
+
+  // we need the direction of the line
+  // consider a point some distance along the straight line. 
+  // Consider a value of x, calculate y, calculate radius, calculate z
+  double x = 2;
+  double y = fitpars[0]*x + fitpars[1];
+  double rxy = sqrt(x*x+y*y);
+  double z = fitpars[2]*rxy + fitpars[3];
+  Acts::Vector3 arb_point(x, y, z);
+
+  double x2 = 4;
+  double y2 = fitpars[0]*x2 + fitpars[1];
+  double rxy2 = sqrt(x2*x2+y2*y2);
+  double z2 = fitpars[2]*rxy2 + fitpars[3];
+  Acts::Vector3 arb_point2(x2, y2, z2);
+
+  float arb_phi = atan2(arb_point(1), arb_point(0));
+  Acts::Vector3 tangent = arb_point2 - arb_point;   // direction of line
+  if(abs(arb_phi - phi) > M_PI / 2)
+    {
+      tangent = arb_point - arb_point2;   // direction of line
+    }
+
+  tangent /= tangent.norm();  
+  
+  std::pair<Acts::Vector3, Acts::Vector3> line = std::make_pair(arb_point, tangent);
+
+  return line;
 }
 
 std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line(const std::vector<float>& fitpars)
@@ -1313,7 +1353,7 @@ void HelicalFitter::getLocalDerivativesXY(const Surface& surf, const Acts::Vecto
   }
 }
 
-void HelicalFitter::getLocalDerivativesZeroFieldXY(const Surface& surf, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer)
+void HelicalFitter::getLocalDerivativesZeroFieldXY(const Surface& surf, const Acts::Vector3& global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer)
 {
   // Calculate the derivatives of the residual wrt the track parameters numerically
   std::vector<float> temp_fitpars;
@@ -1333,10 +1373,10 @@ void HelicalFitter::getLocalDerivativesZeroFieldXY(const Surface& surf, const st
   // calculate projX and projY vectors once for the optimum fit parameters
   if (Verbosity() > 1)
   {
-    std::cout << "Call get_helix_tangent for best fit fitpars" << std::endl;
+    std::cout << "Call get_line to get tangent for ZF fitpars" << std::endl;
   }
 
-  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_line(fitpars);
+  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_line_tangent(fitpars, global);
 
   Acts::Vector3 projX(0, 0, 0), projY(0, 0, 0);
   get_projectionXY(surf, tangent, projX, projY);
@@ -1399,7 +1439,7 @@ void HelicalFitter::getLocalVtxDerivativesXY(SvtxTrack& track, const Acts::Vecto
   // calculate projX and projY vectors once for the optimum fit parameters
   if (Verbosity() > 1)
   {
-    std::cout << "Call get_helix_tangent for best fit fitpars" << std::endl;
+    std::cout << "Get tangent from track momentum vector" << std::endl;
   }
 
   Acts::Vector3 perigeeNormal(track.get_px(), track.get_py(), track.get_pz());
@@ -1514,7 +1554,15 @@ void HelicalFitter::getLocalVtxDerivativesZeroFieldXY(SvtxTrack& track, const Ac
 void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 global, const Acts::Vector3& fitpoint, const std::vector<float>& fitpars, float glbl_derivativeX[6], float glbl_derivativeY[6], unsigned int layer)
 {
   // calculate projX and projY vectors once for the optimum fit parameters
-  std::pair<Acts::Vector3, Acts::Vector3> tangent = get_helix_tangent(fitpars, std::move(global));  // should this be global, not fitpoint?
+  std::pair<Acts::Vector3, Acts::Vector3> tangent;
+  if(straight_line_fit)
+    {
+      tangent = get_line_tangent(fitpars, global);
+    }
+  else
+    {
+      tangent = get_helix_tangent(fitpars, global);
+    }
 
   Acts::Vector3 projX(0, 0, 0), projY(0, 0, 0);
   get_projectionXY(surf, tangent, projX, projY);
@@ -1523,10 +1571,12 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   //   -- There is an implicit assumption here that unitrphi is a length
   // unit vector in r is the surface normal
   // The Acts surface normal points outward in radius. That is what we want.
-  Acts::Vector3 unitr = surf->normal(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+
   Acts::Vector3 center = surf->center(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 unitr( center(0), center(1), 0.0);
+  unitr /= unitr.norm();
   float phi = atan2(center(1), center(0));
-  Acts::Vector3 unitrphi(-sin(phi), cos(phi), 0.0);
+  Acts::Vector3 unitrphi(-sin(phi), cos(phi), 0.0);  // unit vector phi in polar coordinates
   Acts::Vector3 unitz(0, 0, 1); 
 
   glbl_derivativeX[3] = unitr.dot(projX);
@@ -1592,9 +1642,15 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   {
     for (int ip = 0; ip < 6; ++ip)
     {
-      std::cout << " layer " << layer << " ip " << ip << "  glbl_derivativeX " << glbl_derivativeX[ip] << "  "
+      std::cout << " layer " << layer << " phi " << phi * 180/M_PI << " ip " << ip << "  glbl_derivativeX " << glbl_derivativeX[ip] << "  "
                 << " glbl_derivativeY " << glbl_derivativeY[ip] << std::endl;
     }
+    std::cout << "    unitr mag: " << unitr.norm() << " unitr: " << std::endl << unitr << std::endl;
+    std::cout << "    unitrphi mag: " << unitrphi.norm() << " unitrphi: " << std::endl << unitrphi << std::endl;
+    std::cout << "    unitz mag: " << unitz.norm() << " unitz: " << std::endl << unitz << std::endl;
+    std::cout << "    projX: " << std::endl << projX << std::endl;
+    std::cout << "    projY: " << std::endl << projY << std::endl;
+
   }
 }
 
@@ -1642,7 +1698,7 @@ void HelicalFitter::get_projectionXY(const Surface& surf, const std::pair<Acts::
   // We need the three unit vectors in the sensor local frame, transformed to the global frame 
   //====================================================================
   // sensorNormal is the Z vector in the global frame
-  Acts::Vector3 Z = -surf->normal(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 Z = -surf->normal(_tGeometry->geometry().getGeoContext());
   // get surface X and Y unit vectors in global frame
   // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
   Acts::Vector3 xloc(1.0, 0.0, 0.0);  // local coord unit vector in x
@@ -1660,6 +1716,16 @@ void HelicalFitter::get_projectionXY(const Surface& surf, const std::pair<Acts::
   // minus Z scaled by the track vector overlap with X, divided by the track vector overlap with Z.
   projX = X - (tanvec.dot(X) / tanvec.dot(Z)) * Z;
   projY = Y - (tanvec.dot(Y) / tanvec.dot(Z)) * Z;
+
+  std::cout << "    tanvec: " << std::endl << tanvec << std::endl;  
+  std::cout << "    X: " << std::endl << X << std::endl;
+  std::cout << "    Y: " << std::endl << Y << std::endl;
+  std::cout << "    Z: " << std::endl << Z << std::endl;
+
+  std::cout << "    projX: " << std::endl << projX << std::endl;
+  std::cout << "    projY: " << std::endl << projY << std::endl;
+
+
   return;
 }
 
@@ -1682,7 +1748,6 @@ void HelicalFitter::get_projectionVtxXY(SvtxTrack& track, const Acts::Vector3& e
   // see equation 31 of the ATLAS paper (and discussion) for this
   projX = X - (tanvec.dot(X) / tanvec.dot(normal)) * normal;
   projY = Y - (tanvec.dot(Y) / tanvec.dot(normal)) * normal;
-
   return;
 }
 
