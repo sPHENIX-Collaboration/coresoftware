@@ -72,11 +72,17 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position(const Acts::Vector
     divisor = 1.0;
   }
 
-  //get the corrections from the histograms
-  auto dphi=phi; //to inherit the same type
+  //set our default corrections to be zero:
+  //first inherit the same type
+  auto dphi=phi;
   auto dr=r;
   auto dz=z;
-
+  //then set them to zero:
+  dphi=0;
+  dr=0;
+  dz=0;
+  
+  //get the corrections from the histograms
   if (dcc->m_dimensions == 3)
   {
     if (dcc->m_hDPint[index] && (mask & COORD_PHI) && check_boundaries(dcc->m_hDPint[index], phi, r, z))
