@@ -42,7 +42,8 @@ class LL1Out : public PHObject
   virtual bool passesTrigger() { return 0; }
   virtual bool passesThreshold(int /*ith*/) { return 0; }
 
-  virtual std::vector<TriggerDefs::TriggerSumKey> getTriggeredSums(int ith = 0);
+  virtual std::vector<std::pair<TriggerDefs::TriggerSumKey, unsigned short>> getTriggeredSums();
+  virtual std::vector<TriggerDefs::TriggerSumKey> getTriggeredSumKeys(int ith = 0);
   virtual std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives();
 
   virtual void addTriggeredSum(TriggerDefs::TriggerSumKey /*sk*/, unsigned short /*bit*/) { return; }

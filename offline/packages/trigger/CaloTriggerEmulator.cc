@@ -34,6 +34,7 @@
 
 #include <TFile.h>
 #include <TH1.h>
+#include <TH1I.h>
 #include <TNtuple.h>
 
 #include <bitset>
@@ -1854,7 +1855,7 @@ int CaloTriggerEmulator::process_trigger()
 		unsigned short bit = getBits(t_sum->at(is), TriggerDefs::TriggerId::photonTId);
 		if (bit)
 		  {
-		    m_ll1out_photon->addTriggeredSum(sumk, bit);
+		    m_ll1out_photon->addTriggeredSum(sumk, t_sum->at(is));
 		    m_ll1out_photon->addTriggeredPrimitive(key);
 		  }
 		bits.at(is) |= bit;	    
@@ -1891,14 +1892,12 @@ int CaloTriggerEmulator::process_trigger()
     {
       for (auto &ip : ie)
       {
-      for (auto & ip : ie)
-	{
-	  for (int is = 0; is < nsample; is++)
-	    {
-	      ip.push_back(0);
-	    }
-	}
+	for (int is = 0; is < nsample; is++)
+	  {
+	    ip.push_back(0);
+	  }
       }
+    }
     
     if (!m_primitives_jet)
       {
@@ -1976,7 +1975,7 @@ int CaloTriggerEmulator::process_trigger()
 
 	  if (bit)
 	    {
-	      m_ll1out_jet->addTriggeredSum(sk, bit);
+	      m_ll1out_jet->addTriggeredSum(sk, jet_map[ijphi][ijeta].at(is));
 	      m_ll1out_jet->addTriggeredPrimitive(sk);
 	      pass = 1;
 	    }

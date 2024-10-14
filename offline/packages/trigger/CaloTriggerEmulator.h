@@ -23,6 +23,7 @@ class Fun4AllHistoManager;
 class PHCompositeNode;
 class TFile;
 class TH1;
+class TH1I;
 class TNtuple;
 class TTree;
 class TProfile;

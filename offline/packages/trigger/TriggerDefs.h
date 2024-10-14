@@ -64,15 +64,15 @@ namespace TriggerDefs
   uint32_t getTriggerSumKey(const TriggerDefs::TriggerId triggerId, const TriggerDefs::DetectorId detectorId, const TriggerDefs::PrimitiveId primitiveId, const uint16_t primlocid, const uint16_t sumlocid);
 
   uint32_t GetTowerInfoKey(const TriggerDefs::DetectorId detId, const uint16_t iprim, const uint16_t isum, const uint16_t itower);
-  uint32_t getTriggerId_from_TriggerKey(const TriggerDefs::TriggerKey triggerkey);
-  uint32_t getTriggerId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey);
-  uint32_t getTriggerId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey);
+  TriggerId getTriggerId_from_TriggerKey(const TriggerDefs::TriggerKey triggerkey);
+  TriggerId getTriggerId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey);
+  TriggerId getTriggerId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey);
 
-  uint32_t getDetectorId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey);
-  uint32_t getDetectorId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey);
+  DetectorId getDetectorId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey);
+  DetectorId getDetectorId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey);
 
-  uint32_t getPrimitiveId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey);
-  uint32_t getPrimitiveId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey);
+  PrimitiveId getPrimitiveId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey);
+  PrimitiveId getPrimitiveId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey);
 
   uint16_t getPrimitiveLocId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey);
   uint16_t getPrimitiveLocId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey);

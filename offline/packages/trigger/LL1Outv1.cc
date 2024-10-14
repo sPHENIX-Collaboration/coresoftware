@@ -147,10 +147,8 @@ bool LL1Outv1::passesThreshold(int ith)
 void LL1Outv1::addTriggeredSum(TriggerDefs::TriggerSumKey sk, unsigned short bit) 
 {
   unsigned int sumk = sk;
-  if (!m_triggered_sums.size())
-    {
-      m_triggered_sums.push_back(std::make_pair(sumk, bit));
-    }
+  m_triggered_sums.push_back(std::make_pair(sumk, bit));
+  
   return;
 }
 void LL1Outv1::addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk)
@@ -164,7 +162,11 @@ void LL1Outv1::addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk)
   return;
 }
 
-std::vector<TriggerDefs::TriggerSumKey> LL1Outv1::getTriggeredSums(int ith)
+std::vector<std::pair<TriggerDefs::TriggerSumKey, unsigned short>> LL1Outv1::getTriggeredSums()
+{
+  return m_triggered_sums;
+}
+std::vector<TriggerDefs::TriggerSumKey> LL1Outv1::getTriggeredSumKeys(int ith)
 {
   std::vector<TriggerDefs::TriggerSumKey> bitSums = {};
 
