@@ -308,7 +308,7 @@ bool SingleTriggerInput::GetSomeMoreEvents(const unsigned int keep)
   return false;
 }
 
-int SingleTriggerInput::FindFEMEventRefPacketId(const int pktid)
+int SingleTriggerInput::SetFEMEventRefPacketId(const int pktid)
 {
   if (m_FEMEventRefPacketId > 0)
   {

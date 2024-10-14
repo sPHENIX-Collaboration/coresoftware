@@ -56,7 +56,7 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual int SkipToEvent() const { return m_SkipToEvent; }
   virtual void LastEvent(const int i) { m_LastEvent = i; }
   virtual int LastEvent() const { return m_LastEvent; }
-  virtual int FindFEMEventRefPacketId(const int pktid);
+  virtual int SetFEMEventRefPacketId(const int pktid);
   virtual int FEMEventRefPacketId() const {return  m_FEMEventRefPacketId;}
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
