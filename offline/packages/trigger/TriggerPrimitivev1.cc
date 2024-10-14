@@ -49,10 +49,16 @@ void TriggerPrimitivev1::identify(std::ostream& out) const
   ConstRange range = getSums();
   for (auto iter = range.first; iter != range.second; ++iter)
   {
-    int pass = 0;
+    int pass = 1;
     for (unsigned int& i : *(*iter).second)
     {
       if (i)
+	{
+	  pass = 1;
+	}      
+    }
+
+    if (!pass)
       {
         pass = 1;
       }
