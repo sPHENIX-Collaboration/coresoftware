@@ -3,6 +3,10 @@
 #include "photonjetskinematics.h"
 #include <fun4all/PHTFileServer.h>
 
+// Fun4all includes
+
+#include <fun4all/Fun4AllHistoManager.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -30,13 +34,25 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 
+// QA includes
+#include <qautils/QAHistManagerDef.h>
 
+// c++ includes
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include <vector>
 //____________________________________________________________________________..
-photonjetskinematics::photonjetskinematics(const std::string &outputfilename):
-SubsysReco("photonjetskinematics")
-, outfilename(outputfilename)
+
+photonjetskinematics::photonjetskinematics(const std::string &m_modulename, const std::string &m_inputnode) :
+  SubsysReco(m_modulename)
+  , modulename(m_modulename)
+  , inputnode(m_inputnode)
+  , histtag("AllTrig")
+  , trgToSelect(JetQADefs::GL1::MBDNSJet1)
+  , doTrgSelect(false)
 {
- std::cout << "photonjetskinematics::photonjetskinematics(const std::string &name, const std::string&outputfilename) Calling ctor" << std::endl;
+  if (Verbosity() > 1) std::cout << "photonjetskinematics::photonjetskinematics(const std::string &name, const std::string&outputfilename) Calling ctor" << std::endl;
 }
 //____________________________________________________________________________..
 photonjetskinematics::~photonjetskinematics()
@@ -45,34 +61,57 @@ photonjetskinematics::~photonjetskinematics()
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::Init(PHCompositeNode *topNode)
+int photonjetskinematics::Init(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "photonjetskinematics::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  //outfile = new TFile(outfilename.c_str(), "RECREATE");
-  PHTFileServer::get().open(outfilename, "RECREATE");
+  if (Verbosity() > 1) std::cout << "photonjetskinematics::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  manager = QAHistManagerDef::getHistoManager();
+  if (!manager)
+    {
+      std::cerr << PHWHERE << "PANIC: couldn't grab histogram manager!" << std::endl;
+      assert(manager);
+    }
+
+  // make sure module name is lower case
+  std::string smallModuleName = modulename;
+  std::transform(
+		 smallModuleName.begin(),
+		 smallModuleName.end(),
+		 smallModuleName.begin(),
+		 ::tolower);
+  // construct histogram names
+  std::vector<std::string> vecHistNames = {
+    "emcal_cluster_chi2",
+    "emcal_cluster_energy",
+    "emcal_cluster_eta_phi",
+    "emcal_cluster_eta",
+    "emcal_cluster_phi"};
+
+  for (auto& histName : vecHistNames)
+    {
+      histName.insert(0, "h_" + smallModuleName + "_");
+      if (!histtag.empty())
+	{
+	  histName.append("_" + histtag);
+	}
+    }
 
   //initializing histograms
 
-  h_emcal_cluster_chi2 = new TH1D("h_emcal_cluster_chi2", "h_emcal_cluster_chi2", 30, 0, 150); //1000,0,5e6
+  h_emcal_cluster_chi2 = new TH1D(vecHistNames[0].data(), "h_emcal_cluster_chi2", 30, 0, 150);
   h_emcal_cluster_chi2->GetXaxis()->SetTitle("#chi^{2}");
  
-
-  h_emcal_cluster_energy = new TH1D("h_emcal_cluster_energy", "h_emcal_cluster_energy", 100, 0, 10);
+  h_emcal_cluster_energy = new TH1D(vecHistNames[1].data(), "h_emcal_cluster_energy", 100, 0, 10);
   h_emcal_cluster_energy->GetXaxis()->SetTitle("E_{T} [GeV]");
 
-
-  h_emcal_cluster_eta_phi = new TH2F("h_emcal_cluster_eta_phi", "h_emcal_cluster_eta_phi", 140, -1.2, 1.2, 64, -M_PI, M_PI);
-  //eta used to be 24 increase to 100
-  //TH2D changed to TH2F 
+  h_emcal_cluster_eta_phi = new TH2F(vecHistNames[2].data(), "h_emcal_cluster_eta_phi", 140, -1.2, 1.2, 64, -M_PI, M_PI);
   h_emcal_cluster_eta_phi->GetXaxis()->SetTitle("#eta");
   h_emcal_cluster_eta_phi->GetYaxis()->SetTitle("#Phi");
   h_emcal_cluster_eta_phi->SetOption("COLZ");
 
-
-  h_emcal_cluster_eta = new TH1D("h_emcal_cluster_eta", "Eta Distribution", 140, -1.2, 1.2);
+  h_emcal_cluster_eta = new TH1D(vecHistNames[3].data(), "Eta Distribution", 140, -1.2, 1.2);
   h_emcal_cluster_eta->GetXaxis()->SetTitle("#eta");
 
-  h_emcal_cluster_phi = new TH1D("h_emcal_cluster_phi", "Phi Distribution", 64, -M_PI, M_PI);
+  h_emcal_cluster_phi = new TH1D(vecHistNames[4].data(), "Phi Distribution", 64, -M_PI, M_PI);
   h_emcal_cluster_phi->GetXaxis()->SetTitle("#phi");
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -80,9 +119,10 @@ int photonjetskinematics::Init(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::InitRun(PHCompositeNode *topNode)
+int photonjetskinematics::InitRun(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "photonjetskinematics::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+
+  if (Verbosity() > 1) std::cout << "photonjetskinematics::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -90,11 +130,21 @@ int photonjetskinematics::InitRun(PHCompositeNode *topNode)
 int photonjetskinematics::process_event(PHCompositeNode *topNode)
 {  
 
-  RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
+  RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, inputnode);
   if (!clusterContainer)
     {
       std::cout << PHWHERE << "funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
       return 0;
+    }
+
+  // if needed, check if trigger fired
+  if (doTrgSelect)
+    {
+      bool hasTrigger = JetQADefs::DidTriggerFire(trgToSelect, topNode);
+      if (!hasTrigger)
+	{
+	  return Fun4AllReturnCodes::EVENT_OK;
+	}
     }
 
   RawClusterContainer::ConstIterator clusterIter;
@@ -111,7 +161,6 @@ int photonjetskinematics::process_event(PHCompositeNode *topNode)
       float clus_phi = E_vec_cluster.phi();
       float clus_chisq = recoCluster->get_chi2();
  
-
       //Filling Histograms, only taking into account E vec cluster, not reco cluster
 
        h_emcal_cluster_chi2->Fill(clus_chisq);
@@ -119,23 +168,14 @@ int photonjetskinematics::process_event(PHCompositeNode *topNode)
        h_emcal_cluster_eta_phi->Fill(clus_eta, clus_phi);
        h_emcal_cluster_eta->Fill(clus_eta);  // 1D eta plot
        h_emcal_cluster_phi->Fill(clus_phi);  // 1D phi plot
-
-       // std::cout << "E vec phi = " << clus_phi << std::endl;
-
-       // std::cout << "E vec energy = " << clusE << std::endl;
-
-       // std::cout << "E vec chi2  = " << clus_chisq << std::endl;
-
-       // std::cout << "E vec eta = " << clus_eta << std::endl;
-         
-  }
+   }
 
   // std::cout << "photonjetskinematics::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
+   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::ResetEvent(PHCompositeNode *topNode)
+int photonjetskinematics::ResetEvent(PHCompositeNode* /*topNode*/)
 {
   // std::cout << "photonjetskinematics::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -144,41 +184,36 @@ int photonjetskinematics::ResetEvent(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int photonjetskinematics::EndRun(const int runnumber)
 {
-  std::cout << "photonjetskinematics::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  if (Verbosity() > 1) std::cout << "photonjetskinematics::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::End(PHCompositeNode *topNode)
+int photonjetskinematics::End(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "photonjetskinematics::End - Output to " << outfilename << std::endl;
-  PHTFileServer::get().cd(outfilename);
-
-  //outfile->cd("photonjetskinematics");
-
+  if (Verbosity() > 1) std::cout << "photonjetskinematics::End - Output to " << outfilename << std::endl;
+  
   //Outputting the histograms
-  h_emcal_cluster_eta_phi->Write("h_emcal_cluster_eta_phi");
-  h_emcal_cluster_energy->Write("h_emcal_cluster_energy");
-  h_emcal_cluster_chi2->Write("h_emcal_cluster_chi2");
-  h_emcal_cluster_eta->Write("h_emcal_cluster_eta");  // Save 1D eta plot
-  h_emcal_cluster_phi->Write("h_emcal_cluster_phi");  // Save 1D phi plot
+  manager->registerHisto(h_emcal_cluster_eta_phi);
+  manager->registerHisto(h_emcal_cluster_energy);
+  manager->registerHisto(h_emcal_cluster_chi2);
+  manager->registerHisto(h_emcal_cluster_eta);  
+  manager->registerHisto(h_emcal_cluster_phi); 
 
-  std::cout << "photonjetskinematics::End(PHCompositeNode *topNode) This is the End..." << std::endl;
-  //  outfile->Write();                                                                                                                                              
-  // outfile->Close(); 
+  if (Verbosity() > 1) std::cout << "photonjetskinematics::End(PHCompositeNode *topNode) This is the End..." << std::endl; 
   return Fun4AllReturnCodes::EVENT_OK;
   
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::Reset(PHCompositeNode *topNode)
+int photonjetskinematics::Reset(PHCompositeNode* /*topNode*/)
 {
- std::cout << "photonjetskinematics::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  if (Verbosity() > 1) std::cout << "photonjetskinematics::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 void photonjetskinematics::Print(const std::string &what) const
 {
-  std::cout << "photonjetskinematics::Print(const std::string &what) const Printing info for " << what << std::endl;
+  if (Verbosity() > 1) std::cout << "photonjetskinematics::Print(const std::string &what) const Printing info for " << what << std::endl;
 }
