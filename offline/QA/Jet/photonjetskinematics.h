@@ -9,7 +9,9 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2D.h>
+#include "JetQADefs.h"
 
+class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH1;
 class TH2;
@@ -20,7 +22,7 @@ class photonjetskinematics : public SubsysReco
  public:
 
 
-  photonjetskinematics(const std::string &outputfilename = "output");
+  photonjetskinematics(const std::string &modulename = "photonjetskinematics", const std::string &inputnode = "CLUSTERINFO_CEMC");
   ~photonjetskinematics() override;
 
   /** Called during initialization.
@@ -56,12 +58,31 @@ class photonjetskinematics : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
+  /// specifies a trigger to select
+  void SetTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSPhoton1)
+  {
+    doTrgSelect = true;
+    trgToSelect = trig;
+  }
+
+  /// set histogram tag
+  void SetHistTag(const std::string& tag)
+  {
+    histtag = tag;
+  }
+
  private:
-std::string outfilename;
-TFile *outfile;
+ std::string outfilename;
+ TFile *outfile;
+ // hist manager
+ Fun4AllHistoManager* manager;
+ std::string modulename;
+ std::string inputnode;
+ std::string histtag;
+ uint32_t trgToSelect;
+ bool doTrgSelect;
 
-
-//Output histograms
+ ///Output histograms
  TH1 *h_emcal_cluster_chi2 = nullptr;
  TH1 *h_emcal_cluster_energy = nullptr;
  TH2 *h_emcal_cluster_eta_phi = nullptr;
