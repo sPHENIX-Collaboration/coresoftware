@@ -413,24 +413,38 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         switch( segmentation_type )
         {
           case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-          if( first || std::abs(drphi) < std::abs(drphi_min) )
           {
-            first = false;
-            drphi_min = drphi;
-            dz_min = dz;
-            ckey_min = ckey;
+            // reject if outside of strip boundary
+            if( std::abs(dz)>_z_search_win[imm] )
+            { continue; }
+
+            // keep as best if closer to projection
+            if( first || std::abs(drphi) < std::abs(drphi_min) )
+            {
+              first = false;
+              drphi_min = drphi;
+              dz_min = dz;
+              ckey_min = ckey;
+            }
+            break;
           }
-          break;
 
           case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-          if( first || std::abs(drphi) < std::abs(dz_min) )
           {
-            first = false;
-            drphi_min = drphi;
-            dz_min = dz;
-            ckey_min = ckey;
+            // reject if outside of strip boundary
+            if( std::abs(drphi)>_rphi_search_win[imm] )
+            { continue; }
+
+            // keep as best if closer to projection
+            if( first || std::abs(dz) < std::abs(dz_min) )
+            {
+              first = false;
+              drphi_min = drphi;
+              dz_min = dz;
+              ckey_min = ckey;
+            }
+            break;
           }
-          break;
         }
 
         // prints out a line that can be grep-ed from the output file to feed to a display macro
@@ -438,7 +452,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         if( _test_windows && std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm])
         {
           // cluster rphi and z
-          const auto glob = _tGeometry->getGlobalPosition(key, cluster);
+          const auto glob = _tGeometry->getGlobalPosition(ckey, cluster);
           const double mm_clus_rphi = get_r(glob.x(), glob.y()) * std::atan2(glob.y(), glob.x());
           const double mm_clus_z = glob.z();
 
