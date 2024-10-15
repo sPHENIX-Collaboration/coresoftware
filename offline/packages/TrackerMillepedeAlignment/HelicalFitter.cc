@@ -1356,6 +1356,10 @@ void HelicalFitter::getLocalDerivativesXY(const Surface& surf, const Acts::Vecto
 void HelicalFitter::getLocalDerivativesZeroFieldXY(const Surface& surf, const Acts::Vector3& global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer)
 {
   // Calculate the derivatives of the residual wrt the track parameters numerically
+  // This version differs from the field on one in that:
+  // Fitpars has parameters of a straight line (4) instead of a helix (5)
+  // The track tangent is just the line direction
+
   std::vector<float> temp_fitpars;
 
   std::vector<float> fitpars_delta;
@@ -1569,8 +1573,7 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
 
   // translations in polar coordinates, unit vectors must be in polar coordinates
   //   -- There is an implicit assumption here that unitrphi is a length
-  // unit vector in r is the surface normal
-  // The Acts surface normal points outward in radius. That is what we want.
+  // unit vector in r is the normalized radial vector pointing to the surface center
 
   Acts::Vector3 center = surf->center(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
   Acts::Vector3 unitr( center(0), center(1), 0.0);
@@ -1639,19 +1642,23 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   */
 
   if (Verbosity() > 1)
-  {
-    for (int ip = 0; ip < 6; ++ip)
     {
-      std::cout << " layer " << layer << " phi " << phi * 180/M_PI << " ip " << ip << "  glbl_derivativeX " << glbl_derivativeX[ip] << "  "
-                << " glbl_derivativeY " << glbl_derivativeY[ip] << std::endl;
+      for (int ip = 0; ip < 6; ++ip)
+	{
+	  std::cout << " layer " << layer << " phi " << phi * 180/M_PI << " ip " << ip 
+		    << "  glbl_derivativeX " << glbl_derivativeX[ip] << "  "
+		    << " glbl_derivativeY " << glbl_derivativeY[ip] << std::endl;
+	}
     }
-    std::cout << "    unitr mag: " << unitr.norm() << " unitr: " << std::endl << unitr << std::endl;
-    std::cout << "    unitrphi mag: " << unitrphi.norm() << " unitrphi: " << std::endl << unitrphi << std::endl;
-    std::cout << "    unitz mag: " << unitz.norm() << " unitz: " << std::endl << unitz << std::endl;
-    std::cout << "    projX: " << std::endl << projX << std::endl;
-    std::cout << "    projY: " << std::endl << projY << std::endl;
 
-  }
+  if(Verbosity() > 2)
+    {
+      std::cout << "    unitr mag: " << unitr.norm() << " unitr: " << std::endl << unitr << std::endl;
+      std::cout << "    unitrphi mag: " << unitrphi.norm() << " unitrphi: " << std::endl << unitrphi << std::endl;
+      std::cout << "    unitz mag: " << unitz.norm() << " unitz: " << std::endl << unitz << std::endl;
+      std::cout << "    projX: " << std::endl << projX << std::endl;
+      std::cout << "    projY: " << std::endl << projY << std::endl;
+    }
 }
 
 void HelicalFitter::getGlobalVtxDerivativesXY(SvtxTrack& track, const Acts::Vector3& event_vtx, float glbl_derivativeX[3], float glbl_derivativeY[3])
@@ -1717,14 +1724,16 @@ void HelicalFitter::get_projectionXY(const Surface& surf, const std::pair<Acts::
   projX = X - (tanvec.dot(X) / tanvec.dot(Z)) * Z;
   projY = Y - (tanvec.dot(Y) / tanvec.dot(Z)) * Z;
 
-  std::cout << "    tanvec: " << std::endl << tanvec << std::endl;  
-  std::cout << "    X: " << std::endl << X << std::endl;
-  std::cout << "    Y: " << std::endl << Y << std::endl;
-  std::cout << "    Z: " << std::endl << Z << std::endl;
-
-  std::cout << "    projX: " << std::endl << projX << std::endl;
-  std::cout << "    projY: " << std::endl << projY << std::endl;
-
+  if(Verbosity() > 1)
+    {
+      std::cout << "    tanvec: " << std::endl << tanvec << std::endl;  
+      std::cout << "    X: " << std::endl << X << std::endl;
+      std::cout << "    Y: " << std::endl << Y << std::endl;
+      std::cout << "    Z: " << std::endl << Z << std::endl;
+      
+      std::cout << "    projX: " << std::endl << projX << std::endl;
+      std::cout << "    projY: " << std::endl << projY << std::endl;
+    }
 
   return;
 }
