@@ -89,14 +89,14 @@ class CaloTowerBuilder : public SubsysReco
     m_dobitfliprecovery = dobitfliprecovery;
   }
 
-  void set_tbt_softwarezerosuppression(std::string url)
+  void set_tbt_softwarezerosuppression(const std::string &url)
   {
     m_zsURL = url;
     m_dotbtszs = true;
     return;
   }
 
-  void set_zs_fieldname(std::string fieldname)
+  void set_zs_fieldname(const std::string &fieldname)
   {
     m_zs_fieldname = fieldname;
     return;
