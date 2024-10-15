@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -22,7 +22,7 @@ libg4tpc_la_LIBADD = \
   -lg4detectors \
   -lg4tracking_io \
   -lphg4hit \
-  -lphparameter \
+  -lphparameter_io \
   -ltpc_io
 
 pkginclude_HEADERS = \
