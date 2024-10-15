@@ -89,12 +89,10 @@ namespace
   // define limit for matching two fee_bco
   static constexpr unsigned int m_max_fee_bco_diff = 10;
 
-  // define limit for matching gtm_bco from lvl1 to enddat
-
   // define limit for matching fee_bco to fee_bco_predicted
   static constexpr unsigned int m_max_gtm_bco_diff = 100;
 
-//   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
+  // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
   static constexpr unsigned int m_max_matching_data_size = 50;
 
   //! copied from micromegas/MicromegasDefs.h, not available here
