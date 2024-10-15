@@ -84,8 +84,22 @@ class CaloTowerBuilder : public SubsysReco
     return;
   }
 
-  void set_bitFlipRecovery(bool dobitfliprecovery) {
+  void set_bitFlipRecovery(bool dobitfliprecovery)
+  {
     m_dobitfliprecovery = dobitfliprecovery;
+  }
+
+  void set_tbt_softwarezerosuppression(const std::string &url)
+  {
+    m_zsURL = url;
+    m_dotbtszs = true;
+    return;
+  }
+
+  void set_zs_fieldname(const std::string &fieldname)
+  {
+    m_zs_fieldname = fieldname;
+    return;
   }
 
  private:
@@ -95,10 +109,12 @@ class CaloTowerBuilder : public SubsysReco
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
   CDBTTree *cdbttree = nullptr;
+  CDBTTree *cdbttree_tbt_zs = nullptr;
 
   bool m_isdata{true};
   bool m_bdosoftwarezerosuppression{false};
   bool m_UseOfflinePacketFlag{false};
+  bool m_dotbtszs{false};
   int m_packet_low{std::numeric_limits<int>::min()};
   int m_packet_high{std::numeric_limits<int>::min()};
   int m_nsamples{16};
@@ -120,6 +136,9 @@ class CaloTowerBuilder : public SubsysReco
   std::string m_fieldname;
   std::string m_calibName;
   std::string m_directURL;
+  std::string m_zsURL;
+  std::string m_zs_fieldname{"zs_threshold"};
+
 
 };
 
