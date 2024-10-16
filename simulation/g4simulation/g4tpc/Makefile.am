@@ -22,7 +22,7 @@ libg4tpc_la_LIBADD = \
   -lg4detectors \
   -lg4tracking_io \
   -lphg4hit \
-  -lphparameter_io \
+  -lphparameter \
   -ltpc_io
 
 pkginclude_HEADERS = \

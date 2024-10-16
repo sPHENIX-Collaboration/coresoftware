@@ -44,7 +44,7 @@ libg4calo_la_LIBADD = \
   -lgslcblas \
   -lphool \
   -lphg4hit \
-  -lphparameter_io \
+  -lphparameter \
   -lSubsysReco
 
 ################################################
