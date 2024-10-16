@@ -2,13 +2,13 @@
 
 #include "MinimumBiasInfov1.h"
 
-#include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainer.h>
+#include <mbd/MbdPmtContainer.h>
+#include <mbd/MbdPmtHit.h>
 
-#include <globalvertex/GlobalVertex.h>
+#include <zdcinfo/Zdcinfo.h>
+
 #include <globalvertex/GlobalVertexMap.h>
-
-#include <mbd/MbdOut.h>
+#include <globalvertex/GlobalVertex.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -46,6 +46,7 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
 int MinimumBiasClassifier::ResetEvent(PHCompositeNode * /*unused*/)
 {
   _zdc_energy_sum.fill(0);
+  _mbd_charge_sum.fill(0);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -89,7 +90,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  if (!_towers_zdc)
+  if (!_zdcinfo)
   {
     std::cout << "nothing in zdc " << std::endl;
 
@@ -97,47 +98,38 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  int j = 0;
-
-  for (unsigned int i = 0; i < _towers_zdc->size(); i++)
-  {
-    _tmp_tower = _towers_zdc->get_tower_at_channel(i);
-    float energy = _tmp_tower->get_energy();
-    if (energy > 0)
-    {
-      _zdc_energy_sum[j / 3] += energy;
-      j++;
-    }
-  }
-  if (Verbosity())
-  {
-    std::cout << " MBD Z vertex: " << vtx->get_z() << std::endl;
-    std::cout << " MBD Number PMTs: " << std::endl;
-    std::cout << "      North: " << _mbd_out->get_npmt(1) << std::endl;
-    std::cout << "      South: " << _mbd_out->get_npmt(0) << std::endl;
-    std::cout << " MBD Charge Sum: " << std::endl;
-    std::cout << "      North: " << _mbd_out->get_q(1) << std::endl;
-    std::cout << "      South: " << _mbd_out->get_q(0) << std::endl;
-  }
-
   if (std::fabs(vtx->get_z()) > _z_vtx_cut)
   {
     is_it_min_bias = false;
   }
 
+  int npmt = 128;//_pmts_mbd->get_npmt();
+  for ( int ipmt = 0; ipmt < npmt; ipmt++)
+    {
+      _tmp_pmt = _mbd_pmt->get_pmt(ipmt);
+
+      float charge = _tmp_pmt->get_q();
+      float time = _tmp_pmt->get_time();
+      int side = ipmt/64;
+      if (time < time_threshold && charge > charge_threshold)
+	{
+	  _mbd_charge_sum[side] += charge;
+	}
+    }
+
   for (int i = 0; i < 2; i++)
   {
-    if (_mbd_out->get_npmt(i) < _mbd_tube_cut)
+    if (_mbd_charge_sum[i] < _mbd_tube_cut)
     {
       is_it_min_bias = false;
     }
-    if (_zdc_energy_sum[i] < _zdc_cut)
+    if (_zdcinfo->get_zdc_energy(i) < _zdc_cut)
     {
       is_it_min_bias = false;
     }
   }
 
-  if (_mbd_out->get_q(1) < _mbd_north_cut && _mbd_out->get_q(0) > _mbd_south_cut)
+  if (_mbd_charge_sum[1] < _mbd_north_cut && _mbd_charge_sum[0] > _mbd_south_cut)
   {
     is_it_min_bias = false;
   }
@@ -181,19 +173,18 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  _mbd_out = findNode::getClass<MbdOut>(topNode, "MbdOut");
+  _mbd_pmt = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
 
-  if (!_mbd_out)
+  if (!_mbd_pmt)
   {
-    std::cout << "no MBD out node " << std::endl;
+    std::cout << "no MBD pmt node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  _towers_zdc = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
-
-  if (!_towers_zdc)
+  
+  _zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+  if (!_zdcinfo)
   {
-    std::cout << "no zdc towers node " << std::endl;
+    std::cout << "no zdc info node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

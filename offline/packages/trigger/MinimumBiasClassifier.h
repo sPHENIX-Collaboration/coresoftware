@@ -10,10 +10,12 @@
 
 class MinimumBiasInfo;
 class PHCompositeNode;
-class MbdOut;
-class TowerInfoContainer;
+class MbdPmtContainer;
+class MbdPmtHit;
+class Zdcinfo;
 class TowerInfo;
 class GlobalVertexMap;
+class GlobalVertex;
 
 class MinimumBiasClassifier : public SubsysReco
 {
@@ -43,14 +45,17 @@ class MinimumBiasClassifier : public SubsysReco
   const float _mbd_south_cut{150};
   const int _mbd_tube_cut{2};
   const float _zdc_cut{40.};
+  const float charge_threshold = 0.4;
+  const float time_threshold = 25.;
 
   MinimumBiasInfo *_mb_info{nullptr};
-  MbdOut *_mbd_out{nullptr};
+  Zdcinfo *_zdcinfo{nullptr};
+  MbdPmtContainer *_mbd_pmt{nullptr};
+  MbdPmtHit *_tmp_pmt{nullptr};
   GlobalVertexMap *_global_vertex_map{nullptr};
-  TowerInfoContainer *_towers_zdc{nullptr};
-  TowerInfo *_tmp_tower{nullptr};
 
-  std::array<float, 17> _zdc_energy_sum{};
+  std::array<float, 2> _zdc_energy_sum{};
+  std::array<float, 2> _mbd_charge_sum{};
 };
 
 #endif

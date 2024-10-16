@@ -18,11 +18,13 @@ libcalotrigger_io_la_LIBADD = \
   -lphool \
   -lodbc++ \
   -lcalo_io \
-  -lmbd_io
+  -lmbd_io \
+  -lzdcinfo_io
 
 libcalotrigger_la_LIBADD = \
   libcalotrigger_io.la \
   -lmbd_io \
+  -lzdcinfo_io \
   -lodbc++ \
   -lglobalvertex \
   -lcalo_reco \

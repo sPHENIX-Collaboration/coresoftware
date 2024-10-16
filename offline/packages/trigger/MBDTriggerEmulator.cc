@@ -70,8 +70,6 @@ MBDTriggerEmulator::MBDTriggerEmulator(const std::string &name)
     }
   }
 
-
-
   for (int i = 0; i < 2; i++)
   {
     m_out_tsum[i] = 0;
@@ -125,6 +123,7 @@ int MBDTriggerEmulator::InitRun(PHCompositeNode *topNode)
 
   if (Download_Calibrations())
   {
+    std::cout << "here" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -298,7 +297,10 @@ int MBDTriggerEmulator::process_waveforms()
     {
       return process_raw();
     }
-
+  if (Verbosity())
+    {
+      std::cout << __LINE__ << std::endl;
+    }
   int sample_start = 1;
   int sample_end = m_nsamples;
   if (m_trig_sample > 0)
@@ -306,12 +308,21 @@ int MBDTriggerEmulator::process_waveforms()
     sample_start = m_trig_sample;
     sample_end = m_trig_sample + 1;
   }
+  if (Verbosity())
+    {
+      std::cout << __LINE__ << std::endl;
+    }
 
   // for each waveform, clauclate the peak - pedestal given the sub-delay setting
   CaloPacket *dstp[2]{nullptr};
 
   for (int ipkt = 0; ipkt < 2; ipkt++)
     {
+      if (Verbosity())
+	{
+	  std::cout << __LINE__ << std::endl;
+	}
+
       int pktid = 1001 + ipkt;  // packet id
 
       dstp[ipkt] = m_waveforms_mbd->getPacketbyId(pktid);
@@ -335,6 +346,10 @@ int MBDTriggerEmulator::process_waveforms()
 		  int16_t maxim = dstp[ipkt]->iValue(i, ich);// > dstp[ipkt]->iValue(i+1, ich) ? dstp[ipkt]->iValue(i, ich) : dstp[ipkt]->iValue(i+1, ich));
 		  //		  maxim = (maxim > dstp[ipkt]->iValue(i+2, ich) ? maxim : dstp[ipkt]->iValue(i+2, ich));
 
+		  if (Verbosity())
+		    {
+		      std::cout << __LINE__ << std::endl;
+		    }
 
 		  int subtraction = maxim - dstp[ipkt]->iValue(((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0)), ich);
 
@@ -349,8 +364,22 @@ int MBDTriggerEmulator::process_waveforms()
 	      // save in global.
 	      m_peak_sub_ped_mbd[key] = v_peak_sub_ped;
 	    }
+	  if (Verbosity())
+	    {
+	      std::cout << __LINE__ << std::endl;
+	    }
+	  delete dstp[ipkt];
 	}
-      delete dstp[ipkt];
+
+      if (Verbosity())
+	{
+	  std::cout << __LINE__ << std::endl;
+	}
+
+    }
+  if (Verbosity())
+    {
+      std::cout << __LINE__ << std::endl;
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
