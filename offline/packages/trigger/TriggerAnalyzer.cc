@@ -20,7 +20,6 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode *topNode)
   gl1_scaledvec = gl1packet->lValue(0, "ScaledVector");
   gl1_livevec = gl1packet->lValue(0, "TriggerVector");
   gl1_bco = gl1packet->lValue(0, "BCO");
-  
 
   return 0;
 }
@@ -61,3 +60,37 @@ bool TriggerAnalyzer::checkRawTrigger(int triggerbit)
   return (((gl1_livevec >> bit) & 0x1U) == 0x1U);
 }
 
+std::string TriggerAnalyzer::getTriggerName(int triggerbit)
+{
+  return triggerruninfo->getTriggerName(triggerbit);
+}
+
+uint64_t TriggerAnalyzer::getTriggerScalers(const std::string& triggername)
+{
+  return triggerruninfo->getScalersByName(triggername);
+}
+
+uint64_t TriggerAnalyzer::getTriggerScalers(int triggerbit)
+{
+  return triggerruninfo->getScalersByBit(triggerbit);
+}
+
+uint64_t TriggerAnalyzer::getTriggerLiveScalers(const std::string& triggername)
+{
+  return triggerruninfo->getLiveScalersByName(triggername);
+}
+
+uint64_t TriggerAnalyzer::getTriggerLiveScalers(int triggerbit)
+{
+  return triggerruninfo->getLiveScalersByBit(triggerbit);
+}
+
+uint64_t TriggerAnalyzer::getTriggerRawScalers(const std::string& triggername)
+{
+  return triggerruninfo->getRawScalersByName(triggername);
+}
+
+uint64_t TriggerAnalyzer::getTriggerRawScalers(int triggerbit)
+{
+  return triggerruninfo->getRawScalersByBit(triggerbit);
+}
