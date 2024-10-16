@@ -7,7 +7,7 @@
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
-#include <ffamodules/CDBInterface.h>
+//#include <ffamodules/CDBInterface.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -500,28 +500,6 @@ int PHParameters::ReadFromDB()
   return 0;
 }
 
-int PHParameters::ReadFromCDB(const std::string &domain)
-{
-  std::string url =  CDBInterface::instance()->getUrl(domain);
-  TFile *f = TFile::Open(url.c_str());
-  if (!f)
-  {
-    std::cout << "could not open " << url
-	      << " for domain " << domain << std::endl;
-    gSystem->Exit(1);
-  }
-  PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
-  if (!myparm)
-  {
-    std::cout << "could not get PdbParameterMap from " << url << std::endl;
-    gSystem->Exit(1);
-  }
-  FillFrom(myparm);
-  delete myparm;
-  delete f;
-  return 0;
-}
-
 int PHParameters::WriteToCDBFile(const std::string &filename)
 {
   PdbParameterMap *myparm = new PdbParameterMap();
@@ -668,7 +646,17 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
 int PHParameters::ReadFromCDBFile(const std::string &url)
 {
   TFile *f = TFile::Open(url.c_str());
+  if (!f)
+  {
+    std::cout << "could not open " << url << std::endl;
+    gSystem->Exit(1);
+  }
   PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
+  if (!myparm)
+  {
+    std::cout << "could not get PdbParameterMap from " << url << std::endl;
+    gSystem->Exit(1);
+  }
   FillFrom(myparm);
   delete myparm;
   delete f;
