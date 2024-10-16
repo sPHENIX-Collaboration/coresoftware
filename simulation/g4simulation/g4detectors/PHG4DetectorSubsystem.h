@@ -86,16 +86,16 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
   int BeginRunExecuted() const { return beginrunexecuted; }
 
  private:
-  PHParameters *params = nullptr;
-  PHParametersContainer *paramscontainer = nullptr;
-  PHCompositeNode *savetopNode = nullptr;
-  bool overlapcheck = false;
-  int layer = -1;
-  int usedb = 0;
-  int beginrunexecuted = 0;
-  FILE_TYPE filetype = PHG4DetectorSubsystem::none;
-  std::string superdetector = "NONE";
-  std::string calibfiledir = "./";
+  PHParameters *params {nullptr};
+  PHParametersContainer *paramscontainer {nullptr};
+  PHCompositeNode *savetopNode {nullptr};
+  bool overlapcheck {false};
+  int layer {-1};
+  int usedb {0};
+  int beginrunexecuted {0};
+  FILE_TYPE filetype {PHG4DetectorSubsystem::none};
+  std::string superdetector {"NONE"};
+  std::string calibfiledir {"./"};
   std::string m_Domain;
 
   std::map<const std::string, double> dparams;

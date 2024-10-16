@@ -24,7 +24,7 @@ libg4trackfastsim_la_LIBADD = \
   -lphgeom \
   -lphg4hit \
   -ltrackbase_historic_io \
-  -lphparameter \
+  -lphparameter_io \
   -lglobalvertex_io
 
 pkginclude_HEADERS = \

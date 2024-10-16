@@ -2,6 +2,7 @@
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
+#include <phparameter/PHParameterUtils.h>
 
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
@@ -412,6 +413,9 @@ void PHG4DetectorSubsystem::SetAbsorberTruth(const int i)
 
 int PHG4DetectorSubsystem::ReadParamsFromCDB(const std::string &domain)
 {
-  params->ReadFromCDB(domain);
+  if (params)
+  {
+    PHParameterUtils::FillPHParametersFromCDB(*params,domain);
+  }
   return 0;
 }
