@@ -17,6 +17,7 @@ class TriggerRunInfoReco : public SubsysReco
 
  private:
   int fetchTriggerPrescales(int runnumber, TriggerRunInfo *triggerRunInfo);
+  int fetchTriggerScalers(int runnumber, TriggerRunInfo *triggerRunInfo);
 
   std::string m_dbConnectionStr;
 };
