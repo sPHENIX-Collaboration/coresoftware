@@ -391,7 +391,6 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
   int phi1 = wraptowerphi(centertoweriphi + maxtoweriphi);
   int phi2 = wraptowerphi(centertoweriphi + phishift + maxtoweriphi);
 
-
   auto gettowerenergy = [totalphibins, tower_thresh, this](int ieta, int phi) -> float
   {
     if (phi < 0)
@@ -418,14 +417,38 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
   float e3 = gettowerenergy(eta2, phi2);
   float e4 = gettowerenergy(eta2, phi1);
 
-
-
   float e1t = (e1 + e2 + e3 + e4) / totalE;
   float e2t = (e1 + e2 - e3 - e4) / totalE;
   float e3t = (e1 - e2 - e3 + e4) / totalE;
   float e4t = (e3) / totalE;
 
-
   std::vector<float> v = {e1t, e2t, e3t, e4t, deta1 + maxtowerieta, dphi1 + maxtoweriphi, deta2, dphi2, e1, e2, e3, e4, totalE};
   return v;
+}
+
+std::pair<int, int> RawClusterv1::get_lead_tower() const
+{
+  if (towermap.empty())
+  {
+    return {0, 0};  // or some indication of "no tower"
+  }
+
+  int phi_max = 0;
+  int eta_max = 0;
+  float e_max = std::numeric_limits<float>::lowest();
+
+  for (const auto& iter : towermap)
+  {
+    RawTowerDefs::keytype towerkey = iter.first;
+    float E = iter.second;
+    float eta = RawTowerDefs::decode_index1(towerkey);
+    float phi = RawTowerDefs::decode_index2(towerkey);
+    if (E > e_max)
+    {
+      phi_max = phi;
+      eta_max = eta;
+      e_max = E;
+    }
+  }
+  return {eta_max, phi_max};
 }

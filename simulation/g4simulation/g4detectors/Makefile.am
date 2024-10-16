@@ -27,7 +27,7 @@ AM_LDFLAGS = \
 
 libg4detectors_io_la_LIBADD = \
   -lphool \
-  -lphparameter
+  -lphparameter_io
 
 
 #libgmp comes in via CGAL which is now header only
