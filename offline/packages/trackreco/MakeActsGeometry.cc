@@ -602,7 +602,7 @@ void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
                    ("/ACTS/sphenix-mm-material.json");
   }
 
-  if (Verbosity() > -1)
+//  if (Verbosity() > -1) // always on with this setting
   {
     std::cout << "using Acts material file : " << materialFile
               << std::endl;

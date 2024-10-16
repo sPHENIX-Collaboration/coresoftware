@@ -237,7 +237,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
     for (auto key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
     {
-      TrkrDefs::cluskey cluster_key = *key_iter;
+      const auto& cluster_key = *key_iter;
       unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
       if (layer < _min_tpc_layer)
@@ -386,10 +386,18 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const auto tilesetid = MicromegasDefs::genHitSetKey(layer, segmentation_type, tileid);
       const auto mm_clusrange = _cluster_map->getClusters(tilesetid);
 
-      // convert to tile local coordinate and compare
+      // do nothing if cluster range is empty
+      if( mm_clusrange.first == mm_clusrange.second )
+      { continue; }
+
+      // keep track of cluster with smallest distance to local intersection
+      double drphi_min = 0;
+      double dz_min = 0;
+      TrkrDefs::cluskey ckey_min = 0;
+      bool first = true;
       for (auto clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
       {
-        TrkrDefs::cluskey ckey = clusiter->first;
+        const auto& [ckey, cluster] = *clusiter;
         if (_iteration_map)
         {
           if (_iteration_map->getIteration(ckey) > 0)
@@ -398,54 +406,86 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           }
         }
 
-        // store cluster and key
-        const auto& [key, cluster] = *clusiter;
-
         // compute residuals and store
         /* in local tile coordinate, x is along rphi, and z is along y) */
         const double drphi = local_intersection_planar.x() - cluster->getLocalX();
         const double dz = local_intersection_planar.y() - cluster->getLocalY();
-
-        // compare to cuts and add to track if matching
-        if (std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm])
+        switch( segmentation_type )
         {
-          tracklet_tpc->insert_cluster_key(key);
-
-          if (Verbosity() > 0)
+          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
-            std::cout << " Match to MM's found for seedID " << seedID << " tpcID " << tpcID << " siID " << siID << std::endl;
+            // reject if outside of strip boundary
+            if( std::abs(dz)>_z_search_win[imm] )
+            { continue; }
+
+            // keep as best if closer to projection
+            if( first || std::abs(drphi) < std::abs(drphi_min) )
+            {
+              first = false;
+              drphi_min = drphi;
+              dz_min = dz;
+              ckey_min = ckey;
+            }
+            break;
           }
 
-          // prints out a line that can be grep-ed from the output file to feed to a display macro
-          if (_test_windows)
+          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
-            // cluster rphi and z
-            const auto glob = _tGeometry->getGlobalPosition(key, cluster);
-            const double mm_clus_rphi = get_r(glob.x(), glob.y()) * std::atan2(glob.y(), glob.x());
-            const double mm_clus_z = glob.z();
+            // reject if outside of strip boundary
+            if( std::abs(drphi)>_rphi_search_win[imm] )
+            { continue; }
 
-            // projection phi and z, without correction
-            const double rphi_proj = get_r(world_intersection_planar.x(), world_intersection_planar.y()) * std::atan2(world_intersection_planar.y(), world_intersection_planar.x());
-            const double z_proj = world_intersection_planar.z();
-
-            /*
-             * Note: drphi and dz might not match the difference of the rphi and z quoted values. This is because
-             * 1/ drphi and dz are actually calculated in Tile's local reference frame, not in world coordinates
-             * 2/ drphi also includes SC distortion correction, which the world coordinates don't
-             */
-            std::cout
-                << "  Try_mms: " << (int) layer
-                << " drphi " << drphi
-                << " dz " << dz
-                << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z
-                << " rphi_proj " << rphi_proj << " z_proj " << z_proj
-                << " pt " << tracklet_tpc->get_pt()
-                << " charge " << tracklet_tpc->get_charge()
-                << std::endl;
+            // keep as best if closer to projection
+            if( first || std::abs(dz) < std::abs(dz_min) )
+            {
+              first = false;
+              drphi_min = drphi;
+              dz_min = dz;
+              ckey_min = ckey;
+            }
+            break;
           }
         }
 
+        // prints out a line that can be grep-ed from the output file to feed to a display macro
+        // compare to cuts and add to track if matching
+        if( _test_windows && std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm])
+        {
+          // cluster rphi and z
+          const auto glob = _tGeometry->getGlobalPosition(ckey, cluster);
+          const double mm_clus_rphi = get_r(glob.x(), glob.y()) * std::atan2(glob.y(), glob.x());
+          const double mm_clus_z = glob.z();
+
+          // projection phi and z, without correction
+          const double rphi_proj = get_r(world_intersection_planar.x(), world_intersection_planar.y()) * std::atan2(world_intersection_planar.y(), world_intersection_planar.x());
+          const double z_proj = world_intersection_planar.z();
+
+          /*
+           * Note: drphi and dz might not match the difference of the rphi and z quoted values. This is because
+           * 1/ drphi and dz are actually calculated in Tile's local reference frame, not in world coordinates
+           * 2/ drphi also includes SC distortion correction, which the world coordinates don't
+          */
+          std::cout
+            << "  Try_mms: " << (int) layer
+            << " drphi " << drphi
+            << " dz " << dz
+            << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z
+            << " rphi_proj " << rphi_proj << " z_proj " << z_proj
+            << " pt " << tracklet_tpc->get_pt()
+            << " charge " << tracklet_tpc->get_charge()
+            << std::endl;
+        }
       }  // end loop over clusters
+
+      // compare to cuts and add to track if matching
+      if( std::abs(drphi_min) < _rphi_search_win[imm] && std::abs(dz_min) < _z_search_win[imm])
+      {
+        tracklet_tpc->insert_cluster_key(ckey_min);
+        if (Verbosity() > 0)
+        {
+          std::cout << " Match to MM's found for seedID " << seedID << " tpcID " << tpcID << " siID " << siID << std::endl;
+        }
+      }
 
     }  // end loop over Micromegas layers
 
