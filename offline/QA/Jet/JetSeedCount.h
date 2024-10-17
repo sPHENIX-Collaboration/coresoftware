@@ -17,6 +17,8 @@
 #include "JetQADefs.h"
 
 class PHCompositeNode;
+class TH1F;
+class TH2F;
 
 class JetSeedCount : public SubsysReco
 {
@@ -82,9 +84,6 @@ class JetSeedCount : public SubsysReco
   bool m_inPPMode{false};
 
   int m_event{0};
-  int m_seed_sub{std::numeric_limits<int>::max()};
-  int m_seed_raw{std::numeric_limits<int>::max()};
-  double z_vtx{std::numeric_limits<double>::quiet_NaN()};
 
   std::string m_moduleName;
   std::string m_recoJetName;
@@ -101,23 +100,20 @@ class JetSeedCount : public SubsysReco
   bool m_doTrgSelect;
   uint32_t m_trgToSelect;
 
-  std::vector<double> m_RawEta;
-  std::vector<double> m_RawPhi;
-  std::vector<double> m_SubEta;
-  std::vector<double> m_SubPhi;
-  std::vector<int> m_centrality;
-  std::vector<int> m_centrality_diff;
+  TH1F* m_hRawSeedCount;
+  TH1F* m_hRawPt;
+  TH1F* m_hRawPt_All;
+  TH2F* m_hRawEtaVsPhi;
+  TH1F* m_hSubSeedCount;
+  TH1F* m_hSubPt;
+  TH1F* m_hSubPt_All;
+  TH2F* m_hSubEtaVsPhi;
+  TH2F* m_hRawSeedEnergyVsCent;
+  TH2F* m_hSubSeedEnergyVsCent;
+  TH1F* m_hCentMbd;
+  TH2F* m_hRawSeedVsCent;
+  TH2F* m_hSubSeedVsCent;
 
-  std::vector<int> m_raw_counts;
-  std::vector<int> m_sub_counts;
-  std::vector<double> m_rawpt;
-  std::vector<double> m_subpt;
-  std::vector<double> m_rawpt_all;
-  std::vector<double> m_subpt_all;
-  std::vector<double> m_rawenergy;
-  std::vector<double> m_subenergy;
-  std::vector<double> m_rawcent;
-  std::vector<double> m_subcent;
 };
 
 #endif  // JETSEEDCOUNT_H
