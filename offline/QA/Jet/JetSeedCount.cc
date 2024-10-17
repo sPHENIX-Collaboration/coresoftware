@@ -306,6 +306,22 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   if (m_writeToOutputFile)
   {
     PHTFileServer::get().cd(m_outputFileName);
+    m_hRawSeedCount->Write();
+    m_hRawPt->Write();
+    m_hRawPt_All->Write();
+    m_hRawEtaVsPhi->Write();
+    m_hSubSeedCount->Write();
+    m_hSubPt->Write();
+    m_hSubPt_All->Write();
+    m_hSubEtaVsPhi->Write();
+    if (!m_inPPMode)
+    {
+      m_hRawSeedEnergyVsCent->Write();
+      m_hSubSeedEnergyVsCent->Write();
+      m_hCentMbd->Write();
+      m_hRawSeedVsCent->Write();
+      m_hSubSeedVsCent->Write();
+    }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
