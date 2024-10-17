@@ -145,7 +145,7 @@ int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
     m_hCentMbd->GetYaxis()->SetTitle("Number of Entries");
     m_manager->registerHisto(m_hCentMbd);
 
-    m_hRawSeedVsCent = new TH2F(vecHistNames[10].data(), "Raw Seed Vs Centrality", 10, 0.00, 100.00, 101, -0.5, 100.5);
+    m_hRawSeedVsCent = new TH2F(vecHistNames[11].data(), "Raw Seed Vs Centrality", 10, 0.00, 100.00, 101, -0.5, 100.5);
     m_hRawSeedVsCent->GetXaxis()->SetTitle("Centrality");
     m_hRawSeedVsCent->GetYaxis()->SetTitle("Raw Seed Count");
     m_manager->registerHisto(m_hRawSeedVsCent);
