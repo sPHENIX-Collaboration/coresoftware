@@ -143,10 +143,22 @@ int EpdReco::End(PHCompositeNode * /*topNode*/) {
 }
 
 float EpdReco::GetTilePhi(int thisphi) {
+  if (thisphi < 0 || thisphi > 23)
+  {
+    std::cout << PHWHERE << " index " << thisphi
+	      << " out of range (0-23), fix your code exiting" << std::endl;
+    gSystem->Exit(1);
+  }
   return ((2 * thisphi + 1) * M_PI) / 24;
 }
 
 float EpdReco::GetTilePhi0(int thisphi0) {
+  if (thisphi0 < 0 || thisphi0 > 11)
+  {
+    std::cout << PHWHERE << " index " << thisphi0
+	      << " out of range (0-11), fix your code exiting" << std::endl;
+    gSystem->Exit(1);
+  }
   return ((2 * thisphi0 + 1) * M_PI) / 12;
 }
 
