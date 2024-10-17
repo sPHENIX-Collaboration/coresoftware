@@ -143,19 +143,11 @@ int EpdReco::End(PHCompositeNode * /*topNode*/) {
 }
 
 float EpdReco::GetTilePhi(int thisphi) {
-  static const float tilephi[24] = {
-      0.13089969, 0.39269908, 0.65449847, 0.91629786, 1.17809725, 1.43989663,
-      1.70169602, 1.96349541, 2.2252948,  2.48709418, 2.74889357, 3.01069296,
-      3.27249235, 3.53429174, 3.79609112, 4.05789051, 4.3196899,  4.58148929,
-      4.84328867, 5.10508806, 5.36688745, 5.62868684, 5.89048623, 6.15228561};
-  return tilephi[thisphi];
+  return ((2 * thisphi + 1) * M_PI) / 24;
 }
 
 float EpdReco::GetTilePhi0(int thisphi0) {
-  static const float tilephi0[12] = {
-      0.26179939, 0.78539816, 1.30899694, 1.83259571, 2.35619449, 2.87979327,
-      3.40339204, 3.92699082, 4.45058959, 4.97418837, 5.49778714, 6.02138592};
-  return tilephi0[thisphi0];
+  return ((2 * thisphi0 + 1) * M_PI) / 12;
 }
 
 float EpdReco::GetTileR(int thisr) {
