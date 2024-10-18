@@ -3,6 +3,8 @@
 #ifndef JETSEEDCOUNT_H
 #define JETSEEDCOUNT_H
 
+#include "JetQADefs.h"
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -14,11 +16,10 @@
 #include <string>
 #include <vector>
 
-#include "JetQADefs.h"
 
 class PHCompositeNode;
-class TH1F;
-class TH2F;
+class TH1;
+class TH2;
 
 class JetSeedCount : public SubsysReco
 {
@@ -97,22 +98,22 @@ class JetSeedCount : public SubsysReco
   std::pair<double, double> m_ptRange;
 
   // trigger selection
-  bool m_doTrgSelect;
-  uint32_t m_trgToSelect;
+  bool m_doTrgSelect {false};
+  uint32_t m_trgToSelect {0};
 
-  TH1F* m_hRawSeedCount;
-  TH1F* m_hRawPt;
-  TH1F* m_hRawPt_All;
-  TH2F* m_hRawEtaVsPhi;
-  TH1F* m_hSubSeedCount;
-  TH1F* m_hSubPt;
-  TH1F* m_hSubPt_All;
-  TH2F* m_hSubEtaVsPhi;
-  TH2F* m_hRawSeedEnergyVsCent;
-  TH2F* m_hSubSeedEnergyVsCent;
-  TH1F* m_hCentMbd;
-  TH2F* m_hRawSeedVsCent;
-  TH2F* m_hSubSeedVsCent;
+  TH1* m_hRawSeedCount{nullptr};
+  TH1* m_hRawPt{nullptr};
+  TH1* m_hRawPt_All{nullptr};
+  TH2* m_hRawEtaVsPhi{nullptr};
+  TH1* m_hSubSeedCount{nullptr};
+  TH1* m_hSubPt{nullptr};
+  TH1* m_hSubPt_All{nullptr};
+  TH2* m_hSubEtaVsPhi{nullptr};
+  TH2* m_hRawSeedEnergyVsCent{nullptr};
+  TH2* m_hSubSeedEnergyVsCent{nullptr};
+  TH1* m_hCentMbd{nullptr};
+  TH2* m_hRawSeedVsCent{nullptr};
+  TH2* m_hSubSeedVsCent{nullptr};
 
 };
 
