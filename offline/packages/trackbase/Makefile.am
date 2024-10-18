@@ -3,18 +3,27 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+
+if USE_ONLINE
 # list of shared libraries to produce
 lib_LTLIBRARIES = \
   libtrack_io.la
 
-if USE_ONLINE
 pkginclude_HEADERS = \
   TrkrDefs.h
 
 libtrack_io_la_SOURCES = \
   TrkrDefs.cc
 
+noinst_PROGRAMS = \
+  testexternals_track_io
+
 else
+
+# list of shared libraries to produce
+lib_LTLIBRARIES = \
+  libtrack_io.la \
+  libtrack.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -114,9 +123,7 @@ pkginclude_HEADERS = \
   TrkrHitv1.h \
   TrkrHitv2.h
 
-
 ROOTDICTS = \
-  alignmentTransformationContainer_Dict.cc \
   CMFlashClusterContainer_Dict.cc \
   CMFlashClusterContainerv1_Dict.cc \
   CMFlashCluster_Dict.cc \
@@ -186,7 +193,6 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  alignmentTransformationContainer_Dict_rdict.pcm \
   CMFlashClusterContainer_Dict_rdict.pcm \
   CMFlashClusterContainerv1_Dict_rdict.pcm \
   CMFlashCluster_Dict_rdict.pcm \
@@ -254,20 +260,27 @@ nobase_dist_pcm_DATA = \
   TrkrHitv2_Dict_rdict.pcm
 
 # sources for io library
-libtrack_io_la_SOURCES = \
-  $(ROOTDICTS) \
+libtrack_la_SOURCES = \
   ActsGeometry.cc \
   ActsSurfaceMaps.cc \
-  alignmentTransformationContainer.cc \
   AlignmentTransformation.cc \
+  alignmentTransformationContainer.cc \
   Calibrator.cc \
+  ClusterErrorPara.cc \
+  sPHENIXActsDetectorElement.cc \
+  TrackFittingAlgorithmFunctionsGsf.cc \
+  TrackFittingAlgorithmFunctionsKalman.cc \
+  TrackFitUtils.cc
+
+# sources for io library
+libtrack_io_la_SOURCES = \
+  $(ROOTDICTS) \
   CMFlashClusterContainerv1.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterv2.cc \
   CMFlashClusterv3.cc \
   CMFlashDifferenceContainerv1.cc \
   CMFlashDifferencev1.cc \
-  ClusterErrorPara.cc \
   ClusHitsVerbose.cc \
   ClusHitsVerbosev1.cc \
   InttDefs.cc \
@@ -285,14 +298,10 @@ libtrack_io_la_SOURCES = \
   RawHitSetv1.cc \
   RawHitTpc.cc \
   RawHitv1.cc \
-  sPHENIXActsDetectorElement.cc \
   TpcDefs.cc \
   TpcSeedTrackMap.cc \
   TpcSeedTrackMapv1.cc \
   TpcTpotEventInfov1.cc \
-  TrackFitUtils.cc \
-  TrackFittingAlgorithmFunctionsGsf.cc \
-  TrackFittingAlgorithmFunctionsKalman.cc \
   TrackVertexCrossingAssoc.cc \
   TrackVertexCrossingAssoc_v1.cc \
   TrkrClusterContainer.cc \
@@ -325,12 +334,22 @@ libtrack_io_la_SOURCES = \
   TrkrHitv1.cc \
   TrkrHitv2.cc
 
-libtrack_io_la_LIBADD = \
-  -lphool \
+libtrack_la_LIBADD = \
+  libtrack_io.la \
   -lActsCore \
   -lActsPluginTGeo \
-  -lffamodules \
+  -lffamodules
+
+libtrack_io_la_LIBADD = \
+  -lphool \
   -lphg4hit
+
+noinst_PROGRAMS = \
+  testexternals_track \
+  testexternals_track_io
+
+testexternals_track_SOURCES = testexternals.cc
+testexternals_track_LDADD = libtrack.la
 
 endif
 
@@ -346,8 +365,6 @@ endif
 
 BUILT_SOURCES = testexternals.cc
 
-noinst_PROGRAMS = \
-  testexternals_track_io
 
 #testexternals_track_util_SOURCES = testexternals.cc
 #testexternals_track_util_LDADD = libtrack_util.la

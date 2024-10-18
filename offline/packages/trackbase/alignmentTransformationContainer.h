@@ -11,8 +11,6 @@
 #include "ActsGeometry.h"
 #include "TrkrDefs.h"
 
-#include <phool/PHObject.h>
-
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
@@ -52,7 +50,6 @@ class alignmentTransformationContainer : public Acts::GeometryContext
   /// Map of TrkrDefs::Layer to misalignment factor
   std::map<uint8_t, double> m_misalignmentFactor;
 
-  ClassDef(alignmentTransformationContainer, 1);
 };
 
 #endif  // TRACKBASE_ALIGNMENTTRANSFORMATIONCONTAINER_H
