@@ -2,16 +2,6 @@
 
 #include <calobase/TowerInfoDefs.h>
 
-#include <phool/PHObject.h>
-
-#include <map>
-#include <utility>
-#include <tuple>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-
 float EpdGeomV1::get_r(unsigned int key) const
 {
   return tile_r[TowerInfoDefs::get_epd_rbin(key)];
@@ -55,4 +45,3 @@ void EpdGeomV1::set_phi0(unsigned int key, float f0)
 {
   tile_phi0[TowerInfoDefs::get_epd_phibin(key)] = f0;
 }
-
