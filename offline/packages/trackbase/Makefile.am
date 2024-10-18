@@ -22,8 +22,8 @@ else
 
 # list of shared libraries to produce
 lib_LTLIBRARIES = \
-  libtrack.la \
-  libtrack_io.la
+  libtrack_io.la \
+  libtrack.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
