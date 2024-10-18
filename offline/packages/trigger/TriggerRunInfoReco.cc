@@ -60,6 +60,15 @@ int TriggerRunInfoReco::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // Fetch trigger scalers and fill the TriggerRunInfo object
+  if (fetchTriggerScalers(runnumber, triggerRunInfo) != 0)
+  {
+    std::cerr << "Failed to fetch trigger prescales for run number " << runnumber << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  triggerRunInfo->identify();
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -117,6 +126,55 @@ int TriggerRunInfoReco::fetchTriggerPrescales(int runnumber, TriggerRunInfo *tri
   for (int bit = 0; bit < 64; bit++)
   {
     triggerRunInfo->setTrigger(bit, names[bit], bit, prescales[bit]);
+  }
+
+  delete resultSet;
+  delete stmt;
+  delete dbConnection;
+  return 0;
+}
+int TriggerRunInfoReco::fetchTriggerScalers(int runnumber, TriggerRunInfo *triggerRunInfo)
+{
+  odbc::Connection *dbConnection = nullptr;
+  try
+  {
+    dbConnection = odbc::DriverManager::getConnection("daq", "", "");
+  }
+  catch (odbc::SQLException &e)
+  {
+    std::cerr << "Database connection failed: " << e.getMessage() << std::endl;
+    return 1;
+  }
+
+  std::string sql = "SELECT * FROM gl1_scalers WHERE runnumber = " + std::to_string(runnumber) + ";";
+  odbc::Statement *stmt = dbConnection->createStatement();
+  odbc::ResultSet *resultSet = stmt->executeQuery(sql);
+  std::array<std::array<uint64_t, 3>, 64> scalers{}; // initialize to zero
+  if (!resultSet)
+  {
+    std::cerr << "No data found for run number " << runnumber << std::endl;
+    delete resultSet;
+    delete stmt;
+    delete dbConnection;
+    return 1;
+  }
+
+  while (resultSet->next())
+    {
+      int index = (int) resultSet->getInt("index");
+      // Iterate over the columns and fill the TriggerRunInfo object
+      scalers[index][0] = resultSet->getLong("scaled");
+      scalers[index][1] = resultSet->getLong("live");
+      scalers[index][2] = resultSet->getLong("raw");
+      
+    }
+
+  for (int i = 0; i < 64; i++)
+  {
+    for (int j = 0 ; j < 3; j++)
+      {
+	triggerRunInfo->setTriggerScalers(i, j, scalers[i][j]);
+      }
   }
 
   delete resultSet;
