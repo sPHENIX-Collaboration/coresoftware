@@ -478,7 +478,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       }  // end loop over clusters
 
       // compare to cuts and add to track if matching
-      if( std::abs(drphi_min) < _rphi_search_win[imm] && std::abs(dz_min) < _z_search_win[imm])
+      if( (!first) && ckey_min > 0 && std::abs(drphi_min) < _rphi_search_win[imm] && std::abs(dz_min) < _z_search_win[imm])
       {
         tracklet_tpc->insert_cluster_key(ckey_min);
         if (Verbosity() > 0)
