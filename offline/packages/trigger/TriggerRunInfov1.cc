@@ -1,13 +1,5 @@
 #include "TriggerRunInfov1.h"
 
-TriggerRunInfov1::TriggerRunInfov1()
-  : trigger_names{}
-  , trigger_bits{}
-  , trigger_prescales{}
-{
-
-}
-
 void TriggerRunInfov1::setTrigger(int index, const std::string& name, int bit, int prescale)
 {
   if (index >= 0 && index < 64)

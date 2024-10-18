@@ -149,9 +149,7 @@ int TriggerRunInfoReco::fetchTriggerScalers(int runnumber, TriggerRunInfo *trigg
   std::string sql = "SELECT * FROM gl1_scalers WHERE runnumber = " + std::to_string(runnumber) + ";";
   odbc::Statement *stmt = dbConnection->createStatement();
   odbc::ResultSet *resultSet = stmt->executeQuery(sql);
-  std::array<std::array<uint64_t, 3>, 64> scalers;
-  scalers.fill({});
-
+  std::array<std::array<uint64_t, 3>, 64> scalers{}; // initialize to zero
   if (!resultSet)
   {
     std::cerr << "No data found for run number " << runnumber << std::endl;
