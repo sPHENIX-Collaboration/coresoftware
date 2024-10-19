@@ -65,6 +65,8 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   int FillTpcPool();
   void Streaming(bool b = true) { m_StreamingFlag = b; }
 
+  void runMvtxTriggered(bool b = true) { m_mvtx_is_triggered = b; }
+
  private:
   struct MvtxRawHitInfo
   {
@@ -121,6 +123,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   bool m_mvtx_registered_flag{false};
   bool m_StreamingFlag{false};
   bool m_tpc_registered_flag{false};
+  bool m_mvtx_is_triggered{false};
 
   std::vector<SingleStreamingInput *> m_Gl1InputVector;
   std::vector<SingleStreamingInput *> m_InttInputVector;
