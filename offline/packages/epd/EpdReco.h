@@ -40,8 +40,8 @@ private:
   std::string m_Detector {"SEPD"};
   std::string m_TowerInfoNodeName_calib {"TOWERINFO_CALIB_SEPD"};
 
-  std::array<float,24> tilephi;
-  std::array<float,12> tilephi0;
+  std::array<float,24> tilephi{};
+  std::array<float,12> tilephi0{};
 };
 
 #endif // EPD_EPDRECO_H

@@ -191,9 +191,9 @@ void EpdReco::CreateNodes(PHCompositeNode *topNode) {
 void EpdReco::FillTilePhiArray()
 {
   size_t i = 0;
-  for (auto iter = tilephi.begin(); iter != tilephi.end(); ++iter)
+  for (float & iter : tilephi)
   {
-    *iter = ((2 * i + 1) * M_PI) / 24;
+    iter = ((2 * i + 1) * M_PI) / 24;
     i++;
   }
   return;
@@ -202,9 +202,9 @@ void EpdReco::FillTilePhiArray()
 void EpdReco::FillTilePhi0Array()
 {
   size_t i = 0;
-  for (auto iter = tilephi0.begin(); iter != tilephi0.end(); ++iter)
+  for (float & iter : tilephi0)
   {
-    *iter = ((2 * i + 1) * M_PI) / 12;
+    iter = ((2 * i + 1) * M_PI) / 12;
     i++;
   }
   return;
