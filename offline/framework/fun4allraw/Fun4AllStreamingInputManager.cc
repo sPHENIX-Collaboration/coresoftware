@@ -825,7 +825,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     }
   }
   // std::cout << "before filling m_MvtxRawHitMap size: " <<  m_MvtxRawHitMap.size() << std::endl;
-  uint64_t select_crossings = m_mvtx_bco_range;
+  uint64_t select_crossings = m_mvtx_is_triggered ? 0 : m_mvtx_bco_range;
   if (m_RefBCO == 0)
   {
     m_RefBCO = m_MvtxRawHitMap.begin()->first;
@@ -840,7 +840,6 @@ int Fun4AllStreamingInputManager::FillMvtx()
               << " to 0x" << select_crossings - m_mvtx_bco_range
               << std::dec << std::endl;
   }
-
   // m_MvtxRawHitMap.empty() does not need to be checked here, FillMvtxPool returns non zero
   // if this map is empty which is handled above
   // All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
@@ -955,44 +954,91 @@ int Fun4AllStreamingInputManager::FillMvtx()
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
   taggedPacketsFEEs.clear();
-  while (m_MvtxRawHitMap.begin()->first <= select_crossings - m_mvtx_bco_range)
-  {
-    if (Verbosity() > 2)
-    {
-      std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
-                << " ref: 0x" << select_crossings << std::dec << std::endl;
-    }
-    for (auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
-    {
-      if (Verbosity() > 1)
-      {
-        mvtxFeeIdInfo->identify();
-      }
-      mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
-      delete mvtxFeeIdInfo;
-    }
-    m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
-    mvtxEvtHeader->AddL1Trg(m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco);
 
-    for (auto mvtxhititer : m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+  if (m_mvtx_is_triggered)
+  {
+    while (select_crossings <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings + m_mvtx_bco_range) //triggered
     {
-      if (Verbosity() > 1)
+      if (Verbosity() > 2)
       {
-        mvtxhititer->identify();
+        std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
+                  << " ref: 0x" << select_crossings << std::dec << std::endl;
       }
-      mvtxcont->AddHit(mvtxhititer);
+      for (auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
+      {
+        if (Verbosity() > 1)
+        {
+          mvtxFeeIdInfo->identify();
+        }
+        mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
+        delete mvtxFeeIdInfo;
+      }
+      m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
+      mvtxEvtHeader->AddL1Trg(m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco);
+
+      for (auto mvtxhititer : m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+      {
+        if (Verbosity() > 1)
+        {
+          mvtxhititer->identify();
+        }
+        mvtxcont->AddHit(mvtxhititer);
+      }
+      for (auto iter : m_MvtxInputVector)
+      {
+        iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+      }
+      m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
+      m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
+      m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+      // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
+      if (m_MvtxRawHitMap.empty())
+      {
+        break;
+      }
     }
-    for (auto iter : m_MvtxInputVector)
+  }
+  else
+  {
+    while (m_MvtxRawHitMap.begin()->first <= select_crossings - m_mvtx_bco_range) //streamed
     {
-      iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
-    }
-    m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
-    m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
-    m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
-    // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
-    if (m_MvtxRawHitMap.empty())
-    {
-      break;
+      if (Verbosity() > 2)
+      {
+        std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
+                  << " ref: 0x" << select_crossings << std::dec << std::endl;
+      }
+      for (auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
+      {
+        if (Verbosity() > 1)
+        {
+          mvtxFeeIdInfo->identify();
+        }
+        mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
+        delete mvtxFeeIdInfo;
+      }
+      m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
+      mvtxEvtHeader->AddL1Trg(m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco);
+
+      for (auto mvtxhititer : m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+      {
+        if (Verbosity() > 1)
+        {
+          mvtxhititer->identify();
+        }
+        mvtxcont->AddHit(mvtxhititer);
+      }
+      for (auto iter : m_MvtxInputVector)
+      {
+        iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+      }
+      m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
+      m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
+      m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+      // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
+      if (m_MvtxRawHitMap.empty())
+      {
+        break;
+      }
     }
   }
 

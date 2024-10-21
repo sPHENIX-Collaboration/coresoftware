@@ -145,7 +145,7 @@ libintt_io_la_LIBADD = \
   -lphool \
   -ltrack_io \
   -ltrackbase_historic_io \
-  -lglobalvertex 
+  -lglobalvertex_io
 
 endif
 

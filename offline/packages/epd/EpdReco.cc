@@ -1,19 +1,18 @@
-
 #include "EpdReco.h"
 
-#include <epd/EPDDefs.h>
-#include <epd/EpdGeomV1.h>
+#include "EpdGeomV2.h"
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv4.h>
 #include <calobase/TowerInfoDefs.h>
 
+#include <cdbobjects/CDBTTree.h> // for CDBTTree
+
+#include <ffamodules/CDBInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h> // for SubsysReco
-
-#include <cdbobjects/CDBTTree.h> // for CDBTTree
-#include <ffamodules/CDBInterface.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -22,20 +21,19 @@
 #include <phool/PHObject.h> // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h> // for PHWHERE
-#include <phool/recoConsts.h>
 
 #include <TSystem.h>
 
 #include <array> // for array
-#include <cfloat>
-#include <cmath>
 #include <cstdlib> // for exit
 #include <iostream>
-#include <set>     // for _Rb_tree_const_iterator
-#include <utility> // for pair
-#include <vector>  // for vector
 
-EpdReco::EpdReco(const std::string &name) : SubsysReco(name) {}
+EpdReco::EpdReco(const std::string &name)
+  : SubsysReco(name)
+{
+  FillTilePhi0Array();
+  FillTilePhiArray();
+}
 
 int EpdReco::InitRun(PHCompositeNode *topNode) {
 
@@ -75,7 +73,7 @@ int EpdReco::InitRun(PHCompositeNode *topNode) {
 
   EpdGeom *epdGeom = findNode::getClass<EpdGeom>(topNode, "TOWERGEOM_EPD");
   if (!epdGeom) {
-    epdGeom = new EpdGeomV1();
+    epdGeom = new EpdGeomV2();
     PHIODataNode<PHObject> *newNode =
         new PHIODataNode<PHObject>(epdGeom, "TOWERGEOM_EPD", "PHObject");
     DetNode->addNode(newNode);
@@ -138,36 +136,24 @@ int EpdReco::process_event(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int EpdReco::End(PHCompositeNode * /*topNode*/) {
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 float EpdReco::GetTilePhi(int thisphi) {
-  static const float tilephi[24] = {
-      0.13089969, 0.39269908, 0.65449847, 0.91629786, 1.17809725, 1.43989663,
-      1.70169602, 1.96349541, 2.2252948,  2.48709418, 2.74889357, 3.01069296,
-      3.27249235, 3.53429174, 3.79609112, 4.05789051, 4.3196899,  4.58148929,
-      4.84328867, 5.10508806, 5.36688745, 5.62868684, 5.89048623, 6.15228561};
-  return tilephi[thisphi];
+  return tilephi.at(thisphi);
 }
 
 float EpdReco::GetTilePhi0(int thisphi0) {
-  static const float tilephi0[12] = {
-      0.26179939, 0.78539816, 1.30899694, 1.83259571, 2.35619449, 2.87979327,
-      3.40339204, 3.92699082, 4.45058959, 4.97418837, 5.49778714, 6.02138592};
-  return tilephi0[thisphi0];
+  return tilephi0.at(thisphi0);
 }
 
 float EpdReco::GetTileR(int thisr) {
-  static const float tileR[16] = {
+  static const std::array<float,16> tileR {
       6.8,    11.2,   15.6,   20.565, 26.095, 31.625, 37.155, 42.685,
       48.215, 53.745, 59.275, 64.805, 70.335, 75.865, 81.395, 86.925};
-  return tileR[thisr];
+  return tileR.at(thisr);
 }
 
 float EpdReco::GetTileZ(int thisz) {
-  static const float tileZ[2] = {-316.0, 316.0};
-  return tileZ[thisz];
+  static const std::array<float,2> tileZ {-316.0, 316.0};
+  return tileZ.at(thisz);
 }
 
 void EpdReco::CreateNodes(PHCompositeNode *topNode) {
@@ -199,5 +185,27 @@ void EpdReco::CreateNodes(PHCompositeNode *topNode) {
     DetNode->addNode(TowerInfoNodecalib);
   }
 
+  return;
+}
+
+void EpdReco::FillTilePhiArray()
+{
+  size_t i = 0;
+  for (float & iter : tilephi)
+  {
+    iter = ((2 * i + 1) * M_PI) / 24;
+    i++;
+  }
+  return;
+}
+
+void EpdReco::FillTilePhi0Array()
+{
+  size_t i = 0;
+  for (float & iter : tilephi0)
+  {
+    iter = ((2 * i + 1) * M_PI) / 12;
+    i++;
+  }
   return;
 }

@@ -28,12 +28,14 @@ libg4mvtx_la_LIBADD = \
 
 pkginclude_HEADERS = \
   PHG4MvtxDefs.h \
+  PHG4MvtxMisalignment.h \
   PHG4MvtxHitReco.h \
   PHG4MvtxSubsystem.h \
   PHG4EICMvtxSubsystem.h \
   PHG4MvtxDigitizer.h
 
 libg4mvtx_la_SOURCES = \
+  PHG4MvtxMisalignment.cc \
   PHG4MvtxHitReco.cc \
   PHG4MvtxDetector.cc \
   PHG4EICMvtxDetector.cc \
