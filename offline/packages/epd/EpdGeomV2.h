@@ -1,13 +1,15 @@
-#ifndef EPD_EPDGEOMV1_H
-#define EPD_EPDGEOMV1_H
+#ifndef EPD_EPDGEOMV2_H
+#define EPD_EPDGEOMV2_H
 
 #include "EpdGeom.h"
 
-class EpdGeomV1 : public EpdGeom {
+#include <array>
+
+class EpdGeomV2 : public EpdGeom {
 
 public:
-  EpdGeomV1() = default;
-  ~EpdGeomV1() override = default;
+  EpdGeomV2() = default;
+  ~EpdGeomV2() override = default;
   
   float get_r(unsigned int key) const override;
   float get_z(unsigned int key) const override;
@@ -20,13 +22,13 @@ public:
 
 private:
   
-  float tile_r[16] = {};
-  float tile_z[2] = {};
-  float tile_phi[24] = {};
-  float tile_phi0[12] = {};
+  std::array<float,16> tile_r {};
+  std::array<float,2> tile_z {};
+  std::array<float,24> tile_phi {};
+  std::array<float,12> tile_phi0 {};
 
-  ClassDefOverride(EpdGeomV1, 1)
+  ClassDefOverride(EpdGeomV2, 1)
 
 };
 
-#endif // EPD_EPDGEOMV1_H
+#endif // EPD_EPDGEOMV2_H

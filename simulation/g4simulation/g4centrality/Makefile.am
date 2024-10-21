@@ -16,7 +16,7 @@ libg4centrality_la_LIBADD = \
   -lcentrality_io \
   -lfun4all \
   -lphg4hit \
-  -lphparameter
+  -lphparameter_io
 
 pkginclude_HEADERS = \
   PHG4CentralityReco.h
