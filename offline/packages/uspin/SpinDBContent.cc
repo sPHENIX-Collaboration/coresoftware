@@ -42,7 +42,10 @@ void SpinDBContent::Initialize()
   tc_y_yellow = (float) ERROR_VALUE;
   tc_y_yellowerr = (float) ERROR_VALUE;
 
-  return;
+  cross_angle = (float) ERROR_VALUE;
+  cross_angle_std = (float) ERROR_VALUE;
+  cross_angle_min = (float) ERROR_VALUE;
+  cross_angle_max = (float) ERROR_VALUE;
 }
 
 /////////////////////////////////////////////////////////////////

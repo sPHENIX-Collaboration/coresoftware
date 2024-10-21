@@ -32,6 +32,10 @@
 // tc_x_yellowerr    : Error of tc_x_yellow
 // tc_y_yellow       : Transverse component, vertical direction, yellow beam
 // tc_y_yellowerr    : Error of tc_y_yellow
+// cross_angle       : Average relative crossing angle between blue and yellow beams in mrad for run. Sign is dictated by CAD convention, can be + or -
+// cross_angle_std   : Standard deviation of relative crossing angle in mrad
+// cross_angle_min   : Minimum value of relative crossing angle in mrad
+// cross_angle_max   : Maximum value of relative crossing angle in mrad
 
 ////////////////////////////////////////////////////////////////
 
@@ -84,6 +88,11 @@ class SpinDBContent
   void GetTransCompYellowY(float &value, float &error);
   void GetTransCompYellowY(double &value, double &error);
 
+  float GetCrossAngle() { return cross_angle; }
+  float GetCrossAngleStd() { return cross_angle_std; }
+  float GetCrossAngleMin() { return cross_angle_min; }
+  float GetCrossAngleMax() { return cross_angle_max; }
+
   void SetRunNumber(int run)
   {
     runnum = run;
@@ -125,6 +134,11 @@ class SpinDBContent
   void SetTransCompYellowX(float value, float error);
   void SetTransCompYellowY(float value, float error);
 
+  void SetCrossAngle(float value) { cross_angle = value; }
+  void SetCrossAngleStd(float value) { cross_angle_std = value; }
+  void SetCrossAngleMin(float value) { cross_angle_min = value; }
+  void SetCrossAngleMax(float value) { cross_angle_max = value; }
+
  private:
   static const int NCROSS;
   static const int ERROR_VALUE;
@@ -154,6 +168,10 @@ class SpinDBContent
   float tc_x_yellowerr;
   float tc_y_yellow;
   float tc_y_yellowerr;
+  float cross_angle;
+  float cross_angle_std;
+  float cross_angle_min;
+  float cross_angle_max;
 };
 
 #endif /* USPIN_SPINDBCONTENT_H */
