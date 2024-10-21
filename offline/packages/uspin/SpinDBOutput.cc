@@ -482,7 +482,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
   spin_cont.SetTransCompYellowX(rs->getFloat("transversxyellow"), rs->getFloat("transversxyellowerr"));
   spin_cont.SetTransCompYellowY(rs->getFloat("transversyyellow"), rs->getFloat("transversyyellowerr"));
 
-  spin_cont.SetCrossAngle(rs->getFloat("crossangle"));
+  spin_cont.SetCrossAngle(rs->getFloat("crossingangle"));
   spin_cont.SetCrossAngleStd(rs->getFloat("crossanglestd"));
   spin_cont.SetCrossAngleMin(rs->getFloat("crossanglemin"));
   spin_cont.SetCrossAngleMax(rs->getFloat("crossanglemax"));
