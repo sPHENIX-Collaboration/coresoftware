@@ -32,6 +32,10 @@
 // tc_x_yellowerr    : Error of tc_x_yellow
 // tc_y_yellow       : Transverse component, vertical direction, yellow beam
 // tc_y_yellowerr    : Error of tc_y_yellow
+// cross_angle       : Average relative crossing angle between blue and yellow beams in mrad for run. Sign is dictated by CAD convention, can be + or -
+// cross_angle_std   : Standard deviation of relative crossing angle in mrad
+// cross_angle_min   : Minimum value of relative crossing angle in mrad
+// cross_angle_max   : Maximum value of relative crossing angle in mrad
 
 ////////////////////////////////////////////////////////////////
 
