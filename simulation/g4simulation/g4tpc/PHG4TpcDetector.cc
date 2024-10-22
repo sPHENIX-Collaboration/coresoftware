@@ -10,12 +10,17 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
+#include <cdbobjects/CDBTTree.h>
+
+#include <ffamodules/CDBInterface.h>
+
+#include <phparameter/PHParameters.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
-#include <phparameter/PHParameters.h>
 
 #include <TSystem.h>
 
@@ -28,7 +33,6 @@
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <algorithm>  // for max, copy
 #include <cassert>
@@ -36,10 +40,10 @@
 #include <cstdlib>   // for exit
 #include <iostream>  // for basic_ostream::operator<<
 #include <map>       // for map
-#include <sstream>
+#include <memory>
+#include <numeric>   // Include the numeric header for the iota function
 
 class G4VSolid;
-class PHCompositeNode;
 
 //_______________________________________________________________
 PHG4TpcDetector::PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
@@ -511,6 +515,7 @@ void PHG4TpcDetector ::CreateCompositeMaterial(
 //_______________________________________________________________
 void PHG4TpcDetector::add_geometry_node()
 {
+  std::unique_ptr<CDBTTree> cdbttree;
   // create PHG4TpcCylinderGeomContainer and put on node tree
   const std::string geonode_name = "CYLINDERCELLGEOM_SVTX";
   auto geonode = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode(), geonode_name);
@@ -521,6 +526,19 @@ void PHG4TpcDetector::add_geometry_node()
     auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
     auto newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
     runNode->addNode(newNode);
+  }
+
+  std::string calibdir = CDBInterface::instance()->getUrl("TPC_FEE_CHANNEL_MAP");
+  if (! calibdir.empty())
+  {
+    // use generic CDBTree to load
+    cdbttree = std::unique_ptr<CDBTTree>(new CDBTTree(calibdir));
+    cdbttree->LoadCalibrations();
+  }
+  else
+  {
+    std::cout << "PHG4TpcPadPlaneReadout::InitRun No calibration file found" << std::endl;
+    exit(1);
   }
 
   const std::array<int, 3> NTpcLayers =
@@ -566,20 +584,57 @@ void PHG4TpcDetector::add_geometry_node()
   std::cout << PHWHERE << "MaxT " << MaxT << " TBinWidth " << TBinWidth << " extended readout time "
             << extended_readout_time << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
 
-  const std::array<double, 3> SectorPhi =
-      {{m_Params->get_double_param("tpc_sector_phi_inner"),
-        m_Params->get_double_param("tpc_sector_phi_mid"),
-        m_Params->get_double_param("tpc_sector_phi_outer")}};
-
   const std::array<int, 3> NPhiBins =
       {{m_Params->get_int_param("ntpc_phibins_inner"),
         m_Params->get_int_param("ntpc_phibins_mid"),
         m_Params->get_int_param("ntpc_phibins_outer")}};
 
-  const std::array<double, 3> PhiBinWidth =
-      {{SectorPhi[0] * 12 / (double) NPhiBins[0],
-        SectorPhi[1] * 12 / (double) NPhiBins[1],
-        SectorPhi[2] * 12 / (double) NPhiBins[2]}};
+  constexpr int NLayers{16 * 3};
+  std::array<std::vector<double>, NLayers> pad_phi;
+  std::array<std::vector<int>, NLayers> pad_num;
+  int Nfee = 26;
+  int Nch = 256;
+  for (int f = 0; f < Nfee; f++)
+  {
+    for (int ch = 0; ch < Nch; ch++)
+    {
+      unsigned int key = 256 * (f) + ch;
+      std::string varname = "layer";
+      int l = cdbttree->GetIntValue(key, varname);
+      if (l > 6)
+      {
+        int v_layer = l - 7;
+        varname = "phi";  // + to_string(key);
+        pad_phi[v_layer].push_back(cdbttree->GetDoubleValue(key, varname));
+        varname = "pad";  // + to_string(key);
+        pad_num[v_layer].push_back(cdbttree->GetIntValue(key, varname));
+      }
+    }
+  }
+
+  // Sorting phi wrt pad number
+  for (size_t layer = 0; layer < NLayers; ++layer)
+  {
+    // Create a vector of indices
+    std::vector<size_t> indices(pad_num[layer].size());
+    std::iota(indices.begin(), indices.end(), 0);  // Fill with 0, 1, 2, ..., n-1
+    // Define a custom comparator based on the values in the pad vector
+    auto comparator = [&](size_t i, size_t j)
+    {
+      return pad_num[layer][i] < pad_num[layer][j];
+    };
+    // Sort the indices vector based on the values in the pad vector
+    std::sort(indices.begin(), indices.end(), comparator);
+    // Rearrange phi vector according to the sorted indices
+    std::vector<double> sorted_phi(pad_phi[layer].size());
+    for (size_t i = 0; i < pad_num[layer].size(); ++i)
+    {
+      sorted_phi[i] = pad_phi[layer][indices[i]];
+    }
+
+    // Replace the original phi vector with the sorted one
+    pad_phi[layer] = sorted_phi;
+  }
 
   // should move to a common file
   static constexpr int NSides = 2;
@@ -590,15 +645,18 @@ void PHG4TpcDetector::add_geometry_node()
   std::array<std::vector<double>, NSides> sector_min_Phi;
   std::array<std::vector<double>, NSides> sector_max_Phi;
 
-  for (int iregion = 0; iregion < 3; ++iregion)
+  // this initializes the array to 0, caveat: this doesn't work with any other value
+  std::array<double, 3> phi_bin_width_cdb{0};
+  // the unsigned long avoids a clang-tidy warning about a mismatched type for an array index
+  for (unsigned long iregion = 0; iregion < 3; ++iregion)
   {
-    // int zside = 0;
     for (int zside = 0; zside < 2; zside++)
     {
       sector_R_bias[zside].clear();
       sector_Phi_bias[zside].clear();
       sector_min_Phi[zside].clear();
       sector_max_Phi[zside].clear();
+
       // int eff_layer = 0;
       for (int isector = 0; isector < NSectors; ++isector)  // 12 sectors
       {
@@ -607,9 +665,14 @@ void PHG4TpcDetector::add_geometry_node()
         sector_R_bias[zside].push_back(0);
         sector_Phi_bias[zside].push_back(0);
 
-        double sec_gap = (2 * M_PI - SectorPhi[iregion] * 12) / 12;
-        double sec_max_phi = M_PI - SectorPhi[iregion] / 2 - sec_gap - 2 * M_PI / 12 * isector;  // * (isector+1) ;
-        double sec_min_phi = sec_max_phi - SectorPhi[iregion];
+        phi_bin_width_cdb[iregion] = std::abs(pad_phi[iregion * 16][4] - pad_phi[iregion * 16][3]);
+        double sec_max_phi = pad_phi[iregion * 16][NPhiBins[iregion] / 12 - 1] + phi_bin_width_cdb[iregion] / 2.;
+        double sec_min_phi = pad_phi[iregion * 16][0] - phi_bin_width_cdb[iregion] / 2.;
+        double sec_phi_cdb = sec_max_phi - sec_min_phi;
+        double sec_gap = (2 * M_PI - sec_phi_cdb * 12) / 12;
+        sec_max_phi = M_PI - sec_phi_cdb / 2 - sec_gap - 2 * M_PI / 12 * isector;  // * (isector+1) ;
+        sec_min_phi = sec_max_phi - sec_phi_cdb;
+
         sector_min_Phi[zside].push_back(sec_min_phi);
         sector_max_Phi[zside].push_back(sec_max_phi);
       }  // isector
@@ -643,7 +706,7 @@ void PHG4TpcDetector::add_geometry_node()
                   << " radius " << MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]
                   << " thickness " << Thickness[iregion]
                   << " NTBins " << NTBins << " tmin " << MinT << " tstep " << TBinWidth
-                  << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << std::endl;
+                  << " phibins " << NPhiBins[iregion] << " phistep " << phi_bin_width_cdb[iregion] << std::endl;
       }
 
       auto layerseggeo = new PHG4TpcCylinderGeom;
@@ -668,7 +731,7 @@ void PHG4TpcDetector::add_geometry_node()
       layerseggeo->set_zmin(MinT);
       layerseggeo->set_zstep(TBinWidth);
       layerseggeo->set_phibins(NPhiBins[iregion]);
-      layerseggeo->set_phistep(PhiBinWidth[iregion]);
+      layerseggeo->set_phistep(phi_bin_width_cdb[iregion]);
       layerseggeo->set_r_bias(sector_R_bias);
       layerseggeo->set_phi_bias(sector_Phi_bias);
       layerseggeo->set_sector_min_phi(sector_min_Phi);
