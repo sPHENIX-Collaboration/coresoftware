@@ -320,6 +320,11 @@ int SpinDBInput::InitializeRunRow(SpinDBContent spin_cont)
   InitializeValue(runnum, qa_level, "transversyyellow");
   InitializeValue(runnum, qa_level, "transversyyellowerr");
 
+  InitializeValue(runnum, qa_level, "crossangle");
+  InitializeValue(runnum, qa_level, "crossanglestd");
+  InitializeValue(runnum, qa_level, "crossanglemin");
+  InitializeValue(runnum, qa_level, "crossanglemax");
+
   return (1);
 }
 
@@ -533,6 +538,28 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
   if (tc_yy_err != ERROR_VALUE)
   {
     UpdateValue(runnum, qa_level, "transversyyellowerr", tc_yy_err);
+  }
+
+  float cross_angle = spin_cont.GetCrossAngle();
+  float cross_angle_std = spin_cont.GetCrossAngleStd();
+  float cross_angle_min = spin_cont.GetCrossAngleMin();
+  float cross_angle_max = spin_cont.GetCrossAngleMax();
+
+  if (cross_angle != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "crossangle", cross_angle);
+  }
+  if (cross_angle_std != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "crossanglestd", cross_angle_std);
+  }
+  if (cross_angle_min != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "crossanglemin", cross_angle_min);
+  }
+  if (cross_angle_max != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "crossanglemax", cross_angle_max);
   }
 
   return (1);
