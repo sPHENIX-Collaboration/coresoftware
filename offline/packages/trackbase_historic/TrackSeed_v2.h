@@ -27,14 +27,23 @@ class TrackSeed_v2 : public TrackSeed
   void CopyFrom(TrackSeed* seed) override { CopyFrom(*seed); }
   PHObject* CloneMe() const override { return new TrackSeed_v2(*this); }
 
+
+  ///@name accessors
+  //@{
+  /*
   // method to return phi from a given set of global positions
   float get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;   // returns phi calculated from supplied cluster positions
+  */
 
   // methods that return values based on track fit parameters
   float get_pz() const override;
+
+  /*
   float get_x() const override;
   float get_y() const override;
   float get_z() const override;
+  */
+
   float get_eta() const override;
   float get_theta() const override;
   float get_pt() const override;
@@ -50,7 +59,23 @@ class TrackSeed_v2 : public TrackSeed
   float get_slope() const override { return m_slope; }
   float get_Z0() const override { return m_Z0; }
   float get_phi() const override  { return m_phi; }  // returns the stored phi
-  short int get_crossing() const override { return m_crossing; }  
+  short int get_crossing() const override { return m_crossing; }
+
+  bool empty_cluster_keys() const override { return m_cluster_keys.empty(); }
+  size_t size_cluster_keys() const override { return m_cluster_keys.size(); }
+
+  ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const override { return m_cluster_keys.find(clusterid); }
+  ConstClusterKeyIter begin_cluster_keys() const override { return m_cluster_keys.begin(); }
+  ConstClusterKeyIter end_cluster_keys() const override { return m_cluster_keys.end(); }
+  ClusterKeyIter find_cluster_keys(unsigned int clusterid) override { return m_cluster_keys.find(clusterid); }
+  ClusterKeyIter begin_cluster_keys() override { return m_cluster_keys.begin(); }
+  ClusterKeyIter end_cluster_keys() override { return m_cluster_keys.end(); }
+
+  //@}
+
+  ///@modifiers
+  //@{
+
   void set_crossing(const short int crossing) override { m_crossing = crossing; }
   void set_qOverR(const float qOverR) override { m_qOverR = qOverR; }
   void set_X0(const float X0) override { m_X0 = X0; }
@@ -60,31 +85,10 @@ class TrackSeed_v2 : public TrackSeed
   void set_phi(const float phi) override { m_phi = phi; }
 
   void clear_cluster_keys() override { m_cluster_keys.clear(); }
-  bool empty_cluster_keys() const override { return m_cluster_keys.empty(); }
-  size_t size_cluster_keys() const override { return m_cluster_keys.size(); }
-
   void insert_cluster_key(TrkrDefs::cluskey clusterid) override { m_cluster_keys.insert(clusterid); }
   size_t erase_cluster_key(TrkrDefs::cluskey clusterid) override { return m_cluster_keys.erase(clusterid); }
-  ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const override { return m_cluster_keys.find(clusterid); }
-  ConstClusterKeyIter begin_cluster_keys() const override { return m_cluster_keys.begin(); }
-  ConstClusterKeyIter end_cluster_keys() const override { return m_cluster_keys.end(); }
-  ClusterKeyIter find_cluster_keys(unsigned int clusterid) override { return m_cluster_keys.find(clusterid); }
-  ClusterKeyIter begin_cluster_keys() override { return m_cluster_keys.begin(); }
-  ClusterKeyIter end_cluster_keys() override { return m_cluster_keys.end(); }
 
-  /// Updates R, X0, Y0
-  void circleFitByTaubin(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
-                         uint8_t startLayer = 0,
-                         uint8_t endLayer = 58) override;
-
-  /// Updates r-z slope and intercept B
-  void lineFit(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
-               uint8_t startLayer = 0,
-               uint8_t endLayer = 58) override;
-
- protected:
-  /// Returns transverse PCA to (0,0)
-  std::pair<float, float> findRoot() const;
+  //@}
 
  private:
   ClusterKeySet m_cluster_keys;
