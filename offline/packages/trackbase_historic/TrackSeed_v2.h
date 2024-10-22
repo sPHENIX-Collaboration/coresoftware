@@ -12,13 +12,12 @@
 class TrackSeed_v2 : public TrackSeed
 {
  public:
-  TrackSeed_v2();
+  TrackSeed_v2() = default;
 
   /// Copy constructors
   TrackSeed_v2(const TrackSeed&);
   TrackSeed_v2(const TrackSeed_v2&);
   TrackSeed_v2& operator=(const TrackSeed_v2& seed);
-  ~TrackSeed_v2() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override { *this = TrackSeed_v2(); }
@@ -34,30 +33,23 @@ class TrackSeed_v2 : public TrackSeed
   // method to return phi from a given set of global positions
   float get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;   // returns phi calculated from supplied cluster positions
   */
-
-  // methods that return values based on track fit parameters
+  float get_px() const override;
+  float get_py() const override;
   float get_pz() const override;
-
-  /*
-  float get_x() const override;
-  float get_y() const override;
-  float get_z() const override;
-  */
+  float get_p() const override;
+  float get_pt() const override;
 
   float get_eta() const override;
   float get_theta() const override;
-  float get_pt() const override;
-  float get_p() const override;
-  float get_px() const override;
-  float get_py() const override;
+
 
   //methods that return member variables
   int get_charge() const override;
   float get_qOverR() const override { return m_qOverR; }
   float get_X0() const override { return m_X0; }
   float get_Y0() const override { return m_Y0; }
-  float get_slope() const override { return m_slope; }
   float get_Z0() const override { return m_Z0; }
+  float get_slope() const override { return m_slope; }
   float get_phi() const override  { return m_phi; }  // returns the stored phi
   short int get_crossing() const override { return m_crossing; }
 
@@ -80,8 +72,8 @@ class TrackSeed_v2 : public TrackSeed
   void set_qOverR(const float qOverR) override { m_qOverR = qOverR; }
   void set_X0(const float X0) override { m_X0 = X0; }
   void set_Y0(const float Y0) override { m_Y0 = Y0; }
-  void set_slope(const float slope) override { m_slope = slope; }
   void set_Z0(const float Z0) override { m_Z0 = Z0; }
+  void set_slope(const float slope) override { m_slope = slope; }
   void set_phi(const float phi) override { m_phi = phi; }
 
   void clear_cluster_keys() override { m_cluster_keys.clear(); }

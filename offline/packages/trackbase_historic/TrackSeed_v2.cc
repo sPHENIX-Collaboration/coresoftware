@@ -16,8 +16,6 @@ namespace
   }
 }  // namespace
 
-TrackSeed_v2::TrackSeed_v2() = default;
-
 TrackSeed_v2::TrackSeed_v2(const TrackSeed& seed)
 {
   TrackSeed_v2::CopyFrom(seed);
@@ -40,8 +38,6 @@ TrackSeed_v2& TrackSeed_v2::operator=(const TrackSeed_v2& seed)
   }
   return *this;
 }
-
-TrackSeed_v2::~TrackSeed_v2() = default;
 
 void TrackSeed_v2::CopyFrom(const TrackSeed& seed)
 {
@@ -71,8 +67,6 @@ void TrackSeed_v2::identify(std::ostream& os) const
   os << "(pt,pz) = (" << get_pt()
      << ", " << get_pz() << ")" << std::endl;
   os << " phi " << m_phi << " eta " << get_eta() << std::endl;
-  os << "(x,y,z) = (" << get_x() << ", " << get_y() << ", " << get_z()
-     << ")" << std::endl;
   os << "(X0,Y0,Z0) = (" << m_X0 << ", " << m_Y0 << ", " << m_Z0
      << ")" << std::endl;
   os << "R and slope " << fabs(1. / m_qOverR) << ", " << m_slope << std::endl;

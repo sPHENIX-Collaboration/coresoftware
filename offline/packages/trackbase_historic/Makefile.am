@@ -217,7 +217,6 @@ AM_LDFLAGS = \
 # dependency on libtrack.so breaks the io only library concept
 libtrackbase_historic_io_la_LIBADD = \
   -lphool \
-  -ltrack \
   -ltrack_io
 
 libtrackbase_historic_la_LIBADD = \
