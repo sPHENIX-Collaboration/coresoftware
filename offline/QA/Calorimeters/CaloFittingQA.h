@@ -56,7 +56,6 @@ class CaloFittingQA : public SubsysReco
   TProfile2D* h_ohcal_etaphi_ZScrosscalib{nullptr};
 
   int _eventcounter{0};
-  int _range{1};
 
   bool m_debug{false};
   bool m_UseOfflinePacketFlag{true};
