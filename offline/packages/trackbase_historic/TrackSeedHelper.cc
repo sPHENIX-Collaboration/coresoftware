@@ -4,9 +4,9 @@
  */
 
 #include "TrackSeedHelper.h"
+#include "TrackSeed.h"
 
 #include <trackbase/TrackFitUtils.h>
-#include <trackbase_historic/TrackSeed.h>
 
 namespace
 {
@@ -180,6 +180,13 @@ float TrackSeedHelper::get_y(TrackSeed const* seed)
 float TrackSeedHelper::get_z(TrackSeed const* seed)
 {
   return seed->get_Z0();
+}
+
+//____________________________________________________________________________________
+Acts::Vector3 TrackSeedHelper::get_xyz(TrackSeed const* seed)
+{
+  const auto [x,y] = findRoot(seed);
+  return {x,y,seed->get_Z0()};
 }
 
 //____________________________________________________________________________________
