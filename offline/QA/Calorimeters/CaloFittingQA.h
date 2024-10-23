@@ -22,7 +22,7 @@ class CaloFittingQA : public SubsysReco
   CaloFittingQA(const std::string& name = "CaloFittingQA");  // const std::string &filename = "testQA.root"); //int nevents = 100);
 
   //! destructor
-  ~CaloFittingQA() override;
+  ~CaloFittingQA() override = default;
 
   //! full initialization
   int Init(PHCompositeNode*) override;

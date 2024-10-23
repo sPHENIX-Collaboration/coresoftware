@@ -59,10 +59,6 @@ CaloFittingQA::CaloFittingQA(const std::string& name)
 {
 }
 
-CaloFittingQA::~CaloFittingQA()
-{
-}
-
 int CaloFittingQA::Init(PHCompositeNode* /*unused*/)
 {
   if (m_debug)
