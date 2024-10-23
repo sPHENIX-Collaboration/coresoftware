@@ -13,6 +13,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <cmath>
 
@@ -238,6 +239,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
     //! only keep long seeds
     if ((tpcClusKeys.size() + newClusKeys.size() > 25))
     {
+      // TODO: should include distortion corrections
       std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
       std::map<TrkrDefs::cluskey, Acts::Vector3> silposmap, tpcposmap;
       for (auto& key : tpcClusKeys)
@@ -268,10 +270,12 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
         }
       }
 
-      si_seed->circleFitByTaubin(silposmap, 0, 8);
-      si_seed->lineFit(silposmap);
-      tpcseed->circleFitByTaubin(tpcposmap, 7, 57);
-      tpcseed->lineFit(tpcposmap, 7, 57);
+      TrackSeedHelper::circleFitByTaubin(si_seed.get(), silposmap, 0, 8);
+      TrackSeedHelper::lineFit(si_seed.get(), silposmap);
+
+      TrackSeedHelper::circleFitByTaubin(tpcseed, tpcposmap, 7, 57);
+      TrackSeedHelper::lineFit(tpcseed, tpcposmap, 7, 57);
+
       TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
       std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
       int tpcind = _tpc_seeds->find(tpcseed);

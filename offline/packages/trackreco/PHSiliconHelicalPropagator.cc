@@ -3,6 +3,7 @@
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -171,7 +172,7 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
 
     if (m_zeroField)
     {
-     
+
      auto xyparams = TrackFitUtils::line_fit(xypoints);
      nSiClusters = TrackFitUtils::addClustersOnLine(xyparams,
                                                     true,
@@ -237,7 +238,7 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
             }
           }
 
-         
+
           if (sgn(global.x()) == sgn(tpcExGlobal.x()) && sgn(global.y()) == sgn(tpcExGlobal.y()))
           {
             si_seed->insert_cluster_key(clusterkey);
@@ -255,8 +256,8 @@ int PHSiliconHelicalPropagator::process_event(PHCompositeNode* /*topNode*/)
         si_seed->set_crossing(most_common_crossing);
       }
       */
-      si_seed->circleFitByTaubin(positionMap, 0, 8);
-      si_seed->lineFit(positionMap, 0, 8);
+      TrackSeedHelper::circleFitByTaubin(si_seed.get(), positionMap, 0, 8);
+      TrackSeedHelper::lineFit(si_seed.get(), positionMap, 0, 8);
       si_seed->set_crossing(0);
       TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
 
