@@ -6,6 +6,13 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@lanl.gov>
  */
 
+#include <trackbase/TrkrDefs.h>
+
+#include <Acts/Definitions/Algebra.hpp>
+
+#include <cstdint>
+#include <map>
+
 class TrackSeed;
 
 class TrackSeedHelper

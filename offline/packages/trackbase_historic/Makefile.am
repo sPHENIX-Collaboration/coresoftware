@@ -30,6 +30,7 @@ pkginclude_HEADERS = \
   TrackSeed_FastSim_v2.h \
   TrackSeedContainer.h \
   TrackSeedContainer_v1.h \
+  TrackSeedHelper.h \
   PHG4ParticleSvtxMap.h \
   PHG4ParticleSvtxMap_v1.h \
   SvtxPHG4ParticleMap.h \
@@ -161,7 +162,8 @@ nobase_dist_pcm_DATA = \
   TrackStateInfo_v1_Dict_rdict.pcm
 
 libtrackbase_historic_la_SOURCES = \
-  ActsTransformations.cc
+  ActsTransformations.cc \
+  TrackSeedHelper.cc
 
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \

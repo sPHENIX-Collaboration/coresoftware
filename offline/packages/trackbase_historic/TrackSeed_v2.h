@@ -29,10 +29,6 @@ class TrackSeed_v2 : public TrackSeed
 
   ///@name accessors
   //@{
-  /*
-  // method to return phi from a given set of global positions
-  float get_phi(const std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;   // returns phi calculated from supplied cluster positions
-  */
   float get_px() const override;
   float get_py() const override;
   float get_pz() const override;

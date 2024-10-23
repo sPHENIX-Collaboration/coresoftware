@@ -5,6 +5,7 @@
 
 #include "TrackSeedHelper.h"
 
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase_historic/TrackSeed.h>
 
 namespace
@@ -72,8 +73,9 @@ void TrackSeedHelper::circleFitByTaubin(
   uint8_t endLayer)
 {
   TrackFitUtils::position_vector_t positions_2d;
-  for (const auto& key : m_cluster_keys)
+  for( auto key_iter = seed->begin_cluster_keys(); key_iter != seed->end_cluster_keys(); ++key_iter )
   {
+    const auto& key(*key_iter);
     const auto layer = TrkrDefs::getLayer(key);
     if (layer < startLayer or layer > endLayer)
     {
@@ -95,7 +97,7 @@ void TrackSeedHelper::circleFitByTaubin(
 
   // do the fit
   const auto [r, x0, y0] = TrackFitUtils::circle_fit_by_taubin(positions_2d);
-  const float qOverR = 1./r;
+  float qOverR = 1./r;
 
   /// Set the charge
   const auto& firstpos = positions_2d.at(0);
@@ -125,15 +127,16 @@ void TrackSeedHelper::circleFitByTaubin(
 }
 
 //____________________________________________________________________________________
-void TrackSeedHelper1::lineFit(
+void TrackSeedHelper::lineFit(
   TrackSeed* seed,
   const TrackSeedHelper::position_map_t& positions,
   uint8_t startLayer,
   uint8_t endLayer)
 {
   TrackFitUtils::position_vector_t positions_2d;
-  for (const auto& key : m_cluster_keys)
+  for( auto key_iter = seed->begin_cluster_keys(); key_iter != seed->end_cluster_keys(); ++key_iter )
   {
+    const auto& key(*key_iter);
     const auto layer = TrkrDefs::getLayer(key);
     if (layer < startLayer or layer > endLayer)
     {
@@ -168,13 +171,13 @@ float TrackSeedHelper::get_x(TrackSeed const* seed)
 }
 
 //____________________________________________________________________________________
-float TrackSeedHelper::get_y(TrackSeed const* seed) const
+float TrackSeedHelper::get_y(TrackSeed const* seed)
 {
-  return findRoot().second;
+  return findRoot(seed).second;
 }
 
 //____________________________________________________________________________________
-float TrackSeedHelper::get_z(TrackSeed const* seed) const
+float TrackSeedHelper::get_z(TrackSeed const* seed)
 {
   return seed->get_Z0();
 }
@@ -196,7 +199,7 @@ std::pair<float, float> TrackSeedHelper::findRoot(TrackSeed const* seed)
    */
   const auto qOverR = seed->get_qOverR();
   const auto X0 = seed->get_X0();
-  const auto Y0 = seed->geT_Y0();
+  const auto Y0 = seed->get_Y0();
 
   const float R = std::abs(1./qOverR);
   const double miny = (std::sqrt(square(X0) * square(R) * square(Y0) + square(R) * pow(Y0, 4)) + square(X0) * Y0 + pow(Y0, 3)) / (square(X0) + square(Y0));
