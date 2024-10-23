@@ -52,6 +52,7 @@ class TrackFitUtils
   /// convenient overload
   static line_fit_output_t line_fit(const std::vector<Acts::Vector3>&);
   static line_fit_output_t line_fit_xy(const std::vector<Acts::Vector3>& positions);
+  static line_fit_output_t line_fit_xz(const std::vector<Acts::Vector3>& positions);
 
   /// circle-circle intersection output. (xplus, yplus, xminus, yminus)
   using circle_circle_intersection_output_t = std::tuple<double, double, double, double>;

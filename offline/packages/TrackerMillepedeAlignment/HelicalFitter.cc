@@ -105,9 +105,9 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
   {
     // fout = new TFile("HF_ntuple.root","recreate");
     fout = new TFile(ntuple_outfilename.c_str(), "recreate");
-    ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdr:dXdrphi:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdr:dYdrphi:dYdz");
+    ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
 
-    track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdr:dXdrphi:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdr:dYdrphi:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
+    track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
   }
 
   // print grouping setup to log file:
@@ -732,8 +732,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
             (float) fitpars[0], (float) fitpars[1], (float) fitpars[2], (float) fitpars[3], (float) fitpars[4],
             (float) global(0), (float) global(1), (float) global(2),
             (float) fitpoint(0), (float) fitpoint(1), (float) fitpoint(2),
-            (float) helix_pca(0), (float) helix_pca(1), (float) helix_pca(2),
-            (float) helix_tangent(0), (float) helix_tangent(1), (float) helix_tangent(2),
+            (float) tangent.first.x(), (float) tangent.first.y(), (float) tangent.first.z(),
+            (float) tangent.second.x(), (float) tangent.second.y(), (float) tangent.second.z(),
             xloc, zloc, (float) fitpoint_local(0), (float) fitpoint_local(1),
             lcl_derivativeX[0], lcl_derivativeX[1], lcl_derivativeX[2], lcl_derivativeX[3], lcl_derivativeX[4],
             glbl_derivativeX[0], glbl_derivativeX[1], glbl_derivativeX[2], glbl_derivativeX[3], glbl_derivativeX[4], glbl_derivativeX[5],
@@ -932,7 +932,7 @@ Acts::Vector3 HelicalFitter::get_line_surface_intersection(const Surface& surf, 
   Acts::Vector3 tangent = arb_point2 - arb_point;   // direction of line
   */
 
-  auto line = get_line(fitpars);  // do not need the direction
+  auto line = get_line_zero_field(fitpars);  // do not need the direction
   auto arb_point = line.first;
   auto tangent = line.second;  
 
@@ -985,16 +985,16 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_tangent(const st
   // we need the direction of the line
   // consider a point some distance along the straight line. 
   // Consider a value of x, calculate y, calculate radius, calculate z
-  double x = 2;
+  double x = 0;
   double y = fitpars[0]*x + fitpars[1];
-  double rxy = sqrt(x*x+y*y);
-  double z = fitpars[2]*rxy + fitpars[3];
+  //  double rxy = sqrt(x*x+y*y);
+  double z = fitpars[2]*x + fitpars[3];
   Acts::Vector3 arb_point(x, y, z);
 
-  double x2 = 4;
+  double x2 = 1;
   double y2 = fitpars[0]*x2 + fitpars[1];
-  double rxy2 = sqrt(x2*x2+y2*y2);
-  double z2 = fitpars[2]*rxy2 + fitpars[3];
+  //double rxy2 = sqrt(x2*x2+y2*y2);
+  double z2 = fitpars[2]*x2 + fitpars[3];
   Acts::Vector3 arb_point2(x2, y2, z2);
 
   float arb_phi = atan2(arb_point(1), arb_point(0));
@@ -1011,18 +1011,43 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_tangent(const st
   return line;
 }
 
+
+std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_zero_field(const std::vector<float>& fitpars)
+{
+  // we need the direction of the line
+  // consider a point some distance along the straight line. 
+  // Consider a value of x, calculate y, calculate z
+  double x = 0;
+  double y = fitpars[0]*x + fitpars[1];
+  double z = fitpars[2]*x + fitpars[3];
+  Acts::Vector3 arb_point(x, y, z);
+
+  double x2 = 1;
+  double y2 = fitpars[0]*x2 + fitpars[1];
+  double z2 = fitpars[2]*x + fitpars[3];
+  Acts::Vector3 arb_point2(x2, y2, z2);
+
+  Acts::Vector3 tangent = arb_point2 - arb_point;   // direction of line
+  tangent /= tangent.norm();  
+  
+  std::pair<Acts::Vector3, Acts::Vector3> line = std::make_pair(arb_point, tangent);
+
+  return line;
+}
+
+
 std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line(const std::vector<float>& fitpars)
 {
   // we need the direction of the line
   // consider a point some distance along the straight line. 
   // Consider a value of x, calculate y, calculate radius, calculate z
-  double x = 2;
+  double x = 0.0;
   double y = fitpars[0]*x + fitpars[1];
   double rxy = sqrt(x*x+y*y);
   double z = fitpars[2]*rxy + fitpars[3];
   Acts::Vector3 arb_point(x, y, z);
 
-  double x2 = 4;
+  double x2 = 1;
   double y2 = fitpars[0]*x2 + fitpars[1];
   double rxy2 = sqrt(x2*x2+y2*y2);
   double z2 = fitpars[2]*rxy2 + fitpars[3];
@@ -1047,6 +1072,13 @@ Acts::Vector3 HelicalFitter::get_line_plane_intersection(const Acts::Vector3& PC
   float d = (sensor_center - PCA).dot(sensor_normal) / tangent.dot(sensor_normal);
   Acts::Vector3 intersection = PCA + d * tangent;
 
+  /*
+  std::cout << "    sensor center " << sensor_center(0) << "  " << sensor_center(1) << "  " << sensor_center(2) << std::endl;
+  std::cout << "      intersection " << intersection(0) << "  " << intersection(1) << "  " << intersection(2) << std::endl;
+  std::cout << "      PCA " << PCA(0) << "  " << PCA(1) << "  " << PCA(2) << std::endl;
+  std::cout << "      tangent " << tangent(0) << "  " << tangent(1) << "  " << tangent(2) << std::endl;
+  std::cout << "            d " << d << std::endl;
+  */
   return intersection;
 }
 
@@ -1571,6 +1603,7 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   Acts::Vector3 projX(0, 0, 0), projY(0, 0, 0);
   get_projectionXY(surf, tangent, projX, projY);
 
+  /*
   // translations in polar coordinates, unit vectors must be in polar coordinates
   //   -- There is an implicit assumption here that unitrphi is a length
   // unit vector in r is the normalized radial vector pointing to the surface center
@@ -1589,8 +1622,8 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   glbl_derivativeY[3] = unitr.dot(projY);
   glbl_derivativeY[4] = unitrphi.dot(projY);
   glbl_derivativeY[5] = unitz.dot(projY);
+  */
 
-  /*
   // translations in cartesian coordinates
   // Unit vectors in the global cartesian frame
   Acts::Vector3 unitx(1, 0, 0);
@@ -1604,8 +1637,6 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   glbl_derivativeY[3] = unitx.dot(projY);
   glbl_derivativeY[4] = unity.dot(projY);
   glbl_derivativeY[5] = unitz.dot(projY);
-  */
-
 
   /*
   // note: the global derivative sign should be reversed from the ATLAS paper
@@ -1623,6 +1654,7 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   Acts::Vector3 sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;  // convert to cm
   Acts::Vector3 OM = fitpoint - sensorCenter;              // this effectively reverses the sign from the ATLAS paper
 
+  /*
   glbl_derivativeX[0] = (unitr.cross(OM)).dot(projX);
   glbl_derivativeX[1] = (unitrphi.cross(OM)).dot(projX);
   glbl_derivativeX[2] = (unitz.cross(OM)).dot(projX);
@@ -1630,8 +1662,8 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   glbl_derivativeY[0] = (unitr.cross(OM)).dot(projY);
   glbl_derivativeY[1] = (unitrphi.cross(OM)).dot(projY);
   glbl_derivativeY[2] = (unitz.cross(OM)).dot(projY);
+  */
 
-  /*
   glbl_derivativeX[0] = (unitx.cross(OM)).dot(projX);
   glbl_derivativeX[1] = (unity.cross(OM)).dot(projX);
   glbl_derivativeX[2] = (unitz.cross(OM)).dot(projX);
@@ -1639,18 +1671,18 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
   glbl_derivativeY[0] = (unitx.cross(OM)).dot(projY);
   glbl_derivativeY[1] = (unity.cross(OM)).dot(projY);
   glbl_derivativeY[2] = (unitz.cross(OM)).dot(projY);
-  */
 
   if (Verbosity() > 1)
     {
       for (int ip = 0; ip < 6; ++ip)
 	{
-	  std::cout << " layer " << layer << " phi " << phi * 180/M_PI << " ip " << ip 
+	  std::cout << " layer " << layer << " ip " << ip 
 		    << "  glbl_derivativeX " << glbl_derivativeX[ip] << "  "
 		    << " glbl_derivativeY " << glbl_derivativeY[ip] << std::endl;
 	}
     }
 
+  /*
   if(Verbosity() > 2)
     {
       std::cout << "    unitr mag: " << unitr.norm() << " unitr: " << std::endl << unitr << std::endl;
@@ -1659,6 +1691,7 @@ void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 gl
       std::cout << "    projX: " << std::endl << projX << std::endl;
       std::cout << "    projY: " << std::endl << projY << std::endl;
     }
+  */
 }
 
 void HelicalFitter::getGlobalVtxDerivativesXY(SvtxTrack& track, const Acts::Vector3& event_vtx, float glbl_derivativeX[3], float glbl_derivativeY[3])

@@ -153,6 +153,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void get_dca_zero_field(SvtxTrack& track, float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, const Acts::Vector3& event_vertex);
 
   std::pair<Acts::Vector3, Acts::Vector3> get_line(const std::vector<float>& fitpars);
+  std::pair<Acts::Vector3, Acts::Vector3> get_line_zero_field(const std::vector<float>& fitpars);
   std::pair<Acts::Vector3, Acts::Vector3> get_line_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 get_line_surface_intersection(const Surface& surf, std::vector<float>& fitpars);
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, const Acts::Vector3& event_vertex);

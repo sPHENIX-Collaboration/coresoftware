@@ -39,8 +39,9 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   Acts::Vector2 pca_circle = TrackFitUtils::get_circle_point_pca(radius, x0, y0, global);
 
   // The radius of the PCA determines the z position:
-  float pca_circle_radius = pca_circle.norm();  // radius of the PCA of the circle to the point
-  float pca_z = pca_circle_radius * zslope + z0;
+  //  float pca_circle_radius = pca_circle.norm();  // radius of the PCA of the circle to the point
+  //float pca_z = pca_circle_radius * zslope + z0;
+  float pca_z = pca_circle(0) * zslope + z0;
   Acts::Vector3 pca(pca_circle(0), pca_circle(1), pca_z);
 
   // now we want a second point on the helix so we can get a local straight line approximation to the track
@@ -50,7 +51,8 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   float d_angle = 0.005;
   float newx = radius * std::cos(angle_pca + d_angle) + x0;
   float newy = radius * std::sin(angle_pca + d_angle) + y0;
-  float newz = std::sqrt(newx * newx + newy * newy) * zslope + z0;
+  //float newz = std::sqrt(newx * newx + newy * newy) * zslope + z0;
+  float newz = newx * zslope + z0;
   Acts::Vector3 second_point_pca(newx, newy, newz);
 
   // pca and second_point_pca define a straight line approximation to the track
@@ -274,12 +276,24 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const std::vector<Acts:
 }
 
 //_________________________________________________________________________________
+TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xz(const std::vector<Acts::Vector3>& positions)
+{
+  position_vector_t positions_2d;
+  for (const auto& position : positions)
+  {
+    positions_2d.emplace_back(position.x(), position.z());
+  }
+
+  return line_fit(positions_2d);
+}
+
+//_________________________________________________________________________________
 TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xy(const std::vector<Acts::Vector3>& positions)
 {
   position_vector_t positions_2d;
   for (const auto& position : positions)
   {
-    positions_2d.emplace_back(position.x(), position.y());
+    positions_2d.emplace_back(position.x(), position.y());   // returns dx/dy and y intercept
   }
 
   return line_fit(positions_2d);
@@ -533,8 +547,9 @@ Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
   Acts::Vector2 pca_circle = get_circle_point_pca(radius, x0, y0, global);
 
   // The radius of the PCA determines the z position:
-  float pca_circle_radius = pca_circle.norm();
-  float pca_z = pca_circle_radius * zslope + z0;
+  //  float pca_circle_radius = pca_circle.norm();
+  // float pca_z = pca_circle_radius * zslope + z0;
+  float pca_z = pca_circle(0) * zslope + z0;
   Acts::Vector3 pca(pca_circle(0), pca_circle(1), pca_z);
 
   // now we want a second point on the helix so we can get a local straight line approximation to the track
@@ -542,7 +557,8 @@ Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
   float projection = 0.25;  // cm
   Acts::Vector3 second_point = pca + projection * pca / pca.norm();
   Acts::Vector2 second_point_pca_circle = get_circle_point_pca(radius, x0, y0, second_point);
-  float second_point_pca_z = pca_circle_radius * zslope + z0;
+  //  float second_point_pca_z = pca_circle_radius * zslope + z0;  // this was wrong
+  float second_point_pca_z = second_point_pca_circle(0) * zslope + z0;
   Acts::Vector3 second_point_pca(second_point_pca_circle(0), second_point_pca_circle(1), second_point_pca_z);
 
   // pca and second_point_pca define a straight line approximation to the track
@@ -647,13 +663,20 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
     {
       return fitpars;
     }
-  std::tuple<double, double> rz_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
+  std::tuple<double, double> xz_fit_pars = TrackFitUtils::line_fit_xz(global_vec_noINTT);
 
   fitpars.push_back(std::get<0>(xy_fit_pars));
   fitpars.push_back(std::get<1>(xy_fit_pars));
-  fitpars.push_back(std::get<0>(rz_fit_pars));
-  fitpars.push_back(std::get<1>(rz_fit_pars));
+  fitpars.push_back(std::get<0>(xz_fit_pars));
+  fitpars.push_back(std::get<1>(xz_fit_pars));
 
+  std::cout << "   xy slope " << fitpars[0]
+	    << " y0 " << fitpars[1]
+	    << " xz slope " << fitpars[2]
+	    << " z0 " << fitpars[3]
+	    << std::endl;
+  std::cout << " global: " << std::endl << global_vec_noINTT[1] << std::endl;
+  
   return fitpars;
 }
 
