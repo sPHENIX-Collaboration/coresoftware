@@ -9,8 +9,6 @@
 
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv2.h>
-#include <calobase/TowerInfoContainerv3.h>
 #include <calobase/TowerInfoDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -77,9 +75,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
     }
     EMRetowerName = m_towerNodePrefix + "_CEMC_RETOWER";
     TowerInfoContainer *emcal_retower = findNode::getClass<TowerInfoContainer>(topNode, EMRetowerName);
-    if (Verbosity() > 0) {
-      std::cout << "RetowerCEMC::process_event: filling "<<EMRetowerName<<" node" << std::endl;
-    }
+    if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: filling "<<EMRetowerName<<" node" << std::endl;
     for (int ieta_ihcal = 0; ieta_ihcal < neta_ihcal; ++ieta_ihcal) {
       for (int iphi_ihcal = 0; iphi_ihcal < nphi_ihcal; ++iphi_ihcal) {
         double retower_e_temp = 0;
@@ -103,7 +99,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
             }
           }
         }
-        unsigned int towerkey = (((unsigned int) ieta_ihcal) << 16U) + iphi_ihcal;
+        unsigned int towerkey = TowerInfoDefs::encode_hcal(ieta_ihcal, iphi_ihcal);
         unsigned int towerindex = emcal_retower->decode_key(towerkey);
         TowerInfo *towerinfo = emcal_retower->get_tower_at_channel(towerindex);
         double scalefactor = retower_badarea / (double)retower_totalarea[ieta_ihcal];
@@ -193,7 +189,7 @@ void RetowerCEMC::get_first_phi_index(PHCompositeNode *topNode) {
   RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   if (!geomEM || !geomIH) {
-    std::cout << "RetowerCEMC::get_weighted_fraction: Could not locate geometry nodes" << std::endl;
+    std::cout << "RetowerCEMC::get_first_phi_index: Could not locate geometry nodes" << std::endl;
     exit(1);
   }
   
@@ -224,7 +220,7 @@ void RetowerCEMC::get_first_phi_index(PHCompositeNode *topNode) {
       iphi_emcal_temp--;
     }
     if (!outofrange) {
-      std::cout << "RetowerCEMC::get_fraction: could not find matching EMCal towers for iphi_ihcal = " << nphi_ihcal - 1 << std::endl;
+      std::cout << "RetowerCEMC::get_first_phi_index: could not find matching EMCal towers for iphi_ihcal = " << nphi_ihcal - 1 << std::endl;
       exit(1);
     }
     if (iphi_emcal_temp + 1 == nphi_emcal) {
@@ -233,7 +229,7 @@ void RetowerCEMC::get_first_phi_index(PHCompositeNode *topNode) {
       retower_first_lowerbound_originaltower_iphi = iphi_emcal_temp + 1;
     }
   } else if (!find_first_lowerbound) {
-    std::cout << "RetowerCEMC::get_fraction: could not find matching EMCal towers for iphi_ihcal = 0" << std::endl;
+    std::cout << "RetowerCEMC::get_first_phi_index: could not find matching EMCal towers for iphi_ihcal = 0" << std::endl;
     exit(1);
   } else {
     retower_first_lowerbound_originaltower_iphi = iphi_emcal;
@@ -244,7 +240,7 @@ void RetowerCEMC::get_fraction(PHCompositeNode *topNode) {
   RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   if (!geomEM || !geomIH) {
-    std::cout << "RetowerCEMC::get_weighted_fraction: Could not locate geometry nodes" << std::endl;
+    std::cout << "RetowerCEMC::get_fraction: Could not locate geometry nodes" << std::endl;
     exit(1);
   }
 
@@ -322,10 +318,10 @@ void RetowerCEMC::get_weighted_fraction(PHCompositeNode *topNode) {
       }
     }
     if (!found_lowerbound) {
-      std::cout << "RetowerCEMC::get_fraction: could not find lower bound EMCal towers for ieta_ihcal = " << ieta_ihcal << std::endl;
+      std::cout << "RetowerCEMC::get_weighted_fraction: could not find lower bound EMCal towers for ieta_ihcal = " << ieta_ihcal << std::endl;
       exit(1);
     } else if (!found_upperbound) {
-      std::cout << "RetowerCEMC::get_fraction: could not find upper bound EMCal towers for ieta_ihcal = " << ieta_ihcal << std::endl;
+      std::cout << "RetowerCEMC::get_weighted_fraction: could not find upper bound EMCal towers for ieta_ihcal = " << ieta_ihcal << std::endl;
       exit(1);
     }
   }
