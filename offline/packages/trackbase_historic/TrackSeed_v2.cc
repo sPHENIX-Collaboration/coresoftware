@@ -1,20 +1,4 @@
 #include "TrackSeed_v2.h"
-#include <trackbase/TrkrCluster.h>
-
-#include <trackbase/TrackFitUtils.h>
-
-#include <cmath>
-
-namespace
-{
-
-  //! convenience square method
-  template <class T>
-  inline constexpr T square(const T& x)
-  {
-    return x * x;
-  }
-}  // namespace
 
 TrackSeed_v2::TrackSeed_v2(const TrackSeed& seed)
 {
