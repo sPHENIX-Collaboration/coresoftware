@@ -14,10 +14,12 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
-  CaloValid.h
+  CaloValid.h \
+  CaloFittingQA.h
 
 libcalovalid_la_SOURCES = \
-  CaloValid.cc 
+  CaloValid.cc \
+  CaloFittingQA.cc
 
 libcalovalid_la_LIBADD = \
   -lcalo_io \
@@ -29,6 +31,7 @@ libcalovalid_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lffarawobjects \
+  -lcdbobjects \
   -lqautils
 
 ################################################

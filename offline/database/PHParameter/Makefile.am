@@ -32,7 +32,6 @@ libphparameter_la_LIBADD = \
   -lphool
 
 libphparameter_io_la_LIBADD = \
-  -lffamodules \
   -lpdbcalBase \
   -lphool
 

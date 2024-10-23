@@ -27,20 +27,24 @@ pkginclude_HEADERS = \
   EPDDefs.h \
   EpdGeom.h \
   EpdGeomV1.h \
+  EpdGeomV2.h \
   EpdReco.h
 
 ROOTDICTS = \
   EpdGeom_Dict.cc \
-  EpdGeomV1_Dict.cc
+  EpdGeomV1_Dict.cc \
+  EpdGeomV2_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
  EpdGeom_Dict_rdict.pcm \
- EpdGeomV1_Dict_rdict.pcm 
+ EpdGeomV1_Dict_rdict.pcm \
+ EpdGeomV2_Dict_rdict.pcm
 
 libepd_io_la_SOURCES = \
   $(ROOTDICTS) \
-  EpdGeomV1.cc
+  EpdGeomV1.cc \
+  EpdGeomV2.cc
 
 
 libepd_la_SOURCES = \
