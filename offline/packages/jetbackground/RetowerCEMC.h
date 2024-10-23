@@ -37,15 +37,15 @@ class RetowerCEMC : public SubsysReco
   static const int nphi_ihcal = 64;
   static const int nphi_emcal = 256;
 
-  int retower_lowerbound_originaltower_ieta[neta_ihcal];
-  int retower_upperbound_originaltower_ieta[neta_ihcal];
-  double retower_lowerbound_originaltower_fraction[neta_ihcal];
-  double retower_upperbound_originaltower_fraction[neta_ihcal];
-  double retower_totalarea[neta_ihcal];
+  int retower_lowerbound_originaltower_ieta[neta_ihcal] = {0};
+  int retower_upperbound_originaltower_ieta[neta_ihcal] = {0};
+  double retower_lowerbound_originaltower_fraction[neta_ihcal] = {0.0};
+  double retower_upperbound_originaltower_fraction[neta_ihcal] = {0.0};
+  double retower_totalarea[neta_ihcal] = {0.0};
   int retower_first_lowerbound_originaltower_iphi{-1};
 
-  double rawtower_e[neta_emcal][nphi_emcal];
-  int rawtower_status[neta_emcal][nphi_emcal];
+  double rawtower_e[neta_emcal][nphi_emcal] = {{0.0}};
+  int rawtower_status[neta_emcal][nphi_emcal] = {{0}};
 
   std::string EMTowerName;
   std::string IHTowerName;
