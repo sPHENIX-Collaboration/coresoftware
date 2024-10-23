@@ -5,6 +5,7 @@
 
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
@@ -64,11 +65,14 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
     m_crossing = (float) silseed->get_crossing();
     h_crossing->Fill(m_crossing);
 
-    m_silseedx = silseed->get_x();
-    m_silseedy = silseed->get_y();
-    m_silseedz = silseed->get_z();
-    m_silseedphi = silseed->get_phi();
-    m_silseedeta = silseed->get_eta();
+    {
+      const auto position = TrackSeedHelper::get_xyz(silseed);
+      m_silseedx = position.x();
+      m_silseedy = position.y();
+      m_silseedz = position.z();
+      m_silseedphi = silseed->get_phi();
+      m_silseedeta = silseed->get_eta();
+    }
 
     for (const auto& tpcseed : *tpcseedmap)
     {
@@ -77,9 +81,10 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
         continue;
       }
 
-      m_tpcseedx = tpcseed->get_x();
-      m_tpcseedy = tpcseed->get_y();
-      m_tpcseedz = tpcseed->get_z();
+      const auto position = TrackSeedHelper::get_xyz(tpcseed);
+      m_tpcseedx = position.x();
+      m_tpcseedy = position.y();
+      m_tpcseedz = position.z();
       m_tpcseedphi = tpcseed->get_phi();
       m_tpcseedeta = tpcseed->get_eta();
 
@@ -88,7 +93,7 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
       h_xDiff[0]->Fill(m_tpcseedx - m_silseedx);
       h_yDiff[0]->Fill(m_tpcseedy - m_silseedy);
       h_zDiff[0]->Fill(m_tpcseedz - m_silseedz);
-  
+
       if (m_tpcseedeta > 0 && m_silseedeta > 0)
       {
         h_phiDiff[4]->Fill(m_tpcseedphi - m_silseedphi);
@@ -138,7 +143,7 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
       h_xDiff[3]->Fill(m_tpcseedx - m_silseedx);
       h_yDiff[3]->Fill(m_tpcseedy - m_silseedy);
       h_zDiff[3]->Fill(m_tpcseedz - m_silseedz);
-      
+
       if (m_tpcseedeta > 0 && m_silseedeta > 0)
       {
         h_phiDiff[6]->Fill(m_tpcseedphi - m_silseedphi);
@@ -184,9 +189,9 @@ void TpcSiliconQA::createHistos()
   stream4 << std::fixed << std::setprecision(2) << m_phicut;
 
   std::vector<std::string> cutNames = {"", "_xyCut", "_etaCut", "_phiCut", "North", "South", "NorthAllCuts", "SouthAllCuts"};
-  std::vector<std::string> cutVals = {"All Track Seeds", 
+  std::vector<std::string> cutVals = {"All Track Seeds",
                          std::string("|xdiff| < " + stream1.str() + "cm , |ydiff| < " + stream2.str() + "cm"),
-                         std::string("xy cuts and |etadiff| < " + stream3.str()), 
+                         std::string("xy cuts and |etadiff| < " + stream3.str()),
                          std::string("xy, eta cuts and |phidiff| < " + stream4.str()),
                          "All Track Seeds (North Only)",
                          "All Track Seeds (South Only)",

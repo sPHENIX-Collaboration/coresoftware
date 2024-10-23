@@ -112,11 +112,11 @@ void helixResiduals::fill_residuals(TrackSeed *seed, int seed_id, bool isTpc)
   _fitter->getTrackletClusters(seed, clusterPositions, clusterKeys);
   std::vector<float> fitparams = _fitter->fitClusters(clusterPositions, clusterKeys);
 
-  float pt = seed->get_pt();
-  float px = seed->get_px(_clusters, tGeometry);
-  float py = seed->get_py(_clusters, tGeometry);
-  float pz = seed->get_pz();
-  unsigned int crossing = seed->get_crossing();
+  const float pt = seed->get_pt();
+  const float px = seed->get_px();
+  const float py = seed->get_py();
+  const float pz = seed->get_pz();
+  const unsigned int crossing = seed->get_crossing();
 
   for (size_t i = 0; i < clusterPositions.size(); i++)
   {
