@@ -66,6 +66,13 @@ float TrackSeedHelper::get_phi(TrackSeed const* seed, const TrackSeedHelper::pos
 }
 
 //____________________________________________________________________________________
+float TrackSeedHelper::get_phi_fastsim(TrackSeed const* seed)
+{
+  const auto [x, y] = findRoot(seed);
+  return std::atan2(-(seed->get_X0()-x), (seed->get_Y0() - y));
+}
+
+//____________________________________________________________________________________
 void TrackSeedHelper::circleFitByTaubin(
   TrackSeed* seed,
   const TrackSeedHelper::position_map_t& positions,

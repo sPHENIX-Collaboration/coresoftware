@@ -23,6 +23,7 @@ class TrackSeedHelper
   using position_map_t = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
   static float get_phi(TrackSeed const*, const position_map_t&);
+  static float get_phi_fastsim(TrackSeed const*);
 
   static void circleFitByTaubin(
     TrackSeed*, const position_map_t& positions,
