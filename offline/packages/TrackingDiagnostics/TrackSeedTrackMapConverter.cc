@@ -173,8 +173,15 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       {
         unsigned int silseedindex = trackSeed->get_silicon_seed_index();
         TrackSeed* silseed = m_siContainer->get(silseedindex);
-
-        tpcseed->circleFitByTaubin(m_clusters, m_tGeometry, 0, 58);
+        std::map<TrkrDefs::cluskey, Acts::Vector3> clustermap;
+        for(auto it = tpcseed->begin_cluster_keys(); it != tpcseed->end_cluster_keys(); ++it)
+        {
+          auto key = *it;
+          auto cluster = m_clusters->findCluster(key);
+          auto global = m_tGeometry->getGlobalPosition(key, cluster);
+          clustermap.insert(std::make_pair(key, global));
+        }
+        tpcseed->circleFitByTaubin(clustermap, 0, 58);
 
         float tpcR = fabs(1. / tpcseed->get_qOverR());
         float tpcx = tpcseed->get_X0();
