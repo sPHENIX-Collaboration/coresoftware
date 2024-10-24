@@ -27,7 +27,12 @@ class TowerInfov4 : public TowerInfo
   void set_chi2(float _chi2) override
   {
     float lnChi2;
-    if (_chi2 <= 0)
+    
+    if (std::isnan(_chi2))
+    {
+      lnChi2 = 1;
+    }
+    else if (_chi2 <= 0)
     {
       lnChi2 = 1;
     }

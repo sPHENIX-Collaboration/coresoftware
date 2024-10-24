@@ -485,7 +485,8 @@ bool CaloTowerBuilder::skipChannel(int ich, int pid)
 
 bool CaloTowerBuilder::isSZS(float time, float chi2)
 {
-  if (time == -20 && chi2 == 0)
+  //isfinite
+  if (!std::isfinite(time) && !std::isfinite(chi2))
   {
     return true;
   }
