@@ -3,11 +3,16 @@
 
 #include <phool/PHObject.h>
 
+#include <g4main/PHG4HitDefs.h>
+
 #include <limits>
+#include <map>
 
 class TowerInfo : public PHObject
 {
  public:
+  typedef std::map<PHG4HitDefs::keytype, float> EdepMap;
+  typedef std::map<int, float> ShowerEdepMap;
   TowerInfo() = default;
   ~TowerInfo() override = default;
   void Reset() override { return; }
@@ -45,6 +50,13 @@ class TowerInfo : public PHObject
   virtual int get_nsample() const { return 0; }
   virtual int16_t get_waveform_value(int /*index*/) const { return -1; }
   virtual void set_waveform_value(int /*index*/, int16_t /*value*/) { return; }
+  // methods in sim v1
+  virtual EdepMap& get_hitEdepMap() { static EdepMap dummy; return dummy; }
+  virtual ShowerEdepMap& get_showerEdepMap() { static ShowerEdepMap dummy; return dummy; }
+  virtual const EdepMap& get_hitEdepMap() const { static EdepMap dummy; return dummy; }
+  virtual const ShowerEdepMap& get_showerEdepMap() const { static ShowerEdepMap dummy; return dummy; }
+  virtual void add_edep(const PHG4HitDefs::keytype /*g4hitid*/, const float /*edep*/) { return; }
+  virtual void add_shower_edep(const int /*showerid*/, const float /*edep*/) { return; }
 
  private:
   ClassDefOverride(TowerInfo, 1);
