@@ -4,7 +4,7 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>
+#include <algorithm>
 #include <vector>
 
 TrackSeedContainer_v1::TrackSeedContainer_v1()

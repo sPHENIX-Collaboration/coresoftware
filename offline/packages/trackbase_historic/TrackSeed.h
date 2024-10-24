@@ -3,15 +3,10 @@
 
 #include <phool/PHObject.h>
 
-#include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
-
 #include <g4main/PHG4HitDefs.h>
-
 #include <cmath>
-#include <iostream>
-#include <iterator>
+#include <limits>
 #include <set>
 
 class TrackSeed : public PHObject
