@@ -67,7 +67,7 @@ const TrackSeed* TrackSeedContainer_v1::get(const std::size_t key) const
 
 TrackSeed* TrackSeedContainer_v1::get(const std::size_t key)
 {
-  if (key > m_seeds.size())
+  if (key >= m_seeds.size())
   {
     return nullptr;
   }
