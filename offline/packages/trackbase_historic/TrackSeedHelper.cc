@@ -134,6 +134,9 @@ void TrackSeedHelper::circleFitByTaubin(
     positions_2d.emplace_back(pos.x(), pos.y());
   }
 
+  // cannot fit if there is less than 3 positions
+  if( positions_2d.size() < 3 ) return;
+
   // do the fit
   const auto [r, x0, y0] = TrackFitUtils::circle_fit_by_taubin(positions_2d);
   float qOverR = 1./r;
@@ -194,6 +197,9 @@ void TrackSeedHelper::lineFit(
     const Acts::Vector3& pos = iter->second;
     positions_2d.emplace_back(std::sqrt(square(pos.x()) + square(pos.y())), pos.z());
   }
+
+  // cannot fit if there is less than 2 positions
+  if( positions_2d.size() < 2 ) return;
 
   // do the fit
   const auto [slope, intercept] = TrackFitUtils::line_fit(positions_2d);
