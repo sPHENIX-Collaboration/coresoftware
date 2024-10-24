@@ -332,7 +332,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	  
 	  if (Verbosity() > 1)
 	    {
-	      std::cout << " Track " << trackid << " xy slope " << fitpars[0] << " y intercept " << fitpars[1] << " zslope " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
+	      std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
 	    }
 	}
       else
@@ -367,7 +367,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	pca2d = TrackFitUtils::get_line_point_pca(fitpars[0], fitpars[1], beamline);
 	track_vtx(0) = pca2d(0);
 	track_vtx(1) = pca2d(1);
-	track_vtx(2) = fitpars[3];
+	track_vtx(2) = fitpars[3];   // z axis intercept
       }
     else
       {
@@ -514,6 +514,9 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	{
 	  fitpoint = get_helix_surface_intersection(surf, fitpars, global, helix_pca, helix_tangent);
 	}
+
+      //std::cout << "  fitpoint " << fitpoint(0) << "  " << fitpoint(1) << "  " << fitpoint(2) << std::endl;
+
       // fitpoint is the point where the helical fit intersects the plane of the surface
       // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
       Acts::Vector3 fitpoint_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint * Acts::UnitConstants::cm);
@@ -1024,7 +1027,7 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_zero_field(const
 
   double x2 = 1;
   double y2 = fitpars[0]*x2 + fitpars[1];
-  double z2 = fitpars[2]*x + fitpars[3];
+  double z2 = fitpars[2]*x2 + fitpars[3];
   Acts::Vector3 arb_point2(x2, y2, z2);
 
   Acts::Vector3 tangent = arb_point2 - arb_point;   // direction of line
@@ -1079,6 +1082,7 @@ Acts::Vector3 HelicalFitter::get_line_plane_intersection(const Acts::Vector3& PC
   std::cout << "      tangent " << tangent(0) << "  " << tangent(1) << "  " << tangent(2) << std::endl;
   std::cout << "            d " << d << std::endl;
   */
+
   return intersection;
 }
 

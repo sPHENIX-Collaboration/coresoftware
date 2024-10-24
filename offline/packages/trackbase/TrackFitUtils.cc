@@ -281,7 +281,7 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xz(const std::vector<Ac
   position_vector_t positions_2d;
   for (const auto& position : positions)
   {
-    positions_2d.emplace_back(position.x(), position.z());
+    positions_2d.emplace_back(position.x(), position.z());  // returns dx/dz and z intercept
   }
 
   return line_fit(positions_2d);
@@ -670,13 +670,16 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
   fitpars.push_back(std::get<0>(xz_fit_pars));
   fitpars.push_back(std::get<1>(xz_fit_pars));
 
-  std::cout << "   xy slope " << fitpars[0]
+  /*
+  std::cout << "   dy/dx " << fitpars[0]
 	    << " y0 " << fitpars[1]
-	    << " xz slope " << fitpars[2]
+	    << " dz/dx " << fitpars[2]
 	    << " z0 " << fitpars[3]
 	    << std::endl;
-  std::cout << " global: " << std::endl << global_vec_noINTT[1] << std::endl;
-  
+  std::cout << " global (layer 0): " << std::endl << global_vec_noINTT[0] << std::endl;
+  std::cout << " global (layer 2): " << std::endl << global_vec_noINTT[2] << std::endl;
+  */
+
   return fitpars;
 }
 
