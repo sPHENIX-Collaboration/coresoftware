@@ -1,5 +1,6 @@
 #include "PHSiliconHelicalPropagator.h"
 
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>

@@ -7,6 +7,7 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterCrossingAssoc.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
