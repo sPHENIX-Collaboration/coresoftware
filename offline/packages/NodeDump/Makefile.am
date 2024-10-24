@@ -94,7 +94,7 @@ libphnodedump_la_LIBADD = \
   -lphfield_io \
   -lphg4hit \
   -lSubsysReco \
-  -ltrackbase_historic_io \
+  -ltrackbase_historic \
   -ltrack_io \
   -lphhepmc_io
 
