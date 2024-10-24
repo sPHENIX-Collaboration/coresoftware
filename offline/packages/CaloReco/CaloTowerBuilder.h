@@ -105,6 +105,7 @@ class CaloTowerBuilder : public SubsysReco
  private:
   int process_sim();
   bool skipChannel(int ich, int pid);
+  bool isSZS(float time, float chi2);
   CaloWaveformProcessing *WaveformProcessing{nullptr};
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
