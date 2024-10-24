@@ -1,5 +1,7 @@
 #include "HFTrackEfficiency.h"
 
+#include <iomanip>
+
 //____________________________________________________________________________..
 HFTrackEfficiency::HFTrackEfficiency(const std::string &name)
   : SubsysReco(name)
