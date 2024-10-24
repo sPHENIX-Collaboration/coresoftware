@@ -20,6 +20,7 @@
 #include <TH1.h>
 #include <TH2.h>
 
+#include <iomanip>
 #include <boost/format.hpp>
 
 //____________________________________________________________________________..
