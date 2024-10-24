@@ -15,36 +15,27 @@
 
 class TrackSeed;
 
-class TrackSeedHelper
+namespace TrackSeedHelper
 {
-
-  public:
-
   using position_map_t = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
-  static float get_phi(TrackSeed const*, const position_map_t&);
-  static float get_phi_fastsim(TrackSeed const*);
+  float get_phi(TrackSeed const*, const position_map_t&);
+  float get_phi_fastsim(TrackSeed const*);
 
-  static void circleFitByTaubin(
+  void circleFitByTaubin(
     TrackSeed*, const position_map_t& positions,
     uint8_t startLayer = 0,
     uint8_t endLayer = 58);
 
-  static void lineFit(
+  void lineFit(
     TrackSeed*, const position_map_t& positions,
     uint8_t startLayer = 0,
     uint8_t endLayer = 58);
 
-  static float get_x(TrackSeed const*);
-  static float get_y(TrackSeed const*);
-  static float get_z(TrackSeed const*);
-  static Acts::Vector3 get_xyz(TrackSeed const*);
-
-  protected:
-  static std::pair<float, float> findRoot(TrackSeed const*);
-
-};
-
-
+  float get_x(TrackSeed const*);
+  float get_y(TrackSeed const*);
+  float get_z(TrackSeed const*);
+  Acts::Vector3 get_xyz(TrackSeed const*);
+}
 
 #endif

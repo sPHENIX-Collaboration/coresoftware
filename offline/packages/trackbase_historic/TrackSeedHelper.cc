@@ -17,6 +17,38 @@ namespace
   {
     return x * x;
   }
+
+  std::pair<float, float> findRoot(TrackSeed const* seed)
+  {
+    /**
+    * We need to determine the closest point on the circle to the origin
+    * since we can't assume that the track originates from the origin
+    * The eqn for the circle is (x-X0)^2+(y-Y0)^2=R^2 and we want to
+    * minimize d = sqrt((0-x)^2+(0-y)^2), the distance between the
+    * origin and some (currently, unknown) point on the circle x,y.
+    *
+    * Solving the circle eqn for x and substituting into d gives an eqn for
+    * y. Taking the derivative and setting equal to 0 gives the following
+    * two solutions. We take the smaller solution as the correct one, as
+    * usually one solution is wildly incorrect (e.g. 1000 cm)
+    */
+    const auto qOverR = seed->get_qOverR();
+    const auto X0 = seed->get_X0();
+    const auto Y0 = seed->get_Y0();
+
+    const float R = std::abs(1./qOverR);
+    const double miny = (std::sqrt(square(X0) * square(R) * square(Y0) + square(R) * pow(Y0, 4)) + square(X0) * Y0 + pow(Y0, 3)) / (square(X0) + square(Y0));
+    const double miny2 = (-std::sqrt(square(X0) * square(R) * square(Y0) + square(R) * pow(Y0, 4)) + square(X0) * Y0 + pow(Y0, 3)) / (square(X0) + square(Y0));
+
+    const double minx = std::sqrt(square(R) - square(miny - Y0)) + X0;
+    const double minx2 = -std::sqrt(square(R) - square(miny2 - Y0)) + X0;
+
+    /// Figure out which of the two roots is actually closer to the origin
+    const float x = (std::abs(minx) < std::abs(minx2)) ? minx : minx2;
+    const float y = (std::abs(miny) < std::abs(miny2)) ? miny : miny2;
+    return {x, y};
+  }
+
 }
 
 //____________________________________________________________________________________
@@ -194,36 +226,4 @@ Acts::Vector3 TrackSeedHelper::get_xyz(TrackSeed const* seed)
 {
   const auto [x,y] = findRoot(seed);
   return {x,y,seed->get_Z0()};
-}
-
-//____________________________________________________________________________________
-std::pair<float, float> TrackSeedHelper::findRoot(TrackSeed const* seed)
-{
-  /**
-   * We need to determine the closest point on the circle to the origin
-   * since we can't assume that the track originates from the origin
-   * The eqn for the circle is (x-X0)^2+(y-Y0)^2=R^2 and we want to
-   * minimize d = sqrt((0-x)^2+(0-y)^2), the distance between the
-   * origin and some (currently, unknown) point on the circle x,y.
-   *
-   * Solving the circle eqn for x and substituting into d gives an eqn for
-   * y. Taking the derivative and setting equal to 0 gives the following
-   * two solutions. We take the smaller solution as the correct one, as
-   * usually one solution is wildly incorrect (e.g. 1000 cm)
-   */
-  const auto qOverR = seed->get_qOverR();
-  const auto X0 = seed->get_X0();
-  const auto Y0 = seed->get_Y0();
-
-  const float R = std::abs(1./qOverR);
-  const double miny = (std::sqrt(square(X0) * square(R) * square(Y0) + square(R) * pow(Y0, 4)) + square(X0) * Y0 + pow(Y0, 3)) / (square(X0) + square(Y0));
-  const double miny2 = (-std::sqrt(square(X0) * square(R) * square(Y0) + square(R) * pow(Y0, 4)) + square(X0) * Y0 + pow(Y0, 3)) / (square(X0) + square(Y0));
-
-  const double minx = std::sqrt(square(R) - square(miny - Y0)) + X0;
-  const double minx2 = -std::sqrt(square(R) - square(miny2 - Y0)) + X0;
-
-  /// Figure out which of the two roots is actually closer to the origin
-  const float x = (std::abs(minx) < std::abs(minx2)) ? minx : minx2;
-  const float y = (std::abs(miny) < std::abs(miny2)) ? miny : miny2;
-  return std::make_pair(x, y);
 }
