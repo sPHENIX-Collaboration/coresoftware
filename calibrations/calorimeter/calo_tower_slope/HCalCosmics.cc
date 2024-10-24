@@ -93,7 +93,7 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
     m_peak[ieta][iphi] = energy;
     m_chi2[ieta][iphi] = chi2;
     h_waveformchi2->Fill(m_peak[ieta][iphi], m_chi2[ieta][iphi]);
-    if (m_chi2[ieta][iphi] > 10000)
+    if (tower->get_isBadChi2())
     {
       m_peak[ieta][iphi] = 0;
     }
