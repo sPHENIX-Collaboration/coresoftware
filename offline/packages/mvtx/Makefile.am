@@ -15,7 +15,8 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   MvtxClusterizer.h \
@@ -47,9 +48,13 @@ libmvtx_la_SOURCES = \
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
   -lCLHEP \
+  -lfun4all \
   -lffarawobjects \
+  -lffamodules \
   -lphg4hit \
   -lSubsysReco \
+  -ltrack_io \
+  -ltrackbase_historic_io \
   -lcdbobjects
 
 # sources for io library
@@ -60,11 +65,9 @@ libmvtx_io_la_SOURCES = \
   SegmentationAlpide.cc
 
 libmvtx_io_la_LIBADD = \
+  -lActsCore \
   -lphool \
-  -lg4detectors_io \
-  -ltrack_io \
-  -ltrackbase_historic_io \
-  -lcdbobjects
+  -lg4detectors_io
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
