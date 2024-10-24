@@ -98,6 +98,7 @@ libtpc_la_LIBADD = \
   -lc10 \
   -ltorch_cpu \
   -ltorch \
+  -ltrack \
   -lmicromegas_io \
   -lfun4all \
   -lphool \
@@ -112,9 +113,7 @@ libtpc_io_la_SOURCES = \
   TrainingHits.cc
 
 libtpc_io_la_LIBADD = \
-  -ltrack_io \
-  -lg4detectors_io \
-  -ltrackbase_historic_io
+  -lg4detectors_io
 
 noinst_PROGRAMS = \
   testexternals_tpc_io \
