@@ -229,9 +229,9 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
           {
             PHG4Particle *daughterG4 = iter->second;
 
-            if (abs(daughterG4->get_px() - daughterTrueLV->x()) <= 5e-3 &&
-                abs(daughterG4->get_py() - daughterTrueLV->y()) <= 5e-3 &&
-                abs(daughterG4->get_pz() - daughterTrueLV->z()) <= 5e-3 && daughterG4->get_pid() == decay[i].second)
+            if (std::abs(daughterG4->get_px() - daughterTrueLV->x()) <= 5e-3 &&
+                std::abs(daughterG4->get_py() - daughterTrueLV->y()) <= 5e-3 &&
+                std::abs(daughterG4->get_pz() - daughterTrueLV->z()) <= 5e-3 && daughterG4->get_pid() == decay[i].second)
             {
               truth_ID = daughterG4->get_track_id();
               break;
