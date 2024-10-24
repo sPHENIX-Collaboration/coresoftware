@@ -21,6 +21,7 @@ libzdcinfo_la_LIBADD = \
   -lfun4all \
   -lcalo_io \
   -lcdbobjects \
+  -lffamodules \
   -lglobalvertex_io \
   -ltrackbase_historic_io
 
