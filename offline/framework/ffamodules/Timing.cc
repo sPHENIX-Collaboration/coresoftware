@@ -12,7 +12,7 @@ Timing::Timing(const std::string &name)
 
 int Timing::InitRun(PHCompositeNode */*topNode*/)
 {
-  starttime = time(NULL);
+  starttime = time(nullptr);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -24,7 +24,7 @@ int Timing::process_event(PHCompositeNode */*topNode*/)
 time_t difftime = time(nullptr) - starttime;
 counter++;
 std::cout << "Count " << counter << ", seconds: " << difftime << std::endl;
-starttime = time(NULL);
+starttime = time(nullptr);
 call_counter = 0;
   }
   return Fun4AllReturnCodes::EVENT_OK;
