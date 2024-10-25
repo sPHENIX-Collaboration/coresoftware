@@ -268,6 +268,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       svtxtrack->set_y(position.y());
       if(m_zeroField)
       {
+        std::cout<<"test zero field replace"<<std::endl;
         // replace x and y with a line fit instead of helix fit
         lineFit(svtxtrack.get(), trackSeed);
       }
@@ -289,7 +290,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         svtxtrack->set_py(trackSeed->get_pt() * std::sin(trackSeed->get_phi()));
         svtxtrack->set_pz(trackSeed->get_pz());
       }
-
+      std::cout<<"calc chi2, q/R "<<trackSeed->get_qOverR()<<std::endl;
       // calculate chisq and ndf
       float R = 1. / std::fabs(trackSeed->get_qOverR());
       float X0 = trackSeed->get_X0();

@@ -32,7 +32,12 @@ namespace
   template <class T>
   inline constexpr T r(const T& x, const T& y)
   {
-    return std::sqrt(square(x) + square(y));
+    double sign = 1;
+    if (y < 0)
+    {
+      sign = -1;
+    }
+    return std::sqrt(square(x) + square(y))*sign;
   }
 }  // namespace
 //____________________________________________________________________________..
@@ -154,6 +159,10 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
     {
       svtxseed->insert_cluster_key(key);
     }
+    //if (m_trackerId == TrkrDefs::TrkrId::mvtxId){
+    //  svtxseed->circleFitByTaubin(clusterPositions, 0, 3);
+    //  svtxseed->lineFit(clusterPositions, 0, 3);
+    //}
     m_seedContainer->insert(svtxseed.get());
     ++iseed;
   }
@@ -220,6 +229,10 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
 {
   PHCosmicSeeder::SeedVector returnseeds;
   std::set<int> seedsToDelete;
+  if (Verbosity() > 1)
+      {
+        std::cout << "Chaining seeds, n seeds =  "<<initialSeeds.size()<< std::endl;
+      }
   for (unsigned int i = 0; i < initialSeeds.size(); ++i)
   {
     auto& seed1 = initialSeeds[i];
@@ -251,7 +264,11 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       float pdiff2 = std::fabs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
       float pdiff3 = std::fabs((seed1.rzintercept - seed2.rzintercept) / longestrzint);
       float pdiff4 = std::fabs((seed1.rzslope - seed2.rzslope) / longestrzslope);
-      if (pdiff < 1. && pdiff2 < 1. && pdiff3 < 1. && pdiff4 < 1.)
+      if (Verbosity() > 1)
+      {
+        std::cout << "pdiff1,2,3,4 " << pdiff<<", "<<pdiff2<<", "<<pdiff3<<", "<<pdiff4 << std::endl;
+      }
+      if (pdiff < 2. && pdiff2 < 2. && pdiff3 < 2. && pdiff4 < 2.)
       {
         seedsToDelete.insert(j);
         for (auto& key : seed2.ckeys)
@@ -317,6 +334,10 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
         slope_tol = 0.1;
         incept_tol = 0.5;
       }
+      if (Verbosity() > 4)
+      {
+        std::cout<< "xy slope diff: "<<seed1.xyslope - seed2.xyslope << ", xy int diff   "<<seed1.xyintercept - seed2.xyintercept << ", rz slope diff "<<seed1.rzslope - seed2.rzslope << ", rz int diff   "<<seed1.rzintercept - seed2.rzintercept<<std::endl;
+      }
       //! These values are tuned on the cosmic data
       if (std::fabs(seed1.xyslope - seed2.xyslope) < slope_tol &&
           std::fabs(seed1.xyintercept - seed2.xyintercept) < incept_tol &&
@@ -361,7 +382,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
   double dist_check = 2.0;
   if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
   {
-    dist_check = 1.5;
+    dist_check = 2.5;
   }
   for (auto& [key1, pos1] : clusterPositions)
   {
@@ -373,12 +394,6 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       }
       // make a cut on clusters to at least be close to each other within a few cm
       float dist = (pos2 - pos1).norm();
-      if (Verbosity() > 5)
-      {
-        std::cout << "checking keys " << key1 << ", " << key2 << " with dist apart " << dist << std::endl;
-        std::cout << "positions are " << pos1.transpose() << "    ,     "
-                  << pos2.transpose() << std::endl;
-      }
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId && (TrkrDefs::getLayer(key1)==TrkrDefs::getLayer(key2)))
       {
         continue;
@@ -387,12 +402,21 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       {
         continue;
       }
+      if (Verbosity() > 5)
+      {
+        std::cout << "checking keys " << key1 << ", " << key2 << " with dist apart " << dist << std::endl;
+        std::cout << "positions are " << pos1.transpose() << "    ,     "
+                  << pos2.transpose() << std::endl;
+        std::cout << "layer, stave, chip 1: "<<TrkrDefs::getHitSetKeyFromClusKey(key1)<<", "<<key1<<std::endl;
+        std::cout << "key1: L"<<int(TrkrDefs::getLayer(key1))<<"_"<<int(MvtxDefs::getStaveId(key1))<<", "<<int(MvtxDefs::getChipId(key1))<<std::endl;
+        std::cout << "key2: L"<<int(TrkrDefs::getLayer(key2))<<"_"<<int(MvtxDefs::getStaveId(key2))<<", "<<int(MvtxDefs::getChipId(key2))<<std::endl;
+      }
       PHCosmicSeeder::seed doub;
 
       doub.xyslope = (pos2.y() - pos1.y()) / (pos2.x() - pos1.x());
       doub.xyintercept = pos1.y() - doub.xyslope * pos1.x();
       doub.rzslope = (r(pos2.x(), pos2.y()) - r(pos1.x(), pos1.y())) / (pos2.z() - pos1.z());
-      doub.rzintercept = pos1.z() * doub.rzslope + r(pos1.x(), pos1.y());
+      doub.rzintercept = r(pos1.x(), pos1.y()) - pos1.z() * doub.rzslope ;
 
       keys.insert(key1);
       keys.insert(key2);
@@ -434,7 +458,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       float dist12_check = 2.;
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
       {
-        dist12_check = 1.;
+        dist12_check = 3.5;
       }
       if (dist1 < dist2)
       {

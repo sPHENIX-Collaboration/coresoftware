@@ -6,6 +6,7 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <map>
 #include <string>
