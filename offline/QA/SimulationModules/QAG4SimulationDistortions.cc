@@ -12,6 +12,7 @@
 
 #include <globalvertex/SvtxVertexMap.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>

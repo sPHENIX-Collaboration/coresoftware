@@ -6,8 +6,9 @@
 
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase_historic/TrackSeed.h>    
+#include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -104,7 +105,7 @@ void PHTpcDeltaZCorrection::process_tracks()
       TrackSeed *seed = m_track_map->get(iter);
       if(!seed)
 	{ continue; }
-      process_track( iter, seed ); 
+      process_track( iter, seed );
     }
 
   m_corrected_clusters.clear();
@@ -115,7 +116,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
 {
 
   // keep track of the global position of previous cluster on track
-  const Acts::Vector3 origin = {track->get_x(), track->get_y(), track->get_z()};
+  const auto origin = TrackSeedHelper::get_xyz(track);
 
   // radius
   const double radius = fabs(1./track->get_qOverR()); // cm
@@ -170,18 +171,18 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
 
     // helical path length
     const double pathlength = std::sqrt( square( delta_z ) + square( radius*delta_phi ) );
-    
+
     // adjust cluster position to account for particles propagation time
     /*
      * accounting for particles finite velocity results in reducing the electron drift time by pathlenght/c
      * this in turn affects the cluster z, so that it is always closer to the readout plane
      */
-    const double t_correction = pathlength /speed_of_light;  
+    const double t_correction = pathlength /speed_of_light;
     cluster->setLocalY( cluster->getLocalY() - t_correction);
 
     if( Verbosity() )
-      { std::cout << "PHTpcDeltaZCorrection::process_track - cluster: " << cluster_key 
+      { std::cout << "PHTpcDeltaZCorrection::process_track - cluster: " << cluster_key
 		  << " path length: " << pathlength << " t correction " << t_correction << std::endl; }
 	}
-  
+
 }

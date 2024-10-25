@@ -29,20 +29,18 @@ class PHGhostRejection
 {
  public:
   /* PHGhostRejection() {} */
-  PHGhostRejection(unsigned int verbosity, std::vector<TrackSeed_v2>& _seeds) 
+  PHGhostRejection(unsigned int verbosity, std::vector<TrackSeed_v2>& _seeds)
     : m_verbosity { verbosity }
     , seeds { _seeds }
     , m_rejected { std::vector<bool> (seeds.size(), false) }
   {};
-
-  ~PHGhostRejection();
 
   std::vector<bool> rejectGhostTracks(std::vector<float> &trackChi2, std::vector<TrackSeed_v2>& seeds);
   void verbosity(int verb) { m_verbosity = verb; }
 
   // cut because too few clusters or not spanning sector boundary
   // interally updates m_rejected
-  bool cut_from_clusters(int itrack); 
+  bool cut_from_clusters(int itrack);
 
   // cut on the ghosts: note that this also ignores all seeds failing
   // ``cut_from_clusters'' and uses the pt_cut
@@ -65,7 +63,7 @@ class PHGhostRejection
   double _y_cut = 0.3;
   double _z_cut = 0.4;
 
-  // cuts on minimally interesting tracks -- 
+  // cuts on minimally interesting tracks --
   // here to remove noise
   double _min_pt = 0.0;
   bool   _must_span_sectors = false;

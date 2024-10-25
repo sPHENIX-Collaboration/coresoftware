@@ -11,6 +11,7 @@
 #include <phool/getClass.h>
 #include <qautils/QAHistManagerDef.h>
 #include <trackbase/TrackFitUtils.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 

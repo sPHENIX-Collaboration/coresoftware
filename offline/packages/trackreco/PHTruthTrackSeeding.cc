@@ -44,6 +44,7 @@
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <TDatabasePDG.h>
 #include <TParticlePDG.h>
@@ -304,15 +305,15 @@ void PHTruthTrackSeeding::buildTrackSeed(const std::vector<TrkrDefs::cluskey>& c
 
   // We have two equations, phi = atan2(-(X0-x),y-Y0) and
   // R^2 = (x-X0)^2 + (y-Y0)^2. Solve for X0 and Y0 knowing R and phi
-  float tanphisq = square(std::tan(phi));
-  float a = tanphisq + 1;
-  float b = -2 * y * (tanphisq + 1);
-  float c = (tanphisq + 1) * square(y) - square(R);
+  const float tanphisq = square(std::tan(phi));
+  const float a = tanphisq + 1;
+  const float b = -2 * y * (tanphisq + 1);
+  const float c = (tanphisq + 1) * square(y) - square(R);
 
-  float Y0_1 = (-b + std::sqrt(square(b) - 4 * a * c)) / (2. * a);
-  float Y0_2 = (-b - std::sqrt(square(b) - 4 * a * c)) / (2. * a);
-  float X0_1 = sqrt(pow(R, 2) - pow(Y0_1 - y, 2)) + x;
-  float X0_2 = -sqrt(pow(R, 2) - pow(Y0_2 - y, 2)) + x;
+  const float Y0_1 = (-b + std::sqrt(square(b) - 4 * a * c)) / (2. * a);
+  const float Y0_2 = (-b - std::sqrt(square(b) - 4 * a * c)) / (2. * a);
+  const float X0_1 = sqrt(pow(R, 2) - pow(Y0_1 - y, 2)) + x;
+  const float X0_2 = -sqrt(pow(R, 2) - pow(Y0_2 - y, 2)) + x;
   track->set_X0(X0_1);
   track->set_Y0(Y0_1);
   track->set_qOverR(charge / R);
@@ -333,28 +334,29 @@ void PHTruthTrackSeeding::buildTrackSeed(const std::vector<TrkrDefs::cluskey>& c
                    [this](const auto& key)
                    { return std::make_pair(key, tgeometry->getGlobalPosition(key, m_clusterMap->findCluster(key))); });
 
-    track->lineFit(positions, start_layer, end_layer);
+    TrackSeedHelper::lineFit(track.get(), positions, start_layer, end_layer);
   }
 
   // Need to find the right one for the bend angle
   // TODO: this should account from distortion corrections, as done, e.g. in PHSimpleKFProp
-  float newphi = track->get_phi(m_clusterMap, tgeometry);
+  auto newphi = TrackSeedHelper::get_phi_fastsim(track.get());
+
   // We have to pick the right one based on the bend angle, so iterate
   // through until you find the closest phi match
   if (std::fabs(newphi - phi) > 0.03)
   {
     track->set_X0(X0_2);
-    newphi = track->get_phi(m_clusterMap, tgeometry);
+    newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
 
     if (std::fabs(newphi - phi) > 0.03)
     {
       track->set_Y0(Y0_2);
-      newphi = track->get_phi(m_clusterMap, tgeometry);
+      newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
 
       if (std::fabs(newphi - phi) > 0.03)
       {
         track->set_X0(X0_1);
-        newphi = track->get_phi(m_clusterMap, tgeometry);
+        newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
       }
     }
   }
@@ -369,11 +371,11 @@ void PHTruthTrackSeeding::buildTrackSeed(const std::vector<TrkrDefs::cluskey>& c
     std::cout << "truth/reco py " << py << ", " << track->get_py() << std::endl;
     std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
     std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
-    std::cout << "truth/reco phi " << phi << ", " << track->get_phi(m_clusterMap, tgeometry) << std::endl;
+    std::cout << "truth/reco phi " << phi << ", " << track->get_phi() << std::endl;
     std::cout << "truth/reco eta " << eta << ", " << track->get_eta() << std::endl;
-    std::cout << "truth/reco x " << x << ", " << track->get_x() << std::endl;
-    std::cout << "truth/reco y " << y << ", " << track->get_y() << std::endl;
-    std::cout << "truth/reco z " << z << ", " << track->get_z() << std::endl;
+    std::cout << "truth/reco x " << x << ", " << TrackSeedHelper::get_x(track.get()) << std::endl;
+    std::cout << "truth/reco y " << y << ", " << TrackSeedHelper::get_y(track.get()) << std::endl;
+    std::cout << "truth/reco z " << z << ", " << TrackSeedHelper::get_z(track.get()) << std::endl;
   }
 
   // set intt crossing

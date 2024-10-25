@@ -31,6 +31,7 @@
 #include <trackbase_historic/TrackAnalysisUtils.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/Gl1RawHit.h>
@@ -209,7 +210,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   auto mvtxGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   auto inttGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   auto mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
- 
+
   if (!mmGeom)
   {
     mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
@@ -379,16 +380,18 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
     int crossing = SHRT_MAX;
     if (silseed)
     {
-      m_silseedx = silseed->get_x();
-      m_silseedy = silseed->get_y();
-      m_silseedz = silseed->get_z();
+      const auto si_pos = TrackSeedHelper::get_xyz(silseed);
+      m_silseedx = si_pos.x();
+      m_silseedy = si_pos.y();
+      m_silseedz = si_pos.z();
       crossing = silseed->get_crossing();
     }
     else
     {
-      m_tpcseedx = tpcseed->get_x();
-      m_tpcseedy = tpcseed->get_y();
-      m_tpcseedz = tpcseed->get_z();
+      const auto tpc_pos = TrackSeedHelper::get_xyz(tpcseed);
+      m_tpcseedx = tpc_pos.x();
+      m_tpcseedy = tpc_pos.y();
+      m_tpcseedz = tpc_pos.z();
     }
 
     if (m_zeroField)
@@ -1912,9 +1915,11 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     if (silseed)
     {
       m_silid = silseedmap->find(silseed);
-      m_silseedx = silseed->get_x();
-      m_silseedy = silseed->get_y();
-      m_silseedz = silseed->get_z();
+
+      const auto si_pos = TrackSeedHelper::get_xyz(silseed);
+      m_silseedx = si_pos.x();
+      m_silseedy = si_pos.y();
+      m_silseedz = si_pos.z();
       m_silseedpx = silseed->get_px();
       m_silseedpy = silseed->get_py();
       m_silseedpz = silseed->get_pz();
@@ -1924,9 +1929,10 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     }
     if (tpcseed)
     {
-      m_tpcseedx = tpcseed->get_x();
-      m_tpcseedy = tpcseed->get_y();
-      m_tpcseedz = tpcseed->get_z();
+      const auto tpc_pos = TrackSeedHelper::get_xyz(tpcseed);
+      m_tpcseedx = tpc_pos.x();
+      m_tpcseedy = tpc_pos.y();
+      m_tpcseedz = tpc_pos.z();
       m_tpcseedpx = tpcseed->get_px();
       m_tpcseedpy = tpcseed->get_py();
       m_tpcseedpz = tpcseed->get_pz();
@@ -2236,9 +2242,10 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     if (silseed)
     {
       m_silid = silseedmap->find(silseed);
-      m_silseedx = silseed->get_x();
-      m_silseedy = silseed->get_y();
-      m_silseedz = silseed->get_z();
+      const auto si_pos = TrackSeedHelper::get_xyz(silseed);
+      m_silseedx = si_pos.x();
+      m_silseedy = si_pos.y();
+      m_silseedz = si_pos.z();
       m_silseedpx = silseed->get_px();
       m_silseedpy = silseed->get_py();
       m_silseedpz = silseed->get_pz();
@@ -2248,9 +2255,10 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     }
     if (tpcseed)
     {
-      m_tpcseedx = tpcseed->get_x();
-      m_tpcseedy = tpcseed->get_y();
-      m_tpcseedz = tpcseed->get_z();
+      const auto tpc_pos = TrackSeedHelper::get_xyz(tpcseed);
+      m_tpcseedx = tpc_pos.x();
+      m_tpcseedy = tpc_pos.y();
+      m_tpcseedz = tpc_pos.z();
       m_tpcseedpx = tpcseed->get_px();
       m_tpcseedpy = tpcseed->get_py();
       m_tpcseedpz = tpcseed->get_pz();

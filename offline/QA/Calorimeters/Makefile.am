@@ -31,6 +31,7 @@ libcalovalid_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lffarawobjects \
+  -lffamodules \
   -lcdbobjects \
   -lqautils
 

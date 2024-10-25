@@ -24,6 +24,7 @@
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
@@ -162,8 +163,8 @@ int PHActsGSF::process_event(PHCompositeNode* topNode)
       svtxseed->insert_cluster_key(cKey);
     }
     svtxseed->set_phi(track->get_phi());
-    svtxseed->circleFitByTaubin(clusterPositions, 0, 57);
-    svtxseed->lineFit(clusterPositions, 7, 57);
+    TrackSeedHelper::circleFitByTaubin(svtxseed,clusterPositions, 0, 57);
+    TrackSeedHelper::lineFit(svtxseed, clusterPositions, 7, 57);
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
     TrackSeed* tpcseed = track->get_tpc_seed();

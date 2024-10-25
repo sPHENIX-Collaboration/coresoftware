@@ -16,6 +16,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
@@ -75,7 +76,7 @@ void ActsEvaluator::next_event(PHCompositeNode* topNode)
   }
 
   m_svtxEvalStack->next_event(topNode);
-  
+
   m_eventNr++;
 }
 void ActsEvaluator::process_track(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
@@ -165,12 +166,12 @@ void ActsEvaluator::evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackConta
 
   auto trajState =
       Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
-  
+
   const auto& params = paramsMap.find(trackTip)->second;
 
   if (m_verbosity > 1)
   {
-   
+
       std::cout << "Fitted params : "
                 << params.position(m_tGeometry->geometry().getGeoContext())
                 << std::endl
@@ -181,7 +182,7 @@ void ActsEvaluator::evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackConta
                 << " holes and " << trajState.nOutliers
                 << " outliers and " << trajState.nStates
                 << " states " << std::endl;
-    
+
   }
 
   m_nMeasurements = trajState.nMeasurements;
@@ -256,20 +257,20 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     if(m_verbosity > 3)
       {
       std::cout << "Cluster volume : layer : sensitive " << geoID.volume()
-		<< " : " << geoID.layer() << " : " 
+		<< " : " << geoID.layer() << " : "
 		<< geoID.sensitive() << std::endl;
       }
     auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
     const auto& cluskey = sourceLink.cluskey();
-        
+
     Acts::Vector2 local = Acts::Vector2::Zero();
-   
+
     /// get the local measurement that acts used
     std::visit([&](const auto& meas) {
 	local(0) = meas.parameters()[0];
 	local(1) = meas.parameters()[1];
       }, measurements[sourceLink.index()]);
-    
+
     /// Get global position
     /// This is an arbitrary vector. Doesn't matter in coordinate transformation
     /// in Acts code
@@ -325,7 +326,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     float momentum = sqrt(m_t_px * m_t_px +
                           m_t_py * m_t_py +
                           m_t_pz * m_t_pz);
-    
+
     if(vecResult.ok())
       {
 	Acts::Vector2 truthLocVec = vecResult.value();
@@ -357,7 +358,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     {
       predicted = true;
       m_nPredicted++;
-      
+
       auto parameters = state.predicted();
       auto covariance = state.predictedCovariance();
 
@@ -435,8 +436,8 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
           (parameters[Acts::eBoundTime] - truthTIME) /
           sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
-      Acts::FreeVector freeParams = 
-	Acts::detail::transformBoundToFreeParameters(state.referenceSurface(), 
+      Acts::FreeVector freeParams =
+	Acts::detail::transformBoundToFreeParameters(state.referenceSurface(),
 						     m_tGeometry->geometry().getGeoContext(),
 						     parameters);
 
@@ -573,7 +574,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
 					     freeparams[Acts::eFreeDir1])));
       m_eta_flt.push_back(eta(freeparams.segment<3>(Acts::eFreeDir0)));
       m_chi2.push_back(state.chi2());
-      
+
     }
     else
     {
@@ -611,7 +612,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
       m_eta_flt.push_back(-9999);
       m_chi2.push_back(-9999);
     }
-  
+
     bool smoothed = false;
     if (state.hasSmoothed())
     {
@@ -676,7 +677,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
           sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), parameter);
-      
+
       /// Other smoothed parameter info
       m_x_smt.push_back(freeparams[Acts::eFreePos0]);
       m_y_smt.push_back(freeparams[Acts::eFreePos1]);
@@ -790,24 +791,8 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
   auto tpcseed = m_tpcSeeds->get(tpcid);
   if(!tpcseed) return;
 
-  Acts::Vector3 position = Acts::Vector3::Zero();
-
-  if (siseed)
-  {
-    position(0) = siseed->get_x() * Acts::UnitConstants::cm;
-    position(1) = siseed->get_y() * Acts::UnitConstants::cm;
-    position(2) = siseed->get_z() * Acts::UnitConstants::cm;
-  }
-  else
-  {
-    position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
-    position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
-    position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
-  }
-
-  Acts::Vector3 momentum(tpcseed->get_px(),
-                         tpcseed->get_py(),
-                         tpcseed->get_pz());
+  const Acts::Vector3 position = TrackSeedHelper::get_xyz( siseed?siseed:tpcseed )*Acts::UnitConstants::cm;
+  const Acts::Vector3 momentum(tpcseed->get_px(),tpcseed->get_py(),tpcseed->get_pz());
 
   m_protoTrackPx = momentum(0);
   m_protoTrackPy = momentum(1);

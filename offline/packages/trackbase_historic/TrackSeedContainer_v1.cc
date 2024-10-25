@@ -4,7 +4,7 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>
+#include <algorithm>
 #include <vector>
 
 TrackSeedContainer_v1::TrackSeedContainer_v1()
@@ -17,7 +17,7 @@ TrackSeedContainer_v1::TrackSeedContainer_v1(const TrackSeedContainer_v1& seeds)
 {
   for (const TrackSeed* seed : seeds)
   {
-    TrackSeed* newseed = dynamic_cast<TrackSeed*>(seed->CloneMe());
+    auto newseed = static_cast<TrackSeed*>(seed->CloneMe());
     m_seeds.push_back(newseed);
   }
 }
@@ -27,7 +27,7 @@ TrackSeedContainer_v1& TrackSeedContainer_v1::operator=(const TrackSeedContainer
   Reset();
   for (const TrackSeed* seed : seedContainer)
   {
-    TrackSeed* newseed = dynamic_cast<TrackSeed*>(seed->CloneMe());
+    auto newseed = static_cast<TrackSeed*>(seed->CloneMe());
     m_seeds.push_back(newseed);
   }
 
@@ -67,7 +67,7 @@ const TrackSeed* TrackSeedContainer_v1::get(const std::size_t key) const
 
 TrackSeed* TrackSeedContainer_v1::get(const std::size_t key)
 {
-  if (key > m_seeds.size())
+  if (key >= m_seeds.size())
   {
     return nullptr;
   }
@@ -76,7 +76,7 @@ TrackSeed* TrackSeedContainer_v1::get(const std::size_t key)
 
 TrackSeed* TrackSeedContainer_v1::insert(const TrackSeed* seed)
 {
-  m_seeds.push_back(dynamic_cast<TrackSeed*>(seed->CloneMe()));
+  m_seeds.push_back(static_cast<TrackSeed*>(seed->CloneMe()));
   Iter iter = m_seeds.end() - 1;
   return *iter;
 }

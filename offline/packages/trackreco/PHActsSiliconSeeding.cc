@@ -30,6 +30,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #ifndef __clang__
 #pragma GCC diagnostic push
@@ -333,9 +334,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       fitTimer->stop();
       fitTimer->restart();
 
-      trackSeed->circleFitByTaubin(positions, 0, 8);
-      if (fabs(trackSeed->get_x()) > m_maxSeedPCA ||
-          fabs(trackSeed->get_y()) > m_maxSeedPCA)
+      TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 8);
+      const auto position( TrackSeedHelper::get_xyz(trackSeed.get()) );
+      if (std::abs(position.x()) > m_maxSeedPCA || std::abs(position.y()) > m_maxSeedPCA)
       {
         if (Verbosity() > 1)
         {
@@ -346,16 +347,18 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
         continue;
       }
 
-      trackSeed->lineFit(positions, 0, 8);
+      TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 8);
       z = trackSeed->get_Z0();
       fitTimer->stop();
       auto circlefittime = fitTimer->get_accumulated_time();
       fitTimer->restart();
 
-      float phi = trackSeed->get_phi(positions);
-      trackSeed->set_phi(phi);  // make phi persistent
+      // calculate phi and assign
+      auto phi = TrackSeedHelper::get_phi(trackSeed.get(), positions);
+      trackSeed->set_phi(phi);
+
       /// Project to INTT and find matches
-      int mvtxsize = globalPositions.size();
+      const auto mvtxsize = globalPositions.size();
       auto additionalClusters = findMatches(globalPositions, cluster_keys, *trackSeed);
 
       /// Add possible matches to cluster list to be parsed when
@@ -376,12 +379,12 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       fitTimer->restart();
 
       //! Circle fit again to take advantage of INTT lever arm
-      trackSeed->circleFitByTaubin(positions, 0, 7);
-      phi = trackSeed->get_phi(positions);
+      TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
+      phi = TrackSeedHelper::get_phi(trackSeed.get(), positions);
       trackSeed->set_phi(phi);
       if (m_searchInIntt)
       {
-        trackSeed->lineFit(positions, 0, 2);
+        TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 2);
       }
 
       if (Verbosity() > 0)

@@ -12,6 +12,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64 \
   -lCLHEP \
+  -lfun4all \
   -lglobalvertex_io \
   -lcalo_io \
   -lcdbobjects \

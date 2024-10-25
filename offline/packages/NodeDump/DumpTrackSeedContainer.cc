@@ -4,6 +4,7 @@
 
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <map>
 #include <ostream>
@@ -36,10 +37,13 @@ int DumpTrackSeedContainer::process_Node(PHNode *myNode)
       {
         continue;
       }
+
+      const auto position = TrackSeedHelper::get_xyz(*hiter);
+
       *fout << "get_pz(): " << (*hiter)->get_pz() << std::endl;
-      *fout << "get_x(): " << (*hiter)->get_x() << std::endl;
-      *fout << "get_y(): " << (*hiter)->get_y() << std::endl;
-      *fout << "get_z(): " << (*hiter)->get_z() << std::endl;
+      *fout << "get_x(): " << position.x() << std::endl;
+      *fout << "get_y(): " << position.y() << std::endl;
+      *fout << "get_z(): " << position.z() << std::endl;
       *fout << "get_qOverR(): " << (*hiter)->get_qOverR() << std::endl;
       *fout << "get_X0(): " << (*hiter)->get_X0() << std::endl;
       *fout << "get_Y0(): " << (*hiter)->get_Y0() << std::endl;

@@ -26,6 +26,8 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <phgeom/PHGeomUtility.h>
 
+#include <Acts/Definitions/Algebra.hpp>
+
 namespace
 {
   template <class T>

@@ -17,7 +17,7 @@ pkginclude_HEADERS = \
   GlobalQA.h
 
 libglobalQA_la_SOURCES = \
-  GlobalQA.cc 
+  GlobalQA.cc
 
 libglobalQA_la_LIBADD = \
   -lcalo_io \
@@ -29,6 +29,7 @@ libglobalQA_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lffarawobjects \
+  -lffamodules \
   -lcdbobjects \
   -lqautils
 

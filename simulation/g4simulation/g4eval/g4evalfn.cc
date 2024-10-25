@@ -1,6 +1,8 @@
 #include <g4tracking/EmbRecoMatchContainer.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include "TrkrClusLoc.h"
 #include "TrkrClusterIsMatcher.h"

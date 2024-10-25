@@ -27,6 +27,7 @@
 #include <ffamodules/CDBInterface.h>
 
 // trackbase_historic includes
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>

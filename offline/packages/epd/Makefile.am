@@ -20,9 +20,10 @@ libepd_io_la_LIBADD = \
 libepd_la_LIBADD = \
   libepd_io.la \
   -lcdbobjects \
+  -lffamodules \
   -lfun4all \
-  -lglobalvertex_io 
- 
+  -lglobalvertex_io
+
 pkginclude_HEADERS = \
   EPDDefs.h \
   EpdGeom.h \

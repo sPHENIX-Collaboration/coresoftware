@@ -13,6 +13,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
@@ -23,11 +24,6 @@
 //____________________________________________________________________________..
 PHCosmicSeedCombiner::PHCosmicSeedCombiner(const std::string& name)
   : SubsysReco(name)
-{
-}
-
-//____________________________________________________________________________..
-PHCosmicSeedCombiner::~PHCosmicSeedCombiner()
 {
 }
 
@@ -66,7 +62,7 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
     auto tpcseed1 = m_tpcSeeds->get(tpcid1);
     auto silseed1 = m_siliconSeeds->get(siid1);
 
-    const float phi1 = tpcseed1->get_phi(m_clusterContainer, m_tGeometry);
+    const float phi1 = tpcseed1->get_phi();
     const float eta1 = tpcseed1->get_eta();
 
     for (auto trackiter2 = trackiter; trackiter2 != m_seedMap->end(); ++trackiter2)
@@ -88,7 +84,7 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
 
       auto tpcseed2 = m_tpcSeeds->get(tpcid2);
       auto silseed2 = m_siliconSeeds->get(siid2);
-      const float phi2 = tpcseed2->get_phi(m_clusterContainer, m_tGeometry);
+      const float phi2 = tpcseed2->get_phi();
       const float eta2 = tpcseed2->get_eta();
 
       //! phis are the same, so we subtract to check

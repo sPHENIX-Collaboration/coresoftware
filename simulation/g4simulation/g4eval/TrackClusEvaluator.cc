@@ -9,7 +9,8 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 
-#include <phool/phool.h>  // for PHWHERE
+#include <phool/phool.h>
+#include <numeric>
 
 TrkrClusterContainer* TrackClusEvaluator::get_PHG4_clusters()
 {

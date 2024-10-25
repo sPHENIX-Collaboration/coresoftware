@@ -19,13 +19,11 @@ AM_LDFLAGS = \
 libTPCHitTrackDisplay_la_LIBADD = \
   -lphool \
   -lg4detectors \
-  -lcentrality_io \
   -lphg4hit \
-  -lConstituentSubtractor \
-  -ljetbase \
+  -ltrack \
   -ltrackbase_historic_io \
-  -lSubsysReco \
-  -lcalo_io
+  -lcentrality_io \
+  -lSubsysReco
 
 pkginclude_HEADERS = \
   TPCHitTrackDisplay.h

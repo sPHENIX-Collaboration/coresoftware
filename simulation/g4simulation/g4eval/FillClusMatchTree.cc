@@ -9,6 +9,7 @@
 
 #include <trackbase/ClusHitsVerbose.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>

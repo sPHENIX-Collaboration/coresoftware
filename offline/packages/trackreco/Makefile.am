@@ -192,7 +192,7 @@ libtrack_reco_la_LIBADD = \
   -lSubsysReco \
   -ltrack_io \
   -ltpc \
-  -ltrackbase_historic_io
+  -ltrackbase_historic
 
 
 # Rule for generating table CINT dictionaries.

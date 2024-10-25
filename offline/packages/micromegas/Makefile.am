@@ -101,11 +101,10 @@ libmicromegas_io_la_SOURCES = \
 
 libmicromegas_io_la_LIBADD = \
   -lCLHEP \
-  -lcdbobjects \
-  -lg4detectors_io \
-  -lphool \
+  -ltrack \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -lcdbobjects \
+  -lg4detectors_io
 
 libmicromegas_la_SOURCES = \
   MicromegasClusterizer.cc \

@@ -16,6 +16,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -155,8 +156,8 @@ void PHActsKDTreeSeeding::fillTrackSeedContainer(SeedContainer& seeds)
       positions.insert(std::make_pair(ckey, globalPosition));
     }
 
-    siseed->circleFitByTaubin(positions, 0, 8);
-    siseed->lineFit(positions, 0, 8);
+    TrackSeedHelper::circleFitByTaubin(siseed.get(),positions, 0, 8);
+    TrackSeedHelper::lineFit(siseed.get(),positions, 0, 8);
 
     /// Project to INTT and find matches to add to positions
     findInttMatches(positions, *siseed);

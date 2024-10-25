@@ -34,6 +34,7 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -247,14 +248,14 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
-  for (unsigned int track_it = 0; track_it != _track_map->size(); ++track_it)
+  for (size_t track_it = 0; track_it != _track_map->size(); ++track_it)
   {
     if (Verbosity())
     {
       std::cout << "TPC seed " << track_it << std::endl;
     }
     // if not a TPC track, ignore
-    TrackSeed* track = _track_map->get(track_it);
+    auto track = _track_map->get(track_it);
     const bool is_tpc = std::any_of(
         track->begin_cluster_keys(),
         track->end_cluster_keys(),
@@ -299,11 +300,11 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
                   << std::endl;
       }
       timer.restart();
+
       /// circle fit back to update track parameters
-      track->circleFitByTaubin(trackClusPositions, 7, 55);
-      track->lineFit(trackClusPositions, 7, 55);
-      float trackphi = track->get_phi(trackClusPositions);
-      track->set_phi(trackphi);  // make phi persistent
+      TrackSeedHelper::circleFitByTaubin(track, trackClusPositions, 7, 55);
+      TrackSeedHelper::lineFit(track, trackClusPositions, 7, 55);
+      track->set_phi(TrackSeedHelper::get_phi(track, trackClusPositions));
       timer.stop();
       if (Verbosity() > 3)
       {
@@ -383,10 +384,9 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         pretrackClusPositions.insert(std::make_pair(*iter, pos));
       }
 
-      pretrack.circleFitByTaubin(pretrackClusPositions, 7, 55);
-      pretrack.lineFit(pretrackClusPositions, 7, 55);
-      float pretrackphi = pretrack.get_phi(pretrackClusPositions);
-      pretrack.set_phi(pretrackphi);  // make phi persistent
+      TrackSeedHelper::circleFitByTaubin(&pretrack,pretrackClusPositions, 7, 55);
+      TrackSeedHelper::lineFit(&pretrack, pretrackClusPositions, 7, 55);
+      pretrack.set_phi(TrackSeedHelper::get_phi(&pretrack, pretrackClusPositions));
       // pretrack.set_qOverR(prepair.first.at(0).get_qOverR());
 
       // auto intermediate_seed = PropagateTrack(&pretrack, PropagationDirection::Inward, prepair.second.at(0), globalPositions);
@@ -1057,9 +1057,10 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     aliceSeed.SetDzDs(-aliceSeed.GetDzDs());
   }
 
-  double track_x = track->get_x();
-  double track_y = track->get_y();
-  double track_z = track->get_z();
+  const auto track_pos = TrackSeedHelper::get_xyz(track);
+  double track_x = track_pos.x();
+  double track_y = track_pos.y();
+  double track_z = track_pos.z();
 
   if (Verbosity() > 1)
   {
@@ -1412,16 +1413,15 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
 
     auto& seed = seeds[itrack];
     /// The ALICEKF gives a better charge determination at high pT
-    int q = seed.get_charge();
+    const int q = seed.get_charge();
 
     PositionMap local;
     std::transform(seed.begin_cluster_keys(), seed.end_cluster_keys(), std::inserter(local, local.end()),
                    [positions](const auto& key)
                    { return std::make_pair(key, positions.at(key)); });
-    seed.circleFitByTaubin(local, 7, 55);
-    seed.lineFit(local, 7, 55);
-    float phi = seed.get_phi(local);
-    seed.set_phi(phi);  // make phi persistent
+    TrackSeedHelper::circleFitByTaubin(&seed,local, 7, 55);
+    TrackSeedHelper::lineFit(&seed,local, 7, 55);
+    seed.set_phi(TrackSeedHelper::get_phi(&seed,local));
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
   }
 
@@ -1454,9 +1454,9 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
       std::cout << "Publishing seed " << ((int) itrack)
                 << " q " << q
                 << " qOverR " << fabs(seed.get_qOverR()) * q
-                << " x " << seed.get_x()
-                << " y " << seed.get_y()
-                << " z " << seed.get_z()
+                << " x " << TrackSeedHelper::get_x(&seed)
+                << " y " << TrackSeedHelper::get_y(&seed)
+                << " z " << TrackSeedHelper::get_z(&seed)
                 << " pT " << seed.get_pt()
                 << " eta " << seed.get_eta()
                 << " phi " << seed.get_phi()

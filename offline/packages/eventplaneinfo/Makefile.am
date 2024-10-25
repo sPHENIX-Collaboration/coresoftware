@@ -21,9 +21,9 @@ libeventplaneinfo_la_LIBADD = \
   -lepd_io \
   -lmbd_io \
   -lfun4all \
+  -lffamodules \
   -lcdbobjects \
-  -lglobalvertex_io \
-  -ltrackbase_historic_io
+  -lglobalvertex_io
 
 pkginclude_HEADERS = \
   Eventplaneinfo.h \
