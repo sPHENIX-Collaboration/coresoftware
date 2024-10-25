@@ -232,10 +232,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
     }
 
-    if(fitsilicon && nintt<2)
-    {
-      //continue;
-    }
     // store cluster global positions in a vector global_vec and cluskey_vec
 
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
@@ -255,11 +251,17 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
 	if (Verbosity() > 1)
 	  {
-	    std::cout << " Track " << trackid << " xy slope " << fitpars[0] << " y intercept " << fitpars[1] << " zslope " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
+	    std::cout << " Track " << trackid << " xy slope " << fitpars[0] << " y intercept " << fitpars[1] 
+		      << " zslope " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
 	  }
       }
     else
       {
+	if(fitsilicon && nintt<2)
+	  {
+	    continue;   // discard incomplete seeds
+	  }
+
 	fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec);  // do helical fit
       
 	if (fitpars.size() == 0)
@@ -332,12 +334,14 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	  
 	  if (Verbosity() > 1)
 	    {
-	      std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
+	      std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] 
+			<< " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
 	    }
 	}
       else
 	{
 	  fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec, use_intt_zfit);  // do helical fit
+
 	  if (fitpars.size() == 0)
 	    {
 	      continue;  // discard this track, fit failed
@@ -374,7 +378,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	pca2d = TrackFitUtils::get_circle_point_pca(fitpars[0], fitpars[1], fitpars[2], beamline);
 	track_vtx(0) = pca2d(0);
 	track_vtx(1) = pca2d(1);
-	track_vtx(2) = fitpars[4];
+	track_vtx(2) = fitpars[4];   // z axis intercept
       }
 
     newTrack.set_crossing(tracklet->get_crossing());
@@ -389,35 +393,16 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       someseed.insert_cluster_key(ckey);
     }
 
-    if(!straight_line_fit)
+    if(straight_line_fit)
       {
-	someseed.set_qOverR(tracklet->get_charge() / fitpars[0]);
-	someseed.set_phi(tracklet->get_phi());
-	
-	someseed.set_X0(fitpars[1]);
-	someseed.set_Y0(fitpars[2]);
-	someseed.set_Z0(fitpars[4]);
-	someseed.set_slope(fitpars[3]);
-
-	newTrack.set_x(someseed.get_x());
-	newTrack.set_y(someseed.get_y());
-	newTrack.set_z(someseed.get_z());
-	newTrack.set_px(someseed.get_px());
-	newTrack.set_py(someseed.get_py());
-	newTrack.set_pz(someseed.get_pz());
-	newTrack.set_charge(tracklet->get_charge());
-
-      }	
-    else
-      {
-	someseed.set_qOverR(tracklet->get_charge() / 1.0);
+	someseed.set_qOverR(1.0);
 	someseed.set_phi(tracklet->get_phi());
 	
 	someseed.set_X0(fitpars[0]);
 	someseed.set_Y0(fitpars[1]);
 	someseed.set_Z0(fitpars[3]);
 	someseed.set_slope(fitpars[2]);
-
+	
 	auto tangent=get_line_tangent(fitpars, global_vec[0]);
 	newTrack.set_x(track_vtx(0));
 	newTrack.set_y(track_vtx(1));
@@ -427,8 +412,25 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	newTrack.set_pz(tangent.second(2));
 	newTrack.set_charge(tracklet->get_charge());
       }
+    else
+      {
+	someseed.set_qOverR(tracklet->get_charge() / fitpars[0]);
+	someseed.set_phi(tracklet->get_phi());
 	
-    
+	someseed.set_X0(fitpars[1]);
+	someseed.set_Y0(fitpars[2]);
+	someseed.set_Z0(fitpars[4]);
+	someseed.set_slope(fitpars[3]);
+	
+	newTrack.set_x(someseed.get_x());
+	newTrack.set_y(someseed.get_y());
+	newTrack.set_z(someseed.get_z());
+	newTrack.set_px(someseed.get_px());
+	newTrack.set_py(someseed.get_py());
+	newTrack.set_pz(someseed.get_pz());
+	newTrack.set_charge(tracklet->get_charge());
+      }	
+	    
     nclus = ntpc + nsilicon;
 
     // some basic track quality requirements
@@ -466,7 +468,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   float zsum = 0;
   unsigned int accepted_tracks = cumulative_fitpars_vec.size();
 
-  // std::cout<<"accepted_tracks: " << accepted_tracks << std::endl;
   for (unsigned int trackid = 0; trackid < accepted_tracks; ++trackid)
   {
     xsum += cumulative_vertex[trackid][0];
@@ -482,7 +483,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     auto fitpars = cumulative_fitpars_vec[trackid];
     auto someseed = cumulative_someseed[trackid];
     auto newTrack = cumulative_newTrack[trackid];
-    // std::cout << "trackid " << trackid << " get id " <<newTrack.get_id()<< std::endl;
     SvtxAlignmentStateMap::StateVec statevec;
 
     // get the residuals and derivatives for all clusters
@@ -515,8 +515,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	  fitpoint = get_helix_surface_intersection(surf, fitpars, global, helix_pca, helix_tangent);
 	}
 
-      //std::cout << "  fitpoint " << fitpoint(0) << "  " << fitpoint(1) << "  " << fitpoint(2) << std::endl;
-
       // fitpoint is the point where the helical fit intersects the plane of the surface
       // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
       Acts::Vector3 fitpoint_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint * Acts::UnitConstants::cm);
@@ -530,7 +528,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       {
         zloc = convertTimeToZ(cluskey, cluster);
       }
-      // float yloc = 0.0;   // Because the fitpoint is on the surface, y will always be zero in local coordinates
 
       Acts::Vector2 residual(xloc - fitpoint_local(0), zloc - fitpoint_local(1));
 
@@ -778,14 +775,14 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     float dca3dxysigma = 0;
     float dca3dzsigma = 0;
     if(!straight_line_fit)
-      //      {
-      get_dca(newTrack, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma, event_vtx);
-    //}
-    //else
-    // {
-    // get_dca_zero_field(newTrack, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma, event_vtx);
-    // } 
-
+      {
+	get_dca(newTrack, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma, event_vtx);
+      }
+    else
+      {
+	get_dca_zero_field(newTrack, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma, event_vtx);
+      } 
+    
    Acts::Vector2 vtx_residual(-dca3dxy, -dca3dz);
 
     float lclvtx_derivativeX[AlignmentDefs::NLC];
@@ -982,6 +979,8 @@ Acts::Vector3 HelicalFitter::get_line_vtx(Acts::Vector3 event_vtx, const std::ve
 
 std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_tangent(const std::vector<float>& fitpars, Acts::Vector3 global)
 {
+  // returns the equation of the line, with the direction obtained from the global cluster point
+
   // Get the rough direction of the line from the global vector, which is a point on the line
   float phi = atan2(global(1),global(0));
 
@@ -1017,7 +1016,7 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_tangent(const st
 
 std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_zero_field(const std::vector<float>& fitpars)
 {
-  // we need the direction of the line
+  // Returns the line equation, but without the direction of the track
   // consider a point some distance along the straight line. 
   // Consider a value of x, calculate y, calculate z
   double x = 0;
@@ -1030,7 +1029,7 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_zero_field(const
   double z2 = fitpars[2]*x2 + fitpars[3];
   Acts::Vector3 arb_point2(x2, y2, z2);
 
-  Acts::Vector3 tangent = arb_point2 - arb_point;   // direction of line
+  Acts::Vector3 tangent = arb_point2 - arb_point;   // +/- times direction of line
   tangent /= tangent.norm();  
   
   std::pair<Acts::Vector3, Acts::Vector3> line = std::make_pair(arb_point, tangent);
@@ -1962,19 +1961,20 @@ void HelicalFitter::get_dca(SvtxTrack& track, float& dca3dxy, float& dca3dz, flo
 
   if (Verbosity() > 1)
   {
-    std::cout << " momentum X z: " << r << " phi: " << phi * 180 / M_PI << std::endl;
+    std::cout << " Helix: momentum.cross(z): " << r << " phi: " << phi * 180 / M_PI << std::endl;
     std::cout << "dca3dxy " << dca3dxy << " dca3dz: " << dca3dz << " pos_R(1): " << pos_R(1) << " dca3dxysigma " << dca3dxysigma << " dca3dzsigma " << dca3dzsigma << std::endl;
   }
 }
 
 void HelicalFitter::get_dca_zero_field(SvtxTrack& track, float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, const Acts::Vector3& event_vertex)
 {
-  // give trackseed
   dca3dxy = NAN;
+  // This is (pca2d(0), pca2d(1), Z0)
   Acts::Vector3 track_vtx(track.get_x(), track.get_y(), track.get_z());
   track_vtx -= event_vertex;  // difference between track_vertex and event_vtx
 
   // get unit direction vector for zero field track
+  // for zero field case this is the tangent unit vector
   Acts::Vector3 mom(track.get_px(), track.get_py(), track.get_pz());
 
   Acts::ActsSquareMatrix<3> posCov;
@@ -2012,7 +2012,7 @@ void HelicalFitter::get_dca_zero_field(SvtxTrack& track, float& dca3dxy, float& 
 
   if (Verbosity() > 1)
   {
-    std::cout << " momentum X z: " << r << " phi (deg): " << phi * 180 / M_PI << std::endl;
+    std::cout << " Zero Field: momentum.cross(z): " << r << " phi (deg): " << phi * 180 / M_PI << std::endl;
     std::cout << "dca3dxy " << dca3dxy << " dca3dz: " << dca3dz << " pos_R(1): " << pos_R(1) << " dca3dxysigma " << dca3dxysigma << " dca3dzsigma " << dca3dzsigma << std::endl;
   }
 }

@@ -724,7 +724,7 @@ Acts::Vector2 TrackFitUtils::get_line_point_pca(double slope, double intercept, 
   Acts::Vector2 posref(0, intercept);       // arbitrary point on the line
   Acts::Vector2 arb_point(2.0, slope*2.0 + intercept); // second arbitrary point on line 
   Acts::Vector2 tangent = arb_point - posref;
-  tangent = tangent/tangent.norm();   // line direction
+  tangent = tangent/tangent.norm();   // +/- the line direction
 
   Acts::Vector2 pca = posref + ((point - posref).dot(tangent))*tangent;
 
