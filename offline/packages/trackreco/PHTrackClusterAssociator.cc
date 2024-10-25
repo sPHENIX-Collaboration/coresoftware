@@ -48,11 +48,6 @@ PHTrackClusterAssociator::PHTrackClusterAssociator(const std::string& name)
 {}
 
 //____________________________________________________________________________..
-PHTrackClusterAssociator::~PHTrackClusterAssociator()
-{
-}
-
-//____________________________________________________________________________..
 int PHTrackClusterAssociator::InitRun(PHCompositeNode* topNode)
 {
   int ret = getNodes(topNode);

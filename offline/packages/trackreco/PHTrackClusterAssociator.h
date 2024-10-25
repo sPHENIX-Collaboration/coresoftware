@@ -25,8 +25,6 @@ class PHTrackClusterAssociator : public SubsysReco
  public:
   PHTrackClusterAssociator(const std::string& name = "PHTrackClusterAssociator");
 
-  ~PHTrackClusterAssociator() override;
-
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int ResetEvent(PHCompositeNode* topNode) override;

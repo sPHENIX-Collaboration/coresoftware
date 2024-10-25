@@ -38,12 +38,11 @@
 #include <TFile.h>
 #include <TTree.h>
 
+#include <cmath>
+
+
 ActsEvaluator::ActsEvaluator(const std::string& name)
   : m_filename(name)
-{
-}
-
-ActsEvaluator::~ActsEvaluator()
 {
 }
 
@@ -299,7 +298,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     float gz = globalTruthPos(2);
 
     /// Get local truth position
-    const float r = sqrt(gx * gx + gy * gy + gz * gz);
+    const float r = std::sqrt(gx * gx + gy * gy + gz * gz);
     Acts::Vector3 globalTruthUnitDir(gx / r, gy / r, gz / r);
 
     auto vecResult = surface.globalToLocal(
@@ -311,7 +310,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     m_t_x.push_back(gx);
     m_t_y.push_back(gy);
     m_t_z.push_back(gz);
-    m_t_r.push_back(sqrt(gx * gx + gy * gy));
+    m_t_r.push_back(std::sqrt(gx * gx + gy * gy));
     m_t_dx.push_back(gx / r);
     m_t_dy.push_back(gy / r);
     m_t_dz.push_back(gz / r);
@@ -323,7 +322,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     float truthTHETA = 0;
     float truthQOP = 0;
     float truthTIME = 0;
-    float momentum = sqrt(m_t_px * m_t_px +
+    float momentum = std::sqrt(m_t_px * m_t_px +
                           m_t_py * m_t_py +
                           m_t_pz * m_t_pz);
 
@@ -369,15 +368,15 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
       m_res_x_hit.push_back(residual(Acts::eBoundLoc0));
       m_res_y_hit.push_back(residual(Acts::eBoundLoc1));
       m_err_x_hit.push_back(
-          sqrt(resCov(Acts::eBoundLoc0, Acts::eBoundLoc0)));
+          std::sqrt(resCov(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_err_y_hit.push_back(
-          sqrt(resCov(Acts::eBoundLoc1, Acts::eBoundLoc1)));
+          std::sqrt(resCov(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_x_hit.push_back(
           residual(Acts::eBoundLoc0) /
-          sqrt(resCov(Acts::eBoundLoc0, Acts::eBoundLoc0)));
+          std::sqrt(resCov(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_y_hit.push_back(
           residual(Acts::eBoundLoc1) /
-          sqrt(resCov(Acts::eBoundLoc1, Acts::eBoundLoc1)));
+          std::sqrt(resCov(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_dim_hit.push_back(state.calibratedSize());
 
       /// Predicted parameter
@@ -404,37 +403,37 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
 
       /// Predicted parameter Uncertainties
       m_err_eLOC0_prt.push_back(
-          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
+          std::sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_err_eLOC1_prt.push_back(
-          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
+          std::sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_err_ePHI_prt.push_back(
-          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
+          std::sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_err_eTHETA_prt.push_back(
-          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
+          std::sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_err_eQOP_prt.push_back(
-          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
+          std::sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_err_eT_prt.push_back(
-          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
+          std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       /// Predicted parameter pulls
       m_pull_eLOC0_prt.push_back(
           (parameters[Acts::eBoundLoc0] - truthLOC0) /
-          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
+          std::sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_eLOC1_prt.push_back(
           (parameters[Acts::eBoundLoc1] - truthLOC1) /
-          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
+          std::sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_ePHI_prt.push_back(
           (parameters[Acts::eBoundPhi] - truthPHI) /
-          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
+          std::sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_pull_eTHETA_prt.push_back(
           (parameters[Acts::eBoundTheta] - truthTHETA) /
-          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
+          std::sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_pull_eQOP_prt.push_back(
           (parameters[Acts::eBoundQOverP] - truthQOP) /
-          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
+          std::sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_pull_eT_prt.push_back(
           (parameters[Acts::eBoundTime] - truthTIME) /
-          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
+          std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       Acts::FreeVector freeParams =
 	Acts::detail::transformBoundToFreeParameters(state.referenceSurface(),
@@ -528,37 +527,37 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
 
       /// Filtered parameter uncertainties
       m_err_eLOC0_flt.push_back(
-          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
+          std::sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_err_eLOC1_flt.push_back(
-          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
+          std::sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_err_ePHI_flt.push_back(
-          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
+          std::sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_err_eTHETA_flt.push_back(
-          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
+          std::sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_err_eQOP_flt.push_back(
-          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
+          std::sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_err_eT_flt.push_back(
-          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
+          std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       /// Filtered parameter pulls
       m_pull_eLOC0_flt.push_back(
           (parameter[Acts::eBoundLoc0] - truthLOC0) /
-          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
+          std::sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_eLOC1_flt.push_back(
           (parameter[Acts::eBoundLoc1] - truthLOC1) /
-          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
+          std::sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_ePHI_flt.push_back(
           (parameter[Acts::eBoundPhi] - truthPHI) /
-          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
+          std::sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_pull_eTHETA_flt.push_back(
           (parameter[Acts::eBoundTheta] - truthTHETA) /
-          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
+          std::sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_pull_eQOP_flt.push_back(
           (parameter[Acts::eBoundQOverP] - truthQOP) /
-          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
+          std::sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_pull_eT_flt.push_back(
           (parameter[Acts::eBoundTime] - truthTIME) /
-          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
+          std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), parameter);
 
@@ -570,7 +569,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
       m_px_flt.push_back(p * freeparams[Acts::eFreeDir0]);
       m_py_flt.push_back(p * freeparams[Acts::eFreeDir1]);
       m_pz_flt.push_back(p * freeparams[Acts::eFreeDir2]);
-      m_pT_flt.push_back(sqrt(p * std::hypot(freeparams[Acts::eFreeDir0],
+      m_pT_flt.push_back(std::sqrt(p * std::hypot(freeparams[Acts::eFreeDir0],
 					     freeparams[Acts::eFreeDir1])));
       m_eta_flt.push_back(eta(freeparams.segment<3>(Acts::eFreeDir0)));
       m_chi2.push_back(state.chi2());
@@ -644,37 +643,37 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
 
       /// Smoothed parameter uncertainties
       m_err_eLOC0_smt.push_back(
-          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
+          std::sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_err_eLOC1_smt.push_back(
-          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
+          std::sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_err_ePHI_smt.push_back(
-          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
+          std::sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_err_eTHETA_smt.push_back(
-          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
+          std::sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_err_eQOP_smt.push_back(
-          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
+          std::sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_err_eT_smt.push_back(
-          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
+          std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       /// Smoothed parameter pulls
       m_pull_eLOC0_smt.push_back(
           (parameter[Acts::eBoundLoc0] - truthLOC0) /
-          sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
+          std::sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_eLOC1_smt.push_back(
           (parameter[Acts::eBoundLoc1] - truthLOC1) /
-          sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
+          std::sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_ePHI_smt.push_back(
           (parameter[Acts::eBoundPhi] - truthPHI) /
-          sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
+          std::sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_pull_eTHETA_smt.push_back(
           (parameter[Acts::eBoundTheta] - truthTHETA) /
-          sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
+          std::sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_pull_eQOP_smt.push_back(
           (parameter[Acts::eBoundQOverP] - truthQOP) /
-          sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
+          std::sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_pull_eT_smt.push_back(
           (parameter[Acts::eBoundTime] - truthTIME) /
-          sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
+          std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), parameter);
 
@@ -686,7 +685,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
       m_px_smt.push_back(p * freeparams[Acts::eFreeDir0]);
       m_py_smt.push_back(p * freeparams[Acts::eFreeDir1]);
       m_pz_smt.push_back(p * freeparams[Acts::eFreeDir2]);
-      m_pT_smt.push_back(sqrt(p * std::hypot(freeparams[Acts::eFreeDir0],
+      m_pT_smt.push_back(std::sqrt(p * std::hypot(freeparams[Acts::eFreeDir0],
 					     freeparams[Acts::eFreeDir1])));
       m_eta_smt.push_back(eta(freeparams.segment<3>(Acts::eFreeDir0)));
 
@@ -789,7 +788,7 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
 
   auto siseed = m_siliconSeeds->get(siid);
   auto tpcseed = m_tpcSeeds->get(tpcid);
-  if(!tpcseed) return;
+  if(!tpcseed) { return; }
 
   const Acts::Vector3 position = TrackSeedHelper::get_xyz( siseed?siseed:tpcseed )*Acts::UnitConstants::cm;
   const Acts::Vector3 momentum(tpcseed->get_px(),tpcseed->get_py(),tpcseed->get_pz());
@@ -850,7 +849,7 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
       float gz = globalTruthPos(2);
 
       /// Get local truth position
-      const float r = sqrt(gx * gx + gy * gy + gz * gz);
+      const float r = std::sqrt(gx * gx + gy * gy + gz * gz);
       Acts::Vector3 globalTruthUnitDir(gx / r, gy / r, gz / r);
 
       auto surf = getSurface(key, cluster);
@@ -912,14 +911,14 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory::IndexedParameters& p
     m_eQOP_fit = parameter[Acts::eBoundQOverP];
     m_eT_fit = parameter[Acts::eBoundTime];
     m_err_eLOC0_fit =
-        sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0));
+        std::sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0));
     m_err_eLOC1_fit =
-        sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1));
-    m_err_ePHI_fit = sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi));
+        std::sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1));
+    m_err_ePHI_fit = std::sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi));
     m_err_eTHETA_fit =
-        sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta));
-    m_err_eQOP_fit = sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP));
-    m_err_eT_fit = sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime));
+        std::sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta));
+    m_err_eQOP_fit = std::sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP));
+    m_err_eT_fit = std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime));
 
     m_px_fit = boundParam.momentum()(0);
     m_py_fit = boundParam.momentum()(1);
@@ -978,10 +977,10 @@ void ActsEvaluator::fillG4Particle(PHG4Particle* part)
     m_t_px = part->get_px();
     m_t_py = part->get_py();
     m_t_pz = part->get_pz();
-    const double p = sqrt(m_t_px * m_t_px + m_t_py * m_t_py + m_t_pz * m_t_pz);
+    const double p = std::sqrt(m_t_px * m_t_px + m_t_py * m_t_py + m_t_pz * m_t_pz);
     m_t_theta = acos(m_t_pz / p);
     m_t_phi = atan(m_t_py / m_t_px);
-    m_t_pT = sqrt(m_t_px * m_t_px + m_t_py * m_t_py);
+    m_t_pT = std::sqrt(m_t_px * m_t_px + m_t_py * m_t_py);
     m_t_eta = atanh(m_t_pz / p);
 
     return;
