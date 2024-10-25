@@ -978,10 +978,10 @@ void ActsEvaluator::fillG4Particle(PHG4Particle* part)
     m_t_py = part->get_py();
     m_t_pz = part->get_pz();
     const double p = std::sqrt(m_t_px * m_t_px + m_t_py * m_t_py + m_t_pz * m_t_pz);
-    m_t_theta = acos(m_t_pz / p);
-    m_t_phi = atan(m_t_py / m_t_px);
+    m_t_theta = std::acos(m_t_pz / p);
+    m_t_phi = std::atan(m_t_py / m_t_px);
     m_t_pT = std::sqrt(m_t_px * m_t_px + m_t_py * m_t_py);
-    m_t_eta = atanh(m_t_pz / p);
+    m_t_eta = std::atanh(m_t_pz / p);
 
     return;
   }
