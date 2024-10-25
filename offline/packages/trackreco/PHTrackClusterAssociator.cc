@@ -45,11 +45,7 @@ namespace
 //____________________________________________________________________________..
 PHTrackClusterAssociator::PHTrackClusterAssociator(const std::string& name)
   : SubsysReco(name)
-{
-  m_caloNames.push_back("CEMC");
-  m_caloNames.push_back("HCALIN");
-  m_caloNames.push_back("HCALOUT");
-}
+{}
 
 //____________________________________________________________________________..
 PHTrackClusterAssociator::~PHTrackClusterAssociator()
