@@ -75,7 +75,6 @@ class PHParameters : public PHObject
 
   int WriteToDB();
   int ReadFromDB();
-  int ReadFromCDB(const std::string &domain);
   int ReadFromDB(const std::string &name, const int layer);
   int WriteToCDBFile(const std::string &filename);
   int WriteToFile(const std::string &extension, const std::string &dir = ".");

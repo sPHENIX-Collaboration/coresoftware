@@ -34,6 +34,7 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <Geant4/G4SystemOfUnits.hh>
 
@@ -204,9 +205,9 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 	std::cout << "Input seed pars for " << track_it
 		  << " q " << track->get_charge()
 		  << " qOverR " << fabs(track->get_qOverR()) * track->get_charge()
-		  << " X0 " << track->get_x()
-		  << " Y0 " << track->get_y()
-		  << " Z0 " << track->get_z()
+		  << " X0 " << TrackSeedHelper::get_x(track)
+		  << " Y0 " << TrackSeedHelper::get_y(track)
+		  << " Z0 " << TrackSeedHelper::get_z(track)
 		  << " eta " << track->get_eta()
 		  << " phi " << track->get_phi()
 		  << std::endl;
@@ -227,9 +228,9 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 	{
 	  std::cout << "  processing seed with offset_Z " << offset_Z
 		    << " eta " << track->get_eta()
-		    << " x " << track->get_x()
-		    << " y " << track->get_y()
-		    << " z " << track->get_z()
+        << " x " << TrackSeedHelper::get_x(track)
+        << " y " << TrackSeedHelper::get_y(track)
+        << " z " << TrackSeedHelper::get_z(track)
 		    << std::endl;
 	}
 
@@ -315,12 +316,11 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, 
   {
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
-    seed.circleFitByTaubin(positions, 7, 55);
-    seed.lineFit(positions, 7, 55);
+    TrackSeedHelper::circleFitByTaubin(&seed,positions, 7, 55);
+    TrackSeedHelper::lineFit(&seed,positions, 7, 55);
 
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
-    float phi = seed.get_phi(positions);
-    seed.set_phi(phi);  // stores the preliminary distortion corrected phi permanently
+    seed.set_phi(TrackSeedHelper::get_phi(&seed,positions));
     _track_map->insert(&seed);
 
     if(Verbosity() > 0)
@@ -328,9 +328,9 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, 
 	std::cout << "Publishing seed " << seed_index
 		  << " q " << q
 		  << " qOverR " << fabs(seed.get_qOverR()) * q
-		  << " x " << seed.get_x()
-		  << " y " << seed.get_y()
-		  << " z " << seed.get_z()
+		  << " x " << TrackSeedHelper::get_x(&seed)
+		  << " y " << TrackSeedHelper::get_y(&seed)
+		  << " z " << TrackSeedHelper::get_z(&seed)
 		  << " pT " << seed.get_pt()
 		  << " eta " << seed.get_eta()
 		  << " phi " << seed.get_phi()

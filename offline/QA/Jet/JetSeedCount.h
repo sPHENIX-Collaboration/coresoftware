@@ -3,6 +3,8 @@
 #ifndef JETSEEDCOUNT_H
 #define JETSEEDCOUNT_H
 
+#include "JetQADefs.h"
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -14,9 +16,10 @@
 #include <string>
 #include <vector>
 
-#include "JetQADefs.h"
 
 class PHCompositeNode;
+class TH1;
+class TH2;
 
 class JetSeedCount : public SubsysReco
 {
@@ -82,9 +85,6 @@ class JetSeedCount : public SubsysReco
   bool m_inPPMode{false};
 
   int m_event{0};
-  int m_seed_sub{std::numeric_limits<int>::max()};
-  int m_seed_raw{std::numeric_limits<int>::max()};
-  double z_vtx{std::numeric_limits<double>::quiet_NaN()};
 
   std::string m_moduleName;
   std::string m_recoJetName;
@@ -98,26 +98,23 @@ class JetSeedCount : public SubsysReco
   std::pair<double, double> m_ptRange;
 
   // trigger selection
-  bool m_doTrgSelect;
-  uint32_t m_trgToSelect;
+  bool m_doTrgSelect {false};
+  uint32_t m_trgToSelect {0};
 
-  std::vector<double> m_RawEta;
-  std::vector<double> m_RawPhi;
-  std::vector<double> m_SubEta;
-  std::vector<double> m_SubPhi;
-  std::vector<int> m_centrality;
-  std::vector<int> m_centrality_diff;
+  TH1* m_hRawSeedCount{nullptr};
+  TH1* m_hRawPt{nullptr};
+  TH1* m_hRawPt_All{nullptr};
+  TH2* m_hRawEtaVsPhi{nullptr};
+  TH1* m_hSubSeedCount{nullptr};
+  TH1* m_hSubPt{nullptr};
+  TH1* m_hSubPt_All{nullptr};
+  TH2* m_hSubEtaVsPhi{nullptr};
+  TH2* m_hRawSeedEnergyVsCent{nullptr};
+  TH2* m_hSubSeedEnergyVsCent{nullptr};
+  TH1* m_hCentMbd{nullptr};
+  TH2* m_hRawSeedVsCent{nullptr};
+  TH2* m_hSubSeedVsCent{nullptr};
 
-  std::vector<int> m_raw_counts;
-  std::vector<int> m_sub_counts;
-  std::vector<double> m_rawpt;
-  std::vector<double> m_subpt;
-  std::vector<double> m_rawpt_all;
-  std::vector<double> m_subpt_all;
-  std::vector<double> m_rawenergy;
-  std::vector<double> m_subenergy;
-  std::vector<double> m_rawcent;
-  std::vector<double> m_subcent;
 };
 
 #endif  // JETSEEDCOUNT_H

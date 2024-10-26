@@ -19,17 +19,18 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-#include <trackbase/TrkrClusterCrossingAssoc.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterCrossingAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #ifndef __clang__
 #pragma GCC diagnostic push
@@ -333,9 +334,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       fitTimer->stop();
       fitTimer->restart();
 
-      trackSeed->circleFitByTaubin(positions, 0, 8);
-      if (fabs(trackSeed->get_x()) > m_maxSeedPCA ||
-          fabs(trackSeed->get_y()) > m_maxSeedPCA)
+      TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 8);
+      const auto position( TrackSeedHelper::get_xyz(trackSeed.get()) );
+      if (std::abs(position.x()) > m_maxSeedPCA || std::abs(position.y()) > m_maxSeedPCA)
       {
         if (Verbosity() > 1)
         {
@@ -346,16 +347,18 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
         continue;
       }
 
-      trackSeed->lineFit(positions, 0, 8);
+      TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 8);
       z = trackSeed->get_Z0();
       fitTimer->stop();
       auto circlefittime = fitTimer->get_accumulated_time();
       fitTimer->restart();
 
-      float phi = trackSeed->get_phi(positions);
-      trackSeed->set_phi(phi);  // make phi persistent
+      // calculate phi and assign
+      auto phi = TrackSeedHelper::get_phi(trackSeed.get(), positions);
+      trackSeed->set_phi(phi);
+
       /// Project to INTT and find matches
-      int mvtxsize = globalPositions.size();
+      const auto mvtxsize = globalPositions.size();
       auto additionalClusters = findMatches(globalPositions, cluster_keys, *trackSeed);
 
       /// Add possible matches to cluster list to be parsed when
@@ -376,12 +379,12 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       fitTimer->restart();
 
       //! Circle fit again to take advantage of INTT lever arm
-      trackSeed->circleFitByTaubin(positions, 0, 7);
-      phi = trackSeed->get_phi(positions);
+      TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
+      phi = TrackSeedHelper::get_phi(trackSeed.get(), positions);
       trackSeed->set_phi(phi);
-      if(m_searchInIntt)
+      if (m_searchInIntt)
       {
-        trackSeed->lineFit(positions, 0, 2);
+        TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 2);
       }
 
       if (Verbosity() > 0)
@@ -549,7 +552,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
     std::vector<TrkrDefs::cluskey>& keys,
     TrackSeed& seed)
 {
-  auto fitpars = TrackFitUtils::fitClusters(clusters, keys,true);
+  auto fitpars = TrackFitUtils::fitClusters(clusters, keys, true);
 
   float trackphi = seed.get_phi();
   /// Diagnostic
@@ -570,7 +573,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
   std::map<int, float> minResidLayer;
   std::map<int, TrkrDefs::cluskey> minResidckey;
   std::map<int, Acts::Vector3> minResidGlobPos;
-  for(int i=0; i<7; i++)
+  for (int i = 0; i < 7; i++)
   {
     minResidLayer.insert(std::make_pair(i, std::numeric_limits<float>::max()));
   }
@@ -606,15 +609,14 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
         auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
         float surfphi = atan2(surfcenter.y(), surfcenter.x());
         float dphi = normPhi2Pi(trackphi - surfphi);
- 
+
         /// Check that the projection is within some reasonable amount of the segment
         /// to reject e.g. looking at segments in the opposite hemisphere. This is about
         /// the size of one intt segment (256 * 80 micron strips in a segment)
         if (fabs(dphi) > 0.2)
         {
-         continue;
+          continue;
         }
-
 
         auto range = m_clusterMap->getClusters(hitsetkey);
         for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
@@ -674,21 +676,19 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           /// we divide by two
           float rphiresid = fabs(local.x() - cluster->getLocalX());
           float zresid = fabs(local.y() - cluster->getLocalY());
-         
+
           if ((det == TrkrDefs::TrkrId::mvtxId && rphiresid < m_mvtxrPhiSearchWin &&
-              zresid < m_mvtxzSearchWin) 
-              ||
+               zresid < m_mvtxzSearchWin) ||
               (det == TrkrDefs::TrkrId::inttId && rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin))
-              
+
           {
-            
-            if(rphiresid < minResidLayer[layer])
+            if (rphiresid < minResidLayer[layer])
             {
               minResidLayer[layer] = rphiresid;
               minResidckey[layer] = cluskey;
               minResidGlobPos[layer] = glob;
             }
-           
+
             if (Verbosity() > 4)
             {
               std::cout << "Matched INTT cluster with cluskey " << cluskey
@@ -705,23 +705,45 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
       }
       layer++;
     }
-    
   }
-  for(int i=0; i<7; i++)
+  for (int ilayer = 0; ilayer < 3; ilayer++)
   {
-    if(minResidLayer[i] < std::numeric_limits<float>::max())
+    if (minResidLayer[ilayer] < std::numeric_limits<float>::max())
     {
-      matchedClusters.push_back(minResidckey[i]);
-      clusters.push_back(minResidGlobPos[i]);
+      matchedClusters.push_back(minResidckey[ilayer]);
+      clusters.push_back(minResidGlobPos[ilayer]);
     }
   }
 
-  if (m_seedAnalysis)
+  if (minResidLayer[3] < minResidLayer[4] && minResidLayer[3] < std::numeric_limits<float>::max())
   {
-    h_nMatchedClusters->Fill(matchedClusters.size());
+    matchedClusters.push_back(minResidckey[3]);
+    clusters.push_back(minResidGlobPos[3]);
+  }
+  else if (minResidLayer[4] < std::numeric_limits<float>::max())
+  {
+    matchedClusters.push_back(minResidckey[4]);
+    clusters.push_back(minResidGlobPos[4]);
   }
 
-  return matchedClusters;
+  if (minResidLayer[5] < minResidLayer[6] && minResidLayer[5] < std::numeric_limits<float>::max())
+  {
+    matchedClusters.push_back(minResidckey[5]);
+    clusters.push_back(minResidGlobPos[5]);
+  }
+  else if(minResidLayer[6] < std::numeric_limits<float>::max())
+  {
+    matchedClusters.push_back(minResidckey[6]);
+    clusters.push_back(minResidGlobPos[6]);
+  }
+
+
+if (m_seedAnalysis)
+{
+  h_nMatchedClusters->Fill(matchedClusters.size());
+}
+
+return matchedClusters;
 }
 
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
@@ -1097,7 +1119,7 @@ double PHActsSiliconSeeding::normPhi2Pi(const double phi)
   {
     returnPhi += 2 * M_PI;
   }
-  if(returnPhi > M_PI)
+  if (returnPhi > M_PI)
   {
     returnPhi -= 2 * M_PI;
   }

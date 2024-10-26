@@ -21,6 +21,7 @@
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_FastSim_v2.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
@@ -621,45 +622,28 @@ unsigned int PHTruthSiliconAssociation::buildTrackSeed(const std::set<TrkrDefs::
 
   /// Need to find the right one for the bend angle
 
-  float newphi = track->get_phi(_cluster_map, _tgeometry);
+  float newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
   /// We have to pick the right one based on the bend angle, so iterate
   /// through until you find the closest phi match
   if (fabs(newphi - phi) > 0.03)
   {
     track->set_X0(X0_2);
-    newphi = track->get_phi(_cluster_map, _tgeometry);
+    newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
 
     if (fabs(newphi - phi) > 0.03)
     {
       track->set_Y0(Y0_2);
-      newphi = track->get_phi(_cluster_map, _tgeometry);
+      newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
 
       if (fabs(newphi - phi) > 0.03)
       {
         track->set_X0(X0_1);
-        newphi = track->get_phi(_cluster_map, _tgeometry);
+        newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
       }
     }
   }
 
   // make phi persistent
-  track->set_phi( newphi );
-
-  if(Verbosity() > 2)
-    {
-      std::cout << "Charge is " << charge << std::endl;
-      std::cout << "truth/reco px " << px << ", " << track->get_px() << std::endl;
-      std::cout << "truth/reco py " << py << ", " << track->get_py() << std::endl;
-      std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
-      std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
-      std::cout << "truth/reco phi " << phi << ", " << track->get_phi(_cluster_map, _tgeometry) << std::endl;
-      std::cout << "truth/reco eta " << eta << ", " << track->get_eta() << std::endl;
-      std::cout << "truth/reco x " << x << ", " << track->get_x() << std::endl;
-      std::cout << "truth/reco y " << y << ", " << track->get_y() << std::endl;
-      std::cout << "truth/reco z " << z << ", " << track->get_z() << std::endl;
-    }
-  track->set_phi(newphi);
-
   if (Verbosity() > 2)
   {
     std::cout << "Charge is " << charge << std::endl;
@@ -667,11 +651,11 @@ unsigned int PHTruthSiliconAssociation::buildTrackSeed(const std::set<TrkrDefs::
     std::cout << "truth/reco py " << py << ", " << track->get_py() << std::endl;
     std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
     std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
-    std::cout << "truth/reco phi " << phi << ", " << track->get_phi(_cluster_map, _tgeometry) << std::endl;
+    std::cout << "truth/reco phi " << phi << ", " << track->get_phi() << std::endl;
     std::cout << "truth/reco eta " << eta << ", " << track->get_eta() << std::endl;
-    std::cout << "truth/reco x " << x << ", " << track->get_x() << std::endl;
-    std::cout << "truth/reco y " << y << ", " << track->get_y() << std::endl;
-    std::cout << "truth/reco z " << z << ", " << track->get_z() << std::endl;
+    std::cout << "truth/reco x " << x << ", " << TrackSeedHelper::get_x(track.get()) << std::endl;
+    std::cout << "truth/reco y " << y << ", " << TrackSeedHelper::get_y(track.get()) << std::endl;
+    std::cout << "truth/reco z " << z << ", " << TrackSeedHelper::get_z(track.get()) << std::endl;
   }
 
   // set intt crossing

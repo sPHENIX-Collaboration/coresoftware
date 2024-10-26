@@ -4,7 +4,7 @@ lib_LTLIBRARIES = libphnodedump.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
@@ -37,6 +37,7 @@ libphnodedump_la_SOURCES = \
   DumpMicromegasRawHitContainer.cc \
   DumpMvtxRawEvtHeader.cc \
   DumpMvtxRawHitContainer.cc \
+  DumpObject.cc \
   DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
@@ -73,10 +74,12 @@ libphnodedump_la_SOURCES = \
   DumpTrkrHitSetContainer.cc \
   DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
-  DumpObject.cc \
+  DumpZdcinfo.cc \
   PHNodeDump.cc
 
-AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
 
 libphnodedump_la_LIBADD = \
   -lcalo_io \
@@ -93,11 +96,11 @@ libphnodedump_la_LIBADD = \
   -lparticleflow_io \
   -lphfield_io \
   -lphg4hit \
+  -lphhepmc_io \
   -lSubsysReco \
-  -ltrackbase_historic_io \
+  -ltrackbase_historic \
   -ltrack_io \
-  -lphhepmc_io
-
+  -lzdcinfo_io
 
 
 noinst_PROGRAMS = \

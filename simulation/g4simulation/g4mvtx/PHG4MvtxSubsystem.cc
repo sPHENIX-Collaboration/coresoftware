@@ -81,6 +81,7 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(detector_type);
   m_Detector->OverlapCheck(CheckOverlap());
+  m_Detector->ApplyMisalignment(m_ApplyMisalignment);
   if (Verbosity())
   {
     std::cout << "    ------ created detector " << Name() << std::endl;
