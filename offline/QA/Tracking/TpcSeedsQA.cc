@@ -72,6 +72,9 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   // global position wrapper
   m_globalPositionWrapper.loadNodes(topNode);
 
+  m_clusterMover.initialize_geometry(g4geom);
+  m_clusterMover.set_verbosity(0);
+
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
@@ -127,6 +130,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   h_ntrackpervertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrackspervertex").c_str()));
   h_dedx = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dedx").c_str()));
   h_mip_dedx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "mip_dedx").c_str()));
+  h_dedx_pcaz = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dedx_pcaz").c_str()));
 
   nt_sector_event_summary = dynamic_cast<TNtuple *>(hm->getHisto(std::string(getHistoPrefix() + "sector_event_summary").c_str()));
 
@@ -220,6 +224,182 @@ float TpcSeedsQA::calc_dedx(TrackSeed *tpcseed)
   }
   sumdedx /= ndedx;
   return sumdedx;
+}
+
+float TpcSeedsQA::cal_track_length(SvtxTrack *track)
+{
+  float minR = std::numeric_limits<float>::max();
+  float maxR = 0;
+  for (const auto& ckey : get_cluster_keys(track))
+  {
+    auto cluster = clustermap->findCluster(ckey);
+
+    // Fully correct the cluster positions for the crossing and all distortions
+    Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, track->get_crossing() );
+
+    // add the global positions to a vector to give to the cluster mover
+    float R = std::sqrt(pow(global.x(),2) + pow(global.y(),2));
+    if (R < minR)
+    {
+      minR = R;
+    }
+    if (R > maxR)
+    {
+      maxR = R;
+    }
+  }
+  float tracklength = maxR - minR;
+  return tracklength;
+}
+
+float* TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
+{
+  // get the fully corrected cluster global positions
+  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
+  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
+  float minR = std::numeric_limits<float>::max();
+  float maxR = 0;
+  for (const auto& ckey : get_cluster_keys(track))
+  {
+    auto cluster = clustermap->findCluster(ckey);
+
+    // Fully correct the cluster positions for the crossing and all distortions
+    Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, track->get_crossing() );
+
+    // add the global positions to a vector to give to the cluster mover
+    global_raw.emplace_back(std::make_pair(ckey, global));
+    float R = std::sqrt(pow(global.x(),2) + pow(global.y(),2));
+    if (R < minR)
+    {
+      minR = R;
+    }
+    if (R > maxR)
+    {
+      maxR = R;
+    }
+  }
+  float tracklength = maxR - minR;
+  if (collision_or_cosmics == true && tracklength < 25)
+  {
+    float* dedxarray = new float[10];
+    for (int i = 0; i < 10; ++i)
+    {
+        dedxarray[i] = -1;
+    }
+    return dedxarray;
+  }
+
+  // move the corrected cluster positions back to the original readout surface
+  global_moved = m_clusterMover.processTrack(global_raw);
+
+  float fcorr = std::fabs(std::sin(eta_to_theta(track->get_eta())));
+  Acts::Vector3 clusglob_moved(0, 0, 0);
+  float adc_z0=0; int nclus_z0=0;
+  float adc_z1=0; int nclus_z1=0;
+  float adc_z2=0; int nclus_z2=0;
+  float adc_z3=0; int nclus_z3=0;
+  float adc_z4=0; int nclus_z4=0;
+  float adc_z5=0; int nclus_z5=0;
+  float adc_z6=0; int nclus_z6=0;
+  float adc_z7=0; int nclus_z7=0;
+  float adc_z8=0; int nclus_z8=0;
+  float adc_z9=0; int nclus_z9=0;
+  for (const auto& pair : global_moved)
+  {
+    auto ckey = pair.first;
+    auto cluster = clustermap->findCluster(ckey);
+    clusglob_moved = pair.second;
+
+    auto detid = TrkrDefs::getTrkrId(ckey);
+    if (detid != TrkrDefs::TrkrId::tpcId)
+    {
+      continue;  // the micromegas clusters are added to the TPC seeds
+    }
+
+    // only counts TPC R2 and R3
+    auto layer = TrkrDefs::getLayer(ckey);
+    if (layer<23)
+    {
+      continue;
+    }
+
+    float clusgz = clusglob_moved.z();
+    if (clusgz>-100 && clusgz<=-80)
+    {
+      adc_z0+=cluster->getAdc() * fcorr;
+      nclus_z0++;
+    }
+    else if (clusgz>-80 && clusgz<=-60)
+    {
+      adc_z1+=cluster->getAdc() * fcorr;
+      nclus_z1++;
+    }
+    else if (clusgz>-60 && clusgz<=-40)
+    {
+      adc_z2+=cluster->getAdc() * fcorr;
+      nclus_z2++;
+    }
+    else if (clusgz>-40 && clusgz<=-20)
+    {
+      adc_z3+=cluster->getAdc() * fcorr;
+      nclus_z3++;
+    }
+    else if (clusgz>-20 && clusgz<=0)
+    {
+      adc_z4+=cluster->getAdc() * fcorr;
+      nclus_z4++;
+    }
+    else if (clusgz>0 && clusgz<=20)
+    {
+      adc_z5+=cluster->getAdc() * fcorr;
+      nclus_z5++;
+    }
+    else if (clusgz>20 && clusgz<=40)
+    {
+      adc_z6+=cluster->getAdc() * fcorr;
+      nclus_z6++;
+    }
+    else if (clusgz>40 && clusgz<=60)
+    {
+      adc_z7+=cluster->getAdc() * fcorr;
+      nclus_z7++;
+    }
+    else if (clusgz>60 && clusgz<=80)
+    {
+      adc_z8+=cluster->getAdc() * fcorr;
+      nclus_z8++;
+    }
+    else if (clusgz>80 && clusgz<=100)
+    {
+      adc_z9+=cluster->getAdc() * fcorr;
+      nclus_z9++;
+    }
+  }
+
+  adc_z0 /= nclus_z0;
+  adc_z1 /= nclus_z1;
+  adc_z2 /= nclus_z2;
+  adc_z3 /= nclus_z3;
+  adc_z4 /= nclus_z4;
+  adc_z5 /= nclus_z5;
+  adc_z6 /= nclus_z6;
+  adc_z7 /= nclus_z7;
+  adc_z8 /= nclus_z8;
+  adc_z9 /= nclus_z9;
+
+  float* dedxarray = new float[10];
+  dedxarray[0] = adc_z0;
+  dedxarray[1] = adc_z1;
+  dedxarray[2] = adc_z2;
+  dedxarray[3] = adc_z3;
+  dedxarray[4] = adc_z4;
+  dedxarray[5] = adc_z5;
+  dedxarray[6] = adc_z6;
+  dedxarray[7] = adc_z7;
+  dedxarray[8] = adc_z8;
+  dedxarray[9] = adc_z9;
+
+  return dedxarray;
 }
 
 //____________________________________________________________________________..
@@ -540,11 +720,24 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
     if (m_ptot > 0.2 && m_ptot < 4 && m_ntpc > 30)
     {
       h_dedx->Fill(m_charge * m_ptot, m_dedx);
+      if (collision_or_cosmics == false || (collision_or_cosmics == true && cal_track_length(track) > 25))
+      {
+        h_dedx_pcaz->Fill(track->get_z(), m_dedx);
+      }
     }
 
     if (m_ptot > 1.0 && m_pt < 4 && m_ntpc > 30 && m_charge < 0 && m_dedx < 1000 && m_dedx > 50)
     {
       h_mip_dedx->Fill(m_dedx);
+    }
+
+    if (m_ntpc > 30)
+    {
+      float *cluster_dedx = cal_dedx_cluster(track);
+      for (int iz = 0; iz < 10; iz++)
+      {
+        h_dedx_pq_z[iz]->Fill(m_charge * m_ptot, cluster_dedx[iz]);
+      }
     }
 
     // if (m_pt > 1)
@@ -1001,6 +1194,20 @@ void TpcSeedsQA::createHistos()
   }
 
   {
+    auto h = new TH2F(std::string(getHistoPrefix() + "dedx_pcaz").c_str(),
+                      "track dEdx vs pcaz",
+                      100, -100, 100, 50, 0, 2000);
+    hm->registerHisto(h);
+  }
+
+  for (int i = 0; i < 10; i++)
+  {
+    h_dedx_pq_z[i] = new TH2F((boost::format("%sdedx_pq_%i") % getHistoPrefix() % i).str().c_str(),
+                              (boost::format("mean cluster dEdx at R2 & R3 corrected by path length according to track eta in z-region %i") % i).str().c_str(), 100, -3, 3, 100, 0, 10000);
+    hm->registerHisto(h_dedx_pq_z[i]);
+  }
+
+  {
     auto nt = new TNtuple(std::string(getHistoPrefix() + "sector_event_summary").c_str(),
 		      "sector_event_summary","event:segment:bco:side:region:sector:ncluster:meanadc");
     hm->registerHisto(nt);
@@ -1106,4 +1313,9 @@ std::pair<float, float> TpcSeedsQA::cal_tpc_eta_min_max(float vtxz)
   float eta_min = -std::log(std::tan(theta_min / 2));
   std::pair<float, float> min_max = std::make_pair(eta_min, eta_max);
   return min_max;
+}
+
+float TpcSeedsQA::eta_to_theta(float eta)
+{
+  return 2*std::atan(std::exp(-eta));
 }
