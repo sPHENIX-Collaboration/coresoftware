@@ -19,6 +19,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>

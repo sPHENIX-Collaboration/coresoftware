@@ -21,8 +21,8 @@ libzdcinfo_la_LIBADD = \
   -lfun4all \
   -lcalo_io \
   -lcdbobjects \
-  -lglobalvertex_io \
-  -ltrackbase_historic_io
+  -lffamodules \
+  -lglobalvertex_io
 
 pkginclude_HEADERS = \
   Zdcinfo.h \

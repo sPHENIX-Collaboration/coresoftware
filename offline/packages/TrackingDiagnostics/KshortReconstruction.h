@@ -35,6 +35,7 @@ using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
 using Trajectory = ActsExamples::Trajectories;
 
+class ActsGeometry;
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;

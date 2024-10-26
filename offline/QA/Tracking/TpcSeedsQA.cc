@@ -9,6 +9,7 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>

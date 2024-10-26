@@ -12,7 +12,10 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <qautils/QAHistManagerDef.h>
+
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrackFitUtils.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>

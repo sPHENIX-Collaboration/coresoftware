@@ -46,9 +46,3 @@ void TrackSeed_FastSim_v2::identify(std::ostream& os) const
   return;
 }
 
-float TrackSeed_FastSim_v2::get_phi(TrkrClusterContainer* /*clusters*/,
-                                    ActsGeometry* /*tGeometry*/) const
-{
-  const auto [x, y] = findRoot();
-  return std::atan2(-1 * (TrackSeed_v2::get_X0() - x), (TrackSeed_v2::get_Y0() - y));
-}
