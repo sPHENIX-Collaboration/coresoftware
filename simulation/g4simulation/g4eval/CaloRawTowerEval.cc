@@ -185,34 +185,34 @@ std::set<PHG4Shower*> CaloRawTowerEval::all_truth_primary_showers(TowerInfo* tow
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_all_truth_primary_showers.find(tower); iter != _cache_towerinfo_all_truth_primary_showers.end()) 
+    if (auto iter = _cache_towerinfo_all_truth_primary_showers.find(tower); iter != _cache_towerinfo_all_truth_primary_showers.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
 
-std::set<PHG4Shower*> showers;
-//use const incase something bad happens
-const TowerInfo::ShowerEdepMap& showerEdepMap = tower->get_showerEdepMap();
+  std::set<PHG4Shower*> showers;
+  // use const incase something bad happens
+  const TowerInfo::ShowerEdepMap& showerEdepMap = tower->get_showerEdepMap();
 
-for (const auto& [showerID, edep] : showerEdepMap)
-{
+  for (const auto& [showerID, edep] : showerEdepMap)
+  {
     PHG4Shower* shower = _truthinfo->GetShower(showerID);
 
     // Check for shower validity
     if (_strict)
     {
-        assert(shower);
+      assert(shower);
     }
     else if (!shower)
     {
-        ++_errors;
-        continue;
+      ++_errors;
+      continue;
     }
 
     // Process or store showers based on edep if needed
     showers.insert(shower);
-}
+  }
 
   if (_do_cache)
   {
@@ -305,9 +305,9 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(TowerInfo* towe
   }
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_max_truth_primary_shower_by_energy.find(tower); iter != _cache_towerinfo_max_truth_primary_shower_by_energy.end()) 
+    if (auto iter = _cache_towerinfo_max_truth_primary_shower_by_energy.find(tower); iter != _cache_towerinfo_max_truth_primary_shower_by_energy.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
 
@@ -440,12 +440,12 @@ TowerInfo* CaloRawTowerEval::best_towerinfo_from(PHG4Shower* shower)
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_best_tower_from_primary_shower.find(shower); iter != _cache_towerinfo_best_tower_from_primary_shower.end()) 
+    if (auto iter = _cache_towerinfo_best_tower_from_primary_shower.find(shower); iter != _cache_towerinfo_best_tower_from_primary_shower.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
-  
+
   TowerInfo* best_tower = nullptr;
   float best_energy = FLT_MAX * -1.0;
   std::set<TowerInfo*> towers = all_towerinfos_from(shower);
@@ -480,8 +480,6 @@ TowerInfo* CaloRawTowerEval::best_towerinfo_from(PHG4Shower* shower)
 
   return best_tower;
 }
-
-
 
 std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Shower* shower)
 {
@@ -578,9 +576,9 @@ std::set<TowerInfo*> CaloRawTowerEval::all_towerinfos_from(PHG4Shower* shower)
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_all_towers_from_primary_shower.find(shower); iter != _cache_towerinfo_all_towers_from_primary_shower.end()) 
+    if (auto iter = _cache_towerinfo_all_towers_from_primary_shower.find(shower); iter != _cache_towerinfo_all_towers_from_primary_shower.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
 
@@ -697,9 +695,9 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Shower* sh
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_get_energy_contribution_primary_shower.find(std::make_pair(tower, shower)); iter != _cache_towerinfo_get_energy_contribution_primary_shower.end()) 
+    if (auto iter = _cache_towerinfo_get_energy_contribution_primary_shower.find(std::make_pair(tower, shower)); iter != _cache_towerinfo_get_energy_contribution_primary_shower.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
 
@@ -712,7 +710,6 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Shower* sh
   {
     energy = showerIter->second;
   }
-
 
   if (_do_cache)
   {
@@ -799,7 +796,7 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primary_particles(TowerInfo*
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_all_truth_primary_particles.find(tower); iter != _cache_towerinfo_all_truth_primary_particles.end()) 
+    if (auto iter = _cache_towerinfo_all_truth_primary_particles.find(tower); iter != _cache_towerinfo_all_truth_primary_particles.end())
     {
       return iter->second;
     }
@@ -898,9 +895,9 @@ PHG4Particle* CaloRawTowerEval::max_truth_primary_particle_by_energy(TowerInfo* 
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_max_truth_primary_particle_by_energy.find(tower); iter != _cache_towerinfo_max_truth_primary_particle_by_energy.end()) 
+    if (auto iter = _cache_towerinfo_max_truth_primary_particle_by_energy.find(tower); iter != _cache_towerinfo_max_truth_primary_particle_by_energy.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
 
@@ -1021,9 +1018,9 @@ std::set<TowerInfo*> CaloRawTowerEval::all_towerinfos_from(PHG4Particle* primary
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_all_towers_from_primary_particle.find(primary); iter != _cache_towerinfo_all_towers_from_primary_particle.end()) 
+    if (auto iter = _cache_towerinfo_all_towers_from_primary_particle.find(primary); iter != _cache_towerinfo_all_towers_from_primary_particle.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
 
@@ -1141,9 +1138,9 @@ TowerInfo* CaloRawTowerEval::best_towerinfo_from(PHG4Particle* primary)
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_best_tower_from_primary_particle.find(primary); iter != _cache_towerinfo_best_tower_from_primary_particle.end()) 
+    if (auto iter = _cache_towerinfo_best_tower_from_primary_particle.find(primary); iter != _cache_towerinfo_best_tower_from_primary_particle.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
 
@@ -1266,9 +1263,9 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Particle* 
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_get_energy_contribution_primary_particle.find(std::make_pair(tower, primary)); iter != _cache_towerinfo_get_energy_contribution_primary_particle.end()) 
+    if (auto iter = _cache_towerinfo_get_energy_contribution_primary_particle.find(std::make_pair(tower, primary)); iter != _cache_towerinfo_get_energy_contribution_primary_particle.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
 
@@ -1432,14 +1429,14 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(TowerInfo* tower)
 
   if (_do_cache)
   {
-    if (auto iter = _cache_towerinfo_all_truth_hits.find(tower); iter != _cache_towerinfo_all_truth_hits.end()) 
+    if (auto iter = _cache_towerinfo_all_truth_hits.find(tower); iter != _cache_towerinfo_all_truth_hits.end())
     {
-    return iter->second;
+      return iter->second;
     }
   }
 
   std::set<PHG4Hit*> truth_hits;
-  const TowerInfo::EdepMap &edepMap = tower->get_hitEdepMap();
+  const TowerInfo::EdepMap& edepMap = tower->get_hitEdepMap();
   // loop over all g4hits
   for (const auto& [hitID, edep] : edepMap)
   {
@@ -1465,7 +1462,6 @@ std::set<PHG4Hit*> CaloRawTowerEval::all_truth_hits(TowerInfo* tower)
 
   return truth_hits;
 }
-
 
 void CaloRawTowerEval::get_node_pointers(PHCompositeNode* topNode)
 {
