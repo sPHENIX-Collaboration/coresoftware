@@ -291,7 +291,7 @@ float* TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
   // move the corrected cluster positions back to the original readout surface
   global_moved = m_clusterMover.processTrack(global_raw);
 
-  float fcorr = fabs(std::sin(eta_to_theta(track->get_eta())));
+  float fcorr = std::fabs(std::sin(eta_to_theta(track->get_eta())));
   Acts::Vector3 clusglob_moved(0, 0, 0);
   float adc_z0=0; int nclus_z0=0;
   float adc_z1=0; int nclus_z1=0;
@@ -1316,5 +1316,5 @@ std::pair<float, float> TpcSeedsQA::cal_tpc_eta_min_max(float vtxz)
 
 float TpcSeedsQA::eta_to_theta(float eta)
 {
-  return 2*atan(std::exp(-eta));
+  return 2*std::atan(std::exp(-eta));
 }
