@@ -202,7 +202,7 @@ int CaloTowerBuilder::process_sim()
   for (int i = 0; i < n_channels; i++)
   {
     //this is for copying the truth info to the downstream object
-    Towerinfo* towerwaveform = m_CalowaveformContainer->get_tower_at_channel(i);
+    TowerInfo* towerwaveform = m_CalowaveformContainer->get_tower_at_channel(i);
     TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
     towerinfo->copy_tower(towerwaveform);
     towerinfo->set_time(processed_waveforms.at(i).at(1));
