@@ -126,7 +126,7 @@ class CaloRawClusterEval
   TowerInfoContainer* _towerinfos = nullptr;
 
   bool _strict = false;
-  bool _usetowerinfo = true;
+  bool _usetowerinfo = false;
   int _verbosity = 1;
   unsigned int _errors = 0;
 
