@@ -122,7 +122,7 @@ std::set<PHG4Shower*> CaloRawClusterEval::all_truth_primary_showers(RawCluster* 
   // loop over all the clustered towers
   if (_usetowerinfo)
   {
-    const RawCluster::TowerMap tower_map = cluster->get_towermap();
+    const RawCluster::TowerMap& tower_map = cluster->get_towermap();
     for (auto tower_iter : tower_map)
     {
       RawTowerDefs::keytype tower_key = tower_iter.first;
@@ -480,7 +480,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   // loop over all the clustered towers
   if (_usetowerinfo)
   {
-    const RawCluster::TowerMap tower_map = cluster->get_towermap();
+    const RawCluster::TowerMap& tower_map = cluster->get_towermap();
     for (auto tower_iter : tower_map)
     {
       RawTowerDefs::keytype tower_key = tower_iter.first;
@@ -900,7 +900,7 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster)
   // loop over all the clustered towers
   if (_usetowerinfo)
   {
-    const RawCluster::TowerMap tower_map = cluster->get_towermap();
+    const RawCluster::TowerMap& tower_map = cluster->get_towermap();
     for (auto tower_iter : tower_map)
     {
       RawTowerDefs::keytype tower_key = tower_iter.first;
