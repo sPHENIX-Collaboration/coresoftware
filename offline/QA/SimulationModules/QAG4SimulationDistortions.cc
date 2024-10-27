@@ -12,6 +12,7 @@
 
 #include <globalvertex/SvtxVertexMap.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -350,8 +351,8 @@ bool QAG4SimulationDistortions::checkTrack(SvtxTrack* track)
 
   // ignore tracks with too few mvtx, intt and micromegas hits
   const auto cluster_keys(get_cluster_keys(track));
-  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2) return false;
-  if (count_clusters<TrkrDefs::inttId>(cluster_keys) < 2) return false;
+  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2) { return false; }
+  if (count_clusters<TrkrDefs::inttId>(cluster_keys) < 2) { return false; }
   if (count_clusters<TrkrDefs::micromegasId>(cluster_keys) < 2)
   {
     return false;

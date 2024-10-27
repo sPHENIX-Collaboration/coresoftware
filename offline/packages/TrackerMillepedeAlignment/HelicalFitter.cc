@@ -21,6 +21,7 @@
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
@@ -219,7 +220,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     // Get a vector of cluster keys from the tracklet
     getTrackletClusterList(tracklet, cluskey_vec);
-    std::cout << " cluskey vector size " << cluskey_vec.size() << std::endl;  
     if(cluskey_vec.size() < 3)
       {
 	continue;
@@ -423,9 +423,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	someseed.set_Z0(fitpars[4]);
 	someseed.set_slope(fitpars[3]);
 	
-	newTrack.set_x(someseed.get_x());
-	newTrack.set_y(someseed.get_y());
-	newTrack.set_z(someseed.get_z());
+	const auto position = TrackSeedHelper::get_xyz(&someseed);
+	
+	newTrack.set_x(position.x());
+	newTrack.set_y(position.y());
+	newTrack.set_z(position.z());
 	newTrack.set_px(someseed.get_px());
 	newTrack.set_py(someseed.get_py());
 	newTrack.set_pz(someseed.get_pz());
@@ -1272,15 +1274,11 @@ void HelicalFitter::getTrackletClusters(TrackSeed* tracklet, std::vector<Acts::V
 
 void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
-  std::cout << " tracklet: " << std::endl;
-  tracklet->identify();
-
   for (auto clusIter = tracklet->begin_cluster_keys();
        clusIter != tracklet->end_cluster_keys();
        ++clusIter)
   {
     auto key = *clusIter;
-    std::cout << "   get cluster with key " << key << std::endl;
     auto cluster = _cluster_map->findCluster(key);
     if (!cluster)
     {
