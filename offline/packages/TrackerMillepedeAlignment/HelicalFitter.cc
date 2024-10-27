@@ -219,10 +219,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     // Get a vector of cluster keys from the tracklet
     getTrackletClusterList(tracklet, cluskey_vec);
+    std::cout << " cluskey vector size " << cluskey_vec.size() << std::endl;  
     if(cluskey_vec.size() < 3)
-    {
-      continue;
-    }
+      {
+	continue;
+      }
     int nintt = 0;
     for (auto& key : cluskey_vec)
     {
@@ -766,6 +767,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     m_trackmap->insertWithKey(&newTrack, trackid);
 
     // calculate vertex residual with perigee surface
+    //-------------------------------------------------------
+
+    //  skip the common vertex requirement for this track if it is the only track in the event
+    if(accepted_tracks < 2) {  continue; }
+
     Acts::Vector3 event_vtx(0, 0, averageVertex(2));
 
     // The residual for the vtx case is (event vtx - track vtx)
@@ -1266,15 +1272,19 @@ void HelicalFitter::getTrackletClusters(TrackSeed* tracklet, std::vector<Acts::V
 
 void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
+  std::cout << " tracklet: " << std::endl;
+  tracklet->identify();
+
   for (auto clusIter = tracklet->begin_cluster_keys();
        clusIter != tracklet->end_cluster_keys();
        ++clusIter)
   {
     auto key = *clusIter;
+    std::cout << "   get cluster with key " << key << std::endl;
     auto cluster = _cluster_map->findCluster(key);
     if (!cluster)
     {
-      std::cout << "Failed to get cluster with key " << key << std::endl;
+      std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
       continue;
     }
 
@@ -1292,7 +1302,7 @@ void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<Trkr
       continue;
     }
 
-    // drop INTT clusters for now
+    // drop INTT clusters for now  -- TEMPORARY!
     if (layer > 2 && layer < 7)
     {
       continue;
