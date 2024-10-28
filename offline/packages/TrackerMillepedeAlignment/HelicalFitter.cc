@@ -1653,7 +1653,7 @@ void HelicalFitter::getLocalVtxDerivativesZeroFieldXY(SvtxTrack& track, const Ac
   }
 }
 
-void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 global, const Acts::Vector3& fitpoint, const std::vector<float>& fitpars, float glbl_derivativeX[6], float glbl_derivativeY[6], unsigned int layer)
+void HelicalFitter::getGlobalDerivativesXY(const Surface& surf, const Acts::Vector3& global, const Acts::Vector3& fitpoint, const std::vector<float>& fitpars, float glbl_derivativeX[6], float glbl_derivativeY[6], unsigned int layer)
 {
   // calculate projX and projY vectors once for the optimum fit parameters
   std::pair<Acts::Vector3, Acts::Vector3> tangent;
