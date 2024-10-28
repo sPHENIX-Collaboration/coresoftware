@@ -220,7 +220,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   }
   if (!trackmap or !clustermap or !geometry or (!hitmap && m_doHits))
   {
-    std::cout << "Missing node, can't continue" << std::endl;
+    std::cout << "Missing node, can't continue hello" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
