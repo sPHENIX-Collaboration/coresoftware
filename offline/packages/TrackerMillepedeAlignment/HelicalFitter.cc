@@ -106,9 +106,23 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
   {
     // fout = new TFile("HF_ntuple.root","recreate");
     fout = new TFile(ntuple_outfilename.c_str(), "recreate");
-    ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+    if(straight_line_fit)
+      {
+	ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:XYs:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+      }
+    else
+      {
+	ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+      }
 
-    track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
+    if(straight_line_fit)
+      {
+ 	track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
+     }
+    else
+      {
+	track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
+      }
   }
 
   // print grouping setup to log file:
@@ -722,39 +736,67 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
           sector = InttDefs::getLadderPhiId(cluskey_vec[ivec]);
           subsurf = InttDefs::getLadderZId(cluskey_vec[ivec]);
         }
-        float ntp_data[75] = {
-            (float) event, (float) trackid,
-            (float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid, (float) sector, (float) side,
-            (float) subsurf, phi,
-            (float) glbl_label[0], (float) glbl_label[1], (float) glbl_label[2], (float) glbl_label[3], (float) glbl_label[4], (float) glbl_label[5],
-            (float) sensorCenter(0), (float) sensorCenter(1), (float) sensorCenter(2),
-            (float) sensorNormal(0), (float) sensorNormal(1), (float) sensorNormal(2),
-            (float) ideal_center(0), (float) ideal_center(1), (float) ideal_center(2),
-            (float) ideal_norm(0), (float) ideal_norm(1), (float) ideal_norm(2),
-            (float) ideal_glob(0), (float) ideal_glob(1), (float) ideal_glob(2),
-            (float) fitpars[0], (float) fitpars[1], (float) fitpars[2], (float) fitpars[3], (float) fitpars[4],
-            (float) global(0), (float) global(1), (float) global(2),
-            (float) fitpoint(0), (float) fitpoint(1), (float) fitpoint(2),
-            (float) tangent.first.x(), (float) tangent.first.y(), (float) tangent.first.z(),
-            (float) tangent.second.x(), (float) tangent.second.y(), (float) tangent.second.z(),
-            xloc, zloc, (float) fitpoint_local(0), (float) fitpoint_local(1),
-            lcl_derivativeX[0], lcl_derivativeX[1], lcl_derivativeX[2], lcl_derivativeX[3], lcl_derivativeX[4],
-            glbl_derivativeX[0], glbl_derivativeX[1], glbl_derivativeX[2], glbl_derivativeX[3], glbl_derivativeX[4], glbl_derivativeX[5],
-            lcl_derivativeY[0], lcl_derivativeY[1], lcl_derivativeY[2], lcl_derivativeY[3], lcl_derivativeY[4],
-            glbl_derivativeY[0], glbl_derivativeY[1], glbl_derivativeY[2], glbl_derivativeY[3], glbl_derivativeY[4], glbl_derivativeY[5]};
+	if(straight_line_fit)
+	  {
+	    float ntp_data[72] = {
+	      (float) event, (float) trackid,
+	      (float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid, (float) sector, (float) side,
+	      (float) subsurf, phi,
+	      (float) glbl_label[0], (float) glbl_label[1], (float) glbl_label[2], (float) glbl_label[3], (float) glbl_label[4], (float) glbl_label[5],
+	      (float) sensorCenter(0), (float) sensorCenter(1), (float) sensorCenter(2),
+	      (float) sensorNormal(0), (float) sensorNormal(1), (float) sensorNormal(2),
+	      (float) ideal_center(0), (float) ideal_center(1), (float) ideal_center(2),
+	      (float) ideal_norm(0), (float) ideal_norm(1), (float) ideal_norm(2),
+	      (float) ideal_glob(0), (float) ideal_glob(1), (float) ideal_glob(2),
+	      (float) fitpars[0], (float) fitpars[1], (float) fitpars[2], (float) fitpars[3],
+	      (float) global(0), (float) global(1), (float) global(2),
+	      (float) fitpoint(0), (float) fitpoint(1), (float) fitpoint(2),
+	      (float) tangent.first.x(), (float) tangent.first.y(), (float) tangent.first.z(),
+	      (float) tangent.second.x(), (float) tangent.second.y(), (float) tangent.second.z(),
+	      xloc, zloc, (float) fitpoint_local(0), (float) fitpoint_local(1),
+	      lcl_derivativeX[0], lcl_derivativeX[1], lcl_derivativeX[2], lcl_derivativeX[3],
+	      glbl_derivativeX[0], glbl_derivativeX[1], glbl_derivativeX[2], glbl_derivativeX[3], glbl_derivativeX[4], glbl_derivativeX[5],
+	      lcl_derivativeY[0], lcl_derivativeY[1], lcl_derivativeY[2], lcl_derivativeY[3],
+	      glbl_derivativeY[0], glbl_derivativeY[1], glbl_derivativeY[2], glbl_derivativeY[3], glbl_derivativeY[4], glbl_derivativeY[5]};
+	    
+	    ntp->Fill(ntp_data);
+	  }
+	else
+	  {
+	    float ntp_data[75] = {
+	      (float) event, (float) trackid,
+	      (float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid, (float) sector, (float) side,
+	      (float) subsurf, phi,
+	      (float) glbl_label[0], (float) glbl_label[1], (float) glbl_label[2], (float) glbl_label[3], (float) glbl_label[4], (float) glbl_label[5],
+	      (float) sensorCenter(0), (float) sensorCenter(1), (float) sensorCenter(2),
+	      (float) sensorNormal(0), (float) sensorNormal(1), (float) sensorNormal(2),
+	      (float) ideal_center(0), (float) ideal_center(1), (float) ideal_center(2),
+	      (float) ideal_norm(0), (float) ideal_norm(1), (float) ideal_norm(2),
+	      (float) ideal_glob(0), (float) ideal_glob(1), (float) ideal_glob(2),
+	      (float) fitpars[0], (float) fitpars[1], (float) fitpars[2], (float) fitpars[3], (float) fitpars[4],
+	      (float) global(0), (float) global(1), (float) global(2),
+	      (float) fitpoint(0), (float) fitpoint(1), (float) fitpoint(2),
+	      (float) tangent.first.x(), (float) tangent.first.y(), (float) tangent.first.z(),
+	      (float) tangent.second.x(), (float) tangent.second.y(), (float) tangent.second.z(),
+	      xloc, zloc, (float) fitpoint_local(0), (float) fitpoint_local(1),
+	      lcl_derivativeX[0], lcl_derivativeX[1], lcl_derivativeX[2], lcl_derivativeX[3], lcl_derivativeX[4],
+	      glbl_derivativeX[0], glbl_derivativeX[1], glbl_derivativeX[2], glbl_derivativeX[3], glbl_derivativeX[4], glbl_derivativeX[5],
+	      lcl_derivativeY[0], lcl_derivativeY[1], lcl_derivativeY[2], lcl_derivativeY[3], lcl_derivativeY[4],
+	      glbl_derivativeY[0], glbl_derivativeY[1], glbl_derivativeY[2], glbl_derivativeY[3], glbl_derivativeY[4], glbl_derivativeY[5]};
+	    
+	    ntp->Fill(ntp_data);
 
-        ntp->Fill(ntp_data);
-
-        if (Verbosity() > 2)
-        {
-          for (int i = 0; i < 34; ++i)
-          {
-            std::cout << ntp_data[i] << "  ";
-          }
-          std::cout << std::endl;
-        }
+	    if (Verbosity() > 2)
+	      {
+		for (int i = 0; i < 75; ++i)
+		  {
+		    std::cout << ntp_data[i] << "  ";
+		  }
+		std::cout << std::endl;
+	      }
+	  }
       }
-
+      
       if (!isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
@@ -771,8 +813,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     // calculate vertex residual with perigee surface
     //-------------------------------------------------------
 
-    //  skip the common vertex requirement for this track if it is the only track in the event
-    if(accepted_tracks < 2) {  continue; }
+    //  skip the common vertex requirement for this track unless there are 3 tracks in the event
+    if(accepted_tracks < 3) {  continue; }
 
     Acts::Vector3 event_vtx(0, 0, averageVertex(2));
 
@@ -868,15 +910,28 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       Acts::Vector3 r = mom.cross(Acts::Vector3(0., 0., 1.));
       float perigee_phi = atan2(r(1), r(0));
       float track_phi = atan2(newTrack.get_py(), newTrack.get_px());
-      //	  float ntp_data[30] = {(float) trackid,dca3dxy,dca3dz,(float) vtx_sigma(0),(float) vtx_sigma(1),
-      float ntp_data[30] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
-                            lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3], lclvtx_derivativeX[4],
-                            glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
-                            lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3], lclvtx_derivativeY[4],
-                            glblvtx_derivativeY[0], glblvtx_derivativeY[1], glblvtx_derivativeY[2],
-                            newTrack.get_x(), newTrack.get_y(), newTrack.get_z(), (float) event_vtx(2), track_phi, perigee_phi};
-
-      track_ntp->Fill(ntp_data);
+      if(straight_line_fit)
+	{
+	  float ntp_data[25] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+				lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3],
+				glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
+				lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3],
+				glblvtx_derivativeY[0], glblvtx_derivativeY[1], glblvtx_derivativeY[2],
+				newTrack.get_x(), newTrack.get_y(), newTrack.get_z(), (float) event_vtx(2), track_phi, perigee_phi};
+	  
+	  track_ntp->Fill(ntp_data);
+	}
+      else
+	{
+	  float ntp_data[27] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+				lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3], lclvtx_derivativeX[4],
+				glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
+				lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3], lclvtx_derivativeY[4],
+				glblvtx_derivativeY[0], glblvtx_derivativeY[1], glblvtx_derivativeY[2],
+				newTrack.get_x(), newTrack.get_y(), newTrack.get_z(), (float) event_vtx(2), track_phi, perigee_phi};
+	  
+	  track_ntp->Fill(ntp_data);
+	}
     }
 
     if (Verbosity() > 1)
