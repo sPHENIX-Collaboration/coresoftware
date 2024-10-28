@@ -4,6 +4,8 @@
 
 #include "TpcClusterizer.h"
 
+#include "LaserEventInfo.h"
+
 #include "TrainingHits.h"
 #include "TrainingHitsContainer.h"
 
@@ -1207,6 +1209,13 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
+  }
+
+  // get laser event info, if exists and event has laser and rejection is on, don't bother with clustering
+  LaserEventInfo *laserInfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
+  if (m_rejectEvent && laserInfo && laserInfo->isLaserEvent())
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // get node for clusters

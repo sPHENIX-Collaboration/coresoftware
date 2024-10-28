@@ -1458,7 +1458,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         BeginRun(runnumber);
       }
     }
-    if (Verbosity() >= 1)
+    if (Verbosity() >= 1 && ((icnt + 1)%VerbosityDownscale() == 0))
     {
       std::cout << "Fun4AllServer::run - processing event "
                 << (icnt + 1) << " from run " << runnumber << std::endl;

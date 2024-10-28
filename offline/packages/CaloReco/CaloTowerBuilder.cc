@@ -55,6 +55,7 @@ CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
 CaloTowerBuilder::~CaloTowerBuilder()
 {
   delete cdbttree;
+  delete cdbttree_tbt_zs;
   delete WaveformProcessing;
 }
 
@@ -147,6 +148,11 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     }
   }
   WaveformProcessing->initialize_processing();
+  if(m_dotbtszs)
+  {
+    cdbttree_tbt_zs = new CDBTTree(m_zsURL.c_str());
+  }
+
   CreateNodeTree(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -160,9 +166,30 @@ int CaloTowerBuilder::process_sim()
     TowerInfo *towerinfo = m_CalowaveformContainer->get_tower_at_channel(ich);
     std::vector<float> waveform;
     waveform.reserve(m_nsamples);
-    for (int samp = 0; samp < m_nsamples; samp++)
+    bool fillwaveform = true;
+    //get key
+    if(m_dotbtszs)
     {
-      waveform.push_back(towerinfo->get_waveform_value(samp));
+      unsigned int key = m_CalowaveformContainer->encode_key(ich);
+      int zs_threshold = cdbttree_tbt_zs->GetIntValue(key, m_zs_fieldname);
+      int pre = towerinfo->get_waveform_value(0);
+      //this is always safe since towerinfo v3 has 31 samples
+      int post = towerinfo->get_waveform_value(6);
+      if((post - pre) <= zs_threshold)
+      {
+        //zero suppressed
+        fillwaveform = false;
+        waveform.push_back(pre);
+        waveform.push_back(post);
+      }
+      
+    }
+    if(fillwaveform)
+    {
+      for (int samp = 0; samp < m_nsamples; samp++)
+      {
+        waveform.push_back(towerinfo->get_waveform_value(samp));
+      }
     }
     waveforms.push_back(waveform);
     waveform.clear();
@@ -178,6 +205,7 @@ int CaloTowerBuilder::process_sim()
     towerinfo->set_time_float(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
     towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+    bool SZS = isSZS(processed_waveforms.at(i).at(1), processed_waveforms.at(i).at(3));
     if (processed_waveforms.at(i).at(4) == 0) 
     {
       towerinfo->set_isRecovered(false);
@@ -187,9 +215,9 @@ int CaloTowerBuilder::process_sim()
       towerinfo->set_isRecovered(true);
     }
     int n_samples = waveforms.at(i).size();
-    if (n_samples == m_nzerosuppsamples)
+    if (n_samples == m_nzerosuppsamples || SZS)
     {
-      towerinfo->set_isNotInstr(true);
+      towerinfo->set_isZS(true);
     }
     for (int j = 0; j < n_samples; j++)
     {
@@ -392,6 +420,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     towerinfo->set_time_float(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
     towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+    bool SZS = isSZS(processed_waveforms.at(i).at(1), processed_waveforms.at(i).at(3));
     if (processed_waveforms.at(i).at(4) == 0) 
     {
       towerinfo->set_isRecovered(false);
@@ -401,7 +430,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       towerinfo->set_isRecovered(true);
     }
     int n_samples = waveforms.at(i).size();
-    if (n_samples == m_nzerosuppsamples)
+    if (n_samples == m_nzerosuppsamples || SZS)
     {
       if(waveforms.at(i).at(0) == 0)
       {
@@ -451,6 +480,16 @@ bool CaloTowerBuilder::skipChannel(int ich, int pid)
      }
   }
     
+  return false;
+}
+
+bool CaloTowerBuilder::isSZS(float time, float chi2)
+{
+  //isfinite
+  if (!std::isfinite(time) && !std::isfinite(chi2))
+  {
+    return true;
+  }
   return false;
 }
 

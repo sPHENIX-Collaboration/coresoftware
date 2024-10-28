@@ -1,12 +1,7 @@
-#ifndef EPD_GEOM_V1_H
-#define EPD_GEOM_V1_H
+#ifndef EPD_EPDGEOMV1_H
+#define EPD_EPDGEOMV1_H
 
 #include "EpdGeom.h"
-
-#include <utility>
-#include <tuple>
-#include <iostream>
-
 
 class EpdGeomV1 : public EpdGeom {
 
@@ -34,4 +29,4 @@ private:
 
 };
 
-#endif // EPD_GEOM_V1_H
+#endif // EPD_EPDGEOMV1_H

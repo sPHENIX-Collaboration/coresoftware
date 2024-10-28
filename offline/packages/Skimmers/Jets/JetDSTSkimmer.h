@@ -23,6 +23,9 @@ class JetDSTSkimmer : public SubsysReco
   void SetMinJetPt(float minJetPt) { m_minJetPt = minJetPt; }
   void SetMinClusterPt(float minClusterPt) { m_minClusterPt = minClusterPt; }
 
+  void SetJetNodeName(const std::string &jetNodeName) { m_JetNodeName = jetNodeName; }
+  void SetClusterNodeName(const std::string &clusterNodeName) { m_ClusterNodeName = clusterNodeName; }
+
  private:
     bool isBackgroundEvent();
 
@@ -30,7 +33,7 @@ class JetDSTSkimmer : public SubsysReco
     float m_minClusterPt{5};
     
     std::string m_JetNodeName{"AntiKt_Tower_r04_Sub1"};
-    std::string m_ClusterNodeName{"CEMC_CALO_CLUSTER"};
+    std::string m_ClusterNodeName{"CLUSTERINFO_CEMC"};
 };
 
 #endif // JETDSTSKIMMER_H
