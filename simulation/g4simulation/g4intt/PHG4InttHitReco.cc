@@ -234,8 +234,20 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  //Check for the hot channel map
-  std::string hotStripFile = std::filesystem::exists(m_hotStripFileName) ? m_hotStripFileName : CDBInterface::instance()->getUrl(m_hotStripFileName);
+  //Check for the hot channel map file
+  bool m_useLocalHitMaskFile = m_localHotStripFileName.empty() ? false : true;
+  std::string hotStripFile = "";
+  if (m_useLocalHitMaskFile)
+  {
+    hotStripFile = m_localHotStripFileName;
+  }
+  else // use CDB file
+  {
+    hotStripFile = std::filesystem::exists(m_hotStripFileName) ? m_hotStripFileName : CDBInterface::instance()->getUrl(m_hotStripFileName); 
+  }
+
+  std::cout << "PHG4InttHitReco::InitRun - Use local hot channel map file: " << m_useLocalHitMaskFile << std::endl
+            << "PHG4InttHitReco::InitRun - Hot channel map file: " << hotStripFile << std::endl;
 
   if (std::filesystem::exists(hotStripFile))
   {
