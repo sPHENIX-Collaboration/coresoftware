@@ -7,6 +7,10 @@
 #include <cstdint>
 #include <cassert>
 #include <iostream>
+#include <limits>
+#include <array>
+#include <memory>
+#include <phool/recoConsts.h>
 
 namespace mvtx_utils
 {
@@ -113,6 +117,9 @@ namespace mvtx_utils
   {
     return a.second < b.second;
   }
+
+float getStrobeLength();
+
 
 } //namespace mvtx_utils
 
