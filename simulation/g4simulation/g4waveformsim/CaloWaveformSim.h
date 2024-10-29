@@ -1,5 +1,12 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
+/*!
+ * \file CaloWaveformSim.h
+ * \brief create waveform from hits, could also use for event overlay
+ * \author Shuhang Li <sli7@bnl.gov>
+ * \version $Revision:   $
+ * \date $Date: $
+ */
 #ifndef CALOWAVEFORMSIM_H
 #define CALOWAVEFORMSIM_H
 

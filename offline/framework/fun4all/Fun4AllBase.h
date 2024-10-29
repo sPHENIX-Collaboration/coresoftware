@@ -56,13 +56,20 @@ class Fun4AllBase
   };
 
   /// Sets the verbosity of this module (0 by default=quiet).
-  virtual void Verbosity(const int ival) { m_Verbosity = ival; }
+  virtual void Verbosity(const uint64_t ival) { m_Verbosity = ival; }
 
   /// Sets the verbosity of this module (0 by default=quiet).
   virtual void Verbosity(enu_Verbosity ival) { m_Verbosity = ival; }
 
   /// Gets the verbosity of this module.
-  virtual int Verbosity() const { return m_Verbosity; }
+  virtual uint64_t Verbosity() const { return m_Verbosity; }
+
+  /// Gets the downscale of printouts for this module.
+  virtual uint32_t VerbosityDownscale() const { return m_VerbosityDownscale; }
+
+  /// Sets the downscale of printouts for this module.
+  /// Use (cnt%VerbosityDownscale()) in the code to apply
+  virtual void VerbosityDownscale(uint32_t ival) { m_VerbosityDownscale = std::max(1U,ival); }
 
  protected:
   /** ctor.
@@ -73,7 +80,9 @@ class Fun4AllBase
   std::string m_ThisName;
 
   /// The verbosity level. 0 means not verbose at all.
-  uint64_t m_Verbosity = VERBOSITY_QUIET;
+  uint64_t m_Verbosity {VERBOSITY_QUIET};
+  /// The frequency of printouts
+  uint32_t m_VerbosityDownscale {1};
 };
 
 #endif

@@ -49,7 +49,6 @@ class ActsEvaluator
 {
  public:
   ActsEvaluator(const std::string& name = "ActsEvaluator.root");
-  ~ActsEvaluator();
 
   void Init(PHCompositeNode* topNode);
   void process_track(const ActsTrackFittingAlgorithm::TrackContainer& tracks,

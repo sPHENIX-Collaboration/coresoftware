@@ -34,6 +34,7 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -234,7 +235,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   {
     std::cout << "starting Process" << std::endl;
   }
-  PositionMap globalPositions = PrepareKDTrees();
+  const PositionMap globalPositions = PrepareKDTrees();
   if (Verbosity())
   {
     std::cout << "prepared KD trees" << std::endl;
@@ -247,14 +248,14 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
-  for (unsigned int track_it = 0; track_it != _track_map->size(); ++track_it)
+  for (size_t track_it = 0; track_it != _track_map->size(); ++track_it)
   {
     if (Verbosity())
     {
       std::cout << "TPC seed " << track_it << std::endl;
     }
     // if not a TPC track, ignore
-    TrackSeed* track = _track_map->get(track_it);
+    auto track = _track_map->get(track_it);
     const bool is_tpc = std::any_of(
         track->begin_cluster_keys(),
         track->end_cluster_keys(),
@@ -263,25 +264,22 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
     if (is_tpc)
     {
-      std::vector<std::vector<TrkrDefs::cluskey>> keylist_A;
-      std::vector<TrkrDefs::cluskey> dumvec;
+
+      // copy list of seed cluster keys
+      std::vector<std::vector<TrkrDefs::cluskey>> keylist_A(1);
+      std::copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(keylist_A[0]));
+
+      // copy seed clusters position into local map
       std::map<TrkrDefs::cluskey, Acts::Vector3> trackClusPositions;
-      for (TrackSeed::ConstClusterKeyIter iter = track->begin_cluster_keys();
-           iter != track->end_cluster_keys();
-           ++iter)
-      {
-        dumvec.push_back(*iter);
-        auto pos = globalPositions.at(*iter);
-        trackClusPositions.insert(std::make_pair(*iter, pos));
-      }
+      std::transform(track->begin_cluster_keys(), track->end_cluster_keys(), std::inserter(trackClusPositions, trackClusPositions.end()),
+        [globalPositions](const auto& key)
+        { return std::make_pair(key, globalPositions.at(key)); });
 
       /// Can't circle fit a seed with less than 3 clusters, skip it
-      if (dumvec.size() < 3)
+      if (keylist_A[0].size() < 3)
       {
         continue;
       }
-
-      keylist_A.push_back(dumvec);
 
       /// This will by definition return a single pair with each vector
       /// in the pair length 1 corresponding to the seed info
@@ -299,21 +297,21 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
                   << std::endl;
       }
       timer.restart();
+
       /// circle fit back to update track parameters
-      track->circleFitByTaubin(trackClusPositions, 7, 55);
-      track->lineFit(trackClusPositions, 7, 55);
-      float trackphi = track->get_phi(trackClusPositions);
-      track->set_phi(trackphi);  // make phi persistent
+      TrackSeedHelper::circleFitByTaubin(track, trackClusPositions, 7, 55);
+      TrackSeedHelper::lineFit(track, trackClusPositions, 7, 55);
+      track->set_phi(TrackSeedHelper::get_phi(track, trackClusPositions));
       timer.stop();
       if (Verbosity() > 3)
       {
         std::cout << "single track circle fit time " << timer.elapsed() << std::endl;
       }
-      if (seedpair.first.size() == 0 || seedpair.second.size() == 0)
+      if (seedpair.first.empty()|| seedpair.second.empty())
       {
         continue;
       }
-      // track->set_qOverR(seedpair.first.at(0).get_qOverR());
+
       if (Verbosity())
       {
         std::cout << "is tpc track" << std::endl;
@@ -328,43 +326,19 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       }
 
       auto preseed = PropagateTrack(track, PropagationDirection::Inward, seedpair.second.at(0), globalPositions);
-      std::vector<std::vector<TrkrDefs::cluskey>> p;
-      p.push_back(preseed);
-      // std::vector<float> pchi2;
-      // auto kfpair_preseed = fitter->ALICEKalmanFilter(p, false, globalPositions, pchi2);
-      // if(kfpair_preseed.first.size()==0 || kfpair_preseed.second.size()==0) continue;
-
-      // std::map<TrkrDefs::cluskey,Acts::Vector3> pmap;
-      // for(auto& cl : preseed) pmap.insert(std::make_pair(cl,globalPositions.at(cl)));
-
-      // kfpair_preseed.first.at(0).circleFitByTaubin(pmap,7,55);
-      // kfpair_preseed.first.at(0).lineFit(pmap,7,55);
-      // float pseed_intermediate_phi = kfpair_preseed.first.at(0).get_phi(pmap);
-      // kfpair_preseed.first.at(0).set_phi(pseed_intermediate_phi);
-
-      // auto preseed_final = PropagateTrack(&kfpair_preseed.first.at(0), PropagationDirection::Outward, kfpair_preseed.second.at(0), globalPositions);
-
       if (Verbosity())
       {
         std::cout << "preseed size " << preseed.size() << std::endl;
       }
 
-      //      if (preseed.size() > 40)
-      //      {
-      //        new_chains.push_back(preseed);
-      //        continue;
-      //      }
-
-      std::vector<std::vector<TrkrDefs::cluskey>> kl;
-      kl.push_back(preseed);
-
+      std::vector<std::vector<TrkrDefs::cluskey>> kl = {preseed};
       if (Verbosity())
       {
         std::cout << "kl size " << kl.size() << std::endl;
       }
       std::vector<float> pretrackChi2;
       auto prepair = fitter->ALICEKalmanFilter(kl, false, globalPositions, pretrackChi2);
-      if (prepair.first.size() == 0 || prepair.second.size() == 0)
+      if (prepair.first.empty() || prepair.second.empty())
       {
         continue;
       }
@@ -372,37 +346,17 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       std::reverse(kl.at(0).begin(), kl.at(0).end());
 
       auto pretrack = prepair.first.at(0);
-      std::vector<TrkrDefs::cluskey> dumvec2;
+
+      // copy seed clusters position into local map
       std::map<TrkrDefs::cluskey, Acts::Vector3> pretrackClusPositions;
-      for (TrackSeed::ConstClusterKeyIter iter = pretrack.begin_cluster_keys();
-           iter != pretrack.end_cluster_keys();
-           ++iter)
-      {
-        dumvec2.push_back(*iter);
-        auto pos = globalPositions.at(*iter);
-        pretrackClusPositions.insert(std::make_pair(*iter, pos));
-      }
+      std::transform(pretrack.begin_cluster_keys(), pretrack.end_cluster_keys(), std::inserter(pretrackClusPositions, pretrackClusPositions.end()),
+        [globalPositions](const auto& key)
+        { return std::make_pair(key, globalPositions.at(key)); });
 
-      pretrack.circleFitByTaubin(pretrackClusPositions, 7, 55);
-      pretrack.lineFit(pretrackClusPositions, 7, 55);
-      float pretrackphi = pretrack.get_phi(pretrackClusPositions);
-      pretrack.set_phi(pretrackphi);  // make phi persistent
-      // pretrack.set_qOverR(prepair.first.at(0).get_qOverR());
-
-      // auto intermediate_seed = PropagateTrack(&pretrack, PropagationDirection::Inward, prepair.second.at(0), globalPositions);
-      // std::vector<std::vector<TrkrDefs::cluskey>> iseed;
-      // iseed.push_back(intermediate_seed);
-      // std::vector<float> iseedchi2;
-      // auto kfpair_intermediate = fitter->ALICEKalmanFilter(iseed, false, globalPositions, iseedchi2);
-
-      // if(kfpair_intermediate.first.size()==0 || kfpair_intermediate.second.size()==0) continue;
-
-      // std::map<TrkrDefs::cluskey,Acts::Vector3> imap;
-      // for(auto& cl : intermediate_seed) imap.insert(std::make_pair(cl,globalPositions.at(cl)));
-      // kfpair_intermediate.first.at(0).circleFitByTaubin(imap,7,55);
-      // kfpair_intermediate.first.at(0).lineFit(imap,7,55);
-      // float kfpairiphi = kfpair_intermediate.first.at(0).get_phi(imap);
-      // kfpair_intermediate.first.at(0).set_phi(kfpairiphi);
+      // fit seed
+      TrackSeedHelper::circleFitByTaubin(&pretrack,pretrackClusPositions, 7, 55);
+      TrackSeedHelper::lineFit(&pretrack, pretrackClusPositions, 7, 55);
+      pretrack.set_phi(TrackSeedHelper::get_phi(&pretrack, pretrackClusPositions));
 
       prepair.second.at(0).SetDzDs(-prepair.second.at(0).GetDzDs());
       auto finalchain = PropagateTrack(&pretrack, kl.at(0), PropagationDirection::Outward, prepair.second.at(0), globalPositions);
@@ -439,7 +393,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   timer.stop();
   timer.restart();
 
-  std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions);
+  const auto clean_chains = RemoveBadClusters(new_chains, globalPositions);
   if (Verbosity() > 1)
   {
     std::cout << "clean_chains size: " << clean_chains.size() << std::endl;
@@ -513,15 +467,14 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
         continue;
       }
 
-      const Acts::Vector3 globalpos_d = getGlobalPosition(cluskey, cluster);
-      const Acts::Vector3 globalpos = {(float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
+      const auto globalpos = getGlobalPosition(cluskey, cluster);
       globalPositions.insert(std::make_pair(cluskey, globalpos));
 
       int layer = TrkrDefs::getLayer(cluskey);
       std::vector<double> kdhit(4);
-      kdhit[0] = globalpos_d.x();
-      kdhit[1] = globalpos_d.y();
-      kdhit[2] = globalpos_d.z();
+      kdhit[0] = globalpos.x();
+      kdhit[1] = globalpos.y();
+      kdhit[2] = globalpos.z();
       uint64_t key = cluskey;
       std::memcpy(&kdhit[3], &key, sizeof(key));
 
@@ -1057,9 +1010,10 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     aliceSeed.SetDzDs(-aliceSeed.GetDzDs());
   }
 
-  double track_x = track->get_x();
-  double track_y = track->get_y();
-  double track_z = track->get_z();
+  const auto track_pos = TrackSeedHelper::get_xyz(track);
+  double track_x = track_pos.x();
+  double track_y = track_pos.y();
+  double track_z = track_pos.z();
 
   if (Verbosity() > 1)
   {
@@ -1412,16 +1366,15 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
 
     auto& seed = seeds[itrack];
     /// The ALICEKF gives a better charge determination at high pT
-    int q = seed.get_charge();
+    const int q = seed.get_charge();
 
     PositionMap local;
     std::transform(seed.begin_cluster_keys(), seed.end_cluster_keys(), std::inserter(local, local.end()),
                    [positions](const auto& key)
                    { return std::make_pair(key, positions.at(key)); });
-    seed.circleFitByTaubin(local, 7, 55);
-    seed.lineFit(local, 7, 55);
-    float phi = seed.get_phi(local);
-    seed.set_phi(phi);  // make phi persistent
+    TrackSeedHelper::circleFitByTaubin(&seed,local, 7, 55);
+    TrackSeedHelper::lineFit(&seed,local, 7, 55);
+    seed.set_phi(TrackSeedHelper::get_phi(&seed,local));
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
   }
 
@@ -1454,9 +1407,9 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
       std::cout << "Publishing seed " << ((int) itrack)
                 << " q " << q
                 << " qOverR " << fabs(seed.get_qOverR()) * q
-                << " x " << seed.get_x()
-                << " y " << seed.get_y()
-                << " z " << seed.get_z()
+                << " x " << TrackSeedHelper::get_x(&seed)
+                << " y " << TrackSeedHelper::get_y(&seed)
+                << " z " << TrackSeedHelper::get_z(&seed)
                 << " pT " << seed.get_pt()
                 << " eta " << seed.get_eta()
                 << " phi " << seed.get_phi()

@@ -174,6 +174,12 @@ class RawCluster : public PHObject
     return std::vector<float>();
   }
 
+  virtual std::pair<int,int> get_lead_tower() const
+  {
+    PHOOL_VIRTUAL_WARN("get_lead_tower()");
+    return {std::numeric_limits<int>::signaling_NaN(),std::numeric_limits<int>::signaling_NaN()};
+  }
+
   //  //! truth cluster's PHG4Particle ID
   //  virtual int get_truth_track_ID() const
   //  {
