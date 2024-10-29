@@ -65,7 +65,7 @@ int TpcFFT::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
 //
-
+  
   std::vector<Packet *> pktvec = _event->getPacketVector();
 
 // Loop over packets in event
@@ -96,7 +96,8 @@ for (auto packet : pktvec)
 
     for (int wf = 0; wf < m_nWaveformInFrame; wf++)
       {
-        sprintf(name,"h_WF_%s_%d",sec[sector].c_str(),ent_num);
+	
+	sprintf(name,"h_WF_%s_%d",sec[sector].c_str(),ent_num);
 	h_WF = new TH1F(name,name,360,0,360);
 	
 	sprintf(name,"h_FFT_%s_%d",sec[sector].c_str(),ent_num);
@@ -159,25 +160,27 @@ for (auto packet : pktvec)
       }
   }
 
- sprintf(name, "/sphenix/user/llegnosky/TPCAnalysis/RootFiles/TpcFFT_%d.root", run_num);
-  string outfile = name;
-  TFile *TpcFFTfile = new TFile(outfile.c_str(),"RECREATE");
+ sprintf(name, "/sphenix/user/llegnosky/TPCAnalysis/RootFiles/TpcFFT_QA.root");
+ std::string outfile = name;
+ TpcFFTfile = new TFile(outfile.c_str(),"RECREATE");
 
-  sprintf(name,"Event_Numbers_sec%s",sec[sector].c_str());
-  TpcFFTfile->WriteObject(&evt_num,name);
-  for(int evt=0;evt<FFT_clone.size();evt++){
-    sprintf(name,"WF_%d_sec%s_evt%d",run_num,sec[sector].c_str(),evt_num[evt]);
-    WF_clone[evt]->Write(name);
-    sprintf(name,"FFT_%d_sec%s_evt%d",run_num,sec[sector].c_str(),evt_num[evt]);
-    FFT_clone[evt]->Write(name);
-    sprintf(name,"Ped_%d_sec%s_evt%d",run_num,sec[sector].c_str(),evt_num[evt]);
-    TpcFFTfile->WriteObject(&pedestal,name);
-    sprintf(name,"Ped_RMS_%d_sec%s_evt%d",run_num,sec[sector].c_str(),evt_num[evt]);
+ int length = FFT_clone.size();
+ 
+ sprintf(name,"Event_Numbers_sec%s",sec[sector].c_str());
+ TpcFFTfile->WriteObject(&evt_num,name);
+ for(int evt=0;evt<length;evt++){
+   sprintf(name,"WF_sec%s_evt%d",sec[sector].c_str(),evt_num[evt]);
+   WF_clone[evt]->Write(name);
+   sprintf(name,"FFT_sec%s_evt%d",sec[sector].c_str(),evt_num[evt]);
+   FFT_clone[evt]->Write(name);
+   sprintf(name,"Ped_sec%s_evt%d",sec[sector].c_str(),evt_num[evt]);
+   TpcFFTfile->WriteObject(&pedestal,name);
+   sprintf(name,"Ped_RMS_sec%s_evt%d",sec[sector].c_str(),evt_num[evt]);
     TpcFFTfile->WriteObject(&pedestal_sigma,name);
-  }
-  
-  TpcFFTfile->Close();
-
+ }
+ 
+ TpcFFTfile->Close();
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
