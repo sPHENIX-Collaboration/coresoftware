@@ -21,6 +21,7 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <cmath>
 #include <cassert>
 #include <memory>
 #include <set>
@@ -421,6 +422,11 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
 
   auto [runnumber, segment] = Fun4AllUtils::GetRunSegment(*(GetFileList().begin()));
   float strobeLength = mvtx_utils::getStrobeLength(runnumber);
+  if(std::isnan(strobeLength))
+  {
+    std::cout << PHWHERE << "ERROR: Strobe length is not defined for run " << runnumber << std::endl;
+    exit(1);
+  }
   if(strobeLength > 88.)
   {
     m_BcoRange = 1000;
