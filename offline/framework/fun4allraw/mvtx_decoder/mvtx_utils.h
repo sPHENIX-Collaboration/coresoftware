@@ -118,7 +118,7 @@ namespace mvtx_utils
     return a.second < b.second;
   }
 
-float getStrobeLength();
+float getStrobeLength(const int& runNumber);
 
 
 } //namespace mvtx_utils

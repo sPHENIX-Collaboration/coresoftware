@@ -2,11 +2,10 @@
 
 
 
-float mvtx_utils::getStrobeLength()
+
+float mvtx_utils::getStrobeLength(const int& runNumber)
 {
   float strobeWidth = std::numeric_limits<float>::quiet_NaN();
-  recoConsts *rc = recoConsts::instance();
-  int runNumber = rc->get_IntFlag("RUNNUMBER");
 
   std::string executable_command = "psql -h sphnxdaqdbreplica daq --csv -c \"SELECT strobe FROM mvtx_strobe WHERE hostname = \'mvtx0\' AND runnumber = ";
   executable_command += std::to_string(runNumber);

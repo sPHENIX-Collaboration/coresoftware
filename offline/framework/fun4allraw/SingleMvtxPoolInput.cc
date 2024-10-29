@@ -1,10 +1,10 @@
 #include "SingleMvtxPoolInput.h"
 #include "mvtx_pool.h"
-
+#include "mvtx_decoder/mvtx_utils.h"
 #include "Fun4AllStreamingInputManager.h"
 
 #include "MvtxRawDefs.h"
-
+#include <fun4all/Fun4AllUtils.h>
 #include <ffarawobjects/MvtxFeeIdInfov1.h>
 #include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
@@ -110,11 +110,13 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
         }
         poolmap[plist[i]->getIdentifier()] = new mvtx_pool();
       }
+      std::cout << "add packet"<<std::endl;
       poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
-
+  std::cout << "delete plist"<<std::endl;
       delete plist[i];
+      std::cout << "end loop"<<std::endl;
     }
-
+    std::cout << "start pool map"<<std::endl;
     for (auto &iter : poolmap)
     {
       mvtx_pool *pool = iter.second;
@@ -420,6 +422,32 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 
 void SingleMvtxPoolInput::ConfigureStreamingInputManager()
 {
+  std::cout << "Getting strobe length"<<std::endl;
+/*
+  auto [runnumber, segment] = Fun4AllUtils::GetRunSegment(*(GetFileList().begin()));
+  float strobeLength = mvtx_utils::getStrobeLength(runnumber);
+  std::cout << "got it " << strobeLength << std::endl;
+  if(strobeLength > 88.)
+  {
+    m_BcoRange = 1000;
+    m_NegativeBco = 1000;
+  }
+  else if (strobeLength > 9)
+  {
+    m_BcoRange = 100;
+    m_NegativeBco = 500;
+  }
+  else if (strobeLength < 1) // triggered mode
+  {
+    m_BcoRange = 2;
+    m_NegativeBco = 0;
+    if(StreamingInputManager())
+    {
+      StreamingInputManager()->runMvtxTriggered(true);
+    }
+  }
+*/
+  std::cout << "BCO RANGE AND NEGATIVE BCO " << m_BcoRange << " " << m_NegativeBco << std::endl;
   if (StreamingInputManager())
   {
     StreamingInputManager()->SetMvtxBcoRange(m_BcoRange);

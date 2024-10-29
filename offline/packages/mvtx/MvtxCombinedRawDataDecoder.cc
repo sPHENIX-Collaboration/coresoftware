@@ -114,8 +114,9 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   {
     se->unregisterSubsystem(this);
   }
-
-  m_strobeWidth = mvtx_utils::getStrobeLength();
+  recoConsts *rc = recoConsts::instance();
+  int runNumber = rc->get_IntFlag("RUNNUMBER");
+  m_strobeWidth = mvtx_utils::getStrobeLength(runNumber);
   if(std::isnan(m_strobeWidth))
   {
     std::cout << "MvtxCombinedRawDataDecoder::InitRun - strobe width is NaN, exiting." << std::endl;
