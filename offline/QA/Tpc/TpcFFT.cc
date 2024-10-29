@@ -29,7 +29,7 @@
 //
 
 //____________________________________________________________________________..
-TpcNoiseQA::TpcFFT(const std::string &name)
+TpcFFT::TpcFFT(const std::string &name)
   : SubsysReco(name)
 {
 // reserves memory for max ADC samples
@@ -46,6 +46,8 @@ int TpcFFT::InitRun(PHCompositeNode * /*unused*/)
 //____________________________________________________________________________..
 int TpcFFT::process_event(PHCompositeNode *topNode)
 {
+  char name[100];
+  
   // Defines object from class Event which calls getClass function from
   // findNode class
   Event *_event = findNode::getClass<Event>(topNode, "PRDF");
@@ -120,11 +122,12 @@ for (auto packet : pktvec)
 	      dead=true;
 	      break;
 	    }
+	    if(s<360) Samples[s]=m_adcSamples[s];
 	  }
 
 	if(dead) continue;
 
-	pedestal.push_back(TMath::Median(360,m_adcSamples));
+	pedestal.push_back(TMath::Median(360,Samples));
 
 	for(int adc_sam_no=0;adc_sam_no<m_nSamples;adc_sam_no++){
 	  if(m_adcSamples[adc_sam_no]<1024){
@@ -145,16 +148,35 @@ for (auto packet : pktvec)
 	TH1 *WF_temp;
       	WF_temp=(TH1*)h_WF->Clone();
       	WF_temp->SetDirectory(0);
-      	WF_clone[s].push_back(WF_temp);
+      	WF_clone.push_back(WF_temp);
       	TH1 *FFT_temp;
       	FFT_temp=(TH1*)h_FFT->Clone();
       	FFT_temp->SetDirectory(0);
-      	FFT_clone[s].push_back(FFT_temp);
-      	evt_num[s].push_back(ent_num);
+      	FFT_clone.push_back(FFT_temp);
+      	evt_num.push_back(ent_num);
 
 	ent_num++;
       }
   }
+
+ sprintf(name, "/sphenix/user/llegnosky/TPCAnalysis/RootFiles/TpcFFT_%d.root", run_num);
+  string outfile = name;
+  TFile *TpcFFTfile = new TFile(outfile.c_str(),"RECREATE");
+
+  sprintf(name,"Event_Numbers_sec%s",sec[sector].c_str());
+  TpcFFTfile->WriteObject(&evt_num,name);
+  for(int evt=0;evt<FFT_clone.size();evt++){
+    sprintf(name,"WF_%d_sec%s_evt%d",run_num,sec[sector].c_str(),evt_num[evt]);
+    WF_clone[evt]->Write(name);
+    sprintf(name,"FFT_%d_sec%s_evt%d",run_num,sec[sector].c_str(),evt_num[evt]);
+    FFT_clone[evt]->Write(name);
+    sprintf(name,"Ped_%d_sec%s_evt%d",run_num,sec[sector].c_str(),evt_num[evt]);
+    TpcFFTfile->WriteObject(&pedestal,name);
+    sprintf(name,"Ped_RMS_%d_sec%s_evt%d",run_num,sec[sector].c_str(),evt_num[evt]);
+    TpcFFTfile->WriteObject(&pedestal_sigma,name);
+  }
+  
+  TpcFFTfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -162,27 +184,6 @@ for (auto packet : pktvec)
 //____________________________________________________________________________..
 int TpcFFT::End(PHCompositeNode * /*unused*/)
 {
-
-  sprintf(name, "/sphenix/user/llegnosky/TPCAnalysis/RootFiles/TpcFFT_%d.root", run_num);
-  string outfile = name;
-  TFile *TpcFFT = new TFile(outfile.c_str(),"RECREATE");
-
-  for(int s=0;s<24;s++){
-    sprintf(name,"Event_Numbers_sec%s",sec[s].c_str());
-    TpcFFT->WriteObject(&evt_num[s],name);
-    for(int evt=0;evt<FFT_clone[s].size();evt++){
-      sprintf(name,"WF_%d_sec%s_evt%d",run_num,sec[s].c_str(),evt_num[s][evt]);
-      WF_clone[s][evt]->Write(name);
-      sprintf(name,"FFT_%d_sec%s_evt%d",run_num,sec[s].c_str(),evt_num[s][evt]);
-      FFT_clone[s][evt]->Write(name);
-      sprintf(name,"Ped_%d_sec%s_evt%d",run_num,sec[s].c_str(),evt_num[s][evt]);
-      TpcFFT->WriteObject(&pedestal[s],name);
-      sprintf(name,"Ped_RMS_%d_sec%s_evt%d",run_num,sec[s].c_str(),evt_num[s][evt]);
-      TpcFFT->WriteObject(&pedestal_sigma[s],name);
-    }
-  }
-
-  TpcFFT->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

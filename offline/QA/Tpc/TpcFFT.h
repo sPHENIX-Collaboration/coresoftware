@@ -45,14 +45,14 @@ class TpcFFT : public SubsysReco  // Inherit public parts of SubsysReco
   // List of private members
  private:
 
-  TH1F *h_WF{nullptr};
+  TH1 *h_WF{nullptr};
   TH1 *h_FFT{nullptr};
 
-  vector<TH1*> WF_clone{};
-  vector<TH1*> FFT_clone{};
-  vector<Int_t> evt_num{};
-  vector<Float_t> pedestal{};
-  vector<Float_t> pedestal_sigma{};
+  std::vector<TH1*> WF_clone{};
+  std::vector<TH1*> FFT_clone{};
+  std::vector<Int_t> evt_num{};
+  std::vector<Float_t> pedestal{};
+  std::vector<Float_t> pedestal_sigma{};
 
   Float_t pedestal_sum{0.0};     // average ADC value in channel
   Float_t pedestal_sigma_sum{0.0};     // average RMS in channel
@@ -66,10 +66,10 @@ class TpcFFT : public SubsysReco  // Inherit public parts of SubsysReco
   int m_FEE{0};
 
   int sector{0};
-  string sec[24]{"00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"};
+  std::string sec[24]{"00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"};
   int ent_num{0};
 
-  TFile *TpcFFT;
+  TFile *TpcFFTfile;
 
   std::vector<unsigned short> m_adcSamples;  // ADC values in waveform
 };
