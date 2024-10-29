@@ -119,8 +119,8 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   m_strobeWidth = mvtx_utils::getStrobeLength(runNumber);
   if(std::isnan(m_strobeWidth))
   {
-    std::cout << "MvtxCombinedRawDataDecoder::InitRun - strobe width is NaN, exiting." << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    std::cout << "MvtxCombinedRawDataDecoder::InitRun - strobe width is undefined for this run, defaulting to 89 mus" << std::endl;
+    m_strobeWidth = 89;
   }
   if(m_strobeWidth < 1)
   {

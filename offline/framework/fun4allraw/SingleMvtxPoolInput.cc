@@ -424,8 +424,9 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
   float strobeLength = mvtx_utils::getStrobeLength(runnumber);
   if(std::isnan(strobeLength))
   {
-    std::cout << PHWHERE << "ERROR: Strobe length is not defined for run " << runnumber << std::endl;
-    exit(1);
+    std::cout << PHWHERE << "WARNING: Strobe length is not defined for run " << runnumber << std::endl;
+    std::cout << "Defaulting to 89 mus strobe length" << std::endl;
+    strobeLength = 89.;
   }
   if(strobeLength > 88.)
   {
