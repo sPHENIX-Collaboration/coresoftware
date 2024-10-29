@@ -110,13 +110,9 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
         }
         poolmap[plist[i]->getIdentifier()] = new mvtx_pool();
       }
-      std::cout << "add packet"<<std::endl;
       poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
-  std::cout << "delete plist"<<std::endl;
       delete plist[i];
-      std::cout << "end loop"<<std::endl;
     }
-    std::cout << "start pool map"<<std::endl;
     for (auto &iter : poolmap)
     {
       mvtx_pool *pool = iter.second;
@@ -422,11 +418,9 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 
 void SingleMvtxPoolInput::ConfigureStreamingInputManager()
 {
-  std::cout << "Getting strobe length"<<std::endl;
-/*
+
   auto [runnumber, segment] = Fun4AllUtils::GetRunSegment(*(GetFileList().begin()));
   float strobeLength = mvtx_utils::getStrobeLength(runnumber);
-  std::cout << "got it " << strobeLength << std::endl;
   if(strobeLength > 88.)
   {
     m_BcoRange = 1000;
@@ -446,8 +440,11 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
       StreamingInputManager()->runMvtxTriggered(true);
     }
   }
-*/
-  std::cout << "BCO RANGE AND NEGATIVE BCO " << m_BcoRange << " " << m_NegativeBco << std::endl;
+  if(Verbosity() > 1)
+  {
+    std::cout << "Mvtx strobe length " << strobeLength << std::endl;
+    std::cout << "Mvtx BCO range and negative bco range set based on strobe length " << m_BcoRange << ", " << m_NegativeBco << std::endl;
+  }
   if (StreamingInputManager())
   {
     StreamingInputManager()->SetMvtxBcoRange(m_BcoRange);
