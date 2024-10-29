@@ -17,6 +17,7 @@
 
 class Packet;
 class TpcRawHit;
+class PHTimer;
 class TH1;
 class TH2;
 
@@ -110,6 +111,9 @@ class TpcTimeFrameBuilder
   //! GTM BCO -> TpcRawHit
   std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;
   static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
+  
+  //! fast skip mode when searching for particular GL1 BCO over long segment of files
+  bool m_fastBCOSkip = true;
 
   // -------------------------
   // GTM Matcher
@@ -220,6 +224,7 @@ class TpcTimeFrameBuilder
       CLEAR_LV1_ENDAT_T = 7
     };
 
+
   private:
 
     //! update multiplier adjustment
@@ -304,9 +309,15 @@ class TpcTimeFrameBuilder
   //! map bco_information_t to packet id
   std::vector<BcoMatchingInformation> m_bcoMatchingInformation_vec;
 
+  //! QA area
+
+  PHTimer * m_packetTimer = nullptr;
+
+  TH1 *m_hNorm = nullptr;
   TH2 *m_hFEEDataStream = nullptr;
   TH1 *m_hFEEChannelPacketCount = nullptr;
   TH2 *m_hFEESAMPAADC = nullptr;
+  TH1 *m_hFEESAMPAHeartBeatSync = nullptr;
   TH2 *m_hFEEClockAdjustment = nullptr;
 
   TH1 *h_PacketLength = nullptr;
