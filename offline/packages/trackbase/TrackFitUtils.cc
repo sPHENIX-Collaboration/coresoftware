@@ -56,6 +56,14 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   // pca and second_point_pca define a straight line approximation to the track
   Acts::Vector3 tangent = (second_point_pca - pca) / (second_point_pca - pca).norm();
 
+  // Direction is ambiguous, use cluster direction to resolve it
+  float phi = atan2(global(1),global(0));
+  float tangent_phi = atan2(tangent(1), tangent(0));
+  if(fabs(tangent_phi - phi) > M_PI / 2)
+    {
+      tangent -= tangent;
+    }
+
   // get the PCA of the cluster to that line
   // Approximate track with a straight line consisting of the state position posref and the vector (px,py,pz)
 
