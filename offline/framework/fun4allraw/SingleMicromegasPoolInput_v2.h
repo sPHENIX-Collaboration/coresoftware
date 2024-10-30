@@ -30,7 +30,7 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   { CleanupUsedPackets_with_qa(bclk,false); }
 
   //! specialized verion of cleaning up packets, with an extra flag about wheter the cleanup hits are dropped or not
-  void CleanupUsedPackets_with_qa(const uint64_t bclk, bool /*dropped */);
+  void CleanupUsedPackets_with_qa(const uint64_t bclk, bool /*dropped */) override;
 
   void ClearCurrentEvent() override;
   bool GetSomeMoreEvents();
@@ -45,10 +45,10 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   void SetBcoPoolSize(const unsigned int value) { m_BcoPoolSize = value; }
 
   //! save some statistics for BCO QA
-  void FillBcoQA(uint64_t /*gtm_bco*/);
+  void FillBcoQA(uint64_t /*gtm_bco*/) override;
 
   // write the initial histograms for QA manager
-  void createQAHistos();
+  void createQAHistos() override;
 
  private:
 

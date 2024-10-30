@@ -579,7 +579,6 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data( int packet_id, const SingleM
 //____________________________________________________________________
 void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int fee_id )
 {
-
   // get bco information
   auto& bco_matching_information = m_bco_matching_information_map[packet_id];
 
@@ -588,15 +587,17 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
   auto& data_buffer = m_feeData[fee_id];
 
   // process header
+  // while (HEADER_LENGTH <= data_buffer.size())
   while (HEADER_LENGTH <= data_buffer.size())
   {
+
     // packet loop
     /* question: why check index [1] ? */
     if (data_buffer[1] != FEE_PACKET_MAGIC_KEY_1)
     {
       if (Verbosity())
       {
-        std::cout << "SingleMicromegasPoolInput_v2::process_fee_data - nvalid FEE magic key at position 1 0x" << std::hex << data_buffer[1] << std::dec << std::endl;
+        std::cout << "SingleMicromegasPoolInput_v2::process_fee_data - Invalid FEE magic key at position 1 0x" << std::hex << data_buffer[1] << std::dec << std::endl;
       }
       data_buffer.pop_front();
       continue;
@@ -613,7 +614,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     }
 
     // packet length
-    // this is indeed the number of 10-bit words + 5 in this packet
+    // number of 10-bit words + 5 in this packet
     const uint16_t& pkt_length = data_buffer[0];
     if (pkt_length > MAX_PACKET_LENGTH)
     {
@@ -631,6 +632,11 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
       // not enough data. will wait for more
       break;
     }
+
+    // increment number of waveforms
+    ++m_waveform_count_total[packet_id];
+    ++m_fee_waveform_count_total[fee_id];
+    h_waveform_count_total->Fill( std::to_string(packet_id).c_str(), 1 );
 
     // create payload
     MicromegasBcoMatchingInformation_v2::fee_payload payload;
@@ -656,7 +662,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     {
       const uint16_t& samples = data_buffer[pos++];
       const uint16_t& start_t = data_buffer[pos++];
-      if (pos + samples >= pkt_length)
+      if (pos + samples > pkt_length)
       {
         if (Verbosity())
         {
@@ -671,14 +677,15 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
       }
 
       std::vector<uint16_t> adc(samples);
-      for (int j = 0; j < samples; j++)
-      {
-        adc[j] = data_buffer[pos++];
-      }
+      for (int i = 0; i < samples; ++i)
+      { adc[i] = data_buffer[pos++]; }
 
       // add
-      payload.waveforms.emplace_back(start_t,adc);
+      payload.waveforms.emplace_back(start_t,std::move(adc));
     }
+
+    // cleanup
+    data_buffer.erase(data_buffer.begin(), data_buffer.begin() + pkt_length + 1);
 
     // check bco matching information
     if (!bco_matching_information.is_verified())
@@ -691,10 +698,21 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     {
       ++m_waveform_count_dropped_bco[packet_id];
       h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1);
+      continue;
     }
 
     // try get gtm bco matching fee
     const auto& fee_bco = payload.bx_timestamp;
+
+    if( false )
+    {
+      std::cout << "SingleMicromegasPoolInput -"
+        << " fee_id: " << fee_id
+        << " channel: " << payload.channel
+        << " fee bco: " << fee_bco
+        << " heartbeat: " << (payload.type == HEARTBEAT_T)
+        << std::endl;
+    }
 
     // find matching gtm bco
     uint64_t gtm_bco = 0;
@@ -703,7 +721,9 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     {
       // assign gtm bco
       gtm_bco = result.value();
+
     } else {
+
       // increment counter and histogram
       ++m_waveform_count_dropped_bco[packet_id];
       ++m_fee_waveform_count_dropped_bco[fee_id];
@@ -751,5 +771,4 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
 
     m_MicromegasRawHitMap[gtm_bco].push_back(newhit.release());
   }
-
 }
