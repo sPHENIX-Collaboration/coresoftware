@@ -751,8 +751,6 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
 
     // this is likely broken
     newhit->set_samples(MAX_SAMPLE);
-    for( size_t i = 0; i < MAX_SAMPLE; ++i )
-    {newhit->set_adc(i,ADC_INVALID);}
 
     // adc values
     for( const auto& [start_t, adc]:payload.waveforms )
