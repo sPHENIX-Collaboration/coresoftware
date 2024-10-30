@@ -54,6 +54,7 @@ libmvtx_la_LIBADD = \
   -lphg4hit \
   -lSubsysReco \
   -ltrack_io \
+  -lmvtx_decoder \
   -ltrackbase_historic_io \
   -lcdbobjects
 
