@@ -15,7 +15,7 @@
 #include <trackbase/TrkrCluster.h>           // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterContainer
 #include <trackbase/TrkrDefs.h>              // for getLayer, getTrkrId
-#include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
+#include <trackbase_historic/SvtxPHG4ParticleMap.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::...
 #include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, SvtxTrac...
 
@@ -120,12 +120,14 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, P
       std::cout << "KFParticle truth matching: G4TruthInfo does not exist" << std::endl;
     }
 
-    SvtxPHG4ParticleMap_v1 *dst_reco_truth_map = findNode::getClass<SvtxPHG4ParticleMap_v1>(topNode, "SvtxPHG4ParticleMap");
-
+    SvtxPHG4ParticleMap *dst_reco_truth_map = findNode::getClass<SvtxPHG4ParticleMap>(topNode, "SvtxPHG4ParticleMap");
     std::map<float, std::set<int>> truth_set = dst_reco_truth_map->get(thisTrack->get_id());
-    const auto &best_weight = truth_set.rbegin();
-    int best_truth_id = *best_weight->second.rbegin();
-    particle = m_truthinfo->GetParticle(best_truth_id);
+    if (truth_set.size() > 0)
+    {
+      std::pair<float, std::set<int>> best_weight = *truth_set.rbegin();
+      int best_truth_id = *best_weight.second.rbegin();
+      particle = m_truthinfo->GetParticle(best_truth_id);
+    }
   }
   else
   {
