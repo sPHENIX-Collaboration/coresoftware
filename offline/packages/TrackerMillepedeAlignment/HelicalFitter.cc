@@ -788,9 +788,9 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
 	    if (Verbosity() > 2)
 	      {
-		for (int i = 0; i < 75; ++i)
+		for (auto& i : ntp_data)
 		  {
-		    std::cout << ntp_data[i] << "  ";
+		    std::cout << i << "  ";
 		  }
 		std::cout << std::endl;
 	      }
