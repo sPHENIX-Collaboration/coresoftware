@@ -433,7 +433,7 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
     m_BcoRange = 1000;
     m_NegativeBco = 1000;
   }
-  else if (strobeLength > 9)
+  else if (strobeLength > 9 && strobeLength < 11)
   {
     m_BcoRange = 100;
     m_NegativeBco = 500;
@@ -446,6 +446,11 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
     {
       StreamingInputManager()->runMvtxTriggered(true);
     }
+  }
+  else // catchall for anyting else to set to a range based on the rhic clock
+  {
+    m_BcoRange = std::ceil(strobeLength / 0.1065);
+    m_NegativeBco = std::ceil(strobeLength / 0.1065);
   }
   if(Verbosity() > 1)
   {
