@@ -119,6 +119,9 @@ namespace TrackFitUtils
   Acts::Vector2 get_line_point_pca(double slope, double intercept, Acts::Vector3 global);
   std::vector<float> fitClustersZeroField(std::vector<Acts::Vector3>& global_vec,
 						       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt);
+
+  float get_helix_pathlength(std::vector<float>& fitpars, const Acts::Vector3& start_point, const Acts::Vector3& end_point);
+  float get_helix_surface_pathlength(const Surface& surf, std::vector<float>& fitpars, const Acts::Vector3& start_point, ActsGeometry* tGeometry);
 };
 
 #endif
