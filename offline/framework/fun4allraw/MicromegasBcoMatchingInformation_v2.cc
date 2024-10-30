@@ -197,7 +197,8 @@ void MicromegasBcoMatchingInformation_v2::save_gtm_bco_information(const Microme
     const auto& modebits = payload.modebits;
     if (modebits & (1U << ELINK_HEARTBEAT_T))
     {
-      m_gtm_bco_list.push_back(payload.modebits);
+      const auto& gtm_bco = payload.bco;
+      m_gtm_bco_list.push_back(gtm_bco);
     }
   }
 }
