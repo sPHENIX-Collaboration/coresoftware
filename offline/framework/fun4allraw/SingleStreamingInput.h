@@ -31,6 +31,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual void EventNumberOffset(const int i) { m_EventNumberOffset = i; }
   virtual void Print(const std::string &what = "ALL") const override;
   virtual void CleanupUsedPackets(const uint64_t) { return; }
+  virtual void CleanupUsedPackets_with_qa(const uint64_t,bool) { return; }
   virtual bool CheckPoolDepth(const uint64_t bclk);
   virtual void ClearCurrentEvent();
   virtual Eventiterator *GetEventiterator() const { return m_EventIterator; }
@@ -49,6 +50,10 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   std::string getHitContainerName() const { return m_rawHitContainerName; }
   const std::map<int, std::set<uint64_t>> &getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
 
+  virtual void createQAHistos() {}
+  virtual void FillBcoQA(uint64_t /*gtm_bco*/) {};
+
+
   void clearPacketBClkStackMap(const int &packetid, const uint64_t& bclk)
   {
     std::set<uint64_t> to_erase;
@@ -65,7 +70,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
         set.erase(bclk_to_erase);
       }
     }
-  
+
   void clearFeeGTML1BCOMap(const uint64_t &bclk)
   {
     std::set<uint64_t> toerase;
