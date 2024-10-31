@@ -68,12 +68,12 @@ pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
   MicromegasCalibrationData.h \
   MicromegasClusterizer.h \
+  MicromegasCombinedDataCalibration.h \
   MicromegasCombinedDataDecoder.h \
   MicromegasCombinedDataEvaluation.h \
   MicromegasDefs.h \
   MicromegasHotChannelMapData.h \
   MicromegasMapping.h \
-  MicromegasRawDataCalibration.h \
   MicromegasTile.h
 
 ROOTDICTS = \
@@ -103,10 +103,10 @@ libmicromegas_io_la_LIBADD = \
 
 libmicromegas_la_SOURCES = \
   MicromegasClusterizer.cc \
+	 MicromegasCombinedDataCalibration.cc \
   MicromegasCombinedDataDecoder.cc \
   MicromegasCombinedDataEvaluation.cc \
-  MicromegasCombinedDataEvaluation_Dict.cc \
-  MicromegasRawDataCalibration.cc
+  MicromegasCombinedDataEvaluation_Dict.cc
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \
