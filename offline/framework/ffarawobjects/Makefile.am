@@ -40,6 +40,7 @@ ROOTDICTS = \
   MicromegasRawHitContainer_Dict.cc \
   MicromegasRawHitContainerv1_Dict.cc \
   MicromegasRawHitv1_Dict.cc \
+  MicromegasRawHitv2_Dict.cc \
   MvtxRawHit_Dict.cc \
   MvtxRawHitv1_Dict.cc \
   MvtxRawHitContainer_Dict.cc \
@@ -84,6 +85,7 @@ nobase_dist_pcm_DATA = \
   MicromegasRawHitContainer_Dict_rdict.pcm \
   MicromegasRawHitContainerv1_Dict_rdict.pcm \
   MicromegasRawHitv1_Dict_rdict.pcm \
+  MicromegasRawHitv2_Dict_rdict.pcm \
   MvtxRawHit_Dict_rdict.pcm \
   MvtxRawHitv1_Dict_rdict.pcm \
   MvtxRawHitContainer_Dict_rdict.pcm \
@@ -127,6 +129,7 @@ pkginclude_HEADERS = \
   MicromegasRawHitContainer.h \
   MicromegasRawHitContainerv1.h \
   MicromegasRawHitv1.h \
+  MicromegasRawHitv2.h \
   MvtxRawHit.h \
   MvtxRawHitv1.h \
   MvtxRawHitContainer.h \
@@ -162,6 +165,7 @@ libffarawobjects_la_SOURCES = \
   LL1PacketContainerv1.cc \
   MicromegasRawHitContainerv1.cc \
   MicromegasRawHitv1.cc \
+  MicromegasRawHitv2.cc \
   MvtxRawHitv1.cc \
   MvtxRawHitContainerv1.cc \
   MvtxFeeIdInfov1.cc \

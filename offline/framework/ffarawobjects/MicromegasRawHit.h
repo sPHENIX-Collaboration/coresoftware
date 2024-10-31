@@ -35,8 +35,8 @@ class MicromegasRawHit : public PHObject
   virtual uint16_t get_samples() const { return std::numeric_limits<uint16_t>::max(); }
   virtual void set_samples(const uint16_t) { return; }
 
-  virtual uint16_t get_adc(size_t /*sample*/) const { return std::numeric_limits<uint16_t>::max(); }
-  virtual void set_adc(size_t /*sample*/, const uint16_t) { return; }
+  virtual uint16_t get_adc(uint16_t /*sample*/) const { return std::numeric_limits<uint16_t>::max(); }
+  virtual void set_adc(uint16_t /*sample*/, const uint16_t) { return; }
 
  private:
   ClassDefOverride(MicromegasRawHit, 1)

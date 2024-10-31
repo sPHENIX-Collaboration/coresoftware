@@ -1,5 +1,5 @@
-#ifndef FUN4ALLRAW_MICROMEGASRAWTHITV1_H
-#define FUN4ALLRAW_MICROMEGASRAWTHITV1_H
+#ifndef FUN4ALLRAW_TPCRAWTHITV2_H
+#define FUN4ALLRAW_TPCRAWTHITV2_H
 
 #include "MicromegasRawHit.h"
 
@@ -7,16 +7,17 @@
 
 #include <cassert>
 #include <limits>
+#include <map>
 
-class MicromegasRawHitv1 : public MicromegasRawHit
+class MicromegasRawHitv2 : public MicromegasRawHit
 {
  public:
-  explicit MicromegasRawHitv1() = default;
-  MicromegasRawHitv1(MicromegasRawHit *);
+  explicit MicromegasRawHitv2() = default;
+  MicromegasRawHitv2(MicromegasRawHit*);
 
   /** identify Function from PHObject
-  @param os Output Stream
-  */
+      @param os Output Stream
+   */
   void identify(std::ostream &os = std::cout) const override;
 
   void Clear(Option_t *) override;
@@ -35,58 +36,50 @@ class MicromegasRawHitv1 : public MicromegasRawHit
 
   uint16_t get_fee() const override { return fee; }
   // cppcheck-suppress virtualCallInConstructor
-  void set_fee(uint16_t const val) override { fee = val; }
+  void set_fee(const uint16_t val) override { fee = val; }
 
   uint16_t get_channel() const override { return channel; }
   // cppcheck-suppress virtualCallInConstructor
-  void set_channel(uint16_t const val) override { channel = val; }
+  void set_channel(const uint16_t val) override { channel = val; }
 
   uint16_t get_sampaaddress() const override { return sampaaddress; }
   // cppcheck-suppress virtualCallInConstructor
-  void set_sampaaddress(uint16_t const val) override { sampaaddress = val; }
+  void set_sampaaddress(const uint16_t val) override { sampaaddress = val; }
 
   uint16_t get_sampachannel() const override { return sampachannel; }
   // cppcheck-suppress virtualCallInConstructor
-  void set_sampachannel(uint16_t const val) override { sampachannel = val; }
+  void set_sampachannel(const uint16_t val) override { sampachannel = val; }
 
   uint16_t get_samples() const override { return samples; }
   // cppcheck-suppress virtualCallInConstructor
-  void set_samples(uint16_t const val) override
+  void set_samples(const uint16_t val) override
   {
     // assign
     samples = val;
-
-    // resize adc vector
-    adc.resize(val, 0);
   }
 
-  uint16_t get_adc(uint16_t sample) const override
-  {
-    assert(sample < adc.size());
-    return adc[sample];
-  }
+  uint16_t get_adc(const uint16_t sample) const override;
 
   // cppcheck-suppress virtualCallInConstructor
-  void set_adc(uint16_t sample, uint16_t val) override
+  void set_adc(const uint16_t sample, const uint16_t val) override
   {
-    assert(sample < adc.size());
-    adc[sample] = val;
+    adcmap[sample] = val;
   }
 
  private:
-  uint64_t bco = std::numeric_limits<uint64_t>::max();
-  uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
-  int32_t packetid = std::numeric_limits<int32_t>::max();
-  uint16_t fee = std::numeric_limits<uint16_t>::max();
-  uint16_t channel = std::numeric_limits<uint16_t>::max();
-  uint16_t sampaaddress = std::numeric_limits<uint16_t>::max();
-  uint16_t sampachannel = std::numeric_limits<uint16_t>::max();
-  uint16_t samples = std::numeric_limits<uint16_t>::max();
+  uint64_t bco{std::numeric_limits<uint64_t>::max()};
+  uint64_t gtm_bco{std::numeric_limits<uint64_t>::max()};
+  int32_t packetid{std::numeric_limits<int32_t>::max()};
+  uint16_t fee{std::numeric_limits<uint16_t>::max()};
+  uint16_t channel{std::numeric_limits<uint16_t>::max()};
+  uint16_t sampaaddress{std::numeric_limits<uint16_t>::max()};
+  uint16_t sampachannel{std::numeric_limits<uint16_t>::max()};
+  uint16_t samples{std::numeric_limits<uint16_t>::max()};
 
   //! adc value for each sample
-  std::vector<uint16_t> adc;
+  std::map<uint16_t, uint16_t> adcmap;
 
-  ClassDefOverride(MicromegasRawHitv1, 1)
+  ClassDefOverride(MicromegasRawHitv2, 1)
 };
 
 #endif

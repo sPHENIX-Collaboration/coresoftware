@@ -2,18 +2,18 @@
 
 MicromegasRawHitv1::MicromegasRawHitv1(MicromegasRawHit *source)
 {
-  set_bco(source->get_bco());
-  set_gtm_bco(source->get_gtm_bco());
-  set_packetid(source->get_packetid());
-  set_fee(source->get_fee());
-  set_channel(source->get_channel());
-  set_sampaaddress(source->get_sampaaddress());
-  set_sampachannel(source->get_sampachannel());
-  set_samples(source->get_samples());
+  MicromegasRawHitv1::set_bco(source->get_bco());
+  MicromegasRawHitv1::set_gtm_bco(source->get_gtm_bco());
+  MicromegasRawHitv1::set_packetid(source->get_packetid());
+  MicromegasRawHitv1::set_fee(source->get_fee());
+  MicromegasRawHitv1::set_channel(source->get_channel());
+  MicromegasRawHitv1::set_sampaaddress(source->get_sampaaddress());
+  MicromegasRawHitv1::set_sampachannel(source->get_sampachannel());
+  MicromegasRawHitv1::set_samples(source->get_samples());
 
   for (size_t i = 0; i < source->get_samples(); ++i)
   {
-    set_adc(i, source->get_adc(i));
+    MicromegasRawHitv1::set_adc(i, source->get_adc(i));
   }
 }
 
