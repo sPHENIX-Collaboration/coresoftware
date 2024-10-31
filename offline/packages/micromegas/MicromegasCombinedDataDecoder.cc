@@ -204,7 +204,7 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
     // loop over sample_range find maximum
     const auto sample_range = std::make_pair(rawhit->get_sample_begin(), rawhit->get_sample_end());
     std::vector<uint16_t> adc_list;
-    for (int is = std::max(m_sample_min, sample_range.first); is < std::min(m_sample_max, sample_range.second); ++is)
+    for (auto is = std::max(m_sample_min, sample_range.first); is < std::min(m_sample_max, sample_range.second); ++is)
     {
       const uint16_t adc = rawhit->get_adc(is);
       if (adc != MicromegasDefs::m_adc_invalid)
