@@ -61,7 +61,7 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   float tangent_phi = atan2(tangent(1), tangent(0));
   if(fabs(tangent_phi - phi) > M_PI / 2)
     {
-      tangent -= tangent;
+      tangent = -1.0 * tangent;
     }
 
   // get the PCA of the cluster to that line
