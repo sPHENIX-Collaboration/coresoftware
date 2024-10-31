@@ -205,7 +205,6 @@ void SingleGl1PoolInput::CleanupUsedPackets(const uint64_t bclk)
       {
         delete pktiter;
       }
-      iter.second.clear();
       toclearbclk.push_back(iter.first);
     }
     else
