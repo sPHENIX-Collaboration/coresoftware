@@ -59,7 +59,7 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   // Direction is ambiguous, use cluster direction to resolve it
   float phi = atan2(global(1),global(0));
   float tangent_phi = atan2(tangent(1), tangent(0));
-  if(fabs(tangent_phi - phi) > M_PI / 2)
+  if(std::fabs(tangent_phi - phi) > M_PI / 2)
     {
       tangent = -1.0 * tangent;
     }
