@@ -117,11 +117,11 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
 
     if(straight_line_fit)
       {
- 	track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
+ 	track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:track_phi:perigee_phi");
      }
     else
       {
-	track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:xvtx:yvtx:zvtx:event_zvtx:track_phi:perigee_phi");
+	track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:track_phi:perigee_phi");
       }
   }
 
@@ -816,7 +816,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     //  skip the common vertex requirement for this track unless there are 3 tracks in the event
     if(accepted_tracks < 3) {  continue; }
 
-    Acts::Vector3 event_vtx(0, 0, averageVertex(2));
+    // Acts::Vector3 event_vtx(0, 0, averageVertex(2));
+    Acts::Vector3 event_vtx(averageVertex(0), averageVertex(1), averageVertex(2));
 
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca
@@ -833,6 +834,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	get_dca_zero_field(newTrack, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma, event_vtx);
       } 
     
+    // These are local coordinate residuals in the perigee surface
    Acts::Vector2 vtx_residual(-dca3dxy, -dca3dz);
 
     float lclvtx_derivativeX[AlignmentDefs::NLC];
@@ -912,23 +914,25 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       float track_phi = atan2(newTrack.get_py(), newTrack.get_px());
       if(straight_line_fit)
 	{
-	  float ntp_data[25] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+	  float ntp_data[27] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
 				lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3],
 				glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
 				lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3],
 				glblvtx_derivativeY[0], glblvtx_derivativeY[1], glblvtx_derivativeY[2],
-				newTrack.get_x(), newTrack.get_y(), newTrack.get_z(), (float) event_vtx(2), track_phi, perigee_phi};
+				newTrack.get_x(), newTrack.get_y(), newTrack.get_z(), 
+				(float) event_vtx(0), (float ) event_vtx(1), (float) event_vtx(2), track_phi, perigee_phi};
 	  
 	  track_ntp->Fill(ntp_data);
 	}
       else
 	{
-	  float ntp_data[27] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+	  float ntp_data[29] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
 				lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3], lclvtx_derivativeX[4],
 				glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
 				lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3], lclvtx_derivativeY[4],
 				glblvtx_derivativeY[0], glblvtx_derivativeY[1], glblvtx_derivativeY[2],
-				newTrack.get_x(), newTrack.get_y(), newTrack.get_z(), (float) event_vtx(2), track_phi, perigee_phi};
+				newTrack.get_x(), newTrack.get_y(), newTrack.get_z(), 
+				(float) event_vtx(0), (float ) event_vtx(1), (float) event_vtx(2), track_phi, perigee_phi};
 	  
 	  track_ntp->Fill(ntp_data);
 	}
@@ -1058,13 +1062,12 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_tangent(const st
 
   double x2 = 1;
   double y2 = fitpars[0]*x2 + fitpars[1];
-  //double rxy2 = sqrt(x2*x2+y2*y2);
   double z2 = fitpars[2]*x2 + fitpars[3];
   Acts::Vector3 arb_point2(x2, y2, z2);
 
   float arb_phi = atan2(arb_point(1), arb_point(0));
   Acts::Vector3 tangent = arb_point2 - arb_point;   // direction of line
-  if(abs(arb_phi - phi) > M_PI / 2)
+  if(fabs(arb_phi - phi) > M_PI / 2)
     {
       tangent = arb_point - arb_point2;   // direction of line
     }
