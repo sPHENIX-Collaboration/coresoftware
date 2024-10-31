@@ -7,6 +7,10 @@
 #include <cstdint>
 #include <cassert>
 #include <iostream>
+#include <limits>
+#include <array>
+#include <memory>
+#include <phool/recoConsts.h>
 
 namespace mvtx_utils
 {
@@ -19,24 +23,24 @@ namespace mvtx_utils
   struct RdhExt_t
   {
     // FLX header
-    uint8_t flxId;    // [23]
-    uint16_t pageSize; // [25]
-    uint16_t gbtLink;
-    uint8_t  flxHdrSize;
-    uint16_t flxHdrVersion;
+    uint8_t flxId = std::numeric_limits<uint8_t>::quiet_NaN();    // [23]
+    uint16_t pageSize = std::numeric_limits<uint16_t>::quiet_NaN(); // [25]
+    uint16_t gbtLink = std::numeric_limits<uint16_t>::quiet_NaN();
+    uint8_t  flxHdrSize = std::numeric_limits<uint8_t>::quiet_NaN();
+    uint16_t flxHdrVersion = std::numeric_limits<uint16_t>::quiet_NaN();
     // RU header
-    uint8_t rdhVersion;
-    uint8_t rdhSize;
-    uint16_t feeId;
-    uint8_t sourceId;
-    uint32_t detectorField;
-    uint16_t bc;
-    uint64_t orbit;
-    uint32_t trgType;
-    uint16_t packetCounter;
-    uint8_t  stopBit;
-    uint8_t  priority;
-    uint16_t rdhGBTcounter; // 10 bits
+    uint8_t rdhVersion = std::numeric_limits<uint8_t>::quiet_NaN();
+    uint8_t rdhSize = std::numeric_limits<uint8_t>::quiet_NaN();
+    uint16_t feeId = std::numeric_limits<uint16_t>::quiet_NaN();
+    uint8_t sourceId = std::numeric_limits<uint8_t>::quiet_NaN();
+    uint32_t detectorField = std::numeric_limits<uint32_t>::quiet_NaN();
+    uint16_t bc = std::numeric_limits<uint16_t>::quiet_NaN();
+    uint64_t orbit  = std::numeric_limits<uint64_t>::quiet_NaN();
+    uint32_t trgType  = std::numeric_limits<uint32_t>::quiet_NaN();
+    uint16_t packetCounter = std::numeric_limits<uint16_t>::quiet_NaN();
+    uint8_t  stopBit = std::numeric_limits<uint8_t>::quiet_NaN();
+    uint8_t  priority = std::numeric_limits<uint8_t>::quiet_NaN();
+    uint16_t rdhGBTcounter = std::numeric_limits<uint16_t>::quiet_NaN(); // 10 bits
 
     RdhExt_t() = default;
     ~RdhExt_t() = default;
@@ -113,6 +117,9 @@ namespace mvtx_utils
   {
     return a.second < b.second;
   }
+
+float getStrobeLength(const int& runNumber);
+
 
 } //namespace mvtx_utils
 

@@ -1,10 +1,10 @@
 #include "SingleMvtxPoolInput.h"
 #include "mvtx_pool.h"
-
+#include "mvtx_decoder/mvtx_utils.h"
 #include "Fun4AllStreamingInputManager.h"
 
 #include "MvtxRawDefs.h"
-
+#include <fun4all/Fun4AllUtils.h>
 #include <ffarawobjects/MvtxFeeIdInfov1.h>
 #include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
@@ -21,6 +21,7 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <cmath>
 #include <cassert>
 #include <memory>
 #include <set>
@@ -111,10 +112,8 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
         poolmap[plist[i]->getIdentifier()] = new mvtx_pool();
       }
       poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
-
       delete plist[i];
     }
-
     for (auto &iter : poolmap)
     {
       mvtx_pool *pool = iter.second;
@@ -420,6 +419,44 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 
 void SingleMvtxPoolInput::ConfigureStreamingInputManager()
 {
+
+  auto [runnumber, segment] = Fun4AllUtils::GetRunSegment(*(GetFileList().begin()));
+  float strobeLength = mvtx_utils::getStrobeLength(runnumber);
+  if(std::isnan(strobeLength))
+  {
+    std::cout << PHWHERE << "WARNING: Strobe length is not defined for run " << runnumber << std::endl;
+    std::cout << "Defaulting to 89 mus strobe length" << std::endl;
+    strobeLength = 89.;
+  }
+  if(strobeLength > 88.)
+  {
+    m_BcoRange = 1000;
+    m_NegativeBco = 1000;
+  }
+  else if (strobeLength > 9 && strobeLength < 11)
+  {
+    m_BcoRange = 100;
+    m_NegativeBco = 500;
+  }
+  else if (strobeLength < 1) // triggered mode
+  {
+    m_BcoRange = 2;
+    m_NegativeBco = 0;
+    if(StreamingInputManager())
+    {
+      StreamingInputManager()->runMvtxTriggered(true);
+    }
+  }
+  else // catchall for anyting else to set to a range based on the rhic clock
+  {
+    m_BcoRange = std::ceil(strobeLength / 0.1065);
+    m_NegativeBco = std::ceil(strobeLength / 0.1065);
+  }
+  if(Verbosity() > 1)
+  {
+    std::cout << "Mvtx strobe length " << strobeLength << std::endl;
+    std::cout << "Mvtx BCO range and negative bco range set based on strobe length " << m_BcoRange << ", " << m_NegativeBco << std::endl;
+  }
   if (StreamingInputManager())
   {
     StreamingInputManager()->SetMvtxBcoRange(m_BcoRange);
