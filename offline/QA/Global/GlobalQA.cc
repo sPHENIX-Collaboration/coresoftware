@@ -429,18 +429,18 @@ void GlobalQA::createHistos() {
                ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
 
   h_GlobalQA_mbd_charge_sum =
-      new TH1F("h_GlobalQA_mbd_charge_sum ", " ; MBD total charge ; counts",
+      new TH1F("h_GlobalQA_mbd_charge_sum", " ; MBD Total Charge ; Counts",
                100, 0., 20);
 
   h2_GlobalQA_mbd_charge_NS_correlation = new TH2F(
       "h2_GlobalQA_mbd_charge_NS_correlation",
-      "MBD NS charge correlation ; total charge (south); total charge (north)",
-      100, 0, 10, 100, 0, 10);
+      "MBD Charge Correlation ; Total Charge (South); Total Charge (North)",
+      150, 0, 1500, 150, 0, 1500);
 
   h2_GlobalQA_mbd_nhits_NS_correlation =
       new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation",
-               "MBD NS number of hits correlation ; number of hits (south); "
-               "number of hits (north)",
+               "MBD Number Of Hits Correlation ; Number Of Hits (South); "
+               "Number Of Hits (North)",
                70, 0., 70, 70, 0., 70);
 
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
