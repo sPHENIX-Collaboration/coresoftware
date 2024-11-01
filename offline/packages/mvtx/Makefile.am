@@ -50,6 +50,7 @@ libmvtx_la_LIBADD = \
   -lCLHEP \
   -lfun4all \
   -lffarawobjects \
+  -lfun4allraw \
   -lffamodules \
   -lphg4hit \
   -lSubsysReco \
