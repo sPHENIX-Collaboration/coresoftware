@@ -1,23 +1,20 @@
 #include "MicromegasRawHitv2.h"
 
-MicromegasRawHitv2::MicromegasRawHitv2(MicromegasRawHit *tpchit)
+MicromegasRawHitv2::MicromegasRawHitv2(MicromegasRawHit *source)
 {
-  MicromegasRawHitv2::set_bco(tpchit->get_bco());
-  MicromegasRawHitv2::set_gtm_bco(tpchit->get_gtm_bco());
-  MicromegasRawHitv2::set_packetid(tpchit->get_packetid());
-  MicromegasRawHitv2::set_fee(tpchit->get_fee());
-  MicromegasRawHitv2::set_channel(tpchit->get_channel());
-  MicromegasRawHitv2::set_sampaaddress(tpchit->get_sampaaddress());
-  MicromegasRawHitv2::set_sampachannel(tpchit->get_sampachannel());
-  MicromegasRawHitv2::set_samples(tpchit->get_samples());
+  MicromegasRawHitv2::set_bco(source->get_bco());
+  MicromegasRawHitv2::set_gtm_bco(source->get_gtm_bco());
+  MicromegasRawHitv2::set_packetid(source->get_packetid());
+  MicromegasRawHitv2::set_fee(source->get_fee());
+  MicromegasRawHitv2::set_channel(source->get_channel());
+  MicromegasRawHitv2::set_sampaaddress(source->get_sampaaddress());
+  MicromegasRawHitv2::set_sampachannel(source->get_sampachannel());
+  MicromegasRawHitv2::set_sample_begin(source->get_sample_begin());
+  MicromegasRawHitv2::set_sample_end(source->get_sample_end());
 
-  for (size_t i = 0; i < tpchit->get_samples(); ++i)
+  for (size_t i = source->get_sample_begin(); i < source->get_sample_end(); ++i)
   {
-    uint16_t adcval = tpchit->get_adc(i);
-    if (adcval > 0)
-    {
-      MicromegasRawHitv2::set_adc(i, tpchit->get_adc(i));
-    }
+    MicromegasRawHitv2::set_adc(i, source->get_adc(i));
   }
 }
 

@@ -50,14 +50,15 @@ class MicromegasRawHitv2 : public MicromegasRawHit
   // cppcheck-suppress virtualCallInConstructor
   void set_sampachannel(const uint16_t val) override { sampachannel = val; }
 
-  uint16_t get_samples() const override { return samples; }
-  // cppcheck-suppress virtualCallInConstructor
-  void set_samples(const uint16_t val) override
-  {
-    // assign
-    samples = val;
-  }
+  // index of the first sample with data
+  uint16_t get_sample_begin() const override
+  { return adcmap.empty() ? 0:adcmap.begin()->first; }
 
+  // index of the next to last sample with data
+  uint16_t get_sample_end() const override
+  { return adcmap.empty() ? 0:adcmap.rbegin()->first; }
+
+  // adc value for a given sample index
   uint16_t get_adc(const uint16_t sample) const override;
 
   // cppcheck-suppress virtualCallInConstructor
@@ -74,7 +75,6 @@ class MicromegasRawHitv2 : public MicromegasRawHit
   uint16_t channel{std::numeric_limits<uint16_t>::max()};
   uint16_t sampaaddress{std::numeric_limits<uint16_t>::max()};
   uint16_t sampachannel{std::numeric_limits<uint16_t>::max()};
-  uint16_t samples{std::numeric_limits<uint16_t>::max()};
 
   //! adc value for each sample
   std::map<uint16_t, uint16_t> adcmap;

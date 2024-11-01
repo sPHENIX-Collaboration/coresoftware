@@ -9,9 +9,10 @@ MicromegasRawHitv1::MicromegasRawHitv1(MicromegasRawHit *source)
   MicromegasRawHitv1::set_channel(source->get_channel());
   MicromegasRawHitv1::set_sampaaddress(source->get_sampaaddress());
   MicromegasRawHitv1::set_sampachannel(source->get_sampachannel());
-  MicromegasRawHitv1::set_samples(source->get_samples());
+  MicromegasRawHitv1::set_sample_begin(source->get_sample_begin());
+  MicromegasRawHitv1::set_sample_end(source->get_sample_end());
 
-  for (size_t i = 0; i < source->get_samples(); ++i)
+  for (size_t i = source->get_sample_begin(); i < source->get_sample_end(); ++i)
   {
     MicromegasRawHitv1::set_adc(i, source->get_adc(i));
   }

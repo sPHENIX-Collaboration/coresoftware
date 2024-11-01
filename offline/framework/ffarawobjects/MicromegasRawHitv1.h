@@ -49,9 +49,15 @@ class MicromegasRawHitv1 : public MicromegasRawHit
   // cppcheck-suppress virtualCallInConstructor
   void set_sampachannel(uint16_t const val) override { sampachannel = val; }
 
-  uint16_t get_samples() const override { return samples; }
+  // index of the first sample with data
+  uint16_t get_sample_begin() const override { return 0; }
+
+  // index of the next to last sample with data
+  uint16_t get_sample_end() const override { return samples; }
+
+  // index of the next to last sample with data
   // cppcheck-suppress virtualCallInConstructor
-  void set_samples(uint16_t const val) override
+  void set_sample_end(uint16_t const val) override
   {
     // assign
     samples = val;

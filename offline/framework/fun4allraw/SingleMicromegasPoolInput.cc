@@ -295,8 +295,9 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
         newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
 
-        // assign samples
-        newhit->set_samples(samples);
+        // assign sample range
+        newhit->set_sample_begin(0);
+        newhit->set_sample_end(samples);
 
         // adc values
         for (uint16_t is = 0; is < samples; ++is)
