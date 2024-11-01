@@ -197,7 +197,7 @@ void SingleGl1PoolInput::Print(const std::string &what) const
 void SingleGl1PoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
   std::vector<uint64_t> toclearbclk;
-  for (auto &iter : m_Gl1RawHitMap)
+  for (const auto &iter : m_Gl1RawHitMap)
   {
     if (iter.first <= bclk)
     {
