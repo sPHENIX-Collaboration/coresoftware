@@ -209,6 +209,12 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
       const uint16_t adc = rawhit->get_adc(is);
       if (adc != MicromegasDefs::m_adc_invalid)
       {
+        std::cout << "MicromegasCombinedDataDecoder::process_event -"
+          << " fee: " << fee
+          << " channel: " << channel
+          << " is: " << is
+          << " adc: " << adc
+          << std::endl;
         adc_list.push_back(adc);
       }
     }

@@ -56,7 +56,7 @@ class MicromegasRawHitv2 : public MicromegasRawHit
 
   // index of the next to last sample with data
   uint16_t get_sample_end() const override
-  { return adcmap.empty() ? 0:adcmap.rbegin()->first; }
+  { return adcmap.empty() ? 0:adcmap.rbegin()->first+1; }
 
   // adc value for a given sample index
   uint16_t get_adc(const uint16_t sample) const override;
