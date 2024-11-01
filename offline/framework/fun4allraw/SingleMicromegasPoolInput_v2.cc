@@ -4,7 +4,7 @@
 #include "InputManagerType.h"
 
 #include <ffarawobjects/MicromegasRawHitContainerv1.h>
-#include <ffarawobjects/MicromegasRawHitv1.h>
+#include <ffarawobjects/MicromegasRawHitv2.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <qautils/QAHistManagerDef.h>
@@ -710,16 +710,6 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     // try get gtm bco matching fee
     const auto& fee_bco = payload.bx_timestamp;
 
-    if( false )
-    {
-      std::cout << "SingleMicromegasPoolInput -"
-        << " fee_id: " << fee_id
-        << " channel: " << payload.channel
-        << " fee bco: " << fee_bco
-        << " heartbeat: " << (payload.type == HEARTBEAT_T)
-        << std::endl;
-    }
-
     // find matching gtm bco
     uint64_t gtm_bco = 0;
     const auto result = bco_matching_information.find_gtm_bco(fee_bco);
@@ -744,7 +734,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     { continue; }
 
     // create new hit
-    auto newhit = std::make_unique<MicromegasRawHitv1>();
+    auto newhit = std::make_unique<MicromegasRawHitv2>();
     newhit->set_bco(fee_bco);
     newhit->set_gtm_bco(gtm_bco);
 
@@ -762,7 +752,19 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     for( const auto& [start_t, adc]:payload.waveforms )
     {
       for( size_t i=0; i < adc.size(); ++i )
-      { newhit->set_adc(start_t+i,adc[i]); }
+      {
+        if( start_t+i < MAX_SAMPLE )
+        {
+          newhit->set_adc(start_t+i,adc[i]);
+        } else {
+          std::cout << "SingleMicromegasPoolInput_v2::process_fee_data -"
+            << " fee_id: " << fee_id
+            << " channel: " << payload.channel
+            << " invalid sample: " << start_t+i
+            << std::endl;
+          // break;
+        }
+      }
     }
 
     m_BeamClockFEE[gtm_bco].insert(fee_id);
