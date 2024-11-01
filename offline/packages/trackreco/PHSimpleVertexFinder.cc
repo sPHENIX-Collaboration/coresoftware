@@ -82,6 +82,12 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     auto crossing = track->get_crossing();
     auto siseed = track->get_silicon_seed();
 
+    if (Verbosity() > 0)
+      {
+	std::cout << "track id " << trackkey << " crossing " << crossing 
+		  << " x y z " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
+      }
+
     // crossing zero contains unmatched TPC tracks
     // Here we skip those crossing = zero tracks that do not have silicon seeds
     if( (crossing == 0) & !siseed)
@@ -90,15 +96,9 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
       }
     
     crossings.insert(crossing);
-    _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);
-    
-    if (Verbosity() > 0)
-      {
-	std::cout << "trackkey " << trackkey << " crossing " << crossing << std::endl;
-      }
+    _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);    
   }
   
-
   unsigned int vertex_id = 0;
 
   for (auto cross : crossings)
