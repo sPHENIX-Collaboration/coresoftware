@@ -4,7 +4,7 @@
 #include "InputManagerType.h"
 
 #include <ffarawobjects/MicromegasRawHitContainerv1.h>
-#include <ffarawobjects/MicromegasRawHitv1.h>
+#include <ffarawobjects/MicromegasRawHitv2.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <qautils/QAHistManagerDef.h>
@@ -30,6 +30,10 @@
 
 namespace
 {
+
+  //! mark invalid ADC values
+  static constexpr uint16_t m_adc_invalid = 65000;
+
   // maximum number of packets
   static constexpr int m_npackets_active = 2;
 
@@ -284,7 +288,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
 
         // create new hit
-        auto newhit = std::make_unique<MicromegasRawHitv1>();
+        auto newhit = std::make_unique<MicromegasRawHitv2>();
         newhit->set_bco(fee_bco);
         newhit->set_gtm_bco(gtm_bco);
 
@@ -296,13 +300,18 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
 
         // assign sample range
+        /* note: for NewHitv2, this is NOOP */
         newhit->set_sample_begin(0);
         newhit->set_sample_end(samples);
 
         // adc values
         for (uint16_t is = 0; is < samples; ++is)
         {
-          newhit->set_adc(is, packet->iValue(wf, is));
+          const uint16_t adc = packet->iValue(wf, is);
+          if( adc != m_adc_invalid)
+          {
+            newhit->set_adc(is, adc);
+          }
         }
 
         m_BeamClockFEE[gtm_bco].insert(fee_id);
