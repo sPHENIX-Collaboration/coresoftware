@@ -63,6 +63,7 @@ libmvtx_decoder_la_SOURCES =\
   mvtx_decoder/GBTLink.cc \
   mvtx_decoder/GBTWord.cc \
   mvtx_decoder/InteractionRecord.cc \
+  mvtx_decoder/mvtx_utils.cc \
   mvtx_decoder/PayLoadCont.cc \
   mvtx_decoder/PixelData.cc \
   mvtx_decoder/StrobeData.cc
@@ -99,6 +100,10 @@ libfun4allraw_la_SOURCES = \
   SingleZdcTriggerInput.cc \
   tpc_pool.cc
 
+libmvtx_decoder_la_LIBADD = \
+  -lfun4all \
+  -lphoolraw
+  
 libfun4allraw_la_LIBADD = \
   libmvtx_decoder.la \
   -lffarawobjects \

@@ -6,6 +6,7 @@
 
 #include "MvtxCombinedRawDataDecoder.h"
 
+#include <mvtx_decoder/mvtx_utils.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/MvtxEventInfov2.h>
 #include <trackbase/TrkrHitSet.h>
@@ -113,9 +114,18 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   {
     se->unregisterSubsystem(this);
   }
-
-  getStrobeLength();
-
+  recoConsts *rc = recoConsts::instance();
+  int runNumber = rc->get_IntFlag("RUNNUMBER");
+  m_strobeWidth = mvtx_utils::getStrobeLength(runNumber);
+  if(std::isnan(m_strobeWidth))
+  {
+    std::cout << "MvtxCombinedRawDataDecoder::InitRun - strobe width is undefined for this run, defaulting to 89 mus" << std::endl;
+    m_strobeWidth = 89;
+  }
+  if(m_strobeWidth < 1)
+  {
+    runMvtxTriggered(true);
+  }
   // Load the hot pixel map from the CDB
   if(m_doOfflineMasking)
   {
@@ -300,45 +310,4 @@ void MvtxCombinedRawDataDecoder::removeDuplicates(
     end = remove(it + 1, end, *it);
   }
   v.erase(end, v.end());
-}
-
-void MvtxCombinedRawDataDecoder::getStrobeLength()
-{
-  recoConsts *rc = recoConsts::instance();
-  int m_runNumber = rc->get_IntFlag("RUNNUMBER");
-
-  std::string executable_command = "psql -h sphnxdaqdbreplica daq --csv -c \"SELECT strobe FROM mvtx_strobe WHERE hostname = \'mvtx0\' AND runnumber = ";
-  executable_command += std::to_string(m_runNumber);
-  executable_command += ";\" | tail -n 1";
-
-  std::string strobe_query = exec(executable_command.c_str());
-
-  try
-  {
-    m_strobeWidth = stof(strobe_query);
-  }
-  catch (std::invalid_argument const& ex)
-  {
-    if (Verbosity() >= 1)
-    {
-      std::cout << PHWHERE << ":: Run number " << m_runNumber << " has no strobe length in the DAQ database, using " << m_strobeWidth << " microseconds" << std::endl;
-    }
-  }
-}
-
-// https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
-std::string MvtxCombinedRawDataDecoder::exec(const char *cmd)
-{
-  std::array<char, 128> buffer = {};
-  std::string result;
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-  if (!pipe)
-  {
-    throw std::runtime_error("popen() failed!");
-  }
-  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
-  {
-    result += buffer.data();
-  }
-  return result;
 }
