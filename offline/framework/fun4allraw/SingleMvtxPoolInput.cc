@@ -1,6 +1,5 @@
 #include "SingleMvtxPoolInput.h"
 #include "mvtx_pool.h"
-#include "mvtx_decoder/mvtx_utils.h"
 #include "Fun4AllStreamingInputManager.h"
 
 #include "MvtxRawDefs.h"
@@ -421,7 +420,7 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
 {
 
   auto [runnumber, segment] = Fun4AllUtils::GetRunSegment(*(GetFileList().begin()));
-  float strobeLength = mvtx_utils::getStrobeLength(runnumber);
+  float strobeLength = MvtxRawDefs::getStrobeLength(runnumber);
   if(std::isnan(strobeLength))
   {
     std::cout << PHWHERE << "WARNING: Strobe length is not defined for run " << runnumber << std::endl;
