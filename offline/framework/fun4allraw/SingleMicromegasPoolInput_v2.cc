@@ -745,8 +745,9 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     newhit->set_sampaaddress(payload.sampa_address);
     newhit->set_sampachannel(payload.sampa_channel);
 
-    // this is likely broken
-    newhit->set_samples(MAX_SAMPLE);
+    // assign samples
+    newhit->set_sample_begin(0);
+    newhit->set_sample_end(MAX_SAMPLE);
 
     // adc values
     for( const auto& [start_t, adc]:payload.waveforms )
