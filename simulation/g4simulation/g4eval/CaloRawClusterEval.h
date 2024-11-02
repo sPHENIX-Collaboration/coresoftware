@@ -9,6 +9,8 @@
 #include <string>
 #include <utility>
 
+#include <calobase/RawTowerDefs.h>
+
 class PHCompositeNode;
 class PHG4Hit;
 class PHG4Particle;
@@ -16,6 +18,9 @@ class PHG4Shower;
 class RawClusterContainer;
 class RawCluster;
 class RawTowerContainer;
+class TowerInfoContainer;
+
+
 
 class CaloRawClusterEval
 {
@@ -44,6 +49,8 @@ class CaloRawClusterEval
     _strict = strict;
     _towereval.set_strict(strict);
   }
+
+  void set_usetowerinfo(bool use) { _usetowerinfo = use; }
 
   /// get a count of the errors discovered thus far
   unsigned int get_errors() { return _errors + _towereval.get_errors(); }
@@ -110,13 +117,16 @@ class CaloRawClusterEval
 
  private:
   void get_node_pointers(PHCompositeNode* topNode);
+  unsigned int get_towerinfo_key(RawTowerDefs::keytype tower_key);
 
   std::string _caloname;
   CaloRawTowerEval _towereval;
   RawClusterContainer* _clusters = nullptr;
   RawTowerContainer* _towers = nullptr;
+  TowerInfoContainer* _towerinfos = nullptr;
 
   bool _strict = false;
+  bool _usetowerinfo = false;
   int _verbosity = 1;
   unsigned int _errors = 0;
 

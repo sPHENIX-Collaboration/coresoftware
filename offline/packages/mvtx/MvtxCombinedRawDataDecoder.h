@@ -56,8 +56,6 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
 
  private:
   void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>>& v);
-  void getStrobeLength();
-  std::string exec(const char *cmd);
 
   TrkrHitSetContainer* hit_set_container = nullptr;
   MvtxEventInfo* mvtx_event_header = nullptr;
