@@ -813,30 +813,33 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     // calculate vertex residual with perigee surface
     //-------------------------------------------------------
 
+    Acts::Vector3 event_vtx(averageVertex(0), averageVertex(1), averageVertex(2));
+
     for (const auto &[vtxkey, vertex] : *m_vertexmap)
       {
-	//if (Verbosity() > 1)
+	for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
 	  {
-	    vertex->identify();
-	    std::cout << "Vertex ID: " << vtxkey << " vertex crossing " << vertex->get_beam_crossing() << " list of tracks: " << std::endl;
-	    for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
-	      {
-		SvtxTrack *track = m_trackmap->get(*trackiter);
-		if (!track)
+	    SvtxTrack *vtxtrack = m_trackmap->get(*trackiter);
+	    if (vtxtrack)
+	      {	    
+		unsigned int vtxtrackid = vtxtrack->get_id();
+		if(trackid == vtxtrackid)
 		  {
-		    continue;
+		    event_vtx(0) = vertex->get_x();
+		    event_vtx(1) = vertex->get_y();
+		    event_vtx(2) = vertex->get_z();
+		    if(Verbosity() > 0)
+		      {
+			std::cout << "     setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey
+				  << " vtx " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
+		      }
 		  }
-		
-		//		auto siseed = track->get_silicon_seed();
-		track->identify();
 	      }
 	  }
       }
-
+    
     //  skip the common vertex requirement for this track unless there are 3 tracks in the event
     if(accepted_tracks < 3) {  continue; }
-
-    Acts::Vector3 event_vtx(averageVertex(0), averageVertex(1), averageVertex(2));
     
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca

@@ -6,6 +6,7 @@
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>            // for cluskey, getLayer, TrkrId
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase_historic/SvtxTrack.h>  // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 
@@ -19,6 +20,8 @@
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+#include <Acts/Surfaces/PerigeeSurface.hpp>
 
 #include <cmath>  // for sqrt, fabs, atan2, cos
 #include <iomanip>
@@ -132,7 +135,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
 
     // Find all instances where two tracks have a dca of < _dcacut,  and capture the pair details
     // Fills _track_pair_map and _track_pair_pca_map
-    if(zero_field)
+    if(_zero_field)
       {
 	checkDCAsZF(crossing_tracks);
       }
@@ -145,7 +148,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     if (_track_pair_map.size() == 0)
     {
       _active_dcacut = 3.0 * _base_dcacut;
-      if(zero_field)
+      if(_zero_field)
 	{
 	  checkDCAsZF(crossing_tracks);
 	}
@@ -442,6 +445,21 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+
+  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if (!_cluster_map)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!_tGeometry)
+  {
+    std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -542,9 +560,9 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
   // ZF tracks do not have an Acts fit, and the seeding does not give
   // reliable track parameters - refit clusters wioth straight lines
 
-  std::vector<std::vector<unsigned int> cumulative_trackid_vec;
-  std::vector<std::vector<unsigned int> cumulative_nmvtx_vec;
-  std::vector<std::vector<unsigned int> cumulative_nintt_vec;
+  std::vector<unsigned int> cumulative_trackid_vec;
+  std::vector<unsigned int> cumulative_nmvtx_vec;
+  std::vector<unsigned int> cumulative_nintt_vec;
   std::vector<std::vector<Acts::Vector3>> cumulative_global_vec;
   std::vector<std::vector<TrkrDefs::cluskey>> cumulative_cluskey_vec;
   std::vector<std::vector<float>> cumulative_fitpars_vec;
@@ -570,7 +588,7 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
     unsigned int nintt = 0;
     for (auto& key : cluskey_vec)
       {
-        if (TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId)
+        if (TrkrDefs::getTrkrId(key) == TrkrDefs::mvtxId)
 	  {
 	    nmvtx++;
 	  }
@@ -583,18 +601,18 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
     // store cluster global positions in a vector
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
     
-    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit);
+    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, 1);
     
     if (Verbosity() > 1)
       {
 	if(fitpars.size() == 4)
 	  {
-	    std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] 
+	    std::cout << " Track " << id1 << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] 
 		      << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
 	  }
 	else
 	  {
-	    std::cout << " Track " << trackid << " ZF line fits failed, fitpars is empty" << std::endl;
+	    std::cout << " Track " << id1 << " ZF line fits failed, fitpars is empty" << std::endl;
 	  }
       }
 
@@ -610,7 +628,7 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
     {
       if(cumulative_fitpars_vec[i1].size() == 0) { continue; }
 
-      for(unsigned int i2 = 0; i2 < cumulative_trackid_vec.size(); ++i2)
+      for(unsigned int i2 = i1; i2 < cumulative_trackid_vec.size(); ++i2)
 	{
 	  if(cumulative_fitpars_vec[i2].size() == 0) { continue; }
 
@@ -650,6 +668,46 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
     }
 
   return; 
+}
+
+void PHSimpleVertexFinder::getTrackletClusterList(TrackSeed* tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
+{
+  for (auto clusIter = tracklet->begin_cluster_keys();
+       clusIter != tracklet->end_cluster_keys();
+       ++clusIter)
+  {
+    auto key = *clusIter;
+    auto cluster = _cluster_map->findCluster(key);
+    if (!cluster)
+    {
+      std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
+      continue;
+    }
+
+    /// Make a safety check for clusters that couldn't be attached to a surface
+    auto surf = _tGeometry->maps().getSurface(key, cluster);
+    if (!surf)
+    {
+      continue;
+    }
+
+    // drop some bad layers in the TPC completely
+    unsigned int layer = TrkrDefs::getLayer(key);
+    if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39)
+    {
+      continue;
+    }
+
+    // drop INTT clusters for now  -- TEMPORARY!
+    if (layer > 2 && layer < 7)
+    {
+      continue;
+    }
+
+
+    cluskey_vec.push_back(key);
+
+  }  // end loop over clusters for this track
 }
 
 void PHSimpleVertexFinder::checkDCAs()
