@@ -52,6 +52,7 @@ class PHSimpleVertexFinder : public SubsysReco
   int CreateNodes(PHCompositeNode *topNode);
 
   void checkDCAs(SvtxTrackMap *track_map);
+  void checkDCAsZF(SvtxTrackMap *track_map);
   void checkDCAs();
 
   void findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2);

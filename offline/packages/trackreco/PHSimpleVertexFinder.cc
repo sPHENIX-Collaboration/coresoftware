@@ -132,15 +132,29 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
 
     // Find all instances where two tracks have a dca of < _dcacut,  and capture the pair details
     // Fills _track_pair_map and _track_pair_pca_map
-    checkDCAs(crossing_tracks);
+    if(zero_field)
+      {
+	checkDCAsZF(crossing_tracks);
+      }
+    else
+      {
+	checkDCAs(crossing_tracks);
+      }
 
     /// If we didn't find any matches, try again with a slightly larger DCA cut
     if (_track_pair_map.size() == 0)
     {
       _active_dcacut = 3.0 * _base_dcacut;
-      checkDCAs(crossing_tracks);
+      if(zero_field)
+	{
+	  checkDCAsZF(crossing_tracks);
+	}
+      else
+	{
+	  checkDCAs(crossing_tracks);
+	}
     }
-
+    
     if (Verbosity() > 0)
     {
       std::cout << "crossing " << cross << " track pair map size " << _track_pair_map.size() << std::endl;
@@ -520,6 +534,122 @@ void PHSimpleVertexFinder::checkDCAs(SvtxTrackMap *track_map)
       findDcaTwoTracks(tr1, tr2);
     }
   }
+}
+
+void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
+{
+  // presently works only for the silicon seed part of the track
+  // ZF tracks do not have an Acts fit, and the seeding does not give
+  // reliable track parameters - refit clusters wioth straight lines
+
+  std::vector<std::vector<unsigned int> cumulative_trackid_vec;
+  std::vector<std::vector<unsigned int> cumulative_nmvtx_vec;
+  std::vector<std::vector<unsigned int> cumulative_nintt_vec;
+  std::vector<std::vector<Acts::Vector3>> cumulative_global_vec;
+  std::vector<std::vector<TrkrDefs::cluskey>> cumulative_cluskey_vec;
+  std::vector<std::vector<float>> cumulative_fitpars_vec;
+
+  for (auto tr1_it = track_map->begin(); tr1_it != track_map->end(); ++tr1_it)
+  {
+    auto id1 = tr1_it->first;
+    auto tr1 = tr1_it->second;
+
+    TrackSeed *siliconseed = tr1->get_silicon_seed();
+    if (!siliconseed)
+      {
+	continue;
+      }
+
+    std::vector<Acts::Vector3> global_vec;
+    std::vector<TrkrDefs::cluskey> cluskey_vec;
+    
+    // Get a vector of cluster keys from the tracklet
+    getTrackletClusterList(siliconseed, cluskey_vec);
+
+    unsigned int nmvtx = 0;
+    unsigned int nintt = 0;
+    for (auto& key : cluskey_vec)
+      {
+        if (TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId)
+	  {
+	    nmvtx++;
+	  }
+	if(TrkrDefs::getTrkrId(key) == TrkrDefs::inttId)
+	  {
+	    nintt++;
+	  }
+      }
+    
+    // store cluster global positions in a vector
+    TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
+    
+    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit);
+    
+    if (Verbosity() > 1)
+      {
+	if(fitpars.size() == 4)
+	  {
+	    std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] 
+		      << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
+	  }
+	else
+	  {
+	    std::cout << " Track " << trackid << " ZF line fits failed, fitpars is empty" << std::endl;
+	  }
+      }
+
+    cumulative_trackid_vec.push_back(id1);   
+    cumulative_nmvtx_vec.push_back(nmvtx);   
+    cumulative_nintt_vec.push_back(nintt);   
+    cumulative_global_vec.push_back(global_vec);
+    cumulative_cluskey_vec.push_back(cluskey_vec);
+    cumulative_fitpars_vec.push_back(fitpars);
+  }
+
+  for(unsigned int i1 = 0; i1 < cumulative_trackid_vec.size(); ++i1)
+    {
+      if(cumulative_fitpars_vec[i1].size() == 0) { continue; }
+
+      for(unsigned int i2 = 0; i2 < cumulative_trackid_vec.size(); ++i2)
+	{
+	  if(cumulative_fitpars_vec[i2].size() == 0) { continue; }
+
+	  //  For straight line: fitpars[4] = { xyslope, y0, xzslope, z0 }
+	  Eigen::Vector3d a1(0.0, cumulative_fitpars_vec[i1][1],cumulative_fitpars_vec[i1][3]);      // point on track 1 at x = 0
+	  Eigen::Vector3d a2(0.0, cumulative_fitpars_vec[i2][1],cumulative_fitpars_vec[i2][3]);      // point on track 2 at x = 0
+	  // direction vectors made from dy/dx = xyslope and dz/dx = xzslope
+	  Eigen::Vector3d b1(1.0, cumulative_fitpars_vec[i1][0],cumulative_fitpars_vec[i1][2]);      // direction vector of track 1
+	  Eigen::Vector3d b2(1.0, cumulative_fitpars_vec[i2][0],cumulative_fitpars_vec[i2][2]);      // direction vector of track 2
+	  	  
+	  Eigen::Vector3d PCA1(0, 0, 0);
+	  Eigen::Vector3d PCA2(0, 0, 0);
+	  double dca = dcaTwoLines(a1, b1, a2, b2, PCA1, PCA2);
+
+
+	  // check dca cut is satisfied, and that PCA is close to beam line
+	  if (fabs(dca) < _active_dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut))
+	    {
+	      int id1 = cumulative_trackid_vec[i1];
+	      int id2 = cumulative_trackid_vec[i2];
+
+	      if (Verbosity() > 3)
+		{
+		  std::cout << " good match for tracks " << id1 << " and " << id2 << std::endl;
+		  std::cout << "    a1.x " << a1.x() << " a1.y " << a1.y() << " a1.z " << a1.z() << std::endl;
+		  std::cout << "    a2.x  " << a2.x() << " a2.y " << a2.y() << " a2.z " << a2.z() << std::endl;
+		  std::cout << "    PCA1.x() " << PCA1.x() << " PCA1.y " << PCA1.y() << " PCA1.z " << PCA1.z() << std::endl;
+		  std::cout << "    PCA2.x() " << PCA2.x() << " PCA2.y " << PCA2.y() << " PCA2.z " << PCA2.z() << std::endl;
+		  std::cout << "    dca " << dca << std::endl;
+		}
+	      
+	      // capture the results for successful matches
+	      _track_pair_map.insert(std::make_pair(id1, std::make_pair(id2, dca)));
+	      _track_pair_pca_map.insert(std::make_pair(id1, std::make_pair(id2, std::make_pair(PCA1, PCA2))));
+	    }	  	  
+	}
+    }
+
+  return; 
 }
 
 void PHSimpleVertexFinder::checkDCAs()
