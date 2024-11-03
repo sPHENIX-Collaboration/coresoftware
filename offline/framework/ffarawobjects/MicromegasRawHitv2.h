@@ -1,5 +1,5 @@
-#ifndef FUN4ALLRAW_TPCRAWTHITV2_H
-#define FUN4ALLRAW_TPCRAWTHITV2_H
+#ifndef FUN4ALLRAW_MICROMEGASRAWTHITV2_H
+#define FUN4ALLRAW_MICROMEGASRAWTHITV2_H
 
 #include "MicromegasRawHit.h"
 
@@ -12,7 +12,7 @@
 class MicromegasRawHitv2 : public MicromegasRawHit
 {
  public:
-  explicit MicromegasRawHitv2() = default;
+  MicromegasRawHitv2() = default;
   MicromegasRawHitv2(MicromegasRawHit*);
 
   /** identify Function from PHObject
