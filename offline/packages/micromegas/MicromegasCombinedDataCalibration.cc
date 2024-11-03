@@ -18,6 +18,8 @@
 #include <TFile.h>
 #include <TProfile.h>
 
+#include <boost/format.hpp>
+
 #include <cassert>
 #include <fstream>
 #include <memory>
@@ -70,10 +72,13 @@ int MicromegasCombinedDataCalibration::process_event(PHCompositeNode *topNode)
     if( piter == m_profile_map.end() || fee_id < piter->first )
     {
       // create and insert
-      profile = new TProfile( Form( "h_adc_channel_%i", fee_id ), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
+      const auto hname = (boost::format("h_adc_channel_%i") % fee_id ).str();
+      profile = new TProfile( hname.c_str(), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
       profile->SetErrorOption( "s" );
       m_profile_map.insert(  piter, std::make_pair( fee_id, profile ) );
-    } else profile = piter->second;
+    } else {
+      profile = piter->second;
+    }
 
     // fill
     for( auto is = std::max(m_sample_min,sample_range.first); is < std::min(m_sample_max,sample_range.second); ++ is )
