@@ -3,8 +3,8 @@
 #include <Event/oncsSubConstants.h>
 #include <Event/packet.h>
 
-#include <phool/PHTimer.h>  // for PHTimer
 #include <ffarawobjects/TpcRawHitv2.h>
+#include <phool/PHTimer.h>  // for PHTimer
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -256,7 +256,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
   }
   m_packetTimer->restart();
 
-  // //FIXME: remove after testing
+  // //remove after testing
   // ;
   // cout <<"packet->lValue(0, N_TAGGER) = "<<packet->lValue(0, "N_TAGGER")<<endl;
   // cout <<"packet->lValue(0, NR_WF) = "<<packet->iValue(0, "NR_WF")<<endl;
@@ -386,7 +386,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
       }
     }
   }
-  
+
   m_packetTimer->stop();
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -484,7 +484,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         m_hFEEDataStream->Fill(fee, "CRCError", 1);
         // continue;
       }
-    }
+    }  //     if (not m_fastBCOSkip)
 
     assert(fee < m_bcoMatchingInformation_vec.size());
     auto& m_bcoMatchingInformation = m_bcoMatchingInformation_vec[fee];
@@ -513,7 +513,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         const auto result = m_bcoMatchingInformation.find_reference_heartbeat(payload);
         m_hFEEDataStream->Fill(fee, "PacketHeartBeat", 1);
         assert(m_hFEEClockAdjustment);
-        m_hFEEClockAdjustment->Fill(fee, m_bcoMatchingInformation.get_multiplier_adjustment(), 1);
+        // m_hFEEClockAdjustment->Fill(fee, m_bcoMatchingInformation.get_multiplier_adjustment(), 1);
 
         if (result)
         {
@@ -632,7 +632,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         //   // an exception to deal with the last sample that is missing in the current hit format
         //   if (pos + 1 == pkt_length) break;
       }
-    }
+    }  //     if (not m_fastBCOSkip)
 
     data_buffer.erase(data_buffer.begin(), data_buffer.begin() + pkt_length + 1);
     m_hFEEDataStream->Fill(fee, "WordValid", pkt_length + 1);
@@ -711,7 +711,6 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
     }
   }
 
-  // FIXME: this is a temporary solution to skip the BCO matching
   if (not m_fastBCOSkip)
   {
     int fee = -1;
@@ -731,7 +730,8 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
         bcoMatchingInformation.print_gtm_bco_information();
       }
     }
-  }
+  }  //   if (not m_fastBCOSkip)
+
   return 0;
 }
 
@@ -839,10 +839,10 @@ std::optional<uint32_t> TpcTimeFrameBuilder::BcoMatchingInformation::get_predict
   }
 
   // get gtm bco difference with proper rollover accounting
-  const uint64_t gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ? (gtm_bco - m_gtm_bco_first) : (gtm_bco + (1ULL << 40U) - m_gtm_bco_first);
+  const int64_t gtm_bco_difference = int64_t(gtm_bco) - int64_t(m_bco_reference.value().first);
 
   // convert to fee bco, and truncate to 20 bits
-  const uint64_t fee_bco_predicted = m_fee_bco_first + get_adjusted_multiplier() * gtm_bco_difference;
+  const int64_t fee_bco_predicted = int64_t(m_bco_reference.value().second) + int64_t(m_multiplier * gtm_bco_difference);
   return uint32_t(fee_bco_predicted & 0xFFFFFU);
 }
 
@@ -869,30 +869,6 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::print_gtm_bco_information() co
       std::cout
           << "TpcTimeFrameBuilder::BcoMatchingInformation::print_gtm_bco_information -"
           << "\t- m_gtm_bco_trig_list fee predicted: " << std::hex << fee_bco_predicted_list << std::dec
-          << std::endl;
-    }
-  }
-
-  if (!m_gtm_bco_heartbeat_list.empty())
-  {
-    std::cout
-        << "TpcTimeFrameBuilder::BcoMatchingInformation::print_gtm_bco_information -"
-        << "\t- m_gtm_bco_heartbeat_list: " << std::hex << m_gtm_bco_heartbeat_list << std::dec
-        << std::endl;
-
-    // also print predicted fee bco
-    if (is_verified())
-    {
-      std::list<uint32_t> fee_bco_predicted_list;
-      std::transform(
-          m_gtm_bco_heartbeat_list.begin(),
-          m_gtm_bco_heartbeat_list.end(),
-          std::back_inserter(fee_bco_predicted_list),
-          [this](const uint64_t& gtm_bco) { return get_predicted_fee_bco(gtm_bco).value(); });
-
-      std::cout
-          << "TpcTimeFrameBuilder::BcoMatchingInformation::print_gtm_bco_information -"
-          << "\t- m_gtm_bco_heartbeat_list fee predicted: " << std::hex << fee_bco_predicted_list << std::dec
           << std::endl;
     }
   }
@@ -933,16 +909,51 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
     if (modebits & (1U << ELINK_HEARTBEAT_T))
     {
       const uint64_t& gtm_bco = gtm_tagger.bco;
-      m_gtm_bco_heartbeat_list.push_back(gtm_bco);
-    }
 
-    if (modebits & (1U << BX_COUNTER_SYNC_T))
+      m_bco_reference_candidate_list.push_back({gtm_bco, get_predicted_fee_bco(gtm_bco).value()});
+
+      if (m_verbosity > 1)
+      {
+        std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information"
+                  << "\t- found heartbeat candidate "
+                  << "at gtm_bco = 0x" << hex << gtm_bco << dec
+                  << ". Current m_bco_reference_candidate_list:"
+                  << std::endl;
+
+        for (const auto& bco : m_bco_reference_candidate_list)
+        {
+          std::cout << "\t- gtm_bco = 0x" << hex << bco.first << dec
+                    << "\t- fee_bco = 0x" << hex << bco.second << dec
+                    << std::endl;
+        }
+      }
+
+      while (m_bco_reference_candidate_list.size() > m_max_bco_reference_candidate_list_size)
+      {
+        if (m_verbosity > 1)
+        {
+          uint64_t bco = m_bco_reference_candidate_list.begin()->first;
+          std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_from_modebits"
+                    << "Warning: m_bco_reference_candidate_list is full"
+                    << "\t- drop unprocessed heart beat in queue "
+                    << "at gtm_bco = 0x" << hex << bco
+                    << dec
+                    << ". Unprocessed heartbeats in queue with size of " << m_bco_reference_candidate_list.size()
+                    << std::endl;
+        }
+
+        m_bco_reference_candidate_list.pop_front();
+      }
+
+    }  //     if (modebits & (1U << ELINK_HEARTBEAT_T))
+
+    if (modebits & (1U << BX_COUNTER_SYNC_T))  // initiate synchronization of clock sync
     {
       // get BCO and assign
       const uint64_t& gtm_bco = gtm_tagger.bco;
-      m_gtm_bco_first = gtm_bco;
-      m_fee_bco_first = 0;
       m_verified_from_modebits = true;
+      m_bco_reference = make_pair(gtm_bco, 0);
+      m_bco_reference_candidate_list.clear();
 
       if (m_verbosity)
       {
@@ -964,39 +975,102 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
     return std::nullopt;
   }
 
+  assert(HeartBeatPacket.type == HEARTBEAT_T);
   const auto& fee_bco = HeartBeatPacket.bx_timestamp;
 
-  // find element for which predicted fee_bco matches fee_bco, within limit
-  const auto iter = std::find_if(
-      m_gtm_bco_heartbeat_list.begin(),
-      m_gtm_bco_heartbeat_list.end(),
-      [this, fee_bco](const uint64_t& gtm_bco) {
-        return get_bco_diff(get_predicted_fee_bco(gtm_bco).value(), fee_bco) < m_max_gtm_bco_diff;
-      });
-
-  // check
-  if (iter != m_gtm_bco_heartbeat_list.end())
+  if (m_bco_reference)
   {
-    const auto gtm_bco = *iter;
-    if (verbosity())
+    const auto& gtm_bco = m_bco_reference.value().first;
+    const auto& fee_bco_predicted = m_bco_reference.value().second;
+    // check if the predicted fee bco matches the actual fee bco
+    if (get_fee_bco_diff(fee_bco_predicted, fee_bco) < m_max_fee_bco_diff)
     {
-      const auto fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
-      const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
+      // assign gtm bco
+      m_bco_reference.value().second = fee_bco;
 
-      std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_heartbeat -"
-                << std::hex
-                << "\t- fee_bco: 0x" << fee_bco << std::endl
-                << "\t- predicted: 0x" << fee_bco_predicted << std::endl
-                << "\t- gtm_bco: 0x" << gtm_bco
-                << std::dec << std::endl
-                << "\t- difference: " << fee_bco_diff << std::endl;
+      if (verbosity() > 1)
+      {
+        std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_heartbeat - found an updated reference heartbeat and updated reference clock sync: "
+                  << std::hex
+                  << "\t- fee_bco: 0x" << fee_bco
+                  << "\t- predicted: 0x" << fee_bco_predicted
+                  << "\t- gtm_bco: 0x" << gtm_bco
+                  << std::dec
+                  << std::endl;
+      }
+
+      return gtm_bco;
+    }
+  }
+
+  for (const auto& bco : m_bco_reference_candidate_list)
+  {
+    const auto& gtm_bco = bco.first;
+    const auto& fee_bco_predicted = bco.second;
+
+    // check if the predicted fee bco matches the actual fee bco
+    if (get_fee_bco_diff(fee_bco_predicted, fee_bco) < m_max_fee_bco_diff)
+    {
+      if (verbosity() > 1)
+      {
+        std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_heartbeat - found a new reference canidate heartbeat and replaced reference clock sync: "
+                  << std::hex
+                  << "\t- fee_bco: 0x" << fee_bco
+                  << "\t- predicted: 0x" << fee_bco_predicted
+                  << "\t- gtm_bco: 0x" << gtm_bco
+                  << "\t- previous reference gtm_bco: 0x" << m_bco_reference.value().first
+                  << "\t- previous reference fee_bco: 0x" << m_bco_reference.value().second
+                  << std::dec
+                  << std::endl;
+      }
+      // assign gtm bco
+      m_bco_reference = make_pair(gtm_bco, fee_bco);
+
+      if (m_verbosity > 1)
+      {
+        std::cout << "\t- trimming m_bco_reference_candidate_list from size " << m_bco_reference_candidate_list.size() << std::endl;
+
+        for (const auto& bco_tmp : m_bco_reference_candidate_list)
+        {
+          std::cout << "\t\t- gtm_bco = 0x" << hex << bco_tmp.first << dec
+                    << "\t\t- fee_bco = 0x" << hex << bco_tmp.second << dec
+                    << std::endl;
+        }
+      }
+
+      // remove the older candidate from the list
+      while (m_bco_reference_candidate_list.begin()->first != gtm_bco)
+      {
+        m_bco_reference_candidate_list.pop_front();
+      }
+      m_bco_reference_candidate_list.pop_front();
+
+      if (m_verbosity > 1)
+      {
+        std::cout << "\t- to size " << m_bco_reference_candidate_list.size() << std::endl;
+
+        for (const auto& bco_tmp : m_bco_reference_candidate_list)
+        {
+          std::cout << "\t\t- gtm_bco = 0x" << hex << bco_tmp.first << dec
+                    << "\t\t- fee_bco = 0x" << hex << bco_tmp.second << dec
+                    << std::endl;
+        }
+      }
+      return gtm_bco;
     }
 
-    // update clock adjustment
-    update_multiplier_adjustment(gtm_bco, fee_bco);
+    if (verbosity()>1)
+    {
+      std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_heartbeat - unmatched heartbeat: "
+                << std::hex
+                << "\t- fee_bco: 0x" << fee_bco
+                << "\t- predicted: 0x" << fee_bco_predicted
+                << "\t- gtm_bco: 0x" << gtm_bco
+                << std::dec
+                << std::endl;
+    }
+  } //   for (const auto& bco : m_bco_reference_candidate_list)
 
-    return gtm_bco;
-  }
 
   if (verbosity() > 1)
   {
@@ -1017,7 +1091,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bc
   const auto bco_matching_iter = std::find_if(
       m_bco_matching_list.begin(),
       m_bco_matching_list.end(),
-      [fee_bco](const m_bco_matching_pair_t& pair) { return get_bco_diff(pair.first, fee_bco) < m_max_fee_bco_diff; });
+      [fee_bco](const m_fee_gtm_bco_matching_pair_t& pair) { return get_bco_diff(pair.first, fee_bco) < m_max_fee_bco_diff; });
 
   if (bco_matching_iter != m_bco_matching_list.end())
   {
@@ -1100,10 +1174,6 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::cleanup()
   {
     m_gtm_bco_trig_list.pop_front();
   }
-  while (m_gtm_bco_heartbeat_list.size() > m_max_matching_data_size)
-  {
-    m_gtm_bco_heartbeat_list.pop_front();
-  }
   while (m_bco_matching_list.size() > m_max_matching_data_size)
   {
     m_bco_matching_list.pop_front();
@@ -1120,69 +1190,14 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::cleanup(uint64_t ref_bco)
   m_gtm_bco_trig_list.erase(std::remove_if(m_gtm_bco_trig_list.begin(), m_gtm_bco_trig_list.end(),
                                            [ref_bco](const uint64_t& bco) { return bco <= ref_bco; }),
                             m_gtm_bco_trig_list.end());
-  m_gtm_bco_heartbeat_list.erase(std::remove_if(m_gtm_bco_heartbeat_list.begin(), m_gtm_bco_heartbeat_list.end(),
-                                                [ref_bco](const uint64_t& bco) { return bco <= ref_bco; }),
-                                 m_gtm_bco_heartbeat_list.end());
 
   // erase all elements from bco_list that are less than or equal to ref_bco
   m_bco_matching_list.erase(std::remove_if(m_bco_matching_list.begin(), m_bco_matching_list.end(),
-                                           [ref_bco](const m_bco_matching_pair_t& pair) {
+                                           [ref_bco](const m_fee_gtm_bco_matching_pair_t& pair) {
                                              return pair.second <= ref_bco;
                                            }),
                             m_bco_matching_list.end());
 
   // clear orphans
   m_orphans.clear();
-}
-
-//___________________________________________________
-double TpcTimeFrameBuilder::BcoMatchingInformation::get_adjusted_multiplier() const
-{
-  return m_multiplier + m_multiplier_adjustment;
-}
-
-//___________________________________________________
-void TpcTimeFrameBuilder::BcoMatchingInformation::update_multiplier_adjustment(uint64_t gtm_bco, uint32_t fee_bco)
-{
-  // check that references are valid
-  if (!is_verified())
-  {
-    return;
-  }
-
-  // skip if trivial
-  if (gtm_bco == m_gtm_bco_first)
-  {
-    return;
-  }
-
-  const uint32_t fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
-  const double delta_fee_bco = double(fee_bco) - double(fee_bco_predicted);
-  const double gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ? (gtm_bco - m_gtm_bco_first) : (gtm_bco + (1ULL << 40U) - m_gtm_bco_first);
-
-  m_multiplier_adjustment_numerator += gtm_bco_difference * delta_fee_bco;
-  m_multiplier_adjustment_denominator += gtm_bco_difference * gtm_bco_difference;
-  ++m_multiplier_adjustment_count;
-
-  if (verbosity())
-  {
-    const auto default_precision{std::cout.precision()};
-    std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::update_multiplier_adjustment -"
-              << "\t- m_multiplier_adjustment_count: " << m_multiplier_adjustment_count << endl
-              << std::setprecision(10)
-              << "\t- m_multiplier: " << get_adjusted_multiplier() << endl
-              << "\t- adjustment: " << m_multiplier_adjustment_numerator / m_multiplier_adjustment_denominator << endl
-              << "\t- m_multiplier_adjusted: " << get_adjusted_multiplier() + m_multiplier_adjustment_numerator / m_multiplier_adjustment_denominator
-              << std::setprecision(default_precision)
-              << std::endl;
-  }
-
-  // update multiplier
-  if (m_multiplier_adjustment_count > m_max_multiplier_adjustment_count)
-  {
-    m_multiplier_adjustment += m_multiplier_adjustment_numerator / m_multiplier_adjustment_denominator;
-    m_multiplier_adjustment_numerator = 0;
-    m_multiplier_adjustment_denominator = 0;
-    m_multiplier_adjustment_count = 0;
-  }
 }

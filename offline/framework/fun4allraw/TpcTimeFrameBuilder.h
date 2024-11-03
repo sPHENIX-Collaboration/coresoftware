@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <deque>
+#include <queue>
 #include <functional>
 #include <set>
 #include <iostream>
@@ -32,6 +33,10 @@ class TpcTimeFrameBuilder
   void CleanupUsedPackets(const uint64_t bclk);
 
   void setVerbosity(const int i);
+  void setFastBCOSkip(bool fastBCOSkip = true) 
+  {
+    m_fastBCOSkip = fastBCOSkip;
+  }
   
  protected:
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream
@@ -113,7 +118,7 @@ class TpcTimeFrameBuilder
   static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
   
   //! fast skip mode when searching for particular GL1 BCO over long segment of files
-  bool m_fastBCOSkip = true;
+  bool m_fastBCOSkip = false;
 
   // -------------------------
   // GTM Matcher
@@ -188,10 +193,6 @@ class TpcTimeFrameBuilder
     //! cleanup
     void cleanup(uint64_t /*ref_bco*/);
 
-    double get_multiplier_adjustment() const
-    {
-      return m_multiplier_adjustment;
-    }
     //@}
 
     /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
@@ -227,12 +228,6 @@ class TpcTimeFrameBuilder
 
   private:
 
-    //! update multiplier adjustment
-    void update_multiplier_adjustment(uint64_t /* gtm_bco */, uint32_t /* fee_bco */);
-
-    //! get adjusted multiplier
-    double get_adjusted_multiplier() const;
-
     //! verbosity
     unsigned int m_verbosity = 0;
 
@@ -241,43 +236,35 @@ class TpcTimeFrameBuilder
 
     bool m_verified_from_data = false;
 
-    //! first lvl1 bco (40 bits)
-    uint64_t m_gtm_bco_first = 0;
-
-    //! first fee bco (20 bits)
-    uint32_t m_fee_bco_first = 0;
+    //! matching between fee bco and lvl1 bco
+    using m_gtm_fee_bco_matching_pair_t = std::pair<uint64_t, uint32_t>;
+    using m_fee_gtm_bco_matching_pair_t = std::pair<uint32_t, uint64_t>;
 
     //! list of available bco
     std::list<uint64_t> m_gtm_bco_trig_list;
 
-    //! list of available bco
-    std::list<uint64_t> m_gtm_bco_heartbeat_list;
+    //! list of available GTM -> FEE bco mapping for synchronization
+    std::optional< m_gtm_fee_bco_matching_pair_t > m_bco_reference = std::nullopt;
 
-    //! matching between fee bco and lvl1 bco
-    using m_bco_matching_pair_t = std::pair<uint32_t, uint64_t>;
-    std::list<m_bco_matching_pair_t> m_bco_matching_list;
+    // std::optional< std::pair< uint64_t, uint32_t > > m_bco_reference_candidate = std::nullopt;
+    //! not yet matched heart beats
+    std::list<m_gtm_fee_bco_matching_pair_t> m_bco_reference_candidate_list;
+    static constexpr unsigned int m_max_bco_reference_candidate_list_size = 16;
+
+    // //! list of heart beat GTM BCO that is still to be matched
+    // std::queue<uint64_t> m_heartbeat_gtm_bco_queue;
+    // static constexpr unsigned int m_max_heartbeat_queue_size = 16;
+
+    //! list of available GTM -> FEE bco mapping for trigger association
+    std::map<uint64_t, uint32_t> m_gtm_bco_trigger_map;
+
+    std::list<m_fee_gtm_bco_matching_pair_t> m_bco_matching_list;
 
     //! keep track or  fee_bco for which no gtm_bco is found
     std::set<uint32_t> m_orphans;
 
-    //! adjustment to multiplier
-    double m_multiplier_adjustment = 0;
-
-    //! running numerator for multiplier adjustment
-    double m_multiplier_adjustment_numerator = 0;
-
-    //! running denominator for multiplier adjustment
-    double m_multiplier_adjustment_denominator = 0;
-
-    //! running count for multiplier adjustment
-    unsigned int m_multiplier_adjustment_count = 0;
-
-
     // define limit for matching two lvl1 and EnDAT tagger BCOs
     static constexpr int m_max_lv1_endat_bco_diff = 10;
-
-    // define limit for matching two fee_bco
-    static constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
 
     // define limit for matching two fee_bco
     static constexpr unsigned int m_max_fee_bco_diff = 10;
@@ -285,19 +272,31 @@ class TpcTimeFrameBuilder
     // define limit for matching gtm_bco from lvl1 to enddat
 
     // define limit for matching fee_bco to fee_bco_predicted
-    static constexpr unsigned int m_max_gtm_bco_diff = 10;
+    static constexpr unsigned int m_max_gtm_bco_diff = 256;
 
   //   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
     static constexpr unsigned int m_max_matching_data_size = 10;
 
-    //! copied from micromegas/MicromegasDefs.h, not available here
-    static constexpr int m_nchannels_fee = 256;
+    static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
+    static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
 
-    // get the difference between two BCO.
+    // get the difference between two BCO WITHOUT rollover corrections
     template <class T>
-    inline static constexpr T get_bco_diff(const T& first, const T& second)
+    inline static constexpr T get_bco_diff(
+      const T& first, const T& second
+      )
     {
       return first < second ? (second - first) : (first - second);
+    }
+
+    // get the difference between two BCO with rollover corrections
+    inline static constexpr uint32_t get_fee_bco_diff(
+      const uint32_t& first, const uint32_t& second
+      )
+    {
+      const uint32_t diff_raw = get_bco_diff(first, second);
+
+      return (diff_raw < (1U << (m_FEE_CLOCK_BITS / 2))) ? diff_raw : (1U << m_FEE_CLOCK_BITS) - diff_raw;
     }
 
     // this is the clock multiplier from lvl1 to fee clock
