@@ -111,9 +111,6 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  float adc_threshold = 100.;
-  float high_adc_threshold = 2000;
-
   //-------------------------- raw waveforms ------------------------------//
   std::vector<std::vector<float>> cemc_waveforms;
   std::vector<std::vector<float>> ihcal_waveforms;
@@ -187,7 +184,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         {
           std::cout << "EMCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
-        if (raw_energy > adc_threshold && raw_energy < high_adc_threshold) 
+        if (raw_energy > m_adc_threshold && raw_energy < m_high_adc_threshold) 
         {
           h_cemc_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy/raw_energy);
         }
@@ -219,7 +216,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         {
           std::cout << "IHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
-        if (raw_energy > adc_threshold && raw_energy < high_adc_threshold)
+        if (raw_energy > m_adc_threshold && raw_energy < m_high_adc_threshold)
         {
           h_ohcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy/raw_energy);
         }
@@ -251,7 +248,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         {
           std::cout << "OHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
-        if (raw_energy > adc_threshold && raw_energy < high_adc_threshold)
+        if (raw_energy > m_adc_threshold && raw_energy < m_high_adc_threshold)
         {
           h_ihcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy/raw_energy);
         }
