@@ -11,8 +11,8 @@
 class MicromegasRawHitv1 : public MicromegasRawHit
 {
  public:
-  MicromegasRawHitv1() = default;
-  MicromegasRawHitv1(MicromegasRawHit *);
+  explicit MicromegasRawHitv1() = default;
+  explicit MicromegasRawHitv1(MicromegasRawHit *);
 
   /** identify Function from PHObject
   @param os Output Stream
