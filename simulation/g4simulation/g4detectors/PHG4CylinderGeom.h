@@ -113,6 +113,11 @@ class PHG4CylinderGeom : public PHObject
     PHOOL_VIRTUAL_WARN("get_strip_z_spacing");
     return NAN;
   }
+  virtual double get_strip_z_spacing(const int) const
+  {
+    PHOOL_VIRTUAL_WARN("get_strip_z_spacing");
+    return NAN;
+  }
   virtual double get_strip_tilt() const
   {
     PHOOL_VIRTUAL_WARN("get_strip_tilt");

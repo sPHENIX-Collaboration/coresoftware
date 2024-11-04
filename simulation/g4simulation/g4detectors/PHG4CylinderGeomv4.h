@@ -59,6 +59,7 @@ class PHG4CylinderGeomv4 : public PHG4CylinderGeom
 
   double get_thickness() const override { return thickness; }
   double get_strip_y_spacing() const override { return strip_y_spacing; }
+  using PHG4CylinderGeom::get_strip_z_spacing;
   double get_strip_z_spacing() const override { return strip_z_spacing; }
   double get_strip_tilt() const override { return strip_tilt; }
   int get_N_strip_columns() const override { return N_strip_columns; }
