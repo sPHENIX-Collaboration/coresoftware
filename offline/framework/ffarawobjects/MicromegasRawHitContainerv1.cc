@@ -1,5 +1,5 @@
 #include "MicromegasRawHitContainerv1.h"
-#include "MicromegasRawHitv2.h"
+#include "MicromegasRawHitv1.h"
 
 #include <TClonesArray.h>
 
@@ -7,7 +7,7 @@ static constexpr int NHITS = 100;
 
 MicromegasRawHitContainerv1::MicromegasRawHitContainerv1()
 {
-  MicromegasRawHitsTCArray = new TClonesArray("MicromegasRawHitv2", NHITS);
+  MicromegasRawHitsTCArray = new TClonesArray("MicromegasRawHitV1", NHITS);
 }
 
 MicromegasRawHitContainerv1::~MicromegasRawHitContainerv1()
@@ -45,13 +45,13 @@ unsigned int MicromegasRawHitContainerv1::get_nhits()
 
 MicromegasRawHit *MicromegasRawHitContainerv1::AddHit()
 {
-  MicromegasRawHit *newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv2();
+  MicromegasRawHit *newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv1();
   return newhit;
 }
 
 MicromegasRawHit *MicromegasRawHitContainerv1::AddHit(MicromegasRawHit *source)
 {
-  auto newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv2(source);
+  auto newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv1(source);
   return newhit;
 }
 

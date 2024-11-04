@@ -8,8 +8,10 @@ class TClonesArray;
 
 class MicromegasRawHitContainerv1 : public MicromegasRawHitContainer
 {
- public:
-  MicromegasRawHitContainerv1();
+  public:
+  explicit MicromegasRawHitContainerv1();
+
+  //! destructor
   ~MicromegasRawHitContainerv1() override;
 
   /// Clear Event
