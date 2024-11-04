@@ -123,22 +123,22 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
   TowerInfoContainer* ohcal_sim_waveforms = nullptr;
   if (m_SimFlag) 
   {
-    cemc_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORMS_CEMC");
+    cemc_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_CEMC");
     if (!cemc_sim_waveforms) 
     {
-      std::cout << PHWHERE << "WAVEFORMS_CEMC node missing. Skipping event." << std::endl;
+      std::cout << PHWHERE << "WAVEFORM_CEMC node missing. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    ihcal_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORMS_HCALIN");
+    ihcal_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_HCALIN");
     if (!ihcal_sim_waveforms) 
     {
-      std::cout << PHWHERE << "WAVEFORMS_HCALIN node missing. Skipping event." << std::endl;
+      std::cout << PHWHERE << "WAVEFORM_HCALIN node missing. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    ohcal_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORMS_HCALOUT");
+    ohcal_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_HCALOUT");
     if (!ohcal_sim_waveforms) 
     {
-      std::cout << PHWHERE << "WAVEFORMS_HCALOUT node missing. Skipping event." << std::endl;
+      std::cout << PHWHERE << "WAVEFORM_HCALOUT node missing. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
