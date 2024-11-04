@@ -50,7 +50,7 @@ namespace
   };
 
   //_____________________________________________________________
-  uint16_t reverseBits(const uint16_t x)
+  [[maybe_unused]] uint16_t reverseBits(const uint16_t& x)
   {
     uint16_t n = x;
     n = ((n >> 1) & 0x55555555) | ((n << 1) & 0xaaaaaaaa);
@@ -62,7 +62,7 @@ namespace
   }
 
   //_____________________________________________________________
-  uint16_t crc16( const std::deque<uint16_t>& data, const unsigned int index, const int l)
+  [[maybe_unused]] uint16_t crc16( const std::deque<uint16_t>& data, const unsigned int index, const int l)
   {
     uint16_t crc = 0xffff;
 
@@ -92,8 +92,12 @@ SingleMicromegasPoolInput_v2::SingleMicromegasPoolInput_v2(const std::string& na
 //______________________________________________________________
 SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2()
 {
-
   std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 - runnumber: " << RunNumber() << std::endl;
+
+  // timer statistics
+  m_timer.print_stat();
+
+  // dropped waveforms
   for( const auto& [packet,counts]:m_waveform_count_total )
   {
     const auto dropped_bco =  m_waveform_count_dropped_bco[packet];
@@ -192,6 +196,7 @@ void SingleMicromegasPoolInput_v2::FillPool(const unsigned int /*nbclks*/)
       exit(1);
     }
 
+    m_timer.restart();
     for (int i = 0; i < npackets; i++)
     {
       // keep pointer to local packet
@@ -200,6 +205,7 @@ void SingleMicromegasPoolInput_v2::FillPool(const unsigned int /*nbclks*/)
       // process
       process_packet( packet.get() );
     }
+    m_timer.stop();
   }
 }
 
@@ -653,7 +659,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
 
     // crc
     payload.data_crc = data_buffer[pkt_length];
-    payload.calc_crc = crc16(data_buffer, 0, pkt_length);
+    // payload.calc_crc = crc16(data_buffer, 0, pkt_length);
 
     // data
     // Format is (N sample) (start time), (1st sample)... (Nth sample)
