@@ -3,7 +3,7 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/MicromegasRawHitContainerv1.h>
+#include <ffarawobjects/MicromegasRawHitContainerv2.h>
 #include <ffarawobjects/MicromegasRawHitv2.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -365,7 +365,7 @@ void SingleMicromegasPoolInput_v2::CreateDSTNode(PHCompositeNode* topNode)
   auto container = findNode::getClass<MicromegasRawHitContainer>(detNode, m_rawHitContainerName);
   if (!container)
   {
-    container = new MicromegasRawHitContainerv1();
+    container = new MicromegasRawHitContainerv2;
     auto newNode = new PHIODataNode<PHObject>(container, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
