@@ -128,7 +128,7 @@ class TpcTimeFrameBuilder
   {
   public:
     //! constructor
-    BcoMatchingInformation() = default;
+    explicit BcoMatchingInformation(const std::string & name) ;
 
     //!@name accessor
     //@{
@@ -228,6 +228,8 @@ class TpcTimeFrameBuilder
 
   private:
 
+    std::string m_name;
+
     //! verbosity
     unsigned int m_verbosity = 0;
 
@@ -303,7 +305,13 @@ class TpcTimeFrameBuilder
     // Tested with Run24 data. Could be changable in future runs
     double m_multiplier = 4.262916255;
 
-  };
+    TH1 *m_hNorm = nullptr;
+    TH1 *m_hFEEClockAdjustment_MatchedReference = nullptr;
+    TH1 *m_hFEEClockAdjustment_MatchedNew = nullptr;
+    TH1 *m_hFEEClockAdjustment_Unmatched = nullptr;
+
+  }; //   class BcoMatchingInformation
+
 
   //! map bco_information_t to packet id
   std::vector<BcoMatchingInformation> m_bcoMatchingInformation_vec;

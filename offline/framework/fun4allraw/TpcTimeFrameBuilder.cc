@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <cassert>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -27,8 +28,13 @@ using namespace std;
 TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   : m_packet_id(packet_id)
   , m_HistoPrefix("TpcTimeFrameBuilder_Packet" + to_string(packet_id))
-  , m_bcoMatchingInformation_vec(MAX_FEECOUNT)
 {
+  for (int fee = 0; fee < MAX_FEECOUNT; ++fee)
+  {
+    m_bcoMatchingInformation_vec.push_back(BcoMatchingInformation(
+        std::string("BcoMatchingInformation_Packet") + to_string(packet_id) + "_FEE" + std::to_string(fee)));
+  }
+
   m_feeData.resize(MAX_FEECOUNT);
 
   m_packetTimer = new PHTimer("TpcTimeFrameBuilder_Packet" + to_string(packet_id));
@@ -829,6 +835,47 @@ namespace
 
 }  // namespace
 
+TpcTimeFrameBuilder::BcoMatchingInformation::BcoMatchingInformation(const std::string& name)
+  : m_name(name)
+{
+  Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  m_hNorm = new TH1D(TString(m_name.c_str()) + "_Normalization",  //
+                     TString(m_name.c_str()) + " Normalization;Items;Count",
+                     20, .5, 20.5);
+  int i = 1;
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "SyncGTM");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "HeartBeatGTM");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "HeartBeatFEE");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "HeartBeatFEEMatchedReference");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "HeartBeatFEEMatchedNew");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "HeartBeatFEEUnMatched");
+
+  assert(i <= 20);
+  m_hNorm->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(m_hNorm);
+
+  m_hFEEClockAdjustment_MatchedReference = new TH1I(TString(m_name.c_str()) + "_FEEClockAdjustment_MatchedReference",  //
+                                                    TString(m_name.c_str()) +
+                                                        " FEEClockAdjustment for Matched Reference;Clock Adjustment [FEE Clock Cycle];Count",
+                                                    512, -256 - .5, +256 - .5);
+  hm->registerHisto(m_hFEEClockAdjustment_MatchedReference);
+  m_hFEEClockAdjustment_MatchedNew = new TH1I(TString(m_name.c_str()) + "_FEEClockAdjustment_MatchedNew",  //
+                                              TString(m_name.c_str()) +
+                                                  " FEEClockAdjustment for Matched New;Clock Adjustment [FEE Clock Cycle];Count",
+                                              512, -256 - .5, +256 - .5);
+  hm->registerHisto(m_hFEEClockAdjustment_MatchedNew);
+
+  m_hFEEClockAdjustment_Unmatched = new TH1I(TString(m_name.c_str()) + "_FEEClockAdjustment",  //
+                                             TString(m_name.c_str()) +
+                                                 " FEEClockAdjustment;Clock Adjustment [FEE Clock Cycle];Count",
+                                             512,
+                                             -(1U << m_FEE_CLOCK_BITS) - .5,
+                                             +(1U << m_FEE_CLOCK_BITS) - .5);
+  hm->registerHisto(m_hFEEClockAdjustment_Unmatched);
+}
+
 //___________________________________________________
 std::optional<uint32_t> TpcTimeFrameBuilder::BcoMatchingInformation::get_predicted_fee_bco(uint64_t gtm_bco) const
 {
@@ -852,7 +899,7 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::print_gtm_bco_information() co
   if (!m_gtm_bco_trig_list.empty())
   {
     std::cout
-        << "TpcTimeFrameBuilder::BcoMatchingInformation::print_gtm_bco_information -"
+        << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::print_gtm_bco_information -"
         << "\t- m_gtm_bco_trig_list: " << std::hex << m_gtm_bco_trig_list << std::dec
         << std::endl;
 
@@ -867,7 +914,7 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::print_gtm_bco_information() co
           [this](const uint64_t& gtm_bco) { return get_predicted_fee_bco(gtm_bco).value(); });
 
       std::cout
-          << "TpcTimeFrameBuilder::BcoMatchingInformation::print_gtm_bco_information -"
+          << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::print_gtm_bco_information -"
           << "\t- m_gtm_bco_trig_list fee predicted: " << std::hex << fee_bco_predicted_list << std::dec
           << std::endl;
     }
@@ -908,13 +955,16 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
     const uint64_t& modebits = gtm_tagger.modebits;
     if (modebits & (1U << ELINK_HEARTBEAT_T))
     {
+      assert(m_hNorm);
+      m_hNorm->Fill("HeartBeatGTM", 1);
+
       const uint64_t& gtm_bco = gtm_tagger.bco;
 
       m_bco_reference_candidate_list.push_back({gtm_bco, get_predicted_fee_bco(gtm_bco).value()});
 
       if (m_verbosity > 1)
       {
-        std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information"
+        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::save_gtm_bco_information"
                   << "\t- found heartbeat candidate "
                   << "at gtm_bco = 0x" << hex << gtm_bco << dec
                   << ". Current m_bco_reference_candidate_list:"
@@ -933,7 +983,7 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
         if (m_verbosity > 1)
         {
           uint64_t bco = m_bco_reference_candidate_list.begin()->first;
-          std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_from_modebits"
+          std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_reference_from_modebits"
                     << "Warning: m_bco_reference_candidate_list is full"
                     << "\t- drop unprocessed heart beat in queue "
                     << "at gtm_bco = 0x" << hex << bco
@@ -949,6 +999,9 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
 
     if (modebits & (1U << BX_COUNTER_SYNC_T))  // initiate synchronization of clock sync
     {
+      assert(m_hNorm);
+      m_hNorm->Fill("SyncGTM", 1);
+
       // get BCO and assign
       const uint64_t& gtm_bco = gtm_tagger.bco;
       m_verified_from_modebits = true;
@@ -957,7 +1010,7 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
 
       if (m_verbosity)
       {
-        std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_from_modebits"
+        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_reference_from_modebits"
                   << "\t- found reference from modebits BX_COUNTER_SYNC_T "
                   << "at gtm_bco = 0x" << hex << gtm_bco << dec
                   << std::endl;
@@ -969,6 +1022,9 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
 //___________________________________________________
 std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_heartbeat(const TpcTimeFrameBuilder::fee_payload& HeartBeatPacket)
 {
+  assert(m_hNorm);
+  m_hNorm->Fill("HeartBeatFEE", 1);
+
   // make sure the bco matching is properly initialized and historical valid
   if (!is_verified())
   {
@@ -990,7 +1046,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
 
       if (verbosity() > 1)
       {
-        std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_heartbeat - found an updated reference heartbeat and updated reference clock sync: "
+        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_reference_heartbeat - found an updated reference heartbeat and updated reference clock sync: "
                   << std::hex
                   << "\t- fee_bco: 0x" << fee_bco
                   << "\t- predicted: 0x" << fee_bco_predicted
@@ -998,6 +1054,11 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
                   << std::dec
                   << std::endl;
       }
+
+      assert(m_hFEEClockAdjustment_MatchedReference);
+      m_hFEEClockAdjustment_MatchedReference->Fill(int64_t(fee_bco) - int64_t(fee_bco_predicted), 1);
+
+      m_hNorm->Fill("HeartBeatFEEMatchedReference", 1);
 
       return gtm_bco;
     }
@@ -1013,7 +1074,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
     {
       if (verbosity() > 1)
       {
-        std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_heartbeat - found a new reference canidate heartbeat and replaced reference clock sync: "
+        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_reference_heartbeat - found a new reference canidate heartbeat and replaced reference clock sync: "
                   << std::hex
                   << "\t- fee_bco: 0x" << fee_bco
                   << "\t- predicted: 0x" << fee_bco_predicted
@@ -1056,12 +1117,17 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
                     << std::endl;
         }
       }
+
+      assert(m_hFEEClockAdjustment_MatchedNew);
+      m_hFEEClockAdjustment_MatchedNew->Fill(int64_t(fee_bco) - int64_t(fee_bco_predicted), 1);
+
+      m_hNorm->Fill("HeartBeatFEEMatchedNew", 1);
       return gtm_bco;
     }
 
-    if (verbosity()>1)
+    if (verbosity() > 1)
     {
-      std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_heartbeat - unmatched heartbeat: "
+      std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_reference_heartbeat - unmatched heartbeat: "
                 << std::hex
                 << "\t- fee_bco: 0x" << fee_bco
                 << "\t- predicted: 0x" << fee_bco_predicted
@@ -1069,13 +1135,16 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
                 << std::dec
                 << std::endl;
     }
-  } //   for (const auto& bco : m_bco_reference_candidate_list)
 
+    assert(m_hFEEClockAdjustment_Unmatched);
+    m_hFEEClockAdjustment_Unmatched->Fill(int64_t(fee_bco) - int64_t(fee_bco_predicted), 1);
+  }  //   for (const auto& bco : m_bco_reference_candidate_list)
 
   if (verbosity() > 1)
   {
-    std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_reference_heartbeat - WARNING: failed match for fee_bco = 0x" << hex << fee_bco << dec << std::endl;
+    std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_reference_heartbeat - WARNING: failed match for fee_bco = 0x" << hex << fee_bco << dec << std::endl;
   }
+  m_hNorm->Fill("HeartBeatFEEUnMatched", 1);
   return std::nullopt;
 }
 
@@ -1114,7 +1183,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bc
         const auto fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
         const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
 
-        std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bco -"
+        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_gtm_bco -"
                   << std::hex
                   << "\t- fee_bco: 0x" << fee_bco
                   << "\t- predicted: 0x" << fee_bco_predicted
@@ -1149,7 +1218,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bc
 
           const int fee_bco_diff = (iter2 != m_gtm_bco_trig_list.end()) ? get_bco_diff(get_predicted_fee_bco(*iter2).value(), fee_bco) : -1;
 
-          std::cout << "TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bco -"
+          std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_gtm_bco -"
                     << std::hex
                     << "\t- fee_bco: 0x" << fee_bco
                     << std::dec
