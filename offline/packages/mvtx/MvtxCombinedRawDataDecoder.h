@@ -51,10 +51,11 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
   void writeMvtxEventHeader(bool write) { m_writeMvtxEventHeader = write; }
 
   void doOfflineMasking(bool do_masking) { m_doOfflineMasking = do_masking; }
+
+  void runMvtxTriggered(bool b = true) { m_mvtx_is_triggered = b; }
+
  private:
   void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>>& v);
-  void getStrobeLength();
-  std::string exec(const char *cmd);
 
   TrkrHitSetContainer* hit_set_container = nullptr;
   MvtxEventInfo* mvtx_event_header = nullptr;
@@ -72,6 +73,7 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
   bool m_doOfflineMasking{false};
   MvtxPixelMask * m_hot_pixel_mask{nullptr};
 
+  bool m_mvtx_is_triggered{false};
 };
 
 #endif

@@ -1,5 +1,16 @@
 #include "Zdcinfov2.h"
+
 #include <cmath>
+
+int Zdcinfov2::isValid() const
+{
+  if (std::isfinite(m_zdc_e[0]) && std::isfinite(m_zdc_e[1]))
+  {
+    return 1;
+  }
+  return 0;
+}
+
 
 void Zdcinfov2::set_zdc_energy(int arm, float zdc_e)
 {

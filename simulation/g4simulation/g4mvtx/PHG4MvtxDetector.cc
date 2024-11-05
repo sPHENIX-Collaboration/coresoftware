@@ -1,10 +1,14 @@
 #include "PHG4MvtxDetector.h"
 
+#include "PHG4MvtxMisalignment.h"
+
 #include "PHG4MvtxDefs.h"
 #include "PHG4MvtxDisplayAction.h"
 #include "PHG4MvtxSupport.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -62,9 +66,9 @@ namespace mvtxGeomDef
   const double wrap_SBCyl_Z = -1800 * mm;  // SB Cyl (1650 mm + 15 cm Margin)
 }  // namespace mvtxGeomDef
 
-PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
+PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const PHParametersContainer *_paramsContainer, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
-  , m_DisplayAction(dynamic_cast<PHG4MvtxDisplayAction*>(subsys->GetDisplayAction()))
+  , m_DisplayAction(dynamic_cast<PHG4MvtxDisplayAction *>(subsys->GetDisplayAction()))
   , m_ParamsContainer(_paramsContainer)
   , m_StaveGeometryFile(_paramsContainer->GetParameters(PHG4MvtxDefs::GLOBAL)->get_string_param("stave_geometry_file"))
 
@@ -76,7 +80,7 @@ PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
 
   for (int ilayer = 0; ilayer < n_Layers; ++ilayer)
   {
-    const PHParameters* params = m_ParamsContainer->GetParameters(ilayer);
+    const PHParameters *params = m_ParamsContainer->GetParameters(ilayer);
     m_IsLayerActive[ilayer] = params->get_int_param("active");
     m_IsLayerSupportActive[ilayer] = params->get_int_param("supportactive");
     m_IsBlackHole[ilayer] = params->get_int_param("blackhole");
@@ -87,13 +91,24 @@ PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
     m_SupportActiveFlag += m_IsLayerSupportActive[ilayer];
   }
 
+  if (apply_misalignment)
+  {
+    std::cout << "PHG4MvtxDetector constructor: Apply Misalignment, get global displacement" << std::endl;
+    PHG4MvtxMisalignment *m_MvtxMisalignment = new PHG4MvtxMisalignment();
+    std::vector<double> v_globaldisplacement = m_MvtxMisalignment->get_GlobalDisplacement();
+    m_GlobalDisplacementX = v_globaldisplacement[0];
+    m_GlobalDisplacementY = v_globaldisplacement[1];
+    m_GlobalDisplacementZ = v_globaldisplacement[2];
+    delete m_MvtxMisalignment;
+  }
+
   if (Verbosity() > 0)
   {
     std::cout << "PHG4MvtxDetector constructor: making Mvtx detector. " << std::endl;
   }
 }
 
-int PHG4MvtxDetector::IsSensor(G4VPhysicalVolume* volume) const
+int PHG4MvtxDetector::IsSensor(G4VPhysicalVolume *volume) const
 {
   // Is this volume one of the sensors?
   // Checks if pointer matches one of our stored sensors for this layer
@@ -117,7 +132,7 @@ int PHG4MvtxDetector::IsSensor(G4VPhysicalVolume* volume) const
   return 0;
 }
 
-int PHG4MvtxDetector::IsInMvtx(G4VPhysicalVolume* volume, int& layer, int& stave) const
+int PHG4MvtxDetector::IsInMvtx(G4VPhysicalVolume *volume, int &layer, int &stave) const
 {
   // Does this stave belong to this layer?
   // Since the Assembly volume read from GDML does not give unique pointers
@@ -166,7 +181,7 @@ int PHG4MvtxDetector::get_stave(int index) const
   return index;
 }
 
-void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
+void PHG4MvtxDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   // This is called from PHG4PhenixDetector::Construct()
   if (Verbosity() > 0)
@@ -176,20 +191,18 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
   }
 
   const G4int numZPlanes = 4;
-  const G4double zPlane[numZPlanes] = {mvtxGeomDef::wrap_SBCyl_Z,
-                                       mvtxGeomDef::wrap_CYSSHead_Z,
-                                       mvtxGeomDef::wrap_CYSSNose_Z,
-                                       mvtxGeomDef::wrap_CYSSFlgN_Z};
+  const G4double zPlane[numZPlanes] = {mvtxGeomDef::wrap_SBCyl_Z, mvtxGeomDef::wrap_CYSSHead_Z, mvtxGeomDef::wrap_CYSSNose_Z, mvtxGeomDef::wrap_CYSSFlgN_Z};
 
-  const G4double rInner[numZPlanes] = {mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin,
-                                       mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
+  const G4double rInner[numZPlanes] = {
+    apply_misalignment ? mvtxGeomDef::wrap_rmin + 0.822 * mm : mvtxGeomDef::wrap_rmin,
+    apply_misalignment ? mvtxGeomDef::wrap_rmin + 0.822 * mm : mvtxGeomDef::wrap_rmin,
+    apply_misalignment ? mvtxGeomDef::wrap_rmin + 0.822 * mm : mvtxGeomDef::wrap_rmin,
+    apply_misalignment ? mvtxGeomDef::wrap_rmin + 0.822 * mm : mvtxGeomDef::wrap_rmin
+  };
 
-  const G4double rOuter[numZPlanes] = {mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax,
-                                       mvtxGeomDef::wrap_smallCylR,
-                                       mvtxGeomDef::wrap_smallCylR};
+  const G4double rOuter[numZPlanes] = {mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_smallCylR, mvtxGeomDef::wrap_smallCylR};
 
-  auto mvtxWrapSol = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI,
-                                    numZPlanes, zPlane, rInner, rOuter);
+  auto mvtxWrapSol = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI, numZPlanes, zPlane, rInner, rOuter);
 
   auto world_mat = logicWorld->GetMaterial();
 
@@ -197,9 +210,20 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4RotationMatrix Ra;
   G4ThreeVector Ta;
+
+  if (apply_misalignment)
+  {
+    if (Verbosity() > 1) {
+      std::cout << "PHG4MvtxDetector::Apply Global Displacement to the MVTX_Wrapper: " << m_GlobalDisplacementX << " " << m_GlobalDisplacementY << " " << m_GlobalDisplacementZ << std::endl;
+}
+
+    Ta.setX(m_GlobalDisplacementX);
+    Ta.setY(m_GlobalDisplacementY);
+    Ta.setZ(m_GlobalDisplacementZ);
+  }
+
   G4Transform3D Tr(Ra, Ta);
-  new G4PVPlacement(Tr, logicMVTX, "MVTX_Wrapper",
-                    logicWorld, false, 0, false);
+  new G4PVPlacement(Tr, logicMVTX, "MVTX_Wrapper", logicWorld, false, 0, false);
 
   // the tracking layers are placed directly in the world volume,
   // since some layers are (touching) double layers
@@ -211,13 +235,14 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
   return;
 }
 
-int PHG4MvtxDetector::ConstructMvtx(G4LogicalVolume* trackerenvelope)
+int PHG4MvtxDetector::ConstructMvtx(G4LogicalVolume *trackerenvelope)
 {
   if (Verbosity() > 0)
   {
     std::cout << " PHG4MvtxDetector::ConstructMvtx:" << std::endl;
     std::cout << std::endl;
   }
+
   //===================================
   // Import the stave physical volume here
   //===================================
@@ -235,7 +260,7 @@ int PHG4MvtxDetector::ConstructMvtx(G4LogicalVolume* trackerenvelope)
   {
     std::cout << "Geting the stave assembly named " << assemblyname << std::endl;
   }
-  G4AssemblyVolume* av_ITSUStave = reader->GetAssembly(assemblyname);
+  G4AssemblyVolume *av_ITSUStave = reader->GetAssembly(assemblyname);
 
   for (unsigned short ilayer = 0; ilayer < n_Layers; ++ilayer)
   {
@@ -255,7 +280,7 @@ int PHG4MvtxDetector::ConstructMvtx(G4LogicalVolume* trackerenvelope)
   return 0;
 }
 
-int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUStave, G4LogicalVolume*& trackerenvelope)
+int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume *av_ITSUStave, G4LogicalVolume *&trackerenvelope)
 {
   //=========================================
   // Now we populate the whole layer with the staves
@@ -279,13 +304,8 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
     if (Verbosity() > 0)
     {
       std::cout << " Calculated N_staves for layer " /*<< layer*/
-                << " layer_nominal_radius " << layer_nominal_radius
-                << " ITS arcstep " << arcstep
-                << " circumference divided by arcstep  " << numstaves
-                << " N_staves " << N_staves
-                << std::endl;
-      std::cout << "A radius for this layer of " << (double) N_staves * arcstep / (2.0 * M_PI) + 0.01 << " or "
-                << (double) (N_staves + 1) * arcstep / (2.0 * M_PI) + 0.01 << " would produce  perfect stave spacing" << std::endl;
+                << " layer_nominal_radius " << layer_nominal_radius << " ITS arcstep " << arcstep << " circumference divided by arcstep  " << numstaves << " N_staves " << N_staves << std::endl;
+      std::cout << "A radius for this layer of " << (double) N_staves * arcstep / (2.0 * M_PI) + 0.01 << " or " << (double) (N_staves + 1) * arcstep / (2.0 * M_PI) + 0.01 << " would produce  perfect stave spacing" << std::endl;
     }
   }
 
@@ -295,12 +315,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
   if (Verbosity() > 0)
   {
     std::cout << " layer " /*<< layer*/
-              << " layer_nominal_radius " << layer_nominal_radius
-              << " N_staves " << N_staves
-              << " phistep " << phistep
-              << " phitilt " << phitilt
-              << " phi0    " << phi0
-              << std::endl;
+              << " layer_nominal_radius " << layer_nominal_radius << " N_staves " << N_staves << " phistep " << phistep << " phitilt " << phitilt << " phi0    " << phi0 << std::endl;
   }
 
   // The stave starts out at (0,0,0) and oriented so that the sensors face upward in y
@@ -334,11 +349,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
 
     if (Verbosity() > 0)
     {
-      std::cout << " iphi " << iphi << " phi_rotation " << phi_rotation
-                << " x " << layer_nominal_radius * cos(phi_rotation)
-                << " y " << layer_nominal_radius * sin(phi_rotation)
-                << " z " << z_location
-                << std::endl;
+      std::cout << " iphi " << iphi << " phi_rotation " << phi_rotation << " x " << layer_nominal_radius * cos(phi_rotation) << " y " << layer_nominal_radius * sin(phi_rotation) << " z " << z_location << std::endl;
     }
     G4Transform3D Tr(Ra, Ta);
 
@@ -352,7 +363,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
   return 0;
 }
 
-int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
+int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume *&lv)
 {
   if (Verbosity() > 0)
   {
@@ -361,7 +372,7 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
   }
 
   // Now construct EWs, service barrel, CYSS, cones and cables
-  PHG4MvtxSupport* mvtxSupportSystem = new PHG4MvtxSupport(this, m_DisplayAction, OverlapCheck());
+  PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(this, m_DisplayAction, OverlapCheck());
   mvtxSupportSystem->ConstructMvtxSupport(lv);
 
   delete mvtxSupportSystem;
@@ -369,36 +380,37 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
   return 0;
 }
 
-void PHG4MvtxDetector::SetDisplayProperty(G4AssemblyVolume* av)
+// NOLINTNEXTLINE(misc-no-recursion)
+void PHG4MvtxDetector::SetDisplayProperty(G4AssemblyVolume *av)
 {
   //  std::cout <<"SetDisplayProperty - G4AssemblyVolume w/ TotalImprintedVolumes "<<av->TotalImprintedVolumes()
   //   <<"/"<<av->GetImprintsCount()<<std::endl;
 
-  std::vector<G4VPhysicalVolume*>::iterator it = av->GetVolumesIterator();
+  std::vector<G4VPhysicalVolume *>::iterator it = av->GetVolumesIterator();
 
   int nDaughters = av->TotalImprintedVolumes();
   for (int i = 0; i < nDaughters; ++i, ++it)
   {
-    //  std::cout <<"SetDisplayProperty - AV["<<i<<"] = "<<(*it)->GetName()<<std::endl;
-    G4VPhysicalVolume* pv = (*it);
+    std::cout << "SetDisplayProperty - AV[" << i << "] = " << (*it)->GetName() << std::endl;
+    G4VPhysicalVolume *pv = (*it);
 
-    G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
+    G4LogicalVolume *worldLogical = pv->GetLogicalVolume();
     SetDisplayProperty(worldLogical);
   }
 }
 
-void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
+// NOLINTNEXTLINE(misc-no-recursion)
+void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume *lv)
 {
   std::string material_name(lv->GetMaterial()->GetName());
 
   if (Verbosity() >= 50)
   {
-    std::cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
-              << material_name << std::endl;
+    std::cout << "SetDisplayProperty - LV " << lv->GetName() << " built with " << material_name << std::endl;
   }
   std::vector<std::string> matname = {"SI", "KAPTON", "ALUMINUM", "Carbon", "M60J3K", "WATER"};
   bool found = false;
-  for (const std::string& nam : matname)
+  for (const std::string &nam : matname)
   {
     if (material_name.find(nam) != std::string::npos)
     {
@@ -418,11 +430,11 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
   int nDaughters = lv->GetNoDaughters();
   for (int i = 0; i < nDaughters; ++i)
   {
-    G4VPhysicalVolume* pv = lv->GetDaughter(i);
+    G4VPhysicalVolume *pv = lv->GetDaughter(i);
 
     // std::cout <<"SetDisplayProperty - PV["<<i<<"] = "<<pv->GetName()<<std::endl;
 
-    G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
+    G4LogicalVolume *worldLogical = pv->GetLogicalVolume();
     SetDisplayProperty(worldLogical);
   }
 }
@@ -430,33 +442,33 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
 void PHG4MvtxDetector::AddGeometryNode()
 {
   int active = 0;
-  for (auto& isAct : m_IsLayerActive)
+  // for (auto &isAct : m_IsLayerActive)
+  // {
+  //   active |= isAct;
+  // }
+  if (std::any_of(m_IsLayerActive.begin(), m_IsLayerActive.end(), [](int isAct) { return isAct != 0; }))
   {
-    active |= isAct;
+    active = 1;
   }
+  
   if (active)  // At least one layer is active
   {
     //    ostringstream geonode;
     std::string geonode = "CYLINDERGEOM_" + ((m_SuperDetector != "NONE") ? m_SuperDetector : m_Detector);
-    PHG4CylinderGeomContainer* geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode);
+    PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode);
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
       PHNodeIterator iter(topNode());
-      PHCompositeNode* runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
-      PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(geo, geonode, "PHObject");
+      PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode, "PHObject");
       runNode->addNode(newNode);
     }
     // here in the detector class we have internal units(mm), convert to cm
     // before putting into the geom object
     for (unsigned short ilayer = 0; ilayer < n_Layers; ++ilayer)
     {
-      CylinderGeom_Mvtx* mygeom = new CylinderGeom_Mvtx(ilayer,
-                                                        m_N_staves[ilayer],
-                                                        m_nominal_radius[ilayer] / cm,
-                                                        get_phistep(ilayer) / rad,
-                                                        m_nominal_phitilt[ilayer] / rad,
-                                                        m_nominal_phi0[ilayer] / rad);
+      CylinderGeom_Mvtx *mygeom = new CylinderGeom_Mvtx(ilayer, m_N_staves[ilayer], m_nominal_radius[ilayer] / cm, get_phistep(ilayer) / rad, m_nominal_phitilt[ilayer] / rad, m_nominal_phi0[ilayer] / rad);
       geo->AddLayerGeom(ilayer, mygeom);
     }  // loop per layers
     if (Verbosity())
@@ -466,20 +478,20 @@ void PHG4MvtxDetector::AddGeometryNode()
   }  // is active
 }  // AddGeometryNode
 
-void PHG4MvtxDetector::FillPVArray(G4AssemblyVolume* av)
+void PHG4MvtxDetector::FillPVArray(G4AssemblyVolume *av)
 {
   if (Verbosity() > 0)
   {
     std::cout << "-- FillPVArray --" << std::endl;
   }
-  std::vector<G4VPhysicalVolume*>::iterator it = av->GetVolumesIterator();
+  std::vector<G4VPhysicalVolume *>::iterator it = av->GetVolumesIterator();
 
   int nDaughters = av->TotalImprintedVolumes();
   for (int i = 0; i < nDaughters; ++i, ++it)
   {
-    G4VPhysicalVolume* pv = (*it);
+    G4VPhysicalVolume *pv = (*it);
 
-    G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
+    G4LogicalVolume *worldLogical = pv->GetLogicalVolume();
     // we only care about the staves, which contain the sensors, not the structures
     if (pv->GetName().find("MVTXHalfStave_pv") != std::string::npos)
     {
@@ -510,12 +522,13 @@ void PHG4MvtxDetector::FillPVArray(G4AssemblyVolume* av)
   }
 }
 
-void PHG4MvtxDetector::FindSensor(G4LogicalVolume* lv)
+// NOLINTNEXTLINE(misc-no-recursion)
+void PHG4MvtxDetector::FindSensor(G4LogicalVolume *lv)
 {
   int nDaughters = lv->GetNoDaughters();
   for (int i = 0; i < nDaughters; ++i)
   {
-    G4VPhysicalVolume* pv = lv->GetDaughter(i);
+    G4VPhysicalVolume *pv = lv->GetDaughter(i);
     if (Verbosity() > 0)
     {
       std::cout << "                 PV[" << i << "]: " << pv->GetName() << std::endl;
@@ -530,7 +543,7 @@ void PHG4MvtxDetector::FindSensor(G4LogicalVolume* lv)
       }
     }
 
-    G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
+    G4LogicalVolume *worldLogical = pv->GetLogicalVolume();
 
     if (Verbosity() > 0)
     {

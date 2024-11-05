@@ -6,6 +6,8 @@
 
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
+#include <trackbase_historic/SvtxTrack.h>   
+#include <trackbase_historic/SvtxTrackMap.h>
 
 #include <KFParticle.h>
 #include <KFVertex.h>
@@ -215,6 +217,7 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_pTErr", &m_calculated_daughter_pt_err[i], TString(daughter_number) + "_pTErr/F");
     m_tree->Branch(TString(daughter_number) + "_jT", &m_calculated_daughter_jt[i], TString(daughter_number) + "_jT/F");
     m_tree->Branch(TString(daughter_number) + "_charge", &m_calculated_daughter_q[i], TString(daughter_number) + "_charge/B");
+    m_tree->Branch(TString(daughter_number) + "_bunch_crossing", &m_calculated_daughter_bunch_crossing[i], TString(daughter_number) + "_bunch_crossing/I");
     m_tree->Branch(TString(daughter_number) + "_pseudorapidity", &m_calculated_daughter_eta[i], TString(daughter_number) + "_pseudorapidity/F");
     m_tree->Branch(TString(daughter_number) + "_rapidity", &m_calculated_daughter_rapidity[i], TString(daughter_number) + "_rapidity/F");
     m_tree->Branch(TString(daughter_number) + "_theta", &m_calculated_daughter_theta[i], TString(daughter_number) + "_theta/F");
@@ -495,6 +498,11 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
     }
 
+    //Now get bunch crossing number for the daughter particle
+    SvtxTrackMap *thisTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple.c_str());
+    SvtxTrack *thisTrack = getTrack(daughterArray[i].Id(), thisTrackMap);
+    m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing(); 
+
     if (m_calo_info)
     {
       fillCaloBranch(topNode, m_tree, daughterArray[i], i);
@@ -514,14 +522,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   }
 
   KFVertex motherDecayVertex;
-
-  if (m_num_intermediate_states_nTuple == 0)
-  {
-    for (int i = 0; i < m_num_tracks_nTuple; ++i)
-    {
-      motherDecayVertex += daughterArray[i];
-    }
-  }
 
   int iter = 0;
   // Calcualte jT wrt their own mother, not grandmother

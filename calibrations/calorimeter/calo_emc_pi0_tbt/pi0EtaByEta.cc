@@ -121,18 +121,9 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   h_nclusters = new TH1F("h_nclusters", "", 1000, 0, 1000);
 
-  h_nclus_bin = new TH1F("h_nclus_bin", "", NBinsClus, 0, 300);
-  h_vtx_bin = new TH1F("h_vtx_bin", "", NBinsVtx, -30, 30);
 
-  for (int ib = 0; ib < NBinsClus; ib++)
-  {
-    std::string histoname = "h_InvMass_Nclus" + std::to_string(ib);
-    h_InvMass_Nclus[ib] = new TH1F(histoname.c_str(), "", 120, 0, 1.2);
-  }
 
   h_event = new TH1F("h_event", "", 1, 0, 1);
-
-  h_pipT_Nclus_mass = new TH3F("h_pipT_Nclus_mass", "", 20, 0, 10, 20, 0, 400, 25, 0, 0.5);
 
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
   std::vector<CLHEP::Hep3Vector> temp = std::vector<CLHEP::Hep3Vector>();
@@ -171,7 +162,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   // cuts
   float maxDr = 1.1;
   float maxAlpha = 0.6;
-  float clus_chisq_cut = 4;
+  float clus_chisq_cut = 10;
   float nClus_ptCut = 0.5;
   int max_nClusCount = 300;
 
@@ -186,7 +177,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   if (gl1PacketInfo)
   {
     uint64_t triggervec = gl1PacketInfo->getScaledVector();
-    if ((triggervec >> 10U) & 0x1U)
+    if ((triggervec >> 10U) & 0x1U  || (triggervec >> 11U) & 0x1U|| (triggervec >> 12U) & 0x1U )
     {
       isMinBias = true;
     }
@@ -238,7 +229,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     }
   }
 
-  std::string cluster_node_name = "CLUSTERINFO_CEMC2";
+  std::string cluster_node_name = "CLUSTERINFO_CEMC";
 
   if (use_pdc)
   {
@@ -291,30 +282,22 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   }
 
   h_nclusters->Fill(nClusCount);
-
-  int nClusBin = h_nclus_bin->FindBin(nClusCount) - 1;
-  if (nClusBin == -1 || nClusBin == h_nclus_bin->GetNbinsX())
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-  int vtxBin = h_vtx_bin->FindBin(vtx_z) - 1;
-  if (vtxBin == -1 || vtxBin == h_vtx_bin->GetNbinsX())
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-  if (vtx_z == -0)
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
+  
   if (nClusCount > max_nClusCount)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
+  if (fabs(vtx_z) > vtx_z_cut && doVtxCut)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  h_event->Fill(0);
+
   float ptClusMax = 7;
-  float pt1ClusCut = pt1BaseClusCut;  // 1.3
-  float pt2ClusCut = pt2BaseClusCut;  // 0.7
+  float pt1ClusCut = pt1BaseClusCut;  
+  float pt2ClusCut = pt2BaseClusCut;  
 
   if (nClusCount > 30)
   {
@@ -323,8 +306,6 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   }
 
   float pi0ptcut = 1.22 * (pt1ClusCut + pt2ClusCut);
-
-  h_event->Fill(0);
 
   for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
   {
@@ -345,26 +326,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     }
     h_clus_pt->Fill(clus_pt);
 
-    // loop over the towers in the cluster
-    RawCluster::TowerConstRange towerCR = recoCluster->get_towers();
-    RawCluster::TowerConstIterator toweriter;
-    float lt_e = -1000;
-    unsigned int lt_eta = -1;
-    unsigned int lt_phi = -1;
-    for (toweriter = towerCR.first; toweriter != towerCR.second; ++toweriter)
-    {
-      int towereta = m_geometry->get_tower_geometry(toweriter->first)->get_bineta();
-      int towerphi = m_geometry->get_tower_geometry(toweriter->first)->get_binphi();
-      unsigned int key = TowerInfoDefs::encode_emcal(towereta, towerphi);
-      unsigned int channel = towers->decode_key(key);
-      float energy = towers->get_tower_at_channel(channel)->get_energy();
-      if (energy > lt_e)
-      {
-        lt_e = energy;
-        lt_eta = towereta;
-        lt_phi = towerphi;
-      }
-    }
+    unsigned int lt_eta =  recoCluster->get_lead_tower().first; 
+    unsigned int lt_phi =  recoCluster->get_lead_tower().second;
 
     h_etaphi_clus->Fill(clus_eta, clus_phi);
 
@@ -429,7 +392,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       {
         h_InvMass->Fill(pi0.M());
       }
-      h_pipT_Nclus_mass->Fill(pi0.Pt(), nClusCount, pi0.M());
+
       if (lt_eta > 95)
       {
         continue;
@@ -446,67 +409,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
         h_mass_tbt_lt[lt_eta][lt_phi]->Fill(pi0.M());
       }  // fill 1D inv mass hist for all towers
 
-      h_InvMass_Nclus[nClusBin]->Fill(pi0.M());
     }
-
-    if (doMix)
-    {
-      for (const auto& E_vec_cluster2 : clusMix->at(nClusBin)[vtxBin])
-      {
-        float clus2E = E_vec_cluster2.mag();
-        float clus2_eta = E_vec_cluster2.pseudoRapidity();
-        float clus2_phi = E_vec_cluster2.phi();
-        float clus2_pt = E_vec_cluster2.perp();
-
-        TLorentzVector photon2;
-        photon2.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi, clus2E);
-
-        if (fabs(clusE - clus2E) / (clusE + clus2E) > maxAlpha)
-        {
-          continue;
-        }
-
-        if (photon1.DeltaR(photon2) > maxDr)
-        {
-          continue;
-        }
-
-        TLorentzVector pi0 = photon1 + photon2;
-        if (pi0.Pt() < pi0ptcut)
-        {
-          continue;
-        }
-
-        h_InvMassMix->Fill(pi0.M());
-      }
-    }  // doMix
   }  // clus1 loop
-
-  if (doMix)
-  {
-    clusMix->at(nClusBin)[vtxBin].clear();
-
-    for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
-    {
-      RawCluster* recoCluster = clusterIter->second;
-
-      CLHEP::Hep3Vector vertex(0, 0, vtx_z);
-      CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
-
-      float clus_pt = E_vec_cluster.perp();
-
-      if (recoCluster->get_chi2() > clus_chisq_cut)
-      {
-        continue;
-      }
-      if (clus_pt < pt2ClusCut || clus_pt > ptClusMax)
-      {
-        continue;
-      }
-
-      clusMix->at(nClusBin)[vtxBin].push_back(E_vec_cluster);
-    }
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
