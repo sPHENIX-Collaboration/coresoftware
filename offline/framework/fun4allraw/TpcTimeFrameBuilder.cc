@@ -176,29 +176,27 @@ bool TpcTimeFrameBuilder::isMoreDataRequired(const uint64_t& gtm_bco) const
   return true;
 }
 
-
- std::vector<TpcRawHit *> & TpcTimeFrameBuilder::getTimeFrame(const uint64_t & gtm_bco)
- {
-
+std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_bco)
+{
   uint64_t bclk_rollover_corrected = m_bcoMatchingInformation_vec[0].get_gtm_rollover_correction(gtm_bco);
 
   if (m_verbosity > 2)
   {
-    std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id 
-    << ": getTimeFrame for gtm_bco: 0x" << std::hex              << gtm_bco << std::dec 
-    << ": bclk_rollover_corrected: 0x" << std::hex              << bclk_rollover_corrected << std::dec 
-    << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
+              << ": getTimeFrame for gtm_bco: 0x" << std::hex << gtm_bco << std::dec
+              << ": bclk_rollover_corrected: 0x" << std::hex << bclk_rollover_corrected << std::dec
+              << std::endl;
   }
 
-  for (auto & it : m_timeFrameMap)
+  for (auto& it : m_timeFrameMap)
   {
-    if (BcoMatchingInformation :: get_bco_diff(it.first , bclk_rollover_corrected) < GL1_BCO_MATCH_WINDOW)
+    if (BcoMatchingInformation ::get_bco_diff(it.first, bclk_rollover_corrected) < GL1_BCO_MATCH_WINDOW)
     {
       return it.second;
     }
   }
 
-  static std::vector<TpcRawHit *> empty;
+  static std::vector<TpcRawHit*> empty;
   return empty;
 }
 
@@ -211,9 +209,6 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
   }
 
   uint64_t bclk_rollover_corrected = m_bcoMatchingInformation_vec[0].get_gtm_rollover_correction(bclk);
-
-
-
 
   assert(m_hFEEDataStream);
 
@@ -613,7 +608,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     if (m_verbosity > 2)
     {
       cout << __PRETTY_FUNCTION__ << "\t- : received data packet "
-            << "\t- from FEE " << fee << endl
+           << "\t- from FEE " << fee << endl
            << "\t- pkt_length = " << pkt_length << endl
            << "\t- type = " << payload.type << endl
            << "\t- adc_length = " << payload.adc_length << endl
@@ -629,7 +624,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     if (not m_fastBCOSkip)
     {
       // valid packet in the buffer, create a new hit
-      TpcRawHit *hit = new TpcRawHitv2();
+      TpcRawHit* hit = new TpcRawHitv2();
       m_timeFrameMap[payload.gtm_bco].push_back(hit);
 
       hit->set_bco(payload.bx_timestamp);
@@ -976,7 +971,7 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
         std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
                   << "at gtm_bco = 0x" << hex << gtm_bco << dec
                   << ". m_bco_reference.value().first = 0x" << hex << m_bco_reference.value().first << dec
-                  <<" bco_correction = 0x" << hex << bco_correction << dec
+                  << " bco_correction = 0x" << hex << bco_correction << dec
                   << ". satisified m_max_fee_sync_time = " << m_max_fee_sync_time
                   << std::endl;
       }
@@ -985,8 +980,7 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
     }
   }
 
-  
-  if (m_bco_reference_candidate_list.size()>0)
+  if (m_bco_reference_candidate_list.size() > 0)
   {
     if (m_bco_reference_candidate_list.back().first > bco_correction + m_max_fee_sync_time)
     {
@@ -995,7 +989,7 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
         std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
                   << "at gtm_bco = 0x" << hex << gtm_bco << dec
                   << ". m_bco_reference_candidate_list.back().first = 0x" << hex << m_bco_reference_candidate_list.back().first << dec
-                  <<" bco_correction = 0x" << hex << bco_correction << dec
+                  << " bco_correction = 0x" << hex << bco_correction << dec
                   << ". satisified m_max_fee_sync_time = " << m_max_fee_sync_time
                   << std::endl;
       }
@@ -1008,7 +1002,7 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
   {
     std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
               << "at gtm_bco = 0x" << hex << gtm_bco << dec
-              <<" bco_correction = 0x" << hex << bco_correction << dec <<": more data required"
+              << " bco_correction = 0x" << hex << bco_correction << dec << ": more data required"
               << std::endl;
   }
   return true;
