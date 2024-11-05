@@ -47,6 +47,14 @@ class CaloFittingQA : public SubsysReco
   {
     m_SimFlag = f;
   }
+  void set_lowadcthreshold(int lath)
+  {
+    m_adc_threshold = lath;
+  }
+  void set_highadcthreshold(int hath)
+  {
+    m_high_adc_threshold = hath;
+  }
 
  private:
   void createHistos();
@@ -60,6 +68,9 @@ class CaloFittingQA : public SubsysReco
   bool m_debug{false};
   bool m_UseOfflinePacketFlag{true};
   bool m_SimFlag{false};
+
+  float m_adc_threshold = 100.;
+  float m_high_adc_threshold = 2000.;
 
   std::string m_outputFileName;
   std::string OutputFileName;
