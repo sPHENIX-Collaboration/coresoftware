@@ -11,7 +11,7 @@
 #include <string>
 #include <cmath>
 
-class CDBTF1;
+class CDBTF;
 class PHCompositeNode;
 class TF1;
 
@@ -54,10 +54,10 @@ class JetCalib : public SubsysReco
   int m_doBackgroundSub{1};
   int m_calibyear{24};
 
-  //CDBTF1s
-  CDBTF1 *m_etaJesFile{nullptr};
-  CDBTF1 *m_rTrkFile{nullptr};
-  CDBTF1 *m_gammaJetFile{nullptr};
+  //CDBTFs
+  CDBTF *m_etaJesFile{nullptr};
+  CDBTF *m_rTrkFile{nullptr};
+  CDBTF *m_gammaJetFile{nullptr};
 
   TF1 *m_etaJesFunc[m_nEtaBins] {nullptr};
   TF1 *m_gammaJetFunc {nullptr};
