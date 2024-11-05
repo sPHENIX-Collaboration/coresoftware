@@ -26,6 +26,8 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <phgeom/PHGeomUtility.h>
 
+#include <Acts/Definitions/Algebra.hpp>
+
 namespace
 {
   template <class T>
@@ -43,16 +45,7 @@ namespace
 //____________________________________________________________________________..
 PHTrackClusterAssociator::PHTrackClusterAssociator(const std::string& name)
   : SubsysReco(name)
-{
-  m_caloNames.push_back("CEMC");
-  m_caloNames.push_back("HCALIN");
-  m_caloNames.push_back("HCALOUT");
-}
-
-//____________________________________________________________________________..
-PHTrackClusterAssociator::~PHTrackClusterAssociator()
-{
-}
+{}
 
 //____________________________________________________________________________..
 int PHTrackClusterAssociator::InitRun(PHCompositeNode* topNode)

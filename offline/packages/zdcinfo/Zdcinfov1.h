@@ -14,6 +14,8 @@ class Zdcinfov1 : public Zdcinfo
   ~Zdcinfov1() override = default;
 
   void Reset() override { *this = Zdcinfov1(); }
+  int isValid() const override;
+
   void set_zdc_energy(int arm, float zdc_e) override;
   float get_zdc_energy(int arm) const override;
   void set_radius(int arm, float _r) override;

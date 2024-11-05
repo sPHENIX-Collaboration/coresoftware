@@ -1,11 +1,12 @@
 #include "TrackFitUtils.h"
 
-#include <trackbase/MvtxDefs.h>
 #include "ActsGeometry.h"
 #include "TpcDefs.h"
 #include "TrkrClusterContainerv4.h"
 #include "TrkrClusterv5.h"
 #include "TrkrDefs.h"  // for cluskey, getTrkrId, tpcId
+
+#include <trackbase/MvtxDefs.h>
 
 #include <cmath>
 
@@ -55,6 +56,14 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
 
   // pca and second_point_pca define a straight line approximation to the track
   Acts::Vector3 tangent = (second_point_pca - pca) / (second_point_pca - pca).norm();
+
+  // Direction is ambiguous, use cluster direction to resolve it
+  float phi = atan2(global(1),global(0));
+  float tangent_phi = atan2(tangent(1), tangent(0));
+  if(std::fabs(tangent_phi - phi) > M_PI / 2)
+    {
+      tangent = -1.0 * tangent;
+    }
 
   // get the PCA of the cluster to that line
   // Approximate track with a straight line consisting of the state position posref and the vector (px,py,pz)
@@ -268,6 +277,30 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const std::vector<Acts:
   for (const auto& position : positions)
   {
     positions_2d.emplace_back(std::sqrt(square(position.x()) + square(position.y())), position.z());
+  }
+
+  return line_fit(positions_2d);
+}
+
+//_________________________________________________________________________________
+TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xz(const std::vector<Acts::Vector3>& positions)
+{
+  position_vector_t positions_2d;
+  for (const auto& position : positions)
+  {
+    positions_2d.emplace_back(position.x(), position.z());  // returns dx/dz and z intercept
+  }
+
+  return line_fit(positions_2d);
+}
+
+//_________________________________________________________________________________
+TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xy(const std::vector<Acts::Vector3>& positions)
+{
+  position_vector_t positions_2d;
+  for (const auto& position : positions)
+  {
+    positions_2d.emplace_back(position.x(), position.y());   // returns dx/dy and y intercept
   }
 
   return line_fit(positions_2d);
@@ -530,7 +563,7 @@ Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
   float projection = 0.25;  // cm
   Acts::Vector3 second_point = pca + projection * pca / pca.norm();
   Acts::Vector2 second_point_pca_circle = get_circle_point_pca(radius, x0, y0, second_point);
-  float second_point_pca_z = pca_circle_radius * zslope + z0;
+  float second_point_pca_z = second_point_pca_circle.norm() * zslope + z0; 
   Acts::Vector3 second_point_pca(second_point_pca_circle(0), second_point_pca_circle(1), second_point_pca_z);
 
   // pca and second_point_pca define a straight line approximation to the track
@@ -603,6 +636,59 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
 }
 
 //_________________________________________________________________________________
+std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3>& global_vec,
+						       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt)
+{
+  std::vector<float> fitpars;
+
+  // make the helical fit using TrackFitUtils
+  if (global_vec.size() < 3)
+  {
+    return fitpars;
+  }
+  std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
+
+  // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
+  std::vector<Acts::Vector3> global_vec_noINTT;
+  for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
+  {
+    unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
+
+    if (trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
+    {
+      global_vec_noINTT.push_back(global_vec[ivec]);
+    }
+  }
+  //  std::cout << " use_intt = " << use_intt << std::endl;
+  if(use_intt)
+    {
+      global_vec_noINTT = global_vec;
+    }
+  if (global_vec_noINTT.size() < 3)
+    {
+      return fitpars;
+    }
+  std::tuple<double, double> xz_fit_pars = TrackFitUtils::line_fit_xz(global_vec_noINTT);
+
+  fitpars.push_back(std::get<0>(xy_fit_pars));
+  fitpars.push_back(std::get<1>(xy_fit_pars));
+  fitpars.push_back(std::get<0>(xz_fit_pars));
+  fitpars.push_back(std::get<1>(xz_fit_pars));
+
+  /*
+  std::cout << "   dy/dx " << fitpars[0]
+	    << " y0 " << fitpars[1]
+	    << " dz/dx " << fitpars[2]
+	    << " z0 " << fitpars[3]
+	    << std::endl;
+  std::cout << " global (layer 0): " << std::endl << global_vec_noINTT[0] << std::endl;
+  std::cout << " global (layer 2): " << std::endl << global_vec_noINTT[2] << std::endl;
+  */
+
+  return fitpars;
+}
+
+//_________________________________________________________________________________
 void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
                                         TrkrClusterContainer* _cluster_map,
                                         std::vector<Acts::Vector3>& global_vec,
@@ -633,6 +719,21 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
     global_vec.push_back(global);
 
   }  // end loop over clusters for this track
+}
+
+//_________________________________________
+Acts::Vector2 TrackFitUtils::get_line_point_pca(double slope, double intercept, Acts::Vector3 global)
+{
+  // return closest point (in xy) on the line to the point global  
+  Acts::Vector2 point(global(0), global(1));
+  Acts::Vector2 posref(0, intercept);       // arbitrary point on the line
+  Acts::Vector2 arb_point(2.0, slope*2.0 + intercept); // second arbitrary point on line 
+  Acts::Vector2 tangent = arb_point - posref;
+  tangent = tangent/tangent.norm();   // +/- the line direction
+
+  Acts::Vector2 pca = posref + ((point - posref).dot(tangent))*tangent;
+
+  return pca;
 }
 
 //_________________________________________________________________________________
@@ -720,4 +821,44 @@ std::vector<double> TrackFitUtils::getCircleClusterResiduals(TrackFitUtils::posi
     return std::sqrt( square(x-X0) + square(y-Y0) )  -  R; });
 
   return residuals;
+}
+
+float TrackFitUtils::get_helix_pathlength(std::vector<float>& fitpars, const Acts::Vector3& start_point, const Acts::Vector3& end_point)
+{
+  // caveats:
+  // - when pz is zero, the helix is degenerate, so this method assumes the pathlength is on the first loop around
+  // - this method does not check whether the start and end points are actually compatible with the helix;
+  //   the actual points that this method uses are those points on the helix with the same z and phi as start_point and end_point
+  if(fitpars.size()!=5) { return -1e9;
+}
+  float R = fitpars[0];
+  float x0 = fitpars[1];
+  float y0 = fitpars[2];
+  float zslope = fitpars[3];
+  // float z0 = fitpars[4];
+
+  // path length in z per half-turn of helix = dz/dr * (apogee r - perigee r)
+  // apogee r = sqrt(x0^2+y0^2) + R
+  // perigee r = sqrt(x0^2+y0^2) - R
+  float half_turn_z_pathlength = zslope*2*R;
+
+  // find number of turns
+  float z_dist = end_point.z() - start_point.z();
+  int n_turns = std::floor(std::fabs(z_dist / half_turn_z_pathlength));
+
+  // phi relative to center of circle
+  float phic_start = atan2(start_point.y()-y0,start_point.x()-x0);
+  float phic_end = atan2(end_point.y()-y0,end_point.x()-x0);
+  float phic_dist = std::fabs(phic_end-phic_start) + n_turns*2*M_PI;
+  float xy_dist = R*phic_dist;
+
+  float pathlength = std::sqrt(xy_dist*xy_dist+z_dist*z_dist);
+  return pathlength;
+}
+
+float TrackFitUtils::get_helix_surface_pathlength(const Surface& surf, std::vector<float>& fitpars, const Acts::Vector3& start_point, ActsGeometry* tGeometry)
+{
+  Acts::Vector3 surface_center = surf->center(tGeometry->geometry().getGeoContext()) * 0.1;
+  Acts::Vector3 intersection = get_helix_surface_intersection(surf,fitpars,surface_center,tGeometry);
+  return get_helix_pathlength(fitpars,start_point,intersection);
 }

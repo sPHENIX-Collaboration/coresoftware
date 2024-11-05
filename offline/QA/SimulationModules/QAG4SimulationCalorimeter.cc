@@ -13,6 +13,9 @@
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoDefs.h>
 
 #include <g4eval/CaloEvalStack.h>
 #include <g4eval/CaloRawClusterEval.h>
@@ -501,9 +504,17 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
   // Grab the towers
   RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,
                                                                     towernodename);
-  if (!towers)
+  std::string towerinfonodename = "TOWERINFO_CALIB_" + detector;
+  TowerInfoContainer *towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfonodename);
+  if (!towers && !flag(kProcessTowerinfo))
   {
     std::cout << PHWHERE << ": Could not find node " << towernodename
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  if(!towerinfos && flag(kProcessTowerinfo))
+  {
+    std::cout << PHWHERE << ": Could not find node " << towerinfonodename
               << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
@@ -572,7 +583,9 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
             {
               wrapphi = wrapphi - towergeom->get_phibins();
             }
-
+            if(!flag(kProcessTowerinfo))
+            {
+              
             RawTower *tower = towers->getTower(ieta, wrapphi);
 
             if (tower)
@@ -581,6 +594,19 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
 
               energy += e_intput;
             }
+            }
+            else
+            {
+              unsigned int towerkey = _calo_name == "CEMC" ? TowerInfoDefs::encode_emcal(ieta, wrapphi) : TowerInfoDefs::encode_hcal(ieta, wrapphi);
+              TowerInfo *towerinfo = towerinfos->get_tower_at_key(towerkey);
+              if(towerinfo)
+              {
+                const double e_intput = towerinfo->get_energy();
+                energy += e_intput;
+              }
+            }
+
+
           }
         }
 
@@ -662,6 +688,7 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 
   assert(_caloevalstack);
   CaloRawClusterEval *clustereval = _caloevalstack->get_rawcluster_eval();
+  clustereval->set_usetowerinfo(flag(kProcessTowerinfo));
   assert(clustereval);
 
   TH1F *h = dynamic_cast<TH1F *>(hm->getHisto(

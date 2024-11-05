@@ -71,7 +71,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
   void set_ntuplefile_name(const std::string& file) { ntuple_outfilename = file; }
   void set_vertex_param_fixed(unsigned int param){ fixed_vertex_params.insert(param);}
-
+  void set_straight_line_fit(bool flag) {straight_line_fit = flag; }
   void set_fitted_subsystems(bool si, bool tpc, bool full)
   {
     fitsilicon = si;
@@ -98,6 +98,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   // utility functions for analysis modules
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
+
   void getTrackletClusters(TrackSeed* _track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
   Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global);
   void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
@@ -120,6 +121,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector3 get_helix_surface_intersection(const Surface& surf, std::vector<float>& fitpars, Acts::Vector3 global, Acts::Vector3& pca, Acts::Vector3& tangent);
 
   Acts::Vector3 get_helix_vtx(Acts::Vector3 event_vtx, const std::vector<float>& fitpars);
+  Acts::Vector3 get_line_vtx(Acts::Vector3 event_vtx, const std::vector<float>& fitpars);
 
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
@@ -133,10 +135,12 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool is_vertex_param_fixed(unsigned int param);
 
   void getLocalDerivativesXY(const Surface& surf, const Acts::Vector3& global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
+  void getLocalDerivativesZeroFieldXY(const Surface& surf,  const Acts::Vector3& global, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5], unsigned int layer);
 
   void getLocalVtxDerivativesXY(SvtxTrack& track, const Acts::Vector3& track_vtx, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5]);
+  void getLocalVtxDerivativesZeroFieldXY(SvtxTrack& track, const Acts::Vector3& event_vtx, const std::vector<float>& fitpars, float lcl_derivativeX[5], float lcl_derivativeY[5]);
 
-  void getGlobalDerivativesXY(const Surface& surf, Acts::Vector3 global, const Acts::Vector3& fitpoint, const std::vector<float>& fitpars, float glb_derivativeX[6], float glbl_derivativeY[6], unsigned int layer);
+  void getGlobalDerivativesXY(const Surface& surf, const Acts::Vector3& global, const Acts::Vector3& fitpoint, const std::vector<float>& fitpars, float glb_derivativeX[6], float glbl_derivativeY[6], unsigned int layer);
 
   void getGlobalVtxDerivativesXY(SvtxTrack& track, const Acts::Vector3& track_vtx, float glbl_derivativeX[3], float glbl_derivativeY[3]);
 
@@ -146,6 +150,12 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   float getVertexResidual(Acts::Vector3 vtx);
 
   void get_dca(SvtxTrack& track, float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, const Acts::Vector3& vertex);
+  void get_dca_zero_field(SvtxTrack& track, float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma, const Acts::Vector3& event_vertex);
+
+  std::pair<Acts::Vector3, Acts::Vector3> get_line(const std::vector<float>& fitpars);
+  std::pair<Acts::Vector3, Acts::Vector3> get_line_zero_field(const std::vector<float>& fitpars);
+  std::pair<Acts::Vector3, Acts::Vector3> get_line_tangent(const std::vector<float>& fitpars, Acts::Vector3 global);
+  Acts::Vector3 get_line_surface_intersection(const Surface& surf, std::vector<float>& fitpars);
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, const Acts::Vector3& event_vertex);
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, const Acts::Vector3& event_vertex, Acts::Vector3 PCA);
   Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, const Acts::Vector3& event_vtx, const Acts::Vector3& PCA);
@@ -205,6 +215,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   bool use_event_vertex{false};
   bool use_intt_zfit{true};
+  bool straight_line_fit = false;
 
   int event{0};
 
