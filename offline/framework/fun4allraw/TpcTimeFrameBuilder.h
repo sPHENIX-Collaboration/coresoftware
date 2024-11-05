@@ -118,6 +118,8 @@ class TpcTimeFrameBuilder
   std::string m_HistoPrefix;
 
   //! GTM BCO -> TpcRawHit
+  //! Map to store TpcRawHit pointers indexed by GTM BCO values
+  //! This is used to organize hits into time frames based on their BCO values
   std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;
   static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
   

@@ -85,7 +85,8 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
     if (Verbosity() > 3)
     {
       std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
-                << " require_more_data for targetBCO " << targetBCO << std::endl;
+                << " require_more_data for targetBCO 0x"
+                <<std::hex << targetBCO <<std::dec<< std::endl;
     }
 
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());

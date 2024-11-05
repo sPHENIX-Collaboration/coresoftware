@@ -162,7 +162,7 @@ bool TpcTimeFrameBuilder::isMoreDataRequired(const uint64_t& gtm_bco) const
 
   for (const auto& bcoMatchingInformation : m_bcoMatchingInformation_vec)
   {
-    if (bcoMatchingInformation.is_verified())
+    if (not bcoMatchingInformation.is_verified())
     {
       continue;
     }
@@ -969,7 +969,7 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
       if (m_verbosity > 2)
       {
         std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
-                  << "at gtm_bco = 0x" << hex << gtm_bco << dec
+                  << " at gtm_bco = 0x" << hex << gtm_bco << dec
                   << ". m_bco_reference.value().first = 0x" << hex << m_bco_reference.value().first << dec
                   << " bco_correction = 0x" << hex << bco_correction << dec
                   << ". satisified m_max_fee_sync_time = " << m_max_fee_sync_time
@@ -1003,6 +1003,7 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
     std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
               << "at gtm_bco = 0x" << hex << gtm_bco << dec
               << " bco_correction = 0x" << hex << bco_correction << dec << ": more data required"
+              <<" as their is NO m_bco_reference nor m_bco_reference_candidate_list"
               << std::endl;
   }
   return true;
