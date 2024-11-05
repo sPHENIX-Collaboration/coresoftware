@@ -71,8 +71,8 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   // {
   //   return m_StripZ[0];
   // }
-  using PHG4CylinderGeom::get_strip_z_spacing; // brings both overloads from base class into scope
-  double get_strip_z_spacing(const int itype = 0) const
+  // using PHG4CylinderGeom::get_strip_z_spacing; // brings both overloads from base class into scope
+  double get_strip_z_spacing(const int itype = 0) const override
   {
     return (itype == 0 || itype == 1) ? m_StripZ[itype] : m_StripZ[0];
   }
