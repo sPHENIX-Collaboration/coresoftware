@@ -2,7 +2,7 @@
 
 #include <jetbase/JetContainer.h>
 #include <jetbase/Jetv2.h>
-#include <cdbobjects/CDBTF1.h>  // for CDBTF1
+#include <cdbobjects/CDBTF.h>  // for CDBTF1
 
 #include <ffamodules/CDBInterface.h>
 
@@ -86,12 +86,12 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
 	}
       else
 	{
-	  m_etaJesFile = new CDBTF1(fetchCalibDir("etaJes"));
+	  m_etaJesFile = new CDBTF(fetchCalibDir("etaJes"));
 	  if(m_etaJesFile)
 	    {
 	      for(int i = 0; i < m_nEtaBins; i++)
 		{
-		  m_etaJesFunc[i] = m_etaJesFile->getTF1(Form("corrFit_eta%d",i));
+		  m_etaJesFunc[i] = m_etaJesFile->getTF(Form("corrFit_eta%d",i));
 		}
 	    }
 	  else
@@ -112,10 +112,10 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
 	}
       else
 	{
-	  m_gammaJetFile = new CDBTF1(fetchCalibDir("gammaJet"));
+	  m_gammaJetFile = new CDBTF(fetchCalibDir("gammaJet"));
 	  if(m_gammaJetFile)
 	    {
-	      m_gammaJetFunc = m_gammaJetFile->getTF1("corrFit");
+	      m_gammaJetFunc = m_gammaJetFile->getTF("corrFit");
 	    }
 	  else
 	    {
@@ -129,10 +129,10 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
 	}
       else
 	{
-	  m_rTrkFile = new CDBTF1(fetchCalibDir("rTrk"));
+	  m_rTrkFile = new CDBTF(fetchCalibDir("rTrk"));
 	  if(m_rTrkFile)
 	    {
-	      m_rTrkFunc = m_rTrkFile->getTF1("corrFit");
+	      m_rTrkFunc = m_rTrkFile->getTF("corrFit");
 	    }
 	  else
 	    {
@@ -188,15 +188,15 @@ int JetCalib::process_event(PHCompositeNode *topNode)
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if(!vertexmap)
     {
-      std::cout << "JetCalib::process_event - Error cannot find global vertex node, skipping event" << std::endl;
+      std::cout << "JetCalib::process_event - Error cannot find global vertex node!" << std::endl;
       //return Fun4AllReturnCodes::EVENT_OK;
     }
-  if(vertexmap->empty())
+  else if(vertexmap->empty())
     {
-      std::cout << "JetCalib::process_event - global vertex node is empty, skipping event" << std::endl;
+      std::cout << "JetCalib::process_event - global vertex node is empty!" << std::endl;
       //return Fun4AllReturnCodes::EVENT_OK;
     }
-  else if(vertexmap && !vertexmap -> empty()) 
+  else
     {
       GlobalVertex *vtx = vertexmap -> begin()->second;
       m_zvtx= vtx->get_z();
