@@ -1,18 +1,17 @@
-#ifndef FUN4ALLRAW_MICROMEGASRAWHITCONTAINERV1_H
-#define FUN4ALLRAW_MICROMEGASRAWHITCONTAINERV1_H
-
+#ifndef FUN4ALLRAW_MICROMEGASRAWHITCONTAINERV2_H
+#define FUN4ALLRAW_MICROMEGASRAWHITCONTAINERV2_H
 #include "MicromegasRawHitContainer.h"
 
 class MicromegasRawHit;
 class TClonesArray;
 
-class MicromegasRawHitContainerv1 : public MicromegasRawHitContainer
+class MicromegasRawHitContainerv2 : public MicromegasRawHitContainer
 {
   public:
-  explicit MicromegasRawHitContainerv1();
+  explicit MicromegasRawHitContainerv2();
 
   //! destructor
-  ~MicromegasRawHitContainerv1() override;
+  ~MicromegasRawHitContainerv2() override;
 
   /// Clear Event
   void Reset() override;
@@ -33,7 +32,7 @@ class MicromegasRawHitContainerv1 : public MicromegasRawHitContainer
  private:
   TClonesArray *MicromegasRawHitsTCArray = nullptr;
 
-  ClassDefOverride(MicromegasRawHitContainerv1, 1)
+  ClassDefOverride(MicromegasRawHitContainerv2, 1)
 };
 
 #endif
