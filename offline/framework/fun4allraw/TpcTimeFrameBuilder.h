@@ -29,8 +29,9 @@ class TpcTimeFrameBuilder
   virtual ~TpcTimeFrameBuilder();
 
   int ProcessPacket(Packet *);
-  bool isMoreDataRequired() const;
-  void CleanupUsedPackets(const uint64_t bclk);
+  bool isMoreDataRequired(const uint64_t & gtm_bco) const;
+  void CleanupUsedPackets(const uint64_t & bclk);
+  std::vector<TpcRawHit *> & getTimeFrame(const uint64_t & gtm_bco);
 
   void setVerbosity(const int i);
   void setFastBCOSkip(bool fastBCOSkip = true) 
@@ -57,6 +58,8 @@ class TpcTimeFrameBuilder
                                                 //  static const uint16_t  HEADER_LENGTH  = 5;
   static const uint16_t HEADER_LENGTH = 7;
   static const uint16_t MAX_PACKET_LENGTH = 1025;
+
+  static const uint16_t GL1_BCO_MATCH_WINDOW = 16;   // BCOs
 
   uint16_t reverseBits(const uint16_t x) const;
   uint16_t crc16(const uint32_t fee, const uint32_t index, const int l) const;
@@ -89,6 +92,7 @@ class TpcTimeFrameBuilder
 
   struct fee_payload
   {
+    uint16_t fee_id = 0;
     uint16_t adc_length = 0;  
     uint16_t data_parity = 0;
     uint16_t sampa_address = 0;
@@ -149,6 +153,19 @@ class TpcTimeFrameBuilder
       return m_verified_from_modebits || m_verified_from_data;
     }
 
+    //! matching between fee bco and lvl1 bco
+    using m_gtm_fee_bco_matching_pair_t = std::pair<uint64_t, uint32_t>;
+    using m_fee_gtm_bco_matching_pair_t = std::pair<uint32_t, uint64_t>;
+
+    //! get reference bco
+    const std::optional<m_gtm_fee_bco_matching_pair_t> & get_reference_bco() const
+    {
+      return m_bco_reference;
+    }
+
+    //! whether FEE data has moved pass the given gtm_bco
+    bool isMoreDataRequired(const uint64_t & gtm_bco) const;
+
     //! get predicted fee_bco from gtm_bco
     std::optional<uint32_t> get_predicted_fee_bco(uint64_t) const;
 
@@ -177,6 +194,9 @@ class TpcTimeFrameBuilder
     {
       m_multiplier = value;
     }
+
+    /// set gtm clock with rollover correction
+    uint64_t get_gtm_rollover_correction(const uint64_t & gtm_bco) const;
 
     //! find reference from data
     std::optional<uint64_t> find_reference_heartbeat(const fee_payload & HeartBeatPacket);
@@ -225,6 +245,24 @@ class TpcTimeFrameBuilder
       CLEAR_LV1_ENDAT_T = 7
     };
 
+    // get the difference between two BCO WITHOUT rollover corrections
+    template <class T>
+    inline static constexpr T get_bco_diff(
+      const T& first, const T& second
+      )
+    {
+      return first < second ? (second - first) : (first - second);
+    }
+
+    // get the difference between two BCO with rollover corrections
+    inline static constexpr uint32_t get_fee_bco_diff(
+      const uint32_t& first, const uint32_t& second
+      )
+    {
+      const uint32_t diff_raw = get_bco_diff(first, second);
+
+      return (diff_raw < (1U << (m_FEE_CLOCK_BITS / 2))) ? diff_raw : (1U << m_FEE_CLOCK_BITS) - diff_raw;
+    }
 
   private:
 
@@ -238,11 +276,7 @@ class TpcTimeFrameBuilder
 
     bool m_verified_from_data = false;
 
-    //! matching between fee bco and lvl1 bco
-    using m_gtm_fee_bco_matching_pair_t = std::pair<uint64_t, uint32_t>;
-    using m_fee_gtm_bco_matching_pair_t = std::pair<uint32_t, uint64_t>;
-
-    //! list of available bco
+    //! list of available bco, sorted in time with rollover corrected
     std::list<uint64_t> m_gtm_bco_trig_list;
 
     //! list of available GTM -> FEE bco mapping for synchronization
@@ -266,10 +300,10 @@ class TpcTimeFrameBuilder
     std::set<uint32_t> m_orphans;
 
     // define limit for matching two lvl1 and EnDAT tagger BCOs
-    static constexpr int m_max_lv1_endat_bco_diff = 10;
+    static constexpr int m_max_lv1_endat_bco_diff = 16;
 
     // define limit for matching two fee_bco
-    static constexpr unsigned int m_max_fee_bco_diff = 10;
+    static constexpr unsigned int m_max_fee_bco_diff = 64;
 
     // define limit for matching gtm_bco from lvl1 to enddat
 
@@ -279,27 +313,12 @@ class TpcTimeFrameBuilder
   //   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
     static constexpr unsigned int m_max_matching_data_size = 10;
 
+    //! max time in GTM BCO for FEE data to sync over to datastream 
+    static constexpr unsigned int m_max_fee_sync_time = 1024;
+
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
 
-    // get the difference between two BCO WITHOUT rollover corrections
-    template <class T>
-    inline static constexpr T get_bco_diff(
-      const T& first, const T& second
-      )
-    {
-      return first < second ? (second - first) : (first - second);
-    }
-
-    // get the difference between two BCO with rollover corrections
-    inline static constexpr uint32_t get_fee_bco_diff(
-      const uint32_t& first, const uint32_t& second
-      )
-    {
-      const uint32_t diff_raw = get_bco_diff(first, second);
-
-      return (diff_raw < (1U << (m_FEE_CLOCK_BITS / 2))) ? diff_raw : (1U << m_FEE_CLOCK_BITS) - diff_raw;
-    }
 
     // this is the clock multiplier from lvl1 to fee clock
     // Tested with Run24 data. Could be changable in future runs
@@ -309,6 +328,9 @@ class TpcTimeFrameBuilder
     TH1 *m_hFEEClockAdjustment_MatchedReference = nullptr;
     TH1 *m_hFEEClockAdjustment_MatchedNew = nullptr;
     TH1 *m_hFEEClockAdjustment_Unmatched = nullptr;
+    TH1 *m_hGTMNewEventSpacing = nullptr;
+    TH1 *m_hFindGTMBCO_MatchedExisting_BCODiff = nullptr;
+    TH1 *m_hFindGTMBCO_MatchedNew_BCODiff = nullptr;
 
   }; //   class BcoMatchingInformation
 

@@ -39,14 +39,6 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
 
-  //! map bco to packet
-  std::map<unsigned int, uint64_t> m_packet_bco;
-
-  // std::map<uint64_t, std::set<int>> m_BeamClockFEE;
-  std::map<uint64_t, std::vector<TpcRawHit *>> m_TpcRawHitMap;
-  // std::map<int, uint64_t> m_FEEBclkMap;
-  // std::set<uint64_t> m_BclkStack;
-
   //! packet ID -> TimeFrame builder
   std::map<int, TpcTimeFrameBuilder *> m_TpcTimeFrameBuilderMap;
 };
