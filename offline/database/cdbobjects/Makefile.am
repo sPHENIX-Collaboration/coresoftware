@@ -11,6 +11,7 @@ AM_CPPFLAGS = \
 
 libcdbobjects_la_SOURCES = \
   CDBHistos.cc \
+  CDBTF.cc \
   CDBTTree.cc
 
 libcdbobjects_la_LDFLAGS = \
@@ -21,6 +22,7 @@ libcdbobjects_la_LDFLAGS = \
 
 pkginclude_HEADERS = \
   CDBHistos.h \
+  CDBTF.h \
   CDBTTree.h
 
 ################################################
