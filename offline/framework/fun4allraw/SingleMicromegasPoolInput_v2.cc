@@ -49,6 +49,30 @@ namespace
     TRIG_EARLY_LARGE_DATA_T = 0b111,
   };
 
+  static constexpr uint16_t FEE_PACKET_MAGIC_KEY_1 = 0xfe;
+  static constexpr uint16_t FEE_PACKET_MAGIC_KEY_2 = 0xed;
+
+  static constexpr uint16_t FEE_MAGIC_KEY = 0xba00;
+  static constexpr uint16_t GTM_MAGIC_KEY = 0xbb00;
+  static constexpr uint16_t GTM_LVL1_ACCEPT_MAGIC_KEY = 0xbbf0;
+  static constexpr uint16_t GTM_ENDAT_MAGIC_KEY = 0xbbf1;
+  static constexpr uint16_t GTM_MODEBIT_MAGIC_KEY = 0xbbf2;
+
+  // number of sampa per FEE board
+  static constexpr uint16_t MAX_SAMPA = 8;
+
+  // number of channels per FEE board
+  static constexpr uint16_t MAX_CHANNELS = MAX_SAMPA * 32;
+
+  // header length
+  static constexpr uint16_t HEADER_LENGTH = 7;
+
+  // packet length
+  static constexpr uint16_t MAX_PACKET_LENGTH = 1025;
+
+  // max recorded sample
+  static constexpr size_t MAX_SAMPLE=1024;
+
   //_____________________________________________________________
   [[maybe_unused]] uint16_t reverseBits(const uint16_t& x)
   {

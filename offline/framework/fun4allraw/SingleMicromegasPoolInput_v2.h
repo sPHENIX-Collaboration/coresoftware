@@ -56,29 +56,11 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 
   //!@name decoding constants
   //@{
+  /// max number of FEE per OBDC
+  static constexpr uint16_t MAX_FEECOUNT = 26;
+
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream
   static constexpr size_t DAM_DMA_WORD_LENGTH = 16;
-
-  static constexpr uint16_t FEE_PACKET_MAGIC_KEY_1 = 0xfe;
-  static constexpr uint16_t FEE_PACKET_MAGIC_KEY_2 = 0xed;
-
-  static constexpr uint16_t FEE_MAGIC_KEY = 0xba00;
-  static constexpr uint16_t GTM_MAGIC_KEY = 0xbb00;
-  static constexpr uint16_t GTM_LVL1_ACCEPT_MAGIC_KEY = 0xbbf0;
-  static constexpr uint16_t GTM_ENDAT_MAGIC_KEY = 0xbbf1;
-  static constexpr uint16_t GTM_MODEBIT_MAGIC_KEY = 0xbbf2;
-
-  static constexpr uint16_t MAX_FEECOUNT = 26;      // that many FEEs
-  static constexpr uint16_t MAX_SAMPA = 8;      // that many FEEs
-  static constexpr uint16_t MAX_CHANNELS = MAX_SAMPA * 32;  // that many channels per FEE
-                                                //  static const uint16_t  HEADER_LENGTH  = 5;
-  static constexpr uint16_t HEADER_LENGTH = 7;
-  static constexpr uint16_t MAX_PACKET_LENGTH = 1025;
-
-
-  static constexpr size_t MAX_SAMPLE=1024;
-  static constexpr int ADC_INVALID=65000;
-
   //@}
 
   //! DMA word structure
