@@ -241,11 +241,17 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     std::cout << "prepared KD trees" << std::endl;
   }
 
-  if (Verbosity())
+  if (Verbosity()==0)
   {
     std::cout << "number of TPC seeds: " << _track_map->size() << std::endl;
   }
-
+  if(_max_seeds)
+  {
+    if(_track_map->size()>1e5){
+      std::cout << PHWHERE << "number of TPC seeds > 100,000. aborting event." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
   for (size_t track_it = 0; track_it != _track_map->size(); ++track_it)
