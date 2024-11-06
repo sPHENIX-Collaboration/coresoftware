@@ -241,7 +241,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     std::cout << "prepared KD trees" << std::endl;
   }
 
-  if (Verbosity()==0)
+  if (Verbosity())
   {
     std::cout << "number of TPC seeds: " << _track_map->size() << std::endl;
   }
