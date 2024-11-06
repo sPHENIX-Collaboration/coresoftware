@@ -396,7 +396,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   //for those cases we need to use the EMCal R and IHCal eta phi to calculate the vertex correction
   if(m_input == Jet::CEMC_TOWER_RETOWER || m_input == Jet::CEMC_TOWERINFO_RETOWER || m_input == Jet::CEMC_TOWER_SUB1 || m_input == Jet::CEMC_TOWERINFO_SUB1 || m_input == Jet::CEMC_TOWER_SUB1CS)
   {
-    EMCal_geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+    EMCal_geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
     if (!EMCal_geom)
     {
       return std::vector<Jet *>();
