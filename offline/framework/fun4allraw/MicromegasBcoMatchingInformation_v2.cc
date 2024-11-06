@@ -16,9 +16,10 @@ namespace
 {
 
   // streamer for lists
-  template <template<class> class Container, class T>
-    // template <class T>
-  std::ostream& operator<<(std::ostream& o, const Container<T>& list)
+
+  // streamer for lists
+  template <class T>
+  std::ostream& operator<<(std::ostream& o, const std::list<T>& list)
   {
     if (list.empty())
     {
