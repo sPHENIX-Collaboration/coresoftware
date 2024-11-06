@@ -1,15 +1,15 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef JETCALIB_H
-#define JETCALIB_H
+#ifndef JETBASE_JETCALIB_H
+#define JETBASE_JETCALIB_H
 
 #include <calobase/TowerInfoContainer.h>  // for TowerInfoContainer, TowerIn...
 
 #include <fun4all/SubsysReco.h>
 
 #include <iostream>
+#include <limits>
 #include <string>
-#include <cmath>
 
 class CDBTF;
 class PHCompositeNode;
@@ -45,7 +45,7 @@ class JetCalib : public SubsysReco
   //kinematic selections
   float m_etaStart{-0.7};
   float m_etaEnd{0.7};
-  float m_zvtx{NAN};
+  float m_zvtx{std::numeric_limits<float>::quiet_NaN()};
   std::vector<float> m_etaBins;
   
   //calibration designators
@@ -67,4 +67,4 @@ class JetCalib : public SubsysReco
   //int m_runNumber;
 };
 
-#endif  // JETBUILDER_H
+#endif  // JETBASE_JETCALIB_H

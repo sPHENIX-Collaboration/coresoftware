@@ -1,14 +1,14 @@
 #include "JetCalib.h"
 
-#include <jetbase/JetContainer.h>
-#include <jetbase/Jetv2.h>
+#include "JetContainer.h"
+#include "Jetv2.h"
+
 #include <cdbobjects/CDBTF.h>  // for CDBTF1
 
 #include <ffamodules/CDBInterface.h>
 
 #include <ffaobjects/EventHeader.h>
 
-#include <TF1.h>
 
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/GlobalVertex.h>
@@ -25,7 +25,10 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
+#include <TF1.h>
 #include <TSystem.h>
+
+#include <boost/format.hpp>
 
 #include <cstdlib>    // for exit
 #include <exception>  // for exception
@@ -91,7 +94,7 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
 	    {
 	      for(int i = 0; i < m_nEtaBins; i++)
 		{
-		  m_etaJesFunc[i] = m_etaJesFile->getTF(Form("corrFit_eta%d",i));
+		  m_etaJesFunc[i] = m_etaJesFile->getTF((boost::format("corrFit_eta%d") % i).str().c_str());
 		}
 	    }
 	  else
@@ -182,8 +185,8 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
 int JetCalib::process_event(PHCompositeNode *topNode)
 {
 
-  JetContainer *_raw_jets = findNode::getClass<JetContainer>(topNode,Form("AntiKt_TowerInfo_r0%d_sub1",m_radius));
-  JetContainer *_calib_jets = findNode::getClass<JetContainer>(topNode,Form("AntiKt_TowerInfo_r0%d_sub1_Calib",m_radius));
+  JetContainer *_raw_jets = findNode::getClass<JetContainer>(topNode,(boost::format("AntiKt_TowerInfo_r0%d_sub1") % m_radius).str());
+  JetContainer *_calib_jets = findNode::getClass<JetContainer>(topNode,(boost::format("AntiKt_TowerInfo_r0%d_sub1_Calib") % m_radius).str());
 
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if(!vertexmap)
@@ -282,7 +285,7 @@ int JetCalib::CreateNodeTree(PHCompositeNode *topNode)
   }
 
   // store the new jet collection
-  JetContainer *test_jets = findNode::getClass<JetContainer>(topNode, Form("AntiKt_TowerInfo_r0%d_sub1_Calib",m_radius));//test to see if node already exists
+  JetContainer *test_jets = findNode::getClass<JetContainer>(topNode, (boost::format("AntiKt_TowerInfo_r0%d_sub1_Calib") %m_radius).str());//test to see if node already exists
 
   if (!test_jets)
     {
@@ -292,15 +295,15 @@ int JetCalib::CreateNodeTree(PHCompositeNode *topNode)
      
       if (Verbosity() > 0)
 	{
-	  std::cout << "JetCalib::CreateNode : creating " <<  Form("AntiKt_TowerInfo_r0%d_sub1_Calib",m_radius)  << std::endl;
+	  std::cout << "JetCalib::CreateNode : creating " <<  (boost::format("AntiKt_TowerInfo_r0%d_sub1_Calib") % m_radius)  << std::endl;
 	}
-      calibjetNode = new PHIODataNode<PHObject>(calib_jets, Form("AntiKt_TowerInfo_r0%d_sub1_Calib",m_radius), "PHObject");
+      calibjetNode = new PHIODataNode<PHObject>(calib_jets, (boost::format("AntiKt_TowerInfo_r0%d_sub1_Calib") % m_radius).str(), "PHObject");
 	
     towerNode->addNode(calibjetNode);
   }
   else
   {
-    std::cout << "JetCalib::CreateNode : " <<  Form("AntiKt_TowerInfo_r0%d_sub1_Calib",m_radius) << " already exists! " << std::endl;
+    std::cout << "JetCalib::CreateNode : " <<  (boost::format("AntiKt_TowerInfo_r0%d_sub1_Calib") % m_radius) << " already exists! " << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -330,7 +333,7 @@ int JetCalib::getEtaBin(float jetEta)
 std::string JetCalib::fetchCalibDir(const char *calibType)
 {
  
-  std::string  calibName = Form("%s_%s_r0%d_%s_BGSub%d_MC%d",calibType, m_jetType.c_str(), m_radius, m_jetInstrument.c_str(), m_doBackgroundSub, m_calibyear);
+  std::string  calibName = (boost::format("%s_%s_r0%d_%s_BGSub%d_MC%d") % calibType % m_jetType % m_radius % m_jetInstrument % m_doBackgroundSub % m_calibyear).str();
   std::cout << "JetCalib::::InitRun Searching for jet correction: " << calibName << "" << std::endl;
   std::string calibdir = CDBInterface::instance()->getUrl(calibName);
 
