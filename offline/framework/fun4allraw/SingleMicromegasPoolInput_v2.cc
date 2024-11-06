@@ -688,11 +688,11 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     // data
     // Format is (N sample) (start time), (1st sample)... (Nth sample)
     size_t pos = HEADER_LENGTH;
-    while (pos < pkt_length)
+    while (pos < size_t(pkt_length+2) )
     {
       const uint16_t& samples = data_buffer[pos++];
       const uint16_t& start_t = data_buffer[pos++];
-      if (pos + samples > pkt_length)
+      if (pos + samples > size_t(pkt_length+1) )
       {
         if (Verbosity())
         {
