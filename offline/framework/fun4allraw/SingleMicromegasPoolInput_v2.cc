@@ -34,9 +34,6 @@ namespace
   // maximum number of packets
   static constexpr int m_npackets_active = 2;
 
-  // minimum number of requested samples
-  static constexpr int m_min_req_samples = 5;
-
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
   {
@@ -58,12 +55,6 @@ namespace
   static constexpr uint16_t GTM_ENDAT_MAGIC_KEY = 0xbbf1;
   static constexpr uint16_t GTM_MODEBIT_MAGIC_KEY = 0xbbf2;
 
-  // number of sampa per FEE board
-  static constexpr uint16_t MAX_SAMPA = 8;
-
-  // number of channels per FEE board
-  static constexpr uint16_t MAX_CHANNELS = MAX_SAMPA * 32;
-
   // header length
   static constexpr uint16_t HEADER_LENGTH = 7;
 
@@ -77,18 +68,18 @@ namespace
   [[maybe_unused]] uint16_t reverseBits(const uint16_t& x)
   {
     uint16_t n = x;
-    n = ((n >> 1) & 0x55555555) | ((n << 1) & 0xaaaaaaaa);
-    n = ((n >> 2) & 0x33333333) | ((n << 2) & 0xcccccccc);
-    n = ((n >> 4) & 0x0f0f0f0f) | ((n << 4) & 0xf0f0f0f0);
-    n = ((n >> 8) & 0x00ff00ff) | ((n << 8) & 0xff00ff00);
-    // n = (n >> 16) & 0x0000ffff | (n << 16) & 0xffff0000;
+    n = ((n >> 1U) & 0x55555555U) | ((n << 1U) & 0xaaaaaaaaU);
+    n = ((n >> 2U) & 0x33333333U) | ((n << 2U) & 0xccccccccU);
+    n = ((n >> 4U) & 0x0f0f0f0fU) | ((n << 4U) & 0xf0f0f0f0U);
+    n = ((n >> 8U) & 0x00ff00ffU) | ((n << 8U) & 0xff00ff00U);
+    // n = (n >> 16U) & 0x0000ffffU | (n << 16U) & 0xffff0000U;
     return n;
   }
 
   //_____________________________________________________________
   [[maybe_unused]] uint16_t crc16( const std::deque<uint16_t>& data, const unsigned int index, const int l)
   {
-    uint16_t crc = 0xffff;
+    uint16_t crc = 0xffffU;
 
     for (int i = 0; i < l; i++)
     {
@@ -96,7 +87,7 @@ namespace
       crc ^= reverseBits(x);
       for (uint16_t k = 0; k < 16; k++)
       {
-        crc = crc & 1 ? (crc >> 1) ^ 0xa001 : crc >> 1;
+        crc = crc & 1U ? (crc >> 1U) ^ 0xa001U : crc >> 1U;
       }
     }
     crc = reverseBits(crc);
@@ -496,7 +487,8 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
 {
 
   // check hit format
-  if (packet->getHitFormat() != IDTPCFEEV4) return;
+  if (packet->getHitFormat() != IDTPCFEEV4)
+  { return; }
 
   // get packet id
   const int packet_id = packet->getIdentifier();
@@ -507,10 +499,10 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
 
   // decode
   const int data_length = packet->getDataLength();  // 32bit length
-  int data_padding = packet->getPadding();  // 32bit padding
+  const int data_padding = packet->getPadding();  // 32bit padding
 
   // maximum number of dma words
-  const size_t dma_words_buffer = data_length * 2 / DAM_DMA_WORD_LENGTH + 1;
+  const int dma_words_buffer = data_length * 2 / DAM_DMA_WORD_LENGTH + 1;
 
   // dma words
   std::vector<dma_word> buffer(dma_words_buffer);
@@ -526,28 +518,27 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
   assert(l2 >= 0);
 
   // actual number of dma words
-  const size_t dma_words = l2 * 2 / DAM_DMA_WORD_LENGTH;
-  assert(dma_words <= buffer.size());
+  const int dma_words = l2 * 2 / DAM_DMA_WORD_LENGTH;
 
 //   // residual data (dropped)
 //   const size_t dma_residual = (l2 * 2) % DAM_DMA_WORD_LENGTH;
 
   // demultiplexer
-  for (size_t index = 0; index < dma_words; ++index)
+  for (int index = 0; index < dma_words; ++index)
   {
     const auto& dma_word_data = buffer[index];
 
-    if ((dma_word_data.dma_header & 0xFF00) == GTM_MAGIC_KEY)
+    if ((dma_word_data.dma_header & 0xFF00U) == GTM_MAGIC_KEY)
     {
 
       // decode gtm data
       decode_gtm_data(packet_id, dma_word_data);
 
-    } else if ((dma_word_data.dma_header & 0xFF00) == FEE_MAGIC_KEY) {
+    } else if ((dma_word_data.dma_header & 0xFF00U) == FEE_MAGIC_KEY) {
 
       // decode fee data
       // get fee id
-      const unsigned int fee_id = dma_word_data.dma_header & 0xff;
+      const unsigned int fee_id = dma_word_data.dma_header & 0xffU;
 
       // populate fee buffer
       if (fee_id < MAX_FEECOUNT)
@@ -568,7 +559,7 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data( int packet_id, const SingleM
   const unsigned char* gtm = reinterpret_cast<const unsigned char*>(&gtm_word);
   MicromegasBcoMatchingInformation_v2::gtm_payload payload;
 
-  payload.pkt_type = gtm[0] | ((unsigned short) gtm[1] << 8);
+  payload.pkt_type = gtm[0] | ((unsigned short) gtm[1] << 8U);
 
   // check packet type
   if (payload.pkt_type != GTM_LVL1_ACCEPT_MAGIC_KEY &&
@@ -580,10 +571,10 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data( int packet_id, const SingleM
   payload.is_endat = payload.pkt_type == GTM_ENDAT_MAGIC_KEY;
   payload.is_modebit = payload.pkt_type == GTM_MODEBIT_MAGIC_KEY;
 
-  payload.bco = ((unsigned long long) gtm[2] << 0) | ((unsigned long long) gtm[3] << 8) | ((unsigned long long) gtm[4] << 16) | ((unsigned long long) gtm[5] << 24) | ((unsigned long long) gtm[6] << 32) | (((unsigned long long) gtm[7]) << 40);
-  payload.lvl1_count = ((unsigned int) gtm[8] << 0) | ((unsigned int) gtm[9] << 8) | ((unsigned int) gtm[10] << 16) | ((unsigned int) gtm[11] << 24);
-  payload.endat_count = ((unsigned int) gtm[12] << 0) | ((unsigned int) gtm[13] << 8) | ((unsigned int) gtm[14] << 16) | ((unsigned int) gtm[15] << 24);
-  payload.last_bco = ((unsigned long long) gtm[16] << 0) | ((unsigned long long) gtm[17] << 8) | ((unsigned long long) gtm[18] << 16) | ((unsigned long long) gtm[19] << 24) | ((unsigned long long) gtm[20] << 32) | (((unsigned long long) gtm[21]) << 40);
+  payload.bco = ((unsigned long long) gtm[2] << 0U) | ((unsigned long long) gtm[3] << 8U) | ((unsigned long long) gtm[4] << 16U) | ((unsigned long long) gtm[5] << 24U) | ((unsigned long long) gtm[6] << 32U) | (((unsigned long long) gtm[7]) << 40U);
+  payload.lvl1_count = ((unsigned int) gtm[8] << 0U) | ((unsigned int) gtm[9] << 8U) | ((unsigned int) gtm[10] << 16U) | ((unsigned int) gtm[11] << 24U);
+  payload.endat_count = ((unsigned int) gtm[12] << 0U) | ((unsigned int) gtm[13] << 8U) | ((unsigned int) gtm[14] << 16U) | ((unsigned int) gtm[15] << 24U);
+  payload.last_bco = ((unsigned long long) gtm[16] << 0U) | ((unsigned long long) gtm[17] << 8U) | ((unsigned long long) gtm[18] << 16U) | ((unsigned long long) gtm[19] << 24U) | ((unsigned long long) gtm[20] << 32U) | (((unsigned long long) gtm[21]) << 40U);
   payload.modebits = gtm[22];
   payload.userbits = gtm[23];
 
@@ -673,13 +664,13 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
 
     // number of 10-bit words in this packet
     payload.adc_length = data_buffer[0] - HEADER_LENGTH;
-    payload.data_parity = data_buffer[4] >> 9;
-    payload.sampa_address = (data_buffer[4] >> 5) & 0xf;
-    payload.sampa_channel = data_buffer[4] & 0x1f;
-    payload.channel = data_buffer[4] & 0x1ff;
-    payload.type = (data_buffer[3] >> 7) & 0x7;
-    payload.user_word = data_buffer[3] & 0x7f;
-    payload.bx_timestamp = ((data_buffer[6] & 0x3ff) << 10) | (data_buffer[5] & 0x3ff);
+    payload.data_parity = data_buffer[4] >> 9U;
+    payload.sampa_address = (data_buffer[4] >> 5U) & 0xfU;
+    payload.sampa_channel = data_buffer[4] & 0x1fU;
+    payload.channel = data_buffer[4] & 0x1ffU;
+    payload.type = (data_buffer[3] >> 7U) & 0x7U;
+    payload.user_word = data_buffer[3] & 0x7fU;
+    payload.bx_timestamp = ((data_buffer[6] & 0x3ffU) << 10U) | (data_buffer[5] & 0x3ffU);
 
     // crc
     payload.data_crc = data_buffer[pkt_length];
