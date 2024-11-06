@@ -168,6 +168,12 @@ bool TpcTimeFrameBuilder::isMoreDataRequired(const uint64_t& gtm_bco) const
     }
   }
 
+  if (m_verbosity > 1)
+  {
+    std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
+              << ":PASS: All FEEs satisfied for gtm_bco: 0x" << std::hex << gtm_bco << std::dec << ". Return false."
+              << std::endl;
+  }
   return false;
 }
 
@@ -211,6 +217,15 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
   {
     if (it->first <= bclk_rollover_corrected)
     {
+      if (m_verbosity > 3)
+      {
+        std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
+                  << ": cleaning up m_timeFrameMap clock 0x" << std::hex
+                  << it->first << std::dec
+                  << "for0 <= bclk_rollover_corrected 0x" << std::hex
+                  << bclk_rollover_corrected << std::dec << std::endl;
+      }
+
       while (!it->second.empty())
       {
         m_hFEEDataStream->Fill(it->second.back()->get_fee(), "HitUnusedBeforeCleanup", 1);
@@ -224,18 +239,6 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
       break;
     }
   }  //   for (auto it = m_timeFrameMap.begin(); it != m_timeFrameMap.end();)
-
-  // for (auto it = m_gtmData.begin(); it != m_gtmData.end();)
-  // {
-  //   if (it->first <= bclk)
-  //   {
-  //     m_gtmData.erase(it++);
-  //   }
-  //   else
-  //   {
-  //     break;
-  //   }
-  // }  //   for (auto it = m_gtmData.begin(); it != m_gtmData.end();)
 }
 
 int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
@@ -992,7 +995,7 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
       return false;
     }
     else
-    {      
+    {
       if (m_verbosity > 4)
       {
         std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
@@ -1010,21 +1013,20 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
     std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
               << "at gtm_bco = 0x" << hex << gtm_bco << dec
               << " bco_correction = 0x" << hex << bco_correction << dec << ": more data required"
-              <<" as their is NO m_bco_reference nor m_bco_reference_candidate_list"
+              << " as their is NO m_bco_reference nor m_bco_reference_candidate_list"
               << std::endl;
 
-    std::cout <<"  m_gtm_bco_trigger_map:"<< std::endl;
-    for (const auto & trig :  m_gtm_bco_trigger_map)
+    std::cout << "  m_gtm_bco_trigger_map:" << std::endl;
+    for (const auto& trig : m_gtm_bco_trigger_map)
     {
-      std::cout << " - 0x" << hex << trig.first << dec <<"(Diff = "<<trig.first - bco_correction<< ") "<< std::endl;
+      std::cout << " - 0x" << hex << trig.first << dec << "(Diff = " << trig.first - bco_correction << ") " << std::endl;
     }
 
-    std::cout <<"  m_bco_matching_list:"<< std::endl;
-    for (const auto & trig :  m_bco_matching_list)
+    std::cout << "  m_bco_matching_list:" << std::endl;
+    for (const auto& trig : m_bco_matching_list)
     {
-      std::cout << " - 0x" << hex << trig.second << dec <<"(Diff = "<<trig.second - bco_correction<< ") "<< std::endl;
+      std::cout << " - 0x" << hex << trig.second << dec << "(Diff = " << trig.second - bco_correction << ") " << std::endl;
     }
-    
   }
   return true;
 }
