@@ -50,7 +50,7 @@ JetCalib::~JetCalib()
   delete m_rTrkFile;
   delete m_gammaJetFile;
   
-  for(int i = 0; i < m_nEtaBins; i++) delete m_etaJesFunc[i];
+  for(auto & i : m_etaJesFunc) { delete i;}
   delete m_gammaJetFunc;
   delete m_rTrkFunc;
   if (Verbosity() > 0)
