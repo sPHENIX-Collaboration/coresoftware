@@ -341,6 +341,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
   {
     if (packet)
     {
+      h_packet_events->Fill(pid);
       int nchannels = packet->iValue(0, "CHANNELS");
       unsigned int adc_skip_mask = 0;
 
@@ -529,5 +530,9 @@ void CaloFittingQA::createHistos()
   h_ohcal_etaphi_ZScrosscalib = new TProfile2D(boost::str(boost::format("%sohcal_etaphi_ZScrosscalib") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ohcal_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_ZScrosscalib);
+
+  h_packet_events = new TH1I(boost::str(boost::format("%spacket_events") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
+  h_packet_events->SetDirectory(nullptr);
+  hm->registerHisto(h_packet_events);
 
 }

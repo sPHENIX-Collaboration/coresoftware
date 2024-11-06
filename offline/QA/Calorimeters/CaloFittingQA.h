@@ -70,6 +70,7 @@ class CaloFittingQA : public SubsysReco
   TProfile2D* h_cemc_etaphi_ZScrosscalib{nullptr};
   TProfile2D* h_ihcal_etaphi_ZScrosscalib{nullptr};
   TProfile2D* h_ohcal_etaphi_ZScrosscalib{nullptr};
+  TH1* h_packet_events{nullptr};
 
   int _eventcounter{0};
 
