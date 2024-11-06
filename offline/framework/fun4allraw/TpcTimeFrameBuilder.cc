@@ -193,10 +193,41 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
   {
     if (BcoMatchingInformation ::get_bco_diff(it.first, bclk_rollover_corrected) < GL1_BCO_MATCH_WINDOW)
     {
+      if (m_verbosity >= 1)
+      {
+        std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
+                  << ":PASS: BCO " << std::hex << it.first << std::dec
+                  << " matched for gtm_bco: 0x" << std::hex << gtm_bco << std::dec
+                  << " and bclk_rollover_corrected 0x" << std::hex
+                  << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
+
+        for (const auto& timeframe : m_timeFrameMap)
+        {
+          std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
+                    << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected)
+                    << ")"
+                    << " size: " << timeframe.second.size()
+                    << std::endl;
+        }
+      }
+
       return it.second;
     }
   }
 
+  if (m_verbosity >= 1)
+  {
+    std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
+              << ":WARNING: BCO no match for gtm_bco: 0x" << std::hex << gtm_bco << std::dec
+              << "and bclk_rollover_corrected 0x" << std::hex
+              << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
+
+    for (const auto& timeframe : m_timeFrameMap)
+    {
+      std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
+                << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected) << ")" << std::endl;
+    }
+  }
   static std::vector<TpcRawHit*> empty;
   return empty;
 }
@@ -217,20 +248,24 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
   {
     if (it->first <= bclk_rollover_corrected)
     {
-      if (m_verbosity > 3)
-      {
-        std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
-                  << ": cleaning up m_timeFrameMap clock 0x" << std::hex
-                  << it->first << std::dec
-                  << "for0 <= bclk_rollover_corrected 0x" << std::hex
-                  << bclk_rollover_corrected << std::dec << std::endl;
-      }
-
+      int count = 0;
       while (!it->second.empty())
       {
         m_hFEEDataStream->Fill(it->second.back()->get_fee(), "HitUnusedBeforeCleanup", 1);
         delete it->second.back();
         it->second.pop_back();
+        ++count;
+      }
+
+      if (m_verbosity >= 1)
+      {
+        std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
+                  << ": cleaning up " << count << " TPC hits in m_timeFrameMap at clock 0x"
+                  << std::hex
+                  << it->first << std::dec
+                  << " for <= bclk_rollover_corrected 0x" << std::hex
+                  << bclk_rollover_corrected << std::dec
+                  << " Diff:" << int64_t(it->first) - int64_t(bclk_rollover_corrected) << std::endl;
       }
       m_timeFrameMap.erase(it++);
     }
@@ -619,7 +654,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
            << "\t- calc_crc = 0x" << hex << payload.calc_crc << dec << endl;
     }
 
-    if (not m_fastBCOSkip)
+    if ((not m_fastBCOSkip) and payload.gtm_bco > 0)
     {
       // valid packet in the buffer, create a new hit
       TpcRawHit* hit = new TpcRawHitv2();
@@ -1406,7 +1441,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bc
       assert(m_hFindGTMBCO_MatchedNew_BCODiff);
       m_hFindGTMBCO_MatchedNew_BCODiff->Fill(int64_t(fee_bco) - int64_t(gtm_bco));
 
-      if (verbosity() > 1)
+      if (verbosity() > 2)
       {
         const auto fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
         const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
@@ -1448,7 +1483,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bc
 
         const int fee_bco_diff = (iter2 != m_gtm_bco_trig_list.end()) ? get_bco_diff(get_predicted_fee_bco(*iter2).value(), fee_bco) : -1;
 
-        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_gtm_bco - "
+        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_gtm_bco - match failed!"
                   << std::hex
                   << "\t- fee_bco: 0x" << fee_bco
                   << std::dec
