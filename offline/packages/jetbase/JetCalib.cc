@@ -1,7 +1,7 @@
 #include "JetCalib.h"
 
 #include "JetContainer.h"
-#include "Jetv2.h"
+#include <Jetv2.h>
 
 #include <cdbobjects/CDBTF.h>  // for CDBTF1
 
@@ -212,7 +212,7 @@ int JetCalib::process_event(PHCompositeNode *topNode)
       float pt = jet->get_pt();      
       float eta  = jet->get_eta();
       int etaBin = getEtaBin(eta);
-      Jetv2 *calib_jet = (Jetv2*)_calib_jets -> add_jet();
+      auto calib_jet = _calib_jets -> add_jet();
 
       if(etaBin > -1)
 	{//within calibration range
