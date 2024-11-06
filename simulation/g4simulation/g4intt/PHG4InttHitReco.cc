@@ -234,8 +234,20 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  //Check for the hot channel map
-  std::string hotStripFile = std::filesystem::exists(m_hotStripFileName) ? m_hotStripFileName : CDBInterface::instance()->getUrl(m_hotStripFileName);
+  //Check for the hot channel map file
+  bool m_useLocalHitMaskFile = m_localHotStripFileName.empty() ? false : true;
+  std::string hotStripFile = "";
+  if (m_useLocalHitMaskFile)
+  {
+    hotStripFile = m_localHotStripFileName;
+  }
+  else // use CDB file
+  {
+    hotStripFile = std::filesystem::exists(m_hotStripFileName) ? m_hotStripFileName : CDBInterface::instance()->getUrl(m_hotStripFileName); 
+  }
+
+  std::cout << "PHG4InttHitReco::InitRun - Use local hot channel map file: " << m_useLocalHitMaskFile << std::endl
+            << "PHG4InttHitReco::InitRun - Hot channel map file: " << hotStripFile << std::endl;
 
   if (std::filesystem::exists(hotStripFile))
   {
@@ -463,10 +475,16 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
           double location[3] = {-1, -1, -1};
           layergeom->find_strip_center_localcoords(ladder_z_index, iy, iz, location);
           // note that (y1,z1) is the top left corner, (y2,z2) is the bottom right corner of the pixel - circle_rectangle_intersection expects this ordering
+          int type = (ladder_z_index == 0 || ladder_z_index == 2) ? 0 : 1; // ladder ID 0 and 2 are type-A (1.6 cm), ladder ID 1 and 3 are type-B (2.0 cm)
           double y1 = location[1] - layergeom->get_strip_y_spacing() / 2.0;
           double y2 = location[1] + layergeom->get_strip_y_spacing() / 2.0;
-          double z1 = location[2] + layergeom->get_strip_z_spacing() / 2.0;
-          double z2 = location[2] - layergeom->get_strip_z_spacing() / 2.0;
+          double z1 = location[2] + layergeom->get_strip_z_spacing(type) / 2.0;
+          double z2 = location[2] - layergeom->get_strip_z_spacing(type) / 2.0;
+
+          if (Verbosity() > 5)
+          {
+            std::cout << PHWHERE << " ladder_z_index " << ladder_z_index  << " strip size in z (from CylinderGeomIntt) " << fabs(z1 - z2) << " strip size in y (from CylinderGeomIntt) " << fabs(y1 - y2) << std::endl;
+          }
 
           // here m_SegmentVec.1 (Y) and m_SegmentVec.2 (Z) are the center of the circle, and diffusion_radius is the circle radius
           // circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
