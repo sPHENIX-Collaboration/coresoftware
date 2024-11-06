@@ -29,10 +29,10 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   void FillPool(const unsigned int nevents = 1) override;
 
   void CleanupUsedPackets(const uint64_t bclk) override
-  { CleanupUsedPackets_with_qa(bclk,false); }
+  { CleanupUsedPackets(bclk,false); }
 
   //! specialized verion of cleaning up packets, with an extra flag about wheter the cleanup hits are dropped or not
-  void CleanupUsedPackets_with_qa(const uint64_t bclk, bool /*dropped */) override;
+  void CleanupUsedPackets(const uint64_t /* bclk */, bool /*dropped */) override;
 
   void ClearCurrentEvent() override;
   bool GetSomeMoreEvents();

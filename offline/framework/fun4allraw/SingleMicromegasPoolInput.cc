@@ -385,7 +385,7 @@ void SingleMicromegasPoolInput::Print(const std::string& what) const
 }
 
 //____________________________________________________________________________
-void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, bool dropped)
+void SingleMicromegasPoolInput::CleanupUsedPackets(const uint64_t bclk, bool dropped)
 {
 
   // delete all raw hits associated to bco smaller than reference, and remove from map

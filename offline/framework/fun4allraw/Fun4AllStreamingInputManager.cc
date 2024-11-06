@@ -1086,7 +1086,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
       << std::dec << std::endl;
   }
 
-  // cleanup all data that correspond too early BCO. Said data is effectively dropped
+  // cleanup all data that correspond to too early BCO. Said data is effectively dropped
   while (m_MicromegasRawHitMap.begin()->first < first_bco)
   {
     if (Verbosity() > 2)
@@ -1098,7 +1098,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
     }
 
     for (const auto& poolinput : m_MicromegasInputVector)
-    { poolinput->CleanupUsedPackets_with_qa(m_MicromegasRawHitMap.begin()->first, true); }
+    { poolinput->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first, true); }
 
     // remove
     m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
