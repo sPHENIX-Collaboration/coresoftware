@@ -155,11 +155,6 @@ void TpcTimeFrameBuilder::setVerbosity(const int i)
 
 bool TpcTimeFrameBuilder::isMoreDataRequired(const uint64_t& gtm_bco) const
 {
-  // if (m_gtmData.size() == 0) return true;
-
-  // if (m_gtmData.rbegin()->first - m_gtmData.begin()->first > kFEEDataTransmissionWindow)
-  //   return false;
-
   for (const auto& bcoMatchingInformation : m_bcoMatchingInformation_vec)
   {
     if (not bcoMatchingInformation.is_verified())
@@ -173,7 +168,7 @@ bool TpcTimeFrameBuilder::isMoreDataRequired(const uint64_t& gtm_bco) const
     }
   }
 
-  return true;
+  return false;
 }
 
 std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_bco)
@@ -996,6 +991,18 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
 
       return false;
     }
+    else
+    {      
+      if (m_verbosity > 4)
+      {
+        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
+                  << "at gtm_bco = 0x" << hex << gtm_bco << dec
+                  << ". m_bco_reference_candidate_list.back().first = 0x" << hex << m_bco_reference_candidate_list.back().first << dec
+                  << " bco_correction = 0x" << hex << bco_correction << dec
+                  << ". not yet satisified m_max_fee_sync_time = " << m_max_fee_sync_time
+                  << std::endl;
+      }
+    }
   }
 
   if (m_verbosity > 3)
@@ -1005,6 +1012,19 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
               << " bco_correction = 0x" << hex << bco_correction << dec << ": more data required"
               <<" as their is NO m_bco_reference nor m_bco_reference_candidate_list"
               << std::endl;
+
+    std::cout <<"  m_gtm_bco_trigger_map:"<< std::endl;
+    for (const auto & trig :  m_gtm_bco_trigger_map)
+    {
+      std::cout << " - 0x" << hex << trig.first << dec <<"(Diff = "<<trig.first - bco_correction<< ") "<< std::endl;
+    }
+
+    std::cout <<"  m_bco_matching_list:"<< std::endl;
+    for (const auto & trig :  m_bco_matching_list)
+    {
+      std::cout << " - 0x" << hex << trig.second << dec <<"(Diff = "<<trig.second - bco_correction<< ") "<< std::endl;
+    }
+    
   }
   return true;
 }
