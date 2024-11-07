@@ -70,7 +70,7 @@ class PHSimpleKFProp : public SubsysReco
   }
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
-  void set_max_seeds(bool abortEvt) { _max_seeds = abortEvt; }
+  void set_max_seeds(unsigned int ui) { _max_seeds = ui; }
   enum class PropagationDirection
   {
     Outward,
@@ -103,7 +103,7 @@ class PHSimpleKFProp : public SubsysReco
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
   bool _pp_mode = false;
-  bool _max_seeds = false;
+  unsigned int _max_seeds = 0;
 
   TrkrClusterContainer* _cluster_map = nullptr;
 

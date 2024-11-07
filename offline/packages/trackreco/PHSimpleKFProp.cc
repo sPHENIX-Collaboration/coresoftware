@@ -245,10 +245,10 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   {
     std::cout << "number of TPC seeds: " << _track_map->size() << std::endl;
   }
-  if(_max_seeds)
+  if(_max_seeds > 0)
   {
-    if(_track_map->size()>1e5){
-      std::cout << PHWHERE << "number of TPC seeds > 100,000. aborting event." << std::endl;
+    if(_track_map->size() > _max_seeds){
+      std::cout << PHWHERE << "number of TPC seeds > " << _max_seeds << " aborting event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
