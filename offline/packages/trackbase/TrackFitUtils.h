@@ -3,6 +3,7 @@
 
 #include "ActsSurfaceMaps.h"
 #include "TrkrDefs.h"
+#include "MvtxDefs.h"
 
 #include <Acts/Definitions/Algebra.hpp>
 
@@ -161,6 +162,7 @@ namespace TrackFitUtils
 
    double z_fit_to_pca(const double slope, const double intercept, 
     const std::vector<Acts::Vector3>& glob_pts);
+  bool isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_vec);
 };
 
 #endif

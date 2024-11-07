@@ -991,4 +991,21 @@ TrackFitUtils::zero_field_track_params(
     " x,y,z: " << x<<"<"<<y<<","<<z<<"  P: " << px<<","<<py<<","<<pz << std::endl;
   }
   return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x,y,z), p);
+bool TrackFitUtils::isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_vec)
+{
+  bool isWest = false;
+  bool isEast = false;
+  for (unsigned int ivec = 0; ivec < cluskey_vec.size(); ++ivec)
+  {
+    uint32_t hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey_vec[ivec]);
+    unsigned int layer =TrkrDefs::getLayer(hitsetkey);
+    unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
+    if(stave > (2+layer) && stave < (9+layer*3))
+      isEast = true;
+    else
+      isWest = true;
+  }
+  if (isEast&&isWest)
+    return true;
+  return false;
 }

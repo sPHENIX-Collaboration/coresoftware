@@ -66,8 +66,8 @@ int PHCosmicSeeder::InitRun(PHCompositeNode* topNode)
   {
     m_outfile = new TFile("PHCosmicSeeder.root", "recreate");
     m_tup = new TNtuple("ntp_seed", "seed",
-                        "event:seed:nclus:xyint:xyslope:rzint:rzslope:"
-                        "longestxyint:longestxyslope:longestrzint:longestrzslope");
+                        "event:seed:nclus:xyint:xyslope:xzint:xzslope:"
+                        "longestxyint:longestxyslope:longestxzint:longestxzslope");
   }
 
   return ret;
@@ -138,6 +138,9 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
   }
   for (auto& seed_A : chainedSeeds)
   {
+    // if mvtx only, we are interested only in seeds with > 3 hits
+    if (m_trackerId == TrkrDefs::TrkrId::mvtxId &&seed_A.ckeys.size() < 4)
+      continue;
     if (m_analysis)
     {
       float seed_data[] = {
@@ -146,12 +149,12 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
           (float) seed_A.ckeys.size(),
           seed_A.xyintercept,
           seed_A.xyslope,
-          seed_A.rzintercept,
-          seed_A.rzslope,
+          seed_A.xzintercept,
+          seed_A.xzslope,
           longestseed.xyintercept,
           longestseed.xyslope,
-          longestseed.rzintercept,
-          longestseed.rzslope};
+          longestseed.xzintercept,
+          longestseed.xzslope};
       m_tup->Fill(seed_data);
     }
     auto svtxseed = std::make_unique<TrackSeed_v2>();
@@ -166,6 +169,10 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
     m_seedContainer->insert(svtxseed.get());
     ++iseed;
   }
+  if (Verbosity() > 1)
+    {
+      std::cout<<"Final n seeds: "<<m_seedContainer->size()<<std::endl;
+    }
   ++m_event;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -250,25 +257,25 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
 
       float longestxyslope = seed1.xyslope;
       float longestxyint = seed1.xyintercept;
-      float longestrzslope = seed1.rzslope;
-      float longestrzint = seed1.rzintercept;
+      float longestxzslope = seed1.xzslope;
+      float longestxzint = seed1.xzintercept;
       if (seed1.ckeys.size() < seed2.ckeys.size())
       {
         longestxyint = seed2.xyintercept;
         longestxyslope = seed2.xyslope;
-        longestrzint = seed2.rzintercept;
-        longestrzslope = seed2.rzslope;
+        longestxzint = seed2.xzintercept;
+        longestxzslope = seed2.xzslope;
       }
 
       float pdiff = std::fabs((seed1.xyslope - seed2.xyslope) / longestxyslope);
       float pdiff2 = std::fabs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
-      float pdiff3 = std::fabs((seed1.rzintercept - seed2.rzintercept) / longestrzint);
-      float pdiff4 = std::fabs((seed1.rzslope - seed2.rzslope) / longestrzslope);
+      float pdiff3 = std::fabs((seed1.xzintercept - seed2.xzintercept) / longestxzint);
+      float pdiff4 = std::fabs((seed1.xzslope - seed2.xzslope) / longestxzslope);
       if (Verbosity() > 1)
       {
         std::cout << "pdiff1,2,3,4 " << pdiff<<", "<<pdiff2<<", "<<pdiff3<<", "<<pdiff4 << std::endl;
       }
-      if (pdiff < 2. && pdiff2 < 2. && pdiff3 < 2. && pdiff4 < 2.)
+      if (pdiff < 0.25 && pdiff2 < 0.25 && pdiff3 < 0.25 && pdiff4 < 0.25)
       {
         seedsToDelete.insert(j);
         for (auto& key : seed2.ckeys)
@@ -300,6 +307,11 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
     }
     
     returnseeds.push_back(initialSeeds[i]);
+  }
+  if (returnseeds.size()>1 && m_trackerId == TrkrDefs::TrkrId::mvtxId)
+  {
+    PHCosmicSeeder::SeedVector emptyseeds;
+    return emptyseeds;
   }
 
   return returnseeds;
@@ -336,13 +348,13 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
       }
       if (Verbosity() > 4)
       {
-        std::cout<< "xy slope diff: "<<seed1.xyslope - seed2.xyslope << ", xy int diff   "<<seed1.xyintercept - seed2.xyintercept << ", rz slope diff "<<seed1.rzslope - seed2.rzslope << ", rz int diff   "<<seed1.rzintercept - seed2.rzintercept<<std::endl;
+        std::cout<< "xy slope diff: "<<seed1.xyslope - seed2.xyslope << ", xy int diff   "<<seed1.xyintercept - seed2.xyintercept << ", xz slope diff "<<seed1.xzslope - seed2.xzslope << ", xz int diff   "<<seed1.xzintercept - seed2.xzintercept<<std::endl;
       }
       //! These values are tuned on the cosmic data
       if (std::fabs(seed1.xyslope - seed2.xyslope) < slope_tol &&
           std::fabs(seed1.xyintercept - seed2.xyintercept) < incept_tol &&
-          std::fabs(seed1.rzslope - seed2.rzslope) < slope_tol &&
-          std::fabs(seed1.rzintercept - seed2.rzintercept) < incept_tol)
+          std::fabs(seed1.xzslope - seed2.xzslope) < slope_tol &&
+          std::fabs(seed1.xzintercept - seed2.xzintercept) < incept_tol)
       {
         for (auto& key : seed2.ckeys)
         {
@@ -363,11 +375,11 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
       continue;
     }
     //additional pruning for MVTX only seeds, require xy line to pass withing 26cm of center of detector
-    double dist_to_orig = std::fabs(initialSeeds[i].xyintercept)/std::sqrt(1+initialSeeds[i].xyslope*initialSeeds[i].xyslope);
-    if (dist_to_orig > 26.0)
-    {
-      continue;
-    }
+    //double dist_to_orig = std::fabs(initialSeeds[i].xyintercept)/std::sqrt(1+initialSeeds[i].xyslope*initialSeeds[i].xyslope);
+    //if (dist_to_orig > 26.0)
+    //{
+    //  continue;
+    //}
     prunedSeeds.push_back(initialSeeds[i]);
   }
 
@@ -415,8 +427,8 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
 
       doub.xyslope = (pos2.y() - pos1.y()) / (pos2.x() - pos1.x());
       doub.xyintercept = pos1.y() - doub.xyslope * pos1.x();
-      doub.rzslope = (r(pos2.x(), pos2.y()) - r(pos1.x(), pos1.y())) / (pos2.z() - pos1.z());
-      doub.rzintercept = r(pos1.x(), pos1.y()) - pos1.z() * doub.rzslope ;
+      doub.xzslope = (pos2.z() - pos1.z()) / (pos2.x() - pos1.x());
+      doub.xzintercept = pos1.z() - pos1.x() * doub.xzslope ;
 
       keys.insert(key1);
       keys.insert(key2);
@@ -476,23 +488,25 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       }
 
       float predy = dub.xyslope * pos.x() + dub.xyintercept;
-      float predr = dub.rzslope * pos.z() + dub.rzintercept;
+      float predz = dub.xzslope * pos.x() + dub.xzintercept;
       if (Verbosity() > 2)
       {
         std::cout << "testing ckey " << key << " with box dca "
-                  << predy << ", " << pos.transpose() << " and " << predr << ", " << r(pos.x(), pos.y())
+                  << predy << ", " << pos.transpose() << " and " << predz << ", " << pos.z()
                   << std::endl;
       }
       if (fabs(predy - pos.y()) < m_xyTolerance)
       {
-        if(m_trackerId == TrkrDefs::TrkrId::mvtxId && fabs(predr - r(pos.x(), pos.y()))>1.0)
+        if(m_trackerId == TrkrDefs::TrkrId::mvtxId && fabs(predz - pos.z())>0.3)
         {
           continue;
         }
         if (Verbosity() > 2)
         {
           std::cout << "   adding ckey " << key << " with box dca "
-                    << predy << ", " << pos.y() << " and " << predr << ", " << r(pos.x(), pos.y())
+                    << predy << ", " << pos.y() << " and " << predz << ", " << pos.z()
+                    << std::endl;
+          std::cout << "       with pos " << pos.x() << ", " << pos.y() << ", " << pos.z()
                     << std::endl;
         }
         dub.ckeys.insert(key);
@@ -505,13 +519,14 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
   for (unsigned int i = 0; i < seeds.size(); ++i)
   {
     auto seed_A = seeds[i];
-    if (Verbosity() > 2)
+    if (Verbosity() > 2 && seed_A.ckeys.size()>2)
     {
       std::cout << "keys in seed " << std::endl;
       for (auto& key : seed_A.ckeys)
       {
         std::cout << key << ", ";
       }
+      std::cout << "seed xy slope: "<<seed_A.xyslope<<std::endl;
       std::cout << std::endl
                 << "seed pos " << std::endl;
       for (auto& key : seed_A.ckeys)
@@ -553,8 +568,8 @@ void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed_A,
     }
     else
     {
-      avgx += glob.z();
-      avgy += r(glob.x(), glob.y());
+      avgx += glob.x();
+      avgy += glob.z();
     }
     seedClusters.insert(std::make_pair(key, glob));
   }
@@ -572,8 +587,8 @@ void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed_A,
     }
     else
     {
-      num += (glob.z() - avgx) * (r(glob.x(), glob.y()) - avgy);
-      denom += square(glob.z() - avgx);
+      num += (glob.x() - avgx) * (glob.z() - avgy);
+      denom += square(glob.x() - avgx);
     }
   }
   if (isXY)
@@ -583,8 +598,8 @@ void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed_A,
   }
   else
   {
-    seed_A.rzslope = num / denom;
-    seed_A.rzintercept = avgy - seed_A.rzslope * avgx;
+    seed_A.xzslope = num / denom;
+    seed_A.xzintercept = avgy - seed_A.xzslope * avgx;
   }
 }
 int PHCosmicSeeder::getNodes(PHCompositeNode* topNode)
