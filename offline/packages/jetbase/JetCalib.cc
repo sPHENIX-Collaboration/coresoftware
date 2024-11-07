@@ -1,7 +1,6 @@
 #include "JetCalib.h"
 
 #include "JetContainer.h"
-#include <Jetv2.h>
 
 #include <cdbobjects/CDBTF.h>  // for CDBTF1
 
