@@ -59,7 +59,7 @@ class TpcTimeFrameBuilder
   static const uint16_t HEADER_LENGTH = 7;
   static const uint16_t MAX_PACKET_LENGTH = 1025;
 
-  static const uint16_t GL1_BCO_MATCH_WINDOW = 16;   // BCOs
+  static const uint16_t GL1_BCO_MATCH_WINDOW = 256;   // BCOs
 
   uint16_t reverseBits(const uint16_t x) const;
   uint16_t crc16(const uint32_t fee, const uint32_t index, const int l) const;
