@@ -77,8 +77,8 @@ class Jetv2 : public Jet
 
   float get_eta() const override;
 
-  int get_isCalib() {return _isCalib;}
-  void set_isCalib(int calib) {_isCalib = calib;}
+  int get_isCalib()  override {return _isCalib;}
+  void set_isCalib(int calib) override {_isCalib = calib;}
   
   float get_p() const override;
   float get_pt() const override;
