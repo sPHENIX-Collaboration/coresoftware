@@ -502,7 +502,7 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
   const int data_padding = packet->getPadding();  // 32bit padding
 
   // maximum number of dma words
-  const int dma_words_buffer = data_length * 2 / DAM_DMA_WORD_LENGTH + 1;
+  const size_t dma_words_buffer = static_cast<unsigned long>(data_length) * 2 / DAM_DMA_WORD_LENGTH + 1;
 
   // dma words
   std::vector<dma_word> buffer(dma_words_buffer);
@@ -518,7 +518,8 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
   assert(l2 >= 0);
 
   // actual number of dma words
-  const int dma_words = l2 * 2 / DAM_DMA_WORD_LENGTH;
+  const size_t dma_words =  static_cast<unsigned long>(l2) * 2 / DAM_DMA_WORD_LENGTH;
+  assert(dma_words <= buffer.size());
 
 //   // residual data (dropped)
 //   const size_t dma_residual = (l2 * 2) % DAM_DMA_WORD_LENGTH;
