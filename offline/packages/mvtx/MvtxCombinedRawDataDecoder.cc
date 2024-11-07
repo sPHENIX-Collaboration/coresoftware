@@ -6,7 +6,7 @@
 
 #include "MvtxCombinedRawDataDecoder.h"
 
-#include <mvtx_decoder/mvtx_utils.h>
+#include <fun4allraw/MvtxRawDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/MvtxEventInfov2.h>
 #include <trackbase/TrkrHitSet.h>
@@ -116,7 +116,7 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   }
   recoConsts *rc = recoConsts::instance();
   int runNumber = rc->get_IntFlag("RUNNUMBER");
-  m_strobeWidth = mvtx_utils::getStrobeLength(runNumber);
+  m_strobeWidth = MvtxRawDefs::getStrobeLength(runNumber);
   if(std::isnan(m_strobeWidth))
   {
     std::cout << "MvtxCombinedRawDataDecoder::InitRun - strobe width is undefined for this run, defaulting to 89 mus" << std::endl;
