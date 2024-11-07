@@ -181,6 +181,12 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
 {
   uint64_t bclk_rollover_corrected = m_bcoMatchingInformation_vec[0].get_gtm_rollover_correction(gtm_bco);
 
+  // cleanup old unused matching info after completion of a time frame
+  for (auto & bcoMatchingInformation : m_bcoMatchingInformation_vec)
+  {
+    bcoMatchingInformation.cleanup(bclk_rollover_corrected);
+  }
+
   if (m_verbosity > 2)
   {
     std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
@@ -765,18 +771,6 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
   payload.last_bco = ((unsigned long long) gtm[16] << 0) | ((unsigned long long) gtm[17] << 8) | ((unsigned long long) gtm[18] << 16) | ((unsigned long long) gtm[19] << 24) | ((unsigned long long) gtm[20] << 32) | (((unsigned long long) gtm[21]) << 40);
   payload.modebits = gtm[22];
   payload.userbits = gtm[23];
-
-  // constexpr uint64_t bco_limit = 1ULL << GTMBCObits;
-  // assert(payload.bco > bco_limit);
-  // if (payload.bco < m_GTMBCOLastReading)
-  // {
-  //   cout << __PRETTY_FUNCTION__ << "\t- : Info : GTM BCO rollover detected, last reading " << m_GTMBCOLastReading
-  //        << "\t- current reading " << payload.bco << "\t- on packet " << m_packet_id << endl;
-  //   ++m_GTMBCORollOverCounter;
-  // }
-  // m_GTMBCOLastReading = payload.bco;
-  // uint64_t rollover_corrected_bco = (m_GTMBCORollOverCounter << GTMBCObits) + payload.bco;
-  // m_gtmData[rollover_corrected_bco] = payload;
 
   if (m_verbosity > 2)
   {
