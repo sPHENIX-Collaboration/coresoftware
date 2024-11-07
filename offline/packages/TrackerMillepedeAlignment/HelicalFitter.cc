@@ -66,8 +66,8 @@ HelicalFitter::HelicalFitter(const std::string& name)
   vertexPosition(0) = 0;
   vertexPosition(1) = 0;
 
-  vtx_sigma(0) = 0.1;
-  vtx_sigma(1) = 0.1;
+  vtx_sigma(0) = 0.005;
+  vtx_sigma(1) = 0.005;
 }
 
 //____________________________________________________________________________..

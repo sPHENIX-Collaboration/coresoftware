@@ -556,9 +556,9 @@ void PHSimpleVertexFinder::checkDCAs(SvtxTrackMap *track_map)
 
 void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
 {
-  // presently works only for the silicon seed part of the track
   // ZF tracks do not have an Acts fit, and the seeding does not give
-  // reliable track parameters - refit clusters wioth straight lines
+  // reliable track parameters - refit clusters with straight lines
+  // No distortion corrections applied in TPC at present
 
   std::vector<unsigned int> cumulative_trackid_vec;
   std::vector<unsigned int> cumulative_nmvtx_vec;
@@ -572,17 +572,47 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
     auto id1 = tr1_it->first;
     auto tr1 = tr1_it->second;
 
+    //    tr1->identify();
+ 
     TrackSeed *siliconseed = tr1->get_silicon_seed();
-    if (!siliconseed)
+    if (_require_mvtx)
       {
-	continue;
+	if (!siliconseed)
+	  {
+	    continue;
+	  }
       }
+    TrackSeed *tpcseed = tr1->get_tpc_seed();
 
     std::vector<Acts::Vector3> global_vec;
     std::vector<TrkrDefs::cluskey> cluskey_vec;
     
-    // Get a vector of cluster keys from the tracklet
-    getTrackletClusterList(siliconseed, cluskey_vec);
+    // Get a vector of cluster keys from the silicon seed and TPC seed
+    if(siliconseed)
+      {
+	getTrackletClusterList(siliconseed, cluskey_vec);
+	if(Verbosity() > 0) 
+	  { 
+	    std::cout << "  after silicon: silicon cluskey_vec size " << cluskey_vec.size() << std::endl; 
+	    for(unsigned int i = 0;i<cluskey_vec.size(); ++i)
+	      {  
+		std::cout << cluskey_vec[i] << std::endl;
+	      }
+	  }
+      }
+    if(tpcseed)
+      {
+
+	getTrackletClusterList(tpcseed, cluskey_vec);
+	if(Verbosity() > 0) 
+	  { 
+	    std::cout << "  after tpc: cluskey_vec size " << cluskey_vec.size() << std::endl; 
+	    for(unsigned int i = 0;i<cluskey_vec.size(); ++i)
+	      {  
+		std::cout << cluskey_vec[i] << std::endl;
+	      }
+	  }
+      }
 
     unsigned int nmvtx = 0;
     unsigned int nintt = 0;
