@@ -68,10 +68,10 @@ namespace
   [[maybe_unused]] uint16_t reverseBits(const uint16_t& x)
   {
     uint16_t n = x;
-    n = ((n >> 1U) & 0x55555555U) | ((n << 1U) & 0xaaaaaaaaU);
-    n = ((n >> 2U) & 0x33333333U) | ((n << 2U) & 0xccccccccU);
-    n = ((n >> 4U) & 0x0f0f0f0fU) | ((n << 4U) & 0xf0f0f0f0U);
-    n = ((n >> 8U) & 0x00ff00ffU) | ((n << 8U) & 0xff00ff00U);
+    n = ((uint16_t)(n >> 1U) & 0x55555555U) | ((uint16_t)(n << 1U) & 0xaaaaaaaaU);
+    n = ((uint16_t)(n >> 2U) & 0x33333333U) | ((uint16_t)(n << 2U) & 0xccccccccU);
+    n = ((uint16_t)(n >> 4U) & 0x0f0f0f0fU) | ((uint16_t)(n << 4U) & 0xf0f0f0f0U);
+    n = ((uint16_t)(n >> 8U) & 0x00ff00ffU) | ((uint16_t)(n << 8U) & 0xff00ff00U);
     // n = (n >> 16U) & 0x0000ffffU | (n << 16U) & 0xffff0000U;
     return n;
   }
@@ -87,7 +87,7 @@ namespace
       crc ^= reverseBits(x);
       for (uint16_t k = 0; k < 16; k++)
       {
-        crc = crc & 1U ? (crc >> 1U) ^ 0xa001U : crc >> 1U;
+        crc = crc & 1U ? (uint16_t)(crc >> 1U) ^ 0xa001U : crc >> 1U;
       }
     }
     crc = reverseBits(crc);
@@ -560,7 +560,7 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data( int packet_id, const SingleM
   const unsigned char* gtm = reinterpret_cast<const unsigned char*>(&gtm_word);
   MicromegasBcoMatchingInformation_v2::gtm_payload payload;
 
-  payload.pkt_type = gtm[0] | ((unsigned short) gtm[1] << 8U);
+  payload.pkt_type = gtm[0]|(unsigned short)(gtm[1] << 8U);
 
   // check packet type
   if (payload.pkt_type != GTM_LVL1_ACCEPT_MAGIC_KEY &&
