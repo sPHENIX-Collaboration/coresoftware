@@ -544,6 +544,7 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
       // populate fee buffer
       if (fee_id < MAX_FEECOUNT)
       {
+        // NOLINTNEXTLINE(modernize-loop-convert)
         for (unsigned int i = 0; i < DAM_DMA_WORD_LENGTH - 1; i++)
         { m_feeData[fee_id].push_back(dma_word_data.data[i]); }
 
