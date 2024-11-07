@@ -66,8 +66,8 @@ HelicalFitter::HelicalFitter(const std::string& name)
   vertexPosition(0) = 0;
   vertexPosition(1) = 0;
 
-  vtx_sigma(0) = 0.1;
-  vtx_sigma(1) = 0.1;
+  vtx_sigma(0) = 0.005;
+  vtx_sigma(1) = 0.005;
 }
 
 //____________________________________________________________________________..
@@ -813,12 +813,34 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     // calculate vertex residual with perigee surface
     //-------------------------------------------------------
 
-    //  skip the common vertex requirement for this track unless there are 3 tracks in the event
-    if(accepted_tracks < 3) {  continue; }
-
-    // Acts::Vector3 event_vtx(0, 0, averageVertex(2));
     Acts::Vector3 event_vtx(averageVertex(0), averageVertex(1), averageVertex(2));
 
+    for (const auto &[vtxkey, vertex] : *m_vertexmap)
+      {
+	for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
+	  {
+	    SvtxTrack *vtxtrack = m_trackmap->get(*trackiter);
+	    if (vtxtrack)
+	      {	    
+		unsigned int vtxtrackid = vtxtrack->get_id();
+		if(trackid == vtxtrackid)
+		  {
+		    event_vtx(0) = vertex->get_x();
+		    event_vtx(1) = vertex->get_y();
+		    event_vtx(2) = vertex->get_z();
+		    if(Verbosity() > 0)
+		      {
+			std::cout << "     setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey
+				  << " vtx " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
+		      }
+		  }
+	      }
+	  }
+      }
+    
+    //  skip the common vertex requirement for this track unless there are 3 tracks in the event
+    if(accepted_tracks < 3) {  continue; }
+    
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca
     float dca3dxy = 0;
@@ -951,7 +973,15 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+/*
+std::make_pair<unsigned int, Acts::Vector3> HelicalFitter::getAverageVertex( std::vector<Acts::Vector3> cumulative_vertex)
+{
 
+
+
+
+}
+*/
 Acts::Vector3 HelicalFitter::get_helix_surface_intersection(const Surface& surf, std::vector<float>& fitpars, Acts::Vector3 global)
 {
   // we want the point where the helix intersects the plane of the surface
@@ -1271,6 +1301,13 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
   if (!_tGeometry)
   {
     std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+ m_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!m_vertexmap)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find node SvtxVertexMap" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
