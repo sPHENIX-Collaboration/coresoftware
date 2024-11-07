@@ -525,7 +525,7 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
 //   const size_t dma_residual = (l2 * 2) % DAM_DMA_WORD_LENGTH;
 
   // demultiplexer
-  for (int index = 0; index < dma_words; ++index)
+  for (size_t index = 0; index < dma_words; ++index)
   {
     const auto& dma_word_data = buffer[index];
 
