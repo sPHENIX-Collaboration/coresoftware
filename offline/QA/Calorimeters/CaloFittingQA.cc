@@ -184,7 +184,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         {
           std::cout << "EMCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
-        if (raw_energy > m_adc_threshold && raw_energy < m_high_adc_threshold) 
+        if (raw_energy > m_cemc_adc_threshold && raw_energy < m_cemc_high_adc_threshold) 
         {
           h_cemc_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy/raw_energy);
         }
@@ -216,7 +216,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         {
           std::cout << "IHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
-        if (raw_energy > m_adc_threshold && raw_energy < m_high_adc_threshold)
+        if (raw_energy > m_hcal_adc_threshold && raw_energy < m_hcal_high_adc_threshold)
         {
           h_ohcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy/raw_energy);
         }
@@ -248,7 +248,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         {
           std::cout << "OHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
-        if (raw_energy > m_adc_threshold && raw_energy < m_high_adc_threshold)
+        if (raw_energy > m_hcal_adc_threshold && raw_energy < m_hcal_high_adc_threshold)
         {
           h_ihcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy/raw_energy);
         }
@@ -341,6 +341,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
   {
     if (packet)
     {
+      h_packet_events->Fill(pid);
       int nchannels = packet->iValue(0, "CHANNELS");
       unsigned int adc_skip_mask = 0;
 
@@ -529,5 +530,9 @@ void CaloFittingQA::createHistos()
   h_ohcal_etaphi_ZScrosscalib = new TProfile2D(boost::str(boost::format("%sohcal_etaphi_ZScrosscalib") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ohcal_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_ZScrosscalib);
+
+  h_packet_events = new TH1I(boost::str(boost::format("%spacket_events") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
+  h_packet_events->SetDirectory(nullptr);
+  hm->registerHisto(h_packet_events);
 
 }
