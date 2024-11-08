@@ -30,7 +30,18 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual void AllDone(const int i) { m_AllDone = i; }
   virtual void EventNumberOffset(const int i) { m_EventNumberOffset = i; }
   virtual void Print(const std::string &what = "ALL") const override;
-  virtual void CleanupUsedPackets(const uint64_t) { return; }
+
+  //! remove used packets matching a given BCO from internal container
+  virtual void CleanupUsedPackets(const uint64_t /*BCO*/) {}
+
+  //! remove used packets matching a given BCO from internal container
+  /**
+   * second parameter is to specify whether BCO has been
+   * - succesfully processed or
+   * - is dropped
+   */
+  virtual void CleanupUsedPackets(const uint64_t /*BCO*/ ,bool /*dropped*/) {}
+
   virtual bool CheckPoolDepth(const uint64_t bclk);
   virtual void ClearCurrentEvent();
   virtual Eventiterator *GetEventiterator() const { return m_EventIterator; }
@@ -49,6 +60,14 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   std::string getHitContainerName() const { return m_rawHitContainerName; }
   const std::map<int, std::set<uint64_t>> &getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
 
+  //! event assembly QA histograms
+  virtual void createQAHistos() {}
+
+  //! event assembly QA for a given BCO
+  /** TODO: check whether necessary */
+  virtual void FillBcoQA(uint64_t /*gtm_bco*/) {};
+
+
   void clearPacketBClkStackMap(const int &packetid, const uint64_t& bclk)
   {
     std::set<uint64_t> to_erase;
@@ -65,7 +84,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
         set.erase(bclk_to_erase);
       }
     }
-  
+
   void clearFeeGTML1BCOMap(const uint64_t &bclk)
   {
     std::set<uint64_t> toerase;
