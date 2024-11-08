@@ -673,6 +673,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       hit->set_channel(payload.channel);
       hit->set_sampaaddress(payload.sampa_address);
       hit->set_sampachannel(payload.sampa_channel);
+      hit->set_samples(MAX_PACKET_LENGTH);
 
       m_hFEEDataStream->Fill(fee, "RawHit", 1);
 
@@ -713,6 +714,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         for (int j = 0; j < nsamp; j++)
         {
           adc[j] = data_buffer[pos++];
+          hit->set_adc(start_t + j, adc[j]);
 
           m_hFEESAMPAADC->Fill(start_t + j, fee_sampa_address, adc[j]);
         }
