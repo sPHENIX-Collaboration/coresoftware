@@ -38,6 +38,8 @@
 #include <string>   // for string
 #include <tuple>    // for tie, tuple
 
+#include <iostream>
+
 /// Create necessary objects
 KFParticle_Tools kfp_Tools_evtReco;
 
@@ -113,18 +115,15 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 {
   int track_start = 0;
   int track_stop = m_num_tracks_from_intermediate[0];
-
   std::vector<KFParticle> goodCandidates;
   std::vector<KFParticle> goodVertex;
   std::vector<KFParticle> goodDaughters[m_num_tracks];
   std::vector<KFParticle> goodIntermediates[m_num_intermediate_states];
   std::vector<KFParticle> potentialIntermediates[m_num_intermediate_states];
   std::vector<std::vector<KFParticle>> potentialDaughters[m_num_intermediate_states];
-
   for (int i = 0; i < m_num_intermediate_states; ++i)
   {
     std::vector<KFParticle> vertices;
-
     std::vector<std::vector<int>> goodTracksThatMeet = findTwoProngs(daughterParticlesAdv, goodTrackIndexAdv, m_num_tracks_from_intermediate[i]);
     for (int p = 3; p <= m_num_tracks_from_intermediate[i]; ++p)
     {
@@ -133,14 +132,11 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                                        goodTracksThatMeet,
                                        m_num_tracks_from_intermediate[i], p);
     }
-
     getCandidateDecay(potentialIntermediates[i], vertices, potentialDaughters[i], daughterParticlesAdv,
                       goodTracksThatMeet, primaryVerticesAdv, track_start, track_stop, true, i, m_constrain_int_mass);
-
     track_start += track_stop;
     track_stop += m_num_tracks_from_intermediate[i + 1];
   }
-
   int num_tracks_used_by_intermediates = 0;
   for (int i = 0; i < m_num_intermediate_states; ++i)
   {

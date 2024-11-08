@@ -734,7 +734,10 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     for (int i = 0; i < nTracks; ++i)
     {
       SvtxTrack *thisTrack = toolSet.getTrack(vDaughters[i].Id(), m_dst_trackmap);
-      crossings.push_back(thisTrack->get_crossing());
+      if (thisTrack)//This protects against intermediates which have no track but I need a way to assign the bunch crossing to an interemdiate as this was already checked when it was actually built
+      {
+        crossings.push_back(thisTrack->get_crossing());
+      }
     }
 
     removeDuplicates(crossings);
