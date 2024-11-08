@@ -1395,13 +1395,6 @@ void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<Trkr
       continue;
     }
 
-    // drop INTT clusters for now  -- TEMPORARY!
-    if (layer > 2 && layer < 7)
-    {
-      continue;
-    }
-
-
     cluskey_vec.push_back(key);
 
   }  // end loop over clusters for this track
