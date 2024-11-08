@@ -27,6 +27,10 @@
 
 #include "KFParticle_eventReconstruction.h"
 #include "KFParticle_Tools.h"
+#include "KFParticle_truthAndDetTools.h"
+
+//sPHENIX stuff
+#include <trackbase_historic/SvtxTrack.h>
 
 // KFParticle stuff
 #include <KFParticle.h>
@@ -277,6 +281,38 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
                                                              m_constrain_to_vertex, false, 0, num_mother_decay_products, m_constrain_int_mass, required_unique_vertexID);
                 if (isGood)
                 {
+
+                  if (m_require_bunch_crossing_match)
+                  {
+                    KFParticle_truthAndDetTools toolSet;
+                    std::vector<int> crossings;
+                    for (int i = 0; i < num_tracks_used_by_intermediates; ++i)
+                    {
+                      SvtxTrack *thisTrack = toolSet.getTrack(finalTracks[i].Id(), m_dst_trackmap);
+                      if (thisTrack)
+                      {
+                        crossings.push_back(thisTrack->get_crossing());
+                      }
+                    }
+                
+                    for (int k = 0; k < num_remaining_tracks; ++k)
+                    {
+                      int trackArrayID = k + m_num_intermediate_states;
+                      SvtxTrack *thisTrack = toolSet.getTrack(motherDecayProducts[trackArrayID].Id(), m_dst_trackmap);
+                      if (thisTrack)
+                      {
+                        crossings.push_back(thisTrack->get_crossing());
+                      }
+                    }
+                
+                    removeDuplicates(crossings);
+                
+                    if (crossings.size() !=1)
+                    {
+                      continue;
+                    }
+                  }
+
                   goodCandidates.push_back(candidate);
                   if (m_constrain_to_vertex)
                   {
