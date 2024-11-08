@@ -640,11 +640,17 @@ int Fun4AllStreamingInputManager::FillGl1()
 
 int Fun4AllStreamingInputManager::FillIntt()
 {
+    PHTimer timer("timer");
+  timer.stop();
+  timer.restart();
   int iret = FillInttPool();
   if (iret)
   {
     return iret;
   }
+    timer.stop();
+  std::cout << "fillmvtxpool " << timer.elapsed() << std::endl;
+
   // unsigned int alldone = 0;
   //     std::cout << "stashed intt BCOs: " << m_InttRawHitMap.size() << std::endl;
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(m_topNode, "INTTRAWHIT");
@@ -676,8 +682,12 @@ int Fun4AllStreamingInputManager::FillIntt()
               << " for ref BCO " << m_RefBCO
               << std::dec << std::endl;
   }
+    timer.restart();
+
   while (m_InttRawHitMap.begin()->first < m_RefBCO - m_intt_negative_bco)
-  {
+  {PHTimer timer2("timer2");
+    timer2.stop();
+    timer2.restart();
     if (Verbosity() > 2)
     {
       std::cout << "Intt BCO: 0x" << std::hex << m_InttRawHitMap.begin()->first
@@ -690,15 +700,28 @@ int Fun4AllStreamingInputManager::FillIntt()
     for (auto iter : m_InttInputVector)
     {
       iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+      iter->clearPacketBClkStackMap(m_InttRawHitMap.begin()->first);
+      iter->clearFeeGTML1BCOMap(m_InttRawHitMap.begin()->first);
     }
+    timer2.stop();
+    std::cout << "cleanup used packets " << timer2.elapsed() << std::endl;
+    timer2.restart();
     m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
     m_InttRawHitMap.erase(m_InttRawHitMap.begin());
+    timer2.stop();
+    std::cout << "erase vectors " << timer2.elapsed() << std::endl;
+    timer2.restart();
     iret = FillInttPool();
     if (iret)
     {
       return iret;
     }
+    timer2.stop();
+    std::cout << "refill the pool " << timer2.elapsed() << std::endl;
   }
+timer.stop();
+  std::cout << "first loop time " << timer.elapsed()<<std::endl;
+    timer.restart();
 
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_intt->Fill(refbcobitshift);
@@ -706,12 +729,17 @@ int Fun4AllStreamingInputManager::FillIntt()
   int allpacketsallfees = 0;
   for (auto &p : m_InttInputVector)
   {
+    PHTimer qatimer("qatimer");
+    qatimer.stop();
+    qatimer.restart();
     // this is on a per packet basis
     auto bcl_stack = p->BclkStackMap();
     auto feebclstack = p->getFeeGTML1BCOMap();
     int packet_id = bcl_stack.begin()->first;
     int histo_to_fill = (packet_id % 10) - 1;
-
+  qatimer.stop();
+  std::cout << "grab maps time " << qatimer.elapsed() << std::endl;
+  qatimer.restart();
     std::set<int> feeidset;
     int fee = 0;
     for (auto &[feeid, gtmbcoset] : feebclstack)
@@ -728,7 +756,9 @@ int Fun4AllStreamingInputManager::FillIntt()
       }
       fee++;
     }
-
+    qatimer.stop();
+    std::cout << "filling feeidset time " << qatimer.elapsed() << std::endl;
+  qatimer.restart();
     if (feeidset.size() == 14)
     {
       allpacketsallfees++;
@@ -736,11 +766,14 @@ int Fun4AllStreamingInputManager::FillIntt()
     }
     feeidset.clear();
     bool thispacket = false;
-    // we just want to erase anything that is well before the current GL1
-    // so make an arbitrary cut of 40000.
-    p->clearFeeGTML1BCOMap(m_RefBCO - 40000);
-    p->clearPacketBClkStackMap(packet_id, m_RefBCO - 40000);
-
+    
+    // we just want to erase anything that is before the current GL1
+    qatimer.stop();
+    std::cout << "clear map first time " << qatimer.elapsed() << std::endl;
+    qatimer.restart();
+  qatimer.stop();
+    std::cout << "clear map time " << qatimer.elapsed() << std::endl;
+    qatimer.restart();
     for (auto &[packetid, gtmbcoset] : bcl_stack)
     {
       for (auto &gtmbco : gtmbcoset)
@@ -754,6 +787,9 @@ int Fun4AllStreamingInputManager::FillIntt()
         }
       }
     }
+    qatimer.stop();
+    std::cout << "filling bcl stack time " << qatimer.elapsed() << std::endl;
+
     if (thispacket == false)
     {
       allpackets = false;
@@ -767,7 +803,9 @@ int Fun4AllStreamingInputManager::FillIntt()
   {
     h_taggedAllFee_intt->Fill(refbcobitshift);
   }
-
+timer.stop();
+  std::cout << "Timer QA time " << timer.elapsed() << std::endl;
+  timer.restart();
   //  std::cout << "Checking diff " << (m_InttRawHitMap.begin()->first - (select_crossings - m_intt_negative_bco)) << std::endl;
   while (m_InttRawHitMap.begin()->first <= select_crossings - m_intt_negative_bco)
   {
@@ -784,6 +822,9 @@ int Fun4AllStreamingInputManager::FillIntt()
     for (auto iter : m_InttInputVector)
     {
       iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+
+
+
     }
     m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
     m_InttRawHitMap.erase(m_InttRawHitMap.begin());
@@ -792,16 +833,25 @@ int Fun4AllStreamingInputManager::FillIntt()
       break;
     }
   }
+  timer.stop();
+  std::cout << "Resetting time " << timer.elapsed()<<std::endl;
+  std::cout << "total time to run mvtx " << timer.get_accumulated_time() << std::endl;
   return 0;
 }
 
 int Fun4AllStreamingInputManager::FillMvtx()
 {
+  PHTimer timer("timer");
+  timer.stop();
+  timer.restart();
   int iret = FillMvtxPool();
   if (iret)
   {
     return iret;
   }
+  timer.stop();
+  std::cout << "fillmvtxpool " << timer.elapsed() << std::endl;
+
   MvtxRawEvtHeader *mvtxEvtHeader = findNode::getClass<MvtxRawEvtHeader>(m_topNode, "MVTXRAWEVTHEADER");
   if (!mvtxEvtHeader)
   {
@@ -841,11 +891,19 @@ int Fun4AllStreamingInputManager::FillMvtx()
               << " to 0x" << select_crossings - m_mvtx_bco_range
               << std::dec << std::endl;
   }
+  timer.restart();
   // m_MvtxRawHitMap.empty() does not need to be checked here, FillMvtxPool returns non zero
   // if this map is empty which is handled above
   // All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
+  std::cout << "mvtx cleanup bco loop raw hit map size " << m_MvtxRawHitMap.size() << std::endl;
+  auto bcofirst = m_MvtxRawHitMap.begin()->first;
+  auto bcolast = m_MvtxRawHitMap.rbegin()->first;
+  std::cout << "bco diff " << bcolast - bcofirst << std::endl;
   while (m_MvtxRawHitMap.begin()->first < ref_bco_minus_range)
   {
+    PHTimer timer2("timer2");
+    timer2.stop();
+    timer2.restart();
     if (Verbosity() > 2)
     {
       std::cout << "ditching mvtx bco 0x" << std::hex << m_MvtxRawHitMap.begin()->first << ", ref: 0x" << m_RefBCO << std::dec << std::endl;
@@ -854,6 +912,9 @@ int Fun4AllStreamingInputManager::FillMvtx()
     {
       iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
     }
+    timer2.stop();
+    std::cout << "cleanup used packets " << timer2.elapsed() << std::endl;
+    timer2.restart();
     for (auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
     {
       if (Verbosity() > 1)
@@ -862,24 +923,33 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
       delete mvtxFeeIdInfo;
     }
+    timer2.stop();
+    std::cout << "delete mvtx feeid info " << timer2.elapsed() << std::endl;
+    timer2.restart();
     m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
     m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
     m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+    timer2.stop();
+    std::cout << "erase vectors " << timer2.elapsed() << std::endl;
+    timer2.restart();
     iret = FillMvtxPool();
-
     if (iret)
     {
       return iret;
     }
+    timer2.stop();
+    std::cout << "refill the pool " << timer2.elapsed() << std::endl;
   }
-
+  timer.stop();
+  std::cout << "first loop time " << timer.elapsed()<<std::endl;
   // again m_MvtxRawHitMap.empty() is handled by return of FillMvtxPool()
   if (Verbosity() > 2)
   {
     std::cout << "after ditching, mvtx bco: 0x" << std::hex << m_MvtxRawHitMap.begin()->first << ", ref: 0x" << m_RefBCO
               << std::dec << std::endl;
   }
+  timer.restart();
 
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_mvtx->Fill(refbcobitshift);
@@ -955,7 +1025,10 @@ int Fun4AllStreamingInputManager::FillMvtx()
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
   taggedPacketsFEEs.clear();
-
+  timer.stop();
+  std::cout << "Timer QA time " << timer.elapsed() << std::endl;
+  timer.restart();
+std::cout << "raw hit map size " << m_MvtxRawHitMap.size() << std::endl;
   if (m_mvtx_is_triggered)
   {
     while (select_crossings <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings + m_mvtx_bco_range) //triggered
@@ -1042,6 +1115,10 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
     }
   }
+  timer.stop();
+  std::cout << "Resetting time " << timer.elapsed()<<std::endl;
+  std::cout << "total time to run mvtx " << timer.get_accumulated_time() << std::endl;
+  std::cout << "raw hit map size 2 " << m_MvtxRawHitMap.size() << std::endl;
 
   return 0;
 }
@@ -1212,10 +1289,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       {
         allpackets = false;
       }
-      // we just want to erase anything that is well away from the current GL1
-      // so make an arbitrary cut of 40000.
-      p->clearPacketBClkStackMap(packetid, m_RefBCO - 40000);
-
+    
       packetnum++;
     }
   }
@@ -1237,6 +1311,9 @@ int Fun4AllStreamingInputManager::FillTpc()
     for (auto iter : m_TpcInputVector)
     {
       iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
+        // we just want to erase anything that is well away from the current GL1
+  
+      iter->clearPacketBClkStackMap(m_RefBCO -m_tpc_negative_bco);
     }
     m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
     m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
@@ -1450,6 +1527,7 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
   }
   if (m_MvtxRawHitMap.empty())
   {
+    
     std::cout << "MvtxRawHitMap is empty - we are done" << std::endl;
     return -1;
   }

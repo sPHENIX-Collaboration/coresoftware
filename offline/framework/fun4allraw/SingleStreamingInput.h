@@ -67,41 +67,41 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   /** TODO: check whether necessary */
   virtual void FillBcoQA(uint64_t /*gtm_bco*/) {};
 
+  void clearPacketBClkStackMap(const uint64_t& bclk)
 
-  void clearPacketBClkStackMap(const int &packetid, const uint64_t& bclk)
   {
-    std::set<uint64_t> to_erase;
-    auto set = m_BclkStackPacketMap.find(packetid)->second;
-      for(auto& bclk_to_erase : set)
+    for(auto& [packetid, set] : m_BclkStackPacketMap)
+    {
+    
+      for(auto it = set.begin(); it != set.end();)
+    {
+      if(*it <= bclk)
       {
-        if(bclk_to_erase <= bclk)
-        {
-          to_erase.insert(bclk_to_erase);
-        }
+        it = set.erase(it);
       }
-      for(auto& bclk_to_erase : to_erase)
+      else
       {
-        set.erase(bclk_to_erase);
+        ++it;
       }
     }
-
+    }
+  }
   void clearFeeGTML1BCOMap(const uint64_t &bclk)
   {
-    std::set<uint64_t> toerase;
     for (auto &[key, set] : m_FeeGTML1BCOMap)
     {
-      for (auto &ll1bclk : set)
+      for(auto it = set.begin(); it != set.end();)
       {
-        if (ll1bclk <= bclk)
+        if(*it <= bclk)
         {
-          // to avoid invalid reads
-          toerase.insert(ll1bclk);
+          it = set.erase(it);
+        }
+        else
+        {
+          ++it;
         }
       }
-      for (auto &bclk_to_erase : toerase)
-      {
-        set.erase(bclk_to_erase);
-      }
+      
     }
   }
 
