@@ -563,17 +563,18 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFPa
   return goodTracksThatMeetIntermediates;
 }
 
-float KFParticle_Tools::eventDIRA(const KFParticle &particle, const KFParticle &vertex)
+float KFParticle_Tools::eventDIRA(const KFParticle &particle, const KFParticle &vertex, bool do3D)
 {
-  TMatrixD flightVector(3, 1);
-  TMatrixD momVector(3, 1);
+  const int nDimensions = do3D ? 3 : 2;
+  TMatrixD flightVector(nDimensions, 1);
+  TMatrixD momVector(nDimensions, 1);
   flightVector(0, 0) = particle.GetX() - vertex.GetX();
   flightVector(1, 0) = particle.GetY() - vertex.GetY();
-  flightVector(2, 0) = particle.GetZ() - vertex.GetZ();
+  if (do3D) flightVector(2, 0) = particle.GetZ() - vertex.GetZ();
 
   momVector(0, 0) = particle.GetPx();
   momVector(1, 0) = particle.GetPy();
-  momVector(2, 0) = particle.GetPz();
+  if (do3D) momVector(2, 0) = particle.GetPz();
 
   TMatrixD momDotFD(1, 1);  // Calculate momentum dot flight distance
   momDotFD = TMatrixD(momVector, TMatrixD::kTransposeMult, flightVector);
@@ -777,16 +778,18 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   particleCopy.GetDecayLength(calculated_decayLength, calculated_decayLengthErr);
 
   float calculated_fdchi2 = flightDistanceChi2(particle, vertex);
-  float calculated_dira = eventDIRA(particle, vertex);
+  float calculated_dira;
 
   float calculated_ipchi2;
   if (m_use_2D_matching_tools)
   {
     calculated_ipchi2 = particle.GetDeviationFromVertexXY(vertex);
+    calculated_dira = eventDIRA(particle, vertex, false);
   }
   else
   {
     calculated_ipchi2 = particle.GetDeviationFromVertex(vertex);
+    calculated_dira = eventDIRA(particle, vertex);
   }
 
   goodCandidate = false;
