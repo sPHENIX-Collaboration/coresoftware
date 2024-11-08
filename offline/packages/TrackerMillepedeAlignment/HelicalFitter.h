@@ -28,6 +28,7 @@ class TFile;
 class Mille;
 class SvtxTrackSeed;
 class SvtxTrackMap;
+class SvtxVertexMap;
 class SvtxAlignmentStateMap;
 class SvtxTrack;
 
@@ -198,6 +199,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   float dca_cut{0.19};  // cm
 
+  SvtxVertexMap* m_vertexmap{nullptr};
   SvtxTrackMap* m_trackmap{nullptr};
   SvtxAlignmentStateMap* m_alignmentmap{nullptr};
 

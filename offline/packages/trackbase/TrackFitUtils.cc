@@ -1,11 +1,12 @@
 #include "TrackFitUtils.h"
 
-#include <trackbase/MvtxDefs.h>
 #include "ActsGeometry.h"
 #include "TpcDefs.h"
 #include "TrkrClusterContainerv4.h"
 #include "TrkrClusterv5.h"
 #include "TrkrDefs.h"  // for cluskey, getTrkrId, tpcId
+
+#include <trackbase/MvtxDefs.h>
 
 #include <cmath>
 
@@ -55,6 +56,14 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
 
   // pca and second_point_pca define a straight line approximation to the track
   Acts::Vector3 tangent = (second_point_pca - pca) / (second_point_pca - pca).norm();
+
+  // Direction is ambiguous, use cluster direction to resolve it
+  float phi = atan2(global(1),global(0));
+  float tangent_phi = atan2(tangent(1), tangent(0));
+  if(std::fabs(tangent_phi - phi) > M_PI / 2)
+    {
+      tangent = -1.0 * tangent;
+    }
 
   // get the PCA of the cluster to that line
   // Approximate track with a straight line consisting of the state position posref and the vector (px,py,pz)
@@ -812,4 +821,44 @@ std::vector<double> TrackFitUtils::getCircleClusterResiduals(TrackFitUtils::posi
     return std::sqrt( square(x-X0) + square(y-Y0) )  -  R; });
 
   return residuals;
+}
+
+float TrackFitUtils::get_helix_pathlength(std::vector<float>& fitpars, const Acts::Vector3& start_point, const Acts::Vector3& end_point)
+{
+  // caveats:
+  // - when pz is zero, the helix is degenerate, so this method assumes the pathlength is on the first loop around
+  // - this method does not check whether the start and end points are actually compatible with the helix;
+  //   the actual points that this method uses are those points on the helix with the same z and phi as start_point and end_point
+  if(fitpars.size()!=5) { return -1e9;
+}
+  float R = fitpars[0];
+  float x0 = fitpars[1];
+  float y0 = fitpars[2];
+  float zslope = fitpars[3];
+  // float z0 = fitpars[4];
+
+  // path length in z per half-turn of helix = dz/dr * (apogee r - perigee r)
+  // apogee r = sqrt(x0^2+y0^2) + R
+  // perigee r = sqrt(x0^2+y0^2) - R
+  float half_turn_z_pathlength = zslope*2*R;
+
+  // find number of turns
+  float z_dist = end_point.z() - start_point.z();
+  int n_turns = std::floor(std::fabs(z_dist / half_turn_z_pathlength));
+
+  // phi relative to center of circle
+  float phic_start = atan2(start_point.y()-y0,start_point.x()-x0);
+  float phic_end = atan2(end_point.y()-y0,end_point.x()-x0);
+  float phic_dist = std::fabs(phic_end-phic_start) + n_turns*2*M_PI;
+  float xy_dist = R*phic_dist;
+
+  float pathlength = std::sqrt(xy_dist*xy_dist+z_dist*z_dist);
+  return pathlength;
+}
+
+float TrackFitUtils::get_helix_surface_pathlength(const Surface& surf, std::vector<float>& fitpars, const Acts::Vector3& start_point, ActsGeometry* tGeometry)
+{
+  Acts::Vector3 surface_center = surf->center(tGeometry->geometry().getGeoContext()) * 0.1;
+  Acts::Vector3 intersection = get_helix_surface_intersection(surf,fitpars,surface_center,tGeometry);
+  return get_helix_pathlength(fitpars,start_point,intersection);
 }

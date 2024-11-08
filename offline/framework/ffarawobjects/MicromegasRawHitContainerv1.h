@@ -1,5 +1,5 @@
-#ifndef FUN4ALLRAW_MICROMEGASHITRAWCONTAINERV1_H
-#define FUN4ALLRAW_MICROMEGASHITRAWCONTAINERV1_H
+#ifndef FUN4ALLRAW_MICROMEGASRAWHITCONTAINERV1_H
+#define FUN4ALLRAW_MICROMEGASRAWHITCONTAINERV1_H
 
 #include "MicromegasRawHitContainer.h"
 
@@ -8,8 +8,10 @@ class TClonesArray;
 
 class MicromegasRawHitContainerv1 : public MicromegasRawHitContainer
 {
- public:
-  MicromegasRawHitContainerv1();
+  public:
+  explicit MicromegasRawHitContainerv1();
+
+  //! destructor
   ~MicromegasRawHitContainerv1() override;
 
   /// Clear Event

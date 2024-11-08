@@ -21,6 +21,7 @@ class QAG4SimulationCalorimeter : public SubsysReco
     kProcessG4Hit = 1 << 1,
     kProcessTower = 1 << 2,
     kProcessCluster = 1 << 3,
+    kProcessTowerinfo = 1 << 4,
 
     kDefaultFlag = kProcessG4Hit | kProcessTower | kProcessCluster
   };
@@ -28,7 +29,7 @@ class QAG4SimulationCalorimeter : public SubsysReco
   QAG4SimulationCalorimeter(const std::string &calo_name, enu_flags flags =
                                                               kDefaultFlag);
   virtual ~QAG4SimulationCalorimeter() {}
-
+  
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);

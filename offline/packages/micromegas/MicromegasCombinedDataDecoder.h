@@ -50,10 +50,10 @@ class MicromegasCombinedDataDecoder : public SubsysReco
   void set_min_adc(double value) { m_min_adc = value; }
 
   /// set min sample for noise estimation
-  void set_sample_min(int value) { m_sample_min = value; }
+  void set_sample_min(uint16_t value) { m_sample_min = value; }
 
   /// set min sample for noise estimation
-  void set_sample_max(int value) { m_sample_max = value; }
+  void set_sample_max(uint16_t value) { m_sample_max = value; }
 
  private:
   //! raw node
@@ -82,10 +82,10 @@ class MicromegasCombinedDataDecoder : public SubsysReco
   double m_min_adc = 50;
 
   /// min sample for signal
-  int m_sample_min = 0;
+  uint16_t m_sample_min = 0;
 
   /// max sample for signal
-  int m_sample_max = 100;
+  uint16_t m_sample_max = 100;
 
   /// keep track of number of hits per hitsetid
   using hitcountmap_t = std::map<TrkrDefs::hitsetkey, int>;

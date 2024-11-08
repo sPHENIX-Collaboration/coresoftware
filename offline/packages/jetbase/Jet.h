@@ -195,6 +195,8 @@ class Jet : public PHObject
   //   deprecated by Jetv2
   virtual bool has_property(Jet::PROPERTY /*prop_id*/) const { return false; };
   virtual void print_property(std::ostream& /*os*/) const {};
+  virtual int get_isCalib() {return 0;};
+  virtual void set_isCalib(int) {};
   //----------------------------------------------------------------------------------
 
   // some types

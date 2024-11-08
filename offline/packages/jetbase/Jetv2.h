@@ -75,10 +75,14 @@ class Jetv2 : public Jet
   float get_e() const override { return _e; }
   void set_e(float e) override { _e = e; }
 
+  float get_eta() const override;
+
+  int get_isCalib()  override {return _isCalib;}
+  void set_isCalib(int calib) override {_isCalib = calib;}
+  
   float get_p() const override;
   float get_pt() const override;
   float get_et() const override;
-  float get_eta() const override;
   float get_phi() const override;
   float get_mass() const override;
   float get_mass2() const override;
@@ -129,6 +133,8 @@ class Jetv2 : public Jet
   /// jet energy
   float _e = NAN;
 
+  /// calibration flag
+  int _isCalib{0};
   /// source id -> component id
   /* typ_comp_ids _comp_ids; */
   std::vector<std::pair<Jet::SRC, unsigned int>> _comp_ids;

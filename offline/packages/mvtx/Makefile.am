@@ -50,10 +50,12 @@ libmvtx_la_LIBADD = \
   -lCLHEP \
   -lfun4all \
   -lffarawobjects \
+  -lfun4allraw \
   -lffamodules \
   -lphg4hit \
   -lSubsysReco \
   -ltrack_io \
+  -lmvtx_decoder \
   -ltrackbase_historic_io \
   -lcdbobjects
 
