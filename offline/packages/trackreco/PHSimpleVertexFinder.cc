@@ -567,10 +567,10 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
   std::vector<std::vector<TrkrDefs::cluskey>> cumulative_cluskey_vec;
   std::vector<std::vector<float>> cumulative_fitpars_vec;
 
-  for (auto tr1_it = track_map->begin(); tr1_it != track_map->end(); ++tr1_it)
+  for (auto & tr1_it : *track_map)
   {
-    auto id1 = tr1_it->first;
-    auto tr1 = tr1_it->second;
+    auto id1 = tr1_it.first;
+    auto tr1 = tr1_it.second;
 
     //    tr1->identify();
  
@@ -594,9 +594,9 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
 	if(Verbosity() > 0) 
 	  { 
 	    std::cout << "  after silicon: silicon cluskey_vec size " << cluskey_vec.size() << std::endl; 
-	    for(unsigned int i = 0;i<cluskey_vec.size(); ++i)
+	    for(unsigned long i : cluskey_vec)
 	      {  
-		std::cout << cluskey_vec[i] << std::endl;
+		std::cout << i << std::endl;
 	      }
 	  }
       }
@@ -607,9 +607,9 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
 	if(Verbosity() > 0) 
 	  { 
 	    std::cout << "  after tpc: cluskey_vec size " << cluskey_vec.size() << std::endl; 
-	    for(unsigned int i = 0;i<cluskey_vec.size(); ++i)
+	    for(unsigned long i : cluskey_vec)
 	      {  
-		std::cout << cluskey_vec[i] << std::endl;
+		std::cout << i << std::endl;
 	      }
 	  }
       }
@@ -631,7 +631,7 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
     // store cluster global positions in a vector
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
     
-    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, 1);
+    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, true);
     
     if (Verbosity() > 1)
       {
