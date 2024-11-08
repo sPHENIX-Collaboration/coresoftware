@@ -1,4 +1,4 @@
-#include "SingleMicromegasPoolInput.h"
+#include "SingleMicromegasPoolInput_v1.h"
 
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
@@ -55,7 +55,7 @@ namespace
 }  // namespace
 
 //______________________________________________________________
-SingleMicromegasPoolInput::SingleMicromegasPoolInput(const std::string& name)
+SingleMicromegasPoolInput_v1::SingleMicromegasPoolInput_v1(const std::string& name)
   : SingleStreamingInput(name)
 {
   SubsystemEnum(InputManagerType::MICROMEGAS);
@@ -63,15 +63,19 @@ SingleMicromegasPoolInput::SingleMicromegasPoolInput(const std::string& name)
 }
 
 //______________________________________________________________
-SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
+SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1()
 {
 
-  std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - runnumber: " << RunNumber() << std::endl;
+  std::cout << "SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1 - runnumber: " << RunNumber() << std::endl;
+
+  // timer statistics
+  m_timer.print_stat();
+
   for( const auto& [packet,counts]:m_waveform_count_total )
   {
     const auto dropped_bco =  m_waveform_count_dropped_bco[packet];
     const auto dropped_pool =  m_waveform_count_dropped_pool[packet];
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput -"
+    std::cout << "SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1 -"
       << " packet: " << packet
       << " wf_total: " << counts
       << " wf_dropped_bco: " << dropped_bco
@@ -86,7 +90,7 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
   for( const auto& [fee,counts]:m_fee_waveform_count_total )
   {
     const auto dropped_bco =  m_fee_waveform_count_dropped_bco[fee];
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput -"
+    std::cout << "SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1 -"
       << " fee: " << fee
       << " wf_total: " << counts
       << " wf_dropped_bco: " << dropped_bco
@@ -100,7 +104,7 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
   for( const auto& [packet_id, bco_matching]:m_bco_matching_information_map )
   {
     const auto old_precision = std::cout.precision();
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput -"
+    std::cout << "SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1 -"
       << " packet: " << packet_id
       << " multiplier: " <<  std::setprecision(9) << bco_matching.get_adjusted_multiplier() << std::setprecision(old_precision)
       << std::endl;
@@ -109,7 +113,7 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
 }
 
 //______________________________________________________________
-void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
+void SingleMicromegasPoolInput_v1::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -163,7 +167,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
     if (npackets == 10)
     {
-      std::cout << "SingleMicromegasPoolInput::FillPool - too many packets" << std::endl;
+      std::cout << "SingleMicromegasPoolInput_v1::FillPool - too many packets" << std::endl;
       exit(1);
     }
 
@@ -211,7 +215,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       if (Verbosity())
       {
         std::cout
-          << "SingleMicromegasPoolInput::FillPool -"
+          << "SingleMicromegasPoolInput_v1::FillPool -"
           << " packet: " << packet_id
           << " n_waveform: " << nwf
           << std::endl;
@@ -234,7 +238,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       // if bco matching information is still not verified, drop the packet
       if (!bco_matching_information.is_verified())
       {
-        std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
+        std::cout << "SingleMicromegasPoolInput_v1::FillPool - bco_matching not verified, dropping packet" << std::endl;
         m_waveform_count_dropped_bco[packet_id] += nwf;
         h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), nwf );
         continue;
@@ -337,7 +341,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 }
 
 //______________________________________________________________
-void SingleMicromegasPoolInput::Print(const std::string& what) const
+void SingleMicromegasPoolInput_v1::Print(const std::string& what) const
 {
   if (what == "ALL" || what == "FEE")
   {
@@ -385,7 +389,7 @@ void SingleMicromegasPoolInput::Print(const std::string& what) const
 }
 
 //____________________________________________________________________________
-void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, bool dropped)
+void SingleMicromegasPoolInput_v1::CleanupUsedPackets(const uint64_t bclk, bool dropped)
 {
 
   // delete all raw hits associated to bco smaller than reference, and remove from map
@@ -416,16 +420,16 @@ void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, 
 }
 
 //_______________________________________________________
-void SingleMicromegasPoolInput::ClearCurrentEvent()
+void SingleMicromegasPoolInput_v1::ClearCurrentEvent()
 {
-  std::cout << "SingleMicromegasPoolInput::ClearCurrentEvent." << std::endl;
+  std::cout << "SingleMicromegasPoolInput_v1::ClearCurrentEvent." << std::endl;
   uint64_t currentbclk = *m_BclkStack.begin();
   CleanupUsedPackets(currentbclk);
   return;
 }
 
 //_______________________________________________________
-bool SingleMicromegasPoolInput::GetSomeMoreEvents()
+bool SingleMicromegasPoolInput_v1::GetSomeMoreEvents()
 {
   if (AllDone())
   {
@@ -471,7 +475,7 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
 }
 
 //_______________________________________________________
-void SingleMicromegasPoolInput::CreateDSTNode(PHCompositeNode* topNode)
+void SingleMicromegasPoolInput_v1::CreateDSTNode(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -499,7 +503,7 @@ void SingleMicromegasPoolInput::CreateDSTNode(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________
-void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
+void SingleMicromegasPoolInput_v1::ConfigureStreamingInputManager()
 {
   if (StreamingInputManager())
   {
@@ -509,7 +513,7 @@ void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
 }
 
 //_______________________________________________________
-void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
+void SingleMicromegasPoolInput_v1::FillBcoQA(uint64_t gtm_bco)
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -544,7 +548,7 @@ void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
   h_waveform->Fill(n_waveforms);
 }
 //_______________________________________________________
-void SingleMicromegasPoolInput::createQAHistos()
+void SingleMicromegasPoolInput_v1::createQAHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
