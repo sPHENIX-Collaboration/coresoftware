@@ -1171,21 +1171,23 @@ int Fun4AllStreamingInputManager::FillTpc()
   // m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
   // if this map is empty which is handled above
 
-  while (m_TpcRawHitMap.begin()->first < m_RefBCO - m_tpc_negative_bco)
+  if (m_TpcRawHitMap.size()>0)
   {
-    for (auto iter : m_TpcInputVector)
+    while (m_TpcRawHitMap.begin()->first < m_RefBCO - m_tpc_negative_bco)
     {
-      iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
-    }
-    m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
-    m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
-    iret = FillTpcPool();
-    if (iret)
-    {
-      return iret;
+      for (auto iter : m_TpcInputVector)
+      {
+        iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
+      }
+      m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
+      m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
+      iret = FillTpcPool();
+      if (iret)
+      {
+        return iret;
+      }
     }
   }
-
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_tpc->Fill(refbcobitshift);
   bool allpackets = true;
@@ -1223,25 +1225,28 @@ int Fun4AllStreamingInputManager::FillTpc()
     h_taggedAll_tpc->Fill(refbcobitshift);
   }
   // again m_TpcRawHitMap.empty() is handled by return of FillTpcPool()
-  while (m_TpcRawHitMap.begin()->first <= select_crossings - m_tpc_negative_bco)
+  if (m_TpcRawHitMap.size()>0)
   {
-    for (auto tpchititer : m_TpcRawHitMap.begin()->second.TpcRawHitVector)
+    while (m_TpcRawHitMap.begin()->first <= select_crossings - m_tpc_negative_bco)
     {
-      if (Verbosity() > 1)
+      for (auto tpchititer : m_TpcRawHitMap.begin()->second.TpcRawHitVector)
       {
-        tpchititer->identify();
+        if (Verbosity() > 1)
+        {
+          tpchititer->identify();
+        }
+        tpccont->AddHit(tpchititer);
       }
-      tpccont->AddHit(tpchititer);
-    }
-    for (auto iter : m_TpcInputVector)
-    {
-      iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
-    }
-    m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
-    m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
-    if (m_TpcRawHitMap.empty())
-    {
-      break;
+      for (auto iter : m_TpcInputVector)
+      {
+        iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
+      }
+      m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
+      m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
+      if (m_TpcRawHitMap.empty())
+      {
+        break;
+      }
     }
   }
   if (Verbosity() > 0)
@@ -1377,7 +1382,7 @@ int Fun4AllStreamingInputManager::FillTpcPool()
   if (m_TpcRawHitMap.empty())
   {
     std::cout << "TpcRawHitMap is empty - we are done" << std::endl;
-    return -1;
+    // return -1;
   }
   return 0;
 }
