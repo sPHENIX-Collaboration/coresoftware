@@ -188,7 +188,6 @@ class KFParticle_Tools : protected KFParticle_MVA
   SvtxVertex *m_dst_vertex {nullptr};
   SvtxTrack *m_dst_track {nullptr};
 
- private:
   void removeDuplicates(std::vector<double> &v);
   void removeDuplicates(std::vector<int> &v);
   void removeDuplicates(std::vector<std::vector<int>> &v);
