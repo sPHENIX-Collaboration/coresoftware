@@ -113,6 +113,7 @@ class Jet : public PHObject
     HCALOUT_TOWERINFO_SIM = 37,
     JET_PROBE = 38,
     ECAL_HCAL_TOPO_CLUSTER = 39,    /* EMCal+IHCal+OHCal 3-D topoCluster input */
+    CHARGED_PARTICLE = 40  /* for truth-level track jets */
   };
 
   enum PROPERTY
