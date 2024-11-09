@@ -80,6 +80,12 @@ std::vector<Jet *> TruthJetInput::get_input(PHCompositeNode *topNode)
       continue;
     }
 
+    // if looking at only charged particles, remove neutrals
+    if (m_Input == Jet::CHARGED_PARTICLE)
+    {
+      if (part->get_IonCharge == 0.0) continue;
+    }
+
     // remove acceptance... _etamin,_etamax
     if ((part->get_px() == 0.0) && (part->get_py() == 0.0))
     {
