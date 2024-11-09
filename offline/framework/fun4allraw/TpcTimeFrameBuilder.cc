@@ -17,7 +17,7 @@
 #include <TString.h>
 #include <TVector3.h>
 
-#include <stdint.h>
+#include <cstdint>
 #include <cassert>
 #include <limits>
 #include <memory>
@@ -31,12 +31,14 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
 {
   for (int fee = 0; fee < MAX_FEECOUNT; ++fee)
   {
-    m_bcoMatchingInformation_vec.push_back(BcoMatchingInformation(
-        std::string("BcoMatchingInformation_Packet") + to_string(packet_id) + "_FEE" + std::to_string(fee)));
+    m_bcoMatchingInformation_vec.emplace_back(
+        std::string("BcoMatchingInformation_Packet") + to_string(packet_id) + "_FEE" + std::to_string(fee));
   }
 
   m_feeData.resize(MAX_FEECOUNT);
 
+  // cppcheck-suppress noCopyConstructor
+  // cppcheck-suppress noOperatorEq
   m_packetTimer = new PHTimer("TpcTimeFrameBuilder_Packet" + to_string(packet_id));
 
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
@@ -133,16 +135,19 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
 
 TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
 {
-  for (auto it = m_timeFrameMap.begin(); it != m_timeFrameMap.end(); ++it)
+  for (auto & timeFrameEntry : m_timeFrameMap)
   {
-    while (!it->second.empty())
+    while (!timeFrameEntry.second.empty())
     {
-      delete it->second.back();
-      it->second.pop_back();
+      delete timeFrameEntry.second.back();
+      timeFrameEntry.second.pop_back();
     }
   }
 
-  if (m_packetTimer) delete m_packetTimer;
+  if (m_packetTimer) 
+  {
+    delete m_packetTimer;
+  }
 }
 
 void TpcTimeFrameBuilder::setVerbosity(const int i)
@@ -405,7 +410,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
 
       if (fee_id < MAX_FEECOUNT)
       {
-        for (unsigned int i = 0; i < DAM_DMA_WORD_LENGTH - 1; i++)
+        for (unsigned int i = 0; i < DAM_DMA_WORD_LENGTH - 1; ++i)
         {
           m_feeData[fee_id].push_back(dma_word_data.data[i]);
         }
@@ -718,7 +723,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 
           m_hFEESAMPAADC->Fill(start_t + j, fee_sampa_address, adc[j]);
         }
-        payload.waveforms.push_back(std::make_pair(start_t, std::move(adc)));
+        payload.waveforms.emplace_back(start_t, std::move(adc));
 
         //   // an exception to deal with the last sample that is missing in the current hit format
         //   if (pos + 1 == pkt_length) break;
@@ -926,6 +931,8 @@ TpcTimeFrameBuilder::BcoMatchingInformation::BcoMatchingInformation(const std::s
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  // cppcheck-suppress noCopyConstructor
+  // cppcheck-suppress noOperatorEq
   m_hNorm = new TH1D(TString(m_name.c_str()) + "_Normalization",  //
                      TString(m_name.c_str()) + " Normalization;Items;Count",
                      20, .5, 20.5);
@@ -1152,8 +1159,10 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
     m_hNorm->Fill("TriggerGTM", 1);
 
     assert(m_hGTMNewEventSpacing);
-    m_hGTMNewEventSpacing->Fill(gtm_bco - m_gtm_bco_trig_list.back());
-
+    if (not m_gtm_bco_trig_list.empty())
+    {
+      m_hGTMNewEventSpacing->Fill(gtm_bco - m_gtm_bco_trig_list.back());
+    }
     m_gtm_bco_trig_list.push_back(gtm_bco);
   }
 
@@ -1169,9 +1178,11 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
       assert(m_hNorm);
       m_hNorm->Fill("UnmatchedEnDATGTM", 1);
 
-      assert(m_hGTMNewEventSpacing);
-      m_hGTMNewEventSpacing->Fill(gtm_bco - m_gtm_bco_trig_list.back());
-
+      if (not m_gtm_bco_trig_list.empty())
+      {
+        assert(m_hGTMNewEventSpacing);
+        m_hGTMNewEventSpacing->Fill(gtm_bco - m_gtm_bco_trig_list.back());
+      }
       m_gtm_bco_trig_list.push_back(gtm_bco);
     }
   }
@@ -1186,7 +1197,7 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
       assert(m_hNorm);
       m_hNorm->Fill("HeartBeatGTM", 1);
 
-      m_bco_reference_candidate_list.push_back({gtm_bco, get_predicted_fee_bco(gtm_bco).value()});
+      m_bco_reference_candidate_list.emplace_back(gtm_bco, get_predicted_fee_bco(gtm_bco).value());
 
       if (m_verbosity > 1)
       {
