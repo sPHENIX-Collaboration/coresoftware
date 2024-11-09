@@ -28,9 +28,10 @@ namespace
   template<class T>
     inline T bind_angle( const T& angle )
   {
-    if( angle >= M_PI ) return angle - 2*M_PI;
-    else if( angle < -M_PI ) return angle + 2*M_PI;
-    else return angle;
+    if( angle >= M_PI ) { return angle - 2*M_PI;
+    } else if( angle < -M_PI ) { return angle + 2*M_PI;
+    } else { return angle;
+}
   }
 
 }
@@ -145,8 +146,10 @@ int CylinderGeomMicromegas::find_tile_cylindrical( const TVector3& world_coordin
   {
     const auto& tile = m_tiles.at(itile);
 
-    if( std::abs( z - tile.m_centerZ ) > tile.m_sizeZ/2 ) continue;
-    if( std::abs( bind_angle( phi - tile.m_centerPhi ) ) > tile.m_sizePhi/2 ) continue;
+    if( std::abs( z - tile.m_centerZ ) > tile.m_sizeZ/2 ) { continue;
+}
+    if( std::abs( bind_angle( phi - tile.m_centerPhi ) ) > tile.m_sizePhi/2 ) { continue;
+}
 
     return itile;
   }
@@ -184,10 +187,12 @@ int CylinderGeomMicromegas::find_strip_from_local_coords( uint tileid, ActsGeome
   const auto half_length_y = rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm;
 
   // check azimuth
-  if( std::abs( local_coordinates.X() ) >  half_length_x ) return -1;
+  if( std::abs( local_coordinates.X() ) >  half_length_x ) { return -1;
+}
 
   // check z extend
-  if( std::abs( local_coordinates.Y() ) > half_length_y ) return -1;
+  if( std::abs( local_coordinates.Y() ) > half_length_y ) { return -1;
+}
 
   // calculate strip index, depending on segmentation
   switch( m_segmentation_type )

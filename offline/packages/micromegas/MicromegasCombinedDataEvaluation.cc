@@ -206,7 +206,7 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode* topNode)
     sample.rms = rms;
 
     // get number of samples and loop
-    const auto samples = rawhit->get_samples();
+    const auto sample_range = std::make_pair( rawhit->get_sample_begin(), rawhit->get_sample_end() );
     if (Verbosity() > 1)
     {
       std::cout << "MicromegasCombinedDataEvaluation::process_event -"
@@ -219,12 +219,12 @@ int MicromegasCombinedDataEvaluation::process_event(PHCompositeNode* topNode)
                 << " error: " << sample.checksum_error
                 << " channel: " << sample.channel
                 << " strip: " << sample.strip
-                << " samples: " << samples
+                << " samples: (" << sample_range.first << "," << sample_range.second << ")"
                 << std::endl;
     }
 
     Sample sample_max;
-    for (unsigned short is = 0; is < std::min<unsigned short>(samples, 1024); ++is)
+    for (unsigned short is = sample_range.first; is < std::min<unsigned short>(sample_range.second, 1024); ++is)
     {
       // assign sample id and corresponding adc, save copy in container
       const auto adc = rawhit->get_adc(is);

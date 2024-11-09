@@ -3,6 +3,7 @@
 #include "InputManagerType.h"
 #include "MvtxRawDefs.h"
 #include "SingleMicromegasPoolInput.h"
+#include "SingleMicromegasPoolInput_v2.h"
 #include "SingleMvtxPoolInput.h"
 #include "SingleStreamingInput.h"
 
@@ -460,7 +461,7 @@ void Fun4AllStreamingInputManager::registerStreamingInput(SingleStreamingInput *
     break;
   case InputManagerType::MICROMEGAS:
     m_micromegas_registered_flag = true;
-    static_cast<SingleMicromegasPoolInput *>(evtin)->createQAHistos();
+    evtin->createQAHistos();
     m_MicromegasInputVector.push_back(evtin);
     break;
   case InputManagerType::GL1:
@@ -1085,7 +1086,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
       << std::dec << std::endl;
   }
 
-  // cleanup all data that correspond too early BCO. Said data is effectively dropped
+  // cleanup all data that correspond to too early BCO. Said data is effectively dropped
   while (m_MicromegasRawHitMap.begin()->first < first_bco)
   {
     if (Verbosity() > 2)
@@ -1097,7 +1098,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
     }
 
     for (const auto& poolinput : m_MicromegasInputVector)
-    { static_cast<SingleMicromegasPoolInput*>(poolinput)->CleanupUsedPackets_with_qa(m_MicromegasRawHitMap.begin()->first, true); }
+    { poolinput->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first, true); }
 
     // remove
     m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
@@ -1113,7 +1114,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   // fill all BCO statistics
   for (const auto &iter : m_MicromegasInputVector)
   {
-    static_cast<SingleMicromegasPoolInput *>(iter)->FillBcoQA(m_RefBCO);
+    iter->FillBcoQA(m_RefBCO);
   }
 
   // store hits relevant for this trigger and cleanup

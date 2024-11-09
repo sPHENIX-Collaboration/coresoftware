@@ -79,7 +79,8 @@ void MicromegasHotChannelMapData::add_hot_channel( int layer, int tile, int stri
 void MicromegasHotChannelMapData::write( const std::string& filename ) const
 {
   std::cout << "MicromegasHotChannelMapData::write - filename: " << filename << std::endl;
-  if( m_hot_channel_map.empty() ) return;
+  if( m_hot_channel_map.empty() ) { return;
+}
 
   // use generic CDBTree to load
   CDBTTree cdbttree( filename );

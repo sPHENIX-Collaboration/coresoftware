@@ -245,7 +245,13 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   {
     std::cout << "number of TPC seeds: " << _track_map->size() << std::endl;
   }
-
+  if(_max_seeds > 0)
+  {
+    if(_track_map->size() > _max_seeds){
+      std::cout << PHWHERE << "number of TPC seeds > " << _max_seeds << " aborting event." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
   for (size_t track_it = 0; track_it != _track_map->size(); ++track_it)
