@@ -107,12 +107,6 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   assert(i <= 20);
   hm->registerHisto(m_hFEEDataStream);
 
-  m_hFEEClockAdjustment = new TH2I(TString(m_HistoPrefix.c_str()) + "_FEE_ClockAdjustment",  //
-                                   TString(m_HistoPrefix.c_str()) +
-                                       " FEE Clock Adjustment;FEE ID;Type;Count",
-                                   MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5, 400, -1e-4, 1e-4);
-  hm->registerHisto(m_hFEEClockAdjustment);
-
   m_hFEEChannelPacketCount = new TH1I(TString(m_HistoPrefix.c_str()) + "_FEEChannelPacketCount",  //
                                       TString(m_HistoPrefix.c_str()) +
                                           " Count of waveform packet per channel;FEE*256 + Channel;Count",
@@ -542,7 +536,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     payload.channel = data_buffer[4] & 0x1ffU;
     payload.type = static_cast<uint16_t>(data_buffer[3] >> 7U) & 0x7U;
     payload.user_word = data_buffer[3] & 0x7fU;
-    payload.bx_timestamp = static_cast<uint16_t>((data_buffer[6] & 0x3ffU) << 10U) | (data_buffer[5] & 0x3ffU);
+    payload.bx_timestamp = static_cast<uint32_t>(static_cast<uint32_t>(data_buffer[6] & 0x3ffU) << 10U) | (data_buffer[5] & 0x3ffU);
 
     if (not m_fastBCOSkip)
     {
@@ -588,8 +582,6 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       {
         const optional<uint64_t> result = m_bcoMatchingInformation.find_reference_heartbeat(payload);
         m_hFEEDataStream->Fill(fee, "PacketHeartBeat", 1);
-        assert(m_hFEEClockAdjustment);
-        // m_hFEEClockAdjustment->Fill(fee, m_bcoMatchingInformation.get_multiplier_adjustment(), 1);
 
         if (result)
         {
