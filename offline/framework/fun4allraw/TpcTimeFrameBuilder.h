@@ -345,11 +345,15 @@ class TpcTimeFrameBuilder
   TH1 *m_hFEEChannelPacketCount = nullptr;
   TH2 *m_hFEESAMPAADC = nullptr;
   TH1 *m_hFEESAMPAHeartBeatSync = nullptr;
-  TH2 *m_hFEEClockAdjustment = nullptr;
 
   TH1 *h_PacketLength = nullptr;
   TH1 *h_PacketLength_Padding = nullptr;
   TH1 *h_PacketLength_Residual = nullptr;
+
+  TH1 *h_GTMClockDiff_Matched = nullptr;
+  TH1 *h_GTMClockDiff_Unmatched = nullptr;
+  TH1 *h_GTMClockDiff_Dropped = nullptr;
+  TH1 *h_TimeFrame_Matched_Size = nullptr;
 };
 
 #endif

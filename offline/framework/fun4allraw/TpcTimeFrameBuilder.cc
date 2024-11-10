@@ -63,6 +63,11 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
 
   m_hNorm->GetXaxis()->SetBinLabel(i++, "TimeFrameSizeLimitError");
 
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "GTM_TimeFrame_Matched");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "GTM_TimeFrame_Unmatched");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "GTM_TimeFrame_Matched_Hit_Sum");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "GTM_TimeFrame_Dropped_Hit_Sum");
+
   assert(i <= 20);
   m_hNorm->GetXaxis()->LabelsOption("v");
   hm->registerHisto(m_hNorm);
@@ -125,6 +130,27 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
                                           " FEE/SAMPA Sync Heartbeat Count;FEE*8+SAMPA;Sync Heartbeat Count",
                                       MAX_FEECOUNT * MAX_SAMPA, -.5, MAX_FEECOUNT * MAX_SAMPA - .5);
   hm->registerHisto(m_hFEESAMPAHeartBeatSync);
+
+  h_GTMClockDiff_Matched = new TH1I(TString(m_HistoPrefix.c_str()) + "_GTMClockDiff_Matched",  //
+                                    TString(m_HistoPrefix.c_str()) +
+                                        " GTM BCO Diff for Matched Time Frame;Trigger BCO Diff [BCO];Count",
+                                    1024, -512 - .5, 512 - .5);
+  hm->registerHisto(h_GTMClockDiff_Matched);
+  h_GTMClockDiff_Unmatched = new TH1I(TString(m_HistoPrefix.c_str()) + "_GTMClockDiff_Unmatched",  //
+                                      TString(m_HistoPrefix.c_str()) +
+                                          " GTM BCO Diff for Unmatched Time Frame;Trigger BCO Diff [BCO];Count",
+                                      1024, -512 - .5, 512 - .5);
+  hm->registerHisto(h_GTMClockDiff_Unmatched);
+  h_GTMClockDiff_Dropped = new TH1I(TString(m_HistoPrefix.c_str()) + "_GTMClockDiff_Dropped",  //
+                                    TString(m_HistoPrefix.c_str()) +
+                                        " GTM BCO Diff for Dropped Time Frame;Trigger BCO Diff [BCO];Count",
+                                    16384, -16384 - .5, 0 - .5);
+  hm->registerHisto(h_GTMClockDiff_Dropped);
+  h_TimeFrame_Matched_Size = new TH1I(TString(m_HistoPrefix.c_str()) + "_TimeFrame_Matched_Size",  //
+                                      TString(m_HistoPrefix.c_str()) +
+                                          " Time frame size for Matched Time Frame ;Size [TPC raw hits];Count",
+                                      3328, -.5, 3328 - .5);
+  hm->registerHisto(h_TimeFrame_Matched_Size);
 }
 
 TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
@@ -180,6 +206,7 @@ bool TpcTimeFrameBuilder::isMoreDataRequired(const uint64_t& gtm_bco) const
 
 std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_bco)
 {
+  assert(m_hNorm);
   uint64_t bclk_rollover_corrected = m_bcoMatchingInformation_vec[0].get_gtm_rollover_correction(gtm_bco);
 
   // cleanup old unused matching info after completion of a time frame
@@ -196,14 +223,43 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
               << std::endl;
   }
 
-  for (auto& it : m_timeFrameMap)
+  for (auto it = m_timeFrameMap.begin(); it != m_timeFrameMap.end();)
   {
-    if (BcoMatchingInformation ::get_bco_diff(it.first, bclk_rollover_corrected) < GL1_BCO_MATCH_WINDOW)
+    if (it->first + GL1_BCO_MATCH_WINDOW < bclk_rollover_corrected)
     {
       if (m_verbosity >= 1)
       {
         std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
-                  << ":PASS: BCO " << std::hex << it.first << std::dec
+                  << ":DROPPED: BCO " << std::hex << it->first << std::dec
+                  << " dropped for gtm_bco: 0x" << std::hex << gtm_bco << std::dec
+                  << " and bclk_rollover_corrected 0x" << std::hex
+                  << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
+
+        for (const auto& timeframe : m_timeFrameMap)
+        {
+          std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
+                    << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected)
+                    << ")"
+                    << " size: " << timeframe.second.size()
+                    << std::endl;
+        }
+      }
+
+      m_hNorm->Fill("GTM_TimeFrame_Dropped_Hit_Sum", it->second.size());
+      assert(h_GTMClockDiff_Dropped);
+      h_GTMClockDiff_Dropped->Fill(int64_t(it->first) - int64_t(bclk_rollover_corrected));
+      for (const auto& hit : it->second)
+      {
+        delete hit;
+      }
+      it = m_timeFrameMap.erase(it);
+    }
+    else if (it->first < bclk_rollover_corrected + GL1_BCO_MATCH_WINDOW)
+    {
+      if (m_verbosity > 1)
+      {
+        std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
+                  << ":PASS: BCO " << std::hex << it->first << std::dec
                   << " matched for gtm_bco: 0x" << std::hex << gtm_bco << std::dec
                   << " and bclk_rollover_corrected 0x" << std::hex
                   << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
@@ -218,7 +274,17 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
         }
       }
 
-      return it.second;
+      m_hNorm->Fill("GTM_TimeFrame_Matched", 1);
+      assert(h_GTMClockDiff_Matched);
+      h_GTMClockDiff_Matched->Fill(int64_t(it->first) - int64_t(bclk_rollover_corrected));
+      assert(h_TimeFrame_Matched_Size);
+      h_TimeFrame_Matched_Size->Fill(it->second.size());
+      m_hNorm->Fill("GTM_TimeFrame_Matched_Hit_Sum", it->second.size());
+      return it->second;
+    }
+    else
+    {
+      break;
     }
   }
 
@@ -234,6 +300,13 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
       std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
                 << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected) << ")" << std::endl;
     }
+  }
+
+  m_hNorm->Fill("GTM_TimeFrame_Unmatched", 1);
+  assert(h_GTMClockDiff_Unmatched);
+  for (const auto& timeframe : m_timeFrameMap)
+  {
+    h_GTMClockDiff_Unmatched->Fill(int64_t(timeframe.first) - int64_t(bclk_rollover_corrected));
   }
   static std::vector<TpcRawHit*> empty;
   return empty;
@@ -659,7 +732,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
            << "\t- calc_crc = 0x" << hex << payload.calc_crc << dec << endl;
     }
 
-    if ((not m_fastBCOSkip) and payload.gtm_bco > 0)
+    if ((not m_fastBCOSkip) and payload.gtm_bco > 0 and payload.type != m_bcoMatchingInformation.HEARTBEAT_T)
     {
       // valid packet in the buffer, create a new hit
       TpcRawHit* hit = new TpcRawHitv2();
