@@ -15,6 +15,7 @@ class Packet;
 class TpcTimeFrameBuilder;
 
 //! Provide TpcTimeFrameBuilder as a unified interface for Fun4AllStreamingInputManager
+// NOLINTNEXTLINE(hicpp-special-member-functions)
 class SingleTpcTimeFrameInput : public SingleStreamingInput
 {
  public:

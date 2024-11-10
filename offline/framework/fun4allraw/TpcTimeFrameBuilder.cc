@@ -17,8 +17,8 @@
 #include <TString.h>
 #include <TVector3.h>
 
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <string>
@@ -135,7 +135,7 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
 
 TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
 {
-  for (auto & timeFrameEntry : m_timeFrameMap)
+  for (auto& timeFrameEntry : m_timeFrameMap)
   {
     while (!timeFrameEntry.second.empty())
     {
@@ -144,7 +144,7 @@ TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
     }
   }
 
-  if (m_packetTimer) 
+  if (m_packetTimer)
   {
     delete m_packetTimer;
   }
@@ -154,13 +154,15 @@ void TpcTimeFrameBuilder::setVerbosity(const int i)
 {
   m_verbosity = i;
 
-  for (auto& bcoMatchingInformation : m_bcoMatchingInformation_vec)
+  for (BcoMatchingInformation& bcoMatchingInformation : m_bcoMatchingInformation_vec)
+  {
     bcoMatchingInformation.set_verbosity(i);
+  }
 }
 
 bool TpcTimeFrameBuilder::isMoreDataRequired(const uint64_t& gtm_bco) const
 {
-  for (const auto& bcoMatchingInformation : m_bcoMatchingInformation_vec)
+  for (const BcoMatchingInformation& bcoMatchingInformation : m_bcoMatchingInformation_vec)
   {
     if (not bcoMatchingInformation.is_verified())
     {
@@ -187,7 +189,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
   uint64_t bclk_rollover_corrected = m_bcoMatchingInformation_vec[0].get_gtm_rollover_correction(gtm_bco);
 
   // cleanup old unused matching info after completion of a time frame
-  for (auto & bcoMatchingInformation : m_bcoMatchingInformation_vec)
+  for (BcoMatchingInformation& bcoMatchingInformation : m_bcoMatchingInformation_vec)
   {
     bcoMatchingInformation.cleanup(bclk_rollover_corrected);
   }
@@ -352,7 +354,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
          << data_padding << "\t- in packet " << m_packet_id << endl;
   }
 
-  size_t dma_words_buffer = data_length * 2 / DAM_DMA_WORD_LENGTH + 1;
+  size_t dma_words_buffer = static_cast<size_t>(data_length) * 2 / DAM_DMA_WORD_LENGTH + 1;
   vector<dma_word> buffer(dma_words_buffer);
 
   int l2 = 0;
@@ -361,8 +363,8 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
   l2 -= data_padding;
   assert(l2 >= 0);
 
-  size_t dma_words = l2 * 2 / DAM_DMA_WORD_LENGTH;
-  size_t dma_residual = (l2 * 2) % DAM_DMA_WORD_LENGTH;
+  size_t dma_words = static_cast<size_t>(l2) * 2 / DAM_DMA_WORD_LENGTH;
+  size_t dma_residual = (static_cast<size_t>(l2) * 2) % DAM_DMA_WORD_LENGTH;
   assert(dma_words <= buffer.size());
   assert(h_PacketLength_Residual);
   h_PacketLength_Residual->Fill(dma_residual);
@@ -404,15 +406,15 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
            << hex << dma_word_data.dma_header << dec << endl;
     }
 
-    if ((dma_word_data.dma_header & 0xFF00) == FEE_MAGIC_KEY)
+    if ((dma_word_data.dma_header & 0xFF00U) == FEE_MAGIC_KEY)
     {
-      unsigned int fee_id = dma_word_data.dma_header & 0xff;
+      unsigned int fee_id = dma_word_data.dma_header & 0xffU;
 
       if (fee_id < MAX_FEECOUNT)
       {
-        for (unsigned int i = 0; i < DAM_DMA_WORD_LENGTH - 1; ++i)
+        for (const uint16_t& i : dma_word_data.data)
         {
-          m_feeData[fee_id].push_back(dma_word_data.data[i]);
+          m_feeData[fee_id].push_back(i);
         }
         m_hNorm->Fill("DMA_WORD_FEE", 1);
 
@@ -427,7 +429,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
       }
     }
 
-    else if ((dma_word_data.dma_header & 0xFF00) == GTM_MAGIC_KEY)
+    else if ((dma_word_data.dma_header & 0xFF00U) == GTM_MAGIC_KEY)
     {
       decode_gtm_data(dma_word_data);
       m_hNorm->Fill("DMA_WORD_GTM", 1);
@@ -475,7 +477,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
   }
 
   assert(fee < m_feeData.size());
-  auto& data_buffer = m_feeData[fee];
+  std::deque<uint16_t>& data_buffer = m_feeData[fee];
 
   while (HEADER_LENGTH <= data_buffer.size())
   {
@@ -534,13 +536,13 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     // continue the decoding
     payload.fee_id = fee;
     payload.adc_length = data_buffer[0] - HEADER_LENGTH;  // this is indeed the number of 10-bit words in this packet
-    payload.data_parity = data_buffer[4] >> 9;
-    payload.sampa_address = (data_buffer[4] >> 5) & 0xf;
-    payload.sampa_channel = data_buffer[4] & 0x1f;
-    payload.channel = data_buffer[4] & 0x1ff;
-    payload.type = (data_buffer[3] >> 7) & 0x7;
-    payload.user_word = data_buffer[3] & 0x7f;
-    payload.bx_timestamp = ((data_buffer[6] & 0x3ff) << 10) | (data_buffer[5] & 0x3ff);
+    payload.data_parity = data_buffer[4] >> 9U;
+    payload.sampa_address = static_cast<uint16_t>(data_buffer[4] >> 5U) & 0xfU;
+    payload.sampa_channel = data_buffer[4] & 0x1fU;
+    payload.channel = data_buffer[4] & 0x1ffU;
+    payload.type = static_cast<uint16_t>(data_buffer[3] >> 7U) & 0x7U;
+    payload.user_word = data_buffer[3] & 0x7fU;
+    payload.bx_timestamp = static_cast<uint16_t>((data_buffer[6] & 0x3ffU) << 10U) | (data_buffer[5] & 0x3ffU);
 
     if (not m_fastBCOSkip)
     {
@@ -561,7 +563,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     }  //     if (not m_fastBCOSkip)
 
     assert(fee < m_bcoMatchingInformation_vec.size());
-    auto& m_bcoMatchingInformation = m_bcoMatchingInformation_vec[fee];
+    BcoMatchingInformation& m_bcoMatchingInformation = m_bcoMatchingInformation_vec[fee];
     // gtm_bco matching
     if (payload.type == m_bcoMatchingInformation.HEARTBEAT_T)
     {
@@ -584,7 +586,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       }
       else  //       if (not m_bcoMatchingInformation.is_verified())
       {
-        const auto result = m_bcoMatchingInformation.find_reference_heartbeat(payload);
+        const optional<uint64_t> result = m_bcoMatchingInformation.find_reference_heartbeat(payload);
         m_hFEEDataStream->Fill(fee, "PacketHeartBeat", 1);
         assert(m_hFEEClockAdjustment);
         // m_hFEEClockAdjustment->Fill(fee, m_bcoMatchingInformation.get_multiplier_adjustment(), 1);
@@ -627,7 +629,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       }
       else
       {
-        const auto result = m_bcoMatchingInformation.find_gtm_bco(payload.bx_timestamp);
+        const optional<uint64_t> result = m_bcoMatchingInformation.find_gtm_bco(payload.bx_timestamp);
 
         if (result)
         {
@@ -757,11 +759,11 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
     cout << __PRETTY_FUNCTION__ << "\t- : processing GTM data " << endl;
   }
 
-  const unsigned char* gtm = reinterpret_cast<const unsigned char*>(&gtm_word);
+  const uint8_t* gtm = reinterpret_cast<const uint8_t*>(&gtm_word);
 
   gtm_payload payload;
 
-  payload.pkt_type = gtm[0] | ((unsigned short) gtm[1] << 8);
+  payload.pkt_type = gtm[0] | static_cast<uint16_t>((unsigned short) gtm[1] << 8U);
   //    if (payload.pkt_type != GTM_LVL1_ACCEPT_MAGIC_KEY && payload.pkt_type != GTM_ENDAT_MAGIC_KEY)
   if (payload.pkt_type != GTM_LVL1_ACCEPT_MAGIC_KEY && payload.pkt_type != GTM_ENDAT_MAGIC_KEY && payload.pkt_type != GTM_MODEBIT_MAGIC_KEY)
   {
@@ -772,10 +774,10 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
   payload.is_endat = payload.pkt_type == GTM_ENDAT_MAGIC_KEY;
   payload.is_modebit = payload.pkt_type == GTM_MODEBIT_MAGIC_KEY;
 
-  payload.bco = ((unsigned long long) gtm[2] << 0) | ((unsigned long long) gtm[3] << 8) | ((unsigned long long) gtm[4] << 16) | ((unsigned long long) gtm[5] << 24) | ((unsigned long long) gtm[6] << 32) | (((unsigned long long) gtm[7]) << 40);
-  payload.lvl1_count = ((unsigned int) gtm[8] << 0) | ((unsigned int) gtm[9] << 8) | ((unsigned int) gtm[10] << 16) | ((unsigned int) gtm[11] << 24);
-  payload.endat_count = ((unsigned int) gtm[12] << 0) | ((unsigned int) gtm[13] << 8) | ((unsigned int) gtm[14] << 16) | ((unsigned int) gtm[15] << 24);
-  payload.last_bco = ((unsigned long long) gtm[16] << 0) | ((unsigned long long) gtm[17] << 8) | ((unsigned long long) gtm[18] << 16) | ((unsigned long long) gtm[19] << 24) | ((unsigned long long) gtm[20] << 32) | (((unsigned long long) gtm[21]) << 40);
+  payload.bco = ((unsigned long long) gtm[2] << 0U) | ((unsigned long long) gtm[3] << 8U) | ((unsigned long long) gtm[4] << 16U) | ((unsigned long long) gtm[5] << 24U) | ((unsigned long long) gtm[6] << 32U) | (((unsigned long long) gtm[7]) << 40U);
+  payload.lvl1_count = ((unsigned int) gtm[8] << 0U) | ((unsigned int) gtm[9] << 8U) | ((unsigned int) gtm[10] << 16U) | ((unsigned int) gtm[11] << 24U);
+  payload.endat_count = ((unsigned int) gtm[12] << 0U) | ((unsigned int) gtm[13] << 8U) | ((unsigned int) gtm[14] << 16U) | ((unsigned int) gtm[15] << 24U);
+  payload.last_bco = ((unsigned long long) gtm[16] << 0U) | ((unsigned long long) gtm[17] << 8U) | ((unsigned long long) gtm[18] << 16U) | ((unsigned long long) gtm[19] << 24U) | ((unsigned long long) gtm[20] << 32U) | (((unsigned long long) gtm[21]) << 40U);
   payload.modebits = gtm[22];
   payload.userbits = gtm[23];
 
@@ -810,7 +812,7 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
   if (not(m_fastBCOSkip and (payload.is_lvl1 or payload.is_endat)))
   {
     int fee = -1;
-    for (auto& bcoMatchingInformation : m_bcoMatchingInformation_vec)
+    for (BcoMatchingInformation& bcoMatchingInformation : m_bcoMatchingInformation_vec)
     {
       ++fee;
 
@@ -834,26 +836,26 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
 uint16_t TpcTimeFrameBuilder::reverseBits(const uint16_t x) const
 {
   uint16_t n = x;
-  n = ((n >> 1) & 0x55555555) | ((n << 1) & 0xaaaaaaaa);
-  n = ((n >> 2) & 0x33333333) | ((n << 2) & 0xcccccccc);
-  n = ((n >> 4) & 0x0f0f0f0f) | ((n << 4) & 0xf0f0f0f0);
-  n = ((n >> 8) & 0x00ff00ff) | ((n << 8) & 0xff00ff00);
-  // n = (n >> 16) & 0x0000ffff | (n << 16) & 0xffff0000;
+  n = (static_cast<uint16_t>(n >> 1U) & 0x55555555U) | (static_cast<uint16_t>(n << 1U) & 0xaaaaaaaaU);
+  n = (static_cast<uint16_t>(n >> 2U) & 0x33333333U) | (static_cast<uint16_t>(n << 2U) & 0xccccccccU);
+  n = (static_cast<uint16_t>(n >> 4U) & 0x0f0f0f0fU) | (static_cast<uint16_t>(n << 4U) & 0xf0f0f0f0U);
+  n = (static_cast<uint16_t>(n >> 8U) & 0x00ff00ffU) | (static_cast<uint16_t>(n << 8U) & 0xff00ff00U);
+  // n = (n >> 16U) & 0x0000ffffU | (n << 16U) & 0xffff0000U;
   return n;
 }
 
 uint16_t TpcTimeFrameBuilder::crc16(
     const unsigned int fee, const unsigned int index, const int l) const
 {
-  uint16_t crc = 0xffff;
+  uint16_t crc = 0xffffU;
 
   for (int i = 0; i < l; i++)
   {
     uint16_t x = m_feeData[fee][index + i];
     crc ^= reverseBits(x);
-    for (uint16_t k = 0; k < 16; k++)
+    for (uint16_t k = 0; k < 16U; k++)
     {
-      crc = crc & 1 ? (crc >> 1) ^ 0xa001 : crc >> 1;
+      crc = crc & 1U ? static_cast<uint16_t>(crc >> 1U) ^ 0xa001U : crc >> 1U;
     }
   }
   crc = reverseBits(crc);
@@ -970,8 +972,8 @@ TpcTimeFrameBuilder::BcoMatchingInformation::BcoMatchingInformation(const std::s
                                              TString(m_name.c_str()) +
                                                  " FEEClock Diff for unmatched;Clock Adjustment [FEE Clock Cycle];Count",
                                              512,
-                                             -(1L << m_FEE_CLOCK_BITS) - .5,
-                                             +(1L << m_FEE_CLOCK_BITS) - .5);
+                                             -(1UL << m_FEE_CLOCK_BITS) - .5,
+                                             +(1UL << m_FEE_CLOCK_BITS) - .5);
   hm->registerHisto(m_hFEEClockAdjustment_Unmatched);
 
   m_hGTMNewEventSpacing = new TH1I(TString(m_name.c_str()) +
@@ -1083,7 +1085,7 @@ std::optional<uint32_t> TpcTimeFrameBuilder::BcoMatchingInformation::get_predict
 
   // convert to fee bco, and truncate to 20 bits
   const int64_t fee_bco_predicted = int64_t(m_bco_reference.value().second) + int64_t(m_multiplier * gtm_bco_difference);
-  return uint32_t(fee_bco_predicted & 0xFFFFFU);
+  return uint32_t(static_cast<uint64_t>(fee_bco_predicted) & 0xFFFFFU);
 }
 
 //___________________________________________________
@@ -1207,7 +1209,7 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
                   << ". Current m_bco_reference_candidate_list:"
                   << std::endl;
 
-        for (const auto& bco : m_bco_reference_candidate_list)
+        for (const m_gtm_fee_bco_matching_pair_t& bco : m_bco_reference_candidate_list)
         {
           std::cout << "\t- gtm_bco = 0x" << hex << bco.first << dec
                     << "\t- fee_bco = 0x" << hex << bco.second << dec
@@ -1268,12 +1270,12 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
   }
 
   assert(HeartBeatPacket.type == HEARTBEAT_T);
-  const auto& fee_bco = HeartBeatPacket.bx_timestamp;
+  const uint32_t& fee_bco = HeartBeatPacket.bx_timestamp;
 
   if (m_bco_reference)
   {
-    const auto& gtm_bco = m_bco_reference.value().first;
-    const auto& fee_bco_predicted = m_bco_reference.value().second;
+    const uint64_t& gtm_bco = m_bco_reference.value().first;
+    const uint32_t& fee_bco_predicted = m_bco_reference.value().second;
     // check if the predicted fee bco matches the actual fee bco
     if (get_fee_bco_diff(fee_bco_predicted, fee_bco) < m_max_fee_bco_diff)
     {
@@ -1300,10 +1302,10 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
     }
   }
 
-  for (const auto& bco : m_bco_reference_candidate_list)
+  for (const m_gtm_fee_bco_matching_pair_t& bco : m_bco_reference_candidate_list)
   {
-    const auto& gtm_bco = bco.first;
-    const auto& fee_bco_predicted = bco.second;
+    const uint64_t& gtm_bco = bco.first;
+    const uint32_t& fee_bco_predicted = bco.second;
 
     // check if the predicted fee bco matches the actual fee bco
     if (get_fee_bco_diff(fee_bco_predicted, fee_bco) < m_max_fee_bco_diff)
@@ -1327,7 +1329,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
       {
         std::cout << "\t- trimming m_bco_reference_candidate_list from size " << m_bco_reference_candidate_list.size() << std::endl;
 
-        for (const auto& bco_tmp : m_bco_reference_candidate_list)
+        for (const m_gtm_fee_bco_matching_pair_t& bco_tmp : m_bco_reference_candidate_list)
         {
           std::cout << "\t\t- gtm_bco = 0x" << hex << bco_tmp.first << dec
                     << "\t\t- fee_bco = 0x" << hex << bco_tmp.second << dec
@@ -1346,7 +1348,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
       {
         std::cout << "\t- to size " << m_bco_reference_candidate_list.size() << std::endl;
 
-        for (const auto& bco_tmp : m_bco_reference_candidate_list)
+        for (const m_gtm_fee_bco_matching_pair_t& bco_tmp : m_bco_reference_candidate_list)
         {
           std::cout << "\t\t- gtm_bco = 0x" << hex << bco_tmp.first << dec
                     << "\t\t- fee_bco = 0x" << hex << bco_tmp.second << dec
@@ -1442,7 +1444,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bc
     // check
     if (iter != m_gtm_bco_trig_list.end())
     {
-      const auto gtm_bco = *iter;
+      const uint64_t gtm_bco = *iter;
 
       m_hNorm->Fill("FindGTMBCOMatchedNew", 1);
       assert(m_hFindGTMBCO_MatchedNew_BCODiff);
@@ -1450,8 +1452,8 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bc
 
       if (verbosity() > 2)
       {
-        const auto fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
-        const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
+        const uint32_t fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
+        const uint32_t fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
 
         std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_gtm_bco - new GL1 match: "
                   << std::hex

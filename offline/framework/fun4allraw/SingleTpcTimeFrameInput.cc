@@ -183,7 +183,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
   //  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
 }
 
-void SingleTpcTimeFrameInput::Print(const std::string &) const
+void SingleTpcTimeFrameInput::Print(const std::string & /*what*/) const
 {
 }
 

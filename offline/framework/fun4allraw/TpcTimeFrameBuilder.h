@@ -1,20 +1,20 @@
-#ifndef __TpcTimeFrameBuilder_H__
-#define __TpcTimeFrameBuilder_H__
+#ifndef Fun4All_TpcTimeFrameBuilder_H
+#define Fun4All_TpcTimeFrameBuilder_H
 
 #include <algorithm>
 #include <cstdint>
 #include <deque>
-#include <queue>
 #include <functional>
-#include <set>
 #include <iostream>
 #include <limits>
-#include <map>
-#include <string>
-#include <vector>
-#include <utility>
 #include <list>
+#include <map>
 #include <optional>
+#include <queue>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 class Packet;
 class TpcRawHit;
@@ -22,6 +22,7 @@ class PHTimer;
 class TH1;
 class TH2;
 
+// NOLINTNEXTLINE(hicpp-special-member-functions)
 class TpcTimeFrameBuilder
 {
  public:
@@ -29,16 +30,16 @@ class TpcTimeFrameBuilder
   virtual ~TpcTimeFrameBuilder();
 
   int ProcessPacket(Packet *);
-  bool isMoreDataRequired(const uint64_t & gtm_bco) const;
-  void CleanupUsedPackets(const uint64_t & bclk);
-  std::vector<TpcRawHit *> & getTimeFrame(const uint64_t & gtm_bco);
+  bool isMoreDataRequired(const uint64_t &gtm_bco) const;
+  void CleanupUsedPackets(const uint64_t &bclk);
+  std::vector<TpcRawHit *> &getTimeFrame(const uint64_t &gtm_bco);
 
   void setVerbosity(const int i);
-  void setFastBCOSkip(bool fastBCOSkip = true) 
+  void setFastBCOSkip(bool fastBCOSkip = true)
   {
     m_fastBCOSkip = fastBCOSkip;
   }
-  
+
  protected:
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream
   static const size_t DAM_DMA_WORD_LENGTH = 16;
@@ -52,14 +53,14 @@ class TpcTimeFrameBuilder
   static const uint16_t GTM_ENDAT_MAGIC_KEY = 0xbbf1;
   static const uint16_t GTM_MODEBIT_MAGIC_KEY = 0xbbf2;
 
-  static const uint16_t MAX_FEECOUNT = 26;      // that many FEEs
-  static const uint16_t MAX_SAMPA = 8;      // that many FEEs
+  static const uint16_t MAX_FEECOUNT = 26;              // that many FEEs
+  static const uint16_t MAX_SAMPA = 8;                  // that many FEEs
   static const uint16_t MAX_CHANNELS = MAX_SAMPA * 32;  // that many channels per FEE
-                                                //  static const uint16_t  HEADER_LENGTH  = 5;
+                                                        //  static const uint16_t  HEADER_LENGTH  = 5;
   static const uint16_t HEADER_LENGTH = 7;
   static const uint16_t MAX_PACKET_LENGTH = 1025;
 
-  static const uint16_t GL1_BCO_MATCH_WINDOW = 256;   // BCOs
+  static const uint16_t GL1_BCO_MATCH_WINDOW = 256;  // BCOs
 
   uint16_t reverseBits(const uint16_t x) const;
   uint16_t crc16(const uint32_t fee, const uint32_t index, const int l) const;
@@ -68,8 +69,8 @@ class TpcTimeFrameBuilder
   //! DMA word structure
   struct dma_word
   {
-    uint16_t dma_header;
-    uint16_t data[DAM_DMA_WORD_LENGTH - 1];
+    uint16_t dma_header = 0;
+    uint16_t data[DAM_DMA_WORD_LENGTH - 1] = {0};
   };
 
   int decode_gtm_data(const dma_word &gtm_word);
@@ -87,13 +88,12 @@ class TpcTimeFrameBuilder
     uint64_t last_bco = 0;
     uint8_t modebits = 0;
     uint8_t userbits = 0;
-
   };
 
   struct fee_payload
   {
     uint16_t fee_id = 0;
-    uint16_t adc_length = 0;  
+    uint16_t adc_length = 0;
     uint16_t data_parity = 0;
     uint16_t sampa_address = 0;
     uint16_t sampa_channel = 0;
@@ -105,26 +105,9 @@ class TpcTimeFrameBuilder
 
     uint16_t data_crc = 0;
     uint16_t calc_crc = 0;
-    
-    std::vector< std::pair< uint16_t , std::vector<uint16_t> > > waveforms;
+
+    std::vector<std::pair<uint16_t, std::vector<uint16_t>>> waveforms;
   };
-
-  std::vector<std::deque<uint16_t>> m_feeData;
-
-  int m_verbosity = 0;
-  int m_packet_id = 0;
-
-  //! common prefix for QA histograms
-  std::string m_HistoPrefix;
-
-  //! GTM BCO -> TpcRawHit
-  //! Map to store TpcRawHit pointers indexed by GTM BCO values
-  //! This is used to organize hits into time frames based on their BCO values
-  std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;
-  static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
-  
-  //! fast skip mode when searching for particular GL1 BCO over long segment of files
-  bool m_fastBCOSkip = false;
 
   // -------------------------
   // GTM Matcher
@@ -132,9 +115,9 @@ class TpcTimeFrameBuilder
   // -------------------------
   class BcoMatchingInformation
   {
-  public:
+   public:
     //! constructor
-    explicit BcoMatchingInformation(const std::string & name) ;
+    explicit BcoMatchingInformation(const std::string &name);
 
     //!@name accessor
     //@{
@@ -160,13 +143,13 @@ class TpcTimeFrameBuilder
     using m_fee_gtm_bco_matching_pair_t = std::pair<uint32_t, uint64_t>;
 
     //! get reference bco
-    const std::optional<m_gtm_fee_bco_matching_pair_t> & get_reference_bco() const
+    const std::optional<m_gtm_fee_bco_matching_pair_t> &get_reference_bco() const
     {
       return m_bco_reference;
     }
 
     //! whether FEE data has moved pass the given gtm_bco
-    bool isMoreDataRequired(const uint64_t & gtm_bco) const;
+    bool isMoreDataRequired(const uint64_t &gtm_bco) const;
 
     //! get predicted fee_bco from gtm_bco
     std::optional<uint32_t> get_predicted_fee_bco(uint64_t) const;
@@ -198,13 +181,13 @@ class TpcTimeFrameBuilder
     }
 
     /// set gtm clock with rollover correction
-    uint64_t get_gtm_rollover_correction(const uint64_t & gtm_bco) const;
+    uint64_t get_gtm_rollover_correction(const uint64_t &gtm_bco) const;
 
     //! find reference from data
-    std::optional<uint64_t> find_reference_heartbeat(const fee_payload & HeartBeatPacket);
+    std::optional<uint64_t> find_reference_heartbeat(const fee_payload &HeartBeatPacket);
 
     //! save all GTM BCO clocks from packet data
-    void save_gtm_bco_information(const gtm_payload & gtm_tagger);
+    void save_gtm_bco_information(const gtm_payload &gtm_tagger);
 
     //! find gtm bco matching a given fee
     std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
@@ -250,24 +233,21 @@ class TpcTimeFrameBuilder
     // get the difference between two BCO WITHOUT rollover corrections
     template <class T>
     inline static constexpr T get_bco_diff(
-      const T& first, const T& second
-      )
+        const T &first, const T &second)
     {
       return first < second ? (second - first) : (first - second);
     }
 
     // get the difference between two BCO with rollover corrections
     inline static constexpr uint32_t get_fee_bco_diff(
-      const uint32_t& first, const uint32_t& second
-      )
+        const uint32_t &first, const uint32_t &second) // NOLINT(misc-unused-parameters)
     {
       const uint32_t diff_raw = get_bco_diff(first, second);
 
       return (diff_raw < (1U << (m_FEE_CLOCK_BITS / 2))) ? diff_raw : (1U << m_FEE_CLOCK_BITS) - diff_raw;
     }
 
-  private:
-
+   private:
     std::string m_name;
 
     //! verbosity
@@ -282,7 +262,7 @@ class TpcTimeFrameBuilder
     std::list<uint64_t> m_gtm_bco_trig_list;
 
     //! list of available GTM -> FEE bco mapping for synchronization
-    std::optional< m_gtm_fee_bco_matching_pair_t > m_bco_reference = std::nullopt;
+    std::optional<m_gtm_fee_bco_matching_pair_t> m_bco_reference = std::nullopt;
 
     // std::optional< std::pair< uint64_t, uint32_t > > m_bco_reference_candidate = std::nullopt;
     //! not yet matched heart beats
@@ -312,15 +292,14 @@ class TpcTimeFrameBuilder
     // define limit for matching fee_bco to fee_bco_predicted
     static constexpr unsigned int m_max_gtm_bco_diff = 256;
 
-  //   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
+    //   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
     static constexpr unsigned int m_max_matching_data_size = 10;
 
-    //! max time in GTM BCO for FEE data to sync over to datastream 
+    //! max time in GTM BCO for FEE data to sync over to datastream
     static constexpr unsigned int m_max_fee_sync_time = 1024;
 
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
-
 
     // this is the clock multiplier from lvl1 to fee clock
     // Tested with Run24 data. Could be changable in future runs
@@ -334,15 +313,32 @@ class TpcTimeFrameBuilder
     TH1 *m_hFindGTMBCO_MatchedExisting_BCODiff = nullptr;
     TH1 *m_hFindGTMBCO_MatchedNew_BCODiff = nullptr;
 
-  }; //   class BcoMatchingInformation
+  };  //   class BcoMatchingInformation
 
+ private:
+  std::vector<std::deque<uint16_t>> m_feeData;
+
+  int m_verbosity = 0;
+  int m_packet_id = 0;
+
+  //! common prefix for QA histograms
+  std::string m_HistoPrefix;
+
+  //! GTM BCO -> TpcRawHit
+  //! Map to store TpcRawHit pointers indexed by GTM BCO values
+  //! This is used to organize hits into time frames based on their BCO values
+  std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;
+  static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
+
+  //! fast skip mode when searching for particular GL1 BCO over long segment of files
+  bool m_fastBCOSkip = false;
 
   //! map bco_information_t to packet id
   std::vector<BcoMatchingInformation> m_bcoMatchingInformation_vec;
 
   //! QA area
 
-  PHTimer * m_packetTimer = nullptr;
+  PHTimer *m_packetTimer = nullptr;
 
   TH1 *m_hNorm = nullptr;
   TH2 *m_hFEEDataStream = nullptr;

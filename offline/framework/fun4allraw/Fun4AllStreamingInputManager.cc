@@ -1380,11 +1380,11 @@ int Fun4AllStreamingInputManager::FillTpcPool()
       }
     }
   }
-  if (m_TpcRawHitMap.empty())
-  {
-    std::cout << "TpcRawHitMap is empty - we are done" << std::endl;
+  // if (m_TpcRawHitMap.empty())
+  // {
+  //   std::cout << "TpcRawHitMap is empty - we are done" << std::endl;
     // return -1;
-  }
+  // }
   return 0;
 }
 
