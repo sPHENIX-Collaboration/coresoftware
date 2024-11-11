@@ -508,12 +508,14 @@ int InttCalib::MakeHotMapPng_v3()
                        // (j % 4 + 0.0) / 4.0 * 0.9 + 0.0, (1.0 - j / 4) / 2.0 *
                        // 0.9 + 0.1, // (j % 4 + 1.0) / 4.0 * 0.9 + 0.0, (2.0 - j
                        // / 4) / 2.0 * 0.9 + 0.1  //
-                       // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0,
-        (1.0 - j / 4) / 2.0 * 0.9 +
-            0.1,                                                          //
-                                                                          // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (1.0 - j / 4) / 2.0 * 0.9 + 0.1, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
     );
 
     hist_pad->SetFillStyle(4000);
@@ -652,12 +654,14 @@ int InttCalib::MakeHotMapPng_v2()
                        // (j % 4 + 0.0) / 4.0 * 0.9 + 0.0, (1.0 - j / 4) / 2.0 *
                        // 0.9 + 0.1, // (j % 4 + 1.0) / 4.0 * 0.9 + 0.0, (2.0 - j
                        // / 4) / 2.0 * 0.9 + 0.1  //
-                       // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0,
-        (1.0 - j / 4) / 2.0 * 0.9 +
-            0.1,                                                          //
-                                                                          // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (1.0 - j / 4) / 2.0 * 0.9 + 0.1, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, //
+                 // NOLINTNEXTLINE(bugprone-integer-division)
+        (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
     );
 
     hist_pad->SetFillStyle(4000);
