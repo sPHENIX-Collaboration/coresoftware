@@ -80,8 +80,8 @@ class TpcRawHitv3 : public TpcRawHit
   uint16_t get_type() const override { return type; }
   void set_type(const uint16_t i) override { type = i; }
 
-  uint16_t get_userword() const override { return userword; }
-  void set_userword(const uint16_t i) override { userword = i; }
+  // uint16_t get_userword() const override { return userword; }
+  // void set_userword(const uint16_t i) override { userword = i; }
 
   uint16_t get_checksum() const override { return checksum; }
   void set_checksum(const uint16_t i) override { checksum = i; }
@@ -101,7 +101,6 @@ class TpcRawHitv3 : public TpcRawHit
   uint16_t fee{std::numeric_limits<uint16_t>::max()};
   uint16_t channel{std::numeric_limits<uint16_t>::max()};
   uint16_t type{std::numeric_limits<uint16_t>::max()};
-  uint16_t userword{std::numeric_limits<uint16_t>::max()};
   uint16_t checksum{std::numeric_limits<uint16_t>::max()};
   uint16_t data_parity{std::numeric_limits<uint16_t>::max()};
 

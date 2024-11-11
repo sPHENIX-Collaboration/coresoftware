@@ -46,7 +46,7 @@ TpcRawHitv3::TpcRawHitv3(TpcRawHitv3 &&other) noexcept
   , fee(other.fee)
   , channel(other.channel)
   , type(other.type)
-  , userword(other.userword)
+  // , userword(other.userword)
   , checksum(other.checksum)
   , data_parity(other.data_parity)
   , checksumerror(other.checksumerror)
