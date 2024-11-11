@@ -1,7 +1,18 @@
 #include "TpcRawHitv3.h"
 
+#include <iostream>
+
 TpcRawHitv3::TpcRawHitv3(TpcRawHit *tpchit)
 {
+  static bool once = true;
+  if (once)
+  {
+    once = false;
+    std::cout << "TpcRawHitv3::TpcRawHitv3(TpcRawHit *tpchit) - "
+              << "WARNING: This moethod is slow and should be avoided as much as possible!"
+              << std::endl;
+  }
+
   TpcRawHitv3::set_bco(tpchit->get_bco());
   TpcRawHitv3::set_gtm_bco(tpchit->get_gtm_bco());
   TpcRawHitv3::set_packetid(tpchit->get_packetid());
@@ -35,15 +46,15 @@ void TpcRawHitv3::identify(std::ostream &os) const
 
 uint16_t TpcRawHitv3::get_adc(const uint16_t sample) const
 {
-  auto adc = adcmap.find(sample);
-  if (adc != adcmap.end())
-  {
-    return adc->second;
-  }
+  //   auto adc = adcmap.find(sample);
+  //   if (adc != adcmap.end())
+  //   {
+  //     return adc->second;
+  //   }
   return 0;
 }
 
 void TpcRawHitv3::Clear(Option_t * /*unused*/)
 {
-  adcmap.clear();
+  //   adcmap.clear();
 }
