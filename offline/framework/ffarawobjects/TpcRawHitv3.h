@@ -7,14 +7,16 @@
 
 #include <cassert>
 #include <limits>
-#include <vector>
 #include <utility>
+#include <vector>
 
 class TpcRawHitv3 : public TpcRawHit
 {
  public:
   TpcRawHitv3() = default;
   TpcRawHitv3(TpcRawHit *tpchit);
+  TpcRawHitv3(TpcRawHitv3 &&other) noexcept;
+  
   ~TpcRawHitv3() override = default;
 
   /** identify Function from PHObject
@@ -28,9 +30,9 @@ class TpcRawHitv3 : public TpcRawHit
   // cppcheck-suppress virtualCallInConstructor
   void set_bco(const uint64_t val) override { bco = val; }
 
-//   uint64_t get_gtm_bco() const override { return gtm_bco; }
-//   // cppcheck-suppress virtualCallInConstructor
-//   void set_gtm_bco(const uint64_t val) override { gtm_bco = val; }
+  //   uint64_t get_gtm_bco() const override { return gtm_bco; }
+  //   // cppcheck-suppress virtualCallInConstructor
+  //   void set_gtm_bco(const uint64_t val) override { gtm_bco = val; }
 
   int32_t get_packetid() const override { return packetid; }
   // cppcheck-suppress virtualCallInConstructor
@@ -44,29 +46,36 @@ class TpcRawHitv3 : public TpcRawHit
   // cppcheck-suppress virtualCallInConstructor
   void set_channel(const uint16_t val) override { channel = val; }
 
-//   uint16_t get_sampaaddress() const override { return sampaaddress; }
-//   // cppcheck-suppress virtualCallInConstructor
-//   void set_sampaaddress(const uint16_t val) override { sampaaddress = val; }
+  uint16_t get_sampaaddress() const override
+  {
+    return static_cast<uint16_t>(channel >> 5U) & 0xfU;
+  }
+  //   // cppcheck-suppress virtualCallInConstructor
+  //   void set_sampaaddress(const uint16_t val) override { sampaaddress = val; }
 
-//   uint16_t get_sampachannel() const override { return sampachannel; }
-//   // cppcheck-suppress virtualCallInConstructor
-//   void set_sampachannel(const uint16_t val) override { sampachannel = val; }
+  uint16_t get_sampachannel() const override { return channel & 0x1fU; }
+  //   // cppcheck-suppress virtualCallInConstructor
+  //   void set_sampachannel(const uint16_t val) override { sampachannel = val; }
 
-//   uint16_t get_samples() const override { return samples; }
+  //   uint16_t get_samples() const override { return samples; }
   // cppcheck-suppress virtualCallInConstructor
-//   void set_samples(const uint16_t val) override
-//   {
-//     // assign
-//     samples = val;
-//   }
+  //   void set_samples(const uint16_t val) override
+  //   {
+  //     // assign
+  //     samples = val;
+  //   }
 
   uint16_t get_adc(const uint16_t sample) const override;
 
   // cppcheck-suppress virtualCallInConstructor
-//   void set_adc(const uint16_t sample, const uint16_t val) override
-//   {
-//     adcmap[sample] = val;
-//   }
+  //   void set_adc(const uint16_t sample, const uint16_t val) override
+  //   {
+  //     adcmap[sample] = val;
+  //   }
+  void move_adc_waveform(const uint16_t start_time, std::vector<uint16_t> &&adc)
+  {
+    m_adcData.emplace_back(start_time, std::move(adc));
+  }
 
   uint16_t get_type() const override { return type; }
   void set_type(const uint16_t i) override { type = i; }
@@ -100,7 +109,7 @@ class TpcRawHitv3 : public TpcRawHit
   bool parityerror{true};
 
   //! adc waveform std::vector< uint16_t > for each start time uint16_t
-  std::vector< std::pair< uint16_t , std::vector< uint16_t > > > m_adcData;
+  std::vector<std::pair<uint16_t, std::vector<uint16_t> > > m_adcData;
 
   ClassDefOverride(TpcRawHitv3, 1)
 };

@@ -3,6 +3,8 @@
 
 #include <TClonesArray.h>
 
+#include <iostream>
+
 static const int NTPCHITS = 10000;
 
 TpcRawHitContainerv3::TpcRawHitContainerv3()
@@ -51,8 +53,20 @@ TpcRawHit *TpcRawHitContainerv3::AddHit()
 
 TpcRawHit *TpcRawHitContainerv3::AddHit(TpcRawHit *tpchit)
 {
-  TpcRawHit *newhit = new ((*TpcRawHitsTCArray)[TpcRawHitsTCArray->GetLast() + 1]) TpcRawHitv3(tpchit);
-  return newhit;
+  if (dynamic_cast<TpcRawHitv3 *>(tpchit))
+  {
+    // fast add with move constructor to avoid ADC data copying
+
+    TpcRawHit *newhit = new ((*TpcRawHitsTCArray)[TpcRawHitsTCArray->GetLast() + 1])
+        TpcRawHitv3(std::move(*(dynamic_cast<TpcRawHitv3 *>(tpchit))));
+    return newhit;
+  }
+  else
+  {
+    std::cout << __PRETTY_FUNCTION__ << "WARNING: input hit is not of type TpcRawHitv3. This is slow, please avoid." << std::endl;
+    TpcRawHit *newhit = new ((*TpcRawHitsTCArray)[TpcRawHitsTCArray->GetLast() + 1]) TpcRawHitv3(tpchit);
+    return newhit;
+  }
 }
 
 TpcRawHit *TpcRawHitContainerv3::get_hit(unsigned int index)

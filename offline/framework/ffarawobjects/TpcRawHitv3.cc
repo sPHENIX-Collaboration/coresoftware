@@ -9,7 +9,7 @@ TpcRawHitv3::TpcRawHitv3(TpcRawHit *tpchit)
   {
     once = false;
     std::cout << "TpcRawHitv3::TpcRawHitv3(TpcRawHit *tpchit) - "
-              << "WARNING: This moethod is slow and should be avoided as much as possible!"
+              << "WARNING: This moethod is slow and should be avoided as much as possible! Please use the move constructor."
               << std::endl;
   }
 
@@ -38,6 +38,32 @@ TpcRawHitv3::TpcRawHitv3(TpcRawHit *tpchit)
   }
 }
 
+TpcRawHitv3::TpcRawHitv3(TpcRawHitv3 &&other) noexcept
+  : TpcRawHit(std::move(other))
+  , bco(other.bco)
+  , packetid(other.packetid)
+  , fee(other.fee)
+  , channel(other.channel)
+  , type(other.type)
+  , userword(other.userword)
+  , checksum(other.checksum)
+  , data_parity(other.data_parity)
+  , checksumerror(other.checksumerror)
+  , parityerror(other.parityerror)
+  , m_adcData(std::move(other.m_adcData))
+{
+//   other.bco = std::numeric_limits<uint64_t>::max();
+//   other.packetid = std::numeric_limits<int32_t>::max();
+  other.fee = std::numeric_limits<uint16_t>::max();
+  other.channel = std::numeric_limits<uint16_t>::max();
+//   other.type = std::numeric_limits<uint16_t>::max();
+//   other.userword = std::numeric_limits<uint16_t>::max();
+//   other.checksum = std::numeric_limits<uint16_t>::max();
+//   other.data_parity = std::numeric_limits<uint16_t>::max();
+  other.checksumerror = true;
+  other.parityerror = true;
+}
+
 void TpcRawHitv3::identify(std::ostream &os) const
 {
   os << "BCO: 0x" << std::hex << bco << std::dec << std::endl;
@@ -56,5 +82,12 @@ uint16_t TpcRawHitv3::get_adc(const uint16_t sample) const
 
 void TpcRawHitv3::Clear(Option_t * /*unused*/)
 {
-  //   adcmap.clear();
+  // quick reset
+  fee = std::numeric_limits<uint16_t>::max();
+  channel = std::numeric_limits<uint16_t>::max();
+  checksumerror = true;
+  parityerror = true;
+
+  m_adcData.clear();
+  m_adcData.reserve(0);
 }
