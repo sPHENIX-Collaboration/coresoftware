@@ -152,6 +152,12 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
                                           " Time frame size for Matched Time Frame ;Size [TPC raw hits];Count",
                                       3328, -.5, 3328 - .5);
   hm->registerHisto(h_TimeFrame_Matched_Size);
+
+  h_ProcessPacket_Time = new TH2I(TString(m_HistoPrefix.c_str()) + "_ProcessPacket_Time",  //
+                              TString(m_HistoPrefix.c_str()) +
+                                  " Time cost to run ProcessPacket();Call counts;Time elapsed per call [ms];Count",
+                              100, 0, 30e6, 100,0,10);
+  hm->registerHisto(h_ProcessPacket_Time);
 }
 
 TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
@@ -540,6 +546,8 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
   }
 
   m_packetTimer->stop();
+  assert(h_ProcessPacket_Time);
+  h_ProcessPacket_Time -> Fill(call_count, m_packetTimer->elapsed());
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

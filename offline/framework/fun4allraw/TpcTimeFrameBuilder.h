@@ -354,6 +354,9 @@ class TpcTimeFrameBuilder
   TH1 *h_GTMClockDiff_Unmatched = nullptr;
   TH1 *h_GTMClockDiff_Dropped = nullptr;
   TH1 *h_TimeFrame_Matched_Size = nullptr;
+
+  
+  TH2 *h_ProcessPacket_Time = nullptr;
 };
 
 #endif
