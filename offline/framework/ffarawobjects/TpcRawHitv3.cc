@@ -1,6 +1,7 @@
 #include "TpcRawHitv3.h"
 
 #include <iostream>
+#include <cassert>
 
 TpcRawHitv3::TpcRawHitv3(TpcRawHit *tpchit)
 {
@@ -70,8 +71,12 @@ void TpcRawHitv3::identify(std::ostream &os) const
   os << "packet id: " << packetid << std::endl;
 }
 
-uint16_t TpcRawHitv3::get_adc(const uint16_t sample) const
+uint16_t TpcRawHitv3::get_adc(const uint16_t /*sample*/) const
 {
+  std::cout << __PRETTY_FUNCTION__
+            << " Error: This moethod is slow and should be avoided as much as possible!"
+            << std::endl;
+  assert(0);          
   //   auto adc = adcmap.find(sample);
   //   if (adc != adcmap.end())
   //   {

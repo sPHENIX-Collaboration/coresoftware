@@ -235,13 +235,16 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
                   << " and bclk_rollover_corrected 0x" << std::hex
                   << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
 
-        for (const auto& timeframe : m_timeFrameMap)
+        if (m_verbosity >= 2)
         {
-          std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
-                    << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected)
-                    << ")"
-                    << " size: " << timeframe.second.size()
-                    << std::endl;
+          for (const auto& timeframe : m_timeFrameMap)
+          {
+            std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
+                      << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected)
+                      << ")"
+                      << " size: " << timeframe.second.size()
+                      << std::endl;
+          }
         }
       }
 
@@ -295,10 +298,13 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
               << "and bclk_rollover_corrected 0x" << std::hex
               << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
 
-    for (const auto& timeframe : m_timeFrameMap)
+    if (m_verbosity >= 2)
     {
-      std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
-                << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected) << ")" << std::endl;
+      for (const auto& timeframe : m_timeFrameMap)
+      {
+        std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
+                  << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected) << ")" << std::endl;
+      }
     }
   }
 

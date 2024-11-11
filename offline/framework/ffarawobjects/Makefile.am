@@ -184,7 +184,7 @@ libffarawobjects_la_SOURCES = \
   OfflinePacket.cc \
   OfflinePacketv1.cc \
   TpcRawHitContainerv1.cc \
-  TpcRawHitContainerv2.cc \\
+  TpcRawHitContainerv2.cc \
   TpcRawHitContainerv3.cc \
   TpcRawHitv1.cc \
   TpcRawHitv2.cc \
