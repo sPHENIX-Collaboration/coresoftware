@@ -10,11 +10,12 @@
 #include <utility>
 #include <vector>
 
+// NOLINTNEXTLINE(hicpp-special-member-functions)
 class TpcRawHitv3 : public TpcRawHit
 {
  public:
   TpcRawHitv3() = default;
-  TpcRawHitv3(TpcRawHit *tpchit);
+  explicit TpcRawHitv3(TpcRawHit *tpchit);
   TpcRawHitv3(TpcRawHitv3 &&other) noexcept;
   
   ~TpcRawHitv3() override = default;
@@ -24,7 +25,7 @@ class TpcRawHitv3 : public TpcRawHit
    */
   void identify(std::ostream &os = std::cout) const override;
 
-  void Clear(Option_t *) override;
+  void Clear(Option_t */*unused*/) override;
 
   uint64_t get_bco() const override { return bco; }
   // cppcheck-suppress virtualCallInConstructor
@@ -73,7 +74,7 @@ class TpcRawHitv3 : public TpcRawHit
   //     adcmap[sample] = val;
   //   }
   void move_adc_waveform(const uint16_t start_time, std::vector<uint16_t> &&adc);
-  
+
   uint16_t get_type() const override { return type; }
   void set_type(const uint16_t i) override { type = i; }
 

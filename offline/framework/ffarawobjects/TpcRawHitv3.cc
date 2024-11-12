@@ -41,17 +41,17 @@ TpcRawHitv3::TpcRawHitv3(TpcRawHit *tpchit)
 
 // cppcheck-suppress accessMoved
 TpcRawHitv3::TpcRawHitv3(TpcRawHitv3 &&other) noexcept
-  : TpcRawHit(std::move(other))
-  , bco(std::move(other.bco))
-  , packetid(std::move(other.packetid))
-  , fee(std::move(other.fee))
-  , channel(std::move(other.channel))
-  , type(std::move(other.type))
+  : TpcRawHit(other)
+  , bco(other.bco)
+  , packetid(other.packetid)
+  , fee(other.fee)
+  , channel(other.channel)
+  , type(other.type)
   // , userword(other.userword)
-  , checksum(std::move(other.checksum))
-  , data_parity(std::move(other.data_parity))
-  , checksumerror(std::move(other.checksumerror))
-  , parityerror(std::move(other.parityerror))
+  , checksum(other.checksum)
+  , data_parity(other.data_parity)
+  , checksumerror(other.checksumerror)
+  , parityerror(other.parityerror)
   , m_adcData(std::move(other.m_adcData))
 {
   //   other.bco = std::numeric_limits<uint64_t>::max();

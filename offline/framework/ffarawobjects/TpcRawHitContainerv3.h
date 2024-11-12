@@ -6,6 +6,7 @@
 class TpcRawHit;
 class TClonesArray;
 
+// NOLINTNEXTLINE(hicpp-special-member-functions)
 class TpcRawHitContainerv3 : public TpcRawHitContainer
 {
  public:
