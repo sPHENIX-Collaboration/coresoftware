@@ -24,6 +24,9 @@
 
 #include "KFParticle_MVA.h"
 
+#include <globalvertex/MbdVertex.h>
+#include <globalvertex/MbdVertexMap.h>
+
 #include <KFParticle.h>
 
 #include <limits>
@@ -181,12 +184,16 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_require_bunch_crossing_match {true};
 
+  bool m_use_mbd_vertex {false};
+
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
-  SvtxVertexMap *m_dst_vertexmap {nullptr};
+  MbdVertexMap *m_dst_mbdvertexmap {nullptr};
+  MbdVertex *m_dst_mbdvertex {nullptr};
   SvtxTrackMap *m_dst_trackmap {nullptr};
-  SvtxVertex *m_dst_vertex {nullptr};
   SvtxTrack *m_dst_track {nullptr};
+  SvtxVertexMap *m_dst_vertexmap {nullptr};
+  SvtxVertex *m_dst_vertex {nullptr};
 
   void removeDuplicates(std::vector<double> &v);
   void removeDuplicates(std::vector<int> &v);
