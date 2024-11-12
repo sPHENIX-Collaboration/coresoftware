@@ -20,7 +20,9 @@ libcentrality_io_la_LIBADD = \
 libcentrality_la_LIBADD = \
   libcentrality_io.la \
   -lfun4all \
+  -lglobalvertex \
   -lcalo_io \
+  -lcalotrigger_io \
   -lmbd_io \
   -lphool \
   -lcdbobjects \

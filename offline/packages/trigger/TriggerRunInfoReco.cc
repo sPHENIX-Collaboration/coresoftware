@@ -184,8 +184,9 @@ int TriggerRunInfoReco::fetchTriggerScalers(int runnumber, TriggerRunInfo *trigg
     double live = static_cast<double>(scalers[i][1]);
     double prescale = -1;
     if (scaled >= 1) 
-      prescale = live/scaled;
-
+      {
+	prescale = live/scaled;
+      }
     triggerRunInfo->setTriggerPrescale(i, prescale);
 
   }
