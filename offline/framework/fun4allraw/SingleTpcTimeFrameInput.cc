@@ -4,8 +4,8 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/TpcRawHitContainerv2.h>
-#include <ffarawobjects/TpcRawHitv2.h>
+#include <ffarawobjects/TpcRawHitContainerv3.h>
+#include <ffarawobjects/TpcRawHitv3.h>
 
 #include <frog/FROG.h>
 
@@ -42,7 +42,7 @@ SingleTpcTimeFrameInput::~SingleTpcTimeFrameInput()
 
 void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 {
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
               << " Entry with targetBCO = 0x"<<std::hex << targetBCO
@@ -237,7 +237,7 @@ void SingleTpcTimeFrameInput::CreateDSTNode(PHCompositeNode *topNode)
   TpcRawHitContainer *tpchitcont = findNode::getClass<TpcRawHitContainer>(detNode, m_rawHitContainerName);
   if (!tpchitcont)
   {
-    tpchitcont = new TpcRawHitContainerv2();
+    tpchitcont = new TpcRawHitContainerv3();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(tpchitcont, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }

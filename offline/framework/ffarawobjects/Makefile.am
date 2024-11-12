@@ -57,8 +57,10 @@ ROOTDICTS = \
   TpcRawHitContainer_Dict.cc \
   TpcRawHitContainerv1_Dict.cc \
   TpcRawHitContainerv2_Dict.cc \
+  TpcRawHitContainerv3_Dict.cc \
   TpcRawHitv1_Dict.cc \
-  TpcRawHitv2_Dict.cc
+  TpcRawHitv2_Dict.cc \
+  TpcRawHitv3_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -103,8 +105,10 @@ nobase_dist_pcm_DATA = \
   TpcRawHitContainer_Dict_rdict.pcm \
   TpcRawHitContainerv1_Dict_rdict.pcm \
   TpcRawHitContainerv2_Dict_rdict.pcm \
+  TpcRawHitContainerv3_Dict_rdict.pcm \
   TpcRawHitv1_Dict_rdict.pcm \
-  TpcRawHitv2_Dict_rdict.pcm
+  TpcRawHitv2_Dict_rdict.pcm \
+  TpcRawHitv3_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
   CaloPacket.h \
@@ -148,8 +152,10 @@ pkginclude_HEADERS = \
   TpcRawHitContainer.h \
   TpcRawHitContainerv1.h \
   TpcRawHitContainerv2.h \
+  TpcRawHitContainerv3.h \
   TpcRawHitv1.h \
-  TpcRawHitv2.h
+  TpcRawHitv2.h \
+  TpcRawHitv3.h
 
 libffarawobjects_la_SOURCES = \
   $(ROOTDICTS) \
@@ -179,8 +185,10 @@ libffarawobjects_la_SOURCES = \
   OfflinePacketv1.cc \
   TpcRawHitContainerv1.cc \
   TpcRawHitContainerv2.cc \
+  TpcRawHitContainerv3.cc \
   TpcRawHitv1.cc \
-  TpcRawHitv2.cc
+  TpcRawHitv2.cc \
+  TpcRawHitv3.cc
 
 BUILT_SOURCES = testexternals.cc
 
