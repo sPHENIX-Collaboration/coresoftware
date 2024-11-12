@@ -110,6 +110,10 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   RawTowerContainer *towers = nullptr;
   TowerInfoContainer *towerinfos = nullptr;
   RawTowerGeomContainer *geom = nullptr;
+  RawTowerGeomContainer *EMCal_geom = nullptr;
+
+
+
   if (m_input == Jet::CEMC_TOWER)
   {
     towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
@@ -389,6 +393,18 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     return std::vector<Jet *>();
   }
 
+  //for those cases we need to use the EMCal R and IHCal eta phi to calculate the vertex correction
+  if(m_input == Jet::CEMC_TOWER_RETOWER || m_input == Jet::CEMC_TOWERINFO_RETOWER || m_input == Jet::CEMC_TOWER_SUB1 || m_input == Jet::CEMC_TOWERINFO_SUB1 || m_input == Jet::CEMC_TOWER_SUB1CS)
+  {
+    EMCal_geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
+    if (!EMCal_geom)
+    {
+      return std::vector<Jet *>();
+    }
+  }
+
+
+
   // first grab the event vertex or bail
   GlobalVertex *vtx = vertexmap->begin()->second;
   float vtxz = NAN;
@@ -458,8 +474,16 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       assert(tower_geom);
 
       double r = tower_geom->get_center_radius();
+      if(m_input == Jet::CEMC_TOWER_RETOWER || m_input == Jet::CEMC_TOWERINFO_RETOWER || m_input == Jet::CEMC_TOWER_SUB1 || m_input ==Jet::CEMC_TOWERINFO_SUB1 || m_input == Jet::CEMC_TOWER_SUB1CS)
+      {
+        const RawTowerDefs::keytype EMCal_key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, 0, 0);
+        RawTowerGeom *EMCal_tower_geom = EMCal_geom->get_tower_geometry(EMCal_key );
+        assert(EMCal_tower_geom);
+        r = EMCal_tower_geom->get_center_radius();
+      }
       double phi = atan2(tower_geom->get_center_y(), tower_geom->get_center_x());
-      double z0 = tower_geom->get_center_z();
+      double towereta = tower_geom->get_eta();
+      double z0 = sinh(towereta) * r;
       double z = z0 - vtxz;
       double eta = asinh(z / r);  // eta after shift from vertex
       double pt = tower->get_energy() / cosh(eta);
@@ -489,8 +513,16 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       assert(tower_geom);
 
       double r = tower_geom->get_center_radius();
+      if(m_input == Jet::CEMC_TOWER_RETOWER || m_input == Jet::CEMC_TOWERINFO_RETOWER || m_input == Jet::CEMC_TOWER_SUB1 || m_input == Jet::CEMC_TOWERINFO_SUB1 || m_input == Jet::CEMC_TOWER_SUB1CS)
+      {
+        const RawTowerDefs::keytype EMCal_key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, 0, 0);
+        RawTowerGeom *EMCal_tower_geom = EMCal_geom->get_tower_geometry(EMCal_key );
+        assert(EMCal_tower_geom);
+        r = EMCal_tower_geom->get_center_radius();
+      }
       double phi = atan2(tower_geom->get_center_y(), tower_geom->get_center_x());
-      double z0 = tower_geom->get_center_z();
+      double towereta = tower_geom->get_eta();
+      double z0 = sinh(towereta) * r;
       double z = z0 - vtxz;
       double eta = asinh(z / r);  // eta after shift from vertex
       double pt = tower->get_energy() / cosh(eta);
