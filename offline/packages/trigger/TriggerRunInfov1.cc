@@ -38,11 +38,11 @@ void TriggerRunInfov1::setTriggerPrescale(int index, double prescale)
   if (prescale > 0)
     {
       trigger_prescales[index] = prescale;
+      return;
     }
-  else 
-    {
-      trigger_prescales[index] = -1;
-    }
+
+  trigger_prescales[index] = -1;
+
   return; 
 }
 
