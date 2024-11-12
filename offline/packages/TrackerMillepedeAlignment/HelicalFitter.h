@@ -59,6 +59,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
 
   void set_use_event_vertex(bool flag) { use_event_vertex = flag; }
+  void set_use_intt_zfit(bool flag) { use_intt_zfit = flag; }
   void set_datafile_name(const std::string& file) { data_outfilename = file; }
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file; }
   void set_mvtx_grouping(int group) { mvtx_grp = (AlignmentDefs::mvtxGrp) group; }

@@ -2,6 +2,7 @@
 
 #include "ActsGeometry.h"
 #include "TpcDefs.h"
+#include "InttDefs.h"
 #include "TrkrClusterContainerv4.h"
 #include "TrkrClusterv5.h"
 #include "TrkrDefs.h"  // for cluskey, getTrkrId, tpcId
@@ -712,6 +713,16 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
       {
         int crossing = 0;  // for now
         makeTpcGlobalCorrections(key, crossing, global);
+      }
+    */
+
+    /*
+    unsigned int layer = TrkrDefs::getLayer(key);
+    if(layer > 2)
+      {
+	int stave = InttDefs::getLadderPhiId(key);
+	int sensor = InttDefs::getLadderZId(key);      
+	std::cout << " cluster layer " << layer << " stave " << stave << " sensor " << sensor << " x,y,z " << global(0) << "  " << global(1) << "  " << global(2) << std::endl;  
       }
     */
 

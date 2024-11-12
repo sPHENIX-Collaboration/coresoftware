@@ -796,11 +796,30 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	      }
 	  }
       }
-      
+
+      if(Verbosity() > 2)
+	{
+	  if(layer > 2 && layer < 7)
+	    {
+	      int sector = InttDefs::getLadderPhiId(cluskey_vec[ivec]);
+	      int subsurf = InttDefs::getLadderZId(cluskey_vec[ivec]);      
+	      std::cout << "  layer " << layer << " sector " << sector << " subsurf " << subsurf << " resid " << residual(0) << " sigma " << clus_sigma(0) << std::endl;
+	    }
+	}
+	 
       if (!isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
-      {
-        _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
-      }
+	{
+	  if(Verbosity() > 2)
+	    {
+	      if(layer > 2 && layer < 7)
+		{
+		  int sector = InttDefs::getLadderPhiId(cluskey_vec[ivec]);
+		  int subsurf = InttDefs::getLadderZId(cluskey_vec[ivec]);      
+		  std::cout << "    out: layer " << layer << " sector " << sector << " subsurf " << subsurf << " resid " << residual(0) << " sigma " << clus_sigma(0) << std::endl;
+		}
+	    }
+	  _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
+	}
       if (!isnan(residual(1)) && clus_sigma(1) < 1.0)
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeY, AlignmentDefs::NGL, glbl_derivativeY, glbl_label, residual(1), errinf * clus_sigma(1));
