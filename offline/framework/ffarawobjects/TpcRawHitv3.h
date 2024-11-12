@@ -72,11 +72,8 @@ class TpcRawHitv3 : public TpcRawHit
   //   {
   //     adcmap[sample] = val;
   //   }
-  void move_adc_waveform(const uint16_t start_time, std::vector<uint16_t> &&adc)
-  {
-    m_adcData.emplace_back(start_time, std::move(adc));
-  }
-
+  void move_adc_waveform(const uint16_t start_time, std::vector<uint16_t> &&adc);
+  
   uint16_t get_type() const override { return type; }
   void set_type(const uint16_t i) override { type = i; }
 

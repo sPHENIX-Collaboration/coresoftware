@@ -1,7 +1,7 @@
 #include "TpcRawHitv3.h"
 
-#include <iostream>
 #include <cassert>
+#include <iostream>
 
 TpcRawHitv3::TpcRawHitv3(TpcRawHit *tpchit)
 {
@@ -54,14 +54,14 @@ TpcRawHitv3::TpcRawHitv3(TpcRawHitv3 &&other) noexcept
   , parityerror(std::move(other.parityerror))
   , m_adcData(std::move(other.m_adcData))
 {
-//   other.bco = std::numeric_limits<uint64_t>::max();
-//   other.packetid = std::numeric_limits<int32_t>::max();
+  //   other.bco = std::numeric_limits<uint64_t>::max();
+  //   other.packetid = std::numeric_limits<int32_t>::max();
   other.fee = std::numeric_limits<uint16_t>::max();
   other.channel = std::numeric_limits<uint16_t>::max();
-//   other.type = std::numeric_limits<uint16_t>::max();
-//   other.userword = std::numeric_limits<uint16_t>::max();
-//   other.checksum = std::numeric_limits<uint16_t>::max();
-//   other.data_parity = std::numeric_limits<uint16_t>::max();
+  //   other.type = std::numeric_limits<uint16_t>::max();
+  //   other.userword = std::numeric_limits<uint16_t>::max();
+  //   other.checksum = std::numeric_limits<uint16_t>::max();
+  //   other.data_parity = std::numeric_limits<uint16_t>::max();
   other.checksumerror = true;
   other.parityerror = true;
 }
@@ -77,7 +77,7 @@ uint16_t TpcRawHitv3::get_adc(const uint16_t /*sample*/) const
   std::cout << __PRETTY_FUNCTION__
             << " Error: This moethod is slow and should be avoided as much as possible!"
             << std::endl;
-  assert(0);          
+  assert(0);
   //   auto adc = adcmap.find(sample);
   //   if (adc != adcmap.end())
   //   {
@@ -94,6 +94,18 @@ void TpcRawHitv3::Clear(Option_t * /*unused*/)
   checksumerror = true;
   parityerror = true;
 
+  for (auto &waveform : m_adcData)
+  {
+    waveform.second.clear();
+    waveform.second.shrink_to_fit();
+  }
   m_adcData.clear();
-  m_adcData.reserve(0);
+  m_adcData.shrink_to_fit();
+
+  // std::cout << __PRETTY_FUNCTION__ << " - m_adcData.capacity = "<<m_adcData.capacity() << std::endl;
+}
+
+void TpcRawHitv3::move_adc_waveform(const uint16_t start_time, std::vector<uint16_t> &&adc)
+{
+  m_adcData.emplace_back(start_time, adc);
 }
