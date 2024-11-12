@@ -156,7 +156,7 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   h_ProcessPacket_Time = new TH2I(TString(m_HistoPrefix.c_str()) + "_ProcessPacket_Time",  //
                               TString(m_HistoPrefix.c_str()) +
                                   " Time cost to run ProcessPacket();Call counts;Time elapsed per call [ms];Count",
-                              100, 0, 30e6, 100,0,10);
+                              1000, 0, 30e6, 100,0,10);
   hm->registerHisto(h_ProcessPacket_Time);
 }
 
