@@ -7,6 +7,8 @@
 #include <calobase/TowerInfoContainerv2.h>
 #include <calobase/TowerInfoContainerv3.h>
 #include <calobase/TowerInfoContainerv4.h>
+#include <calobase/TowerInfoContainerSimv1.h>
+#include <calobase/TowerInfoContainerSimv2.h>
 
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
@@ -199,12 +201,16 @@ int CaloTowerBuilder::process_sim()
   int n_channels = processed_waveforms.size();
   for (int i = 0; i < n_channels; i++)
   {
+    //this is for copying the truth info to the downstream object
+    TowerInfo* towerwaveform = m_CalowaveformContainer->get_tower_at_channel(i);
     TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
+    towerinfo->copy_tower(towerwaveform);
     towerinfo->set_time(processed_waveforms.at(i).at(1));
     towerinfo->set_energy(processed_waveforms.at(i).at(0));
     towerinfo->set_time_float(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
     towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+    bool SZS = isSZS(processed_waveforms.at(i).at(1), processed_waveforms.at(i).at(3));
     if (processed_waveforms.at(i).at(4) == 0) 
     {
       towerinfo->set_isRecovered(false);
@@ -214,7 +220,7 @@ int CaloTowerBuilder::process_sim()
       towerinfo->set_isRecovered(true);
     }
     int n_samples = waveforms.at(i).size();
-    if (n_samples == m_nzerosuppsamples)
+    if (n_samples == m_nzerosuppsamples || SZS)
     {
       towerinfo->set_isZS(true);
     }
@@ -419,6 +425,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     towerinfo->set_time_float(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
     towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+    bool SZS = isSZS(processed_waveforms.at(i).at(1), processed_waveforms.at(i).at(3));
     if (processed_waveforms.at(i).at(4) == 0) 
     {
       towerinfo->set_isRecovered(false);
@@ -428,7 +435,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       towerinfo->set_isRecovered(true);
     }
     int n_samples = waveforms.at(i).size();
-    if (n_samples == m_nzerosuppsamples)
+    if (n_samples == m_nzerosuppsamples || SZS)
     {
       if(waveforms.at(i).at(0) == 0)
       {
@@ -478,6 +485,16 @@ bool CaloTowerBuilder::skipChannel(int ich, int pid)
      }
   }
     
+  return false;
+}
+
+bool CaloTowerBuilder::isSZS(float time, float chi2)
+{
+  //isfinite
+  if (!std::isfinite(time) && !std::isfinite(chi2))
+  {
+    return true;
+  }
   return false;
 }
 
@@ -562,6 +579,10 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   else if (m_buildertype == CaloTowerDefs::kPRDFTowerv4)
   {
     m_CaloInfoContainer = new TowerInfoContainerv4(DetectorEnum);
+  }
+  else if (m_buildertype == CaloTowerDefs::kWaveformTowerSimv1)
+  {
+    m_CaloInfoContainer = new TowerInfoContainerSimv1(DetectorEnum);
   }
   else
   {

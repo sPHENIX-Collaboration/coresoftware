@@ -67,9 +67,14 @@ class CylinderGeomIntt : public PHG4CylinderGeom
     return m_StripY;
   }
 
-  double get_strip_z_spacing() const override
+  // double get_strip_z_spacing() const override // Only return type-A 1.6 cm strip z size
+  // {
+  //   return m_StripZ[0];
+  // }
+  // using PHG4CylinderGeom::get_strip_z_spacing; // brings both overloads from base class into scope
+  double get_strip_z_spacing(const int itype = 0) const override
   {
-    return m_StripZ[0];
+    return (itype == 0 || itype == 1) ? m_StripZ[itype] : m_StripZ[0];
   }
 
   double get_strip_tilt() const override

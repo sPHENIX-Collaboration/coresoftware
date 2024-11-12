@@ -37,9 +37,8 @@ int DumpMicromegasRawHitContainer::process_Node(PHNode *myNode)
       *fout << "fee: " << rawhit->get_fee() << std::endl;
       *fout << "sampaaddress: " << rawhit->get_sampaaddress() << std::endl;
       *fout << "sampachannel: " << rawhit->get_sampachannel() << std::endl;
-      auto nsamples = rawhit->get_samples();
-      *fout << "samples: " << rawhit->get_samples() << std::endl;
-      for (auto isamp = 0; isamp < nsamples; isamp++)
+      *fout << "sample range: " << rawhit->get_sample_begin() <<  "," << rawhit->get_sample_end() << std::endl;
+      for (auto isamp = rawhit->get_sample_begin(); isamp < rawhit->get_sample_end(); isamp++)
       {
         *fout << "adc[" << isamp << "] =  " << rawhit->get_adc(isamp) << std::endl;
       }

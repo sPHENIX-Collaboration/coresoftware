@@ -12,13 +12,14 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   -L$(ROOTSYS)/lib \
   -L$(OPT_SPHENIX)/lib
 
 if USE_ONLINE
 
 lib_LTLIBRARIES = \
-  libintt.la 
+  libintt.la
 
 pkginclude_HEADERS = \
   InttFelixMap.h \
@@ -32,7 +33,7 @@ else
 
 lib_LTLIBRARIES = \
   libintt_io.la \
-  libintt.la 
+  libintt.la
 
 pkginclude_HEADERS = \
   CylinderGeomIntt.h \
@@ -61,7 +62,7 @@ pkginclude_HEADERS = \
 noinst_HEADERS = \
   INTTZvtx.h \
   INTTXYvtx.h \
-  InttVertexUtil.h 
+  InttVertexUtil.h
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
@@ -122,7 +123,8 @@ libintt_la_LIBADD = \
   -lffarawobjects \
   -lodbc++ \
   -lphg4hit \
-  -lSubsysReco
+  -lSubsysReco \
+  -ltrack
 
 # sources for io library
 libintt_io_la_SOURCES = \
@@ -140,11 +142,12 @@ libintt_io_la_SOURCES = \
   InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
+  -lActsCore \
+  -lCLHEP \
   -lcdbobjects \
   -lg4detectors_io \
   -lphool \
-  -ltrack_io \
-  -ltrackbase_historic_io \
+  -lffamodules \
   -lglobalvertex_io
 
 endif

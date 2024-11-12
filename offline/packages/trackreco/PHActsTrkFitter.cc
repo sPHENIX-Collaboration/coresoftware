@@ -26,6 +26,7 @@
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
@@ -305,11 +306,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     // capture the input crossing value, and set crossing parameters
     //==============================
-    short silicon_crossing =  SHRT_MAX;  
+    short silicon_crossing =  SHRT_MAX;
     auto siseed = m_siliconSeeds->get(siid);
-    if(siseed) 
+    if(siseed)
       {
-	silicon_crossing = siseed->get_crossing(); 
+	silicon_crossing = siseed->get_crossing();
       }
     short crossing = silicon_crossing;
     short int crossing_estimate = crossing;
@@ -335,12 +336,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       {
 	crossing = 0;
       }
-    
+
     if (Verbosity() > 1)
     {
       if(siseed)
 	{
-	  std::cout << "tpc and si id " << tpcid << ", " << siid << " silicon_crossing " << silicon_crossing 
+	  std::cout << "tpc and si id " << tpcid << ", " << siid << " silicon_crossing " << silicon_crossing
 		    << " crossing " << crossing << " crossing estimate " << crossing_estimate << std::endl;
 	}
     }
@@ -358,8 +359,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     {
       if (siseed)
       {
-        std::cout << "    silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
-	std::cout << "    tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
+        const auto si_position = TrackSeedHelper::get_xyz(siseed);
+        const auto tpc_position = TrackSeedHelper::get_xyz(tpcseed);
+        std::cout << "    silicon seed position is (x,y,z) = " << si_position.x() << "  " << si_position.y() << "  " << si_position.z() << std::endl;
+        std::cout << "    tpc seed position is (x,y,z) = " << tpc_position.x() << "  " << tpc_position.y() << "  " << tpc_position.z() << std::endl;
       }
     }
 
@@ -369,8 +372,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     if (Verbosity() > 1 && siseed)
     {
-      std::cout << " m_pp_mode " << m_pp_mode << " m_enable_crossing_estimate " << m_enable_crossing_estimate 
-		<< " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
+      std::cout << " m_pp_mode " << m_pp_mode << " m_enable_crossing_estimate " << m_enable_crossing_estimate
+        << " INTT crossing " << crossing << " crossing_estimate " << crossing_estimate << std::endl;
     }
 
     short int this_crossing = crossing;
@@ -502,15 +505,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::Vector3 position(0, 0, 0);
       if (siseed)
       {
-        position(0) = siseed->get_x() * Acts::UnitConstants::cm;
-        position(1) = siseed->get_y() * Acts::UnitConstants::cm;
-        position(2) = siseed->get_z() * Acts::UnitConstants::cm;
+        position = TrackSeedHelper::get_xyz(siseed)*Acts::UnitConstants::cm;
       }
       if(!siseed || !is_valid(position) || m_ignoreSilicon)
       {
-        position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
-        position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
-        position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
+        position = TrackSeedHelper::get_xyz(tpcseed)*Acts::UnitConstants::cm;
       }
       if (!is_valid(position))
       {

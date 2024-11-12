@@ -12,7 +12,7 @@
 #define QAHISTMANAGERDEF_H_
 
 #include <string>
-
+#include <vector>
 class Fun4AllHistoManager;
 class TAxis;
 
@@ -30,6 +30,8 @@ namespace QAHistManagerDef
 
   //! utility function to convert TAxis to log scale binning (usually for x axis)
   void useLogBins(TAxis* axis);
+
+  std::vector<std::string> tokenize(const std::string& str, const char* delimiter);
 }  // namespace QAHistManagerDef
 
 #endif /* QAHISTMANAGERDEF_H_ */
