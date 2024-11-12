@@ -163,7 +163,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
             auto hits = pool->get_hits(feeId, i_strb);
             for (auto &&hit : hits)
             {
-              MvtxRawHit *newhit = new MvtxRawHitv1();
+              auto newhit = std::make_unique<MvtxRawHitv1>();
               newhit->set_bco(strb_bco);
               newhit->set_strobe_bc(strb_bc);
               newhit->set_chip_bc(hit->bunchcounter);
@@ -175,9 +175,10 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
               newhit->set_col(hit->col_pos);
               if (StreamingInputManager())
               {
-                StreamingInputManager()->AddMvtxRawHit(strb_bco, newhit);
+                StreamingInputManager()->AddMvtxRawHit(strb_bco, newhit.get());
               }
-              m_MvtxRawHitMap[strb_bco].push_back(newhit);
+              m_MvtxRawHitMap[strb_bco].push_back(newhit.release());
+
             }
             if (StreamingInputManager())
             {

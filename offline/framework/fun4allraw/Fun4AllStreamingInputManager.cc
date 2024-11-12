@@ -645,6 +645,7 @@ int Fun4AllStreamingInputManager::FillIntt()
   {
     return iret;
   }
+
   // unsigned int alldone = 0;
   //     std::cout << "stashed intt BCOs: " << m_InttRawHitMap.size() << std::endl;
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(m_topNode, "INTTRAWHIT");
@@ -676,6 +677,7 @@ int Fun4AllStreamingInputManager::FillIntt()
               << " for ref BCO " << m_RefBCO
               << std::dec << std::endl;
   }
+
   while (m_InttRawHitMap.begin()->first < m_RefBCO - m_intt_negative_bco)
   {
     if (Verbosity() > 2)
@@ -690,9 +692,13 @@ int Fun4AllStreamingInputManager::FillIntt()
     for (auto iter : m_InttInputVector)
     {
       iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+      iter->clearPacketBClkStackMap(m_InttRawHitMap.begin()->first);
+      iter->clearFeeGTML1BCOMap(m_InttRawHitMap.begin()->first);
     }
+   
     m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
     m_InttRawHitMap.erase(m_InttRawHitMap.begin());
+    
     iret = FillInttPool();
     if (iret)
     {
@@ -706,12 +712,13 @@ int Fun4AllStreamingInputManager::FillIntt()
   int allpacketsallfees = 0;
   for (auto &p : m_InttInputVector)
   {
+    
     // this is on a per packet basis
     auto bcl_stack = p->BclkStackMap();
     auto feebclstack = p->getFeeGTML1BCOMap();
     int packet_id = bcl_stack.begin()->first;
     int histo_to_fill = (packet_id % 10) - 1;
-
+  
     std::set<int> feeidset;
     int fee = 0;
     for (auto &[feeid, gtmbcoset] : feebclstack)
@@ -728,7 +735,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       }
       fee++;
     }
-
+    
     if (feeidset.size() == 14)
     {
       allpacketsallfees++;
@@ -736,11 +743,7 @@ int Fun4AllStreamingInputManager::FillIntt()
     }
     feeidset.clear();
     bool thispacket = false;
-    // we just want to erase anything that is well before the current GL1
-    // so make an arbitrary cut of 40000.
-    p->clearFeeGTML1BCOMap(m_RefBCO - 40000);
-    p->clearPacketBClkStackMap(packet_id, m_RefBCO - 40000);
-
+        
     for (auto &[packetid, gtmbcoset] : bcl_stack)
     {
       for (auto &gtmbco : gtmbcoset)
@@ -754,6 +757,7 @@ int Fun4AllStreamingInputManager::FillIntt()
         }
       }
     }
+    
     if (thispacket == false)
     {
       allpackets = false;
@@ -792,16 +796,18 @@ int Fun4AllStreamingInputManager::FillIntt()
       break;
     }
   }
-  return 0;
+ return 0;
 }
 
 int Fun4AllStreamingInputManager::FillMvtx()
 {
+
   int iret = FillMvtxPool();
   if (iret)
   {
     return iret;
   }
+
   MvtxRawEvtHeader *mvtxEvtHeader = findNode::getClass<MvtxRawEvtHeader>(m_topNode, "MVTXRAWEVTHEADER");
   if (!mvtxEvtHeader)
   {
@@ -846,6 +852,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   // All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
   while (m_MvtxRawHitMap.begin()->first < ref_bco_minus_range)
   {
+ 
     if (Verbosity() > 2)
     {
       std::cout << "ditching mvtx bco 0x" << std::hex << m_MvtxRawHitMap.begin()->first << ", ref: 0x" << m_RefBCO << std::dec << std::endl;
@@ -853,6 +860,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     for (auto iter : m_MvtxInputVector)
     {
       iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+      iter->clearFeeGTML1BCOMap(m_MvtxRawHitMap.begin()->first);
     }
     for (auto mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
     {
@@ -862,24 +870,26 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
       delete mvtxFeeIdInfo;
     }
+    
     m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
     m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
     m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+    
     iret = FillMvtxPool();
-
     if (iret)
     {
       return iret;
     }
-  }
 
+  }
   // again m_MvtxRawHitMap.empty() is handled by return of FillMvtxPool()
   if (Verbosity() > 2)
   {
     std::cout << "after ditching, mvtx bco: 0x" << std::hex << m_MvtxRawHitMap.begin()->first << ", ref: 0x" << m_RefBCO
               << std::dec << std::endl;
   }
+  
 
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_mvtx->Fill(refbcobitshift);
@@ -931,9 +941,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
       feecounter++;
     }
-    // we just want to erase anything that is well before the current GL1
-    // so make an arbitrary cut of 40000.
-    p->clearFeeGTML1BCOMap(m_RefBCO - 40000);
+
   }
   int allfeestagged = 0;
   for (auto &[pid, feeset] : taggedPacketsFEEs)
@@ -955,7 +963,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
   taggedPacketsFEEs.clear();
-
+  
   if (m_mvtx_is_triggered)
   {
     while (select_crossings <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings + m_mvtx_bco_range) //triggered
@@ -1042,7 +1050,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
     }
   }
-
+  
   return 0;
 }
 
@@ -1172,21 +1180,25 @@ int Fun4AllStreamingInputManager::FillTpc()
   // m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
   // if this map is empty which is handled above
 
-  while (m_TpcRawHitMap.begin()->first < m_RefBCO - m_tpc_negative_bco)
+  if (m_TpcRawHitMap.size()>0)
   {
-    for (auto iter : m_TpcInputVector)
+    while (m_TpcRawHitMap.begin()->first < m_RefBCO - m_tpc_negative_bco)
     {
-      iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
+      for (auto iter : m_TpcInputVector)
+      {
+        iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
+        iter->clearPacketBClkStackMap(m_TpcRawHitMap.begin()->first);
+
     }
-    m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
-    m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
-    iret = FillTpcPool();
-    if (iret)
-    {
-      return iret;
+      m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
+      m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
+      iret = FillTpcPool();
+      if (iret)
+      {
+        return iret;
+      }
     }
   }
-
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_tpc->Fill(refbcobitshift);
   bool allpackets = true;
@@ -1212,10 +1224,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       {
         allpackets = false;
       }
-      // we just want to erase anything that is well away from the current GL1
-      // so make an arbitrary cut of 40000.
-      p->clearPacketBClkStackMap(packetid, m_RefBCO - 40000);
-
+    
       packetnum++;
     }
   }
@@ -1224,25 +1233,30 @@ int Fun4AllStreamingInputManager::FillTpc()
     h_taggedAll_tpc->Fill(refbcobitshift);
   }
   // again m_TpcRawHitMap.empty() is handled by return of FillTpcPool()
-  while (m_TpcRawHitMap.begin()->first <= select_crossings - m_tpc_negative_bco)
+  if (m_TpcRawHitMap.size()>0)
   {
-    for (auto tpchititer : m_TpcRawHitMap.begin()->second.TpcRawHitVector)
+    while (m_TpcRawHitMap.begin()->first <= select_crossings - m_tpc_negative_bco)
     {
-      if (Verbosity() > 1)
+      for (auto tpchititer : m_TpcRawHitMap.begin()->second.TpcRawHitVector)
       {
-        tpchititer->identify();
+        if (Verbosity() > 1)
+        {
+          tpchititer->identify();
+        }
+        tpccont->AddHit(tpchititer);
       }
-      tpccont->AddHit(tpchititer);
+      for (auto iter : m_TpcInputVector)
+      {
+        iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
+          // we just want to erase anything that is well away from the current GL1
+  
     }
-    for (auto iter : m_TpcInputVector)
-    {
-      iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
-    }
-    m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
-    m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
-    if (m_TpcRawHitMap.empty())
-    {
-      break;
+      m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
+      m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
+      if (m_TpcRawHitMap.empty())
+      {
+        break;
+      }
     }
   }
   if (Verbosity() > 0)
@@ -1375,11 +1389,11 @@ int Fun4AllStreamingInputManager::FillTpcPool()
       }
     }
   }
-  if (m_TpcRawHitMap.empty())
-  {
-    std::cout << "TpcRawHitMap is empty - we are done" << std::endl;
-    return -1;
-  }
+  // if (m_TpcRawHitMap.empty())
+  // {
+  //   std::cout << "TpcRawHitMap is empty - we are done" << std::endl;
+    // return -1;
+  // }
   return 0;
 }
 
@@ -1450,6 +1464,7 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
   }
   if (m_MvtxRawHitMap.empty())
   {
+    
     std::cout << "MvtxRawHitMap is empty - we are done" << std::endl;
     return -1;
   }

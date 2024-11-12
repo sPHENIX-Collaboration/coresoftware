@@ -42,7 +42,9 @@ pkginclude_HEADERS = \
   SingleTpcPoolInput.h \
   SingleTriggerInput.h \
   SingleZdcInput.h \
-  SingleZdcTriggerInput.h
+  SingleZdcTriggerInput.h \
+  SingleTpcTimeFrameInput.h \
+  TpcTimeFrameBuilder.h
 
 decoderincludedir = $(includedir)/mvtx_decoder
 decoderinclude_HEADERS = \
@@ -102,7 +104,9 @@ libfun4allraw_la_SOURCES = \
   SingleTriggerInput.cc \
   SingleZdcInput.cc \
   SingleZdcTriggerInput.cc \
-  tpc_pool.cc
+  tpc_pool.cc \
+  SingleTpcTimeFrameInput.cc \
+  TpcTimeFrameBuilder.cc
 
 libfun4allraw_la_LIBADD = \
   libmvtx_decoder.la \
