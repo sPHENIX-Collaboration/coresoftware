@@ -17,7 +17,7 @@ class TpcRawHitv3 : public TpcRawHit
   TpcRawHitv3() = default;
   explicit TpcRawHitv3(TpcRawHit *tpchit);
   TpcRawHitv3(TpcRawHitv3 &&other) noexcept;
-  
+
   ~TpcRawHitv3() override = default;
 
   /** identify Function from PHObject
@@ -25,7 +25,7 @@ class TpcRawHitv3 : public TpcRawHit
    */
   void identify(std::ostream &os = std::cout) const override;
 
-  void Clear(Option_t */*unused*/) override;
+  void Clear(Option_t * /*unused*/) override;
 
   uint64_t get_bco() const override { return bco; }
   // cppcheck-suppress virtualCallInConstructor
@@ -92,6 +92,67 @@ class TpcRawHitv3 : public TpcRawHit
 
   bool get_parityerror() const override { return parityerror; }
   void set_parityerror(const bool b) override { parityerror = b; }
+
+  class AdcIteratorv3 : public AdcIterator
+  {
+   private:
+    const std::vector<std::pair<uint16_t, std::vector<uint16_t> > > &m_adc;
+    uint16_t m_waveform_index = 0;
+    uint16_t m_adc_position_in_waveform_index = 0;
+
+   public:
+    AdcIteratorv3(const std::vector<std::pair<uint16_t, std::vector<uint16_t> > > &adc)
+      : m_adc(adc)
+    {
+    }
+
+    void First() override
+    {
+      m_waveform_index = 0;
+      m_adc_position_in_waveform_index = 0;
+    }
+
+    void Next() override
+    {
+      if (m_adc_position_in_waveform_index < m_adc[m_waveform_index].second.size() - 1)
+      {
+        ++m_adc_position_in_waveform_index;
+      }
+      else
+      {
+        ++m_waveform_index;
+        m_adc_position_in_waveform_index = 0;
+      }
+    }
+
+    bool IsDone() const override { return m_waveform_index >= m_adc.size(); }
+
+    uint16_t CurrentTimeBin() const override
+    {
+      if (!IsDone())
+      {
+        return m_adc[m_waveform_index].first + m_adc_position_in_waveform_index;
+      }
+      return std::numeric_limits<uint16_t>::max();  // Or throw an exception
+    }
+    uint16_t CurrentAdc() const override
+    {
+      if (!IsDone())
+      {
+        if (m_adc_position_in_waveform_index < m_adc[m_waveform_index].second.size())
+        {
+          return m_adc[m_waveform_index].second[m_adc_position_in_waveform_index];
+        }
+        else
+        {
+          return std::numeric_limits<uint16_t>::max();  // Or throw an exception
+        }
+      }
+      return std::numeric_limits<uint16_t>::max();  // Or throw an exception
+    }
+  };
+
+  AdcIterator *CreateAdcIterator() const override { return new AdcIteratorv3(m_adcData); }
 
  private:
   uint64_t bco{std::numeric_limits<uint64_t>::max()};
