@@ -58,7 +58,7 @@ class TpcRawHitv3 : public TpcRawHit
   //   // cppcheck-suppress virtualCallInConstructor
   //   void set_sampachannel(const uint16_t val) override { sampachannel = val; }
 
-  //   uint16_t get_samples() const override { return samples; }
+  uint16_t get_samples() const override { return 1024U; }
   // cppcheck-suppress virtualCallInConstructor
   //   void set_samples(const uint16_t val) override
   //   {

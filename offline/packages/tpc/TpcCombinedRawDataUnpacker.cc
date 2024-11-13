@@ -40,6 +40,7 @@
 #include <iostream>  // for operator<<, endl, bas...
 #include <map>       // for _Rb_tree_iterator
 #include <utility>
+#include <memory>
 
 #define dEBUG
 
@@ -312,9 +313,13 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       {
         std::cout << "TpcCombinedRawDataUnpacker:: no zero suppression" << std::endl;
       }
-      for (uint16_t s = 0; s < sam; s++)
+      for (std::unique_ptr<TpcRawHit::AdcIterator> adc_iterator( tpchit->CreateAdcIterator() )  ; 
+            !adc_iterator->IsDone(); 
+            adc_iterator->Next())
       {
-        uint16_t adc = tpchit->get_adc(s);
+        const uint16_t s = adc_iterator->CurrentTimeBin();
+        const uint16_t adc = adc_iterator->CurrentAdc();
+
         int t = s - m_presampleShift;
 
         hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
@@ -337,9 +342,16 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       }
       TH2I* feehist = nullptr;
       if(!m_do_zs_emulation){
-	for (uint16_t sampleNum = 0; sampleNum < sam; sampleNum++)
-	  {
-	    uint16_t adc = tpchit->get_adc(sampleNum);
+	// for (uint16_t sampleNum = 0; sampleNum < sam; sampleNum++)
+	//   {
+
+  for (std::unique_ptr<TpcRawHit::AdcIterator> adc_iterator( tpchit->CreateAdcIterator() )  ; 
+        !adc_iterator->IsDone(); 
+        adc_iterator->Next())
+  {
+    // const uint16_t sampleNum = adc_iterator->CurrentTimeBin();
+    const uint16_t adc = adc_iterator->CurrentAdc();
+
 	    if (adc > 0)
 	      {
 		pedhist.Fill(adc);
@@ -431,9 +443,15 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 	hpedestal = 60;
 	hpedwidth = m_zs_threshold;
       }
-      for (uint16_t s = 0; s < sam; s++)
+      // for (uint16_t s = 0; s < sam; s++)
+      // {
+      
+      for (std::unique_ptr<TpcRawHit::AdcIterator> adc_iterator( tpchit->CreateAdcIterator() )  ; 
+            !adc_iterator->IsDone(); 
+            adc_iterator->Next())
       {
-        uint16_t adc = tpchit->get_adc(s);
+        const uint16_t s = adc_iterator->CurrentTimeBin();
+        const uint16_t adc = adc_iterator->CurrentAdc();
         int t = s - m_presampleShift;
         if (t < 0)
         {
