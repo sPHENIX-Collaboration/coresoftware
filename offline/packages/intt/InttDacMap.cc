@@ -9,7 +9,7 @@
 
 InttDacMap::InttDacMap()
 {
-  SetDefault();
+  InttDacMap::SetDefault();
 }
 
 int InttDacMap::LoadFromCDB(std::string const& calibname)

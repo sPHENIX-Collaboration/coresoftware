@@ -7,12 +7,16 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterCrossingAssoc.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
+
+#include <cmath>
 
 namespace
 {
@@ -35,12 +39,10 @@ PHCosmicSiliconPropagator::PHCosmicSiliconPropagator(const std::string& name)
 }
 
 //____________________________________________________________________________..
-PHCosmicSiliconPropagator::~PHCosmicSiliconPropagator()
-{
-}
+PHCosmicSiliconPropagator::~PHCosmicSiliconPropagator() = default;
 
 //____________________________________________________________________________..
-int PHCosmicSiliconPropagator::Init(PHCompositeNode*)
+int PHCosmicSiliconPropagator::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -92,7 +94,7 @@ int PHCosmicSiliconPropagator::InitRun(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________..
-int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
+int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
 {
   if (m_resetContainer)
   {
@@ -130,7 +132,10 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       {
         xypoints.push_back(std::make_pair(globPos.x(), globPos.y()));
         float clusr = r(globPos.x(), globPos.y());
-        if (globPos.y() < 0) clusr *= -1;
+        if (globPos.y() < 0)
+        {
+          clusr *= -1;
+        }
         rzpoints.push_back(std::make_pair(globPos.z(), clusr));
       }
 
@@ -210,28 +215,45 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
       std::vector<TrkrDefs::cluskey> ckeys;
       nClusters = TrackFitUtils::addClusters(fitparams, _dca_xy_cut, _tgeometry, _cluster_map,
                                              newClusPos, ckeys, 0, 56);
+      TrackFitUtils::position_vector_t yzpoints;
+      for (auto& globPos : tpcClusPos)
+      {
+        yzpoints.push_back(std::make_pair(globPos.y(), globPos.z()));
+      }
 
+      auto yzLineParams = TrackFitUtils::line_fit(yzpoints);
+      float yzslope = std::get<0>(yzLineParams);
+      float yzint = std::get<1>(yzLineParams);
       for (auto& key : ckeys)
       {
         auto cluster = _cluster_map->findCluster(key);
         auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
-        auto pca = TrackFitUtils::get_helix_pca(fitparams, clusglob);
-        float dcaz = (pca - clusglob).z();
 
-        if (fabs(dcaz) < _dca_z_cut)
+        float projz = clusglob.y() * yzslope + yzint;
+
+        if (std::fabs(projz - clusglob.z()) < _dca_z_cut)
         {
           newClusKeys.push_back(key);
         }
       }
     }
-
     //! only keep long seeds
     if ((tpcClusKeys.size() + newClusKeys.size() > 25))
     {
+      // TODO: should include distortion corrections
       std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
+      std::map<TrkrDefs::cluskey, Acts::Vector3> silposmap, tpcposmap;
+      for (auto& key : tpcClusKeys)
+      {
+        auto cluster = _cluster_map->findCluster(key);
+        auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
+        tpcposmap.emplace(key, clusglob);
+      }
       for (auto& key : newClusKeys)
       {
         bool isTpcKey = false;
+        auto cluster = _cluster_map->findCluster(key);
+        auto clusglob = _tgeometry->getGlobalPosition(key, cluster);
         if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId ||
             TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::micromegasId)
         {
@@ -240,17 +262,21 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
         if (!isTpcKey)
         {
           si_seed->insert_cluster_key(key);
+          silposmap.emplace(key, clusglob);
         }
         else
         {
           tpcseed->insert_cluster_key(key);
+          tpcposmap.emplace(key, clusglob);
         }
       }
 
-      si_seed->circleFitByTaubin(_cluster_map, _tgeometry, 0, 8);
-      si_seed->lineFit(_cluster_map, _tgeometry, 0, 8);
-      tpcseed->circleFitByTaubin(_cluster_map, _tgeometry, 0, 57);
-      tpcseed->lineFit(_cluster_map, _tgeometry, 0, 57);
+      TrackSeedHelper::circleFitByTaubin(si_seed.get(), silposmap, 0, 8);
+      TrackSeedHelper::lineFit(si_seed.get(), silposmap);
+
+      TrackSeedHelper::circleFitByTaubin(tpcseed, tpcposmap, 7, 57);
+      TrackSeedHelper::lineFit(tpcseed, tpcposmap, 7, 57);
+
       TrackSeed* mapped_seed = _si_seeds->insert(si_seed.get());
       std::unique_ptr<SvtxTrackSeed_v1> full_seed = std::make_unique<SvtxTrackSeed_v1>();
       int tpcind = _tpc_seeds->find(tpcseed);
@@ -289,7 +315,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode*)
 }
 
 //____________________________________________________________________________..
-int PHCosmicSiliconPropagator::End(PHCompositeNode*)
+int PHCosmicSiliconPropagator::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

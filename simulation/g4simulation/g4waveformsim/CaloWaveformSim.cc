@@ -21,8 +21,9 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv3.h>
+#include <calobase/TowerInfoContainerSimv2.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom_Spacalv1.h>
@@ -297,6 +298,17 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
 
     float t0 = hit->get_t(0) / m_sampletime;
     unsigned int tower_index = decode_tower(key);
+    //here I will add the truth matching part
+    // for the cell reco, the truth matching info relys on edep not light yield, I will be consistent here :)
+    TowerInfo* tower = m_CaloWaveformContainer->get_tower_at_channel(tower_index);
+    TowerInfo::EdepMap& edepMap = tower->get_hitEdepMap();
+    TowerInfo::ShowerEdepMap& showerMap = tower->get_showerEdepMap();
+
+    int showerID = hit->get_shower_id();
+    float hitEdep = hit->get_edep();
+
+    edepMap[hit->get_hit_id()] += hitEdep;
+    showerMap[showerID] += hitEdep;
 
     f_fit->SetParameters(ADC, _shiftval + t0, 0.);
     for (int i = 0; i < m_nsamples; i++)
@@ -457,7 +469,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       DetNode = new PHCompositeNode(DetectorNodeName);
       dstNode->addNode(DetNode);
     }
-    m_CaloWaveformContainer = new TowerInfoContainerv3(DetectorEnum);
+    m_CaloWaveformContainer = new TowerInfoContainerSimv2(DetectorEnum);
 
     PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloWaveformContainer, "WAVEFORM_" + m_detector, "PHObject");
     DetNode->addNode(newTowerNode);

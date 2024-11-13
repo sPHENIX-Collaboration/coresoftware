@@ -2,16 +2,16 @@
 #include "PgPostBankWrapper.h"
 #include "PgPostBankWrapperManager.h"
 
-#include <pdbcalbase/PdbApplicationFactory.h>
 #include <pdbcalbase/PHGenericFactoryT.h>
 #include <pdbcalbase/Pdb.h>
 #include <pdbcalbase/PdbApplication.h>
+#include <pdbcalbase/PdbApplicationFactory.h>
 #include <pdbcalbase/PdbCalBank.h>
 
 #include <phool/phool.h>
 
-#include <RDBC/TSQLDriverManager.h>
 #include <RDBC/TSQLConnection.h>
+#include <RDBC/TSQLDriverManager.h>
 
 #include <iostream>
 #include <memory>
@@ -24,19 +24,19 @@ TSQLConnection *PgPostApplication::con = nullptr;
 
 namespace
 {
-PdbApplication *singletonCreator()
-{
-  // rememeber that this will not neccessarily return a
-  // pointer to the singleton PgPostApplication. If
-  // an Objy application is instantiated, it will return 0.
+  PdbApplication *singletonCreator()
+  {
+    // rememeber that this will not neccessarily return a
+    // pointer to the singleton PgPostApplication. If
+    // an Objy application is instantiated, it will return 0.
 
-  cout << "*** deprecated interface -- use PdbApplication::instance()" << endl;
-  return PgPostApplication::instance();
-}
+    cout << "*** deprecated interface -- use PdbApplication::instance()" << endl;
+    return PgPostApplication::instance();
+  }
 
-const std::string name = "Pg";
-const bool registered =
-    PdbApplicationFactory::instance().registerCreator(name, singletonCreator, "PdbApplication");
+  const std::string name = "Pg";
+  const bool registered =
+      PdbApplicationFactory::instance().registerCreator(name, singletonCreator, "PdbApplication");
 }  // namespace
 
 PgPostApplication *PgPostApplication::instance()
@@ -46,7 +46,10 @@ PgPostApplication *PgPostApplication::instance()
 
 int PgPostApplication::Register(const string &dbname)
 {
-  if (__instance.get()) return -1;
+  if (__instance.get())
+  {
+    return -1;
+  }
   mySpecificCopy = new PgPostApplication(dbname);
   __instance = std::unique_ptr<PdbApplication>(mySpecificCopy);
   return 0;
@@ -54,7 +57,10 @@ int PgPostApplication::Register(const string &dbname)
 
 int PgPostApplication::releaseConnection()
 {
-  if (!__instance.get()) return -1;
+  if (!__instance.get())
+  {
+    return -1;
+  }
   if (con)
   {
     con->Close();
@@ -64,18 +70,18 @@ int PgPostApplication::releaseConnection()
 }
 
 PgPostApplication::PgPostApplication(const string &dbname)
-  : readOnly(1)
+  : readOnly(true)
   , dsn(dbname)
 {
 }
 
 PgPostApplication::~PgPostApplication()
 {
-  mySpecificCopy = 0;
+  mySpecificCopy = nullptr;
   if (con)
   {
     con->Close();
-    con = 0;
+    con = nullptr;
   }
 }
 
@@ -94,11 +100,11 @@ TSQLConnection *PgPostApplication::getConnection()
   return con;
 }
 
-int PgPostApplication::setDBName(const string &name)
+int PgPostApplication::setDBName(const string &dbname)
 {
-  if (dsn != name)
+  if (dsn != dbname)
   {
-    dsn = name;
+    dsn = dbname;
     if (con)
     {
       con->Close();
@@ -117,14 +123,14 @@ int PgPostApplication::setDBName(const string &name)
 PdbStatus
 PgPostApplication::startUpdate()
 {
-  readOnly = 0;
+  readOnly = false;
   return 1;
 }
 
 PdbStatus
 PgPostApplication::startRead()
 {
-  readOnly = 1;
+  readOnly = true;
   return 1;
 }
 
@@ -133,7 +139,10 @@ PgPostApplication::abort()
 {
   PgPostBankWrapperManager::instance().clear();
   // will roll back a Xact in progres
-  if (con) con->Rollback();
+  if (con)
+  {
+    con->Rollback();
+  }
   return 1;
 }
 
@@ -150,7 +159,10 @@ PgPostApplication::commit()
   {
     // Commit the registered wrappers (this will also forget them).
     bool ok = PgPostBankWrapperManager::instance().commit();
-    if (con) con->Commit();
+    if (con)
+    {
+      con->Commit();
+    }
     return (ok == true);
   }
 }

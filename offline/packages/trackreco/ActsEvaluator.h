@@ -49,7 +49,6 @@ class ActsEvaluator
 {
  public:
   ActsEvaluator(const std::string& name = "ActsEvaluator.root");
-  ~ActsEvaluator();
 
   void Init(PHCompositeNode* topNode);
   void process_track(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
@@ -94,7 +93,7 @@ class ActsEvaluator
   Acts::Vector3 getGlobalTruthHit(TrkrDefs::cluskey cluskey,
                                   float& _gt);
 
-  SvtxEvaluator* m_svtxEvaluator{nullptr};
+//  SvtxEvaluator* m_svtxEvaluator{nullptr};
   PHG4TruthInfoContainer* m_truthInfo{nullptr};
   SvtxTrackMap *m_trackMap{nullptr}, *m_actsProtoTrackMap{nullptr};
   SvtxEvalStack* m_svtxEvalStack{nullptr};

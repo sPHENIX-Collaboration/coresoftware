@@ -20,10 +20,9 @@ class PHCompositeNode;
 /// micromegas raw data decoder
 class MicromegasCombinedDataDecoder : public SubsysReco
 {
-  public:
-
+ public:
   /// constructor
-  MicromegasCombinedDataDecoder( const std::string &name = "MicromegasCombinedDataDecoder" );
+  MicromegasCombinedDataDecoder(const std::string& name = "MicromegasCombinedDataDecoder");
 
   /// global initialization
   int Init(PHCompositeNode*) override;
@@ -38,26 +37,25 @@ class MicromegasCombinedDataDecoder : public SubsysReco
   int End(PHCompositeNode*) override;
 
   /// calibration file
-  void set_calibration_file( const std::string& value ) { m_calibration_filename = value; }
+  void set_calibration_file(const std::string& value) { m_calibration_filename = value; }
 
   /// hot channel map
-  void set_hot_channel_map_file( const std::string& value ) { m_hot_channel_map_filename = value; }
+  void set_hot_channel_map_file(const std::string& value) { m_hot_channel_map_filename = value; }
 
   /// set number of RMS sigma used to defined static threshold on a given channel
-  void set_n_sigma( double value ) { m_n_sigma = value; }
+  void set_n_sigma(double value) { m_n_sigma = value; }
 
   /// set minimum ADC value, disregarding pedestal and RMS.
   /** This removes faulty channels for which calibration has failed */
-  void set_min_adc( double value ) { m_min_adc = value; }
+  void set_min_adc(double value) { m_min_adc = value; }
 
   /// set min sample for noise estimation
-  void set_sample_min( int value ) { m_sample_min = value; }
+  void set_sample_min(uint16_t value) { m_sample_min = value; }
 
   /// set min sample for noise estimation
-  void set_sample_max( int value ) { m_sample_max = value; }
+  void set_sample_max(uint16_t value) { m_sample_max = value; }
 
-  private:
-
+ private:
   //! raw node
   std::string m_rawhitnodename = "MICROMEGASRAWHIT";
 
@@ -84,15 +82,14 @@ class MicromegasCombinedDataDecoder : public SubsysReco
   double m_min_adc = 50;
 
   /// min sample for signal
-  int m_sample_min = 0;
+  uint16_t m_sample_min = 0;
 
   /// max sample for signal
-  int m_sample_max = 100;
+  uint16_t m_sample_max = 100;
 
   /// keep track of number of hits per hitsetid
-  using hitcountmap_t = std::map<TrkrDefs::hitsetkey,int>;
+  using hitcountmap_t = std::map<TrkrDefs::hitsetkey, int>;
   hitcountmap_t m_hitcounts;
-
 };
 
 #endif

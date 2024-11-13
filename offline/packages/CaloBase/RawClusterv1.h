@@ -6,9 +6,11 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <utility>
 
@@ -17,7 +19,7 @@ class PHObject;
 class RawClusterv1 : public RawCluster
 {
  public:
-  RawClusterv1();
+  RawClusterv1() = default;
   ~RawClusterv1() override {}
 
   void Reset() override;
@@ -68,6 +70,10 @@ class RawClusterv1 : public RawCluster
   float get_et_iso() const override { return get_property_float(prop_et_iso_calotower_R03); }
   //! isolation ET the radius and hueristic can be specified
   float get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) const override;
+
+  std::vector<float> get_shower_shapes(float tower_thresh) const override;
+  std::pair<int,int> get_lead_tower() const override; // eta,phi of leading tower in cluster
+
   //  //! truth cluster's PHG4Particle ID
   //  virtual int get_truth_track_ID() const override { return get_property_int(prop_truth_track_ID); }
   //  //! truth cluster's PHG4Particle flavor
@@ -165,16 +171,16 @@ class RawClusterv1 : public RawCluster
   //
  protected:
   //! cluster ID
-  RawClusterDefs::keytype clusterid;
+  RawClusterDefs::keytype clusterid{0};
   //! total energy
-  float _energy;
+  float _energy{std::numeric_limits<float>::signaling_NaN()};
   //! Tower operations
   TowerMap towermap;
 
   //! location of cluster in cylindrical coordinate
-  float _r;
-  float _phi;
-  float _z;
+  float _r{std::numeric_limits<float>::signaling_NaN()};
+  float _phi{std::numeric_limits<float>::signaling_NaN()};
+  float _z{std::numeric_limits<float>::signaling_NaN()};
 
   ClassDefOverride(RawClusterv1, 3)
 };

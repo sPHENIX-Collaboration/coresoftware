@@ -17,7 +17,9 @@ namespace CaloTowerDefs
   {
     kPRDFTowerv1 = 0,
     kPRDFWaveform = 1,
-    kWaveformTowerv2 = 2
+    kWaveformTowerv2 = 2,
+    kPRDFTowerv4 = 3,
+    kWaveformTowerSimv1 = 4
   };
 }
 

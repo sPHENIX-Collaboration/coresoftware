@@ -44,6 +44,8 @@
 #include <Rtypes.h>
 #include <TDatabasePDG.h>
 #include <TMatrixD.h>
+#include "KFParticle_truthAndDetTools.h"
+
 #include <TMatrixDfwd.h>  // for TMatrixD
 #include <TMatrixT.h>     // for TMatrixT, operator*
 
@@ -56,6 +58,8 @@
 #include <iterator>   // for end
 #include <map>        // for _Rb_tree_iterator, map
 #include <memory>     // for allocator_traits<>::va...
+
+KFParticle_truthAndDetTools toolSet;
 
 /// KFParticle constructor
 KFParticle_Tools::KFParticle_Tools()
@@ -203,6 +207,11 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
   {
     m_dst_track = iter.second;
 
+    if (m_bunch_crossing_zero_only && (m_dst_track->get_crossing() != 0))
+    {
+      continue;
+    }
+
     // First check if we have the required number of MVTX and TPC hits
     TrackSeed *tpcseed = m_dst_track->get_tpc_seed();
     TrackSeed *silseed = m_dst_track->get_silicon_seed();
@@ -302,8 +311,19 @@ int KFParticle_Tools::calcMinIP(const KFParticle &track, const std::vector<KFPar
 
   for (const auto &PV : PVs)
   {
-    ip.push_back(track.GetDistanceFromVertex(PV));
-    float thisIPchi2 = track.GetDeviationFromVertex(PV);
+    float thisIPchi2 = 0;
+
+    if (m_use_2D_matching_tools) 
+    {
+      ip.push_back(abs(track.GetDistanceFromVertexXY(PV)));
+      track.GetDeviationFromVertexXY(PV);
+    }
+    else
+    {
+      ip.push_back(track.GetDistanceFromVertex(PV));
+      track.GetDeviationFromVertex(PV);
+    }
+
     if (thisIPchi2 < 0)
     {
       thisIPchi2 = 0;
@@ -346,12 +366,23 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
     {
       if (i_it < j_it)
       {
-        if (daughterParticles[*i_it].GetDistanceFromParticle(daughterParticles[*j_it]) <= m_comb_DCA)
+        float dca = 0;
+        if (m_use_2D_matching_tools)
+        {
+          daughterParticles[*i_it].GetDistanceFromParticleXY(daughterParticles[*j_it]);
+        }
+        else
+        {
+          daughterParticles[*i_it].GetDistanceFromParticle(daughterParticles[*j_it]);
+        }
+
+        if (dca <= m_comb_DCA)
         {
           KFVertex twoParticleVertex;
           twoParticleVertex += daughterParticles[*i_it];
           twoParticleVertex += daughterParticles[*j_it];
           float vertexchi2ndof = twoParticleVertex.GetChi2() / twoParticleVertex.GetNDF();
+          float sv_radial_position = sqrt(pow(twoParticleVertex.GetX(), 2) + pow(twoParticleVertex.GetY(), 2));
           std::vector<int> combination = {*i_it, *j_it};
 
           if (nTracks == 2 && vertexchi2ndof > m_vertex_chi2ndof)
@@ -360,7 +391,14 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
           }
           else
           {
-            goodTracksThatMeet.push_back(combination);
+            if (nTracks == 2 && sv_radial_position < m_min_radial_SV)
+            {
+              continue;
+            }
+            else
+            {
+              goodTracksThatMeet.push_back(combination);
+            }
           }
         }
       }
@@ -394,7 +432,17 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
         bool dcaMet = true;
         for (unsigned int i = 0; i < nProngs - 1; ++i)
         {
-          if (daughterParticles[i_it].GetDistanceFromParticle(daughterParticles[goodTracksThatMeet[i_prongs][i]]) > m_comb_DCA)
+          float dca = 0;
+          if (m_use_2D_matching_tools)
+          {
+            daughterParticles[i_it].GetDistanceFromParticleXY(daughterParticles[goodTracksThatMeet[i_prongs][i]]);
+          }
+          else
+          {
+            daughterParticles[i_it].GetDistanceFromParticle(daughterParticles[goodTracksThatMeet[i_prongs][i]]);          
+          }
+
+          if (dca > m_comb_DCA)
           {
             dcaMet = false;
           }
@@ -412,6 +460,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
             combination.push_back(goodTracksThatMeet[i_prongs][i]);
           }
           float vertexchi2ndof = particleVertex.GetChi2() / particleVertex.GetNDF();
+          float sv_radial_position = sqrt(pow(particleVertex.GetX(), 2) + pow(particleVertex.GetY(), 2));
 
           if ((unsigned int) nRequiredTracks == nProngs && vertexchi2ndof > m_vertex_chi2ndof)
           {
@@ -419,7 +468,14 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
           }
           else
           {
-            goodTracksThatMeet.push_back(combination);
+            if ((unsigned int) nRequiredTracks == nProngs && sv_radial_position < m_min_radial_SV)
+            {
+              continue;
+            }
+            else
+            {
+              goodTracksThatMeet.push_back(combination);
+            }
           }
         }
       }
@@ -671,6 +727,23 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     goodCandidate = true;
   }
 
+  if (goodCandidate && m_require_bunch_crossing_match)
+  {
+    std::vector<int> crossings;
+    for (int i = 0; i < nTracks; ++i)
+    {
+      SvtxTrack *thisTrack = toolSet.getTrack(vDaughters[i].Id(), m_dst_trackmap);
+      crossings.push_back(thisTrack->get_crossing());
+    }
+
+    removeDuplicates(crossings);
+
+    if (crossings.size() !=1)
+    {
+      goodCandidate = false;
+    }
+  }
+
   // Check the requirements of an intermediate states against this mother and re-do goodCandidate
   if (goodCandidate && m_has_intermediates && !isIntermediate)  // The decay has intermediate states and we are now looking at the mother
   {
@@ -705,7 +778,16 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
 
   float calculated_fdchi2 = flightDistanceChi2(particle, vertex);
   float calculated_dira = eventDIRA(particle, vertex);
-  float calculated_ipchi2 = particle.GetDeviationFromVertex(vertex);
+
+  float calculated_ipchi2;
+  if (m_use_2D_matching_tools)
+  {
+    calculated_ipchi2 = particle.GetDeviationFromVertexXY(vertex);
+  }
+  else
+  {
+    calculated_ipchi2 = particle.GetDeviationFromVertex(vertex);
+  }
 
   goodCandidate = false;
 

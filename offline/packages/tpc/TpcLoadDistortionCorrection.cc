@@ -51,8 +51,12 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   // look for distortion calibration object
   PHNodeIterator iter(topNode);
 
-  std::cout << "TpcLoadDistortionCorrection::InitRun - m_phi_hist_in_radians: " << m_phi_hist_in_radians << std::endl;
-
+  std::cout << "TpcLoadDistortionCorrection::InitRun - m_flags: (i,in_use,radians,interpolate_z):";
+  for (int i=0; i<4; i++)
+  {
+    std::cout << "("<< i <<", "<<m_correction_in_use[i] << ", " << m_phi_hist_in_radians[i] << ", " << m_interpolate_z[i] << ")"<< std::endl;
+  }
+  
   /// Get the RUN node and check
   auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
@@ -62,7 +66,7 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   }
 
   // create and populate the nodes for each distortion, if present:
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 4; i++)
   {
     if (!m_correction_in_use[i])
     {
@@ -81,7 +85,7 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
 
     std::cout << "TpcLoadDistortionCorrection::InitRun - reading corrections from " << m_correction_filename[i] << std::endl;
     auto distortion_tfile = TFile::Open(m_correction_filename[i].c_str());
-    if (!distortion_tfile && m_correction_in_use[i])
+    if (!distortion_tfile)
     {
       std::cout << "TpcLoadDistortionCorrection::InitRun - cannot open " << m_correction_filename[i] << std::endl;
       exit(1);
@@ -105,7 +109,15 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     assert(distortion_correction_object->m_dimensions == 2 || distortion_correction_object->m_dimensions == 3);
 
     // assign whether phi corrections (DP) should be read as radians or mm
-    distortion_correction_object->m_phi_hist_in_radians = m_phi_hist_in_radians;
+    distortion_correction_object->m_phi_hist_in_radians = m_phi_hist_in_radians[i];
+
+    // assign whether 2D corrections should be interpolated to zero at readout or not (has no effect on 3D corrections)
+    distortion_correction_object->m_interpolate_z = m_interpolate_z[i];
+
+    //assign whether the correction should be scaled, and if so, by how much
+    distortion_correction_object->m_use_scalefactor = m_use_scalefactor[i];
+    distortion_correction_object->m_scalefactor = m_scalefactor[i];
+
 
     if (Verbosity())
     {

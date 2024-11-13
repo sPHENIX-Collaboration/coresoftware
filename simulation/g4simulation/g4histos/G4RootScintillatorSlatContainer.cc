@@ -4,19 +4,12 @@
 
 #include <TClonesArray.h>
 
-#include <cmath>                    // for NAN
-#include <ostream>                   // for basic_ostream::operator<<, opera...
-
-using namespace std;
+#include <limits>
+#include <ostream>  // for basic_ostream::operator<<, opera...
 
 static const int NMAX = 1000;
 
 G4RootScintillatorSlatContainer::G4RootScintillatorSlatContainer()
-  : idet(-9999)
-  , etotal(NAN)
-  , eion(NAN)
-  , leakage(NAN)
-  , event(0)
 {
   SnglSlats = new TClonesArray("G4RootScintillatorSlat", NMAX);
 }
@@ -29,8 +22,8 @@ G4RootScintillatorSlatContainer::~G4RootScintillatorSlatContainer()
 
 void G4RootScintillatorSlatContainer::Reset()
 {
-  etotal = NAN;
-  leakage = NAN;
+  etotal = std::numeric_limits<float>::quiet_NaN();
+  leakage = std::numeric_limits<float>::quiet_NaN();
   event = 0;
   SnglSlats->Clear();
   if (SnglSlats->GetSize() > NMAX)
@@ -53,8 +46,8 @@ G4RootScintillatorSlatContainer::AddSlat(const PHG4ScintillatorSlat &slat)
   return (static_cast<G4RootScintillatorSlat *>(cl[nextindex]));
 }
 
-void G4RootScintillatorSlatContainer::identify(ostream &os) const
+void G4RootScintillatorSlatContainer::identify(std::ostream &os) const
 {
-  os << "Number of Hits: " << SnglSlats->GetLast() << endl;
+  os << "Number of Hits: " << SnglSlats->GetLast() << std::endl;
   return;
 }

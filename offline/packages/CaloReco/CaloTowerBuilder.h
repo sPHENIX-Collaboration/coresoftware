@@ -6,6 +6,8 @@
 #include "CaloTowerDefs.h"
 #include "CaloWaveformProcessing.h"
 
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
 #include <fun4all/SubsysReco.h>
 
 #include <limits>
@@ -27,8 +29,8 @@ class CaloTowerBuilder : public SubsysReco
 
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  int process_rawdata(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
-  int process_offline(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  int process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  
 
   void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
@@ -60,8 +62,8 @@ class CaloTowerBuilder : public SubsysReco
 
   void set_softwarezerosuppression(bool usezerosuppression, int softwarezerosuppression)
   {
-    _nsoftwarezerosuppression = softwarezerosuppression;
-    _bdosoftwarezerosuppression = usezerosuppression;
+    m_nsoftwarezerosuppression = softwarezerosuppression;
+    m_bdosoftwarezerosuppression = usezerosuppression;
   }
 
   void set_outputNodePrefix(const std::string &name)
@@ -74,21 +76,52 @@ class CaloTowerBuilder : public SubsysReco
   {
     m_UseOfflinePacketFlag = f;
   }
+  void set_timeFitLim(float low,float high)
+  {
+    m_setTimeLim = true;
+    m_timeLim_low = low;
+    m_timeLim_high = high;
+    return;
+  }
+
+  void set_bitFlipRecovery(bool dobitfliprecovery)
+  {
+    m_dobitfliprecovery = dobitfliprecovery;
+  }
+
+  void set_tbt_softwarezerosuppression(const std::string &url)
+  {
+    m_zsURL = url;
+    m_dotbtszs = true;
+    return;
+  }
+
+  void set_zs_fieldname(const std::string &fieldname)
+  {
+    m_zs_fieldname = fieldname;
+    return;
+  }
 
  private:
   int process_sim();
+  bool skipChannel(int ich, int pid);
+  bool isSZS(float time, float chi2);
   CaloWaveformProcessing *WaveformProcessing{nullptr};
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
+  CDBTTree *cdbttree = nullptr;
+  CDBTTree *cdbttree_tbt_zs = nullptr;
+
   bool m_isdata{true};
-  bool _bdosoftwarezerosuppression{false};
+  bool m_bdosoftwarezerosuppression{false};
   bool m_UseOfflinePacketFlag{false};
+  bool m_dotbtszs{false};
   int m_packet_low{std::numeric_limits<int>::min()};
   int m_packet_high{std::numeric_limits<int>::min()};
   int m_nsamples{16};
   int m_nchannels{192};
   int m_nzerosuppsamples{2};
-  int _nsoftwarezerosuppression{40};
+  int m_nsoftwarezerosuppression{40};
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::CEMC};
   CaloTowerDefs::BuilderType m_buildertype{CaloTowerDefs::kPRDFTowerv1};
   CaloWaveformProcessing::process _processingtype{CaloWaveformProcessing::NONE};
@@ -96,6 +129,18 @@ class CaloTowerBuilder : public SubsysReco
   std::string m_inputNodePrefix{"WAVEFORM_"};
   std::string m_outputNodePrefix{"TOWERS_"};
   std::string TowerNodeName;
+  bool m_setTimeLim{false};
+  float m_timeLim_low{-3.0};
+  float m_timeLim_high{4.0};
+  bool m_dobitfliprecovery{false};
+
+  std::string m_fieldname;
+  std::string m_calibName;
+  std::string m_directURL;
+  std::string m_zsURL;
+  std::string m_zs_fieldname{"zs_threshold"};
+
+
 };
 
 #endif  // CALOTOWERBUILDER_H

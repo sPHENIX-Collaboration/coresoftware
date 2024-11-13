@@ -157,7 +157,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   // geometry
   PHG4CylinderGeomContainer* geonode = nullptr;
   for( std::string geonodename: {"CYLINDERGEOM_MICROMEGAS_FULL", "CYLINDERGEOM_MICROMEGAS" } )
-  { if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) )) break; }
+  { if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) )) { break; 
+}}
   assert(geonode);
 
   // hitset container
@@ -256,7 +257,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     }
 
     // store last cluster
-    if( begin != hit_range.second ) ranges.push_back( std::make_pair( begin, hit_range.second ) );
+    if( begin != hit_range.second ) { ranges.push_back( std::make_pair( begin, hit_range.second ) );
+}
 
     // initialize cluster count
     int cluster_count = 0;
@@ -278,11 +280,13 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       // also store adc value
       unsigned int adc_sum = 0;
       unsigned int max_adc = 0;
-      unsigned int strip_count = 0;
+      const unsigned int strip_count = std::distance(range.first,range.second);
+      if(m_drop_single_strips && strip_count < 2)
+      { continue; }
+
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
       {
-        ++strip_count;
         // get hit key
         const auto hitkey = hit_it->first;
         const auto hit = hit_it->second;
@@ -346,8 +350,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       {
         case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
         {
-          if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
-          else coord_error_sq *= square(error_scale_phi);
+          if( coord_error_sq == 0 ) { coord_error_sq = square(pitch)/12;
+          } else { coord_error_sq *= square(error_scale_phi);
+}
           error_sq_x = coord_error_sq;
           error_sq_y = square(strip_length*invsqrt12);
           break;
@@ -355,14 +360,14 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
         case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
         {
-          if( coord_error_sq == 0 ) coord_error_sq = square(pitch)/12;
-          else coord_error_sq *= square(error_scale_z);
+          if( coord_error_sq == 0 ) { coord_error_sq = square(pitch)/12;
+          } else { coord_error_sq *= square(error_scale_z);
+}
           error_sq_x = square(strip_length*invsqrt12);
           error_sq_y = coord_error_sq;
           break;
         }
       }
-
 
       auto cluster = std::make_unique<TrkrClusterv5>();
       cluster->setAdc( adc_sum );
@@ -371,30 +376,47 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       cluster->setLocalY(local_coordinates.Y());
       cluster->setPhiError(sqrt(error_sq_x));
       cluster->setZError(sqrt(error_sq_y));
+
       // store cluster size
       switch( segmentation_type )
+      {
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
         {
-	case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-          {
-            cluster->setPhiSize(strip_count);
-            cluster->setZSize(1);
-            break;
-          }
-
-	case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-          {
-            cluster->setPhiSize(1);
-            cluster->setZSize(strip_count);
-            break;
-          }
+          cluster->setPhiSize(strip_count);
+          cluster->setZSize(1);
+          break;
         }
-      // add to container
+
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+        {
+          cluster->setPhiSize(1);
+          cluster->setZSize(strip_count);
+          break;
+        }
+      }
+
       trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
 
+      // increment counter
+      ++m_clustercounts[hitsetkey];
 
     }
 
   }
   // done
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_____________________________________________________________________
+int MicromegasClusterizer::End(PHCompositeNode* /*topNode*/)
+{
+  // if( Verbosity() )
+  {
+    for (const auto& [hitsetkey, count] : m_clustercounts)
+    {
+      std::cout << "MicromegasClusterizer::End - hitsetkey: " << hitsetkey << ", cluster count: " << count << std::endl;
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }

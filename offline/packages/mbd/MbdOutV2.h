@@ -28,6 +28,10 @@ class MbdOutV2 : public MbdOut
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
 
+  ///  functions to copy nodes for embedding
+  PHObject* CloneMe() const override { return new MbdOutV2(*this); }
+  void CopyTo(MbdOut *mbd) override;
+
   /// get ZVertex determined by Bbc
   Float_t get_zvtx() const override { return bz; }
 

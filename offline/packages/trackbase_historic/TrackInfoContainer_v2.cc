@@ -1,6 +1,8 @@
 #include "TrackInfoContainer_v2.h"
-#include <phool/PHObject.h>
+
 #include "SvtxTrackInfo_v2.h"
+
+#include <phool/PHObject.h>
 
 TrackInfoContainer_v2::TrackInfoContainer_v2()
 {

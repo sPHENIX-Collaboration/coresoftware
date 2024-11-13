@@ -37,9 +37,14 @@ class CaloTowerStatus : public SubsysReco
     m_inputNodePrefix = name;
     return;
   }
-  void set_badChi2_treshold(float threshold)
+  void set_badChi2_const_threshold(float threshold)
   {
-    badChi2_treshold = threshold;
+    badChi2_treshold_const = threshold;
+    return;
+  }
+  void set_badChi2_quadratic_threshold(float threshold)
+  {
+    badChi2_treshold_quadratic = threshold;
     return;
   }
   void set_fraction_badChi2_threshold(float threshold)
@@ -50,6 +55,29 @@ class CaloTowerStatus : public SubsysReco
   void set_time_cut(float threshold)
   {
     time_cut = threshold;
+    return;
+  }
+  void set_directURL_hotMap(const std::string &str)
+  {
+    m_directURL_hotMap = str;
+    use_directURL_hotMap = true;
+    return;
+  }
+  void set_directURL_time(const std::string &str)
+  {
+    m_directURL_time = str;
+    use_directURL_time = true;
+    return;
+  }
+  void set_directURL_chi2(const std::string &str)
+  {
+    m_directURL_chi2 = str;
+    use_directURL_chi2 = true;
+    return;
+  }
+  void set_doAbortNoHotMap(bool status = true)
+  {
+    m_doAbortNoHotMap = status;
     return;
   }
 
@@ -63,6 +91,7 @@ class CaloTowerStatus : public SubsysReco
   bool m_doHotChi2{true};
   bool m_doTime{true};
   bool m_doHotMap{true};
+  bool m_doAbortNoHotMap{false};
 
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 
@@ -75,8 +104,16 @@ class CaloTowerStatus : public SubsysReco
   std::string m_calibName_hotMap;
   std::string m_inputNodePrefix{"TOWERS_"};
 
-  float badChi2_treshold = 1e4;
-  float fraction_badChi2_threshold = 0.01;
+  std::string m_directURL_time;
+  std::string m_directURL_hotMap;
+  std::string m_directURL_chi2;
+  bool use_directURL_time{false};
+  bool use_directURL_hotMap{false};
+  bool use_directURL_chi2{false};
+
+  float badChi2_treshold_const = {1e4};
+  float badChi2_treshold_quadratic = {1./100};
+  float fraction_badChi2_threshold = {0.01};
   float time_cut = 2;  // number of samples from the mean time for the channel in the run
 };
 

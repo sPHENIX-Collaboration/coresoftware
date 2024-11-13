@@ -32,6 +32,7 @@ class AlignmentTransformation
   bool perturbMM = false;
 
   Eigen::Vector3d perturbationAngles = Eigen::Vector3d(0.0, 0.0, 0.0);
+  Eigen::Vector3d perturbationAnglesGlobal = Eigen::Vector3d(0.0, 0.0, 0.0);
   Eigen::Vector3d perturbationTranslation = Eigen::Vector3d(0.0, 0.0, 0.0);
 
   void setMVTXParams(double mvtxDevs[6])
@@ -120,7 +121,6 @@ class AlignmentTransformation
 
   int localVerbosity = 0;
 
-  bool use_global_millepede_translations = true;
   bool use_intt_survey_geometry = false;
 
   Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey);

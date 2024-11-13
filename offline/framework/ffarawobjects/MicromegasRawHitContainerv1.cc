@@ -45,7 +45,7 @@ unsigned int MicromegasRawHitContainerv1::get_nhits()
 
 MicromegasRawHit *MicromegasRawHitContainerv1::AddHit()
 {
-  MicromegasRawHit *newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv1();
+  MicromegasRawHit *newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv1;
   return newhit;
 }
 

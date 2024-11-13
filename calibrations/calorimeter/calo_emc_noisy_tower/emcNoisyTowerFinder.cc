@@ -17,6 +17,12 @@
 #include <phool/phool.h>
 
 #include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
 
 // ROOT
 #include <TFile.h>
@@ -24,6 +30,7 @@
 #include <TH2F.h>
 #include <TLine.h>
 #include <TPad.h>
+#include <TProfile2D.h>
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TTree.h>
@@ -31,751 +38,270 @@
 #include <boost/format.hpp>
 
 //________________________________
-emcNoisyTowerFinder::emcNoisyTowerFinder(const std::string &name, const std::string &outputName, const std::string &cdbtreename_in, float adccut_sg_in, float adccut_k_in, float sigmas_lo_in, float sigmas_hi_in, float SG_f_in, float Kur_f_in, float region_f_in)
+emcNoisyTowerFinder::emcNoisyTowerFinder(const std::string &name, const std::string &outputName)
   : SubsysReco(name)
   , Outfile(outputName)
-  , cdbtreename(cdbtreename_in)
-  , adccut_sg(adccut_sg_in)  // The minimum ADC required for a tower with Saint Gobain fibers to register a hit
-  , adccut_k(adccut_k_in)    // Minimum ADC for Kurary fibers to register a hit
-  , sigmas_lo(sigmas_lo_in)  // # of standard deviations from the mode for a cold tower
-  , sigmas_hi(sigmas_hi_in)  // # of standard deviations from the mode for a hot tower
-  , SG_f(SG_f_in)            // Fiducial cut (artificial maximum) for Saint Gobain towers
-  , Kur_f(Kur_f_in)          // Fiducial cut for Kurary
-  , region_f(region_f_in)    // Fiducial cut for Sectors and IBs
 {
-  // initialize tree with SG vs Kurary fiber information
-  fchannels = TFile::Open("channels.root", "read");
-
-  channels = (TTree *) fchannels->Get("myTree");
-  channels->SetBranchAddress("fiber_type", &fiber_type);
-
-  std::cout << "emcNoisyTowerFinder::emcNoisyTowerFinder Calling ctor" << std::endl;
 }
 //__________________________________
 emcNoisyTowerFinder::~emcNoisyTowerFinder()
 {
   std::cout << "emcNoisyTowerFinder::~emcNoisyTowerFinder() Calling dtor" << std::endl;
 }
+
 //_____________________________
 int emcNoisyTowerFinder::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << "emcNoisyTowerFinder::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+
+  foutput = new TFile(Outfile.c_str(), "recreate");
+
+  h_hits_eta_phi_adc = new TH2F("h_hits_eta_phi_adc", "", Neta, 0, Neta, Nphi, 0, Nphi);
+  pr_hits_eta_phi_adc = new TProfile2D("pr_hits_eta_phi_adc", "", Neta, 0, Neta, Nphi, 0, Nphi);
+
+  h_hits_eta_phi_gev = new TH2F("h_hits_eta_phi_gev", "", Neta, 0, Neta, Nphi, 0, Nphi);
+  pr_hits_eta_phi_gev = new TProfile2D("pr_hits_eta_phi_gev", "", Neta, 0, Neta, Nphi, 0, Nphi);
+
+  std::string default_time_independent_calib = "cemc_pi0_twrSlope_v1_default";
+  m_fieldname = "Femc_datadriven_qm1_correction";
+
+  std::string calibdir = CDBInterface::instance()->getUrl(default_time_independent_calib);
+  if (calibdir.empty())
+  {
+    std::cout << "CaloTowerCalib::::InitRun No EMCal Calibration NOT even a default" << std::endl;
+    exit(1);
+  }
+  cdbttree = new CDBTTree(calibdir);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 //_____________________________
 int emcNoisyTowerFinder::InitRun(PHCompositeNode * /*topNode*/)
 {
   std::cout << "emcNoisyTowerFinder::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 //_____________________________
 int emcNoisyTowerFinder::process_event(PHCompositeNode *topNode)
 {
   // Get TowerInfoContainer
-  TowerInfoContainer *emcTowerContainer;
-  emcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
-  if (!emcTowerContainer)
+  TowerInfoContainer *towers;
+  towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
+  if (!towers)
   {
     std::cout << PHWHERE << "emcNoisyTowerFinder::process_event Could not find node TOWERS_CEMC" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   // iterate through all towers, incrementing their Frequency arrays if they record a hit
 
-  bool goodevent = false;
-  int tower_range = emcTowerContainer->size();
+  int tower_range = towers->size();
   for (int j = 0; j < tower_range; j++)
   {
-    double energy = emcTowerContainer->get_tower_at_channel(j)->get_energy();
-    channels->GetEntry(j);
-    if (fabs(energy) > 0)
+    TowerInfo *tower = towers->get_tower_at_channel(j);
+    float energy = tower->get_energy();
+    unsigned int towerkey = towers->encode_key(j);
+    int ieta = towers->getTowerEtaBin(towerkey);
+    int iphi = towers->getTowerPhiBin(towerkey);
+
+    float calibconst = cdbttree->GetFloatValue(towerkey, m_fieldname);
+    float calib_energy = calibconst * energy;
+
+    if (energy > energy_threshold_adc)
     {
-      // keeping track of how many times a tower actually saw
-      // some reasonable amount of energy and normalizing the response by
-      // that as opposed to the raw number of events
-      goodevents[j]++;
-      goodeventsIB[j / nTowersIB]++;  // add these to the header file
-      goodeventsSec[j / nTowersSec]++;
+      h_hits_eta_phi_adc->Fill(ieta + 1, iphi + 1);
+      pr_hits_eta_phi_adc->Fill(ieta + 1, iphi + 1, 1);
     }
-    if (((fiber_type == 0) && (energy > adccut_sg)) ||
-        ((fiber_type == 1) && (energy > adccut_k)))
+    else
     {
-      towerF[j]++;
-      goodevent = true;  // counter of events with nonzero EMCal energy
-      sectorF[j / nTowersSec]++;
-      ibF[j / nTowersIB]++;
+      pr_hits_eta_phi_adc->Fill(ieta + 1, iphi + 1, 0);
     }
 
-    towerE[j] += energy;
-    sectorE[j / nSectors] += energy;
-    ibE[j / nTowersIB] += energy;
-  }
-
-  if (goodevent)
-  {
-    eventCounter++;
+    if (calib_energy > energy_threshold_gev)
+    {
+      h_hits_eta_phi_gev->Fill(ieta + 1, iphi + 1);
+      pr_hits_eta_phi_gev->Fill(ieta + 1, iphi + 1, 1);
+    }
+    else
+    {
+      pr_hits_eta_phi_gev->Fill(ieta + 1, iphi + 1, 0);
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 //__________________________
 int emcNoisyTowerFinder::ResetEvent(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //__________________________
-void emcNoisyTowerFinder::FillHistograms(const int /*runnumber*/, const int /*segment*/)
-{
-  const int nBins = 101;
 
-  out = new TFile(Outfile.c_str(), "RECREATE");
-
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Fspec = new TH2F("Fspec", "Fspec", nTowers + 1, -0.5, nTowers + 0.5, nBins, 0. - 1 / (2 * nBins), 1 + 1 / (2 * nBins));
-  Fspec_SG = new TH2F("Fspec_SG", "Fspec_SG", nTowers + 1, -0.5, nTowers + 0.5, nBins, 0. - SG_f / (2 * nBins), SG_f + SG_f / (2 * nBins));
-  Fspec_K = new TH2F("Fspec_K", "Fspec_K", nTowers + 1, -0.5, nTowers + 0.5, nBins, 0. - Kur_f / (2 * nBins), Kur_f + Kur_f / (2 * nBins));
-  Fspec_sector = new TH2F("Fspec_sector", "Fspec_sector", nSectors + 1, -0.5, nSectors + 0.5, nBins, 0. - region_f / (2 * nBins), region_f + region_f / (2 * nBins));
-  Fspec_IB = new TH2F("Fspec_IB", "Fspec_IB", nIB + 1, -0.5, nIB + 0.5, nBins, 0. - region_f / (2 * nBins), region_f + region_f / (2 * nBins));
-
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Fspeci = new TH2F("Fspeci", "Fspec_init", nTowers + 1, -0.5, nTowers + 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Fspeci_SG = new TH2F("Fspeci_SG", "Fspeci_SG", nTowers + 1, -0.5, nTowers + 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Fspeci_K = new TH2F("Fspeci_K", "Fspeci_K", nTowers + 1, -0.5, nTowers + 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Fspeci_sector = new TH2F("Fspeci_sector", "Fspeci_sector", nSectors + 1, -0.5, nSectors + 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Fspeci_IB = new TH2F("Fspeci_IB", "Fspeci_IB", nIB + 1, -0.5, nIB + 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Espec = new TH2F("Espec", "Espec", nTowers + 1, -0.5, nTowers - 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Espec_SG = new TH2F("Espec_SG", "Espec_SG", nTowers + 1, -0.5, nTowers - 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Espec_K = new TH2F("Espec_K", "Espec_K", nTowers + 1, -0.5, nTowers - 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Espec_sector = new TH2F("Espec_sector", "Espec_sector", nSectors, -0.5, nSectors - 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  Espec_IB = new TH2F("Espec_IB", "Espec_IB", nTowers + 1, -0.5, nTowers - 0.5, nBins, 0. - 1 / (2 * nBins), 1);
-
-  // hEventCounter = new TH1F("goodEventCounter","goodEventCounter",1,-0.5,0.5);
-  // hEventCounter -> SetBinContent(1,goodevents);
-
-  // fill histograms
-
-  for (int i = 0; i < nTowers; i++)
-  {
-    Fspec->Fill(i, towerF[i] / goodevents[i]);
-    Espec->Fill(i, towerE[i] / goodevents[i]);
-    Fspeci->Fill(i, towerF[i] / goodevents[i]);
-
-    channels->GetEntry(i);
-    if (fiber_type == 0)
-    {
-      if (do_VariableNormalization)
-      {
-        Fspec_SG->Fill(i, towerF[i] / goodevents[i]);
-        Espec_SG->Fill(i, towerE[i] / goodevents[i]);
-        Fspeci_SG->Fill(i, towerF[i] / goodevents[i]);
-      }
-      else
-      {
-        Fspec_SG->Fill(i, towerF[i] / eventCounter);
-        Espec_SG->Fill(i, towerE[i] / eventCounter);
-        Fspeci_SG->Fill(i, towerF[i] / eventCounter);
-      }
-    }
-    else
-    {
-      if (do_VariableNormalization)
-      {
-        Fspec_K->Fill(i, towerF[i] / goodevents[i]);
-        Espec_K->Fill(i, towerE[i] / goodevents[i]);
-        Fspeci_K->Fill(i, towerF[i] / goodevents[i]);
-      }
-      else
-      {
-        Fspec_K->Fill(i, towerF[i] / eventCounter);
-        Espec_K->Fill(i, towerE[i] / eventCounter);
-        Fspeci_K->Fill(i, towerF[i] / eventCounter);
-      }
-    }
-  }
-  for (int j = 0; j < nIB; j++)
-  {
-    // int nTowerEvents = 1;
-    // for(int evt = j*nTowersIB; evt < (j+1)*nTowersIB; j++)nTowerEvents+=goodevents[evt];
-    //  Fspec_IB->Fill(j,1.0*ibF[j]/nTowersIB/(goodeventsIB[j]/nTowerEvents));
-    //  Espec_IB->Fill(j,1.0*ibE[j]/nTowersIB/(goodeventsIB[j]/nTowerEvents));
-    //  Fspeci_IB->Fill(j,1.0*ibF[j]/nTowersIB/(goodeventsIB[j]/nTowerEvents));
-    if (do_VariableNormalization)
-    {
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Fspec_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / (goodeventsIB[j] / nTowersIB));
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Espec_IB->Fill(j, 1.0 * ibE[j] / nTowersIB / (goodeventsIB[j] / nTowersIB));
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Fspeci_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / (goodeventsIB[j] / nTowersIB));
-    }
-    else
-    {
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Fspec_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / eventCounter);
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Espec_IB->Fill(j, 1.0 * ibE[j] / nTowersIB / eventCounter);
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Fspeci_IB->Fill(j, 1.0 * ibF[j] / nTowersIB / eventCounter);
-    }
-  }
-  for (int k = 0; k < nSectors; k++)
-  {
-    // int nTowerEvents = 1;
-    // for(int evt = k*nTowersSec; evt < (k+1)*nTowersSec; k++)nTowerEvents+=goodevents[evt];
-    //  Fspec_sector->Fill(k,1.0*sectorF[k]/nTowersSec/(goodeventsSec[k]/nTowerEvents));
-    //  Espec_sector->Fill(k,1.0*sectorE[k]/nTowersSec/(goodeventsSec[k]/nTowerEvents));
-    //  Fspeci_sector->Fill(k,1.0*sectorF[k]/nTowersSec/(goodeventsSec[k]/nTowerEvents));
-    if (do_VariableNormalization)
-    {
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Fspec_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / (goodeventsSec[k] / nTowersSec));
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Espec_sector->Fill(k, 1.0 * sectorE[k] / nTowersSec / (goodeventsSec[k] / nTowersSec));
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Fspeci_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / (goodeventsSec[k] / nTowersSec));
-    }
-    else
-    {
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Fspec_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / eventCounter);
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Espec_sector->Fill(k, 1.0 * sectorE[k] / nTowersSec / eventCounter);
-      // NOLINTNEXTLINE(bugprone-integer-division)
-      Fspeci_sector->Fill(k, 1.0 * sectorF[k] / nTowersSec / eventCounter);
-    }
-  }
-
-  // kill zeros:
-
-  // // Fspec -> SetBinContent(1,0);
-  // // Fspec_SG -> SetBinContent(1,0);
-  // // Fspec_K -> SetBinContent(1,0);
-  // // Fspec_IB -> SetBinContent(1,0);
-  // // Fspec_sector -> SetBinContent(1,0);
-
-  out->cd();
-
-  // hEventCounter -> Write();
-  // delete hEventCounter;
-
-  Fspec->Write();
-  delete Fspec;
-
-  Fspec_K->Write();
-  delete Fspec_K;
-
-  Fspec_SG->Write();
-  delete Fspec_SG;
-
-  Fspec_sector->Write();
-  delete Fspec_sector;
-
-  Fspec_IB->Write();
-  delete Fspec_IB;
-
-  Espec->Write();
-  delete Espec;
-
-  Espec_SG->Write();
-  delete Espec_SG;
-
-  Espec_K->Write();
-  delete Espec_K;
-
-  Espec_sector->Write();
-  delete Espec_sector;
-
-  Espec_IB->Write();
-  delete Espec_IB;
-
-  Fspeci->Write();
-  delete Fspeci;
-
-  Fspeci_K->Write();
-  delete Fspeci_K;
-
-  Fspeci_SG->Write();
-  delete Fspeci_SG;
-
-  Fspeci_sector->Write();
-  delete Fspeci_sector;
-
-  Fspeci_IB->Write();
-  delete Fspeci_IB;
-
-  out->Close();
-  delete out;
-}
 //__________________________
-void emcNoisyTowerFinder::CalculateCutOffs(const int runnumber)
+void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilename, const std::string &inHist)
 {
-  TFile *histsIn = new TFile(boost::str(boost::format("output/%d/DST_CALOR-%08d_badTowerMapTree.root") % runnumber % runnumber).c_str());
+  //TH2F *h_hits_eta_phi_adc = nullptr;
+  bool isListFile = (infilename.substr(infilename.rfind('.') + 1) == "txt" || infilename.substr(infilename.rfind('.') + 1) == "list");
 
-  float cutoffFreq_SG;
-  float cutoffFreq_K;
-  float cutoffFreq;
-
-  // float cutoffFreq_sector;
-  float cutoffFreq_IB;
-
-  float cutoffFreq_SG_lo;
-  float cutoffFreq_K_lo;
-
-  // float cutoffFreq_sector_lo;
-  float cutoffFreq_IB_lo;
-
-  // hEventCounter = (TH1F*)histsIn -> Get("goodEventCounter");
-  // goodevents = hEventCounter -> GetBinContent(1);
-
-  // calculate initial cut off values
-  TH1F *dummyProj = nullptr;
-  gStyle->SetOptStat(0);
-  Fspec_SG = (TH2F *) histsIn->Get("Fspec_SG");
-  dummyProj = (TH1F *) Fspec_SG->ProjectionY("dummy");
-  dummyProj->SetBinContent(1, 0);
-  cutoffFreq_SG = dummyProj->GetStdDev() * sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-  cutoffFreq_SG_lo = -1 * dummyProj->GetStdDev() * sigmas_lo + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-  Fspec_K = (TH2F *) histsIn->Get("Fspec_K");
-  dummyProj = (TH1F *) Fspec_K->ProjectionY("dummy");
-  dummyProj->SetBinContent(1, 0);
-
-  cutoffFreq_K = dummyProj->GetStdDev() * sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-  cutoffFreq_K_lo = -1 * Fspec_K->GetStdDev() * sigmas_lo + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-  Fspec = (TH2F *) histsIn->Get("Fspec");
-  dummyProj = (TH1F *) Fspec->ProjectionY("dummy");
-  dummyProj->SetBinContent(1, 0);
-  cutoffFreq = dummyProj->GetStdDev() * sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-  Fspec_IB = (TH2F *) histsIn->Get("Fspec_IB");
-  dummyProj = (TH1F *) Fspec_IB->ProjectionY("dummy");
-  dummyProj->SetBinContent(1, 0);
-
-  cutoffFreq_IB = dummyProj->GetStdDev() * sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-  cutoffFreq_IB_lo = -1 * Fspec_IB->GetStdDev() * sigmas_lo + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-  // Fspec_sector = (TH2F*)histsIn -> Get("Fspec_sector");
-  // dummyProj = (TH1F*)Fspec_sector -> ProjectionY("dummy");
-  // dummyProj -> SetBinContent(1,0);
-
-  // cutoffFreq_sector = dummyProj->GetStdDev()*sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-  // cutoffFreq_sector_lo = -1*dummyProj->GetStdDev()*sigmas_lo + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-  // get the rest of the histograms we nede
-  Fspeci_K = (TH2F *) histsIn->Get("Fspeci_K");
-
-  Fspeci_SG = (TH2F *) histsIn->Get("Fspeci_SG");
-  Fspeci_SG->SetTitle(";Tower ID; Hit Frequency");
-
-  Fspeci = (TH2F *) histsIn->Get("Fspeci");
-  Fspeci_IB = (TH2F *) histsIn->Get("Fspeci_IB");
-  Fspeci_IB->SetTitle(";IB ID; Hit Frequency");
-
-  Fspeci_sector = (TH2F *) histsIn->Get("Fspeci_sector");
-
-  // initial hot tower calculation
-  for (int i = 0; i < nTowers; i++)
+  if (isListFile)
   {
-    channels->GetEntry(i);
-
-    TH1F *fSpecProj_SG = (TH1F *) Fspeci_SG->ProjectionY("dummySG", i + 1, i + 1);
-    TH1F *fSpecProj_K = (TH1F *) Fspeci_K->ProjectionY("dummyK", i + 1, i + 1);
-    TH1F *fSpecProj = (TH1F *) Fspeci->ProjectionY("dummySpec", i + 1, i + 1);
-
-    if ((fiber_type == 0 && fSpecProj_SG->GetBinCenter(fSpecProj_SG->GetMaximumBin()) > cutoffFreq_SG) ||
-        (fiber_type == 1 && fSpecProj_K->GetBinCenter(fSpecProj_K->GetMaximumBin()) > cutoffFreq_K))
+    std::ifstream fileList(infilename.c_str());
+    std::string line;
+    while (std::getline(fileList, line))
     {
-      hottowers[i]++;
+      TFile *fin = new TFile(line.c_str());
+      if (!fin || fin->IsZombie())
+      {
+        std::cout << "emcNoisyTowerFinder::FindHot: input file not found or is corrupted " << line.c_str() << std::endl;
+        continue;
+      }
+      TH2F *tempHist = (TH2F *) fin->Get(inHist.c_str());
+      if (!tempHist)
+      {
+        std::cout << "emcNoisyTowerFinder::FindHot: input hist not found in file " << line.c_str() << std::endl;
+        delete fin;
+        continue;
+      }
+      if (!h_hits_eta_phi_adc)
+      {
+        h_hits_eta_phi_adc = (TH2F *) tempHist->Clone();
+        h_hits_eta_phi_adc->SetDirectory(nullptr);  // Detach from the file to keep it in memory
+      }
+      else
+      {
+        h_hits_eta_phi_adc->Add(tempHist);
+      }
+      delete fin;
     }
-    else if (fSpecProj->GetBinCenter(fSpecProj->GetMaximumBin()) == 0)
-    {
-      deadtowers[i]++;
-    }
-    else if ((fiber_type == 0 && fSpecProj_SG->GetBinCenter(fSpecProj_SG->GetMaximumBin()) < cutoffFreq_SG_lo && fSpecProj_SG->GetBinCenter(fSpecProj_SG->GetMaximumBin()) > 0) ||
-             (fiber_type == 1 && fSpecProj_K->GetBinCenter(fSpecProj_K->GetMaximumBin()) < cutoffFreq_K_lo && fSpecProj_K->GetBinCenter(fSpecProj_K->GetMaximumBin()) > 0))
-    {
-      coldtowers[i]++;
-    }
+    fileList.close();
   }
-  // go through and look for hot/cold "regions", e.g. sectors and interface boards
-  hot_regions = 0;
-  cold_regions = 0;
-
-  // Interface board QA, create projection
-
-  // hotIB
-  for (int j = 0; j < nIB; j++)
+  else
   {
-    TH1F *fSpecIBProj = (TH1F *) Fspeci_IB->ProjectionY("dummyIB", j + 1, j + 1);
-
-    if (fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) > cutoffFreq_IB)
+    TFile *fin = new TFile(infilename.c_str());
+    if (!fin || fin->IsZombie())
     {
-      hot_regions = 1;
-      std::cout << "IB " << j << " is hot with ADC rate" << fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) << " > " << cutoffFreq_IB << std::endl;
-
-      hotIB[j]++;
-      for (int j1 = 0; j1 < nTowersIB; j1++)
-      {
-        hottowers[j * nTowersIB + j1]++;
-        for (int biny = 0; biny < Fspeci->GetNbinsY(); biny++)
-        {
-          Fspeci->SetBinContent(j * nTowersIB + j1 + 1, biny + 1, -10);
-        }
-        // towerF[j*nTowersIB+j1]=0;//mask tower's contribution so it's no longer used to calculate cutoffs
-      }
-      for (int biny = 0; biny < Fspeci_IB->GetNbinsY(); biny++)
-      {
-        Fspeci_IB->SetBinContent(j + 1, biny + 1, -10);
-      }
-      // ibF[j]=-1;
+      std::cout << "emcNoisyTowerFinder::FindHot: input file not found or is corrupted " << infilename.c_str() << std::endl;
+      return;
     }
+    h_hits_eta_phi_adc = (TH2F *) fin->Get(inHist.c_str());
+    if (!h_hits_eta_phi_adc)
+    {
+      std::cout << "emcNoisyTowerFinder::FindHot: input hist not found " << inHist.c_str() << std::endl;
+      delete fin;
+      return;
+    }
+    h_hits_eta_phi_adc->SetDirectory(nullptr);  // Detach from the file to keep it in memory
+    delete fin;
   }
 
-  // cold IB
-  for (int j = 0; j < nIB; j++)
+  if (!h_hits_eta_phi_adc)
   {
-    TH1F *fSpecIBProj = (TH1F *) Fspeci_IB->ProjectionY("dummyIB", j + 1, j + 1);
+    std::cout << "emcNoisyTowerFinder::FindHot: no valid histogram found" << std::endl;
+    return;
+  }
+  TH2F *h_hits = h_hits_eta_phi_adc;
 
-    if (fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) < cutoffFreq_IB_lo)
+  TFile *fout = new TFile(outfilename.c_str(), "recreate");
+
+  TH2F *h_hot = new TH2F("h_hot", "", Neta, 0, Neta, Nphi, 0, Nphi);
+  TH2F *h_hitClean;  // = new TH2F("h_hitClean", "", Neta, 0, Neta, Nphi, 0, Nphi);
+  TH2F *h_heatSigma = new TH2F("h_heatSigma", "", Neta, 0, Neta, Nphi, 0, Nphi);
+  TH1F *h_perMedian = new TH1F("h_perMedian", "", 500, 0, 5);
+  TH1F *h1_hits[Neta];
+  TH1F *h1_hits2[Neta];
+  h_hits->Write();
+  h_hitClean = (TH2F *) h_hits->Clone("h_hitClean");
+
+  float max = h_hits->GetBinContent(h_hits->GetMaximumBin());
+  float min = h_hits->GetMinimum();
+  if (min == 0)
+  {
+    min = 1;
+  }
+
+  for (int ie = 0; ie < Neta; ie++)
+  {
+    h1_hits[ie] = new TH1F((std::string("h1_hits") + std::to_string(ie)).c_str(), "", 200, min, max);
+    h1_hits2[ie] = new TH1F((std::string("h1_hits2_") + std::to_string(ie)).c_str(), "", 200, min, max);
+    std::vector<float> vals;
+    for (int iphi = 0; iphi < Nphi; iphi++)
     {
-      cold_regions = 1;
-      std::cout << "IB " << j << " is cold with ADC rate" << fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) << " < " << cutoffFreq_IB_lo << std::endl;
-      hotIB[j]++;
+      float val = h_hits->GetBinContent(ie + 1, iphi + 1);
+      h1_hits[ie]->Fill(val);
+      vals.push_back(val);
+    }
 
-      for (int j1 = 0; j1 < nTowersIB; j1++)
+    float median = findMedian(vals);
+    float mean = h1_hits[ie]->GetMean();
+    float std = h1_hits[ie]->GetStdDev();
+    for (int iphi = 0; iphi < Nphi; iphi++)
+    {
+      float val = h_hits->GetBinContent(ie + 1, iphi + 1);
+      if (val / median > 5 || val / median < 0.1)
       {
-        hottowers[j * nTowersIB + j1]++;
-        for (int biny = 0; biny < Fspeci->GetNbinsY(); biny++)
-        {
-          Fspeci->SetBinContent(j * nTowersIB + j1 + 1, biny + 1, -10);
-        }
-        // towerF[j*nTowersIB+j1]=0;
+        continue;
       }
-      // ibF[j] = -1;
-      for (int biny = 0; biny < Fspeci_IB->GetNbinsY(); biny++)
+      h1_hits2[ie]->Fill(val);
+    }
+    mean = h1_hits2[ie]->GetMean();
+    std = h1_hits2[ie]->GetStdDev();
+    for (int iphi = 0; iphi < Nphi; iphi++)
+    {
+      h_hot->SetBinContent(ie + 1, iphi + 1, 0);
+      float val = h_hits->GetBinContent(ie + 1, iphi + 1);
+      h_perMedian->Fill(val / median);
+      float sigma = (val - mean) / std;
+      h_heatSigma->SetBinContent(ie + 1, iphi + 1, sigma);
+      if (sigma > sigma_bad_thresh)  // hot tower
       {
-        Fspeci_IB->SetBinContent(j + 1, biny + 1, -10);
+        h_hot->SetBinContent(ie + 1, iphi + 1, 2);
+        h_hitClean->SetBinContent(ie + 1, iphi + 1, 0);
+      }
+      if ((sigma < -1 * sigma_bad_thresh || val < mean * percent_cold_thresh) && val != 0)  // cold tower
+      {
+        h_hot->SetBinContent(ie + 1, iphi + 1, 3);
+        h_hitClean->SetBinContent(ie + 1, iphi + 1, 0);
+      }
+      if (val == 0)  // dead tower
+      {
+        h_hot->SetBinContent(ie + 1, iphi + 1, 1);
       }
     }
   }
+  h_hitClean->Write();
 
-  /*Removing sector level qa
-  Essentially the issue is that removing IB's biases the determination of hot and cold sectors.
-  Like removing one IB's worth of towers is just going to make a sector cold, or having 1 hot IB can make a sector hot.
-  One could, in principle, re-scale the response by the fraction of missing IB's, but it isn't clear that that's necessary.
-  Towers are necessarily effected by the behavior of their IB, but it isn't clear that a single sector can be driven
-  bad by the behavior of a single IB. - AH*/
+  fout->Write();
 
-  // QA the sectors
-  // hot sector
-  //  for(int k = 0; k < nSectors; k++){
-  //    TH1F *fSpecSecProj = (TH1F*)Fspeci_sector->ProjectionY("dummySec",k+1,k+1);
+  ////////////////////////////////////////////
+  // make cdb tree
+  size_t pos = outfilename.find_last_of('.');
+  std::string f_cdbout_name = outfilename;
+  f_cdbout_name.insert(pos, "cdb");
 
-  //   if(fSpecSecProj->GetBinCenter(fSpecSecProj->GetMaximumBin()) > cutoffFreq_sector){
-  //     hot_regions = 1;
-  //     std::cout << "sector " << k << "is hot with ADC rate " << fSpecSecProj->GetBinCenter(fSpecSecProj->GetMaximumBin()) << " > " << cutoffFreq_sector  << std::endl;
-  //     hotsectors[k]++;
-
-  //     for(int k1 = 0; k1 < nTowersSec; k1++){
-  // 	hottowers[k*nTowersSec+k1]++;
-  // 	towerF[k*nTowersSec+k1] = 0;
-  // 	//for(int biny = 0; biny < Fspeci->GetNbinsY(); biny++) Fspeci->SetBinContent(k*nTowersSec+k1, biny+1, 0);
-  //     }
-  //     sectorF[k] = -1;
-  //     //fSpecSecProj->SetBinContent(k,0);
-  //     //for(int biny = 0; biny < Fspeci_sector->GetNbinsY(); biny++) Fspeci_sector->SetBinContent(k+1, biny+1, 0);
-  //   }
-  // }
-
-  // //cold sector
-  // for(int k = 0; k < nSectors; k++){
-  //   TH1F *fSpecSecProj = (TH1F*)Fspeci_sector->ProjectionY("dummySec",k+1,k+1);
-
-  //   if(fSpecSecProj->GetBinCenter(fSpecSecProj->GetMaximumBin()) < cutoffFreq_sector_lo){
-  //     cold_regions = 1;
-  //     std::cout << "sector " << k << "is cold  with ADC rate" << fSpecSecProj->GetBinCenter(fSpecSecProj->GetMaximumBin()) << " < " << cutoffFreq_sector_lo << std::endl;
-  //     coldsectors[k]++;
-
-  //     for(int k1 = 0; k1 < nIB; k1++){
-  // 	coldtowers[k*nIB+k1]++;
-  // 	//for(int biny = 0; biny < Fspeci->GetNbinsY(); biny++) Fspeci->SetBinContent(k*nTowersSec+k1, biny+1, 0);
-  // 	towerF[k*nTowersSec+k1] = 0;
-  //     }
-  //     //for(int biny = 0; biny < Fspeci_sector->GetNbinsY(); biny++) Fspeci_sector->SetBinContent(k+1, biny+1, 0);
-  //     sectorF[k]=-1;
-  //   }
-  // }
-
-  std::cout << "removing hot/cold regions" << std::endl;
-
-  // go through again and calculate cut offs with bad regions masked until the calculation is made without hot regions
-  while (hot_regions == 1 || cold_regions == 1)
+  CDBTTree *cdbttree_out = new CDBTTree(f_cdbout_name.c_str());
+  std::string m_fieldname_out = "status";
+  for (int i = 0; i < Neta; i++)
   {
-    std::cout << "hot/cold IB or sector detected. Running another pass for hot towers" << std::endl;
-    // Fspec->Reset();
-    // Fspec_SG->Reset();
-    // Fspec_K->Reset();
-    // Fspec_IB->Reset();
-    // Fspec_sector->Reset();
-
-    // not used for now
-    //  Espec->Reset();
-    //  Espec_SG->Reset();
-    //  Espec_K->Reset();
-    //  Espec_IB->Reset();
-    //  Espec_sector->Reset();
-    // for(int i = 0; i < nTowers; i++){
-
-    // Fspec->Fill(i,towerF[i]/goodevents);
-    //  Espec->Fill(i,towerE[i]/goodevents);
-    // channels->GetEntry(i);
-    // if(fiber_type == 0){
-    // Fspec_SG->Fill(i,towerF[i]/goodevents);
-    // Espec_SG->Fill(i,towerE[i]/goodevents);
-    //}
-    // else{
-    // Fspec_K->Fill(i,towerF[i]/goodevents);
-    // Espec_K->Fill(i,towerE[i]/goodevents);
-    //}
-    //}
-
-    // for(int j = 0; j<nIB; j++){
-    // Fspec_IB->Fill(j,1.0*ibF[j]/nTowersIB/goodevents);
-    // Espec_IB->Fill(1,1.0*ibE[j]/64/goodevents);
-    //}
-    // for(int k = 0; k<nSectors; k++){
-    // Fspec_sector->Fill(k,1.0*sectorF[k]/nTowersSec/goodevents);
-    // Espec_sector->Fill(1,1.0*sectorE[k]/384/goodevents);
-    //}
-
-    // kill zeros
-
-    // Fspec->SetBinContent(1,0);
-    // Fspec_SG->SetBinContent(1,0);
-    // Fspec_K->SetBinContent(1,0);
-    // Fspec_IB->SetBinContent(1,0);
-    // Fspec_sector->SetBinContent(1,0);
-
-    dummyProj = (TH1F *) Fspec_SG->ProjectionY("dummy");
-    dummyProj->SetBinContent(1, 0);
-
-    cutoffFreq_SG = dummyProj->GetStdDev() * sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-    cutoffFreq_SG_lo = -1 * dummyProj->GetStdDev() * sigmas_lo + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-    dummyProj = (TH1F *) Fspec_K->ProjectionY("dummy");
-    dummyProj->SetBinContent(1, 0);
-
-    cutoffFreq_K = dummyProj->GetStdDev() * sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-    cutoffFreq_K_lo = -1 * Fspec_K->GetStdDev() * sigmas_lo + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-    dummyProj = (TH1F *) Fspec->ProjectionY("dummy");
-    dummyProj->SetBinContent(1, 0);
-    cutoffFreq = dummyProj->GetStdDev() * sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-    dummyProj = (TH1F *) Fspec_IB->ProjectionY("dummy");
-    dummyProj->SetBinContent(1, 0);
-    cutoffFreq_IB = dummyProj->GetStdDev() * sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-    cutoffFreq_IB_lo = -1 * Fspec_IB->GetStdDev() * sigmas_lo + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-    // dummyProj = (TH1F*)Fspec_sector -> ProjectionY("dummy");
-    // dummyProj -> SetBinContent(1,0);
-    // cutoffFreq_sector = dummyProj->GetStdDev()*sigmas_hi + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-    // cutoffFreq_sector_lo = -1*dummyProj->GetStdDev()*sigmas_lo + dummyProj->GetBinCenter(dummyProj->GetMaximumBin());
-
-    for (int i = 0; i < nTowers; i++)
+    for (int j = 0; j < Nphi; j++)
     {
-      channels->GetEntry(i);
-      TH1F *fSpecProj_SG = (TH1F *) Fspeci_SG->ProjectionY("dummySG", i + 1, i + 1);
-      TH1F *fSpecProj_K = (TH1F *) Fspeci_K->ProjectionY("dummyK", i + 1, i + 1);
-      TH1F *fSpecProj = (TH1F *) Fspeci->ProjectionY("dummySpec", i + 1, i + 1);
-
-      if ((fiber_type == 0 && fSpecProj_SG->GetBinCenter(fSpecProj_SG->GetMaximumBin()) > cutoffFreq_SG) ||
-          (fiber_type == 1 && fSpecProj_K->GetBinCenter(fSpecProj_K->GetMaximumBin()) > cutoffFreq_K))
+      unsigned int key = TowerInfoDefs::encode_emcal(i, j);
+      if (Neta == 24)
       {
-        hottowers[i]++;
+        key = TowerInfoDefs::encode_hcal(i, j);
       }
-      else if (fSpecProj->GetBinCenter(fSpecProj->GetMaximumBin()) == 0)
-      {
-        deadtowers[i]++;
-      }
-      else if ((fiber_type == 0 && fSpecProj_SG->GetBinCenter(fSpecProj_SG->GetMaximumBin()) < cutoffFreq_SG_lo && fSpecProj_SG->GetBinCenter(fSpecProj_SG->GetMaximumBin()) > 0) ||
-               (fiber_type == 1 && fSpecProj_K->GetBinCenter(fSpecProj_K->GetMaximumBin()) < cutoffFreq_K_lo && fSpecProj_K->GetBinCenter(fSpecProj_K->GetMaximumBin()) > 0))
-      {
-        coldtowers[i]++;
-      }
-    }
-
-    hot_regions = 0;
-    cold_regions = 0;
-
-    // Re-QA IB's
-    // hotIB
-    for (int j = 0; j < nIB; j++)
-    {
-      if (ibF[j] == -1)
-      {
-        continue;  // IB has been marked hot already, don't bother with it
-      }
-      TH1F *fSpecIBProj = (TH1F *) Fspeci_IB->ProjectionY("dummyIB", j + 1, j + 1);
-
-      if (fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) > cutoffFreq_IB)
-      {
-        hot_regions = 1;
-        std::cout << "IB " << j << "is hot with ADC rate " << fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) << " > " << cutoffFreq_IB << std::endl;
-        hotIB[j]++;
-
-        for (int j1 = 0; j1 < nTowersIB; j1++)
-        {
-          hottowers[j * nTowersIB + j1]++;
-          // for(int biny = 0; biny < Fspeci->GetNbinsY(); biny++) Fspeci -> SetBinContent(j*nTowersIB+j1+1,biny+1, 0);
-          towerF[j * nTowersIB + j1] = 0;  // mask tower's contribution so it's no longer used to calculate cutoffs
-        }
-        // for(int biny = 0; biny < Fspeci_IB->GetNbinsY(); biny++)Fspeci_IB->SetBinContent(j+1,biny+1,0);
-        ibF[j] = -1;
-      }
-    }
-
-    // cold IB
-    for (int j = 0; j < nIB; j++)
-    {
-      if (ibF[j] == -1)
-      {
-        continue;  // IB has been marked hot already, don't bother with it
-      }
-
-      TH1F *fSpecIBProj = (TH1F *) Fspeci_IB->ProjectionY("dummyIB", j + 1, j + 1);
-
-      if (fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) < cutoffFreq_IB_lo)
-      {
-        cold_regions = 1;
-        std::cout << "IB " << j << " is cold with ADC rate " << fSpecIBProj->GetBinCenter(fSpecIBProj->GetMaximumBin()) << " < " << cutoffFreq_IB_lo << std::endl;
-        hotIB[j]++;
-
-        for (int j1 = 0; j1 < nTowersIB; j1++)
-        {
-          hottowers[j * nTowersIB + j1]++;
-          // for(int biny = 0; biny < Fspeci->GetNbinsY(); biny++) Fspeci -> SetBinContent(j*nTowersIB+j1+1,biny+1,0);
-          towerF[j * nTowersIB + j1] = 0;
-        }
-        ibF[j] = -1;
-        // for(int biny = 0; biny < Fspeci_IB->GetNbinsY(); biny++)Fspeci_IB->SetBinContent(j+1, biny+1,0);
-      }
-    }
-
-    // Re-QA sectors
-    // hot sectors
-    //  for(int k = 0; k<nSectors; k++){
-    //    if(sectorF[k]==-1) continue;//sector has been marked hot already
-    //    TH1F *fSpecSecProj = (TH1F*)Fspeci_sector->ProjectionY("dummySec",k+1,k+1);
-
-    //   if(fSpecSecProj->GetBinCenter(fSpecSecProj->GetMaximumBin()) > cutoffFreq_sector){
-    // 	hot_regions = 1;
-    // 	std::cout << "sector " << k << " is hot with ADC rate " << fSpecSecProj->GetBinCenter(fSpecSecProj->GetMaximumBin()) << " > " <<cutoffFreq_sector  << std::endl;
-    // 	hotsectors[k]++;
-
-    // 	for(int k1 = 0; k1 < nTowersSec; k1++){
-    // 	  hottowers[k*nTowersSec+k1]++;
-
-    // 	  //for(int biny = 0; biny < Fspeci->GetNbinsY(); biny++) Fspeci->SetBinContent(k*nTowersSec+k1, biny+1, 0);
-    // 	  towerF[k*nTowersSec+k1] = 0;
-    // 	}
-    // 	sectorF[k] = -1;
-    // 	//fSpecSecProj->SetBinContent(k,0);
-    // 	//for(int biny = 0; biny < Fspeci_sector->GetNbinsY(); biny++) Fspeci_sector->SetBinContent(k+1, biny+1, 0);
-    //   }
-    // }
-
-    // cold sector
-    //  for(int k = 0; k<nSectors; k++){
-    //    if(sectorF[k]==-1) continue;
-    //    TH1F *fSpecSecProj = (TH1F*)Fspeci_sector->ProjectionY("dummySec",k+1,k+1);
-
-    //   if(fSpecSecProj->GetBinCenter(fSpecSecProj->GetMaximumBin()) <cutoffFreq_sector_lo){
-    // 	cold_regions = 1;
-    // 	std::cout << "sector " << k << " is cold  with ADC rate " << fSpecSecProj->GetBinCenter(fSpecSecProj->GetMaximumBin())  << " < " <<cutoffFreq_sector_lo << std::endl;
-    // 	coldsectors[k]++;
-
-    // 	for(int k1 = 0; k1 < nIB; k1++){
-    // 	  coldtowers[k*nIB+k1]++;
-    // 	  //for(int biny = 0; biny < Fspeci->GetNbinsY(); biny++) Fspeci->SetBinContent(k*nTowersSec+k1, biny+1, 0);
-    // 	   towerF[k*nTowersSec+k1] = 0;
-    // 	}
-    // 	//for(int biny = 0; biny < Fspeci_sector->GetNbinsY(); biny++) Fspeci_sector->SetBinContent(k+1, biny+1, 0);
-    // 	sectorF[k] = -1;
-    //   }
-    // }
-  }
-
-  std::cout << "emcNoisyTowerFinder::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
-  std::cout << "Saint Gobain Cutoff Frequency: " << cutoffFreq_SG << std::endl;
-  std::cout << "Kurary Cutoff Frequency: " << cutoffFreq_K << std::endl;
-  std::cout << "Overall Tower Cutoff Frequency: " << cutoffFreq << std::endl;
-  std::cout << "IB Cutoff hit Frequency: " << cutoffFreq_IB << std::endl;
-  // std::cout <<  "Sector Cutoff hit Frequency: " << cutoffFreq_sector << std::endl;
-}
-
-//____________________________________________________________________________..
-void emcNoisyTowerFinder::WriteCDBTree(const int runnumber)
-{
-  TFile *cdbOut = new TFile(boost::str(boost::format("cdbMaps/%d/CEMC_%08d_badTowerMapCDBTTree.root") % runnumber % runnumber).c_str(), "RECREATE");
-
-  T = new TTree("T", "T");
-  T->Branch("hot_channels", &m_hot_channels);
-
-  CDBTTree *cdbttree = new CDBTTree(cdbtreename);
-  std::string fieldname = "status";
-  for (int i = 0; i < nTowers; i++)
-  {
-    unsigned int key = TowerInfoDefs::encode_emcal(i);
-
-    if (hottowers[i] >= 0.5)
-    {
-      m_hot_channels = 2;
-      T->Fill();
-      cdbttree->SetIntValue(key, fieldname, 2);
-    }
-    else if (deadtowers[i] >= 0.5)
-    {
-      m_hot_channels = 1;
-      T->Fill();
-      cdbttree->SetIntValue(key, fieldname, 1);
-    }
-    else if (coldtowers[i] > 0.5)
-    {
-      m_hot_channels = 3;
-      T->Fill();
-      cdbttree->SetIntValue(key, fieldname, 3);
-    }
-    else
-    {
-      m_hot_channels = 0;
-      T->Fill();
-      cdbttree->SetIntValue(key, fieldname, 0);
+      int val = h_hot->GetBinContent(i + 1, j + 1);
+      float sigma = h_heatSigma->GetBinContent(i + 1, j + 1);
+      cdbttree_out->SetIntValue(key, m_fieldname_out, val);
+      cdbttree_out->SetFloatValue(key, "CEMC_sigma", sigma);
     }
   }
+  cdbttree_out->Commit();
+  cdbttree_out->WriteCDBTTree();
+  delete cdbttree_out;
 
-  // fchannels->Close();
-  // delete fchannels;
-  // fchannels=NULL;
-
-  cdbOut->cd();
-  T->Write();
-  delete T;
-  cdbttree->Commit();
-  // cdbttree->Print();
-  cdbttree->WriteCDBTTree();
-  delete cdbttree;
-  cdbOut->Close();
+  fout->Close();
 }
 
 //____________________________________________________________________________..
@@ -792,6 +318,7 @@ void emcNoisyTowerFinder::Print(const std::string &what) const
 //____________________________________________________
 int emcNoisyTowerFinder::End(PHCompositeNode * /*topNode*/)
 {
+  foutput->Write();
   // fchannels -> cd();
   // fchannels->Close();
   // delete fchannels;
@@ -807,3 +334,23 @@ int emcNoisyTowerFinder::EndRun(int runnumber)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________
+
+float emcNoisyTowerFinder::findMedian(const std::vector<float> &arr)
+{
+  if (arr.empty())
+  {
+    return std::numeric_limits<float>::quiet_NaN();  // Return NaN if the array is empty
+  }
+  std::vector<float> sortedArr = arr;
+  std::sort(sortedArr.begin(), sortedArr.end());
+
+  size_t n = sortedArr.size();
+  if (n % 2 == 0)
+  {
+    return (sortedArr[n / 2 - 1] + sortedArr[n / 2]) / 2.0;
+  }
+  else
+  {
+    return sortedArr[n / 2];
+  }
+}

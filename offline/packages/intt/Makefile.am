@@ -5,18 +5,21 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
-  -isystem$(ROOTSYS)/include
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include \
+  -isystem$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OPT_SPHENIX)/lib
 
 if USE_ONLINE
 
 lib_LTLIBRARIES = \
-  libintt.la 
+  libintt.la
 
 pkginclude_HEADERS = \
   InttFelixMap.h \
@@ -30,7 +33,7 @@ else
 
 lib_LTLIBRARIES = \
   libintt_io.la \
-  libintt.la 
+  libintt.la
 
 pkginclude_HEADERS = \
   CylinderGeomIntt.h \
@@ -39,7 +42,6 @@ pkginclude_HEADERS = \
   InttBadChannelMapv1.h \
   InttBCOMap.h \
   InttClusterizer.h \
-  InttClusterQA.h \
   InttCombinedRawDataDecoder.h \
   InttDacMap.h \
   InttFeeMap.h \
@@ -47,13 +49,20 @@ pkginclude_HEADERS = \
   InttFelixMap.h \
   InttMap.h \
   InttMapping.h \
+  InttOdbcQuery.h \
   InttSurveyMap.h \
   InttSurveyMapv1.h \
-  InttVertexFinder.h \
+  InttXYVertexFinder.h \
+  InttZVertexFinder.h \
   InttVertexMap.h \
   InttVertexMapv1.h \
   InttVertex.h \
   InttVertexv1.h
+
+noinst_HEADERS = \
+  INTTZvtx.h \
+  INTTXYvtx.h \
+  InttVertexUtil.h
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
@@ -91,25 +100,31 @@ libintt_la_SOURCES = \
   InttBadChannelMap.cc \
   InttBadChannelMapv1.cc \
   InttClusterizer.cc \
-  InttClusterQA.cc \
   InttCombinedRawDataDecoder.cc \
   InttDacMap.cc \
   InttFeeMap.cc \
   InttFeeMapv1.cc \
   InttFelixMap.cc \
   InttMapping.cc \
+  InttOdbcQuery.cc \
   InttMap.cc \
   InttSurveyMap.cc \
   InttSurveyMapv1.cc \
-  InttVertexFinder.cc
+  InttVertexUtil.cc \
+  InttXYVertexFinder.cc \
+  InttZVertexFinder.cc \
+  INTTXYvtx.cc \
+  INTTZvtx.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
   -lcdbobjects \
   -lCLHEP \
   -lffarawobjects \
+  -lodbc++ \
   -lphg4hit \
-  -lSubsysReco
+  -lSubsysReco \
+  -ltrack
 
 # sources for io library
 libintt_io_la_SOURCES = \
@@ -127,12 +142,13 @@ libintt_io_la_SOURCES = \
   InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
+  -lActsCore \
+  -lCLHEP \
   -lcdbobjects \
   -lg4detectors_io \
   -lphool \
-  -ltrack_io \
-  -ltrackbase_historic_io \
-  -lqautils
+  -lffamodules \
+  -lglobalvertex_io
 
 endif
 

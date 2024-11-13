@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <utility>
 
@@ -63,14 +64,14 @@ class RawTowerv1 : public RawTower
   void clear_g4showers() override { eshowers.clear(); }
 
  protected:
-  RawTowerDefs::keytype towerid = ~0;
+  RawTowerDefs::keytype towerid{std::numeric_limits<RawTowerDefs::keytype>::max()};
 
   //! energy assigned to the tower. Depending on stage of process and DST node
   //! name, it could be energy deposition, light yield or calibrated energies
-  double energy = 0.;
+  double energy{0.};
   //! Time stamp assigned to the tower. Depending on the tower maker, it could
   //! be rise time or peak time.
-  float time = NAN;
+  float time{std::numeric_limits<float>::signaling_NaN()};
 
   CellMap ecells;      //< default truth storage
   ShowerMap eshowers;  //< alternate truth storage for smaller filesizes

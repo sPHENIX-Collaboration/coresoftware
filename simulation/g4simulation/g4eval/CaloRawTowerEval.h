@@ -20,6 +20,9 @@ class PHG4TruthInfoContainer;
 class RawTower;
 class RawTowerContainer;
 
+class TowerInfo;
+class TowerInfoContainer;
+
 class CaloRawTowerEval
 {
  public:
@@ -70,35 +73,46 @@ class CaloRawTowerEval
 
   /// what primary showers contributed energy to this tower?
   std::set<PHG4Shower*> all_truth_primary_showers(RawTower* tower);
+  std::set<PHG4Shower*> all_truth_primary_showers(TowerInfo* tower);
+  
 
   /// which primary shower contributed the most energy to this tower?
   PHG4Shower* max_truth_primary_shower_by_energy(RawTower* tower);
+  PHG4Shower* max_truth_primary_shower_by_energy(TowerInfo* tower);
 
   /// what towers did this primary shower contribute energy to?
   std::set<RawTower*> all_towers_from(PHG4Shower* primary);
+  std::set<TowerInfo*> all_towerinfos_from(PHG4Shower* primary);
 
   /// which tower did this primary shower contribute the most energy to?
   RawTower* best_tower_from(PHG4Shower* primary);
+  TowerInfo* best_towerinfo_from(PHG4Shower* primary);
 
   /// how much energy did this primary shower contribute to this tower?
   float get_energy_contribution(RawTower* tower, PHG4Shower* primary);
+  float get_energy_contribution(TowerInfo* tower, PHG4Shower* primary);
 
   // particle interface
 
   /// what particles contributed energy to this tower?
   std::set<PHG4Particle*> all_truth_primary_particles(RawTower* tower);
+  std::set<PHG4Particle*> all_truth_primary_particles(TowerInfo* tower);
 
   /// which particle contributed the most energy to this tower?
   PHG4Particle* max_truth_primary_particle_by_energy(RawTower* tower);
+  PHG4Particle* max_truth_primary_particle_by_energy(TowerInfo* tower);
 
   /// what towers did this primary truth particle contribute energy to?
   std::set<RawTower*> all_towers_from(PHG4Particle* primary);
+  std::set<TowerInfo*> all_towerinfos_from(PHG4Particle* primary);
 
   /// which tower did the primary truth particle contribute the most energy to?
   RawTower* best_tower_from(PHG4Particle* primary);
+  TowerInfo* best_towerinfo_from(PHG4Particle* primary);
 
   /// how much energy did this primary truth particle contribute to this tower?
   float get_energy_contribution(RawTower* tower, PHG4Particle* primary);
+  float get_energy_contribution(TowerInfo* tower, PHG4Particle* primary);
 
   // ---full sim node required--------------------------------------------------
 
@@ -107,6 +121,7 @@ class CaloRawTowerEval
 
   /// what truth hits contributed energy to this tower?
   std::set<PHG4Hit*> all_truth_hits(RawTower* tower);
+  std::set<PHG4Hit*> all_truth_hits(TowerInfo* tower);
 
  private:
   void get_node_pointers(PHCompositeNode* topNode);
@@ -114,6 +129,7 @@ class CaloRawTowerEval
   std::string _caloname;
   CaloTruthEval _trutheval;
   RawTowerContainer* _towers = nullptr;
+  TowerInfoContainer* _towerinfos = nullptr;
   PHG4CellContainer* _g4cells = nullptr;
   PHG4HitContainer* _g4hits = nullptr;
   PHG4TruthInfoContainer* _truthinfo = nullptr;
@@ -137,6 +153,22 @@ class CaloRawTowerEval
   std::map<std::pair<RawTower*, PHG4Particle*>, float> _cache_get_energy_contribution_primary_particle;
 
   std::map<RawTower*, std::set<PHG4Hit*> > _cache_all_truth_hits;
+
+  //some copy and paste for the towerinfo type
+
+  std::map<TowerInfo*, std::set<PHG4Shower*> > _cache_towerinfo_all_truth_primary_showers;
+  std::map<TowerInfo*, PHG4Shower*> _cache_towerinfo_max_truth_primary_shower_by_energy;
+  std::map<PHG4Shower*, std::set<TowerInfo*> > _cache_towerinfo_all_towers_from_primary_shower;
+  std::map<PHG4Shower*, TowerInfo*> _cache_towerinfo_best_tower_from_primary_shower;
+  std::map<std::pair<TowerInfo*, PHG4Shower*>, float> _cache_towerinfo_get_energy_contribution_primary_shower;
+
+  std::map<TowerInfo*, std::set<PHG4Particle*> > _cache_towerinfo_all_truth_primary_particles;
+  std::map<TowerInfo*, PHG4Particle*> _cache_towerinfo_max_truth_primary_particle_by_energy;
+  std::map<PHG4Particle*, std::set<TowerInfo*> > _cache_towerinfo_all_towers_from_primary_particle;
+  std::map<PHG4Particle*, TowerInfo*> _cache_towerinfo_best_tower_from_primary_particle;
+  std::map<std::pair<TowerInfo*, PHG4Particle*>, float> _cache_towerinfo_get_energy_contribution_primary_particle;
+
+  std::map<TowerInfo*, std::set<PHG4Hit*> > _cache_towerinfo_all_truth_hits;
 };
 
 #endif  // G4EVAL_CALORAWTOWEREVAL_H

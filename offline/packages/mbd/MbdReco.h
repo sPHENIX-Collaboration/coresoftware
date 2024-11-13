@@ -13,6 +13,8 @@ class MbdVertexMap;
 class MbdOut;
 class MbdGeom;
 class Event;
+class CaloPacketContainer;
+class Gl1Packet;
 class TF1;
 class TH1;
 
@@ -28,16 +30,23 @@ class MbdReco : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void SetCalPass(const int calpass) { _calpass = calpass; }
+  void SetMbdTrigOnly(const int m) { _mbdonly = m; }
+
  private:
   int createNodes(PHCompositeNode *topNode);
   int getNodes(PHCompositeNode *topNode);
   int _simflag{0};
+  int _calpass{0};
+  int _mbdonly{0};  // only use mbd triggers
 
   float m_tres = 0.05;
   std::unique_ptr<TF1> m_gaussian = nullptr;
 
   std::unique_ptr<MbdEvent> m_mbdevent{nullptr};
   Event *m_event{nullptr};
+  CaloPacketContainer *m_mbdraw{nullptr};
+  Gl1Packet *m_gl1raw{nullptr};
   MbdOut *m_mbdout{nullptr};
   MbdPmtContainer *m_mbdpmts{nullptr};
   MbdGeom *m_mbdgeom{nullptr};

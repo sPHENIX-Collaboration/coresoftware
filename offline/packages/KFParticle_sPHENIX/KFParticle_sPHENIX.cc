@@ -28,8 +28,10 @@
 
 #include <phool/getClass.h>
 
+#include <TEntryList.h>
 #include <TFile.h>
-#include <TH1.h>    // for obtaining the B field value
+#include <TLeaf.h>
+#include <TSystem.h>
 #include <TTree.h>  // for getting the TTree from the file
 
 #include <KFPVertex.h>
@@ -41,9 +43,10 @@
 #include <cctype>                     // for toupper
 #include <cmath>                      // for sqrt
 #include <cstdlib>                    // for size_t, exit
-#include <iostream>                   // for operator<<, endl, basi...
-#include <map>                        // for map
-#include <tuple>                      // for tie, tuple
+#include <filesystem>
+#include <iostream>  // for operator<<, endl, basi...
+#include <map>       // for map
+#include <tuple>     // for tie, tuple
 
 class PHCompositeNode;
 
@@ -111,46 +114,14 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
 {
   assert(topNode);
 
-  // Load the official offline B-field map that is also used in tracking, basically copying the codes from: https://github.com/sPHENIX-Collaboration/coresoftware/blob/master/offline/packages/trackreco/MakeActsGeometry.cc#L478-L483, provide by Joe Osborn.
-  char *calibrationsroot = getenv("CALIBRATIONROOT");
-  std::string m_magField = "sphenix3dtrackingmapxyz.root";
-
-  if (calibrationsroot != nullptr)
-  {
-    m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
-  }
-
-  m_magField = CDBInterface::instance()->getUrl("FIELDMAPTRACKING", m_magField);  // Joe's New Implementation to get the field map file name on 05/10/2023
-
-  TFile *fin = new TFile(m_magField.c_str());
-  fin->cd();
-
-  TTree *fieldmap = (TTree *) fin->Get("fieldmap");
-
-  TH1F *BzHist = new TH1F("BzHist", "", 100, 0, 10);
-
-  int NBFieldEntries = fieldmap->Project("BzHist", "bz", "x==0 && y==0 && z==0");
-
-  if (NBFieldEntries != 1)
-  {  // Validate exactly 1 B field value at (0,0,0) in the field map
-    std::cout << "Not a single B field value at (0,0,0) in the field map, need to check why" << std::endl;
-    exit(1);
-  }
-
-  // The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
-  float m_Bz = BzHist->GetMean() * 10;  // Factor of 10 to convert the B field unit from kG to T
-  KFParticle::SetField(m_Bz);
-
-  fieldmap->Delete();
-  BzHist->Delete();
-  fin->Close();
+  getField();
 
   return 0;
 }
 
 int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 {
-  std::vector<KFParticle> mother, vertex;
+  std::vector<KFParticle> mother, vertex_kfparticle;
   std::vector<std::vector<KFParticle>> daughters, intermediates;
   int nPVs, multiplicity;
 
@@ -177,7 +148,9 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  createDecay(topNode, mother, vertex, daughters, intermediates, nPVs, multiplicity);
+  multiplicity = check_trackmap->size();
+
+  createDecay(topNode, mother, vertex_kfparticle, daughters, intermediates, nPVs);
 
   if (!m_has_intermediates_sPHENIX)
   {
@@ -185,7 +158,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   }
   if (!m_constrain_to_vertex_sPHENIX)
   {
-    vertex = mother;
+    vertex_kfparticle = mother;
   }
 
   if (mother.size() != 0)
@@ -202,7 +175,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
       if (m_save_output)
       {
-        fillBranch(topNode, mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity);
+        fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
       }
       if (m_save_dst)
       {
@@ -211,7 +184,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
       if (Verbosity() >= VERBOSITY_SOME)
       {
-        printParticles(mother[i], vertex[i], daughters[i], intermediates[i], nPVs, multiplicity);
+        printParticles(mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
       }
       if (Verbosity() >= VERBOSITY_MORE)
       {
@@ -329,7 +302,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   if (checkForCC == "[]CC")
   {
     manipulateDecayDescriptor = manipulateDecayDescriptor.substr(1, manipulateDecayDescriptor.size() - 4);
-    getChargeConjugate(true);
+    getChargeConjugate();
   }
 
   // Find the initial particle
@@ -465,6 +438,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     intermediate_list.emplace_back(intermediates_name[i], intermediates_charge[i]);
   }
 
+  daughter_list.reserve(nTracks);
   for (int i = 0; i < nTracks; ++i)
   {
     daughter_list.emplace_back(daughters_name[i], daughters_charge[i]);
@@ -476,7 +450,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
 
   if (intermediates_name.size() > 0)
   {
-    hasIntermediateStates(true);
+    hasIntermediateStates();
     setIntermediateStates(intermediate_list);
     setNumberOfIntermediateStates(intermediates_name.size());
     setNumberTracksFromIntermeditateState(m_nTracksFromIntermediates);
@@ -499,4 +473,69 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     }
     return Fun4AllReturnCodes::ABORTRUN;
   }
+}
+
+void KFParticle_sPHENIX::getField()
+{
+  //This sweeps the sPHENIX magnetic field map from some point radially then grabs the first event that passes the selection
+  m_magField = std::filesystem::exists(m_magField) ? m_magField : CDBInterface::instance()->getUrl(m_magField);
+
+  if (Verbosity() > 0)
+  {
+    std::cout << PHWHERE << ": using fieldmap : " << m_magField << std::endl;
+  }
+
+  TFile *fin = new TFile(m_magField.c_str());
+  TTree *fieldmap = (TTree *) fin->Get("fieldmap");
+
+  float Bz = 0.;
+  unsigned int r = 0.;
+  float z = 0.;
+
+  double arc = M_PI/2;
+  unsigned int n = 0;
+
+  while (Bz == 0)
+  {
+    if (n == 4)
+    {
+      ++r;
+    }
+
+    if (r == 3) //Dont go too far out radially
+    {
+      ++z;
+    }
+
+    n = n & 0x3U; //Constrains n from 0 to 3
+    r = r & 0x2U;
+
+    double x = r*std::cos(n*arc);
+    double y = r*std::sin(n*arc);
+
+    std::string sweep = "x == " + std::to_string(x) + " && y == " + std::to_string(y) + " && z == " + std::to_string(z);
+
+    fieldmap->Draw(">>elist", sweep.c_str(), "entrylist");
+    TEntryList *elist = (TEntryList*)gDirectory->Get("elist");
+    if (elist->GetEntry(0))
+    {
+      TLeaf *fieldValue = fieldmap->GetLeaf("bz");
+      fieldValue->GetBranch()->GetEntry(elist->GetEntry(0));
+      Bz = fieldValue->GetValue();
+    }
+
+    ++n;
+
+    if (r == 0) // No point in rescanning (0,0)
+    {
+      ++r;
+      n = 0;
+    }
+  }
+  // The actual unit of KFParticle is in kilo Gauss (kG), which is equivalent to 0.1 T, instead of Tesla (T). The positive value indicates the B field is in the +z direction
+  Bz *= 10;  // Factor of 10 to convert the B field unit from kG to T
+  KFParticle::SetField((double) Bz);
+
+  fieldmap->Delete();
+  fin->Close();
 }

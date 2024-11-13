@@ -30,13 +30,15 @@ class PHCosmicSeeder : public SubsysReco
   using SeedVector = std::vector<seed>;
   PHCosmicSeeder(const std::string &name = "PHCosmicSeeder");
 
-  ~PHCosmicSeeder() override;
+  ~PHCosmicSeeder() override = default;
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void xyTolerance(float tol) { m_xyTolerance = tol; }
   void seedAnalysis() { m_analysis = true; }
+  void trackMapName(const std::string &name) { m_trackMapName = name; }
+  void trackerId(TrkrDefs::TrkrId trackerId) { m_trackerId = trackerId; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
@@ -48,8 +50,9 @@ class PHCosmicSeeder : public SubsysReco
   void recalculateSeedLineParameters(seed &seed, PositionMap &clusters, bool isXY);
 
   float m_xyTolerance = 2.;  //! cm
-  float m_rzTolerance = 2.;  //! cm
+//  float m_rzTolerance = 2.;  //! cm
   std::string m_trackMapName = "TpcTrackSeedContainer";
+  TrkrDefs::TrkrId m_trackerId = TrkrDefs::TrkrId::tpcId;
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;

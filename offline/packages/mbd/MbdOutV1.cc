@@ -98,3 +98,15 @@ Float_t MbdOutV1::get_time(const int iarm) const
 {
   return (iarm == 0) ? bts : btn;
 }
+
+
+void MbdOutV1::CopyTo(MbdOut *mbd)
+{
+  
+  mbd->set_t0(bt0, bt0err);
+  mbd->set_zvtx(bz, bzerr);
+  
+  mbd->set_arm(0, bns, bqs, bts);
+  mbd->set_arm(1, bnn, bqn, btn);
+
+}

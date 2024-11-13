@@ -36,7 +36,9 @@ namespace CLHEP
 
 CLHEP::HepRandomEngine *engine;
 
+// NOLINTNEXTLINE(bugprone-exception-escape)
 int main()
+// NOLINTNEXTLINE(bugprone-exception-escape)
 {
   using namespace boost::property_tree;
   iptree pt;

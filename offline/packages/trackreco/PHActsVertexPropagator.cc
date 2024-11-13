@@ -15,8 +15,8 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <globalvertex/SvtxVertexMap.h>
 #include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
@@ -28,7 +28,7 @@ PHActsVertexPropagator::PHActsVertexPropagator(const std::string& name)
 {
 }
 
-int PHActsVertexPropagator::Init(PHCompositeNode*)
+int PHActsVertexPropagator::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -38,7 +38,7 @@ int PHActsVertexPropagator::InitRun(PHCompositeNode* topNode)
   int returnval = getNodes(topNode);
   return returnval;
 }
-int PHActsVertexPropagator::process_event(PHCompositeNode*)
+int PHActsVertexPropagator::process_event(PHCompositeNode* /*unused*/)
 {
   std::vector<unsigned int> deletedKeys;
   for (const auto& [trackKey, trajectory] : *m_trajectories)
@@ -189,10 +189,13 @@ PHActsVertexPropagator::propagateTrack(
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
   propagator.setOverstepLimit(1 * Acts::UnitConstants::cm);
-  if (m_fieldMap.find(".root") == std::string::npos)
+  std::istringstream stringline(m_fieldMap);
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  stringline >> fieldstrength;
+  if (!stringline.fail())
   {
     propagator.constField();
-    propagator.setConstFieldValue(std::stod(m_fieldMap));
+    propagator.setConstFieldValue(fieldstrength);
   }
 
   return propagator.propagateTrack(params, perigee);
@@ -212,7 +215,7 @@ Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)
   return Acts::Vector3::Zero();
 }
 
-int PHActsVertexPropagator::End(PHCompositeNode*)
+int PHActsVertexPropagator::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

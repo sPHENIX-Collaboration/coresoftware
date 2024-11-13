@@ -15,9 +15,13 @@ class TpcRawHitContainer : public PHObject
   virtual TpcRawHit *AddHit(TpcRawHit *) { return nullptr; }
   virtual unsigned int get_nhits() { return 0; }
   virtual TpcRawHit *get_hit(unsigned int) { return nullptr; }
+  virtual void setStatus(const unsigned int) { return; }
+  virtual unsigned int getStatus() const { return 0; }
+  virtual void setBco(const uint64_t) { return; }
+  virtual uint64_t getBco() const { return 0; }
 
  private:
-  ClassDefOverride(TpcRawHitContainer, 1)
+  ClassDefOverride(TpcRawHitContainer, 0)
 };
 
 #endif

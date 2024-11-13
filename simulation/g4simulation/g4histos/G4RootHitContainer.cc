@@ -1,22 +1,16 @@
 #include "G4RootHitContainer.h"
 
-#include <g4main/PHG4Hit.h>      // for PHG4Hit
+#include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitEval.h>
 
 #include <TClonesArray.h>
 
-#include <cmath>                // for NAN
-#include <ostream>               // for basic_ostream::operator<<, operator<<
-
-using namespace std;
+#include <limits>
+#include <ostream>  // for basic_ostream::operator<<, operator<<
 
 static const int NMAX = 100000;
 
 G4RootHitContainer::G4RootHitContainer()
-  : etotal(NAN)
-  , eion(NAN)
-  , leakage(NAN)
-  , event(0)
 {
   SnglHits = new TClonesArray("PHG4HitEval", NMAX);
 }
@@ -29,8 +23,8 @@ G4RootHitContainer::~G4RootHitContainer()
 
 void G4RootHitContainer::Reset()
 {
-  etotal = NAN;
-  leakage = NAN;
+  etotal = std::numeric_limits<float>::quiet_NaN();
+  leakage = std::numeric_limits<float>::quiet_NaN();
   event = 0;
   SnglHits->Clear();
   if (SnglHits->GetSize() > NMAX)
@@ -53,8 +47,8 @@ G4RootHitContainer::AddHit(const PHG4Hit *g4hit)
   return (static_cast<PHG4Hit *>(cl[nextindex]));
 }
 
-void G4RootHitContainer::identify(ostream &os) const
+void G4RootHitContainer::identify(std::ostream &os) const
 {
-  os << "Number of Hits: " << SnglHits->GetLast() << endl;
+  os << "Number of Hits: " << SnglHits->GetLast() << std::endl;
   return;
 }

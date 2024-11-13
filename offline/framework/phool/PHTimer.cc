@@ -22,7 +22,7 @@ PHTimer::Frequency PHTimer::_frequency = PHTimer::Frequency();
 const double PHTimer::_twopower32 = pow(2, 32);
 
 //______________________________________________________________________
-void PHTimer::Frequency::set_cpu_freq(const std::string &path)
+void PHTimer::Frequency::set_cpu_freq(const std::string& path)
 {
   // Set the default to 2 GHz
   _frequency = 2e9;
@@ -30,7 +30,9 @@ void PHTimer::Frequency::set_cpu_freq(const std::string &path)
   // Open the cpuinfo file
   std::ifstream cpuProcFile(path);
   if (!cpuProcFile.is_open())
+  {
     throw std::runtime_error(std::string("cpu info. unavailable"));
+  }
   else
   {
     // Now parse it looking for the string "cpu MHz"
@@ -46,7 +48,10 @@ void PHTimer::Frequency::set_cpu_freq(const std::string &path)
       {
         // Now look for the :, the clock frequency will follow it
         size_t semicolonPosition = readLineString.find(':', 0);
-        if (semicolonPosition == std::string::npos) throw std::runtime_error(std::string("wrong format for cpu info file"));
+        if (semicolonPosition == std::string::npos)
+        {
+          throw std::runtime_error(std::string("wrong format for cpu info file"));
+        }
         std::string frequencyString(readLineString.substr(semicolonPosition + 1));
 
         // Make a string stream for the conversion to floating number
@@ -71,7 +76,9 @@ double PHTimer::get_difference(const PHTimer::time_struct& t0, const PHTimer::ti
     diff_low = (UINT_MAX - t1._low) + t0._low + 1;
   }
   else
+  {
     diff_low = t0._low - t1._low;
+  }
 
   return (_twopower32 * diff_high + diff_low) * _frequency.period();
 }

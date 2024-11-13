@@ -7,17 +7,16 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 // Move to new storage containers
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/InttDefs.h>
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
-
-#include <fun4all/Fun4AllBase.h>                    // for Fun4AllBase::VERB...
+#include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERB...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -33,13 +32,13 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
+#include <algorithm>
 #include <cassert>
-#include <cfloat>
+#include <cmath>
 #include <cstdlib>  // for exit
 #include <iostream>
-#include <memory>  // for allocator_traits<...
 #include <set>
-#include <type_traits>  // for __decay_and_strip...
+#include <utility> 
 
 PHG4InttDigitizer::PHG4InttDigitizer(const std::string &name)
   : SubsysReco(name)
@@ -114,17 +113,13 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     std::cout << "====================== PHG4InttDigitizer::InitRun() =====================" << std::endl;
-    for (std::map<int, unsigned int>::iterator iter1 = _max_adc.begin();
-         iter1 != _max_adc.end();
-         ++iter1)
+    for (auto &iter1 : _max_adc)
     {
-      std::cout << " Max ADC in Layer #" << iter1->first << " = " << iter1->second << std::endl;
+      std::cout << " Max ADC in Layer #" << iter1.first << " = " << iter1.second << std::endl;
     }
-    for (std::map<int, float>::iterator iter2 = _energy_scale.begin();
-         iter2 != _energy_scale.end();
-         ++iter2)
+    for (auto &iter2 : _energy_scale)
     {
-      std::cout << " Energy per ADC in Layer #" << iter2->first << " = " << 1.0e6 * iter2->second << " keV" << std::endl;
+      std::cout << " Energy per ADC in Layer #" << iter2.first << " = " << 1.0e6 * iter2.second << " keV" << std::endl;
     }
     std::cout << "===========================================================================" << std::endl;
   }
@@ -143,11 +138,14 @@ void PHG4InttDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
 {
   // FPHX 3-bit ADC, thresholds are set in "set_fphx_adc_scale".
 
-  //PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
+  // PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
-  //if (!geom_container || !cells) return;
-  if (!geom_container) return;
+  // if (!geom_container || !cells) return;
+  if (!geom_container)
+  {
+    return;
+  }
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for (PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -263,51 +261,74 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       }
       const float mip_e = _energy_scale[layer];
 
-//      std::vector<double>& vadcrange = _max_fphx_adc[layer];
-      //for(int i=0;i<8;i++) std::cout<<"Digitizer:: vadcrange= "<<vadcrange[i]<<std::endl;
-
+      //      std::vector<double>& vadcrange = _max_fphx_adc[layer];
+      // for(int i=0;i<8;i++) std::cout<<"Digitizer:: vadcrange= "<<vadcrange[i]<<std::endl;
 
       // c++ upper_bound finds the bin location above the test value (or vadcrange.end() if there isn't one)
-//      auto irange = std::upper_bound(vadcrange.begin(), vadcrange.end(), 
-//          hit->getEnergy() / (TrkrDefs::InttEnergyScaleup * (double) mip_e));
-//          hit->getEnergy() / 100.0);
-//      int adc = (irange-vadcrange.begin())-1;
-//      if (adc == -1) adc = 0;
+      //      auto irange = std::upper_bound(vadcrange.begin(), vadcrange.end(),
+      //          hit->getEnergy() / (TrkrDefs::InttEnergyScaleup * (double) mip_e));
+      //          hit->getEnergy() / 100.0);
+      //      int adc = (irange-vadcrange.begin())-1;
+      //      if (adc == -1) adc = 0;
 
-      double k=85.7/(TrkrDefs::InttEnergyScaleup * (double) mip_e);
-      double E=hit->getEnergy()*k;     //keV
+      double k = 85.7 / (TrkrDefs::InttEnergyScaleup * (double) mip_e);
+      double E = hit->getEnergy() * k;  // keV
 
       double gain = 100.0;
-      double offset=280.0;
+      double offset = 280.0;
       double para = 1.0;
-      double e_vol=(E*pow(10,3)*1.6*pow(10,-19)*pow(10,15)*gain/3.6)+offset;
-      double v_dac=para*(e_vol-210.0)/4.0;
+      double e_vol = (E * pow(10, 3) * 1.6 * pow(10, -19) * pow(10, 15) * gain / 3.6) + offset;
+      double v_dac = para * (e_vol - 210.0) / 4.0;
 
-      if(v_dac<30) v_dac = 15;
-      else if(v_dac<60) v_dac=30;
-      else if(v_dac<90) v_dac=60;
-      else if(v_dac<120) v_dac=90;
-      else if(v_dac<150) v_dac=120;
-      else if(v_dac<180) v_dac=150;
-      else if(v_dac<210) v_dac=180;
-      else v_dac =210;
+      if (v_dac < 30)
+      {
+        v_dac = 15;
+      }
+      else if (v_dac < 60)
+      {
+        v_dac = 30;
+      }
+      else if (v_dac < 90)
+      {
+        v_dac = 60;
+      }
+      else if (v_dac < 120)
+      {
+        v_dac = 90;
+      }
+      else if (v_dac < 150)
+      {
+        v_dac = 120;
+      }
+      else if (v_dac < 180)
+      {
+        v_dac = 150;
+      }
+      else if (v_dac < 210)
+      {
+        v_dac = 180;
+      }
+      else
+      {
+        v_dac = 210;
+      }
 
       hit->setAdc(v_dac);
-/*
-      std::cout<<"Digitizer:: getEnergy = "<<hit->getEnergy()<<std::endl;
-      std::cout<<"Digitizer:: Energy = "<<E<<std::endl;
-      std::cout<<"Digitizer:: k = "<<k<<std::endl;
-      //std::cout<<"Digitizer:: capa = "<<capa<<std::endl;
-      std::cout<<"Digitizer:: E2V = "<<e_vol<<std::endl;
-      std::cout<<"Digitizer:: V2DAC = "<<v_dac<<std::endl;
-      //std::cout<<"Digitizer:: mip_e = "<<TrkrDefs::InttEnergyScaleup * (double) mip_e<<std::endl;
-      //std::cout<<"Digitizer:: getE/mip_e = "<<hit->getEnergy() /(TrkrDefs::InttEnergyScaleup * (double) mip_e)<<std::endl;
-      //std::cout<<"Digitizer:: InttEnergyScaleup = "<<TrkrDefs::InttEnergyScaleup<<std::endl;
-*/
-      //if(adc==0) adc=15;
-      //else adc=adc*30;
-      //hit->setAdc(adc);
-      //std::cout<<"Digitizer:: adc= "<<adc<<std::endl;
+      /*
+            std::cout<<"Digitizer:: getEnergy = "<<hit->getEnergy()<<std::endl;
+            std::cout<<"Digitizer:: Energy = "<<E<<std::endl;
+            std::cout<<"Digitizer:: k = "<<k<<std::endl;
+            //std::cout<<"Digitizer:: capa = "<<capa<<std::endl;
+            std::cout<<"Digitizer:: E2V = "<<e_vol<<std::endl;
+            std::cout<<"Digitizer:: V2DAC = "<<v_dac<<std::endl;
+            //std::cout<<"Digitizer:: mip_e = "<<TrkrDefs::InttEnergyScaleup * (double) mip_e<<std::endl;
+            //std::cout<<"Digitizer:: getE/mip_e = "<<hit->getEnergy() /(TrkrDefs::InttEnergyScaleup * (double) mip_e)<<std::endl;
+            //std::cout<<"Digitizer:: InttEnergyScaleup = "<<TrkrDefs::InttEnergyScaleup<<std::endl;
+      */
+      // if(adc==0) adc=15;
+      // else adc=adc*30;
+      // hit->setAdc(adc);
+      // std::cout<<"Digitizer:: adc= "<<adc<<std::endl;
 
       if (Verbosity() > 2)
       {
@@ -325,7 +346,10 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       }
       hitset->removeHit(key);
 
-      if (hittruthassoc) hittruthassoc->removeAssoc(hitsetkey, key);
+      if (hittruthassoc)
+      {
+        hittruthassoc->removeAssoc(hitsetkey, key);
+      }
     }
   }  // end loop over hitsets
 

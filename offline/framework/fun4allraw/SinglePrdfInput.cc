@@ -1,7 +1,6 @@
 #include "SinglePrdfInput.h"
 
 #include "Fun4AllPrdfInputPoolManager.h"
-#include "Fun4AllPrdfInputTriggerManager.h"
 
 #include <frog/FROG.h>
 
@@ -17,17 +16,6 @@
 SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputPoolManager *inman)
   : Fun4AllBase(name)
   , m_InputMgr(inman)
-{
-  plist = new Packet *[100];
-  m_PacketEventNumberOffset = new int[100]{};
-  rollover.fill(0);
-  previous_eventnumber.fill(std::numeric_limits<int>::min());
-  //  std::fill_n(m_PacketEventNumberOffset, 100, 0);
-}
-
-SinglePrdfInput::SinglePrdfInput(const std::string &name, Fun4AllPrdfInputTriggerManager *inman)
-  : Fun4AllBase(name)
-  , m_TriggerInputMgr(inman)
 {
   plist = new Packet *[100];
   m_PacketEventNumberOffset = new int[100]{};
@@ -111,7 +99,7 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
         }
         previous_eventnumber[i] = evtno;
         evtno += (rollover[i] << 16U);
-        unsigned int bclk = plist[i]->iValue(0, "CLOCK");
+        unsigned int bclk = plist[i]->lValue(0, "CLOCK");
         if (Verbosity() > 1)
         {
           std::cout << "packet " << plist[i]->getIdentifier() << " evt: " << evtno
@@ -232,12 +220,12 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
       {
         for (auto pktiter : iter.second)
         {
-          if (pktiter->iValue(0, "CLOCK") == common_beam_clock)
+          if (pktiter->lValue(0, "CLOCK") == common_beam_clock)
           {
             if (Verbosity() > 1)
             {
               std::cout << "adding packet " << pktiter->getIdentifier() << " beam clock "
-                        << std::hex << pktiter->iValue(0, "CLOCK") << std::dec << std::endl;
+                        << std::hex << pktiter->lValue(0, "CLOCK") << std::dec << std::endl;
             }
             if (m_InputMgr)
             {
@@ -249,16 +237,12 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
             if (Verbosity() > 1)
             {
               std::cout << "Deleting packet " << pktiter->getIdentifier() << " beam clock "
-                        << std::hex << pktiter->iValue(0, "CLOCK") << " common bclk: "
+                        << std::hex << pktiter->lValue(0, "CLOCK") << " common bclk: "
                         << common_beam_clock << std::dec << std::endl;
             }
             if (m_InputMgr)
             {
               m_InputMgr->UpdateDroppedPacket(pktiter->getIdentifier());
-            }
-            else
-            {
-              m_TriggerInputMgr->UpdateDroppedPacket(pktiter->getIdentifier());
             }
             delete pktiter;
           }
@@ -269,20 +253,12 @@ void SinglePrdfInput::FillPool(const unsigned int nevents)
     {
       m_InputMgr->AddBeamClock(common_event_number, common_beam_clock, this);
     }
-    else
-    {
-      m_TriggerInputMgr->AddBeamClock(common_event_number, common_beam_clock, this);
-    }
 
     if (m_MeReferenceFlag)
     {
       if (m_InputMgr)
       {
         m_InputMgr->SetReferenceClock(common_event_number, common_beam_clock);
-      }
-      else
-      {
-        m_TriggerInputMgr->SetReferenceClock(common_event_number, common_beam_clock);
       }
     }
     m_PacketMap.clear();
@@ -410,10 +386,6 @@ void SinglePrdfInput::MakeReference(const bool b)
     if (m_InputMgr)
     {
       m_InputMgr->SetReferenceInputMgr(this);
-    }
-    else
-    {
-      m_TriggerInputMgr->SetReferenceInputMgr(this);
     }
   }
   return;

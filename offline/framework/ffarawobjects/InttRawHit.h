@@ -44,6 +44,9 @@ class InttRawHit : public PHObject
   virtual uint16_t get_amplitude() const { return std::numeric_limits<uint16_t>::max(); }
   virtual void set_amplitude(uint16_t) { return; }
 
+  virtual uint32_t get_event_counter() const { return std::numeric_limits<uint32_t>::max(); }
+  virtual void set_event_counter(uint32_t) { return; }
+
  private:
   ClassDefOverride(InttRawHit, 1)
 };

@@ -253,7 +253,8 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
   // load survey data
   PHG4MicromegasSurvey micromegas_survey;
-  static constexpr bool apply_survey = true;
+  const bool apply_survey = m_Params->get_int_param("apply_survey");
+  std::cout << "PHG4MicromegasDetector::construct_micromegas - apply_survey: " << apply_survey << std::endl;
 
   // create detector
   // loop over tiles

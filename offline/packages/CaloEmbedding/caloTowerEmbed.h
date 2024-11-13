@@ -60,9 +60,6 @@ class caloTowerEmbed : public SubsysReco
   TowerInfoContainer *_data_towers{nullptr};
   TowerInfoContainer *_sim_towers{nullptr};
 
-  TowerInfoContainer *_embed_towers_out{nullptr};
-  TowerInfoContainer *_sim_towers_out{nullptr};
-
   RawTowerGeomContainer *tower_geom{nullptr};
 
   bool m_useRetower{false};
@@ -73,7 +70,6 @@ class caloTowerEmbed : public SubsysReco
   std::string m_detector;
   std::string m_inputNodePrefix{"TOWERINFO_CALIB_"};
 
-  int m_runNumber{0};
   int m_eventNumber{-1};
 };
 

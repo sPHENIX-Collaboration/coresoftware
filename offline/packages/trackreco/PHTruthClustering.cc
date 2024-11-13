@@ -203,13 +203,13 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
   // For the other subsystems, we just copy over all of the the clusters from the reco map
   for(const auto& hitsetkey:_reco_cluster_map->getHitSetKeys())
   {
-    auto range = _reco_cluster_map->getClusters(hitsetkey);
+    auto range_A = _reco_cluster_map->getClusters(hitsetkey);
     unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
 
     // skip TPC
     if(trkrid == TrkrDefs::tpcId)  continue;
     
-    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+    for( auto clusIter = range_A.first; clusIter != range_A.second; ++clusIter ){
       TrkrDefs::cluskey cluskey = clusIter->first;
 
       // we have to make a copy of the cluster, to avoid problems later
@@ -517,29 +517,29 @@ void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::v
 	  float yout = yl[1];
 	  float zout = zl[1];
 	  
-	  float t = NAN;
+	  float time = std::numeric_limits<float>::quiet_NaN();
 	  
 	  if (rbegin < rbin)
 	    {
 	      // line segment begins before boundary, find where it crosses
-	      t = line_circle_intersection(xl, yl, zl, rbin);
-	      if (t > 0)
+	      time = line_circle_intersection(xl, yl, zl, rbin);
+	      if (time > 0)
 		{
-		  xin = xl[0] + t * (xl[1] - xl[0]);
-		  yin = yl[0] + t * (yl[1] - yl[0]);
-		  zin = zl[0] + t * (zl[1] - zl[0]);
+		  xin = xl[0] + time * (xl[1] - xl[0]);
+		  yin = yl[0] + time * (yl[1] - yl[0]);
+		  zin = zl[0] + time * (zl[1] - zl[0]);
 		}
 	    }
 	  
 	  if (rend > rbout)
 	    {
 	      // line segment ends after boundary, find where it crosses
-	      t = line_circle_intersection(xl, yl, zl, rbout);
-	      if (t > 0)
+	      time = line_circle_intersection(xl, yl, zl, rbout);
+	      if (time > 0)
 		{
-		  xout = xl[0] + t * (xl[1] - xl[0]);
-		  yout = yl[0] + t * (yl[1] - yl[0]);
-		  zout = zl[0] + t * (zl[1] - zl[0]);
+		  xout = xl[0] + time * (xl[1] - xl[0]);
+		  yout = yl[0] + time * (yl[1] - yl[0]);
+		  zout = zl[0] + time * (zl[1] - zl[0]);
 		}
 	    }
 

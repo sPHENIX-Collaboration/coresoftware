@@ -10,19 +10,19 @@ void PdbParameterMap::print() const
   cout << "PdbParameterMap::print - Hash 0x" << std::hex << get_hash() << std::dec << endl;
 
   cout << "double parameters: " << endl;
-  for (map<const string, double>::const_iterator iter = dparams.begin(); iter != dparams.end(); ++iter)
+  for (const auto &dparam : dparams)
   {
-    cout << iter->first << ": " << iter->second << endl;
+    cout << dparam.first << ": " << dparam.second << endl;
   }
   cout << "integer parameters: " << endl;
-  for (map<const string, int>::const_iterator iter = iparams.begin(); iter != iparams.end(); ++iter)
+  for (const auto &iparam : iparams)
   {
-    cout << iter->first << ": " << iter->second << endl;
+    cout << iparam.first << ": " << iparam.second << endl;
   }
   cout << "string parameters: " << endl;
-  for (map<const string, string>::const_iterator iter = cparams.begin(); iter != cparams.end(); ++iter)
+  for (const auto &cparam : cparams)
   {
-    cout << iter->first << ": " << iter->second << endl;
+    cout << cparam.first << ": " << cparam.second << endl;
   }
 }
 
@@ -54,30 +54,27 @@ PdbParameterMap::get_hash() const
 {
   size_t seed = 0;
 
-  for (dMap::const_iterator iter = dparams.begin();
-       iter != dparams.end(); ++iter)
+  for (const auto &dparam : dparams)
   {
     //      size_t seed = 0;
-    boost::hash_combine(seed, iter->first);
-    boost::hash_combine(seed, iter->second);
+    boost::hash_combine(seed, dparam.first);
+    boost::hash_combine(seed, dparam.second);
     //      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
   }
 
-  for (iMap::const_iterator iter = iparams.begin();
-       iter != iparams.end(); ++iter)
+  for (const auto &iparam : iparams)
   {
     //      size_t seed = 0;
-    boost::hash_combine(seed, iter->first);
-    boost::hash_combine(seed, iter->second);
+    boost::hash_combine(seed, iparam.first);
+    boost::hash_combine(seed, iparam.second);
     //      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
   }
 
-  for (strMap::const_iterator iter = cparams.begin();
-       iter != cparams.end(); ++iter)
+  for (const auto &cparam : cparams)
   {
     //      size_t seed = 0;
-    boost::hash_combine(seed, iter->first);
-    boost::hash_combine(seed, iter->second);
+    boost::hash_combine(seed, cparam.first);
+    boost::hash_combine(seed, cparam.second);
     //      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
   }
 

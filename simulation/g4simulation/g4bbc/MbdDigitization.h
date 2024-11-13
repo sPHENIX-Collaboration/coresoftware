@@ -64,7 +64,7 @@ class MbdDigitization : public SubsysReco
   Float_t f_pmtnpe[128]{}; // npe in each pmt
 
   // gains
-  std::array<Float_t,128> _gains;
+  std::array<Float_t,128> _gains = {};
 
   TF1 *gaussian = nullptr;
 

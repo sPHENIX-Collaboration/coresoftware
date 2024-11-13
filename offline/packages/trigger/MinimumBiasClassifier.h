@@ -34,11 +34,10 @@ class MinimumBiasClassifier : public SubsysReco
   //! end of run method
 
   int ResetEvent(PHCompositeNode *) override;
-  
+
   int FillMinimumBiasInfo();
 
  private:
-
   const float _z_vtx_cut{60.};
   const float _mbd_north_cut{10.};
   const float _mbd_south_cut{150};
@@ -51,8 +50,7 @@ class MinimumBiasClassifier : public SubsysReco
   TowerInfoContainer *_towers_zdc{nullptr};
   TowerInfo *_tmp_tower{nullptr};
 
-  std::array<float, 2> _zdc_energy_sum{};
-
+  std::array<float, 17> _zdc_energy_sum{};
 };
 
 #endif

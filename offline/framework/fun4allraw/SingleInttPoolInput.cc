@@ -4,8 +4,8 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/InttRawHitContainerv1.h>
-#include <ffarawobjects/InttRawHitv1.h>
+#include <ffarawobjects/InttRawHitContainerv2.h>
+#include <ffarawobjects/InttRawHitv2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -21,6 +21,7 @@
 #include <cstdlib>    // for exit
 #include <iostream>   // for operator<<, basic_o...
 #include <set>
+#include <memory>
 #include <utility>  // for pair
 
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
@@ -28,6 +29,7 @@ SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
 {
   SubsystemEnum(InputManagerType::INTT);
   plist = new Packet *[1];
+  m_rawHitContainerName = "INTTRAWHIT";
 }
 
 SingleInttPoolInput::~SingleInttPoolInput()
@@ -43,7 +45,7 @@ SingleInttPoolInput::~SingleInttPoolInput()
   }
 }
 
-void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
+void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -85,6 +87,13 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
     if (evt->getEvtType() != DATAEVENT)
     {
       m_NumSpecialEvents++;
+      if (evt->getEvtType() == ENDRUNEVENT)
+      {
+        std::cout << "End run flag for INTT found, remaining INTT data is corrupted" << std::endl;
+        delete evt;
+        AllDone(1);
+        return;
+      }
       delete evt;
       continue;
     }
@@ -96,7 +105,31 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
     {
       exit(1);
     }
-
+    if (m_SkipEarlyEvents)
+    {
+      for (int i = 0; i < npackets; i++)
+      {
+        int numBCOs = plist[i]->iValue(0, "NR_BCOS");
+        for (int j = 0; j < numBCOs; j++)
+        {
+          uint64_t bco = plist[i]->lValue(j, "BCOLIST");
+          if (bco < minBCO)
+          {
+            continue;
+          }
+          m_SkipEarlyEvents = false;
+        }
+      }
+    }
+    if (m_SkipEarlyEvents)
+    {
+      for (int i = 0; i < npackets; i++)
+      {
+        delete plist[i];
+      }
+      delete evt;
+      continue;
+    }
     for (int i = 0; i < npackets; i++)
     {
       if (Verbosity() > 2)
@@ -124,6 +157,7 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
     for (auto iter : poolmap)
     {
       intt_pool *pool = iter.second;  // less typing
+      auto packet_id = pool->getIdentifier();
       if (pool->depth_ok())
       {
         int num_hits = pool->iValue(0, "NR_HITS");
@@ -132,49 +166,99 @@ void SingleInttPoolInput::FillPool(const unsigned int /*unused*/)
           std::cout << "Number of Hits: " << num_hits << " for packet "
                     << pool->getIdentifier() << std::endl;
         }
-        std::set<uint64_t> bclk_set;
-        for (int j = 0; j < num_hits; j++)
-        {
-          InttRawHit *newhit = new InttRawHitv1();
-          int FEE = pool->iValue(j, "FEE");
-          uint64_t gtm_bco = pool->lValue(j, "BCO");
-          newhit->set_packetid(pool->getIdentifier());
-          newhit->set_fee(FEE);
-          newhit->set_bco(gtm_bco);
-          newhit->set_adc(pool->iValue(j, "ADC"));
-          newhit->set_amplitude(pool->iValue(j, "AMPLITUDE"));
-          newhit->set_chip_id(pool->iValue(j, "CHIP_ID"));
-          newhit->set_channel_id(pool->iValue(j, "CHANNEL_ID"));
-          newhit->set_word(pool->iValue(j, "DATAWORD"));
-          newhit->set_FPHX_BCO(pool->iValue(j, "FPHX_BCO"));
-          newhit->set_full_FPHX(pool->iValue(j, "FULL_FPHX"));
-          newhit->set_full_ROC(pool->iValue(j, "FULL_ROC"));
 
-          gtm_bco += m_Rollover[FEE];
-          bclk_set.insert(gtm_bco);
-          if (gtm_bco < m_PreviousClock[FEE])
+        int numBCOs = pool->iValue(0, "NR_BCOS");
+        uint64_t largest_bco = 0;
+        bool skipthis{true};
+
+        for (int j = 0; j < numBCOs; j++)
+        {
+          uint64_t bco = pool->lValue(j, "BCOLIST");
+          if (largest_bco < bco)
           {
-            m_Rollover[FEE] += 0x10000000000;
-            gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+            largest_bco = bco;
           }
-          m_PreviousClock[FEE] = gtm_bco;
-          m_BeamClockFEE[gtm_bco].insert(FEE);
-          m_FEEBclkMap[FEE] = gtm_bco;
-          if (Verbosity() > 2)
+          if (bco < minBCO)
           {
-            std::cout << "evtno: " << EventSequence
-                      << ", hits: " << j
-                      << ", nr_hits: " << num_hits
-                      << ", FEE: " << FEE
-                      << ", bco: 0x" << std::hex << gtm_bco << std::dec
-                      << ", channel: " << newhit->get_channel_id() << std::endl;
+            continue;
           }
-          if (StreamingInputManager())
+          skipthis = false;
+          m_BclkStack.insert(bco);
+          m_BclkStackPacketMap[packet_id].insert(bco);
+        }
+
+        int nFEEs = pool->iValue(0, "UNIQUE_FEES");
+        for (int j = 0; j < nFEEs; j++)
+        {
+          int fee = pool->iValue(j, "FEE_ID");
+          int nbcos = pool->iValue(fee, "FEE_BCOS");
+          for (int k = 0; k < nbcos; k++)
           {
-            StreamingInputManager()->AddInttRawHit(gtm_bco, newhit);
+            auto bco = pool->lValue(fee, k, "BCOVAL");
+            m_FeeGTML1BCOMap[fee].insert(bco);
           }
-          m_InttRawHitMap[gtm_bco].push_back(newhit);
-          m_BclkStack.insert(gtm_bco);
+        }
+        if (skipthis)
+        {
+          if (Verbosity() > 1)
+          {
+            std::cout << "largest bco: 0x" << std::hex << largest_bco << ", minbco 0x" << minBCO
+                      << std::dec << ", evtno: " << EventSequence << std::endl;
+          }
+        }
+        else
+        {
+          for (int j = 0; j < num_hits; j++)
+          {
+            uint64_t gtm_bco = pool->lValue(j, "BCO");
+            if (gtm_bco < minBCO)
+            {
+              // std::cout << "dropping hit with bco 0x" << std::hex
+              // 	      << gtm_bco << ", min bco: 0x" << minBCO
+              // 	      << std::endl;
+              continue;
+            }
+            auto newhit = std::make_unique<InttRawHitv2>();
+            int FEE = pool->iValue(j, "FEE");
+            newhit->set_packetid(pool->getIdentifier());
+            newhit->set_fee(FEE);
+            newhit->set_bco(gtm_bco);
+            newhit->set_adc(pool->iValue(j, "ADC"));
+            newhit->set_amplitude(pool->iValue(j, "AMPLITUDE"));
+            newhit->set_chip_id(pool->iValue(j, "CHIP_ID"));
+            newhit->set_channel_id(pool->iValue(j, "CHANNEL_ID"));
+            newhit->set_word(pool->iValue(j, "DATAWORD"));
+            newhit->set_FPHX_BCO(pool->iValue(j, "FPHX_BCO"));
+            newhit->set_full_FPHX(pool->iValue(j, "FULL_FPHX"));
+            newhit->set_full_ROC(pool->iValue(j, "FULL_ROC"));
+            newhit->set_event_counter(pool->iValue(j, "EVENT_COUNTER"));
+            gtm_bco += m_Rollover[FEE];
+
+            if (gtm_bco < m_PreviousClock[FEE])
+            {
+              m_Rollover[FEE] += 0x10000000000;
+              gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+            }
+            m_PreviousClock[FEE] = gtm_bco;
+            m_BeamClockFEE[gtm_bco].insert(FEE);
+            m_FEEBclkMap[FEE] = gtm_bco;
+            if (Verbosity() > 2)
+            {
+              std::cout << "evtno: " << EventSequence
+                        << ", hits: " << j
+                        << ", nr_hits: " << num_hits
+                        << ", FEE: " << FEE
+                        << ", bco: 0x" << std::hex << gtm_bco << std::dec
+                        << ", min bco: 0x" << std::hex << minBCO << std::dec
+                        << ", channel: " << newhit->get_channel_id()
+                        << ", evt_counter: " << newhit->get_event_counter() << std::endl;
+            }
+            if (StreamingInputManager())
+            {
+              StreamingInputManager()->AddInttRawHit(gtm_bco, newhit.get());
+            }
+            m_InttRawHitMap[gtm_bco].push_back(newhit.release());
+          }
         }
         //	    Print("FEEBCLK");
       }
@@ -219,6 +303,13 @@ void SingleInttPoolInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STACK")
   {
+    for (auto &[packetid, bclkstack] : m_BclkStackPacketMap)
+    {
+      for (auto &bclk : bclkstack)
+      {
+        std::cout << "stacked bclk: 0x" << std::hex << bclk << std::dec << std::endl;
+      }
+    }
     for (auto iter : m_BclkStack)
     {
       std::cout << "stacked bclk: 0x" << std::hex << iter << std::dec << std::endl;
@@ -250,6 +341,7 @@ void SingleInttPoolInput::CleanupUsedPackets(const uint64_t bclk)
     m_BeamClockFEE.erase(iter);
     m_InttRawHitMap.erase(iter);
   }
+ 
 }
 
 bool SingleInttPoolInput::CheckPoolDepth(const uint64_t bclk)
@@ -277,7 +369,7 @@ bool SingleInttPoolInput::CheckPoolDepth(const uint64_t bclk)
 void SingleInttPoolInput::ClearCurrentEvent()
 {
   // called interactively, to get rid of the current event
-  uint64_t currentbclk = *m_BclkStack.begin();
+  uint64_t currentbclk = *(m_BclkStackPacketMap.begin()->second).begin();
   //  std::cout << "clearing bclk 0x" << std::hex << currentbclk << std::dec << std::endl;
   CleanupUsedPackets(currentbclk);
   // m_BclkStack.erase(currentbclk);
@@ -293,28 +385,58 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   }
   if (poolmap.empty())
   {
+    //      std::cout << "GetSomeMoreEvents poolmap empty, ret true" << std::endl;
     return true;
   }
+  // for (auto iter : poolmap)
+  // {
+  //   if (!iter.second->depth_ok())
+  //   {
+  //   std::cout << "GetSomeMoreEvents depth not ok, ret true" << std::endl;
+  // 	return true;
+  //   }
+  // }
   uint64_t localbclk = ibclk;
   if (ibclk == 0)
   {
     if (m_InttRawHitMap.empty())
     {
+      //      std::cout << "GetSomeMoreEvents hitmap empty, ret true" << std::endl;
       return true;
     }
     localbclk = m_InttRawHitMap.begin()->first;
   }
 
+  std::set<int> toerase;
   for (auto bcliter : m_FEEBclkMap)
   {
     if (bcliter.second <= localbclk)
     {
-      // std::cout << "FEE " << bcliter.first << " bclk: "
-      // 		<< std::hex << bcliter.second << ", req: " << localbclk
-      // 		<< std::dec << std::endl;
-      return true;
+      uint64_t highest_bclk = m_InttRawHitMap.rbegin()->first;
+      if ((highest_bclk - m_InttRawHitMap.begin()->first) < MaxBclkDiff())
+      {
+        // std::cout << "FEE " << bcliter.first << " bclk: "
+        // 		<< std::hex << bcliter.second << ", req: " << localbclk
+        // 		<< std::dec << std::endl;
+        return true;
+      }
+      else
+      {
+        std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
+                  << " with stuck bclk: 0x" << std::hex << bcliter.second
+                  << " current bco range: 0x" << m_InttRawHitMap.begin()->first
+                  << ", to: 0x" << highest_bclk << ", delta: " << std::dec
+                  << (highest_bclk - m_InttRawHitMap.begin()->first)
+                  << std::dec << std::endl;
+        toerase.insert(bcliter.first);
+      }
     }
   }
+  for (auto iter : toerase)
+  {
+    m_FEEBclkMap.erase(iter);
+  }
+  //  std::cout << "GetSomeMoreEvents ret false" << std::endl;
   return false;
 }
 
@@ -334,11 +456,11 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
     detNode = new PHCompositeNode("INTT");
     dstNode->addNode(detNode);
   }
-  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, "INTTRAWHIT");
+  InttRawHitContainer *intthitcont = findNode::getClass<InttRawHitContainer>(detNode, m_rawHitContainerName);
   if (!intthitcont)
   {
-    intthitcont = new InttRawHitContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, "INTTRAWHIT", "PHObject");
+    intthitcont = new InttRawHitContainerv2();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(intthitcont, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
 }

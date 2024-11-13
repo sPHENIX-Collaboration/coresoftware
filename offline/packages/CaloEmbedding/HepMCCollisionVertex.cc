@@ -8,6 +8,7 @@
 #include <globalvertex/GlobalVertexMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
@@ -45,7 +46,17 @@ int HepMCCollisionVertex::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "no PHHepMCGenEventMap node" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  
+  
+  Fun4AllServer *se = Fun4AllServer::instance();
+  PHCompositeNode *dataTopNode = se->topNode("TOPData");
+  if (!dataTopNode)
+  {
+    std::cout << PHWHERE << "no TOPData node" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  
+  GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(dataTopNode, "GlobalVertexMap");
   if (!vertexmap)
   {
     std::cout << PHWHERE << " Fatal Error - GlobalVertexMap node is missing" << std::endl;

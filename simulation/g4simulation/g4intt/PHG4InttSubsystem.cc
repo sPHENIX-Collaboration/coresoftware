@@ -4,9 +4,9 @@
 #include "PHG4InttDisplayAction.h"
 #include "PHG4InttSteppingAction.h"
 
+#include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGrou...
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
-#include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGrou...
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
@@ -31,9 +31,9 @@ PHG4InttSubsystem::PHG4InttSubsystem(const std::string &detectorname, const vpai
   , m_LayerConfigVector(layerconfig)
   , m_DetectorType(detectorname)
 {
-  for (std::vector<std::pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
+  for (const auto &piter : layerconfig)
   {
-    AddDetId((*piter).second);
+    AddDetId(piter.second);
   }
 
   InitializeParameters();
@@ -68,6 +68,7 @@ int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(m_DetectorType);
   m_Detector->OverlapCheck(CheckOverlap());
+  m_Detector->useSurveyGeometry(m_UseSurveyGeometry);
 
   int active = 0;
   // initialize with support active flag (if support is active we need the absorber hit node)
@@ -116,7 +117,7 @@ int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename : nodes)
+    for (const auto &nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -156,7 +157,7 @@ int PHG4InttSubsystem::process_event(PHCompositeNode *topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4InttSubsystem::GetDetector(void) const
+PHG4Detector *PHG4InttSubsystem::GetDetector() const
 {
   return m_Detector;
 }
@@ -170,7 +171,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
 
   int nladder[4] = {12, 12, 16, 16};
   double sensor_radius[4] = {7.188 - 36e-4, 7.732 - 36e-4, 9.680 - 36e-4, 10.262 - 36e-4};
-  double offsetphi[4] = {-0.5 * 360.0 / nladder[0], 0.0, -0.5 * 360.0 / nladder[2], 0.0};  
+  double offsetphi[4] = {-0.5 * 360.0 / nladder[0], 0.0, -0.5 * 360.0 / nladder[2], 0.0};
 
   // This was the original code block; I am leaving it here as a comment in case any of the changes need to be reverted
   // // We have only two types of ladders, one with vertical strips (SEGMENTATION_Z) and one with horizontal strips (SEGMENTATION_PHI)set
@@ -199,7 +200,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
   //                            12.676, 13.179};  // radius of center of sensor for layer default, new 30/05/2020
 
   // double offsetphi[4] = {-0.5 * 360.0 / nladder[0+2], 0.0, -0.5 * 360.0 / nladder[2+2], 0.0 }; // the final configuration, July/09/202
- 
+
   auto detid = GetDetIds();  // get pair of iterators to begin/end of set<int> of detids
   for (auto detiter = detid.first; detiter != detid.second; ++detiter)
   {
@@ -211,7 +212,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(*detiter, "sensor_radius", sensor_radius[*detiter]);
     // These offsets should be kept at zero in the new design
     //  set_default_double_param(*detiter, "offsetphi", 0.);// obsolete
-    set_default_double_param(*detiter, "offsetphi", offsetphi[*detiter] );
+    set_default_double_param(*detiter, "offsetphi", offsetphi[*detiter]);
     set_default_double_param(*detiter, "offsetrot", 0.);
 
     // 	sitrack->set_int_param(i, "laddertype", laddertype[i]);
@@ -232,7 +233,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "fphx_offset_z", 0.005);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "gap_sensor_fphx", 0.1);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "halfladder_z", 40.00);
-  set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "halfladder_inside_z", 23.9622);
+  set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "halfladder_inside_z", 23.28);  // previous 23.9622
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "hdi_copper_x", 0.0052);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "hdi_edge_z", 0.);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_Z, "hdi_kapton_x", 0.038);
@@ -269,7 +270,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "fphx_glue_x", 0.005);  // 50 um
 
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "halfladder_z", 40.00);
-  set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "halfladder_inside_z", 23.9622);
+  set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "halfladder_inside_z", 23.28);  // previous 23.9622
 
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "hdi_copper_x", 0.00376);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "hdi_edge_z", 0.);
@@ -291,6 +292,9 @@ void PHG4InttSubsystem::SetDefaultParameters()
 
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "stave_straight_outer_y", 0.33227);
   set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "stave_straight_rohacell_y", 0.58842);
+
+  // Average shift of the whole INTT barrel in the z direction
+  set_default_double_param(PHG4InttDefs::SEGMENTATION_PHI, "ladder_center_avgshift_z", -4.724503928571429 / 10.);  // unit: cm
 
   // SUPPORTPARAMS //////////////////////////////////////
   // int param
@@ -325,6 +329,8 @@ void PHG4InttSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_ring_type", 2);  // 0: Al+SS+WG, 1 : CarbonPEEK, 2(default) : new  model Jan/2021
 
   // Aluminum endcap ring position
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_ring_x", 0.4026857142857132 / 10.);  // unit: mm, the center positions of the metal and CF rings in XY plane, calculated from the survey data
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_ring_y", -2.886627321428573 / 10.);  // unit: mm, the center positions of the metal and CF rings in XY plane, calculated from the survey data
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_ring_z", 24.35);
 
   // Aluminum endcap ring
@@ -353,15 +359,20 @@ void PHG4InttSubsystem::SetDefaultParameters()
   ////////////////////////////////////////////////////////////////////////////////////////
   // the new endcap model
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_z", 24.4185);
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_1_outer_radius", 11.7475);  // outer radius of the outermost part
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_1_outer_radius", 11.2020);   // outer radius of the 2nd outermost part
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_2_outer_radius", 9.65);     // outer radius of the 3rd outermost part, slightly shrinked from the reeeal drawing of 9.6971 cm to avoid overwlapping
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_2_outer_radius", 8.7095);    // outer radius of the 4th outermost part
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_outer_radius", 7.15);     // outer radius of the 5th outermost part, slightly shrinked from the real drawing of 7.2045 cm to avoid overlapping
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_inner_radius", 6.5088);   // inner radius of the 5th outermost (=the outer most) part
 
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_length", 0.75);
-  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_length", 0.5);
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_1_outer_radius", 11.7375);  // outer radius of the outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_1_inner_radius", 11.0683);  // inner radius of the outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_1_outer_radius", 10.6826);   // outer radius of the 2nd outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_1_inner_radius", 10.0984);   // inner radius of the 2nd outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_2_outer_radius", 9.7227);   // outer radius of the 3rd outermost part, slightly shrinked from the reeeal drawing of 9.6971 cm to avoid overwlapping
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_2_inner_radius", 8.5485);   // inner radius of the 3rd outermost part, slightly shrinked from the reeeal drawing of 9.6971 cm to avoid overwlapping
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_2_outer_radius", 8.1852);    // outer radius of the 4th outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_2_inner_radius", 7.6518);    // inner radius of the 4th outermost part
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_outer_radius", 7.2886);   // outer radius of the 5th outermost part, slightly shrinked from the real drawing of 7.2045 cm to avoid overlapping
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_3_inner_radius", 6.5188);   // inner radius of the 5th outermost (=the outer most) part
+
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Alring_length", 0.625 / 2.);  // unit: cm, previously 0.75
+  set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "endcap_AlPEEK_Cring_length", 0.75);         // unit: cm, previous 0.5
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Survice barrel, outer
@@ -386,10 +397,10 @@ void PHG4InttSubsystem::SetDefaultParameters()
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_dphi", 90.);  // deg
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_inner_radius", 0.45);
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_length", 410);  // tpc length
-  //set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_length",     20   );  // tpc length
+  // set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_length",     20   );  // tpc length
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_outer_radius", 0.6);
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_phi_start", 45.);  // deg
-  //set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_radius",     16.85 );
+  // set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_radius",     16.85 );
   set_default_double_param(PHG4InttDefs::SUPPORTPARAMS, "rail_radius", (33.34 + 0.6 * 2) / 2);  // tentativevalue
 
   return;

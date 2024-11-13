@@ -1,6 +1,8 @@
 #ifndef TRACKRECO_ACTSTRANSFORMATIONS_H
 #define TRACKRECO_ACTSTRANSFORMATIONS_H
 
+#include "SvtxTrack.h"
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsTrackFittingAlgorithm.h>
 #include <trackbase/TrkrDefs.h>
@@ -10,8 +12,6 @@
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Logger.hpp>
-
-#include "SvtxTrack.h"
 
 /// std (and the like) includes
 #include <cmath>

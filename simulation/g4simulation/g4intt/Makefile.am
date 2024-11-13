@@ -9,7 +9,7 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
     -I$(includedir) \
-    -I$(OFFLINE_MAIN)/include \
+    -isystem$(OFFLINE_MAIN)/include \
     -isystem$(ROOTSYS)/include
 
 # set in configure.in to check if gcc version >= 4.8
@@ -55,6 +55,7 @@ libg4intt_la_LIBADD = \
   libg4intt_io.la \
   -lg4detectors \
   -lg4tracking_io \
+  -lintt \
   -lintt_io
 
 # sources for io library

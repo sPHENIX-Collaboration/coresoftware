@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+#include "MvtxPixelMask.h"
+
 class MvtxEventInfo;
 class MvtxRawEvtHeader;
 class MvtxRawHitContainer;
@@ -48,8 +50,13 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
 
   void writeMvtxEventHeader(bool write) { m_writeMvtxEventHeader = write; }
 
+  void doOfflineMasking(bool do_masking) { m_doOfflineMasking = do_masking; }
+
+  void runMvtxTriggered(bool b = true) { m_mvtx_is_triggered = b; }
+
  private:
   void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>>& v);
+
   TrkrHitSetContainer* hit_set_container = nullptr;
   MvtxEventInfo* mvtx_event_header = nullptr;
   MvtxRawEvtHeader* mvtx_raw_event_header = nullptr;
@@ -60,7 +67,13 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
   std::string m_MvtxRawEvtHeaderNodeName = "MVTXRAWEVTHEADER";
   float m_strobeWidth = 89.;  //! microseconds
   bool m_writeMvtxEventHeader = true;
-  std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> m_hotPixelMap;
+  // std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> m_hotPixelMap;
+
+  // mask hot pixels
+  bool m_doOfflineMasking{false};
+  MvtxPixelMask * m_hot_pixel_mask{nullptr};
+
+  bool m_mvtx_is_triggered{false};
 };
 
 #endif

@@ -1,24 +1,21 @@
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#include "ActsTrackFittingAlgorithm.h"
+
 #include <Acts/Definitions/TrackParametrization.hpp>
-#pragma GCC diagnostic pop
+
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wunused-value"
 #include <Acts/Propagator/EigenStepper.hpp>
-#pragma GCC diagnostic pop
-
 #include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Propagator/Propagator.hpp>
+
 #include <Acts/Surfaces/Surface.hpp>
+
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
+
 #include <Acts/Utilities/Helpers.hpp>
 
-#include "ActsTrackFittingAlgorithm.h"
 
 namespace
 {

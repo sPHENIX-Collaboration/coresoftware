@@ -221,6 +221,10 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
 #ifdef FFAMEMTRACKER
     ffamemtracker->Start(memory_tracker_name, "SubsysReco");
 #endif
+    if (Verbosity() >= 3)
+    {
+      std::cout << "Calling Init() for Subsystem " << subsystem->Name() << std::endl;
+    }
     iret = subsystem->Init(subsystopNode);
 #ifdef FFAMEMTRACKER
     ffamemtracker->Stop(memory_tracker_name, "SubsysReco");
@@ -548,6 +552,9 @@ int Fun4AllServer::process_event()
       }
     }
 
+    PHTimer subsystem_timer("SubsystemTimer");
+    subsystem_timer.restart();
+
     try
     {
       std::string timer_name;
@@ -632,6 +639,13 @@ int Fun4AllServer::process_event()
         std::cout << "Fun4AllServer::Abort Run by " << Subsystem.first->Name() << std::endl;
         return Fun4AllReturnCodes::ABORTRUN;
       }
+      else if (RetCodes[icnt] == Fun4AllReturnCodes::ABORTPROCESSING)
+      {
+        eventbad = 1;
+        retcodesmap[Fun4AllReturnCodes::ABORTPROCESSING]++;
+        std::cout << "Fun4AllServer::Abort Processing by " << Subsystem.first->Name() << std::endl;
+        return Fun4AllReturnCodes::ABORTPROCESSING;
+      }
       else
       {
         std::cout << "Fun4AllServer::Unknown return code: "
@@ -643,6 +657,13 @@ int Fun4AllServer::process_event()
         std::cout << "phenix-off-l with this message" << std::endl;
         return Fun4AllReturnCodes::ABORTRUN;
       }
+    }
+    subsystem_timer.stop();
+    double TimeSubsystem = subsystem_timer.elapsed();
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      std::cout << "Fun4AllServer::process_event processing " << Subsystem.first->Name()
+                << " processing total time: " << TimeSubsystem << " ms" << std::endl;
     }
     icnt++;
   }
@@ -1447,13 +1468,13 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         BeginRun(runnumber);
       }
     }
-    if (Verbosity() >= 1)
+    if (Verbosity() >= 1 && ((icnt + 1)%VerbosityDownscale() == 0))
     {
       std::cout << "Fun4AllServer::run - processing event "
                 << (icnt + 1) << " from run " << runnumber << std::endl;
     }
 
-    if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)
+    if (icnt == 0 && Verbosity() > VERBOSITY_QUIET)
     {
       // increase verbosity for the first event in verbose modes
       int iverb = Verbosity();
@@ -1462,7 +1483,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
 
     iret = process_event();
 
-    if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)
+    if (icnt == 0 && Verbosity() > VERBOSITY_QUIET)
     {
       // increase verbosity for the first event in verbose modes
       int iverb = Verbosity();

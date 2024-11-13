@@ -1,7 +1,7 @@
 
 /*!
  * \file PgPostBankBackupStorageLinkDef.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.1 $
  * \date $Date: 2014/01/27 06:09:27 $

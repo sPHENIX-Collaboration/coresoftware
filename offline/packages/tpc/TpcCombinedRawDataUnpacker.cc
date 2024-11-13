@@ -6,27 +6,20 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
-#include <trackbase/TrkrHitSetv1.h>
 #include <trackbase/TrkrHitv2.h>
-
-#include <ffarawobjects/TpcRawHit.h>
-#include <ffarawobjects/TpcRawHitContainer.h>
-#include <ffarawobjects/TpcRawHitContainerv1.h>
-#include <ffarawobjects/TpcRawHitv1.h>
-
-#include <cdbobjects/CDBTTree.h>
-#include <ffamodules/CDBInterface.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
-#include <Acts/Definitions/Units.hpp>
-#include <Acts/Surfaces/Surface.hpp>
+
+#include <ffarawobjects/TpcRawHit.h>
+#include <ffarawobjects/TpcRawHitContainer.h>
+
+#include <cdbobjects/CDBTTree.h>
+
+#include <ffamodules/CDBInterface.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>  // for PHIODataNode
@@ -35,14 +28,20 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <TSystem.h>
-
 #include <TFile.h>
 #include <TH1.h>
+#include <TH2.h>
 #include <TNtuple.h>
+#include <TSystem.h>
+
+#include <cmath>
+#include <cstdint>   // for exit
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl, bas...
 #include <map>       // for _Rb_tree_iterator
+#include <utility>
+
+#define dEBUG
 
 TpcCombinedRawDataUnpacker::TpcCombinedRawDataUnpacker(std::string const& name, std::string const& outF)
   : SubsysReco(name)
@@ -53,7 +52,7 @@ TpcCombinedRawDataUnpacker::TpcCombinedRawDataUnpacker(std::string const& name, 
 
 int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "TpcRawDataDecoder::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  std::cout << "TpcCombinedRawDataUnpacker::Init(PHCompositeNode *topNode) Initializing" << std::endl;
 
   m_cdb = CDBInterface::instance();
   std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
@@ -61,7 +60,7 @@ int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
   if (calibdir[0] == '/')
   {
     // use generic CDBTree to load
-    m_cdbttree = new CDBTTree(calibdir.c_str());
+    m_cdbttree = new CDBTTree(calibdir);
     m_cdbttree->LoadCalibrations();
   }
   else
@@ -127,18 +126,61 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     PHIODataNode<PHObject>* new_node = new PHIODataNode<PHObject>(trkr_hit_set_container, "TRKR_HITSET", "PHObject");
     trkr_node->addNode(new_node);
   }
+
+  TpcRawHitContainer* tpccont = findNode::getClass<TpcRawHitContainer>(topNode, m_TpcRawNodeName);
+  if (!tpccont)
+  {
+    std::cout << PHWHERE << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)" << std::endl;
+    std::cout << "Could not get \"" << m_TpcRawNodeName << "\" from Node Tree" << std::endl;
+    std::cout << "Removing module" << std::endl;
+
+    Fun4AllServer* se = Fun4AllServer::instance();
+    se->unregisterSubsystem(this);
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   if (m_writeTree)
   {
     m_file = new TFile(outfile_name.c_str(), "RECREATE");
     m_ntup = new TNtuple("NT", "NT", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:nsamples");
+    m_ntup_hits = new TNtuple("NTH", "NTH", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:phibin:tbin:layer:adc:ped:width");
+    m_ntup_hits_corr = new TNtuple("NTC", "NTC", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:phibin:tbin:layer:adc:ped:width:corr");
   }
+
+  if (Verbosity() >= 1)
+  {
+    std::cout << "TpcCombinedRawDataUnpacker:: _do_zerosup = " << m_do_zerosup << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker:: _do_noise_rejection = " << m_do_noise_rejection << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker:: _ped_sig_cut = " << m_ped_sig_cut << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker:: startevt = " << startevt << std::endl;
+    std::cout << "TpcCombinedRawDataUnpacker:: endevt = " << endevt << std::endl;
+  }
+
+  // check run number if presamples need to be shifted, which went from 80 -> 120
+  // at 41624
+  Fun4AllServer* se = Fun4AllServer::instance();
+  if (se->RunNumber() < 41624)
+  {
+    m_presampleShift = 0;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 {
+  if (_ievent < startevt || _ievent > endevt)
+  {
+    if (Verbosity() > 1)
+    {
+      std::cout << " Skip event " << _ievent << std::endl;
+    }
+    _ievent++;
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
   _ievent++;
-  TH1F pedhist("pedhist", "pedhist", 251, -0.5, 1000.5);
+  TH1F pedhist("pedhist", "pedhist", 251, -2.0, 1002);
 
   TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!trkr_hit_set_container)
@@ -153,7 +195,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
-  TpcRawHitContainerv1* tpccont = findNode::getClass<TpcRawHitContainerv1>(topNode, m_TpcRawNodeName);
+  TpcRawHitContainer* tpccont = findNode::getClass<TpcRawHitContainer>(topNode, m_TpcRawNodeName);
   if (!tpccont)
   {
     std::cout << PHWHERE << std::endl;
@@ -183,6 +225,9 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
   const auto nhits = tpccont->get_nhits();
 
+  int ntotalchannels = 0;
+  int n_noisychannels = 0;
+  int max_time_range = 0;
   for (unsigned int i = 0; i < nhits; i++)
   {
     TpcRawHit* tpchit = tpccont->get_hit(i);
@@ -230,11 +275,11 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     uint16_t sampadd = tpchit->get_sampaaddress();
     uint16_t sampch = tpchit->get_sampachannel();
     uint16_t sam = tpchit->get_samples();
-
+    max_time_range = sam;
     varname = "phi";  // + std::to_string(key);
     double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
-    unsigned int phibin = layergeom->find_phibin(phi);
+    unsigned int phibin = layergeom->get_phibin(phi);
     if (m_writeTree)
     {
       float fX[12];
@@ -253,6 +298,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       fX[n++] = sam;
       m_ntup->Fill(fX);
     }
+
     hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 
@@ -260,60 +306,440 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     float hpedwidth = 0;
     pedhist.Reset();
 
-    for (uint16_t sampleNum = 0; sampleNum < sam; sampleNum++)
+    if (!m_do_zerosup)
     {
-      uint16_t adc = tpchit->get_adc(sampleNum);
-      pedhist.Fill(adc);
-    }
-    int hmax = 0;
-    int hmaxbin = 0;
-    for (int nbin = 1; nbin <= pedhist.GetNbinsX(); nbin++)
-    {
-      float val = pedhist.GetBinContent(nbin);
-      if (val > hmax)
+      if (Verbosity() > 2)
       {
-        hmaxbin = nbin;
-        hmax = val;
+        std::cout << "TpcCombinedRawDataUnpacker:: no zero suppression" << std::endl;
       }
-    }
-
-    // calc peak position
-    double adc_sum = 0.0;
-    double ibin_sum = 0.0;
-    double ibin2_sum = 0.0;
-
-    for (int isum = -3; isum <= 3; isum++)
-    {
-      float val = pedhist.GetBinContent(hmaxbin + isum);
-      float center = pedhist.GetBinCenter(hmaxbin + isum);
-      ibin_sum += center * val;
-      ibin2_sum += center * center * val;
-      adc_sum += val;
-    }
-
-    hpedestal = ibin_sum / adc_sum;
-    hpedwidth = sqrt(ibin2_sum / adc_sum - (hpedestal * hpedestal));
-
-    for (uint16_t s = 0; s < sam; s++)
-    {
-      uint16_t adc = tpchit->get_adc(s);
-      int t = s;
-
-      if ((float(adc) - hpedestal) > (hpedwidth * 4))
+      for (uint16_t s = 0; s < sam; s++)
       {
+        uint16_t adc = tpchit->get_adc(s);
+        int t = s - m_presampleShift;
+
         hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
         // find existing hit, or create new one
         hit = hit_set_container_itr->second->getHit(hit_key);
         if (!hit)
         {
           hit = new TrkrHitv2();
-          hit->setAdc(float(adc) - hpedestal);
+          hit->setAdc(float(adc));
 
           hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
         }
       }
     }
+    else
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << "TpcCombinedRawDataUnpacker:: do zero suppression" << std::endl;
+      }
+      TH2I* feehist = nullptr;
+      if(!m_do_zs_emulation){
+	for (uint16_t sampleNum = 0; sampleNum < sam; sampleNum++)
+	  {
+	    uint16_t adc = tpchit->get_adc(sampleNum);
+	    if (adc > 0)
+	      {
+		pedhist.Fill(adc);
+	      }
+	  }
+	int hmax = 0;
+	int hmaxbin = 0;
+	for (int nbin = 1; nbin <= pedhist.GetNbinsX(); nbin++)
+	  {
+	    float val = pedhist.GetBinContent(nbin);
+	    if (val > hmax)
+	      {
+		hmaxbin = nbin;
+		hmax = val;
+	      }
+	  }
+	
+	// calculate pedestal mean and sigma
+	
+	if (pedhist.GetStdDev() == 0 || pedhist.GetEntries() == 0)
+	  {
+	    hpedestal = pedhist.GetBinCenter(pedhist.GetMaximumBin());
+	    hpedwidth = 999;
+	  }
+	else
+	  {
+	    // calc peak position
+	    double adc_sum = 0.0;
+	    double ibin_sum = 0.0;
+	    double ibin2_sum = 0.0;
+	    
+	    for (int isum = -3; isum <= 3; isum++)
+	      {
+		float val = pedhist.GetBinContent(hmaxbin + isum);
+		float center = pedhist.GetBinCenter(hmaxbin + isum);
+		ibin_sum += center * val;
+		ibin2_sum += center * center * val;
+		adc_sum += val;
+	      }
+	    
+	    hpedestal = ibin_sum / adc_sum;
+	    hpedwidth = sqrt(ibin2_sum / adc_sum - (hpedestal * hpedestal));
+	  }
+	if (m_do_baseline_corr)
+	  {
+	    unsigned int pad_key = create_pad_key(side, layer, phibin);
+	    
+	    std::map<unsigned int, chan_info>::iterator chan_it = chan_map.find(pad_key);
+	    if (chan_it != chan_map.end())
+	      {
+		(*chan_it).second.ped = hpedestal;
+		(*chan_it).second.width = hpedwidth;
+	      }
+	    else
+	      {
+		chan_info nucinfo;
+		nucinfo.fee = fee;
+		nucinfo.ped = hpedestal;
+		nucinfo.width = hpedwidth;
+		chan_map.insert(std::make_pair(pad_key, nucinfo));
+	      }
+	    int rx = get_rx(layer);
+	    unsigned int fee_key = create_fee_key(side, mc_sectors[sector % 12], rx, fee);
+	    // find or insert TH2I;
+	    std::map<unsigned int, TH2I*>::iterator fee_map_it;
+	    
+	    fee_map_it = feeadc_map.find(fee_key);
+	    if (fee_map_it != feeadc_map.end())
+	      {
+		feehist = (*fee_map_it).second;
+	      }
+	    else
+	      {
+		std::string histname = "h" + std::to_string(fee_key);
+		feehist = new TH2I(histname.c_str(), "histname", max_time_range + 1, -0.5, max_time_range + 0.5, 501, -0.5, 1000.5);
+		feeadc_map.insert(std::make_pair(fee_key, feehist));
+	      }
+	  }
+	ntotalchannels++;
+	if (m_do_noise_rejection && !m_do_baseline_corr)
+	  {
+	    if (hpedwidth < 0.5 || hpedestal < 10 || hpedwidth == 999)
+	      {
+		n_noisychannels++;
+		continue;
+	      }
+	  }
+      }else{
+	hpedestal = 60;
+	hpedwidth = m_zs_threshold;
+      }
+      for (uint16_t s = 0; s < sam; s++)
+      {
+        uint16_t adc = tpchit->get_adc(s);
+        int t = s - m_presampleShift;
+        if (t < 0)
+        {
+          continue;
+        }
+	if (m_do_baseline_corr && feehist != nullptr &&(!m_do_zs_emulation))
+        {
+          if (adc > 0)
+          {
+            feehist->Fill(t, adc - hpedestal + pedestal_offset);
+          }
+	  
+        }
+	float threshold_cut = (hpedwidth * m_ped_sig_cut);
+	if(m_do_zs_emulation){
+	  threshold_cut = m_zs_threshold;
+	}
+        if ((float(adc) - hpedestal) > threshold_cut)
+        {
+          hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
+          // find existing hit, or create new one
+          hit = hit_set_container_itr->second->getHit(hit_key);
+          if (!hit)
+          {
+            hit = new TrkrHitv2();
+            if (m_do_baseline_corr)
+            {
+              hit->setAdc(float(adc) - hpedestal + pedestal_offset);
+            }
+            else
+            {
+              hit->setAdc(float(adc) - hpedestal);
+            }
+            hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
+          }
+          if (m_writeTree)
+          {
+            float fXh[18];
+            int nh = 0;
+
+            fXh[nh++] = _ievent - 1;
+            fXh[nh++] = 0;                        // gtm_bco;
+            fXh[nh++] = 0;                        // packet_id;
+            fXh[nh++] = 0;                        // ep;
+            fXh[nh++] = mc_sectors[sector % 12];  // Sector;
+            fXh[nh++] = side;
+            fXh[nh++] = fee;
+            fXh[nh++] = 0;  // channel;
+            fXh[nh++] = 0;  // sampadd;
+            fXh[nh++] = 0;  // sampch;
+            fXh[nh++] = (float) phibin;
+            fXh[nh++] = (float) t;
+            fXh[nh++] = layer;
+            fXh[nh++] = (float(adc) - hpedestal + pedestal_offset);
+            fXh[nh++] = hpedestal;
+            fXh[nh++] = hpedwidth;
+
+            m_ntup_hits->Fill(fXh);
+          }
+        }
+      }
+    }
   }
+
+  if (m_do_noise_rejection && Verbosity() >= 2)
+  {
+    std::cout << " noisy / total channels = " << n_noisychannels << "/" << ntotalchannels << " = " << n_noisychannels / (double) ntotalchannels << std::endl;
+  }
+  if (m_do_baseline_corr == true)
+  {
+    // Histos filled now process them for fee local baselines
+
+    for (auto& hiter : feeadc_map)
+    {
+      if (hiter.second != nullptr)
+      {
+        TH2I* hist2d = hiter.second;
+        std::vector<float> pedvec(hist2d->GetNbinsX(), 0);
+        feebaseline_map.insert(std::make_pair(hiter.first, pedvec));
+        std::map<unsigned int, std::vector<float>>::iterator fee_blm_it = feebaseline_map.find(hiter.first);
+        (*fee_blm_it).second.resize(hist2d->GetNbinsX(), 0);
+
+        for (int binx = 1; binx < hist2d->GetNbinsX(); binx++)
+        {
+          double timebin = ((TAxis*) hist2d->GetXaxis())->GetBinCenter(binx);
+          std::string histname1d = "h" + std::to_string(hiter.first) + "_" + std::to_string((int) timebin);
+          TH1D* hist1d = hist2d->ProjectionY(histname1d.c_str(), binx, binx);
+          float local_ped = 0;
+#ifdef DEBUG
+          //  if((*hiter).first == 210802&&timebin==383){
+
+          std::cout << " fedkey: " << (*hiter).first
+                    << " entries: " << hist1d->GetEntries()
+                    << std::endl;
+          // }/**/
+#endif
+
+          if (hist1d->GetEntries() > 0)
+          {
+            int maxbin = hist1d->GetMaximumBin();
+            // calc peak position
+            double hadc_sum = 0.0;
+            double hibin_sum = 0.0;
+            //	    double hibin2_sum = 0.0;
+
+            for (int isum = -3; isum <= 3; isum++)
+            {
+              float val = hist1d->GetBinContent(maxbin + isum);
+              float center = hist1d->GetBinCenter(maxbin + isum);
+              hibin_sum += center * val;
+              // hibin2_sum += center * center * val;
+              hadc_sum += val;
+#ifdef DEBUG
+              if ((*hiter).first == 210802 && timebin == 383)
+              {
+                std::cout << " fedkey: " << (*hiter).first
+                          << " tbin: " << timebin
+                          << " maxb " << maxbin
+                          << " val: " << val
+                          << " center: " << center
+                          << std::endl;
+              } /**/
+#endif
+            }
+            local_ped = hibin_sum / hadc_sum;
+          }
+#ifdef DEBUG
+          /**/
+          if ((*hiter).first == 210802 && timebin == 383)
+          {
+            std::cout << " fedkey: " << (*hiter).first
+                      << " root bin: " << binx
+                      << " tbin: " << timebin
+                      << " loc_ped: " << local_ped
+                      << " entries: " << hist1d->GetEntries()
+                      << std::endl;
+          } /**/
+#endif
+          delete hist1d;
+          (*fee_blm_it).second[(int) timebin] = local_ped;
+        }
+        // feebaseline_map.insert(std::make_pair((*hiter).first,pedvec));
+      }
+    }
+    if (Verbosity() >= 1)
+    {
+      std::cout << "second loop " << m_do_baseline_corr << std::endl;
+    }
+    // second loop over hits to apply baseline correction
+    TrkrHitSetContainer::ConstRange hitsetrange;
+    hitsetrange = trkr_hit_set_container->getHitSets(TrkrDefs::TrkrId::tpcId);
+
+    for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
+         hitsetitr != hitsetrange.second;
+         ++hitsetitr)
+    {
+      // if(count>0)continue;
+      TrkrHitSet* hitset = hitsetitr->second;
+      unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
+      int side = TpcDefs::getSide(hitsetitr->first);
+      unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
+
+      TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+
+      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+           hitr != hitrangei.second;
+           ++hitr)
+      {
+        unsigned short phibin = TpcDefs::getPad(hitr->first);
+        unsigned short tbin = TpcDefs::getTBin(hitr->first);
+        unsigned short adc = (hitr->second->getAdc());
+
+        unsigned int pad_key = create_pad_key(side, layer, phibin);
+
+        float fee = 0;
+        float hpedestal2 = 0;
+        float hpedwidth2 = 0;
+        std::map<unsigned int, chan_info>::iterator chan_it = chan_map.find(pad_key);
+        if (chan_it != chan_map.end())
+        {
+          chan_info cinfo = (*chan_it).second;
+          fee = cinfo.fee;
+          hpedestal2 = cinfo.ped;
+          hpedwidth2 = cinfo.width;
+        }
+
+        int rx = get_rx(layer);
+        float corr = 0;
+
+        unsigned int fee_key = create_fee_key(side, sector, rx, fee);
+        std::map<unsigned int, std::vector<float>>::iterator fee_blm_it = feebaseline_map.find(fee_key);
+        if (fee_blm_it != feebaseline_map.end())
+        {
+          corr = (*fee_blm_it).second[tbin] - pedestal_offset;
+        }
+        else
+        {
+          continue;
+#ifdef DEBUG
+          std::cout << " shit " << _ievent - 1
+                    << " fedkey: " << fee_key
+                    << " padkey: " << pad_key
+                    << " layer: " << layer
+                    << " side " << side
+                    << " sector " << sector
+                    << " fee " << fee
+                    << " tbin: " << tbin
+                    << " phibin " << phibin
+                    << " adc " << adc
+                    << std::endl;
+#endif
+        }
+#ifdef DEBUG
+        if (tbin == 383 && layer >= 7 + 32 && fee == 21)
+        {
+          std::cout << " before shit " << _ievent - 1
+                    << " fedkey: " << fee_key
+                    << " padkey: " << pad_key
+                    << " layer: " << layer
+                    << " side " << side
+                    << " sector " << sector
+                    << " fee " << fee
+                    << " tbin: " << tbin
+                    << " phibin " << phibin
+                    << " adc " << adc
+                    << std::endl;
+        }
+#endif
+        hitr->second->setAdc(0);
+        if (m_do_noise_rejection)
+        {
+          if (hpedwidth2 < 0.5 || hpedestal2 < 10 || hpedwidth2 == 999)
+          {
+            n_noisychannels++;
+            continue;
+          }
+        }
+        if (hpedwidth2 > -100 && hpedestal2 > -100)
+        {
+          if ((float(adc) - pedestal_offset - corr) > (hpedwidth2 * m_ped_sig_cut))
+          {
+            float nuadc = (float(adc) - corr - pedestal_offset);
+            if (nuadc < 0)
+            {
+              nuadc = 0;
+            }
+            hitr->second->setAdc(float(nuadc));
+#ifdef DEBUG
+            //	    hitr->second->setAdc(10);
+            if (tbin == 383 && layer >= 7 + 32 && fee == 21)
+            {
+              std::cout << " after shit " << _ievent - 1
+                        << " fedkey: " << fee_key
+                        << " padkey: " << pad_key
+                        << " layer: " << layer
+                        << " side " << side
+                        << " sector " << sector
+                        << " fee " << fee
+                        << " tbin: " << tbin
+                        << " phibin " << phibin
+                        << " adc " << adc
+                        << " corr: " << corr
+                        << " adcnu " << (float(adc) - corr - pedestal_offset)
+                        << " adc in " << hitr->second->getAdc()
+                        << std::endl;
+            }
+#endif
+            if (m_writeTree)
+            {
+              float fXh[18];
+              int nh = 0;
+
+              fXh[nh++] = _ievent - 1;
+              fXh[nh++] = 0;       // gtm_bco;
+              fXh[nh++] = 0;       // packet_id;
+              fXh[nh++] = 0;       // ep;
+              fXh[nh++] = sector;  // mc_sectors[sector % 12];//Sector;
+              fXh[nh++] = side;
+              fXh[nh++] = fee;
+              fXh[nh++] = 0;  // channel;
+              fXh[nh++] = 0;  // sampadd;
+              fXh[nh++] = 0;  // sampch;
+              fXh[nh++] = (float) phibin;
+              fXh[nh++] = (float) tbin;
+              fXh[nh++] = layer;
+              fXh[nh++] = float(adc);
+              fXh[nh++] = hpedestal2;
+              fXh[nh++] = hpedwidth2;
+              fXh[nh++] = corr;
+
+              m_ntup_hits_corr->Fill(fXh);
+            }
+          }
+        }
+      }
+    }
+  }
+  // reset histogramms
+  for (auto& hiter : feeadc_map)
+  {
+    if (hiter.second != nullptr)
+    {
+      hiter.second->Reset();
+    }
+  }
+  feebaseline_map.clear();
 
   if (Verbosity())
   {
@@ -330,6 +756,8 @@ int TpcCombinedRawDataUnpacker::End(PHCompositeNode* /*topNode*/)
   {
     m_file->cd();
     m_ntup->Write();
+    m_ntup_hits->Write();
+    m_ntup_hits_corr->Write();
     m_file->Close();
   }
   if (Verbosity())

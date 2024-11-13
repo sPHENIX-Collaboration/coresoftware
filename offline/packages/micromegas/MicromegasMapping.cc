@@ -96,25 +96,26 @@ m_detectors( {
    * see https://wiki.sphenix.bnl.gov/index.php/TPc_Outer_Tracker_(TPOT)#Fiber_mapping.2C_as_of_2023.2F3.2F22
    */
   // south side
-  {5,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 4 ), "sec20.0", "R3.1", "M9P",  "SEIP" },
-  {7,  MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   4 ), "sec20.1", "R3.2", "M9Z",  "SEIZ" },
-  {6,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 0 ), "sec21.0", "R3.3", "M5P",  "SCOP" },
-  {8,  MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   0 ), "sec21.1", "R3.4", "M5Z",  "SCOZ" },
-  {9,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 1 ), "sec21.2", "R3.5", "M8P",  "SCIP" },
-  /* {10, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   1 ), "sec21.3", "R3.6", "M8Z",  "SCIZ" }, */
-  // updated after fiber swapping on May 23, to fix flaky initialization of the FEE
-  {23, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   1 ), "sec21.3", "R3.9", "M8Z",  "SCIZ" },
-  {24, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 6 ), "sec22.0", "R3.8", "M6P",  "SWIP" },
-  {25, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   6 ), "sec22.1", "R3.8", "M6Z",  "SWIZ" },
+  {5002, 5, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 4 ), "sec20.0", "R3.1", "M9P",  "SEIP" },
+  {5002, 7, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   4 ), "sec20.1", "R3.2", "M9Z",  "SEIZ" },
+  {5002, 6, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 0 ), "sec21.0", "R3.3", "M5P",  "SCOP" },
+  {5002, 8, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   0 ), "sec21.1", "R3.4", "M5Z",  "SCOZ" },
+  {5002, 9, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 1 ), "sec21.2", "R3.5", "M8P",  "SCIP" },
+  {5001, 23, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   1 ), "sec21.3", "R3.9", "M8Z",  "SCIZ" },
+  {5001, 24, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 6 ), "sec22.0", "R3.7", "M6P",  "SWIP" },
+  {5001, 25, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   6 ), "sec22.1", "R3.8", "M6Z",  "SWIZ" },
 
-  {11, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R2.1", "M2P",  "NEIP" },
-  {12, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   5 ), "sec8.1",  "R2.2", "M2Z",  "NEIZ" },
-  {19, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 3 ), "sec9.0",  "R2.3", "M10P", "NCOP" },
-  {18, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   3 ), "sec9.1",  "R2.4", "M10Z", "NCOZ" },
-  {0,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 2 ), "sec9.2",  "R2.5", "M4P",  "NCIP" },
-  {1,  MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   2 ), "sec9.3",  "R2.6", "M4Z",  "NCIZ" },
-  {15, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 7 ), "sec10.0", "R2.7", "M7P",  "NWIP" },
-  {14, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   7 ), "sec10.1", "R2.8", "M7Z",  "NWIZ" }
+  // north side
+  // on May 29 2024, fiber 11 was swapped to fiber 21
+  // {5001, 11, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R2.1", "M2P",  "NEIP" },
+  {5002, 21, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R3.10", "M2P",  "NEIP" },
+  {5001, 12, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   5 ), "sec8.1",  "R2.2", "M2Z",  "NEIZ" },
+  {5001, 19, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 3 ), "sec9.0",  "R2.3", "M10P", "NCOP" },
+  {5001, 18, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   3 ), "sec9.1",  "R2.4", "M10Z", "NCOZ" },
+  {5002, 0,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 2 ), "sec9.2",  "R2.5", "M4P",  "NCIP" },
+  {5002, 1,  MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   2 ), "sec9.3",  "R2.6", "M4Z",  "NCIZ" },
+  {5002, 15, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 7 ), "sec10.0", "R2.7", "M7P",  "NWIP" },
+  {5002, 14, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   7 ), "sec10.1", "R2.8", "M7Z",  "NWIZ" }
 } )
 {
   std::cout << "MicromegasMapping::MicromegasMapping." << std::endl;
@@ -150,9 +151,24 @@ std::vector<int> MicromegasMapping::get_fee_id_list() const
   return out;
 }
 
+
+//____________________________________________________________________________________________________
+std::vector<int> MicromegasMapping::get_fee_id_list( int packet_id ) const
+{
+  std::vector<int> out;
+  for( const auto& detector:m_detectors )
+  {
+    if( detector.m_packet_id == packet_id )
+    {out.push_back( detector.m_fee_id );}
+  }
+  return out;
+}
+
 //____________________________________________________________________________________________________
 TrkrDefs::hitsetkey MicromegasMapping::get_hitsetkey( int fee_id ) const
 {
+
+  // apply mapping changes
   const auto iter = m_detector_map.find( fee_id );
   if( iter == m_detector_map.end() )
   {
@@ -168,6 +184,7 @@ TrkrDefs::hitsetkey MicromegasMapping::get_hitsetkey( int fee_id ) const
 //____________________________________________________________________________________________________
 std::string MicromegasMapping::get_detname_saclay( int fee_id ) const
 {
+  // apply mapping changes
   const auto iter = m_detector_map.find( fee_id );
   if( iter == m_detector_map.end() )
   {
@@ -183,6 +200,7 @@ std::string MicromegasMapping::get_detname_saclay( int fee_id ) const
 //____________________________________________________________________________________________________
 std::string MicromegasMapping::get_detname_sphenix( int fee_id ) const
 {
+  // apply mapping changes
   const auto iter = m_detector_map.find( fee_id );
   if( iter == m_detector_map.end() )
   {
@@ -198,6 +216,7 @@ std::string MicromegasMapping::get_detname_sphenix( int fee_id ) const
 //____________________________________________________________________________________________________
 int MicromegasMapping::get_physical_strip( int fee_id, int channel_id) const
 {
+  // apply mapping changes
   // bound check
   if( channel_id < 0 || channel_id >= MicromegasDefs::m_nchannels_fee )
   {
@@ -541,6 +560,18 @@ void MicromegasMapping::construct_channel_mapping()
     m_fee_to_strip_mapping_phi[channel_id] = strip_geant;
   }
 
-  // print_mapping( "m_fee_to_strip_mapping_phi", m_fee_to_strip_mapping_phi );
-
 }
+
+//_____________________________________________________________________
+int MicromegasMapping::get_new_fee_id( int fee_id ) const
+{
+  /*
+  * on May 29 2024, we the fiber arriving on fee_id 11 was moved to fee_id 21
+  * since fee_id 11 was not assigned before, we can internally convert all call to fee_id 21 to fee_id11,
+  * while keeping backward compatibility
+  */
+  static const std::map<int,int> internal_fee_id_map( {{11,21}} );
+  const auto& iter = internal_fee_id_map.find( fee_id );
+  return iter == internal_fee_id_map.end() ? fee_id:iter->second;
+}
+

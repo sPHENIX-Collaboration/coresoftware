@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem`root-config --incdir`
 
 AM_LDFLAGS = \
@@ -33,8 +33,8 @@ libg4eval_la_LIBADD = \
   -lmvtx_io \
   -lphhepmc_io \
   -lphg4hit \
-  -ltrackbase_historic_io \
-  -ltrack_io \
+  -ltrack \
+  -ltrackbase_historic \
   -ltpc_io
 
 pkginclude_HEADERS = \
@@ -68,7 +68,7 @@ pkginclude_HEADERS = \
   ClusKeyIter.h \
   TrackClusEvaluator.h \
   TrkrClusterIsMatcher.h \
-	TrkrClusLoc.h \
+  TrkrClusLoc.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \

@@ -1,9 +1,5 @@
 #include "TowerInfoContainerv2.h"
-#include "TowerInfoDefs.h"
 #include "TowerInfov2.h"
-
-#include <phool/PHObject.h>
-#include <phool/phool.h>
 
 #include <TClonesArray.h>
 
@@ -31,7 +27,7 @@ TowerInfoContainerv2::TowerInfoContainerv2(DETECTOR detec)
   }
   else if (_detector == DETECTOR::ZDC)
   {
-    nchannels = 16;
+    nchannels = 52;
   }
   _clones = new TClonesArray("TowerInfov2", nchannels);
   _clones->SetOwner();
@@ -45,6 +41,7 @@ TowerInfoContainerv2::TowerInfoContainerv2(DETECTOR detec)
 }
 
 TowerInfoContainerv2::TowerInfoContainerv2(const TowerInfoContainerv2& source)
+  : TowerInfoContainer(source)
 {
   _detector = source.get_detectorid();
   _clones = new TClonesArray("TowerInfov2", source.size());

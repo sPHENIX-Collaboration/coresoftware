@@ -31,6 +31,9 @@ class MicromegasClusterizer : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode*) override;
 
+  /// end of processing
+  int End(PHCompositeNode*) override;
+
   /// set default pedestal
   void set_default_pedestal( double value )
   { m_default_pedestal = value; }
@@ -38,6 +41,9 @@ class MicromegasClusterizer : public SubsysReco
   /// set whether default pedestal is used or not
   void set_use_default_pedestal( bool value )
   { m_use_default_pedestal = value; }
+
+  void set_drop_single_strips(bool drop)
+  { m_drop_single_strips = drop; }
 
   /// calibration file
   void set_calibration_file( const std::string& value )
@@ -47,6 +53,9 @@ class MicromegasClusterizer : public SubsysReco
 
   //!@name calibration filename
   //@{
+
+  // discard single strip clusters if true
+  bool m_drop_single_strips = false;
 
   /// if true, use default pedestal to get hit charge. Relies on calibration data otherwise
   bool m_use_default_pedestal = true;
@@ -62,6 +71,10 @@ class MicromegasClusterizer : public SubsysReco
 
   //@}
 
+
+  /// keep track of number of clusters per hitsetid
+  using clustercountmap_t = std::map<TrkrDefs::hitsetkey, int>;
+  clustercountmap_t m_clustercounts;
 
 };
 

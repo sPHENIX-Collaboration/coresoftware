@@ -13,14 +13,10 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsSourceLink.h>
 #include <trackbase/ActsTrackFittingAlgorithm.h>
-#include <trackbase/ClusterErrorPara.h>
-#include <trackbase/alignmentTransformationContainer.h>
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
@@ -35,15 +31,13 @@
 #include <memory>
 #include <string>
 
-#include <trackbase/alignmentTransformationContainer.h>
-
-class MakeActsGeometry;
+class alignmentTransformationContainer;
+class ActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
-class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
 class PHG4TpcCylinderGeomContainer;
 
@@ -88,7 +82,10 @@ class PHActsTrkFitter : public SubsysReco
   {
     m_useMicromegas = value;
   }
-
+  void ignoreSilicon()
+  {
+    m_ignoreSilicon = true;
+  }
   void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
   {
     m_fillSvtxTrackStates = fillSvtxTrackStates;
@@ -99,8 +96,8 @@ class PHActsTrkFitter : public SubsysReco
     m_actsEvaluator = actsEvaluator;
   }
 
-  void setEvaluatorName(const std::string &name) { m_evalname = name; }
-  void setFieldMap(const std::string &fieldMap)
+  void setEvaluatorName(const std::string& name) { m_evalname = name; }
+  void setFieldMap(const std::string& fieldMap)
   {
     m_fieldMap = fieldMap;
   }
@@ -121,7 +118,8 @@ class PHActsTrkFitter : public SubsysReco
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
-  void set_use_clustermover(bool use) {m_use_clustermover = use;}
+  void set_enable_geometric_crossing_estimate(bool flag) { m_enable_crossing_estimate = flag ; }
+  void set_use_clustermover(bool use) { m_use_clustermover = use; }
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
 
  private:
@@ -176,7 +174,7 @@ class PHActsTrkFitter : public SubsysReco
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer* m_alignmentTransformationMap = nullptr;  // added for testing purposes
   alignmentTransformationContainer* m_alignmentTransformationMapTransient = nullptr;
-  std::set< Acts::GeometryIdentifier> m_transient_id_set;
+  std::set<Acts::GeometryIdentifier> m_transient_id_set;
   Acts::GeometryContext m_transient_geocontext;
   SvtxTrackMap* m_trackMap = nullptr;
   SvtxTrackMap* m_directedTrackMap = nullptr;
@@ -198,6 +196,9 @@ class PHActsTrkFitter : public SubsysReco
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
 
+  /// bool to ignore the silicon clusters in the fit
+  bool m_ignoreSilicon = false;
+
   /// A bool to use the chi2 outlier finder in the track fitting
   bool m_useOutlierFinder = false;
   ResidualOutlierFinder m_outlierFinder;
@@ -205,27 +206,35 @@ class PHActsTrkFitter : public SubsysReco
   /// Flag for pp running
   bool m_pp_mode = false;
 
+  // do we have a constant field
+  bool m_ConstField{false};
+  double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
+
   // max variation of bunch crossing away from crossing_estimate
   short int max_bunch_search = 2;
 
+  //!@name evaluator
+  //@{
   bool m_actsEvaluator = false;
   std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";
+  //@}
 
+  //! acts trajectories
   std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
+
+  //! tracks
   SvtxTrackMap* m_seedTracks = nullptr;
 
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-  TpcDistortionCorrectionContainer* _dcc_static{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_average{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
+  //! tpc global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
-  ClusterErrorPara _ClusErrPara;
-
+  //! list of layers to be removed from fit
   std::set<int> m_ignoreLayer;
+
   bool m_use_clustermover = true;
 
-  std::string m_fieldMap = "";
+  std::string m_fieldMap;
 
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
@@ -237,6 +246,8 @@ class PHActsTrkFitter : public SubsysReco
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
   ActsAlignmentStates m_alignStates;
   bool m_commissioning = false;
+
+  bool m_enable_crossing_estimate = false;
 
   PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
 

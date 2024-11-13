@@ -68,15 +68,12 @@ pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
   MicromegasCalibrationData.h \
   MicromegasClusterizer.h \
-  MicromegasClusterQA.h \
+  MicromegasCombinedDataCalibration.h \
   MicromegasCombinedDataDecoder.h \
   MicromegasCombinedDataEvaluation.h \
   MicromegasDefs.h \
   MicromegasHotChannelMapData.h \
   MicromegasMapping.h \
-  MicromegasRawDataCalibration.h \
-  MicromegasRawDataDecoder.h \
-  MicromegasRawDataEvaluation.h \
   MicromegasTile.h
 
 ROOTDICTS = \
@@ -87,7 +84,6 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomMicromegas_Dict_rdict.pcm \
   MicromegasCombinedDataEvaluation_Dict_rdict.pcm \
-  MicromegasRawDataEvaluation_Dict_rdict.pcm \
   MicromegasTile_Dict_rdict.pcm
 
 libmicromegas_io_la_SOURCES = \
@@ -100,26 +96,21 @@ libmicromegas_io_la_SOURCES = \
 
 libmicromegas_io_la_LIBADD = \
   -lCLHEP \
-  -lcdbobjects \
-  -lg4detectors_io \
-  -lphool \
+  -ltrack \
   -ltrack_io \
-  -ltrackbase_historic_io \
-  -lqautils
+  -lcdbobjects \
+  -lg4detectors_io
 
 libmicromegas_la_SOURCES = \
   MicromegasClusterizer.cc \
-  MicromegasClusterQA.cc \
+	 MicromegasCombinedDataCalibration.cc \
   MicromegasCombinedDataDecoder.cc \
   MicromegasCombinedDataEvaluation.cc \
-  MicromegasCombinedDataEvaluation_Dict.cc \
-  MicromegasRawDataCalibration.cc \
-  MicromegasRawDataDecoder.cc \
-  MicromegasRawDataEvaluation.cc \
-  MicromegasRawDataEvaluation_Dict.cc
+  MicromegasCombinedDataEvaluation_Dict.cc
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \
+  -lfun4allraw \
   -lffarawobjects \
   -lphg4hit \
   -lSubsysReco

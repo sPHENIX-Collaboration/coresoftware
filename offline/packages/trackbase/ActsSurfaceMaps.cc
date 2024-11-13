@@ -86,9 +86,12 @@ Surface ActsSurfaceMaps::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
     tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
   }
 
+  // std::cout << "tmpkey = " << tmpkey << std::endl;
+
   auto iter = m_siliconSurfaceMap.find(tmpkey);
   if (iter != m_siliconSurfaceMap.end())
   {
+    // std::cout << "Found silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
     return iter->second;
   }
 

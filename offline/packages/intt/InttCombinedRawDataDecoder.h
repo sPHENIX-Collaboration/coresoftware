@@ -1,14 +1,13 @@
 #ifndef INTT_COMBINEDRAWDATADECODER_H
 #define INTT_COMBINEDRAWDATADECODER_H
 
-#include "InttMapping.h"
-#include "InttDacMap.h"
 #include "InttBCOMap.h"
+#include "InttDacMap.h"
+#include "InttMapping.h"
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 #include <fun4all/SubsysReco.h>
-
 
 #include <set>
 #include <string>
@@ -19,8 +18,9 @@ class InttEventInfo;
 class InttCombinedRawDataDecoder : public SubsysReco
 {
  public:
-  enum CalibRef {
-    CDB  = 0,
+  enum CalibRef
+  {
+    CDB = 0,
     FILE = 1,
   };
 
@@ -32,16 +32,23 @@ class InttCombinedRawDataDecoder : public SubsysReco
   int LoadHotChannelMapLocal(std::string const& = "INTT_HotChannelMap.root");
   int LoadHotChannelMapRemote(std::string const& = "INTT_HotChannelMap");
 
-  void SetCalibDAC(std::string const& calibname= "INTT_DACMAP", const CalibRef& calibref=CDB) 
-               { m_calibinfoDAC = std::pair< std::string, CalibRef>(calibname, calibref); }
+  void SetCalibDAC(std::string const& calibname = "INTT_DACMAP", const CalibRef& calibref = CDB)
+  {
+    m_calibinfoDAC = std::pair<std::string, CalibRef>(calibname, calibref);
+  }
 
-  void SetCalibBCO(std::string const& calibname= "INTT_BCOMAP", const CalibRef& calibref=CDB) 
-               { m_calibinfoBCO = std::pair< std::string, CalibRef>(calibname, calibref); }
-
-
+  void SetCalibBCO(std::string const& calibname = "INTT_BCOMAP", const CalibRef& calibref = CDB)
+  {
+    m_calibinfoBCO = std::pair<std::string, CalibRef>(calibname, calibref);
+  }
+  void useRawHitNodeName(const std::string& name) { m_InttRawNodeName = name; }
   void runInttStandalone(bool runAlone) { m_runStandAlone = runAlone; }
 
   void writeInttEventHeader(bool write) { m_writeInttEventHeader = write; }
+
+  void set_inttFeeOffset(int offset) { m_inttFeeOffset = offset; }
+  void set_outputBcoDiff(bool flag) {m_outputBcoDiff = flag; }
+  void set_triggeredMode(bool flag) {m_triggeredMode = flag; }
 
  private:
   InttEventInfo* intt_event_header = nullptr;
@@ -54,8 +61,13 @@ class InttCombinedRawDataDecoder : public SubsysReco
   std::pair<std::string, CalibRef> m_calibinfoDAC;
   std::pair<std::string, CalibRef> m_calibinfoBCO;
 
-  InttDacMap          m_dacmap;
-  InttBCOMap          m_bcomap;
+  InttDacMap m_dacmap;
+  InttBCOMap m_bcomap;
+
+  int m_inttFeeOffset = 23;   //23 is the offset for INTT in streaming mode
+  bool m_outputBcoDiff = false;
+  bool m_triggeredMode = false;
+
 };
 
 #endif  // INTT_COMBINEDRAWDATADECODER_H

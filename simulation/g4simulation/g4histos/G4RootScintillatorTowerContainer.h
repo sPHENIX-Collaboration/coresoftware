@@ -3,7 +3,8 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
+#include <limits>
 
 class G4RootScintillatorTower;
 class TowerInfo;
@@ -18,7 +19,7 @@ class G4RootScintillatorTowerContainer : public PHObject
   void Reset() override;
   void identify(std::ostream& os = std::cout) const override;
 
-  G4RootScintillatorTower* AddTower(double towerenergy,int ieta, int iphi);
+  G4RootScintillatorTower* AddTower(double towerenergy, int ieta, int iphi);
 
   void set_idet(const int i) { idet = i; }
   int get_idet() const { return idet; }
@@ -35,14 +36,13 @@ class G4RootScintillatorTowerContainer : public PHObject
   void set_event(const int i) { event = i; }
   int get_event() const { return event; }
 
-
  protected:
-  int idet;
-  float etotal;
-  float eion;
-  float leakage;
-  int event;
-  TClonesArray* SnglTowers;
+  int idet{std::numeric_limits<int>::min()};
+  float etotal{std::numeric_limits<float>::quiet_NaN()};
+  float eion{std::numeric_limits<float>::quiet_NaN()};
+  float leakage{std::numeric_limits<float>::quiet_NaN()};
+  int event{0};
+  TClonesArray* SnglTowers{nullptr};
 
   ClassDefOverride(G4RootScintillatorTowerContainer, 1)
 };

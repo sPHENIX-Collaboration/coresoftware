@@ -11,19 +11,12 @@ class MvtxRawHit;
 class Packet;
 class mvtx_pool;
 
-typedef struct linkId
-{
-  uint32_t layer = 0xFF;
-  uint32_t stave = 0xFF;
-  uint32_t gbtid = 0xFF;
-} LinkId_t;
-
 class SingleMvtxPoolInput : public SingleStreamingInput
 {
  public:
   explicit SingleMvtxPoolInput(const std::string &name);
   ~SingleMvtxPoolInput() override;
-  void FillPool(const unsigned int nevents = 1) override;
+  void FillPool(const uint64_t minBCO) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
@@ -34,26 +27,17 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void SetBcoRange(const unsigned int i) { m_BcoRange = i; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
-
-  std::set<int> &getFeeIdSet(const uint64_t &bco) { return m_BeamClockFEE[bco]; };
+  void setRawEventHeaderName(const std::string &name) { m_rawEventHeaderName = name; }
+  std::string getRawEventHeaderName() const { return m_rawEventHeaderName; }
 
  protected:
-  LinkId_t DecodeFeeid(const uint16_t &feeid)
-  {
-    LinkId_t ret = {};
-    ret.layer = (feeid >> 12) & 0x7;
-    ret.stave = feeid & 0x1F;
-    ret.gbtid = (feeid >> 8) & 0x3;
-    return ret;
-  }
-
  private:
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
+  std::string m_rawEventHeaderName = "MVTXRAWEVTHEADER";
 
-  std::map<uint64_t, std::set<int>> m_BeamClockFEE;
   std::map<uint64_t, std::vector<MvtxRawHit *>> m_MvtxRawHitMap;
   std::map<int, uint64_t> m_FEEBclkMap;
   std::map<int, uint64_t> m_FeeStrobeMap;

@@ -84,7 +84,7 @@ class CaloTriggerInfo : public PHObject
   virtual float get_best_FullCalo_1p0x1p0_phi() const { return 0; }
 
  protected:
-  CaloTriggerInfo() {}
+  CaloTriggerInfo() = default;
 
  private:
   ClassDefOverride(CaloTriggerInfo, 1);

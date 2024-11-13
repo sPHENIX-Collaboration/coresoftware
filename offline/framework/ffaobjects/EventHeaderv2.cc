@@ -18,3 +18,9 @@ void EventHeaderv2::identify(std::ostream& out) const
       << ", bunch crossing: " << m_bunchCrossing
       << std::endl;
 }
+
+void EventHeaderv2::CopyTo(EventHeader *to_copy)
+{
+  EventHeaderv1::CopyTo(to_copy);
+  to_copy->set_BunchCrossing(get_BunchCrossing());
+}

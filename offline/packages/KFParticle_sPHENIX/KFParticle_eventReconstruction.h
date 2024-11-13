@@ -48,7 +48,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   void createDecay(PHCompositeNode* topNode, std::vector<KFParticle>& selectedMother, std::vector<KFParticle>& selectedVertex,
                    std::vector<std::vector<KFParticle>>& selectedDaughters,
                    std::vector<std::vector<KFParticle>>& selectedIntermediates,
-                   int& nPVs, int& multiplicity);
+                   int& nPVs);
 
   /// Used to reconstruct simple decays with no intermediate states
   void buildBasicChain(std::vector<KFParticle>& selectedMotherBasic,

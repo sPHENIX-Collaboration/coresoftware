@@ -67,9 +67,14 @@ class CylinderGeomIntt : public PHG4CylinderGeom
     return m_StripY;
   }
 
-  double get_strip_z_spacing() const override
+  // double get_strip_z_spacing() const override // Only return type-A 1.6 cm strip z size
+  // {
+  //   return m_StripZ[0];
+  // }
+  // using PHG4CylinderGeom::get_strip_z_spacing; // brings both overloads from base class into scope
+  double get_strip_z_spacing(const int itype = 0) const override
   {
-    return m_StripZ[0];
+    return (itype == 0 || itype == 1) ? m_StripZ[itype] : m_StripZ[0];
   }
 
   double get_strip_tilt() const override
@@ -122,7 +127,7 @@ class CylinderGeomIntt : public PHG4CylinderGeom
  protected:
   int m_Layer{-1};
   int m_NStripsPhiCell{-1};
-  int m_NStripsZSensor[2] {-1,-1};
+  int m_NStripsZSensor[2]{-1, -1};
   double m_StripX{std::numeric_limits<double>::quiet_NaN()};
   double m_StripY{std::numeric_limits<double>::quiet_NaN()};
   double m_SensorRadius{std::numeric_limits<double>::quiet_NaN()};
@@ -131,7 +136,7 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   double m_OffsetRot{std::numeric_limits<double>::quiet_NaN()};
   double m_dPhi{std::numeric_limits<double>::quiet_NaN()};
 
-  double m_StripZ[2] {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+  double m_StripZ[2]{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
   double m_LadderZ[2]{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(CylinderGeomIntt, 1)

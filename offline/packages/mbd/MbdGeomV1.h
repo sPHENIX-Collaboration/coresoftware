@@ -14,13 +14,8 @@ class MbdGeomV1 : public MbdGeom
   float get_z(const unsigned int pmtch) const override { return pmt_z[pmtch]; }
   float get_r(const unsigned int pmtch) const override { return pmt_r[pmtch]; }
   float get_phi(const unsigned int pmtch) const override { return pmt_phi[pmtch]; }
-  int get_arm(const unsigned int pmtch) const override { return pmtch / 64; }
-  int get_feech(const unsigned int pmtch) const override { return (pmtch / 8) * 16 + pmtch % 8 + 8; }
-  void set_xyz(const unsigned int ipmt, const float x, const float y, const float z) override;
 
-  int get_arm_feech(const unsigned int feech) const override { return get_pmt(feech) / 64; }
-  int get_pmt(const unsigned int feech) const override { return (feech / 16) * 8 + feech % 8; }
-  int get_type(const unsigned int feech) const override { return (feech / 8) % 2; }  // 0=T-channel, 1=Q-channel
+  void set_xyz(const unsigned int ipmt, const float x, const float y, const float z) override;
 
   virtual void Reset() override {}
 

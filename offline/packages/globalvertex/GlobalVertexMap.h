@@ -20,6 +20,7 @@ class GlobalVertexMap : public PHObject
 
   void identify(std::ostream& os = std::cout) const override { os << "GlobalVertexMap base class" << std::endl; }
   int isValid() const override { return 0; }
+  virtual void CopyTo(GlobalVertexMap *) {return;}
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }

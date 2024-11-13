@@ -17,6 +17,7 @@ class CaloWaveformProcessing : public SubsysReco
     TEMPLATE = 1,
     ONNX = 2,
     FAST = 3,
+    NYQUIST = 4,
   };
 
   CaloWaveformProcessing() = default;
@@ -59,7 +60,17 @@ class CaloWaveformProcessing : public SubsysReco
     _nsoftwarezerosuppression = softwarezerosuppression;
     _bdosoftwarezerosuppression = usezerosuppression;
   }
+  void set_timeFitLim(float low,float high)
+  {
+    m_setTimeLim = true;
+    m_timeLim_low = low;
+    m_timeLim_high = high;
+    return;
+  }
 
+  void set_bitFlipRecovery(bool dobitfliprecovery) {
+    _dobitfliprecovery = dobitfliprecovery;
+  }
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
@@ -73,10 +84,15 @@ class CaloWaveformProcessing : public SubsysReco
   int _nthreads = 1;
   int _nsoftwarezerosuppression = 40;
   bool _bdosoftwarezerosuppression = false;
+  bool _dobitfliprecovery = false;
 
   std::string m_template_input_file;
   std::string url_template;
   std::string m_template_name = "NONE";
+
+  bool m_setTimeLim{false};
+  float m_timeLim_low{-3.0};
+  float m_timeLim_high{4.0};
 
   std::string url_onnx;
   std::string m_model_name = "CEMC_ONNX";

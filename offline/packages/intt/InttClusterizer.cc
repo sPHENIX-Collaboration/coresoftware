@@ -29,16 +29,13 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
-#pragma GCC diagnostic pop
 
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <memory>  // for unique_ptr, make_...
 #include <set>
 #include <vector>  // for vector
@@ -382,11 +379,12 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     // we have a single hitset, get the info that identifies the sensor
     int layer = TrkrDefs::getLayer(hitsetitr->first);
     int ladder_z_index = InttDefs::getLadderZId(hitsetitr->first);
+    int type = (ladder_z_index == 0 || ladder_z_index == 2) ? 0 : 1; // ladder ID 0 and 2 are type-A (1.6 cm), ladder ID 1 and 3 are type-B (2.0 cm)
 
     // we will need the geometry object for this layer to get the global position
     CylinderGeomIntt* geom = dynamic_cast<CylinderGeomIntt*>(geom_container->GetLayerGeom(layer));
     float pitch = geom->get_strip_y_spacing();
-    float length = geom->get_strip_z_spacing();
+    float length = geom->get_strip_z_spacing(type);
 
     // fill a vector of hits to make things easier - gets every hit in the hitset
     std::vector<std::pair<TrkrDefs::hitkey, TrkrHit*>> hitvec;
@@ -550,8 +548,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       // z error.
       const float zerror = zbins.size() * length * invsqrt12;
 
-      double cluslocaly = NAN;
-      double cluslocalz = NAN;
+      double cluslocaly = std::numeric_limits<double>::quiet_NaN();
+      double cluslocalz = std::numeric_limits<double>::quiet_NaN();
 
       if (_make_e_weights[layer])
       {
@@ -646,11 +644,12 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
     // we have a single hitset, get the info that identifies the sensor
     int layer = TrkrDefs::getLayer(hitsetitr->first);
     int ladder_z_index = InttDefs::getLadderZId(hitsetitr->first);
+    int type = (ladder_z_index == 0 || ladder_z_index == 2) ? 0 : 1; // ladder ID 0 and 2 are type-A (1.6 cm), ladder ID 1 and 3 are type-B (2.0 cm)
 
     // we will need the geometry object for this layer to get the global position
     CylinderGeomIntt* geom = dynamic_cast<CylinderGeomIntt*>(geom_container->GetLayerGeom(layer));
     float pitch = geom->get_strip_y_spacing();
-    float length = geom->get_strip_z_spacing();
+    float length = geom->get_strip_z_spacing(type);
 
     // fill a vector of hits to make things easier - gets every hit in the hitset
     std::vector<RawHit*> hitvec;
@@ -854,8 +853,8 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
       // z error.
       const float zerror = zbins.size() * length * invsqrt12;
 
-      double cluslocaly = NAN;
-      double cluslocalz = NAN;
+      double cluslocaly = std::numeric_limits<double>::quiet_NaN();
+      double cluslocalz = std::numeric_limits<double>::quiet_NaN();
 
       if (_make_e_weights[layer])
       {

@@ -5,11 +5,15 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoDefs.h>
 
 #include <phool/getClass.h>
 
 #include <cassert>
 #include <cfloat>
+#include <climits>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -75,9 +79,9 @@ bool CaloRawClusterEval::has_reduced_node_pointers()
 
   if (_strict)
   {
-    assert(_towers);
+    assert(_towers || _towerinfos);
   }
-  else if (!_towers)
+  else if (!_towers && !_towerinfos)
   {
     return false;
   }
@@ -116,41 +120,79 @@ std::set<PHG4Shower*> CaloRawClusterEval::all_truth_primary_showers(RawCluster* 
   std::set<PHG4Shower*> truth_primary_showers;
 
   // loop over all the clustered towers
-  RawCluster::TowerConstRange begin_end = cluster->get_towers();
-  for (RawCluster::TowerConstIterator iter = begin_end.first;
-       iter != begin_end.second;
-       ++iter)
+  if (_usetowerinfo)
   {
-    RawTower* tower = _towers->getTower(iter->first);
-
-    if (_strict)
+    const RawCluster::TowerMap& tower_map = cluster->get_towermap();
+    for (auto tower_iter : tower_map)
     {
-      assert(tower);
-    }
-    else if (!tower)
-    {
-      ++_errors;
-      continue;
-    }
-
-    std::set<PHG4Shower*> new_primary_showers = _towereval.all_truth_primary_showers(tower);
-
-    for (auto shower : new_primary_showers)
-    {
+      RawTowerDefs::keytype tower_key = tower_iter.first;
+      unsigned int towerinfo_key = get_towerinfo_key(tower_key);
+      TowerInfo* tower = _towerinfos->get_tower_at_key(towerinfo_key);
       if (_strict)
       {
-        assert(shower);
+        assert(tower);
       }
-      else if (!shower)
+      else if (!tower)
       {
         ++_errors;
         continue;
       }
 
-      truth_primary_showers.insert(shower);
+      std::set<PHG4Shower*> new_primary_showers = _towereval.all_truth_primary_showers(tower);
+
+      for (auto shower : new_primary_showers)
+      {
+        if (_strict)
+        {
+          assert(shower);
+        }
+        else if (!shower)
+        {
+          ++_errors;
+          continue;
+        }
+
+        truth_primary_showers.insert(shower);
+      }
     }
   }
+  else
+  {
+    RawCluster::TowerConstRange begin_end = cluster->get_towers();
+    for (RawCluster::TowerConstIterator iter = begin_end.first;
+         iter != begin_end.second;
+         ++iter)
+    {
+      RawTower* tower = _towers->getTower(iter->first);
 
+      if (_strict)
+      {
+        assert(tower);
+      }
+      else if (!tower)
+      {
+        ++_errors;
+        continue;
+      }
+
+      std::set<PHG4Shower*> new_primary_showers = _towereval.all_truth_primary_showers(tower);
+
+      for (auto shower : new_primary_showers)
+      {
+        if (_strict)
+        {
+          assert(shower);
+        }
+        else if (!shower)
+        {
+          ++_errors;
+          continue;
+        }
+
+        truth_primary_showers.insert(shower);
+      }
+    }
+  }
   if (_do_cache)
   {
     _cache_all_truth_primary_showers.insert(std::make_pair(cluster, truth_primary_showers));
@@ -436,27 +478,56 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   float energy = 0.0;
 
   // loop over all the clustered towers
-  RawCluster::TowerConstRange begin_end = cluster->get_towers();
-  for (RawCluster::TowerConstIterator iter = begin_end.first;
-       iter != begin_end.second;
-       ++iter)
+  if (_usetowerinfo)
   {
-    RawTower* tower = _towers->getTower(iter->first);
+    const RawCluster::TowerMap& tower_map = cluster->get_towermap();
+    for (auto tower_iter : tower_map)
+    {
+      RawTowerDefs::keytype tower_key = tower_iter.first;
+      unsigned int towerinfo_key = get_towerinfo_key(tower_key);
+      TowerInfo* tower = _towerinfos->get_tower_at_key(towerinfo_key);
+      if (_strict)
+      {
+        assert(tower);
+      }
+      else if (!tower)
+      {
+        ++_errors;
+        continue;
+      }
 
-    if (_strict)
-    {
-      assert(tower);
+      float edep = get_rawtower_eval()->get_energy_contribution(tower, primary);
+      if (!isnan(edep))
+      {
+        energy += edep;
+      }
     }
-    else if (!tower)
-    {
-      ++_errors;
-      continue;
-    }
+  }
 
-    float edep = get_rawtower_eval()->get_energy_contribution(tower, primary);
-    if (!isnan(edep))
+  else
+  {
+    RawCluster::TowerConstRange begin_end = cluster->get_towers();
+    for (RawCluster::TowerConstIterator iter = begin_end.first;
+         iter != begin_end.second;
+         ++iter)
     {
-      energy += edep;
+      RawTower* tower = _towers->getTower(iter->first);
+
+      if (_strict)
+      {
+        assert(tower);
+      }
+      else if (!tower)
+      {
+        ++_errors;
+        continue;
+      }
+
+      float edep = get_rawtower_eval()->get_energy_contribution(tower, primary);
+      if (!isnan(edep))
+      {
+        energy += edep;
+      }
     }
   }
 
@@ -827,41 +898,79 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster)
   std::set<PHG4Hit*> truth_hits;
 
   // loop over all the clustered towers
-  RawCluster::TowerConstRange begin_end = cluster->get_towers();
-  for (RawCluster::TowerConstIterator iter = begin_end.first;
-       iter != begin_end.second;
-       ++iter)
+  if (_usetowerinfo)
   {
-    RawTower* tower = _towers->getTower(iter->first);
-
-    if (_strict)
+    const RawCluster::TowerMap& tower_map = cluster->get_towermap();
+    for (auto tower_iter : tower_map)
     {
-      assert(tower);
-    }
-    else if (!tower)
-    {
-      ++_errors;
-      continue;
-    }
-
-    std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
-
-    for (auto g4hit : new_hits)
-    {
+      RawTowerDefs::keytype tower_key = tower_iter.first;
+      unsigned int towerinfo_key = get_towerinfo_key(tower_key);
+      TowerInfo* tower = _towerinfos->get_tower_at_key(towerinfo_key);
       if (_strict)
       {
-        assert(g4hit);
+        assert(tower);
       }
-      else if (!g4hit)
+      else if (!tower)
       {
         ++_errors;
         continue;
       }
 
-      truth_hits.insert(g4hit);
+      std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
+
+      for (auto g4hit : new_hits)
+      {
+        if (_strict)
+        {
+          assert(g4hit);
+        }
+        else if (!g4hit)
+        {
+          ++_errors;
+          continue;
+        }
+
+        truth_hits.insert(g4hit);
+      }
     }
   }
+  else
+  {
+    RawCluster::TowerConstRange begin_end = cluster->get_towers();
+    for (RawCluster::TowerConstIterator iter = begin_end.first;
+         iter != begin_end.second;
+         ++iter)
+    {
+      RawTower* tower = _towers->getTower(iter->first);
 
+      if (_strict)
+      {
+        assert(tower);
+      }
+      else if (!tower)
+      {
+        ++_errors;
+        continue;
+      }
+
+      std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
+
+      for (auto g4hit : new_hits)
+      {
+        if (_strict)
+        {
+          assert(g4hit);
+        }
+        else if (!g4hit)
+        {
+          ++_errors;
+          continue;
+        }
+
+        truth_hits.insert(g4hit);
+      }
+    }
+  }
   if (_do_cache)
   {
     _cache_all_truth_hits.insert(std::make_pair(cluster, truth_hits));
@@ -873,11 +982,43 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster)
 void CaloRawClusterEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
-  std::string nodename = "CLUSTER_" + _caloname;
+  std::string nodename = "CLUSTERINFO_" + _caloname;
+  if (!_usetowerinfo)
+  {
+    nodename = "CLUSTER_" + _caloname;
+  }
   _clusters = findNode::getClass<RawClusterContainer>(topNode, nodename.c_str());
 
   std::string towername = "TOWER_CALIB_" + _caloname;
   _towers = findNode::getClass<RawTowerContainer>(topNode, towername.c_str());
 
+  std::string towerinfoname = "TOWERINFO_" + _caloname;
+  _towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoname.c_str());
+
   return;
+}
+
+unsigned int CaloRawClusterEval::get_towerinfo_key(RawTowerDefs::keytype tower_key)
+{
+  int ix = RawTowerDefs::decode_index2(tower_key);  // iphi
+  int iy = RawTowerDefs::decode_index1(tower_key);  // ieta
+  RawTowerDefs::CalorimeterId caloid =
+      RawTowerDefs::decode_caloid(tower_key);
+  // the encoding for calo are actually all the same
+  //  this is for safety and furture compatibility(s.l.)
+  unsigned int towerinfokey = UINT_MAX;
+  if (caloid == RawTowerDefs::CalorimeterId::CEMC)
+  {
+    towerinfokey = TowerInfoDefs::encode_emcal(iy, ix);
+  }
+  else if (caloid == RawTowerDefs::CalorimeterId::HCALIN || caloid == RawTowerDefs::CalorimeterId::HCALOUT)
+  {
+    towerinfokey = TowerInfoDefs::encode_hcal(iy, ix);
+  }
+  else
+  {
+    std::cout << "CaloRawClusterEval::get_towerinfo_key - unknown caloid: " << caloid << std::endl;
+  }
+
+  return towerinfokey;
 }
