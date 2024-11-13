@@ -255,6 +255,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       }
     }
   }
+  m_ntpcclus = 0;
   if (Verbosity() > 1)
   {
     std::cout << "Track map size is " << trackmap->size() << std::endl;
@@ -267,7 +268,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
   if (m_doClusters)
   {
-    clearClusterStateVectors();
     fillClusterTree(clustermap, geometry);
   }
 
@@ -287,6 +287,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     fillEventTree(topNode);
   }
   m_event++;
+  clearClusterStateVectors();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1322,8 +1323,12 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   {
   case TrkrDefs::mvtxId:
     m_nmaps++;
+    m_clsector.push_back(-1);
+    m_clside.push_back(-1);
     break;
   case TrkrDefs::inttId:
+    m_clsector.push_back(-1);
+    m_clside.push_back(-1);
     m_nintt++;
     break;
   case TrkrDefs::tpcId:
@@ -1334,6 +1339,8 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   case TrkrDefs::micromegasId:
     m_nmms++;
     m_tileid = MicromegasDefs::getTileId(ckey);
+    m_clsector.push_back(-1);
+    m_clside.push_back(-1);
     break;
   }
 
@@ -1538,6 +1545,7 @@ void TrackResiduals::createBranches()
     m_eventtree = new TTree("eventtree", "A tree with all hits");
     m_eventtree->Branch("run", &m_runnumber, "m_runnumber/I");
     m_eventtree->Branch("segment", &m_segment, "m_segment/I");
+    m_eventtree->Branch("job", &m_job, "m_job/I");
     m_eventtree->Branch("event", &m_event, "m_event/I");
     m_eventtree->Branch("gl1bco", &m_bco, "m_bco/I");
     m_eventtree->Branch("nmvtx", &m_nmvtx_all, "m_nmvtx_all/I");
@@ -1555,6 +1563,7 @@ void TrackResiduals::createBranches()
   m_failedfits = new TTree("failedfits", "tree with seeds from failed Acts fits");
   m_failedfits->Branch("run", &m_runnumber, "m_runnumber/I");
   m_failedfits->Branch("segment", &m_segment, "m_segment/I");
+  m_failedfits->Branch("job", &m_job, "m_job/I");
   m_failedfits->Branch("trackid", &m_trackid, "m_trackid/I");
   m_failedfits->Branch("event", &m_event, "m_event/I");
   m_failedfits->Branch("silseedx", &m_silseedx, "m_silseedx/F");
@@ -1582,6 +1591,7 @@ void TrackResiduals::createBranches()
   m_vertextree = new TTree("vertextree", "tree with vertices");
   m_vertextree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_vertextree->Branch("segment", &m_segment, "m_segment/I");
+  m_vertextree->Branch("job", &m_job, "m_job/I");
   m_vertextree->Branch("event", &m_event, "m_event/I");
   m_vertextree->Branch("firedTriggers", &m_firedTriggers);
   m_vertextree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
@@ -1602,6 +1612,7 @@ void TrackResiduals::createBranches()
   m_hittree = new TTree("hittree", "A tree with all hits");
   m_hittree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_hittree->Branch("segment", &m_segment, "m_segment/I");
+  m_hittree->Branch("job", &m_job, "m_job/I");
   m_hittree->Branch("event", &m_event, "m_event/I");
   m_hittree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_hittree->Branch("trbco", &m_bcotr, "m_bcotr/l");
@@ -1631,6 +1642,7 @@ void TrackResiduals::createBranches()
   m_clustree = new TTree("clustertree", "A tree with all clusters");
   m_clustree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_clustree->Branch("segment", &m_segment, "m_segment/I");
+  m_clustree->Branch("job", &m_job, "m_job/I");
   m_clustree->Branch("event", &m_event, "m_event/I");
   m_clustree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_clustree->Branch("trbco", &m_bcotr, "m_bcotr/l");
@@ -1663,6 +1675,7 @@ void TrackResiduals::createBranches()
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
   m_tree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_tree->Branch("segment", &m_segment, "m_segment/I");
+  m_tree->Branch("job", &m_job, "m_job/I");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("firedTriggers", &m_firedTriggers);
   m_tree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
@@ -2414,6 +2427,12 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
         }
       }
     }
-    m_tree->Fill();
+    if(!m_doMatchedOnly){
+      m_tree->Fill();
+    }else{
+      if(m_nmaps>=3&&m_nintt>=1&&m_ntpc>32&&abs(m_crossing)<5&&m_pt>0.3){
+	m_tree->Fill();
+      }
+    }
   }
 }

@@ -80,8 +80,15 @@ class TrkrNtuplizer : public SubsysReco
   std::set<SvtxTrack *> all_tracks_from(TrkrDefs::cluskey cluster_key);
   void create_cache_track_from_cluster();
   std::vector<TrkrDefs::cluskey> get_track_ckeys(SvtxTrack *track);
+  void segment(const int seg) { m_segment = seg; }
+  void runnumber(const int run) { m_runnumber = run; }
+  void job(const int job) { m_job = job; }
 
  private:
+  int m_segment = 0;
+  int m_runnumber = 0;
+  int m_job = 0;
+
   unsigned int _ievent{0};
   unsigned int _iseed{0};
   float m_fSeed{std::numeric_limits<float>::quiet_NaN()};
