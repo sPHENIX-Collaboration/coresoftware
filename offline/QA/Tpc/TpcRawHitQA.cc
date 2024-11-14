@@ -6,10 +6,10 @@
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
-
+#include <ffarawobjects/TpcRawHit.h>
 #include <ffarawobjects/TpcRawHitContainer.h>
 #include <ffarawobjects/TpcRawHitContainerv3.h>
-#include <ffarawobjects/TpcRawHit.h>
+#include <phool/PHPointerListIterator.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
@@ -33,40 +33,35 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
 {
   createHistos();
 
-
   PHNodeIterator trkr_itr(topNode);
-  PHCompositeNode* tpc_node = dynamic_cast<PHCompositeNode*>(
-    trkr_itr.findFirst("PHCompositeNode", "TPC"));
+  PHCompositeNode *tpc_node = dynamic_cast<PHCompositeNode *>(
+      trkr_itr.findFirst("PHCompositeNode", "TPC"));
   if (!tpc_node)
   {
-    std::cout << __PRETTY_FUNCTION__ << " : ERROR : " << "No TPC node found, exit" << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " : ERROR : "
+              << "No TPC node found, exit" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  
+
   PHNodeIterator tpc_itr(tpc_node);
   {
-    PHPointerList<PHNode>& nodes = tpc_itr.ls();
+    PHPointerListIterator<PHNode> iter(tpc_itr.ls());
 
-    for (size_t index =0; index < nodes.length(); ++index)
+    PHNode *thisNode_raw;
+    while ((thisNode_raw = iter()))
     {
-        std::cout <<__PRETTY_FUNCTION__ << " : check TpcRawHitContainer Node "
-        <<nodes[index]->getName() <<" type " <<nodes[index]->getType()
-        <<" getClass = " <<nodes[index]->getClass()
-        <<" getObjectType = " <<nodes[index]->getObjectType()
-        <<" dynamic_cast<PHIODataNode<TpcRawHitContainer> *>(nodes[index]) = " <<
-        (dynamic_cast<PHIODataNode<TpcRawHitContainer> *>(nodes[index]))
-        <<" dynamic_cast<PHIODataNode<TpcRawHitContainerv3> *>(nodes[index]) = "<<
-        (dynamic_cast<PHIODataNode<TpcRawHitContainerv3> *>(nodes[index]))
-        << std::endl;
-      nodes[index]->print("");
+      if (thisNode_raw->getType() != "PHIODataNode")
+      {
+        continue;
+      }
 
-      PHIODataNode<TpcRawHitContainer> * thisNode = static_cast<PHIODataNode<TpcRawHitContainer> *>(nodes[index]);
+      PHIODataNode<TpcRawHitContainer> *thisNode = static_cast<PHIODataNode<TpcRawHitContainer> *>(thisNode_raw);
       if (thisNode)
       {
-        std::cout <<__PRETTY_FUNCTION__ << " : Found TpcRawHitContainer Node "
-        <<thisNode->getName()  << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " : Found TpcRawHitContainer Node "
+                  << thisNode->getName() << std::endl;
 
-        TpcRawHitContainer* rawhitcont = (TpcRawHitContainer*) thisNode->getData();
+        TpcRawHitContainer *rawhitcont = (TpcRawHitContainer *) thisNode->getData();
         assert(rawhitcont);
 
         rawhitcont_vec.push_back(rawhitcont);
@@ -109,7 +104,7 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
   float nhit_sectors_fees_laser[24][26] = {{0}};
 
   unsigned int raw_hit_num = 0;
-  for (TpcRawHitContainer * & rawhitcont: rawhitcont_vec)
+  for (TpcRawHitContainer *&rawhitcont : rawhitcont_vec)
   {
     raw_hit_num = rawhitcont->get_nhits();
     for (unsigned int i = 0; i < raw_hit_num; i++)
@@ -196,10 +191,10 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
 
       // for (int sampleN = 0; sampleN < sam; sampleN++)
       // {
-      //   float adc = hit->get_adc(sampleN);      
+      //   float adc = hit->get_adc(sampleN);
       for (std::unique_ptr<TpcRawHit::AdcIterator> adc_iterator(hit->CreateAdcIterator());
-            !adc_iterator->IsDone();
-            adc_iterator->Next())
+           !adc_iterator->IsDone();
+           adc_iterator->Next())
       {
         const uint16_t sampleN = adc_iterator->CurrentTimeBin();
         const uint16_t adc = adc_iterator->CurrentAdc();
@@ -217,7 +212,7 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
           h_xy_S->Fill(R * cos(phi), R * sin(phi));
         }
         h_nhits_sam[sector][region - 1]->Fill(sampleN);
-        h_adc[sector][region - 1]->Fill(adc-median);
+        h_adc[sector][region - 1]->Fill(adc - median);
         if (sampleN >= 400 && sampleN <= 430)
         {
           nhit_sectors_laser[sector]++;
