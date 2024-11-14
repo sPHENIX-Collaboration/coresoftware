@@ -14,6 +14,8 @@ class PHG4VtxPoint;
 class PHG4TruthInfoContainer;
 class PHHepMCGenEvent;
 class PHHepMCGenEventMap;
+class MbdVertexMap;
+class MbdVertex;
 class SvtxClusterEval;
 class SvtxEvalStack;
 class SvtxHitEval;
@@ -68,6 +70,8 @@ class KFParticle_truthAndDetTools
   void clearVectors();
 
  protected:
+  bool m_use_mbd_vertex_truth {false};
+
   std::string m_trk_map_node_name_nTuple = "SvtxTrackMap";
   std::string m_vtx_map_node_name_nTuple = "SvtxVertexMap";
 
@@ -85,6 +89,8 @@ class KFParticle_truthAndDetTools
 
   PHG4Particle *g4particle = nullptr;
   PHG4VtxPoint *g4vertex_point = nullptr;
+
+  MbdVertexMap *dst_mbdvertexmap = nullptr;
 
   SvtxVertexMap *dst_vertexmap = nullptr;
   SvtxVertex *vertex = nullptr;

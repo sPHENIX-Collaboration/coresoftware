@@ -1146,7 +1146,19 @@ void DecayFinder::multiplyVectorByScalarAndSort(std::vector<int>& v, int k)
 {
   // https://slaystudy.com/c-multiply-vector-by-scalar/
   std::transform(v.begin(), v.end(), v.begin(), [k](const int& c)
-                 { return c * k; });
+  {
+    int particlesWithNoCC[] = {111, 113, 115, 130, 220, 221, 223, 225, 310, 330, 331, 333, 335, 440, 441, 443, 
+                               445, 551, 553, 555, 10111, 10113, 10221, 10223, 10331, 10333, 10441, 10443, 
+                               10551, 10553, 20113, 20223, 20333, 20443, 20553, 100443, 100553};
+    if (std::find(std::begin(particlesWithNoCC), std::end(particlesWithNoCC), c) != std::end(particlesWithNoCC))
+    {
+      return c;
+    }
+    else
+    {
+      return c * k;
+    }
+  });
   std::sort(v.begin(), v.end());
 }
 
