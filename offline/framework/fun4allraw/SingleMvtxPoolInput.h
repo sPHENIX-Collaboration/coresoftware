@@ -30,6 +30,11 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void setRawEventHeaderName(const std::string &name) { m_rawEventHeaderName = name; }
   std::string getRawEventHeaderName() const { return m_rawEventHeaderName; }
 
+  void  SetReadStrWidthFromDB(const bool val){ m_readStrWidthFromDB = val; }
+  bool  GetReadStrWidthFromDB(){ return m_readStrWidthFromDB; }
+  void  SetStrobeWidth(const float val) { m_strobeWidth = val; }
+  float GetStrobeWidth() { return m_strobeWidth; }
+
  protected:
  private:
   Packet **plist{nullptr};
@@ -44,6 +49,9 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   std::set<uint64_t> m_BclkStack;
   std::set<uint64_t> gtmL1BcoSet;  // GTM L1 BCO
   std::map<int, mvtx_pool *> poolmap;
+
+  bool m_readStrWidthFromDB = true;
+  float m_strobeWidth = 0;
 };
 
 #endif
