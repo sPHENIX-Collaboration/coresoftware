@@ -75,7 +75,7 @@ class TpcRawHitv1 : public TpcRawHit
       uint16_t m_index = 0;
 
      public:
-      AdcIteratorv1(const std::vector<uint16_t> & adc)
+      explicit AdcIteratorv1(const std::vector<uint16_t> & adc)
         : m_adc(adc)
       {
       }

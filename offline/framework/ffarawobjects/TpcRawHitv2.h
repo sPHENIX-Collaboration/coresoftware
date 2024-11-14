@@ -92,7 +92,8 @@ class TpcRawHitv2 : public TpcRawHit
     std::map<uint16_t, uint16_t>::const_iterator m_iterator;
 
    public:
-    AdcIteratorv2(const std::map<uint16_t, uint16_t> &adc)
+    // NOLINTNEXTLINE(hicpp-member-init)
+    explicit AdcIteratorv2(const std::map<uint16_t, uint16_t> &adc)
       : m_adc(adc)
       , m_iterator(adc.begin())
     {
