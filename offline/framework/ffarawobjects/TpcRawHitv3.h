@@ -101,7 +101,8 @@ class TpcRawHitv3 : public TpcRawHit
     uint16_t m_adc_position_in_waveform_index = 0;
 
    public:
-    AdcIteratorv3(const std::vector<std::pair<uint16_t, std::vector<uint16_t> > > &adc)
+    // NOLINTNEXTLINE(hicpp-named-parameter)
+    explicit AdcIteratorv3(const std::vector<std::pair<uint16_t, std::vector<uint16_t> > > &adc)
       : m_adc(adc)
     {
     }
@@ -114,6 +115,7 @@ class TpcRawHitv3 : public TpcRawHit
 
     void Next() override
     {
+      // NOLINTNEXTLINE(bugprone-branch-clone)
       if (m_adc_position_in_waveform_index < m_adc[m_waveform_index].second.size() - 1)
       {
         ++m_adc_position_in_waveform_index;
@@ -139,6 +141,7 @@ class TpcRawHitv3 : public TpcRawHit
     {
       if (!IsDone())
       {
+        // NOLINTNEXTLINE(bugprone-branch-clone)
         if (m_adc_position_in_waveform_index < m_adc[m_waveform_index].second.size())
         {
           return m_adc[m_waveform_index].second[m_adc_position_in_waveform_index];

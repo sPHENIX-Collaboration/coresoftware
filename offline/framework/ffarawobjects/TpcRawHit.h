@@ -59,7 +59,8 @@ class TpcRawHit : public PHObject
   class AdcIterator
   {
    public:
-    virtual ~AdcIterator() {} // Virtual destructor for polymorphism
+    AdcIterator() = default;
+    virtual ~AdcIterator() = default;
     virtual void First() = 0;
     virtual void Next() = 0;
     virtual bool IsDone() const = 0;
