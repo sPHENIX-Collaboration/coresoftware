@@ -116,7 +116,11 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   }
   recoConsts *rc = recoConsts::instance();
   int runNumber = rc->get_IntFlag("RUNNUMBER");
-  m_strobeWidth = MvtxRawDefs::getStrobeLength(runNumber);
+
+  if (m_readStrWidthFromDB)
+  {
+    m_strobeWidth = MvtxRawDefs::getStrobeLength(runNumber);
+  }
   if(std::isnan(m_strobeWidth))
   {
     std::cout << "MvtxCombinedRawDataDecoder::InitRun - strobe width is undefined for this run, defaulting to 89 mus" << std::endl;
@@ -212,7 +216,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
         findNode::getClass<MvtxEventInfo>(topNode, "MVTXEVENTHEADER");
     assert(mvtx_event_header);
   }
- 
+
   for (unsigned int i = 0; i < mvtx_hit_container->get_nhits(); i++)
   {
     mvtx_hit = mvtx_hit_container->get_hit(i);
