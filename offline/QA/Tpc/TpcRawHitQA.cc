@@ -109,9 +109,13 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
       {
         std::vector<int> values;
         values.reserve(sam);
-        for (int sampleN = 0; sampleN < sam; sampleN++)
+        // for (int sampleN = 0; sampleN < sam; sampleN++)
+        // {
+        for (std::unique_ptr<TpcRawHit::AdcIterator> adc_iterator(hit->CreateAdcIterator());
+             !adc_iterator->IsDone();
+             adc_iterator->Next())
         {
-          values.push_back((int) hit->get_adc(sampleN));
+          values.push_back((int) adc_iterator->CurrentAdc());
         }
         std::sort(values.begin(), values.end());
         size_t size = values.size();
@@ -151,9 +155,15 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
         }
       }
 
-      for (int sampleN = 0; sampleN < sam; sampleN++)
+      // for (int sampleN = 0; sampleN < sam; sampleN++)
+      // {
+      //   float adc = hit->get_adc(sampleN);      
+      for (std::unique_ptr<TpcRawHit::AdcIterator> adc_iterator(hit->CreateAdcIterator());
+            !adc_iterator->IsDone();
+            adc_iterator->Next())
       {
-        float adc = hit->get_adc(sampleN);
+        const uint16_t sampleN = adc_iterator->CurrentTimeBin();
+        const uint16_t adc = adc_iterator->CurrentAdc();
         if (adc - median <= (std::max(5 * stdDev, (float) 20.)))
         {
           continue;
