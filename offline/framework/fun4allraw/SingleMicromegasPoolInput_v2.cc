@@ -3,8 +3,8 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/MicromegasRawHitContainerv2.h>
-#include <ffarawobjects/MicromegasRawHitv2.h>
+#include <ffarawobjects/MicromegasRawHitContainerv3.h>
+#include <ffarawobjects/MicromegasRawHitv3.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <qautils/QAHistManagerDef.h>
@@ -380,7 +380,7 @@ void SingleMicromegasPoolInput_v2::CreateDSTNode(PHCompositeNode* topNode)
   auto container = findNode::getClass<MicromegasRawHitContainer>(detNode, m_rawHitContainerName);
   if (!container)
   {
-    container = new MicromegasRawHitContainerv2;
+    container = new MicromegasRawHitContainerv3;
     auto newNode = new PHIODataNode<PHObject>(container, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
@@ -751,7 +751,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     { continue; }
 
     // create new hit
-    auto newhit = std::make_unique<MicromegasRawHitv2>();
+    auto newhit = std::make_unique<MicromegasRawHitv3>();
     newhit->set_bco(fee_bco);
     newhit->set_gtm_bco(gtm_bco);
 
@@ -762,28 +762,9 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     newhit->set_sampaaddress(payload.sampa_address);
     newhit->set_sampachannel(payload.sampa_channel);
 
-    // assign samples
-    newhit->set_sample_begin(0);
-    newhit->set_sample_end(MAX_SAMPLE);
-
     // adc values
-    for( const auto& [start_t, adc]:payload.waveforms )
-    {
-      for( size_t i=0; i < adc.size(); ++i )
-      {
-        if( start_t+i < MAX_SAMPLE )
-        {
-          newhit->set_adc(start_t+i,adc[i]);
-        } else {
-          std::cout << "SingleMicromegasPoolInput_v2::process_fee_data -"
-            << " fee_id: " << fee_id
-            << " channel: " << payload.channel
-            << " invalid sample: " << start_t+i
-            << std::endl;
-          // break;
-        }
-      }
-    }
+    for( auto&& [start_t, adc]:payload.waveforms )
+    { newhit->move_adc_waveform(start_t,std::move(adc)); }
 
     m_BeamClockFEE[gtm_bco].insert(fee_id);
     m_FEEBclkMap[fee_id] = gtm_bco;
