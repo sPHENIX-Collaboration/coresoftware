@@ -191,7 +191,8 @@ int photonjetskinematics::EndRun(const int runnumber)
 //____________________________________________________________________________..
 int photonjetskinematics::End(PHCompositeNode* /*topNode*/)
 {
-  if (Verbosity() > 1) std::cout << "photonjetskinematics::End - Output to " << outfilename << std::endl;
+  // Commenting out the following line because Jenkins keeps failing the build test :( 
+  // if (Verbosity() > 1) std::cout << "photonjetskinematics::End - Output to " << outfilename << std::endl;
   
   //Outputting the histograms
   manager->registerHisto(h_emcal_cluster_eta_phi);

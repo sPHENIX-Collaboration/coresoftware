@@ -72,9 +72,10 @@ class photonjetskinematics : public SubsysReco
   }
 
  private:
- std::string outfilename;
- TFile *outfile;
+  // std::string outfilename;
+  // TFile *outfile;
  // hist manager
+
  Fun4AllHistoManager* manager;
  std::string modulename;
  std::string inputnode;
