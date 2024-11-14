@@ -672,7 +672,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     payload.channel = data_buffer[4] & 0x1ffU;
     payload.type = (uint16_t)(data_buffer[3] >> 7U) & 0x7U;
     payload.user_word = data_buffer[3] & 0x7fU;
-    payload.bx_timestamp = (uint16_t)((data_buffer[6] & 0x3ffU) << 10U)|(data_buffer[5] & 0x3ffU);
+    payload.bx_timestamp = (uint32_t)((data_buffer[6] & 0x3ffU) << 10U)|(data_buffer[5] & 0x3ffU);
 
     // crc
     payload.data_crc = data_buffer[pkt_length];
