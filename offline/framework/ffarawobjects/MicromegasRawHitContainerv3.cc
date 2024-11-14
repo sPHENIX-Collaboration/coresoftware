@@ -5,11 +5,11 @@
 
 #include <iostream>
 
-static const int NTPCHITS = 10000;
+static constexpr int NHITS = 100;
 
 MicromegasRawHitContainerv3::MicromegasRawHitContainerv3()
 {
-  MicromegasRawHitsTCArray = new TClonesArray("MicromegasRawHitv3", NTPCHITS);
+  MicromegasRawHitsTCArray = new TClonesArray("MicromegasRawHitv3", NHITS);
 }
 
 MicromegasRawHitContainerv3::~MicromegasRawHitContainerv3()
@@ -21,7 +21,7 @@ MicromegasRawHitContainerv3::~MicromegasRawHitContainerv3()
 void MicromegasRawHitContainerv3::Reset()
 {
   MicromegasRawHitsTCArray->Clear("C");
-  MicromegasRawHitsTCArray->Expand(NTPCHITS);
+  MicromegasRawHitsTCArray->Expand(NHITS);
 }
 
 void MicromegasRawHitContainerv3::identify(std::ostream &os) const
