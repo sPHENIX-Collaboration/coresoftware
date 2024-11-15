@@ -24,6 +24,18 @@ class TpcGlobalPositionWrapper
   //! constructor
   explicit TpcGlobalPositionWrapper() = default;
 
+  //! verbosity
+  void set_verbosity(int value)
+  {
+    m_verbosity = value;
+  }
+
+  //! verbosity
+  int verbosity() const
+  {
+    return m_verbosity;
+  }
+
   //! load relevant nodes from tree
   void loadNodes(PHCompositeNode* /*topnode*/);
 
@@ -38,6 +50,9 @@ class TpcGlobalPositionWrapper
   Acts::Vector3 getGlobalPositionDistortionCorrected(const TrkrDefs::cluskey&, TrkrCluster*, short int /*crossing*/ ) const;
 
   private:
+
+  //! verbosity
+  unsigned int m_verbosity = 0;
 
   //! cluster z crossing correction interface
   TpcClusterZCrossingCorrection m_crossingCorrection;
