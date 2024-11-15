@@ -817,14 +817,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     // calculate vertex residual with perigee surface
     //-------------------------------------------------------
 
-<<<<<<< HEAD
-=======
-    //  skip the common vertex requirement for this track unless there are 3 tracks in the event
-    if(accepted_tracks < 3) { _mille->end(); continue;}
-
-
-    // Acts::Vector3 event_vtx(0, 0, averageVertex(2));
->>>>>>> 143e38621... update to get helical fitter and cosmic seeder working together
     Acts::Vector3 event_vtx(averageVertex(0), averageVertex(1), averageVertex(2));
 
     for (const auto &[vtxkey, vertex] : *m_vertexmap)
