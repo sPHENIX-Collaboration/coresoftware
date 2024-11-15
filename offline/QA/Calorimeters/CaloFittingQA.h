@@ -28,6 +28,7 @@ class CaloFittingQA : public SubsysReco
 
   //! full initialization
   int Init(PHCompositeNode*) override;
+  int InitRun(PHCompositeNode *) override;
 
   //! event processing method
   int process_event(PHCompositeNode*) override;

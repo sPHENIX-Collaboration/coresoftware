@@ -68,6 +68,20 @@ int CaloFittingQA::Init(PHCompositeNode* /*unused*/)
 
   createHistos();
 
+  if (m_debug)
+  {
+    std::cout << "Leaving CaloFittingQA::Init" << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int CaloFittingQA::InitRun(PHCompositeNode* /*unused*/)
+{
+  if (m_debug)
+  {
+    std::cout << "In CaloFittingQA::InitRun" << std::endl;
+  }
+
   //===============
   // conditions DB flags
   //===============
@@ -83,7 +97,7 @@ int CaloFittingQA::Init(PHCompositeNode* /*unused*/)
 
   if (m_debug)
   {
-    std::cout << "Leaving CaloFittingQA::Init" << std::endl;
+    std::cout << "Leaving CaloFittingQA::InitRun" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
