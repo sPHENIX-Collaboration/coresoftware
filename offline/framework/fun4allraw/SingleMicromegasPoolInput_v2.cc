@@ -61,9 +61,6 @@ namespace
   // packet length
   static constexpr uint16_t MAX_PACKET_LENGTH = 1025;
 
-  // max recorded sample
-  static constexpr size_t MAX_SAMPLE=1024;
-
   //_____________________________________________________________
   [[maybe_unused]] uint16_t reverseBits(const uint16_t& x)
   {
