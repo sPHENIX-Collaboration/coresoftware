@@ -429,6 +429,8 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       doub.xyintercept = pos1.y() - doub.xyslope * pos1.x();
       doub.xzslope = (pos2.z() - pos1.z()) / (pos2.x() - pos1.x());
       doub.xzintercept = pos1.z() - pos1.x() * doub.xzslope ;
+      doub.yzslope = (pos2.z() - pos1.z()) / (pos2.y() - pos1.y());
+      doub.yzintercept = pos1.z() - pos1.y() * doub.yzslope ;
 
       keys.insert(key1);
       keys.insert(key2);
@@ -489,6 +491,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
 
       float predy = dub.xyslope * pos.x() + dub.xyintercept;
       float predz = dub.xzslope * pos.x() + dub.xzintercept;
+      float predz2 = dub.yzslope * pos.y() + dub.yzintercept;
       if (Verbosity() > 2)
       {
         std::cout << "testing ckey " << key << " with box dca "
@@ -497,7 +500,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       }
       if (fabs(predy - pos.y()) < m_xyTolerance)
       {
-        if(m_trackerId == TrkrDefs::TrkrId::mvtxId && fabs(predz - pos.z())>0.3)
+        if(m_trackerId == TrkrDefs::TrkrId::mvtxId && (fabs(predz - pos.z())>0.3 || fabs(predz2 - pos.z())>0.3))
         {
           continue;
         }

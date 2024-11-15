@@ -646,7 +646,7 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
 
 //_________________________________________________________________________________
 std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3>& global_vec,
-						       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt)
+						       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt, bool mvtx_east, bool mvtx_west)
 {
   std::vector<float> fitpars;
 
@@ -659,12 +659,24 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
   std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
 
   // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
+  // also, for half to half cosmics, allow selection of only 1 half of mvtx (east or west)
   std::vector<Acts::Vector3> global_vec_noINTT;
+  bool cross_mvtx_half = false;
+  if ((mvtx_east||mvtx_west)) {
+    cross_mvtx_half=TrackFitUtils::isTrackCrossMvtxHalf(cluskey_vec);
+  }
   for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
   {
     unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
-
-    if (trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
+    if ((mvtx_east||mvtx_west) && trkrid == TrkrDefs::mvtxId)
+    {
+      //
+      if(cross_mvtx_half && TrackFitUtils::includeMvtxHit(cluskey_vec[ivec], mvtx_east, mvtx_west))
+      {
+        global_vec_noINTT.push_back(global_vec[ivec]);
+      }
+    }
+    else if (trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
     {
       global_vec_noINTT.push_back(global_vec[ivec]);
     }
@@ -1008,4 +1020,20 @@ bool TrackFitUtils::isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_
   if (isEast&&isWest)
     return true;
   return false;
+}
+
+bool TrackFitUtils::includeMvtxHit(TrkrDefs::cluskey clus_key, bool mvtx_east, bool mvtx_west)
+{
+  uint32_t hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
+  unsigned int layer =TrkrDefs::getLayer(hitsetkey);
+  unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
+  bool is_east = false;
+  if(stave > (2+layer) && stave < (9+layer*3))
+    is_east= true;
+  
+  if((is_east && mvtx_east)||(!is_east&&mvtx_west))
+    return true;
+
+  return false;
+
 }

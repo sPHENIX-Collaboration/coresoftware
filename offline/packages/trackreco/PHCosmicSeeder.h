@@ -26,6 +26,8 @@ class PHCosmicSeeder : public SubsysReco
     float xyintercept = std::numeric_limits<float>::quiet_NaN();
     float xzslope = std::numeric_limits<float>::quiet_NaN();
     float xzintercept = std::numeric_limits<float>::quiet_NaN();
+    float yzslope = std::numeric_limits<float>::quiet_NaN();
+    float yzintercept = std::numeric_limits<float>::quiet_NaN();
     std::set<TrkrDefs::cluskey> ckeys;
   };
   using SeedVector = std::vector<seed>;
