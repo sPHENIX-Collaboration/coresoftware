@@ -34,7 +34,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   void doZSEmulation(bool val) { m_do_zs_emulation = val; }
   void ReadZeroSuppressedData() { 
     m_do_zs_emulation = true;
-    m_zs_threshold = 10;
+    m_zs_threshold = 20;
   }
   void set_presampleShift(int b) { m_presampleShift = b; }
   void set_zs_threshold(int b) { m_zs_threshold = b; }
