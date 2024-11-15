@@ -56,6 +56,19 @@ class TpcRawHit : public PHObject
   virtual bool get_parityerror() const { return false; }
   virtual void set_parityerror(const bool /*b*/) { return; }
 
+  class AdcIterator
+  {
+   public:
+    AdcIterator() = default;
+    virtual ~AdcIterator() = default;
+    virtual void First() = 0;
+    virtual void Next() = 0;
+    virtual bool IsDone() const = 0;
+    virtual uint16_t CurrentTimeBin() const = 0;
+    virtual uint16_t CurrentAdc() const = 0;
+  };
+  virtual AdcIterator* CreateAdcIterator() const = 0;
+
  private:
   ClassDefOverride(TpcRawHit, 0)
 };
