@@ -3,8 +3,8 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/MicromegasRawHitContainerv2.h>
-#include <ffarawobjects/MicromegasRawHitv2.h>
+#include <ffarawobjects/MicromegasRawHitContainerv3.h>
+#include <ffarawobjects/MicromegasRawHitv3.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <qautils/QAHistManagerDef.h>
@@ -292,7 +292,7 @@ void SingleMicromegasPoolInput_v1::FillPool(const unsigned int /*nbclks*/)
         }
 
         // create new hit
-        auto newhit = std::make_unique<MicromegasRawHitv2>();
+        auto newhit = std::make_unique<MicromegasRawHitv3>();
         newhit->set_bco(fee_bco);
         newhit->set_gtm_bco(gtm_bco);
 
@@ -303,19 +303,21 @@ void SingleMicromegasPoolInput_v1::FillPool(const unsigned int /*nbclks*/)
         newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
         newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
 
-        // assign sample range
-        /* note: for NewHitv2, this is NOOP */
-        newhit->set_sample_begin(0);
-        newhit->set_sample_end(samples);
-
         // adc values
         for (uint16_t is = 0; is < samples; ++is)
         {
-          const uint16_t adc = packet->iValue(wf, is);
-          if( adc != m_adc_invalid)
+          uint16_t adc = packet->iValue(wf, is);
+          if( adc == m_adc_invalid)
           {
-            newhit->set_adc(is, adc);
+            continue;
           }
+
+          uint16_t first = is;
+          MicromegasRawHitv3::adc_list_t values;
+          for( ;is<samples && (adc = packet->iValue(wf, is)) != m_adc_invalid; ++is )
+          { values.push_back(adc); }
+          newhit->move_adc_waveform( first, std::move(values));
+
         }
 
         m_BeamClockFEE[gtm_bco].insert(fee_id);
@@ -496,7 +498,7 @@ void SingleMicromegasPoolInput_v1::CreateDSTNode(PHCompositeNode* topNode)
   auto container = findNode::getClass<MicromegasRawHitContainer>(detNode, m_rawHitContainerName);
   if (!container)
   {
-    container = new MicromegasRawHitContainerv2();
+    container = new MicromegasRawHitContainerv3();
     auto newNode = new PHIODataNode<PHObject>(container, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
