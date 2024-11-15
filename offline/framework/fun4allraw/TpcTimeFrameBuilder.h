@@ -296,7 +296,7 @@ class TpcTimeFrameBuilder
     static constexpr unsigned int m_max_matching_data_size = 10;
 
     //! max time in GTM BCO for FEE data to sync over to datastream
-    static constexpr unsigned int m_max_fee_sync_time = 1024;
+    static constexpr unsigned int m_max_fee_sync_time = 1024*8;
 
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
