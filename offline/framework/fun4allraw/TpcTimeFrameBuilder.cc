@@ -242,7 +242,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
                   << " and bclk_rollover_corrected 0x" << std::hex
                   << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
 
-        if (m_verbosity >= 3)
+        // if (m_verbosity >= 3)
         {
           for (const auto& timeframe : m_timeFrameMap)
           {
@@ -587,7 +587,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 {
   assert(m_hFEEDataStream);
 
-  if (m_verbosity > 1)
+  if (m_verbosity > 2)
   {
     cout << __PRETTY_FUNCTION__ << "\t- : processing FEE " << fee << "\t- with " << m_feeData[fee].size() << "\t- words" << endl;
   }
