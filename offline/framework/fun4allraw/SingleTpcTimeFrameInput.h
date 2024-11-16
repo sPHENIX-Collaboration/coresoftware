@@ -56,6 +56,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
   PHTimer *m_ProcessPacketTimer = nullptr;
   PHTimer *m_getTimeFrameTimer = nullptr;
 
+  // NOLINTNEXTLINE(hicpp-special-member-functions)
   class TimeTracker
   {    
    public:
