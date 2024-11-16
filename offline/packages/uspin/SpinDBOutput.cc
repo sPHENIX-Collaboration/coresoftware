@@ -678,7 +678,6 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<st
   catch (odbc::SQLException &e)
   {
     std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
-    // printf("Error : %s.\n",e.getMessage().c_str());
     return (ERROR_VALUE);
   }
 
@@ -809,17 +808,22 @@ int SpinDBOutput::GetDefaultQA(int runnum){
   cmd << "select qa_level from " << table_name << " where runnumber=" << runnum << " and is_default=TRUE;";
   odbc::Statement *stmt=con->createStatement();
   odbc::ResultSet *rs=nullptr;
-  try{rs=stmt->executeQuery(cmd.str());}
-  catch(odbc::SQLException& e){
-    printf("Error : %s\n",e.getMessage().c_str());
+  try
+  {
+    rs=stmt->executeQuery(cmd.str());
+  }
+  catch(odbc::SQLException& e)
+  {
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
     return(ERROR_VALUE);
   }
 
-  if(rs->next()==0){
-    printf("Error : Can't find data for run %d\n",runnum);
+  if(rs->next()==0)
+  {
+    std::cout << (boost::format("Error : Can't find data for run %d \n") % runnum).str();
     delete rs;
     delete stmt;
     delete con;
@@ -831,7 +835,7 @@ int SpinDBOutput::GetDefaultQA(int runnum){
   delete rs;
   delete stmt;
   delete con;
-
+  
   return(default_qa_level);
 
 }
