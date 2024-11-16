@@ -62,9 +62,10 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
                   << thisNode->getName() << std::endl;
 
         TpcRawHitContainer *rawhitcont = (TpcRawHitContainer *) thisNode->getData();
-        assert(rawhitcont);
-
-        rawhitcont_vec.push_back(rawhitcont);
+        if (rawhitcont)
+        {
+          rawhitcont_vec.push_back(rawhitcont);
+        }
       }
     }
   }

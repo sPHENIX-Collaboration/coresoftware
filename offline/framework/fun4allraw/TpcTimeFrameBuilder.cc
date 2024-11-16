@@ -242,7 +242,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
                   << " and bclk_rollover_corrected 0x" << std::hex
                   << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
 
-        if (m_verbosity >= 3)
+        // if (m_verbosity >= 3)
         {
           for (const auto& timeframe : m_timeFrameMap)
           {
@@ -290,6 +290,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
       assert(h_TimeFrame_Matched_Size);
       h_TimeFrame_Matched_Size->Fill(it->second.size());
       m_hNorm->Fill("GTM_TimeFrame_Matched_Hit_Sum", it->second.size());
+      m_UsedTimeFrameSet.push(it->first);
       return it->second;
     }
     else
@@ -331,6 +332,36 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
   {
     std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id << ": cleaning up bcos < 0x" << std::hex
               << bclk << std::dec << std::endl;
+  }
+
+  while (not m_UsedTimeFrameSet.empty())
+  {
+    uint64_t bco_completed = m_UsedTimeFrameSet.front();
+    m_UsedTimeFrameSet.pop();
+
+    if (m_verbosity > 1)
+    {
+      std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
+                << ": cleaning up previous processed packet in m_timeFrameMap at clock 0x"
+                << std::hex
+                << bco_completed << std::dec
+                << " for CleanupUsedPackets(const uint64_t& bclk) call at bclk 0x" << std::hex
+                << bclk << std::dec
+                << " Diff:" << int64_t(bco_completed) - int64_t(bclk) << std::endl;
+    }
+
+    auto it = m_timeFrameMap.find(bco_completed);
+    assert(it != m_timeFrameMap.end()); // strong workflow check
+
+    if (it != m_timeFrameMap.end())
+    {
+      while (!it->second.empty())
+      {
+        delete it->second.back();
+        it->second.pop_back();
+      }
+      m_timeFrameMap.erase(it);
+    }
   }
 
   uint64_t bclk_rollover_corrected = m_bcoMatchingInformation_vec[0].get_gtm_rollover_correction(bclk);
@@ -556,7 +587,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 {
   assert(m_hFEEDataStream);
 
-  if (m_verbosity > 1)
+  if (m_verbosity > 2)
   {
     cout << __PRETTY_FUNCTION__ << "\t- : processing FEE " << fee << "\t- with " << m_feeData[fee].size() << "\t- words" << endl;
   }

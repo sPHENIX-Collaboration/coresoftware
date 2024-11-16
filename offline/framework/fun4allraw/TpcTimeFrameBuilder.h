@@ -296,7 +296,7 @@ class TpcTimeFrameBuilder
     static constexpr unsigned int m_max_matching_data_size = 10;
 
     //! max time in GTM BCO for FEE data to sync over to datastream
-    static constexpr unsigned int m_max_fee_sync_time = 1024;
+    static constexpr unsigned int m_max_fee_sync_time = 1024*8;
 
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
@@ -329,6 +329,7 @@ class TpcTimeFrameBuilder
   //! This is used to organize hits into time frames based on their BCO values
   std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;
   static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
+  std::queue<uint64_t> m_UsedTimeFrameSet;
 
   //! fast skip mode when searching for particular GL1 BCO over long segment of files
   bool m_fastBCOSkip = false;
