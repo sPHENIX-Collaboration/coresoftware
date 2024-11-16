@@ -142,7 +142,7 @@ int CentralityReco::Download_centralityVertexScales(const std::string &dbfile)
       float scale = cdbttree->GetFloatValue(iv, "scale");
       float lowvertex = cdbttree->GetFloatValue(iv, "low_vertex");
       float highvertex = cdbttree->GetFloatValue(iv, "high_vertex");      
-      m_vertex_scales.push_back(std::make_pair(std::make_pair(lowvertex, highvertex), scale));
+      m_vertex_scales.emplace_back(std::make_pair(lowvertex, highvertex), scale);
     }
 
     delete cdbttree;
