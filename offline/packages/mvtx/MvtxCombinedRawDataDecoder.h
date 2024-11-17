@@ -54,6 +54,11 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
 
   void runMvtxTriggered(bool b = true) { m_mvtx_is_triggered = b; }
 
+  void  SetReadStrWidthFromDB(const bool val){ m_readStrWidthFromDB = val; }
+  bool  GetReadStrWidthFromDB(){ return m_readStrWidthFromDB; }
+  void  SetStrobeWidth(const float val) { m_strobeWidth = val; }
+  float GetStrobeWidth() { return m_strobeWidth; }
+
  private:
   void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>>& v);
 
@@ -65,7 +70,10 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
 
   std::string m_MvtxRawHitNodeName = "MVTXRAWHIT";
   std::string m_MvtxRawEvtHeaderNodeName = "MVTXRAWEVTHEADER";
+
+  bool m_readStrWidthFromDB = true;
   float m_strobeWidth = 89.;  //! microseconds
+
   bool m_writeMvtxEventHeader = true;
   // std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> m_hotPixelMap;
 

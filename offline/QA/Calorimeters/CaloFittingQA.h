@@ -5,6 +5,8 @@
 
 #include <caloreco/CaloTowerDefs.h>
 
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
 #include <string>
 #include <vector>
 
@@ -26,6 +28,7 @@ class CaloFittingQA : public SubsysReco
 
   //! full initialization
   int Init(PHCompositeNode*) override;
+  int InitRun(PHCompositeNode *) override;
 
   //! event processing method
   int process_event(PHCompositeNode*) override;
@@ -70,7 +73,12 @@ class CaloFittingQA : public SubsysReco
   TProfile2D* h_cemc_etaphi_ZScrosscalib{nullptr};
   TProfile2D* h_ihcal_etaphi_ZScrosscalib{nullptr};
   TProfile2D* h_ohcal_etaphi_ZScrosscalib{nullptr};
+  TProfile2D* h_cemc_etaphi_pedestal{nullptr};
+  TProfile2D* h_ihcal_etaphi_pedestal{nullptr};
+  TProfile2D* h_ohcal_etaphi_pedestal{nullptr};
   TH1* h_packet_events{nullptr};
+
+  CDBTTree *cdbttree = nullptr;
 
   int _eventcounter{0};
 
@@ -83,6 +91,8 @@ class CaloFittingQA : public SubsysReco
   float m_hcal_adc_threshold = 100.;
   float m_hcal_high_adc_threshold = 2000.;
 
+  std::string m_calibName;
+  std::string m_fieldname;
   std::string m_outputFileName;
   std::string OutputFileName;
 };

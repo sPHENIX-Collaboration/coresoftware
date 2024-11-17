@@ -23,6 +23,7 @@ libcalotrigger_io_la_LIBADD = \
 libcalotrigger_la_LIBADD = \
   libcalotrigger_io.la \
   -lmbd_io \
+  -lzdcinfo_io \
   -lodbc++ \
   -lglobalvertex \
   -lcalo_reco \

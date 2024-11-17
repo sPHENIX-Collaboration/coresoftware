@@ -32,12 +32,9 @@ class SpinDBInput
   int CheckRunRow(int runnum, int qa_level, const char *opt = "");
   int CreateRunRow(int runnum, int qa_level);
   int DeleteRunRow(int runnum, int qa_level);
-  // int CheckQARunRow(int runnum);
-  // int CreateQARunRow(int runnum);
-  // int DeleteQARunRow(int runnum);
-  // int SetQADefault(int runnum,int qa_level);
   int InitializeRunRow(SpinDBContent spin_cont);
   int UpdateDBContent(SpinDBContent spin_cont);
+  int SetDefaultQA(SpinDBContent spin_cont);
   int UpdateValue(int runnum, int qa_level, const char *name, int value);
   int UpdateValue(int runnum, int qa_level, const char *name, float value);
   int UpdateValue(int runnum, int qa_level, const char *name, double value);

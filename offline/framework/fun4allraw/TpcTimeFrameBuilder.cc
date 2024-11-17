@@ -4,6 +4,7 @@
 #include <Event/packet.h>
 
 #include <ffarawobjects/TpcRawHitv2.h>
+#include <ffarawobjects/TpcRawHitv3.h>
 #include <phool/PHTimer.h>  // for PHTimer
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -151,6 +152,12 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
                                           " Time frame size for Matched Time Frame ;Size [TPC raw hits];Count",
                                       3328, -.5, 3328 - .5);
   hm->registerHisto(h_TimeFrame_Matched_Size);
+
+  h_ProcessPacket_Time = new TH2I(TString(m_HistoPrefix.c_str()) + "_ProcessPacket_Time",  //
+                              TString(m_HistoPrefix.c_str()) +
+                                  " Time cost to run ProcessPacket();Call counts;Time elapsed per call [ms];Count",
+                              1000, 0, 30e6, 100,0,10);
+  hm->registerHisto(h_ProcessPacket_Time);
 }
 
 TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
@@ -227,7 +234,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
   {
     if (it->first + GL1_BCO_MATCH_WINDOW < bclk_rollover_corrected)
     {
-      if (m_verbosity >= 1)
+      if (m_verbosity >= 2)
       {
         std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
                   << ":DROPPED: BCO " << std::hex << it->first << std::dec
@@ -235,13 +242,16 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
                   << " and bclk_rollover_corrected 0x" << std::hex
                   << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
 
-        for (const auto& timeframe : m_timeFrameMap)
+        // if (m_verbosity >= 3)
         {
-          std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
-                    << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected)
-                    << ")"
-                    << " size: " << timeframe.second.size()
-                    << std::endl;
+          for (const auto& timeframe : m_timeFrameMap)
+          {
+            std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
+                      << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected)
+                      << ")"
+                      << " size: " << timeframe.second.size()
+                      << std::endl;
+          }
         }
       }
 
@@ -280,6 +290,7 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
       assert(h_TimeFrame_Matched_Size);
       h_TimeFrame_Matched_Size->Fill(it->second.size());
       m_hNorm->Fill("GTM_TimeFrame_Matched_Hit_Sum", it->second.size());
+      m_UsedTimeFrameSet.push(it->first);
       return it->second;
     }
     else
@@ -295,10 +306,13 @@ std::vector<TpcRawHit*>& TpcTimeFrameBuilder::getTimeFrame(const uint64_t& gtm_b
               << "and bclk_rollover_corrected 0x" << std::hex
               << bclk_rollover_corrected << std::dec << ". m_timeFrameMap:" << std::endl;
 
-    for (const auto& timeframe : m_timeFrameMap)
+    if (m_verbosity >= 2)
     {
-      std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
-                << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected) << ")" << std::endl;
+      for (const auto& timeframe : m_timeFrameMap)
+      {
+        std::cout << "- BCO in map: 0x" << std::hex << timeframe.first << std::dec
+                  << "(Diff:" << int64_t(timeframe.first) - int64_t(bclk_rollover_corrected) << ")" << std::endl;
+      }
     }
   }
 
@@ -318,6 +332,36 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
   {
     std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id << ": cleaning up bcos < 0x" << std::hex
               << bclk << std::dec << std::endl;
+  }
+
+  while (not m_UsedTimeFrameSet.empty())
+  {
+    uint64_t bco_completed = m_UsedTimeFrameSet.front();
+    m_UsedTimeFrameSet.pop();
+
+    if (m_verbosity > 1)
+    {
+      std::cout << __PRETTY_FUNCTION__ << "\t- packet " << m_packet_id
+                << ": cleaning up previous processed packet in m_timeFrameMap at clock 0x"
+                << std::hex
+                << bco_completed << std::dec
+                << " for CleanupUsedPackets(const uint64_t& bclk) call at bclk 0x" << std::hex
+                << bclk << std::dec
+                << " Diff:" << int64_t(bco_completed) - int64_t(bclk) << std::endl;
+    }
+
+    auto it = m_timeFrameMap.find(bco_completed);
+    assert(it != m_timeFrameMap.end()); // strong workflow check
+
+    if (it != m_timeFrameMap.end())
+    {
+      while (!it->second.empty())
+      {
+        delete it->second.back();
+        it->second.pop_back();
+      }
+      m_timeFrameMap.erase(it);
+    }
   }
 
   uint64_t bclk_rollover_corrected = m_bcoMatchingInformation_vec[0].get_gtm_rollover_correction(bclk);
@@ -358,6 +402,9 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
 
 int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
 {
+  static size_t call_count = 0;
+  ++call_count;
+
   if (m_verbosity > 1)
   {
     std::cout << "TpcTimeFrameBuilder::ProcessPacket: " << m_packet_id
@@ -389,7 +436,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
   }
 
   assert(m_packetTimer);
-  if (m_verbosity >= 1)
+  if ((m_verbosity == 1 and (call_count % 1000) == 0) or (m_verbosity > 1))
   {
     cout << __PRETTY_FUNCTION__ << "\t- : received packet ";
     packet->identify();
@@ -530,6 +577,8 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
   }
 
   m_packetTimer->stop();
+  assert(h_ProcessPacket_Time);
+  h_ProcessPacket_Time -> Fill(call_count, m_packetTimer->elapsed());
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -538,7 +587,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 {
   assert(m_hFEEDataStream);
 
-  if (m_verbosity > 1)
+  if (m_verbosity > 2)
   {
     cout << __PRETTY_FUNCTION__ << "\t- : processing FEE " << fee << "\t- with " << m_feeData[fee].size() << "\t- words" << endl;
   }
@@ -732,21 +781,8 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
            << "\t- calc_crc = 0x" << hex << payload.calc_crc << dec << endl;
     }
 
-    if ((not m_fastBCOSkip) and payload.gtm_bco > 0 and payload.type != m_bcoMatchingInformation.HEARTBEAT_T)
+    if ((not m_fastBCOSkip) and payload.gtm_bco > 0)
     {
-      // valid packet in the buffer, create a new hit
-      TpcRawHit* hit = new TpcRawHitv2();
-      m_timeFrameMap[payload.gtm_bco].push_back(hit);
-
-      hit->set_bco(payload.bx_timestamp);
-      hit->set_gtm_bco(payload.gtm_bco);
-      hit->set_packetid(m_packet_id);
-      hit->set_fee(fee);
-      hit->set_channel(payload.channel);
-      hit->set_sampaaddress(payload.sampa_address);
-      hit->set_sampachannel(payload.sampa_channel);
-      hit->set_samples(MAX_PACKET_LENGTH);
-
       m_hFEEDataStream->Fill(fee, "RawHit", 1);
 
       // Format is (N sample) (start time), (1st sample)... (Nth sample)
@@ -786,7 +822,6 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         for (int j = 0; j < nsamp; j++)
         {
           adc[j] = data_buffer[pos++];
-          hit->set_adc(start_t + j, adc[j]);
 
           m_hFEESAMPAADC->Fill(start_t + j, fee_sampa_address, adc[j]);
         }
@@ -808,6 +843,27 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       }
 
     }  //     if (not m_fastBCOSkip)
+
+    // valid packet in the buffer, create a new hit
+    if (payload.type != m_bcoMatchingInformation.HEARTBEAT_T)
+    {
+      TpcRawHitv3* hit = new TpcRawHitv3();
+      m_timeFrameMap[payload.gtm_bco].push_back(hit);
+
+      hit->set_bco(payload.bx_timestamp);
+      hit->set_packetid(m_packet_id);
+      hit->set_fee(fee);
+      hit->set_channel(payload.channel);
+      hit->set_type(payload.type);
+      hit->set_checksum(payload.data_crc);
+      hit->set_checksumerror(payload.data_crc == payload.calc_crc);
+      //TODO: add parity information
+
+      for (pair<uint16_t, std::vector<uint16_t>> & waveform : payload.waveforms)
+      {
+        hit->move_adc_waveform(waveform.first, move(waveform.second));
+      }
+    }
 
     data_buffer.erase(data_buffer.begin(), data_buffer.begin() + pkt_length + 1);
     m_hFEEDataStream->Fill(fee, "WordValid", pkt_length + 1);
