@@ -993,7 +993,7 @@ std::pair<uint16_t, uint16_t> TpcTimeFrameBuilder::crc16_parity(const uint32_t f
   std::deque<uint16_t>::const_iterator it = data_buffer.begin();
 
   uint16_t crc = 0xffffU;
-  uint16_t data_parity = 1U;
+  uint16_t data_parity = 0U;
 
   for (int i = 0; i < l; ++i, ++it)
   {
