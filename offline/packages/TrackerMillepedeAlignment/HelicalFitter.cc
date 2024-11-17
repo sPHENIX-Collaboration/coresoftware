@@ -257,6 +257,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     std::vector<float> fitpars;
     if(straight_line_fit)
       {
+	if(fitsilicon && nintt<2)
+	  {
+	    continue;   // discard incomplete seeds
+	  }
+
 	fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit);
 
 	if (fitpars.size() == 0)
@@ -467,6 +472,13 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       continue;
     }
+
+    if(Verbosity() > 2)
+      {
+	std::cout << "   vector sizes: " << global_vec.size() << "  " <<  cluskey_vec.size() << "  " 
+		  << " fitpars: " << fitpars[0] << "  " << fitpars[1] << "  " << fitpars[2] << "  " << fitpars[3]
+		  << std::endl;
+      }
 
     cumulative_global_vec.push_back(global_vec);
     cumulative_cluskey_vec.push_back(cluskey_vec);
