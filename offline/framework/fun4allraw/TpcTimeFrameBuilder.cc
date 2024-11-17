@@ -686,8 +686,8 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         {
           cout << __PRETTY_FUNCTION__ << "\t- : parity error in FEE "
                << fee << "\t- at position " << pkt_length - 1
-               << ": data_crc = " << payload.data_parity
-               << "\t- calc_crc = " << payload.calc_parity << endl;
+               << ": data_parity = " << payload.data_parity
+               << "\t- calc_parity = " << payload.calc_parity << endl;
         }
         m_hFEEDataStream->Fill(fee, "ParityError", 1);
         // continue;
@@ -794,7 +794,9 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
            << "\t- bx_timestamp = 0x" << hex << payload.bx_timestamp << dec << endl
            << "\t- bco = 0x" << hex << payload.gtm_bco << dec << endl
            << "\t- data_crc = 0x" << hex << payload.data_crc << dec << endl
-           << "\t- calc_crc = 0x" << hex << payload.calc_crc << dec << endl;
+           << "\t- calc_crc = 0x" << hex << payload.calc_crc << dec << endl
+           << "\t- data_parity = 0x" << hex << payload.data_parity << dec << endl
+           << "\t- calc_parity = 0x" << hex << payload.calc_parity << dec << endl;
     }
 
     if ((not m_fastBCOSkip) and payload.gtm_bco > 0)
@@ -872,9 +874,9 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       hit->set_channel(payload.channel);
       hit->set_type(payload.type);
       // hit->set_checksum(payload.data_crc);
-      hit->set_checksumerror(payload.data_crc == payload.calc_crc);
+      hit->set_checksumerror(payload.data_crc != payload.calc_crc);
       // hit->set_parity(payload.data_parity);
-      hit->set_parityerror(payload.data_parity == payload.calc_parity);
+      hit->set_parityerror(payload.data_parity != payload.calc_parity);
 
       for (pair<uint16_t, std::vector<uint16_t>> & waveform : payload.waveforms)
       {
@@ -1003,14 +1005,17 @@ std::pair<uint16_t, uint16_t> TpcTimeFrameBuilder::crc16_parity(const uint32_t f
       crc = crc & 1U ? static_cast<uint16_t>(crc >> 1U) ^ 0xa001U : crc >> 1U;
     }
 
-    // fast parity
-    uint16_t word = x & uint16_t((1U<<10U) - 1U);
-    word = word ^ static_cast<uint16_t>(word >> 1U);
-    word = word ^ static_cast<uint16_t>(word >> 2U);
-    word = word ^ static_cast<uint16_t>(word >> 4U);
-    word = word ^ static_cast<uint16_t>(word >> 8U);
-    data_parity ^= word & 1U ;
-    
+    // parity on data payload only
+    if (i>=HEADER_LENGTH)
+    {
+      // fast parity
+      uint16_t word = x & uint16_t((1U<<10U) - 1U);
+      word = word ^ static_cast<uint16_t>(word >> 1U);
+      word = word ^ static_cast<uint16_t>(word >> 2U);
+      word = word ^ static_cast<uint16_t>(word >> 4U);
+      word = word ^ static_cast<uint16_t>(word >> 8U);
+      data_parity ^= word & 1U ;
+    }
   }
   crc = reverseBits(crc);
   return make_pair(crc, data_parity);
