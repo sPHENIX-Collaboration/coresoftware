@@ -37,6 +37,8 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
+  void AddPacketID(const int packetID) { m_SelectedPacketIDs.insert(packetID); }
+
  private:
   const int NTPCPACKETS = 3;
 
@@ -47,7 +49,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
 
   //! packet ID -> TimeFrame builder
   std::map<int, TpcTimeFrameBuilder *> m_TpcTimeFrameBuilderMap;
-
+  std::set<int> m_SelectedPacketIDs;
   
   TH1 *m_hNorm = nullptr;
 
