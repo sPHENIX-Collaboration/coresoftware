@@ -23,8 +23,8 @@ TpcRawHitv3::TpcRawHitv3(TpcRawHit *tpchit)
   TpcRawHitv3::set_sampachannel(tpchit->get_sampachannel());
   TpcRawHitv3::set_type(tpchit->get_type());
   TpcRawHitv3::set_userword(tpchit->get_userword());
-  TpcRawHitv3::set_checksum(tpchit->get_checksum());
-  TpcRawHitv3::set_parity(tpchit->get_parity());
+  // TpcRawHitv3::set_checksum(tpchit->get_checksum());
+  // TpcRawHitv3::set_parity(tpchit->get_parity());
   TpcRawHitv3::set_checksumerror(tpchit->get_checksumerror());
   TpcRawHitv3::set_parityerror(tpchit->get_parityerror());
   TpcRawHitv3::set_samples(tpchit->get_samples());
@@ -48,8 +48,8 @@ TpcRawHitv3::TpcRawHitv3(TpcRawHitv3 &&other) noexcept
   , channel(other.channel)
   , type(other.type)
   // , userword(other.userword)
-  , checksum(other.checksum)
-  , data_parity(other.data_parity)
+  // , checksum(other.checksum)
+  // , data_parity(other.data_parity)
   , checksumerror(other.checksumerror)
   , parityerror(other.parityerror)
   , m_adcData(std::move(other.m_adcData))

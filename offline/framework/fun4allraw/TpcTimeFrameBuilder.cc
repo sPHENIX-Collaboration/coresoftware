@@ -100,8 +100,8 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "RawHit");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitFormatErrorOverLength");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitFormatErrorMismatchedLength");
-  m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "MissingLastHit");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitCRCError");
+  m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "ParityError");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitUnusedBeforeCleanup");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "PacketHeartBeat");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "PacketHeartBeatClockSyncUnavailable");
@@ -156,7 +156,7 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   h_ProcessPacket_Time = new TH2I(TString(m_HistoPrefix.c_str()) + "_ProcessPacket_Time",  //
                               TString(m_HistoPrefix.c_str()) +
                                   " Time cost to run ProcessPacket();Call counts;Time elapsed per call [ms];Count",
-                              1000, 0, 30e6, 100,0,10);
+                              100, 0, 30e6, 100,0,10);
   hm->registerHisto(h_ProcessPacket_Time);
 }
 
@@ -659,11 +659,14 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     payload.type = static_cast<uint16_t>(data_buffer[3] >> 7U) & 0x7U;
     payload.user_word = data_buffer[3] & 0x7fU;
     payload.bx_timestamp = static_cast<uint32_t>(static_cast<uint32_t>(data_buffer[6] & 0x3ffU) << 10U) | (data_buffer[5] & 0x3ffU);
+    payload.data_crc = data_buffer[pkt_length];
 
     if (not m_fastBCOSkip)
     {
-      payload.data_crc = data_buffer[pkt_length];
-      payload.calc_crc = crc16(fee, 0, pkt_length);
+      auto crc_parity = crc16_parity(fee, pkt_length);
+      payload.calc_crc = crc_parity.first;
+      payload.calc_parity = crc_parity.second;
+
       if (payload.data_crc != payload.calc_crc)
       {
         if (m_verbosity > 2)
@@ -673,7 +676,20 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
                << ": data_crc = " << payload.data_crc
                << "\t- calc_crc = " << payload.calc_crc << endl;
         }
-        m_hFEEDataStream->Fill(fee, "CRCError", 1);
+        m_hFEEDataStream->Fill(fee, "HitCRCError", 1);
+        // continue;
+      }
+      
+      if (payload.data_parity != payload.calc_parity)
+      {
+        if (m_verbosity > 2)
+        {
+          cout << __PRETTY_FUNCTION__ << "\t- : parity error in FEE "
+               << fee << "\t- at position " << pkt_length - 1
+               << ": data_crc = " << payload.data_parity
+               << "\t- calc_crc = " << payload.calc_parity << endl;
+        }
+        m_hFEEDataStream->Fill(fee, "ParityError", 1);
         // continue;
       }
     }  //     if (not m_fastBCOSkip)
@@ -845,7 +861,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     }  //     if (not m_fastBCOSkip)
 
     // valid packet in the buffer, create a new hit
-    if (payload.type != m_bcoMatchingInformation.HEARTBEAT_T)
+    if ((not m_fastBCOSkip) and payload.type != m_bcoMatchingInformation.HEARTBEAT_T)
     {
       TpcRawHitv3* hit = new TpcRawHitv3();
       m_timeFrameMap[payload.gtm_bco].push_back(hit);
@@ -855,9 +871,10 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       hit->set_fee(fee);
       hit->set_channel(payload.channel);
       hit->set_type(payload.type);
-      hit->set_checksum(payload.data_crc);
+      // hit->set_checksum(payload.data_crc);
       hit->set_checksumerror(payload.data_crc == payload.calc_crc);
-      //TODO: add parity information
+      // hit->set_parity(payload.data_parity);
+      hit->set_parityerror(payload.data_parity == payload.calc_parity);
 
       for (pair<uint16_t, std::vector<uint16_t>> & waveform : payload.waveforms)
       {
@@ -965,23 +982,40 @@ uint16_t TpcTimeFrameBuilder::reverseBits(const uint16_t x) const
   return n;
 }
 
-uint16_t TpcTimeFrameBuilder::crc16(
-    const unsigned int fee, const unsigned int index, const int l) const
+std::pair<uint16_t, uint16_t> TpcTimeFrameBuilder::crc16_parity(const uint32_t fee, const uint16_t l) const
 {
-  uint16_t crc = 0xffffU;
 
-  for (int i = 0; i < l; i++)
+  const std::deque<uint16_t>& data_buffer = m_feeData[fee];
+  assert(l < data_buffer.size());
+
+  std::deque<uint16_t>::const_iterator it = data_buffer.begin();
+
+  uint16_t crc = 0xffffU;
+  uint16_t data_parity = 1U;
+
+  for (int i = 0; i < l; ++i, ++it)
   {
-    uint16_t x = m_feeData[fee][index + i];
+    const uint16_t & x = *it;
+
     crc ^= reverseBits(x);
     for (uint16_t k = 0; k < 16U; k++)
     {
       crc = crc & 1U ? static_cast<uint16_t>(crc >> 1U) ^ 0xa001U : crc >> 1U;
     }
+
+    // fast parity
+    uint16_t word = x & uint16_t((1U<<10U) - 1U);
+    word = word ^ static_cast<uint16_t>(word >> 1U);
+    word = word ^ static_cast<uint16_t>(word >> 2U);
+    word = word ^ static_cast<uint16_t>(word >> 4U);
+    word = word ^ static_cast<uint16_t>(word >> 8U);
+    data_parity ^= word & 1U ;
+    
   }
   crc = reverseBits(crc);
-  return crc;
+  return make_pair(crc, data_parity);
 }
+
 
 namespace
 {
