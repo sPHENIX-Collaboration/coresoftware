@@ -623,7 +623,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     assert(data_buffer[2] == FEE_PACKET_MAGIC_KEY_2);
 
     // valid packet
-    const uint16_t& pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
+    const uint16_t pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
     if (pkt_length > MAX_PACKET_LENGTH)
     {
       if (m_verbosity > 1)
@@ -1472,8 +1472,8 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
 
   for (const m_gtm_fee_bco_matching_pair_t& bco : m_bco_reference_candidate_list)
   {
-    const uint64_t& gtm_bco = bco.first;
-    const uint32_t& fee_bco_predicted = bco.second;
+    const uint64_t gtm_bco = bco.first;
+    const uint32_t fee_bco_predicted = bco.second;
 
     // check if the predicted fee bco matches the actual fee bco
     if (get_fee_bco_diff(fee_bco_predicted, fee_bco) < m_max_fee_bco_diff)
