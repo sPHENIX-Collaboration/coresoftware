@@ -210,11 +210,11 @@ void CylinderGeomIntt::find_strip_index_values(const int segment_z_bin, const do
 
   // get the strip z index
   double zup = (double) nstrips_z_sensor * strip_z / 2.0 + zpos;
-  strip_z_index = (int) (zup / strip_z);
+  strip_z_index = floor(zup / strip_z);
 
   // get the strip y index
   double yup = (double) nstrips_y_sensor * m_StripY / 2.0 + ypos;
-  strip_y_index = (int) (yup / m_StripY);
+  strip_y_index = floor(yup / m_StripY);
 
   /*
   std::cout << "segment_z_bin " << segment_z_bin << " ypos " << ypos << " zpos " << zpos << " zup " << zup << " yup " << yup << std::endl;
