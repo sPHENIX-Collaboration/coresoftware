@@ -843,7 +843,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
     
     //  skip the common vertex requirement for this track unless there are 3 tracks in the event
-    if(accepted_tracks < 3) {  continue; }
+    if(accepted_tracks < 3) {  _mille->end(); continue; }
     
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca

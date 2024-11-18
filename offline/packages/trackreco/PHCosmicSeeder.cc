@@ -77,6 +77,7 @@ int PHCosmicSeeder::InitRun(PHCompositeNode* topNode)
 int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
 {
   PHCosmicSeeder::PositionMap clusterPositions;
+  TFile *gregMaskFile ("gregMaskHists.root","READ");
   for (const auto& hitsetkey : m_clusterContainer->getHitSetKeys(m_trackerId))
   {
     auto range = m_clusterContainer->getClusters(hitsetkey);
@@ -85,7 +86,8 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
       const auto ckey = citer->first;
       const auto cluster = citer->second;
       const auto global = m_tGeometry->getGlobalPosition(ckey, cluster);
-      clusterPositions.insert(std::make_pair(ckey, global));
+      if (!gregMask(ckey, gregMaskFile)) 
+        clusterPositions.insert(std::make_pair(ckey, global));
     }
   }
   if (Verbosity() > 2)
@@ -666,4 +668,15 @@ int PHCosmicSeeder::End(PHCompositeNode* /*unused*/)
     m_outfile->Close();
   }
   return Fun4AllReturnCodes::EVENT_OK;
+}
+// tmp mask
+bool PHCosmicSeeder::gregMask(TrkrDefs::cluskey key, TrkrCluster* cluster, TFile* gregMaskFile)
+{
+  uint8_t layer = TrkrDefs::getLayer(key);
+  uint8_t stave = MvtxDefs::getStaveId(key);
+  uint8_t chip = MvtxDefs::getChipId(key);
+  TH1F* h = nullptr;
+  std::string hist_name = "Channel_"+std::to_string(layer)+"_"+std::to_string(stave)+"_"+std::to_string(chip);
+  h = gregMaskFile->GetObject(hist_name.c_str());
+
 }
