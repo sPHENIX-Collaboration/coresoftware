@@ -110,7 +110,7 @@ SingleTpcTimeFrameInput::TimeTracker::~TimeTracker()
 void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 {
   {
-    bool first = true;
+    static bool first = true;
     if (first)
     {
       first = false;
