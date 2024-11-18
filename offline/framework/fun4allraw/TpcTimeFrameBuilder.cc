@@ -154,9 +154,9 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   hm->registerHisto(h_TimeFrame_Matched_Size);
 
   h_ProcessPacket_Time = new TH2I(TString(m_HistoPrefix.c_str()) + "_ProcessPacket_Time",  //
-                              TString(m_HistoPrefix.c_str()) +
-                                  " Time cost to run ProcessPacket();Call counts;Time elapsed per call [ms];Count",
-                              100, 0, 30e6, 100,0,10);
+                                  TString(m_HistoPrefix.c_str()) +
+                                      " Time cost to run ProcessPacket();Call counts;Time elapsed per call [ms];Count",
+                                  100, 0, 30e6, 100, 0, 10);
   hm->registerHisto(h_ProcessPacket_Time);
 }
 
@@ -351,7 +351,7 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
     }
 
     auto it = m_timeFrameMap.find(bco_completed);
-    assert(it != m_timeFrameMap.end()); // strong workflow check
+    assert(it != m_timeFrameMap.end());  // strong workflow check
 
     if (it != m_timeFrameMap.end())
     {
@@ -578,7 +578,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
 
   m_packetTimer->stop();
   assert(h_ProcessPacket_Time);
-  h_ProcessPacket_Time -> Fill(call_count, m_packetTimer->elapsed());
+  h_ProcessPacket_Time->Fill(call_count, m_packetTimer->elapsed());
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -679,7 +679,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         m_hFEEDataStream->Fill(fee, "HitCRCError", 1);
         // continue;
       }
-      
+
       if (payload.data_parity != payload.calc_parity)
       {
         if (m_verbosity > 2)
@@ -805,10 +805,16 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 
       // Format is (N sample) (start time), (1st sample)... (Nth sample)
       size_t pos = HEADER_LENGTH;
+      std::deque<uint16_t>::const_iterator data_buffer_iterator = data_buffer.cbegin();
+      std::advance(data_buffer_iterator, pos);
       while (pos + 2 < pkt_length)
       {
-        const uint16_t& nsamp = data_buffer[pos++];
-        const uint16_t& start_t = data_buffer[pos++];
+        const uint16_t& nsamp = *data_buffer_iterator;
+        ++pos;
+        ++data_buffer_iterator;
+        const uint16_t& start_t = *data_buffer_iterator;
+        ++pos;
+        ++data_buffer_iterator;
         if (m_verbosity > 3)
         {
           cout << __PRETTY_FUNCTION__ << ": nsamp: " << nsamp
@@ -839,9 +845,13 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         std::vector<uint16_t> adc(nsamp);
         for (int j = 0; j < nsamp; j++)
         {
-          adc[j] = data_buffer[pos++];
+          const uint16_t& adc_value = *data_buffer_iterator;
 
-          m_hFEESAMPAADC->Fill(start_t + j, fee_sampa_address, adc[j]);
+          adc[j] = adc_value;
+          m_hFEESAMPAADC->Fill(start_t + j, fee_sampa_address, adc_value);
+
+          ++pos;
+          ++data_buffer_iterator;  //data_buffer[pos++];
         }
         payload.waveforms.emplace_back(start_t, std::move(adc));
 
@@ -878,7 +888,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       // hit->set_parity(payload.data_parity);
       hit->set_parityerror(payload.data_parity != payload.calc_parity);
 
-      for (pair<uint16_t, std::vector<uint16_t>> & waveform : payload.waveforms)
+      for (pair<uint16_t, std::vector<uint16_t>>& waveform : payload.waveforms)
       {
         hit->move_adc_waveform(waveform.first, move(waveform.second));
       }
@@ -986,7 +996,6 @@ uint16_t TpcTimeFrameBuilder::reverseBits(const uint16_t x) const
 
 std::pair<uint16_t, uint16_t> TpcTimeFrameBuilder::crc16_parity(const uint32_t fee, const uint16_t l) const
 {
-
   const std::deque<uint16_t>& data_buffer = m_feeData[fee];
   assert(l < data_buffer.size());
 
@@ -997,7 +1006,7 @@ std::pair<uint16_t, uint16_t> TpcTimeFrameBuilder::crc16_parity(const uint32_t f
 
   for (int i = 0; i < l; ++i, ++it)
   {
-    const uint16_t & x = *it;
+    const uint16_t& x = *it;
 
     crc ^= reverseBits(x);
     for (uint16_t k = 0; k < 16U; k++)
@@ -1006,21 +1015,20 @@ std::pair<uint16_t, uint16_t> TpcTimeFrameBuilder::crc16_parity(const uint32_t f
     }
 
     // parity on data payload only
-    if (i>=HEADER_LENGTH)
+    if (i >= HEADER_LENGTH)
     {
       // fast parity
-      uint16_t word = x & uint16_t((1U<<10U) - 1U);
+      uint16_t word = x & uint16_t((1U << 10U) - 1U);
       word = word ^ static_cast<uint16_t>(word >> 1U);
       word = word ^ static_cast<uint16_t>(word >> 2U);
       word = word ^ static_cast<uint16_t>(word >> 4U);
       word = word ^ static_cast<uint16_t>(word >> 8U);
-      data_parity ^= word & 1U ;
+      data_parity ^= word & 1U;
     }
   }
   crc = reverseBits(crc);
   return make_pair(crc, data_parity);
 }
-
 
 namespace
 {
