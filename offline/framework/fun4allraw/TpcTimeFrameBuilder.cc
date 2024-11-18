@@ -100,8 +100,8 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "RawHit");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitFormatErrorOverLength");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitFormatErrorMismatchedLength");
-  m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "MissingLastHit");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitCRCError");
+  m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "ParityError");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitUnusedBeforeCleanup");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "PacketHeartBeat");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "PacketHeartBeatClockSyncUnavailable");
@@ -154,9 +154,9 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   hm->registerHisto(h_TimeFrame_Matched_Size);
 
   h_ProcessPacket_Time = new TH2I(TString(m_HistoPrefix.c_str()) + "_ProcessPacket_Time",  //
-                              TString(m_HistoPrefix.c_str()) +
-                                  " Time cost to run ProcessPacket();Call counts;Time elapsed per call [ms];Count",
-                              1000, 0, 30e6, 100,0,10);
+                                  TString(m_HistoPrefix.c_str()) +
+                                      " Time cost to run ProcessPacket();Call counts;Time elapsed per call [ms];Count",
+                                  100, 0, 30e6, 100, 0, 10);
   hm->registerHisto(h_ProcessPacket_Time);
 }
 
@@ -351,7 +351,7 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
     }
 
     auto it = m_timeFrameMap.find(bco_completed);
-    assert(it != m_timeFrameMap.end()); // strong workflow check
+    assert(it != m_timeFrameMap.end());  // strong workflow check
 
     if (it != m_timeFrameMap.end())
     {
@@ -578,7 +578,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
 
   m_packetTimer->stop();
   assert(h_ProcessPacket_Time);
-  h_ProcessPacket_Time -> Fill(call_count, m_packetTimer->elapsed());
+  h_ProcessPacket_Time->Fill(call_count, m_packetTimer->elapsed());
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -623,7 +623,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     assert(data_buffer[2] == FEE_PACKET_MAGIC_KEY_2);
 
     // valid packet
-    const uint16_t& pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
+    const uint16_t pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
     if (pkt_length > MAX_PACKET_LENGTH)
     {
       if (m_verbosity > 1)
@@ -659,11 +659,14 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     payload.type = static_cast<uint16_t>(data_buffer[3] >> 7U) & 0x7U;
     payload.user_word = data_buffer[3] & 0x7fU;
     payload.bx_timestamp = static_cast<uint32_t>(static_cast<uint32_t>(data_buffer[6] & 0x3ffU) << 10U) | (data_buffer[5] & 0x3ffU);
+    payload.data_crc = data_buffer[pkt_length];
 
     if (not m_fastBCOSkip)
     {
-      payload.data_crc = data_buffer[pkt_length];
-      payload.calc_crc = crc16(fee, 0, pkt_length);
+      auto crc_parity = crc16_parity(fee, pkt_length);
+      payload.calc_crc = crc_parity.first;
+      payload.calc_parity = crc_parity.second;
+
       if (payload.data_crc != payload.calc_crc)
       {
         if (m_verbosity > 2)
@@ -673,7 +676,20 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
                << ": data_crc = " << payload.data_crc
                << "\t- calc_crc = " << payload.calc_crc << endl;
         }
-        m_hFEEDataStream->Fill(fee, "CRCError", 1);
+        m_hFEEDataStream->Fill(fee, "HitCRCError", 1);
+        // continue;
+      }
+
+      if (payload.data_parity != payload.calc_parity)
+      {
+        if (m_verbosity > 2)
+        {
+          cout << __PRETTY_FUNCTION__ << "\t- : parity error in FEE "
+               << fee << "\t- at position " << pkt_length - 1
+               << ": data_parity = " << payload.data_parity
+               << "\t- calc_parity = " << payload.calc_parity << endl;
+        }
+        m_hFEEDataStream->Fill(fee, "ParityError", 1);
         // continue;
       }
     }  //     if (not m_fastBCOSkip)
@@ -778,7 +794,9 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
            << "\t- bx_timestamp = 0x" << hex << payload.bx_timestamp << dec << endl
            << "\t- bco = 0x" << hex << payload.gtm_bco << dec << endl
            << "\t- data_crc = 0x" << hex << payload.data_crc << dec << endl
-           << "\t- calc_crc = 0x" << hex << payload.calc_crc << dec << endl;
+           << "\t- calc_crc = 0x" << hex << payload.calc_crc << dec << endl
+           << "\t- data_parity = 0x" << hex << payload.data_parity << dec << endl
+           << "\t- calc_parity = 0x" << hex << payload.calc_parity << dec << endl;
     }
 
     if ((not m_fastBCOSkip) and payload.gtm_bco > 0)
@@ -787,10 +805,16 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 
       // Format is (N sample) (start time), (1st sample)... (Nth sample)
       size_t pos = HEADER_LENGTH;
+      std::deque<uint16_t>::const_iterator data_buffer_iterator = data_buffer.cbegin();
+      std::advance(data_buffer_iterator, pos);
       while (pos + 2 < pkt_length)
       {
-        const uint16_t& nsamp = data_buffer[pos++];
-        const uint16_t& start_t = data_buffer[pos++];
+        const uint16_t& nsamp = *data_buffer_iterator;
+        ++pos;
+        ++data_buffer_iterator;
+        const uint16_t& start_t = *data_buffer_iterator;
+        ++pos;
+        ++data_buffer_iterator;
         if (m_verbosity > 3)
         {
           cout << __PRETTY_FUNCTION__ << ": nsamp: " << nsamp
@@ -821,9 +845,13 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         std::vector<uint16_t> adc(nsamp);
         for (int j = 0; j < nsamp; j++)
         {
-          adc[j] = data_buffer[pos++];
+          const uint16_t& adc_value = *data_buffer_iterator;
 
-          m_hFEESAMPAADC->Fill(start_t + j, fee_sampa_address, adc[j]);
+          adc[j] = adc_value;
+          m_hFEESAMPAADC->Fill(start_t + j, fee_sampa_address, adc_value);
+
+          ++pos;
+          ++data_buffer_iterator;  //data_buffer[pos++];
         }
         payload.waveforms.emplace_back(start_t, std::move(adc));
 
@@ -845,7 +873,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     }  //     if (not m_fastBCOSkip)
 
     // valid packet in the buffer, create a new hit
-    if (payload.type != m_bcoMatchingInformation.HEARTBEAT_T)
+    if ((not m_fastBCOSkip) and payload.type != m_bcoMatchingInformation.HEARTBEAT_T)
     {
       TpcRawHitv3* hit = new TpcRawHitv3();
       m_timeFrameMap[payload.gtm_bco].push_back(hit);
@@ -855,11 +883,12 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       hit->set_fee(fee);
       hit->set_channel(payload.channel);
       hit->set_type(payload.type);
-      hit->set_checksum(payload.data_crc);
-      hit->set_checksumerror(payload.data_crc == payload.calc_crc);
-      //TODO: add parity information
+      // hit->set_checksum(payload.data_crc);
+      hit->set_checksumerror(payload.data_crc != payload.calc_crc);
+      // hit->set_parity(payload.data_parity);
+      hit->set_parityerror(payload.data_parity != payload.calc_parity);
 
-      for (pair<uint16_t, std::vector<uint16_t>> & waveform : payload.waveforms)
+      for (pair<uint16_t, std::vector<uint16_t>>& waveform : payload.waveforms)
       {
         hit->move_adc_waveform(waveform.first, move(waveform.second));
       }
@@ -965,22 +994,40 @@ uint16_t TpcTimeFrameBuilder::reverseBits(const uint16_t x) const
   return n;
 }
 
-uint16_t TpcTimeFrameBuilder::crc16(
-    const unsigned int fee, const unsigned int index, const int l) const
+std::pair<uint16_t, uint16_t> TpcTimeFrameBuilder::crc16_parity(const uint32_t fee, const uint16_t l) const
 {
-  uint16_t crc = 0xffffU;
+  const std::deque<uint16_t>& data_buffer = m_feeData[fee];
+  assert(l < data_buffer.size());
 
-  for (int i = 0; i < l; i++)
+  std::deque<uint16_t>::const_iterator it = data_buffer.begin();
+
+  uint16_t crc = 0xffffU;
+  uint16_t data_parity = 0U;
+
+  for (int i = 0; i < l; ++i, ++it)
   {
-    uint16_t x = m_feeData[fee][index + i];
+    const uint16_t& x = *it;
+
     crc ^= reverseBits(x);
     for (uint16_t k = 0; k < 16U; k++)
     {
       crc = crc & 1U ? static_cast<uint16_t>(crc >> 1U) ^ 0xa001U : crc >> 1U;
     }
+
+    // parity on data payload only
+    if (i >= HEADER_LENGTH)
+    {
+      // fast parity
+      uint16_t word = x & uint16_t((1U << 10U) - 1U);
+      word = word ^ static_cast<uint16_t>(word >> 1U);
+      word = word ^ static_cast<uint16_t>(word >> 2U);
+      word = word ^ static_cast<uint16_t>(word >> 4U);
+      word = word ^ static_cast<uint16_t>(word >> 8U);
+      data_parity ^= word & 1U;
+    }
   }
   crc = reverseBits(crc);
-  return crc;
+  return make_pair(crc, data_parity);
 }
 
 namespace
@@ -1425,8 +1472,8 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_refere
 
   for (const m_gtm_fee_bco_matching_pair_t& bco : m_bco_reference_candidate_list)
   {
-    const uint64_t& gtm_bco = bco.first;
-    const uint32_t& fee_bco_predicted = bco.second;
+    const uint64_t gtm_bco = bco.first;
+    const uint32_t fee_bco_predicted = bco.second;
 
     // check if the predicted fee bco matches the actual fee bco
     if (get_fee_bco_diff(fee_bco_predicted, fee_bco) < m_max_fee_bco_diff)

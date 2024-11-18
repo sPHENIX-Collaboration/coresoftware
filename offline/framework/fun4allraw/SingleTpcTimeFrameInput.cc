@@ -109,6 +109,24 @@ SingleTpcTimeFrameInput::TimeTracker::~TimeTracker()
 
 void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 {
+  {
+    static bool first = true;
+    if (first)
+    {
+      first = false;
+
+      if (m_SelectedPacketIDs.size())
+      {
+        std::cout << "SingleTpcTimeFrameInput::" << Name() <<" : note, only processing packets with ID: ";
+        for (const auto &id : m_SelectedPacketIDs)
+        {
+          std::cout << id << " ";
+        }
+        std::cout << std::endl;
+      }
+    }
+  }
+
   TimeTracker fillPoolTimer(m_FillPoolTimer, "FillPool", m_hNorm);
 
   if ( (Verbosity() >= 1 and targetBCO % 941 == 0) or Verbosity() >= 2)
@@ -211,6 +229,18 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
       // get packet id
       const auto packet_id = packet->getIdentifier();
+
+      if (m_SelectedPacketIDs.size() > 0 and m_SelectedPacketIDs.find(packet_id) == m_SelectedPacketIDs.end())
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << __PRETTY_FUNCTION__ << ": Skipping packet id: " << packet_id << std::endl;
+        }
+
+        delete packet;
+        packet = nullptr;
+        continue;
+      }
 
       if (m_TpcTimeFrameBuilderMap.find(packet_id) == m_TpcTimeFrameBuilderMap.end())
       {
