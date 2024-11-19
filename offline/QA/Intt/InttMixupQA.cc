@@ -1,5 +1,8 @@
 #include "InttMixupQA.h"
 
+#include <qautils/QAHistManagerDef.h>
+#include <boost/format.hpp>
+
 using namespace std;
 
 InttMixupQA::InttMixupQA(const string &name, const int run_num,const int felix_num)
@@ -36,49 +39,59 @@ int InttMixupQA::InitRun(PHCompositeNode *topNode)
 
   // Initialize histograms
   for( int felix=0; felix<kFelix_num_;felix++ )  {
-    string name = "allmulti_intt" + to_string( felix );
+    string name;
+
+	name = (boost::format("%s_allmulti_intt%d") % getHistoPrefix() % felix).str();
     string title = name + Form("_Run%d",run_num_)+": with clone cut";
     h_allmulti_[felix] = new TH1F( name.c_str(), title.c_str(), 200, 0, bin );
     h_allmulti_[felix]->SetXTitle("Multiplicity");
     //h_allmulti_[felix]->SetLineColor(felix+1);
 
-    name = "allclone_intt" + to_string( felix );
+    name = (boost::format("%s_allclone_intt%d") % getHistoPrefix() % felix).str();
     title = name+ Form("_Run%d",run_num_);
     h_allclone_[felix] = new TH1F( name.c_str(), title.c_str(), 200, 0, 200 );
     h_allclone_[felix]->SetXTitle("Clone multiplicity");
     h_allclone_[felix]->SetLineColor(felix+1);
 
-    name ="bco_full&0x7F_prev_vs_bco_intt"+ to_string( felix ); 
+  	// These next 4 will be plotted 
+	auto hm = QAHistManagerDef::getHistoManager();
+	assert(hm);
+
+   	name =(boost::format("%s_bco_full&0x7F_prev_vs_bco_intt%d") % getHistoPrefix() % felix).str(); 
     title = name+ Form("_Run%d",run_num_);
     h_vsprefull_bco[felix]=new TH2F(name.c_str(), title.c_str(),128, 0, 128, 128, 0, 128);
     h_vsprefull_bco[felix]->SetXTitle("BCO");
     h_vsprefull_bco[felix]->SetYTitle("BCO_FULL previous event &0x7F");
+	hm->registerHisto(h_vsprefull_bco[felix]);
 
-    name ="bco_full&0x7F_vs_bco_intt"+ to_string( felix ); 
+    name =(boost::format("%s_bco_full&0x7F_vs_bco_intt%d") % getHistoPrefix() % felix).str(); 
     title = name+ Form("_Run%d",run_num_); 
     h_vsfull_bco[felix]=new TH2F(name.c_str(), title.c_str(),128, 0, 128, 128, 0, 128);
     h_vsfull_bco[felix]->SetXTitle("BCO");
     h_vsfull_bco[felix]->SetYTitle("BCO_FULL &0x7F");
+	hm->registerHisto(h_vsfull_bco[felix]);
     
-    name ="bco_full&0x7F_prev_bco_intt"+ to_string( felix ); 
+    name =(boost::format("%s_bco_full&0x7F_prev_bco_intt%d") % getHistoPrefix() % felix).str(); 
     title = name+ Form("_Run%d",run_num_); 
     h_prefull_bco[felix]= new TH1F( name.c_str(), title.c_str(), 128, 0, 128 );
     h_prefull_bco[felix]->SetXTitle("BCO_FULL previous event - BCO");
     h_prefull_bco[felix]->SetMinimum(0);
+	hm->registerHisto(h_prefull_bco[felix]);
 
-    name ="bco_full&0x7F_bco_intt"+ to_string( felix ); 
+    name =(boost::format("%s_bco_full&0x7F_bco_intt%d") % getHistoPrefix() % felix).str(); 
     title = name+ Form("_Run%d",run_num_); 
     h_full_bco[felix]= new TH1F( name.c_str(), title.c_str(), 128, 0, 128 );
     h_full_bco[felix]->SetXTitle("BCO_FULL - BCO");
     h_full_bco[felix]->SetMinimum(0);
+	hm->registerHisto(h_full_bco[felix]);
 
-    name ="bco_full&0x7F_prev_bco_intt_all"+ to_string( felix ); 
+    name =(boost::format("%s_bco_full&0x7F_prev_bco_intt_all%d") % getHistoPrefix() % felix).str(); 
     title = name+ Form("_Run%d",run_num_); 
     h_prefull_bco_all[felix]= new TH1F( name.c_str(), title.c_str(), 128, 0, 128 );
     h_prefull_bco_all[felix]->SetXTitle("BCO_FULL previous event - BCO");
     h_prefull_bco_all[felix]->SetMinimum(0);
 
-    name ="bco_full&0x7F_prev_vs_bco_intt_all"+ to_string( felix ); 
+    name =(boost::format("%s_bco_full&0x7F_prev_vs_bco_intt_all%d") % getHistoPrefix() % felix).str(); 
     title = name+ Form("_Run%d",run_num_);
     h_vsprefull_bco_all[felix]=new TH2F(name.c_str(), title.c_str(),128, 0, 128, 128, 0, 128);
     h_vsprefull_bco_all[felix]->SetXTitle("BCO");
@@ -94,11 +107,11 @@ int InttMixupQA::InitRun(PHCompositeNode *topNode)
      h_divmul[felix][p]= new TH1F((title1+Form("_%d",p)).c_str(),(title2+ Form("_%d",p)).c_str(), 200, 0, bin);;
     }
     
-    name="Number of mixup hit"+ to_string( felix );
+    name=(boost::format("%s_Number of mixup hit%d") % getHistoPrefix() % felix).str();
     title =name+ Form("_Run%d",run_num_);
     h_mixup[felix]= new TH1F(name.c_str(), title.c_str(), 400, 0, 400);
 
-    name="prev_allhit vs Nmixup"+ to_string( felix );
+    name=(boost::format("%s_prev_allhit vs Nmixup%d") % getHistoPrefix() % felix).str();
     title =name+ Form("_Run%d",run_num_);
     h_prevsNmix[felix]= new TH2F(name.c_str(), title.c_str(), divimul+10, 0, divimul+10, bin, 0, bin);
     h_prevsNmix[felix]->GetXaxis()->SetNdivisions(405);
@@ -106,32 +119,32 @@ int InttMixupQA::InitRun(PHCompositeNode *topNode)
     h_prevsNmix[felix]->SetXTitle("Number of Mixup hits");
     h_prevsNmix[felix]->SetYTitle("Number of previous event hits");
     
-    name="bco_full_prev-bco No copyhit"+ to_string( felix );
+    name=(boost::format("%s_bco_full_prev-bco No copyhit%d") % getHistoPrefix() % felix).str();
     title =name+ Form("_Run%d",run_num_);
     h_nocopyhit[felix] = new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
     h_nocopyhit[felix]->SetXTitle("bco_full_prev-bco");
 
-    name="bco_full_prev-bco copyhit"+ to_string( felix );
+    name=(boost::format("%s_bco_full_prev-bco copyhit%d") % getHistoPrefix() % felix).str();
     title =name+ Form("_Run%d",run_num_);
     h_copyhit[felix]= new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
     h_copyhit[felix]->SetXTitle("bco_full_prev-bco");
 
-    name="Mixup & copy hit "+ to_string( felix );
+    name=(boost::format("%s_Mixup & copy hit %d") % getHistoPrefix() % felix).str();
     title =name+ Form("_Run%d",run_num_);
     h_mixcopy[felix]= new TH1F(name.c_str(), title.c_str(), 50, 0, 50);
     h_mixcopy[felix]->SetXTitle("Number of Mixup copy hit");
 
-    name="Nmixup vs Nclone"+ to_string( felix );
+    name=(boost::format("%s_Nmixup vs Nclone%d") % getHistoPrefix() % felix).str();
     title =name+ Form("_Run%d",run_num_);
     h_mixvscopy[felix]= new TH2F(name.c_str(), title.c_str(), 100, 0, 100, 50, 0, 50);
     h_mixvscopy[felix]->SetXTitle("Nmixup");
     h_mixvscopy[felix]->SetYTitle("Ncopy");  
 
-    name="Nmixup vs pre_Nhits"+ to_string( felix );
+    name=(boost::format("%s_Nmixup vs pre_Nhits%d") % getHistoPrefix() % felix).str();
     title =name+ Form("_Run%d",run_num_);
     h_hitfra[felix]=new TH2F(name.c_str(), title.c_str(),bin,0,bin,bin,0,bin);
 
-    name="Nmixup vs pre_Nhits others 4bin"+ to_string( felix );
+    name=(boost::format("%s_Nmixup vs pre_Nhits others 4bin%d") % getHistoPrefix() % felix).str();
     title =name+ Form("_Run%d",run_num_);
     h_bghit[felix]=new TH2F(name.c_str(), title.c_str(),bin,0,bin,bin,0,bin);
 
