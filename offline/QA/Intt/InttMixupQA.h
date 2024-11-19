@@ -73,6 +73,7 @@ class InttMixupQA : public SubsysReco {
 
   void SetHotChanFileDir (std::string path){hotchan_dir_=path;};
 
+  std::string getHistoPrefix() {return "InttMixupQA";}
   //int SetHistBin(std::string type);
  private:
 
@@ -169,10 +170,12 @@ class InttMixupQA : public SubsysReco {
   TH1F *h_mixupmulti[kFelix_num_][divimul];
   TH1F *h_divmul[kFelix_num_][divimul];
 
+  // plot these
   TH2F *h_vsprefull_bco[kFelix_num_]; 
   TH2F *h_vsfull_bco[kFelix_num_];
   TH1F *h_prefull_bco[kFelix_num_];
   TH1F *h_full_bco[kFelix_num_];
+
   TH1F *h_prefull_bco_all[kFelix_num_];
   TH2F *h_vsprefull_bco_all[kFelix_num_];
   TH1F *h_interval;
