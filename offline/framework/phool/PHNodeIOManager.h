@@ -10,6 +10,7 @@
 #include "phool.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <string>
 

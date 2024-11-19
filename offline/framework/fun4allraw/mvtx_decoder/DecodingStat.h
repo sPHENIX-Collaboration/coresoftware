@@ -8,9 +8,10 @@
 
 #define CXX_17 201703L
 
-#include <string>
 #include <array>
+#include <cstdint>
 #include <cstring>
+#include <string>
 
 namespace mvtx
 {
