@@ -1,35 +1,39 @@
 #ifndef MVTX_MVTXPIXELMASK_H
 #define MVTX_MVTXPIXELMASK_H
 
-#include "MvtxPixelDefs.h"
+#include "MvtxRawPixelDefs.h"
 
-#include <climits>
-#include <memory>
-#include <vector>
+#include <phool/PHObject.h>
+
+#include <iostream>
 
 class MvtxRawHit;
 
-class MvtxPixelMask
+class MvtxPixelMask : public PHObject
 {
- public:
-  MvtxPixelMask() {}
-  ~MvtxPixelMask() { clear(); }
+    public:
 
-  typedef std::vector<MvtxPixelDefs::pixelkey> hot_pixel_map_t;
+        MvtxPixelMask() {}
+        ~MvtxPixelMask() override {}
 
-  void load_from_CDB();
+        virtual void identify(std::ostream& os) const override { os << "MvtxPixelMask" << std::endl; }
+        int isValid() const override { return 0; }
+        PHObject* CloneMe() const override { return nullptr; }
 
-  void add_pixel(MvtxPixelDefs::pixelkey key);
-  void remove_pixel(MvtxPixelDefs::pixelkey key);
+        virtual void load_from_CDB(std::string /*calibfile = "MVTX_HotPixelMap"*/) { return; }
 
-  void clear();
+        virtual void add_pixel(MvtxRawPixelDefs::mvtx_pixelkey /*key*/) { return; }
+        virtual void remove_pixel(MvtxRawPixelDefs::mvtx_pixelkey /*key*/) { return; }
+        
+        virtual void clear() { return; }
 
-  bool is_masked(MvtxRawHit* hit) const;
+        virtual bool is_masked(MvtxRawHit* /*hit*/) const { return false; }
 
-  hot_pixel_map_t get_hot_pixel_map() const { return m_hot_pixel_map; }
+        virtual MvtxRawPixelDefs::pixelkeyvec_t get_pixel_mask() const { return MvtxRawPixelDefs::VOID_PIXELVEC; }
 
- private:
-  hot_pixel_map_t m_hot_pixel_map{};
+    private:
+
+        ClassDefOverride(MvtxPixelMask, 1);
 };
 
-#endif  // MVTX_MVTXPIXELMASK_H
+#endif // MVTX_MVTXPIXELMASK_H

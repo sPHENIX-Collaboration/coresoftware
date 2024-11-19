@@ -25,18 +25,31 @@ pkginclude_HEADERS = \
   MvtxClusterizer.h \
   MvtxHitPruner.h \
   MvtxNoiseMap.h \
-  MvtxPixelDefs.h \
+  MvtxCombinedRawDataDecoder.h \
+  CylinderGeom_Mvtx.h \
+  SegmentationAlpide.h \
   MvtxPixelMask.h \
-  SegmentationAlpide.h
+  MvtxPixelMaskv1.h \
+  MvtxRawPixelDefs.h \
+  MvtxRawPixelMasker.h 
+
 
 ROOTDICTS = \
   CylinderGeom_Mvtx_Dict.cc \
-  MvtxNoiseMap_Dict.cc
+  MvtxNoiseMap_Dict.cc \
+  MvtxPixelMask_Dict.cc \
+  MvtxPixelMaskv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeom_Mvtx_Dict_rdict.pcm \
+<<<<<<< HEAD
   MvtxNoiseMap_Dict_rdict.pcm
+=======
+	MvtxNoiseMap_Dict_rdict.pcm \
+  MvtxPixelMask_Dict_rdict.pcm \
+  MvtxPixelMaskv1_Dict_rdict.pcm
+>>>>>>> 9c73c7b0e... Add dynamic masking
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
@@ -44,8 +57,13 @@ libmvtx_la_SOURCES = \
   MvtxCombinedRawDataDecoder.cc \
   MvtxClusterizer.cc \
   MvtxHitPruner.cc \
+<<<<<<< HEAD
   MvtxPixelDefs.cc \
   MvtxPixelMask.cc
+=======
+  MvtxCombinedRawDataDecoder.cc \
+  MvtxRawPixelMasker.cc
+>>>>>>> 9c73c7b0e... Add dynamic masking
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
@@ -67,11 +85,28 @@ libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeom_Mvtx.cc \
   MvtxNoiseMap.cc \
-  SegmentationAlpide.cc
+  SegmentationAlpide.cc \
+  MvtxPixelMaskv1.cc \
+  MvtxRawPixelDefs.cc 
 
 libmvtx_io_la_LIBADD = \
+<<<<<<< HEAD
   -lg4detectors_io \
   -lphool
+=======
+  -lActsCore \
+  -lphool \
+  -lfun4all \
+  -lffamodules \
+  -lffarawobjects \
+  -lcdbobjects \
+  -lCLHEP \
+  -lfun4allraw \
+  -lphg4hit \
+  -ltrack_io \
+  -lmvtx_decoder \
+  -lg4detectors_io
+>>>>>>> 9c73c7b0e... Add dynamic masking
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

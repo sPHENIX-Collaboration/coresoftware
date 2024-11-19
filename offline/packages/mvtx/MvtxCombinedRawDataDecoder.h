@@ -5,6 +5,7 @@
  * \file MvtxCombinedRawDataDecoder.h
  * \author Cameron Dean <cameron.dean@cern.ch>
  * \author Jakub Kvapil <jakub.kvapil@cern.ch>
+ * \author Tanner mEngel <tmengel@bnl.gov>
  */
 
 #include <fun4all/SubsysReco.h>
@@ -16,7 +17,6 @@
 #include <string>
 #include <vector>
 
-#include "MvtxPixelMask.h"
 
 class MvtxEventInfo;
 class MvtxRawEvtHeader;
@@ -24,6 +24,7 @@ class MvtxRawHitContainer;
 class MvtxRawHit;
 class PHCompositeNode;
 class TrkrHitSetContainer;
+class MvtxPixelMaskv1;
 
 /// mvtx raw data decoder
 class MvtxCombinedRawDataDecoder : public SubsysReco
@@ -79,7 +80,8 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
 
   // mask hot pixels
   bool m_doOfflineMasking{false};
-  MvtxPixelMask * m_hot_pixel_mask{nullptr};
+  MvtxPixelMaskv1* m_hot_pixel_mask = nullptr;
+  std::string m_MvtxHotPixelMaskNodeName = "MvtxHotPixelMask";
 
   bool m_mvtx_is_triggered{false};
 };
