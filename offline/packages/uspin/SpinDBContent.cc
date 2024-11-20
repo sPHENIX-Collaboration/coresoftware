@@ -49,7 +49,7 @@ void SpinDBContent::Initialize()
   phase_bf = (float) ERROR_VALUE;
   phase_bb = (float) ERROR_VALUE;
   phase_yf = (float) ERROR_VALUE;
-  phaseerr_yb = (float) ERROR_VALUE;
+  phase_yb = (float) ERROR_VALUE;
   phaseerr_bf = (float) ERROR_VALUE;
   phaseerr_bb = (float) ERROR_VALUE;
   phaseerr_yf = (float) ERROR_VALUE;
