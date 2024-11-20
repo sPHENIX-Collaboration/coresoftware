@@ -205,6 +205,24 @@ int SpinDBInput::InitializeRunRow(SpinDBContent spin_cont)
   InitializeArray(runnum, qa_level, "zdcns", ncross);
   InitializeArray(runnum, qa_level, "badbunchqa", ncross);
 
+  InitializeValue(runnum, qa_level, "asymbf");
+  InitializeValue(runnum, qa_level, "asymbb");
+  InitializeValue(runnum, qa_level, "asymyf");
+  InitializeValue(runnum, qa_level, "asymyb");
+  InitializeValue(runnum, qa_level, "asymerrbf");
+  InitializeValue(runnum, qa_level, "asymerrbb");
+  InitializeValue(runnum, qa_level, "asymerryf");
+  InitializeValue(runnum, qa_level, "asymerryb");
+
+  InitializeValue(runnum, qa_level, "phasebf");
+  InitializeValue(runnum, qa_level, "phasebb");
+  InitializeValue(runnum, qa_level, "phaseyf");
+  InitializeValue(runnum, qa_level, "phaseyb");
+  InitializeValue(runnum, qa_level, "phaseerrbf");
+  InitializeValue(runnum, qa_level, "phaseerrbb");
+  InitializeValue(runnum, qa_level, "phaseerryf");
+  InitializeValue(runnum, qa_level, "phaseerryb");
+
   InitializeValue(runnum, qa_level, "crossingangle");
   InitializeValue(runnum, qa_level, "crossanglestd");
   InitializeValue(runnum, qa_level, "crossanglemin");
@@ -383,6 +401,88 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
   {
     UpdateArray(runnum, qa_level, "badbunchqa", bad_bunch, ncross);
   }
+
+  float a_bf, a_bb, a_yf, a_yb;
+  float a_bf_err, a_bb_err, a_yf_err, a_yb_err;
+  float p_bf, p_bb, p_yf, p_yb;
+  float p_bf_err, p_bb_err, p_yf_err, p_yb_err;
+  spin_cont.GetAsymBlueForward(a_bf, a_bf_err);
+  spin_cont.GetAsymBlueBackward(a_bb, a_bb_err);
+  spin_cont.GetAsymYellowForward(a_yf, a_yf_err);
+  spin_cont.GetAsymYellowBackward(a_yb, a_yb_err);
+  spin_cont.GetPhaseBlueForward(p_bf, p_bf_err);
+  spin_cont.GetPhaseBlueBackward(p_bb, p_bb_err);
+  spin_cont.GetPhaseYellowForward(p_yf, p_yf_err);
+  spin_cont.GetPhaseYellowBackward(p_yb, p_yb_err);
+
+  if (a_bf != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "asymbf", a_bf);
+  }
+  if (a_bf_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "asymerrbf", a_bf_err);
+  }
+  if (a_bb != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "asymbb", a_bb);
+  }
+  if (a_bb_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "asymerrbb", a_bb_err);
+  }
+  if (a_yf != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "asymyf", a_yf);
+  }
+  if (a_yf_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "asymerryf", a_yf_err);
+  }
+  if (a_yb != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "asymyb", a_yb);
+  }
+  if (a_yb_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "asymerryb", a_yb_err);
+  }
+
+  
+  if (p_bf != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phasebf", p_bf);
+  }
+  if (p_bf_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseerrbf", p_bf_err);
+  }
+  if (p_bb != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phasebb", p_bb);
+  }
+  if (p_bb_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseerrbb", p_bb_err);
+  }
+  if (p_yf != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseyf", p_yf);
+  }
+  if (p_yf_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseerryf", p_yf_err);
+  }
+  if (p_yb != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseyb", p_yb);
+  }
+  if (p_yb_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseerryb", p_yb_err);
+  }
+
+
 
   float cross_angle = spin_cont.GetCrossAngle();
   float cross_angle_std = spin_cont.GetCrossAngleStd();

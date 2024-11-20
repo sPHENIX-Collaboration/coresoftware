@@ -653,6 +653,15 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
     spin_cont.SetBadBunchFlag(i, bad_bunch[i]);
   }
 
+  spin_cont.SetAsymBlueForward(rs->getFloat("asymbf"), rs->getFloat("asymerrbf"));
+  spin_cont.SetAsymBlueBackward(rs->getFloat("asymbb"), rs->getFloat("asymerrbb"));
+  spin_cont.SetAsymYellowForward(rs->getFloat("asymyf"), rs->getFloat("asymerryf"));
+  spin_cont.SetAsymYellowBackward(rs->getFloat("asymyb"), rs->getFloat("asymerryb"));
+  spin_cont.SetPhaseBlueForward(rs->getFloat("phasebf"), rs->getFloat("phaseerrbf"));
+  spin_cont.SetPhaseBlueBackward(rs->getFloat("phasebb"), rs->getFloat("phaseerrbb"));
+  spin_cont.SetPhaseYellowForward(rs->getFloat("phaseyf"), rs->getFloat("phaseerryf"));
+  spin_cont.SetPhaseYellowBackward(rs->getFloat("phaseyb"), rs->getFloat("phaseerryb"));
+
   spin_cont.SetCrossAngle(rs->getFloat("crossingangle"));
   spin_cont.SetCrossAngleStd(rs->getFloat("crossanglestd"));
   spin_cont.SetCrossAngleMin(rs->getFloat("crossanglemin"));
