@@ -653,11 +653,6 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
     spin_cont.SetBadBunchFlag(i, bad_bunch[i]);
   }
 
-  spin_cont.SetTransCompBlueX(rs->getFloat("transversxblue"), rs->getFloat("transversxblueerr"));
-  spin_cont.SetTransCompBlueY(rs->getFloat("transversyblue"), rs->getFloat("transversyblueerr"));
-  spin_cont.SetTransCompYellowX(rs->getFloat("transversxyellow"), rs->getFloat("transversxyellowerr"));
-  spin_cont.SetTransCompYellowY(rs->getFloat("transversyyellow"), rs->getFloat("transversyyellowerr"));
-
   spin_cont.SetCrossAngle(rs->getFloat("crossingangle"));
   spin_cont.SetCrossAngleStd(rs->getFloat("crossanglestd"));
   spin_cont.SetCrossAngleMin(rs->getFloat("crossanglemin"));
