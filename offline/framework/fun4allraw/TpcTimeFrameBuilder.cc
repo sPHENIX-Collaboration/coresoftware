@@ -351,7 +351,9 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
     }
 
     auto it = m_timeFrameMap.find(bco_completed);
-    assert(it != m_timeFrameMap.end());  // strong workflow check
+
+    // assert(it != m_timeFrameMap.end());  // strong workflow check disabled
+    // this can happen if TPC GL1 tagger is shifted slight ahead of the GTM BCO, but within GL1_BCO_MATCH_WINDOW
 
     if (it != m_timeFrameMap.end())
     {
@@ -870,29 +872,28 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
         m_hFEEDataStream->Fill(fee, "HitFormatErrorMismatchedLength", 1);
       }
 
-    }  //     if (not m_fastBCOSkip)
-
-    // valid packet in the buffer, create a new hit
-    if ((not m_fastBCOSkip) and payload.type != m_bcoMatchingInformation.HEARTBEAT_T)
-    {
-      TpcRawHitv3* hit = new TpcRawHitv3();
-      m_timeFrameMap[payload.gtm_bco].push_back(hit);
-
-      hit->set_bco(payload.bx_timestamp);
-      hit->set_packetid(m_packet_id);
-      hit->set_fee(fee);
-      hit->set_channel(payload.channel);
-      hit->set_type(payload.type);
-      // hit->set_checksum(payload.data_crc);
-      hit->set_checksumerror(payload.data_crc != payload.calc_crc);
-      // hit->set_parity(payload.data_parity);
-      hit->set_parityerror(payload.data_parity != payload.calc_parity);
-
-      for (pair<uint16_t, std::vector<uint16_t>>& waveform : payload.waveforms)
+      // valid packet in the buffer, create a new hit
+      if (payload.type != m_bcoMatchingInformation.HEARTBEAT_T)
       {
-        hit->move_adc_waveform(waveform.first, move(waveform.second));
+        TpcRawHitv3* hit = new TpcRawHitv3();
+        m_timeFrameMap[payload.gtm_bco].push_back(hit);
+
+        hit->set_bco(payload.bx_timestamp);
+        hit->set_packetid(m_packet_id);
+        hit->set_fee(fee);
+        hit->set_channel(payload.channel);
+        hit->set_type(payload.type);
+        // hit->set_checksum(payload.data_crc);
+        hit->set_checksumerror(payload.data_crc != payload.calc_crc);
+        // hit->set_parity(payload.data_parity);
+        hit->set_parityerror(payload.data_parity != payload.calc_parity);
+
+        for (pair<uint16_t, std::vector<uint16_t>>& waveform : payload.waveforms)
+        {
+          hit->move_adc_waveform(waveform.first, move(waveform.second));
+        }
       }
-    }
+    }  //     if (not m_fastBCOSkip)
 
     data_buffer.erase(data_buffer.begin(), data_buffer.begin() + pkt_length + 1);
     m_hFEEDataStream->Fill(fee, "WordValid", pkt_length + 1);
