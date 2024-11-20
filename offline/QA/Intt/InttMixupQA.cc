@@ -1,15 +1,21 @@
 #include "InttMixupQA.h"
 
 #include <qautils/QAHistManagerDef.h>
+#include <phool/phool.h> // PHWHERE
+
+#include <iostream>
+
+#include <TSystem.h>
+
 #include <boost/format.hpp>
 
 using namespace std;
 
-InttMixupQA::InttMixupQA(const string &name, const int run_num,const int felix_num)
+InttMixupQA::InttMixupQA(const string &name, const int run_num, const int felix_num)
   : SubsysReco(name)
 {
   run_num_ = run_num;
-  felix_num_=felix_num;
+  felix_num_ = felix_num;
   cout<<"felix_num_="<<felix_num_<<"felix_num="<<felix_num<<endl;
 }
 
@@ -55,7 +61,14 @@ int InttMixupQA::InitRun(PHCompositeNode *topNode)
 
   	// These next 4 will be plotted 
 	auto hm = QAHistManagerDef::getHistoManager();
-	assert(hm);
+	if (!hm)
+    {
+      std::cerr << PHWHERE << "\n"
+                << "\tQAHistManagerDef::getHistoManager() returned null\n"
+                << "\texit(1)" << std::endl;
+	  gSystem->Exit(1);
+	  exit(1);
+    }
 
    	name =(boost::format("%s_bco_full&0x7F_prev_vs_bco_intt%d") % getHistoPrefix() % felix).str(); 
     title = name+ Form("_Run%d",run_num_);
@@ -251,9 +264,8 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  uint64_t longbco_full= (inttcont!=nullptr&&inttcont->get_nhits()>0)
-  ? inttcont->get_hit(0)->get_bco()
-  : std::numeric_limits<uint64_t>::max();
+  uint64_t longbco_full= (0 < inttcont->get_nhits()) ?
+	  inttcont->get_hit(0)->get_bco() : std::numeric_limits<uint64_t>::max();
   uint64_t difevent_bcofull = (longbco_full &bit )-(long_prev_bcofull &bit);
   h_interval->Fill(difevent_bcofull);
   uint64_t bco_full =longbco_full &0x7FU;
@@ -517,7 +529,7 @@ int InttMixupQA::EndRun(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int InttMixupQA::SetOutputDir( string dir )
+int InttMixupQA::SetOutputDir(std::string const& dir)
 {
   output_dir_ = dir;
 
@@ -584,7 +596,12 @@ void InttMixupQA::GetBcopeak()
 
   tf_bcopeak_[i]=new TFile(bcopeak_file[i].c_str(),"READ");
    //cout<<tf_bcopeak_[i]<<endl;
-  hbco[i]=(TH1D*)gROOT->FindObject(Form("h2_bco_felix_%d",i));
+  hbco[i]=dynamic_cast<TH1D*>(gROOT->FindObject(Form("h2_bco_felix_%d",i)));
+  if (!hbco[i])
+  {
+    if (Verbosity()) std::cerr << PHWHERE << std::endl;
+    continue;
+  }
 
   //default peakbin for can't found peak bin
   int maxbin_sub=hbco[i]->GetMaximumBin();
