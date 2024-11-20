@@ -3,6 +3,7 @@
 #ifndef FUN4ALL_FUN4ALLBASE_H
 #define FUN4ALL_FUN4ALLBASE_H
 
+#include <cstdint>
 #include <limits>  // std::numeric_limits
 #include <string>
 
