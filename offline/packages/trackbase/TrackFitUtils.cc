@@ -692,7 +692,7 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
 void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
                                         TrkrClusterContainer* _cluster_map,
                                         std::vector<Acts::Vector3>& global_vec,
-                                        std::vector<TrkrDefs::cluskey>& cluskey_vec)
+                                        const std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
   for (unsigned long key : cluskey_vec)
   {
@@ -732,6 +732,14 @@ Acts::Vector2 TrackFitUtils::get_line_point_pca(double slope, double intercept, 
   tangent = tangent/tangent.norm();   // +/- the line direction
 
   Acts::Vector2 pca = posref + ((point - posref).dot(tangent))*tangent;
+
+     /* const double& m = slope; */
+     /* const double&b = intercept; */
+     /* const double&x0 = global(0); */
+     /* const double&y0 = global(2); */
+/*   const double xp = (x0+m*(y0-b))/(1+m*m); */
+/*   const double yp = m*xp+b; */
+/*   return std::tuple(xp,yp); */
 
   return pca;
 }
@@ -861,4 +869,69 @@ float TrackFitUtils::get_helix_surface_pathlength(const Surface& surf, std::vect
   Acts::Vector3 surface_center = surf->center(tGeometry->geometry().getGeoContext()) * 0.1;
   Acts::Vector3 intersection = get_helix_surface_intersection(surf,fitpars,surface_center,tGeometry);
   return get_helix_pathlength(fitpars,start_point,intersection);
+}
+
+/* std::tuple<double,double> TrackFitUtils::dca_on_line2D_to_point( */
+/*     double x0, double y0, double m, double b) { */
+/*   // Find the point on a line y=mx+b closest to the point (x0,y0) */
+/*   const double xp = (x0+m*(y0-b))/(1+m*m); */
+/*   const double yp = m*xp+b; */
+/*   return std::tuple(xp,yp); */
+/* } */
+
+// phi, eta, pT, pos_dca, momentum -- note that momentum is such that pT\equiv1
+std::tuple<bool, double, double, double, Acts::Vector3, Acts::Vector3> 
+TrackFitUtils::zero_field_track_params(
+    ActsGeometry* _tGeometry, 
+    TrkrClusterContainer* _cluster_map, 
+    const std::vector<TrkrDefs::cluskey>& cluskey_vec)
+{
+  std::vector<Acts::Vector3> global_vec;
+
+  if (global_vec.size()<2) 
+  {
+    return std::make_tuple(false, 0., 0., 0., Acts::Vector3(0.,0.,0), Acts::Vector3(0.,0.,0.));
+  }
+
+  // get the global positions 
+  getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
+
+  // get the y=mx+b and z=mx+b fits
+  auto params = fitClustersZeroField(global_vec, cluskey_vec, true);
+  const double xy_m = params[0];
+  const double xy_b = params[1];
+  const double xz_m = params[2];
+  const double xz_b = params[3];
+
+  // get the DCA in x,y to the line (from y=mx+b)
+  double x,y,z;
+  // use the get_line_point_pca
+  // use the function TrackFitUtils::get_line_point_pca 
+  Acts::Vector2 dca_xy = get_line_point_pca(xy_m, xy_b, {0.,0.,0});
+  x = dca_xy.x();
+  y = dca_xy.y();
+  /* std::tie(x,y) = dca_on_line2D_to_point(0,0,xy_m,xy_b); */
+  z = xz_m * x + xz_b; //
+
+  // Need direction for the momentum vector
+  Acts::Vector3 cluster = global_vec.back();
+  auto clus_dca_xy = get_line_point_pca(xy_m, xy_b, {cluster.x(),cluster.y(),0});
+  double px = clus_dca_xy.x();
+  double py = clus_dca_xy.y();
+  double pz = xz_m * x + xz_b;
+
+  // correct to direction from the pca to origin
+  px -= x;
+  py -= y;
+  pz -= z;
+
+  // scale momentum vector pT to 1. GeV/c
+  const double scale = sqrt(px*px+py*py);
+  px /= scale;
+  py /= scale;
+  pz /= scale;
+  auto p = Acts::Vector3(px,py,pz);
+  const double phi = std::atan2(py,px); 
+  const double eta = atanh(pz/p.norm()); 
+  return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x,y,z), p);
 }
