@@ -91,6 +91,25 @@ namespace
     return crc;
   }
 
+  /// used to make sure buffer is properly cleared when leaving current scope
+  class buffer_cleaner_t
+  {
+    public:
+
+    buffer_cleaner_t( std::deque<uint16_t>& buffer, uint16_t pkt_length ):
+      m_buffer( buffer ),
+      m_pkt_length( pkt_length )
+    {}
+
+    ~buffer_cleaner_t()
+    { m_buffer.erase(m_buffer.begin(), m_buffer.begin() + m_pkt_length + 1); }
+
+    private:
+
+    std::deque<uint16_t>& m_buffer;
+    uint16_t m_pkt_length;
+  };
+
 }  // namespace
 
 //______________________________________________________________
@@ -169,6 +188,7 @@ void SingleMicromegasPoolInput_v2::FillPool(const unsigned int /*nbclks*/)
 
   while (GetSomeMoreEvents())
   {
+    // std::cout << "SingleMicromegasPoolInput_v2::FillPool" << std::endl;
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
     {
@@ -217,6 +237,16 @@ void SingleMicromegasPoolInput_v2::FillPool(const unsigned int /*nbclks*/)
       // process
       process_packet( packet.get() );
     }
+
+
+    for( size_t i=0; i<m_feeData.size(); ++i )
+    {
+      std::cout << " SingleMicromegasPoolInput_v2::FillPool -"
+        << " fee: " << i
+        << " buffer size: " << m_feeData[i].size()
+        << std::endl;
+    }
+
     m_timer.stop();
   }
 }
@@ -482,6 +512,7 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
 //__________________________________________________________________________________
 void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
 {
+  // std::cout << "SingleMicromegasPoolInput_v2::process_packet" << std::endl;
 
   // check hit format
   if (packet->getHitFormat() != IDTPCFEEV4)
@@ -497,6 +528,12 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
   // decode
   const int data_length = packet->getDataLength();  // 32bit length
   const int data_padding = packet->getPadding();  // 32bit padding
+
+  std::cout << "SingleMicromegasPoolInput_v2::process_packet -"
+    << " packet_id: " << packet_id
+    << " data_length: " << data_length
+    << " data_padding: " << data_padding
+    << std::endl;
 
   // maximum number of dma words
   const size_t dma_words_buffer = static_cast<unsigned long>(data_length) * 2 / DAM_DMA_WORD_LENGTH + 1;
@@ -550,6 +587,7 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
       }
     }
   }
+
 }
 
 //____________________________________________________________________
@@ -675,37 +713,12 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     payload.data_crc = data_buffer[pkt_length];
     // payload.calc_crc = crc16(data_buffer, 0, pkt_length);
 
-    // data
-    // Format is (N sample) (start time), (1st sample)... (Nth sample)
-    size_t pos = HEADER_LENGTH;
-    while (pos < size_t(pkt_length+2) )
-    {
-      const uint16_t& samples = data_buffer[pos++];
-      const uint16_t& start_t = data_buffer[pos++];
-      if (pos + samples > size_t(pkt_length+1) )
-      {
-        if (Verbosity())
-        {
-          std::cout << "SingleMicromegasPoolInput_v2::process_fee_data -"
-            << " samples: " << samples
-            << " pos: " << pos
-            << "pkt_length: " << pkt_length
-            << " format error"
-            << std::endl;
-        }
-        break;
-      }
-
-      std::vector<uint16_t> adc(samples);
-      for (int i = 0; i < samples; ++i)
-      { adc[i] = data_buffer[pos++]; }
-
-      // add
-      payload.waveforms.emplace_back(start_t,std::move(adc));
-    }
-
-    // cleanup
-    data_buffer.erase(data_buffer.begin(), data_buffer.begin() + pkt_length + 1);
+    // make sure buffer is cleaned as soon as we exit current scope
+    /*
+     * the buffer is cleared when buffer_cleaner is deleted, that is, as soon as it becomes out of scope
+     * this allows for the various 'continue' statements below, without having to care about the buffer being properly cleared
+     */
+    buffer_cleaner_t buffer_cleaner( data_buffer, pkt_length );
 
     // check bco matching information
     if (!bco_matching_information.is_verified())
@@ -746,6 +759,37 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     // ignore heartbeat waveforms
     if( payload.type == HEARTBEAT_T )
     { continue; }
+
+    // store data from string
+    // Format is (N sample) (start time), (1st sample)... (Nth sample)
+    size_t pos = HEADER_LENGTH;
+    while (pos < pkt_length )
+      // while (pos < size_t(pkt_length+2) )
+    {
+      const uint16_t& samples = data_buffer[pos++];
+      const uint16_t& start_t = data_buffer[pos++];
+      // if (pos + samples > size_t(pkt_length+1) )
+      if (pos + samples > size_t(pkt_length) )
+      {
+        if (Verbosity())
+        {
+          std::cout << "SingleMicromegasPoolInput_v2::process_fee_data -"
+            << " samples: " << samples
+            << " pos: " << pos
+            << " pkt_length: " << pkt_length
+            << " format error"
+            << std::endl;
+        }
+        break;
+      }
+
+      std::vector<uint16_t> adc(samples);
+      for (int i = 0; i < samples; ++i)
+      { adc[i] = data_buffer[pos++]; }
+
+      // add
+      payload.waveforms.emplace_back(start_t,std::move(adc));
+    }
 
     // create new hit
     auto newhit = std::make_unique<MicromegasRawHitv3>();
