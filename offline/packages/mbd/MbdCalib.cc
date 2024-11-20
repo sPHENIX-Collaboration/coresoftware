@@ -1656,6 +1656,22 @@ int MbdCalib::Write_CDB_Gains(const std::string& dbfile)
 }
 #endif
 
+int MbdCalib::Write_Gains(const std::string& dbfile)
+{
+  std::ofstream cal_gains_file;
+  cal_gains_file.open(dbfile);
+  for (int ipmtch = 0; ipmtch < MbdDefs::MBD_N_PMT; ipmtch++)
+  {
+    cal_gains_file << ipmtch << "\t" << _qfit_integ[ipmtch] << "\t" << _qfit_mpv[ipmtch]
+      << "\t" << _qfit_sigma[ipmtch] << "\t" << _qfit_integerr[ipmtch]
+      << "\t" << _qfit_mpverr[ipmtch] << "\t" << _qfit_sigmaerr[ipmtch]
+      << "\t" << _qfit_chi2ndf[ipmtch] << std::endl;
+  }
+  cal_gains_file.close();
+
+  return 1;
+}
+
 #ifndef ONLINE
 int MbdCalib::Write_CDB_All()
 {
