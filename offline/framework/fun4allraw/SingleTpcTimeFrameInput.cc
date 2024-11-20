@@ -109,9 +109,27 @@ SingleTpcTimeFrameInput::TimeTracker::~TimeTracker()
 
 void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 {
+  {
+    static bool first = true;
+    if (first)
+    {
+      first = false;
+
+      if (m_SelectedPacketIDs.size())
+      {
+        std::cout << "SingleTpcTimeFrameInput::" << Name() << " : note, only processing packets with ID: ";
+        for (const auto &id : m_SelectedPacketIDs)
+        {
+          std::cout << id << " ";
+        }
+        std::cout << std::endl;
+      }
+    }
+  }
+
   TimeTracker fillPoolTimer(m_FillPoolTimer, "FillPool", m_hNorm);
 
-  if ( (Verbosity() >= 1 and targetBCO % 941 == 0) or Verbosity() >= 2)
+  if ((Verbosity() >= 1 and targetBCO % 941 == 10) or Verbosity() >= 2)
   {
     std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
               << " Entry with targetBCO = 0x" << std::hex << targetBCO
@@ -153,10 +171,37 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
     }
   }
   //  std::set<uint64_t> saved_beamclocks;
-  bool require_more_data = true;
-  while (require_more_data)
+  while (true)
   {
-    if (Verbosity() > 3)
+    if (m_TpcTimeFrameBuilderMap.empty())
+    {
+      if (Verbosity() > 1)
+      {
+        std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
+                  << " m_TpcTimeFrameBuilderMap empty for targetBCO 0x"
+                  << std::hex << targetBCO << std::dec << ". Start processing next event... " << std::endl;
+      }
+    }
+    else
+    {
+      bool require_more_data = false;
+      for (auto &map_builder : m_TpcTimeFrameBuilderMap)
+      {
+        require_more_data |= map_builder.second->isMoreDataRequired(targetBCO);
+      }
+      if (not require_more_data)
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
+                    << " satisified require_more_data for targetBCO 0x"
+                    << std::hex << targetBCO << std::dec << std::endl;
+        }
+
+        break;
+      }
+    }
+    if (Verbosity() > 1)
     {
       std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
                 << " require_more_data for targetBCO 0x"
@@ -200,8 +245,8 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
                 << ", increase NTPCPACKETS and rebuild" << std::endl;
       exit(1);
     }
-
     getNextEventTimer.stop();
+
     TimeTracker ProcessPacketTimer(m_ProcessPacketTimer, "ProcessPacket", m_hNorm);
     for (int i = 0; i < npackets; i++)
     {
@@ -211,6 +256,18 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
       // get packet id
       const auto packet_id = packet->getIdentifier();
+
+      if (m_SelectedPacketIDs.size() > 0 and m_SelectedPacketIDs.find(packet_id) == m_SelectedPacketIDs.end())
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << __PRETTY_FUNCTION__ << ": Skipping packet id: " << packet_id << std::endl;
+        }
+
+        delete packet;
+        packet = nullptr;
+        continue;
+      }
 
       if (m_TpcTimeFrameBuilderMap.find(packet_id) == m_TpcTimeFrameBuilderMap.end())
       {
@@ -230,36 +287,28 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
       assert(m_TpcTimeFrameBuilderMap[packet_id]);
       m_TpcTimeFrameBuilderMap[packet_id]->ProcessPacket(packet);
-      require_more_data = require_more_data or m_TpcTimeFrameBuilderMap[packet_id]->isMoreDataRequired(targetBCO);
+      // require_more_data = require_more_data or m_TpcTimeFrameBuilderMap[packet_id]->isMoreDataRequired(targetBCO);
 
       delete packet;
       packet = nullptr;
     }  //     for (int i = 0; i < npackets; i++)
     ProcessPacketTimer.stop();
 
-    require_more_data = false;
-    for (auto &map_builder : m_TpcTimeFrameBuilderMap)
+  }  // while (require_more_data)
+
+  // output the time frame
+  for (auto &map_builder : m_TpcTimeFrameBuilderMap)
+  {
+    assert(not map_builder.second->isMoreDataRequired(targetBCO));
+    auto &timeframe = map_builder.second->getTimeFrame(targetBCO);
+
+    for (auto newhit : timeframe)
     {
-      require_more_data |= map_builder.second->isMoreDataRequired(targetBCO);
-    }
-
-    if (not require_more_data)
-    {
-      TimeTracker getTimeFrameTimer(m_getTimeFrameTimer, "getTimeFrame", m_hNorm);
-
-      for (auto &map_builder : m_TpcTimeFrameBuilderMap)
-      {
-        auto &timeframe = map_builder.second->getTimeFrame(targetBCO);
-
-        for (auto newhit : timeframe)
-        {
-          StreamingInputManager()->AddTpcRawHit(targetBCO, newhit);
-        }
-      }
+      StreamingInputManager()->AddTpcRawHit(targetBCO, newhit);
     }
   }
-  //    Print("HITS");
-  //  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
+
+  TimeTracker getTimeFrameTimer(m_getTimeFrameTimer, "getTimeFrame", m_hNorm);
 }
 
 void SingleTpcTimeFrameInput::Print(const std::string & /*what*/) const
