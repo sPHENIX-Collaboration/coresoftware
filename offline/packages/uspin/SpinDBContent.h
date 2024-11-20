@@ -24,14 +24,6 @@
 // scaler_mbd_nocut  : scaler (MBD NS)
 // scaler_zdc_nocut   : scaler (ZDC NS)
 // bad_bunch         : Bad bunch QA, 0:good else:bad
-// tc_x_blue         : Transverse component, horizontal direction, blue beam
-// tc_x_blueerr      : Error of tc_x_blue
-// tc_y_blue         : Transverse component, vertical direction, blue beam
-// tc_y_blueerr      : Error of tc_y_blue
-// tc_x_yellow       : Transverse component, horizontal direction, yellow beam
-// tc_x_yellowerr    : Error of tc_x_yellow
-// tc_y_yellow       : Transverse component, vertical direction, yellow beam
-// tc_y_yellowerr    : Error of tc_y_yellow
 // cross_angle       : Average relative crossing angle between blue and yellow beams in mrad for run. Sign is dictated by CAD convention, can be + or -
 // cross_angle_std   : Standard deviation of relative crossing angle in mrad
 // cross_angle_min   : Minimum value of relative crossing angle in mrad
@@ -62,7 +54,6 @@ class SpinDBContent
   int GetBadRunFlag() { return (badrun); }
   int GetCrossingShift() { return (cross_shift); }
 
-  // bunch xing id from SpinDataEventOut::SpinGL1CrossingID
   int GetPolarizationBlue(int bunch, float &value, float &error);
   int GetPolarizationBlue(int bunch, float &value, float &error, float &syserr);
   int GetPolarizationBlue(int bunch, double &value, double &error);
@@ -78,15 +69,6 @@ class SpinDBContent
   long long GetScalerZdcNoCut(int bunch);
   long long GetScaler(int channel, int bunch);
   int GetBadBunchFlag(int bunch);
-
-  void GetTransCompBlueX(float &value, float &error);
-  void GetTransCompBlueX(double &value, double &error);
-  void GetTransCompBlueY(float &value, float &error);
-  void GetTransCompBlueY(double &value, double &error);
-  void GetTransCompYellowX(float &value, float &error);
-  void GetTransCompYellowX(double &value, double &error);
-  void GetTransCompYellowY(float &value, float &error);
-  void GetTransCompYellowY(double &value, double &error);
 
   float GetCrossAngle() { return cross_angle; }
   float GetCrossAngleStd() { return cross_angle_std; }
@@ -129,10 +111,6 @@ class SpinDBContent
   int SetScalerZdcNoCut(int bunch, long long value);
   int SetScaler(int channel, int bunch, long long value);
   int SetBadBunchFlag(int bunch, int value);
-  void SetTransCompBlueX(float value, float error);
-  void SetTransCompBlueY(float value, float error);
-  void SetTransCompYellowX(float value, float error);
-  void SetTransCompYellowY(float value, float error);
 
   void SetCrossAngle(float value) { cross_angle = value; }
   void SetCrossAngleStd(float value) { cross_angle_std = value; }
@@ -160,14 +138,6 @@ class SpinDBContent
   long long scaler_mbd_nocut[120];
   long long scaler_zdc_nocut[120];
   int bad_bunch[120];
-  float tc_x_blue;
-  float tc_x_blueerr;
-  float tc_y_blue;
-  float tc_y_blueerr;
-  float tc_x_yellow;
-  float tc_x_yellowerr;
-  float tc_y_yellow;
-  float tc_y_yellowerr;
   float cross_angle;
   float cross_angle_std;
   float cross_angle_min;

@@ -205,15 +205,6 @@ int SpinDBInput::InitializeRunRow(SpinDBContent spin_cont)
   InitializeArray(runnum, qa_level, "zdcns", ncross);
   InitializeArray(runnum, qa_level, "badbunchqa", ncross);
 
-  InitializeValue(runnum, qa_level, "transversxblue");
-  InitializeValue(runnum, qa_level, "transversxblueerr");
-  InitializeValue(runnum, qa_level, "transversyblue");
-  InitializeValue(runnum, qa_level, "transversyblueerr");
-  InitializeValue(runnum, qa_level, "transversxyellow");
-  InitializeValue(runnum, qa_level, "transversxyellowerr");
-  InitializeValue(runnum, qa_level, "transversyyellow");
-  InitializeValue(runnum, qa_level, "transversyyellowerr");
-
   InitializeValue(runnum, qa_level, "crossingangle");
   InitializeValue(runnum, qa_level, "crossanglestd");
   InitializeValue(runnum, qa_level, "crossanglemin");
@@ -391,45 +382,6 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
   if (cbad_bunch)
   {
     UpdateArray(runnum, qa_level, "badbunchqa", bad_bunch, ncross);
-  }
-
-  float tc_bx, tc_bx_err, tc_by, tc_by_err;
-  float tc_yx, tc_yx_err, tc_yy, tc_yy_err;
-  spin_cont.GetTransCompBlueX(tc_bx, tc_bx_err);
-  spin_cont.GetTransCompBlueY(tc_by, tc_by_err);
-  spin_cont.GetTransCompYellowX(tc_yx, tc_yx_err);
-  spin_cont.GetTransCompYellowY(tc_yy, tc_yy_err);
-  if (tc_bx != ERROR_VALUE)
-  {
-    UpdateValue(runnum, qa_level, "transversxblue", tc_bx);
-  }
-  if (tc_bx_err != ERROR_VALUE)
-  {
-    UpdateValue(runnum, qa_level, "transversxblueerr", tc_bx_err);
-  }
-  if (tc_by != ERROR_VALUE)
-  {
-    UpdateValue(runnum, qa_level, "transversyblue", tc_by);
-  }
-  if (tc_by_err != ERROR_VALUE)
-  {
-    UpdateValue(runnum, qa_level, "transversyblueerr", tc_by_err);
-  }
-  if (tc_yx != ERROR_VALUE)
-  {
-    UpdateValue(runnum, qa_level, "transversxyellow", tc_yx);
-  }
-  if (tc_yx_err != ERROR_VALUE)
-  {
-    UpdateValue(runnum, qa_level, "transversxyellowerr", tc_yx_err);
-  }
-  if (tc_yy != ERROR_VALUE)
-  {
-    UpdateValue(runnum, qa_level, "transversyyellow", tc_yy);
-  }
-  if (tc_yy_err != ERROR_VALUE)
-  {
-    UpdateValue(runnum, qa_level, "transversyyellowerr", tc_yy_err);
   }
 
   float cross_angle = spin_cont.GetCrossAngle();

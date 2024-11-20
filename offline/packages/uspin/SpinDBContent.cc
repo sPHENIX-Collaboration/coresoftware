@@ -33,15 +33,6 @@ void SpinDBContent::Initialize()
     bad_bunch[icross] = ERROR_VALUE;
   }
 
-  tc_x_blue = (float) ERROR_VALUE;
-  tc_x_blueerr = (float) ERROR_VALUE;
-  tc_y_blue = (float) ERROR_VALUE;
-  tc_y_blueerr = (float) ERROR_VALUE;
-  tc_x_yellow = (float) ERROR_VALUE;
-  tc_x_yellowerr = (float) ERROR_VALUE;
-  tc_y_yellow = (float) ERROR_VALUE;
-  tc_y_yellowerr = (float) ERROR_VALUE;
-
   cross_angle = (float) ERROR_VALUE;
   cross_angle_std = (float) ERROR_VALUE;
   cross_angle_min = (float) ERROR_VALUE;
@@ -77,11 +68,6 @@ void SpinDBContent::Print() const
 
     std::cout << (boost::format(" : %6.3f +- %6.3f +- %6.3f %6.3f +- %6.3f +- %6.3f\n") % bpol[i] % bpolerr[i] % bpolsys[i] % ypol[i] % ypolerr[i] % ypolsys[i]).str();
   }
-
-  std::cout << (boost::format("Transvers comp. blue X   = %f +- %f\n") % tc_x_blue % tc_x_blueerr).str();
-  std::cout << (boost::format("Transvers comp. blue Y   = %f +- %f\n") % tc_y_blue % tc_y_blueerr).str();
-  std::cout << (boost::format("Transvers comp. yellow X = %f +- %f\n") % tc_x_yellow % tc_x_yellowerr).str();
-  std::cout << (boost::format("Transvers comp. yellow Y = %f +- %f\n") % tc_y_yellow % tc_y_yellowerr).str();
 
   return;
 }
@@ -226,42 +212,6 @@ int SpinDBContent::SetBadBunchFlag(int bunch, int value)
   }
   bad_bunch[bunch] = value;
   return (1);
-}
-
-//////////////////////////////////////////////////////
-
-void SpinDBContent::SetTransCompBlueX(float value, float error)
-{
-  tc_x_blue = value;
-  tc_x_blueerr = error;
-  return;
-}
-
-//////////////////////////////////////////////////////
-
-void SpinDBContent::SetTransCompBlueY(float value, float error)
-{
-  tc_y_blue = value;
-  tc_y_blueerr = error;
-  return;
-}
-
-////////////////////////////////////////////////////////////////
-
-void SpinDBContent::SetTransCompYellowX(float value, float error)
-{
-  tc_x_yellow = value;
-  tc_x_yellowerr = error;
-  return;
-}
-
-/////////////////////////////////////////////////////////////////
-
-void SpinDBContent::SetTransCompYellowY(float value, float error)
-{
-  tc_y_yellow = value;
-  tc_y_yellowerr = error;
-  return;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -457,75 +407,3 @@ int SpinDBContent::GetBadBunchFlag(int bunch)
 }
 
 ///////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompBlueX(float &value, float &error)
-{
-  value = tc_x_blue;
-  error = tc_x_blueerr;
-  return;
-}
-
-///////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompBlueX(double &value, double &error)
-{
-  value = (double) tc_x_blue;
-  error = (double) tc_x_blueerr;
-  return;
-}
-
-///////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompBlueY(float &value, float &error)
-{
-  value = tc_y_blue;
-  error = tc_y_blueerr;
-  return;
-}
-
-///////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompBlueY(double &value, double &error)
-{
-  value = (double) tc_y_blue;
-  error = (double) tc_y_blueerr;
-  return;
-}
-
-///////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompYellowX(float &value, float &error)
-{
-  value = tc_x_yellow;
-  error = tc_x_yellowerr;
-  return;
-}
-
-//////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompYellowX(double &value, double &error)
-{
-  value = (double) tc_x_yellow;
-  error = (double) tc_x_yellowerr;
-  return;
-}
-
-//////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompYellowY(float &value, float &error)
-{
-  value = tc_y_yellow;
-  error = tc_y_yellowerr;
-  return;
-}
-
-//////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompYellowY(double &value, double &error)
-{
-  value = (double) tc_y_yellow;
-  error = (double) tc_y_yellowerr;
-  return;
-}
-
-//////////////////////////////////////////////////////////////
