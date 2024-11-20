@@ -351,7 +351,7 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
     }
 
     auto it = m_timeFrameMap.find(bco_completed);
-    
+
     // assert(it != m_timeFrameMap.end());  // strong workflow check disabled
     // this can happen if TPC GL1 tagger is shifted slight ahead of the GTM BCO, but within GL1_BCO_MATCH_WINDOW
 
