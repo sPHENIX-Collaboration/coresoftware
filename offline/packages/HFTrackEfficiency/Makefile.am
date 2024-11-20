@@ -10,8 +10,8 @@ AM_LDFLAGS = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -isystem$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
   HFTrackEfficiency.h

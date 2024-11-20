@@ -791,7 +791,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     float t_pmt = bbcpmt->get_time();  // hit time of pmt
     float q_pmt = bbcpmt->get_q();     // charge in pmt
 
-    if (_verbose >= 10 && !isnan(t_pmt) )
+    if (_verbose >= 10 && !std::isnan(t_pmt) )
     {
       std::cout << ipmt << "\t" << t_pmt << "\t" << q_pmt << std::endl;
     }

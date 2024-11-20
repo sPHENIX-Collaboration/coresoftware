@@ -138,7 +138,7 @@ class PHSimpleKFProp : public SubsysReco
   template <typename T>
   struct KDPointCloud
   {
-    KDPointCloud<T>() {}
+    KDPointCloud() {}
     std::vector<std::vector<T>> pts;
     inline size_t kdtree_get_point_count() const
     {

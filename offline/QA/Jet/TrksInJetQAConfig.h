@@ -10,6 +10,7 @@
 #define TRKSINJETQACONFIG_H
 
 // c++ utilities
+#include <cstdint>
 #include <string>
 
 // TrksInJetQAConfig definition -----------------------------------------------
