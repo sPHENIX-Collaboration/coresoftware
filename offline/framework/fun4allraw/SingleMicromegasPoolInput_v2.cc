@@ -238,13 +238,15 @@ void SingleMicromegasPoolInput_v2::FillPool(const unsigned int /*nbclks*/)
       process_packet( packet.get() );
     }
 
-
-    for( size_t i=0; i<m_feeData.size(); ++i )
+    if( Verbosity()>2)
     {
-      std::cout << " SingleMicromegasPoolInput_v2::FillPool -"
-        << " fee: " << i
-        << " buffer size: " << m_feeData[i].size()
-        << std::endl;
+      for( size_t i=0; i<m_feeData.size(); ++i )
+      {
+        std::cout << " SingleMicromegasPoolInput_v2::FillPool -"
+          << " fee: " << i
+          << " buffer size: " << m_feeData[i].size()
+          << std::endl;
+      }
     }
 
     m_timer.stop();
@@ -512,8 +514,6 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
 //__________________________________________________________________________________
 void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
 {
-  // std::cout << "SingleMicromegasPoolInput_v2::process_packet" << std::endl;
-
   // check hit format
   if (packet->getHitFormat() != IDTPCFEEV4)
   { return; }
@@ -528,12 +528,6 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
   // decode
   const int data_length = packet->getDataLength();  // 32bit length
   const int data_padding = packet->getPadding();  // 32bit padding
-
-  std::cout << "SingleMicromegasPoolInput_v2::process_packet -"
-    << " packet_id: " << packet_id
-    << " data_length: " << data_length
-    << " data_padding: " << data_padding
-    << std::endl;
 
   // maximum number of dma words
   const size_t dma_words_buffer = static_cast<unsigned long>(data_length) * 2 / DAM_DMA_WORD_LENGTH + 1;
@@ -716,9 +710,9 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     // make sure buffer is cleaned as soon as we exit current scope
     /*
      * the buffer is cleared when buffer_cleaner is deleted, that is, as soon as it becomes out of scope
-     * this allows for the various 'continue' statements below, without having to care about the buffer being properly cleared
+     * this allows to use the various 'continue' statements below, without having to care about the buffer being properly cleared
      */
-    buffer_cleaner_t buffer_cleaner( data_buffer, pkt_length );
+    [[maybe_unused]] buffer_cleaner_t buffer_cleaner( data_buffer, pkt_length );
 
     // check bco matching information
     if (!bco_matching_information.is_verified())
@@ -763,13 +757,13 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     // store data from string
     // Format is (N sample) (start time), (1st sample)... (Nth sample)
     size_t pos = HEADER_LENGTH;
-    while (pos < pkt_length )
-      // while (pos < size_t(pkt_length+2) )
+    // while (pos < pkt_length )
+    while (pos < size_t(pkt_length+2) )
     {
       const uint16_t& samples = data_buffer[pos++];
       const uint16_t& start_t = data_buffer[pos++];
-      // if (pos + samples > size_t(pkt_length+1) )
-      if (pos + samples > size_t(pkt_length) )
+      if (pos + samples > size_t(pkt_length+1) )
+      // if (pos + samples > size_t(pkt_length) )
       {
         if (Verbosity())
         {
