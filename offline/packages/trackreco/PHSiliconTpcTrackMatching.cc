@@ -90,6 +90,8 @@ void PHSiliconTpcTrackMatching::SetDefaultParameters()
 //____________________________________________________________________________..
 int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
 {
+  std::cout << " FIXME PHSiliconTpcTrackMatching " 
+    << ( _zero_field ? "zero field is ON" : " zero field is OFF") << std::endl;
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
   // _svtx_seed_map contains the combined silicon and tpc track seeds

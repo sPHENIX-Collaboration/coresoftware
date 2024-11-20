@@ -45,8 +45,21 @@ namespace TrackFitUtils
   /**
    * copied from: https://www.bragitoff.com
    * typically used to fit we want to fit z vs radius
+   * 
+   * Updated to use the "Deming model" by default:
+   * minimizing by orthoncal distance to line in x and y
+   * (instead of the y-distance). For details, see:
+   * http://staff.pubhealth.ku.dk/~bxc/MethComp/Deming.pdf
    */
   line_fit_output_t line_fit(const position_vector_t&);
+
+  /*
+   * Need to make a metric for distance from points to lines origin (pca).
+   *  - project point "global" to the line.
+   *  - return distance on line to the pca (the point of closest approach to origin)
+   */
+  double line_dist_to_pca (const double slope, const double intercept, 
+      const Acts::Vector2& pca, const Acts::Vector3& global);
 
   /// convenient overload
   line_fit_output_t line_fit(const std::vector<Acts::Vector3>&);
@@ -131,6 +144,9 @@ namespace TrackFitUtils
       TrkrClusterContainer* _cluster_map, 
       const std::vector<TrkrDefs::cluskey>& clusters
     );
+
+   double z_fit_to_pca(const double slope, const double intercept, 
+    const std::vector<Acts::Vector3> glob_pts);
 };
 
 #endif
