@@ -3,16 +3,49 @@
 #ifndef DIJETQA_H
 #define DIJETQA_H
 
+
 #include <fun4all/SubsysReco.h>
+#include <fun4all/Fun4AllBase.h>
+#include <qautils/QAHistManagerDef.h>
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <jetqa/JetQADefs.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <jetbase/JetMap.h>
+#include <jetbase/JetContainer.h>
+#include <jetbase/Jetv2.h>
+#include <jetbase/Jetv1.h>
+
+#include <centrality/CentralityInfo.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
+
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfo.h>
 
 #include <string>
+#include <vector>
+#include <unordered_set>
+#include <utility>
 
+#include "TTree.h"
+#include "TFile.h"
+#include "TH1.h" 
+#include "TH2.h" 
+#define PI 3.1415926535 
 class PHCompositeNode;
 
 class DijetQA : public SubsysReco
 {
  public:
-
+  
   DijetQA(const std::string &name = "DijetQA");
 
   ~DijetQA() override;
@@ -59,20 +92,21 @@ class DijetQA : public SubsysReco
 
  private:
 	Fun4AllHistoManager *m_manager{nullptr};
-	bool m_doTrgSelect;
-	uint32_t m_trgToSelect;
+	std::string m_moduleName="";
+	std::pair<float, float> m_etaRange, m_ptRange;
 	float DeltaPhiOne=3.141529694/32.; //cut on the opening angle of phi for the identified jets
 				//Should set to integer multilple of hcal phi tower size ->Pi/32 
 	int ntowers_opening=2;
 	float DeltaPhi=ntowers_opening*DeltaPhiOne; 
-	std::pair<float, float> m_etaRange, m_ptRange;
 	int m_event=0, m_nJet=0, m_nJetPair=0;
-	float m_centrality=0., m_zvtx=0., m_impactpara=0., m_Ajj=0., m_xj=0., m_ptl=0., m_ptsl=0.;
+	float m_centrality=0., m_zvtx=0., m_impactparam=0., m_Ajj=0., m_xj=0., m_ptl=0., m_ptsl=0.;
 	float m_phil=0., m_phisl=0., m_dphil=0., m_dphi=0., m_etal=0., m_etasl=0., m_deltaeta=0.;
 	TH1F* h_Ajj=nullptr, *h_xj=nullptr, *h_pt=nullptr, *h_dphi=nullptr;
 	TH2F* h_Ajj_pt=nullptr, *h_xj_pt=nullptr, *h_dphi_pt=nullptr, *h_dphi_Ajj=nullptr;
 	TH1F* h_Ajj_l=nullptr, *h_xj_l=nullptr, *h_pt_l=nullptr, *h_dphi_l=nullptr;
 	TH2F* h_Ajj_pt_l=nullptr, *h_xj_pt_l=nullptr, *h_dphi_pt_l=nullptr, *h_dphi_Ajj_l=nullptr;
+	bool m_doTrgSelect;
+	uint32_t m_trgToSelect;
 	std::string m_recoJetName="AntiKT_Truth_r04";
 };
 
