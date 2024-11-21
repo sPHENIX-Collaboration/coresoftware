@@ -53,12 +53,11 @@ MicromegasRawHit *MicromegasRawHitContainerv3::AddHit()
 
 MicromegasRawHit *MicromegasRawHitContainerv3::AddHit(MicromegasRawHit *rawhit)
 {
-  auto rawhit_v3 = dynamic_cast<MicromegasRawHitv3 *>(rawhit);
-  if (rawhit_v3)
+  if (rawhit->IsA()==MicromegasRawHitv3::Class())
   {
     // fast add with move constructor to avoid ADC data copying
     return new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1])
-        MicromegasRawHitv3(std::move(*rawhit_v3));
+        MicromegasRawHitv3(std::move(*static_cast<MicromegasRawHitv3*>(rawhit)));
   }
   else
   {
