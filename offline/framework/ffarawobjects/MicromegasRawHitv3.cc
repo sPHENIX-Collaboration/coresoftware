@@ -61,6 +61,7 @@ uint16_t MicromegasRawHitv3::get_adc(const uint16_t sample) const
 void MicromegasRawHitv3::Clear(Option_t * /*unused*/)
 {
   m_adcData.clear();
+  m_adcData.shrink_to_fit();
 }
 
 void MicromegasRawHitv3::move_adc_waveform(const uint16_t start_time, std::vector<uint16_t> &&adc)
