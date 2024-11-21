@@ -247,7 +247,7 @@ PHG4Shower* CaloRawClusterEval::max_truth_primary_shower_by_energy(RawCluster* c
     }
 
     float e = get_energy_contribution(cluster, primary);
-    if (isnan(e))
+    if (std::isnan(e))
     {
       continue;
     }
@@ -409,7 +409,7 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Shower* primary)
     }
 
     float energy = get_energy_contribution(cluster, primary);
-    if (isnan(energy))
+    if (std::isnan(energy))
     {
       continue;
     }
@@ -497,7 +497,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
       }
 
       float edep = get_rawtower_eval()->get_energy_contribution(tower, primary);
-      if (!isnan(edep))
+      if (!std::isnan(edep))
       {
         energy += edep;
       }
@@ -524,7 +524,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
       }
 
       float edep = get_rawtower_eval()->get_energy_contribution(tower, primary);
-      if (!isnan(edep))
+      if (!std::isnan(edep))
       {
         energy += edep;
       }
@@ -825,7 +825,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   if (shower)
   {
     float edep = get_energy_contribution(cluster, shower);
-    if (!isnan(edep))
+    if (!std::isnan(edep))
     {
       energy += edep;
     }

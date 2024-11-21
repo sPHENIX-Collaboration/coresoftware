@@ -199,7 +199,7 @@ double HCalCosmics::gamma_function(double *x, double *par)
     return 1e8;
   }
   double val = numerator / denominator;
-  if (isnan(val))
+  if (std::isnan(val))
   {
     return 0;
   }
