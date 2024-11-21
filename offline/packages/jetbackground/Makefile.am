@@ -27,6 +27,7 @@ libjetbackground_la_LIBADD = \
   -lConstituentSubtractor \
   -ljetbase \
   -lphg4hit \
+  -lqautils \
   -lSubsysReco
 
 pkginclude_HEADERS = \

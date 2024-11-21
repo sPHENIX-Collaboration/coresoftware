@@ -132,7 +132,7 @@ void NullFilter::BuildHistograms(const std::string& module, const std::string& t
 // ----------------------------------------------------------------------------
 //! Grab input nodes
 // ----------------------------------------------------------------------------
-void NullFilter::GrabNodes(PHCompositeNode* topNode)
+void NullFilter::GrabNodes(PHCompositeNode* /*topNode*/)
 {
 
   // print debug message

@@ -44,7 +44,7 @@ class BaseBeamBackgroundFilter
     // ------------------------------------------------------------------------
     /*! Collects all calls to `findNode`.
      */ 
-    virtual void GrabNodes(PHCompositeNode* topNode) {return;}
+    virtual void GrabNodes(PHCompositeNode* /*topNode*/) {return;}
 
     // ------------------------------------------------------------------------
     //! Histograms
@@ -67,14 +67,14 @@ class BaseBeamBackgroundFilter
     /*! Applies the filter. Should return true if filter finds beam
      *  background, and false if not.
      */
-    virtual bool ApplyFilter(PHCompositeNode* topNode) {return false;}
+    virtual bool ApplyFilter(PHCompositeNode* /*topNode*/) {return false;}
 
     // ------------------------------------------------------------------------
     //! Build associated histograms
     // ------------------------------------------------------------------------
     /*! Collects all definitions of histograms.
      */ 
-    virtual void BuildHistograms(const std::string& module, const std::string& tag = "") {return;}
+    virtual void BuildHistograms(const std::string& /*module*/, const std::string& /*tag*/) {return;}
 
     ///! register histograms
     inline void RegisterHistograms(Fun4AllHistoManager* manager)
@@ -90,7 +90,7 @@ class BaseBeamBackgroundFilter
     void SetName(const std::string& name) {m_name = name;}
 
     ///! Get filter name
-    std::string GetName(const std::string& name) {return m_name;}
+    std::string GetName() {return m_name;}
 
     ///! default ctor/dtor
     BaseBeamBackgroundFilter()  {};

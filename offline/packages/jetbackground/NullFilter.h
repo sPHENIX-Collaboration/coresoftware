@@ -61,7 +61,7 @@ class NullFilter : public BaseBeamBackgroundFilter
   private:
 
     // inherited methods
-    void GrabNodes(PHCompositeNode* topNode) override;
+    void GrabNodes(PHCompositeNode* /*topNode*/) override;
 
     // filter-specific methods
     //... go here ...//

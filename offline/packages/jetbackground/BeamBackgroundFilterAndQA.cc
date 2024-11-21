@@ -102,7 +102,7 @@ BeamBackgroundFilterAndQA::~BeamBackgroundFilterAndQA()
 // ----------------------------------------------------------------------------
 //! Initialize module
 // ----------------------------------------------------------------------------
-int BeamBackgroundFilterAndQA::Init(PHCompositeNode* topNode)
+int BeamBackgroundFilterAndQA::Init(PHCompositeNode* /*topNode*/)
 {
 
   if (m_config.debug)
@@ -157,7 +157,7 @@ int BeamBackgroundFilterAndQA::process_event(PHCompositeNode* topNode)
 // ----------------------------------------------------------------------------
 //! Run final calculations
 // ----------------------------------------------------------------------------
-int BeamBackgroundFilterAndQA::End(PHCompositeNode *topNode)
+int BeamBackgroundFilterAndQA::End(PHCompositeNode* /*topNode*/)
 {
 
   if (m_config.debug)
