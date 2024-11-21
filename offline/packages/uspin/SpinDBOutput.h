@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////
 //
 // SpinDBOutput class
-// Author      : D. Loomis (from Y. Fukao PHENIX class)
+// Author      : D. Loomis, D. Neff (from Y. Fukao PHENIX class)
 // Description : Utility to read data from spin database
 // Created     : 2024-05-12
 //
