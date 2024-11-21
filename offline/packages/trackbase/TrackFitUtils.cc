@@ -745,7 +745,7 @@ Acts::Vector2 TrackFitUtils::get_line_point_pca(double slope, double intercept, 
 }
 
 double TrackFitUtils::z_fit_to_pca(const double xy_slope, const double xy_intercept, 
-    const std::vector<Acts::Vector3> glob_pts) 
+    const std::vector<Acts::Vector3>& glob_pts) 
 {
   // Project (0,0) to the line, this is the origin (pca)
   // Project each point to the line and find the distance along the line to pca
