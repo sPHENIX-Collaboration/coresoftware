@@ -51,7 +51,7 @@ class bcocheck : public SubsysReco {
 
 
  public:
-  bcocheck(const std::string &name = "bcocheck", const int run_num=0,const int felix_num=0);
+  explicit bcocheck(const std::string &name = "bcocheck", const int run_num=0,const int felix_num=0);
 
   virtual ~bcocheck();
 
@@ -82,9 +82,9 @@ class bcocheck : public SubsysReco {
 
   int ievent_ = 0;
   int n=kFelix_num_;
-  TFile* tf_output_[kFelix_num_];
+  TFile* tf_output_[kFelix_num_] = {};
 
-  TH1D *h_full_bco[kFelix_num_];
+  TH1D *h_full_bco[kFelix_num_] = {};
 
   void DrawHists();
 
