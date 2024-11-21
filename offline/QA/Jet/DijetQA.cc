@@ -50,7 +50,7 @@ DijetQA::~DijetQA()
 }
 
 //____________________________________________________________________________..
-int DijetQA::Init(PHCompositeNode *topNode)
+int DijetQA::Init(PHCompositeNode* /*topNode*/)
 {
 //  std::cout << "DijetQA::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   	m_manager = QAHistManagerDef::getHistoManager(); //get the histogram anager
@@ -86,9 +86,11 @@ int DijetQA::Init(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int DijetQA::InitRun(PHCompositeNode *topNode)
+int DijetQA::InitRun(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "DijetQA::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  if(Verbosity() > 1){
+	std::cout << "DijetQA::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -204,54 +206,66 @@ void DijetQA::FindPairs(JetContainer* jets)
 	m_nJetPair=jet_pairs.size();
 	float Ajj=0., xj=0.;
 	if(jet_pairs.size() > 0 ) {
-	for(auto js:jet_pairs){
-	Jet* jet_pair1=js.first, *jet_pair2=js.second;
-	if(!jet_pair1 || !jet_pair2)continue;
-	if(jet_pair1) std::cout<<"jetpair 1 object has a pt of " <<jet_pair1->get_pt()<<std::endl;
-		pt1=jet_pair1->get_pt();
-		pt2=jet_pair2->get_pt();
-		if(pt1 < pt2){
-			auto j=jet_pair1;
-			jet_pair1=jet_pair2;
-			jet_pair2=j;
+		for(auto js:jet_pairs){
+			Jet* jet_pair1=js.first, *jet_pair2=js.second;
+			if(!jet_pair1 || !jet_pair2) continue;
+			if(jet_pair1 && Verbosity() > 2){
+				std::cout<<"jetpair 1 object has a pt of " <<jet_pair1->get_pt()<<std::endl;
+			}
 			pt1=jet_pair1->get_pt();
 			pt2=jet_pair2->get_pt();
-		}
-		float dphi=jet_pair1->get_phi() - jet_pair2->get_phi();
-		Ajj=(pt1-pt2)/(pt1+pt2);
-		xj=pt2/pt1;
-		h_Ajj->Fill(Ajj);
-		h_xj->Fill(xj);
-		h_pt->Fill(pt1);
-		h_dphi->Fill(abs(dphi));
-		h_Ajj_pt->Fill(pt1, Ajj);
-		h_xj_pt->Fill(pt1, xj);
-		h_dphi_pt->Fill(pt1, abs(dphi));
-		h_dphi_Ajj->Fill(abs(dphi), Ajj);
-		if(Verbosity() > 2)std::cout<<"highest pt jet is " <<jet_leading->get_pt() <<" and highest pt in a pair is " <<jet_pair1->get_pt() <<std::endl;
+			if(pt1 < pt2){
+				auto j=jet_pair1;
+				jet_pair1=jet_pair2;
+				jet_pair2=j;
+				pt1=jet_pair1->get_pt();
+				pt2=jet_pair2->get_pt();
+			}
+			float dphi=jet_pair1->get_phi() - jet_pair2->get_phi();
+			Ajj=(pt1-pt2)/(pt1+pt2);
+			xj=pt2/pt1;
+			h_Ajj->Fill(Ajj);
+			h_xj->Fill(xj);
+			h_pt->Fill(pt1);
+			h_dphi->Fill(abs(dphi));
+			h_Ajj_pt->Fill(pt1, Ajj);
+			h_xj_pt->Fill(pt1, xj);
+			h_dphi_pt->Fill(pt1, abs(dphi));
+			h_dphi_Ajj->Fill(abs(dphi), Ajj);
+			if(Verbosity() > 2){
+				std::cout<<"highest pt jet is " <<jet_leading->get_pt() <<" and highest pt in a pair is " <<jet_pair1->get_pt() <<std::endl;
+				}
+			}
+	}
+	else{
+		if(Verbosity() > 2){
+			std::cout<<"Did not find a pair of jets" <<std::endl;
 		}
 	}
-	else if(Verbosity() > 2)std::cout<<"Did not find a pair of jets" <<std::endl;
 	return;
 		
 }
 
 //____________________________________________________________________________..
-int DijetQA::ResetEvent(PHCompositeNode *topNode)
+int DijetQA::ResetEvent(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "DijetQA::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  if(Verbosity() > 1) {
+	std::cout << "DijetQA::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+	}
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int DijetQA::EndRun(const int runnumber)
 {
-  std::cout << "DijetQA::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  if(Verbosity() > 1) {
+	std::cout << "DijetQA::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int DijetQA::End(PHCompositeNode *topNode)
+int DijetQA::End(PHCompositeNode* /*topNode*/)
 {
 //  std::cout << "DijetQA::End(PHCompositeNode *topNode) This is the End..." << std::endl;
 	/*h_Ajj->SetStats(0);
@@ -295,9 +309,11 @@ int DijetQA::End(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int DijetQA::Reset(PHCompositeNode *topNode)
+int DijetQA::Reset(PHCompositeNode* /*topNode*/)
 {
- std::cout << "DijetQA::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  if(Verbosity() > 1 ){
+	std::cout << "DijetQA::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
