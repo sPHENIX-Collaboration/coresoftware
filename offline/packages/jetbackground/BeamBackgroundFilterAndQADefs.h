@@ -137,7 +137,7 @@ namespace BeamBackgroundFilterAndQADefs {
    *  The format should always be:
    *    h_<module name>_<trigger tag>_<jet tag>_<base name> + <tag>
    *
-   *  FIXME this should go into JetQADefs.h
+   *  FIXME this should get moved into JetQADefs.h
    */
   inline std::vector<std::string> MakeQAHistNames(
     const std::vector<std::string> bases,
