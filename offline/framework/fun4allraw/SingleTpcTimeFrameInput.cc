@@ -219,13 +219,13 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
         return;
       }
       evt.reset(GetEventiterator()->getNextEvent());
+      RunNumber(evt->getRunNumber());
     }
 
     if (Verbosity() > 2)
     {
       std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
-    RunNumber(evt->getRunNumber());
     if (GetVerbosity() > 1)
     {
       evt->identify();
