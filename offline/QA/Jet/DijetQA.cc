@@ -22,7 +22,6 @@ DijetQA::DijetQA(const std::string &name):
  , m_moduleName(name)
  , m_etaRange(-1.1, 1.1)
  , m_ptRange(1, 100)
- , m_event(-1)
  , m_nJet(-1)
  , m_nJetPair(-1)
  , m_centrality(-1)
@@ -185,14 +184,14 @@ void DijetQA::FindPairs(JetContainer* jets)
 					m_ptsl=pt2;
 					m_phil=jet_pair1->get_phi();
 					m_phisl=jet_pair2->get_phi();
-					m_dphi=m_phil-m_phisl;
+					m_dphil=m_phil-m_phisl;
 					m_etal=jet_pair1->get_eta();
 					m_etasl=jet_pair2->get_eta();
 					m_deltaeta=m_etal-m_etasl;
 					h_Ajj_l->Fill(m_Ajj);
 					h_xj_l->Fill(m_xj);
 					h_pt_l->Fill(m_ptl);
-					h_dphi_l->Fill(std::abs(m_dphi));
+					h_dphi_l->Fill(m_dphil);
 					h_Ajj_pt_l->Fill(m_ptl, m_Ajj);
 					h_xj_pt_l->Fill(m_ptl, m_xj);
 					h_dphi_pt_l->Fill(m_ptl, std::abs(m_dphi));
