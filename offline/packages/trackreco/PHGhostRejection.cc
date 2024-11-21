@@ -11,6 +11,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <cmath>     // for sqrt, fabs, atan2, cos
 #include <iostream>  // for operator<<, basic_ostream
@@ -19,21 +20,18 @@
 #include <utility>   // for pair, make_pair
 
 //____________________________________________________________________________..
-PHGhostRejection::~PHGhostRejection() = default;
-
-//____________________________________________________________________________..
 bool PHGhostRejection::cut_from_clusters(int itrack) {
   const auto& track = seeds[itrack];
   unsigned int nclusters = track.size_cluster_keys();
-  if (nclusters < _min_clusters) 
+  if (nclusters < _min_clusters)
   {
     m_rejected[itrack] = true;
     if (m_verbosity > 3) {
-      std::cout << " rejecting track ID (" << ((int)itrack) 
+      std::cout << " rejecting track ID (" << ((int)itrack)
         <<") because n-clusters(" << ((int)nclusters) <<")" << std::endl;
     }
     return true;
-  } 
+  }
   if (_must_span_sectors)
   {
     // check that there are clusters in at least 2 of the three layers of sectors
@@ -74,9 +72,9 @@ bool PHGhostRejection::cut_from_clusters(int itrack) {
     {
       m_rejected[itrack] = true;
       if (m_verbosity > 1) {
-        std::cout << " Cutting track ID " << ((int)itrack) 
-          << "  because only has clusters in " 
-          << (in_0 ? "inner sector  (layers <23)" 
+        std::cout << " Cutting track ID " << ((int)itrack)
+          << "  because only has clusters in "
+          << (in_0 ? "inner sector  (layers <23)"
             : in_1 ? "middle sector  (layers 23-39)"
             : "outer   (layers >40) ")
           << std::endl;
@@ -112,31 +110,31 @@ void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
        ++trid1)
   {
     if (m_rejected[trid1]) { continue; }
-    TrackSeed& track1 = seeds[trid1];
-    float track1phi = track1.get_phi();
-    float track1x = track1.get_x();
-    float track1y = track1.get_y();
-    float track1z = track1.get_z();
-    float track1eta = track1.get_eta();
-    for (unsigned int trid2 = trid1;
-         trid2 != seeds.size();
-         ++trid2)
+    const auto& track1 = seeds[trid1];
+    const float track1phi = track1.get_phi();
+
+    const auto track1_pos = TrackSeedHelper::get_xyz(&track1);
+    const float track1eta = track1.get_eta();
+    for (unsigned int trid2 = trid1; trid2 != seeds.size(); ++trid2)
     {
       if (m_rejected[trid2] ||  (trid1 == trid2))
       {
         continue;
       }
 
-      auto& track2 = seeds[trid2];
-      auto delta_phi = fabs(static_cast<double>(track1phi - track2.get_phi()));
+      const auto& track2 = seeds[trid2];
+      const auto track2_pos = TrackSeedHelper::get_xyz(&track2);
+      const float track2eta = track2.get_eta();
+      auto delta_phi = std::abs(track1phi - track2.get_phi());
+
       if (delta_phi > 2 * M_PI) {
-        delta_phi = fabs(static_cast<double>(delta_phi - 2 * M_PI)); // address clang-tidy float->double promotion warning
+        delta_phi = delta_phi - 2*M_PI;
       }
       if (delta_phi < _phi_cut &&
-          std::fabs(track1eta - track2.get_eta()) < _eta_cut &&
-          std::fabs(track1x - track2.get_x()) < _x_cut &&
-          std::fabs(track1y - track2.get_y()) < _y_cut &&
-          std::fabs(track1z - track2.get_z()) < _z_cut)
+          std::fabs(track1eta - track2eta) < _eta_cut &&
+          std::fabs(track1_pos.x() - track2_pos.x()) < _x_cut &&
+          std::fabs(track1_pos.y() - track2_pos.y()) < _y_cut &&
+          std::fabs(track1_pos.z() - track2_pos.z()) < _z_cut)
       {
         matches_set.insert(trid1);
         matches.insert(std::pair(trid1, trid2));
@@ -184,10 +182,14 @@ void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
       if (m_verbosity > 1)
       {
         std::cout << "       Compare: best quality " << best_qual << " track 2 quality " << tr2_qual << std::endl;
+
+        const auto track1_pos = TrackSeedHelper::get_xyz(&tr1);
         std::cout << "       tr1: phi " << tr1.get_phi() << " eta " << tr1.get_eta()
-                  << " x " << tr1.get_x() << " y " << tr1.get_y() << " z " << tr1.get_z() << std::endl;
+                  << " x " << track1_pos.x() << " y " << track1_pos.y() << " z " << track1_pos.z() << std::endl;
+
+        const auto track2_pos = TrackSeedHelper::get_xyz(&tr2);
         std::cout << "       tr2: phi " << tr2.get_phi() << " eta " << tr2.get_eta()
-                  << " x " << tr2.get_x() << " y " << tr2.get_y() << " z " << tr2.get_z() << std::endl;
+                  << " x " << track2_pos.x() << " y " << track2_pos.y() << " z " << track2_pos.z() << std::endl;
       }
 
       if (tr2_qual < best_qual)

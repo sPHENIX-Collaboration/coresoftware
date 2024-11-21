@@ -34,14 +34,12 @@ void SpinDBInput::Initialize()
   catch (odbc::SQLException &e)
   {
     std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
-    // printf("Error : %s.\n",e.getMessage().c_str());
     exit(1);
   }
 
   if (con != nullptr)
   {
     std::cout << (boost::format("Connected to %s DB.\n") % TABLE_NAME).str();
-    // printf("Connected to %s DB.\n",TABLE_NAME);
   }
 
   return;
@@ -54,8 +52,6 @@ int SpinDBInput::IsConnected()
   if (con == nullptr)
   {
     std::cout << "Error : No connection to the DB.\n";
-    // printf("Error : No connection to the DB.\n");
-    //     printf(" You should do SpinDBInput.Connection(user_name).\n");
     return (0);
   }
 
@@ -87,7 +83,6 @@ int SpinDBInput::CheckRunRow(int runnum, int qa_level, const char *opt)
   catch (odbc::SQLException &e)
   {
     std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
-    // printf("Error : %s.\n",e.getMessage().c_str());
     delete rs;
     delete stmt;
     return (ERROR_VALUE);
@@ -113,7 +108,6 @@ int SpinDBInput::CreateRunRow(int runnum, int qa_level)
   if (CheckRunRow(runnum, qa_level, "simple") == 1)
   {
     std::cout << (boost::format("SpinDBInput::CreateRunRow() Error : Row for run %1% with qa level %2% seems to exist, check again.\n") % runnum % qa_level).str();
-    // printf("SpinDBInput::CreateRunRow() Error : Row for run %d with qa level %d seems to exist, check again.\n",runnum,qa_level);
     return (0);
   }
 
@@ -127,7 +121,6 @@ int SpinDBInput::CreateRunRow(int runnum, int qa_level)
   catch (odbc::SQLException &e)
   {
     std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
-    // printf("Error : %s.\n",e.getMessage().c_str());
     return (ERROR_VALUE);
   }
   delete stmt;
@@ -152,7 +145,6 @@ int SpinDBInput::DeleteRunRow(int runnum, int qa_level)
   if (CheckRunRow(runnum, qa_level, "simple") != 1)
   {
     std::cout << (boost::format("SpinDBInput::DeleteRunRow() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % runnum % qa_level).str();
-    // printf("SpinDBInput::DeleteRunRow() Error : Row for run %d qa level %d seems not to exist, check again.\n",runnum,qa_level);
     return (0);
   }
 
@@ -166,7 +158,6 @@ int SpinDBInput::DeleteRunRow(int runnum, int qa_level)
   catch (odbc::SQLException &e)
   {
     std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
-    // printf("Error : %s.\n",e.getMessage().c_str());
     delete stmt;
     return (ERROR_VALUE);
   }
@@ -177,102 +168,6 @@ int SpinDBInput::DeleteRunRow(int runnum, int qa_level)
   return (1);
 }
 
-////////////////////////////////////////////////////////////
-/*
-int SpinDBInput::CheckQARunRow(int runnum){
-  if(IsConnected()!=1){return(ERROR_VALUE);}
-
-  std::stringstream cmd;
-  cmd << "select * from spin_default where runnumber=" << runnum << ";";
-  odbc::Statement *stmt=con->createStatement();
-  odbc::ResultSet *rs=nullptr;
-  try{rs=stmt->executeQuery(cmd.str());}
-  catch(odbc::SQLException &e){
-    printf("Error : %s.\n",e.getMessage().c_str());
-    delete rs;
-    delete stmt;
-    return(ERROR_VALUE);
-  }
-
-  int flag=0;
-  if(rs->next()!=0){flag=1;}
-
-  delete rs;
-  delete stmt;
-  return(flag);
-}
-*/
-//////////////////////////////////////////////////////////
-/*
-int SpinDBInput::CreateQARunRow(int runnum){
-  if(IsConnected()!=1){return(0);}
-
-  std::stringstream cmd;
-  cmd << "insert into spin_default (runnumber,default_qa_level) values(" << runnum << "," << ERROR_VALUE << ");";
-  odbc::Statement *stmt=con->createStatement();
-  try{stmt->execute(cmd.str());}
-  catch(odbc::SQLException &e){
-    printf("Error : %s.\n",e.getMessage().c_str());
-    return(ERROR_VALUE);
-  }
-  delete stmt;
-
-  return(1);
-}
-*/
-
-///////////////////////////////////////////////////////////
-/*
-int SpinDBInput::DeleteQARunRow(int runnum){
-  if(IsConnected()!=1){return(0);}
-
-  if(CheckQARunRow(runnum)!=1){
-    printf("SpinDBInput::DeleteQARunRow() Error : Row for run %d seems not to exist in spin_default, check again.\n",runnum);
-    return(0);
-  }
-
-  std::stringstream cmd;
-  cmd << "delete from spin_default where runnumber=" << runnum << ";";
-  odbc::Statement *stmt=con->createStatement();
-  try{stmt->execute(cmd.str());}
-  catch(odbc::SQLException &e){
-    printf("Error : %s.\n",e.getMessage().c_str());
-    delete stmt;
-    return(ERROR_VALUE);
-  }
-
-  run_check=-1;
-  qa_check=-1;
-  delete stmt;
-  return(1);
-}
-*/
-/////////////////////////////////////////////////////////
-/*
-int SpinDBInput::SetQADefault(int runnum,int qa_level){
-  if(IsConnected()!=1){return(0);}
-
-  if(CheckQARunRow(runnum)!=1){
-    printf("Row for runnumber %d doesn't exist in spin_default! Creating it.\n",runnum);
-    CreateQARunRow(runnum);
-  }
-
-  std::stringstream cmd;
-  cmd << "update spin_default set default_qa_level=" << qa_level;
-  cmd << " where runnumber=" << runnum << ";";
-
-  odbc::Statement *stmt=con->createStatement();
-  try{stmt->execute(cmd.str());}
-  catch(odbc::SQLException &e){
-    printf("Error : %s.\n",e.getMessage().c_str());
-    delete stmt;
-    return(ERROR_VALUE);
-  }
-  delete stmt;
-
-  return(1);
-}
-*/
 ///////////////////////////////////////////////////////////
 
 int SpinDBInput::InitializeRunRow(SpinDBContent spin_cont)
@@ -285,7 +180,6 @@ int SpinDBInput::InitializeRunRow(SpinDBContent spin_cont)
   if (CheckRunRow(spin_cont.GetRunNumber(), spin_cont.GetQALevel(), "simple") != 1)
   {
     std::cout << (boost::format("SpinDBInput::UpdateDBContent() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % spin_cont.GetRunNumber() % spin_cont.GetQALevel()).str();
-    // printf("SpinDBInput::UpdateDBContent() Error : Row for run %d qa level %d seems not to exist, check again.\n", spin_cont.GetRunNumber(),spin_cont.GetQALevel());
     return (0);
   }
 
@@ -311,14 +205,28 @@ int SpinDBInput::InitializeRunRow(SpinDBContent spin_cont)
   InitializeArray(runnum, qa_level, "zdcns", ncross);
   InitializeArray(runnum, qa_level, "badbunchqa", ncross);
 
-  InitializeValue(runnum, qa_level, "transversxblue");
-  InitializeValue(runnum, qa_level, "transversxblueerr");
-  InitializeValue(runnum, qa_level, "transversyblue");
-  InitializeValue(runnum, qa_level, "transversyblueerr");
-  InitializeValue(runnum, qa_level, "transversxyellow");
-  InitializeValue(runnum, qa_level, "transversxyellowerr");
-  InitializeValue(runnum, qa_level, "transversyyellow");
-  InitializeValue(runnum, qa_level, "transversyyellowerr");
+  InitializeValue(runnum, qa_level, "asymbf");
+  InitializeValue(runnum, qa_level, "asymbb");
+  InitializeValue(runnum, qa_level, "asymyf");
+  InitializeValue(runnum, qa_level, "asymyb");
+  InitializeValue(runnum, qa_level, "asymerrbf");
+  InitializeValue(runnum, qa_level, "asymerrbb");
+  InitializeValue(runnum, qa_level, "asymerryf");
+  InitializeValue(runnum, qa_level, "asymerryb");
+
+  InitializeValue(runnum, qa_level, "phasebf");
+  InitializeValue(runnum, qa_level, "phasebb");
+  InitializeValue(runnum, qa_level, "phaseyf");
+  InitializeValue(runnum, qa_level, "phaseyb");
+  InitializeValue(runnum, qa_level, "phaseerrbf");
+  InitializeValue(runnum, qa_level, "phaseerrbb");
+  InitializeValue(runnum, qa_level, "phaseerryf");
+  InitializeValue(runnum, qa_level, "phaseerryb");
+
+  InitializeValue(runnum, qa_level, "crossingangle");
+  InitializeValue(runnum, qa_level, "crossanglestd");
+  InitializeValue(runnum, qa_level, "crossanglemin");
+  InitializeValue(runnum, qa_level, "crossanglemax");
 
   return (1);
 }
@@ -335,7 +243,6 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
   if (CheckRunRow(spin_cont.GetRunNumber(), spin_cont.GetQALevel(), "simple") != 1)
   {
     std::cout << (boost::format("SpinDBInput::UpdateDBContent() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % spin_cont.GetRunNumber() % spin_cont.GetQALevel()).str();
-    // printf("SpinDBInput::UpdateDBContent() Error : Row for run %d qa level %d seems not to exist, check again.\n", spin_cont.GetRunNumber(),spin_cont.GetQALevel());
     return (0);
   }
 
@@ -344,7 +251,6 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
   if (qa_level == ERROR_VALUE)
   {
     std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
-    // printf("You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n");
     return (0);
   }
 
@@ -496,43 +402,108 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
     UpdateArray(runnum, qa_level, "badbunchqa", bad_bunch, ncross);
   }
 
-  float tc_bx, tc_bx_err, tc_by, tc_by_err;
-  float tc_yx, tc_yx_err, tc_yy, tc_yy_err;
-  spin_cont.GetTransCompBlueX(tc_bx, tc_bx_err);
-  spin_cont.GetTransCompBlueY(tc_by, tc_by_err);
-  spin_cont.GetTransCompYellowX(tc_yx, tc_yx_err);
-  spin_cont.GetTransCompYellowY(tc_yy, tc_yy_err);
-  if (tc_bx != ERROR_VALUE)
+  float a_bf, a_bb, a_yf, a_yb;
+  float a_bf_err, a_bb_err, a_yf_err, a_yb_err;
+  float p_bf, p_bb, p_yf, p_yb;
+  float p_bf_err, p_bb_err, p_yf_err, p_yb_err;
+  spin_cont.GetAsymBlueForward(a_bf, a_bf_err);
+  spin_cont.GetAsymBlueBackward(a_bb, a_bb_err);
+  spin_cont.GetAsymYellowForward(a_yf, a_yf_err);
+  spin_cont.GetAsymYellowBackward(a_yb, a_yb_err);
+  spin_cont.GetPhaseBlueForward(p_bf, p_bf_err);
+  spin_cont.GetPhaseBlueBackward(p_bb, p_bb_err);
+  spin_cont.GetPhaseYellowForward(p_yf, p_yf_err);
+  spin_cont.GetPhaseYellowBackward(p_yb, p_yb_err);
+
+  if (a_bf != ERROR_VALUE)
   {
-    UpdateValue(runnum, qa_level, "transversxblue", tc_bx);
+    UpdateValue(runnum, qa_level, "asymbf", a_bf);
   }
-  if (tc_bx_err != ERROR_VALUE)
+  if (a_bf_err != ERROR_VALUE)
   {
-    UpdateValue(runnum, qa_level, "transversxblueerr", tc_bx_err);
+    UpdateValue(runnum, qa_level, "asymerrbf", a_bf_err);
   }
-  if (tc_by != ERROR_VALUE)
+  if (a_bb != ERROR_VALUE)
   {
-    UpdateValue(runnum, qa_level, "transversyblue", tc_by);
+    UpdateValue(runnum, qa_level, "asymbb", a_bb);
   }
-  if (tc_by_err != ERROR_VALUE)
+  if (a_bb_err != ERROR_VALUE)
   {
-    UpdateValue(runnum, qa_level, "transversyblueerr", tc_by_err);
+    UpdateValue(runnum, qa_level, "asymerrbb", a_bb_err);
   }
-  if (tc_yx != ERROR_VALUE)
+  if (a_yf != ERROR_VALUE)
   {
-    UpdateValue(runnum, qa_level, "transversxyellow", tc_yx);
+    UpdateValue(runnum, qa_level, "asymyf", a_yf);
   }
-  if (tc_yx_err != ERROR_VALUE)
+  if (a_yf_err != ERROR_VALUE)
   {
-    UpdateValue(runnum, qa_level, "transversxyellowerr", tc_yx_err);
+    UpdateValue(runnum, qa_level, "asymerryf", a_yf_err);
   }
-  if (tc_yy != ERROR_VALUE)
+  if (a_yb != ERROR_VALUE)
   {
-    UpdateValue(runnum, qa_level, "transversyyellow", tc_yy);
+    UpdateValue(runnum, qa_level, "asymyb", a_yb);
   }
-  if (tc_yy_err != ERROR_VALUE)
+  if (a_yb_err != ERROR_VALUE)
   {
-    UpdateValue(runnum, qa_level, "transversyyellowerr", tc_yy_err);
+    UpdateValue(runnum, qa_level, "asymerryb", a_yb_err);
+  }
+
+  
+  if (p_bf != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phasebf", p_bf);
+  }
+  if (p_bf_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseerrbf", p_bf_err);
+  }
+  if (p_bb != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phasebb", p_bb);
+  }
+  if (p_bb_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseerrbb", p_bb_err);
+  }
+  if (p_yf != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseyf", p_yf);
+  }
+  if (p_yf_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseerryf", p_yf_err);
+  }
+  if (p_yb != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseyb", p_yb);
+  }
+  if (p_yb_err != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "phaseerryb", p_yb_err);
+  }
+
+
+
+  float cross_angle = spin_cont.GetCrossAngle();
+  float cross_angle_std = spin_cont.GetCrossAngleStd();
+  float cross_angle_min = spin_cont.GetCrossAngleMin();
+  float cross_angle_max = spin_cont.GetCrossAngleMax();
+
+  if (cross_angle != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "crossingangle", cross_angle);
+  }
+  if (cross_angle_std != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "crossanglestd", cross_angle_std);
+  }
+  if (cross_angle_min != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "crossanglemin", cross_angle_min);
+  }
+  if (cross_angle_max != ERROR_VALUE)
+  {
+    UpdateValue(runnum, qa_level, "crossanglemax", cross_angle_max);
   }
 
   return (1);
@@ -550,7 +521,6 @@ int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *cmd)
   if (CheckRunRow(runnum, qa_level, "simple") != 1)
   {
     std::cout << (boost::format("SpinDBInput::UpdateDBContent() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % runnum % qa_level).str();
-    // printf("SpinDBInput::UpdateValue() Error : Row for run %d qa level %d seems not to exist, check again.\n",runnum,qa_level);
     return (0);
   }
 
@@ -562,13 +532,11 @@ int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *cmd)
   catch (odbc::SQLException &e)
   {
     std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
-    // printf("Error : %s.\n",e.getMessage().c_str());
     delete stmt;
     return (ERROR_VALUE);
   }
   delete stmt;
   std::cout << cmd << '\n';
-  // printf("%s\n",cmd);
 
   return (1);
 }
@@ -680,3 +648,62 @@ int SpinDBInput::InitializeArray(int runnum, int qa_level, const char *name, int
 }
 
 ////////////////////////////////////////////////////////////
+int SpinDBInput::SetDefaultQA(SpinDBContent spin_cont)
+{
+  if (IsConnected() != 1)
+  {
+    return (0);
+  }
+
+
+  int qa_level = spin_cont.GetQALevel();
+
+  if (qa_level == ERROR_VALUE)
+  {
+    std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
+    return (0);
+  }
+
+  int runnum = spin_cont.GetRunNumber();
+
+  if (CheckRunRow(runnum, qa_level, "simple") != 1)
+  {
+    std::cout << (boost::format("SpinDBInput::DeleteRunRow() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % runnum % qa_level).str();
+    return (0);
+  }
+
+  std::stringstream cmd1;
+  cmd1 << " update spin set is_default = FALSE where runnumber=" << runnum << " and is_default = TRUE;";
+  odbc::Statement *stmt1 = con->createStatement();
+  try
+  {
+    stmt1->execute(cmd1.str());
+  }
+  catch (odbc::SQLException &e)
+  {
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    delete stmt1;
+    return (ERROR_VALUE);
+  }
+
+
+  std::stringstream cmd2;
+  cmd2 << " update spin set is_default = TRUE where runnumber=" << runnum << " and qa_level = " << qa_level << ";";
+  odbc::Statement *stmt2 = con->createStatement();
+  try
+  {
+    stmt2->execute(cmd2.str());
+  }
+  catch (odbc::SQLException &e)
+  {
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    delete stmt2;
+    return (ERROR_VALUE);
+  }
+
+  run_check = -1;
+  qa_check = -1;
+  delete stmt1;
+  delete stmt2;
+  return (1);
+}

@@ -6,11 +6,12 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 libcdbobjects_la_SOURCES = \
   CDBHistos.cc \
+  CDBTF.cc \
   CDBTTree.cc
 
 libcdbobjects_la_LDFLAGS = \
@@ -21,6 +22,7 @@ libcdbobjects_la_LDFLAGS = \
 
 pkginclude_HEADERS = \
   CDBHistos.h \
+  CDBTF.h \
   CDBTTree.h
 
 ################################################

@@ -169,16 +169,27 @@ int TriggerRunInfoReco::fetchTriggerScalers(int runnumber, TriggerRunInfo *trigg
       
     }
 
+  delete resultSet;
+  delete stmt;
+  delete dbConnection;
+
   for (int i = 0; i < 64; i++)
   {
     for (int j = 0 ; j < 3; j++)
       {
 	triggerRunInfo->setTriggerScalers(i, j, scalers[i][j]);
+
       }
+    double scaled = static_cast<double>(scalers[i][0]);
+    double live = static_cast<double>(scalers[i][1]);
+    double prescale = -1;
+    if (scaled >= 1) 
+      {
+	prescale = live/scaled;
+      }
+    triggerRunInfo->setTriggerPrescale(i, prescale);
+
   }
 
-  delete resultSet;
-  delete stmt;
-  delete dbConnection;
   return 0;
 }

@@ -32,7 +32,6 @@ class LaserEventIdentifier : public SubsysReco
 
   void set_debug(bool debug) { m_debug = debug; }
   void set_debug_name(const std::string &name) { m_debugFileName = name; }
-  void set_reject_event(bool reject) { m_rejectEvent = reject; }
  private:
   int m_time_samples_max=425;
 
@@ -41,7 +40,6 @@ class LaserEventIdentifier : public SubsysReco
   PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
 
   LaserEventInfo *m_laserEventInfo = nullptr ;
-  bool m_rejectEvent = true;
   bool m_debug = false;
   std::string m_debugFileName = "LaserEventIdentifier_debug.root";
   TFile *m_debugFile = nullptr;

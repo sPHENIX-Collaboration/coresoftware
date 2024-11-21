@@ -416,13 +416,13 @@ void PHG4TpcDirectLaser::SetupLasers()
     {
       laser.m_position.SetZ(position_base.z());
       laser.m_direction = -1;
-      laser.m_phi = M_PI / 2 * i + (15 * M_PI / 180);  // additional offset of 15 deg.
+      laser.m_phi = M_PI / 2 * i - (15 * M_PI / 180);  // additional offset of 15 deg.
     }
     else
     {
       laser.m_position.SetZ(-position_base.z());
       laser.m_direction = 1;
-      laser.m_phi = M_PI / 2 * i - (15 * M_PI / 180);  // additional offset of 15 deg.
+      laser.m_phi = M_PI / 2 * i + (15 * M_PI / 180);  // additional offset of 15 deg.
     }
 
     // rotate around z

@@ -18,6 +18,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <TFile.h>
 #include <TH2.h>
@@ -193,8 +194,8 @@ int AzimuthalSeeder::process_event(PHCompositeNode * /*unused*/)
     }
     avgphi /= s.globpos.size();
     si_seed->set_phi(avgphi);
-    si_seed->circleFitByTaubin(clusterPositions[0], 0, 3);
-    si_seed->lineFit(clusterPositions[0], 0, 3);
+    TrackSeedHelper::circleFitByTaubin(si_seed.get(),clusterPositions[0], 0, 3);
+    TrackSeedHelper::lineFit(si_seed.get(),clusterPositions[0], 0, 3);
     if (Verbosity() > 3)
     {
       si_seed->identify();

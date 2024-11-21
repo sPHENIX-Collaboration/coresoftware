@@ -187,10 +187,6 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     peakSample1 = (int) itMax_1;
     peakWidth0 = f0->GetParameter(2);
     peakWidth1 = f1->GetParameter(2);
-    if(m_rejectEvent)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
   }
   else
   {

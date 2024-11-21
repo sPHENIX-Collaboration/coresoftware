@@ -27,6 +27,8 @@ libjetbase_la_LDFLAGS = \
 libjetbase_la_LIBADD = \
   libjetbase_io.la \
   -lcalo_io \
+  -lcdbobjects \
+  -lffamodules \
   -lfun4all \
   -lglobalvertex_io \
   -lgsl \
@@ -38,6 +40,7 @@ pkginclude_HEADERS = \
   FastJetAlgo.h \
   FastJetOptions.h \
   Jet.h \
+  JetCalib.h \
   Jetv1.h \
   Jetv2.h \
   JetContainer.h \
@@ -87,6 +90,7 @@ libjetbase_la_SOURCES = \
   JetAlgo.cc \
   FastJetAlgo.cc \
   FastJetOptions.cc \
+  JetCalib.cc \
   JetProbeMaker.cc \
   JetProbeInput.cc \
   JetReco.cc \

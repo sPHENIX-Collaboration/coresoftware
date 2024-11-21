@@ -50,11 +50,26 @@ class TpcRawHit : public PHObject
   virtual uint16_t get_parity() const { return std::numeric_limits<uint16_t>::max(); }
   virtual void set_parity(const uint16_t /*i*/) { return; }
 
+  //! FEE waveform CRC check. If true, FEE data transmission from FEE to offline is broken
   virtual bool get_checksumerror() const { return false; }
   virtual void set_checksumerror(const bool /*b*/) { return; }
 
+  //! SAMPA data payload parity check. If true, data from SAMPA is broken, e.g. from SEU 
   virtual bool get_parityerror() const { return false; }
   virtual void set_parityerror(const bool /*b*/) { return; }
+
+  class AdcIterator
+  {
+   public:
+    AdcIterator() = default;
+    virtual ~AdcIterator() = default;
+    virtual void First() = 0;
+    virtual void Next() = 0;
+    virtual bool IsDone() const = 0;
+    virtual uint16_t CurrentTimeBin() const = 0;
+    virtual uint16_t CurrentAdc() const = 0;
+  };
+  virtual AdcIterator* CreateAdcIterator() const = 0;
 
  private:
   ClassDefOverride(TpcRawHit, 0)

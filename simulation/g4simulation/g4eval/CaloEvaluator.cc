@@ -20,6 +20,8 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -230,6 +232,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
   }
 
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
+  clustereval->set_usetowerinfo(_use_towerinfo);
   CaloTruthEval* trutheval = _caloevalstack->get_truth_eval();
 
   //==========================================
@@ -592,160 +595,325 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_do_tower_eval)
   {
-    if (Verbosity() > 1)
+    if (!_use_towerinfo)
     {
-      std::cout << "CaloEvaluator::filling tower ntuple..." << std::endl;
-    }
-
-    std::string towernode = "TOWER_CALIB_" + _caloname;
-    RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernode.c_str());
-    if (!towers)
-    {
-      std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
-      exit(-1);
-    }
-
-    std::string towergeomnode = "TOWERGEOM_" + _caloname;
-    RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode.c_str());
-    if (!towergeom)
-    {
-      std::cout << PHWHERE << " ERROR: Can't find " << towergeomnode << std::endl;
-      exit(-1);
-    }
-
-    RawTowerContainer::ConstRange begin_end = towers->getTowers();
-    RawTowerContainer::ConstIterator rtiter;
-    for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
-    {
-      RawTower* tower = rtiter->second;
-
-      if (tower->get_energy() < _reco_e_threshold)
+      if (Verbosity() > 1)
       {
-        continue;
+        std::cout << "CaloEvaluator::filling tower ntuple..." << std::endl;
       }
 
-      RawTowerGeom* tower_geom = towergeom->get_tower_geometry(tower->get_id());
-      if (!tower_geom)
+      std::string towernode = "TOWER_CALIB_" + _caloname;
+      RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernode.c_str());
+      if (!towers)
       {
-        std::cout << PHWHERE << " ERROR: Can't find tower geometry for this tower hit: ";
-        tower->identify();
+        std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
         exit(-1);
       }
 
-      // std::cout<<"Tower ID = "<<tower->get_id()<<" for bin(j,k)= "<<tower->get_bineta()<<","<<tower->get_binphi()<<std::endl; //Added by Barak
-      const float towerid = tower->get_id();
-      const float ieta = tower->get_bineta();
-      const float iphi = tower->get_binphi();
-      const float eta = tower_geom->get_eta();
-      const float phi = tower_geom->get_phi();
-      const float e = tower->get_energy();
-      const float x = tower_geom->get_center_x();
-      const float y = tower_geom->get_center_y();
-      const float z = tower_geom->get_center_z();
-
-      // Added by Barak
-      _towerID_debug = tower->get_id();
-      _ieta_debug = tower->get_bineta();
-      _iphi_debug = tower->get_binphi();
-      _eta_debug = tower_geom->get_eta();
-      _phi_debug = tower_geom->get_phi();
-      _e_debug = tower->get_energy();
-      _x_debug = tower_geom->get_center_x();
-      _y_debug = tower_geom->get_center_y();
-      _z_debug = tower_geom->get_center_z();
-
-      PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
-
-      float gparticleID = NAN;
-      float gflavor = NAN;
-      float gnhits = NAN;
-      float gpx = NAN;
-      float gpy = NAN;
-      float gpz = NAN;
-      float ge = NAN;
-
-      float gpt = NAN;
-      float geta = NAN;
-      float gphi = NAN;
-
-      float gvx = NAN;
-      float gvy = NAN;
-      float gvz = NAN;
-
-      float gembed = NAN;
-      float gedep = NAN;
-
-      float efromtruth = NAN;
-
-      if (primary)
+      std::string towergeomnode = "TOWERGEOM_" + _caloname;
+      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode.c_str());
+      if (!towergeom)
       {
-        gparticleID = primary->get_track_id();
-        gflavor = primary->get_pid();
-
-        PHG4Shower* shower = trutheval->get_primary_shower(primary);
-        if (shower)
-        {
-          gnhits = shower->get_nhits(trutheval->get_caloid());
-        }
-        else
-        {
-          gnhits = 0.0;
-        }
-        gpx = primary->get_px();
-        gpy = primary->get_py();
-        gpz = primary->get_pz();
-        ge = primary->get_e();
-
-        gpt = std::sqrt(gpx * gpx + gpy * gpy);
-        if (gpt != 0.0)
-        {
-          geta = std::asinh(gpz / gpt);
-        }
-        gphi = std::atan2(gpy, gpx);
-
-        PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
-
-        if (vtx)
-        {
-          gvx = vtx->get_x();
-          gvy = vtx->get_y();
-          gvz = vtx->get_z();
-        }
-
-        gembed = trutheval->get_embed(primary);
-        gedep = trutheval->get_shower_energy_deposit(primary);
-
-        efromtruth = towereval->get_energy_contribution(tower, primary);
+        std::cout << PHWHERE << " ERROR: Can't find " << towergeomnode << std::endl;
+        exit(-1);
       }
 
-      float tower_data[] = {(float) _ievent,
-                            towerid,
-                            ieta,
-                            iphi,
-                            eta,
-                            phi,
-                            e,
-                            x,
-                            y,
-                            z,
-                            gparticleID,
-                            gflavor,
-                            gnhits,
-                            geta,
-                            gphi,
-                            ge,
-                            gpt,
-                            gvx,
-                            gvy,
-                            gvz,
-                            gembed,
-                            gedep,
-                            efromtruth};
+      RawTowerContainer::ConstRange begin_end = towers->getTowers();
+      RawTowerContainer::ConstIterator rtiter;
+      for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+      {
+        RawTower* tower = rtiter->second;
 
-      _ntp_tower->Fill(tower_data);
-      _tower_debug->Fill();  // Added by Barak (see above for explanation)
+        if (tower->get_energy() < _reco_e_threshold)
+        {
+          continue;
+        }
+
+        RawTowerGeom* tower_geom = towergeom->get_tower_geometry(tower->get_id());
+        if (!tower_geom)
+        {
+          std::cout << PHWHERE << " ERROR: Can't find tower geometry for this tower hit: ";
+          tower->identify();
+          exit(-1);
+        }
+
+        // std::cout<<"Tower ID = "<<tower->get_id()<<" for bin(j,k)= "<<tower->get_bineta()<<","<<tower->get_binphi()<<std::endl; //Added by Barak
+        const float towerid = tower->get_id();
+        const float ieta = tower->get_bineta();
+        const float iphi = tower->get_binphi();
+        const float eta = tower_geom->get_eta();
+        const float phi = tower_geom->get_phi();
+        const float e = tower->get_energy();
+        const float x = tower_geom->get_center_x();
+        const float y = tower_geom->get_center_y();
+        const float z = tower_geom->get_center_z();
+
+        // Added by Barak
+        _towerID_debug = tower->get_id();
+        _ieta_debug = tower->get_bineta();
+        _iphi_debug = tower->get_binphi();
+        _eta_debug = tower_geom->get_eta();
+        _phi_debug = tower_geom->get_phi();
+        _e_debug = tower->get_energy();
+        _x_debug = tower_geom->get_center_x();
+        _y_debug = tower_geom->get_center_y();
+        _z_debug = tower_geom->get_center_z();
+
+        PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
+
+        float gparticleID = NAN;
+        float gflavor = NAN;
+        float gnhits = NAN;
+        float gpx = NAN;
+        float gpy = NAN;
+        float gpz = NAN;
+        float ge = NAN;
+
+        float gpt = NAN;
+        float geta = NAN;
+        float gphi = NAN;
+
+        float gvx = NAN;
+        float gvy = NAN;
+        float gvz = NAN;
+
+        float gembed = NAN;
+        float gedep = NAN;
+
+        float efromtruth = NAN;
+
+        if (primary)
+        {
+          gparticleID = primary->get_track_id();
+          gflavor = primary->get_pid();
+
+          PHG4Shower* shower = trutheval->get_primary_shower(primary);
+          if (shower)
+          {
+            gnhits = shower->get_nhits(trutheval->get_caloid());
+          }
+          else
+          {
+            gnhits = 0.0;
+          }
+          gpx = primary->get_px();
+          gpy = primary->get_py();
+          gpz = primary->get_pz();
+          ge = primary->get_e();
+
+          gpt = std::sqrt(gpx * gpx + gpy * gpy);
+          if (gpt != 0.0)
+          {
+            geta = std::asinh(gpz / gpt);
+          }
+          gphi = std::atan2(gpy, gpx);
+
+          PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
+
+          if (vtx)
+          {
+            gvx = vtx->get_x();
+            gvy = vtx->get_y();
+            gvz = vtx->get_z();
+          }
+
+          gembed = trutheval->get_embed(primary);
+          gedep = trutheval->get_shower_energy_deposit(primary);
+
+          efromtruth = towereval->get_energy_contribution(tower, primary);
+        }
+
+        float tower_data[] = {(float) _ievent,
+                              towerid,
+                              ieta,
+                              iphi,
+                              eta,
+                              phi,
+                              e,
+                              x,
+                              y,
+                              z,
+                              gparticleID,
+                              gflavor,
+                              gnhits,
+                              geta,
+                              gphi,
+                              ge,
+                              gpt,
+                              gvx,
+                              gvy,
+                              gvz,
+                              gembed,
+                              gedep,
+                              efromtruth};
+
+        _ntp_tower->Fill(tower_data);
+        _tower_debug->Fill();  // Added by Barak (see above for explanation)
+      }
+    }
+    else
+    {
+      if (Verbosity() > 1)
+      {
+        std::cout << "CaloEvaluator::filling tower ntuple..." << std::endl;
+      }
+
+      std::string towernode = "TOWERINFO_CALIB_" + _caloname;
+      TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, towernode.c_str());
+      if (!towers)
+      {
+        std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
+        exit(-1);
+      }
+
+      std::string towergeomnode = "TOWERGEOM_" + _caloname;
+      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode.c_str());
+      if (!towergeom)
+      {
+        std::cout << PHWHERE << " ERROR: Can't find " << towergeomnode << std::endl;
+        exit(-1);
+      }
+
+      unsigned int ntowers = towers->size();
+
+      for (unsigned int channel = 0; channel < ntowers; channel++)
+      {
+        TowerInfo* tower = towers->get_tower_at_channel(channel);
+
+        if (tower->get_energy() < _reco_e_threshold)
+        {
+          continue;
+        }
+
+        unsigned int towerkey = towers->encode_key(channel);
+        unsigned int ieta_bin = towers->getTowerEtaBin(towerkey);
+        unsigned int iphi_bin = towers->getTowerPhiBin(towerkey);
+        const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(
+            RawTowerDefs::convert_name_to_caloid("CEMC"), ieta_bin, iphi_bin);
+        RawTowerGeom* tower_geom = towergeom->get_tower_geometry(key);
+        if (!tower_geom)
+        {
+          std::cout << PHWHERE << " ERROR: Can't find tower geometry for this tower hit: ";
+          tower->identify();
+          exit(-1);
+        }
+
+        // std::cout<<"Tower ID = "<<tower->get_id()<<" for bin(j,k)= "<<tower->get_bineta()<<","<<tower->get_binphi()<<std::endl; //Added by Barak
+        const float towerid = key;
+        const float ieta = ieta_bin;
+        const float iphi = iphi_bin;
+        const float eta = tower_geom->get_eta();
+        const float phi = tower_geom->get_phi();
+        const float e = tower->get_energy();
+        const float x = tower_geom->get_center_x();
+        const float y = tower_geom->get_center_y();
+        const float z = tower_geom->get_center_z();
+
+        // Added by Barak
+        _towerID_debug = towerid;
+        _ieta_debug = ieta;
+        _iphi_debug = iphi;
+        _eta_debug = eta;
+        _phi_debug = phi;
+        _e_debug = e;
+        _x_debug = x;
+        _y_debug = y;
+        _z_debug = z;
+
+        PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
+
+        float gparticleID = NAN;
+        float gflavor = NAN;
+        float gnhits = NAN;
+        float gpx = NAN;
+        float gpy = NAN;
+        float gpz = NAN;
+        float ge = NAN;
+
+        float gpt = NAN;
+        float geta = NAN;
+        float gphi = NAN;
+
+        float gvx = NAN;
+        float gvy = NAN;
+        float gvz = NAN;
+
+        float gembed = NAN;
+        float gedep = NAN;
+
+        float efromtruth = NAN;
+
+        if (primary)
+        {
+          gparticleID = primary->get_track_id();
+          gflavor = primary->get_pid();
+
+          PHG4Shower* shower = trutheval->get_primary_shower(primary);
+          if (shower)
+          {
+            gnhits = shower->get_nhits(trutheval->get_caloid());
+          }
+          else
+          {
+            gnhits = 0.0;
+          }
+          gpx = primary->get_px();
+          gpy = primary->get_py();
+          gpz = primary->get_pz();
+          ge = primary->get_e();
+
+          gpt = std::sqrt(gpx * gpx + gpy * gpy);
+          if (gpt != 0.0)
+          {
+            geta = std::asinh(gpz / gpt);
+          }
+          gphi = std::atan2(gpy, gpx);
+
+          PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
+
+          if (vtx)
+          {
+            gvx = vtx->get_x();
+            gvy = vtx->get_y();
+            gvz = vtx->get_z();
+          }
+
+          gembed = trutheval->get_embed(primary);
+          gedep = trutheval->get_shower_energy_deposit(primary);
+
+          efromtruth = towereval->get_energy_contribution(tower, primary);
+        }
+
+        float tower_data[] = {(float) _ievent,
+                              towerid,
+                              ieta,
+                              iphi,
+                              eta,
+                              phi,
+                              e,
+                              x,
+                              y,
+                              z,
+                              gparticleID,
+                              gflavor,
+                              gnhits,
+                              geta,
+                              gphi,
+                              ge,
+                              gpt,
+                              gvx,
+                              gvy,
+                              gvz,
+                              gembed,
+                              gedep,
+                              efromtruth};
+
+        _ntp_tower->Fill(tower_data);
+        _tower_debug->Fill();  // Added by Barak (see above for explanation)
+      }
     }
   }
+  
 
   //------------------------
   // fill the Cluster NTuple
@@ -761,6 +929,10 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
     std::string clusternode = "CLUSTER_" + _caloname;
+    if (_use_towerinfo)
+    {
+      clusternode = "CLUSTER_CALIB_" + _caloname;
+    }
     RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode, clusternode.c_str());
     if (!clusters)
     {

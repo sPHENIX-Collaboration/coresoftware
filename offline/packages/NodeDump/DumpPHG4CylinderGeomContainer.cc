@@ -43,7 +43,7 @@ int DumpPHG4CylinderGeomContainer::process_Node(PHNode *myNode)
       *fout << "nscint: " << hiter->second->get_nscint() << std::endl;
       *fout << "tiltangle: " << hiter->second->get_tiltangle() << std::endl;
       *fout << "strip_y_spacing: " << hiter->second->get_strip_y_spacing() << std::endl;
-      *fout << "strip_z_spacing: " << hiter->second->get_strip_z_spacing() << std::endl;
+      *fout << "strip_z_spacing: " << hiter->second->get_strip_z_spacing(0) << std::endl;
       *fout << "strip_tilt: " << hiter->second->get_strip_tilt() << std::endl;
       *fout << "N_strip_columns: " << hiter->second->get_N_strip_columns() << std::endl;
       *fout << "N_strips_per_column: " << hiter->second->get_N_strips_per_column() << std::endl;

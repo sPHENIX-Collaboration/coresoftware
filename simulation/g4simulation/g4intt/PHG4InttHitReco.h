@@ -43,6 +43,8 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 
   void setHotStripMaskFile(const std::string& name) { m_hotStripFileName = name; }
 
+  void setLocalHotStripMaskFile(const std::string& name) { m_localHotStripFileName = name; }
+
  protected:
   std::string m_Detector = "INTT";
   std::string m_HitNodeName;
@@ -70,6 +72,7 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   std::map<TrkrDefs::hitsetkey, unsigned int> m_hitsetkey_cnt{};  // counter for making ckeys form hitsetkeys
 
   std::string m_hotStripFileName = "INTT_HotMap";
+  std::string m_localHotStripFileName = ""; // default to empty: only use local file for testing purpose; if empty, use CDB file
   typedef std::set<InttNameSpace::RawData_s, InttNameSpace::RawDataComparator> Set_t;
   Set_t m_HotChannelSet;
 
