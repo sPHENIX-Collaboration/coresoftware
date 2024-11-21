@@ -11,9 +11,8 @@
 class MicromegasRawHitv1 : public MicromegasRawHit
 {
  public:
-  MicromegasRawHitv1() = default;
-  MicromegasRawHitv1(MicromegasRawHit *);
-  ~MicromegasRawHitv1() override = default;
+  explicit MicromegasRawHitv1() = default;
+  explicit MicromegasRawHitv1(MicromegasRawHit *);
 
   /** identify Function from PHObject
   @param os Output Stream
@@ -50,9 +49,15 @@ class MicromegasRawHitv1 : public MicromegasRawHit
   // cppcheck-suppress virtualCallInConstructor
   void set_sampachannel(uint16_t const val) override { sampachannel = val; }
 
-  uint16_t get_samples() const override { return samples; }
+  // index of the first sample with data
+  uint16_t get_sample_begin() const override { return 0; }
+
+  // index of the next to last sample with data
+  uint16_t get_sample_end() const override { return samples; }
+
+  // index of the next to last sample with data
   // cppcheck-suppress virtualCallInConstructor
-  void set_samples(uint16_t const val) override
+  void set_sample_end(uint16_t const val) override
   {
     // assign
     samples = val;
@@ -61,14 +66,14 @@ class MicromegasRawHitv1 : public MicromegasRawHit
     adc.resize(val, 0);
   }
 
-  uint16_t get_adc(size_t sample) const override
+  uint16_t get_adc(uint16_t sample) const override
   {
     assert(sample < adc.size());
     return adc[sample];
   }
 
   // cppcheck-suppress virtualCallInConstructor
-  void set_adc(size_t sample, uint16_t val) override
+  void set_adc(uint16_t sample, uint16_t val) override
   {
     assert(sample < adc.size());
     adc[sample] = val;

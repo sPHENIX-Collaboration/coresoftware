@@ -55,6 +55,7 @@
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <GenFit/AbsMeasurement.h>  // for AbsMeasurement
 #include <GenFit/Exception.h>       // for Exception
@@ -251,9 +252,10 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     svtxtrack->set_crossing(crossing);
 
     // track position comes from silicon seed
-    svtxtrack->set_x(siseed->get_x());
-    svtxtrack->set_y(siseed->get_y());
-    svtxtrack->set_z(siseed->get_z());
+    const auto position = TrackSeedHelper::get_xyz(siseed);
+    svtxtrack->set_x(position.x());
+    svtxtrack->set_y(position.y());
+    svtxtrack->set_z(position.z());
 
     // track momentum comes from tpc seed
     svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);

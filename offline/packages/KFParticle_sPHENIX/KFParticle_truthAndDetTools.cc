@@ -15,7 +15,7 @@
 #include <trackbase/TrkrCluster.h>           // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterContainer
 #include <trackbase/TrkrDefs.h>              // for getLayer, getTrkrId
-#include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
+#include <trackbase_historic/SvtxPHG4ParticleMap.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::...
 #include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, SvtxTrac...
 
@@ -120,12 +120,14 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, P
       std::cout << "KFParticle truth matching: G4TruthInfo does not exist" << std::endl;
     }
 
-    SvtxPHG4ParticleMap_v1 *dst_reco_truth_map = findNode::getClass<SvtxPHG4ParticleMap_v1>(topNode, "SvtxPHG4ParticleMap");
-
+    SvtxPHG4ParticleMap *dst_reco_truth_map = findNode::getClass<SvtxPHG4ParticleMap>(topNode, "SvtxPHG4ParticleMap");
     std::map<float, std::set<int>> truth_set = dst_reco_truth_map->get(thisTrack->get_id());
-    const auto &best_weight = truth_set.rbegin();
-    int best_truth_id = *best_weight->second.rbegin();
-    particle = m_truthinfo->GetParticle(best_truth_id);
+    if (truth_set.size() > 0)
+    {
+      std::pair<float, std::set<int>> best_weight = *truth_set.rbegin();
+      int best_truth_id = *best_weight.second.rbegin();
+      particle = m_truthinfo->GetParticle(best_truth_id);
+    }
   }
   else
   {
@@ -185,6 +187,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 
   PHNodeIterator nodeIter(topNode);
   PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
+
   if (findNode)
   {
     dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
@@ -193,20 +196,38 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   {
     std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
   }
-  findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_vtx_map_node_name_nTuple));
-  if (findNode)
+
+  if (m_use_mbd_vertex_truth)
   {
-    dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
+    findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("MbdVertexMap"));
+    if (findNode)
+    {
+      dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+    }
+    else
+    {
+      std::cout << "KFParticle truth matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
   }
   else
   {
-    std::cout << "KFParticle truth matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_vtx_map_node_name_nTuple));
+    if (findNode)
+    {
+      dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
+    }
+    else
+    {
+      std::cout << "KFParticle truth matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
   }
+
   auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!globalvertexmap)
   {
     std::cout << "KFParticle truth matching: GlobalVertexMap does not exist" << std::endl;
   }
+
   track = getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
 
@@ -248,22 +269,42 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   {
     // Calculate true DCA
     GlobalVertex *recoVertex = getVertex(kfvertex.Id(), globalvertexmap);
-    auto svtxviter = recoVertex->find_vertexes(GlobalVertex::SVTX);
+    GlobalVertex::VTXTYPE whichVtx = m_use_mbd_vertex_truth ? GlobalVertex::MBD : GlobalVertex::SVTX;
+    auto svtxviter = recoVertex->find_vertexes(whichVtx);
+
     // check that it contains a track vertex
     if (svtxviter == recoVertex->end_vertexes())
     {
-      std::cout << "Have a global vertex with no track vertex... shouldn't happen in KFParticle_truthAndDetTools::fillTruthBranch..." << std::endl;
+      std::string vtxType = m_use_mbd_vertex_truth ? "MBD" : "silicon";
+      std::cout << "Have a global vertex with no " << vtxType << " vertex... shouldn't happen in KFParticle_truthAndDetTools::fillTruthBranch..." << std::endl;
     }
 
     auto svtxvertexvector = svtxviter->second;
+    MbdVertex *mbdvertex = nullptr;
     SvtxVertex *svtxvertex = nullptr;
 
     for (auto &vertex_iter : svtxvertexvector)
     {
-      svtxvertex = dst_vertexmap->find(vertex_iter->get_id())->second;
+      if (m_use_mbd_vertex_truth)
+      {
+        mbdvertex = dst_mbdvertexmap->find(vertex_iter->get_id())->second;
+      }
+      else
+      {
+        svtxvertex = dst_vertexmap->find(vertex_iter->get_id())->second;
+      }
     }
 
-    PHG4VtxPoint *truePoint = vertexeval->max_truth_point_by_ntracks(svtxvertex);
+    PHG4VtxPoint *truePoint = nullptr;
+    if (m_use_mbd_vertex_truth)
+    {
+      std::set<PHG4VtxPoint*> truePointSet = vertexeval->all_truth_points(mbdvertex);
+      truePoint = *truePointSet.begin();
+    }
+    else
+    {
+      truePoint = vertexeval->max_truth_point_by_ntracks(svtxvertex);
+    }
 
     if (truePoint == nullptr && isParticleValid)
     {

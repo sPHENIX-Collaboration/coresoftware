@@ -18,6 +18,7 @@
 #include <pthread.h>
 #include <iostream>
 #include <string>
+#include <limits>
 
 ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);
 double CaloWaveformFitting::template_function(double *x, double *par)
@@ -64,7 +65,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
     if (size1 == _nzerosuppresssamples)
     {
       v.push_back(v.at(1) - v.at(0));  // returns peak sample - pedestal sample
-      v.push_back(-20);                 // set time to -20 to indicate zero suppressed
+      v.push_back(std::numeric_limits<float>::quiet_NaN());                 // set time to qnan for ZS
       v.push_back(v.at(0));
       if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
       { 
@@ -72,7 +73,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       } 
       else 
       {
-        v.push_back(0);
+        v.push_back(std::numeric_limits<float>::quiet_NaN());
       }
       v.push_back(0);
     }
@@ -105,7 +106,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       if ( (_bdosoftwarezerosuppression && v.at(6) - v.at(0) < _nsoftwarezerosuppression) || (_maxsoftwarezerosuppression && maxheight-pedestal  < _nsoftwarezerosuppression)  )
       {
         v.push_back(v.at(6) - v.at(0));
-        v.push_back(-20);
+        v.push_back(std::numeric_limits<float>::quiet_NaN());
         v.push_back(v.at(0));
         if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
         { 
@@ -113,7 +114,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         } 
         else 
         {
-          v.push_back(0);
+          v.push_back(std::numeric_limits<float>::quiet_NaN());
         }
         v.push_back(0);
       }
@@ -349,11 +350,11 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
     float amp = 0;
     float time = 0;
     float ped = 0;
-    float chi2 = 0;
+    float chi2 = std::numeric_limits<float>::quiet_NaN();
     if (nsamples == 2)
     {
       amp = v.at(1);
-      time = -20;
+      time = std::numeric_limits<float>::quiet_NaN();
       ped = v.at(0);
       if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
       { 
@@ -410,12 +411,12 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(std
 
     if (nsamples == 2)
     {
-      float chi2 = 0;
+      float chi2 = std::numeric_limits<float>::quiet_NaN();
       if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
       { 
         chi2 = 1000000;
       }
-      fit_values.push_back({v.at(1) - v.at(0), -20, v.at(0), chi2, 0});
+      fit_values.push_back({v.at(1) - v.at(0), std::numeric_limits<float>::quiet_NaN(), v.at(0), chi2, 0});
       continue;
     }
     

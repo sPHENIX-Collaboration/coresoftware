@@ -70,6 +70,7 @@ class PHSimpleKFProp : public SubsysReco
   }
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
+  void set_max_seeds(unsigned int ui) { _max_seeds = ui; }
   enum class PropagationDirection
   {
     Outward,
@@ -102,6 +103,7 @@ class PHSimpleKFProp : public SubsysReco
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
   bool _pp_mode = false;
+  unsigned int _max_seeds = 0;
 
   TrkrClusterContainer* _cluster_map = nullptr;
 
@@ -136,7 +138,7 @@ class PHSimpleKFProp : public SubsysReco
   template <typename T>
   struct KDPointCloud
   {
-    KDPointCloud<T>() {}
+    KDPointCloud() {}
     std::vector<std::vector<T>> pts;
     inline size_t kdtree_get_point_count() const
     {

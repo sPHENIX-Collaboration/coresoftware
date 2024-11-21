@@ -14,6 +14,9 @@ class MbdPmtContainer;
 class MbdPmtHit;
 class Zdcinfo;
 class TowerInfo;
+class MbdPmtContainer;
+class MbdPmtHit;
+class Zdcinfo;
 class GlobalVertexMap;
 class GlobalVertex;
 
@@ -39,23 +42,27 @@ class MinimumBiasClassifier : public SubsysReco
 
   int FillMinimumBiasInfo();
 
+  bool passesHitCut(MbdPmtHit *hit);
+
  private:
-  const float _z_vtx_cut{60.};
-  const float _mbd_north_cut{10.};
-  const float _mbd_south_cut{150};
-  const int _mbd_tube_cut{2};
-  const float _zdc_cut{40.};
-  const float charge_threshold = 0.4;
-  const float time_threshold = 25.;
+  const float m_z_vtx_cut{60.};
+  const float m_mbd_north_cut{10.};
+  const float m_mbd_south_cut{150};
+  const float m_mbd_charge_cut{0.4};
+  const float m_mbd_time_cut{20.};
+//  const int m_mbd_tube_cut{2};
+  const float m_zdc_cut{40.};
 
-  MinimumBiasInfo *_mb_info{nullptr};
-  Zdcinfo *_zdcinfo{nullptr};
-  MbdPmtContainer *_mbd_pmt{nullptr};
-  MbdPmtHit *_tmp_pmt{nullptr};
-  GlobalVertexMap *_global_vertex_map{nullptr};
+  MinimumBiasInfo *m_mb_info{nullptr};
+  MbdPmtContainer *m_mbd_container{nullptr};
+  MbdPmtHit *m_mbd_pmt{nullptr};
+  GlobalVertexMap *m_global_vertex_map{nullptr};
+  Zdcinfo *m_zdcinfo{nullptr};
 
-  std::array<float, 2> _zdc_energy_sum{};
-  std::array<float, 2> _mbd_charge_sum{};
+  std::array<float, 2> m_zdc_energy_sum{};
+  std::array<float, 2> m_mbd_charge_sum{};
+  std::array<int, 2> m_mbd_hit{};
+
 };
 
 #endif

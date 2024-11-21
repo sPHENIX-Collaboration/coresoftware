@@ -114,8 +114,11 @@ int PHTrackCleaner::process_event(PHCompositeNode * /*topNode*/)
 	  }
 	else
 	  {
+      if(Verbosity() > 1)
+      {
 	    std::cout << "      no silicon seed found " << std::endl;
 	  }
+    }
 	
         if (_pp_mode)
 	  {

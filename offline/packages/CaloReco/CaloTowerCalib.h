@@ -67,6 +67,17 @@ class CaloTowerCalib : public SubsysReco
     m_directURL_time = url;
   }
 
+  void set_directURL_ZScrosscalib(const std::string &url)
+  {
+    m_giveDirectURL_ZScrosscalib = true;
+    m_directURL_ZScrosscalib = url;
+  }
+
+  void set_doZScrosscalib(bool doZScrosscalib)
+  {
+    m_doZScrosscalib = doZScrosscalib;
+  }
+
   void set_use_TowerInfov2(bool use) { m_use_TowerInfov2 = use; }
 
  private:
@@ -78,6 +89,8 @@ class CaloTowerCalib : public SubsysReco
   std::string m_calibName;
   std::string m_fieldname_time;
   std::string m_calibName_time;
+  std::string m_fieldname_ZScrosscalib;
+  std::string m_calibName_ZScrosscalib;
   bool m_overrideCalibName{false};
   bool m_overrideFieldName{false};
   std::string m_inputNodePrefix{"TOWERS_"};
@@ -94,8 +107,13 @@ class CaloTowerCalib : public SubsysReco
   std::string m_directURL_time = "";
   bool m_dotimecalib = true;
 
+  bool m_giveDirectURL_ZScrosscalib = false;
+  std::string m_directURL_ZScrosscalib = "";
+  bool m_doZScrosscalib = true;
+
   CDBTTree *cdbttree = nullptr;
   CDBTTree *cdbttree_time = nullptr;
+  CDBTTree *cdbttree_ZScrosscalib = nullptr;
   int m_runNumber;
 };
 

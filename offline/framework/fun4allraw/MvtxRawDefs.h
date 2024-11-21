@@ -83,6 +83,8 @@ namespace MvtxRawDefs
 
   linkId_t decode_feeid( const uint16_t feeid );
 
+  float getStrobeLength(const int& runNumber);
+
 } // namespace MvtxRawDefs
 
 #endif // MVTXRAWDEFS_H

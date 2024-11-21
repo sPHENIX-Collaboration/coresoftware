@@ -80,7 +80,7 @@ Jet* JetContainerv1::get_UncheckedAt(unsigned int index)
 void JetContainerv1::print_jets(std::ostream& os)
 {
   os << " No. of jets: " << m_njets;
-  if (!isnan(m_RhoMedian))
+  if (!std::isnan(m_RhoMedian))
   {
     os << " rho median " << m_RhoMedian;
   }

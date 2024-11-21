@@ -419,6 +419,7 @@ void MbdSig::CalcEventPed0(const Double_t minpedx, const Double_t maxpedx)
 // If difficult to get pedestal, use running mean from previous 100 events
 void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 {
+  //std::cout << PHWHERE << std::endl;  //chiu
   //_verbose = 100;
   //ped0stats->Clear();
 
@@ -475,6 +476,16 @@ void MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 
   ped_fcn->SetRange(minsamp-0.1,maxsamp+0.1);
   ped_fcn->SetParameter(0,1500.);
+
+  if ( gRawPulse->GetN()==0 )//chiu
+  {
+    std::cout << PHWHERE << " gRawPulse 0" << std::endl;
+  }
+
+  if ( gRawPulse->GetN()==0 )//chiu
+  {
+    std::cout << PHWHERE << " gRawPulse 0" << std::endl;
+  }
   if ( _verbose )
   {
     gRawPulse->Fit( ped_fcn, "RQ" );
@@ -833,8 +844,8 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
   Double_t xx = x[0] - par[1];
   Double_t f = 0.;
 
-  //_verbose = 100;
-  if ( _verbose )
+  int verbose = 0;
+  if ( verbose )
   {
     std::cout << PHWHERE << " " << _ch << " x par0 par1 " << x[0] << "\t" << par[0] << "\t" << par[1] << std::endl;
   }
@@ -847,7 +858,7 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
 
     if ( std::isnan(xx) )
     {
-      if (_verbose > 0)
+      if (verbose > 0)
       {
 	std::cout << PHWHERE << " " << _evt_counter << ", " << _ch
 		  << " ERROR x par0 par1 " << x[0] << "\t" << par[0] << "\t" << par[1] << std::endl;
@@ -888,7 +899,7 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
   int ihigh = TMath::CeilNint(index);
   if (ilow < 0 || ihigh >= template_npointsx)
   {
-    if (_verbose > 0)
+    if (verbose > 0)
     {
       cout << "ERROR, ilow ihigh " << ilow << "\t" << ihigh << endl;
       cout << " " << xx << " " << x[0] << " " << par[1] << endl;
@@ -930,23 +941,20 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
   gRawPulse->GetPoint(samp_point, temp_x, temp_y);
   if (temp_y > 16370)
   {
-    // cout << "XXXX " << _ch << "\t" << samp_point << "\t" << temp_x << "\t" << temp_y << std::endl;
+    //if ( _ch==185 ) cout << "ADCSATURATED " << _ch << "\t" << samp_point << "\t" << temp_x << "\t" << temp_y << std::endl;
     TF1::RejectPoint();
   }
 
-  //_verbose = 0;
+  //verbose = 0;
   return f;
 }
 
 // sampmax>0 means fit to the peak near sampmax
 int MbdSig::FitTemplate( const Int_t sampmax )
 {
+  //std::cout << PHWHERE << std::endl;  //chiu
   //_verbose = 100;	// uncomment to see fits
   //_verbose = 12;        // don't see pedestal fits
-  if (_verbose > 0)
-  {
-    cout << "Fitting ch " << _ch << endl;
-  }
 
   // Check if channel is empty
   if (gSubPulse->GetN() == 0)
@@ -957,13 +965,44 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     return 1;
   }
 
+  // Determine if channel is saturated
+  Double_t *rawsamps = gRawPulse->GetY();
+  Int_t nrawsamps = gRawPulse->GetN();
+  int nsaturated = 0;
+  for (int ipt=0; ipt<nrawsamps; ipt++)
+  {
+    if ( rawsamps[ipt] > 16370. )
+    {
+      nsaturated++;
+    }
+  }
+  /*
+  if ( nsaturated>2 )
+  {
+    _verbose = 12;
+  }
+  */
+
+
+  if (_verbose > 0)
+  {
+    cout << "Fitting ch " << _ch << endl;
+  }
+
   // Get x and y of maximum
   Double_t x_at_max{-1.};
   Double_t ymax{0.};
   if ( sampmax>=0 )
   {
     gSubPulse->GetPoint(sampmax, x_at_max, ymax);
-    x_at_max -= 2.0;
+    if ( nsaturated<=3 )
+    {
+      x_at_max -= 2.0;
+    }
+    else
+    {
+      x_at_max -= 1.5;
+    }
   }
   else
   {
@@ -994,7 +1033,19 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   // template_fcn->SetParLimits(1, fit_min_time, fit_max_time);
   // template_fcn->SetParLimits(1, 3, 15);
   // template_fcn->SetRange(template_min_xrange,template_max_xrange);
-  template_fcn->SetRange(0, _nsamples);
+  if ( nsaturated<=3 )
+  {
+    template_fcn->SetRange(0, _nsamples);
+  }
+  else
+  {
+    template_fcn->SetRange(0, _nsamples-3.5);
+  }
+
+  if ( gSubPulse->GetN()==0 )//chiu
+  {
+    std::cout << PHWHERE << " gSubPulse 0" << std::endl;
+  }
 
   if (_verbose == 0)
   {
@@ -1003,7 +1054,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   }
   else
   {
-    std::cout << "doing fit " << _verbose << std::endl;
+    std::cout << "doing fit1 " << x_at_max << "\t" << ymax << std::endl;
     gSubPulse->Fit(template_fcn, "R");
     gSubPulse->Draw("ap");
     gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
@@ -1024,7 +1075,14 @@ int MbdSig::FitTemplate( const Int_t sampmax )
 
   // refit with new range to exclude after-pulses
   template_fcn->SetParameters( f_ampl, f_time );
-  template_fcn->SetRange( 0., f_time+4.0 );
+  if ( nsaturated<=3 )
+  {
+    template_fcn->SetRange( 0., f_time+4.0 );
+  }
+  else
+  {
+    template_fcn->SetRange( 0., f_time+4.8 );
+  }
 
   if (_verbose == 0)
   {
