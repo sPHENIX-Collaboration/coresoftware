@@ -319,29 +319,9 @@ void SingleInttPoolInput::Print(const std::string &what) const
 
 void SingleInttPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
-  std::vector<uint64_t> toclearbclk;
-  for (const auto &iter : m_InttRawHitMap)
-  {
-    if (iter.first <= bclk)
-    {
-      for (auto pktiter : iter.second)
-      {
-        delete pktiter;
-      }
-      toclearbclk.push_back(iter.first);
-    }
-    else
-    {
-      break;
-    }
-  }
-  for (auto iter : toclearbclk)
-  {
-    m_BclkStack.erase(iter);
-    m_BeamClockFEE.erase(iter);
-    m_InttRawHitMap.erase(iter);
-  }
- 
+  m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
+  m_BeamClockFEE.erase(m_BeamClockFEE.begin(), m_BeamClockFEE.upper_bound(bclk));
+  m_InttRawHitMap.erase(m_InttRawHitMap.begin(), m_InttRawHitMap.upper_bound(bclk));
 }
 
 bool SingleInttPoolInput::CheckPoolDepth(const uint64_t bclk)

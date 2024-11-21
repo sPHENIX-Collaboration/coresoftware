@@ -8,6 +8,15 @@
 #include <ffarawobjects/TpcRawHitv3.h>
 
 #include <frog/FROG.h>
+#include <phool/PHTimer.h>  // for PHTimer
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <qautils/QAHistManagerDef.h>
+
+#include <TAxis.h>
+#include <TH1.h>
+#include <TH2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -28,6 +37,32 @@ SingleTpcTimeFrameInput::SingleTpcTimeFrameInput(const std::string &name)
   SubsystemEnum(InputManagerType::TPC);
   m_rawHitContainerName = "TPCRAWHIT";
   plist = new Packet *[NTPCPACKETS];
+
+  // cppcheck-suppress noCopyConstructor
+  // cppcheck-suppress noOperatorEq
+  m_FillPoolTimer = new PHTimer("SingleTpcTimeFrameInput_" + name + "_FillPool");
+  m_getNextEventTimer = new PHTimer("SingleTpcTimeFrameInput_" + name + "_getNextEvent");
+  m_ProcessPacketTimer = new PHTimer("SingleTpcTimeFrameInput_" + name + "_ProcessPacket");
+  m_getTimeFrameTimer = new PHTimer("SingleTpcTimeFrameInput_" + name + "_getTimeFrame");
+
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  m_hNorm = new TH1D(TString("SingleTpcTimeFrameInput_" + name) + "_Normalization",  //
+                     TString("SingleTpcTimeFrameInput_" + name) + " Normalization;Items;Count",
+                     20, .5, 20.5);
+  int i = 1;
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "FillPoolCount");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "FillPoolTime[ms]");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "getNextEventCount");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "getNextEventTime[ms]");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "ProcessPacketCount");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "ProcessPacketTime[ms]");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "getTimeFrameCount");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "getTimeFrameTime[ms]");
+  assert(i <= 20);
+  m_hNorm->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(m_hNorm);
 }
 
 SingleTpcTimeFrameInput::~SingleTpcTimeFrameInput()
@@ -40,13 +75,70 @@ SingleTpcTimeFrameInput::~SingleTpcTimeFrameInput()
   }
 }
 
+SingleTpcTimeFrameInput::TimeTracker::TimeTracker(PHTimer *timer, const std::string &name, TH1 *hout)
+  : m_timer(timer)
+  , m_name(name.c_str())
+  , m_hNorm(hout)
+{
+  assert(m_timer);
+  assert(m_hNorm);
+
+  m_hNorm->Fill(m_name + "Count", 1);
+
+  m_timer->restart();
+}
+
+void SingleTpcTimeFrameInput::TimeTracker::stop()
+{
+  assert(m_timer);
+  assert(m_hNorm);
+
+  m_timer->stop();
+  m_hNorm->Fill(m_name + "Time[ms]", m_timer->elapsed());
+
+  stopped = true;
+}
+
+SingleTpcTimeFrameInput::TimeTracker::~TimeTracker()
+{
+  if (!stopped)
+  {
+    stop();
+  }
+}
+
 void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 {
-  if (Verbosity() > 1)
+  {
+    static bool first = true;
+    if (first)
+    {
+      first = false;
+
+      if (m_SelectedPacketIDs.size())
+      {
+        std::cout << "SingleTpcTimeFrameInput::" << Name() << " : note, only processing packets with ID: ";
+        for (const auto &id : m_SelectedPacketIDs)
+        {
+          std::cout << id << " ";
+        }
+        std::cout << std::endl;
+      }
+    }
+  }
+
+  TimeTracker fillPoolTimer(m_FillPoolTimer, "FillPool", m_hNorm);
+
+  if ((Verbosity() >= 1 and targetBCO % 941 == 10) or Verbosity() >= 2)
   {
     std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
-              << " Entry with targetBCO = 0x"<<std::hex << targetBCO
-              <<"("<<std::dec<<targetBCO<<")" << std::endl;
+              << " Entry with targetBCO = 0x" << std::hex << targetBCO
+              << "(" << std::dec << targetBCO << ")" << std::endl;
+
+    m_FillPoolTimer->print_stat();
+    m_getNextEventTimer->print_stat();
+    m_ProcessPacketTimer->print_stat();
+    m_getTimeFrameTimer->print_stat();
   }
 
   if (AllDone())  // no more files and all events read
@@ -79,16 +171,44 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
     }
   }
   //  std::set<uint64_t> saved_beamclocks;
-  bool require_more_data = true;
-  while (require_more_data)
+  while (true)
   {
-    if (Verbosity() > 3)
+    if (m_TpcTimeFrameBuilderMap.empty())
+    {
+      if (Verbosity() > 1)
+      {
+        std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
+                  << " m_TpcTimeFrameBuilderMap empty for targetBCO 0x"
+                  << std::hex << targetBCO << std::dec << ". Start processing next event... " << std::endl;
+      }
+    }
+    else
+    {
+      bool require_more_data = false;
+      for (auto &map_builder : m_TpcTimeFrameBuilderMap)
+      {
+        require_more_data |= map_builder.second->isMoreDataRequired(targetBCO);
+      }
+      if (not require_more_data)
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
+                    << " satisified require_more_data for targetBCO 0x"
+                    << std::hex << targetBCO << std::dec << std::endl;
+        }
+
+        break;
+      }
+    }
+    if (Verbosity() > 1)
     {
       std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
                 << " require_more_data for targetBCO 0x"
-                <<std::hex << targetBCO <<std::dec<< std::endl;
+                << std::hex << targetBCO << std::dec << std::endl;
     }
 
+    TimeTracker getNextEventTimer(m_getNextEventTimer, "getNextEvent", m_hNorm);
     std::unique_ptr<Event> evt(GetEventiterator()->getNextEvent());
     while (!evt)
     {
@@ -100,6 +220,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
       }
       evt.reset(GetEventiterator()->getNextEvent());
     }
+
     if (Verbosity() > 2)
     {
       std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
@@ -124,7 +245,9 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
                 << ", increase NTPCPACKETS and rebuild" << std::endl;
       exit(1);
     }
+    getNextEventTimer.stop();
 
+    TimeTracker ProcessPacketTimer(m_ProcessPacketTimer, "ProcessPacket", m_hNorm);
     for (int i = 0; i < npackets; i++)
     {
       // keep pointer to local packet
@@ -133,6 +256,18 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
       // get packet id
       const auto packet_id = packet->getIdentifier();
+
+      if (m_SelectedPacketIDs.size() > 0 and m_SelectedPacketIDs.find(packet_id) == m_SelectedPacketIDs.end())
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << __PRETTY_FUNCTION__ << ": Skipping packet id: " << packet_id << std::endl;
+        }
+
+        delete packet;
+        packet = nullptr;
+        continue;
+      }
 
       if (m_TpcTimeFrameBuilderMap.find(packet_id) == m_TpcTimeFrameBuilderMap.end())
       {
@@ -152,35 +287,28 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
       assert(m_TpcTimeFrameBuilderMap[packet_id]);
       m_TpcTimeFrameBuilderMap[packet_id]->ProcessPacket(packet);
-      require_more_data = require_more_data or m_TpcTimeFrameBuilderMap[packet_id]->isMoreDataRequired(targetBCO);
+      // require_more_data = require_more_data or m_TpcTimeFrameBuilderMap[packet_id]->isMoreDataRequired(targetBCO);
 
       delete packet;
       packet = nullptr;
     }  //     for (int i = 0; i < npackets; i++)
+    ProcessPacketTimer.stop();
 
-    require_more_data = false;
-    for (auto & map_builder : m_TpcTimeFrameBuilderMap)
+  }  // while (require_more_data)
+
+  // output the time frame
+  for (auto &map_builder : m_TpcTimeFrameBuilderMap)
+  {
+    assert(not map_builder.second->isMoreDataRequired(targetBCO));
+    auto &timeframe = map_builder.second->getTimeFrame(targetBCO);
+
+    for (auto newhit : timeframe)
     {
-      require_more_data |= map_builder.second->isMoreDataRequired(targetBCO);
+      StreamingInputManager()->AddTpcRawHit(targetBCO, newhit);
     }
-
-    if (not require_more_data)
-    {
-      for (auto & map_builder : m_TpcTimeFrameBuilderMap)
-      {
-        auto & timeframe = map_builder.second->getTimeFrame(targetBCO);
-
-        for (auto newhit : timeframe)
-        {
-          StreamingInputManager()->AddTpcRawHit(targetBCO, newhit); 
-        }
-
-      }      
-    } 
-
   }
-  //    Print("HITS");
-  //  } while (m_TpcRawHitMap.size() < 10 || CheckPoolDepth(m_TpcRawHitMap.begin()->first));
+
+  TimeTracker getTimeFrameTimer(m_getTimeFrameTimer, "getTimeFrame", m_hNorm);
 }
 
 void SingleTpcTimeFrameInput::Print(const std::string & /*what*/) const
@@ -199,9 +327,7 @@ void SingleTpcTimeFrameInput::CleanupUsedPackets(const uint64_t bclk)
   {
     iter.second->CleanupUsedPackets(bclk);
   }
-
 }
-
 
 void SingleTpcTimeFrameInput::ClearCurrentEvent()
 {
@@ -216,7 +342,6 @@ void SingleTpcTimeFrameInput::ClearCurrentEvent()
   // // m_BeamClockFEE.erase(currentbclk);
   return;
 }
-
 
 void SingleTpcTimeFrameInput::CreateDSTNode(PHCompositeNode *topNode)
 {

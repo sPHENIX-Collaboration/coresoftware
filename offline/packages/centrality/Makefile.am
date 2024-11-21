@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -20,7 +20,9 @@ libcentrality_io_la_LIBADD = \
 libcentrality_la_LIBADD = \
   libcentrality_io.la \
   -lfun4all \
+  -lglobalvertex \
   -lcalo_io \
+  -lcalotrigger_io \
   -lmbd_io \
   -lphool \
   -lcdbobjects \

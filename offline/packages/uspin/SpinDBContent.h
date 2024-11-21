@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////
 //
 // SpinDBContent class
-// Author      : D. Loomis (from Y. Fukao PHENIX class)
+// Author      : D. Loomis, D. Neff (from Y. Fukao PHENIX class)
 // Description : Content of spin database
 // Created     : 2024-05-12
 //
@@ -18,24 +18,33 @@
 // ypol              : Yellow beam polarization
 // ypolerr           : Yellow beam polarization error
 // ypolsys           : Yellow beam polarization systematic error
-// bpat              : Spin pattern at IP12. (NOT at PHENIX)
-// ypat              : Spin pattern at IP12. (NOT at PHENIX)
+// bpat              : Spin pattern at IP12. (NOT at sPHENIX)
+// ypat              : Spin pattern at IP12. (NOT at sPHENIX)
 // scaler_mbd_vtxcut : scaler (MBD VTX)
 // scaler_mbd_nocut  : scaler (MBD NS)
-// scaler_zdc_nocut   : scaler (ZDC NS)
+// scaler_zdc_nocut  : scaler (ZDC NS)
 // bad_bunch         : Bad bunch QA, 0:good else:bad
-// tc_x_blue         : Transverse component, horizontal direction, blue beam
-// tc_x_blueerr      : Error of tc_x_blue
-// tc_y_blue         : Transverse component, vertical direction, blue beam
-// tc_y_blueerr      : Error of tc_y_blue
-// tc_x_yellow       : Transverse component, horizontal direction, yellow beam
-// tc_x_yellowerr    : Error of tc_x_yellow
-// tc_y_yellow       : Transverse component, vertical direction, yellow beam
-// tc_y_yellowerr    : Error of tc_y_yellow
 // cross_angle       : Average relative crossing angle between blue and yellow beams in mrad for run. Sign is dictated by CAD convention, can be + or -
 // cross_angle_std   : Standard deviation of relative crossing angle in mrad
 // cross_angle_min   : Minimum value of relative crossing angle in mrad
 // cross_angle_max   : Maximum value of relative crossing angle in mrad
+// asym_bf           : very forward neutron TSSA magnitude in blue beam
+// asym_bb           : very backward neutron TSSA magnitude in blue beam 
+// asym_yf           : very forward neutron TSSA magnitude in yellow beam
+// asym_yb           : very backward neutron TSSA magnitude in yellow beam 
+// asymerr_bf        : very forward neutron TSSA magnitude uncertainty in blue beam
+// asymerr_bb        : very backward neutron TSSA magnitude uncertainty in blue beam 
+// asymerr_yf        : very forward neutron TSSA magnitude uncertainty in yellow beam
+// asymerr_yb        : very backward neutron TSSA magnitude uncertainty in yellow beam 
+// phase_bf          : very forward neutron TSSA phase offset in blue beam
+// phase_bb          : very backward neutron TSSA phase offset in blue beam 
+// phase_yf          : very forward neutron TSSA phase offset in yellow beam
+// phase_yb          : very backward neutron TSSA phase offset in yellow beam 
+// phaseerr_bf       : very forward neutron TSSA phase offset uncertainty in blue beam
+// phaseerr_bb       : very backward neutron TSSA phase offset uncertainty in blue beam 
+// phaseerr_yf       : very forward neutron TSSA phase offset uncertainty in yellow beam
+// phaseerr_yb       : very backward neutron TSSA phase offset uncertainty in yellow beam 
+
 
 ////////////////////////////////////////////////////////////////
 
@@ -62,7 +71,6 @@ class SpinDBContent
   int GetBadRunFlag() { return (badrun); }
   int GetCrossingShift() { return (cross_shift); }
 
-  // bunch xing id from SpinDataEventOut::SpinGL1CrossingID
   int GetPolarizationBlue(int bunch, float &value, float &error);
   int GetPolarizationBlue(int bunch, float &value, float &error, float &syserr);
   int GetPolarizationBlue(int bunch, double &value, double &error);
@@ -79,14 +87,14 @@ class SpinDBContent
   long long GetScaler(int channel, int bunch);
   int GetBadBunchFlag(int bunch);
 
-  void GetTransCompBlueX(float &value, float &error);
-  void GetTransCompBlueX(double &value, double &error);
-  void GetTransCompBlueY(float &value, float &error);
-  void GetTransCompBlueY(double &value, double &error);
-  void GetTransCompYellowX(float &value, float &error);
-  void GetTransCompYellowX(double &value, double &error);
-  void GetTransCompYellowY(float &value, float &error);
-  void GetTransCompYellowY(double &value, double &error);
+  void GetAsymBlueForward(float &value, float &error);
+  void GetAsymBlueBackward(float &value, float &error);
+  void GetAsymYellowForward(float &value, float &error);
+  void GetAsymYellowBackward(float &value, float &error);
+  void GetPhaseBlueForward(float &value, float &error);
+  void GetPhaseBlueBackward(float &value, float &error);
+  void GetPhaseYellowForward(float &value, float &error);
+  void GetPhaseYellowBackward(float &value, float &error);
 
   float GetCrossAngle() { return cross_angle; }
   float GetCrossAngleStd() { return cross_angle_std; }
@@ -129,15 +137,25 @@ class SpinDBContent
   int SetScalerZdcNoCut(int bunch, long long value);
   int SetScaler(int channel, int bunch, long long value);
   int SetBadBunchFlag(int bunch, int value);
-  void SetTransCompBlueX(float value, float error);
-  void SetTransCompBlueY(float value, float error);
-  void SetTransCompYellowX(float value, float error);
-  void SetTransCompYellowY(float value, float error);
+
+  void SetAsymBlueForward(float value, float error);
+  void SetAsymBlueBackward(float value, float error);
+  void SetAsymYellowForward(float value, float error);
+  void SetAsymYellowBackward(float value, float error);
+  void SetPhaseBlueForward(float value, float error);
+  void SetPhaseBlueBackward(float value, float error);
+  void SetPhaseYellowForward(float value, float error);
+  void SetPhaseYellowBackward(float value, float error);
 
   void SetCrossAngle(float value) { cross_angle = value; }
   void SetCrossAngleStd(float value) { cross_angle_std = value; }
   void SetCrossAngleMin(float value) { cross_angle_min = value; }
   void SetCrossAngleMax(float value) { cross_angle_max = value; }
+
+
+  
+
+
 
  private:
   static const int NCROSS;
@@ -160,18 +178,26 @@ class SpinDBContent
   long long scaler_mbd_nocut[120];
   long long scaler_zdc_nocut[120];
   int bad_bunch[120];
-  float tc_x_blue;
-  float tc_x_blueerr;
-  float tc_y_blue;
-  float tc_y_blueerr;
-  float tc_x_yellow;
-  float tc_x_yellowerr;
-  float tc_y_yellow;
-  float tc_y_yellowerr;
   float cross_angle;
   float cross_angle_std;
   float cross_angle_min;
   float cross_angle_max;
+  float asym_bf;
+  float asym_bb;
+  float asym_yf;
+  float asym_yb;
+  float asymerr_bf;
+  float asymerr_bb;
+  float asymerr_yf;
+  float asymerr_yb;
+  float phase_bf;
+  float phase_bb;
+  float phase_yf;
+  float phase_yb;
+  float phaseerr_bf;
+  float phaseerr_bb;
+  float phaseerr_yf;
+  float phaseerr_yb;
 };
 
 #endif /* USPIN_SPINDBCONTENT_H */

@@ -2,13 +2,14 @@
 
 #include "MinimumBiasInfov1.h"
 
-#include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainer.h>
+#include <zdcinfo/Zdcinfo.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
 #include <mbd/MbdOut.h>
+#include <mbd/MbdPmtContainer.h>
+#include <mbd/MbdPmtHit.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -29,139 +30,126 @@
 MinimumBiasClassifier::MinimumBiasClassifier(const std::string &name)
   : SubsysReco(name)
 {
-}
-
+} 
 int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
+
   CreateNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
-  ;
 }
 
 int MinimumBiasClassifier::ResetEvent(PHCompositeNode * /*unused*/)
 {
-  _zdc_energy_sum.fill(0);
+  m_zdc_energy_sum.fill(0);
+  m_mbd_charge_sum.fill(0);
+  m_mbd_hit.fill(0);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int MinimumBiasClassifier::FillMinimumBiasInfo()
 {
-  if (Verbosity() > 1)
-  {
-    std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
-  }
 
-  bool is_it_min_bias = true;
-
-  if (!_global_vertex_map)
+  if (!m_global_vertex_map)
   {
-    _mb_info->setIsAuAuMinimumBias(false);
+    m_mb_info->setIsAuAuMinimumBias(false);
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  if (_global_vertex_map->empty())
+  if (m_global_vertex_map->empty())
   {
-    _mb_info->setIsAuAuMinimumBias(false);
+    m_mb_info->setIsAuAuMinimumBias(false);
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  GlobalVertex *vtx = _global_vertex_map->begin()->second;
+  GlobalVertex *vtx = m_global_vertex_map->begin()->second;
 
   if (!vtx)
   {
-    std::cout << "nothing in vertex " << std::endl;
-
-    _mb_info->setIsAuAuMinimumBias(false);
+    m_mb_info->setIsAuAuMinimumBias(false);
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
   if (!vtx->isValid())
   {
-    std::cout << "invalid vertex " << std::endl;
-
-    _mb_info->setIsAuAuMinimumBias(false);
+    m_mb_info->setIsAuAuMinimumBias(false);
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  if (!_towers_zdc)
+  if (!m_zdcinfo)
   {
-    std::cout << "nothing in zdc " << std::endl;
-
-    _mb_info->setIsAuAuMinimumBias(false);
+    m_mb_info->setIsAuAuMinimumBias(false);
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  int j = 0;
-
-  for (unsigned int i = 0; i < _towers_zdc->size(); i++)
+  //  Z vertex is within range
+  if (std::fabs(vtx->get_z()) > m_z_vtx_cut)
   {
-    _tmp_tower = _towers_zdc->get_tower_at_channel(i);
-    float energy = _tmp_tower->get_energy();
-    if (energy > 0)
+    m_mb_info->setIsAuAuMinimumBias(false);
+    return Fun4AllReturnCodes::EVENT_OK;  
+  }
+
+  // calculate charge sum and n hit
+  for (int i = 0; i < 128; i++)
+  {
+    m_mbd_pmt = m_mbd_container->get_pmt(i);
+    short side = i/64;
+    bool pass = passesHitCut(m_mbd_pmt);
+    if (!pass)
     {
-      _zdc_energy_sum[j / 3] += energy;
-      j++;
+      continue;
     }
-  }
-  if (Verbosity())
-  {
-    std::cout << " MBD Z vertex: " << vtx->get_z() << std::endl;
-    std::cout << " MBD Number PMTs: " << std::endl;
-    std::cout << "      North: " << _mbd_out->get_npmt(1) << std::endl;
-    std::cout << "      South: " << _mbd_out->get_npmt(0) << std::endl;
-    std::cout << " MBD Charge Sum: " << std::endl;
-    std::cout << "      North: " << _mbd_out->get_q(1) << std::endl;
-    std::cout << "      South: " << _mbd_out->get_q(0) << std::endl;
+    m_mbd_hit[side]++;
+    m_mbd_charge_sum[side] += m_mbd_pmt->get_q();
   }
 
-  if (std::fabs(vtx->get_z()) > _z_vtx_cut)
+  // MBD Background cut
+  if (m_mbd_charge_sum[1] < m_mbd_north_cut && m_mbd_charge_sum[0] > m_mbd_south_cut)
   {
-    is_it_min_bias = false;
+    m_mb_info->setIsAuAuMinimumBias(false);
+    return Fun4AllReturnCodes::EVENT_OK;  
   }
 
-  for (int i = 0; i < 2; i++)
-  {
-    if (_mbd_out->get_npmt(i) < _mbd_tube_cut)
+  // Mbd two hit requirement and ZDC energy sum coincidence requirement
+  for (int iside = 0; iside < 2; iside++)
     {
-      is_it_min_bias = false;
+      if (m_mbd_hit[iside] < 2)
+	{
+	  m_mb_info->setIsAuAuMinimumBias(false);
+	  return Fun4AllReturnCodes::EVENT_OK;
+	}
+      if (m_zdcinfo->get_zdc_energy(iside) <= m_zdc_cut)
+	{
+	  m_mb_info->setIsAuAuMinimumBias(false);
+	  return Fun4AllReturnCodes::EVENT_OK;	 
+	}
     }
-    if (_zdc_energy_sum[i] < _zdc_cut)
-    {
-      is_it_min_bias = false;
-    }
-  }
 
-  if (_mbd_out->get_q(1) < _mbd_north_cut && _mbd_out->get_q(0) > _mbd_south_cut)
-  {
-    is_it_min_bias = false;
-  }
-  _mb_info->setIsAuAuMinimumBias(is_it_min_bias);
+  m_mb_info->setIsAuAuMinimumBias(true);
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
 int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity())
-  {
-    std::cout << "------------MinimumBiasClassifier-------------" << std::endl;
-  }
-
+    {
+      std::cout << "------------MinimumBiasClassifier-------------" << std::endl;
+    }
+  
   // Get Nodes from the Tree
   if (GetNodes(topNode))
-  {
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
+    {
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  
   if (FillMinimumBiasInfo())
-  {
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -173,46 +161,50 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
     std::cout << __FILE__ << " :: " << __FUNCTION__ << " :: " << __LINE__ << std::endl;
   }
 
-  _mb_info = findNode::getClass<MinimumBiasInfo>(topNode, "MinimumBiasInfo");
+  m_mb_info = findNode::getClass<MinimumBiasInfo>(topNode, "MinimumBiasInfo");
 
-  if (!_mb_info)
+  if (!m_mb_info)
   {
     std::cout << "no minimum bias node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  _mbd_out = findNode::getClass<MbdOut>(topNode, "MbdOut");
+  m_mbd_out = findNode::getClass<MbdOut>(topNode, "MbdOut");
 
-  if (!_mbd_out)
+  if (!m_mbd_out)
   {
     std::cout << "no MBD out node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  _towers_zdc = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_ZDC");
+  m_mbd_container = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
 
-  if (!_towers_zdc)
+  if (!m_mbd_container)
+  {
+    std::cout << "no MBD out node " << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+
+  if (!m_zdcinfo)
   {
     std::cout << "no zdc towers node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  _global_vertex_map = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-
-  if (!_global_vertex_map)
-  {
+  m_global_vertex_map = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  
+  if (!m_global_vertex_map)
+    {
     std::cout << "no vertex map node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+ 
 void MinimumBiasClassifier::CreateNodes(PHCompositeNode *topNode)
 {
-  if (Verbosity())
-  {
-    std::cout << __FILE__ << " :: " << __FUNCTION__ << " :: " << __LINE__ << std::endl;
-  }
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -238,3 +230,16 @@ void MinimumBiasClassifier::CreateNodes(PHCompositeNode *topNode)
 
   return;
 }
+ bool MinimumBiasClassifier::passesHitCut(MbdPmtHit *hit)
+ {
+   if (fabs(hit->get_time()) >= m_mbd_time_cut)
+     {
+       return false;
+     }
+   if (hit->get_q() <= m_mbd_charge_cut)
+     {
+       return false;
+     }
+
+   return true;
+ }

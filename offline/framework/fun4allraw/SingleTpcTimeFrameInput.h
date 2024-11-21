@@ -3,6 +3,8 @@
 
 #include "SingleStreamingInput.h"
 
+#include <TString.h>
+
 #include <array>
 #include <list>
 #include <map>
@@ -13,6 +15,9 @@
 class TpcRawHit;
 class Packet;
 class TpcTimeFrameBuilder;
+class PHTimer;
+class TH1;
+class TH2;
 
 //! Provide TpcTimeFrameBuilder as a unified interface for Fun4AllStreamingInputManager
 // NOLINTNEXTLINE(hicpp-special-member-functions)
@@ -32,6 +37,8 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
 
+  void AddPacketID(const int packetID) { m_SelectedPacketIDs.insert(packetID); }
+
  private:
   const int NTPCPACKETS = 3;
 
@@ -42,6 +49,30 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
 
   //! packet ID -> TimeFrame builder
   std::map<int, TpcTimeFrameBuilder *> m_TpcTimeFrameBuilderMap;
+  std::set<int> m_SelectedPacketIDs;
+  
+  TH1 *m_hNorm = nullptr;
+
+  PHTimer *m_FillPoolTimer = nullptr;
+  PHTimer *m_getNextEventTimer = nullptr;
+  PHTimer *m_ProcessPacketTimer = nullptr;
+  PHTimer *m_getTimeFrameTimer = nullptr;
+
+  // NOLINTNEXTLINE(hicpp-special-member-functions)
+  class TimeTracker
+  {    
+   public:
+    TimeTracker(PHTimer * timer, const std::string & name, TH1* hout) ;
+    virtual ~TimeTracker() ;
+    void stop();
+
+   private:
+    PHTimer * m_timer = nullptr;
+    TString m_name;
+    TH1 *m_hNorm = nullptr;
+    bool stopped = false;
+  };
+
 };
 
 #endif

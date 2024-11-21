@@ -33,6 +33,10 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << std::endl
             << "HCalCosmics::Init" << std::endl;
+  std::cout << "Node: " << prefix + detector << std::endl;
+  std::cout << "Threshold: " << tower_threshold << " " << vert_threshold << " " << veto_threshold << std::endl;
+  std::cout << "Bin width: " << bin_width << std::endl;
+
   outfile = new TFile(outfilename.c_str(), "RECREATE");
 
   for (int ieta = 0; ieta < n_etabin; ++ieta)
@@ -40,16 +44,19 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
     for (int iphi = 0; iphi < n_phibin; ++iphi)
     {
       std::string channel_histname = "h_channel_" + std::to_string(ieta) + "_" + std::to_string(iphi);
-      h_channel_hist[ieta][iphi] = new TH1F(channel_histname.c_str(), "", 500, 0, 10000);
+      h_channel_hist[ieta][iphi] = new TH1F(channel_histname.c_str(), "", 500, 0, 500*bin_width);
     }
   }
-  h_waveformchi2 = new TH2F("h_waveformchi2", "", 1000, 0, 10000, 1000, 0, 100000);
+  h_waveformchi2 = new TH2F("h_waveformchi2", "", 1000, 0, 500*bin_width, 1000, 0, 1000000);
   h_waveformchi2->GetXaxis()->SetTitle("peak (ADC)");
   h_waveformchi2->GetYaxis()->SetTitle("chi2");
-  h_mip = new TH1F("h_mip", "", 500, 0, 10000);
+  h_waveformchi2_aftercut = new TH2F("h_waveformchi2_aftercut", "", 1000, 0, 500*bin_width, 1000, 0, 1000000);
+  h_waveformchi2_aftercut->GetXaxis()->SetTitle("peak (ADC)");
+  h_waveformchi2_aftercut->GetYaxis()->SetTitle("chi2");
+  h_mip = new TH1F("h_mip", "", 500, 0, 500*bin_width);
   h_event = new TH1F("h_event", "", 1, 0, 1);
 
-  h_time_energy = new TH2F("h_time_energy", "", 100, -10, 10, 100, -50, 1e3);
+  h_time_energy = new TH2F("h_time_energy", "", 100, -10, 10, 100, -10*bin_width, 90*bin_width);
 
   event = 0;
   return 0;
@@ -97,9 +104,9 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
     {
       m_peak[ieta][iphi] = 0;
     }
+    h_waveformchi2_aftercut->Fill(m_peak[ieta][iphi], m_chi2[ieta][iphi]);
     h_time_energy->Fill(time, energy);
   }
-
   // Apply cut
   for (int ieta = 0; ieta < n_etabin; ++ieta)
   {
@@ -131,7 +138,6 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
       {
         continue;  // right veto cut
       }
-      //std::cout << "ieta: " << ieta << " iphi: " << iphi << " energy: " << m_peak[ieta][iphi] << " chi2: " << m_chi2[ieta][iphi] << std::endl;
       h_channel_hist[ieta][iphi]->Fill(m_peak[ieta][iphi]);
       h_mip->Fill(m_peak[ieta][iphi]);
     }
@@ -158,6 +164,7 @@ int HCalCosmics::End(PHCompositeNode * /*topNode*/)
   }
   h_mip->Write();
   h_waveformchi2->Write();
+  h_waveformchi2_aftercut->Write();
   h_time_energy->Write();
   h_event->Write();
 
