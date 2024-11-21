@@ -68,9 +68,9 @@ int bcocheck::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  uint64_t longbco_full= (inttcont!=nullptr&&inttcont->get_nhits()>0)
-  ? inttcont->get_hit(0)->get_bco()
-  : std::numeric_limits<uint64_t>::max();
+  uint64_t longbco_full= inttcont->get_nhits() > 0
+    ? inttcont->get_hit(0)->get_bco()
+    : std::numeric_limits<uint64_t>::max();
   //uint64_t difevent_bcofull = (longbco_full &bit )-(long_prev_bcofull &bit);
   //h_interval->Fill(difevent_bcofull);
   uint64_t bco_full =longbco_full &0x7FU;
