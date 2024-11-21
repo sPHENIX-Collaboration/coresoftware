@@ -744,8 +744,8 @@ double TrackFitUtils::z_fit_to_pca(const double xy_slope, const double xy_interc
   std::vector<std::pair<double,double>> zd_vec;
   for (auto& glob : glob_pts) {
     auto point = get_line_point_pca(xy_slope, xy_intercept, glob); // point = point on line
-    auto dist = sqrt(square(pca.x()-point.x())+square(pca.y()+point.y()));
-    zd_vec.push_back({dist,glob.z()});
+    double dist = sqrt(square(pca.x()-point.x())+square(pca.y()+point.y()));
+    zd_vec.emplace_back(dist,glob.z());
   }
   auto slope_and_b = line_fit(zd_vec);
   /* double zd_slope; */
