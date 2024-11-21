@@ -184,7 +184,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   AlignmentDefs::tpcGrp tpc_grp = AlignmentDefs::tpcGrp::htst;
   AlignmentDefs::mmsGrp mms_grp = AlignmentDefs::mmsGrp::tl;
 
-  //  TrackSeedContainer *_svtx_seed_map{nullptr};
+  TrackSeedContainer* _svtx_seed_map{nullptr};
   TrackSeedContainer* _track_map_tpc{nullptr};
   TrackSeedContainer* _track_map_silicon{nullptr};
   TrkrClusterContainer* _cluster_map{nullptr};
