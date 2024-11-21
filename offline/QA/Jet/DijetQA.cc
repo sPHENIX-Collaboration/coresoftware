@@ -157,7 +157,7 @@ void DijetQA::FindPairs(JetContainer* jets)
 	{
 		//assert(j1);
 		Jet *jet_pair1=NULL, *jet_pair2=NULL;
-		if(j1->get_pt() < m_ptRange.first || abs(j1->get_eta()) > 1.1 || j1->get_pt() > m_ptRange.second ) continue; //cut on 1 GeV jets
+		if(j1->get_pt() < m_ptRange.first || std::abs(j1->get_eta()) > 1.1 || j1->get_pt() > m_ptRange.second ) continue; //cut on 1 GeV jets
 		if(j1->get_pt() > pt_leading){
 			set_leading=true;
 			pt_leading=j1->get_pt();
@@ -165,8 +165,8 @@ void DijetQA::FindPairs(JetContainer* jets)
 		}
 		for(auto j2:(*jets)){
 			if(j2 < j1) continue;
-			if(/*j2 == j1 ||*/ j2->get_pt() < 1 || abs(j2->get_eta()) > 1.1 || j2->get_pt() > m_ptRange.second) continue;
-			if(abs(j2->get_phi() -j1->get_phi()) > PI-DeltaPhi )  {
+			if(/*j2 == j1 ||*/ j2->get_pt() < 1 || std::abs(j2->get_eta()) > 1.1 || j2->get_pt() > m_ptRange.second) continue;
+			if(std::abs(j2->get_phi() -j1->get_phi()) > PI-DeltaPhi )  {
 				if(j2->get_pt() > j1->get_pt() ){
 					jet_pair1=j2;
 					jet_pair2=j1;
@@ -192,11 +192,11 @@ void DijetQA::FindPairs(JetContainer* jets)
 					h_Ajj_l->Fill(m_Ajj);
 					h_xj_l->Fill(m_xj);
 					h_pt_l->Fill(m_ptl);
-					h_dphi_l->Fill(abs(m_dphi));
+					h_dphi_l->Fill(std::abs(m_dphi));
 					h_Ajj_pt_l->Fill(m_ptl, m_Ajj);
 					h_xj_pt_l->Fill(m_ptl, m_xj);
-					h_dphi_pt_l->Fill(m_ptl, abs(m_dphi));
-					h_dphi_Ajj_l->Fill(abs(m_dphi), m_Ajj);
+					h_dphi_pt_l->Fill(m_ptl, std::abs(m_dphi));
+					h_dphi_Ajj_l->Fill(std::abs(m_dphi), m_Ajj);
 				//	m_T->Fill();
 				}
 				set_leading=false;
@@ -228,11 +228,11 @@ void DijetQA::FindPairs(JetContainer* jets)
 			h_Ajj->Fill(Ajj);
 			h_xj->Fill(xj);
 			h_pt->Fill(pt1);
-			h_dphi->Fill(abs(dphi));
+			h_dphi->Fill(std::abs(dphi));
 			h_Ajj_pt->Fill(pt1, Ajj);
 			h_xj_pt->Fill(pt1, xj);
-			h_dphi_pt->Fill(pt1, abs(dphi));
-			h_dphi_Ajj->Fill(abs(dphi), Ajj);
+			h_dphi_pt->Fill(pt1, std::abs(dphi));
+			h_dphi_Ajj->Fill(std::abs(dphi), Ajj);
 			if(Verbosity() > 2){
 				std::cout<<"highest pt jet is " <<jet_leading->get_pt() <<" and highest pt in a pair is " <<jet_pair1->get_pt() <<std::endl;
 				}
