@@ -104,8 +104,6 @@ namespace
     ~buffer_cleaner_t()
     { m_buffer.erase(m_buffer.begin(), m_buffer.begin() + m_pkt_length + 1); }
 
-    private:
-
     //! deleted copy constructor
     buffer_cleaner_t( const buffer_cleaner_t& ) = delete;
 
@@ -117,6 +115,8 @@ namespace
 
     //! assignment operator
     buffer_cleaner_t& operator = ( buffer_cleaner_t&& ) = delete;
+
+    private:
 
     std::deque<uint16_t>& m_buffer;
     uint16_t m_pkt_length;
