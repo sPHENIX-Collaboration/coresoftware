@@ -106,6 +106,18 @@ namespace
 
     private:
 
+    //! deleted copy constructor
+    buffer_cleaner_t( const buffer_cleaner_t& ) = delete;
+
+    //! deleted copy constructor
+    buffer_cleaner_t( buffer_cleaner_t&& ) = delete;
+
+    //! assignment operator
+    buffer_cleaner_t& operator = ( const buffer_cleaner_t& ) = delete;
+
+    //! assignment operator
+    buffer_cleaner_t& operator = ( buffer_cleaner_t&& ) = delete;
+
     std::deque<uint16_t>& m_buffer;
     uint16_t m_pkt_length;
   };
