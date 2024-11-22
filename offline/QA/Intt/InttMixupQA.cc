@@ -19,7 +19,7 @@ InttMixupQA::InttMixupQA(const string &name, const int run_num, const int felix_
   cout<<"felix_num_="<<felix_num_<<"felix_num="<<felix_num<<endl;
 }
 
-InttMixupQA::~InttMixupQA() {}
+InttMixupQA::~InttMixupQA() = default;
 
 int InttMixupQA::Init(PHCompositeNode * /*topNode*/)
 {
@@ -523,11 +523,6 @@ int InttMixupQA::End(PHCompositeNode * /*topNode*/)
  
 }
 
-int InttMixupQA::EndRun(PHCompositeNode * /*topNode*/)
-{
-  cout<<"EndRun"<<endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 int InttMixupQA::SetOutputDir(std::string const& dir)
 {
@@ -599,7 +594,8 @@ void InttMixupQA::GetBcopeak()
   hbco[i]=dynamic_cast<TH1D*>(gROOT->FindObject(Form("h2_bco_felix_%d",i)));
   if (!hbco[i])
   {
-    if (Verbosity()) std::cerr << PHWHERE << std::endl;
+    if (Verbosity()) { std::cerr << PHWHERE << std::endl;
+}
     continue;
   }
 
@@ -640,8 +636,9 @@ void InttMixupQA::GetBcopeak()
 
     for(int ibin=0; ibin<N; ibin++){
       double cont = hbco[id]->GetBinContent(ibin+1);
-      if(mean+3*rms > cont)
+      if(mean+3*rms > cont) {
         hbcohist2[id]->Fill(cont);
+}
     }
     bg_mean[id] = hbcohist2[id]->GetMean();
     bg_rms[id]  = hbcohist2[id]->GetRMS();
@@ -664,7 +661,8 @@ void InttMixupQA::GetBcopeak()
 
       for(int ibin=0; ibin<10; ibin++){
         int binid = ibin + maxbin-10;
-        if(binid<1) binid+=N;//binid+=128;
+        if(binid<1) { binid+=N;//binid+=128;
+}
         double cont = hbco[id]->GetBinContent(binid+1);
         cout<<id<<" :  "<<ibin<<" "<<binid<<" "<<maxbin;
         if(cont>thre) { 
@@ -677,7 +675,8 @@ void InttMixupQA::GetBcopeak()
       }
       for(int ibin=0; ibin<10; ibin++){
         int binid = ibin + maxbin;
-        if(binid>=N) binid-=N;//binid+=128;
+        if(binid>=N) { binid-=N;//binid+=128;
+}
         double cont = hbco[id]->GetBinContent(binid+1);
         cout<<id<<" :  "<<ibin<<" "<<binid<<" "<<maxbin;
         if(cont>thre) { 
@@ -700,12 +699,13 @@ void InttMixupQA::GetBcopeak()
 
   // get min
   float minimum = 1000000;
-  for(int id=0; id<8; id++){
-    cout<<hbco[id]->GetMinimumBin()<<endl;
-    cout<<hbco[id]->GetBinContent(hbco[id]->GetMinimumBin())<<endl;
-    double min = hbco[id]->GetBinContent(hbco[id]->GetMinimumBin());
+  for(auto & id : hbco){
+    cout<<id->GetMinimumBin()<<endl;
+    cout<<id->GetBinContent(id->GetMinimumBin())<<endl;
+    double min = id->GetBinContent(id->GetMinimumBin());
     cout<<min<<endl;
-    if(min<minimum) minimum = min;
+    if(min<minimum) { minimum = min;
+}
   }
 
   // Draw hist
@@ -823,9 +823,9 @@ void InttMixupQA::Readpeak()
   for (int i = 0; i < 8; i++)
   {
     cout << "    felix " << i << " : ";
-    for (auto itr = bcopar_[i].begin(); itr != bcopar_[i].end(); ++itr)
+    for (int itr : bcopar_[i])
     {
-      cout << (*itr) << " ";
+      cout << itr << " ";
     }
     cout << endl;
   }
@@ -834,9 +834,9 @@ void InttMixupQA::Readpeak()
   for (int i = 0; i < 8; i++)
   {
     cout << "    felix " << i << " : ";
-    for (auto itr = otbcopar_[i].begin(); itr != otbcopar_[i].end(); ++itr)
+    for (int itr : otbcopar_[i])
     {
-      cout << (*itr) << " ";
+      cout << itr << " ";
     }
     cout << endl;
   }

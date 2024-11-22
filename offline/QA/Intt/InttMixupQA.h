@@ -55,17 +55,14 @@ class InttMixupQA : public SubsysReco {
 
   virtual ~InttMixupQA();
 
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
   
-  int InitRun(PHCompositeNode *);
+  int InitRun(PHCompositeNode *) override;
   
   /// SubsysReco event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
-  /// SubsysReco end processing method
-  int EndRun(PHCompositeNode *);
-
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   int SetOutputDir(std::string const& dir);
 

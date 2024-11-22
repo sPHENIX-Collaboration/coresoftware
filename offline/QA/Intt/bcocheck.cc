@@ -10,8 +10,6 @@ bcocheck::bcocheck(const string &name, const int run_num,const int felix_num)
   cout<<"felix_num_="<<felix_num_<<"felix_num="<<felix_num<<endl;
 }
 
-bcocheck::~bcocheck() {}
-
 int bcocheck::Init(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 5) {
@@ -121,12 +119,6 @@ int bcocheck::End(PHCompositeNode * /*topNode*/)
 
   return Fun4AllReturnCodes::EVENT_OK;
  
-}
-
-int bcocheck::EndRun(PHCompositeNode * /*topNode*/)
-{
-  cout<<"EndRun"<<endl;
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
