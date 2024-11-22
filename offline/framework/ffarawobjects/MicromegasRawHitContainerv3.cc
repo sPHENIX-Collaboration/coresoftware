@@ -51,21 +51,19 @@ MicromegasRawHit *MicromegasRawHitContainerv3::AddHit()
   return newhit;
 }
 
-MicromegasRawHit *MicromegasRawHitContainerv3::AddHit(MicromegasRawHit *tpchit)
+MicromegasRawHit *MicromegasRawHitContainerv3::AddHit(MicromegasRawHit *rawhit)
 {
-  if (dynamic_cast<MicromegasRawHitv3 *>(tpchit))
+  if (rawhit->IsA()==MicromegasRawHitv3::Class())
   {
     // fast add with move constructor to avoid ADC data copying
-
-    MicromegasRawHit *newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1])
-        MicromegasRawHitv3(std::move(*(dynamic_cast<MicromegasRawHitv3 *>(tpchit))));
-    return newhit;
+    return new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1])
+        MicromegasRawHitv3(std::move(*static_cast<MicromegasRawHitv3*>(rawhit)));
   }
   else
   {
+    // slow
     std::cout << __PRETTY_FUNCTION__ << "WARNING: input hit is not of type MicromegasRawHitv3. This is slow, please avoid." << std::endl;
-    MicromegasRawHit *newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv3(tpchit);
-    return newhit;
+    return new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv3(rawhit);
   }
 }
 
