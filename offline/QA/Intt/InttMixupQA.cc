@@ -1,7 +1,7 @@
 #include "InttMixupQA.h"
 
+#include <phool/phool.h>  // PHWHERE
 #include <qautils/QAHistManagerDef.h>
-#include <phool/phool.h> // PHWHERE
 
 #include <iostream>
 
@@ -16,23 +16,23 @@ InttMixupQA::InttMixupQA(const string &name, const int run_num, const int felix_
 {
   run_num_ = run_num;
   felix_num_ = felix_num;
-  cout<<"felix_num_="<<felix_num_<<"felix_num="<<felix_num<<endl;
+  cout << "felix_num_=" << felix_num_ << "felix_num=" << felix_num << endl;
 }
 
 InttMixupQA::~InttMixupQA() = default;
 
 int InttMixupQA::Init(PHCompositeNode * /*topNode*/)
 {
-  if (Verbosity() > 5) {
+  if (Verbosity() > 5)
+  {
     std::cout << "Beginning Init in InttMixupQA" << std::endl;
   }
-  
+
   return 0;
 }
 
 int InttMixupQA::InitRun(PHCompositeNode *topNode)
 {
-  
   if (!topNode)
   {
     std::cout << "InttMixupQA::InitRun(PHCompositeNode* topNode)" << std::endl;
@@ -41,221 +41,222 @@ int InttMixupQA::InitRun(PHCompositeNode *topNode)
     return 1;
   }
 
-  cout<<"felix_num_="<<felix_num_<<endl;
+  cout << "felix_num_=" << felix_num_ << endl;
 
   // Initialize histograms
-  for( int felix=0; felix<kFelix_num_;felix++ )  {
+  for (int felix = 0; felix < kFelix_num_; felix++)
+  {
     string name;
 
-	name = (boost::format("%s_allmulti_intt%d") % getHistoPrefix() % felix).str();
-    string title = name + Form("_Run%d",run_num_)+": with clone cut";
-    h_allmulti_[felix] = new TH1F( name.c_str(), title.c_str(), 200, 0, bin );
+    name = (boost::format("%s_allmulti_intt%d") % getHistoPrefix() % felix).str();
+    string title = name + Form("_Run%d", run_num_) + ": with clone cut";
+    h_allmulti_[felix] = new TH1F(name.c_str(), title.c_str(), 200, 0, bin);
     h_allmulti_[felix]->SetXTitle("Multiplicity");
-    //h_allmulti_[felix]->SetLineColor(felix+1);
+    // h_allmulti_[felix]->SetLineColor(felix+1);
 
     name = (boost::format("%s_allclone_intt%d") % getHistoPrefix() % felix).str();
-    title = name+ Form("_Run%d",run_num_);
-    h_allclone_[felix] = new TH1F( name.c_str(), title.c_str(), 200, 0, 200 );
+    title = name + Form("_Run%d", run_num_);
+    h_allclone_[felix] = new TH1F(name.c_str(), title.c_str(), 200, 0, 200);
     h_allclone_[felix]->SetXTitle("Clone multiplicity");
-    h_allclone_[felix]->SetLineColor(felix+1);
+    h_allclone_[felix]->SetLineColor(felix + 1);
 
-  	// These next 4 will be plotted 
-	auto hm = QAHistManagerDef::getHistoManager();
-	if (!hm)
+    // These next 4 will be plotted
+    auto hm = QAHistManagerDef::getHistoManager();
+    if (!hm)
     {
       std::cerr << PHWHERE << "\n"
                 << "\tQAHistManagerDef::getHistoManager() returned null\n"
                 << "\texit(1)" << std::endl;
-	  gSystem->Exit(1);
-	  exit(1);
+      gSystem->Exit(1);
+      exit(1);
     }
 
-   	name =(boost::format("%s_bco_full&0x7F_prev_vs_bco_intt%d") % getHistoPrefix() % felix).str(); 
-    title = name+ Form("_Run%d",run_num_);
-    h_vsprefull_bco[felix]=new TH2F(name.c_str(), title.c_str(),128, 0, 128, 128, 0, 128);
+    name = (boost::format("%s_bco_full&0x7F_prev_vs_bco_intt%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_vsprefull_bco[felix] = new TH2F(name.c_str(), title.c_str(), 128, 0, 128, 128, 0, 128);
     h_vsprefull_bco[felix]->SetXTitle("BCO");
     h_vsprefull_bco[felix]->SetYTitle("BCO_FULL previous event &0x7F");
-	hm->registerHisto(h_vsprefull_bco[felix]);
+    hm->registerHisto(h_vsprefull_bco[felix]);
 
-    name =(boost::format("%s_bco_full&0x7F_vs_bco_intt%d") % getHistoPrefix() % felix).str(); 
-    title = name+ Form("_Run%d",run_num_); 
-    h_vsfull_bco[felix]=new TH2F(name.c_str(), title.c_str(),128, 0, 128, 128, 0, 128);
+    name = (boost::format("%s_bco_full&0x7F_vs_bco_intt%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_vsfull_bco[felix] = new TH2F(name.c_str(), title.c_str(), 128, 0, 128, 128, 0, 128);
     h_vsfull_bco[felix]->SetXTitle("BCO");
     h_vsfull_bco[felix]->SetYTitle("BCO_FULL &0x7F");
-	hm->registerHisto(h_vsfull_bco[felix]);
-    
-    name =(boost::format("%s_bco_full&0x7F_prev_bco_intt%d") % getHistoPrefix() % felix).str(); 
-    title = name+ Form("_Run%d",run_num_); 
-    h_prefull_bco[felix]= new TH1F( name.c_str(), title.c_str(), 128, 0, 128 );
+    hm->registerHisto(h_vsfull_bco[felix]);
+
+    name = (boost::format("%s_bco_full&0x7F_prev_bco_intt%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_prefull_bco[felix] = new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
     h_prefull_bco[felix]->SetXTitle("BCO_FULL previous event - BCO");
     h_prefull_bco[felix]->SetMinimum(0);
-	hm->registerHisto(h_prefull_bco[felix]);
+    hm->registerHisto(h_prefull_bco[felix]);
 
-    name =(boost::format("%s_bco_full&0x7F_bco_intt%d") % getHistoPrefix() % felix).str(); 
-    title = name+ Form("_Run%d",run_num_); 
-    h_full_bco[felix]= new TH1F( name.c_str(), title.c_str(), 128, 0, 128 );
+    name = (boost::format("%s_bco_full&0x7F_bco_intt%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_full_bco[felix] = new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
     h_full_bco[felix]->SetXTitle("BCO_FULL - BCO");
     h_full_bco[felix]->SetMinimum(0);
-	hm->registerHisto(h_full_bco[felix]);
+    hm->registerHisto(h_full_bco[felix]);
 
-    name =(boost::format("%s_bco_full&0x7F_prev_bco_intt_all%d") % getHistoPrefix() % felix).str(); 
-    title = name+ Form("_Run%d",run_num_); 
-    h_prefull_bco_all[felix]= new TH1F( name.c_str(), title.c_str(), 128, 0, 128 );
+    name = (boost::format("%s_bco_full&0x7F_prev_bco_intt_all%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_prefull_bco_all[felix] = new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
     h_prefull_bco_all[felix]->SetXTitle("BCO_FULL previous event - BCO");
     h_prefull_bco_all[felix]->SetMinimum(0);
 
-    name =(boost::format("%s_bco_full&0x7F_prev_vs_bco_intt_all%d") % getHistoPrefix() % felix).str(); 
-    title = name+ Form("_Run%d",run_num_);
-    h_vsprefull_bco_all[felix]=new TH2F(name.c_str(), title.c_str(),128, 0, 128, 128, 0, 128);
+    name = (boost::format("%s_bco_full&0x7F_prev_vs_bco_intt_all%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_vsprefull_bco_all[felix] = new TH2F(name.c_str(), title.c_str(), 128, 0, 128, 128, 0, 128);
     h_vsprefull_bco_all[felix]->SetXTitle("BCO");
     h_vsprefull_bco_all[felix]->SetYTitle("BCO_FULL previous event &0x7F");
-      
 
-    string name1 = "Mixup Multiplicity"+ to_string( felix );
-    string name2 = "Mixup/all Multiplcity"+ to_string( felix );
-    string title1 = name1+ Form("_Run%d",run_num_);
-    string title2 = name2+ Form("_Run%d",run_num_);
-    for(int p=0;p<divimul;p++){
-     h_mixupmulti[felix][p] = new TH1F((name1+Form("_%d",p)).c_str(), (title1+Form("_%d",p)).c_str(), 200, 0, bin);
-     h_divmul[felix][p]= new TH1F((title1+Form("_%d",p)).c_str(),(title2+ Form("_%d",p)).c_str(), 200, 0, bin);;
+    string name1 = "Mixup Multiplicity" + to_string(felix);
+    string name2 = "Mixup/all Multiplcity" + to_string(felix);
+    string title1 = name1 + Form("_Run%d", run_num_);
+    string title2 = name2 + Form("_Run%d", run_num_);
+    for (int p = 0; p < divimul; p++)
+    {
+      h_mixupmulti[felix][p] = new TH1F((name1 + Form("_%d", p)).c_str(), (title1 + Form("_%d", p)).c_str(), 200, 0, bin);
+      h_divmul[felix][p] = new TH1F((title1 + Form("_%d", p)).c_str(), (title2 + Form("_%d", p)).c_str(), 200, 0, bin);
+      ;
     }
-    
-    name=(boost::format("%s_Number of mixup hit%d") % getHistoPrefix() % felix).str();
-    title =name+ Form("_Run%d",run_num_);
-    h_mixup[felix]= new TH1F(name.c_str(), title.c_str(), 400, 0, 400);
 
-    name=(boost::format("%s_prev_allhit vs Nmixup%d") % getHistoPrefix() % felix).str();
-    title =name+ Form("_Run%d",run_num_);
-    h_prevsNmix[felix]= new TH2F(name.c_str(), title.c_str(), divimul+10, 0, divimul+10, bin, 0, bin);
+    name = (boost::format("%s_Number of mixup hit%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_mixup[felix] = new TH1F(name.c_str(), title.c_str(), 400, 0, 400);
+
+    name = (boost::format("%s_prev_allhit vs Nmixup%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_prevsNmix[felix] = new TH2F(name.c_str(), title.c_str(), divimul + 10, 0, divimul + 10, bin, 0, bin);
     h_prevsNmix[felix]->GetXaxis()->SetNdivisions(405);
     h_prevsNmix[felix]->GetYaxis()->SetNdivisions(405);
     h_prevsNmix[felix]->SetXTitle("Number of Mixup hits");
     h_prevsNmix[felix]->SetYTitle("Number of previous event hits");
-    
-    name=(boost::format("%s_bco_full_prev-bco No copyhit%d") % getHistoPrefix() % felix).str();
-    title =name+ Form("_Run%d",run_num_);
+
+    name = (boost::format("%s_bco_full_prev-bco No copyhit%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
     h_nocopyhit[felix] = new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
     h_nocopyhit[felix]->SetXTitle("bco_full_prev-bco");
 
-    name=(boost::format("%s_bco_full_prev-bco copyhit%d") % getHistoPrefix() % felix).str();
-    title =name+ Form("_Run%d",run_num_);
-    h_copyhit[felix]= new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
+    name = (boost::format("%s_bco_full_prev-bco copyhit%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_copyhit[felix] = new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
     h_copyhit[felix]->SetXTitle("bco_full_prev-bco");
 
-    name=(boost::format("%s_Mixup & copy hit %d") % getHistoPrefix() % felix).str();
-    title =name+ Form("_Run%d",run_num_);
-    h_mixcopy[felix]= new TH1F(name.c_str(), title.c_str(), 50, 0, 50);
+    name = (boost::format("%s_Mixup & copy hit %d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_mixcopy[felix] = new TH1F(name.c_str(), title.c_str(), 50, 0, 50);
     h_mixcopy[felix]->SetXTitle("Number of Mixup copy hit");
 
-    name=(boost::format("%s_Nmixup vs Nclone%d") % getHistoPrefix() % felix).str();
-    title =name+ Form("_Run%d",run_num_);
-    h_mixvscopy[felix]= new TH2F(name.c_str(), title.c_str(), 100, 0, 100, 50, 0, 50);
+    name = (boost::format("%s_Nmixup vs Nclone%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_mixvscopy[felix] = new TH2F(name.c_str(), title.c_str(), 100, 0, 100, 50, 0, 50);
     h_mixvscopy[felix]->SetXTitle("Nmixup");
-    h_mixvscopy[felix]->SetYTitle("Ncopy");  
+    h_mixvscopy[felix]->SetYTitle("Ncopy");
 
-    name=(boost::format("%s_Nmixup vs pre_Nhits%d") % getHistoPrefix() % felix).str();
-    title =name+ Form("_Run%d",run_num_);
-    h_hitfra[felix]=new TH2F(name.c_str(), title.c_str(),bin,0,bin,bin,0,bin);
+    name = (boost::format("%s_Nmixup vs pre_Nhits%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_hitfra[felix] = new TH2F(name.c_str(), title.c_str(), bin, 0, bin, bin, 0, bin);
 
-    name=(boost::format("%s_Nmixup vs pre_Nhits others 4bin%d") % getHistoPrefix() % felix).str();
-    title =name+ Form("_Run%d",run_num_);
-    h_bghit[felix]=new TH2F(name.c_str(), title.c_str(),bin,0,bin,bin,0,bin);
+    name = (boost::format("%s_Nmixup vs pre_Nhits others 4bin%d") % getHistoPrefix() % felix).str();
+    title = name + Form("_Run%d", run_num_);
+    h_bghit[felix] = new TH2F(name.c_str(), title.c_str(), bin, 0, bin, bin, 0, bin);
 
-    fNhit[felix].open(Form("./txtfile/NHit_%d_intt%d.txt", run_num_,felix));
+    fNhit[felix].open(Form("./txtfile/NHit_%d_intt%d.txt", run_num_, felix));
 
-    bcopeak_file[felix]=bcopeak_dir_+Form("bco_000%d_intt%d.root",run_num_,felix);
+    bcopeak_file[felix] = bcopeak_dir_ + Form("bco_000%d_intt%d.root", run_num_, felix);
   }
-  
-  string name ="bco_full - prev_bco_full";
-  string title =name+ Form("_Run%d",run_num_);
-  h_interval=new TH1F(name.c_str(),title.c_str(),200,0,bin2);
+
+  string name = "bco_full - prev_bco_full";
+  string title = name + Form("_Run%d", run_num_);
+  h_interval = new TH1F(name.c_str(), title.c_str(), 200, 0, bin2);
   h_interval->SetXTitle("bco_full - prev_bco_full");
 
-  name ="bco_full - prev_bco_full Mixup";
-  title =name+ Form("_Run%d",run_num_);
-  h_mixinterval=new TH1F(name.c_str(),title.c_str(),200,0,bin2);
+  name = "bco_full - prev_bco_full Mixup";
+  title = name + Form("_Run%d", run_num_);
+  h_mixinterval = new TH1F(name.c_str(), title.c_str(), 200, 0, bin2);
 
-  name="Interval normarize";
-  title=name+Form("_Run%d",run_num_);
-  h_divinter=new TH1F(name.c_str(),title.c_str(),200,0,bin2);
+  name = "Interval normarize";
+  title = name + Form("_Run%d", run_num_);
+  h_divinter = new TH1F(name.c_str(), title.c_str(), 200, 0, bin2);
   h_divinter->SetXTitle("bco_full - prev_bco_full");
 
-  name="bco_full";
-  title=name+Form("_Run%d",run_num_);
-  h_bcofull_7= new TH1F(name.c_str(),title.c_str(),128,0,128);
+  name = "bco_full";
+  title = name + Form("_Run%d", run_num_);
+  h_bcofull_7 = new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
   h_bcofull_7->SetXTitle("bco_full &0x7F");
 
-  name="bco";
-  title=name+Form("_Run%d",run_num_);
-  h_bco= new TH1F(name.c_str(),title.c_str(),128,0,128);
+  name = "bco";
+  title = name + Form("_Run%d", run_num_);
+  h_bco = new TH1F(name.c_str(), title.c_str(), 128, 0, 128);
   h_bco->SetXTitle("bco");
 
-  name="felix vs NmixupEv";
-  title=name+Form("_Run%d",run_num_);
-  //h_NmixEv=new TH2F(name.c_str(), title.c_str(),8,0,8,100000,0,100000);
-  h_NmixEv=new TH1F(name.c_str(), title.c_str(),8,0,8);
+  name = "felix vs NmixupEv";
+  title = name + Form("_Run%d", run_num_);
+  // h_NmixEv=new TH2F(name.c_str(), title.c_str(),8,0,8,100000,0,100000);
+  h_NmixEv = new TH1F(name.c_str(), title.c_str(), 8, 0, 8);
 
-  name="All Event";
-  title=name+Form("_Run%d",run_num_);
-  h_AllEv=new TH1F(name.c_str(),title.c_str(),8,0,8);
-
+  name = "All Event";
+  title = name + Form("_Run%d", run_num_);
+  h_AllEv = new TH1F(name.c_str(), title.c_str(), 8, 0, 8);
 
   g_evfraction = new TGraph(n);
 
   g_cloevfraction = new TGraph(n);
-  
+
   g_hitfraction = new TGraph(n);
-  
+
   g_copyfraction = new TGraph(n);
-  
-  //bcopeak file set
-  //bcopeak_file=bcopeak_dir_+Form("bco_000%d",run_num_)+this->GetFileSuffix()+".root";
-  
 
-  //hotchan file set
-  //hotchan_file=hotchan_dir_+Form("InttHotDeadMap_000%d_50",run_num_)+this->GetFileSuffix()+".txt";
+  // bcopeak file set
+  // bcopeak_file=bcopeak_dir_+Form("bco_000%d",run_num_)+this->GetFileSuffix()+".root";
 
-  tf_output_ = new TFile( output_root_.c_str(), "RECREATE" );
- 
+  // hotchan file set
+  // hotchan_file=hotchan_dir_+Form("InttHotDeadMap_000%d_50",run_num_)+this->GetFileSuffix()+".txt";
+
+  tf_output_ = new TFile(output_root_.c_str(), "RECREATE");
+
   GetBcopeak();
 
   Readpeak();
 
-  //Hotchancut();
+  // Hotchancut();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
 int InttMixupQA::process_event(PHCompositeNode *topNode)
 {
-  
-  if(Verbosity()>5){
-  cout<<"prev_bcofull="<<prev_bcofull<<" "<<"pre_allhit="<<pre_allhit<<endl;
+  if (Verbosity() > 5)
+  {
+    cout << "prev_bcofull=" << prev_bcofull << " "
+         << "pre_allhit=" << pre_allhit << endl;
   }
 
-  //get event bco_full
- /* string node_name_intteventheader = "INTTEVENTHEADER";
-  InttEventInfo *node_intteventheader_map_ = findNode::getClass<InttEventInfo>(topNode, node_name_intteventheader);
-  
-  if (!node_intteventheader_map_){
-    cerr << PHWHERE << node_name_intteventheader << " node is missing." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  uint64_t longbco_full = node_intteventheader_map_->get_bco_full();
-  uint64_t bco_full =longbco_full &0x7FU;
-  uint64_t difevent_bcofull = (longbco_full &bit )-(long_prev_bcofull &bit);
-  h_interval->Fill(difevent_bcofull);
-  h_bcofull_7->Fill(bco_full);
+  // get event bco_full
+  /* string node_name_intteventheader = "INTTEVENTHEADER";
+   InttEventInfo *node_intteventheader_map_ = findNode::getClass<InttEventInfo>(topNode, node_name_intteventheader);
 
-  if(Verbosity()>5){
-  cout<<"bco_full="<<bco_full<<endl;
-  }*/
+   if (!node_intteventheader_map_){
+     cerr << PHWHERE << node_name_intteventheader << " node is missing." << endl;
+     return Fun4AllReturnCodes::ABORTEVENT;
+   }
+   uint64_t longbco_full = node_intteventheader_map_->get_bco_full();
+   uint64_t bco_full =longbco_full &0x7FU;
+   uint64_t difevent_bcofull = (longbco_full &bit )-(long_prev_bcofull &bit);
+   h_interval->Fill(difevent_bcofull);
+   h_bcofull_7->Fill(bco_full);
 
-  //get raw hit
+   if(Verbosity()>5){
+   cout<<"bco_full="<<bco_full<<endl;
+   }*/
+
+  // get raw hit
   string m_InttRawNodeName = "INTTRAWHIT";
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
-  if (!inttcont) {
+  if (!inttcont)
+  {
     cout << PHWHERE << endl;
     cout << "InttMixupQA::process_event(PHCompositeNode* topNode)" << endl;
     cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << endl;
@@ -264,167 +265,168 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  uint64_t longbco_full= (0 < inttcont->get_nhits()) ?
-	  inttcont->get_hit(0)->get_bco() : std::numeric_limits<uint64_t>::max();
-  uint64_t difevent_bcofull = (longbco_full &bit )-(long_prev_bcofull &bit);
+  uint64_t longbco_full = (0 < inttcont->get_nhits()) ? inttcont->get_hit(0)->get_bco() : std::numeric_limits<uint64_t>::max();
+  uint64_t difevent_bcofull = (longbco_full & bit) - (long_prev_bcofull & bit);
   h_interval->Fill(difevent_bcofull);
-  uint64_t bco_full =longbco_full &0x7FU;
-  //cout<<"longbco_full="<<longbco_full<<endl;
+  uint64_t bco_full = longbco_full & 0x7FU;
+  // cout<<"longbco_full="<<longbco_full<<endl;
 
   ievent_++;
-  
-  if(ievent_==1){
-    first_bcofull=longbco_full;
-  }
 
+  if (ievent_ == 1)
+  {
+    first_bcofull = longbco_full;
+  }
 
   /*if(ievent_<500000){
     return Fun4AllReturnCodes::EVENT_OK;
   }*/
 
-  if ( (ievent_%100==0 && ievent_<1000) || ievent_%1000==0 ) {
+  if ((ievent_ % 100 == 0 && ievent_ < 1000) || ievent_ % 1000 == 0)
+  {
     cout << "Process event #" << ievent_ << endl;
   }
-  
+
   int nhits = inttcont->get_nhits();
-  if (Verbosity() > 5) {
-    cout<<"Nhits = "<<nhits<<endl;
+  if (Verbosity() > 5)
+  {
+    cout << "Nhits = " << nhits << endl;
   }
 
-  map<int,int> map_hit;
-  int nhit_fx[8] = {0,0,0,0,0,0,0,0};
-  int ncln_fx[8] = {0,0,0,0,0,0,0,0};
-  
-  int Nmixup[8] ={0,0,0,0,0,0,0,0};
-  int Nother[8] ={0,0,0,0,0,0,0,0};
-  //int Nclone[kFelix_num_] ={0,0,0,0,0,0,0,0};
-  int Ncopy [8] ={0,0,0,0,0,0,0,0};
+  map<int, int> map_hit;
+  int nhit_fx[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int ncln_fx[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+  int Nmixup[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int Nother[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  // int Nclone[kFelix_num_] ={0,0,0,0,0,0,0,0};
+  int Ncopy[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   // Loop over all INTTRAWHIT
-  for (int i = 0; i < nhits; i++) 
+  for (int i = 0; i < nhits; i++)
   {
-    InttRawHit *intthit = inttcont->get_hit(i);    
-  
-    int fnum	= intthit->get_packetid() - 3001;//packet id
-    int fchn	= intthit->get_fee();//module
-    int adc     = intthit->get_adc();//adc
-    int chip    = intthit->get_chip_id();//chip
-    int chan	= intthit->get_channel_id();//channel
-    int bco	= intthit->get_FPHX_BCO();//FPHX bco
-    int hitID   = 100000000 * (fnum+1) + 1000000 * fchn + 10000 * chip + 10 * chan  + adc;
-    //int hitID_h = 10000000 * (fnum+1) + 100000 * fchn + 1000 * chip + chan;
-  
-    //clone hit cut
+    InttRawHit *intthit = inttcont->get_hit(i);
+
+    int fnum = intthit->get_packetid() - 3001;  // packet id
+    int fchn = intthit->get_fee();              // module
+    int adc = intthit->get_adc();               // adc
+    int chip = intthit->get_chip_id();          // chip
+    int chan = intthit->get_channel_id();       // channel
+    int bco = intthit->get_FPHX_BCO();          // FPHX bco
+    int hitID = 100000000 * (fnum + 1) + 1000000 * fchn + 10000 * chip + 10 * chan + adc;
+    // int hitID_h = 10000000 * (fnum+1) + 100000 * fchn + 1000 * chip + chan;
+
+    // clone hit cut
     auto itrHit = map_hit.find(hitID);
-    if (itrHit == map_hit.end()) 
+    if (itrHit == map_hit.end())
     {
       map_hit.insert(make_pair(hitID, 0));
-      if (Verbosity() > 5) 
+      if (Verbosity() > 5)
       {
-	    cout << hitID << " " <<fnum+1<<" "<<fchn<<" "<< chip << " " <<chan<<" "<< adc << " "<< bco << endl;
+        cout << hitID << " " << fnum + 1 << " " << fchn << " " << chip << " " << chan << " " << adc << " " << bco << endl;
       }
-      
-      //hot channel cut
-      //auto itrHit_h=hotmap.find(hitID_h);
-      //if (itrHit_h==hotmap.end())
+
+      // hot channel cut
+      // auto itrHit_h=hotmap.find(hitID_h);
+      // if (itrHit_h==hotmap.end())
       {
         nhit_fx[fnum]++;
 
         h_bco->Fill(bco);
 
-        int bco_diff = bco_full  - bco;
-        //int bco_diff = bco - bco_full;
-        if(bco_diff<0)
+        int bco_diff = bco_full - bco;
+        // int bco_diff = bco - bco_full;
+        if (bco_diff < 0)
         {
-          bco_diff=bco_diff+128;
+          bco_diff = bco_diff + 128;
         }
 
-        int pre_bco_diff =prev_bcofull - bco;
-        //int pre_bco_diff =bco - prev_bcofull ;
-        if(pre_bco_diff<0)
+        int pre_bco_diff = prev_bcofull - bco;
+        // int pre_bco_diff =bco - prev_bcofull ;
+        if (pre_bco_diff < 0)
         {
-          pre_bco_diff=pre_bco_diff+128;
+          pre_bco_diff = pre_bco_diff + 128;
         }
 
-      
-      /*if(bco_diff>21 && bco_diff<80)//for Run46681
-      {
-        cout<<"bco_diff="<<bco_diff<<endl;
-      }
-      else*/
-      {
-          if(bcopar_[fnum].size()>0 && bcopar_[fnum].find(bco_diff)==bcopar_[fnum].end())
-        { 
-        
-
-        if(bcopar_[fnum].find(pre_bco_diff)!=bcopar_[fnum].end())
+        /*if(bco_diff>21 && bco_diff<80)//for Run46681
         {
-          Nmixup[fnum]++;
-          
-          auto pre_itrHit=premap_hit.find(hitID);
-          if(pre_itrHit != premap_hit.end())
+          cout<<"bco_diff="<<bco_diff<<endl;
+        }
+        else*/
+        {
+          if (bcopar_[fnum].size() > 0 && bcopar_[fnum].find(bco_diff) == bcopar_[fnum].end())
           {
-            h_copyhit[fnum]->Fill(pre_bco_diff);
-            Ncopy[fnum]++;//mixup & copy hit
-            
-          }
-          else
-          {
-            //mixup & not copy hit
-            h_nocopyhit[fnum]->Fill(pre_bco_diff);
-          }
+            if (bcopar_[fnum].find(pre_bco_diff) != bcopar_[fnum].end())
+            {
+              Nmixup[fnum]++;
 
-        }
-        else if(otbcopar_[fnum].find(pre_bco_diff)!=otbcopar_[fnum].end())
-        {
-          Nother[fnum]++;
-        }
-        
-          h_prefull_bco[fnum]->Fill(pre_bco_diff); //without this event collision hit
-          h_vsprefull_bco[fnum]->Fill(bco,prev_bcofull);
-        
-        }
-        h_prefull_bco_all[fnum]->Fill(pre_bco_diff); //with this event collision hit
-        h_vsprefull_bco_all[fnum]->Fill(bco,prev_bcofull);
+              auto pre_itrHit = premap_hit.find(hitID);
+              if (pre_itrHit != premap_hit.end())
+              {
+                h_copyhit[fnum]->Fill(pre_bco_diff);
+                Ncopy[fnum]++;  // mixup & copy hit
+              }
+              else
+              {
+                // mixup & not copy hit
+                h_nocopyhit[fnum]->Fill(pre_bco_diff);
+              }
+            }
+            else if (otbcopar_[fnum].find(pre_bco_diff) != otbcopar_[fnum].end())
+            {
+              Nother[fnum]++;
+            }
 
-        h_full_bco[fnum]->Fill(bco_diff);
-        h_vsfull_bco[fnum]->Fill(bco,bco_full);
-      }
+            h_prefull_bco[fnum]->Fill(pre_bco_diff);  // without this event collision hit
+            h_vsprefull_bco[fnum]->Fill(bco, prev_bcofull);
+          }
+          h_prefull_bco_all[fnum]->Fill(pre_bco_diff);  // with this event collision hit
+          h_vsprefull_bco_all[fnum]->Fill(bco, prev_bcofull);
+
+          h_full_bco[fnum]->Fill(bco_diff);
+          h_vsfull_bco[fnum]->Fill(bco, bco_full);
+        }
       }
       /*else
       {
         cout<<"Hot channel"<<endl;
       }*/
-    } 
-    else {
-      ncln_fx[fnum]++;//Number of clone hit
+    }
+    else
+    {
+      ncln_fx[fnum]++;  // Number of clone hit
     }
 
-    if(Verbosity()>5){
-    cout<<"bco_full="<<bco_full<<" "<<"bco="<<bco<<" "<<endl;
+    if (Verbosity() > 5)
+    {
+      cout << "bco_full=" << bco_full << " "
+           << "bco=" << bco << " " << endl;
     }
-
   }
 
-  if(Verbosity()>5){ 
-  for(int id=0;id<8;id++)
-  {  
-    cout<<"Felix#"<<id<<" "<<"Nmixup="<<Nmixup[id]<<" "<<"Ncopy="<<Ncopy[id]<<" "<<"Nclone="<<ncln_fx[id]<<endl;
-  }
-  }
-
-  for( int felix=0; felix<kFelix_num_;felix++ )
+  if (Verbosity() > 5)
   {
-    //h_allmulti_[felix]->Fill(nhit_fx[felix]);
+    for (int id = 0; id < 8; id++)
+    {
+      cout << "Felix#" << id << " "
+           << "Nmixup=" << Nmixup[id] << " "
+           << "Ncopy=" << Ncopy[id] << " "
+           << "Nclone=" << ncln_fx[id] << endl;
+    }
+  }
+
+  for (int felix = 0; felix < kFelix_num_; felix++)
+  {
+    // h_allmulti_[felix]->Fill(nhit_fx[felix]);
     h_allmulti_[felix]->Fill(pre_allhit[felix]);
     h_allclone_[felix]->Fill(ncln_fx[felix]);
     h_mixup[felix]->Fill(Nmixup[felix]);
     h_mixcopy[felix]->Fill(Ncopy[felix]);
-    h_hitfra[felix]->Fill(Nmixup[felix],pre_allhit[felix]);
-    h_bghit[felix]->Fill(Nother[felix],pre_allhit[felix]);
+    h_hitfra[felix]->Fill(Nmixup[felix], pre_allhit[felix]);
+    h_bghit[felix]->Fill(Nother[felix], pre_allhit[felix]);
     for (int p = 0; p < divimul; p++)
     {
-      if (Nmixup[felix] == p + 1 )
-      //if (Nmixup[felix] > p * 4 && Nmixup[felix] <= (p + 1) * 4)
+      if (Nmixup[felix] == p + 1)
+      // if (Nmixup[felix] > p * 4 && Nmixup[felix] <= (p + 1) * 4)
       {
         h_mixupmulti[felix][p]->Fill(pre_allhit[felix]);
 
@@ -435,31 +437,30 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
       }
       else
       {
-       continue;
+        continue;
       }
-    
+
       h_divmul[felix][p]->Divide(h_mixupmulti[felix][p], h_allmulti_[felix]);
     }
-    
-    mixupfraction[felix]= (double(Nmixup[felix]) / double(pre_allhit[felix] + Nmixup[felix]));  
-    //copyfraction[felix] = (double(Ncopy[felix]) / double(Nmixup[felix])) * 100; 
-    //thisclonefraction[felix]=(double(Nthisclone)/double(map_hit.size()))*100;
-    
-    
+
+    mixupfraction[felix] = (double(Nmixup[felix]) / double(pre_allhit[felix] + Nmixup[felix]));
+    // copyfraction[felix] = (double(Ncopy[felix]) / double(Nmixup[felix])) * 100;
+    // thisclonefraction[felix]=(double(Nthisclone)/double(map_hit.size()))*100;
+
     h_AllEv->Fill(felix);
-    if (Nmixup[felix] > 0 && pre_allhit[felix]>0 )
-    //if (Nmixup[felix] > 0 && pre_allhit[felix]>0 )
-    { 
-      //cout<<"Nmixup="<<Nmixup[felix]<<" "<<"mixupfraction="<<mixupfraction[felix]<<endl;
+    if (Nmixup[felix] > 0 && pre_allhit[felix] > 0)
+    // if (Nmixup[felix] > 0 && pre_allhit[felix]>0 )
+    {
+      // cout<<"Nmixup="<<Nmixup[felix]<<" "<<"mixupfraction="<<mixupfraction[felix]<<endl;
       h_mixinterval->Fill(difevent_bcofull);
-      h_divinter->Divide(h_mixinterval,h_interval);
+      h_divinter->Divide(h_mixinterval, h_interval);
 
       h_prevsNmix[felix]->Fill(Nmixup[felix], pre_allhit[felix]);
       NmixupEv[felix]++;
       h_NmixEv->Fill(felix);
 
-      //mixupfraction[felix]= (double(Nmixup[felix]) / double(pre_allhit[felix] + Nmixup[felix])) * 100;  
-      //copyfraction[felix] = (double(Ncopy[felix]) / double(Nmixup[felix])) * 100; 
+      // mixupfraction[felix]= (double(Nmixup[felix]) / double(pre_allhit[felix] + Nmixup[felix])) * 100;
+      // copyfraction[felix] = (double(Ncopy[felix]) / double(Nmixup[felix])) * 100;
       mixupfraction_sum[felix] = mixupfraction_sum[felix] + mixupfraction[felix];
       Nmixup_sum[felix] = Nmixup_sum[felix] + Nmixup[felix];
       pre_allhit_sum[felix] = pre_allhit_sum[felix] + pre_allhit[felix];
@@ -468,43 +469,44 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
         NmixcopyEv[felix]++;
         copyfraction_sum[felix] = copyfraction_sum[felix] + copyfraction[felix];
       }
-      if(Verbosity()>5){
-        cout << "Felix=" <<felix << " " << "mixupfraction=" << mixupfraction[felix] << "Nmixup=" << Nmixup[felix] << "pre_allhit=" << pre_allhit[felix] << "Ncopy=" << Ncopy[felix] << "copyfraction=" << copyfraction[felix] << endl;
+      if (Verbosity() > 5)
+      {
+        cout << "Felix=" << felix << " "
+             << "mixupfraction=" << mixupfraction[felix] << "Nmixup=" << Nmixup[felix] << "pre_allhit=" << pre_allhit[felix] << "Ncopy=" << Ncopy[felix] << "copyfraction=" << copyfraction[felix] << endl;
       }
+    }
+    // h_divinter->Divide(h_mixinterval,h_interval);
+    if (felix == felix_num_)
+    {
+      // cout<<nhit_fx[felix]<<endl;
 
+      fNhit[felix] << nhit_fx[felix] << endl;
     }
-    //h_divinter->Divide(h_mixinterval,h_interval);
-    if(felix==felix_num_){
-    //cout<<nhit_fx[felix]<<endl;
-    
-    fNhit[felix]<<nhit_fx[felix]<<endl;
-    }
-    pre_allhit[felix]=nhit_fx[felix];
+    pre_allhit[felix] = nhit_fx[felix];
     // Initialize pre_allhit array
-    
-   /* pre_allhit[felix] = 0;
-    
-    pre_allhit[felix] = std::count_if(map_hit.begin(), map_hit.end(), 
-    [felix](const std::pair<int, int>& hit) {
-    int felix_id = hit.first / 100000000 - 1;
-    return felix_id == felix;
-    });*/
-  
+
+    /* pre_allhit[felix] = 0;
+
+     pre_allhit[felix] = std::count_if(map_hit.begin(), map_hit.end(),
+     [felix](const std::pair<int, int>& hit) {
+     int felix_id = hit.first / 100000000 - 1;
+     return felix_id == felix;
+     });*/
   }
-  
-  long_prev_bcofull=longbco_full;
-  prev_bcofull=bco_full ;
-  premap_hit=map_hit;
-  //  h_allmulti_[fnum]->Fill(nhits);  
+
+  long_prev_bcofull = longbco_full;
+  prev_bcofull = bco_full;
+  premap_hit = map_hit;
+  //  h_allmulti_[fnum]->Fill(nhits);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int InttMixupQA::End(PHCompositeNode * /*topNode*/)
 {
-  
-  //Mixupfraction();
+  // Mixupfraction();
 
-  if (Verbosity() > 1) {
+  if (Verbosity() > 1)
+  {
     std::cout << "Processing InttMixupQA done" << std::endl;
   }
 
@@ -520,31 +522,28 @@ int InttMixupQA::End(PHCompositeNode * /*topNode*/)
   tf_output_->Close();*/
 
   return Fun4AllReturnCodes::EVENT_OK;
- 
 }
 
-
-int InttMixupQA::SetOutputDir(std::string const& dir)
+int InttMixupQA::SetOutputDir(std::string const &dir)
 {
   output_dir_ = dir;
 
-  string run_num_str = string( 8 - to_string(run_num_).size(), '0' ) + to_string( run_num_ );
-  string fnum_str=to_string(felix_num_);
-  
-  
-  output_root_ = output_dir_ + "root/" + output_basename_ + run_num_str +"intt"+fnum_str+".root";
-  output_pdf_  = output_dir_ + "plots/" + output_basename_ + run_num_str +"intt"+fnum_str+ ".pdf";
+  string run_num_str = string(8 - to_string(run_num_).size(), '0') + to_string(run_num_);
+  string fnum_str = to_string(felix_num_);
 
-  //output_root_ = output_dir_ + "root/" + output_basename_ + run_num_str +".root";
-  //output_pdf_  = output_dir_ + "plots/" + output_basename_ + run_num_str +".pdf";
-  
-  output_txt_  = output_dir_ + "txtfile/";
-  
-  return Fun4AllReturnCodes::EVENT_OK;                         
+  output_root_ = output_dir_ + "root/" + output_basename_ + run_num_str + "intt" + fnum_str + ".root";
+  output_pdf_ = output_dir_ + "plots/" + output_basename_ + run_num_str + "intt" + fnum_str + ".pdf";
+
+  // output_root_ = output_dir_ + "root/" + output_basename_ + run_num_str +".root";
+  // output_pdf_  = output_dir_ + "plots/" + output_basename_ + run_num_str +".pdf";
+
+  output_txt_ = output_dir_ + "txtfile/";
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 /*int InttMixupQA::SetHistBin(string type)
-{    
+{
   if (type==p)
   {
     bin=400;
@@ -566,193 +565,209 @@ int InttMixupQA::SetOutputDir(std::string const& dir)
   return Fun4AllReturnCodes::EVENT_OK;
 }*/
 
-
 // Private functions
 void InttMixupQA::GetBcopeak()
 {
- //get bco finder file 
- /*tf_bcopeak_=new TFile(bcopeak_file.c_str(),"READ");
- cout<<tf_bcopeak_<<endl;*/
- 
- //get hist from INTT QA
- /*for(int i=0; i<8; i++){
-  h2_bco_felix[i]=(TH2D*)gROOT->FindObject(Form("h2_bco_felix_%d",i));
-  hbco[i]=h2_bco_felix[i]->ProjectionY(Form("hbco_%d",i));
+  // get bco finder file
+  /*tf_bcopeak_=new TFile(bcopeak_file.c_str(),"READ");
+  cout<<tf_bcopeak_<<endl;*/
 
-  //default peakbin for can't found peak bin
-  h2_bco_felix_sub[i]=(TH2D*)gROOT->FindObject(Form("h2_bco_felix_cut%d",i));
-  hbco_sub[i]=h2_bco_felix_sub[i]->ProjectionY(Form("hbco_sub%d",i));
-  int maxbin_sub=hbco_sub[i]->GetMaximumBin();
-  DEFAULT_BCO_VALUE[i]=hbco_sub[i]->GetBinLowEdge(maxbin_sub);
-  }*/
+  // get hist from INTT QA
+  /*for(int i=0; i<8; i++){
+   h2_bco_felix[i]=(TH2D*)gROOT->FindObject(Form("h2_bco_felix_%d",i));
+   hbco[i]=h2_bco_felix[i]->ProjectionY(Form("hbco_%d",i));
 
- //get hist from made by myself
- for(int i=0; i<8; i++){
+   //default peakbin for can't found peak bin
+   h2_bco_felix_sub[i]=(TH2D*)gROOT->FindObject(Form("h2_bco_felix_cut%d",i));
+   hbco_sub[i]=h2_bco_felix_sub[i]->ProjectionY(Form("hbco_sub%d",i));
+   int maxbin_sub=hbco_sub[i]->GetMaximumBin();
+   DEFAULT_BCO_VALUE[i]=hbco_sub[i]->GetBinLowEdge(maxbin_sub);
+   }*/
 
-  tf_bcopeak_[i]=new TFile(bcopeak_file[i].c_str(),"READ");
-   //cout<<tf_bcopeak_[i]<<endl;
-  hbco[i]=dynamic_cast<TH1D*>(gROOT->FindObject(Form("h2_bco_felix_%d",i)));
-  if (!hbco[i])
+  // get hist from made by myself
+  for (int i = 0; i < 8; i++)
   {
-    if (Verbosity()) { std::cerr << PHWHERE << std::endl;
-}
-    continue;
+    tf_bcopeak_[i] = new TFile(bcopeak_file[i].c_str(), "READ");
+    // cout<<tf_bcopeak_[i]<<endl;
+    hbco[i] = dynamic_cast<TH1D *>(gROOT->FindObject(Form("h2_bco_felix_%d", i)));
+    if (!hbco[i])
+    {
+      if (Verbosity())
+      {
+        std::cerr << PHWHERE << std::endl;
+      }
+      continue;
+    }
+
+    // default peakbin for can't found peak bin
+    int maxbin_sub = hbco[i]->GetMaximumBin();
+    DEFAULT_BCO_VALUE[i] = hbco[i]->GetBinLowEdge(maxbin_sub);
   }
 
-  //default peakbin for can't found peak bin
-  int maxbin_sub=hbco[i]->GetMaximumBin();
-  DEFAULT_BCO_VALUE[i]=hbco[i]->GetBinLowEdge(maxbin_sub);
-  }
-
- //check_bcohist
-  int    peakbco[8];
+  // check_bcohist
+  int peakbco[8];
   double bg_mean[8];
   double bg_rms[8];
   /////////////////////
-  // find peak and BG area 
-  for(int id=0; id<8; id++){
+  // find peak and BG area
+  for (int id = 0; id < 8; id++)
+  {
+    double max = hbco[id]->GetMaximum();
+    int maxbin = hbco[id]->GetMaximumBin();
+    peakbco[id] = hbco[id]->GetBinLowEdge(maxbin);
+    cout << id << " " << max << " " << maxbin << " " << peakbco[id] << endl;
 
-    double max     = hbco[id]->GetMaximum();
-    int    maxbin = hbco[id]->GetMaximumBin();
-    peakbco[id]   = hbco[id]->GetBinLowEdge(maxbin);
-    cout<<id<<" "<<max<<" "<<maxbin<<" "<< peakbco[id]<< endl;
-
-    hbcohist[id] = new TH1F(Form("hbcohist_%d", id), Form("hbcohist_%d", id), 200, 0, max*1.1);
+    hbcohist[id] = new TH1F(Form("hbcohist_%d", id), Form("hbcohist_%d", id), 200, 0, max * 1.1);
     int N = hbco[id]->GetNbinsX();
-    for(int ibin=0; ibin<N; ibin++){
-      double cont = hbco[id]->GetBinContent(ibin+1);
+    for (int ibin = 0; ibin < N; ibin++)
+    {
+      double cont = hbco[id]->GetBinContent(ibin + 1);
       hbcohist[id]->Fill(cont);
     }
   }
 
-  for(int id=0; id<8; id++){
- 
+  for (int id = 0; id < 8; id++)
+  {
     double max = hbco[id]->GetMaximum();
-    hbcohist2[id] = new TH1F(Form("hbcohist2_%d", id), Form("hbcohist2_%d", id), 200, 0, max*1.1);
+    hbcohist2[id] = new TH1F(Form("hbcohist2_%d", id), Form("hbcohist2_%d", id), 200, 0, max * 1.1);
 
     int N = hbco[id]->GetNbinsX();
     double mean = hbcohist[id]->GetMean();
-    double rms  = hbcohist[id]->GetRMS();
+    double rms = hbcohist[id]->GetRMS();
 
-    for(int ibin=0; ibin<N; ibin++){
-      double cont = hbco[id]->GetBinContent(ibin+1);
-      if(mean+3*rms > cont) {
+    for (int ibin = 0; ibin < N; ibin++)
+    {
+      double cont = hbco[id]->GetBinContent(ibin + 1);
+      if (mean + 3 * rms > cont)
+      {
         hbcohist2[id]->Fill(cont);
-}
+      }
     }
     bg_mean[id] = hbcohist2[id]->GetMean();
-    bg_rms[id]  = hbcohist2[id]->GetRMS();
+    bg_rms[id] = hbcohist2[id]->GetRMS();
   }
 
   ///////
   // check peak area w/ peak +-10bin
   {
-    f_felixpeak.open((output_txt_+Form("bco_%d.txt", run_num_)).c_str());
+    f_felixpeak.open((output_txt_ + Form("bco_%d.txt", run_num_)).c_str());
 
-    for(int id=0; id<8; id++){
-
-       f_felixpeak<<id<<" : ";
-      //double thre   = bg_mean[id] + 6*bg_rms[id];
-      double thre   = 5*bg_mean[id];;
-      int    maxbin = hbco[id]->GetMaximumBin();
+    for (int id = 0; id < 8; id++)
+    {
+      f_felixpeak << id << " : ";
+      // double thre   = bg_mean[id] + 6*bg_rms[id];
+      double thre = 5 * bg_mean[id];
+      ;
+      int maxbin = hbco[id]->GetMaximumBin();
 
       int N = hbco[id]->GetNbinsX();
       bool peak_found = false;
 
-      for(int ibin=0; ibin<10; ibin++){
-        int binid = ibin + maxbin-10;
-        if(binid<1) { binid+=N;//binid+=128;
-}
-        double cont = hbco[id]->GetBinContent(binid+1);
-        cout<<id<<" :  "<<ibin<<" "<<binid<<" "<<maxbin;
-        if(cont>thre) { 
-          int peakbin = hbco[id]->GetBinLowEdge(binid+1);
-          cout<<" exceed : "<<peakbin;
-          f_felixpeak<<peakbin<<" ";
+      for (int ibin = 0; ibin < 10; ibin++)
+      {
+        int binid = ibin + maxbin - 10;
+        if (binid < 1)
+        {
+          binid += N;  // binid+=128;
+        }
+        double cont = hbco[id]->GetBinContent(binid + 1);
+        cout << id << " :  " << ibin << " " << binid << " " << maxbin;
+        if (cont > thre)
+        {
+          int peakbin = hbco[id]->GetBinLowEdge(binid + 1);
+          cout << " exceed : " << peakbin;
+          f_felixpeak << peakbin << " ";
           peak_found = true;
         }
-        cout<<endl;
+        cout << endl;
       }
-      for(int ibin=0; ibin<10; ibin++){
+      for (int ibin = 0; ibin < 10; ibin++)
+      {
         int binid = ibin + maxbin;
-        if(binid>=N) { binid-=N;//binid+=128;
-}
-        double cont = hbco[id]->GetBinContent(binid+1);
-        cout<<id<<" :  "<<ibin<<" "<<binid<<" "<<maxbin;
-        if(cont>thre) { 
-          int peakbin = hbco[id]->GetBinLowEdge(binid+1);
-          cout<<" exceed : "<<peakbin;
-          f_felixpeak<<peakbin<<" ";
+        if (binid >= N)
+        {
+          binid -= N;  // binid+=128;
+        }
+        double cont = hbco[id]->GetBinContent(binid + 1);
+        cout << id << " :  " << ibin << " " << binid << " " << maxbin;
+        if (cont > thre)
+        {
+          int peakbin = hbco[id]->GetBinLowEdge(binid + 1);
+          cout << " exceed : " << peakbin;
+          f_felixpeak << peakbin << " ";
           peak_found = true;
         }
-        cout<<endl;
+        cout << endl;
       }
-      if (!peak_found) 
+      if (!peak_found)
       {
         f_felixpeak << DEFAULT_BCO_VALUE[id] << " ";
       }
 
-       f_felixpeak<<endl;
+      f_felixpeak << endl;
     }
-     f_felixpeak.close();
+    f_felixpeak.close();
   }
 
   // get min
   float minimum = 1000000;
-  for(auto & id : hbco){
-    cout<<id->GetMinimumBin()<<endl;
-    cout<<id->GetBinContent(id->GetMinimumBin())<<endl;
+  for (auto &id : hbco)
+  {
+    cout << id->GetMinimumBin() << endl;
+    cout << id->GetBinContent(id->GetMinimumBin()) << endl;
     double min = id->GetBinContent(id->GetMinimumBin());
-    cout<<min<<endl;
-    if(min<minimum) { minimum = min;
-}
+    cout << min << endl;
+    if (min < minimum)
+    {
+      minimum = min;
+    }
   }
 
   // Draw hist
 
   TCanvas *c1 = new TCanvas("c1", "c1", 1200, 700);
-  c1->Divide(4,4);
-  for(int id=0; id<8; id++){
-    c1->cd(id+1);
+  c1->Divide(4, 4);
+  for (int id = 0; id < 8; id++)
+  {
+    c1->cd(id + 1);
     gPad->SetLogy();
-    hbco[id]->SetMinimum(minimum*0.2);
+    hbco[id]->SetMinimum(minimum * 0.2);
     hbco[id]->Draw();
 
-    TLine *la = new TLine(0, 5*bg_mean[id], 128,  5*bg_mean[id]);
+    TLine *la = new TLine(0, 5 * bg_mean[id], 128, 5 * bg_mean[id]);
     la->Draw("same");
-    TLine *lb = new TLine(0, bg_mean[id]+6*bg_rms[id], 128,  bg_mean[id]+6*bg_rms[id]);
+    TLine *lb = new TLine(0, bg_mean[id] + 6 * bg_rms[id], 128, bg_mean[id] + 6 * bg_rms[id]);
     lb->SetLineColor(2);
     lb->Draw("same");
   }
 
-  for(int id=0; id<8; id++){
-
-    c1->cd(id+9);
+  for (int id = 0; id < 8; id++)
+  {
+    c1->cd(id + 9);
     gPad->SetLogy();
-    double max  = hbcohist[id]->GetMaximum();
+    double max = hbcohist[id]->GetMaximum();
 
     hbcohist[id]->Draw();
     hbcohist2[id]->SetLineColor(2);
     hbcohist2[id]->Draw("same");
 
-    TLine *lm = new TLine(bg_mean[id], 0.001, bg_mean[id], max*1.1);
+    TLine *lm = new TLine(bg_mean[id], 0.001, bg_mean[id], max * 1.1);
     lm->Draw();
-    TLine *l5m = new TLine(5*bg_mean[id], 0.001, 5*bg_mean[id], max*1.1);
+    TLine *l5m = new TLine(5 * bg_mean[id], 0.001, 5 * bg_mean[id], max * 1.1);
     l5m->Draw();
-    TLine *l = new TLine(bg_mean[id]+6*bg_rms[id], 0.001, bg_mean[id]+6*bg_rms[id], max*1.1);
+    TLine *l = new TLine(bg_mean[id] + 6 * bg_rms[id], 0.001, bg_mean[id] + 6 * bg_rms[id], max * 1.1);
     l->SetLineColor(2);
     l->Draw();
   }
 
-  c1->Print((output_dir_+"plots/"+Form("check_bco_file_%d.pdf", run_num_)).c_str());
+  c1->Print((output_dir_ + "plots/" + Form("check_bco_file_%d.pdf", run_num_)).c_str());
 }
- 
+
 void InttMixupQA::Readpeak()
 {
+  std::string bcofile_ = (output_txt_ + Form("bco_%d.txt", run_num_));
 
-  std::string bcofile_ = (output_txt_+Form("bco_%d.txt", run_num_));
-
-   if (bcofile_.size() > 0)
+  if (bcofile_.size() > 0)
   {
     cout << "BCO file : " << bcofile_.c_str() << endl;
     ifstream file(bcofile_.c_str());
@@ -799,10 +814,10 @@ void InttMixupQA::Readpeak()
             // cout<<"   "<<sbuf2<<endl;
             bcopar_[felix].insert(stoi(sbuf2));
             int peak = stoi(sbuf2);
-            int peak1 = peak +1;
-            int peak2 = peak +2;
-            int peak_1= peak -1;
-            int peak_2= peak -2;
+            int peak1 = peak + 1;
+            int peak2 = peak + 2;
+            int peak_1 = peak - 1;
+            int peak_2 = peak - 2;
             sbuf3 = to_string(peak1);
             sbuf4 = to_string(peak2);
             sbuf5 = to_string(peak_1);
@@ -862,13 +877,13 @@ void InttMixupQA::Readpeak()
     ss>>felix>>felix_ch>>chip>>channel;
 
     int hotchanID=10000000 * (felix+1) + 100000 * felix_ch + 1000 * chip + channel;
-    
+
     hotmap[lineNumber++]=hotchanID;
 
   }
-  
+
   tf_hotchan_.close();
-  
+
   for(const auto&[key,value]:hotmap){
     cout<<"Line"<<key+1<<":"<<value<<endl;
   }
@@ -876,35 +891,34 @@ void InttMixupQA::Readpeak()
 
 void InttMixupQA::DrawHists()
 {
-
   std::cout << "output pdf: " << output_pdf_ << std::endl;
 
-
   /////////////////////////Mixup plot Draw//////////////////////////////
-  TCanvas* c0=new TCanvas("c0","c0");
-  c0->Print( (output_pdf_+"[").c_str() );
-  TCanvas *c1[8]; 
-  TCanvas *c2[8]; 
-  TCanvas *c3[8]; 
-  //TCanvas *c4[8]; 
+  TCanvas *c0 = new TCanvas("c0", "c0");
+  c0->Print((output_pdf_ + "[").c_str());
+  TCanvas *c1[8];
+  TCanvas *c2[8];
+  TCanvas *c3[8];
+  // TCanvas *c4[8];
   TCanvas *c5[8];
   TCanvas *c6[8];
   TCanvas *c10[8];
-  TCanvas *c7 = new TCanvas( "canvas7", "interval",1600, 1200 ); 
-  TCanvas *c8 = new TCanvas( "canvas8", "fraction",1600, 1200 );
-  TCanvas *c9 = new TCanvas( "canvas9", "bco bco_full",1600, 1200 );
+  TCanvas *c7 = new TCanvas("canvas7", "interval", 1600, 1200);
+  TCanvas *c8 = new TCanvas("canvas8", "fraction", 1600, 1200);
+  TCanvas *c9 = new TCanvas("canvas9", "bco bco_full", 1600, 1200);
 
-  gStyle->SetOptStat( 0 );
+  gStyle->SetOptStat(0);
 
-  for( int felix=0; felix<kFelix_num_;felix++ )  
+  for (int felix = 0; felix < kFelix_num_; felix++)
   {
-    if(felix!=felix_num_){
+    if (felix != felix_num_)
+    {
       continue;
     }
-    c1[felix]= new TCanvas( Form("canvas1_%d",felix), "bcofull&bco",1600, 1200 );
+    c1[felix] = new TCanvas(Form("canvas1_%d", felix), "bcofull&bco", 1600, 1200);
     c1[felix]->cd();
-    gStyle->SetOptStat( 0 );
-    c1[felix]->Divide(2,2);
+    gStyle->SetOptStat(0);
+    c1[felix]->Divide(2, 2);
 
     c1[felix]->cd(1);
     h_vsfull_bco[felix]->Draw("colz");
@@ -916,12 +930,12 @@ void InttMixupQA::DrawHists()
     c1[felix]->cd(4);
     h_prefull_bco[felix]->SetMinimum(0);
     h_prefull_bco[felix]->Draw();
-    
-    c2[felix]=new TCanvas( Form("canvas2_%d",felix), "Multiplicity",1600, 1200 );
+
+    c2[felix] = new TCanvas(Form("canvas2_%d", felix), "Multiplicity", 1600, 1200);
     c2[felix]->cd();
-    gStyle->SetOptStat( 0 );
+    gStyle->SetOptStat(0);
     gPad->SetRightMargin(0.15);
-    TLegend *legend = new TLegend(0.7, 0.45, 0.9, 0.9); 
+    TLegend *legend = new TLegend(0.7, 0.45, 0.9, 0.9);
     gPad->SetLogy();
     h_allmulti_[felix]->GetXaxis()->SetNdivisions(405);
     h_allmulti_[felix]->GetYaxis()->SetNdivisions(405);
@@ -953,11 +967,11 @@ void InttMixupQA::DrawHists()
     }
     legend->Draw();
 
-    c3[felix]=new TCanvas( Form("canvas3_%d",felix), "divide multiplicity",1600, 1200 );
+    c3[felix] = new TCanvas(Form("canvas3_%d", felix), "divide multiplicity", 1600, 1200);
     c3[felix]->cd();
-    gStyle->SetOptStat( 0 );
+    gStyle->SetOptStat(0);
     gPad->SetRightMargin(0.15);
-    TLegend *leg = new TLegend(0.75, 0.5, 0.9, 0.9); 
+    TLegend *leg = new TLegend(0.75, 0.5, 0.9, 0.9);
     gPad->SetLogy();
     for (int p = 0; p < 10; p++)
     {
@@ -979,9 +993,9 @@ void InttMixupQA::DrawHists()
       {
         h_divmul[felix][p]->SetLineColor(color2);
       }
-      leg->AddEntry(h_divmul[felix][p], Form("%d", p+1 ), "l");
+      leg->AddEntry(h_divmul[felix][p], Form("%d", p + 1), "l");
     }
-    
+
     /*c4[felix]= new TCanvas( Form("canvas4_%d",felix), "copy hit",1600, 1200 );
     c4[felix]->cd();
     gStyle->SetOptStat( 0 );
@@ -995,37 +1009,37 @@ void InttMixupQA::DrawHists()
     c4[felix]->cd(4);
     h_mixvscopy[felix]->Draw();*/
 
-    c5[felix]=new TCanvas( Form("canvas5_%d",felix), "previous event hit vs Mixup hit",1600, 1200 );
+    c5[felix] = new TCanvas(Form("canvas5_%d", felix), "previous event hit vs Mixup hit", 1600, 1200);
     c5[felix]->cd();
-    gStyle->SetOptStat( 0 );
+    gStyle->SetOptStat(0);
     gPad->SetRightMargin(0.15);
     h_prevsNmix[felix]->Draw("colz");
 
-    c6[felix]=new TCanvas( Form("canvas6_%d",felix), "Mixup",1600, 1200 );
+    c6[felix] = new TCanvas(Form("canvas6_%d", felix), "Mixup", 1600, 1200);
     c6[felix]->cd();
-    c6[felix]->Divide(2,2);
+    c6[felix]->Divide(2, 2);
     c6[felix]->cd(1);
-    gStyle->SetOptStat( 0 );
+    gStyle->SetOptStat(0);
     gPad->SetLogy();
     h_mixup[felix]->Draw();
 
     c6[felix]->cd(4);
     h_prefull_bco_all[felix]->Draw();
-    c6[felix]->cd(2); 
+    c6[felix]->cd(2);
     h_vsprefull_bco_all[felix]->Draw();
-    
-    c10[felix]= new TCanvas( Form("canvas10_%d",felix), "for fraction" );
+
+    c10[felix] = new TCanvas(Form("canvas10_%d", felix), "for fraction");
     c10[felix]->cd();
-    c10[felix]->Divide(2,1);
+    c10[felix]->Divide(2, 1);
     c10[felix]->cd(1);
     h_hitfra[felix]->Draw("colz");
     c10[felix]->cd(2);
     h_bghit[felix]->Draw("colz");
-    
+
     c1[felix]->Print(output_pdf_.c_str());
     c2[felix]->Print(output_pdf_.c_str());
     c3[felix]->Print(output_pdf_.c_str());
-    //c4[felix]->Print(output_pdf_.c_str());
+    // c4[felix]->Print(output_pdf_.c_str());
     c5[felix]->Print(output_pdf_.c_str());
     c6[felix]->Print(output_pdf_.c_str());
     c10[felix]->Print(output_pdf_.c_str());
@@ -1037,7 +1051,7 @@ void InttMixupQA::DrawHists()
     c5[felix]->Write();
     c6[felix]->Write();*/
 
-    h_vsprefull_bco[felix]->Write(); 
+    h_vsprefull_bco[felix]->Write();
     h_vsfull_bco[felix]->Write();
     h_prefull_bco[felix]->Write();
     h_full_bco[felix]->Write();
@@ -1054,21 +1068,21 @@ void InttMixupQA::DrawHists()
     h_NmixEv->Write();
     h_AllEv->Write();
     h_divinter->Write();
-    //tf_output_->Close();
+    // tf_output_->Close();
   }
-  //h_interval->Write();
-  //h_mixinterval->Write();
+  // h_interval->Write();
+  // h_mixinterval->Write();
 
   c7->cd();
-  gStyle->SetOptStat( 0 );
-  TLegend *legsph3 = new TLegend(.55, .4 ,.65, .6);
+  gStyle->SetOptStat(0);
+  TLegend *legsph3 = new TLegend(.55, .4, .65, .6);
   gPad->SetRightMargin(0.15);
   h_interval->Draw();
   h_mixinterval->Draw("same");
   h_mixinterval->SetLineColor(2);
   legsph3->AddEntry(h_interval, "All event", "l");
-  legsph3->AddEntry(h_mixinterval,"Mixup event","l");
- 
+  legsph3->AddEntry(h_mixinterval, "Mixup event", "l");
+
   /*c8->cd();
   gStyle->SetOptStat( 0 );
   c8->Divide(2, 2);
@@ -1107,15 +1121,14 @@ void InttMixupQA::DrawHists()
   g_cloevfraction->Write("g_cloevfraction");
   fgraph->Close();*/
 
-  
   c9->cd();
-  gStyle->SetOptStat( 0 );
-  c9->Divide(2,1);
+  gStyle->SetOptStat(0);
+  c9->Divide(2, 1);
   c9->cd(1);
   h_bcofull_7->Draw();
   c9->cd(2);
   h_bco->Draw();
-  
+
   tf_output_->cd();
   c7->Write();
   /*c8->Write();
@@ -1127,12 +1140,9 @@ void InttMixupQA::DrawHists()
   g_cloevfraction->Write("g_cloevfraction");*/
   tf_output_->Close();
 
-  c7->Print( (output_pdf_).c_str() );
-  c8->Print( (output_pdf_).c_str() );
-  c9->Print( (output_pdf_).c_str() );
-  
-  c9->Print( (output_pdf_+"]").c_str() );
-  
+  c7->Print((output_pdf_).c_str());
+  c8->Print((output_pdf_).c_str());
+  c9->Print((output_pdf_).c_str());
+
+  c9->Print((output_pdf_ + "]").c_str());
 }
-
-
