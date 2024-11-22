@@ -90,8 +90,11 @@ void PHSiliconTpcTrackMatching::SetDefaultParameters()
 //____________________________________________________________________________..
 int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
 {
-  std::cout << " FIXME PHSiliconTpcTrackMatching " 
-    << ( _zero_field ? "zero field is ON" : " zero field is OFF") << std::endl;
+  if(Verbosity() > 2)
+  {
+    std::cout << " FIXME PHSiliconTpcTrackMatching " 
+      << ( _zero_field ? "zero field is ON" : " zero field is OFF") << std::endl;
+  }
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
   // _svtx_seed_map contains the combined silicon and tpc track seeds
@@ -699,7 +702,10 @@ std::vector<TrkrDefs::cluskey> PHSiliconTpcTrackMatching::getTrackletClusterList
     auto cluster = _cluster_map->findCluster(key);
     if (!cluster)
     {
-      std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
+      if(Verbosity() > 1)
+      {
+        std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
+      }
       continue;
     }
 
