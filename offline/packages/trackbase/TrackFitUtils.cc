@@ -955,8 +955,8 @@ TrackFitUtils::zero_field_track_params(
   py -= y;
   pz -= z;
 
-  // scale momentum vector pT to 1. GeV/c
-  const double scale = sqrt(px*px+py*py);
+  // scale momentum vector pT to 5. GeV/c
+  const double scale = sqrt(px*px+py*py)/5.;
   px /= scale;
   py /= scale;
   pz /= scale;
