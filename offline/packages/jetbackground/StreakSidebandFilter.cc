@@ -38,6 +38,7 @@
 //! Default ctor
 // ----------------------------------------------------------------------------
 StreakSidebandFilter::StreakSidebandFilter(const std::string& name)
+  : m_ohContainer(nullptr)
 {
 
   m_name = name;
@@ -50,10 +51,11 @@ StreakSidebandFilter::StreakSidebandFilter(const std::string& name)
 //! ctor accepting config struct
 // ----------------------------------------------------------------------------
 StreakSidebandFilter::StreakSidebandFilter(const Config& config, const std::string& name)
+  : m_ohContainer(nullptr)
+  , m_config(config)
 {
 
-  m_config = config;
-  m_name   = name;
+  m_name = name;
 
 }  // end ctor(Config&)
 

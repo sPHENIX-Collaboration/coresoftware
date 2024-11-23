@@ -30,6 +30,7 @@
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class QAHistManagerHistDef;
+class recoConsts;
 class TowerInfoContainer;
 
 
@@ -92,13 +93,17 @@ class BeamBackgroundFilterAndQA : public SubsysReco {
 
     // private methods
     void InitFilters();
+    void InitFlags();
     void InitHistManager();
     void BuildHistograms();
     void RegisterHistograms();
     bool ApplyFilters(PHCompositeNode* topNode);
 
     ///! histogram manager
-    Fun4AllHistoManager* m_manager = NULL;
+    Fun4AllHistoManager* m_manager;
+
+    ///! reco consts (for flags)
+    recoConsts* m_consts;
 
     ///! module-wide histograms
     std::map<std::string, TH1*> m_hists;

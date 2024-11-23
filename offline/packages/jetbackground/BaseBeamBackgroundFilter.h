@@ -94,7 +94,7 @@ class BaseBeamBackgroundFilter
 
     ///! default ctor/dtor
     BaseBeamBackgroundFilter()  {};
-    ~BaseBeamBackgroundFilter() {};
+    virtual ~BaseBeamBackgroundFilter() {};
 
 };  // end BaseBeamBackgroundFilter
 

@@ -140,7 +140,7 @@ namespace BeamBackgroundFilterAndQADefs {
    *  FIXME this should get moved into JetQADefs.h
    */
   inline std::vector<std::string> MakeQAHistNames(
-    const std::vector<std::string> bases,
+    const std::vector<std::string>& bases,
     const std::string& module,
     const std::string& tag = ""
   ) {
