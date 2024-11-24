@@ -51,6 +51,8 @@ namespace bbfqd = BeamBackgroundFilterAndQADefs;
 // ----------------------------------------------------------------------------
 BeamBackgroundFilterAndQA::BeamBackgroundFilterAndQA(const std::string& name, const bool debug)
   : SubsysReco(name)
+  , m_manager(nullptr)
+  , m_consts(nullptr)
 {
 
   // print debug message
