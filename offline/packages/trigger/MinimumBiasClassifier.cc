@@ -41,7 +41,6 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
   CreateNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
-  ;
 }
 
 int MinimumBiasClassifier::ResetEvent(PHCompositeNode * /*unused*/)
@@ -113,7 +112,10 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     m_mbd_pmt = m_mbd_container->get_pmt(i);
     short side = i/64;
     bool pass = passesHitCut(m_mbd_pmt);
-    if (!pass) continue;
+    if (!pass)
+    {
+      continue;
+    }
     m_mbd_hit[side]++;
     m_mbd_charge_sum[side] += m_mbd_pmt->get_q();
   }
