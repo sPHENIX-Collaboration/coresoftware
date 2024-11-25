@@ -39,6 +39,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   float get_x_search_window() const { return _x_search_win; }
   float get_y_search_window() const { return _y_search_win; }
   float get_z_search_window() const { return _z_search_win; }
+
+  void zeroField(const bool flag) { _zero_field = flag; }
   
   void set_match_window_function_pars(const double a, const double b, const double ptmin)
   {
@@ -94,6 +96,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   double _match_function_ptmin = 0.15;
   bool _use_old_matching = false;  // normally false
 
+  bool _zero_field = false;     // fit straight lines if true
+
   TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer *_track_map{nullptr};
   TrackSeedContainer *_track_map_silicon{nullptr};
@@ -119,6 +123,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
   std::string m_fieldMap = "1.4";
+  std::vector<TrkrDefs::cluskey> getTrackletClusterList(TrackSeed* tracklet);
 };
 
 #endif  //  PHSILICONTPCTRACKMATCHING_H
