@@ -17,11 +17,56 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode *topNode)
       return 1;
     }
 
+  if (m_useEmulator)
+    {
+      ll1out_photon = findNode::getClass<LL1Out>(topNode, "LL1OUT_PHOTON");
+      if (!ll1out_photon)
+	{
+	  std::cout << " no trigger emulator" << std::endl;
+	  return 1;
+	}
+
+      ll1out_jet = findNode::getClass<LL1Out>(topNode, "LL1OUT_JET");
+      if (!ll1out_jet)
+	{
+	  std::cout << " no trigger emulator" << std::endl;
+	  return 1;
+	}
+
+
+      fillTriggerVector();
+
+      return 0;
+    }
   gl1_scaledvec = gl1packet->lValue(0, "ScaledVector");
   gl1_livevec = gl1packet->lValue(0, "TriggerVector");
   gl1_bco = gl1packet->lValue(0, "BCO");
 
   return 0;
+}
+
+void TriggerAnalyzer::fillTriggerVector()
+{
+  gl1_scaledvec = 0x0U;
+  gl1_livevec = 0x0U;
+  gl1_bco = 0x0U;
+
+  for (int i = 0 ; i < 4; i++)
+    {
+      if (ll1out_photon->passesThreshold(i+1))
+	{
+	  gl1_scaledvec += (0x1 << (unsigned int) i) ;
+	}
+    }
+  for (int i = 0 ; i < 4; i++)
+    {
+      if (ll1out_jet->passesThreshold(i+1))
+	{
+	  gl1_scaledvec += (0x1 << (unsigned int) (i + 4)) ;
+	}
+    }
+
+  return;
 }
 
 bool TriggerAnalyzer::didTriggerFire(const std::string& triggername)
