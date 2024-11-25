@@ -88,34 +88,45 @@ KFParticle_Tools::KFParticle_Tools()
   , m_extrapolateTracksToSV(true)
   , m_vtx_map_node_name("SvtxVertexMap")
   , m_trk_map_node_name("SvtxTrackMap")
-  , m_dst_vertexmap()
+  , m_dst_mbdvertexmap()
+  , m_dst_mbdvertex()
   , m_dst_trackmap()
-  , m_dst_vertex()
   , m_dst_track()
+  , m_dst_vertexmap()
+  , m_dst_vertex()
 {
 }
 
 KFParticle KFParticle_Tools::makeVertex(PHCompositeNode * /*topNode*/)
 {
-  float f_vertexParameters[6] = {m_dst_vertex->get_x(),
-                                 m_dst_vertex->get_y(),
-                                 m_dst_vertex->get_z(), 0, 0, 0};
+  float vtxX = m_use_mbd_vertex ? 0 : m_dst_vertex->get_x();
+  float vtxY = m_use_mbd_vertex ? 0 : m_dst_vertex->get_y();
+  float vtxZ = m_use_mbd_vertex ? m_dst_mbdvertex->get_z() : m_dst_vertex->get_z();
 
-  float f_vertexCovariance[21];
+  float f_vertexParameters[6] = {vtxX, vtxY, vtxZ, 0, 0, 0};
+
+  float f_vertexCovariance[21] = {0};
   unsigned int iterate = 0;
-  for (unsigned int i = 0; i < 3; ++i)
+  if (m_use_mbd_vertex)
   {
-    for (unsigned int j = 0; j <= i; ++j)
+    f_vertexCovariance[5] = m_dst_mbdvertex->get_z_err();
+  }
+  else
+  {
+    for (unsigned int i = 0; i < 3; ++i)
     {
-      f_vertexCovariance[iterate] = m_dst_vertex->get_error(i, j);
-      ++iterate;
+      for (unsigned int j = 0; j <= i; ++j)
+      {
+        f_vertexCovariance[iterate] = m_dst_vertex->get_error(i, j);
+        ++iterate;
+      }
     }
   }
 
   KFParticle kfp_vertex;
   kfp_vertex.Create(f_vertexParameters, f_vertexCovariance, 0, -1);
-  kfp_vertex.NDF() = m_dst_vertex->get_ndof();
-  kfp_vertex.Chi2() = m_dst_vertex->get_chisq();
+  kfp_vertex.NDF() = m_use_mbd_vertex ? 0 : m_dst_vertex->get_ndof();
+  kfp_vertex.Chi2() = m_use_mbd_vertex ? 0 : m_dst_vertex->get_chisq();
 
   return kfp_vertex;
 }
@@ -133,7 +144,16 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
   }
 
   std::vector<KFParticle> primaryVertices;
-  m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, vtxMN);
+
+  if (m_use_mbd_vertex)
+  {
+    m_dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+  }
+  else
+  {
+    m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, vtxMN);
+  }
+
   auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!globalvertexmap)
   {
@@ -145,7 +165,10 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
   for (GlobalVertexMap::ConstIter iter = globalvertexmap->begin(); iter != globalvertexmap->end(); ++iter)
   {
     GlobalVertex *gvertex = iter->second;
-    auto svtxiter = gvertex->find_vertexes(GlobalVertex::SVTX);
+    
+    GlobalVertex::VTXTYPE whichVtx = m_use_mbd_vertex ? GlobalVertex::MBD : GlobalVertex::SVTX; 
+
+    auto svtxiter = gvertex->find_vertexes(whichVtx);
     // check that it contains a track vertex
     if (svtxiter == gvertex->end_vertexes())
     {
@@ -156,7 +179,14 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
 
     for (auto &vertex : svtxvertexvector)
     {
-      m_dst_vertex = m_dst_vertexmap->find(vertex->get_id())->second;
+      if (m_use_mbd_vertex)
+      {
+        m_dst_mbdvertex = m_dst_mbdvertexmap->find(vertex->get_id())->second;
+      }
+      else
+      {
+        m_dst_vertex = m_dst_vertexmap->find(vertex->get_id())->second;
+      }
 
       primaryVertices.push_back(makeVertex(topNode));
       primaryVertices[vertexID].SetId(gvertex->get_id());
@@ -264,6 +294,11 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
 
 int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFParticle &vertex, const std::string &vertexMapName)
 {
+  if (m_use_mbd_vertex) //If you're using the MBD vertex then there is no way to know which tracks are associated to it
+  {
+    return 0;
+  }
+
   std::string vtxMN;
   if (vertexMapName.empty())
   {
@@ -563,17 +598,22 @@ std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFPa
   return goodTracksThatMeetIntermediates;
 }
 
-float KFParticle_Tools::eventDIRA(const KFParticle &particle, const KFParticle &vertex)
+float KFParticle_Tools::eventDIRA(const KFParticle &particle, const KFParticle &vertex, bool do3D)
 {
-  TMatrixD flightVector(3, 1);
-  TMatrixD momVector(3, 1);
+  const int nDimensions = do3D ? 3 : 2;
+  TMatrixD flightVector(nDimensions, 1);
+  TMatrixD momVector(nDimensions, 1);
   flightVector(0, 0) = particle.GetX() - vertex.GetX();
   flightVector(1, 0) = particle.GetY() - vertex.GetY();
-  flightVector(2, 0) = particle.GetZ() - vertex.GetZ();
 
   momVector(0, 0) = particle.GetPx();
   momVector(1, 0) = particle.GetPy();
-  momVector(2, 0) = particle.GetPz();
+  
+  if (do3D)
+  {
+    flightVector(2, 0) = particle.GetZ() - vertex.GetZ();
+    momVector(2, 0) = particle.GetPz();
+  }
 
   TMatrixD momDotFD(1, 1);  // Calculate momentum dot flight distance
   momDotFD = TMatrixD(momVector, TMatrixD::kTransposeMult, flightVector);
@@ -733,7 +773,10 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     for (int i = 0; i < nTracks; ++i)
     {
       SvtxTrack *thisTrack = toolSet.getTrack(vDaughters[i].Id(), m_dst_trackmap);
-      crossings.push_back(thisTrack->get_crossing());
+      if (thisTrack)//This protects against intermediates which have no track but I need a way to assign the bunch crossing to an interemdiate as this was already checked when it was actually built
+      {
+        crossings.push_back(thisTrack->get_crossing());
+      }
     }
 
     removeDuplicates(crossings);
@@ -777,16 +820,18 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   particleCopy.GetDecayLength(calculated_decayLength, calculated_decayLengthErr);
 
   float calculated_fdchi2 = flightDistanceChi2(particle, vertex);
-  float calculated_dira = eventDIRA(particle, vertex);
+  float calculated_dira;
 
   float calculated_ipchi2;
   if (m_use_2D_matching_tools)
   {
     calculated_ipchi2 = particle.GetDeviationFromVertexXY(vertex);
+    calculated_dira = eventDIRA(particle, vertex, false);
   }
   else
   {
     calculated_ipchi2 = particle.GetDeviationFromVertex(vertex);
+    calculated_dira = eventDIRA(particle, vertex);
   }
 
   goodCandidate = false;

@@ -267,7 +267,7 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(RawTower* tower
     }
 
     float e = get_energy_contribution(tower, shower);
-    if (isnan(e))
+    if (std::isnan(e))
     {
       continue;
     }
@@ -328,7 +328,7 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(TowerInfo* towe
     }
 
     float e = get_energy_contribution(tower, shower);
-    if (isnan(e))
+    if (std::isnan(e))
     {
       continue;
     }
@@ -396,7 +396,7 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Shower* shower)
     }
 
     float energy = get_energy_contribution(tower, shower);
-    if (isnan(energy))
+    if (std::isnan(energy))
     {
       continue;
     }
@@ -462,7 +462,7 @@ TowerInfo* CaloRawTowerEval::best_towerinfo_from(PHG4Shower* shower)
     }
 
     float energy = get_energy_contribution(tower, shower);
-    if (isnan(energy))
+    if (std::isnan(energy))
     {
       continue;
     }

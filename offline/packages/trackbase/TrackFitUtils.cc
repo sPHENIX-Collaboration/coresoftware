@@ -222,52 +222,38 @@ TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const std
   return circle_fit_by_taubin(positions_2d);
 }
 
+
 //_________________________________________________________________________________
 TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const TrackFitUtils::position_vector_t& positions)
 {
-  double xsum = 0;
-  double x2sum = 0;
-  double ysum = 0;
-  double xysum = 0;
-  double y2sum = 0;
-  for (const auto& [r, z] : positions)
-  {
-    xsum = xsum + r;            // calculate sigma(xi)
-    ysum = ysum + z;            // calculate sigma(yi)
-    x2sum = x2sum + square(r);  // calculate sigma(x^2i)
-    y2sum = y2sum + square(z);  // calculate sigma(y^2i)
-    xysum = xysum + r * z;      // calculate sigma(xi*yi)
-  }
+  // calculate the best line fit to an array of x and y points,
+  // which minimizing the square of the distances orthogonally 
+  // from the points to the line. Assume that the variances of x and y
+  //  are equal (this is the Deming method)
+    // get the mean values
+    double xmean = 0.;
+    double ymean = 0.;
+    for (const auto& [x, y] : positions)
+    {
+      xmean = xmean + x;
+      ymean = ymean + y;
+    }
+    double n = positions.size();
+    xmean /= n;
+    ymean /= n;
 
-  const auto npts = positions.size();
-  const double denominator = (x2sum * npts - square(xsum));
-  const double a = (xysum * npts - xsum * ysum) / denominator;   // calculate slope
-  const double b = (x2sum * ysum - xsum * xysum) / denominator;  // calculate intercept
-
-  //! The fit fails for the case where the line is close to vertical, because
-  //! there is little dependence on x and thus the denominator is very small
-  //! we can swap the x-y points to find a y-x horizontal line in this case
-  //! then check which line minimizes the sums of squares of residuals
-  //! that is the best fit, and should be returned
-  const double denominatoryx = (y2sum * npts - square(ysum));
-  const double inva = (xysum * npts - xsum * ysum) / denominatoryx;
-  const double invb = (y2sum * xsum - ysum * xysum) / denominatoryx;
-  //! now determine which one minimizes the sum of residuals to return
-  float sumresid = 0;
-  float suminvresid = 0;
-  for (const auto& [r, z] : positions)
-  {
-    sumresid += square(z - (a * r + b));
-    suminvresid += square(r - (inva * z + invb));
-  }
-
-  if (sumresid < suminvresid)
-  {
-    return std::make_tuple(a, b);
-  }
-
-  //! the best fit is swapped in y-x, so find the perpendicular line
-  return std::make_tuple(1. / inva, -invb / inva);
+    // calculate the standard deviations
+    double ssd_x = 0.;
+    double ssd_y = 0.;
+    double ssd_xy = 0.;
+    for (const auto& [x, y] : positions) {
+      ssd_x += square(x-xmean);
+      ssd_y += square(y-ymean);
+      ssd_xy += (x-xmean)*(y-ymean);
+    }
+    const double slope = (ssd_y-ssd_x+sqrt(square(ssd_y-ssd_x)+4*square(ssd_xy)))/2./ssd_xy;
+    const double intercept = ymean - slope * xmean;
+    return std::make_tuple(slope, intercept);
 }
 
 //_________________________________________________________________________________
@@ -644,6 +630,7 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
   // make the helical fit using TrackFitUtils
   if (global_vec.size() < 3)
   {
+    std::cout << " TrackFitUtils::fitClustersZeroField failed for <3 cluskeys " << ((int)global_vec.size()) << std::endl;
     return fitpars;
   }
   std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
@@ -666,6 +653,7 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
     }
   if (global_vec_noINTT.size() < 3)
     {
+       std::cout << " TrackFitUtils::fitClustersZeroField failed for <3 non-INTT cluskeys " << ((int)global_vec_noINTT.size()) << std::endl;
       return fitpars;
     }
   std::tuple<double, double> xz_fit_pars = TrackFitUtils::line_fit_xz(global_vec_noINTT);
@@ -692,7 +680,7 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
 void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
                                         TrkrClusterContainer* _cluster_map,
                                         std::vector<Acts::Vector3>& global_vec,
-                                        std::vector<TrkrDefs::cluskey>& cluskey_vec)
+                                        const std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
   for (unsigned long key : cluskey_vec)
   {
@@ -707,6 +695,7 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
 
     /*
     const unsigned int trkrId = TrkrDefs::getTrkrId(key);
+    // ASK TONY ABOUT THIS:
     // have to add corrections for TPC clusters after transformation to global
     if(trkrId == TrkrDefs::tpcId)
       {
@@ -717,7 +706,6 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
 
     // add the global positions to a vector to return
     global_vec.push_back(global);
-
   }  // end loop over clusters for this track
 }
 
@@ -725,15 +713,52 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
 Acts::Vector2 TrackFitUtils::get_line_point_pca(double slope, double intercept, Acts::Vector3 global)
 {
   // return closest point (in xy) on the line to the point global  
-  Acts::Vector2 point(global(0), global(1));
-  Acts::Vector2 posref(0, intercept);       // arbitrary point on the line
-  Acts::Vector2 arb_point(2.0, slope*2.0 + intercept); // second arbitrary point on line 
-  Acts::Vector2 tangent = arb_point - posref;
-  tangent = tangent/tangent.norm();   // +/- the line direction
+  /* Acts::Vector2 point(global(0), global(1)); */
+  /* Acts::Vector2 posref(0, intercept);       // arbitrary point on the line */
+  /* Acts::Vector2 arb_point(2.0, slope*2.0 + intercept); // second arbitrary point on line */ 
+  /* Acts::Vector2 tangent = arb_point - posref; */
+  /* tangent = tangent/tangent.norm();   // +/- the line direction */
+  /* Acts::Vector2 pca = posref + ((point - posref).dot(tangent))*tangent; */
 
-  Acts::Vector2 pca = posref + ((point - posref).dot(tangent))*tangent;
+  const double& m  = slope;
+  const double& b  = intercept;
+  const double& x0 = global(0);
+  const double& y0 = global(1);
+  const double  xp = (x0+m*(y0-b))/(1+m*m);
+  const double  yp = m*xp+b;
 
-  return pca;
+  return {xp,yp}; //Acts::Vector2(pca;
+
+  /* return std::tuple(xp,yp); */
+
+}
+
+double TrackFitUtils::z_fit_to_pca(const double xy_slope, const double xy_intercept, 
+    const std::vector<Acts::Vector3>& glob_pts) 
+{
+  // Project (0,0) to the line, this is the origin (pca)
+  // Project each point to the line and find the distance along the line to pca
+  // Collect the distance and Z
+  // Fit Z=m*dist+b; and return b of the fit
+  auto pca = get_line_point_pca(xy_slope, xy_intercept, Acts::Vector3(0,0,0));
+  std::vector<std::pair<double,double>> zd_vec;
+  for (auto& glob : glob_pts) {
+    auto point = get_line_point_pca(xy_slope, xy_intercept, glob); // point = point on line
+    double dist = sqrt(square(pca.x()-point.x())+square(pca.y()+point.y()));
+    zd_vec.emplace_back(dist,glob.z());
+  }
+  auto slope_and_b = line_fit(zd_vec);
+  /* double zd_slope; */
+  /* double zd_intercept; */
+  /* std::tie(zd_slope, zd_intercept) = line_fit(zd_vec); */
+  return std::get<1>(slope_and_b);
+}
+
+double TrackFitUtils::line_dist_to_pca (const double slope, const double intercept, 
+      const Acts::Vector2& pca, const Acts::Vector3& global)
+{
+  auto point_on_line = get_line_point_pca(slope, intercept, global);
+  return sqrt(square(pca.x()-point_on_line.x())+square(pca.y()-point_on_line.y()));
 }
 
 //_________________________________________________________________________________
@@ -861,4 +886,86 @@ float TrackFitUtils::get_helix_surface_pathlength(const Surface& surf, std::vect
   Acts::Vector3 surface_center = surf->center(tGeometry->geometry().getGeoContext()) * 0.1;
   Acts::Vector3 intersection = get_helix_surface_intersection(surf,fitpars,surface_center,tGeometry);
   return get_helix_pathlength(fitpars,start_point,intersection);
+}
+
+/* std::tuple<double,double> TrackFitUtils::dca_on_line2D_to_point( */
+/*     double x0, double y0, double m, double b) { */
+/*   // Find the point on a line y=mx+b closest to the point (x0,y0) */
+/*   const double xp = (x0+m*(y0-b))/(1+m*m); */
+/*   const double yp = m*xp+b; */
+/*   return std::tuple(xp,yp); */
+/* } */
+
+// phi, eta, pT, pos_dca, momentum -- note that momentum is such that pT\equiv1
+std::tuple<bool, double, double, double, Acts::Vector3, Acts::Vector3> 
+TrackFitUtils::zero_field_track_params(
+    ActsGeometry* _tGeometry, 
+    TrkrClusterContainer* _cluster_map, 
+    const std::vector<TrkrDefs::cluskey>& cluskey_vec)
+{
+  std::vector<Acts::Vector3> global_vec;
+
+  // get the global positions 
+  getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
+  if (global_vec.size()<2) 
+  {
+    return std::make_tuple(false, 0., 0., 0., Acts::Vector3(0.,0.,0), Acts::Vector3(0.,0.,0.));
+  }
+
+  // get the y=mx+b and z=mx+b fits
+  auto params = fitClustersZeroField(global_vec, cluskey_vec, true);
+  if (params.size()<4) 
+  {
+    std::cout << " fit params failed at size : " << ((int)params.size()) << std::endl;
+    return std::make_tuple(false, 0., 0., 0., Acts::Vector3(0.,0.,0), Acts::Vector3(0.,0.,0.));
+  }
+  const double xy_m = params[0];
+  const double xy_b = params[1];
+  const double xz_m = params[2];
+  const double xz_b = params[3];
+
+  // get the DCA in x,y to the line (from y=mx+b)
+  double x,y,z;
+  // use the get_line_point_pca
+  // use the function TrackFitUtils::get_line_point_pca 
+  Acts::Vector2 dca_xy = get_line_point_pca(xy_m, xy_b, {0.,0.,0});
+  x = dca_xy.x();
+  y = dca_xy.y();
+  /* std::tie(x,y) = dca_on_line2D_to_point(0,0,xy_m,xy_b); */
+  z = xz_m * x + xz_b; //
+
+  // Need direction for the momentum vector
+  Acts::Vector3 cluster = global_vec.back();
+  auto clus_dca_xy = get_line_point_pca(xy_m, xy_b, {cluster.x(),cluster.y(),0});
+  double px = clus_dca_xy.x();
+  double py = clus_dca_xy.y();
+  double pz = xz_m * px + xz_b;
+
+  // calc the alternative pz value:
+  double alt_z = z_fit_to_pca(xy_m, xy_b, global_vec);
+  bool PRINT_DEBUG = false;
+  if (PRINT_DEBUG) {
+    std::cout << " zthis " << z << " and alt " 
+      << alt_z << " DELTA: " << (alt_z-z) << " xy-slope " << xy_m << std::endl;
+  }
+  z = alt_z; // this correction is normally quite small
+
+  // correct to direction from the pca to origin
+  px -= x;
+  py -= y;
+  pz -= z;
+
+  // scale momentum vector pT to 5. GeV/c
+  const double scale = sqrt(px*px+py*py)/5.;
+  px /= scale;
+  py /= scale;
+  pz /= scale;
+  auto p = Acts::Vector3(px,py,pz);
+  const double phi = std::atan2(py,px); 
+  const double eta = atanh(pz/p.norm()); 
+  if (PRINT_DEBUG) {
+    std::cout << "phi: " << phi << " eta: " << eta << " pT: 1" <<
+    " x,y,z: " << x<<"<"<<y<<","<<z<<"  P: " << px<<","<<py<<","<<pz << std::endl;
+  }
+  return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x,y,z), p);
 }

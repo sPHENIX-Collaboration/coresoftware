@@ -89,7 +89,7 @@ OnCalServer::OnCalServer(const std::string &name)
   beginTimeStamp.setTics(0);
   endTimeStamp.setTics(0);
 
-  OnCalServerVars = new TH1D("OnCalServerVars", "OnCalServerVars", OnCalHistoBinDefs::LASTBINPLUSONE, -0.5, (OnCalHistoBinDefs::LASTBINPLUSONE - 0.5));
+  OnCalServerVars = new TH1D("OnCalServerVars", "OnCalServerVars", OnCalHistoBinDefs::LASTBINPLUSONE, -0.5, (int)(OnCalHistoBinDefs::LASTBINPLUSONE) - 0.5);
   Fun4AllServer::registerHisto(OnCalServerVars);
   return;
 }

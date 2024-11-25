@@ -85,6 +85,46 @@ class TpcRawHitv2 : public TpcRawHit
   bool get_parityerror() const override { return parityerror; }
   void set_parityerror(const bool b) override { parityerror = b; }
 
+  class AdcIteratorv2 : public AdcIterator
+  {
+   private:
+    const std::map<uint16_t, uint16_t> &m_adc;
+    std::map<uint16_t, uint16_t>::const_iterator m_iterator;
+
+   public:
+    // NOLINTNEXTLINE(hicpp-member-init)
+    explicit AdcIteratorv2(const std::map<uint16_t, uint16_t> &adc)
+      : m_adc(adc)
+      , m_iterator(adc.begin())
+    {
+    }
+
+    void First() override { m_iterator = m_adc.begin(); }
+
+    void Next() override { ++m_iterator; }
+
+    bool IsDone() const override { return m_iterator == m_adc.end(); }
+
+    uint16_t CurrentTimeBin() const override
+    {
+      if (!IsDone())
+      {
+        return m_iterator->first;
+      }
+      return std::numeric_limits<uint16_t>::max();  // Or throw an exception
+    }
+    uint16_t CurrentAdc() const override
+    {
+      if (!IsDone())
+      {
+        return m_iterator->second;
+      }
+      return std::numeric_limits<uint16_t>::max();  // Or throw an exception
+    }
+  };
+
+  AdcIterator *CreateAdcIterator() const override { return new AdcIteratorv2(adcmap); }
+
  private:
   uint64_t bco{std::numeric_limits<uint64_t>::max()};
   uint64_t gtm_bco{std::numeric_limits<uint64_t>::max()};

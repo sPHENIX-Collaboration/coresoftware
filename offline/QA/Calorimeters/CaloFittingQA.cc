@@ -75,6 +75,33 @@ int CaloFittingQA::Init(PHCompositeNode* /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int CaloFittingQA::InitRun(PHCompositeNode* /*unused*/)
+{
+  if (m_debug)
+  {
+    std::cout << "In CaloFittingQA::InitRun" << std::endl;
+  }
+
+  //===============
+  // conditions DB flags
+  //===============
+  m_calibName = "cemc_adcskipmask";
+  m_fieldname = "adcskipmask";
+  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+  if (calibdir.empty())
+  {
+    std::cout << PHWHERE << "ADC Skip mask not found in CDB, not even in the default... " << std::endl;
+    exit(1);
+  }
+  cdbttree = new CDBTTree(calibdir.c_str());
+
+  if (m_debug)
+  {
+    std::cout << "Leaving CaloFittingQA::InitRun" << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 int CaloFittingQA::process_event(PHCompositeNode* topNode)
 {
   _eventcounter++;
@@ -175,10 +202,12 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         if (m_SimFlag)
         {
           zs_energy = cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
+          h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
         }
         else 
         {
           zs_energy = cemc_waveforms.at(channel).at(1) - cemc_waveforms.at(channel).at(0);
+          h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_waveforms.at(channel).at(0));
         }
         if (m_debug) 
         {
@@ -207,14 +236,16 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         if (m_SimFlag)
         {
           zs_energy = ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
+          h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
         }
         else 
         {
           zs_energy = ohcal_waveforms.at(channel).at(1) - ohcal_waveforms.at(channel).at(0);
+          h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_waveforms.at(channel).at(0));
         }
         if (m_debug) 
         {
-          std::cout << "IHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
+          std::cout << "OHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
         if (raw_energy > m_hcal_adc_threshold && raw_energy < m_hcal_high_adc_threshold)
         {
@@ -239,14 +270,16 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         if (m_SimFlag)
         {
           zs_energy = ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
+          h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
         }
         else 
         {
           zs_energy = ihcal_waveforms.at(channel).at(1) - ihcal_waveforms.at(channel).at(0);
+          h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_waveforms.at(channel).at(0));
         }
         if (m_debug) 
         {
-          std::cout << "OHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
+          std::cout << "IHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
         if (raw_energy > m_hcal_adc_threshold && raw_energy < m_hcal_high_adc_threshold)
         {
@@ -266,25 +299,12 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
   int packet_high = std::numeric_limits<int>::min();
   int m_nsamples = 2;
   int m_nchannels = 192;
-  //===============
-  // conditions DB flags
-  //===============
-  std::string m_calibName = "cemc_adcskipmask";
-  std::string m_fieldname = "adcskipmask";
-  CDBTTree *cdbttree = nullptr; 
 
   if (dettype == CaloTowerDefs::CEMC)
   {
     packet_low = 6001;
     packet_high = 6128;
     m_nchannels = 192;
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    if (calibdir.empty())
-    {
-      std::cout << PHWHERE << "ADC Skip mask not found in CDB, not even in the default... " << std::endl;
-      exit(1);
-    }
-    cdbttree = new CDBTTree(calibdir.c_str());
   }
   else if (dettype == CaloTowerDefs::HCALIN)
   {
@@ -310,7 +330,6 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
     packet_high = 12001;
     m_nchannels = 128;
   }
-
 
   std::variant<CaloPacketContainer*, Event*> event;
   if (m_UseOfflinePacketFlag)
@@ -530,6 +549,21 @@ void CaloFittingQA::createHistos()
   h_ohcal_etaphi_ZScrosscalib = new TProfile2D(boost::str(boost::format("%sohcal_etaphi_ZScrosscalib") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ohcal_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_ZScrosscalib);
+
+  h_cemc_etaphi_pedestal = new TProfile2D(boost::str(boost::format("%scemc_etaphi_pedestal") % getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 16400);
+  h_cemc_etaphi_pedestal->SetErrorOption("G");
+  h_cemc_etaphi_pedestal->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_pedestal);
+
+  h_ihcal_etaphi_pedestal = new TProfile2D(boost::str(boost::format("%sihcal_etaphi_pedestal") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
+  h_ihcal_etaphi_pedestal->SetErrorOption("G");
+  h_ihcal_etaphi_pedestal->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_etaphi_pedestal);
+
+  h_ohcal_etaphi_pedestal = new TProfile2D(boost::str(boost::format("%sohcal_etaphi_pedestal") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
+  h_ohcal_etaphi_pedestal->SetErrorOption("G");
+  h_ohcal_etaphi_pedestal->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_etaphi_pedestal);
 
   h_packet_events = new TH1I(boost::str(boost::format("%spacket_events") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
   h_packet_events->SetDirectory(nullptr);

@@ -199,6 +199,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_constrain_to_vertex_sPHENIX = constrain_to_vertex;
   }
 
+  void useMbdVertex(bool use = true)
+  {
+    m_use_mbd_vertex = use;
+    m_use_mbd_vertex_truth = use;
+  }
+
   void useFakePrimaryVertex(bool use_fake = true)
   {
     m_use_fake_pv = use_fake;
