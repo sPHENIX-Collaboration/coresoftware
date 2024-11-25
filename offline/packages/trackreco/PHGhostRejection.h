@@ -52,16 +52,21 @@ class PHGhostRejection
   void set_min_pt_cut(float _ptmin) { _min_pt= _ptmin; }
   void set_must_span_sectors(bool _setting) { _must_span_sectors = _setting; }
   void set_min_clusters (int _val) { _min_clusters = _val; }
+  void set_phi_cut(double d) { _phi_cut = d; }
+  void set_eta_cut(double d) { _eta_cut = d; }
+  void set_x_cut(double d) { _x_cut = d; }
+  void set_y_cut(double d) { _y_cut = d; }
+  void set_z_cut(double d) { _z_cut = d; }
 
  private:
   unsigned int m_verbosity;
   std::vector<TrackSeed_v2>& seeds;
   std::vector<bool> m_rejected {}; // id
-  double _phi_cut = 0.01;
-  double _eta_cut = 0.004;
-  double _x_cut = 0.3;
-  double _y_cut = 0.3;
-  double _z_cut = 0.4;
+  double _phi_cut = std::numeric_limits<double>::max();
+  double _eta_cut = std::numeric_limits<double>::max();
+  double _x_cut = std::numeric_limits<double>::max();
+  double _y_cut = std::numeric_limits<double>::max();
+  double _z_cut = std::numeric_limits<double>::max();
 
   // cuts on minimally interesting tracks --
   // here to remove noise

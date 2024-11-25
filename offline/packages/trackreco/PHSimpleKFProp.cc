@@ -1357,6 +1357,11 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
 {
   // testing with presets for rejection
   PHGhostRejection rejector(Verbosity(), seeds);
+  rejector.set_phi_cut(_ghost_phi_cut);
+  rejector.set_eta_cut(_ghost_eta_cut);
+  rejector.set_x_cut(_ghost_x_cut);
+  rejector.set_y_cut(_ghost_y_cut);
+  rejector.set_z_cut(_ghost_z_cut);
   // If you want to reject tracks (before they are are made) can set them here:
   // rejector.set_min_pt_cut(0.2);
   // rejector.set_must_span_sectors(true);
