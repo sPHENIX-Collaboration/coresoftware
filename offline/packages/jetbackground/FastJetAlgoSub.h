@@ -13,7 +13,7 @@ class FastJetAlgoSub : public JetAlgo
 {
  public:
   FastJetAlgoSub(Jet::ALGO algo, float par, int verbosity = 0);
-  ~FastJetAlgoSub() override {}
+  ~FastJetAlgoSub() override = default;
 
   void identify(std::ostream& os = std::cout) override;
   Jet::ALGO get_algo() override { return _algo; }
