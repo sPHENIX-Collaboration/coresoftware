@@ -20,12 +20,11 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-
-
 // ============================================================================
 //! Misc beam background filter and QA definitions
 // ============================================================================
-namespace BeamBackgroundFilterAndQADefs {
+namespace BeamBackgroundFilterAndQADefs
+{
 
   // ==========================================================================
   //! Event status codes
@@ -35,9 +34,12 @@ namespace BeamBackgroundFilterAndQADefs {
    *    NoBkgd  = filter finds there is no beam background
    *    HasBkgd = filter finds there is beam background
    */
-  enum Status {Evt, NoBkgd, HasBkgd};
-
-
+  enum Status
+  {
+    Evt,
+    NoBkgd,
+    HasBkgd
+  };
 
   // ==========================================================================
   // Helper struct to scrape info from TowerInfo
@@ -51,10 +53,9 @@ namespace BeamBackgroundFilterAndQADefs {
    */
   struct Tower
   {
-
     // members
     uint8_t status = 0;
-    double  energy = -1.;
+    double energy = -1.;
 
     //! grab info from a TowerInfo object
     void SetInfo(TowerInfo* info)
@@ -74,8 +75,6 @@ namespace BeamBackgroundFilterAndQADefs {
 
   };  // end Tower
 
-
-
   // ==========================================================================
   //! Helper type for building (eta, phi) maps of towers
   // ==========================================================================
@@ -83,9 +82,9 @@ namespace BeamBackgroundFilterAndQADefs {
    *  handy (eta, phi) map. See the StreakSidebandFilter algorithm for an
    *  example usage.
    */
-  template <std::size_t H, std::size_t F> struct TowerMap
+  template <std::size_t H, std::size_t F>
+  struct TowerMap
   {
-
     // members
     std::array<std::array<Tower, F>, H> towers;
 
@@ -94,15 +93,15 @@ namespace BeamBackgroundFilterAndQADefs {
     {
       for (std::size_t iTwr = 0; iTwr < container->size(); ++iTwr)
       {
-        const int32_t key  = container->encode_key(iTwr);
+        const int32_t key = container->encode_key(iTwr);
         const int32_t iEta = container->getTowerEtaBin(key);
         const int32_t iPhi = container->getTowerPhiBin(key);
-        towers.at(iEta).at(iPhi).SetInfo( container->get_tower_at_channel(iTwr) );
+        towers.at(iEta).at(iPhi).SetInfo(container->get_tower_at_channel(iTwr));
       }
       return;
     }
 
-    //! reset 
+    //! reset
     void Reset()
     {
       for (auto row : towers)
@@ -121,10 +120,8 @@ namespace BeamBackgroundFilterAndQADefs {
   //! Maps for specific calorimeters
   // --------------------------------------------------------------------------
   typedef TowerMap<96, 256> EMCalMap;
-  typedef TowerMap<24, 64>  IHCalMap;
-  typedef TowerMap<24, 64>  OHCalMap;
-
-
+  typedef TowerMap<24, 64> IHCalMap;
+  typedef TowerMap<24, 64> OHCalMap;
 
   // ==========================================================================
   //! Make QA-compliant histogram names
@@ -140,11 +137,10 @@ namespace BeamBackgroundFilterAndQADefs {
    *  FIXME this should get moved into JetQADefs.h
    */
   inline std::vector<std::string> MakeQAHistNames(
-    const std::vector<std::string>& bases,
-    const std::string& module,
-    const std::string& tag = ""
-  ) {
-
+      const std::vector<std::string>& bases,
+      const std::string& module,
+      const std::string& tag = "")
+  {
     // copy base names to list of hist names
     std::vector<std::string> names = bases;
 
@@ -157,17 +153,16 @@ namespace BeamBackgroundFilterAndQADefs {
         name.append("_" + tag);
       }
       std::transform(
-        name.begin(),
-        name.end(),
-        name.begin(),
-        ::tolower
-      );
+          name.begin(),
+          name.end(),
+          name.begin(),
+          ::tolower);
     }
     return names;
 
   }  // end 'MakeQAHistNames(
 
-}  // end BeamBackgroundFilterAndQADefs
+}  // namespace BeamBackgroundFilterAndQADefs
 
 #endif
 

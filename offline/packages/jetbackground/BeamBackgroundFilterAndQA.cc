@@ -9,72 +9,47 @@
  */
 /// ===========================================================================
 
-#define BEAMBACKGROUNDFILTERANDQA_CC
+// module components
+#include "BeamBackgroundFilterAndQA.h"
+#include "BeamBackgroundFilterAndQADefs.h"
 
-// c++ utiilites
-#include <cassert>
-#include <iostream>
-
-// calo base
-#include <calobase/TowerInfoContainer.h>
-
-// f4a libraries
-#include <fun4all/Fun4AllReturnCodes.h>
+// f4a includes
 #include <fun4all/Fun4AllHistoManager.h>
-#include <ffaobjects/FlagSavev1.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
-// phool libraries
-#include <phool/getClass.h>
+// phool includes
 #include <phool/phool.h>
-#include <phool/PHCompositeNode.h>
 #include <phool/recoConsts.h>
 
 // qa utilities
 #include <qautils/QAHistManagerDef.h>
 
-// root libraries
+// root includes
 #include <TH1.h>
 
-// module components
-#include "BeamBackgroundFilterAndQA.h"
-#include "BeamBackgroundFilterAndQADefs.h"
-
-// alias for convenience
-namespace bbfqd = BeamBackgroundFilterAndQADefs;
-
-
+// c++ includes
+#include <cassert>
+#include <cstddef>
+#include <iostream>
+#include <utility>
 
 // ctor/dtor ==================================================================
 
 // ----------------------------------------------------------------------------
 //! Default module constructor
 // ----------------------------------------------------------------------------
-BeamBackgroundFilterAndQA::BeamBackgroundFilterAndQA(const std::string& name, const bool debug)
+BeamBackgroundFilterAndQA::BeamBackgroundFilterAndQA(const std::string& name)
   : SubsysReco(name)
-  , m_manager(nullptr)
-  , m_consts(nullptr)
 {
-
-  // print debug message
-  if (debug && (Verbosity() > 0))
-  {
-    std::cout << "BeamBackgroundFilterAndQA::BeamBackgroundFilterAndQA(const std::string &name) Calling ctor" << std::endl;
-  }
-
-}  // end ctor(std::string&, bool)'
-
-
+}  // end ctor(std::string&)'
 
 // ----------------------------------------------------------------------------
 //! Module constructor accepting a configuration
 // ----------------------------------------------------------------------------
 BeamBackgroundFilterAndQA::BeamBackgroundFilterAndQA(const Config& config)
   : SubsysReco(config.moduleName)
-  , m_manager(nullptr)
-  , m_consts(nullptr)
   , m_config(config)
 {
-
   // print debug message
   if (m_config.debug && (Verbosity() > 0))
   {
@@ -83,14 +58,11 @@ BeamBackgroundFilterAndQA::BeamBackgroundFilterAndQA(const Config& config)
 
 }  // end ctor(BeamBackgroundFilterAndQAConfig&)'
 
-
-
 // ----------------------------------------------------------------------------
 //! Module destructor
 // ----------------------------------------------------------------------------
 BeamBackgroundFilterAndQA::~BeamBackgroundFilterAndQA()
 {
-
   // print debug message
   if (m_config.debug && (Verbosity() > 0))
   {
@@ -101,8 +73,6 @@ BeamBackgroundFilterAndQA::~BeamBackgroundFilterAndQA()
 
 }  // end dtor()
 
-
-
 // fun4all methods ============================================================
 
 // ----------------------------------------------------------------------------
@@ -110,7 +80,6 @@ BeamBackgroundFilterAndQA::~BeamBackgroundFilterAndQA()
 // ----------------------------------------------------------------------------
 int BeamBackgroundFilterAndQA::Init(PHCompositeNode* /*topNode*/)
 {
-
   if (m_config.debug)
   {
     std::cout << "BeamBackgroundFilterAndQA::Init(PHCompositeNode *topNode) Initializing" << std::endl;
@@ -131,14 +100,11 @@ int BeamBackgroundFilterAndQA::Init(PHCompositeNode* /*topNode*/)
 
 }  // end 'Init(PHCompositeNode*)'
 
-
-
 // ----------------------------------------------------------------------------
 //! Grab inputs, check for beam background, and fill histograms
 // ----------------------------------------------------------------------------
 int BeamBackgroundFilterAndQA::process_event(PHCompositeNode* topNode)
 {
-
   if (m_config.debug)
   {
     std::cout << "BeamBackgroundFilterAndQA::process_event(PHCompositeNode *topNode) Processing event" << std::endl;
@@ -165,14 +131,11 @@ int BeamBackgroundFilterAndQA::process_event(PHCompositeNode* topNode)
 
 }  // end 'process_event(PHCompositeNode*)'
 
-
-
 // ----------------------------------------------------------------------------
 //! Run final calculations
 // ----------------------------------------------------------------------------
 int BeamBackgroundFilterAndQA::End(PHCompositeNode* /*topNode*/)
 {
-
   if (m_config.debug)
   {
     std::cout << "BeamBackgroundFilterAndQA::End(PHCompositeNode *topNode) This is the end..." << std::endl;
@@ -183,8 +146,6 @@ int BeamBackgroundFilterAndQA::End(PHCompositeNode* /*topNode*/)
 
 }  // end 'End(PHCompositeNode*)'
 
-
-
 // private methods ============================================================
 
 // ----------------------------------------------------------------------------
@@ -192,28 +153,24 @@ int BeamBackgroundFilterAndQA::End(PHCompositeNode* /*topNode*/)
 // ---------------------------------------------------------------------------
 void BeamBackgroundFilterAndQA::InitFilters()
 {
-
   // print debug message
   if (m_config.debug && (Verbosity() > 1))
   {
     std::cout << "BeamBackgroundFilterAndQA::InitFilters() Initializing background filters" << std::endl;
   }
 
-  m_filters["Null"] = std::make_unique<NullFilter>( m_config.null, "Null" );
-  m_filters["StreakSideband"] = std::make_unique<StreakSidebandFilter>( m_config.sideband, "StreakSideband" );
+  m_filters["Null"] = std::make_unique<NullFilter>(m_config.null, "Null");
+  m_filters["StreakSideband"] = std::make_unique<StreakSidebandFilter>(m_config.sideband, "StreakSideband");
   //... other filters added here ...//
   return;
 
 }  // end 'InitFilters()'
-
-
 
 // ----------------------------------------------------------------------------
 //! Initialize flags
 // ----------------------------------------------------------------------------
 void BeamBackgroundFilterAndQA::InitFlags()
 {
-
   // print debug message
   if (m_config.debug && (Verbosity() > 1))
   {
@@ -230,14 +187,11 @@ void BeamBackgroundFilterAndQA::InitFlags()
 
 }  // end 'InitFlags()'
 
-
-
 // ----------------------------------------------------------------------------
 //! Initialize histogram manager
 // ----------------------------------------------------------------------------
 void BeamBackgroundFilterAndQA::InitHistManager()
 {
-
   // print debug message
   if (m_config.debug && (Verbosity() > 0))
   {
@@ -254,14 +208,11 @@ void BeamBackgroundFilterAndQA::InitHistManager()
 
 }  // end 'InitHistManager()'
 
-
-
 // ----------------------------------------------------------------------------
 //! Build histograms
 // ----------------------------------------------------------------------------
 void BeamBackgroundFilterAndQA::BuildHistograms()
 {
-
   // print debug message
   if (m_config.debug && (Verbosity() > 0))
   {
@@ -276,7 +227,7 @@ void BeamBackgroundFilterAndQA::BuildHistograms()
   }
 
   // get module-wide histogram names
-  std::vector<std::string> histNames = bbfqd::MakeQAHistNames(varNames, m_config.moduleName, m_config.histTag);
+  std::vector<std::string> histNames = BeamBackgroundFilterAndQADefs::MakeQAHistNames(varNames, m_config.moduleName, m_config.histTag);
 
   // create module-wide histograms
   for (std::size_t iVar = 0; iVar < varNames.size(); ++iVar)
@@ -296,14 +247,11 @@ void BeamBackgroundFilterAndQA::BuildHistograms()
 
 }  // end 'BuildHistograms()'
 
-
-
 // ----------------------------------------------------------------------------
 //! Register histograms
 // ----------------------------------------------------------------------------
 void BeamBackgroundFilterAndQA::RegisterHistograms()
 {
-
   // print debug message
   if (m_config.debug && (Verbosity() > 0))
   {
@@ -313,7 +261,7 @@ void BeamBackgroundFilterAndQA::RegisterHistograms()
   // register module-wide histograms
   for (auto& hist : m_hists)
   {
-    m_manager->registerHisto( hist.second );
+    m_manager->registerHisto(hist.second);
   }
 
   // register filter-specific histograms
@@ -325,48 +273,45 @@ void BeamBackgroundFilterAndQA::RegisterHistograms()
 
 }  // end 'RegisterHistograms()'
 
-
-
 // ----------------------------------------------------------------------------
 //! Apply relevant filters
 // ----------------------------------------------------------------------------
 bool BeamBackgroundFilterAndQA::ApplyFilters(PHCompositeNode* topNode)
 {
-
   // print debug message
   if (m_config.debug && (Verbosity() > 0))
   {
     std::cout << "BeamBackgroundFilterAndQA::ApplyFilters(PHCompositeNode*) Creating histograms" << std::endl;
   }
 
-  // apply individual filters 
+  // apply individual filters
   bool hasBkgd = false;
   for (const std::string& filterToApply : m_config.filtersToApply)
   {
     const bool filterFoundBkgd = m_filters.at(filterToApply)->ApplyFilter(topNode);
     if (filterFoundBkgd)
     {
-      m_hists["nevts_" + filterToApply]->Fill(bbfqd::Status::HasBkgd);
+      m_hists["nevts_" + filterToApply]->Fill(BeamBackgroundFilterAndQADefs::Status::HasBkgd);
       m_consts->set_IntFlag("HasBeamBackground_" + filterToApply + "Filter", 1);
     }
     else
     {
-      m_hists["nevts_" + filterToApply]->Fill(bbfqd::Status::NoBkgd);
+      m_hists["nevts_" + filterToApply]->Fill(BeamBackgroundFilterAndQADefs::Status::NoBkgd);
     }
-    m_hists["nevts_" + filterToApply]->Fill(bbfqd::Status::Evt);
+    m_hists["nevts_" + filterToApply]->Fill(BeamBackgroundFilterAndQADefs::Status::Evt);
     hasBkgd += filterFoundBkgd;
   }
 
   // fill overall histograms and return
-  m_hists["nevts_overall"]->Fill(bbfqd::Status::Evt);
+  m_hists["nevts_overall"]->Fill(BeamBackgroundFilterAndQADefs::Status::Evt);
   if (hasBkgd)
   {
-    m_hists["nevts_overall"]->Fill(bbfqd::Status::HasBkgd);
+    m_hists["nevts_overall"]->Fill(BeamBackgroundFilterAndQADefs::Status::HasBkgd);
     m_consts->set_IntFlag("HasBeamBackground", 1);
   }
   else
   {
-    m_hists["nevts_overall"]->Fill(bbfqd::Status::NoBkgd);
+    m_hists["nevts_overall"]->Fill(BeamBackgroundFilterAndQADefs::Status::NoBkgd);
   }
   return hasBkgd;
 

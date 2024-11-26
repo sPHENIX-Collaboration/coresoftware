@@ -20,39 +20,35 @@
 
 class TowerRho : public PHObject
 {
-  public:
+ public:
+  // enum for method of rho calculation
+  enum Method
+  {
+    NONE = 0,
+    AREA = 1,
+    MULT = 2
+  };
 
-    // enum for method of rho calculation
-    enum Method
-    {
-      NONE = 0,
-      AREA = 1,
-      MULT = 2
-    };
+  ~TowerRho() override{};
 
-    ~TowerRho() override{};
+  void identify(std::ostream &os = std::cout) const override { os << "TowerRho base class" << std::endl; };
+  int isValid() const override { return 0; }
 
-    void identify(std::ostream &os = std::cout) const override { os << "TowerRho base class" << std::endl; };
-    int isValid() const override { return 0; }
+  // setters
+  virtual void set_rho(float /*rho*/) {}
+  virtual void set_sigma(float /*sigma*/) {}
+  virtual void set_method(TowerRho::Method /*rho_method*/) {}
 
-    // setters
-    virtual void set_rho(float /*rho*/) {} 
-    virtual void set_sigma(float /*sigma*/) {}
-    virtual void set_method(TowerRho::Method /*rho_method*/) {}
-    
-    // getters
-    virtual float get_rho() { return 0; }
-    virtual float get_sigma() { return 0; }
-    virtual TowerRho::Method get_method() { return Method::NONE; }
+  // getters
+  virtual float get_rho() { return 0; }
+  virtual float get_sigma() { return 0; }
+  virtual TowerRho::Method get_method() { return Method::NONE; }
 
+ protected:
+  TowerRho() {}  // ctor
 
-  protected:
-    
-    TowerRho() {} // ctor
-
-  private:
-    
-    ClassDefOverride(TowerRho, 1);
+ private:
+  ClassDefOverride(TowerRho, 1);
 };
 
-#endif // RHOBASE_TOWERRHO_H
+#endif  // RHOBASE_TOWERRHO_H

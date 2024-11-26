@@ -12,107 +12,100 @@
 #ifndef BEAMBACKGROUNDFILTERANDQA_H
 #define BEAMBACKGROUNDFILTERANDQA_H
 
+// module components
+#include "NullFilter.h"
+#include "StreakSidebandFilter.h"
+
+// f4a libraries
+#include <fun4all/SubsysReco.h>
+
 // c++ utilities
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
-// f4a libraries
-#include <fun4all/SubsysReco.h>
-
-// module components
-#include "BaseBeamBackgroundFilter.h"
-#include "NullFilter.h"
-#include "StreakSidebandFilter.h"
-
 // forward declarations
+class BaseBeamBackgroundFilter;
 class Fun4AllHistoManager;
 class PHCompositeNode;
-class QAHistManagerHistDef;
 class recoConsts;
-class TowerInfoContainer;
-
-
+class TH1;
 
 // ============================================================================
 //! Filter beam background events and create QA
 // ============================================================================
 /*! A F4A module to filter out events with significant
  *  beam background and produce some relevant QA
- *  histograms. 
+ *  histograms.
  */
-class BeamBackgroundFilterAndQA : public SubsysReco {
+class BeamBackgroundFilterAndQA : public SubsysReco
+{
+ public:
+  // ========================================================================
+  //! User options for module
+  // =======================================================================
+  struct Config
+  {
+    // turn modes on/off
+    bool debug = true;
+    bool doQA = true;
+    bool doEvtAbort = false;
 
-  public:
+    ///! module name
+    std::string moduleName = "BeamBackgroundFilterAndQA";
 
-    // ========================================================================
-    //! User options for module
-    // =======================================================================
-    struct Config
-    {
+    ///! histogram tags
+    std::string histTag = "";
 
-      // turn modes on/off
-      bool debug      = true;
-      bool doQA       = true;
-      bool doEvtAbort = false;
+    ///! which filters to apply
+    std::vector<std::string> filtersToApply = {"Null", "StreakSideband"};
 
-      ///! module name
-      std::string moduleName = "BeamBackgroundFilterAndQA";
+    ///! filter configurations
+    NullFilter::Config null;
+    StreakSidebandFilter::Config sideband;
+    //... add other configurations here ...//
+  };
 
-      ///! histogram tags
-      std::string histTag = "";
+  // ctor/dtor
+  BeamBackgroundFilterAndQA(const std::string& name = "BeamBackgroundFilterAndQA");
+  BeamBackgroundFilterAndQA(const Config& config);
+  ~BeamBackgroundFilterAndQA() override;
 
-      ///! which filters to apply
-      std::vector<std::string> filtersToApply = {"Null", "StreakSideband"};
+  // setters
+  void SetConfig(const Config& config) { m_config = config; }
 
-      ///! filter configurations
-      NullFilter::Config null;
-      StreakSidebandFilter::Config sideband;
-      //... add other configurations here ...//
+  // getters
+  Config GetConfig() const { return m_config; }
 
-    };
+  // f4a methods
+  int Init(PHCompositeNode* /*topNode*/) override;
+  int process_event(PHCompositeNode* topNode) override;
+  int End(PHCompositeNode* /*topNode*/) override;
 
-    // ctor/dtor
-    BeamBackgroundFilterAndQA(const std::string& name = "BeamBackgroundFilterAndQA", const bool debug = false);
-    BeamBackgroundFilterAndQA(const Config& config); 
-    ~BeamBackgroundFilterAndQA() override;
+ private:
+  // private methods
+  void InitFilters();
+  void InitFlags();
+  void InitHistManager();
+  void BuildHistograms();
+  void RegisterHistograms();
+  bool ApplyFilters(PHCompositeNode* topNode);
 
-    // setters
-    void SetConfig(const Config& config) {m_config = config;}
+  ///! histogram manager
+  Fun4AllHistoManager* m_manager{nullptr};
 
-    // getters
-    Config GetConfig() const {return m_config;}
+  ///! reco consts (for flags)
+  recoConsts* m_consts{nullptr};
 
-    // f4a methods
-    int Init(PHCompositeNode* /*topNode*/) override;
-    int process_event(PHCompositeNode* topNode) override;
-    int End(PHCompositeNode* /*topNode*/) override;
+  ///! module-wide histograms
+  std::map<std::string, TH1*> m_hists;
 
-  private:
+  ///! module configuration
+  Config m_config;
 
-    // private methods
-    void InitFilters();
-    void InitFlags();
-    void InitHistManager();
-    void BuildHistograms();
-    void RegisterHistograms();
-    bool ApplyFilters(PHCompositeNode* topNode);
-
-    ///! histogram manager
-    Fun4AllHistoManager* m_manager;
-
-    ///! reco consts (for flags)
-    recoConsts* m_consts;
-
-    ///! module-wide histograms
-    std::map<std::string, TH1*> m_hists;
-
-    ///! module configuration
-    Config m_config;
-
-    ///! filters
-    std::map<std::string, std::unique_ptr<BaseBeamBackgroundFilter>> m_filters;
+  ///! filters
+  std::map<std::string, std::unique_ptr<BaseBeamBackgroundFilter>> m_filters;
 
 };  // end BeamBackgroundFilterAndQA
 

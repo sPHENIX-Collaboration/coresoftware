@@ -12,65 +12,55 @@
 #ifndef NULLFILTER_H
 #define NULLFILTER_H
 
-// c++ utilities
-#include <array>
-#include <string>
-
 // module components
 #include "BaseBeamBackgroundFilter.h"
-#include "BeamBackgroundFilterAndQADefs.h"
+
+// c++ includes
+#include <string>
 
 // forward declarations
 class PHCompositeNode;
 
-// alias for convenience
-namespace bbfqd = BeamBackgroundFilterAndQADefs;
-
-
-
 // ============================================================================
-//! Null, template filter 
+//! Null, template filter
 // ============================================================================
 /*! A beam background filter which does nothing, but
  *  provides a template for other filters.
  */
 class NullFilter : public BaseBeamBackgroundFilter
 {
+ public:
+  // ========================================================================
+  //! User options for filter
+  // ========================================================================
+  struct Config
+  {
+    int verbosity = 0;
+    bool debug = true;
+    //... additional options go here ...//
+  };
 
-  public:
+  // ctor/dtor
+  NullFilter(const std::string& name = "Null");
+  NullFilter(const Config& cfg, const std::string& name = "Null");
+  virtual ~NullFilter() = default;
 
-    // ========================================================================
-    //! User options for filter
-    // ========================================================================
-    struct Config
-    {
-      int  verbosity = 0;
-      bool debug     = true;
-      //... additional options go here ...//
-    };
+  // inherited methods
+  bool ApplyFilter(PHCompositeNode* topNode) override;
+  void BuildHistograms(const std::string& module, const std::string& tag = "") override;
 
-    // ctor/dtor
-    NullFilter(const std::string& name = "Null");
-    NullFilter(const Config& cfg, const std::string& name = "Null");
-    ~NullFilter();
+ private:
+  // inherited methods
+  void GrabNodes(PHCompositeNode* /*topNode*/) override;
 
-    // inherited methods
-    bool ApplyFilter(PHCompositeNode* topNode) override;
-    void BuildHistograms(const std::string& module, const std::string& tag = "") override;
+  // filter-specific methods
+  //... go here ...//
 
-  private:
+  ///! input node(s)
+  //... go here ...//
 
-    // inherited methods
-    void GrabNodes(PHCompositeNode* /*topNode*/) override;
-
-    // filter-specific methods
-    //... go here ...//
-
-    ///! input node(s)
-    //... go here ...//
-
-    ///! configuration
-    Config m_config; 
+  ///! configuration
+  Config m_config;
 
 };  // end NullFilter
 

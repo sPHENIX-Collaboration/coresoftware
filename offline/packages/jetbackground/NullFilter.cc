@@ -9,21 +9,19 @@
  */
 /// ===========================================================================
 
-#define NULLFILTER_CC
-
-// c++ utiilites
-#include <iostream>
-
-// phool libraries
-#include <phool/PHCompositeNode.h>
-
-// root libraries
-#include <TH1.h>
-
 // module components
 #include "NullFilter.h"
 
+#include "BeamBackgroundFilterAndQADefs.h"
 
+// root includes
+#include <TH1.h>
+
+// c++ includes
+#include <iostream>
+#include <map>
+#include <memory>
+#include <vector>
 
 // ctor/dtor ==================================================================
 
@@ -31,38 +29,18 @@
 //! Default ctor
 // ----------------------------------------------------------------------------
 NullFilter::NullFilter(const std::string& name)
+  : BaseBeamBackgroundFilter(name)
 {
-
-  m_name = name;
-
 }  // end ctor()
-
-
 
 // ----------------------------------------------------------------------------
 //! ctor accepting config struct
 // ----------------------------------------------------------------------------
 NullFilter::NullFilter(const Config& config, const std::string& name)
-  : m_config(config)
+  : BaseBeamBackgroundFilter(name)
+  , m_config(config)
 {
-
-  m_name = name;
-
 }  // end ctor(Config&)
-
-
-
-// ----------------------------------------------------------------------------
-//! Default dtor
-// ----------------------------------------------------------------------------
-NullFilter::~NullFilter()
-{
-
-  //... nothing to do ...//
-
-}  // end dtor
-
-
 
 // public methods =============================================================
 
@@ -71,7 +49,6 @@ NullFilter::~NullFilter()
 // ----------------------------------------------------------------------------
 bool NullFilter::ApplyFilter(PHCompositeNode* topNode)
 {
-
   // print debug message
   if (m_config.debug && (m_config.verbosity > 2))
   {
@@ -93,14 +70,11 @@ bool NullFilter::ApplyFilter(PHCompositeNode* topNode)
 
 }  // end 'ApplyFilter()'
 
-
-
 // ----------------------------------------------------------------------------
 //! Construct histograms
 // ----------------------------------------------------------------------------
 void NullFilter::BuildHistograms(const std::string& module, const std::string& tag)
 {
-
   // print debug message
   if (m_config.debug && (m_config.verbosity > 2))
   {
@@ -112,20 +86,18 @@ void NullFilter::BuildHistograms(const std::string& module, const std::string& t
 
   // names of variables to be histogramed
   const std::vector<std::string> varNames = {
-    "test"
-    //... variable names like NStreakTwr should go here ...//
+      "test"
+      //... variable names like NStreakTwr should go here ...//
   };
 
   // make qa-compliant hist names
-  std::vector<std::string> histNames = bbfqd::MakeQAHistNames(varNames, moduleAndFilterName, tag);
+  std::vector<std::string> histNames = BeamBackgroundFilterAndQADefs::MakeQAHistNames(varNames, moduleAndFilterName, tag);
 
   // construct histograms
   m_hists[varNames[0]] = new TH1D(histNames[0].data(), "", 2, -0.5, 1.5);
   return;
 
 }  // end 'BuildHistograms(std::string&, std::string&)'
-
-
 
 // private methods ============================================================
 
@@ -134,7 +106,6 @@ void NullFilter::BuildHistograms(const std::string& module, const std::string& t
 // ----------------------------------------------------------------------------
 void NullFilter::GrabNodes(PHCompositeNode* /*topNode*/)
 {
-
   // print debug message
   if (m_config.debug && (m_config.verbosity > 2))
   {
