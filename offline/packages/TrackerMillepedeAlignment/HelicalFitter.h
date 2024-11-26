@@ -73,6 +73,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_ntuplefile_name(const std::string& file) { ntuple_outfilename = file; }
   void set_vertex_param_fixed(unsigned int param){ fixed_vertex_params.insert(param);}
   void set_straight_line_fit(bool flag) {straight_line_fit = flag; }
+  //-1 is regular operation, 0 is east fixed, 1 is west fixed
+  void set_do_mvtx_half(int half) {do_mvtx_half = half; }
   void set_fitted_subsystems(bool si, bool tpc, bool full)
   {
     fitsilicon = si;
@@ -216,8 +218,9 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   TFile* fout{nullptr};
 
   bool use_event_vertex{false};
-  bool use_intt_zfit{true};
+  bool use_intt_zfit{false};
   bool straight_line_fit = false;
+  int do_mvtx_half = -1;
 
   int event{0};
 

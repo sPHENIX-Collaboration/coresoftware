@@ -227,12 +227,13 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
 	{
 	  // group by half-barrel, or clamshell
 	  // Assume for now low staves are in clamshell 0 - check!!!
-	  int breakat = nstaves_layer_mvtx[layer] / 2;
-	  int clamshell = 1;
-	  if (stave < breakat)
-	    {
-	      clamshell = 0;
-	    }
+	  //int breakat = nstaves_layer_mvtx[layer] / 2;
+    int clamshell = getMvtxClamshell(layer, stave);
+	  //int clamshell = 1;
+	  //if (stave < breakat)
+	  //  {
+	  //    clamshell = 0;
+	  //  }
 	  label_base += 0 * 1000000 + clamshell * 10000;
 
 	  return label_base;

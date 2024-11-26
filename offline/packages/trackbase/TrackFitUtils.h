@@ -164,6 +164,7 @@ namespace TrackFitUtils
     const std::vector<Acts::Vector3>& glob_pts);
   bool isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_vec);
   bool includeMvtxHit(TrkrDefs::cluskey clus_key, bool mvtx_east, bool mvtx_west);
+  bool isMvtxEast(uint32_t hitsetkey);
 };
 
 #endif

@@ -199,6 +199,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   unsigned int ntpc = 0;
   unsigned int nclus = 0;
   bool h2h_flag = false;
+  bool mvtx_east_only = false;
+  bool mvtx_west_only = false;
+  if (do_mvtx_half == 0) mvtx_east_only = true;
+  if (do_mvtx_half == 1) mvtx_west_only = true;
   std::vector<std::vector<Acts::Vector3>> cumulative_global_vec;
   std::vector<std::vector<TrkrDefs::cluskey>> cumulative_cluskey_vec;
   std::vector<std::vector<float>> cumulative_fitpars_vec;
@@ -258,7 +262,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     std::vector<float> fitpars;
     if(straight_line_fit)
       {
-  fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit);
+  fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit, mvtx_east_only, mvtx_west_only);
 
   if (fitpars.size() == 0)
     {
@@ -341,7 +345,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       fitpars.clear();
       if(straight_line_fit)
   {
-    fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit);
+    fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit, mvtx_east_only, mvtx_west_only);
       
     if (fitpars.size() == 0)
       {
@@ -510,6 +514,18 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       auto global = global_vec[ivec];
       auto cluskey = cluskey_vec[ivec];
       auto cluster = _cluster_map->findCluster(cluskey);
+      
+      bool skip_flag = false;
+      //option to record only hits from tracks that cross mvtx and are in east OR west
+      if (do_mvtx_half> -1)
+      {
+        if (!h2h_flag)
+          skip_flag=true;
+        if (do_mvtx_half != 1 && TrackFitUtils::isMvtxEast(TrkrDefs::getHitSetKeyFromClusKey(cluskey)))
+          skip_flag=true;
+        if (do_mvtx_half != 0 && !TrackFitUtils::isMvtxEast(TrkrDefs::getHitSetKeyFromClusKey(cluskey)))
+          {skip_flag=true;}
+      }
       if (!cluster)
       {
         continue;
@@ -738,7 +754,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
           sector = InttDefs::getLadderPhiId(cluskey_vec[ivec]);
           subsurf = InttDefs::getLadderZId(cluskey_vec[ivec]);
         }
-  if(straight_line_fit)
+  if(straight_line_fit && !skip_flag)
     {
       float ntp_data[73] = {
         (float) event, (float) trackid,
@@ -813,7 +829,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     m_trackmap->insertWithKey(&newTrack, trackid);
 
     //if cosmics, end here, if collision track, continue with vtx
-    
+     //  skip the common vertex requirement for this track unless there are 3 tracks in the event
+    if(accepted_tracks < 3) {  _mille->end(); continue; }    
     // calculate vertex residual with perigee surface
     //-------------------------------------------------------
 
@@ -841,9 +858,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	      }
 	  }
       }
-    
-    //  skip the common vertex requirement for this track unless there are 3 tracks in the event
-    if(accepted_tracks < 3) {  _mille->end(); continue; }
     
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca
@@ -1312,7 +1326,7 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
   if (!m_vertexmap)
   {
     std::cout << PHWHERE << " ERROR: Can't find node SvtxVertexMap" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    //return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   // global position wrapper

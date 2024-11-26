@@ -656,7 +656,7 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
     std::cout << " TrackFitUtils::fitClustersZeroField failed for <3 cluskeys " << ((int)global_vec.size()) << std::endl;
     return fitpars;
   }
-  std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
+//  std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
 
   // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
   // also, for half to half cosmics, allow selection of only 1 half of mvtx (east or west)
@@ -670,7 +670,6 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
     unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
     if ((mvtx_east||mvtx_west) && trkrid == TrkrDefs::mvtxId)
     {
-      //
       if(cross_mvtx_half && TrackFitUtils::includeMvtxHit(cluskey_vec[ivec], mvtx_east, mvtx_west))
       {
         global_vec_noINTT.push_back(global_vec[ivec]);
@@ -692,6 +691,8 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
       return fitpars;
     }
   std::tuple<double, double> xz_fit_pars = TrackFitUtils::line_fit_xz(global_vec_noINTT);
+  std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec_noINTT);
+
 
   fitpars.push_back(std::get<0>(xy_fit_pars));
   fitpars.push_back(std::get<1>(xy_fit_pars));
@@ -1025,15 +1026,20 @@ bool TrackFitUtils::isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_
 bool TrackFitUtils::includeMvtxHit(TrkrDefs::cluskey clus_key, bool mvtx_east, bool mvtx_west)
 {
   uint32_t hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
-  unsigned int layer =TrkrDefs::getLayer(hitsetkey);
-  unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
-  bool is_east = false;
-  if(stave > (2+layer) && stave < (9+layer*3))
-    is_east= true;
-  
+  bool is_east = isMvtxEast(hitsetkey);
   if((is_east && mvtx_east)||(!is_east&&mvtx_west))
     return true;
 
   return false;
 
+}
+
+bool TrackFitUtils::isMvtxEast(uint32_t hitsetkey) 
+{
+  unsigned int layer =TrkrDefs::getLayer(hitsetkey);
+  unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
+  bool is_east = false;
+  if(stave > (2+layer) && stave < (9+layer*3))
+    is_east= true;
+  return is_east;
 }
