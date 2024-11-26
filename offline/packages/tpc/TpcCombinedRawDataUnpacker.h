@@ -110,8 +110,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   bool m_do_baseline_corr{false};
   int m_baseline_nsigma{2};
   bool m_do_zs_emulation{false};
-  int pedestal_offset{30};
-  int m_zs_threshold{30};
+  int m_zs_threshold{20};
   std::string m_TpcRawNodeName{"TPCRAWHIT"};
   std::string outfile_name;
   std::map<unsigned int, chan_info> chan_map;                  // stays in place

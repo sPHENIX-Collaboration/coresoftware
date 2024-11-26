@@ -400,10 +400,12 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 	unpack_fee_key(side, sector, rx, fee, fee_key);
 	TH2C* hist2d = hiter.second;
 	std::map<unsigned int,std::vector<int> >::iterator fee_entries_it = feeentries_map.find(fee_key);
-	std::vector<int>::iterator fee_entries_vec_it;
-	if (fee_entries_it != feeentries_map.end()){
-	  fee_entries_vec_it = (*fee_entries_it).second.begin();
+	if (fee_entries_it == feeentries_map.end()){
+	  continue;
+	  //	  fee_entries_vec_it = (*fee_entries_it).second.begin();
 	}
+	std::vector<int>::iterator fee_entries_vec_it  = (*fee_entries_it).second.begin();
+
 
 	std::vector<float> pedvec(hist2d->GetNbinsX(), 0);
 	feebaseline_map.insert(std::make_pair(hiter.first, pedvec));
