@@ -316,7 +316,7 @@ bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
 }
 
 //____________________________________________________________________________..
-bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step *aStep, bool)
+bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step *aStep, bool /*was_used*/)
 {
   if (!m_doG4Hit)
   {
@@ -387,6 +387,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step *aStep, bool)
       {
         tower_ID = prePoint->GetTouchable()->GetReplicaNumber(0);
         sector_ID = prePoint->GetTouchable()->GetReplicaNumber(1);
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
         fiber_ID = (1 << (PHG4CylinderGeom_Spacalv3::scint_id_coder::kfiber_bit)) - 1;  // use max fiber ID to flag for support strucrtures.
 
         //        std::cout <<"PHG4SpacalSteppingAction::UserSteppingAction - SUPPORT tower_ID = "<<tower_ID<<std::endl;
