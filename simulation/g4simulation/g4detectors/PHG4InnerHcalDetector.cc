@@ -173,9 +173,8 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume * /*hcalenvelope
 #endif
   CGAL::intersection(outer_circle, perp, std::back_inserter(res));
   Point_2 upperright;
-  for (auto iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_upperedge.x()))
@@ -207,9 +206,8 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume * /*hcalenvelope
   // we have 2 intersections - we want the one furthest to the right (largest x). The correct one is
   // certainly > 0 but the second one depends on the tilt angle and might also be > 0
   double minx = 0;
-  for (auto iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > minx)
@@ -254,9 +252,8 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
 #endif
   CGAL::intersection(inner_circle, perp, std::back_inserter(res));
   Point_2 lowerleft;
-  for (auto iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > 0)
@@ -282,9 +279,8 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   res.clear();  // just clear the content from the last intersection search
   CGAL::intersection(outer_circle, perp2, std::back_inserter(res));
   Point_2 lowerright;
-  for (auto iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
@@ -323,9 +319,8 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
 #endif
   CGAL::intersection(inner_circleA, perpA, std::back_inserter(resA));
   double pxmax = 0.;
-  for (auto iterA = resA.begin(); iterA != resA.end(); ++iterA)
+  for (const auto& obj : resA)
   {
-    CGAL::Object obj = *iterA;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > pxmax)
@@ -351,9 +346,8 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   Circle_2 outer_circleA(so1A, so2A, so3A);
   resA.clear();  // just clear the content from the last intersection search
   CGAL::intersection(outer_circleA, perpA2, std::back_inserter(resA));
-  for (auto iterA = resA.begin(); iterA != resA.end(); ++iterA)
+  for (const auto& obj : resA)
   {
-    CGAL::Object obj = *iterA;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
@@ -410,9 +404,8 @@ void PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &uple
   CGAL::intersection(inner_circle, sekperp, std::back_inserter(res));
   double pxmax = 0.;
   Point_2 tangtouch;
-  for (auto iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > pxmax)
@@ -896,9 +889,8 @@ void PHG4InnerHcalDetector::SetTiltViaNcross()
 #endif
   CGAL::intersection(outer_circle, l_up, std::back_inserter(res));
   Point_2 upperright;
-  for (auto iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > 0)
@@ -917,9 +909,8 @@ void PHG4InnerHcalDetector::SetTiltViaNcross()
   res.clear();
   Point_2 midpoint;
   CGAL::intersection(mid_circle, l_right, std::back_inserter(res));
-  for (auto iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > 0)
