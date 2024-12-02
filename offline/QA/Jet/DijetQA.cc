@@ -24,9 +24,9 @@ DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   , m_ptRange(1, 100)
   , m_nJet(-1)
   , m_nJetPair(-1)
-  , m_centrality(-1)
+  /*, m_centrality(-1)*/
   , m_zvtx(-1)
-  , m_impactparam(-1)
+  /*, m_impactparam(-1)*/
   , m_Ajj(-1)
   , m_xj(-1)
   , m_ptl(-1)
