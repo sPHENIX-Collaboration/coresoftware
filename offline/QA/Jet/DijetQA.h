@@ -98,7 +98,7 @@ class DijetQA : public SubsysReco
   int ntowers_opening = 2;
   float DeltaPhi = ntowers_opening * DeltaPhiOne;
   int m_nJet = 0, m_nJetPair = 0;
-  float m_centrality = 0., m_zvtx = 0., m_impactparam = 0., m_Ajj = 0., m_xj = 0., m_ptl = 0., m_ptsl = 0.;
+  float /* m_centrality = 0.,*/ m_zvtx = 0.,/* m_impactparam = 0., */m_Ajj = 0., m_xj = 0., m_ptl = 0., m_ptsl = 0.;
   float m_phil = 0., m_phisl = 0., m_dphil = 0., m_dphi = 0., m_etal = 0., m_etasl = 0., m_deltaeta = 0.;
   TH1F *h_Ajj = nullptr, *h_xj = nullptr, *h_pt = nullptr, *h_dphi = nullptr;
   TH2F *h_Ajj_pt = nullptr, *h_xj_pt = nullptr, *h_dphi_pt = nullptr, *h_dphi_Ajj = nullptr;
