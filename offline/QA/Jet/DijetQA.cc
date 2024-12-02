@@ -17,7 +17,7 @@
 #include <phool/PHCompositeNode.h>
 
 //____________________________________________________________________________..
-DijetQA::DijetQA(const std::string& name)
+DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   : SubsysReco(name)
   , m_moduleName(name)
   , m_etaRange(-1.1, 1.1)
@@ -38,10 +38,9 @@ DijetQA::DijetQA(const std::string& name)
   , m_deltaeta(-1)
   , m_doTrgSelect(false)
   , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
+  , m_recoJetName(recojetname)
 {
   if(Verbosity() > 1 )std::cout << "DijetQA::DijetQA(const std::string &name) Calling ctor" << std::endl;
-  m_recoJetName="AntiKt_Tower_r04"; //just using the antikt jets 
-  //to exted want to include other jet recos
 }
 
 //____________________________________________________________________________..
@@ -70,22 +69,22 @@ int DijetQA::Init(PHCompositeNode* /*topNode*/)
 	      smallModuleName.begin(),
 	      ::tolower);
 	//std::string radius_string="r04"; //preparing to include more radii of jets 
-	h_Ajj=new TH1F(Form("h_%s_%s_Ajj", m_moduleName, m_recoJetName), Form("A_{jj} for identified jet pairs anti-kt %s; A_{jj}; N_{pairs}", m_recoJetName), 100, -0.005, 0.995);
-	h_xj=new TH1F(Form("h_%s_%s_xj", m_moduleName, m_recoJetName), Form("x_{j} for identified jet pairs; x_{j}; N_{pairs}", m_recoJetName), 100, -0.005, 0.995);
-	h_pt=new TH1F(Form("h_%s_%s_pt", m_moduleName, m_recoJetName), Form("p_{T} for leading jets in identified pairs; p_{T} [GeV/c]; N_{jet}", m_recoJetName), 70, -0.5, 69.5);
-	h_dphi=new TH1F(Form("h_%s_%s_dphi", m_moduleName, m_recoJetName), Form("|#Delta #varphi| for identified jet pairs; |#Delta #phi|; N_{pairs}", m_recoJetName), 64, 0, 6.2831);
-	h_Ajj_pt=new TH2F(Form("h_%s_%s_Ajj_pt", m_moduleName, m_recoJetName), Form("A_{jj} as a function of leading jet $p_{T}$; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}", m_recoJetName), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_xj_pt=new TH2F(Form("h_%s_%s_xj_pt", m_moduleName, m_recoJetName), Form("x_{j} as a function of leading jet $p_{T}$; p_{T}^{leading} [GeV]; x_{j}; N_{pairs}", m_recoJetName), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_dphi_pt=new TH2F(Form("h_%s_%s_dphi_pt", m_moduleName, m_recoJetName), Form("|#Delta #varphi| of dijet pair as a function of leading jet p_{T}; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}", m_recoJetName), 70, -0.5, 69.5, 64, 0, 6.2832);
-	h_dphi_Ajj=new TH2F(Form("h_%s_%s_dphi_Ajj", m_moduleName, m_recoJetName), Form("A_{jj} of dijet pair as a function of |#Delta #varphi|; |#Delta #varphi|; A_{jj}; N_{pairs}", m_recoJetName), 64, 0, 6.2831, 100, -0.005, 0.995);
-	h_Ajj_l=new TH1F(Form("h_%s_%s_Ajj_l", m_moduleName, m_recoJetName), Form("A_{jj} for event leading jet pairs; A_{jj}; N_{pairs}", m_recoJetName), 100, -0.005, 0.995);
-	h_xj_l=new TH1F(Form("h_%s_%s_xj_l", m_moduleName, m_recoJetName), Form("x_{j} for event leading jet pairs; x_{j}; N_{pairs}", m_recoJetName), 100, -0.005, 0.995);
-	h_pt_l=new TH1F(Form("h_%s_%s_pt_l", m_moduleName, m_recoJetName), Form("p_{T} for leading jets in event leading pair; p_{T} [GeV/c]; N_{jet}", m_recoJetName), 70, -0.5, 69.5);
-	h_dphi_l=new TH1F(Form("h_%s_%s_dphi_l", m_moduleName, m_recoJetName), Form("|#Delta #varphi| for leading jet pairs; |#Delta #varphi|; N_{pairs}", m_recoJetName), 64, 0, 6.2831);
-	h_Ajj_pt_l=new TH2F(Form("h_%s_%s_Ajj_pt_l", m_moduleName, m_recoJetName), Form("A_{jj} of event leading dijet pair as a function of leading jet p_{T}; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}", m_recoJetName), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_xj_pt_l=new TH2F(Form("h_%s_%s_xj_pt_l", m_moduleName, m_recoJetName), Form("x_{j} of event leading dijet pair as a function of leading jet p_{T}; p_{T}^{leading} [GeV/c]; x_{j}; N_{pairs}", m_recoJetName), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_dphi_pt_l=new TH2F(Form("h_%s_%s_dphi_pt_l", m_moduleName, m_recoJetName), Form("|#Delta #varphi| of event leading dijet pair as a function of leading jet p_{T}; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}", m_recoJetName), 70, -0.5, 69.5, 64, 0, 6.2831);
-	h_dphi_Ajj_l=new TH2F(Form("h_%s_%s_dphi_Ajj_l", m_moduleName, m_recoJetName), Form("A_{jj} of event leading dijet pair as a function of |#Delta #varphi|; |#Delta #varphi|^{leading}; A_{jj}; N_{pairs}", m_recoJetName), 64, 0, 6.2831, 100, -0.005, 0.995);
+	h_Ajj=new TH1F(Form("h_%s_Ajj", smallModuleName.c_str()), Form("A_{jj} for identified jet pairs for %s; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 100, -0.005, 0.995);
+	h_xj=new TH1F(Form("h_%s_xj", smallModuleName.c_str()), Form("x_{j} for identified jet pairs for %s; x_{j}; N_{pairs}", m_recoJetName.c_str()), 100, -0.005, 0.995);
+	h_pt=new TH1F(Form("h_%s_pt", smallModuleName.c_str()), Form("p_{T} for leading jets in identified pairs for %s; p_{T} [GeV/c]; N_{jet}", m_recoJetName.c_str()), 70, -0.5, 69.5);
+	h_dphi=new TH1F(Form("h_%s_dphi", smallModuleName.c_str()), Form("|#Delta #varphi| for identified jet pairs for %s; |#Delta #phi|; N_{pairs}", m_recoJetName.c_str()), 64, 0, 6.2831);
+	h_Ajj_pt=new TH2F(Form("h_%s_Ajj_pt", smallModuleName.c_str()), Form("A_{jj} as a function of leading jet $p_{T}$ for %s; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 100, -0.005, 0.995);
+	h_xj_pt=new TH2F(Form("h_%s_xj_pt", smallModuleName.c_str()), Form("x_{j} as a function of leading jet $p_{T}$ for %s; p_{T}^{leading} [GeV]; x_{j}; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 100, -0.005, 0.995);
+	h_dphi_pt=new TH2F(Form("h_%s_dphi_pt", smallModuleName.c_str()), Form("|#Delta #varphi| of dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 64, 0, 6.2832);
+	h_dphi_Ajj=new TH2F(Form("h_%s_dphi_Ajj", smallModuleName.c_str()), Form("A_{jj} of dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 64, 0, 6.2831, 100, -0.005, 0.995);
+	h_Ajj_l=new TH1F(Form("h_%s_Ajj_l", smallModuleName.c_str()), Form("A_{jj} for event leading jet pairs for %s; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 100, -0.005, 0.995);
+	h_xj_l=new TH1F(Form("h_%s_xj_l", smallModuleName.c_str()), Form("x_{j} for event leading jet pairs for %s; x_{j}; N_{pairs}", m_recoJetName.c_str()), 100, -0.005, 0.995);
+	h_pt_l=new TH1F(Form("h_%s_pt_l", smallModuleName.c_str()), Form("p_{T} for leading jets in event leading pair for %s; p_{T} [GeV/c]; N_{jet}", m_recoJetName.c_str()), 70, -0.5, 69.5);
+	h_dphi_l=new TH1F(Form("h_%s_dphi_l", smallModuleName.c_str()), Form("|#Delta #varphi| for leading jet pairs for %s; |#Delta #varphi|; N_{pairs}", m_recoJetName.c_str()), 64, 0, 6.2831);
+	h_Ajj_pt_l=new TH2F(Form("h_%s_Ajj_pt_l", smallModuleName.c_str()), Form("A_{jj} of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 100, -0.005, 0.995);
+	h_xj_pt_l=new TH2F(Form("h_%s_xj_pt_l", smallModuleName.c_str()), Form("x_{j} of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; x_{j}; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 100, -0.005, 0.995);
+	h_dphi_pt_l=new TH2F(Form("h_%s_dphi_pt_l", smallModuleName.c_str()), Form("|#Delta #varphi| of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 64, 0, 6.2831);
+	h_dphi_Ajj_l=new TH2F(Form("h_%s_dphi_Ajj_l", smallModuleName.c_str()), Form("A_{jj} of event leading dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|^{leading}; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 64, 0, 6.2831, 100, -0.005, 0.995);
 	
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -112,6 +111,7 @@ int DijetQA::process_event(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::EVENT_OK;
     }
   }
+/* //removing the centrality for now, will add back in with a conditional flag for pp
   CentralityInfo* cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
   if (!cent_node)
   {
@@ -126,7 +126,7 @@ int DijetQA::process_event(PHCompositeNode* topNode)
   {
     m_centrality = cent_node->get_centile(CentralityInfo::PROP::bimp);
     m_impactparam = cent_node->get_quantity(CentralityInfo::PROP::bimp);
-  }
+  }*/
   GlobalVertex* vtx = nullptr;
   GlobalVertexMap* vtxmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vtxmap || vtxmap->empty())
