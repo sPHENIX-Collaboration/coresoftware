@@ -25,8 +25,6 @@ class PHTrackClusterAssociator : public SubsysReco
  public:
   PHTrackClusterAssociator(const std::string& name = "PHTrackClusterAssociator");
 
-  ~PHTrackClusterAssociator() override;
-
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int ResetEvent(PHCompositeNode* topNode) override;
@@ -49,7 +47,8 @@ class PHTrackClusterAssociator : public SubsysReco
   /// Objects to hold calorimeter information. There are
   /// only 3 calo layers
   const static int m_nCaloLayers = 3;
-  std::vector<std::string> m_caloNames;
+  std::vector<std::string> m_caloNames = {"CEMC", "HCALIN", "HCALOUT"};
+
   /// An optional map that allows projection to an arbitrary radius
   /// Results are written to the SvtxTrack based on the provided CAL_LAYER
   std::map<std::string, float> m_caloRadii;

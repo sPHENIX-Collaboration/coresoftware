@@ -1,11 +1,11 @@
 ##############################################
-# please add new classes in alphabetical order
+# please use alphabetical order for everything, it's just unreadable for others when in random order
 
 AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem`root-config --incdir`
 
 AM_LDFLAGS = \
@@ -25,17 +25,17 @@ libg4eval_la_LIBADD = \
   -lCLHEP \
   -lfun4all \
   -lg4detectors_io \
-  -lg4jets_io \
+  -ljetbase \
   -lglobalvertex_io \
   -lg4tracking_io \
-  -ltrackbase_historic_io \
-  -ltrack_io \
-  -ltpc_io \
-  -lmvtx_io \
   -lintt_io \
   -lmicromegas_io \
+  -lmvtx_io \
   -lphhepmc_io \
-  -lphg4hit
+  -lphg4hit \
+  -ltrack \
+  -ltrackbase_historic \
+  -ltpc_io
 
 pkginclude_HEADERS = \
   BaseTruthEval.h \
@@ -48,7 +48,7 @@ pkginclude_HEADERS = \
   DSTEmulator.h \
   EventEvaluator.h \
   FillTruthRecoMatchMap.h \
-  FillTruthRecoMatchTree.h \
+  FillClusMatchTree.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
@@ -64,13 +64,18 @@ pkginclude_HEADERS = \
   SvtxTruthEval.h \
   SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
-  g4evaltools.h \
+  g4evalfn.h \
+  ClusKeyIter.h \
+  TrackClusEvaluator.h \
+  TrkrClusterIsMatcher.h \
+  TrkrClusLoc.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
-  TrackSeedTrackMapConverter.h \
   TruthRecoTrackMatching.h \
-  compressor_generator.h
+  compressor_generator.h \
+  DSTTrackInfoWriter.h \
+  DSTTrackInfoReader.h
 
 
 ROOTDICTS = \
@@ -96,7 +101,7 @@ libg4eval_la_SOURCES = \
   DSTEmulator.cc \
   EventEvaluator.cc \
   FillTruthRecoMatchMap.cc \
-  FillTruthRecoMatchTree.cc \
+  FillClusMatchTree.cc \
   JetEvalStack.cc \
   JetEvaluator.cc \
   JetRecoEval.cc \
@@ -112,10 +117,14 @@ libg4eval_la_SOURCES = \
   SvtxTruthEval.cc \
   SvtxTruthRecoTableEval.cc \
   SvtxVertexEval.cc \
-  g4evaltools.cc \
+  g4evalfn.cc \
+  ClusKeyIter.cc \
+  TrackClusEvaluator.cc \
+  TrkrClusterIsMatcher.cc \
   TrackEvaluation.cc \
-  TrackSeedTrackMapConverter.cc \
-  TruthRecoTrackMatching.cc
+  TruthRecoTrackMatching.cc \
+  DSTTrackInfoWriter.cc \
+  DSTTrackInfoReader.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

@@ -9,14 +9,14 @@
 
 class TrackSeedContainer_v1 : public TrackSeedContainer
 {
-
- public: 
+ public:
   TrackSeedContainer_v1();
   TrackSeedContainer_v1(const TrackSeedContainer_v1& trackmap);
   TrackSeedContainer_v1& operator=(const TrackSeedContainer_v1& seedContainer);
   ~TrackSeedContainer_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
+  // cppcheck-suppress virtualCallInConstructor
   void Reset() override;
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new TrackSeedContainer_v1(*this); }
@@ -29,10 +29,10 @@ class TrackSeedContainer_v1 : public TrackSeedContainer
   TrackSeed* get(const std::size_t key) override;
   TrackSeed* insert(const TrackSeed* seed) override;
   void erase(const std::size_t key) override
-    {
-      delete m_seeds.at(key);
-      m_seeds.at(key) = nullptr;
-    }
+  {
+    delete m_seeds.at(key);
+    m_seeds.at(key) = nullptr;
+  }
 
   std::size_t index(ConstIter it) const override { return it - m_seeds.begin(); }
   std::size_t index(Iter it) const override { return it - m_seeds.begin(); }
@@ -41,7 +41,7 @@ class TrackSeedContainer_v1 : public TrackSeedContainer
   ConstIter find(const std::size_t key) const override { return m_seeds.begin() + key; }
   std::size_t find(const TrackSeed*) const override;
   ConstIter end() const override { return m_seeds.end(); }
-  
+
   Iter begin() override { return m_seeds.begin(); }
   Iter find(const std::size_t key) override { return m_seeds.begin() + key; }
   std::size_t find(const TrackSeed*) override;
@@ -51,7 +51,6 @@ class TrackSeedContainer_v1 : public TrackSeedContainer
   Container m_seeds;
 
   ClassDefOverride(TrackSeedContainer_v1, 1);
-
 };
 
 #endif

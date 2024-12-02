@@ -7,13 +7,13 @@
  * base class for hitset container
  */
 
-#include "TrkrDefs.h"        // for hitsetkey, TrkrId
+#include "TrkrDefs.h"  // for hitsetkey, TrkrId
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 class TrkrHitSet;
 
@@ -23,7 +23,6 @@ class TrkrHitSet;
 class TrkrHitSetContainer : public PHObject
 {
  public:
-  
   using Map = std::map<TrkrDefs::hitsetkey, TrkrHitSet *>;
   using Iterator = Map::iterator;
   using ConstIterator = Map::const_iterator;
@@ -34,20 +33,22 @@ class TrkrHitSetContainer : public PHObject
   ~TrkrHitSetContainer() override = default;
 
   //! PHObject functions
-  void Reset()  override;
-  
-  //! Add a TrkrHitSet to the container
-  virtual ConstIterator addHitSet(TrkrHitSet*);
+  void Reset() override;
 
-  virtual ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey, TrkrHitSet*);
+  //! Add a TrkrHitSet to the container
+  virtual ConstIterator addHitSet(TrkrHitSet *);
+
+  virtual ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey, TrkrHitSet *);
 
   //! preferred removal method, key is currently the hit id
   virtual void removeHitSet(TrkrDefs::hitsetkey)
-  {}
+  {
+  }
 
   //! inefficent, use key where possible instead
-  virtual void removeHitSet(TrkrHitSet*)
-  {}
+  virtual void removeHitSet(TrkrHitSet *)
+  {
+  }
 
   //! find or add HitSet
   virtual Iterator findOrAddHitSet(TrkrDefs::hitsetkey);
@@ -63,18 +64,21 @@ class TrkrHitSetContainer : public PHObject
 
   //! return a given HitSet based on its key
   virtual TrkrHitSet *findHitSet(TrkrDefs::hitsetkey)
-  { return nullptr; }
+  {
+    return nullptr;
+  }
 
   virtual unsigned int size() const
-  { return 0; }
+  {
+    return 0;
+  }
 
-  protected:
+ protected:
   //! ctor
   TrkrHitSetContainer() = default;
 
-  private:
-
+ private:
   ClassDefOverride(TrkrHitSetContainer, 1)
 };
 
-#endif //TRACKBASE_TRKRHITSETCONTAINER_H
+#endif  // TRACKBASE_TRKRHITSETCONTAINER_H

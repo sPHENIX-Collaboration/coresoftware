@@ -9,12 +9,19 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoDefs.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
+
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -25,11 +32,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-
-#include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfoDefs.h>
+#include <phool/phool.h>
 
 // Root headers
 #include <TAxis.h>  // for TAxis
@@ -43,38 +46,37 @@
 #include <Geant4/G4AffineTransform.hh>  // for G4AffineTransform
 #include <Geant4/G4Field.hh>
 #include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4LogicalVolume.hh>           // for G4LogicalVolume
-#include <Geant4/G4NavigationHistory.hh>       // for G4NavigationHistory
-#include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4LogicalVolume.hh>       // for G4LogicalVolume
+#include <Geant4/G4NavigationHistory.hh>   // for G4NavigationHistory
+#include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
 #include <Geant4/G4PropagatorInField.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
-#include <Geant4/G4String.hh>                  // for G4String
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRest...
+#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
-#include <Geant4/G4Track.hh>                   // for G4Track
-#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
+#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>  // for G4TouchableHandle
+#include <Geant4/G4Track.hh>            // for G4Track
+#include <Geant4/G4TrackStatus.hh>      // for fStopAndKill
 #include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4Types.hh>                   // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 // finally system headers
 #include <cassert>
 #include <cmath>  // for isfinite, sqrt
+#include <exception>
 #include <filesystem>
 #include <iostream>
 #include <string>  // for operator<<, string
 #include <tuple>   // for get, tuple
 
-class PHCompositeNode;
-
 //____________________________________________________________________________..
-PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, const PHParameters* parameters)
+PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
@@ -92,6 +94,13 @@ PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, co
                      m_Params->get_double_param("light_balance_inner_corr"),
                      m_Params->get_double_param("light_balance_outer_radius") * cm,
                      m_Params->get_double_param("light_balance_outer_corr"));
+
+  std::string mapfile = m_Params->get_string_param("MapFileName");
+  if (std::filesystem::path(mapfile).extension() != ".root")
+  {
+    mapfile = CDBInterface::instance()->getUrl(mapfile);
+    m_Params->set_string_param("MapFileName", mapfile);
+  }
 }
 
 PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
@@ -170,7 +179,10 @@ int PHG4OHCalSteppingAction::InitWithNode(PHCompositeNode* topNode)
       std::cout << e.what() << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-    if (Verbosity() > 1) topNode->print();
+    if (Verbosity() > 1)
+    {
+      topNode->print();
+    }
   }
   return 0;
 }
@@ -217,15 +229,24 @@ bool PHG4OHCalSteppingAction::NoHitSteppingAction(const G4Step* aStep)
     return false;
   }
 
-  if (!m_IsActiveFlag) return false;
+  if (!m_IsActiveFlag)
+  {
+    return false;
+  }
 
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
   // time window cut
   double pretime = prePoint->GetGlobalTime() / nanosecond;
   double posttime = postPoint->GetGlobalTime() / nanosecond;
-  if (posttime < m_tmin || pretime > m_tmax) return false;
-  if ((posttime - pretime) > m_dt) return false;
+  if (posttime < m_tmin || pretime > m_tmax)
+  {
+    return false;
+  }
+  if ((posttime - pretime) > m_dt)
+  {
+    return false;
+  }
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
   // we only need visible energy here
@@ -439,7 +460,7 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
       m_SaveTrackId = aTrack->GetTrackID();
       // set the initial energy deposit
       m_Hit->set_edep(0);
-      if (whichactive > 0)              // return of IsInOHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
+      if (whichactive > 0)  // return of IsInOHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
         m_Hit->set_sector(sector_id);   // the sector id
         m_Hit->set_scint_id(tower_id);  // the slat id
@@ -679,8 +700,8 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
   globPosVec[2] = globPosition.z();
   globPosVec[3] = aStep->GetPreStepPoint()->GetGlobalTime();
 
-  const Int_t binx = h->GetXaxis()->FindBin(globPosVec[0] / cm);
-  const Int_t biny = h->GetYaxis()->FindBin(globPosVec[1] / cm);
+  const int binx = h->GetXaxis()->FindBin(globPosVec[0] / cm);
+  const int biny = h->GetYaxis()->FindBin(globPosVec[1] / cm);
 
   if (h->GetBinContent(binx, binx) == 0)
   {  // only fille unfilled bins

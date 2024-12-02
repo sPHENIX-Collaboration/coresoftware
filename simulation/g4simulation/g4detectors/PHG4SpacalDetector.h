@@ -12,6 +12,7 @@
 #ifndef G4DETECTORS_PHG4SPACALDETECTOR_H
 #define G4DETECTORS_PHG4SPACALDETECTOR_H
 
+#include "PHG4CellDefs.h"
 #include "PHG4CylinderGeom_Spacalv1.h"
 
 #include <g4main/PHG4Detector.h>
@@ -32,6 +33,7 @@ class PHG4GDMLConfig;
 class PHG4SpacalDisplayAction;
 class PHParameters;
 class PHG4Subsystem;
+class RawTowerGeomContainer;
 
 class PHG4SpacalDetector : public PHG4Detector
 {
@@ -121,6 +123,8 @@ class PHG4SpacalDetector : public PHG4Detector
   PHG4SpacalDisplayAction* m_DisplayAction = nullptr;
 
  protected:
+  void AddTowerGeometryNode();
+  void AddCellGeometryNode();
   std::map<const G4VPhysicalVolume*, int> fiber_core_vol;
 
   //! map for G4VPhysicalVolume -> fiber ID
@@ -136,6 +140,15 @@ class PHG4SpacalDetector : public PHG4Detector
   int absorberactive = 0;
   int layer = -9999;
   int m_CosmicSetupFlag = 0;
+  int m_CellBinning = PHG4CellDefs::undefined;
+  int m_NumLayers = -1;
+  int m_NumPhiBins = -1;
+  int m_NumEtaBins = -1;
+  double m_Emin = 1e-6;
+  double m_EtaMin = NAN;
+  double m_PhiMin = NAN;
+  double m_EtaStep = NAN;
+  double m_PhiStep = NAN;
   std::string detector_type;
   std::string superdetector;
 
@@ -145,9 +158,12 @@ class PHG4SpacalDetector : public PHG4Detector
 
   //! registry for volumes that should not be exported, i.e. fibers
   PHG4GDMLConfig* gdml_config = nullptr;
-  //private:
+  // private:
 
   SpacalGeom_t* _geom = nullptr;
+
+  RawTowerGeomContainer* m_RawTowerGeomContainer = nullptr;
+  std::string m_TowerGeomNodeName;
 };
 
 #endif

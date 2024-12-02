@@ -28,43 +28,64 @@ namespace
 
   // check boundaries in axis
   /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
-  inline bool check_boundaries( const TAxis* axis, double value )
+  inline bool check_boundaries(const TAxis* axis, double value)
   {
-    const auto bin = axis->FindBin( value );
-    return( bin >= 2 && bin < axis->GetNbins() );
+    const auto bin = axis->FindBin(value);
+    return (bin >= 2 && bin < axis->GetNbins());
   }
-  
+
   // check boundaries in histogram, before interpolation
   /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
-  inline bool check_boundaries( const TH3* h, double r, double phi, double z )
+  inline bool check_boundaries(const TH3* h, double r, double phi, double z)
   {
-    return check_boundaries( h->GetXaxis(), r ) 
-      && check_boundaries( h->GetYaxis(), phi ) 
-      && check_boundaries( h->GetZaxis(), z );
+    return check_boundaries(h->GetXaxis(), r) && check_boundaries(h->GetYaxis(), phi) && check_boundaries(h->GetZaxis(), z);
   }
-  
+
+  // print histogram
+  [[maybe_unused]] void print_histogram(TH3* h)
+  {
+    std::cout << "PHG4TpcDistortion::print_histogram - name: " << h->GetName() << std::endl;
+    for (const auto& axis : {h->GetXaxis(), h->GetYaxis(), h->GetZaxis()})
+    {
+      std::cout
+          << "  " << axis->GetName()
+          << " bins: " << axis->GetNbins()
+          << " min: " << axis->GetXmin()
+          << " max: " << axis->GetXmax()
+          << std::endl;
+    }
+    std::cout << std::endl;
+  }
+
 }  // namespace
 
 //__________________________________________________________________________________________________________
 void PHG4TpcDistortion::Init()
 {
+  std::cout << "PHG4TpcDistortion::Init - m_phi_hist_in_radians: " << m_phi_hist_in_radians << std::endl;
+
   if (m_do_static_distortions)
   {
     std::cout << "PHG4TpcDistortion::Init - m_static_distortion_filename: " << m_static_distortion_filename << std::endl;
     m_static_tfile.reset(new TFile(m_static_distortion_filename.c_str()));
     if (!m_static_tfile->IsOpen())
     {
-      std::cout << "Static distortion file could not be opened!" << std::endl;
+      std::cout << "PHG4TpcDistortion::Init - Static distortion file could not be opened!" << std::endl;
       exit(1);
     }
 
-    //Open Static Space Charge Maps
+    // Open Static Space Charge Maps
     hDRint[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionR_negz"));
     hDRint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionR_posz"));
     hDPint[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionP_negz"));
     hDPint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionP_posz"));
     hDZint[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_negz"));
     hDZint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_posz"));
+    if (m_do_ReachesReadout)
+    {
+      hReach[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hReachesReadout_negz"));
+      hReach[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hReachesReadout_posz"));
+    }
   }
 
   if (m_do_time_ordered_distortions)
@@ -73,7 +94,14 @@ void PHG4TpcDistortion::Init()
     m_time_ordered_tfile.reset(new TFile(m_time_ordered_distortion_filename.c_str()));
     if (!m_time_ordered_tfile->IsOpen())
     {
-      std::cout << "TimeOrdered distortion file could not be opened!" << std::endl;
+      std::cout << "PHG4TpcDistortion::Init - TimeOrdered distortion file could not be opened!" << std::endl;
+      exit(1);
+    }
+
+    TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
+    if (!TimeTree)
+    {
+      std::cout << "PHG4TpcDistortion::Init - TimeOrdered distortion tree could not be found!" << std::endl;
       exit(1);
     }
 
@@ -84,14 +112,21 @@ void PHG4TpcDistortion::Init()
     TimehDP[1] = new TH3F();
     TimehDZ[0] = new TH3F();
     TimehDZ[1] = new TH3F();
+    TimehRR[0] = new TH3F();  // RR stands for ReachesReadout
+    TimehRR[1] = new TH3F();  // RR stands for ReachesReadout
 
-    TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
+    // assign to tree branches
     TimeTree->SetBranchAddress("hIntDistortionR_negz", &(TimehDR[0]));
     TimeTree->SetBranchAddress("hIntDistortionR_posz", &(TimehDR[1]));
     TimeTree->SetBranchAddress("hIntDistortionP_negz", &(TimehDP[0]));
     TimeTree->SetBranchAddress("hIntDistortionP_posz", &(TimehDP[1]));
     TimeTree->SetBranchAddress("hIntDistortionZ_negz", &(TimehDZ[0]));
     TimeTree->SetBranchAddress("hIntDistortionZ_posz", &(TimehDZ[1]));
+    if (m_do_ReachesReadout)
+    {
+      TimeTree->SetBranchAddress("hReachesReadout_negz", &(TimehRR[0]));
+      TimeTree->SetBranchAddress("hReachesReadout_posz", &(TimehRR[1]));
+    }
   }
 }
 
@@ -101,7 +136,10 @@ void PHG4TpcDistortion::load_event(int event_num)
   if (TimeTree)
   {
     int nentries = TimeTree->GetEntries();
-    if (event_num > nentries) event_num = event_num % nentries;
+    if (event_num > nentries)
+    {
+      event_num = event_num % nentries;
+    }
     if (event_num % nentries == 0 && event_num != 0)
     {
       std::cout << "Distortion map sequence repeating as of event number " << event_num << std::endl;
@@ -118,11 +156,11 @@ double PHG4TpcDistortion::get_x_distortion_cartesian(double x, double y, double 
   double r = sqrt(x * x + y * y);
   double phi = std::atan2(y, x);
 
-  //get components
+  // get components
   double dr = get_distortion('r', r, phi, z);
   double dphi = get_distortion('p', r, phi, z);
 
-  //rotate into cartesian based on local r phi:
+  // rotate into cartesian based on local r phi:
   double cosphi = cos(phi);
   double sinphi = sin(phi);
   double dx = dr * cosphi - dphi * sinphi;
@@ -135,11 +173,11 @@ double PHG4TpcDistortion::get_y_distortion_cartesian(double x, double y, double 
   double r = sqrt(x * x + y * y);
   double phi = std::atan2(y, x);
 
-  //get components
+  // get components
   double dr = get_distortion('r', r, phi, z);
   double dphi = get_distortion('p', r, phi, z);
 
-  //rotate into cartesian based on local r phi:
+  // rotate into cartesian based on local r phi:
   double cosphi = cos(phi);
   double sinphi = sin(phi);
   double dy = dphi * cosphi + dr * sinphi;
@@ -152,7 +190,7 @@ double PHG4TpcDistortion::get_z_distortion_cartesian(double x, double y, double 
   double r = sqrt(x * x + y * y);
   double phi = std::atan2(y, x);
 
-  //get components
+  // get components
   double dz = get_distortion('z', r, phi, z);
 
   return dz;
@@ -167,6 +205,11 @@ double PHG4TpcDistortion::get_r_distortion(double r, double phi, double z) const
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_rphi_distortion(double r, double phi, double z) const
 {
+  if (m_phi_hist_in_radians)
+  {  // if the hist is in radians, multiply by r to get the rphi distortion
+    return r * get_distortion('p', r, phi, z);
+  }
+
   return get_distortion('p', r, phi, z);
 }
 
@@ -175,15 +218,30 @@ double PHG4TpcDistortion::get_z_distortion(double r, double phi, double z) const
 {
   return get_distortion('z', r, phi, z);
 }
+//__________________________________________________________________________________________________________
+double PHG4TpcDistortion::get_reaches_readout(double r, double phi, double z) const
+{
+  if (m_do_ReachesReadout)
+  {
+    return get_distortion('R', r, phi, z);
+  }
+  else
+  {
+    return 1;
+  }
+}
 
 double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double z) const
 {
-  if (phi < 0) phi += 2 * M_PI;
-  const int zpart = (z > 0 ? 1 : 0);  //z<0 corresponds to the negative side, which is element 0.
+  if (phi < 0)
+  {
+    phi += 2 * M_PI;
+  }
+  const int zpart = (z > 0 ? 1 : 0);  // z<0 corresponds to the negative side, which is element 0.
 
   TH3* hdistortion = nullptr;
 
-  if (axis != 'r' && axis != 'p' && axis != 'z')
+  if (axis != 'r' && axis != 'p' && axis != 'z' && axis != 'R')
   {
     std::cout << "Distortion Requested along axis " << axis << " which is invalid.  Exiting.\n"
               << std::endl;
@@ -192,7 +250,7 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
 
   double _distortion = 0.;
 
-  //select the appropriate histogram:
+  // select the appropriate histogram:
   if (m_do_static_distortions)
   {
     if (axis == 'r')
@@ -207,10 +265,16 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     {
       hdistortion = hDZint[zpart];
     }
+    else if (axis == 'R')
+    {
+      hdistortion = hReach[zpart];
+    }
     if (hdistortion)
     {
-      if( check_boundaries( hdistortion, phi, r, z ) )
-      { _distortion += hdistortion->Interpolate(phi, r, z); }
+      if (check_boundaries(hdistortion, phi, r, z))
+      {
+        _distortion += hdistortion->Interpolate(phi, r, z);
+      }
     }
     else
     {
@@ -234,10 +298,16 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     {
       hdistortion = TimehDZ[zpart];
     }
+    else if (axis == 'R')
+    {
+      hdistortion = TimehRR[zpart];
+    }
     if (hdistortion)
     {
-      if( check_boundaries( hdistortion, phi, r, z ) )
-      { _distortion += hdistortion->Interpolate(phi, r, z); }
+      if (check_boundaries(hdistortion, phi, r, z))
+      {
+        _distortion += hdistortion->Interpolate(phi, r, z);
+      }
     }
     else
     {

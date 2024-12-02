@@ -82,8 +82,11 @@ BEmcProfile::BEmcProfile(const std::string& fname)
     }
     std::cout << std::endl;
   }
+// NOLINTNEXTLINE(bugprone-implicit-widening-of-multiplication-result)
   hmean = new TH1F*[nen * nth * NP];
+// NOLINTNEXTLINE(bugprone-implicit-widening-of-multiplication-result)
   hsigma = new TH1F*[nen * nth * NP];
+// NOLINTNEXTLINE(bugprone-implicit-widening-of-multiplication-result)
   hr4 = new TH1F*[nen * nth];
 
   TH1F* hh;
@@ -222,7 +225,9 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   }
   float zcg = sz / etot;
   float ycg = sy / etot;
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iz0cg = int(zcg + 0.5);
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iy0cg = int(ycg + 0.5);
   float ddz = fabs(zcg - iz0cg);
   float ddy = fabs(ycg - iy0cg);
@@ -375,8 +380,9 @@ float BEmcProfile::GetProbTest(std::vector<EmcModule>* plist, int NX, float en, 
   float ep[NP];
   float err[NP];
   for( int ip=0; ip<NP; ip++ )
+  {
     PredictEnergy(ip, en, theta, ddz, ddy, ep[ip], err[ip]);
-
+  }
   float chi2 = 0.;
   chi2 += (ep[0]-e1t)*(ep[0]-e1t)/err[0]/err[0];
   chi2 += (ep[1]-e2t)*(ep[1]-e2t)/err[1]/err[1];

@@ -26,9 +26,6 @@
 #include <map>
 #include <sstream>
 
-using namespace std;
-using std::make_pair;
-
 PHG4CylinderGeom_Spacalv3::PHG4CylinderGeom_Spacalv3()
 {
   SetDefault();
@@ -51,45 +48,47 @@ void PHG4CylinderGeom_Spacalv3::identify(std::ostream& os) const
      //
      << ", zmax: " << zmax << ", num scint: " << nscint << ", num sector: "
      << azimuthal_n_sec << ", unique tower: " << sector_tower_map.size()
-     << endl;
+     << std::endl;
 }
 
 void PHG4CylinderGeom_Spacalv3::Print(Option_t* opt) const
 {
   PHG4CylinderGeom_Spacalv2::Print(opt);
 
-  cout << "\t"
-       << "get_sidewall_outer_torr() = " << get_sidewall_outer_torr()
-       << endl;
-  cout << "\t"
-       << "get_sidewall_thickness() = " << get_sidewall_thickness()
-       << endl;
-  cout << "\t"
-       << "get_sidewall_mat() = " << get_sidewall_mat() << endl;
-  cout << "\t"
-       << "get_max_phi_bin_in_sec() = " << get_max_phi_bin_in_sec()
-       << endl;
+  std::cout << "\t"
+            << "get_sidewall_outer_torr() = " << get_sidewall_outer_torr()
+            << std::endl;
+  std::cout << "\t"
+            << "get_sidewall_thickness() = " << get_sidewall_thickness()
+            << std::endl;
+  std::cout << "\t"
+            << "get_sidewall_mat() = " << get_sidewall_mat() << std::endl;
+  std::cout << "\t"
+            << "get_max_phi_bin_in_sec() = " << get_max_phi_bin_in_sec()
+            << std::endl;
 
   subtower_consistency_check();
-  cout << "\t"
-       << "get_n_subtower_eta() = " << get_n_subtower_eta() << endl;
-  cout << "\t"
-       << "get_n_subtower_phi() = " << get_n_subtower_phi() << endl;
+  std::cout << "\t"
+            << "get_n_subtower_eta() = " << get_n_subtower_eta() << std::endl;
+  std::cout << "\t"
+            << "get_n_subtower_phi() = " << get_n_subtower_phi() << std::endl;
 
-  cout << "\t"
-       << "get_max_lightguide_height() = "
-       << get_max_lightguide_height() << endl;
-  cout << "\t"
-       << "Containing " << sector_tower_map.size()
-       << " unique towers per sector." << endl;
+  std::cout << "\t"
+            << "get_max_lightguide_height() = "
+            << get_max_lightguide_height() << std::endl;
+  std::cout << "\t"
+            << "Containing " << sector_tower_map.size()
+            << " unique towers per sector." << std::endl;
 
   if (get_construction_verbose() >= 2)
+  {
     for (const auto& it : sector_tower_map)
     {
-      cout << "\t";
-      cout << "\t";
-      it.second.identify(cout);
+      std::cout << "\t";
+      std::cout << "\t";
+      it.second.identify(std::cout);
     }
+  }
 }
 
 void PHG4CylinderGeom_Spacalv3::SetDefault()
@@ -116,17 +115,29 @@ void PHG4CylinderGeom_Spacalv3::ImportParameters(const PHParameters& param)
   PHG4CylinderGeom_Spacalv2::ImportParameters(param);
 
   if (param.exist_double_param("sidewall_thickness"))
+  {
     sidewall_thickness = param.get_double_param("sidewall_thickness");
+  }
   if (param.exist_double_param("sidewall_outer_torr"))
+  {
     sidewall_outer_torr = param.get_double_param("sidewall_outer_torr");
+  }
   if (param.exist_string_param("sidewall_mat"))
+  {
     sidewall_mat = param.get_string_param("sidewall_mat");
+  }
   if (param.exist_int_param("max_phi_bin_in_sec"))
+  {
     max_phi_bin_in_sec = param.get_int_param("max_phi_bin_in_sec");
+  }
   if (param.exist_string_param("divider_mat"))
+  {
     divider_mat = param.get_string_param("divider_mat");
+  }
   if (param.exist_double_param("divider_width"))
+  {
     divider_width = param.get_double_param("divider_width");
+  }
 
   // load sector_tower_map
   if (param.exist_int_param("sector_tower_map_size"))
@@ -137,7 +148,7 @@ void PHG4CylinderGeom_Spacalv3::ImportParameters(const PHParameters& param)
 
     for (int i = 0; i < n; i++)
     {
-      stringstream prefix;
+      std::stringstream prefix;
       prefix << "sector_tower_map";
       prefix << "[" << i << "]"
              << ".";
@@ -153,53 +164,30 @@ void PHG4CylinderGeom_Spacalv3::ImportParameters(const PHParameters& param)
 }
 
 PHG4CylinderGeom_Spacalv3::geom_tower::geom_tower()
-  : id(numeric_limits<int>::min())
-  ,  //
-  pDz(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDy1(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDx1(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDx2(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDy2(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDx3(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pDx4(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pTheta(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pPhi(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pAlp1(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pAlp2(numeric_limits<double>::signaling_NaN())
-  ,  //
-  pRotationAngleX(numeric_limits<double>::signaling_NaN())
-  ,  //
-  centralX(numeric_limits<double>::signaling_NaN())
-  ,  //
-  centralY(numeric_limits<double>::signaling_NaN())
-  ,  //
-  centralZ(numeric_limits<double>::signaling_NaN())
-  ,  //
-  ModuleSkinThickness(numeric_limits<double>::signaling_NaN())
-  ,  //
-  NFiberX(numeric_limits<int>::min())
-  ,  //
-  NFiberY(numeric_limits<int>::min())
-  ,  //
-  NSubtowerX(1)
-  ,  //
-  NSubtowerY(1)
-  ,  //
-  LightguideHeight(0)
-  ,  //
-  LightguideTaperRatio(numeric_limits<double>::signaling_NaN())
-  ,  //
-  LightguideMaterial("PMMA")
+  : id(std::numeric_limits<int>::min())
+  , pDz(std::numeric_limits<double>::quiet_NaN())
+  , pDy1(std::numeric_limits<double>::quiet_NaN())
+  , pDx1(std::numeric_limits<double>::quiet_NaN())
+  , pDx2(std::numeric_limits<double>::quiet_NaN())
+  , pDy2(std::numeric_limits<double>::quiet_NaN())
+  , pDx3(std::numeric_limits<double>::quiet_NaN())
+  , pDx4(std::numeric_limits<double>::quiet_NaN())
+  , pTheta(std::numeric_limits<double>::quiet_NaN())
+  , pPhi(std::numeric_limits<double>::quiet_NaN())
+  , pAlp1(std::numeric_limits<double>::quiet_NaN())
+  , pAlp2(std::numeric_limits<double>::quiet_NaN())
+  , pRotationAngleX(std::numeric_limits<double>::quiet_NaN())
+  , centralX(std::numeric_limits<double>::quiet_NaN())
+  , centralY(std::numeric_limits<double>::quiet_NaN())
+  , centralZ(std::numeric_limits<double>::quiet_NaN())
+  , ModuleSkinThickness(std::numeric_limits<double>::quiet_NaN())
+  , NFiberX(std::numeric_limits<int>::min())
+  , NFiberY(std::numeric_limits<int>::min())
+  , NSubtowerX(1)
+  , NSubtowerY(1)
+  , LightguideHeight(0)
+  , LightguideTaperRatio(std::numeric_limits<double>::quiet_NaN())
+  , LightguideMaterial("PMMA")
 {
 }
 
@@ -287,7 +275,7 @@ void PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
      << "Angles = " << pTheta << ", " << pPhi << ", " << pAlp1 << ", " << pAlp2
      << ", "                              //
      << "Rotation = " << pRotationAngleX  //
-     << endl;
+     << std::endl;
 }
 
 void PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
@@ -330,8 +318,11 @@ void PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
 PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int scint_id)
   : scint_ID(scint_id)
 {
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
   sector_ID = (scint_ID >> (kfiber_bit + ktower_bit)) & ((1 << ksector_bit) - 1);
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
   tower_ID = (scint_ID >> kfiber_bit) & ((1 << ktower_bit) - 1);
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
   fiber_ID = (scint_ID) & ((1 << kfiber_bit) - 1);
 }
 
@@ -341,10 +332,14 @@ PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int sector_id,
   , tower_ID(tower_id)
   , fiber_ID(fiber_id)
 {
-  assert(fiber_ID < (1 << kfiber_bit) and fiber_ID >= 0);
-  assert(tower_ID < (1 << ktower_bit) and tower_ID >= 0);
-  assert(sector_ID < (1 << ksector_bit) and sector_ID >= 0);
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
+  assert(fiber_ID < (1 << kfiber_bit) && fiber_ID >= 0);
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
+  assert(tower_ID < (1 << ktower_bit) && tower_ID >= 0);
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
+  assert(sector_ID < (1 << ksector_bit) && sector_ID >= 0);
 
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
   scint_ID = (((sector_ID << ktower_bit) | tower_ID) << kfiber_bit) | fiber_ID;
 }
 
@@ -353,22 +348,27 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
                                               const int sector_ID) const
 {
   // tower_ID to eta/z within a sector
+  // NOLINTNEXTLINE(bugprone-integer-division)
   int z_bin = floor(tower_ID / 10);
 
   int phi_bin_in_sec = -1;
 
   if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper)
+  {
     // colume ID is from -x to +x at the top of the detector, which is reverse of the phi bin direction.
     phi_bin_in_sec = max_phi_bin_in_sec - (tower_ID % 10);
+  }
   else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper_Tilted)
+  {
     phi_bin_in_sec = (tower_ID % 10);
+  }
 
   if (!(phi_bin_in_sec < max_phi_bin_in_sec and phi_bin_in_sec >= 0))
   {
-    cout
+    std::cout
         << "PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID - Fatal Error - invalid in put with "
         << "tower_ID = " << tower_ID << ", sector_ID = " << sector_ID << ", phi_bin_in_sec = " << phi_bin_in_sec
-        << ". Dump object:" << endl;
+        << ". Dump object:" << std::endl;
     Print();
   }
 
@@ -376,7 +376,7 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
 
   int phi_bin = sector_ID * max_phi_bin_in_sec + phi_bin_in_sec;
 
-  return make_pair(z_bin, phi_bin);
+  return std::make_pair(z_bin, phi_bin);
 }
 
 //! get approximate radial position of tower
@@ -384,7 +384,9 @@ double PHG4CylinderGeom_Spacalv3::
     get_tower_radial_position(const PHG4CylinderGeom_Spacalv3::geom_tower& tower) const
 {
   if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper)
+  {
     return tower.centralY;
+  }
   else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper_Tilted)
   {
     const double outter_wall_shift = get_sidewall_thickness() + get_sidewall_outer_torr() + get_assembly_spacing();
@@ -398,21 +400,21 @@ double PHG4CylinderGeom_Spacalv3::
 
     if (get_construction_verbose() >= 2)
     {
-      cout
+      std::cout
           << "PHG4CylinderGeom_Spacalv3::get_tower_radial_position - tower radial adjustment: "
              "from "
           << tower.centralY << " to " << tower_radial
-          << endl;
+          << std::endl;
     }
 
     return tower_radial;
   }
   else
   {
-    cout
+    std::cout
         << "PHG4CylinderGeom_Spacalv3::get_tower_radial_position - ERROR - "
            "unsupported configuration!"
-        << endl;
+        << std::endl;
     Print();
     exit(10);
   }
@@ -422,7 +424,10 @@ double PHG4CylinderGeom_Spacalv3::
 //! check that all towers has consistent sub-tower divider
 void PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
 {
-  if (sector_tower_map.begin() == sector_tower_map.end()) return;
+  if (sector_tower_map.begin() == sector_tower_map.end())
+  {
+    return;
+  }
 
   for (tower_map_t::const_iterator it = sector_tower_map.begin();
        it != sector_tower_map.end(); ++it)
@@ -433,23 +438,29 @@ void PHG4CylinderGeom_Spacalv3::subtower_consistency_check() const
 
   if (get_construction_verbose())
   {
-    cout
+    std::cout
         << "PHG4CylinderGeom_Spacalv3::subtower_consistency_check - Passed with get_n_subtower_phi() = "
         << get_n_subtower_phi() << " and get_n_subtower_eta()"
-        << get_n_subtower_eta() << endl;
+        << get_n_subtower_eta() << std::endl;
   }
 }
 //! sub-tower divider along the polar direction
 int PHG4CylinderGeom_Spacalv3::get_n_subtower_eta() const
 {
-  if (sector_tower_map.begin() == sector_tower_map.end()) return 0;
+  if (sector_tower_map.begin() == sector_tower_map.end())
+  {
+    return 0;
+  }
   assert(sector_tower_map.begin() != sector_tower_map.end());
   return sector_tower_map.begin()->second.NSubtowerY;
 }
 //! sub-tower divider along the azimuthal direction
 int PHG4CylinderGeom_Spacalv3::get_n_subtower_phi() const
 {
-  if (sector_tower_map.begin() == sector_tower_map.end()) return 0;
+  if (sector_tower_map.begin() == sector_tower_map.end())
+  {
+    return 0;
+  }
   assert(sector_tower_map.begin() != sector_tower_map.end());
   return sector_tower_map.begin()->second.NSubtowerX;
 }
@@ -462,7 +473,7 @@ PHG4CylinderGeom_Spacalv3::get_max_lightguide_height() const
   for (const auto& it : sector_tower_map)
   {
     const double h = it.second.LightguideHeight;
-    max_height = max(max_height, h);
+    max_height = std::max(max_height, h);
   }
 
   return max_height;
@@ -470,8 +481,8 @@ PHG4CylinderGeom_Spacalv3::get_max_lightguide_height() const
 
 void PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1()
 {
-  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1 - "
-       << "load four example central towers" << endl;
+  std::cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1 - "
+            << "load four example central towers" << std::endl;
 
   // Chris Cullen 2D spacal design July 2015
   radius = 90.000000;
@@ -544,8 +555,8 @@ void PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map1()
 
 void PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
 {
-  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2 - "
-       << "load one row of example forward towers" << endl;
+  std::cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2 - "
+            << "load one row of example forward towers" << std::endl;
 
   // Chris Cullen 2D spacal design July 2015
   radius = 90.000000;
@@ -760,9 +771,9 @@ void PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map2()
 
 void PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4()
 {
-  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4 - "
-       << "FermiLab test beam 2014. Need to move to calibration database"
-       << endl;
+  std::cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4 - "
+            << "FermiLab test beam 2014. Need to move to calibration database"
+            << std::endl;
 
   // From Oleg's documents
 
@@ -783,9 +794,11 @@ void PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4()
   const double wide_width_x = screen_size_x * sin(angle_screen_1_2);
 
   const double module_length = z_screen_6_7 - z_screen_1_2;
+
+  // NOLINTNEXTLINE(hicpp-static-assert,misc-static-assert)
   assert(module_length > 0);
 
-  //tapering, dxwidth/dlength
+  // tapering, dxwidth/dlength
   const double tapering_ratio = (wide_width_x - nawrrow_width_x) / module_length;
   assert(tapering_ratio < 1);
   assert(tapering_ratio > 0);
@@ -805,12 +818,12 @@ void PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4()
   const double nawrrow_width_x_construction = radius * 2 * tan(M_PI / azimuthal_n_sec) - 2 * assembly_spacing;
   const double wide_width_x_construction = (radius + module_length) * 2 * tan(M_PI / azimuthal_n_sec) - 2 * assembly_spacing;
 
-  cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4 - "
+  std::cout << "PHG4CylinderGeom_Spacalv3::load_demo_sector_tower_map4 - "
 
-       << "Adjust wide end width by ratio of "
-       << wide_width_x_construction / wide_width_x
-       << " and narrow end by ratio of "
-       << nawrrow_width_x_construction / nawrrow_width_x << endl;
+            << "Adjust wide end width by ratio of "
+            << wide_width_x_construction / wide_width_x
+            << " and narrow end by ratio of "
+            << nawrrow_width_x_construction / nawrrow_width_x << std::endl;
 
   sector_map.clear();
   for (int sec = 0; sec < nx; ++sec)

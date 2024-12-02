@@ -61,7 +61,7 @@ PHG4BbcSteppingAction::~PHG4BbcSteppingAction()
 //____________________________________________________________________________..
 bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
-  //std::cout << PHWHERE << " In PHG4BbcSteppingAction::UserSteppingAction()" << std::endl;
+  // std::cout << PHWHERE << " In PHG4BbcSteppingAction::UserSteppingAction()" << std::endl;
 
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -77,7 +77,7 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     return false;
   }
 
-  //std::cout << PHWHERE << " Found Hit" << std::endl;
+  // std::cout << PHWHERE << " Found Hit" << std::endl;
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -125,7 +125,7 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
   //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
-  //int detector_id = touch->GetCopyNumber(); // not used
+  // int detector_id = touch->GetCopyNumber(); // not used
   int tube_id = touch->GetCopyNumber(1);
 
   // Create a new hit if a G4 Track enters a new volume or is freshly created
@@ -169,17 +169,17 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     m_Hit->set_layer(tube_id);
     m_Hit->set_scint_id(tube_id);
 
-    //here we set the entrance values in cm
+    // here we set the entrance values in cm
     m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
     m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
     m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
     // time in ns
     m_Hit->set_t(0, prePoint->GetGlobalTime() / ns);
-    //set the track ID
+    // set the track ID
     m_Hit->set_trkid(aTrack->GetTrackID());
     m_SaveTrackId = aTrack->GetTrackID();
 
-    //set the initial energy deposit
+    // set the initial energy deposit
     m_EdepSum = 0;
     if (whichactive > 0)
     {

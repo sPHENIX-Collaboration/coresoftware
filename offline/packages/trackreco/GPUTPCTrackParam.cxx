@@ -101,10 +101,44 @@ bool GPUTPCTrackParam::TransportToX(double x, GPUTPCTrackLinearisation& t0, doub
 
   double ex = t0.CosPhi();
   double ey = t0.SinPhi();
-  double k = -t0.QPt() * Bz;
-  double dx = x - X();
+  double k = -t0.QPt() * Bz; // = 1/(radius of curvature)
 
-  double ey1 = k * dx + ey;
+  double R = 1./fabs(k);
+  double phi_center;
+  if(k>0.) phi_center = atan2(ey,ex) - M_PI/2.;
+  else phi_center = atan2(ey,ex) + M_PI/2.;
+  double xc = X() - R*cos(phi_center);
+  double yc = Y() - R*sin(phi_center);
+
+  double dx = x - X();
+  double xnew = x - xc;
+  double y0 = Y() - yc;
+
+
+  double discriminant = R*R*y0*y0-xnew*xnew*y0*y0;
+  if(discriminant<0.) return 0; // no intersection with new X
+
+  double ynew = sqrt(R*R-xnew*xnew);
+  if(y0<0.) ynew *= -1.;
+
+  double dy = ynew - y0;
+  double new_phi_center = atan2(ynew,xnew);
+  double ex1, ey1;
+  if(k>0.)
+  {
+    ey1 = sin(new_phi_center+M_PI/2.);
+    ex1 = cos(new_phi_center+M_PI/2.);
+  }
+  else
+  {
+    ey1 = sin(new_phi_center-M_PI/2.);
+    ex1 = cos(new_phi_center-M_PI/2.);
+  }
+
+  if(fabs(ey1) > maxSinPhi) return 0;
+  double dl = sqrt(dx*dx+dy*dy);
+/*
+  double ey1 = k * dx + ey; // dX/R as rotation angle only works if dY is small
   double ex1;
 
   // check for intersection with X=x
@@ -117,11 +151,11 @@ bool GPUTPCTrackParam::TransportToX(double x, GPUTPCTrackLinearisation& t0, doub
   if (ex < 0) {
     ex1 = -ex1;
   }
-
+*/
   double dx2 = dx * dx;
   double ss = ey + ey1;
   double cc = ex + ex1;
-
+/*
   if (std::abs(cc) < 1.e-4f || std::abs(ex) < 1.e-4f || std::abs(ex1) < 1.e-4f) {
     return 0;
   }
@@ -134,6 +168,7 @@ bool GPUTPCTrackParam::TransportToX(double x, GPUTPCTrackLinearisation& t0, doub
   if (cc < 0) {
     dl = -dl;
   }
+*/
   double dSin = dl * k / 2;
   if (dSin > 1) {
     dSin = 1;
@@ -141,7 +176,10 @@ bool GPUTPCTrackParam::TransportToX(double x, GPUTPCTrackLinearisation& t0, doub
   if (dSin < -1) {
     dSin = -1;
   }
-  double dS = (std::abs(k) > 1.e-4f) ? (2 * asin(dSin) / k) : dl;
+  double dphi_center = new_phi_center-phi_center;
+  if(dphi_center>M_PI) dphi_center = 2.*M_PI-dphi_center;
+  if(dphi_center<-M_PI) dphi_center = 2.*M_PI+dphi_center;
+  double dS = R*fabs(dphi_center);//(std::abs(k) > 1.e-4f) ? (2 * asin(dSin) / k) : dl;
   double dz = dS * t0.DzDs();
 
   if (DL) {
@@ -152,7 +190,7 @@ bool GPUTPCTrackParam::TransportToX(double x, GPUTPCTrackLinearisation& t0, doub
   double exi = 1.f / ex;
   double ex1i = 1.f / ex1;
 
-  double d[5] = {0, 0, GetPar(2) - t0.SinPhi(), GetPar(3) - t0.DzDs(), GetPar(4) - t0.QPt()};
+//  double d[5] = {0, 0, GetPar(2) - t0.SinPhi(), GetPar(3) - t0.DzDs(), GetPar(4) - t0.QPt()};
 
   // double H0[5] = { 1,0, h2,  0, h4 };
   // double H1[5] = { 0, 1, 0, dS,  0 };
@@ -163,14 +201,20 @@ bool GPUTPCTrackParam::TransportToX(double x, GPUTPCTrackLinearisation& t0, doub
   double h2 = dx * (1 + ey * ey1 + ex * ex1) * exi * ex1i * cci;
   double h4 = dx2 * (cc + ss * ey1 * ex1i) * cci * cci * (-Bz);
   double dxBz = dx * (-Bz);
-
-  t0.SetCosPhi(ex1);
-  t0.SetSinPhi(ey1);
-
+/*
   SetX(X() + dx);
   SetPar(0, Y() + dy + h2 * d[2] + h4 * d[4]);
   SetPar(1, Z() + dz + dS * d[3]);
   SetPar(2, t0.SinPhi() + d[2] + dxBz * d[4]);
+*/
+
+  SetX(X() + dx);
+  SetPar(0, Y() + dy);
+  SetPar(1, Z() + dz);
+  SetPar(2, ey1);
+
+  t0.SetCosPhi(ex1);
+  t0.SetSinPhi(ey1);
 
   double c00 = mC[0];
   double c10 = mC[1];
@@ -304,8 +348,25 @@ bool GPUTPCTrackParam::TransportToXWithMaterial(double x, GPUTPCTrackLinearisati
 
 //  const double kRho = 1.025e-3f;  // 0.9e-3;
 //  const double kRadLen = 29.532f; // 28.94;
-  const double kRho = 2.27925e-3f;
-  const double kRadLen = 14.403f;
+  double Ne_nEff = Ne_frac * Ne_Rho / Ne_mA;
+  double Ar_nEff = Ar_frac * Ar_Rho / Ar_mA; //Scaled effective number of particles in mix (Avogadro's number and density scale cancel in the ratio with total particles)
+  double CF4_nEff = CF4_frac * CF4_Rho / CF4_mA;
+  double N2_nEff = N2_frac * N2_Rho / N2_mA;
+  double isobutane_nEff = isobutane_frac * isobutane_Rho / isobutane_mA;
+  double nEff = Ar_nEff + CF4_nEff + N2_nEff + isobutane_nEff;
+
+  // these are for the sPHENIX TPC gas mixture
+  const double kRho = Ne_frac * Ne_Rho
+                    + Ar_frac * Ar_Rho
+                    + CF4_frac * CF4_Rho
+                    + N2_frac * N2_Rho
+                    + isobutane_frac * isobutane_Rho;
+
+  const double kRadLen = (1/nEff) * ((Ne_nEff * Ne_RadLen)
+                                  +  (Ar_nEff * Ar_RadLen)
+                                  +  (CF4_nEff * CF4_RadLen)
+                                  +  (N2_nEff * N2_RadLen)
+                                  +  (isobutane_nEff * isobutane_RadLen));
   const double kRhoOverRadLen = kRho / kRadLen;
   double dl;
 
@@ -403,12 +464,49 @@ double GPUTPCTrackParam::BetheBlochGas(double bg)
 //  const double mI = 140.e-9f;
 //  const double mZA = 0.49555f;
 
+  double Ne_nEff = Ne_frac * Ne_Rho / Ne_mA; //scaled effective number of particles in mix (avogadro's number and density scale cancel in the ratio with total particles)
+  double Ar_nEff = Ar_frac * Ar_Rho / Ar_mA; //scaled effective number of particles in mix (avogadro's number and density scale cancel in the ratio with total particles)
+  double CF4_nEff = CF4_frac * CF4_Rho / CF4_mA;
+  double N2_nEff = N2_frac * N2_Rho / N2_mA;
+  double isobutane_nEff = isobutane_frac * isobutane_Rho / isobutane_mA;
+  double nEff = Ar_nEff + CF4_nEff + N2_nEff + isobutane_nEff;
+
   // these are for the sPHENIX TPC gas mixture
-  const double rho = 2.27925e-3f;
-  const double x0 = 2.f;
-  const double x1 = 4.f;
-  const double mI = 14.e-9f;
-  const double mZA = 0.47999f; 
+//  const double rho = 2.485e-3f;
+//  const double x0 = 2.f;
+//  const double x1 = 4.f;
+//  const double mI = 11.6e-9f;
+//  const double mZA = 0.46158f; 
+
+  const double rho = Ne_frac * Ne_Rho
+                   + Ar_frac * Ar_Rho
+                   + CF4_frac * CF4_Rho
+                   + N2_frac * N2_Rho
+                   + isobutane_frac * isobutane_Rho;
+
+  const double x0 = (1/nEff) * ((Ne_nEff * Ne_x0)
+                             +  (Ar_nEff * Ar_x0)
+                             +  (CF4_nEff * CF4_x0)
+                             +  (N2_nEff * N2_x0)
+                             +  (isobutane_nEff * isobutane_x0));
+
+  const double x1 = (1/nEff) * ((Ne_nEff * Ne_x1)
+                             +  (Ar_nEff * Ar_x1)
+                             +  (CF4_nEff * CF4_x1)
+                             +  (N2_nEff * N2_x1)
+                             +  (isobutane_nEff * isobutane_x1));
+
+  const double mI = (1/nEff) * ((Ne_nEff * Ne_mI)
+                             +  (Ar_nEff * Ar_mI)
+                             +  (CF4_nEff * CF4_mI)
+                             +  (N2_nEff * N2_mI)
+                             +  (isobutane_nEff * isobutane_mI));
+
+  const double mZA = (1/nEff) * ((Ne_nEff * Ne_mZA)
+                              +  (Ar_nEff * Ar_mZA)
+                              +  (CF4_nEff * CF4_mZA)
+                              +  (N2_nEff * N2_mZA)
+                              +  (isobutane_nEff * isobutane_mZA));
   return BetheBlochGeant(bg, rho, x0, x1, mI, mZA);
 }
 
@@ -434,9 +532,9 @@ void GPUTPCTrackParam::CalculateFitParameters(GPUTPCTrackFitParam& par, double m
   //*!
 
   double qpt = GetPar(4);
-  if (mC[14] >= 1.f) {
-    qpt = 1.f / 0.35f;
-  }
+  //if (mC[14] >= 1.f) {
+  //  qpt = 1.f / 0.35f;
+  //}
 
   double p2 = (1.f + GetPar(3) * GetPar(3));
   double k2 = qpt * qpt;
@@ -445,7 +543,7 @@ void GPUTPCTrackParam::CalculateFitParameters(GPUTPCTrackFitParam& par, double m
 
   double pp2 = (k2 > 1.e-8f) ? p2 / k2 : 10000; // impuls 2
 
-  par.bethe = BetheBlochGas( pp2/mass2);
+  par.bethe = BetheBlochGas( beta2/(1+beta2) );
   //par.bethe = ApproximateBetheBloch(pp2 / mass2);
   par.e = std::sqrt(pp2 + mass2);
   par.theta2 = 14.1f * 14.1f / (beta2 * pp2 * 1e6f);
@@ -453,7 +551,7 @@ void GPUTPCTrackParam::CalculateFitParameters(GPUTPCTrackFitParam& par, double m
 
   // Approximate energy loss fluctuation (M.Ivanov)
 
-  const double knst = 0.07f; // To be tuned.
+  const double knst = 0.0007f; // To be tuned.
   par.sigmadE2 = knst * par.EP2 * qpt;
   par.sigmadE2 = par.sigmadE2 * par.sigmadE2;
 
@@ -522,7 +620,7 @@ bool GPUTPCTrackParam::Rotate(double alpha, double maxSinPhi)
   double cosPhi = cP * cA + sP * sA;
   double sinPhi = -cP * sA + sP * cA;
 
-  if (std::abs(sinPhi) > maxSinPhi || std::abs(cosPhi) < 1.e-2f || std::abs(cP) < 1.e-2f) {
+  if (std::abs(sinPhi) > maxSinPhi) {// || std::abs(cosPhi) < 1.e-2f || std::abs(cP) < 1.e-2f) {
     return 0;
   }
 
@@ -552,8 +650,10 @@ bool GPUTPCTrackParam::Rotate(double alpha, double maxSinPhi)
   mC[5] *= j2 * j2;
   mC[8] *= j2;
   mC[12] *= j2;
-
-  if (cosPhi < 0) {
+/*
+//  if (cosPhi < 0) {
+  if((cP>0 && cosPhi<0) || (cP<0 && cosPhi>0))
+  {
     SetSinPhi(-SinPhi());
     SetDzDs(-DzDs());
     SetQPt(-QPt());
@@ -564,7 +664,7 @@ bool GPUTPCTrackParam::Rotate(double alpha, double maxSinPhi)
     mC[10] = -mC[10];
     mC[11] = -mC[11];
   }
-
+*/
   // cout<<"      "<<mC[0]<<" "<<mC[1]<<" "<<mC[6]<<" "<<mC[10]<<" "<<mC[4]<<" "<<mC[5]<<" "<<mC[8]<<" "<<mC[12]<<endl;
   return 1;
 }

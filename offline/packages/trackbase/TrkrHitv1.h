@@ -20,21 +20,21 @@ class TrkrHitv1 : public TrkrHit
 {
  public:
   //! ctor
-  TrkrHitv1(); 
+  TrkrHitv1();
 
   //! dtor
   ~TrkrHitv1() override {}
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override
   {
-    os << "TrkrHitV1 class with adc = " << m_adc  << std::endl;
+    os << "TrkrHitV1 class with adc = " << m_adc << std::endl;
   }
   void Reset() override {}
   int isValid() const override { return 0; }
 
-  void addEnergy(const double edep) override {m_edep += edep;}
-  double getEnergy() override {return m_edep;}
-  void setAdc(const unsigned int adc) override {m_adc = adc;}
+  void addEnergy(const double edep) override { m_edep += edep; }
+  double getEnergy() override { return m_edep; }
+  void setAdc(const unsigned int adc) override { m_adc = adc; }
   unsigned int getAdc() override;
 
  protected:
@@ -43,4 +43,4 @@ class TrkrHitv1 : public TrkrHit
   ClassDefOverride(TrkrHitv1, 1);
 };
 
-#endif //TRACKBASE_TRKRHITV1_H
+#endif  // TRACKBASE_TRKRHITV1_H

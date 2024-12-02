@@ -69,7 +69,7 @@ class SvtxTrackEval
   // overlap calculations
   void calc_cluster_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);
   unsigned int get_nclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);
-  unsigned int get_layer_range_contribution(SvtxTrack* track, PHG4Particle* particle, unsigned int start_layer, unsigned int end_layer);
+  std::pair<unsigned int, unsigned int> get_layer_range_contribution(SvtxTrack* track, PHG4Particle* particle, unsigned int start_layer, unsigned int end_layer);
   unsigned int get_nclusters_contribution_by_layer(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);
   unsigned int get_nwrongclusters_contribution(SvtxTrack* svtxtrack, PHG4Particle* truthparticle);
   unsigned int get_errors() { return _errors + _clustereval.get_errors(); }

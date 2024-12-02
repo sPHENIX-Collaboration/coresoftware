@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 lib_LTLIBRARIES = libfieldsim.la   
@@ -44,8 +44,6 @@ testexternals_LDADD = \
   libfieldsim.la
 
 testexternals.cc:
-	echo "this is a test.  $(ROOTSYS)/include"
-	echo $(ROOTSYS)
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@

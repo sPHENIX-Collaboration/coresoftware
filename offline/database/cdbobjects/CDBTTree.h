@@ -24,7 +24,10 @@ class CDBTTree
   void SetSingleUInt64Value(const std::string &name, uint64_t value);
   void CommitSingle();
   void WriteCDBTTree();
+  void WriteSingleCDBTTree();
+  void WriteMultipleCDBTTree();
   void Print();
+  void SetFilename(const std::string &fname) {m_Filename = fname;}
   void LoadCalibrations();
   float GetSingleFloatValue(const std::string &name, int verbose = 1);
   float GetFloatValue(int channel, const std::string &name, int verbose = 1);

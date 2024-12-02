@@ -8,8 +8,8 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I$(G4_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(G4_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -19,13 +19,11 @@ AM_LDFLAGS = \
 libTPCHitTrackDisplay_la_LIBADD = \
   -lphool \
   -lg4detectors \
-  -lcentrality_io \
   -lphg4hit \
-  -lConstituentSubtractor \
-  -lg4jets_io \
+  -ltrack \
   -ltrackbase_historic_io \
-  -lSubsysReco \
-  -lcalo_io
+  -lcentrality_io \
+  -lSubsysReco
 
 pkginclude_HEADERS = \
   TPCHitTrackDisplay.h

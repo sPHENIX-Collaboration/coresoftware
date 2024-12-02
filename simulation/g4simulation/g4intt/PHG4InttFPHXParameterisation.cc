@@ -15,13 +15,13 @@ PHG4InttFPHXParameterisation::PHG4InttFPHXParameterisation(const double offsetx,
     fZFPHX[icopy] = offsetz + icopy * dz;
     /*
     std::cout << "      icopy " << icopy
-	      << " offsety " << offsety
-	      << " offsetz " << offsetz
-	      << " dz " << dz
-	      << " fXFPHX[icopy] " << fXFPHX[icopy]
-	      << " fYFPHX[icopy] " << fYFPHX[icopy]
-	      << " fZFPHX[icopy] " << fZFPHX[icopy]
-	      << std::endl;
+              << " offsety " << offsety
+              << " offsetz " << offsetz
+              << " dz " << dz
+              << " fXFPHX[icopy] " << fXFPHX[icopy]
+              << " fYFPHX[icopy] " << fYFPHX[icopy]
+              << " fZFPHX[icopy] " << fZFPHX[icopy]
+              << std::endl;
     */
   }
 }

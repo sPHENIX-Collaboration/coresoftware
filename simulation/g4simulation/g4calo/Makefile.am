@@ -11,16 +11,20 @@ AM_CXXFLAGS = `geant4-config --cflags`
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
+  g4hitshift.h \
+  g4hitshifthcal.h \
   HcalRawTowerBuilder.h \
   RawTowerBuilder.h \
   RawTowerBuilderByHitIndex.h \
   RawTowerDigitizer.h 
 
 libg4calo_la_SOURCES = \
+  g4hitshift.cc \
+  g4hitshifthcal.cc \
   HcalRawTowerBuilder.cc \
   RawTowerBuilder.cc \
   RawTowerBuilderByHitIndex.cc \

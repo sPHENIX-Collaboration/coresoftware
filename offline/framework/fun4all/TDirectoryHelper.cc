@@ -85,6 +85,7 @@ void TDirectoryHelper::copyToFile(TDirectory* src, TFile* dest)
 }
 
 //_____________________________________________________________________________
+// NOLINTNEXTLINE(misc-no-recursion)
 void TDirectoryHelper::duplicateDir(TDirectory* dest, TDirectory* source)
 {
   dest->cd();

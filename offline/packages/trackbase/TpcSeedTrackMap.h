@@ -3,19 +3,18 @@
 
 #include "TrkrDefs.h"
 
-#include  <phool/PHObject.h>
+#include <phool/PHObject.h>
 
 #include <map>
-#include <vector>
 #include <memory>
+#include <vector>
 
 class TpcSeedTrackMap : public PHObject
 {
-public:
-
-   using Map = std::multimap<unsigned int, unsigned int>;
-   using ConstIterator = Map::const_iterator;
-   using ConstRange = std::pair<Map::const_iterator, Map::const_iterator>;
+ public:
+  using Map = std::multimap<unsigned int, unsigned int>;
+  using ConstIterator = Map::const_iterator;
+  using ConstRange = std::pair<Map::const_iterator, Map::const_iterator>;
 
   void Reset() override;
 
@@ -27,14 +26,11 @@ public:
 
   virtual unsigned int size() = 0;
 
-  protected:
-
+ protected:
   TpcSeedTrackMap() = default;
 
-private:
-
- ClassDefOverride(TpcSeedTrackMap, 1);
-
+ private:
+  ClassDefOverride(TpcSeedTrackMap, 1);
 };
 
 #endif

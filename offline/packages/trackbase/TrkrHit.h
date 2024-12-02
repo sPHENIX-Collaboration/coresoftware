@@ -25,7 +25,6 @@
 class TrkrHit : public PHObject
 {
  public:
-
   //! dtor
   ~TrkrHit() override {}
   // PHObject virtual overloads
@@ -37,20 +36,19 @@ class TrkrHit : public PHObject
   int isValid() const override { return 0; }
 
   // these set and get the energy before digitization
-  virtual void addEnergy(const double){}
-  virtual double getEnergy() {return 0;}
+  virtual void addEnergy(const double) {}
+  virtual double getEnergy() { return 0; }
 
   // after digitization, these are the adc values
   virtual void setAdc(const unsigned int) {}
-  virtual unsigned int getAdc() { return 0;}
+  virtual unsigned int getAdc() { return 0; }
   /*
   virtual void setCrossing(const short int) {}
   virtual short int getCrossing() { return 0;}
   */
 
  protected:
-
   ClassDefOverride(TrkrHit, 1);
 };
 
-#endif //TRACKBASE_TRKRHIT_H
+#endif  // TRACKBASE_TRKRHIT_H

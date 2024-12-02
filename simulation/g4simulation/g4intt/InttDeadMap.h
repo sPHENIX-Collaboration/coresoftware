@@ -13,7 +13,7 @@ class InttDeadMap : public PHObject
  public:
   typedef std::set<PHG4CellDefs::keytype> Map;
 
-  ~InttDeadMap() override {}
+  ~InttDeadMap() override = default;
 
   int isValid() const override;
   void identify(std::ostream &os = std::cout) const override;
@@ -41,9 +41,7 @@ class InttDeadMap : public PHObject
   static int getWildCardID() { return s_wildCardID; }
 
  protected:
-  InttDeadMap()
-  {
-  }
+  InttDeadMap() = default;
 
  private:
   static int s_wildCardID;

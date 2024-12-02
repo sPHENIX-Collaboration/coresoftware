@@ -7,13 +7,13 @@
  * base class for hitset container
  */
 
-#include "TrkrDefs.h"        // for hitsetkey, TrkrId
+#include "TrkrDefs.h"  // for hitsetkey, TrkrId
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 class RawHitSet;
 
@@ -23,7 +23,6 @@ class RawHitSet;
 class RawHitSetContainer : public PHObject
 {
  public:
-  
   using Map = std::map<TrkrDefs::hitsetkey, RawHitSet *>;
   using Iterator = Map::iterator;
   using ConstIterator = Map::const_iterator;
@@ -34,20 +33,22 @@ class RawHitSetContainer : public PHObject
   ~RawHitSetContainer() override = default;
 
   //! PHObject functions
-  void Reset()  override;
-  
-  //! Add a RawHitSet to the container
-  virtual ConstIterator addHitSet(RawHitSet*);
+  void Reset() override;
 
-  virtual ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey, RawHitSet*);
+  //! Add a RawHitSet to the container
+  virtual ConstIterator addHitSet(RawHitSet *);
+
+  virtual ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey, RawHitSet *);
 
   //! preferred removal method, key is currently the hit id
   virtual void removeHitSet(TrkrDefs::hitsetkey)
-  {}
+  {
+  }
 
   //! inefficent, use key where possible instead
-  virtual void removeHitSet(RawHitSet*)
-  {}
+  virtual void removeHitSet(RawHitSet *)
+  {
+  }
 
   //! find or add HitSet
   virtual Iterator findOrAddHitSet(TrkrDefs::hitsetkey);
@@ -63,18 +64,21 @@ class RawHitSetContainer : public PHObject
 
   //! return a given HitSet based on its key
   virtual RawHitSet *findHitSet(TrkrDefs::hitsetkey)
-  { return nullptr; }
+  {
+    return nullptr;
+  }
 
   virtual unsigned int size() const
-  { return 0; }
+  {
+    return 0;
+  }
 
-  protected:
+ protected:
   //! ctor
   RawHitSetContainer() = default;
 
-  private:
-
+ private:
   ClassDefOverride(RawHitSetContainer, 1)
 };
 
-#endif //TRACKBASE_RAWHITSETCONTAINER_H
+#endif  // TRACKBASE_RAWHITSETCONTAINER_H

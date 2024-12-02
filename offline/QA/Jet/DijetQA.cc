@@ -7,7 +7,7 @@
 //								//
 //		Author:Skadi 				  	//
 //		First commit:  		13 Nov 24		//
-//		Most recent update:	21 Nov 24		//
+//		Most recent update:	02 Dec 24		//
 //		version:		v1.0			//
 //////////////////////////////////////////////////////////////////
 #include "DijetQA.h"
@@ -46,14 +46,17 @@ DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
 //____________________________________________________________________________..
 DijetQA::~DijetQA()
 {
-  if(Verbosity() > 1 ) std::cout << "DijetQA::~DijetQA() Calling dtor" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "DijetQA::~DijetQA() Calling dtor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
 int DijetQA::Init(PHCompositeNode* /*topNode*/)
 {
-//  std::cout << "DijetQA::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  	m_manager = QAHistManagerDef::getHistoManager(); //get the histogram anager
+  //  std::cout << "DijetQA::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  m_manager = QAHistManagerDef::getHistoManager();  // get the histogram anager
 
 	if(!m_manager){
 		std::cerr<<PHWHERE <<": PANIC: couldn't grab histogram manager!" <<std::endl;
@@ -88,14 +91,15 @@ int DijetQA::Init(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int DijetQA::InitRun(PHCompositeNode* /*topNode*/)
 {
-  if(Verbosity() > 1){
-	std::cout << "DijetQA::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "DijetQA::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int DijetQA::process_event(PHCompositeNode *topNode)
+int DijetQA::process_event(PHCompositeNode* topNode)
 {
   if(Verbosity() > 1) {
 	std::cout << "DijetQA::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
@@ -156,7 +160,7 @@ int DijetQA::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 void DijetQA::FindPairs(JetContainer* jets)
 {
-	//find all pairs that are potenital dijets and measure the kinematics
+  // find all pairs that are potenital dijets and measure the kinematics
   if (Verbosity() > 1)
   {
     std::cout << "JetKinematicCheck::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
@@ -292,17 +296,19 @@ void DijetQA::FindPairs(JetContainer* jets)
 //____________________________________________________________________________..
 int DijetQA::ResetEvent(PHCompositeNode* /*topNode*/)
 {
-  if(Verbosity() > 1) {
-	std::cout << "DijetQA::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
-	}
+  if (Verbosity() > 1)
+  {
+    std::cout << "DijetQA::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int DijetQA::EndRun(const int runnumber)
 {
-  if(Verbosity() > 1) {
-	std::cout << "DijetQA::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "DijetQA::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -354,14 +360,15 @@ int DijetQA::End(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int DijetQA::Reset(PHCompositeNode* /*topNode*/)
 {
-  if(Verbosity() > 1 ){
-	std::cout << "DijetQA::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "DijetQA::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-void DijetQA::Print(const std::string &what) const
+void DijetQA::Print(const std::string& what) const
 {
  if(Verbosity() > 1){
 	 std::cout << "DijetQA::Print(const std::string &what) const Printing info for " << what << std::endl;

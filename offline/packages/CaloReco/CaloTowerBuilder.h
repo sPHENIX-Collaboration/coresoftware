@@ -3,15 +3,20 @@
 #ifndef CALOTOWERBUILDER_H
 #define CALOTOWERBUILDER_H
 
-#include <fun4all/SubsysReco.h>
+#include "CaloTowerDefs.h"
 #include "CaloWaveformProcessing.h"
 
-#include <climits>
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
+#include <fun4all/SubsysReco.h>
+
+#include <limits>
 #include <string>
 
 class CaloWaveformProcessing;
 class PHCompositeNode;
 class TowerInfoContainer;
+class TowerInfoContainerv3;
 
 class CaloTowerBuilder : public SubsysReco
 {
@@ -21,20 +26,21 @@ class CaloTowerBuilder : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  enum DetectorSystem
-  {
-    CEMC = 0,
-    HCALIN = 1,
-    HCALOUT = 2,
-    EPD = 3,
-    MBD = 4
-  };
+  int process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  
 
-  void set_detector_type(CaloTowerBuilder::DetectorSystem dettype)
+  void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
     m_dettype = dettype;
+    return;
+  }
+
+  void set_builder_type(CaloTowerDefs::BuilderType buildertype)
+  {
+    m_buildertype = buildertype;
     return;
   }
 
@@ -49,31 +55,91 @@ class CaloTowerBuilder : public SubsysReco
     return;
   }
 
-  void set_processing_type( CaloWaveformProcessing::process processingtype)
+  void set_processing_type(CaloWaveformProcessing::process processingtype)
   {
     _processingtype = processingtype;
   }
 
-  void set_softwarezerosuppression(bool usezerosuppression,int softwarezerosuppression)
+  void set_softwarezerosuppression(bool usezerosuppression, int softwarezerosuppression)
   {
-    _nsoftwarezerosuppression = softwarezerosuppression;
-    _bdosoftwarezerosuppression = usezerosuppression;
+    m_nsoftwarezerosuppression = softwarezerosuppression;
+    m_bdosoftwarezerosuppression = usezerosuppression;
+  }
+
+  void set_outputNodePrefix(const std::string &name)
+  {
+    m_outputNodePrefix = name;
+    return;
+  }
+
+  void set_offlineflag(const bool f = true)
+  {
+    m_UseOfflinePacketFlag = f;
+  }
+  void set_timeFitLim(float low,float high)
+  {
+    m_setTimeLim = true;
+    m_timeLim_low = low;
+    m_timeLim_high = high;
+    return;
+  }
+
+  void set_bitFlipRecovery(bool dobitfliprecovery)
+  {
+    m_dobitfliprecovery = dobitfliprecovery;
+  }
+
+  void set_tbt_softwarezerosuppression(const std::string &url)
+  {
+    m_zsURL = url;
+    m_dotbtszs = true;
+    return;
+  }
+
+  void set_zs_fieldname(const std::string &fieldname)
+  {
+    m_zs_fieldname = fieldname;
+    return;
   }
 
  private:
-  CaloWaveformProcessing *WaveformProcessing;
-  CaloTowerBuilder::DetectorSystem m_dettype;
-  TowerInfoContainer *m_CaloInfoContainer;  //! Calo info
-  std::string m_detector; 
-  int m_packet_low;
-  int m_packet_high;
-  int m_nsamples;
-  int m_nchannels;
-  int m_nzerosuppsamples;
-  bool m_isdata;
-  int _nsoftwarezerosuppression;
-  bool _bdosoftwarezerosuppression;
-  CaloWaveformProcessing::process _processingtype;
+  int process_sim();
+  bool skipChannel(int ich, int pid);
+  bool isSZS(float time, float chi2);
+  CaloWaveformProcessing *WaveformProcessing{nullptr};
+  TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
+  TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
+  CDBTTree *cdbttree = nullptr;
+  CDBTTree *cdbttree_tbt_zs = nullptr;
+
+  bool m_isdata{true};
+  bool m_bdosoftwarezerosuppression{false};
+  bool m_UseOfflinePacketFlag{false};
+  bool m_dotbtszs{false};
+  int m_packet_low{std::numeric_limits<int>::min()};
+  int m_packet_high{std::numeric_limits<int>::min()};
+  int m_nsamples{16};
+  int m_nchannels{192};
+  int m_nzerosuppsamples{2};
+  int m_nsoftwarezerosuppression{40};
+  CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::CEMC};
+  CaloTowerDefs::BuilderType m_buildertype{CaloTowerDefs::kPRDFTowerv1};
+  CaloWaveformProcessing::process _processingtype{CaloWaveformProcessing::NONE};
+  std::string m_detector{"CEMC"};
+  std::string m_inputNodePrefix{"WAVEFORM_"};
+  std::string m_outputNodePrefix{"TOWERS_"};
+  std::string TowerNodeName;
+  bool m_setTimeLim{false};
+  float m_timeLim_low{-3.0};
+  float m_timeLim_high{4.0};
+  bool m_dobitfliprecovery{false};
+
+  std::string m_fieldname;
+  std::string m_calibName;
+  std::string m_directURL;
+  std::string m_zsURL;
+  std::string m_zs_fieldname{"zs_threshold"};
+
 
 };
 

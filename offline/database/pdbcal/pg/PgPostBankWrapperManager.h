@@ -23,7 +23,7 @@ class PgPostBankWrapperManager
   bool unregisterWrapper(PgPostBankWrapper* wrapper);
 
  private:
-  PgPostBankWrapperManager(){}
+  PgPostBankWrapperManager() {}
 
   typedef std::vector<PgPostBankWrapper*> WVECTOR;
 

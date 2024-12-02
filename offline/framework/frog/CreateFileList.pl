@@ -11,11 +11,12 @@ use List::Util qw(shuffle);
 sub commonfiletypes;
 sub fill_nocombine_files;
 sub print_single_types;
+sub print_runs;
 
-my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
+my $dbh = DBI->connect("dbi:ODBC:FileCatalog_read") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
 
-my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets");
+my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\' and dsttype <> 'beam' and dsttype <> 'cosmic' and dataset = 'mdc2'");
 $getdsttypes->execute();
 
 my %dsttype = ();
@@ -55,13 +56,25 @@ my %proddesc = (
     "17" => "HF pythia8 D0 pi-k Jets ptmin = 5GeV ",
     "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV",
     "19" => "JS pythia8 Jet ptmin = 40GeV",
-    "20" => "hijing pAu (0-10fm) pileup 0-10fm"
+    "20" => "hijing pAu (0-10fm) pileup 0-10fm",
+    "21" => "JS pythia8 Jet ptmin = 20GeV",
+    "22" => "cosmic field on",
+    "23" => "cosmic field off",
+    "24" => "AMPT",
+    "25" => "EPOS",
+    "26" => "JS pythia8 Detroit",
+    "27" => "JS pythia8 Photonjet ptmin = 5GeV",
+    "28" => "JS pythia8 Photonjet ptmin = 10GeV",
+    "29" => "JS pythia8 Photonjet ptmin = 20GeV"
     );
 
 my %pileupdesc = (
     "1" => "50kHz for Au+Au, 3MHz for p+p (default)",
     "2" => "25kHz for Au+Au",
-    "3" => "10kHz for Au+Au"
+    "3" => "10kHz for Au+Au",
+    "4" => "1MHz for pp 100us streaming",
+    "5" => "2MHz for pp 20us streaming",
+    ">5" => "pileup rate in kHz"
     );
 
 my $nEvents;
@@ -69,7 +82,7 @@ my $start_segment;
 my $last_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 6;
+my $runnumber;
 my $verbose;
 my $nopileup;
 my $embed;
@@ -79,7 +92,44 @@ my $pmin;
 my $pmax;
 my $production;
 my $momentum;
-GetOptions('embed' => \$embed, 'l:i' => \$last_segment, 'momentum:s' => \$momentum, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
+# that should teach me a lesson to not give a flag an optional strign value
+# just using embed:s leads to the next ARGV to be used as argument, even if it
+# is the next option. Sadly getopt swallows the - so parsing this becomes
+# quickly a nightmare, The only solution I see is to read the ARGV's - check for
+# the argument in question with a string compare (=~/em/) and then have a look
+# at the next argument (if it exists) and check if is is another option (=~/-/)
+# and if so use "auau" as default for $embed and push the modified option
+# into the new command line ARGV. It defaults to auau if -emb is set but
+# neither pau nor auau is given
+my @newargs = ();
+my $iarg = 0;
+foreach my $argument (@ARGV)
+{
+    if (substr($argument,1,2) eq "em")
+    {
+	my $firstchar = substr($ARGV[$iarg+1],0,1);
+	if (! exists $ARGV[$iarg+1] || substr($ARGV[$iarg+1],0,1) eq "-")
+	{
+	    push(@newargs, $argument);
+	    push(@newargs,"auau");
+	}
+	else
+	{
+	    push(@newargs, $argument);
+	    if ($ARGV[$iarg+1] ne "pau" && $ARGV[$iarg+1] ne "auau" && $ARGV[$iarg+1] ne "central")
+	    {
+		push(@newargs,"auau");
+	    }
+	}
+    }
+    else
+    {
+	push(@newargs,$argument);
+    }
+    $iarg++;
+}
+@ARGV=@newargs;
+GetOptions('embed:s' => \$embed, 'l:i' => \$last_segment, 'momentum:s' => \$momentum, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
 my %notlike = ();
@@ -88,7 +138,12 @@ my $AuAu_pileupstring;
 my $pp_pileupstring;
 my $pAu_pileupstring;
 my $pileupstring;
-
+if (! defined $runnumber && $#newargs >= 0)
+{
+    print "\nyou need to give a runnumber with -run <runnumber>\n";
+    print_runs();
+    exit(1);
+}
 if (defined $embed && defined $nopileup)
 {
     print "--embed and --nopileup flags do not work together, it does not make sense\n";
@@ -108,10 +163,18 @@ elsif ($pileup == 3)
 {
     $AuAu_pileupstring = sprintf("10kHz");
 }
+elsif ($pileup == 4)
+{
+    $pp_pileupstring = sprintf("1MHz");
+}
+elsif ($pileup == 5)
+{
+    $pp_pileupstring = sprintf("2MHz");
+}
 else
 {
-    print "invalid pileup option $pileup\n";
-    exit(1);
+    $pp_pileupstring = sprintf("%dkHz",$pileup);
+    $AuAu_pileupstring = sprintf("%dkHz",$pileup);
 }
 
 my $embedok = 0;
@@ -162,7 +225,15 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 6)
     {
-	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_20fm",$AuAu_pileupstring);
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("sHijing_0_488fm");
+	}
+	else
+	{
+	  $filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_20fm",$AuAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
         $pileupstring = $AuAu_pileupstring;
 	&commonfiletypes();
     }
@@ -214,7 +285,18 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
 	    }
 	    else
 	    {
@@ -232,7 +314,18 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
 	    }
 	    else
 	    {
@@ -250,7 +343,18 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
 	    }
 	    else
 	    {
@@ -290,14 +394,28 @@ if (defined $prodtype)
 
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring);
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
 	    }
 	}
 	else
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring, $particle);
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
 	    }
 	    else
 	    {
@@ -362,7 +480,18 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
 	    }
 	    else
 	    {
@@ -386,6 +515,194 @@ if (defined $prodtype)
         $pileupstring = $pAu_pileupstring;
 	&commonfiletypes();
     }
+    elsif ($prodtype == 21)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet20";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 22)
+    {
+	$filenamestring = "cosmic_magnet_on";
+        $filenamestring = sprintf("%s",$filenamestring);
+	$nopileup = 1; # it is no pileup only - no need to require it
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 23)
+    {
+	$filenamestring = "cosmic_magnet_off";
+        $filenamestring = sprintf("%s",$filenamestring);
+	$nopileup = 1; # it is no pileup only - no need to require it
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 24)
+    {
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("ampt_0_20fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("ampt_0_20fm_%s_bkg_0_20fm",$AuAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $AuAu_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 25)
+    {
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("epos_0_153fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("epos_0_153fm_%s_bkg_0_153fm",$AuAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $pAu_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 26)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Detroit";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 27)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_PhotonJet5";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 28)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_PhotonJet10";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 29)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_PhotonJet20";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+
     else
     {
 	print "no production type $prodtype\n";
@@ -407,12 +724,14 @@ if ($#ARGV < 0)
     {
 	print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
 	print "parameters:\n";
-	print "-embed : pp embedded into hijing (only for pp types)\n";
+	print "-embed : pp embedded into MB AuAu hijing (only for pp types)\n";
+	print "  -embed pau : embedded into pAu (only for pp types)\n";
+	print "  -embed central : embedded into central AuAu\n";
 	print "-l     : last segment\n";
 	print "-n     : <number of events>\n";
 	print "-nopileup : without pileup\n";
 	print "-rand  : randomize segments used\n";
-	print "-run   : runnumber (default = $runnumber)\n";
+	print "-run   : runnumber (mandatory, no default anymore)\n";
 	print "-s     : starting segment (remember first segment is 0)\n";
 	print "\n-type  : production type\n";
 	foreach my $pd (sort { $a <=> $b } keys %proddesc)
@@ -518,7 +837,6 @@ while($#ARGV >= 0)
 	    exit(1);
 	}
     }
-
     $req_types{$ARGV[0]} = 1;
     $allfilehash{$ARGV[0]} = ();
     $allevthash{$ARGV[0]} = ();
@@ -557,7 +875,7 @@ my $getfilesql = sprintf("select filename,segment,events from datasets where %s 
 my %getfiles = ();
 foreach  my $tp (keys %req_types)
 {
-    if ($tp eq "G4Hits")
+    if ($tp eq "G4Hits" || $tp eq "G4HitsOld")
     {
 	if (defined $embed)
 	{
@@ -579,9 +897,10 @@ foreach  my $tp (keys %req_types)
 	my $newgetfilesql = $getfilesql;
 	$newgetfilesql =~ s/$filenamestring_with_runnumber/$newfilenamestring/;
 	$getfiles{"G4Hits"} = $dbh->prepare($newgetfilesql);
+	$getfiles{"G4HitsOld"} = $dbh->prepare($newgetfilesql);
 	if (defined $verbose)
 	{
-	    print "sql: $newgetfilesql\n";
+	    print "sql (newgetfilesql): $newgetfilesql\n";
 	}
     }
     else
@@ -589,7 +908,7 @@ foreach  my $tp (keys %req_types)
 	$getfiles{$tp} = $dbh->prepare($getfilesql);
 	if (defined $verbose)
 	{
-	    print "sql: $getfilesql\n";
+	    print "sql (getfilesql): $getfilesql\n";
 	}
     }
 }
@@ -619,7 +938,7 @@ foreach my $tp (sort keys %req_types)
     $allevthash{$tp} = \%evthash;
 }
 
-my $entries = 100000; # given that we have 1000 files max, this value is always higher
+my $entries = 200000000; # given that we have 200k files max, this value is always higher
 my $lowtype;
 # here we find the dst type with the smallest number of entries (segments)
 # so we do not loop too much when finding matches for the other types
@@ -627,7 +946,7 @@ if (defined $verbose)
 {
     print "hashing done, finding hash with lowest number of entries\n";
 }
-foreach my $tp (sort keys %allfilehash)
+foreach my $tp (sort { $a <=> $b } keys %allfilehash)
 {
     if ($entries > keys %{$allfilehash{$tp}})
     {
@@ -644,9 +963,9 @@ if (defined $verbose)
 }
 
 my @segarray = ();
-foreach my $seg (sort keys %{$allfilehash{$lowtype}})
+foreach my $seg (sort { $a <=> $b } keys %{$allfilehash{$lowtype}})
 {
-    foreach my $tp (sort keys %allfilehash)
+    foreach my $tp (sort { $a <=> $b } keys %allfilehash)
     {
 	if ($tp eq $lowtype)
 	{
@@ -683,7 +1002,7 @@ if (defined $nEvents)
 }
 # sort list of segments and write to output file
 my $nSelectedEvents = 0;
-foreach my $seg (sort @segarray)
+foreach my $seg (sort { $a <=> $b } @segarray)
 {
     $nSelectedEvents += $allevthash{$lowtype}{$allfilehash{$lowtype}{$seg}};
 #	print "segment $seg is good\n";
@@ -696,7 +1015,7 @@ foreach my $seg (sort @segarray)
 
 }
 print "wrote the following list files containing >= $nSelectedEvents events:\n";
-foreach my $tp (sort keys %allfilehash)
+foreach my $tp (sort { $a <=> $b } keys %allfilehash)
 {
     print "$dsttype{$tp}\n";
 }
@@ -711,27 +1030,31 @@ $dbh->disconnect;
 
 sub commonfiletypes
 {
+# for no pileup pass(X) --> pass(X-1)
 # pass1
     $filetypes{"G4Hits"} = "G4 Hits";
+#    $filetypes{"G4HitsOld"} = "Old G4 Hits";
 # pass2
-    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
+    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC (now MBD), EPD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
     $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
-    $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
+# pass3 mbdepd
+    $filetypes{"DST_MBD_EPD"} = "Reconstructed Mbd, Epd";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
-# pass3 global
-    $filetypes{"DST_GLOBAL"} = "Reconstructed Global Detectors (Bbc, Epd)";
 #pass3 trk
     $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
     $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
+#pass4 truth jets
+    $filetypes{"DST_TRUTH_JET"} = "Truth Jets";
 #pass4 tracks
     $filetypes{"DST_TRKR_CLUSTER"} = "pass0 output: tpc clusters";
     $filetypes{"DST_TRACKSEEDS"} = "passA output: track seeds";
     $filetypes{"DST_TRACKS"} = "passC output: Reconstructed Tracks";
-#analysis pass
-    $filetypes{"DST_TRUTH_JET"} = "Truth Jets";
+#pass5 tracks/clusters
+    $filetypes{"DST_GLOBAL"} = "Global Info (MBD, sEPD, Vertex)";
+    $filetypes{"DST_TRUTH_RECO"} = "digested track truth info";
 }
 
 
@@ -852,4 +1175,17 @@ sub print_special_types
     {
 	    print "$name\n";
     }
+}
+
+sub print_runs
+{
+    my $getrunnumbers = $dbh->prepare("select distinct(runnumber) from datasets where dataset = 'mdc2' order by runnumber");
+    $getrunnumbers->execute();
+    print "Available Runs (check our wiki for more details for each runnumber):\n";
+    while(my @res = $getrunnumbers->fetchrow_array())
+    {
+	print "$res[0]\n";
+    }
+    print "NB: Not all DSTs are available for all runs\n";
+    $getrunnumbers->finish();
 }

@@ -100,7 +100,7 @@ void PHG4Utils::SetColour(G4VisAttributes* att, const string& material)
   {
     att->SetColour(G4Colour::Blue());
   }
-  else if (material == "BlackHole")
+  else if (material == "BlackHole" || material == "G4_AIR")
   {
     att->SetColour(G4Colour::Black());
   }
@@ -112,19 +112,15 @@ void PHG4Utils::SetColour(G4VisAttributes* att, const string& material)
   {
     att->SetColour(G4Colour::Magenta());
   }
-  else if (material == "G4_AIR")
-  {
-    att->SetColour(G4Colour::Black());
-  }
   else if (material == "G4_Al")
   {
     att->SetColour(G4Colour::Gray());
   }
-  else if (material == "G4_Au")
+  else if (material == "G4_Au" || material == "G4_KAPTON" || material == "G4_Si")
   {
     att->SetColour(G4Colour::Yellow());
   }
-  else if (material == "G4_CARBON_DIOXIDE")
+  else if (material == "G4_CARBON_DIOXIDE" || material == "Quartz")
   {
     att->SetColour(G4Colour::Green());
   }
@@ -140,10 +136,6 @@ void PHG4Utils::SetColour(G4VisAttributes* att, const string& material)
   {
     att->SetColour(0.29, 0.44, 0.54);
   }
-  else if (material == "G4_KAPTON")
-  {
-    att->SetColour(G4Colour::Yellow());
-  }
   else if (material == "G4_MYLAR")
   {
     att->SetColour(0.5, 0.5, 0.5, 0.25);
@@ -152,10 +144,6 @@ void PHG4Utils::SetColour(G4VisAttributes* att, const string& material)
   {
     att->SetColour(0., 1., 1., 0.25);
   }
-  else if (material == "G4_Si")
-  {
-    att->SetColour(G4Colour::Yellow());
-  }
   else if (material == "G4_TEFLON")
   {
     att->SetColour(G4Colour::White());
@@ -163,10 +151,6 @@ void PHG4Utils::SetColour(G4VisAttributes* att, const string& material)
   else if (material == "G4_W")
   {
     att->SetColour(0.36, 0.36, 0.36);
-  }
-  else if (material == "Quartz")
-  {
-    att->SetColour(G4Colour::Green());
   }
   else if (material == "Scintillator" || material == "G4_POLYSTYRENE")
   {
@@ -182,7 +166,7 @@ void PHG4Utils::SetColour(G4VisAttributes* att, const string& material)
   }
   else
   {
-    //cout << "default color red for material " << material << endl;
+    // cout << "default color red for material " << material << endl;
     att->SetColour(G4Colour::Cyan());
   }
   return;
@@ -221,20 +205,20 @@ std::pair<bool, std::pair<double, double>> PHG4Utils::lines_intersect(
     h = top / bottom;
   }
 
-  //intersection point R = C + F*h
+  // intersection point R = C + F*h
   if (h > 0. && h < 1.)
   {
     double rx = cx + fx * h;
     double ry = cy + fy * h;
-    //cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << endl;
+    // cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << endl;
     if ((rx > ax && rx > bx) || (rx < ax && rx < bx) || (ry < ay && ry < by) || (ry > ay && ry > by))
     {
-      //cout << "       NO segment/segment intersection!" << endl;
+      // cout << "       NO segment/segment intersection!" << endl;
       return make_pair(false, make_pair(NAN, NAN));
     }
     else
     {
-      //cout << "       segment/segment intersection!" << endl;
+      // cout << "       segment/segment intersection!" << endl;
       return make_pair(true, make_pair(rx, ry));
     }
   }
@@ -303,8 +287,8 @@ std::pair<bool, double> PHG4Utils::line_and_rectangle_intersect(
     vy.push_back(intersect4.second.second);
   }
 
-  //cout << "Rectangle intersections: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
-  //cout << "Number of intersections = " << vx.size() << endl;
+  // cout << "Rectangle intersections: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
+  // cout << "Number of intersections = " << vx.size() << endl;
 
   double rr = 0.;
   if (vx.size() == 2)
@@ -317,12 +301,12 @@ std::pair<bool, double> PHG4Utils::line_and_rectangle_intersect(
     // find which point (A or B) is within the rectangle
     if (ax > cx && ay > cy && ax < dx && ay < dy)  // point A is inside the rectangle
     {
-      //cout << "Point A is inside the rectangle." << endl;
+      // cout << "Point A is inside the rectangle." << endl;
       rr = sqrt((vx[0] - ax) * (vx[0] - ax) + (vy[0] - ay) * (vy[0] - ay));
     }
     if (bx > cx && by > cy && bx < dx && by < dy)  // point B is inside the rectangle
     {
-      //cout << "Point B is inside the rectangle." << endl;
+      // cout << "Point B is inside the rectangle." << endl;
       rr = sqrt((vx[0] - bx) * (vx[0] - bx) + (vy[0] - by) * (vy[0] - by));
     }
   }
@@ -334,6 +318,7 @@ std::pair<bool, double> PHG4Utils::line_and_rectangle_intersect(
   return make_pair(false, NAN);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 double PHG4Utils::sA(double r, double x, double y)
 {
   // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle

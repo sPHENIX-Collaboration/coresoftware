@@ -37,29 +37,28 @@
 #ifndef G4MAIN_PHG4REGIONINFORMATION_H
 #define G4MAIN_PHG4REGIONINFORMATION_H
 
+#include <Geant4/G4Types.hh>  // for G4bool
 #include <Geant4/G4VUserRegionInformation.hh>
-#include <Geant4/G4Types.hh>                   // for G4bool
 
 class PHG4RegionInformation : public G4VUserRegionInformation
 {
-  public:
-    PHG4RegionInformation(); 
-    ~PHG4RegionInformation() override{}
-    void Print() const override;
+ public:
+  PHG4RegionInformation();
+  ~PHG4RegionInformation() override {}
+  void Print() const override;
 
-  private:
-    G4bool isWorld;
-    G4bool isTracker;
-    G4bool isCalorimeter;
+ private:
+  G4bool isWorld;
+  G4bool isTracker;
+  G4bool isCalorimeter;
 
-  public:
-    inline void SetWorld(G4bool v=true) {isWorld = v;}
-    inline void SetTracker(G4bool v=true) {isTracker = v;}
-    inline void SetCalorimeter(G4bool v=true) {isCalorimeter = v;}
-    inline G4bool IsWorld() const {return isWorld;}
-    inline G4bool IsTracker() const {return isTracker;}
-    inline G4bool IsCalorimeter() const {return isCalorimeter;}
+ public:
+  inline void SetWorld(G4bool v = true) { isWorld = v; }
+  inline void SetTracker(G4bool v = true) { isTracker = v; }
+  inline void SetCalorimeter(G4bool v = true) { isCalorimeter = v; }
+  inline G4bool IsWorld() const { return isWorld; }
+  inline G4bool IsTracker() const { return isTracker; }
+  inline G4bool IsCalorimeter() const { return isCalorimeter; }
 };
 
 #endif
-

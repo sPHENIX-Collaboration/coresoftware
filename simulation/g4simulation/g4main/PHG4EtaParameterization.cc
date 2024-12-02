@@ -54,8 +54,8 @@ PHG4EtaParameterization::PHG4EtaParameterization(
 
   double totalEta = _maxEta - _minEta;
   double dEta = totalEta / _neta;
-  //double minZ = 1e6;
-  //double maxZ = -1e6;
+  // double minZ = 1e6;
+  // double maxZ = -1e6;
   for (unsigned int i = 0; i < neta; i++)
   {
     // Compute the edges of this eta bin
@@ -109,13 +109,13 @@ void PHG4EtaParameterization::ComputeTransformation(const G4int copyNo, G4VPhysi
   int iring = copyNo;
   G4ThreeVector origin(0, 0, _zpos.at(iring));
   physVol->SetTranslation(origin);
-  physVol->SetRotation(0);
+  physVol->SetRotation(nullptr);
 }
 
 void PHG4EtaParameterization::ComputeDimensions(G4Tubs& ring, const G4int copyNo,
-                                                const G4VPhysicalVolume*) const
+                                                const G4VPhysicalVolume* /*unused*/) const
 {
-  //int ieta = GetIEta(copyNo);
+  // int ieta = GetIEta(copyNo);
   ring.SetZHalfLength(_zhalf.at(copyNo));
   ring.SetInnerRadius(_radiusIn);
   ring.SetOuterRadius(_radiusOut);

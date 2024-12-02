@@ -27,15 +27,15 @@ class TowerBackgroundv1 : public TowerBackground
   float get_Psi2() override { return _Psi2; }
   int get_nStripsUsedForFlow() override { return _nStrips; }
 
-// our own - not from parent class
+  // our own - not from parent class
   virtual int get_nTowersUsedForFlow() { return _nTowers; }
 
  private:
   std::vector<std::vector<float> > _UE;
-  float _v2;
-  float _Psi2;
-  int _nStrips;
-  int _nTowers;
+  float _v2{0};
+  float _Psi2{0};
+  int _nStrips{0};
+  int _nTowers{0};
 
   ClassDefOverride(TowerBackgroundv1, 1);
 };

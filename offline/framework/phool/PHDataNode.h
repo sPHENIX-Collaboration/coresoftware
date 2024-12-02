@@ -29,7 +29,8 @@ class PHDataNode : public PHNode
   }
 
  protected:
-  union tobjcast {
+  union tobjcast
+  {
     T* data;
     TObject* tobj;
   };
@@ -65,7 +66,7 @@ PHDataNode<T>::~PHDataNode()
   if (data.data)
   {
     delete data.data;
-    data.data = 0;
+    data.data = nullptr;
   }
 }
 

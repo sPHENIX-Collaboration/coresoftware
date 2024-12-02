@@ -200,6 +200,7 @@ readagain:
     fileclose();
     if (!OpenNextFile())
     {
+      // NOLINTNEXTLINE(hicpp-avoid-goto)
       goto readagain;
     }
     return -1;
@@ -209,6 +210,7 @@ readagain:
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
+    // NOLINTNEXTLINE(hicpp-avoid-goto)
     goto readagain;
   }
   syncobject = findNode::getClass<SyncObject>(dstNode, syncdefs::SYNCNODENAME);
@@ -498,6 +500,7 @@ readnextsync:
       return Fun4AllReturnCodes::SYNC_FAIL;
     }
     syncbranchname.clear();  // clear the sync branch name, who knows - it might be different on new file
+    // NOLINTNEXTLINE(hicpp-avoid-goto)
     goto readnextsync;
   }
   if (!readfull)

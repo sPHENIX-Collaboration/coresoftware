@@ -1,6 +1,6 @@
 #include "Fun4AllEventOutStream.h"
 
-#include <fun4all/Fun4AllBase.h>                // for Fun4AllBase
+#include <fun4all/Fun4AllBase.h>  // for Fun4AllBase
 
 #include <phool/phool.h>
 
@@ -115,7 +115,7 @@ int Fun4AllEventOutStream::WriteEvent(Event *evt)
       if (Verbosity() > 0)
       {
         std::cout << "Fun4AllEventOutStream: dropping packet " << i
-             << " in list with id " << plist[i]->getIdentifier() << std::endl;
+                  << " in list with id " << plist[i]->getIdentifier() << std::endl;
       }
     }
   }

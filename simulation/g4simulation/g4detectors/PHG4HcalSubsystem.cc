@@ -25,8 +25,6 @@
 class PHG4Detector;
 class PHG4SteppingAction;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4HcalSubsystem::PHG4HcalSubsystem(const std::string& na, const int lyr)
   : detector_(nullptr)
@@ -57,9 +55,9 @@ PHG4HcalSubsystem::PHG4HcalSubsystem(const std::string& na, const int lyr)
 {
   // put the layer into the name so we get unique names
   // for multiple SVX layers
-  ostringstream nam;
-  nam << na << "_" << lyr;
-  Name(nam.str());
+  // std::ostringstream nam;
+  // nam << na << "_" << lyr;
+  Name(na + "_" + std::to_string(lyr));
 }
 
 //_______________________________________________________________________
@@ -90,36 +88,35 @@ int PHG4HcalSubsystem::InitRun(PHCompositeNode* topNode)
   detector_->OverlapCheck(CheckOverlap());
   if (active)
   {
-    ostringstream nodename;
+    std::string nodename;
     if (superdetector != "NONE")
     {
-      nodename << "G4HIT_" << superdetector;
+      nodename = "G4HIT_" + superdetector;
     }
     else
     {
-      nodename << "G4HIT_" << detector_type << "_" << layer;
+      nodename = "G4HIT_" + detector_type + "_" + std::to_string(layer);
     }
-    PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
+    PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
     if (!cylinder_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename), nodename, "PHObject"));
     }
     cylinder_hits->AddLayer(layer);
     if (absorberactive)
     {
-      nodename.str("");
       if (superdetector != "NONE")
       {
-        nodename << "G4HIT_ABSORBER_" << superdetector;
+        nodename = "G4HIT_ABSORBER_" + superdetector;
       }
       else
       {
-        nodename << "G4HIT_ABSORBER_" << detector_type << "_" << layer;
+        nodename = "G4HIT_ABSORBER_" + detector_type + "_" + std::to_string(layer);
       }
-      PHG4HitContainer* cylinder_hits_2 = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
+      PHG4HitContainer* cylinder_hits_2 = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!cylinder_hits_2)
       {
-        dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits_2 = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+        dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits_2 = new PHG4HitContainer(nodename), nodename, "PHObject"));
       }
       cylinder_hits_2->AddLayer(layer);
     }
@@ -173,8 +170,8 @@ void PHG4HcalSubsystem::SetTiltViaNcross(const int ncross)
 {
   if (ncross == 0)
   {
-    cout << Name() << " invalid crossing number " << ncross
-         << " how do you think we can construct a meaningful detector with this number????" << endl;
+    std::cout << Name() << " invalid crossing number " << ncross
+              << " how do you think we can construct a meaningful detector with this number????" << std::endl;
     exit(1);
   }
   // The delta phi angle between 2 adjacent slats is just 360/nslats. If
@@ -197,7 +194,7 @@ void PHG4HcalSubsystem::SetTiltViaNcross(const int ncross)
   {
     sign = -1;
   }
-  int ncr = fabs(ncross);
+  int ncr = std::abs(ncross);
   double thick = TrackerThickness;
   double c = radius + thick / 2.;
   double b = radius + thick;
@@ -211,12 +208,12 @@ void PHG4HcalSubsystem::SetTiltViaNcross(const int ncross)
   //   double tbeta = 180 - beta;
   //   double gamma = 180 - (alpha * 180. / M_PI) - tbeta;
   //   double a = b * sin(alpha) / sinb;
-  //   cout << "triangle length: a: " << a
-  //        << ", b: " << b << ", c: " << c << endl;
-  //   cout << "triangle angle: alpha: " << alpha*180./M_PI
+  //   std::cout << "triangle length: a: " << a
+  //        << ", b: " << b << ", c: " << c << std::endl;
+  //   std::cout << "triangle angle: alpha: " << alpha*180./M_PI
   //        << ", beta: " << tbeta
   //        << ", gamma: " << gamma
-  //        << endl;
-  cout << Name() << ": SetTiltViaNcross(" << ncross << ") setting slat angle to: " << _sciTilt << " degrees" << endl;
+  //        << std::endl;
+  std::cout << Name() << ": SetTiltViaNcross(" << ncross << ") setting slat angle to: " << _sciTilt << " degrees" << std::endl;
   return;
 }

@@ -30,7 +30,6 @@
 #include <TSystem.h>
 
 #include <algorithm>
-#include <cmath>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -139,7 +138,6 @@ void Fun4AllServer::InitAll()
   SyncManagers.push_back(defaultSyncManager);
   TopNode = new PHCompositeNode("TOP");
   topnodemap["TOP"] = TopNode;
-  default_Tdirectory = gDirectory->GetPath();
   InitNodeTree(TopNode);
   return;
 }
@@ -190,7 +188,7 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
     tmpdir = tmpdir->mkdir(topnodename.c_str());
     if (!tmpdir)
     {
-      std::cout << "Error creating TDirectory topdir " << topnodename.c_str() << std::endl;
+      std::cout << PHWHERE << " Error creating TDirectory topdir " << topnodename << std::endl;
       exit(1);
     }
     // store the TDir pointer so it can be cleaned up in the dtor
@@ -206,7 +204,7 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
     tmpdir = tmpdir->mkdir(subsystem->Name().c_str());
     if (!tmpdir)
     {
-      std::cout << "Error creating TDirectory subdir " << subsystem->Name() << std::endl;
+      std::cout << PHWHERE << "Error creating TDirectory subdir " << subsystem->Name() << std::endl;
       exit(1);
     }
     // store the TDir pointer so it can be cleaned up in the dtor
@@ -223,6 +221,10 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
 #ifdef FFAMEMTRACKER
     ffamemtracker->Start(memory_tracker_name, "SubsysReco");
 #endif
+    if (Verbosity() >= 3)
+    {
+      std::cout << "Calling Init() for Subsystem " << subsystem->Name() << std::endl;
+    }
     iret = subsystem->Init(subsystopNode);
 #ifdef FFAMEMTRACKER
     ffamemtracker->Stop(memory_tracker_name, "SubsysReco");
@@ -416,6 +418,7 @@ tryagain:
       std::cout << "Could not find module " << *striter
                 << ", removing it from list of event selector modules" << std::endl;
       manager->EventSelector()->erase(striter);
+      // NOLINTNEXTLINE(hicpp-avoid-goto)
       goto tryagain;
     }
   }
@@ -533,9 +536,8 @@ int Fun4AllServer::process_event()
     {
       std::cout << "Fun4AllServer::process_event processing " << Subsystem.first->Name() << std::endl;
     }
-    std::ostringstream newdirname;
-    newdirname << Subsystem.second->getName() << "/" << Subsystem.first->Name();
-    if (!gROOT->cd(newdirname.str().c_str()))
+    std::string newdirname = Subsystem.second->getName() + "/" + Subsystem.first->Name();
+    if (!gROOT->cd(newdirname.c_str()))
     {
       std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
                 << Subsystem.second->getName()
@@ -546,9 +548,12 @@ int Fun4AllServer::process_event()
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        std::cout << "process_event: cded to " << newdirname.str().c_str() << std::endl;
+        std::cout << "process_event: cded to " << newdirname << std::endl;
       }
     }
+
+    PHTimer subsystem_timer("SubsystemTimer");
+    subsystem_timer.restart();
 
     try
     {
@@ -634,6 +639,13 @@ int Fun4AllServer::process_event()
         std::cout << "Fun4AllServer::Abort Run by " << Subsystem.first->Name() << std::endl;
         return Fun4AllReturnCodes::ABORTRUN;
       }
+      else if (RetCodes[icnt] == Fun4AllReturnCodes::ABORTPROCESSING)
+      {
+        eventbad = 1;
+        retcodesmap[Fun4AllReturnCodes::ABORTPROCESSING]++;
+        std::cout << "Fun4AllServer::Abort Processing by " << Subsystem.first->Name() << std::endl;
+        return Fun4AllReturnCodes::ABORTPROCESSING;
+      }
       else
       {
         std::cout << "Fun4AllServer::Unknown return code: "
@@ -645,6 +657,13 @@ int Fun4AllServer::process_event()
         std::cout << "phenix-off-l with this message" << std::endl;
         return Fun4AllReturnCodes::ABORTRUN;
       }
+    }
+    subsystem_timer.stop();
+    double TimeSubsystem = subsystem_timer.elapsed();
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      std::cout << "Fun4AllServer::process_event processing " << Subsystem.first->Name()
+                << " processing total time: " << TimeSubsystem << " ms" << std::endl;
     }
     icnt++;
   }
@@ -700,6 +719,19 @@ int Fun4AllServer::process_event()
           ffamemtracker->Stop((*iterOutMan)->Name(), "OutputManager");
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
 #endif
+          if ((*iterOutMan)->EventsWritten() >= (*iterOutMan)->GetNEvents())
+          {
+            if (Verbosity() > 0)
+            {
+              std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
+                        << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
+            }
+            PHNodeIterator nodeiter(TopNode);
+            PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
+            MakeNodesTransient(runNode);  // make all nodes transient by default
+            (*iterOutMan)->WriteNode(runNode);
+            (*iterOutMan)->RunAfterClosing();
+          }
         }
         else
         {
@@ -838,21 +870,6 @@ int Fun4AllServer::BeginRun(const int runno)
     BeginRunSubsystem(std::make_pair(NewSubsystems.front().first, topNode(NewSubsystems.front().second)));
   }
   gROOT->cd(currdir.c_str());
-  // disconnect from DB to save resources on DB machine
-  // PdbCal leaves the DB connection open (PdbCal will reconnect without
-  // problem if neccessary)
-  if (!keep_db_connected)
-  {
-    DisconnectDB();
-  }
-  else
-  {
-    std::cout << "WARNING WARNING, DBs will not be disconnected" << std::endl;
-    std::cout << "This is for DB server testing purposes only" << std::endl;
-    std::cout << "If you do not test our DB servers, remove" << std::endl;
-    std::cout << "Fun4AllServer->KeepDBConnection()" << std::endl;
-    std::cout << "from your macro" << std::endl;
-  }
   // print out all node trees
   Print("NODETREE");
 #ifdef FFAMEMTRACKER
@@ -864,9 +881,8 @@ int Fun4AllServer::BeginRun(const int runno)
 int Fun4AllServer::BeginRunSubsystem(const std::pair<SubsysReco *, PHCompositeNode *> &subsys)
 {
   int iret = 0;
-  std::ostringstream newdirname;
-  newdirname << subsys.second->getName() << "/" << subsys.first->Name();
-  if (!gROOT->cd(newdirname.str().c_str()))
+  std::string newdirname = subsys.second->getName() + "/" + subsys.first->Name();
+  if (!gROOT->cd(newdirname.c_str()))
   {
     std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
               << subsys.second->getName()
@@ -877,7 +893,7 @@ int Fun4AllServer::BeginRunSubsystem(const std::pair<SubsysReco *, PHCompositeNo
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
-      std::cout << "BeginRun: cded to " << newdirname.str().c_str() << std::endl;
+      std::cout << "BeginRun: cded to " << newdirname << std::endl;
     }
   }
 
@@ -929,6 +945,7 @@ int Fun4AllServer::CountOutNodes(PHCompositeNode *startNode)
   return icount;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 int Fun4AllServer::CountOutNodesRecursive(PHCompositeNode *startNode, const int icount)
 {
   PHNodeIterator nodeiter(startNode);
@@ -953,6 +970,7 @@ int Fun4AllServer::CountOutNodesRecursive(PHCompositeNode *startNode, const int 
   return icnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 int Fun4AllServer::MakeNodesTransient(PHCompositeNode *startNode)
 {
   PHNodeIterator nodeiter(startNode);
@@ -972,6 +990,7 @@ int Fun4AllServer::MakeNodesTransient(PHCompositeNode *startNode)
   return 0;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 int Fun4AllServer::MakeNodesPersistent(PHCompositeNode *startNode)
 {
   PHNodeIterator nodeiter(startNode);
@@ -1003,9 +1022,8 @@ int Fun4AllServer::EndRun(const int runno)
       std::cout << "Fun4AllServer::EndRun: EndRun("
                 << runno << ") for " << (*iter).first->Name() << std::endl;
     }
-    std::ostringstream newdirname;
-    newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
-    if (!gROOT->cd(newdirname.str().c_str()))
+    std::string newdirname = (*iter).second->getName() + "/" + (*iter).first->Name();
+    if (!gROOT->cd(newdirname.c_str()))
     {
       std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
                 << (*iter).second->getName()
@@ -1016,7 +1034,7 @@ int Fun4AllServer::EndRun(const int runno)
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        std::cout << "EndRun: cded to " << newdirname.str().c_str() << std::endl;
+        std::cout << "EndRun: cded to " << newdirname << std::endl;
       }
     }
     try
@@ -1056,9 +1074,8 @@ int Fun4AllServer::End()
     {
       std::cout << "Fun4AllServer::End: End for " << (*iter).first->Name() << std::endl;
     }
-    std::ostringstream newdirname;
-    newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
-    if (!gROOT->cd(newdirname.str().c_str()))
+    std::string newdirname = (*iter).second->getName() + "/" + (*iter).first->Name();
+    if (!gROOT->cd(newdirname.c_str()))
     {
       std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
                 << (*iter).second->getName()
@@ -1069,7 +1086,7 @@ int Fun4AllServer::End()
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        std::cout << "End: cded to " << newdirname.str().c_str() << std::endl;
+        std::cout << "End: cded to " << newdirname << std::endl;
       }
     }
     try
@@ -1294,7 +1311,7 @@ int Fun4AllServer::AddTopNode(const std::string &name)
   {
     return -1;
   }
-  PHCompositeNode *newNode = new PHCompositeNode(name.c_str());
+  PHCompositeNode *newNode = new PHCompositeNode(name);
   topnodemap[name] = newNode;
   return 0;
 }
@@ -1451,13 +1468,13 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         BeginRun(runnumber);
       }
     }
-    if (Verbosity() >= 1)
+    if (Verbosity() >= 1 && ((icnt + 1)%VerbosityDownscale() == 0))
     {
       std::cout << "Fun4AllServer::run - processing event "
                 << (icnt + 1) << " from run " << runnumber << std::endl;
     }
 
-    if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)
+    if (icnt == 0 && Verbosity() > VERBOSITY_QUIET)
     {
       // increase verbosity for the first event in verbose modes
       int iverb = Verbosity();
@@ -1466,7 +1483,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
 
     iret = process_event();
 
-    if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)
+    if (icnt == 0 && Verbosity() > VERBOSITY_QUIET)
     {
       // increase verbosity for the first event in verbose modes
       int iverb = Verbosity();
@@ -1591,11 +1608,6 @@ void Fun4AllServer::GetInputFullFileList(std::vector<std::string> &fnames) const
   return;
 }
 
-int Fun4AllServer::DisconnectDB()
-{
-  return 0;
-}
-
 unsigned
 Fun4AllServer::GetTopNodes(std::vector<std::string> &names) const
 {
@@ -1672,16 +1684,13 @@ int Fun4AllServer::setRun(const int runno)
 {
   recoConsts *rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runno);
-  PHTimeStamp *tstamp = nullptr;
-  if (!tstamp)
+  if (!rc->FlagExist("TIMESTAMP"))
   {
-    tstamp = new PHTimeStamp(0);
-    std::cout << "Fun4AllServer::setRun(): could not get timestamp for run  " << runno
-              << ", using tics(0) timestamp: ";
-    tstamp->print();
-    std::cout << std::endl;
+    rc->set_uint64Flag("TIMESTAMP", runno);
   }
-  delete tstamp;
+  std::cout << "Fun4AllServer::setRun(): run " << runno
+            << " uses CDB TIMESTAMP " << rc->get_uint64Flag("TIMESTAMP")
+            << std::endl;
   FrameWorkVars->SetBinContent(RUNNUMBERBIN, (Stat_t) runno);
   return 0;
 }

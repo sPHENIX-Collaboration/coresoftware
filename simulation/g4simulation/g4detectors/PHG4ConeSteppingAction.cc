@@ -87,15 +87,15 @@ bool PHG4ConeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         hit = new PHG4Hitv1();
       }
-      //here we set the entrance values in cm
+      // here we set the entrance values in cm
       hit->set_x(0, prePoint->GetPosition().x() / cm);
       hit->set_y(0, prePoint->GetPosition().y() / cm);
       hit->set_z(0, prePoint->GetPosition().z() / cm);
       // time in ns
       hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-      //set the track ID
+      // set the track ID
       hit->set_trkid(aTrack->GetTrackID());
-      //set the initial energy deposit
+      // set the initial energy deposit
       hit->set_edep(0);
 
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -120,7 +120,7 @@ bool PHG4ConeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     hit->set_z(1, postPoint->GetPosition().z() / cm);
 
     hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
-    //sum up the energy to get total deposited
+    // sum up the energy to get total deposited
     hit->set_edep(hit->get_edep() + edep);
     if (geantino)
     {
@@ -187,7 +187,7 @@ void PHG4ConeSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
     hitnodename = "G4HIT_" + detector_->GetName();
   }
 
-  //now look for the map and grab a pointer to it.
+  // now look for the map and grab a pointer to it.
   hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
 
   // if we do not find the node we need to scream.

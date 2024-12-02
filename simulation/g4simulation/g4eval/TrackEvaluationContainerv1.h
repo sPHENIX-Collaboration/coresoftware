@@ -21,23 +21,21 @@
   - relevant information on tracks, including redundant information about participating clusters
   Each of those can be turned on/off using flags in the filling module at runtime
 
-  IMPORTANT NOTE: do not modify and commit neither this class or subclasses. 
+  IMPORTANT NOTE: do not modify and commit neither this class or subclasses.
   This will render past DSTs containing the container unreadible
-  If you plan permanent modification to the class you need to create a TrackEvaluationContainerv2, 
+  If you plan permanent modification to the class you need to create a TrackEvaluationContainerv2,
   copy the relevant code from this one there and modify the TrackEvaluation module in order to use the new container
 */
-class TrackEvaluationContainerv1: public TrackEvaluationContainer
+class TrackEvaluationContainerv1 : public TrackEvaluationContainer
 {
-  
-  public:
-  
+ public:
   //! constructor
   explicit TrackEvaluationContainerv1()
   {
     // only one event structure per event (!)
     m_events.reserve(1);
   }
-   
+
   //! reset
   void Reset() override;
 
@@ -45,18 +43,19 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
   /*! do not modify and commit: this will break reading past DSTs */
   class EventStruct
   {
-
-    public:
+   public:
     using List = std::vector<EventStruct>;
     static constexpr size_t max_layer = 57;
 
     // constructor
     EventStruct()
     {
-      for( size_t i = 0; i < max_layer; ++i )
-      { nclusters[i] = 0; }
+      for (size_t i = 0; i < max_layer; ++i)
+      {
+        nclusters[i] = 0;
+      }
     }
-    
+
     //! number of clusters per layer / event
     int nclusters[max_layer];
 
@@ -72,13 +71,12 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
     //! number of clusters in the Micromegas
     int nclusters_micromegas = 0;
   };
-  
+
   //! cluster information
   /*! do not modify and commit: this will break reading past DSTs */
   class ClusterStruct
   {
-    public:
-
+   public:
     using List = std::vector<ClusterStruct>;
 
     //! cluster layer
@@ -164,7 +162,7 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
     //@}
 
     //!@name track local momentum information
-    //!TODO: in principle trk_alpha and trk_beta can be calculated from those. There should be no need to store them
+    //! TODO: in principle trk_alpha and trk_beta can be calculated from those. There should be no need to store them
     //@{
     float trk_px = 0;
     float trk_py = 0;
@@ -172,27 +170,25 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
     //@}
 
     //!@name truth local momentum information
-    //!TODO: in principle truth_alpha and truth_beta can be calculated from those. There should be no need to store them
+    //! TODO: in principle truth_alpha and truth_beta can be calculated from those. There should be no need to store them
     //@{
     float truth_px = 0;
     float truth_py = 0;
     float truth_pz = 0;
     //@}
-
   };
 
   //! track information
   /*! do not modify and commit: this will break reading past DSTs */
   class TrackStruct
   {
-    public:
-
+   public:
     // constructor
     explicit TrackStruct()
-    {   
+    {
       // allocate enough size for the clusters
       static constexpr int max_layers = 60;
-      clusters.reserve( max_layers );
+      clusters.reserve(max_layers);
     }
 
     using List = std::vector<TrackStruct>;
@@ -250,58 +246,74 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
     // associate clusters
     ClusterStruct::List clusters;
   };
-  
+
   //!@name accessors
   //@{
 
-  const EventStruct::List& events() const 
-  { return m_events; }
-  
+  const EventStruct::List& events() const
+  {
+    return m_events;
+  }
+
   const ClusterStruct::List& clusters() const
-  { return m_clusters; }
-  
+  {
+    return m_clusters;
+  }
+
   const TrackStruct::List& tracks() const
-  { return m_tracks; }
-  
+  {
+    return m_tracks;
+  }
+
   //@}
-  
+
   //!@name modifiers
   //@{
 
-  void addEvent( const EventStruct& event )
-  { m_events.push_back( event ); }
-  
-  void addCluster( const ClusterStruct& cluster )
-  { m_clusters.push_back( cluster ); }
-  
-  void addTrack( const TrackStruct& track )
-  { m_tracks.push_back( track ); }
+  void addEvent(const EventStruct& event)
+  {
+    m_events.push_back(event);
+  }
+
+  void addCluster(const ClusterStruct& cluster)
+  {
+    m_clusters.push_back(cluster);
+  }
+
+  void addTrack(const TrackStruct& track)
+  {
+    m_tracks.push_back(track);
+  }
 
   void clearEvents()
-  { m_events.clear(); }
-  
-  void clearClusters()
-  { m_clusters.clear(); }
-  
-  void clearTracks()
-  { m_tracks.clear(); }
-  
-  //@}
-  
-  private:
+  {
+    m_events.clear();
+  }
 
+  void clearClusters()
+  {
+    m_clusters.clear();
+  }
+
+  void clearTracks()
+  {
+    m_tracks.clear();
+  }
+
+  //@}
+
+ private:
   //! event struct
   /* there is only one element per event in this array */
   EventStruct::List m_events;
- 
+
   //! clusters array
   ClusterStruct::List m_clusters;
- 
+
   //! tracks array
   TrackStruct::List m_tracks;
-    
-  ClassDefOverride(TrackEvaluationContainerv1,1)
-    
+
+  ClassDefOverride(TrackEvaluationContainerv1, 1)
 };
 
 #endif

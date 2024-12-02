@@ -3,11 +3,11 @@
 #ifndef G4MAIN_PHG4PHENIXDETECTOR_H
 #define G4MAIN_PHG4PHENIXDETECTOR_H
 
+#include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4VUserDetectorConstruction.hh>
-#include <Geant4/G4Types.hh>                      // for G4double
 
 #include <list>
-#include <string>                                 // for string
+#include <string>  // for string
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -59,8 +59,8 @@ class PHG4PhenixDetector : public G4VUserDetectorConstruction
 
   std::list<PHG4Detector*> m_DetectorList;
 
-  G4LogicalVolume* logicWorld;    //pointer to the logical World
-  G4VPhysicalVolume* physiWorld;  //pointer to the physical World
+  G4LogicalVolume* logicWorld;    // pointer to the logical World
+  G4VPhysicalVolume* physiWorld;  // pointer to the physical World
   G4double WorldSizeX;
   G4double WorldSizeY;
   G4double WorldSizeZ;

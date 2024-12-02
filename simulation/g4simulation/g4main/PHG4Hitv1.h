@@ -6,10 +6,10 @@
 #include "PHG4Hit.h"
 #include "PHG4HitDefs.h"
 
-#include <climits>  // for INT_MIN, ULONG_LONG_MAX
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <map>
 
 class PHG4Hitv1 : public PHG4Hit
@@ -104,14 +104,14 @@ class PHG4Hitv1 : public PHG4Hit
   void set_property_nocheck(const PROPERTY prop_id, const unsigned int ui) override { prop_map[prop_id] = ui; }
   // Store both the entry and exit points of the particle
   // Remember, particles do not always enter on the inner edge!
-  float x[2] = {NAN, NAN};
-  float y[2] = {NAN, NAN};
-  float z[2] = {NAN, NAN};
-  float t[2] = {NAN, NAN};
-  PHG4HitDefs::keytype hitid = ULONG_LONG_MAX;
-  int trackid = INT_MIN;
-  int showerid = INT_MIN;
-  float edep = NAN;
+  float x[2] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
+  float y[2] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
+  float z[2] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
+  float t[2] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
+  PHG4HitDefs::keytype hitid = std::numeric_limits<PHG4HitDefs::keytype>::max();
+  int trackid = std::numeric_limits<int>::min();
+  int showerid = std::numeric_limits<int>::min();
+  float edep = std::numeric_limits<float>::quiet_NaN();
 
   //! storage types for additional property
   typedef uint8_t prop_id_t;

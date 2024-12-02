@@ -13,15 +13,20 @@
 #include <ostream>  // for operator<<, basic_ostream, basic_ostream<>::_...
 
 SvtxTrack_FastSim_v2::SvtxTrack_FastSim_v2(const SvtxTrack& source)
-{ SvtxTrack_FastSim_v2::CopyFrom( source ); }
+{
+  SvtxTrack_FastSim_v2::CopyFrom(source);
+}
 
-void SvtxTrack_FastSim_v2::CopyFrom( const SvtxTrack& source )
+void SvtxTrack_FastSim_v2::CopyFrom(const SvtxTrack& source)
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
- 
+  if (this == &source)
+  {
+    return;
+  }
+
   // parent class method
-  SvtxTrack_v2::CopyFrom( source );
+  SvtxTrack_v2::CopyFrom(source);
 
   // additional members
   _truth_track_id = source.get_truth_track_id();
@@ -38,11 +43,13 @@ void SvtxTrack_FastSim_v2::identify(std::ostream& os) const
   os << "_nmeas: " << _nmeas << std::endl;
 
   os << "G4Hit IDs:" << std::endl;
-  for( const auto& pair:_g4hit_ids )
+  for (const auto& pair : _g4hit_ids)
   {
     os << "\thit container ID" << pair.first << " with hits: ";
-    for( const auto& hitid:pair.second )
-    { os << hitid << " "; }
+    for (const auto& hitid : pair.second)
+    {
+      os << hitid << " ";
+    }
     os << std::endl;
   }
   return;

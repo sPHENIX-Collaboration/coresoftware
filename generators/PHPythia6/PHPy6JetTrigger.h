@@ -7,7 +7,7 @@
 
 namespace HepMC
 {
-class GenEvent;
+  class GenEvent;
 }
 
 class PHPy6JetTrigger : public PHPy6GenTrigger

@@ -1,7 +1,7 @@
 #include "PHG4PhenixDetector.h"
 
 #include "PHG4Detector.h"
-#include "PHG4DisplayAction.h"              // for PHG4DisplayAction
+#include "PHG4DisplayAction.h"  // for PHG4DisplayAction
 #include "PHG4PhenixDisplayAction.h"
 #include "PHG4Reco.h"
 #include "PHG4RegionInformation.h"
@@ -10,28 +10,24 @@
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4GeometryManager.hh>
-#include <Geant4/G4LogicalVolume.hh>        // for G4LogicalVolume
+#include <Geant4/G4LogicalVolume.hh>  // for G4LogicalVolume
 #include <Geant4/G4LogicalVolumeStore.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalVolumeStore.hh>
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4RegionStore.hh>
-#include <Geant4/G4String.hh>               // for G4String
 #include <Geant4/G4SolidStore.hh>
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>                 // for G4ThreeVector
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4VSolid.hh>               // for G4GeometryType, G4VSolid
-
-#include <boost/foreach.hpp>
+#include <Geant4/G4VSolid.hh>  // for G4GeometryType, G4VSolid
 
 #include <cmath>
-#include <cstdlib>                         // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
-#include <vector>                           // for vector
-
-using namespace std;
+#include <vector>  // for vector
 
 //____________________________________________________________________________
 PHG4PhenixDetector::PHG4PhenixDetector(PHG4Reco *subsys)
@@ -60,13 +56,19 @@ PHG4PhenixDetector::~PHG4PhenixDetector()
 G4VPhysicalVolume *PHG4PhenixDetector::Construct()
 {
   recoConsts *rc = recoConsts::instance();
-  if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::Construct." << std::endl;
+  if (m_Verbosity > 0)
+  {
+    std::cout << "PHG4PhenixDetector::Construct." << std::endl;
+  }
   // Clean old geometry, if any
   G4GeometryManager::GetInstance()->OpenGeometry();
   G4PhysicalVolumeStore::GetInstance()->Clean();
   G4LogicalVolumeStore::GetInstance()->Clean();
   G4SolidStore::GetInstance()->Clean();
-  if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::Construct - cleaning done." << std::endl;
+  if (m_Verbosity > 0)
+  {
+    std::cout << "PHG4PhenixDetector::Construct - cleaning done." << std::endl;
+  }
 
   // World
   G4VSolid *solidWorld = nullptr;
@@ -80,14 +82,14 @@ G4VPhysicalVolume *PHG4PhenixDetector::Construct()
   }
   else
   {
-    cout << "Unknown world shape " << worldshape << endl;
-    cout << "implemented are G4BOX, G4Tubs" << endl;
+    std::cout << "Unknown world shape " << worldshape << std::endl;
+    std::cout << "implemented are G4BOX, G4Tubs" << std::endl;
     exit(1);
   }
   rc->set_StringFlag("WorldShape", solidWorld->GetEntityType());  // needed for checks if a particle is inside or outside of our world
   logicWorld = new G4LogicalVolume(solidWorld, G4Material::GetMaterial(worldmaterial), "World");
   m_DisplayAction->AddVolume(logicWorld, "World");
-  physiWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0);
+  physiWorld = new G4PVPlacement(nullptr, G4ThreeVector(), logicWorld, "World", nullptr, false, 0);
 
   G4Region *defaultRegion = (*(G4RegionStore::GetInstance()))[0];
   PHG4RegionInformation *info = new PHG4RegionInformation();
@@ -100,7 +102,7 @@ G4VPhysicalVolume *PHG4PhenixDetector::Construct()
   }
 
   // construct all detectors
-  BOOST_FOREACH (PHG4Detector *det, m_DetectorList)
+  for (PHG4Detector *det : m_DetectorList)
   {
     if (det)
     {
@@ -108,11 +110,13 @@ G4VPhysicalVolume *PHG4PhenixDetector::Construct()
     }
   }
 
-  if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::Construct - done." << std::endl;
+  if (m_Verbosity > 0)
+  {
+    std::cout << "PHG4PhenixDetector::Construct - done." << std::endl;
+  }
 
-
-  //Optional PostConstruction call after all geometry is constructed
-  for (PHG4Detector *det: m_DetectorList)
+  // Optional PostConstruction call after all geometry is constructed
+  for (PHG4Detector *det : m_DetectorList)
   {
     if (det)
     {
@@ -120,7 +124,10 @@ G4VPhysicalVolume *PHG4PhenixDetector::Construct()
     }
   }
 
-  if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::PostConstruction - done." << std::endl;
+  if (m_Verbosity > 0)
+  {
+    std::cout << "PHG4PhenixDetector::PostConstruction - done." << std::endl;
+  }
 
   return physiWorld;
 }

@@ -1,23 +1,23 @@
-#ifndef _TRACKBASEHISTORIC_TRACKANALYSISUTILS_H
-#define _TRACKBASEHISTORIC_TRACKANALYSISUTILS_H
+#ifndef TRACKBASEHISTORIC_TRACKANALYSISUTILS_H
+#define TRACKBASEHISTORIC_TRACKANALYSISUTILS_H
+
+#include <trackbase/TrkrDefs.h>
+#include <Acts/Definitions/Algebra.hpp>
 
 #include <utility>
 
 class SvtxTrack;
-class SvtxVertex;
 
-class TrackAnalysisUtils
+namespace TrackAnalysisUtils
 {
- public:
+  /// Returns DCA as .first and uncertainty on DCA as .second
   using DCA = std::pair<float, float>;
   using DCAPair = std::pair<DCA, DCA>;
 
-  TrackAnalysisUtils() = default;
-  ~TrackAnalysisUtils() {}
+  DCAPair get_dca(SvtxTrack* track, Acts::Vector3& vertex);
 
-  DCAPair get_dca(SvtxTrack* track, SvtxVertex* svtxVertex);
+  std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
 
- private:
-};
+};  // namespace TrackAnalysisUtils
 
 #endif

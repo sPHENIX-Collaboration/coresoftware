@@ -115,7 +115,7 @@ class GPUTPCTrackParam
    static double ApproximateBetheBloch(double beta2);
    static double BetheBlochGeant(double bg, double kp0 = 2.33f, double kp1 = 0.20f, double kp2 = 3.00f, double kp3 = 173e-9f, double kp4 = 0.49848f);
    static double BetheBlochSolid(double bg);
-   static double BetheBlochGas(double bg);
+   double BetheBlochGas(double bg);
 
    void CalculateFitParameters(GPUTPCTrackFitParam& par, double mass = 0.13957f);
    bool CorrectForMeanMaterial(double xOverX0, double xTimesRho, const GPUTPCTrackFitParam& par);
@@ -127,6 +127,12 @@ class GPUTPCTrackParam
    bool CheckNumericalQuality() const;
 
    void Print() const;
+
+   void setNeonFraction(double frac) { Ne_frac = frac; };
+   void setArgonFraction(double frac) { Ar_frac = frac; };
+   void setCF4Fraction(double frac) { CF4_frac = frac; };
+   void setNitrogenFraction(double frac) { N2_frac = frac; };
+   void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
 
 #ifndef GPUCA_GPUCODE
  private:
@@ -142,6 +148,58 @@ class GPUTPCTrackParam
   double mSignCosPhi; // sign of cosPhi
   double mChi2;       // the chi^2 value
   int mNDF;          // the Number of Degrees of Freedom
+
+
+  //Gas parameters
+  //Sources
+  //https://doi.org/10.1016/0092-640X(84)90002-0
+  //https://pdg.lbl.gov/2024/AtomicNuclearProperties/index.html
+  //https://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
+
+  double Ne_frac = 0.00;
+  double Ne_Rho = 0.839e-3; // g/cm3, density
+  double Ne_RadLen = 28.93; // g/cm2, radiation length
+  double Ne_x0 = 2.0735; // 1st Bethe-Bloch pole
+  double Ne_x1 = 4.6421; //2nd Bethe-Bloch pole
+  double Ne_mI = 137; //eV, mean excitation
+  double Ne_mZA = 0.4955; // Mean atomic number / mass number
+  double Ne_mA = 20.18; // Mean amass number
+
+  double Ar_frac = 0.75;
+  double Ar_Rho = 1.662e-3; // g/cm3, density
+  double Ar_RadLen = 19.55; // g/cm2, radiation length
+  double Ar_x0 = 1.7635; // 1st Bethe-Bloch pole
+  double Ar_x1 = 4.4855; //2nd Bethe-Bloch pole
+  double Ar_mI = 188; //eV, mean excitation
+  double Ar_mZA = 0.4506; // Mean atomic number / mass number
+  double Ar_mA = 39.948; // Mean amass number
+
+  double CF4_frac = 0.20;
+  double CF4_Rho = 3.78e-3; // g/cm3, density
+  double CF4_RadLen = 33.99; // g/cm2, radiation length
+  double CF4_x0 = 1.7635; // 1st Bethe-Bloch pole
+  double CF4_x1 = 4.4855; //2nd Bethe-Bloch pole
+  double CF4_mI = 115; //eV, mean excitation
+  double CF4_mZA = 0.4772; // Mean atomic number / mass number
+  double CF4_mA = 88.013; // Mean amass number
+
+  double N2_frac = 0.00;
+  double N2_Rho = 1.165e-3; // g/cm3, density
+  double N2_RadLen = 37.99; // g/cm2, radiation length
+  double N2_x0 = 1.7378; // 1st Bethe-Bloch pole
+  double N2_x1 = 4.1323; //2nd Bethe-Bloch pole
+  double N2_mI = 82; //eV, mean excitation
+  double N2_mZA = 0.4998; // Mean atomic number / mass number
+  double N2_mA = 14.007; // Mean amass number
+
+  double isobutane_frac = 0.05;
+  double isobutane_Rho = 2.59e-3; // g/cm3, density
+  double isobutane_RadLen = 45.23; // g/cm2, radiation length
+  double isobutane_x0 = 1.3788; // 1st Bethe-Bloch pole
+  double isobutane_x1 = 3.7524; //2nd Bethe-Bloch pole
+  double isobutane_mI = 48.3; //eV, mean excitation
+  double isobutane_mZA = 0.595; // Mean atomic number / mass number
+  double isobutane_mA = 57.146; // Mean amass number
 };
 
 inline void GPUTPCTrackParam::InitParam()

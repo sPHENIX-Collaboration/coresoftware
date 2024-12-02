@@ -27,6 +27,7 @@ pkginclude_HEADERS = \
   Fun4AllServer.h \
   Fun4AllSyncManager.h \
   Fun4AllUtils.h \
+  InputFileHandler.h \
   PHTFileServer.h \
   SubsysReco.h \
   TDirectoryHelper.h
@@ -56,6 +57,7 @@ libfun4all_la_SOURCES = \
   Fun4AllServer.cc \
   Fun4AllSyncManager.cc \
   Fun4AllUtils.cc \
+  InputFileHandler.cc \
   PHTFileServer.cc
 
 libfun4all_la_LIBADD = \

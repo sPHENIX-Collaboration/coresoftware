@@ -39,7 +39,7 @@ G4CellNtuple::~G4CellNtuple()
   delete hm;
 }
 
-int G4CellNtuple::Init(PHCompositeNode *)
+int G4CellNtuple::Init(PHCompositeNode * /*unused*/)
 {
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
@@ -90,10 +90,10 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
           cout << "invalid edep: " << edep << endl;
         }
         esum += cell_iter->second->get_edep();
-        int phibin = ~0x0;
-        int etabin = ~0x0;
-        double phi = NAN;
-        double eta = NAN;
+        int phibin = std::numeric_limits<int>::min();
+        int etabin = std::numeric_limits<int>::min();
+        double phi = std::numeric_limits<double>::quiet_NaN();
+        double eta = std::numeric_limits<double>::quiet_NaN();
         int layer = cell_iter->second->get_layer();
         // to search the map fewer times, cache the geom object until the layer changes
         if (layer != previouslayer)
@@ -131,7 +131,7 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4CellNtuple::End(PHCompositeNode */*topNode*/)
+int G4CellNtuple::End(PHCompositeNode * /*topNode*/)
 {
   outfile->cd();
   ntup->Write();

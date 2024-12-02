@@ -11,50 +11,59 @@
 
 namespace
 {
-  
+
   class mec8_channel_id
   {
     public:
-    
+
     /*
-    * 0 or 1, corresponding to cable1 and cable 2 as defined by Takao in 
+    * 0 or 1, corresponding to cable1 and cable 2 as defined by Takao in
     * https://indico.bnl.gov/event/18458/contributions/73400/attachments/46043/77969/FEE_to_MEC_map_Feb17_2023.xlsx
     */
+// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     int m_cable_id = 0;
-    
+
     /*
     * 0 or 1, corresponding to j2 or j3 in transition board drawing in
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225938-XX.PNG.png
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225940-XX.PNG.png
-    * and as defined by Takao in 
+    * and as defined by Takao in
     * https://indico.bnl.gov/event/18458/contributions/73400/attachments/46043/77969/FEE_to_MEC_map_Feb17_2023.xlsx
     */
+// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     int m_connector_id = 0;
-    
+
     /*
-    * 1 to 70 as defined in 
+    * 1 to 70 as defined in
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225938-XX.PNG.png
     * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225940-XX.PNG.png
     */
+// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     int m_channel_id = 0;
-    
+
     // constructor
     mec8_channel_id( int cable_id, int connector_id, int channel_id ):
       m_cable_id( cable_id ),
       m_connector_id( connector_id ),
       m_channel_id( channel_id )
     {}
-    
+
   };
-    
+
   // less than operator
   inline bool operator < (const mec8_channel_id& lhs, const mec8_channel_id& rhs )
   {
-    if( lhs.m_cable_id != rhs.m_cable_id ) return lhs.m_cable_id < rhs.m_cable_id;
-    if( lhs.m_connector_id != rhs.m_connector_id ) return lhs.m_connector_id < rhs.m_connector_id;
+    if( lhs.m_cable_id != rhs.m_cable_id )
+    {
+      return lhs.m_cable_id < rhs.m_cable_id;
+    }
+    if( lhs.m_connector_id != rhs.m_connector_id )
+    {
+      return lhs.m_connector_id < rhs.m_connector_id;
+    }
     return lhs.m_channel_id < rhs.m_channel_id;
   }
-  
+
   // print mapping
   [[maybe_unused]] void print_mapping( const std::string& name, const std::array<int, MicromegasDefs::m_nchannels_fee>& array )
   {
@@ -62,7 +71,10 @@ namespace
     std::cout << "int " << name << "[" << array.size() << "] = {" << std::endl << "  ";
     for( size_t i =0; i < array.size(); ++i )
     {
-      if( i > 0 ) std::cout << ", ";
+      if( i > 0 )
+      {
+	std::cout << ", ";
+      }
       if( count == 32 )
       {
         std::cout << std::endl << "  ";
@@ -71,10 +83,10 @@ namespace
       std::cout << array[i];
       ++count;
     }
-    
+
     std::cout << std::endl << "};" << std::endl;
   }
-  
+
 }
 
 //____________________________________________________________________________________________________
@@ -84,99 +96,146 @@ m_detectors( {
    * see https://wiki.sphenix.bnl.gov/index.php/TPc_Outer_Tracker_(TPOT)#Fiber_mapping.2C_as_of_2023.2F3.2F22
    */
   // south side
-  {5,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 4 ), "sec20.0", "R3.1", "M9P",  "SEIP" },
-  {7,  MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   4 ), "sec20.1", "R3.2", "M9Z",  "SEIZ" },
-  {6,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 0 ), "sec21.0", "R3.3", "M5P",  "SCOP" },
-  {8,  MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   0 ), "sec21.1", "R3.4", "M5Z",  "SCOZ" },
-  {9,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 1 ), "sec21.2", "R3.5", "M8P",  "SCIP" },
-  {10, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   1 ), "sec21.3", "R3.6", "M8Z",  "SCIZ" },
-  {24, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 6 ), "sec22.0", "R3.8", "M6P",  "SWIP" },
-  {25, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   6 ), "sec22.1", "R3.8", "M6Z",  "SWIZ" },
+  {5002, 5, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 4 ), "sec20.0", "R3.1", "M9P",  "SEIP" },
+  {5002, 7, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   4 ), "sec20.1", "R3.2", "M9Z",  "SEIZ" },
+  {5002, 6, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 0 ), "sec21.0", "R3.3", "M5P",  "SCOP" },
+  {5002, 8, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   0 ), "sec21.1", "R3.4", "M5Z",  "SCOZ" },
+  {5002, 9, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 1 ), "sec21.2", "R3.5", "M8P",  "SCIP" },
+  {5001, 23, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   1 ), "sec21.3", "R3.9", "M8Z",  "SCIZ" },
+  {5001, 24, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 6 ), "sec22.0", "R3.7", "M6P",  "SWIP" },
+  {5001, 25, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   6 ), "sec22.1", "R3.8", "M6Z",  "SWIZ" },
 
-  {11, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R2.1", "M2P",  "NEIP" },
-  {12, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   5 ), "sec8.1",  "R2.2", "M2Z",  "NEIZ" },
-  {19, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 3 ), "sec9.0",  "R2.3", "M10P", "NCOP" },
-  {18, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   3 ), "sec9.1",  "R2.4", "M10Z", "NCOZ" },
-  {0,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 2 ), "sec9.2",  "R2.5", "M4P",  "NCIP" },
-  {1,  MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   2 ), "sec9.3",  "R2.6", "M4Z",  "NCIZ" },
-  {15, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 7 ), "sec10.0", "R2.7", "M7P",  "NWIP" },
-  {14, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   7 ), "sec10.1", "R2.8", "M7Z",  "NWIZ" }
+  // north side
+  // on May 29 2024, fiber 11 was swapped to fiber 21
+  // {5001, 11, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R2.1", "M2P",  "NEIP" },
+  {5002, 21, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 5 ), "sec8.0",  "R3.10", "M2P",  "NEIP" },
+  {5001, 12, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   5 ), "sec8.1",  "R2.2", "M2Z",  "NEIZ" },
+  {5001, 19, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 3 ), "sec9.0",  "R2.3", "M10P", "NCOP" },
+  {5001, 18, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   3 ), "sec9.1",  "R2.4", "M10Z", "NCOZ" },
+  {5002, 0,  MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 2 ), "sec9.2",  "R2.5", "M4P",  "NCIP" },
+  {5002, 1,  MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   2 ), "sec9.3",  "R2.6", "M4Z",  "NCIZ" },
+  {5002, 15, MicromegasDefs::genHitSetKey(55, MicromegasDefs::SegmentationType::SEGMENTATION_PHI, 7 ), "sec10.0", "R2.7", "M7P",  "NWIP" },
+  {5002, 14, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z,   7 ), "sec10.1", "R2.8", "M7Z",  "NWIZ" }
 } )
 {
   std::cout << "MicromegasMapping::MicromegasMapping." << std::endl;
 
+  // sort vector based on layer/tile
+  std::sort( m_detectors.begin(), m_detectors.end(), []( const DetectorId& lhs, const DetectorId& rhs )
+     {
+       if(TrkrDefs::getLayer( lhs.m_hitsetkey ) != TrkrDefs::getLayer( rhs.m_hitsetkey ) )
+       {
+	 return TrkrDefs::getLayer( lhs.m_hitsetkey ) < TrkrDefs::getLayer( rhs.m_hitsetkey );
+       }
+       else
+       {
+	 return MicromegasDefs::getTileId( lhs.m_hitsetkey ) < MicromegasDefs::getTileId( rhs.m_hitsetkey );
+       }
+     } );
+
   // fill detector map from vector
   for( const auto& detector_id:m_detectors )
-  { m_detector_map.emplace( detector_id.m_fee_id, detector_id ); }
+  {
+    m_detector_map.emplace( detector_id.m_fee_id, detector_id );
+  }
 
   // construct channel mapping
   construct_channel_mapping();
-  
 }
 
 //____________________________________________________________________________________________________
-std::vector<int> MicromegasMapping::get_fee_id_list() const 
+std::vector<int> MicromegasMapping::get_fee_id_list() const
 {
   std::vector<int> out;
   std::transform( m_detectors.begin(), m_detectors.end(), std::back_inserter( out ), []( const DetectorId& det_id ){ return det_id.m_fee_id; } );
-  return out;  
+  return out;
+}
+
+
+//____________________________________________________________________________________________________
+std::vector<int> MicromegasMapping::get_fee_id_list( int packet_id ) const
+{
+  std::vector<int> out;
+  for( const auto& detector:m_detectors )
+  {
+    if( detector.m_packet_id == packet_id )
+    {out.push_back( detector.m_fee_id );}
+  }
+  return out;
 }
 
 //____________________________________________________________________________________________________
 TrkrDefs::hitsetkey MicromegasMapping::get_hitsetkey( int fee_id ) const
 {
+
+  // apply mapping changes
   const auto iter = m_detector_map.find( fee_id );
   if( iter == m_detector_map.end() )
   {
     std::cout << "MicromegasMapping::get_hitsetkey - invalid fee_id: " << fee_id << std::endl;
     return 0;
-  } else return iter->second.m_hitsetkey;
+  }
+  else
+  {
+    return iter->second.m_hitsetkey;
+  }
 }
 
 //____________________________________________________________________________________________________
 std::string MicromegasMapping::get_detname_saclay( int fee_id ) const
 {
+  // apply mapping changes
   const auto iter = m_detector_map.find( fee_id );
   if( iter == m_detector_map.end() )
   {
     std::cout << "MicromegasMapping::get_detname_saclay - invalid fee_id: " << fee_id << std::endl;
     return std::string();
-  } else return iter->second.m_detname_saclay;
+  }
+  else
+  {
+    return iter->second.m_detname_saclay;
+  }
 }
 
 //____________________________________________________________________________________________________
 std::string MicromegasMapping::get_detname_sphenix( int fee_id ) const
 {
+  // apply mapping changes
   const auto iter = m_detector_map.find( fee_id );
   if( iter == m_detector_map.end() )
   {
     std::cout << "MicromegasMapping::get_detname_sphenix - invalid fee_id: " << fee_id << std::endl;
     return std::string();
-  } else return iter->second.m_detname_sphenix;
+  }
+  else
+  {
+    return iter->second.m_detname_sphenix;
+  }
 }
 
 //____________________________________________________________________________________________________
 int MicromegasMapping::get_physical_strip( int fee_id, int channel_id) const
 {
+  // apply mapping changes
   // bound check
   if( channel_id < 0 || channel_id >= MicromegasDefs::m_nchannels_fee )
   {
     std::cout << "MicromegasMapping::get_physical_strip - invalid channel: " << channel_id << std::endl;
     return -1;
   }
-  
+
   // get hitsetkey and orientation
   const auto hitsetkey = get_hitsetkey(fee_id);
   const auto segmentation_type = MicromegasDefs::getSegmentationType(hitsetkey);
-  switch (segmentation_type)    
+  switch (segmentation_type)
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
     return m_fee_to_strip_mapping_z[channel_id];
-  
+
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
     return m_fee_to_strip_mapping_phi[channel_id];
   }
-  
+
   // never reached
   return -1;
 }
@@ -189,7 +248,11 @@ std::string MicromegasMapping::get_detname_saclay_from_hitsetkey( TrkrDefs::hits
   {
     std::cout << "MicromegasMapping::get_detname_saclay_from_hitsetkey - invalid key: " << key << std::endl;
     return std::string();
-  } else return iter->m_detname_saclay;
+  }
+  else
+  {
+    return iter->m_detname_saclay;
+  }
 }
 
 //____________________________________________________________________________________________________
@@ -200,7 +263,26 @@ std::string MicromegasMapping::get_detname_sphenix_from_hitsetkey( TrkrDefs::hit
   {
     std::cout << "MicromegasMapping::get_detname_sphenix_from_hitsetkey - invalid key: " << key << std::endl;
     return std::string();
-  } else return iter->m_detname_sphenix;
+  }
+  else
+  {
+    return iter->m_detname_sphenix;
+  }
+}
+
+//____________________________________________________________________________________________________
+int MicromegasMapping::get_fee_id_from_hitsetkey( TrkrDefs::hitsetkey key ) const
+{
+  const auto iter = std::find_if( m_detectors.begin(), m_detectors.end(), [key](const DetectorId& detector ) { return detector.m_hitsetkey == key; } );
+  if( iter == m_detectors.end() )
+  {
+    std::cout << "MicromegasMapping::get_fee_id_from_hitsetkey - invalid key: " << key << std::endl;
+    return -1;
+  }
+  else
+  {
+    return iter->m_fee_id;
+  }
 }
 
 //____________________________________________________________________________________________________
@@ -216,7 +298,7 @@ void MicromegasMapping::construct_channel_mapping()
    * the other 64 channels are signals
    */
   // source: https://indico.bnl.gov/event/18458/contributions/73400/attachments/46043/77969/FEE_to_MEC_map_Feb17_2023.xlsx
-  std::array<mec8_channel_id, MicromegasDefs::m_nchannels_fee> fee_to_mec8_mapping = 
+  std::array<mec8_channel_id, MicromegasDefs::m_nchannels_fee> fee_to_mec8_mapping =
   {{
     {0,0,34}, {0,0,33}, {0,0,32}, {0,0,31}, {0,0,30}, {0,0,29}, {0,0,28}, {0,0,27},
     {0,0,26}, {0,0,25}, {0,0,24}, {0,0,23}, {0,0,22}, {0,0,21}, {0,0,20}, {0,0,19},
@@ -295,7 +377,8 @@ void MicromegasMapping::construct_channel_mapping()
   {
 
     // ignore ground channels
-    if( signal_id == -1 ) continue;
+    if( signal_id == -1 ) { continue;
+}
 
     // cable 0, connector 0 corresponds to signal ids 1 to 64
     mec8_to_signal_mapping_z_all.insert(std::pair<mec8_channel_id,int>({0,0,mec8_channel}, signal_id));
@@ -322,7 +405,7 @@ void MicromegasMapping::construct_channel_mapping()
     {41,21}, {42,53}, {43,22}, {44,54}, {45,23}, {46,55}, {47,24}, {48,56},
     {49,25}, {50,57}, {51,26}, {52,58}, {53,27}, {54,59}, {55,28}, {56,60},
     {57,29}, {58,61}, {59,30}, {60,62}, {61,31}, {62,63}, {63,32}, {64,64},
-    
+
     {65,65}, {66,97}, {67,66}, {68,98}, {69,67}, {70,99}, {71,68}, {72,100},
     {73,69}, {74,101}, {75,70}, {76,102}, {77,71}, {78,103}, {79,72}, {80,104},
     {81,73}, {82,105}, {83,74}, {84,106}, {85,75}, {86,107}, {87,76}, {88,108},
@@ -331,7 +414,7 @@ void MicromegasMapping::construct_channel_mapping()
     {105,85}, {106,117}, {107,86}, {108,118}, {109,87}, {110,119}, {111,88}, {112,120},
     {113,89}, {114,121}, {115,90}, {116,122}, {117,91}, {118,123}, {119,92}, {120,124},
     {121,93}, {122,125}, {123,94}, {124,126}, {125,95}, {126,127}, {127,96}, {128,128},
-    
+
     {129,129}, {130,161}, {131,130}, {132,162}, {133,131}, {134,163}, {135,132}, {136,164},
     {137,133}, {138,165}, {139,134}, {140,166}, {141,135}, {142,167}, {143,136}, {144,168},
     {145,137}, {146,169}, {147,138}, {148,170}, {149,139}, {150,171}, {151,140}, {152,172},
@@ -340,7 +423,7 @@ void MicromegasMapping::construct_channel_mapping()
     {169,149}, {170,181}, {171,150}, {172,182}, {173,151}, {174,183}, {175,152}, {176,184},
     {177,153}, {178,185}, {179,154}, {180,186}, {181,155}, {182,187}, {183,156}, {184,188},
     {185,157}, {186,189}, {187,158}, {188,190}, {189,159}, {190,191}, {191,160}, {192,192},
-    
+
     {193,193}, {194,225}, {195,194}, {196,226}, {197,195}, {198,227}, {199,196}, {200,228},
     {201,197}, {202,229}, {203,198}, {204,230}, {205,199}, {206,231}, {207,200}, {208,232},
     {209,201}, {210,233}, {211,202}, {212,234}, {213,203}, {214,235}, {215,204}, {216,236},
@@ -388,7 +471,7 @@ void MicromegasMapping::construct_channel_mapping()
   }
 
   // print_mapping( "m_fee_to_strip_mapping_z", m_fee_to_strip_mapping_z );
-  
+
   // map mec8 channel id (1-70) to mec8 signal id on detector as defined by audrey in phi views
   /* sources:
    * https://wiki.sphenix.bnl.gov/index.php/File:HDR-225938-XX.PNG.png
@@ -425,7 +508,8 @@ void MicromegasMapping::construct_channel_mapping()
   {
 
     // ignore ground channels
-    if( signal_id == -1 ) continue;
+    if( signal_id == -1 ) { continue;
+}
 
     // cable 0, connector 0 corresponds to signal ids 193 to 256
     mec8_to_signal_mapping_phi_all.insert(std::pair<mec8_channel_id,int>({0,0,mec8_channel}, signal_id+192));
@@ -476,6 +560,18 @@ void MicromegasMapping::construct_channel_mapping()
     m_fee_to_strip_mapping_phi[channel_id] = strip_geant;
   }
 
-  // print_mapping( "m_fee_to_strip_mapping_phi", m_fee_to_strip_mapping_phi );
-  
 }
+
+//_____________________________________________________________________
+int MicromegasMapping::get_new_fee_id( int fee_id ) const
+{
+  /*
+  * on May 29 2024, we the fiber arriving on fee_id 11 was moved to fee_id 21
+  * since fee_id 11 was not assigned before, we can internally convert all call to fee_id 21 to fee_id11,
+  * while keeping backward compatibility
+  */
+  static const std::map<int,int> internal_fee_id_map( {{11,21}} );
+  const auto& iter = internal_fee_id_map.find( fee_id );
+  return iter == internal_fee_id_map.end() ? fee_id:iter->second;
+}
+

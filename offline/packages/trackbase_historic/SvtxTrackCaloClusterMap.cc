@@ -10,7 +10,7 @@ SvtxTrackCaloClusterMap::ConstIter SvtxTrackCaloClusterMap::begin() const
   return DummyTrackMap.end();
 }
 
-SvtxTrackCaloClusterMap::ConstIter SvtxTrackCaloClusterMap::find(SvtxTrack*) const
+SvtxTrackCaloClusterMap::ConstIter SvtxTrackCaloClusterMap::find(SvtxTrack* /*unused*/) const
 {
   return DummyTrackMap.end();
 }
@@ -25,7 +25,7 @@ SvtxTrackCaloClusterMap::Iter SvtxTrackCaloClusterMap::begin()
   return DummyTrackMap.end();
 }
 
-SvtxTrackCaloClusterMap::Iter SvtxTrackCaloClusterMap::find(SvtxTrack*)
+SvtxTrackCaloClusterMap::Iter SvtxTrackCaloClusterMap::find(SvtxTrack* /*unused*/)
 {
   return DummyTrackMap.end();
 }

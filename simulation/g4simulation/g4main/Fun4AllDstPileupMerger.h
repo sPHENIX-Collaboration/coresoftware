@@ -10,6 +10,7 @@
 
 #include <map>
 #include <string>
+#include <utility>  // for pair
 
 class PHCompositeNode;
 class PHG4HitContainer;
@@ -23,9 +24,7 @@ class PHHepMCGenEventMap;
  */
 class Fun4AllDstPileupMerger final
 {
-
-  public:
-
+ public:
   //! constructor
   Fun4AllDstPileupMerger() = default;
 
@@ -33,15 +32,14 @@ class Fun4AllDstPileupMerger final
   ~Fun4AllDstPileupMerger() = default;
 
   //! load destination nodes from composite
-  void load_nodes(PHCompositeNode*);
+  void load_nodes(PHCompositeNode *);
 
   //! time-shift and copy content of source nodes to destination
   void copy_background_event(PHCompositeNode *, double delta_t) const;
 
-  void copyDetectorActiveCrossings(const std::map<std::string,std::pair<double ,double>> &dmap) {m_DetectorTiming = dmap;}
+  void copyDetectorActiveCrossings(const std::map<std::string, std::pair<double, double>> &dmap) { m_DetectorTiming = dmap; }
 
-  private:
-
+ private:
   //! hepmc
   PHHepMCGenEventMap *m_geneventmap = nullptr;
 
@@ -51,7 +49,7 @@ class Fun4AllDstPileupMerger final
   //! truth information
   PHG4TruthInfoContainer *m_g4truthinfo = nullptr;
 
-  std::map<std::string,std::pair<double ,double>> m_DetectorTiming;
+  std::map<std::string, std::pair<double, double>> m_DetectorTiming;
 };
 
 #endif

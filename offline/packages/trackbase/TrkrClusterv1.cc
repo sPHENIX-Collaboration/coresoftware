@@ -7,43 +7,52 @@
 #include "TrkrClusterv1.h"
 
 #include <cmath>
-#include <utility>          // for swap
+#include <utility>  // for swap
 
 namespace
 {
 
   // square convenience function
-  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+  template <class T>
+  inline constexpr T square(const T& x)
+  {
+    return x * x;
+  }
 
   // get unique index in cov. matrix array from i and j
   inline unsigned int covarIndex(unsigned int i, unsigned int j)
   {
-    if (i > j) std::swap(i, j);
+    if (i > j)
+    {
+      std::swap(i, j);
+    }
     return i + 1 + (j + 1) * (j) / 2 - 1;
   }
 
- // rotate size or covariant matrix to polar coordinates and return the phi component
- template<float (TrkrClusterv1::*accessor)(unsigned int, unsigned int) const>
-    float rotate( const TrkrClusterv1* cluster )
+  // rotate size or covariant matrix to polar coordinates and return the phi component
+  template <float (TrkrClusterv1::*accessor)(unsigned int, unsigned int) const>
+  float rotate(const TrkrClusterv1* cluster)
   {
     const auto phi = -std::atan2(cluster->getY(), cluster->getX());
     const auto cosphi = std::cos(phi);
     const auto sinphi = std::sin(phi);
 
-    return
-      square(sinphi)*(cluster->*accessor)(0,0) +
-      square(cosphi)*(cluster->*accessor)(1,1) +
-      2.*cosphi*sinphi*(cluster->*accessor)(0,1);
+    return square(sinphi) * (cluster->*accessor)(0, 0) +
+           square(cosphi) * (cluster->*accessor)(1, 1) +
+           2. * cosphi * sinphi * (cluster->*accessor)(0, 1);
   }
 
-}
+}  // namespace
 
 TrkrClusterv1::TrkrClusterv1()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
   , m_isGlobal(true)
   , m_adc(0xFFFFFFFF)
 {
-  for (int i = 0; i < 3; ++i) m_pos[i] = NAN;
+  for (float& m_po : m_pos)
+  {
+    m_po = NAN;
+  }
 
   for (int j = 0; j < 3; ++j)
   {
@@ -63,9 +72,13 @@ void TrkrClusterv1::identify(std::ostream& os) const
   os << ", " << getPosition(1) << ", ";
   os << getPosition(2) << ") cm";
   if (m_isGlobal)
+  {
     os << " - global coordinates" << std::endl;
+  }
   else
+  {
     os << " - local coordinates" << std::endl;
+  }
 
   os << " adc = " << getAdc() << std::endl;
 
@@ -106,43 +119,63 @@ void TrkrClusterv1::identify(std::ostream& os) const
 
 int TrkrClusterv1::isValid() const
 {
-  if (m_cluskey == TrkrDefs::CLUSKEYMAX) return 0;
+  if (m_cluskey == TrkrDefs::CLUSKEYMAX)
+  {
+    return 0;
+  }
   for (int i = 0; i < 3; ++i)
   {
-    if (std::isnan(getPosition(i))) return 0;
+    if (std::isnan(getPosition(i)))
+    {
+      return 0;
+    }
   }
-  if (m_adc == 0xFFFFFFFF) return 0;
+  if (m_adc == 0xFFFFFFFF)
+  {
+    return 0;
+  }
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
     {
-      if (std::isnan(getSize(i, j))) return 0;
-      if (std::isnan(getError(i, j))) return 0;
+      if (std::isnan(getSize(i, j)))
+      {
+        return 0;
+      }
+      if (std::isnan(getError(i, j)))
+      {
+        return 0;
+      }
     }
   }
 
   return 1;
 }
 
-void TrkrClusterv1::CopyFrom( const TrkrCluster& source )
+void TrkrClusterv1::CopyFrom(const TrkrCluster& source)
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
- 
-  // parent class method
-  TrkrCluster::CopyFrom( source );
+  if (this == &source)
+  {
+    return;
+  }
 
-  setX( source.getX() );
-  setY( source.getY() );
-  setZ( source.getZ() );
+  // parent class method
+  TrkrCluster::CopyFrom(source);
+
+  setX(source.getX());
+  setY(source.getY());
+  setZ(source.getZ());
   m_isGlobal = source.isGlobal();
-  setAdc( source.getAdc() );
+  setAdc(source.getAdc());
 
   for (int j = 0; j < 3; ++j)
-    for (int i = 0; i < 3; ++i)
   {
-    setSize(i, j, source.getSize(i, j));
-    setError(i, j, source.getError(i, j));
+    for (int i = 0; i < 3; ++i)
+    {
+      setSize(i, j, source.getSize(i, j));
+      setError(i, j, source.getError(i, j));
+    }
   }
 }
 
@@ -153,7 +186,9 @@ void TrkrClusterv1::setSize(unsigned int i, unsigned int j, float value)
 }
 
 float TrkrClusterv1::getSize(unsigned int i, unsigned int j) const
-{ return m_size[covarIndex(i, j)]; }
+{
+  return m_size[covarIndex(i, j)];
+}
 
 void TrkrClusterv1::setError(unsigned int i, unsigned int j, float value)
 {
@@ -162,23 +197,36 @@ void TrkrClusterv1::setError(unsigned int i, unsigned int j, float value)
 }
 
 float TrkrClusterv1::getError(unsigned int i, unsigned int j) const
-{ return m_err[covarIndex(i, j)]; }
+{
+  return m_err[covarIndex(i, j)];
+}
 
 float TrkrClusterv1::getPhiSize() const
-{ return 2*std::sqrt(rotate<&TrkrClusterv1::getSize>(this)); }
+{
+  return 2 * std::sqrt(rotate<&TrkrClusterv1::getSize>(this));
+}
 
 float TrkrClusterv1::getZSize() const
-{ return 2.*sqrt(getSize(2, 2)); }
+{
+  return 2. * std::sqrt(getSize(2, 2));
+}
 
 float TrkrClusterv1::getPhiError() const
 {
-  const float rad = std::sqrt(square(m_pos[0])+square(m_pos[1]));
-  if (rad > 0) return getRPhiError() / rad;
+  const float rad = std::sqrt(square(m_pos[0]) + square(m_pos[1]));
+  if (rad > 0)
+  {
+    return getRPhiError() / rad;
+  }
   return 0;
 }
 
 float TrkrClusterv1::getRPhiError() const
-{ return std::sqrt(rotate<&TrkrClusterv1::getError>( this )); }
+{
+  return std::sqrt(rotate<&TrkrClusterv1::getError>(this));
+}
 
 float TrkrClusterv1::getZError() const
-{ return std::sqrt(getError(2, 2)); }
+{
+  return std::sqrt(getError(2, 2));
+}

@@ -35,7 +35,7 @@ class PHG4DisplayAction
 
   virtual std::string GetName() const { return m_Detector; }
 
-  virtual void Print(const std::string &/*what*/="ALL") {}
+  virtual void Print(const std::string & /*what*/ = "ALL") {}
 
   enum CheckReturnCodes
   {
@@ -47,21 +47,21 @@ class PHG4DisplayAction
  protected:
   //! find FindVolume method
   /*
- * @param[in] starting volume
- */
+   * @param[in] starting volume
+   */
   int FindVolumes(G4VPhysicalVolume *physvol);
 
   //! find CheckVolume method
   /*
- * @param[in] physical volume to be checked
- */
-  virtual int CheckVolume(G4VPhysicalVolume */*physvol*/) { return 0; }
+   * @param[in] physical volume to be checked
+   */
+  virtual int CheckVolume(G4VPhysicalVolume * /*physvol*/) { return 0; }
 
   //! ApplyVisAttributes method
   /**
- *@param[in] physvol selected physical volume
- */
-  virtual void ApplyVisAttributes(G4VPhysicalVolume */*physvol*/) { return; }
+   *@param[in] physvol selected physical volume
+   */
+  virtual void ApplyVisAttributes(G4VPhysicalVolume * /*physvol*/) { return; }
 
  private:
   std::string m_Detector;

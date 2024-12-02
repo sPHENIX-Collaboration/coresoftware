@@ -75,7 +75,7 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename : nodes)
+    for (const auto &nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -130,7 +130,7 @@ void PHG4TpcSubsystem::Print(const std::string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4TpcSubsystem::GetDetector(void) const
+PHG4Detector *PHG4TpcSubsystem::GetDetector() const
 {
   return m_Detector;
 }
@@ -148,8 +148,6 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("tpc_length", 211.);
 
   set_default_double_param("steplimits", 1);  // 1cm by default
-
-  set_default_string_param("tpc_gas", "sPHENIX_TPC_Gas");
 
   // material budget:
   // Cu (all layers): 0.5 oz cu per square foot, 1oz == 0.0347mm --> 0.5 oz ==  0.00347cm/2.
@@ -193,11 +191,47 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   //  I think a calculation just for the rohacell would be more than sufficient.
   set_default_string_param("window_core_material", "ROHACELL_FOAM_51");
   set_default_double_param("window_thickness", 0.56);  // overall thickness
-  //I just checked with PC manufacturers and we can get 8.9 micron thick copper in reasonably large sheets.
-  // At normal incidence, 8.9 microns is 0.06% of a radiation length.
+  // I just checked with PC manufacturers and we can get 8.9 micron thick copper in reasonably large sheets.
+  //  At normal incidence, 8.9 microns is 0.06% of a radiation length.
   set_default_string_param("window_surface1_material", "G4_Cu");
   set_default_double_param("window_surface1_thickness", 8.9e-4);  // 8.9  um outter shell thickness be default
   // The FR4 should be either 5 or 10 mils thick.  10 mils is 254 microns and 5 mils is 0.127 microns.  I think either of these is mechanically fine...
   set_default_string_param("window_surface2_material", "FR4");
   set_default_double_param("window_surface2_thickness", 0.0127);  // 127  um 2nd shell thickness be default
+
+  // for geonode initialization
+  set_default_double_param("drift_velocity", 0.008);
+
+  set_default_int_param("ntpc_layers_inner", 16);
+  set_default_int_param("ntpc_layers_mid", 16);
+  set_default_int_param("ntpc_layers_outer", 16);
+  set_default_int_param("tpc_minlayer_inner", 7);
+
+  set_default_double_param("tpc_minradius_inner", 31.105);  // 30.0);  // cm
+  set_default_double_param("tpc_minradius_mid", 41.153);    // 40.0);
+  set_default_double_param("tpc_minradius_outer", 58.367);  // 60.0);
+
+  set_default_double_param("tpc_maxradius_inner", 40.249);  // 40.0);  // cm
+  set_default_double_param("tpc_maxradius_mid", 57.475);    // 60.0);
+  set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
+
+  set_default_double_param("maxdriftlength", 105.5);       // cm
+  set_default_double_param("extended_readout_time", 0.0);  // ns
+  set_default_double_param("tpc_adc_clock", 53.0);         // ns, for 18.8 MHz clock
+
+  set_default_double_param("tpc_sector_phi_inner", 0.5024);  // 2 * M_PI / 12 );//sector size in phi for R1 sector
+  set_default_double_param("tpc_sector_phi_mid", 0.5087);    // 2 * M_PI / 12 );//sector size in phi for R2 sector
+  set_default_double_param("tpc_sector_phi_outer", 0.5097);  // 2 * M_PI / 12 );//sector size in phi for R3 sector
+
+  set_default_int_param("ntpc_phibins_inner", 1128);  // 94 * 12
+  set_default_int_param("ntpc_phibins_mid", 1536);    // 128 * 12
+  set_default_int_param("ntpc_phibins_outer", 2304);  // 192 * 12
+
+  set_default_double_param("TPC_gas_temperature", 15.0); //in celcius
+  set_default_double_param("TPC_gas_pressure", 1.0); //in atmospheres
+  set_default_double_param("Ne_frac", 0.00); 
+  set_default_double_param("Ar_frac", 0.75); 
+  set_default_double_param("CF4_frac", 0.20);
+  set_default_double_param("N2_frac", 0.00);
+  set_default_double_param("isobutane_frac", 0.05);
 }

@@ -88,37 +88,37 @@ class CaloTriggerInfov1 : public CaloTriggerInfo
   float get_best_FullCalo_1p0x1p0_phi() const override { return m_FULLCALO_1p0x1p0_BEST_PHI; }
 
  private:
-  float m_EMCAL_2x2_BEST_E = 0.;
-  float m_EMCAL_2x2_BEST_ETA = 0.;
-  float m_EMCAL_2x2_BEST_PHI = 0.;
+  float m_EMCAL_2x2_BEST_E{0.};
+  float m_EMCAL_2x2_BEST_ETA{0.};
+  float m_EMCAL_2x2_BEST_PHI{0.};
 
-  float m_EMCAL_4x4_BEST_E = 0.;
-  float m_EMCAL_4x4_BEST_ETA = 0.;
-  float m_EMCAL_4x4_BEST_PHI = 0.;
+  float m_EMCAL_4x4_BEST_E{0.};
+  float m_EMCAL_4x4_BEST_ETA{0.};
+  float m_EMCAL_4x4_BEST_PHI{0.};
 
-  float m_EMCAL_4x4_BEST2_E = 0.;
-  float m_EMCAL_4x4_BEST2_ETA = 0.;
-  float m_EMCAL_4x4_BEST2_PHI = 0.;
+  float m_EMCAL_4x4_BEST2_E{0.};
+  float m_EMCAL_4x4_BEST2_ETA{0.};
+  float m_EMCAL_4x4_BEST2_PHI{0.};
 
-  float m_FULLCALO_0p2x0p2_BEST_E = 0.;
-  float m_FULLCALO_0p2x0p2_BEST_ETA = 0.;
-  float m_FULLCALO_0p2x0p2_BEST_PHI = 0.;
+  float m_FULLCALO_0p2x0p2_BEST_E{0.};
+  float m_FULLCALO_0p2x0p2_BEST_ETA{0.};
+  float m_FULLCALO_0p2x0p2_BEST_PHI{0.};
 
-  float m_FULLCALO_0p4x0p4_BEST_E = 0.;
-  float m_FULLCALO_0p4x0p4_BEST_ETA = 0.;
-  float m_FULLCALO_0p4x0p4_BEST_PHI = 0.;
+  float m_FULLCALO_0p4x0p4_BEST_E{0.};
+  float m_FULLCALO_0p4x0p4_BEST_ETA{0.};
+  float m_FULLCALO_0p4x0p4_BEST_PHI{0.};
 
-  float m_FULLCALO_0p6x0p6_BEST_E = 0.;
-  float m_FULLCALO_0p6x0p6_BEST_ETA = 0.;
-  float m_FULLCALO_0p6x0p6_BEST_PHI = 0.;
+  float m_FULLCALO_0p6x0p6_BEST_E{0.};
+  float m_FULLCALO_0p6x0p6_BEST_ETA{0.};
+  float m_FULLCALO_0p6x0p6_BEST_PHI{0.};
 
-  float m_FULLCALO_0p8x0p8_BEST_E = 0.;
-  float m_FULLCALO_0p8x0p8_BEST_ETA = 0.;
-  float m_FULLCALO_0p8x0p8_BEST_PHI = 0.;
+  float m_FULLCALO_0p8x0p8_BEST_E{0.};
+  float m_FULLCALO_0p8x0p8_BEST_ETA{0.};
+  float m_FULLCALO_0p8x0p8_BEST_PHI{0.};
 
-  float m_FULLCALO_1p0x1p0_BEST_E = 0.;
-  float m_FULLCALO_1p0x1p0_BEST_ETA = 0.;
-  float m_FULLCALO_1p0x1p0_BEST_PHI = 0.;
+  float m_FULLCALO_1p0x1p0_BEST_E{0.};
+  float m_FULLCALO_1p0x1p0_BEST_ETA{0.};
+  float m_FULLCALO_1p0x1p0_BEST_PHI{0.};
 
   ClassDefOverride(CaloTriggerInfov1, 3)
 };

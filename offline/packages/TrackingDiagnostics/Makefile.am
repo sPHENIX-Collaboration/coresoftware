@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -11,18 +11,24 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  BeamCrossingAnalysis.h \
   KshortReconstruction.h \
   helixResiduals.h \
   TrackResiduals.h \
+  TrackContainerCombiner.h \
+  TrackSeedTrackMapConverter.h \
   TrkrNtuplizer.h
 
 lib_LTLIBRARIES = \
   libTrackingDiagnostics.la
 
 libTrackingDiagnostics_la_SOURCES = \
+  BeamCrossingAnalysis.cc \
   KshortReconstruction.cc \
   helixResiduals.cc \
   TrackResiduals.cc \
+  TrackContainerCombiner.cc \
+  TrackSeedTrackMapConverter.cc \
   TrkrNtuplizer.cc
 
 libTrackingDiagnostics_la_LIBADD = \

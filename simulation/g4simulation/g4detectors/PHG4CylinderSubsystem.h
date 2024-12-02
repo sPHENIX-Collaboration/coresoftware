@@ -68,19 +68,19 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4CylinderDetector* m_Detector = nullptr;
+  PHG4CylinderDetector* m_Detector{nullptr};
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_SteppingAction = nullptr;
+  PHG4SteppingAction* m_SteppingAction{nullptr};
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction = nullptr;
+  PHG4DisplayAction* m_DisplayAction{nullptr};
 
   bool m_SaveAllHitsFlag = false;
   //! Color setting if we want to override the default
-  std::array<double, 4> m_ColorArray;
+  std::array<double, 4> m_ColorArray{};
 };
 
 #endif  // G4DETECTORS_PHG4CYLINDERSUBSYSTEM_H

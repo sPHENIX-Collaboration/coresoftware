@@ -1,7 +1,7 @@
 #include "DumpBbcVertexMap.h"
 
-#include <bbc/BbcVertex.h>
-#include <bbc/BbcVertexMap.h>
+#include <mbd/BbcVertex.h>
+#include <mbd/BbcVertexMap.h>
 
 #include <phool/PHIODataNode.h>
 

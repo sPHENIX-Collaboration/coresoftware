@@ -9,8 +9,8 @@ ROOTIFY =  perl $(srcdir)/PgRootify.pl
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
-  -I$(OPT_SPHENIX)/include \
+  -isystem$(OFFLINE_MAIN)/include  \
+  -isystem$(OPT_SPHENIX)/include \
   -isystem`root-config --incdir`
 
 AM_LDFLAGS = \

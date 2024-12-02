@@ -106,13 +106,12 @@ class TrkrHitSet : public PHObject
     return 0;
   }
 
-  protected:
-
+ protected:
   //! ctor, not to be called
   TrkrHitSet() = default;
 
-private:
+ private:
   ClassDefOverride(TrkrHitSet, 1);
 };
 
-#endif  //TRACKBASE_TRKRHITSET_H
+#endif  // TRACKBASE_TRKRHITSET_H

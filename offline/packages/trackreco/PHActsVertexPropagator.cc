@@ -14,8 +14,9 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
+
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
@@ -27,7 +28,7 @@ PHActsVertexPropagator::PHActsVertexPropagator(const std::string& name)
 {
 }
 
-int PHActsVertexPropagator::Init(PHCompositeNode*)
+int PHActsVertexPropagator::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -37,7 +38,7 @@ int PHActsVertexPropagator::InitRun(PHCompositeNode* topNode)
   int returnval = getNodes(topNode);
   return returnval;
 }
-int PHActsVertexPropagator::process_event(PHCompositeNode*)
+int PHActsVertexPropagator::process_event(PHCompositeNode* /*unused*/)
 {
   std::vector<unsigned int> deletedKeys;
   for (const auto& [trackKey, trajectory] : *m_trajectories)
@@ -155,6 +156,10 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   track->set_y(position(1) / Acts::UnitConstants::cm);
   track->set_z(position(2) / Acts::UnitConstants::cm);
 
+  track->set_px(params.momentum().x());
+  track->set_py(params.momentum().y());
+  track->set_pz(params.momentum().z());
+
   ActsTransformations rotater;
   rotater.setVerbosity(Verbosity());
   if (params.covariance())
@@ -172,7 +177,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   }
 }
 
-ActsPropagator::BoundTrackParamResult
+ActsPropagator::BTPPairResult
 PHActsVertexPropagator::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const unsigned int vtxid)
@@ -183,6 +188,15 @@ PHActsVertexPropagator::propagateTrack(
 
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
+  propagator.setOverstepLimit(1 * Acts::UnitConstants::cm);
+  std::istringstream stringline(m_fieldMap);
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  stringline >> fieldstrength;
+  if (!stringline.fail())
+  {
+    propagator.constField();
+    propagator.setConstFieldValue(fieldstrength);
+  }
 
   return propagator.propagateTrack(params, perigee);
 }
@@ -201,7 +215,7 @@ Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)
   return Acts::Vector3::Zero();
 }
 
-int PHActsVertexPropagator::End(PHCompositeNode*)
+int PHActsVertexPropagator::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -24,13 +24,13 @@ namespace TMVA
 class KFParticle_MVA
 {
  public:
-  KFParticle_MVA() {}
+  KFParticle_MVA() = default;
 
-  virtual ~KFParticle_MVA() {}
+  virtual ~KFParticle_MVA() = default;
 
-  std::tuple<TMVA::Reader *, std::vector<Float_t>> initMVA();
+  std::tuple<TMVA::Reader*, std::vector<Float_t>> initMVA();
 
-  Float_t evaluateMVA(TMVA::Reader *reader, std::vector<Float_t> reader_floats, KFParticle particle, KFPVertex vertex);
+  Float_t evaluateMVA(TMVA::Reader* reader, std::vector<Float_t> reader_floats, const KFParticle& particle, const KFPVertex& vertex);
 
  protected:
   unsigned int m_nPars = 1;
@@ -39,8 +39,8 @@ class KFParticle_MVA
   std::string m_mva_path;
 
  private:
-  unsigned int nMVApars = m_nPars;  //sizeof(m_mva_variable_list)/sizeof(m_mva_variable_list[0]);
+  unsigned int nMVApars = m_nPars;  // sizeof(m_mva_variable_list)/sizeof(m_mva_variable_list[0]);
   std::string method = m_mva_path + " method";
 };
 
-#endif  //KFPARTICLESPHENIX_KFPARTICLEMVA_H
+#endif  // KFPARTICLESPHENIX_KFPARTICLEMVA_H

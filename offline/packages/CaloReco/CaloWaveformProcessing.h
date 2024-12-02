@@ -3,9 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <TProfile.h>
-
 #include <string>
+#include <vector>
 
 class CaloWaveformFitting;
 
@@ -18,13 +17,11 @@ class CaloWaveformProcessing : public SubsysReco
     TEMPLATE = 1,
     ONNX = 2,
     FAST = 3,
+    NYQUIST = 4,
   };
 
-  CaloWaveformProcessing()
-    : m_processingtype(CaloWaveformProcessing::TEMPLATE)
-    , m_template_input_file("CEMC_TEMPLATE")
-    , m_model_name("CEMC_ONNX"){};
-  ~CaloWaveformProcessing() override {}
+  CaloWaveformProcessing() = default;
+  ~CaloWaveformProcessing() override;
 
   void set_processing_type(CaloWaveformProcessing::process modelno)
   {
@@ -42,6 +39,12 @@ class CaloWaveformProcessing : public SubsysReco
     m_template_input_file = template_input_file;
     return;
   }
+
+  void set_template_name(const std::string &template_name)
+  {
+    m_template_name = template_name;
+    return;
+  }
   void set_model_file(const std::string &model_name)
   {
     m_model_name = model_name;
@@ -57,7 +60,17 @@ class CaloWaveformProcessing : public SubsysReco
     _nsoftwarezerosuppression = softwarezerosuppression;
     _bdosoftwarezerosuppression = usezerosuppression;
   }
+  void set_timeFitLim(float low,float high)
+  {
+    m_setTimeLim = true;
+    m_timeLim_low = low;
+    m_timeLim_high = high;
+    return;
+  }
 
+  void set_bitFlipRecovery(bool dobitfliprecovery) {
+    _dobitfliprecovery = dobitfliprecovery;
+  }
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
@@ -67,15 +80,21 @@ class CaloWaveformProcessing : public SubsysReco
  private:
   CaloWaveformFitting *m_Fitter = nullptr;
 
-  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE;
+  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::TEMPLATE;
   int _nthreads = 1;
   int _nsoftwarezerosuppression = 40;
   bool _bdosoftwarezerosuppression = false;
+  bool _dobitfliprecovery = false;
 
   std::string m_template_input_file;
   std::string url_template;
+  std::string m_template_name = "NONE";
+
+  bool m_setTimeLim{false};
+  float m_timeLim_low{-3.0};
+  float m_timeLim_high{4.0};
 
   std::string url_onnx;
-  std::string m_model_name;
+  std::string m_model_name = "CEMC_ONNX";
 };
 #endif

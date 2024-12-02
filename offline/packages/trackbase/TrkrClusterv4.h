@@ -7,9 +7,9 @@
 #ifndef TRACKBASE_TRKRCLUSTERV4_H
 #define TRACKBASE_TRKRCLUSTERV4_H
 
+#include <iostream>
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
-#include <iostream>
 
 class PHObject;
 
@@ -22,29 +22,30 @@ class PHObject;
 class TrkrClusterv4 : public TrkrCluster
 {
  public:
- 
   //! ctor
   TrkrClusterv4();
 
-  //!dtor
+  //! dtor
   ~TrkrClusterv4() override = default;
-  
+
   // PHObject virtual overloads
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override {}
   int isValid() const override;
   PHObject* CloneMe() const override { return new TrkrClusterv4(*this); }
-  
+
   //! import PHObject CopyFrom, in order to avoid clang warning
   using PHObject::CopyFrom;
-  
-  //! copy content from base class
-  void CopyFrom( const TrkrCluster& ) override;
 
   //! copy content from base class
-  void CopyFrom( TrkrCluster* source ) override
-  { CopyFrom( *source ); }
+  void CopyFrom(const TrkrCluster&) override;
+
+  //! copy content from base class
+  void CopyFrom(TrkrCluster* source) override
+  {
+    CopyFrom(*source);
+  }
 
   //
   // cluster position
@@ -62,30 +63,33 @@ class TrkrClusterv4 : public TrkrCluster
   //
   // cluster info
   //
-  unsigned int getAdc() const override { 
+  unsigned int getAdc() const override
+  {
     uint8_t tmp = m_adc;
-    return tmp ; 
-
+    return tmp;
   }
 
-  void setAdc(unsigned int adc) override {
-    uint16_t tmp =0;
-    if(adc>0xff)
-      tmp=0xff;
+  void setAdc(unsigned int adc) override
+  {
+    uint16_t tmp = 0;
+    if (adc > 0xff)
+      tmp = 0xff;
     else
-     tmp = adc;
-    m_adc  |= tmp; 
+      tmp = adc;
+    m_adc |= tmp;
   }
 
-  unsigned int getMaxAdc() const override { 
+  unsigned int getMaxAdc() const override
+  {
     uint8_t tmp = (m_adc >> 8);
     unsigned int out = 0;
     out |= tmp;
-    return out; 
+    return out;
   }
 
-  void setMaxAdc(uint16_t maxadc) override {
-    if(maxadc>0xff)maxadc=0xff;
+  void setMaxAdc(uint16_t maxadc) override
+  {
+    if (maxadc > 0xff) maxadc = 0xff;
     uint16_t tmp = (maxadc << 8);
     m_adc |= tmp;
   }
@@ -94,65 +98,95 @@ class TrkrClusterv4 : public TrkrCluster
   // convenience interface
   //
   float getRPhiError() const override
-  { std::cout << "Deprecated getRPhiError trkrcluster function!"<<std::endl; return NAN;}
+  {
+    std::cout << "Deprecated getRPhiError trkrcluster function!" << std::endl;
+    return NAN;
+  }
   float getZError() const override
-  { std::cout << "Deprecated getZError trkrcluster function!"<<std::endl; return NAN;}
+  {
+    std::cout << "Deprecated getZError trkrcluster function!" << std::endl;
+    return NAN;
+  }
 
   /// deprecated global funtions with a warning
-  float getX() const override 
-  { std::cout << "Deprecated getx trkrcluster function!"<<std::endl; return NAN;}
-  float getY() const override 
-  { std::cout << "Deprecated gety trkrcluster function!"<<std::endl; return NAN;}
-  float getZ() const override 
-  { std::cout << "Deprecated getz trkrcluster function!"<<std::endl; return NAN;}
-   void setX(float) override 
-   { std::cout << "Deprecated setx trkrcluster function!"<<std::endl;} 
-   void setY(float) override 
-   { std::cout << "Deprecated sety trkrcluster function!"<<std::endl;} 
-   void setZ(float) override 
-   { std::cout << "Deprecated setz trkrcluster function!"<<std::endl;}
-   float getSize(unsigned int, unsigned int) const override 
-   {std::cout << "Deprecated getsize trkrcluster function!" << std::endl; return NAN;}       
-   void setSize(unsigned int, unsigned int, float) override 
-   {std::cout << "Deprecated setsize trkrcluster function!" << std::endl;}
-   float getError(unsigned int, unsigned int) const override 
-   {std::cout << "Deprecated geterr trkrcluster function!" << std::endl; return NAN;}
-   void setError(unsigned int, unsigned int, float) override 
-   { std::cout << "Deprecated seterr trkrcluster function!" << std::endl; }
+  float getX() const override
+  {
+    std::cout << "Deprecated getx trkrcluster function!" << std::endl;
+    return NAN;
+  }
+  float getY() const override
+  {
+    std::cout << "Deprecated gety trkrcluster function!" << std::endl;
+    return NAN;
+  }
+  float getZ() const override
+  {
+    std::cout << "Deprecated getz trkrcluster function!" << std::endl;
+    return NAN;
+  }
+  void setX(float) override
+  {
+    std::cout << "Deprecated setx trkrcluster function!" << std::endl;
+  }
+  void setY(float) override
+  {
+    std::cout << "Deprecated sety trkrcluster function!" << std::endl;
+  }
+  void setZ(float) override
+  {
+    std::cout << "Deprecated setz trkrcluster function!" << std::endl;
+  }
+  float getSize(unsigned int, unsigned int) const override
+  {
+    std::cout << "Deprecated getsize trkrcluster function!" << std::endl;
+    return NAN;
+  }
+  void setSize(unsigned int, unsigned int, float) override
+  {
+    std::cout << "Deprecated setsize trkrcluster function!" << std::endl;
+  }
+  float getError(unsigned int, unsigned int) const override
+  {
+    std::cout << "Deprecated geterr trkrcluster function!" << std::endl;
+    return NAN;
+  }
+  void setError(unsigned int, unsigned int, float) override
+  {
+    std::cout << "Deprecated seterr trkrcluster function!" << std::endl;
+  }
 
-   char getSize() const override { return m_phisize * m_zsize; }
-   //   void setSize(char size) { m_size = size; }
- 
-   float getPhiSize() const override { return (float) m_phisize; }
-   void setPhiSize(char phisize) { m_phisize = phisize; }
+  char getSize() const override { return m_phisize * m_zsize; }
+  //   void setSize(char size) { m_size = size; }
 
-   float getZSize() const override { return (float) m_zsize; }
-   void setZSize(char zsize) { m_zsize = zsize; }
- 
-   char getOverlap() const override { return m_overlap; }
-   void setOverlap(char overlap) override { m_overlap = overlap; }
- 
-   char getEdge() const override { return m_edge; }
-   void setEdge(char edge) override { m_edge = edge; }
+  float getPhiSize() const override { return (float) m_phisize; }
+  void setPhiSize(char phisize) { m_phisize = phisize; }
 
-   //float getPhiSize() const override 
-   //{ std::cout << "Deprecated size function"<< std::endl; return NAN;}
-   //float getZSize() const override 
-   //{std::cout << "Deprecated size function" << std::endl; return NAN;}
-   //float getPhiError() const override 
-   //{ std::cout << "Deprecated getPhiError function"<< std::endl; return NAN;}
+  float getZSize() const override { return (float) m_zsize; }
+  void setZSize(char zsize) { m_zsize = zsize; }
+
+  char getOverlap() const override { return m_overlap; }
+  void setOverlap(char overlap) override { m_overlap = overlap; }
+
+  char getEdge() const override { return m_edge; }
+  void setEdge(char edge) override { m_edge = edge; }
+
+  // float getPhiSize() const override
+  //{ std::cout << "Deprecated size function"<< std::endl; return NAN;}
+  // float getZSize() const override
+  //{std::cout << "Deprecated size function" << std::endl; return NAN;}
+  // float getPhiError() const override
+  //{ std::cout << "Deprecated getPhiError function"<< std::endl; return NAN;}
 
  protected:
-
-  float m_local[2];          //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
-  TrkrDefs::subsurfkey m_subsurfkey; //< unique identifier for hitsetkey-surface maps 16 bit
+  float m_local[2]{};                 //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
+  TrkrDefs::subsurfkey m_subsurfkey;  //< unique identifier for hitsetkey-surface maps 16 bit
   unsigned short int m_adc;           //< cluster sum adc 16
-  char m_phisize; // 8bit
-  char m_zsize;   // 8bit
-  char m_overlap; // 8bit 
-  char m_edge;    // 8bit - cumul 2*64
+  char m_phisize;                     // 8bit
+  char m_zsize;                       // 8bit
+  char m_overlap;                     // 8bit
+  char m_edge;                        // 8bit - cumul 2*64
 
   ClassDefOverride(TrkrClusterv4, 2)
 };
 
-#endif //TRACKBASE_TRKRCLUSTERV4_H
+#endif  // TRACKBASE_TRKRCLUSTERV4_H

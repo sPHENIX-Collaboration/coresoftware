@@ -8,13 +8,6 @@ class PHObject;
 
 static int nowarning = 0;
 
-PHObject*
-RunHeader::CloneMe() const
-{
-  std::cout << "RunHeader::CloneMe() is not implemented in daugther class" << std::endl;
-  return nullptr;
-}
-
 void RunHeader::Reset()
 {
   std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;

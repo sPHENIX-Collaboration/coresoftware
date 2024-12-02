@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
+  -isystem$(OFFLINE_MAIN)/include  \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -13,10 +13,10 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4vertex_la_LIBADD = \
-  -lbbc_io \
   -lg4detectors \
   -lfun4all \
-  -lg4bbc_io \
+  -lg4mbd_io \
+  -lmbd_io \
   -ltrackbase_historic_io \
   -lglobalvertex_io
 

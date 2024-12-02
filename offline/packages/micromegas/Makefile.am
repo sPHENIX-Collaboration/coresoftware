@@ -14,7 +14,8 @@ lib_LTLIBRARIES = \
 ## TODO: check with Chris where headers are installed (TrkrDefs.h) in "online" build
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include 
+  -I$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include
 
 ## TODO: check with Chris where libraries are installed (TrkrDefs.h) in "online" build
 AM_LDFLAGS = \
@@ -22,15 +23,20 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
+  MicromegasCalibrationData.h \
   MicromegasDefs.h \
+  MicromegasHotChannelMapData.h \
   MicromegasMapping.h
 
 # sources for io library
 libmicromegas_io_la_SOURCES = \
+  MicromegasCalibrationData.cc \
   MicromegasDefs.cc \
+  MicromegasHotChannelMapData.cc \
   MicromegasMapping.cc
 
 libmicromegas_io_la_LIBADD = \
+  -lcdbobjects \
   -ltrack_io
 
 BUILT_SOURCES = testexternals.cc
@@ -62,11 +68,12 @@ pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
   MicromegasCalibrationData.h \
   MicromegasClusterizer.h \
+  MicromegasCombinedDataCalibration.h \
+  MicromegasCombinedDataDecoder.h \
+  MicromegasCombinedDataEvaluation.h \
   MicromegasDefs.h \
+  MicromegasHotChannelMapData.h \
   MicromegasMapping.h \
-  MicromegasRawDataCalibration.h \
-  MicromegasRawDataDecoder.h \
-  MicromegasRawDataEvaluation.h \
   MicromegasTile.h
 
 ROOTDICTS = \
@@ -76,7 +83,7 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomMicromegas_Dict_rdict.pcm \
-  MicromegasRawDataEvaluation_Dict_rdict.pcm \
+  MicromegasCombinedDataEvaluation_Dict_rdict.pcm \
   MicromegasTile_Dict_rdict.pcm
 
 libmicromegas_io_la_SOURCES = \
@@ -84,25 +91,27 @@ libmicromegas_io_la_SOURCES = \
   CylinderGeomMicromegas.cc \
   MicromegasCalibrationData.cc \
   MicromegasDefs.cc \
+  MicromegasHotChannelMapData.cc \
   MicromegasMapping.cc
 
 libmicromegas_io_la_LIBADD = \
   -lCLHEP \
-  -lcdbobjects \
-  -lg4detectors_io \
-  -lphool \
+  -ltrack \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -lcdbobjects \
+  -lg4detectors_io
 
 libmicromegas_la_SOURCES = \
   MicromegasClusterizer.cc \
-  MicromegasRawDataCalibration.cc \
-  MicromegasRawDataDecoder.cc \
-  MicromegasRawDataEvaluation.cc \
-  MicromegasRawDataEvaluation_Dict.cc
+	 MicromegasCombinedDataCalibration.cc \
+  MicromegasCombinedDataDecoder.cc \
+  MicromegasCombinedDataEvaluation.cc \
+  MicromegasCombinedDataEvaluation_Dict.cc
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \
+  -lfun4allraw \
+  -lffarawobjects \
   -lphg4hit \
   -lSubsysReco
 

@@ -2,8 +2,8 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -21,7 +21,9 @@ libTPCPedestalCalibration_la_SOURCES = \
 
 libTPCPedestalCalibration_la_LIBADD = \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
+  -lcdbobjects \
+  -lsphenixnpc
 
 BUILT_SOURCES = testexternals.cc
 

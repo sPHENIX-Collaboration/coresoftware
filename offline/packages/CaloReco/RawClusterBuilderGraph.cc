@@ -23,6 +23,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <algorithm>                         // for sort
 #include <cassert>
 #include <cmath>
 #include <exception>
@@ -36,6 +37,7 @@
 // when checking for adjacent towers, it requires one bit of
 // information (the total number of phibins) which
 // is not in the tower class
+// NOLINTNEXTLINE(hicpp-special-member-functions)
 class twrs
 {
  public:
@@ -67,7 +69,7 @@ class twrs
     return binphi;
   }
 
- protected:
+ private:
   int bineta;
   int binphi;
   int maxphibin;
@@ -87,6 +89,7 @@ bool twrs::is_adjacent(const twrs &tower)
   if (bineta - 1 <= tower.get_bineta() && tower.get_bineta() <= bineta + 1)
   {
     if (binphi - 1 <= tower.get_binphi() && tower.get_binphi() <= binphi + 1)
+// NOLINTNEXTLINE(bugprone-branch-clone)
     {
       return true;
     }

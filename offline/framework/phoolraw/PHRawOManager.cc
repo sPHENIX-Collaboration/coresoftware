@@ -24,13 +24,7 @@
 #include <unistd.h>  // for close
 #include <iostream>
 
-using namespace std;
-
-PHRawOManager::PHRawOManager(const string& newFile, const int run, const int bufl, const int evtl, const int complvl)
-  : filedesc(-1)
-  , runNumber(0)
-  , bufferSize(0)
-  , eventLength(0)
+PHRawOManager::PHRawOManager(const std::string& newFile, const int run, const int bufl, const int evtl, const int complvl)
 {
   if (!setFile(newFile, run, bufl, evtl, complvl))
   {
@@ -42,17 +36,6 @@ PHRawOManager::PHRawOManager(const string& newFile, const int run, const int buf
   }
 }
 
-PHRawOManager::PHRawOManager()
-  : filedesc(-1)
-  , memBuffer(nullptr)
-  , fileBuffer(nullptr)
-  , runNumber(0)
-  , bufferSize(0)
-  , eventLength(0)
-  , compressionLevel(0)
-{
-}
-
 PHRawOManager::~PHRawOManager()
 {
   closeFile();
@@ -60,14 +43,8 @@ PHRawOManager::~PHRawOManager()
 
 void PHRawOManager::closeFile()
 {
-  if (fileBuffer)
-  {
-    delete fileBuffer;
-  }
-  if (memBuffer)
-  {
-    delete memBuffer;
-  }
+  delete fileBuffer;
+  delete memBuffer;
   fileBuffer = nullptr;
   memBuffer = nullptr;
   if (filedesc >= 0)
@@ -77,7 +54,7 @@ void PHRawOManager::closeFile()
   }
 }
 
-bool PHRawOManager::setFile(const string& setFile, const int setRun, const int setBufl, const int setEvtl, const int complvl)
+bool PHRawOManager::setFile(const std::string& setFile, const int setRun, const int setBufl, const int setEvtl, const int complvl)
 {
   filename = setFile;
   runNumber = setRun;
@@ -99,13 +76,15 @@ bool PHRawOManager::setFile(const string& setFile, const int setRun, const int s
   }
 
   // open file
+  // NOLINTNEXTLINE(hicpp-vararg)
   filedesc = open(filename.c_str(),
                   O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE,
                   S_IRWXU | S_IROTH | S_IRGRP);
 
   if (filedesc < 0)
   {
-    PHMessage("PHRawOManager::setFile", PHError, "could not open file");
+    std::cout << PHWHERE << " could not open file "
+	      << filename << std::endl;;
     return false;
   }
   memBuffer = new PHDWORD[bufferSize];
@@ -140,7 +119,7 @@ bool PHRawOManager::write(PHRawDataNode* node)
                                                                node->getWordLength(), node->getHitFormat());
     if (bytesAddedToBuffer <= 0)
     {
-      PHMessage("PHRawOManager::write", PHError, "Zero bytes added to buffer");
+      std::cout << PHWHERE << " Zero bytes added to buffer" << std::endl;
       return false;
     }
     return true;
@@ -150,9 +129,9 @@ bool PHRawOManager::write(PHRawDataNode* node)
 
 void PHRawOManager::print() const
 {
-  cout << "File attached : " << filename << endl;
-  cout << "Buffer size   : " << bufferSize << endl;
-  cout << "Event Length  : " << eventLength << endl;
-  cout << "Run number    : " << runNumber << endl;
-  cout << "Events written: " << eventNumber << endl;
+  std::cout << "File attached : " << filename << std::endl;
+  std::cout << "Buffer size   : " << bufferSize << std::endl;
+  std::cout << "Event Length  : " << eventLength << std::endl;
+  std::cout << "Run number    : " << runNumber << std::endl;
+  std::cout << "Events written: " << eventNumber << std::endl;
 }

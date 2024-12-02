@@ -19,17 +19,20 @@ struct ResidualOutlierFinder
     {
       return false;
     }
-  
+
     const auto predicted = state.predicted();
     const auto predictedCovariance = state.predictedCovariance();
     double chi2 = std::numeric_limits<float>::max();
-    
-    auto fullCalibrated = state
-      .template calibrated<Acts::MultiTrajectoryTraits::MeasurementSizeMax>().data();
-    auto fullCalibratedCovariance = state
-      .template calibratedCovariance<Acts::MultiTrajectoryTraits::MeasurementSizeMax>().data();
 
-    chi2 = Acts::visit_measurement(state.calibratedSize(), [&](auto N) -> double {
+    auto fullCalibrated = state
+                              .template calibrated<Acts::MultiTrajectoryTraits::MeasurementSizeMax>()
+                              .data();
+    auto fullCalibratedCovariance = state
+                                        .template calibratedCovariance<Acts::MultiTrajectoryTraits::MeasurementSizeMax>()
+                                        .data();
+
+    chi2 = Acts::visit_measurement(state.calibratedSize(), [&](auto N) -> double
+                                   {
 	constexpr size_t kMeasurementSize = decltype(N)::value;
 	typename Acts::TrackStateTraits<kMeasurementSize, true>::Measurement calibrated{
 	  fullCalibrated};
@@ -43,12 +46,12 @@ struct ResidualOutlierFinder
 	res = calibrated - H * predicted;
 	chi2 = (res.transpose() * ((calibratedCovariance + H * predictedCovariance * H.transpose())).inverse() * res).eval()(0, 0);
 	
-	return chi2;
-      });
+	return chi2; });
 
     if (verbosity > 2)
     {
-      auto distance = Acts::visit_measurement(state.calibratedSize(), [&](auto N) {
+      auto distance = Acts::visit_measurement(state.calibratedSize(), [&](auto N)
+                                              {
       constexpr size_t kMeasurementSize = decltype(N)::value;
       auto residuals =
           state.template calibrated<kMeasurementSize>() -
@@ -56,8 +59,7 @@ struct ResidualOutlierFinder
       .template topLeftCorner<kMeasurementSize, Acts::eBoundSize>() *
               state.predicted();
       auto cdistance = residuals.norm();
-      return cdistance;
-    });
+      return cdistance; });
       std::cout << "Measurement has distance, chi2 "
                 << distance << ", " << chi2
                 << std::endl;

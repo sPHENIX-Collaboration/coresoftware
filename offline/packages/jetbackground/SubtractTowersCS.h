@@ -9,7 +9,8 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string> 
+#include <limits>
+#include <string>
 
 // forward declarations
 class PHCompositeNode;
@@ -38,10 +39,10 @@ class SubtractTowersCS : public SubsysReco
  private:
   int CreateNode(PHCompositeNode *topNode);
 
-  bool _use_flow_modulation;
+  bool _use_flow_modulation{false};
 
-  float _alpha;
-  float _DeltaRmax;
+  float _alpha{std::numeric_limits<float>::quiet_NaN()};
+  float _DeltaRmax{std::numeric_limits<float>::quiet_NaN()};
 };
 
 #endif

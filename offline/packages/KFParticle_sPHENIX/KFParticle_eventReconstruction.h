@@ -35,7 +35,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
  public:
   KFParticle_eventReconstruction();
 
-  virtual ~KFParticle_eventReconstruction() {}
+  ~KFParticle_eventReconstruction() override = default;
 
   /**
    * Starts the reconstruction chain
@@ -48,7 +48,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
   void createDecay(PHCompositeNode* topNode, std::vector<KFParticle>& selectedMother, std::vector<KFParticle>& selectedVertex,
                    std::vector<std::vector<KFParticle>>& selectedDaughters,
                    std::vector<std::vector<KFParticle>>& selectedIntermediates,
-                   int& nPVs, int& multiplicity);
+                   int& nPVs);
 
   /// Used to reconstruct simple decays with no intermediate states
   void buildBasicChain(std::vector<KFParticle>& selectedMotherBasic,
@@ -83,7 +83,6 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                             std::vector<KFParticle> possibleVertex);
 
   KFParticle createFakePV();
-  void setBz(double Bz_Tesla);
 
  protected:
   bool m_constrain_to_vertex;

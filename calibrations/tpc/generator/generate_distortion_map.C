@@ -3,20 +3,20 @@
 #include "AnnularFieldSim.h"
 #include "TTree.h" //this prevents a lazy binding issue and/or is a magic spell.
 #include "TCanvas.h" //this prevents a lazy binding issue and/or is a magic spell.
-//R__LOAD_LIBRARY(.libs/libfieldsim)
-R__LOAD_LIBRARY(build/.libs/libfieldsim)
 
-  char field_string[200];
-  char lookup_string[200];
+// cppcheck-suppress unknownMacro
+R__LOAD_LIBRARY(libfieldsim.so)
+
+char field_string[200];
+char lookup_string[200];
 
 AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe=false, bool useSpacecharge=true);
 AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe=false, bool useSpacecharge=true);
 void TestSpotDistortion(AnnularFieldSim *t);
 void SurveyFiles(TFileCollection* filelist);
 
-
   
-void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int nSteps=500){
+void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int nSteps=500, bool scanSteps=false){
   printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
  
   bool hasTwin=true; //this flag prompts the code to build both a positive-half and a negative-half for the TPC, reusing as much of the calculations as possible.  It is more efficient to 'twin' one half of the TPC than to recalculate/store the greens functions for both.
@@ -40,8 +40,9 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   //and the location to plot the fieldslices about:
  TVector3 pos=0.5*(tpc->GetOuterEdge()+tpc->GetInnerEdge());;
   pos.SetPhi(3.14159);
-
+  
   infile=TFile::Open(sourcefilename.Data(),"READ");
+
 
   //the total charge is prim + IBF
   //if we are doing ADCs, though, we only read the one.
@@ -49,6 +50,8 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   if (!isAdc){
     hCharge->Add((TH3*)(infile->Get(primName)));
   }   
+    //hCharge->Scale(70);//Scaleing the histogram spacecharge by 100 times
+
   TString chargestring;
 	       
   //load the spacecharge into the distortion map generator:
@@ -74,8 +77,17 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   if (hasTwin)  tpc->twin->populate_fieldmap();
 
   //build the distortion maps from the fieldmaps and save it to the output filename.
-  tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),1,1,1,1,true);
+  if (scanSteps){
+  for(int i=0;i<10;i++){
+  	TString study_filestring=Form("%s.steps%d.hist.root","study_file_changinginterval",50*(i+1));
+  tpc->GenerateSeparateDistortionMaps(study_filestring,50*(i+1),1,1,1,1,true);
   //tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),1,1,1,1,false);
+}
+}
+  else{
+   tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),450,1,1,1,1,false);
+}
+
   printf("distortions mapped.\n");
   tpc->PlotFieldSlices(outputfilename.Data(),pos, 'E'); //plot the electric field
   tpc->PlotFieldSlices(outputfilename.Data(),pos,'B'); //plot the magnetic field
@@ -88,19 +100,8 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   
 }
 
-
-
-void generate_distortion_map(const char *inputname, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true){
-  //this is a legacy interface so that old macros can run unchanged even though I now ask for flags about the gain map
-  printf("generating single distortion map:  InputType=IBF+Primaries denominated in ions per voxel.\n");
-
-  generate_distortion_map(inputname, "", outputname, ibfName, primName, hasSpacecharge,false);
-
-  return;
-}
-
   
-void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge=true, bool isDigitalCurrent=false){
+void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge=true, bool isDigitalCurrent=false, int nSteps=500){
   
 
   int maxmaps=10;
@@ -206,7 +207,10 @@ void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.roo
       //TestSpotDistortion(tpc);
  
       //tpc->GenerateDistortionMaps(outputfilename,2,2,2,1,true);
-      tpc->GenerateSeparateDistortionMaps(outputfilename,500,2,2,2,1,true);
+
+
+      tpc->GenerateSeparateDistortionMaps(outputfilename,2,2,2,1,true,nSteps);
+
       printf("distortions mapped.\n");
       tpc->PlotFieldSlices(outputfilename.Data(),pos);
       tpc->PlotFieldSlices(outputfilename.Data(),pos,'B');

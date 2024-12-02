@@ -2,7 +2,6 @@
 
 #include <bitset>
 
-
 void TrkrDefs::printBits(const TrkrDefs::hitsetkey key, std::ostream& os)
 {
   os << "key: " << std::bitset<32>(key) << std::endl;
@@ -130,8 +129,6 @@ uint8_t TrkrDefs::getPhiElement(TrkrDefs::hitsetkey key)
   return tmp;
 }
 
-
-
 uint8_t TrkrDefs::getZElement(TrkrDefs::hitsetkey key)
 {
   const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftZElement);
@@ -144,7 +141,7 @@ uint8_t TrkrDefs::getPhiElement(TrkrDefs::cluskey key)
   return getPhiElement(tmp);
 }
 
-uint8_t TrkrDefs::getZElement(TrkrDefs::cluskey key)//side
+uint8_t TrkrDefs::getZElement(TrkrDefs::cluskey key)  // side
 {
   const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
   return getZElement(tmp);

@@ -22,11 +22,6 @@ dnl esac
 if test $ac_cv_prog_gxx = yes; then
    CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
 fi
-case $CXX in
- clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template"
- ;;
-esac
 
 dnl   AM_CONDITIONAL(GCC_GE_48, test `g++ -dumpversion | awk '{print $1>=4.8?"1":"0"}'` = 1)
 

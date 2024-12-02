@@ -1,12 +1,14 @@
 #ifndef TOWERINFOCONTAINER_H
 #define TOWERINFOCONTAINER_H
 
-#include "TowerInfo.h"
-
 #include <phool/PHObject.h>
 
-#include <climits>
+#include <cstddef>
+#include <iostream>
+#include <limits>
 #include <map>
+
+class TowerInfo;
 
 class TowerInfoContainer : public PHObject
 {
@@ -21,33 +23,38 @@ class TowerInfoContainer : public PHObject
     HCAL = 1,
     SEPD = 2,
     MBD = 3,
+    ZDC = 4,
     DETECTOR_INVALID = 9999
   };
 
   TowerInfoContainer() = default;
   ~TowerInfoContainer() override = default;
- 
+  void identify(std::ostream& os = std::cout) const override;
+
   virtual void Reset() override {}
   virtual TowerInfo* get_tower_at_channel(int /*index*/) { return nullptr; }
   virtual TowerInfo* get_tower_at_key(int /*key*/) { return nullptr; }
-  virtual size_t size() { return 0; }
+  virtual size_t size() const { return 0; }
 
-  virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int decode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return std::numeric_limits<unsigned int>::max(); }
+  virtual unsigned int decode_key(unsigned int /*towerIndex*/) { return std::numeric_limits<unsigned int>::max(); }
 
-  virtual unsigned int encode_epd(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int encode_hcal(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int encode_emcal(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int encode_mbd(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int encode_epd(unsigned int /*towerIndex*/);
+  virtual unsigned int encode_hcal(unsigned int /*towerIndex*/);
+  virtual unsigned int encode_emcal(unsigned int /*towerIndex*/);
+  virtual unsigned int encode_mbd(unsigned int /*towerIndex*/);
+  virtual unsigned int encode_zdc(unsigned int /*towerIndex*/);
 
-  virtual unsigned int decode_epd(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int decode_hcal(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int decode_emcal(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int decode_mbd(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int decode_epd(unsigned int /*towerIndex*/);
+  virtual unsigned int decode_hcal(unsigned int /*towerIndex*/);
+  virtual unsigned int decode_emcal(unsigned int /*towerIndex*/);
+  virtual unsigned int decode_mbd(unsigned int /*towerIndex*/);
+  virtual unsigned int decode_zdc(unsigned int /*towerIndex*/);
 
+  virtual unsigned int getTowerPhiBin(unsigned int /*towerIndex*/);
+  virtual unsigned int getTowerEtaBin(unsigned int /*towerIndex*/);
 
-  virtual unsigned int getTowerPhiBin(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int getTowerEtaBin(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual DETECTOR get_detectorid() const { return DETECTOR_INVALID; }
 
  private:
   ClassDefOverride(TowerInfoContainer, 1);

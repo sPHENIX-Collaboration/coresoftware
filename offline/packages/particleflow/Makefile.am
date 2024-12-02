@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -50,7 +50,7 @@ libparticleflow_la_LIBADD = \
   -lgsl \
   -lgslcblas \
   -lphg4hit \
-  -lg4jets_io \
+  -ljetbase \
   -ltrackbase_historic_io \
   -lCLHEP \
   -lglobalvertex_io \
