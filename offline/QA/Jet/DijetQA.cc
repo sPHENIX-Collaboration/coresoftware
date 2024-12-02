@@ -68,23 +68,22 @@ int DijetQA::Init(PHCompositeNode* /*topNode*/)
 	      smallModuleName.end(),
 	      smallModuleName.begin(),
 	      ::tolower);
-	//std::string radius_string="r04"; //preparing to include more radii of jets 
-	h_Ajj=new TH1F(Form("h_%s_Ajj", smallModuleName.c_str()), Form("A_{jj} for identified jet pairs for %s; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 100, -0.005, 0.995);
-	h_xj=new TH1F(Form("h_%s_xj", smallModuleName.c_str()), Form("x_{j} for identified jet pairs for %s; x_{j}; N_{pairs}", m_recoJetName.c_str()), 100, -0.005, 0.995);
-	h_pt=new TH1F(Form("h_%s_pt", smallModuleName.c_str()), Form("p_{T} for leading jets in identified pairs for %s; p_{T} [GeV/c]; N_{jet}", m_recoJetName.c_str()), 70, -0.5, 69.5);
-	h_dphi=new TH1F(Form("h_%s_dphi", smallModuleName.c_str()), Form("|#Delta #varphi| for identified jet pairs for %s; |#Delta #phi|; N_{pairs}", m_recoJetName.c_str()), 64, 0, 6.2831);
-	h_Ajj_pt=new TH2F(Form("h_%s_Ajj_pt", smallModuleName.c_str()), Form("A_{jj} as a function of leading jet $p_{T}$ for %s; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_xj_pt=new TH2F(Form("h_%s_xj_pt", smallModuleName.c_str()), Form("x_{j} as a function of leading jet $p_{T}$ for %s; p_{T}^{leading} [GeV]; x_{j}; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_dphi_pt=new TH2F(Form("h_%s_dphi_pt", smallModuleName.c_str()), Form("|#Delta #varphi| of dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 64, 0, 6.2832);
-	h_dphi_Ajj=new TH2F(Form("h_%s_dphi_Ajj", smallModuleName.c_str()), Form("A_{jj} of dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 64, 0, 6.2831, 100, -0.005, 0.995);
-	h_Ajj_l=new TH1F(Form("h_%s_Ajj_l", smallModuleName.c_str()), Form("A_{jj} for event leading jet pairs for %s; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 100, -0.005, 0.995);
-	h_xj_l=new TH1F(Form("h_%s_xj_l", smallModuleName.c_str()), Form("x_{j} for event leading jet pairs for %s; x_{j}; N_{pairs}", m_recoJetName.c_str()), 100, -0.005, 0.995);
-	h_pt_l=new TH1F(Form("h_%s_pt_l", smallModuleName.c_str()), Form("p_{T} for leading jets in event leading pair for %s; p_{T} [GeV/c]; N_{jet}", m_recoJetName.c_str()), 70, -0.5, 69.5);
-	h_dphi_l=new TH1F(Form("h_%s_dphi_l", smallModuleName.c_str()), Form("|#Delta #varphi| for leading jet pairs for %s; |#Delta #varphi|; N_{pairs}", m_recoJetName.c_str()), 64, 0, 6.2831);
-	h_Ajj_pt_l=new TH2F(Form("h_%s_Ajj_pt_l", smallModuleName.c_str()), Form("A_{jj} of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_xj_pt_l=new TH2F(Form("h_%s_xj_pt_l", smallModuleName.c_str()), Form("x_{j} of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; x_{j}; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_dphi_pt_l=new TH2F(Form("h_%s_dphi_pt_l", smallModuleName.c_str()), Form("|#Delta #varphi| of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}", m_recoJetName.c_str()), 70, -0.5, 69.5, 64, 0, 6.2831);
-	h_dphi_Ajj_l=new TH2F(Form("h_%s_dphi_Ajj_l", smallModuleName.c_str()), Form("A_{jj} of event leading dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|^{leading}; A_{jj}; N_{pairs}", m_recoJetName.c_str()), 64, 0, 6.2831, 100, -0.005, 0.995);
+	h_Ajj=new TH1F(boost::str(boost::format("h_%s_Ajj") % smallModuleName).c_str(), boost::str(boost::format("A_{jj} for identified jet pairs for %s; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 100, -0.005, 0.995);
+	h_xj=new TH1F(boost::str(boost::format("h_%s_xj") % smallModuleName).c_str(), boost::str(boost::format("x_{j} for identified jet pairs for %s; x_{j}; N_{pairs}")% m_recoJetName).c_str(), 100, -0.005, 0.995);
+	h_pt=new TH1F(boost::str(boost::format("h_%s_pt") % smallModuleName).c_str(), boost::str(boost::format("p_{T} for leading jets in identified pairs for %s; p_{T} [GeV/c]; N_{jet}")% m_recoJetName).c_str(), 70, -0.5, 69.5);
+	h_dphi=new TH1F(boost::str(boost::format("h_%s_dphi")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| for identified jet pairs for %s; |#Delta #phi|; N_{pairs}")% m_recoJetName).c_str(), 64, 0, 6.2831);
+	h_Ajj_pt=new TH2F(boost::str(boost::format("h_%s_Ajj_pt")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} as a function of leading jet $p_{T}$ for %s; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 100, -0.005, 0.995);
+	h_xj_pt=new TH2F(boost::str(boost::format("h_%s_xj_pt")% smallModuleName).c_str(), boost::str(boost::format("x_{j} as a function of leading jet $p_{T}$ for %s; p_{T}^{leading} [GeV]; x_{j}; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 100, -0.005, 0.995);
+	h_dphi_pt=new TH2F(boost::str(boost::format("h_%s_dphi_pt")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| of dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 64, 0, 6.2832);
+	h_dphi_Ajj=new TH2F(boost::str(boost::format("h_%s_dphi_Ajj")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} of dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 64, 0, 6.2831, 100, -0.005, 0.995);
+	h_Ajj_l=new TH1F(boost::str(boost::format("h_%s_Ajj_l")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} for event leading jet pairs for %s; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 100, -0.005, 0.995);
+	h_xj_l=new TH1F(boost::str(boost::format("h_%s_xj_l")% smallModuleName).c_str(), boost::str(boost::format("x_{j} for event leading jet pairs for %s; x_{j}; N_{pairs}")% m_recoJetName).c_str(), 100, -0.005, 0.995);
+	h_pt_l=new TH1F(boost::str(boost::format("h_%s_pt_l")% smallModuleName).c_str(), boost::str(boost::format("p_{T} for leading jets in event leading pair for %s; p_{T} [GeV/c]; N_{jet}")% m_recoJetName).c_str(), 70, -0.5, 69.5);
+	h_dphi_l=new TH1F(boost::str(boost::format("h_%s_dphi_l")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| for leading jet pairs for %s; |#Delta #varphi|; N_{pairs}")% m_recoJetName).c_str(), 64, 0, 6.2831);
+	h_Ajj_pt_l=new TH2F(boost::str(boost::format("h_%s_Ajj_pt_l")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 100, -0.005, 0.995);
+	h_xj_pt_l=new TH2F(boost::str(boost::format("h_%s_xj_pt_l")% smallModuleName).c_str(), boost::str(boost::format("x_{j} of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; x_{j}; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 100, -0.005, 0.995);
+	h_dphi_pt_l=new TH2F(boost::str(boost::format("h_%s_dphi_pt_l")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 64, 0, 6.2831);
+	h_dphi_Ajj_l=new TH2F(boost::str(boost::format("h_%s_dphi_Ajj_l")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} of event leading dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|^{leading}; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 64, 0, 6.2831, 100, -0.005, 0.995);
 	
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -102,7 +101,9 @@ int DijetQA::InitRun(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int DijetQA::process_event(PHCompositeNode* topNode)
 {
-  std::cout << "DijetQA::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+  if(Verbosity() > 1) {
+	std::cout << "DijetQA::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+  }
   if (m_doTrgSelect)
   {
     bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
@@ -131,7 +132,9 @@ int DijetQA::process_event(PHCompositeNode* topNode)
   GlobalVertexMap* vtxmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vtxmap || vtxmap->empty())
   {
-    std::cout << "No vertex map found, assuming the vertex has z=0" << std::endl;
+    if( Verbosity() > 1 ){
+	 std::cout << "No vertex map found, assuming the vertex has z=0" << std::endl;
+    }
     m_zvtx = 0;
   }
   else
@@ -163,10 +166,11 @@ void DijetQA::FindPairs(JetContainer* jets)
     std::cout << "JetKinematicCheck::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   }
   Jet* jet_leading = nullptr;
-  std::cout << "Finding jet pairs" << std::endl;
   float pt_leading = 0, pt1 = 0, pt2 = 0;
   m_nJet = jets->size();
-  std::cout << "number of jets is" << m_nJet << std::endl;
+  if( Verbosity() > 2 ){
+	std::cout << "number of jets is" << m_nJet << std::endl;
+  }
   std::vector<std::pair<Jet*, Jet*> > jet_pairs;
   bool set_leading = false;
   for (auto j1 : *jets)
@@ -234,7 +238,9 @@ void DijetQA::FindPairs(JetContainer* jets)
       }
     }
   }
-  std::cout << "Finished search for pairs" << std::endl;
+  if(Verbosity() > 2) {
+	std::cout << "Finished search for pairs" << std::endl;
+  }
   m_nJetPair = jet_pairs.size();
   float Ajj = 0., xj = 0.;
   if (jet_pairs.size() > 0)
@@ -329,7 +335,7 @@ int DijetQA::End(PHCompositeNode* /*topNode*/)
   l1->SetFillStyle(0);
   l1->SetBorderSize(0);
   l1->SetTextSize(0.06f);
-  l1->AddEntry((TObject*) nullptr, Form("A_{jj} dijet pairs with pt_{l} #geq %d", m_ptRange.first),"");
+  l1->AddEntry((TObject*) nullptr, boost::str(boost::format("A_{jj} dijet pairs with pt_{l} #geq %d", m_ptRange.first),"");
   h_Ajj->GetListOfFunctions()->Add(l1);*/
 
   m_manager->registerHisto(h_Ajj);
@@ -364,5 +370,7 @@ int DijetQA::Reset(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 void DijetQA::Print(const std::string& what) const
 {
-  std::cout << "DijetQA::Print(const std::string &what) const Printing info for " << what << std::endl;
+ if(Verbosity() > 1){
+	 std::cout << "DijetQA::Print(const std::string &what) const Printing info for " << what << std::endl;
+	}
 }

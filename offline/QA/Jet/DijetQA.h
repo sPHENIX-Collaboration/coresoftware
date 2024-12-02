@@ -34,6 +34,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <boost/format.hpp>
 
 #include "TFile.h"
 #include "TH1.h"
