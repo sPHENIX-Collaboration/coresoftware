@@ -46,8 +46,7 @@ class PHCompositeNode;
 class DijetQA : public SubsysReco
 {
  public:
-  
-  DijetQA(const std::string &name = "DijetQA");
+  DijetQA(const std::string &name = "DijetQA", const std::string &recojetname="AntiKt_Tower_r04");
 
   ~DijetQA() override;
 
