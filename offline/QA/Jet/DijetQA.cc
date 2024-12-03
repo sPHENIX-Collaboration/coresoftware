@@ -40,7 +40,10 @@ DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_recoJetName(recojetname)
 {
-  if(Verbosity() > 1 )std::cout << "DijetQA::DijetQA(const std::string &name) Calling ctor" << std::endl;
+  if(Verbosity() > 1 )
+    {
+      std::cout << "DijetQA::DijetQA(const std::string &name) Calling ctor" << std::endl;
+    }
 }
 
 //____________________________________________________________________________..
