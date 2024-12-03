@@ -270,7 +270,7 @@ bool PHG4OuterHcalSteppingAction::NoHitSteppingAction(const G4Step* aStep)
 }
 
 //____________________________________________________________________________..
-bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   if ((!m_doG4Hit) && (!m_IsBlackHoleFlag))
   {

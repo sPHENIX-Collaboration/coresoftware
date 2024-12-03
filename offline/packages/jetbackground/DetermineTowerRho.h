@@ -11,22 +11,27 @@
 #include "TowerRhov1.h"
 
 #include <jetbase/Jet.h>
-#include <jetbase/JetAlgo.h>
-#include <jetbase/JetInput.h>
+//#include <jetbase/JetAlgo.h>
+//#include <jetbase/JetInput.h>
 
 // fun4all includes
 #include <fun4all/SubsysReco.h>
 
 #include <fastjet/JetDefinition.hh>
-#include <fastjet/PseudoJet.hh>
+//#include <fastjet/PseudoJet.hh>
 
 // system includes
-#include <ostream>
+#include <iostream>
 #include <string>
 #include <vector>
 
 // forward declarations
 class PHCompositeNode;
+class JetInput;
+namespace fastjet
+{
+  class PseudoJet;
+}
 
 /// \class DetermineTowerRho
 ///

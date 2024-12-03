@@ -10,7 +10,7 @@ class TowerBackgroundv1 : public TowerBackground
 {
  public:
   TowerBackgroundv1();
-  ~TowerBackgroundv1() override {}
+  ~TowerBackgroundv1() override = default;
 
   void identify(std::ostream &os = std::cout) const override;
   void Reset() override {}
