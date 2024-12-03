@@ -14,7 +14,9 @@ pkginclude_HEADERS = \
   InttRawHitQA.h \
   InttStreamQA.h \
   InttQaCommon.h \
-  TH2INTT.h
+  TH2INTT.h \
+  InttMixupQA.h \
+  bcocheck.h
 
 lib_LTLIBRARIES = \
   libinttrawhitqa.la
@@ -22,7 +24,9 @@ lib_LTLIBRARIES = \
 libinttrawhitqa_la_SOURCES = \
   InttRawHitQA.cc \
   InttStreamQA.cc \
-  TH2INTT.cc
+  TH2INTT.cc \
+  InttMixupQA.cc \
+  bcocheck.cc
 
 libinttrawhitqa_la_LIBADD = \
   -lphool \
