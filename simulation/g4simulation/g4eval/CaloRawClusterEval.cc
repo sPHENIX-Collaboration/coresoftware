@@ -992,7 +992,7 @@ void CaloRawClusterEval::get_node_pointers(PHCompositeNode* topNode)
   std::string towername = "TOWER_CALIB_" + _caloname;
   _towers = findNode::getClass<RawTowerContainer>(topNode, towername.c_str());
 
-  std::string towerinfoname = "TOWERINFO_" + _caloname;
+  std::string towerinfoname = "TOWERINFO_CALIB_" + _caloname;
   _towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoname.c_str());
 
   return;

@@ -23,10 +23,9 @@
 #include <phool/phool.h>
 
 // standard includes
+#include <cstdlib>
 #include <iostream>
-#include <map>
 #include <utility>
-#include <vector>
 
 RetowerCEMC::RetowerCEMC(const std::string &name)
   : SubsysReco(name)

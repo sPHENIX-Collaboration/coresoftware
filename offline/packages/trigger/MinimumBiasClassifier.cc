@@ -53,6 +53,10 @@ int MinimumBiasClassifier::ResetEvent(PHCompositeNode * /*unused*/)
 
 int MinimumBiasClassifier::FillMinimumBiasInfo()
 {
+  if (Verbosity())
+    {
+      std::cout << "Getting Vertex" << std::endl;
+    }
 
   if (!m_global_vertex_map)
   {
@@ -79,6 +83,10 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     m_mb_info->setIsAuAuMinimumBias(false);
     return Fun4AllReturnCodes::EVENT_OK;
   }
+  if (Verbosity())
+    {
+      std::cout << "Getting ZDC" << std::endl;
+    }
 
   if (!m_zdcinfo)
   {
@@ -92,6 +100,10 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     m_mb_info->setIsAuAuMinimumBias(false);
     return Fun4AllReturnCodes::EVENT_OK;  
   }
+  if (Verbosity())
+    {
+      std::cout << "Calculating" << std::endl;
+    }
 
   // calculate charge sum and n hit
   for (int i = 0; i < 128; i++)
@@ -106,6 +118,10 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     m_mbd_hit[side]++;
     m_mbd_charge_sum[side] += m_mbd_pmt->get_q();
   }
+  if (Verbosity())
+    {
+      std::cout <<m_mbd_charge_sum[0] << " " << m_mbd_charge_sum[1]<< std::endl;
+    }
 
   // MBD Background cut
   if (m_mbd_charge_sum[1] < m_mbd_north_cut && m_mbd_charge_sum[0] > m_mbd_south_cut)
@@ -143,12 +159,12 @@ int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
   // Get Nodes from the Tree
   if (GetNodes(topNode))
     {
-      return Fun4AllReturnCodes::ABORTRUN;
+      return Fun4AllReturnCodes::EVENT_OK;
     }
   
   if (FillMinimumBiasInfo())
     {
-      return Fun4AllReturnCodes::ABORTEVENT;
+      return Fun4AllReturnCodes::EVENT_OK;
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -170,6 +186,10 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
   }
 
   m_mbd_container = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
+  if (Verbosity())
+    {
+      std::cout << "Getting MBD Tubes" << std::endl;
+    }
 
   if (!m_mbd_container)
   {
@@ -178,13 +198,20 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
   }
 
   m_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+  if (Verbosity())
+    {
+      std::cout << "Getting ZDC Info" << std::endl;
+    }
 
   if (!m_zdcinfo)
   {
     std::cout << "no zdc towers node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  if (Verbosity())
+    {
+      std::cout << "Getting Vertex Map" << std::endl;
+    }
   m_global_vertex_map = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   
   if (!m_global_vertex_map)

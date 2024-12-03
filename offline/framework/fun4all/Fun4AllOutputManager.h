@@ -98,6 +98,9 @@ class Fun4AllOutputManager : public Fun4AllBase
   virtual void SetEventsWritten(const unsigned int i) { m_NEvents = i; }
   //! get output file name
   virtual std::string OutFileName() const { return m_OutFileName; }
+  //! set compression level (if implemented)
+  virtual void CompressionSetting(const int /*i*/) { return; }
+
   void OutFileName(const std::string &name) { m_OutFileName = name; }
   void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
   void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }

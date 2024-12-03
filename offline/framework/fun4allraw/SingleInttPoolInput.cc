@@ -321,6 +321,13 @@ void SingleInttPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
   m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
   m_BeamClockFEE.erase(m_BeamClockFEE.begin(), m_BeamClockFEE.upper_bound(bclk));
+  for(auto it = m_InttRawHitMap.begin(); it != m_InttRawHitMap.end() && (it->first <= bclk); it = m_InttRawHitMap.erase(it))
+  {
+    for( const auto& rawhit : it->second)
+    {
+      delete rawhit;
+    }
+  }
   m_InttRawHitMap.erase(m_InttRawHitMap.begin(), m_InttRawHitMap.upper_bound(bclk));
 }
 

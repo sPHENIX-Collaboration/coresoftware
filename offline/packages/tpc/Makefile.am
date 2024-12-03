@@ -49,6 +49,7 @@ pkginclude_HEADERS = \
   TpcClusterMover.h \
   TpcClusterZCrossingCorrection.h \
   TpcCombinedRawDataUnpacker.h \
+  TpcCombinedRawDataUnpackerDebug.h \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
   TpcGlobalPositionWrapper.h \
@@ -85,6 +86,7 @@ libtpc_la_SOURCES = \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
   TpcCombinedRawDataUnpacker.cc \
+  TpcCombinedRawDataUnpackerDebug.cc \
   TpcGlobalPositionWrapper.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
