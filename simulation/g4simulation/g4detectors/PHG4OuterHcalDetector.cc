@@ -73,7 +73,10 @@ using Circle_2 = CGAL::Circle_2<PHG4OuterHcalDetector::Circular_k>;
 using Circular_arc_point_2 = CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>;
 using Line_2 = CGAL::Line_2<PHG4OuterHcalDetector::Circular_k>;
 using Segment_2 = CGAL::Segment_2<PHG4OuterHcalDetector::Circular_k>;
-
+#if CGAL_VERSION_NR > 1060000000
+typedef typename CGAL::CK2_Intersection_traits<PHG4OuterHcalDetector::Circular_k, Circle_2,Line_2>::type
+       Intersection_result;
+#endif
 // just for debugging if you want a single layer of scintillators at the center of the world
 //#define SCINTITEST
 
@@ -103,7 +106,8 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector(PHG4Subsystem *subsys, PHCompositeN
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_ScintiLogicNamePrefix("HcalOuterScinti")
 {
-  m_ScintiTilesVec.assign(2 * m_NumScintiTiles, static_cast<G4VSolid *>(nullptr));
+// UL to make clang-tidy happy which wants a long type here
+  m_ScintiTilesVec.assign(2UL * m_NumScintiTiles, static_cast<G4VSolid *>(nullptr));
 }
 
 PHG4OuterHcalDetector::~PHG4OuterHcalDetector()
@@ -149,13 +153,15 @@ PHG4OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume * /*hcalenvelope
   Line_2 perp = s2.perpendicular(p_upperedge);
   PHG4OuterHcalDetector::Point_2 sc1(m_OuterRadius, 0), sc2(0, m_OuterRadius), sc3(-m_OuterRadius, 0);
   Circle_2 outer_circle(sc1, sc2, sc3);
+#if CGAL_VERSION_NR > 1060000000
+    std::vector<Intersection_result> res;
+#else
   std::vector<CGAL::Object> res;
+#endif
   CGAL::intersection(outer_circle, perp, std::back_inserter(res));
   PHG4OuterHcalDetector::Point_2 upperright;
-  std::vector<CGAL::Object>::const_iterator iter;
-  for (iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_upperedge.x()))
@@ -187,9 +193,8 @@ PHG4OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume * /*hcalenvelope
   // we have 2 intersections - we want the one furthest to the right (largest x). The correct one is
   // certainly > 0 but the second one depends on the tilt angle and might also be > 0
   double minx = 0;
-  for (iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > minx)
@@ -227,13 +232,15 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   Line_2 perp = s2.perpendicular(p_loweredge);  // that is the lower edge of the steel plate
   PHG4OuterHcalDetector::Point_2 sc1(m_InnerRadius, 0), sc2(0, m_InnerRadius), sc3(-m_InnerRadius, 0);
   Circle_2 inner_circle(sc1, sc2, sc3);
+#if CGAL_VERSION_NR > 1060000000
+    std::vector<Intersection_result> res;
+#else
   std::vector<CGAL::Object> res;
+#endif
   CGAL::intersection(inner_circle, perp, std::back_inserter(res));
   PHG4OuterHcalDetector::Point_2 lowerleft;
-  std::vector<CGAL::Object>::const_iterator iter;
-  for (iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > 0)
@@ -252,9 +259,8 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   res.clear();  // just clear the content from the last intersection search
   CGAL::intersection(outer_circle, perp, std::back_inserter(res));
   PHG4OuterHcalDetector::Point_2 lowerright;
-  for (iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
@@ -286,13 +292,15 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   Line_2 perpA = sup.perpendicular(p_upperedge);  // that is the upper edge of the steel plate
   PHG4OuterHcalDetector::Point_2 sc1A(m_InnerRadius, 0), sc2A(0, m_InnerRadius), sc3A(-m_InnerRadius, 0);
   Circle_2 inner_circleA(sc1A, sc2A, sc3A);
+#if CGAL_VERSION_NR > 1060000000
+    std::vector<Intersection_result> resA;
+#else
   std::vector<CGAL::Object> resA;
+#endif
   CGAL::intersection(inner_circleA, perpA, std::back_inserter(resA));
-  std::vector<CGAL::Object>::const_iterator iterA;
   double pxmax = 0.;
-  for (iterA = resA.begin(); iterA != resA.end(); ++iterA)
+  for (const auto& obj : resA)
   {
-    CGAL::Object obj = *iterA;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > pxmax)
@@ -311,9 +319,8 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   Circle_2 outer_circleA(so1A, so2A, so3A);
   resA.clear();  // just clear the content from the last intersection search
   CGAL::intersection(outer_circleA, perpA, std::back_inserter(resA));
-  for (iterA = resA.begin(); iterA != resA.end(); ++iterA)
+  for (const auto& obj : resA)
   {
-    CGAL::Object obj = *iterA;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
@@ -379,14 +386,16 @@ void PHG4OuterHcalDetector::ShiftSecantToTangent(PHG4OuterHcalDetector::Point_2 
   Line_2 sekperp = secant.perpendicular(midpoint);
   PHG4OuterHcalDetector::Point_2 sc1(m_InnerRadius, 0), sc2(0, m_InnerRadius), sc3(-m_InnerRadius, 0);
   Circle_2 inner_circle(sc1, sc2, sc3);
+#if CGAL_VERSION_NR > 1060000000
+    std::vector<Intersection_result> res;
+#else
   std::vector<CGAL::Object> res;
+#endif
   CGAL::intersection(inner_circle, sekperp, std::back_inserter(res));
-  std::vector<CGAL::Object>::const_iterator iter;
   double pxmax = 0.;
   PHG4OuterHcalDetector::Point_2 tangtouch;
-  for (iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > pxmax)
@@ -884,13 +893,15 @@ void PHG4OuterHcalDetector::SetTiltViaNcross()
   PHG4OuterHcalDetector::Point_2 pout1(m_OuterRadius, 0), pout2(0, m_OuterRadius), pout3(-m_OuterRadius, 0);
   Circle_2 outer_circle(pout1, pout2, pout3);
   Line_2 l_up(pnull, phightmp);
+#if CGAL_VERSION_NR > 1060000000
+    std::vector<Intersection_result> res;
+#else
   std::vector<CGAL::Object> res;
+#endif
   CGAL::intersection(outer_circle, l_up, std::back_inserter(res));
   PHG4OuterHcalDetector::Point_2 upperright;
-  std::vector<CGAL::Object>::const_iterator iter;
-  for (iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > 0)
@@ -909,9 +920,8 @@ void PHG4OuterHcalDetector::SetTiltViaNcross()
   res.clear();
   PHG4OuterHcalDetector::Point_2 midpoint;
   CGAL::intersection(mid_circle, l_right, std::back_inserter(res));
-  for (iter = res.begin(); iter != res.end(); ++iter)
+  for (const auto& obj : res)
   {
-    CGAL::Object obj = *iter;
     if (const std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > 0)
@@ -956,7 +966,11 @@ int PHG4OuterHcalDetector::CheckTiltAngle() const
   Line_2 s2(pmid, pxnull);
   PHG4OuterHcalDetector::Point_2 sc1(m_InnerRadius, 0), sc2(0, m_InnerRadius), sc3(-m_InnerRadius, 0);
   Circle_2 inner_circle(sc1, sc2, sc3);
+#if CGAL_VERSION_NR > 1060000000
+    std::vector<Intersection_result> res;
+#else
   std::vector<CGAL::Object> res;
+#endif
   CGAL::intersection(inner_circle, s2, std::back_inserter(res));
   if (res.size() == 0)
   {

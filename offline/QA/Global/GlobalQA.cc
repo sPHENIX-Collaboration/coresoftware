@@ -287,7 +287,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
           if (q > charge_thresh) {
             hits_s++;
           }
-          if (i == 56 || isnan(t)) {
+          if (i == 56 || std::isnan(t)) {
             continue;
           }
           hits_s_t++;
@@ -299,7 +299,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
           if (q > charge_thresh) {
             hits_n++;
           }
-          if (i == 120 || isnan(t)) {
+          if (i == 120 || std::isnan(t)) {
             continue;
           }
           hits_n_t++;

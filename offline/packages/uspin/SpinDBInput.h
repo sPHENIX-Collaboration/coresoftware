@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 //
 // SpinDBInput class
-// Author      : D. Loomis (from Y. Fukao PHENIX class)
+// Author      : D. Loomis, D. Neff (from Y. Fukao PHENIX class)
 // Description : Utility to write data into the spin database
 // Created     : 2024-05-12
 //

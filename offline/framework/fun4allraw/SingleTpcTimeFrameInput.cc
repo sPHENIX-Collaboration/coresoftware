@@ -219,13 +219,24 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
         return;
       }
       evt.reset(GetEventiterator()->getNextEvent());
+      RunNumber(0);
+    }
+
+    if (RunNumber() == 0)
+    {
+      RunNumber(evt->getRunNumber());
+
+      if (Verbosity() >= 1)
+      {
+        std::cout << __PRETTY_FUNCTION__ << ": Fetching new file "<<FileName()
+        <<" for run "<<evt->getRunNumber()<<" with next Event # " << evt->getEvtSequence() << std::endl;
+      }
     }
 
     if (Verbosity() > 2)
     {
       std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
-    RunNumber(evt->getRunNumber());
     if (GetVerbosity() > 1)
     {
       evt->identify();

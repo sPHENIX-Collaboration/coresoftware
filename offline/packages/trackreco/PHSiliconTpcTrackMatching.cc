@@ -90,8 +90,11 @@ void PHSiliconTpcTrackMatching::SetDefaultParameters()
 //____________________________________________________________________________..
 int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
 {
-  std::cout << " FIXME PHSiliconTpcTrackMatching " 
-    << ( _zero_field ? "zero field is ON" : " zero field is OFF") << std::endl;
+  if(Verbosity() > 2)
+  {
+    std::cout << " FIXME PHSiliconTpcTrackMatching " 
+      << ( _zero_field ? "zero field is ON" : " zero field is OFF") << std::endl;
+  }
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
   // _svtx_seed_map contains the combined silicon and tpc track seeds
@@ -395,7 +398,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     float tpc_px, tpc_py, tpc_pz;
     int tpc_q;
     Acts::Vector3 tpc_pos;
-    /* const int tpc_q = _tracklet_tpc->get_charge(); */
     if (_zero_field) {
       auto cluster_list = getTrackletClusterList(_tracklet_tpc);
 
@@ -696,7 +698,7 @@ double PHSiliconTpcTrackMatching::getMatchingInflationFactor(double tpc_pt)
     mag = _match_function_a + _match_function_b / pow(tpc_pt, _match_function_pow);
   }
 
-  //  std::cout << " tpc_pt = " << tpc_pt << " mag " << mag << " a " << match_function_a << " b " << match_function_b << std::endl;
+  // std::cout << "  tpc_pt = " << tpc_pt << " mag " << mag << " a " << _match_function_a << " b " << _match_function_b << std::endl;
 
   return mag;
 }
@@ -712,7 +714,10 @@ std::vector<TrkrDefs::cluskey> PHSiliconTpcTrackMatching::getTrackletClusterList
     auto cluster = _cluster_map->findCluster(key);
     if (!cluster)
     {
-      std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
+      if(Verbosity() > 1)
+      {
+        std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
+      }
       continue;
     }
 

@@ -29,9 +29,9 @@ class MicromegasRawHitContainerv3 : public MicromegasRawHitContainer
   int isValid() const override;
 
   MicromegasRawHit *AddHit() override;
-  MicromegasRawHit *AddHit(MicromegasRawHit *tpchit) override;
+  MicromegasRawHit *AddHit(MicromegasRawHit*) override;
   unsigned int get_nhits() override;
-  MicromegasRawHit *get_hit(unsigned int index) override;
+  MicromegasRawHit *get_hit(unsigned int) override;
 
  private:
   TClonesArray *MicromegasRawHitsTCArray{nullptr};

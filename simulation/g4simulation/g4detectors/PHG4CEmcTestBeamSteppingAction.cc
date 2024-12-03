@@ -44,7 +44,7 @@ PHG4CEmcTestBeamSteppingAction::PHG4CEmcTestBeamSteppingAction(PHG4CEmcTestBeamD
 }
 
 //____________________________________________________________________________..
-bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step

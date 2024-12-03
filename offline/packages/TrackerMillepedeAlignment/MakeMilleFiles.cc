@@ -194,7 +194,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
       {
         for (int i = 0; i < 2; i++)
         {
-          if (!isnan(vtx_residual(i)))
+          if (!std::isnan(vtx_residual(i)))
           {
             _mille->mille(SvtxAlignmentState::NLOC, lclvtx_derivative[i],
                           AlignmentDefs::NGLVTX, glblvtx_derivative[i],

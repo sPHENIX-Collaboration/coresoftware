@@ -659,7 +659,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   }
 
   float fx_event[n_event::evsize]{(float) _ievent, (float) _iseed, (float) m_runnumber,(float) m_segment, (float) m_job};
-  float fx_info[n_info::infosize] = {0};
+  float fx_info[((int) (n_info::infosize))] = {0};
 
   float nhit[100];
   for (float& i : nhit)
@@ -841,9 +841,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       cout << "EVENTINFO NTRKREC: " << fx_info[n_info::infontrk] << endl;
     }
 
-    float* info_data = new float[n_info::infosize + n_event::evsize];
+    float* info_data = new float[((int) (n_info::infosize)) + n_event::evsize];
     std::copy(fx_event, fx_event + n_event::evsize, info_data);
-    std::copy(fx_info, fx_info + n_info::infosize, info_data + n_event::evsize);
+    std::copy(fx_info, fx_info + ((int) (n_info::infosize)), info_data + n_event::evsize);
     /*
     float info_data[] = {(float) _ievent, m_fSeed,
                          occ11, occ116, occ21, occ216, occ31, occ316,
@@ -894,10 +894,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       std::cout << " adding vertex data " << std::endl;
     }
-    float* vertex_data = new float[n_info::infosize + n_event::evsize + n_vertex::vtxsize];
+    float* vertex_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_vertex::vtxsize];
     std::copy(fx_event, fx_event + n_event::evsize, vertex_data);
     std::copy(fx_vertex, fx_vertex + n_vertex::vtxsize, vertex_data + n_event::evsize);
-    std::copy(fx_info, fx_info + n_info::infosize, vertex_data + n_event::evsize + n_vertex::vtxsize);
+    std::copy(fx_info, fx_info + ((int) (n_info::infosize)), vertex_data + n_event::evsize + n_vertex::vtxsize);
     _ntp_vertex->Fill(vertex_data);
   }
   if (Verbosity() > 1)
@@ -999,10 +999,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             fx_hit[n_hit::nhity] = glob.y();
           }
 
-          float* hit_data = new float[n_info::infosize + n_event::evsize + n_hit::hitsize];
+          float* hit_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_hit::hitsize];
           std::copy(fx_event, fx_event + n_event::evsize, hit_data);
           std::copy(fx_hit, fx_hit + n_hit::hitsize, hit_data + n_event::evsize);
-          std::copy(fx_info, fx_info + n_info::infosize, hit_data + n_event::evsize + n_hit::hitsize);
+          std::copy(fx_info, fx_info + ((int) (n_info::infosize)), hit_data + n_event::evsize + n_hit::hitsize);
           _ntp_hit->Fill(hit_data);
         }
       }
@@ -1067,10 +1067,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           Float_t fx_cluster[n_cluster::clusize];
           FillCluster(&fx_cluster[0], cluster_key);
 
-          float* cluster_data = new float[n_info::infosize + n_event::evsize + n_cluster::clusize];
+          float* cluster_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_cluster::clusize];
           std::copy(fx_event, fx_event + n_event::evsize, cluster_data);
           std::copy(fx_cluster, fx_cluster + n_cluster::clusize, cluster_data + n_event::evsize);
-          std::copy(fx_info, fx_info + n_info::infosize, cluster_data + n_event::evsize + n_cluster::clusize);
+          std::copy(fx_info, fx_info + ((int) (n_info::infosize)), cluster_data + n_event::evsize + n_cluster::clusize);
           _ntp_cluster->Fill(cluster_data);
         }
       }
@@ -1307,10 +1307,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
         if (_ntp_tpcseed)
         {
-          float* tpcseed_data = new float[n_info::infosize + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize];
+          float* tpcseed_data = new float[((int) (n_info::infosize)) + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize];
           std::copy(fx_event, fx_event + n_event::evsize, tpcseed_data);
           std::copy(fx_seed, fx_seed + n_seed::seedsize, tpcseed_data + n_event::evsize);
-          std::copy(fx_info, fx_info + n_info::infosize, tpcseed_data + n_event::evsize + n_seed::seedsize);
+          std::copy(fx_info, fx_info + ((int) (n_info::infosize)), tpcseed_data + n_event::evsize + n_seed::seedsize);
           _ntp_tpcseed->Fill(tpcseed_data);
         }
         for (unsigned int i = 1; i < clusterPositionsVtx2.size(); i++)
@@ -1369,12 +1369,12 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           //
           FillCluster(&fx_cluster[0], cluster_key);
 
-          float* clus_trk_data = new float[n_info::infosize + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize];
+          float* clus_trk_data = new float[((int) (n_info::infosize)) + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize];
           std::copy(fx_event, fx_event + n_event::evsize, clus_trk_data);
           std::copy(fx_cluster, fx_cluster + n_cluster::clusize, clus_trk_data + n_event::evsize);
           std::copy(fx_res, fx_res + n_residual::ressize, clus_trk_data + n_event::evsize + n_cluster::clusize);
           std::copy(fx_seed, fx_seed + n_seed::seedsize, clus_trk_data + n_event::evsize + n_cluster::clusize + n_residual::ressize);
-          std::copy(fx_info, fx_info + n_info::infosize, clus_trk_data + n_event::evsize + n_cluster::clusize + n_residual::ressize + n_seed::seedsize);
+          std::copy(fx_info, fx_info + ((int) (n_info::infosize)), clus_trk_data + n_event::evsize + n_cluster::clusize + n_residual::ressize + n_seed::seedsize);
           _ntp_clus_trk->Fill(clus_trk_data);
         }
       }
@@ -1400,10 +1400,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         SvtxTrack* track = iter.second;
         float fx_track[n_track::trksize];
         FillTrack(&fx_track[0], track, vertexmap);
-        float* track_data = new float[n_info::infosize + n_track::trksize + n_event::evsize];
+        float* track_data = new float[((int) (n_info::infosize)) + n_track::trksize + n_event::evsize];
         std::copy(fx_event, fx_event + n_event::evsize, track_data);
         std::copy(fx_track, fx_track + n_track::trksize, track_data + n_event::evsize);
-        std::copy(fx_info, fx_info + n_info::infosize, track_data + n_event::evsize + n_track::trksize);
+        std::copy(fx_info, fx_info + ((int) (n_info::infosize)), track_data + n_event::evsize + n_track::trksize);
         _ntp_track->Fill(track_data);
       }
     }

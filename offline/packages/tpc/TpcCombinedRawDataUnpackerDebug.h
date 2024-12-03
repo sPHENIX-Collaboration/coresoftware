@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 // //  -*- C++ -*-.
-#ifndef TPC_COMBINEDRAWDATAUNPACKER_H
-#define TPC_COMBINEDRAWDATAUNPACKER_H
+#ifndef TPC_COMBINEDRAWDATAUNPACKERDEBUG_H
+#define TPC_COMBINEDRAWDATAUNPACKERDEBUG_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -14,20 +14,22 @@ class PHCompositeNode;
 class CDBTTree;
 class CDBInterface;
 class TH2I;
-class TH2C;
 class TFile;
 class TNtuple;
 
-class TpcCombinedRawDataUnpacker : public SubsysReco
+class TpcCombinedRawDataUnpackerDebug : public SubsysReco
 {
  public:
-  TpcCombinedRawDataUnpacker(std::string const &name = "TpcCombinedRawDataUnpacker", std::string const &outF = "TpcCombinedRawDataUnpackerOutput.root");
+  TpcCombinedRawDataUnpackerDebug(std::string const &name = "TpcCombinedRawDataUnpackerDebug", std::string const &outF = "TpcCombinedRawDataUnpackerDebugOutput.root");
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *) override;
   int process_event(PHCompositeNode *) override;
   int End(PHCompositeNode *topNode) override;
   void writeTree() { m_writeTree = true; }
+  void do_zero_suppression(bool b) { m_do_zerosup = b; }
+  void set_pedestalSigmaCut(float b) { m_ped_sig_cut = b; }
+  void do_noise_rejection(bool b) { m_do_noise_rejection = b; }
   void doBaselineCorr(bool val) { m_do_baseline_corr = val; }
   void doZSEmulation(bool val) { m_do_zs_emulation = val; }
   void ReadZeroSuppressedData() { 
@@ -36,7 +38,6 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   }
   void set_presampleShift(int b) { m_presampleShift = b; }
   void set_zs_threshold(int b) { m_zs_threshold = b; }
-  void set_baseline_nsigma(int b) { m_baseline_nsigma = b; }
   void skipNevent(int b) { startevt = b; }
   void useRawHitNodeName(const std::string &name) { m_TpcRawNodeName = name; }
 
@@ -50,7 +51,6 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
     unsigned int fee = std::numeric_limits<unsigned int>::max();
     float ped = -1;
     float width = -1;
-    int entries = 0;
   };
   unsigned int get_rx(unsigned int layer)
   {
@@ -107,17 +107,17 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   float m_ped_sig_cut{4.0};
 
   bool m_writeTree{false};
+  bool m_do_zerosup{true};
+  bool m_do_noise_rejection{true};
   bool m_do_baseline_corr{false};
-  int m_baseline_nsigma{2};
   bool m_do_zs_emulation{false};
-  int m_zs_threshold{20};
+  int pedestal_offset{30};
+  int m_zs_threshold{30};
   std::string m_TpcRawNodeName{"TPCRAWHIT"};
   std::string outfile_name;
   std::map<unsigned int, chan_info> chan_map;                  // stays in place
-  std::map<unsigned int, TH2C *> feeadc_map;                   // histos reset after each event
-  std::map<unsigned int, std::vector<int>> feeentries_map;     // cleared after each event
+  std::map<unsigned int, TH2I *> feeadc_map;                   // histos reset after each event
   std::map<unsigned int, std::vector<float>> feebaseline_map;  // cleared after each event
 };
 
 #endif  // TPC_COMBINEDRAWDATAUNPACKER_H
-

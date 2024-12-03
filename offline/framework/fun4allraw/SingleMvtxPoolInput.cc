@@ -258,35 +258,21 @@ void SingleMvtxPoolInput::Print(const std::string &what) const
 
 void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
-  std::vector<uint64_t> toclearbclk;
-  for (const auto &iter : m_MvtxRawHitMap)
+  m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
+  for(auto it = m_MvtxRawHitMap.begin(); it != m_MvtxRawHitMap.end() && (it->first <= bclk); it = m_MvtxRawHitMap.erase(it))
   {
-    if (iter.first <= bclk)
+    for( const auto& rawhit : it->second)
     {
-      for (auto pktiter : iter.second)
-      {
-        delete pktiter;
-      }
-      toclearbclk.push_back(iter.first);
-    }
-    else
-    {
-      break;
+      delete rawhit;
     }
   }
-
-  for (auto iter : toclearbclk)
+  m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin(), m_MvtxRawHitMap.upper_bound(bclk));
+  m_FeeStrobeMap.erase(m_FeeStrobeMap.begin(), m_FeeStrobeMap.upper_bound(bclk));
+  for(auto& [feeid, gtmbcoset] : m_FeeGTML1BCOMap)
   {
-    m_BclkStack.erase(iter);
-    m_MvtxRawHitMap[iter].clear();
-    m_MvtxRawHitMap.erase(iter);
-    m_FeeStrobeMap.erase(iter);
-
-    for (auto &[feeid, gtmbcoset] : m_FeeGTML1BCOMap)
-    {
-      gtmbcoset.erase(iter);
-    }
+    gtmbcoset.erase(gtmbcoset.begin(), gtmbcoset.upper_bound(bclk));
   }
+  
 }
 
 bool SingleMvtxPoolInput::CheckPoolDepth(const uint64_t bclk)
