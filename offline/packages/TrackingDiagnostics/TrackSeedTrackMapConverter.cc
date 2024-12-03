@@ -172,7 +172,11 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
           svtxtrack->set_py(pt * std::sin(phi));
           svtxtrack->set_pz(pt * std::cosh(tpcseed->get_eta()) * std::cos(tpcseed->get_theta()));
         }
-      }
+        if (Verbosity() > 5)
+        {
+          svtxtrack->identify();
+        }
+      }  // end if(!cosmics)
       else
       {
         unsigned int silseedindex = trackSeed->get_silicon_seed_index();
@@ -254,7 +258,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         {
           svtxtrack->identify();
         }
-      }
+      }  // end if cosmics
       svtxtrack->set_tpc_seed(tpcseed);
     }
 

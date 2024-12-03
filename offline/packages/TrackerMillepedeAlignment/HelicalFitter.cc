@@ -214,13 +214,16 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       std::cout << " silicon seed map size is " << maxtracks << std::endl;
       for (unsigned int trackid = 0; trackid < maxtracks; ++trackid)
 	{	  
-	  SvtxTrack_v4 newTrack;
 	  TrackSeed* tracklet = _track_map_silicon->get(trackid);
-	  newTrack.set_id(trackid);
-	  newTrack.set_silicon_seed(tracklet);
-
-	  m_trackmap->insertWithKey(&newTrack, trackid);
-	  nsilicon = tracklet->size_cluster_keys();
+	  if(tracklet)
+	    {
+	      SvtxTrack_v4 newTrack;
+	      newTrack.set_id(trackid);
+	      newTrack.set_silicon_seed(tracklet);
+	      
+	      m_trackmap->insertWithKey(&newTrack, trackid);
+	      nsilicon = tracklet->size_cluster_keys();
+	    }
 	}
     }
     else if (fittpc)
@@ -242,7 +245,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     {
       maxtracks = _svtx_seed_map->size();
       std::cout << "              svtx seed map size is " << maxtracks << std::endl;
-
       for (unsigned int trackid = 0; trackid < maxtracks; ++trackid)
 	{	  
 	  SvtxTrack_v4 newTrack;
@@ -256,6 +258,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	    {
 	      nsilicon =  tracklet_silicon->size_cluster_keys();
 	    }
+	  else
+	    {
+	      std::cout << "      did not find a silicon tracklet for silicon seed " << siid << std::endl;
+	    }
 	  unsigned int tpcid = trackseed->get_tpc_seed_index();
 	  TrackSeed* tracklet_tpc = _track_map_tpc->get(tpcid);
 	  newTrack.set_tpc_seed(tracklet_tpc);
@@ -265,7 +271,19 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	    }
 
 	  m_trackmap->insertWithKey(&newTrack, trackid);
-	  std::cout << " nsilicon " << nsilicon << " ntpc " << ntpc << std::endl;
+
+	  if(Verbosity() > 1)
+	    {
+	      std::cout << " trackid " << trackid << " tpcid " << tpcid << " siid " << siid << " nsilicon " << nsilicon << " ntpc " << ntpc << std::endl;
+	      std::cout << "---- svtx seed identify: " << std::endl;
+	      trackseed->identify();
+	      std::cout << std::endl << "---- silicon seed identify:" << std::endl;
+	      tracklet_silicon->identify();
+	      std::cout << std::endl;
+	      std::cout << "---- tpc seed identify:" << std::endl;
+	      tracklet_tpc->identify();
+	      std::cout << std::endl;
+	    }
 	}
     }
     nclus = nsilicon+ntpc;
@@ -285,6 +303,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       
       // Get a vector of cluster keys from the track
       SvtxTrack *newTrack =  m_trackmap->get(trackid);
+      if(!newTrack)
+	{
+	  continue;
+	}
       auto si_seed = newTrack->get_silicon_seed();
       if (si_seed)
 	{
@@ -398,21 +420,20 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     if(straight_line_fit)
       {
 	someseed.set_qOverR(1.0);
-	someseed.set_phi(tpc_seed->get_phi());
-	
 	someseed.set_X0(fitpars[0]);
 	someseed.set_Y0(fitpars[1]);
 	someseed.set_Z0(fitpars[3]);
 	someseed.set_slope(fitpars[2]);
 	
 	auto tangent=get_line_tangent(fitpars, global_vec[0]);
+	someseed.set_phi(atan2(tangent.second(1), tangent.second(0)));
 	newTrack->set_x(track_vtx(0));
 	newTrack->set_y(track_vtx(1));
 	newTrack->set_z(track_vtx(2));
 	newTrack->set_px(tangent.second(0));
 	newTrack->set_py(tangent.second(1));
 	newTrack->set_pz(tangent.second(2));
-	newTrack->set_charge(tpc_seed->get_charge());
+	newTrack->set_charge(1);
       }
     else
       {
@@ -1288,14 +1309,14 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
   // Get additional objects off the Node Tree
   //---------------------------------
 
-  _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, _silicon_track_map_name);
+  _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   if (!_track_map_silicon && (fitsilicon || fitfulltrack))
   {
     cerr << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map_tpc = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
+  _track_map_tpc = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!_track_map_tpc && (fittpc || fitfulltrack))
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << endl;
@@ -1329,7 +1350,7 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
   if (!m_vertexmap)
   {
     std::cout << PHWHERE << " ERROR: Can't find node SvtxVertexMap" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    //   return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   // global position wrapper

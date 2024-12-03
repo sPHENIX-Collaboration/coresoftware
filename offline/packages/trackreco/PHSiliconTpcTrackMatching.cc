@@ -57,7 +57,7 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   UpdateParametersWithMacro();
   if(_test_windows)
   {
-  _file = new TFile("track_match.root", "RECREATE");
+    _file = new TFile(_test_windows_filename.c_str(), "RECREATE");
   _tree = new TNtuple("track_match", "track_match",
                       "event:sicrossing:siq:siphi:sieta:six:siy:siz:sipx:sipy:sipz:tpcq:tpcphi:tpceta:tpcx:tpcy:tpcz:tpcpx:tpcpy:tpcpz:tpcid:siid");
   }
@@ -155,6 +155,16 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
     if (Verbosity() > 1)
     {
       std::cout << "  combined seed id " << _svtx_seed_map->size() - 1 << " si id " << si_id << " tpc id " << tpcid << " crossing estimate " << crossing_estimate << std::endl;
+      std::cout << " --- svtx seed identify: " << std::endl;
+      svtxseed->identify();
+      std::cout << endl;
+      std::cout << " --- silicon seed identify: " << std::endl;
+      auto siseed = _track_map_silicon->get(si_id);   
+      siseed->identify();
+      std::cout << " --- tpc seed identify: " << std::endl;
+      auto tpcseed = _track_map->get(tpcid);   
+      tpcseed->identify();
+      std::cout << std::endl;
     }
   }
 
@@ -454,144 +464,147 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     for (unsigned int phtrk_iter_si = 0;
          phtrk_iter_si < _track_map_silicon->size();
          ++phtrk_iter_si)
-    {
-      _tracklet_si = _track_map_silicon->get(phtrk_iter_si);
-      if (!_tracklet_si)
       {
+	_tracklet_si = _track_map_silicon->get(phtrk_iter_si);
+	if (!_tracklet_si)
+	  {
+	    
+	    continue;
+	  }
+	bool eta_match = false;
+	// DJS UPDATE THE CODE HERE
+	
+	double si_phi, si_eta, si_pt;
+	float si_px, si_py, si_pz;
+	int si_q;
+	Acts::Vector3 si_pos;
+	if (_zero_field) {
+	  auto cluster_list = getTrackletClusterList(_tracklet_si);
+	  
+	  Acts::Vector3  mom;
+	  bool ok_track;
+	  
+	  std::tie(ok_track, si_phi, si_eta, si_pt, si_pos, mom) = 
+	    TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list);
+	  if (!ok_track) { continue; }
+	  si_px = mom.x();
+	  si_py = mom.y();
+	  si_pz = mom.z();
+	  si_q = -100;
+	} else {
+	  si_eta = _tracklet_si->get_eta();
+	  si_phi = _tracklet_si->get_phi();
+	  
+	  si_pos = TrackSeedHelper::get_xyz(_tracklet_si);
+	  si_px = _tracklet_si->get_px();
+	  si_py = _tracklet_si->get_py();
+	  si_pz = _tracklet_si->get_pz();
+	  si_q = _tracklet_si->get_charge();
+	}
+	int si_crossing = _tracklet_si->get_crossing();
+	unsigned int siid = phtrk_iter_si;
+	/*
+	if(_test_windows)
+	  {
+	    float data[] = {
+	      (float) m_event, (float) si_crossing,
+	      (float) si_q, (float) si_phi, (float) si_eta, (float) si_pos.x(), (float) si_pos.y(), (float) si_pos.z(), (float) si_px, (float) si_py, (float) si_pz,
+	      (float) tpc_q, (float) tpc_phi, (float) tpc_eta, (float) tpc_pos.x(), (float) tpc_pos.y(), (float) tpc_pos.z(), (float) tpc_px, (float) tpc_py, (float) tpc_pz,
+	      (float) tpcid, (float) siid};
+	    _tree->Fill(data);
+	  }
+	*/
+	
+	if (fabs(tpc_eta - si_eta) < _eta_search_win * mag)
+	  {
+	    eta_match = true;
+	  }
+	if (!eta_match)
+	  {
+	    continue;
+	  }
+	
+	bool position_match = false;
+	if (_pp_mode)
+	  {
+	    if( std::abs(tpc_pos.x() - si_pos.x()) < _x_search_win * mag && std::abs(tpc_pos.y() - si_pos.y()) < _y_search_win * mag)
+	      {
+		position_match = true;
+	      }
+	  }
+	else
+	  {
+	    if (
+		fabs(tpc_pos.x() - si_pos.x()) < _x_search_win * mag && fabs(tpc_pos.y() - si_pos.y()) < _y_search_win * mag && fabs(tpc_pos.z() - si_pos.z()) < _z_search_win * mag)
+	      {
+		position_match = true;
+	      }
+	  }
+	
+	if (!position_match)
+	  {
+	    continue;
+	  }
+	
+	bool phi_match = false;
+	if (fabs(tpc_phi - si_phi) < _phi_search_win * mag)
+	  {
+	    phi_match = true;
+	  }
+	if (fabs(fabs(tpc_phi - si_phi) - 2.0 * M_PI) < _phi_search_win * mag)
+	  {
+	    phi_match = true;
+	  }
+	if (!phi_match)
+	  {
+	    continue;
+	  }
+	if (Verbosity() > 3)
+	  {
+	    cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt()
+		 << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << siid << " with crossing " << _tracklet_si->get_crossing() << endl;
+	    cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi << " phi search " << _phi_search_win * mag << " tpc_eta " << tpc_eta
+		 << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " eta search " << _eta_search_win * mag << endl;
+	    std::cout << "      tpc x " << tpc_pos.x() << " si x " << si_pos.x() << " tpc y " << tpc_pos.y() << " si y " << si_pos.y() << " tpc_z " << tpc_pos.z() << " si z " << si_pos.z() << std::endl;
+	    std::cout << "      x search " << _x_search_win * mag << " y search " << _y_search_win * mag << " z search " << _z_search_win * mag << std::endl;
+	  }
+	
+	// got a match, add to the list
+	// These stubs are matched in eta, phi, x and y already
+	matched = true;
+	tpc_matches.insert(std::make_pair(tpcid, siid));
+	tpc_matched_set.insert(tpcid);
+	
+	if (Verbosity() > 1)
+	  {
+	    cout << " found a match for TPC track " << tpcid << " with Si track " << siid << endl;
+	    cout << "          tpc_phi " << tpc_phi << " si_phi " << si_phi << " phi_match " << phi_match
+		 << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
+	    std::cout << "        tpc x " << tpc_pos.x() << " si x " << si_pos.x() << " tpc y " << tpc_pos.y() << " si y " << si_pos.y() << " tpc_z " << tpc_pos.z() << " si z " << si_pos.z() << std::endl;
+	  }
+	
+	if(_test_windows)
+	  {
+	    float data[] = {
+	      (float) m_event, (float) si_crossing,
+	      (float) si_q, (float) si_phi, (float) si_eta, (float) si_pos.x(), (float) si_pos.y(), (float) si_pos.z(), (float) si_px, (float) si_py, (float) si_pz,
+	      (float) tpc_q, (float) tpc_phi, (float) tpc_eta, (float) tpc_pos.x(), (float) tpc_pos.y(), (float) tpc_pos.z(), (float) tpc_px, (float) tpc_py, (float) tpc_pz,
+	      (float) tpcid, (float) siid};
+	    _tree->Fill(data);
+	  }	
 
-        continue;
+	// if no match found, keep tpc seed for fitting
+	if (!matched)
+	  {
+	    if (Verbosity() > 1)
+	      {
+		cout << "inserted unmatched tpc seed " << tpcid << endl;
+	      }
+	    tpc_unmatched_set.insert(tpcid);
+	  }
       }
-      bool eta_match = false;
-    // DJS UPDATE THE CODE HERE
-
-    double si_phi, si_eta, si_pt;
-    float si_px, si_py, si_pz;
-    int si_q;
-    Acts::Vector3 si_pos;
-    if (_zero_field) {
-      auto cluster_list = getTrackletClusterList(_tracklet_si);
-
-      Acts::Vector3  mom;
-      bool ok_track;
-
-      std::tie(ok_track, si_phi, si_eta, si_pt, si_pos, mom) = 
-        TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list);
-      if (!ok_track) { continue; }
-      si_px = mom.x();
-      si_py = mom.y();
-      si_pz = mom.z();
-      si_q = -100;
-    } else {
-      si_eta = _tracklet_si->get_eta();
-      si_phi = _tracklet_si->get_phi();
-
-      si_pos = TrackSeedHelper::get_xyz(_tracklet_si);
-      si_px = _tracklet_si->get_px();
-      si_py = _tracklet_si->get_py();
-      si_pz = _tracklet_si->get_pz();
-	    si_q = _tracklet_si->get_charge();
-    }
-	  int si_crossing = _tracklet_si->get_crossing();
-    unsigned int siid = phtrk_iter_si;
-  if(_test_windows)
-  {
-    float data[] = {
-      (float) m_event, (float) si_crossing,
-      (float) si_q, (float) si_phi, (float) si_eta, (float) si_pos.x(), (float) si_pos.y(), (float) si_pos.z(), (float) si_px, (float) si_py, (float) si_pz,
-      (float) tpc_q, (float) tpc_phi, (float) tpc_eta, (float) tpc_pos.x(), (float) tpc_pos.y(), (float) tpc_pos.z(), (float) tpc_px, (float) tpc_py, (float) tpc_pz,
-      (float) tpcid, (float) siid};
-    _tree->Fill(data);
   }
-
-      if (fabs(tpc_eta - si_eta) < _eta_search_win * mag)
-      {
-        eta_match = true;
-      }
-      if (!eta_match)
-      {
-        continue;
-      }
-
-      bool position_match = false;
-      if (_pp_mode)
-      {
-        if( std::abs(tpc_pos.x() - si_pos.x()) < _x_search_win * mag && std::abs(tpc_pos.y() - si_pos.y()) < _y_search_win * mag)
-        {
-          position_match = true;
-        }
-      }
-      else
-      {
-        if (
-            fabs(tpc_pos.x() - si_pos.x()) < _x_search_win * mag && fabs(tpc_pos.y() - si_pos.y()) < _y_search_win * mag && fabs(tpc_pos.z() - si_pos.z()) < _z_search_win * mag)
-        {
-          position_match = true;
-        }
-      }
-
-      if (!position_match)
-      {
-        continue;
-      }
-
-      bool phi_match = false;
-      if (fabs(tpc_phi - si_phi) < _phi_search_win * mag)
-      {
-        phi_match = true;
-      }
-      if (fabs(fabs(tpc_phi - si_phi) - 2.0 * M_PI) < _phi_search_win * mag)
-      {
-        phi_match = true;
-      }
-      if (!phi_match)
-      {
-        continue;
-      }
-      if (Verbosity() > 3)
-      {
-        cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt()
-             << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << siid << " with crossing " << _tracklet_si->get_crossing() << endl;
-        cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi << " phi search " << _phi_search_win * mag << " tpc_eta " << tpc_eta
-             << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " eta search " << _eta_search_win * mag << endl;
-        std::cout << "      tpc x " << tpc_pos.x() << " si x " << si_pos.x() << " tpc y " << tpc_pos.y() << " si y " << si_pos.y() << " tpc_z " << tpc_pos.z() << " si z " << si_pos.z() << std::endl;
-        std::cout << "      x search " << _x_search_win * mag << " y search " << _y_search_win * mag << " z search " << _z_search_win * mag << std::endl;
-      }
-
-      // got a match, add to the list
-      // These stubs are matched in eta, phi, x and y already
-      matched = true;
-      tpc_matches.insert(std::make_pair(tpcid, siid));
-      tpc_matched_set.insert(tpcid);
-
-      if (Verbosity() > 1)
-      {
-        cout << " found a match for TPC track " << tpcid << " with Si track " << siid << endl;
-        cout << "          tpc_phi " << tpc_phi << " si_phi " << si_phi << " phi_match " << phi_match
-             << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
-        std::cout << "      tpc x " << tpc_pos.x() << " si x " << si_pos.x() << " tpc y " << tpc_pos.y() << " si y " << si_pos.y() << " tpc_z " << tpc_pos.z() << " si z " << si_pos.z() << std::endl;
-      }
-
-      // temporary!
-      if (_test_windows)
-      {
-        cout << " Try_silicon: crossing" << si_crossing <<  "  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi <<  "   si_q" << si_q << "   tpc_q" << tpc_q
-             << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " tpc_x " << tpc_pos.x() << " tpc_y " << tpc_pos.y() << " tpc_z " << tpc_pos.z()
-             << " dx " << tpc_pos.x() - si_pos.x() << " dy " << tpc_pos.y() - si_pos.y() << " dz " << tpc_pos.z() - si_pos.z()
-			 << endl;
-      }
-
-    }
-    // if no match found, keep tpc seed for fitting
-    if (!matched)
-    {
-      if (Verbosity() > 1)
-      {
-        cout << "inserted unmatched tpc seed " << tpcid << endl;
-      }
-      tpc_unmatched_set.insert(tpcid);
-    }
-  }
-
+  
   return;
 }
 
