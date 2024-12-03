@@ -2,6 +2,7 @@
 
 /// Tracking includes
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterCrossingAssoc.h>
@@ -89,6 +90,11 @@ void PHSiliconTpcTrackMatching::SetDefaultParameters()
 //____________________________________________________________________________..
 int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
 {
+  if(Verbosity() > 2)
+  {
+    std::cout << " FIXME PHSiliconTpcTrackMatching " 
+      << ( _zero_field ? "zero field is ON" : " zero field is OFF") << std::endl;
+  }
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
   // _svtx_seed_map contains the combined silicon and tpc track seeds
@@ -378,9 +384,38 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
           << endl;
     }
 
-    double tpc_phi = _tracklet_tpc->get_phi();
-    double tpc_eta = _tracklet_tpc->get_eta();
-    double tpc_pt = fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
+    double tpc_phi, tpc_eta, tpc_pt;
+    float tpc_px, tpc_py, tpc_pz;
+    int tpc_q;
+    Acts::Vector3 tpc_pos;
+    if (_zero_field) {
+      auto cluster_list = getTrackletClusterList(_tracklet_tpc);
+
+      Acts::Vector3  mom;
+      bool ok_track;
+
+      std::tie(ok_track, tpc_phi, tpc_eta, tpc_pt, tpc_pos, mom) = 
+        TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list);
+      if (!ok_track) { continue; }
+      tpc_px = mom.x();
+      tpc_py = mom.y();
+      tpc_pz = mom.z();
+      tpc_q = -100;
+    } else {
+      tpc_phi = _tracklet_tpc->get_phi();
+      tpc_eta = _tracklet_tpc->get_eta();
+      tpc_pt = fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
+
+      tpc_pos = TrackSeedHelper::get_xyz(_tracklet_tpc);
+
+      tpc_px = _tracklet_tpc->get_px();
+      tpc_py = _tracklet_tpc->get_py();
+      tpc_pz = _tracklet_tpc->get_pz();
+
+      tpc_q = _tracklet_tpc->get_charge();
+    }
+    double mag = getMatchingInflationFactor(tpc_pt);
+
     if (Verbosity() > 8)
     {
       std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " phi " << tpc_phi << " pt " << tpc_pt << " tpc z " << TrackSeedHelper::get_z(_tracklet_tpc) << std::endl;
@@ -389,7 +424,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     // this factor will increase the window size at low pT
     // otherwise the matching efficiency drops off at low pT
 
-    double mag = getMatchingInflationFactor(tpc_pt);
 
     if (_use_old_matching)  // for testing only
     {
@@ -415,11 +449,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       _tracklet_tpc->identify();
     }
 
-    const auto tpc_pos = TrackSeedHelper::get_xyz(_tracklet_tpc);
-    const auto tpc_px = _tracklet_tpc->get_px();
-    const auto tpc_py = _tracklet_tpc->get_py();
-    const auto tpc_pz = _tracklet_tpc->get_pz();
-    const int tpc_q = _tracklet_tpc->get_charge();
 
     bool matched = false;
 
@@ -431,21 +460,41 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       _tracklet_si = _track_map_silicon->get(phtrk_iter_si);
       if (!_tracklet_si)
       {
+
         continue;
       }
       bool eta_match = false;
-      double si_eta = _tracklet_si->get_eta();
-      double si_phi = _tracklet_si->get_phi();
 
-      const auto si_pos = TrackSeedHelper::get_xyz(_tracklet_si);
-      const auto si_px = _tracklet_si->get_px();
-      const auto si_py = _tracklet_si->get_py();
-      const auto si_pz = _tracklet_si->get_pz();
+    double si_phi, si_eta, si_pt;
+    float si_px, si_py, si_pz;
+    int si_q;
+    Acts::Vector3 si_pos;
+    if (_zero_field) {
+      auto cluster_list = getTrackletClusterList(_tracklet_si);
 
+      Acts::Vector3  mom;
+      bool ok_track;
 
+      std::tie(ok_track, si_phi, si_eta, si_pt, si_pos, mom) = 
+        TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list);
+      if (!ok_track) { continue; }
+      si_px = mom.x();
+      si_py = mom.y();
+      si_pz = mom.z();
+      si_q = -100;
+    } else {
+      si_eta = _tracklet_si->get_eta();
+      si_phi = _tracklet_si->get_phi();
+
+      si_pos = TrackSeedHelper::get_xyz(_tracklet_si);
+      si_px = _tracklet_si->get_px();
+      si_py = _tracklet_si->get_py();
+      si_pz = _tracklet_si->get_pz();
+	    si_q = _tracklet_si->get_charge();
+    }
 	  int si_crossing = _tracklet_si->get_crossing();
-	  int si_q = _tracklet_si->get_charge();
-      unsigned int siid = phtrk_iter_si;
+    unsigned int siid = phtrk_iter_si;
+
   if(_test_windows)
   {
     float data[] = {
@@ -636,7 +685,52 @@ double PHSiliconTpcTrackMatching::getMatchingInflationFactor(double tpc_pt)
     mag = _match_function_a + _match_function_b / pow(tpc_pt, _match_function_pow);
   }
 
-  //  std::cout << " tpc_pt = " << tpc_pt << " mag " << mag << " a " << match_function_a << " b " << match_function_b << std::endl;
+  // std::cout << "  tpc_pt = " << tpc_pt << " mag " << mag << " a " << _match_function_a << " b " << _match_function_b << std::endl;
 
   return mag;
+}
+
+std::vector<TrkrDefs::cluskey> PHSiliconTpcTrackMatching::getTrackletClusterList(TrackSeed* tracklet)
+{
+  std::vector<TrkrDefs::cluskey> cluskey_vec;
+  for (auto clusIter = tracklet->begin_cluster_keys();
+       clusIter != tracklet->end_cluster_keys();
+       ++clusIter)
+  {
+    auto key = *clusIter;
+    auto cluster = _cluster_map->findCluster(key);
+    if (!cluster)
+    {
+      if(Verbosity() > 1)
+      {
+        std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
+      }
+      continue;
+    }
+
+    /// Make a safety check for clusters that couldn't be attached to a surface
+    auto surf = _tGeometry->maps().getSurface(key, cluster);
+    if (!surf)
+    {
+      continue;
+    }
+
+    // drop some bad layers in the TPC completely
+    unsigned int layer = TrkrDefs::getLayer(key);
+    if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39)
+    {
+      continue;
+    }
+
+    // drop INTT clusters for now  -- TEMPORARY!
+    // Note: the zerofield fit uses the INTT for xy fit but not yz fit
+    /* if (layer > 2 && layer < 7) */
+    /* { */
+      /* continue; */
+    /* } */
+
+
+    cluskey_vec.push_back(key);
+  }  // end loop over clusters for this track
+  return cluskey_vec;
 }

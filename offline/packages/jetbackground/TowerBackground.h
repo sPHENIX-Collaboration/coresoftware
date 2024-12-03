@@ -13,7 +13,7 @@ class TowerBackground : public PHObject
   void identify(std::ostream &os = std::cout) const override { os << "TowerBackground base class" << std::endl; };
   int isValid() const override { return 0; }
 
-  virtual void set_UE(int /*layer*/, const std::vector<float> &/*UE*/) {}
+  virtual void set_UE(int /*layer*/, const std::vector<float> & /*UE*/) {}
   virtual void set_v2(float) {}
   virtual void set_Psi2(float) {}
   virtual void set_nStripsUsedForFlow(int) {}

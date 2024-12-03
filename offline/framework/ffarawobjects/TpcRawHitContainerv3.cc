@@ -53,12 +53,12 @@ TpcRawHit *TpcRawHitContainerv3::AddHit()
 
 TpcRawHit *TpcRawHitContainerv3::AddHit(TpcRawHit *tpchit)
 {
-  if (dynamic_cast<TpcRawHitv3 *>(tpchit))
+  if (tpchit->IsA()==TpcRawHitv3::Class())
   {
     // fast add with move constructor to avoid ADC data copying
 
     TpcRawHit *newhit = new ((*TpcRawHitsTCArray)[TpcRawHitsTCArray->GetLast() + 1])
-        TpcRawHitv3(std::move(*(dynamic_cast<TpcRawHitv3 *>(tpchit))));
+        TpcRawHitv3(std::move(*(static_cast<TpcRawHitv3 *>(tpchit))));
     return newhit;
   }
   else

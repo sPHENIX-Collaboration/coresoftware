@@ -49,7 +49,7 @@ PHG4HcalSteppingAction::~PHG4HcalSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4HcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   // get volume of the current step
   G4VPhysicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
