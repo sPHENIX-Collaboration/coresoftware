@@ -830,7 +830,7 @@ int CaloTriggerEmulator::process_waveforms()
       return process_sim();
     }
 
-  if (!m_event)
+  if (m_useoffline)
     {
       return process_offline();
     }
@@ -2232,6 +2232,11 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
 	  }
       }
     m_hcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "HCALPackets");
+
+    if (m_hcal_packets) 
+      {
+	m_useoffline = true;
+      }
 
     m_primitives_hcalout = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_HCALOUT");
 

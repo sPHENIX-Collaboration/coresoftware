@@ -392,7 +392,7 @@ int MBDTriggerEmulator::process_raw()
     std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing waveforms" << std::endl;
   }
 
-  if (!m_event)
+  if (m_useoffline)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -829,7 +829,10 @@ m_event = findNode::getClass<Event>(topNode, "PRDF");
   }
 
   m_waveforms_mbd = findNode::getClass<CaloPacketContainer>(topNode, "MBDPackets");
-  
+  if (m_waveforms_mbd)
+    {
+      m_useoffline = true;
+    }
   // if (!m_waveforms_mbd)
   //   {
   //     std::cout << "No MBD Waveforms found... " << std::endl;

@@ -237,6 +237,7 @@ class CaloTriggerEmulator : public SubsysReco
   unsigned int m_threshold_photon[4] = {0};
 
   int m_isdata{1};
+  int m_useoffline{false};
   int m_nsamples = 16;
   int m_idx{8};
 
@@ -247,7 +248,7 @@ class CaloTriggerEmulator : public SubsysReco
   int m_packet_low_emcal = 6001;
   int m_packet_high_emcal = 6128;
 
-  std::string m_fieldname;
+  std::string m_fieldname{""};
 
   std::vector<unsigned int> m_masks_fiber{};
   std::vector<unsigned int> m_masks_channel{};

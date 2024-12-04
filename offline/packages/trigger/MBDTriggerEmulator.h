@@ -156,6 +156,7 @@ class MBDTriggerEmulator : public SubsysReco
 
   unsigned int m_threshold{1};
   int m_isdata{1};
+  int m_useoffline{false};
   int m_nsamples = 16;
   int m_idx{8};
 
