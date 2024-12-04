@@ -31,8 +31,8 @@ class PHIODataNode : public PHDataNode<T>
  protected:
   bool write(PHIOManager *, const std::string & = "") override;
   PHIODataNode() = delete;
-  int buffersize {32000};
-  int splitlevel {99};
+  int buffersize{32000};
+  int splitlevel{99};
 };
 
 template <class T>

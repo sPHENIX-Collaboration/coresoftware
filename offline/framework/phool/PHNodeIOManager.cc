@@ -165,11 +165,11 @@ bool PHNodeIOManager::write(TObject** data, const std::string& path, int nodebuf
       // which is the node which writes itself
       if (splitlevel == std::numeric_limits<int>::min())
       {
-	splitlevel = nodesplitlevel;
+        splitlevel = nodesplitlevel;
       }
       if (buffersize == std::numeric_limits<int>::min())
       {
-	buffersize = nodebuffersize;
+        buffersize = nodebuffersize;
       }
       std::cout << "setting split level to " << splitlevel;
       std::cout << "setting buffer size to " << buffersize << std::endl;
@@ -345,7 +345,7 @@ int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string& obje
   else
   {
     std::cout << PHWHERE << "Cannot find "
-	      << objectName << " in TBranch" << std::endl;
+              << objectName << " in TBranch" << std::endl;
   }
   return 0;
 }
