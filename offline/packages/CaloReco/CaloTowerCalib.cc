@@ -213,6 +213,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   //time calibration getting the CDB
   m_calibName_time = m_detector + "_meanTime";
   m_fieldname_time = "time";
+  std::string calibdir = "";
 
   if (m_giveDirectURL_time)
   {
@@ -222,7 +223,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   }
   else
   {
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
+    calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
     if (!calibdir.empty())
     {
       cdbttree_time = new CDBTTree(calibdir);
