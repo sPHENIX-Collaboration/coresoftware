@@ -4,18 +4,6 @@
 
 int TriggerAnalyzer::decodeTriggers(PHCompositeNode *topNode)
 {
-  gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-  if (!gl1packet) 
-    {
-      std::cout << " no gl1 packet" << std::endl;
-      return 1;
-    }
-  triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
-  if (!triggerruninfo) 
-    {
-      std::cout << " no triggerruninfo" << std::endl;
-      return 1;
-    }
 
   if (m_useEmulator)
     {
@@ -38,6 +26,19 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode *topNode)
 
       return 0;
     }
+  gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  if (!gl1packet) 
+    {
+      std::cout << " no gl1 packet" << std::endl;
+      return 1;
+    }
+  triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+  if (!triggerruninfo) 
+    {
+      std::cout << " no triggerruninfo" << std::endl;
+      return 1;
+    }
+
   gl1_scaledvec = gl1packet->lValue(0, "ScaledVector");
   gl1_livevec = gl1packet->lValue(0, "TriggerVector");
   gl1_bco = gl1packet->lValue(0, "BCO");
@@ -47,25 +48,27 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode *topNode)
 
 void TriggerAnalyzer::fillTriggerVector()
 {
-  gl1_scaledvec = 0x0U;
-  gl1_livevec = 0x0U;
-  gl1_bco = 0x0U;
+  gl1_scaledvec = 0x000000000000;
+  gl1_livevec = 0x000000000000;
+  gl1_bco = 0x000000000000;
 
   for (int i = 0 ; i < 4; i++)
     {
       if (ll1out_photon->passesThreshold(i+1))
 	{
-	  gl1_scaledvec += (0x1 << (unsigned int) i) ;
+	  unsigned int bit = i + 28;
+	  gl1_scaledvec |= (0x1 << bit);
 	}
     }
   for (int i = 0 ; i < 4; i++)
     {
       if (ll1out_jet->passesThreshold(i+1))
-	{
-	  gl1_scaledvec += (0x1 << (unsigned int) (i + 4)) ;
+	{	  
+	  unsigned int bit = i + 20;
+	  gl1_scaledvec |= (0x1 << bit);
 	}
     }
-
+  gl1_scaledvec &= 0x00000000ffffffff;
   return;
 }
 
@@ -139,3 +142,16 @@ uint64_t TriggerAnalyzer::getTriggerRawScalers(int triggerbit)
 {
   return triggerruninfo->getRawScalersByBit(triggerbit);
 }
+
+void TriggerAnalyzer::Print()
+{
+
+  for (int i = 0; i < 64; i++)
+    {
+      if (didTriggerFire(i))
+	{
+	  std::cout << " Trigger " << i << " fired" <<std::endl;
+	}
+    }
+}
+

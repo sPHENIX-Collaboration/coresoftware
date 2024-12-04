@@ -39,6 +39,9 @@ class TriggerAnalyzer
   uint64_t getTriggerScalers(int triggerbit);
 
   void UseEmulator(bool use) { m_useEmulator = use;}
+
+  void Print();
+
  private:
 
   bool m_useEmulator{false};

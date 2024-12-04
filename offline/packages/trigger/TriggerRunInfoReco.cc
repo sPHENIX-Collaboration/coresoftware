@@ -57,6 +57,12 @@ int TriggerRunInfoReco::InitRun(PHCompositeNode *topNode)
   if (m_useEmulator)
     {
       SetTriggerEmulator(triggerRunInfo);
+      if (Verbosity()) 
+	{
+	  triggerRunInfo->identify();
+	}
+
+
       return Fun4AllReturnCodes::EVENT_OK; 
     }
   // Fetch trigger prescales and fill the TriggerRunInfo object
@@ -81,15 +87,24 @@ int TriggerRunInfoReco::InitRun(PHCompositeNode *topNode)
 }
 void TriggerRunInfoReco::SetTriggerEmulator(TriggerRunInfo *triggerRunInfo)
 {
+  std::string names[64];
+  for (int i = 0; i < 64; i++)
+    {
+      names[i] = "unknown" + std::to_string(i);
+    }
+  for (int i = 0; i < 64; i++)
+    {
+      triggerRunInfo->setTrigger(i, "unknown", i, 0);
+    }
 
-  triggerRunInfo->setTrigger(0, "Photon 2 GeV", 0, 1);
-  triggerRunInfo->setTrigger(1, "Photon 3 GeV", 1, 1);
-  triggerRunInfo->setTrigger(2, "Photon 4 GeV", 2, 1);
-  triggerRunInfo->setTrigger(3, "Photon 5 GeV", 3, 1);
-  triggerRunInfo->setTrigger(4, "Jet 6 GeV", 4, 1);
-  triggerRunInfo->setTrigger(5, "Jet 8 GeV", 5, 1);
-  triggerRunInfo->setTrigger(6, "Jet 10 GeV", 6, 1);
-  triggerRunInfo->setTrigger(7, "Jet 12 GeV", 7, 1);
+  triggerRunInfo->setTrigger(28, "Photon 2 GeV", 28, 1);
+  triggerRunInfo->setTrigger(29, "Photon 3 GeV", 29, 1);
+  triggerRunInfo->setTrigger(30, "Photon 4 GeV", 30, 1);
+  triggerRunInfo->setTrigger(31, "Photon 5 GeV", 31, 1);
+  triggerRunInfo->setTrigger(20, "Jet 6 GeV", 20, 1);
+  triggerRunInfo->setTrigger(21, "Jet 8 GeV", 21, 1);
+  triggerRunInfo->setTrigger(22, "Jet 10 GeV", 22, 1);
+  triggerRunInfo->setTrigger(23, "Jet 12 GeV", 23, 1);
 
   return;
 }
