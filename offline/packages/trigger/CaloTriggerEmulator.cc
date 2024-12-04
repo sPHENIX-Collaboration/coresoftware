@@ -62,7 +62,6 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
   // for MBD, this is the peak sample in run-23 data
   m_idx = 12;
 
-  m_fieldname = "adcskipmask";
   // default values for the lookup tables.
   // TODO: to CDB the LUTs from the database
 
