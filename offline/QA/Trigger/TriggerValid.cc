@@ -392,7 +392,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
   {
     for (int i = 0; i < 4; i++)
       {
-	auto triggered_sums = ll1out_photon->getTriggeredSums(i+1);
+	auto triggered_sums = ll1out_photon->getTriggeredSumKeys(i+1);
 	for (auto &key : triggered_sums)
 	  {
 	    unsigned int phi = TriggerDefs::getSumPhiId(key) + TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(key)*2;
@@ -409,7 +409,7 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
   {
     for (int i = 0; i < 4; i++)
       {
-	auto triggered_sums = ll1out_jet->getTriggeredSums(i+1);
+	auto triggered_sums = ll1out_jet->getTriggeredSumKeys(i+1);
 	for (auto &key : triggered_sums)
 	  {
 	    int eta = (key >> 16U) & 0xffffU;
