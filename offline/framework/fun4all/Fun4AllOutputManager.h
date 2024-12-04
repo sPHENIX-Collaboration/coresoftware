@@ -109,12 +109,12 @@ class Fun4AllOutputManager : public Fun4AllBase
   bool ApplyFileRule() const { return m_UseFileRuleFlag; }
   void SetNEvents(const unsigned int nevt);
   unsigned int GetNEvents() const { return m_MaxEvents; }
-  void FileRule(const std::string &newrule) {m_FileRule = newrule;}
-  const std::string FileRule() const {return m_FileRule;}
-  void SplitLevel(const int split) {splitlevel = split;}
-  void BufferSize(const int size) {buffersize = size;}
-  int SplitLevel() const {return splitlevel;}
-  int BufferSize() const {return buffersize;}
+  void FileRule(const std::string &newrule) { m_FileRule = newrule; }
+  const std::string FileRule() const { return m_FileRule; }
+  void SplitLevel(const int split) { splitlevel = split; }
+  void BufferSize(const int size) { buffersize = size; }
+  int SplitLevel() const { return splitlevel; }
+  int BufferSize() const { return buffersize; }
 
  protected:
   /*!
@@ -128,12 +128,11 @@ class Fun4AllOutputManager : public Fun4AllBase
   //! add file rule to filename (runnumber-segment)
   bool m_UseFileRuleFlag{false};
 
-
   //! Buffer Size for baskets in root file
-  int buffersize {std::numeric_limits<int>::min()};
+  int buffersize{std::numeric_limits<int>::min()};
 
   //! Split level of TBranches
-  int splitlevel {std::numeric_limits<int>::min()};
+  int splitlevel{std::numeric_limits<int>::min()};
 
   //! Number of Events
   unsigned int m_NEvents{0};
@@ -154,7 +153,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   std::string m_LastClosedFileName;
 
   //! file rule when writing multiple segments (-<runnumber>-segment)
-  std::string m_FileRule {"-%08d-%05d"};
+  std::string m_FileRule{"-%08d-%05d"};
 
   //! vector of event selectors modules
   std::vector<std::string> m_EventSelectorsVector;
