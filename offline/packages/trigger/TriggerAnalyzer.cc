@@ -57,7 +57,7 @@ void TriggerAnalyzer::fillTriggerVector()
       if (ll1out_photon->passesThreshold(i+1))
 	{
 	  unsigned int bit = i + 28;
-	  gl1_scaledvec |= (0x1 << bit);
+	  gl1_scaledvec |= (0x1U << bit);
 	}
     }
   for (int i = 0 ; i < 4; i++)
@@ -65,7 +65,7 @@ void TriggerAnalyzer::fillTriggerVector()
       if (ll1out_jet->passesThreshold(i+1))
 	{	  
 	  unsigned int bit = i + 20;
-	  gl1_scaledvec |= (0x1 << bit);
+	  gl1_scaledvec |= (0x1U << bit);
 	}
     }
   gl1_scaledvec &= 0x00000000ffffffff;

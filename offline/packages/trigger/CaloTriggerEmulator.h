@@ -231,14 +231,12 @@ class CaloTriggerEmulator : public SubsysReco
   int m_trig_sub_delay;
   int m_trig_sample{-1};
 
-  bool m_single_threshold{true};
   unsigned int m_threshold{1};
   unsigned int m_threshold_jet[4] = {0};
   unsigned int m_threshold_pair[4] = {0};
   unsigned int m_threshold_photon[4] = {0};
 
   int m_isdata{1};
-  int m_useoffline{1};
   int m_nsamples = 16;
   int m_idx{8};
 

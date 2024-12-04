@@ -191,7 +191,6 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
   m_n_sums = 16;
   m_trig_sample = -1;
   m_trig_sub_delay = 4;
-  m_threshold = 1;
 
 
   // define a detector map for detectors included in a trigger
