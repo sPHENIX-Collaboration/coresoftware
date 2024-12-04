@@ -1,10 +1,10 @@
-#include "SingleMicromegasPoolInput.h"
+#include "SingleMicromegasPoolInput_v1.h"
 
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/MicromegasRawHitContainerv1.h>
-#include <ffarawobjects/MicromegasRawHitv1.h>
+#include <ffarawobjects/MicromegasRawHitContainerv3.h>
+#include <ffarawobjects/MicromegasRawHitv3.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <qautils/QAHistManagerDef.h>
@@ -30,6 +30,10 @@
 
 namespace
 {
+
+  //! mark invalid ADC values
+  static constexpr uint16_t m_adc_invalid = 65000;
+
   // maximum number of packets
   static constexpr int m_npackets_active = 2;
 
@@ -51,7 +55,7 @@ namespace
 }  // namespace
 
 //______________________________________________________________
-SingleMicromegasPoolInput::SingleMicromegasPoolInput(const std::string& name)
+SingleMicromegasPoolInput_v1::SingleMicromegasPoolInput_v1(const std::string& name)
   : SingleStreamingInput(name)
 {
   SubsystemEnum(InputManagerType::MICROMEGAS);
@@ -59,15 +63,19 @@ SingleMicromegasPoolInput::SingleMicromegasPoolInput(const std::string& name)
 }
 
 //______________________________________________________________
-SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
+SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1()
 {
 
-  std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput - runnumber: " << RunNumber() << std::endl;
+  std::cout << "SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1 - runnumber: " << RunNumber() << std::endl;
+
+  // timer statistics
+  m_timer.print_stat();
+
   for( const auto& [packet,counts]:m_waveform_count_total )
   {
     const auto dropped_bco =  m_waveform_count_dropped_bco[packet];
     const auto dropped_pool =  m_waveform_count_dropped_pool[packet];
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput -"
+    std::cout << "SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1 -"
       << " packet: " << packet
       << " wf_total: " << counts
       << " wf_dropped_bco: " << dropped_bco
@@ -82,7 +90,7 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
   for( const auto& [fee,counts]:m_fee_waveform_count_total )
   {
     const auto dropped_bco =  m_fee_waveform_count_dropped_bco[fee];
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput -"
+    std::cout << "SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1 -"
       << " fee: " << fee
       << " wf_total: " << counts
       << " wf_dropped_bco: " << dropped_bco
@@ -96,7 +104,7 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
   for( const auto& [packet_id, bco_matching]:m_bco_matching_information_map )
   {
     const auto old_precision = std::cout.precision();
-    std::cout << "SingleMicromegasPoolInput::~SingleMicromegasPoolInput -"
+    std::cout << "SingleMicromegasPoolInput_v1::~SingleMicromegasPoolInput_v1 -"
       << " packet: " << packet_id
       << " multiplier: " <<  std::setprecision(9) << bco_matching.get_adjusted_multiplier() << std::setprecision(old_precision)
       << std::endl;
@@ -105,7 +113,7 @@ SingleMicromegasPoolInput::~SingleMicromegasPoolInput()
 }
 
 //______________________________________________________________
-void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
+void SingleMicromegasPoolInput_v1::FillPool(const unsigned int /*nbclks*/)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -159,7 +167,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 
     if (npackets == 10)
     {
-      std::cout << "SingleMicromegasPoolInput::FillPool - too many packets" << std::endl;
+      std::cout << "SingleMicromegasPoolInput_v1::FillPool - too many packets" << std::endl;
       exit(1);
     }
 
@@ -207,7 +215,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       if (Verbosity())
       {
         std::cout
-          << "SingleMicromegasPoolInput::FillPool -"
+          << "SingleMicromegasPoolInput_v1::FillPool -"
           << " packet: " << packet_id
           << " n_waveform: " << nwf
           << std::endl;
@@ -230,7 +238,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
       // if bco matching information is still not verified, drop the packet
       if (!bco_matching_information.is_verified())
       {
-        std::cout << "SingleMicromegasPoolInput::FillPool - bco_matching not verified, dropping packet" << std::endl;
+        std::cout << "SingleMicromegasPoolInput_v1::FillPool - bco_matching not verified, dropping packet" << std::endl;
         m_waveform_count_dropped_bco[packet_id] += nwf;
         h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), nwf );
         continue;
@@ -284,7 +292,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         }
 
         // create new hit
-        auto newhit = std::make_unique<MicromegasRawHitv1>();
+        auto newhit = std::make_unique<MicromegasRawHitv3>();
         newhit->set_bco(fee_bco);
         newhit->set_gtm_bco(gtm_bco);
 
@@ -295,13 +303,21 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
         newhit->set_sampaaddress(packet->iValue(wf, "SAMPAADDRESS"));
         newhit->set_sampachannel(packet->iValue(wf, "CHANNEL"));
 
-        // assign samples
-        newhit->set_samples(samples);
-
         // adc values
         for (uint16_t is = 0; is < samples; ++is)
         {
-          newhit->set_adc(is, packet->iValue(wf, is));
+          uint16_t adc = packet->iValue(wf, is);
+          if( adc == m_adc_invalid)
+          {
+            continue;
+          }
+
+          uint16_t first = is;
+          MicromegasRawHitv3::adc_list_t values;
+          for( ;is<samples && (adc = packet->iValue(wf, is)) != m_adc_invalid; ++is )
+          { values.push_back(adc); }
+          newhit->move_adc_waveform( first, std::move(values));
+
         }
 
         m_BeamClockFEE[gtm_bco].insert(fee_id);
@@ -327,7 +343,7 @@ void SingleMicromegasPoolInput::FillPool(const unsigned int /*nbclks*/)
 }
 
 //______________________________________________________________
-void SingleMicromegasPoolInput::Print(const std::string& what) const
+void SingleMicromegasPoolInput_v1::Print(const std::string& what) const
 {
   if (what == "ALL" || what == "FEE")
   {
@@ -375,7 +391,7 @@ void SingleMicromegasPoolInput::Print(const std::string& what) const
 }
 
 //____________________________________________________________________________
-void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, bool dropped)
+void SingleMicromegasPoolInput_v1::CleanupUsedPackets(const uint64_t bclk, bool dropped)
 {
 
   // delete all raw hits associated to bco smaller than reference, and remove from map
@@ -406,16 +422,16 @@ void SingleMicromegasPoolInput::CleanupUsedPackets_with_qa(const uint64_t bclk, 
 }
 
 //_______________________________________________________
-void SingleMicromegasPoolInput::ClearCurrentEvent()
+void SingleMicromegasPoolInput_v1::ClearCurrentEvent()
 {
-  std::cout << "SingleMicromegasPoolInput::ClearCurrentEvent." << std::endl;
+  std::cout << "SingleMicromegasPoolInput_v1::ClearCurrentEvent." << std::endl;
   uint64_t currentbclk = *m_BclkStack.begin();
   CleanupUsedPackets(currentbclk);
   return;
 }
 
 //_______________________________________________________
-bool SingleMicromegasPoolInput::GetSomeMoreEvents()
+bool SingleMicromegasPoolInput_v1::GetSomeMoreEvents()
 {
   if (AllDone())
   {
@@ -461,7 +477,7 @@ bool SingleMicromegasPoolInput::GetSomeMoreEvents()
 }
 
 //_______________________________________________________
-void SingleMicromegasPoolInput::CreateDSTNode(PHCompositeNode* topNode)
+void SingleMicromegasPoolInput_v1::CreateDSTNode(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -482,14 +498,14 @@ void SingleMicromegasPoolInput::CreateDSTNode(PHCompositeNode* topNode)
   auto container = findNode::getClass<MicromegasRawHitContainer>(detNode, m_rawHitContainerName);
   if (!container)
   {
-    container = new MicromegasRawHitContainerv1();
+    container = new MicromegasRawHitContainerv3();
     auto newNode = new PHIODataNode<PHObject>(container, m_rawHitContainerName, "PHObject");
     detNode->addNode(newNode);
   }
 }
 
 //_______________________________________________________
-void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
+void SingleMicromegasPoolInput_v1::ConfigureStreamingInputManager()
 {
   if (StreamingInputManager())
   {
@@ -499,7 +515,7 @@ void SingleMicromegasPoolInput::ConfigureStreamingInputManager()
 }
 
 //_______________________________________________________
-void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
+void SingleMicromegasPoolInput_v1::FillBcoQA(uint64_t gtm_bco)
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -534,23 +550,23 @@ void SingleMicromegasPoolInput::FillBcoQA(uint64_t gtm_bco)
   h_waveform->Fill(n_waveforms);
 }
 //_______________________________________________________
-void SingleMicromegasPoolInput::createQAHistos()
+void SingleMicromegasPoolInput_v1::createQAHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // number of packets found with BCO from felix matching reference BCO
-  h_packet = new TH1F( "h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Matching BCO tagger count; GL1 trigger count", 10, 0, 10 );
+  h_packet = new TH1I( "h_MicromegasBCOQA_npacket_bco", "TPOT Packet Count per GTM BCO; Matching BCO tagger count; GL1 trigger count", 10, 0, 10 );
 
   // number of waveforms found with BCO from felix matching reference BCO
-  h_waveform = new TH1F( "h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Matching Waveform count; GL1 trigger count", 4100, 0, 4100 );
+  h_waveform = new TH1I( "h_MicromegasBCOQA_nwaveform_bco", "TPOT Waveform Count per GTM BCO; Matching Waveform count; GL1 trigger count", 4100, 0, 4100 );
 
   /*
    * first bin is the number of requested GL1 BCO, for reference
    * next two bins is the number of times the GL1 BCO is found in the taggers list for a given packet_id
    * last bin is the sum
    */
-  h_packet_stat = new TH1F( "h_MicromegasBCOQA_packet_stat", "Matching Tagger count per packet; packet id; GL1 trigger count", m_npackets_active+2, 0, m_npackets_active+2 );
+  h_packet_stat = new TH1I( "h_MicromegasBCOQA_packet_stat", "Matching Tagger count per packet; packet id; GL1 trigger count", m_npackets_active+2, 0, m_npackets_active+2 );
   h_packet_stat->GetXaxis()->SetBinLabel(1, "Reference" );
   h_packet_stat->GetXaxis()->SetBinLabel(2, "5001" );
   h_packet_stat->GetXaxis()->SetBinLabel(3, "5002" );
@@ -558,13 +574,13 @@ void SingleMicromegasPoolInput::createQAHistos()
   h_packet_stat->GetYaxis()->SetTitle( "trigger count" );
 
   // total number of waveform per packet
-  h_waveform_count_total = new TH1F( "h_MicromegasBCOQA_waveform_count_total", "Total number of waveforms per packet", m_npackets_active, 0, m_npackets_active );
+  h_waveform_count_total = new TH1I( "h_MicromegasBCOQA_waveform_count_total", "Total number of waveforms per packet", m_npackets_active, 0, m_npackets_active );
 
   // number of dropped waveform per packet due to bco mismatch
-  h_waveform_count_dropped_bco = new TH1F( "h_MicromegasBCOQA_waveform_count_dropped_bco", "Number of dropped waveforms per packet (bco)", m_npackets_active, 0, m_npackets_active );
+  h_waveform_count_dropped_bco = new TH1I( "h_MicromegasBCOQA_waveform_count_dropped_bco", "Number of dropped waveforms per packet (bco)", m_npackets_active, 0, m_npackets_active );
 
   // number of dropped waveform per packet due to fun4all pool mismatch
-  h_waveform_count_dropped_pool = new TH1F( "h_MicromegasBCOQA_waveform_count_dropped_pool", "Number of dropped waveforms per packet (pool)", m_npackets_active, 0, m_npackets_active );
+  h_waveform_count_dropped_pool = new TH1I( "h_MicromegasBCOQA_waveform_count_dropped_pool", "Number of dropped waveforms per packet (pool)", m_npackets_active, 0, m_npackets_active );
 
   // define axis
   for( const auto& h:std::initializer_list<TH1*>{h_waveform_count_total, h_waveform_count_dropped_bco, h_waveform_count_dropped_pool} )

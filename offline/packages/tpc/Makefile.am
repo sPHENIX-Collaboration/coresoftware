@@ -49,6 +49,7 @@ pkginclude_HEADERS = \
   TpcClusterMover.h \
   TpcClusterZCrossingCorrection.h \
   TpcCombinedRawDataUnpacker.h \
+  TpcCombinedRawDataUnpackerDebug.h \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
   TpcGlobalPositionWrapper.h \
@@ -85,6 +86,7 @@ libtpc_la_SOURCES = \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
   TpcCombinedRawDataUnpacker.cc \
+  TpcCombinedRawDataUnpackerDebug.cc \
   TpcGlobalPositionWrapper.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
@@ -100,6 +102,7 @@ libtpc_la_LIBADD = \
   -lc10 \
   -ltorch_cpu \
   -ltorch \
+  -ltrack \
   -lmicromegas_io \
   -lfun4all \
   -lphool \
@@ -114,9 +117,7 @@ libtpc_io_la_SOURCES = \
   TrainingHits.cc
 
 libtpc_io_la_LIBADD = \
-  -ltrack_io \
-  -lg4detectors_io \
-  -ltrackbase_historic_io
+  -lg4detectors_io
 
 noinst_PROGRAMS = \
   testexternals_tpc_io \

@@ -4,6 +4,7 @@
 #include "TowerInfov1.h"
 
 #include <cmath>
+#include <limits>
 
 class TowerInfov4 : public TowerInfo
 {
@@ -27,7 +28,12 @@ class TowerInfov4 : public TowerInfo
   void set_chi2(float _chi2) override
   {
     float lnChi2;
-    if (_chi2 <= 0)
+    
+    if (std::isnan(_chi2))
+    {
+      lnChi2 = 0;
+    }
+    else if (_chi2 <= 0)
     {
       lnChi2 = 1;
     }
@@ -41,7 +47,11 @@ class TowerInfov4 : public TowerInfo
     }
     chi2 = static_cast<uint8_t>(std::round(lnChi2));
   }
-  float get_chi2() override { return (pow(1.08, (float) chi2) - 1.0); }
+  float get_chi2() override {
+    return (chi2 == 0)
+        ? std::numeric_limits<float>::quiet_NaN() 
+        : (pow(1.08, static_cast<float>(chi2)) - 1.0);
+  }
 
   void set_isHot(bool isHot) override { set_status_bit(0, isHot); }
   bool get_isHot() const override { return get_status_bit(0); }

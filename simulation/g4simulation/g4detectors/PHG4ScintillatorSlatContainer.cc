@@ -43,13 +43,16 @@ PHG4ScintillatorSlatContainer::AddScintillatorSlat(const PHG4ScintillatorSlatDef
 PHG4ScintillatorSlatContainer::ConstRange
 PHG4ScintillatorSlatContainer::getScintillatorSlats(const short icolumn) const
 {
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
   if ((icolumn >> PHG4ScintillatorSlatDefs::columnbits) > 0)
   {
     std::cout << " column id too large: " << icolumn << std::endl;
     exit(1);
   }
   //  unsigned int shiftval = detid << slat_idbits;
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
   PHG4ScintillatorSlatDefs::keytype keylow = icolumn << PHG4ScintillatorSlatDefs::columnbits;
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
   PHG4ScintillatorSlatDefs::keytype keyup = ((icolumn + 1) << PHG4ScintillatorSlatDefs::columnbits) - 1;
   //   cout << "keylow: 0x" << hex << keylow << dec << std::endl;
   //   cout << "keyup: 0x" << hex << keyup << dec << std::endl;

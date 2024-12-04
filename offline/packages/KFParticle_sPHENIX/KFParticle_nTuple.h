@@ -64,6 +64,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   float m_calculated_mother_decaylength = -1;
   float m_calculated_mother_decaylength_err = -1;
   float m_calculated_mother_dira = -1;
+  float m_calculated_mother_dira_xy = -1;
   float m_calculated_mother_fdchi2 = -1;
   float m_calculated_mother_ip = -1;
   float m_calculated_mother_ip_xy = -1;

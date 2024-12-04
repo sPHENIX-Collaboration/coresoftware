@@ -3,6 +3,7 @@
 
 #include "InttVertexUtil.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 

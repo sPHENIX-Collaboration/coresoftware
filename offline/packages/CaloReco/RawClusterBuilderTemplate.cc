@@ -656,25 +656,11 @@ bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower)
 
   if (m_do_tower_selection)
   {
-    if (tower->get_isBadTime())
+    if (!tower->get_isGood())
     {
       return false;
     }
 
-    if (tower->get_isHot())
-    {
-      return false;
-    }
-
-    if (tower->get_isBadChi2())
-    {
-      return false;
-    }
-
-    if (tower->get_isNotInstr())
-    {
-      return false;
-    }
   }
   return true;
 }

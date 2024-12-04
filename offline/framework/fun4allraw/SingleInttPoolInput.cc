@@ -21,6 +21,7 @@
 #include <cstdlib>    // for exit
 #include <iostream>   // for operator<<, basic_o...
 #include <set>
+#include <memory>
 #include <utility>  // for pair
 
 SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
@@ -169,6 +170,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
         int numBCOs = pool->iValue(0, "NR_BCOS");
         uint64_t largest_bco = 0;
         bool skipthis{true};
+
         for (int j = 0; j < numBCOs; j++)
         {
           uint64_t bco = pool->lValue(j, "BCOLIST");
@@ -184,6 +186,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
           m_BclkStack.insert(bco);
           m_BclkStackPacketMap[packet_id].insert(bco);
         }
+
         int nFEEs = pool->iValue(0, "UNIQUE_FEES");
         for (int j = 0; j < nFEEs; j++)
         {
@@ -215,7 +218,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
               // 	      << std::endl;
               continue;
             }
-            InttRawHit *newhit = new InttRawHitv2();
+            auto newhit = std::make_unique<InttRawHitv2>();
             int FEE = pool->iValue(j, "FEE");
             newhit->set_packetid(pool->getIdentifier());
             newhit->set_fee(FEE);
@@ -252,9 +255,9 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
             }
             if (StreamingInputManager())
             {
-              StreamingInputManager()->AddInttRawHit(gtm_bco, newhit);
+              StreamingInputManager()->AddInttRawHit(gtm_bco, newhit.get());
             }
-            m_InttRawHitMap[gtm_bco].push_back(newhit);
+            m_InttRawHitMap[gtm_bco].push_back(newhit.release());
           }
         }
         //	    Print("FEEBCLK");
@@ -316,32 +319,16 @@ void SingleInttPoolInput::Print(const std::string &what) const
 
 void SingleInttPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
-  std::vector<uint64_t> toclearbclk;
-  for (const auto &iter : m_InttRawHitMap)
+  m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
+  m_BeamClockFEE.erase(m_BeamClockFEE.begin(), m_BeamClockFEE.upper_bound(bclk));
+  for(auto it = m_InttRawHitMap.begin(); it != m_InttRawHitMap.end() && (it->first <= bclk); it = m_InttRawHitMap.erase(it))
   {
-    if (iter.first <= bclk)
+    for( const auto& rawhit : it->second)
     {
-      for (auto pktiter : iter.second)
-      {
-        delete pktiter;
-      }
-      toclearbclk.push_back(iter.first);
-    }
-    else
-    {
-      break;
+      delete rawhit;
     }
   }
-  for (auto iter : toclearbclk)
-  {
-    m_BclkStack.erase(iter);
-    for (auto &[packetid, bclkstack] : m_BclkStackPacketMap)
-    {
-      bclkstack.erase(iter);
-    }
-    m_BeamClockFEE.erase(iter);
-    m_InttRawHitMap.erase(iter);
-  }
+  m_InttRawHitMap.erase(m_InttRawHitMap.begin(), m_InttRawHitMap.upper_bound(bclk));
 }
 
 bool SingleInttPoolInput::CheckPoolDepth(const uint64_t bclk)

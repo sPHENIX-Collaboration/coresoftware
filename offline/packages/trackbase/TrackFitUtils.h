@@ -13,9 +13,8 @@
 class ActsGeometry;
 class TrkrClusterContainer;
 
-class TrackFitUtils
+namespace TrackFitUtils
 {
- public:
   using position_t = std::pair<double, double>;
   using position_vector_t = std::vector<position_t>;
 
@@ -34,10 +33,10 @@ class TrackFitUtils
    * It provides a very good initial guess for a subsequent geometric fit.
    * Nikolai Chernov  (September 2012)
    */
-  static circle_fit_output_t circle_fit_by_taubin(const position_vector_t&);
+  circle_fit_output_t circle_fit_by_taubin(const position_vector_t&);
 
   /// convenient overload
-  static circle_fit_output_t circle_fit_by_taubin(const std::vector<Acts::Vector3>&);
+  circle_fit_output_t circle_fit_by_taubin(const std::vector<Acts::Vector3>&);
 
   /// line fit output [slope, intercept]
   using line_fit_output_t = std::tuple<double, double>;
@@ -46,11 +45,27 @@ class TrackFitUtils
   /**
    * copied from: https://www.bragitoff.com
    * typically used to fit we want to fit z vs radius
+   * 
+   * Updated to use the "Deming model" by default:
+   * minimizing by orthoncal distance to line in x and y
+   * (instead of the y-distance). For details, see:
+   * http://staff.pubhealth.ku.dk/~bxc/MethComp/Deming.pdf
    */
-  static line_fit_output_t line_fit(const position_vector_t&);
+  line_fit_output_t line_fit(const position_vector_t&);
+
+  /*
+   * Need to make a metric for distance from points to lines origin (pca).
+   *  - project point "global" to the line.
+   *  - return distance on line to the pca (the point of closest approach to origin)
+   */
+  double line_dist_to_pca (const double slope, const double intercept, 
+      const Acts::Vector2& pca, const Acts::Vector3& global);
 
   /// convenient overload
-  static line_fit_output_t line_fit(const std::vector<Acts::Vector3>&);
+  line_fit_output_t line_fit(const std::vector<Acts::Vector3>&);
+
+  line_fit_output_t line_fit_xy(const std::vector<Acts::Vector3>& positions);
+  line_fit_output_t line_fit_xz(const std::vector<Acts::Vector3>& positions);
 
   /// circle-circle intersection output. (xplus, yplus, xminus, yminus)
   using circle_circle_intersection_output_t = std::tuple<double, double, double, double>;
@@ -68,9 +83,9 @@ class TrackFitUtils
    * iy = - (2*x2*x - D) / 2*y2,
    * then substitute for y in equation of circle 1
    */
-  static circle_circle_intersection_output_t circle_circle_intersection(double r1, double r2, double x2, double y2);
+  circle_circle_intersection_output_t circle_circle_intersection(double r1, double r2, double x2, double y2);
 
-  static unsigned int addClusters(std::vector<float>& fitpars,
+  unsigned int addClusters(std::vector<float>& fitpars,
                                   double dca_cut,
                                   ActsGeometry* _tGeometry,
                                   TrkrClusterContainer* _cluster_map,
@@ -79,7 +94,7 @@ class TrackFitUtils
                                   unsigned int startLayer,
                                   unsigned int endLayer);
 
-  static unsigned int addClustersOnLine(TrackFitUtils::line_fit_output_t& fitpars,
+  unsigned int addClustersOnLine(TrackFitUtils::line_fit_output_t& fitpars,
                                         const bool& isXY,
                                         const double& dca_cut,
                                         ActsGeometry* tGeometry,
@@ -89,29 +104,49 @@ class TrackFitUtils
                                         const unsigned int& startLayer,
                                         const unsigned int& endLayer);
 
-  static std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global);
+  std::pair<Acts::Vector3, Acts::Vector3> get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global);
 
-  static Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global);
+  Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global);
 
-  static Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
+  Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
 
-  static std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec,
+  std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec,
                                         std::vector<TrkrDefs::cluskey> cluskey_vec,
                                         bool use_intt = false);
-  static void getTrackletClusters(ActsGeometry* _tGeometry,
+  void getTrackletClusters(ActsGeometry* _tGeometry,
                                   TrkrClusterContainer* _cluster_map,
                                   std::vector<Acts::Vector3>& global_vec,
-                                  std::vector<TrkrDefs::cluskey>& cluskey_vec);
-  static Acts::Vector3 surface_3Dline_intersection(const TrkrDefs::cluskey& key,
+                                  const std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  Acts::Vector3 surface_3Dline_intersection(const TrkrDefs::cluskey& key,
                                                    TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& yzslope, float& yzint);
 
-  static Acts::Vector3 getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref);
-  static Acts::Vector3 get_helix_surface_intersection(const Surface& surf,
+  Acts::Vector3 getPCALinePoint(const Acts::Vector3& global, const Acts::Vector3& tangent, const Acts::Vector3& posref);
+  Acts::Vector3 get_helix_surface_intersection(const Surface& surf,
                                                       std::vector<float>& fitpars, Acts::Vector3& global, ActsGeometry* _tGeometry);
-  static Acts::Vector3 get_line_plane_intersection(const Acts::Vector3& pca, const Acts::Vector3& tangent,
+  Acts::Vector3 get_line_plane_intersection(const Acts::Vector3& pca, const Acts::Vector3& tangent,
                                                    const Acts::Vector3& sensorCenter, const Acts::Vector3& sensorNormal);
-  static std::vector<double> getLineClusterResiduals(position_vector_t& rz_pts, float slope, float intercept);
-  static std::vector<double> getCircleClusterResiduals(position_vector_t& xy_pts, float R, float X0, float Y0);
+
+  std::vector<double> getLineClusterResiduals(position_vector_t& rz_pts, float slope, float intercept);
+  std::vector<double> getCircleClusterResiduals(position_vector_t& xy_pts, float R, float X0, float Y0);
+
+  Acts::Vector2 get_line_point_pca(double slope, double intercept, Acts::Vector3 global);
+  std::vector<float> fitClustersZeroField(std::vector<Acts::Vector3>& global_vec,
+						       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt);
+
+  float get_helix_pathlength(std::vector<float>& fitpars, const Acts::Vector3& start_point, const Acts::Vector3& end_point);
+  float get_helix_surface_pathlength(const Surface& surf, std::vector<float>& fitpars, const Acts::Vector3& start_point, ActsGeometry* tGeometry);
+
+  /* std::tuple<double,double> dca_on_line2D_to_point(const double x0, const double y0, const double xy_m, const double xy_b); */
+  // get track fit parameters for track matching:: is-good-fit, phi, eta, pt==1, pos_vec3, mom_vec3
+  std::tuple<bool, double, double, double, Acts::Vector3, Acts::Vector3> 
+    zero_field_track_params(
+      ActsGeometry* _tGeometry, 
+      TrkrClusterContainer* _cluster_map, 
+      const std::vector<TrkrDefs::cluskey>& clusters
+    );
+
+   double z_fit_to_pca(const double slope, const double intercept, 
+    const std::vector<Acts::Vector3>& glob_pts);
 };
 
 #endif

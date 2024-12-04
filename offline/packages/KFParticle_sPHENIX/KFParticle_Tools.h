@@ -24,6 +24,9 @@
 
 #include "KFParticle_MVA.h"
 
+#include <globalvertex/MbdVertex.h>
+#include <globalvertex/MbdVertexMap.h>
+
 #include <KFParticle.h>
 
 #include <limits>
@@ -72,7 +75,7 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks);
 
   /// Calculates the cosine of the angle betweent the flight direction and momentum
-  float eventDIRA(const KFParticle &particle, const KFParticle &vertex);
+  float eventDIRA(const KFParticle &particle, const KFParticle &vertex, bool do3D = true);
 
   float flightDistanceChi2(const KFParticle &particle, const KFParticle &vertex);
 
@@ -181,14 +184,17 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_require_bunch_crossing_match {true};
 
+  bool m_use_mbd_vertex {false};
+
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
-  SvtxVertexMap *m_dst_vertexmap {nullptr};
+  MbdVertexMap *m_dst_mbdvertexmap {nullptr};
+  MbdVertex *m_dst_mbdvertex {nullptr};
   SvtxTrackMap *m_dst_trackmap {nullptr};
-  SvtxVertex *m_dst_vertex {nullptr};
   SvtxTrack *m_dst_track {nullptr};
+  SvtxVertexMap *m_dst_vertexmap {nullptr};
+  SvtxVertex *m_dst_vertex {nullptr};
 
- private:
   void removeDuplicates(std::vector<double> &v);
   void removeDuplicates(std::vector<int> &v);
   void removeDuplicates(std::vector<std::vector<int>> &v);
