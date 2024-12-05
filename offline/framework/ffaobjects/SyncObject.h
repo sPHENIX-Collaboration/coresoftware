@@ -30,7 +30,7 @@ class SyncObject : public PHObject
 
   PHObject* CloneMe() const override;
   SyncObject& operator=(const SyncObject& source);
-  virtual int Different(const SyncObject* other) const;
+  virtual unsigned int Different(const SyncObject* other) const;
 
   /// set Event Counter
   virtual void EventCounter(const int /*ival*/) { return; }
