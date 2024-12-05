@@ -955,8 +955,9 @@ TrackFitUtils::zero_field_track_params(
   py -= y;
   pz -= z;
 
-  // scale momentum vector pT to 5. GeV/c
-  const double scale = sqrt(px*px+py*py)/5.;
+  // scale momentum vector pT to 0.5 GeV/c
+  const double pt_zerofield = 0.5;
+  const double scale = sqrt(px*px+py*py)/pt_zerofield;
   px /= scale;
   py /= scale;
   pz /= scale;
@@ -967,5 +968,5 @@ TrackFitUtils::zero_field_track_params(
     std::cout << "phi: " << phi << " eta: " << eta << " pT: 1" <<
     " x,y,z: " << x<<"<"<<y<<","<<z<<"  P: " << px<<","<<py<<","<<pz << std::endl;
   }
-  return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x,y,z), p);
+  return std::make_tuple(true, phi, eta, pt_zerofield, Acts::Vector3(x,y,z), p);
 }
