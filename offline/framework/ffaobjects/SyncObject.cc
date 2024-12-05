@@ -55,5 +55,9 @@ int SyncObject::Different(const SyncObject* other) const
   {
     iret |= 0x2;
   }
+  if (SegmentNumber() != other->SegmentNumber())
+  {
+    iret |= 0x4;
+  }
   return iret;
 }
