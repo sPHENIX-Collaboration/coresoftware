@@ -565,9 +565,10 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  {
 	    cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt()
 		 << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << siid << " with crossing " << _tracklet_si->get_crossing() << endl;
-	    cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi << " phi search " << _phi_search_win * mag << " tpc_eta " << tpc_eta
-		 << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " eta search " << _eta_search_win * mag << endl;
-	    std::cout << "      tpc x " << tpc_pos.x() << " si x " << si_pos.x() << " tpc y " << tpc_pos.y() << " si y " << si_pos.y() << " tpc_z " << tpc_pos.z() << " si z " << si_pos.z() << std::endl;
+	    cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi << " phi search " << _phi_search_win * mag 
+		 << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " eta search " << _eta_search_win * mag << endl;
+	    std::cout << "      tpc x " << tpc_pos.x() << " si x " << si_pos.x() << " tpc y " << tpc_pos.y() << " si y " << si_pos.y() 
+		      << " tpc_z " << tpc_pos.z() << " si z " << si_pos.z() << std::endl;
 	    std::cout << "      x search " << _x_search_win * mag << " y search " << _y_search_win * mag << " z search " << _z_search_win * mag << std::endl;
 	  }
 	
