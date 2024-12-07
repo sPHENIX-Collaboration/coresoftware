@@ -66,6 +66,12 @@ class CaloTowerBuilder : public SubsysReco
     m_bdosoftwarezerosuppression = usezerosuppression;
   }
 
+  void set_inputNodePrefix(const std::string &name)
+  {
+    m_inputNodePrefix = name;
+    return;
+  }
+
   void set_outputNodePrefix(const std::string &name)
   {
     m_outputNodePrefix = name;

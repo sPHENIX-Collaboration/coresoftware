@@ -153,7 +153,7 @@ bool PHNodeIOManager::write(PHCompositeNode* topNode)
   return false;
 }
 
-bool PHNodeIOManager::write(TObject** data, const std::string& path, int buffersize, int splitlevel)
+bool PHNodeIOManager::write(TObject** data, const std::string& path, int nodebuffersize, int nodesplitlevel)
 {
   if (file && tree)
   {
@@ -163,6 +163,16 @@ bool PHNodeIOManager::write(TObject** data, const std::string& path, int buffers
       // the buffersize and splitlevel are set on the first call
       // when the branch is created, the values come from the caller
       // which is the node which writes itself
+      if (splitlevel == std::numeric_limits<int>::min())
+      {
+        splitlevel = nodesplitlevel;
+      }
+      if (buffersize == std::numeric_limits<int>::min())
+      {
+        buffersize = nodebuffersize;
+      }
+      std::cout << "setting split level to " << splitlevel;
+      std::cout << "setting buffer size to " << buffersize << std::endl;
       tree->Branch(path.c_str(), (*data)->ClassName(),
                    data, buffersize, splitlevel);
     }
@@ -335,7 +345,7 @@ int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string& obje
   else
   {
     std::cout << PHWHERE << "Cannot find "
-	      << objectName << " in TBranch" << std::endl;
+              << objectName << " in TBranch" << std::endl;
   }
   return 0;
 }
