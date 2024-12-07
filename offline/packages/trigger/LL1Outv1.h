@@ -51,10 +51,11 @@ class LL1Outv1 : public LL1Out
 
   bool passesThreshold(int ith) override;
 
-  std::vector<TriggerDefs::TriggerSumKey> getTriggeredSums() override { return m_triggered_sums; }
-  std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives() override { return m_triggered_primitives; }
+  std::vector<std::pair<TriggerDefs::TriggerSumKey, unsigned short>> getTriggeredSums() override;
+  std::vector<TriggerDefs::TriggerSumKey> getTriggeredSumKeys(int ith = 0) override;
+  std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives() override { return m_triggered_primitives;}
 
-  void addTriggeredSum(TriggerDefs::TriggerSumKey sk) override;
+  void addTriggeredSum(TriggerDefs::TriggerSumKey sk, unsigned short bit) override;
   void addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk) override;
 
   void add_word(int key, std::vector<unsigned int>* trigger_words) override { m_trigger_words[key] = trigger_words; }
@@ -79,10 +80,11 @@ class LL1Outv1 : public LL1Out
   std::string m_ll1_type{"NONE"};
   std::string m_trigger_type{"NONE"};
   std::vector<unsigned int>* m_trigger_bits{nullptr};
-  std::vector<unsigned int> m_triggered_sums = {};
+  std::vector<std::pair<unsigned int, unsigned short>> m_triggered_sums = {};
+
   std::vector<unsigned int> m_triggered_primitives = {};
 
-  Map m_trigger_words;
+  Map m_trigger_words{};
 
  private:  // so the ClassDef does not show up with doc++
   ClassDefOverride(LL1Outv1, 1);

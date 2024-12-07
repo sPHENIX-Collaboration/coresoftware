@@ -16,11 +16,17 @@ class TriggerRunInfoReco : public SubsysReco
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
 
+  void UseEmulator(bool use) { m_useEmulator = use; }
+
+  
  private:
+  bool m_useEmulator{false};
+  
+  void SetTriggerEmulator(TriggerRunInfo *triggerRunInfo);
+
   int fetchTriggerPrescales(int runnumber, TriggerRunInfo *triggerRunInfo);
   int fetchTriggerScalers(int runnumber, TriggerRunInfo *triggerRunInfo);
 
-  std::string m_dbConnectionStr;
 };
 
 #endif /* TRIGGER_TRIGGERRUNINFORECO_H */

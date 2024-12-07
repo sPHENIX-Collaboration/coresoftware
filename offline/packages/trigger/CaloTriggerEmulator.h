@@ -12,15 +12,18 @@
 
 // Forward declarations
 class CDBHistos;
+class CDBTTree;
 class TriggerPrimitive;
 class TriggerPrimitiveContainer;
 class LL1Out;
-
+class Event;
 class TowerInfoContainer;
+class CaloPacketContainer;
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TFile;
 class TH1;
+class TH1I;
 class TNtuple;
 class TTree;
 class TProfile;
@@ -43,6 +46,8 @@ class CaloTriggerEmulator : public SubsysReco
 
   //! event processing method
   int process_event(PHCompositeNode *) override;
+  int process_sim();
+  int process_offline();
 
   //! end of run method
   int End(PHCompositeNode *) override;
@@ -66,7 +71,7 @@ class CaloTriggerEmulator : public SubsysReco
 
   int process_trigger();
 
-  unsigned int getBits(unsigned int sum);
+  unsigned int getBits(unsigned int sum, TriggerDefs::TriggerId tid);
 
   int Download_Calibrations();
 
@@ -95,18 +100,36 @@ class CaloTriggerEmulator : public SubsysReco
 
   void setNSamples(int nsamples) { m_nsamples = nsamples; }
   void setThreshold(int threshold) { m_threshold = threshold; }
-  void setThreshold(int t1, int t2, int t3, int t4)
+  void setJetThreshold(int t1, int t2, int t3, int t4)
   {
-    m_threshold_calo[0] = t1;
-    m_threshold_calo[1] = t2;
-    m_threshold_calo[2] = t3;
-    m_threshold_calo[3] = t4;
-    m_single_threshold = false;
+    m_threshold_jet[0] = t1;
+    m_threshold_jet[1] = t2;
+    m_threshold_jet[2] = t3;
+    m_threshold_jet[3] = t4;
+    return;
+  }
+  void setPhotonThreshold(int t1, int t2, int t3, int t4)
+  {
+    m_threshold_photon[0] = t1;
+    m_threshold_photon[1] = t2;
+    m_threshold_photon[2] = t3;
+    m_threshold_photon[3] = t4;
     return;
   }
 
+  void setPairThreshold(int t1, int t2, int t3, int t4)
+  {
+    m_threshold_pair[0] = t1;
+    m_threshold_pair[1] = t2;
+    m_threshold_pair[2] = t3;
+    m_threshold_pair[3] = t4;
+    return;
+  }
+
+
   bool CheckFiberMasks(TriggerDefs::TriggerPrimKey key);
   void LoadFiberMasks();
+  void SetIsData(bool isd) { m_isdata = isd; }
   bool CheckChannelMasks(TriggerDefs::TriggerSumKey key);
 
   void identify();
@@ -131,24 +154,37 @@ class CaloTriggerEmulator : public SubsysReco
   bool m_do_hcalin{false};
   bool m_do_hcalout{false};
   bool m_do_emcal{false};
-  bool m_do_mbd{false};
+
 
   bool m_default_lut_hcalin{false};
   bool m_default_lut_hcalout{false};
   bool m_default_lut_emcal{false};
+
   bool m_force_hcalin{false};
   bool m_force_hcalout{false};
   bool m_force_emcal{false};
 
   //! Waveform conatiner
+  Event *m_event{nullptr};
   TowerInfoContainer *m_waveforms_hcalin{nullptr};
   TowerInfoContainer *m_waveforms_hcalout{nullptr};
   TowerInfoContainer *m_waveforms_emcal{nullptr};
-  TowerInfoContainer *m_waveforms_mbd{nullptr};
+  CaloPacketContainer *m_hcal_packets{nullptr};
+  CaloPacketContainer *m_emcal_packets{nullptr};
 
+  
   //! LL1 Out
-  LL1Out *m_ll1out{nullptr};
-  TriggerPrimitiveContainer *m_primitives{nullptr};
+  LL1Out *m_ll1out_photon{nullptr};
+
+  LL1Out *m_ll1out_pair{nullptr};
+
+  LL1Out *m_ll1out_jet{nullptr};
+
+  TriggerPrimitiveContainer *m_primitives_photon{nullptr};
+
+  TriggerPrimitiveContainer *m_primitives_pair{nullptr};
+
+  TriggerPrimitiveContainer *m_primitives_jet{nullptr};
 
   TriggerPrimitiveContainer *m_primitives_hcalin{nullptr};
 
@@ -160,72 +196,65 @@ class CaloTriggerEmulator : public SubsysReco
 
   TriggerPrimitiveContainer *m_primitives_emcal_ll1{nullptr};
 
-  unsigned int m_l1_adc_table[1024]{};
-  unsigned int m_l1_adc_table_time[1024]{};
-  unsigned int m_l1_slewing_table[4096]{};
+  TriggerPrimitiveContainer *m_primitives_emcal_2x2_ll1{nullptr};
+
+  /* std::map<unsigned int, TH1I> h_mbd_charge_lut; */
+  /* std::map<unsigned int, TH1I> h_mbd_time_lut; */
+  /* std::map<unsigned int, TH1I> h_mbd_slewing_lut; */
+
   unsigned int m_l1_hcal_table[4096]{};
+  unsigned int m_l1_adc_table[1024]{};
+  unsigned int m_l1_8x8_table[1024]{};
+  unsigned int m_l1_slewing_table[4096]{};
 
-  std::map<unsigned int, TH1 *> h_emcal_lut;
-  std::map<unsigned int, TH1 *> h_hcalin_lut;
-  std::map<unsigned int, TH1 *> h_hcalout_lut;
+  std::map<unsigned int, TH1I*> h_emcal_lut{};
+  std::map<unsigned int, TH1I*> h_hcalin_lut{};
+  std::map<unsigned int, TH1I*> h_hcalout_lut{};
 
+  CDBTTree *cdbttree_adcmask{nullptr};
   CDBHistos *cdbttree_emcal{nullptr};
   CDBHistos *cdbttree_hcalin{nullptr};
   CDBHistos *cdbttree_hcalout{nullptr};
 
-  std::string m_fieldname_emcal;
-  std::string m_calibName_emcal;
-
-  std::string m_fieldname_hcalin;
-  std::string m_calibName_hcalin;
-
-  std::string m_fieldname_hcalout;
-  std::string m_calibName_hcalout;
-
-  //! Trigger primitives
-  unsigned int m_trig_charge[8]{};
-  unsigned int m_trig_nhit;
-  unsigned int m_trig_time[4]{};
-
-  //! Trigger primitives
-  unsigned int m2_trig_charge[4][8]{};
-  unsigned int m2_trig_nhit[4]{};
-  unsigned int m2_trig_time[4][4]{};
-
-  //! Trigger ouputs
-  std::vector<std::vector<unsigned int> *> m_word_mbd;
-  unsigned int m_out_tsum[2]{};
-  unsigned int m_out_tavg[2]{};
-  unsigned int m_out_trem[2]{};
-  unsigned int m_out_nhit[2]{};
-  unsigned int m_out_vtx_sub;
-  unsigned int m_out_vtx_add;
-
-  unsigned int m_nhit1, m_nhit2, m_timediff1, m_timediff2, m_timediff3;
-
-  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_emcal;
-  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_mbd;
-  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_hcalin;
-  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_hcalout;
+  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_emcal{};
+  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_hcalin{};
+  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_hcalout{};
 
   //! Verbosity.
-  int m_nevent{0};
-  int m_npassed{0};
+  int m_nevent;
+  int m_photon_npassed;
+  int m_jet_npassed;
+  int m_pair_npassed;
+
   int m_n_sums;
   int m_n_primitives;
   int m_trig_sub_delay;
   int m_trig_sample{-1};
 
-  bool m_single_threshold{true};
   unsigned int m_threshold{1};
-  unsigned int m_threshold_calo[4] = {0};
-  int m_nsamples{31};
+  unsigned int m_threshold_jet[4] = {0};
+  unsigned int m_threshold_pair[4] = {0};
+  unsigned int m_threshold_photon[4] = {0};
 
-  std::vector<unsigned int> m_masks_fiber;
-  std::vector<unsigned int> m_masks_channel;
-  std::map<TriggerDefs::DetectorId, int> m_prim_map;
-  std::map<TriggerDefs::TriggerId, int> m_prim_ll1_map;
-  std::map<TriggerDefs::TriggerId, std::vector<std::string>> m_det_map;
+  int m_isdata{1};
+  int m_useoffline{false};
+  int m_nsamples = 16;
+  int m_idx{8};
+
+  int m_packet_low_hcalout = 8001;
+  int m_packet_high_hcalout = 8008;
+  int m_packet_low_hcalin = 7001;
+  int m_packet_high_hcalin = 7008;
+  int m_packet_low_emcal = 6001;
+  int m_packet_high_emcal = 6128;
+
+  std::string m_fieldname{""};
+
+  std::vector<unsigned int> m_masks_fiber{};
+  std::vector<unsigned int> m_masks_channel{};
+  std::map<TriggerDefs::DetectorId, int> m_prim_map{};
+  std::map<TriggerDefs::TriggerId, int> m_prim_ll1_map{};
+  std::map<TriggerDefs::TriggerId, std::vector<std::string>> m_det_map{};
 };
 
 #endif
