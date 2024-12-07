@@ -171,8 +171,6 @@ bool PHNodeIOManager::write(TObject** data, const std::string& path, int nodebuf
       {
         buffersize = nodebuffersize;
       }
-      std::cout << "setting split level to " << splitlevel;
-      std::cout << "setting buffer size to " << buffersize << std::endl;
       tree->Branch(path.c_str(), (*data)->ClassName(),
                    data, buffersize, splitlevel);
     }
