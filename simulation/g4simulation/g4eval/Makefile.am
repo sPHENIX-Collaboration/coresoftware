@@ -28,6 +28,7 @@ libg4eval_la_LIBADD = \
   -ljetbase \
   -lglobalvertex_io \
   -lg4tracking_io \
+  -lintt \
   -lintt_io \
   -lmicromegas_io \
   -lmvtx_io \

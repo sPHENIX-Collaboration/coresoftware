@@ -30,6 +30,7 @@
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <intt/CylinderGeomIntt.h>
+#include <intt/CylinderGeomInttHelper.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>                         // for PHIODataNode
@@ -822,7 +823,7 @@ void PHTruthClustering::G4ClusterSize(TrkrDefs::cluskey& ckey,unsigned int layer
       layergeom->find_indices_from_world_location(segment_z_bin, segment_phi_bin, world_inner);
       auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
       auto surf = _tgeometry->maps().getSiliconSurface(hitsetkey);
-      TVector3 local_inner_vec =  layergeom->get_local_from_world_coords(surf,_tgeometry, world_inner_vec);
+      TVector3 local_inner_vec =  CylinderGeomInttHelper::get_local_from_world_coords(surf, _tgeometry, world_inner_vec);
       double yin = local_inner_vec[1];
       double zin = local_inner_vec[2];
       int strip_y_index, strip_z_index;
@@ -835,7 +836,7 @@ void PHTruthClustering::G4ClusterSize(TrkrDefs::cluskey& ckey,unsigned int layer
       layergeom->find_indices_from_world_location(segment_z_bin, segment_phi_bin, world_outer);
       auto outerhitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
       auto outersurf = _tgeometry->maps().getSiliconSurface(outerhitsetkey);
-      TVector3 local_outer_vec =  layergeom->get_local_from_world_coords(outersurf,_tgeometry, world_outer_vec);
+      TVector3 local_outer_vec =  CylinderGeomInttHelper::get_local_from_world_coords(outersurf,_tgeometry, world_outer_vec);
       double yout = local_outer_vec[1];
       double zout = local_outer_vec[2];
       int strip_y_index_out, strip_z_index_out;

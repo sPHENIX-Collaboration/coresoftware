@@ -37,6 +37,7 @@ lib_LTLIBRARIES = \
 
 pkginclude_HEADERS = \
   CylinderGeomIntt.h \
+  CylinderGeomInttHelper.h \
   InttArborist.h \
   InttBadChannelMap.h \
   InttBadChannelMapv1.h \
@@ -95,6 +96,7 @@ nobase_dist_pcm_DATA = \
 
 # sources for intt library
 libintt_la_SOURCES = \
+  CylinderGeomInttHelper.cc \
   InttArborist.cc \
   InttBCOMap.cc \
   InttBadChannelMap.cc \
@@ -118,6 +120,7 @@ libintt_la_SOURCES = \
 
 libintt_la_LIBADD = \
   libintt_io.la \
+  -lActsCore \
   -lcdbobjects \
   -lCLHEP \
   -lffarawobjects \
@@ -142,12 +145,10 @@ libintt_io_la_SOURCES = \
   InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
-  -lActsCore \
-  -lCLHEP \
   -lcdbobjects \
+  -lffamodules \
   -lg4detectors_io \
   -lphool \
-  -lffamodules \
   -lglobalvertex_io
 
 endif

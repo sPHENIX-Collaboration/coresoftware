@@ -17,6 +17,7 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <intt/CylinderGeomIntt.h>
+#include <intt/CylinderGeomInttHelper.h>
 
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
@@ -895,7 +896,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         TVector2 local;
         local.SetX(local_hit_loc[1]);
         local.SetY(local_hit_loc[2]);
-        auto glob = geom->get_world_from_local_coords(surf, geometry, local);
+        auto glob = CylinderGeomInttHelper::get_world_from_local_coords(surf, geometry, local);
 
         m_hitgx = glob.X();
         m_hitgy = glob.Y();
