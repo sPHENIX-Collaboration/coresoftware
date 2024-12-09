@@ -42,6 +42,7 @@ libTrackingDiagnostics_la_LIBADD = \
   -ltrackbase_historic_io \
   -ltpc_io \
   -lmvtx_io \
+  -lintt \
   -lintt_io \
   -lmicromegas_io \
   -lSubsysReco \
