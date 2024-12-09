@@ -44,6 +44,11 @@ public:
 		m_event_index = 100*seq;
 	}
 
+	void set_fitFileName(const std::string &fitFileName)
+	{
+		m_fitFileName = fitFileName;
+	}
+
 	void set_grid_dimensions(int phibins, int rbins);
 
 	int InitRun(PHCompositeNode *topNode) override;
@@ -58,7 +63,7 @@ private:
 	int GetNodes(PHCompositeNode *topNode);
 
 	int fitLaminations();
-	int InterpolatePhiDistortions(TH2D *simPhiDistortion[2]);
+	int InterpolatePhiDistortions(TH2F *simPhiDistortion[2]);
 	void fill_guarding_bins(TpcDistortionCorrectionContainer* dcc);
 
 	TpcDistortionCorrection m_distortionCorrection;
@@ -72,19 +77,25 @@ private:
 	TpcDistortionCorrectionContainer *m_dcc_out{nullptr};
 
 	std::string m_outputfile{"CMDistortionCorrections.root"};
+	std::string m_fitFileName{"laminationFits.pdf"};
 
 	TH2 *m_hLamination[18][2];
 	TF1 *m_fLamination[18][2];
 	double m_laminationCenter[18][2];
 	bool m_laminationGoodFit[18][2];
+	double m_distanceToFit[18][2];
+	int m_nBinsFit[18][2];
 
-	TH2D *phiDistortionLamination[2];
-	TH2D *scaleFactorMap[2];
+	TH2F *phiDistortionLamination[2];
+	TH2F *scaleFactorMap[2];
 
 	bool m_useHeader{true};
 
 	int m_event_index{0};
 	int m_event_sequence{0};
+
+	double m_nClusters{0};
+	int m_nEvents{0};
 
 	int m_phibins{24};
 	static constexpr float m_phiMin{0};
