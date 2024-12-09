@@ -79,15 +79,15 @@ private:
 	std::string m_outputfile{"CMDistortionCorrections.root"};
 	std::string m_fitFileName{"laminationFits.pdf"};
 
-	TH2 *m_hLamination[18][2];
-	TF1 *m_fLamination[18][2];
-	double m_laminationCenter[18][2];
-	bool m_laminationGoodFit[18][2];
-	double m_distanceToFit[18][2];
-	int m_nBinsFit[18][2];
+	TH2 *m_hLamination[18][2]{nullptr};
+	TF1 *m_fLamination[18][2]{nullptr};
+	double m_laminationCenter[18][2]{0.0};
+	bool m_laminationGoodFit[18][2]{false};
+	double m_distanceToFit[18][2]{0.0};
+	int m_nBinsFit[18][2]{0};
 
-	TH2F *phiDistortionLamination[2];
-	TH2F *scaleFactorMap[2];
+	TH2F *phiDistortionLamination[2]{nullptr};
+	TH2F *scaleFactorMap[2]{nullptr};
 
 	bool m_useHeader{true};
 
