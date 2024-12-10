@@ -2,8 +2,8 @@
 #define JETBACKGROUND_RETOWERCEMC_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
-#include <vector>
 
 class PHCompositeNode;
 
@@ -11,7 +11,7 @@ class RetowerCEMC : public SubsysReco
 {
  public:
   RetowerCEMC(const std::string &name = "RetowerCEMC");
-  ~RetowerCEMC() override {}
+  ~RetowerCEMC() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -19,7 +19,11 @@ class RetowerCEMC : public SubsysReco
   void SetEnergyDistribution(int val) { _weighted_energy_distribution = val; }
   void set_frac_cut(double frac_cut) { _frac_cut = frac_cut; }
   void set_towerinfo(bool use_towerinfo) { m_use_towerinfo = use_towerinfo; }
-  void set_towerNodePrefix(const std::string &prefix) { m_towerNodePrefix = prefix; return; }
+  void set_towerNodePrefix(const std::string &prefix)
+  {
+    m_towerNodePrefix = prefix;
+    return;
+  }
 
  private:
   int CreateNode(PHCompositeNode *topNode);

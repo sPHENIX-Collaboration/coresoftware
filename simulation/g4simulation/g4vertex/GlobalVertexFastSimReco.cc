@@ -40,10 +40,10 @@ GlobalVertexFastSimReco::~GlobalVertexFastSimReco()
 
 int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 {
-  if (isnan(_x_smear) ||
-      isnan(_y_smear) ||
-      isnan(_z_smear) ||
-      isnan(_t_smear))
+  if (std::isnan(_x_smear) ||
+      std::isnan(_y_smear) ||
+      std::isnan(_z_smear) ||
+      std::isnan(_t_smear))
   {
     std::cout << PHWHERE << "::ERROR - smearing must be defined for (x,y,z,t) via set_?_smearing(float)" << std::endl;
     exit(-1);

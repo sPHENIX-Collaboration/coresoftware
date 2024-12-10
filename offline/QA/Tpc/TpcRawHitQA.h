@@ -7,16 +7,15 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <tpc/TpcMap.h>
-
-#include <ffarawobjects/TpcRawHitContainer.h>
-#include <ffarawobjects/TpcRawHit.h>
-
 #include <TH1.h>
 #include <TH2.h>
 #include <TProfile2D.h>
 
 #include <string>
 #include <vector>
+
+class TpcRawHitContainer;
+class TpcRawHit;
 
 class TpcRawHitQA : public SubsysReco
 {
@@ -42,7 +41,7 @@ class TpcRawHitQA : public SubsysReco
 
   TpcMap M;
 
-  TpcRawHitContainer* rawhitcont{nullptr};
+  std::vector<TpcRawHitContainer*> rawhitcont_vec;
 
   TH1* h_nhits_sectors[24]{nullptr};
   TH2* h_nhits_sectors_fees[24]{nullptr};

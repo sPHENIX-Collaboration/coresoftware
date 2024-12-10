@@ -6,7 +6,7 @@ void TriggerRunInfov1::setTrigger(int index, const std::string& name, int bit, i
   {
     trigger_names[index] = name;
     trigger_bits[index] = bit;
-    trigger_prescales[index] = prescale;
+    trigger_initial_prescales[index] = prescale;
   }
   else
     {
@@ -27,7 +27,26 @@ void TriggerRunInfov1::setTriggerScalers(int index, int scalertype, uint64_t sca
 
 }
 
-int TriggerRunInfov1::getPrescaleByName(const std::string& name) const
+void TriggerRunInfov1::setTriggerPrescale(int index, double prescale)
+{
+  if (!(index >= 0 && index < 64))
+  {
+    std::cerr << "Index out of bounds: " << index << std::endl;
+    return;
+  }
+  
+  if (prescale > 0)
+    {
+      trigger_prescales[index] = prescale;
+      return;
+    }
+
+  trigger_prescales[index] = -1;
+
+  return; 
+}
+
+double TriggerRunInfov1::getPrescaleByName(const std::string& name) const
 {
   for (int i = 0; i < 64; ++i)
   {
@@ -40,9 +59,28 @@ int TriggerRunInfov1::getPrescaleByName(const std::string& name) const
   return 0;
 }
 
-int TriggerRunInfov1::getPrescaleByBit(int triggerbit) const {
+double TriggerRunInfov1::getPrescaleByBit(int triggerbit) const {
   if (triggerbit >= 0 && triggerbit < 64) {
     return trigger_prescales[triggerbit];
+  }
+  return -1;
+}
+int TriggerRunInfov1::getInitialPrescaleByName(const std::string& name) const
+{
+  for (int i = 0; i < 64; ++i)
+  {
+    if (trigger_names[i] == name)
+    {
+      return trigger_initial_prescales[i];
+    }
+  }
+  std::cerr << "Trigger name not found: " << name << std::endl;
+  return 0;
+}
+
+int TriggerRunInfov1::getInitialPrescaleByBit(int triggerbit) const {
+  if (triggerbit >= 0 && triggerbit < 64) {
+    return trigger_initial_prescales[triggerbit];
   }
   return -1;
 }

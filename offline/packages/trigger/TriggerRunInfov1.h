@@ -21,9 +21,15 @@ class TriggerRunInfov1 : public TriggerRunInfo
 
   void setTriggerScalers(int index, int scalertype, uint64_t scalers) override;
 
-  int getPrescaleByName(const std::string& name) const override;
+  void setTriggerPrescale(int index, double prescale) override;
 
-  int getPrescaleByBit(int triggerbit) const override ;
+  double getPrescaleByName(const std::string& name) const override;
+
+  double getPrescaleByBit(int triggerbit) const override ;
+
+  int getInitialPrescaleByName(const std::string& name) const override;
+
+  int getInitialPrescaleByBit(int triggerbit) const override ;
 
   uint64_t getScalersByName(const std::string& name) const override;
 
@@ -46,7 +52,8 @@ class TriggerRunInfov1 : public TriggerRunInfo
  private:
   std::array<std::string, 64> trigger_names {};
   std::array<int, 64> trigger_bits {};
-  std::array<int, 64> trigger_prescales {};
+  std::array<int, 64> trigger_initial_prescales {};
+  std::array<double, 64> trigger_prescales {};
   std::array<std::array<uint64_t, 3>, 64> trigger_scalers {};
 
  private:  // so the ClassDef does not show up with doc++

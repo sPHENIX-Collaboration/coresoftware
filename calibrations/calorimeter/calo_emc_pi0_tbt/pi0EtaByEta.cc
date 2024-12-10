@@ -509,7 +509,7 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
     float mass_val_out = fitFunOut[i]->GetParameter(1);
     float mass_err_out = fitFunOut[i]->GetParError(1);
     h_peak_eta->SetBinContent(i + 1, mass_val_out);
-    if (isnan(h_M_eta[i]->GetEntries()))
+    if (std::isnan(h_M_eta[i]->GetEntries()))
     {
       h_peak_eta->SetBinError(i + 1, 0);
       continue;
@@ -641,7 +641,7 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
       float mass_err_out = fitFunOut[i][j]->GetParError(1);
       h_peak_tbt->SetBinContent(i + 1, j + 1, mass_val_out);
 
-      if (isnan(h_M_tbt[i][j]->GetEntries()))
+      if (std::isnan(h_M_tbt[i][j]->GetEntries()))
       {
         h_peak_tbt->SetBinContent(i + 1, j + 1, 0);
         h_peak_tbt->SetBinError(i + 1, j + 1, 0);

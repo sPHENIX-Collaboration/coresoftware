@@ -63,8 +63,7 @@ class TpcTimeFrameBuilder
   static const uint16_t GL1_BCO_MATCH_WINDOW = 256;  // BCOs
 
   uint16_t reverseBits(const uint16_t x) const;
-  uint16_t crc16(const uint32_t fee, const uint32_t index, const int l) const;
-  uint16_t check_data_parity(const unsigned int fee, const unsigned int index, const int l) const;
+  std::pair<uint16_t, uint16_t> crc16_parity(const uint32_t fee, const uint16_t l) const;
 
   //! DMA word structure
   struct dma_word
@@ -94,7 +93,6 @@ class TpcTimeFrameBuilder
   {
     uint16_t fee_id = 0;
     uint16_t adc_length = 0;
-    uint16_t data_parity = 0;
     uint16_t sampa_address = 0;
     uint16_t sampa_channel = 0;
     uint16_t channel = 0;
@@ -105,6 +103,9 @@ class TpcTimeFrameBuilder
 
     uint16_t data_crc = 0;
     uint16_t calc_crc = 0;
+    
+    uint16_t data_parity = 0;
+    uint16_t calc_parity = 0;
 
     std::vector<std::pair<uint16_t, std::vector<uint16_t>>> waveforms;
   };
@@ -240,7 +241,7 @@ class TpcTimeFrameBuilder
 
     // get the difference between two BCO with rollover corrections
     inline static constexpr uint32_t get_fee_bco_diff(
-        const uint32_t &first, const uint32_t &second) // NOLINT(misc-unused-parameters)
+        const uint32_t &first, const uint32_t &second)  // NOLINT(misc-unused-parameters)
     {
       const uint32_t diff_raw = get_bco_diff(first, second);
 
@@ -296,7 +297,7 @@ class TpcTimeFrameBuilder
     static constexpr unsigned int m_max_matching_data_size = 10;
 
     //! max time in GTM BCO for FEE data to sync over to datastream
-    static constexpr unsigned int m_max_fee_sync_time = 1024;
+    static constexpr unsigned int m_max_fee_sync_time = 1024 * 8;
 
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
@@ -329,6 +330,7 @@ class TpcTimeFrameBuilder
   //! This is used to organize hits into time frames based on their BCO values
   std::map<uint64_t, std::vector<TpcRawHit *>> m_timeFrameMap;
   static const size_t kMaxRawHitLimit = 10000;  // 10k hits per event > 256ch/fee * 26fee
+  std::queue<uint64_t> m_UsedTimeFrameSet;
 
   //! fast skip mode when searching for particular GL1 BCO over long segment of files
   bool m_fastBCOSkip = false;
@@ -355,7 +357,6 @@ class TpcTimeFrameBuilder
   TH1 *h_GTMClockDiff_Dropped = nullptr;
   TH1 *h_TimeFrame_Matched_Size = nullptr;
 
-  
   TH2 *h_ProcessPacket_Time = nullptr;
 };
 
