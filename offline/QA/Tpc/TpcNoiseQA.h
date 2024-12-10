@@ -29,7 +29,7 @@ class TpcNoiseQA : public SubsysReco  // Inherit public parts of SubsysReco
   // list of public methods
  public:
   // Function that sets file name and allocated memory to adcSamples
-  explicit TpcNoiseQA(const std::string &name = "TpcNoiseQA.root");
+  explicit TpcNoiseQA(const std::string &name = "TpcNoiseQA");
 
   ~TpcNoiseQA() override = default;
 
@@ -91,6 +91,7 @@ TpcMap M;
 
   std::string m_fname; // Name of file given to program
 
+  unsigned short Samples[360]{};
   std::vector<unsigned short> m_adcSamples;  // ADC values in waveform
 };
 

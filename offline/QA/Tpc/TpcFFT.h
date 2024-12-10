@@ -74,6 +74,8 @@ class TpcFFT : public SubsysReco  // Inherit public parts of SubsysReco
   unsigned short Samples[360]{};
 
   std::vector<unsigned short> m_adcSamples;  // ADC values in waveform
+
+  void createHistos();
 };
 
 #endif
