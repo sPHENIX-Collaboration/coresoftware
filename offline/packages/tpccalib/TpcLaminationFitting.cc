@@ -80,7 +80,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
 //______________________________________
 int TpcLaminationFitting::GetNodes(PHCompositeNode* topNode)
 {
-	m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
+	m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LAMINATION_CLUSTER");
 	if (!m_correctedCMcluster_map)
 	{
 		std::cout << PHWHERE << "CORRECTED_CM_CLISTER Node missing, abort." << std::endl;
@@ -215,7 +215,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode* topNode)
 		LaserCluster* cmclus = cmclus_orig;
 		//const unsigned int adc = cmclus->getAdc();
 		bool side = (bool) TpcDefs::getSide(cmkey);
-		if(cmclus->getNLayers() <= 1)
+		if(cmclus->getNLayers() <= m_nLayerCut)
 		{
 			continue;
 		}
@@ -295,7 +295,7 @@ int TpcLaminationFitting::fitLaminations()
 
 
 
-			m_fLamination[l][s]->SetParameters(-0.022*seedScale + m_laminationCenter[l][s],4.595*seedScale,0.138);
+			m_fLamination[l][s]->SetParameters(-0.022 + m_laminationCenter[l][s],4.595*seedScale,0.138);
 
 			TF1 *fitSeed = (TF1*)m_fLamination[l][s]->Clone();
 			fitSeed->SetName(Form("fitSeed%d_%s",l,(s == 1 ? "North" : "South")));

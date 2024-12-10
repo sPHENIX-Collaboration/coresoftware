@@ -66,6 +66,8 @@ class LaserClusterizer : public SubsysReco
   void set_min_adc_sum(float val) { min_adc_sum = val; }
   void set_max_time_samples(int val) { m_time_samples_max = val; }
 
+  void set_layer_search_window(int val) { m_layer_search_window = val; }
+
  private:
   int m_event = -1;
   int m_time_samples_max=360;
@@ -106,6 +108,9 @@ class LaserClusterizer : public SubsysReco
   double time_clus = 0;
   double time_erase = 0;
   double time_all = 0;
+
+  std::string m_laserClusterNodeName{"LASER_CLUSTER"};
+  int m_layer_search_window = 1;
 
   LaserClusterv1 *m_currentCluster = nullptr;
   LaserClusterContainerv1 *m_eventClusters = nullptr;

@@ -78,7 +78,7 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   }
 
   // Create the Cluster node if required
-  auto laserclusters = findNode::getClass<LaserClusterContainerv1>(dstNode, "LASER_CLUSTER");
+  auto laserclusters = findNode::getClass<LaserClusterContainerv1>(dstNode, m_laserClusterNodeName);
   if (!laserclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -92,7 +92,7 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
 
     laserclusters = new LaserClusterContainerv1;
     PHIODataNode<PHObject> *LaserClusterContainerNode =
-        new PHIODataNode<PHObject>(laserclusters, "LASER_CLUSTER", "PHObject");
+        new PHIODataNode<PHObject>(laserclusters, m_laserClusterNodeName, "PHObject");
     DetNode->addNode(LaserClusterContainerNode);
   }
 
@@ -416,13 +416,13 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     int iphi = coords[1];
     int it = coords[2];
 
-    int layerMax = layer + 1;
-    if (layer == 22 || layer == 38 || layer == 54)
+    int layerMax = layer + m_layer_search_window;
+    if( (layer <= 22 && layerMax > 22) || (layer > 22 && layer <= 38 && layerMax > 38) || (layer > 38 && layer <= 54 && layerMax > 54) )
     {
       layerMax = layer;
     }
-    int layerMin = layer - 1;
-    if (layer == 7 || layer == 23 || layer == 39)
+    int layerMin = layer - m_layer_search_window;
+    if( (layer >= 7 && layer <= 22 && layerMin < 7) || (layer >= 23 && layer <= 38 && layerMin < 23) || (layer >= 38 && layer <= 54 && layerMin < 38) )
     {
       layerMin = layer;
     }

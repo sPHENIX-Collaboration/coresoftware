@@ -49,6 +49,8 @@ public:
 		m_fitFileName = fitFileName;
 	}
 
+	void set_nLayerCut(int cut) { m_nLayerCut = cut; }
+
 	void set_grid_dimensions(int phibins, int rbins);
 
 	int InitRun(PHCompositeNode *topNode) override;
@@ -90,6 +92,8 @@ private:
 	TH2F *scaleFactorMap[2]{nullptr};
 
 	bool m_useHeader{true};
+
+	int m_nLayerCut{1};
 
 	int m_event_index{0};
 	int m_event_sequence{0};
