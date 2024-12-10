@@ -202,6 +202,14 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     m_UsedOutFileName = OutFileName() + std::string("?reproducible=") + std::string(p.filename());
   }
   dstOut = new PHNodeIOManager(UsedOutFileName(), access_type, PHRunTree);
+  if (SplitLevel() != std::numeric_limits<int>::min())
+  {
+    dstOut->SplitLevel(SplitLevel());
+  }
+  if (BufferSize() != std::numeric_limits<int>::min())
+  {
+    dstOut->BufferSize(BufferSize());
+  }
   Fun4AllServer *se = Fun4AllServer::instance();
   PHNodeIterator nodeiter(thisNode);
   if (saverunnodes.empty())
@@ -276,13 +284,21 @@ int Fun4AllDstOutputManager::outfile_open_first_write()
       fullpath = p.parent_path();
     }
     std::string runseg = (boost::format("-%08d-%05d") % runnumber % m_CurrentSegment).str();
-//    std::string runseg = (boost::format(FileRule()) % runnumber % m_CurrentSegment).str();
+    //    std::string runseg = (boost::format(FileRule()) % runnumber % m_CurrentSegment).str();
     std::string newfile = fullpath + std::string("/") + m_FileNameStem + runseg + std::string(p.extension());
     OutFileName(newfile);
     m_CurrentSegment++;
   }
   m_UsedOutFileName = OutFileName() + std::string("?reproducible=") + std::string(p.filename());
   dstOut = new PHNodeIOManager(UsedOutFileName(), PHWrite);
+  if (SplitLevel() != std::numeric_limits<int>::min())
+  {
+    dstOut->SplitLevel(SplitLevel());
+  }
+  if (BufferSize() != std::numeric_limits<int>::min())
+  {
+    dstOut->BufferSize(BufferSize());
+  }
   if (!dstOut->isFunctional())
   {
     delete dstOut;

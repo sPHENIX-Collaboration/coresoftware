@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 #-----------------------------------------------------------------------------
 #  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/pg/PgBankomat.pl,v 1.9 2008/10/17 15:22:33 irina Exp $
 #

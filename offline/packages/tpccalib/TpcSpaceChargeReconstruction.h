@@ -8,15 +8,11 @@
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Logger.hpp>
-
-#include <TString.h>
 
 #include <memory>
 #include <vector>
