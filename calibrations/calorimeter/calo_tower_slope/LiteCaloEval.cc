@@ -765,7 +765,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         eta_hist[i]->Smooth(nsmooth);
       }
 
-      eta_hist[i]->Fit("myexpo", "QN", "", fitmin, fitmax);
+      eta_hist[i]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
       f2f = (TF1 *) eta_hist[i]->GetFunction("myexpo");
     }
@@ -777,7 +777,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         hcalout_eta[i]->Smooth(nsmooth);
       }
 
-      hcalout_eta[i]->Fit("myexpo", "QN", "", fitmin, fitmax);
+      hcalout_eta[i]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
       f2f = (TF1 *) hcalout_eta[i]->GetFunction("myexpo");
     }
@@ -789,7 +789,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         hcalin_eta[i]->Smooth(nsmooth);
       }
 
-      hcalin_eta[i]->Fit("myexpo", "QN", "", fitmin, fitmax);
+      hcalin_eta[i]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
       f2f = (TF1 *) hcalin_eta[i]->GetFunction("myexpo");
     }
