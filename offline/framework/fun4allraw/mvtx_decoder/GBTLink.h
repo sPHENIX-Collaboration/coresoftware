@@ -9,6 +9,7 @@
 #define _RAW_READER_ERROR_CHECKS_ // comment this to disable error checking
 
 #include "mvtx_decoder/mvtx_utils.h"
+#include "mvtx_decoder/RDH.h"
 #include "mvtx_decoder/PayLoadCont.h"
 #include "mvtx_decoder/PayLoadSG.h"
 #include "mvtx_decoder/DecodingStat.h"
@@ -72,8 +73,7 @@ struct GBTLink
 
   GBTLinkDecodingStat statistics; // link decoding statistics
 
-  bool hbf_error = false;
-
+  uint8_t  hbf_error = 0;
   uint32_t hbf_length = 0;
   uint32_t prev_pck_cnt = 0;
   uint32_t hbf_count = 0;
@@ -252,32 +252,32 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
     }
 
     // here we always start with the RDH
-    RdhExt_t rdh = {};
     uint8_t* rdh_start = data.getPtr() + dataOffset;
-    rdh.decode(rdh_start);
-    if (! rdh.checkRDH(true) )
+    const auto* rdhP = reinterpret_cast<const mvtx::RDH*>(rdh_start);
+    if (! mvtx::RDHUtils::checkRDH(mvtx::RDHAny::voidify(*rdhP), true, true))
     {
+      // In case of corrupt RDH, skip felix word and continue to next
       dataOffset = currRawPiece->size;
       ++hbf_count;
       continue;
     }
 
-    size_t pagesize = (rdh.pageSize + 1) * FLXWordLength;
+    size_t pagesize = ((*rdhP).pageSize + 1) * FLXWordLength;
     const size_t nFlxWords = (pagesize - (2 * FLXWordLength)) / FLXWordLength;
     //Fill statistics
-    if ( !rdh.packetCounter )
+    if (! (*rdhP).packetCounter)
     {
-      if ( dataOffset )
+      if (dataOffset)
       {
         log_error << "Wrong dataOffset value " << dataOffset << " at the start of a HBF" << std::endl;
         assert(false);
       }
-      detectorField = rdh.detectorField;
+      detectorField = (*rdhP).detectorField;
       statistics.clear();
       //TODO: initialize/clear alpide data buffer
-      for ( uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg )
+      for (uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg)
       {
-        if  ( (rdh.trgType >> trg) & 1 )
+        if (((*rdhP).trgType >> trg) & 1)
         {
           statistics.trgBitCounts[trg]++;
         }
@@ -285,7 +285,7 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
       hbfEntry = rawData.currentPieceId(); // in case of problems with RDH, dump full TF
       ++hbf_count;
     }
-    else if ( !rdh.stopBit )
+    else if (! (*rdhP).stopBit)
     {
       if (prev_evt_complete)
       {
@@ -298,7 +298,7 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
     int prev_gbt_cnt = 3;
     GBTWord gbtWords[3];
     uint16_t w16 = 0;
-    for ( size_t iflx = 0; iflx < nFlxWords; ++iflx )
+    for (size_t iflx = 0; iflx < nFlxWords; ++iflx)
     {
       readFlxWord(gbtWords, w16);
       int16_t n_gbt_cnt = (w16 & 0x3FF) - prev_gbt_cnt;
@@ -381,7 +381,7 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
         }
         else if ( gbtWord.isDDW() ) // DIAGNOSTIC DATA WORD (DDW)
         {
-          if (! rdh.stopBit)
+          if (! (*rdhP).stopBit)
           {
             log_error << "" << std::endl;
             assert(false);
