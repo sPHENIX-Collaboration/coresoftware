@@ -23,6 +23,7 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/CylinderGeom_MvtxHelper.h>
 
 #include <intt/CylinderGeomIntt.h>
 #include <intt/CylinderGeomInttHelper.h>
@@ -877,14 +878,14 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, st
     layergeom->get_sensor_indices_from_world_coords(world_inner_vec, stave, chip);
     TrkrDefs::hitsetkey ihitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
     auto isurf = _tgeometry->maps().getSiliconSurface(ihitsetkey);
-    TVector3 local_inner = layergeom->get_local_from_world_coords(isurf, _tgeometry, world_inner);
+    TVector3 local_inner = CylinderGeom_MvtxHelper::get_local_from_world_coords(isurf, _tgeometry, world_inner);
 
     TVector3 world_outer = {outer_x, outer_y, outer_z};
     std::vector<double> world_outer_vec = {world_outer[0], world_outer[1], world_outer[2]};
     layergeom->get_sensor_indices_from_world_coords(world_outer_vec, stave_outer, chip_outer);
     TrkrDefs::hitsetkey ohitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
     auto osurf = _tgeometry->maps().getSiliconSurface(ohitsetkey);
-    TVector3 local_outer = layergeom->get_local_from_world_coords(osurf, _tgeometry, world_outer);
+    TVector3 local_outer = CylinderGeom_MvtxHelper::get_local_from_world_coords(osurf, _tgeometry, world_outer);
 
     double diff = max_diffusion_radius * 0.6;  // factor of 0.6 gives decent agreement with low occupancy reco clusters
     if (local_outer[0] < local_inner[0])

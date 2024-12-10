@@ -23,6 +23,7 @@
 #include <micromegas/MicromegasDefs.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/CylinderGeom_MvtxHelper.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
@@ -871,7 +872,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         local.SetX(local_coords.X());
         local.SetY(local_coords.Z());
         auto surf = geometry->maps().getSiliconSurface(m_hitsetkey);
-        auto glob = layergeom->get_world_from_local_coords(surf, geometry, local);
+        auto glob = CylinderGeom_MvtxHelper::get_world_from_local_coords(surf, geometry, local);
         m_hitgx = glob.X();
         m_hitgy = glob.Y();
         m_hitgz = glob.Z();

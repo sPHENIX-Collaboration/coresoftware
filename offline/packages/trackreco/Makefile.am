@@ -187,6 +187,7 @@ libtrack_reco_la_LIBADD = \
   -lintt \
   -lintt_io \
   -lmicromegas_io \
+  -lmvtx \
   -lmvtx_io \
   -lphparameter_io \
   -lPHGenFit \
