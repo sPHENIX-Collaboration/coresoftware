@@ -49,7 +49,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
   void set_inttFeeOffset(int offset) { m_inttFeeOffset = offset; }
   void set_outputBcoDiff(bool flag) {m_outputBcoDiff = flag; }
   void set_triggeredMode(bool flag) {m_triggeredMode = flag; }
-
+  void set_bcoFilter(bool flag) {m_bcoFilter = flag; }
  private:
   InttEventInfo* intt_event_header = nullptr;
   std::string m_InttRawNodeName = "INTTRAWHIT";
@@ -57,7 +57,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
   Set_t m_HotChannelSet;
   bool m_runStandAlone = false;
   bool m_writeInttEventHeader = false;
-
+  bool m_bcoFilter = false;
   std::pair<std::string, CalibRef> m_calibinfoDAC;
   std::pair<std::string, CalibRef> m_calibinfoBCO;
 

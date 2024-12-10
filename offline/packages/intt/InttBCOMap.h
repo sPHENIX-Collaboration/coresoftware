@@ -18,7 +18,7 @@ class InttBCOMap
   virtual int LoadFromFile(std::string const &filename);
 
   virtual bool IsBad(int const &felix_server,
-                     int const &fexlix_channel,
+                     int const &felix_channel,
                      uint64_t const &bco_full,
                      const int &bco);
 
@@ -29,6 +29,7 @@ class InttBCOMap
 
  protected:
   int LoadFromCDBTTree(CDBTTree &cdbttree);
+  int GetFeeOffSet();
 
  private:
   typedef std::array<std::array<int, 14>, 8> BCOArray;

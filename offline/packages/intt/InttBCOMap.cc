@@ -6,6 +6,8 @@
 
 #include <filesystem>
 #include <iostream>
+#include <vector>
+#include <algorithm>
 
 InttBCOMap::InttBCOMap()
 {
@@ -64,7 +66,6 @@ int InttBCOMap::LoadFromFile(std::string const &filename)
 
 int InttBCOMap::LoadFromCDBTTree(CDBTTree &cdbttree)
 {
-  ///////////////
   std::cout << "LoadFromCDBTTree::LoadFromCDBTTree" << std::endl;
 
   uint64_t N = cdbttree.GetSingleIntValue("size");
@@ -82,8 +83,52 @@ int InttBCOMap::LoadFromCDBTTree(CDBTTree &cdbttree)
       std::cout << "bco_diff " << bco_diff << std::endl;
     }
   }
-  return 0;
+
+  return GetFeeOffSet();
 }
+
+int InttBCOMap::GetFeeOffSet()
+{
+  std::vector<int> bco_values;
+  for (const auto &server_pair : m_bco)
+  {
+    for (const auto &channel_pair : server_pair)
+    {
+      bco_values.push_back(channel_pair);
+    }
+  }
+
+  std::sort(bco_values.begin(), bco_values.end());
+
+  int most_frequent_bco = bco_values[0];
+  int max_count = 1;
+  int current_count = 1;
+
+  for (size_t i = 1; i < bco_values.size(); ++i)
+  {
+    if (bco_values[i] == bco_values[i - 1])
+    {
+      current_count++;
+    }
+    else
+    {
+      if (current_count > max_count)
+      {
+        max_count = current_count;
+        most_frequent_bco = bco_values[i - 1];
+      }
+      current_count = 1;
+    }
+  }
+
+  if (current_count > max_count)
+  {
+    most_frequent_bco = bco_values.back();
+  }
+
+  return most_frequent_bco;
+}
+
 bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, uint64_t const &bco_full, const int &bco)
 {
   // Definition of BCO difference was changed in Aug/2024
@@ -128,3 +173,5 @@ bool InttBCOMap::IsBad(InttNameSpace::Offline_s const &off, uint64_t const &bco_
 {
   return IsBad(InttNameSpace::ToRawData(off), bco_full, bco);
 }
+
+
