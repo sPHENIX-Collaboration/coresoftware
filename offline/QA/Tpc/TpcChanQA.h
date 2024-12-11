@@ -1,4 +1,4 @@
-// include guard to prevent TpcFFTQA.h from being preprocessed multiple times
+// include guard to prevent TpcNoiseQA.h from being preprocessed multiple times
 #ifndef QA_TPC_TPCCHANQA_H
 #define QA_TPC_TPCCHANQA_H
 //
@@ -58,13 +58,9 @@ class TpcChanQA : public SubsysReco  // Inherit public parts of SubsysReco
 
   std::string m_fname; // Name of file given to program
   std::string sectorNum; // Sector number associated with data file
-  
-  //TH1F *h_channel_hits = nullptr; // Histogram of hits per channel
-  //TH2F *h_channel_ADCs = nullptr; // Histogram of ADC counts per channel
 
   std::vector<int> m_packets;
   std::vector<unsigned short> m_adcSamples;  // ADC values in waveform
-
 };
 
 #endif  // ends preprocessing if TpcFFTQA.h has already been defined

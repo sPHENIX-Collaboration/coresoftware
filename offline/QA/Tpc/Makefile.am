@@ -21,7 +21,7 @@ lib_LTLIBRARIES = \
 libtpcqa_la_SOURCES = \
   TpcChanQA.cc \
   TpcNoiseQA.cc \
-  TpcRawHitQA.cc
+  TpcRawHitQA.cc 
 
 libtpcqa_la_LIBADD = \
   -lphool \

@@ -59,13 +59,6 @@ int TpcChanQA::InitRun(PHCompositeNode * /*unused*/)
 
   createHistos();
 
-  // Define histograms initialized in header file
-  std::string name = "h_channel_hits_sec" + sectorNum;
-  h_channel_hits = new TH1F(name.c_str(), name.c_str(), 256, 0, 256);
-  name = "h_channel_ADCs_sec" + sectorNum;
-  h_channel_ADCs = new TH2F(name.c_str(), name.c_str(), 256, 0, 256, 1024, 0, 1024);
-  //
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -94,6 +87,8 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
   assert(hm);
 
   // Reference histograms initialized in header file to histos in HistoManager
+  h_channel_hits = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
+  h_channel_ADCs = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
   //
   
   // Loop over packets in event
@@ -129,7 +124,8 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
       h_channel_hits->Fill(m_Channel);
 
       // Checks if sample number and number of ADC values agrees
-      assert(m_nSamples < (int) m_adcSamples.size());
+      //assert(m_nSamples < (int) m_adcSamples.size());
+      if(m_nSamples > (int) m_adcSamples.size()) continue;
 
       // Loop over samples in waveform
       for (int s = 0; s < m_nSamples; s++)
@@ -143,8 +139,6 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-
 
 //____________________________________________________________________________..
 int TpcChanQA::End(PHCompositeNode * /*unused*/)
