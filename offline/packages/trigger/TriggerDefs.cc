@@ -50,53 +50,53 @@ TriggerDefs::getTriggerSumKey(const TriggerDefs::TriggerId triggerId, const Trig
   return key;
 }
 
-uint32_t
+TriggerDefs::TriggerId
 TriggerDefs::getTriggerId_from_TriggerKey(const TriggerDefs::TriggerKey triggerkey)
 {
   uint32_t tmp = (triggerkey >> kBitShiftTriggerId);
-  return tmp;
+  return static_cast<TriggerDefs::TriggerId>(tmp);
 }
 
-uint32_t
+TriggerDefs::TriggerId
 TriggerDefs::getTriggerId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey)
 {
   uint32_t tmp = (triggerprimkey >> kBitShiftTriggerId);
-  return tmp;
+  return static_cast<TriggerDefs::TriggerId>(tmp);
 }
 
-uint32_t
+TriggerDefs::TriggerId
 TriggerDefs::getTriggerId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey)
 {
   uint32_t tmp = (triggersumkey >> kBitShiftTriggerId);
-  return tmp;
+  return static_cast<TriggerDefs::TriggerId>(tmp);
 }
 
-uint32_t
+TriggerDefs::DetectorId
 TriggerDefs::getDetectorId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey)
 {
   uint32_t tmp = (triggerprimkey >> kBitShiftDetectorId) & 0xfU;
-  return tmp;
+  return static_cast<TriggerDefs::DetectorId>(tmp);
 }
 
-uint32_t
+TriggerDefs::DetectorId
 TriggerDefs::getDetectorId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey)
 {
   uint32_t tmp = (triggersumkey >> kBitShiftDetectorId) & 0xfU;
-  return tmp;
+  return static_cast<TriggerDefs::DetectorId>(tmp);
 }
 
-uint32_t
+TriggerDefs::PrimitiveId
 TriggerDefs::getPrimitiveId_from_TriggerPrimKey(const TriggerDefs::TriggerPrimKey triggerprimkey)
 {
   uint32_t tmp = (triggerprimkey >> kBitShiftPrimitiveId) & 0xfU;
-  return tmp;
+  return static_cast<TriggerDefs::PrimitiveId>(tmp);
 }
 
-uint32_t
+TriggerDefs::PrimitiveId
 TriggerDefs::getPrimitiveId_from_TriggerSumKey(const TriggerDefs::TriggerSumKey triggersumkey)
 {
   uint32_t tmp = (triggersumkey >> kBitShiftPrimitiveId) & 0xfU;
-  return tmp;
+  return static_cast<TriggerDefs::PrimitiveId>(tmp);
 }
 
 uint16_t
@@ -318,6 +318,10 @@ TriggerDefs::TriggerId TriggerDefs::GetTriggerId(const std::string& trigger)
   else if (strcmp(trigger.c_str(), "COSMIC_COIN") == 0)
   {
     return TriggerDefs::TriggerId::cosmic_coinTId;
+  }
+  else if (strcmp(trigger.c_str(), "PHYSICS") == 0)
+  {
+    return TriggerDefs::TriggerId::physicsTId;
   }
 
   return TriggerDefs::TriggerId::noneTId;
