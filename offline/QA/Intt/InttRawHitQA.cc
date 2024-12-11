@@ -76,7 +76,7 @@ int InttRawHitQA::InitRun(PHCompositeNode *topNode)
     {
       continue;
     }
-    PHIODataNode<InttRawHitContainer> *theNode = dynamic_cast<PHIODataNode<InttRawHitContainer> *>(thisnode);
+    PHIODataNode<InttRawHitContainer> *theNode = static_cast<PHIODataNode<InttRawHitContainer> *>(thisnode);
     if(theNode)
     {
       std::cout << PHWHERE << " Found INTT Raw hit container node " << theNode->getName() << std::endl;

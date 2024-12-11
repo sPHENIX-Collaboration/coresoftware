@@ -48,7 +48,7 @@ int MvtxRawHitQA::InitRun(PHCompositeNode *topNode)
     {
       continue;
     }
-    PHIODataNode<MvtxRawHitContainer> *theNode = dynamic_cast<PHIODataNode<MvtxRawHitContainer> *>(thisnode);
+    PHIODataNode<MvtxRawHitContainer> *theNode = static_cast<PHIODataNode<MvtxRawHitContainer> *>(thisnode);
     if(theNode)
     {
       std::cout << PHWHERE << " Found Mvtx Raw hit container node " << theNode->getName() << std::endl;
