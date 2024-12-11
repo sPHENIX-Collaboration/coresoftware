@@ -3,8 +3,10 @@
 #include "PHG4MvtxHitReco.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/CylinderGeom_MvtxHelper.h>
 #include <mvtx/MvtxHitPruner.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>  // // make iwyu happy
@@ -357,7 +359,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
         auto hskey = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, 0);
         auto surf = tgeometry->maps().getSiliconSurface(hskey);
 
-        TVector3 local_in_check = layergeom->get_local_from_world_coords(surf, tgeometry, world_in);
+        TVector3 local_in_check = CylinderGeom_MvtxHelper::get_local_from_world_coords(surf, tgeometry, world_in);
         std::cout
             << " local coords of entry point from geom (a check) "
             << local_in_check.X() << " " << local_in_check.Y() << " " << local_in_check.Z() << "\n"

@@ -4,8 +4,11 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <intt/CylinderGeomIntt.h>
 #include <mvtx/CylinderGeom_Mvtx.h>
+
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
