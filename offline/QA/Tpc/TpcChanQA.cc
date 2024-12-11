@@ -3,8 +3,8 @@
 
 #include <qautils/QAHistManagerDef.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -22,8 +22,8 @@
 
 #include <cassert>
 #include <cstddef>
-#include <memory>
 #include <iostream>
+#include <memory>
 #include <string>
 
 //
@@ -39,7 +39,6 @@ TpcChanQA::TpcChanQA(const std::string &name)
 //____________________________________________________________________________..
 int TpcChanQA::InitRun(PHCompositeNode * /*unused*/)
 {
-
   // Takes string of raw data file and truncates it down to sector number
   sectorNum = m_fname;
   size_t pos = sectorNum.find("TPC_ebdc");
@@ -78,19 +77,19 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
 
   // Checks if event is "special" and discards it if so
   if (_event->getEvtType() >= 8)  /// special events
-    {
-      return Fun4AllReturnCodes::DISCARDEVENT;
-    }
+  {
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
 
-  //Call HistoManager
+  // Call HistoManager
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // Reference histograms initialized in header file to histos in HistoManager
-  h_channel_hits = dynamic_cast<TH1*>(hm->getHisto(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
-  h_channel_ADCs = dynamic_cast<TH2*>(hm->getHisto(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
+  h_channel_hits = dynamic_cast<TH1 *>(hm->getHisto(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
+  h_channel_ADCs = dynamic_cast<TH2 *>(hm->getHisto(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
   //
-  
+
   // Loop over packets in event
   for (int packet : m_packets)
   {
@@ -124,8 +123,11 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
       h_channel_hits->Fill(m_Channel);
 
       // Checks if sample number and number of ADC values agrees
-      //assert(m_nSamples < (int) m_adcSamples.size());
-      if(m_nSamples > (int) m_adcSamples.size()) continue;
+      // assert(m_nSamples < (int) m_adcSamples.size());
+      if (m_nSamples > (int) m_adcSamples.size())
+      {
+        continue;
+      }
 
       // Loop over samples in waveform
       for (int s = 0; s < m_nSamples; s++)
@@ -143,12 +145,11 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TpcChanQA::End(PHCompositeNode * /*unused*/)
 {
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-std::string TpcChanQA::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); } //Define prefix to all histos in HistoManager
+std::string TpcChanQA::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }  // Define prefix to all histos in HistoManager
 
 //____________________________________________________________________________..
 void TpcChanQA::createHistos()
@@ -159,12 +160,12 @@ void TpcChanQA::createHistos()
 
   // Create and register histos in HistoManager
   {
-    auto h = new TH1F(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(),";Channels;hits",256,0,256);
+    auto h = new TH1F(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(), ";Channels;hits", 256, 0, 256);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(),";Channels;ADCs",256,0,256,1024,0,1024);
+    auto h = new TH2F(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(), ";Channels;ADCs", 256, 0, 256, 1024, 0, 1024);
     hm->registerHisto(h);
   }
 }

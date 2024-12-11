@@ -56,8 +56,8 @@ class TpcChanQA : public SubsysReco  // Inherit public parts of SubsysReco
   void createHistos();
   std::string getHistoPrefix() const;
 
-  std::string m_fname; // Name of file given to program
-  std::string sectorNum; // Sector number associated with data file
+  std::string m_fname;    // Name of file given to program
+  std::string sectorNum;  // Sector number associated with data file
 
   std::vector<int> m_packets;
   std::vector<unsigned short> m_adcSamples;  // ADC values in waveform
