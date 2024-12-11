@@ -272,14 +272,20 @@ int AlignmentDefs::getLabelBase(Acts::GeometryIdentifier id, TrkrDefs::cluskey c
     }
   else if (layer > 6 && layer < 55)
     {
-      unsigned int sensor = id.sensitive() - 1;  // Acts starts at 1
+      // unsigned int sensor = id.sensitive() - 1;  // Acts starts at 1
 
       if (group == 8)
 	{
 	  // want every hitset (layer, sector, side) to have a separate label
 	  // each group of 12 subsurfaces (sensors) is in a single hitset
-	  int hitset = sensor / 12;  // 0-11 on side 0, 12-23 on side 1
-	  label_base += layer * 1000000 + hitset * 10000;
+	  int side = TpcDefs::getSide(cluskey);
+	  int sector = TpcDefs::getSectorId(cluskey);
+	  int hitset_index = sector + side * 12;
+	  label_base += layer * 1000000 + hitset_index * 10000;
+
+	  //	  std::cout << "     label base = " << label_base << " layer " << layer << " hitset_index " << hitset_index 
+	  //	    << " sector " << sector << " side " << side << " sensor " << sensor << std::endl;
+
 	  return label_base;
 	}
       if (group == 9)

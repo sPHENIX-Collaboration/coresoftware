@@ -16,7 +16,7 @@
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxAlignmentState_v1.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <trackbase_historic/SvtxTrackSeed_v1.h>
+#include <trackbase_historic/SvtxTrackSeed_v2.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
@@ -177,6 +177,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       std::cout << " Silicon seed map size " << _track_map_silicon->size()
                 << std::endl;
     }
+    if(_svtx_seed_map){
+      std::cout << " Svtx seed map size " << _svtx_seed_map->size()
+                << std::endl;
+    }
   }
 
   if (fitsilicon && _track_map_silicon != nullptr)
@@ -192,156 +196,169 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
+  if (fitfulltrack && _svtx_seed_map!= nullptr)
+  {
+    if (_svtx_seed_map->size() == 0){
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
 
-  // Decide whether we want to make a helical fit for silicon or TPC
-  unsigned int maxtracks = 0;
-  unsigned int nsilicon = 0;
-  unsigned int ntpc = 0;
-  unsigned int nclus = 0;
+    //// Create a track map and insert all available seeds into it
+    unsigned int maxtracks = 0;
+    unsigned int nsilicon = 0;
+    unsigned int ntpc = 0;
+    unsigned int nclus = 0;
+    if (fitsilicon)
+    {
+      maxtracks = _track_map_silicon->size();
+      std::cout << " silicon seed map size is " << maxtracks << std::endl;
+      for (unsigned int trackid = 0; trackid < maxtracks; ++trackid)
+	{	  
+	  TrackSeed* tracklet = _track_map_silicon->get(trackid);
+	  if(tracklet)
+	    {
+	      SvtxTrack_v4 newTrack;
+	      newTrack.set_id(trackid);
+	      newTrack.set_silicon_seed(tracklet);
+	      
+	      m_trackmap->insertWithKey(&newTrack, trackid);
+	      nsilicon = tracklet->size_cluster_keys();
+	    }
+	}
+    }
+    else if (fittpc)
+    {
+      maxtracks = _track_map_tpc->size();
+      std::cout << " tpc seed map size is " << maxtracks << std::endl;
+      for (unsigned int trackid = 0; trackid < maxtracks; ++trackid)
+	{	  
+	  SvtxTrack_v4 newTrack;
+	  TrackSeed* tracklet = _track_map_tpc->get(trackid);
+	  newTrack.set_id(trackid);
+	  newTrack.set_tpc_seed(tracklet);
+
+	  m_trackmap->insertWithKey(&newTrack, trackid);
+	  ntpc =  tracklet->size_cluster_keys();
+	}
+    }
+    else if (fitfulltrack)
+    {
+      maxtracks = _svtx_seed_map->size();
+      std::cout << "              svtx seed map size is " << maxtracks << std::endl;
+      for (unsigned int trackid = 0; trackid < maxtracks; ++trackid)
+	{	  
+	  SvtxTrack_v4 newTrack;
+	  TrackSeed *trackseed = _svtx_seed_map->get(trackid);
+	  newTrack.set_id(trackid);
+	  
+	  unsigned int siid = trackseed->get_silicon_seed_index();
+	  TrackSeed* tracklet_silicon = _track_map_silicon->get(siid);
+	  newTrack.set_silicon_seed(tracklet_silicon);
+	  if(tracklet_silicon)
+	    {
+	      nsilicon =  tracklet_silicon->size_cluster_keys();
+	    }
+	  else
+	    {
+	      std::cout << "      did not find a silicon tracklet for silicon seed " << siid << std::endl;
+	    }
+	  unsigned int tpcid = trackseed->get_tpc_seed_index();
+	  TrackSeed* tracklet_tpc = _track_map_tpc->get(tpcid);
+	  newTrack.set_tpc_seed(tracklet_tpc);
+	  if(tracklet_tpc)
+	    {
+	      ntpc =  tracklet_tpc->size_cluster_keys();
+	    }
+
+	  m_trackmap->insertWithKey(&newTrack, trackid);
+
+	  if(Verbosity() > 1)
+	    {
+	      std::cout << " trackid " << trackid << " tpcid " << tpcid << " siid " << siid << " nsilicon " << nsilicon << " ntpc " << ntpc << std::endl;
+	      std::cout << "---- svtx seed identify: " << std::endl;
+	      trackseed->identify();
+	      std::cout << std::endl << "---- silicon seed identify:" << std::endl;
+	      tracklet_silicon->identify();
+	      std::cout << std::endl;
+	      std::cout << "---- tpc seed identify:" << std::endl;
+	      tracklet_tpc->identify();
+	      std::cout << std::endl;
+	    }
+	}
+    }
+    nclus = nsilicon+ntpc;
+    
   std::vector<std::vector<Acts::Vector3>> cumulative_global_vec;
   std::vector<std::vector<TrkrDefs::cluskey>> cumulative_cluskey_vec;
   std::vector<std::vector<float>> cumulative_fitpars_vec;
   std::vector<Acts::Vector3> cumulative_vertex;
   std::vector<TrackSeed> cumulative_someseed;
   std::vector<SvtxTrack_v4> cumulative_newTrack;
-
-  if (fittpc && _track_map_tpc != nullptr)
-  {
-    maxtracks = _track_map_tpc->size();
-  }
-  if (fitsilicon && _track_map_silicon != nullptr)
-  {
-    maxtracks = _track_map_silicon->size();
-  }
+  
+  // loop over the new tracks and process the clusters from each one
   for (unsigned int trackid = 0; trackid < maxtracks; ++trackid)
-  {
-    TrackSeed* tracklet = nullptr;
-    if (fitsilicon && _track_map_silicon != nullptr)
     {
-      tracklet = _track_map_silicon->get(trackid);
-    }
-    else if (fittpc && _track_map_tpc != nullptr)
-    {
-      tracklet = _track_map_tpc->get(trackid);
-    }
-    if (!tracklet)
-    {
-      continue;
-    }
-
-    std::vector<Acts::Vector3> global_vec;
-    std::vector<TrkrDefs::cluskey> cluskey_vec;
-
-    // Get a vector of cluster keys from the tracklet
-    getTrackletClusterList(tracklet, cluskey_vec);
-    if(cluskey_vec.size() < 3)
-      {
-	continue;
-      }
-    int nintt = 0;
-    for (auto& key : cluskey_vec)
-    {
-      if(TrkrDefs::getTrkrId(key) == TrkrDefs::inttId)
-      {
-        nintt++;
-      }
-    }
-
-    // store cluster global positions in a vector global_vec and cluskey_vec
-
-    TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
-     
-    correctTpcGlobalPositions(global_vec, cluskey_vec);
-
- 
-    std::vector<float> fitpars;
-    if(straight_line_fit)
-      {
-	fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit);
-
-	if (fitpars.size() == 0)
-	  {
-	    continue;  // discard this track, not enough clusters to fit
-	  }
-
-	if (Verbosity() > 1)
-	  {
-	    std::cout << " Track " << trackid << " xy slope " << fitpars[0] << " y intercept " << fitpars[1] 
-		      << " zslope " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
-	  }
-      }
-    else
-      {
-	if(fitsilicon && nintt<2)
-	  {
-	    continue;   // discard incomplete seeds
-	  }
-
-	fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec);  // do helical fit
+      std::vector<Acts::Vector3> global_vec;
+      std::vector<TrkrDefs::cluskey> cluskey_vec;
       
-	if (fitpars.size() == 0)
-	  {
-	    continue;  // discard this track, not enough clusters to fit
-	  }
-
-	if (Verbosity() > 1)
-	  {
-	    std::cout << " Track " << trackid << " radius " << fitpars[0] << " X0 " << fitpars[1] << " Y0 " << fitpars[2]
-		      << " zslope " << fitpars[3] << " Z0 " << fitpars[4] << std::endl;
-	  }
-      }
-    
-
-    //// Create a track map for diagnostics
-    SvtxTrack_v4 newTrack;
-    newTrack.set_id(trackid);
-    if (fitsilicon)
-    {
-      newTrack.set_silicon_seed(tracklet);
-    }
-    else if (fittpc)
-    {
-      newTrack.set_tpc_seed(tracklet);
-    }
-
-    // if a full track is requested, get the silicon clusters too and refit
-    if (fittpc && fitfulltrack)
-    {
-      // this associates silicon clusters and adds them to the vectors
-      ntpc = cluskey_vec.size();
-
-      if(straight_line_fit)
+      // Get a vector of cluster keys from the track
+      SvtxTrack *newTrack =  m_trackmap->get(trackid);
+      if(!newTrack)
 	{
-	  std::tuple<double, double> linefit_xy(fitpars[0], fitpars[1]); 
-	  nsilicon = TrackFitUtils::addClustersOnLine(linefit_xy, true, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec, 0, 6);
+	  continue;
 	}
-      else
+      auto si_seed = newTrack->get_silicon_seed();
+      if (si_seed)
 	{
-	  nsilicon = TrackFitUtils::addClusters(fitpars, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec, 0, 6);
+	  getTrackletClusterList(si_seed, cluskey_vec);
+	}
+      auto tpc_seed = newTrack->get_tpc_seed();
+      if (tpc_seed)
+	{
+	  getTrackletClusterList(tpc_seed, cluskey_vec);
+	}
+      
+      if(cluskey_vec.size() < 3)
+	{
+	  continue;
 	}
 
-      if (nsilicon < 5)
-      {
-        continue;  // discard this TPC seed, did not get a good match to silicon
-      }
-      auto trackseed = std::make_unique<TrackSeed_v2>();
-      for (auto& ckey : cluskey_vec)
-      {
-        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId or
-            TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
-        {
-          trackseed->insert_cluster_key(ckey);
-        }
-      }
+      int nintt = 0;
+      for (auto& key : cluskey_vec)
+	{
+	  if(TrkrDefs::getTrkrId(key) == TrkrDefs::inttId)
+	    {
+	      nintt++;
+	    }
+	}
 
-      newTrack.set_silicon_seed(trackseed.get());
+      if( fitfulltrack && si_seed->get_crossing() == SHRT_MAX)
+	{
+	  std::cout << " discard track " << trackid << " with crossing " <<  si_seed->get_crossing() << " and nintt " << nintt << std::endl;
+	  continue;   // cannot make TPC corrections without valid crossing
+	}
+      
+      if( (fitsilicon || fitfulltrack) && nintt<2)
+	{
+	  std::cout << " discard track " << trackid << " with nintt " <<  nintt << std::endl;
+	  continue;   // discard incomplete seeds
+	}
 
-      // fit the full track now
-      fitpars.clear();
+      std::cout << " process track " << trackid << " with nintt " <<  nintt << " and crossing " <<  si_seed->get_crossing() << std::endl;
+
+      // store cluster global positions in a vector global_vec
+      TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
+
+      std::cout << " call correctTpcGlobalPositions with crossing " <<  si_seed->get_crossing() << std::endl;
+     
+      correctTpcGlobalPositions(global_vec, cluskey_vec, si_seed->get_crossing());
+      
+      std::vector<float> fitpars;
       if(straight_line_fit)
 	{
+	  
 	  fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit);
-	    
+	  
 	  if (fitpars.size() == 0)
 	    {
 	      continue;  // discard this track, not enough clusters to fit
@@ -349,133 +366,138 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	  
 	  if (Verbosity() > 1)
 	    {
-	      std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] 
-			<< " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
+	      std::cout << " Track " << trackid << " xy slope " << fitpars[0] << " y intercept " << fitpars[1] 
+			<< " zslope " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
 	    }
 	}
       else
 	{
-	  fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec, use_intt_zfit);  // do helical fit
-
+	  fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec);  // do helical fit
+	  
 	  if (fitpars.size() == 0)
 	    {
-	      continue;  // discard this track, fit failed
+	      continue;  // discard this track, not enough clusters to fit
 	    }
-
+	  
 	  if (Verbosity() > 1)
 	    {
-	      std::cout << " Full track " << trackid << " radius " << fitpars[0] << " X0 " << fitpars[1] << " Y0 " << fitpars[2]
+	      std::cout << " Track " << trackid << " radius " << fitpars[0] << " X0 " << fitpars[1] << " Y0 " << fitpars[2]
 			<< " zslope " << fitpars[3] << " Z0 " << fitpars[4] << std::endl;
 	    }
 	}
+      
+      
+      Acts::Vector3 beamline(0, 0, 0);
+      Acts::Vector2 pca2d;
+      Acts::Vector3 track_vtx;
+      if(straight_line_fit)
+	{
+	  pca2d = TrackFitUtils::get_line_point_pca(fitpars[0], fitpars[1], beamline);
+	  track_vtx(0) = pca2d(0);
+	  track_vtx(1) = pca2d(1);
+	  track_vtx(2) = fitpars[3];   // z axis intercept
+	}
+      else
+	{
+	  pca2d = TrackFitUtils::get_circle_point_pca(fitpars[0], fitpars[1], fitpars[2], beamline);
+	  track_vtx(0) = pca2d(0);
+	  track_vtx(1) = pca2d(1);
+	  track_vtx(2) = fitpars[4];   // z axis intercept
+	}
+      
+      if(si_seed)
+	{
+	  newTrack->set_crossing(si_seed->get_crossing());
+	}
+      else
+	{
+	  newTrack->set_crossing(SHRT_MAX);
+	}
+      newTrack->set_id(trackid);
+      
+      /// use the track seed functions to help get the track trajectory values
+      /// in the usual coordinates
+      
+      TrackSeed_v2 someseed;
+      for (auto& ckey : cluskey_vec)
+	{
+	  someseed.insert_cluster_key(ckey);
+	}
+      
+      if(straight_line_fit)
+	{
+	  someseed.set_qOverR(1.0);
+	  someseed.set_X0(fitpars[0]);
+	  someseed.set_Y0(fitpars[1]);
+	  someseed.set_Z0(fitpars[3]);
+	  someseed.set_slope(fitpars[2]);
+	  
+	  auto tangent=get_line_tangent(fitpars, global_vec[0]);
+	  someseed.set_phi(atan2(tangent.second(1), tangent.second(0)));
+	  newTrack->set_x(track_vtx(0));
+	  newTrack->set_y(track_vtx(1));
+	  newTrack->set_z(track_vtx(2));
+	  newTrack->set_px(tangent.second(0));
+	  newTrack->set_py(tangent.second(1));
+	  newTrack->set_pz(tangent.second(2));
+	  newTrack->set_charge(1);
+	}
+      else
+	{
+	  someseed.set_qOverR(tpc_seed->get_charge() / fitpars[0]);
+	  someseed.set_phi(tpc_seed->get_phi());
+	  
+	  someseed.set_X0(fitpars[1]);
+	  someseed.set_Y0(fitpars[2]);
+	  someseed.set_Z0(fitpars[4]);
+	  someseed.set_slope(fitpars[3]);
+	  
+	  const auto position = TrackSeedHelper::get_xyz(&someseed);
+	  
+	  newTrack->set_x(position.x());
+	  newTrack->set_y(position.y());
+	  newTrack->set_z(position.z());
+	  newTrack->set_px(someseed.get_px());
+	  newTrack->set_py(someseed.get_py());
+	  newTrack->set_pz(someseed.get_pz());
+	  newTrack->set_charge(tpc_seed->get_charge());
+	}	
+      
+      nclus = ntpc + nsilicon;
+      
+      // some basic track quality requirements
+      if (fittpc && ntpc < 35)
+	{
+	  if (Verbosity() > 1)
+	    {
+	      std::cout << " reject this track, ntpc = " << ntpc << std::endl;
+	    }
+	  continue;
+	}
+      if ((fitsilicon || fitfulltrack) && nsilicon < 3)
+	{
+	  if (Verbosity() > 1)
+	    {
+	      std::cout << " reject this track, nsilicon = " << nsilicon << std::endl;
+	    }
+	  continue;
+	}
+      
+      if(Verbosity() > 2)
+	{
+	  std::cout << "   vector sizes: " << global_vec.size() << "  " <<  cluskey_vec.size() << "  " 
+		    << " fitpars: " << fitpars[0] << "  " << fitpars[1] << "  " << fitpars[2] << "  " << fitpars[3]
+		    << std::endl;
+	}
+      
+      cumulative_global_vec.push_back(global_vec);
+      cumulative_cluskey_vec.push_back(cluskey_vec);
+      cumulative_vertex.push_back(track_vtx);
+      cumulative_fitpars_vec.push_back(fitpars);
+      cumulative_someseed.push_back(someseed);
+      cumulative_newTrack.push_back(*newTrack);
     }
-    else if (fitsilicon)
-    {
-      nsilicon = cluskey_vec.size();
-    }
-    else if (fittpc && !fitfulltrack)
-    {
-      ntpc = cluskey_vec.size();
-    }
-
-    Acts::Vector3 beamline(0, 0, 0);
-    Acts::Vector2 pca2d;
-    Acts::Vector3 track_vtx;
-    if(straight_line_fit)
-      {
-	pca2d = TrackFitUtils::get_line_point_pca(fitpars[0], fitpars[1], beamline);
-	track_vtx(0) = pca2d(0);
-	track_vtx(1) = pca2d(1);
-	track_vtx(2) = fitpars[3];   // z axis intercept
-      }
-    else
-      {
-	pca2d = TrackFitUtils::get_circle_point_pca(fitpars[0], fitpars[1], fitpars[2], beamline);
-	track_vtx(0) = pca2d(0);
-	track_vtx(1) = pca2d(1);
-	track_vtx(2) = fitpars[4];   // z axis intercept
-      }
-
-    newTrack.set_crossing(tracklet->get_crossing());
-    newTrack.set_id(trackid);
-
-    /// use the track seed functions to help get the track trajectory values
-    /// in the usual coordinates
-
-    TrackSeed_v2 someseed;
-    for (auto& ckey : cluskey_vec)
-    {
-      someseed.insert_cluster_key(ckey);
-    }
-
-    if(straight_line_fit)
-      {
-	someseed.set_qOverR(1.0);
-	someseed.set_phi(tracklet->get_phi());
-	
-	someseed.set_X0(fitpars[0]);
-	someseed.set_Y0(fitpars[1]);
-	someseed.set_Z0(fitpars[3]);
-	someseed.set_slope(fitpars[2]);
-	
-	auto tangent=get_line_tangent(fitpars, global_vec[0]);
-	newTrack.set_x(track_vtx(0));
-	newTrack.set_y(track_vtx(1));
-	newTrack.set_z(track_vtx(2));
-	newTrack.set_px(tangent.second(0));
-	newTrack.set_py(tangent.second(1));
-	newTrack.set_pz(tangent.second(2));
-	newTrack.set_charge(tracklet->get_charge());
-      }
-    else
-      {
-	someseed.set_qOverR(tracklet->get_charge() / fitpars[0]);
-	someseed.set_phi(tracklet->get_phi());
-	
-	someseed.set_X0(fitpars[1]);
-	someseed.set_Y0(fitpars[2]);
-	someseed.set_Z0(fitpars[4]);
-	someseed.set_slope(fitpars[3]);
-	
-	const auto position = TrackSeedHelper::get_xyz(&someseed);
-	
-	newTrack.set_x(position.x());
-	newTrack.set_y(position.y());
-	newTrack.set_z(position.z());
-	newTrack.set_px(someseed.get_px());
-	newTrack.set_py(someseed.get_py());
-	newTrack.set_pz(someseed.get_pz());
-	newTrack.set_charge(tracklet->get_charge());
-      }	
-	    
-    nclus = ntpc + nsilicon;
-
-    // some basic track quality requirements
-    if (fittpc && ntpc < 35)
-    {
-      if (Verbosity() > 1)
-      {
-        std::cout << " reject this track, ntpc = " << ntpc << std::endl;
-      }
-      continue;
-    }
-    if ((fitsilicon || fitfulltrack) && nsilicon < 3)
-    {
-      if (Verbosity() > 1)
-      {
-        std::cout << " reject this track, nsilicon = " << nsilicon << std::endl;
-      }
-      continue;
-    }
-
-    cumulative_global_vec.push_back(global_vec);
-    cumulative_cluskey_vec.push_back(cluskey_vec);
-    cumulative_vertex.push_back(track_vtx);
-    cumulative_fitpars_vec.push_back(fitpars);
-    cumulative_someseed.push_back(someseed);
-    cumulative_newTrack.push_back(newTrack);
-  }
-
+  
   // terminate loop over tracks
   // Collect fitpars for each track by intializing array of size maxtracks and populaating thorughout the loop
   // Then start new loop over tracks and for each track go over clsutaer
@@ -484,15 +506,15 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   float ysum = 0;
   float zsum = 0;
   unsigned int accepted_tracks = cumulative_fitpars_vec.size();
-
+  
   for (unsigned int trackid = 0; trackid < accepted_tracks; ++trackid)
-  {
-    xsum += cumulative_vertex[trackid][0];
-    ysum += cumulative_vertex[trackid][1];
-    zsum += cumulative_vertex[trackid][2];
-  }
+    {
+      xsum += cumulative_vertex[trackid][0];
+      ysum += cumulative_vertex[trackid][1];
+      zsum += cumulative_vertex[trackid][2];
+    }
   Acts::Vector3 averageVertex(xsum / accepted_tracks, ysum / accepted_tracks, zsum / accepted_tracks);
-
+  
   for (unsigned int trackid = 0; trackid < accepted_tracks; ++trackid)
   {
     auto global_vec = cumulative_global_vec[trackid];
@@ -796,11 +818,30 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 	      }
 	  }
       }
-      
+
+      if(Verbosity() > 2)
+	{
+	  if(layer > 2 && layer < 7)
+	    {
+	      int sector = InttDefs::getLadderPhiId(cluskey_vec[ivec]);
+	      int subsurf = InttDefs::getLadderZId(cluskey_vec[ivec]);      
+	      std::cout << "  layer " << layer << " sector " << sector << " subsurf " << subsurf << " resid " << residual(0) << " sigma " << clus_sigma(0) << std::endl;
+	    }
+	}
+	 
       if (!isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
-      {
-        _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
-      }
+	{
+	  if(Verbosity() > 2)
+	    {
+	      if(layer > 2 && layer < 7)
+		{
+		  int sector = InttDefs::getLadderPhiId(cluskey_vec[ivec]);
+		  int subsurf = InttDefs::getLadderZId(cluskey_vec[ivec]);      
+		  std::cout << "    out: layer " << layer << " sector " << sector << " subsurf " << subsurf << " resid " << residual(0) << " sigma " << clus_sigma(0) << std::endl;
+		}
+	    }
+	  _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
+	}
       if (!isnan(residual(1)) && clus_sigma(1) < 1.0)
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeY, AlignmentDefs::NGL, glbl_derivativeY, glbl_label, residual(1), errinf * clus_sigma(1));
@@ -808,7 +849,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     }
 
     m_alignmentmap->insertWithKey(trackid, statevec);
-    m_trackmap->insertWithKey(&newTrack, trackid);
 
     // calculate vertex residual with perigee surface
     //-------------------------------------------------------
@@ -1276,19 +1316,28 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
   // Get additional objects off the Node Tree
   //---------------------------------
 
-  _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, _silicon_track_map_name);
+  _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   if (!_track_map_silicon && (fitsilicon || fitfulltrack))
   {
     cerr << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map_tpc = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
+  _track_map_tpc = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!_track_map_tpc && (fittpc || fitfulltrack))
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  // combined track seeds from matcher
+  _svtx_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  if (!_svtx_seed_map)
+    {
+      std::cout << "No Svtx seed map on node tree. Exiting."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
@@ -1308,7 +1357,7 @@ int HelicalFitter::GetNodes(PHCompositeNode* topNode)
   if (!m_vertexmap)
   {
     std::cout << PHWHERE << " ERROR: Can't find node SvtxVertexMap" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    //   return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   // global position wrapper
@@ -1394,13 +1443,6 @@ void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<Trkr
     {
       continue;
     }
-
-    // drop INTT clusters for now  -- TEMPORARY!
-    if (layer > 2 && layer < 7)
-    {
-      continue;
-    }
-
 
     cluskey_vec.push_back(key);
 
@@ -1989,7 +2031,7 @@ bool HelicalFitter::is_tpc_sector_fixed(unsigned int layer, unsigned int sector,
   return ret;
 }
 
-void HelicalFitter::correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec)
+void HelicalFitter::correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec, int crossing)
 {
   for (unsigned int iclus = 0; iclus < cluskey_vec.size(); ++iclus)
   {
@@ -1999,8 +2041,12 @@ void HelicalFitter::correctTpcGlobalPositions(std::vector<Acts::Vector3> global_
     if (trkrId == TrkrDefs::tpcId)
     {
       // have to add corrections for TPC clusters after transformation to global
-      int crossing = 0;  // for now
       makeTpcGlobalCorrections(cluskey, crossing, global);
+
+      std::cout << " iclus " << iclus << " cluskey " << cluskey << " crossing " << crossing << std::endl;
+      std::cout << "    global in " << global_vec[iclus](0) << "  " << global_vec[iclus](1) << "  " << global_vec[iclus](2) << std::endl;
+      std::cout << "    global out " << global(0) << "  " << global(1) << "  " << global(2) << std::endl;  
+
       global_vec[iclus] = global;
     }
   }

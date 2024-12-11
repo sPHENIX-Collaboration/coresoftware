@@ -51,6 +51,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
 
   void set_test_windows_printout(const bool test) { _test_windows = test; }
+  void set_test_windows_filename(const std::string name) { _test_windows_filename = name; }
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
   void set_use_intt_crossing(const bool flag) { _use_intt_crossing = flag; }
 
@@ -116,6 +117,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
 
   bool _test_windows = false;
+  std::string  _test_windows_filename = "track_matcher.root";
+
   bool _pp_mode = false;
   bool _use_intt_crossing = true;  // should always be true except for testing
 

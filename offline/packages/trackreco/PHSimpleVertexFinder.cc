@@ -445,7 +445,6 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
@@ -631,7 +630,8 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
     // store cluster global positions in a vector
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
     
-    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, true);
+    // false means do not use INTT z in fit
+    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, false);  
     
     if (Verbosity() > 1)
       {
