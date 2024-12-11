@@ -12,13 +12,14 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   -L$(ROOTSYS)/lib \
   -L$(OPT_SPHENIX)/lib
 
 if USE_ONLINE
 
 lib_LTLIBRARIES = \
-  libintt.la 
+  libintt.la
 
 pkginclude_HEADERS = \
   InttFelixMap.h \
@@ -32,10 +33,11 @@ else
 
 lib_LTLIBRARIES = \
   libintt_io.la \
-  libintt.la 
+  libintt.la
 
 pkginclude_HEADERS = \
   CylinderGeomIntt.h \
+  CylinderGeomInttHelper.h \
   InttArborist.h \
   InttBadChannelMap.h \
   InttBadChannelMapv1.h \
@@ -61,7 +63,7 @@ pkginclude_HEADERS = \
 noinst_HEADERS = \
   INTTZvtx.h \
   INTTXYvtx.h \
-  InttVertexUtil.h 
+  InttVertexUtil.h
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
@@ -94,6 +96,7 @@ nobase_dist_pcm_DATA = \
 
 # sources for intt library
 libintt_la_SOURCES = \
+  CylinderGeomInttHelper.cc \
   InttArborist.cc \
   InttBCOMap.cc \
   InttBadChannelMap.cc \
@@ -117,12 +120,14 @@ libintt_la_SOURCES = \
 
 libintt_la_LIBADD = \
   libintt_io.la \
+  -lActsCore \
   -lcdbobjects \
   -lCLHEP \
   -lffarawobjects \
   -lodbc++ \
   -lphg4hit \
-  -lSubsysReco
+  -lSubsysReco \
+  -ltrack
 
 # sources for io library
 libintt_io_la_SOURCES = \
@@ -141,11 +146,10 @@ libintt_io_la_SOURCES = \
 
 libintt_io_la_LIBADD = \
   -lcdbobjects \
+  -lffamodules \
   -lg4detectors_io \
   -lphool \
-  -ltrack_io \
-  -ltrackbase_historic_io \
-  -lglobalvertex 
+  -lglobalvertex_io
 
 endif
 

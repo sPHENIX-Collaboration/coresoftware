@@ -8,8 +8,10 @@
 
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
+#include <trackbase_historic/SvtxTrackState_v2.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -138,19 +140,21 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         if (trackSeed->get_silicon_seed_index() == std::numeric_limits<unsigned int>::max())
         {
           /// Didn't find a match, so just use the tpc seed
-          svtxtrack->set_x(tpcseed->get_x());
-          svtxtrack->set_y(tpcseed->get_y());
-          svtxtrack->set_z(tpcseed->get_z());
-          svtxtrack->set_crossing(std::numeric_limits<short int>::max());
+          const auto position = TrackSeedHelper::get_xyz(tpcseed);
+          svtxtrack->set_x(position.x());
+          svtxtrack->set_y(position.y());
+          svtxtrack->set_z(position.z());
+          svtxtrack->set_crossing(0);
         }
         else
         {
           TrackSeed* siseed = m_siContainer->get(trackSeed->get_silicon_seed_index());
-          svtxtrack->set_x(siseed->get_x());
-          svtxtrack->set_y(siseed->get_y());
-          svtxtrack->set_z(siseed->get_z());
+          const auto position = TrackSeedHelper::get_xyz(siseed);
+          svtxtrack->set_x(position.x());
+          svtxtrack->set_y(position.y());
+          svtxtrack->set_z(position.z());
           svtxtrack->set_crossing(siseed->get_crossing());
-          
+
           svtxtrack->set_silicon_seed(siseed);
         }
         svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
@@ -174,15 +178,23 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         unsigned int silseedindex = trackSeed->get_silicon_seed_index();
         TrackSeed* silseed = m_siContainer->get(silseedindex);
 
-        tpcseed->circleFitByTaubin(m_clusters, m_tGeometry, 0, 58);
+        // get positions from cluster keys
+        // TODO: should implement distortions
+        TrackSeedHelper::position_map_t positions;
+        for( auto key_iter = tpcseed->begin_cluster_keys(); key_iter != tpcseed->end_cluster_keys(); ++key_iter )
+        {
+          const auto& key(*key_iter);
+          positions.emplace(key, m_tGeometry->getGlobalPosition( key, m_clusters->findCluster(key)));
+        }
+
+        // perform circle fit
+        TrackSeedHelper::circleFitByTaubin(tpcseed, positions, 0, 58);
 
         float tpcR = fabs(1. / tpcseed->get_qOverR());
         float tpcx = tpcseed->get_X0();
         float tpcy = tpcseed->get_Y0();
         float vertexradius = 80;
-        const auto intersect =
-            TrackFitUtils::circle_circle_intersection(vertexradius,
-                                                      tpcR, tpcx, tpcy);
+        const auto intersect = TrackFitUtils::circle_circle_intersection(vertexradius, tpcR, tpcx, tpcy);
         float intx, inty;
 
         if (std::get<1>(intersect) < std::get<3>(intersect))
@@ -251,14 +263,15 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       /// Otherwise we are using an individual subdetectors container
       svtxtrack->set_id(m_seedContainer->find(trackSeed));
 
-      svtxtrack->set_x(trackSeed->get_x());
-      svtxtrack->set_y(trackSeed->get_y());
+      const auto position = TrackSeedHelper::get_xyz(trackSeed);
+      svtxtrack->set_x(position.x());
+      svtxtrack->set_y(position.y());
       if(m_zeroField)
       {
         // replace x and y with a line fit instead of helix fit
         lineFit(svtxtrack.get(), trackSeed);
       }
-      svtxtrack->set_z(trackSeed->get_z());
+      svtxtrack->set_z(position.z());
       svtxtrack->set_charge(trackSeed->get_qOverR() > 0 ? 1 : -1);
       if (m_ConstField)
       {
@@ -271,19 +284,42 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       }
       else
       {
-     
+
         svtxtrack->set_px(trackSeed->get_pt() * std::cos(trackSeed->get_phi()));
         svtxtrack->set_py(trackSeed->get_pt() * std::sin(trackSeed->get_phi()));
         svtxtrack->set_pz(trackSeed->get_pz());
       }
 
       // calculate chisq and ndf
-      double R = 1. / std::fabs(trackSeed->get_qOverR());
-      double X0 = trackSeed->get_X0();
-      double Y0 = trackSeed->get_Y0();
-      double Z0 = trackSeed->get_Z0();
-      double slope = trackSeed->get_slope();
+      float R = 1. / std::fabs(trackSeed->get_qOverR());
+      float X0 = trackSeed->get_X0();
+      float Y0 = trackSeed->get_Y0();
+      float Z0 = trackSeed->get_Z0();
+      float slope = trackSeed->get_slope();
+
+      std::vector<float> fitpars = {R, X0, Y0, slope, Z0};
+
       svtxtrack->set_crossing(trackSeed->get_crossing());
+
+      SvtxTrackState_v2 initial_state(0.);
+      initial_state.set_x(svtxtrack->get_x());
+      initial_state.set_y(svtxtrack->get_y());
+      initial_state.set_z(svtxtrack->get_z());
+      initial_state.set_px(svtxtrack->get_px());
+      initial_state.set_py(svtxtrack->get_py());
+      initial_state.set_pz(svtxtrack->get_pz());
+      svtxtrack->insert_state(&initial_state);
+
+      // TPC-only tracks don't have crossing info, so we set crossing to 0
+      // Silicon-only tracks may have crossing info, so a crossing of SHRT_MAX indicates a genuine ambiguity and we leave it as is
+      if (m_trackSeedName.find("TpcTrackSeed") != std::string::npos)
+      {
+        if(svtxtrack->get_crossing() == SHRT_MAX)
+        {
+          svtxtrack->set_crossing(0);
+        }
+      }
+
       std::vector<double> xy_error2;
       std::vector<double> rz_error2;
       std::vector<double> xy_residuals;
@@ -291,27 +327,65 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       std::vector<double> x_circle;
       std::vector<double> y_circle;
       std::vector<double> z_line;
+
+      // TrackFitUtils::get_helix_tangent sometimes returns a tangent vector in the opposite direction that we would want
+      // To guard against this, we keep track of the previous momentum vector and un-flip the current momentum vector if it flips
+      float last_px = initial_state.get_px();
+      float last_py = initial_state.get_py();
+      float last_pz = initial_state.get_pz();
+
       for (auto c_iter = trackSeed->begin_cluster_keys();
            c_iter != trackSeed->end_cluster_keys();
            ++c_iter)
       {
-        TrkrCluster* c = m_clusters->findCluster(*c_iter);
-        Acts::Vector3 pos = m_tGeometry->getGlobalPosition(*c_iter, c);
+        TrkrDefs::cluskey key = *c_iter;
+        TrkrCluster* c = m_clusters->findCluster(key);
+        Acts::Vector3 pos = m_tGeometry->getGlobalPosition(key, c);
+
+        auto surf = m_tGeometry->maps().getSurface(key,c);
+        Acts::Vector3 surface_center = surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1; // to cm
+        Acts::Vector3 intersection = TrackFitUtils::get_helix_surface_intersection(surf,fitpars,pos,m_tGeometry);
+        float pathlength = TrackFitUtils::get_helix_pathlength(fitpars,position,intersection);
+        std::pair<Acts::Vector3,Acts::Vector3> tangent = TrackFitUtils::get_helix_tangent(fitpars,surface_center);
+
+        SvtxTrackState_v2 state(pathlength);
+        state.set_x(intersection.x());
+        state.set_y(intersection.y());
+        state.set_z(intersection.z());
+        float p = trackSeed->get_p();
+        float new_px = p*tangent.second.x();
+        float new_py = p*tangent.second.y();
+        float new_pz = p*tangent.second.z();
+        if((last_px*new_px+last_py*new_py+last_pz*new_pz)<0.)
+        {
+          new_px = -new_px;
+          new_py = -new_py;
+          new_pz = -new_pz;
+        }
+        state.set_px(new_px);
+        state.set_py(new_py);
+        state.set_pz(new_pz);
+        state.set_cluskey(key);
+        svtxtrack->insert_state(&state);
+
+        last_px = new_px;
+        last_py = new_py;
+        last_pz = new_pz;
+
         double x = pos(0);
         double y = pos(1);
         double z = pos(2);
-        double r = sqrt(x * x + y * y);
-        double dx = x - X0;
-        double dy = y - Y0;
-        double xy_centerdist = sqrt(dx * dx + dy * dy);
-        // method lifted from ALICEKF::GetCircleClusterResiduals
-        xy_residuals.push_back(xy_centerdist - R);
-        // method lifted from ALICEKF::GetLineClusterResiduals
-        rz_residuals.push_back(fabs(-slope * r + z - Z0) / sqrt(slope * slope + 1));
+        double r = sqrt(x*x+y*y);
+        double dx = x - intersection.x();
+        double dy = y - intersection.y();
+        double dz = z - intersection.z();
+        double dr = r - sqrt(intersection.x()*intersection.x()+intersection.y()*intersection.y());
+        xy_residuals.push_back(sqrt(dx*dx+dy*dy));
+        rz_residuals.push_back(sqrt(dr*dr+dz*dz));
 
         // ignoring covariance for simplicity
-        xy_error2.push_back(c->getActsLocalError(0, 0) + c->getActsLocalError(1, 1));
-        rz_error2.push_back(c->getActsLocalError(2, 2));
+        xy_error2.push_back(c->getRPhiError()*c->getRPhiError());
+        rz_error2.push_back(c->getZError()*c->getZError());
         double phi = atan2(dy, dx);
         x_circle.push_back(R * cos(phi) + X0);
         y_circle.push_back(R * sin(phi) + Y0);
@@ -320,14 +394,6 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       double chi2 = 0.;
       for (unsigned int i = 0; i < xy_residuals.size(); i++)
       {
-        if (std::isnan(xy_error2[i]))
-        {
-          xy_error2[i] = 0.01;
-        }
-        if (std::isnan(rz_error2[i]))
-        {
-          rz_error2[i] = 0.01;
-        }
         // method lifted from GPUTPCTrackParam::Filter
         chi2 += xy_residuals[i] * xy_residuals[i] / xy_error2[i] + rz_residuals[i] * rz_residuals[i] / rz_error2[i];
       }

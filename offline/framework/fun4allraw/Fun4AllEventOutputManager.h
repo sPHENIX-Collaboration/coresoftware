@@ -27,7 +27,7 @@ class Fun4AllEventOutputManager : public Fun4AllOutputManager
   int AddPacketRange(const int ipktmin, const int ipktmax);
   int DropPacketRange(const int ipktmin, const int ipktmax);
   void SetOutfileName(const std::string &fname);
-  void Verbosity(const int i) override;
+  void Verbosity(const uint64_t i) override;
 
  protected:
   std::string m_OutFileRule;

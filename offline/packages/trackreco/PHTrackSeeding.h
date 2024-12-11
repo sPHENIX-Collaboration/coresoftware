@@ -58,7 +58,7 @@ class PHTrackSeeding : public SubsysReco
   TrkrClusterHitAssoc *_cluster_hit_map = nullptr;
   TrkrClusterIterationMapv1* _iteration_map;
   int _n_iteration;
-  bool do_hit_assoc = true;
+  bool do_hit_assoc = false;
   SvtxVertexMap *_vertex_map = nullptr;
   TrackSeedContainer *_track_map = nullptr;
   TrkrHitSetContainer  *_hitsets = nullptr;

@@ -47,7 +47,7 @@ PHG4SectorSteppingAction::~PHG4SectorSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   // get volume of the current step
   G4VPhysicalVolume* volume =

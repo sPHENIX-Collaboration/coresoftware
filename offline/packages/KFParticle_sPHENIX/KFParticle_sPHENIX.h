@@ -199,6 +199,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_constrain_to_vertex_sPHENIX = constrain_to_vertex;
   }
 
+  void useMbdVertex(bool use = true)
+  {
+    m_use_mbd_vertex = use;
+    m_use_mbd_vertex_truth = use;
+  }
+
   void useFakePrimaryVertex(bool use_fake = true)
   {
     m_use_fake_pv = use_fake;
@@ -207,10 +213,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void allowZeroMassTracks(bool allow = true) { m_allowZeroMassTracks = allow; }
 
-  void dontExtraolateTracksToSV(bool dontExtrapolate = true)
+  void extraolateTracksToSV(bool extrapolate = true)
   {
-    m_extrapolateTracksToSV = !dontExtrapolate;
-    m_extrapolateTracksToSV_nTuple = !dontExtrapolate;
+    m_extrapolateTracksToSV = extrapolate;
+    m_extrapolateTracksToSV_nTuple = extrapolate;
   }
 
   void constrainIntermediateMasses(bool constrain_int_mass = true) { m_constrain_int_mass = constrain_int_mass; }
@@ -287,13 +293,13 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void saveDST(bool save = true) { m_save_dst = save; }
 
-  void dontSaveTrackContainer(bool dontSave = true) { m_write_track_container = !dontSave; }
+  void saveTrackContainer(bool save = true) { m_write_track_container = save; }
 
-  void dontSaveParticleContainer(bool dontSave = true) { m_write_particle_container = !dontSave; }
+  void saveParticleContainer(bool save = true) { m_write_particle_container = save; }
 
   void setContainerName(const std::string &name) { m_container_name = name; }
 
-  void dontSaveOutput(bool dontSave = true) { m_save_output = !dontSave; }
+  void saveOutput(bool save = true) { m_save_output = save; }
 
   void setOutputName(const std::string &name) { m_outfile_name = name; }
 
@@ -304,6 +310,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void getCaloInfo(bool caloinfo = true) { m_calo_info = caloinfo; }
 
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
+
+  void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
+
+  void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
 
   /// Use alternate vertex and track fitters
   void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = m_vtx_map_node_name_nTuple = vtx_map_node_name; }

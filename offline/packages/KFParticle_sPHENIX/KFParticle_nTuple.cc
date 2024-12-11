@@ -6,6 +6,8 @@
 
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
+#include <trackbase_historic/SvtxTrack.h>   
+#include <trackbase_historic/SvtxTrackMap.h>
 
 #include <KFParticle.h>
 #include <KFVertex.h>
@@ -74,6 +76,7 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(mother_name) + "_decayLength", &m_calculated_mother_decaylength, TString(mother_name) + "_decayLength/F");
     m_tree->Branch(TString(mother_name) + "_decayLengthErr", &m_calculated_mother_decaylength_err, TString(mother_name) + "_decayLengthErr/F");
     m_tree->Branch(TString(mother_name) + "_DIRA", &m_calculated_mother_dira, TString(mother_name) + "_DIRA/F");
+    m_tree->Branch(TString(mother_name) + "_DIRA_xy", &m_calculated_mother_dira_xy, TString(mother_name) + "_DIRA_xy/F");
     m_tree->Branch(TString(mother_name) + "_FDchi2", &m_calculated_mother_fdchi2, TString(mother_name) + "_FDchi2/F");
     m_tree->Branch(TString(mother_name) + "_IP", &m_calculated_mother_ip, TString(mother_name) + "_IP/F");
     m_tree->Branch(TString(mother_name) + "_IPchi2", &m_calculated_mother_ipchi2, TString(mother_name) + "_IPchi2/F");
@@ -215,6 +218,7 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_pTErr", &m_calculated_daughter_pt_err[i], TString(daughter_number) + "_pTErr/F");
     m_tree->Branch(TString(daughter_number) + "_jT", &m_calculated_daughter_jt[i], TString(daughter_number) + "_jT/F");
     m_tree->Branch(TString(daughter_number) + "_charge", &m_calculated_daughter_q[i], TString(daughter_number) + "_charge/B");
+    m_tree->Branch(TString(daughter_number) + "_bunch_crossing", &m_calculated_daughter_bunch_crossing[i], TString(daughter_number) + "_bunch_crossing/I");
     m_tree->Branch(TString(daughter_number) + "_pseudorapidity", &m_calculated_daughter_eta[i], TString(daughter_number) + "_pseudorapidity/F");
     m_tree->Branch(TString(daughter_number) + "_rapidity", &m_calculated_daughter_rapidity[i], TString(daughter_number) + "_rapidity/F");
     m_tree->Branch(TString(daughter_number) + "_theta", &m_calculated_daughter_theta[i], TString(daughter_number) + "_theta/F");
@@ -375,6 +379,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   if (m_constrain_to_vertex_nTuple)
   {
     m_calculated_mother_dira = kfpTupleTools.eventDIRA(motherParticle, vertex_fillbranch);
+    m_calculated_mother_dira_xy = kfpTupleTools.eventDIRA(motherParticle, vertex_fillbranch, false);
     m_calculated_mother_fdchi2 = kfpTupleTools.flightDistanceChi2(motherParticle, vertex_fillbranch);
     m_calculated_mother_ip = motherParticle.GetDistanceFromVertex(vertex_fillbranch);
     m_calculated_mother_ipchi2 = motherParticle.GetDeviationFromVertex(vertex_fillbranch);
@@ -495,6 +500,11 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
     }
 
+    //Now get bunch crossing number for the daughter particle
+    SvtxTrackMap *thisTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple.c_str());
+    SvtxTrack *thisTrack = getTrack(daughterArray[i].Id(), thisTrackMap);
+    m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing(); 
+
     if (m_calo_info)
     {
       fillCaloBranch(topNode, m_tree, daughterArray[i], i);
@@ -514,14 +524,6 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   }
 
   KFVertex motherDecayVertex;
-
-  if (m_num_intermediate_states_nTuple == 0)
-  {
-    for (int i = 0; i < m_num_tracks_nTuple; ++i)
-    {
-      motherDecayVertex += daughterArray[i];
-    }
-  }
 
   int iter = 0;
   // Calcualte jT wrt their own mother, not grandmother
@@ -591,7 +593,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     {
       m_calculated_vertex_cov[j] = vertex_fillbranch.GetCovariance(j);
     }
-    m_calculated_vertex_nTracks = m_use_fake_pv_nTuple ? 0 : kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
+    m_calculated_vertex_nTracks = m_use_fake_pv_nTuple || m_use_mbd_vertex_truth ? 0 : kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
   }
 
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);

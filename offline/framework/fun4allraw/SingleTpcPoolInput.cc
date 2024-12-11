@@ -193,7 +193,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
             continue;
           }
           bool parityerror = (packet->iValue(wf, "DATAPARITYERROR") > 0);
-          TpcRawHit *newhit = new TpcRawHitv2();
+          auto newhit = std::make_unique<TpcRawHitv2>();
           int FEE = packet->iValue(wf, "FEE");
           newhit->set_bco(packet->iValue(wf, "BCO"));
 
@@ -254,9 +254,9 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
           // {
           if (StreamingInputManager())
           {
-            StreamingInputManager()->AddTpcRawHit(gtm_bco, newhit);
+            StreamingInputManager()->AddTpcRawHit(gtm_bco, newhit.get());
           }
-          m_TpcRawHitMap[gtm_bco].push_back(newhit);
+          m_TpcRawHitMap[gtm_bco].push_back(newhit.release());
           m_BclkStack.insert(gtm_bco);
           //	}
         }

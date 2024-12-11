@@ -27,6 +27,7 @@
 
 // standard includes
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <utility>
 #include <vector>
@@ -65,19 +66,19 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
     towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
     towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
     towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
-    if(!towerinfosEM3)
+    if (!towerinfosEM3)
     {
-      std::cout << "CopyAndSubtractJets::process_event: Cannot find node "<<EMTowerName<<std::endl;
+      std::cout << "CopyAndSubtractJets::process_event: Cannot find node " << EMTowerName << std::endl;
       exit(1);
     }
-    if(!towerinfosIH3)
+    if (!towerinfosIH3)
     {
-      std::cout << "CopyAndSubtractJets::process_event: Cannot find node "<<IHTowerName<<std::endl;
+      std::cout << "CopyAndSubtractJets::process_event: Cannot find node " << IHTowerName << std::endl;
       exit(1);
     }
-    if(!towerinfosOH3)
+    if (!towerinfosOH3)
     {
-      std::cout << "CopyAndSubtractJets::process_event: Cannot find node "<<OHTowerName<<std::endl;
+      std::cout << "CopyAndSubtractJets::process_event: Cannot find node " << OHTowerName << std::endl;
       exit(1);
     }
   }

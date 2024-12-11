@@ -98,6 +98,9 @@ class Fun4AllOutputManager : public Fun4AllBase
   virtual void SetEventsWritten(const unsigned int i) { m_NEvents = i; }
   //! get output file name
   virtual std::string OutFileName() const { return m_OutFileName; }
+  //! set compression level (if implemented)
+  virtual void CompressionSetting(const int /*i*/) { return; }
+
   void OutFileName(const std::string &name) { m_OutFileName = name; }
   void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
   void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }
@@ -106,8 +109,12 @@ class Fun4AllOutputManager : public Fun4AllBase
   bool ApplyFileRule() const { return m_UseFileRuleFlag; }
   void SetNEvents(const unsigned int nevt);
   unsigned int GetNEvents() const { return m_MaxEvents; }
-  void FileRule(const std::string &newrule) {m_FileRule = newrule;}
-  const std::string FileRule() const {return m_FileRule;}
+  void FileRule(const std::string &newrule) { m_FileRule = newrule; }
+  const std::string FileRule() const { return m_FileRule; }
+  void SplitLevel(const int split) { splitlevel = split; }
+  void BufferSize(const int size) { buffersize = size; }
+  int SplitLevel() const { return splitlevel; }
+  int BufferSize() const { return buffersize; }
 
  protected:
   /*!
@@ -120,6 +127,12 @@ class Fun4AllOutputManager : public Fun4AllBase
  private:
   //! add file rule to filename (runnumber-segment)
   bool m_UseFileRuleFlag{false};
+
+  //! Buffer Size for baskets in root file
+  int buffersize{std::numeric_limits<int>::min()};
+
+  //! Split level of TBranches
+  int splitlevel{std::numeric_limits<int>::min()};
 
   //! Number of Events
   unsigned int m_NEvents{0};
@@ -140,7 +153,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   std::string m_LastClosedFileName;
 
   //! file rule when writing multiple segments (-<runnumber>-segment)
-  std::string m_FileRule {"-%08d-%05d"};
+  std::string m_FileRule{"-%08d-%05d"};
 
   //! vector of event selectors modules
   std::vector<std::string> m_EventSelectorsVector;

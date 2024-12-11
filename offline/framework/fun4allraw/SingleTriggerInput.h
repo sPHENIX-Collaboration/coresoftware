@@ -56,7 +56,8 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   virtual int SkipToEvent() const { return m_SkipToEvent; }
   virtual void LastEvent(const int i) { m_LastEvent = i; }
   virtual int LastEvent() const { return m_LastEvent; }
-
+  virtual int SetFEMEventRefPacketId(const int pktid);
+  virtual int FEMEventRefPacketId() const {return  m_FEMEventRefPacketId;}
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
  protected:
@@ -75,6 +76,7 @@ class SingleTriggerInput : public Fun4AllBase, public InputFileHandler
   int m_AllDone{0};
   int m_SubsystemEnum{0};
   int m_DefaultEventNumberOffset{0};
+  int m_FEMEventRefPacketId {0};
   int m_SkipToEvent{0};  // we may have negative event numbers but lets not go there right now
   int m_LastEvent{std::numeric_limits<int>::max()};
   unsigned int m_LocalPoolDepth{0};

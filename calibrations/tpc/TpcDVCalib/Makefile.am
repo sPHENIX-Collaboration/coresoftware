@@ -36,7 +36,7 @@ libTpcDVCalib_la_LIBADD = \
   -lcalo_io \
   -lglobalvertex_io \
   -lg4detectors_io \
-  -lphparameter
+  -lphparameter_io
 
 ################################################
 # linking tests

@@ -18,6 +18,7 @@
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
@@ -272,7 +273,8 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
     if (Verbosity() > 1)
     {
-      std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
+      const auto position = TrackSeedHelper::get_xyz(tpcseed);
+      std::cout << " tpc seed position is (x,y,z) = " << position.x() << "  " << position.y() << "  " << position.z() << std::endl;
     }
 
     ActsTrackFittingAlgorithm::MeasurementContainer measurements;
@@ -328,7 +330,18 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     // copy transient map for this track into transient geoContext
     m_transient_geocontext = m_alignmentTransformationMapTransient;
 
-    tpcseed->circleFitByTaubin(m_clusterContainer, m_tGeometry, 0, 58);
+    {
+      // get positions from cluster keys
+      // TODO: should implement distortions
+      TrackSeedHelper::position_map_t positions;
+      for( auto key_iter = tpcseed->begin_cluster_keys(); key_iter != tpcseed->end_cluster_keys(); ++key_iter )
+      {
+        const auto& key(*key_iter);
+        positions.emplace(key, m_tGeometry->getGlobalPosition( key, m_clusterContainer->findCluster(key)));
+      }
+
+      TrackSeedHelper::circleFitByTaubin(tpcseed, positions, 0, 58);
+    }
 
     float tpcR = fabs(1. / tpcseed->get_qOverR());
     float tpcx = tpcseed->get_X0();

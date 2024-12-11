@@ -184,15 +184,16 @@ libtrack_reco_la_LIBADD = \
   -lglobalvertex_io \
   -lgsl \
   -lgslcblas \
+  -lintt \
   -lintt_io \
   -lmicromegas_io \
   -lmvtx_io \
-  -lphparameter \
+  -lphparameter_io \
   -lPHGenFit \
   -lSubsysReco \
   -ltrack_io \
   -ltpc \
-  -ltrackbase_historic_io
+  -ltrackbase_historic
 
 
 # Rule for generating table CINT dictionaries.

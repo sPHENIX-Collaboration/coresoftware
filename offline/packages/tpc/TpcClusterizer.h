@@ -54,6 +54,7 @@ class TpcClusterizer : public SubsysReco
   void set_read_raw(bool read_raw) { do_read_raw = read_raw; }
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size; }
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size; }
+  void set_reject_event(bool reject) { m_rejectEvent = reject; }
 
   void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; }
   void set_nzbins(int val){NZBinsSide = val; is_reco = true;}
@@ -83,6 +84,7 @@ class TpcClusterizer : public SubsysReco
   TrkrClusterContainer *m_clusterlist = nullptr;
   TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
+  bool m_rejectEvent = true;
   bool _store_hits = false;
   bool _use_nn = false;
   bool do_hit_assoc = true;

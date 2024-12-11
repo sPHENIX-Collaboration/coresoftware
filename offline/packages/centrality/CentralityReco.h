@@ -3,13 +3,17 @@
 
 #include <fun4all/SubsysReco.h>
 #include <array>
+#include <vector>
 #include <limits>
 #include <string>  // for string, allocator
 
 // Forward declarations
 class CentralityInfo;
+class MinimumBiasInfo;
 class PHCompositeNode;
-class MbdOut;
+class GlobalVertexMap;
+class MbdPmtContainer;
+class MbdPmtHit;
 
 class CentralityReco : public SubsysReco
 {
@@ -34,24 +38,33 @@ class CentralityReco : public SubsysReco
   // Interface with CDB
   int Download_centralityDivisions(const std::string &dbfile);
   int Download_centralityScale(const std::string &dbfile);
+  int Download_centralityVertexScales(const std::string &dbfile);
 
  private:
-  std::string _dbfilename;
+
+
+  float getVertexScale();
+
+  std::string m_dbfilename;
 
   const int NDIVS{100};
+  const float mbd_charge_cut{0.5};
+  const float mbd_time_cut{20};
 
-  MbdOut *_mbd_out{nullptr};
+  GlobalVertexMap *m_global_vertex_map{nullptr};
+  MbdPmtContainer *m_mbd_container{nullptr};
+  MbdPmtHit *m_mbd_hit{nullptr};
+  MinimumBiasInfo *m_mb_info{nullptr};
+  CentralityInfo *m_central{nullptr};
 
-  CentralityInfo *_central{nullptr};
+  unsigned int m_key{std::numeric_limits<unsigned int>::max()};
 
-  unsigned int _key{std::numeric_limits<unsigned int>::max()};
+  float m_mbd_total_charge{std::numeric_limits<float>::quiet_NaN()};
 
-  float _mbd_charge_sum{std::numeric_limits<float>::quiet_NaN()};
-  float _mbd_charge_sum_n{std::numeric_limits<float>::quiet_NaN()};
-  float _mbd_charge_sum_s{std::numeric_limits<float>::quiet_NaN()};
+  double m_centrality_scale{std::numeric_limits<double>::quiet_NaN()};
+  std::vector<std::pair<std::pair<float, float>, float>>  m_vertex_scales{};
+  std::array<float, 100> m_centrality_map{};
 
-  double _centrality_scale{std::numeric_limits<double>::quiet_NaN()};
-  std::array<float, 100> _centrality_map{};
 
 };
 

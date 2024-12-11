@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <random> // For retrying connections
 #include <string>
 #include <thread>
 
@@ -143,7 +144,8 @@ FROG::location(const std::string &logical_name)
         {
           std::cout << "Trying path " << iter << std::endl;
         }
-        std::string fullfile = iter + "/" + logical_name;
+        std::string fullfile (iter);
+	fullfile.append("/").append(logical_name);
         if (localSearch(fullfile))
         {
           break;
@@ -178,12 +180,16 @@ bool FROG::GetConnection()
   {
     return true;
   }
+  std::random_device ran_dev;
+  std::seed_seq seeds {ran_dev(), ran_dev(), ran_dev()}; //...
+  std::mt19937_64 mersenne_twister(seeds);
+  std::uniform_int_distribution<> uniform(m_MIN_SLEEP_DUR, m_MAX_SLEEP_DUR);
   int icount = 0;
   do
   {
     try
     {
-      m_OdbcConnection = odbc::DriverManager::getConnection("FileCatalog", "argouser", "Brass_Ring");
+      m_OdbcConnection = odbc::DriverManager::getConnection("FileCatalog_read", "", "");
       return true;
     }
     catch (odbc::SQLException &e)
@@ -193,8 +199,9 @@ bool FROG::GetConnection()
       std::cout << "Message: " << e.getMessage() << std::endl;
     }
     icount++;
-    std::this_thread::sleep_for(std::chrono::seconds(30));  // sleep 30 seconds before retry
-  } while (icount < 5);
+    int sleep_time_ms = uniform(mersenne_twister);
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_ms));
+  } while (icount < m_MAX_NUM_RETRIES);
   return false;
 }
 

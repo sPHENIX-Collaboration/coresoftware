@@ -167,7 +167,7 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
   RawClusterContainer *clusterContainer = findNode::getClass<RawClusterContainer>(topNode, m_clusterNode.c_str());
   if (!clusterContainer && storeClusters)
   {
-    std::cout << PHWHERE << "caloTreeGen::process_event: " << m_clusterNode << " node is missing. Output related to this node will be empty" << std::endl;
+    std::cout << PHWHERE << "caloTreeGen::process_event: Cluster " << m_clusterNode << " node is missing. Output related to this node will be empty" << std::endl;
     return 0;
   }
 
@@ -176,7 +176,7 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
   emcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_emcTowerNode.c_str());
   if (!emcTowerContainer && storeEMCal)
   {
-    std::cout << PHWHERE << "caloTreeGen::process_event: " << m_emcTowerNode << " node is missing. Output related to this node will be empty" << std::endl;
+    std::cout << PHWHERE << "caloTreeGen::process_event: EMCal " << m_emcTowerNode << " node is missing. Output related to this node will be empty" << std::endl;
   }
 
   // grab all the towers and fill their energies.
@@ -259,9 +259,9 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *ohcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_ohcTowerNode);
   TowerInfoContainer *ihcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_ihcTowerNode.c_str());
 
-  if (!ohcTowerContainer || !ihcTowerContainer)
+  if ((!ohcTowerContainer || !ihcTowerContainer) && storeHCals)
   {
-    std::cout << PHWHERE << "caloTreeGen::process_event: " << m_ohcTowerNode << " or " << m_ohcTowerNode << " node is missing. Output related to this node will be empty" << std::endl;
+    std::cout << PHWHERE << "caloTreeGen::process_event: OHCal " << m_ohcTowerNode << " or IHCal " << m_ihcTowerNode << " node is missing. Output related to this node will be empty" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -319,10 +319,9 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
   }
 
   TowerInfoContainer *zdcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_zdcTowerNode.c_str());
-  if (!zdcTowerContainer)
+  if (!zdcTowerContainer && storeZDC)
   {
-    std::cout << PHWHERE << "caloTreeGen::process_event: " << m_emcTowerNode << " node is missing. Output related to this node will be empty" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    std::cout << PHWHERE << "caloTreeGen::process_event: ZDC " << m_zdcTowerNode << " node is missing. Output related to this node will be empty" << std::endl;
   }
 
   if (storeZDC && zdcTowerContainer)
@@ -355,7 +354,7 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
   Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, m_trigNode.c_str());
   if (!gl1PacketInfo && storeTrig)
   {
-    std::cout << PHWHERE << "caloTreeGen::process_event: " << m_trigNode << " node is missing. Output related to this node will be empty" << std::endl;
+    std::cout << PHWHERE << "caloTreeGen::process_event: Gl1 " << m_trigNode << " node is missing. Output related to this node will be empty" << std::endl;
   }
 
   if (storeTrig && gl1PacketInfo)

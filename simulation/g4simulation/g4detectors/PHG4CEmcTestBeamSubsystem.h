@@ -74,7 +74,7 @@ class PHG4CEmcTestBeamSubsystem : public PHG4Subsystem
   /*! derives from PHG4SteppingActions */
   PHG4CEmcTestBeamSteppingAction* steppingAction_;
   PHG4EventAction* eventAction_;
-  G4double dimension[3];
+  G4double dimension[3]{};
   G4double place_in_x;
   G4double place_in_y;
   G4double place_in_z;

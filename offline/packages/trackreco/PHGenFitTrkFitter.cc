@@ -15,6 +15,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <intt/CylinderGeomIntt.h>
+#include <intt/CylinderGeomInttHelper.h>
 
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
@@ -55,6 +56,7 @@
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <GenFit/AbsMeasurement.h>  // for AbsMeasurement
 #include <GenFit/Exception.h>       // for Exception
@@ -251,9 +253,10 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     svtxtrack->set_crossing(crossing);
 
     // track position comes from silicon seed
-    svtxtrack->set_x(siseed->get_x());
-    svtxtrack->set_y(siseed->get_y());
-    svtxtrack->set_z(siseed->get_z());
+    const auto position = TrackSeedHelper::get_xyz(siseed);
+    svtxtrack->set_x(position.x());
+    svtxtrack->set_y(position.y());
+    svtxtrack->set_z(position.z());
 
     // track momentum comes from tpc seed
     svtxtrack->set_charge(tpcseed->get_qOverR() > 0 ? 1 : -1);
@@ -668,7 +671,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       double hit_location[3] = {0.0, 0.0, 0.0};
       auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
       auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
-      geom->find_segment_center(surf, m_tgeometry, hit_location);
+      CylinderGeomInttHelper::find_segment_center(surf, m_tgeometry, hit_location);
 
       TVector3 n(hit_location[0], hit_location[1], 0);
       n.RotateZ(geom->get_strip_phi_tilt());

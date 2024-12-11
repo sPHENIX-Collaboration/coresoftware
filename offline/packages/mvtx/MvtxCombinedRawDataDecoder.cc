@@ -6,6 +6,7 @@
 
 #include "MvtxCombinedRawDataDecoder.h"
 
+#include <fun4allraw/MvtxRawDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/MvtxEventInfov2.h>
 #include <trackbase/TrkrHitSet.h>
@@ -113,30 +114,22 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   {
     se->unregisterSubsystem(this);
   }
+  recoConsts *rc = recoConsts::instance();
+  int runNumber = rc->get_IntFlag("RUNNUMBER");
 
-  getStrobeLength();
-
-  // Mask Hot MVTX Pixels
-  // std::string database = CDBInterface::instance()->getUrl(
-  //     "MVTX_HotPixelMap");  // This is specifically for MVTX Hot Pixels
-  // CDBTTree *cdbttree = new CDBTTree(database);
-  // int NPixel = -1;
-  // NPixel = cdbttree->GetSingleIntValue("TotalHotPixels");
-
-  // for (int i = 0; i < NPixel; i++)
-  // {
-  //   int Layer = cdbttree->GetIntValue(i, "layer");
-  //   int Stave = cdbttree->GetIntValue(i, "stave");
-  //   int Chip = cdbttree->GetIntValue(i, "chip");
-  //   int Col = cdbttree->GetIntValue(i, "col");
-  //   int Row = cdbttree->GetIntValue(i, "row");
-
-  //   TrkrDefs::hitsetkey HotPixelHitKey =
-  //       MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
-  //   TrkrDefs::hitkey HotHitKey = MvtxDefs::genHitKey(Col, Row);
-  //   m_hotPixelMap.push_back({std::make_pair(HotPixelHitKey, HotHitKey)});
-  // }
-
+  if (m_readStrWidthFromDB)
+  {
+    m_strobeWidth = MvtxRawDefs::getStrobeLength(runNumber);
+  }
+  if(std::isnan(m_strobeWidth))
+  {
+    std::cout << "MvtxCombinedRawDataDecoder::InitRun - strobe width is undefined for this run, defaulting to 89 mus" << std::endl;
+    m_strobeWidth = 89;
+  }
+  if(m_strobeWidth < 1)
+  {
+    runMvtxTriggered(true);
+  }
   // Load the hot pixel map from the CDB
   if(m_doOfflineMasking)
   {
@@ -179,7 +172,8 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   {
     gl1rawhitbco = gl1->lValue(0, "BCO");
   }
-  else{
+  else
+  {
     auto oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
     if(oldgl1)
     {
@@ -235,7 +229,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 
     int bcodiff = gl1 ? gl1bco - strobe : 0;
     double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
-    int index = std::floor(timeElapsed / m_strobeWidth);
+    int index = m_mvtx_is_triggered ? 0 : std::floor(timeElapsed / m_strobeWidth);
 
     if (index < -16 || index > 15)
     {
@@ -265,38 +259,27 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     if (hit)
     {
       if(Verbosity() > 1)
-	{
-      std::cout << PHWHERE << "::" << __func__
-                << " - duplicated hit, hitsetkey: " << hitsetkey
-                << " hitkey: " << hitkey << std::endl;
-	}
+      {
+        std::cout << PHWHERE << "::" << __func__
+                  << " - duplicated hit, hitsetkey: " << hitsetkey
+                  << " hitkey: " << hitkey << std::endl;
+      }
       continue;
     }
 
-  if(m_doOfflineMasking)
-  {
-    if (!m_hot_pixel_mask->is_masked(mvtx_hit))
-    { // Check if the pixel is masked
+    if(m_doOfflineMasking)
+    {
+      if (!m_hot_pixel_mask->is_masked(mvtx_hit))
+      { // Check if the pixel is masked
+        hit = new TrkrHitv2;
+        hitset_it->second->addHitSpecificKey(hitkey, hit);
+      }
+    }
+    else
+    {
       hit = new TrkrHitv2;
       hitset_it->second->addHitSpecificKey(hitkey, hit);
     }
-  }
-  else
-  {
-    hit = new TrkrHitv2;
-    hitset_it->second->addHitSpecificKey(hitkey, hit);
-  }
-    // const TrkrDefs::hitsetkey hitsetkeymask =
-    //     MvtxDefs::genHitSetKey(layer, stave, chip, 0);
-
-    // if (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(),
-    //               std::make_pair(hitsetkeymask, hitkey)) ==
-    //     m_hotPixelMap.end())
-    // {
-      // create hit and insert in hitset
-      // hit = new TrkrHitv2;
-      // hitset_it->second->addHitSpecificKey(hitkey, hit);
-    // }
 
   }
 
@@ -331,45 +314,4 @@ void MvtxCombinedRawDataDecoder::removeDuplicates(
     end = remove(it + 1, end, *it);
   }
   v.erase(end, v.end());
-}
-
-void MvtxCombinedRawDataDecoder::getStrobeLength()
-{
-  recoConsts *rc = recoConsts::instance();
-  int m_runNumber = rc->get_IntFlag("RUNNUMBER");
-
-  std::string executable_command = "psql -h sphnxdaqdbreplica daq --csv -c \"SELECT strobe FROM mvtx_strobe WHERE hostname = \'mvtx0\' AND runnumber = ";
-  executable_command += std::to_string(m_runNumber);
-  executable_command += ";\" | tail -n 1";
-
-  std::string strobe_query = exec(executable_command.c_str());
-
-  try
-  {
-    m_strobeWidth = stof(strobe_query);
-  }
-  catch (std::invalid_argument const& ex)
-  {
-    if (Verbosity() >= 1)
-    {
-      std::cout << PHWHERE << ":: Run number " << m_runNumber << " has no strobe length in the DAQ database, using " << m_strobeWidth << " microseconds" << std::endl;
-    }
-  }
-}
-
-// https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
-std::string MvtxCombinedRawDataDecoder::exec(const char *cmd)
-{
-  std::array<char, 128> buffer = {};
-  std::string result;
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-  if (!pipe)
-  {
-    throw std::runtime_error("popen() failed!");
-  }
-  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
-  {
-    result += buffer.data();
-  }
-  return result;
 }

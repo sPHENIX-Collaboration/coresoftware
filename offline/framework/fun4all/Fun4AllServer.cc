@@ -552,6 +552,9 @@ int Fun4AllServer::process_event()
       }
     }
 
+    PHTimer subsystem_timer("SubsystemTimer");
+    subsystem_timer.restart();
+
     try
     {
       std::string timer_name;
@@ -654,6 +657,13 @@ int Fun4AllServer::process_event()
         std::cout << "phenix-off-l with this message" << std::endl;
         return Fun4AllReturnCodes::ABORTRUN;
       }
+    }
+    subsystem_timer.stop();
+    double TimeSubsystem = subsystem_timer.elapsed();
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      std::cout << "Fun4AllServer::process_event processing " << Subsystem.first->Name()
+                << " processing total time: " << TimeSubsystem << " ms" << std::endl;
     }
     icnt++;
   }
@@ -1458,7 +1468,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         BeginRun(runnumber);
       }
     }
-    if (Verbosity() >= 1)
+    if (Verbosity() >= 1 && ((icnt + 1)%VerbosityDownscale() == 0))
     {
       std::cout << "Fun4AllServer::run - processing event "
                 << (icnt + 1) << " from run " << runnumber << std::endl;
