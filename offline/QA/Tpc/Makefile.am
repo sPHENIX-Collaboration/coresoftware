@@ -11,7 +11,9 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  Biquad.h \
   TpcChanQA.h \
+  TpcFFT.h \
   TpcRawHitQA.h \
   TpcNoiseQA.h
 
@@ -19,7 +21,9 @@ lib_LTLIBRARIES = \
   libtpcqa.la
 
 libtpcqa_la_SOURCES = \
+  Biquad.cc \
   TpcChanQA.cc \
+  TpcFFT.cc \
   TpcRawHitQA.cc \
   TpcNoiseQA.cc
 
