@@ -334,23 +334,21 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       if( fitfulltrack && si_seed->get_crossing() == SHRT_MAX)
 	{
-	  std::cout << " discard track " << trackid << " with crossing " <<  si_seed->get_crossing() << " and nintt " << nintt << std::endl;
+	  if(Verbosity() > 0) 
+	    {
+	      std::cout << " discard track " << trackid << " with crossing " <<  si_seed->get_crossing() << " and nintt " << nintt << std::endl;
+	    }
 	  continue;   // cannot make TPC corrections without valid crossing
 	}
       
       if( (fitsilicon || fitfulltrack) && nintt<2)
 	{
-	  std::cout << " discard track " << trackid << " with nintt " <<  nintt << std::endl;
 	  continue;   // discard incomplete seeds
 	}
-
-      std::cout << " process track " << trackid << " with nintt " <<  nintt << " and crossing " <<  si_seed->get_crossing() << std::endl;
 
       // store cluster global positions in a vector global_vec
       TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
 
-      std::cout << " call correctTpcGlobalPositions with crossing " <<  si_seed->get_crossing() << std::endl;
-     
       correctTpcGlobalPositions(global_vec, cluskey_vec, si_seed->get_crossing());
       
       std::vector<float> fitpars;
@@ -2043,9 +2041,9 @@ void HelicalFitter::correctTpcGlobalPositions(std::vector<Acts::Vector3> global_
       // have to add corrections for TPC clusters after transformation to global
       makeTpcGlobalCorrections(cluskey, crossing, global);
 
-      std::cout << " iclus " << iclus << " cluskey " << cluskey << " crossing " << crossing << std::endl;
-      std::cout << "    global in " << global_vec[iclus](0) << "  " << global_vec[iclus](1) << "  " << global_vec[iclus](2) << std::endl;
-      std::cout << "    global out " << global(0) << "  " << global(1) << "  " << global(2) << std::endl;  
+      // std::cout << " iclus " << iclus << " cluskey " << cluskey << " crossing " << crossing << std::endl;
+      // std::cout << "    global in " << global_vec[iclus](0) << "  " << global_vec[iclus](1) << "  " << global_vec[iclus](2) << std::endl;
+      // std::cout << "    global out " << global(0) << "  " << global(1) << "  " << global(2) << std::endl;  
 
       global_vec[iclus] = global;
     }

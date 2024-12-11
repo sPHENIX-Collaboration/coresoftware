@@ -51,7 +51,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
 
   void set_test_windows_printout(const bool test) { _test_windows = test; }
-  void set_test_windows_filename(const std::string name) { _test_windows_filename = name; }
+  void set_test_windows_filename(const std::string &name) { _test_windows_filename = name; }
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
   void set_use_intt_crossing(const bool flag) { _use_intt_crossing = flag; }
 
