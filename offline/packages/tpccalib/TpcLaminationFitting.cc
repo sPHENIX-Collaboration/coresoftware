@@ -435,12 +435,8 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
   {
     for (int l = 0; l < 18; l++)
     {
-      std::cout << "working on lamination " << l << " side " << (s == 1 ? "north" : "south") << std::endl;
-      std::cout << "distance to fit: " << m_distanceToFit[l][s] << "   " << m_nBinsFit[l][s] << " bins used" << std::endl;
-
       if (!m_laminationGoodFit[l][s])
       {
-        std::cout << "fit is bad" << std::endl;
         continue;
       }
 
@@ -469,8 +465,6 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
     }
   }
 
-  std::cout << "filled lamination hists" << std::endl;
-
   for (int s = 0; s < 2; s++)
   {
     m_dcc_out->m_hDPint[s] = (TH2 *) phiDistortionLamination[s]->Clone();
@@ -493,14 +487,11 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
   }
   */
 
-  std::cout << "copied into m_dcc_out" << std::endl;
-
   // m_dcc_out->m_hDPint[0] = (TH2*)phiDistortionLamination[0]->Clone();
   // m_dcc_out->m_hDPint[1] = (TH2*)phiDistortionLamination[1]->Clone();
 
   for (int s = 0; s < 2; s++)
   {
-    std::cout << "working on side " << s << std::endl;
     for (int i = 1; i <= m_dcc_out->m_hDPint[s]->GetNbinsY(); i++)
     {
       double R = m_dcc_out->m_hDPint[s]->GetYaxis()->GetBinCenter(i);
@@ -517,8 +508,6 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
         }
       }
 
-      std::cout << "R=" << R << " has " << laminationPhiBins.size() << " good laminations" << std::endl;
-
       if (laminationPhiBins.size() > 1)
       {
         laminationPhiBins.push_back(laminationPhiBins[0]);
@@ -526,7 +515,6 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
 
       for (int lamPair = 0; lamPair < (int) laminationPhiBins.size() - 1; lamPair++)
       {
-        std::cout << "working on lamination pair " << lamPair << std::endl;
         double dist0 = m_dcc_out->m_hDPint[s]->GetBinContent(laminationPhiBins[lamPair], i);
         double dist1 = m_dcc_out->m_hDPint[s]->GetBinContent(laminationPhiBins[lamPair + 1], i);
 
@@ -613,18 +601,13 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   }
   
   TFile *simDistortion = new TFile("/cvmfs/sphenix.sdcc.bnl.gov/gcc-12.1.0/release/release_new/new.10/share/calibrations/distortion_maps/average_minus_static_distortion_inverted_10-new.root", "READ");
-  std::cout << "opened sim file" << std::endl;
   TH3 *hIntDistortionP_posz = (TH3 *) simDistortion->Get("hIntDistortionP_posz");
   hIntDistortionP_posz->GetZaxis()->SetRange(2, 2);
-  std::cout << "got pos phi dist and set range" << std::endl;
   TH2 *simPhiDistortion[2];
-  std::cout << "made 2D projection holder" << std::endl;
   simPhiDistortion[1] = (TH2 *) hIntDistortionP_posz->Project3D("yx");
   TH3 *hIntDistortionP_negz = (TH3 *) simDistortion->Get("hIntDistortionP_negz");
   hIntDistortionP_negz->GetZaxis()->SetRange(hIntDistortionP_negz->GetNbinsZ() - 1, hIntDistortionP_negz->GetNbinsZ() - 1);
-  std::cout << "got neg phi dist and set range" << std::endl;
   simPhiDistortion[0] = (TH2 *) hIntDistortionP_negz->Project3D("yx");
-  std::cout << "made 2D projection" << std::endl;
 
   int interpolateSuccess = InterpolatePhiDistortions(simPhiDistortion);
   if (interpolateSuccess != Fun4AllReturnCodes::EVENT_OK)
@@ -633,16 +616,12 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  std::cout << "done with interpolating" << std::endl;
-
   for (int s = 0; s < 2; s++)
   {
     scaleFactorMap[s] = (TH2 *) m_dcc_out->m_hDPint[s]->Clone();
     scaleFactorMap[s]->SetName((boost::format("scaleFactorMap%d") %s).str().c_str());
     scaleFactorMap[s]->Divide(simPhiDistortion[s]);
   }
-
-  std::cout << "done with scale factor" << std::endl;
 
   TH3 *hIntDistortionR_posz = (TH3 *) simDistortion->Get("hIntDistortionR_posz");
   hIntDistortionR_posz->GetZaxis()->SetRange(2, 2);
@@ -671,11 +650,9 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     m_dcc_out->m_hDRint[s]->Multiply(scaleFactorMap[s]);
   }
 
-  std::cout << "done with R map" << std::endl;
 
   fill_guarding_bins(m_dcc_out);
 
-  std::cout << "done with guarding bins" << std::endl;
 
   for(int s=0; s<2; s++)
   {
@@ -710,8 +687,6 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   m_laminationTree->Write();
 
   outputfile->Close();
-
-  std::cout << "done with writing" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
