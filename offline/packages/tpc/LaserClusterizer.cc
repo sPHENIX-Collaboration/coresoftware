@@ -78,7 +78,7 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   }
 
   // Create the Cluster node if required
-  auto laserclusters = findNode::getClass<LaserClusterContainerv1>(dstNode, m_laserClusterNodeName);
+  auto laserclusters = findNode::getClass<LaserClusterContainerv1>(dstNode, "LASER_CLUSTER");
   if (!laserclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -92,8 +92,26 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
 
     laserclusters = new LaserClusterContainerv1;
     PHIODataNode<PHObject> *LaserClusterContainerNode =
-        new PHIODataNode<PHObject>(laserclusters, m_laserClusterNodeName, "PHObject");
+        new PHIODataNode<PHObject>(laserclusters, "LASER_CLUSTER", "PHObject");
     DetNode->addNode(LaserClusterContainerNode);
+  }
+
+  auto laminationclusters = findNode::getClass<LaserClusterContainerv1>(dstNode, "LAMINATION_CLUSTER");
+  if (!laminationclusters)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+
+    laminationclusters = new LaserClusterContainerv1;
+    PHIODataNode<PHObject> *LaminationClusterContainerNode =
+        new PHIODataNode<PHObject>(laminationclusters, "LAMINATION_CLUSTER", "PHObject");
+    DetNode->addNode(LaminationClusterContainerNode);
   }
 
   if (m_debug)
@@ -192,6 +210,13 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  m_clusterlistLaminations = findNode::getClass<LaserClusterContainerv1>(topNode, "LAMINATION_CLUSTER");
+  if (!m_clusterlistLaminations)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find LAMINATION_CLUSTER." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   m_geom_container =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!m_geom_container)
@@ -230,6 +255,9 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
   bgi::rtree<pointKeyLaser, bgi::quadratic<16>> rtree;
   std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> adcMap;
+
+  bgi::rtree<pointKeyLaser, bgi::quadratic<16>> rtreeLaminations;
+  std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> adcMapLaminations;
 
   if (!do_read_raw)
   {
@@ -385,8 +413,10 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
         auto spechitkey = std::make_pair(hitKey, hitsetKey);
         auto keyCoords = std::make_pair(spechitkey, coords);
         adcMap.insert(std::make_pair(adc, keyCoords));
+        adcMapLaminations.insert(std::make_pair(adc, keyCoords));
 
         rtree.insert(std::make_pair(point(1.0 * layer, 1.0 * iphi, 1.0 * it), spechitkey));
+        rtreeLaminations.insert(std::make_pair(point(1.0 * layer, 1.0 * iphi, 1.0 * it), spechitkey));
       }
     }
   }
@@ -416,12 +446,12 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     int iphi = coords[1];
     int it = coords[2];
 
-    int layerMax = layer + m_layer_search_window;
+    int layerMax = layer + 1;
     if( (layer <= 22 && layerMax > 22) || (layer > 22 && layer <= 38 && layerMax > 38) || (layer > 38 && layer <= 54 && layerMax > 54) )
     {
       layerMax = layer;
     }
-    int layerMin = layer - m_layer_search_window;
+    int layerMin = layer - 1;
     if( (layer >= 7 && layer <= 22 && layerMin < 7) || (layer >= 23 && layer <= 38 && layerMin < 23) || (layer >= 38 && layer <= 54 && layerMin < 38) )
     {
       layerMin = layer;
@@ -434,7 +464,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     t_search->stop();
 
     t_clus->restart();
-    calc_cluster_parameter(clusHits, adcMap);
+    calc_cluster_parameter(clusHits, adcMap,false);
     t_clus->stop();
 
     t_erase->restart();
@@ -442,6 +472,49 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     t_erase->stop();
 
     clusHits.clear();
+  }
+
+
+  while (adcMapLaminations.size() > 0)
+  {
+    auto iterKey = adcMapLaminations.rbegin();
+    if (iterKey == adcMapLaminations.rend())
+    {
+      break;
+    }
+
+    auto coords = iterKey->second.second;
+
+    int layer = coords[0];
+    int iphi = coords[1];
+    int it = coords[2];
+
+    int layerMax = layer + 2;
+    if( (layer <= 22 && layerMax > 22) || (layer > 22 && layer <= 38 && layerMax > 38) || (layer > 38 && layer <= 54 && layerMax > 54) )
+    {
+      layerMax = layer;
+    }
+    int layerMin = layer - 2;
+    if( (layer >= 7 && layer <= 22 && layerMin < 7) || (layer >= 23 && layer <= 38 && layerMin < 23) || (layer >= 38 && layer <= 54 && layerMin < 38) )
+    {
+      layerMin = layer;
+    }
+
+    std::vector<pointKeyLaser> clusHitsLaminations;
+
+    t_search->restart();
+    rtreeLaminations.query(bgi::intersects(box(point(layerMin, iphi - 2, it - 5), point(layerMax, iphi + 2, it + 5))), std::back_inserter(clusHitsLaminations));
+    t_search->stop();
+
+    t_clus->restart();
+    calc_cluster_parameter(clusHitsLaminations, adcMapLaminations,true);
+    t_clus->stop();
+
+    t_erase->restart();
+    remove_hits(clusHitsLaminations, rtreeLaminations, adcMapLaminations);
+    t_erase->stop();
+
+    clusHitsLaminations.clear();
   }
 
   if (m_debug)
@@ -492,7 +565,7 @@ int LaserClusterizer::End(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap)
+void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap, bool isLamination)
 {
   double rSum = 0.0;
   double phiSum = 0.0;
@@ -694,9 +767,16 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   clus->setSDWeightedIPhi(sqrt(sigmaWeightedIPhi / adcSum));
   clus->setSDWeightedIT(sqrt(sigmaWeightedIT / adcSum));
 
-  const auto ckey = TrkrDefs::genClusKey(maxKey, m_clusterlist->size());
-  m_clusterlist->addClusterSpecifyKey(ckey, clus);
-  if (m_debug)
+  const auto ckey = TrkrDefs::genClusKey(maxKey, (isLamination ? m_clusterlistLaminations->size() : m_clusterlist->size()));
+  if(isLamination)
+  {
+    m_clusterlistLaminations->addClusterSpecifyKey(ckey, clus);
+  }
+  else
+  {
+    m_clusterlist->addClusterSpecifyKey(ckey, clus);
+  }
+  if (m_debug && !isLamination)
   {
     m_currentCluster = (LaserClusterv1 *) clus->CloneMe();
     // m_eventClusters.push_back((LaserClusterv1 *) m_currentCluster->CloneMe());

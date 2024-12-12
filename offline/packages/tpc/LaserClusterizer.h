@@ -54,7 +54,7 @@ class LaserClusterizer : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   // void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap);
-  void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
+  void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap, bool isLamination);
   // void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
   void remove_hits(std::vector<pointKeyLaser> &clusHits, bgi::rtree<pointKeyLaser, bgi::quadratic<16>> &rtree, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
 
@@ -65,8 +65,6 @@ class LaserClusterizer : public SubsysReco
   void set_min_clus_size(float val) { min_clus_size = val; }
   void set_min_adc_sum(float val) { min_adc_sum = val; }
   void set_max_time_samples(int val) { m_time_samples_max = val; }
-
-  void set_layer_search_window(int val) { m_layer_search_window = val; }
 
  private:
   int m_event = -1;
@@ -79,6 +77,7 @@ class LaserClusterizer : public SubsysReco
   TrkrHitSetContainer *m_hits = nullptr;
   RawHitSetContainer *m_rawhits = nullptr;
   LaserClusterContainerv1 *m_clusterlist = nullptr;
+  LaserClusterContainerv1 *m_clusterlistLaminations = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
   PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
   double min_clus_size = 1;
@@ -108,9 +107,6 @@ class LaserClusterizer : public SubsysReco
   double time_clus = 0;
   double time_erase = 0;
   double time_all = 0;
-
-  std::string m_laserClusterNodeName{"LASER_CLUSTER"};
-  int m_layer_search_window = 1;
 
   LaserClusterv1 *m_currentCluster = nullptr;
   LaserClusterContainerv1 *m_eventClusters = nullptr;
