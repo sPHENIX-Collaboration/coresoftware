@@ -1,0 +1,9 @@
+*/*.out
+*/*.job
+*/*.log
+*/*.hepmc
+*/*.txt
+*/*Evt*
+*/condor_file_dir/*
+*/condor_file_dir
+
