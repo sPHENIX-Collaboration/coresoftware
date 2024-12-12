@@ -2,7 +2,7 @@
 verbose_mode=false
 events=1000000
 nfiles=1000
-density=1000
+density=10000 #events / file
 dosubmit=false
 triggertype="MB" 
 configfile="MB.in"
@@ -22,7 +22,7 @@ make_condor_jobs()
 		IFS=$'\n' read -d '' -r -a blanklines < $condor_testfile
 		echo "${blanklines[0]}" > $condor_file 
 		echo "${blanklines[1]}"$(pwd)"/Herwig_run.sh" >> $condor_file
-		echo "${blanklines[2]}"$configfile "  1000 " $i >> $condor_file
+		echo "${blanklines[2]}"$configfile $density $i >> $condor_file
 		echo "${blanklines[3]}"$condor_out_file >> $condor_file
 		echo "${blanklines[4]}"$condor_err_file >> $condor_file
 		echo "${blanklines[5]}"$condor_log_file >> $condor_file
@@ -38,7 +38,6 @@ make_condor_jobs()
 }
 submit_condor_jobs(){
 	#if submit just get all files in the expected job type	
-	ls condor_file_dir
 	for i in `ls "condor_file_dir/condor_"$triggertype"_"*".job"`; do 
 		condor_submit $i 
 	done
@@ -55,7 +54,7 @@ set_config()
 {
 	#Need to use the .run files, can ammend to use the .in files  but that adds unnecessary computational time
 	if [ "$triggertype" = "MB" ]; then 
-		configfile="${configdir}/Heriwg_MB.run"
+		configfile="${configdir}/Herwig_MB.run"
 	elif [ "$triggertype" = "Jet10" ]; then
 		configfile="${configdir}/Herwig_Jet10.run"
 	elif [ "$triggertype" = "Jet30" ]; then 
