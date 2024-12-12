@@ -687,7 +687,7 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
     }
   if (global_vec_noINTT.size() < 3)
     {
-       std::cout << " TrackFitUtils::fitClustersZeroField failed for <3 non-INTT cluskeys " << ((int)global_vec_noINTT.size()) << std::endl;
+       //std::cout << " TrackFitUtils::fitClustersZeroField failed for <3 non-INTT cluskeys " << ((int)global_vec_noINTT.size()) << std::endl;
       return fitpars;
     }
   std::tuple<double, double> xz_fit_pars = TrackFitUtils::line_fit_xz(global_vec_noINTT);
@@ -1004,6 +1004,8 @@ TrackFitUtils::zero_field_track_params(
     " x,y,z: " << x<<"<"<<y<<","<<z<<"  P: " << px<<","<<py<<","<<pz << std::endl;
   }
   return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x,y,z), p);
+}
+
 bool TrackFitUtils::isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_vec)
 {
   bool isWest = false;

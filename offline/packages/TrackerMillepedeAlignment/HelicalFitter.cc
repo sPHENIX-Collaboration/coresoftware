@@ -108,7 +108,7 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
     fout = new TFile(ntuple_outfilename.c_str(), "recreate");
     if(straight_line_fit)
       {
-  ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:crosshalfmvtx:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:XYs:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+  ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:crosshalfmvtx:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:XYs:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:xfitMvtxHalf:yfitMvtxHalf:zfitMvtxHalf:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:fitXMvtxHalf:fitYMvtxHalf:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
       }
     else
       {
@@ -206,6 +206,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   std::vector<std::vector<Acts::Vector3>> cumulative_global_vec;
   std::vector<std::vector<TrkrDefs::cluskey>> cumulative_cluskey_vec;
   std::vector<std::vector<float>> cumulative_fitpars_vec;
+  std::vector<std::vector<float>> cumulative_fitpars_mvtx_half_vec;
   std::vector<Acts::Vector3> cumulative_vertex;
   std::vector<TrackSeed> cumulative_someseed;
   std::vector<SvtxTrack_v4> cumulative_newTrack;
@@ -260,10 +261,13 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
  
     std::vector<float> fitpars;
+    std::vector<float> fitpars_mvtx_half;
     if(straight_line_fit)
       {
-  fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit, mvtx_east_only, mvtx_west_only);
-
+  fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit, false, false);
+  fitpars_mvtx_half = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit, mvtx_east_only, mvtx_west_only);
+  if (fitpars_mvtx_half.size()<3)
+    fitpars_mvtx_half = fitpars;
   if (fitpars.size() == 0)
     {
       continue;  // discard this track, not enough clusters to fit
@@ -294,8 +298,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       std::cout << " Track " << trackid << " radius " << fitpars[0] << " X0 " << fitpars[1] << " Y0 " << fitpars[2]
           << " zslope " << fitpars[3] << " Z0 " << fitpars[4] << std::endl;
     }
-      }
-    
+      }    
 
     //// Create a track map for diagnostics
     SvtxTrack_v4 newTrack;
@@ -319,6 +322,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   {
     std::tuple<double, double> linefit_xy(fitpars[0], fitpars[1]); 
     nsilicon = TrackFitUtils::addClustersOnLine(linefit_xy, true, dca_cut, _tGeometry, _cluster_map, global_vec, cluskey_vec, 0, 6);
+
   }
       else
   {
@@ -343,10 +347,12 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       // fit the full track now
       fitpars.clear();
+      fitpars_mvtx_half.clear();
+
       if(straight_line_fit)
   {
-    fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit, mvtx_east_only, mvtx_west_only);
-      
+    fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit);
+    fitpars_mvtx_half = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, use_intt_zfit, mvtx_east_only, mvtx_west_only);
     if (fitpars.size() == 0)
       {
         continue;  // discard this track, not enough clusters to fit
@@ -473,11 +479,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       continue;
     }
-
     cumulative_global_vec.push_back(global_vec);
     cumulative_cluskey_vec.push_back(cluskey_vec);
     cumulative_vertex.push_back(track_vtx);
     cumulative_fitpars_vec.push_back(fitpars);
+    cumulative_fitpars_mvtx_half_vec.push_back(fitpars_mvtx_half);
     cumulative_someseed.push_back(someseed);
     cumulative_newTrack.push_back(newTrack);
   }
@@ -504,6 +510,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     auto global_vec = cumulative_global_vec[trackid];
     auto cluskey_vec = cumulative_cluskey_vec[trackid];
     auto fitpars = cumulative_fitpars_vec[trackid];
+    auto fitpars_mvtx_half = cumulative_fitpars_mvtx_half_vec[trackid];
     auto someseed = cumulative_someseed[trackid];
     auto newTrack = cumulative_newTrack[trackid];
     SvtxAlignmentStateMap::StateVec statevec;
@@ -515,17 +522,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       auto cluskey = cluskey_vec[ivec];
       auto cluster = _cluster_map->findCluster(cluskey);
       
-      bool skip_flag = false;
-      //option to record only hits from tracks that cross mvtx and are in east OR west
-      if (do_mvtx_half> -1)
-      {
-        if (!h2h_flag)
-          skip_flag=true;
-        if (do_mvtx_half != 1 && TrackFitUtils::isMvtxEast(TrkrDefs::getHitSetKeyFromClusKey(cluskey)))
-          skip_flag=true;
-        if (do_mvtx_half != 0 && !TrackFitUtils::isMvtxEast(TrkrDefs::getHitSetKeyFromClusKey(cluskey)))
-          {skip_flag=true;}
-      }
       if (!cluster)
       {
         continue;
@@ -541,9 +537,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       Acts::Vector3 helix_pca(0, 0, 0);
       Acts::Vector3 helix_tangent(0, 0, 0);
       Acts::Vector3 fitpoint;
+      Acts::Vector3 fitpoint_mvtx_half;
       if(straight_line_fit)
   {
     fitpoint = get_line_surface_intersection(surf, fitpars);
+    fitpoint_mvtx_half = get_line_surface_intersection(surf, fitpars_mvtx_half);
   }
       else
   {
@@ -553,8 +551,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       // fitpoint is the point where the helical fit intersects the plane of the surface
       // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
       Acts::Vector3 fitpoint_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint * Acts::UnitConstants::cm);
+      Acts::Vector3 fitpoint_mvtx_half_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint_mvtx_half * Acts::UnitConstants::cm);
 
       fitpoint_local /= Acts::UnitConstants::cm;
+      fitpoint_mvtx_half_local /= Acts::UnitConstants::cm;
 
       auto xloc = cluster->getLocalX();  // in cm
       auto zloc = cluster->getLocalY();
@@ -754,9 +754,9 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
           sector = InttDefs::getLadderPhiId(cluskey_vec[ivec]);
           subsurf = InttDefs::getLadderZId(cluskey_vec[ivec]);
         }
-  if(straight_line_fit && !skip_flag)
+  if(straight_line_fit)
     {
-      float ntp_data[73] = {
+      float ntp_data[78] = {
         (float) event, (float) trackid,
         (float) layer, (float) nsilicon, (float) h2h_flag, (float) ntpc, (float) nclus, (float) trkrid, (float) sector, (float) side,
         (float) subsurf, phi,
@@ -769,9 +769,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         (float) fitpars[0], (float) fitpars[1], (float) fitpars[2], (float) fitpars[3],
         (float) global(0), (float) global(1), (float) global(2),
         (float) fitpoint(0), (float) fitpoint(1), (float) fitpoint(2),
+        (float) fitpoint_mvtx_half(0), (float) fitpoint_mvtx_half(1), (float) fitpoint_mvtx_half(2),
         (float) tangent.first.x(), (float) tangent.first.y(), (float) tangent.first.z(),
         (float) tangent.second.x(), (float) tangent.second.y(), (float) tangent.second.z(),
-        xloc, zloc, (float) fitpoint_local(0), (float) fitpoint_local(1),
+        xloc, zloc, (float) fitpoint_local(0), (float) fitpoint_local(1), (float) fitpoint_mvtx_half_local(0), (float) fitpoint_mvtx_half_local(1),
         lcl_derivativeX[0], lcl_derivativeX[1], lcl_derivativeX[2], lcl_derivativeX[3],
         glbl_derivativeX[0], glbl_derivativeX[1], glbl_derivativeX[2], glbl_derivativeX[3], glbl_derivativeX[4], glbl_derivativeX[5],
         lcl_derivativeY[0], lcl_derivativeY[1], lcl_derivativeY[2], lcl_derivativeY[3],
@@ -819,7 +820,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
       }
-      if (!isnan(residual(1)) && clus_sigma(1) < 1.0)
+      if (!isnan(residual(1)) && clus_sigma(1) < 1.0 )
       {
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeY, AlignmentDefs::NGL, glbl_derivativeY, glbl_label, residual(1), errinf * clus_sigma(1));
       }
@@ -1046,8 +1047,8 @@ Acts::Vector3 HelicalFitter::get_line_surface_intersection(const Surface& surf, 
 
   Acts::Vector3 tangent = arb_point2 - arb_point;   // direction of line
   */
-
   auto line = get_line_zero_field(fitpars);  // do not need the direction
+
   auto arb_point = line.first;
   auto tangent = line.second;  
 
@@ -1953,7 +1954,6 @@ bool HelicalFitter::is_mvtx_layer_fixed(unsigned int layer, unsigned int clamshe
   {
     ret = true;
   }
-
   return ret;
 }
 
