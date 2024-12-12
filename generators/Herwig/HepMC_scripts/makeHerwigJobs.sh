@@ -12,9 +12,9 @@ make_condor_jobs()
 {
 	for i in $(seq 0 ${nfiles}); do 
 		condor_file="condor_file_dir/condor_"$triggertype"_"$i".job"
-		condor_out_file="condor_file_dir/condor_"$triggertype"_"$i".out"
-		condor_err_file="condor_file_dir/condor_"$triggertype"_"$i".err"
-		condor_log_file="condor_file_dir/condor_"$triggertype"_"$i".log"
+		condor_out_file=$(pwd)"/condor_file_dir/condor_"$triggertype"_"$i".out"
+		condor_err_file=$(pwd)"/condor_file_dir/condor_"$triggertype"_"$i".err"
+		condor_log_file=$(pwd)"/condor_file_dir/condor_"$triggertype"_"$i".log"
 		if [ "$vebose_mode" = true ]; then
 			echo "Producing condor job file " $condor_file
 		fi
@@ -52,14 +52,15 @@ extract_argument() {
 
 set_config()
 {
-	if [ "$triggertype" = "MB" ]; then
-		configfile="${configdir}/MB.in"
+	#Need to use the .run files, can ammend to use the .in files  but that adds unnecessary computational time
+	if [ "$triggertype" = "MB" ]; then 
+		configfile="${configdir}/Heriwg_MB.run"
 	elif [ "$triggertype" = "Jet10" ]; then
-		configfile="${configdir}/Jet10.in"
+		configfile="${configdir}/Herwig_Jet10.run"
 	elif [ "$triggertype" = "Jet30" ]; then 
-		configfile="${configdir}/Jet30.in"
+		configfile="${configdir}/Herwig_Jet30.run"
 	else
-		configfile="${configdir}/MB.in" #use as default value
+		configfile="${configdir}/Herwig_MB.run" #use as default value
 	fi
 }
 

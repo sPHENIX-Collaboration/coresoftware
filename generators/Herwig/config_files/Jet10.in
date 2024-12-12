@@ -139,7 +139,7 @@ cd /Herwig/Generators
 # analysis of higgs-jet events
 # insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/HiggsJet
 #analsis of hard QCD 
-# insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/JetsPlus
+# inserw EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/JetsPlus
 ##################################################
 ## prepare for Rivet analysis or HepMC output
 ## when running with parton shower
@@ -157,4 +157,4 @@ set /Herwig/Analysis/HepMCFile:Units GeV_mm
 ##################################################
 # Save run for later usage with 'Herwig run'
 ##################################################
-saverun sphenix_7GeV_jetpt EventGenerator
+saverun Herwig_Jet10 EventGenerator
