@@ -2,6 +2,7 @@
 verbose_mode=false
 events=1000000
 nfiles=1000
+density=1000
 dosubmit=false
 triggertype="MB" 
 configfile="MB.in"
@@ -73,21 +74,30 @@ handle_options(){
 			echo "This script runs Herwig to create HepMC files given an input configuration"
 			echo " \n "
 			echo " -h, --help	Display this help message"
-			echo " -v, --verbose	Enable verbose job creation"
-			echo " -N, --events  	Number of events to generate"
-			echo " -s, --submit	Make and submit condor jobs"
-			echo " -t, --trigger	Input type (MB, Jet10, Jet30)"
-			echo " -i, --input 	Specify new input file"
+			echo " -v, --verbose	Enable verbose job creation (Default false) "
+			echo " -N, --events  	Number of events to generate (Default 1M) "
+			echo " -n, --perfile	Number of events per file (Default 1k) "
+			echo " -s, --submit	Make and submit condor jobs (Default false)"
+			echo " -t, --trigger	Input type (MB, Jet10, Jet30) (Default MB)"
+			echo " -i, --input 	Specify new input file (Default blank)"
 			exit 0 
 			;;
 		-v | --verbose)
 			verbose_mode=true
 			shift
 			;;
+		-n | --perfile*) 
+			if has_arguement $@; then 
+				density=$(extract_argument $@)
+				nfiles=$(( events / density ))
+			fi
+			shift
+			shift
+			;;
 		-N | --events*)
 			if has_argument $@; then 
 				events=$(extract_argument $@) 
-				nfiles=$(( events / 1000 ))
+				nfiles=$(( events / density ))
 				if [ "$verbose_mode" = true ]; then
 					echo "Run " $events " events"
 					echo " This will generate " $nfiles " output hepmc files"
