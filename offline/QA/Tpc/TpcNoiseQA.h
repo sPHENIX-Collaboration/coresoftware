@@ -4,7 +4,6 @@
 //
 
 // includes
-#include <TMath.h>
 #include <fun4all/SubsysReco.h>
 
 #include <trackbase/TrkrDefs.h>
@@ -16,6 +15,7 @@
 
 #include <string>
 #include <vector>
+#include <cmath>
 
 // Call classes to be used in code
 class PHCompositeNode;

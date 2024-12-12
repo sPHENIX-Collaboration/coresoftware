@@ -7,7 +7,7 @@
 
 #include <string>
 #include <vector>
-
+#include <cmath>
 // Call classes to be used in code
 class PHCompositeNode;
 class TFile;

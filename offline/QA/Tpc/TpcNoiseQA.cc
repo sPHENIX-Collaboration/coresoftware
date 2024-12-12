@@ -157,7 +157,7 @@ int TpcNoiseQA::process_event(PHCompositeNode *topNode)
         // Assign ADC value of sample s in waveform wf to adcSamples[s]
         m_adcSamples[s] = packet->iValue(wf, s);
 
-        if (m_adcSamples[s] == 0 || TMath::IsNaN(float(m_adcSamples[s])))
+        if (m_adcSamples[s] == 0 || std::isnan(float(m_adcSamples[s])))
         {
           dead = true;
           break;
