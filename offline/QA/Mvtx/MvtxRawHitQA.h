@@ -32,8 +32,7 @@ class MvtxRawHitQA : public SubsysReco
  private:
   void createHistos();
   std::string getHistoPrefix() const;
-
-  MvtxRawHitContainer* rawhitcont{nullptr};
+  std::vector<MvtxRawHitContainer*> m_rawhit_containers;
 
   TH1* h_nhits_layer0{nullptr};
   TH1* h_nhits_layer1{nullptr};
