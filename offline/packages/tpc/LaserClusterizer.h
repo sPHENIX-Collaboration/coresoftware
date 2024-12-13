@@ -35,16 +35,14 @@ class RawHitSetContainer;
 class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
 
-namespace bg = boost::geometry;
-namespace bgi = boost::geometry::index;
-typedef bg::model::point<float, 3, bg::cs::cartesian> point;
-typedef bg::model::box<point> box;
-typedef std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> specHitKey;
-typedef std::pair<point, specHitKey> pointKeyLaser;
-
 class LaserClusterizer : public SubsysReco
 {
- public:
+public:
+  typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
+  typedef boost::geometry::model::box<point> box;
+  typedef std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> specHitKey;
+  typedef std::pair<point, specHitKey> pointKeyLaser;
+
   LaserClusterizer(const std::string &name = "LaserClusterizer");
   ~LaserClusterizer() override = default;
 
@@ -55,8 +53,8 @@ class LaserClusterizer : public SubsysReco
 
   // void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap);
   void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap, bool isLamination);
-  // void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
-  void remove_hits(std::vector<pointKeyLaser> &clusHits, bgi::rtree<pointKeyLaser, bgi::quadratic<16>> &rtree, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
+  // void remove_hits(std::vector<pointKeyLaser> &clusHits,  boost::geometry::index::rtree<pointKeyLaser, boost::geometry::index::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
+  void remove_hits(std::vector<pointKeyLaser> &clusHits, boost::geometry::index::rtree<pointKeyLaser, boost::geometry::index::quadratic<16>> &rtree, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
 
   void set_debug(bool debug) { m_debug = debug; }
   void set_debug_name(const std::string &name) { m_debugFileName = name; }
