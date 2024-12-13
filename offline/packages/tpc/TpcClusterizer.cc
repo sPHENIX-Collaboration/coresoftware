@@ -849,16 +849,16 @@ namespace
       */
       for (int nphi = 0; nphi < phibins; nphi++)
       {
-        //	nhits += hitset->m_tpchits[nphi].size();
-        if (hitset->m_tpchits[nphi].size() == 0)
+        if (hitset->size(nphi) == 0)
         {
           continue;
         }
 
         int pindex = 0;
-        for (unsigned int nt = 0; nt < hitset->m_tpchits[nphi].size(); nt++)
+        for (unsigned int nt = 0; nt < hitset->size(nphi); nt++)
         {
-          unsigned short val = hitset->m_tpchits[nphi][nt];
+          unsigned short val = (*(hitset->getHits(nphi)))[nt];
+	    
 
           if (val == 0)
           {
@@ -881,7 +881,7 @@ namespace
             }
             else
             {
-              if ((hitset->m_tpchits[nphi][nt - 1] == 0) && (hitset->m_tpchits[nphi][nt + 1] == 0))
+              if (((*(hitset->getHits(nphi)))[nt-1] == 0) && ((*(hitset->getHits(nphi)))[nt+1] == 0))
               {  // found zero count
                 pindex += val;
               }
