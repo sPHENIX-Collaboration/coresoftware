@@ -37,7 +37,7 @@ class PHG4TpcCylinderGeomContainer;
 
 class LaserClusterizer : public SubsysReco
 {
-public:
+ public:
   typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
   typedef boost::geometry::model::box<point> box;
   typedef std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> specHitKey;
@@ -65,49 +65,49 @@ public:
   void set_max_time_samples(int val) { m_time_samples_max = val; }
 
  private:
-  int m_event = -1;
-  int m_time_samples_max=360;
+  int m_event {-1};
+  int m_time_samples_max {360};
 
   EventHeader *eventHeader{nullptr};
 
-  LaserEventInfo *m_laserEventInfo = nullptr;
+  LaserEventInfo *m_laserEventInfo {nullptr};
 
-  TrkrHitSetContainer *m_hits = nullptr;
-  RawHitSetContainer *m_rawhits = nullptr;
-  LaserClusterContainer *m_clusterlist = nullptr;
-  LaserClusterContainer *m_clusterlistLaminations = nullptr;
-  ActsGeometry *m_tGeometry = nullptr;
-  PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
-  double min_clus_size = 1;
-  double min_adc_sum = 10;
-  double m_adc_threshold = 74.4;
+  TrkrHitSetContainer *m_hits {nullptr};
+  RawHitSetContainer *m_rawhits {nullptr};
+  LaserClusterContainer *m_clusterlist {nullptr};
+  LaserClusterContainer *m_clusterlistLaminations {nullptr};
+  ActsGeometry *m_tGeometry {nullptr};
+  PHG4TpcCylinderGeomContainer *m_geom_container {nullptr};
+  double min_clus_size {1};
+  double min_adc_sum {10};
+  double m_adc_threshold {74.4};
 
-  double m_tdriftmax = 0;
-  double AdcClockPeriod = 53.0;  // ns
-  double NZBinsSide = 249;
+  double m_tdriftmax {0};
+  double AdcClockPeriod {53.0};  // ns
+  double NZBinsSide {249};
 
-  bool do_read_raw = false;
+  bool do_read_raw {false};
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
-  // double m_sampa_tbias = 39.6;  // ns
+  // double m_sampa_tbias {39.6};  // ns
 
-  bool m_debug = false;
-  std::string m_debugFileName = "LaserClusterizer_debug.root";
-  TFile *m_debugFile = nullptr;
-  TTree *m_clusterTree = nullptr;
-  // TTree *m_hitTree = nullptr;
-  TH1I *m_itHist_0 = nullptr;
-  TH1I *m_itHist_1 = nullptr;
+  bool m_debug {false};
+  std::string m_debugFileName {"LaserClusterizer_debug.root"};
+  TFile *m_debugFile {nullptr};
+  TTree *m_clusterTree {nullptr};
+  // TTree *m_hitTree {nullptr};
+  TH1I *m_itHist_0 {nullptr};
+  TH1I *m_itHist_1 {nullptr};
 
-  int m_nClus = 0;
-  double time_search = 0;
-  double time_clus = 0;
-  double time_erase = 0;
-  double time_all = 0;
+  int m_nClus {0};
+  double time_search {0};
+  double time_clus {0};
+  double time_erase {0};
+  double time_all {0};
 
-  LaserCluster *m_currentCluster = nullptr;
-  LaserClusterContainer *m_eventClusters = nullptr;
+  LaserCluster *m_currentCluster {nullptr};
+  LaserClusterContainer *m_eventClusters {nullptr};
   std::vector<float> m_currentHit;
   std::vector<float> m_currentHit_hardware;
 
