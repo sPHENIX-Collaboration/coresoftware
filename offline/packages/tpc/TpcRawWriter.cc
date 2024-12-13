@@ -537,7 +537,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
             (*(rhitset->getHits(nphi))).push_back(0);
             if (layer == 222 && sector == 6 && nphi == 10)
             {
-              std::cout << "5#" << nphi << "nz= " << nz << " filling " << 0 << " at " << rhitset->size(nphi)<< std::endl;
+              std::cout << "5#" << nphi << "nz= " << nz << " filling " << 0 << " at " << rhitset->size(nphi) << std::endl;
             }
             // std::cout << " 5filling " << 0 << "|" << ((int)rhitset->m_tpchits[nphi].back()) << " | " << ((int)rhitset->m_tpchits[nphi][outpos++]) << std::endl;
           }

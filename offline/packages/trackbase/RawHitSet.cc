@@ -10,7 +10,7 @@ namespace
 {
   RawHitSet::Vector dummy_vector;
   RawHitSet::VectorTpc2D dummy_vector_2d;
-}
+}  // namespace
 
 void RawHitSet::addHit(RawHit* /*unused*/)
 {
