@@ -673,7 +673,7 @@ int Fun4AllServer::process_event()
   }
 
   gROOT->cd(currdir.c_str());
-
+  bool writing = false;
   //  mainIter.print();
   if (!OutputManager.empty() && !eventbad)  // there are registered IO managers and
   // the event is not flagged bad
@@ -702,6 +702,7 @@ int Fun4AllServer::process_event()
         exit(1);
       }
       std::vector<Fun4AllOutputManager *>::iterator iterOutMan;
+     
       for (iterOutMan = OutputManager.begin(); iterOutMan != OutputManager.end(); ++iterOutMan)
       {
         if (!(*iterOutMan)->DoNotWriteEvent(&RetCodes))
@@ -731,6 +732,7 @@ int Fun4AllServer::process_event()
             MakeNodesTransient(runNode);  // make all nodes transient by default
             (*iterOutMan)->WriteNode(runNode);
             (*iterOutMan)->RunAfterClosing();
+	    writing = true;
           }
         }
         else
@@ -740,6 +742,22 @@ int Fun4AllServer::process_event()
             std::cout << "Not Writing Event for " << (*iterOutMan)->Name() << std::endl;
           }
         }
+      }
+    }
+  }
+  if(!HistoManager.empty() && !eventbad && writing)
+  {
+    for( auto histit = HistoManager.begin(); histit != HistoManager.end(); ++histit)
+    {
+      if((*histit)->dumpHistoSegments())
+      {
+        if(Verbosity() > 0)
+        {
+          std::cout << PHWHERE << (*histit)->Name() << " wrote events, closing " << (*histit)->OutFileName() << std::endl;
+        }
+        (*histit)->dumpHistos();
+        (*histit)->RunAfterClosing();
+        (*histit)->Reset();
       }
     }
   }
