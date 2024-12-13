@@ -25,7 +25,7 @@
 #include <trackbase/RawHit.h>
 #include <trackbase/RawHitSet.h>
 #include <trackbase/RawHitSetContainer.h>
-#include <trackbase/RawHitSetv1.h>
+#include <trackbase/RawHitSet.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
@@ -91,7 +91,7 @@ namespace
   {
     PHG4TpcCylinderGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
-    RawHitSetv1 *rawhitset = nullptr;
+    RawHitSet *rawhitset = nullptr;
     ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
     int side = 0;
@@ -883,7 +883,7 @@ namespace
     }
     else if (my_data->rawhitset != nullptr)
     {
-      RawHitSetv1 *hitset = my_data->rawhitset;
+      RawHitSet *hitset = my_data->rawhitset;
       /*std::cout << "Layer: " << my_data->layer
                 << "Side: " << my_data->side
                 << "Sector: " << my_data->sector
@@ -1513,7 +1513,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
       thread_pair.data.layergeom = layergeom;
       thread_pair.data.hitset = nullptr;
-      thread_pair.data.rawhitset = dynamic_cast<RawHitSetv1 *>(hitset);
+      thread_pair.data.rawhitset = hitset;
       thread_pair.data.layer = layer;
       thread_pair.data.pedestal = pedestal;
       thread_pair.data.sector = sector;
