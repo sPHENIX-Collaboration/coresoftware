@@ -115,15 +115,31 @@ class TpcRawHitv3 : public TpcRawHit
 
     void Next() override
     {
+      if (IsDone()) return;
+      
       // NOLINTNEXTLINE(bugprone-branch-clone)
-      if (m_adc_position_in_waveform_index < m_adc[m_waveform_index].second.size() - 1)
+      if (m_adc_position_in_waveform_index + 1U < m_adc[m_waveform_index].second.size())
       {
         ++m_adc_position_in_waveform_index;
       }
       else
-      {
-        ++m_waveform_index;
+      { 
+        // advance to the next valid waveform
         m_adc_position_in_waveform_index = 0;
+
+        while (true)
+        {
+          ++m_waveform_index;
+
+          if (m_waveform_index >= m_adc.size())
+          {
+            break;
+          }
+          if (not m_adc[m_waveform_index].second.empty())
+          {
+            break;
+          }
+        }
       }
     }
 
