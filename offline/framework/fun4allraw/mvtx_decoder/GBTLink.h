@@ -8,14 +8,14 @@
 
 #define _RAW_READER_ERROR_CHECKS_ // comment this to disable error checking
 
-#include "mvtx_decoder/mvtx_utils.h"
-#include "mvtx_decoder/RDH.h"
-#include "mvtx_decoder/PayLoadCont.h"
-#include "mvtx_decoder/PayLoadSG.h"
-#include "mvtx_decoder/DecodingStat.h"
-#include "mvtx_decoder/GBTWord.h"
-#include "mvtx_decoder/InteractionRecord.h"
-#include "mvtx_decoder/StrobeData.h"
+#include "mvtx_utils.h"
+#include "RDH.h"
+#include "PayLoadCont.h"
+#include "PayLoadSG.h"
+#include "DecodingStat.h"
+#include "GBTWord.h"
+#include "InteractionRecord.h"
+#include "StrobeData.h"
 
 #include <iostream>
 #include <memory>

@@ -3,7 +3,7 @@
 // @sa <O2/Detectors/ITSMFT/common/reconstruction/src/GBTLink.cxx>
 //     <e5b583efa>
 
-#include "mvtx_decoder/GBTLink.h"
+#include "GBTLink.h"
 
 #include <bitset>
 

@@ -3,7 +3,7 @@
 // @sa <O2/Detectors/ITSMFT/common/reconstruction/src/GBTWord.cxx>
 //     <1ecb2b0a2>
 
-#include "mvtx_decoder/GBTWord.h"
+#include "GBTWord.h"
 #include <iomanip>
 #include <iostream>
 #include <sstream>
