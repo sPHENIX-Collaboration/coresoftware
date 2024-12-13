@@ -25,8 +25,8 @@
 
 class EventHeader;
 class LaserEventInfo;
-class LaserClusterContainerv1;
-class LaserClusterv1;
+class LaserClusterContainer;
+class LaserCluster;
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
@@ -76,8 +76,8 @@ class LaserClusterizer : public SubsysReco
 
   TrkrHitSetContainer *m_hits = nullptr;
   RawHitSetContainer *m_rawhits = nullptr;
-  LaserClusterContainerv1 *m_clusterlist = nullptr;
-  LaserClusterContainerv1 *m_clusterlistLaminations = nullptr;
+  LaserClusterContainer *m_clusterlist = nullptr;
+  LaserClusterContainer *m_clusterlistLaminations = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
   PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
   double min_clus_size = 1;
@@ -108,8 +108,8 @@ class LaserClusterizer : public SubsysReco
   double time_erase = 0;
   double time_all = 0;
 
-  LaserClusterv1 *m_currentCluster = nullptr;
-  LaserClusterContainerv1 *m_eventClusters = nullptr;
+  LaserCluster *m_currentCluster = nullptr;
+  LaserClusterContainer *m_eventClusters = nullptr;
   std::vector<float> m_currentHit;
   std::vector<float> m_currentHit_hardware;
 
