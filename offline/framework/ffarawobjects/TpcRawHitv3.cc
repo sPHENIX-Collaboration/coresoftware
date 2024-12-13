@@ -69,7 +69,17 @@ TpcRawHitv3::TpcRawHitv3(TpcRawHitv3 &&other) noexcept
 void TpcRawHitv3::identify(std::ostream &os) const
 {
   os << "BCO: 0x" << std::hex << bco << std::dec << std::endl;
-  os << "packet id: " << packetid << std::endl;
+  os << " packet id: " << packetid << std::endl;
+
+  for (const auto &waveform : m_adcData)
+  {
+    os << " start time: " << waveform.first << " | ADCs: ";
+    for (const auto &adc : waveform.second)
+    {
+      os << adc << " ";
+    }
+    os << std::endl;
+  }
 }
 
 uint16_t TpcRawHitv3::get_adc(const uint16_t /*sample*/) const
