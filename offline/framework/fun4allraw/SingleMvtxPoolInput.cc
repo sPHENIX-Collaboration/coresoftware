@@ -14,7 +14,6 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <phool/PHTimer.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -25,8 +24,6 @@
 #include <cassert>
 #include <memory>
 #include <set>
-
-static PHTimer timer("SingleMvtxPool");
 
 SingleMvtxPoolInput::SingleMvtxPoolInput(const std::string &name)
   : SingleStreamingInput(name)
