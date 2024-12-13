@@ -9,7 +9,6 @@
 #include <trackbase/RawHit.h>
 #include <trackbase/RawHitSet.h>
 #include <trackbase/RawHitSetContainer.h>
-#include <trackbase/RawHitSetv1.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
@@ -78,7 +77,7 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   }
 
   // Create the Cluster node if required
-  auto laserclusters = findNode::getClass<LaserClusterContainerv1>(dstNode, "LASER_CLUSTER");
+  auto laserclusters = findNode::getClass<LaserClusterContainer>(dstNode, "LASER_CLUSTER");
   if (!laserclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -96,7 +95,7 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(LaserClusterContainerNode);
   }
 
-  auto laminationclusters = findNode::getClass<LaserClusterContainerv1>(dstNode, "LAMINATION_CLUSTER");
+  auto laminationclusters = findNode::getClass<LaserClusterContainer>(dstNode, "LAMINATION_CLUSTER");
   if (!laminationclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -203,14 +202,14 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   // get node for clusters
-  m_clusterlist = findNode::getClass<LaserClusterContainerv1>(topNode, "LASER_CLUSTER");
+  m_clusterlist = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
   if (!m_clusterlist)
   {
     std::cout << PHWHERE << " ERROR: Can't find LASER_CLUSTER." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_clusterlistLaminations = findNode::getClass<LaserClusterContainerv1>(topNode, "LAMINATION_CLUSTER");
+  m_clusterlistLaminations = findNode::getClass<LaserClusterContainer>(topNode, "LAMINATION_CLUSTER");
   if (!m_clusterlistLaminations)
   {
     std::cout << PHWHERE << " ERROR: Can't find LAMINATION_CLUSTER." << std::endl;
@@ -778,7 +777,7 @@ void LaserClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   }
   if (m_debug && !isLamination)
   {
-    m_currentCluster = (LaserClusterv1 *) clus->CloneMe();
+    m_currentCluster = (LaserCluster *) clus->CloneMe();
     // m_eventClusters.push_back((LaserClusterv1 *) m_currentCluster->CloneMe());
   }
 }
