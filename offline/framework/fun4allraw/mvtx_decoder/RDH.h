@@ -203,7 +203,7 @@ struct RDHUtils {
 
   ///_______________________________
   static bool checkRDH(const RDHv8& rdh, bool verbose = true, bool checkZeros = false);
-  static bool checkRDH(const RDHAny rdh, bool verbose = true, bool checkZeros = false)
+  static bool checkRDH(const RDHAny& rdh, bool verbose = true, bool checkZeros = false)
   {
      return checkRDH(rdh.voidify(), verbose, checkZeros);
   }
