@@ -225,7 +225,7 @@ int mvtx_pool::mvtx_decode()
   }
   m_is_decoded = true;
 
-  for ( auto& link : mGBTLinks )
+  for (auto& link : mGBTLinks)
   {
     link.collectROFCableData();
   }

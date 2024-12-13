@@ -56,7 +56,7 @@ void GBTLink::clear(bool resetStat, bool resetTFRaw)
   {
     rawData.clear();
     mL1TrgTime.clear();
-    for (auto&& trg : mTrgData)
+    for (auto& trg : mTrgData)
     {
       trg.clear();
     }

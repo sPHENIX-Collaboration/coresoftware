@@ -24,7 +24,6 @@ namespace mvtx_utils {
   {
     return a.second < b.second;
   }
-
 } //namespace mvtx_utils
 
 #endif
