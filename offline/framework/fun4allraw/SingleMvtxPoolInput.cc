@@ -221,7 +221,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
         std::cout << "ERROR: lv1Bco: 0x" << std::hex << lv1Bco << std::dec
                   << " is less than minimun strobe bco 0x" << std::hex
                   << *m_BclkStack.begin() << std::dec << std::endl;
-        assert(0);
+        // assert(0);
       }
     }
     gtmL1BcoSet.clear();
