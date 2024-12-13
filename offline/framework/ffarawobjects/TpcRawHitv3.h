@@ -115,6 +115,8 @@ class TpcRawHitv3 : public TpcRawHit
 
     void Next() override
     {
+      if (IsDone()) return;
+      
       // NOLINTNEXTLINE(bugprone-branch-clone)
       if (m_adc_position_in_waveform_index + 1U < m_adc[m_waveform_index].second.size())
       {
