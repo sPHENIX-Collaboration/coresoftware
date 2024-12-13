@@ -124,8 +124,8 @@ void mvtx_pool::setupLinks()
           payload_position += mvtx_utils::FLXWordLength;
           continue;
         }
-        const size_t pageSizeInBytes = static_cast<size_t>(
-                                        ((*rdhP).pageSize + 1 /*add Flx Hdr word*/) * mvtx_utils::FLXWordLength);
+        const size_t pageSizeInBytes = 
+                                        ((*rdhP).pageSize + 1 /*add Flx Hdr word*/) * mvtx_utils::FLXWordLength;
         if (pageSizeInBytes > (dlength - payload_position))
         {
           if (get_verbosity() > 1)

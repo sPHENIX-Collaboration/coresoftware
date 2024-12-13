@@ -1,4 +1,4 @@
-#include "mvtx_decoder/RDH.h"
+#include "RDH.h"
 
 #include <stdexcept>
 #include <cstring>
@@ -71,16 +71,15 @@ void RDHUtils::printRDH(const RDHv8& /*rdh*/)
 void RDHUtils::printRDH(const void* rdhP)
 {
   int version = getVersion(rdhP);
-  switch (version) {
-    case 8:
+  if(version==8){
       printRDH(*reinterpret_cast<const RDHv8*>(rdhP));
-      break;
-    default:
+  }
+  else{
       std::cerr << "Unexpected RDH version " << version << " from";
       dumpRDH(rdhP);
       throw std::runtime_error("invalid RDH provided");
-      break;
-  };
+  }
+  
 }
 
 //_________________________________________________
@@ -109,20 +108,18 @@ bool RDHUtils::checkRDH(const void* rdhP, bool verbose, bool checkZeros)
 {
   int version = getVersion(rdhP);
   bool ok = true;
-  switch (version)
-  {
-    case 8:
+
+  if(version==8){
       ok = checkRDH(*reinterpret_cast<const RDHv8*>(rdhP), verbose, checkZeros);
-      break;
-    default:
+    }
+  else {
       ok = false;
       if (verbose)
       {
         std::cerr << "WARNING: "
                   << "Unexpected RDH version " << version << " from" << std::endl;
       }
-      break;
-  };
+  }
   if (!ok && verbose) {
     dumpRDH(rdhP);
   }
