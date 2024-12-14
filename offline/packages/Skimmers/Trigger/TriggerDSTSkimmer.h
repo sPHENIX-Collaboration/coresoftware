@@ -20,7 +20,7 @@ class TriggerDSTSkimmer : public SubsysReco
 
   int process_event(PHCompositeNode *topNode) override;
 
-  void SetTrigger(std::vector<int> trigger_vector) {m_trigger_index = trigger_vector;}
+  void SetTrigger(std::vector<int> &trigger_vector) {m_trigger_index = trigger_vector;}
 
  private:
 
