@@ -357,7 +357,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
 {
   PHCosmicSeeder::SeedVector seeds;
   std::set<TrkrDefs::cluskey> keys;
-  int seednum = 0;
+//  int seednum = 0;
   double dist_check = 2.0;
   if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
   {
@@ -399,7 +399,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       doub.ckeys = keys;
       keys.clear();
       seeds.push_back(doub);
-      seednum++;
+//      seednum++;
     }
   }
   if (Verbosity() > 2)
