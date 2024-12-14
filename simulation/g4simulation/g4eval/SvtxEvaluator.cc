@@ -1094,7 +1094,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
           unsigned int nglmaps = 0;
 
-          int lmaps[_nlayers_maps + 1];
+          int *lmaps = new int[_nlayers_maps + 1];
           if (_nlayers_maps > 0)
           {
             for (unsigned int i = 0; i < _nlayers_maps; i++)
@@ -1136,6 +1136,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           {
             ++embedvtxid_maps_particle_count[gembed];
           }
+	  delete [] lmaps;
         }
       }
 
@@ -2732,7 +2733,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         unsigned int ngltpc = 0;
         unsigned int nglmms = 0;
 
-        int lmaps[_nlayers_maps + 1];
+        int *lmaps = new int[_nlayers_maps + 1];
         if (_nlayers_maps > 0)
         {
           for (unsigned int i = 0; i < _nlayers_maps; i++)
@@ -2741,7 +2742,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
         }
 
-        int lintt[_nlayers_intt + 1];
+        int *lintt = new int[_nlayers_intt + 1];
         if (_nlayers_intt > 0)
         {
           for (unsigned int i = 0; i < _nlayers_intt; i++)
@@ -2750,7 +2751,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
         }
 
-        int ltpc[_nlayers_tpc + 1];
+        int *ltpc = new int[_nlayers_tpc + 1];
         if (_nlayers_tpc > 0)
         {
           for (unsigned int i = 0; i < _nlayers_tpc; i++)
@@ -2759,7 +2760,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
         }
 
-        int lmms[_nlayers_mms + 1];
+        int *lmms = new int[_nlayers_mms + 1];
         if (_nlayers_mms > 0)
         {
           for (unsigned int i = 0; i < _nlayers_mms; i++)
@@ -3324,6 +3325,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    nwrongtpc3 = pair.first;
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
           }
+	  delete [] lmaps;
+	  delete [] lintt;
+	  delete [] ltpc;
+	  delete [] lmms;
         }
 
         float gtrack_data[] = {(float) _ievent, m_fSeed,
@@ -3518,10 +3523,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           local_nhits += silseed->size_cluster_keys();
         }
         unsigned int layers = 0x0;
-        int maps[_nlayers_maps];
-        int intt[_nlayers_intt];
-        int tpc[_nlayers_tpc];
-        int mms[_nlayers_mms];
+        int *maps = new int[_nlayers_maps];
+        int *intt = new int[_nlayers_intt];
+        int *tpc = new int[_nlayers_tpc];
+        int *mms = new int[_nlayers_mms];
         if (_nlayers_maps > 0)
         {
           for (unsigned int i = 0; i < _nlayers_maps; i++)
@@ -3678,6 +3683,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 			  << std::endl;
 	      }
 	  }
+	  delete [] maps;
+	  delete [] intt;
+	  delete [] tpc;
+	  delete [] mms;
 	}
       
         if (silseed)
@@ -3888,7 +3897,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gpy = g4particle->get_py();
             gpz = g4particle->get_pz();
 
-            int lmaps[_nlayers_maps + 1];
+            int *lmaps = new int[_nlayers_maps + 1];
             if (_nlayers_maps > 0)
             {
               for (unsigned int i = 0; i < _nlayers_maps; i++)
@@ -3897,7 +3906,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               }
             }
 
-            int lintt[_nlayers_intt + 1];
+            int *lintt = new int[_nlayers_intt + 1];
             if (_nlayers_intt > 0)
             {
               for (unsigned int i = 0; i < _nlayers_intt; i++)
@@ -3906,7 +3915,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               }
             }
 
-            int ltpc[_nlayers_tpc + 1];
+            int *ltpc = new int[_nlayers_tpc + 1];
             if (_nlayers_tpc > 0)
             {
               for (unsigned int i = 0; i < _nlayers_tpc; i++)
@@ -3915,7 +3924,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               }
             }
 
-            int lmms[_nlayers_mms + 1];
+            int *lmms = new int[_nlayers_mms + 1];
             if (_nlayers_mms > 0)
             {
               for (unsigned int i = 0; i < _nlayers_mms; i++)
@@ -4055,6 +4064,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    ntrutpc3 = pair.first;
 	    nwrongtpc3 = pair.second;
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
+	  delete [] lmaps;
+	  delete [] lintt;
+	  delete [] ltpc;
+	  delete [] lmms;
           }
         }
 	if(Verbosity() > 2)
@@ -4227,9 +4240,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     float dphiprev = NAN;
     float detaprev = NAN;
 
-    float xval[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
-    float yval[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
-    float zval[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
+    float *xval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
+    float *yval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
+    float *zval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
     if (truthinfo)
     {
       int ntrk = 0;
@@ -4339,6 +4352,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
           _ntp_gseed->Fill(gseed_data);
         }
+	delete [] xval;
+	delete [] yval;
+	delete [] zval;
       }
     }
 
