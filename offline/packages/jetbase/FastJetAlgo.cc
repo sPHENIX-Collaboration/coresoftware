@@ -382,7 +382,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
     }
 
     // Count clustered components. If desired, put original components into the output jet.
-    int n_clustered = 0;
+//    int n_clustered = 0;
     std::vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
     if (m_opt.calc_area)
     {
@@ -392,7 +392,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
         {
           continue;
         }
-        ++n_clustered;
+//        ++n_clustered;
         if (m_opt.save_jet_components)
         {
           jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
@@ -401,7 +401,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
     }
     else
     {  // didn't calculate jet area
-      n_clustered += constituents.size();
+//      n_clustered += constituents.size();
       if (m_opt.save_jet_components)
       {
         for (auto& comp : constituents)
@@ -465,7 +465,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
     }
 
     // Count clustered components. If desired, put original components into the output jet.
-    int n_clustered = 0;
+//    int n_clustered = 0;
     std::vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
     if (m_opt.calc_area)
     {
@@ -475,7 +475,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
         {
           continue;
         }
-        ++n_clustered;
+//        ++n_clustered;
         if (m_opt.save_jet_components)
         {
           jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
@@ -484,7 +484,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
     }
     else
     {  // didn't save jet area
-      n_clustered += constituents.size();
+//      n_clustered += constituents.size();
       if (m_opt.save_jet_components)
       {
         for (auto& comp : constituents)
