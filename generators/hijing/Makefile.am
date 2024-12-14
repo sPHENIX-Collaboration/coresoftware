@@ -166,5 +166,6 @@ libhijing_la_SOURCES = \
   src/pyhigamm.f
 
 libhijing_dummy_la_SOURCES = \
+  dummy/forcecxx.cc \
   dummy/pyhikcut.f \
   dummy/pyhistfe.f
