@@ -261,7 +261,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
       // return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-    int hits = 0;
+//    int hits = 0;
     int hits_n = 0;
     int hits_s = 0;
     int hits_n_t = 0;
@@ -307,9 +307,9 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
           sum_n += t;
           sum_n2 += t * t;
         }
-        if (q > charge_thresh) {
-          hits++;
-        }
+        // if (q > charge_thresh) {
+        //   hits++;
+        // }
       }
     }
 
