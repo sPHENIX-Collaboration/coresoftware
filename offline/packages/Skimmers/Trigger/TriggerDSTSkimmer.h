@@ -20,15 +20,12 @@ class TriggerDSTSkimmer : public SubsysReco
 
   int process_event(PHCompositeNode *topNode) override;
 
-  void SetVerbosity(int verbo) {verbosity = verbo;}
-
   void SetTrigger(std::vector<int> trigger_vector) {m_trigger_index = trigger_vector;}
 
  private:
 
   std::vector<int> m_trigger_index{10}; 
   int ievent{0};
-  int verbosity{0};
 };
 
 #endif // JETDSTSKIMMER_H

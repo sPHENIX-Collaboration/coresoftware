@@ -20,7 +20,7 @@ TriggerDSTSkimmer::TriggerDSTSkimmer(const std::string &name)
 //____________________________________________________________________________..
 int TriggerDSTSkimmer::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     if (ievent % 1000 == 0) std::cout << "Processing event " << ievent << std::endl;
     ievent++;
