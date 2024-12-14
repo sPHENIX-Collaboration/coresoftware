@@ -343,11 +343,11 @@ int TpcLaminationFitting::fitLaminations()
           {
             continue;
           }
-          if (pred2 == -999 && fabs(j - noFitPredBin) > nBinAvg)
+          if (pred2 == -999 && std::abs(j - noFitPredBin) > nBinAvg)
           {
             continue;
           }
-          if (pred2 != -999 && fabs(j - noFitPredBin) > nBinAvg && fabs(j - pred2Bin) > nBinAvg)
+          if (pred2 != -999 && std::abs(j - noFitPredBin) > nBinAvg && std::abs(j - pred2Bin) > nBinAvg)
           {
             continue;
           }
