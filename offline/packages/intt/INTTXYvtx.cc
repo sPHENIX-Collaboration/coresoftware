@@ -872,8 +872,8 @@ void INTTXYvtx::subMacroPlotWorking(
       DCA_distance_outer_phi->Fill(Clus_OuterPhi_Offset, DCA_sign);
       angle_diff_outer_phi->Fill(Clus_OuterPhi_Offset, Clus_InnerPhi_Offset - Clus_OuterPhi_Offset);
 
-      angle_diff->Fill(abs(Clus_InnerPhi_Offset - Clus_OuterPhi_Offset));
-      angle_diff_new->Fill(abs(Clus_InnerPhi_Offset - Clus_OuterPhi_Offset));
+      angle_diff->Fill(std::abs(Clus_InnerPhi_Offset - Clus_OuterPhi_Offset));
+      angle_diff_new->Fill(std::abs(Clus_InnerPhi_Offset - Clus_OuterPhi_Offset));
       DCA_distance->Fill(DCA_sign);
 
       // draw only
@@ -1029,7 +1029,7 @@ void INTTXYvtx::subMacroPlotWorking(
 
   if (m_enable_qa && print_message_opt == true)
   {
-    std::cout << "circle radius : " << abs(gaus_fit->GetParameter(0) + gaus_fit->GetParameter(3))
+    std::cout << "circle radius : " << std::abs(gaus_fit->GetParameter(0) + gaus_fit->GetParameter(3))
               << " possible correction angle : " << gaus_fit->GetParameter(1) << std::endl;
   }
 }

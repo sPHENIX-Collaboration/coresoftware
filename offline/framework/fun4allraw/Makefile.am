@@ -106,7 +106,6 @@ libfun4allraw_la_SOURCES = \
   SingleTriggerInput.cc \
   SingleZdcInput.cc \
   SingleZdcTriggerInput.cc \
-  tpc_pool.cc \
   SingleTpcTimeFrameInput.cc \
   TpcTimeFrameBuilder.cc
 

@@ -55,17 +55,17 @@ bool InttClusterizer::ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, Trkr
 {
   if (get_z_clustering(layer))
   {
-    if (fabs(InttDefs::getCol(lhs.first) - InttDefs::getCol(rhs.first)) <= 1)
+    if (std::abs(InttDefs::getCol(lhs.first) - InttDefs::getCol(rhs.first)) <= 1)
     {
-      if (fabs(InttDefs::getRow(lhs.first) - InttDefs::getRow(rhs.first)) <= 1)
+      if (std::abs(InttDefs::getRow(lhs.first) - InttDefs::getRow(rhs.first)) <= 1)
       {
         return true;
       }
     }
   }
-  else if (fabs(InttDefs::getCol(lhs.first) - InttDefs::getCol(rhs.first)) == 0)
+  else if (std::abs(InttDefs::getCol(lhs.first) - InttDefs::getCol(rhs.first)) == 0)
   {
-    if (fabs(InttDefs::getRow(lhs.first) - InttDefs::getRow(rhs.first)) <= 1)
+    if (std::abs(InttDefs::getRow(lhs.first) - InttDefs::getRow(rhs.first)) <= 1)
     {
       return true;
     }
@@ -78,17 +78,17 @@ bool InttClusterizer::ladder_are_adjacent(RawHit* lhs, RawHit* rhs, const int la
 {
   if (get_z_clustering(layer))
   {
-    if (fabs(lhs->getPhiBin() - rhs->getPhiBin()) <= 1)  // col
+    if (std::abs((int) (lhs->getPhiBin()) - (int) (rhs->getPhiBin())) <= 1)  // col
     {
-      if (fabs(lhs->getTBin() - rhs->getTBin()) <= 1)  // Row
+      if (std::abs((int) (lhs->getTBin()) - (int) (rhs->getTBin())) <= 1)  // Row
       {
         return true;
       }
     }
   }
-  else if (fabs(lhs->getPhiBin() - rhs->getPhiBin()) <= 1)
+  else if (std::abs((int) (lhs->getPhiBin()) - (int)(rhs->getPhiBin())) <= 1)
   {
-    if (fabs(lhs->getTBin() - rhs->getTBin()) == 0)
+    if (std::abs((int) (lhs->getTBin()) - (int) (rhs->getTBin())) == 0)
     {
       return true;
     }
