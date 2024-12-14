@@ -1362,7 +1362,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
               << " mutex init failed" << std::endl;
     return 1;
   }
-  int count = 0;
+//  int count = 0;
 
   if (!do_read_raw)
   {
@@ -1489,7 +1489,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
           m_clusterhitassoc->addAssoc(ckey, hkey);
         }
       }
-      count++;
+//      count++;
     }
   }
   else
@@ -1611,12 +1611,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
           m_clusterhitassoc->addAssoc(ckey, hkey);
         }
       }
-      count++;
+//      count++;
     }
   }
 
   pthread_attr_destroy(&attr);
-  count = 0;
+//  count = 0;
   // wait for completion of all threads
   if (!do_sequential)
   {

@@ -207,7 +207,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
   TrkrHitSetContainer::ConstRange mvtxhitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
   //  const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
 
-  int count = 0;
+//  int count = 0;
   for (TrkrHitSetContainer::ConstIterator hitsetitr = mvtxhitsetrange.first;
        hitsetitr != mvtxhitsetrange.second;
        ++hitsetitr)
@@ -235,7 +235,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       }
     }
 
-    count++;
+//    count++;
   }
   std::cout << "processing intt" << std::endl;
   // loop over the INTT HitSet objects
@@ -273,7 +273,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       }
     }
 
-    count++;
+//    count++;
   }
   std::cout << "processing mm" << std::endl;
   // loop over the micromega HitSet objects
@@ -308,7 +308,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       }
     }
 
-    count++;
+//    count++;
   }
   std::cout << "processing tpc" << std::endl;
   // loop over the TPC HitSet objects
@@ -573,7 +573,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       }
       //      std::cout << "sector: " << sector << " lay: " << layer << " nphi: " << nphi << "|" << NPhiBins<< " nzfilled: " << rhitset->m_tpchits[nphi].size() << std::endl;
     }
-    count++;
+//    count++;
 
     //    std::cout << "unpacking..." << std::endl;
     //    unpack and check for correctness
