@@ -224,7 +224,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
 
       unsigned int nglmaps = 0;
 
-      int lmaps[_nlayers_maps + 1];
+      int *lmaps = new int[_nlayers_maps + 1];
 
       if (_nlayers_maps > 0)
       {
@@ -266,6 +266,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       }
       if (nglmaps == 3 && fabs(geta) < 1.0 && gpt > 0.5)
         ++embedvtxid_maps_particle_count[gembed];
+      delete [] lmaps;
     }
 
     auto vrange = m_truthInfo->GetPrimaryVtxRange();
@@ -294,15 +295,14 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       }
       embedvtxid_found[gembed] = false;
     }
-
-    unsigned int ngembed = 0;
-    for (std::map<int, bool>::iterator iter = embedvtxid_found.begin();
-         iter != embedvtxid_found.end();
-         ++iter)
-    {
-      if (iter->first >= 0 || iter->first != iter->first) continue;
-      ++ngembed;
-    }
+    // unsigned int ngembed = 0;
+    // for (std::map<int, bool>::iterator iter = embedvtxid_found.begin();
+    //      iter != embedvtxid_found.end();
+    //      ++iter)
+    // {
+    //   if (iter->first >= 0 || iter->first != iter->first) continue;
+    //   ++ngembed;
+    // }
 
     for (SvtxVertexMap::Iter iter = m_vertexMap->begin();
          iter != m_vertexMap->end();
@@ -341,9 +341,9 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         {
           continue;
         }
-        int MVTX_hits = 0;
-        int INTT_hits = 0;
-        int TPC_hits = 0;
+//        int MVTX_hits = 0;
+//        int INTT_hits = 0;
+//        int TPC_hits = 0;
 
         TrackSeed *siliconSeed = track->get_tpc_seed();
         TrackSeed *tpcSeed = track->get_silicon_seed();
@@ -356,29 +356,35 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
             const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
             if (trackerID == TrkrDefs::mvtxId)
-              ++MVTX_hits;
-            else if (trackerID == TrkrDefs::inttId)
-              ++INTT_hits;
-            else
+	    {
+//              ++MVTX_hits;
+	    }
+	    else if (trackerID == TrkrDefs::inttId)
+	    {
+//	      ++INTT_hits;
+	    }
+	    else
             {
               if (Verbosity())
+	      {
                 std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
-            }
+	      }
+	    }
           }
         }
         for (auto cluster_iter = tpcSeed->begin_cluster_keys();
              cluster_iter != tpcSeed->end_cluster_keys(); ++cluster_iter)
         {
-          const auto &cluster_key = *cluster_iter;
-          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+//          const auto &cluster_key = *cluster_iter;
+//          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
-          if (trackerID == TrkrDefs::tpcId)
-            ++TPC_hits;
+          // if (trackerID == TrkrDefs::tpcId)
+          //   ++TPC_hits;
         }
-        if (MVTX_hits >= 2)
-        {
-          ++ntracks_with_cuts;
-        }
+        // if (MVTX_hits >= 2)
+        // {
+        //   ++ntracks_with_cuts;
+        // }
       }
       h_ntracks_cuts->Fill(ntracks_with_cuts);
 
