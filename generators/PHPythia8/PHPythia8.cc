@@ -187,11 +187,11 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
 
   bool passedGen = false;
   bool passedTrigger = false;
-  int genCounter = 0;
+//  int genCounter = 0;
 
   while (!passedTrigger)
   {
-    ++genCounter;
+//    ++genCounter;
 
     // generate another pythia event
     while (!passedGen)
@@ -237,7 +237,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
     if ((andScoreKeeper && m_TriggersAND) || (m_RegisteredTriggers.size() == 0))
     {
       passedTrigger = true;
-      genCounter = 0;
+//      genCounter = 0;
     }
 
     passedGen = false;
