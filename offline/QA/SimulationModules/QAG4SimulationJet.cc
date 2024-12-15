@@ -23,7 +23,8 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TNamed.h>
-#include <TString.h>  // for operator+, TString, Form
+
+#include <boost/format.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -205,7 +206,7 @@ TString
 QAG4SimulationJet::get_eta_range_str(const char* eta_name) const
 {
   assert(eta_name);
-  return TString(Form("%.1f < %s < %.1f", eta_range.first, eta_name, eta_range.second));
+  return TString((boost::format("%.1f < %s < %.1f") %eta_range.first %eta_name %eta_range.second).str().c_str());
 }
 
 //! acceptance cut on jet object
