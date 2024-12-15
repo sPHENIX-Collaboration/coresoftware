@@ -441,7 +441,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         std::cout << "HCALIN_CLUSTER sum = " << recoeval->get_energy_contribution(leading_jet, Jet::HCALIN_CLUSTER) << std::endl;
         std::cout << "leading_jet->get_e() = " << leading_jet->get_e() << std::endl;
       }
-     
+
       lcemcr->Fill(                                                         //
           (recoeval->get_energy_contribution(leading_jet, Jet::CEMC_TOWER)  //
            +                                                                //
@@ -631,7 +631,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   assert(eval_stack);
   JetRecoEval* recoeval = eval_stack->get_reco_eval();
   assert(recoeval);
- 
+
   // iterate over truth jets
   JetContainer* truthjets = findNode::getClass<JetContainer>(topNode, _truth_jet);
   if (!truthjets)
@@ -661,8 +661,6 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
     }
   }
 
-
-
   // match leading truth
   if (truthjet)
   {
@@ -672,7 +670,6 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
                 << " process truth jet ";
       truthjet->identify();
     }
-
 
     Matching_Count_Truth_Et->Fill(truthjet->get_et(), "Total", 1);
     {  // inclusive best energy match
@@ -684,7 +681,6 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
                   << " inclusively matched with best reco jet: ";
         recojet->identify();
       }
-
 
       if (recojet)
       {

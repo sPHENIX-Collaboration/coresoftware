@@ -1,6 +1,6 @@
 #include "QAG4SimulationMvtx.h"
-#include <qautils/QAUtil.h>
 #include <qautils/QAHistManagerDef.h>
+#include <qautils/QAUtil.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -47,9 +47,13 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode* topNode)
 {
   // prevent multiple creations of histograms
   if (m_initialized)
+  {
     return Fun4AllReturnCodes::EVENT_OK;
+  }
   else
+  {
     m_initialized = true;
+  }
 
   // find mvtx geometry
   auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
@@ -73,7 +77,10 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode* topNode)
   // create histograms
   for (const auto& layer : m_layers)
   {
-    if (Verbosity()) std::cout << PHWHERE << " adding layer " << layer << std::endl;
+    if (Verbosity())
+    {
+      std::cout << PHWHERE << " adding layer " << layer << std::endl;
+    }
     {
       // rphi residuals (cluster - truth)
       auto h = new TH1F(Form("%sdrphi_%i", get_histo_prefix().c_str(), layer), Form("MVTX r#Delta#phi_{cluster-truth} layer_%i", layer), 100, -2e-3, 2e-3);
@@ -146,7 +153,10 @@ int QAG4SimulationMvtx::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   auto res = load_nodes(topNode);
-  if (res != Fun4AllReturnCodes::EVENT_OK) return res;
+  if (res != Fun4AllReturnCodes::EVENT_OK)
+  {
+    return res;
+  }
   // run evaluation
   evaluate_clusters();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -262,7 +272,7 @@ void QAG4SimulationMvtx::evaluate_clusters()
 
       double phi_error = cluster->getRPhiError() / r_cluster;
       double z_error = cluster->getZError();
-      
+
       // find associated g4hits
       const auto g4hits = find_g4hits(key);
 
@@ -278,11 +288,15 @@ void QAG4SimulationMvtx::evaluate_clusters()
       // get layer, get histograms
       const auto layer = TrkrDefs::getLayer(key);
       const auto hiter = histograms.find(layer);
-      if (hiter == histograms.end()) continue;
+      if (hiter == histograms.end())
+      {
+        continue;
+      }
 
       // fill phi residuals, errors and pulls
       auto fill = [](TH1* h, float value)
-      { if( h ) h->Fill( value ); };
+      { if( h ) { h->Fill( value ); 
+} };
       fill(hiter->second.drphi, r_cluster * dphi);
       fill(hiter->second.rphi_error, r_cluster * phi_error);
       fill(hiter->second.phi_pulls, dphi / phi_error);
@@ -330,16 +344,19 @@ QAG4SimulationMvtx::G4HitSet QAG4SimulationMvtx::find_g4hits(TrkrDefs::cluskey c
     m_hit_truth_map->getG4Hits(hitset_key, hit_key, g4hit_map);
 
     // find corresponding g4 hist
-    for (auto truth_iter = g4hit_map.begin(); truth_iter != g4hit_map.end(); ++truth_iter)
+    for (auto& truth_iter : g4hit_map)
     {
       // g4hit key
-      const auto g4hit_key = truth_iter->second.second;
+      const auto g4hit_key = truth_iter.second.second;
 
       // g4 hit
       PHG4Hit* g4hit = (TrkrDefs::getTrkrId(hitset_key) == TrkrDefs::mvtxId) ? m_g4hits_mvtx->findHit(g4hit_key) : nullptr;
 
       // insert in set
-      if (g4hit) out.insert(g4hit);
+      if (g4hit)
+      {
+        out.insert(g4hit);
+      }
     }
   }
 

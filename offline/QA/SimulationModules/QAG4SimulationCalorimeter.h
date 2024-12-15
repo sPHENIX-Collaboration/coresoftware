@@ -29,7 +29,7 @@ class QAG4SimulationCalorimeter : public SubsysReco
   QAG4SimulationCalorimeter(const std::string &calo_name, enu_flags flags =
                                                               kDefaultFlag);
   virtual ~QAG4SimulationCalorimeter() {}
-  
+
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
