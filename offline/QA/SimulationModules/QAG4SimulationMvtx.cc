@@ -27,7 +27,8 @@
 
 #include <TAxis.h>  // for TAxis
 #include <TH1.h>
-#include <TString.h>  // for Form
+
+#include <boost/format.hpp>
 
 #include <cassert>
 #include <cmath>     // for atan2
@@ -83,63 +84,63 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode* topNode)
     }
     {
       // rphi residuals (cluster - truth)
-      auto h = new TH1F(Form("%sdrphi_%i", get_histo_prefix().c_str(), layer), Form("MVTX r#Delta#phi_{cluster-truth} layer_%i", layer), 100, -2e-3, 2e-3);
+      auto h = new TH1F((boost::format("%sdrphi_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("MVTX r#Delta#phi_{cluster-truth} layer_%i") % layer).str().c_str(), 100, -2e-3, 2e-3);
       h->GetXaxis()->SetTitle("r#Delta#phi_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // rphi cluster errors
-      auto h = new TH1F(Form("%srphi_error_%i", get_histo_prefix().c_str(), layer), Form("MVTX r#Delta#phi error layer_%i", layer), 100, 0, 2e-3);
+      auto h = new TH1F((boost::format("%srphi_error_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("MVTX r#Delta#phi error layer_%i") % layer).str().c_str(), 100, 0, 2e-3);
       h->GetXaxis()->SetTitle("r#Delta#phi error (cm)");
       hm->registerHisto(h);
     }
 
     {
       // phi pulls (cluster - truth)
-      auto h = new TH1F(Form("%sphi_pulls_%i", get_histo_prefix().c_str(), layer), Form("MVTX #Delta#phi_{cluster-truth}/#sigma#phi layer_%i", layer), 100, -3, 3);
+      auto h = new TH1F((boost::format("%sphi_pulls_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("MVTX #Delta#phi_{cluster-truth}/#sigma#phi layer_%i") % layer).str().c_str(), 100, -3, 3);
       h->GetXaxis()->SetTitle("#Delta#phi_{cluster-truth}/#sigma#phi");
       hm->registerHisto(h);
     }
 
     {
       // z residuals (cluster - truth)
-      auto h = new TH1F(Form("%sdz_%i", get_histo_prefix().c_str(), layer), Form("MVTX #Deltaz_{cluster-truth} layer_%i", layer), 100, -3e-3, 3e-3);
+      auto h = new TH1F((boost::format("%sdz_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("MVTX #Deltaz_{cluster-truth} layer_%i") % layer).str().c_str(), 100, -3e-3, 3e-3);
       h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z cluster errors
-      auto h = new TH1F(Form("%sz_error_%i", get_histo_prefix().c_str(), layer), Form("MVTX z error layer_%i", layer), 100, 0, 3e-3);
+      auto h = new TH1F((boost::format("%sz_error_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("MVTX z error layer_%i") % layer).str().c_str(), 100, 0, 3e-3);
       h->GetXaxis()->SetTitle("z error (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z pulls (cluster - truth)
-      auto h = new TH1F(Form("%sz_pulls_%i", get_histo_prefix().c_str(), layer), Form("MVTX #Deltaz_{cluster-truth}/#sigmaz layer_%i", layer), 100, -3, 3);
+      auto h = new TH1F((boost::format("%sz_pulls_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("MVTX #Deltaz_{cluster-truth}/#sigmaz layer_%i") % layer).str().c_str(), 100, -3, 3);
       h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth}/#sigmaz");
       hm->registerHisto(h);
     }
 
     {
       // total cluster size
-      auto h = new TH1F(Form("%sclus_size_%i", get_histo_prefix().c_str(), layer), Form("MVTX cluster size layer_%i", layer), 20, 0, 20);
+      auto h = new TH1F((boost::format("%sclus_size_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("MVTX cluster size layer_%i") % layer).str().c_str(), 20, 0, 20);
       h->GetXaxis()->SetTitle("csize");
       hm->registerHisto(h);
     }
 
     {
       // cluster size in phi
-      auto h = new TH1F(Form("%sclus_size_phi_%i", get_histo_prefix().c_str(), layer), Form("MVTX cluster size (#phi) layer_%i", layer), 10, 0, 10);
+      auto h = new TH1F((boost::format("%sclus_size_phi_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("MVTX cluster size (#phi) layer_%i") % layer).str().c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("csize_{#phi}");
       hm->registerHisto(h);
     }
 
     {
       // cluster size in z
-      auto h = new TH1F(Form("%sclus_size_z_%i", get_histo_prefix().c_str(), layer), Form("MVTX cluster size (z) layer_%i", layer), 10, 0, 10);
+      auto h = new TH1F((boost::format("%sclus_size_z_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("MVTX cluster size (z) layer_%i") % layer).str().c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("csize_{z}");
       hm->registerHisto(h);
     }
@@ -239,17 +240,17 @@ void QAG4SimulationMvtx::evaluate_clusters()
   for (const auto& layer : m_layers)
   {
     HistogramList h;
-    h.drphi = dynamic_cast<TH1*>(hm->getHisto(Form("%sdrphi_%i", get_histo_prefix().c_str(), layer)));
-    h.rphi_error = dynamic_cast<TH1*>(hm->getHisto(Form("%srphi_error_%i", get_histo_prefix().c_str(), layer)));
-    h.phi_pulls = dynamic_cast<TH1*>(hm->getHisto(Form("%sphi_pulls_%i", get_histo_prefix().c_str(), layer)));
+    h.drphi = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sdrphi_%i") % get_histo_prefix() % layer).str()));
+    h.rphi_error = dynamic_cast<TH1*>(hm->getHisto((boost::format("%srphi_error_%i") % get_histo_prefix() % layer).str()));
+    h.phi_pulls = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sphi_pulls_%i") % get_histo_prefix() % layer).str()));
 
-    h.dz = dynamic_cast<TH1*>(hm->getHisto(Form("%sdz_%i", get_histo_prefix().c_str(), layer)));
-    h.z_error = dynamic_cast<TH1*>(hm->getHisto(Form("%sz_error_%i", get_histo_prefix().c_str(), layer)));
-    h.z_pulls = dynamic_cast<TH1*>(hm->getHisto(Form("%sz_pulls_%i", get_histo_prefix().c_str(), layer)));
+    h.dz = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sdz_%i") % get_histo_prefix() % layer).str()));
+    h.z_error = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sz_error_%i") % get_histo_prefix() % layer).str()));
+    h.z_pulls = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sz_pulls_%i") % get_histo_prefix() % layer).str()));
 
-    h.csize = dynamic_cast<TH1*>(hm->getHisto(Form("%sclus_size_%i", get_histo_prefix().c_str(), layer)));
-    h.csize_phi = dynamic_cast<TH1*>(hm->getHisto(Form("%sclus_size_phi_%i", get_histo_prefix().c_str(), layer)));
-    h.csize_z = dynamic_cast<TH1*>(hm->getHisto(Form("%sclus_size_z_%i", get_histo_prefix().c_str(), layer)));
+    h.csize = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_%i") % get_histo_prefix() % layer).str()));
+    h.csize_phi = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_phi_%i") % get_histo_prefix() % layer).str()));
+    h.csize_z = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_z_%i") % get_histo_prefix() % layer).str()));
 
     histograms.insert(std::make_pair(layer, h));
   }

@@ -75,11 +75,11 @@ namespace
     double py() const { return momentum.y(); }
     double pz() const { return momentum.z(); }
 
-// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
+    // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     TVector3 position;
-// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
+    // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     TVector3 momentum;
-// NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
+    // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     double weight = 1;
   };
 
@@ -203,8 +203,8 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
 
     {
       // ADC distributions
-      auto h = new TH1F((boost::format("%sadc_%i") %get_histo_prefix() %layer).str().c_str(),
-                        (boost::format("micromegas ADC distribution layer_%i") %layer).str().c_str(),
+      auto h = new TH1F((boost::format("%sadc_%i") % get_histo_prefix() % layer).str().c_str(),
+                        (boost::format("micromegas ADC distribution layer_%i") % layer).str().c_str(),
                         1024, 0, 1024);
       h->GetXaxis()->SetTitle("ADC");
       hm->registerHisto(h);
@@ -213,30 +213,27 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
     {
       // residuals (cluster - truth)
       const double max_residual = is_segmentation_phi ? 0.04 : 0.08;
-      auto h = new TH1F((boost::format("%sresidual_%i") %get_histo_prefix() %layer).str().c_str(),
-                        (boost::format("micromegas %s_{cluster-truth} layer_%i")
-				       %(is_segmentation_phi ? "r#Delta#phi" : "#Deltaz") %layer).str().c_str(),
+      auto h = new TH1F((boost::format("%sresidual_%i") % get_histo_prefix() % layer).str().c_str(),
+                        (boost::format("micromegas %s_{cluster-truth} layer_%i") % (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz") % layer).str().c_str(),
                         100, -max_residual, max_residual);
-      h->GetXaxis()->SetTitle((boost::format("%s_{cluster-truth} (cm)") %(is_segmentation_phi ? "r#Delta#phi" : "#Deltaz")).str().c_str());
+      h->GetXaxis()->SetTitle((boost::format("%s_{cluster-truth} (cm)") % (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz")).str().c_str());
       hm->registerHisto(h);
     }
 
     {
       // cluster errors
       const double max_error = is_segmentation_phi ? 0.04 : 0.08;
-      auto h = new TH1F((boost::format("%sresidual_error_%i") %get_histo_prefix() %layer).str().c_str(),
-                        (boost::format("micromegas %s error layer_%i")
-			 %(is_segmentation_phi ? "r#Delta#phi" : "#Deltaz") %layer).str().c_str(),
+      auto h = new TH1F((boost::format("%sresidual_error_%i") % get_histo_prefix() % layer).str().c_str(),
+                        (boost::format("micromegas %s error layer_%i") % (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz") % layer).str().c_str(),
                         100, 0, max_error);
-      h->GetXaxis()->SetTitle((boost::format("%s error (cm)") %(is_segmentation_phi ? "r#Delta#phi" : "#Deltaz")).str().c_str());
+      h->GetXaxis()->SetTitle((boost::format("%s error (cm)") % (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz")).str().c_str());
       hm->registerHisto(h);
     }
 
     {
       // pulls (cluster - truth)
-      auto h = new TH1F((boost::format("%scluster_pulls_%i") %get_histo_prefix() %layer).str().c_str(),
-                        (boost::format("micromegas %s layer_%i")
-			 %(is_segmentation_phi ? "#Delta#phi/#sigma#phi" : "#Deltaz/#sigmaz") %layer).str().c_str(),
+      auto h = new TH1F((boost::format("%scluster_pulls_%i") % get_histo_prefix() % layer).str().c_str(),
+                        (boost::format("micromegas %s layer_%i") % (is_segmentation_phi ? "#Delta#phi/#sigma#phi" : "#Deltaz/#sigmaz") % layer).str().c_str(),
                         100, -5, 5);
       h->GetXaxis()->SetTitle(is_segmentation_phi ? "#Delta#phi/#sigma#phi" : "#Deltaz/#sigmaz");
       hm->registerHisto(h);
@@ -244,7 +241,7 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
 
     {
       // cluster size
-      auto h = new TH1F((boost::format("%sclus_size_%i") %get_histo_prefix() %layer).str().c_str(), (boost::format("micromegas cluster size layer_%i") %layer).str().c_str(), 20, 0, 20);
+      auto h = new TH1F((boost::format("%sclus_size_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("micromegas cluster size layer_%i") % layer).str().c_str(), 20, 0, 20);
       h->GetXaxis()->SetTitle("csize");
       hm->registerHisto(h);
     }
@@ -355,7 +352,7 @@ void QAG4SimulationMicromegas::evaluate_hits()
   for (const auto& layer : m_layers)
   {
     HistogramList h;
-    h.adc = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sadc_%i") %get_histo_prefix() %layer).str()));
+    h.adc = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sadc_%i") % get_histo_prefix() % layer).str()));
     histograms.insert(std::make_pair(layer, h));
   }
 
@@ -416,10 +413,10 @@ void QAG4SimulationMicromegas::evaluate_clusters()
   for (const auto& layer : m_layers)
   {
     HistogramList h;
-    h.residual = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sresidual_%i") %get_histo_prefix() %layer).str()));
-    h.residual_error = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sresidual_error_%i") %get_histo_prefix() %layer).str()));
-    h.pulls = dynamic_cast<TH1*>(hm->getHisto((boost::format("%scluster_pulls_%i") %get_histo_prefix() %layer).str()));
-    h.csize = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_%i") %get_histo_prefix() %layer).str()));
+    h.residual = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sresidual_%i") % get_histo_prefix() % layer).str()));
+    h.residual_error = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sresidual_error_%i") % get_histo_prefix() % layer).str()));
+    h.pulls = dynamic_cast<TH1*>(hm->getHisto((boost::format("%scluster_pulls_%i") % get_histo_prefix() % layer).str()));
+    h.csize = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_%i") % get_histo_prefix() % layer).str()));
 
     histograms.insert(std::make_pair(layer, h));
   }

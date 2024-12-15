@@ -365,19 +365,20 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
             const auto &cluster_key = *cluster_iter;
             const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
-            if (trackerID == TrkrDefs::mvtxId)
+            bool found_id = false;
+            if (trackerID == TrkrDefs::mvtxId || trackerID == TrkrDefs::inttId)
             {
+              found_id = true;
               //              ++MVTX_hits;
-            }
-            else if (trackerID == TrkrDefs::inttId)
-            {
-              //	      ++INTT_hits;
             }
             else
             {
-              if (Verbosity())
+              if (!found_id)
               {
-                std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
+                if (Verbosity())
+                {
+                  std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
+                }
               }
             }
           }

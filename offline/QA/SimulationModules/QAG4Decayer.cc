@@ -12,17 +12,16 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <TH1.h>
-#include <TH2.h>
-#include <TNamed.h>
-#include <TString.h>
-#include <TVector3.h>
 #include <TDatabasePDG.h>
 #include <TF1.h>
+#include <TH1.h>
+#include <TH2.h>
 #include <TLatex.h>
-#include <TROOT.h>
-#include <TStyle.h>
 #include <TLorentzVector.h>
+#include <TNamed.h>
+#include <TROOT.h>
+#include <TString.h>
+#include <TStyle.h>
 #include <TVector3.h>
 
 #include <CLHEP/Vector/LorentzVector.h>
@@ -65,28 +64,28 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
 
   for (int i = 0; i < NHFQA; i++)
   {
-    h = new TH1F((boost::format("QAPx_%d") %i).str().c_str(), "", 200, -1, 1);
+    h = new TH1F((boost::format("QAPx_%d") % i).str().c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("QAPy_%d") %i).str().c_str(), "", 200, -1, 1);
+    h = new TH1F((boost::format("QAPy_%d") % i).str().c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("QAPz_%d") %i).str().c_str(), "", 200, -1, 1);
+    h = new TH1F((boost::format("QAPz_%d") % i).str().c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("QAE_%d") %i).str().c_str(), "", 200, -1, 1);
+    h = new TH1F((boost::format("QAE_%d") % i).str().c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("InvMass_%d") %i).str().c_str(), "", 100, MassMin[i], MassMax[i]);
+    h = new TH1F((boost::format("InvMass_%d") % i).str().c_str(), "", 100, MassMin[i], MassMax[i]);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("QACosTheta_%d") %i).str().c_str(), "", 120, -1.2, 1.2);
+    h = new TH1F((boost::format("QACosTheta_%d") % i).str().c_str(), "", 120, -1.2, 1.2);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("BR1DHis_%d") %i).str().c_str(), "", 10, -0.5, 9.5);
+    h = new TH1F((boost::format("BR1DHis_%d") % i).str().c_str(), "", 10, -0.5, 9.5);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("ProperLifeTime_%d") %i).str().c_str(), "", 100, 0.0001, 0.05);
+    h = new TH1F((boost::format("ProperLifeTime_%d") % i).str().c_str(), "", 100, 0.0001, 0.05);
     hm->registerHisto(h);
   }
 
@@ -298,35 +297,35 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   for (int i = 0; i < NHFQA; i++)
   {
-    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") %i).str().c_str()));
+    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") % i).str().c_str()));
     assert(QAPx[i]);
 
-    QAPy[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPy_%d") %i).str().c_str()));
+    QAPy[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPy_%d") % i).str().c_str()));
     assert(QAPy[i]);
 
-    QAPz[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPz_%d") %i).str().c_str()));
+    QAPz[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPz_%d") % i).str().c_str()));
     assert(QAPz[i]);
 
-    QAE[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAE_%d") %i).str().c_str()));
+    QAE[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAE_%d") % i).str().c_str()));
     assert(QAE[i]);
 
-    QACosTheta[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") %i).str().c_str()));
+    QACosTheta[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") % i).str().c_str()));
     assert(QAPx[i]);
 
-    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") %i).str().c_str()));
+    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") % i).str().c_str()));
     assert(QAPx[i]);
 
-    BR1DHis[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("BR1DHis_%d") %i).str().c_str()));
+    BR1DHis[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("BR1DHis_%d") % i).str().c_str()));
     assert(BR1DHis[i]);
     /*
        AntiBR1DHis[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("AntiBR1DHis_%d") %i).str().c_str()));
        assert(AntiBR1DHis[i]);
        */
 
-    InvMass[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("InvMass_%d") %i).str().c_str()));
+    InvMass[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("InvMass_%d") % i).str().c_str()));
     assert(InvMass[i]);
 
-    ProperLifeTime[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("ProperLifeTime_%d") %i).str().c_str()));
+    ProperLifeTime[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("ProperLifeTime_%d") % i).str().c_str()));
     assert(ProperLifeTime[i]);
   }
 
