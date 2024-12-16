@@ -809,7 +809,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 	exit(-1);
       }
     else
-      ieta_gain = f2f->GetParameter(1);
+      {
+	ieta_gain = f2f->GetParameter(1);
+      }
 
     ieta_gain_err = f2f->GetParError(1);
 
