@@ -890,13 +890,8 @@ std::pair<unsigned int, unsigned int> SvtxTrackEval::get_layer_range_contributio
   unsigned int nwrong = 0;
   unsigned int nlayers = end_layer - start_layer;
 
-  int *layers = new int[nlayers];
-  int *layers_wrong = new int[nlayers];
-  for (unsigned int i = 0; i < nlayers; i++)
-  {
-    layers[i] = 0;
-    layers_wrong[i] = 0;
-  }
+  std::vector<int> layers(nlayers,0);
+  std::vector<int> layers_wrong(nlayers,0);
   // loop over all clusters
   std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
   for (const auto& cluster_key : cluster_keys)
@@ -937,8 +932,6 @@ std::pair<unsigned int, unsigned int> SvtxTrackEval::get_layer_range_contributio
       {
 	layers_wrong[cluster_layer - start_layer] = 1;
       }
-    delete [] layers;
-    delete [] layers_wrong;
   }
   for (unsigned int i = 0; i < nlayers; i++)
   {
@@ -952,7 +945,6 @@ std::pair<unsigned int, unsigned int> SvtxTrackEval::get_layer_range_contributio
       }
   }
   
-
   return std::make_pair(nmatches,nwrong);
 }
 
