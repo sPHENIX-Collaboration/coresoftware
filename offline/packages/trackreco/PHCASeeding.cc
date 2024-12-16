@@ -246,6 +246,10 @@ std::pair<PHCASeeding::PositionMap, PHCASeeding::keyListPerLayer> PHCASeeding::F
       TrkrDefs::cluskey ckey = clusIter->first;
       TrkrCluster* cluster = clusIter->second;
       unsigned int layer = TrkrDefs::getLayer(ckey);
+
+      if(cluster->getZSize()==1&&_reject_zsize1==true){
+	continue;
+      }
       if (layer < _start_layer || layer >= _end_layer)
       {
         if (Verbosity() > 2)

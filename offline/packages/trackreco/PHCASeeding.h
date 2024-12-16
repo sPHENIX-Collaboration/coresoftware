@@ -143,7 +143,7 @@ class PHCASeeding : public PHTrackSeeding
   void useFixedClusterError(bool opt) { _use_fixed_clus_err = opt; }
   void setFixedClusterError(int i, double val) { _fixed_clus_err.at(i) = val; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
-
+  void reject_zsize1_clusters(bool mode){_reject_zsize1 = mode;}
   void setNeonFraction(double frac) { Ne_frac = frac; };
   void setArgonFraction(double frac) { Ar_frac = frac; };
   void setCF4Fraction(double frac) { CF4_frac = frac; };
@@ -253,6 +253,7 @@ class PHCASeeding : public PHTrackSeeding
   double _fieldDir = -1;
   bool _use_const_field = false;
   bool _split_seeds = true;
+  bool _reject_zsize1 = false;
   float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
   bool _pp_mode = false;
