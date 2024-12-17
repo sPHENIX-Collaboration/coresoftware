@@ -104,9 +104,9 @@ class LiteCaloEval : public SubsysReco
     doQA = status;
   }
 
-  void draw_spectra();
+  void draw_spectra(const char *);
 
-  void fit_info();
+  void fit_info(const char *, const int);
 
   void set_reqMinBias(bool status)
   {
