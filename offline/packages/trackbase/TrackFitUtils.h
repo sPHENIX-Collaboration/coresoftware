@@ -67,6 +67,20 @@ namespace TrackFitUtils
   line_fit_output_t line_fit_xy(const std::vector<Acts::Vector3>& positions);
   line_fit_output_t line_fit_xz(const std::vector<Acts::Vector3>& positions);
 
+  /// line-circle intersection output. (xplus, yplus, xminus, yminus)
+  using line_circle_intersection_output_t = std::tuple<double, double, double, double>;
+  /**
+  * r is radius of sPHENIX layer
+  * m and b are parameters of line fitted to TPC clusters in the x-y plane (slope and intersection)
+  * the solutions are xplus, xminus, yplus, yminus
+  * The intersection of the line-circle occurs when
+  * y = m*x + b
+  * Here we assume that circle is an sPHENIX layer centered on x1=y1=0
+  * x^2 +y^2 = r^2
+  * substitute for y in equation of circle, solve for x, and then for y.
+  **/
+  line_circle_intersection_output_t line_circle_intersection(double r, double m, double b);
+
   /// circle-circle intersection output. (xplus, yplus, xminus, yminus)
   using circle_circle_intersection_output_t = std::tuple<double, double, double, double>;
 
