@@ -28,13 +28,14 @@
 
 #include <TH1.h>
 
-#include <boost/format.hpp>
 
 #include <cassert>
 #include <cmath>
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
+#include <string>
+#include <set>
 #include <utility>   // for pair, make_pair
 
 //________________________________________________________________________
