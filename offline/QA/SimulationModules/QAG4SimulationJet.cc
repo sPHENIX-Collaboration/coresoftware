@@ -25,7 +25,6 @@
 #include <TH1.h>
 #include <TH2.h>
 
-
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -209,7 +208,7 @@ TString
 QAG4SimulationJet::get_eta_range_str(const char* eta_name) const
 {
   assert(eta_name);
-  return TString((boost::format("%.1f < %s < %.1f") %eta_range.first %eta_name %eta_range.second).str().c_str());
+  return TString((boost::format("%.1f < %s < %.1f") % eta_range.first % eta_name % eta_range.second).str().c_str());
 }
 
 //! acceptance cut on jet object
@@ -716,8 +715,8 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         }  // if (fabs(dPhi) < 0.1)
 
       }  //       if (recojet)
-    }    // inclusive best energy match
-    {    // unique match
+    }  // inclusive best energy match
+    {  // unique match
 
       const Jet* recojet = recoeval->unique_reco_jet_from_truth(truthjet);
       if (recojet)
@@ -751,7 +750,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         }  // if (fabs(dPhi) < 0.1)
 
       }  //       if (recojet)
-    }    // unique match
+    }  // unique match
 
   }  //  if (truthjet)
 
@@ -821,7 +820,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         }  // if (fabs(dPhi) < 0.1)
 
       }  //      if (truthjet1)
-    }    // inclusive best energy match
+    }  // inclusive best energy match
 
     {  // unique match
       Jet* truthjet2 = recoeval->unique_truth_jet_from_reco(recojet);
@@ -848,7 +847,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         }  // if (fabs(dPhi) < 0.1)
 
       }  //      if (truthjet2)
-    }    // unique match
+    }  // unique match
 
   }  // if (recojet)
 

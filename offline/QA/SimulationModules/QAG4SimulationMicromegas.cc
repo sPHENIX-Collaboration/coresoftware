@@ -41,15 +41,14 @@
 #include <TH1.h>
 #include <TVector3.h>
 
-
 #include <cassert>
 #include <cmath>     // for cos, sin, NAN
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
 #include <string>
-#include <utility>   // for pair, make_pair
-#include <vector>    // for vector
+#include <utility>  // for pair, make_pair
+#include <vector>   // for vector
 
 //_____________________________________________________________________
 namespace

@@ -33,8 +33,8 @@
 #include <cmath>
 #include <cstdlib>  // for abs
 #include <iostream>
-#include <string>
 #include <set>
+#include <string>
 #include <utility>  // for pair
 
 QAG4SimulationUpsilon::QAG4SimulationUpsilon(const std::string &name)

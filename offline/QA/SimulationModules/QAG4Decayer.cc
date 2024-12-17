@@ -19,15 +19,14 @@
 #include <TStyle.h>
 #include <TVector3.h>
 
-
 #include <algorithm>
 
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
 
 const int NHFQA = 16;
 

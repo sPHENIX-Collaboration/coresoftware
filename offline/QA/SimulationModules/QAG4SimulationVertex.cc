@@ -34,8 +34,8 @@
 #include <cmath>
 #include <iostream>
 #include <map>
-#include <string>
 #include <set>
+#include <string>
 #include <utility>  // for pair
 
 QAG4SimulationVertex::QAG4SimulationVertex(const std::string &name)

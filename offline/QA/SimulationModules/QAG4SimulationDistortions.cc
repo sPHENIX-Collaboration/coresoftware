@@ -1,8 +1,8 @@
 
 #include "QAG4SimulationDistortions.h"
 
-#include <math.h>
 #include <fun4all/SubsysReco.h>
+#include <math.h>
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -11,7 +11,6 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>

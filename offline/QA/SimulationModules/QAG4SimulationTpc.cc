@@ -34,16 +34,15 @@
 #include <TAxis.h>  // for TAxis
 #include <TH1.h>
 
-
 #include <cassert>
 #include <cmath>     // for atan2
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
-#include <string>
 #include <set>
-#include <utility>   // for pair, make_pair
-#include <vector>    // for vector
+#include <string>
+#include <utility>  // for pair, make_pair
+#include <vector>   // for vector
 
 //________________________________________________________________________
 QAG4SimulationTpc::QAG4SimulationTpc(const std::string& name)

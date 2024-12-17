@@ -10,7 +10,6 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
@@ -42,9 +41,9 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <map>      // for map
-#include <string>
+#include <map>  // for map
 #include <set>
+#include <string>
 #include <utility>  // for pair
 
 QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)

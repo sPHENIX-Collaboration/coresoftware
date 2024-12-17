@@ -16,15 +16,15 @@
 #include <TH1.h>
 #include <TString.h>
 
-#include <string>
-#include <cassert>
-#include <vector>
-#include <iostream>
-#include <ostream>
 #include <algorithm>
-#include <iterator>
-#include <cstdlib>
+#include <cassert>
 #include <cmath>
+#include <cstdlib>
+#include <iostream>
+#include <iterator>
+#include <ostream>
+#include <string>
+#include <vector>
 
 #include <cmath>
 

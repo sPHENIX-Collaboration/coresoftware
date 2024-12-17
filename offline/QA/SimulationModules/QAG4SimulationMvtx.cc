@@ -28,15 +28,14 @@
 #include <TAxis.h>  // for TAxis
 #include <TH1.h>
 
-
 #include <cassert>
 #include <cmath>     // for atan2
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
-#include <string>
 #include <set>
-#include <utility>   // for pair, make_pair
+#include <string>
+#include <utility>  // for pair, make_pair
 
 //________________________________________________________________________
 QAG4SimulationMvtx::QAG4SimulationMvtx(const std::string& name)

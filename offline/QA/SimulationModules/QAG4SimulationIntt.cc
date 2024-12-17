@@ -28,15 +28,14 @@
 
 #include <TH1.h>
 
-
 #include <cassert>
 #include <cmath>
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
-#include <string>
 #include <set>
-#include <utility>   // for pair, make_pair
+#include <string>
+#include <utility>  // for pair, make_pair
 
 //________________________________________________________________________
 QAG4SimulationIntt::QAG4SimulationIntt(const std::string& name)
