@@ -157,10 +157,10 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
       for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
       {
         const auto &[type, vertexVec] = *iter;
-        if (type != m_vertex_type) continue;
+        if (type != m_vertex_type) { continue; }
         for (const auto *v : vertexVec)
         {
-          if (!v) continue; 
+          if (!v) { continue; }
           vertex.set(v->get_x(), v->get_y(), v->get_z());
         }
       }

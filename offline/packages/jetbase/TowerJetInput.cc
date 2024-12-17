@@ -416,10 +416,10 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
       {
         const auto &[type, vertexVec] = *iter;
-        if (type != m_vertex_type) continue;
+        if (type != m_vertex_type) { continue; }
         for (const auto *vertex : vertexVec)
         {
-          if (!vertex) continue; 
+          if (!vertex) { continue; }
           vtxz = vertex->get_z();
         }
       }
