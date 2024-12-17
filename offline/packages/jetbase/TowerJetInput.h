@@ -5,12 +5,14 @@
 #include "JetInput.h"
 
 #include <calobase/RawTowerDefs.h>
+#include <globalvertex/GlobalVertex.h>
 
 #include <iostream>  // for cout, ostream
 
 #include <vector>
 // forward declarations
 class PHCompositeNode;
+class GlobalVertex;
 class TowerJetInput : public JetInput
 {
  public:
@@ -23,12 +25,20 @@ class TowerJetInput : public JetInput
 
   std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
+  void set_GlobalVertexType(GlobalVertex::VTXTYPE type) 
+  {
+    m_use_vertextype = true;
+    m_vertex_type = type;
+  }
+
  private:
   Jet::SRC m_input;
   RawTowerDefs::CalorimeterId geocaloid{RawTowerDefs::CalorimeterId::NONE};
   bool m_use_towerinfo {false};
   std::string m_towerNodePrefix;
   std::string towerName;
+  bool m_use_vertextype {false};
+  GlobalVertex::VTXTYPE m_vertex_type = GlobalVertex::UNDEFINED;
 };
 
 #endif
