@@ -145,7 +145,9 @@ void QAG4SimulationVertex::addEmbeddingID(int embeddingID)
 int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
+  {
     std::cout << "QAG4SimulationVertex::process_event() entered" << std::endl;
+  }
 
   // load relevant nodes from NodeTree
   load_nodes(topNode);
@@ -161,7 +163,9 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
   ;
 
   if (m_svtxEvalStack)
+  {
     m_svtxEvalStack->next_event(topNode);
+  }
   /*
   SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
   assert(trackeval);
@@ -218,13 +222,16 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       ++embedvtxid_particle_count[gembed];
       PHG4Particle *g4particle = iter->second;
 
-      if (m_checkembed && gembed <= m_embed_id_cut) continue;
+      if (m_checkembed && gembed <= m_embed_id_cut)
+      {
+        continue;
+      }
 
       std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
 
       unsigned int nglmaps = 0;
 
-      int lmaps[_nlayers_maps + 1];
+      int *lmaps = new int[_nlayers_maps + 1];
 
       if (_nlayers_maps > 0)
       {
@@ -265,7 +272,10 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         //          gphi = gv.Phi();
       }
       if (nglmaps == 3 && fabs(geta) < 1.0 && gpt > 0.5)
+      {
         ++embedvtxid_maps_particle_count[gembed];
+      }
+      delete[] lmaps;
     }
 
     auto vrange = m_truthInfo->GetPrimaryVtxRange();
@@ -276,7 +286,10 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
     {
       const int point_id = iter->first;
       int gembed = m_truthInfo->isEmbededVtx(point_id);
-      if (gembed <= 0) continue;
+      if (gembed <= 0)
+      {
+        continue;
+      }
 
       auto search = embedvtxid_found.find(gembed);
       if (search != embedvtxid_found.end())
@@ -294,21 +307,18 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       }
       embedvtxid_found[gembed] = false;
     }
+    // unsigned int ngembed = 0;
+    // for (std::map<int, bool>::iterator iter = embedvtxid_found.begin();
+    //      iter != embedvtxid_found.end();
+    //      ++iter)
+    // {
+    //   if (iter->first >= 0 || iter->first != iter->first) continue;
+    //   ++ngembed;
+    // }
 
-    unsigned int ngembed = 0;
-    for (std::map<int, bool>::iterator iter = embedvtxid_found.begin();
-         iter != embedvtxid_found.end();
-         ++iter)
+    for (auto &iter : *m_vertexMap)
     {
-      if (iter->first >= 0 || iter->first != iter->first) continue;
-      ++ngembed;
-    }
-
-    for (SvtxVertexMap::Iter iter = m_vertexMap->begin();
-         iter != m_vertexMap->end();
-         ++iter)
-    {
-      SvtxVertex *vertex = iter->second;
+      SvtxVertex *vertex = iter.second;
       ++n_recoSvtxVertex;
 
       PHG4VtxPoint *point = vertexeval->max_truth_point_by_ntracks(vertex);
@@ -341,9 +351,9 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         {
           continue;
         }
-        int MVTX_hits = 0;
-        int INTT_hits = 0;
-        int TPC_hits = 0;
+        //        int MVTX_hits = 0;
+        //        int INTT_hits = 0;
+        //        int TPC_hits = 0;
 
         TrackSeed *siliconSeed = track->get_tpc_seed();
         TrackSeed *tpcSeed = track->get_silicon_seed();
@@ -355,30 +365,37 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
             const auto &cluster_key = *cluster_iter;
             const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
-            if (trackerID == TrkrDefs::mvtxId)
-              ++MVTX_hits;
-            else if (trackerID == TrkrDefs::inttId)
-              ++INTT_hits;
+            bool found_id = false;
+            if (trackerID == TrkrDefs::mvtxId || trackerID == TrkrDefs::inttId)
+            {
+              found_id = true;
+              //              ++MVTX_hits;
+            }
             else
             {
-              if (Verbosity())
-                std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
+              if (!found_id)
+              {
+                if (Verbosity())
+                {
+                  std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
+                }
+              }
             }
           }
         }
         for (auto cluster_iter = tpcSeed->begin_cluster_keys();
              cluster_iter != tpcSeed->end_cluster_keys(); ++cluster_iter)
         {
-          const auto &cluster_key = *cluster_iter;
-          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+          //          const auto &cluster_key = *cluster_iter;
+          //          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
-          if (trackerID == TrkrDefs::tpcId)
-            ++TPC_hits;
+          // if (trackerID == TrkrDefs::tpcId)
+          //   ++TPC_hits;
         }
-        if (MVTX_hits >= 2)
-        {
-          ++ntracks_with_cuts;
-        }
+        // if (MVTX_hits >= 2)
+        // {
+        //   ++ntracks_with_cuts;
+        // }
       }
       h_ntracks_cuts->Fill(ntracks_with_cuts);
 
@@ -398,7 +415,9 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         h_gntracks->Fill(gntracks);
 
         if (embedvtxid_maps_particle_count[(int) gembed] > 0 && fabs(gvt) < 2000. && fabs(gvz) < 13.0)
+        {
           gntracksmaps = embedvtxid_maps_particle_count[(int) gembed];
+        }
 
         h_gntracksmaps->Fill(gntracksmaps);
         h_norm->Fill("MVTXTrackOnVertex", gntracksmaps);

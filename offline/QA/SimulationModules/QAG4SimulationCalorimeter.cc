@@ -132,22 +132,28 @@ int QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
   if (flag(kProcessG4Hit))
   {
     if (Verbosity() >= 1)
+    {
       std::cout << "QAG4SimulationCalorimeter::Init - Process sampling fraction"
                 << std::endl;
+    }
     Init_G4Hit(topNode);
   }
   if (flag(kProcessTower))
   {
     if (Verbosity() >= 1)
+    {
       std::cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
                 << std::endl;
+    }
     Init_Tower(topNode);
   }
   if (flag(kProcessCluster))
   {
     if (Verbosity() >= 1)
+    {
       std::cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
                 << std::endl;
+    }
     Init_Cluster(topNode);
   }
 
@@ -157,17 +163,23 @@ int QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
 int QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
+  {
     std::cout << "QAG4SimulationCalorimeter::process_event() entered" << std::endl;
+  }
 
   if (_caloevalstack)
+  {
     _caloevalstack->next_event(topNode);
+  }
 
   if (flag(kProcessG4Hit))
   {
     int ret = process_event_G4Hit(topNode);
 
     if (ret != Fun4AllReturnCodes::EVENT_OK)
+    {
       return ret;
+    }
   }
 
   if (flag(kProcessTower))
@@ -175,7 +187,9 @@ int QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
     int ret = process_event_Tower(topNode);
 
     if (ret != Fun4AllReturnCodes::EVENT_OK)
+    {
       return ret;
+    }
   }
 
   if (flag(kProcessCluster))
@@ -183,7 +197,9 @@ int QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
     int ret = process_event_Cluster(topNode);
 
     if (ret != Fun4AllReturnCodes::EVENT_OK)
+    {
       return ret;
+    }
   }
 
   // at the end, count success events
@@ -254,7 +270,9 @@ int QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode * /*topNode*/)
 int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 2)
+  {
     std::cout << "QAG4SimulationCalorimeter::process_event_G4Hit() entered" << std::endl;
+  }
 
   TH1F *h = nullptr;
 
@@ -309,13 +327,17 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
   TVector3 axis_proj(last_primary->get_px(), last_primary->get_py(),
                      last_primary->get_pz());
   if (axis_proj.Mag() == 0)
+  {
     axis_proj.SetXYZ(0, 0, 1);
+  }
   axis_proj = axis_proj.Unit();
 
   // azimuthal direction axis
   TVector3 axis_azimuth = axis_proj.Cross(TVector3(0, 0, 1));
   if (axis_azimuth.Mag() == 0)
+  {
     axis_azimuth.SetXYZ(1, 0, 0);
+  }
   axis_azimuth = axis_azimuth.Unit();
 
   // polar direction axis
@@ -365,7 +387,9 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
       }
       assert(particle);
       if (abs(particle->get_pid()) == 11)
+      {
         ev_calo_em += this_hit->get_light_yield();
+      }
 
       const TVector3 hit(this_hit->get_avg_x(), this_hit->get_avg_y(),
                          this_hit->get_avg_z());
@@ -397,9 +421,11 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
   }
 
   if (Verbosity() > 3)
+  {
     std::cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
               << " - SF = " << e_calo / (e_calo + ea_calo + 1e-9) << ", VSF = "
               << ev_calo / (e_calo + ea_calo + 1e-9) << std::endl;
+  }
 
   if (e_calo + ea_calo > 0)
   {
@@ -426,9 +452,11 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
   }
 
   if (Verbosity() > 3)
+  {
     std::cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
               << " - histogram " << h->GetName() << " Get Sum = " << h->GetSum()
               << std::endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -492,7 +520,9 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
   const std::string detector(_calo_name);
 
   if (Verbosity() > 2)
+  {
     std::cout << "QAG4SimulationCalorimeter::process_event_Tower() entered" << std::endl;
+  }
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -512,7 +542,7 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  if(!towerinfos && flag(kProcessTowerinfo))
+  if (!towerinfos && flag(kProcessTowerinfo))
   {
     std::cout << PHWHERE << ": Could not find node " << towerinfonodename
               << std::endl;
@@ -564,7 +594,9 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
       {
         // for 2x2 and 4x4 use slide-2 window as implemented in DAQ
         if ((size == 2 or size == 4) and ((binphi % 2 != 0) and (bineta % 2 != 0)))
+        {
           continue;
+        }
 
         double energy = 0;
 
@@ -574,7 +606,9 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
           for (int ieta = bineta; ieta < bineta + size; ++ieta)
           {
             if (ieta > towergeom->get_etabins())
+            {
               continue;
+            }
 
             // wrap around
             int wrapphi = iphi;
@@ -583,37 +617,36 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
             {
               wrapphi = wrapphi - towergeom->get_phibins();
             }
-            if(!flag(kProcessTowerinfo))
+            if (!flag(kProcessTowerinfo))
             {
-              
-            RawTower *tower = towers->getTower(ieta, wrapphi);
+              RawTower *tower = towers->getTower(ieta, wrapphi);
 
-            if (tower)
-            {
-              const double e_intput = tower->get_energy();
+              if (tower)
+              {
+                const double e_intput = tower->get_energy();
 
-              energy += e_intput;
-            }
+                energy += e_intput;
+              }
             }
             else
             {
               unsigned int towerkey = _calo_name == "CEMC" ? TowerInfoDefs::encode_emcal(ieta, wrapphi) : TowerInfoDefs::encode_hcal(ieta, wrapphi);
               TowerInfo *towerinfo = towerinfos->get_tower_at_key(towerkey);
-              if(towerinfo)
+              if (towerinfo)
               {
                 const double e_intput = towerinfo->get_energy();
                 energy += e_intput;
               }
             }
-
-
           }
         }
 
         energy_hist_list[size]->Fill(energy == 0 ? 9.1e-4 : energy);  // trick to fill 0 energy tower to the first bin
 
         if (energy > max_energy[size])
+        {
           max_energy[size] = energy;
+        }
 
       }  //          for (int size = 1; size <= 4; ++size)
     }
@@ -701,10 +734,12 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
     // has a cluster matched and best cluster selected
 
     if (Verbosity() > 3)
+    {
       std::cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
                 << _calo_name << " - get cluster with energy "
                 << cluster->get_energy() << " VS primary energy "
                 << last_primary->get_e() << std::endl;
+    }
 
     h->Fill(cluster->get_energy() / (last_primary->get_e() + 1e-9));  // avoids divide zero
 
@@ -729,13 +764,17 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
     CLHEP::Hep3Vector axis_proj(last_primary->get_px(), last_primary->get_py(),
                                 last_primary->get_pz());
     if (axis_proj.mag() == 0)
+    {
       axis_proj.set(0, 0, 1);
+    }
     axis_proj = axis_proj.unit();
 
     // azimuthal direction axis
     CLHEP::Hep3Vector axis_azimuth = axis_proj.cross(CLHEP::Hep3Vector(0, 0, 1));
     if (axis_azimuth.mag() == 0)
+    {
       axis_azimuth.set(1, 0, 0);
+    }
     axis_azimuth = axis_azimuth.unit();
 
     // polar direction axis
@@ -754,8 +793,10 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   else
   {
     if (Verbosity() > 3)
+    {
       std::cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
                 << _calo_name << " - missing cluster !";
+    }
     h->Fill(0);  // no cluster matched
   }
 

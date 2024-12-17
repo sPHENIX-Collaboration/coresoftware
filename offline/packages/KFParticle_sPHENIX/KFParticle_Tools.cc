@@ -661,7 +661,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
                                                            bool constrainMass, float required_vertexID)
 {
   KFParticle mother;
-  KFParticle inputTracks[nTracks];
+  KFParticle *inputTracks = new KFParticle[nTracks];
 
   mother.SetConstructMethod(2);
 
@@ -801,7 +801,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
       }
     }
   }
-
+  delete [] inputTracks;
   return std::make_tuple(mother, goodCandidate);
 }
 

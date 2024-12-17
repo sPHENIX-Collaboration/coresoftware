@@ -2,33 +2,32 @@
 
 #include <qautils/QAHistManagerDef.h>
 
+#include <decayfinder/DecayFinder.h>
+#include <decayfinder/DecayFinderContainerBase.h>  // for DecayFinderContainerBase::Iter
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <decayfinder/DecayFinder.h>
-#include <decayfinder/DecayFinderContainerBase.h>  // for DecayFinderContainerBase::Iter
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <CLHEP/Vector/LorentzVector.h>
-
+#include <TDatabasePDG.h>
+#include <TF1.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
-#include <TString.h>
-#include <TVector3.h>
-
-#include <TDatabasePDG.h>
-
-//#include <g4eval/SvtxEvalStack.h>
-#include <TF1.h>
 #include <TLatex.h>
-#include <TROOT.h>
-#include <TStyle.h>
-
 #include <TLorentzVector.h>
+#include <TNamed.h>
+#include <TROOT.h>
+#include <TString.h>
+#include <TStyle.h>
 #include <TVector3.h>
+
+#include <CLHEP/Vector/LorentzVector.h>
+
+#include <boost/format.hpp>
+
 #include <iostream>
 #include <map>
 
@@ -56,41 +55,37 @@ QAG4Decayer::QAG4Decayer(const std::string &name)
 {
 }
 
-QAG4Decayer::~QAG4Decayer()
-{
-}
-
 int QAG4Decayer::Init(PHCompositeNode *topNode)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  TH1 *h(nullptr);
+  TH1 *h{nullptr};
 
   for (int i = 0; i < NHFQA; i++)
   {
-    h = new TH1F(Form("QAPx_%d", i), "", 200, -1, 1);
+    h = new TH1F((boost::format("QAPx_%d") % i).str().c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("QAPy_%d", i), "", 200, -1, 1);
+    h = new TH1F((boost::format("QAPy_%d") % i).str().c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("QAPz_%d", i), "", 200, -1, 1);
+    h = new TH1F((boost::format("QAPz_%d") % i).str().c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("QAE_%d", i), "", 200, -1, 1);
+    h = new TH1F((boost::format("QAE_%d") % i).str().c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("InvMass_%d", i), "", 100, MassMin[i], MassMax[i]);
+    h = new TH1F((boost::format("InvMass_%d") % i).str().c_str(), "", 100, MassMin[i], MassMax[i]);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("QACosTheta_%d", i), "", 120, -1.2, 1.2);
+    h = new TH1F((boost::format("QACosTheta_%d") % i).str().c_str(), "", 120, -1.2, 1.2);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("BR1DHis_%d", i), "", 10, -0.5, 9.5);
+    h = new TH1F((boost::format("BR1DHis_%d") % i).str().c_str(), "", 10, -0.5, 9.5);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("ProperLifeTime_%d", i), "", 100, 0.0001, 0.05);
+    h = new TH1F((boost::format("ProperLifeTime_%d") % i).str().c_str(), "", 100, 0.0001, 0.05);
     hm->registerHisto(h);
   }
 
@@ -289,55 +284,55 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   assert(hm);
   // Individual QA for every single heavy flavor particle//
 
-  TH1F *QAPx[NHFQA];
-  TH1F *QAPy[NHFQA];
-  TH1F *QAPz[NHFQA];
-  TH1F *QAE[NHFQA];
-  TH1F *QACosTheta[NHFQA];
-  TH1F *BR1DHis[NHFQA];
-  //	TH1F *AntiBR1DHis[NHFQA];
+  TH1 *QAPx[NHFQA];
+  TH1 *QAPy[NHFQA];
+  TH1 *QAPz[NHFQA];
+  TH1 *QAE[NHFQA];
+  TH1 *QACosTheta[NHFQA];
+  TH1 *BR1DHis[NHFQA];
+  //	TH1 *AntiBR1DHis[NHFQA];
 
-  TH1F *ProperLifeTime[NHFQA];
-  TH1F *InvMass[NHFQA];
+  TH1 *ProperLifeTime[NHFQA];
+  TH1 *InvMass[NHFQA];
 
   for (int i = 0; i < NHFQA; i++)
   {
-    QAPx[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPx_%d", i)));
+    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") % i).str().c_str()));
     assert(QAPx[i]);
 
-    QAPy[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPy_%d", i)));
+    QAPy[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPy_%d") % i).str().c_str()));
     assert(QAPy[i]);
 
-    QAPz[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPz_%d", i)));
+    QAPz[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPz_%d") % i).str().c_str()));
     assert(QAPz[i]);
 
-    QAE[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAE_%d", i)));
+    QAE[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAE_%d") % i).str().c_str()));
     assert(QAE[i]);
 
-    QACosTheta[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPx_%d", i)));
+    QACosTheta[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") % i).str().c_str()));
     assert(QAPx[i]);
 
-    QAPx[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPx_%d", i)));
+    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") % i).str().c_str()));
     assert(QAPx[i]);
 
-    BR1DHis[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("BR1DHis_%d", i)));
+    BR1DHis[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("BR1DHis_%d") % i).str().c_str()));
     assert(BR1DHis[i]);
     /*
-       AntiBR1DHis[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("AntiBR1DHis_%d", i)));
+       AntiBR1DHis[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("AntiBR1DHis_%d") %i).str().c_str()));
        assert(AntiBR1DHis[i]);
        */
 
-    InvMass[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("InvMass_%d", i)));
+    InvMass[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("InvMass_%d") % i).str().c_str()));
     assert(InvMass[i]);
 
-    ProperLifeTime[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("ProperLifeTime_%d", i)));
+    ProperLifeTime[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("ProperLifeTime_%d") % i).str().c_str()));
     assert(ProperLifeTime[i]);
   }
 
-  TH1F *HFHadronStat = dynamic_cast<TH1F *>(hm->getHisto("HFHadronStat"));
+  TH1 *HFHadronStat = dynamic_cast<TH1 *>(hm->getHisto("HFHadronStat"));
   assert(HFHadronStat);
 
-  TH1F *HFAntiHadronStat = dynamic_cast<TH1F *>(hm->getHisto("HFAntiHadronStat"));
+  TH1 *HFAntiHadronStat = dynamic_cast<TH1 *>(hm->getHisto("HFAntiHadronStat"));
   assert(HFAntiHadronStat);
 
   m_truth_info = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -419,7 +414,10 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       HFParMom.SetXYZ(mother->get_px(), mother->get_py(), mother->get_pz());
       HFParFourMom.SetXYZT(mother->get_px(), mother->get_py(), mother->get_pz(), mother->get_e());
 
-      if (mother->get_parent_id() == 0) GrandParentPDGID = 0;
+      if (mother->get_parent_id() == 0)
+      {
+        GrandParentPDGID = 0;
+      }
     }
 
     int NDig = (int) log10(abs(gflavor));
@@ -430,11 +428,20 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
       for (int q = 0; q < NHFQA; q++)
       {
-        if (gflavor == QAVtxPDGID[q]) HFFillIndex = q;
+        if (gflavor == QAVtxPDGID[q])
+        {
+          HFFillIndex = q;
+        }
       }
 
-      if (gflavor > 0) HFHadronStat->Fill(HFFillIndex);
-      if (gflavor < 0) HFAntiHadronStat->Fill(HFFillIndex - 9);
+      if (gflavor > 0)
+      {
+        HFHadronStat->Fill(HFFillIndex);
+      }
+      if (gflavor < 0)
+      {
+        HFAntiHadronStat->Fill(HFFillIndex - 9);
+      }
     }
 
     int VtxSize = ParentTrkInfo.size();
@@ -520,7 +527,10 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     PHG4VtxPoint *vtx = m_truth_info->GetVtx(g4particle->get_vtx_id());
     PHG4VtxPoint *ParentVtx = nullptr;
-    if (mother) ParentVtx = m_truth_info->GetVtx(mother->get_vtx_id());
+    if (mother)
+    {
+      ParentVtx = m_truth_info->GetVtx(mother->get_vtx_id());
+    }
 
     if (GrandParentPDGID == 0 && ParentVtx && VtxToQA)
     {
@@ -533,7 +543,10 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       SVtoPVDis = (HFDecayVtx - HFProdVtx).Mag();
       SVtoPVTau = SVtoPVDis / ParP * ParentMass;
 
-      if (SVtoPVDis > 0) CosTheta = ((HFDecayVtx - HFProdVtx).Dot(HFParMom)) / ((HFDecayVtx - HFProdVtx).Mag() * HFParMom.Mag());
+      if (SVtoPVDis > 0)
+      {
+        CosTheta = ((HFDecayVtx - HFProdVtx).Dot(HFParMom)) / ((HFDecayVtx - HFProdVtx).Mag() * HFParMom.Mag());
+      }
 
       // QACosTheta->Fill(CosTheta);
       // MassHis->Fill(ParMass);
@@ -577,107 +590,221 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     int key = -1;
     std::vector<int> ChannelID;
 
-    if (decaymap[HFIndexToFill].find({DaughterInfo[q]}) != decaymap[HFIndexToFill].end()) key = decaymap[HFIndexToFill].find({DaughterInfo[q]})->second;
+    if (decaymap[HFIndexToFill].find({DaughterInfo[q]}) != decaymap[HFIndexToFill].end())
+    {
+      key = decaymap[HFIndexToFill].find({DaughterInfo[q]})->second;
+    }
 
     ChannelID.push_back(key);
 
     if (HFIndexToFill == 0)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 1)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end()) ChannelID.push_back(7);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 111) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(7);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 111) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 2)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end()) ChannelID.push_back(7);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(7);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 3)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -311) != DaughterInfo[q].end()) ChannelID.push_back(7);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 2212) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -311) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(7);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 2212) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 4)
     {
-      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end()))
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 5)
     {
-      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) && (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 12) != DaughterInfo[q].end())) ChannelID.push_back(7);
-      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) && (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 12) != DaughterInfo[q].end()))
+      {
+        ChannelID.push_back(7);
+      }
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end()))
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 6)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end() || std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end() || std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 8)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     // Antiparticles
 
     if (HFIndexToFill == 9)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 10)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end()) ChannelID.push_back(7);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 111) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(7);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 111) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 11)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end()) ChannelID.push_back(7);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(7);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 12)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 311) != DaughterInfo[q].end()) ChannelID.push_back(7);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 2212) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 311) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(7);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 2212) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 13)
     {
-      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end()))
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 14)
     {
-      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) && (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -12) != DaughterInfo[q].end())) ChannelID.push_back(7);
-      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) && (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -12) != DaughterInfo[q].end()))
+      {
+        ChannelID.push_back(7);
+      }
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end()))
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     if (HFIndexToFill == 15)
     {
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end() || std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end()) ChannelID.push_back(8);
-      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end() || std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(8);
+      }
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end())
+      {
+        ChannelID.push_back(9);
+      }
     }
 
     int ChannelSize = ChannelID.size();
@@ -690,7 +817,10 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   LifeTime = SVtoPVTau;
 
-  if (m_write_nTuple) QATree->Fill();
+  if (m_write_nTuple)
+  {
+    QATree->Fill();
+  }
 
   EvtID = EvtID + 1;
 
@@ -704,7 +834,10 @@ int QAG4Decayer::End(PHCompositeNode *topNode)
   if (m_SaveFiles)
   {
     fout->cd();
-    if (m_write_nTuple) QATree->Write();
+    if (m_write_nTuple)
+    {
+      QATree->Write();
+    }
     fout->Close();
   }
 

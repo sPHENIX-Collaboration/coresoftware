@@ -164,7 +164,7 @@ int readDigitalCurrents::Init(PHCompositeNode * /*topNode*/)
   // R0 sector 10: -2.86919 < phi < -2.36679
   // R0 sector 11: -3.39279 < phi < -2.89039
 
-  double z_bins[2 * nz + 1];
+  double *z_bins = new double[2 * nz + 1];
   for (int z = 0; z <= 2 * nz; z++)
   {
     z_bins[z] = -z_rdo + z_rdo / nz * z;

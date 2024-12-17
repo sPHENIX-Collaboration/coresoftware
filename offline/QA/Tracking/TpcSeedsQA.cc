@@ -474,8 +474,8 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
 
     // int trkcrossing = track->get_crossing();
 
-    int nmaps = 0;
-    int nintt = 0;
+//    int nmaps = 0;
+//    int nintt = 0;
     int ntpc = 0;
     int ntpc_phisize1 = 0;
     int nmms = 0;
@@ -492,18 +492,20 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
       }
       switch (TrkrDefs::getTrkrId(ckey))
       {
-      case TrkrDefs::mvtxId:
-        nmaps++;
-        break;
-      case TrkrDefs::inttId:
-        nintt++;
-        break;
+      // case TrkrDefs::mvtxId:
+      //   nmaps++;
+      //   break;
+      // case TrkrDefs::inttId:
+      //   nintt++;
+      //   break;
       case TrkrDefs::tpcId:
         ntpc++;
         break;
       case TrkrDefs::micromegasId:
         nmms++;
         break;
+      default:
+	break;
       }
     }
 

@@ -56,11 +56,17 @@ namespace
   inline constexpr T deltaPhi(const T& phi)
   {
     if (phi > M_PI)
+    {
       return phi - 2. * M_PI;
+    }
     else if (phi <= -M_PI)
+    {
       return phi + 2. * M_PI;
+    }
     else
+    {
       return phi;
+    }
   }
 
   /// return number of clusters of a given type that belong to a tracks
@@ -80,12 +86,10 @@ QAG4SimulationDistortions::QAG4SimulationDistortions(const std::string& name)
 }
 
 //____________________________________________________________________________..
-QAG4SimulationDistortions::~QAG4SimulationDistortions()
-{
-}
+QAG4SimulationDistortions::~QAG4SimulationDistortions() = default;
 
 //____________________________________________________________________________..
-int QAG4SimulationDistortions::Init(PHCompositeNode*)
+int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
 {
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -177,7 +181,7 @@ int QAG4SimulationDistortions::InitRun(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________..
-int QAG4SimulationDistortions::process_event(PHCompositeNode*)
+int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
 {
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -351,8 +355,14 @@ bool QAG4SimulationDistortions::checkTrack(SvtxTrack* track)
 
   // ignore tracks with too few mvtx, intt and micromegas hits
   const auto cluster_keys(get_cluster_keys(track));
-  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2) { return false; }
-  if (count_clusters<TrkrDefs::inttId>(cluster_keys) < 2) { return false; }
+  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2)
+  {
+    return false;
+  }
+  if (count_clusters<TrkrDefs::inttId>(cluster_keys) < 2)
+  {
+    return false;
+  }
   if (count_clusters<TrkrDefs::micromegasId>(cluster_keys) < 2)
   {
     return false;

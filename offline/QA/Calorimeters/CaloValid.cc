@@ -735,7 +735,7 @@ TH2* CaloValid::LogYHist2D(const std::string& name, const std::string& title, in
   Double_t logymin = std::log10(ymin);
   Double_t logymax = std::log10(ymax);
   Double_t binwidth = (logymax - logymin) / ybins_in;
-  Double_t ybins[ybins_in + 1];
+  Double_t *ybins = new Double_t[ybins_in + 1];
 
   for (Int_t i = 0; i <= ybins_in + 1; i++)
   {
@@ -743,7 +743,7 @@ TH2* CaloValid::LogYHist2D(const std::string& name, const std::string& title, in
   }
 
   TH2F* h = new TH2F(name.c_str(), title.c_str(), xbins_in, xmin, xmax, ybins_in, ybins);
-
+  delete [] ybins;
   return h;
 }
 std::string CaloValid::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }

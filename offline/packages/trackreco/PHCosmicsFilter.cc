@@ -270,7 +270,7 @@ int PHCosmicsFilter::process_event(PHCompositeNode* topNode)
   float slmax = -99999999999.9;
   float intmin = 99999999999.9;
   float intmax =-99999999999.9;
-  int num = 0;
+//  int num = 0;
   //  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId)){
   if(_cluster_map->size()<_min_nclusters){
     std::cout << " not enough clusters in event: " << _cluster_map->size() << " < " << _min_nclusters << endl;
@@ -292,7 +292,7 @@ int PHCosmicsFilter::process_event(PHCompositeNode* topNode)
       
       const Acts::Vector3 globalpos = { globalpos_d.x(), globalpos_d.y(), globalpos_d.z()};
       //      if(layer>=51&&layer<=55)
-      num++;
+//      num++;
       //      std::cout << "#: " << num << " l xyz " << layer << " | " << globalpos_d.x() << " | " << globalpos_d.y() << " | " <<  globalpos_d.z() <<std::endl;
       if(_write_ntp)_ntp_cos->Fill(_nevent,globalpos_d.x(), globalpos_d.y());
       /*

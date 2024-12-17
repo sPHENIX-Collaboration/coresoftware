@@ -472,11 +472,11 @@ int PHStreakFinder::process_event(PHCompositeNode* topNode)
 	float meanxzsl = 0;
 	float meanyzint = 0;
 	float meanyzsl = 0;
-	int meancnt = 0;
+//	int meancnt = 0;
 	for(auto ptrk = xztrkmap.begin();ptrk!=xztrkmap.end();++ptrk){
 	  int nstub = ptrk->first;
 	  myvec value = ptrk->second;
-	  meancnt++;
+//	  meancnt++;
 	  meanxzint = value[0];
 	  meanxzsl  = value[1];
 	  meanyzint = value[2];
