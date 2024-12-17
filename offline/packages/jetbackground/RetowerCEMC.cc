@@ -233,7 +233,8 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
     }
     else
     {
-      if(Verbosity() > 0) {
+      if(Verbosity() > 0) 
+      {
         std::cout << "RetowerCEMC::CreateNode : " << EMRetowerName << " already exists! " << std::endl;
       }
     }
@@ -253,7 +254,8 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
     }
     else
     {
-      if (Verbosity() > 0) {
+      if (Verbosity() > 0) 
+      {
         std::cout << "RetowerCEMC::CreateNode : TOWER_CALIB_CEMC_RETOWER already exists! " << std::endl;
       }
     }
