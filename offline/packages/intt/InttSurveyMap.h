@@ -3,8 +3,6 @@
 
 #include "InttMap.h"
 
-#include <phool/PHObject.h>
-
 #ifdef __clang__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundefined-internal"
@@ -21,7 +19,7 @@
 
 class CDBTTree;
 
-class InttSurveyMap : public PHObject
+class InttSurveyMap
 {
  public:
   typedef std::map<InttMap::Offline_s, Eigen::Affine3d, InttMap::OfflineComparator> map_t;
@@ -29,7 +27,7 @@ class InttSurveyMap : public PHObject
   typedef Eigen::Affine3d val_t;
 
   InttSurveyMap() = default;
-  ~InttSurveyMap() override = default;
+  virtual ~InttSurveyMap();
 
   int LoadFromFile(std::string const& = "InttSurveyMap.root");
   int LoadFromCDB(std::string const& = "InttSurveyMap");
@@ -38,7 +36,7 @@ class InttSurveyMap : public PHObject
   int GetSensorTransform(key_t const&, val_t&) const;
   int GetLadderTransform(key_t const&, val_t&) const;
 
-  virtual void identify(std::ostream& = std::cout) const override;
+  virtual void identify(std::ostream& = std::cout) const;
   virtual std::size_t size() const;
 
   virtual val_t const* GetAbsoluteTransform(key_t const&) const;
@@ -47,7 +45,8 @@ class InttSurveyMap : public PHObject
   virtual int v_LoadFromCDBTTree(CDBTTree&);
 
  private:
-  ClassDefOverride(InttSurveyMap, 1)
+  map_t* m_absolute_transforms = nullptr;
+
 };
 
 #endif  // INTT_SURVEY_MAP_H
