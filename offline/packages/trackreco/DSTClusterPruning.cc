@@ -103,7 +103,7 @@ int DSTClusterPruning::Init(PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-int DSTClusterPruning::InitRun(PHCompositeNode*)
+int DSTClusterPruning::InitRun(PHCompositeNode* topNode)
 { 
   return Fun4AllReturnCodes::EVENT_OK; }
 
@@ -133,7 +133,7 @@ int DSTClusterPruning::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int DSTClusterPruning::End(PHCompositeNode*)
+int DSTClusterPruning::End(PHCompositeNode* topNode)
 {
   std::cout << "In the end" << std::endl;
   // tcl->Print();
