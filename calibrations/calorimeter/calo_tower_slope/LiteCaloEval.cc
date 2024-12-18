@@ -1654,7 +1654,7 @@ void LiteCaloEval::fit_info(const char * outfile, const int runNum)
   int eta;
   int phi;
   double towers;
-  int badTowers = 0;
+//  int badTowers = 0;
 
   if (calotype == LiteCaloEval::HCALIN || calotype == LiteCaloEval::HCALOUT)
   {
@@ -1759,7 +1759,7 @@ void LiteCaloEval::fit_info(const char * outfile, const int runNum)
 	  if (fn->GetChisquare() / fn->GetNDF() > 5)
 	    {
 	      fitFail->Fill(i, j);
-	      badTowers++;
+//	      badTowers++;
 	    }
 
 	}  // end inner forloop
