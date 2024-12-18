@@ -1,5 +1,5 @@
 #include "QAG4SimulationCalorimeterSum.h"
-#include <math.h>
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <g4eval/CaloEvalStack.h>

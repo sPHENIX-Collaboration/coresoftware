@@ -1,7 +1,6 @@
 #include "QAG4SimulationJet.h"
 
 #include <TString.h>
-#include <math.h>
 #include <qautils/QAHistManagerDef.h>
 
 #include <g4eval/JetEvalStack.h>

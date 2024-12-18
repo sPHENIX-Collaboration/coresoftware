@@ -2,7 +2,7 @@
 #include "QAG4SimulationDistortions.h"
 
 #include <fun4all/SubsysReco.h>
-#include <math.h>
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
