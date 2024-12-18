@@ -19,6 +19,8 @@
 #include <TStyle.h>
 #include <TVector3.h>
 
+#include <boost/format.hpp>
+
 #include <algorithm>
 
 #include <cassert>

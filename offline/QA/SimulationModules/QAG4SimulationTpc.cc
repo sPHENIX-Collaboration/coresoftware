@@ -34,6 +34,8 @@
 #include <TAxis.h>  // for TAxis
 #include <TH1.h>
 
+#include <boost/format.hpp>
+
 #include <cassert>
 #include <cmath>     // for atan2
 #include <iostream>  // for operator<<, basic...

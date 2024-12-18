@@ -41,6 +41,8 @@
 #include <TH1.h>
 #include <TVector3.h>
 
+#include <boost/format.hpp>
+
 #include <cassert>
 #include <cmath>     // for cos, sin, NAN
 #include <iostream>  // for operator<<, basic...

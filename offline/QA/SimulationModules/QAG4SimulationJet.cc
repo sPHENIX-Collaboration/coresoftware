@@ -21,6 +21,8 @@
 
 #include <phool/getClass.h>
 
+#include <boost/format.hpp>
+
 #include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>

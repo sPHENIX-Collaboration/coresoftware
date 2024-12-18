@@ -26,6 +26,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <boost/format.hpp>
+
 #include <TH1.h>
 
 #include <cassert>

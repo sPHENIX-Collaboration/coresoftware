@@ -25,6 +25,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <boost/format.hpp>
+
 #include <TAxis.h>  // for TAxis
 #include <TH1.h>
 
