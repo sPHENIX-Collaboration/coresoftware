@@ -8,6 +8,7 @@
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllSyncManager.h"
 #include "SubsysReco.h"
+#include "Fun4AllDstOutputManager.h"
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>  // for PHNode
@@ -674,6 +675,7 @@ int Fun4AllServer::process_event()
 
   gROOT->cd(currdir.c_str());
   bool writing = false;
+  int segment = std::numeric_limits<int>::min();
   //  mainIter.print();
   if (!OutputManager.empty() && !eventbad)  // there are registered IO managers and
   // the event is not flagged bad
@@ -732,7 +734,8 @@ int Fun4AllServer::process_event()
             MakeNodesTransient(runNode);  // make all nodes transient by default
             (*iterOutMan)->WriteNode(runNode);
             (*iterOutMan)->RunAfterClosing();
-	    writing = true;
+            segment = static_cast<Fun4AllDstOutputManager*>((*iterOutMan))->Segment();
+            writing = true;
           }
         }
         else
@@ -755,6 +758,7 @@ int Fun4AllServer::process_event()
         {
           std::cout << PHWHERE << (*histit)->Name() << " wrote events, closing " << (*histit)->OutFileName() << std::endl;
         }
+        (*histit)->segment(segment);
         (*histit)->dumpHistos();
         (*histit)->RunAfterClosing();
         (*histit)->Reset();

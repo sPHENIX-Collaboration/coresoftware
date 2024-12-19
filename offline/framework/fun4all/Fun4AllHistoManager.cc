@@ -121,7 +121,7 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
     }
   
   std::string runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
-  m_CurrentSegment++;
+
   std::string theoutfile = m_outfilename + runseg;
   std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " << theoutfile.c_str() << std::endl;
 

@@ -50,6 +50,7 @@ class Fun4AllHistoManager : public Fun4AllBase
   void dumpHistoSegments(const bool dump) { m_dumpHistoSegments = dump; }
   void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
   void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }
+  void segment(const int segment) { m_CurrentSegment = segment; }
 
  private:
   std::string m_outfilename;
