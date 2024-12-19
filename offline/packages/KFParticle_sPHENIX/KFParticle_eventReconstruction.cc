@@ -526,8 +526,8 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
       }
     }
     delete [] daughterTracks;
-    delete [] goodDaughters;
   }
+  delete [] goodDaughters;
 }
 
 int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, bool isAnInterMother,
