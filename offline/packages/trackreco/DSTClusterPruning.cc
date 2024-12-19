@@ -102,10 +102,13 @@ int DSTClusterPruning::Init(PHCompositeNode* topNode )
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
 //_____________________________________________________________________
-int DSTClusterPruning::InitRun(PHCompositeNode* topNode)
-{ 
-  return Fun4AllReturnCodes::EVENT_OK; }
+//int DSTClusterPruning::InitRun(PHCompositeNode*  /*topNode*/)
+
+//{ 
+//  return Fun4AllReturnCodes::EVENT_OK; }
+  
 
 //_____________________________________________________________________
 int DSTClusterPruning::process_event(PHCompositeNode* topNode)
@@ -127,22 +130,23 @@ int DSTClusterPruning::process_event(PHCompositeNode* topNode)
   }
  
   prune_clusters();
+  //print_clusters();
   
   std::cout << "Return codes end" << Fun4AllReturnCodes::EVENT_OK << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
-int DSTClusterPruning::End(PHCompositeNode* topNode)
-{
-  std::cout << "In the end" << std::endl;
+//int DSTClusterPruning::End(PHCompositeNode*  /*topNode*/)
+//{
+  //std::cout << "In the end" << std::endl;
   // tcl->Print();
   // tcl->Write();
   // fcl->Write();
   // fcl->Close();
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+  //return Fun4AllReturnCodes::EVENT_OK;
+//}
 
 //_____________________________________________________________________
 int DSTClusterPruning::load_nodes( PHCompositeNode* topNode )
@@ -249,5 +253,93 @@ if( !( m_track_map && m_cluster_map && m_reduced_cluster_map) ) {
 
 
 
+
+}
+
+
+//print clusters to test
+void DSTClusterPruning::print_clusters(){
+
+  //make sure tracks exist
+if( !( m_track_map && m_cluster_map && m_reduced_cluster_map) ) {
+    return;
+}
+
+  for( const auto& trackpair:*m_track_map )
+  {
+    std::cout << "start of loop" << "\n";
+
+
+    //unsigned int key = trackpair.first;
+    const auto track = trackpair.second;
+
+    TrackSeed* TPCSeed = track->get_tpc_seed();
+    TrackSeed* SiliconSeed = track->get_silicon_seed();
+
+  
+    if(!TPCSeed){
+      std::cout << "TPCSeed does not exist \n";
+      
+    }else{
+    std::cout << "We are about to loop over cluster keys in TPC Seed" << std::endl;
+    TPCSeed->identify();
+    for( auto key_iter = TPCSeed->begin_cluster_keys(); key_iter != TPCSeed->end_cluster_keys(); ++key_iter )
+    {
+      const auto& cluster_key = *key_iter;
+      auto cluster = m_cluster_map->findCluster( cluster_key );
+      auto reducedcluster = m_reduced_cluster_map->findCluster( cluster_key );
+      if( !cluster )
+      {
+        std::cout << "DSTClusterPruning::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
+        continue;
+      }
+      if( !reducedcluster )
+      {
+        std::cout << "DSTClusterPruning::evaluate_tracks - unable to find reducedcluster for key " << cluster_key << std::endl;
+        continue;
+      }
+      std::cout << "ClusterKey: " << cluster_key << std::endl;
+      std::cout << "Cluster map Cluster Local X: " << cluster->getLocalX() << " Local Y: " << cluster->getLocalY() << std::endl;
+      std::cout << "Reduced map Cluster Local X: " << cluster->getLocalX() << " Local Y: " << cluster->getLocalY() << std::endl;
+    
+
+    }
+
+  }
+
+  
+  if(!SiliconSeed){
+    std::cout << "SiliconSeed does not exist \n";
+    }else{
+    std::cout << "We are about to loop over cluster keys in Silicon Seed" << std::endl;
+  SiliconSeed->identify();
+    for( auto key_iter = SiliconSeed->begin_cluster_keys(); key_iter != SiliconSeed->end_cluster_keys(); ++key_iter )
+    {
+      const auto& cluster_key = *key_iter;
+      auto cluster = m_cluster_map->findCluster( cluster_key );
+
+      auto reducedcluster = m_reduced_cluster_map->findCluster( cluster_key );
+      if( !cluster )
+      {
+        std::cout << "DSTClusterPruning::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
+        continue;
+      }
+      if( !reducedcluster )
+      {
+        std::cout << "DSTClusterPruning::evaluate_tracks - unable to find reducedcluster for key " << cluster_key << std::endl;
+        continue;
+      }
+      std::cout << "ClusterKey: " << cluster_key << std::endl;
+      std::cout << "Cluster map Cluster Local X: " << cluster->getLocalX() << " Local Y: " << cluster->getLocalY() << std::endl;
+      std::cout << "Reduced map Cluster Local X: " << cluster->getLocalX() << " Local Y: " << cluster->getLocalY() << std::endl;
+    
+      
+    }
+  }
+   
+    
+      
+      std::cout << "end of loop" << "\n";
+    }
 
 }

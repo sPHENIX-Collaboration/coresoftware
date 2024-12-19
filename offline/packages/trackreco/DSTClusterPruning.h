@@ -43,19 +43,20 @@ class DSTClusterPruning : public SubsysReco
 
   //! run initialization
   int Init(PHCompositeNode*) override;
-  int InitRun(PHCompositeNode*) override;
+  //int InitRun(PHCompositeNode*) override;
 
   //! event processing
   int process_event(PHCompositeNode*) override;
 
   //! end of processing
-  int End(PHCompositeNode*) override;
+  //int End(PHCompositeNode*) override;
 
  private:
   //! load nodes
   int load_nodes(PHCompositeNode*);
 
   void prune_clusters();
+  void print_clusters();
   SvtxTrackMap* m_track_map = nullptr;
 
   TrkrClusterv5* m_cluster = nullptr;
