@@ -1,9 +1,9 @@
 #ifndef INTTCALIB_H
 #define INTTCALIB_H
 
-#include <intt/InttFeeMapv1.h>
+#include <intt/InttFeeMap.h>
 #include <intt/InttMap.h>
-#include <intt/InttSurveyMapv1.h>
+#include <intt/InttSurveyMap.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -108,8 +108,8 @@ class InttCalib : public SubsysReco
   std::string m_bcomap_cdb_file;
   std::string m_bcomap_png_file;
 
-  InttFeeMapv1 m_feemap;
-  InttSurveyMapv1 m_survey;
+  InttFeeMap m_feemap;
+  InttSurveyMap m_survey;
   Eigen::Vector3d m_vertex{0.0, 0.0, 0.0};
   // int m_hitmap[8][14][26][128][129]
   std::array<std::array<std::array<std::array<std::array<double, 129>, 128>, 26>, 14>, 8> m_hitmap{};
