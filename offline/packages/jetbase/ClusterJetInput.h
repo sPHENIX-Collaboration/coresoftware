@@ -7,12 +7,15 @@
 // then other local incudes
 #include "Jet.h"
 
+#include <globalvertex/GlobalVertex.h>
+
 // finally system includes
 #include <iostream>  // for cout, ostream
 #include <vector>
 
 // forward declarations
 class PHCompositeNode;
+class GlobalVertex;
 
 class ClusterJetInput : public JetInput
 {
@@ -26,9 +29,17 @@ class ClusterJetInput : public JetInput
 
   std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
+  void set_GlobalVertexType(GlobalVertex::VTXTYPE type) 
+  {
+    m_use_vertextype = true;
+    m_vertex_type = type;
+  }
+
  private:
   int m_Verbosity = 0;
   Jet::SRC m_Input = Jet::VOID;
+  bool m_use_vertextype {false};
+  GlobalVertex::VTXTYPE m_vertex_type = GlobalVertex::UNDEFINED;
 };
 
 #endif
