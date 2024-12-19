@@ -50,7 +50,7 @@
 #include <utility>  // for pair
 #include <vector>
 
-KFParticle_Tools kfpTools;
+static KFParticle_Tools kfpTools;
 
 QAG4SimulationKFParticle::QAG4SimulationKFParticle(const std::string &name, const std::string &mother_name, double min_m, double max_m)
   : SubsysReco(name)
@@ -291,7 +291,7 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
 
         for (unsigned int i = 0; i < d_id.size(); ++i)
         {
-          std::map<unsigned int, KFParticle *> D_Map = m_kfpContainer->returnParticlesByPDGid(d_id[i]);
+          std::map<unsigned int, KFParticle *> const D_Map = m_kfpContainer->returnParticlesByPDGid(d_id[i]);
           for (auto &[key, part] : D_Map)
           {
             if (i == 0)
@@ -344,7 +344,7 @@ PHG4Particle *QAG4SimulationKFParticle::getTruthTrack(SvtxTrack *thisTrack)
     clustereval = m_svtxEvalStack->get_cluster_eval();
   }
 
-  TrkrDefs::cluskey clusKey = *thisTrack->begin_cluster_keys();
+  TrkrDefs::cluskey const clusKey = *thisTrack->begin_cluster_keys();
   PHG4Particle *particle = clustereval->max_truth_particle_by_cluster_energy(clusKey);
 
   return particle;

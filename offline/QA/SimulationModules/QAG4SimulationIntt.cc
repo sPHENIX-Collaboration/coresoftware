@@ -26,16 +26,18 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <TH1.h>
-
 #include <boost/format.hpp>
+
+#include <TH1.h>
 
 #include <cassert>
 #include <cmath>
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
-#include <utility>   // for pair, make_pair
+#include <set>
+#include <string>
+#include <utility>  // for pair, make_pair
 
 //________________________________________________________________________
 QAG4SimulationIntt::QAG4SimulationIntt(const std::string& name)

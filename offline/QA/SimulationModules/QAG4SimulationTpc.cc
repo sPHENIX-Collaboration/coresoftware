@@ -41,8 +41,10 @@
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
-#include <utility>   // for pair, make_pair
-#include <vector>    // for vector
+#include <set>
+#include <string>
+#include <utility>  // for pair, make_pair
+#include <vector>   // for vector
 
 //________________________________________________________________________
 QAG4SimulationTpc::QAG4SimulationTpc(const std::string& name)
@@ -335,7 +337,7 @@ void QAG4SimulationTpc::evaluate_clusters()
   }
 
   // PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetParticleRange();  // all truth cluters
-  PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
+  PHG4TruthInfoContainer::ConstRange const range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
 
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
@@ -343,10 +345,10 @@ void QAG4SimulationTpc::evaluate_clusters()
   {
     PHG4Particle* g4particle = iter->second;
 
-    float gtrackID = g4particle->get_track_id();
-    float gflavor = g4particle->get_pid();
-    float gembed = trutheval->get_embed(g4particle);
-    float gprimary = trutheval->is_primary(g4particle);
+    float const gtrackID = g4particle->get_track_id();
+    float const gflavor = g4particle->get_pid();
+    float const gembed = trutheval->get_embed(g4particle);
+    float const gprimary = trutheval->is_primary(g4particle);
 
     if (Verbosity() > 0)
     {
@@ -368,9 +370,9 @@ void QAG4SimulationTpc::evaluate_clusters()
         continue;
       }
 
-      float gx = gclus->getX();
-      float gy = gclus->getY();
-      float gz = gclus->getZ();
+      float const gx = gclus->getX();
+      float const gy = gclus->getY();
+      float const gz = gclus->getZ();
 
       xy_pts.emplace_back(gx, gy);
       rz_pts.emplace_back(std::sqrt(gx * gx + gy * gy), gz);
@@ -396,11 +398,11 @@ void QAG4SimulationTpc::evaluate_clusters()
         continue;
       }
 
-      float gx = gclus->getX();
-      float gy = gclus->getY();
-      float gz = gclus->getZ();
-      float gedep = gclus->getError(0, 0);
-      float ng4hits = gclus->getAdc();
+      float const gx = gclus->getX();
+      float const gy = gclus->getY();
+      float const gz = gclus->getZ();
+      float const gedep = gclus->getError(0, 0);
+      float const ng4hits = gclus->getAdc();
 
       const auto gr = QAG4Util::get_r(gclus->getX(), gclus->getY());
       const auto gphi = std::atan2(gclus->getY(), gclus->getX());
@@ -428,15 +430,15 @@ void QAG4SimulationTpc::evaluate_clusters()
         const auto z_cluster = global(2);
         const auto phi_cluster = (float) std::atan2(global(1), global(0));
 
-        double phi_error = rclus->getRPhiError() / r_cluster;
-        double z_error = rclus->getZError();
+        double const phi_error = rclus->getRPhiError() / r_cluster;
+        double const z_error = rclus->getZError();
 
         const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);
         const auto dz = z_cluster - gz;
 
         // get region from layer, fill histograms
         const auto it = m_layer_region_map.find(layer);
-        int region = it->second;
+        int const region = it->second;
 
         if (Verbosity() > 0)
         {
