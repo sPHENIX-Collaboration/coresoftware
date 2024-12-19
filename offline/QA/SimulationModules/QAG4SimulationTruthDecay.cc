@@ -1,5 +1,6 @@
 #include "QAG4SimulationTruthDecay.h"
 
+#include <phool/PHNode.h>
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -7,21 +8,27 @@
 #include <fun4all/SubsysReco.h>
 
 #include <decayfinder/DecayFinder.h>
-#include <decayfinder/DecayFinderContainerBase.h>  // for DecayFinderContainerBase::Iter
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
 #include <CLHEP/Vector/LorentzVector.h>
 
 #include <TH1.h>
-#include <TH2.h>
-#include <TNamed.h>
 #include <TString.h>
-#include <TVector3.h>
 
-#include <TDatabasePDG.h>
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
+#include <iterator>
+#include <ostream>
+#include <string>
+#include <vector>
 
-int candidateCounter = 0;
+#include <cmath>
+
+static int candidateCounter = 0;
 
 /*
  *  QA module to check that decayers obey laws of physics
@@ -58,8 +65,8 @@ int QAG4SimulationTruthDecay::Init(PHCompositeNode *topNode)
 
   TH1 *h(nullptr);
 
-  int m_mother_PDG_ID_nBins = (int) (m_mother_PDG_ID_max - m_mother_PDG_ID_min) * 1.2;
-  int m_daughter_PDG_ID_nBins = (int) (m_daughter_PDG_ID_max - m_daughter_PDG_ID_min) * 1.2;
+  int const m_mother_PDG_ID_nBins = (int) (m_mother_PDG_ID_max - m_mother_PDG_ID_min) * 1.2;
+  int const m_daughter_PDG_ID_nBins = (int) (m_daughter_PDG_ID_max - m_daughter_PDG_ID_min) * 1.2;
 
   h = new TH1I(TString(get_histo_prefix()) + "mother_PDG_ID",  //
                ";Mother PDG ID;Entries", m_mother_PDG_ID_nBins, m_mother_PDG_ID_min, m_mother_PDG_ID_max);
@@ -98,7 +105,7 @@ int QAG4SimulationTruthDecay::Init(PHCompositeNode *topNode)
 
   for (unsigned int i = 0; i < 4; ++i)
   {
-    std::string track_number = "track_" + std::to_string(i + 1);
+    std::string const track_number = "track_" + std::to_string(i + 1);
 
     h = new TH1I(TString(get_histo_prefix()) + TString(track_number) + "_PDG_ID",  //
                  ";Track PDG ID;Entries", m_daughter_PDG_ID_nBins, m_daughter_PDG_ID_min, m_daughter_PDG_ID_max);
@@ -364,7 +371,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
     float daughter_y = 0;
     float daughter_z = 0;
 
-    PHG4TruthInfoContainer::ConstRange range = m_truth_info->GetParticleRange();
+    PHG4TruthInfoContainer::ConstRange const range = m_truth_info->GetParticleRange();
     for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
          iter != range.second; ++iter)
     {
@@ -379,7 +386,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
         m_mother_py = m_g4particle->get_py();
         m_mother_pz = m_g4particle->get_pz();
         m_mother_pE = m_g4particle->get_e();
-        CLHEP::HepLorentzVector motherLV(m_mother_px, m_mother_py, m_mother_pz, m_mother_pE);
+        CLHEP::HepLorentzVector const motherLV(m_mother_px, m_mother_py, m_mother_pz, m_mother_pE);
         m_mother_pT = motherLV.perp();
         m_mother_eta = motherLV.pseudoRapidity();
         m_mother_mass = motherLV.m();
@@ -410,7 +417,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
           m_track_py[trackCounter] = m_g4particle->get_py();
           m_track_pz[trackCounter] = m_g4particle->get_pz();
           m_track_pE[trackCounter] = m_g4particle->get_e();
-          CLHEP::HepLorentzVector daughterLV(m_track_px[trackCounter], m_track_py[trackCounter], m_track_pz[trackCounter], m_track_pE[trackCounter]);
+          CLHEP::HepLorentzVector const daughterLV(m_track_px[trackCounter], m_track_py[trackCounter], m_track_pz[trackCounter], m_track_pE[trackCounter]);
           daughterSumLV += daughterLV;
           m_track_pT[trackCounter] = daughterLV.perp();
           m_track_eta[trackCounter] = daughterLV.pseudoRapidity();
@@ -430,7 +437,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
           {
             m_accept_pT = false;
           }
-          bool in_eta_range = isInRange(m_track_eta[trackCounter], m_eta_min, m_eta_max);
+          bool const in_eta_range = isInRange(m_track_eta[trackCounter], m_eta_min, m_eta_max);
           if (!in_eta_range)
           {
             m_accept_eta = false;
@@ -443,10 +450,10 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
 
     m_daughter_sum_mass = daughterSumLV.m();
 
-    float diff_percent_px = fabs(m_delta_px / m_mother_px) * 100.;
-    float diff_percent_py = fabs(m_delta_py / m_mother_py) * 100.;
-    float diff_percent_pz = fabs(m_delta_pz / m_mother_pz) * 100.;
-    float diff_percent_pE = fabs(m_delta_pE / m_mother_pE) * 100.;
+    float const diff_percent_px = std::fabs(m_delta_px / m_mother_px) * 100.;
+    float const diff_percent_py = std::fabs(m_delta_py / m_mother_py) * 100.;
+    float const diff_percent_pz = std::fabs(m_delta_pz / m_mother_pz) * 100.;
+    float const diff_percent_pE = std::fabs(m_delta_pE / m_mother_pE) * 100.;
 
     m_accept_px_1percent = diff_percent_px <= 1. ? true : false;
     m_accept_py_1percent = diff_percent_py <= 1. ? true : false;
@@ -464,7 +471,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
     m_accept_pE_15percent = diff_percent_pE <= 15. ? true : false;
 
     m_mother_decayLength = sqrt(pow(daughter_x - mother_x, 2) + pow(daughter_y - mother_y, 2) + pow(daughter_z - mother_z, 2));
-    float mother_p = sqrt(pow(m_mother_px, 2) + pow(m_mother_py, 2) + pow(m_mother_pz, 2));
+    float const mother_p = sqrt(pow(m_mother_px, 2) + pow(m_mother_py, 2) + pow(m_mother_pz, 2));
     m_mother_decayTime = m_mother_mass * m_mother_decayLength / mother_p;
 
     if (m_write_nTuple)
@@ -605,7 +612,7 @@ void QAG4SimulationTruthDecay::initializeBranches()
 
   for (unsigned int i = 0; i < m_nTracks; ++i)
   {
-    std::string track_number = "track_" + std::to_string(i + 1);
+    std::string const track_number = "track_" + std::to_string(i + 1);
 
     m_tree->Branch(TString(track_number) + "_PDG_ID", &m_track_pdg_id[i], TString(track_number) + "_PDG_ID/I");
     m_tree->Branch(TString(track_number) + "_px", &m_track_px[i], TString(track_number) + "_px/F");
@@ -646,7 +653,7 @@ void QAG4SimulationTruthDecay::getMotherPDG(PHCompositeNode *topNode)
 {
   PHNodeIterator nodeIter(topNode);
 
-  std::string node_name = m_df_module_name + "_DecayMap";
+  std::string const node_name = m_df_module_name + "_DecayMap";
 
   PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(node_name.c_str()));
   if (findNode)
@@ -665,9 +672,9 @@ std::vector<int> QAG4SimulationTruthDecay::getDecayFinderMothers(PHCompositeNode
 {
   std::vector<int> m_motherBarcodes;
 
-  PHNodeIterator nodeIter(topNode);
+  PHNodeIterator const nodeIter(topNode);
 
-  std::string node_name = m_df_module_name + "_DecayMap";
+  std::string const node_name = m_df_module_name + "_DecayMap";
 
   m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, node_name.c_str());
 

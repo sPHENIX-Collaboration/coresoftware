@@ -10,8 +10,6 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <globalvertex/SvtxVertexMap.h>
-
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
@@ -35,16 +33,17 @@
 #include <TDatabasePDG.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
 #include <TParticlePDG.h>  // for TParticlePDG
 #include <TString.h>
 #include <TVector3.h>
 
-#include <array>
+#include <Acts/Definitions/Algebra.hpp>
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <map>      // for map
+#include <map>  // for map
+#include <set>
+#include <string>
 #include <utility>  // for pair
 
 QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
@@ -436,7 +435,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
             const double gpx = g4particle_match->get_px();
             const double gpy = g4particle_match->get_py();
-            TVector3 gv(gpx, gpy, 0);
+            TVector3 const gv(gpx, gpy, 0);
             const double gpt = gv.Pt();
 
             const double pt_ratio = (pt != 0) ? gpt / pt : 0;
@@ -458,7 +457,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }  // reco track loop
 
-  PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();
+  PHG4TruthInfoContainer::ConstRange const range = m_truthContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {
     // get the truth particle information
@@ -486,15 +485,15 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       }
     }
 
-    double gpx = g4particle->get_px();
-    double gpy = g4particle->get_py();
-    double gpz = g4particle->get_pz();
+    double const gpx = g4particle->get_px();
+    double const gpy = g4particle->get_py();
+    double const gpz = g4particle->get_pz();
     double gpt = 0;
     double geta = NAN;
 
     if (gpx != 0 && gpy != 0)
     {
-      TVector3 gv(gpx, gpy, gpz);
+      TVector3 const gv(gpx, gpy, gpz);
       gpt = gv.Pt();
       geta = gv.Eta();
       //      gphi = gv.Phi();
@@ -609,16 +608,16 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         float dca3dzsigma = NAN;
         get_dca(track, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
 
-        double px = track->get_px();
-        double py = track->get_py();
-        double pz = track->get_pz();
+        double const px = track->get_px();
+        double const py = track->get_py();
+        double const pz = track->get_pz();
         double pt;
-        TVector3 v(px, py, pz);
+        TVector3 const v(px, py, pz);
         pt = v.Pt();
         //        eta = v.Pt();
         //      phi = v.Pt();
 
-        float pt_ratio = (gpt != 0) ? pt / gpt : 0;
+        float const pt_ratio = (gpt != 0) ? pt / gpt : 0;
         h_pTRecoGenRatio->Fill(pt_ratio);
         h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
         h_DCArPhi_pT->Fill(pt, dca3dxy);

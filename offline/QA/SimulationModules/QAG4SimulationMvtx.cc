@@ -25,17 +25,19 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <boost/format.hpp>
+
 #include <TAxis.h>  // for TAxis
 #include <TH1.h>
-
-#include <boost/format.hpp>
 
 #include <cassert>
 #include <cmath>     // for atan2
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
-#include <utility>   // for pair, make_pair
+#include <set>
+#include <string>
+#include <utility>  // for pair, make_pair
 
 //________________________________________________________________________
 QAG4SimulationMvtx::QAG4SimulationMvtx(const std::string& name)
@@ -271,8 +273,8 @@ void QAG4SimulationMvtx::evaluate_clusters()
       const auto z_cluster = global(2);
       const auto phi_cluster = (float) std::atan2(global(1), global(0));
 
-      double phi_error = cluster->getRPhiError() / r_cluster;
-      double z_error = cluster->getZError();
+      double const phi_error = cluster->getRPhiError() / r_cluster;
+      double const z_error = cluster->getZError();
 
       // find associated g4hits
       const auto g4hits = find_g4hits(key);

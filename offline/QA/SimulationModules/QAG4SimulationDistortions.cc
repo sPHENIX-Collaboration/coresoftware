@@ -1,6 +1,8 @@
 
 #include "QAG4SimulationDistortions.h"
 
+#include <fun4all/SubsysReco.h>
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -10,30 +12,29 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <globalvertex/SvtxVertexMap.h>
-
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/TrackSeed.h>
 
-#include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
 #include <TString.h>
 #include <TTree.h>
-#include <TVector3.h>
 
-#include <array>
+#include <Acts/Definitions/Algebra.hpp>
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <map>      // for map
+#include <iterator>
+#include <string>
 #include <utility>  // for pair
+#include <vector>
 
 namespace
 {
@@ -254,7 +255,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
         continue;
       }
 
-      TrkrDefs::cluskey ckey = std::stoll(state->get_name());
+      TrkrDefs::cluskey const ckey = std::stoll(state->get_name());
 
       auto cluster = m_clusterContainer->findCluster(ckey);
 
