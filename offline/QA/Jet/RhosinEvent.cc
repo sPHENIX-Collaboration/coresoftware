@@ -51,6 +51,7 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
   // create output file
   // PHTFileServer::get().open(m_outputFileName, "RECREATE");
 
+  m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
@@ -130,7 +131,8 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

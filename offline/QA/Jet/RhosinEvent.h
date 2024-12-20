@@ -14,6 +14,7 @@
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH1;
+class TriggerAnalyzer;
 
 /// \class RhosinEvent
 /// \brief SubsysReco module that plots tower rho information
@@ -64,6 +65,7 @@ class RhosinEvent : public SubsysReco
   uint32_t m_trgToSelect;
 
   Fun4AllHistoManager *m_manager{nullptr};
+  TriggerAnalyzer *m_analyzer{nullptr};
   // histos
   TH1 *h1_mult_rho{nullptr};
   TH1 *h1_mult_rho_sigma{nullptr};

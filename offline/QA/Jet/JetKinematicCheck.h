@@ -16,6 +16,7 @@ class TH1;
 class TH2;
 class TH3;
 class PHCompositeNode;
+class TriggerAnalyzer;
 
 class JetKinematicCheck : public SubsysReco
 {
@@ -88,6 +89,7 @@ class JetKinematicCheck : public SubsysReco
 
  private:
   Fun4AllHistoManager *hm{nullptr};
+  TriggerAnalyzer *m_analyzer{nullptr};
 
   std::string m_moduleName;
   std::string m_recoJetNameR02;

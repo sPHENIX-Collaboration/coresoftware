@@ -74,6 +74,9 @@ int TrksInJetQA::Init(PHCompositeNode* /*topNode*/)
   {
     RegisterHistograms();
   }
+
+  // initialize trigger analyzer and exit
+  m_analyzer = new TriggerAnalyzer();
   return Fun4AllReturnCodes::EVENT_OK;
 
 }  // end 'Init(PHCompositeNode*)'
@@ -89,7 +92,8 @@ int TrksInJetQA::process_event(PHCompositeNode* topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

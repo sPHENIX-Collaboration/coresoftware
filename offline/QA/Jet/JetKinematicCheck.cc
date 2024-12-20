@@ -6,6 +6,7 @@
 #include <TH3D.h>
 #include <TLegend.h>
 #include <TPad.h>
+#include <calotrigger/TriggerAnalyzer.h>
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <jetbase/JetContainer.h>
@@ -56,6 +57,7 @@ JetKinematicCheck::~JetKinematicCheck()
 //____________________________________________________________________________..
 int JetKinematicCheck::Init(PHCompositeNode * /*unused*/)
 {
+  m_analyzer = new TriggerAnalyzer();
   hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
@@ -219,7 +221,8 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

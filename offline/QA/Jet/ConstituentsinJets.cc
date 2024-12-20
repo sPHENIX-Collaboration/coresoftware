@@ -26,6 +26,9 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
+// calotrigger includes
+#include <calotrigger/TriggerAnalyzer.h>
+
 // jetbackground includes
 #include <jetbackground/TowerBackground.h>
 
@@ -71,6 +74,7 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
   // create output file
   // PHTFileServer::get().open(m_outputFileName, "RECREATE");
 
+  m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
@@ -190,7 +194,8 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

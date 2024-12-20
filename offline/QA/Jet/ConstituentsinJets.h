@@ -16,6 +16,7 @@ class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH1;
 class TH2;
+class TriggerAnalyzer;
 
 class ConstituentsinJets : public SubsysReco
 {
@@ -75,6 +76,8 @@ class ConstituentsinJets : public SubsysReco
 
   // Jet N constituents
   Fun4AllHistoManager *m_manager{nullptr};
+
+  TriggerAnalyzer* m_analyzer{nullptr};
 
   TH1 *h1_ConstituentsinJets_total{nullptr};
   // TH1 * h1_ConstituentsinJets_CaloTowers{nullptr};
