@@ -1,5 +1,7 @@
 #include "StructureinJets.h"
 
+#include <calotrigger/TriggerAnalyzer.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
@@ -58,6 +60,7 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
   {
     PHTFileServer::get().open(m_outputFileName, "RECREATE");
   }
+  m_analyzer = new TriggerAnalyzer();
 
   // make sure module name is lower case
   std::string smallModuleName = m_moduleName;
@@ -106,7 +109,8 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

@@ -29,6 +29,8 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
+#include <calotrigger/TriggerAnalyzer.h>
+
 #include <math.h>
 #include <string>
 #include <unordered_set>
@@ -92,6 +94,7 @@ class DijetQA : public SubsysReco
 
  private:
   Fun4AllHistoManager *m_manager{nullptr};
+  TriggerAnalyzer *m_analyzer{nullptr};
   std::string m_moduleName = "";
   std::pair<float, float> m_etaRange, m_ptRange;
   float DeltaPhiOne = 3.141529694 / 32.;  // cut on the opening angle of phi for the identified jets

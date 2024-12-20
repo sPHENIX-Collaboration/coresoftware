@@ -20,6 +20,7 @@
 class PHCompositeNode;
 class TH1;
 class TH2;
+class TriggerAnalyzer;
 
 class JetSeedCount : public SubsysReco
 {
@@ -80,6 +81,7 @@ class JetSeedCount : public SubsysReco
 
  private:
   Fun4AllHistoManager *m_manager{nullptr};
+  TriggerAnalyzer *m_analyzer{nullptr};
 
   bool m_writeToOutputFile{false};
   bool m_inPPMode{false};
