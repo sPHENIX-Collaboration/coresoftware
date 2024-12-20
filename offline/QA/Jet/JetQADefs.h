@@ -12,14 +12,8 @@
 #ifndef JETQADEFS_H
 #define JETQADEFS_H
 
-#include <ffarawobjects/Gl1Packet.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
+#include <calotrigger/TriggerAnalyzer.h>
 #include <phool/phool.h>
-#include <bitset>
-#include <boost/dynamic_bitset.hpp>
-#include <cassert>
-#include <cmath>
 #include <iostream>
 #include <map>
 #include <string>
@@ -121,51 +115,30 @@ namespace JetQADefs
     return mapFlagToName;
   }
 
-  // --------------------------------------------------------------------------
-  //! Max no. of trigger indices
-  // --------------------------------------------------------------------------
-  inline uint32_t NMaxTrgIndex()
-  {
-    static const uint32_t nMaxTrgIndex = 32;
-    return nMaxTrgIndex;
-  }
-
   // methods ------------------------------------------------------------------
 
   // --------------------------------------------------------------------------
   //! Check if a particular trigger fired
   // --------------------------------------------------------------------------
-  inline bool DidTriggerFire(const uint32_t trg, PHCompositeNode* topNode)
+  /*! Helper method to check if a particular trigger based on
+   *  it's flag (see `JetQADefs::MapTriggerFlagToName()`).
+   *  Returns value of `TriggerAnalyzer::didTriggerFire(
+   *  std::string)`.
+   *
+   *  If unknown trigger flag is provided, method will
+   *  cause Fun4All to abort.
+   */ 
+  inline bool DidTriggerFire(const uint32_t trg, TriggerAnalyzer* analyzer)
   {
-    // grab GL1 packet from node tree
-    Gl1Packet* packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-    if (!packet)
+
+    if (MapTriggerFlagToName().count(trg) == 0)
     {
-      std::cerr << PHWHERE << ": PANIC: not able to grab GL1 packet! aborting!" << std::endl;
-      exit(1);
+      std::cerr << PHWHERE << ": PANIC: unknown trigger flag (" << trg << ") provided! Aborting" << std::endl;
+      exit(1)
     }
+    return analyzer->didTriggerFire( MapTriggerFlagToName()[trg] );
 
-    // grab trigger bits
-    boost::dynamic_bitset<> triggers(NMaxTrgIndex(), packet->getTriggerInput());
-
-    // loop through bits and check if specified one is set
-    bool didTrgFire = false;
-    for (uint32_t iTrg = 0; iTrg < NMaxTrgIndex(); iTrg++)
-    {
-      // only consider specified trigger
-      if (iTrg != trg) continue;
-
-      // if trigger bit set, break and return true
-      if (triggers.test(iTrg))
-      {
-        didTrgFire = true;
-        break;
-      }
-
-    }  // end index loop
-    return didTrgFire;
-
-  }  // end 'DidTriggerFire(uint32_t, PHCompositeNode*)'
+  }  // end 'DidTriggerFire(uint32_t, TriggerAnalyzer*)'
 
 }  // namespace JetQADefs
 
