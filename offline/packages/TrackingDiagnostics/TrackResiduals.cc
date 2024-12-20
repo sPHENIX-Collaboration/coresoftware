@@ -199,6 +199,7 @@ void TrackResiduals::clearClusterStateVectors()
   m_statepx.clear();
   m_statepy.clear();
   m_statepz.clear();
+  m_statepl.clear();
 }
 //____________________________________________________________________________..
 int TrackResiduals::process_event(PHCompositeNode* topNode)
