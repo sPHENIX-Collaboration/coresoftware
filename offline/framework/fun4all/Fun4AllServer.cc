@@ -758,7 +758,7 @@ int Fun4AllServer::process_event()
         {
           std::cout << PHWHERE << (*histit)->Name() << " wrote events, closing " << (*histit)->OutFileName() << std::endl;
         }
-        (*histit)->segment(segment);
+        (*histit)->segment(segment-1);
         (*histit)->dumpHistos();
         (*histit)->RunAfterClosing();
         (*histit)->Reset();
