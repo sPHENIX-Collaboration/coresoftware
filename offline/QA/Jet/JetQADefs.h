@@ -134,7 +134,7 @@ namespace JetQADefs
     if (MapTriggerFlagToName().count(trg) == 0)
     {
       std::cerr << PHWHERE << ": PANIC: unknown trigger flag (" << trg << ") provided! Aborting" << std::endl;
-      exit(1)
+      exit(1);
     }
     return analyzer->didTriggerFire( MapTriggerFlagToName()[trg] );
 
