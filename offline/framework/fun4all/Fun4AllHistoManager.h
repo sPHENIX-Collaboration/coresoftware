@@ -42,12 +42,24 @@ class Fun4AllHistoManager : public Fun4AllBase
   std::string getHistoName(const unsigned int ihisto) const;
   unsigned int nHistos() const { return Histo.size(); }
   void Reset();
+  int RunAfterClosing();
   int dumpHistos(const std::string &filename = "", const std::string &openmode = "RECREATE");
-  void setOutfileName(const std::string &filename) { outfilename = filename; }
+  std::string OutFileName() { return m_outfilename; }
+  void setOutfileName(const std::string &filename) { m_outfilename = filename; }
+  bool dumpHistoSegments() { return m_dumpHistoSegments; }
+  void dumpHistoSegments(const bool dump) { m_dumpHistoSegments = dump; }
+  void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
+  void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }
+  void segment(const int segment) { m_CurrentSegment = segment; }
 
  private:
-  std::string outfilename;
+  std::string m_outfilename;
+  std::string m_RunAfterClosingScript;
+  std::string m_ClosingArgs;
+  std::string m_LastClosedFileName;
   std::map<const std::string, TNamed *> Histo;
+  bool m_dumpHistoSegments = false;
+  int m_CurrentSegment = 0;
 };
 
 #endif /* __FUN4ALLHISTOMANAGER_H */
