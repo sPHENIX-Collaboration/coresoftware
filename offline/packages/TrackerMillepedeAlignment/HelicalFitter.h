@@ -59,6 +59,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
 
   void set_use_event_vertex(bool flag) { use_event_vertex = flag; }
+  void set_use_intt_zfit(bool flag) { use_intt_zfit = flag; }
   void set_datafile_name(const std::string& file) { data_outfilename = file; }
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file; }
   void set_mvtx_grouping(int group) { mvtx_grp = (AlignmentDefs::mvtxGrp) group; }
@@ -102,7 +103,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
 
   void getTrackletClusters(TrackSeed* _track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
   Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, const Acts::Vector3& global);
-  void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
+  void correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec, int crossing);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   void set_dca_cut(float dca) { dca_cut = dca; }
@@ -183,7 +184,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   AlignmentDefs::tpcGrp tpc_grp = AlignmentDefs::tpcGrp::htst;
   AlignmentDefs::mmsGrp mms_grp = AlignmentDefs::mmsGrp::tl;
 
-  //  TrackSeedContainer *_svtx_seed_map{nullptr};
+  TrackSeedContainer* _svtx_seed_map{nullptr};
   TrackSeedContainer* _track_map_tpc{nullptr};
   TrackSeedContainer* _track_map_silicon{nullptr};
   TrkrClusterContainer* _cluster_map{nullptr};
