@@ -2,14 +2,12 @@
 
 #include "MinimumBiasInfov1.h"
 
-#include <zdcinfo/Zdcinfo.h>
-
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
-
-#include <mbd/MbdOut.h>
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
+#include <zdcinfo/Zdcinfo.h>
+
+#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -45,6 +43,7 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
 
 int MinimumBiasClassifier::ResetEvent(PHCompositeNode * /*unused*/)
 {
+
   m_zdc_energy_sum.fill(0);
   m_mbd_charge_sum.fill(0);
   m_mbd_hit.fill(0);
@@ -147,6 +146,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     }
 
   m_mb_info->setIsAuAuMinimumBias(true);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 int MinimumBiasClassifier::process_event(PHCompositeNode *topNode)
@@ -182,18 +182,6 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
   if (!m_mb_info)
   {
     std::cout << "no minimum bias node " << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  m_mbd_out = findNode::getClass<MbdOut>(topNode, "MbdOut");
-  if (Verbosity())
-    {
-      std::cout << "Getting MBD Out" << std::endl;
-    }
-
-  if (!m_mbd_out)
-  {
-    std::cout << "no MBD out node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
