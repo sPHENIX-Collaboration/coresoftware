@@ -750,18 +750,20 @@ int Fun4AllServer::process_event()
   }
   if(!HistoManager.empty() && !eventbad && writing)
   {
-    for( auto histit = HistoManager.begin(); histit != HistoManager.end(); ++histit)
+    for( const auto& histit : HistoManager)
     {
-      if((*histit)->dumpHistoSegments())
+      if((*histit).dumpHistoSegments())
       {
         if(Verbosity() > 0)
         {
-          std::cout << PHWHERE << (*histit)->Name() << " wrote events, closing " << (*histit)->OutFileName() << std::endl;
+          std::cout << PHWHERE << (*histit).Name() << " wrote events, closing " << (*histit).OutFileName() << std::endl;
         }
-        (*histit)->segment(segment-1);
-        (*histit)->dumpHistos();
-        (*histit)->RunAfterClosing();
-        (*histit)->Reset();
+        // This is -1 because the segment is initially determined in the first event of a
+        // segment from the DST, then incremented. So it is always 1 ahead of the histos
+        (*histit).segment(segment-1);
+        (*histit).dumpHistos();
+        (*histit).RunAfterClosing();
+        (*histit).Reset();
       }
     }
   }
