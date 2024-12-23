@@ -287,8 +287,8 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
       {
         std::cout << "Need to Resync, mastersync evt no: " << mastersync->EventNumber()
                   << ", this Event no: " << syncobject->EventNumber() << std::endl;
-        std::cout << "mastersync evt counter: " << mastersync->EventCounter()
-                  << ", this Event counter: " << syncobject->EventCounter() << std::endl;
+        std::cout << "mastersync evt counter: " << mastersync->EventNumber()
+                  << ", this Event counter: " << syncobject->EventNumber() << std::endl;
         std::cout << "mastersync run number: " << mastersync->RunNumber()
                   << ", this run number: " << syncobject->RunNumber() << std::endl;
       }
@@ -338,14 +338,14 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
       {
         igood = 0;
       }
-      while (syncobject->EventCounter() < mastersync->EventCounter() && igood)
+      while (syncobject->EventNumber() < mastersync->EventNumber() && igood)
       {
         events_skipped_during_sync++;
         if (Verbosity() > 2)
         {
           std::cout << Name()
-                    << ", EventCounter: " << syncobject->EventCounter()
-                    << ", master: " << mastersync->EventCounter()
+                    << ", EventNumber: " << syncobject->EventNumber()
+                    << ", master: " << mastersync->EventNumber()
                     << std::endl;
         }
         iret = ReadNextEventSyncObject();
@@ -355,14 +355,14 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
         }
       }
       // Since up to here we only read the sync object we need to push
-      // the current event back inot the root file (subtract one from the
+      // the current event back into the root file (subtract one from the
       // local root file event counter) so we can read the full event
       // if it syncs, if it does not sync we also read one event too many
       // (otherwise we cannot determine that we are "too far")
       // and also have to push this one back
       PushBackEvents(1);
       if (syncobject->RunNumber() > mastersync->RunNumber() ||        // check if run number too large
-          syncobject->EventCounter() > mastersync->EventCounter() ||  // check if event counter too large
+          syncobject->EventNumber() > mastersync->EventNumber() ||  // check if event counter too large
           syncobject->SegmentNumber() > mastersync->SegmentNumber())  // check segment number too large
       {
         // the event from first file which determines the mastersync

@@ -9,6 +9,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <sstream>
 
 const int SpinDBOutput::ERROR_VALUE = -999;
@@ -617,10 +618,25 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
   spin_cont.SetBadRunFlag(rs->getInt("badrunqa"));
   spin_cont.SetCrossingShift(rs->getInt("crossingshift"));
 
-  float bpol[ncross], bpolerr[ncross], bpolsys[ncross], ypol[ncross], ypolerr[ncross], ypolsys[ncross];
-  int bpat[ncross], ypat[ncross], bad_bunch[ncross];
-  long long mbd_vtxcut[ncross], mbd_nocut[ncross];
-  long long zdc_nocut[ncross];
+  // float bpol[ncross], bpolerr[ncross], bpolsys[ncross], ypol[ncross], ypolerr[ncross], ypolsys[ncross];
+  // int bpat[ncross], ypat[ncross], bad_bunch[ncross];
+  // long long mbd_vtxcut[ncross], mbd_nocut[ncross];
+  // long long zdc_nocut[ncross];
+
+  float *bpol = new float[ncross];
+  float *bpolerr = new float[ncross];
+  float *bpolsys = new float[ncross];
+  float *ypol = new float[ncross];
+  float *ypolerr = new float[ncross];
+  float *ypolsys = new float[ncross];
+
+  int *bpat = new int[ncross];
+  int *ypat = new int[ncross];
+  int *bad_bunch = new int[ncross];
+
+  long long *mbd_vtxcut = new long long[ncross];
+  long long *mbd_nocut = new long long[ncross];
+  long long *zdc_nocut = new long long[ncross];
 
   GetArray(rs, "polarblue", bpol, ncross);
   GetArray(rs, "polarblueerror", bpolerr, ncross);
@@ -628,11 +644,19 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
   {
     GetArray(rs, "polarblueerrorsys", bpolsys, ncross);
   }
+      
   GetArray(rs, "polaryellow", ypol, ncross);
   GetArray(rs, "polaryellowerror", ypolerr, ncross);
   if (table_name == "spin")
   {
     GetArray(rs, "polaryellowerrorsys", ypolsys, ncross);
+  }
+  else
+  {
+    for (int i=0; i<ncross; i++)
+    {
+      ypolsys[i] = std::numeric_limits<float>::quiet_NaN();
+    }
   }
   GetArray(rs, "spinpatternblue", bpat, ncross);
   GetArray(rs, "spinpatternyellow", ypat, ncross);
@@ -667,6 +691,20 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
   spin_cont.SetCrossAngleMin(rs->getFloat("crossanglemin"));
   spin_cont.SetCrossAngleMax(rs->getFloat("crossanglemax"));
 
+  delete [] bpol;
+  delete [] bpolerr;
+  delete [] bpolsys;
+  delete [] ypol;
+  delete [] ypolerr;
+  delete [] ypolsys;
+
+  delete [] bpat;
+  delete [] ypat;
+  delete [] bad_bunch;
+
+  delete [] mbd_vtxcut;
+  delete [] mbd_nocut;
+  delete [] zdc_nocut;
   return (1);
 }
 
@@ -704,7 +742,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<st
 
   cvalue = cvalue.substr(1, cvalue.size() - 1) + ",";
 
-  int nvalue = 0;
+//  int nvalue = 0;
   std::vector<std::string> value1;
   while (true)
   {
@@ -716,7 +754,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<st
 
     value1.push_back(cvalue.substr(0, pos));
     cvalue.erase(0, pos + 1);
-    nvalue++;
+//    nvalue++;
   }
 
   std::stringstream cerror;

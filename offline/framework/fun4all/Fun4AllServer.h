@@ -126,21 +126,21 @@ class Fun4AllServer : public Fun4AllBase
   int unregisterSubsystemsNow();
   int setRun(const int runnumber);
   static Fun4AllServer *__instance;
-  TH1 *FrameWorkVars = nullptr;
-  Fun4AllMemoryTracker *ffamemtracker = nullptr;
-  Fun4AllHistoManager *ServerHistoManager = nullptr;
-  PHTimeStamp *beginruntimestamp = nullptr;
-  PHCompositeNode *TopNode = nullptr;
-  Fun4AllSyncManager *defaultSyncManager = nullptr;
+  TH1 *FrameWorkVars{nullptr};
+  Fun4AllMemoryTracker *ffamemtracker{nullptr};
+  Fun4AllHistoManager *ServerHistoManager{nullptr};
+  PHTimeStamp *beginruntimestamp{nullptr};
+  PHCompositeNode *TopNode{nullptr};
+  Fun4AllSyncManager *defaultSyncManager{nullptr};
 
-  int OutNodeCount = 0;
-  int bortime_override = 0;
-  int ScreamEveryEvent = 0;
-  int unregistersubsystem = 0;
-  int runnumber = 0;
-  int eventnumber = 0;
-  int eventcounter = 0;
-  int keep_db_connected = 0;
+  int OutNodeCount{0};
+  int bortime_override{0};
+  int ScreamEveryEvent{0};
+  int unregistersubsystem{0};
+  int runnumber{0};
+  int eventnumber{0};
+  int eventcounter{0};
+  int keep_db_connected{0};
 
   std::vector<std::string> ComplaintList;
   std::vector<std::pair<SubsysReco *, PHCompositeNode *>> Subsystems;

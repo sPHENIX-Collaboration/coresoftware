@@ -6,6 +6,8 @@
 #include <ffarawobjects/InttRawHit.h>           // for InttRawHit
 #include <ffarawobjects/InttRawHitContainer.h>  // for InttRawHitContainer
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHPointerListIterator.h>
 #include <fun4all/Fun4AllHistoManager.h>  // for Fun4AllHistoManager
 #include <fun4all/Fun4AllReturnCodes.h>   // for EVENT_OK, ABORTEVENT
 
@@ -28,17 +30,17 @@ InttRawHitQA::InttRawHitQA(const std::string &name)
 {
 }
 
-std::vector<InttRawHit *> InttRawHitQA::GetHits()
+std::vector<InttRawHit *> InttRawHitQA::GetHits(InttRawHitContainer* container)
 {
   std::vector<InttRawHit *> hits;
-  if(node_inttrawhit_map_ == nullptr)
+  if(container == nullptr)
   {
     return hits;
   }
-  auto raw_hit_num = node_inttrawhit_map_->get_nhits();
+  auto raw_hit_num = container->get_nhits();
   for (unsigned int i = 0; i < raw_hit_num; i++)
   {
-    auto hit = node_inttrawhit_map_->get_hit(i);
+    auto hit = container->get_hit(i);
     hits.push_back(hit);
   }
 
@@ -56,15 +58,35 @@ int InttRawHitQA::InitRun(PHCompositeNode *topNode)
 
   /////////////////////////////////////////////////////////////////////////
   // INTT raw hit
-  std::string node_name_inttrawhit = "INTTRAWHIT";
-  node_inttrawhit_map_ =
-      findNode::getClass<InttRawHitContainer>(topNode, node_name_inttrawhit);
-
-  if (!node_inttrawhit_map_)
+  /////////////////////////////////////////////////////////////////////////
+  PHNodeIterator trkr_itr(topNode);
+  PHCompositeNode *intt_node = dynamic_cast<PHCompositeNode *>(
+      trkr_itr.findFirst("PHCompositeNode", "INTT"));  
+  if(!intt_node)
   {
-    std::cout << PHWHERE << node_name_inttrawhit << " node is missing." << std::endl;
+    std::cout << PHWHERE << " No INTT node found, exit" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  PHNodeIterator intt_itr(intt_node);
+  PHPointerListIterator<PHNode> iter(intt_itr.ls());
+  PHNode *thisnode;
+  while((thisnode = iter()))
+  {
+    if(thisnode->getType() !="PHIODataNode")
+    {
+      continue;
+    }
+    PHIODataNode<InttRawHitContainer> *theNode = static_cast<PHIODataNode<InttRawHitContainer> *>(thisnode);
+    if(theNode)
+    {
+      std::cout << PHWHERE << " Found INTT Raw hit container node " << theNode->getName() << std::endl;
+      auto cont = (InttRawHitContainer*)theNode->getData();
+      if(cont)
+      {
+        m_rawhit_containers.push_back(cont);
+      }
+    }
+  }
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
@@ -218,13 +240,16 @@ void InttRawHitQA::createHistos()
 
 int InttRawHitQA::process_event(PHCompositeNode * /*unused*/)
 {
-  auto hits = this->GetHits();
+  for(auto& cont : m_rawhit_containers)
+  {
+   
+  auto hits = GetHits(cont);
 
   auto raw_hit_num = hits.size();
   hist_nhit_->Fill(raw_hit_num);
 
   // if no raw hit is found, skip this event
-  if (raw_hit_num == 0 || node_inttrawhit_map_ == nullptr)
+  if (raw_hit_num == 0 || cont == nullptr)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
@@ -234,13 +259,13 @@ int InttRawHitQA::process_event(PHCompositeNode * /*unused*/)
   //////////////////////////////////////////////////////////////////
   // processes for each event                                     //
   //////////////////////////////////////////////////////////////////
-  uint64_t bco_full = (node_inttrawhit_map_->get_hit(0)->get_bco());
+  uint64_t bco_full = (cont->get_hit(0)->get_bco());
   hist_bco_full_->Fill(bco_full);
 
   //////////////////////////////////////////////////////////////////
   // primary raw hit sweep to get some reference values           //
   //////////////////////////////////////////////////////////////////
-  uint32_t event_counter_ref = node_inttrawhit_map_->get_hit(0)->get_event_counter();
+  uint32_t event_counter_ref = cont->get_hit(0)->get_event_counter();
 
   //////////////////////////////////////////////////////////////////
   // processes for each raw hit                                   //
@@ -332,7 +357,7 @@ int InttRawHitQA::process_event(PHCompositeNode * /*unused*/)
   {
     previous_event_counter_ = -1;  // in the case of a crazy event counter
   }
-
+  }
   // cout << "-------------------------------------------------" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }

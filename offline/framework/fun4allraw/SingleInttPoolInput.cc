@@ -194,7 +194,11 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
           int nbcos = pool->iValue(fee, "FEE_BCOS");
           for (int k = 0; k < nbcos; k++)
           {
-            auto bco = pool->lValue(fee, k, "BCOVAL");
+            uint64_t bco = pool->lValue(fee, k, "BCOVAL");
+            if(bco < minBCO)
+            {
+              continue;
+            }
             m_FeeGTML1BCOMap[fee].insert(bco);
           }
         }

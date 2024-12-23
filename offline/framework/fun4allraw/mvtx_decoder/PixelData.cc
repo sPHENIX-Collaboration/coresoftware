@@ -3,7 +3,7 @@
 // @sa <O2/Detectors/ITSMFT/common/reconstruction/src/PixelData.cxx>
 //     <d44292025>
 
-#include "mvtx_decoder/PixelData.h"
+#include "PixelData.h"
 #include <iostream>
 #include <sstream>
 

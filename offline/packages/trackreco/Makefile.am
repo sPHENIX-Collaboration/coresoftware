@@ -184,8 +184,10 @@ libtrack_reco_la_LIBADD = \
   -lglobalvertex_io \
   -lgsl \
   -lgslcblas \
+  -lintt \
   -lintt_io \
   -lmicromegas_io \
+  -lmvtx \
   -lmvtx_io \
   -lphparameter_io \
   -lPHGenFit \

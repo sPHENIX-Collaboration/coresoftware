@@ -1,6 +1,7 @@
 #include "QAG4SimulationIntt.h"
-#include <qautils/QAUtil.h>
+
 #include <qautils/QAHistManagerDef.h>
+#include <qautils/QAUtil.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -25,15 +26,18 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <boost/format.hpp>
+
 #include <TH1.h>
-#include <TString.h>  // for Form
 
 #include <cassert>
 #include <cmath>
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
-#include <utility>   // for pair, make_pair
+#include <set>
+#include <string>
+#include <utility>  // for pair, make_pair
 
 //________________________________________________________________________
 QAG4SimulationIntt::QAG4SimulationIntt(const std::string& name)
@@ -46,9 +50,13 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode* topNode)
 {
   // prevent multiple creations of histograms
   if (m_initialized)
+  {
     return Fun4AllReturnCodes::EVENT_OK;
+  }
   else
+  {
     m_initialized = true;
+  }
 
   // find intt geometry
   auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
@@ -72,66 +80,69 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode* topNode)
   // create histograms
   for (const auto& layer : m_layers)
   {
-    if (Verbosity()) std::cout << PHWHERE << " adding layer " << layer << std::endl;
+    if (Verbosity())
+    {
+      std::cout << PHWHERE << " adding layer " << layer << std::endl;
+    }
     {
       // rphi residuals (cluster - truth)
-      auto h = new TH1F(Form("%sdrphi_%i", get_histo_prefix().c_str(), layer), Form("INTT r#Delta#phi_{cluster-truth} layer_%i", layer), 100, -1e-2, 1e-2);
+      auto h = new TH1F((boost::format("%sdrphi_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("INTT r#Delta#phi_{cluster-truth} layer_%i") % layer).str().c_str(), 100, -1e-2, 1e-2);
       h->GetXaxis()->SetTitle("r#Delta#phi_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // rphi cluster errors
-      auto h = new TH1F(Form("%srphi_error_%i", get_histo_prefix().c_str(), layer), Form("INTT r#Delta#phi error layer_%i", layer), 100, 0, 1e-2);
+      auto h = new TH1F((boost::format("%srphi_error_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("INTT r#Delta#phi error layer_%i") % layer).str().c_str(), 100, 0, 1e-2);
       h->GetXaxis()->SetTitle("r#Delta#phi error (cm)");
       hm->registerHisto(h);
     }
 
     {
       // phi pulls (cluster - truth)
-      auto h = new TH1F(Form("%sphi_pulls_%i", get_histo_prefix().c_str(), layer), Form("INTT #Delta#phi_{cluster-truth}/#sigma#phi layer_%i", layer), 100, -3, 3);
+      auto h = new TH1F((boost::format("%sphi_pulls_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("INTT #Delta#phi_{cluster-truth}/#sigma#phi layer_%i") % layer).str().c_str(), 100, -3, 3);
       h->GetXaxis()->SetTitle("#Delta#phi_{cluster-truth}/#sigma#phi");
       hm->registerHisto(h);
     }
 
     {
       // z residuals (cluster - truth)
-      auto h = new TH1F(Form("%sdz_%i", get_histo_prefix().c_str(), layer), Form("INTT #Deltaz_{cluster-truth} layer_%i", layer), 100, -2.5, 2.5);
+      auto h = new TH1F((boost::format("%sdz_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("INTT #Deltaz_{cluster-truth} layer_%i") % layer).str().c_str(), 100, -2.5, 2.5);
       h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z cluster errors
-      auto h = new TH1F(Form("%sz_error_%i", get_histo_prefix().c_str(), layer), Form("INTT z error layer_%i", layer), 100, 0, 2.5);
+      auto h = new TH1F((boost::format("%sz_error_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("INTT z error layer_%i") % layer).str().c_str(), 100, 0, 2.5);
       h->GetXaxis()->SetTitle("z error (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z pulls (cluster - truth)
-      auto h = new TH1F(Form("%sz_pulls_%i", get_histo_prefix().c_str(), layer), Form("INTT #Deltaz_{cluster-truth}/#sigmaz layer_%i", layer), 100, -3, 3);
+      auto h = new TH1F((boost::format("%sz_pulls_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("INTT #Deltaz_{cluster-truth}/#sigmaz layer_%i") % layer).str().c_str(), 100, -3, 3);
       h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth}/#sigmaz");
       hm->registerHisto(h);
     }
 
     {
       // total cluster size
-      auto h = new TH1F(Form("%sclus_size_%i", get_histo_prefix().c_str(), layer), Form("INTT cluster size layer_%i", layer), 10, 0, 10);
+      auto h = new TH1F((boost::format("%sclus_size_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("INTT cluster size layer_%i") % layer).str().c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("csize");
       hm->registerHisto(h);
     }
 
     {
       // cluster size in phi
-      auto h = new TH1F(Form("%sclus_size_phi_%i", get_histo_prefix().c_str(), layer), Form("INTT cluster size (#phi) layer_%i", layer), 10, 0, 10);
+      auto h = new TH1F((boost::format("%sclus_size_phi_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("INTT cluster size (#phi) layer_%i") % layer).str().c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("csize_{#phi}");
       hm->registerHisto(h);
     }
 
     {
       // cluster size in z
-      auto h = new TH1F(Form("%sclus_size_z_%i", get_histo_prefix().c_str(), layer), Form("INTT cluster size (z) layer_%i", layer), 10, 0, 10);
+      auto h = new TH1F((boost::format("%sclus_size_z_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("INTT cluster size (z) layer_%i") % layer).str().c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("csize_{z}");
       hm->registerHisto(h);
     }
@@ -145,7 +156,10 @@ int QAG4SimulationIntt::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   auto res = load_nodes(topNode);
-  if (res != Fun4AllReturnCodes::EVENT_OK) return res;
+  if (res != Fun4AllReturnCodes::EVENT_OK)
+  {
+    return res;
+  }
 
   // run evaluation
   evaluate_clusters();
@@ -229,17 +243,17 @@ void QAG4SimulationIntt::evaluate_clusters()
   for (const auto& layer : m_layers)
   {
     HistogramList h;
-    h.drphi = dynamic_cast<TH1*>(hm->getHisto(Form("%sdrphi_%i", get_histo_prefix().c_str(), layer)));
-    h.rphi_error = dynamic_cast<TH1*>(hm->getHisto(Form("%srphi_error_%i", get_histo_prefix().c_str(), layer)));
-    h.phi_pulls = dynamic_cast<TH1*>(hm->getHisto(Form("%sphi_pulls_%i", get_histo_prefix().c_str(), layer)));
+    h.drphi = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sdrphi_%i") % get_histo_prefix() % layer).str().c_str()));
+    h.rphi_error = dynamic_cast<TH1*>(hm->getHisto((boost::format("%srphi_error_%i") % get_histo_prefix() % layer).str().c_str()));
+    h.phi_pulls = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sphi_pulls_%i") % get_histo_prefix() % layer).str().c_str()));
 
-    h.dz = dynamic_cast<TH1*>(hm->getHisto(Form("%sdz_%i", get_histo_prefix().c_str(), layer)));
-    h.z_error = dynamic_cast<TH1*>(hm->getHisto(Form("%sz_error_%i", get_histo_prefix().c_str(), layer)));
-    h.z_pulls = dynamic_cast<TH1*>(hm->getHisto(Form("%sz_pulls_%i", get_histo_prefix().c_str(), layer)));
+    h.dz = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sdz_%i") % get_histo_prefix() % layer).str().c_str()));
+    h.z_error = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sz_error_%i") % get_histo_prefix() % layer).str().c_str()));
+    h.z_pulls = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sz_pulls_%i") % get_histo_prefix() % layer).str().c_str()));
 
-    h.csize = dynamic_cast<TH1*>(hm->getHisto(Form("%sclus_size_%i", get_histo_prefix().c_str(), layer)));
-    h.csize_phi = dynamic_cast<TH1*>(hm->getHisto(Form("%sclus_size_phi_%i", get_histo_prefix().c_str(), layer)));
-    h.csize_z = dynamic_cast<TH1*>(hm->getHisto(Form("%sclus_size_z_%i", get_histo_prefix().c_str(), layer)));
+    h.csize = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_%i") % get_histo_prefix() % layer).str().c_str()));
+    h.csize_phi = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_phi_%i") % get_histo_prefix() % layer).str().c_str()));
+    h.csize_z = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_z_%i") % get_histo_prefix() % layer).str().c_str()));
 
     histograms.insert(std::make_pair(layer, h));
   }
@@ -263,10 +277,9 @@ void QAG4SimulationIntt::evaluate_clusters()
 
       double phi_error = 0;
       double z_error = 0;
-   
+
       phi_error = cluster->getRPhiError() / r_cluster;
       z_error = cluster->getZError();
-      
 
       // find associated g4hits
       const auto g4hits = find_g4hits(key);
@@ -283,11 +296,15 @@ void QAG4SimulationIntt::evaluate_clusters()
       // get layer, get histograms
       const auto layer = TrkrDefs::getLayer(key);
       const auto hiter = histograms.find(layer);
-      if (hiter == histograms.end()) continue;
+      if (hiter == histograms.end())
+      {
+        continue;
+      }
 
       // fill histograms
       auto fill = [](TH1* h, float value)
-      { if( h ) h->Fill( value ); };
+      { if( h ) { h->Fill( value ); 
+} };
       fill(hiter->second.drphi, r_cluster * dphi);
       fill(hiter->second.rphi_error, r_cluster * phi_error);
       fill(hiter->second.phi_pulls, dphi / phi_error);
@@ -335,16 +352,19 @@ QAG4SimulationIntt::G4HitSet QAG4SimulationIntt::find_g4hits(TrkrDefs::cluskey c
     m_hit_truth_map->getG4Hits(hitset_key, hit_key, g4hit_map);
 
     // find corresponding g4 hist
-    for (auto truth_iter = g4hit_map.begin(); truth_iter != g4hit_map.end(); ++truth_iter)
+    for (auto& truth_iter : g4hit_map)
     {
       // g4hit key
-      const auto g4hit_key = truth_iter->second.second;
+      const auto g4hit_key = truth_iter.second.second;
 
       // g4 hit
       PHG4Hit* g4hit = (TrkrDefs::getTrkrId(hitset_key) == TrkrDefs::inttId) ? m_g4hits_intt->findHit(g4hit_key) : nullptr;
 
       // insert in set
-      if (g4hit) out.insert(g4hit);
+      if (g4hit)
+      {
+        out.insert(g4hit);
+      }
     }
   }
 

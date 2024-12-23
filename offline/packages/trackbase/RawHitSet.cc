@@ -9,7 +9,8 @@
 namespace
 {
   RawHitSet::Vector dummy_vector;
-}
+  RawHitSet::VectorTpc2D dummy_vector_2d;
+}  // namespace
 
 void RawHitSet::addHit(RawHit* /*unused*/)
 {
@@ -27,6 +28,10 @@ void RawHitSet::setTpcPhiBins(unsigned short /*unused*/)
 RawHitSet::ConstRange RawHitSet::getHits() const
 {
   return std::make_pair(dummy_vector.cbegin(), dummy_vector.cend());
+}
+RawHitSet::ConstVecIterator RawHitSet::getHits(int /*phibin*/)
+{
+  return dummy_vector_2d.begin();
 }
 
 // RawHitSet::ConstRange RawHitSet::getTpcHits(unsigned short phibins) const

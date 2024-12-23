@@ -754,7 +754,7 @@ bool pi0EtaByEta::checkOutput(const std::string& file)
 
   float final_mass_target = target_pi0_mass;
 
-  int numConv = 0;
+//  int numConv = 0;
   int numNotConv = 0;
 
   for (int i = 0; i < 96; i++)
@@ -771,7 +771,7 @@ bool pi0EtaByEta::checkOutput(const std::string& file)
     std::cout << "err " << corr << std::endl;
     if (fabs(corr) < convLev)
     {
-      numConv++;
+//      numConv++;
     }
     else
     {

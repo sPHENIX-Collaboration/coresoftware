@@ -16,6 +16,7 @@ class TH3;
 class TGraph;
 class TNtuple;
 class TF1;
+class TriggerAnalyzer;
 
 double LCE_fitf(double *f, double *p);
 
@@ -104,9 +105,9 @@ class LiteCaloEval : public SubsysReco
     doQA = status;
   }
 
-  void draw_spectra();
+  void draw_spectra(const char *);
 
-  void fit_info();
+  void fit_info(const char *, const int);
 
   void set_reqMinBias(bool status)
   {
@@ -132,6 +133,8 @@ class LiteCaloEval : public SubsysReco
   TH2 *energy_eta_hist{nullptr};
   TH3 *e_eta_phi{nullptr};
 
+  TH1* h_event{nullptr};
+
   Calo calotype{NONE};
   int _ievent{0};
 
@@ -149,6 +152,8 @@ class LiteCaloEval : public SubsysReco
   bool reqMinBias = true;
 
   int mode = 0;
+
+  TriggerAnalyzer* trigAna{nullptr};
 
   // flag for using tower info
   int m_UseTowerInfo{0};

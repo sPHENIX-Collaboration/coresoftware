@@ -31,15 +31,13 @@ class PHIODataNode : public PHDataNode<T>
  protected:
   bool write(PHIOManager *, const std::string & = "") override;
   PHIODataNode() = delete;
-  int buffersize;
-  int splitlevel;
+  int buffersize{32000};
+  int splitlevel{99};
 };
 
 template <class T>
 PHIODataNode<T>::PHIODataNode(T *d, const std::string &n)
   : PHDataNode<T>(d, n)
-  , buffersize(32000)
-  , splitlevel(99)
 {
   this->type = "PHIODataNode";
   TObject *TO = static_cast<TObject *>(d);
@@ -50,8 +48,6 @@ template <class T>
 PHIODataNode<T>::PHIODataNode(T *d, const std::string &n,
                               const std::string &objtype)
   : PHDataNode<T>(d, n, objtype)
-  , buffersize(32000)
-  , splitlevel(99)
 {
   this->type = "PHIODataNode";
   TObject *TO = static_cast<TObject *>(d);

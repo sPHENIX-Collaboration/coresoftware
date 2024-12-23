@@ -35,6 +35,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
     m_zs_threshold = 20;
   }
   void set_presampleShift(int b) { m_presampleShift = b; }
+  void set_t0(int b) { m_t0 = b;}
   void set_zs_threshold(int b) { m_zs_threshold = b; }
   void set_baseline_nsigma(int b) { m_baseline_nsigma = b; }
   void skipNevent(int b) { startevt = b; }
@@ -97,6 +98,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   CDBInterface *m_cdb{nullptr};
 
   int m_presampleShift = 40;  // number of presamples shifted to line up t0
+  int m_t0 = 0;
   int _ievent{0};
   int startevt{-1};
   int endevt{9999999};

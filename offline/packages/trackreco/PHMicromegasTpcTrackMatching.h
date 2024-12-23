@@ -39,6 +39,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   void set_pp_mode(const bool mode) { _pp_mode = mode; }
   void SetIteration(int iter) { _n_iteration = iter; }
 
+  void zeroField(const bool flag) { _zero_field = flag; }
+
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
   int End(PHCompositeNode*) override;
@@ -55,8 +57,9 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
 
   //! number of layers in the micromegas
   static constexpr unsigned int _n_mm_layers{2};
-
+  
   bool _use_truth_clusters = false;
+  bool _zero_field = false;
   TrkrClusterContainer* _cluster_map{nullptr};
   TrkrClusterContainer* _corrected_cluster_map{nullptr};
 
@@ -70,6 +73,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   //! default z search window for each layer
   std::array<double, _n_mm_layers> _z_search_win{26.0, 0.25};
 
+  // get the cluster list for zeroField
+  std::vector<TrkrDefs::cluskey> getTrackletClusterList(TrackSeed* tracklet);
   // range of TPC layers to use in projection to micromegas
   unsigned int _min_tpc_layer{38};
 

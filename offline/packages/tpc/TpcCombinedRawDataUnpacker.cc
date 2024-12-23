@@ -335,7 +335,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 	 adc_iterator->Next()){
       const uint16_t s = adc_iterator->CurrentTimeBin();
       const uint16_t adc = adc_iterator->CurrentAdc();
-      int t = s - m_presampleShift;
+      int t = s - m_presampleShift - m_t0;
       if (t < 0){
 	continue;
       }

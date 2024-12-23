@@ -293,8 +293,31 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xy(const std::vector<Ac
 }
 
 //_________________________________________________________________________________
+TrackFitUtils::line_circle_intersection_output_t TrackFitUtils::line_circle_intersection(double r, double m, double b)
+{
+
+  const double a_coef = 1+square(m);
+  const double b_coef = 2*m*b;
+  const double c_coef = square(b)-square(r);
+  const double delta = square(b_coef)-4*a_coef*c_coef;
+
+  const double sqdelta = std::sqrt(delta);
+
+
+  const double xplus = (-b_coef + sqdelta) / (2. * a_coef);
+  const double xminus = (-b_coef - sqdelta) / (2. * a_coef);
+
+  const double yplus = m*xplus + b;
+  const double yminus = m*xminus + b;
+
+  return std::make_tuple(xplus, yplus, xminus, yminus);
+
+}
+
+//_________________________________________________________________________________
 TrackFitUtils::circle_circle_intersection_output_t TrackFitUtils::circle_circle_intersection(double r1, double r2, double x2, double y2)
 {
+
   const double D = square(r1) - square(r2) + square(x2) + square(y2);
   const double a = 1.0 + square(x2 / y2);
   const double b = -D * x2 / square(y2);

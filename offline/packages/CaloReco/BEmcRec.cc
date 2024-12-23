@@ -299,7 +299,7 @@ float BEmcRec::fTowerDist(float x1, float x2)
   if (bCYL)
   {
     float distr = fNx - fabs(dist);  // Always >0
-    if (distr < abs(dist))
+    if (distr < std::abs(dist))
     {  // Then count in opposite direction
       if (dist < 0)
       {

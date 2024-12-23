@@ -120,10 +120,8 @@ bool PHNodeIterator::cd(const std::string& pathString)
     boost::split(splitpath, pathString, boost::is_any_of(phooldefs::nodetreepathdelim));
     bool pathFound;
     PHNode* subNode;
-    int i = 0;
     for (const auto& iter : splitpath)
     {
-      i++;
       if (iter == "..")
       {
         if (currentNode->getParent())
