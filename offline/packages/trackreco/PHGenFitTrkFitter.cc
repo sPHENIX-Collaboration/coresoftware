@@ -15,11 +15,13 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <intt/CylinderGeomIntt.h>
+#include <intt/CylinderGeomInttHelper.h>
 
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/CylinderGeom_MvtxHelper.h>
 
 #include <phfield/PHFieldUtility.h>
 
@@ -655,7 +657,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
       auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
       auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
-      geom->find_sensor_center(surf, m_tgeometry, ladder_location);
+	  CylinderGeom_MvtxHelper::find_sensor_center(surf, m_tgeometry, ladder_location);
 
       TVector3 n(ladder_location[0], ladder_location[1], 0);
       n.RotateZ(geom->get_stave_phi_tilt());
@@ -670,7 +672,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       double hit_location[3] = {0.0, 0.0, 0.0};
       auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
       auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
-      geom->find_segment_center(surf, m_tgeometry, hit_location);
+      CylinderGeomInttHelper::find_segment_center(surf, m_tgeometry, hit_location);
 
       TVector3 n(hit_location[0], hit_location[1], 0);
       n.RotateZ(geom->get_strip_phi_tilt());

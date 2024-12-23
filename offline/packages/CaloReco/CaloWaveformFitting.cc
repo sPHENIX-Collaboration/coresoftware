@@ -551,7 +551,7 @@ float CaloWaveformFitting::psinc(float time, std::vector<float> &vec_signal_samp
 {
   int N = (int) vec_signal_samples.size();
 
-  if (abs(std::round(time) - time) < 1e-6)
+  if (std::abs(std::round(time) - time) < 1e-6)
   {
  
     if (time < 0 || time >= N)

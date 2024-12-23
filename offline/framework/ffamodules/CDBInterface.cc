@@ -115,6 +115,10 @@ void CDBInterface::Print(const std::string & /* what */) const
 
 std::string CDBInterface::getUrl(const std::string &domain, const std::string &filename)
 {
+  if (disable)
+  {
+    return "";
+  }
   recoConsts *rc = recoConsts::instance();
   if (!rc->FlagExist("CDB_GLOBALTAG"))
   {

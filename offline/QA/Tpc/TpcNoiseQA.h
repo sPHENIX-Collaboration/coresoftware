@@ -13,12 +13,13 @@
 #include <ffarawobjects/TpcRawHit.h>
 #include <ffarawobjects/TpcRawHitContainer.h>
 
-#include <cmath>
 #include <string>
 #include <vector>
+#include <cmath>
 
 // Call classes to be used in code
 class PHCompositeNode;
+class TFile;
 class TH2;
 class Fun4AllHistoManager;
 //
@@ -28,7 +29,7 @@ class TpcNoiseQA : public SubsysReco  // Inherit public parts of SubsysReco
   // list of public methods
  public:
   // Function that sets file name and allocated memory to adcSamples
-  explicit TpcNoiseQA(const std::string &name = "TpcNoiseQA.root");
+  explicit TpcNoiseQA(const std::string &name = "TpcNoiseQA");
 
   ~TpcNoiseQA() override = default;
 
@@ -41,12 +42,6 @@ class TpcNoiseQA : public SubsysReco  // Inherit public parts of SubsysReco
 
   // called at the end of the run when processing is over
   int End(PHCompositeNode *topNode) override;
-
-  // Define function that stores packets to a vector
-  void AddPacket(int packet)
-  {
-    m_packets.push_back(packet);
-  }
 
   // List of private members
  private:
@@ -85,7 +80,6 @@ class TpcNoiseQA : public SubsysReco  // Inherit public parts of SubsysReco
   double pedStdi{0.0};
 
   int side{0};                // Face of the TPC (0==North && 1==South)
-  int m_packet{0};            // packet number
   int m_nWaveformInFrame{0};  // Number of waveforms in a frame
   int m_Channel{0};           // Channel number
   int m_nSamples{0};          // Number of samples in waveform
@@ -94,10 +88,8 @@ class TpcNoiseQA : public SubsysReco  // Inherit public parts of SubsysReco
   void createHistos();
   std::string getHistoPrefix() const;
 
-  std::string m_fname;    // Name of file given to program
-  std::string sectorNum;  // Sector number associated with data file
+  std::string m_fname;  // Name of file given to program
 
-  std::vector<int> m_packets;
   std::vector<unsigned short> m_adcSamples;  // ADC values in waveform
 };
 

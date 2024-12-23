@@ -17,11 +17,13 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <intt/CylinderGeomIntt.h>
+#include <intt/CylinderGeomInttHelper.h>
 
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/CylinderGeom_MvtxHelper.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
@@ -197,6 +199,7 @@ void TrackResiduals::clearClusterStateVectors()
   m_statepx.clear();
   m_statepy.clear();
   m_statepz.clear();
+  m_statepl.clear();
 }
 //____________________________________________________________________________..
 int TrackResiduals::process_event(PHCompositeNode* topNode)
@@ -870,7 +873,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         local.SetX(local_coords.X());
         local.SetY(local_coords.Z());
         auto surf = geometry->maps().getSiliconSurface(m_hitsetkey);
-        auto glob = layergeom->get_world_from_local_coords(surf, geometry, local);
+        auto glob = CylinderGeom_MvtxHelper::get_world_from_local_coords(surf, geometry, local);
         m_hitgx = glob.X();
         m_hitgy = glob.Y();
         m_hitgz = glob.Z();
@@ -895,7 +898,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         TVector2 local;
         local.SetX(local_hit_loc[1]);
         local.SetY(local_hit_loc[2]);
-        auto glob = geom->get_world_from_local_coords(surf, geometry, local);
+        auto glob = CylinderGeomInttHelper::get_world_from_local_coords(surf, geometry, local);
 
         m_hitgx = glob.X();
         m_hitgy = glob.Y();

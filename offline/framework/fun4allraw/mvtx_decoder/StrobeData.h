@@ -1,8 +1,8 @@
 #ifndef MVTXDECODER_STROBEDATA_H
 #define MVTXDECODER_STROBEDATA_H
 
-#include "mvtx_decoder/InteractionRecord.h"
-#include "mvtx_decoder/GBTWord.h"
+#include "InteractionRecord.h"
+#include "GBTWord.h"
 
 #include <vector>
 

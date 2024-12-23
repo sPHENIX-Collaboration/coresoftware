@@ -1,5 +1,6 @@
 #include "QAG4SimulationJet.h"
 
+#include <TString.h>
 #include <qautils/QAHistManagerDef.h>
 
 #include <g4eval/JetEvalStack.h>
@@ -19,17 +20,20 @@
 
 #include <phool/getClass.h>
 
+#include <boost/format.hpp>
+
 #include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
-#include <TString.h>  // for operator+, TString, Form
 
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <set>
+#include <string>
+#include <utility>
 
 QAG4SimulationJet::QAG4SimulationJet(const std::string& truth_jet,
                                      enu_flags flags)
@@ -51,7 +55,7 @@ int QAG4SimulationJet::InitRun(PHCompositeNode* topNode)
   {
     for (const auto& reco_jet : _reco_jets)
     {
-      jetevalstacks_map::iterator it_jetevalstack = _jetevalstacks.find(
+      jetevalstacks_map::iterator const it_jetevalstack = _jetevalstacks.find(
           reco_jet);
 
       if (it_jetevalstack == _jetevalstacks.end())
@@ -205,14 +209,14 @@ TString
 QAG4SimulationJet::get_eta_range_str(const char* eta_name) const
 {
   assert(eta_name);
-  return TString(Form("%.1f < %s < %.1f", eta_range.first, eta_name, eta_range.second));
+  return TString((boost::format("%.1f < %s < %.1f") % eta_range.first % eta_name % eta_range.second).str().c_str());
 }
 
 //! acceptance cut on jet object
 bool QAG4SimulationJet::jet_acceptance_cut(const Jet* jet) const
 {
   assert(jet);
-  bool eta_cut = (jet->get_eta() >= eta_range.first) && (jet->get_eta() <= eta_range.second);
+  bool const eta_cut = (jet->get_eta() >= eta_range.first) && (jet->get_eta() <= eta_range.second);
   return eta_cut;
 }
 
@@ -424,9 +428,9 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
     if (is_reco_jet)
     {  // this is a reco jet
-      jetevalstacks_map::iterator it_stack = _jetevalstacks.find(jet_name);
+      jetevalstacks_map::iterator const it_stack = _jetevalstacks.find(jet_name);
       assert(it_stack != _jetevalstacks.end());
-      std::shared_ptr<JetEvalStack> eval_stack = it_stack->second;
+      std::shared_ptr<JetEvalStack> const eval_stack = it_stack->second;
       assert(eval_stack);
       JetRecoEval* recoeval = eval_stack->get_reco_eval();
       assert(recoeval);
@@ -441,7 +445,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
         std::cout << "HCALIN_CLUSTER sum = " << recoeval->get_energy_contribution(leading_jet, Jet::HCALIN_CLUSTER) << std::endl;
         std::cout << "leading_jet->get_e() = " << leading_jet->get_e() << std::endl;
       }
-     
+
       lcemcr->Fill(                                                         //
           (recoeval->get_energy_contribution(leading_jet, Jet::CEMC_TOWER)  //
            +                                                                //
@@ -474,7 +478,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
       double hcalin_e = 0;
       double bh_e = 0;
 
-      std::set<PHG4Shower*> showers = _jettrutheval->all_truth_showers(leading_jet);
+      std::set<PHG4Shower*> const showers = _jettrutheval->all_truth_showers(leading_jet);
 
       for (auto shower : showers)
       {
@@ -625,13 +629,13 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
       ));
   assert(Matching_dPhi);
 
-  jetevalstacks_map::iterator it_stack = _jetevalstacks.find(reco_jet_name);
+  jetevalstacks_map::iterator const it_stack = _jetevalstacks.find(reco_jet_name);
   assert(it_stack != _jetevalstacks.end());
-  std::shared_ptr<JetEvalStack> eval_stack = it_stack->second;
+  std::shared_ptr<JetEvalStack> const eval_stack = it_stack->second;
   assert(eval_stack);
   JetRecoEval* recoeval = eval_stack->get_reco_eval();
   assert(recoeval);
- 
+
   // iterate over truth jets
   JetContainer* truthjets = findNode::getClass<JetContainer>(topNode, _truth_jet);
   if (!truthjets)
@@ -661,8 +665,6 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
     }
   }
 
-
-
   // match leading truth
   if (truthjet)
   {
@@ -672,7 +674,6 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
                 << " process truth jet ";
       truthjet->identify();
     }
-
 
     Matching_Count_Truth_Et->Fill(truthjet->get_et(), "Total", 1);
     {  // inclusive best energy match
@@ -684,7 +685,6 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
                   << " inclusively matched with best reco jet: ";
         recojet->identify();
       }
-
 
       if (recojet)
       {
@@ -716,8 +716,8 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         }  // if (fabs(dPhi) < 0.1)
 
       }  //       if (recojet)
-    }    // inclusive best energy match
-    {    // unique match
+    }  // inclusive best energy match
+    {  // unique match
 
       const Jet* recojet = recoeval->unique_reco_jet_from_truth(truthjet);
       if (recojet)
@@ -751,7 +751,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         }  // if (fabs(dPhi) < 0.1)
 
       }  //       if (recojet)
-    }    // unique match
+    }  // unique match
 
   }  //  if (truthjet)
 
@@ -821,7 +821,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         }  // if (fabs(dPhi) < 0.1)
 
       }  //      if (truthjet1)
-    }    // inclusive best energy match
+    }  // inclusive best energy match
 
     {  // unique match
       Jet* truthjet2 = recoeval->unique_truth_jet_from_reco(recojet);
@@ -848,7 +848,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
         }  // if (fabs(dPhi) < 0.1)
 
       }  //      if (truthjet2)
-    }    // unique match
+    }  // unique match
 
   }  // if (recojet)
 

@@ -6,7 +6,7 @@
 #ifndef MVTXDECODER_PIXELDATA_H
 #define MVTXDECODER_PIXELDATA_H
 
-#include "mvtx_decoder/DecodingStat.h"
+#include "DecodingStat.h"
 #include <cstdint>
 #include <vector>
 

@@ -1,4 +1,4 @@
-#include "mvtx_decoder/StrobeData.h"
+#include "StrobeData.h"
 #include <iostream>
 
 using namespace mvtx;
