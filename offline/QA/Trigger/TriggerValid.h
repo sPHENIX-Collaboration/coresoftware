@@ -1,10 +1,10 @@
 #ifndef TRIGGERVALID_TRIGGERVALID_H
 #define TRIGGERVALID_TRIGGERVALID_H
 
-#include <fun4all/SubsysReco.h>
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/Gl1Packetv1.h>
 #include <ffarawobjects/Gl1Packetv2.h>
+#include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <vector>
@@ -41,7 +41,6 @@ class TriggerValid : public SubsysReco
   void set_debug(bool debug) { m_debug = debug; }
 
  private:
-
   int Getpeaktime(TH1* h);
 
   bool m_debug{0};
