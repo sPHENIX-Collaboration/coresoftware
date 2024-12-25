@@ -28,6 +28,8 @@
 #include <TSystem.h>
 #include <TTree.h>
 
+#include <boost/format.hpp>
+
 #include <cmath>     // for log10, pow, sqrt, abs, M_PI
 #include <iostream>  // for operator<<, endl, basic_...
 #include <limits>
@@ -54,8 +56,8 @@ int TriggerValid::Init(PHCompositeNode* /*unused*/)
   hm->registerHisto(h_gl1_triggers);
   for (int i = 0; i < 8; i++)
     {
-      auto h_gl1_photon_energy = new TH1D(Form("h_gl1_photon_energy_%d", i), ";8x8 EMCAL energy [GeV]; counts", 100, 0, 50);
-      auto h_gl1_jetpatch_energy = new TH1D(Form("h_gl1_jetpatch_energy_%d", i), ";.8 x .8 EMCAL+HCAL energy [GeV]", 50, 0, 50);
+      auto h_gl1_photon_energy = new TH1D((boost::format("h_gl1_photon_energy_%d") %i).str().c_str(), ";8x8 EMCAL energy [GeV]; counts", 100, 0, 50);
+      auto h_gl1_jetpatch_energy = new TH1D((boost::format("h_gl1_jetpatch_energy_%d") %i).str().c_str(), ";.8 x .8 EMCAL+HCAL energy [GeV]", 50, 0, 50);
       hm->registerHisto(h_gl1_photon_energy);
       hm->registerHisto(h_gl1_jetpatch_energy);
     }
@@ -74,9 +76,9 @@ int TriggerValid::Init(PHCompositeNode* /*unused*/)
   hm->registerHisto(h_emu_hcal_2x2_frequency);
   for (int i = 0; i < 4; i++)
     {
-      auto h_emu_jet_frequency_trig = new TH2F(Form("h_emu_jet_frequency_%d", i), ";#eta;#phi", 9, 0, 9, 32, 0, 32);
+      auto h_emu_jet_frequency_trig = new TH2F((boost::format("h_emu_jet_frequency_%d") %i).str().c_str(), ";#eta;#phi", 9, 0, 9, 32, 0, 32);
       hm->registerHisto(h_emu_jet_frequency_trig);
-      auto h_emu_photon_frequency_trig = new TH2F(Form("h_emu_photon_frequency_%d", i), ";#eta;#phi", 12, 0, 12, 32, 0, 32);
+      auto h_emu_photon_frequency_trig = new TH2F((boost::format("h_emu_photon_frequency_%d") %i).str().c_str(), ";#eta;#phi", 12, 0, 12, 32, 0, 32);
       hm->registerHisto(h_emu_photon_frequency_trig);
     }
 
@@ -165,8 +167,8 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
   TH2 *h_emu_photon_frequency_trig[4];
   for (int i = 0; i < 4; i ++)
     {
-      h_emu_jet_frequency_trig[i] = dynamic_cast<TH2*>(hm->getHisto(Form("h_emu_jet_frequency_%d", i)));
-      h_emu_photon_frequency_trig[i] = dynamic_cast<TH2*>(hm->getHisto(Form("h_emu_photon_frequency_%d", i)));
+      h_emu_jet_frequency_trig[i] = dynamic_cast<TH2*>(hm->getHisto((boost::format("h_emu_jet_frequency_%d") %i).str().c_str()));
+      h_emu_photon_frequency_trig[i] = dynamic_cast<TH2*>(hm->getHisto((boost::format("h_emu_photon_frequency_%d") %i).str().c_str()));
     }
 
   auto h_gl1_triggers = dynamic_cast<TH1*>(hm->getHisto("h_gl1_triggers"));
@@ -175,8 +177,8 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 
   for (int i = 0; i < 8; i ++)
     {
-      h_gl1_jetpatch_energy[i] = dynamic_cast<TH1*>(hm->getHisto(Form("h_gl1_jetpatch_energy_%d", i)));
-      h_gl1_photon_energy[i] = dynamic_cast<TH1*>(hm->getHisto(Form("h_gl1_photon_energy_%d", i)));
+      h_gl1_jetpatch_energy[i] = dynamic_cast<TH1*>(hm->getHisto((boost::format("h_gl1_jetpatch_energy_%d") %i).str().c_str()));
+      h_gl1_photon_energy[i] = dynamic_cast<TH1*>(hm->getHisto((boost::format("h_gl1_photon_energy_%d") %i).str().c_str()));
     }
 
   auto h_emu_emcal_2x2_avg_out = dynamic_cast<TProfile2D*>(hm->getHisto("h_emu_emcal_2x2_avg_out"));
@@ -505,14 +507,16 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 		TowerInfo* tower = towers_hcalin->get_tower_at_key(TowerInfoDefs::encode_hcal(ieta, iphi));
 		float offlineenergy = tower->get_energy();
 
-		if (!tower->get_isGood()) continue;
+		if (!tower->get_isGood()) { continue;
+}
 		energy_sum += offlineenergy;
 	      }
 	    if (towers_hcalin)
 	      {
 		TowerInfo* tower = towers_hcalout->get_tower_at_key(TowerInfoDefs::encode_hcal(ieta, iphi));
 		float offlineenergy = tower->get_energy();
-		if (!tower->get_isGood()) continue;
+		if (!tower->get_isGood()) { continue;
+}
 		energy_sum += offlineenergy;
 	      }
 	  }
@@ -537,7 +541,8 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 		TowerInfo* tower = towers_hcalin->get_tower_at_key(TowerInfoDefs::encode_hcal(ieta, iphi));
 		float offlineenergy = tower->get_energy();
 
-		if (!tower->get_isGood()) continue;
+		if (!tower->get_isGood()) { continue;
+}
 		energy_sum += offlineenergy;
 	      }
 	  }
@@ -560,7 +565,8 @@ int TriggerValid::process_towers(PHCompositeNode* topNode)
 	      {
 		TowerInfo* tower = towers_hcalout->get_tower_at_key(TowerInfoDefs::encode_hcal(ieta, iphi));
 		float offlineenergy = tower->get_energy();
-		if (!tower->get_isGood()) continue;
+		if (!tower->get_isGood()) { continue;
+}
 		energy_sum += offlineenergy;
 	      }
 	  }
