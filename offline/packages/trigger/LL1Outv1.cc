@@ -144,20 +144,20 @@ bool LL1Outv1::passesThreshold(int ith)
   return false;
 }
 
-void LL1Outv1::addTriggeredSum(TriggerDefs::TriggerSumKey sk, unsigned short bit) 
+void LL1Outv1::addTriggeredSum(TriggerDefs::TriggerSumKey sk, unsigned short bit)
 {
   unsigned int sumk = sk;
   m_triggered_sums.emplace_back(sumk, bit);
-  
+
   return;
 }
 void LL1Outv1::addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk)
 {
   unsigned int primk = pk;
   if (!m_triggered_primitives.size())
-    {
-      m_triggered_primitives.push_back(primk);
-    }
+  {
+    m_triggered_primitives.push_back(primk);
+  }
 
   return;
 }
@@ -171,14 +171,14 @@ std::vector<TriggerDefs::TriggerSumKey> LL1Outv1::getTriggeredSumKeys(int ith)
   std::vector<TriggerDefs::TriggerSumKey> bitSums = {};
 
   if (!ith)
-    {
-      ith = 1;
-    }
+  {
+    ith = 1;
+  }
   for (auto& key_bit : m_triggered_sums)
   {
     unsigned short trigger_bit = key_bit.second;
 
-// NOLINTNEXTLINE(hicpp-signed-bitwise)
+    // NOLINTNEXTLINE(hicpp-signed-bitwise)
     if (((trigger_bit >> (uint16_t) (ith - 1)) & 0x1U) == 0x1U)
     {
       bitSums.push_back(key_bit.first);

@@ -4,21 +4,21 @@
 #include "LL1Outv1.h"
 #include "TriggerPrimitiveContainerv1.h"
 #include "TriggerPrimitivev1.h"
-#include <ffarawobjects/CaloPacketContainer.h>
-#include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainerv1.h>
-#include <ffarawobjects/CaloPacketv1.h>
+
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv3.h>
 #include <calobase/TowerInfoDefs.h>
 #include <calobase/TowerInfov3.h>
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
+
 #include <ffamodules/CDBInterface.h>
 
+#include <ffarawobjects/CaloPacket.h>
+#include <ffarawobjects/CaloPacketContainer.h>
+#include <ffarawobjects/CaloPacketContainerv1.h>
+#include <ffarawobjects/CaloPacketv1.h>
+
 #include <cdbobjects/CDBHistos.h>  // for CDBHistos
-#include <cdbobjects/CDBTTree.h>  // for CDBHistos
+#include <cdbobjects/CDBTTree.h>   // for CDBHistos
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -31,6 +31,10 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+#include <Event/Event.h>
+#include <Event/EventTypes.h>
+#include <Event/packet.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -67,32 +71,31 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
 
   // reset variables
   for (unsigned int i = 0; i < 1024; i++)
+  {
+    m_l1_8x8_table[i] = i;
+    if (i >= 0xff)
     {
-      m_l1_8x8_table[i] = i;
-      if (i >= 0xff) 
-	{
-	  m_l1_8x8_table[i] = 0xff;
-	}
+      m_l1_8x8_table[i] = 0xff;
     }
+  }
 
   for (unsigned int i = 0; i < 1024; i++)
-    {
-      m_l1_adc_table[i] = (i) & 0x3ffU;
-    }
+  {
+    m_l1_adc_table[i] = (i) &0x3ffU;
+  }
 
   for (unsigned int i = 0; i < 4096; i++)
-    {
-      m_l1_slewing_table[i] = (i) & 0x3ffU;
-    }
+  {
+    m_l1_slewing_table[i] = (i) &0x3ffU;
+  }
 
-  for (int i = 0; i < 24576;i++)
+  for (int i = 0; i < 24576; i++)
   {
     unsigned int key = TowerInfoDefs::encode_emcal(i);
     h_emcal_lut[key] = nullptr;
   }
 
-
-  for (int i = 0; i < 1536;i++)
+  for (int i = 0; i < 1536; i++)
   {
     unsigned int key = TowerInfoDefs::encode_hcal(i);
     h_hcalin_lut[key] = nullptr;
@@ -190,7 +193,6 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
   m_n_sums = 16;
   m_trig_sample = -1;
   m_trig_sub_delay = 4;
-
 
   // define a detector map for detectors included in a trigger
   m_det_map[TriggerDefs::TriggerId::noneTId] = {};
@@ -360,7 +362,6 @@ int CaloTriggerEmulator::InitRun(PHCompositeNode *topNode)
     {
       m_do_hcalout = true;
     }
-
   }
   else if (m_triggerid == TriggerDefs::TriggerId::pairTId)
   {
@@ -380,7 +381,6 @@ int CaloTriggerEmulator::InitRun(PHCompositeNode *topNode)
     {
       m_do_hcalout = false;
     }
-
   }
   else
   {
@@ -421,17 +421,17 @@ int CaloTriggerEmulator::InitRun(PHCompositeNode *topNode)
 int CaloTriggerEmulator::Download_Calibrations()
 {
   if (m_do_emcal)
+  {
+    std::string calibName = "cemc_adcskipmask";
+
+    std::string calibdir = CDBInterface::instance()->getUrl(calibName);
+    if (calibdir.empty())
     {
-      std::string calibName = "cemc_adcskipmask";
-      
-      std::string calibdir = CDBInterface::instance()->getUrl(calibName);
-      if (calibdir.empty())
-	{
-	  std::cout << PHWHERE << "ADC Skip mask not found in CDB, not even in the default... " << std::endl;
+      std::cout << PHWHERE << "ADC Skip mask not found in CDB, not even in the default... " << std::endl;
       exit(1);
-	}
-      cdbttree_adcmask = new CDBTTree(calibdir.c_str());
     }
+    cdbttree_adcmask = new CDBTTree(calibdir.c_str());
+  }
   if (!m_optmask_file.empty())
   {
     LoadFiberMasks();
@@ -608,242 +608,238 @@ int CaloTriggerEmulator::process_offline()
     }
 
     if (!m_emcal_packets)
-      {
-	return Fun4AllReturnCodes::ABORTRUN;
-      }
+    {
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
     unsigned int iwave = 0;
 
     for (int pid = m_packet_low_emcal; pid <= m_packet_high_emcal; pid++)
+    {
+      CaloPacket *packet = m_emcal_packets->getPacketbyId(pid);
+      if (packet)
       {
-	CaloPacket *packet = m_emcal_packets->getPacketbyId(pid);
-	if (packet)
-	  {
-	    int nchannels = packet->iValue(0, "CHANNELS");
-	    unsigned int adc_skip_mask = 0;
+        int nchannels = packet->iValue(0, "CHANNELS");
+        unsigned int adc_skip_mask = 0;
 
-	    adc_skip_mask = cdbttree_adcmask->GetIntValue(pid, m_fieldname);
-	
-	    for (int channel = 0; channel < nchannels; channel++)
-	      {
+        adc_skip_mask = cdbttree_adcmask->GetIntValue(pid, m_fieldname);
 
-		if (channel % 64 == 0)
-		  {
-		    unsigned int adcboard = (unsigned int) channel / 64;
-		    if ((adc_skip_mask >> adcboard) & 0x1U)
-		      {
-			for (int iskip = 0; iskip < 64; iskip++)
-			  {
-			    std::vector<unsigned int> v_peak_sub_ped;
-			    for (int i = sample_start; i < sample_end; i++)
-			      {
-				v_peak_sub_ped.push_back(0);
-			      }
-			    unsigned int key = TowerInfoDefs::encode_emcal(iwave);			
-			    m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
-			    iwave++;
-			  }
-		      }
-		  }
-		std::vector<unsigned int> v_peak_sub_ped;
-		if (packet->iValue(channel, "SUPPRESSED"))
-		  {
-		    for (int i = sample_start; i < sample_end; i++)
-		      {
-			v_peak_sub_ped.push_back(0);
-		      }
-		  }
-		else
-		  {
-		    for (int i = sample_start; i < sample_end; i++)
-		      {
-			int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i+1, channel) ? packet->iValue(i, channel) : packet->iValue(i+1, channel));
-			maxim = (maxim > packet->iValue(i+2, channel) ? maxim : packet->iValue(i+2, channel));
-			uint16_t sam = 0;
-			if (i >= m_trig_sub_delay)
-			  {
-			    sam = i - m_trig_sub_delay;
-			  }
-			else
-			  {
-			    sam = 0;
-			  }
-			unsigned int sub = 0;
-			if (maxim > packet->iValue(sam, channel))
-			  {
-			    sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
-			  }
+        for (int channel = 0; channel < nchannels; channel++)
+        {
+          if (channel % 64 == 0)
+          {
+            unsigned int adcboard = (unsigned int) channel / 64;
+            if ((adc_skip_mask >> adcboard) & 0x1U)
+            {
+              for (int iskip = 0; iskip < 64; iskip++)
+              {
+                std::vector<unsigned int> v_peak_sub_ped;
+                for (int i = sample_start; i < sample_end; i++)
+                {
+                  v_peak_sub_ped.push_back(0);
+                }
+                unsigned int key = TowerInfoDefs::encode_emcal(iwave);
+                m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
+                iwave++;
+              }
+            }
+          }
+          std::vector<unsigned int> v_peak_sub_ped;
+          if (packet->iValue(channel, "SUPPRESSED"))
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              v_peak_sub_ped.push_back(0);
+            }
+          }
+          else
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i + 1, channel) ? packet->iValue(i, channel) : packet->iValue(i + 1, channel));
+              maxim = (maxim > packet->iValue(i + 2, channel) ? maxim : packet->iValue(i + 2, channel));
+              uint16_t sam = 0;
+              if (i >= m_trig_sub_delay)
+              {
+                sam = i - m_trig_sub_delay;
+              }
+              else
+              {
+                sam = 0;
+              }
+              unsigned int sub = 0;
+              if (maxim > packet->iValue(sam, channel))
+              {
+                sub = (((uint16_t) (maxim - packet->iValue(sam, channel))) & 0x3fffU);
+              }
 
-			v_peak_sub_ped.push_back(sub);
-		      }
-		  }
-		unsigned int key = TowerInfoDefs::encode_emcal(iwave);			
-		m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
-		iwave++;
-	      }
-	    if (nchannels < 192 && !(adc_skip_mask < 4))
-	      {
-		for (int iskip = 0; iskip < 192 - nchannels; iskip++)
-		  {
-		    std::vector<unsigned int> v_peak_sub_ped;
-		    for (int i = sample_start; i < sample_end; i++)
-		      {
-			v_peak_sub_ped.push_back(0);
-		      }
-		    unsigned int key = TowerInfoDefs::encode_emcal(iwave);			
-		    m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
-		    iwave++;
-		  }
-	      }
-	  }
+              v_peak_sub_ped.push_back(sub);
+            }
+          }
+          unsigned int key = TowerInfoDefs::encode_emcal(iwave);
+          m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
+          iwave++;
+        }
+        if (nchannels < 192 && !(adc_skip_mask < 4))
+        {
+          for (int iskip = 0; iskip < 192 - nchannels; iskip++)
+          {
+            std::vector<unsigned int> v_peak_sub_ped;
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              v_peak_sub_ped.push_back(0);
+            }
+            unsigned int key = TowerInfoDefs::encode_emcal(iwave);
+            m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
+            iwave++;
+          }
+        }
       }
+    }
   }
   if (m_do_hcalout)
+  {
+    if (Verbosity())
     {
-
-
-      if (Verbosity())
-	{
-	  std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
-	}
-
-      if (!m_hcal_packets)
-	{
-	  return Fun4AllReturnCodes::ABORTRUN;
-	}
-    
-      unsigned int iwave = 0;
-      for (int pid = m_packet_low_hcalout; pid <= m_packet_high_hcalout; pid++)
-	{
-	  CaloPacket *packet = m_hcal_packets->getPacketbyId(pid);
-	  if (packet)
-	    {
-	      int nchannels = packet->iValue(0, "CHANNELS");
-	
-	      for (int channel = 0; channel < nchannels; channel++)
-		{
-		  std::vector<unsigned int> v_peak_sub_ped;
-		  if (packet->iValue(channel, "SUPPRESSED"))
-		    {
-		      for (int i = sample_start; i < sample_end; i++)
-			{
-			  v_peak_sub_ped.push_back(0);
-			}
-		    }
-		  else
-		    {
-		      for (int i = sample_start; i < sample_end; i++)
-			{
-			  int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i+1, channel) ? packet->iValue(i, channel) : packet->iValue(i+1, channel));
-			  maxim = (maxim > packet->iValue(i+2, channel) ? maxim : packet->iValue(i+2, channel));
-			  uint16_t sam = 0;
-			  if (i >= m_trig_sub_delay)
-			    {
-			      sam = i - m_trig_sub_delay;
-			    }
-			  else
-			    {
-			      sam = 0;
-			    }
-			  unsigned int sub = 0;
-			  if (maxim > packet->iValue(sam, channel))
-			    {
-			      sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
-			    }
-
-			  v_peak_sub_ped.push_back(sub);
-			}
-		    }
-		  unsigned int key = TowerInfoDefs::encode_hcal(iwave);			
-		  m_peak_sub_ped_hcalout[key] = v_peak_sub_ped;
-		  iwave++;
-		}
-	    }
-	}
+      std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
     }
+
+    if (!m_hcal_packets)
+    {
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    unsigned int iwave = 0;
+    for (int pid = m_packet_low_hcalout; pid <= m_packet_high_hcalout; pid++)
+    {
+      CaloPacket *packet = m_hcal_packets->getPacketbyId(pid);
+      if (packet)
+      {
+        int nchannels = packet->iValue(0, "CHANNELS");
+
+        for (int channel = 0; channel < nchannels; channel++)
+        {
+          std::vector<unsigned int> v_peak_sub_ped;
+          if (packet->iValue(channel, "SUPPRESSED"))
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              v_peak_sub_ped.push_back(0);
+            }
+          }
+          else
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i + 1, channel) ? packet->iValue(i, channel) : packet->iValue(i + 1, channel));
+              maxim = (maxim > packet->iValue(i + 2, channel) ? maxim : packet->iValue(i + 2, channel));
+              uint16_t sam = 0;
+              if (i >= m_trig_sub_delay)
+              {
+                sam = i - m_trig_sub_delay;
+              }
+              else
+              {
+                sam = 0;
+              }
+              unsigned int sub = 0;
+              if (maxim > packet->iValue(sam, channel))
+              {
+                sub = (((uint16_t) (maxim - packet->iValue(sam, channel))) & 0x3fffU);
+              }
+
+              v_peak_sub_ped.push_back(sub);
+            }
+          }
+          unsigned int key = TowerInfoDefs::encode_hcal(iwave);
+          m_peak_sub_ped_hcalout[key] = v_peak_sub_ped;
+          iwave++;
+        }
+      }
+    }
+  }
   if (m_do_hcalin)
+  {
+    if (Verbosity())
     {
-      if (Verbosity())
-	{
-	  std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
-	}
-      if (!m_hcal_packets)
-	{
-	  return Fun4AllReturnCodes::ABORTRUN;
-	}
-      unsigned int iwave = 0;
-      for (int pid = m_packet_low_hcalin; pid <= m_packet_high_hcalin; pid++)
-	{
-	  CaloPacket *packet = m_hcal_packets->getPacketbyId(pid);
-	  if (packet)
-	    {
-	      int nchannels = packet->iValue(0, "CHANNELS");
-	
-	      for (int channel = 0; channel < nchannels; channel++)
-		{
-		  std::vector<unsigned int> v_peak_sub_ped;
-		  if (packet->iValue(channel, "SUPPRESSED"))
-		    {
-		      for (int i = sample_start; i < sample_end; i++)
-			{
-			  v_peak_sub_ped.push_back(0);
-			}
-		    }
-		  else
-		    {
-		      for (int i = sample_start; i < sample_end; i++)
-			{
-			  int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i+1, channel) ? packet->iValue(i, channel) : packet->iValue(i+1, channel));
-			  maxim = (maxim > packet->iValue(i+2, channel) ? maxim : packet->iValue(i+2, channel));
-			  uint16_t sam = 0;
-			  if (i >= m_trig_sub_delay)
-			    {
-			      sam = i - m_trig_sub_delay;
-			    }
-			  else
-			    {
-			      sam = 0;
-			    }
-			  unsigned int sub = 0;
-			  if (maxim > packet->iValue(sam, channel))
-			    {
-			      sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
-			    }
-
-			  v_peak_sub_ped.push_back(sub);
-			}
-		    }
-		  unsigned int key = TowerInfoDefs::encode_hcal(iwave);			
-		  m_peak_sub_ped_hcalin[key] = v_peak_sub_ped;
-		  iwave++;
-		}
-	    }
-	}
+      std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
     }
-  return Fun4AllReturnCodes::EVENT_OK;
+    if (!m_hcal_packets)
+    {
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    unsigned int iwave = 0;
+    for (int pid = m_packet_low_hcalin; pid <= m_packet_high_hcalin; pid++)
+    {
+      CaloPacket *packet = m_hcal_packets->getPacketbyId(pid);
+      if (packet)
+      {
+        int nchannels = packet->iValue(0, "CHANNELS");
 
+        for (int channel = 0; channel < nchannels; channel++)
+        {
+          std::vector<unsigned int> v_peak_sub_ped;
+          if (packet->iValue(channel, "SUPPRESSED"))
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              v_peak_sub_ped.push_back(0);
+            }
+          }
+          else
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i + 1, channel) ? packet->iValue(i, channel) : packet->iValue(i + 1, channel));
+              maxim = (maxim > packet->iValue(i + 2, channel) ? maxim : packet->iValue(i + 2, channel));
+              uint16_t sam = 0;
+              if (i >= m_trig_sub_delay)
+              {
+                sam = i - m_trig_sub_delay;
+              }
+              else
+              {
+                sam = 0;
+              }
+              unsigned int sub = 0;
+              if (maxim > packet->iValue(sam, channel))
+              {
+                sub = (((uint16_t) (maxim - packet->iValue(sam, channel))) & 0x3fffU);
+              }
+
+              v_peak_sub_ped.push_back(sub);
+            }
+          }
+          unsigned int key = TowerInfoDefs::encode_hcal(iwave);
+          m_peak_sub_ped_hcalin[key] = v_peak_sub_ped;
+          iwave++;
+        }
+      }
+    }
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 int CaloTriggerEmulator::process_waveforms()
 {
   if (!m_isdata)
-    {
-      return process_sim();
-    }
+  {
+    return process_sim();
+  }
 
   if (m_useoffline)
-    {
-      return process_offline();
-    }
-  
+  {
+    return process_offline();
+  }
+
   if (m_event == nullptr)
-    {
-      std::cout << PHWHERE << " Event not found" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  
+  {
+    std::cout << PHWHERE << " Event not found" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   if (m_event->getEvtType() != DATAEVENT)
-    {
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  {
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   // Get range of waveforms
   if (Verbosity())
@@ -867,196 +863,192 @@ int CaloTriggerEmulator::process_waveforms()
     }
     unsigned int iwave = 0;
     for (int pid = m_packet_low_emcal; pid <= m_packet_high_emcal; pid++)
+    {
+      Packet *packet = m_event->getPacket(pid);
+      if (packet)
       {
-	Packet *packet = m_event->getPacket(pid);
-	if (packet)
-	  {
-	    int nchannels = packet->iValue(0, "CHANNELS");
-	    unsigned int adc_skip_mask = 0;
-	
-	    adc_skip_mask = cdbttree_adcmask->GetIntValue(pid, m_fieldname);
-	
-	    for (int channel = 0; channel < nchannels; channel++)
-	      {
+        int nchannels = packet->iValue(0, "CHANNELS");
+        unsigned int adc_skip_mask = 0;
 
-		if (channel % 64 == 0)
-		  {
-		    unsigned int adcboard = (unsigned int) channel / 64;
-		    if ((adc_skip_mask >> adcboard) & 0x1U)
-		      {
-			for (int iskip = 0; iskip < 64; iskip++)
-			  {
-			    std::vector<unsigned int> v_peak_sub_ped;
-			    for (int i = sample_start; i < sample_end; i++)
-			      {
-				v_peak_sub_ped.push_back(0);
-			      }
-			    unsigned int key = TowerInfoDefs::encode_emcal(iwave);			
-			    m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
-			    iwave++;
-			  }
-			continue;
-		      }
-		  }
-		std::vector<unsigned int> v_peak_sub_ped;
-		if (packet->iValue(channel, "SUPPRESSED"))
-		  {
-		    for (int i = sample_start; i < sample_end; i++)
-		      {
-			v_peak_sub_ped.push_back(0);
-		      }
-		  }
-		else
-		  {
-		    for (int i = sample_start; i < sample_end; i++)
-		      {
-			int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i+1, channel) ? packet->iValue(i, channel) : packet->iValue(i+1, channel));
-			maxim = (maxim > packet->iValue(i+2, channel) ? maxim : packet->iValue(i+2, channel));
-			uint16_t sam = 0;
-			if (i >= m_trig_sub_delay)
-			  {
-			    sam = i - m_trig_sub_delay;
-			  }
-			else
-			  {
-			    sam = 0;
-			  }
-			unsigned int sub = 0;
-			if (maxim > packet->iValue(sam, channel))
-			  {
-			    sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
-			  }
+        adc_skip_mask = cdbttree_adcmask->GetIntValue(pid, m_fieldname);
 
-			v_peak_sub_ped.push_back(sub);
-		      }
-		  }
-		unsigned int key = TowerInfoDefs::encode_emcal(iwave);			
-		m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
-		iwave++;
-	      }
-	  }
-	delete packet;
+        for (int channel = 0; channel < nchannels; channel++)
+        {
+          if (channel % 64 == 0)
+          {
+            unsigned int adcboard = (unsigned int) channel / 64;
+            if ((adc_skip_mask >> adcboard) & 0x1U)
+            {
+              for (int iskip = 0; iskip < 64; iskip++)
+              {
+                std::vector<unsigned int> v_peak_sub_ped;
+                for (int i = sample_start; i < sample_end; i++)
+                {
+                  v_peak_sub_ped.push_back(0);
+                }
+                unsigned int key = TowerInfoDefs::encode_emcal(iwave);
+                m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
+                iwave++;
+              }
+              continue;
+            }
+          }
+          std::vector<unsigned int> v_peak_sub_ped;
+          if (packet->iValue(channel, "SUPPRESSED"))
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              v_peak_sub_ped.push_back(0);
+            }
+          }
+          else
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i + 1, channel) ? packet->iValue(i, channel) : packet->iValue(i + 1, channel));
+              maxim = (maxim > packet->iValue(i + 2, channel) ? maxim : packet->iValue(i + 2, channel));
+              uint16_t sam = 0;
+              if (i >= m_trig_sub_delay)
+              {
+                sam = i - m_trig_sub_delay;
+              }
+              else
+              {
+                sam = 0;
+              }
+              unsigned int sub = 0;
+              if (maxim > packet->iValue(sam, channel))
+              {
+                sub = (((uint16_t) (maxim - packet->iValue(sam, channel))) & 0x3fffU);
+              }
+
+              v_peak_sub_ped.push_back(sub);
+            }
+          }
+          unsigned int key = TowerInfoDefs::encode_emcal(iwave);
+          m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
+          iwave++;
+        }
       }
+      delete packet;
+    }
   }
   if (m_do_hcalout)
+  {
+    if (Verbosity())
     {
-
-      if (Verbosity())
-	{
-	  std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
-	}
-
-      unsigned int iwave = 0;
-      for (int pid = m_packet_low_hcalout; pid <= m_packet_high_hcalout; pid++)
-	{
-	  Packet *packet = m_event->getPacket(pid);
-	  if (packet)
-	    {
-	      int nchannels = packet->iValue(0, "CHANNELS");
-	
-	      for (int channel = 0; channel < nchannels; channel++)
-		{
-
-		  std::vector<unsigned int> v_peak_sub_ped;
-		  if (packet->iValue(channel, "SUPPRESSED"))
-		    {
-		      for (int i = sample_start; i < sample_end; i++)
-			{
-			  v_peak_sub_ped.push_back(0);
-			}
-		    }
-		  else
-		    {
-		      for (int i = sample_start; i < sample_end; i++)
-			{
-			  int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i+1, channel) ? packet->iValue(i, channel) : packet->iValue(i+1, channel));
-			  maxim = (maxim > packet->iValue(i+2, channel) ? maxim : packet->iValue(i+2, channel));
-			  uint16_t sam = 0;
-			  if (i >= m_trig_sub_delay)
-			    {
-			      sam = i - m_trig_sub_delay;
-			    }
-			  else
-			    {
-			      sam = 0;
-			    }
-			  unsigned int sub = 0;
-			  if (maxim > packet->iValue(sam, channel))
-			    {
-			      sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
-			    }
-
-			  v_peak_sub_ped.push_back(sub);
-			}
-		    }
-		  unsigned int key = TowerInfoDefs::encode_hcal(iwave);			
-		  m_peak_sub_ped_hcalout[key] = v_peak_sub_ped;
-		  iwave++;
-		}
-	    }
-	  delete packet;
-	}
+      std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
     }
+
+    unsigned int iwave = 0;
+    for (int pid = m_packet_low_hcalout; pid <= m_packet_high_hcalout; pid++)
+    {
+      Packet *packet = m_event->getPacket(pid);
+      if (packet)
+      {
+        int nchannels = packet->iValue(0, "CHANNELS");
+
+        for (int channel = 0; channel < nchannels; channel++)
+        {
+          std::vector<unsigned int> v_peak_sub_ped;
+          if (packet->iValue(channel, "SUPPRESSED"))
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              v_peak_sub_ped.push_back(0);
+            }
+          }
+          else
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i + 1, channel) ? packet->iValue(i, channel) : packet->iValue(i + 1, channel));
+              maxim = (maxim > packet->iValue(i + 2, channel) ? maxim : packet->iValue(i + 2, channel));
+              uint16_t sam = 0;
+              if (i >= m_trig_sub_delay)
+              {
+                sam = i - m_trig_sub_delay;
+              }
+              else
+              {
+                sam = 0;
+              }
+              unsigned int sub = 0;
+              if (maxim > packet->iValue(sam, channel))
+              {
+                sub = (((uint16_t) (maxim - packet->iValue(sam, channel))) & 0x3fffU);
+              }
+
+              v_peak_sub_ped.push_back(sub);
+            }
+          }
+          unsigned int key = TowerInfoDefs::encode_hcal(iwave);
+          m_peak_sub_ped_hcalout[key] = v_peak_sub_ped;
+          iwave++;
+        }
+      }
+      delete packet;
+    }
+  }
   if (m_do_hcalin)
+  {
+    if (Verbosity())
     {
-      if (Verbosity())
-	{
-	  std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
-	}
-
-      unsigned int iwave = 0;
-      for (int pid = m_packet_low_hcalin; pid <= m_packet_high_hcalin; pid++)
-	{
-	  Packet *packet = m_event->getPacket(pid);
-	  if (packet)
-	    {
-	      int nchannels = packet->iValue(0, "CHANNELS");
-	
-	      for (int channel = 0; channel < nchannels; channel++)
-		{
-
-		  std::vector<unsigned int> v_peak_sub_ped;
-		  if (packet->iValue(channel, "SUPPRESSED"))
-		    {
-		      for (int i = sample_start; i < sample_end; i++)
-			{
-			  v_peak_sub_ped.push_back(0);
-			}
-		    }
-		  else
-		    {
-		      for (int i = sample_start; i < sample_end; i++)
-			{
-			  int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i+1, channel) ? packet->iValue(i, channel) : packet->iValue(i+1, channel));
-			  maxim = (maxim > packet->iValue(i+2, channel) ? maxim : packet->iValue(i+2, channel));
-			  uint16_t sam = 0;
-			  if (i >= m_trig_sub_delay)
-			    {
-			      sam = i - m_trig_sub_delay;
-			    }
-			  else
-			    {
-			      sam = 0;
-			    }
-			  unsigned int sub = 0;
-			  if (maxim > packet->iValue(sam, channel))
-			    {
-			      sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
-			    }
-
-			  v_peak_sub_ped.push_back(sub);
-			}
-		    }
-		  unsigned int key = TowerInfoDefs::encode_hcal(iwave);			
-		  m_peak_sub_ped_hcalin[key] = v_peak_sub_ped;
-		  iwave++;
-		}
-	    }
-	  delete packet;
-	}
+      std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
     }
-  
-  return Fun4AllReturnCodes::EVENT_OK;  
+
+    unsigned int iwave = 0;
+    for (int pid = m_packet_low_hcalin; pid <= m_packet_high_hcalin; pid++)
+    {
+      Packet *packet = m_event->getPacket(pid);
+      if (packet)
+      {
+        int nchannels = packet->iValue(0, "CHANNELS");
+
+        for (int channel = 0; channel < nchannels; channel++)
+        {
+          std::vector<unsigned int> v_peak_sub_ped;
+          if (packet->iValue(channel, "SUPPRESSED"))
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              v_peak_sub_ped.push_back(0);
+            }
+          }
+          else
+          {
+            for (int i = sample_start; i < sample_end; i++)
+            {
+              int16_t maxim = (packet->iValue(i, channel) > packet->iValue(i + 1, channel) ? packet->iValue(i, channel) : packet->iValue(i + 1, channel));
+              maxim = (maxim > packet->iValue(i + 2, channel) ? maxim : packet->iValue(i + 2, channel));
+              uint16_t sam = 0;
+              if (i >= m_trig_sub_delay)
+              {
+                sam = i - m_trig_sub_delay;
+              }
+              else
+              {
+                sam = 0;
+              }
+              unsigned int sub = 0;
+              if (maxim > packet->iValue(sam, channel))
+              {
+                sub = (((uint16_t) (maxim - packet->iValue(sam, channel))) & 0x3fffU);
+              }
+
+              v_peak_sub_ped.push_back(sub);
+            }
+          }
+          unsigned int key = TowerInfoDefs::encode_hcal(iwave);
+          m_peak_sub_ped_hcalin[key] = v_peak_sub_ped;
+          iwave++;
+        }
+      }
+      delete packet;
+    }
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int CaloTriggerEmulator::process_sim()
@@ -1100,27 +1092,27 @@ int CaloTriggerEmulator::process_sim()
       }
       else
       {
-	for (int i = sample_start; i < sample_end; i++)
-	{
-	  int16_t maxim = (tower->get_waveform_value(i) > tower->get_waveform_value(i+1) ? tower->get_waveform_value(i) : tower->get_waveform_value(i+1));
-	  maxim = (maxim > tower->get_waveform_value(i+2) ? maxim : tower->get_waveform_value(i+2));
-	  uint16_t sam = 0;
-	  if (i >= m_trig_sub_delay)
-	    {
-	      sam = i - m_trig_sub_delay;
-	    }
-	  else
-	    {
-	      sam = 0;
-	    }
-	  unsigned int sub = 0;
-	  if (maxim > tower->get_waveform_value(sam))
-	    {
-	      sub = (((uint16_t)(maxim - tower->get_waveform_value(sam))) & 0x3fffU);
-	    }
+        for (int i = sample_start; i < sample_end; i++)
+        {
+          int16_t maxim = (tower->get_waveform_value(i) > tower->get_waveform_value(i + 1) ? tower->get_waveform_value(i) : tower->get_waveform_value(i + 1));
+          maxim = (maxim > tower->get_waveform_value(i + 2) ? maxim : tower->get_waveform_value(i + 2));
+          uint16_t sam = 0;
+          if (i >= m_trig_sub_delay)
+          {
+            sam = i - m_trig_sub_delay;
+          }
+          else
+          {
+            sam = 0;
+          }
+          unsigned int sub = 0;
+          if (maxim > tower->get_waveform_value(sam))
+          {
+            sub = (((uint16_t) (maxim - tower->get_waveform_value(sam))) & 0x3fffU);
+          }
 
-	  v_peak_sub_ped.push_back(sub);
-	}
+          v_peak_sub_ped.push_back(sub);
+        }
       }
       // save in global.
       m_peak_sub_ped_emcal[key] = v_peak_sub_ped;
@@ -1154,27 +1146,27 @@ int CaloTriggerEmulator::process_sim()
       }
       else
       {
-	for (int i = sample_start; i < sample_end; i++)
-	{
-	  int16_t maxim = (tower->get_waveform_value(i) > tower->get_waveform_value(i+1) ? tower->get_waveform_value(i) : tower->get_waveform_value(i+1));
-	  maxim = (maxim > tower->get_waveform_value(i+2) ? maxim : tower->get_waveform_value(i+2));
-	  uint16_t sam = 0;
-	  if (i >= m_trig_sub_delay)
-	    {
-	      sam = i - m_trig_sub_delay;
-	    }
-	  else
-	    {
-	      sam = 0;
-	    }
-	  unsigned int sub = 0;
-	  if (maxim > tower->get_waveform_value(sam))
-	    {
-	      sub = (((uint16_t)(maxim - tower->get_waveform_value(sam))) & 0x3fffU);
-	    }
+        for (int i = sample_start; i < sample_end; i++)
+        {
+          int16_t maxim = (tower->get_waveform_value(i) > tower->get_waveform_value(i + 1) ? tower->get_waveform_value(i) : tower->get_waveform_value(i + 1));
+          maxim = (maxim > tower->get_waveform_value(i + 2) ? maxim : tower->get_waveform_value(i + 2));
+          uint16_t sam = 0;
+          if (i >= m_trig_sub_delay)
+          {
+            sam = i - m_trig_sub_delay;
+          }
+          else
+          {
+            sam = 0;
+          }
+          unsigned int sub = 0;
+          if (maxim > tower->get_waveform_value(sam))
+          {
+            sub = (((uint16_t) (maxim - tower->get_waveform_value(sam))) & 0x3fffU);
+          }
 
-	  v_peak_sub_ped.push_back(sub);
-	}
+          v_peak_sub_ped.push_back(sub);
+        }
       }
       // save in global.
       m_peak_sub_ped_hcalout[key] = v_peak_sub_ped;
@@ -1212,34 +1204,33 @@ int CaloTriggerEmulator::process_sim()
       }
       else
       {
-	for (int i = sample_start; i < sample_end; i++)
-	{
-	  int16_t maxim = (tower->get_waveform_value(i) > tower->get_waveform_value(i+1) ? tower->get_waveform_value(i) : tower->get_waveform_value(i+1));
-	  maxim = (maxim > tower->get_waveform_value(i+2) ? maxim : tower->get_waveform_value(i+2));
-	  uint16_t sam = 0;
-	  if (i >= m_trig_sub_delay)
-	    {
-	      sam = i - m_trig_sub_delay;
-	    }
-	  else
-	    {
-	      sam = 0;
-	    }
-	  unsigned int sub = 0;
-	  if (maxim > tower->get_waveform_value(sam))
-	    {
-	      sub = (((uint16_t)(maxim - tower->get_waveform_value(sam))) & 0x3fffU);
-	    }
+        for (int i = sample_start; i < sample_end; i++)
+        {
+          int16_t maxim = (tower->get_waveform_value(i) > tower->get_waveform_value(i + 1) ? tower->get_waveform_value(i) : tower->get_waveform_value(i + 1));
+          maxim = (maxim > tower->get_waveform_value(i + 2) ? maxim : tower->get_waveform_value(i + 2));
+          uint16_t sam = 0;
+          if (i >= m_trig_sub_delay)
+          {
+            sam = i - m_trig_sub_delay;
+          }
+          else
+          {
+            sam = 0;
+          }
+          unsigned int sub = 0;
+          if (maxim > tower->get_waveform_value(sam))
+          {
+            sub = (((uint16_t) (maxim - tower->get_waveform_value(sam))) & 0x3fffU);
+          }
 
-	  v_peak_sub_ped.push_back(sub);
-
-	}
+          v_peak_sub_ped.push_back(sub);
+        }
       }
       // save in global.
       m_peak_sub_ped_hcalin[key] = v_peak_sub_ped;
     }
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1272,11 +1263,11 @@ int CaloTriggerEmulator::process_primitives()
     // get the number of primitives needed to process
     m_n_primitives = m_prim_map[TriggerDefs::DetectorId::emcalDId];
     for (i = 0; i < m_n_primitives; i++, ip++)
+    {
+      if (Verbosity())
       {
-	if (Verbosity())
-	  {
-	    std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing primitives:: adding "<<i << std::endl;
-	  }
+        std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing primitives:: adding " << i << std::endl;
+      }
       unsigned int tmp = 0;
       // get the primitive key of what we are making, in order of the packet ID and channel number
       TriggerDefs::TriggerPrimKey primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId("NONE"), TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("EMCAL"), ip);
@@ -1328,12 +1319,12 @@ int CaloTriggerEmulator::process_primitives()
               std::cout << __FILE__ << "::" << __FUNCTION__ << ":: emcal sum " << sumkey << " = " << sum << std::endl;
             }
           }
-	  if (Verbosity())
-	    {
-	      std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing primitives:: adding" << std::endl;
-	    }
+          if (Verbosity())
+          {
+            std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing primitives:: adding" << std::endl;
+          }
 
-	  t_sum->push_back(sum);
+          t_sum->push_back(sum);
         }
       }
     }
@@ -1457,7 +1448,6 @@ int CaloTriggerEmulator::process_primitives()
 
 int CaloTriggerEmulator::process_organizer()
 {
-
   TriggerPrimitiveContainer::Range range;
   if (Verbosity())
   {
@@ -1478,315 +1468,307 @@ int CaloTriggerEmulator::process_organizer()
       std::cout << __FUNCTION__ << " " << __LINE__ << " processing 8x8 non-overlapping sums" << std::endl;
     }
 
-
-    m_triggerid = TriggerDefs::TriggerId::jetTId;    
+    m_triggerid = TriggerDefs::TriggerId::jetTId;
 
     if (!m_primitives_emcal)
-      {
-        std::cout << "There is no primitive container" << std::endl;
-        return Fun4AllReturnCodes::EVENT_OK;
-      }
+    {
+      std::cout << "There is no primitive container" << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
 
     range = m_primitives_emcal_ll1->getTriggerPrimitives();
     for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
+    {
+      TriggerPrimitivev1::Range sumrange = iter->second->getSums();
+      for (TriggerPrimitivev1::Iter siter = sumrange.first; siter != sumrange.second; ++siter)
       {
-	TriggerPrimitivev1::Range sumrange = iter->second->getSums();
-	for (TriggerPrimitivev1::Iter siter = sumrange.first; siter != sumrange.second; ++siter)
-	  {
-	    for (int is = 0; is < nsample; is++)
-	      {
-		siter->second->push_back(0);
-	      }
-	  }
+        for (int is = 0; is < nsample; is++)
+        {
+          siter->second->push_back(0);
+        }
       }
+    }
 
     if (Verbosity())
-      {
-	std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing getting emcal prims" << std::endl;
-      }
-    
+    {
+      std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing getting emcal prims" << std::endl;
+    }
+
     // iterate through emcal primitives and organize into the 16 jet primitives each with the 8x8 nonoverlapping sum
     range = m_primitives_emcal->getTriggerPrimitives();
-    
+
     for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
+    {
+      // get key and see if masked
+      TriggerDefs::TriggerPrimKey key = (*iter).first;
+      if (CheckFiberMasks(key))
       {
-	// get key and see if masked
-	TriggerDefs::TriggerPrimKey key = (*iter).first;
-	if (CheckFiberMasks(key))
-	  {
-	    continue;
-	  }
-	
-	uint16_t sumphi = TriggerDefs::getPrimitivePhiId_from_TriggerPrimKey(key);
-	uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerPrimKey(key);
-	
-	
-	// based on where the primitive is in the detector, the location of the jet primitive is determined, 0 through 15 in phi.
-	uint16_t iprim = sumphi / 2;
-	// eta determines the location of the sum within the jet primitive.
-	uint16_t isum = (sumeta + (sumphi % 2) * 12);
-
-
-	TriggerDefs::TriggerPrimKey jet_prim_key = TriggerDefs::getTriggerPrimKey(m_triggerid, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim);
-	
-	TriggerDefs::TriggerPrimKey jet_sum_key = TriggerDefs::getTriggerSumKey(m_triggerid, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim, isum);
-
-	// add to primitive previously made the sum of the 8x8 non-overlapping sum.
-	std::vector<unsigned int> *t_sum= m_primitives_emcal_ll1->get_primitive_at_key(jet_prim_key)->get_sum_at_key(jet_sum_key);
-
-	// get the primitive (16 2x2 sums)
-	TriggerPrimitive *primitive = (*iter).second;
-	TriggerPrimitivev1::Range sumrange = primitive->getSums();
-
-	// iterate through all 16 sums and add together
-	for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
-	  {
-	  
-	    if (CheckChannelMasks(iter_sum->first))
-	      {
-		continue;
-	      }
-	    int i = 0;
-	    for (unsigned int &it_s : *(*iter_sum).second)
-	      {
-		t_sum->at(i) += (it_s & 0xffU);
-		i++;
-	      }
-	  }
-
-	// bit shift by 16 (divide by the 16 towers) to get an 8 bit energy sum.
-	for (unsigned int &it_s : *t_sum)
-	  {
-	    //unsigned int sumshift = ((it_s >> 0x2U) & 0x3ffU);
-	    //unsigned int sum_lower = ( sumshift & 0x7fU );
-	    //unsigned int sum_higher = ( ( sumshift >> 0x7U ) > 0 ? 0x1U : 0x0U );
-	    //it_s = m_l1_8x8_table[sumshift];
-	    if (it_s > 0xffU) { it_s = 0xffU;
-}
-	  }
+        continue;
       }
+
+      uint16_t sumphi = TriggerDefs::getPrimitivePhiId_from_TriggerPrimKey(key);
+      uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerPrimKey(key);
+
+      // based on where the primitive is in the detector, the location of the jet primitive is determined, 0 through 15 in phi.
+      uint16_t iprim = sumphi / 2;
+      // eta determines the location of the sum within the jet primitive.
+      uint16_t isum = (sumeta + (sumphi % 2) * 12);
+
+      TriggerDefs::TriggerPrimKey jet_prim_key = TriggerDefs::getTriggerPrimKey(m_triggerid, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim);
+
+      TriggerDefs::TriggerPrimKey jet_sum_key = TriggerDefs::getTriggerSumKey(m_triggerid, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim, isum);
+
+      // add to primitive previously made the sum of the 8x8 non-overlapping sum.
+      std::vector<unsigned int> *t_sum = m_primitives_emcal_ll1->get_primitive_at_key(jet_prim_key)->get_sum_at_key(jet_sum_key);
+
+      // get the primitive (16 2x2 sums)
+      TriggerPrimitive *primitive = (*iter).second;
+      TriggerPrimitivev1::Range sumrange = primitive->getSums();
+
+      // iterate through all 16 sums and add together
+      for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+      {
+        if (CheckChannelMasks(iter_sum->first))
+        {
+          continue;
+        }
+        int i = 0;
+        for (unsigned int &it_s : *(*iter_sum).second)
+        {
+          t_sum->at(i) += (it_s & 0xffU);
+          i++;
+        }
+      }
+
+      // bit shift by 16 (divide by the 16 towers) to get an 8 bit energy sum.
+      for (unsigned int &it_s : *t_sum)
+      {
+        // unsigned int sumshift = ((it_s >> 0x2U) & 0x3ffU);
+        // unsigned int sum_lower = ( sumshift & 0x7fU );
+        // unsigned int sum_higher = ( ( sumshift >> 0x7U ) > 0 ? 0x1U : 0x0U );
+        // it_s = m_l1_8x8_table[sumshift];
+        if (it_s > 0xffU)
+        {
+          it_s = 0xffU;
+        }
+      }
+    }
   }
   {
     if (Verbosity())
-      {
-	std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing HCAL" << std::endl;
-      }
-    
+    {
+      std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing HCAL" << std::endl;
+    }
+
     range = m_primitives_hcal_ll1->getTriggerPrimitives();
     for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
+    {
+      TriggerPrimitivev1::Range sumrange = iter->second->getSums();
+      for (TriggerPrimitivev1::Iter siter = sumrange.first; siter != sumrange.second; ++siter)
       {
-	TriggerPrimitivev1::Range sumrange = iter->second->getSums();
-	for (TriggerPrimitivev1::Iter siter = sumrange.first; siter != sumrange.second; ++siter)
-	  {
-	    for (int is = 0; is < nsample; is++)
-	      {
-		siter->second->push_back(0);
-	      }
-	  }
+        for (int is = 0; is < nsample; is++)
+        {
+          siter->second->push_back(0);
+        }
       }
-    
-    
+    }
+
     if (m_primitives_hcalin)
+    {
+      if (Verbosity())
       {
-    
-	if (Verbosity())
-	  {
-	    std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing organizer" << std::endl;
-	  }
-	
-	// iterate through emcal primitives and organize into the 16 jet primitives each with the 8x8 nonoverlapping sum
-	range = m_primitives_hcalin->getTriggerPrimitives();
-	
-	// for hcalin: there are
-	for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
-	  {
-	    // get key and see if masked
-	    TriggerDefs::TriggerPrimKey key = (*iter).first;
-	    if (CheckFiberMasks(key))
-	      {
-		continue;
-	      }
-	    
-	    // get the primitive (16 2x2 sums)
-	    TriggerPrimitive *primitive = (*iter).second;
-	    TriggerPrimitivev1::Range sumrange = primitive->getSums();
-	    
-	    for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
-	      {
-		TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
-		uint16_t sumphi = TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumPhiId(sumkey);
-		uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumEtaId(sumkey);
-		
-		int i = 0;
-		if (CheckChannelMasks(sumkey))
-		  {
-		    continue;
-		  }
-		// based on where the primitive is in the detector, the location of the jet primitive is determined, 0 through 15 in phi.
-		uint16_t iprim = sumphi / 2;
-		// eta determines the location of the sum within the jet primitive.
-		uint16_t isum = (sumeta + (sumphi % 2) * 12);
-
-		TriggerDefs::TriggerPrimKey jet_prim_key = TriggerDefs::getTriggerPrimKey(m_triggerid, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim);
-
-		TriggerDefs::TriggerPrimKey jet_sum_key = TriggerDefs::getTriggerSumKey(m_triggerid, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim, isum);
-
-		// add to primitive previously made the sum of the 8x8 non-overlapping sum.
-		std::vector<unsigned int> *t_sum= m_primitives_hcal_ll1->get_primitive_at_key(jet_prim_key)->get_sum_at_key(jet_sum_key);
-
-		for (unsigned int &it_s : *(*iter_sum).second)
-		  {
-		    t_sum->at(i) += (it_s & 0xffU);
-		    i++;
-		  }
-	      }
-	  }
+        std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing organizer" << std::endl;
       }
-	
+
+      // iterate through emcal primitives and organize into the 16 jet primitives each with the 8x8 nonoverlapping sum
+      range = m_primitives_hcalin->getTriggerPrimitives();
+
+      // for hcalin: there are
+      for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
+      {
+        // get key and see if masked
+        TriggerDefs::TriggerPrimKey key = (*iter).first;
+        if (CheckFiberMasks(key))
+        {
+          continue;
+        }
+
+        // get the primitive (16 2x2 sums)
+        TriggerPrimitive *primitive = (*iter).second;
+        TriggerPrimitivev1::Range sumrange = primitive->getSums();
+
+        for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+        {
+          TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
+          uint16_t sumphi = TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumPhiId(sumkey);
+          uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumEtaId(sumkey);
+
+          int i = 0;
+          if (CheckChannelMasks(sumkey))
+          {
+            continue;
+          }
+          // based on where the primitive is in the detector, the location of the jet primitive is determined, 0 through 15 in phi.
+          uint16_t iprim = sumphi / 2;
+          // eta determines the location of the sum within the jet primitive.
+          uint16_t isum = (sumeta + (sumphi % 2) * 12);
+
+          TriggerDefs::TriggerPrimKey jet_prim_key = TriggerDefs::getTriggerPrimKey(m_triggerid, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim);
+
+          TriggerDefs::TriggerPrimKey jet_sum_key = TriggerDefs::getTriggerSumKey(m_triggerid, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim, isum);
+
+          // add to primitive previously made the sum of the 8x8 non-overlapping sum.
+          std::vector<unsigned int> *t_sum = m_primitives_hcal_ll1->get_primitive_at_key(jet_prim_key)->get_sum_at_key(jet_sum_key);
+
+          for (unsigned int &it_s : *(*iter_sum).second)
+          {
+            t_sum->at(i) += (it_s & 0xffU);
+            i++;
+          }
+        }
+      }
+    }
+
     if (m_primitives_hcalout)
+    {
+      if (Verbosity())
       {
-
-
-	if (Verbosity())
-	  {
-	    std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing organizer" << std::endl;
-	  }
-
-	// iterate through emcal primitives and organize into the 16 jet primitives each with the 8x8 nonoverlapping sum
-	range = m_primitives_hcalout->getTriggerPrimitives();
-	
-	// for hcalin: there are
-	for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
-	  {
-	    // get key and see if masked
-	    TriggerDefs::TriggerPrimKey key = (*iter).first;
-	    if (CheckFiberMasks(key))
-	      {
-		continue;
-	      }
-
-	    // get the primitive (16 2x2 sums)
-	    TriggerPrimitive *primitive = (*iter).second;
-	    TriggerPrimitivev1::Range sumrange = primitive->getSums();
-
-	    for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
-	      {
-		TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
-		uint16_t sumphi = TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumPhiId(sumkey);
-		//		      uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey)*4 + TriggerDefs::getSumEtaId(sumkey);
-		uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumEtaId(sumkey);
-
-		int i = 0;
-
-		if (CheckChannelMasks(sumkey))
-		  {
-		    continue;
-		  }
-		// based on where the primitive is in the detector, the location of the jet primitive is determined, 0 through 15 in phi.
-		uint16_t iprim = sumphi / 2;
-		// eta determines the location of the sum within the jet primitive.
-		uint16_t isum = sumeta + (sumphi % 2) * 12;
-		TriggerDefs::TriggerPrimKey jet_prim_key = TriggerDefs::getTriggerPrimKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim);
-
-		TriggerDefs::TriggerPrimKey jet_sum_key = TriggerDefs::getTriggerSumKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim, isum);
-		if (Verbosity())
-		  {
-		    std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
-		  }
-
-
-		std::vector<unsigned int> *t_sum= m_primitives_hcal_ll1->get_primitive_at_key(jet_prim_key)->get_sum_at_key(jet_sum_key);
-		for (unsigned int &it_s : *(*iter_sum).second)
-		  {
-		    t_sum->at(i) += ((it_s) &0xffU);
-		    i++;
-		  }
-	      }
-	  }
+        std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing organizer" << std::endl;
       }
+
+      // iterate through emcal primitives and organize into the 16 jet primitives each with the 8x8 nonoverlapping sum
+      range = m_primitives_hcalout->getTriggerPrimitives();
+
+      // for hcalin: there are
+      for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
+      {
+        // get key and see if masked
+        TriggerDefs::TriggerPrimKey key = (*iter).first;
+        if (CheckFiberMasks(key))
+        {
+          continue;
+        }
+
+        // get the primitive (16 2x2 sums)
+        TriggerPrimitive *primitive = (*iter).second;
+        TriggerPrimitivev1::Range sumrange = primitive->getSums();
+
+        for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+        {
+          TriggerDefs::TriggerSumKey sumkey = (*iter_sum).first;
+          uint16_t sumphi = TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumPhiId(sumkey);
+          //		      uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey)*4 + TriggerDefs::getSumEtaId(sumkey);
+          uint16_t sumeta = TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(sumkey) * 4 + TriggerDefs::getSumEtaId(sumkey);
+
+          int i = 0;
+
+          if (CheckChannelMasks(sumkey))
+          {
+            continue;
+          }
+          // based on where the primitive is in the detector, the location of the jet primitive is determined, 0 through 15 in phi.
+          uint16_t iprim = sumphi / 2;
+          // eta determines the location of the sum within the jet primitive.
+          uint16_t isum = sumeta + (sumphi % 2) * 12;
+          TriggerDefs::TriggerPrimKey jet_prim_key = TriggerDefs::getTriggerPrimKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim);
+
+          TriggerDefs::TriggerPrimKey jet_sum_key = TriggerDefs::getTriggerSumKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), iprim, isum);
+          if (Verbosity())
+          {
+            std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
+          }
+
+          std::vector<unsigned int> *t_sum = m_primitives_hcal_ll1->get_primitive_at_key(jet_prim_key)->get_sum_at_key(jet_sum_key);
+          for (unsigned int &it_s : *(*iter_sum).second)
+          {
+            t_sum->at(i) += ((it_s) &0xffU);
+            i++;
+          }
+        }
+      }
+    }
 
     // iterate through emcal primitives and organize into the 16 jet primitives each with the 8x8 nonoverlapping sum
     if (Verbosity())
-      {
-	std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
-      }
+    {
+      std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
+    }
     range = m_primitives_hcal_ll1->getTriggerPrimitives();
     for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
+    {
+      TriggerPrimitive *primitive = (*iter).second;
+      TriggerPrimitivev1::Range sumrange = primitive->getSums();
+
+      for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
       {
-	TriggerPrimitive *primitive = (*iter).second;
-	TriggerPrimitivev1::Range sumrange = primitive->getSums();
-
-	for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
-	  {
-	    for (unsigned int &it_s : *(*iter_sum).second)
-	      {
-		it_s = (it_s >> 1U) & 0xffU;
-	      }
-	  }
+        for (unsigned int &it_s : *(*iter_sum).second)
+        {
+          it_s = (it_s >> 1U) & 0xffU;
+        }
       }
-
+    }
 
     {
       range = m_primitives_jet->getTriggerPrimitives();
       for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
-	{
-	  TriggerPrimitivev1::Range sumrange = iter->second->getSums();
-	  for (TriggerPrimitivev1::Iter siter = sumrange.first; siter != sumrange.second; ++siter)
-	    {
-	      for (int is = 0; is < nsample; is++)
-		{
-		  siter->second->push_back(0);
-		}
-	    }
-	}
+      {
+        TriggerPrimitivev1::Range sumrange = iter->second->getSums();
+        for (TriggerPrimitivev1::Iter siter = sumrange.first; siter != sumrange.second; ++siter)
+        {
+          for (int is = 0; is < nsample; is++)
+          {
+            siter->second->push_back(0);
+          }
+        }
+      }
     }
     if (Verbosity())
-      {
-	std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
-      }      
+    {
+      std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
+    }
     // get jet primitives (after EMCAL and HCAL sum)
     range = m_primitives_jet->getTriggerPrimitives();
     for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
+    {
+      if (Verbosity())
       {
-    if (Verbosity())
-      {
-	std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
-      }      
-
-	TriggerDefs::TriggerPrimKey jet_pkey = (*iter).first;
-	TriggerDefs::TriggerPrimKey hcal_pkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey));
-	TriggerDefs::TriggerPrimKey emcal_pkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey));
-	TriggerPrimitive *primitive = (*iter).second;
-	TriggerPrimitivev1::Range sumrange = primitive->getSums();
-	for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
-	  {
-    if (Verbosity())
-      {
-	std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
-      }      
-
-	    TriggerDefs::TriggerSumKey jet_skey = (*iter_sum).first;
-	      
-	    TriggerDefs::TriggerSumKey hcal_skey = TriggerDefs::getTriggerSumKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey), TriggerDefs::getSumLocId(jet_skey));
-	    TriggerDefs::TriggerSumKey emcal_skey = TriggerDefs::getTriggerSumKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey), TriggerDefs::getSumLocId(jet_skey));
-	      
-	    int i = 0;
-    if (Verbosity())
-      {
-	std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
-      }      
-
-	    for (unsigned int &it_s : *(iter_sum->second))
-	      {
-		unsigned int sum_hcal = m_primitives_hcal_ll1->get_primitive_at_key(hcal_pkey)->get_sum_at_key(hcal_skey)->at(i);
-		unsigned int sum_emcal = m_primitives_emcal_ll1->get_primitive_at_key(emcal_pkey)->get_sum_at_key(emcal_skey)->at(i);
-		it_s = ((sum_hcal >> 1U) + (sum_emcal >> 1U)) & 0xffU;
-		i++;
-	      }
-	  }
+        std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
       }
+
+      TriggerDefs::TriggerPrimKey jet_pkey = (*iter).first;
+      TriggerDefs::TriggerPrimKey hcal_pkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey));
+      TriggerDefs::TriggerPrimKey emcal_pkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey));
+      TriggerPrimitive *primitive = (*iter).second;
+      TriggerPrimitivev1::Range sumrange = primitive->getSums();
+      for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+      {
+        if (Verbosity())
+        {
+          std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
+        }
+
+        TriggerDefs::TriggerSumKey jet_skey = (*iter_sum).first;
+
+        TriggerDefs::TriggerSumKey hcal_skey = TriggerDefs::getTriggerSumKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey), TriggerDefs::getSumLocId(jet_skey));
+        TriggerDefs::TriggerSumKey emcal_skey = TriggerDefs::getTriggerSumKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey), TriggerDefs::getSumLocId(jet_skey));
+
+        int i = 0;
+        if (Verbosity())
+        {
+          std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
+        }
+
+        for (unsigned int &it_s : *(iter_sum->second))
+        {
+          unsigned int sum_hcal = m_primitives_hcal_ll1->get_primitive_at_key(hcal_pkey)->get_sum_at_key(hcal_skey)->at(i);
+          unsigned int sum_emcal = m_primitives_emcal_ll1->get_primitive_at_key(emcal_pkey)->get_sum_at_key(emcal_skey)->at(i);
+          it_s = ((sum_hcal >> 1U) + (sum_emcal >> 1U)) & 0xffU;
+          i++;
+        }
+      }
+    }
   }
-  
+
   return 0;
 }
 
@@ -1808,8 +1790,6 @@ int CaloTriggerEmulator::process_trigger()
     bits.push_back(0);
   }
 
-
-
   // photon
   // 8x8 non-overlapping sums in the EMCAL
   // create the 8x8 non-overlapping sum
@@ -1823,64 +1803,61 @@ int CaloTriggerEmulator::process_trigger()
     }
 
     TriggerPrimitiveContainer::Range range = m_primitives_emcal_ll1->getTriggerPrimitives();
-    
+
     for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
+    {
+      // get key and see if masked
+      TriggerDefs::TriggerPrimKey key = (*iter).first;
+      if (CheckFiberMasks(key))
       {
-        // get key and see if masked
-        TriggerDefs::TriggerPrimKey key = (*iter).first;
-        if (CheckFiberMasks(key))
-	  {
-	    continue;
-	  }
-	
-        // get the primitive (16 2x2 sums)
-        TriggerPrimitive *primitive = (*iter).second;
-
-        TriggerPrimitivev1::Range sumrange = primitive->getSums();
-
-        // iterate through all 24 sums and add together
-        for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
-	  {
-	    // check if sum is greater than threshold.
-	    if (Verbosity() >= 2)
-	      {
-		std::cout << __FUNCTION__ << " " << __LINE__ << " processing PHOTON trigger"<<std::endl;
-	      }
-
-	    std::vector<unsigned int> *t_sum = (*iter_sum).second;
-	    TriggerDefs::TriggerSumKey sumk = (*iter_sum).first;
-	    for (int is = 0; is < nsample; is++)
-	      {
-		unsigned short bit = getBits(t_sum->at(is), TriggerDefs::TriggerId::photonTId);
-		if (bit)
-		  {
-		    m_ll1out_photon->addTriggeredSum(sumk, t_sum->at(is));
-		    m_ll1out_photon->addTriggeredPrimitive(key);
-		  }
-		bits.at(is) |= bit;	    
-	      }
-	  }
+        continue;
       }
- 
+
+      // get the primitive (16 2x2 sums)
+      TriggerPrimitive *primitive = (*iter).second;
+
+      TriggerPrimitivev1::Range sumrange = primitive->getSums();
+
+      // iterate through all 24 sums and add together
+      for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
+      {
+        // check if sum is greater than threshold.
+        if (Verbosity() >= 2)
+        {
+          std::cout << __FUNCTION__ << " " << __LINE__ << " processing PHOTON trigger" << std::endl;
+        }
+
+        std::vector<unsigned int> *t_sum = (*iter_sum).second;
+        TriggerDefs::TriggerSumKey sumk = (*iter_sum).first;
+        for (int is = 0; is < nsample; is++)
+        {
+          unsigned short bit = getBits(t_sum->at(is), TriggerDefs::TriggerId::photonTId);
+          if (bit)
+          {
+            m_ll1out_photon->addTriggeredSum(sumk, t_sum->at(is));
+            m_ll1out_photon->addTriggeredPrimitive(key);
+          }
+          bits.at(is) |= bit;
+        }
+      }
+    }
+
     uint16_t pass = 0;
     for (int is = 0; is < nsample; is++)
-      {
-	pass |= bits.at(is);
-	trig_bits->push_back(bits.at(is));
-	
-      }
-    
+    {
+      pass |= bits.at(is);
+      trig_bits->push_back(bits.at(is));
+    }
+
     if (pass)
     {
       m_photon_npassed++;
     }
-    
   }
   {
-
     if (Verbosity() >= 2)
     {
-      std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger"<<std::endl;
+      std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger" << std::endl;
     }
 
     // Make the jet primitives
@@ -1891,28 +1868,28 @@ int CaloTriggerEmulator::process_trigger()
     {
       for (auto &ip : ie)
       {
-	for (int is = 0; is < nsample; is++)
-	  {
-	    ip.push_back(0);
-	  }
+        for (int is = 0; is < nsample; is++)
+        {
+          ip.push_back(0);
+        }
       }
     }
-    
+
     if (!m_primitives_jet)
-      {
-	std::cout << "There is no primitive container" << std::endl;
-	return Fun4AllReturnCodes::EVENT_OK;
-      }
-    
+    {
+      std::cout << "There is no primitive container" << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+
     // iterate through emcal primitives and organize into the 16 jet primitives each with the 8x8 nonoverlapping sum
     TriggerPrimitiveContainer::Range range = m_primitives_jet->getTriggerPrimitives();
-    
+
     for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
     {
       // get the primitive (16 2x2 sums)
       TriggerPrimitive *primitive = (*iter).second;
       TriggerPrimitivev1::Range sumrange = primitive->getSums();
-      
+
       // iterate through all 16 sums and add together
       for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum)
       {
@@ -1921,10 +1898,10 @@ int CaloTriggerEmulator::process_trigger()
         int i = 0;
         int sum_phi = static_cast<int>(TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(sumkey) * 2 + TriggerDefs::getSumPhiId(sumkey));
         int sum_eta = static_cast<int>(TriggerDefs::getSumEtaId(sumkey));
-	if (Verbosity() >= 2)
-	  {
-	    std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger "<<sum_phi<<" "<<sum_eta<<std::endl;
-	  }
+        if (Verbosity() >= 2)
+        {
+          std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger " << sum_phi << " " << sum_eta << std::endl;
+        }
 
         for (unsigned int &it_s : *(iter_sum->second))
         {
@@ -1942,51 +1919,51 @@ int CaloTriggerEmulator::process_trigger()
     }
     if (Verbosity() >= 2)
     {
-      std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger"<<std::endl;
+      std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger" << std::endl;
     }
- 
+
     int pass = 0;
     for (int ijphi = 0; ijphi < 32; ijphi++)
     {
       for (int ijeta = 0; ijeta < 9; ijeta++)
       {
-	if (Verbosity() >= 2)
-	  {
-	    std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger "<<ijphi<<" "<<ijeta<<std::endl;
-	  }
- 
-	unsigned int sk = ((unsigned int) ijphi & 0xffffU) + (((unsigned int) ijeta & 0xffffU) << 16U);
-	std::vector<unsigned int>* sum = m_ll1out_jet->get_word(sk);
-	if (Verbosity() >= 2)
-	  {
-	    std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger "<<ijphi<<" "<<ijeta<<std::endl;
-	  }
+        if (Verbosity() >= 2)
+        {
+          std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger " << ijphi << " " << ijeta << std::endl;
+        }
+
+        unsigned int sk = ((unsigned int) ijphi & 0xffffU) + (((unsigned int) ijeta & 0xffffU) << 16U);
+        std::vector<unsigned int> *sum = m_ll1out_jet->get_word(sk);
+        if (Verbosity() >= 2)
+        {
+          std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger " << ijphi << " " << ijeta << std::endl;
+        }
 
         for (int is = 0; is < nsample; is++)
-        {	
-	if (Verbosity() >= 2)
-	  {
-	    std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger "<<ijphi<<" "<<ijeta<<std::endl;
-	  }
+        {
+          if (Verbosity() >= 2)
+          {
+            std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger " << ijphi << " " << ijeta << std::endl;
+          }
 
-	  sum->push_back(jet_map[ijphi][ijeta].at(is));
-	  unsigned short bit = getBits(jet_map[ijphi][ijeta].at(is), TriggerDefs::TriggerId::jetTId);
+          sum->push_back(jet_map[ijphi][ijeta].at(is));
+          unsigned short bit = getBits(jet_map[ijphi][ijeta].at(is), TriggerDefs::TriggerId::jetTId);
 
-	  if (bit)
-	    {
-	      m_ll1out_jet->addTriggeredSum(sk, jet_map[ijphi][ijeta].at(is));
-	      m_ll1out_jet->addTriggeredPrimitive(sk);
-	      pass = 1;
-	    }
-	  bits.at(is) |= bit;	    
-	}
+          if (bit)
+          {
+            m_ll1out_jet->addTriggeredSum(sk, jet_map[ijphi][ijeta].at(is));
+            m_ll1out_jet->addTriggeredPrimitive(sk);
+            pass = 1;
+          }
+          bits.at(is) |= bit;
+        }
       }
     }
-   if (Verbosity() >= 2)
+    if (Verbosity() >= 2)
     {
-      std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger"<<std::endl;
+      std::cout << __FUNCTION__ << " " << __LINE__ << " processing JET trigger" << std::endl;
     }
- 
+
     for (int is = 0; is < nsample; is++)
     {
       trig_bits->push_back(bits.at(is));
@@ -2002,7 +1979,7 @@ int CaloTriggerEmulator::process_trigger()
   //   if (Verbosity())
   //     {
   // 	std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << std::dec <<__LINE__ << ":: Processing organizer" << std::endl;
-  //     }      
+  //     }
 
   //   m_triggerid = TriggerDefs::TriggerId::pairTId;
   //   if (m_primitives_emcal)
@@ -2026,7 +2003,7 @@ int CaloTriggerEmulator::process_trigger()
   // 	    if (Verbosity())
   // 	      {
   // 		std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << std::dec <<__LINE__ << ":: Processing organizer" << std::endl;
-  // 	      }      
+  // 	      }
 
   // 	    // get key and see if masked
   // 	    TriggerDefs::TriggerPrimKey key = (*iter).first;
@@ -2056,7 +2033,7 @@ int CaloTriggerEmulator::process_trigger()
 
   // 		uint16_t globalphi = primphi*4 + sumphi;
   // 		uint16_t globaleta = primeta*4 + sumeta;
-		
+
   // 		uint16_t lowerphi = 127;
   // 		if (globalphi > 0)
   // 		  {
@@ -2066,7 +2043,7 @@ int CaloTriggerEmulator::process_trigger()
   // 		int i = 0;
   // 		for (unsigned int &it_s : *(iter_sum->second))
   // 		  {
-		    
+
   // 		    if (globaleta > 0)
   // 		      {
   // 			pair_map[globalphi][globaleta-1].at(i) += it_s;
@@ -2094,14 +2071,14 @@ int CaloTriggerEmulator::process_trigger()
   // 		if (Verbosity())
   // 		  {
   // 		    std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << std::dec <<__LINE__ << ":: Processing pair "<< iphi << " " << ieta << std::endl;
-  // 		  }      
+  // 		  }
 
-  // 		int lowerphi = iphi - 1; 
+  // 		int lowerphi = iphi - 1;
   // 		int higherphi = iphi + 1;
   // 		if (Verbosity())
   // 		  {
   // 		    std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << std::dec <<__LINE__ << ":: Processing pair look"<< lowerphi << " " << higherphi << std::endl;
-  // 		  }      
+  // 		  }
 
   // 		if (higherphi > 127) higherphi = 0;
   // 		if (lowerphi < 0) lowerphi = 127;
@@ -2109,7 +2086,7 @@ int CaloTriggerEmulator::process_trigger()
   // 		if (Verbosity())
   // 		  {
   // 		    std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << std::dec <<__LINE__ << ":: Processing pair look"<< lowerphi << " " << higherphi << std::endl;
-  // 		  }      
+  // 		  }
 
   // 		if (pair_map[iphi][ieta].at(0) <= maximum) {continue;}
 
@@ -2127,15 +2104,13 @@ int CaloTriggerEmulator::process_trigger()
   // 		if (Verbosity())
   // 		  {
   // 		    std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << std::dec <<__LINE__ << ":: Processing pair look"<< maximum << std::endl;
-  // 		  }      
-
-		
+  // 		  }
 
   // 	      }
   // 	  }
 
   // 	std::vector<unsigned int> *trig_bits = m_ll1out_pair->GetTriggerBits();
-  // 	unsigned int bit = getBits(maximum, TriggerDefs::TriggerId::pairTId);	
+  // 	unsigned int bit = getBits(maximum, TriggerDefs::TriggerId::pairTId);
 
   // 	if (bit)
   // 	  {
@@ -2148,7 +2123,6 @@ int CaloTriggerEmulator::process_trigger()
   // 	  }
   // 	trig_bits->push_back(bit);
   //     }
-    
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -2162,7 +2136,7 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
 
   m_event = findNode::getClass<Event>(topNode, "PRDF");
 
-  m_ll1_nodename="LL1OUT_PAIR";
+  m_ll1_nodename = "LL1OUT_PAIR";
 
   m_ll1out_pair = findNode::getClass<LL1Out>(topNode, m_ll1_nodename);
 
@@ -2181,7 +2155,7 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
     exit(1);
   }
 
-  m_ll1_nodename="LL1OUT_JET";
+  m_ll1_nodename = "LL1OUT_JET";
   m_ll1out_jet = findNode::getClass<LL1Out>(topNode, m_ll1_nodename);
 
   if (!m_ll1out_jet)
@@ -2199,7 +2173,7 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
     exit(1);
   }
 
-  m_ll1_nodename="LL1OUT_PHOTON";
+  m_ll1_nodename = "LL1OUT_PHOTON";
   m_ll1out_photon = findNode::getClass<LL1Out>(topNode, m_ll1_nodename);
 
   if (!m_ll1out_photon)
@@ -2220,23 +2194,22 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
   bool hcalset = false;
   if (m_do_hcalout)
   {
-
     if (!m_isdata)
-      {
-	m_waveforms_hcalout = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_HCALOUT");
+    {
+      m_waveforms_hcalout = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_HCALOUT");
 
-	if (!m_waveforms_hcalout)
-	  {
-	    std::cout << "No HCALOUT Waveforms found... " << std::endl;
-	    exit(1);
-	  }
+      if (!m_waveforms_hcalout)
+      {
+        std::cout << "No HCALOUT Waveforms found... " << std::endl;
+        exit(1);
       }
+    }
     m_hcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "HCALPackets");
 
-    if (m_hcal_packets) 
-      {
-	m_useoffline = true;
-      }
+    if (m_hcal_packets)
+    {
+      m_useoffline = true;
+    }
 
     m_primitives_hcalout = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_HCALOUT");
 
@@ -2259,16 +2232,15 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
   if (m_do_hcalin)
   {
     if (!m_isdata)
-      {
+    {
+      m_waveforms_hcalin = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_HCALIN");
 
-	m_waveforms_hcalin = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_HCALIN");
-	
-	if (!m_waveforms_hcalin)
-	  {
-	    std::cout << "No HCAL Waveforms found... " << std::endl;
-	    exit(1);
-	  }
+      if (!m_waveforms_hcalin)
+      {
+        std::cout << "No HCAL Waveforms found... " << std::endl;
+        exit(1);
       }
+    }
 
     m_primitives_hcalin = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_HCALIN");
 
@@ -2281,7 +2253,7 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
     if (!hcalset)
     {
       m_hcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "HCALPackets");
-      
+
       m_primitives_hcal_ll1 = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_HCAL_LL1");
 
       if (!m_primitives_hcal_ll1)
@@ -2296,16 +2268,15 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
     m_emcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "CEMCPackets");
 
     if (!m_isdata)
-      {
+    {
+      m_waveforms_emcal = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_CEMC");
 
-	m_waveforms_emcal = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_CEMC");
-	
-	if (!m_waveforms_emcal)
-	  {
-	    std::cout << "No EMCAL Waveforms found... " << std::endl;
-	    exit(1);
-	  }
+      if (!m_waveforms_emcal)
+      {
+        std::cout << "No EMCAL Waveforms found... " << std::endl;
+        exit(1);
       }
+    }
     m_primitives_emcal = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_EMCAL");
 
     if (!m_primitives_emcal)
@@ -2329,7 +2300,6 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
       std::cout << "No EMCAL 2x2 Primitives found... " << std::endl;
       exit(1);
     }
-
   }
 
   return;
@@ -2353,55 +2323,55 @@ void CaloTriggerEmulator::CreateNodes(PHCompositeNode *topNode)
     m_ll1_nodename = "LL1OUT_PHOTON";
     LL1Out *ll1out = findNode::getClass<LL1Out>(ll1Node, m_ll1_nodename);
     if (!ll1out)
-      {
-	ll1out = new LL1Outv1("PHOTON", "NONE");
-	PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, m_ll1_nodename, "PHObject");
-	ll1Node->addNode(LL1OutNode);
-      }
+    {
+      ll1out = new LL1Outv1("PHOTON", "NONE");
+      PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, m_ll1_nodename, "PHObject");
+      ll1Node->addNode(LL1OutNode);
+    }
     m_prim_nodename = "TRIGGERPRIMITIVES_PHOTON";
     TriggerPrimitiveContainer *ll1out_prim = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, m_prim_nodename);
     if (!ll1out_prim)
-      {
-	ll1out_prim = new TriggerPrimitiveContainerv1(TriggerDefs::TriggerId::photonTId,  TriggerDefs::DetectorId::noneDId);
-	PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out_prim, m_prim_nodename, "PHObject");
-	ll1Node->addNode(LL1OutNode);
-      }
+    {
+      ll1out_prim = new TriggerPrimitiveContainerv1(TriggerDefs::TriggerId::photonTId, TriggerDefs::DetectorId::noneDId);
+      PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out_prim, m_prim_nodename, "PHObject");
+      ll1Node->addNode(LL1OutNode);
+    }
   }
   {
     m_ll1_nodename = "LL1OUT_JET";
     LL1Out *ll1out = findNode::getClass<LL1Out>(ll1Node, m_ll1_nodename);
     if (!ll1out)
-      {
-	ll1out = new LL1Outv1("JET", "NONE");
-	PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, m_ll1_nodename, "PHObject");
-	ll1Node->addNode(LL1OutNode);
-      }
+    {
+      ll1out = new LL1Outv1("JET", "NONE");
+      PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, m_ll1_nodename, "PHObject");
+      ll1Node->addNode(LL1OutNode);
+    }
     m_prim_nodename = "TRIGGERPRIMITIVES_JET";
     TriggerPrimitiveContainer *ll1out_prim = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, m_prim_nodename);
     if (!ll1out_prim)
-      {
-	ll1out_prim = new TriggerPrimitiveContainerv1(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::noneDId);
-	PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out_prim, m_prim_nodename, "PHObject");
-	ll1Node->addNode(LL1OutNode);
-      }
+    {
+      ll1out_prim = new TriggerPrimitiveContainerv1(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::noneDId);
+      PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out_prim, m_prim_nodename, "PHObject");
+      ll1Node->addNode(LL1OutNode);
+    }
   }
   {
     m_ll1_nodename = "LL1OUT_PAIR";
     LL1Out *ll1out = findNode::getClass<LL1Out>(ll1Node, m_ll1_nodename);
     if (!ll1out)
-      {
-	ll1out = new LL1Outv1("PAIR", "NONE");
-	PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, m_ll1_nodename, "PHObject");
-	ll1Node->addNode(LL1OutNode);
-      }
+    {
+      ll1out = new LL1Outv1("PAIR", "NONE");
+      PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out, m_ll1_nodename, "PHObject");
+      ll1Node->addNode(LL1OutNode);
+    }
     m_prim_nodename = "TRIGGERPRIMITIVES_PAIR";
     TriggerPrimitiveContainer *ll1out_prim = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, m_prim_nodename);
     if (!ll1out_prim)
-      {
-	ll1out_prim = new TriggerPrimitiveContainerv1(TriggerDefs::TriggerId::pairTId, TriggerDefs::DetectorId::noneDId);
-	PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out_prim, m_prim_nodename, "PHObject");
-	ll1Node->addNode(LL1OutNode);
-      }
+    {
+      ll1out_prim = new TriggerPrimitiveContainerv1(TriggerDefs::TriggerId::pairTId, TriggerDefs::DetectorId::noneDId);
+      PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out_prim, m_prim_nodename, "PHObject");
+      ll1Node->addNode(LL1OutNode);
+    }
   }
   if (m_do_emcal)
   {
@@ -2413,7 +2383,7 @@ void CaloTriggerEmulator::CreateNodes(PHCompositeNode *topNode)
       PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out_d1, ll1_nodename, "PHObject");
       ll1Node->addNode(LL1OutNode);
     }
-    
+
     ll1_nodename = "TRIGGERPRIMITIVES_EMCAL_LL1";
     ll1out_d1 = findNode::getClass<TriggerPrimitiveContainer>(ll1Node, ll1_nodename);
     if (!ll1out_d1)
@@ -2431,7 +2401,6 @@ void CaloTriggerEmulator::CreateNodes(PHCompositeNode *topNode)
       PHIODataNode<PHObject> *LL1OutNode = new PHIODataNode<PHObject>(ll1out_d1, ll1_nodename, "PHObject");
       ll1Node->addNode(LL1OutNode);
     }
-
   }
   if (m_do_hcalout)
   {
@@ -2575,34 +2544,34 @@ void CaloTriggerEmulator::useEMCAL(bool use)
 unsigned int CaloTriggerEmulator::getBits(unsigned int sum, TriggerDefs::TriggerId tid)
 {
   if (tid == TriggerDefs::TriggerId::jetTId)
+  {
+    unsigned int bit = 0;
+    for (unsigned int i = 0; i < 4; i++)
     {
-      unsigned int bit = 0;
-      for (unsigned int i = 0; i < 4; i++)
-	{
-	  bit |= (sum >= m_threshold_jet[i] ? 0x1U << (i) : 0);
-	}
-      
-      return bit;
+      bit |= (sum >= m_threshold_jet[i] ? 0x1U << (i) : 0);
     }
+
+    return bit;
+  }
   else if (tid == TriggerDefs::TriggerId::pairTId)
+  {
+    unsigned int bit = 0;
+    for (unsigned int i = 0; i < 4; i++)
     {
-      unsigned int bit = 0;
-      for (unsigned int i = 0; i < 4; i++)
-	{
-	  bit |= (sum >= m_threshold_pair[i] ? 0x1U << (i) : 0);
-	}
-      
-      return bit;
+      bit |= (sum >= m_threshold_pair[i] ? 0x1U << (i) : 0);
     }
+
+    return bit;
+  }
   else if (tid == TriggerDefs::TriggerId::photonTId)
+  {
+    unsigned int bit = 0;
+    for (unsigned int i = 0; i < 4; i++)
     {
-      unsigned int bit = 0;
-      for (unsigned int i = 0; i < 4; i++)
-	{
-	  bit |= (sum >= m_threshold_photon[i] ? 0x1U << (i) : 0);
-	}
-      
-      return bit;
+      bit |= (sum >= m_threshold_photon[i] ? 0x1U << (i) : 0);
     }
+
+    return bit;
+  }
   return 0;
 }
