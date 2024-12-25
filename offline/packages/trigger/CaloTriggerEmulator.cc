@@ -670,7 +670,7 @@ int CaloTriggerEmulator::process_offline()
 			unsigned int sub = 0;
 			if (maxim > packet->iValue(sam, channel))
 			  {
-			    sub = ((maxim - packet->iValue(sam, channel)) & 0x3fffU);
+			    sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
 			  }
 
 			v_peak_sub_ped.push_back(sub);
@@ -747,7 +747,7 @@ int CaloTriggerEmulator::process_offline()
 			  unsigned int sub = 0;
 			  if (maxim > packet->iValue(sam, channel))
 			    {
-			      sub = ((maxim - packet->iValue(sam, channel)) & 0x3fffU);
+			      sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
 			    }
 
 			  v_peak_sub_ped.push_back(sub);
@@ -806,7 +806,7 @@ int CaloTriggerEmulator::process_offline()
 			  unsigned int sub = 0;
 			  if (maxim > packet->iValue(sam, channel))
 			    {
-			      sub = ((maxim - packet->iValue(sam, channel)) & 0x3fffU);
+			      sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
 			    }
 
 			  v_peak_sub_ped.push_back(sub);
@@ -924,7 +924,7 @@ int CaloTriggerEmulator::process_waveforms()
 			unsigned int sub = 0;
 			if (maxim > packet->iValue(sam, channel))
 			  {
-			    sub = ((maxim - packet->iValue(sam, channel)) & 0x3fffU);
+			    sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
 			  }
 
 			v_peak_sub_ped.push_back(sub);
@@ -983,7 +983,7 @@ int CaloTriggerEmulator::process_waveforms()
 			  unsigned int sub = 0;
 			  if (maxim > packet->iValue(sam, channel))
 			    {
-			      sub = ((maxim - packet->iValue(sam, channel)) & 0x3fffU);
+			      sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
 			    }
 
 			  v_peak_sub_ped.push_back(sub);
@@ -1041,7 +1041,7 @@ int CaloTriggerEmulator::process_waveforms()
 			  unsigned int sub = 0;
 			  if (maxim > packet->iValue(sam, channel))
 			    {
-			      sub = ((maxim - packet->iValue(sam, channel)) & 0x3fffU);
+			      sub = (((uint16_t)(maxim - packet->iValue(sam, channel))) & 0x3fffU);
 			    }
 
 			  v_peak_sub_ped.push_back(sub);
@@ -1116,7 +1116,7 @@ int CaloTriggerEmulator::process_sim()
 	  unsigned int sub = 0;
 	  if (maxim > tower->get_waveform_value(sam))
 	    {
-	      sub = ((maxim - tower->get_waveform_value(sam)) & 0x3fffU);
+	      sub = (((uint16_t)(maxim - tower->get_waveform_value(sam))) & 0x3fffU);
 	    }
 
 	  v_peak_sub_ped.push_back(sub);
@@ -1170,7 +1170,7 @@ int CaloTriggerEmulator::process_sim()
 	  unsigned int sub = 0;
 	  if (maxim > tower->get_waveform_value(sam))
 	    {
-	      sub = ((maxim - tower->get_waveform_value(sam)) & 0x3fffU);
+	      sub = (((uint16_t)(maxim - tower->get_waveform_value(sam))) & 0x3fffU);
 	    }
 
 	  v_peak_sub_ped.push_back(sub);
@@ -1228,7 +1228,7 @@ int CaloTriggerEmulator::process_sim()
 	  unsigned int sub = 0;
 	  if (maxim > tower->get_waveform_value(sam))
 	    {
-	      sub = ((maxim - tower->get_waveform_value(sam)) & 0x3fffU);
+	      sub = (((uint16_t)(maxim - tower->get_waveform_value(sam))) & 0x3fffU);
 	    }
 
 	  v_peak_sub_ped.push_back(sub);
@@ -1561,7 +1561,8 @@ int CaloTriggerEmulator::process_organizer()
 	    //unsigned int sum_lower = ( sumshift & 0x7fU );
 	    //unsigned int sum_higher = ( ( sumshift >> 0x7U ) > 0 ? 0x1U : 0x0U );
 	    //it_s = m_l1_8x8_table[sumshift];
-	    if (it_s > 0xffU) it_s = 0xffU;
+	    if (it_s > 0xffU) { it_s = 0xffU;
+}
 	  }
       }
   }

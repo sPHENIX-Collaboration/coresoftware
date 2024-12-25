@@ -147,7 +147,7 @@ bool LL1Outv1::passesThreshold(int ith)
 void LL1Outv1::addTriggeredSum(TriggerDefs::TriggerSumKey sk, unsigned short bit) 
 {
   unsigned int sumk = sk;
-  m_triggered_sums.push_back(std::make_pair(sumk, bit));
+  m_triggered_sums.emplace_back(sumk, bit);
   
   return;
 }
@@ -178,6 +178,7 @@ std::vector<TriggerDefs::TriggerSumKey> LL1Outv1::getTriggeredSumKeys(int ith)
   {
     unsigned short trigger_bit = key_bit.second;
 
+// NOLINTNEXTLINE(hicpp-signed-bitwise)
     if (((trigger_bit >> (uint16_t) (ith - 1)) & 0x1U) == 0x1U)
     {
       bitSums.push_back(key_bit.first);
