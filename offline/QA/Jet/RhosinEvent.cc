@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -34,11 +35,18 @@ RhosinEvent::RhosinEvent(const std::string& moduleName, const std::string& tag)
   , m_area_rho_node("TowerRho_AREA")
   , m_doTrgSelect(false)
   , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
+  , m_manager(nullptr)
+  , m_analyzer(nullptr)
   , h1_mult_rho(nullptr)
   , h1_mult_rho_sigma(nullptr)
   , h1_area_rho(nullptr)
   , h1_area_rho_sigma(nullptr)
 {
+
+   // make sure raw pointers are free
+   free(m_manager);
+   free(m_analyzer);
+
 }
 
 int RhosinEvent::Init(PHCompositeNode* /*topNode*/)

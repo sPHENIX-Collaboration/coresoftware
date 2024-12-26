@@ -15,6 +15,7 @@
 #include <phool/getClass.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <string>
 #include <vector>
 
@@ -27,6 +28,8 @@ JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
                                      const std::string &recojetnameR04,
                                      const std::string &recojetnameR05)
   : SubsysReco(moduleName)
+  , hm(nullptr)
+  , m_analyzer(nullptr)
   , m_moduleName(moduleName)
   , m_recoJetNameR02(recojetnameR02)
   , m_recoJetNameR03(recojetnameR03)
@@ -43,6 +46,11 @@ JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
   {
     std::cout << "JetKinematicCheck::JetKinematicCheck(const std::string &name) Calling ctor" << std::endl;
   }
+
+  // make sure raw pointers are free
+  free(hm);
+  free(m_analyzer);
+
 }
 
 //____________________________________________________________________________..

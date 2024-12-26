@@ -31,6 +31,7 @@
 
 #include <calotrigger/TriggerAnalyzer.h>
 
+#include <cstdlib>
 #include <math.h>
 #include <string>
 #include <unordered_set>

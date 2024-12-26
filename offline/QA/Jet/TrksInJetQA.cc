@@ -18,6 +18,11 @@ TrksInJetQA::TrksInJetQA(const std::string& name)
   : SubsysReco(name)
   , m_moduleName(name)
 {
+
+  // make sure any raw pointers are free
+  free(m_manager);
+  free(m_analyzer);
+
 }  // end ctor
 
 TrksInJetQA::~TrksInJetQA()

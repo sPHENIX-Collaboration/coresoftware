@@ -19,6 +19,8 @@
 //____________________________________________________________________________..
 DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   : SubsysReco(name)
+  , m_manager(nullptr)
+  , m_analyzer(nullptr)
   , m_moduleName(name)
   , m_etaRange(-1.1, 1.1)
   , m_ptRange(1, 100)
@@ -44,6 +46,11 @@ DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   {
     std::cout << "DijetQA::DijetQA(const std::string &name) Calling ctor" << std::endl;
   }
+
+  // make sure raw pointers are free
+  free(m_manager);
+  free(m_analyzer);
+
 }
 
 //____________________________________________________________________________..

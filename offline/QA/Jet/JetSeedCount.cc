@@ -19,10 +19,13 @@
 #include <TH2.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 
 JetSeedCount::JetSeedCount(const std::string &moduleName, const std::string &recojetname, const std::string &rawSeedName, const std::string &subSeedName, const std::string &truthjetname, const std::string &outputfilename)
   : SubsysReco(moduleName)
+  , m_manager(nullptr)
+  , m_analyzer(nullptr)
   , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
   , m_rawSeedName(rawSeedName)
@@ -36,6 +39,11 @@ JetSeedCount::JetSeedCount(const std::string &moduleName, const std::string &rec
   , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
 {
   // std::cout << "JetSeedCount::JetSeedCount(const std::string &name) Calling ctor" << std::endl;
+
+  // make sure raw pointers are free
+  free(m_manager);
+  free(m_analyzer);
+
 }
 
 int JetSeedCount::Init(PHCompositeNode * /*topNode*/)

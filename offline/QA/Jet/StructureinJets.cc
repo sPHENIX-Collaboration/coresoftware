@@ -42,8 +42,17 @@ StructureinJets::StructureinJets(const std::string& moduleName, const std::strin
   , m_doTrgSelect(false)
   , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_outputFileName(outputfilename)
+  , m_h_track_vs_calo_pt(nullptr)
+  , m_h_track_pt(nullptr)
+  , m_manager(nullptr)
+  , m_analyzer(nullptr)
 {
   std::cout << "StructureinJets::StructureinJets(const std::string &name) Calling ctor" << std::endl;
+
+  // make sure raw pointers are free
+  free(m_manager);
+  free(m_analyzer);
+
 }
 
 //____________________________________________________________________________..

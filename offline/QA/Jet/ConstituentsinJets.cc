@@ -57,6 +57,8 @@ ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std:
   , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_etaRange(-1.1, 1.1)
   , m_ptRange(1.0, 1000)
+  , m_manager(nullptr)
+  , m_analyzer(nullptr)
   , h1_ConstituentsinJets_total(nullptr)
   , h1_ConstituentsinJets_IHCAL(nullptr)
   , h1_ConstituentsinJets_OHCAL(nullptr)
@@ -67,6 +69,11 @@ ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std:
   , h1_jetFracE_CEMC(nullptr)
   , h2_jetFracE_vs_caloLayer(nullptr)
 {
+
+  // make sure raw pointers are free
+  free(m_manager);
+  free(m_analyzer);
+
 }
 
 int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)

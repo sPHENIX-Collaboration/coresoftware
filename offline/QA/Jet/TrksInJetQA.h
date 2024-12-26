@@ -34,6 +34,7 @@
 // c++ utilities
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <optional>
 #include <string>
 #include <utility>
