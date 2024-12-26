@@ -53,6 +53,7 @@ libjetqa_la_LIBADD = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
+  -lcalotrigger \
   -ljetbackground\
   -lg4jets \
   -lcentrality_io \
