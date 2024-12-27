@@ -1,20 +1,23 @@
 #ifndef CALOTRIGGER_TRIGGERANALYZER_H
 #define CALOTRIGGER_TRIGGERANALYZER_H
 
-#include <string>
-#include <phool/PHCompositeNode.h>
-#include <ffarawobjects/Gl1Packetv2.h>
-#include <ffarawobjects/Gl1Packet.h>
 #include "TriggerRunInfo.h"
 #include "TriggerRunInfov1.h"
+
+#include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/Gl1Packetv2.h>
+
+#include <phool/PHCompositeNode.h>
+
+#include <string>
 
 class TriggerAnalyzer
 {
  public:
   TriggerAnalyzer() = default;
-  ~TriggerAnalyzer();
-  
-  int decodeTriggers(PHCompositeNode *topNode);
+  ~TriggerAnalyzer() = default;
+
+  int decodeTriggers(PHCompositeNode* topNode);
 
   bool didTriggerFire(const std::string& triggername);
   bool didTriggerFire(int triggerbit);
@@ -37,15 +40,12 @@ class TriggerAnalyzer
   uint64_t getTriggerScalers(int triggerbit);
 
  private:
-
-  Gl1Packet *gl1packet{nullptr};
-  TriggerRunInfo *triggerruninfo{nullptr};
+  Gl1Packet* gl1packet{nullptr};
+  TriggerRunInfo* triggerruninfo{nullptr};
 
   uint64_t gl1_scaledvec{0};
   uint64_t gl1_livevec{0};
   uint64_t gl1_bco{0};
-
 };
 
 #endif /* CALOTRIGGER_TRIGGERANALYZER_H */
-
