@@ -18,12 +18,7 @@ TrksInJetQA::TrksInJetQA(const std::string& name)
   : SubsysReco(name)
   , m_moduleName(name)
 {
-
-  // make sure any raw pointers are free
-  free(m_manager);
-  free(m_analyzer);
-
-}  // end ctor
+}
 
 TrksInJetQA::~TrksInJetQA()
 {
@@ -81,6 +76,7 @@ int TrksInJetQA::Init(PHCompositeNode* /*topNode*/)
   }
 
   // initialize trigger analyzer and exit
+  delete m_analyzer; // make cppcheck happy
   m_analyzer = new TriggerAnalyzer();
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -170,6 +166,7 @@ void TrksInJetQA::InitOutput()
     break;
 
   case OutMode::QA:
+    delete m_manager;
     m_manager = QAHistManagerDef::getHistoManager();
     if (!m_manager)
     {

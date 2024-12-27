@@ -96,16 +96,16 @@ class JetKinematicCheck : public SubsysReco
   std::string m_recoJetNameR03;
   std::string m_recoJetNameR04;
   std::string m_recoJetNameR05;
-  std::string m_histTag;
+  std::string m_histTag {"AllTrig"};
 
   // cuts
-  bool m_restrictEtaRange;
-  std::pair<double, double> m_etaRange;
-  std::pair<double, double> m_ptRange;
+  bool m_restrictEtaRange {true};
+  std::pair<double, double> m_etaRange {-1.1,1.1};
+  std::pair<double, double> m_ptRange {10,100};
 
   // trigger selection
-  bool m_doTrgSelect;
-  uint32_t m_trgToSelect;
+  bool m_doTrgSelect {false};
+  uint32_t m_trgToSelect{JetQADefs::GL1::MBDNSJet1};
 
   // reconstructed jets
   std::vector<float> m_eta;
@@ -114,30 +114,30 @@ class JetKinematicCheck : public SubsysReco
   std::vector<float> m_radii;
 
   // output histograms
-  TH1 *jet_spectra_r02 = nullptr;
-  TH1 *jet_spectra_r03 = nullptr;
-  TH1 *jet_spectra_r04 = nullptr;
-  TH1 *jet_spectra_r05 = nullptr;
-  TH2 *jet_eta_phi_r02 = nullptr;
-  TH2 *jet_eta_phi_r03 = nullptr;
-  TH2 *jet_eta_phi_r04 = nullptr;
-  TH2 *jet_eta_phi_r05 = nullptr;
-  TH2 *jet_mass_pt_r02 = nullptr;
-  TH1 *jet_mass_pt_1D_r02 = nullptr;
-  TH2 *jet_mass_pt_r03 = nullptr;
-  TH1 *jet_mass_pt_1D_r03 = nullptr;
-  TH2 *jet_mass_pt_r04 = nullptr;
-  TH1 *jet_mass_pt_1D_r04 = nullptr;
-  TH2 *jet_mass_pt_r05 = nullptr;
-  TH1 *jet_mass_pt_1D_r05 = nullptr;
-  TH2 *jet_mass_eta_r02 = nullptr;
-  TH1 *jet_mass_eta_1D_r02 = nullptr;
-  TH2 *jet_mass_eta_r03 = nullptr;
-  TH1 *jet_mass_eta_1D_r03 = nullptr;
-  TH2 *jet_mass_eta_r04 = nullptr;
-  TH1 *jet_mass_eta_1D_r04 = nullptr;
-  TH2 *jet_mass_eta_r05 = nullptr;
-  TH1 *jet_mass_eta_1D_r05 = nullptr;
+  TH1 *jet_spectra_r02  {nullptr};
+  TH1 *jet_spectra_r03  {nullptr};
+  TH1 *jet_spectra_r04  {nullptr};
+  TH1 *jet_spectra_r05  {nullptr};
+  TH2 *jet_eta_phi_r02  {nullptr};
+  TH2 *jet_eta_phi_r03  {nullptr};
+  TH2 *jet_eta_phi_r04  {nullptr};
+  TH2 *jet_eta_phi_r05  {nullptr};
+  TH2 *jet_mass_pt_r02  {nullptr};
+  TH1 *jet_mass_pt_1D_r02  {nullptr};
+  TH2 *jet_mass_pt_r03  {nullptr};
+  TH1 *jet_mass_pt_1D_r03  {nullptr};
+  TH2 *jet_mass_pt_r04  {nullptr};
+  TH1 *jet_mass_pt_1D_r04  {nullptr};
+  TH2 *jet_mass_pt_r05  {nullptr};
+  TH1 *jet_mass_pt_1D_r05  {nullptr};
+  TH2 *jet_mass_eta_r02  {nullptr};
+  TH1 *jet_mass_eta_1D_r02  {nullptr};
+  TH2 *jet_mass_eta_r03  {nullptr};
+  TH1 *jet_mass_eta_1D_r03  {nullptr};
+  TH2 *jet_mass_eta_r04  {nullptr};
+  TH1 *jet_mass_eta_1D_r04  {nullptr};
+  TH2 *jet_mass_eta_r05  {nullptr};
+  TH1 *jet_mass_eta_1D_r05  {nullptr};
 };
 
 #endif  // JETKINEMATICCHECK_H

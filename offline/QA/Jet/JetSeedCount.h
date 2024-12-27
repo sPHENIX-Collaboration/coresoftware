@@ -94,14 +94,14 @@ class JetSeedCount : public SubsysReco
   std::string m_subSeedName;
   std::string m_truthJetName;
   std::string m_outputFileName;
-  std::string m_histTag;
+  std::string m_histTag {"AllTrig_AntiKt_Tower_r04_Sub1"};
 
-  std::pair<double, double> m_etaRange;
-  std::pair<double, double> m_ptRange;
+  std::pair<double, double> m_etaRange {-1,1};
+  std::pair<double, double> m_ptRange{5,100};
 
   // trigger selection
   bool m_doTrgSelect {false};
-  uint32_t m_trgToSelect {0};
+  uint32_t m_trgToSelect {JetQADefs::GL1::MBDNSJet1};
 
   TH1* m_hRawSeedCount{nullptr};
   TH1* m_hRawPt{nullptr};

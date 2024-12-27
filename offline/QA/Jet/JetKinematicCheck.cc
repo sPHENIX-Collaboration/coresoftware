@@ -1,18 +1,24 @@
 //____________________________________________________________________________..
 
 #include "JetKinematicCheck.h"
-#include <TH1D.h>
-#include <TH2D.h>
-#include <TH3D.h>
-#include <TLegend.h>
-#include <TPad.h>
+
 #include <calotrigger/TriggerAnalyzer.h>
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <jetbase/JetContainer.h>
 #include <jetbase/Jetv2.h>
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <TLegend.h>
+#include <TPad.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -28,29 +34,16 @@ JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
                                      const std::string &recojetnameR04,
                                      const std::string &recojetnameR05)
   : SubsysReco(moduleName)
-  , hm(nullptr)
-  , m_analyzer(nullptr)
   , m_moduleName(moduleName)
   , m_recoJetNameR02(recojetnameR02)
   , m_recoJetNameR03(recojetnameR03)
   , m_recoJetNameR04(recojetnameR04)
   , m_recoJetNameR05(recojetnameR05)
-  , m_histTag("AllTrig")
-  , m_restrictEtaRange(true)
-  , m_etaRange(-1.1, 1.1)
-  , m_ptRange(10, 100)
-  , m_doTrgSelect(false)
-  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
 {
   if (Verbosity() > 1)
   {
     std::cout << "JetKinematicCheck::JetKinematicCheck(const std::string &name) Calling ctor" << std::endl;
   }
-
-  // make sure raw pointers are free
-  free(hm);
-  free(m_analyzer);
-
 }
 
 //____________________________________________________________________________..
@@ -60,11 +53,13 @@ JetKinematicCheck::~JetKinematicCheck()
   {
     std::cout << "JetKinematicCheck::~JetKinematicCheck() Calling dtor" << std::endl;
   }
+  delete m_analyzer;
 }
 
 //____________________________________________________________________________..
 int JetKinematicCheck::Init(PHCompositeNode * /*unused*/)
 {
+  delete m_analyzer;
   m_analyzer = new TriggerAnalyzer();
   hm = QAHistManagerDef::getHistoManager();
   assert(hm);

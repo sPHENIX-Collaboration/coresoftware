@@ -11,10 +11,12 @@
 #define TRKSINJETQA_H
 
 // module utilities
+#include "JetQADefs.h"
 #include "TrksInJetQAConfig.h"
 #include "TrksInJetQAHist.h"
 #include "TrksInJetQAInJetFiller.h"
 #include "TrksInJetQAInclusiveFiller.h"
+
 
 // qa utilities
 #include <qautils/QAHistManagerDef.h>
@@ -39,9 +41,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-// jet qa utilities
-#include "JetQADefs.h"
 
 // TrksInJetQA definition -----------------------------------------------------
 

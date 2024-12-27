@@ -24,25 +24,14 @@
 
 JetSeedCount::JetSeedCount(const std::string &moduleName, const std::string &recojetname, const std::string &rawSeedName, const std::string &subSeedName, const std::string &truthjetname, const std::string &outputfilename)
   : SubsysReco(moduleName)
-  , m_manager(nullptr)
-  , m_analyzer(nullptr)
   , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
   , m_rawSeedName(rawSeedName)
   , m_subSeedName(subSeedName)
   , m_truthJetName(truthjetname)
   , m_outputFileName(outputfilename)
-  , m_histTag("AllTrig_AntiKt_Tower_r04_Sub1")
-  , m_etaRange(-1, 1)
-  , m_ptRange(5, 100)
-  , m_doTrgSelect(false)
-  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
 {
   // std::cout << "JetSeedCount::JetSeedCount(const std::string &name) Calling ctor" << std::endl;
-
-  // make sure raw pointers are free
-  free(m_manager);
-  free(m_analyzer);
 
 }
 
@@ -57,6 +46,7 @@ int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
     std::cout << "Opening output file named " << m_outputFileName << std::endl;
     PHTFileServer::get().open(m_outputFileName, "RECREATE");
   }
+  delete m_analyzer;
   m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
