@@ -23,6 +23,7 @@ libcalovalid_la_SOURCES = \
 
 libcalovalid_la_LIBADD = \
   -lcalo_io \
+  -lcalotrigger \
   -lCLHEP \
   -lfun4all \
   -lglobalvertex_io \
