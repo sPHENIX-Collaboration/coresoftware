@@ -1,9 +1,9 @@
 #include "QAG4Decayer.h"
 
+#include <TTree.h>
 #include <qautils/QAHistManagerDef.h>
 
 #include <decayfinder/DecayFinder.h>
-#include <decayfinder/DecayFinderContainerBase.h>  // for DecayFinderContainerBase::Iter
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -12,34 +12,33 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <TDatabasePDG.h>
 #include <TF1.h>
 #include <TH1.h>
-#include <TH2.h>
-#include <TLatex.h>
 #include <TLorentzVector.h>
-#include <TNamed.h>
 #include <TROOT.h>
-#include <TString.h>
 #include <TStyle.h>
 #include <TVector3.h>
 
-#include <CLHEP/Vector/LorentzVector.h>
-
 #include <boost/format.hpp>
 
-#include <iostream>
+#include <algorithm>
+
+#include <cassert>
+#include <cmath>
+#include <cstdlib>
 #include <map>
+#include <string>
+#include <vector>
 
 const int NHFQA = 16;
 
-int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553, -411, -421, -431, -4122, -511, -521, -531};
+static int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553, -411, -421, -431, -4122, -511, -521, -531};
 
 // float MassMin[NHFQA] = {1.6,1.6,1.7,2.0,5.0,5.0,5.1,2.0,9.0};
-float MassMin[NHFQA] = {1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1, 1.2, 9.0, 1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1};
-float MassMax[NHFQA] = {2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6, 3.2, 10.0, 2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6};
+static float MassMin[NHFQA] = {1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1, 1.2, 9.0, 1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1};
+static float MassMax[NHFQA] = {2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6, 3.2, 10.0, 2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6};
 
-std::multimap<std::vector<int>, int> decaymap[NHFQA];
+static std::multimap<std::vector<int>, int> decaymap[NHFQA];
 
 /*
  *  QA module to check decay branching ratio, decay lifetime, and momentum conservation for inclusive heavy flavor hadron decay, which is handle by EvtGen as default
@@ -372,13 +371,13 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   float CosTheta = -2;
 
-  PHG4TruthInfoContainer::ConstRange range = m_truth_info->GetParticleRange();
+  PHG4TruthInfoContainer::ConstRange const range = m_truth_info->GetParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second; ++iter)
   {
     PHG4Particle *g4particle = iter->second;
 
-    int gflavor = g4particle->get_pid();
+    int const gflavor = g4particle->get_pid();
 
     int ParentPDGID = -1;
     int GrandParentPDGID = -1;
@@ -420,8 +419,8 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       }
     }
 
-    int NDig = (int) log10(abs(gflavor));
-    int firstDigit = (int) (abs(gflavor) / pow(10, NDig));
+    int const NDig = (int) log10(abs(gflavor));
+    int const firstDigit = (int) (abs(gflavor) / pow(10, NDig));
     if ((firstDigit == 4 || firstDigit == 5) && ParentPDGID == 0)
     {
       int HFFillIndex = -99;
@@ -444,7 +443,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       }
     }
 
-    int VtxSize = ParentTrkInfo.size();
+    int const VtxSize = ParentTrkInfo.size();
 
     bool NewVtx = true;
     int Index = -1;
@@ -534,8 +533,8 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     if (GrandParentPDGID == 0 && ParentVtx && VtxToQA)
     {
-      float ParentMass = sqrt(mother->get_e() * mother->get_e() - mother->get_px() * mother->get_px() - mother->get_py() * mother->get_py() - mother->get_pz() * mother->get_pz());
-      float ParP = sqrt(mother->get_px() * mother->get_px() + mother->get_py() * mother->get_py() + mother->get_pz() * mother->get_pz());
+      float const ParentMass = sqrt(mother->get_e() * mother->get_e() - mother->get_px() * mother->get_px() - mother->get_py() * mother->get_py() - mother->get_pz() * mother->get_pz());
+      float const ParP = sqrt(mother->get_px() * mother->get_px() + mother->get_py() * mother->get_py() + mother->get_pz() * mother->get_pz());
 
       HFProdVtx.SetXYZ(ParentVtx->get_x(), ParentVtx->get_y(), ParentVtx->get_z());
       HFDecayVtx.SetXYZ(vtx->get_x(), vtx->get_y(), vtx->get_z());
@@ -560,11 +559,11 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   }
 
   // BR Working here
-  int VtxSizeFinal = TotalEPerVertex.size();
+  int const VtxSizeFinal = TotalEPerVertex.size();
 
   for (int q = 0; q < VtxSizeFinal; q++)
   {
-    int HFIndexToFill = HFIndexInfo[q];
+    int const HFIndexToFill = HFIndexInfo[q];
     //		int HFSign = HFIndexSignInfo[q];
 
     DevPx = (ParentPxInfo[q] - TotalPxPerVertex[q]) / ParentPxInfo[q];
@@ -572,7 +571,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     DevPz = (ParentPzInfo[q] - TotalPzPerVertex[q]) / ParentPzInfo[q];
     DevE = (ParentEInfo[q] - TotalEPerVertex[q]) / ParentEInfo[q];
 
-    float ParMass = sqrt(TotalEPerVertex[q] * TotalEPerVertex[q] - ParentPxInfo[q] * ParentPxInfo[q] - ParentPyInfo[q] * ParentPyInfo[q] - ParentPzInfo[q] * ParentPzInfo[q]);
+    float const ParMass = sqrt(TotalEPerVertex[q] * TotalEPerVertex[q] - ParentPxInfo[q] * ParentPxInfo[q] - ParentPyInfo[q] * ParentPyInfo[q] - ParentPzInfo[q] * ParentPzInfo[q]);
 
     QAPx[HFIndexToFill]->Fill(DevPx);
     QAPy[HFIndexToFill]->Fill(DevPy);
@@ -807,7 +806,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       }
     }
 
-    int ChannelSize = ChannelID.size();
+    int const ChannelSize = ChannelID.size();
 
     for (int r = 0; r < ChannelSize; r++)
     {

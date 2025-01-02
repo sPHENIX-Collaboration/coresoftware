@@ -27,7 +27,6 @@
 
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
 #include <TString.h>
 #include <TVector3.h>
 
@@ -35,6 +34,8 @@
 #include <cmath>
 #include <iostream>
 #include <map>
+#include <set>
+#include <string>
 #include <utility>  // for pair
 
 QAG4SimulationVertex::QAG4SimulationVertex(const std::string &name)
@@ -217,7 +218,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
     for (auto iter = prange.first; iter != prange.second; ++iter)  // process all primary paricle
     {
       const int point_id = iter->second->get_vtx_id();
-      int gembed = m_truthInfo->isEmbededVtx(iter->second->get_vtx_id());
+      int const gembed = m_truthInfo->isEmbededVtx(iter->second->get_vtx_id());
       ++vertex_particle_count[point_id];
       ++embedvtxid_particle_count[gembed];
       PHG4Particle *g4particle = iter->second;
@@ -227,7 +228,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
+      std::set<TrkrDefs::cluskey> const g4clusters = clustereval->all_clusters_from(g4particle);
 
       unsigned int nglmaps = 0;
 
@@ -243,7 +244,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
 
       for (const TrkrDefs::cluskey g4cluster : g4clusters)
       {
-        unsigned int layer = TrkrDefs::getLayer(g4cluster);
+        unsigned int const layer = TrkrDefs::getLayer(g4cluster);
         // std::cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<std::endl;
         if (_nlayers_maps > 0 && layer < _nlayers_maps)
         {
@@ -258,20 +259,20 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         }
       }
 
-      float gpx = g4particle->get_px();
-      float gpy = g4particle->get_py();
-      float gpz = g4particle->get_pz();
+      float const gpx = g4particle->get_px();
+      float const gpy = g4particle->get_py();
+      float const gpz = g4particle->get_pz();
       float gpt = NAN;
       float geta = NAN;
 
       if (gpx != 0 && gpy != 0)
       {
-        TVector3 gv(gpx, gpy, gpz);
+        TVector3 const gv(gpx, gpy, gpz);
         gpt = gv.Pt();
         geta = gv.Eta();
         //          gphi = gv.Phi();
       }
-      if (nglmaps == 3 && fabs(geta) < 1.0 && gpt > 0.5)
+      if (nglmaps == 3 && std::fabs(geta) < 1.0 && gpt > 0.5)
       {
         ++embedvtxid_maps_particle_count[gembed];
       }
@@ -285,7 +286,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
     for (auto iter = vrange.first; iter != vrange.second; ++iter)  // process all primary vertexes
     {
       const int point_id = iter->first;
-      int gembed = m_truthInfo->isEmbededVtx(point_id);
+      int const gembed = m_truthInfo->isEmbededVtx(point_id);
       if (gembed <= 0)
       {
         continue;
@@ -322,10 +323,10 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       ++n_recoSvtxVertex;
 
       PHG4VtxPoint *point = vertexeval->max_truth_point_by_ntracks(vertex);
-      float vx = vertex->get_x();
-      float vy = vertex->get_y();
-      float vz = vertex->get_z();
-      float ntracks = vertex->size_tracks();
+      float const vx = vertex->get_x();
+      float const vy = vertex->get_y();
+      float const vz = vertex->get_z();
+      float const ntracks = vertex->size_tracks();
       float gvx = NAN;
       float gvy = NAN;
       float gvz = NAN;
@@ -336,7 +337,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
 
       h_ntracks->Fill(ntracks);
 
-      int ntracks_with_cuts = 0;
+      int const ntracks_with_cuts = 0;
       for (SvtxVertex::TrackIter iter2 = vertex->begin_tracks();
            iter2 != vertex->end_tracks();
            ++iter2)
@@ -414,7 +415,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
 
         h_gntracks->Fill(gntracks);
 
-        if (embedvtxid_maps_particle_count[(int) gembed] > 0 && fabs(gvt) < 2000. && fabs(gvz) < 13.0)
+        if (embedvtxid_maps_particle_count[(int) gembed] > 0 && std::fabs(gvt) < 2000. && std::fabs(gvz) < 13.0)
         {
           gntracksmaps = embedvtxid_maps_particle_count[(int) gembed];
         }
@@ -422,9 +423,9 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         h_gntracksmaps->Fill(gntracksmaps);
         h_norm->Fill("MVTXTrackOnVertex", gntracksmaps);
       }
-      float vx_res = vx - gvx;
-      float vy_res = vy - gvy;
-      float vz_res = vz - gvz;
+      float const vx_res = vx - gvx;
+      float const vy_res = vy - gvy;
+      float const vz_res = vz - gvz;
 
       h_vxRes_gvz->Fill(gvz, vx_res);
       h_vyRes_gvz->Fill(gvz, vy_res);

@@ -1,9 +1,7 @@
 #include "QAG4SimulationMicromegas.h"
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
-#include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>
@@ -50,8 +48,9 @@
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
-#include <utility>   // for pair, make_pair
-#include <vector>    // for vector
+#include <string>
+#include <utility>  // for pair, make_pair
+#include <vector>   // for vector
 
 //_____________________________________________________________________
 namespace
@@ -373,7 +372,7 @@ void QAG4SimulationMicromegas::evaluate_hits()
 
     // get all of the hits from this hitset
     TrkrHitSet* hitset = hitsetiter->second;
-    TrkrHitSet::ConstRange hitrange = hitset->getHits();
+    TrkrHitSet::ConstRange const hitrange = hitset->getHits();
 
     // loop over hits
     for (auto hit_it = hitrange.first; hit_it != hitrange.second; ++hit_it)
@@ -422,17 +421,17 @@ void QAG4SimulationMicromegas::evaluate_clusters()
   }
   // get primary truth particles
 
-  PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
+  PHG4TruthInfoContainer::ConstRange const range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
 
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
        ++iter)
   {
     PHG4Particle* g4particle = iter->second;
-    float gtrackID = g4particle->get_track_id();
-    float gflavor = g4particle->get_pid();
-    float gembed = trutheval->get_embed(g4particle);
-    float gprimary = trutheval->is_primary(g4particle);
+    float const gtrackID = g4particle->get_track_id();
+    float const gflavor = g4particle->get_pid();
+    float const gembed = trutheval->get_embed(g4particle);
+    float const gprimary = trutheval->is_primary(g4particle);
 
     if (Verbosity() > 0)
     {
@@ -454,9 +453,9 @@ void QAG4SimulationMicromegas::evaluate_clusters()
         continue;
       }
 
-      float gx = gclus->getX();
-      float gy = gclus->getY();
-      float gz = gclus->getZ();
+      float const gx = gclus->getX();
+      float const gy = gclus->getY();
+      float const gz = gclus->getZ();
 
       xy_pts.emplace_back(gx, gy);
       rz_pts.emplace_back(std::sqrt(gx * gx + gy * gy), gz);
@@ -508,8 +507,8 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       const auto segmentation_type = MicromegasDefs::getSegmentationType(ckey);
 
       // get relevant cluster information
-      double rphi_error = cluster->getRPhiError();
-      double z_error = cluster->getZError();
+      double const rphi_error = cluster->getRPhiError();
+      double const z_error = cluster->getZError();
 
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
@@ -526,12 +525,12 @@ void QAG4SimulationMicromegas::evaluate_clusters()
         for (int i = 0; i < 2; ++i)
         {
           // convert position to local
-          TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
-          TVector3 g4hit_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, g4hit_world);
+          TVector3 const g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
+          TVector3 const g4hit_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, g4hit_world);
 
           // convert momentum to local
-          TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
-          TVector3 momentum_local = layergeom->get_local_from_world_vect(tileid, m_tGeometry, momentum_world);
+          TVector3 const momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
+          TVector3 const momentum_local = layergeom->get_local_from_world_vect(tileid, m_tGeometry, momentum_world);
 
           hits.push_back({.position = g4hit_local, .momentum = momentum_local, .weight = weight});
         }

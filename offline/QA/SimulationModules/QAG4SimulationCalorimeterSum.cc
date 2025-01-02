@@ -1,4 +1,5 @@
 #include "QAG4SimulationCalorimeterSum.h"
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <g4eval/CaloEvalStack.h>
@@ -26,7 +27,6 @@
 #include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
 #include <TString.h>
 
 #include <cassert>
@@ -178,7 +178,7 @@ int QAG4SimulationCalorimeterSum::process_event(PHCompositeNode *topNode)
 
   if (flag(kProcessCluster))
   {
-    int ret = process_event_Cluster(topNode);
+    int const ret = process_event_Cluster(topNode);
 
     if (ret != Fun4AllReturnCodes::EVENT_OK)
     {
@@ -188,7 +188,7 @@ int QAG4SimulationCalorimeterSum::process_event(PHCompositeNode *topNode)
 
   if (flag(kProcessTrackProj))
   {
-    int ret = process_event_TrackProj(topNode);
+    int const ret = process_event_TrackProj(topNode);
 
     if (ret != Fun4AllReturnCodes::EVENT_OK)
     {
@@ -338,7 +338,7 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
   assert(h2_proj);
 
   // pull the tower geometry
-  std::string towergeonodename = "TOWERGEOM_" + detector;
+  std::string const towergeonodename = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeo = findNode::getClass<RawTowerGeomContainer>(
       topNode, towergeonodename);
   assert(towergeo);
@@ -348,7 +348,7 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
     towergeo->identify();
   }
   // pull the towers
-  std::string towernodename = "TOWER_CALIB_" + detector;
+  std::string const towernodename = "TOWER_CALIB_" + detector;
   RawTowerContainer *towerList = findNode::getClass<RawTowerContainer>(topNode,
                                                                        towernodename);
   assert(towerList);
@@ -385,16 +385,16 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
   assert(not std::isnan(point[1]));
   assert(not std::isnan(point[2]));
 
-  double x = point[0];
-  double y = point[1];
-  double z = point[2];
+  double const x = point[0];
+  double const y = point[1];
+  double const z = point[2];
 
-  double phi = atan2(y, x);
-  double eta = asinh(z / sqrt(x * x + y * y));
+  double const phi = atan2(y, x);
+  double const eta = asinh(z / sqrt(x * x + y * y));
 
   // calculate 3x3 tower energy
-  int binphi = towergeo->get_phibin(phi);
-  int bineta = towergeo->get_etabin(eta);
+  int const binphi = towergeo->get_phibin(phi);
+  int const bineta = towergeo->get_etabin(eta);
 
   double etabin_width = towergeo->get_etabounds(bineta).second - towergeo->get_etabounds(bineta).first;
   if (bineta > 1 and bineta < towergeo->get_etabins() - 1)
@@ -402,7 +402,7 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
     etabin_width = (towergeo->get_etacenter(bineta + 1) - towergeo->get_etacenter(bineta - 1)) / 2.;
   }
 
-  double phibin_width = towergeo->get_phibounds(binphi).second - towergeo->get_phibounds(binphi).first;
+  double const phibin_width = towergeo->get_phibounds(binphi).second - towergeo->get_phibounds(binphi).first;
 
   assert(etabin_width > 0);
   assert(phibin_width > 0);

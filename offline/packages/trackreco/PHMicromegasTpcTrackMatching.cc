@@ -302,7 +302,10 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
     if(_zero_field) { // start _zero_field
 
-      std::cout << "zero field is ON, starting TPC clusters linear fit" << std::endl;
+      if (Verbosity() > 10)
+      {
+        std::cout << "zero field is ON, starting TPC clusters linear fit" << std::endl;
+      }
       auto cluster_list = getTrackletClusterList(tracklet_tpc);
 
       // need at least 3 clusters to fit a line
@@ -327,9 +330,11 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       }
 
     } else { // start !_zero_field
- 
-      std::cout << "zero field is OFF, starting TPC clusters circle fit" << std::endl;
 
+      if(Verbosity() > 10)
+      {
+        std::cout << "zero field is OFF, starting TPC clusters circle fit" << std::endl;
+      }
       // need at least 3 clusters to fit a circle
       if (outer_clusters.size() < 3)
       {

@@ -32,7 +32,6 @@
 #include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
 #include <TString.h>
 #include <TVector3.h>
 
@@ -44,6 +43,7 @@
 #include <iostream>
 #include <iterator>  // for reverse_iterator
 #include <map>
+#include <string>
 #include <utility>
 
 QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(const std::string &calo_name,
@@ -174,7 +174,7 @@ int QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
 
   if (flag(kProcessG4Hit))
   {
-    int ret = process_event_G4Hit(topNode);
+    int const ret = process_event_G4Hit(topNode);
 
     if (ret != Fun4AllReturnCodes::EVENT_OK)
     {
@@ -184,7 +184,7 @@ int QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
 
   if (flag(kProcessTower))
   {
-    int ret = process_event_Tower(topNode);
+    int const ret = process_event_Tower(topNode);
 
     if (ret != Fun4AllReturnCodes::EVENT_OK)
     {
@@ -194,7 +194,7 @@ int QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
 
   if (flag(kProcessCluster))
   {
-    int ret = process_event_Cluster(topNode);
+    int const ret = process_event_Cluster(topNode);
 
     if (ret != Fun4AllReturnCodes::EVENT_OK)
     {
@@ -285,7 +285,7 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
 
   // get primary
   assert(_truth_container);
-  PHG4TruthInfoContainer::ConstRange primary_range =
+  PHG4TruthInfoContainer::ConstRange const primary_range =
       _truth_container->GetPrimaryParticleRange();
   double total_primary_energy = 1e-9;  // make it zero energy epsilon samll so it can be used for denominator
   for (PHG4TruthInfoContainer::ConstIterator particle_iter = primary_range.first;
@@ -366,7 +366,7 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
     assert(hlat);
 
     h_norm->Fill("G4Hit Active", _calo_hit_container->size());
-    PHG4HitContainer::ConstRange calo_hit_range =
+    PHG4HitContainer::ConstRange const calo_hit_range =
         _calo_hit_container->getHits();
     for (PHG4HitContainer::ConstIterator hit_iter = calo_hit_range.first;
          hit_iter != calo_hit_range.second; hit_iter++)
@@ -408,7 +408,7 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
   {
     h_norm->Fill("G4Hit Absor.", _calo_abs_hit_container->size());
 
-    PHG4HitContainer::ConstRange calo_abs_hit_range =
+    PHG4HitContainer::ConstRange const calo_abs_hit_range =
         _calo_abs_hit_container->getHits();
     for (PHG4HitContainer::ConstIterator hit_iter = calo_abs_hit_range.first;
          hit_iter != calo_abs_hit_range.second; hit_iter++)
@@ -530,11 +530,11 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
       get_histo_prefix() + "_Normalization"));
   assert(h_norm);
 
-  std::string towernodename = "TOWER_CALIB_" + detector;
+  std::string const towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,
                                                                     towernodename);
-  std::string towerinfonodename = "TOWERINFO_CALIB_" + detector;
+  std::string const towerinfonodename = "TOWERINFO_CALIB_" + detector;
   TowerInfoContainer *towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfonodename);
   if (!towers && !flag(kProcessTowerinfo))
   {
@@ -548,7 +548,7 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  std::string towergeomnodename = "TOWERGEOM_" + detector;
+  std::string const towergeomnodename = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(
       topNode, towergeomnodename);
   if (!towergeom)
@@ -630,7 +630,7 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
             }
             else
             {
-              unsigned int towerkey = _calo_name == "CEMC" ? TowerInfoDefs::encode_emcal(ieta, wrapphi) : TowerInfoDefs::encode_hcal(ieta, wrapphi);
+              unsigned int const towerkey = _calo_name == "CEMC" ? TowerInfoDefs::encode_emcal(ieta, wrapphi) : TowerInfoDefs::encode_hcal(ieta, wrapphi);
               TowerInfo *towerinfo = towerinfos->get_tower_at_key(towerkey);
               if (towerinfo)
               {
@@ -687,7 +687,7 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  std::string towergeomnodename = "TOWERGEOM_" + _calo_name;
+  std::string const towergeomnodename = "TOWERGEOM_" + _calo_name;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(
       topNode, towergeomnodename);
   if (!towergeom)
@@ -700,7 +700,7 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   TH1D *h_norm = dynamic_cast<TH1D *>(hm->getHisto(get_histo_prefix() + "_Normalization"));
   assert(h_norm);
 
-  std::string nodename = "CLUSTER_" + _calo_name;
+  std::string const nodename = "CLUSTER_" + _calo_name;
   RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode, nodename);
   assert(clusters);
   h_norm->Fill("Cluster", clusters->size());

@@ -14,6 +14,8 @@ AM_LDFLAGS = \
   -lcalo_io \
   -lffarawobjects \
   -lfun4all \
+  -lcalotrigger \
+  -lcalotrigger_io \
   -lSubsysReco
 
 libLiteCaloEvalTowSlope_la_SOURCES = \
