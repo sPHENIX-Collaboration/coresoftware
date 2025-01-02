@@ -18,7 +18,7 @@ TrksInJetQA::TrksInJetQA(const std::string& name)
   : SubsysReco(name)
   , m_moduleName(name)
 {
-}  // end ctor
+}
 
 TrksInJetQA::~TrksInJetQA()
 {
@@ -74,6 +74,10 @@ int TrksInJetQA::Init(PHCompositeNode* /*topNode*/)
   {
     RegisterHistograms();
   }
+
+  // initialize trigger analyzer and exit
+  delete m_analyzer; // make cppcheck happy
+  m_analyzer = new TriggerAnalyzer();
   return Fun4AllReturnCodes::EVENT_OK;
 
 }  // end 'Init(PHCompositeNode*)'
@@ -89,7 +93,8 @@ int TrksInJetQA::process_event(PHCompositeNode* topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;
@@ -161,6 +166,7 @@ void TrksInJetQA::InitOutput()
     break;
 
   case OutMode::QA:
+    delete m_manager;
     m_manager = QAHistManagerDef::getHistoManager();
     if (!m_manager)
     {

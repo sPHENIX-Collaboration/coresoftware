@@ -19,6 +19,8 @@
 //____________________________________________________________________________..
 DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   : SubsysReco(name)
+  , m_manager(nullptr)
+  , m_analyzer(nullptr)
   , m_moduleName(name)
   , m_etaRange(-1.1, 1.1)
   , m_ptRange(1, 100)
@@ -44,6 +46,11 @@ DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   {
     std::cout << "DijetQA::DijetQA(const std::string &name) Calling ctor" << std::endl;
   }
+
+  // make sure raw pointers are free
+  free(m_manager);
+  free(m_analyzer);
+
 }
 
 //____________________________________________________________________________..
@@ -59,6 +66,7 @@ DijetQA::~DijetQA()
 int DijetQA::Init(PHCompositeNode* /*topNode*/)
 {
   //  std::cout << "DijetQA::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();  // get the histogram anager
 
 	if(!m_manager){
@@ -109,7 +117,8 @@ int DijetQA::process_event(PHCompositeNode* topNode)
   }
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

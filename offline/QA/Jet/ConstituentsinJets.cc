@@ -1,15 +1,5 @@
 #include "ConstituentsinJets.h"
 
-// fun4all includes
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-// #include <fun4all/PHTFileServer.h>
-
-// phool includes
-#include <phool/PHCompositeNode.h>
-
-#include <phool/getClass.h>
-
 // jet includes
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
@@ -26,8 +16,20 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
+// calotrigger includes
+#include <calotrigger/TriggerAnalyzer.h>
+
 // jetbackground includes
 #include <jetbackground/TowerBackground.h>
+
+// fun4all includes
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+// #include <fun4all/PHTFileServer.h>
+
+// phool includes
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
 
 #include <TH1.h>
 #include <TH2.h>
@@ -48,21 +50,7 @@ ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std:
   , m_recoJetName(recojetname)
   , m_towBkgdName(towBkgdName)
   , m_histTag(histTag)
-  // , m_outputFileName(outputfilename)
-  // these are all initialized but included here for clarity
-  , m_doTrgSelect(false)
-  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
-  , m_etaRange(-1.1, 1.1)
-  , m_ptRange(1.0, 1000)
-  , h1_ConstituentsinJets_total(nullptr)
-  , h1_ConstituentsinJets_IHCAL(nullptr)
-  , h1_ConstituentsinJets_OHCAL(nullptr)
-  , h1_ConstituentsinJets_CEMC(nullptr)
-  , h2_ConstituentsinJets_vs_caloLayer(nullptr)
-  , h1_jetFracE_IHCAL(nullptr)
-  , h1_jetFracE_OHCAL(nullptr)
-  , h1_jetFracE_CEMC(nullptr)
-  , h2_jetFracE_vs_caloLayer(nullptr)
+// initialize variables only in one place, no duplication
 {
 }
 
@@ -70,11 +58,12 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
 {
   // create output file
   // PHTFileServer::get().open(m_outputFileName, "RECREATE");
-
+  delete m_analyzer; // make cppcheck happy
+  m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
-    std::cerr << PHWHERE << ": PANIC: couldn't grab histogram manager!" << std::endl;
+    std::cout << PHWHERE << ": PANIC: couldn't grab histogram manager!" << std::endl;
     assert(m_manager);
   }
   // Initialize histograms
@@ -190,7 +179,8 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

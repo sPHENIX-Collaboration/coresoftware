@@ -11,14 +11,18 @@
 #define TRKSINJETQA_H
 
 // module utilities
+#include "JetQADefs.h"
 #include "TrksInJetQAConfig.h"
 #include "TrksInJetQAHist.h"
 #include "TrksInJetQAInJetFiller.h"
 #include "TrksInJetQAInclusiveFiller.h"
 
+
 // qa utilities
 #include <qautils/QAHistManagerDef.h>
 
+// calo trigger includes
+#include <calotrigger/TriggerAnalyzer.h>
 // f4a includes
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -32,13 +36,11 @@
 // c++ utilities
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
-
-// jet qa utilities
-#include "JetQADefs.h"
 
 // TrksInJetQA definition -----------------------------------------------------
 
@@ -88,6 +90,7 @@ class TrksInJetQA : public SubsysReco
   std::string m_moduleName = "TrksInJetQA";
   std::string m_outFileName = "tracksInJetsQA.root";
   Fun4AllHistoManager* m_manager = NULL;
+  TriggerAnalyzer* m_analyzer = NULL;
 
   // trigger selection
   bool m_doTrgSelect = false;
