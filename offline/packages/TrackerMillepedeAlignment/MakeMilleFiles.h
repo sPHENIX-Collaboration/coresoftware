@@ -19,9 +19,9 @@
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
 
 #include <fun4all/SubsysReco.h>
-
+#ifndef __CLING__
 #include <ActsExamples/EventData/Trajectories.hpp>
-
+#endif
 #include <string>
 #include <vector>
 
@@ -33,9 +33,9 @@ class TrkrCluster;
 class TrkrClusterContainer;
 class Mille;
 class ActsPropagator;
-
+#ifndef __CLING__
 using Trajectory = ActsExamples::Trajectories;
-
+#endif
 class MakeMilleFiles : public SubsysReco
 {
  public:

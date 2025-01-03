@@ -13,9 +13,9 @@
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/Utilities/Result.hpp>
-
+#ifndef __CLING__
 #include <ActsExamples/EventData/Trajectories.hpp>
-
+#endif
 class PHCompositeNode;
 class RawClusterContainer;
 class TowerInfoContainer;
@@ -41,7 +41,9 @@ class PHActsTrackProjection : public SubsysReco
   using BoundTrackParam =
       const Acts::BoundTrackParameters;
   using SurfacePtr = std::shared_ptr<const Acts::Surface>;
+  #ifndef __CLING__
   using Trajectory = ActsExamples::Trajectories;
+  #endif 
   using BoundTrackParamResult = ActsPropagator::BTPPairResult;
 
   PHActsTrackProjection(const std::string &name = "PHActsTrackProjection");

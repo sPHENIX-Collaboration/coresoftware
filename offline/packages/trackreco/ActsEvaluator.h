@@ -9,8 +9,9 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <Acts/Utilities/Helpers.hpp>
-
+#ifndef __CLING__
 #include <ActsExamples/EventData/Trajectories.hpp>
+#endif
 
 class TTree;
 class TFile;
@@ -30,7 +31,9 @@ class TrackSeedContainer;
 #include <vector>
 
 using SourceLink = ActsSourceLink;
+#ifndef __CLING__
 using Trajectory = ActsExamples::Trajectories;
+#endif
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using Acts::VectorHelpers::eta;
 using Acts::VectorHelpers::perp;
@@ -53,7 +56,9 @@ class ActsEvaluator
   void Init(PHCompositeNode* topNode);
   void process_track(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
 		     std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
+		     #ifndef __CLING__
 		     Trajectory::IndexedParameters& paramsMap,
+		     #endif
                      SvtxTrack* track,
                      const TrackSeed* seed,
                      const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
@@ -65,7 +70,9 @@ class ActsEvaluator
   /// Function to evaluate Trajectories fit results from the KF
   void evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackContainer& trackContainer,
 			std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
+			#ifndef __CLING__
 			Trajectory::IndexedParameters& paramsMap,
+			#endif
                         SvtxTrack* track,
                         const TrackSeed* seed,
                         const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
@@ -79,7 +86,10 @@ class ActsEvaluator
 
   void fillProtoTrack(const TrackSeed* seed);
 
-  void fillFittedTrackParams(const Trajectory::IndexedParameters& paramsMap,
+  void fillFittedTrackParams(
+			     #ifndef __CLING__
+			     const Trajectory::IndexedParameters& paramsMap,
+			     #endif
                              const size_t& trackTip);
 
   void visitTrackStates(const Acts::ConstVectorMultiTrajectory& traj,

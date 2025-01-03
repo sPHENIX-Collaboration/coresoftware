@@ -28,8 +28,9 @@
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/Utilities/Result.hpp>
+#ifndef __CLING__
 #include <ActsExamples/EventData/Trajectories.hpp>
-
+#endif
 #include <map>
 #include <set>
 #include <string>
@@ -54,8 +55,9 @@ class TLorentzVector;
 using BoundTrackParam = const Acts::BoundTrackParameters;
 using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
+#ifndef __CLING__
 using Trajectory = ActsExamples::Trajectories;
-
+#endif
 class SecondaryVertexFinder : public SubsysReco
 {
  public:

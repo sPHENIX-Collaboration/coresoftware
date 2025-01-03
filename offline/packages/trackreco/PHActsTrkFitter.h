@@ -22,9 +22,9 @@
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Logger.hpp>
-
+#ifndef __CLING__
 #include <ActsExamples/EventData/Trajectories.hpp>
-
+#endif
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -43,7 +43,9 @@ class PHG4TpcCylinderGeomContainer;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
+#ifndef __CLING__
 using Trajectory = ActsExamples::Trajectories;
+#endif
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
 using SourceLinkVec = std::vector<Acts::SourceLink>;
@@ -133,7 +135,9 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+		       #ifndef __CLING__
                        Trajectory::IndexedParameters& paramsMap,
+		       #endif
                        ActsTrackFittingAlgorithm::TrackContainer& tracks,
                        SvtxTrack* track);
 
@@ -221,8 +225,9 @@ class PHActsTrkFitter : public SubsysReco
   //@}
 
   //! acts trajectories
+  #ifndef __CLING__
   std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
-
+  #endif
   //! tracks
   SvtxTrackMap* m_seedTracks = nullptr;
 
