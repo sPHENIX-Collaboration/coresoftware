@@ -21,7 +21,9 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#ifndef __CLING__
 #include <ActsExamples/EventData/Trajectories.hpp>
+#endif
 #pragma GCC diagnostic pop
 
 #include <Eigen/Dense>
@@ -33,7 +35,9 @@ class TNtuple;
 using BoundTrackParam = const Acts::BoundTrackParameters;
 using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
+#ifndef __CLING__
 using Trajectory = ActsExamples::Trajectories;
+#endif
 
 class ActsGeometry;
 class PHCompositeNode;

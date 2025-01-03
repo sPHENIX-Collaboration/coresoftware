@@ -11,9 +11,9 @@
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/Utilities/Result.hpp>
-
+#ifndef __CLING__
 #include <ActsExamples/EventData/Trajectories.hpp>
-
+#endif
 class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxTrack;
@@ -25,8 +25,9 @@ class PHActsVertexPropagator : public SubsysReco
       const Acts::BoundTrackParameters;
   using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
   using SurfacePtr = std::shared_ptr<const Acts::Surface>;
+#ifndef __CLING__
   using Trajectory = ActsExamples::Trajectories;
-
+#endif
   PHActsVertexPropagator(const std::string &name = "PHActsVertexPropagator");
 
   int Init(PHCompositeNode *topNode) override;
@@ -49,7 +50,9 @@ class PHActsVertexPropagator : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
+  #ifndef __CLING__
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
+  #endif
   std::string m_fieldMap = "";
 };
 
