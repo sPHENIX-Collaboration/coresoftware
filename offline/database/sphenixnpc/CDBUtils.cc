@@ -9,6 +9,7 @@
 #include <set>
 #include <stdexcept>  // for out_of_range
 #include <tuple>
+#include <utility>  // for pair, make_pair
 
 CDBUtils::CDBUtils()
   : cdbclient(new SphenixClient())
