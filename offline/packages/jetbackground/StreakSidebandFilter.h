@@ -45,7 +45,7 @@ class StreakSidebandFilter : public BaseBeamBackgroundFilter
     int verbosity{0};
     bool debug{true};
     float minStreakTwrEne{0.6};
-    float maxAdjacentTwrEne{0.08};
+    float maxAdjacentTwrEne{0.06};
     uint32_t minNumTwrsInStreak{5};
     std::string inNodeName{"TOWERINFO_CALIB_HCALOUT"};
   };
