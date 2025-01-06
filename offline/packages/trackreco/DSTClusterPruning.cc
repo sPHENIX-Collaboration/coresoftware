@@ -97,6 +97,7 @@ int DSTClusterPruning::Init(PHCompositeNode* topNode )
     trkrNode->addNode(newClusterNode);
   }
 
+
                               
   std::cout << "Writer Init end" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -131,7 +132,15 @@ int DSTClusterPruning::process_event(PHCompositeNode* topNode)
  
   prune_clusters();
   //print_clusters();
-  
+  if( m_cluster_map) {
+    m_cluster_map->Reset();
+  }
+  fill_clusters();
+  /*
+  if( m_reduced_cluster_map) {
+    m_reduced_cluster_map->Reset();
+  }
+  */
   std::cout << "Return codes end" << Fun4AllReturnCodes::EVENT_OK << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -162,6 +171,13 @@ int DSTClusterPruning::load_nodes( PHCompositeNode* topNode )
   m_reduced_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "ReducedClusterContainer");
   
   //m_reduced_track_map = findNode::getClass<SvtxTrackMap>(topNode, "ReducedTrackContainer");
+  m_track_seed_container = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  m_tpc_track_seed_container = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  m_silicon_track_seed_container = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  //load in the Track Seeds
+  //TpcTrackSeedContainer
+  //SiliconTrackSeedContainer
+  //SvtxTrackSeedContainer
 
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -176,10 +192,112 @@ void DSTClusterPruning::prune_clusters(){
 //std::cout << "start of check" << "\n";
 //if(!(m_cluster_map&&m_hitsetcontainer&&m_container)) return;
 //make sure tracks exist
-if( !( m_track_map && m_cluster_map && m_reduced_cluster_map) ) {
+if( !(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_silicon_track_seed_container && m_tpc_track_seed_container) ) {
     return;
 }
+//std::cout <<"after check " << std::endl;
 
+  //for( auto seed_iter = m_track_seed_container->begin(); seed_iter != m_track_seed_container->end(); ++ seed_iter){
+  //const auto& trackseed = *seed_iter;
+  for(const auto& trackseed:*m_track_seed_container){
+    //std::cout << "Inside trackseed container loop" << std::endl; 
+    if(!trackseed){
+      continue;
+    }
+    //std::cout << "after check if trackseed exists" << std::endl;
+    //trackseed->identify();
+    //trackseed is an SvtxTrackSeed_v2
+    unsigned int tpcIndex = trackseed->get_tpc_seed_index();
+    unsigned int siliconIndex = trackseed->get_silicon_seed_index();
+
+    TrackSeed* TPCSeed = nullptr;
+    if(tpcIndex <= m_tpc_track_seed_container->end()-m_tpc_track_seed_container->begin()){
+      TPCSeed = *(m_tpc_track_seed_container->begin()+tpcIndex);
+    }
+    TrackSeed* SiliconSeed = nullptr;
+    if(siliconIndex <= m_silicon_track_seed_container->end()-m_silicon_track_seed_container->begin()){
+    SiliconSeed = *(m_silicon_track_seed_container->begin()+siliconIndex);
+    }
+
+
+    if(!TPCSeed){
+      std::cout << "TPCSeed does not exist \n";
+      
+    }else{
+    //std::cout << "We are about to loop over cluster keys in TPC Seed" << std::endl;
+    //TPCSeed->identify();
+    for( auto key_iter = TPCSeed->begin_cluster_keys(); key_iter != TPCSeed->end_cluster_keys(); ++key_iter )
+    {
+      const auto& cluster_key = *key_iter;
+      auto cluster = m_cluster_map->findCluster( cluster_key );
+      if( !cluster )
+      {
+        std::cout << "DSTClusterPruning::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
+        continue;
+      }
+      if(!m_reduced_cluster_map->findCluster(cluster_key)){
+        m_cluster = new TrkrClusterv5();
+        m_cluster->CopyFrom(cluster);
+        m_reduced_cluster_map->addClusterSpecifyKey(cluster_key,m_cluster);
+        
+
+      }
+
+    }
+
+  }
+
+  
+  if(!SiliconSeed){
+    std::cout << "SiliconSeed does not exist \n";
+    }else{
+    //std::cout << "We are about to loop over cluster keys in Silicon Seed" << std::endl;
+    //SiliconSeed->identify();
+    for( auto key_iter = SiliconSeed->begin_cluster_keys(); key_iter != SiliconSeed->end_cluster_keys(); ++key_iter )
+    {
+      const auto& cluster_key = *key_iter;
+      auto cluster = m_cluster_map->findCluster( cluster_key );
+      if( !cluster )
+      {
+        std::cout << "DSTClusterPruning::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
+        continue;
+      }
+      if(!m_reduced_cluster_map->findCluster(cluster_key)){
+        m_cluster = new TrkrClusterv5();
+        m_cluster->CopyFrom(cluster);
+        m_reduced_cluster_map->addClusterSpecifyKey(cluster_key,m_cluster);
+        
+        //m_reduced_cluster_map->addClusterSpecifyKey(cluster_key, cluster);
+      }
+    
+      
+    }
+  }
+
+    //loop over trackseeds and fill clusters
+    
+    /*for( auto key_iter = trackseed->begin_cluster_keys(); key_iter != trackseed->end_cluster_keys(); ++key_iter )
+    {
+      const auto& cluster_key = *key_iter;
+      std::cout << "cluster key is: " << cluster_key << std::endl;
+      auto cluster = m_cluster_map->findCluster( cluster_key );
+      if( !cluster )
+      {
+        std::cout << "DSTClusterPruning::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
+        continue;
+      }
+      if(!m_reduced_cluster_map->findCluster(cluster_key)){
+        m_cluster = new TrkrClusterv5();
+        m_cluster->CopyFrom(cluster);
+        m_reduced_cluster_map->addClusterSpecifyKey(cluster_key,m_cluster);
+        
+
+      }
+
+    }*/
+
+  }
+  /*
   for( const auto& trackpair:*m_track_map )
   {
     std::cout << "start of loop" << "\n";
@@ -250,11 +368,109 @@ if( !( m_track_map && m_cluster_map && m_reduced_cluster_map) ) {
       
       std::cout << "end of loop" << "\n";
     }
+    */
 
 
 
 
 }
+
+//fill original clusters
+//_____________________________________________________________________
+void DSTClusterPruning::fill_clusters(){
+//use this to create object that looks through both tracks and clusters and saves into new object
+//make sure clusters exist
+//std::cout << "start of check" << "\n";
+//if(!(m_cluster_map&&m_hitsetcontainer&&m_container)) return;
+//make sure tracks exist
+if( !(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_silicon_track_seed_container && m_tpc_track_seed_container) ) {
+    return;
+}
+
+  //for( auto seed_iter = m_track_seed_container->begin(); seed_iter != m_track_seed_container->end(); ++ seed_iter){
+  //const auto& trackseed = *seed_iter;
+  for(const auto& trackseed:*m_track_seed_container){
+    //std::cout << "Inside trackseed container loop" << std::endl; 
+    if(!trackseed){
+      continue;
+    }
+    //std::cout << "after check if trackseed exists" << std::endl;
+    //trackseed->identify();
+    //trackseed is an SvtxTrackSeed_v2
+    unsigned int tpcIndex = trackseed->get_tpc_seed_index();
+    unsigned int siliconIndex = trackseed->get_silicon_seed_index();
+
+    TrackSeed* TPCSeed = nullptr;
+    if(tpcIndex <= m_tpc_track_seed_container->end()-m_tpc_track_seed_container->begin()){
+      TPCSeed = *(m_tpc_track_seed_container->begin()+tpcIndex);
+    }
+    TrackSeed* SiliconSeed = nullptr;
+    if(siliconIndex <= m_silicon_track_seed_container->end()-m_silicon_track_seed_container->begin()){
+    SiliconSeed = *(m_silicon_track_seed_container->begin()+siliconIndex);
+    }
+
+
+    if(!TPCSeed){
+      std::cout << "TPCSeed does not exist \n";
+      
+    }else{
+    //std::cout << "We are about to loop over cluster keys in TPC Seed" << std::endl;
+    //TPCSeed->identify();
+    for( auto key_iter = TPCSeed->begin_cluster_keys(); key_iter != TPCSeed->end_cluster_keys(); ++key_iter )
+    {
+      const auto& cluster_key = *key_iter;
+      auto cluster = m_reduced_cluster_map->findCluster( cluster_key );
+      if( !cluster )
+      {
+        std::cout << "DSTClusterPruning::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
+        continue;
+      }
+      if(!m_cluster_map->findCluster(cluster_key)){
+        m_cluster = new TrkrClusterv5();
+        m_cluster->CopyFrom(cluster);
+        m_cluster_map->addClusterSpecifyKey(cluster_key,m_cluster);
+        
+
+      }
+
+    }
+
+  }
+
+  
+  if(!SiliconSeed){
+    std::cout << "SiliconSeed does not exist \n";
+    }else{
+    //std::cout << "We are about to loop over cluster keys in Silicon Seed" << std::endl;
+    //SiliconSeed->identify();
+    for( auto key_iter = SiliconSeed->begin_cluster_keys(); key_iter != SiliconSeed->end_cluster_keys(); ++key_iter )
+    {
+      const auto& cluster_key = *key_iter;
+      auto cluster = m_reduced_cluster_map->findCluster( cluster_key );
+      if( !cluster )
+      {
+        std::cout << "DSTClusterPruning::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
+        continue;
+      }
+      if(!m_cluster_map->findCluster(cluster_key)){
+        m_cluster = new TrkrClusterv5();
+        m_cluster->CopyFrom(cluster);
+        m_cluster_map->addClusterSpecifyKey(cluster_key,m_cluster);
+        
+        //m_reduced_cluster_map->addClusterSpecifyKey(cluster_key, cluster);
+      }
+    
+      
+    }
+  }
+
+  }
+
+
+
+}
+
+
 
 
 //print clusters to test

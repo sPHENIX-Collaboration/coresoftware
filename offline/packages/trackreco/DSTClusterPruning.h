@@ -34,6 +34,7 @@ class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+class TrackSeedContainer;
 
 class DSTClusterPruning : public SubsysReco
 {
@@ -56,12 +57,16 @@ class DSTClusterPruning : public SubsysReco
   int load_nodes(PHCompositeNode*);
 
   void prune_clusters();
+  void fill_clusters();
   void print_clusters();
   SvtxTrackMap* m_track_map = nullptr;
 
   TrkrClusterv5* m_cluster = nullptr;
   TrkrClusterContainer* m_cluster_map = nullptr;
   TrkrClusterContainer* m_reduced_cluster_map = nullptr;
+  TrackSeedContainer* m_track_seed_container = nullptr;
+  TrackSeedContainer* m_tpc_track_seed_container = nullptr;
+  TrackSeedContainer* m_silicon_track_seed_container = nullptr;
 
   //@}
 
