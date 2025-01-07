@@ -56,12 +56,13 @@ namespace BeamBackgroundFilterAndQADefs
     // members
     uint8_t status = 0;
     double energy = -1.;
-
+    bool isGood = false;
     //! grab info from a TowerInfo object
     void SetInfo(TowerInfo* info)
     {
       status = info->get_status();
       energy = info->get_energy();
+      isGood = info->get_isGood();
       return;
     }
 
