@@ -52,8 +52,8 @@ class RhosinEvent : public SubsysReco
 
  private:
   //! Module name, and histogram tag
-  std::string m_moduleName{"RhosinEvent"};
-  std::string m_histTag{"AllTrig"};
+  std::string m_moduleName;
+  std::string m_histTag;
   // std::string m_outputFileName{"RhosinEvent.root"};
 
   bool m_do_mult_rho{true};

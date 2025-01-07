@@ -79,7 +79,7 @@ class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller
   SvtxTrack* GetTrkFromPFO(PFObject* pfo);
 
   // additional dst nodes needed
-  PFObjectStore* m_flowStore = NULL;
+  PFObjectStore* m_flowStore {nullptr};
 
   // for tracks in jet
   std::vector<SvtxTrack*> m_trksInJet;

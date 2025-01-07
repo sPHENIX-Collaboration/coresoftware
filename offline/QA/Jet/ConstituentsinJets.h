@@ -60,10 +60,10 @@ class ConstituentsinJets : public SubsysReco
 
  private:
   //! Module name, input node strings, and histogram tags
-  std::string m_moduleName{"ConstituentsinJets"};
-  std::string m_recoJetName{"AntiKt_Tower_r04"};
-  std::string m_towBkgdName{"TowerInfoBackground_Sub2"};
-  std::string m_histTag{"AllTrig_AntiKt_Tower_R04"};
+  std::string m_moduleName;
+  std::string m_recoJetName;
+  std::string m_towBkgdName;
+  std::string m_histTag;
   // std::string m_outputFileName{ "ConstituentsinJets.root"};
 
   //! Trigger selection
@@ -71,8 +71,8 @@ class ConstituentsinJets : public SubsysReco
   uint32_t m_trgToSelect{JetQADefs::GL1::MBDNSJet1};
 
   // ! Kinematic cuts and reco jet node name
-  std::pair<double, double> m_etaRange = std::make_pair(-1.1, 1.1);
-  std::pair<double, double> m_ptRange = std::make_pair(1.0, 1000.0);
+  std::pair<double, double> m_etaRange{-1.1, 1.1};
+  std::pair<double, double> m_ptRange{1.0, 1000.0};
 
   // Jet N constituents
   Fun4AllHistoManager *m_manager{nullptr};

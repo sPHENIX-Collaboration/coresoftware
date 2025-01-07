@@ -50,7 +50,6 @@ ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std:
   , m_recoJetName(recojetname)
   , m_towBkgdName(towBkgdName)
   , m_histTag(histTag)
-// initialize variables only in one place, no duplication
 {
 }
 
