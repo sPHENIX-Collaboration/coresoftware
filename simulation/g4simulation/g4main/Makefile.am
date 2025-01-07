@@ -37,7 +37,6 @@ libg4testbench_la_LDFLAGS = \
 libg4testbench_la_LIBADD = \
   libphg4hit.la \
   -lboost_filesystem \
-  -leicsmear \
   -lffamodules \
   -lfun4all \
   -lg4decayer \
@@ -164,7 +163,6 @@ libg4testbench_la_SOURCES = \
   PHG4UIsession.cc \
   PHG4Utils.cc \
   PHG4VertexSelection.cc \
-  ReadEICFiles.cc \
   CosmicSpray.cc
 
 

@@ -5,7 +5,7 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -24,13 +24,15 @@ pkginclude_HEADERS = \
   CDBInterface.h \
   FlagHandler.h \
   HeadReco.h \
-  SyncReco.h
+  SyncReco.h \
+  Timing.h
 
 libffamodules_la_SOURCES = \
   CDBInterface.cc \
   FlagHandler.cc \
   HeadReco.cc \
-  SyncReco.cc
+  SyncReco.cc \
+  Timing.cc
 
 BUILT_SOURCES = testexternals.cc
 

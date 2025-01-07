@@ -24,6 +24,7 @@
 #include <Eigen/Core>
 
 // STL includes
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -70,6 +71,7 @@ class PHSimpleKFProp : public SubsysReco
   }
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
+  void set_max_seeds(unsigned int ui) { _max_seeds = ui; }
   enum class PropagationDirection
   {
     Outward,
@@ -81,6 +83,12 @@ class PHSimpleKFProp : public SubsysReco
   void setCF4Fraction(double frac) { CF4_frac = frac; };
   void setNitrogenFraction(double frac) { N2_frac = frac; };
   void setIsobutaneFraction(double frac) { isobutane_frac = frac; };
+
+  void set_ghost_phi_cut(double d) { _ghost_phi_cut = d; }
+  void set_ghost_eta_cut(double d) { _ghost_eta_cut = d; }
+  void set_ghost_x_cut(double d) { _ghost_x_cut = d; }
+  void set_ghost_y_cut(double d) { _ghost_y_cut = d; }
+  void set_ghost_z_cut(double d) { _ghost_z_cut = d; }
 
  private:
   bool _use_truth_clusters = false;
@@ -102,6 +110,7 @@ class PHSimpleKFProp : public SubsysReco
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
   bool _pp_mode = false;
+  unsigned int _max_seeds = 0;
 
   TrkrClusterContainer* _cluster_map = nullptr;
 
@@ -136,7 +145,7 @@ class PHSimpleKFProp : public SubsysReco
   template <typename T>
   struct KDPointCloud
   {
-    KDPointCloud<T>() {}
+    KDPointCloud() {}
     std::vector<std::vector<T>> pts;
     inline size_t kdtree_get_point_count() const
     {
@@ -185,6 +194,12 @@ class PHSimpleKFProp : public SubsysReco
   double CF4_frac = 0.20;
   double N2_frac = 0.00;
   double isobutane_frac = 0.05;
+
+  double _ghost_phi_cut = std::numeric_limits<double>::max();
+  double _ghost_eta_cut = std::numeric_limits<double>::max();
+  double _ghost_x_cut = std::numeric_limits<double>::max();
+  double _ghost_y_cut = std::numeric_limits<double>::max();
+  double _ghost_z_cut = std::numeric_limits<double>::max();
 };
 
 #endif

@@ -152,6 +152,7 @@ void PHG4GDMLDetector::SetDisplayProperty(G4AssemblyVolume* av)
   }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
 {
   std::string material_name(

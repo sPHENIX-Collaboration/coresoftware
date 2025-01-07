@@ -3,8 +3,10 @@
 #include "PHG4MvtxHitReco.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/CylinderGeom_MvtxHelper.h>
 #include <mvtx/MvtxHitPruner.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>  // // make iwyu happy
@@ -60,7 +62,6 @@
 #include <memory>  // for allocator_tra...
 #include <set>     // for vector
 #include <vector>  // for vector
-
 
 // New headers I added
 
@@ -358,7 +359,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
         auto hskey = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, 0);
         auto surf = tgeometry->maps().getSiliconSurface(hskey);
 
-        TVector3 local_in_check = layergeom->get_local_from_world_coords(surf, tgeometry, world_in);
+        TVector3 local_in_check = CylinderGeom_MvtxHelper::get_local_from_world_coords(surf, tgeometry, world_in);
         std::cout
             << " local coords of entry point from geom (a check) "
             << local_in_check.X() << " " << local_in_check.Y() << " " << local_in_check.Z() << "\n"
@@ -684,27 +685,25 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 
           if (hit)
           {
-	    if (Verbosity() > 0)
-	    {
-	      std::cout << PHWHERE << "::" << __func__
-			<< " - duplicated hit, hitsetkey: " << hitsetkey
-			<< " hitkey: " << hitkey << std::endl;
-	    }
+            if (Verbosity() > 0)
+            {
+              std::cout << PHWHERE << "::" << __func__
+                        << " - duplicated hit, hitsetkey: " << hitsetkey
+                        << " hitkey: " << hitkey << std::endl;
+            }
             continue;
           }
           const TrkrDefs::hitsetkey hitsetkeymask = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, 0);
 
-        
-          //Regardless of whether the hit should be masked, add the energy to the truth hit
+          // Regardless of whether the hit should be masked, add the energy to the truth hit
           double hitenergy = venergy[i1].first * TrkrDefs::MvtxEnergyScaleup;
           addtruthhitset(hitsetkey, hitkey, hitenergy);
-  
-          if ((std::find(m_deadPixelMap.begin(), m_deadPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_deadPixelMap.end())
-           && (std::find(m_hotPixelMap.begin(),  m_hotPixelMap.end(),  std::make_pair(hitsetkeymask, hitkey)) == m_hotPixelMap.end()))
+
+          if ((std::find(m_deadPixelMap.begin(), m_deadPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_deadPixelMap.end()) && (std::find(m_hotPixelMap.begin(), m_hotPixelMap.end(), std::make_pair(hitsetkeymask, hitkey)) == m_hotPixelMap.end()))
           {
             // create hit and insert in hitset
             hit = new TrkrHitv2();
-            
+
             hit->addEnergy(hitenergy);
             hitsetit->second->addHitSpecificKey(hitkey, hit);
           }
@@ -754,7 +753,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
     for (auto& _pair : tmap)
     {
       auto& track = _pair.second;
-      std::cout << (boost::format("id(%2i) phi:eta:pt(%5.2f:%5.2f:%5.2f) nclusters(") % (int) track->getTrackid() %track->getPhi() %track->getPseudoRapidity() %track->getPt()).str() << track->getClusters().size() << ") " << std::endl;
+      std::cout << (boost::format("id(%2i) phi:eta:pt(%5.2f:%5.2f:%5.2f) nclusters(") % (int) track->getTrackid() % track->getPhi() % track->getPseudoRapidity() % track->getPt()).str() << track->getClusters().size() << ") " << std::endl;
       int nclus = 0;
       for (auto cluskey : track->getClusters())
       {
@@ -1306,10 +1305,10 @@ void PHG4MvtxHitReco::cluster_truthhits(PHCompositeNode* topNode)
   return;
 }
 
-void PHG4MvtxHitReco::makePixelMask(hitMask &aMask, const std::string& dbName, const std::string& totalPixelsToMask)
+void PHG4MvtxHitReco::makePixelMask(hitMask& aMask, const std::string& dbName, const std::string& totalPixelsToMask)
 {
   std::string database = CDBInterface::instance()->getUrl(dbName);
-  CDBTTree *cdbttree = new CDBTTree(database);
+  CDBTTree* cdbttree = new CDBTTree(database);
 
   int NPixel = -1;
   NPixel = cdbttree->GetSingleIntValue(totalPixelsToMask);
@@ -1321,15 +1320,15 @@ void PHG4MvtxHitReco::makePixelMask(hitMask &aMask, const std::string& dbName, c
     int Chip = cdbttree->GetIntValue(i, "chip");
     int Col = cdbttree->GetIntValue(i, "col");
     int Row = cdbttree->GetIntValue(i, "row");
-    if (Verbosity() > VERBOSITY_A_LOT){
-      std::cout << dbName << ": Will mask layer: "<< Layer << ", stave: "<< Stave << ", chip: " << Chip << ", row: " << Row << ", col: " << Col << std::endl;
+    if (Verbosity() > VERBOSITY_A_LOT)
+    {
+      std::cout << dbName << ": Will mask layer: " << Layer << ", stave: " << Stave << ", chip: " << Chip << ", row: " << Row << ", col: " << Col << std::endl;
     }
 
     TrkrDefs::hitsetkey DeadPixelHitKey = MvtxDefs::genHitSetKey(Layer, Stave, Chip, 0);
     TrkrDefs::hitkey DeadHitKey = MvtxDefs::genHitKey(Col, Row);
     aMask.push_back({std::make_pair(DeadPixelHitKey, DeadHitKey)});
   }
-  
+
   delete cdbttree;
 }
-

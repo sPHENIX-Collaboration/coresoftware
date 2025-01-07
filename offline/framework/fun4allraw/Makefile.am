@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = foreign
+AUTOMAKE_OPTIONS = foreign subdir-objects
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   intt_pool.h \
   InputManagerType.h \
   MicromegasBcoMatchingInformation.h\
+  MicromegasBcoMatchingInformation_v2.h\
   MvtxRawDefs.h \
   SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
@@ -31,6 +32,8 @@ pkginclude_HEADERS = \
   SingleLL1TriggerInput.h \
   SingleMbdTriggerInput.h \
   SingleMicromegasPoolInput.h \
+  SingleMicromegasPoolInput_v1.h \
+  SingleMicromegasPoolInput_v2.h \
   SingleInttEventInput.h \
   SingleInttPoolInput.h \
   SingleMvtxPoolInput.h \
@@ -39,10 +42,13 @@ pkginclude_HEADERS = \
   SingleTpcPoolInput.h \
   SingleTriggerInput.h \
   SingleZdcInput.h \
-  SingleZdcTriggerInput.h
+  SingleZdcTriggerInput.h \
+  SingleTpcTimeFrameInput.h \
+  TpcTimeFrameBuilder.h
 
 decoderincludedir = $(includedir)/mvtx_decoder
 decoderinclude_HEADERS = \
+  mvtx_decoder/RDH.h \
   mvtx_decoder/DecodingStat.h \
   mvtx_decoder/GBTLink.h \
   mvtx_decoder/GBTWord.h \
@@ -59,6 +65,7 @@ lib_LTLIBRARIES = \
 
 # source for mvtx decoder library
 libmvtx_decoder_la_SOURCES =\
+  mvtx_decoder/RDH.cc \
   mvtx_decoder/DecodingStat.cc \
   mvtx_decoder/GBTLink.cc \
   mvtx_decoder/GBTWord.cc \
@@ -79,6 +86,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllStreamingInputManager.cc \
   intt_pool.cc \
   MicromegasBcoMatchingInformation.cc\
+  MicromegasBcoMatchingInformation_v2.cc\
   mvtx_pool.cc \
   MvtxRawDefs.cc \
   SingleCemcTriggerInput.cc \
@@ -89,7 +97,8 @@ libfun4allraw_la_SOURCES = \
   SingleInttPoolInput.cc \
   SingleLL1TriggerInput.cc \
   SingleMbdTriggerInput.cc \
-  SingleMicromegasPoolInput.cc \
+  SingleMicromegasPoolInput_v1.cc \
+  SingleMicromegasPoolInput_v2.cc \
   SingleMvtxPoolInput.cc \
   SinglePrdfInput.cc \
   SingleStreamingInput.cc \
@@ -97,7 +106,8 @@ libfun4allraw_la_SOURCES = \
   SingleTriggerInput.cc \
   SingleZdcInput.cc \
   SingleZdcTriggerInput.cc \
-  tpc_pool.cc
+  SingleTpcTimeFrameInput.cc \
+  TpcTimeFrameBuilder.cc
 
 libfun4allraw_la_LIBADD = \
   libmvtx_decoder.la \

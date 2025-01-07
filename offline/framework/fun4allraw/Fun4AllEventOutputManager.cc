@@ -114,7 +114,7 @@ void Fun4AllEventOutputManager::SetOutfileName(const std::string &fname)
   return;
 }
 
-void Fun4AllEventOutputManager::Verbosity(const int i)
+void Fun4AllEventOutputManager::Verbosity(const uint64_t i)
 {
   Fun4AllBase::Verbosity(i);
   if (m_OutStream)

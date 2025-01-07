@@ -11,7 +11,7 @@
 #include <calobase/RawTowerv1.h>
 
 #include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -110,9 +110,9 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   }
   if (Verbosity() > 0)
   {
-    std::cout << "SubtractTowers::process_event: starting with " << emcal_towerinfos->size() << EMTowerName<<" towers" << std::endl;
-    std::cout << "SubtractTowers::process_event: starting with " << ihcal_towerinfos->size() << IHTowerName<<" towers" << std::endl;
-    std::cout << "SubtractTowers::process_event: starting with " << ohcal_towerinfos->size() << OHTowerName<<" towers" << std::endl;
+    std::cout << "SubtractTowers::process_event: starting with " << emcal_towerinfos->size() << EMTowerName << " towers" << std::endl;
+    std::cout << "SubtractTowers::process_event: starting with " << ihcal_towerinfos->size() << IHTowerName << " towers" << std::endl;
+    std::cout << "SubtractTowers::process_event: starting with " << ohcal_towerinfos->size() << OHTowerName << " towers" << std::endl;
   }
 
   else
@@ -506,7 +506,7 @@ int SubtractTowers::CreateNode(PHCompositeNode *topNode)
     {
       if (Verbosity() > 0)
       {
-        std::cout << "SubtractTowers::CreateNode : creating " << IHTowerName <<" node " << std::endl;
+        std::cout << "SubtractTowers::CreateNode : creating " << IHTowerName << " node " << std::endl;
       }
 
       TowerInfoContainer *ihcal_towers = dynamic_cast<TowerInfoContainer *>(hcal_towers->CloneMe());

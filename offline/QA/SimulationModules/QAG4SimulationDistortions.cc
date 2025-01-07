@@ -1,6 +1,8 @@
 
 #include "QAG4SimulationDistortions.h"
 
+#include <fun4all/SubsysReco.h>
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -10,29 +12,29 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <globalvertex/SvtxVertexMap.h>
-
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/TrackSeed.h>
 
-#include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
 #include <TString.h>
 #include <TTree.h>
-#include <TVector3.h>
 
-#include <array>
+#include <Acts/Definitions/Algebra.hpp>
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <map>      // for map
+#include <iterator>
+#include <string>
 #include <utility>  // for pair
+#include <vector>
 
 namespace
 {
@@ -55,11 +57,17 @@ namespace
   inline constexpr T deltaPhi(const T& phi)
   {
     if (phi > M_PI)
+    {
       return phi - 2. * M_PI;
+    }
     else if (phi <= -M_PI)
+    {
       return phi + 2. * M_PI;
+    }
     else
+    {
       return phi;
+    }
   }
 
   /// return number of clusters of a given type that belong to a tracks
@@ -79,12 +87,10 @@ QAG4SimulationDistortions::QAG4SimulationDistortions(const std::string& name)
 }
 
 //____________________________________________________________________________..
-QAG4SimulationDistortions::~QAG4SimulationDistortions()
-{
-}
+QAG4SimulationDistortions::~QAG4SimulationDistortions() = default;
 
 //____________________________________________________________________________..
-int QAG4SimulationDistortions::Init(PHCompositeNode*)
+int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
 {
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -176,7 +182,7 @@ int QAG4SimulationDistortions::InitRun(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________..
-int QAG4SimulationDistortions::process_event(PHCompositeNode*)
+int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
 {
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -249,7 +255,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode*)
         continue;
       }
 
-      TrkrDefs::cluskey ckey = std::stoll(state->get_name());
+      TrkrDefs::cluskey const ckey = std::stoll(state->get_name());
 
       auto cluster = m_clusterContainer->findCluster(ckey);
 
@@ -350,8 +356,14 @@ bool QAG4SimulationDistortions::checkTrack(SvtxTrack* track)
 
   // ignore tracks with too few mvtx, intt and micromegas hits
   const auto cluster_keys(get_cluster_keys(track));
-  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2) return false;
-  if (count_clusters<TrkrDefs::inttId>(cluster_keys) < 2) return false;
+  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2)
+  {
+    return false;
+  }
+  if (count_clusters<TrkrDefs::inttId>(cluster_keys) < 2)
+  {
+    return false;
+  }
   if (count_clusters<TrkrDefs::micromegasId>(cluster_keys) < 2)
   {
     return false;

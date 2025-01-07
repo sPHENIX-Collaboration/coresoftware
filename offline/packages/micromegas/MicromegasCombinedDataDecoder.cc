@@ -24,6 +24,17 @@
 #include <cassert>
 #include <memory>
 
+namespace
+{
+  /*
+   * returns true if a given channel for a given FEE is permanently masked
+   * for now all channels from 128 to 255, for FEE 8 (SCOZ) are masked
+   */
+  bool channel_is_permanently_masked( int fee_id, int channel )
+  { return fee_id==8 && channel>=128; }
+
+}
+
 //_________________________________________________________
 MicromegasCombinedDataDecoder::MicromegasCombinedDataDecoder(const std::string& name)
   : SubsysReco(name)
@@ -150,7 +161,12 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
     // get fee id, apply mapping to current fiber set, for backward compatibility
     const int fee = m_mapping.get_new_fee_id(rawhit->get_fee());
     const auto channel = rawhit->get_channel();
-    const int samples = rawhit->get_samples();
+
+    // check if channel is permanently masked
+    if( channel_is_permanently_masked(fee, channel ))
+    {
+      continue;
+    }
 
     // map fee and channel to physical hitsetid and physical strip
     // get hitset key matching this fee
@@ -185,9 +201,10 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    // loop over samples find maximum
+    // loop over sample_range find maximum
+    const auto sample_range = std::make_pair(rawhit->get_sample_begin(), rawhit->get_sample_end());
     std::vector<uint16_t> adc_list;
-    for (int is = std::max(m_sample_min, 0); is < std::min(m_sample_max, samples); ++is)
+    for (auto is = std::max(m_sample_min, sample_range.first); is < std::min(m_sample_max, sample_range.second); ++is)
     {
       const uint16_t adc = rawhit->get_adc(is);
       if (adc != MicromegasDefs::m_adc_invalid)

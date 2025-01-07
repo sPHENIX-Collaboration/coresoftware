@@ -1,7 +1,7 @@
 #include "TowerBackgroundv1.h"
 
+#include <iostream>
 #include <memory>
-#include <ostream>
 
 TowerBackgroundv1::TowerBackgroundv1()
 {

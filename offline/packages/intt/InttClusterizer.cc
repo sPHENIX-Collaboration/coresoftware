@@ -55,17 +55,17 @@ bool InttClusterizer::ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, Trkr
 {
   if (get_z_clustering(layer))
   {
-    if (fabs(InttDefs::getCol(lhs.first) - InttDefs::getCol(rhs.first)) <= 1)
+    if (std::abs(InttDefs::getCol(lhs.first) - InttDefs::getCol(rhs.first)) <= 1)
     {
-      if (fabs(InttDefs::getRow(lhs.first) - InttDefs::getRow(rhs.first)) <= 1)
+      if (std::abs(InttDefs::getRow(lhs.first) - InttDefs::getRow(rhs.first)) <= 1)
       {
         return true;
       }
     }
   }
-  else if (fabs(InttDefs::getCol(lhs.first) - InttDefs::getCol(rhs.first)) == 0)
+  else if (std::abs(InttDefs::getCol(lhs.first) - InttDefs::getCol(rhs.first)) == 0)
   {
-    if (fabs(InttDefs::getRow(lhs.first) - InttDefs::getRow(rhs.first)) <= 1)
+    if (std::abs(InttDefs::getRow(lhs.first) - InttDefs::getRow(rhs.first)) <= 1)
     {
       return true;
     }
@@ -78,17 +78,17 @@ bool InttClusterizer::ladder_are_adjacent(RawHit* lhs, RawHit* rhs, const int la
 {
   if (get_z_clustering(layer))
   {
-    if (fabs(lhs->getPhiBin() - rhs->getPhiBin()) <= 1)  // col
+    if (std::abs((int) (lhs->getPhiBin()) - (int) (rhs->getPhiBin())) <= 1)  // col
     {
-      if (fabs(lhs->getTBin() - rhs->getTBin()) <= 1)  // Row
+      if (std::abs((int) (lhs->getTBin()) - (int) (rhs->getTBin())) <= 1)  // Row
       {
         return true;
       }
     }
   }
-  else if (fabs(lhs->getPhiBin() - rhs->getPhiBin()) <= 1)
+  else if (std::abs((int) (lhs->getPhiBin()) - (int)(rhs->getPhiBin())) <= 1)
   {
-    if (fabs(lhs->getTBin() - rhs->getTBin()) == 0)
+    if (std::abs((int) (lhs->getTBin()) - (int) (rhs->getTBin())) == 0)
     {
       return true;
     }
@@ -379,11 +379,12 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     // we have a single hitset, get the info that identifies the sensor
     int layer = TrkrDefs::getLayer(hitsetitr->first);
     int ladder_z_index = InttDefs::getLadderZId(hitsetitr->first);
+    int type = (ladder_z_index == 0 || ladder_z_index == 2) ? 0 : 1; // ladder ID 0 and 2 are type-A (1.6 cm), ladder ID 1 and 3 are type-B (2.0 cm)
 
     // we will need the geometry object for this layer to get the global position
     CylinderGeomIntt* geom = dynamic_cast<CylinderGeomIntt*>(geom_container->GetLayerGeom(layer));
     float pitch = geom->get_strip_y_spacing();
-    float length = geom->get_strip_z_spacing();
+    float length = geom->get_strip_z_spacing(type);
 
     // fill a vector of hits to make things easier - gets every hit in the hitset
     std::vector<std::pair<TrkrDefs::hitkey, TrkrHit*>> hitvec;
@@ -643,11 +644,12 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
     // we have a single hitset, get the info that identifies the sensor
     int layer = TrkrDefs::getLayer(hitsetitr->first);
     int ladder_z_index = InttDefs::getLadderZId(hitsetitr->first);
+    int type = (ladder_z_index == 0 || ladder_z_index == 2) ? 0 : 1; // ladder ID 0 and 2 are type-A (1.6 cm), ladder ID 1 and 3 are type-B (2.0 cm)
 
     // we will need the geometry object for this layer to get the global position
     CylinderGeomIntt* geom = dynamic_cast<CylinderGeomIntt*>(geom_container->GetLayerGeom(layer));
     float pitch = geom->get_strip_y_spacing();
-    float length = geom->get_strip_z_spacing();
+    float length = geom->get_strip_z_spacing(type);
 
     // fill a vector of hits to make things easier - gets every hit in the hitset
     std::vector<RawHit*> hitvec;

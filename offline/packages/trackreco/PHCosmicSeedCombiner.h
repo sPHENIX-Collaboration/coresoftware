@@ -17,9 +17,6 @@ class PHCosmicSeedCombiner : public SubsysReco
 {
  public:
   PHCosmicSeedCombiner(const std::string &name = "PHCosmicSeedCombiner");
-
-  ~PHCosmicSeedCombiner() override;
-
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

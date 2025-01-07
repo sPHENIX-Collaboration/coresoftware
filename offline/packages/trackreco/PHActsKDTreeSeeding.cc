@@ -16,8 +16,10 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <intt/CylinderGeomIntt.h>
+#include <intt/CylinderGeomInttHelper.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -155,8 +157,8 @@ void PHActsKDTreeSeeding::fillTrackSeedContainer(SeedContainer& seeds)
       positions.insert(std::make_pair(ckey, globalPosition));
     }
 
-    siseed->circleFitByTaubin(positions, 0, 8);
-    siseed->lineFit(positions, 0, 8);
+    TrackSeedHelper::circleFitByTaubin(siseed.get(),positions, 0, 8);
+    TrackSeedHelper::lineFit(siseed.get(),positions, 0, 8);
 
     /// Project to INTT and find matches to add to positions
     findInttMatches(positions, *siseed);
@@ -279,7 +281,7 @@ void PHActsKDTreeSeeding::matchInttClusters(
       auto layerGeom = dynamic_cast<CylinderGeomIntt*>(m_geomContainerIntt->GetLayerGeom(inttlayer + 3));
 
       auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
-      layerGeom->find_segment_center(surf, m_tGeometry, ladderLocation);
+      CylinderGeomInttHelper::find_segment_center(surf, m_tGeometry, ladderLocation);
 
       const double ladderphi = atan2(ladderLocation[1], ladderLocation[0]) + layerGeom->get_strip_phi_tilt();
       const auto stripZSpacing = layerGeom->get_strip_z_spacing();
@@ -304,9 +306,7 @@ void PHActsKDTreeSeeding::matchInttClusters(
       TVector3 projectionLocal(0, 0, 0);
       TVector3 projectionGlobal(xProj[inttlayer], yProj[inttlayer], zProj[inttlayer]);
 
-      projectionLocal = layerGeom->get_local_from_world_coords(surf,
-                                                               m_tGeometry,
-                                                               projectionGlobal);
+      projectionLocal = CylinderGeomInttHelper::get_local_from_world_coords(surf, m_tGeometry, projectionGlobal);
 
       auto range = m_clusterMap->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)

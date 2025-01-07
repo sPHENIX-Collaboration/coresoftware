@@ -19,18 +19,17 @@
 
 // fastjet includes
 #include <fastjet/AreaDefinition.hh>
-#include <fastjet/ClusterSequence.hh>
 #include <fastjet/ClusterSequenceArea.hh>
+#include <fastjet/GhostedAreaSpec.hh>
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 #include <fastjet/Selector.hh>
-#include <fastjet/tools/BackgroundEstimatorBase.hh>
 #include <fastjet/tools/JetMedianBackgroundEstimator.hh>
 
 // standard includes
 #include <algorithm>
+#include <cassert>
 #include <cmath>
-#include <cstdlib>  // for exit
 #include <iostream>
 #include <string>
 #include <vector>

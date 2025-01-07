@@ -17,7 +17,8 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 namespace
 {
@@ -143,13 +144,17 @@ int PHSiliconCosmicSeeding::process_event(PHCompositeNode * /*unused*/)
     }
     if (nmaps > 3 && nmaps < 9 && nintt > 2 && nintt < 7)
     {
-      std::unique_ptr<TrackSeed_v1> si_seed = std::make_unique<TrackSeed_v1>();
+      std::unique_ptr<TrackSeed_v2> si_seed = std::make_unique<TrackSeed_v2>();
       for (auto &key : s.ckeys)
       {
         si_seed->insert_cluster_key(key);
       }
-      si_seed->circleFitByTaubin(clusterPositions, 0, 7);
-      si_seed->lineFit(clusterPositions, 0, 7);
+      TrackSeedHelper::circleFitByTaubin(si_seed.get(), clusterPositions, 0, 7);
+      TrackSeedHelper::lineFit(si_seed.get(), clusterPositions, 0, 7);
+
+      // calculate phi and assign
+      si_seed->set_phi(TrackSeedHelper::get_phi(si_seed.get(), clusterPositions));
+
       if (Verbosity() > 3)
       {
         si_seed->identify();

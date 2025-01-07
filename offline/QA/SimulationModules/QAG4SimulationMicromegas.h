@@ -31,7 +31,7 @@ class QAG4SimulationMicromegas : public SubsysReco
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
- 
+
  private:
   /// common prefix for QA histograms
   std::string get_histo_prefix() const;

@@ -44,7 +44,11 @@ nlohmann::json SphenixClient::getUrl(const std::string& pl_type, long long iov)
   {
     return nopayloadclient::DataBaseException("No valid payload with type " + pl_type).jsonify();
   }
-  return makeResp(payload_iov["payload_url"]);
+  std::string payloadurl = payload_iov["payload_url"];
+  //  std::cout << "payload url: " << payloadurl << std::endl;
+  // the makeResp(T msg)  creates always problems when just doing
+  // makeResp(payload_iov["payload_url"] ) we get unresolved externals in non optimized code
+  return {{"code", 0}, {"msg", payloadurl}};
 }
 
 nlohmann::json SphenixClient::getUrlDict(long long iov)

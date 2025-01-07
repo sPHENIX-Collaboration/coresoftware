@@ -11,6 +11,8 @@
 #define PHSIMPLEVERTEXFINDER_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <map>
 #include <set>
@@ -25,6 +27,9 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 class TrkrCluster;
 class TrackVertexCrossingAssoc;
+class TrackSeed;
+class TrkrClusterContainer;
+class ActsGeometry;
 
 class PHSimpleVertexFinder : public SubsysReco
 {
@@ -46,14 +51,18 @@ class PHSimpleVertexFinder : public SubsysReco
   void setOutlierPairCut(const double cut) { _outlier_cut = cut; }
   void setTrackMapName(const std::string &name) { _track_map_name = name; }
   void setVertexMapName(const std::string &name) { _vertex_map_name = name; }
+  void zeroField(const bool flag) { _zero_field = flag; }
 
  private:
   int GetNodes(PHCompositeNode *topNode);
   int CreateNodes(PHCompositeNode *topNode);
 
   void checkDCAs(SvtxTrackMap *track_map);
+  void checkDCAsZF(SvtxTrackMap *track_map);
   void checkDCAs();
 
+  void getTrackletClusterList(TrackSeed* tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  
   void findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2);
   double dcaTwoLines(const Eigen::Vector3d &p1, const Eigen::Vector3d &v1,
                      const Eigen::Vector3d &p2, const Eigen::Vector3d &v2,
@@ -64,8 +73,9 @@ class PHSimpleVertexFinder : public SubsysReco
   double getAverage(std::vector<double> &v);
 
   SvtxTrackMap *_track_map{nullptr};
-  //  SvtxTrack *_track{nullptr};
+  TrkrClusterContainer* _cluster_map{nullptr};
   SvtxVertexMap *_svtx_vertex_map{nullptr};
+  ActsGeometry* _tGeometry{nullptr};
 
   double _base_dcacut = 0.0080;  // 80 microns
   double _active_dcacut = 0.080;
@@ -75,6 +85,9 @@ class PHSimpleVertexFinder : public SubsysReco
   unsigned int _nmvtx_required = 3;
   double _track_pt_cut = 0.0;
   double _outlier_cut = 0.015;
+
+  bool _zero_field = false;     // fit straight lines if true
+
   std::string _track_map_name = "SvtxTrackMap";
   std::string _vertex_map_name = "SvtxVertexMap";
   std::multimap<unsigned int, unsigned int> _vertex_track_map;

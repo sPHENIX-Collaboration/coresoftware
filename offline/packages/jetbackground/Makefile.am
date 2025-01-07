@@ -2,8 +2,8 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
-  -I`root-config --incdir`
+  -isystem$(OFFLINE_MAIN)/include  \
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libjetbackground_io.la \
@@ -27,6 +27,7 @@ libjetbackground_la_LIBADD = \
   -lConstituentSubtractor \
   -ljetbase \
   -lphg4hit \
+  -lqautils \
   -lSubsysReco
 
 pkginclude_HEADERS = \
@@ -40,7 +41,12 @@ pkginclude_HEADERS = \
   TowerBackground.h \
   TowerBackgroundv1.h \
   TowerRho.h \
-  TowerRhov1.h 
+  TowerRhov1.h \
+  BeamBackgroundFilterAndQA.h \
+  BeamBackgroundFilterAndQADefs.h \
+  BaseBeamBackgroundFilter.h \
+  NullFilter.h \
+  StreakSidebandFilter.h
 
 ROOTDICTS = \
   TowerBackground_Dict.cc \
@@ -67,7 +73,10 @@ libjetbackground_la_SOURCES = \
   FastJetAlgoSub.cc \
   RetowerCEMC.cc \
   SubtractTowers.cc \
-  SubtractTowersCS.cc
+  SubtractTowersCS.cc \
+  BeamBackgroundFilterAndQA.cc \
+  NullFilter.cc \
+  StreakSidebandFilter.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

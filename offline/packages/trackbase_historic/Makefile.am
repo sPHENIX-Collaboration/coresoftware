@@ -5,7 +5,8 @@ AUTOMAKE_OPTIONS = foreign
 
 # list of shared libraries to produce
 lib_LTLIBRARIES = \
-  libtrackbase_historic_io.la
+  libtrackbase_historic_io.la \
+  libtrackbase_historic.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -29,6 +30,7 @@ pkginclude_HEADERS = \
   TrackSeed_FastSim_v2.h \
   TrackSeedContainer.h \
   TrackSeedContainer_v1.h \
+  TrackSeedHelper.h \
   PHG4ParticleSvtxMap.h \
   PHG4ParticleSvtxMap_v1.h \
   SvtxPHG4ParticleMap.h \
@@ -159,10 +161,14 @@ nobase_dist_pcm_DATA = \
   TrackStateInfo_Dict_rdict.pcm \
   TrackStateInfo_v1_Dict_rdict.pcm
 
+libtrackbase_historic_la_SOURCES = \
+  ActsTransformations.cc \
+  TrackAnalysisUtils.cc \
+  TrackSeedHelper.cc
+
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \
   $(ROOTDICTS) \
-  ActsTransformations.cc \
   TrackSeed.cc \
   TrackSeed_v1.cc \
   TrackSeed_v2.cc \
@@ -196,7 +202,6 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrackMap_v2.cc \
   SvtxTrackCaloClusterMap.cc \
   SvtxTrackCaloClusterMap_v1.cc \
-  TrackAnalysisUtils.cc \
   SvtxTrackInfo_v1.cc \
   SvtxTrackInfo_v2.cc \
   SvtxTrackInfo_v3.cc \
@@ -205,15 +210,19 @@ libtrackbase_historic_io_la_SOURCES = \
   TrackInfoContainer_v3.cc \
   TrackStateInfo_v1.cc
 
-libtrackbase_historic_io_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
+# dependency on libtrack.so breaks the io only library concept
 libtrackbase_historic_io_la_LIBADD = \
   -lphool \
-  -lActsCore \
   -ltrack_io
+
+libtrackbase_historic_la_LIBADD = \
+  libtrackbase_historic_io.la \
+  -ltrack
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -230,10 +239,14 @@ libtrackbase_historic_io_la_LIBADD = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals_trackbase_historic_io
+  testexternals_trackbase_historic_io \
+  testexternals_trackbase_historic
 
 testexternals_trackbase_historic_io_SOURCES = testexternals.cc
 testexternals_trackbase_historic_io_LDADD = libtrackbase_historic_io.la
+
+testexternals_trackbase_historic_SOURCES = testexternals.cc
+testexternals_trackbase_historic_LDADD = libtrackbase_historic.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

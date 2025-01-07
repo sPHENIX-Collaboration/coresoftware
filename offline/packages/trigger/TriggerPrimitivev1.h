@@ -35,7 +35,7 @@ class TriggerPrimitivev1 : public TriggerPrimitive
 
  private:
   TriggerDefs::TriggerPrimKey m_triggerprimkey = TriggerDefs::TRIGGERPRIMKEYMAX;
-  Map _sums;
+  Map _sums{};
 
  private:  // so the ClassDef does not show up with doc++
   ClassDefOverride(TriggerPrimitivev1, 1);

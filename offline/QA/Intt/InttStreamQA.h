@@ -12,7 +12,7 @@
 class PHCompositeNode;
 class TH1;
 class TH2;
-
+class InttRawHitContainer;
 /// Definition of this analysis module class
 class InttStreamQA : public SubsysReco
 {
@@ -39,6 +39,8 @@ class InttStreamQA : public SubsysReco
  private:
   void createHistos();
   std::string getHistoPrefix() const;
+  std::vector<InttRawHitContainer*> m_rawhit_containers;
+
   TH2* h_bco[8]{nullptr};
   TH2* h_hit[8]{nullptr};
 

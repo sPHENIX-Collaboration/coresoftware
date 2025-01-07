@@ -21,6 +21,7 @@ class QAG4SimulationCalorimeter : public SubsysReco
     kProcessG4Hit = 1 << 1,
     kProcessTower = 1 << 2,
     kProcessCluster = 1 << 3,
+    kProcessTowerinfo = 1 << 4,
 
     kDefaultFlag = kProcessG4Hit | kProcessTower | kProcessCluster
   };

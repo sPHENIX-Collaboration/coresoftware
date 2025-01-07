@@ -3,16 +3,12 @@
  Re-written by Ejiro Umaka 03/28/23
 */
 
-#ifndef EPD_GEOM_H
-#define EPD_GEOM_H
+#ifndef EPD_EPDGEOM_H
+#define EPD_EPDGEOM_H
 
 #include <phool/PHObject.h>
 
-#include <vector>
-#include <utility>
-#include <tuple>
-#include <iostream>
-#include <cmath>
+#include <limits>
 
 class EpdGeom : public PHObject
 {
@@ -24,13 +20,13 @@ class EpdGeom : public PHObject
     virtual void set_r(unsigned int /*key*/, float /*r*/) {return;}
     virtual void set_phi(unsigned int /*key*/, float /*f*/) {return;}
     virtual void set_phi0(unsigned int /*key*/, float /*f0*/) {return;} 
-    virtual float get_r(unsigned int /*key*/) const {return NAN;};
-    virtual float get_z(unsigned int /*key*/) const {return NAN;};
-    virtual float get_phi(unsigned int /*key*/) const {return NAN;};
+    virtual float get_r(unsigned int /*key*/) const {return std::numeric_limits<float>::quiet_NaN();};
+    virtual float get_z(unsigned int /*key*/) const {return std::numeric_limits<float>::quiet_NaN();};
+    virtual float get_phi(unsigned int /*key*/) const {return std::numeric_limits<float>::quiet_NaN();};
 
   private:
     ClassDefOverride(EpdGeom, 1);
 };
 
 
-#endif // EPD_GEOM_H
+#endif // EPD_EPDGEOM_H

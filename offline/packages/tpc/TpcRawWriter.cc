@@ -207,7 +207,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
   TrkrHitSetContainer::ConstRange mvtxhitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
   //  const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
 
-  int count = 0;
+//  int count = 0;
   for (TrkrHitSetContainer::ConstIterator hitsetitr = mvtxhitsetrange.first;
        hitsetitr != mvtxhitsetrange.second;
        ++hitsetitr)
@@ -235,7 +235,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       }
     }
 
-    count++;
+//    count++;
   }
   std::cout << "processing intt" << std::endl;
   // loop over the INTT HitSet objects
@@ -273,7 +273,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       }
     }
 
-    count++;
+//    count++;
   }
   std::cout << "processing mm" << std::endl;
   // loop over the micromega HitSet objects
@@ -308,7 +308,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       }
     }
 
-    count++;
+//    count++;
   }
   std::cout << "processing tpc" << std::endl;
   // loop over the TPC HitSet objects
@@ -483,10 +483,10 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
         if (thisadc > 0)
         {  // non zero adc, fill adc
           zero_count = 0;
-          rhitset->m_tpchits[nphi].push_back(thisadc);
+          (*(rhitset->getHits(nphi))).push_back(thisadc);
           if (layer == 222 && sector == 6 && nphi == 10)
           {
-            std::cout << "0#" << nphi << "nz= " << nz << " filling " << (int) thisadc << " at " << rhitset->m_tpchits[nphi].size() << std::endl;
+            std::cout << "0#" << nphi << "nz= " << nz << " filling " << (int) thisadc << " at " << rhitset->size(nphi) << std::endl;
           }
         }
         else
@@ -511,19 +511,19 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
           {
             if (adcval[nphi][nz + 2] > 0 && adcval[nphi][nz + 1] == 0)
             {  // fill zero count, end of zero series
-              rhitset->m_tpchits[nphi].push_back(zero_count - 1);
+              (*(rhitset->getHits(nphi))).push_back(zero_count - 1);
               zero_count = 0;
               if (layer == 222 && sector == 6 && nphi == 10)
               {
-                std::cout << "3#" << nphi << "nz= " << nz << " filling " << zero_count - 1 << " at " << rhitset->m_tpchits[nphi].size() << " nz+2 " << (nz + 2) << " adcval[nz+2]" << (int) adcval[nphi][nz + 2] << std::endl;
+                std::cout << "3#" << nphi << "nz= " << nz << " filling " << zero_count - 1 << " at " << rhitset->size(nphi) << " nz+2 " << (nz + 2) << " adcval[nz+2]" << (int) adcval[nphi][nz + 2] << std::endl;
               }
             }
             if (adcval[nphi][nz + 1] > 0)
             {
-              rhitset->m_tpchits[nphi].push_back(0);  // leading edge zero
+              (*(rhitset->getHits(nphi))).push_back(0);  // leading edge zero
               if (layer == 222 && sector == 6 && nphi == 10)
               {
-                std::cout << "4#" << nphi << "nz= " << nz << " filling " << 0 << " at " << rhitset->m_tpchits[nphi].size() << std::endl;
+                std::cout << "4#" << nphi << "nz= " << nz << " filling " << 0 << " at " << rhitset->size(nphi) << std::endl;
               }
 
               // std::cout << " 4filling " << 0 << "|" << ((int)rhitset->m_tpchits[nphi].back()) << " | " << ((int)rhitset->m_tpchits[nphi][outpos++]) << std::endl;
@@ -534,10 +534,10 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
         {
           if (zero_count == 1)
           {
-            rhitset->m_tpchits[nphi].push_back(0);
+            (*(rhitset->getHits(nphi))).push_back(0);
             if (layer == 222 && sector == 6 && nphi == 10)
             {
-              std::cout << "5#" << nphi << "nz= " << nz << " filling " << 0 << " at " << rhitset->m_tpchits[nphi].size() << std::endl;
+              std::cout << "5#" << nphi << "nz= " << nz << " filling " << 0 << " at " << rhitset->size(nphi) << std::endl;
             }
             // std::cout << " 5filling " << 0 << "|" << ((int)rhitset->m_tpchits[nphi].back()) << " | " << ((int)rhitset->m_tpchits[nphi][outpos++]) << std::endl;
           }
@@ -545,11 +545,11 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
         if (zero_count == 254)
         {
           zero_count = 0;
-          rhitset->m_tpchits[nphi].push_back(254 - 2);
-          rhitset->m_tpchits[nphi].push_back(0);
+          (*(rhitset->getHits(nphi))).push_back(254 - 2);
+          (*(rhitset->getHits(nphi))).push_back(0);
           if (layer == 222 && sector == 6 && nphi == 10)
           {
-            std::cout << "6#" << nphi << "nz= " << nz << " filling " << 254 - 1 << " at " << rhitset->m_tpchits[nphi].size() << std::endl;
+            std::cout << "6#" << nphi << "nz= " << nz << " filling " << 254 - 1 << " at " << rhitset->size(nphi) << std::endl;
           }
           // std::cout << "6 filling " << 254-1 << "|" << ((int)rhitset->m_tpchits[nphi].back()) << " | " << ((int)rhitset->m_tpchits[nphi][outpos++]) << std::endl;
           //  rhitset->m_tpchits[nphi].push_back(0);
@@ -567,13 +567,13 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
                     }
         */
       }
-      if (zero_count > 0 && rhitset->m_tpchits[nphi].back() != 0)
+      if (zero_count > 0 && (*(rhitset->getHits(nphi))).back() != 0)
       {
-        rhitset->m_tpchits[nphi].push_back(0);  // pad zero at the end
+        (*(rhitset->getHits(nphi))).push_back(0);  // pad zero at the end
       }
       //      std::cout << "sector: " << sector << " lay: " << layer << " nphi: " << nphi << "|" << NPhiBins<< " nzfilled: " << rhitset->m_tpchits[nphi].size() << std::endl;
     }
-    count++;
+//    count++;
 
     //    std::cout << "unpacking..." << std::endl;
     //    unpack and check for correctness
@@ -593,15 +593,15 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
     //   now we have a clean output array
     for (int nphi = 0; nphi < NPhiBins; nphi++)
     {
-      if (rhitset->m_tpchits[nphi].size() == 0)
+      if (rhitset->size(nphi) == 0)
       {
         continue;
       }
 
       int pindex = 0;
-      for (unsigned int nzo = 0; nzo < rhitset->m_tpchits[nphi].size(); nzo++)
+      for (unsigned int nzo = 0; nzo < rhitset->size(nphi); nzo++)
       {
-        uint8_t val = rhitset->m_tpchits[nphi][nzo];
+        uint8_t val = (*(rhitset->getHits(nphi)))[nzo];
 
         if (val == 0)
         {
@@ -615,7 +615,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
           }
           else
           {
-            if ((rhitset->m_tpchits[nphi][nzo - 1] == 0) && (rhitset->m_tpchits[nphi][nzo + 1] == 0))
+            if (((*(rhitset->getHits(nphi)))[nzo - 1] == 0) && ((*(rhitset->getHits(nphi)))[nzo + 1] == 0))
             {  // found zero count
               pindex += val;
             }
@@ -650,15 +650,15 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
 
         if (bad > 0)
         {
-          std::cout << "sector: " << sector << " lay: " << layer << " # " << nphi << " bad:" << bad << " packsize: " << (int) rhitset->m_tpchits[nphi].size() << std::endl;
+          std::cout << "sector: " << sector << " lay: " << layer << " # " << nphi << " bad:" << bad << " packsize: " << (int) rhitset->size(nphi) << std::endl;
 
           for (int nz = 0; nz < NZBins; nz++)
           {
             std::cout << "sector: " << sector << " lay: " << layer << " # " << nphi << "|" << nz << " bad:" << bad << " org: " << (int) adcval[nphi][nz] << " pack: " << (int) outval[nphi][nz] << std::endl;
           }
-          for (int nz = 0; nz < (int) rhitset->m_tpchits[nphi].size(); nz++)
+          for (int nz = 0; nz < (int) rhitset->size(nphi); nz++)
           {
-            std::cout << "lay: " << layer << " # " << nphi << "|" << nz << " bad:" << bad << " pack: " << (int) rhitset->m_tpchits[nphi][nz] << std::endl;
+            std::cout << "lay: " << layer << " # " << nphi << "|" << nz << " bad:" << bad << " pack: " << (int) (*(rhitset->getHits(nphi)))[nz] << std::endl;
           }
         }
       }

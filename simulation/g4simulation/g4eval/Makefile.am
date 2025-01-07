@@ -28,13 +28,15 @@ libg4eval_la_LIBADD = \
   -ljetbase \
   -lglobalvertex_io \
   -lg4tracking_io \
+  -lintt \
   -lintt_io \
   -lmicromegas_io \
+  -lmvtx \
   -lmvtx_io \
   -lphhepmc_io \
   -lphg4hit \
-  -ltrackbase_historic_io \
-  -ltrack_io \
+  -ltrack \
+  -ltrackbase_historic \
   -ltpc_io
 
 pkginclude_HEADERS = \

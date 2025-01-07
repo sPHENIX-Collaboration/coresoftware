@@ -27,6 +27,7 @@
 #include <ffamodules/CDBInterface.h>
 
 // trackbase_historic includes
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
@@ -245,6 +246,10 @@ std::pair<PHCASeeding::PositionMap, PHCASeeding::keyListPerLayer> PHCASeeding::F
       TrkrDefs::cluskey ckey = clusIter->first;
       TrkrCluster* cluster = clusIter->second;
       unsigned int layer = TrkrDefs::getLayer(ckey);
+
+      if(cluster->getZSize()==1&&_reject_zsize1==true){
+	continue;
+      }
       if (layer < _start_layer || layer >= _end_layer)
       {
         if (Verbosity() > 2)

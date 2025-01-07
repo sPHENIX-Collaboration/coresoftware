@@ -6,6 +6,7 @@
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>            // for cluskey, getLayer, TrkrId
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase_historic/SvtxTrack.h>  // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 
@@ -19,6 +20,8 @@
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+#include <Acts/Surfaces/PerigeeSurface.hpp>
 
 #include <cmath>  // for sqrt, fabs, atan2, cos
 #include <iomanip>
@@ -82,6 +85,12 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     auto crossing = track->get_crossing();
     auto siseed = track->get_silicon_seed();
 
+    if (Verbosity() > 0)
+      {
+	std::cout << "track id " << trackkey << " crossing " << crossing 
+		  << " x y z " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
+      }
+
     // crossing zero contains unmatched TPC tracks
     // Here we skip those crossing = zero tracks that do not have silicon seeds
     if( (crossing == 0) & !siseed)
@@ -90,15 +99,9 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
       }
     
     crossings.insert(crossing);
-    _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);
-    
-    if (Verbosity() > 0)
-      {
-	std::cout << "trackkey " << trackkey << " crossing " << crossing << std::endl;
-      }
+    _track_vertex_crossing_map->addTrackAssoc(crossing, trackkey);    
   }
   
-
   unsigned int vertex_id = 0;
 
   for (auto cross : crossings)
@@ -132,15 +135,29 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
 
     // Find all instances where two tracks have a dca of < _dcacut,  and capture the pair details
     // Fills _track_pair_map and _track_pair_pca_map
-    checkDCAs(crossing_tracks);
+    if(_zero_field)
+      {
+	checkDCAsZF(crossing_tracks);
+      }
+    else
+      {
+	checkDCAs(crossing_tracks);
+      }
 
     /// If we didn't find any matches, try again with a slightly larger DCA cut
     if (_track_pair_map.size() == 0)
     {
       _active_dcacut = 3.0 * _base_dcacut;
-      checkDCAs(crossing_tracks);
+      if(_zero_field)
+	{
+	  checkDCAsZF(crossing_tracks);
+	}
+      else
+	{
+	  checkDCAs(crossing_tracks);
+	}
     }
-
+    
     if (Verbosity() > 0)
     {
       std::cout << "crossing " << cross << " track pair map size " << _track_pair_map.size() << std::endl;
@@ -428,6 +445,21 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+
+  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if (!_cluster_map)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!_tGeometry)
+  {
+    std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -520,6 +552,192 @@ void PHSimpleVertexFinder::checkDCAs(SvtxTrackMap *track_map)
       findDcaTwoTracks(tr1, tr2);
     }
   }
+}
+
+void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
+{
+  // ZF tracks do not have an Acts fit, and the seeding does not give
+  // reliable track parameters - refit clusters with straight lines
+  // No distortion corrections applied in TPC at present
+
+  std::vector<unsigned int> cumulative_trackid_vec;
+  std::vector<unsigned int> cumulative_nmvtx_vec;
+  std::vector<unsigned int> cumulative_nintt_vec;
+  std::vector<std::vector<Acts::Vector3>> cumulative_global_vec;
+  std::vector<std::vector<TrkrDefs::cluskey>> cumulative_cluskey_vec;
+  std::vector<std::vector<float>> cumulative_fitpars_vec;
+
+  for (auto & tr1_it : *track_map)
+  {
+    auto id1 = tr1_it.first;
+    auto tr1 = tr1_it.second;
+
+    //    tr1->identify();
+ 
+    TrackSeed *siliconseed = tr1->get_silicon_seed();
+    if (_require_mvtx)
+      {
+	if (!siliconseed)
+	  {
+	    continue;
+	  }
+      }
+    TrackSeed *tpcseed = tr1->get_tpc_seed();
+
+    std::vector<Acts::Vector3> global_vec;
+    std::vector<TrkrDefs::cluskey> cluskey_vec;
+    
+    // Get a vector of cluster keys from the silicon seed and TPC seed
+    if(siliconseed)
+      {
+	getTrackletClusterList(siliconseed, cluskey_vec);
+	if(Verbosity() > 0) 
+	  { 
+	    std::cout << "  after silicon: silicon cluskey_vec size " << cluskey_vec.size() << std::endl; 
+	    for(unsigned long i : cluskey_vec)
+	      {  
+		std::cout << i << std::endl;
+	      }
+	  }
+      }
+    if(tpcseed)
+      {
+
+	getTrackletClusterList(tpcseed, cluskey_vec);
+	if(Verbosity() > 0) 
+	  { 
+	    std::cout << "  after tpc: cluskey_vec size " << cluskey_vec.size() << std::endl; 
+	    for(unsigned long i : cluskey_vec)
+	      {  
+		std::cout << i << std::endl;
+	      }
+	  }
+      }
+
+    unsigned int nmvtx = 0;
+    unsigned int nintt = 0;
+    for (auto& key : cluskey_vec)
+      {
+        if (TrkrDefs::getTrkrId(key) == TrkrDefs::mvtxId)
+	  {
+	    nmvtx++;
+	  }
+	if(TrkrDefs::getTrkrId(key) == TrkrDefs::inttId)
+	  {
+	    nintt++;
+	  }
+      }
+    
+    // store cluster global positions in a vector
+    TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
+    
+    std::vector<float> fitpars = TrackFitUtils::fitClustersZeroField(global_vec, cluskey_vec, true);
+    
+    if (Verbosity() > 1)
+      {
+	if(fitpars.size() == 4)
+	  {
+	    std::cout << " Track " << id1 << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] 
+		      << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
+	  }
+	else
+	  {
+	    std::cout << " Track " << id1 << " ZF line fits failed, fitpars is empty" << std::endl;
+	  }
+      }
+
+    cumulative_trackid_vec.push_back(id1);   
+    cumulative_nmvtx_vec.push_back(nmvtx);   
+    cumulative_nintt_vec.push_back(nintt);   
+    cumulative_global_vec.push_back(global_vec);
+    cumulative_cluskey_vec.push_back(cluskey_vec);
+    cumulative_fitpars_vec.push_back(fitpars);
+  }
+
+  for(unsigned int i1 = 0; i1 < cumulative_trackid_vec.size(); ++i1)
+    {
+      if(cumulative_fitpars_vec[i1].size() == 0) { continue; }
+
+      for(unsigned int i2 = i1; i2 < cumulative_trackid_vec.size(); ++i2)
+	{
+	  if(cumulative_fitpars_vec[i2].size() == 0) { continue; }
+
+	  //  For straight line: fitpars[4] = { xyslope, y0, xzslope, z0 }
+	  Eigen::Vector3d a1(0.0, cumulative_fitpars_vec[i1][1],cumulative_fitpars_vec[i1][3]);      // point on track 1 at x = 0
+	  Eigen::Vector3d a2(0.0, cumulative_fitpars_vec[i2][1],cumulative_fitpars_vec[i2][3]);      // point on track 2 at x = 0
+	  // direction vectors made from dy/dx = xyslope and dz/dx = xzslope
+	  Eigen::Vector3d b1(1.0, cumulative_fitpars_vec[i1][0],cumulative_fitpars_vec[i1][2]);      // direction vector of track 1
+	  Eigen::Vector3d b2(1.0, cumulative_fitpars_vec[i2][0],cumulative_fitpars_vec[i2][2]);      // direction vector of track 2
+	  	  
+	  Eigen::Vector3d PCA1(0, 0, 0);
+	  Eigen::Vector3d PCA2(0, 0, 0);
+	  double dca = dcaTwoLines(a1, b1, a2, b2, PCA1, PCA2);
+
+
+	  // check dca cut is satisfied, and that PCA is close to beam line
+	  if (fabs(dca) < _active_dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut))
+	    {
+	      int id1 = cumulative_trackid_vec[i1];
+	      int id2 = cumulative_trackid_vec[i2];
+
+	      if (Verbosity() > 3)
+		{
+		  std::cout << " good match for tracks " << id1 << " and " << id2 << std::endl;
+		  std::cout << "    a1.x " << a1.x() << " a1.y " << a1.y() << " a1.z " << a1.z() << std::endl;
+		  std::cout << "    a2.x  " << a2.x() << " a2.y " << a2.y() << " a2.z " << a2.z() << std::endl;
+		  std::cout << "    PCA1.x() " << PCA1.x() << " PCA1.y " << PCA1.y() << " PCA1.z " << PCA1.z() << std::endl;
+		  std::cout << "    PCA2.x() " << PCA2.x() << " PCA2.y " << PCA2.y() << " PCA2.z " << PCA2.z() << std::endl;
+		  std::cout << "    dca " << dca << std::endl;
+		}
+	      
+	      // capture the results for successful matches
+	      _track_pair_map.insert(std::make_pair(id1, std::make_pair(id2, dca)));
+	      _track_pair_pca_map.insert(std::make_pair(id1, std::make_pair(id2, std::make_pair(PCA1, PCA2))));
+	    }	  	  
+	}
+    }
+
+  return; 
+}
+
+void PHSimpleVertexFinder::getTrackletClusterList(TrackSeed* tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec)
+{
+  for (auto clusIter = tracklet->begin_cluster_keys();
+       clusIter != tracklet->end_cluster_keys();
+       ++clusIter)
+  {
+    auto key = *clusIter;
+    auto cluster = _cluster_map->findCluster(key);
+    if (!cluster)
+    {
+      std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
+      continue;
+    }
+
+    /// Make a safety check for clusters that couldn't be attached to a surface
+    auto surf = _tGeometry->maps().getSurface(key, cluster);
+    if (!surf)
+    {
+      continue;
+    }
+
+    // drop some bad layers in the TPC completely
+    unsigned int layer = TrkrDefs::getLayer(key);
+    if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39)
+    {
+      continue;
+    }
+
+    // drop INTT clusters for now  -- TEMPORARY!
+    if (layer > 2 && layer < 7)
+    {
+      continue;
+    }
+
+
+    cluskey_vec.push_back(key);
+
+  }  // end loop over clusters for this track
 }
 
 void PHSimpleVertexFinder::checkDCAs()

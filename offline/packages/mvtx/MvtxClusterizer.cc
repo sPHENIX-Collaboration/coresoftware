@@ -408,7 +408,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       cluster_ids.insert(component[i]);
       clusters.insert(make_pair(component[i], hitvec[i]));
     }
-    int total_clusters = 0;
+//    int total_clusters = 0;
     for (set<int>::iterator clusiter = cluster_ids.begin();
          clusiter != cluster_ids.end(); ++clusiter)
     {
@@ -420,7 +420,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
         cout << "Filling cluster id " << clusid << " of "
              << std::distance(cluster_ids.begin(), clusiter) << endl;
       }
-      ++total_clusters;
+//      ++total_clusters;
       auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
       // determine the size of the cluster in phi and z

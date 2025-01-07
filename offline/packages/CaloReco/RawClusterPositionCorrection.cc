@@ -296,7 +296,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     }
 
     float avgphi = phimult / phisum;
-    if (isnan(avgphi)) { continue;
+    if (std::isnan(avgphi)) { continue;
 }
 
     float avgeta = etamult / etasum;

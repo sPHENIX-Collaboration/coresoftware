@@ -1,10 +1,9 @@
 #include "SingleMvtxPoolInput.h"
 #include "mvtx_pool.h"
-
 #include "Fun4AllStreamingInputManager.h"
 
 #include "MvtxRawDefs.h"
-
+#include <fun4all/Fun4AllUtils.h>
 #include <ffarawobjects/MvtxFeeIdInfov1.h>
 #include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
@@ -21,9 +20,11 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
+#include <cmath>
 #include <cassert>
 #include <memory>
 #include <set>
+
 SingleMvtxPoolInput::SingleMvtxPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
@@ -111,14 +112,12 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
         poolmap[plist[i]->getIdentifier()] = new mvtx_pool();
       }
       poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
-
       delete plist[i];
     }
-
     for (auto &iter : poolmap)
     {
       mvtx_pool *pool = iter.second;
-      int num_feeId = pool->iValue(-1, "NR_LINKS");
+      int num_feeId = pool->get_feeidSet_size();
       if (Verbosity() > 1)
       {
         std::cout << "Number of feeid in RCDAQ events: " << num_feeId << " for packet "
@@ -128,15 +127,19 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
       {
         for (int i_fee{0}; i_fee < num_feeId; ++i_fee)
         {
-          auto feeId = pool->iValue(i_fee, "FEEID");
+          //auto feeId = pool->iValue(i_fee, "FEEID");
+          auto feeId = pool->get_feeid(i_fee);
           auto link = MvtxRawDefs::decode_feeid(feeId);
 
           //          auto hbfSize = plist[i]->iValue(feeId, "NR_HBF");
-          auto num_strobes = pool->iValue(feeId, "NR_STROBES");
-          auto num_L1Trgs = pool->iValue(feeId, "NR_PHYS_TRG");
+          // auto num_strobes_old = pool->iValue(feeId, "NR_STROBES");
+          //auto num_L1Trgs_old = pool->iValue(feeId, "NR_PHYS_TRG");
+          auto num_strobes = pool->get_strbSet_size(feeId);
+          auto num_L1Trgs = pool->get_trgSet_size(feeId);
           for (int iL1 = 0; iL1 < num_L1Trgs; ++iL1)
           {
-            auto l1Trg_bco = pool->lValue(feeId, iL1, "L1_IR_BCO");
+          //  auto l1Trg_bco = pool->lValue(feeId, iL1, "L1_IR_BCO");
+            auto l1Trg_bco = pool->get_L1_IR_BCO(feeId, iL1);
             //            auto l1Trg_bc  = plist[i]->iValue(feeId, iL1, "L1_IR_BC");
             m_FeeGTML1BCOMap[feeId].insert(l1Trg_bco);
             gtmL1BcoSet.emplace(l1Trg_bco);
@@ -144,10 +147,14 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
           m_FeeStrobeMap[feeId] += num_strobes;
           for (int i_strb{0}; i_strb < num_strobes; ++i_strb)
           {
-            auto strb_detField = pool->iValue(feeId, i_strb, "TRG_DET_FIELD");
-            uint64_t strb_bco = pool->lValue(feeId, i_strb, "TRG_IR_BCO");
-            auto strb_bc = pool->iValue(feeId, i_strb, "TRG_IR_BC");
-            auto num_hits = pool->iValue(feeId, i_strb, "TRG_NR_HITS");
+            // auto strb_detField = pool->iValue(feeId, i_strb, "TRG_DET_FIELD");
+            // uint64_t strb_bco = pool->lValue(feeId, i_strb, "TRG_IR_BCO");
+            // auto strb_bc = pool->iValue(feeId, i_strb, "TRG_IR_BC");
+            // auto num_hits = pool->iValue(feeId, i_strb, "TRG_NR_HITS");
+            auto strb_detField = pool->get_TRG_DET_FIELD(feeId, i_strb);
+            uint64_t strb_bco = pool->get_TRG_IR_BCO(feeId, i_strb);
+            auto strb_bc = pool->get_TRG_IR_BC(feeId, i_strb);
+            auto num_hits = pool->get_TRG_NR_HITS(feeId, i_strb);
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
             if (strb_bco < minBCO)
@@ -165,7 +172,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
             auto hits = pool->get_hits(feeId, i_strb);
             for (auto &&hit : hits)
             {
-              MvtxRawHit *newhit = new MvtxRawHitv1();
+              auto newhit = std::make_unique<MvtxRawHitv1>();
               newhit->set_bco(strb_bco);
               newhit->set_strobe_bc(strb_bc);
               newhit->set_chip_bc(hit->bunchcounter);
@@ -177,9 +184,10 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
               newhit->set_col(hit->col_pos);
               if (StreamingInputManager())
               {
-                StreamingInputManager()->AddMvtxRawHit(strb_bco, newhit);
+                StreamingInputManager()->AddMvtxRawHit(strb_bco, newhit.get());
               }
-              m_MvtxRawHitMap[strb_bco].push_back(newhit);
+              m_MvtxRawHitMap[strb_bco].push_back(newhit.release());
+
             }
             if (StreamingInputManager())
             {
@@ -210,7 +218,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
         std::cout << "ERROR: lv1Bco: 0x" << std::hex << lv1Bco << std::dec
                   << " is less than minimun strobe bco 0x" << std::hex
                   << *m_BclkStack.begin() << std::dec << std::endl;
-        assert(0);
+        // assert(0);
       }
     }
     gtmL1BcoSet.clear();
@@ -259,35 +267,21 @@ void SingleMvtxPoolInput::Print(const std::string &what) const
 
 void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
-  std::vector<uint64_t> toclearbclk;
-  for (const auto &iter : m_MvtxRawHitMap)
+  m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
+  for(auto it = m_MvtxRawHitMap.begin(); it != m_MvtxRawHitMap.end() && (it->first <= bclk); it = m_MvtxRawHitMap.erase(it))
   {
-    if (iter.first <= bclk)
+    for( const auto& rawhit : it->second)
     {
-      for (auto pktiter : iter.second)
-      {
-        delete pktiter;
-      }
-      toclearbclk.push_back(iter.first);
-    }
-    else
-    {
-      break;
+      delete rawhit;
     }
   }
-
-  for (auto iter : toclearbclk)
+  m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin(), m_MvtxRawHitMap.upper_bound(bclk));
+  m_FeeStrobeMap.erase(m_FeeStrobeMap.begin(), m_FeeStrobeMap.upper_bound(bclk));
+  for(auto& [feeid, gtmbcoset] : m_FeeGTML1BCOMap)
   {
-    m_BclkStack.erase(iter);
-    m_MvtxRawHitMap[iter].clear();
-    m_MvtxRawHitMap.erase(iter);
-    m_FeeStrobeMap.erase(iter);
-
-    for (auto &[feeid, gtmbcoset] : m_FeeGTML1BCOMap)
-    {
-      gtmbcoset.erase(iter);
-    }
+    gtmbcoset.erase(gtmbcoset.begin(), gtmbcoset.upper_bound(bclk));
   }
+
 }
 
 bool SingleMvtxPoolInput::CheckPoolDepth(const uint64_t bclk)
@@ -420,6 +414,49 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 
 void SingleMvtxPoolInput::ConfigureStreamingInputManager()
 {
+
+  auto [runnumber, segment] = Fun4AllUtils::GetRunSegment(*(GetFileList().begin()));
+
+  if (m_readStrWidthFromDB)
+  {
+    m_strobeWidth = MvtxRawDefs::getStrobeLength(runnumber);
+  }
+
+  if(std::isnan(m_strobeWidth))
+  {
+    std::cout << PHWHERE << "WARNING: Strobe length is not defined for run " << runnumber << std::endl;
+    std::cout << "Defaulting to 89 mus strobe length" << std::endl;
+    m_strobeWidth = 89.;
+  }
+  if(m_strobeWidth > 88.)
+  {
+    m_BcoRange = 1000;
+    m_NegativeBco = 1000;
+  }
+  else if (m_strobeWidth > 9 && m_strobeWidth < 11)
+  {
+    m_BcoRange = 100;
+    m_NegativeBco = 500;
+  }
+  else if (m_strobeWidth < 1) // triggered mode
+  {
+    m_BcoRange = 2;
+    m_NegativeBco = 0;
+    if(StreamingInputManager())
+    {
+      StreamingInputManager()->runMvtxTriggered(true);
+    }
+  }
+  else // catchall for anyting else to set to a range based on the rhic clock
+  {
+    m_BcoRange = std::ceil(m_strobeWidth / 0.1065);
+    m_NegativeBco = std::ceil(m_strobeWidth / 0.1065);
+  }
+  if(Verbosity() > 1)
+  {
+    std::cout << "Mvtx strobe length " << m_strobeWidth << std::endl;
+    std::cout << "Mvtx BCO range and negative bco range set based on strobe length " << m_BcoRange << ", " << m_NegativeBco << std::endl;
+  }
   if (StreamingInputManager())
   {
     StreamingInputManager()->SetMvtxBcoRange(m_BcoRange);

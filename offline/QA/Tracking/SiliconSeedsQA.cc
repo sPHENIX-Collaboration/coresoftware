@@ -12,7 +12,10 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <qautils/QAHistManagerDef.h>
+
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrackFitUtils.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
@@ -73,8 +76,8 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
 
     int nmaps = 0;
     int nintt = 0;
-    int ntpc = 0;
-    int nmms = 0;
+//    int ntpc = 0;
+//    int nmms = 0;
 
     for (auto &ckey : ckeys)
     {
@@ -86,12 +89,14 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
       case TrkrDefs::inttId:
         nintt++;
         break;
-      case TrkrDefs::tpcId:
-        ntpc++;
-        break;
-      case TrkrDefs::micromegasId:
-        nmms++;
-        break;
+      // case TrkrDefs::tpcId:
+      //   ntpc++;
+      //   break;
+      // case TrkrDefs::micromegasId:
+      //   nmms++;
+      //   break;
+      default:
+	break;
       }
     }
 

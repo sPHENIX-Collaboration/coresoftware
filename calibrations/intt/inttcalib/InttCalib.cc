@@ -2,6 +2,7 @@
 
 #include <cdbobjects/CDBTTree.h>
 
+#include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -14,6 +15,7 @@
 #include <TF1.h>
 #include <TFile.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TLine.h>
 #include <TPolyLine.h>
 #include <TROOT.h>
@@ -29,27 +31,40 @@
 #include <iostream>
 #include <limits>
 
-InttCalib::InttCalib(const std::string& name)
+InttCalib::InttCalib(const std::string &name)
   : SubsysReco(name)
 {
 }
 
 InttCalib::~InttCalib()
 {
-  for (auto& hist : m_hist)
+  for (auto &hist : m_hist)
   {
     delete hist;
   }
-  for (auto& fit : m_fit)
+  for (auto &fit : m_fit)
   {
     delete fit;
   }
+  for( auto &hist : m_hist_fee)
+  {
+    delete hist;
+  }
+  for( auto &fit : m_fit_fee)
+  {
+    delete fit;
+  }
+  for (auto &hist : m_hist_half)
+  {
+    delete hist;
+  }
 }
 
-int InttCalib::InitRun(PHCompositeNode* /*unused*/)
+int InttCalib::InitRun(PHCompositeNode * /*unused*/)
 {
   m_evts = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
     for (int bco = 0; bco < 129; ++bco)
     {
@@ -79,17 +94,40 @@ int InttCalib::InitRun(PHCompositeNode* /*unused*/)
     // exit(1);
   }
 
+  std::cout<<"INITRUNEND"<<std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int InttCalib::process_event(PHCompositeNode* top_node)
+int InttCalib::process_event(PHCompositeNode *top_node)
 {
   if (m_do_nothing)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
+  Gl1Packet *gl1 = findNode::getClass<Gl1Packet>(top_node, "GL1RAWHIT");
+  uint64_t gl1_bco = (gl1 != nullptr) ? (gl1->getBCO() & 0xFFFFFFFFFFU)
+                                      : std::numeric_limits<uint64_t>::max();
 
-  InttRawHitContainer* intt_raw_hit_container = findNode::getClass<InttRawHitContainer>(top_node, "INTTRAWHIT");
+  
+  if (!gl1)
+  {
+    std::cout << PHWHERE << "\n"
+              << "\tCould not get 'GL1RAWHIT' from node tree" << std::endl;
+    if (m_streaming)
+    {
+      std::cout << "\tRunmode is Streaming \n"
+                << "\tModule will do nothing" << std::endl;
+      m_do_nothing = true;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+    else
+    {
+      std::cout << "\tRunmode is Triggered \n"
+                << "\tModule will process without GL1" << std::endl;
+    }
+  }
+  InttRawHitContainer *intt_raw_hit_container =
+      findNode::getClass<InttRawHitContainer>(top_node, "INTTRAWHIT");
   if (!intt_raw_hit_container)
   {
     std::cout << PHWHERE << "\n"
@@ -103,7 +141,7 @@ int InttCalib::process_event(PHCompositeNode* top_node)
 
   for (size_t n = 0, N = intt_raw_hit_container->get_nhits(); n < N; ++n)
   {
-    InttRawHit* intt_raw_hit = intt_raw_hit_container->get_hit(n);
+    InttRawHit *intt_raw_hit = intt_raw_hit_container->get_hit(n);
     if (!intt_raw_hit)
     {
       continue;
@@ -115,18 +153,41 @@ int InttCalib::process_event(PHCompositeNode* top_node)
         .chp = (intt_raw_hit->get_chip_id() + 25) % 26,  //
         .chn = intt_raw_hit->get_channel_id(),           //
     };
-    // old convention
-    // int bco_diff = ((intt_raw_hit->get_bco() & 0x7fU) - intt_raw_hit->get_FPHX_BCO() + 128) % 128;
-    int bco_diff = (intt_raw_hit->get_FPHX_BCO() - (intt_raw_hit->get_bco() & 0x7fU) + 128) % 128;
 
-    ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco_diff];
+    // Trigger mode BCO Offset
+    // old convention
+    // int bco_diff = ((intt_raw_hit->get_bco() & 0x7fU) -
+    // intt_raw_hit->get_FPHX_BCO() + 128) % 128; int bco_diff =
+    // (intt_raw_hit->get_FPHX_BCO() - (intt_raw_hit->get_bco() & 0x7fU) + 128)
+    // % 128;
+    int bco_diff =
+        (m_streaming) ?
+                      // Streaming mode BCO Offset : Hit BCO(FPHX BCO + INTT
+                      // BCO) - GL1 BCO
+            intt_raw_hit->get_FPHX_BCO() + intt_raw_hit->get_bco() - gl1_bco
+                      :
+                      // Trigger mode BCO Offset
+            (intt_raw_hit->get_FPHX_BCO() - (intt_raw_hit->get_bco() & 0x7fU) +
+             128) %
+                128;
+    // Not use the hit from abort gap region
+    if (m_streaming && ((intt_raw_hit->get_FPHX_BCO() > 116) ||
+                        (intt_raw_hit->get_FPHX_BCO() < 5)))
+    {
+      bco_diff = -999;
+    }
+
+    if (bco_diff > -1)
+    {
+      ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco_diff];
+    }
     ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128];
   }
 
   ++m_evts;
   if ((Verbosity() > 1) && ((m_evts % 1000) == 0))
   {
-    std::cout << "Finished event: " << m_evts << std::endl;
+    std::cout << "event: " << m_evts << std::endl;
   }
   if (m_evts == m_evts_bco && m_evts_bco != 0)
   {
@@ -149,10 +210,18 @@ int InttCalib::EndRun(int const run_number)
   }
 
   m_run_num = run_number;
-
-  ConfigureHotMap_v3();
-  MakeHotMapCdb_v3();
-  MakeHotMapPng_v3();
+  if(m_do_fee)
+  {
+   ConfigureHotMap_fee();
+   MakeHotMapCdb_fee();
+   MakeHotMapROOT_fee();
+  }
+  else
+  {
+    ConfigureHotMap_v3();
+    MakeHotMapCdb_v3();
+    MakeHotMapPng_v3();
+  }
   if (m_do_make_bco)
   {
     ConfigureBcoMap();
@@ -162,10 +231,67 @@ int InttCalib::EndRun(int const run_number)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+int InttCalib::ConfigureHotMap_fee()
+{
+  std::map<double, int> hitrate_pdf[m_MAX_LADDER]{};
+  std::string name[m_MAX_LADDER], title[m_MAX_LADDER];
+  for (int i = 0; i < m_MAX_LADDER; ++i)
+  {
+    // name[i] = (boost::format("intt%01d") % (i / 4)).str();
+    name[i] = (boost::format("intt%01d fee%d") % (i / 14) % (i % 14) ).str();
+    title[i] = name[i];
+  }
+
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
+  {
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+
+    int index = GetFeeIndex(raw, ofl);
+    adjust_hitrate(ofl, hitrate);
+
+    ++hitrate_pdf[index][hitrate];
+  }
+  std::vector<double> middle_keys(m_MAX_LADDER);
+  for (int i = 0; i < m_MAX_LADDER; ++i)
+  {
+    size_t map_size = hitrate_pdf[i].size();
+
+    size_t mid_index = map_size / 2;
+    double middle_key = 0.;
+
+    auto it = hitrate_pdf[i].begin();
+    std::advance(it, mid_index);
+    middle_key = it->first;
+    middle_keys[i] = middle_key;
+  }
+  std::sort(middle_keys.begin(), middle_keys.end());
+  double global_maxbin = 5 * (middle_keys[56] + middle_keys[57]) / 2.0;
+  for (int i = 0; i < m_MAX_LADDER; ++i)
+  {
+    ConfigureHist_v3(m_hist_fee[i], m_fit_fee[i], global_maxbin, hitrate_pdf[i], name[i], title[i]);
+
+    double mean = m_fit_fee[i]->GetParameter(1);
+    double sigma = m_fit_fee[i]->GetParameter(2);
+    m_mean_fee[i] = mean;
+    m_sigma_fee[i] = sigma;
+
+    m_min_fee[i] = mean - m_NUM_SIGMA_COLD * sigma;
+    if (m_min_fee[i] <= 0)
+    {
+      m_min_fee[i] = -999;
+    }
+    m_max_fee[i] = mean + m_NUM_SIGMA_HOT * sigma;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 int InttCalib::ConfigureHotMap_v3()
 {
-  std::map<double, int> hitrate_pdf[m_MAX_INDEX];
+  std::map<double, int> hitrate_pdf[m_MAX_INDEX]{};
   std::string name[m_MAX_INDEX], title[m_MAX_INDEX];
   for (int i = 0; i < m_MAX_INDEX; ++i)
   {
@@ -174,9 +300,11 @@ int InttCalib::ConfigureHotMap_v3()
     title[i] = name[i];
   }
 
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
@@ -184,38 +312,45 @@ int InttCalib::ConfigureHotMap_v3()
 
     ++hitrate_pdf[index][hitrate];
   }
-  std::cout << "HELLO" << std::endl;
+  std::vector<double> middle_keys(8);
   for (int i = 0; i < m_MAX_INDEX; ++i)
   {
-    ConfigureHist_v2(
-        m_hist[i],
-        m_fit[i],
-        hitrate_pdf[i],
-        name[i],
-        title[i]);
+    size_t map_size = hitrate_pdf[i].size();
+
+    size_t mid_index = map_size / 2;
+    double middle_key = 0.;
+
+    auto it = hitrate_pdf[i].begin();
+    std::advance(it, mid_index);
+    middle_key = it->first;
+    middle_keys[i] = middle_key;
+  }
+  std::sort(middle_keys.begin(), middle_keys.end());
+  double global_maxbin = 5 * (middle_keys[3] + middle_keys[4]) / 2.0;
+  for (int i = 0; i < m_MAX_INDEX; ++i)
+  {
+    // ConfigureHist_v2(m_hist[i], m_fit[i], hitrate_pdf[i], name[i], title[i]);
+    ConfigureHist_v3(m_hist[i], m_fit[i], global_maxbin, hitrate_pdf[i], name[i], title[i]);
 
     int nBins = m_hist[i]->GetNbinsX();
     double xMin = m_hist[i]->GetXaxis()->GetXmin();
     double xMax = m_hist[i]->GetXaxis()->GetXmax();
-    m_hist_half[i] = new TH1D((boost::format("half_hist_%d") %i).str().c_str(), "New Histogram with Same Binning", nBins, xMin, xMax);
+    m_hist_half[i] =
+        new TH1D((boost::format("half_hist_%d") % i).str().c_str(),
+                 "New Histogram with Same Binning", nBins, xMin, xMax);
 
     double mean = m_fit[i]->GetParameter(1);
     double sigma = m_fit[i]->GetParameter(2);
-
+    m_mean[i] = mean;
+    m_sigma[i] = sigma;
     // m_min[i] = mean - m_NUM_SIGMA * sigma;
-    m_min[i] = -999;  // Keep cold channels for now
-    m_max[i] = mean + m_NUM_SIGMA * sigma;
-    m_half_min[i] = (mean / 2) - 3 * sigma;
-    m_half_max[i] = (mean / 2) + 3 * sigma;
-    if (m_half_min[i] < 0)
-    {
-      m_half_min[i] = 0;
-    }
 
-    if (m_min[i] < 0)
+    m_min[i] = mean - m_NUM_SIGMA_COLD * sigma;
+    if (m_min[i] <= 0)
     {
-      //  m_min[i] = 0;
+      m_min[i] = -999;
     }
+    m_max[i] = mean + m_NUM_SIGMA_HOT * sigma;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -248,9 +383,11 @@ int InttCalib::ConfigureHotMap_v2()
     // }
   }
 
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
@@ -261,25 +398,102 @@ int InttCalib::ConfigureHotMap_v2()
 
   for (int i = 0; i < m_MAX_INDEX; ++i)
   {
-    ConfigureHist(
-        m_hist[i],
-        m_fit[i],
-        hitrate_pdf[i],
-        name[i],
-        title[i]);
+    ConfigureHist(m_hist[i], m_fit[i], hitrate_pdf[i], name[i], title[i]);
 
     double mean = m_fit[i]->GetParameter(1);
     double sigma = m_fit[i]->GetParameter(2);
 
     // m_min[i] = mean - m_NUM_SIGMA * sigma;
-    m_min[i] = -999;  // Keep cold channels for now
-    m_max[i] = mean + m_NUM_SIGMA * sigma;
-
-    if (m_min[i] < 0)
+    m_min[i] = mean - m_NUM_SIGMA_COLD * sigma;
+    if (m_min[i] <= 0)
     {
-      m_min[i] = 0;
+      m_min[i] = -999;  // Keep cold channels for now
     }
+    m_max[i] = mean + m_NUM_SIGMA_HOT * sigma;
   }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int InttCalib::MakeHotMapCdb_fee()
+{
+  if (m_hotmap_cdb_file.empty())
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  CDBTTree *cdbttree = new CDBTTree(m_hotmap_cdb_file);
+  int size = 0;
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
+  {
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+
+    int index = GetFeeIndex(raw, ofl);
+    adjust_hitrate(ofl, hitrate);
+  //Example Part How to add channel masking mannually.
+    // if( (raw.pid-3001 == 2) && (raw.fee == 9) && (raw.chp == 15)) 
+    // {  
+    //   cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
+    //   cdbttree->SetIntValue(size, "felix_channel", raw.fee);
+    //   cdbttree->SetIntValue(size, "chip", raw.chp);
+    //   cdbttree->SetIntValue(size, "channel", raw.chn);
+    //   cdbttree->SetIntValue(size, "flag", 4);
+    //   ++size;
+    //   continue;
+    // }
+   //End of Example Part 
+    if (hitrate == 0)
+    {  // dead channel
+      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
+      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
+      cdbttree->SetIntValue(size, "chip", raw.chp);
+      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "flag", 1);
+      ++size;
+      continue;
+    }
+    if (m_min_fee[index] < hitrate && hitrate < m_max_fee[index])
+    {  // good channel
+      continue;
+    }
+    if (hitrate > m_max_fee[index])
+    {  // hot channel
+      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
+      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
+      cdbttree->SetIntValue(size, "chip", raw.chp);
+      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "flag", 8);
+      ++size;
+      continue;
+    }
+    if (hitrate < m_min_fee[index])
+    {  // cold channel
+      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
+      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
+      cdbttree->SetIntValue(size, "chip", raw.chp);
+      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "flag", 4);
+      ++size;
+      continue;
+    }
+  
+  }
+  cdbttree->SetSingleIntValue("size", size);
+  cdbttree->SetSingleIntValue("event", m_evts);
+  for (int i = 0; i < m_MAX_LADDER; i++)
+  {
+    std::string meanname = "mean" + std::to_string(i);
+    std::string sigmaname = "sigma" + std::to_string(i);
+    cdbttree->SetSingleDoubleValue(meanname, m_mean_fee[i]);
+    cdbttree->SetSingleDoubleValue(sigmaname, m_sigma_fee[i]);
+  }
+
+  cdbttree->Commit();
+  cdbttree->CommitSingle();
+  cdbttree->WriteCDBTTree();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -291,11 +505,13 @@ int InttCalib::MakeHotMapCdb_v3()
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  CDBTTree* cdbttree = new CDBTTree(m_hotmap_cdb_file);
+  CDBTTree *cdbttree = new CDBTTree(m_hotmap_cdb_file);
   int size = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
@@ -315,22 +531,22 @@ int InttCalib::MakeHotMapCdb_v3()
       // }
     }
 
-    // if (hitrate == 0)
-    // {
-    //   cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-    //   cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-    //   cdbttree->SetIntValue(size, "chip", raw.chp);
-    //   cdbttree->SetIntValue(size, "channel", raw.chn);
-    //   cdbttree->SetIntValue(size, "flag", 1);
-    //   ++size;
-    //   continue;
-    // }
+    if (hitrate == 0)
+    {  // dead channel
+      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
+      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
+      cdbttree->SetIntValue(size, "chip", raw.chp);
+      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "flag", 1);
+      ++size;
+      continue;
+    }
     if (m_min[index] < hitrate && hitrate < m_max[index])
-    {
+    {  // good channel
       continue;
     }
     if (hitrate > m_max[index])
-    {
+    {  // hot channel
       cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
       cdbttree->SetIntValue(size, "felix_channel", raw.fee);
       cdbttree->SetIntValue(size, "chip", raw.chp);
@@ -339,9 +555,26 @@ int InttCalib::MakeHotMapCdb_v3()
       ++size;
       continue;
     }
+    if (hitrate < m_min[index])
+    {  // cold channel
+      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
+      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
+      cdbttree->SetIntValue(size, "chip", raw.chp);
+      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "flag", 4);
+      ++size;
+      continue;
+    }
   }
   cdbttree->SetSingleIntValue("size", size);
   cdbttree->SetSingleIntValue("event", m_evts);
+  for (int i = 0; i < 8; i++)
+  {
+    std::string meanname = "mean" + std::to_string(i);
+    std::string sigmaname = "sigma" + std::to_string(i);
+    cdbttree->SetSingleDoubleValue(meanname, m_mean[i]);
+    cdbttree->SetSingleDoubleValue(sigmaname, m_sigma[i]);
+  }
 
   cdbttree->Commit();
   cdbttree->CommitSingle();
@@ -357,11 +590,13 @@ int InttCalib::MakeHotMapCdb_v2()
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  CDBTTree* cdbttree = new CDBTTree(m_hotmap_cdb_file);
+  CDBTTree *cdbttree = new CDBTTree(m_hotmap_cdb_file);
   int size = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
@@ -386,20 +621,46 @@ int InttCalib::MakeHotMapCdb_v2()
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+int InttCalib::MakeHotMapROOT_fee()
+{
+  const int rows = 8;
+  const int cols = 14;
+  const int numHists = rows * cols; 
+  TCanvas *c1 = new TCanvas("c1", "Histograms with Fits", 2000, 1400);
+  c1->Divide(cols, rows);
+
+  gStyle->SetOptStat(0);
+  gStyle->SetPadTopMargin(0.01);
+  gStyle->SetPadBottomMargin(0.01);
+  gStyle->SetPadLeftMargin(0.01);
+  gStyle->SetPadRightMargin(0.01);
+
+  for (int i = 0; i < numHists; ++i)
+  {
+    c1->cd(i + 1);              
+    m_hist_fee[i]->Draw();      
+    m_fit_fee[i]->Draw("same"); 
+  }
+
+  c1->SaveAs(m_hotmap_png_file.c_str());
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 int InttCalib::MakeHotMapPng_v3()
 {
   // canvas
   gStyle->SetOptStat(0);
-  TCanvas* cnvs = new TCanvas(
-      "hitrate_cnvs",  //
-      "hitrate_cnvs",  //
-      1280, 720        //
+  TCanvas *cnvs = new TCanvas("hitrate_cnvs",  //
+                              "hitrate_cnvs",  //
+                              1280, 720        //
   );
-  double n_hot = 0, n_cold = 0, n_total = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  double n_hot = 0, n_cold = 0, n_dead = 0, n_total = 0;
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
@@ -413,6 +674,10 @@ int InttCalib::MakeHotMapPng_v3()
     {
       ++n_hot;
     }
+    if (hitrate == 0)
+    {
+      ++n_dead;
+    }
     ++n_total;
     if (m_hitmap_half[raw.pid - 3001][raw.fee][raw.chp] > 100)
     {
@@ -424,14 +689,20 @@ int InttCalib::MakeHotMapPng_v3()
     std::string name = (boost::format("hist_pad_%01d") % j).str();
 
     cnvs->cd();
-    TPad* hist_pad = new TPad(                                             //
-        name.c_str(), name.c_str(),                                        //
-                                                                           // (j % 4 + 0.0) / 4.0 * 0.9 + 0.0, (1.0 - j / 4) / 2.0 * 0.9 + 0.1, //
-                                                                           // (j % 4 + 1.0) / 4.0 * 0.9 + 0.0, (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
-                                                                           // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0, (1.0 - j / 4) / 2.0 * 0.9 + 0.1,  //
-                                                                           // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, (2.0 - j / 4) / 2.0 * 0.9 + 0.1   //
+    TPad *hist_pad = new TPad(  //
+        name.c_str(),
+        name.c_str(),  //
+                       // (j % 4 + 0.0) / 4.0 * 0.9 + 0.0, (1.0 - j / 4) / 2.0 *
+                       // 0.9 + 0.1, // (j % 4 + 1.0) / 4.0 * 0.9 + 0.0, (2.0 - j
+                       // / 4) / 2.0 * 0.9 + 0.1  //
+                       // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0,
+                       // NOLINTNEXTLINE(bugprone-integer-division)
+        (1.0 - j / 4) / 2.0 * 0.9 + 0.1,//
+                      // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0,
+                      // NOLINTNEXTLINE(bugprone-integer-division)
+        (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
     );
 
     hist_pad->SetFillStyle(4000);
@@ -463,42 +734,41 @@ int InttCalib::MakeHotMapPng_v3()
         y_max = temp_max;
       }
 
-      temp_max = m_hist[i]->GetXaxis()->GetBinLowEdge(m_hist[i]->GetXaxis()->GetNbins() - 1);
-      temp_max += m_hist[i]->GetXaxis()->GetBinWidth(m_hist[i]->GetXaxis()->GetNbins() - 1);
+      temp_max = m_hist[i]->GetXaxis()->GetBinLowEdge(
+          m_hist[i]->GetXaxis()->GetNbins() - 1);
+      temp_max += m_hist[i]->GetXaxis()->GetBinWidth(
+          m_hist[i]->GetXaxis()->GetNbins() - 1);
       if (x_max < temp_max)
       {
         x_max = temp_max;
       }
     }
     y_max *= 10;
-    // count how many are cold/hot
 
-    // for(int i = j * 4; i < (j + 1) * 4; ++i)
     for (int i = j; i < j + 1; ++i)
     {
       m_hist[i]->GetXaxis()->SetRangeUser(0, x_max);
       m_hist[i]->GetYaxis()->SetRangeUser(1, y_max);
       m_hist[i]->Draw("same");
-      m_hist_half[i]->Draw("same");
+      // histogram for half entry chips. Not used for now
+      // m_hist_half[i]->Draw("same");
       m_fit[i]->Draw("same");
 
       TLine line;
-      // line.SetLineColor(GetFeeColor(i - j * 4));
       line.SetLineColor(kRed);
       line.SetLineWidth(2);
-      line.DrawLine(m_min[i], 0, m_min[i], y_max);
       line.DrawLine(m_max[i], 0, m_max[i], y_max);
+
+      TLine line2;
+      line2.SetLineColor(kBlue);
+      line2.DrawLine(m_min[i], 0, m_min[i], y_max);
     }
   }
 
   cnvs->cd();
-  TPad* legend_pad = new TPad(
-      "legend_pad", "legend_pad",
-      0.9, 0.1,
-      1.0, 1.0);
+  TPad *legend_pad = new TPad("legend_pad", "legend_pad", 0.9, 0.1, 1.0, 1.0);
   legend_pad->SetFillStyle(4000);
   legend_pad->Range(0.0, 0.0, 1.0, 1.0);
-  // legend_pad->Draw();
 
   legend_pad->cd();
   for (int i = 0; i < 4; ++i)
@@ -512,10 +782,8 @@ int InttCalib::MakeHotMapPng_v3()
   }
 
   cnvs->cd();
-  TPad* caption_pad = new TPad(
-      "caption_pad", "caption_pad",
-      0.0, 0.0,
-      1.0, 0.1);
+  TPad *caption_pad =
+      new TPad("caption_pad", "caption_pad", 0.0, 0.0, 1.0, 0.1);
   caption_pad->SetFillStyle(4000);
   caption_pad->Range(0.0, 0.0, 1.0, 1.0);
   caption_pad->Draw();
@@ -525,9 +793,20 @@ int InttCalib::MakeHotMapPng_v3()
   caption.SetTextColor(kBlack);
   caption.SetTextAlign(22);
   caption.SetTextSize(0.25);
-  caption.DrawText(0.5, 0.75, (boost::format("Run: %08d Events: %d") % m_run_num % m_evts).str().c_str());
-  caption.DrawText(0.5, 0.50, (boost::format("Fraction Cold: %.3lf%%") % (n_cold * 100 / n_total)).str().c_str());
-  caption.DrawText(0.5, 0.25, (boost::format("Fraction Hot: %.3lf%%") % (n_hot * 100 / n_total)).str().c_str());
+  caption.DrawText(0.5, 0.75,
+                   (boost::format("Run: %08d Events: %d") % m_run_num % m_evts)
+                       .str()
+                       .c_str());
+  caption.DrawText(
+      0.5, 0.50,
+      (boost::format("Fraction Cold: %.3lf%% Fraction Dead: %.3lf%%") % (n_cold * 100 / n_total) % (n_dead * 100 / n_total))
+          .str()
+          .c_str());
+  caption.DrawText(
+      0.5, 0.25,
+      (boost::format("Fraction Hot: %.3lf%%") % (n_hot * 100 / n_total))
+          .str()
+          .c_str());
 
   cnvs->Update();
   cnvs->Show();
@@ -546,27 +825,32 @@ int InttCalib::MakeHotMapPng_v2()
 {
   // canvas
   gStyle->SetOptStat(0);
-  TCanvas* cnvs = new TCanvas(
-      "hitrate_cnvs",  //
-      "hitrate_cnvs",  //
-      1280, 720        //
+  TCanvas *cnvs = new TCanvas("hitrate_cnvs",  //
+                              "hitrate_cnvs",  //
+                              1280, 720        //
   );
 
   for (int j = 0; j < 8; ++j)
   {
     std::string name = (boost::format("hist_pad_%01d") % j).str();
-
+   
     cnvs->cd();
-    TPad* hist_pad = new TPad(                                             //
-        name.c_str(), name.c_str(),                                        //
-                                                                           // (j % 4 + 0.0) / 4.0 * 0.9 + 0.0, (1.0 - j / 4) / 2.0 * 0.9 + 0.1, //
-                                                                           // (j % 4 + 1.0) / 4.0 * 0.9 + 0.0, (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
-                                                                           // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0, (1.0 - j / 4) / 2.0 * 0.9 + 0.1,  //
-                                                                           // NOLINTNEXTLINE(bugprone-integer-division)
-        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0, (2.0 - j / 4) / 2.0 * 0.9 + 0.1   //
+    TPad *hist_pad = new TPad(  //
+        name.c_str(),
+        name.c_str(),  //
+                       // (j % 4 + 0.0) / 4.0 * 0.9 + 0.0, (1.0 - j / 4) / 2.0 *
+                       // 0.9 + 0.1, // (j % 4 + 1.0) / 4.0 * 0.9 + 0.0, (2.0 - j
+                       // / 4) / 2.0 * 0.9 + 0.1  //
+                       // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 0.0) / 4.0 * 1.0 + 0.0,
+                       // NOLINTNEXTLINE(bugprone-integer-division)
+        (1.0 - j / 4) / 2.0 * 0.9 + 0.1,//
+                      // NOLINTNEXTLINE(bugprone-integer-division)
+        (j % 4 + 1.0) / 4.0 * 1.0 + 0.0,
+                      // NOLINTNEXTLINE(bugprone-integer-division)
+        (2.0 - j / 4) / 2.0 * 0.9 + 0.1  //
     );
-
+    
     hist_pad->SetFillStyle(4000);
     hist_pad->Range(0.0, 0.0, 1.0, 1.0);
     hist_pad->SetLogy();
@@ -593,8 +877,10 @@ int InttCalib::MakeHotMapPng_v2()
         y_max = temp_max;
       }
 
-      temp_max = m_hist[i]->GetXaxis()->GetBinLowEdge(m_hist[i]->GetXaxis()->GetNbins() - 1);
-      temp_max += m_hist[i]->GetXaxis()->GetBinWidth(m_hist[i]->GetXaxis()->GetNbins() - 1);
+      temp_max = m_hist[i]->GetXaxis()->GetBinLowEdge(
+          m_hist[i]->GetXaxis()->GetNbins() - 1);
+      temp_max += m_hist[i]->GetXaxis()->GetBinWidth(
+          m_hist[i]->GetXaxis()->GetNbins() - 1);
       if (x_max < temp_max)
       {
         x_max = temp_max;
@@ -620,10 +906,7 @@ int InttCalib::MakeHotMapPng_v2()
   }
 
   cnvs->cd();
-  TPad* legend_pad = new TPad(
-      "legend_pad", "legend_pad",
-      0.9, 0.1,
-      1.0, 1.0);
+  TPad *legend_pad = new TPad("legend_pad", "legend_pad", 0.9, 0.1, 1.0, 1.0);
   legend_pad->SetFillStyle(4000);
   legend_pad->Range(0.0, 0.0, 1.0, 1.0);
   // legend_pad->Draw();
@@ -641,9 +924,12 @@ int InttCalib::MakeHotMapPng_v2()
 
   // count how many are cold/hot
   double n_hot = 0, n_cold = 0, n_total = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  // double n_dead = 0;
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
@@ -657,14 +943,16 @@ int InttCalib::MakeHotMapPng_v2()
     {
       ++n_hot;
     }
+    // if (hitrate == 0)
+    // {
+    //   ++n_dead;
+    // }
     ++n_total;
   }
 
   cnvs->cd();
-  TPad* caption_pad = new TPad(
-      "caption_pad", "caption_pad",
-      0.0, 0.0,
-      1.0, 0.1);
+  TPad *caption_pad =
+      new TPad("caption_pad", "caption_pad", 0.0, 0.0, 1.0, 0.1);
   caption_pad->SetFillStyle(4000);
   caption_pad->Range(0.0, 0.0, 1.0, 1.0);
   caption_pad->Draw();
@@ -674,9 +962,20 @@ int InttCalib::MakeHotMapPng_v2()
   caption.SetTextColor(kBlack);
   caption.SetTextAlign(22);
   caption.SetTextSize(0.25);
-  caption.DrawText(0.5, 0.75, (boost::format("Run: %08d Events: %d") % m_run_num % m_evts).str().c_str());
-  caption.DrawText(0.5, 0.50, (boost::format("Fraction Cold: %.3lf%%") % (n_cold * 100 / n_total)).str().c_str());
-  caption.DrawText(0.5, 0.25, (boost::format("Fraction Hot: %.3lf%%") % (n_hot * 100 / n_total)).str().c_str());
+  caption.DrawText(0.5, 0.75,
+                   (boost::format("Run: %08d Events: %d") % m_run_num % m_evts)
+                       .str()
+                       .c_str());
+  caption.DrawText(
+      0.5, 0.50,
+      (boost::format("Fraction Cold: %.3lf%%") % (n_cold * 100 / n_total))
+          .str()
+          .c_str());
+  caption.DrawText(
+      0.5, 0.25,
+      (boost::format("Fraction Hot: %.3lf%%") % (n_hot * 100 / n_total))
+          .str()
+          .c_str());
 
   cnvs->Update();
   cnvs->Show();
@@ -694,9 +993,11 @@ int InttCalib::MakeHotMapPng_v2()
 int InttCalib::ConfigureHotMap()
 {
   m_hitrates.clear();
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl;
     if (m_feemap.Convert(ofl, raw))
     {
@@ -713,7 +1014,7 @@ int InttCalib::ConfigureHotMap()
 
   m_invcdf.clear();
   double total = 0;
-  for (auto const& [hitrate, count] : m_hitrates)
+  for (auto const &[hitrate, count] : m_hitrates)
   {
     total += count;
     double fraction = total / m_NUM_CHANNELS;
@@ -722,7 +1023,7 @@ int InttCalib::ConfigureHotMap()
 
   double prev_hitrate = 0.0, prev_fraction = 0.0;
   double best_min_ratio = 0.0, best_max_ratio = 0.0;
-  for (auto const& [fraction, hitrate] : m_invcdf)
+  for (auto const &[fraction, hitrate] : m_invcdf)
   {
     double ratio = (hitrate - prev_hitrate) / (fraction - prev_fraction);
     prev_hitrate = hitrate;
@@ -758,7 +1059,7 @@ int InttCalib::MakeHotMapCdb()
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  CDBTTree* cdbttree = new CDBTTree(m_hotmap_cdb_file);
+  CDBTTree *cdbttree = new CDBTTree(m_hotmap_cdb_file);
 
   // Dummy calibration for now
   // Mask exactly one channel, which we plan on masking at Felix level anyway
@@ -771,9 +1072,11 @@ int InttCalib::MakeHotMapCdb()
   cdbttree->SetSingleIntValue("size", 1);
 
   // int size = 0;
-  // for(InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  // for(InttMap::RawData_s raw = InttMap::RawDataBegin; raw !=
+  // InttMap::RawDataEnd; ++raw)
   // {
-  //   double hitrate = (double)m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / (double)m_evts;
+  //   double hitrate = (double)m_hitmap[raw.pid -
+  //   3001][raw.fee][raw.chp][raw.chn][128] / (double)m_evts;
   //   InttMap::Offline_s ofl;
   //   if(m_feemap.Convert(ofl, raw))
   //   {
@@ -814,7 +1117,7 @@ int InttCalib::MakeHotMapPng()
 
   // Canvas
   gStyle->SetOptStat(0);
-  TCanvas* hitrate_cnvs = new TCanvas(  //
+  TCanvas *hitrate_cnvs = new TCanvas(  //
       "hitrate_cnvs", "hitrate_cnvs",   //
       1280, 720                         //
   );
@@ -822,7 +1125,7 @@ int InttCalib::MakeHotMapPng()
 
   // PDF
   double q1 = 0.0, q2 = 0.0, q3 = 0.0;
-  for (auto const& [fraction, hitrate] : m_invcdf)
+  for (auto const &[fraction, hitrate] : m_invcdf)
   {
     if (fraction < 0.25)
     {
@@ -844,7 +1147,7 @@ int InttCalib::MakeHotMapPng()
   int num_bins = std::floor((upper - lower) / bin_width);
 
   hitrate_cnvs->cd();
-  TPad* hitrate_pdf_pad = new TPad(          //
+  TPad *hitrate_pdf_pad = new TPad(          //
       "hitrate_pdf_pad", "hitrate_pdf_pad",  //
       0.0, 0.2, 0.5, 1.0                     //
   );
@@ -853,7 +1156,7 @@ int InttCalib::MakeHotMapPng()
   hitrate_pdf_pad->Draw();
 
   hitrate_pdf_pad->cd();
-  TH1D* hitrate_pdf_hist = new TH1D(           //
+  TH1D *hitrate_pdf_hist = new TH1D(           //
       "hitrate_pdf_hist", "hitrate_pdf_hist",  //
       num_bins, lower, upper                   //
   );
@@ -861,9 +1164,11 @@ int InttCalib::MakeHotMapPng()
   hitrate_pdf_hist->Draw();
 
   // Fill
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    double hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    double hitrate =
+        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
     InttMap::Offline_s ofl;
     if (m_feemap.Convert(ofl, raw))
     {
@@ -877,7 +1182,8 @@ int InttCalib::MakeHotMapPng()
 
     hitrate_pdf_hist->Fill(hitrate);
   }
-  double y_max = 1.1 * hitrate_pdf_hist->GetBinContent(hitrate_pdf_hist->GetMaximumBin());
+  double y_max =
+      1.1 * hitrate_pdf_hist->GetBinContent(hitrate_pdf_hist->GetMaximumBin());
   hitrate_pdf_hist->GetYaxis()->SetRangeUser(0, y_max);
   TLine line;
   line.SetLineWidth(1);
@@ -887,7 +1193,7 @@ int InttCalib::MakeHotMapPng()
 
   // CDF
   hitrate_cnvs->cd();
-  TPad* hitrate_cdf_pad = new TPad(          //
+  TPad *hitrate_cdf_pad = new TPad(          //
       "hitrate_cdf_pad", "hitrate_cdf_pad",  //
       0.5, 0.2, 1.0, 1.0                     //
   );
@@ -897,18 +1203,20 @@ int InttCalib::MakeHotMapPng()
   hitrate_cdf_pad->Draw();
 
   hitrate_cdf_pad->cd();
-  TH1D* hitrate_cdf_hist = new TH1D(           //
+  TH1D *hitrate_cdf_hist = new TH1D(           //
       "hitrate_cdf_hist", "hitrate_cdf_hist",  //
       500, 0.0, 100.0                          //
   );
   hitrate_cdf_hist->SetTitle("Hitrate Inverse CDF;Percentile;Adjusted Hitrate");
   hitrate_cdf_hist->GetXaxis()->SetNdivisions(10, kTRUE);
-  hitrate_cdf_hist->GetYaxis()->SetRangeUser(0.1, 10 * m_hitrates.rbegin()->first);
+  hitrate_cdf_hist->GetYaxis()->SetRangeUser(0.1,
+                                             10 * m_hitrates.rbegin()->first);
   hitrate_cdf_hist->Draw();
 
-  for (auto& [fraction, hitrate] : m_invcdf)
+  for (auto &[fraction, hitrate] : m_invcdf)
   {
-    hitrate_cdf_hist->SetBinContent(hitrate_cdf_hist->GetXaxis()->FindBin(100 * fraction), hitrate);
+    hitrate_cdf_hist->SetBinContent(
+        hitrate_cdf_hist->GetXaxis()->FindBin(100 * fraction), hitrate);
   }
   for (int i = 2; i < hitrate_cdf_hist->GetNbinsX(); ++i)
   {
@@ -925,9 +1233,8 @@ int InttCalib::MakeHotMapPng()
 
   // Caption
   hitrate_cnvs->cd();
-  TPad* caption_pad = new TPad(
-      "caption_pad", "caption_pad",  //
-      0.0, 0.0, 1.0, 0.2             //
+  TPad *caption_pad = new TPad("caption_pad", "caption_pad",  //
+                               0.0, 0.0, 1.0, 0.2             //
   );
   caption_pad->SetFillStyle(4000);  // transparent
   caption_pad->Range(0.0, 0.0, 1.0, 1.0);
@@ -938,12 +1245,28 @@ int InttCalib::MakeHotMapPng()
   caption_text.SetTextAlign(22);
   caption_text.SetTextSize(0.20);
   caption_text.SetTextColor(kBlack);
-  caption_text.DrawText(0.5, 0.75, (boost::format("Run: %08d Events: %d") % m_run_num % m_evts).str().c_str());
+  caption_text.DrawText(
+      0.5, 0.75,
+      (boost::format("Run: %08d Events: %d") % m_run_num % m_evts)
+          .str()
+          .c_str());
 
   caption_text.SetTextSize(0.10);
-  caption_text.DrawText(0.5, 0.5, (boost::format("%.3E <= [hitrate] excludes %06.3lf%%") % m_min_hitrate % (m_min_fraction * 100)).str().c_str());
-  caption_text.DrawText(0.5, 0.35, (boost::format("[hitrate] <= %.3E excludes %06.3lf%%") % m_max_hitrate % (m_max_fraction * 100)).str().c_str());
-  caption_text.DrawText(0.5, 0.2, (boost::format("Keeping %.3lf%%") % (100.0 - (m_min_fraction + m_max_fraction) * 100.0)).str().c_str());
+  caption_text.DrawText(0.5, 0.5,
+                        (boost::format("%.3E <= [hitrate] excludes %06.3lf%%") %
+                         m_min_hitrate % (m_min_fraction * 100))
+                            .str()
+                            .c_str());
+  caption_text.DrawText(0.5, 0.35,
+                        (boost::format("[hitrate] <= %.3E excludes %06.3lf%%") %
+                         m_max_hitrate % (m_max_fraction * 100))
+                            .str()
+                            .c_str());
+  caption_text.DrawText(0.5, 0.2,
+                        (boost::format("Keeping %.3lf%%") %
+                         (100.0 - (m_min_fraction + m_max_fraction) * 100.0))
+                            .str()
+                            .c_str());
 
   hitrate_cnvs->Update();
   hitrate_cnvs->Show();
@@ -959,24 +1282,50 @@ int InttCalib::MakeHotMapPng()
 int InttCalib::ConfigureBcoMap()
 {
   m_bcorates.clear();
-  for (InttMap::RawData_s raw{.pid = InttMap::RawDataBegin.pid, .fee = InttMap::RawDataBegin.fee}; raw != InttMap::RawDataEnd; ++raw)
+  for (InttMap::RawData_s raw{.pid = InttMap::RawDataBegin.pid,
+                          .fee = InttMap::RawDataBegin.fee};
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    for (auto& bco_count : m_bcorates[raw])
+    for (auto &bco_count : m_bcorates[raw])
     {
       bco_count = 0;
     }
   }
 
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
+       raw != InttMap::RawDataEnd; ++raw)
   {
-    for (int bco = 0; bco < 128; ++bco)
+    // Find chip with highest total hits for this pid/fee across all channels
+    int chp_most = 0;
+    int max_hits = 0;
+    for (int chp = 0; chp < 26; chp++)
     {
-      m_bcorates[raw][bco] += m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco];
+      int chip_total = 0;
+      // Sum hits across all channels for this chip
+      for (int chan = 0; chan < 128; chan++)
+      {
+        chip_total += m_hitmap[raw.pid - 3001][raw.fee][chp][chan][128];
+      }
+      if (chip_total > max_hits)
+      {
+        max_hits = chip_total;
+        chp_most = chp;
+      }
+    }
+
+    // Only add hits if not from the chip with most hits
+    if (raw.chp != chp_most)
+    {
+      for (int bco = 0; bco < 128; ++bco)
+      {
+        m_bcorates[raw][bco] +=
+            m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco];
+      }
     }
   }
 
   m_bcopeaks.clear();
-  for (auto const& [raw, bco_arr] : m_bcorates)
+  for (auto const &[raw, bco_arr] : m_bcorates)
   {
     int max_counts = 0, bco_peak = 0;
     for (int bco = 0; bco < 128; ++bco)
@@ -986,6 +1335,11 @@ int InttCalib::ConfigureBcoMap()
         bco_peak = bco;
         max_counts = bco_arr[bco];
       }
+    }
+    if (max_counts < 50)  // if max_count is less than 50(masked ladder but
+                          // somethimes it has few hits), set bco_peak as -1
+    {
+      bco_peak = -1;
     }
     m_bcopeaks[raw] = bco_peak;
   }
@@ -1000,12 +1354,12 @@ int InttCalib::MakeBcoMapCdb()
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  CDBTTree* cdbttree = new CDBTTree(m_bcomap_cdb_file);
+  CDBTTree *cdbttree = new CDBTTree(m_bcomap_cdb_file);
 
   int size = 0;
   std::vector<int> bco_temp_container;
   bco_temp_container.clear();
-  for (auto const& [raw, bco] : m_bcopeaks)
+  for (auto const &[raw, bco] : m_bcopeaks)
   {
     cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
     cdbttree->SetIntValue(size, "felix_channel", raw.fee);
@@ -1014,8 +1368,14 @@ int InttCalib::MakeBcoMapCdb()
     ++size;
   }
   cdbttree->SetSingleIntValue("size", size);
-  m_bco_stdDev = CalculateStandardDeviation(bco_temp_container);
+  std::pair<double, double> stats =
+      CalculateStandardDeviation(bco_temp_container);
+  m_bco_mean = stats.first;
+  m_bco_stdDev = stats.second;
+  int runmode = m_streaming ? 1 : 0;  //
   cdbttree->SetSingleDoubleValue("StdDev", m_bco_stdDev);
+  cdbttree->SetSingleIntValue("runmode", runmode);
+  cdbttree->SetSingleIntValue("events", m_evts);
   cdbttree->Commit();
   cdbttree->CommitSingle();
   cdbttree->WriteCDBTTree();
@@ -1032,18 +1392,18 @@ int InttCalib::MakeBcoMapPng()
 
   // Canvas
   gStyle->SetOptStat(0);
-  TCanvas* bco_cnvs = new TCanvas(  //
+  TCanvas *bco_cnvs = new TCanvas(  //
       "bco_cnvs", "bco_cnvs",       //
       1280, 720                     //
   );
   bco_cnvs->Draw();
 
-  TH1D* bco_hist[112] = {};
+  TH1D *bco_hist[112] = {};
   for (int i = 0; i < 16; ++i)
   {
     std::string tpadtitle = (boost::format("bco_pad_%02d") % i).str();
     bco_cnvs->cd();
-    TPad* bco_pdf_pad = new TPad(  //
+    TPad *bco_pdf_pad = new TPad(  //
         tpadtitle.c_str(), tpadtitle.c_str(),
         // NOLINTNEXTLINE(bugprone-integer-division)
         (i % 4 + 0.0) / 4.0 * 0.9 + 0.0, (3.0 - i / 4) / 4.0 * 0.9 + 0.1,
@@ -1066,8 +1426,10 @@ int InttCalib::MakeBcoMapPng()
     bco_pdf_pad->Range(0.0, 0.0, 1.0, 1.0);
     bco_pdf_pad->Draw();
 
-    InttMap::RawData_s raw_begin{.pid = (i % 4) + 4 * (i / 8) + 3001, .fee = (i / 4) % 2 ? 0 : 7};
-    InttMap::RawData_s raw_end{.pid = (i % 4) + 4 * (i / 8) + 3001, .fee = (i / 4) % 2 ? 6 : 13};
+    InttMap::RawData_s raw_begin{.pid = (i % 4) + 4 * (i / 8) + 3001,
+                                 .fee = (i / 4) % 2 ? 0 : 7};
+    InttMap::RawData_s raw_end{.pid = (i % 4) + 4 * (i / 8) + 3001,
+                               .fee = (i / 4) % 2 ? 6 : 13};
 
     double max = 0;
     for (InttMap::RawData_s raw = raw_begin; raw <= raw_end; ++raw)
@@ -1075,12 +1437,22 @@ int InttCalib::MakeBcoMapPng()
       int h = (raw.pid - 3001) * 14 + raw.fee;
       bco_pdf_pad->cd();
       std::string htitle = (boost::format("bco_hist_%03d") % h).str();
+      // float min_bin = (m_streaming) ? -127.5 : -0.5;
+      float min_bin = -0.5;
+      float max_bin = 127.5;
+      // int nbins = (m_streaming) ? 256 : 128;
+      int nbins = 128;
       bco_hist[h] = new TH1D(              //
           htitle.c_str(), htitle.c_str(),  //
-          128, -0.5, 127.5                 //
+          nbins, min_bin, max_bin          //
+                                           // 128, -0.5, 127.5                //
       );
 
-      bco_hist[h]->SetTitle((boost::format(";BCO Difference;intt%01d (%01d - %02d)") % (raw_begin.pid - 3001) % raw_begin.fee % raw_end.fee).str().c_str());
+      bco_hist[h]->SetTitle(
+          (boost::format(";BCO Difference;intt%01d (%01d - %02d)") %
+           (raw_begin.pid - 3001) % raw_begin.fee % raw_end.fee)
+              .str()
+              .c_str());
       bco_hist[h]->GetYaxis()->CenterTitle();
       bco_hist[h]->GetYaxis()->SetTitleSize(0.12);
       bco_hist[h]->GetYaxis()->SetTitleOffset(0.6);
@@ -1109,9 +1481,8 @@ int InttCalib::MakeBcoMapPng()
 
   // Legend
   bco_cnvs->cd();
-  TPad* legend_pad = new TPad(
-      "legend_pad", "legend_pad",  //
-      0.9, 0.1, 1.0, 1.0           //
+  TPad *legend_pad = new TPad("legend_pad", "legend_pad",  //
+                              0.9, 0.1, 1.0, 1.0           //
   );
   legend_pad->SetFillStyle(4000);  // transparent
   legend_pad->Range(0.0, 0.0, 1.0, 1.0);
@@ -1124,7 +1495,9 @@ int InttCalib::MakeBcoMapPng()
     legend_text.SetTextAlign(22);
     legend_text.SetTextColor(kBlack);
     legend_text.SetTextSize(0.1);
-    legend_text.DrawText(0.6, (2.0 * fee + 1.0) / 14.0, (boost::format("FCh %01d, %02d") % fee % (fee + 7)).str().c_str());
+    legend_text.DrawText(
+        0.6, (2.0 * fee + 1.0) / 14.0,
+        (boost::format("FCh %01d, %02d") % fee % (fee + 7)).str().c_str());
 
     double x[4] = {-1.0, +1.0, +1.0, -1.0};
     double y[4] = {-1.0, -1.0, +1.0, +1.0};
@@ -1146,9 +1519,8 @@ int InttCalib::MakeBcoMapPng()
 
   // Caption
   bco_cnvs->cd();
-  TPad* caption_pad = new TPad(
-      "caption_pad", "caption_pad",  //
-      0.0, 0.0, 1.0, 0.1             //
+  TPad *caption_pad = new TPad("caption_pad", "caption_pad",  //
+                               0.0, 0.0, 1.0, 0.1             //
   );
   caption_pad->SetFillStyle(4000);  // transparent
   caption_pad->Range(0.0, 0.0, 1.0, 1.0);
@@ -1159,31 +1531,75 @@ int InttCalib::MakeBcoMapPng()
   caption_text.SetTextAlign(22);
   caption_text.SetTextSize(0.40);
   caption_text.SetTextColor(kBlack);
-  caption_text.DrawText(0.5, 0.75, (boost::format("Run: %08d Events: %d BCO StdDev: %.2f") % m_run_num % m_evts % m_bco_stdDev).str().c_str());
+  caption_text.DrawText(
+      0.5, 0.75,
+      (boost::format("Run: %08d Events: %d BCO StdDev: %.2f BCO Offset: %.2f") %
+       m_run_num % m_evts % m_bco_stdDev % m_bco_mean)
+          .str()
+          .c_str());
 
   TText caption_tag;
   caption_tag.SetTextAlign(22);
   caption_tag.SetTextSize(0.40);
-  if (m_bco_stdDev != 0)
-  {
-    caption_tag.SetTextColor(kRed);
-    caption_tag.DrawText(0.5, 0.3, "FEE MISALIGNED!!");
-  }
-  else if (m_evts < 1000)
+  if (m_evts < 1000)
   {
     caption_tag.SetTextColor(kRed);
     caption_tag.DrawText(0.5, 0.3, "LOW STATSTICS events < 1000!!");
+  }
+  else if (m_bco_stdDev != 0)
+  {
+    caption_tag.SetTextColor(kRed);
+    caption_tag.DrawText(0.5, 0.3, "FEE MISALIGNED!!");
   }
   else
   {
     caption_tag.SetTextColor(kBlue);
     caption_tag.DrawText(0.5, 0.3, "GOOD");
   }
+
+  std::map<int, std::vector<int>> maskedLadders;  // To store fee -> fc mappings
+
+  // Iterate through the bco_hist array
+  for (int i = 0; i < 112; ++i)
+  {
+    if (bco_hist[i]->GetBinContent(bco_hist[i]->GetMaximumBin()) < 5)
+    {
+      int sev = i / 14;
+      int fee = i % 14;
+      // Add fc to the corresponding fee in the map
+      maskedLadders[sev].push_back(fee);
+    }
+  }
+
+  // Now, prepare the text to add to the canvas
+  std::ostringstream maskedText;
+  maskedText << "Masked Ladders: ";
+
+  // Iterate through the map and create the output text
+  for (const auto &entry : maskedLadders)
+  {
+    maskedText << "INTT " << entry.first << "(FC ";  // Fee numbering starts at 1
+    for (auto j = 0U; j < entry.second.size(); ++j)
+    {
+      maskedText << entry.second[j];
+      if (j != entry.second.size() - 1)
+      {
+        maskedText << ",";  // Add commas between FC values
+      }
+    }
+    maskedText << ") ";
+  }
+
+  // Print or draw the text on the canvas
+  TText caption_masked;
+  caption_masked.SetTextAlign(32);
+  caption_masked.SetTextSize(0.20);
+  caption_masked.DrawText(0.9, 0.3, maskedText.str().c_str());
   bco_cnvs->Update();
   bco_cnvs->Show();
   bco_cnvs->SaveAs(m_bcomap_png_file.c_str());
 
-  for (auto& hist : bco_hist)
+  for (auto &hist : bco_hist)
   {
     delete hist;
   }
@@ -1204,7 +1620,7 @@ void InttCalib::Debug()
 
 int InttCalib::SaveHitrates()
 {
-  TFile* file = TFile::Open("/sphenix/user/jbertaux/hitrates.root", "RECREATE");
+  TFile *file = TFile::Open(m_hotmap_png_file.c_str(), "RECREATE");
   if (!file)
   {
     std::cerr << "\n"
@@ -1213,7 +1629,7 @@ int InttCalib::SaveHitrates()
     return 1;
   }
   file->cd();
-  TTree* tree = new TTree("hitrate_tree", "hitrate_tree");
+  TTree *tree = new TTree("hitrate_tree", "hitrate_tree");
   tree->SetDirectory(file);
 
   InttMap::RawData_s raw;
@@ -1240,7 +1656,7 @@ int InttCalib::SaveHitrates()
 
 int InttCalib::LoadHitrates()
 {
-  TFile* file = TFile::Open("/sphenix/user/jbertaux/hitrates.root", "READ");
+  TFile *file = TFile::Open("/sphenix/user/jbertaux/hitrates.root", "READ");
   if (!file)
   {
     std::cerr << "\n"
@@ -1249,7 +1665,7 @@ int InttCalib::LoadHitrates()
     return 1;
   }
 
-  TTree* tree = dynamic_cast<TTree*>(file->Get("hitrate_tree"));
+  TTree *tree = dynamic_cast<TTree *>(file->Get("hitrate_tree"));
   if (!tree)
   {
     std::cerr << "\n"
@@ -1277,7 +1693,71 @@ int InttCalib::LoadHitrates()
 
   return 0;
 }
-int InttCalib::ConfigureHist_v2(TH1D*& hist, TF1*& fit, std::map<double, int> const& hitrate_map, std::string const& name, std::string const& title)
+int InttCalib::ConfigureHist_v3(TH1D *&hist, TF1 *&fit, double maxbin,
+                                std::map<double, int> const &hitrate_map,
+                                std::string const &name,
+                                std::string const &title)
+{
+  size_t map_size = hitrate_map.size();
+  double global_middle = maxbin / 5; // Global middle value is maxbin / 5
+  size_t mid_index = map_size / 2;
+  double middle_key = 0.;
+
+  auto it = hitrate_map.begin();
+  std::advance(it, mid_index);
+  middle_key = it->first;
+
+  // Make hist
+  delete hist;
+  hist = new TH1D(                                        //
+      (name + " hitrates").c_str(),                       //
+      title.c_str(),                                      //
+      100, std::next(hitrate_map.begin())->first, maxbin  //
+  );
+
+  TH1D *fit_hist = new TH1D(                               //
+      (name + " fit_hitrates").c_str(),                    //
+      (title + " (fit)").c_str(),                          //
+      100, std::next(hitrate_map.begin())->first, maxbin   //
+  );
+
+  for (auto const &[hitrate, count] : hitrate_map)
+  {
+    for (int i = 0; i < count; ++i)
+    {
+      hist->Fill(hitrate);
+      if (hitrate / global_middle > 0.7)
+      {
+        fit_hist->Fill(hitrate);
+      }
+    }
+  }
+
+  delete fit;
+  fit = new TF1(                //
+      (name + "_fit").c_str(),  //
+      "gaus",                   //
+      middle_key / 10, maxbin   //
+  );
+
+  if (Verbosity())
+  {
+    fit_hist->Fit(fit, "R");  // range, no-draw, log likelihood
+  }
+  else
+  {
+    fit_hist->Fit(fit, "QR");  // range, no-draw, log likelihood, quiet
+  }
+
+  std::cout << "Global middle: " << global_middle << std::endl;
+  delete fit_hist;  
+  return 0;
+}
+
+int InttCalib::ConfigureHist_v2(TH1D *&hist, TF1 *&fit,
+                                std::map<double, int> const &hitrate_map,
+                                std::string const &name,
+                                std::string const &title)
 {
   size_t map_size = hitrate_map.size();
 
@@ -1287,15 +1767,18 @@ int InttCalib::ConfigureHist_v2(TH1D*& hist, TF1*& fit, std::map<double, int> co
   auto it = hitrate_map.begin();
   std::advance(it, mid_index);
   middle_key = it->first;
+  double maxbin = middle_key * 5;
+  // if(maxbin > 0.002 && m_ppmode)
+  //   maxbin = 0.002;
   // Make hist
   delete hist;
-  hist = new TH1D(                                                //
-      (name + " hitrates").c_str(),                               //
-      title.c_str(),                                              //
-      500, std::next(hitrate_map.begin())->first, middle_key * 5  //
+  hist = new TH1D(                                        //
+      (name + " hitrates").c_str(),                       //
+      title.c_str(),                                      //
+      100, std::next(hitrate_map.begin())->first, maxbin  //
   );
 
-  for (auto const& [hitrate, count] : hitrate_map)
+  for (auto const &[hitrate, count] : hitrate_map)
   {
     for (int i = 0; i < count; ++i)
     {
@@ -1309,10 +1792,10 @@ int InttCalib::ConfigureHist_v2(TH1D*& hist, TF1*& fit, std::map<double, int> co
   {
     std::cout << middle_key << std::endl;
   }
-  fit = new TF1(                       //
-      (name + "_fit").c_str(),         //
-      "gaus",                          //
-      middle_key / 10, middle_key * 5  //
+  fit = new TF1(                //
+      (name + "_fit").c_str(),  //
+      "gaus",                   //
+      middle_key / 10, maxbin   //
   );
 
   if (Verbosity())
@@ -1326,18 +1809,21 @@ int InttCalib::ConfigureHist_v2(TH1D*& hist, TF1*& fit, std::map<double, int> co
 
   return 0;
 }
-int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const& hitrate_map, std::string const& name, std::string const& title)
+int InttCalib::ConfigureHist(TH1D *&hist, TF1 *&fit,
+                             std::map<double, int> const &hitrate_map,
+                             std::string const &name,
+                             std::string const &title)
 {
   // quartiles (less sentive to outliers, better to configure with)
   double N_entries = 0.0;
   double quartile[5] = {};
-  for (auto const& [hitrate, count] : hitrate_map)
+  for (auto const &[hitrate, count] : hitrate_map)
   {
     N_entries += count;
   }
 
   double sum = 0.0;
-  for (auto const& [hitrate, count] : hitrate_map)
+  for (auto const &[hitrate, count] : hitrate_map)
   {
     for (int i = 0; i < 5; ++i)
     {
@@ -1352,7 +1838,7 @@ int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const
   double lower = 0;
   double upper = quartile[2] + 3.0 * (quartile[3] - quartile[1]);
   int n_edges = 2;
-  for (auto const& [hitrate, count] : hitrate_map)
+  for (auto const &[hitrate, count] : hitrate_map)
   {
     if (hitrate <= lower)
     {
@@ -1364,11 +1850,11 @@ int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const
     }
     ++n_edges;
   }
-  double* bins = new double[n_edges];
+  double *bins = new double[n_edges];
   bins[0] = lower;
   bins[n_edges - 1] = upper;
   n_edges = 1;
-  for (auto const& [hitrate, count] : hitrate_map)
+  for (auto const &[hitrate, count] : hitrate_map)
   {
     if (hitrate <= lower)
     {
@@ -1384,7 +1870,8 @@ int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const
 
   // Freedman-Diaconis rule
   // https://en.wikipedia.org/wiki/Freedman-Diaconis_rule
-  double bin_width = 2.0 * (quartile[3] - quartile[1]) / pow(N_entries, 1.0 / 3.0);
+  double bin_width =
+      2.0 * (quartile[3] - quartile[1]) / pow(N_entries, 1.0 / 3.0);
   int N_bins = std::floor((upper - lower) / bin_width);
 
   if (Verbosity())
@@ -1392,7 +1879,7 @@ int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const
     std::cout << "size: " << hitrate_map.size() << std::endl;
     std::cout << "N_entries: " << N_entries << std::endl;
     std::cout << "quartiles: " << std::endl;
-    for (auto const& q : quartile)
+    for (auto const &q : quartile)
     {
       std::cout << "\t" << q << std::endl;
     }
@@ -1418,7 +1905,7 @@ int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const
   }
   delete[] bins;
 
-  for (auto const& [hitrate, count] : hitrate_map)
+  for (auto const &[hitrate, count] : hitrate_map)
   {
     for (int i = 0; i < count; ++i)
     {
@@ -1449,13 +1936,15 @@ int InttCalib::ConfigureHist(TH1D*& hist, TF1*& fit, std::map<double, int> const
   return 0;
 }
 
-int InttCalib::adjust_hitrate(InttMap::Offline_s const& ofl, double& hitrate) const
+int InttCalib::adjust_hitrate(InttMap::Offline_s const &ofl,
+                              double &hitrate) const
 {
   hitrate /= (ofl.ladder_z % 2) ? 2.0 : 1.6;  // normalize by sensor length
   if (ofl.layer < 5)
   {
     hitrate /= (10.005 / 7.4994);  // Inner = 7.4994, Outer = 10.005
   }
+
   // InttSurveyMap::val_t transform;
   // if (m_survey.GetStripTransform(ofl, transform))
   // {
@@ -1466,13 +1955,14 @@ int InttCalib::adjust_hitrate(InttMap::Offline_s const& ofl, double& hitrate) co
   //   return 1;
   // }
   // Eigen::Vector3d v = transform.translation() - m_vertex;
-  // Eigen::Vector3d n{transform.linear()(0, 1), transform.linear()(1, 1), transform.linear()(2, 1)};
-  // hitrate *= v.squaredNorm();
-  // hitrate /= (-1.0 * n.dot(v) / v.norm());
+  // Eigen::Vector3d n{transform.linear()(0, 1), transform.linear()(1, 1),
+  // transform.linear()(2, 1)}; hitrate *= v.squaredNorm(); hitrate /= (-1.0 *
+  // n.dot(v) / v.norm());
   return 0;
 }
 
-int InttCalib::GetIndex(InttMap::RawData_s const& raw, InttMap::Offline_s const& /*ofl*/) const
+int InttCalib::GetIndex(InttMap::RawData_s const &raw,
+                        InttMap::Offline_s const & /*ofl*/) const
 {
   // int index = 0;
   // index += (raw.pid - 3001) * 4;
@@ -1482,28 +1972,48 @@ int InttCalib::GetIndex(InttMap::RawData_s const& raw, InttMap::Offline_s const&
   return raw.pid - 3001;
 }
 
-double InttCalib::CalculateStandardDeviation(const std::vector<int>& data)
+int InttCalib::GetFeeIndex(InttMap::RawData_s const &raw,
+                         InttMap::Offline_s const & /*ofl*/) const
+{
+  int index = 0;
+  index = (raw.pid - 3001) * 14 + raw.fee;
+  return index;
+}
+std::pair<double, double>
+InttCalib::CalculateStandardDeviation(const std::vector<int> &data)
 {
   if (data.empty())
   {
-    return -1;
+    return std::make_pair(-1, -1);
   }
 
   double sum = 0.0;
+  int n_masked_ladder = 0;
   for (int i : data)
   {
+    if (i == -1)
+    {
+      n_masked_ladder++;
+      continue;
+    }
     sum += i;
   }
-  double mean = sum / data.size();
-
+  double mean = sum / static_cast<double>(data.size() - n_masked_ladder);
   double sumSquaredDiffs = 0.0;
+//  int count = 0;
   for (int i : data)
   {
+    if (i == -1)
+    {
+      continue;  // do not include maksed ladder for std calculation
+    }
     sumSquaredDiffs += (i - mean) * (i - mean);
+//    count++;
   }
-
-  double stddev = std::sqrt(sumSquaredDiffs / data.size());
-  return stddev;
+  double stddev = std::sqrt(sumSquaredDiffs /
+                            static_cast<double>(data.size() - n_masked_ladder));
+  // return stddev;
+  return std::make_pair(mean, stddev);
 }
 
 Color_t InttCalib::GetFeeColor(int fee) const
