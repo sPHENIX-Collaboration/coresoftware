@@ -4,13 +4,15 @@
 #ifndef JETKINEMATICCHECK_H
 #define JETKINEMATICCHECK_H
 
+#include "JetQADefs.h"
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/SubsysReco.h>
+
 #include <qautils/QAHistManagerDef.h>
+
 #include <string>
 #include <vector>
-
-#include "JetQADefs.h"
 
 class TH1;
 class TH2;

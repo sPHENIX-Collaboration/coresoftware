@@ -1,20 +1,19 @@
 #include "RhosinEvent.h"
 
-#include <qautils/QAHistManagerDef.h>
-
+// fun4all includes
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
 // jetbackground includes
 #include <jetbackground/TowerRho.h>
 #include <jetbackground/TowerRhov1.h>
 
-// fun4all includes
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-
-
 // phool includes
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+
+// qautils include
+#include <qautils/QAHistManagerDef.h>
 
 #include <TH1.h>
 

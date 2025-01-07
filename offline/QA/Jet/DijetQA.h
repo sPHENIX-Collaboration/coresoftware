@@ -3,24 +3,7 @@
 #ifndef DIJETQA_H
 #define DIJETQA_H
 
-#include <fun4all/Fun4AllBase.h>
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>
-#include <jetqa/JetQADefs.h>
-#include <qautils/QAHistManagerDef.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-
-#include <jetbase/JetContainer.h>
-#include <jetbase/JetMap.h>
-#include <jetbase/Jetv1.h>
-#include <jetbase/Jetv2.h>
-
-#include <centrality/CentralityInfo.h>
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
+#include "jetqa/JetQADefs.h"
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
@@ -31,6 +14,31 @@
 
 #include <calotrigger/TriggerAnalyzer.h>
 
+#include <centrality/CentralityInfo.h>
+
+#include <fun4all/Fun4AllBase.h>
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
+
+#include <jetbase/JetContainer.h>
+#include <jetbase/JetMap.h>
+#include <jetbase/Jetv1.h>
+#include <jetbase/Jetv2.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <qautils/QAHistManagerDef.h>
+
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TTree.h>
+
 #include <cstdlib>
 #include <math.h>
 #include <string>
@@ -39,11 +47,8 @@
 #include <vector>
 #include <boost/format.hpp>
 
-#include "TFile.h"
-#include "TH1.h"
-#include "TH2.h"
-#include "TTree.h"
 #define PI 3.1415926535
+
 class PHCompositeNode;
 
 class DijetQA : public SubsysReco

@@ -17,19 +17,21 @@
 #include "TrksInJetQAInJetFiller.h"
 #include "TrksInJetQAInclusiveFiller.h"
 
-
-// qa utilities
-#include <qautils/QAHistManagerDef.h>
-
 // calo trigger includes
 #include <calotrigger/TriggerAnalyzer.h>
+
 // f4a includes
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
+
 // phool includes
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
+
+// qa utilities
+#include <qautils/QAHistManagerDef.h>
+
 // root includes
 #include <TFile.h>
 

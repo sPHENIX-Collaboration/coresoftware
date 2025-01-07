@@ -5,12 +5,10 @@
 
 #include "JetQADefs.h"
 
-#include <qautils/QAHistManagerDef.h>
-
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/SubsysReco.h>
 
-#include <fastjet/PseudoJet.hh>
+#include <qautils/QAHistManagerDef.h>
 
 #include <limits>
 #include <string>

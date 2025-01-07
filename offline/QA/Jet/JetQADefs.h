@@ -13,7 +13,9 @@
 #define JETQADEFS_H
 
 #include <calotrigger/TriggerAnalyzer.h>
+
 #include <phool/phool.h>
+
 #include <iostream>
 #include <map>
 #include <string>

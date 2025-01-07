@@ -4,11 +4,11 @@
 
 #include <calotrigger/TriggerAnalyzer.h>
 
-#include <jetbase/JetContainer.h>
-#include <jetbase/Jetv2.h>
-
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+
+#include <jetbase/JetContainer.h>
+#include <jetbase/Jetv2.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
@@ -19,13 +19,13 @@
 #include <TLegend.h>
 #include <TPad.h>
 
+#include <boost/format.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <string>
 #include <vector>
-
-#include <boost/format.hpp>
 //____________________________________________________________________________..
 
 JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,

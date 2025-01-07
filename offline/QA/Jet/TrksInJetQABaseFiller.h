@@ -15,15 +15,11 @@
 #include "TrksInJetQAHitManager.h"
 #include "TrksInJetQAJetManager.h"
 #include "TrksInJetQATrkManager.h"
+
 // module utilties
 #include "TrksInJetQAConfig.h"
 #include "TrksInJetQAHist.h"
 
-// tracking includes
-#include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase_historic/SvtxTrackMap.h>
 // jet includes
 #include <jetbase/JetContainer.h>
 
@@ -31,6 +27,12 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+// tracking includes
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 
 // root includes
 #include <TFile.h>

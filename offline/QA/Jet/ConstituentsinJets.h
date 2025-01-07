@@ -3,14 +3,14 @@
 #ifndef QA_JET_CONSTITUENTSINJETS_H
 #define QA_JET_CONSTITUENTSINJETS_H
 
+#include "JetQADefs.h"
+
 #include <fun4all/SubsysReco.h>
 #include <jetbase/Jet.h>
 
 #include <string>
 #include <utility>  // std::pair, std::make_pair
 #include <vector>
-
-#include "JetQADefs.h"
 
 class Fun4AllHistoManager;
 class PHCompositeNode;

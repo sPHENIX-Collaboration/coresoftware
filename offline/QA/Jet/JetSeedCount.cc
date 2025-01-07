@@ -1,16 +1,16 @@
 #include "JetSeedCount.h"
 
-#include <jetbase/JetContainer.h>
-
 #include <calotrigger/TriggerAnalyzer.h>
 
 #include <centrality/CentralityInfo.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
+
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
+#include <jetbase/JetContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>

@@ -2,28 +2,28 @@
 
 #include <calotrigger/TriggerAnalyzer.h>
 
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/TrackSeed.h>
-
-#include <jetbase/Jet.h>
-#include <jetbase/JetContainer.h>
-#include <jetbase/JetInput.h>
-
 #include <centrality/CentralityInfo.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
 
+#include <jetbase/Jet.h>
+#include <jetbase/JetContainer.h>
+#include <jetbase/JetInput.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <boost/format.hpp>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackSeed.h>
 
 #include <TH2.h>
 #include <TH3.h>
 #include <TVector3.h>
+
+#include <boost/format.hpp>
 
 #include <algorithm>
 #include <cassert>

@@ -4,16 +4,11 @@
 #ifndef QA_JET_STRUCTUREINJETS_H
 #define QA_JET_STRUCTUREINJETS_H
 
-// qa utilities
-//#include <qautils/QAHistManagerDef.h>
+#include "JetQADefs.h"
 
-// f4a includes
-//#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-
-#include "JetQADefs.h"
 
 class Fun4AllHistoManager;
 class PHCompositeNode;

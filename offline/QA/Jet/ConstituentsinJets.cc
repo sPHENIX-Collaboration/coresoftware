@@ -1,13 +1,5 @@
 #include "ConstituentsinJets.h"
 
-// jet includes
-#include <jetbase/Jet.h>
-#include <jetbase/JetContainer.h>
-#include <jetbase/JetContainerv1.h>
-#include <jetbase/Jetv2.h>
-
-#include <qautils/QAHistManagerDef.h>
-
 // calobase includes
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
@@ -19,17 +11,25 @@
 // calotrigger includes
 #include <calotrigger/TriggerAnalyzer.h>
 
-// jetbackground includes
-#include <jetbackground/TowerBackground.h>
+// jet includes
+#include <jetbase/Jet.h>
+#include <jetbase/JetContainer.h>
+#include <jetbase/JetContainerv1.h>
+#include <jetbase/Jetv2.h>
 
 // fun4all includes
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-// #include <fun4all/PHTFileServer.h>
+
+// jetbackground includes
+#include <jetbackground/TowerBackground.h>
 
 // phool includes
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+
+// qautils includes
+#include <qautils/QAHistManagerDef.h>
 
 #include <TH1.h>
 #include <TH2.h>
@@ -57,7 +57,6 @@ ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std:
 int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
 {
   // create output file
-  // PHTFileServer::get().open(m_outputFileName, "RECREATE");
   delete m_analyzer; // make cppcheck happy
   m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();
@@ -417,8 +416,6 @@ int ConstituentsinJets::End(PHCompositeNode * /*topNode*/)
     std::cout << "ConstituentsinJets::EndRun - End run " << std::endl;
     // std::cout << "ConstituentsinJets::EndRun - Writing to " << m_outputFileName << std::endl;
   }
-
-  // PHTFileServer::get().cd(m_outputFileName);
 
   m_manager->registerHisto(h1_ConstituentsinJets_total);
   m_manager->registerHisto(h1_ConstituentsinJets_IHCAL);
