@@ -102,10 +102,6 @@ bool TriggerAnalyzer::checkRawTrigger(const std::string& triggername)
 {
   uint32_t bit = triggerruninfo->getTriggerBitByName(triggername);
   return (((gl1_livevec >> bit) & 0x1U) == 0x1U);
-<<<<<<< HEAD
-=======
-
->>>>>>> master
 }
 
 bool TriggerAnalyzer::checkRawTrigger(int triggerbit)
