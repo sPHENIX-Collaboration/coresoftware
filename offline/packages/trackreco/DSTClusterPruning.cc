@@ -90,10 +90,10 @@ int DSTClusterPruning::Init(PHCompositeNode* topNode )
   }
 
   //make new cluster container
-  auto clsNode = findNode::getClass<TrkrClusterContainer>(trkrNode, "ReducedClusterContainer");
+  auto clsNode = findNode::getClass<TrkrClusterContainer>(trkrNode, "TRKR_CLUSTER_SEED");
   if (!clsNode)
   {
-    auto newClusterNode = new PHIODataNode<PHObject>(new TrkrClusterContainerv4, "ReducedClusterContainer", "PHObject");
+    auto newClusterNode = new PHIODataNode<PHObject>(new TrkrClusterContainerv4, "TRKR_CLUSTER_SEED", "PHObject");
     trkrNode->addNode(newClusterNode);
   }
 
@@ -132,10 +132,10 @@ int DSTClusterPruning::process_event(PHCompositeNode* topNode)
  
   prune_clusters();
   //print_clusters();
-  if( m_cluster_map) {
-    m_cluster_map->Reset();
-  }
-  fill_clusters();
+  //if( m_cluster_map) {
+  //  m_cluster_map->Reset();
+  //}
+  //fill_clusters();
   /*
   if( m_reduced_cluster_map) {
     m_reduced_cluster_map->Reset();
@@ -168,7 +168,7 @@ int DSTClusterPruning::load_nodes( PHCompositeNode* topNode )
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
   //look for reduced cluster
-  m_reduced_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "ReducedClusterContainer");
+  m_reduced_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_SEED");
   
   //m_reduced_track_map = findNode::getClass<SvtxTrackMap>(topNode, "ReducedTrackContainer");
   m_track_seed_container = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
@@ -236,10 +236,39 @@ if( !(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_sili
         continue;
       }
       if(!m_reduced_cluster_map->findCluster(cluster_key)){
+        //std::cout<< "Cluster RPhi Error: " << cluster->getRPhiError() << std::endl;
+        //std::cout<< "Cluster Z Error: " << cluster->getZError() << std::endl;
+        //PrintCluster(cluster);
+        //cluster->identify();
+        // std::cout << "Cluster PhiSize: " << cluster->getPhiSize() << std::endl;
+        // std::cout << "Cluster ZSize: " << cluster->getZSize() << std::endl;
+        // std::cout << "Cluster RPhiError: " << cluster->getRPhiError() << std::endl;
+        // std::cout << "Cluster ZError: " << cluster->getZError() << std::endl;
+        // std::cout << "Cluster adc: " << cluster->getAdc() << std::endl;
+        // std::cout << "Cluster max adc: " << cluster->getMaxAdc() << std::endl;
+        // std::cout << "Cluster subsurfkey: " << cluster->getSubSurfKey() << std::endl;
+        // std::cout << "Cluster overlap: " << cluster->getOverlap() << std::endl;
+        // std::cout << "Cluster edge: " << cluster->getEdge() << std::endl;
+        //cluster->identify();
         m_cluster = new TrkrClusterv5();
         m_cluster->CopyFrom(cluster);
+        m_cluster->setPhiError(cluster->getRPhiError());
         m_reduced_cluster_map->addClusterSpecifyKey(cluster_key,m_cluster);
-        
+        //PrintCluster(m_cluster);
+
+         // m_cluster->identify();
+        // std::cout << "m_Cluster PhiSize: " << m_cluster->getPhiSize() << std::endl;
+        // std::cout << "m_Cluster ZSize: " << m_cluster->getZSize() << std::endl;
+        // std::cout << "m_Cluster RPhiError: " << m_cluster->getRPhiError() << std::endl;
+        // std::cout << "m_Cluster ZError: " << m_cluster->getZError() << std::endl;
+        // std::cout << "m_Cluster adc: " << m_cluster->getAdc() << std::endl;
+        // std::cout << "m_Cluster max adc: " << m_cluster->getMaxAdc() << std::endl;
+        // std::cout << "m_Cluster subsurfkey: " << m_cluster->getSubSurfKey() << std::endl;
+        // std::cout << "m_Cluster overlap: " << m_cluster->getOverlap() << std::endl;
+        // std::cout << "m_Cluster edge: " << m_cluster->getEdge() << std::endl;
+        //std::cout<< "m_Cluster RPhi Error: " << m_cluster->getRPhiError() << std::endl;
+        //std::cout<< "m_Cluster Z Error: " << m_cluster->getZError() << std::endl;
+        //m_cluster->identify();
 
       }
 
@@ -263,10 +292,39 @@ if( !(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_sili
         continue;
       }
       if(!m_reduced_cluster_map->findCluster(cluster_key)){
+        //std::cout<< "Cluster RPhi Error: " << cluster->getRPhiError() << std::endl;
+        //std::cout<< "Cluster Z Error: " << cluster->getZError() << std::endl;
+        // cluster->identify();
+        //PrintCluster(cluster);
+        // std::cout << "Cluster PhiSize: " << cluster->getPhiSize() << std::endl;
+        // std::cout << "Cluster ZSize: " << cluster->getZSize() << std::endl;
+        // std::cout << "Cluster RPhiError: " << cluster->getRPhiError() << std::endl;
+        // std::cout << "Cluster ZError: " << cluster->getZError() << std::endl;
+        // std::cout << "Cluster adc: " << cluster->getAdc() << std::endl;
+        // std::cout << "Cluster max adc: " << cluster->getMaxAdc() << std::endl;
+        // std::cout << "Cluster subsurfkey: " << cluster->getSubSurfKey() << std::endl;
+        // std::cout << "Cluster overlap: " << cluster->getOverlap() << std::endl;
+        // std::cout << "Cluster edge: " << cluster->getEdge() << std::endl;
         m_cluster = new TrkrClusterv5();
         m_cluster->CopyFrom(cluster);
+        m_cluster->setPhiError(cluster->getRPhiError());
         m_reduced_cluster_map->addClusterSpecifyKey(cluster_key,m_cluster);
-        
+        //PrintCluster(m_cluster);
+
+        // m_cluster->identify();
+        // std::cout << "m_Cluster PhiSize: " << m_cluster->getPhiSize() << std::endl;
+        // std::cout << "m_Cluster ZSize: " << m_cluster->getZSize() << std::endl;
+        // std::cout << "m_Cluster RPhiError: " << m_cluster->getRPhiError() << std::endl;
+        // std::cout << "m_Cluster ZError: " << m_cluster->getZError() << std::endl;
+        // std::cout << "m_Cluster adc: " << m_cluster->getAdc() << std::endl;
+        // std::cout << "m_Cluster max adc: " << m_cluster->getMaxAdc() << std::endl;
+        // std::cout << "m_Cluster subsurfkey: " << m_cluster->getSubSurfKey() << std::endl;
+        // std::cout << "m_Cluster overlap: " << m_cluster->getOverlap() << std::endl;
+        // std::cout << "m_Cluster edge: " << m_cluster->getEdge() << std::endl;
+
+        //std::cout<< "m_Cluster RPhi Error: " << m_cluster->getRPhiError() << std::endl;
+        //std::cout<< "m_Cluster Z Error: " << m_cluster->getZError() << std::endl;
+        //m_cluster->identify();
         //m_reduced_cluster_map->addClusterSpecifyKey(cluster_key, cluster);
       }
     
@@ -428,6 +486,7 @@ if( !(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_sili
       if(!m_cluster_map->findCluster(cluster_key)){
         m_cluster = new TrkrClusterv5();
         m_cluster->CopyFrom(cluster);
+        m_cluster->setPhiError(cluster->getRPhiError());
         m_cluster_map->addClusterSpecifyKey(cluster_key,m_cluster);
         
 
@@ -455,6 +514,7 @@ if( !(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_sili
       if(!m_cluster_map->findCluster(cluster_key)){
         m_cluster = new TrkrClusterv5();
         m_cluster->CopyFrom(cluster);
+        m_cluster->setPhiError(cluster->getRPhiError());
         m_cluster_map->addClusterSpecifyKey(cluster_key,m_cluster);
         
         //m_reduced_cluster_map->addClusterSpecifyKey(cluster_key, cluster);
