@@ -29,7 +29,6 @@ TrksInJetQA::~TrksInJetQA()
   }
 
   // clean up any dangling pointers
-  //   - FIXME use smart pointers instead!
   // deleting null ptrs is legal, setting it to null is not needed in the dtor
   delete m_outFile;
 }  // end dtor

@@ -46,11 +46,6 @@ DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   {
     std::cout << "DijetQA::DijetQA(const std::string &name) Calling ctor" << std::endl;
   }
-
-  // make sure raw pointers are free
-  free(m_manager);
-  free(m_analyzer);
-
 }
 
 //____________________________________________________________________________..
@@ -66,6 +61,7 @@ DijetQA::~DijetQA()
 int DijetQA::Init(PHCompositeNode* /*topNode*/)
 {
   //  std::cout << "DijetQA::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  delete m_analyzer;  // make cppcheck happy
   m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();  // get the histogram anager
 

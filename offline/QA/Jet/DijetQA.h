@@ -100,8 +100,8 @@ class DijetQA : public SubsysReco
 
  private:
   std::string m_moduleName;
-  std::pair<float, float> m_etaRange{-1.1, 1.1}
-  std::pair<float, float> m_ptRange{1.0, 1000.0};
+  std::pair<float, float> m_etaRange;
+  std::pair<float, float> m_ptRange;
   float DeltaPhiOne{3.141529694 / 32.};  // cut on the opening angle of phi for the identified jets
                                           // Should set to integer multilple of hcal phi tower size ->Pi/32
   int ntowers_opening{2};
