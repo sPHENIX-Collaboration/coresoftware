@@ -199,7 +199,7 @@ int CentralityReco::FillVars()
       
       m_mbd_hit = m_mbd_container->get_pmt(i);
 
-      if ((m_mbd_hit->get_q() * scale_factor * m_centrality_scale) < mbd_charge_cut)
+      if ((m_mbd_hit->get_q()) < mbd_charge_cut)
 	{
 	  continue;
 	}

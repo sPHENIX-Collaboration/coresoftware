@@ -327,7 +327,7 @@ bool MinimumBiasClassifier::passesHitCut(MbdPmtHit *hit)
     {
       return false;
     }
-  if (hit->get_q()*m_vertex_scale*m_centrality_scale <= m_mbd_charge_cut)
+  if (hit->get_q() <= m_mbd_charge_cut)
     {
       return false;
     }
