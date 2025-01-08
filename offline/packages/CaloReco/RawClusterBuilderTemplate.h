@@ -9,6 +9,8 @@ class PHCompositeNode;
 class RawClusterContainer;
 class RawTowerGeomContainer;
 class BEmcRec;
+class TowerInfo;
+class RawTower;
 
 class RawClusterBuilderTemplate : public SubsysReco
 {
@@ -37,34 +39,74 @@ class RawClusterBuilderTemplate : public SubsysReco
     m_UseTowerInfo = useMode;
   }
 
+  void set_ApplyTowerSelection(bool b)
+  {
+    m_do_tower_selection = b;
+  }
+
+  void set_UseAltZVertex(const int useAltZMode)
+  {  // 0 use global vtx, 1 only bbcout bbczvtx , 2 use NO zvtx[set to 0]
+    m_UseAltZVertex = useAltZMode;
+  }
+
+  void setOutputClusterNodeName(const std::string& inpNodenm)
+  {
+    m_outputnodename = inpNodenm;
+  }
+
+  // !!! note :  next fn NOT implemented for RawTowers
+  // only TowerInfo  mode
+  void setInputTowerNodeName(const std::string& inpNodenm)
+  {
+    m_inputnodename = inpNodenm;
+  }
+
+   void set_min_cluster_E_saved(float min_cluster_E) { m_min_cluster_e = min_cluster_E; }
+
+  
+
  private:
   void CreateNodes(PHCompositeNode* topNode);
   bool Cell2Abs(RawTowerGeomContainer* towergeom, float phiC, float etaC, float& phi, float& eta);
+  bool IsAcceptableTower(TowerInfo *tower);
+  bool IsAcceptableTower(RawTower *tower);
 
-  RawClusterContainer* _clusters = nullptr;
+  RawClusterContainer* _clusters{nullptr};
   //  BEmcProfile *_emcprof;
 
-  BEmcRec* bemc = nullptr;
-  float fEnergyNorm = 1.;
+  BEmcRec* bemc{nullptr};
+  float fEnergyNorm{1.};
 
-  float _min_tower_e = 0.020;
-  int chkenergyconservation = 0;
+  float _min_tower_e{0.020};
+  int chkenergyconservation{0};
 
   std::string detector;
   std::string ClusterNodeName;
 
-  int BINX0 = 0;
-  int NBINX = 0;
-  int BINY0 = 0;
-  int NBINY = 0;
+  int BINX0{0};
+  int NBINX{0};
+  int BINY0{0};
+  int NBINY{0};
 
-  bool bPrintGeom = false;
-  bool bProfProb = false;
-  float fProbNoiseParam = 0.04;
+  bool bPrintGeom{false};
+  bool bProfProb{false};
+  float fProbNoiseParam{0.04};
 
-  int m_UseTowerInfo = 0;  // 0 only old tower, 1 only new (TowerInfo based),
+  int m_UseTowerInfo{0};  // 0 only old tower, 1 only new (TowerInfo based),
+
+  bool m_do_tower_selection{true};
 
   std::string m_towerInfo_nodename;
+
+  int m_UseAltZVertex{2};
+  // 0 - use GlobalVtxMap
+  // 1 - use BbcReco ZVtx
+  // 2 - use NO zvertex (zvtx = 0)
+
+  float m_min_cluster_e{0.0};
+
+  std::string m_inputnodename;
+  std::string m_outputnodename;
 };
 
 #endif /* RawClusterBuilderTemplate_H__ */

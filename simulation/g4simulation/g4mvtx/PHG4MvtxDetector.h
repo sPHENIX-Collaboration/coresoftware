@@ -3,14 +3,17 @@
 #ifndef G4MVTX_PHG4MVTXDETECTOR_H
 #define G4MVTX_PHG4MVTXDETECTOR_H
 
+#include <trackbase/TrkrDefs.h>
+
 #include <g4main/PHG4Detector.h>
 
 #include <array>
-#include <cmath>  // for M_PI
+#include <cmath>
 #include <map>
 #include <set>
 #include <string>
-#include <tuple>  // for tuple
+#include <tuple>
+#include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
@@ -19,6 +22,7 @@ class PHCompositeNode;
 class PHG4MvtxDisplayAction;
 class PHG4Subsystem;
 class PHParametersContainer;
+class PHG4MvtxMisalignment;
 
 class PHG4MvtxDetector : public PHG4Detector
 {
@@ -39,7 +43,7 @@ class PHG4MvtxDetector : public PHG4Detector
   //@}
 
   int IsActive(int lyr) const { return m_IsLayerActive[lyr]; }
-  int IsAbsorberActive(int lyr) const { return m_IsLayerAbsorberActive[lyr]; }
+  int IsSupportActive(int lyr) const { return m_IsLayerSupportActive[lyr]; }
   int IsBlackHole(int lyr) const { return m_IsBlackHole[lyr]; }
   void SuperDetector(const std::string& name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
@@ -48,6 +52,10 @@ class PHG4MvtxDetector : public PHG4Detector
 
   int get_layer(int stv_index) const;
   int get_stave(int stv_index) const;
+
+  void FillSupportLVArray(G4LogicalVolume* lv) { m_SupportLV.insert(lv); }
+
+  void ApplyMisalignment(bool b) { apply_misalignment = b; };
 
  private:
   void AddGeometryNode();
@@ -62,26 +70,36 @@ class PHG4MvtxDetector : public PHG4Detector
   // calculated quantities
   double get_phistep(int lay) const { return 2.0 * M_PI / m_N_staves[lay]; }
 
-  static constexpr int n_Layers = 3;
-  PHG4MvtxDisplayAction* m_DisplayAction;
-  const PHParametersContainer* m_ParamsContainer;
+  PHG4MvtxDisplayAction* m_DisplayAction{nullptr};
+  const PHParametersContainer* m_ParamsContainer{nullptr};
 
-  // map of sensor physical volume pointers
-  std::set<G4VPhysicalVolume*> m_SensorPV;
-  std::map<G4VPhysicalVolume*, std::tuple<int, int>> m_StavePV;
-
-  // setup parameters
-  std::array<int, n_Layers> m_IsLayerActive;
-  std::array<int, n_Layers> m_IsLayerAbsorberActive;
-  std::array<int, n_Layers> m_IsBlackHole;
-  std::array<int, n_Layers> m_N_staves;
-  std::array<double, n_Layers> m_nominal_radius;
-  std::array<double, n_Layers> m_nominal_phitilt;
-  std::array<double, n_Layers> m_nominal_phi0;
+  static constexpr int n_Layers{3};
+  int m_SupportActiveFlag{0};
 
   std::string m_Detector;
   std::string m_SuperDetector;
   std::string m_StaveGeometryFile;
+
+  // map of sensor physical volume pointers
+  std::set<G4VPhysicalVolume*> m_SensorPV;
+  std::map<G4VPhysicalVolume*, std::tuple<int, int>> m_StavePV;
+  // set of support structures
+  std::set<G4LogicalVolume*> m_SupportLV;
+
+  // setup parameters
+  std::array<int, n_Layers> m_IsLayerActive{};
+  std::array<int, n_Layers> m_IsLayerSupportActive{};
+  std::array<int, n_Layers> m_IsBlackHole{};
+  std::array<int, n_Layers> m_N_staves{};
+  std::array<double, n_Layers> m_nominal_radius{};
+  std::array<double, n_Layers> m_nominal_phitilt{};
+  std::array<double, n_Layers> m_nominal_phi0{};
+
+  // For modified geometry
+  bool apply_misalignment = false;
+  double m_GlobalDisplacementX = 0.0;
+  double m_GlobalDisplacementY = 0.0;
+  double m_GlobalDisplacementZ = 0.0;
 };
 
 #endif

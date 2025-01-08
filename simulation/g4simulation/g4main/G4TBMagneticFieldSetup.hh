@@ -71,7 +71,7 @@ class G4TBMagneticFieldSetup
 
   void UpdateField();
 
-  void SetFieldValue(const G4ThreeVector fieldVector);
+  void SetFieldValue(const G4ThreeVector& fieldVector);
   void SetFieldValue(const G4double fieldValue);
 
   double get_magfield_at_000(const int i) const { return magfield_at_000[i]; }
@@ -102,7 +102,7 @@ class G4TBMagneticFieldSetup
 
   G4TBFieldMessenger* fFieldMessenger = nullptr;
 
-  double magfield_at_000[3];
+  double magfield_at_000[3]{};
 };
 
 #endif

@@ -18,8 +18,9 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
@@ -56,9 +57,12 @@ int PHActsTrackPropagator::process_event(PHCompositeNode *)
   ActsPropagator prop(m_tGeometry);
   for (auto &[key, track] : *m_trackMap)
   {
-    const auto params = prop.makeTrackParams(track, m_vertexMap);
-
-    auto result = propagateTrack(params);
+    auto params = prop.makeTrackParams(track, m_vertexMap);
+    if(!params.ok())
+      {
+	continue;
+      }
+    auto result = propagateTrack(params.value());
     if (result.ok())
     {
       addTrackState(result, track);

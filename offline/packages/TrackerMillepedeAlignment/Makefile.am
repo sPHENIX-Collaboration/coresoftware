@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -25,9 +25,11 @@ libtrackeralign_la_LIBADD = \
   -lg4detectors_io \
   -ltrack_io \
   -ltrackbase_historic_io \
+  -ltrack_reco \
   -ltpc_io
 
 pkginclude_HEADERS = \
+  AlignmentDefs.h \
   MakeMilleFiles.h \
   Mille.h \
   HelicalFitter.h
@@ -35,6 +37,7 @@ pkginclude_HEADERS = \
 pcmdir = $(libdir)
 
 libtrackeralign_la_SOURCES = \
+  AlignmentDefs.cc \
   MakeMilleFiles.cc \
   Mille.cc \
   HelicalFitter.cc

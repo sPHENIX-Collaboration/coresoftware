@@ -16,8 +16,8 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -41,10 +41,16 @@ PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   m_caloNames.push_back("CEMC");
   m_caloNames.push_back("HCALIN");
   m_caloNames.push_back("HCALOUT");
+  m_caloNames.push_back("OUTER_CEMC");
+  m_caloNames.push_back("OUTER_HCALIN");
+  m_caloNames.push_back("OUTER_HCALOUT");
 
   m_caloTypes.push_back(SvtxTrack::CEMC);
   m_caloTypes.push_back(SvtxTrack::HCALIN);
   m_caloTypes.push_back(SvtxTrack::HCALOUT);
+  m_caloTypes.push_back(SvtxTrack::OUTER_CEMC);
+  m_caloTypes.push_back(SvtxTrack::OUTER_HCALIN);
+  m_caloTypes.push_back(SvtxTrack::OUTER_HCALOUT);
 }
 
 int PHActsTrackProjection::InitRun(PHCompositeNode* topNode)
@@ -98,6 +104,11 @@ int PHActsTrackProjection::process_event(PHCompositeNode* topNode)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+    ret = projectTracks(layer+m_nCaloLayers);
+    if (ret != Fun4AllReturnCodes::EVENT_OK)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   if (Verbosity() > 1)
@@ -126,11 +137,15 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
   ActsPropagator prop(m_tGeometry);
   for (const auto& [key, track] : *m_trackMap)
   {
-    const auto params = prop.makeTrackParams(track, m_vertexMap);
+    auto params = prop.makeTrackParams(track, m_vertexMap);
+    if(!params.ok())
+      {
+	continue;
+      }
     auto cylSurf =
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
-    auto result = propagateTrack(params, caloLayer, cylSurf);
+    auto result = propagateTrack(params.value(), caloLayer, cylSurf);
     if (result.ok())
     {
       updateSvtxTrack(result.value(), track, caloLayer);
@@ -147,8 +162,8 @@ void PHActsTrackProjection::updateSvtxTrack(
 {
   float pathlength = parameters.first / Acts::UnitConstants::cm;
   auto params = parameters.second;
-
-  SvtxTrackState_v1 out(pathlength);
+  float calorad = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
+  SvtxTrackState_v1 out(calorad);
 
   auto projectionPos = params.position(m_tGeometry->geometry().getGeoContext());
   const auto momentum = params.momentum();
@@ -162,7 +177,7 @@ void PHActsTrackProjection::updateSvtxTrack(
   if (Verbosity() > 1)
   {
     std::cout << "Adding track state for caloLayer " << caloLayer
-              << " with position " << projectionPos.transpose() << std::endl;
+              << " at pathlength " << pathlength << " with position " << projectionPos.transpose() << std::endl;
   }
 
   ActsTransformations transformer;
@@ -187,6 +202,17 @@ void PHActsTrackProjection::getClusterProperties(double phi,
                                                  double& minE)
 {
   double minR = DBL_MAX;
+  if(!m_clusterContainer)
+  {
+    if(Verbosity() > 1)
+    {
+      std::cout << PHWHERE
+                << "Calo cluster container "
+                << "not found. getClusterProperties will not return any information."
+                << std::endl;
+    }
+    return;
+  }
   auto clusterMap = m_clusterContainer->getClustersMap();
   for (const auto& [key, cluster] : clusterMap)
   {
@@ -254,7 +280,7 @@ PHActsTrackProjection::propagateTrack(
   ActsPropagator propagator(m_tGeometry);
   propagator.constField();
   propagator.verbosity(Verbosity());
-  propagator.setConstFieldValue(1.4 * Acts::UnitConstants::T);
+  propagator.setConstFieldValue(m_constFieldVal * Acts::UnitConstants::T);
 
   return propagator.propagateTrackFast(params, targetSurf);
 }
@@ -268,7 +294,7 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,
 
   m_towerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, towerGeoNodeName.c_str());
 
-  m_towerContainer = findNode::getClass<TowerInfoContainerv1>(topNode, towerNodeName.c_str());
+  m_towerContainer = findNode::getClass<TowerInfoContainer>(topNode, towerNodeName.c_str());
 
   m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, clusterNodeName.c_str());
 
@@ -279,7 +305,15 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,
     m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, nodeName.c_str());
   }
 
-  if (!m_towerGeomContainer or !m_towerContainer or !m_clusterContainer)
+  if((!m_clusterContainer) && (Verbosity() > 1))
+  {
+    std::cout << PHWHERE
+              << "Calo cluster container for " << m_caloNames.at(caloLayer)
+              << "not found on node tree. Track projections to calos WILL be filled."
+              << std::endl;
+  }
+
+  if (!m_towerGeomContainer or !m_towerContainer)
   {
     if (m_calosAvailable)
     {
@@ -306,6 +340,8 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
 
     /// Default to using calo radius
     double caloRadius = m_towerGeomContainer->get_radius();
+    double caloOuterRadius = m_towerGeomContainer->get_radius() + m_towerGeomContainer->get_thickness();
+
     if (m_caloRadii.find(m_caloTypes.at(caloLayer)) != m_caloRadii.end())
     {
       caloRadius = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
@@ -317,11 +353,23 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
 
     caloRadius *= Acts::UnitConstants::cm;
 
+    if (m_caloRadii.find(m_caloTypes.at(caloLayer+m_nCaloLayers)) != m_caloRadii.end())
+    {
+      caloOuterRadius = m_caloRadii.find(m_caloTypes.at(caloLayer+m_nCaloLayers))->second;
+    }
+    else
+    {
+      m_caloRadii.insert(std::make_pair(m_caloTypes.at(caloLayer+m_nCaloLayers), caloOuterRadius));
+    }
+
+    caloOuterRadius *= Acts::UnitConstants::cm;
+
     /// Extend farther so that there is at least surface there, for high
     /// curling tracks. Can always reject later
     const auto eta = 2.5;
     const auto theta = 2. * atan(exp(-eta));
     const auto halfZ = caloRadius / tan(theta) * Acts::UnitConstants::cm;
+    const auto halfZOuter = caloOuterRadius / tan(theta) * Acts::UnitConstants::cm;
 
     /// Make a cylindrical surface at (0,0,0) aligned along the z axis
     auto transform = Acts::Transform3::Identity();
@@ -330,12 +378,17 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
         Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
                                                          caloRadius,
                                                          halfZ);
+    std::shared_ptr<Acts::CylinderSurface> outer_surf =
+        Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
+                                                         caloOuterRadius,
+                                                         halfZOuter);
     if (Verbosity() > 1)
     {
       std::cout << "Creating  cylindrical surface at " << caloRadius << std::endl;
+      std::cout << "Creating  cylindrical surface at " << caloOuterRadius << std::endl;
     }
-    m_caloSurfaces.insert(std::make_pair(m_caloNames.at(caloLayer),
-                                         surf));
+    m_caloSurfaces.insert(std::make_pair(m_caloNames.at(caloLayer),surf));
+    m_caloSurfaces.insert(std::make_pair(m_caloNames.at(caloLayer+m_nCaloLayers), outer_surf));
   }
 
   if (Verbosity() > 1)

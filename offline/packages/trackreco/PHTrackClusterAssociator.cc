@@ -14,8 +14,9 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackCaloClusterMap_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -24,6 +25,8 @@
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <phgeom/PHGeomUtility.h>
+
+#include <Acts/Definitions/Algebra.hpp>
 
 namespace
 {
@@ -42,16 +45,7 @@ namespace
 //____________________________________________________________________________..
 PHTrackClusterAssociator::PHTrackClusterAssociator(const std::string& name)
   : SubsysReco(name)
-{
-  m_caloNames.push_back("CEMC");
-  m_caloNames.push_back("HCALIN");
-  m_caloNames.push_back("HCALOUT");
-}
-
-//____________________________________________________________________________..
-PHTrackClusterAssociator::~PHTrackClusterAssociator()
-{
-}
+{}
 
 //____________________________________________________________________________..
 int PHTrackClusterAssociator::InitRun(PHCompositeNode* topNode)

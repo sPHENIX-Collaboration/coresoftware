@@ -14,7 +14,7 @@
 #ifndef GPUTPCBASETRACKPARAM_H
 #define GPUTPCBASETRACKPARAM_H
 
-constexpr double GPUCA_MAX_SIN_PHI = 0.99;
+constexpr double GPUCA_MAX_SIN_PHI = 1.0;
 
 class GPUTPCTrackParam;
 

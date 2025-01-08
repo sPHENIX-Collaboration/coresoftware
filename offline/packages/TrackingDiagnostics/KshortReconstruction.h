@@ -7,19 +7,13 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <globalvertex/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 
 #include <Acts/Definitions/Algebra.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wunused-value"
-#include <Acts/Propagator/Propagator.hpp>
-#pragma GCC diagnostic pop
 
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
@@ -41,6 +35,7 @@ using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
 using Trajectory = ActsExamples::Trajectories;
 
+class ActsGeometry;
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
@@ -62,15 +57,15 @@ class KshortReconstruction : public SubsysReco
   void setTrackDCACut(double cut) { track_dca_cut = cut; }
   void setRequireMVTX(bool set) { _require_mvtx = set; }
   void setDecayMass(Float_t decayMassSet) { decaymass = decayMassSet; }  //(muons decaymass = 0.1057) (pions = 0.13957) (electron = 0.000511)
-  void set_output_file(const std::string &outputfile) { filepath = outputfile; }
+  void set_output_file(const std::string& outputfile) { filepath = outputfile; }
 
  private:
-  void fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj);
+  void fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::Vector3 dcavals1, Acts::Vector3 dcavals2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, float rapidity, float pseudorapidity, Eigen::Vector3d projected_pos1, Eigen::Vector3d projected_pos2, Eigen::Vector3d projected_mom1, Eigen::Vector3d projected_mom2, Acts::Vector3 pca_rel1_proj, Acts::Vector3 pca_rel2_proj, double pair_dca_proj,unsigned int track1_silicon_cluster_size, unsigned int track2_silicon_cluster_size);
 
   void fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1D* massreco, double& invariantMass, double& invariantPt, float& rapidity, float& pseudorapidity);
 
   // void findPcaTwoTracks(SvtxTrack *track1, SvtxTrack *track2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca);
-  void findPcaTwoTracks(Acts::Vector3 pos1, Acts::Vector3 pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca);
+  void findPcaTwoTracks(const Acts::Vector3& pos1, const Acts::Vector3& pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca);
 
   int getNodes(PHCompositeNode* topNode);
 
@@ -78,10 +73,6 @@ class KshortReconstruction : public SubsysReco
 
   bool projectTrackToCylinder(SvtxTrack* track, double Radius, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
   bool projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
-
-  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const SurfacePtr& targetSurf);
-
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
 
   Acts::Vector3 getVertex(SvtxTrack* track);
 

@@ -38,7 +38,8 @@ class PHG4TruthInfoContainer : public PHObject
   PHG4TruthInfoContainer();
   ~PHG4TruthInfoContainer() override;
 
-// from PHObject
+  // from PHObject
+  // cppcheck-suppress [virtualCallInConstructor]
   void Reset() override;
   void identify(std::ostream& os = std::cout) const override;
 
@@ -231,7 +232,6 @@ class PHG4TruthInfoContainer : public PHObject
 
   ClassDefOverride(PHG4TruthInfoContainer, 1)
 };
-
 
 /**
  * Equality operators for the types used in the publicly accessible internal

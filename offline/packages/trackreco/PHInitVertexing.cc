@@ -1,7 +1,7 @@
 #include "PHInitVertexing.h"
 
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <globalvertex/SvtxVertexMap_v1.h>
+
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>

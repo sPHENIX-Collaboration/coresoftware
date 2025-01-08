@@ -7,7 +7,7 @@
 
 #include "PHG4HitDefs.h"
 
-#include <cstddef>       // for size_t
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
 #include <set>
@@ -120,9 +120,9 @@ class PHG4Showerv1 : public PHG4Shower
   std::map<int, float> _eh_ratio;      //< electron/hadron ratio of energy in different volumes
 
   // these containers are cleared during dst reduction, but are available in full dsts
-  ParticleIdSet _g4particle_ids;       //< contained secondary particle ids
-  VertexIdSet _g4vertex_ids;           //< contained secondary vertex ids
-  HitIdMap _g4hit_ids;                 //< contained hit ids
+  ParticleIdSet _g4particle_ids;  //< contained secondary particle ids
+  VertexIdSet _g4vertex_ids;      //< contained secondary vertex ids
+  HitIdMap _g4hit_ids;            //< contained hit ids
 
   ClassDefOverride(PHG4Showerv1, 1);
 };

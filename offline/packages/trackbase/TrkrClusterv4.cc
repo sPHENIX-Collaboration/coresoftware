@@ -7,14 +7,17 @@
 #include "TrkrClusterv4.h"
 
 #include <cmath>
-#include <utility>          // for swap
+#include <utility>  // for swap
 
 namespace
 {
   // square convenience function
-  template<class T> inline constexpr T square( const T& x ) 
-    { return x*x; }
-}
+  template <class T>
+  inline constexpr T square(const T& x)
+  {
+    return x * x;
+  }
+}  // namespace
 
 TrkrClusterv4::TrkrClusterv4()
   : m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
@@ -24,10 +27,10 @@ TrkrClusterv4::TrkrClusterv4()
   , m_overlap(0)
   , m_edge(0)
 {
-  for (int i = 0; i < 2; i++)
-    {
-      m_local[i] = NAN;
-    }
+  for (float& i : m_local)
+  {
+    i = NAN;
+  }
 }
 
 void TrkrClusterv4::identify(std::ostream& os) const
@@ -49,29 +52,37 @@ int TrkrClusterv4::isValid() const
 {
   for (int i = 0; i < 2; ++i)
   {
-    if (std::isnan(getPosition(i))) { return 0; }
+    if (std::isnan(getPosition(i)))
+    {
+      return 0;
+    }
   }
-  if (m_adc == 0xFFFF) { return 0; }
+  if (m_adc == 0xFFFF)
+  {
+    return 0;
+  }
 
   return 1;
 }
 
-void TrkrClusterv4::CopyFrom( const TrkrCluster& source )
+void TrkrClusterv4::CopyFrom(const TrkrCluster& source)
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
- 
+  if (this == &source)
+  {
+    return;
+  }
+
   // parent class method
-  TrkrCluster::CopyFrom( source );
- 
-  setLocalX( source.getLocalX() );
-  setLocalY( source.getLocalY() );
-  
-  setSubSurfKey( source.getSubSurfKey() );
-  setAdc( source.getAdc() );
+  TrkrCluster::CopyFrom(source);
+
+  setLocalX(source.getLocalX());
+  setLocalY(source.getLocalY());
+
+  setSubSurfKey(source.getSubSurfKey());
+  setAdc(source.getAdc());
   setPhiSize(source.getPhiSize());
   setZSize(source.getZSize());
   setOverlap(source.getOverlap());
   setEdge(source.getEdge());
 }
-

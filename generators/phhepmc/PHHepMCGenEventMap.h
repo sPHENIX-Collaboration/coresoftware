@@ -34,6 +34,7 @@ class PHHepMCGenEventMap : public PHObject
   ~PHHepMCGenEventMap() override;
 
   void identify(std::ostream& os = std::cout) const override;
+// cppcheck-suppress virtualCallInConstructor
   void Reset() override;
   int isValid() const override { return 1; }
   PHHepMCGenEventMap* CloneMe() const override { return new PHHepMCGenEventMap(*this); }

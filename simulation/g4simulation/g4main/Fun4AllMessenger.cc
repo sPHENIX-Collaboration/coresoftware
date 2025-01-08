@@ -20,7 +20,7 @@ Fun4AllMessenger::Fun4AllMessenger(Fun4AllServer* ffa)
   m_Fun4AllDir->SetGuidance("UI commands to run Fun4All commands");
   m_RunCmd = new G4UIcmdWithAnInteger("/Fun4All/run", this);
   m_RunCmd->SetGuidance("Run Event(s)");
-  m_RunCmd->SetParameterName("nEvents", 1);
+  m_RunCmd->SetParameterName("nEvents", true);
   m_RunCmd->AvailableForStates(G4State_Idle);
 }
 

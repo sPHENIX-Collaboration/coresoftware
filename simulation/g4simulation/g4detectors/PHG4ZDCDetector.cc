@@ -131,7 +131,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4Material* Fe = GetDetectorMaterial("G4_Fe");
   G4Material* W = GetDetectorMaterial("G4_W");
   G4Material* PMMA = GetDetectorMaterial("G4_PLEXIGLASS");
-  G4Material* Scint = GetDetectorMaterial("G4_POLYSTYRENE");  //place holder
+  G4Material* Scint = GetDetectorMaterial("G4_POLYSTYRENE");  // place holder
 
   G4double TGap = m_DFiber + m_Gap;
   G4double Mod_Length = 2 * m_TPlate + m_NLay * (TGap + m_TAbsorber);
@@ -221,7 +221,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   GetDisplayAction()->AddVolume(absorber_log, "Absorber");
 
   /* SMD */
-  //volume that contains scintillators
+  // volume that contains scintillators
   G4VSolid* SMD_solid = new G4Box(G4String("SMD_solid"),
                                   m_WSMD / 2.,
                                   m_HSMD / 2.,
@@ -241,7 +241,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   m_ScintiLogicalVolSet.insert(Scint_log);
   GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
 
-  //put scintillators in the SMD volume
+  // put scintillators in the SMD volume
   double scint_XPos = -m_WSMD / 2.;
   double scint_Xstep = scintx / 2.;
   double scint_Ystep = scinty / 2.;
@@ -322,7 +322,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   int copyno_plate = 0;
   for (int i = 0; i < m_NMod; i++)
   {
-    //place the SMD in between the 1st and 2nd module
+    // place the SMD in between the 1st and 2nd module
     if (i == 1)
     {
       ZPos += (SMD_Step / 2.);
@@ -330,7 +330,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                         SMD_log,
                         G4String("SMD"),
                         ZDC_envelope_log,
-                        false, 0, OverlapCheck());  //using copy number for now, need to find a better way
+                        false, 0, OverlapCheck());  // using copy number for now, need to find a better way
       ZPos += (SMD_Step / 2.);
     }
     /* place the front plate */

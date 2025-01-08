@@ -4,7 +4,7 @@ lib_LTLIBRARIES = libphnodedump.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
@@ -14,18 +14,30 @@ pkginclude_HEADERS = \
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
-  DumpBbcOut.cc \
-  DumpBbcPmtContainer.cc \
+  DumpBbcPmtInfoContainer.cc \
   DumpBbcVertexMap.cc \
+  DumpCaloPacketContainer.cc \
   DumpCaloTriggerInfo.cc \
   DumpCdbUrlSave.cc \
   DumpCentralityInfo.cc \
-  DumpEpInfo.cc \
+  DumpJetContainer.cc \
+  DumpEpdGeom.cc \
   DumpEventHeader.cc \
   DumpFlagSave.cc \
+  DumpGl1Packet.cc \
+  DumpGl1RawHit.cc \
   DumpGlobalVertexMap.cc \
   DumpInttDeadMap.cc \
+  DumpInttRawHitContainer.cc \
   DumpJetMap.cc \
+  DumpMbdGeom.cc \
+  DumpMbdOut.cc \
+  DumpMbdPmtContainer.cc \
+  DumpMbdVertexMap.cc \
+  DumpMicromegasRawHitContainer.cc \
+  DumpMvtxRawEvtHeader.cc \
+  DumpMvtxRawHitContainer.cc \
+  DumpObject.cc \
   DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
@@ -39,6 +51,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4HitContainer.cc \
   DumpPHG4ParticleSvtxMap.cc \
   DumpPHG4ScintillatorSlatContainer.cc \
+  DumpPHG4TpcCylinderGeomContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
   DumpPHGenIntegral.cc \
@@ -53,6 +66,7 @@ libphnodedump_la_SOURCES = \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
   DumpTowerInfoContainer.cc \
+  DumpTpcRawHitContainer.cc \
   DumpTpcSeedTrackMap.cc \
   DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
@@ -60,30 +74,33 @@ libphnodedump_la_SOURCES = \
   DumpTrkrHitSetContainer.cc \
   DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
-  DumpVariableArray.cc \
-  DumpObject.cc \
+  DumpZdcinfo.cc \
   PHNodeDump.cc
 
-AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
 
 libphnodedump_la_LIBADD = \
-  -lbbc_io \
   -lcalo_io \
   -lcalotrigger_io \
-  -leventplane_io \
+  -lepd_io \
+  -leventplaneinfo_io \
   -lffaobjects \
+  -lffarawobjects \
   -lg4detectors_io \
-  -lg4bbc_io \
-  -lg4jets_io \
+  -lg4mbd_io \
   -lHepMC \
+  -ljetbase_io \
+  -lmbd_io \
   -lparticleflow_io \
   -lphfield_io \
   -lphg4hit \
+  -lphhepmc_io \
   -lSubsysReco \
-  -ltrackbase_historic_io \
+  -ltrackbase_historic \
   -ltrack_io \
-  -lphhepmc_io\
-  -lvararray
+  -lzdcinfo_io
 
 
 noinst_PROGRAMS = \

@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class EmbRecoMatch+;
+#pragma link C++ class EmbRecoMatch + ;
 
 #endif

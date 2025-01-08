@@ -25,6 +25,7 @@ class PHG4OHCalDisplayAction : public PHG4DisplayAction
   void AddScintiVolume(G4LogicalVolume *vol) { m_ScintiLogVolSet.insert(vol); }
   void AddSteelVolume(G4LogicalVolume *vol) { m_SteelVol = vol; }
   void AddChimSteelVolume(G4LogicalVolume *vol) { m_ChimSteelVol = vol; }
+  void AddSupportRingVolume(G4LogicalVolume *vol) { m_SupportRingLogVolSet.insert(vol); }
 
  private:
   G4VPhysicalVolume *m_MyTopVolume = nullptr;
@@ -33,6 +34,7 @@ class PHG4OHCalDisplayAction : public PHG4DisplayAction
   std::vector<G4VisAttributes *> m_VisAttVec;
   std::vector<G4VisAttributes *> m_VisAttVec2;
   std::set<G4LogicalVolume *> m_ScintiLogVolSet;
+  std::set<G4LogicalVolume *> m_SupportRingLogVolSet;
 };
 
 #endif  // G4OHCAL_PHG4OHCALDISPLAYACTION_H

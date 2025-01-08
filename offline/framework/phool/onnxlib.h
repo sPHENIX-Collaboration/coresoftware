@@ -13,4 +13,6 @@ Ort::Session *onnxSession(std::string &modelfile);
 
 std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &input, int N, int Nsamp, int Nreturn);
 
+std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &input, int N, int Nx, int Ny, int Nz, int Nreturn);
+
 #endif

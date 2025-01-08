@@ -17,6 +17,7 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib
 
 libg4ohcal_la_LIBADD = \
+  -lcalo_io \
   -lfun4all \
   -lphg4hit \
   -lg4detectors

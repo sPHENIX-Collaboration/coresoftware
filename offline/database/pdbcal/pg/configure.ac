@@ -10,18 +10,9 @@ LT_INIT([disable-static])
 
 dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
-case $CXX in
- clang++)
-dnl odbc++ has issues
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wno-overloaded-virtual -Wno-inconsistent-missing-override -Wextra"
- ;;
- *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wextra"
- ;;
-esac
+CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wshadow -Werror"
 
-
-CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])

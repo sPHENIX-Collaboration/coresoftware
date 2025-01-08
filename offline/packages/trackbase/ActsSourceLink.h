@@ -1,10 +1,19 @@
 #ifndef TRACKBASE_ACTSSOURCELINK_H
 #define TRACKBASE_ACTSSOURCELINK_H
 
+#include "TrkrDefs.h"
+
+#ifndef __clang__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#include <Acts/Geometry/TrackingGeometry.hpp>
+#pragma GCC diagnostic pop
+#else
+#include <Acts/Geometry/TrackingGeometry.hpp>
+#endif
+
 #include <Acts/EventData/SourceLink.hpp>
 #include <Acts/Surfaces/Surface.hpp>
-
-#include "TrkrDefs.h"
 
 #include <cassert>
 #include <iostream>
@@ -13,20 +22,20 @@
 /// Using an index instead of e.g. a pointer, means source link and
 /// measurement are decoupled and the measurement represenation can be
 /// easily changed without having to also change the source link.
-class ActsSourceLink final : public Acts::SourceLink
+class ActsSourceLink final
 {
  public:
   using Index = uint8_t;
 
   /// Construct from geometry identifier and index.
   constexpr ActsSourceLink(Acts::GeometryIdentifier gid, Index idx)
-    : SourceLink(gid)
+    : m_geometryId(gid)
     , m_index(idx)
     , m_cluskey(0)
   {
   }
   constexpr ActsSourceLink(Acts::GeometryIdentifier gid, Index idx, TrkrDefs::cluskey cluskey)
-    : SourceLink(gid)
+    : m_geometryId(gid)
     , m_index(idx)
     , m_cluskey(cluskey)
   {
@@ -35,7 +44,7 @@ class ActsSourceLink final : public Acts::SourceLink
   // Construct an invalid source link. Must be default constructible to
   /// satisfy SourceLinkConcept.
   ActsSourceLink()
-    : SourceLink{Acts::GeometryIdentifier{}}
+    : m_geometryId{Acts::GeometryIdentifier{}}
     , m_index(UINT8_MAX)
     , m_cluskey(UINT64_MAX)
   {
@@ -49,8 +58,20 @@ class ActsSourceLink final : public Acts::SourceLink
   /// Access the index.
   constexpr Index index() const { return m_index; }
   constexpr TrkrDefs::cluskey cluskey() const { return m_cluskey; }
+  constexpr Acts::GeometryIdentifier geometryId() const { return m_geometryId; }
+
+  struct SurfaceAccessor
+  {
+    const Acts::TrackingGeometry& trackingGeometry;
+    const Acts::Surface* operator()(const Acts::SourceLink& sourceLink) const
+    {
+      const auto& sl = sourceLink.get<ActsSourceLink>();
+      return trackingGeometry.findSurface(sl.geometryId());
+    }
+  };
 
  private:
+  Acts::GeometryIdentifier m_geometryId;
   Index m_index;
   TrkrDefs::cluskey m_cluskey;
 

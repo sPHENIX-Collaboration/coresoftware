@@ -1,15 +1,23 @@
 #include "CaloWaveformProcessing.h"
 #include "CaloWaveformFitting.h"
 
-#include <ffamodules/XploadInterface.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <phool/onnxlib.h>
 
+#include <algorithm>                  // for max
 #include <cassert>
+#include <cstdlib>                   // for getenv
 #include <iostream>
+#include <memory>                     // for allocator_traits<>::value_type
 #include <string>
 
 Ort::Session *onnxmodule;
+
+CaloWaveformProcessing::~CaloWaveformProcessing()
+{
+  delete m_Fitter;
+}
 
 void CaloWaveformProcessing::initialize_processing()
 {
@@ -18,16 +26,36 @@ void CaloWaveformProcessing::initialize_processing()
   if (m_processingtype == CaloWaveformProcessing::TEMPLATE)
   {
     std::string calibrations_repo_template = std::string(calibrationsroot) + "/WaveformProcessing/templates/" + m_template_input_file;
-    url_template = XploadInterface::instance()->getUrl(m_template_input_file, calibrations_repo_template);
+    url_template = CDBInterface::instance()->getUrl(m_template_name, calibrations_repo_template);
     m_Fitter = new CaloWaveformFitting();
     m_Fitter->initialize_processing(url_template);
     m_Fitter->set_nthreads(get_nthreads());
+    if (m_setTimeLim)
+    {
+      m_Fitter->set_timeFitLim(m_timeLim_low,m_timeLim_high);
+    }
+
+    if (_bdosoftwarezerosuppression == true)
+      {
+	m_Fitter->set_softwarezerosuppression(_bdosoftwarezerosuppression,_nsoftwarezerosuppression);
+      }
+      if (_dobitfliprecovery)
+      {
+        m_Fitter->set_bitFlipRecovery(_dobitfliprecovery);
+      }
   }
-  if (m_processingtype == CaloWaveformProcessing::ONNX)
+  else if (m_processingtype == CaloWaveformProcessing::ONNX)
   {
     std::string calibrations_repo_model = std::string(calibrationsroot) + "/WaveformProcessing/models/" + m_model_name;
-    url_onnx = XploadInterface::instance()->getUrl(m_model_name, calibrations_repo_model);
+    url_onnx = CDBInterface::instance()->getUrl(m_model_name, calibrations_repo_model);
     onnxmodule = onnxSession(url_onnx);
+  }
+  else if (m_processingtype == CaloWaveformProcessing::NYQUIST)
+  {
+    std::string calibrations_repo_template = std::string(calibrationsroot) + "/WaveformProcessing/templates/" + m_template_input_file;
+    url_template = CDBInterface::instance()->getUrl(m_template_name, calibrations_repo_template);
+    m_Fitter = new CaloWaveformFitting();
+    m_Fitter->initialize_processing(url_template);
   }
 }
 
@@ -50,6 +78,10 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
   if (m_processingtype == CaloWaveformProcessing::FAST)
   {
     fitresults = m_Fitter->calo_processing_fast(waveformvector);
+  }
+  if (m_processingtype == CaloWaveformProcessing::NYQUIST)
+  {
+    fitresults = m_Fitter->calo_processing_nyquist(waveformvector);
   }
   return fitresults;
 }

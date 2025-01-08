@@ -7,14 +7,17 @@
 #include "TrkrClusterv3.h"
 
 #include <cmath>
-#include <utility>          // for swap
+#include <utility>  // for swap
 
 namespace
 {
   // square convenience function
-  template<class T> inline constexpr T square( const T& x ) 
-    { return x*x; }
-}
+  template <class T>
+  inline constexpr T square(const T& x)
+  {
+    return x * x;
+  }
+}  // namespace
 
 TrkrClusterv3::TrkrClusterv3()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
@@ -22,13 +25,13 @@ TrkrClusterv3::TrkrClusterv3()
   , m_adc(0xFFFFFFFF)
 {
   for (int i = 0; i < 2; i++)
+  {
+    m_local[i] = NAN;
+    for (int j = 0; j < 2; j++)
     {
-      m_local[i] = NAN;
-      for(int j = 0; j < 2; j ++)
-	{
-	  m_actsLocalErr[i][j] = NAN;
-	}
+      m_actsLocalErr[i][j] = NAN;
     }
+  }
 }
 
 void TrkrClusterv3::identify(std::ostream& os) const
@@ -56,45 +59,70 @@ void TrkrClusterv3::identify(std::ostream& os) const
 
 int TrkrClusterv3::isValid() const
 {
-  if (m_cluskey == TrkrDefs::CLUSKEYMAX) { return 0; }
+  if (m_cluskey == TrkrDefs::CLUSKEYMAX)
+  {
+    return 0;
+  }
   for (int i = 0; i < 2; ++i)
   {
-    if (std::isnan(getPosition(i))) { return 0; }
+    if (std::isnan(getPosition(i)))
+    {
+      return 0;
+    }
     for (int j = 0; j < 2; ++j)
-      { if (std::isnan(getActsLocalError(i,j))) { return 0; }}
+    {
+      if (std::isnan(getActsLocalError(i, j)))
+      {
+        return 0;
+      }
+    }
   }
-  if (m_adc == 0xFFFFFFFF) { return 0; }
+  if (m_adc == 0xFFFFFFFF)
+  {
+    return 0;
+  }
 
   return 1;
 }
 
-void TrkrClusterv3::CopyFrom( const TrkrCluster& source )
+void TrkrClusterv3::CopyFrom(const TrkrCluster& source)
 {
   // do nothing if copying onto oneself
-  if( this == &source ) return;
- 
+  if (this == &source)
+  {
+    return;
+  }
+
   // parent class method
-  TrkrCluster::CopyFrom( source );
- 
-  setLocalX( source.getLocalX() );
-  setLocalY( source.getLocalY() );
-  
+  TrkrCluster::CopyFrom(source);
+
+  setLocalX(source.getLocalX());
+  setLocalY(source.getLocalY());
+
   for (int j = 0; j < 2; ++j)
+  {
     for (int i = 0; i < 2; ++i)
-  { setActsLocalError(i, j, source.getActsLocalError(i, j)); }
-  
-  setSubSurfKey( source.getSubSurfKey() );
-  setAdc( source.getAdc() );
+    {
+      setActsLocalError(i, j, source.getActsLocalError(i, j));
+    }
+  }
+
+  setSubSurfKey(source.getSubSurfKey());
+  setAdc(source.getAdc());
 }
 
 float TrkrClusterv3::getRPhiError() const
-{ return std::sqrt(m_actsLocalErr[0][0]); }
+{
+  return std::sqrt(m_actsLocalErr[0][0]);
+}
 
 float TrkrClusterv3::getZError() const
-{ return std::sqrt(m_actsLocalErr[1][1]); }
+{
+  return std::sqrt(m_actsLocalErr[1][1]);
+}
 
 void TrkrClusterv3::setActsLocalError(unsigned int i, unsigned int j,
-				      float value)
+                                      float value)
 {
   m_actsLocalErr[i][j] = value;
 }

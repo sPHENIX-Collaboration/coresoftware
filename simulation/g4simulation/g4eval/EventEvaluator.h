@@ -18,7 +18,7 @@ class PHHepMCGenEventMap;
 class PHHepMCGenEvent;
 class TFile;
 class TNtuple;
-class TTree;  //Added by Barak
+class TTree;  // Added by Barak
 
 /// \class EventEvaluator
 ///
@@ -79,169 +79,168 @@ class EventEvaluator : public SubsysReco
   }
 
  private:
-  bool _do_store_event_info;
-  bool _do_HCALIN;
-  bool _do_HCALOUT;
-  bool _do_CEMC;
-  bool _do_HITS;
-  bool _do_TRACKS;
-  bool _do_CLUSTERS;
-  bool _do_VERTEX;
-  bool _do_PROJECTIONS;
-  bool _do_MCPARTICLES;
-  bool _do_HEPMC;
-  bool _do_GEOMETRY;
-  unsigned int _ievent;
+  bool _do_store_event_info = false;
+  bool _do_HCALIN = false;
+  bool _do_HCALOUT = false;
+  bool _do_CEMC = false;
+  bool _do_HITS = false;
+  bool _do_TRACKS = false;
+  bool _do_CLUSTERS = false;
+  bool _do_VERTEX = false;
+  bool _do_PROJECTIONS = false;
+  bool _do_MCPARTICLES = false;
+  bool _do_HEPMC = false;
+  bool _do_GEOMETRY = false;
+  unsigned int _ievent = 0;
 
   // Event level info
-  float _cross_section;
-  float _event_weight;
-  int _n_generator_accepted;
+  float _cross_section = 0.;
+  float _event_weight = 0.;
+  int _n_generator_accepted = 0;
 
   // track hits
-  int _nHitsLayers;
-  int* _hits_layerID;
-  int* _hits_trueID;
-  float* _hits_x;
-  float* _hits_y;
-  float* _hits_z;
-  float* _hits_t;
+  int _nHitsLayers = 0;
+  int* _hits_layerID = nullptr;
+  int* _hits_trueID = nullptr;
+  float* _hits_x = nullptr;
+  float* _hits_y = nullptr;
+  float* _hits_z = nullptr;
+  float* _hits_t = nullptr;
 
   // towers
-  int _nTowers_HCALIN;
-  float* _tower_HCALIN_E;
-  int* _tower_HCALIN_iEta;
-  int* _tower_HCALIN_iPhi;
-  int* _tower_HCALIN_trueID;
+  int _nTowers_HCALIN = 0;
+  float* _tower_HCALIN_E = nullptr;
+  int* _tower_HCALIN_iEta = nullptr;
+  int* _tower_HCALIN_iPhi = nullptr;
+  int* _tower_HCALIN_trueID = nullptr;
 
-  int _nTowers_HCALOUT;
-  float* _tower_HCALOUT_E;
-  int* _tower_HCALOUT_iEta;
-  int* _tower_HCALOUT_iPhi;
-  int* _tower_HCALOUT_trueID;
+  int _nTowers_HCALOUT = 0;
+  float* _tower_HCALOUT_E = nullptr;
+  int* _tower_HCALOUT_iEta = nullptr;
+  int* _tower_HCALOUT_iPhi = nullptr;
+  int* _tower_HCALOUT_trueID = nullptr;
 
-  int _nTowers_CEMC;
-  float* _tower_CEMC_E;
-  int* _tower_CEMC_iEta;
-  int* _tower_CEMC_iPhi;
-  int* _tower_CEMC_trueID;
+  int _nTowers_CEMC = 0;
+  float* _tower_CEMC_E = nullptr;
+  int* _tower_CEMC_iEta = nullptr;
+  int* _tower_CEMC_iPhi = nullptr;
+  int* _tower_CEMC_trueID = nullptr;
 
   // clusters
-  int _nclusters_HCALIN;
-  float* _cluster_HCALIN_E;
-  float* _cluster_HCALIN_Eta;
-  float* _cluster_HCALIN_Phi;
-  int* _cluster_HCALIN_NTower;
-  int* _cluster_HCALIN_trueID;
+  int _nclusters_HCALIN = 0;
+  float* _cluster_HCALIN_E = nullptr;
+  float* _cluster_HCALIN_Eta = nullptr;
+  float* _cluster_HCALIN_Phi = nullptr;
+  int* _cluster_HCALIN_NTower = nullptr;
+  int* _cluster_HCALIN_trueID = nullptr;
 
-  int _nclusters_HCALOUT;
-  float* _cluster_HCALOUT_E;
-  float* _cluster_HCALOUT_Eta;
-  float* _cluster_HCALOUT_Phi;
-  int* _cluster_HCALOUT_NTower;
-  int* _cluster_HCALOUT_trueID;
+  int _nclusters_HCALOUT = 0;
+  float* _cluster_HCALOUT_E = nullptr;
+  float* _cluster_HCALOUT_Eta = nullptr;
+  float* _cluster_HCALOUT_Phi = nullptr;
+  int* _cluster_HCALOUT_NTower = nullptr;
+  int* _cluster_HCALOUT_trueID = nullptr;
 
-  int _nclusters_CEMC;
-  float* _cluster_CEMC_E;
-  float* _cluster_CEMC_Eta;
-  float* _cluster_CEMC_Phi;
-  int* _cluster_CEMC_NTower;
-  int* _cluster_CEMC_trueID;
+  int _nclusters_CEMC = 0;
+  float* _cluster_CEMC_E = nullptr;
+  float* _cluster_CEMC_Eta = nullptr;
+  float* _cluster_CEMC_Phi = nullptr;
+  int* _cluster_CEMC_NTower = nullptr;
+  int* _cluster_CEMC_trueID = nullptr;
 
   // vertex
-  float _vertex_x;
-  float _vertex_y;
-  float _vertex_z;
-  int _vertex_NCont;
-  float _vertex_true_x;
-  float _vertex_true_y;
-  float _vertex_true_z;
+  float _vertex_x = 0.;
+  float _vertex_y = 0.;
+  float _vertex_z = 0.;
+  int _vertex_NCont = 0;
+  float _vertex_true_x = 0.;
+  float _vertex_true_y = 0.;
+  float _vertex_true_z = 0.;
 
   // tracks
-  int _nTracks;
-  float* _track_ID;
-  float* _track_px;
-  float* _track_py;
-  float* _track_pz;
-  float* _track_dca;
-  float* _track_dca_2d;
-  float* _track_trueID;
-  unsigned short* _track_source;
+  int _nTracks = 0;
+  float* _track_ID = nullptr;
+  float* _track_px = nullptr;
+  float* _track_py = nullptr;
+  float* _track_pz = nullptr;
+  float* _track_dca = nullptr;
+  float* _track_dca_2d = nullptr;
+  float* _track_trueID = nullptr;
+  unsigned short* _track_source = nullptr;
 
-  int _nProjections;
-  float* _track_ProjTrackID;
-  int* _track_ProjLayer;
-  float* _track_TLP_x;
-  float* _track_TLP_y;
-  float* _track_TLP_z;
-  float* _track_TLP_t;
-  float* _track_TLP_true_x;
-  float* _track_TLP_true_y;
-  float* _track_TLP_true_z;
-  float* _track_TLP_true_t;
-
-  // MC particles
-  int _nMCPart;
-  int* _mcpart_ID;
-  int* _mcpart_ID_parent;
-  int* _mcpart_PDG;
-  float* _mcpart_E;
-  float* _mcpart_px;
-  float* _mcpart_py;
-  float* _mcpart_pz;
-  int* _mcpart_BCID;
+  int _nProjections = 0;
+  float* _track_ProjTrackID = nullptr;
+  int* _track_ProjLayer = nullptr;
+  float* _track_TLP_x = nullptr;
+  float* _track_TLP_y = nullptr;
+  float* _track_TLP_z = nullptr;
+  float* _track_TLP_t = nullptr;
+  float* _track_TLP_true_x = nullptr;
+  float* _track_TLP_true_y = nullptr;
+  float* _track_TLP_true_z = nullptr;
+  float* _track_TLP_true_t = nullptr;
 
   // MC particles
-  int _nHepmcp;
-  int _hepmcp_procid;
-  float _hepmcp_x1;
-  float _hepmcp_x2;
+  int _nMCPart = 0;
+  int* _mcpart_ID = nullptr;
+  int* _mcpart_ID_parent = nullptr;
+  int* _mcpart_PDG = nullptr;
+  float* _mcpart_E = nullptr;
+  float* _mcpart_px = nullptr;
+  float* _mcpart_py = nullptr;
+  float* _mcpart_pz = nullptr;
+  int* _mcpart_BCID = nullptr;
+
+  // MC particles
+  int _nHepmcp = 0;
+  int _hepmcp_procid = 0;
+  float _hepmcp_x1 = 0.;
+  float _hepmcp_x2 = 0.;
   //  float* _hepmcp_ID_parent;
-  int* _hepmcp_status;
-  int* _hepmcp_PDG;
-  float* _hepmcp_E;
-  float* _hepmcp_px;
-  float* _hepmcp_py;
-  float* _hepmcp_pz;
-  int* _hepmcp_m1;
-  int* _hepmcp_m2;
-  int* _hepmcp_BCID;
+  int* _hepmcp_status = nullptr;
+  int* _hepmcp_PDG = nullptr;
+  float* _hepmcp_E = nullptr;
+  float* _hepmcp_px = nullptr;
+  float* _hepmcp_py = nullptr;
+  float* _hepmcp_pz = nullptr;
+  int* _hepmcp_m1 = nullptr;
+  int* _hepmcp_m2 = nullptr;
+  int* _hepmcp_BCID = nullptr;
 
+  int _calo_ID = 0;
+  int _calo_towers_N = 0;
+  int* _calo_towers_iEta = nullptr;
+  int* _calo_towers_iPhi = nullptr;
+  float* _calo_towers_Eta = nullptr;
+  float* _calo_towers_Phi = nullptr;
+  float* _calo_towers_x = nullptr;
+  float* _calo_towers_y = nullptr;
+  float* _calo_towers_z = nullptr;
+  int* _geometry_done = nullptr;
 
-  int _calo_ID;
-  int _calo_towers_N;
-  int* _calo_towers_iEta;
-  int* _calo_towers_iPhi;
-  float* _calo_towers_Eta;
-  float* _calo_towers_Phi;
-  float* _calo_towers_x;
-  float* _calo_towers_y;
-  float* _calo_towers_z;
-  int* _geometry_done;
+  float _reco_e_threshold = 0.;
+  float _reco_e_threshold_BECAL = 0.;
+  int _depth_MCstack = 0;
 
-  float _reco_e_threshold;
-  float _reco_e_threshold_BECAL;
-  int _depth_MCstack;
+  CaloEvalStack* _caloevalstackHCALIN = nullptr;
+  CaloEvalStack* _caloevalstackHCALOUT = nullptr;
+  CaloEvalStack* _caloevalstackCEMC = nullptr;
 
-  CaloEvalStack* _caloevalstackHCALIN;
-  CaloEvalStack* _caloevalstackHCALOUT;
-  CaloEvalStack* _caloevalstackCEMC;
-  
   //----------------------------------
   // evaluator output ntuples
 
-  bool _strict;
+  bool _strict = false;
 
-  TTree* _event_tree;  //Added by Barak
-  TTree* _geometry_tree;  //Added by Barak
+  TTree* _event_tree = nullptr;     // Added by Barak
+  TTree* _geometry_tree = nullptr;  // Added by Barak
 
   // evaluator output file
   std::string _filename;
-  TFile* _tfile;
-  TFile* _tfile_geometry;
+  TFile* _tfile = nullptr;
+  TFile* _tfile_geometry = nullptr;
 
   // subroutines
-  int GetProjectionIndex(std::string projname);           ///< return track projection index for given track projection layer
+  int GetProjectionIndex(const std::string& projname);    ///< return track projection index for given track projection layer
   std::string GetProjectionNameFromIndex(int projindex);  ///< return track projection layer name from projection index (see GetProjectionIndex)
   void fillOutputNtuples(PHCompositeNode* topNode);       ///< dump the evaluator information into ntuple for external analysis
   void resetGeometryArrays();                             ///< reset the tree variables before filling for a new event
@@ -256,12 +255,12 @@ class EventEvaluator : public SubsysReco
   const int _maxNMCPart = 100000;
   const int _maxNHepmcp = 1000;
 
-  enum calotype {
-      kCEMC         = 0,
-      kHCALIN       = 1,
-      kHCALOUT       = 2
+  enum calotype
+  {
+    kCEMC = 0,
+    kHCALIN = 1,
+    kHCALOUT = 2
   };
-
 };
 
 #endif  // G4EVAL_EVENTEVALUATOR_H

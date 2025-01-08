@@ -2,13 +2,13 @@
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
-#include <Geant4/G4Colour.hh>
+#include <Geant4/G4Color.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 
 #include <iostream>  // for operator<<, basic_ostream, endl
-#include <utility>   // for pair
 #include <string>
+#include <utility>  // for pair
 
 PHG4MicromegasDisplayAction::PHG4MicromegasDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)

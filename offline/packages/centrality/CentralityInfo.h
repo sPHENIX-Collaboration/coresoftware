@@ -1,5 +1,5 @@
-#ifndef CENTRALITY_IO_CENTRALITYINFO_H
-#define CENTRALITY_IO_CENTRALITYINFO_H
+#ifndef CENTRALITY_CENTRALITYINFO_H
+#define CENTRALITY_CENTRALITYINFO_H
 
 //===========================================================
 /// \file CentralityInfo.h
@@ -16,6 +16,7 @@ class CentralityInfo : public PHObject
 
   void identify(std::ostream &os = std::cout) const override { os << "CentralityInfo base class" << std::endl; };
   int isValid() const override { return 0; }
+  virtual void CopyTo(CentralityInfo *) {return;}
 
   enum PROP
   {
@@ -46,6 +47,10 @@ class CentralityInfo : public PHObject
   virtual bool has_centile(const PROP /*prop_id*/) const { return false; }
   virtual float get_centile(const PROP /*prop_id*/) const { return -99; }
   virtual void set_centile(const PROP /*prop_id*/, const float /*value*/) { return; }
+
+  virtual bool has_centrality_bin(const PROP /*prop_id*/) const { return false; }
+  virtual int get_centrality_bin(const PROP /*prop_id*/) const { return -99; }
+  virtual void set_centrality_bin(const PROP /*prop_id*/, const int /*value*/) { return; }
 
  protected:
   CentralityInfo() {}

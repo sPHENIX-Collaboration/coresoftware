@@ -5,11 +5,15 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoDefs.h>
 
 #include <phool/getClass.h>
 
 #include <cassert>
 #include <cfloat>
+#include <climits>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -18,28 +22,9 @@
 
 class RawTower;
 
-using namespace std;
-
 CaloRawClusterEval::CaloRawClusterEval(PHCompositeNode* topNode, const std::string& caloname)
   : _caloname(caloname)
   , _towereval(topNode, caloname)
-  , _clusters(nullptr)
-  , _towers(nullptr)
-  , _strict(false)
-  , _verbosity(1)
-  , _errors(0)
-  , _do_cache(true)
-  , _cache_all_truth_primary_showers()
-  , _cache_max_truth_primary_shower_by_energy()
-  , _cache_all_clusters_from_primary_shower()
-  , _cache_best_cluster_from_primary_shower()
-  , _cache_get_energy_contribution_primary_shower()
-  , _cache_all_truth_primary_particles()
-  , _cache_max_truth_primary_particle_by_energy()
-  , _cache_all_clusters_from_primary_particle()
-  , _cache_best_cluster_from_primary_particle()
-  , _cache_get_energy_contribution_primary_particle()
-  , _cache_all_truth_hits()
 {
   get_node_pointers(topNode);
 }
@@ -50,7 +35,7 @@ CaloRawClusterEval::~CaloRawClusterEval()
   {
     if ((_errors > 0) || (_verbosity > 1))
     {
-      cout << "CaloRawClusterEval::~CaloRawClusterEval() - Error Count: " << _errors << endl;
+      std::cout << "CaloRawClusterEval::~CaloRawClusterEval() - Error Count: " << _errors << std::endl;
     }
   }
 }
@@ -78,17 +63,28 @@ void CaloRawClusterEval::next_event(PHCompositeNode* topNode)
 
 bool CaloRawClusterEval::has_reduced_node_pointers()
 {
-  if (!get_rawtower_eval()->has_reduced_node_pointers()) return false;
+  if (!get_rawtower_eval()->has_reduced_node_pointers())
+  {
+    return false;
+  }
 
   if (_strict)
+  {
     assert(_clusters);
+  }
   else if (!_clusters)
+  {
     return false;
+  }
 
   if (_strict)
-    assert(_towers);
-  else if (!_towers)
+  {
+    assert(_towers || _towerinfos);
+  }
+  else if (!_towers && !_towerinfos)
+  {
     return false;
+  }
 
   return true;
 }
@@ -124,46 +120,83 @@ std::set<PHG4Shower*> CaloRawClusterEval::all_truth_primary_showers(RawCluster* 
   std::set<PHG4Shower*> truth_primary_showers;
 
   // loop over all the clustered towers
-  RawCluster::TowerConstRange begin_end = cluster->get_towers();
-  for (RawCluster::TowerConstIterator iter = begin_end.first;
-       iter != begin_end.second;
-       ++iter)
+  if (_usetowerinfo)
   {
-    RawTower* tower = _towers->getTower(iter->first);
-
-    if (_strict)
+    const RawCluster::TowerMap& tower_map = cluster->get_towermap();
+    for (auto tower_iter : tower_map)
     {
-      assert(tower);
-    }
-    else if (!tower)
-    {
-      ++_errors;
-      continue;
-    }
-
-    std::set<PHG4Shower*> new_primary_showers = _towereval.all_truth_primary_showers(tower);
-
-    for (std::set<PHG4Shower*>::iterator iter = new_primary_showers.begin();
-         iter != new_primary_showers.end();
-         ++iter)
-    {
-      PHG4Shower* shower = *iter;
-
+      RawTowerDefs::keytype tower_key = tower_iter.first;
+      unsigned int towerinfo_key = get_towerinfo_key(tower_key);
+      TowerInfo* tower = _towerinfos->get_tower_at_key(towerinfo_key);
       if (_strict)
       {
-        assert(shower);
+        assert(tower);
       }
-      else if (!shower)
+      else if (!tower)
       {
         ++_errors;
         continue;
       }
 
-      truth_primary_showers.insert(shower);
+      std::set<PHG4Shower*> new_primary_showers = _towereval.all_truth_primary_showers(tower);
+
+      for (auto shower : new_primary_showers)
+      {
+        if (_strict)
+        {
+          assert(shower);
+        }
+        else if (!shower)
+        {
+          ++_errors;
+          continue;
+        }
+
+        truth_primary_showers.insert(shower);
+      }
     }
   }
+  else
+  {
+    RawCluster::TowerConstRange begin_end = cluster->get_towers();
+    for (RawCluster::TowerConstIterator iter = begin_end.first;
+         iter != begin_end.second;
+         ++iter)
+    {
+      RawTower* tower = _towers->getTower(iter->first);
 
-  if (_do_cache) _cache_all_truth_primary_showers.insert(make_pair(cluster, truth_primary_showers));
+      if (_strict)
+      {
+        assert(tower);
+      }
+      else if (!tower)
+      {
+        ++_errors;
+        continue;
+      }
+
+      std::set<PHG4Shower*> new_primary_showers = _towereval.all_truth_primary_showers(tower);
+
+      for (auto shower : new_primary_showers)
+      {
+        if (_strict)
+        {
+          assert(shower);
+        }
+        else if (!shower)
+        {
+          ++_errors;
+          continue;
+        }
+
+        truth_primary_showers.insert(shower);
+      }
+    }
+  }
+  if (_do_cache)
+  {
+    _cache_all_truth_primary_showers.insert(std::make_pair(cluster, truth_primary_showers));
+  }
 
   return truth_primary_showers;
 }
@@ -201,12 +234,8 @@ PHG4Shower* CaloRawClusterEval::max_truth_primary_shower_by_energy(RawCluster* c
   PHG4Shower* max_primary = nullptr;
   float max_e = FLT_MAX * -1.0;
   std::set<PHG4Shower*> primary_showers = all_truth_primary_showers(cluster);
-  for (std::set<PHG4Shower*>::iterator iter = primary_showers.begin();
-       iter != primary_showers.end();
-       ++iter)
+  for (auto primary : primary_showers)
   {
-    PHG4Shower* primary = *iter;
-
     if (_strict)
     {
       assert(primary);
@@ -218,7 +247,10 @@ PHG4Shower* CaloRawClusterEval::max_truth_primary_shower_by_energy(RawCluster* c
     }
 
     float e = get_energy_contribution(cluster, primary);
-    if (isnan(e)) continue;
+    if (std::isnan(e))
+    {
+      continue;
+    }
     if (e > max_e)
     {
       max_e = e;
@@ -226,7 +258,10 @@ PHG4Shower* CaloRawClusterEval::max_truth_primary_shower_by_energy(RawCluster* c
     }
   }
 
-  if (_do_cache) _cache_max_truth_primary_shower_by_energy.insert(make_pair(cluster, max_primary));
+  if (_do_cache)
+  {
+    _cache_max_truth_primary_shower_by_energy.insert(std::make_pair(cluster, max_primary));
+  }
 
   return max_primary;
 }
@@ -249,7 +284,10 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Shower* primary)
     return std::set<RawCluster*>();
   }
 
-  if (!get_truth_eval()->is_primary(primary)) return std::set<RawCluster*>();
+  if (!get_truth_eval()->is_primary(primary))
+  {
+    return std::set<RawCluster*>();
+  }
 
   primary = get_truth_eval()->get_primary_shower(primary);
 
@@ -283,12 +321,8 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Shower* primary)
     RawCluster* cluster = iter->second;
 
     std::set<PHG4Shower*> primary_showers = all_truth_primary_showers(cluster);
-    for (std::set<PHG4Shower*>::iterator jter = primary_showers.begin();
-         jter != primary_showers.end();
-         ++jter)
+    for (auto candidate : primary_showers)
     {
-      PHG4Shower* candidate = *jter;
-
       if (_strict)
       {
         assert(candidate);
@@ -306,7 +340,10 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Shower* primary)
     }
   }
 
-  if (_do_cache) _cache_all_clusters_from_primary_shower.insert(make_pair(primary, clusters));
+  if (_do_cache)
+  {
+    _cache_all_clusters_from_primary_shower.insert(std::make_pair(primary, clusters));
+  }
 
   return clusters;
 }
@@ -329,7 +366,10 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Shower* primary)
     return nullptr;
   }
 
-  if (!get_truth_eval()->is_primary(primary)) return nullptr;
+  if (!get_truth_eval()->is_primary(primary))
+  {
+    return nullptr;
+  }
 
   primary = get_truth_eval()->get_primary_shower(primary);
 
@@ -356,12 +396,8 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Shower* primary)
   RawCluster* best_cluster = nullptr;
   float best_energy = FLT_MAX * -1.0;
   std::set<RawCluster*> clusters = all_clusters_from(primary);
-  for (std::set<RawCluster*>::iterator iter = clusters.begin();
-       iter != clusters.end();
-       ++iter)
+  for (auto cluster : clusters)
   {
-    RawCluster* cluster = *iter;
-
     if (_strict)
     {
       assert(cluster);
@@ -373,7 +409,10 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Shower* primary)
     }
 
     float energy = get_energy_contribution(cluster, primary);
-    if (isnan(energy)) continue;
+    if (std::isnan(energy))
+    {
+      continue;
+    }
     if (energy > best_energy)
     {
       best_cluster = cluster;
@@ -381,7 +420,10 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Shower* primary)
     }
   }
 
-  if (_do_cache) _cache_best_cluster_from_primary_shower.insert(make_pair(primary, best_cluster));
+  if (_do_cache)
+  {
+    _cache_best_cluster_from_primary_shower.insert(std::make_pair(primary, best_cluster));
+  }
 
   return best_cluster;
 }
@@ -405,7 +447,10 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
     return NAN;
   }
 
-  if (!get_truth_eval()->is_primary(primary)) return NAN;
+  if (!get_truth_eval()->is_primary(primary))
+  {
+    return NAN;
+  }
 
   // reduce cache misses by using only pointer from PrimaryMap
   primary = get_truth_eval()->get_primary_shower(primary);
@@ -423,7 +468,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   if (_do_cache)
   {
     std::map<std::pair<RawCluster*, PHG4Shower*>, float>::iterator iter =
-        _cache_get_energy_contribution_primary_shower.find(make_pair(cluster, primary));
+        _cache_get_energy_contribution_primary_shower.find(std::make_pair(cluster, primary));
     if (iter != _cache_get_energy_contribution_primary_shower.end())
     {
       return iter->second;
@@ -433,28 +478,63 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   float energy = 0.0;
 
   // loop over all the clustered towers
-  RawCluster::TowerConstRange begin_end = cluster->get_towers();
-  for (RawCluster::TowerConstIterator iter = begin_end.first;
-       iter != begin_end.second;
-       ++iter)
+  if (_usetowerinfo)
   {
-    RawTower* tower = _towers->getTower(iter->first);
-
-    if (_strict)
+    const RawCluster::TowerMap& tower_map = cluster->get_towermap();
+    for (auto tower_iter : tower_map)
     {
-      assert(tower);
-    }
-    else if (!tower)
-    {
-      ++_errors;
-      continue;
-    }
+      RawTowerDefs::keytype tower_key = tower_iter.first;
+      unsigned int towerinfo_key = get_towerinfo_key(tower_key);
+      TowerInfo* tower = _towerinfos->get_tower_at_key(towerinfo_key);
+      if (_strict)
+      {
+        assert(tower);
+      }
+      else if (!tower)
+      {
+        ++_errors;
+        continue;
+      }
 
-    float edep = get_rawtower_eval()->get_energy_contribution(tower, primary);
-    if (!isnan(edep)) energy += edep;
+      float edep = get_rawtower_eval()->get_energy_contribution(tower, primary);
+      if (!std::isnan(edep))
+      {
+        energy += edep;
+      }
+    }
   }
 
-  if (_do_cache) _cache_get_energy_contribution_primary_shower.insert(make_pair(make_pair(cluster, primary), energy));
+  else
+  {
+    RawCluster::TowerConstRange begin_end = cluster->get_towers();
+    for (RawCluster::TowerConstIterator iter = begin_end.first;
+         iter != begin_end.second;
+         ++iter)
+    {
+      RawTower* tower = _towers->getTower(iter->first);
+
+      if (_strict)
+      {
+        assert(tower);
+      }
+      else if (!tower)
+      {
+        ++_errors;
+        continue;
+      }
+
+      float edep = get_rawtower_eval()->get_energy_contribution(tower, primary);
+      if (!std::isnan(edep))
+      {
+        energy += edep;
+      }
+    }
+  }
+
+  if (_do_cache)
+  {
+    _cache_get_energy_contribution_primary_shower.insert(std::make_pair(std::make_pair(cluster, primary), energy));
+  }
 
   return energy;
 }
@@ -491,14 +571,12 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primary_particles(RawClust
 
   std::set<PHG4Shower*> primary_showers = all_truth_primary_showers(cluster);
 
-  for (std::set<PHG4Shower*>::iterator iter = primary_showers.begin();
-       iter != primary_showers.end();
-       ++iter)
+  for (auto shower : primary_showers)
   {
-    PHG4Shower* shower = *iter;
-
     if (_strict)
+    {
       assert(shower);
+    }
     else if (!shower)
     {
       ++_errors;
@@ -508,7 +586,9 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primary_particles(RawClust
     PHG4Particle* particle = get_truth_eval()->get_primary_particle(shower);
 
     if (_strict)
+    {
       assert(particle);
+    }
     else if (!particle)
     {
       ++_errors;
@@ -518,7 +598,10 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primary_particles(RawClust
     truth_primary_particles.insert(particle);
   }
 
-  if (_do_cache) _cache_all_truth_primary_particles.insert(make_pair(cluster, truth_primary_particles));
+  if (_do_cache)
+  {
+    _cache_all_truth_primary_particles.insert(std::make_pair(cluster, truth_primary_particles));
+  }
 
   return truth_primary_particles;
 }
@@ -559,7 +642,10 @@ PHG4Particle* CaloRawClusterEval::max_truth_primary_particle_by_energy(RawCluste
     max_primary = get_truth_eval()->get_primary_particle(max_shower);
   }
 
-  if (_do_cache) _cache_max_truth_primary_particle_by_energy.insert(make_pair(cluster, max_primary));
+  if (_do_cache)
+  {
+    _cache_max_truth_primary_particle_by_energy.insert(std::make_pair(cluster, max_primary));
+  }
 
   return max_primary;
 }
@@ -582,7 +668,10 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
     return std::set<RawCluster*>();
   }
 
-  if (!get_truth_eval()->is_primary(primary)) return std::set<RawCluster*>();
+  if (!get_truth_eval()->is_primary(primary))
+  {
+    return std::set<RawCluster*>();
+  }
 
   primary = get_truth_eval()->get_primary_particle(primary);
 
@@ -610,9 +699,15 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Particle* primar
 
   PHG4Shower* shower = get_truth_eval()->get_primary_shower(primary);
 
-  if (shower) clusters = all_clusters_from(shower);
+  if (shower)
+  {
+    clusters = all_clusters_from(shower);
+  }
 
-  if (_do_cache) _cache_all_clusters_from_primary_particle.insert(make_pair(primary, clusters));
+  if (_do_cache)
+  {
+    _cache_all_clusters_from_primary_particle.insert(std::make_pair(primary, clusters));
+  }
 
   return clusters;
 }
@@ -635,7 +730,10 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary)
     return nullptr;
   }
 
-  if (!get_truth_eval()->is_primary(primary)) return nullptr;
+  if (!get_truth_eval()->is_primary(primary))
+  {
+    return nullptr;
+  }
 
   primary = get_truth_eval()->get_primary_particle(primary);
 
@@ -662,9 +760,15 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Particle* primary)
   RawCluster* best_cluster = nullptr;
 
   PHG4Shower* shower = get_truth_eval()->get_primary_shower(primary);
-  if (shower) best_cluster = best_cluster_from(shower);
+  if (shower)
+  {
+    best_cluster = best_cluster_from(shower);
+  }
 
-  if (_do_cache) _cache_best_cluster_from_primary_particle.insert(make_pair(primary, best_cluster));
+  if (_do_cache)
+  {
+    _cache_best_cluster_from_primary_particle.insert(std::make_pair(primary, best_cluster));
+  }
 
   return best_cluster;
 }
@@ -688,7 +792,10 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
     return NAN;
   }
 
-  if (!get_truth_eval()->is_primary(primary)) return NAN;
+  if (!get_truth_eval()->is_primary(primary))
+  {
+    return NAN;
+  }
 
   // reduce cache misses by using only pointer from PrimaryMap
   primary = get_truth_eval()->get_primary_particle(primary);
@@ -706,7 +813,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   if (_do_cache)
   {
     std::map<std::pair<RawCluster*, PHG4Particle*>, float>::iterator iter =
-        _cache_get_energy_contribution_primary_particle.find(make_pair(cluster, primary));
+        _cache_get_energy_contribution_primary_particle.find(std::make_pair(cluster, primary));
     if (iter != _cache_get_energy_contribution_primary_particle.end())
     {
       return iter->second;
@@ -718,27 +825,44 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   if (shower)
   {
     float edep = get_energy_contribution(cluster, shower);
-    if (!isnan(edep)) energy += edep;
+    if (!std::isnan(edep))
+    {
+      energy += edep;
+    }
   }
 
-  if (_do_cache) _cache_get_energy_contribution_primary_particle.insert(make_pair(make_pair(cluster, primary), energy));
+  if (_do_cache)
+  {
+    _cache_get_energy_contribution_primary_particle.insert(std::make_pair(std::make_pair(cluster, primary), energy));
+  }
 
   return energy;
 }
 
 bool CaloRawClusterEval::has_full_node_pointers()
 {
-  if (!get_rawtower_eval()->has_full_node_pointers()) return false;
+  if (!get_rawtower_eval()->has_full_node_pointers())
+  {
+    return false;
+  }
 
   if (_strict)
+  {
     assert(_clusters);
+  }
   else if (!_clusters)
+  {
     return false;
+  }
 
   if (_strict)
+  {
     assert(_towers);
+  }
   else if (!_towers)
+  {
     return false;
+  }
 
   return true;
 }
@@ -774,46 +898,83 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster)
   std::set<PHG4Hit*> truth_hits;
 
   // loop over all the clustered towers
-  RawCluster::TowerConstRange begin_end = cluster->get_towers();
-  for (RawCluster::TowerConstIterator iter = begin_end.first;
-       iter != begin_end.second;
-       ++iter)
+  if (_usetowerinfo)
   {
-    RawTower* tower = _towers->getTower(iter->first);
-
-    if (_strict)
+    const RawCluster::TowerMap& tower_map = cluster->get_towermap();
+    for (auto tower_iter : tower_map)
     {
-      assert(tower);
-    }
-    else if (!tower)
-    {
-      ++_errors;
-      continue;
-    }
-
-    std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
-
-    for (std::set<PHG4Hit*>::iterator iter = new_hits.begin();
-         iter != new_hits.end();
-         ++iter)
-    {
-      PHG4Hit* g4hit = *iter;
-
+      RawTowerDefs::keytype tower_key = tower_iter.first;
+      unsigned int towerinfo_key = get_towerinfo_key(tower_key);
+      TowerInfo* tower = _towerinfos->get_tower_at_key(towerinfo_key);
       if (_strict)
       {
-        assert(g4hit);
+        assert(tower);
       }
-      else if (!g4hit)
+      else if (!tower)
       {
         ++_errors;
         continue;
       }
 
-      truth_hits.insert(g4hit);
+      std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
+
+      for (auto g4hit : new_hits)
+      {
+        if (_strict)
+        {
+          assert(g4hit);
+        }
+        else if (!g4hit)
+        {
+          ++_errors;
+          continue;
+        }
+
+        truth_hits.insert(g4hit);
+      }
     }
   }
+  else
+  {
+    RawCluster::TowerConstRange begin_end = cluster->get_towers();
+    for (RawCluster::TowerConstIterator iter = begin_end.first;
+         iter != begin_end.second;
+         ++iter)
+    {
+      RawTower* tower = _towers->getTower(iter->first);
 
-  if (_do_cache) _cache_all_truth_hits.insert(make_pair(cluster, truth_hits));
+      if (_strict)
+      {
+        assert(tower);
+      }
+      else if (!tower)
+      {
+        ++_errors;
+        continue;
+      }
+
+      std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
+
+      for (auto g4hit : new_hits)
+      {
+        if (_strict)
+        {
+          assert(g4hit);
+        }
+        else if (!g4hit)
+        {
+          ++_errors;
+          continue;
+        }
+
+        truth_hits.insert(g4hit);
+      }
+    }
+  }
+  if (_do_cache)
+  {
+    _cache_all_truth_hits.insert(std::make_pair(cluster, truth_hits));
+  }
 
   return truth_hits;
 }
@@ -821,11 +982,43 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster)
 void CaloRawClusterEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
-  std::string nodename = "CLUSTER_" + _caloname;
+  std::string nodename = "CLUSTERINFO_" + _caloname;
+  if (!_usetowerinfo)
+  {
+    nodename = "CLUSTER_" + _caloname;
+  }
   _clusters = findNode::getClass<RawClusterContainer>(topNode, nodename.c_str());
 
   std::string towername = "TOWER_CALIB_" + _caloname;
   _towers = findNode::getClass<RawTowerContainer>(topNode, towername.c_str());
 
+  std::string towerinfoname = "TOWERINFO_CALIB_" + _caloname;
+  _towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoname.c_str());
+
   return;
+}
+
+unsigned int CaloRawClusterEval::get_towerinfo_key(RawTowerDefs::keytype tower_key)
+{
+  int ix = RawTowerDefs::decode_index2(tower_key);  // iphi
+  int iy = RawTowerDefs::decode_index1(tower_key);  // ieta
+  RawTowerDefs::CalorimeterId caloid =
+      RawTowerDefs::decode_caloid(tower_key);
+  // the encoding for calo are actually all the same
+  //  this is for safety and furture compatibility(s.l.)
+  unsigned int towerinfokey = UINT_MAX;
+  if (caloid == RawTowerDefs::CalorimeterId::CEMC)
+  {
+    towerinfokey = TowerInfoDefs::encode_emcal(iy, ix);
+  }
+  else if (caloid == RawTowerDefs::CalorimeterId::HCALIN || caloid == RawTowerDefs::CalorimeterId::HCALOUT)
+  {
+    towerinfokey = TowerInfoDefs::encode_hcal(iy, ix);
+  }
+  else
+  {
+    std::cout << "CaloRawClusterEval::get_towerinfo_key - unknown caloid: " << caloid << std::endl;
+  }
+
+  return towerinfokey;
 }

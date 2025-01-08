@@ -7,7 +7,7 @@
 #include <pdbcalbase/PdbBankID.h>
 #include <pdbcalbase/PdbCalBank.h>
 
-#include <phool/PHTimeStamp.h>          // for PHTimeStamp, operator<<
+#include <phool/PHTimeStamp.h>  // for PHTimeStamp, operator<<
 #include <phool/phool.h>
 
 #include <RDBC/TSQLConnection.h>
@@ -21,19 +21,18 @@
 #include <sstream>
 #include <utility>
 
-
 using namespace std;
 
 //_____________________________________________________________________________
 PgPostCalBankIterator::PgPostCalBankIterator(PgPostBankManager& bm)
   : fBM(bm)
-  , fApplication(0)
+  , fApplication(nullptr)
   , fDBName("")
   , fTableName("")
   , fIsValid(false)
   , fBankID(-1)
-  , fSQLStatement(0)
-  , fSQLResultSet(0)
+  , fSQLStatement(nullptr)
+  , fSQLResultSet(nullptr)
 {
   fApplication = dynamic_cast<PgPostApplication*>(fBM.getApplication());
   if (!fApplication)
@@ -106,7 +105,7 @@ PgPostCalBankIterator::next()
 {
   if (!fIsValid)
   {
-    return 0;
+    return nullptr;
   }
 
   //
@@ -188,7 +187,7 @@ PgPostCalBankIterator::next()
   }
 
   fIsValid = false;
-  return 0;
+  return nullptr;
 }
 
 //_____________________________________________________________________________

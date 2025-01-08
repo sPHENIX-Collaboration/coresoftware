@@ -3,32 +3,18 @@
 #ifndef CALOTOWERCALIB_H
 #define CALOTOWERCALIB_H
 
+#include "CaloTowerDefs.h"
+
+#include <calobase/TowerInfoContainer.h>  // for TowerInfoContainer, TowerIn...
+
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
-#include <phool/PHNodeIterator.h>  // for PHNodeIterator
-#include <phool/PHObject.h>        // for PHObject
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
-
-#include <cassert>
-#include <cmath>  // for NAN
 #include <iostream>
-#include <map>      // for _Rb_tree_const_iterator
-#include <utility>  // for pair
-
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
-
-#include <cdbobjects/CDBTTree.h>
 #include <string>
 
+class CDBTTree;
 class PHCompositeNode;
+class TowerInfoContainer;
 
 class CaloTowerCalib : public SubsysReco
 {
@@ -41,31 +27,93 @@ class CaloTowerCalib : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  enum DetectorSystem
-  {
-    CEMC = 0,
-    HCALIN = 1,
-    HCALOUT = 2,
-    EPD = 3
-  };
-
-  void set_detector_type(CaloTowerCalib::DetectorSystem dettype)
+  void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
     m_dettype = dettype;
     return;
   }
+  void setCalibName(const std::string &name)
+  {
+    m_calibName = name;
+    m_overrideCalibName = 1;
+    return;
+  }
+  void setFieldName(const std::string &name)
+  {
+    m_fieldname = name;
+    m_overrideFieldName = 1;
+    return;
+  }
+  void set_inputNodePrefix(const std::string &name)
+  {
+    m_inputNodePrefix = name;
+    return;
+  }
+  void set_outputNodePrefix(const std::string &name)
+  {
+    m_outputNodePrefix = name;
+    return;
+  }
+
+  void set_directURL(const std::string &url)
+  {
+    m_giveDirectURL = true;
+    m_directURL = url;
+  }
+
+  void set_directURL_timecalib(const std::string &url)
+  {
+    m_giveDirectURL_time = true;
+    m_directURL_time = url;
+  }
+
+  void set_directURL_ZScrosscalib(const std::string &url)
+  {
+    m_giveDirectURL_ZScrosscalib = true;
+    m_directURL_ZScrosscalib = url;
+  }
+
+  void set_doZScrosscalib(bool doZScrosscalib)
+  {
+    m_doZScrosscalib = doZScrosscalib;
+  }
+
+  void set_use_TowerInfov2(bool use) { m_use_TowerInfov2 = use; }
 
  private:
-  TowerInfoContainerv1 *_raw_towers = nullptr;
-  TowerInfoContainerv1 *_calib_towers = nullptr;
-
-  CaloTowerCalib::DetectorSystem m_dettype;
+  CaloTowerDefs::DetectorSystem m_dettype;
 
   std::string m_detector;
   TowerInfoContainer::DETECTOR m_DETECTOR;
+  std::string m_fieldname;
+  std::string m_calibName;
+  std::string m_fieldname_time;
+  std::string m_calibName_time;
+  std::string m_fieldname_ZScrosscalib;
+  std::string m_calibName_ZScrosscalib;
+  bool m_overrideCalibName{false};
+  bool m_overrideFieldName{false};
+  std::string m_inputNodePrefix{"TOWERS_"};
+  std::string m_outputNodePrefix{"TOWERINFO_CALIB_"};
+  std::string RawTowerNodeName;
+  std::string CalibTowerNodeName;
+
+  bool m_use_TowerInfov2 = 0;
+
+  bool m_giveDirectURL = false;
+  std::string m_directURL = "";
+
+  bool m_giveDirectURL_time = false;
+  std::string m_directURL_time = "";
+  bool m_dotimecalib = true;
+
+  bool m_giveDirectURL_ZScrosscalib = false;
+  std::string m_directURL_ZScrosscalib = "";
+  bool m_doZScrosscalib = true;
 
   CDBTTree *cdbttree = nullptr;
-  std::string m_fieldname;
+  CDBTTree *cdbttree_time = nullptr;
+  CDBTTree *cdbttree_ZScrosscalib = nullptr;
   int m_runNumber;
 };
 

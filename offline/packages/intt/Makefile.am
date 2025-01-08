@@ -3,53 +3,154 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = \
-  libintt_io.la \
-  libintt.la 
-
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
-  -isystem$(ROOTSYS)/include
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include \
+  -isystem$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OPT_SPHENIX)/lib
+
+if USE_ONLINE
+
+lib_LTLIBRARIES = \
+  libintt.la
 
 pkginclude_HEADERS = \
+  InttFelixMap.h \
+  InttMapping.h
+
+libintt_la_SOURCES = \
+  InttFelixMap.cc \
+  InttMapping.cc
+
+else
+
+lib_LTLIBRARIES = \
+  libintt_io.la \
+  libintt.la
+
+pkginclude_HEADERS = \
+  CylinderGeomIntt.h \
+  InttArborist.h \
+  InttBadChannelMap.h \
+  InttBadChannelMapv1.h \
+  InttBCOMap.h \
   InttClusterizer.h \
-  CylinderGeomIntt.h
+  InttCombinedRawDataDecoder.h \
+  InttDacMap.h \
+  InttFeeMap.h \
+  InttFeeMapv1.h \
+  InttFelixMap.h \
+  InttMap.h \
+  InttMapping.h \
+  InttOdbcQuery.h \
+  InttSurveyMap.h \
+  InttSurveyMapv1.h \
+  InttXYVertexFinder.h \
+  InttZVertexFinder.h \
+  InttVertexMap.h \
+  InttVertexMapv1.h \
+  InttVertex.h \
+  InttVertexv1.h
+
+noinst_HEADERS = \
+  INTTZvtx.h \
+  INTTXYvtx.h \
+  InttVertexUtil.h
 
 ROOTDICTS = \
-  CylinderGeomIntt_Dict.cc
+  CylinderGeomIntt_Dict.cc \
+  InttBadChannelMap_Dict.cc \
+  InttBadChannelMapv1_Dict.cc \
+  InttFeeMap_Dict.cc \
+  InttFeeMapv1_Dict.cc \
+  InttMap_Dict.cc \
+  InttSurveyMap_Dict.cc \
+  InttSurveyMapv1_Dict.cc \
+  InttVertexMap_Dict.cc \
+  InttVertexMapv1_Dict.cc \
+  InttVertex_Dict.cc \
+  InttVertexv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  CylinderGeomIntt_Dict_rdict.pcm
+  CylinderGeomIntt_Dict_rdict.pcm \
+  InttBadChannelMap_Dict_rdict.pcm \
+  InttBadChannelMapv1_Dict_rdict.pcm \
+  InttFeeMap_Dict_rdict.pcm \
+  InttFeeMapv1_Dict_rdict.pcm \
+  InttMap_Dict_rdict.pcm \
+  InttSurveyMap_Dict_rdict.pcm \
+  InttSurveyMapv1_Dict_rdict.pcm \
+  InttVertexMap_Dict_rdict.pcm \
+  InttVertexMapv1_Dict_rdict.pcm \
+  InttVertex_Dict_rdict.pcm \
+  InttVertexv1_Dict_rdict.pcm
 
 # sources for intt library
 libintt_la_SOURCES = \
-  InttClusterizer.cc
+  InttArborist.cc \
+  InttBCOMap.cc \
+  InttBadChannelMap.cc \
+  InttBadChannelMapv1.cc \
+  InttClusterizer.cc \
+  InttCombinedRawDataDecoder.cc \
+  InttDacMap.cc \
+  InttFeeMap.cc \
+  InttFeeMapv1.cc \
+  InttFelixMap.cc \
+  InttMapping.cc \
+  InttOdbcQuery.cc \
+  InttMap.cc \
+  InttSurveyMap.cc \
+  InttSurveyMapv1.cc \
+  InttVertexUtil.cc \
+  InttXYVertexFinder.cc \
+  InttZVertexFinder.cc \
+  INTTXYvtx.cc \
+  INTTZvtx.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
+  -lcdbobjects \
   -lCLHEP \
+  -lffarawobjects \
+  -lodbc++ \
   -lphg4hit \
-  -lSubsysReco
+  -lSubsysReco \
+  -ltrack
 
 # sources for io library
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CylinderGeomIntt.cc
+  CylinderGeomIntt.cc \
+  InttBadChannelMap.cc \
+  InttBadChannelMapv1.cc \
+  InttFeeMap.cc \
+  InttFeeMapv1.cc \
+  InttMap.cc \
+  InttSurveyMap.cc \
+  InttSurveyMapv1.cc \
+  InttVertexMap.cc \
+  InttVertexMapv1.cc \
+  InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
+  -lActsCore \
   -lCLHEP \
+  -lcdbobjects \
   -lg4detectors_io \
   -lphool \
-  -ltrack_io \
-  -ltrackbase_historic_io
+  -lffamodules \
+  -lglobalvertex_io
 
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

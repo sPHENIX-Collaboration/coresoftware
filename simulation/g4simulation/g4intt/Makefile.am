@@ -9,7 +9,7 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
     -I$(includedir) \
-    -I$(OFFLINE_MAIN)/include \
+    -isystem$(OFFLINE_MAIN)/include \
     -isystem$(ROOTSYS)/include
 
 # set in configure.in to check if gcc version >= 4.8
@@ -29,8 +29,7 @@ pkginclude_HEADERS = \
   PHG4InttDefs.h \
   PHG4InttDigitizer.h  \
   PHG4InttHitReco.h \
-  PHG4InttSubsystem.h \
-  TruthInttClusterBuilder.h
+  PHG4InttSubsystem.h
 
 ROOTDICTS = \
   InttDeadMap_Dict.cc \
@@ -50,13 +49,13 @@ libg4intt_la_SOURCES = \
   PHG4InttFPHXParameterisation.cc \
   PHG4InttHitReco.cc \
   PHG4InttSteppingAction.cc \
-  PHG4InttSubsystem.cc \
-  TruthInttClusterBuilder.cc
+  PHG4InttSubsystem.cc
 
 libg4intt_la_LIBADD = \
   libg4intt_io.la \
   -lg4detectors \
   -lg4tracking_io \
+  -lintt \
   -lintt_io
 
 # sources for io library

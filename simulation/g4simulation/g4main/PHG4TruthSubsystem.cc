@@ -1,25 +1,25 @@
 #include "PHG4TruthSubsystem.h"
 
-#include "PHG4Particle.h"                // for PHG4Particle
+#include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4TruthEventAction.h"
-#include "PHG4TruthTrackingAction.h"
 #include "PHG4TruthInfoContainer.h"
+#include "PHG4TruthTrackingAction.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>          // for PHIODataNode
-#include <phool/PHNode.h>                // for PHNode
-#include <phool/PHNodeIterator.h>        // for PHNodeIterator
-#include <phool/PHObject.h>              // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                 // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <cassert>
-#include <cstdlib>                      // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
-#include <set>                           // for _Rb_tree_iterator, set, _Rb_...
-#include <utility>                       // for pair
+#include <set>      // for _Rb_tree_iterator, set, _Rb_...
+#include <utility>  // for pair
 
 class PHG4EventAction;
 class PHG4TrackingAction;
@@ -148,7 +148,7 @@ int PHG4TruthSubsystem::ResetEvent(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4EventAction* PHG4TruthSubsystem::GetEventAction(void) const
+PHG4EventAction* PHG4TruthSubsystem::GetEventAction() const
 {
   return m_EventAction;
 }
@@ -156,7 +156,7 @@ PHG4EventAction* PHG4TruthSubsystem::GetEventAction(void) const
 //_______________________________________________________________________
 
 PHG4TrackingAction*
-PHG4TruthSubsystem::GetTrackingAction(void) const
+PHG4TruthSubsystem::GetTrackingAction() const
 {
   return m_TrackingAction;
 }

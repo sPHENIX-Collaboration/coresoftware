@@ -14,10 +14,10 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
   -isystem$(XERCESCROOT)/include \
-  -I$(OPT_SPHENIX)/include
+  -isystem$(OPT_SPHENIX)/include
 
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
@@ -37,8 +37,6 @@ libg4testbench_la_LDFLAGS = \
 libg4testbench_la_LIBADD = \
   libphg4hit.la \
   -lboost_filesystem \
-  -leASTPhysicsList \
-  -leicsmear \
   -lffamodules \
   -lfun4all \
   -lg4decayer \
@@ -49,8 +47,7 @@ libg4testbench_la_LIBADD = \
   -lphgeom \
   -lphg4gdml \
   -lphhepmc \
-  -lphparameter \
-  -lvararray
+  -lphparameter
 
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
 # pcm files in addition. If someone can figure out how to make a list
@@ -136,8 +133,6 @@ libg4testbench_la_SOURCES = \
   PHG4EtaParameterization.cc \
   PHG4EtaPhiParameterization.cc \
   PHG4HeadReco.cc \
-  PHG4InEventCompress.cc \
-  PHG4InEventReadBack.cc \
   PHG4InputFilter.cc \
   PHG4IonGun.cc \
   PHG4MagneticField.cc \
@@ -168,7 +163,6 @@ libg4testbench_la_SOURCES = \
   PHG4UIsession.cc \
   PHG4Utils.cc \
   PHG4VertexSelection.cc \
-  ReadEICFiles.cc \
   CosmicSpray.cc
 
 

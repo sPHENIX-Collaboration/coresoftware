@@ -6,13 +6,13 @@
 #include <calobase/RawClusterUtility.h>
 
 /// Jet includes
-#include <g4jets/Jet.h>
-#include <g4jets/JetMapv1.h>
-#include <g4jets/Jetv1.h>
+#include <jetbase/Jet.h>
+#include <jetbase/JetContainerv1.h>
+#include <jetbase/Jetv2.h>
 
 /// Tracking includes
-#include <g4vertex/GlobalVertex.h>
-#include <g4vertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -142,6 +142,10 @@ ResonanceJetTagging::ResonanceJetTagging(const std::string &name, const TAG tag,
       m_tag_pdg = 4122;
       m_nDaughters = 3;
       break;
+    case ResonanceJetTagging::TAG::LAMBDAS:
+      m_tag_pdg = 3122;
+      m_nDaughters = 2;
+      break;
   }
 
 }
@@ -189,6 +193,8 @@ int ResonanceJetTagging::process_event(PHCompositeNode *topNode)
     case ResonanceJetTagging::TAG::DPLUS:
       [[fallthrough]];
     case ResonanceJetTagging::TAG::LAMBDAC:
+      [[fallthrough]];
+    case ResonanceJetTagging::TAG::LAMBDAS:
       return tagHFHadronic(topNode);
       break;
     default:
@@ -302,7 +308,7 @@ void ResonanceJetTagging::findTaggedJets(PHCompositeNode *topNode, PHG4Particlev
   fastjet::ClusterSequence jetFinder(particles, *jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
 
-  taggedJet = new Jetv1();
+  taggedJet = m_taggedJetContainer->add_jet(); // add a new Jet_v2 to the JetContainer
 
   for (auto &fastjet : fastjets)
   {
@@ -330,7 +336,6 @@ void ResonanceJetTagging::findTaggedJets(PHCompositeNode *topNode, PHG4Particlev
       taggedJet->clear_comp();
     }
   }
-  m_taggedJetMap->insert(taggedJet);
 
   return;
 }
@@ -732,12 +737,12 @@ void ResonanceJetTagging::findMCTaggedJets(PHCompositeNode *topNode)
           decayIDs.push_back((*it)->barcode());
         }
       //if not, look into GEANT
-      } 
+      }
       else
       {
         PHG4TruthInfoContainer::ConstRange range = m_truthinfo->GetParticleRange();
         for(PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
-        {  
+        {
           PHG4Particle* g4particle = iter->second;
           PHG4Particle* mother = nullptr;
           if (g4particle->get_parent_id() != 0) mother = m_truthinfo->GetParticle(g4particle->get_parent_id());
@@ -766,6 +771,10 @@ void ResonanceJetTagging::findMCTaggedJets(PHCompositeNode *topNode)
           continue;
         }
         if ((*p)->status() > 1)
+        {
+          continue;
+        }
+        if (std::abs((*p)->pdg_id()) == m_tag_pdg)
         {
           continue;
         }
@@ -812,7 +821,7 @@ void ResonanceJetTagging::findMCTaggedJets(PHCompositeNode *topNode)
       fastjet::ClusterSequence jetFinder(particles, *jetdef);
       std::vector<fastjet::PseudoJet> mcfastjets = jetFinder.inclusive_jets();
 
-      mcTaggedJet = new Jetv1();
+      mcTaggedJet = m_truth_taggedJetContainer->add_jet(); // insert a new Jet_v2 and return pointer
 
       for (auto &mcfastjet : mcfastjets)
       {
@@ -840,7 +849,6 @@ void ResonanceJetTagging::findMCTaggedJets(PHCompositeNode *topNode)
           mcTaggedJet->clear_comp();
         }
       }
-      m_truth_taggedJetMap->insert(mcTaggedJet);
       m_truth_jet_id++;
     }
   }
@@ -895,13 +903,13 @@ int ResonanceJetTagging::createJetNode(PHCompositeNode *topNode)
   jetNodeName = baseName + "_Jet_Container";
   jetNodeNameMC = baseName + "_Truth_Jet_Container";
 
-  m_taggedJetMap = new JetMapv1();
-  PHIODataNode<PHObject> *jetNode = new PHIODataNode<PHObject>(m_taggedJetMap, jetNodeName.c_str(), "PHObject");
+  m_taggedJetContainer = new JetContainerv1();
+  PHIODataNode<PHObject> *jetNode = new PHIODataNode<PHObject>(m_taggedJetContainer, jetNodeName.c_str(), "PHObject");
   lowerNode->addNode(jetNode);
   std::cout << jetNodeName << " node added" << std::endl;
 
-  m_truth_taggedJetMap = new JetMapv1();
-  PHIODataNode<PHObject> *jetNodeMC = new PHIODataNode<PHObject>(m_truth_taggedJetMap, jetNodeNameMC.c_str(), "PHObject");
+  m_truth_taggedJetContainer = new JetContainerv1();
+  PHIODataNode<PHObject> *jetNodeMC = new PHIODataNode<PHObject>(m_truth_taggedJetContainer, jetNodeNameMC.c_str(), "PHObject");
   lowerNode->addNode(jetNodeMC);
   std::cout << jetNodeNameMC << " node added" << std::endl;
 

@@ -9,10 +9,21 @@ dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 dnl   treat warnings as errors: -Werror
 if test $ac_cv_prog_gxx = yes; then
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wextra -Wshadow"
+  CXXFLAGS="$CXXFLAGS -Wall -pedantic -Wextra -Wshadow -Werror"
 fi
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
+AC_ARG_ENABLE(online,
+        [  --enable-online	build using for online [default=no]],
+        [case "${enableval}" in
+                yes) online=true ;;
+                no)  online=false ;;
+                *) AC_MSG_ERROR(bad value ${enableval} for --enable-online) ;;
+                esac],
+        online=false)
+AM_CONDITIONAL(USE_ONLINE, test "x$online" = xtrue)
+
+CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+
 AC_SUBST(CINTDEFS)
 
 AC_CONFIG_FILES([Makefile])

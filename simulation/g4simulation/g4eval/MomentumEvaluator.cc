@@ -10,19 +10,19 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
+#include <TSystem.h>
 
 #include <cstdlib>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <vector>
 #include <utility>
-
-using namespace std;
+#include <vector>
 
 class TrivialTrack
 {
@@ -40,7 +40,7 @@ class TrivialTrack
     , quality(qual)
   {
   }
-  ~TrivialTrack() {}
+  ~TrivialTrack() = default;
 };
 
 class RecursiveMomentumContainer
@@ -55,7 +55,7 @@ class RecursiveMomentumContainer
 
   unsigned int x_pos, y_pos, z_pos;
 
-  RecursiveMomentumContainer* containers[2][2][2];
+  RecursiveMomentumContainer* containers[2][2][2]{};
 
  public:
   RecursiveMomentumContainer(float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI, int MLEV, int LEV = 0)
@@ -71,28 +71,28 @@ class RecursiveMomentumContainer
     , y_pos(0)
     , z_pos(0)
   {
-    for (unsigned int i = 0; i < 2; ++i)
+    for (auto& container : containers)
     {
-      for (unsigned int j = 0; j < 2; ++j)
+      for (auto& j : container)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
-          containers[i][j][k] = nullptr;
+          j[k] = nullptr;
         }
       }
     }
   }
   virtual ~RecursiveMomentumContainer()
   {
-    for (unsigned int i = 0; i < 2; ++i)
+    for (auto& container : containers)
     {
-      for (unsigned int j = 0; j < 2; ++j)
+      for (auto& j : container)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
-          if (containers[i][j][k] != nullptr)
+          if (j[k] != nullptr)
           {
-            delete containers[i][j][k];
+            delete j[k];
           }
         }
       }
@@ -232,25 +232,25 @@ class RecursiveMomentumContainer
     }
   }
 
-  virtual void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI)
+  virtual void append_list(std::vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI)
   {
-    for (unsigned int i = 0; i < 2; ++i)
+    for (auto& container : containers)
     {
-      for (unsigned int j = 0; j < 2; ++j)
+      for (auto& j : container)
       {
         for (unsigned int k = 0; k < 2; ++k)
         {
-          if (containers[i][j][k] == nullptr)
+          if (j[k] == nullptr)
           {
             continue;
           }
 
-          if ((containers[i][j][k]->px_hi < PX_LO) || (containers[i][j][k]->px_lo > PX_HI) || (containers[i][j][k]->py_hi < PY_LO) || (containers[i][j][k]->py_lo > PY_HI) || (containers[i][j][k]->pz_hi < PZ_LO) || (containers[i][j][k]->pz_lo > PZ_HI))
+          if ((j[k]->px_hi < PX_LO) || (j[k]->px_lo > PX_HI) || (j[k]->py_hi < PY_LO) || (j[k]->py_lo > PY_HI) || (j[k]->pz_hi < PZ_LO) || (j[k]->pz_lo > PZ_HI))
           {
             continue;
           }
 
-          containers[i][j][k]->append_list(track_list, PX_LO, PX_HI, PY_LO, PY_HI, PZ_LO, PZ_HI);
+          j[k]->append_list(track_list, PX_LO, PX_HI, PY_LO, PY_HI, PZ_LO, PZ_HI);
         }
       }
     }
@@ -265,9 +265,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
   {
   }
 
-  ~RecursiveMomentumContainerEnd() override
-  {
-  }
+  ~RecursiveMomentumContainerEnd() override = default;
 
   bool insert(TrivialTrack& track) override
   {
@@ -294,20 +292,20 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
     }
   }
 
-  void append_list(vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI) override
+  void append_list(std::vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI) override
   {
-    for (unsigned int i = 0; i < tracks.size(); ++i)
+    for (auto& track : tracks)
     {
-      if ((tracks[i].px < PX_LO) || (tracks[i].px > PX_HI) || (tracks[i].py < PY_LO) || (tracks[i].py > PY_HI) || (tracks[i].pz < PZ_LO) || (tracks[i].pz > PZ_HI))
+      if ((track.px < PX_LO) || (track.px > PX_HI) || (track.py < PY_LO) || (track.py > PY_HI) || (track.pz < PZ_LO) || (track.pz > PZ_HI))
       {
         continue;
       }
-      track_list.push_back(&(tracks[i]));
+      track_list.push_back(&track);
     }
   }
 
  protected:
-  vector<TrivialTrack> tracks;
+  std::vector<TrivialTrack> tracks;
 };
 
 bool RecursiveMomentumContainer::insert(TrivialTrack& track)
@@ -406,13 +404,13 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   PHG4HitContainer* g4hits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
   if (g4hits == nullptr)
   {
-    cout << "can't find PHG4HitContainer" << endl;
+    std::cout << "can't find PHG4HitContainer" << std::endl;
     exit(1);
   }
   PHG4HitContainer::ConstRange g4range = g4hits->getHits();
 
   // set<int> trkids;
-  map<int, pair<unsigned int, unsigned int> > trkids;
+  std::map<int, std::pair<unsigned int, unsigned int> > trkids;
 
   for (PHG4HitContainer::ConstIterator iter = g4range.first; iter != g4range.second; ++iter)
   {
@@ -424,7 +422,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
     {
       length = inner_z_length;
     }
-    if (fabs(hit->get_z(0)) > length)
+    if (std::fabs(hit->get_z(0)) > length)
     {
       continue;
     }
@@ -439,14 +437,20 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
     {
       trkids[trk_id].first = (trkids[trk_id].first | (1 << (hit->get_layer())));
     }
-    else
+    else if (hit->get_layer() < 64)
     {
       trkids[trk_id].second = (trkids[trk_id].second | (1 << (hit->get_layer() - 32)));
     }
+    else
+    {
+      std::cout << PHWHERE << "hit layer out of bounds (0-63) " << hit->get_layer() << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
 
-    // cout<<"trk_id = "<<trk_id<<endl;
-    // cout<<"layer = "<<hit->get_layer()<<endl;
-    // cout<<"nlayer = "<<__builtin_popcount(trkids[trk_id].first)+__builtin_popcount(trkids[trk_id].second)<<endl<<endl;
+    // std::cout<<"trk_id = "<<trk_id<<std::endl;
+    // std::cout<<"layer = "<<hit->get_layer()<<std::endl;
+    // std::cout<<"nlayer = "<<__builtin_popcount(trkids[trk_id].first)+__builtin_popcount(trkids[trk_id].second)<<std::endl<<std::endl;
     // trkids.insert(trk_id);
   }
 
@@ -461,9 +465,9 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
 
   // PHG4TruthInfoContainer::Map primarymap = truthinfo->GetPrimaryMap();
   PHG4TruthInfoContainer::Map primarymap = truthinfo->GetMap();
-  for (PHG4TruthInfoContainer::Iterator iter = primarymap.begin(); iter != primarymap.end(); ++iter)
+  for (auto& iter : primarymap)
   {
-    PHG4Particle* particle = iter->second;
+    PHG4Particle* particle = iter.second;
 
     float vx = truthinfo->GetVtx(particle->get_vtx_id())->get_x();
     float vy = truthinfo->GetVtx(particle->get_vtx_id())->get_y();
@@ -481,7 +485,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    // cout<<"trk, nhits = "<<particle->get_track_id()<<" "<<__builtin_popcount(trkids[particle->get_track_id()].first)+__builtin_popcount(trkids[particle->get_track_id()].second)<<endl;
+    // std::cout<<"trk, nhits = "<<particle->get_track_id()<<" "<<__builtin_popcount(trkids[particle->get_track_id()].first)+__builtin_popcount(trkids[particle->get_track_id()].second)<<std::endl;
 
     if (__builtin_popcount(trkids[particle->get_track_id()].first) + __builtin_popcount(trkids[particle->get_track_id()].second) < (int) n_required_layers)
     {
@@ -492,27 +496,27 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   }
 
   RecursiveMomentumContainer reco_sorted(-20., 20., -20., 20., -20., 20., 10);
-  for (SvtxTrackMap::Iter iter = trackmap->begin(); iter != trackmap->end(); ++iter)
+  for (auto& iter : *trackmap)
   {
-    SvtxTrack* track = iter->second;
+    SvtxTrack* track = iter.second;
 
     TrivialTrack ttrack(track->get_px(), track->get_py(), track->get_pz(), track->get_x() - gvx, track->get_y() - gvy, track->get_z() - gvz, track->get_quality());
     reco_sorted.insert(ttrack);
   }
 
   TrivialTrack* t_track = true_sorted.begin();
-  vector<TrivialTrack*> pointer_list;
+  std::vector<TrivialTrack*> pointer_list;
   while (t_track != nullptr)
   {
     pointer_list.clear();
 
-    float pt = sqrt((t_track->px * t_track->px) + (t_track->py * t_track->py));
+    float pt = std::sqrt((t_track->px * t_track->px) + (t_track->py * t_track->py));
     float pt_diff = pt * pt_search_scale;
     float px_lo = t_track->px - pt_diff;
     float px_hi = t_track->px + pt_diff;
     float py_lo = t_track->py - pt_diff;
     float py_hi = t_track->py + pt_diff;
-    float pz_diff = fabs(t_track->pz) * pz_search_scale;
+    float pz_diff = std::fabs(t_track->pz) * pz_search_scale;
     float pz_lo = t_track->pz - pz_diff;
     float pz_hi = t_track->pz + pz_diff;
 
@@ -520,14 +524,14 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
 
     if (pointer_list.size() > 0)
     {
-      float mom_true = sqrt(pt * pt + (t_track->pz) * (t_track->pz));
+      float mom_true = std::sqrt(pt * pt + (t_track->pz) * (t_track->pz));
       float best_ind = 0;
-      float mom_reco = sqrt((pointer_list[0]->px) * (pointer_list[0]->px) + (pointer_list[0]->py) * (pointer_list[0]->py) + (pointer_list[0]->pz) * (pointer_list[0]->pz));
+      float mom_reco = std::sqrt((pointer_list[0]->px) * (pointer_list[0]->px) + (pointer_list[0]->py) * (pointer_list[0]->py) + (pointer_list[0]->pz) * (pointer_list[0]->pz));
       float best_mom = mom_reco;
       for (unsigned int i = 1; i < pointer_list.size(); ++i)
       {
-        mom_reco = sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
-        if (fabs(mom_true - mom_reco) < fabs(mom_true - best_mom))
+        mom_reco = std::sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
+        if (std::fabs(mom_true - mom_reco) < std::fabs(mom_true - best_mom))
         {
           best_mom = mom_reco;
           best_ind = i;
@@ -551,13 +555,13 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
   {
     pointer_list.clear();
 
-    float pt = sqrt((r_track->px * r_track->px) + (r_track->py * r_track->py));
+    float pt = std::sqrt((r_track->px * r_track->px) + (r_track->py * r_track->py));
     float pt_diff = pt * pt_search_scale;
     float px_lo = r_track->px - pt_diff;
     float px_hi = r_track->px + pt_diff;
     float py_lo = r_track->py - pt_diff;
     float py_hi = r_track->py + pt_diff;
-    float pz_diff = fabs(r_track->pz) * pz_search_scale;
+    float pz_diff = std::fabs(r_track->pz) * pz_search_scale;
     float pz_lo = r_track->pz - pz_diff;
     float pz_hi = r_track->pz + pz_diff;
 
@@ -565,14 +569,14 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
 
     if (pointer_list.size() > 0)
     {
-      float mom_reco = sqrt(pt * pt + (r_track->pz) * (r_track->pz));
+      float mom_reco = std::sqrt(pt * pt + (r_track->pz) * (r_track->pz));
       float best_ind = 0;
-      float mom_true = sqrt((pointer_list[0]->px) * (pointer_list[0]->px) + (pointer_list[0]->py) * (pointer_list[0]->py) + (pointer_list[0]->pz) * (pointer_list[0]->pz));
+      float mom_true = std::sqrt((pointer_list[0]->px) * (pointer_list[0]->px) + (pointer_list[0]->py) * (pointer_list[0]->py) + (pointer_list[0]->pz) * (pointer_list[0]->pz));
       float best_mom = mom_true;
       for (unsigned int i = 1; i < pointer_list.size(); ++i)
       {
-        mom_true = sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
-        if (fabs(mom_reco - mom_true) < fabs(mom_reco - best_mom))
+        mom_true = std::sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
+        if (std::fabs(mom_reco - mom_true) < std::fabs(mom_reco - best_mom))
         {
           best_mom = mom_true;
           best_ind = i;

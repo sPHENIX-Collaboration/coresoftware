@@ -1430,6 +1430,7 @@ namespace nanoflann
       if (dims != dimensionality) throw std::runtime_error("Error: 'dimensionality' must match column count in data matrix");
       if (DIM > 0 && static_cast<int>(dims) != DIM)
         throw std::runtime_error("Data set dimensionality does not match the 'DIM' template argument");
+      // cppcheck-suppress noOperatorEq
       index = new index_t(dims, *this /* adaptor */, nanoflann::KDTreeSingleIndexAdaptorParams(leaf_max_size));
       index->buildIndex();
     }

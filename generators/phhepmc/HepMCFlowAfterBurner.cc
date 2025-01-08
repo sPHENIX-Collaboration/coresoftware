@@ -38,14 +38,6 @@ set<string> algoset = {"MINBIAS", "MINBIAS_V2_ONLY", "CUSTOM"};
 // please apply the same change to generators/flowAfterburner/main.cc
 HepMCFlowAfterBurner::HepMCFlowAfterBurner(const std::string &name)
   : SubsysReco(name)
-  , algorithmName("MINBIAS")
-  , mineta(-4)
-  , maxeta(4)
-  , minpt(0.)
-  , maxpt(100.)
-  , seedset(0)
-  , seed(0)
-  , randomSeed(11793)
 {
 }
 

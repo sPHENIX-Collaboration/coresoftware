@@ -27,18 +27,17 @@ void CMFlashDifferenceContainerv1::identify(std::ostream& os) const
   os << "Number of differences: " << size() << std::endl;
   for (iter = m_map.begin(); iter != m_map.end(); ++iter)
   {
-    os << "key " << iter->first  << std::endl;
+    os << "key " << iter->first << std::endl;
     (iter->second)->identify();
   }
   os << "------------------------------" << std::endl;
   return;
 }
 
-void
-CMFlashDifferenceContainerv1::addDifferenceSpecifyKey(const unsigned int key, CMFlashDifference* newclus)
+void CMFlashDifferenceContainerv1::addDifferenceSpecifyKey(const unsigned int key, CMFlashDifference* newclus)
 {
   auto ret = m_map.insert(std::make_pair(key, newclus));
-  if ( !ret.second )
+  if (!ret.second)
   {
     std::cout << "CMFlashDifferenceContainerv1::AddDifferenceSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
@@ -49,18 +48,20 @@ void CMFlashDifferenceContainerv1::removeDifference(unsigned int key)
 {
   auto diff = findDifference(key);
   delete diff;
-  m_map.erase(key); 
+  m_map.erase(key);
 }
 
 CMFlashDifferenceContainer::ConstRange
 CMFlashDifferenceContainerv1::getDifferences() const
-{ return std::make_pair(m_map.cbegin(), m_map.cend()); }
+{
+  return std::make_pair(m_map.cbegin(), m_map.cend());
+}
 
 CMFlashDifference*
 CMFlashDifferenceContainerv1::findDifference(unsigned int key) const
 {
   auto it = m_map.find(key);
-  return it == m_map.end() ? nullptr:it->second;
+  return it == m_map.end() ? nullptr : it->second;
 }
 
 unsigned int CMFlashDifferenceContainerv1::size() const

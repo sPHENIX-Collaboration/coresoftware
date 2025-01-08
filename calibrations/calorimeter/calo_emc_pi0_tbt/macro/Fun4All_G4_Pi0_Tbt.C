@@ -9,6 +9,7 @@
 
 #include <calib_emc_pi0/CaloCalibEmc_Pi0.h>
 
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libfun4all.so)
 
 void Fun4All_G4_Pi0_Tbt(

@@ -132,28 +132,28 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
 
   std::vector<double> thickness;
   std::vector<std::string> material;
-  material.push_back("G4_Cu");
+  material.emplace_back("G4_Cu");
   thickness.push_back(0.0005 * 2. * cm);
-  material.push_back("G4_KAPTON");
+  material.emplace_back("G4_KAPTON");
   thickness.push_back(0.005 * cm);
-  material.push_back("sPHENIX_TPC_Gas");  // proper gas name, but should be pulled from params to match TpcSubsystem?
+  material.emplace_back("sPHENIX_TPC_Gas");  // proper gas name, but should be pulled from params to match TpcSubsystem?
   thickness.push_back(0.2 * cm);
   G4Material *temp = GetDetectorMaterial("GEMeffective", false);
   if (temp == nullptr)
   {
-    CreateCompositeMaterial("GEMeffective", material, thickness);  //see new function below
+    CreateCompositeMaterial("GEMeffective", material, thickness);  // see new function below
   }
   double totalThickness = 0;
-  for (std::vector<double>::size_type i = 0; i < thickness.size(); i++)
+  for (double thicknes : thickness)
   {
-    totalThickness += thickness[i];
+    totalThickness += thicknes;
   }
 
   const int n_GEM_layers = m_Params->get_int_param("n_GEM_layers");
 
-  //instead of building this layer-by-layer, we build a single block corresponding to all the gems that were previously handled in this fashion:
+  // instead of building this layer-by-layer, we build a single block corresponding to all the gems that were previously handled in this fashion:
   totalThickness *= n_GEM_layers;
-  AddLayer(assemblyvol, starting_z, G4String("GEMAllParts"), "GEMeffective", totalThickness, 64);  //note this slightly undercounts the gas because the gas fill should be 100%, and slightly mispositions the inner edge of the material because the way it is made <100% in AddLayer is by making it thinner than nominally requested but centering it in the region it would have occupied.
+  AddLayer(assemblyvol, starting_z, G4String("GEMAllParts"), "GEMeffective", totalThickness, 64);  // note this slightly undercounts the gas because the gas fill should be 100%, and slightly mispositions the inner edge of the material because the way it is made <100% in AddLayer is by making it thinner than nominally requested but centering it in the region it would have occupied.
 
   // 16 layer readout plane by TTM
   // https://indico.bnl.gov/event/8307/contributions/36744/attachments/27646/42337/R3-Review.pptx
@@ -170,13 +170,13 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
 }
 
 void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
-    std::string compositeName,
+    const std::string &compositeName,
     std::vector<std::string> materialName,
     std::vector<double> thickness)
 {
-  //takes in a list of material names known to Geant already, and thicknesses, and creates a new material called compositeName.
+  // takes in a list of material names known to Geant already, and thicknesses, and creates a new material called compositeName.
 
-  //check that desired material name doesn't already exist
+  // check that desired material name doesn't already exist
   G4Material *tempmat = GetDetectorMaterial(compositeName, false);
 
   if (tempmat != nullptr)
@@ -185,10 +185,10 @@ void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
     assert(!tempmat);
   }
 
-  //check that both arrays have the same depth
+  // check that both arrays have the same depth
   assert(materialName.size() == thickness.size());
 
-  //sum up the areal density and total thickness so we can divvy it out
+  // sum up the areal density and total thickness so we can divvy it out
   double totalArealDensity = 0, totalThickness = 0;
   for (std::vector<double>::size_type i = 0; i < thickness.size(); i++)
   {
@@ -203,28 +203,28 @@ void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
     totalThickness += thickness[i];
   }
 
-  //register a new material with the average density of the whole:
+  // register a new material with the average density of the whole:
   double compositeDensity = totalArealDensity / totalThickness;
   G4Material *composite = new G4Material(compositeName, compositeDensity, thickness.size());
 
-  //now calculate the fraction due to each material, and register those
+  // now calculate the fraction due to each material, and register those
   for (std::vector<double>::size_type i = 0; i < thickness.size(); i++)
   {
-    tempmat = GetDetectorMaterial(materialName[i]);  //don't need to check this, since we did in the previous loop.
+    tempmat = GetDetectorMaterial(materialName[i]);  // don't need to check this, since we did in the previous loop.
     composite->AddMaterial(tempmat, thickness[i] * tempmat->GetDensity() / totalArealDensity);
   }
 
-  //how to register our finished material?
+  // how to register our finished material?
   return;
 }
 
 void PHG4TpcEndCapDetector ::AddLayer(  //
     G4AssemblyVolume *assemblyvol,
     G4double &z_start,
-    const std::string &_name,  //! name base for this layer
-    std::string _material,     //! material name in G4
-    G4double _depth,           //! depth in G4 units
-    double _percentage_filled  //! percentage filled//
+    const std::string &_name,      //! name base for this layer
+    const std::string &_material,  //! material name in G4
+    G4double _depth,               //! depth in G4 units
+    double _percentage_filled      //! percentage filled//
 )
 {
   z_start += _depth / 2.;
@@ -348,10 +348,10 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
     const G4double reduced_height = sqrt(Rout * Rout - wagon_wheel_front_frame_spoke_width / 2 * wagon_wheel_front_frame_spoke_width / 2);
 
     std::vector<G4TwoVector> vertexes;
-    vertexes.push_back(G4TwoVector(-wagon_wheel_front_frame_spoke_width / 2, Rin));
-    vertexes.push_back(G4TwoVector(+wagon_wheel_front_frame_spoke_width / 2, Rin));
-    vertexes.push_back(G4TwoVector(+wagon_wheel_front_frame_spoke_width / 2, reduced_height));
-    vertexes.push_back(G4TwoVector(-wagon_wheel_front_frame_spoke_width / 2, reduced_height));
+    vertexes.emplace_back(-wagon_wheel_front_frame_spoke_width / 2, Rin);
+    vertexes.emplace_back(+wagon_wheel_front_frame_spoke_width / 2, Rin);
+    vertexes.emplace_back(+wagon_wheel_front_frame_spoke_width / 2, reduced_height);
+    vertexes.emplace_back(-wagon_wheel_front_frame_spoke_width / 2, reduced_height);
 
     G4TwoVector zero(0, 0);
 
@@ -427,10 +427,10 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
     std::string name_base = boost::str(boost::format("%1%_wagon_wheel_spoke") % GetName());
 
     std::vector<G4TwoVector> vertexes;
-    vertexes.push_back(G4TwoVector(0, wagon_wheel_spoke_R_inner));
-    vertexes.push_back(G4TwoVector(0, wagon_wheel_spoke_R_outer));
-    vertexes.push_back(G4TwoVector(wagon_wheel_spoke_height_outer, wagon_wheel_spoke_R_outer));
-    vertexes.push_back(G4TwoVector(wagon_wheel_spoke_height_inner, wagon_wheel_spoke_R_inner));
+    vertexes.emplace_back(0, wagon_wheel_spoke_R_inner);
+    vertexes.emplace_back(0, wagon_wheel_spoke_R_outer);
+    vertexes.emplace_back(wagon_wheel_spoke_height_outer, wagon_wheel_spoke_R_outer);
+    vertexes.emplace_back(wagon_wheel_spoke_height_inner, wagon_wheel_spoke_R_inner);
     G4TwoVector zero(0, 0);
 
     G4VSolid *solid_wagon_wheel_spoke = new G4ExtrudedSolid(name_base,

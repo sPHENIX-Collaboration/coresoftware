@@ -10,14 +10,12 @@ class PdbCalBank;
 
 class PdbApplication
 {
-
-protected:
+ protected:
   PdbApplication() {}
 
-public:
+ public:
   static PdbApplication *instance();
   virtual ~PdbApplication() {}
-
 
   virtual PdbStatus startUpdate() = 0;
   virtual PdbStatus startRead() = 0;
@@ -25,7 +23,7 @@ public:
   virtual PdbStatus abort() = 0;
   virtual PdbStatus isActive() = 0;
   virtual PdbStatus commit(PdbCalBank *) = 0;
-  virtual PdbStatus commit(PdbCalBank *,int,long,long,long) = 0;
+  virtual PdbStatus commit(PdbCalBank *, int, long, long, long) = 0;
   //
   // Should return the file (database) size in bytes.
   //
@@ -33,7 +31,7 @@ public:
   virtual int setDBName(const std::string &name) = 0;
   virtual int DisconnectDB() = 0;
 
-protected:
+ protected:
   // Wrap the singleton object in an unique_ptr so it gets cleaned up.
   // Even though unique_ptr is often a horrible choice, here it should be ok
   // since __instance will never be copied. If this wouldn't be visible for

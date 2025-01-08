@@ -16,7 +16,7 @@ class CDBHistos
   void Print() const;
   void LoadCalibrations();
   void registerHisto(TH1 *h1);
-  TH1 *getHisto(const std::string &name);
+  TH1 *getHisto(const std::string &name, bool printerror = true);
 
  private:
   std::string m_Filename;

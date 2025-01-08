@@ -8,14 +8,14 @@
  * @brief Version 1 of class for associating clusters to the bunch crossing that created them
  */
 
-#include "TrkrDefs.h"
 #include "TrkrClusterCrossingAssoc.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 /**
  * @brief Class for associating clusters to the bunch crossing that created them
@@ -24,8 +24,7 @@
  */
 class TrkrClusterCrossingAssocv1 : public TrkrClusterCrossingAssoc
 {
-  public:
-
+ public:
   TrkrClusterCrossingAssocv1() = default;
 
   void Reset() override;
@@ -40,11 +39,10 @@ class TrkrClusterCrossingAssocv1 : public TrkrClusterCrossingAssoc
 
   unsigned int size(void) const override;
 
-private:
-
+ private:
   std::multimap<TrkrDefs::cluskey, short int> m_map;
 
   ClassDefOverride(TrkrClusterCrossingAssocv1, 1);
 };
 
-#endif // TRACKBASE_TRKRCLUSTERCROSSINGASSOCV1_H
+#endif  // TRACKBASE_TRKRCLUSTERCROSSINGASSOCV1_H

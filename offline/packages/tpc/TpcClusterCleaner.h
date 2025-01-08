@@ -22,7 +22,6 @@ class TrkrClusterContainer;
 class TpcClusterCleaner : public SubsysReco
 {
  public:
-
   TpcClusterCleaner(const std::string &name = "TpcClusterCleaner");
 
   ~TpcClusterCleaner() override;
@@ -31,18 +30,16 @@ class TpcClusterCleaner : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void set_rphi_error_low_cut(double cut){_rphi_error_low_cut = cut;}
-  void set_rphi_error_high_cut(double cut){_rphi_error_high_cut = cut;}
+  void set_rphi_error_low_cut(double cut) { _rphi_error_low_cut = cut; }
+  void set_rphi_error_high_cut(double cut) { _rphi_error_high_cut = cut; }
 
-  void set_new_rphi_error(double err){_new_rphi_error = err;}
-  void set_new_z_error(double err){_new_z_error = err;}
-  void set_cluster_version(int value) { m_cluster_version = value; }
+  void set_new_rphi_error(double err) { _new_rphi_error = err; }
+  void set_new_z_error(double err) { _new_z_error = err; }
 
  private:
-
   void rotate_error(double erphi, double ez, double phi, double error[][3]);
 
-  int GetNodes(PHCompositeNode* topNode);
+  int GetNodes(PHCompositeNode *topNode);
   TrkrClusterContainer *_cluster_map = nullptr;
 
   double _rphi_error_low_cut = 0.01;
@@ -50,7 +47,6 @@ class TpcClusterCleaner : public SubsysReco
 
   double _new_rphi_error = 0.05;
   double _new_z_error = 0.1;
-  int m_cluster_version = 4;
 };
 
-#endif // TPCCLUSTERCLEANER_H
+#endif  // TPCCLUSTERCLEANER_H

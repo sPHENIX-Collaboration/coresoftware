@@ -9,9 +9,9 @@ AM_LDFLAGS = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
-	-DHomogeneousField
+  -DHomogeneousField
 
 pkginclude_HEADERS = \
   ResonanceJetTagging.h
@@ -25,10 +25,11 @@ libresonancejettagging_la_LDFLAGS = \
   -lcalo_io \
   -lfun4all \
   -lg4detectors_io \
-  -lg4jets \
+  -ljetbase \
   -lkfparticle_sphenix_io \
   -lparticleflow_io \
   -lphg4hit \
+  -lphhepmc_io \
   `fastjet-config --libs`
 
 

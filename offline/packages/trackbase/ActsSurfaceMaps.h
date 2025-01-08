@@ -6,15 +6,18 @@
  *  \author Tony Frawley <afrawley@fsu.edu>, Joe Osborn <osbornjd@ornl.gov>, Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include "TrkrDefs.h"
 #include "ActsTrackingGeometry.h"
+#include "TrkrDefs.h"
 
 /// Acts includes to create all necessary definitions
-#include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-namespace Acts{ class Surface; }
+namespace Acts
+{
+  class Surface;
+}
 class TGeoNode;
 class TrkrCluster;
 
@@ -30,19 +33,19 @@ struct ActsSurfaceMaps
 {
  public:
   ActsSurfaceMaps() = default;
- 
+
   //! true if given surface corresponds to TPC
-  bool isTpcSurface( const Acts::Surface* surface ) const;
-    
+  bool isTpcSurface(const Acts::Surface* surface) const;
+
   //! true if given surface corresponds to Micromegas
-  bool isMicromegasSurface( const Acts::Surface* surface ) const;
-  
+  bool isMicromegasSurface(const Acts::Surface* surface) const;
+
   Surface getSurface(TrkrDefs::cluskey, TrkrCluster* cluster) const;
 
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const;
 
   Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
-    TrkrDefs::subsurfkey surfkey) const;
+                        TrkrDefs::subsurfkey surfkey) const;
 
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey) const;
 
@@ -50,22 +53,21 @@ struct ActsSurfaceMaps
   std::map<TrkrDefs::hitsetkey, Surface> m_siliconSurfaceMap;
 
   //! map hitset to surface vector for the TPC
-  std::map<unsigned int, SurfaceVec> m_tpcSurfaceMap;   // uses layer as key
+  std::map<unsigned int, SurfaceVec> m_tpcSurfaceMap;  // uses layer as key
 
   //! map hitset to surface vector for the micromegas
   std::map<TrkrDefs::hitsetkey, Surface> m_mmSurfaceMap;
-  
+
   //! map TGeoNode to hitset
   std::map<TrkrDefs::hitsetkey, TGeoNode*> m_tGeoNodeMap;
- 
- //! stores all acts volume ids relevant to the TPC
+
+  //! stores all acts volume ids relevant to the TPC
   /** it is used to quickly tell if a given Acts Surface belongs to the TPC */
   std::set<int> m_tpcVolumeIds;
 
   //! stores all acts volume ids relevant to the micromegas
   /** it is used to quickly tell if a given Acts Surface belongs to micromegas */
   std::set<int> m_micromegasVolumeIds;
-
 };
 
 #endif

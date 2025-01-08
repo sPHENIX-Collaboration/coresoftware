@@ -13,7 +13,7 @@
 #include "PHObject.h"
 
 #include <ctime>
-#include <iosfwd> 
+#include <iosfwd>
 
 typedef unsigned long long phtime_t;
 
@@ -62,7 +62,7 @@ class PHTimeStamp : public PHObject
   time_t binaryTimeToTics(phtime_t) const;
 
  protected:
-  phtime_t binaryTime;
+  phtime_t binaryTime{};
   ClassDefOverride(PHTimeStamp, 1)
 };
 

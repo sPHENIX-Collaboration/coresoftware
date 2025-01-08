@@ -64,4 +64,4 @@ class TrkrHitSetv1 : public TrkrHitSet
   ClassDefOverride(TrkrHitSetv1, 1);
 };
 
-#endif  //TRACKBASE_TrkrHitSetv1_H
+#endif  // TRACKBASE_TrkrHitSetv1_H

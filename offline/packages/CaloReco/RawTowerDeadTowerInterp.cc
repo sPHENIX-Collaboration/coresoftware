@@ -1,12 +1,11 @@
 #include "RawTowerDeadTowerInterp.h"
 
 #include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfoContainer.h>
 #include <calobase/RawTowerDeadMap.h>
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerv1.h>
 
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -159,7 +158,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
         ++n_neighbor;
 
         assert(m_calibTowers);
-	unsigned int towerkey = (ieta << 16U) + iphi;
+	unsigned int towerkey = ((unsigned int) (ieta) << 16U) + iphi;
 	TowerInfo *neighTower = m_calibTowers->get_tower_at_key(towerkey);
         // RawTower *neighTower = m_calibTowers->getTower(ieta, iphi);
         if (neighTower == nullptr) 
@@ -179,7 +178,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
       if (n_neighbor > 0 and E_SumNeighbor != 0)
       {
 
-	unsigned int deadtowerkey = (bineta << 16U) + binphi;
+	unsigned int deadtowerkey = ((unsigned int) (bineta) << 16U) + binphi;
 
         TowerInfo *deadTower = m_calibTowers->get_tower_at_key(deadtowerkey);
 
@@ -301,7 +300,7 @@ void RawTowerDeadTowerInterp::CreateNodes(PHCompositeNode *topNode)
   }
 
   const std::string rawTowerNodeName = "TOWERINFO_" + _calib_tower_node_prefix + "_" + m_detector;
-  m_calibTowers = findNode::getClass<TowerInfoContainerv1>(dstNode, rawTowerNodeName);
+  m_calibTowers = findNode::getClass<TowerInfoContainer>(dstNode, rawTowerNodeName);
   if (!m_calibTowers)
   {
     std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__

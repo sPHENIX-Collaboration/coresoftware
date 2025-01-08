@@ -6,12 +6,12 @@
  * @date June 2018
  */
 
-#include "TrkrDefs.h"       
+#include "TrkrDefs.h"
 #include "TrkrHitSetContainer.h"
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 class TrkrHitSet;
 
@@ -20,13 +20,13 @@ class TrkrHitSet;
  */
 class TrkrHitSetContainerv1 : public TrkrHitSetContainer
 {
-  
-  public:
-
+ public:
   TrkrHitSetContainerv1() = default;
 
   ~TrkrHitSetContainerv1() override
-  { TrkrHitSetContainerv1::Reset(); }
+  {
+    TrkrHitSetContainerv1::Reset();
+  }
 
   void Reset() override;
 
@@ -36,9 +36,9 @@ class TrkrHitSetContainerv1 : public TrkrHitSetContainer
 
   ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey, TrkrHitSet*) override;
 
-  void removeHitSet(TrkrDefs::hitsetkey ) override;
+  void removeHitSet(TrkrDefs::hitsetkey) override;
 
-  void removeHitSet(TrkrHitSet* ) override;
+  void removeHitSet(TrkrHitSet*) override;
 
   Iterator findOrAddHitSet(TrkrDefs::hitsetkey key) override;
 
@@ -48,16 +48,17 @@ class TrkrHitSetContainerv1 : public TrkrHitSetContainer
 
   ConstRange getHitSets() const override;
 
-  TrkrHitSet *findHitSet(TrkrDefs::hitsetkey key) override;
+  TrkrHitSet* findHitSet(TrkrDefs::hitsetkey key) override;
 
   unsigned int size() const override
-  { return m_hitmap.size(); }
+  {
+    return m_hitmap.size();
+  }
 
-  private: 
-  
+ private:
   Map m_hitmap;
-  
+
   ClassDefOverride(TrkrHitSetContainerv1, 1)
 };
 
-#endif //TRACKBASE_TrkrHitSetContainerv1_H
+#endif  // TRACKBASE_TrkrHitSetContainerv1_H

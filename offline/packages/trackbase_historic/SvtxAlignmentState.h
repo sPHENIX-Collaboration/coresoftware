@@ -16,7 +16,7 @@ class SvtxAlignmentState : public PHObject
   /// the definition in millepede (track state parameters)
   const static int NLOC = 6;
   /// Number of residual parameters
-  const static int NRES = 3;
+  const static int NRES = 2;
 
   typedef Eigen::Matrix<double, NRES, NGL> GlobalMatrix;
   typedef Eigen::Matrix<double, NRES, NLOC> LocalMatrix;

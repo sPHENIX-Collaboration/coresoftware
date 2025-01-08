@@ -6,7 +6,6 @@
 #include "KFParticle_MVA.h"
 #include "KFParticle_Tools.h"
 
-#include <KFPVertex.h>
 #include <KFParticle.h>
 
 #include <TMVA/Reader.h>  // for Reader
@@ -21,7 +20,7 @@ KFParticle_Tools kfpTools;
 
 std::tuple<TMVA::Reader *, std::vector<Float_t>> KFParticle_MVA::initMVA()
 {
-  TMVA::Tools::Instance();  //Start TMVA
+  TMVA::Tools::Instance();  // Start TMVA
   TMVA::Reader *reader = new TMVA::Reader("!Color:!Silent");
 
   std::vector<Float_t> reader_floats;
@@ -36,7 +35,7 @@ std::tuple<TMVA::Reader *, std::vector<Float_t>> KFParticle_MVA::initMVA()
   return make_tuple(reader, reader_floats);
 }
 
-Float_t KFParticle_MVA::evaluateMVA(TMVA::Reader *reader, std::vector<Float_t> reader_floats, KFParticle particle, KFPVertex vertex)
+Float_t KFParticle_MVA::evaluateMVA(TMVA::Reader *reader, std::vector<Float_t> reader_floats, const KFParticle &particle, const KFPVertex &vertex)
 {
   KFParticle kfpvertex(vertex);
   std::map<std::string, float> possibleVariables =
@@ -44,7 +43,10 @@ Float_t KFParticle_MVA::evaluateMVA(TMVA::Reader *reader, std::vector<Float_t> r
           {"motherIPchi2", particle.GetDeviationFromVertex(kfpvertex)},
           {"motherFDchi2", kfpTools.flightDistanceChi2(particle, vertex)}};
 
-  for (unsigned int iPar = 0; iPar < nMVApars; ++iPar) reader_floats[iPar] = possibleVariables.find(m_mva_variable_list[iPar])->second;
+  for (unsigned int iPar = 0; iPar < nMVApars; ++iPar)
+  {
+    reader_floats[iPar] = possibleVariables.find(m_mva_variable_list[iPar])->second;
+  }
 
   return (Float_t) reader->EvaluateMVA(method.c_str());
 }

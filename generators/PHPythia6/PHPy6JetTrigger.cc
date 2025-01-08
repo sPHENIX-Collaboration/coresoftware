@@ -21,8 +21,6 @@
 #include <utility>   // for swap
 #include <vector>    // for vector
 
-using namespace std;
-
 //__________________________________________________________
 PHPy6JetTrigger::PHPy6JetTrigger(const std::string &name)
   : PHPy6GenTrigger(name)
@@ -31,7 +29,10 @@ PHPy6JetTrigger::PHPy6JetTrigger(const std::string &name)
 
 PHPy6JetTrigger::~PHPy6JetTrigger()
 {
-  if (Verbosity() > 0) PrintConfig();
+  if (Verbosity() > 0)
+  {
+    PrintConfig();
+  }
 }
 
 bool PHPy6JetTrigger::Apply(const HepMC::GenEvent *evt)
@@ -42,7 +43,10 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent *evt)
   for (HepMC::GenEvent::particle_const_iterator p = evt->particles_begin(); p != evt->particles_end(); ++p)
   {
     idx++;
-    if (((*p)->status() != 1) != 0) continue;
+    if (((*p)->status() != 1) != 0)
+    {
+      continue;
+    }
 
     // remove some particles (muons, taus, neutrinos)...
     // 12 == nu_e
@@ -50,12 +54,21 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent *evt)
     // 14 == nu_mu
     // 15 == taus
     // 16 == nu_tau
-    if ((abs(((*p)->pdg_id())) >= 12) && (abs(((*p)->pdg_id())) <= 16)) continue;
+    if ((abs(((*p)->pdg_id())) >= 12) && (abs(((*p)->pdg_id())) <= 16))
+    {
+      continue;
+    }
 
     // acceptance... _etamin,_etamax
-    if (((*p)->momentum().px() == 0.0) && ((*p)->momentum().py() == 0.0)) continue;  // avoid pt=0
+    if (((*p)->momentum().px() == 0.0) && ((*p)->momentum().py() == 0.0))
+    {
+      continue;  // avoid pt=0
+    }
     if ((((*p)->momentum().pseudoRapidity()) < m_theEtaLow) ||
-        (((*p)->momentum().pseudoRapidity()) > m_theEtaHigh)) continue;
+        (((*p)->momentum().pseudoRapidity()) > m_theEtaHigh))
+    {
+      continue;
+    }
 
     fastjet::PseudoJet pseudojet((*p)->momentum().px(),
                                  (*p)->momentum().py(),
@@ -74,13 +87,16 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent *evt)
 
   bool jetFound = false;
   double max_pt = -1;
-  for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
+  for (auto &fastjet : fastjets)
   {
-    const double pt = sqrt(pow(fastjets[ijet].px(), 2) + pow(fastjets[ijet].py(), 2));
+    const double pt = sqrt(pow(fastjet.px(), 2) + pow(fastjet.py(), 2));
 
-    if (pt > max_pt) max_pt = pt;
+    if (pt > max_pt)
+    {
+      max_pt = pt;
+    }
 
-    vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
+    std::vector<fastjet::PseudoJet> constituents = fastjet.constituents();
     const int nconst = constituents.size();
 
     if (pt > m_minPt && nconst >= m_nconst)
@@ -92,7 +108,7 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent *evt)
 
   if (Verbosity() > 2)
   {
-    cout << "PHPy6JetTrigger::Apply - max_pt = " << max_pt << ", and jetFound = " << jetFound << endl;
+    std::cout << "PHPy6JetTrigger::Apply - max_pt = " << max_pt << ", and jetFound = " << jetFound << std::endl;
   }
 
   return jetFound;
@@ -105,16 +121,16 @@ void PHPy6JetTrigger::SetEtaHighLow(double etaHigh, double etaLow)
 
   if (m_theEtaHigh < m_theEtaLow)
   {
-    swap(m_theEtaHigh, m_theEtaLow);
+    std::swap(m_theEtaHigh, m_theEtaLow);
   }
 }
 
 void PHPy6JetTrigger::PrintConfig()
 {
-  cout << "---------------- PHPy6JetTrigger::PrintConfig --------------------" << endl;
+  std::cout << "---------------- PHPy6JetTrigger::PrintConfig --------------------" << std::endl;
 
-  cout << "   Particles EtaCut:  " << m_theEtaLow << " < eta < " << m_theEtaHigh << endl;
-  cout << "   Minimum Jet pT: " << m_minPt << " GeV/c" << endl;
-  cout << "   Anti-kT Radius: " << m_R << endl;
-  cout << "-----------------------------------------------------------------------" << endl;
+  std::cout << "   Particles EtaCut:  " << m_theEtaLow << " < eta < " << m_theEtaHigh << std::endl;
+  std::cout << "   Minimum Jet pT: " << m_minPt << " GeV/c" << std::endl;
+  std::cout << "   Anti-kT Radius: " << m_R << std::endl;
+  std::cout << "-----------------------------------------------------------------------" << std::endl;
 }

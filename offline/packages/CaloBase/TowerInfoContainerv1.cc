@@ -1,14 +1,9 @@
 #include "TowerInfoContainerv1.h"
 #include "TowerInfov1.h"
-#include "TowerInfoDefs.h"
-
-#include <phool/PHObject.h>
-#include <phool/phool.h>
 
 #include <TClonesArray.h>
 
 #include <cassert>
-
 
 TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   : _detector(detec)
@@ -26,6 +21,14 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   {
     nchannels = 1536;
   }
+  else if (_detector == DETECTOR::MBD)
+  {
+    nchannels = 256;
+  }
+  else if (_detector == DETECTOR::ZDC)
+  {
+    nchannels = 52;
+  }
   _clones = new TClonesArray("TowerInfov1", nchannels);
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv1");
@@ -42,6 +45,26 @@ TowerInfoContainerv1::~TowerInfoContainerv1()
   delete _clones;
 }
 
+TowerInfoContainerv1::TowerInfoContainerv1(const TowerInfoContainerv1& source)
+  : TowerInfoContainer(source)
+{
+  _detector = source.get_detectorid();
+  _clones = new TClonesArray("TowerInfov1", source.size());
+  _clones->SetOwner();
+  _clones->SetName("TowerInfoContainerv1");
+  for (unsigned int i = 0; i < source.size(); ++i)
+  {
+    // as tower numbers are fixed per event
+    // construct towers once per run, and clear the towers for first use
+    _clones->ConstructedAt(i, "C");
+  }
+}
+
+void TowerInfoContainerv1::identify(std::ostream& os) const
+{
+  os << "TowerInfoContainerv1 of size " << size() << std::endl;
+}
+
 void TowerInfoContainerv1::Reset()
 {
   // clear content of towers in the container for the next event
@@ -50,12 +73,12 @@ void TowerInfoContainerv1::Reset()
   {
     TObject* obj = _clones->UncheckedAt(i);
 
-    if (obj==nullptr)
+    if (obj == nullptr)
     {
-      std::cout<<__PRETTY_FUNCTION__<<" Fatal access error:"
-          <<" _clones->GetSize() = "<<_clones->GetSize()
-          <<" _clones->GetEntriesFast() = "<<_clones->GetEntriesFast()
-          <<" i = "<<i<<std::endl;
+      std::cout << __PRETTY_FUNCTION__ << " Fatal access error:"
+                << " _clones->GetSize() = " << _clones->GetSize()
+                << " _clones->GetEntriesFast() = " << _clones->GetEntriesFast()
+                << " i = " << i << std::endl;
       _clones->Print();
     }
 
@@ -73,66 +96,36 @@ TowerInfov1* TowerInfoContainerv1::get_tower_at_channel(int pos)
   return (TowerInfov1*) _clones->At(pos);
 }
 
-
 TowerInfov1* TowerInfoContainerv1::get_tower_at_key(int pos)
 {
   int index = decode_key(pos);
   return (TowerInfov1*) _clones->At(index);
 }
 
-unsigned int TowerInfoContainerv1::encode_epd(unsigned int towerIndex)
-{
-  unsigned int key = TowerInfoDefs::encode_epd(towerIndex);
-  return key;
-}
-
-unsigned int TowerInfoContainerv1::encode_emcal(unsigned int towerIndex)
-{
-  unsigned int key = TowerInfoDefs::encode_emcal(towerIndex);
-  return key;
-}
-
-unsigned int TowerInfoContainerv1::encode_hcal(unsigned int towerIndex)
-{
-  unsigned int key = TowerInfoDefs::encode_hcal(towerIndex);
-  return key;
-}
-
 unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
 {
   int key = 0;
   if (_detector == DETECTOR::EMCAL)
-    {
-      key = TowerInfoContainerv1::encode_emcal(towerIndex);
-    }
+  {
+    key = TowerInfoContainerv1::encode_emcal(towerIndex);
+  }
   else if (_detector == DETECTOR::HCAL)
-    {
-      key = TowerInfoContainerv1::encode_hcal(towerIndex);
-    }
+  {
+    key = TowerInfoContainerv1::encode_hcal(towerIndex);
+  }
   else if (_detector == DETECTOR::SEPD)
-    {
+  {
     key = TowerInfoContainerv1::encode_epd(towerIndex);
-    }
+  }
+  else if (_detector == DETECTOR::MBD)
+  {
+    key = TowerInfoContainerv1::encode_mbd(towerIndex);
+  }
+  else if (_detector == DETECTOR::ZDC)
+  {
+    key = TowerInfoContainerv1::encode_zdc(towerIndex);
+  }
   return key;
-}
-
-unsigned int TowerInfoContainerv1::decode_epd(unsigned int tower_key)
-{
-  unsigned int index = TowerInfoDefs::decode_epd(tower_key);  
-  return index;
-}
-
-unsigned int TowerInfoContainerv1::decode_emcal(unsigned int tower_key)
-{
-
-  unsigned int index = TowerInfoDefs::decode_emcal(tower_key);  
-  return index;
-}
-
-unsigned int TowerInfoContainerv1::decode_hcal(unsigned int tower_key)
-{
-  unsigned int index = TowerInfoDefs::decode_hcal(tower_key);  
-  return index;
 }
 
 unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
@@ -151,17 +144,13 @@ unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
   {
     index = TowerInfoContainerv1::decode_epd(tower_key);
   }
+  else if (_detector == DETECTOR::MBD)
+  {
+    index = TowerInfoContainerv1::decode_mbd(tower_key);
+  }
+  else if (_detector == DETECTOR::ZDC)
+  {
+    index = TowerInfoContainerv1::decode_zdc(tower_key);
+  }
   return index;
-}
-
-unsigned int TowerInfoContainerv1::getTowerPhiBin(unsigned int key)
-{
-  unsigned int phibin = TowerInfoDefs::getCaloTowerPhiBin(key);
-  return phibin;
-}
-
-unsigned int TowerInfoContainerv1::getTowerEtaBin(unsigned int key)
-{
-  unsigned int etabin = TowerInfoDefs::getCaloTowerEtaBin(key);
-  return etabin;
 }

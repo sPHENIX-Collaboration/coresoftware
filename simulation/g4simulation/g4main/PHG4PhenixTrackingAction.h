@@ -14,13 +14,16 @@ class PHG4TrackingAction;
 
 class PHG4PhenixTrackingAction : public G4UserTrackingAction
 {
-public:
-  PHG4PhenixTrackingAction( void ) : verbosity_(0) {}
+ public:
+  PHG4PhenixTrackingAction(void)
+    : verbosity_(0)
+  {
+  }
 
   ~PHG4PhenixTrackingAction() override;
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
-  void AddAction( PHG4TrackingAction* action ) { actions_.push_back( action ); }
+  void AddAction(PHG4TrackingAction* action) { actions_.push_back(action); }
 
   void PreUserTrackingAction(const G4Track*) override;
 
@@ -30,13 +33,11 @@ public:
   void Verbosity(int val) { verbosity_ = val; }
   int Verbosity() const { return verbosity_; }
 
-private:
-
+ private:
   //! list of subsystem specific Event actions
   typedef std::list<PHG4TrackingAction*> ActionList;
   ActionList actions_;
   int verbosity_;
 };
-
 
 #endif

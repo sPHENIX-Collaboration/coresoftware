@@ -43,24 +43,24 @@ class JetEvaluator : public SubsysReco
   std::string _recojetname;
   std::string _truthjetname;
 
-  unsigned long _ievent;
+  unsigned long _ievent = 0;
 
-  JetEvalStack *_jetevalstack;
+  JetEvalStack *_jetevalstack = nullptr;
 
   //----------------------------------
   // evaluator output ntuples
 
-  bool _strict;
+  bool _strict = false;
 
-  bool _do_recojet_eval;
-  bool _do_truthjet_eval;
+  bool _do_recojet_eval = true;
+  bool _do_truthjet_eval = true;
 
-  TNtuple *_ntp_recojet;
-  TNtuple *_ntp_truthjet;
+  TNtuple *_ntp_recojet = nullptr;
+  TNtuple *_ntp_truthjet = nullptr;
 
   // evaluator output file
   std::string _filename;
-  TFile *_tfile;
+  TFile *_tfile = nullptr;
 
   // subroutines
   void printInputInfo(PHCompositeNode *topNode);     ///< print out the input object information (debugging upstream components)

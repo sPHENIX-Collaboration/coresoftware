@@ -62,23 +62,9 @@ P6DExtDecayerPhysics::P6DExtDecayerPhysics(const G4String& name)
   /// Standard constructor
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-P6DExtDecayerPhysics::~P6DExtDecayerPhysics()
-{
-  /// Destructor
-}
-
 //
 // protected methods
 //
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void P6DExtDecayerPhysics::ConstructParticle()
-{
-  /// Nothing to be done here
-}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

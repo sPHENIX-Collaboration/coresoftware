@@ -2,15 +2,7 @@
 
 #include <iostream>
 
-RunToTime *RunToTime::__instance = 0;
-
-RunToTime::RunToTime()
-{
-}
-
-RunToTime::~RunToTime()
-{
-}
+RunToTime *RunToTime::__instance = nullptr;
 
 RunToTime *RunToTime::instance()
 {

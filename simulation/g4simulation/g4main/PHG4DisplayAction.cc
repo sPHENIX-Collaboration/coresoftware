@@ -3,6 +3,7 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VPhysicalVolume.hh>
 
+// NOLINTNEXTLINE(misc-no-recursion)
 int PHG4DisplayAction::FindVolumes(G4VPhysicalVolume* physvol)
 {
   int iret = 0;
@@ -22,7 +23,7 @@ int PHG4DisplayAction::FindVolumes(G4VPhysicalVolume* physvol)
     for (int i = 0; i < nDaughters; ++i)
     {
       G4VPhysicalVolume* daughtervol = logvol->GetDaughter(i);
-      //G4LogicalVolume* logicdaughter = daughtervol->GetLogicalVolume();
+      // G4LogicalVolume* logicdaughter = daughtervol->GetLogicalVolume();
 
       if (FindVolumes(daughtervol))
       {

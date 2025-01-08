@@ -10,9 +10,9 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <iostream>          // for cout, ostream
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 class CMFlashDifference;
 
@@ -22,10 +22,9 @@ class CMFlashDifference;
 class CMFlashDifferenceContainer : public PHObject
 {
  public:
-
   //!@name convenient shortuts
   //@{
-  using Map = std::map<unsigned int, CMFlashDifference *>;
+  using Map = std::map<unsigned int, CMFlashDifference*>;
   using Iterator = Map::iterator;
   using ConstIterator = Map::const_iterator;
   using Range = std::pair<Iterator, Iterator>;
@@ -36,14 +35,14 @@ class CMFlashDifferenceContainer : public PHObject
   void Reset() override {}
 
   //! identify object
-  void identify(std::ostream &/*os*/ = std::cout) const override {}
+  void identify(std::ostream& /*os*/ = std::cout) const override {}
 
   //! add a differences with specific key
-  virtual void addDifferenceSpecifyKey(const unsigned int, CMFlashDifference* ) = 0;
+  virtual void addDifferenceSpecifyKey(const unsigned int, CMFlashDifference*) = 0;
 
   //! remove differences
   virtual void removeDifference(unsigned int) {}
-  
+
   //! return all differences
   virtual ConstRange getDifferences() const = 0;
 
@@ -53,14 +52,12 @@ class CMFlashDifferenceContainer : public PHObject
   //! total number of differences
   virtual unsigned int size() const { return 0; }
 
-  protected:
+ protected:
   //! constructor
   CMFlashDifferenceContainer() = default;
 
-  private:
-
+ private:
   ClassDefOverride(CMFlashDifferenceContainer, 1)
-
 };
 
-#endif //TRACKBASE_CMFLASHDIFFERENCECONTAINER_H
+#endif  // TRACKBASE_CMFLASHDIFFERENCECONTAINER_H

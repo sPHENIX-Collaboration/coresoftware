@@ -9,7 +9,6 @@
 
 #include <map>
 #include <string>   // for string
-#include <utility>  // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -33,7 +32,7 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 
   void Detector(const std::string &d) { detector = d; }
 
-  void set_adc_scale(const int &layer, const std::vector<double> &userrange);
+  void set_adc_scale(const int &layer, std::vector<double> userrange_copy);
 
  private:
   void CalculateLadderCellADCScale(PHCompositeNode *topNode);
@@ -54,10 +53,10 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
   std::map<int, float> _energy_scale;
 
   // storage
-  //SvtxHitMap *_hitmap;
+  // SvtxHitMap *_hitmap;
 
   const unsigned int nadcbins = 8;
-  std::map<int, std::vector<std::pair<double, double> > > _max_fphx_adc;
+  std::map<int, std::vector<double>> _max_fphx_adc;
 
   unsigned int m_nCells = 0;
   unsigned int m_nDeadCells = 0;

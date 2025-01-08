@@ -22,15 +22,14 @@
 
 #include "PHField.h"
 
-#include <boost/tuple/tuple.hpp>
-
 #include <map>
 #include <string>
+#include <tuple>
 #include <vector>
 
 class PHField3DCylindrical : public PHField
 {
-  typedef boost::tuple<float, float, float> trio;
+  typedef std::tuple<float, float, float> trio;
 
  public:
   PHField3DCylindrical(const std::string& filename, int verb = 0, const float magfield_rescale = 1.0);

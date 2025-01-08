@@ -9,7 +9,7 @@
  */
 
 #include <fun4all/Fun4AllInputManager.h>
-#include <fun4all/Fun4AllReturnCodes.h> 
+#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>  // for PHCompositeNode
 #include <phool/PHNodeIOManager.h>  // for PHNodeIOManager
@@ -25,7 +25,7 @@ class SyncObject;
 /*!
  * dedicated input manager that merges single events into "merged" events, containing a trigger event
  * and a number of time-shifted pile-up events corresponding to a given pile-up rate
-*/
+ */
 class Fun4AllSingleDstPileupInputManager : public Fun4AllInputManager
 {
  public:
@@ -39,17 +39,21 @@ class Fun4AllSingleDstPileupInputManager : public Fun4AllInputManager
   int PushBackEvents(const int i) override;
 
   // Effectivly turn off the synchronization checking (copy from Fun4AllNoSyncDstInputManager)
-  int SyncIt(const SyncObject* /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_OK; }
-  int GetSyncObject(SyncObject** /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
+  int SyncIt(const SyncObject * /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_OK; }
+  int GetSyncObject(SyncObject ** /*mastersync*/) override { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
   int NoSyncPushBackEvents(const int nevt) override { return PushBackEvents(nevt); }
 
   /// collision rate in Hz
   void setCollisionRate(double Hz)
-  { m_collision_rate = Hz; }
+  {
+    m_collision_rate = Hz;
+  }
 
   /// time between bunch crossing in ns
   void setTimeBetweenCrossings(double nsec)
-  { m_time_between_crossings = nsec; }
+  {
+    m_time_between_crossings = nsec;
+  }
 
   //! set time window for pileup events (ns)
   void setPileupTimeWindow(double tmin, double tmax)
@@ -59,7 +63,6 @@ class Fun4AllSingleDstPileupInputManager : public Fun4AllInputManager
   }
 
  private:
-
   //!@name event counters
   //@{
   bool m_ReadRunTTree = true;
@@ -109,12 +112,11 @@ class Fun4AllSingleDstPileupInputManager : public Fun4AllInputManager
   //! random generator
   class Deleter
   {
-    public:
-    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+   public:
+    void operator()(gsl_rng *rng) const { gsl_rng_free(rng); }
   };
 
   std::unique_ptr<gsl_rng, Deleter> m_rng;
-
 };
 
 #endif /* __Fun4AllSingleDstPileupInputManager_H__ */

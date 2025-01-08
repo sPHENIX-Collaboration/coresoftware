@@ -4,15 +4,14 @@
 
 #include "PHField.h"
 
-#include <boost/tuple/tuple.hpp>
-
 #include <map>
 #include <string>
+#include <tuple>
 #include <vector>
 
 class PHField2D : public PHField
 {
-  typedef boost::tuple<float, float> trio;
+  typedef std::tuple<float, float> trio;
 
  public:
   PHField2D(const std::string &filename, const int verb = 0, const float magfield_rescale = 1.0);

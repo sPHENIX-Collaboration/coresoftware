@@ -21,7 +21,7 @@ enum flowAfterburnerAlgorithm
 
 int flowAfterburner(HepMC::GenEvent *inEvent,
                     CLHEP::HepRandomEngine *engine,
-                    std::string algorithmName,
+                    const std::string &algorithmName,
                     float mineta, float maxeta,
                     float minpt, float maxpt);
 

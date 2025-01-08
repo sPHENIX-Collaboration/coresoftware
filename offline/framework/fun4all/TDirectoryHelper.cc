@@ -85,6 +85,7 @@ void TDirectoryHelper::copyToFile(TDirectory* src, TFile* dest)
 }
 
 //_____________________________________________________________________________
+// NOLINTNEXTLINE(misc-no-recursion)
 void TDirectoryHelper::duplicateDir(TDirectory* dest, TDirectory* source)
 {
   dest->cd();
@@ -126,7 +127,7 @@ bool TDirectoryHelper::mkpath(TDirectory* dir, const std::string& pathin)
 
   TDirectory* currentdir = dir;
 
-  for (auto & path : paths)
+  for (auto& path : paths)
   {
     currentdir->cd();
 

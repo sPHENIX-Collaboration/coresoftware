@@ -13,8 +13,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <TVector3.h>
 #include <TString.h>
+#include <TVector3.h>
 
 #include <iostream>  // for operator<<, endl, basi...
 
@@ -24,10 +24,18 @@ namespace
 {
   // unique detector id for all direct lasers
   static const int detId = PHG4HitDefs::get_volume_id("PHG4TpcCentralMembrane");
-  
-  template<class T> inline constexpr T square( const T& x ) { return x*x; }
-  
-  template<class T> inline T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
+
+  template <class T>
+  inline constexpr T square(const T& x)
+  {
+    return x * x;
+  }
+
+  template <class T>
+  inline T get_r(const T& x, const T& y)
+  {
+    return std::sqrt(square(x) + square(y));
+  }
 
 }  // namespace
 
@@ -49,13 +57,13 @@ PHG4TpcCentralMembrane::PHG4TpcCentralMembrane(const std::string& name)
       str_width_R1_e[i][j] = 1.0 * mm;
       str_width_R1[i][j] = 1.0 * mm;
     }
-    for (int i = 0; i < nStripes_R2; i++)
+    for (auto& i : str_width_R2)
     {
-      str_width_R2[i][j] = 1.0 * mm;
+      i[j] = 1.0 * mm;
     }
-    for (int i = 0; i < nStripes_R3; i++)
+    for (auto& i : str_width_R3)
     {
-      str_width_R3[i][j] = 1.0 * mm;
+      i[j] = 1.0 * mm;
     }
   }
 
@@ -84,7 +92,7 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
 
   std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_stripe: " << electrons_per_stripe << std::endl;
   std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
-  
+
   // reset g4hits
   for (auto&& hit : PHG4Hits)
   {
@@ -99,7 +107,8 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
    * - adjust hit time and z,
    * - insert in container
    */
-  auto adjust_hits = [&](PHG4Hit* source) {
+  auto adjust_hits = [&](PHG4Hit* source)
+  {
     // adjust time to account for central membrane delay
     source->set_t(0, m_centralMembraneDelay);
     source->set_t(1, m_centralMembraneDelay);
@@ -150,17 +159,19 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
   }
 
   m_eventNum = 0;
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________
 int PHG4TpcCentralMembrane::process_event(PHCompositeNode* topNode)
 {
-  
-  if(m_eventNum % m_eventModulo != 0)
+  if (m_eventNum % m_eventModulo != 0)
   {
-    if(Verbosity()) std::cout << "Event " << m_eventNum << " will not generate CM hits" << std::endl;
+    if (Verbosity())
+    {
+      std::cout << "Event " << m_eventNum << " will not generate CM hits" << std::endl;
+    }
     m_eventNum++;
     return Fun4AllReturnCodes::EVENT_OK;
   }
@@ -232,13 +243,13 @@ void PHG4TpcCentralMembrane::CalculateVertices(
   const int pr_mult = 3;                 // multiples of intrinsic resolution of pads
   const int dw_mult = 8;                 // multiples of diffusion width
   const double diffwidth = 0.6 * mm;     // diffusion width
-  const double adjust = 0.015;           //arbitrary angle to center the pattern in a petal
+  const double adjust = 0.015;           // arbitrary angle to center the pattern in a petal
 
   double theta = 0.0;
-  //center coords
+  // center coords
   double cx[nStripes][nRadii];
   double cy[nStripes][nRadii];
-  //corner coords
+  // corner coords
   /* double tempX1a[nStripes][nRadii], tempY1a[nStripes][nRadii];
   double tempX1b[nStripes][nRadii], tempY1b[nStripes][nRadii];
   double tempX2a[nStripes][nRadii], tempY2a[nStripes][nRadii];
@@ -248,13 +259,13 @@ void PHG4TpcCentralMembrane::CalculateVertices(
   double rotatedX2a[nStripes][nRadii], rotatedY2a[nStripes][nRadii];
   double rotatedX2b[nStripes][nRadii], rotatedY2b[nStripes][nRadii]; */
 
-  //calculate spacing first:
+  // calculate spacing first:
   for (int i = 0; i < nRadii; i++)
   {
     spacing[i] = 2.0 * ((dw_mult * diffwidth / R[i]) + (pr_mult * phi_module / nPads));
   }
 
-  //vertex calculation
+  // vertex calculation
   for (int j = 0; j < nRadii; j++)
   {
     int i_out = 0;
@@ -304,7 +315,7 @@ void PHG4TpcCentralMembrane::CalculateVertices(
       y2a[i_out][j] = cy[i_out][j] + str_width/2;
       x2b[i_out][j] = cx[i_out][j] + padfrac - arc_r;
       y2b[i_out][j] = cy[i_out][j] + str_width/2;
-      
+
       tempX1a[i_out][j] = x1a[i_out][j] - cx[i_out][j];
       tempY1a[i_out][j] = y1a[i_out][j] - cy[i_out][j];
       tempX1b[i_out][j] = x1b[i_out][j] - cx[i_out][j];
@@ -372,22 +383,26 @@ int PHG4TpcCentralMembrane::SearchModule(int /*nStripes*/,
     for (int i = 0; i < nGoodStripes[j]; i++)
     {
       if (((y1a[i][j] > y) != (y2a[i][j] > y) && (x < (x2a[i][j] - x1a[i][j]) * (y - y1a[i][j]) / (y2a[i][j] - y1a[i][j]) + x1a[i][j])))
+      {
         c = !c;
+      }
       if (((y1b[i][j] > y) != (y1a[i][j] > y) && (x < (x1a[i][j] - x1b[i][j]) * (y - y1b[i][j]) / (y1a[i][j] - y1b[i][j]) + x1b[i][j])))
+      {
         c = !c;
+      }
       if (((y2b[i][j] > y) != (y1b[i][j] > y) && (x < (x1b[i][j] - x2b[i][j]) * (y - y2b[i][j]) / (y1b[i][j] - y2b[i][j]) + x2b[i][j])))
+      {
         c = !c;
+      }
       if (((y2a[i][j] > y) != (y2b[i][j] > y) && (x < (x2b[i][j] - x2a[i][j]) * (y - y2a[i][j]) / (y2b[i][j] - y2a[i][j]) + x2a[i][j])))
+      {
         c = !c;
+      }
 
-      //check inside arcs
+      // check inside arcs
       if (c == 0)
       {
-        if (((x - x3a[i][j]) * (x - x3a[i][j]) + (y - y3a[i][j]) * (y - y3a[i][j])) <= arc_r * arc_r)
-        {
-          c = !c;
-        }
-        else if (((x - x3b[i][j]) * (x - x3b[i][j]) + (y - y3b[i][j]) * (y - y3b[i][j])) <= arc_r * arc_r)
+        if (((x - x3a[i][j]) * (x - x3a[i][j]) + (y - y3a[i][j]) * (y - y3a[i][j])) <= arc_r * arc_r || ((x - x3b[i][j]) * (x - x3b[i][j]) + (y - y3b[i][j]) * (y - y3b[i][j])) <= arc_r * arc_r)
         {
           c = !c;
         }
@@ -444,19 +459,19 @@ int PHG4TpcCentralMembrane::getSearchResult(double xcheck, double ycheck) const
 }
 
 PHG4Hit* PHG4TpcCentralMembrane::GetPHG4HitFromStripe(int petalID, int moduleID, int radiusID, int stripeID, int nElectrons) const
-{                                       //this function generates a PHG4 hit using coordinates from a stripe
+{                                       // this function generates a PHG4 hit using coordinates from a stripe
   const double phi_petal = M_PI / 9.0;  // angle span of one petal
   PHG4Hit* hit;
   TVector3 dummyPos0, dummyPos1;
 
-  //could put in some sanity checks here but probably not necessary since this is only really used within the class
-  //petalID ranges 0-17, module ID 0-3, stripeID varies - nGoodStripes for each module
-  //radiusID ranges 0-7
+  // could put in some sanity checks here but probably not necessary since this is only really used within the class
+  // petalID ranges 0-17, module ID 0-3, stripeID varies - nGoodStripes for each module
+  // radiusID ranges 0-7
 
-  //from phg4tpcsteppingaction.cc
+  // from phg4tpcsteppingaction.cc
   hit = new PHG4Hitv1();
   hit->set_layer(-1);  // dummy number
-  //here we set the entrance values in cm
+  // here we set the entrance values in cm
   if (moduleID == 0)
   {
     hit->set_x(0, x3a_R1_e[stripeID][radiusID] / cm);
@@ -496,7 +511,7 @@ PHG4Hit* PHG4TpcCentralMembrane::GetPHG4HitFromStripe(int petalID, int moduleID,
   // time in ns
   hit->set_t(0, 0);
 
-  //set and save the track ID
+  // set and save the track ID
   hit->set_trkid(-1);  // dummy number
 
   // here we just update the exit values, it will be overwritten
@@ -550,22 +565,22 @@ PHG4Hit* PHG4TpcCentralMembrane::GetPHG4HitFromStripe(int petalID, int moduleID,
     double rin = sqrt(hit->get_x(0) * hit->get_x(0) + hit->get_y(0) * hit->get_y(0));
     double rout = sqrt(hit->get_x(1) * hit->get_x(1) + hit->get_y(1) * hit->get_y(1));
     std::cout << "Added Tpc g4hit with rin, rout = " << rin << "  " << rout
-	 << " g4hitid " << hit->get_hit_id() << std::endl;
+         << " g4hitid " << hit->get_hit_id() << std::endl;
     std::cout << " xin " << hit->get_x(0)
-	 << " yin " << hit->get_y(0)
-	 << " zin " << hit->get_z(0)
-	 << " rin " << rin
-	 << std::endl;
+         << " yin " << hit->get_y(0)
+         << " zin " << hit->get_z(0)
+         << " rin " << rin
+         << std::endl;
     std::cout << " xout " << hit->get_x(1)
-	 << " yout " << hit->get_y(1)
-	 << " zout " << hit->get_z(1)
-	 << " rout " << rout
-	 << std::endl;
+         << " yout " << hit->get_y(1)
+         << " zout " << hit->get_z(1)
+         << " rout " << rout
+         << std::endl;
     std::cout << " xav " << (hit->get_x(1) + hit->get_x(0)) / 2.0
-	 << " yav " << (hit->get_y(1) + hit->get_y(0)) / 2.0
-	 << " zav " << (hit->get_z(1) + hit->get_z(0)) / 2.0
-	 << " rav " << (rout + rin) / 2.0
-	 << std::endl;
+         << " yav " << (hit->get_y(1) + hit->get_y(0)) / 2.0
+         << " zav " << (hit->get_z(1) + hit->get_z(0)) / 2.0
+         << " rav " << (rout + rin) / 2.0
+         << std::endl;
   }
   */
 
@@ -574,11 +589,11 @@ PHG4Hit* PHG4TpcCentralMembrane::GetPHG4HitFromStripe(int petalID, int moduleID,
 
 int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
 {
-  //check if point came from stripe then see which stripe it is
-  //213 stripes in a petal, 18 petals, ntotstripes = 3834
+  // check if point came from stripe then see which stripe it is
+  // 213 stripes in a petal, 18 petals, ntotstripes = 3834
   int result;
   int fullID = -1;
-  //const double adjust = 0.015; //arbitrary angle to center the pattern in a petal
+  // const double adjust = 0.015; //arbitrary angle to center the pattern in a petal
   const double phi_petal = M_PI / 9.0;  // angle span of one petal
 
   // check if in a stripe
@@ -587,8 +602,8 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
   // find which stripe
   if (result == 1)
   {
-    //std::cout << "on a stripe" << std::endl;
-    //convert coords to radius n angle
+    // std::cout << "on a stripe" << std::endl;
+    // convert coords to radius n angle
     double r = sqrt(xcheck * xcheck + ycheck * ycheck);
     double phi = atan(ycheck / xcheck);
     if ((xcheck < 0.0) && (ycheck > 0.0))
@@ -599,7 +614,7 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
     {
       phi = phi + 2.0 * M_PI;
     }
-    //get angle within first petal
+    // get angle within first petal
     double phimod = fmod(phi, phi_petal);
     double xmod = r * cos(phimod);
     double ymod = r * sin(phimod);
@@ -616,12 +631,12 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
         //'angle' is to the center of a stripe
         for (int i = 0; i < nGoodStripes_R1_e[j]; i++)
         {
-          //if (j % 2 == 0){
-          //theta = i*spacing[j];
-          //angle = theta + (spacing[j]/2) - adjust;
-          // look at distance from center line of stripe
-          // if distance from x,y to center line < str_width
-          // calculate slope n then do dist
+          // if (j % 2 == 0){
+          // theta = i*spacing[j];
+          // angle = theta + (spacing[j]/2) - adjust;
+          //  look at distance from center line of stripe
+          //  if distance from x,y to center line < str_width
+          //  calculate slope n then do dist
 
           double m = (y3b_R1_e[i][j] - y3a_R1_e[i][j]) / (x3b_R1_e[i][j] - x3a_R1_e[i][j]);
           /*std::cout << "y2: " << y3b_R1_e[i][j] << std::endl;
@@ -630,24 +645,24 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
     std::cout << "x1: " << x3a_R1_e[i][j] << std::endl;
     std::cout << "xc: " << xcheck << std::endl;
     std::cout << "yc: " << ycheck << std::endl;
-	  std::cout << "m: " << m << std::endl;  */
-          //std::cout << fabs((-m)*xcheck + ycheck) << std::endl;
+          std::cout << "m: " << m << std::endl;  */
+          // std::cout << fabs((-m)*xcheck + ycheck) << std::endl;
           double dist = fabs((-m) * xmod + ymod) / sqrt(1 + m * m);
-          //std::cout << "dist:" << dist << std::endl;
+          // std::cout << "dist:" << dist << std::endl;
           if (dist < ((widthmod_R1_e[j] * str_width_R1_e[i][j]) / 2.0))
           {
             phiID = i;
-            //std::cout << "phiID: " << phiID << std::endl;
+            // std::cout << "phiID: " << phiID << std::endl;
           }
         }
 
         std::cout << "nStripesBefore: " << nStripesBefore_R1_e[j] << std::endl;
         fullID = petalID * nStripesPerPetal + nStripesBefore_R1_e[j] + phiID;
-        //std::cout << "fullID: " << fullID << std::endl;
+        // std::cout << "fullID: " << fullID << std::endl;
       }
       else if (((R1[j] - padfrac_R1) < r) && (r < (R1[j] + padfrac_R1)))
       {
-        //std::cout << "R1" << std::endl;
+        // std::cout << "R1" << std::endl;
         for (int i = 0; i < nGoodStripes_R1[j]; i++)
         {
           // look at distance from center line of stripe
@@ -663,7 +678,7 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
       }
       else if (((R2[j] - padfrac_R2) < r) && (r < (R2[j] + padfrac_R2)))
       {
-        //std::cout << "R2" << std::endl;
+        // std::cout << "R2" << std::endl;
         for (int i = 0; i < nGoodStripes_R2[j]; i++)
         {
           // look at distance from center line of stripe
@@ -679,7 +694,7 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
       }
       else if (((R3[j] - padfrac_R3) < r) && (r < (R3[j] + padfrac_R3)))
       {
-        //std::cout << "R3" << std::endl;
+        // std::cout << "R3" << std::endl;
         for (int i = 0; i < nGoodStripes_R3[j]; i++)
         {
           // look at distance from center line of stripe

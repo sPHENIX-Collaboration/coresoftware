@@ -15,8 +15,8 @@
 PgPostBankWrapperManager&
 PgPostBankWrapperManager::instance()
 {
-  static PgPostBankWrapperManager instance__;
-  return instance__;
+  static PgPostBankWrapperManager instance_;
+  return instance_;
 }
 
 //_____________________________________________________________________________

@@ -16,14 +16,14 @@ class PHCompositeNode;
  *  from this base class and you have to implement this class methods.
  *  None of these are strictly required as far as C++ is concerned, but as
  *  far as your job is concerned, at least process_event(), to do the
- *  job, and InitRun(), to initialize, should be implemented.  
- *  
+ *  job, and InitRun(), to initialize, should be implemented.
+ *
  */
 
 class SubsysReco : public Fun4AllBase
 {
  public:
-  /** dtor. 
+  /** dtor.
       Does nothing as this is a base class only.
   */
   ~SubsysReco() override {}

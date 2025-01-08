@@ -149,13 +149,13 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
       m_Hit = new PHG4Hitv1();
     }
     m_Hit->set_layer(magnet_id);
-    //here we set the entrance values in cm
+    // here we set the entrance values in cm
     m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
     m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
     m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
     // time in ns
     m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
-    //set the track ID
+    // set the track ID
     m_Hit->set_trkid(aTrack->GetTrackID());
     m_SaveTrackId = aTrack->GetTrackID();
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -165,7 +165,7 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
         m_Hit->set_trkid(pp->GetUserTrackId());
       }
     }
-    //set the initial energy deposit
+    // set the initial energy deposit
     m_EdepSum = 0;
     if (whichactive > 0)
     {
@@ -226,7 +226,7 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
   // here we just update the exit values, it will be overwritten
   // for every step until we leave the volume or the particle
   // ceases to exist
-  //sum up the energy to get total deposited
+  // sum up the energy to get total deposited
   m_EdepSum += edep;
   // if any of these conditions is true this is the last step in
   // this volume and we need to save the hit

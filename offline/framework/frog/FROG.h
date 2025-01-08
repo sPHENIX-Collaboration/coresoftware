@@ -29,8 +29,12 @@ class FROG
  private:
   bool GetConnection();
   void Disconnect();
-  odbc::Connection *m_OdbcConnection = nullptr;
-  int m_Verbosity = 0;
+  static const int m_MAX_NUM_RETRIES {3000};
+  static const int m_MIN_SLEEP_DUR {5000}; // milliseconds
+  static const int m_MAX_SLEEP_DUR {30000}; // milliseconds
+
+  odbc::Connection *m_OdbcConnection {nullptr};
+  int m_Verbosity {0};
   std::string pfn;
 };
 

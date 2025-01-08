@@ -7,14 +7,12 @@
 #ifndef TRACKRECO_PHTRUTHVERTEXING_H
 #define TRACKRECO_PHTRUTHVERTEXING_H
 
+#include "PHInitVertexing.h"
 
-// rootcint barfs with this header so we need to hide it
 #include <gsl/gsl_rng.h>
 
 #include <string>             // for string
 #include <vector>
-
-#include "PHInitVertexing.h"
 
 // forward declarations
 class PHCompositeNode;

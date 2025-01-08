@@ -4,16 +4,12 @@
 
 #include <TClonesArray.h>
 
-#include <cmath>
-#include <ostream>           // for basic_ostream::operator<<, operator<<, endl
-
-using namespace std;
+#include <limits>
+#include <ostream>  // for basic_ostream::operator<<, operator<<, endl
 
 static const int NMAX = 1000;
 
 G4RootRawTowerContainer::G4RootRawTowerContainer()
-  : etotal(NAN)
-  , event(0)
 {
   SnglG4RootRawTowers = new TClonesArray("G4RootRawTower", NMAX);
 }
@@ -26,7 +22,7 @@ G4RootRawTowerContainer::~G4RootRawTowerContainer()
 
 void G4RootRawTowerContainer::Reset()
 {
-  etotal = NAN;
+  etotal = std::numeric_limits<float>::quiet_NaN();
   event = 0;
   SnglG4RootRawTowers->Clear();
   if (SnglG4RootRawTowers->GetSize() > NMAX)
@@ -49,8 +45,8 @@ G4RootRawTowerContainer::AddG4RootRawTower(const G4RootRawTower &g4tower)
   return (static_cast<G4RootRawTower *>(cl[nextindex]));
 }
 
-void G4RootRawTowerContainer::identify(ostream &os) const
+void G4RootRawTowerContainer::identify(std::ostream &os) const
 {
-  os << "Number of G4RootRawTowers: " << SnglG4RootRawTowers->GetLast() << endl;
+  os << "Number of G4RootRawTowers: " << SnglG4RootRawTowers->GetLast() << std::endl;
   return;
 }

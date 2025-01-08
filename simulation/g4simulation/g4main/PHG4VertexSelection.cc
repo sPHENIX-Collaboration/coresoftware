@@ -25,7 +25,7 @@ PHG4VertexSelection::PHG4VertexSelection(const std::string &name)
 }
 
 //____________________________________________________________________________
-int PHG4VertexSelection::InitRun(PHCompositeNode */*topNode*/)
+int PHG4VertexSelection::InitRun(PHCompositeNode * /*topNode*/)
 {
   UpdateParametersWithMacro();
 
@@ -50,7 +50,10 @@ int PHG4VertexSelection::process_event(PHCompositeNode *topNode)
   // main vertex
   const auto main_vertex_id = g4truthinfo->GetPrimaryVertexIndex();
   const auto vertex = g4truthinfo->GetPrimaryVtx(main_vertex_id);
-  if (!vertex) return false;
+  if (!vertex)
+  {
+    return false;
+  }
 
   // check vertex position along the beam
   return (m_vertex_zcut > 0 && std::abs(vertex->get_z()) > m_vertex_zcut) ? Fun4AllReturnCodes::DISCARDEVENT : Fun4AllReturnCodes::EVENT_OK;

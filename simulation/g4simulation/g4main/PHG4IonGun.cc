@@ -46,7 +46,7 @@ int PHG4IonGun::process_event(PHCompositeNode *topNode)
   ReuseExistingVertex(topNode);  // checks if we should reuse existing vertex
   int vtxindex = ineve->AddVtx(get_vtx_x(), get_vtx_y(), get_vtx_z(), get_t0());
   //   G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon(Z, A, excitEnergy);
-  //G4PrimaryParticle* g4part = new G4PrimaryParticle(ion);
+  // G4PrimaryParticle* g4part = new G4PrimaryParticle(ion);
   //   cout << "name: " << ion->GetParticleName() << ", pdgcode: " << ion->GetPDGEncoding() << endl;
   PHG4Particle *particle = new PHG4Particlev3(ion);
   SetParticleId(particle, ineve);
@@ -69,7 +69,7 @@ void PHG4IonGun::UpdateParticle()
   return;
 }
 
-void PHG4IonGun::Print(const string &/*what*/) const
+void PHG4IonGun::Print(const string & /*what*/) const
 {
   cout << "PHG4IonGun, using ions of" << endl;
   cout << "A: " << A << ", Z: " << Z << ", charge: " << ioncharge

@@ -6,52 +6,34 @@ AM_CPPFLAGS = \
   -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libg4bbc_io.la \
-   libg4bbc.la
+   libg4mbd_io.la \
+   libg4mbd.la
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libg4bbc_io_la_LIBADD = \
+libg4mbd_io_la_LIBADD = \
   -lphool
 
-libg4bbc_la_LIBADD = \
-  libg4bbc_io.la \
-  -lbbc_io \
+libg4mbd_la_LIBADD = \
+  libg4mbd_io.la \
+  -lmbd_io \
   -lg4detectors \
-  -lSubsysReco
+  -lSubsysReco \
+  -lglobalvertex_io
 
 pkginclude_HEADERS = \
-  BbcVertex.h \
-  BbcVertexv1.h \
-  BbcVertexMap.h \
-  BbcVertexMapv1.h \
-  BbcSimReco.h \
-  BbcVertexFastSimReco.h
+  MbdDigitization.h \
+  MbdVertexFastSimReco.h
 
-ROOTDICTS = \
-  BbcVertex_Dict.cc \
-  BbcVertexv1_Dict.cc \
-  BbcVertexMap_Dict.cc \
-  BbcVertexMapv1_Dict.cc
 
-pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  BbcVertex_Dict_rdict.pcm \
-  BbcVertexv1_Dict_rdict.pcm \
-  BbcVertexMap_Dict_rdict.pcm \
-  BbcVertexMapv1_Dict_rdict.pcm
+libg4mbd_io_la_SOURCES = \
+  $(ROOTDICTS)
 
-libg4bbc_io_la_SOURCES = \
-  $(ROOTDICTS) \
-  BbcVertexv1.cc \
-  BbcVertexMap.cc \
-  BbcVertexMapv1.cc
-
-libg4bbc_la_SOURCES = \
-  BbcSimReco.cc \
-  BbcVertexFastSimReco.cc
+libg4mbd_la_SOURCES = \
+  MbdDigitization.cc \
+  MbdVertexFastSimReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -64,16 +46,16 @@ libg4bbc_la_SOURCES = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternalsg4bbc_io \
-  testexternalsg4bbc
+  testexternalsg4mbd_io \
+  testexternalsg4mbd
 
 BUILT_SOURCES = testexternals.cc
 
-testexternalsg4bbc_io_SOURCES = testexternals.cc
-testexternalsg4bbc_io_LDADD = libg4bbc_io.la
+testexternalsg4mbd_io_SOURCES = testexternals.cc
+testexternalsg4mbd_io_LDADD = libg4mbd_io.la
 
-testexternalsg4bbc_SOURCES = testexternals.cc
-testexternalsg4bbc_LDADD = libg4bbc_io.la
+testexternalsg4mbd_SOURCES = testexternals.cc
+testexternalsg4mbd_LDADD = libg4mbd_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

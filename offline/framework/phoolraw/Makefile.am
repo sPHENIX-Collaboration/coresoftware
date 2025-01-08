@@ -6,8 +6,8 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I`root-config --incdir`
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem`root-config --incdir`
 
 AM_LDFLAGS = \
   -L$(libdir) \

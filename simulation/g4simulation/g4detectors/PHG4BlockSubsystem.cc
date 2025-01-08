@@ -25,16 +25,11 @@
 class PHG4BlockGeom;
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4BlockSubsystem::PHG4BlockSubsystem(const std::string &name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
 {
-  m_ColorArray.fill(NAN);
+  m_ColorArray.fill({std::numeric_limits<double>::quiet_NaN()});
   InitializeParameters();
 }
 
@@ -52,10 +47,10 @@ int PHG4BlockSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
   // create display settings before detector (detector adds its volumes to it)
   PHG4BlockDisplayAction *disp_action = new PHG4BlockDisplayAction(Name(), GetParams());
-  if (isfinite(m_ColorArray[0]) &&
-      isfinite(m_ColorArray[1]) &&
-      isfinite(m_ColorArray[2]) &&
-      isfinite(m_ColorArray[3]))
+  if (std::isfinite(m_ColorArray[0]) &&
+      std::isfinite(m_ColorArray[1]) &&
+      std::isfinite(m_ColorArray[2]) &&
+      std::isfinite(m_ColorArray[3]))
   {
     disp_action->SetColor(m_ColorArray[0], m_ColorArray[1], m_ColorArray[2], m_ColorArray[3]);
   }
@@ -66,8 +61,8 @@ int PHG4BlockSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->OverlapCheck(CheckOverlap());
   if (GetParams()->get_int_param("active"))
   {
-    ostringstream nodename;
-    ostringstream geonode;
+    std::ostringstream nodename;
+    std::ostringstream geonode;
     if (SuperDetector() != "NONE")
     {
       nodename << "G4HIT_" << SuperDetector();
@@ -144,7 +139,7 @@ void PHG4BlockSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("steplimits", NAN);
+  set_default_double_param("steplimits", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("size_x", 10.);
   set_default_double_param("size_y", 10.);
   set_default_double_param("size_z", 10.);

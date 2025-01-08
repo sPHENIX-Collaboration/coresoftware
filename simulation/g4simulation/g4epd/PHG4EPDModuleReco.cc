@@ -1,10 +1,8 @@
 #include "PHG4EPDModuleReco.h"
 
-#include <calobase/TowerInfoDefs.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
-
 #include <calobase/TowerInfoDefs.h>
 
 #include <epd/EPDDefs.h>
@@ -53,26 +51,37 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
   CreateNodes(topNode);
   PHNodeIterator node_itr(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(node_itr.findFirst("PHCompositeNode", "RUN"));
-  if (!runNode) {
+  if (!runNode)
+  {
     std::cout << PHWHERE << "RUN Node not found - that is fatal" << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
-  EpdGeom *epdGeom = findNode::getClass<EpdGeom>(topNode,"TOWERGEOM_EPD");
-  if (!epdGeom) {
+
+  PHNodeIterator runiter(runNode);
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", m_Detector));
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(m_Detector);
+    runNode->addNode(DetNode);
+  }
+
+  EpdGeom *epdGeom = findNode::getClass<EpdGeom>(topNode, "TOWERGEOM_EPD");
+  if (!epdGeom)
+  {
     epdGeom = new EpdGeomV1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(epdGeom, "TOWERGEOM_EPD", "PHObject");
-    runNode->addNode(newNode);
+    DetNode->addNode(newNode);
   }
- 
-  //fill epd geometry
+
+  // fill epd geometry
   unsigned int epdchannels = 744;
   for (unsigned int ch = 0; ch < epdchannels; ch++)
   {
     unsigned int thiskey = TowerInfoDefs::encode_epd(ch);
     epdGeom->set_z(thiskey, GetTileZ(TowerInfoDefs::get_epd_arm(thiskey)));
     epdGeom->set_r(thiskey, GetTileR(TowerInfoDefs::get_epd_rbin(thiskey)));
-    if(TowerInfoDefs::get_epd_rbin(thiskey) == 0)
+    if (TowerInfoDefs::get_epd_rbin(thiskey) == 0)
     {
       epdGeom->set_phi0(thiskey, GetTilePhi0(TowerInfoDefs::get_epd_phibin(thiskey)));
     }
@@ -81,7 +90,7 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
       epdGeom->set_phi(thiskey, GetTilePhi(TowerInfoDefs::get_epd_phibin(thiskey)));
     }
   }
-    
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -143,12 +152,13 @@ int PHG4EPDModuleReco::process_event(PHCompositeNode *topNode)
       {
         unsigned int globalphi = Getphimap(j) + 2 * i;
         unsigned int r = Getrmap(j);
-	if (r == 0)
-	  {
-	    globalphi = i;
-	  }
-
-        unsigned int key = TowerInfoDefs::encode_epd(k,r,globalphi);
+        
+        if (r == 0)
+        {
+          globalphi = i;
+        }
+        
+        unsigned int key = TowerInfoDefs::encode_epd(k, r, globalphi);
         unsigned int ch = m_TowerInfoContainer->decode_key(key);
         m_TowerInfoContainer->get_tower_at_channel(ch)->set_energy(m_EpdTile_e[k][i][j]);
         m_TowerInfoContainer_calib->get_tower_at_channel(ch)->set_energy(m_EpdTile_Calib_e[k][i][j]);
@@ -190,15 +200,15 @@ int PHG4EPDModuleReco::Getphimap(int phiindex)
 
 float PHG4EPDModuleReco::GetTilePhi(int thisphi)
 {
-  static const float tilephi[24] = {0.13089969, 0.39269908, 0.65449847, 0.91629786, 1.17809725,1.43989663, 1.70169602, 1.96349541, 2.2252948 , 2.48709418, 2.74889357, 3.01069296, 3.27249235, 3.53429174, 3.79609112, 4.05789051, 4.3196899 , 4.58148929, 4.84328867, 5.10508806, 5.36688745, 5.62868684, 5.89048623, 6.15228561};
+  static const float tilephi[24] = {0.13089969, 0.39269908, 0.65449847, 0.91629786, 1.17809725, 1.43989663, 1.70169602, 1.96349541, 2.2252948, 2.48709418, 2.74889357, 3.01069296, 3.27249235, 3.53429174, 3.79609112, 4.05789051, 4.3196899, 4.58148929, 4.84328867, 5.10508806, 5.36688745, 5.62868684, 5.89048623, 6.15228561};
   return tilephi[thisphi];
-} 
+}
 
 float PHG4EPDModuleReco::GetTilePhi0(int thisphi0)
 {
   static const float tilephi0[12] = {0.26179939, 0.78539816, 1.30899694, 1.83259571, 2.35619449, 2.87979327, 3.40339204, 3.92699082, 4.45058959, 4.97418837, 5.49778714, 6.02138592};
   return tilephi0[thisphi0];
-} 
+}
 
 float PHG4EPDModuleReco::GetTileR(int thisr)
 {
@@ -231,7 +241,7 @@ void PHG4EPDModuleReco::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(DetNode);
   }
 
-  m_TowerInfoNodeName = "TOWERINFO_" + m_EPDSimTowerNodePrefix + "_" + m_Detector; // detector name and prefix are set by now
+  m_TowerInfoNodeName = "TOWERINFO_" + m_EPDSimTowerNodePrefix + "_" + m_Detector;  // detector name and prefix are set by now
   TowerInfoContainer *m_TowerInfoContainer = findNode::getClass<TowerInfoContainer>(DetNode, m_TowerInfoNodeName);
   if (m_TowerInfoContainer == nullptr)
   {
@@ -240,7 +250,7 @@ void PHG4EPDModuleReco::CreateNodes(PHCompositeNode *topNode)
     DetNode->addNode(TowerInfoNode);
   }
 
-  m_TowerInfoNodeName_calib = "TOWERINFO_" + m_EPDCalibTowerNodePrefix + "_" + m_Detector; // detector name and prefix are set by now
+  m_TowerInfoNodeName_calib = "TOWERINFO_" + m_EPDCalibTowerNodePrefix + "_" + m_Detector;  // detector name and prefix are set by now
   TowerInfoContainer *m_TowerInfoContainer_calib = findNode::getClass<TowerInfoContainer>(DetNode, m_TowerInfoNodeName_calib);
   if (m_TowerInfoContainer_calib == nullptr)
   {

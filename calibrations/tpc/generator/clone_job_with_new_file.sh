@@ -12,12 +12,14 @@
 #specify what parts of the sample to replace:
 sample_job=condor_run_testfile.job
 sample_job_sourcefile=/sphenix/user/shulga/Work/IBF/DistortionMap/Files/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX10556072.root
-sample_job_outfile=/sphenix/user/rcorliss/distortion_maps/2022.01/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX10556072
+sample_job_outfile=Summary_hist_mdc2_UseFieldMaps_AA_event_0_bX10556072
+sample_job_outdir=/sphenix/user/rcorliss/distortion_maps/2022.01
 sample_job_crossing=10556072
 
 #specify what to replace them with (FFFFF means 'full source path'.  NNNNN means 'bxing number')
 this_job_sourcefile=FFFFF
-this_job_outfile=/sphenix/user/rcorliss/distortion_maps/2023.02/Summary_hist_mdc2_UseFieldMaps_AA_event_0_bXNNNNN
+this_job_outfile=Summary_hist_mdc2_UseFieldMaps_AA_event_0_bXNNNNN
+this_job_outdir=/sphenix/u/czhang4/distortion_maps/2023.02
 
 #get a list of the files:
 filelist=`ls /sphenix/user/shulga/Work/workfest2021_pull/coresoftware/calibrations/tpc/fillSpaceChargeMaps/Files/Summary_hist_mdc2_UseFieldMaps_AA_event_*`
@@ -37,6 +39,7 @@ do
     #filter the instances of the original filename with the new filename in the specific job
     sed -i "s|${sample_job_sourcefile}|${this_job_sourcefile}|g" $jobname
     sed -i "s|${sample_job_outfile}|${this_job_outfile}|g" $jobname
+    sed -i "s|${sample_job_outdir}|${this_job_outdir}|g" $jobname
     sed -i "s|${sample_job_crossing}|${crossing}|g" $jobname
     sed -i "s|FFFFF|${sourcefile}|g" $jobname
     sed -i "s|NNNNN|${crossing}|g" $jobname

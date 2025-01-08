@@ -11,13 +11,24 @@ libcalo_io_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libcalo_io_la_LIBADD = \
-  -lphool
-
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
+
+# List of shared libraries to produce
+if USE_ONLINE
+pkginclude_HEADERS = \
+  RawTowerDefs.h \
+  TowerInfoDefs.h
+
+libcalo_io_la_SOURCES = \
+  TowerInfoDefs.cc
+
+else
+
+libcalo_io_la_LIBADD = \
+  -lphool
 
 pkginclude_HEADERS = \
   RawClusterUtility.h \
@@ -43,8 +54,18 @@ pkginclude_HEADERS = \
   TowerInfoDefs.h \
   TowerInfo.h \
   TowerInfov1.h \
+  TowerInfov2.h \
+  TowerInfov3.h \
+  TowerInfov4.h \
+  TowerInfoSimv1.h \
+  TowerInfoSimv2.h \
   TowerInfoContainer.h \
-  TowerInfoContainerv1.h
+  TowerInfoContainerv1.h \
+  TowerInfoContainerv2.h \
+  TowerInfoContainerv3.h \
+  TowerInfoContainerv4.h \
+  TowerInfoContainerSimv1.h \
+  TowerInfoContainerSimv2.h
 
 ROOTDICTS = \
   RawCluster_Dict.cc \
@@ -66,8 +87,18 @@ ROOTDICTS = \
   RawTowerGeomContainer_Cylinderv1_Dict.cc \
   TowerInfo_Dict.cc \
   TowerInfov1_Dict.cc \
+  TowerInfov2_Dict.cc \
+  TowerInfov3_Dict.cc \
+  TowerInfov4_Dict.cc \
+  TowerInfoSimv1_Dict.cc \
+  TowerInfoSimv2_Dict.cc \
   TowerInfoContainer_Dict.cc \
-  TowerInfoContainerv1_Dict.cc
+  TowerInfoContainerv1_Dict.cc \
+  TowerInfoContainerv2_Dict.cc \
+  TowerInfoContainerv3_Dict.cc \
+  TowerInfoContainerv4_Dict.cc \
+  TowerInfoContainerSimv1_Dict.cc \
+  TowerInfoContainerSimv2_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -90,8 +121,18 @@ nobase_dist_pcm_DATA = \
   RawTowerGeomContainer_Cylinderv1_Dict_rdict.pcm \
   TowerInfo_Dict_rdict.pcm \
   TowerInfov1_Dict_rdict.pcm \
+  TowerInfov2_Dict_rdict.pcm \
+  TowerInfov3_Dict_rdict.pcm \
+  TowerInfov4_Dict_rdict.pcm \
+  TowerInfoSimv1_Dict_rdict.pcm \
+  TowerInfoSimv2_Dict_rdict.pcm \
   TowerInfoContainer_Dict_rdict.pcm \
-  TowerInfoContainerv1_Dict_rdict.pcm
+  TowerInfoContainerv1_Dict_rdict.pcm \
+  TowerInfoContainerv2_Dict_rdict.pcm \
+  TowerInfoContainerv3_Dict_rdict.pcm \
+  TowerInfoContainerv4_Dict_rdict.pcm \
+  TowerInfoContainerSimv1_Dict_rdict.pcm \
+  TowerInfoContainerSimv2_Dict_rdict.pcm
 
 libcalo_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -113,8 +154,20 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomContainerv1.cc \
   RawTowerGeomContainer_Cylinderv1.cc \
   TowerInfov1.cc \
+  TowerInfov2.cc \
+  TowerInfov3.cc \
+  TowerInfov4.cc \
+  TowerInfoSimv1.cc \
+  TowerInfoSimv2.cc \
   TowerInfoDefs.cc \
-  TowerInfoContainerv1.cc
+  TowerInfoContainer.cc \
+  TowerInfoContainerv1.cc \
+  TowerInfoContainerv2.cc \
+  TowerInfoContainerv3.cc \
+  TowerInfoContainerv4.cc \
+  TowerInfoContainerSimv1.cc \
+  TowerInfoContainerSimv2.cc
+endif
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

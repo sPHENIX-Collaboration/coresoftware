@@ -1,16 +1,19 @@
 #include "TrkrNtuplizer.h"
 
-#include <g4eval/SvtxTrackEval.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterv4.h>
-#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrackFitUtils.h>
 
+#include <trackbase_historic/TrackSeedContainer_v1.h>
+
+#include <micromegas/MicromegasDefs.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
 
 #include <trackbase/TrkrClusterContainer.h>
@@ -18,15 +21,20 @@
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrHitSet.h>
 
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/TrackAnalysisUtils.h>
 #include <trackbase_historic/TrackSeed.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <trackermillepedealignment/HelicalFitter.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -52,38 +60,204 @@
 
 using namespace std;
 
+enum n_event
+{
+  evnev,
+  evnseed,
+  evnrun,
+  evnseg,
+  evnjob,
+  evsize = evnjob + 1,
+};
+
+enum n_info
+{
+  infonocc11,
+  infonocc116,
+  infonocc21,
+  infonocc216,
+  infonocc31,
+  infonocc316,
+  infontrk,
+  infonhitmvtx,
+  infonhitintt,
+  infonhittpot,
+  infonhittpcall,
+  infonhittpcin,
+  infonhittpcmid,
+  infonhittpcout,
+  infonclusall,
+  infonclustpc,
+  infonclustpcpos,
+  infonclustpcneg,
+  infonclusintt,
+  infonclusmvtx,
+  infonclustpot,
+  infosize = infonclustpot + 1
+};
+
+enum n_vertex
+{
+  vtxnvertexID,
+  vtxnvx,
+  vtxnvy,
+  vtxnvz,
+  vtxnntracks,
+  vtxnchi2,
+  vtxnndof,
+  vtxsize = vtxnndof + 1
+};
+
+enum n_hit
+{
+  nhitID,
+  nhite,
+  nhitadc,
+  nhitlayer,
+  nhitphielem,
+  nhitzelem,
+  nhitcellID,
+  nhitecell,
+  nhitphibin,
+  nhittbin,
+  nhitphi,
+  nhitr,
+  nhitx,
+  nhity,
+  nhitz,
+  hitsize = nhitz + 1
+};
+
+enum n_seed
+{
+  nseedtrackID,
+  nseedniter,
+  nseedpt,
+  nseedeta,
+  nseedphi,
+  nseedsyxint,
+  nseedsrzint,
+  nseedsxyslope,
+  nseedsrzslope,
+  nseedX0,
+  nseedY0,
+  nseedZ0,
+  nseedR0,
+  nseedcharge,
+  nseeddedx,
+  nseedn1pix,
+  nseednhits,
+  seedsize = nseednhits + 1
+};
+
+enum n_residual
+{
+  nresalpha,
+  nresbeta,
+  nresphio,
+  nresphi,
+  nresz,
+  ressize = nresz + 1
+};
+
+enum n_track
+{
+  ntrktrackID,
+  ntrkcrossing,
+  ntrkpx,
+  ntrkpy,
+  ntrkpz,
+  ntrkpt,
+  ntrketa,
+  ntrkphi,
+  ntrkdeltapt,
+  ntrkdeltaeta,
+  ntrkdeltaphi,
+  ntrkcharge,
+  ntrkquality,
+  ntrkchisq,
+  ntrkndf,
+  ntrknhits,
+  ntrknmaps,
+  ntrknintt,
+  ntrkntpc,
+  ntrknmms,
+  ntrkntpc1,
+  ntrkntpc11,
+  ntrkntpc2,
+  ntrkntpc3,
+  ntrkndedx,
+  ntrkvertexID,
+  ntrkvx,
+  ntrkvy,
+  ntrkvz,
+  ntrkdca2d,
+  ntrkdca2dsigma,
+  ntrkdca3dxy,
+  ntrkdca3dxysigma,
+  ntrkdca3dz,
+  ntrkdca3dzsigma,
+  ntrkpcax,
+  ntrkpcay,
+  ntrkpcaz,
+  ntrkhlxpt,
+  ntrkhlxeta,
+  ntrkhlxphi,
+  ntrkhlxX0,
+  ntrkhlxY0,
+  ntrkhlxZ0,
+  ntrkhlxcharge,
+  trksize = ntrkhlxcharge + 1
+};
+
+enum n_cluster
+{
+  nclulocx,
+  nclulocy,
+  nclux,
+  ncluy,
+  ncluz,
+  nclur,
+  ncluphi,
+  nclueta,
+  nclutheta,
+  ncluphibin,
+  nclutbin,
+  ncluex,
+  ncluey,
+  ncluez,
+  ncluephi,
+  nclupez,
+  nclupephi,
+  nclue,
+  ncluadc,
+  nclumaxadc,
+  nclulayer,
+  ncluphielem,
+  ncluzelem,
+  nclusize,
+  ncluphisize,
+  ncluzsize,
+  nclupedge,
+  ncluredge,
+  ncluovlp,
+  nclutrackID,
+  ncluniter,
+  clusize = ncluniter + 1
+};
+
 TrkrNtuplizer::TrkrNtuplizer(const string& /*name*/, const string& filename, const string& trackmapname,
                              unsigned int nlayers_maps,
                              unsigned int nlayers_intt,
                              unsigned int nlayers_tpc,
                              unsigned int nlayers_mms)
   : SubsysReco("TrkrNtuplizer")
-  , _ievent(0)
-  , _iseed(0)
-  , m_fSeed(NAN)
-  , _do_info_eval(true)
-  , _do_vertex_eval(true)
-  , _do_hit_eval(true)
-  , _do_cluster_eval(true)
-  , _do_track_eval(true)
-  , _do_tpcseed_eval(false)
-  , _do_siseed_eval(false)
   , _nlayers_maps(nlayers_maps)
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
   , _nlayers_mms(nlayers_mms)
-  , _ntp_info(nullptr)
-  , _ntp_vertex(nullptr)
-  , _ntp_hit(nullptr)
-  , _ntp_cluster(nullptr)
-  , _ntp_track(nullptr)
-  , _ntp_tpcseed(nullptr)
-  , _ntp_siseed(nullptr)
   , _filename(filename)
   , _trackmapname(trackmapname)
-  , _tfile(nullptr)
-  , _timer(nullptr)
-  , _TrackEval(nullptr)
 {
 }
 
@@ -98,77 +272,67 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
 
   _tfile = new TFile(_filename.c_str(), "RECREATE");
   _tfile->SetCompressionLevel(7);
+  string str_vertex = {"vertexID:vx:vy:vz:ntracks:chi2:ndof"};
+  string str_event = {"event:seed:run:seg:job"};
+  string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:tbin:phi:r:x:y:z"};
+  string str_cluster = {"locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:pedge:redge:ovlp:trackID:niter"};
+  string str_seed = {"seedID:siter:spt:seta:sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0:scharge:sdedx:sn1pix:snhits"};
+  string str_residual = {"alpha:beta:resphio:resphi:resz"};
+  string str_track = {"trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:dedx:nlmaps:nlintt:nltpc:nlmms:layers:vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:hlxpt:hlxeta:hlxphi:hlxX0:hlxY0:hlxZ0:hlxcharge"};
+  string str_info = {"occ11:occ116:occ21:occ216:occ31:occ316:ntrk:nhitmvtx:nhitintt:nhittpot:nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclustpcpos:nclustpcneg:nclusintt:nclusmaps:nclusmms"};
+
   if (_do_info_eval)
   {
-    _ntp_info = new TNtuple("ntp_info", "event info",
-                            "event:seed:"
-                            "occ11:occ116:occ21:occ216:occ31:occ316:"
-                            "ntrk:"
-                            "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+    string ntp_varlist_info = str_event + ":" + str_info;
+    _ntp_info = new TNtuple("ntp_info", "event info", ntp_varlist_info.c_str());
   }
 
   if (_do_vertex_eval)
   {
-    _ntp_vertex = new TNtuple("ntp_vertex", "vertex => max truth",
-                              "event:seed:vertexID:vx:vy:vz:ntracks:chi2:ndof:"
-                              "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+    string ntp_varlist_vtx = str_event + ":" + str_vertex + ":" + str_info;
+    _ntp_vertex = new TNtuple("ntp_vertex", "vertex => max truth", ntp_varlist_vtx.c_str());
   }
 
   if (_do_hit_eval)
   {
-    _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth",
-                           "event:seed:hitID:e:adc:layer:phielem:zelem:"
-                           "cellID:ecell:phibin:tbin:phi:z:"
-                           "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+    string ntp_varlist_ev = str_event + ":" + str_hit + ":" + str_info;
+    _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth", ntp_varlist_ev.c_str());
   }
 
   if (_do_cluster_eval)
   {
-    _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth",
-                               "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:pez:pephi:"
-                               "e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:"
-                               "trackID:niter:"
-                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+    string ntp_varlist_clu = str_event + ":" + str_cluster + ":" + str_info;
+    _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth", ntp_varlist_clu.c_str());
+  }
+  if (_do_clus_trk_eval)
+  {
+    string ntp_varlist_clut = str_event + ":" + str_cluster + ":" + str_residual + ":" + str_seed + ":" + str_info;
+    _ntp_clus_trk = new TNtuple("ntp_clus_trk", "cluster on track", ntp_varlist_clut.c_str());
   }
 
   if (_do_track_eval)
   {
-    _ntp_track = new TNtuple("ntp_track", "svtxtrack => max truth",
-                             "event:seed:trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:"
-                             "quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:"
-                             "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
-                             "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+    string ntp_varlist_trk = str_event + ":" + str_track + ":" + str_info;
+    _ntp_track = new TNtuple("ntp_track", "svtxtrack => max truth", ntp_varlist_trk.c_str());
   }
 
   if (_do_tpcseed_eval)
   {
-    _ntp_tpcseed = new TNtuple("ntp_tpcseed", "seeds from truth",
-                               "event:seed:ntrk:gx:gy:gz:gr:geta:gphi:"
-                               "glayer:"
-                               "gpx:gpy:gpz:gtpt:gtphi:gteta:"
-                               "gvx:gvy:gvz:"
-                               "gembed:gprimary:gflav:"
-                               "dphiprev:detaprev:"
-                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+    string ntp_varlist_tsee = str_event + ":" + str_seed + ":" + str_info;
+    _ntp_tpcseed = new TNtuple("ntp_tpcseed", "seeds from truth", ntp_varlist_tsee.c_str());
   }
   if (_do_siseed_eval)
   {
-    _ntp_tpcseed = new TNtuple("ntp_siseed", "seeds from truth",
-                               "event:seed:ntrk:gx:gy:gz:gr:geta:gphi:"
-                               "glayer:"
-                               "gpx:gpy:gpz:gtpt:gtphi:gteta:"
-                               "gvx:gvy:gvz:"
-                               "gembed:gprimary:gflav:"
-                               "dphiprev:detaprev:"
-                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
+    string ntp_varlist_ssee = str_event + ":" + str_seed + ":" + str_info;
+    _ntp_siseed = new TNtuple("ntp_siseed", "seeds from truth", ntp_varlist_ssee.c_str());
   }
   _timer = new PHTimer("_eval_timer");
   _timer->stop();
-
+  /**/
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TrkrNtuplizer::InitRun(PHCompositeNode* /*topNode*/)
+int TrkrNtuplizer::InitRun(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -189,21 +353,39 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
   else
   {
     _iseed = 0;
-    m_fSeed = NAN;
+    m_fSeed = std::numeric_limits<float>::quiet_NaN();
+  }
+  if (_trackmap == nullptr)
+  {
+    _trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+  }
+
+  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+  if (!_cluster_map)
+  {
+    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  }
+
+  _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if (!_tgeometry)
+  {
+    std::cout << "No Acts geometry on node tree. Can't  continue."
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  {
+    if (!_geom_container)
+    {
+      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   if (Verbosity() > 1)
   {
     cout << "TrkrNtuplizer::process_event - Seed = " << _iseed << endl;
-  }
-  if (!_TrackEval)
-  {
-    _TrackEval = new SvtxTrackEval(topNode);
-    _TrackEval->next_event(topNode);
-  }
-  else
-  {
-    _TrackEval->next_event(topNode);
   }
   //-----------------------------------
   // print what is coming into the code
@@ -246,6 +428,10 @@ int TrkrNtuplizer::End(PHCompositeNode* /*topNode*/)
   if (_ntp_cluster)
   {
     _ntp_cluster->Write();
+  }
+  if (_ntp_clus_trk)
+  {
+    _ntp_clus_trk->Write();
   }
   if (_ntp_track)
   {
@@ -290,22 +476,17 @@ void TrkrNtuplizer::printInputInfo(PHCompositeNode* topNode)
     cout << endl;
 
     cout << "---SVTXCLUSTERS-------------" << endl;
-    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-    if (!clustermap)
-    {
-      clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    }
 
-    if (clustermap != nullptr)
+    if (_cluster_map != nullptr)
     {
       unsigned int icluster = 0;
-      for (const auto& hitsetkey : clustermap->getHitSetKeys())
+      for (const auto& hitsetkey : _cluster_map->getHitSetKeys())
       {
-        auto range = clustermap->getClusters(hitsetkey);
+        auto range = _cluster_map->getClusters(hitsetkey);
         for (auto iter = range.first; iter != range.second; ++iter)
         {
           TrkrDefs::cluskey cluster_key = iter->first;
-          cout << icluster << " with key " << cluster_key << " of " << clustermap->size();
+          cout << icluster << " with key " << cluster_key << " of " << _cluster_map->size();
           cout << ": SvtxCluster: " << endl;
           iter->second->identify();
           ++icluster;
@@ -314,16 +495,14 @@ void TrkrNtuplizer::printInputInfo(PHCompositeNode* topNode)
     }
 
     cout << "---SVXTRACKS-------------" << endl;
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-    if (trackmap)
+
+    if (_trackmap)
     {
       unsigned int itrack = 0;
-      for (SvtxTrackMap::Iter iter = trackmap->begin();
-           iter != trackmap->end();
-           ++iter)
+      for (auto& iter : *_trackmap)
       {
-        cout << itrack << " of " << trackmap->size();
-        SvtxTrack* track = iter->second;
+        cout << itrack << " of " << _trackmap->size();
+        SvtxTrack* track = iter.second;
         cout << " : SvtxTrack:" << endl;
         track->identify();
         cout << endl;
@@ -372,9 +551,9 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
     cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
     cout << endl;
 
-    float vx = NAN;
-    float vy = NAN;
-    float vz = NAN;
+    float vx = std::numeric_limits<float>::quiet_NaN();
+    float vy = std::numeric_limits<float>::quiet_NaN();
+    float vz = std::numeric_limits<float>::quiet_NaN();
 
     SvtxVertexMap* vertexmap = nullptr;
 
@@ -400,18 +579,12 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
 
     TrkrHitSetContainer* hitsetmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
 
-    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-    if (!clustermap)
-    {
-      clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    }
-
     unsigned int nclusters[100] = {0};
     unsigned int nhits[100] = {0};
 
-    ActsGeometry* tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
-    if (!tgeometry)
+    if (!_tgeometry)
     {
       std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue."
                 << std::endl;
@@ -435,30 +608,18 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
         {
           ++nhits[layer];
         }
-        auto range = clustermap->getClusters(hitsetiter->first);
+        auto range = _cluster_map->getClusters(hitsetiter->first);
         for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
         {
           const auto cluskey = clusIter->first;
-          //	    const auto cluster = clusIter->second;
-          //	    unsigned int layer = TrkrDefs::getLayer(cluskey);
           nclusters[TrkrDefs::getLayer(cluskey)]++;
         }
       }
     }
 
-    PHG4TpcCylinderGeomContainer* geom_container =
-        findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-    {
-      if (!geom_container)
-      {
-        std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
-      }
-      return;
-    }
-
     for (unsigned int ilayer = 0; ilayer < _nlayers_maps + _nlayers_intt + _nlayers_tpc; ++ilayer)
     {
-      PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(ilayer);
+      PHG4TpcCylinderGeom* GeoLayer = _geom_container->GetLayerCellGeom(ilayer);
 
       cout << "layer " << ilayer
            << " => nHits = " << nhits[ilayer]
@@ -473,12 +634,10 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
       }
     }
 
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-
     cout << " => nTracks = ";
-    if (trackmap)
+    if (_trackmap)
     {
-      cout << trackmap->size() << endl;
+      cout << _trackmap->size() << endl;
     }
     else
     {
@@ -499,31 +658,14 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     cout << "TrkrNtuplizer::fillOutputNtuples() entered" << endl;
   }
 
-  ActsGeometry* tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if (!tgeometry)
-  {
-    std::cout << "No Acts geometry on node tree. Can't  continue."
-              << std::endl;
-    return;
-  }
+  float fx_event[n_event::evsize]{(float) _ievent, (float) _iseed, (float) m_runnumber,(float) m_segment, (float) m_job};
+  float fx_info[((int) (n_info::infosize))] = {0};
 
-  float nhit_tpc_all = 0;
-  float nhit_tpc_in = 0;
-  float nhit_tpc_mid = 0;
-  float nhit_tpc_out = 0;
-  float nclus_all = 0;
-  float nclus_tpc = 0;
-  float nclus_intt = 0;
-  float nclus_maps = 0;
-  float nclus_mms = 0;
   float nhit[100];
-  for (float& i : nhit) i = 0;
-  float occ11 = 0;
-  float occ116 = 0;
-  float occ21 = 0;
-  float occ216 = 0;
-  float occ31 = 0;
-  float occ316 = 0;
+  for (float& i : nhit)
+  {
+    i = 0;
+  }
 
   TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (hitmap_in)
@@ -535,134 +677,143 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       // we have a single hitset, get the layer
       unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
-      if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+
+      TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
+      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+           hitr != hitrangei.second;
+           ++hitr)
       {
-        // count all hits in this hitset
-        TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
-        for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-             hitr != hitrangei.second;
-             ++hitr)
+        nhit[layer]++;
+
+        if (layer < _nlayers_maps)
         {
-          nhit[layer]++;
-          nhit_tpc_all++;
-          if ((float) layer == _nlayers_maps + _nlayers_intt)
-          {
-            nhit_tpc_in++;
-          }
-          if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1)
-          {
-            nhit_tpc_out++;
-          }
-          if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
-          {
-            nhit_tpc_mid++;
-          }
+          fx_info[n_info::infonhitmvtx]++;
+        }
+        if (layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+        {
+          fx_info[n_info::infonhitintt]++;
+        }
+        if ((float) layer >= _nlayers_maps + _nlayers_intt &&
+            (float) layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+        {
+          fx_info[n_info::infonhittpcall]++;
+        }
+        if ((float) layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+        {
+          fx_info[n_info::infonhittpot]++;
+        }
+        if ((float) layer == _nlayers_maps + _nlayers_intt)
+        {
+          fx_info[n_info::infonhittpcin]++;
+        }
+        if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1)
+        {
+          fx_info[n_info::infonhittpcout]++;
+        }
+        // NOLINTNEXTLINE(bugprone-integer-division)
+        if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
+        {
+          fx_info[n_info::infonhittpcmid]++;
         }
       }
     }
   }
-  /**********/
-  PHG4TpcCylinderGeomContainer* geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!geom_container)
+
+  _geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!_geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return;
   }
   PHG4TpcCylinderGeom* GeoLayer;
   int layer = _nlayers_maps + _nlayers_intt;
-  GeoLayer = geom_container->GetLayerCellGeom(layer);
+  GeoLayer = _geom_container->GetLayerCellGeom(layer);
   int nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
   float nhits = nhit[layer];
-  occ11 = nhits / nbins;
-  if (Verbosity() > 1)
-  {
-    cout << " occ11 = " << occ11
-         << " nbins = " << nbins
-         << " nhits = " << nhits
-         << " layer = " << layer
-         << endl;
-  }
+  fx_info[n_info::infonocc11] = nhits / nbins;
+
   layer = _nlayers_maps + _nlayers_intt + 15;
-  GeoLayer = geom_container->GetLayerCellGeom(layer);
+  GeoLayer = _geom_container->GetLayerCellGeom(layer);
   nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
   nhits = nhit[layer];
-  occ116 = nhits / nbins;
+  fx_info[n_info::infonocc116] = nhits / nbins;
 
   layer = _nlayers_maps + _nlayers_intt + 16;
-  GeoLayer = geom_container->GetLayerCellGeom(layer);
+  GeoLayer = _geom_container->GetLayerCellGeom(layer);
   nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
   nhits = nhit[layer];
-  occ21 = nhits / nbins;
+  fx_info[n_info::infonocc21] = nhits / nbins;
   layer = _nlayers_maps + _nlayers_intt + 31;
-  GeoLayer = geom_container->GetLayerCellGeom(layer);
+  GeoLayer = _geom_container->GetLayerCellGeom(layer);
   nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
   nhits = nhit[layer];
-  occ216 = nhits / nbins;
+  fx_info[n_info::infonocc216] = nhits / nbins;
   layer = _nlayers_maps + _nlayers_intt + 32;
-  GeoLayer = geom_container->GetLayerCellGeom(layer);
+  GeoLayer = _geom_container->GetLayerCellGeom(layer);
   nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
   nhits = nhit[layer];
-  occ31 = nhits / nbins;
+  fx_info[n_info::infonocc31] = nhits / nbins;
   layer = _nlayers_maps + _nlayers_intt + 47;
-  GeoLayer = geom_container->GetLayerCellGeom(layer);
+  GeoLayer = _geom_container->GetLayerCellGeom(layer);
   nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
   nhits = nhit[layer];
-  occ316 = nhits / nbins;
+  fx_info[n_info::infonocc316] = nhits / nbins;
 
   if (Verbosity() > 1)
   {
-    cout << " occ11 = " << occ11
-         << " occ116 = " << occ116
-         << " occ21 = " << occ21
-         << " occ216 = " << occ216
-         << " occ31 = " << occ31
-         << " occ316 = " << occ316
+    cout << " occ11 = " << fx_info[n_info::infonocc11]
+         << " occ116 = " << fx_info[n_info::infonocc116]
+         << " occ21 = " << fx_info[n_info::infonocc21]
+         << " occ216 = " << fx_info[n_info::infonocc216]
+         << " occ31 = " << fx_info[n_info::infonocc31]
+         << " occ316 = " << fx_info[n_info::infonocc316]
          << endl;
   }
-  TrkrClusterContainer* clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-  if (!clustermap_in)
-  {
-    clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  }
 
-  if (clustermap_in)
+  if (_cluster_map)
   {
-    nclus_all = clustermap_in->size();
+    fx_info[n_info::infonclusall] = _cluster_map->size();
 
-    for (const auto& hitsetkey : clustermap_in->getHitSetKeys())
+    for (const auto& hitsetkey : _cluster_map->getHitSetKeys())
     {
-      auto range = clustermap_in->getClusters(hitsetkey);
+      auto range = _cluster_map->getClusters(hitsetkey);
       for (auto iter_cin = range.first; iter_cin != range.second; ++iter_cin)
       {
         TrkrDefs::cluskey cluster_key = iter_cin->first;
         unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+        unsigned int side_local = TpcDefs::getSide(cluster_key);
         if (_nlayers_maps > 0)
         {
           if (layer_local < _nlayers_maps)
           {
-            nclus_maps++;
+            fx_info[n_info::infonclusmvtx]++;
           }
         }
         if (_nlayers_intt > 0)
         {
-          if (layer_local >= _nlayers_maps && layer_local < _nlayers_maps + _nlayers_intt)
+          if ((layer_local >= _nlayers_maps) && (layer_local < (_nlayers_maps + _nlayers_intt)))
           {
-            nclus_intt++;
+            fx_info[n_info::infonclusintt]++;
           }
         }
         if (_nlayers_tpc > 0)
         {
-          if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          if (layer_local >= (_nlayers_maps + _nlayers_intt) && layer_local < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
           {
-            nclus_tpc++;
+            fx_info[n_info::infonclustpc]++;
+	    if(side_local==0){
+	      fx_info[n_info::infonclustpcneg]++;
+	    }
+	    if(side_local==1){
+	      fx_info[n_info::infonclustpcpos]++;
+	    }
           }
         }
         if (_nlayers_mms > 0)
         {
-          if (layer_local >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          if (layer_local >= (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
           {
-            nclus_mms++;
+            fx_info[n_info::infonclustpot]++;
           }
         }
       }
@@ -677,27 +828,36 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       cout << "Filling ntp_info " << endl;
     }
-    float ntrk = 0;
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-    if (trackmap)
+
+    if (_trackmap)
     {
-      ntrk = (float) trackmap->size();
+      fx_info[n_info::infontrk] = (float) _trackmap->size();
     }
     if (Verbosity() > 0)
     {
       cout << "EVENTINFO SEED: " << m_fSeed << endl;
-      cout << "EVENTINFO NHIT: " << setprecision(9) << nhit_tpc_all << endl;
-      cout << "EVENTINFO NTRKREC: " << ntrk << endl;
+      cout << "EVENTINFO NHIT: " << setprecision(9) << fx_info[n_info::infonclusall] << endl;
+      cout << "EVENTINFO CLUSTPC: " << fx_info[n_info::infonclustpc] << endl;
+      cout << "EVENTINFO NTRKREC: " << fx_info[n_info::infontrk] << endl;
     }
+
+    float* info_data = new float[((int) (n_info::infosize)) + n_event::evsize];
+    std::copy(fx_event, fx_event + n_event::evsize, info_data);
+    std::copy(fx_info, fx_info + ((int) (n_info::infosize)), info_data + n_event::evsize);
+    /*
     float info_data[] = {(float) _ievent, m_fSeed,
                          occ11, occ116, occ21, occ216, occ31, occ316,
                          ntrk,
+                         nhit_maps,
+                         nhit_intt,
+                         nhit_mms,
                          nhit_tpc_all,
                          nhit_tpc_in,
                          nhit_tpc_mid,
                          nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
-
+    */
     _ntp_info->Fill(info_data);
+    //    delete info_data;
   }
 
   //-----------------------
@@ -712,42 +872,46 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       cout << "start vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
       _timer->restart();
     }
+    float fx_vertex[n_vertex::vtxsize];
+    for (float& i : fx_vertex)
+    {
+      i = 0;
+    }
 
     //    SvtxVertexMap* vertexmap = nullptr;
 
     //    vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
 
-    float vx = NAN;
-    float vy = NAN;
-    float vz = NAN;
-    float ntracks = NAN;
-
+    float vx = std::numeric_limits<float>::quiet_NaN();
+    float vy = std::numeric_limits<float>::quiet_NaN();
+    float vz = std::numeric_limits<float>::quiet_NaN();
+    float ntracks = std::numeric_limits<float>::quiet_NaN();
+    fx_vertex[vtxnvx] = vx;
+    fx_vertex[vtxnvy] = vy;
+    fx_vertex[vtxnvz] = vz;
+    fx_vertex[vtxnntracks] = ntracks;
     if (Verbosity() > 1)
     {
       std::cout << " adding vertex data " << std::endl;
     }
-
-    float vertex_data[] = {(float) _ievent, m_fSeed,
-                           vx,
-                           vy,
-                           vz,
-                           ntracks,
-                           nhit_tpc_all,
-                           nhit_tpc_in,
-                           nhit_tpc_mid,
-                           nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
-
+    float* vertex_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_vertex::vtxsize];
+    std::copy(fx_event, fx_event + n_event::evsize, vertex_data);
+    std::copy(fx_vertex, fx_vertex + n_vertex::vtxsize, vertex_data + n_event::evsize);
+    std::copy(fx_info, fx_info + ((int) (n_info::infosize)), vertex_data + n_event::evsize + n_vertex::vtxsize);
     _ntp_vertex->Fill(vertex_data);
   }
-  _timer->stop();
-  cout << "vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
-
+  if (Verbosity() > 1)
+  {
+    _timer->stop();
+    cout << "vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+  }
   //--------------------
   // fill the Hit NTuple
   //--------------------
 
   if (_ntp_hit)
   {
+    float fx_hit[n_hit::hitsize] = {0};
     auto m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
     if (Verbosity() >= 1)
@@ -757,13 +921,6 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     }
     // need things off of the DST...
     TrkrHitSetContainer* hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    PHG4TpcCylinderGeomContainer* geom_container_local =
-        findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-    if (!geom_container_local)
-    {
-      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
-      return;
-    }
 
     if (hitmap)
     {
@@ -783,61 +940,69 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         {
           TrkrDefs::hitkey hit_key = hitr->first;
           TrkrHit* hit = hitr->second;
-          float event = _ievent;
-          float hitID = hit_key;
-          float e = hit->getEnergy();
-          float adc = hit->getAdc();
-          float layer_local = TrkrDefs::getLayer(hitset_key);
-          float sector = TpcDefs::getSectorId(hitset_key);
-          float side = TpcDefs::getSide(hitset_key);
-          float cellID = 0;
-          float ecell = hit->getAdc();
 
-          float phibin = NAN;
-          float tbin = NAN;
-          float phi = NAN;
-          float z = NAN;
+          fx_hit[n_hit::nhitID] = hit_key;
+          fx_hit[n_hit::nhite] = hit->getEnergy();
+          fx_hit[n_hit::nhitadc] = hit->getAdc();
+          unsigned int layer_local = TrkrDefs::getLayer(hitset_key);
+          fx_hit[n_hit::nhitlayer] = (float) layer_local;
+          fx_hit[n_hit::nhitphielem] = -666;
+          fx_hit[n_hit::nhitzelem] = -666;
+
+          if (layer_local >= 3 && layer_local < 7)
+          {
+            fx_hit[n_hit::nhitphielem] = InttDefs::getLadderPhiId(hitset_key);
+            fx_hit[n_hit::nhitzelem] = InttDefs::getLadderZId(hitset_key);
+          }
+          if (layer_local >= 7 && layer_local < 55)
+          {
+            fx_hit[n_hit::nhitphielem] = TpcDefs::getSectorId(hitset_key);
+            fx_hit[n_hit::nhitzelem] = TpcDefs::getSide(hitset_key);
+          }
+          /*
+          if(layer_local>=55){
+            if(MicromegasDefs::getSegmentationType(hitset_key)==MicromegasDefs::SEGMENTATION_Z){
+              sector = 1;
+              side = MicromegasDefs::getStrip(hit_key);
+            }else{
+              sector =MicromegasDefs::getStrip(hit_key);
+              side =  1;
+            }
+          }
+          */
+          fx_hit[n_hit::nhitphielem] = TpcDefs::getSectorId(hitset_key);
+          fx_hit[n_hit::nhitzelem] = TpcDefs::getSide(hitset_key);
+          fx_hit[n_hit::nhitcellID] = 0;
+          fx_hit[n_hit::nhitecell] = hit->getAdc();
+          fx_hit[n_hit::nhitphibin] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhittbin] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhitphi] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhitr] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhitx] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhity] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhitz] = std::numeric_limits<float>::quiet_NaN();
 
           if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
           {
-            PHG4TpcCylinderGeom* GeoLayer_local = geom_container_local->GetLayerCellGeom(layer_local);
-            phibin = (float) TpcDefs::getPad(hit_key);
-            tbin = (float) TpcDefs::getTBin(hit_key);
-            phi = GeoLayer_local->get_phicenter(phibin);
-
-            double zdriftlength = tbin * m_tGeometry->get_drift_velocity() * AdcClockPeriod;
-            // convert z drift length to z position in the TPC
-            //		cout << " tbin: " << tbin << " vdrift " <<m_tGeometry->get_drift_velocity() << " l drift: " << zdriftlength  <<endl;
-            unsigned short NTBins = (unsigned short) GeoLayer_local->get_zbins();
-            double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
-            double clusz = (m_tdriftmax * m_tGeometry->get_drift_velocity()) - zdriftlength;
-            if (side == 0)
-            {
-              clusz = -clusz;
-            }
-            z = clusz;
+            PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
+            double radius = GeoLayer_local->get_radius();
+            fx_hit[n_hit::nhitphibin] = (float) TpcDefs::getPad(hit_key);
+            fx_hit[n_hit::nhittbin] = (float) TpcDefs::getTBin(hit_key);
+            fx_hit[n_hit::nhitphi] = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
+            float phi = GeoLayer_local->get_phicenter(TpcDefs::getPad(hit_key));
+            float clockperiod = GeoLayer_local->get_zstep();
+            auto glob = m_tGeometry->getGlobalPositionTpc(hitset_key, hit_key, phi, radius, clockperiod);
+            
+            fx_hit[n_hit::nhitz] = glob.z();
+            fx_hit[n_hit::nhitr] = radius;
+            fx_hit[n_hit::nhitx] = glob.x();
+            fx_hit[n_hit::nhity] = glob.y();
           }
 
-          float hit_data[] = {
-              event,
-              (float) _iseed,
-              hitID,
-              e,
-              adc,
-              layer_local,
-              sector,
-              side,
-              cellID,
-              ecell,
-              (float) phibin,
-              (float) tbin,
-              phi,
-              z,
-              nhit_tpc_all,
-              nhit_tpc_in,
-              nhit_tpc_mid,
-              nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
-
+          float* hit_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_hit::hitsize];
+          std::copy(fx_event, fx_event + n_event::evsize, hit_data);
+          std::copy(fx_hit, fx_hit + n_hit::hitsize, hit_data + n_event::evsize);
+          std::copy(fx_info, fx_info + ((int) (n_info::infosize)), hit_data + n_event::evsize + n_hit::hitsize);
           _ntp_hit->Fill(hit_data);
         }
       }
@@ -865,21 +1030,14 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       cout << "Filling ntp_cluster (all of them) " << endl;
     }
-    // need things off of the DST...
-    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-    if (!clustermap)
-    {
-      clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    }
 
-    TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+    //    TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
     ClusterErrorPara ClusErrPara;
 
     if (Verbosity() > 1)
     {
-      if (clustermap != nullptr)
+      if (_cluster_map != nullptr)
       {
         cout << "got clustermap" << endl;
       }
@@ -887,14 +1045,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       {
         cout << "no clustermap" << endl;
       }
-      if (clusterhitmap != nullptr)
-      {
-        cout << "got clusterhitmap" << endl;
-      }
-      else
-      {
-        cout << "no clusterhitmap" << endl;
-      }
+
       if (hitsets != nullptr)
       {
         cout << "got hitsets" << endl;
@@ -905,166 +1056,21 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       }
     }
 
-    if (clustermap && clusterhitmap && hitsets)
+    if (_cluster_map && hitsets)
     {
-      for (const auto& hitsetkey : clustermap->getHitSetKeys())
+      for (const auto& hitsetkey : _cluster_map->getHitSetKeys())
       {
-        int hitsetlayer = TrkrDefs::getLayer(hitsetkey);
-        auto range = clustermap->getClusters(hitsetkey);
+        auto range = _cluster_map->getClusters(hitsetkey);
         for (auto iter = range.first; iter != range.second; ++iter)
         {
           TrkrDefs::cluskey cluster_key = iter->first;
-          TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-          SvtxTrack* track = _TrackEval->best_track_from(cluster_key);
-          float niter = 0;
-          if (_iteration_map != nullptr)
-          {
-            niter = _iteration_map->getIteration(cluster_key);
-          }
-          float hitID = (float) cluster_key;
-          // auto trkrid = TrkrDefs::getTrkrId(cluster_key);
-          Acts::Vector3 cglob;
-          cglob = tgeometry->getGlobalPosition(cluster_key, cluster);
-          float x = cglob(0);
-          float y = cglob(1);
-          float z = cglob(2);
-          TVector3 pos(x, y, z);
-          float r = pos.Perp();
-          float phi = pos.Phi();
-          float eta = pos.Eta();
-          float theta = pos.Theta();
+          Float_t fx_cluster[n_cluster::clusize];
+          FillCluster(&fx_cluster[0], cluster_key);
 
-          float ex = 0;
-          float ey = 0;
-          float ez = 0;
-          float ephi = 0;
-          float pez = 0;
-          float pephi = 0;
-          float size = 0;
-          float phisize = 0;
-          float zsize = 0;
-          float maxadc = -999;
-          if (m_cluster_version == 3)
-          {
-            auto globerr = calculateClusterError(cluster, phi);
-            ex = sqrt(globerr[0][0]);
-            ey = sqrt(globerr[1][1]);
-            ez = cluster->getZError();
-            ephi = cluster->getRPhiError();
-          }
-          else if (m_cluster_version == 4)
-          {
-            phisize = cluster->getPhiSize();
-            zsize = cluster->getZSize();
-            TrackSeed* seed = nullptr;
-            if (track != nullptr)
-            {
-              if (layer < 7)
-              {
-                seed = track->get_silicon_seed();
-              }
-              else
-              {
-                seed = track->get_tpc_seed();
-              }
-              if (seed != nullptr)
-              {
-                auto para_errors = ClusErrPara.get_cluster_error(seed, cluster, r, cluster_key);
-                pephi = sqrt(para_errors.first * Acts::UnitConstants::cm2);
-                pez = sqrt(para_errors.second * Acts::UnitConstants::cm2);
-              }
-            }
-          }
-          else if (m_cluster_version == 5)
-          {
-            TrkrClusterv5* clusterv5 = dynamic_cast<TrkrClusterv5*>(cluster);
-	    auto para_errors = ClusErrPara.get_clusterv5_modified_error(clusterv5,r ,cluster_key);
-
-            phisize = clusterv5->getPhiSize();
-            zsize = clusterv5->getZSize();
-            // double clusRadius = r;
-            ez = sqrt(para_errors.second);
-            ephi = sqrt(para_errors.first);
-            maxadc = clusterv5->getMaxAdc();
-          }
-          float e = cluster->getAdc();
-          float adc = cluster->getAdc();
-          float layer_local = (float) TrkrDefs::getLayer(cluster_key);
-          float sector = TpcDefs::getSectorId(cluster_key);
-          float side = TpcDefs::getSide(cluster_key);
-
-          // count all hits for this cluster
-          TrkrDefs::hitsetkey hitsetkey_local = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-          int hitsetlayer2 = TrkrDefs::getLayer(hitsetkey_local);
-          if (hitsetlayer != layer_local)
-          {
-            cout << "WARNING hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer_local << endl;
-          }
-          /*else{
-            cout << "Good    hitset layer " << hitsetlayer << "| " << hitsetlayer2 << " layer " << layer << endl;
-          }
-          */
-          float sumadc = 0;
-          TrkrHitSetContainer::Iterator hitset = hitsets->findOrAddHitSet(hitsetkey_local);
-          std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
-              hitrange = clusterhitmap->getHits(cluster_key);
-          for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
-                   clushititer = hitrange.first;
-               clushititer != hitrange.second; ++clushititer)
-          {
-            TrkrHit* hit = hitset->second->getHit(clushititer->second);
-            if (!hit)
-            {
-              continue;
-            }
-
-            ++size;
-            sumadc += (hit->getAdc() - 70);
-            if ((hit->getAdc() - 70) > maxadc)
-            {
-              maxadc = (hit->getAdc() - 70);
-            }
-          }
-          e = sumadc;
-
-          float trackID = NAN;
-          if (track != nullptr)
-          {
-            trackID = track->get_id();
-          }
-
-          float cluster_data[] = {(float) _ievent,
-                                  (float) _iseed,
-                                  hitID,
-                                  x,
-                                  y,
-                                  z,
-                                  r,
-                                  phi,
-                                  eta,
-                                  theta,
-                                  ex,
-                                  ey,
-                                  ez,
-                                  ephi,
-                                  pez,
-                                  pephi,
-                                  e,
-                                  adc,
-                                  maxadc,
-                                  layer_local,
-                                  sector,
-                                  side,
-                                  size,
-                                  phisize,
-                                  zsize,
-                                  trackID,
-                                  niter,
-                                  nhit_tpc_all,
-                                  nhit_tpc_in,
-                                  nhit_tpc_mid,
-                                  nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
-
+          float* cluster_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_cluster::clusize];
+          std::copy(fx_event, fx_event + n_event::evsize, cluster_data);
+          std::copy(fx_cluster, fx_cluster + n_cluster::clusize, cluster_data + n_event::evsize);
+          std::copy(fx_info, fx_info + ((int) (n_info::infosize)), cluster_data + n_event::evsize + n_cluster::clusize);
           _ntp_cluster->Fill(cluster_data);
         }
       }
@@ -1076,6 +1082,304 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     _timer->stop();
     cout << "cluster time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
   }
+  if (_ntp_clus_trk)
+  {
+    
+    float drphi[2][60];
+ drphi[0][0] = 0.000000; drphi[1][0] = 0.000000;
+ drphi[0][0] = 0.000000; drphi[1][0] = 0.000000;
+ drphi[0][1] = 0.000000; drphi[1][1] = 0.000000;
+ drphi[0][2] = 0.000000; drphi[1][2] = 0.000000;
+ drphi[0][3] = 0.000000; drphi[1][3] = 0.000000;
+ drphi[0][4] = 0.000000; drphi[1][4] = 0.000000;
+ drphi[0][5] = 0.000000; drphi[1][5] = 0.000000;
+ drphi[0][6] = 0.000000; drphi[1][6] = 0.000000;
+ drphi[0][7] = -0.000089; drphi[1][7] = 0.021540;
+ drphi[0][8] = 0.001072; drphi[1][8] = 0.013116;
+ drphi[0][9] = 0.001267; drphi[1][9] = 0.014194;
+ drphi[0][10] = 0.000303; drphi[1][10] = 0.006583;
+ drphi[0][11] = 0.001176; drphi[1][11] = 0.008321;
+ drphi[0][12] = 0.002913; drphi[1][12] = -0.000341;
+ drphi[0][13] = 0.002765; drphi[1][13] = 0.001068;
+ drphi[0][14] = 0.003330; drphi[1][14] = -0.003894;
+ drphi[0][15] = 0.003533; drphi[1][15] = -0.003686;
+ drphi[0][16] = 0.004609; drphi[1][16] = -0.009074;
+ drphi[0][17] = 0.005643; drphi[1][17] = -0.009949;
+ drphi[0][18] = 0.005311; drphi[1][18] = -0.015016;
+ drphi[0][19] = 0.003438; drphi[1][19] = -0.016782;
+ drphi[0][20] = -0.001007; drphi[1][20] = -0.027177;
+ drphi[0][21] = -0.011399; drphi[1][21] = -0.037536;
+ drphi[0][22] = -0.042440; drphi[1][22] = -0.075852;
+ drphi[0][23] = 0.045325; drphi[1][23] = 0.058216;
+ drphi[0][24] = 0.014062; drphi[1][24] = 0.024589;
+ drphi[0][25] = 0.001659; drphi[1][25] = 0.016468;
+ drphi[0][26] = -0.006583; drphi[1][26] = 0.012170;
+ drphi[0][27] = -0.006997; drphi[1][27] = 0.010027;
+ drphi[0][28] = -0.006659; drphi[1][28] = 0.007509;
+ drphi[0][29] = -0.006740; drphi[1][29] = 0.006784;
+ drphi[0][30] = -0.007644; drphi[1][30] = 0.005510;
+ drphi[0][31] = -0.009417; drphi[1][31] = 0.004783;
+ drphi[0][32] = -0.011589; drphi[1][32] = 0.002409;
+ drphi[0][33] = -0.012136; drphi[1][33] = 0.003086;
+ drphi[0][34] = -0.014818; drphi[1][34] = 0.000434;
+ drphi[0][35] = -0.017750; drphi[1][35] = -0.000202;
+ drphi[0][36] = -0.022697; drphi[1][36] = -0.000860;
+ drphi[0][37] = -0.033155; drphi[1][37] = -0.009810;
+ drphi[0][38] = -0.068933; drphi[1][38] = -0.043357;
+ drphi[0][39] = 0.068807; drphi[1][39] = 0.032688;
+ drphi[0][40] = 0.035268; drphi[1][40] = 0.001179;
+ drphi[0][40] = 0.028104; drphi[1][40] = -0.002723;
+ drphi[0][41] = 0.023703; drphi[1][41] = -0.002551;
+ drphi[0][42] = 0.019526; drphi[1][42] = -0.001358;
+ drphi[0][43] = 0.016406; drphi[1][43] = -0.001094;
+ drphi[0][44] = 0.013309; drphi[1][44] = -0.000676;
+ drphi[0][45] = 0.011975; drphi[1][45] = 0.001872;
+ drphi[0][46] = 0.008119; drphi[1][46] = 0.001131;
+ drphi[0][47] = 0.006167; drphi[1][47] = 0.001166;
+ drphi[0][48] = 0.002595; drphi[1][48] = 0.003025;
+ drphi[0][49] = -0.000863; drphi[1][49] = 0.004523;
+ drphi[0][50] = -0.005000; drphi[1][50] = 0.003310;
+ drphi[0][51] = -0.008824; drphi[1][51] = 0.003575;
+ drphi[0][52] = -0.017929; drphi[1][52] = 0.001060;
+ drphi[0][53] = -0.040639; drphi[1][53] = -0.019704;
+ drphi[0][54] = 0.000000; drphi[1][54] = 0.000000;
+ drphi[0][55] = 0.000000; drphi[1][55] = 0.000000;
+ drphi[0][56] = 0.000000; drphi[1][56] = 0.000000;
+ drphi[0][57] = 0.000000; drphi[1][57] = 0.000000;
+
+    
+    if (Verbosity() > 1)
+    {
+      cout << "Filling ntp_clus_trk " << endl;
+      if (_cluster_map != nullptr)
+      {
+        cout << "got clustermap" << endl;
+      }
+      else
+      {
+        cout << "no clustermap" << endl;
+      }
+    }
+
+    TrackSeedContainer* _tpc_seeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+    if (!_tpc_seeds)
+    {
+      cerr << PHWHERE << " ERROR: Can't find "
+           << "TpcTrackSeedContainer" << endl;
+      return;
+    }
+
+    if (_trackmap)
+    {
+      int trackID = 0;
+      for (auto& iter : *_trackmap)
+      {
+	trackID++;
+        SvtxTrack* track = iter.second;
+        TrackSeed* tpcseed = track->get_tpc_seed();
+        TrackSeed* siseed = track->get_silicon_seed();
+        std::vector<Acts::Vector3> clusterPositions;
+        std::vector<Acts::Vector3> clusterPositionsVtx;
+        std::vector<Acts::Vector3> clusterPositionsVtx2;
+        std::vector<TrkrDefs::cluskey> clusterKeys;
+        std::vector<TrkrDefs::cluskey> clusterKeysVtx;
+
+        TrackFitUtils::position_vector_t xypoints, rzpoints;
+
+        clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+                           tpcseed->end_cluster_keys());
+
+        clusterKeysVtx.insert(clusterKeysVtx.end(), tpcseed->begin_cluster_keys(),
+                           tpcseed->end_cluster_keys());
+
+	/*	TrkrDefs::cluskey vtxkey = 0;
+	auto keysit = clusterKeysVtx.begin();
+	clusterKeysVtx.insert(keysit, vtxkey);
+	*/
+        /*if(siseed!=nullptr)
+          clusterKeys.insert(clusterKeys.end(), siseed->begin_cluster_keys(),
+                           siseed->end_cluster_keys());
+        */
+        TrackFitUtils::getTrackletClusters(_tgeometry, _cluster_map,
+                                           clusterPositions, clusterKeys);
+        TrackFitUtils::getTrackletClusters(_tgeometry, _cluster_map,
+                                           clusterPositionsVtx, clusterKeys);
+
+	/*	Acts::Vector3 vtx(0,0,0);
+	auto vtxit = clusterPositionsVtx.begin();
+	clusterPositionsVtx.insert(vtxit, vtx);
+	*/
+        for (auto& pos : clusterPositions)
+        {
+          float clusr = sqrt(pos.x() * pos.x() + pos.y() * pos.y());
+          if (pos.y() < 0)
+          {
+            clusr *= -1;
+          }
+
+          // exclude silicon and tpot clusters for now
+          if (fabs(clusr) > 80 || fabs(clusr) < 30)
+          {
+            continue;
+          }
+          rzpoints.push_back(std::make_pair(pos.z(), clusr));
+          xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+        }
+	for (unsigned int n = 0; n < clusterPositionsVtx.size();n++){
+	  auto vtxit2 = clusterPositionsVtx2.begin();
+	  /* if(n==0){
+	    Acts::Vector3 vtx2(0,0,0);
+	    clusterPositionsVtx2.insert(vtxit2, vtx2);	    
+	  }else{
+	  */
+	    Acts::Vector3 cpos = clusterPositionsVtx.at(n);
+	    TrkrDefs::cluskey corrkey = clusterKeysVtx.at(n);
+	    unsigned int corrlayer = TrkrDefs::getLayer(corrkey);
+	    float clusr = sqrt(cpos.x() * cpos.x() + cpos.y() * cpos.y());
+	    //	    float clusr_corr = (clusr + (drcorr[corrlayer]*100))/clusr;
+	    TVector2 vin(cpos.x(),cpos.y());
+	    TVector2 vout;
+	    int corrside = 0;//TpcDefs::getSide(corrkey);
+	    if(cpos.z()>0) {
+	      corrside=1;
+}
+	    vout.SetMagPhi(clusr,vin.Phi()-drphi[corrside][corrlayer]);
+	    Acts::Vector3 point(vout.X(),vout.Y(),cpos.z());
+	    clusterPositionsVtx2.insert(vtxit2+n, point);
+	    // }
+	}
+
+        std::vector<float> fitparams_org = TrackFitUtils::fitClusters(clusterPositions, clusterKeys);
+        std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositionsVtx2, clusterKeysVtx);
+        if (fitparams.size() == 0)
+        {
+          cout << "fit failed bailing...." << endl;
+          continue;
+        }
+
+	//	std::cout << " fit 0 org " << fitparams_org.at(0) << " new: " << fitparams.at(0) << std::endl;
+	//	std::cout << " fit 1 org " << fitparams_org.at(1) << " new: " << fitparams.at(1) << std::endl;
+	//	std::cout << " fit 2 org " << fitparams_org.at(2) << " new: " << fitparams.at(2) << std::endl;
+	//	std::cout << " fit 3 org " << fitparams_org.at(3) << " new: " << fitparams.at(3) << std::endl;
+	//	std::cout << " fit 4 org " << fitparams_org.at(4) << " new: " << fitparams.at(4) << std::endl;
+
+        float charge = std::numeric_limits<float>::quiet_NaN();
+        if (tpcseed->get_qOverR() > 0)
+        {
+          charge = 1;
+        }
+        else
+        {
+          charge = -1;
+        }
+
+        //	      "pt:eta:phi:X0:Y0:charge:nhits:"
+        float tpt = tpcseed->get_pt();
+        float teta = tpcseed->get_eta();
+        float tphi = tpcseed->get_phi();
+        auto xyparams = TrackFitUtils::line_fit(xypoints);
+        auto rzparams = TrackFitUtils::line_fit(rzpoints);
+        float xyint = std::get<1>(xyparams);
+        float xyslope = std::get<0>(xyparams);
+        float rzint = std::get<1>(rzparams);
+        float rzslope = std::get<0>(rzparams);
+        float R0 = abs(-1 * xyint) / sqrt((xyslope * xyslope) + 1);
+        float tX0 = tpcseed->get_X0();
+        float tY0 = tpcseed->get_Y0();
+        float tZ0 = tpcseed->get_Z0();
+
+        float nhits_local = clusterPositions.size();
+        if (Verbosity() > 1)
+        {
+          cout << " tpc: " << tpcseed->size_cluster_keys() << endl;
+          if (siseed)
+          {
+            cout << " si " << siseed->size_cluster_keys() << endl;
+          }
+          cout << "done seedsize" << endl;
+        }
+        //      nhits_local += tpcseed->size_cluster_keys();
+        // fill the Gseed NTuple
+        //---------------------
+	float dedx = calc_dedx(tpcseed);
+	float n1pix = get_n1pix(tpcseed);
+        float fx_seed[n_seed::seedsize] = {(float) trackID, 0, tpt, teta, tphi, xyint, rzint, xyslope, rzslope, tX0, tY0, tZ0, R0, charge, dedx, n1pix, nhits_local};
+
+        if (_ntp_tpcseed)
+        {
+          float* tpcseed_data = new float[((int) (n_info::infosize)) + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize];
+          std::copy(fx_event, fx_event + n_event::evsize, tpcseed_data);
+          std::copy(fx_seed, fx_seed + n_seed::seedsize, tpcseed_data + n_event::evsize);
+          std::copy(fx_info, fx_info + ((int) (n_info::infosize)), tpcseed_data + n_event::evsize + n_seed::seedsize);
+          _ntp_tpcseed->Fill(tpcseed_data);
+        }
+        for (unsigned int i = 1; i < clusterPositionsVtx2.size(); i++)
+        {
+          TrkrDefs::cluskey cluster_key = clusterKeysVtx.at(i);
+	  Acts::Vector3 position = clusterPositionsVtx2[i];
+          Acts::Vector3 position_org = clusterPositions[i-1];
+          Acts::Vector3 pca_org = TrackFitUtils::get_helix_pca(fitparams_org, position_org);
+          Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitparams, position);
+
+          float cluster_phi = atan2(position(1), position(0));
+          float pca_phi = atan2(pca(1), pca(0));
+          float dphi = cluster_phi - pca_phi;
+	  if (dphi > M_PI)
+          {
+            dphi = 2 * M_PI - dphi;
+          }
+          if (dphi < -M_PI)
+          {
+            dphi = 2 * M_PI + dphi;
+          }
+          float cluster_phi_org = atan2(position_org(1), position_org(0));
+          float pca_phi_org = atan2(pca_org(1), pca_org(0));
+          float dphi_org = cluster_phi_org - pca_phi_org;
+          if (dphi_org > M_PI)
+          {
+            dphi_org = 2 * M_PI - dphi_org;
+          }
+          if (dphi_org < -M_PI)
+          {
+            dphi_org = 2 * M_PI + dphi_org;
+          }
+	  /*
+	  std::cout << " i: " 
+		    << " xo " << position_org(0)  
+		    << " | " <<  position_org(1)  
+		    << " | " <<  position_org(2)
+      
+		    << " x " <<  position(0)  
+		    << " | " <<  position(1)  
+		    << " | " <<  position(2)
+      
+		    << std::endl;
+	  */
+          float dz = position(2) - pca(2);
+
+	  float resr = sqrt(position(0)*position(0)+position(1)*position(1)+position(2)*position(2));
+	  float seedR = TMath::Abs(1.0 / tpcseed->get_qOverR());
+	  float alpha = (resr * resr) / (2 * resr * seedR);
+	  float beta = TMath::Abs(atan(tpcseed->get_slope()));
+
+          float fx_res[n_residual::ressize] = {alpha,beta,dphi_org,dphi, dz};
+          // sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0
+
+          float fx_cluster[n_cluster::clusize];
+          //
+          FillCluster(&fx_cluster[0], cluster_key);
+
+          float* clus_trk_data = new float[((int) (n_info::infosize)) + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize];
+          std::copy(fx_event, fx_event + n_event::evsize, clus_trk_data);
+          std::copy(fx_cluster, fx_cluster + n_cluster::clusize, clus_trk_data + n_event::evsize);
+          std::copy(fx_res, fx_res + n_residual::ressize, clus_trk_data + n_event::evsize + n_cluster::clusize);
+          std::copy(fx_seed, fx_seed + n_seed::seedsize, clus_trk_data + n_event::evsize + n_cluster::clusize + n_residual::ressize);
+          std::copy(fx_info, fx_info + ((int) (n_info::infosize)), clus_trk_data + n_event::evsize + n_cluster::clusize + n_residual::ressize + n_seed::seedsize);
+          _ntp_clus_trk->Fill(clus_trk_data);
+        }
+      }
+    }
+  }
 
   //------------------------
   // fill the Track NTuple
@@ -1083,311 +1387,23 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_ntp_track)
   {
-    if (Verbosity() > 1)
+    if (Verbosity() >= 1)
     {
       cout << "Filling ntp_track " << endl;
       _timer->restart();
     }
-
-    // need things off of the DST...
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-
-    if (trackmap)
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+    if (_trackmap)
     {
-      for (auto& iter : *trackmap)
+      for (auto& iter : *_trackmap)
       {
         SvtxTrack* track = iter.second;
-        float trackID = track->get_id();
-        TrackSeed* tpcseed = track->get_tpc_seed();
-        TrackSeed* silseed = track->get_silicon_seed();
-        short int crossing_int = track->get_crossing();
-        float crossing;
-        if (crossing_int == SHRT_MAX)
-        {
-          crossing = NAN;
-        }
-        else
-        {
-          crossing = (float) crossing_int;
-        }
-        float charge = track->get_charge();
-        float quality = track->get_quality();
-        float chisq = track->get_chisq();
-        float ndf = track->get_ndf();
-        float nhits_local = 0;
-        if (tpcseed)
-        {
-          nhits_local += tpcseed->size_cluster_keys();
-        }
-        if (silseed)
-        {
-          nhits_local += silseed->size_cluster_keys();
-        }
-        unsigned int layers = 0x0;
-        int maps[_nlayers_maps];
-        int intt[_nlayers_intt];
-        int tpc[_nlayers_tpc];
-        int mms[_nlayers_mms];
-        if (_nlayers_maps > 0)
-        {
-          for (unsigned int i = 0; i < _nlayers_maps; i++)
-          {
-            maps[i] = 0;
-          }
-        }
-        if (_nlayers_intt > 0)
-        {
-          for (unsigned int i = 0; i < _nlayers_intt; i++)
-          {
-            intt[i] = 0;
-          }
-        }
-        if (_nlayers_tpc > 0)
-        {
-          for (unsigned int i = 0; i < _nlayers_tpc; i++)
-          {
-            tpc[i] = 0;
-          }
-        }
-        if (_nlayers_mms > 0)
-        {
-          for (unsigned int i = 0; i < _nlayers_mms; i++)
-          {
-            mms[i] = 0;
-          }
-        }
-
-        float nmaps = 0;
-        float nintt = 0;
-        float nmms = 0;
-        float ntpc = 0;
-        float ntpc1 = 0;
-        float ntpc11 = 0;
-        float ntpc2 = 0;
-        float ntpc3 = 0;
-        float nlmaps = 0;
-        float nlintt = 0;
-        float nltpc = 0;
-        float nlmms = 0;
-
-        if (tpcseed)
-        {
-          for (SvtxTrack::ConstClusterKeyIter iter_local = tpcseed->begin_cluster_keys();
-               iter_local != tpcseed->end_cluster_keys();
-               ++iter_local)
-          {
-            TrkrDefs::cluskey cluster_key = *iter_local;
-            // TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-            unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-
-            if (_nlayers_maps > 0 && layer_local < _nlayers_maps)
-            {
-              maps[layer_local] = 1;
-              nmaps++;
-            }
-            if (_nlayers_intt > 0 && layer_local >= _nlayers_maps && layer_local < _nlayers_maps + _nlayers_intt)
-            {
-              intt[layer_local - _nlayers_maps] = 1;
-              nintt++;
-            }
-            if (_nlayers_mms > 0 && layer_local >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
-            {
-              mms[layer_local - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
-              nmms++;
-            }
-            if (_nlayers_tpc > 0 && layer_local >= (_nlayers_maps + _nlayers_intt) && layer_local < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
-            {
-              tpc[layer_local - (_nlayers_maps + _nlayers_intt)] = 1;
-              ntpc++;
-              if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 8)
-              {
-                ntpc11++;
-              }
-
-              if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 16)
-              {
-                ntpc1++;
-              }
-              else if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 32)
-              {
-                ntpc2++;
-              }
-              else if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 48)
-              {
-                ntpc3++;
-              }
-            }
-          }
-        }
-
-        if (silseed)
-        {
-          for (SvtxTrack::ConstClusterKeyIter iter_local = silseed->begin_cluster_keys();
-               iter_local != silseed->end_cluster_keys();
-               ++iter_local)
-          {
-            TrkrDefs::cluskey cluster_key = *iter_local;
-            // TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-            unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-
-            if (_nlayers_maps > 0 && layer_local < _nlayers_maps)
-            {
-              maps[layer_local] = 1;
-              nmaps++;
-            }
-            if (_nlayers_intt > 0 && layer_local >= _nlayers_maps && layer_local < _nlayers_maps + _nlayers_intt)
-            {
-              intt[layer_local - _nlayers_maps] = 1;
-              nintt++;
-            }
-            if (_nlayers_mms > 0 && layer_local >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
-            {
-              mms[layer_local - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
-              nmms++;
-            }
-            if (_nlayers_tpc > 0 && layer_local >= (_nlayers_maps + _nlayers_intt) && layer_local < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
-            {
-              tpc[layer_local - (_nlayers_maps + _nlayers_intt)] = 1;
-              ntpc++;
-              if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 8)
-              {
-                ntpc11++;
-              }
-
-              if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 16)
-              {
-                ntpc1++;
-              }
-              else if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 32)
-              {
-                ntpc2++;
-              }
-              else if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 48)
-              {
-                ntpc3++;
-              }
-            }
-          }
-        }
-
-        if (_nlayers_maps > 0)
-        {
-          for (unsigned int i = 0; i < _nlayers_maps; i++)
-          {
-            nlmaps += maps[i];
-          }
-        }
-        if (_nlayers_intt > 0)
-        {
-          for (unsigned int i = 0; i < _nlayers_intt; i++)
-          {
-            nlintt += intt[i];
-          }
-        }
-        if (_nlayers_tpc > 0)
-        {
-          for (unsigned int i = 0; i < _nlayers_tpc; i++)
-          {
-            nltpc += tpc[i];
-          }
-        }
-        if (_nlayers_mms > 0)
-        {
-          for (unsigned int i = 0; i < _nlayers_mms; i++)
-          {
-            nlmms += mms[i];
-          }
-        }
-        layers = nlmaps + nlintt + nltpc + nlmms;
-
-        float dca3dxy = NAN, dca3dz = NAN,
-              dca3dxysigma = NAN, dca3dzsigma = NAN;
-        float dca2d = NAN, dca2dsigma = NAN;
-
-        int vertexID = track->get_vertex_id();
-        SvtxVertex* vertex = vertexmap->get(vertexID);
-        float vx = NAN;
-        float vy = NAN;
-        float vz = NAN;
-        if (vertex)
-        {
-          vx = vertex->get_x();
-          vy = vertex->get_y();
-          vz = vertex->get_z();
-
-          get_dca(track, vertexmap, dca3dxy, dca3dz,
-                  dca3dxysigma, dca3dzsigma);
-        }
-        float px = track->get_px();
-        float py = track->get_py();
-        float pz = track->get_pz();
-        TVector3 v(px, py, pz);
-        float pt = v.Pt();
-        float eta = v.Eta();
-        float phi = v.Phi();
-        float CVxx = track->get_error(3, 3);
-        float CVxy = track->get_error(3, 4);
-        float CVxz = track->get_error(3, 5);
-        float CVyy = track->get_error(4, 4);
-        float CVyz = track->get_error(4, 5);
-        float CVzz = track->get_error(5, 5);
-        float deltapt = sqrt((CVxx * px * px + 2 * CVxy * px * py + CVyy * py * py) / (px * px + py * py));
-        float deltaeta = sqrt((CVzz * (px * px + py * py) * (px * px + py * py) + pz * (-2 * (CVxz * px + CVyz * py) * (px * px + py * py) + CVxx * px * px * pz + CVyy * py * py * pz + 2 * CVxy * px * py * pz)) / ((px * px + py * py) * (px * px + py * py) * (px * px + py * py + pz * pz)));
-        float deltaphi = sqrt((CVyy * px * px - 2 * CVxy * px * py + CVxx * py * py) / ((px * px + py * py) * (px * px + py * py)));
-        float pcax = track->get_x();
-        float pcay = track->get_y();
-        float pcaz = track->get_z();
-
-        float track_data[] = {(float) _ievent, m_fSeed,
-                              trackID,
-                              crossing,
-                              px,
-                              py,
-                              pz,
-                              pt,
-                              eta,
-                              phi,
-                              deltapt,
-                              deltaeta,
-                              deltaphi,
-                              charge,
-                              quality,
-                              chisq,
-                              ndf,
-                              nhits_local, nmaps, nintt, ntpc, nmms,
-                              ntpc1, ntpc11, ntpc2, ntpc3,
-                              nlmaps, nlintt, nltpc, nlmms,
-                              (float) layers,
-                              (float) vertexID,
-                              vx,
-                              vy,
-                              vz,
-                              dca2d,
-                              dca2dsigma,
-                              dca3dxy,
-                              dca3dxysigma,
-                              dca3dz,
-                              dca3dzsigma,
-                              pcax,
-                              pcay,
-                              pcaz,
-                              nhit_tpc_all,
-                              nhit_tpc_in,
-                              nhit_tpc_mid,
-                              nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
-
-        if (Verbosity() >= 1)
-        {
-          cout << "ievent " << _ievent
-               << " trackID " << trackID
-               << " nhits " << nhits
-               << " px " << px
-               << " py " << py
-               << " pz " << pz
-               << endl;
-        }
-
+        float fx_track[n_track::trksize];
+        FillTrack(&fx_track[0], track, vertexmap);
+        float* track_data = new float[((int) (n_info::infosize)) + n_track::trksize + n_event::evsize];
+        std::copy(fx_event, fx_event + n_event::evsize, track_data);
+        std::copy(fx_track, fx_track + n_track::trksize, track_data + n_event::evsize);
+        std::copy(fx_info, fx_info + ((int) (n_info::infosize)), track_data + n_event::evsize + n_track::trksize);
         _ntp_track->Fill(track_data);
       }
     }
@@ -1395,25 +1411,6 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       _timer->stop();
       cout << "track time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
-    }
-  }
-
-  //---------------------
-  // fill the Gseed NTuple
-  //---------------------
-
-  if (_ntp_tpcseed)
-  {
-    if (Verbosity() > 1)
-    {
-      cout << "Filling ntp_tpcseed " << endl;
-      _timer->restart();
-    }
-
-    if (Verbosity() > 1)
-    {
-      _timer->stop();
-      cout << "tpcseed time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
     }
   }
 
@@ -1431,6 +1428,502 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       cout << "tpcseed time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
     }
   }
+  return;
+}
+
+void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* vertexmap)
+{
+  float trackID = track->get_id();
+  TrackSeed* tpcseed = track->get_tpc_seed();
+  TrackSeed* silseed = track->get_silicon_seed();
+  short int crossing_int = track->get_crossing();
+  fX[n_track::ntrktrackID] = trackID;
+  fX[n_track::ntrkcrossing] = std::numeric_limits<float>::quiet_NaN();
+  if (crossing_int == SHRT_MAX)
+  {
+    fX[n_track::ntrkcrossing] = std::numeric_limits<float>::quiet_NaN();
+  }
+  else
+  {
+    fX[n_track::ntrkcrossing] = (float) crossing_int;
+  }
+  fX[n_track::ntrkcharge] = track->get_charge();
+  fX[n_track::ntrkquality] = track->get_quality();
+  fX[n_track::ntrkchisq] = track->get_chisq();
+  fX[n_track::ntrkndf] = track->get_ndf();
+  fX[n_track::ntrknhits] = 0;
+  if (tpcseed)
+  {
+    fX[n_track::ntrknhits] += tpcseed->size_cluster_keys();
+  }
+  if (silseed)
+  {
+    fX[n_track::ntrknhits] += silseed->size_cluster_keys();
+  }
+
+  fX[n_track::ntrknmaps] = 0;
+  fX[n_track::ntrknintt] = 0;
+  fX[n_track::ntrknmms] = 0;
+  fX[n_track::ntrkntpc] = 0;
+  fX[n_track::ntrkntpc1] = 0;
+  fX[n_track::ntrkntpc11] = 0;
+  fX[n_track::ntrkntpc2] = 0;
+  fX[n_track::ntrkntpc3] = 0;
+  fX[n_track::ntrkndedx] = 0;
+  if (tpcseed)
+  {
+    fX[n_track::ntrkndedx] = calc_dedx(tpcseed);
+    for (SvtxTrack::ConstClusterKeyIter iter_local = tpcseed->begin_cluster_keys();
+         iter_local != tpcseed->end_cluster_keys();
+         ++iter_local)
+    {
+      TrkrDefs::cluskey cluster_key = *iter_local;
+      unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+      switch (TrkrDefs::getTrkrId(cluster_key))
+      {
+      case TrkrDefs::TrkrId::mvtxId:
+        fX[n_track::ntrknmaps]++;
+        break;
+      case TrkrDefs::TrkrId::inttId:
+        fX[n_track::ntrknintt]++;
+        break;
+      case TrkrDefs::TrkrId::tpcId:
+        fX[n_track::ntrkntpc]++;
+        if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 8)
+        {
+          fX[n_track::ntrkntpc11]++;
+        }
+        if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 16)
+        {
+          fX[n_track::ntrkntpc1]++;
+        }
+        else if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 32)
+        {
+          fX[n_track::ntrkntpc2]++;
+        }
+        else if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 48)
+        {
+          fX[n_track::ntrkntpc3]++;
+        }
+        break;
+      case TrkrDefs::TrkrId::micromegasId:
+        fX[n_track::ntrknmms]++;
+        break;
+      default:
+        break;
+      }
+    }
+  }
+  if (silseed)
+  {
+    for (SvtxTrack::ConstClusterKeyIter iter_local = silseed->begin_cluster_keys();
+         iter_local != silseed->end_cluster_keys();
+         ++iter_local)
+    {
+      TrkrDefs::cluskey cluster_key = *iter_local;
+      unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+      switch (TrkrDefs::getTrkrId(cluster_key))
+      {
+      case TrkrDefs::TrkrId::mvtxId:
+        fX[n_track::ntrknmaps]++;
+        break;
+      case TrkrDefs::TrkrId::inttId:
+        fX[n_track::ntrknintt]++;
+        break;
+      case TrkrDefs::TrkrId::tpcId:
+        fX[n_track::ntrkntpc]++;
+        if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 8)
+        {
+          fX[n_track::ntrkntpc11]++;
+        }
+        if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 16)
+        {
+          fX[n_track::ntrkntpc1]++;
+        }
+        else if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 32)
+        {
+          fX[n_track::ntrkntpc2]++;
+        }
+        else if ((layer_local - (_nlayers_maps + _nlayers_intt)) < 48)
+        {
+          fX[n_track::ntrkntpc3]++;
+        }
+        break;
+      case TrkrDefs::TrkrId::micromegasId:
+        fX[n_track::ntrknmms]++;
+        break;
+      default:
+        break;
+      }
+    }
+  }
+  fX[n_track::ntrkdca3dxy] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca3dz] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca3dxysigma] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca3dzsigma] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca2d] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkdca2dsigma] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkvx] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkvy] = std::numeric_limits<float>::quiet_NaN();
+  fX[n_track::ntrkvz] = std::numeric_limits<float>::quiet_NaN();
+
+  int vertexID = track->get_vertex_id();
+  fX[n_track::ntrkvertexID] = vertexID;
+  
+  if (vertexID >= 0&& vertexmap !=nullptr)
+  {
+    if(vertexmap->size()>100000){
+      cout << "too many vtx's" << endl;
+    }
+    /*
+    auto vertexit = vertexmap->find(vertexID);
+    if (vertexit != vertexmap->end())
+      {
+        auto vertex = vertexit->second;
+
+	float vx = vertex->get_x();
+	float vy = vertex->get_y();
+	float vz = vertex->get_z();
+	fX[n_track::ntrkvx] = vx;
+	fX[n_track::ntrkvy] = vy;
+	fX[n_track::ntrkvz] = vz;
+	Acts::Vector3 vert(vx, vy, vz);
+	Acts::Vector3 zero = Acts::Vector3::Zero();
+	auto dcapair = TrackAnalysisUtils::get_dca(track, zero);
+	fX[n_track::ntrkdca3dxy] = dcapair.first.first;
+	fX[n_track::ntrkdca3dxysigma] = dcapair.first.second;
+	fX[n_track::ntrkdca3dz] = dcapair.second.first;
+	fX[n_track::ntrkdca3dzsigma] = dcapair.second.second;
+	
+      }
+    */
+
+  }
+  
+  fX[n_track::ntrkcharge] = track->get_charge();
+  float px = track->get_px();
+  float py = track->get_py();
+  float pz = track->get_pz();
+  fX[n_track::ntrkpx] = px;
+  fX[n_track::ntrkpy] = py;
+  fX[n_track::ntrkpz] = pz;
+  TVector3 v(px, py, pz);
+  fX[n_track::ntrkpt] = v.Pt();
+  fX[n_track::ntrketa] = v.Eta();
+  fX[n_track::ntrkphi] = v.Phi();
+  float CVxx = track->get_error(3, 3);
+  float CVxy = track->get_error(3, 4);
+  float CVxz = track->get_error(3, 5);
+  float CVyy = track->get_error(4, 4);
+  float CVyz = track->get_error(4, 5);
+  float CVzz = track->get_error(5, 5);
+  fX[n_track::ntrkdeltapt] = sqrt((CVxx * px * px + 2 * CVxy * px * py + CVyy * py * py) / (px * px + py * py));
+  fX[n_track::ntrkdeltaeta] = sqrt((CVzz * (px * px + py * py) * (px * px + py * py) + pz * (-2 * (CVxz * px + CVyz * py) * (px * px + py * py) + CVxx * px * px * pz + CVyy * py * py * pz + 2 * CVxy * px * py * pz)) / ((px * px + py * py) * (px * px + py * py) * (px * px + py * py + pz * pz)));
+  fX[n_track::ntrkdeltaphi] = sqrt((CVyy * px * px - 2 * CVxy * px * py + CVxx * py * py) / ((px * px + py * py) * (px * px + py * py)));
+
+  fX[n_track::ntrkpcax] = track->get_x();
+  fX[n_track::ntrkpcay] = track->get_y();
+  fX[n_track::ntrkpcaz] = track->get_z();
+}
+
+float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
+
+    std::vector<TrkrDefs::cluskey> clusterKeys;
+    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+		       tpcseed->end_cluster_keys());
+
+    std::vector<float> dedxlist;
+    for (unsigned long cluster_key : clusterKeys){
+      unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+      if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId){
+	  continue;
+      }
+      TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+
+      float adc = cluster->getAdc();
+      PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
+      float thick = GeoLayer_local->get_thickness();
+      
+      float r = GeoLayer_local->get_radius();
+      float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+      float beta = atan(tpcseed->get_slope());
+      float alphacorr = cos(alpha);
+      if(alphacorr<0||alphacorr>4){
+	alphacorr=4;
+      }
+      float betacorr = cos(beta);
+      if(betacorr<0||betacorr>4){
+	betacorr=4;
+      }
+      adc/=thick;
+      adc*=alphacorr;
+      adc*=betacorr;
+      dedxlist.push_back(adc);
+      sort(dedxlist.begin(), dedxlist.end());
+    }
+    int trunc_min = 0;
+    int trunc_max = (int)dedxlist.size()*0.7;
+    float sumdedx = 0;
+    int ndedx = 0;
+    for(int j = trunc_min; j<=trunc_max;j++){
+      sumdedx+=dedxlist.at(j);
+      ndedx++;
+    }
+    sumdedx/=ndedx;
+    return sumdedx;
+}
+
+float TrkrNtuplizer::get_n1pix(TrackSeed *tpcseed){
+
+    std::vector<TrkrDefs::cluskey> clusterKeys;
+    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+		       tpcseed->end_cluster_keys());
+
+    float n1pix = 0;
+    for (unsigned long cluster_key : clusterKeys){
+      TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+      if(cluster->getPhiSize()==1){
+	n1pix++;
+      }
+    }
+    return n1pix;
+}
+
+void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_key)
+{
+  unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+  TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+
+  Acts::Vector3 cglob;
+  cglob = _tgeometry->getGlobalPosition(cluster_key, cluster);
+  float x = cglob(0);
+  float y = cglob(1);
+  float z = cglob(2);
+  TVector3 pos(x, y, z);
+  float r = pos.Perp();
+  float phi = pos.Phi();
+  auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
+  float phibin = std::numeric_limits<float>::quiet_NaN();
+  float tbin = std::numeric_limits<float>::quiet_NaN();
+  float locx = cluster->getLocalX();
+  float locy = cluster->getLocalY();
+
+  if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+  {
+    int side_tpc = TpcDefs::getSide(cluster_key);
+    PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
+    phibin = GeoLayer_local->get_pad_float(phi, side_tpc);
+    tbin = GeoLayer_local->get_tbin_float(locy - 39.6);
+  }
+  else
+  {
+    phibin = locx;
+    tbin = locy;
+  }
+  fXcluster[n_cluster::nclulocx] = locx;
+  fXcluster[n_cluster::nclulocy] = locy;
+  fXcluster[n_cluster::nclux] = cglob(0);
+  fXcluster[n_cluster::ncluy] = cglob(1);
+  fXcluster[n_cluster::ncluz] = cglob(2);
+  fXcluster[n_cluster::nclur] = pos.Perp();
+  fXcluster[n_cluster::ncluphi] = pos.Phi();
+  fXcluster[n_cluster::nclueta] = pos.Eta();
+  fXcluster[n_cluster::nclutheta] = pos.Theta();
+
+  fXcluster[n_cluster::ncluphibin] = phibin;
+  fXcluster[n_cluster::nclutbin] = tbin;
+
+  fXcluster[n_cluster::ncluex] = std::numeric_limits<float>::quiet_NaN();
+  fXcluster[n_cluster::ncluey] = std::numeric_limits<float>::quiet_NaN();
+  fXcluster[n_cluster::ncluez] = sqrt(para_errors.second);
+  fXcluster[n_cluster::ncluephi] = sqrt(para_errors.first);
+  fXcluster[n_cluster::nclupez] = std::numeric_limits<float>::quiet_NaN();
+  fXcluster[n_cluster::nclupephi] = std::numeric_limits<float>::quiet_NaN();
+  fXcluster[n_cluster::nclue] = cluster->getAdc();
+  fXcluster[n_cluster::ncluadc] = cluster->getAdc();
+  fXcluster[n_cluster::nclumaxadc] = cluster->getMaxAdc();
+  fXcluster[n_cluster::nclulayer] = layer_local;
+
+  if (layer_local < 3)
+  {
+    fXcluster[n_cluster::ncluphielem] = MvtxDefs::getStaveId(cluster_key);
+    fXcluster[n_cluster::ncluzelem] = MvtxDefs::getChipId(cluster_key);
+  }
+  if (layer_local >= 3 && layer_local < 7)
+  {
+    fXcluster[n_cluster::ncluphielem] = InttDefs::getLadderPhiId(cluster_key);
+    fXcluster[n_cluster::ncluzelem] = InttDefs::getLadderZId(cluster_key);
+  }
+  if (layer_local >= 7 && layer_local < 55)
+  {
+    fXcluster[n_cluster::ncluphielem] = TpcDefs::getSectorId(cluster_key);
+    fXcluster[n_cluster::ncluzelem] = TpcDefs::getSide(cluster_key);
+  } /*
+      if(layer_local>=55){
+      if(MicromegasDefs::getSegmentationType(hitsetkey)==MicromegasDefs::SEGMENTATION_Z){
+      sector = 1;
+      side = MicromegasDefs::getTileId(hitsetkey);
+      }else{
+      sector =MicromegasDefs::getTileId(hitsetkey);
+      side =  1;
+      }
+      }
+    */
+  fXcluster[n_cluster::nclusize] = cluster->getSize();
+  fXcluster[n_cluster::ncluphisize] = cluster->getPhiSize();
+  fXcluster[n_cluster::ncluzsize] = cluster->getZSize();
+  fXcluster[n_cluster::nclupedge] = cluster->getEdge();
+  if (layer_local == 7 || layer_local == 22 ||
+      layer_local == 23 || layer_local == 28 ||
+      layer_local == 39 || layer_local == 54)
+  {
+    fXcluster[n_cluster::ncluredge] = 1;
+  }
+
+  fXcluster[n_cluster::ncluovlp] = 3;  // cluster->getOvlp();
+  fXcluster[n_cluster::nclutrackID] = std::numeric_limits<float>::quiet_NaN();
+  fXcluster[n_cluster::ncluniter] = 0;
+
+  return;
+}
+
+std::vector<TrkrDefs::cluskey> TrkrNtuplizer::get_track_ckeys(SvtxTrack* track)
+{
+  std::vector<TrkrDefs::cluskey> cluster_keys;
+  TrackSeed* tpcseed = track->get_tpc_seed();
+  TrackSeed* silseed = track->get_silicon_seed();
+  if (silseed)
+  {
+    for (auto iter = silseed->begin_cluster_keys();
+         iter != silseed->end_cluster_keys();
+         ++iter)
+    {
+      cluster_keys.push_back(*iter);
+    }
+  }
+  if (tpcseed)
+  {
+    for (auto iter = tpcseed->begin_cluster_keys();
+         iter != tpcseed->end_cluster_keys();
+         ++iter)
+    {
+      cluster_keys.push_back(*iter);
+    }
+  }
+
+  return cluster_keys;
+}
+
+SvtxTrack* TrkrNtuplizer::best_track_from(TrkrDefs::cluskey cluster_key)
+{
+  std::map<TrkrDefs::cluskey, SvtxTrack*>::iterator find_iter =
+      _cache_best_track_from_cluster.find(cluster_key);
+  if (find_iter != _cache_best_track_from_cluster.end())
+  {
+    return find_iter->second;
+  }
+
+  SvtxTrack* best_track = nullptr;
+  float best_quality = FLT_MAX;
+
+  std::set<SvtxTrack*> tracks = all_tracks_from(cluster_key);
+  // loop over all SvtxTracks
+  for (auto candidate : tracks)
+  {
+    if (candidate->get_quality() < best_quality)
+    {
+      best_quality = candidate->get_quality();
+      best_track = candidate;
+    }
+  }
+
+  _cache_best_track_from_cluster.insert(make_pair(cluster_key, best_track));
+  return best_track;
+}
+
+std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_key)
+{
+  std::set<SvtxTrack*> tracks;
+
+  if (_cache_track_from_cluster_exists == false)
+  {
+    create_cache_track_from_cluster();
+  }
+  std::map<TrkrDefs::cluskey, std::set<SvtxTrack*> >::iterator find_iter =
+      _cache_all_tracks_from_cluster.find(cluster_key);
+  if (find_iter != _cache_all_tracks_from_cluster.end())
+  {
+    return find_iter->second;
+  }
+  else
+  {
+    return tracks;
+  }
+
+  // loop over all SvtxTracks
+  for (auto& iter : *_trackmap)
+  {
+    SvtxTrack* track = iter.second;
+    std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+
+    // loop over all clusters
+    for (const auto& candidate : cluster_keys)
+    {
+      //      if (_strict)
+      //      {
+      //        assert(candidate);
+      //      }
+      //      else if (!candidate)
+      //      {
+      //        ++_errors;
+      //        continue;
+      //      }
+
+      if (cluster_key == candidate)
+      {
+        tracks.insert(track);
+      }
+    }
+  }
+
+  _cache_all_tracks_from_cluster.insert(make_pair(cluster_key, tracks));
+
+  return tracks;
+}
+
+void TrkrNtuplizer::create_cache_track_from_cluster()
+{
+  if (!_trackmap)
+  {
+    return;
+  }
+
+  // loop over all SvtxTracks
+  for (auto& iter : *_trackmap)
+  {
+    SvtxTrack* track = iter.second;
+    std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+
+    // loop over all clusters
+    for (const auto& candidate_key : cluster_keys)
+    {
+      // check if cluster has an entry in cache
+      std::map<TrkrDefs::cluskey, std::set<SvtxTrack*> >::iterator cliter =
+          _cache_all_tracks_from_cluster.find(candidate_key);
+      if (cliter != _cache_all_tracks_from_cluster.end())
+      {                                // got entry
+        cliter->second.insert(track);  // add track to list;
+      }
+      else
+      {
+        std::set<SvtxTrack*> tracks;
+        tracks.insert(track);
+        _cache_all_tracks_from_cluster.insert(make_pair(candidate_key, tracks));
+      }
+    }
+  }
+  _cache_track_from_cluster_exists = true;
+
   return;
 }
 
@@ -1463,62 +1956,4 @@ TMatrixF TrkrNtuplizer::calculateClusterError(TrkrCluster* c, float& clusphi)
   TMatrixF err(3, 3);
   err = ROT * localErr * ROT_T;
   return err;
-}
-
-void TrkrNtuplizer::get_dca(SvtxTrack* track, SvtxVertexMap* vertexmap,
-                            float& dca3dxy, float& dca3dz,
-                            float& dca3dxysigma, float& dca3dzsigma)
-{
-  Acts::Vector3 pos(track->get_x(),
-                    track->get_y(),
-                    track->get_z());
-  Acts::Vector3 mom(track->get_px(),
-                    track->get_py(),
-                    track->get_pz());
-
-  auto vtxid = track->get_vertex_id();
-  auto svtxVertex = vertexmap->get(vtxid);
-  if (!svtxVertex)
-  {
-    return;
-  }
-  Acts::Vector3 vertex(svtxVertex->get_x(),
-                       svtxVertex->get_y(),
-                       svtxVertex->get_z());
-
-  pos -= vertex;
-
-  Acts::ActsSymMatrix<3> posCov;
-  for (int i = 0; i < 3; ++i)
-  {
-    for (int j = 0; j < 3; ++j)
-    {
-      posCov(i, j) = track->get_error(i, j);
-    }
-  }
-
-  Acts::Vector3 r = mom.cross(Acts::Vector3(0., 0., 1.));
-  float phi = atan2(r(1), r(0));
-
-  Acts::RotationMatrix3 rot;
-  Acts::RotationMatrix3 rot_T;
-  rot(0, 0) = cos(phi);
-  rot(0, 1) = -sin(phi);
-  rot(0, 2) = 0;
-  rot(1, 0) = sin(phi);
-  rot(1, 1) = cos(phi);
-  rot(1, 2) = 0;
-  rot(2, 0) = 0;
-  rot(2, 1) = 0;
-  rot(2, 2) = 1;
-
-  rot_T = rot.transpose();
-
-  Acts::Vector3 pos_R = rot * pos;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
-
-  dca3dxy = pos_R(0);
-  dca3dz = pos_R(2);
-  dca3dxysigma = sqrt(rotCov(0, 0));
-  dca3dzsigma = sqrt(rotCov(2, 2));
 }

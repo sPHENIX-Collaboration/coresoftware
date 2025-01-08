@@ -1,9 +1,9 @@
 #include "GlobalVertexFastSimReco.h"
 
-#include "GlobalVertex.h"     // for GlobalVertex
-#include "GlobalVertexMap.h"  // for GlobalVertexMap
-#include "GlobalVertexMapv1.h"
-#include "GlobalVertexv1.h"
+#include <globalvertex/GlobalVertex.h>     // for GlobalVertex
+#include <globalvertex/GlobalVertexMap.h>  // for GlobalVertexMap
+#include <globalvertex/GlobalVertexMapv1.h>
+#include <globalvertex/GlobalVertexv1.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -40,10 +40,10 @@ GlobalVertexFastSimReco::~GlobalVertexFastSimReco()
 
 int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 {
-  if (isnan(_x_smear) ||
-      isnan(_y_smear) ||
-      isnan(_z_smear) ||
-      isnan(_t_smear))
+  if (std::isnan(_x_smear) ||
+      std::isnan(_y_smear) ||
+      std::isnan(_z_smear) ||
+      std::isnan(_t_smear))
   {
     std::cout << PHWHERE << "::ERROR - smearing must be defined for (x,y,z,t) via set_?_smearing(float)" << std::endl;
     exit(-1);

@@ -5,12 +5,11 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <cmath>
+#include <limits>
 #include <map>
 #include <set>
 #include <string>  // for string
 #include <tuple>
-#include <utility>  // for pair
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
@@ -20,6 +19,7 @@ class PHG4IHCalDisplayAction;
 class PHParameters;
 class PHG4Subsystem;
 class PHG4GDMLConfig;
+class RawTowerGeomContainer;
 
 class PHG4IHCalDetector : public PHG4Detector
 {
@@ -50,26 +50,31 @@ class PHG4IHCalDetector : public PHG4Detector
   int GetSectorId(G4VPhysicalVolume *volume) const;
 
  private:
+  void AddGeometryNode();
   int map_towerid(const int tower_id);
   int map_layerid(const int layer_id);
   int ConstructIHCal(G4LogicalVolume *sandwich);
   std::tuple<int, int, int> ExtractLayerTowerId(const unsigned int isector, G4VPhysicalVolume *volume);
-  PHG4IHCalDisplayAction *m_DisplayAction = nullptr;
-  PHParameters *m_Params = nullptr;
-  G4AssemblyVolume *m_ScintiMotherAssembly = nullptr;
-  double m_InnerRadius = NAN;
-  double m_OuterRadius = NAN;
-  double m_SizeZ = NAN;
-  double m_VolumeEnvelope = NAN;
-  double m_VolumeSteel = 0.;
-  double m_VolumeScintillator = 0;
+  PHG4IHCalDisplayAction *m_DisplayAction{nullptr};
+  PHParameters *m_Params{nullptr};
+  G4AssemblyVolume *m_ScintiMotherAssembly{nullptr};
+  //! registry for volumes that should not be exported
+  PHG4GDMLConfig *gdml_config{nullptr};
+  RawTowerGeomContainer *m_RawTowerGeom{nullptr};
 
-  int m_NumScintiPlates = -9999;
+  double m_InnerRadius{std::numeric_limits<double>::quiet_NaN()};
+  double m_OuterRadius{std::numeric_limits<double>::quiet_NaN()};
+  double m_SizeZ{std::numeric_limits<double>::quiet_NaN()};
+  double m_VolumeEnvelope{std::numeric_limits<double>::quiet_NaN()};
+  double m_VolumeSteel{0.};
+  double m_VolumeScintillator{0};
 
-  int m_Active = 0;
-  int m_AbsorberActive = 0;
+  int m_NumScintiPlates{-9999};
 
-  int m_Layer = 0;
+  int m_Active{0};
+  int m_AbsorberActive{0};
+
+  int m_Layer{0};
 
   std::string m_SuperDetector;
   std::set<G4LogicalVolume *> m_SteelAbsorberLogVolSet;
@@ -77,10 +82,8 @@ class PHG4IHCalDetector : public PHG4Detector
   std::map<G4VPhysicalVolume *, std::tuple<int, int, int>> m_ScintiTilePhysVolMap;
   std::map<G4VPhysicalVolume *, int> m_AbsorberPhysVolMap;
 
-  //! registry for volumes that should not be exported
-  PHG4GDMLConfig *gdml_config = nullptr;
-
   std::string m_GDMPath;
+  std::string m_TowerGeomNodeName;
 };
 
 #endif  // G4IHCAL_PHG4IHCALDETECTOR_H

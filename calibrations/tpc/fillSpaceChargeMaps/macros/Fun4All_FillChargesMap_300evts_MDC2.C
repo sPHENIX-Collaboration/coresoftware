@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FUN4ALL_FILLCHARGESMAP_300EVTS_MDC2_C
+#define FUN4ALL_FILLCHARGESMAP_300EVTS_MDC2_C
+
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllDstInputManager.h>
@@ -13,6 +15,7 @@
 #include <string>
 
 
+// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libfillSpaceChargeMaps.so)
 R__LOAD_LIBRARY(libg4dst.so)
@@ -132,3 +135,5 @@ void Fun4All_FillChargesMap_300evts_MDC2(  const int nEvents = 10, const int eve
   cout << endl << "gSystem->Exit(0)" << endl;
   gSystem->Exit(0);
 }
+
+#endif

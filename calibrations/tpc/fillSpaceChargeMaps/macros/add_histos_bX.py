@@ -23,7 +23,7 @@ bX = sys.argv[2]
 
 print(bX)
 name = 'mdc2_ADCBins_UseFieldMaps_hist_G4Hits_sHijing_0-12fm_bX{}*'.format(bX)
-outputName = './Files/Summary_hist_mdc2_UseFieldMaps_AA_event_{}_bX{}.root'.format(ib,bX)
+outputName = './Files/Summary_hist_mdc2_UseFieldMaps_AA_event_{}_bX{}_new.root'.format(ib,bX)
 
 filePattern = dirName+name
 files = sorted(glob.glob(filePattern))

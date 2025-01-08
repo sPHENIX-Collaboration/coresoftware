@@ -5,6 +5,8 @@
 #include "PHG4InttFPHXParameterisation.h"
 
 #include <intt/CylinderGeomIntt.h>
+#include <intt/InttMap.h>
+#include <intt/InttSurveyMapv1.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -14,6 +16,8 @@
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>      // for PHG4Subsystem
+
+#include <ffamodules/CDBInterface.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -49,15 +53,16 @@
 
 #include <algorithm>  // for fill_n
 #include <array>
-#include <cassert>  // for assert
 #include <cmath>
-#include <cstdlib>   // for exit, NULL
+#include <cstdlib>  // for exit, NULL
+#include <filesystem>
 #include <iostream>  // for operator<<, basic...
 
 class G4VPVParameterisation;
 class G4VSolid;
 
-PHG4InttDetector::PHG4InttDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e)
+PHG4InttDetector::PHG4InttDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam,
+                                   const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4InttDisplayAction *>(subsys->GetDisplayAction()))
   , m_ParamsContainer(parameters)
@@ -124,8 +129,35 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   // We have an arbitray number of layers (nlayer_) up to 8
   // We have 2 types of ladders (vertical strips and horizontal strips)
   // We have 2 types of sensors (inner and outer)
-  std::array<std::array<double, 2>, 8> hdi_z_arr;
+  std::array<std::array<double, 2>, 8> hdi_z_arr{};
   // we loop over layers. All layers have only one laddertype
+
+  // INTT survey map to get the survey information
+  InttSurveyMap *survey = new InttSurveyMapv1();
+  if (useSurvey)
+  {
+    std::string url = CDBInterface::instance()->getUrl("InttSurveyMap");
+    if (!std::filesystem::exists(url))
+    {
+      std::cout << PHWHERE << " Could not locate INTT survey geometry " << url << std::endl;
+      gSystem->Exit(1);
+    }
+    std::cout << PHWHERE << "Use the INTT survey geometry. Get the survey map from " << url << std::endl;
+    if (survey->LoadFromFile(url))
+    {
+      std::cout << PHWHERE << "Failed to load INTT survey geometry from the CDB" << std::endl;
+      gSystem->Exit(1);
+    }
+    if (Verbosity() > 0)
+    {
+      survey->identify();
+    }
+  }
+  else
+  {
+    std::cout << PHWHERE << "Use the default INTT ideal geometry." << std::endl;
+  }
+
   for (auto layeriter = m_LayerBeginEndIteratorPair.first; layeriter != m_LayerBeginEndIteratorPair.second; ++layeriter)
   {
     int inttlayer = layeriter->second;
@@ -158,10 +190,9 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     if (Verbosity() > 0)
     {
       std::cout << "Constructing Intt layer: " << std::endl;
-      std::cout << "  layer " << inttlayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer
-                << " sensor_radius " << m_SensorRadius[inttlayer] << " offsetphi " << offsetphi << " rad "
-                << " offsetphi " << offsetphi * rad / deg << " deg "
-                << std::endl;
+      std::cout << "  layer " << inttlayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer << " sensor_radius " << m_SensorRadius[inttlayer] << " offsetphi " << offsetphi
+                << " rad "
+                << " offsetphi " << offsetphi * rad / deg << " deg " << std::endl;
     }
     // We loop over inner, then outer (wrt the beam-axis), sensors, where  itype specifies the inner or outer sensor
     // The rest of this loop will construct and put in place a section of a ladder corresponding to the Z range of this sensor only
@@ -194,8 +225,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       const double siactive_y = strip_y * nstrips_phi_sensor;
       const double siactive_z = strip_z * nstrips_z_sensor;
       G4VSolid *siactive_box = new G4Box((boost::format("siactive_box_%d_%d") % inttlayer % itype).str(), siactive_x / 2, siactive_y / 2., siactive_z / 2.);
-      G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, GetDetectorMaterial("G4_Si"),
-                                                             boost::str(boost::format("siactive_volume_%d_%d") % inttlayer % itype).c_str(), 0, 0, 0);
+      G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, GetDetectorMaterial("G4_Si"), boost::str(boost::format("siactive_volume_%d_%d") % inttlayer % itype).c_str(), nullptr, nullptr, nullptr);
       if ((m_IsActiveMap.find(inttlayer))->second > 0)
       {
         m_ActiveLogVols.insert(siactive_volume);
@@ -210,10 +240,8 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       G4VSolid *sifull_box = new G4Box((boost::format("sifull_box_%d_%d") % inttlayer % itype).str(), sifull_x / 2., sifull_y / 2.0, sifull_z / 2.0);
 
       // Si-sensor inactive area
-      G4VSolid *siinactive_box = new G4SubtractionSolid((boost::format("siinactive_box_%d_%d") % inttlayer % itype).str(),
-                                                        sifull_box, siactive_box, 0, G4ThreeVector(0, 0, 0));
-      G4LogicalVolume *siinactive_volume = new G4LogicalVolume(siinactive_box, GetDetectorMaterial("G4_Si"),
-                                                               (boost::format("siinactive_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *siinactive_box = new G4SubtractionSolid((boost::format("siinactive_box_%d_%d") % inttlayer % itype).str(), sifull_box, siactive_box, nullptr, G4ThreeVector(0, 0, 0));
+      G4LogicalVolume *siinactive_volume = new G4LogicalVolume(siinactive_box, GetDetectorMaterial("G4_Si"), (boost::format("siinactive_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
@@ -224,8 +252,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       // Glue for Si-sensor full area
       G4VSolid *si_glue_box = new G4Box((boost::format("si_glue_box_%d_%d") % inttlayer % itype).str(), si_glue_x / 2., sifull_y / 2.0, sifull_z / 2.0);
 
-      G4LogicalVolume *si_glue_volume = new G4LogicalVolume(si_glue_box, GetDetectorMaterial("SilverEpoxyGlue_INTT"),
-                                                            (boost::format("si_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *si_glue_volume = new G4LogicalVolume(si_glue_box, GetDetectorMaterial("SilverEpoxyGlue_INTT"), (boost::format("si_glue_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
@@ -238,16 +265,14 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       const double hdi_z = sifull_z + params->get_double_param("hdi_edge_z") * cm;
       hdi_z_arr[inttlayer][itype] = hdi_z;
       G4VSolid *hdi_kapton_box = new G4Box((boost::format("hdi_kapton_box_%d_%d") % inttlayer % itype).str(), hdi_kapton_x / 2., hdi_y / 2., hdi_z / 2.0);
-      G4LogicalVolume *hdi_kapton_volume = new G4LogicalVolume(hdi_kapton_box, GetDetectorMaterial("G4_KAPTON"),
-                                                               (boost::format("hdi_kapton_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *hdi_kapton_volume = new G4LogicalVolume(hdi_kapton_box, GetDetectorMaterial("G4_KAPTON"), (boost::format("hdi_kapton_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(hdi_kapton_volume, std::make_tuple(inttlayer, PHG4InttDefs::HDI_KAPTON)));
       }
       G4VSolid *hdi_copper_box = new G4Box((boost::format("hdi_copper_box_%d_%d") % inttlayer % itype).str(), hdi_copper_x / 2., hdi_y / 2., hdi_z / 2.0);
-      G4LogicalVolume *hdi_copper_volume = new G4LogicalVolume(hdi_copper_box, GetDetectorMaterial("G4_Cu"),
-                                                               (boost::format("hdi_copper_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *hdi_copper_volume = new G4LogicalVolume(hdi_copper_box, GetDetectorMaterial("G4_Cu"), (boost::format("hdi_copper_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(hdi_copper_volume, std::make_tuple(inttlayer, PHG4InttDefs::HDI_COPPER)));
@@ -257,18 +282,16 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
       // This is the part of the HDI that extends beyond the sensor inside the endcap ring
       const double hdiext_z = (itype == 0) ? 0.000001 : halfladder_inside_z - hdi_z_arr[inttlayer][0] - hdi_z;  // need to assign nonzero value for itype=0
-      G4VSolid *hdiext_kapton_box = new G4Box((boost::format("hdiext_kapton_box_%d_%s") % inttlayer % itype).str(),
-                                              hdi_kapton_x / 2., hdi_y / 2., hdiext_z / 2.0);
+      // const double hdiext_z = (itype == 0) ? 0.000001 : 0.8;
+      G4VSolid *hdiext_kapton_box = new G4Box((boost::format("hdiext_kapton_box_%d_%s") % inttlayer % itype).str(), hdi_kapton_x / 2., hdi_y / 2., hdiext_z / 2.0);
       G4LogicalVolume *hdiext_kapton_volume = new G4LogicalVolume(hdiext_kapton_box, GetDetectorMaterial("G4_KAPTON"),  // was "FPC"
-                                                                  (boost::format("hdiext_kapton_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
+                                                                  (boost::format("hdiext_kapton_%d_%s") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(hdiext_kapton_volume, std::make_tuple(inttlayer, PHG4InttDefs::HDIEXT_KAPTON)));
       }
-      G4VSolid *hdiext_copper_box = new G4Box((boost::format("hdiext_copper_box_%d_%s") % inttlayer % itype).str(),
-                                              hdi_copper_x / 2., hdi_y / 2., hdiext_z / 2.0);
-      G4LogicalVolume *hdiext_copper_volume = new G4LogicalVolume(hdiext_copper_box, GetDetectorMaterial("G4_Cu"),
-                                                                  (boost::format("hdiext_copper_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *hdiext_copper_box = new G4Box((boost::format("hdiext_copper_box_%d_%s") % inttlayer % itype).str(), hdi_copper_x / 2., hdi_y / 2., hdiext_z / 2.0);
+      G4LogicalVolume *hdiext_copper_volume = new G4LogicalVolume(hdiext_copper_box, GetDetectorMaterial("G4_Cu"), (boost::format("hdiext_copper_%d_%s") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(hdiext_copper_volume, std::make_tuple(inttlayer, PHG4InttDefs::HDIEXT_COPPER)));
@@ -278,8 +301,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
       // FPHX
       G4VSolid *fphx_box = new G4Box((boost::format("fphx_box_%d_%d") % inttlayer % itype).str(), fphx_x / 2., fphx_y / 2., fphx_z / 2.);
-      G4LogicalVolume *fphx_volume = new G4LogicalVolume(fphx_box, GetDetectorMaterial("G4_Si"),
-                                                         (boost::format("fphx_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *fphx_volume = new G4LogicalVolume(fphx_box, GetDetectorMaterial("G4_Si"), (boost::format("fphx_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(fphx_volume, std::make_tuple(inttlayer, PHG4InttDefs::FPHX)));
@@ -290,10 +312,9 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
       //  FPHX Container
       // make a container for the FPHX chips needed for this sensor, and  then place them in the container
-      G4VSolid *fphxcontainer_box = new G4Box((boost::format("fphxcontainer_box_%d_%d") % inttlayer % itype).str(),
-                                              fphx_x / 2., fphx_y / 2., hdi_z / 2.);
-      G4LogicalVolume *fphxcontainer_volume = new G4LogicalVolume(fphxcontainer_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")),
-                                                                  (boost::format("fphxcontainer_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *fphxcontainer_box = new G4Box((boost::format("fphxcontainer_box_%d_%d") % inttlayer % itype).str(), fphx_x / 2., fphx_y / 2., hdi_z / 2.);
+      G4LogicalVolume *fphxcontainer_volume =
+          new G4LogicalVolume(fphxcontainer_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), (boost::format("fphxcontainer_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       m_DisplayAction->AddVolume(fphxcontainer_volume, "FPHXContainer");
 
       // Install multiple FPHX volumes in the FPHX container volume
@@ -322,17 +343,17 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         exit(1);
       }
       cell_length_z = strip_z * nstrips_z_sensor / ncopy;
+      // NOLINTNEXTLINE(bugprone-integer-division)
       offsetz = (ncopy % 2 == 0) ? -2. * cell_length_z / 2. * double(ncopy / 2) + cell_length_z / 2. + fphx_offset_z : -2. * cell_length_z / 2. * double(ncopy / 2) + fphx_offset_z;
 
       G4VPVParameterisation *fphxparam = new PHG4InttFPHXParameterisation(fphx_offsetx, +fphx_offsety, offsetz, 2. * cell_length_z / 2., ncopy);
-      new G4PVParameterised((boost::format("fphxcontainer_%d_%d") % inttlayer % itype).str(),
-                            fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, OverlapCheck());
+      new G4PVParameterised((boost::format("fphxcontainer_%d_%d") % inttlayer % itype).str(), fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, OverlapCheck());
 
       // Glue for FPHX, silver powder epoxy, impletemented in the same way as FPHX
       G4VSolid *fphx_glue_box = new G4Box((boost::format("fphx_glue_box_%d_%d") % inttlayer % itype).str(), fphx_glue_x / 2., fphx_y / 2., fphx_z / 2.);
 
-      G4LogicalVolume *fphx_glue_volume = new G4LogicalVolume(fphx_glue_box, GetDetectorMaterial("SilverEpoxyGlue_INTT"),
-                                                              (boost::format("fphx_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *fphx_glue_volume =
+          new G4LogicalVolume(fphx_glue_box, GetDetectorMaterial("SilverEpoxyGlue_INTT"), (boost::format("fphx_glue_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(fphx_glue_volume, std::make_tuple(inttlayer, PHG4InttDefs::FPHX_GLUE)));
@@ -341,22 +362,20 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
       //  Glue of FPHX Container
       // make a container for the glue of FPHX chips, and then place them in the container
-      G4VSolid *fphx_gluecontainer_box = new G4Box((boost::format("fphx_gluecontainer_box_%d_%d") % inttlayer % itype).str(),
-                                                   fphx_glue_x / 2., fphx_y / 2., hdi_z / 2.);
+      G4VSolid *fphx_gluecontainer_box = new G4Box((boost::format("fphx_gluecontainer_box_%d_%d") % inttlayer % itype).str(), fphx_glue_x / 2., fphx_y / 2., hdi_z / 2.);
       G4LogicalVolume *fphx_gluecontainer_volume = new G4LogicalVolume(fphx_gluecontainer_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")),
-                                                                       (boost::format("fphx_gluecontainer_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+                                                                       (boost::format("fphx_gluecontainer_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       // Parameters for FPHX glue for G4VPVParameterisation are the same as FPGX's, so reuse them!
       G4VPVParameterisation *fphx_glueparam = new PHG4InttFPHXParameterisation(fphx_offsetx, +fphx_offsety, offsetz, 2. * cell_length_z / 2., ncopy);
 
-      new G4PVParameterised((boost::format("glue_fphxcontainer_%d_%d") % inttlayer % itype).str(),
-                            fphx_glue_volume, fphx_gluecontainer_volume, kZAxis, ncopy, fphx_glueparam, OverlapCheck());
+      new G4PVParameterised((boost::format("glue_fphxcontainer_%d_%d") % inttlayer % itype).str(), fphx_glue_volume, fphx_gluecontainer_volume, kZAxis, ncopy, fphx_glueparam, OverlapCheck());
       m_DisplayAction->AddVolume(fphx_gluecontainer_volume, "FPHXGlueContainer");
 
       double stave_x = 0.;
       double stave_y = 0.;
-      G4LogicalVolume *stave_volume = NULL;
-      G4LogicalVolume *staveext_volume = NULL;
+      G4LogicalVolume *stave_volume = nullptr;
+      G4LogicalVolume *staveext_volume = nullptr;
 
       // Carbon stave. This consists of the formed sheet, cooling water, the water tube, glue for the tube,
       // rohacell foam to fill space around the tube, and the flat CFRP sheet, which completes the outer shell surrounds
@@ -382,18 +401,16 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
       for (int i = 0; i < 4; i++)
       {
-        stave_curve_cons[i] = new G4Tubs((boost::format("stave_curve_cons_%d_%d_%d") % inttlayer % itype % i).str(),
-                                         Rcmin, Rcmax, stave_z / 2., phic_begin[i], dphic[i]);
-        stave_curve_volume[i] = new G4LogicalVolume(stave_curve_cons[i], GetDetectorMaterial("CFRP_INTT"),
-                                                    (boost::format("stave_curve_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
+        stave_curve_cons[i] = new G4Tubs((boost::format("stave_curve_cons_%d_%d_%d") % inttlayer % itype % i).str(), Rcmin, Rcmax, stave_z / 2., phic_begin[i], dphic[i]);
+        stave_curve_volume[i] =
+            new G4LogicalVolume(stave_curve_cons[i], GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_curve_volume_%d_%d_%d") % inttlayer % itype % i).str(), nullptr, nullptr, nullptr);
         if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
         {
           m_PassiveVolumeTuple.insert(std::make_pair(stave_curve_volume[i], std::make_tuple(inttlayer, PHG4InttDefs::STAVE_CURVE)));
         }
-        stave_curve_ext_cons[i] = new G4Tubs((boost::format("stave_curve_ext_cons_%d_%d_%d") % inttlayer % itype % i).str(),
-                                             Rcmin, Rcmax, hdiext_z / 2., phic_begin[i], dphic[i]);
-        stave_curve_ext_volume[i] = new G4LogicalVolume(stave_curve_ext_cons[i], GetDetectorMaterial("CFRP_INTT"),
-                                                        (boost::format("stave_curve_ext_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
+        stave_curve_ext_cons[i] = new G4Tubs((boost::format("stave_curve_ext_cons_%d_%d_%d") % inttlayer % itype % i).str(), Rcmin, Rcmax, hdiext_z / 2., phic_begin[i], dphic[i]);
+        stave_curve_ext_volume[i] =
+            new G4LogicalVolume(stave_curve_ext_cons[i], GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_curve_ext_volume_%d_%d_%d") % inttlayer % itype % i).str(), nullptr, nullptr, nullptr);
         if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
         {
           m_PassiveVolumeTuple.insert(std::make_pair(stave_curve_ext_volume[i], std::make_tuple(inttlayer, PHG4InttDefs::STAVEEXT_CURVE)));
@@ -411,36 +428,36 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       double rohacell_straight_y = params->get_double_param("stave_straight_rohacell_y") * cm;
 
       // Outer straight sections of stave
-      G4VSolid *stave_straight_outer_box = new G4Box((boost::format("stave_straight_outer_box_%d_%d") % inttlayer % itype).str(),
-                                                     stave_thickness / 2., stave_straight_outer_y / 2., stave_z / 2.);
-      G4LogicalVolume *stave_straight_outer_volume = new G4LogicalVolume(stave_straight_outer_box, GetDetectorMaterial("CFRP_INTT"),
-                                                                         (boost::format("stave_straight_outer_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *stave_straight_outer_box =
+          new G4Box((boost::format("stave_straight_outer_box_%d_%d") % inttlayer % itype).str(), stave_thickness / 2., stave_straight_outer_y / 2., stave_z / 2.);
+      G4LogicalVolume *stave_straight_outer_volume =
+          new G4LogicalVolume(stave_straight_outer_box, GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_straight_outer_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(stave_straight_outer_volume, std::make_tuple(inttlayer, PHG4InttDefs::STAVE_STRAIGHT_OUTER)));
       }
-      G4VSolid *stave_straight_outer_ext_box = new G4Box((boost::format("stave_straight_outer_ext_box_%d_%s") % inttlayer % itype).str(),
-                                                         stave_thickness / 2., stave_straight_outer_y / 2., hdiext_z / 2.);
-      G4LogicalVolume *stave_straight_outer_ext_volume = new G4LogicalVolume(stave_straight_outer_ext_box, GetDetectorMaterial("CFRP_INTT"),
-                                                                             (boost::format("stave_straight_outer_ext_volume_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *stave_straight_outer_ext_box =
+          new G4Box((boost::format("stave_straight_outer_ext_box_%d_%s") % inttlayer % itype).str(), stave_thickness / 2., stave_straight_outer_y / 2., hdiext_z / 2.);
+      G4LogicalVolume *stave_straight_outer_ext_volume =
+          new G4LogicalVolume(stave_straight_outer_ext_box, GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_straight_outer_ext_volume_%d_%s") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(stave_straight_outer_ext_volume, std::make_tuple(inttlayer, PHG4InttDefs::STAVEEXT_STRAIGHT_OUTER)));
       }
 
-      //Top surface of stave
-      G4VSolid *stave_straight_cooler_box = new G4Box((boost::format("stave_straight_cooler_box_%d_%d") % inttlayer % itype).str(),
-                                                      stave_thickness / 2., stave_straight_cooler_y / 2., stave_z / 2.);
-      G4LogicalVolume *stave_straight_cooler_volume = new G4LogicalVolume(stave_straight_cooler_box, GetDetectorMaterial("CFRP_INTT"),
-                                                                          (boost::format("stave_straight_cooler_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      // Top surface of stave
+      G4VSolid *stave_straight_cooler_box =
+          new G4Box((boost::format("stave_straight_cooler_box_%d_%d") % inttlayer % itype).str(), stave_thickness / 2., stave_straight_cooler_y / 2., stave_z / 2.);
+      G4LogicalVolume *stave_straight_cooler_volume =
+          new G4LogicalVolume(stave_straight_cooler_box, GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_straight_cooler_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(stave_straight_cooler_volume, std::make_tuple(inttlayer, PHG4InttDefs::STAVE_STRAIGHT_COOLER)));
       }
-      G4VSolid *stave_straight_cooler_ext_box = new G4Box((boost::format("stave_straight_cooler_ext_box_%d_%d") % inttlayer % itype).str(),
-                                                          stave_thickness / 2., stave_straight_cooler_y / 2., hdiext_z / 2.);
-      G4LogicalVolume *stave_straight_cooler_ext_volume = new G4LogicalVolume(stave_straight_cooler_ext_box, GetDetectorMaterial("CFRP_INTT"),
-                                                                              (boost::format("stave_straight_cooler_ext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *stave_straight_cooler_ext_box =
+          new G4Box((boost::format("stave_straight_cooler_ext_box_%d_%d") % inttlayer % itype).str(), stave_thickness / 2., stave_straight_cooler_y / 2., hdiext_z / 2.);
+      G4LogicalVolume *stave_straight_cooler_ext_volume =
+          new G4LogicalVolume(stave_straight_cooler_ext_box, GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_straight_cooler_ext_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(stave_straight_cooler_ext_volume, std::make_tuple(inttlayer, PHG4InttDefs::STAVEEXT_STRAIGHT_COOLER)));
@@ -448,37 +465,35 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
       // Slant straight sections of stave
       double stave_slant_cooler_y = params->get_double_param("stave_slant_cooler_y") * cm;
-      G4VSolid *stave_slant_cooler_box = new G4Box((boost::format("stave_slant_cooler_box_%d_%d") % inttlayer % itype).str(),
-                                                   stave_thickness / 2., stave_slant_cooler_y / 2., stave_z / 2.);
-      G4LogicalVolume *stave_slant_cooler_volume = new G4LogicalVolume(stave_slant_cooler_box, GetDetectorMaterial("CFRP_INTT"),
-                                                                       (boost::format("stave_slant_cooler_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *stave_slant_cooler_box = new G4Box((boost::format("stave_slant_cooler_box_%d_%d") % inttlayer % itype).str(), stave_thickness / 2., stave_slant_cooler_y / 2., stave_z / 2.);
+      G4LogicalVolume *stave_slant_cooler_volume =
+          new G4LogicalVolume(stave_slant_cooler_box, GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_slant_cooler_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(stave_slant_cooler_volume, std::make_tuple(inttlayer, PHG4InttDefs::STAVE_STRAIGHT_COOLER)));
       }
-      G4VSolid *stave_slant_cooler_ext_box = new G4Box((boost::format("stave_lant_cooler_ext_box_%d_%d") % inttlayer % itype).str(),
-                                                       stave_thickness / 2., stave_slant_cooler_y / 2., hdiext_z / 2.);
-      G4LogicalVolume *stave_slant_cooler_ext_volume = new G4LogicalVolume(stave_slant_cooler_ext_box, GetDetectorMaterial("CFRP_INTT"),
-                                                                           (boost::format("stave_slant_cooler_ext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *stave_slant_cooler_ext_box =
+          new G4Box((boost::format("stave_lant_cooler_ext_box_%d_%d") % inttlayer % itype).str(), stave_thickness / 2., stave_slant_cooler_y / 2., hdiext_z / 2.);
+      G4LogicalVolume *stave_slant_cooler_ext_volume =
+          new G4LogicalVolume(stave_slant_cooler_ext_box, GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_slant_cooler_ext_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(stave_slant_cooler_ext_volume, std::make_tuple(inttlayer, PHG4InttDefs::STAVEEXT_STRAIGHT_COOLER)));
       }
 
       // Flat CFRP sheet on the bottom of the stave structure. It was introduced instead of PGS
-      G4VSolid *stave_bottom_cooler_box = new G4Box((boost::format("stave_bottom_cooler_box_%d_%d") % inttlayer % itype).str(),
-                                                    stave_thickness / 2., hdi_y / 2., stave_z / 2.);
+      G4VSolid *stave_bottom_cooler_box = new G4Box((boost::format("stave_bottom_cooler_box_%d_%d") % inttlayer % itype).str(), stave_thickness / 2., hdi_y / 2., stave_z / 2.);
 
-      G4LogicalVolume *stave_bottom_cooler_volume = new G4LogicalVolume(stave_bottom_cooler_box, GetDetectorMaterial("CFRP_INTT"),
-                                                                        (boost::format("stave_bottom_cooler_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *stave_bottom_cooler_volume =
+          new G4LogicalVolume(stave_bottom_cooler_box, GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_bottom_cooler_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(stave_bottom_cooler_volume, std::make_tuple(inttlayer, PHG4InttDefs::STAVE_BOTTOM_COOLER)));  // should be changed soon
       }
 
       G4VSolid *stave_bottom_cooler_ext_box = new G4Box((boost::format("stave_bottom_cooler_ext_box_%d_%s") % inttlayer % itype).str(), stave_thickness / 2., hdi_y / 2., hdiext_z / 2.);
-      G4LogicalVolume *stave_bottom_cooler_ext_volume = new G4LogicalVolume(stave_bottom_cooler_ext_box, GetDetectorMaterial("CFRP_INTT"),
-                                                                            (boost::format("stave_bottom_cooler_ext_volume_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *stave_bottom_cooler_ext_volume =
+          new G4LogicalVolume(stave_bottom_cooler_ext_box, GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_bottom_cooler_ext_volume_%d_%s") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
       {
         m_PassiveVolumeTuple.insert(std::make_pair(stave_bottom_cooler_ext_volume, std::make_tuple(inttlayer, PHG4InttDefs::STAVEEXT_BOTTOM_COOLER)));
@@ -497,50 +512,44 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       const double Rpmin = 0.10 * cm;  // inner radius of cooling pipe section, same at both ends
       const double Rpmax = 0.15 * cm;  // outer radius of cooling pipe section, same at both ends
       G4VSolid *stave_glue_box = new G4Box((boost::format("stave_glue_box_%d_%d") % inttlayer % itype).str(), 3. / 2, 3. / 2., stave_z / 2.);
-      G4LogicalVolume *stave_glue_volume = new G4LogicalVolume(stave_glue_box, GetDetectorMaterial("Epoxy"),
-                                                               (boost::format("stave_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *stave_glue_volume = new G4LogicalVolume(stave_glue_box, GetDetectorMaterial("Epoxy"), (boost::format("stave_glue_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       G4VSolid *staveext_glue_box = new G4Box((boost::format("staveext_glue_box_%d_%d") % inttlayer % itype).str(), 3. / 2., 3. / 2., hdiext_z / 2.);
-      G4LogicalVolume *staveext_glue_volume = new G4LogicalVolume(staveext_glue_box, GetDetectorMaterial("Epoxy"),
-                                                                  (boost::format("staveext_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *staveext_glue_volume =
+          new G4LogicalVolume(staveext_glue_box, GetDetectorMaterial("Epoxy"), (boost::format("staveext_glue_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       m_DisplayAction->AddVolume(stave_glue_volume, "StaveGlueBox");
       m_DisplayAction->AddVolume(staveext_glue_volume, "StaveGlueBox");
 
-      G4VSolid *stave_pipe_cons = new G4Tubs((boost::format("stave_pipe_cons_%d_%d") % inttlayer % itype).str(),
-                                             Rpmin, Rpmax, stave_z / 2., 0, 2.0 * M_PI);
-      G4LogicalVolume *stave_pipe_volume = new G4LogicalVolume(stave_pipe_cons, GetDetectorMaterial("CFRP_INTT"),
-                                                               (boost::format("stave_pipe_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *stave_pipe_cons = new G4Tubs((boost::format("stave_pipe_cons_%d_%d") % inttlayer % itype).str(), Rpmin, Rpmax, stave_z / 2., 0, 2.0 * M_PI);
+      G4LogicalVolume *stave_pipe_volume = new G4LogicalVolume(stave_pipe_cons, GetDetectorMaterial("CFRP_INTT"), (boost::format("stave_pipe_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
-      G4VSolid *staveext_pipe_cons = new G4Tubs((boost::format("staveext_pipe_cons_%d_%d") % inttlayer % itype).str(),
-                                                Rpmin, Rpmax, hdiext_z / 2., 0, 2.0 * M_PI);
-      G4LogicalVolume *staveext_pipe_volume = new G4LogicalVolume(staveext_pipe_cons, GetDetectorMaterial("CFRP_INTT"),
-                                                                  (boost::format("staveext_pipe_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *staveext_pipe_cons = new G4Tubs((boost::format("staveext_pipe_cons_%d_%d") % inttlayer % itype).str(), Rpmin, Rpmax, hdiext_z / 2., 0, 2.0 * M_PI);
+      G4LogicalVolume *staveext_pipe_volume =
+          new G4LogicalVolume(staveext_pipe_cons, GetDetectorMaterial("CFRP_INTT"), (boost::format("staveext_pipe_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       m_DisplayAction->AddVolume(stave_pipe_volume, "StavePipe");
       m_DisplayAction->AddVolume(staveext_pipe_volume, "StavePipe");
 
-      G4VSolid *stave_water_cons = new G4Tubs((boost::format("stave_water_cons_%d_%d") % inttlayer % itype).str(),
-                                              0., Rpmin, stave_z / 2., 0, 2.0 * M_PI);
-      G4LogicalVolume *stave_water_volume = new G4LogicalVolume(stave_water_cons, GetDetectorMaterial("G4_WATER"),
-                                                                (boost::format("stave_water_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *stave_water_cons = new G4Tubs((boost::format("stave_water_cons_%d_%d") % inttlayer % itype).str(), 0., Rpmin, stave_z / 2., 0, 2.0 * M_PI);
+      G4LogicalVolume *stave_water_volume =
+          new G4LogicalVolume(stave_water_cons, GetDetectorMaterial("G4_WATER"), (boost::format("stave_water_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
-      G4VSolid *staveext_water_cons = new G4Tubs((boost::format("staveext_water_cons_%d_%d") % inttlayer % itype).str(),
-                                                 0., Rpmin, hdiext_z / 2., 0, 2.0 * M_PI);
-      G4LogicalVolume *staveext_water_volume = new G4LogicalVolume(staveext_water_cons, GetDetectorMaterial("G4_WATER"),
-                                                                   (boost::format("staveext_water_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4VSolid *staveext_water_cons = new G4Tubs((boost::format("staveext_water_cons_%d_%d") % inttlayer % itype).str(), 0., Rpmin, hdiext_z / 2., 0, 2.0 * M_PI);
+      G4LogicalVolume *staveext_water_volume =
+          new G4LogicalVolume(staveext_water_cons, GetDetectorMaterial("G4_WATER"), (boost::format("staveext_water_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       m_DisplayAction->AddVolume(stave_water_volume, "StaveWater");
       m_DisplayAction->AddVolume(staveext_water_volume, "StaveWater");
 
-      //rohacell foam
-      //straight boxes
+      // rohacell foam
+      // straight boxes
       G4VSolid *rohacell_straight_cons = new G4Box((boost::format("rohacell_straight_cons_%d_%d") % inttlayer % itype).str(), 3. / 2, rohacell_straight_y / 2., stave_z / 2.);
-      G4LogicalVolume *rohacell_straight_volume = new G4LogicalVolume(rohacell_straight_cons, GetDetectorMaterial("ROHACELL_FOAM_51"),
-                                                                      (boost::format("rohacell_straight_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *rohacell_straight_volume =
+          new G4LogicalVolume(rohacell_straight_cons, GetDetectorMaterial("ROHACELL_FOAM_51"), (boost::format("rohacell_straight_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       G4VSolid *rohacellext_straight_cons = new G4Box((boost::format("rohacellext_straight_cons_%d_%d") % inttlayer % itype).str(), 3. / 2, rohacell_straight_y / 2., hdiext_z / 2.);
-      G4LogicalVolume *rohacellext_straight_volume = new G4LogicalVolume(rohacellext_straight_cons, GetDetectorMaterial("ROHACELL_FOAM_51"),
-                                                                         (boost::format("rohacellext_straight_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *rohacellext_straight_volume =
+          new G4LogicalVolume(rohacellext_straight_cons, GetDetectorMaterial("ROHACELL_FOAM_51"), (boost::format("rohacellext_straight_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       // make curved sections for rohacell foam
       const double rh_phic_begin[2] = {-dphi_c, 0.0};
@@ -551,14 +560,12 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       G4LogicalVolume *rohacellext_curve_volume[2];
       for (int i = 0; i < 2; i++)
       {
-        rohacell_curve_cons[i] = new G4Tubs((boost::format("rohacell_curve_cons_%d_%d_%d") % inttlayer % itype % i).str(),
-                                            0., Rcmin, stave_z / 2., rh_phic_begin[i], rh_dphic[i]);
-        rohacell_curve_volume[i] = new G4LogicalVolume(rohacell_curve_cons[i], GetDetectorMaterial("ROHACELL_FOAM_51"),
-                                                       (boost::format("rohacell_curve_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
-        rohacellext_curve_cons[i] = new G4Tubs((boost::format("rohacellext_curve_cons_%d_%d_%d") % inttlayer % itype % i).str(),
-                                               0., Rcmin, hdiext_z / 2., rh_phic_begin[i], rh_dphic[i]);
+        rohacell_curve_cons[i] = new G4Tubs((boost::format("rohacell_curve_cons_%d_%d_%d") % inttlayer % itype % i).str(), 0., Rcmin, stave_z / 2., rh_phic_begin[i], rh_dphic[i]);
+        rohacell_curve_volume[i] =
+            new G4LogicalVolume(rohacell_curve_cons[i], GetDetectorMaterial("ROHACELL_FOAM_51"), (boost::format("rohacell_curve_volume_%d_%d_%d") % inttlayer % itype % i).str(), nullptr, nullptr, nullptr);
+        rohacellext_curve_cons[i] = new G4Tubs((boost::format("rohacellext_curve_cons_%d_%d_%d") % inttlayer % itype % i).str(), 0., Rcmin, hdiext_z / 2., rh_phic_begin[i], rh_dphic[i]);
         rohacellext_curve_volume[i] = new G4LogicalVolume(rohacellext_curve_cons[i], GetDetectorMaterial("ROHACELL_FOAM_51"),
-                                                          (boost::format("rohacellext_curve_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
+                                                          (boost::format("rohacellext_curve_volume_%d_%d_%d") % inttlayer % itype % i).str(), nullptr, nullptr, nullptr);
       }
 
       // make trapezoidal sections for rohacell foam
@@ -590,12 +597,12 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         rohatrap[7] = rohatrap[3];
 
         rohacell_trap_cons[i] = new G4GenericTrap((boost::format("rohacell_trap_cons_%d_%d_%d") % inttlayer % itype % i).str(), stave_z / 2., rohatrap);
-        rohacell_trap_volume[i] = new G4LogicalVolume(rohacell_trap_cons[i], GetDetectorMaterial("ROHACELL_FOAM_51"),
-                                                      (boost::format("rohacell_trap_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
+        rohacell_trap_volume[i] =
+            new G4LogicalVolume(rohacell_trap_cons[i], GetDetectorMaterial("ROHACELL_FOAM_51"), (boost::format("rohacell_trap_volume_%d_%d_%d") % inttlayer % itype % i).str(), nullptr, nullptr, nullptr);
 
         rohacellext_trap_cons[i] = new G4GenericTrap((boost::format("rohacellext_trap_cons_%d_%d_%d") % inttlayer % itype % i).str(), hdiext_z / 2., rohatrap);
-        rohacellext_trap_volume[i] = new G4LogicalVolume(rohacellext_trap_cons[i], GetDetectorMaterial("ROHACELL_FOAM_51"),
-                                                         (boost::format("rohacellext_trap_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
+        rohacellext_trap_volume[i] =
+            new G4LogicalVolume(rohacellext_trap_cons[i], GetDetectorMaterial("ROHACELL_FOAM_51"), (boost::format("rohacellext_trap_volume_%d_%d_%d") % inttlayer % itype % i).str(), nullptr, nullptr, nullptr);
       }
 
       m_DisplayAction->AddVolume(rohacell_straight_volume, "RohaCell");
@@ -627,24 +634,24 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       G4ThreeVector stvTransneg(stave_x / 2., -stave_y / 2., 0.);
 
       G4VSolid *stave_basebox = new G4Box((boost::format("stave_basebox_%d_%d") % inttlayer % itype).str(), stave_x / 2., stave_y / 2., stave_z / 2.);
-      G4VSolid *stave_subtbox = new G4Box((boost::format("stave_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, stave_y / 1.5, stave_z / 1.);  // has to be longer in z to avoid coincident surface
+      G4VSolid *stave_subtbox =
+          new G4Box((boost::format("stave_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, stave_y / 1.5, stave_z / 1.);  // has to be longer in z to avoid coincident surface
 
       G4VSolid *stave_box1 = new G4SubtractionSolid((boost::format("stave_box1_%d_%d") % inttlayer % itype).str(), stave_basebox, stave_subtbox, stv_rot_pos, stvTranspos);
 
       G4VSolid *stave_box = new G4SubtractionSolid((boost::format("stave_box_%d_%d") % inttlayer % itype).str(), stave_box1, stave_subtbox, stv_rot_neg, stvTransneg);
 
-      stave_volume = new G4LogicalVolume(stave_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")),
-                                         (boost::format("stave_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      stave_volume = new G4LogicalVolume(stave_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), (boost::format("stave_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       G4VSolid *staveext_basebox = new G4Box((boost::format("staveext_basebox_%d_%d") % inttlayer % itype).str(), stave_x / 2., stave_y / 2., hdiext_z / 2.);
-      G4VSolid *staveext_subtbox = new G4Box((boost::format("staveext_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, stave_y / 1.5, hdiext_z / 1.);  // has to be longer in z to avoid coincident surface
+      G4VSolid *staveext_subtbox =
+          new G4Box((boost::format("staveext_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, stave_y / 1.5, hdiext_z / 1.);  // has to be longer in z to avoid coincident surface
 
       G4VSolid *staveext_box1 = new G4SubtractionSolid((boost::format("staveext_box1_%d_%d") % inttlayer % itype).str(), staveext_basebox, staveext_subtbox, stv_rot_pos, stvTranspos);
 
       G4VSolid *staveext_box = new G4SubtractionSolid((boost::format("staveext_box_%d_%d") % inttlayer % itype).str(), staveext_box1, staveext_subtbox, stv_rot_neg, stvTransneg);
 
-      staveext_volume = new G4LogicalVolume(staveext_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")),
-                                            (boost::format("staveext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      staveext_volume = new G4LogicalVolume(staveext_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), (boost::format("staveext_volume_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       // the rotation matrices are just used by G4VSolid, ownership is not taken over
       delete stv_rot_pos;
       delete stv_rot_neg;
@@ -659,31 +666,24 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       {
         // only one cooling tube in laddertype 0
         // Place the straight sections. We add the middle, then above x axis, then below x axis
-        double x_off_str[3] =
-            {
-                Rcavge - stave_x / 2.,
-                (Rcmax - Rcmin) / 2. - stave_x / 2.,
-                (Rcmax - Rcmin) / 2. - stave_x / 2.};
-        double y_off_str[3] =
-            {
-                0.0,
-                +stave_straight_cooler_y / 2. + 2. * curve_length_y + stave_straight_outer_y / 2.,
-                -stave_straight_cooler_y / 2. - 2. * curve_length_y - stave_straight_outer_y / 2.};
+        double x_off_str[3] = {Rcavge - stave_x / 2., (Rcmax - Rcmin) / 2. - stave_x / 2., (Rcmax - Rcmin) / 2. - stave_x / 2.};
+        double y_off_str[3] = {0.0, +stave_straight_cooler_y / 2. + 2. * curve_length_y + stave_straight_outer_y / 2.,
+                               -stave_straight_cooler_y / 2. - 2. * curve_length_y - stave_straight_outer_y / 2.};
 
         for (int i = 0; i < 3; i++)
         {
           if (i == 0)
           {
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_volume,
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_volume,
                               (boost::format("stave_straight_cooler_%d_%d_%d") % i % inttlayer % itype).str(), stave_volume, false, 0, OverlapCheck());
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_ext_volume,
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_ext_volume,
                               (boost::format("stave_straight_cooler_ext_%d_%d_%d") % i % inttlayer % itype).str(), staveext_volume, false, 0, OverlapCheck());
           }
           else
           {
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_volume,
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_volume,
                               (boost::format("stave_straight_outer_%d_%d_%d") % i % inttlayer % itype).str(), stave_volume, false, 0, OverlapCheck());
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_ext_volume,
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_ext_volume,
                               (boost::format("stave_straight_outer_ext_%d_%d_%d") % i % inttlayer % itype).str(), staveext_volume, false, 0, OverlapCheck());
           }
         }
@@ -693,67 +693,60 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         //      Then it is moved to the outside or the inside of the stave volume by a translation of +/-  cooler_gap_x / 2.
         // we start at lowest y and work up in y
 
-        double x_off_cooler[4] =
-            {
-                Rcavge - cooler_gap_x / 2.,
-                -Rcavge + cooler_gap_x / 2.,
-                -Rcavge + cooler_gap_x / 2.,
-                Rcavge - cooler_gap_x / 2.};
-        double y_off_cooler[4] =
-            {
-                -stave_straight_cooler_y / 2. - 2. * curve_length_y,
-                -stave_straight_cooler_y / 2.,
-                +stave_straight_cooler_y / 2.,
-                +stave_straight_cooler_y / 2. + 2. * curve_length_y};
+        double x_off_cooler[4] = {Rcavge - cooler_gap_x / 2., -Rcavge + cooler_gap_x / 2., -Rcavge + cooler_gap_x / 2., Rcavge - cooler_gap_x / 2.};
+        double y_off_cooler[4] = {-stave_straight_cooler_y / 2. - 2. * curve_length_y, -stave_straight_cooler_y / 2., +stave_straight_cooler_y / 2.,
+                                  +stave_straight_cooler_y / 2. + 2. * curve_length_y};
 
         for (int i = 0; i < 4; i++)
         {
-          new G4PVPlacement(0, G4ThreeVector(x_off_cooler[i], y_off_cooler[i], 0.0), stave_curve_volume[i],
-                            (boost::format("stave_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-          new G4PVPlacement(0, G4ThreeVector(x_off_cooler[i], y_off_cooler[i], 0.0), stave_curve_ext_volume[i],
-                            (boost::format("stave_curve_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_cooler[i], y_off_cooler[i], 0.0), stave_curve_volume[i], (boost::format("stave_curve_%d_%d_%d") % inttlayer % itype % i).str(),
+                            stave_volume, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_cooler[i], y_off_cooler[i], 0.0), stave_curve_ext_volume[i], (boost::format("stave_curve_ext_%d_%d_%s") % inttlayer % itype % i).str(),
+                            staveext_volume, false, 0, OverlapCheck());
         }
       }
       else if (laddertype == PHG4InttDefs::SEGMENTATION_PHI)  // The type PHG4InttDefs::SEGMENTATION_PHI ladder
       {
         // First place the straight sections, do the extension at the same time
         // we alternate  positive and negative y values here
-        double x_off_str[6] =
-            {
-                (Rcmax + Rcmin) / 2. - stave_x / 2. + stave_thickness,  // inner straight section
-                (Rcmax + Rcmax) / 4. - stave_x / 2. + stave_thickness,  // slant section
-                (Rcmax + Rcmax) / 4. - stave_x / 2. + stave_thickness,  // slant section
-                (Rcmax - Rcmin) / 2. - stave_x / 2. + stave_thickness,  // outer straight section
-                (Rcmax - Rcmin) / 2. - stave_x / 2. + stave_thickness,  // outer straight section
-                (Rcmax - Rcmin) / 2. - stave_x / 2.                     // bottom section
-            };
-        double y_off_str[6] =
-            {
-                0.0,                                                                                                                     // inner straight section
-                -stave_straight_cooler_y / 2. - 1. * curve_length_y - cos(dphi_c) * stave_slant_cooler_y / 2.,                           // slant section
-                +stave_straight_cooler_y / 2. + 1. * curve_length_y + cos(dphi_c) * stave_slant_cooler_y / 2.,                           // slant section
-                -stave_straight_cooler_y / 2. - 2. * curve_length_y - cos(dphi_c) * stave_slant_cooler_y - stave_straight_outer_y / 2.,  // outer straight section
-                +stave_straight_cooler_y / 2. + 2. * curve_length_y + cos(dphi_c) * stave_slant_cooler_y + stave_straight_outer_y / 2.,  // outer straight section
-                0.0
-                // bottom straight section
-            };
+        double x_off_str[6] = {
+            (Rcmax + Rcmin) / 2. - stave_x / 2. + stave_thickness,  // inner straight section
+            (Rcmax + Rcmax) / 4. - stave_x / 2. + stave_thickness,  // slant section
+            (Rcmax + Rcmax) / 4. - stave_x / 2. + stave_thickness,  // slant section
+            (Rcmax - Rcmin) / 2. - stave_x / 2. + stave_thickness,  // outer straight section
+            (Rcmax - Rcmin) / 2. - stave_x / 2. + stave_thickness,  // outer straight section
+            (Rcmax - Rcmin) / 2. - stave_x / 2.                     // bottom section
+        };
+        double y_off_str[6] = {
+            0.0,                                                                                                                     // inner straight section
+            -stave_straight_cooler_y / 2. - 1. * curve_length_y - cos(dphi_c) * stave_slant_cooler_y / 2.,                           // slant section
+            +stave_straight_cooler_y / 2. + 1. * curve_length_y + cos(dphi_c) * stave_slant_cooler_y / 2.,                           // slant section
+            -stave_straight_cooler_y / 2. - 2. * curve_length_y - cos(dphi_c) * stave_slant_cooler_y - stave_straight_outer_y / 2.,  // outer straight section
+            +stave_straight_cooler_y / 2. + 2. * curve_length_y + cos(dphi_c) * stave_slant_cooler_y + stave_straight_outer_y / 2.,  // outer straight section
+            0.0
+            // bottom straight section
+        };
 
         for (int i = 0; i < 6; i++)
         {
           if (i == 0)  // inner straight section
           {
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_volume,
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_volume,
                               (boost::format("stave_straight_cooler_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_ext_volume,
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_cooler_ext_volume,
                               (boost::format("stave_straight_cooler_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
           }
           else if (i == 1 || i == 2)  // slant section
           {
             G4RotationMatrix rotation;
             if (i == 1)
+            {
               rotation.rotateZ(-1. * dphi_c);
+            }
             else if (i == 2)
+            {
               rotation.rotateZ(dphi_c);
+            }
             new G4PVPlacement(G4Transform3D(rotation, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0)), stave_slant_cooler_volume,
                               (boost::format("stave_slant_cooler_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
             new G4PVPlacement(G4Transform3D(rotation, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0)), stave_slant_cooler_ext_volume,
@@ -761,16 +754,16 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           }
           else if (i == 3 || i == 4)  // outer straight section
           {
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_volume,
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_volume,
                               (boost::format("stave_straight_outer_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_ext_volume,
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_straight_outer_ext_volume,
                               (boost::format("stave_straight_outer_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
           }
           else  // bottom
           {
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_bottom_cooler_volume,
-                              (boost::format("stave_bottom_cooler_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-            new G4PVPlacement(0, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_bottom_cooler_ext_volume,
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_bottom_cooler_volume, (boost::format("stave_bottom_cooler_%d_%d_%d") % inttlayer % itype % i).str(),
+                              stave_volume, false, 0, OverlapCheck());
+            new G4PVPlacement(nullptr, G4ThreeVector(x_off_str[i], y_off_str[i], 0.0), stave_bottom_cooler_ext_volume,
                               (boost::format("stave_bottom_cooler_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
           }
         }
@@ -778,91 +771,77 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         //// Place the curved sections
         //// here we do in order of increasing y
 
-        double x_off_curve[4] =
-            {
-                // increasing in y
-                +Rcavge - cooler_gap_x / 2. + stave_thickness / 2.,
-                -Rcavge + cooler_gap_x / 2. + stave_thickness / 2.,
-                -Rcavge + cooler_gap_x / 2. + stave_thickness / 2.,
-                +Rcavge - cooler_gap_x / 2. + stave_thickness / 2.};
-        double y_off_curve[4] =
-            {
-                // increasing in y
-                -stave_straight_cooler_y / 2. - 2. * curve_length_y - cos(dphi_c) * stave_slant_cooler_y,
-                -stave_straight_cooler_y / 2.,
-                +stave_straight_cooler_y / 2.,
-                +stave_straight_cooler_y / 2. + 2. * curve_length_y + cos(dphi_c) * stave_slant_cooler_y};
+        double x_off_curve[4] = {// increasing in y
+                                 +Rcavge - cooler_gap_x / 2. + stave_thickness / 2., -Rcavge + cooler_gap_x / 2. + stave_thickness / 2., -Rcavge + cooler_gap_x / 2. + stave_thickness / 2.,
+                                 +Rcavge - cooler_gap_x / 2. + stave_thickness / 2.};
+        double y_off_curve[4] = {// increasing in y
+                                 -stave_straight_cooler_y / 2. - 2. * curve_length_y - cos(dphi_c) * stave_slant_cooler_y, -stave_straight_cooler_y / 2., +stave_straight_cooler_y / 2.,
+                                 +stave_straight_cooler_y / 2. + 2. * curve_length_y + cos(dphi_c) * stave_slant_cooler_y};
 
         for (int i = 0; i < 4; i++)
         {
-          new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_volume[i], (boost::format("stave_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-          new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_ext_volume[i], (boost::format("stave_curve_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_volume[i], (boost::format("stave_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume,
+                            false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_ext_volume[i], (boost::format("stave_curve_ext_%d_%d_%s") % inttlayer % itype % i).str(),
+                            staveext_volume, false, 0, OverlapCheck());
         }
 
         // Place the rohacell foam
         // straight box section
-        double x_off_roha_str[2] =
-            {
-                // increasing in y
-                -cooler_wall / 2. + stave_thickness / 2.,
-                -cooler_wall / 2. + stave_thickness / 2.};
-        double y_off_roha_str[2] =
-            {
-                // increasing in y
-                -3. / 2. - rohacell_straight_y / 2.,
-                +3. / 2. + rohacell_straight_y / 2.};
+        double x_off_roha_str[2] = {// increasing in y
+                                    -cooler_wall / 2. + stave_thickness / 2., -cooler_wall / 2. + stave_thickness / 2.};
+        double y_off_roha_str[2] = {// increasing in y
+                                    -3. / 2. - rohacell_straight_y / 2., +3. / 2. + rohacell_straight_y / 2.};
 
         for (int i = 0; i < 2; i++)
         {
-          new G4PVPlacement(0, G4ThreeVector(x_off_roha_str[i], y_off_roha_str[i], 0.0), rohacell_straight_volume, (boost::format("rohacell_straight_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-          new G4PVPlacement(0, G4ThreeVector(x_off_roha_str[i], y_off_roha_str[i], 0.0), rohacellext_straight_volume, (boost::format("rohacell_straight_ext_%d_%d_%d") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_roha_str[i], y_off_roha_str[i], 0.0), rohacell_straight_volume,
+                            (boost::format("rohacell_straight_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_roha_str[i], y_off_roha_str[i], 0.0), rohacellext_straight_volume,
+                            (boost::format("rohacell_straight_ext_%d_%d_%d") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
         }
 
         //// curve section
-        double x_off_roha_curve[2] =
-            {
-                // increasing in y
-                -Rcavge + cooler_gap_x / 2. + stave_thickness / 2.,
-                -Rcavge + cooler_gap_x / 2. + stave_thickness / 2.};
-        double y_off_roha_curve[2] =
-            {
-                // increasing in y
-                -3. / 2. - rohacell_straight_y,
-                +3. / 2. + rohacell_straight_y};
+        double x_off_roha_curve[2] = {// increasing in y
+                                      -Rcavge + cooler_gap_x / 2. + stave_thickness / 2., -Rcavge + cooler_gap_x / 2. + stave_thickness / 2.};
+        double y_off_roha_curve[2] = {// increasing in y
+                                      -3. / 2. - rohacell_straight_y, +3. / 2. + rohacell_straight_y};
 
         for (int i = 0; i < 2; i++)
         {
-          new G4PVPlacement(0, G4ThreeVector(x_off_roha_curve[i], y_off_roha_curve[i], 0.0), rohacell_curve_volume[i], (boost::format("rohacell_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-          new G4PVPlacement(0, G4ThreeVector(x_off_roha_curve[i], y_off_roha_curve[i], 0.0), rohacellext_curve_volume[i], (boost::format("rohacell_curve_ext_%d_%d_%d") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_roha_curve[i], y_off_roha_curve[i], 0.0), rohacell_curve_volume[i],
+                            (boost::format("rohacell_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_roha_curve[i], y_off_roha_curve[i], 0.0), rohacellext_curve_volume[i],
+                            (boost::format("rohacell_curve_ext_%d_%d_%d") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
         }
 
         // trapezoidal section
-        double x_off_roha_trap[2] =
-            {
-                // increasing in y
-                -Rcmin - cooler_wall / 2. + cooler_gap_x / 2. + stave_thickness / 2.,
-                -Rcmin - cooler_wall / 2. + cooler_gap_x / 2. + stave_thickness / 2.};
-        double y_off_roha_trap[2] =
-            {
-                // increasing in y
-                -3. / 2. - rohacell_straight_y,
-                +3. / 2. + rohacell_straight_y};
+        double x_off_roha_trap[2] = {// increasing in y
+                                     -Rcmin - cooler_wall / 2. + cooler_gap_x / 2. + stave_thickness / 2., -Rcmin - cooler_wall / 2. + cooler_gap_x / 2. + stave_thickness / 2.};
+        double y_off_roha_trap[2] = {// increasing in y
+                                     -3. / 2. - rohacell_straight_y, +3. / 2. + rohacell_straight_y};
 
         for (int i = 0; i < 2; i++)
         {
-          new G4PVPlacement(0, G4ThreeVector(x_off_roha_trap[i], y_off_roha_trap[i], 0.0), rohacell_trap_volume[i], (boost::format("rohacell_trap_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
-          new G4PVPlacement(0, G4ThreeVector(x_off_roha_trap[i], y_off_roha_trap[i], 0.0), rohacellext_trap_volume[i], (boost::format("rohacell_trap_ext_%d_%d_%d") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_roha_trap[i], y_off_roha_trap[i], 0.0), rohacell_trap_volume[i], (boost::format("rohacell_trap_%d_%d_%d") % inttlayer % itype % i).str(),
+                            stave_volume, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(x_off_roha_trap[i], y_off_roha_trap[i], 0.0), rohacellext_trap_volume[i],
+                            (boost::format("rohacell_trap_ext_%d_%d_%d") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
         }
 
         // place glue box, cooling pipe and water inside
-        new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), stave_pipe_volume, (boost::format("stave_pipe_%d_%d") % inttlayer % itype).str(), stave_glue_volume, false, 0, OverlapCheck());
-        new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), staveext_pipe_volume, (boost::format("stave_pipe_ext_%d_%d") % inttlayer % itype).str(), staveext_glue_volume, false, 0, OverlapCheck());
-        new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), stave_water_volume, (boost::format("stave_water_%d_%d") % inttlayer % itype).str(), stave_glue_volume, false, 0, OverlapCheck());
-        new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0), staveext_water_volume, (boost::format("stave_water_ext_%d_%d") % inttlayer % itype).str(), staveext_glue_volume, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(0.0, 0.0, 0.0), stave_pipe_volume, (boost::format("stave_pipe_%d_%d") % inttlayer % itype).str(), stave_glue_volume, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(0.0, 0.0, 0.0), staveext_pipe_volume, (boost::format("stave_pipe_ext_%d_%d") % inttlayer % itype).str(), staveext_glue_volume, false, 0,
+                          OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(0.0, 0.0, 0.0), stave_water_volume, (boost::format("stave_water_%d_%d") % inttlayer % itype).str(), stave_glue_volume, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(0.0, 0.0, 0.0), staveext_water_volume, (boost::format("stave_water_ext_%d_%d") % inttlayer % itype).str(), staveext_glue_volume, false, 0,
+                          OverlapCheck());
 
         // place of stave_glue_volume -cooler_wall / 2. + stave_thickness / 2. is actually 0. But I don't put 0 directry to make the origin of the value clear
-        new G4PVPlacement(0, G4ThreeVector(-cooler_wall / 2. + stave_thickness / 2., 0.0, 0.0), stave_glue_volume, (boost::format("stave_glue_%d_%d") % inttlayer % itype).str(), stave_volume, false, 0, OverlapCheck());
-        new G4PVPlacement(0, G4ThreeVector(-cooler_wall / 2. + stave_thickness / 2., 0.0, 0.0), staveext_glue_volume, (boost::format("stave_glue_ext_%d_%d") % inttlayer % itype).str(), staveext_volume, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(-cooler_wall / 2. + stave_thickness / 2., 0.0, 0.0), stave_glue_volume, (boost::format("stave_glue_%d_%d") % inttlayer % itype).str(), stave_volume,
+                          false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(-cooler_wall / 2. + stave_thickness / 2., 0.0, 0.0), staveext_glue_volume, (boost::format("stave_glue_ext_%d_%d") % inttlayer % itype).str(),
+                          staveext_volume, false, 0, OverlapCheck());
       }
       else
       {
@@ -877,6 +856,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       // Make the ladder volume first
       // We are still in the loop over inner or outer sensors. This is the ladder volume corresponding to this sensor.
       // But the thickness of the glue for FPHX is used since it's taller than the sensor in x.
+
       const double ladder_x = stave_x + hdi_kapton_x + hdi_copper_x + fphx_glue_x + fphx_x;
       double ladder_y = hdi_y;
 
@@ -890,22 +870,26 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       G4ThreeVector ladTransneg(ladder_x / 2., -ladder_y / 2., 0.);
 
       G4VSolid *ladder_basebox = new G4Box((boost::format("ladder_basebox_%d_%d") % inttlayer % itype).str(), ladder_x / 2., ladder_y / 2., hdi_z / 2.);
-      G4VSolid *ladder_subtbox = new G4Box((boost::format("ladder_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, ladder_y / 1.5, hdi_z / 1.);  // has to be longer in z to avoid coincident surface
+      G4VSolid *ladder_subtbox =
+          new G4Box((boost::format("ladder_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, ladder_y / 1.5, hdi_z / 1.);  // has to be longer in z to avoid coincident surface
 
       G4VSolid *ladder_box1 = new G4SubtractionSolid((boost::format("ladder_box1_%d_%d") % inttlayer % itype).str(), ladder_basebox, ladder_subtbox, lad_box_rotpos, ladTranspos);
 
       G4VSolid *ladder_box = new G4SubtractionSolid((boost::format("ladder_box_%d_%d") % inttlayer % itype).str(), ladder_box1, ladder_subtbox, lad_box_rotneg, ladTransneg);
 
-      G4LogicalVolume *ladder_volume = new G4LogicalVolume(ladder_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), (boost::format("ladder_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *ladder_volume =
+          new G4LogicalVolume(ladder_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), (boost::format("ladder_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
 
       G4VSolid *ladderext_basebox = new G4Box((boost::format("ladderext_basebox_%d_%d") % inttlayer % itype).str(), ladder_x / 2., ladder_y / 2., hdiext_z / 2.);
-      G4VSolid *ladderext_subtbox = new G4Box((boost::format("ladderext_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, ladder_y / 1.5, hdiext_z / 1.);  // has to be longer in z to avoid coincident surface
+      G4VSolid *ladderext_subtbox =
+          new G4Box((boost::format("ladderext_subtbox_%d_%d") % inttlayer % itype).str(), stave_x / 1.5, ladder_y / 1.5, hdiext_z / 1.);  // has to be longer in z to avoid coincident surface
 
       G4VSolid *ladderext_box1 = new G4SubtractionSolid((boost::format("ladderext_box1_%d_%d") % inttlayer % itype).str(), ladderext_basebox, ladderext_subtbox, lad_box_rotpos, ladTranspos);
 
       G4VSolid *ladderext_box = new G4SubtractionSolid((boost::format("ladderext_box_%d_%d") % inttlayer % itype).str(), ladderext_box1, ladderext_subtbox, lad_box_rotneg, ladTransneg);
 
-      G4LogicalVolume *ladderext_volume = new G4LogicalVolume(ladderext_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), (boost::format("ladderext_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+      G4LogicalVolume *ladderext_volume =
+          new G4LogicalVolume(ladderext_box, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), (boost::format("ladderext_%d_%d") % inttlayer % itype).str(), nullptr, nullptr, nullptr);
       // the rotation matrices are just used by G4VSolid, ownership is not taken over
       delete lad_box_rotpos;
       delete lad_box_rotneg;
@@ -922,62 +906,75 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       // Carbon stave
       double TVstave_y = 0.0;
       const double TVstave_x = ladder_x / 2. - stave_x / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVstave_x, TVstave_y, 0.0), stave_volume, (boost::format("stave_%d_%d") % inttlayer % itype).str(),
-                        ladder_volume, false, 0, OverlapCheck());
-      new G4PVPlacement(0, G4ThreeVector(TVstave_x, TVstave_y, 0.0), staveext_volume, (boost::format("staveext_%d_%s") % inttlayer % itype).str(),
-                        ladderext_volume, false, 0, OverlapCheck());
+
+      new G4PVPlacement(nullptr, G4ThreeVector(TVstave_x, TVstave_y, 0.0), stave_volume, (boost::format("stave_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVstave_x, TVstave_y, 0.0), staveext_volume, (boost::format("staveext_%d_%s") % inttlayer % itype).str(), ladderext_volume, false, 0, OverlapCheck());
 
       // HDI Kapton
       const double TVhdi_kapton_x = TVstave_x - stave_x / 2. - hdi_kapton_x / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdi_kapton_volume, (boost::format("hdikapton_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
-      new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdiext_kapton_volume, (boost::format("hdiextkapton_%d_%s") % inttlayer % itype).str(), ladderext_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdi_kapton_volume, (boost::format("hdikapton_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0,
+                        OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdiext_kapton_volume, (boost::format("hdiextkapton_%d_%s") % inttlayer % itype).str(), ladderext_volume, false, 0,
+                        OverlapCheck());
 
       // HDI copper
       const double TVhdi_copper_x = TVhdi_kapton_x - hdi_kapton_x / 2. - hdi_copper_x / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdi_copper_volume, (boost::format("hdicopper_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
-      new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdiext_copper_volume, (boost::format("hdiextcopper_%d_%s") % inttlayer % itype).str(), ladderext_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdi_copper_volume, (boost::format("hdicopper_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0,
+                        OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdiext_copper_volume, (boost::format("hdiextcopper_%d_%s") % inttlayer % itype).str(), ladderext_volume, false, 0,
+                        OverlapCheck());
 
       // Glue for Si-sensor
       const double TVsi_glue_x = TVhdi_copper_x - hdi_copper_x / 2. - si_glue_x / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVsi_glue_x, TVstave_y, 0.0), si_glue_volume, (boost::format("si_glue_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVsi_glue_x, TVstave_y, 0.0), si_glue_volume, (boost::format("si_glue_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
 
       // Si-sensor
       double TVSi_y = 0.0;
       // sensor is not centered in y in the ladder volume for the Z sensitive ladders
       if (laddertype == PHG4InttDefs::SEGMENTATION_Z)
+      {
         TVSi_y = +sensor_offset_y;
-      //const double TVSi_x = TVhdi_copper_x - hdi_copper_x / 2. - siactive_x / 2.;
+      }
+      // const double TVSi_x = TVhdi_copper_x - hdi_copper_x / 2. - siactive_x / 2.;
       const double TVSi_x = TVsi_glue_x - si_glue_x / 2. - siactive_x / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVSi_x, TVSi_y, 0.0), siinactive_volume,
-                        (boost::format("siinactive_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
-      new G4PVPlacement(0, G4ThreeVector(TVSi_x, TVSi_y, 0.0), siactive_volume,
-                        (boost::format("siactive_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVSi_x, TVSi_y, 0.0), siinactive_volume, (boost::format("siinactive_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVSi_x, TVSi_y, 0.0), siactive_volume, (boost::format("siactive_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
 
       // FPHX glue
       const double TVfphx_glue_x = TVhdi_copper_x - hdi_copper_x / 2. - fphx_glue_x / 2.;
       double TVfphx_glue_y = sifull_y / 2. + gap_sensor_fphx + fphx_y / 2.;
       if (laddertype == PHG4InttDefs::SEGMENTATION_Z)
+      {
         TVfphx_glue_y -= sensor_offset_y;
+      }
 
       // laddertype PHG4InttDefs::SEGMENTATION_Z has only one FPHX, laddertype PHG4InttDefs::SEGMENTATION_PHI has two
       if (laddertype == PHG4InttDefs::SEGMENTATION_PHI)
       {
-        new G4PVPlacement(0, G4ThreeVector(TVfphx_glue_x, +TVfphx_glue_y, 0.0), fphx_gluecontainer_volume, (boost::format("fphx_gluecontainerp_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(TVfphx_glue_x, +TVfphx_glue_y, 0.0), fphx_gluecontainer_volume, (boost::format("fphx_gluecontainerp_%d_%d") % inttlayer % itype).str(),
+                          ladder_volume, false, 0, OverlapCheck());
       }
-      new G4PVPlacement(0, G4ThreeVector(TVfphx_glue_x, -TVfphx_glue_y, 0.0), fphx_gluecontainer_volume, (boost::format("fphx_gluecontainerm_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVfphx_glue_x, -TVfphx_glue_y, 0.0), fphx_gluecontainer_volume, (boost::format("fphx_gluecontainerm_%d_%d") % inttlayer % itype).str(), ladder_volume,
+                        false, 0, OverlapCheck());
 
       // FPHX container
       const double TVfphx_x = TVfphx_glue_x - fphx_glue_x / 2. - fphx_x / 2.;
       double TVfphx_y = sifull_y / 2. + gap_sensor_fphx + fphx_y / 2.;
       if (laddertype == PHG4InttDefs::SEGMENTATION_Z)
+      {
         TVfphx_y -= sensor_offset_y;
+      }
 
       // laddertype PHG4InttDefs::SEGMENTATION_Z has only one FPHX, laddertype PHG4InttDefs::SEGMENTATION_PHI has two
       if (laddertype == PHG4InttDefs::SEGMENTATION_PHI)
       {
-        new G4PVPlacement(0, G4ThreeVector(TVfphx_x, +TVfphx_y, 0.0), fphxcontainer_volume, (boost::format("fphxcontainerp_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
+        // new G4PVPlacement(0, G4ThreeVector(TVfphx_x, +TVfphx_y+100., 100.0), fphxcontainer_volume, (boost::format("fphxcontainerp_%d_%d") % inttlayer % itype).str(), ladder_volume, false,
+        // 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(TVfphx_x, +TVfphx_y, 0.0), fphxcontainer_volume, (boost::format("fphxcontainerp_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0,
+                          OverlapCheck());
       }
-      new G4PVPlacement(0, G4ThreeVector(TVfphx_x, -TVfphx_y, 0.0), fphxcontainer_volume, (boost::format("fphxcontainerm_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(TVfphx_x, -TVfphx_y, 0.0), fphxcontainer_volume, (boost::format("fphxcontainerm_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0,
+                        OverlapCheck());
 
       // ----- Step 3 -----------------------------------------------------------------------------------------------
       // We install the section of ladder for this sensor at all requested phi values and at positive and negative Z
@@ -1010,6 +1007,82 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         radius = m_SensorRadius[inttlayer];
         radius += sensor_offset_x_ladder;
 
+        InttMap::Offline_s k_ladder;
+        Eigen::Affine3d const *abs_transform_ladder;
+        Eigen::Matrix3d rot_ladder;
+        Eigen::Matrix3d sphnx2geant;
+        sphnx2geant << 0, 1, 0,  //
+            -1, 0, 0,            //
+            0, 0, 1;             //
+        Eigen::Matrix3d rot_ladder_geant;
+        double rotation_z_survey = 0.0;
+        Eigen::Vector3d translation_ladder;
+        double posx_ladder_survey = -1E10;
+        double posy_ladder_survey = -1E10;
+        double posz_ladder_survey = -1E10;
+
+        if (useSurvey)
+        {
+          // set up the key for the survey map
+          k_ladder.layer = inttlayer + 3;
+          k_ladder.ladder_phi = icopy;
+          k_ladder.ladder_z = InttMap::Wildcard;  // Note: positive ladder_z = itype + 2, negative ladder_z = itype
+          k_ladder.strip_phi = InttMap::Wildcard;
+          k_ladder.strip_z = InttMap::Wildcard;
+
+          abs_transform_ladder = survey->GetAbsoluteTransform(k_ladder);
+          if (!abs_transform_ladder)
+          {
+            std::cout << "Eigen::Affine3d absolute transform for (layer,ladder_phi,ladder_z,strip_phi,strip_z) = (" << k_ladder.layer << "," << k_ladder.ladder_phi << ","
+                      << k_ladder.ladder_z << "," << k_ladder.strip_phi << "," << k_ladder.strip_z << ") not valid" << std::endl;
+            continue;
+          }
+
+          // Rotation
+          rot_ladder = abs_transform_ladder->rotation();
+          rot_ladder_geant = sphnx2geant * rot_ladder;
+
+          // Rotation
+          Eigen::Vector3d angles_ladder = rot_ladder_geant.eulerAngles(2, 0, 1);  // Tait-Bryan angles (z -> x' -> y'')
+          // std::cout << "angles_ladder = " << angles_ladder << std::endl;
+          if (inttlayer < 2)  // layer = 3 and 4
+          {
+            if (inttlayer == 0 && icopy == 0)
+            {
+              rotation_z_survey = angles_ladder[0] - M_PI;
+            }
+            else if ((inttlayer == 0 && icopy >= 7) || (inttlayer == 1 && icopy >= 6))
+            {
+              rotation_z_survey = angles_ladder[0] + M_PI;
+            }
+            else
+            {
+              rotation_z_survey = angles_ladder[0];
+            }
+          }
+          else  // layer 5 and 6
+          {
+            if (inttlayer == 2 && icopy == 0)
+            {
+              rotation_z_survey = angles_ladder[0] - M_PI;
+            }
+            else if (icopy >= 9)
+            {
+              rotation_z_survey = angles_ladder[0] + M_PI;
+            }
+            else
+            {
+              rotation_z_survey = angles_ladder[0];
+            }
+          }
+
+          // Translation
+          translation_ladder = abs_transform_ladder->translation();
+          posx_ladder_survey = translation_ladder.x();
+          posy_ladder_survey = translation_ladder.y();
+          posz_ladder_survey = translation_ladder.z();  //! Q: is this the whole ladder shift in the z direction?
+        }
+
         double p = 0.0;
         if (laddertype == PHG4InttDefs::SEGMENTATION_Z)
         {
@@ -1021,17 +1094,40 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         }
 
         // these describe the center of the ladder volume, placing it so that the center of the sensor is at phi = dphi * icopy, and at the correct radius
-        const double posx = radius * cos(phi - p);
-        const double posy = radius * sin(phi - p);
-        const double fRotate = p + (phi - p) + offsetrot;  // rotate in its own frame to make sensor perp to radial vector (p), then additionally rotate to account for ladder phi
+        const double posx_ladder_ideal = radius * cos(phi - p);
+        const double posy_ladder_ideal = radius * sin(phi - p);
+        // rotate in its own frame to make sensor perp to radial vector (p), then additionally rotate to account for ladder phi
+        const double rotation_z_ideal = p + (phi - p) + offsetrot;
+
+        const double posx = (useSurvey) ? posx_ladder_survey : posx_ladder_ideal;
+        const double posy = (useSurvey) ? posy_ladder_survey : posy_ladder_ideal;
+        const double laddercenter_shiftz = (useSurvey) ? params->get_double_param("ladder_center_avgshift_z") * cm : 0.0;
+        const double fRotate = (useSurvey) ? rotation_z_survey : rotation_z_ideal;
         G4RotationMatrix ladderrotation;
         ladderrotation.rotateZ(fRotate);
 
+        if (Verbosity() > 100 && useSurvey)
+        {
+          std::cout << "(dphi,layer,icopy,itype,p,phi,offsetrot,rotation_z_ideal,rotation_z_survey)=(" << dphi << "," << inttlayer << "," << icopy << "," << itype << "," << p << "," << phi
+                    << "," << offsetrot << "," << rotation_z_ideal << "," << rotation_z_survey << ")" << std::endl;
+        }
+
         // this placement version rotates the ladder in its own frame by fRotate, then translates the center to posx, posy, +/- m_PosZ
-        auto pointer_negz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, -m_PosZ[inttlayer][itype])), ladder_volume,
+        auto pointer_negz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, -m_PosZ[inttlayer][itype] + laddercenter_shiftz)), ladder_volume,
                                               (boost::format("ladder_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
-        auto pointer_posz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, +m_PosZ[inttlayer][itype])), ladder_volume,
+        auto pointer_posz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, +m_PosZ[inttlayer][itype] + laddercenter_shiftz)), ladder_volume,
                                               (boost::format("ladder_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
+
+        std::string ladder_id = (boost::format("(inttlayer,itype,icopy)=(%d,%d,%d)") % inttlayer % itype % icopy).str();
+        if (Verbosity() > 100 && useSurvey && itype == 0)
+        {
+          std::cout << " G4PVPlacement for " << ladder_id << " ladder volume" << std::endl
+                    << ladder_id << ", Rotation about the Z-axis (survey): " << rotation_z_survey << std::endl
+                    << ladder_id << ", Rotation about the Z-axis (ideal): " << rotation_z_ideal << std::endl
+                    << ladder_id << ", Translation (survey): " << G4ThreeVector(posx_ladder_survey, posy_ladder_survey, posz_ladder_survey) << std::endl
+                    << ladder_id << ", Translation (ideal): " << G4ThreeVector(posx_ladder_ideal, posy_ladder_ideal, 0.0) << std::endl;
+        }
+
         if (m_IsActiveMap.find(inttlayer) != m_IsActiveMap.end())
         {
           m_ActiveVolumeTuple.insert(std::make_pair(pointer_negz, std::make_tuple(inttlayer, itype, icopy, -1)));
@@ -1046,17 +1142,34 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           // We have added the outer sensor above, now we add the HDI extension tab to the end of the outer sensor HDI
           const double posz_ext = (hdi_z_arr[inttlayer][0] + hdi_z) + hdiext_z / 2.;
 
-          new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, -posz_ext)), ladderext_volume,
+          new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, -posz_ext + laddercenter_shiftz)), ladderext_volume,
                             (boost::format("ladderext_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
-          new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, +posz_ext)), ladderext_volume,
+          new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, +posz_ext + laddercenter_shiftz)), ladderext_volume,
                             (boost::format("ladderext_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
         }
 
-        if (Verbosity() > 100)
-          std::cout << "   Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << m_PosZ[inttlayer][itype]
-                    << " fRotate " << fRotate << " posx " << posx << " posy " << posy
-                    << std::endl;
-
+        // if (Verbosity() > 100)
+        // {
+        //     std::cout << "   Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << m_PosZ[inttlayer][itype] << " fRotate " << fRotate
+        //               << " posx " << posx << " posy " << posy << std::endl
+        //               << "Transformation for the positive ladder z (layer,ladder_phi,ladder_z,strip_phi,strip_z)=(" << k_ladder.layer << "," << k_ladder.ladder_phi << "," << k_ladder.ladder_z
+        //               << "," << k_ladder.strip_phi << "," << k_ladder.strip_z << ")" << std::endl
+        //               << "Ideal case, fRotate (radian) around the Z axis = " << fRotate << std::endl
+        //               << "G4RotationMatrix ladderrotation (default,ideal)" << std::endl
+        //               << ladderrotation << std::endl
+        //               << "Eigen::Affine3D transform matrix (from InttSurveyMapv1)" << std::endl
+        //               << abs_transform_ladder->matrix() << std::endl
+        //               << "Translation vector (absolute)" << std::endl
+        //               << translation_ladder << std::endl
+        //               << "(inttlayer,icopy,itype)=(" << k_ladder.layer << "," << icopy << "," << itype << "), difference between default and survey (dX, dY)=(" << (posx_ladder - posx) << ","
+        //               << (posy_ladder - posy) << ")" << std::endl
+        //               << "Rotation matrix (absolute, before the temporary transform)" << std::endl
+        //               << abs_transform_ladder->rotation()
+        //               << std::endl
+        //               << "Rotation matrix (absolute, after the temporary transform)" << std::endl
+        //               << ladderrotation_survey << std::endl
+        //               << "------------------------------------------------------------------------------------------" << std::endl;
+        // }
       }  // end loop over ladder copy placement in phi and positive and negative Z
     }    // end loop over inner or outer sensor
   }      // end loop over layers
@@ -1075,13 +1188,9 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   const PHParameters *supportparams = m_ParamsContainer->GetParameters(PHG4InttDefs::SUPPORTPARAMS);
 
   // rails
-  G4Tubs *rail_tube = new G4Tubs((boost::format("si_support_rail")).str(),
-                                 supportparams->get_double_param("rail_inner_radius") * cm,
-                                 supportparams->get_double_param("rail_outer_radius") * cm,
-                                 supportparams->get_double_param("rail_length") * cm / 2.0,
-                                 0, 2.0 * M_PI);
-  G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, GetDetectorMaterial("CFRP_INTT"),
-                                                     "rail_volume", 0, 0, 0);
+  G4Tubs *rail_tube = new G4Tubs((boost::format("si_support_rail")).str(), supportparams->get_double_param("rail_inner_radius") * cm, supportparams->get_double_param("rail_outer_radius") * cm,
+                                 supportparams->get_double_param("rail_length") * cm / 2.0, 0, 2.0 * M_PI);
+  G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, GetDetectorMaterial("CFRP_INTT"), "rail_volume", nullptr, nullptr, nullptr);
   if (m_IsSupportActive > 0)
   {
     m_PassiveVolumeTuple.insert(std::make_pair(rail_volume, std::make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::SUPPORT_RAIL)));
@@ -1099,8 +1208,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     const double posx = rail_radius * cos(phi);
     const double posy = rail_radius * sin(phi);
 
-    new G4PVPlacement(0, G4ThreeVector(posx, posy, 0.0), rail_volume,
-                      (boost::format("si_support_rail_%d") % i).str(), trackerenvelope, false, 0, OverlapCheck());
+    new G4PVPlacement(nullptr, G4ThreeVector(posx, posy, 0.0), rail_volume, (boost::format("si_support_rail_%d") % i).str(), trackerenvelope, false, 0, OverlapCheck());
   }
 
   // Outer skin
@@ -1128,13 +1236,9 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   // G4LogicalVolume *outer_skin_cfstd::cout_volume = new G4LogicalVolume(outer_skin_cfstd::cout_tube, GetDetectorMaterial("CFRP_INTT"),
   //                                                                 "outer_skin_cfstd::cout_volume", 0, 0, 0);
 
-  G4Tubs *outer_skin_tube = new G4Tubs("si_outer_skin",
-                                       supportparams->get_double_param("outer_skin_inner_radius") * cm,
-                                       supportparams->get_double_param("outer_skin_outer_radius") * cm,
-                                       supportparams->get_double_param("outer_skin_length") * cm / 2.,
-                                       0, 2.0 * M_PI);
-  G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, GetDetectorMaterial("CFRP_INTT"),
-                                                           "outer_skin_volume", 0, 0, 0);
+  G4Tubs *outer_skin_tube = new G4Tubs("si_outer_skin", supportparams->get_double_param("outer_skin_inner_radius") * cm, supportparams->get_double_param("outer_skin_outer_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_length") * cm / 2., 0, 2.0 * M_PI);
+  G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, GetDetectorMaterial("CFRP_INTT"), "outer_skin_volume", nullptr, nullptr, nullptr);
 
   if (m_IsSupportActive > 0)
   {
@@ -1153,59 +1257,49 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   // new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_cfstd::cout_volume,
   //                   "si_support_outer_skin_cfstd::cout", trackerenvelope, false, 0, OverlapCheck());
   m_DisplayAction->AddVolume(outer_skin_volume, "Skin");
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0, 0), outer_skin_volume,
+
+  double si_support_skin_center_x = (useSurvey) ? supportparams->get_double_param("endcap_ring_x") * cm : 0.0;
+  double si_support_skin_center_y = (useSurvey) ? supportparams->get_double_param("endcap_ring_y") * cm : 0.0;
+  new G4PVPlacement(nullptr, G4ThreeVector(si_support_skin_center_x, si_support_skin_center_y, 0), outer_skin_volume,
                     "si_support_outer_skin_cfcin", trackerenvelope, false, 0, OverlapCheck());
 
   // Inner skin
-  G4Tubs *inner_skin_tube = new G4Tubs("si_inner_skin",
-                                       supportparams->get_double_param("inner_skin_inner_radius") * cm,
-                                       supportparams->get_double_param("inner_skin_outer_radius") * cm,
-                                       supportparams->get_double_param("inner_skin_length") * cm / 2.,
-                                       0, 2.0 * M_PI);
-  G4LogicalVolume *inner_skin_volume = new G4LogicalVolume(inner_skin_tube, GetDetectorMaterial("CFRP_INTT"),
-                                                           "inner_skin_volume", 0, 0, 0);
+  G4Tubs *inner_skin_tube = new G4Tubs("si_inner_skin", supportparams->get_double_param("inner_skin_inner_radius") * cm, supportparams->get_double_param("inner_skin_outer_radius") * cm,
+                                       supportparams->get_double_param("inner_skin_length") * cm / 2., 0, 2.0 * M_PI);
+  G4LogicalVolume *inner_skin_volume = new G4LogicalVolume(inner_skin_tube, GetDetectorMaterial("CFRP_INTT"), "inner_skin_volume", nullptr, nullptr, nullptr);
   if (m_IsSupportActive > 0)
   {
     m_PassiveVolumeTuple.insert(std::make_pair(inner_skin_volume, std::make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::INTT_INNER_SKIN)));
   }
   m_DisplayAction->AddVolume(inner_skin_volume, "Skin");
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), inner_skin_volume,
-                    "si_support_inner_skin", trackerenvelope, false, 0, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(si_support_skin_center_x, si_support_skin_center_y), inner_skin_volume, "si_support_inner_skin",
+                    trackerenvelope, false, 0, OverlapCheck());
 
   // Service barrel outer  ////////////////////////////////////////////////////////////////////////////////////
-  G4Tubs *service_barrel_outer_tube = new G4Tubs("si_service_barrel_outer",
-                                                 supportparams->get_double_param("service_barrel_outer_inner_radius") * cm,
-                                                 supportparams->get_double_param("service_barrel_outer_outer_radius") * cm,
-                                                 supportparams->get_double_param("service_barrel_outer_length") * cm / 2.,
-                                                 0, 2.0 * M_PI);
-  G4LogicalVolume *service_barrel_outer_volume = new G4LogicalVolume(service_barrel_outer_tube, GetDetectorMaterial("CFRP_INTT"),
-                                                                     "service_barrel_outer_volume", 0, 0, 0);
+  G4Tubs *service_barrel_outer_tube =
+      new G4Tubs("si_service_barrel_outer", supportparams->get_double_param("service_barrel_outer_inner_radius") * cm, supportparams->get_double_param("service_barrel_outer_outer_radius") * cm,
+                 supportparams->get_double_param("service_barrel_outer_length") * cm / 2., 0, 2.0 * M_PI);
+  G4LogicalVolume *service_barrel_outer_volume = new G4LogicalVolume(service_barrel_outer_tube, GetDetectorMaterial("CFRP_INTT"), "service_barrel_outer_volume", nullptr, nullptr, nullptr);
   if (m_IsSupportActive > 0)
   {
     m_PassiveVolumeTuple.insert(std::make_pair(service_barrel_outer_volume, std::make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::SERVICE_BARREL_OUTER)));
   }
   m_DisplayAction->AddVolume(service_barrel_outer_volume, "Skin");
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), service_barrel_outer_volume,
-                    "si_support_service_barrel_outer", trackerenvelope, false, 0, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0.0), service_barrel_outer_volume, "si_support_service_barrel_outer", trackerenvelope, false, 0, OverlapCheck());
 
   // Support Tube  ////////////////////////////////////////////////////////////////////////////////////
-  G4Tubs *support_tube_tube = new G4Tubs("si_support_tube",
-                                         supportparams->get_double_param("support_tube_inner_radius") * cm,
-                                         supportparams->get_double_param("support_tube_outer_radius") * cm,
-                                         supportparams->get_double_param("support_tube_length") * cm / 2.,
-                                         0, 2.0 * M_PI);
-  G4LogicalVolume *support_tube_volume = new G4LogicalVolume(support_tube_tube, GetDetectorMaterial("CFRP_INTT"),
-                                                             "support_tube_volume", 0, 0, 0);
+  G4Tubs *support_tube_tube = new G4Tubs("si_support_tube", supportparams->get_double_param("support_tube_inner_radius") * cm, supportparams->get_double_param("support_tube_outer_radius") * cm,
+                                         supportparams->get_double_param("support_tube_length") * cm / 2., 0, 2.0 * M_PI);
+  G4LogicalVolume *support_tube_volume = new G4LogicalVolume(support_tube_tube, GetDetectorMaterial("CFRP_INTT"), "support_tube_volume", nullptr, nullptr, nullptr);
   if (m_IsSupportActive > 0)
   {
     m_PassiveVolumeTuple.insert(std::make_pair(support_tube_volume, std::make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::SUPPORT_TUBE)));
   }
   m_DisplayAction->AddVolume(support_tube_volume, "Skin");
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), support_tube_volume,
-                    "si_support_support_tube", trackerenvelope, false, 0, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0.0), support_tube_volume, "si_support_support_tube", trackerenvelope, false, 0, OverlapCheck());
 
   // Endcap ring in simulations = Endcap rings + endcap staves
   int inttlayer = (m_LayerBeginEndIteratorPair.first)->second;
@@ -1214,70 +1308,51 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
 
   // Carbon PEEK ring ////////////////////////////////////////////////////////////////////////////////////
-  G4Tubs *endcap_CP_ring = new G4Tubs("endcap_CP_ring",
-                                      supportparams->get_double_param("endcap_CPring_inner_radius") * cm,
-                                      supportparams->get_double_param("endcap_CPring_outer_radius") * cm,
-                                      supportparams->get_double_param("endcap_CPring_length") * cm / 2.,
-                                      0, 2.0 * M_PI);
+  G4Tubs *endcap_CP_ring = new G4Tubs("endcap_CP_ring", supportparams->get_double_param("endcap_CPring_inner_radius") * cm, supportparams->get_double_param("endcap_CPring_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_CPring_length") * cm / 2., 0, 2.0 * M_PI);
 
-  G4LogicalVolume *endcap_CP_ring_volume = new G4LogicalVolume(endcap_CP_ring, GetDetectorMaterial("CF30_PEEK70"),
-                                                               "endcap_CP_ring_volume", 0, 0, 0);
+  G4LogicalVolume *endcap_CP_ring_volume = new G4LogicalVolume(endcap_CP_ring, GetDetectorMaterial("CF30_PEEK70"), "endcap_CP_ring_volume", nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(endcap_CP_ring_volume, "EndcapCPRing");
 
   // new Al-PEEK ring from Jan/2021    //////////////////////////////////////////////////////////////////////////
   // outermost part (Al)
-  G4Tubs *endcap_AlPEEK_Alring_1 = new G4Tubs("endcap_AlPEEK_Alring_1",
-                                              supportparams->get_double_param("endcap_AlPEEK_Cring_1_outer_radius") * cm,
-                                              supportparams->get_double_param("endcap_AlPEEK_Alring_1_outer_radius") * cm,
-                                              supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.,
-                                              0, 2.0 * M_PI);
+  G4Tubs *endcap_AlPEEK_Alring_1 =
+      new G4Tubs("endcap_AlPEEK_Alring_1", supportparams->get_double_param("endcap_AlPEEK_Alring_1_inner_radius") * cm, supportparams->get_double_param("endcap_AlPEEK_Alring_1_outer_radius") * cm,
+                 supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2., 0, 2.0 * M_PI);
 
-  G4LogicalVolume *endcap_AlPEEK_Alring_1_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_1, GetDetectorMaterial("G4_Al"),
-                                                                       "endcap_AlPEEK_Alring_1_volume", 0, 0, 0);
+  G4LogicalVolume *endcap_AlPEEK_Alring_1_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_1, GetDetectorMaterial("G4_Al"), "endcap_AlPEEK_Alring_1_volume", nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(endcap_AlPEEK_Alring_1_volume, "EndcapAlPEEK_Al1");
 
   // 2nd outermost part (Carbon PEEK)
-  G4Tubs *endcap_AlPEEK_Cring_1 = new G4Tubs("endcap_AlPEEK_Cring_1",
-                                             supportparams->get_double_param("endcap_AlPEEK_Alring_2_outer_radius") * cm,
-                                             supportparams->get_double_param("endcap_AlPEEK_Cring_1_outer_radius") * cm,
-                                             supportparams->get_double_param("endcap_AlPEEK_Cring_length") * cm / 2.,
-                                             0, 2.0 * M_PI);
+  G4Tubs *endcap_AlPEEK_Cring_1 =
+      new G4Tubs("endcap_AlPEEK_Cring_1", supportparams->get_double_param("endcap_AlPEEK_Cring_1_inner_radius") * cm, supportparams->get_double_param("endcap_AlPEEK_Cring_1_outer_radius") * cm,
+                 supportparams->get_double_param("endcap_AlPEEK_Cring_length") * cm / 2., 0, 2.0 * M_PI);
 
-  G4LogicalVolume *endcap_AlPEEK_Cring_1_volume = new G4LogicalVolume(endcap_AlPEEK_Cring_1, GetDetectorMaterial("CF30_PEEK70"),
-                                                                      "endcap_AlPEEK_Cring_1_volume", 0, 0, 0);
+  G4LogicalVolume *endcap_AlPEEK_Cring_1_volume = new G4LogicalVolume(endcap_AlPEEK_Cring_1, GetDetectorMaterial("CF30_PEEK70"), "endcap_AlPEEK_Cring_1_volume", nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(endcap_AlPEEK_Cring_1_volume, "EndcapAlPEEK_C1");
 
   // 3rd outermost part (Al)
-  G4Tubs *endcap_AlPEEK_Alring_2 = new G4Tubs("endcap_AlPEEK_Alring_2",
-                                              supportparams->get_double_param("endcap_AlPEEK_Cring_2_outer_radius") * cm,
-                                              supportparams->get_double_param("endcap_AlPEEK_Alring_2_outer_radius") * cm,
-                                              supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.,
-                                              0, 2.0 * M_PI);
+  G4Tubs *endcap_AlPEEK_Alring_2 =
+      new G4Tubs("endcap_AlPEEK_Alring_2", supportparams->get_double_param("endcap_AlPEEK_Alring_2_inner_radius") * cm, supportparams->get_double_param("endcap_AlPEEK_Alring_2_outer_radius") * cm,
+                 supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2., 0, 2.0 * M_PI);
 
-  G4LogicalVolume *endcap_AlPEEK_Alring_2_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_2, GetDetectorMaterial("G4_Al"),
-                                                                       "endcap_AlPEEK_Alring_2_volume", 0, 0, 0);
+  G4LogicalVolume *endcap_AlPEEK_Alring_2_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_2, GetDetectorMaterial("G4_Al"), "endcap_AlPEEK_Alring_2_volume", nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(endcap_AlPEEK_Alring_2_volume, "EndcapAlPEEK_Al2");
 
   // 4th outermost part (Carbon PEEK)
-  G4Tubs *endcap_AlPEEK_Cring_2 = new G4Tubs("endcap_AlPEEK_Cring_2",
-                                             supportparams->get_double_param("endcap_AlPEEK_Alring_3_outer_radius") * cm,
-                                             supportparams->get_double_param("endcap_AlPEEK_Cring_2_outer_radius") * cm,
-                                             supportparams->get_double_param("endcap_AlPEEK_Cring_length") * cm / 2.,
-                                             0, 2.0 * M_PI);
+  G4Tubs *endcap_AlPEEK_Cring_2 =
+      new G4Tubs("endcap_AlPEEK_Cring_2", supportparams->get_double_param("endcap_AlPEEK_Cring_2_inner_radius") * cm, supportparams->get_double_param("endcap_AlPEEK_Cring_2_outer_radius") * cm,
+                 supportparams->get_double_param("endcap_AlPEEK_Cring_length") * cm / 2., 0, 2.0 * M_PI);
 
-  G4LogicalVolume *endcap_AlPEEK_Cring_2_volume = new G4LogicalVolume(endcap_AlPEEK_Cring_2, GetDetectorMaterial("CF30_PEEK70"),
-                                                                      "endcap_AlPEEK_Cring_2_volume", 0, 0, 0);
+  G4LogicalVolume *endcap_AlPEEK_Cring_2_volume = new G4LogicalVolume(endcap_AlPEEK_Cring_2, GetDetectorMaterial("CF30_PEEK70"), "endcap_AlPEEK_Cring_2_volume", nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(endcap_AlPEEK_Cring_2_volume, "EndcapAlPEEK_C2");
 
   // 5th outermost part (innermost) (Al)
-  G4Tubs *endcap_AlPEEK_Alring_3 = new G4Tubs("endcap_AlPEEK_Alring_3",
-                                              supportparams->get_double_param("endcap_AlPEEK_Alring_3_inner_radius") * cm,
-                                              supportparams->get_double_param("endcap_AlPEEK_Alring_3_outer_radius") * cm,
-                                              supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.,
-                                              0, 2.0 * M_PI);
+  G4Tubs *endcap_AlPEEK_Alring_3 =
+      new G4Tubs("endcap_AlPEEK_Alring_3", supportparams->get_double_param("endcap_AlPEEK_Alring_3_inner_radius") * cm, supportparams->get_double_param("endcap_AlPEEK_Alring_3_outer_radius") * cm,
+                 supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2., 0, 2.0 * M_PI);
 
-  G4LogicalVolume *endcap_AlPEEK_Alring_3_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_3, GetDetectorMaterial("G4_Al"),
-                                                                       "endcap_AlPEEK_Alring_3_volume", 0, 0, 0);
+  G4LogicalVolume *endcap_AlPEEK_Alring_3_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_3, GetDetectorMaterial("G4_Al"), "endcap_AlPEEK_Alring_3_volume", nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(endcap_AlPEEK_Alring_3_volume, "EndcapAlPEEK_Al3");
 
   if (m_IsEndcapActive)
@@ -1286,34 +1361,22 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     if (supportparams->get_int_param("endcap_ring_type") == 0)  // Place Al endcap rings
     {
       // Aluminum ring
-      G4Tubs *endcap_Al_ring = new G4Tubs("endcap_Al_ring",
-                                          supportparams->get_double_param("endcap_Alring_inner_radius") * cm,
-                                          supportparams->get_double_param("endcap_Alring_outer_radius") * cm,
-                                          supportparams->get_double_param("endcap_Alring_length") * cm / 2.,
-                                          0, 2.0 * M_PI);
+      G4Tubs *endcap_Al_ring = new G4Tubs("endcap_Al_ring", supportparams->get_double_param("endcap_Alring_inner_radius") * cm,
+                                          supportparams->get_double_param("endcap_Alring_outer_radius") * cm, supportparams->get_double_param("endcap_Alring_length") * cm / 2., 0, 2.0 * M_PI);
 
-      G4LogicalVolume *endcap_Al_ring_volume = new G4LogicalVolume(endcap_Al_ring, GetDetectorMaterial("Al6061T6"),
-                                                                   "endcap_Al_ring_volume", 0, 0, 0);
+      G4LogicalVolume *endcap_Al_ring_volume = new G4LogicalVolume(endcap_Al_ring, GetDetectorMaterial("Al6061T6"), "endcap_Al_ring_volume", nullptr, nullptr, nullptr);
 
       // Stainlees steal ring
-      G4Tubs *endcap_SS_ring = new G4Tubs("endcap_SS_ring",
-                                          supportparams->get_double_param("endcap_SSring_inner_radius") * cm,
-                                          supportparams->get_double_param("endcap_SSring_outer_radius") * cm,
-                                          supportparams->get_double_param("endcap_SSring_length") * cm / 2.,
-                                          0, 2.0 * M_PI);
+      G4Tubs *endcap_SS_ring = new G4Tubs("endcap_SS_ring", supportparams->get_double_param("endcap_SSring_inner_radius") * cm,
+                                          supportparams->get_double_param("endcap_SSring_outer_radius") * cm, supportparams->get_double_param("endcap_SSring_length") * cm / 2., 0, 2.0 * M_PI);
 
-      G4LogicalVolume *endcap_SS_ring_volume = new G4LogicalVolume(endcap_SS_ring, GetDetectorMaterial("SS316"),
-                                                                   "endcap_SS_ring_volume", 0, 0, 0);
+      G4LogicalVolume *endcap_SS_ring_volume = new G4LogicalVolume(endcap_SS_ring, GetDetectorMaterial("SS316"), "endcap_SS_ring_volume", nullptr, nullptr, nullptr);
 
       // Water Glycol ring
-      G4Tubs *endcap_WG_ring = new G4Tubs("endcap_WG_ring",
-                                          supportparams->get_double_param("endcap_WGring_inner_radius") * cm,
-                                          supportparams->get_double_param("endcap_WGring_outer_radius") * cm,
-                                          supportparams->get_double_param("endcap_WGring_length") * cm / 2.,
-                                          0, 2.0 * M_PI);
+      G4Tubs *endcap_WG_ring = new G4Tubs("endcap_WG_ring", supportparams->get_double_param("endcap_WGring_inner_radius") * cm,
+                                          supportparams->get_double_param("endcap_WGring_outer_radius") * cm, supportparams->get_double_param("endcap_WGring_length") * cm / 2., 0, 2.0 * M_PI);
 
-      G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, GetDetectorMaterial("WaterGlycol_INTT"),
-                                                                   "endcap_WG_ring_volume", 0, 0, 0);
+      G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, GetDetectorMaterial("WaterGlycol_INTT"), "endcap_WG_ring_volume", nullptr, nullptr, nullptr);
 
       double endcap_ring_z = supportparams->get_double_param("endcap_ring_z") * cm;
       for (int i = 0; i < 2; i++)  // i=0 : positive z, i=1 negative z
@@ -1335,20 +1398,14 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           double cent_Alring_z = endcap_ring_z + width_WGring_z + width_SSring_z + width_Alring_z / 2.;
           endcap_outer_edge_z = fabs(endcap_ring_z) + fabs(width_WGring_z + width_SSring_z + width_Alring_z / 2.);  // absolute distance from origin
 
-          new G4PVPlacement(0, G4ThreeVector(0, 0, cent_WGring_z),
-                            endcap_WG_ring_volume,
-                            (boost::format("endcap_WG_ring_pv_%d_%d") % i % j).str(),
-                            trackerenvelope, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(0, 0, cent_WGring_z), endcap_WG_ring_volume, (boost::format("endcap_WG_ring_pv_%d_%d") % i % j).str(), trackerenvelope, false, 0,
+                            OverlapCheck());
 
-          new G4PVPlacement(0, G4ThreeVector(0, 0, cent_SSring_z),
-                            endcap_SS_ring_volume,
-                            (boost::format("endcap_SS_ring_pv_%d_%d") % i % j).str(),
-                            trackerenvelope, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(0, 0, cent_SSring_z), endcap_SS_ring_volume, (boost::format("endcap_SS_ring_pv_%d_%d") % i % j).str(), trackerenvelope, false, 0,
+                            OverlapCheck());
 
-          new G4PVPlacement(0, G4ThreeVector(0, 0, cent_Alring_z),
-                            endcap_Al_ring_volume,
-                            (boost::format("endcap_Al_ring_pv_%d_%d") % i % j).str(),
-                            trackerenvelope, false, 0, OverlapCheck());
+          new G4PVPlacement(nullptr, G4ThreeVector(0, 0, cent_Alring_z), endcap_Al_ring_volume, (boost::format("endcap_Al_ring_pv_%d_%d") % i % j).str(), trackerenvelope, false, 0,
+                            OverlapCheck());
         }                                                            // end of the loop over positive/negative sides with j
       }                                                              // end of the loop over positive/negative sides with i
     }                                                                // end of endcap_ring_type == 0
@@ -1361,18 +1418,17 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         endcap_ring_z = (i == 0) ? endcap_ring_z : -1.0 * endcap_ring_z;
         endcap_outer_edge_z = fabs(endcap_ring_z);
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
-                          endcap_CP_ring_volume,
-                          (boost::format("endcap_CP_ring_pv_%d") % i).str(),
-                          trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(0, 0, endcap_ring_z), endcap_CP_ring_volume, (boost::format("endcap_CP_ring_pv_%d") % i).str(), trackerenvelope, false, 0, OverlapCheck());
 
       }                                                              // end of the loop over positive/negative sides
     }                                                                // end of endcap_ring_type == 1
     else if (supportparams->get_int_param("endcap_ring_type") == 2)  // the new endcap introduced in Jan/2021
     {
-      double si_0_width = params->get_double_param("strip_z_0") * params->get_int_param("nstrips_z_sensor_0") * cm + 2 * params->get_double_param("sensor_edge_z") * cm;  // length of the smaller cells
-      double si_1_width = params->get_double_param("strip_z_1") * params->get_int_param("nstrips_z_sensor_1") * cm + 2 * params->get_double_param("sensor_edge_z") * cm;  // length of the larger cells
-      double sifull_width = si_0_width + si_1_width;                                                                                                                      // length of the Si module
+      double si_0_width =
+          params->get_double_param("strip_z_0") * params->get_int_param("nstrips_z_sensor_0") * cm + 2 * params->get_double_param("sensor_edge_z") * cm;  // length of the smaller cells
+      double si_1_width =
+          params->get_double_param("strip_z_1") * params->get_int_param("nstrips_z_sensor_1") * cm + 2 * params->get_double_param("sensor_edge_z") * cm;  // length of the larger cells
+      double sifull_width = si_0_width + si_1_width;                                                                                                      // length of the Si module
       double hdi_width = sifull_width + params->get_double_param("hdi_edge_z") * cm;
       double hdiext_width = params->get_double_param("halfladder_inside_z") * cm - sifull_width;
       double hdifull_width = hdi_width + hdiext_width;  // length of a half lader
@@ -1382,31 +1438,24 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       {
         endcap_ring_z = (i == 0) ? endcap_ring_z : -1.0 * endcap_ring_z;
         endcap_outer_edge_z = fabs(endcap_ring_z) + supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.0;
+        double endcap_ring_x = (useSurvey) ? supportparams->get_double_param("endcap_ring_x") * cm : 0.0;
+        double endcap_ring_y = (useSurvey) ? supportparams->get_double_param("endcap_ring_y") * cm : 0.0;
+        double endcap_ring_z_shift = (useSurvey) ? params->get_double_param("ladder_center_avgshift_z") * cm : 0.0;
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
-                          endcap_AlPEEK_Alring_1_volume,
-                          (boost::format("endcap_AlPEEK_Alring_1_pv_%d") % i).str(),
-                          trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(endcap_ring_x, endcap_ring_y, endcap_ring_z + endcap_ring_z_shift), endcap_AlPEEK_Alring_1_volume, (boost::format("endcap_AlPEEK_Alring_1_pv_%d") % i).str(), trackerenvelope, false, 0,
+                          OverlapCheck());
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
-                          endcap_AlPEEK_Cring_1_volume,
-                          (boost::format("endcap_AlPEEK_Cring_1_pv_%d") % i).str(),
-                          trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(endcap_ring_x, endcap_ring_y, endcap_ring_z + endcap_ring_z_shift), endcap_AlPEEK_Cring_1_volume, (boost::format("endcap_AlPEEK_Cring_1_pv_%d") % i).str(), trackerenvelope, false, 0,
+                          OverlapCheck());
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
-                          endcap_AlPEEK_Alring_2_volume,
-                          (boost::format("endcap_AlPEEK_Alring_2_pv_%d") % i).str(),
-                          trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(endcap_ring_x, endcap_ring_y, endcap_ring_z + endcap_ring_z_shift), endcap_AlPEEK_Alring_2_volume, (boost::format("endcap_AlPEEK_Alring_2_pv_%d") % i).str(), trackerenvelope, false, 0,
+                          OverlapCheck());
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
-                          endcap_AlPEEK_Cring_2_volume,
-                          (boost::format("endcap_AlPEEK_Cring_2_pv_%d") % i).str(),
-                          trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(endcap_ring_x, endcap_ring_y, endcap_ring_z + endcap_ring_z_shift), endcap_AlPEEK_Cring_2_volume, (boost::format("endcap_AlPEEK_Cring_2_pv_%d") % i).str(), trackerenvelope, false, 0,
+                          OverlapCheck());
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
-                          endcap_AlPEEK_Alring_3_volume,
-                          (boost::format("endcap_AlPEEK_Alring_3_pv_%d") % i).str(),
-                          trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(nullptr, G4ThreeVector(endcap_ring_x, endcap_ring_y, endcap_ring_z + endcap_ring_z_shift), endcap_AlPEEK_Alring_3_volume, (boost::format("endcap_AlPEEK_Alring_3_pv_%d") % i).str(), trackerenvelope, false, 0,
+                          OverlapCheck());
       }
     }
 
@@ -1419,42 +1468,30 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 
     // copper layer of the bus extender for the inner barrel
     double inner_radius = bus_extender_radius_innermost;
-    G4Tubs *bus_extender_copper_inner = new G4Tubs("bus_extender_coppe_innerr",
-                                                   inner_radius, inner_radius + bus_extender_copper_x,
-                                                   bus_extender_length / 2.0, 0, 2.0 * M_PI);
+    G4Tubs *bus_extender_copper_inner = new G4Tubs("bus_extender_coppe_innerr", inner_radius, inner_radius + bus_extender_copper_x, bus_extender_length / 2.0, 0, 2.0 * M_PI);
 
-    G4LogicalVolume *bus_extender_copper_inner_volume = new G4LogicalVolume(bus_extender_copper_inner, GetDetectorMaterial("G4_Cu"),
-                                                                            "bus_extender_copper_inner_volume", 0, 0, 0);
+    G4LogicalVolume *bus_extender_copper_inner_volume = new G4LogicalVolume(bus_extender_copper_inner, GetDetectorMaterial("G4_Cu"), "bus_extender_copper_inner_volume", nullptr, nullptr, nullptr);
     m_DisplayAction->AddVolume(bus_extender_copper_inner_volume, "BusExtenderCopperInner");
 
     // kapton layer of the bus extender for the inner barrel
     inner_radius += bus_extender_copper_x;
-    G4Tubs *bus_extender_kapton_inner = new G4Tubs("bus_extender_kapton_inner",
-                                                   inner_radius, inner_radius + bus_extender_kapton_x,
-                                                   bus_extender_length / 2.0, 0, 2.0 * M_PI);
+    G4Tubs *bus_extender_kapton_inner = new G4Tubs("bus_extender_kapton_inner", inner_radius, inner_radius + bus_extender_kapton_x, bus_extender_length / 2.0, 0, 2.0 * M_PI);
 
-    G4LogicalVolume *bus_extender_kapton_inner_volume = new G4LogicalVolume(bus_extender_kapton_inner, GetDetectorMaterial("G4_KAPTON"),
-                                                                            "bus_extender_kapton_inner_volume", 0, 0, 0);
+    G4LogicalVolume *bus_extender_kapton_inner_volume = new G4LogicalVolume(bus_extender_kapton_inner, GetDetectorMaterial("G4_KAPTON"), "bus_extender_kapton_inner_volume", nullptr, nullptr, nullptr);
     m_DisplayAction->AddVolume(bus_extender_kapton_inner_volume, "BusExtenderKaptonInner");
 
     // copper layer of the bus extender for the outer outerbarrel
     inner_radius += bus_extender_kapton_x;
-    G4Tubs *bus_extender_copper_outer = new G4Tubs("bus_extender_copper_outer",
-                                                   inner_radius, inner_radius + bus_extender_copper_x,
-                                                   bus_extender_length / 2.0, 0, 2.0 * M_PI);
+    G4Tubs *bus_extender_copper_outer = new G4Tubs("bus_extender_copper_outer", inner_radius, inner_radius + bus_extender_copper_x, bus_extender_length / 2.0, 0, 2.0 * M_PI);
 
-    G4LogicalVolume *bus_extender_copper_outer_volume = new G4LogicalVolume(bus_extender_copper_outer, GetDetectorMaterial("G4_Cu"),
-                                                                            "bus_extender_copper_outer_volume", 0, 0, 0);
+    G4LogicalVolume *bus_extender_copper_outer_volume = new G4LogicalVolume(bus_extender_copper_outer, GetDetectorMaterial("G4_Cu"), "bus_extender_copper_outer_volume", nullptr, nullptr, nullptr);
     m_DisplayAction->AddVolume(bus_extender_copper_outer_volume, "BusExtenderCopperOuter");
 
     // kapton layer of the bus extender for the outer barrel
     inner_radius += bus_extender_copper_x;
-    G4Tubs *bus_extender_kapton_outer = new G4Tubs("bus_extender_kapton_outer",
-                                                   inner_radius, inner_radius + bus_extender_kapton_x,
-                                                   bus_extender_length / 2.0, 0, 2.0 * M_PI);
+    G4Tubs *bus_extender_kapton_outer = new G4Tubs("bus_extender_kapton_outer", inner_radius, inner_radius + bus_extender_kapton_x, bus_extender_length / 2.0, 0, 2.0 * M_PI);
 
-    G4LogicalVolume *bus_extender_kapton_outer_volume = new G4LogicalVolume(bus_extender_kapton_outer, GetDetectorMaterial("G4_KAPTON"),
-                                                                            "bus_extender_kapton_outer_volume", 0, 0, 0);
+    G4LogicalVolume *bus_extender_kapton_outer_volume = new G4LogicalVolume(bus_extender_kapton_outer, GetDetectorMaterial("G4_KAPTON"), "bus_extender_kapton_outer_volume", nullptr, nullptr, nullptr);
     m_DisplayAction->AddVolume(bus_extender_kapton_outer_volume, "BusExtenderKaptonOuter");
 
     double bus_extender_z = endcap_outer_edge_z;
@@ -1463,30 +1500,24 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       // copper layer of bus extender for the inner barrel
       double cent_bus_extender_z = bus_extender_z + bus_extender_length / 2.0;
       cent_bus_extender_z *= (i == 0) ? 1.0 : -1.0;
-      new G4PVPlacement(0, G4ThreeVector(0, 0, cent_bus_extender_z),
-                        bus_extender_copper_inner_volume,
-                        (boost::format("bus_extender_copper_inner_layer_pv_%d") % i).str(),
-                        trackerenvelope, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(0, 0, cent_bus_extender_z), bus_extender_copper_inner_volume, (boost::format("bus_extender_copper_inner_layer_pv_%d") % i).str(), trackerenvelope, false,
+                        0, OverlapCheck());
 
       // kapton layer of bus extender for the inner barrel
-      new G4PVPlacement(0, G4ThreeVector(0, 0, cent_bus_extender_z),
-                        bus_extender_kapton_inner_volume,
-                        (boost::format("bus_extender_kapton_inner_layer_pv_%d") % i).str(),
-                        trackerenvelope, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(0, 0, cent_bus_extender_z), bus_extender_kapton_inner_volume, (boost::format("bus_extender_kapton_inner_layer_pv_%d") % i).str(), trackerenvelope, false,
+                        0, OverlapCheck());
 
       // copper layer of bus extender for the outer barrel
-      new G4PVPlacement(0, G4ThreeVector(0, 0, cent_bus_extender_z),
-                        bus_extender_copper_outer_volume,
-                        (boost::format("bus_extender_copper_outer_layer_pv_%d") % i).str(),
-                        trackerenvelope, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(0, 0, cent_bus_extender_z), bus_extender_copper_outer_volume, (boost::format("bus_extender_copper_outer_layer_pv_%d") % i).str(), trackerenvelope, false,
+                        0, OverlapCheck());
 
       // kapton layer of bus extender for the outer barrel
-      new G4PVPlacement(0, G4ThreeVector(0, 0, cent_bus_extender_z),
-                        bus_extender_kapton_outer_volume,
-                        (boost::format("bus_extender_kapton_outer_layer_pv_%d") % i).str(),
-                        trackerenvelope, false, 0, OverlapCheck());
+      new G4PVPlacement(nullptr, G4ThreeVector(0, 0, cent_bus_extender_z), bus_extender_kapton_outer_volume, (boost::format("bus_extender_kapton_outer_layer_pv_%d") % i).str(), trackerenvelope, false,
+                        0, OverlapCheck());
     }
   }
+
+  delete survey;
 
   return 0;
 }
@@ -1495,9 +1526,9 @@ void PHG4InttDetector::AddGeometryNode()
 {
   int active = 0;
   //  std::map<int, int>::const_iterator iter;
-  for (auto iter = m_IsActiveMap.begin(); iter != m_IsActiveMap.end(); ++iter)
+  for (auto &iter : m_IsActiveMap)
   {
-    if (iter->second > 0)
+    if (iter.second > 0)
     {
       active = 1;
       break;
@@ -1526,22 +1557,13 @@ void PHG4InttDetector::AddGeometryNode()
       const int laddertype = params_layer->get_int_param("laddertype");
       // parameters are stored in cm per our convention
       const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
-      CylinderGeomIntt *mygeom = new CylinderGeomIntt(
-          sphxlayer,
-          params->get_double_param("strip_x"),
-          params->get_double_param("strip_y"),
-          params->get_double_param("strip_z_0"),
-          params->get_double_param("strip_z_1"),
-          params->get_int_param("nstrips_z_sensor_0"),
-          params->get_int_param("nstrips_z_sensor_1"),
-          params->get_int_param("nstrips_phi_sensor"),
-          params_layer->get_int_param("nladder"),
-          m_PosZ[ilayer][0] / cm,  // m_PosZ uses G4 internal units, needs to be converted to cm
-          m_PosZ[ilayer][1] / cm,
-          m_SensorRadius[ilayer] / cm,
-          0.0,
-          params_layer->get_double_param("offsetphi") * deg / rad,  // expects radians
-          params_layer->get_double_param("offsetrot") * deg / rad);
+      CylinderGeomIntt *mygeom = new CylinderGeomIntt(sphxlayer, params->get_double_param("strip_x"), params->get_double_param("strip_y"), params->get_double_param("strip_z_0"),
+                                                      params->get_double_param("strip_z_1"), params->get_int_param("nstrips_z_sensor_0"), params->get_int_param("nstrips_z_sensor_1"),
+                                                      params->get_int_param("nstrips_phi_sensor"), params_layer->get_int_param("nladder"),
+                                                      m_PosZ[ilayer][0] / cm,  // m_PosZ uses G4 internal units, needs to be converted to cm
+                                                      m_PosZ[ilayer][1] / cm, m_SensorRadius[ilayer] / cm, 0.0,
+                                                      params_layer->get_double_param("offsetphi") * deg / rad,  // expects radians
+                                                      params_layer->get_double_param("offsetrot") * deg / rad);
       geo->AddLayerGeom(sphxlayer, mygeom);
       if (Verbosity() > 0)
       {
@@ -1551,8 +1573,7 @@ void PHG4InttDetector::AddGeometryNode()
   }
 }
 
-std::map<G4VPhysicalVolume *, std::tuple<int, int, int, int>>::const_iterator
-PHG4InttDetector::get_ActiveVolumeTuple(G4VPhysicalVolume *physvol) const
+std::map<G4VPhysicalVolume *, std::tuple<int, int, int, int>>::const_iterator PHG4InttDetector::get_ActiveVolumeTuple(G4VPhysicalVolume *physvol) const
 {
   auto iter = m_ActiveVolumeTuple.find(physvol);
   if (iter == m_ActiveVolumeTuple.end())
@@ -1563,8 +1584,7 @@ PHG4InttDetector::get_ActiveVolumeTuple(G4VPhysicalVolume *physvol) const
   return iter;
 }
 
-std::map<G4LogicalVolume *, std::tuple<int, int>>::const_iterator
-PHG4InttDetector::get_PassiveVolumeTuple(G4LogicalVolume *logvol) const
+std::map<G4LogicalVolume *, std::tuple<int, int>>::const_iterator PHG4InttDetector::get_PassiveVolumeTuple(G4LogicalVolume *logvol) const
 {
   auto iter = m_PassiveVolumeTuple.find(logvol);
   if (iter == m_PassiveVolumeTuple.end())

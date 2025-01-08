@@ -25,7 +25,7 @@ class TrkrHitv2 : public TrkrHit
 {
  public:
   //! ctor
-  TrkrHitv2(); 
+  TrkrHitv2();
 
   //! dtor
   ~TrkrHitv2() override {}
@@ -43,12 +43,11 @@ class TrkrHitv2 : public TrkrHit
 
   // after digitization, these are the adc values
   void setAdc(const unsigned int adc) override;
-  unsigned int getAdc() override ;
+  unsigned int getAdc() override;
 
  protected:
-
   unsigned short m_adc = 0;
   ClassDefOverride(TrkrHitv2, 1);
 };
 
-#endif //TRACKBASE_TRKRHITV2_H
+#endif  // TRACKBASE_TRKRHITV2_H

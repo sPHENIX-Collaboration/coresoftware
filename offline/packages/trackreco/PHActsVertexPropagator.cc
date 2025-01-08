@@ -14,8 +14,9 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
+
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
@@ -27,7 +28,7 @@ PHActsVertexPropagator::PHActsVertexPropagator(const std::string& name)
 {
 }
 
-int PHActsVertexPropagator::Init(PHCompositeNode*)
+int PHActsVertexPropagator::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -37,13 +38,8 @@ int PHActsVertexPropagator::InitRun(PHCompositeNode* topNode)
   int returnval = getNodes(topNode);
   return returnval;
 }
-int PHActsVertexPropagator::process_event(PHCompositeNode*)
+int PHActsVertexPropagator::process_event(PHCompositeNode* /*unused*/)
 {
-  if (m_vertexMap->size() == 0)
-  {
-    setTrackVertexTo0();
-  }
-
   std::vector<unsigned int> deletedKeys;
   for (const auto& [trackKey, trajectory] : *m_trajectories)
   {
@@ -81,13 +77,19 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
       }
       else
       {
-        svtxTrack->identify();
+        if (Verbosity() > 1)
+        {
+          svtxTrack->identify();
+        }
       }
     }
   }
 
   setVtxChi2();
-
+  if (m_vertexMap->size() == 0 && Verbosity() > 2)
+  {
+    std::cout << "Propagated tracks to PerigeeSurface at (0,0,0) as no track vertices were found" << std::endl;
+  }
   /// Erase the trajectories that were removed from the track cleaner
   for (auto& key : deletedKeys)
   {
@@ -154,6 +156,10 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   track->set_y(position(1) / Acts::UnitConstants::cm);
   track->set_z(position(2) / Acts::UnitConstants::cm);
 
+  track->set_px(params.momentum().x());
+  track->set_py(params.momentum().y());
+  track->set_pz(params.momentum().z());
+
   ActsTransformations rotater;
   rotater.setVerbosity(Verbosity());
   if (params.covariance())
@@ -171,7 +177,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   }
 }
 
-ActsPropagator::BoundTrackParamResult
+ActsPropagator::BTPPairResult
 PHActsVertexPropagator::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const unsigned int vtxid)
@@ -182,47 +188,34 @@ PHActsVertexPropagator::propagateTrack(
 
   ActsPropagator propagator(m_tGeometry);
   propagator.verbosity(Verbosity());
-  
-  return propagator.propagateTrack(params,perigee);
- 
+  propagator.setOverstepLimit(1 * Acts::UnitConstants::cm);
+  std::istringstream stringline(m_fieldMap);
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  stringline >> fieldstrength;
+  if (!stringline.fail())
+  {
+    propagator.constField();
+    propagator.setConstFieldValue(fieldstrength);
+  }
+
+  return propagator.propagateTrack(params, perigee);
 }
 
 Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)
 {
   auto svtxVertex = m_vertexMap->get(vtxid);
-  return Acts::Vector3(svtxVertex->get_x() * Acts::UnitConstants::cm,
-                       svtxVertex->get_y() * Acts::UnitConstants::cm,
-                       svtxVertex->get_z() * Acts::UnitConstants::cm);
-}
-
-void PHActsVertexPropagator::setTrackVertexTo0()
-{
-  /// If we found no vertices in the event, propagate the tracks to 0,0,0
-  auto vertex = std::make_unique<SvtxVertex_v1>();
-  vertex->set_chisq(0.);
-  vertex->set_ndof(0);
-  vertex->set_t0(0);
-  vertex->set_id(0);
-  vertex->set_x(0);
-  vertex->set_y(0);
-  vertex->set_z(0);
-  for (int i = 0; i < 3; i++)
+  /// check that a vertex exists
+  if (svtxVertex)
   {
-    for (int j = 0; j < 3; j++)
-    {
-      vertex->set_error(i, j, 20.);
-    }
+    return Acts::Vector3(svtxVertex->get_x() * Acts::UnitConstants::cm,
+                         svtxVertex->get_y() * Acts::UnitConstants::cm,
+                         svtxVertex->get_z() * Acts::UnitConstants::cm);
   }
 
-  m_vertexMap->insert(vertex.release());
-
-  for (auto& [key, track] : *m_trackMap)
-  {
-    track->set_vertex_id(0);
-  }
+  return Acts::Vector3::Zero();
 }
 
-int PHActsVertexPropagator::End(PHCompositeNode*)
+int PHActsVertexPropagator::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

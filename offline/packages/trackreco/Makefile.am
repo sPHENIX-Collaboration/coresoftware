@@ -11,8 +11,8 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -DRAVE -DRaveDllExport= \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I${G4_MAIN}/include \
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem${G4_MAIN}/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -22,6 +22,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsAlignmentStates.h \
+  ActsEvaluator.h \
   ActsPropagator.h \
   ALICEKF.h \
   AssocInfoContainer.h \
@@ -30,6 +31,7 @@ pkginclude_HEADERS = \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
   MakeActsGeometry.h \
+  MakeSourceLinks.h \
   nanoflann.hpp \
   PHActsGSF.h \
   PHActsKDTreeSeeding.h \
@@ -39,20 +41,27 @@ pkginclude_HEADERS = \
   PHActsTrackProjection.h \
   PHActsTrackPropagator.h \
   PHCASeeding.h \
-  PHGenFitTrackProjection.h \
+  AzimuthalSeeder.h \
+  PHCosmicsFilter.h \
+  PHCosmicsTrkFitter.h \
+  PHCosmicSeeder.h \
+  PHCosmicTrackMerger.h \
+  PHCosmicSeedCombiner.h \
+  PHCosmicSiliconPropagator.h \
   PHGenFitTrkFitter.h \
   PHGhostRejection.h \
   PHInitVertexing.h \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTpcTrackMatching.h \
+  PHSiliconCosmicSeeding.h \
   PHSimpleVertexFinder.h \
   PHTrackCleaner.h \
   PHTrackSelector.h \
   PHRaveVertexing.h \
   PHSiliconHelicalPropagator.h \
   PHSiliconSeedMerger.h \
-  PHSiliconTruthTrackSeeding.h \
   PHSimpleKFProp.h \
+  PHStreakFinder.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
   PHTrackClusterAssociator.h \
@@ -65,9 +74,11 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
+  PrelimDistortionCorrection.h \
   SecondaryVertexFinder.h \
   SvtxTrackStateRemoval.h \
-  TrackingIterationCounter.h
+  TrackingIterationCounter.h \
+  TpcSeedFilter.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -86,15 +97,18 @@ libtrack_reco_io_la_SOURCES = \
 
 ACTS_SOURCES = \
   ActsAlignmentStates.cc \
+  ActsEvaluator.cc \
   ActsPropagator.cc \
   MakeActsGeometry.cc \
+  MakeSourceLinks.cc \
   PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
   PHActsVertexPropagator.cc \
   PHActsTrackProjection.cc \
-  PHActsTrackPropagator.cc
+  PHActsTrackPropagator.cc \
+  PHCosmicsTrkFitter.cc
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \
@@ -115,7 +129,12 @@ libtrack_reco_la_SOURCES = \
   ALICEKF.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
-  PHGenFitTrackProjection.cc \
+  AzimuthalSeeder.cc \
+  PHCosmicsFilter.cc \
+  PHCosmicSeedCombiner.cc \
+  PHCosmicSeeder.cc \
+  PHCosmicTrackMerger.cc \
+  PHCosmicSiliconPropagator.cc \
   PHGenFitTrkFitter.cc \
   PHGhostRejection.cc \
   PHInitVertexing.cc \
@@ -124,9 +143,10 @@ libtrack_reco_la_SOURCES = \
   PHSiliconHelicalPropagator.cc \
   PHSiliconSeedMerger.cc \
   PHSiliconTpcTrackMatching.cc \
-  PHSiliconTruthTrackSeeding.cc \
+  PHSiliconCosmicSeeding.cc \
   PHSimpleKFProp.cc \
   PHSimpleVertexFinder.cc \
+  PHStreakFinder.cc \
   PHTpcClusterMover.cc \
   PHTpcDeltaZCorrection.cc \
   PHTrackCleaner.cc \
@@ -140,9 +160,11 @@ libtrack_reco_la_SOURCES = \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
+  PrelimDistortionCorrection.cc \
   SecondaryVertexFinder.cc \
   SvtxTrackStateRemoval.cc \
-  TrackingIterationCounter.cc
+  TrackingIterationCounter.cc \
+  TpcSeedFilter.cc
 
 libtrack_reco_io_la_LIBADD = \
   -lphool
@@ -150,27 +172,27 @@ libtrack_reco_io_la_LIBADD = \
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
   $(ACTS_LIBS) \
-  -lSubsysReco \
+  -lcalo_io \
   -lg4eval \
   -lg4testbench \
   -lg4detectors \
-  -lgsl \
-  -lgslcblas \
-  -lgenfit2 \
-  -lgenfit2exp \
-  -lPHGenFit \
-  -lg4bbc_io \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
+  -lgenfit2 \
+  -lgenfit2exp \
+  -lglobalvertex_io \
+  -lgsl \
+  -lgslcblas \
+  -lintt_io \
   -lmicromegas_io \
   -lmvtx_io \
-  -lintt_io \
+  -lphparameter_io \
+  -lPHGenFit \
+  -lSubsysReco \
   -ltrack_io \
-  -ltrackbase_historic_io \
-  -lcalo_io \
-  -lphparameter \
-  -ltrackeralign
+  -ltpc \
+  -ltrackbase_historic
 
 
 # Rule for generating table CINT dictionaries.

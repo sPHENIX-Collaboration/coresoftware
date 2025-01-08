@@ -46,7 +46,7 @@ class PHG4CylinderGeom;
 
 int PHG4HcalDetector::INACTIVE = -100;
 //_______________________________________________________________
-//note this inactive thickness is ~1.5% of a radiation length
+// note this inactive thickness is ~1.5% of a radiation length
 PHG4HcalDetector::PHG4HcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, const int lyr)
   : PHG4Detector(subsys, Node, dnam)
   , TrackerMaterial(nullptr)

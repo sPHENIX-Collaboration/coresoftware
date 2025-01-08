@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -11,16 +11,54 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  EventCombiner.h
+  BcoRangeCheck.h \
+  CemcCheck.h \
+  ClockDiffCheck.h \
+  DumpPacket.h \
+  EventCombiner.h \
+  EventNumberCheck.h \
+  Gl1BcoDump.h \
+  Gl1Check.h \
+  HcalCheck.h \
+  InttCheck.h \
+  InttBcoDump.h \
+  InttGl1Check.h \
+  LL1Check.h \
+  MbdCheck.h \
+  StreamingCheck.h \
+  SEpdCheck.h \
+  TpcBcoDump.h \
+  TpcCheck.h \
+  ZdcCheck.h
 
 lib_LTLIBRARIES = \
   libffarawmodules.la
 
 libffarawmodules_la_SOURCES = \
-  EventCombiner.cc
+  BcoRangeCheck.cc \
+  CemcCheck.cc \
+  ClockDiffCheck.cc \
+  DumpPacket.cc \
+  EventCombiner.cc \
+  EventNumberCheck.cc \
+  Gl1BcoDump.cc \
+  Gl1Check.cc \
+  HcalCheck.cc \
+  InttBcoDump.cc \
+  InttCheck.cc \
+  InttGl1Check.cc \
+  LL1Check.cc \
+  MbdCheck.cc \
+  SEpdCheck.cc \
+  StreamingCheck.cc \
+  TpcBcoDump.cc \
+  TpcCheck.cc \
+  ZdcCheck.cc
 
 libffarawmodules_la_LIBADD = \
   -lEvent \
+  -lffarawobjects \
+  -lfun4allraw \
   -lphool \
   -lSubsysReco
 

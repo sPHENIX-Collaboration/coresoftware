@@ -2,7 +2,7 @@
 
 /*!
  * \file PHG4OHCalFieldSetup.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -12,8 +12,9 @@
 
 #include <g4main/PHG4MagneticField.h>
 
-#include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig.h>  // for PHFieldConfig, PHFieldCo...
 #include <phfield/PHFieldConfigv1.h>
+#include <phfield/PHFieldUtility.h>
 
 #include <Geant4/G4ChordFinder.hh>
 #include <Geant4/G4ClassicalRK4.hh>
@@ -23,9 +24,9 @@
 #include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4MagneticField.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Types.hh>  // for G4int
 
 #include <cassert>
-#include <iostream>
 
 PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(const std::string &iron_fieldmap_path, const double scale, const double inner_radius, const double outer_radius, const double size_z)
   : fMinStep(0.005 * mm)
@@ -33,7 +34,7 @@ PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(const std::string &iron_fieldmap_path, 
   static const G4int nvar = 8;
 
   // the new HCal expect 3D magnetic field
-  PHFieldConfigv1 field_config (PHFieldConfig::Field3DCartesian, iron_fieldmap_path, scale);
+  PHFieldConfigv1 field_config(PHFieldConfig::Field3DCartesian, iron_fieldmap_path, scale);
 
   fEMfieldIron = new PHG4MagneticField(PHFieldUtility::BuildFieldMap(&field_config, inner_radius, outer_radius, size_z));
   assert(fEMfieldIron);

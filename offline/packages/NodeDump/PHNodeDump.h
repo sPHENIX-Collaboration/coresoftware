@@ -31,6 +31,7 @@ class PHNodeDump : public PHNodeOperation
  private:
   void perform(PHNode *) override;
   int AddDumpObject(const std::string &NodeName, PHNode *node);
+  int initdump(const std::string &newnode, DumpObject *dmp);
   std::map<std::string, DumpObject *> dumpthis;
   std::set<std::string> ignore;
   std::set<std::string> exclusive;

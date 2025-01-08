@@ -111,7 +111,7 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const std::string &name) const
     {
       std::cout << iter->first << ": ";
       std::vector<int> memvec = iter->second;
-      for (int & vit : memvec)
+      for (int &vit : memvec)
       {
         std::cout << vit << " ";
       }
@@ -125,7 +125,7 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const std::string &name) const
     {
       std::cout << "SubsysReco/OutputManager: " << iter->first << std::endl;
       std::vector<int> memvec = iter->second;
-      for (int & vit : memvec)
+      for (int &vit : memvec)
       {
         std::cout << vit << " ";
       }

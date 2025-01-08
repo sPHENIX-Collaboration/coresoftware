@@ -4,23 +4,22 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainerv1.h>
 
-
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/SubsysReco.h>                // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>                // for PHIODataNode
-#include <phool/PHNode.h>                      // for PHNode
-#include <phool/PHNodeIterator.h>              // for PHNodeIterator
-#include <phool/PHObject.h>                    // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <TH1.h>
 #include <TSystem.h>
 
-#include <iostream>                            // for operator<<, endl, basi...
-#include <map>                                 // for _Rb_tree_const_iterator
-#include <utility>                             // for pair
+#include <iostream>  // for operator<<, endl, basi...
+#include <map>       // for _Rb_tree_const_iterator
+#include <utility>   // for pair
 
 using namespace std;
 
@@ -68,28 +67,27 @@ int G4ScintillatorTowerTTree::process_event(PHCompositeNode *topNode)
 
   double etot = 0;
 
- 
   unsigned int nchannels = g4towers->size();
-  for (unsigned int channel = 0; channel < nchannels;channel++)
+  for (unsigned int channel = 0; channel < nchannels; channel++)
+  {
+    TowerInfo *intower = g4towers->get_tower_at_channel(channel);
+    if (savetowers)
     {
-      TowerInfo *intower =g4towers->get_tower_at_channel(channel);
-      if (savetowers)
-	{
-	  unsigned int towerkey = g4towers->encode_key(channel);
-	  int ieta = g4towers->getTowerEtaBin(towerkey);
-	  int iphi = g4towers->getTowerPhiBin(towerkey);
-	  double towerenergy = intower->get_energy();
-	  towers->AddTower(towerenergy,ieta,iphi);
-	}
-      etot += intower->get_energy();
+      unsigned int towerkey = g4towers->encode_key(channel);
+      int ieta = g4towers->getTowerEtaBin(towerkey);
+      int iphi = g4towers->getTowerPhiBin(towerkey);
+      double towerenergy = intower->get_energy();
+      towers->AddTower(towerenergy, ieta, iphi);
     }
+    etot += intower->get_energy();
+  }
   etot_hist->Fill(etot);
   towers->set_etotal(etot);
   towers->set_event(evtno);
   return 0;
 }
 
-int G4ScintillatorTowerTTree::End(PHCompositeNode */*topNode*/)
+int G4ScintillatorTowerTTree::End(PHCompositeNode * /*topNode*/)
 {
   hm->dumpHistos(_histofilename);
   delete hm;

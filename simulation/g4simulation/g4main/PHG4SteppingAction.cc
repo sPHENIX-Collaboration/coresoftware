@@ -1,6 +1,6 @@
 /*!
  * \file PHG4SteppingAction.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.1 $
  * \date $Date: 2015/01/07 23:50:05 $
@@ -54,7 +54,7 @@ PHG4SteppingAction::GetScintLightYield(const G4Step* step)
       aMaterial->GetMaterialPropertiesTable();
   if (!aMaterialPropertiesTable)
   {
-    const std::string &mname(aMaterial->GetName());
+    const std::string& mname(aMaterial->GetName());
 
     std::set<std::string>::const_iterator it =
         m_ScintLightYieldMissingMaterialSet.find(mname);
@@ -64,10 +64,10 @@ PHG4SteppingAction::GetScintLightYield(const G4Step* step)
       m_ScintLightYieldMissingMaterialSet.insert(mname);
 
       std::cout << "PHG4SteppingAction::GetScintLightYield - WARNING - "
-           << "can not find Material Properties Table for material " << mname
-           << ", will assume it do NOT scintillate. "
-           << "Please ignore this warning if you do not expect scintillation light from "
-           << mname << std::endl;
+                << "can not find Material Properties Table for material " << mname
+                << ", will assume it do NOT scintillate. "
+                << "Please ignore this warning if you do not expect scintillation light from "
+                << mname << std::endl;
     }
 
     return 0.;
@@ -81,7 +81,7 @@ PHG4SteppingAction::GetScintLightYield(const G4Step* step)
   }  //  if (aMaterialPropertiesTable->ConstPropertyExists("SCINTILLATIONYIELD"))
   else
   {
-    const std::string &mname(aMaterial->GetName());
+    const std::string& mname(aMaterial->GetName());
 
     std::set<std::string>::const_iterator it =
         m_ScintLightYieldMissingMaterialSet.find(mname);
@@ -91,10 +91,10 @@ PHG4SteppingAction::GetScintLightYield(const G4Step* step)
       m_ScintLightYieldMissingMaterialSet.insert(mname);
 
       std::cout << "PHG4SteppingAction::GetScintLightYield - WARNING - "
-           << "can not find scintillation light yield for material " << mname
-           << ", will assume it do NOT scintillate. "
-           << "Please ignore this warning if you do not expect scintillation light from "
-           << mname << std::endl;
+                << "can not find scintillation light yield for material " << mname
+                << ", will assume it do NOT scintillate. "
+                << "Please ignore this warning if you do not expect scintillation light from "
+                << mname << std::endl;
     }
 
     return 0.;
