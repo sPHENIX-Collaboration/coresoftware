@@ -77,25 +77,7 @@ ROOTHITDICTS = \
 # this is a tweak to install files in $(libdir), automake refuses
 # to install other files in libdir, this construct gets around this
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  EicEventHeader_Dict_rdict.pcm \
-  EicEventHeaderv1_Dict_rdict.pcm \
-  PHG4EventHeader_Dict_rdict.pcm \
-  PHG4EventHeaderv1_Dict_rdict.pcm \
-  PHG4Hit_Dict_rdict.pcm \
-  PHG4Hitv1_Dict_rdict.pcm \
-  PHG4HitEval_Dict_rdict.pcm \
-  PHG4HitContainer_Dict_rdict.pcm \
-  PHG4InEvent_Dict_rdict.pcm \
-  PHG4Particle_Dict_rdict.pcm \
-  PHG4Particlev1_Dict_rdict.pcm \
-  PHG4Particlev2_Dict_rdict.pcm \
-  PHG4Particlev3_Dict_rdict.pcm \
-  PHG4Shower_Dict_rdict.pcm \
-  PHG4Showerv1_Dict_rdict.pcm \
-  PHG4VtxPoint_Dict_rdict.pcm \
-  PHG4VtxPointv1_Dict_rdict.pcm \
-  PHG4TruthInfoContainer_Dict_rdict.pcm
+nobase_dist_pcm_DATA = $(ROOTHITDICTS:.cc=_rdict.pcm)
 
 libphg4hit_la_SOURCES = \
   $(ROOTHITDICTS) \
@@ -149,6 +131,8 @@ libg4testbench_la_SOURCES = \
   PHG4PhenixTrackingAction.cc \
   PHG4PileupGenerator.cc \
   PHG4PrimaryGeneratorAction.cc \
+  PHG4ProcessMap.cc \
+  PHG4ProcessMapPhysics.cc \
   PHG4Reco.cc \
   PHG4RegionInformation.cc \
   PHG4ScoringManager.cc \
@@ -188,6 +172,7 @@ pkginclude_HEADERS = \
   PHG4HitContainer.h \
   PHG4InEvent.h \
   PHG4IonGun.h \
+  PHG4MCProcessDefs.h \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
@@ -201,6 +186,8 @@ pkginclude_HEADERS = \
   PHG4PhenixDetector.h \
   PHG4PileupGenerator.h \
   PHG4PrimaryGeneratorAction.h \
+  PHG4ProcessMap.h \
+  PHG4ProcessMapPhysics.h \
   PHG4Reco.h \
   PHG4RegionInformation.h \
   PHG4ScoringManager.h \
