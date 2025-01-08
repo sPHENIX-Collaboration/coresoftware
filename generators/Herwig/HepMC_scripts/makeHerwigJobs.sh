@@ -26,7 +26,7 @@ make_condor_jobs()
 		echo "${blanklines[3]}"$condor_out_file >> $condor_file
 		echo "${blanklines[4]}"$condor_err_file >> $condor_file
 		echo "${blanklines[5]}"$condor_log_file >> $condor_file
-		echo "${blanklines[6]}"$(pwd) >>$condor_file
+		echo "${blanklines[6]}"$(pwd)"/Herwig_"$triggertype >>$condor_file
 		echo "${blanklines[7]}" >> $condor_file
 		echo "${blanklines[8]}" >> $condor_file #set for me right now
 		echo "${blanklines[9]}" "   "  $user >> $condor_file 
@@ -37,8 +37,9 @@ make_condor_jobs()
 	done		
 }
 submit_condor_jobs(){
-	#if submit just get all files in the expected job type	
-	for i in `ls "condor_file_dir/condor_"$triggertype"_"*".job"`; do 
+	#if submit just get all files in the expected job type
+	for n in $(seq 0 ${nfiles}); do 
+	 	i="condor_file_dir/condor_"$triggertype"_"$n".job" 
 		condor_submit $i 
 	done
 }
@@ -59,11 +60,30 @@ set_config()
 		configfile="${configdir}/Herwig_Jet10.run"
 	elif [ "$triggertype" = "Jet30" ]; then 
 		configfile="${configdir}/Herwig_Jet30.run"
+	elif [ "$triggertype" = "PhotonJet5" ]; then 
+		configfile="${configdir}/Herwig_PhotonJet5.run"
+	elif [ "$triggertype" = "PhotonJet10" ]; then 
+		configfile="${configdir}/Herwig_PhotonJet10.run"
+	elif [ "$triggertype" = "PhotonJet20" ]; then 
+		configfile="${configdir}/Herwig_PhotonJet20.run"
 	else
 		configfile="${configdir}/Herwig_MB.run" #use as default value
 	fi
 }
 
+find_config()
+{
+	if [[ "$configfile" == *"Herwig_"* ]];then
+		filetag="Herwig_"
+		triggertype="${configfile#*$filetag}"
+	else 
+		triggertype="$configfile"
+	fi
+	if [[ "$triggertype" == *".run"* ]];then
+		filetype=".run"
+		triggertype="${triggertype%$filetype*}"
+	fi
+}
 handle_options(){
 	while [ $# -gt 0 ]; do
 	case $1 in 
@@ -86,7 +106,7 @@ handle_options(){
 			shift
 			;;
 		-n | --perfile*) 
-			if has_arguement $@; then 
+			if has_argument $@; then 
 				density=$(extract_argument $@)
 				nfiles=$(( events / density ))
 			fi
@@ -126,11 +146,13 @@ handle_options(){
 		-i | --input*)
 			if has_argument $@; then
 				configfile=$(extract_argument $@)
-				if [ "$verbose_mode" = true]; then
+				find_config
+				if [ "$verbose_mode" = true ]; then
 					echo "Trigger type: " $triggertype 
 					echo "Config file: " $configfile
 				fi
 			fi
+			shift
 			shift
 			;;
 		*) 
@@ -142,6 +164,9 @@ handle_options(){
 }
 
 handle_options "$@"
+if [ ! -d "Herwig_"$triggertype ]; then 
+	mkdir -p "Herwig_"$triggertype; 
+fi 
 make_condor_jobs 
 if [ "$dosubmit" = true ]; then
 	submit_condor_jobs
