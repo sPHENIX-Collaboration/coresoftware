@@ -1,14 +1,16 @@
 #include "JetSeedCount.h"
 
-#include <jetbase/JetContainer.h>
+#include <calotrigger/TriggerAnalyzer.h>
 
 #include <centrality/CentralityInfo.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
+#include <jetbase/JetContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
@@ -17,6 +19,7 @@
 #include <TH2.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 
 JetSeedCount::JetSeedCount(const std::string &moduleName, const std::string &recojetname, const std::string &rawSeedName, const std::string &subSeedName, const std::string &truthjetname, const std::string &outputfilename)
@@ -27,13 +30,9 @@ JetSeedCount::JetSeedCount(const std::string &moduleName, const std::string &rec
   , m_subSeedName(subSeedName)
   , m_truthJetName(truthjetname)
   , m_outputFileName(outputfilename)
-  , m_histTag("AllTrig_AntiKt_Tower_r04_Sub1")
-  , m_etaRange(-1, 1)
-  , m_ptRange(5, 100)
-  , m_doTrgSelect(false)
-  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
 {
   // std::cout << "JetSeedCount::JetSeedCount(const std::string &name) Calling ctor" << std::endl;
+
 }
 
 int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
@@ -47,6 +46,8 @@ int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
     std::cout << "Opening output file named " << m_outputFileName << std::endl;
     PHTFileServer::get().open(m_outputFileName, "RECREATE");
   }
+  delete m_analyzer;
+  m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
@@ -174,7 +175,8 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

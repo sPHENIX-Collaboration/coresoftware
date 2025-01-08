@@ -3,17 +3,19 @@
 #ifndef QA_JET_RHOSINEVENT_H
 #define QA_JET_RHOSINEVENT_H
 
+#include "JetQADefs.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <utility>  // std::pair, std::make_pair
 #include <vector>
 
-#include "JetQADefs.h"
 
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH1;
+class TriggerAnalyzer;
 
 /// \class RhosinEvent
 /// \brief SubsysReco module that plots tower rho information
@@ -50,8 +52,8 @@ class RhosinEvent : public SubsysReco
 
  private:
   //! Module name, and histogram tag
-  std::string m_moduleName{"RhosinEvent"};
-  std::string m_histTag{"AllTrig"};
+  std::string m_moduleName;
+  std::string m_histTag;
   // std::string m_outputFileName{"RhosinEvent.root"};
 
   bool m_do_mult_rho{true};
@@ -60,10 +62,11 @@ class RhosinEvent : public SubsysReco
   std::string m_area_rho_node{"TowerRho_AREA"};
 
   // trigger selection
-  bool m_doTrgSelect;
-  uint32_t m_trgToSelect;
+  bool m_doTrgSelect {false};
+  uint32_t m_trgToSelect {JetQADefs::GL1::MBDNSJet1};
 
   Fun4AllHistoManager *m_manager{nullptr};
+  TriggerAnalyzer *m_analyzer{nullptr};
   // histos
   TH1 *h1_mult_rho{nullptr};
   TH1 *h1_mult_rho_sigma{nullptr};

@@ -15,15 +15,11 @@
 #include "TrksInJetQAHitManager.h"
 #include "TrksInJetQAJetManager.h"
 #include "TrksInJetQATrkManager.h"
+
 // module utilties
 #include "TrksInJetQAConfig.h"
 #include "TrksInJetQAHist.h"
 
-// tracking includes
-#include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase_historic/SvtxTrackMap.h>
 // jet includes
 #include <jetbase/JetContainer.h>
 
@@ -31,6 +27,12 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+// tracking includes
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 
 // root includes
 #include <TFile.h>
@@ -60,18 +62,17 @@ class TrksInJetQABaseFiller
   void GetNodes(PHCompositeNode* topNode);
 
   // necessary dst nodes
-  //   - FIXME these should be smart pointers!
-  ActsGeometry* m_actsGeom = NULL;
-  TrkrHitSetContainer* m_hitMap = NULL;
-  TrkrClusterContainer* m_clustMap = NULL;
-  SvtxTrackMap* m_trkMap = NULL;
-  JetContainer* m_jetMap = NULL;
+  ActsGeometry* m_actsGeom {nullptr};
+  TrkrHitSetContainer* m_hitMap {nullptr};
+  TrkrClusterContainer* m_clustMap {nullptr};
+  SvtxTrackMap* m_trkMap {nullptr};
+  JetContainer* m_jetMap {nullptr};
 
   // submodules to use
-  std::unique_ptr<TrksInJetQAHitManager> m_hitManager = NULL;
-  std::unique_ptr<TrksInJetQAClustManager> m_clustManager = NULL;
-  std::unique_ptr<TrksInJetQATrkManager> m_trackManager = NULL;
-  std::unique_ptr<TrksInJetQAJetManager> m_jetManager = NULL;
+  std::unique_ptr<TrksInJetQAHitManager> m_hitManager {nullptr};
+  std::unique_ptr<TrksInJetQAClustManager> m_clustManager {nullptr};
+  std::unique_ptr<TrksInJetQATrkManager> m_trackManager {nullptr};
+  std::unique_ptr<TrksInJetQAJetManager> m_jetManager {nullptr};
 
   // module utilities
   TrksInJetQAConfig m_config;

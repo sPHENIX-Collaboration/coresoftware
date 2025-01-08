@@ -32,6 +32,8 @@ DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   , m_ptl(-1)
   , m_ptsl(-1)
   , m_phil(-1)
+  , m_phisl(-1)
+  , m_dphil(-1)
   , m_dphi(-1)
   , m_etal(-1)
   , m_etasl(-1)
@@ -59,6 +61,8 @@ DijetQA::~DijetQA()
 int DijetQA::Init(PHCompositeNode* /*topNode*/)
 {
   //  std::cout << "DijetQA::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  delete m_analyzer;  // make cppcheck happy
+  m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();  // get the histogram anager
 
 	if(!m_manager){
@@ -109,7 +113,8 @@ int DijetQA::process_event(PHCompositeNode* topNode)
   }
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

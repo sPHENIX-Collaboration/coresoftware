@@ -3,22 +3,23 @@
 // fun4all includes
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-// #include <fun4all/PHTFileServer.h>
-
-#include <qautils/QAHistManagerDef.h>
-
-// phool includes
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
 
 // jetbackground includes
 #include <jetbackground/TowerRho.h>
 #include <jetbackground/TowerRhov1.h>
 
+// phool includes
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+// qautils include
+#include <qautils/QAHistManagerDef.h>
+
 #include <TH1.h>
 
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -28,16 +29,6 @@ RhosinEvent::RhosinEvent(const std::string& moduleName, const std::string& tag)
   , m_moduleName(moduleName)
   , m_histTag(tag)
   // , m_name(outputfilename)
-  , m_do_mult_rho(true)
-  , m_do_area_rho(true)
-  , m_mult_rho_node("TowerRho_MULT")
-  , m_area_rho_node("TowerRho_AREA")
-  , m_doTrgSelect(false)
-  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
-  , h1_mult_rho(nullptr)
-  , h1_mult_rho_sigma(nullptr)
-  , h1_area_rho(nullptr)
-  , h1_area_rho_sigma(nullptr)
 {
 }
 
@@ -50,11 +41,13 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
 
   // create output file
   // PHTFileServer::get().open(m_outputFileName, "RECREATE");
-
+  delete m_analyzer; // make cppcheck happy
+  delete m_manager; // make cppcheck happy
+  m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
-    std::cerr << PHWHERE << ": PANIC: couldn't grab histogram manager!" << std::endl;
+    std::cout << PHWHERE << ": PANIC: couldn't grab histogram manager!" << std::endl;
     assert(m_manager);
   }
 
@@ -130,7 +123,8 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

@@ -1,22 +1,25 @@
 #ifndef CALOTRIGGER_TRIGGERANALYZER_H
 #define CALOTRIGGER_TRIGGERANALYZER_H
 
-#include <string>
-#include <phool/PHCompositeNode.h>
-#include <ffarawobjects/Gl1Packetv2.h>
-#include <ffarawobjects/Gl1Packet.h>
 #include "TriggerRunInfo.h"
 #include "TriggerRunInfov1.h"
 #include "LL1Out.h"
 #include "LL1Outv1.h"
 
+#include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/Gl1Packetv2.h>
+
+#include <phool/PHCompositeNode.h>
+
+#include <string>
+
 class TriggerAnalyzer
 {
  public:
   TriggerAnalyzer() = default;
-  ~TriggerAnalyzer();
-  
-  int decodeTriggers(PHCompositeNode *topNode);
+  ~TriggerAnalyzer() = default;
+
+  int decodeTriggers(PHCompositeNode* topNode);
 
   bool didTriggerFire(const std::string& triggername);
   bool didTriggerFire(int triggerbit);
@@ -57,4 +60,3 @@ class TriggerAnalyzer
 };
 
 #endif /* CALOTRIGGER_TRIGGERANALYZER_H */
-

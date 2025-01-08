@@ -18,7 +18,7 @@ TrksInJetQA::TrksInJetQA(const std::string& name)
   : SubsysReco(name)
   , m_moduleName(name)
 {
-}  // end ctor
+}
 
 TrksInJetQA::~TrksInJetQA()
 {
@@ -29,7 +29,6 @@ TrksInJetQA::~TrksInJetQA()
   }
 
   // clean up any dangling pointers
-  //   - FIXME use smart pointers instead!
   // deleting null ptrs is legal, setting it to null is not needed in the dtor
   delete m_outFile;
 }  // end dtor
@@ -74,6 +73,10 @@ int TrksInJetQA::Init(PHCompositeNode* /*topNode*/)
   {
     RegisterHistograms();
   }
+
+  // initialize trigger analyzer and exit
+  delete m_analyzer; // make cppcheck happy
+  m_analyzer = new TriggerAnalyzer();
   return Fun4AllReturnCodes::EVENT_OK;
 
 }  // end 'Init(PHCompositeNode*)'
@@ -89,7 +92,8 @@ int TrksInJetQA::process_event(PHCompositeNode* topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;
@@ -161,6 +165,7 @@ void TrksInJetQA::InitOutput()
     break;
 
   case OutMode::QA:
+    delete m_manager;
     m_manager = QAHistManagerDef::getHistoManager();
     if (!m_manager)
     {

@@ -1,12 +1,6 @@
 #include "StructureinJets.h"
 
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/TrackSeed.h>
-
-#include <jetbase/Jet.h>
-#include <jetbase/JetContainer.h>
-#include <jetbase/JetInput.h>
+#include <calotrigger/TriggerAnalyzer.h>
 
 #include <centrality/CentralityInfo.h>
 
@@ -14,14 +8,22 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
 
+#include <jetbase/Jet.h>
+#include <jetbase/JetContainer.h>
+#include <jetbase/JetInput.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <boost/format.hpp>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackSeed.h>
 
 #include <TH2.h>
 #include <TH3.h>
 #include <TVector3.h>
+
+#include <boost/format.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -37,8 +39,6 @@ StructureinJets::StructureinJets(const std::string& moduleName, const std::strin
   , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
   , m_histTag(histTag)
-  , m_doTrgSelect(false)
-  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_outputFileName(outputfilename)
 {
   std::cout << "StructureinJets::StructureinJets(const std::string &name) Calling ctor" << std::endl;
@@ -58,6 +58,8 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
   {
     PHTFileServer::get().open(m_outputFileName, "RECREATE");
   }
+  delete m_analyzer;
+  m_analyzer = new TriggerAnalyzer();
 
   // make sure module name is lower case
   std::string smallModuleName = m_moduleName;
@@ -106,7 +108,8 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;
