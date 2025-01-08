@@ -28,6 +28,17 @@ int TriggerDSTSkimmer::process_event(PHCompositeNode *topNode)
 
   // trigger cut
   int n_trigger_index = m_trigger_index.size();
+  for (int it = 0; it < n_trigger_index; ++it)
+  {
+    if (m_trigger_index[it] < 0 || m_trigger_index[it] > 63)
+    {
+      std::cerr << "ERROR in TriggerDSTSkimmer: trigger index " 
+                << m_trigger_index[it] << " is out of range [0..63]. "
+                << "Aborting run." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  }
+  
   if (n_trigger_index != 0)
   {
     bool trigger_fired = false;
