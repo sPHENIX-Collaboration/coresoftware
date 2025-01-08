@@ -147,12 +147,35 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
 
   // first grab the event vertex or bail
   GlobalVertex *vtx = vertexmap->begin()->second;
-  CLHEP::Hep3Vector vertex;
+  CLHEP::Hep3Vector vertex(0, 0, std::nan(""));
   if (vtx)
   {
-    vertex.set(vtx->get_x(), vtx->get_y(), vtx->get_z());
+    if (m_use_vertextype) 
+    {
+      auto typeStartIter = vtx->find_vertexes(m_vertex_type);
+      auto typeEndIter = vtx->end_vertexes();
+      for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
+      {
+        const auto &[type, vertexVec] = *iter;
+        if (type != m_vertex_type) { continue; }
+        for (const auto *v : vertexVec)
+        {
+          if (!v) { continue; }
+          vertex.set(v->get_x(), v->get_y(), v->get_z());
+        }
+      }
+    } 
+    else 
+    {
+      vertex.set(vtx->get_x(), vtx->get_y(), vtx->get_z());
+    }
   }
   else
+  {
+    return std::vector<Jet *>();
+  }
+
+  if (std::isnan(vertex.z()))
   {
     return std::vector<Jet *>();
   }

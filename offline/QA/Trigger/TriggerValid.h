@@ -1,6 +1,9 @@
 #ifndef TRIGGERVALID_TRIGGERVALID_H
 #define TRIGGERVALID_TRIGGERVALID_H
 
+#include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/Gl1Packetv1.h>
+#include <ffarawobjects/Gl1Packetv2.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string>
@@ -33,10 +36,7 @@ class TriggerValid : public SubsysReco
   int process_event(PHCompositeNode*) override;
 
   int process_towers(PHCompositeNode*);
-  int process_primitives(PHCompositeNode*);
   int process_ll1out(PHCompositeNode*);
-
-  void Trigger(const std::string& name) { trigger = name; }
 
   void set_debug(bool debug) { m_debug = debug; }
 
@@ -44,8 +44,6 @@ class TriggerValid : public SubsysReco
   int Getpeaktime(TH1* h);
 
   bool m_debug{0};
-  std::string trigger;
-
   int _eventcounter{0};
   int _range{1};
 };
