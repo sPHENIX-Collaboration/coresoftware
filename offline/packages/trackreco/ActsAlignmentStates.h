@@ -4,9 +4,6 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <Acts/Definitions/Algebra.hpp>
-#ifndef __CLING__
-#include <ActsExamples/EventData/Trajectories.hpp>
-#endif
 #include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <trackbase/ActsGeometry.h>
@@ -30,9 +27,7 @@ class TrkrClusterContainer;
 class ActsAlignmentStates
 {
  public:
-  #ifndef __CLING__
-  using Trajectory = ActsExamples::Trajectories;
-  #endif
+
   explicit ActsAlignmentStates() = default;
 
   void fillAlignmentStateMap(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
@@ -48,7 +43,7 @@ class ActsAlignmentStates
   { m_verbosity = verb; }
 
   //! field map string
-  void fieldMap(std::string& fieldmap)
+  void fieldMap(std::string fieldmap)
   {m_fieldMap = fieldmap; }
 
  private:
@@ -73,7 +68,7 @@ class ActsAlignmentStates
   ActsGeometry* m_tGeometry = nullptr;
 
   //! field map
-  std::string m_fieldMap;
+  std::string m_fieldMap="";
 };
 
 #endif

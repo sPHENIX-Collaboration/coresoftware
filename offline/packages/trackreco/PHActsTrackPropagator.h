@@ -15,10 +15,6 @@
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Utilities/Result.hpp>
 
-#ifndef __CLING__
-#include <ActsExamples/EventData/Trajectories.hpp>
-#endif
-
 #include <string>
 
 class PHCompositeNode;
@@ -33,9 +29,6 @@ class PHActsTrackPropagator : public SubsysReco
       const Acts::BoundTrackParameters;
   using BoundTrackParamResult = ActsPropagator::BTPPairResult;
   using SurfacePtr = std::shared_ptr<const Acts::Surface>;
-#ifndef __CLING__
-  using Trajectory = ActsExamples::Trajectories;
-#endif
   PHActsTrackPropagator(const std::string &name = "PHActsTrackPropagator");
 
   ~PHActsTrackPropagator() override;
