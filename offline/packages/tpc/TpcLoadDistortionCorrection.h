@@ -64,6 +64,8 @@ class TpcLoadDistortionCorrection : public SubsysReco
     m_phi_hist_in_radians[i] = flag;
   }
   //! set the histogram to interpolate between hist value and zero, depending on z position. (has no effect if m_dimensions is 3)
+  // false:  correction is corr(x,y) (regardless of z)
+  // true:  correction is corr(x,y)*(1-(z/zspan)) so that corr(x,y) at readout is zero.
   void set_interpolate_2D_to_zero(bool flag)
   {
     m_interpolate_z[0] = flag;

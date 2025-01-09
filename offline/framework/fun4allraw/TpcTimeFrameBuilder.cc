@@ -890,7 +890,7 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
 
         for (pair<uint16_t, std::vector<uint16_t>>& waveform : payload.waveforms)
         {
-          hit->move_adc_waveform(waveform.first, move(waveform.second));
+          hit->move_adc_waveform(waveform.first, std::move(waveform.second));
         }
       }
     }  //     if (not m_fastBCOSkip)

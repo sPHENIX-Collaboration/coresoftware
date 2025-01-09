@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = foreign
+AUTOMAKE_OPTIONS = foreign subdir-objects
 
 AM_CXXFLAGS = \
   -I$(includedir) \
@@ -166,5 +166,6 @@ libhijing_la_SOURCES = \
   src/pyhigamm.f
 
 libhijing_dummy_la_SOURCES = \
+  dummy/forcecxx.cc \
   dummy/pyhikcut.f \
   dummy/pyhistfe.f

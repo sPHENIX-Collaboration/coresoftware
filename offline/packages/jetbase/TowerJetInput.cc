@@ -403,14 +403,31 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     }
   }
 
-
-
   // first grab the event vertex or bail
   GlobalVertex *vtx = vertexmap->begin()->second;
   float vtxz = NAN;
+  
   if (vtx)
   {
-    vtxz = vtx->get_z();
+    if (m_use_vertextype) 
+    {
+      auto typeStartIter = vtx->find_vertexes(m_vertex_type);
+      auto typeEndIter = vtx->end_vertexes();
+      for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
+      {
+        const auto &[type, vertexVec] = *iter;
+        if (type != m_vertex_type) { continue; }
+        for (const auto *vertex : vertexVec)
+        {
+          if (!vertex) { continue; }
+          vtxz = vertex->get_z();
+        }
+      }
+    } 
+    else 
+    {
+      vtxz = vtx->get_z();
+    }
   }
   else
   {

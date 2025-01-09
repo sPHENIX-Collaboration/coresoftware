@@ -50,7 +50,7 @@
 #include <utility>  // for pair
 #include <vector>
 
-KFParticle_Tools kfpTools;
+static KFParticle_Tools kfpTools;
 
 QAG4SimulationKFParticle::QAG4SimulationKFParticle(const std::string &name, const std::string &mother_name, double min_m, double max_m)
   : SubsysReco(name)
@@ -153,7 +153,9 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
 int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
+  {
     std::cout << "QAG4SimulationKFParticle::process_event() entered" << std::endl;
+  }
 
   // load relevant nodes from NodeTree
   load_nodes(topNode);
@@ -194,20 +196,25 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
   assert(h_Daughter4_DCA_XY_Mother);
 
   if (m_svtxEvalStack)
+  {
     m_svtxEvalStack->next_event(topNode);
+  }
 
   std::vector<CLHEP::HepLorentzVector> daughters;
   for (auto &[key, track] : *m_trackMap)
   {
     SvtxTrack *thisTrack = getTrack(key, m_trackMap);
     CLHEP::HepLorentzVector *theVector = makeHepLV(topNode, thisTrack->get_id());
-    if (theVector) daughters.push_back(*theVector);
+    if (theVector)
+    {
+      daughters.push_back(*theVector);
+    }
   }
 
   CLHEP::HepLorentzVector mother;
   if (daughters.size() >= 2)
   {
-    for (CLHEP::HepLorentzVector daughter : daughters)
+    for (const CLHEP::HepLorentzVector &daughter : daughters)
     {
       mother += daughter;
     }
@@ -225,57 +232,57 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
   std::vector<int> d_id;
   std::vector<KFParticle> vertex_vec = kfpTools.makeAllPrimaryVertices(topNode, "SvtxVertexMap");
 
-  for (KFParticle_Container::Iter iter = m_kfpContainer->begin(); iter != m_kfpContainer->end(); ++iter)
+  for (auto &iter : *m_kfpContainer)
   {
-    if (iter->second->GetPDG() != m_mother_id)
+    if (iter.second->GetPDG() != m_mother_id)
     {
       if (d_id.size() == 0)
       {
-        d_id.push_back(abs(iter->second->GetPDG()));
+        d_id.push_back(abs(iter.second->GetPDG()));
       }
       else
       {
         for (unsigned int j = 0; j < d_id.size(); ++j)
         {
-          if (abs(iter->second->GetPDG()) == d_id[j])
+          if (abs(iter.second->GetPDG()) == d_id[j])
           {
             continue;
           }
           else if (j == d_id.size() - 1)
           {
-            d_id.push_back(abs(iter->second->GetPDG()));
+            d_id.push_back(abs(iter.second->GetPDG()));
           }
         }
       }
     }
   }
 
-  for (KFParticle_Container::Iter iter = m_kfpContainer->begin(); iter != m_kfpContainer->end(); ++iter)
+  for (auto &iter : *m_kfpContainer)
   {
-    if (iter->second->GetPDG() == m_mother_id)
+    if (iter.second->GetPDG() == m_mother_id)
     {
       // filling mother histogram information
-      h_mass_KFP->Fill(iter->second->GetMass());
+      h_mass_KFP->Fill(iter.second->GetMass());
       // h_DecayTime->Fill(part->GetLifeTime());
-      h_pT->Fill(iter->second->GetPt());
-      h_Chi2_NDF->Fill(iter->second->Chi2() / iter->second->NDF());
-      h_Rapidity->Fill(iter->second->GetRapidity());
+      h_pT->Fill(iter.second->GetPt());
+      h_Chi2_NDF->Fill(iter.second->Chi2() / iter.second->NDF());
+      h_Rapidity->Fill(iter.second->GetRapidity());
       // best PV fit for mother
       int bestCombinationIndex = 0;
       if (vertex_vec.size() > 0)
       {
         for (unsigned int i = 1; i < vertex_vec.size(); ++i)
         {
-          if (iter->second->GetDeviationFromVertex(vertex_vec[i]) <
-              iter->second->GetDeviationFromVertex(vertex_vec[bestCombinationIndex]))
+          if (iter.second->GetDeviationFromVertex(vertex_vec[i]) <
+              iter.second->GetDeviationFromVertex(vertex_vec[bestCombinationIndex]))
           {
             bestCombinationIndex = i;
           }
         }
-        h_Mother_DCA_XY->Fill(iter->second->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
+        h_Mother_DCA_XY->Fill(iter.second->GetDistanceFromVertexXY(vertex_vec[bestCombinationIndex]));
 
-        iter->second->SetProductionVertex(vertex_vec[bestCombinationIndex]);
-        iter->second->GetLifeTime(m_calculated_mother_decaytime, m_calculated_mother_decaytime_err);
+        iter.second->SetProductionVertex(vertex_vec[bestCombinationIndex]);
+        iter.second->GetLifeTime(m_calculated_mother_decaytime, m_calculated_mother_decaytime_err);
         // part->GetDecayLength(m_calculated_mother_decaylength, m_calculated_mother_decaylength_err);
         m_calculated_mother_decaytime /= speedOfLight;
         // m_calculated_mother_decaytime_err /= speedOfLight;
@@ -284,7 +291,7 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
 
         for (unsigned int i = 0; i < d_id.size(); ++i)
         {
-          std::map<unsigned int, KFParticle *> D_Map = m_kfpContainer->returnParticlesByPDGid(d_id[i]);
+          std::map<unsigned int, KFParticle *> const D_Map = m_kfpContainer->returnParticlesByPDGid(d_id[i]);
           for (auto &[key, part] : D_Map)
           {
             if (i == 0)
@@ -317,13 +324,14 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
 
 SvtxTrack *QAG4SimulationKFParticle::getTrack(unsigned int track_id, SvtxTrackMap *trackmap)
 {
-  SvtxTrack *matched_track = NULL;
+  SvtxTrack *matched_track = nullptr;
 
-  for (SvtxTrackMap::Iter iter = trackmap->begin();
-       iter != trackmap->end();
-       ++iter)
+  for (auto &iter : *trackmap)
   {
-    if (iter->first == track_id) matched_track = iter->second;
+    if (iter.first == track_id)
+    {
+      matched_track = iter.second;
+    }
   }
 
   return matched_track;
@@ -336,7 +344,7 @@ PHG4Particle *QAG4SimulationKFParticle::getTruthTrack(SvtxTrack *thisTrack)
     clustereval = m_svtxEvalStack->get_cluster_eval();
   }
 
-  TrkrDefs::cluskey clusKey = *thisTrack->begin_cluster_keys();
+  TrkrDefs::cluskey const clusKey = *thisTrack->begin_cluster_keys();
   PHG4Particle *particle = clustereval->max_truth_particle_by_cluster_energy(clusKey);
 
   return particle;
@@ -346,14 +354,14 @@ CLHEP::HepLorentzVector *QAG4SimulationKFParticle::makeHepLV(PHCompositeNode *to
 {
   SvtxTrack *track = getTrack(track_number, m_trackMap);
   PHG4Particle *g4particle = getTruthTrack(track);
-  CLHEP::HepLorentzVector *lvParticle = NULL;
+  CLHEP::HepLorentzVector *lvParticle = nullptr;
 
   PHHepMCGenEventMap *m_geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   if (!m_geneventmap)
   {
     std::cout << "Missing node PHHepMCGenEventMap" << std::endl;
     std::cout << "You will have no mother information" << std::endl;
-    return NULL;
+    return nullptr;
   }
 
   PHHepMCGenEvent *m_genevt = m_geneventmap->get(1);
@@ -381,12 +389,17 @@ CLHEP::HepLorentzVector *QAG4SimulationKFParticle::makeHepLV(PHCompositeNode *to
           lvParticle->setVectM(CLHEP::Hep3Vector(track->get_px(), track->get_py(), track->get_pz()), kfpTools.getParticleMass((*p)->pdg_id()));
         }
         else
+        {
           continue;
+        }
         break;
       }
       breakOut = true;
     }
-    if (breakOut) break;
+    if (breakOut)
+    {
+      break;
+    }
   }
 
   return lvParticle;

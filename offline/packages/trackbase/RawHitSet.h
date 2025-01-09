@@ -35,6 +35,7 @@ class RawHitSet : public PHObject
   using VectorTpc2D = std::vector<std::vector<uint8_t>>;
   using ConstIterator = Vector::const_iterator;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
+  using ConstVecIterator = std::vector<std::vector<uint8_t>>::iterator;
 
   //! TObject functions
   void identify(std::ostream& /*os*/ = std::cout) const override
@@ -93,6 +94,11 @@ class RawHitSet : public PHObject
     return nullptr;
   }
   */
+
+  virtual ConstVecIterator getHits(int phibin);
+
+  virtual unsigned int size(int /*phibin*/) const { return 0; }
+
   /**
    * @brief Get all hits
    * @param[out] Pair of iterator to vector begin and end

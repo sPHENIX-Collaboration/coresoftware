@@ -10,11 +10,15 @@
 
 class MinimumBiasInfo;
 class PHCompositeNode;
-class MbdOut;
+class MbdPmtContainer;
+class MbdPmtHit;
+class Zdcinfo;
+class TowerInfo;
 class MbdPmtContainer;
 class MbdPmtHit;
 class Zdcinfo;
 class GlobalVertexMap;
+class GlobalVertex;
 
 class MinimumBiasClassifier : public SubsysReco
 {
@@ -72,7 +76,6 @@ class MinimumBiasClassifier : public SubsysReco
   const float m_zdc_cut{60.};
 
   MinimumBiasInfo *m_mb_info{nullptr};
-  MbdOut *m_mbd_out{nullptr};
   MbdPmtContainer *m_mbd_container{nullptr};
   MbdPmtHit *m_mbd_pmt{nullptr};
   GlobalVertexMap *m_global_vertex_map{nullptr};

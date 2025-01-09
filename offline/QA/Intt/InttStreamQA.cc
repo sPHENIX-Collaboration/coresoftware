@@ -9,7 +9,7 @@
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
-
+#include <phool/PHPointerListIterator.h>
 #include <qautils/QAHistManagerDef.h>
 
 #include <TFile.h>
@@ -28,11 +28,40 @@ InttStreamQA::InttStreamQA(const std::string& name)
 {
 }
 
-int InttStreamQA::InitRun(PHCompositeNode* /*topNode*/)
+int InttStreamQA::InitRun(PHCompositeNode* topNode)
 {
   if (Verbosity() > 5)
   {
     std::cout << "Beginning InitRun in InttStreamQA" << std::endl;
+  }
+
+  PHNodeIterator trkr_itr(topNode);
+  PHCompositeNode *intt_node = dynamic_cast<PHCompositeNode *>(
+      trkr_itr.findFirst("PHCompositeNode", "INTT"));  
+  if(!intt_node)
+  {
+    std::cout << PHWHERE << " No INTT node found, exit" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  PHNodeIterator intt_itr(intt_node);
+  PHPointerListIterator<PHNode> iter(intt_itr.ls());
+  PHNode *thisnode;
+  while((thisnode = iter()))
+  {
+    if(thisnode->getType() !="PHIODataNode")
+    {
+      continue;
+    }
+    PHIODataNode<InttRawHitContainer> *theNode = static_cast<PHIODataNode<InttRawHitContainer> *>(thisnode);
+    if(theNode)
+    {
+      std::cout << PHWHERE << " Found INTT Raw hit container node " << theNode->getName() << std::endl;
+      auto cont = (InttRawHitContainer*)theNode->getData();
+      if(cont)
+      {
+        m_rawhit_containers.push_back(cont);
+      }
+    }
   }
 
   createHistos();
@@ -58,10 +87,11 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
   // uint64_t trig =  (gl1!=nullptr) ? gl1->getLiveVector() : 0;
   // uint64_t trig =  (gl1!=nullptr) ? gl1->getScaledVector() : 0;
 
-  InttRawHitContainer* rawhitmap = findNode::getClass<InttRawHitContainer>(topNode, "INTTRAWHIT");
+for(auto& rawhitmap : m_rawhit_containers)
+{
   if (rawhitmap == nullptr)
   {
-    std::cout << "rawhit  is null" << std::endl;
+    std::cout << PHWHERE << "rawhit  is null" << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
@@ -217,7 +247,7 @@ int InttStreamQA::process_event(PHCompositeNode* topNode)
   }
 
   prebcointt = bcointt;
-
+}
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

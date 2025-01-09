@@ -205,7 +205,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 
   RawCluster *savCs[10000];  // savingClusters that has 1 GeV or more
   int iCs = 0;
-  int inCs = 0;
+//  int inCs = 0;
 
   // saving the clusters
   for (t_rclusiter = t_rbegin_end.first; t_rclusiter != t_rbegin_end.second; ++t_rclusiter)
@@ -215,10 +215,10 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     float cluse = t_recalcluster->get_ecore();
     //    std::cout << "clus " << cluse << std::endl;
 
-    if (cluse > 0.5)
-    {
-      inCs++;
-    }
+    // if (cluse > 0.5)
+    // {
+    //   inCs++;
+    // }
 
     if (cluse > 0.6 && t_recalcluster->get_chi2() < 4)
     {

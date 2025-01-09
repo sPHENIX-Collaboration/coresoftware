@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = foreign
+AUTOMAKE_OPTIONS = foreign subdir-objects
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -48,6 +48,7 @@ pkginclude_HEADERS = \
 
 decoderincludedir = $(includedir)/mvtx_decoder
 decoderinclude_HEADERS = \
+  mvtx_decoder/RDH.h \
   mvtx_decoder/DecodingStat.h \
   mvtx_decoder/GBTLink.h \
   mvtx_decoder/GBTWord.h \
@@ -64,6 +65,7 @@ lib_LTLIBRARIES = \
 
 # source for mvtx decoder library
 libmvtx_decoder_la_SOURCES =\
+  mvtx_decoder/RDH.cc \
   mvtx_decoder/DecodingStat.cc \
   mvtx_decoder/GBTLink.cc \
   mvtx_decoder/GBTWord.cc \
@@ -104,7 +106,6 @@ libfun4allraw_la_SOURCES = \
   SingleTriggerInput.cc \
   SingleZdcInput.cc \
   SingleZdcTriggerInput.cc \
-  tpc_pool.cc \
   SingleTpcTimeFrameInput.cc \
   TpcTimeFrameBuilder.cc
 

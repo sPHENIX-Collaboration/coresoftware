@@ -44,6 +44,7 @@ class RawHitSetv1 : public RawHitSet
   void addHit(RawHit*) override;
   //  void addTpcHit(unsigned short phibin, RawHit*) override;
   void setTpcPhiBins(unsigned short phibins) override;
+ 
   //  void removeHit(TrkrDefs::hitkey) override;
 
   // RawHit* getHit(const TrkrDefs::hitkey) const override;
@@ -59,7 +60,15 @@ class RawHitSetv1 : public RawHitSet
   {
     return m_tpchits.size();
   }
-  VectorTpc2D m_tpchits;
+  
+  ConstVecIterator getHits(int phibin) override
+    {
+      return m_tpchits.begin()+phibin;
+    }
+  unsigned int size(int phibin) const override
+  {
+    return (*(m_tpchits.begin()+phibin)).size();
+  }
 
  private:
   /// unique key for this object
@@ -67,6 +76,8 @@ class RawHitSetv1 : public RawHitSet
 
   /// storage for RawHit objects
   Vector m_hits;
+  
+  VectorTpc2D m_tpchits;
   ClassDefOverride(RawHitSetv1, 1);
 };
 
