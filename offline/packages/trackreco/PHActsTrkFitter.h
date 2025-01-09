@@ -121,6 +121,7 @@ class PHActsTrkFitter : public SubsysReco
   void set_enable_geometric_crossing_estimate(bool flag) { m_enable_crossing_estimate = flag ; }
   void set_use_clustermover(bool use) { m_use_clustermover = use; }
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
+  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
 
  private:
   /// Get all the nodes
@@ -212,6 +213,9 @@ class PHActsTrkFitter : public SubsysReco
 
   // max variation of bunch crossing away from crossing_estimate
   short int max_bunch_search = 2;
+
+  //name of TRKR_CLUSTER container
+  std::string m_clusterContainerName = "TRKR_CLUSTER";
 
   //!@name evaluator
   //@{
