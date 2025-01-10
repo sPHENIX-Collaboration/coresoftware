@@ -13,14 +13,15 @@
 
 #include <gsl/gsl_const_cgsm.h>
 
-#include <string> // for string
-#include <vector> // for vector
+#include <string>  // for string
+#include <vector>  // for vector
 
 class PHCompositeNode;
 class Zdcinfo;
 
-class ZdcReco : public SubsysReco {
-public:
+class ZdcReco : public SubsysReco
+{
+ public:
   ZdcReco(const std::string &name = "ZdcReco");
   ~ZdcReco() override;
   int InitRun(PHCompositeNode *topNode) override;
@@ -30,11 +31,11 @@ public:
   void set_zdc2_cut(const float g) { _zdc2_e = g; }
   void set_smd_threshold(const float d) { _smd_e = d; }
 
-private:
+ private:
   void CompSmdPos();
   CDBTTree *cdbttree{nullptr};
   Zdcinfo *m_zdcinfo{nullptr};
-  std::string m_Detector {"ZDC"};
+  std::string m_Detector{"ZDC"};
   std::string m_fieldname;
   std::string m_calibName;
   bool m_overrideCalibName{false};
@@ -49,8 +50,8 @@ private:
   float smd_pos[4]{0.0};
   float _radius_south{0.};
   float _radius_north{0.};
-  const double _t{17.623}; // convert to ns
-  const double _c{GSL_CONST_CGSM_SPEED_OF_LIGHT / 1.e9}; // speed of light in cm/ns
+  const double _t{17.623};                                // convert to ns
+  const double _c{GSL_CONST_CGSM_SPEED_OF_LIGHT / 1.e9};  // speed of light in cm/ns
   float _z_vertex{0.};
   float _zdc1_e{65.0};
   float _zdc2_e{20.0};
@@ -67,4 +68,4 @@ private:
   int _sver{0};
 };
 
-#endif // ZDCRECO_H
+#endif  // ZDCRECO_H
