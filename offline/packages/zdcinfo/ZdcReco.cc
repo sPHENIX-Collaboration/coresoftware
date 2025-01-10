@@ -35,6 +35,11 @@
 
 ZdcReco::ZdcReco(const std::string &name) : SubsysReco(name) {}
 
+ZdcReco::~ZdcReco()
+{
+  delete cdbttree;
+}
+
 int ZdcReco::InitRun(PHCompositeNode *topNode) {
   if (!m_overrideCalibName) {
     m_calibName = "data_driven_zdc_calib";
@@ -283,10 +288,6 @@ void ZdcReco::ResetMe() {
   vzdctime.clear();
   smd_north_fired = false;
   smd_south_fired = false;
-}
-
-int ZdcReco::End(PHCompositeNode * /*topNode*/) {
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void ZdcReco::CompSmdPos() // computing position with weighted averages
