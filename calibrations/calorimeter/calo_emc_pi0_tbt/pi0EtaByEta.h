@@ -1,13 +1,14 @@
 #ifndef PIEbyE_H__
 #define PIEbyE_H__
 
+#include <globalvertex/GlobalVertex.h>
+
 #include <fun4all/SubsysReco.h>
 
 //#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 #include <array>
 #include <string>  // for string
 #include <vector>
-#include <globalvertex/GlobalVertex.h>
 
 // Forward declarations
 class Fun4AllHistoManager;
