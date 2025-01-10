@@ -1,6 +1,7 @@
 #ifndef CALOTRIGGER_TRIGGERANALYZER_H
 #define CALOTRIGGER_TRIGGERANALYZER_H
 
+#include <cstdint>
 #include <string>
 
 class Gl1Packet;
