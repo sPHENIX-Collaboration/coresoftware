@@ -1,5 +1,11 @@
 #include "TriggerAnalyzer.h"
-#include <phool/PHNode.h>
+
+#include "LL1Out.h"
+#include "TriggerRunInfo.h"
+
+#include <ffarawobjects/Gl1Packet.h>
+
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
 int TriggerAnalyzer::decodeTriggers(PHCompositeNode *topNode)

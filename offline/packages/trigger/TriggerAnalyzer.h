@@ -1,20 +1,19 @@
 #ifndef CALOTRIGGER_TRIGGERANALYZER_H
 #define CALOTRIGGER_TRIGGERANALYZER_H
 
+#include <cstdint>
 #include <string>
-#include <phool/PHCompositeNode.h>
-#include <ffarawobjects/Gl1Packetv2.h>
-#include <ffarawobjects/Gl1Packet.h>
-#include "TriggerRunInfo.h"
-#include "TriggerRunInfov1.h"
-#include "LL1Out.h"
-#include "LL1Outv1.h"
+
+class Gl1Packet;
+class LL1Out;
+class PHCompositeNode;
+class TriggerRunInfo;
 
 class TriggerAnalyzer
 {
  public:
   TriggerAnalyzer() = default;
-  ~TriggerAnalyzer();
+  ~TriggerAnalyzer() = default;
   
   int decodeTriggers(PHCompositeNode *topNode);
 
