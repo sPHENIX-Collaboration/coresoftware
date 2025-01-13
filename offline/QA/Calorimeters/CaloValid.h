@@ -1,8 +1,9 @@
 #ifndef CALOVALID_CALOVALID_H
 #define CALOVALID_CALOVALID_H
 
-#include <fun4all/SubsysReco.h>
 #include <calotrigger/TriggerAnalyzer.h>
+
+#include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <vector>
@@ -11,7 +12,7 @@
 class PHCompositeNode;
 class TH1;
 class TH2;
-class TH3F;
+class TH3;
 class TProfile2D;
 class TProfile;
 
@@ -49,8 +50,8 @@ class CaloValid : public SubsysReco
   std::string getHistoPrefix() const;
 
   TriggerAnalyzer* trigAna{nullptr};
-  TH3F* h_pi0_trigIB_mass = nullptr;
-  std::vector<int> triggerIndices = {10, 28, 29, 30, 31}; //MBD NS>=1, Photon Triggers
+  TH3* h_pi0_trigIB_mass {nullptr};
+  std::vector<int> triggerIndices {10, 28, 29, 30, 31}; //MBD NS>=1, Photon Triggers
     
   TH1* h_cemc_channel_pedestal[128 * 192]{nullptr};
   TH1* h_ihcal_channel_pedestal[32 * 48]{nullptr};

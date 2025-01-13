@@ -1,6 +1,8 @@
 #ifndef PIEbyE_H__
 #define PIEbyE_H__
 
+#include <globalvertex/GlobalVertex.h>
+
 #include <fun4all/SubsysReco.h>
 
 //#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
@@ -111,6 +113,17 @@ class pi0EtaByEta : public SubsysReco
     return;
   }
 
+  void set_GlobalVertexType(GlobalVertex::VTXTYPE type) 
+  {
+    m_use_vertextype = true;
+    m_vertex_type = type;
+  }
+
+  void set_requireVertex(bool state)
+  {
+    reqVertex = state;
+    return;
+  }
 
  protected:
   int Getpeaktime(TH1* h);
@@ -118,9 +131,12 @@ class pi0EtaByEta : public SubsysReco
   std::string outfilename;
 
   bool reqMinBias = true;
+  bool reqVertex = false;
 
   bool doVtxCut = true;
   float vtx_z_cut = 20;
+  bool m_use_vertextype {false};
+  GlobalVertex::VTXTYPE m_vertex_type = GlobalVertex::UNDEFINED;
 
   float pt1BaseClusCut = 1.3;
   float pt2BaseClusCut = 0.7;
