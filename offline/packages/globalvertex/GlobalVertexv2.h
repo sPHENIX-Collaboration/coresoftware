@@ -52,6 +52,7 @@ class GlobalVertexv2 : public GlobalVertex
 
   void clear_vtxs() override { _vtxs.clear(); }
   void insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex) override;
+  void clone_insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex) override;
   size_t erase_vtxs(GlobalVertex::VTXTYPE type) override { return _vtxs.erase(type); }
   void erase_vtxs(GlobalVertex::VertexIter iter) override { _vtxs.erase(iter); }
 

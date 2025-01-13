@@ -125,8 +125,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       GlobalVertex *vertex = new GlobalVertexv2();
       vertex->set_id(globalmap->size());
 
-      vertex->insert_vtx(GlobalVertex::SVTX, svtx);
-      vertex->insert_vtx(GlobalVertex::MBD, mbd_best);
+      vertex->clone_insert_vtx(GlobalVertex::SVTX, svtx);
+      vertex->clone_insert_vtx(GlobalVertex::MBD, mbd_best);
       used_svtx_vtxids.insert(svtx->get_id());
       used_mbd_vtxids.insert(mbd_best->get_id());
       vertex->set_id(globalmap->size());
@@ -179,7 +179,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
       vertex->set_id(globalmap->size());
 
-      vertex->insert_vtx(GlobalVertex::SVTX, svtx);
+      vertex->clone_insert_vtx(GlobalVertex::SVTX, svtx);
       used_svtx_vtxids.insert(svtx->get_id());
 
       //! Reset track ids to the new vertex object
@@ -227,7 +227,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       GlobalVertex *vertex = new GlobalVertexv2();
       vertex->set_id(globalmap->size());
 
-      vertex->insert_vtx(GlobalVertex::MBD, mbd);
+      vertex->clone_insert_vtx(GlobalVertex::MBD, mbd);
       used_mbd_vtxids.insert(mbd->get_id());
 
       globalmap->insert(vertex);

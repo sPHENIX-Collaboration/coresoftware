@@ -12,9 +12,9 @@ GlobalVertexv2::~GlobalVertexv2()
 
 void GlobalVertexv2::Reset()
 {
-  for (ConstVertexIter iter = begin_vertexes(); iter != end_vertexes(); ++iter)
+  for (GlobalVertex::VertexIter iter = _vtxs.begin(); iter != _vtxs.end(); ++iter)
   {
-    for (auto& vertex : iter->second)
+    for (auto vertex : iter->second)
     {
       delete vertex;
     }
@@ -62,6 +62,20 @@ void GlobalVertexv2::insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex
   }
 
   it->second.push_back(vertex);
+}
+void GlobalVertexv2::clone_insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex)
+{
+  auto it = _vtxs.find(type);
+  Vertex *clone = dynamic_cast<Vertex *> (vertex->CloneMe());
+  if (it == _vtxs.end())
+  {
+    VertexVector vector;
+    vector.push_back(clone);
+    _vtxs.insert(std::make_pair(type, vector));
+    return;
+  }
+
+  it->second.push_back(clone);
 }
 size_t GlobalVertexv2::count_vtxs(GlobalVertex::VTXTYPE type) const
 {

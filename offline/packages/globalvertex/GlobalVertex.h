@@ -84,6 +84,7 @@ class GlobalVertex : public PHObject
   virtual size_t count_vtxs(VTXTYPE) const { return 0; }
   virtual void clear_vtxs() { return; }
   virtual void insert_vtx(VTXTYPE, const Vertex*) { return; }
+  virtual void clone_insert_vtx(VTXTYPE, const Vertex*) { return; }
   virtual size_t erase_vtxs(VTXTYPE) { return 0; }
   virtual void erase_vtxs(VertexIter) { return; }
 
