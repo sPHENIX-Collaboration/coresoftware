@@ -1,17 +1,25 @@
 #include "GlobalVertexv2.h"
 
-#include <cmath>
-
-GlobalVertexv2::GlobalVertexv2()
-  : _id(std::numeric_limits<unsigned int>::max())
-  , _bco(std::numeric_limits<unsigned int>::max())
+GlobalVertexv2::GlobalVertexv2(const unsigned int id)
+  : _id(id)
 {
 }
 
-GlobalVertexv2::GlobalVertexv2(const unsigned int id)
-  : _id(id)
-  , _bco(std::numeric_limits<unsigned int>::max())
+GlobalVertexv2::~GlobalVertexv2()
 {
+  GlobalVertexv2::Reset();
+}
+
+void GlobalVertexv2::Reset()
+{
+    for (ConstVertexIter iter = begin_vertexes(); iter != end_vertexes(); ++iter)
+  {
+    for (auto& vertex : iter->second)
+    {
+      delete vertex;
+    }
+  }
+    _vtxs.clear();
 }
 
 void GlobalVertexv2::identify(std::ostream& os) const
@@ -71,7 +79,7 @@ float GlobalVertexv2::get_t() const
   auto it = _vtxs.find(GlobalVertex::VTXTYPE::MBD);
   if (it == _vtxs.end())
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   return it->second[0]->get_t();
@@ -82,7 +90,7 @@ float GlobalVertexv2::get_t_err() const
   auto it = _vtxs.find(GlobalVertex::VTXTYPE::MBD);
   if (it == _vtxs.end())
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   return it->second[0]->get_t_err();
@@ -108,14 +116,14 @@ float GlobalVertexv2::get_position(unsigned int coor) const
     auto mbdit = _vtxs.find(GlobalVertex::VTXTYPE::MBD);
     if (mbdit == _vtxs.end())
     {
-      return NAN;
+      return std::numeric_limits<float>::quiet_NaN();
     }
     return mbdit->second[0]->get_position(coor);
   }
 
   GlobalVertex::VertexVector trackvertices = svtxit->second;
   size_t mosttracks = 0;
-  float pos = NAN;
+  float pos = std::numeric_limits<float>::quiet_NaN();
   for (auto vertex : trackvertices)
   {
     if (vertex->size_tracks() > mosttracks)
@@ -133,12 +141,12 @@ float GlobalVertexv2::get_chisq() const
   auto svtxit = _vtxs.find(GlobalVertex::VTXTYPE::SVTX);
   if (svtxit == _vtxs.end())
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   GlobalVertex::VertexVector trackvertices = svtxit->second;
   size_t mosttracks = 0;
-  float chisq = NAN;
+  float chisq = std::numeric_limits<float>::quiet_NaN();
   for (auto vertex : trackvertices)
   {
     if (vertex->size_tracks() > mosttracks)
@@ -182,7 +190,7 @@ float GlobalVertexv2::get_error(unsigned int i, unsigned int j) const
     auto mbdit = _vtxs.find(GlobalVertex::VTXTYPE::MBD);
     if (mbdit == _vtxs.end())
     {
-      return NAN;
+      return std::numeric_limits<float>::quiet_NaN();
     }
     // MBD only has z error defined
     if (i == 2 && j == 2)
@@ -191,13 +199,13 @@ float GlobalVertexv2::get_error(unsigned int i, unsigned int j) const
     }
     else
     {
-      return NAN;
+      return std::numeric_limits<float>::quiet_NaN();
     }
   }
 
   GlobalVertex::VertexVector trackvertices = svtxit->second;
   size_t mosttracks = 0;
-  float err = NAN;
+  float err = std::numeric_limits<float>::quiet_NaN();
   for (auto vertex : trackvertices)
   {
     if (vertex->size_tracks() > mosttracks)

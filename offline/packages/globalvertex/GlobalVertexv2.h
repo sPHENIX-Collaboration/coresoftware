@@ -16,14 +16,14 @@ class PHObject;
 class GlobalVertexv2 : public GlobalVertex
 {
  public:
-  GlobalVertexv2();
+  GlobalVertexv2() = default;
   GlobalVertexv2(const unsigned int id);
-  ~GlobalVertexv2() override = default;
+  ~GlobalVertexv2() override;
 
   // PHObject virtual overloads
 
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override { *this = GlobalVertexv2(); }
+  void Reset() override;
   int isValid() const override;
   PHObject* CloneMe() const override { return new GlobalVertexv2(*this); }
 
@@ -65,8 +65,8 @@ class GlobalVertexv2 : public GlobalVertex
   GlobalVertex::VertexIter end_vertexes() override { return _vtxs.end(); }
 
  private:
-  unsigned int _id;
-  unsigned int _bco;                                    //< global bco
+  unsigned int _id {std::numeric_limits<unsigned int>::max()};
+  unsigned int _bco {std::numeric_limits<unsigned int>::max()};   //< global bco
   std::map<GlobalVertex::VTXTYPE, VertexVector> _vtxs;  //< list of vtxs
 
   ClassDefOverride(GlobalVertexv2, 2);
