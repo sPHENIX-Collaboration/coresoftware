@@ -174,11 +174,12 @@ bool FROG::localSearch(const std::string &logical_name)
   return false;
 }
 
-bool FROG::GetConnection()
+odbc::Connection *FROG::GetConnection(const std::string &database)
 {
-  if (m_OdbcConnection)
+  auto iter = m_OdbcConnectionMap.find(database);
+  if (iter != m_OdbcConnectionMap.end())
   {
-    return true;
+    return iter->second;
   }
   std::random_device ran_dev;
   std::seed_seq seeds {ran_dev(), ran_dev(), ran_dev()}; //...
@@ -189,8 +190,9 @@ bool FROG::GetConnection()
   {
     try
     {
-      m_OdbcConnection = odbc::DriverManager::getConnection("FileCatalog_read", "", "");
-      return true;
+      odbc::Connection *connection = odbc::DriverManager::getConnection(database, "", "");
+      m_OdbcConnectionMap[database] = connection;
+      return connection;
     }
     catch (odbc::SQLException &e)
     {
@@ -202,19 +204,23 @@ bool FROG::GetConnection()
     int sleep_time_ms = uniform(mersenne_twister);
     std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_ms));
   } while (icount < m_MAX_NUM_RETRIES);
-  return false;
+  return nullptr;
 }
 
 void FROG::Disconnect()
 {
-  delete m_OdbcConnection;
-  m_OdbcConnection = nullptr;
+  for (auto iter : m_OdbcConnectionMap)
+  {
+    delete iter.second;
+  }
+  m_OdbcConnectionMap.clear();
 }
 
 bool FROG::PGSearch(const std::string &lname)
 {
   bool bret = false;
-  if (!GetConnection())
+  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
+  if (!odbc_connection)
   {
     return bret;
   }
@@ -225,7 +231,7 @@ bool FROG::PGSearch(const std::string &lname)
     std::cout << "sql query:" << std::endl
 	      << sqlquery << std::endl;
   }
-  odbc::Statement *stmt = m_OdbcConnection->createStatement();
+  odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
   if (rs->next())
@@ -241,7 +247,8 @@ bool FROG::PGSearch(const std::string &lname)
 bool FROG::dCacheSearch(const std::string &lname)
 {
   bool bret = false;
-  if (!GetConnection())
+  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
+  if (!odbc_connection)
   {
     return bret;
   }
@@ -252,7 +259,7 @@ bool FROG::dCacheSearch(const std::string &lname)
     std::cout << "sql query:" << std::endl
 	      << sqlquery << std::endl;
   }
-  odbc::Statement *stmt = m_OdbcConnection->createStatement();
+  odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
   if (rs->next())
@@ -272,7 +279,8 @@ bool FROG::dCacheSearch(const std::string &lname)
 bool FROG::XRootDSearch(const std::string &lname)
 {
   bool bret = false;
-  if (!GetConnection())
+  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
+  if (!odbc_connection)
   {
     return bret;
   }
@@ -282,7 +290,7 @@ bool FROG::XRootDSearch(const std::string &lname)
     std::cout << "sql query:" << std::endl
 	      << sqlquery << std::endl;
   }
-  odbc::Statement *stmt = m_OdbcConnection->createStatement();
+  odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
   if (rs->next())
@@ -299,13 +307,14 @@ bool FROG::XRootDSearch(const std::string &lname)
 bool FROG::LustreSearch(const std::string &lname)
 {
   bool bret = false;
-  if (!GetConnection())
+  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
+  if (!odbc_connection)
   {
     return bret;
   }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'lustre'";
 
-  odbc::Statement *stmt = m_OdbcConnection->createStatement();
+  odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
   if (rs->next())
@@ -321,7 +330,8 @@ bool FROG::LustreSearch(const std::string &lname)
 bool FROG::MinIOSearch(const std::string &lname)
 {
   bool bret = false;
-  if (!GetConnection())
+  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
+  if (!odbc_connection)
   {
     return bret;
   }
@@ -332,7 +342,7 @@ bool FROG::MinIOSearch(const std::string &lname)
     std::cout << "sql query:" << std::endl
 	      << sqlquery << std::endl;
   }
-  odbc::Statement *stmt = m_OdbcConnection->createStatement();
+  odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
   if (rs->next())
