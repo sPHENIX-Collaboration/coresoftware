@@ -6,8 +6,8 @@
 #include <phool/PHObject.h>
 
 #include <cstddef>
-#include <limits>
 #include <iostream>
+#include <limits>
 #include <set>
 
 class Vertex : public PHObject

@@ -75,13 +75,13 @@ class SvtxVertex_v1 : public SvtxVertex
  private:
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
-  unsigned int _id {std::numeric_limits<unsigned int>::max()};                   //< unique identifier within container
-  float _t0 {std::numeric_limits<float>::quiet_NaN()};                          //< collision time
-  float _pos[3];                      //< collision position x,y,z
-  float _chisq {std::numeric_limits<float>::quiet_NaN()};                       //< vertex fit chisq
-  unsigned int _ndof {std::numeric_limits<unsigned int>::max()};                 //< degrees of freedom
-  float _err[6];                      //< error covariance matrix (packed storage) (+/- cm^2)
-  std::set<unsigned int> _track_ids;  //< list of track ids
+  unsigned int _id{std::numeric_limits<unsigned int>::max()};    //< unique identifier within container
+  float _t0{std::numeric_limits<float>::quiet_NaN()};            //< collision time
+  float _pos[3];                                                 //< collision position x,y,z
+  float _chisq{std::numeric_limits<float>::quiet_NaN()};         //< vertex fit chisq
+  unsigned int _ndof{std::numeric_limits<unsigned int>::max()};  //< degrees of freedom
+  float _err[6];                                                 //< error covariance matrix (packed storage) (+/- cm^2)
+  std::set<unsigned int> _track_ids;                             //< list of track ids
 
   ClassDefOverride(SvtxVertex_v1, 1);
 };

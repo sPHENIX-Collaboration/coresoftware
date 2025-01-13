@@ -6,7 +6,7 @@ namespace
 {
   std::map<GlobalVertex::VTXTYPE, unsigned int> DummyGlobalVertex;
   std::map<GlobalVertex::VTXTYPE, GlobalVertex::VertexVector> dumVertexVector;
-}
+}  // namespace
 
 GlobalVertex::ConstVertexIter GlobalVertex::begin_vertexes() const
 {

@@ -21,7 +21,7 @@ class GlobalVertexMapv1 : public GlobalVertexMap
   void Reset() override { clear(); }
   int isValid() const override { return _map.size(); }
   PHObject* CloneMe() const override { return new GlobalVertexMapv1(*this); }
-  void CopyTo(GlobalVertexMap *) override;
+  void CopyTo(GlobalVertexMap*) override;
 
   bool empty() const override { return _map.empty(); }
   size_t size() const override { return _map.size(); }

@@ -6,7 +6,7 @@ class MbdVertex;
 
 namespace
 {
-  std::map<unsigned int, MbdVertex*> DummyMbdVertexMap;
+  std::map<unsigned int, MbdVertex *> DummyMbdVertexMap;
 }
 
 MbdVertexMap::ConstIter MbdVertexMap::begin() const

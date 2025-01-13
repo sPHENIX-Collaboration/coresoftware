@@ -12,14 +12,14 @@ GlobalVertexv2::~GlobalVertexv2()
 
 void GlobalVertexv2::Reset()
 {
-    for (ConstVertexIter iter = begin_vertexes(); iter != end_vertexes(); ++iter)
+  for (ConstVertexIter iter = begin_vertexes(); iter != end_vertexes(); ++iter)
   {
     for (auto& vertex : iter->second)
     {
       delete vertex;
     }
   }
-    _vtxs.clear();
+  _vtxs.clear();
 }
 
 void GlobalVertexv2::identify(std::ostream& os) const

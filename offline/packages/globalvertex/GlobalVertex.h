@@ -47,45 +47,45 @@ class GlobalVertex : public PHObject
   // vertex info
 
   virtual unsigned int get_id() const { return std::numeric_limits<unsigned int>::max(); }
-  virtual void set_id(unsigned int) {return;}
+  virtual void set_id(unsigned int) { return; }
 
   virtual float get_t() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_t(float) {return;}
+  virtual void set_t(float) { return; }
 
   virtual float get_t_err() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_t_err(float) {return;}
+  virtual void set_t_err(float) { return; }
 
   virtual float get_x() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_x(float) {return;}
+  virtual void set_x(float) { return; }
 
   virtual float get_y() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_y(float) {return;}
+  virtual void set_y(float) { return; }
 
   virtual float get_z() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_z(float) {return;}
+  virtual void set_z(float) { return; }
 
   virtual float get_chisq() const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_chisq(float) {return;}
+  virtual void set_chisq(float) { return; }
 
   virtual unsigned int get_ndof() const { return std::numeric_limits<unsigned int>::max(); }
-  virtual void set_ndof(unsigned int) {return;}
+  virtual void set_ndof(unsigned int) { return; }
 
   virtual float get_position(unsigned int /*coor*/) const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_position(unsigned int /*coor*/, float /*xi*/) {return;}
+  virtual void set_position(unsigned int /*coor*/, float /*xi*/) { return; }
 
   virtual float get_error(unsigned int /*i*/, unsigned int /*j*/) const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_error(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {return;}
+  virtual void set_error(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) { return; }
 
   virtual unsigned int get_beam_crossing() const { return std::numeric_limits<unsigned int>::max(); }
-  virtual void set_beam_crossing(unsigned int) {return;}
+  virtual void set_beam_crossing(unsigned int) { return; }
 
   virtual bool empty_vtxs() const { return true; }
   virtual size_t size_vtxs() const { return 0; }
   virtual size_t count_vtxs(VTXTYPE) const { return 0; }
-  virtual void clear_vtxs() {return;}
-  virtual void insert_vtx(VTXTYPE, const Vertex*) {return;}
+  virtual void clear_vtxs() { return; }
+  virtual void insert_vtx(VTXTYPE, const Vertex*) { return; }
   virtual size_t erase_vtxs(VTXTYPE) { return 0; }
-  virtual void erase_vtxs(VertexIter) {return;}
+  virtual void erase_vtxs(VertexIter) { return; }
 
   virtual ConstVertexIter begin_vertexes() const;
   virtual ConstVertexIter find_vertexes(VTXTYPE type) const;
@@ -104,11 +104,11 @@ class GlobalVertex : public PHObject
   virtual size_t size_vtxids() const { return 0; }
   virtual size_t count_vtxids(VTXTYPE /*type*/) const { return 0; }
 
-  virtual void clear_vtxids() {return;}
-  virtual void insert_vtxids(VTXTYPE /*type*/, unsigned int /*vtxid*/) {return;}
+  virtual void clear_vtxids() { return; }
+  virtual void insert_vtxids(VTXTYPE /*type*/, unsigned int /*vtxid*/) { return; }
   virtual size_t erase_vtxids(VTXTYPE /*type*/) { return 0; }
-  virtual void erase_vtxids(VtxIter /*iter*/) {return;}
-  virtual void erase_vtxids(VtxIter /*first*/, VtxIter /*last*/) {return;}
+  virtual void erase_vtxids(VtxIter /*iter*/) { return; }
+  virtual void erase_vtxids(VtxIter /*first*/, VtxIter /*last*/) { return; }
 
   virtual ConstVtxIter begin_vtxids() const;
   virtual ConstVtxIter find_vtxids(VTXTYPE type) const;

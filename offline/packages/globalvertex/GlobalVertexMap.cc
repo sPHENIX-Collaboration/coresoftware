@@ -4,7 +4,7 @@
 
 namespace
 {
-  std::map<unsigned int, GlobalVertex*> DummyGlobalVertexMap;
+  std::map<unsigned int, GlobalVertex *> DummyGlobalVertexMap;
 }
 
 GlobalVertexMap::ConstIter GlobalVertexMap::begin() const

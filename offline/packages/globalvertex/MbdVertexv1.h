@@ -39,11 +39,11 @@ class MbdVertexv1 : public MbdVertex
   void set_z_err(float z_err) override { _z_err = z_err; }
 
  private:
-  unsigned int _id {std::numeric_limits<unsigned int>::max()};  //< unique identifier within container
-  float _t {std::numeric_limits<float>::quiet_NaN()};          //< collision time
-  float _t_err {std::numeric_limits<float>::quiet_NaN()};      //< collision time uncertainty
-  float _z {std::numeric_limits<float>::quiet_NaN()};          //< collision position z
-  float _z_err {std::numeric_limits<float>::quiet_NaN()};      //< collision position z uncertainty
+  unsigned int _id{std::numeric_limits<unsigned int>::max()};  //< unique identifier within container
+  float _t{std::numeric_limits<float>::quiet_NaN()};           //< collision time
+  float _t_err{std::numeric_limits<float>::quiet_NaN()};       //< collision time uncertainty
+  float _z{std::numeric_limits<float>::quiet_NaN()};           //< collision position z
+  float _z_err{std::numeric_limits<float>::quiet_NaN()};       //< collision position z uncertainty
 
   ClassDefOverride(MbdVertexv1, 1);
 };

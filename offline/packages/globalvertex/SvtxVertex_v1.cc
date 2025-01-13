@@ -9,7 +9,7 @@ SvtxVertex_v1::SvtxVertex_v1()
   std::fill(std::begin(_err), std::end(_err), std::numeric_limits<float>::quiet_NaN());
 }
 
-void SvtxVertex_v1::identify(std::ostream& os) const
+void SvtxVertex_v1::identify(std::ostream &os) const
 {
   os << "---SvtxVertex_v1--------------------" << std::endl;
   os << "vertexid: " << get_id() << std::endl;

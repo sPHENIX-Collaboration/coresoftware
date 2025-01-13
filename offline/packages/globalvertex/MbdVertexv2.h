@@ -48,12 +48,12 @@ class MbdVertexv2 : public MbdVertex
   void set_beam_crossing(unsigned int bco) override { _bco = bco; }
 
  private:
-  unsigned int _id {std::numeric_limits<unsigned int>::max()};   //< unique identifier within container
-  unsigned int _bco {std::numeric_limits<unsigned int>::max()};  //< global bco
-  float _t {std::numeric_limits<float>::quiet_NaN()};           //< collision time
-  float _t_err {std::numeric_limits<float>::quiet_NaN()};       //< collision time uncertainty
-  float _z {std::numeric_limits<float>::quiet_NaN()};           //< collision position z
-  float _z_err {std::numeric_limits<float>::quiet_NaN()};       //< collision position z uncertainty
+  unsigned int _id{std::numeric_limits<unsigned int>::max()};   //< unique identifier within container
+  unsigned int _bco{std::numeric_limits<unsigned int>::max()};  //< global bco
+  float _t{std::numeric_limits<float>::quiet_NaN()};            //< collision time
+  float _t_err{std::numeric_limits<float>::quiet_NaN()};        //< collision time uncertainty
+  float _z{std::numeric_limits<float>::quiet_NaN()};            //< collision position z
+  float _z_err{std::numeric_limits<float>::quiet_NaN()};        //< collision position z uncertainty
 
   ClassDefOverride(MbdVertexv2, 1);
 };

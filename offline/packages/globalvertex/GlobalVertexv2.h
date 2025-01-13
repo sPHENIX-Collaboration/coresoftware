@@ -64,9 +64,9 @@ class GlobalVertexv2 : public GlobalVertex
   GlobalVertex::VertexIter end_vertexes() override { return _vtxs.end(); }
 
  private:
-  unsigned int _id {std::numeric_limits<unsigned int>::max()};
-  unsigned int _bco {std::numeric_limits<unsigned int>::max()};   //< global bco
-  std::map<GlobalVertex::VTXTYPE, VertexVector> _vtxs;  //< list of vtxs
+  unsigned int _id{std::numeric_limits<unsigned int>::max()};
+  unsigned int _bco{std::numeric_limits<unsigned int>::max()};  //< global bco
+  std::map<GlobalVertex::VTXTYPE, VertexVector> _vtxs;          //< list of vtxs
 
   ClassDefOverride(GlobalVertexv2, 2);
 };
