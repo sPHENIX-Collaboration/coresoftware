@@ -3,7 +3,6 @@
 #include "GlobalVertex.h"
 #include "GlobalVertexMap.h"
 
-#include <iterator>  // for reverse_iterator
 #include <utility>   // for pair, make_pair
 
 GlobalVertexMapv1::~GlobalVertexMapv1()

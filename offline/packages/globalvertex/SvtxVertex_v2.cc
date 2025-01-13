@@ -1,6 +1,8 @@
 #include "SvtxVertex_v2.h"
 
+#include <algorithm>
 #include <cmath>
+#include <iterator>
 #include <utility>  // for swap
 
 SvtxVertex_v2::SvtxVertex_v2()

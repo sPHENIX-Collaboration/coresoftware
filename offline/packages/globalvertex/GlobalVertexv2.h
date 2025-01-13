@@ -9,7 +9,6 @@
 #include <iostream>
 #include <limits>
 #include <map>
-#include <utility>  // for pair, make_pair
 
 class PHObject;
 

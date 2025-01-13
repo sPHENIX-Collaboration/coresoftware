@@ -1,5 +1,7 @@
 #include "MbdVertexv2.h"
 
+#include <cmath>
+
 void MbdVertexv2::identify(std::ostream& os) const
 {
   os << "---MbdVertexv2--------------------------------" << std::endl;

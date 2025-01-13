@@ -6,6 +6,8 @@
 #include "SvtxVertex.h"
 
 #include <phool/PHObject.h>
+
+#include <cstddef>
 #include <iostream>
 #include <map>
 

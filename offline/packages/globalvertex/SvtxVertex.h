@@ -5,10 +5,9 @@
 
 #include "Vertex.h"
 
+#include <cstddef>
 #include <iostream>
 #include <limits>
-#include <set>
-#include <vector>
 
 class SvtxVertex : public Vertex
 {

@@ -7,6 +7,7 @@
 
 #include <cstddef>  // for size_t
 #include <iostream>
+#include <limits>
 #include <set>
 
 class PHObject;
@@ -15,7 +16,7 @@ class SvtxVertex_v1 : public SvtxVertex
 {
  public:
   SvtxVertex_v1();
-  ~SvtxVertex_v1() override {}
+  ~SvtxVertex_v1() override = default;
 
   // PHObject virtual overloads
 

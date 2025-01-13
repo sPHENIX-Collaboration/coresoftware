@@ -6,6 +6,7 @@
 #include "MbdVertex.h"
 
 #include <iostream>
+#include <limits>
 
 class MbdVertexv2 : public MbdVertex
 {

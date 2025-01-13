@@ -1,7 +1,6 @@
 #include "MbdVertexMapv1.h"
 
 #include "MbdVertex.h"
-#include "MbdVertexMap.h"
 
 #include <iterator>  // for reverse_iterator
 #include <utility>   // for pair, make_pair

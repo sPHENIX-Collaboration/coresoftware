@@ -5,10 +5,10 @@
 
 #include <phool/PHObject.h>
 
+#include <cstddef>
 #include <limits>
 #include <iostream>
 #include <set>
-#include <vector>
 
 class Vertex : public PHObject
 {

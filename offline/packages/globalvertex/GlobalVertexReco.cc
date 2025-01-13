@@ -26,6 +26,7 @@
 #include <cmath>
 #include <cstdlib>  // for exit
 #include <iostream>
+#include <limits>
 #include <set>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 
